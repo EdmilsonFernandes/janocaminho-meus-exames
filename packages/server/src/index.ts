@@ -12,6 +12,7 @@ import analysisRoutes from './routes/analysis.routes';
 import chatRoutes from './routes/chat.routes';
 import reminderRoutes from './routes/reminder.routes';
 import billingRoutes from './routes/billing.routes';
+import measurementRoutes from './routes/measurement.routes';
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use('/api/analyses', analysisRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/reminders', reminderRoutes);
 app.use('/api/billing', billingRoutes);
+app.use('/api/measurements', measurementRoutes);
 
 // Em produção: serve o build do front (SPA) no mesmo container (1 domínio só)
 if (config.isProd) {

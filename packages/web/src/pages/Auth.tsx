@@ -72,7 +72,7 @@ export const LoginPage = () => {
       if (d.patientId) localStorage.setItem('patientId', d.patientId);
       localStorage.setItem('user', JSON.stringify(d.user));
       notify('Bem-vindo! 🎉', { type: 'success' });
-      setTimeout(() => window.location.reload(), 200);
+      window.location.href = '/'; // navegação completa garante que o react-admin reinicia logado
     } catch (err: any) {
       notify(err.message, { type: 'error' });
     } finally { setLoading(false); }
@@ -137,8 +137,7 @@ export const RegisterPage = () => {
       if (d.patientId) localStorage.setItem('patientId', d.patientId);
       localStorage.setItem('user', JSON.stringify(d.user));
       notify('Conta criada! Bem-vindo. 🎉', { type: 'success' });
-      navigate('/');
-      setTimeout(() => window.location.reload(), 200);
+      window.location.href = '/'; // navegação completa garante redirect pro dashboard
     } catch (err: any) {
       notify(err.message, { type: 'error' });
     } finally {

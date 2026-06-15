@@ -43,9 +43,12 @@ model Patient {
   // Perfil clínico livre (condições, medicações, histórico) — alimenta a IA de saúde.
   // Ex.: "Sem tireoide; usa levotiroxina (Levoid); usa testosterona; usa tirzepatida (Mounjaro)."
   clinicalProfile String?
+  phone        String?
+  photoUrl     String?
   createdAt    DateTime  @default(now())
   exams        Exam[]
   reminders    Reminder[]
+  measurements Measurement[]
 
   @@index([ownerId])
   @@map("patients")
@@ -200,4 +203,20 @@ model Reminder {
 
   @@index([patientId, dueDate])
   @@map("reminders")
+}
+
+model Measurement {
+  id              String   @id @default(cuid())
+  patientId       String
+  patient         Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  type            String   // BLOOD_PRESSURE | WEIGHT | GLUCOSE | HEART_RATE | OTHER
+  value           Float
+  valueSecondary  Float?   // sistólica (quando type=BLOOD_PRESSURE)
+  unit            String
+  measuredAt      DateTime
+  note            String?
+  createdAt       DateTime @default(now())
+
+  @@index([patientId, type, measuredAt])
+  @@map("measurements")
 }

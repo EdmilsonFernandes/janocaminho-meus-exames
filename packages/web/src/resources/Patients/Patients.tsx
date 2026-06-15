@@ -19,6 +19,8 @@ export const PatientEdit = () => (
     <SimpleForm>
       <TextInput source="fullName" label="Nome completo" fullWidth />
       <TextInput source="relationship" label="Parentesco (Titular, Filha, Mãe...)" fullWidth />
+      <TextInput source="phone" label="Telefone / WhatsApp" fullWidth />
+      <TextInput source="photoUrl" label="Foto (URL)" fullWidth helperText="Cole o link de uma foto de perfil" />
       <DateInput source="dateOfBirth" label="Data de nascimento" />
       <TextInput
         source="clinicalProfile"

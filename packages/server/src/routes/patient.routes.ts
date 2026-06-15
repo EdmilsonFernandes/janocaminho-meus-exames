@@ -89,12 +89,14 @@ router.put('/:id', async (req: AuthedRequest, res, next) => {
       res.status(403).json({ error: 'Paciente não pertence ao usuário' });
       return;
     }
-    const { fullName, relationship, dateOfBirth, clinicalProfile } = req.body ?? {};
+    const { fullName, relationship, dateOfBirth, clinicalProfile, phone, photoUrl } = req.body ?? {};
     const data: any = {};
     if (fullName != null) data.fullName = String(fullName);
     if (relationship !== undefined) data.relationship = relationship ? String(relationship) : null;
     if (dateOfBirth !== undefined) data.dateOfBirth = dateOfBirth ? new Date(dateOfBirth) : null;
     if (clinicalProfile != null) data.clinicalProfile = String(clinicalProfile);
+    if (phone !== undefined) data.phone = phone ? String(phone) : null;
+    if (photoUrl !== undefined) data.photoUrl = photoUrl ? String(photoUrl) : null;
     const updated = await prisma.patient.update({ where: { id }, data });
     res.json(updated);
   } catch (e) {
