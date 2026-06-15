@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { prisma } from '../prisma';
-import { requireAuth, AuthedRequest } from '../middleware/auth';
+import { requireAuth, requirePlan, AuthedRequest } from '../middleware/auth';
 import { generateHealthSummary, loadExamContext } from '../analysis/health-summary';
 import { streamChat } from '../analysis/chat';
 import { parseListParams, setListHeaders } from '../utils/list';
@@ -9,13 +9,16 @@ const router = Router();
 router.use(requireAuth);
 
 // CRIAR resumo de um exame (SUMMARY)
-router.post('/', async (req: AuthedRequest, res, next) => {
+router.post('/', requirePlan, async (req: AuthedRequest, res, next) => {
   try {
     const { examId } = req.body ?? {};
     if (!examId) {
       res.status(400).json({ error: 'examId obrigatório' });
       return;
     }
+    // 1 resumo por exame: se já existe, devolve (não gasta tokens de novo)
+    const existing = await prisma.aiAnalysis.findFirst({ where: { examId, type: 'SUMMARY' }, orderBy: { createdAt: 'desc' } });
+    if (existing) { res.json(existing); return; }
     const { summary, contentMd, modelUsed, usage } = await generateHealthSummary(examId);
     const analysis = await prisma.aiAnalysis.create({
       data: {
@@ -67,7 +70,7 @@ router.get('/:id', async (req, res, next) => {
 });
 
 // CHAT num resumo (thread) — streaming SSE
-router.post('/:id/chat', async (req: AuthedRequest, res, next) => {
+router.post('/:id/chat', requirePlan, async (req: AuthedRequest, res, next) => {
   try {
     const parent = await prisma.aiAnalysis.findUnique({ where: { id: String(req.params.id) } });
     if (!parent || !parent.examId) {

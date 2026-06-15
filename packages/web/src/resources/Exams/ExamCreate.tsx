@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Box, Card, CardContent, Button, TextField, Typography, Alert, Chip, Stack, LinearProgress } from '@mui/material';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
-import { Title, useNotify, useRedirect } from 'react-admin';
+import { Title, useNotify, useRedirect, useRefresh } from 'react-admin';
 import { API_URL, token } from '../../config';
 import { useSelectedPatient } from '../../patient-context';
 import { Capacitor } from '@capacitor/core';
@@ -35,6 +35,7 @@ export const ExamCreate = () => {
   const [progress, setProgress] = useState<{ done: number; total: number; errors: string[] } | null>(null);
   const notify = useNotify();
   const redirect = useRedirect();
+  const refresh = useRefresh();
 
   const onPick = (list: FileList | null) => {
     if (!list) return;
@@ -84,6 +85,7 @@ export const ExamCreate = () => {
       notify('Nenhum envio concluído.', { type: 'error' });
     } else {
       notify(`${files.length - errors.length} de ${files.length} exame(s) enviado(s) e extraindo.`, { type: 'success' });
+      refresh();
       redirect('list', 'exams');
     }
   };

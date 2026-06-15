@@ -73,6 +73,11 @@ export const ExamShow = () => {
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
         body: JSON.stringify({ examId: id }),
       });
+      if (r.status === 402) {
+        notify('💎 Para gerar o resumo com IA (comparativo + Dr. Exame), assine o Premium.', { type: 'warning' });
+        setGenLoading(false);
+        return;
+      }
       if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.error || 'Falha'); }
       const analysis = await r.json();
       setExam({ ...exam, analyses: [analysis, ...(exam.analyses ?? [])] });
@@ -151,6 +156,12 @@ export const ExamShow = () => {
             {exam.sourceLab ? ` • ${exam.sourceLab}` : ''}
             {exam.pageCount ? ` • ${exam.pageCount} pág.` : ''}
           </Typography>
+          {(exam.rawExtraction?.patientName || exam.rawExtraction?.requestingDoctor) && (
+            <Typography color="text.secondary" sx={{ fontSize: '0.85rem', mt: 0.5 }}>
+              {exam.rawExtraction?.patientName ? `👤 ${exam.rawExtraction.patientName}` : ''}
+              {exam.rawExtraction?.requestingDoctor ? ` • 🩺 ${exam.rawExtraction.requestingDoctor}` : ''}
+            </Typography>
+          )}
 
           {exam.status === 'FAILED' && (
             <Alert severity="error" sx={{ mt: 2 }}>

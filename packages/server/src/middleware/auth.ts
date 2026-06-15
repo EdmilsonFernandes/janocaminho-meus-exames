@@ -38,3 +38,14 @@ export async function firstPatientId(userId: string): Promise<string | null> {
   const p = await prisma.patient.findFirst({ where: { ownerId: userId }, select: { id: true } });
   return p?.id ?? null;
 }
+
+/** Middleware que exige plano PREMIUM ativo (para recursos pagos: resumo IA, chat, etc). */
+export async function requirePlan(req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
+  const user = await prisma.user.findUnique({ where: { id: req.userId! }, select: { planExpiresAt: true } });
+  const active = !!user?.planExpiresAt && user.planExpiresAt > new Date();
+  if (!active) {
+    res.status(402).json({ error: 'plan_required', message: 'Este recurso é Premium. Assine para usar.' });
+    return;
+  }
+  next();
+}

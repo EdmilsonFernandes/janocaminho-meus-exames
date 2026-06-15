@@ -19,8 +19,8 @@ export const Dashboard = () => {
     (async () => {
       const h = { Authorization: `Bearer ${token()}` };
       try {
-        const q = pid ? `?patientId=${pid}` : '';
-        const e = await fetch(`${API_URL}/exams${q}&_start=0&_end=1`.replace('?&', '?'), { headers: h });
+        const pidQ = pid ? `&patientId=${pid}` : '';
+        const e = await fetch(`${API_URL}/exams?_start=0&_end=1${pidQ}`, { headers: h });
         const a = await fetch(`${API_URL}/items?abnormal=true&_start=0&_end=1${pid ? `&patientId=${pid}` : ''}`, { headers: h });
         setStats({ exams: readTotal(e), abnormal: readTotal(a) });
       } catch { /* ignore */ }

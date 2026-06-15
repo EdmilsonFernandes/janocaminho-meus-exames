@@ -7,6 +7,7 @@ import {
 import { issueOtp, verifyOtp } from '../auth/otp';
 import { requireAuth, AuthedRequest, firstPatientId } from '../middleware/auth';
 import { sendEmail } from '../utils/mailer';
+import { otpEmail, resetEmail } from '../utils/emailTemplate';
 
 const router = Router();
 
@@ -73,8 +74,7 @@ router.post('/forgot', async (req, res, next) => {
       await sendEmail({
         to: user.email,
         subject: 'Redefinição de senha — Meus Exames',
-        text: `Olá ${user.name}!\n\nUse o link abaixo para redefinir sua senha (vale por 30 min):\n${link}\n\nSe não foi você, ignore este e-mail.`,
-        html: `<p>Olá <strong>${user.name}</strong>!</p><p>Use o botão abaixo para redefinir sua senha (vale por 30 minutos):</p><p><a href="${link}" style="padding:10px 18px;background:#0b5cab;color:#fff;border-radius:8px;text-decoration:none">Redefinir senha</a></p><p style="color:#888;font-size:12px">Se não foi você, ignore este e-mail.</p>`,
+        html: resetEmail(user.name, link),
       }).catch((e) => console.error('[forgot] e-mail falhou:', e?.message));
     }
     res.json({ ok: true, message: 'Se o e-mail existir, enviamos o link de redefinição.' });
@@ -108,8 +108,7 @@ router.post('/otp/request', async (req, res, next) => {
     await sendEmail({
       to: email,
       subject: 'Seu código de acesso — Meus Exames',
-      text: `Seu código de acesso é: ${code}\nEle vale por 10 minutos.`,
-      html: `<p>Seu código de acesso é:</p><p style="font-size:30px;font-weight:800;letter-spacing:6px">${code}</p><p style="color:#888">Vale por 10 minutos.</p>`,
+      html: otpEmail(email.split('@')[0], code),
     }).catch((e) => console.error('[otp] e-mail falhou:', e?.message));
     res.json({ ok: true, message: 'Se o e-mail for válido, enviamos o código.' });
   } catch (e) { next(e); }

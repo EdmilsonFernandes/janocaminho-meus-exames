@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Box, Select, MenuItem, FormControl, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, InputLabel } from '@mui/material';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import { API_URL, token } from '../config';
@@ -9,6 +10,7 @@ const RELACOES = ['Titular', 'Cônjuge', 'Filho(a)', 'Mãe', 'Pai', 'Irmão(ã)'
 /** Seletor de paciente/dependente (escopo dos exames, tendências etc.). */
 export const PatientSwitcher = () => {
   const [pid, setSel] = useSelectedPatient();
+  const navigate = useNavigate();
   const [patients, setPatients] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
@@ -41,7 +43,7 @@ export const PatientSwitcher = () => {
   return (
     <Box sx={{ px: 2, py: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
       <FormControl size="small" sx={{ flex: 1 }}>
-        <Select value={pid ?? ''} onChange={(e) => setSel(e.target.value as string)} displayEmpty sx={{ fontSize: 14 }}>
+        <Select value={pid ?? ''} onChange={(e) => { setSel(e.target.value as string); navigate('/'); }} displayEmpty sx={{ fontSize: 14 }}>
           {patients.map((p) => (
             <MenuItem key={p.id} value={p.id}>
               {p.fullName}{p.relationship ? ` (${p.relationship})` : ''}
