@@ -117,7 +117,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
         )}
 
         {/* Comparativo */}
-        {structured.comparativo?.length > 0 && (
+        {structured.comparativo && structured.comparativo.length > 0 && (
           <SectionCard icon="📊" title="Comparativo (anterior × atual)" color="#1565c0">
             <TableContainer component={Paper} variant="outlined" sx={{ border: 'none' }}>
               <Table size="small">

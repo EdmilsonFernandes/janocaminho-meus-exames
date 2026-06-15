@@ -26,7 +26,7 @@ export const ExamList = () => {
   const [pid] = useSelectedPatient();
   return (
   <List sort={{ field: 'performedAt', order: 'DESC' }} exporter={false} perPage={25} filter={{ patientId: pid || 'none' }}>
-    <Datagrid bulkActionButtons={false}>
+    <Datagrid rowClick="show">
       <TextField source="title" label="Exame" />
       <FunctionField label="Tipo" render={(r: any) => kindLabel[r.kind] ?? r.kind} />
       <DateField source="performedAt" label="Data" locales="pt-BR" />

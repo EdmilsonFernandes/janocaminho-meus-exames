@@ -6,6 +6,7 @@ import { config, hasAnthropicKey } from './config';
 import { prisma } from './prisma';
 import { errorHandler, notFound } from './middleware/errorHandler';
 import { emailTemplate } from './utils/emailTemplate';
+import { startReminderEmailJob } from './jobs/reminderEmails';
 import authRoutes from './routes/auth.routes';
 import patientRoutes from './routes/patient.routes';
 import examRoutes from './routes/exam.routes';
@@ -72,6 +73,7 @@ app.use(errorHandler);
 
 app.listen(config.port, () => {
   console.log(`[server] rodando em http://localhost:${config.port} (env=${config.nodeEnv})`);
+  startReminderEmailJob();
   if (!hasAnthropicKey()) {
     console.warn(
       '[server] AVISO: ANTHROPIC_API_KEY não configurada. Extração e análise de IA ficarão indisponíveis até definir a chave em packages/server/.env',
