@@ -1,7 +1,10 @@
-import { Dialog, DialogTitle, DialogContent, Typography, IconButton, Box } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, Typography, IconButton, Box, keyframes } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { explainExam } from '../data/examDictionary';
+import { DrExame } from './DrExame';
+
+const bounce = keyframes`0%,100%{transform:translateY(0) rotate(0)}25%{transform:translateY(-6px) rotate(-3deg)}75%{transform:translateY(-4px) rotate(3deg)}`;
 
 interface Props {
   open: boolean;
@@ -17,7 +20,13 @@ export const ExplainItem = ({ open, item, onClose }: Props) => {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
       <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pr: 1 }}>
-        <span>🧠 {titulo}</span>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <DrExame size={42} sx={{ animation: `${bounce} 1.5s ease-in-out infinite` }} />
+          <Box>
+            <Typography component="span" sx={{ fontWeight: 800, fontSize: '1.15rem' }}>{titulo}</Typography>
+            <Typography component="div" sx={{ fontSize: '0.8rem', color: 'text.secondary' }}>Dr. Exame explica</Typography>
+          </Box>
+        </Box>
         <IconButton onClick={onClose} size="small"><CloseIcon /></IconButton>
       </DialogTitle>
       <DialogContent dividers>
