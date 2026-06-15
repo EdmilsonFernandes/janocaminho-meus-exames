@@ -43,12 +43,6 @@ export const TrendsPage = () => {
   }, [sel, pid]);
 
   const data = (ts?.points ?? []).map((p) => ({
-    name: p.performedAt ? new Date(p.performedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }) : 's/d',
-    valor: p.valueNumeric,
-    flag: p.flag,
-    title: p.title,
-  }));
-
   // Previsão de tendência (regressão linear)
   const predict = (() => {
     const pts = ts?.points ?? [];
@@ -69,6 +63,7 @@ export const TrendsPage = () => {
     if (daysFromNow <= 0 || daysFromNow > 1825) return { dir };
     return { dir, months: Math.round(daysFromNow / 30), ref };
   })();
+  const data = (ts?.points ?? []).map((p) => ({
     name: p.performedAt ? new Date(p.performedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }) : 's/d',
     valor: p.valueNumeric,
     flag: p.flag,

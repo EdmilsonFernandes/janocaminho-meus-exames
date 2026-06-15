@@ -152,7 +152,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
         )}
 
         {/* Pontos de atenção */}
-        {structured.pontosAtencao?.length > 0 && (
+        {structured.pontosAtencao && structured.pontosAtencao.length > 0 && (
           <SectionCard icon="🚩" title="Pontos que merecem atenção" color="#e65100">
             {structured.pontosAtencao.map((p, i) => (
               <Box key={i} sx={{ mb: 1.5, '&:last-child': { mb: 0 } }}>
@@ -164,7 +164,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
         )}
 
         {/* Coisas boas */}
-        {structured.coisasBoas?.length > 0 && (
+        {structured.coisasBoas && structured.coisasBoas.length > 0 && (
           <SectionCard icon="✅" title="Coisas boas" color="#2e7d32">
             <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
               {structured.coisasBoas.map((b, i) => <Chip key={i} sx={{ bgcolor: '#2e7d3215', color: '#2e7d32', fontWeight: 600 }} label={b} />)}
@@ -181,7 +181,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
         )}
 
         {/* Perguntas */}
-        {structured.perguntasParaOMedico?.length > 0 && (
+        {structured.perguntasParaOMedico && structured.perguntasParaOMedico.length > 0 && (
           <SectionCard icon="🩺" title="Perguntas para levar ao médico" color="#7b1fa2">
             {structured.perguntasParaOMedico.map((q, i) => (
               <Typography key={i} sx={{ py: 0.5, pl: 1, borderLeft: '3px solid #7b1fa233' }}>{i + 1}. {q}</Typography>
