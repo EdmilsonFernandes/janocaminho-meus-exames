@@ -49,6 +49,32 @@ export const TrendsPage = () => {
     title: p.title,
   }));
 
+  // Previsão de tendência (regressão linear)
+  const predict = (() => {
+    const pts = ts?.points ?? [];
+    if (pts.length < 2) return null;
+    const t0 = new Date(pts[0].performedAt ?? Date.now()).getTime();
+    const xs = pts.map(p => (new Date(p.performedAt ?? Date.now()).getTime() - t0) / 86400000);
+    const ys = pts.map(p => p.valueNumeric);
+    const n = xs.length, sx = xs.reduce((a,b)=>a+b,0), sy = ys.reduce((a,b)=>a+b,0);
+    const sxy = xs.reduce((a,_,i)=>a+xs[i]*ys[i],0), sxx = xs.reduce((a,x)=>a+x*x,0);
+    const slope = (n*sxy - sx*sy) / (n*sxx - sx*sx);
+    if (Math.abs(slope) < 0.0001) return { dir: 'stable' as const };
+    const intercept = (sy - slope*sx) / n;
+    const dir = slope > 0 ? 'up' as const : 'down' as const;
+    const ref = dir === 'up' ? ts?.refHigh : ts?.refLow;
+    if (ref == null) return { dir };
+    const daysExit = (ref - intercept) / slope;
+    const daysFromNow = daysExit - xs[xs.length-1];
+    if (daysFromNow <= 0 || daysFromNow > 1825) return { dir };
+    return { dir, months: Math.round(daysFromNow / 30), ref };
+  })();
+    name: p.performedAt ? new Date(p.performedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }) : 's/d',
+    valor: p.valueNumeric,
+    flag: p.flag,
+    title: p.title,
+  }));
+
   return (
     <Box>
       <Title title="Tendências" />
@@ -90,6 +116,22 @@ export const TrendsPage = () => {
                   <Line type="monotone" dataKey="valor" stroke="#1565c0" strokeWidth={2} dot={{ r: 4 }} />
                 </LineChart>
               </ResponsiveContainer>
+              {predict && predict.dir !== 'stable' && predict.months && (
+                <Box sx={{ mt: 2, p: 1.5, borderRadius: 2, background: predict.dir === 'up' ? 'rgba(230,81,0,.08)' : 'rgba(11,92,171,.08)', border: `1px solid ${predict.dir === 'up' ? '#e6510033' : '#0b5cab33'}` }}>
+                  <Typography sx={{ fontWeight: 700, color: predict.dir === 'up' ? '#e65100' : '#0b5cab', fontSize: '1rem' }}>
+                    📈 Tendência: {predict.dir === 'up' ? 'subindo' : 'caindo'}
+                  </Typography>
+                  <Typography variant="body2" sx={{ mt: 0.5 }}>
+                    Neste ritmo, {ts?.nameCanonical} {predict.dir === 'up' ? 'ultrapassa' : 'fica abaixo de'} a faixa de referência em <strong>~{predict.months} {predict.months === 1 ? 'mês' : 'meses'}</strong>.
+                  </Typography>
+                </Box>
+              )}
+              {predict && predict.dir === 'stable' && (
+                <Box sx={{ mt: 2, p: 1.5, borderRadius: 2, background: 'rgba(46,125,50,.08)' }}>
+                  <Typography sx={{ color: '#2e7d32', fontWeight: 600 }}>✅ Tendência estável — sem projeção de alteração.</Typography>
+                </Box>
+              )}
+
               <Box sx={{ mt: 2 }}>
                 <Typography variant="subtitle2">Pontos</Typography>
                 {data.map((d, i) => (
