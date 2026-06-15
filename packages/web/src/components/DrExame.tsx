@@ -1,11 +1,11 @@
 import { Box } from '@mui/material';
 
-/** Mascote Dr. Exame (robô-doutor). Usa import.meta.env.BASE_URL pra funcionar em sub-caminho e no APK. */
+/** Mascote da marca (mesma identidade do ecossistema EdEspeto). */
 export const DrExame = ({ size = 64, sx }: { size?: number; sx?: any }) => (
   <Box
     component="img"
-    src={`${import.meta.env.BASE_URL}dr-exame.svg`}
+    src={`${import.meta.env.BASE_URL}brand.jpg`}
     alt="Dr. Exame"
-    sx={{ width: size, height: size, display: 'block', ...sx }}
+    sx={{ width: size, height: size, display: 'block', borderRadius: '18%', objectFit: 'cover', ...sx }}
   />
 );

@@ -2,7 +2,6 @@ import { fetchUtils } from 'react-admin';
 import simpleRestProvider from 'ra-data-simple-rest';
 import { API_URL, token } from './config';
 
-// Injeta o JWT em toda requisição do react-admin.
 const authedHttpClient = (url: RequestInfo, options: fetchUtils.Options = {}) => {
   const headers = new Headers(options.headers || {});
   const t = token();
@@ -10,4 +9,16 @@ const authedHttpClient = (url: RequestInfo, options: fetchUtils.Options = {}) =>
   return fetchUtils.fetchJson(url, { ...options, headers });
 };
 
-export const dataProvider = simpleRestProvider(API_URL, authedHttpClient);
+const rest = simpleRestProvider(API_URL, authedHttpClient);
+
+export const dataProvider = {
+  ...rest,
+  // GARANTE que toda lista de recursos por-paciente inclua o patientId selecionado
+  getList: (resource: string, params: any) => {
+    if (['exams', 'items', 'measurements', 'reminders'].includes(resource)) {
+      const pid = localStorage.getItem('selPatientId') || localStorage.getItem('patientId');
+      if (pid) params.filter = { ...params.filter, patientId: pid };
+    }
+    return rest.getList(resource, params);
+  },
+};
