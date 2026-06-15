@@ -82,13 +82,15 @@ router.post('/', upload.single('file'), async (req: AuthedRequest, res, next) =>
       return;
     }
 
-    // PAYWALL: free limit de exames (exceto plano ativo)
+    // PAYWALL: free limit por parentesco (titular 5, dependente 3) — exceto plano ativo
     const me = await prisma.user.findUnique({ where: { id: req.userId! }, select: { planExpiresAt: true } });
     const active = !!me?.planExpiresAt && me.planExpiresAt > new Date();
     if (!active) {
-      const count = await prisma.exam.count({ where: { patient: { ownerId: req.userId! } } });
-      if (count >= config.freeExamLimit) {
-        res.status(402).json({ error: 'free_limit', message: 'Você atingiu o limite do plano gratuito. Assine para enviar mais exames.', limit: config.freeExamLimit });
+      const pat = await prisma.patient.findUnique({ where: { id: patientId }, select: { relationship: true } });
+      const limit = pat?.relationship === 'Titular' ? 5 : 3;
+      const count = await prisma.exam.count({ where: { patientId } });
+      if (count >= limit) {
+        res.status(402).json({ error: 'free_limit', message: `Você atingiu o limite de ${limit} exames gratuitos${pat?.relationship === 'Titular' ? '' : ' por dependente'}. Assine para enviar mais.`, limit });
         return;
       }
     }

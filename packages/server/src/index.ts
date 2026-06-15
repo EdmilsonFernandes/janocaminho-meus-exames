@@ -3,7 +3,9 @@ import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
 import { config, hasAnthropicKey } from './config';
+import { prisma } from './prisma';
 import { errorHandler, notFound } from './middleware/errorHandler';
+import { emailTemplate } from './utils/emailTemplate';
 import authRoutes from './routes/auth.routes';
 import patientRoutes from './routes/patient.routes';
 import examRoutes from './routes/exam.routes';
@@ -31,6 +33,21 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/reminders', reminderRoutes);
 app.use('/api/billing', billingRoutes);
 app.use('/api/measurements', measurementRoutes);
+
+// ROTA PÚBLICA: médico vê o resumo compartilhado (sem login)
+app.get('/api/public/shared/:token', async (req, res) => {
+  const a = await prisma.aiAnalysis.findFirst({
+    where: { shareToken: String(req.params.token), type: 'SUMMARY' },
+    include: { exam: { select: { title: true, performedAt: true, patient: { select: { fullName: true } } } } },
+  });
+  if (!a) { res.status(404).type('html').send('<h1 style="font-family:sans-serif;text-align:center;margin-top:40px">Link inválido ou expirado.</h1>'); return; }
+  const date = a.exam?.performedAt ? new Date(a.exam.performedAt as Date).toLocaleDateString('pt-BR') : '';
+  res.type('html').send(emailTemplate({
+    title: `Resumo — ${a.exam?.title ?? 'Exame'}`,
+    preheader: `${a.exam?.patient?.fullName ?? ''} • ${date}`,
+    content: `<div style="white-space:pre-wrap;font-size:15px;color:#15233b;line-height:1.7">${a.contentMd}</div>`,
+  }));
+});
 
 // Em produção: serve o build do front (SPA) no mesmo container (1 domínio só)
 if (config.isProd) {

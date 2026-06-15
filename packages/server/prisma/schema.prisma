@@ -162,6 +162,7 @@ model AiAnalysis {
   // encadeia turnos de chat sob um resumo
   parentAnalysisId String?
   userMessage      String?
+  shareToken       String?       @unique  // link temporário pro médico ver
   createdAt        DateTime      @default(now())
 
   @@index([examId, type, createdAt])

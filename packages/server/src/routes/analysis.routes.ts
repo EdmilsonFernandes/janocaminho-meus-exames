@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import crypto from 'crypto';
 import { prisma } from '../prisma';
 import { requireAuth, requirePlan, AuthedRequest } from '../middleware/auth';
 import { generateHealthSummary, loadExamContext } from '../analysis/health-summary';
@@ -114,6 +115,18 @@ router.post('/:id/chat', requirePlan, async (req: AuthedRequest, res, next) => {
     if (!res.headersSent) next(e);
     else console.error('[analysis.chat] erro no stream:', e);
   }
+});
+
+// COMPARTILHAR com médico — gera link temporário
+router.post('/:id/share', async (req, res, next) => {
+  try {
+    const a = await prisma.aiAnalysis.findUnique({ where: { id: String(req.params.id) } });
+    if (!a) { res.status(404).json({ error: 'Análise não encontrada' }); return; }
+    const token = a.shareToken || crypto.randomUUID();
+    await prisma.aiAnalysis.update({ where: { id: a.id }, data: { shareToken: token } });
+    const link = `${req.protocol}://${req.get('host')}/api/public/shared/${token}`;
+    res.json({ link });
+  } catch (e) { next(e); }
 });
 
 export default router;
