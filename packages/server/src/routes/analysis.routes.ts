@@ -10,7 +10,7 @@ const router = Router();
 router.use(requireAuth);
 
 // CRIAR resumo de um exame (SUMMARY)
-router.post('/', requirePlan, async (req: AuthedRequest, res, next) => {
+router.post('/', async (req: AuthedRequest, res, next) => {
   try {
     const { examId } = req.body ?? {};
     if (!examId) {
