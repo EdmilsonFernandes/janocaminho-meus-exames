@@ -16,6 +16,7 @@ import chatRoutes from './routes/chat.routes';
 import reminderRoutes from './routes/reminder.routes';
 import billingRoutes from './routes/billing.routes';
 import measurementRoutes from './routes/measurement.routes';
+import vaccineRoutes from './routes/vaccine.routes';
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/reminders', reminderRoutes);
 app.use('/api/billing', billingRoutes);
 app.use('/api/measurements', measurementRoutes);
+app.use('/api/vaccines', vaccineRoutes);
 
 // ROTA PÚBLICA: médico vê o resumo compartilhado (sem login)
 app.get('/api/public/shared/:token', async (req, res) => {

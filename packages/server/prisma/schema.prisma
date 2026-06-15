@@ -49,6 +49,7 @@ model Patient {
   exams        Exam[]
   reminders    Reminder[]
   measurements Measurement[]
+  vaccines     Vaccine[]
 
   @@index([ownerId])
   @@map("patients")
@@ -220,4 +221,19 @@ model Measurement {
 
   @@index([patientId, type, measuredAt])
   @@map("measurements")
+}
+
+model Vaccine {
+  id           String   @id @default(cuid())
+  patientId    String
+  patient      Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  name         String   // "Influenza", "COVID-19", "Tétano"...
+  dateApplied  DateTime
+  nextDoseDate DateTime?
+  lot          String?  // lote da vacina
+  note         String?
+  createdAt    DateTime @default(now())
+
+  @@index([patientId, dateApplied])
+  @@map("vaccines")
 }

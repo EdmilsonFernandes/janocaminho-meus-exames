@@ -5,6 +5,7 @@ import ChatIcon from '@mui/icons-material/MedicalServices';
 import NotificationsIcon from '@mui/icons-material/NotificationsActive';
 import StarIcon from '@mui/icons-material/Star';
 import SpeedIcon from '@mui/icons-material/Speed';
+import VaccinesIcon from '@mui/icons-material/Vaccines';
 import { dataProvider } from './dataProvider';
 import { authProvider } from './authProvider';
 import { theme } from './theme';
@@ -18,6 +19,7 @@ import { ChatPage } from './pages/Chat';
 import { RemindersPage } from './pages/Reminders';
 import { PlansPage } from './pages/Plans';
 import { MeasurementsPage } from './pages/Measurements';
+import { VaccinesPage } from './pages/Vaccines';
 import { LoginPage, RegisterPage, ResetPage } from './pages/Auth';
 import { PatientSwitcher } from './components/PatientSwitcher';
 
@@ -29,6 +31,7 @@ const AppMenu = () => (
     <Menu.Item to="/tendencias" primaryText="Tendências" leftIcon={<ShowChartIcon />} />
     <Menu.Item to="/lembretes" primaryText="Lembretes" leftIcon={<NotificationsIcon />} />
     <Menu.Item to="/medicoes" primaryText="Medições" leftIcon={<SpeedIcon />} />
+    <Menu.Item to="/vacinas" primaryText="Vacinas" leftIcon={<VaccinesIcon />} />
     <Menu.Item to="/chat" primaryText="Assistente de saúde" leftIcon={<ChatIcon />} />
     <Menu.Item to="/planos" primaryText="Planos / Assinar" leftIcon={<StarIcon />} />
   </Menu>
@@ -68,6 +71,7 @@ export const App = () => {
       <Route path="/tendencias" element={<TrendsPage />} />
       <Route path="/lembretes" element={<RemindersPage />} />
       <Route path="/medicoes" element={<MeasurementsPage />} />
+      <Route path="/vacinas" element={<VaccinesPage />} />
       <Route path="/chat" element={<ChatPage />} />
       <Route path="/planos" element={<PlansPage />} />
     </CustomRoutes>

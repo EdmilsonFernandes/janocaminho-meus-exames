@@ -15,7 +15,7 @@ export const dataProvider = {
   ...rest,
   // GARANTE que toda lista de recursos por-paciente inclua o patientId selecionado
   getList: (resource: string, params: any) => {
-    if (['exams', 'items', 'measurements', 'reminders'].includes(resource)) {
+    if (['exams', 'items', 'measurements', 'reminders', 'vaccines'].includes(resource)) {
       const pid = localStorage.getItem('selPatientId') || localStorage.getItem('patientId');
       if (pid) params.filter = { ...params.filter, patientId: pid };
     }
