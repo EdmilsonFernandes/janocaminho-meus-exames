@@ -1,0 +1,29 @@
+# Docker LOCAL — a IMAGEM DE PRODUÇÃO rodando na sua máquina, conectada ao BANCO LOCAL (com seus dados).
+# Não cria outro Postgres: usa o banco de dev que já roda (meus-exames-db, host:5433).
+# É a mesma imagem que vai pro EC2 — só muda o apontamento do banco.
+#
+# Como usar:
+#   docker compose -f docker-compose.local.yml up -d --build
+# Acesse:  http://localhost:4011/   (mesmo login do dev)
+#
+services:
+  app:
+    build:
+      context: .
+      args:
+        # local sem nginx: sem prefixo /meus-exames (direto na raiz)
+        VITE_BASE: "/"
+        VITE_API_URL: "/api"
+    container_name: meus-exames-app
+    restart: unless-stopped
+    env_file: ./packages/server/.env
+    environment:
+      NODE_ENV: production
+      # conecta no banco LOCAL (mesmo do dev, com todos os dados) via host-gateway
+      DATABASE_URL: postgresql://meus_exames:meus_exames_dev@host.docker.internal:5433/meus_exames?schema=public
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "4011:4001"            # http://localhost:4011/meus-exames/   (não briga com o dev na 4001)
+    volumes:
+      - ./data/exams:/app/data/exams

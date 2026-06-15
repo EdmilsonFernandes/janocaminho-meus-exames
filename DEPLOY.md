@@ -1,0 +1,80 @@
+# Deploy "puxadinho" do Meus Exames (sem custo novo)
+
+Mesmo **EC2** e mesmo **domínio** (janocaminho.com.br) do EdEspeto. Sem domínio novo, sem EC2 novo, sem Postgres novo.
+O app roda em **`https://janocaminho.com.br/meus-exames`** e **não mexe em nada** que já existe — só:
+1. cria um **banco novo** no Postgres que já roda;
+2. sobe **1 container** novo (`meus-exames-app`);
+3. adiciona **1 rota** nova no nginx existente.
+
+## Pré-requisitos
+- Acesso SSH ao EC2: `ssh -i <medtrack-system.pem> ec2-user@ec2-3-137-119-152.us-east-2.compute.amazonaws.com`
+- Repo no GitHub com este código.
+- Segredos pro `.env.prod` (relay da IA, senha SMTP do Zoho, `JWT_SECRET`, `APP_ENCRYPTION_KEY`).
+
+## Passo a passo no EC2
+
+### 1) Criar o banco novo no Postgres existente (1 vez)
+```bash
+docker exec -i janocaminho-postgres psql -U postgres <<'SQL'
+CREATE ROLE meus_exames LOGIN PASSWORD 'COLOQUE_UMA_SENHA_FORTE';
+CREATE DATABASE meus_exames OWNER meus_exames;
+SQL
+```
+> Isso **não afeta** o banco do EdEspeto (`espetinho`). É um banco isolado.
+
+### 2) Clonar e configurar
+```bash
+cd ~
+git clone https://github.com/<voce>/meus-exames.git
+cd meus-exames
+cp .env.prod.example .env.prod
+nano .env.prod
+```
+Preencha:
+- `DATABASE_URL=postgresql://meus_exames:COLOQUE_UMA_SENHA_FORTE@host.docker.internal:5432/meus_exames?schema=public` (mesma senha do passo 1)
+- `ANTHROPIC_AUTH_TOKEN` (seu relay), `SMTP_PASS` (Zoho), `JWT_SECRET`, `APP_ENCRYPTION_KEY` (`openssl rand -hex 32`)
+- `SEED_*` (1º usuário/admin)
+
+### 3) Subir o container (migra + sobe)
+```bash
+docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+docker compose -f docker-compose.prod.yml exec meus-exames-app node packages/server/dist/prisma/seed.js   # cria o admin
+docker logs meus-exames-app --tail 30
+```
+
+### 4) Adicionar a rota no nginx existente (sem tocar no EdEspeto)
+Edite o server block de `janocaminho.com.br` (HTTPS) e acrescente UMA location:
+```nginx
+location /meus-exames/ {
+    client_max_body_size 40M;                 # upload de PDFs
+    proxy_pass http://127.0.0.1:4010/;        # stripa /meus-exames e manda pro app
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+```
+Recarregue: `sudo nginx -t && sudo nginx -s reload`.
+
+Pronto — acesse **`https://janocaminho.com.br/meus-exames/`**. (Login: o `SEED_*` que você definiu.)
+
+## APK apontando pra essa URL
+No `packages/web/.env` (ou direto no build), defina:
+```
+VITE_BASE=/
+VITE_API_URL=https://janocaminho.com.br/meus-exames/api
+```
+Depois: `cd packages/mobile && npm run sync && cd android && ./gradlew.bat assembleDebug`.
+
+## Atualizar (a cada git push)
+```bash
+cd ~/meus-exames
+git pull
+docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+```
+(migrations rodam automáticas no startup)
+
+## Isolamento / segurança
+- Banco novo `meus_exames`, isolado do `espetinho` (EdEspeto não enxerga nem é afetado).
+- Chave da IA e SMTP **só no servidor**. O APK só fala com `https://janocaminho.com.br/meus-exames/api`.
+- PDFs ficam em `./data/exams` (volume no EC2).

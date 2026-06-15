@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Meus Exames</string>
+    <string name="title_activity_main">Meus Exames</string>
+    <string name="package_name">com.edmilson.exames</string>
+    <string name="custom_url_scheme">com.edmilson.exames</string>
+</resources>

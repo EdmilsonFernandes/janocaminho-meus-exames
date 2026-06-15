@@ -1,0 +1,137 @@
+import { useState } from 'react';
+import { Box, Card, CardContent, Button, TextField, Typography, Alert, Chip, Stack, LinearProgress } from '@mui/material';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
+import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
+import { Title, useNotify, useRedirect } from 'react-admin';
+import { API_URL, token } from '../../config';
+import { useSelectedPatient } from '../../patient-context';
+import { Capacitor } from '@capacitor/core';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+
+const MAX_BYTES = 32 * 1024 * 1024; // 32 MB por arquivo (limite do Claude)
+const isNative = typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform();
+
+async function uploadOne(file: File | Blob, filename: string, pid: string | null, title?: string) {
+  if (file.size > MAX_BYTES) throw Object.assign(new Error(`${filename} excede 32MB`), { tooBig: true });
+  const fd = new FormData();
+  fd.append('file', file, filename);
+  if (pid) fd.append('patientId', pid);
+  if (title?.trim()) fd.append('title', title.trim());
+  const r = await fetch(`${API_URL}/exams`, { method: 'POST', headers: { Authorization: `Bearer ${token()}` }, body: fd });
+  if (!r.ok) {
+    const e = await r.json().catch(() => ({}));
+    const err: any = new Error(e.message || e.error || 'Falha no envio');
+    err.code = e.error; // ex.: 'free_limit'
+    throw err;
+  }
+  return r.json();
+}
+
+export const ExamCreate = () => {
+  const [pid] = useSelectedPatient();
+  const [files, setFiles] = useState<File[]>([]);
+  const [title, setTitle] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState<{ done: number; total: number; errors: string[] } | null>(null);
+  const notify = useNotify();
+  const redirect = useRedirect();
+
+  const onPick = (list: FileList | null) => {
+    if (!list) return;
+    const arr = Array.from(list);
+    const tooBig = arr.filter((f) => f.size > MAX_BYTES).map((f) => f.name);
+    const ok = arr.filter((f) => f.size <= MAX_BYTES);
+    setFiles((prev) => [...prev, ...ok]);
+    if (tooBig.length) notify(`${tooBig.length} arquivo(s) acima de 32MB foram ignorados.`, { type: 'warning' });
+  };
+
+  const takePhoto = async () => {
+    try {
+      const photo = await Camera.getPhoto({ quality: 80, resultType: CameraResultType.DataUrl, source: CameraSource.Camera, correctOrientation: true });
+      const blob = await (await fetch(photo.dataUrl!)).blob();
+      await uploadOne(blob, `foto-${Date.now()}.jpg`, pid, title || 'Foto do exame');
+      notify('Foto enviada! Extraindo…', { type: 'success' });
+      redirect('list', 'exams');
+    } catch (e: any) {
+      if (e?.code === 'free_limit') { notify('Você atingiu o limite gratuito. Assine para continuar.', { type: 'warning' }); redirect('/planos'); return; }
+      if (e?.message !== 'User cancelled photos app') notify(e.message || 'Falha na foto', { type: 'error' });
+    }
+  };
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!files.length) { notify('Selecione ao menos um arquivo.', { type: 'error' }); return; }
+    setBusy(true);
+    setProgress({ done: 0, total: files.length, errors: [] });
+    const errors: string[] = [];
+    for (let i = 0; i < files.length; i++) {
+      try {
+        await uploadOne(files[i], files[i].name, pid, title || files[i].name.replace(/\.pdf$/i, ''));
+        setProgress({ done: i + 1, total: files.length, errors });
+      } catch (err: any) {
+        if (err?.code === 'free_limit') {
+          notify('Você atingiu o limite gratuito. Assine para enviar mais exames.', { type: 'warning' });
+          redirect('/planos');
+          setBusy(false);
+          return;
+        }
+        errors.push(`${files[i].name}: ${err.message}`);
+        setProgress({ done: i + 1, total: files.length, errors });
+      }
+    }
+    setBusy(false);
+    if (errors.length === files.length) {
+      notify('Nenhum envio concluído.', { type: 'error' });
+    } else {
+      notify(`${files.length - errors.length} de ${files.length} exame(s) enviado(s) e extraindo.`, { type: 'success' });
+      redirect('list', 'exams');
+    }
+  };
+
+  const pct = progress ? (progress.done / progress.total) * 100 : 0;
+
+  return (
+    <Box>
+      <Title title="Enviar exames" />
+      <Card>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>Enviar resultado(s) de exame</Typography>
+          <Box component="form" onSubmit={submit} sx={{ display: 'flex', flexDirection: 'column', gap: 2, maxWidth: 560 }}>
+            <Button variant="outlined" component="label" startIcon={<UploadFileIcon />} sx={{ justifyContent: 'flex-start' }}>
+              {files.length ? `${files.length} arquivo(s) selecionado(s)` : 'Escolher PDF / imagem (vários)'}
+              <input type="file" hidden multiple accept="application/pdf,image/jpeg,image/png" onChange={(e) => onPick(e.target.files)} />
+            </Button>
+            {files.length > 0 && (
+              <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+                {files.map((f, i) => (
+                  <Chip key={i} label={f.name} onDelete={() => setFiles(files.filter((_, j) => j !== i))} />
+                ))}
+              </Stack>
+            )}
+            {isNative && (
+              <Button variant="outlined" color="secondary" startIcon={<PhotoCameraIcon />} onClick={takePhoto}>
+                Tirar foto do exame
+              </Button>
+            )}
+            <TextField label="Título (opcional)" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Hemograma — junho/2026" />
+            <Alert severity="info">
+              A IA lê cada exame por <strong>visão</strong> e extrai os valores em segundo plano. Limite de <strong>32 MB</strong> por arquivo.
+            </Alert>
+            {progress && (
+              <Box>
+                <Typography variant="body2">Enviando {progress.done}/{progress.total}…</Typography>
+                <LinearProgress variant="determinate" value={pct} sx={{ my: 0.5 }} />
+                {progress.errors.map((er, i) => <Typography key={i} variant="caption" color="error">⚠ {er}</Typography>)}
+              </Box>
+            )}
+            <Box>
+              <Button type="submit" variant="contained" size="large" disabled={busy || !files.length}>
+                {busy ? 'Enviando…' : `Enviar ${files.length || ''} e extrair`}
+              </Button>
+            </Box>
+          </Box>
+        </CardContent>
+      </Card>
+    </Box>
+  );
+};

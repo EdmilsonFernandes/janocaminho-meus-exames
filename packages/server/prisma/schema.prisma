@@ -1,0 +1,203 @@
+// Meus Exames — modelo de dados
+// Paciente (Edmilson) tem N exames; cada exame tem N itens (analitos);
+// cada exame pode ter N análises de IA (resumo + turnos de chat).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         Role     @default(OWNER)
+  planExpiresAt DateTime?   // ativo enquanto no futuro (null = free/expirado)
+  createdAt    DateTime @default(now())
+  patients     Patient[]
+  subscriptions Subscription[]
+
+  @@map("users")
+}
+
+enum Role {
+  OWNER
+  ADMIN
+}
+
+model Patient {
+  id           String    @id @default(cuid())
+  ownerId      String
+  owner        User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  fullName     String
+  relationship String?   // parentesco: "Titular", "Filha", "Mãe", "Cônjuge"...
+  dateOfBirth  DateTime?
+  // PII criptografada (AES-256-GCM, chave APP_ENCRYPTION_KEY)
+  cpfEncrypted String?
+  cpfIv        String?
+  // Perfil clínico livre (condições, medicações, histórico) — alimenta a IA de saúde.
+  // Ex.: "Sem tireoide; usa levotiroxina (Levoid); usa testosterona; usa tirzepatida (Mounjaro)."
+  clinicalProfile String?
+  createdAt    DateTime  @default(now())
+  exams        Exam[]
+  reminders    Reminder[]
+
+  @@index([ownerId])
+  @@map("patients")
+}
+
+model Exam {
+  id               String     @id @default(cuid())
+  patientId        String
+  patient          Patient    @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  // metadados
+  title            String
+  kind             ExamKind   @default(OTHER)
+  performedAt      DateTime?
+  sourceLab        String?
+  requestingDoctor String?
+
+  // arquivo (fora do banco, em disco)
+  filePath         String
+  fileSha256       String
+  fileSizeBytes    Int        @default(0)
+  pageCount        Int        @default(0)
+
+  // estado da extração
+  status           ExamStatus @default(UPLOADED)
+  rawExtraction    Json?
+  reviewRequired   Boolean    @default(false)
+  extractedAt      DateTime?
+  extractionError  String?
+
+  items            ExamItem[]
+  analyses         AiAnalysis[]
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  @@unique([patientId, fileSha256])
+  @@index([patientId, performedAt])
+  @@index([kind])
+  @@map("exams")
+}
+
+enum ExamKind {
+  LAB_PANEL
+  IMAGING
+  OTHER
+}
+
+enum ExamStatus {
+  UPLOADED
+  EXTRACTING
+  EXTRACTED
+  FAILED
+}
+
+model ExamItem {
+  id            String   @id @default(cuid())
+  examId        String
+  exam          Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  // o analito
+  panel         String?  // "Eritrograma" | "Leucograma" | "Série Plaquetária" ...
+  name          String   // "HEMOGLOBINA" (como vem no exame)
+  nameCanonical String   // chave normalizada p/ casar entre exames/labs: "HEMOGLOBINA"
+
+  // valor (numérico preferido p/ evolução; texto como fallback)
+  valueNumeric  Float?
+  valueText     String?
+  unit          String?
+
+  // faixa de referência (coluna demográfica do paciente)
+  refLow        Float?
+  refHigh       Float?
+  refText       String?
+  refAppliesTo  String?  // "Homens" | "Mulheres" | "Adultos" ...
+
+  // sinalização
+  flag          ItemFlag @default(NORMAL)
+  isAbnormal    Boolean  @default(false)
+
+  // CITAÇÃO — página-fonte no PDF (1-indexed). Obrigatório p/ confiança.
+  extractedPage Int
+
+  // auditoria
+  rawRow        Json?
+  createdAt     DateTime @default(now())
+
+  @@index([examId])
+  @@index([nameCanonical, examId])
+  @@map("exam_items")
+}
+
+enum ItemFlag {
+  NORMAL
+  HIGH
+  LOW
+  ABNORMAL
+  CRITICAL
+  UNKNOWN
+}
+
+model AiAnalysis {
+  id               String        @id @default(cuid())
+  examId           String?
+  exam             Exam?         @relation(fields: [examId], references: [id], onDelete: Cascade)
+  patientId        String?
+  type             AnalysisType
+  contentMd        String
+  structured       Json?
+  modelUsed        String?
+  tokenUsage       Json?
+  // encadeia turnos de chat sob um resumo
+  parentAnalysisId String?
+  userMessage      String?
+  createdAt        DateTime      @default(now())
+
+  @@index([examId, type, createdAt])
+  @@index([patientId, createdAt])
+  @@map("ai_analyses")
+}
+
+enum AnalysisType {
+  SUMMARY
+  CHAT
+}
+
+model Subscription {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mpPaymentId    String?
+  mpPreferenceId String?
+  amount         Float
+  periodDays     Int
+  status         String   @default("PENDING") // PENDING | APPROVED | CANCELLED
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([userId])
+  @@map("subscriptions")
+}
+
+model Reminder {
+  id        String   @id @default(cuid())
+  patientId String
+  patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  ownerId   String
+  title     String   // ex.: "Refazer hemograma"
+  dueDate   DateTime
+  note      String?
+  done      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([patientId, dueDate])
+  @@map("reminders")
+}

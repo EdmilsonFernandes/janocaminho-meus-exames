@@ -1,0 +1,25 @@
+{
+  "name": "@meus-exames/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Shell Capacitor que embrulha o app web (packages/web) e gera APK/AAB Android",
+  "scripts": {
+    "build:web": "node scripts/build-web.js",
+    "add:android": "npm run build:web && cap add android",
+    "sync": "npm run build:web && cap sync android",
+    "open:android": "cap open android",
+    "apk": "echo 'Dentro de packages/mobile: cd android && gradlew.bat assembleDebug   (app-debug.apk)'",
+    "aab": "echo 'Dentro de packages/mobile: cd android && gradlew.bat bundleRelease  (app-release.aab p/ Play Store)'"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.6.6",
+    "@capacitor/camera": "^7.0.5",
+    "@capacitor/core": "^7.6.6",
+    "@capacitor/filesystem": "^7.1.8",
+    "@capacitor/preferences": "^7.0.4",
+    "@capawesome/capacitor-file-picker": "^7.2.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.6.6"
+  }
+}

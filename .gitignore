@@ -1,0 +1,43 @@
+# Dependências
+node_modules/
+
+# Builds
+dist/
+build/
+*.tsbuildinfo
+
+# Ambiente / segredos
+.env
+.env.local
+.env.*.local
+
+# Dados sensíveis (PDFs de exames = PII sob LGPD; nunca commitar)
+data/
+uploads/
+samples/*.pdf
+samples/*.jpg
+samples/*.png
+
+# Logs
+*.log
+npm-debug.log*
+
+# SO / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Template AdminLTE (descartado — não faz parte do app)
+AdminLTE/
+
+# Android / Capacitor
+packages/mobile/android/app/build/
+packages/mobile/android/.gradle/
+packages/mobile/android/local.properties
+packages/mobile/android/captures/
+packages/mobile/android/.idea/
+packages/mobile/ios/App/App/Private/
+android-build.log
+.shot-*.png

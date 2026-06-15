@@ -1,0 +1,28 @@
+{
+  "name": "meus-exames",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Gestão de exames médicos com IA (extração por visão + análise de saúde)",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n server,web -c blue,green \"npm:dev:server\" \"npm:dev:web\"",
+    "dev:server": "npm run dev --workspace packages/server",
+    "dev:web": "npm run dev --workspace packages/web",
+    "build": "npm run build --workspace packages/shared && npm run build --workspace packages/server && npm run build --workspace packages/web",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:migrate": "npm run prisma:migrate --workspace packages/server",
+    "db:reset": "npm run prisma:reset --workspace packages/server",
+    "db:seed": "npm run seed --workspace packages/server",
+    "db:studio": "npm run prisma:studio --workspace packages/server",
+    "test:extract": "npm run test:extract --workspace packages/server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
