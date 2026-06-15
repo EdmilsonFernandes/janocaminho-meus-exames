@@ -25,7 +25,7 @@ const kindLabel: Record<string, string> = {
 export const ExamList = () => {
   const [pid] = useSelectedPatient();
   return (
-  <List sort={{ field: 'performedAt', order: 'DESC' }} exporter={false} perPage={25} filter={{ patientId: pid || 'none' }}>
+  <List sort={{ field: 'performedAt', order: 'DESC' }} exporter={false} perPage={25}>
     <Datagrid rowClick="show">
       <TextField source="title" label="Exame" />
       <FunctionField label="Tipo" render={(r: any) => kindLabel[r.kind] ?? r.kind} />
