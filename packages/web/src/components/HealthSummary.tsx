@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card, CardContent, Typography, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Chip, Stack, Divider, Button, IconButton } from '@mui/material';
 import PrintIcon from '@mui/icons-material/Print';
 import { DrExame } from './DrExame';
@@ -5,6 +6,7 @@ import ShareIcon from '@mui/icons-material/Share';
 import VolumeUpIcon from '@mui/icons-material/RecordVoiceOver';
 import ReactMarkdown from 'react-markdown';
 import { API_URL, token } from '../config';
+import { ShareDialog } from './ShareDialog';
 
 interface ComparativoRow { name: string; anterior?: string | null; atual?: string | null; leitura?: string | null; entenda?: string | null }
 interface Summary {
@@ -46,6 +48,7 @@ const asArr = (x: any): any[] => (Array.isArray(x) ? x : x == null ? [] : [x]);
 export const HealthSummary = ({ analysis }: { analysis?: any }) => {
   const raw: Summary | undefined = analysis?.structured;
   const contentMd: string | undefined = analysis?.contentMd;
+  const [shareOpen, setShareOpen] = useState(false);
   // Normaliza: a IA às vezes devolve esses campos como string/null em vez de array — força array p/ não quebrar o .map
   const structured: Summary | undefined = raw
     ? {
@@ -71,14 +74,6 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
     const v = synth.getVoices().find((vv) => vv.lang?.toLowerCase().startsWith('pt'));
     if (v) u.voice = v;
     synth.speak(u);
-  };
-
-  const share = async () => {
-    try {
-      const r = await fetch(`${API_URL}/analyses/${analysis.id}/share`, { method: 'POST', headers: { Authorization: `Bearer ${token()}` } });
-      const d = await r.json();
-      if (d.link) { navigator.clipboard?.writeText(d.link); alert('Link copiado! Cole e envie ao seu médico.'); }
-    } catch { alert('Falha ao gerar link.'); }
   };
 
   const printSummary = () => {
@@ -124,7 +119,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
         </Stack>
         <Stack direction="row" spacing={1} sx={{ mt: 2 }} useFlexGap flexWrap="wrap">
           <Button size="small" variant="contained" startIcon={<DrExame size={20} />} onClick={speak}>Dr. Exame fala</Button>
-          <Button size="small" variant="outlined" startIcon={<ShareIcon />} onClick={share}>Compartilhar</Button>
+          <Button size="small" variant="outlined" startIcon={<ShareIcon />} onClick={() => setShareOpen(true)}>Compartilhar</Button>
           <Button size="small" variant="outlined" startIcon={<PrintIcon />} onClick={printSummary}>Imprimir</Button>
         </Stack>
       </Box>
@@ -253,6 +248,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
         <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', textAlign: 'center' }}>
           {structured.disclaimer || 'Análise educativa. Leve ao seu médico para interpretação clínica.'}
         </Typography>
+        <ShareDialog analysisId={analysis?.id} open={shareOpen} onClose={() => setShareOpen(false)} />
       </CardContent>
     </Card>
   );

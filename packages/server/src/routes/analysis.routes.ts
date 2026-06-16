@@ -149,17 +149,20 @@ router.post('/:id/chat', async (req: AuthedRequest, res, next) => {
   }
 });
 
-// COMPARTILHAR com médico — gera link temporário
+// COMPARTILHAR com médico — link temporário (12h) + PIN de 6 dígitos (enviado separadamente)
 router.post('/:id/share', async (req, res, next) => {
   try {
     const a = await prisma.aiAnalysis.findUnique({ where: { id: String(req.params.id) } });
     if (!a) { res.status(404).json({ error: 'Análise não encontrada' }); return; }
-    // token com expiração de 3 dias embutida: uuid.timestampExpira
-    const expires = Date.now() + 3 * 24 * 60 * 60 * 1000;
+    const expires = Date.now() + 12 * 60 * 60 * 1000; // 12 horas
     const token = `${crypto.randomUUID()}.${expires}`;
-    await prisma.aiAnalysis.update({ where: { id: a.id }, data: { shareToken: token } });
-    const link = `${req.protocol}://${req.get('host')}/api/public/shared/${token}`;
-    res.json({ link, expiresAt: new Date(expires).toISOString() });
+    const pin = String(Math.floor(100000 + Math.random() * 900000));
+    const pinHash = crypto.createHash('sha256').update(`${pin}:${token}`).digest('hex');
+    await prisma.aiAnalysis.update({ where: { id: a.id }, data: { shareToken: token, sharePin: pinHash } });
+    const base = (process.env.WEB_BASE_PATH ?? '').replace(/\/$/, '');
+    const origin = process.env.WEB_ORIGIN || `${req.protocol}://${req.get('host')}`;
+    const link = `${origin}${base}/api/public/shared/${token}`;
+    res.json({ link, pin, expiresAt: new Date(expires).toISOString() });
   } catch (e) { next(e); }
 });
 

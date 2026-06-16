@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
+import crypto from 'crypto';
 import { config, hasAnthropicKey } from './config';
 import { prisma } from './prisma';
 import { errorHandler, notFound } from './middleware/errorHandler';
@@ -96,6 +97,13 @@ app.get('/api/public/shared/:token', async (req, res) => {
     }));
     return;
   }
+  // Gate por PIN (senha de 6 dígitos) — o paciente envia ao médico separadamente
+  const enteredPin = String(req.query.pin ?? '');
+  const pinHash = crypto.createHash('sha256').update(`${enteredPin}:${token}`).digest('hex');
+  if (!a.sharePin || pinHash !== a.sharePin) {
+    res.type('html').send(pinGateHtml(req.originalUrl.replace(/\?.*$/, ''), !enteredPin));
+    return;
+  }
   const date = a.exam?.performedAt ? new Date(a.exam.performedAt as Date).toLocaleDateString('pt-BR') : '';
   const patientName = a.exam?.patient?.fullName ?? '';
   const lab = a.exam?.sourceLab ?? '';
@@ -121,6 +129,24 @@ app.get('/api/public/shared/:token', async (req, res) => {
     <div class="footer">Meus Exames • Análise educativa • Link expira em 3 dias</div></div></body></html>`;
   res.type('html').send(docHtml);
 });
+
+// Página de entrada da senha (PIN) para o link compartilhado com o médico
+function pinGateHtml(actionUrl: string, empty: boolean): string {
+  return emailTemplate({
+    title: 'Acesso ao resumo',
+    content:
+      '<div style="max-width:380px;margin:30px auto;text-align:center">' +
+      '<div style="font-size:42px">🔒</div>' +
+      '<p style="font-size:17px;color:#334155;margin:14px 0 4px"><b>Digite a senha de 6 dígitos</b></p>' +
+      '<p style="font-size:13px;color:#94a3b8;margin:0 0 18px">O paciente envia essa senha junto com o link.</p>' +
+      (empty ? '' : '<p style="color:#dc2626;font-size:13px;margin-bottom:10px">❌ Senha incorreta. Tente novamente.</p>') +
+      `<form method="GET" action="${actionUrl}" style="display:flex;gap:8px;justify-content:center;align-items:center">` +
+      '<input name="pin" inputmode="numeric" maxlength="6" placeholder="••••••" autofocus required ' +
+      'style="font-size:24px;letter-spacing:10px;text-align:center;width:170px;padding:14px;border:2px solid #2a93b8;border-radius:12px;outline:none" />' +
+      '<button type="submit" style="background:#2a93b8;color:#fff;border:none;border-radius:12px;padding:14px 22px;font-weight:700;font-size:15px;cursor:pointer">Entrar</button>' +
+      '</form></div>',
+  });
+}
 
 // Em produção: serve o build do front (SPA) no mesmo container (1 domínio só)
 if (config.isProd) {

@@ -3,8 +3,10 @@ import { Box, Card, CardContent, Typography, Button, CircularProgress, Divider, 
 import { Title } from 'react-admin';
 import DescriptionIcon from '@mui/icons-material/Description';
 import PrintIcon from '@mui/icons-material/Print';
+import WhatsAppIcon from '@mui/icons-material/Share';
 import { API_URL, apiHeaders } from '../config';
 import { useSelectedPatient } from '../patient-context';
+import { ShareDialog } from '../components/ShareDialog';
 
 interface Summary {
   resumoGeral?: string;
@@ -34,6 +36,7 @@ export const ConsolidatedReportPage = () => {
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState<any>(null);
   const [error, setError] = useState('');
+  const [shareOpen, setShareOpen] = useState(false);
 
   const generate = () => {
     if (!pid) return;
@@ -140,7 +143,10 @@ td,th{border:1px solid #e2e8f0;padding:7px 9px;text-align:left}th{background:#f0
               <Typography variant="h6" sx={{ fontWeight: 800 }}>Relatório consolidado 🩺</Typography>
               <Typography sx={{ fontSize: 13, opacity: 0.9 }}>Análise educativa — não substitui consulta médica</Typography>
             </Box>
-            <Button size="small" variant="outlined" sx={{ color: '#fff', borderColor: 'rgba(255,255,255,.5)' }} startIcon={<PrintIcon />} onClick={printReport}>Imprimir / PDF</Button>
+            <Box>
+              <Button size="small" variant="outlined" sx={{ color: '#fff', borderColor: 'rgba(255,255,255,.5)', mr: 1 }} startIcon={<WhatsAppIcon />} onClick={() => setShareOpen(true)}>Compartilhar</Button>
+              <Button size="small" variant="outlined" sx={{ color: '#fff', borderColor: 'rgba(255,255,255,.5)' }} startIcon={<PrintIcon />} onClick={printReport}>Imprimir / PDF</Button>
+            </Box>
           </Box>
 
           <CardContent sx={{ p: 3 }}>
@@ -211,6 +217,7 @@ td,th{border:1px solid #e2e8f0;padding:7px 9px;text-align:left}th{background:#f0
           </CardContent>
         </Card>
       )}
+      <ShareDialog analysisId={analysis?.id} open={shareOpen} onClose={() => setShareOpen(false)} />
     </Box>
   );
 };

@@ -6,7 +6,7 @@ export const theme = createTheme({
   ...defaultTheme,
   palette: {
     mode: 'light',
-    primary: { main: '#336886', contrastText: '#fff' },
+    primary: { main: '#2a93b8', contrastText: '#fff' },
     secondary: { main: '#0891b2' },
     success: { main: '#10b981', contrastText: '#fff' },
     warning: { main: '#f59e0b', contrastText: '#fff' },
@@ -66,9 +66,9 @@ export const theme = createTheme({
       styleOverrides: {
         root: { borderRadius: 12, padding: '10px 20px', fontWeight: 600 },
         containedPrimary: {
-          background: 'linear-gradient(135deg, #336886, #2a5a73)',
-          boxShadow: '0 4px 12px rgba(51,104,134,0.25)',
-          '&:hover': { background: 'linear-gradient(135deg, #2a5a73, #1e4258)', boxShadow: '0 6px 16px rgba(51,104,134,0.35)' },
+          background: 'linear-gradient(135deg, #36a9cc, #247d96)',
+          boxShadow: '0 4px 12px rgba(42,147,184,0.30)',
+          '&:hover': { background: 'linear-gradient(135deg, #2c95b8, #1c6b80)', boxShadow: '0 6px 16px rgba(42,147,184,0.40)' },
         },
       },
     },

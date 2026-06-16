@@ -167,6 +167,7 @@ model AiAnalysis {
   parentAnalysisId String?
   userMessage      String?
   shareToken       String?       @unique  // link temporário pro médico ver
+  sharePin         String?                // hash do PIN (6 dígitos) exigido pra abrir o link compartilhado
   createdAt        DateTime      @default(now())
 
   @@index([examId, type, createdAt])
