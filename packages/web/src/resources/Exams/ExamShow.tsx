@@ -89,7 +89,7 @@ export const ExamShow = () => {
         body: JSON.stringify({ examId: id }),
       });
       if (r.status === 402) {
-        notify('💎 Para gerar o resumo com IA (comparativo + Dr. Exame), assine o Premium.', { type: 'warning' });
+        notify('💎 Sem créditos. Compre um pacote (PIX) ou assine o mensal em “Planos e Créditos”.', { type: 'warning' });
         setGenLoading(false);
         return;
       }
@@ -131,6 +131,7 @@ export const ExamShow = () => {
         method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
         body: JSON.stringify({ message }),
       });
+      if (r.status === 402) { const e = await r.json().catch(() => ({})); notify(e.message || 'Sem créditos para conversar.', { type: 'warning' }); setChatMessages((m) => m.slice(0, -2)); setChatBusy(false); return; }
       if (!r.ok || !r.body) throw new Error('falha');
       const reader = r.body.getReader(); const dec = new TextDecoder(); let buf = '';
       while (true) {

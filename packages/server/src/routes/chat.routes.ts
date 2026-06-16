@@ -3,6 +3,7 @@ import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
 import { streamChat } from '../analysis/chat';
 import { memoryDigest, patientSlug, appendConversation } from '../analysis/agent-memory';
+import { chargeCredits, CREDIT_COSTS } from '../utils/credits';
 
 const router = Router();
 router.use(requireAuth);
@@ -70,10 +71,18 @@ router.post('/', async (req: AuthedRequest, res, next) => {
         : '(sem exames extraídos ainda)') +
       (memory ? `\n\nHISTÓRICO DE ANÁLISES ANTERIORES (memória do assistente — use como contexto, mantenha coerência, não repita):\n${memory}\n` : '');
 
+    // gate de créditos (antes de iniciar o stream — não dá p/ abortar no meio do SSE)
+    const me = await prisma.user.findUnique({ where: { id: req.userId! }, select: { credits: true, planExpiresAt: true } });
+    const premium = !!me?.planExpiresAt && me.planExpiresAt > new Date();
+    if (!premium && (me?.credits ?? 0) < CREDIT_COSTS.chat) {
+      res.status(402).json({ error: 'insufficient_credits', message: 'Sem créditos para conversar. Compre um pacote de créditos.' });
+      return;
+    }
     const { text, model } = await streamChat({ res, contextText, history, message });
     await prisma.aiAnalysis.create({
       data: { type: 'CHAT', patientId: pid, userMessage: message, contentMd: text, modelUsed: model },
     });
+    if (!premium) await chargeCredits(req.userId!, CREDIT_COSTS.chat);
     // Persiste a conversa em .md (não se perde; vira memória durável do paciente)
     appendConversation(slug, message, text);
   } catch (e) {

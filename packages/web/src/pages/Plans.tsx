@@ -1,22 +1,26 @@
 import { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, Button, Grid, Chip, Alert } from '@mui/material';
+import { Box, Card, CardContent, Typography, Button, Grid, Chip, Alert, Stack, Divider } from '@mui/material';
 import CheckIcon from '@mui/icons-material/CheckCircle';
-import StarIcon from '@mui/icons-material/Star';
+import BoltIcon from '@mui/icons-material/Bolt';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { Title, useNotify } from 'react-admin';
 import { useSearchParams } from 'react-router-dom';
 import { API_URL, token } from '../config';
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
+import { PixModal } from '../components/PixModal';
 
-interface Status { active: boolean; planExpiresAt: string | null; examsCount: number; freeExamLimit: number; }
-interface PlanInfo { plans: { id: string; label: string; price: number; periodDays: number }[]; freeExamLimit: number; mercadoPagoEnabled: boolean; }
+interface Status { active: boolean; planExpiresAt: string | null; examsCount: number; freeExamLimit: number; credits: number; tokensUsed: number; }
+interface Pack { id: string; credits: number; price: number; label: string; popular: boolean; }
+interface PlanInfo { plans: { id: string; label: string; price: number; periodDays: number }[]; creditPacks: Pack[]; freeExamLimit: number; mercadoPagoEnabled: boolean; }
 
 export const PlansPage = () => {
   const notify = useNotify();
   const [params] = useSearchParams();
   const [status, setStatus] = useState<Status | null>(null);
   const [plans, setPlans] = useState<PlanInfo | null>(null);
-  const [loading, setLoading] = useState('');
+  const [subLoading, setSubLoading] = useState(false);
+  const [pixPack, setPixPack] = useState<string | null>(null);
 
   const load = async () => {
     const h = { Authorization: `Bearer ${token()}` };
@@ -30,84 +34,115 @@ export const PlansPage = () => {
   useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
 
   useEffect(() => {
-    if (params.get('status') === 'success') notify('Pagamento aprovado! Seu plano está ativo. 🎉', { type: 'success' });
+    if (params.get('status') === 'success') notify('Pagamento aprovado! Plano ativo. 🎉', { type: 'success' });
     if (params.get('status') === 'failure') notify('Pagamento não concluído.', { type: 'error' });
   }, [params, notify]);
 
-  const subscribe = async (planId: string) => {
-    setLoading(planId);
+  const subscribe = async () => {
+    setSubLoading(true);
     try {
       const r = await fetch(`${API_URL}/billing/checkout`, {
         method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
-        body: JSON.stringify({ plan: planId }),
+        body: JSON.stringify({ plan: 'monthly' }),
       });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Falha');
       if (d.init_point) {
-        // No app (Play Store): abre o checkout no NAVEGADOR DO SISTEMA (externalização — compliance Google).
-        // No web: navega na mesma aba.
-        if (Capacitor.isNativePlatform()) {
-          await Browser.open({ url: d.init_point });
-        } else {
-          window.location.href = d.init_point;
-        }
+        if (Capacitor.isNativePlatform()) await Browser.open({ url: d.init_point });
+        else window.location.href = d.init_point;
       }
-    } catch (e: any) {
-      notify(e.message, { type: 'error' });
-    } finally { setLoading(''); }
+    } catch (e: any) { notify(e.message, { type: 'error' }); }
+    finally { setSubLoading(false); }
   };
 
   const fmt = (d: string) => new Date(d).toLocaleDateString('pt-BR');
+  const packs = plans?.creditPacks ?? [];
+  const mpOn = plans?.mercadoPagoEnabled ?? false;
 
   return (
-    <Box sx={{ maxWidth: 820, mx: 'auto', p: { xs: 1, md: 2 } }}>
-      <Title title="Planos" />
-      {status?.active && (
-        <Alert severity="success" sx={{ mb: 2 }} icon={<CheckIcon />}>
-          Plano <strong>Premium ativo</strong> até {status.planExpiresAt ? fmt(status.planExpiresAt) : '—'}. Obrigado! 🩺
-        </Alert>
-      )}
-      {status && !status.active && (
-        <Alert severity="info" sx={{ mb: 2 }}>
-          Você usou <strong>{Math.min(status.examsCount, status.freeExamLimit)}/{status.freeExamLimit}</strong> exames gratuitos.
-          Assine para enviar exames ilimitados + comparativo + chat + tudo.
+    <Box sx={{ maxWidth: 860, mx: 'auto', p: { xs: 2, md: 3 } }}>
+      <Title title="Planos e Créditos" />
+      <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5 }}>💎 Planos e Créditos</Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        Use à vontade: assine o <strong>mensal</strong> (IA ilimitada) ou compre <strong>créditos avulsos</strong> via PIX.
+      </Typography>
+
+      {/* Saldo + consumo */}
+      <Card sx={{ mb: 2, borderRadius: 4, background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff' }}>
+        <CardContent>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="space-between" flexWrap="wrap" useFlexGap>
+            <Box>
+              <Typography sx={{ opacity: 0.9, fontSize: 13 }}>Seus créditos</Typography>
+              <Typography variant="h3" sx={{ fontWeight: 800, lineHeight: 1.1 }}>{status?.credits ?? 0}</Typography>
+              {status?.active
+                ? <Chip size="small" sx={{ mt: 1, bgcolor: 'rgba(255,255,255,.2)', color: '#fff', fontWeight: 700 }} label={`Premium ativo até ${status.planExpiresAt ? fmt(status.planExpiresAt) : '—'}`} />
+                : <Typography variant="caption" sx={{ opacity: 0.9 }}>Sem assinatura — créditos custeiam a IA.</Typography>}
+            </Box>
+            <Box sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
+              <Stack direction="row" spacing={0.5} alignItems="center" justifyContent={{ xs: 'flex-start', sm: 'flex-end' }}>
+                <TrendingUpIcon fontSize="small" />
+                <Typography sx={{ opacity: 0.9, fontSize: 13 }}>Consumo de IA</Typography>
+              </Stack>
+              <Typography variant="h5" sx={{ fontWeight: 700 }}>{(status?.tokensUsed ?? 0).toLocaleString('pt-BR')}</Typography>
+              <Typography variant="caption" sx={{ opacity: 0.85 }}>tokens processados</Typography>
+            </Box>
+          </Stack>
+        </CardContent>
+      </Card>
+
+      {/* PACOTES DE CRÉDITOS */}
+      <Typography variant="h6" sx={{ mt: 1, mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}><BoltIcon color="secondary" /> Comprar créditos (PIX instantâneo)</Typography>
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        {packs.map((p) => (
+          <Grid size={{ xs: 12, sm: 4 }} key={p.id}>
+            <Card sx={{ height: '100%', borderRadius: 4, border: p.popular ? '2px solid #20b2aa' : '1px solid #e2e8f0', position: 'relative' }}>
+              {p.popular && <Chip color="primary" label="MAIS VENDIDO" size="small" sx={{ position: 'absolute', top: 10, right: 10 }} />}
+              <CardContent sx={{ textAlign: 'center' }}>
+                <Typography sx={{ fontWeight: 800, fontSize: 28, color: 'primary.main' }}>{p.credits}</Typography>
+                <Typography color="text.secondary">créditos</Typography>
+                <Typography variant="h5" sx={{ my: 1, fontWeight: 800 }}>R$ {p.price.toFixed(2).replace('.', ',')}</Typography>
+                <Button variant={p.popular ? 'contained' : 'outlined'} fullWidth disabled={!mpOn} onClick={() => setPixPack(p.id)}>Comprar via PIX</Button>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+
+      <Divider sx={{ my: 2 }}><Chip label="ou assine" /></Divider>
+
+      {/* PLANO MENSAL */}
+      <Card sx={{ borderRadius: 4 }}>
+        <CardContent>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="space-between" alignItems="center" flexWrap="wrap" useFlexGap>
+            <Box sx={{ flex: '1 1 60%', minWidth: 0 }}>
+              <Typography variant="h6" sx={{ fontWeight: 800 }}>Premium Mensal — IA ilimitada</Typography>
+              <Typography color="text.secondary" sx={{ fontSize: 14 }}>
+                Exames, comparativos, relatórios, tendências e chat <strong>sem gastar créditos</strong>. Cancele quando quiser.
+              </Typography>
+              <Box component="ul" sx={{ pl: 2.5, mt: 1, mb: 0, lineHeight: 1.7, fontSize: 14 }}>
+                <li>IA ilimitada (não consome créditos)</li>
+                <li>Exames ilimitados + dependentes</li>
+                <li>Relatório completo + impressão</li>
+              </Box>
+            </Box>
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography variant="h4" sx={{ fontWeight: 800 }}>R$ 19,90</Typography>
+              <Typography color="text.secondary" sx={{ mb: 1 }}>/mês · sem anual</Typography>
+              <Button variant="contained" size="large" disabled={!mpOn || subLoading || !!status?.active} onClick={subscribe}>
+                {status?.active ? 'Ativo' : subLoading ? 'Abrindo…' : 'Assinar'}
+              </Button>
+            </Box>
+          </Stack>
+        </CardContent>
+      </Card>
+
+      {!mpOn && (
+        <Alert severity="info" sx={{ mt: 2 }} icon={<CheckIcon />}>
+          Em ambiente de teste os pagamentos podem estar desativados. Em produção usamos o mesmo Mercado Pago da sua loja.
         </Alert>
       )}
 
-      <Grid container spacing={2}>
-        {plans?.plans.map((plan) => {
-          const annual = plan.id === 'annual';
-          return (
-            <Grid size={{ xs: 12, md: 6 }} key={plan.id}>
-              <Card sx={{ border: annual ? '2px solid #0b5cab' : '1px solid #ddd', position: 'relative' }}>
-                {annual && <Chip color="primary" label="MAIS VANTAJOSO" size="small" sx={{ position: 'absolute', top: 12, right: 12 }} />}
-                <CardContent>
-                  <Typography variant="h5">{annual ? <StarIcon sx={{ verticalAlign: 'middle', color: '#0b5cab' }} /> : null} Premium {plan.label}</Typography>
-                  <Typography variant="h3" sx={{ my: 1 }}>R$ {plan.price.toFixed(2).replace('.', ',')}</Typography>
-                  <Typography color="text.secondary">{annual ? '/ ano (economize ~38%)' : '/ mês'}</Typography>
-                  <Box component="ul" sx={{ pl: 2, mt: 2, mb: 2, lineHeight: 1.8 }}>
-                    <li>Exames ilimitados</li>
-                    <li>Comparativo anterior × atual</li>
-                    <li>Tendências e Score de saúde</li>
-                    <li>Dr. Exame (voz) e Imprimir/PDF</li>
-                    <li>Chat com a IA</li>
-                    <li>Dependentes (familiares)</li>
-                  </Box>
-                  <Button variant={annual ? 'contained' : 'outlined'} size="large" fullWidth disabled={!plans.mercadoPagoEnabled || !!loading}
-                    onClick={() => subscribe(plan.id)}>
-                    {loading === plan.id ? 'Abrindo Mercado Pago…' : (plans.mercadoPagoEnabled ? 'Assinar' : 'Em breve')}
-                  </Button>
-                </CardContent>
-              </Card>
-            </Grid>
-          );
-        })}
-      </Grid>
-      {!plans?.mercadoPagoEnabled && (
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
-          (Em ambiente de teste os pagamentos estão desativados. Em produção usamos o mesmo Mercado Pago da sua loja.)
-        </Typography>
-      )}
+      <PixModal packId={pixPack} onClose={() => setPixPack(null)} onApproved={() => { setPixPack(null); notify('Créditos adicionados! 🎉', { type: 'success' }); load(); }} />
     </Box>
   );
 };

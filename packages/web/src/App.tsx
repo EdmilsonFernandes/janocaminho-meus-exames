@@ -78,7 +78,7 @@ const AppMenu = () => (
     <Menu.Item to="/despesas" primaryText="Despesas Médicas" leftIcon={<AccountBalanceWalletIcon sx={{ color: '#22c55e' }} />} />
     <Menu.Item to="/emergencia" primaryText="Cartão de Emergência" leftIcon={<HealthAndSafetyIcon sx={{ color: '#ef4444' }} />} />
     <Menu.Item to="/chat" primaryText="Assistente de saúde" leftIcon={<AutoAwesomeIcon sx={{ color: '#a855f7' }} />} />
-    <Menu.Item to="/planos" primaryText="Planos / Assinar" leftIcon={<WorkspacePremiumIcon sx={{ color: '#f97316' }} />} />
+    <Menu.Item to="/planos" primaryText="Planos e Créditos" leftIcon={<WorkspacePremiumIcon sx={{ color: '#f97316' }} />} />
     <Box sx={{ mt: 'auto', px: 2, py: 1.5, fontSize: 11, color: 'text.secondary', borderTop: '1px solid #e2e8f0' }}>
       Meus Exames v{pkg.version}
     </Box>

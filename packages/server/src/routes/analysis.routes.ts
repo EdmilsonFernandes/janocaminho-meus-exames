@@ -5,6 +5,7 @@ import { requireAuth, requirePlan, AuthedRequest, userPatientIds } from '../midd
 import { generateHealthSummary, generateConsolidatedSummary, loadExamContext } from '../analysis/health-summary';
 import { streamChat } from '../analysis/chat';
 import { parseListParams, setListHeaders } from '../utils/list';
+import { chargeCredits, CREDIT_COSTS } from '../utils/credits';
 
 const router = Router();
 router.use(requireAuth);
@@ -27,6 +28,12 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     // 1 resumo por exame: se já existe, devolve (não gasta tokens de novo)
     const existing = await prisma.aiAnalysis.findFirst({ where: { examId, type: 'SUMMARY' }, orderBy: { createdAt: 'desc' } });
     if (existing) { res.json(existing); return; }
+    const me = await prisma.user.findUnique({ where: { id: req.userId! }, select: { credits: true, planExpiresAt: true } });
+    const premium = !!me?.planExpiresAt && me.planExpiresAt > new Date();
+    if (!premium && (me?.credits ?? 0) < CREDIT_COSTS.summary) {
+      res.status(402).json({ error: 'insufficient_credits', message: 'Sem créditos suficientes. Compre um pacote de créditos para gerar análises com IA.' });
+      return;
+    }
     const { summary, contentMd, modelUsed, usage } = await generateHealthSummary(examId);
     const analysis = await prisma.aiAnalysis.create({
       data: {
@@ -38,6 +45,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
         tokenUsage: usage as any,
       },
     });
+    if (!premium) await chargeCredits(req.userId!, CREDIT_COSTS.summary);
     res.status(201).json(analysis);
   } catch (e: any) {
     if (!res.headersSent) next(e);
@@ -66,11 +74,18 @@ router.post('/consolidated', async (req: AuthedRequest, res, next) => {
       orderBy: { createdAt: 'desc' },
     });
     if (recent) { res.json({ ...recent, sourceExams }); return; }
+    const me = await prisma.user.findUnique({ where: { id: req.userId! }, select: { credits: true, planExpiresAt: true } });
+    const premium = !!me?.planExpiresAt && me.planExpiresAt > new Date();
+    if (!premium && (me?.credits ?? 0) < CREDIT_COSTS.consolidated) {
+      res.status(402).json({ error: 'insufficient_credits', message: 'Sem créditos suficientes. Compre um pacote para gerar o relatório completo.' });
+      return;
+    }
     try {
       const { summary, contentMd, modelUsed, usage } = await generateConsolidatedSummary(patientId);
       const analysis = await prisma.aiAnalysis.create({
         data: { patientId, examId: null, type: 'SUMMARY', contentMd, structured: summary as any, modelUsed, tokenUsage: usage as any },
       });
+      if (!premium) await chargeCredits(req.userId!, CREDIT_COSTS.consolidated);
       res.status(201).json({ ...analysis, sourceExams });
     } catch (genErr: any) {
       // RAG: se a (re)geração falhou, devolve o ÚLTIMO relatório salvo em vez de erro
