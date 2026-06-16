@@ -48,7 +48,7 @@ export const ExamCreate = () => {
 
   const takePhoto = async () => {
     try {
-      const photo = await Camera.getPhoto({ quality: 80, resultType: CameraResultType.DataUrl, source: CameraSource.Camera, correctOrientation: true });
+      const photo = await Camera.getPhoto({ quality: 92, resultType: CameraResultType.DataUrl, source: CameraSource.Camera, correctOrientation: true, saveToGallery: false });
       const blob = await (await fetch(photo.dataUrl!)).blob();
       await uploadOne(blob, `foto-${Date.now()}.jpg`, pid, title || 'Foto do exame');
       notify('Foto enviada! Extraindo…', { type: 'success' });
@@ -113,9 +113,14 @@ export const ExamCreate = () => {
               </Stack>
             )}
             {isNative && (
-              <Button variant="outlined" color="secondary" startIcon={<PhotoCameraIcon />} onClick={takePhoto}>
-                Tirar foto do exame
-              </Button>
+              <>
+                <Alert severity="info" icon={<PhotoCameraIcon />} sx={{ py: 0 }}>
+                  📷 Para a <strong>foto ficar nítida</strong>: boa iluminação, documento centralizado e ocupando a tela, sem reflexo nem sombra. A IA lê melhor fotos nítidas.
+                </Alert>
+                <Button variant="outlined" color="secondary" startIcon={<PhotoCameraIcon />} onClick={takePhoto}>
+                  Tirar foto do exame
+                </Button>
+              </>
             )}
             <TextField label="Título (opcional)" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Hemograma — junho/2026" />
             <Alert severity="info">

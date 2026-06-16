@@ -76,7 +76,7 @@ router.get('/evolution', async (req: AuthedRequest, res, next) => {
     const scope = patientId && pids.includes(patientId) ? patientId : { in: pids };
     const rows = await prisma.examItem.findMany({
       where: { valueNumeric: { not: null }, exam: { patientId: scope, status: 'EXTRACTED' } },
-      include: { exam: { select: { performedAt: true, title: true } } },
+      include: { exam: { select: { id: true, performedAt: true, title: true } } },
       orderBy: { exam: { performedAt: 'asc' } },
     });
     const byName = new Map<string, any[]>();
@@ -121,12 +121,39 @@ router.get('/evolution', async (req: AuthedRequest, res, next) => {
         pctChange: pct, direction: dir, predictMonths,
         inRange: (refLow == null || v1 >= refLow) && (refHigh == null || v1 <= refHigh),
         count: items.length,
-        points: items.map((i) => ({ value: i.valueNumeric, date: i.exam.performedAt, flag: i.flag })),
+        points: items.map((i) => ({ value: i.valueNumeric, date: i.exam.performedAt, flag: i.flag, examId: i.exam.id, examTitle: i.exam.title })),
       });
     }
-    out.sort((a, b) => Math.abs(b.pctChange) - Math.abs(a.pctChange));
+    // ordem: do exame mais recente pro mais antigo
+    out.sort((a, b) => new Date(b.lastDate ?? 0).getTime() - new Date(a.lastDate ?? 0).getTime());
     res.json({ patientId: patientId ?? null, items: out });
   } catch (e) { next(e); }
+});
+
+// RESUMO POR FLAG — alimenta o donut do dashboard (bons / alerta / alterados)
+router.get('/flag-summary', async (req: AuthedRequest, res, next) => {
+  try {
+    const pids = await userPatientIds(req.userId!);
+    const patientId = req.query.patientId ? String(req.query.patientId) : undefined;
+    const scope = patientId && pids.includes(patientId) ? patientId : { in: pids };
+    const grouped = await prisma.examItem.groupBy({
+      by: ['flag'],
+      where: { exam: { patientId: scope, status: 'EXTRACTED' } },
+      _count: { _all: true },
+    });
+    const c: Record<string, number> = {};
+    for (const g of grouped) c[g.flag] = g._count._all;
+    res.json({
+      buckets: {
+        bons: (c.NORMAL ?? 0) + (c.UNKNOWN ?? 0),
+        alerta: c.LOW ?? 0,
+        alterados: (c.HIGH ?? 0) + (c.ABNORMAL ?? 0) + (c.CRITICAL ?? 0),
+      },
+      raw: c,
+    });
+  } catch (e) {
+    next(e);
+  }
 });
 
 // LIST (react-admin)

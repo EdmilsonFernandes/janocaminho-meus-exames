@@ -1,18 +1,19 @@
 import { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, CircularProgress, Chip, Stack } from '@mui/material';
+import { Box, Button, Card, CardContent, Typography, CircularProgress, Chip, Stack } from '@mui/material';
 import { Title } from 'react-admin';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import TrendingFlatIcon from '@mui/icons-material/TrendingFlat';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
+import { useNavigate } from 'react-router-dom';
 
 interface EvoItem {
   nameCanonical: string; unit: string | null; refLow: number | null; refHigh: number | null;
   firstValue: number; lastValue: number; firstDate: string | null; lastDate: string | null;
   pctChange: number; direction: 'up' | 'down' | 'stable'; predictMonths: number | null;
   inRange: boolean; count: number;
-  points: { value: number; date: string | null; flag: string }[];
+  points: { value: number; date: string | null; flag: string; examId: string; examTitle: string }[];
 }
 
 const fmtDate = (d: string | null) =>
@@ -84,6 +85,7 @@ export const EvolutionPage = () => {
 };
 
 const EvoCard = ({ it }: { it: EvoItem }) => {
+  const navigate = useNavigate();
   const up = it.direction === 'up';
   const Icon = up ? TrendingUpIcon : TrendingDownIcon;
   const color = up ? '#e65100' : '#0b5cab';
@@ -112,6 +114,11 @@ const EvoCard = ({ it }: { it: EvoItem }) => {
             </Typography>
           </Box>
         )}
+        {(() => { const lp = it.points[it.points.length - 1]; if (!lp?.examId) return null; return (
+          <Box sx={{ mt: 1 }}>
+            <Button size="small" onClick={() => navigate(`/exams/${lp.examId}/show`)}>↗ Ver exame de origem ({lp.examTitle || 'origem'})</Button>
+          </Box>
+        ); })()}
       </CardContent>
     </Card>
   );

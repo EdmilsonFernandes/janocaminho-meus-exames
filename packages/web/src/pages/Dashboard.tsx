@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, Button, Grid, CircularProgress, Stack, Chip } from '@mui/material';
+import { Box, Card, CardContent, Typography, Button, Grid, CircularProgress, Stack } from '@mui/material';
+import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
@@ -24,6 +25,12 @@ const TIPS = [
   'Repita exames laboratoriais no mesmo laboratório quando possível — facilita comparar a evolução.',
 ];
 
+const DONUT = [
+  { key: 'bons', name: 'Bons (na faixa)', color: '#10b981' },
+  { key: 'alerta', name: 'Alerta (abaixo)', color: '#f59e0b' },
+  { key: 'alterados', name: 'Alterados', color: '#ef4444' },
+] as const;
+
 export const Dashboard = () => {
   const navigate = useNavigate();
   const [pid] = useSelectedPatient();
@@ -31,6 +38,7 @@ export const Dashboard = () => {
   const [deps, setDeps] = useState(0);
   const [lastExam, setLastExam] = useState<string | null>(null);
   const [score, setScore] = useState<number | null>(null);
+  const [buckets, setBuckets] = useState<{ bons: number; alerta: number; alterados: number }>({ bons: 0, alerta: 0, alterados: 0 });
   const tip = TIPS[new Date().getDate() % TIPS.length];
 
   useEffect(() => {
@@ -46,6 +54,8 @@ export const Dashboard = () => {
         setStats((s) => ({ ...s, abnormal: readTotal(a) }));
         const p = await fetch(`${API_URL}/patients`, { headers: h });
         if (p.ok) { const pd = await p.json(); setDeps(Array.isArray(pd) ? pd.length : 0); }
+        const fs = await fetch(`${API_URL}/items/flag-summary${pid ? `?patientId=${pid}` : ''}`, { headers: h });
+        if (fs.ok) { const fd = await fs.json(); setBuckets(fd.buckets ?? { bons: 0, alerta: 0, alterados: 0 }); }
       } catch { /* ignore */ }
       if (pid) {
         try {
@@ -55,11 +65,24 @@ export const Dashboard = () => {
       } else {
         setScore(null);
       }
-      void syncPushToken(); // registra token FCM do dispositivo após login (no-op no web)
+      void syncPushToken();
     })();
   }, [pid]);
 
   const scoreColor = (s: number) => (s >= 80 ? '#2e7d32' : s >= 60 ? '#e65100' : '#c62828');
+  const totalVals = buckets.bons + buckets.alerta + buckets.alterados;
+  const donutData = DONUT.map((d) => ({ ...d, value: (buckets as any)[d.key] })).filter((d) => d.value > 0);
+
+  const statCard = (label: string, value: React.ReactNode, color: string, to: string) => (
+    <Grid size={{ xs: 6, md: 3 }}>
+      <Card onClick={() => navigate(to)} sx={{ height: '100%', cursor: 'pointer', transition: 'all .15s', '&:hover': { transform: 'translateY(-2px)', boxShadow: 6, borderColor: color } }}>
+        <CardContent>
+          <Typography variant="caption" color="text.secondary">{label}</Typography>
+          <Typography variant="h3" sx={{ fontWeight: 800, color }}>{value}</Typography>
+        </CardContent>
+      </Card>
+    </Grid>
+  );
 
   return (
     <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 1080, mx: 'auto' }}>
@@ -71,7 +94,6 @@ export const Dashboard = () => {
         </Box>
       </Stack>
 
-      {/* Score de saúde */}
       {score !== null && (
         <Card sx={{ mt: 3, borderRadius: 4, background: 'linear-gradient(135deg,#ffffff,#e6f7f6)' }}>
           <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
@@ -93,46 +115,62 @@ export const Dashboard = () => {
         </Card>
       )}
 
-      {/* Cards de estatística — 4 para preencher a grade no desktop */}
+      {/* Contadores clicáveis */}
       <Grid container spacing={2} sx={{ mt: score === null ? 2 : 1, mb: 2 }}>
-        <Grid size={{ xs: 6, md: 3 }}>
-          <Card sx={{ height: '100%' }}><CardContent>
-            <Typography variant="caption" color="text.secondary">Exames enviados</Typography>
-            <Typography variant="h3" sx={{ fontWeight: 800, color: 'primary.main' }}>{stats.exams}</Typography>
+        {statCard('Exames enviados', stats.exams, 'primary.main', '/exams')}
+        {statCard('Valores alterados', stats.abnormal, stats.abnormal ? 'error.main' : 'success.main', '/exams')}
+        {statCard('Perfis (dependentes)', deps, '#8b5cf6', '/familia')}
+        {statCard('Última atualização', <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.2, mt: 1 }}>{lastExam ? new Date(lastExam).toLocaleDateString('pt-BR') : '—'}</Typography>, '#0ea5e9', '/linha-do-tempo')}
+      </Grid>
+
+      {/* Donut de distribuição + Dica */}
+      <Grid container spacing={2} sx={{ mb: 2 }}>
+        <Grid size={{ xs: 12, md: 7 }}>
+          <Card sx={{ height: '100%', borderRadius: 4 }}><CardContent>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>Distribuição dos valores</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>Últimos exames extraídos deste perfil.</Typography>
+            {totalVals === 0 ? (
+              <Typography color="text.secondary">Sem valores extraídos ainda. Envie um exame.</Typography>
+            ) : (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
+                <Box sx={{ width: 150, height: 150, position: 'relative' }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={donutData as any} dataKey="value" innerRadius={45} outerRadius={70} paddingAngle={2} stroke="none">
+                        {donutData.map((d, i) => <Cell key={i} fill={d.color} />)}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <Box sx={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                    <Typography sx={{ fontWeight: 800, fontSize: 24, lineHeight: 1 }}>{totalVals}</Typography>
+                    <Typography variant="caption" color="text.secondary">valores</Typography>
+                  </Box>
+                </Box>
+                <Stack spacing={1}>
+                  {donutData.map((d) => (
+                    <Stack key={d.key} direction="row" alignItems="center" spacing={1}>
+                      <Box sx={{ width: 14, height: 14, borderRadius: 1, bgcolor: d.color }} />
+                      <Typography variant="body2"><strong>{d.value}</strong> {d.name}{totalVals ? ` (${Math.round((d.value / totalVals) * 100)}%)` : ''}</Typography>
+                    </Stack>
+                  ))}
+                </Stack>
+              </Box>
+            )}
           </CardContent></Card>
         </Grid>
-        <Grid size={{ xs: 6, md: 3 }}>
-          <Card sx={{ height: '100%' }}><CardContent>
-            <Typography variant="caption" color="text.secondary">Valores alterados</Typography>
-            <Typography variant="h3" sx={{ fontWeight: 800, color: stats.abnormal ? 'error.main' : 'success.main' }}>{stats.abnormal}</Typography>
-          </CardContent></Card>
-        </Grid>
-        <Grid size={{ xs: 6, md: 3 }}>
-          <Card sx={{ height: '100%' }}><CardContent>
-            <Typography variant="caption" color="text.secondary">Perfis (dependentes)</Typography>
-            <Typography variant="h3" sx={{ fontWeight: 800 }}>{deps}</Typography>
-          </CardContent></Card>
-        </Grid>
-        <Grid size={{ xs: 6, md: 3 }}>
-          <Card sx={{ height: '100%' }}><CardContent>
-            <Typography variant="caption" color="text.secondary">Última atualização</Typography>
-            <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.2, mt: 1 }}>{lastExam ? new Date(lastExam).toLocaleDateString('pt-BR') : '—'}</Typography>
-          </CardContent></Card>
+        <Grid size={{ xs: 12, md: 5 }}>
+          <Card variant="outlined" sx={{ height: '100%', borderRadius: 4, borderColor: 'secondary.main', background: 'linear-gradient(135deg,#fffaf3,#fdf3e7)' }}>
+            <CardContent sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start', height: '100%' }}>
+              <LightbulbIcon sx={{ color: '#d4a574', mt: 0.3 }} />
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#b88a54' }}>Dica do Dr. Exame</Typography>
+                <Typography variant="body2" sx={{ mt: 0.3 }}>{tip}</Typography>
+              </Box>
+            </CardContent>
+          </Card>
         </Grid>
       </Grid>
 
-      {/* Dica do Dr. Exame — premium filler */}
-      <Card variant="outlined" sx={{ mb: 2, borderRadius: 4, borderColor: 'secondary.main', background: 'linear-gradient(135deg,#fffaf3,#fdf3e7)' }}>
-        <CardContent sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
-          <LightbulbIcon sx={{ color: '#d4a574', mt: 0.3 }} />
-          <Box>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#b88a54' }}>Dica do Dr. Exame</Typography>
-            <Typography variant="body2" sx={{ mt: 0.3 }}>{tip}</Typography>
-          </Box>
-        </CardContent>
-      </Card>
-
-      {/* Atalhos premium */}
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, md: 6 }}>
           <Card variant="outlined" sx={{ height: '100%', background: 'linear-gradient(135deg, rgba(32,178,170,.08), rgba(212,165,116,.08))', borderColor: 'rgba(32,178,170,.25)' }}><CardContent>
@@ -175,9 +213,7 @@ export const Dashboard = () => {
       </Grid>
 
       <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 3 }}>
-        <Chip size="small" label="🔒 LGPD" variant="outlined" />
-        <Chip size="small" label="🧠 IA não-diagnóstica" variant="outlined" />
-        <Chip size="small" label="📄 Extração por visão" variant="outlined" />
+        <Typography variant="caption" color="text.secondary" sx={{ mr: 1 }}>Toque nos cards de contador para navegar.</Typography>
       </Stack>
     </Box>
   );

@@ -42,6 +42,11 @@ app.get('/api/patients/:id/photo', async (req, res) => {
   try {
     const id = String(req.params.id);
     const p = await prisma.patient.findUnique({ where: { id }, select: { photoUrl: true } });
+    // Cache HTTP: revalida por ETag (muda quando troca a foto) — 5min de cache + 304 barato.
+    const etag = `"${id}:${p?.photoUrl ?? 'none'}"`;
+    res.setHeader('Cache-Control', 'public, max-age=300, must-revalidate');
+    res.setHeader('ETag', etag);
+    if (req.headers['if-none-match'] === etag) { res.status(304).end(); return; }
     const { resolvePatientPhoto } = await import('./utils/storage');
     // 1) se photoUrl é um ref de storage (chave S3 ou caminho de disco), resolve
     if (p?.photoUrl && !p.photoUrl.startsWith('/api/')) {
