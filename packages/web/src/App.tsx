@@ -2,21 +2,24 @@ import { Admin, Resource, CustomRoutes, Layout, Menu, AppBar, TitlePortal, AppBa
 import { Route } from 'react-router-dom';
 import { useEffect } from 'react';
 import { Box, Typography } from '@mui/material';
-import ShowChartIcon from '@mui/icons-material/ShowChart';
-import ChatIcon from '@mui/icons-material/MedicalServices';
-import NotificationsIcon from '@mui/icons-material/NotificationsActive';
-import StarIcon from '@mui/icons-material/Star';
-import SpeedIcon from '@mui/icons-material/Speed';
+import InsightsIcon from '@mui/icons-material/Insights';
+import AutoGraphIcon from '@mui/icons-material/AutoGraph';
+import HistoryIcon from '@mui/icons-material/History';
+import EventAvailableIcon from '@mui/icons-material/EventAvailable';
+import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
 import VaccinesIcon from '@mui/icons-material/Vaccines';
-import EmergencyIcon from '@mui/icons-material/Emergency';
-import TimelineIcon from '@mui/icons-material/Timeline';
-import ReceiptIcon from '@mui/icons-material/Receipt';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import GroupsIcon from '@mui/icons-material/Groups';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
+import MedicalInformationIcon from '@mui/icons-material/MedicalInformation';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import Diversity3Icon from '@mui/icons-material/Diversity3';
 import SummarizeIcon from '@mui/icons-material/Summarize';
 import { dataProvider } from './dataProvider';
 import { authProvider } from './authProvider';
 import { theme } from './theme';
+import { i18nProvider } from './i18n';
 import { Dashboard } from './pages/Dashboard';
 import { ExamList } from './resources/Exams/ExamList';
 import { ExamShow } from './resources/Exams/ExamShow';
@@ -51,19 +54,19 @@ const CustomAppBar = (props: AppBarProps) => (
 const AppMenu = () => (
   <Menu>
     <Menu.DashboardItem />
-    <Menu.Item to="/evolucao" primaryText="Evolução da saúde" leftIcon={<TrendingUpIcon />} />
+    <Menu.Item to="/evolucao" primaryText="Evolução da saúde" leftIcon={<InsightsIcon />} />
     <Menu.ResourceItems />
-    <Menu.Item to="/familia" primaryText="Saúde da Família" leftIcon={<GroupsIcon />} />
-    <Menu.Item to="/tendencias" primaryText="Tendências" leftIcon={<ShowChartIcon />} />
-    <Menu.Item to="/linha-do-tempo" primaryText="Linha do Tempo" leftIcon={<TimelineIcon />} />
+    <Menu.Item to="/familia" primaryText="Saúde da Família" leftIcon={<Diversity3Icon />} />
+    <Menu.Item to="/tendencias" primaryText="Tendências" leftIcon={<AutoGraphIcon />} />
+    <Menu.Item to="/linha-do-tempo" primaryText="Linha do Tempo" leftIcon={<HistoryIcon />} />
     <Menu.Item to="/relatorio" primaryText="Relatório completo" leftIcon={<SummarizeIcon />} />
-    <Menu.Item to="/lembretes" primaryText="Lembretes" leftIcon={<NotificationsIcon />} />
-    <Menu.Item to="/medicoes" primaryText="Medições" leftIcon={<SpeedIcon />} />
+    <Menu.Item to="/lembretes" primaryText="Lembretes" leftIcon={<EventAvailableIcon />} />
+    <Menu.Item to="/medicoes" primaryText="Medições" leftIcon={<MonitorHeartIcon />} />
     <Menu.Item to="/vacinas" primaryText="Vacinas" leftIcon={<VaccinesIcon />} />
-    <Menu.Item to="/despesas" primaryText="Despesas Médicas" leftIcon={<ReceiptIcon />} />
-    <Menu.Item to="/emergencia" primaryText="Cartão de Emergência" leftIcon={<EmergencyIcon />} />
-    <Menu.Item to="/chat" primaryText="Assistente de saúde" leftIcon={<ChatIcon />} />
-    <Menu.Item to="/planos" primaryText="Planos / Assinar" leftIcon={<StarIcon />} />
+    <Menu.Item to="/despesas" primaryText="Despesas Médicas" leftIcon={<AccountBalanceWalletIcon />} />
+    <Menu.Item to="/emergencia" primaryText="Cartão de Emergência" leftIcon={<HealthAndSafetyIcon />} />
+    <Menu.Item to="/chat" primaryText="Assistente de saúde" leftIcon={<AutoAwesomeIcon />} />
+    <Menu.Item to="/planos" primaryText="Planos / Assinar" leftIcon={<WorkspacePremiumIcon />} />
   </Menu>
 );
 
@@ -78,6 +81,7 @@ export const App = () => {
     dataProvider={dataProvider}
     authProvider={authProvider}
     theme={theme}
+    i18nProvider={i18nProvider}
     layout={AppLayout}
     dashboard={Dashboard}
     loginPage={LoginPage}
@@ -91,8 +95,8 @@ export const App = () => {
       <Route path="/recuperar-senha" element={<ResetPage />} />
     </CustomRoutes>
 
-    <Resource name="exams" list={ExamList} show={ExamShow} create={ExamCreate} options={{ label: 'Exames' }} />
-    <Resource name="patients" list={PatientList} edit={PatientEdit} options={{ label: 'Perfil' }} />
+    <Resource name="exams" list={ExamList} show={ExamShow} create={ExamCreate} options={{ label: 'Exames' }} icon={MedicalInformationIcon} />
+    <Resource name="patients" list={PatientList} edit={PatientEdit} options={{ label: 'Perfil' }} icon={AccountCircleIcon} />
     <Resource name="items" options={{ label: 'Itens' }} />
     <Resource name="analyses" options={{ label: 'Análises' }} />
 

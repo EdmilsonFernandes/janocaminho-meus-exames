@@ -48,7 +48,19 @@ export const ConsolidatedReportPage = () => {
       .finally(() => setLoading(false));
   };
 
-  const s: Summary | undefined = analysis?.structured;
+  const asArr = (x: any): any[] => (Array.isArray(x) ? x : x == null ? [] : [x]);
+  const s: Summary | undefined = analysis?.structured
+    ? {
+        ...analysis.structured,
+        comparativo: asArr(analysis.structured.comparativo),
+        pontosAtencao: asArr(analysis.structured.pontosAtencao),
+        coisasBoas: asArr(analysis.structured.coisasBoas),
+        perguntasParaOMedico: asArr(analysis.structured.perguntasParaOMedico),
+        interacoesMedicamentos: asArr(analysis.structured.interacoesMedicamentos),
+        sugestoesNutricao: asArr(analysis.structured.sugestoesNutricao),
+        metasSaude: asArr(analysis.structured.metasSaude),
+      }
+    : undefined;
 
   return (
     <Box>

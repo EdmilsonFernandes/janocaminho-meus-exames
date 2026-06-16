@@ -40,7 +40,7 @@ export async function generateConsolidatedSummary(patientId: string): Promise<{ 
   }));
 
   const client = getAnthropic();
-  const response = await client.messages.create({
+  const stream = client.messages.stream({
     model: MODEL,
     max_tokens: 6000,
     system: HEALTH_SYSTEM,
@@ -60,6 +60,13 @@ export async function generateConsolidatedSummary(patientId: string): Promise<{ 
       },
     ],
   } as any);
+  let response: any;
+  try {
+    response = await stream.finalMessage();
+  } catch (e: any) {
+    console.error('[IA] erro ao gerar (status/msg):', e?.status, e?.message);
+    throw new Error('Não foi possível gerar agora (serviço de IA indisponível). Tente novamente em instantes.');
+  }
 
   const text = (response.content as any[]).filter((b) => b.type === 'text').map((b) => b.text).join('');
   const json = extractJsonObject(text);
@@ -119,7 +126,7 @@ export async function generateHealthSummary(examId: string): Promise<{ summary: 
     : '';
 
   const client = getAnthropic();
-  const response = await client.messages.create({
+  const stream = client.messages.stream({
     model: MODEL,
     max_tokens: 6000,
     system: HEALTH_SYSTEM,
@@ -153,6 +160,13 @@ export async function generateHealthSummary(examId: string): Promise<{ summary: 
       },
     ],
   } as any);
+  let response: any;
+  try {
+    response = await stream.finalMessage();
+  } catch (e: any) {
+    console.error('[IA] erro ao gerar (status/msg):', e?.status, e?.message);
+    throw new Error('Não foi possível gerar agora (serviço de IA indisponível). Tente novamente em instantes.');
+  }
 
   const text = (response.content as any[]).filter((b) => b.type === 'text').map((b) => b.text).join('');
   const json = extractJsonObject(text);

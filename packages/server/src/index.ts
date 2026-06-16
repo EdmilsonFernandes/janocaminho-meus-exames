@@ -24,7 +24,8 @@ import consultaRoutes from './routes/consulta';
 const app = express();
 
 app.use(cors({
-  origin: config.webOrigin,
+  // webOrigin (dev/prod) + origins do Capacitor (app mobile faz fetch como http(s)://localhost)
+  origin: [config.webOrigin, 'https://localhost', 'http://localhost', 'capacitor://localhost'],
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Patient-Id', 'Range'],
   exposedHeaders: ['Content-Range', 'X-Total-Count'],

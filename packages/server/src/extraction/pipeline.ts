@@ -31,7 +31,16 @@ const DEMOGRAPHIC = 'Homens'; // paciente: homem adulto (Edmilson, nascido 1978)
  * normaliza os nomes canônicos -> calcula as flags -> persiste itens + JSON bruto.
  * Idempotente: pode ser re-rodado (reextract).
  */
-export async function runExtraction(examId: string): Promise<void> {
+// Fila SERIAL de extração: processa um exame por vez para não disparar muitas
+// chamadas à IA em paralelo (evita rate limit do relay em uploads em rajada).
+let extractionChain: Promise<void> = Promise.resolve();
+export function runExtraction(examId: string): Promise<void> {
+  const p = extractionChain.then(() => runExtractionOnce(examId), () => runExtractionOnce(examId));
+  extractionChain = p.then(() => undefined, () => undefined); // mantém a cadeia mesmo se um exame falhar
+  return p;
+}
+
+async function runExtractionOnce(examId: string): Promise<void> {
   const exam = await prisma.exam.findUnique({ where: { id: examId } });
   if (!exam) return;
 

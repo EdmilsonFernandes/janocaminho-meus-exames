@@ -6,6 +6,7 @@ import {
   type ImagingExtraction,
 } from './schemas';
 import { JSON_SUFFIX, extractJsonObject } from '../utils/json';
+import { withRateLimitRetry } from '../utils/retry';
 
 /**
  * Cria o bloco de conteúdo (document p/ PDF, image p/ JPEG/PNG) a partir do buffer.
@@ -66,18 +67,19 @@ Copie fielmente o texto. Não invente achados nem nomes.`;
 /** Chamada base — usa STREAMING (necessário para max_tokens altos + evita timeout de 10min). */
 async function createJson(buffer: Buffer, mediaType: string, instruction: string, maxTokens = 16000): Promise<any> {
   const client = getAnthropic();
-  const stream = client.messages.stream({
-    model: MODEL,
-    max_tokens: maxTokens,
-    messages: [
-      {
-        role: 'user',
-        content: [contentBlockFromBuffer(buffer, mediaType), { type: 'text', text: instruction + JSON_SUFFIX }],
-      },
-    ],
-  } as any);
-
-  const response = await stream.finalMessage();
+  const response = await withRateLimitRetry(async () => {
+    const stream = client.messages.stream({
+      model: MODEL,
+      max_tokens: maxTokens,
+      messages: [
+        {
+          role: 'user',
+          content: [contentBlockFromBuffer(buffer, mediaType), { type: 'text', text: instruction + JSON_SUFFIX }],
+        },
+      ],
+    } as any);
+    return stream.finalMessage();
+  });
 
   if (response.stop_reason === 'max_tokens') {
     const err = new Error('Exame grande demais para extrair em uma chamada (limite de saída).');

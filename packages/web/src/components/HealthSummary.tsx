@@ -41,9 +41,24 @@ const Variation = ({ anterior, atual, leitura }: { anterior?: string | null; atu
   return null;
 };
 
+const asArr = (x: any): any[] => (Array.isArray(x) ? x : x == null ? [] : [x]);
+
 export const HealthSummary = ({ analysis }: { analysis?: any }) => {
-  const structured: Summary | undefined = analysis?.structured;
+  const raw: Summary | undefined = analysis?.structured;
   const contentMd: string | undefined = analysis?.contentMd;
+  // Normaliza: a IA às vezes devolve esses campos como string/null em vez de array — força array p/ não quebrar o .map
+  const structured: Summary | undefined = raw
+    ? {
+        ...raw,
+        comparativo: asArr(raw.comparativo),
+        pontosAtencao: asArr(raw.pontosAtencao),
+        coisasBoas: asArr(raw.coisasBoas),
+        perguntasParaOMedico: asArr(raw.perguntasParaOMedico),
+        interacoesMedicamentos: asArr(raw.interacoesMedicamentos),
+        sugestoesNutricao: asArr(raw.sugestoesNutricao),
+        metasSaude: asArr(raw.metasSaude),
+      }
+    : undefined;
 
   const speak = () => {
     const synth = window.speechSynthesis;

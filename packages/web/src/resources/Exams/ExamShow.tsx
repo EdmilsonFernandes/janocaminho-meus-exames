@@ -8,6 +8,7 @@ import { API_URL, token } from '../../config';
 import { HealthSummary } from '../../components/HealthSummary';
 import { ValueBar } from '../../components/ValueBar';
 import { ExplainItem, ExplainButton } from '../../components/ExplainItem';
+import { ExtractionProgress } from '../../components/ExtractionProgress';
 
 const statusColor: Record<string, 'success' | 'error' | 'warning' | 'info' | 'default'> = {
   EXTRACTED: 'success', FAILED: 'error', UPLOADED: 'warning', EXTRACTING: 'info',
@@ -171,9 +172,7 @@ export const ExamShow = () => {
             </Alert>
           )}
           {(exam.status === 'UPLOADED' || exam.status === 'EXTRACTING') && (
-            <Alert severity="info" sx={{ mt: 2 }} icon={<CircularProgress size={20} />}>
-              O assistente está lendo o exame por visão… aguarde.
-            </Alert>
+            <ExtractionProgress />
           )}
         </CardContent>
       </Card>
