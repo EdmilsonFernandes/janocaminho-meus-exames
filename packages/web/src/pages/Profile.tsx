@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, TextField, Button, Stack, Avatar, Chip, Divider, CircularProgress } from '@mui/material';
+import { Box, Card, CardContent, Typography, TextField, Button, Stack, Chip, CircularProgress } from '@mui/material';
 import { Title, useNotify } from 'react-admin';
 import LockIcon from '@mui/icons-material/Lock';
 import SaveIcon from '@mui/icons-material/Save';
 import BadgeIcon from '@mui/icons-material/WorkspacePremium';
-import { API_URL, token, apiHeaders, photoUrlFor } from '../config';
+import { API_URL, token, apiHeaders } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import { PhotoUpload } from '../components/PhotoUpload';
 
@@ -17,6 +17,7 @@ export const ProfilePage = () => {
   const [phone, setPhone] = useState('');
   const [clinical, setClinical] = useState('');
   const [saving, setSaving] = useState(false);
+  const [photoVer, setPhotoVer] = useState(0); // cache-bust sincronizado entre header
   const [cur, setCur] = useState(''); const [nw, setNw] = useState(''); const [cf, setCf] = useState('');
   const [pwLoading, setPwLoading] = useState(false);
 
@@ -56,12 +57,11 @@ export const ProfilePage = () => {
     <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 780, mx: 'auto' }}>
       <Title title="Meu perfil" />
 
-      {/* Cabeçalho conta + foto */}
-      <Card sx={{ mb: 2, borderRadius: 4, overflow: 'hidden', background: 'linear-gradient(135deg,#2a93b8,#1c6b80)', color: '#fff' }}>
+      {/* Cabeçalho: conta + foto EDITÁVEL (unificado — só uma foto) */}
+      <Card sx={{ mb: 2, borderRadius: 4, overflow: 'hidden', background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff' }}>
         <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2.5, flexWrap: 'wrap', py: 3 }}>
-          <Avatar src={patient?.photoUrl ? photoUrlFor(pid) : undefined} sx={{ width: 76, height: 76, bgcolor: 'rgba(255,255,255,.2)', border: '3px solid rgba(255,255,255,.6)', fontSize: 30, fontWeight: 800 }}>
-            {fullName?.charAt(0)?.toUpperCase()}
-          </Avatar>
+          <PhotoUpload patientId={pid} photoUrl={patient?.photoUrl} size={76} hideLabel version={photoVer}
+            onUploaded={() => { setPhotoVer((v) => v + 1); void load(); }} />
           <Box sx={{ flex: 1, minWidth: 200 }}>
             <Typography variant="h5" sx={{ fontWeight: 800 }}>{fullName || '—'}</Typography>
             <Typography sx={{ opacity: 0.92 }}>✉️ {user?.email ?? '—'}</Typography>
@@ -71,15 +71,8 @@ export const ProfilePage = () => {
                 ? <Chip size="small" icon={<BadgeIcon sx={{ color: '#fff !important' }} />} label="Premium ativo" sx={{ bgcolor: 'rgba(255,255,255,.18)', color: '#fff', fontWeight: 700 }} />
                 : <Chip size="small" label="Plano grátis" sx={{ bgcolor: 'rgba(255,255,255,.12)', color: '#fff' }} />}
             </Stack>
+            <Typography variant="caption" sx={{ display: 'block', mt: 0.5, opacity: 0.85 }}>Toque na câmera da foto para trocar a imagem.</Typography>
           </Box>
-        </CardContent>
-      </Card>
-
-      {/* Foto */}
-      <Card sx={{ mb: 2, borderRadius: 4 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>📷 Foto do perfil</Typography>
-          <PhotoUpload patientId={pid} photoUrl={patient?.photoUrl} size={84} />
         </CardContent>
       </Card>
 

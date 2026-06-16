@@ -13,6 +13,8 @@ export function apiHeaders(json = false): Record<string, string> {
   return h;
 }
 
-/** URL pública estável da foto do paciente (sempre via rota /api/patients/:id/photo). */
-export const photoUrlFor = (patientId: string): string =>
-  `${API_URL.replace('/api', '')}/api/patients/${patientId}/photo?t=${Date.now()}`;
+/** URL pública da foto do paciente. `version` busta o cache (ETag) só quando a foto muda. */
+export const photoUrlFor = (patientId: string, version?: number | string): string => {
+  const base = `${API_URL.replace('/api', '')}/api/patients/${patientId}/photo`;
+  return version ? `${base}?v=${version}` : base;
+};

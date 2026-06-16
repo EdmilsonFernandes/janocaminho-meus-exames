@@ -3,12 +3,22 @@ import { Avatar, IconButton, Box, Typography } from '@mui/material';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import { API_URL, token, photoUrlFor } from '../config';
 
-/** Upload de foto com preview circular (avatar). */
-export const PhotoUpload = ({ patientId, photoUrl, size = 80 }: { patientId?: string; photoUrl?: string | null; size?: number }) => {
+/**
+ * Upload de foto com preview circular. Cache-bust controlado por `version` (sincroniza
+ * com o pai) ou por contador interno (uso isolado). `onUploaded` avisa o pai p/ atualizar.
+ * `hideLabel` = só o avatar editável (p/ usar dentro de cabeçalhos).
+ */
+export const PhotoUpload = ({
+  patientId, photoUrl, size = 80, hideLabel, version, onUploaded,
+}: {
+  patientId?: string; photoUrl?: string | null; size?: number; hideLabel?: boolean; version?: number; onUploaded?: () => void;
+}) => {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [preview, setPreview] = useState<string | undefined>(patientId && photoUrl ? photoUrlFor(patientId) : undefined);
+  const [localVer, setLocalVer] = useState(0);
   const [uploading, setUploading] = useState(false);
   const [saved, setSaved] = useState(false);
+  const ver = version ?? localVer;
+  const preview = patientId && photoUrl ? photoUrlFor(patientId, ver) : undefined;
 
   const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -21,9 +31,9 @@ export const PhotoUpload = ({ patientId, photoUrl, size = 80 }: { patientId?: st
         method: 'POST', headers: { Authorization: `Bearer ${token()}` }, body: fd,
       });
       if (r.ok) {
-        const d = await r.json();
-        setPreview(photoUrlFor(patientId));
+        setLocalVer((v) => v + 1);
         setSaved(true);
+        onUploaded?.(); // pai recarrega p/ sincronizar outros avatares
       } else {
         console.error('photo upload failed:', r.status, await r.text());
       }
@@ -31,29 +41,34 @@ export const PhotoUpload = ({ patientId, photoUrl, size = 80 }: { patientId?: st
     finally { setUploading(false); }
   };
 
-  const initials = patientId ? '?' : '?';
-
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: hideLabel ? 0 : 2, mb: hideLabel ? 0 : 2 }}>
       <Box sx={{ position: 'relative', display: 'inline-block' }}>
-        <Avatar src={preview} sx={{ width: size, height: size, bgcolor: '#336886', fontSize: size * 0.35, border: '3px solid #e2e8f0' }}>
-          {initials}
+        <Avatar src={preview} sx={{
+          width: size, height: size,
+          bgcolor: hideLabel ? 'rgba(255,255,255,.25)' : 'primary.main',
+          fontSize: size * 0.35, fontWeight: 800,
+          border: hideLabel ? '3px solid rgba(255,255,255,.7)' : '3px solid #e6f1f0',
+        }}>
+          ?
         </Avatar>
         <IconButton
           size="small"
           onClick={() => inputRef.current?.click()}
           disabled={uploading || !patientId}
-          sx={{ position: 'absolute', bottom: -2, right: -2, bgcolor: '#336886', color: '#fff', '&:hover': { bgcolor: '#2a5a73' }, width: 28, height: 28 }}
+          sx={{ position: 'absolute', bottom: -2, right: -2, bgcolor: 'primary.main', color: '#fff', '&:hover': { bgcolor: 'primary.dark' }, width: 28, height: 28 }}
         >
           <PhotoCameraIcon sx={{ fontSize: 16 }} />
         </IconButton>
         <input ref={inputRef} type="file" hidden accept="image/jpeg,image/png" onChange={onFile} />
       </Box>
-      <Box>
-        <Typography variant="body2" sx={{ color: saved ? 'success.main' : 'text.secondary', fontWeight: saved ? 700 : 400 }}>
-          {uploading ? 'Enviando...' : saved ? '✓ Foto salva' : 'Clique na câmera para enviar uma foto'}
-        </Typography>
-      </Box>
+      {!hideLabel && (
+        <Box>
+          <Typography variant="body2" sx={{ color: saved ? 'success.main' : 'text.secondary', fontWeight: saved ? 700 : 400 }}>
+            {uploading ? 'Enviando...' : saved ? '✓ Foto salva' : 'Clique na câmera para enviar/trocar a foto'}
+          </Typography>
+        </Box>
+      )}
     </Box>
   );
 };

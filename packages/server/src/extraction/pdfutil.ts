@@ -59,3 +59,9 @@ export function classifyKind(text: string): ExamKind {
   if (lab >= 3 && lab > img) return 'LAB_PANEL';
   return 'OTHER';
 }
+
+/** Tem sinal médico no texto? (p/ descartar documento que não é exame/laudo) */
+export function looksLikeMedical(text: string): boolean {
+  const t = (text || '').toUpperCase();
+  return countSignals(t, LAB_SIGNALS) + countSignals(t, IMG_SIGNALS) > 0;
+}

@@ -1,7 +1,7 @@
 import { prisma } from '../prisma';
 import { config } from '../config';
 import { ExamKind, type ItemFlag } from '@prisma/client';
-import { readPdf, classifyKind } from './pdfutil';
+import { readPdf, classifyKind, looksLikeMedical } from './pdfutil';
 import { extractLabPanel, extractImaging } from './claude';
 import { canonicalName, computeFlag, parseNumeric } from '../utils/normalize';
 import { readExamFile, mediaTypeFromRef } from '../utils/storage';
@@ -90,6 +90,16 @@ async function runExtractionOnce(examId: string): Promise<void> {
     // bloqueio suave anti-fraude: compara o nome do paciente no documento vs. perfil
     if (raw && patient?.fullName && raw.patientName) {
       raw.nameMatch = computeNameMatch(String(raw.patientName), patient.fullName);
+    }
+
+    // descarta documento que NÃO parece exame/laudo médico (sem itens e sem sinais médicos)
+    if (kind !== 'IMAGING' && items.length === 0 && !looksLikeMedical(text)) {
+      await prisma.exam.update({
+        where: { id: examId },
+        data: { status: 'FAILED', extractionError: 'Este documento não parece ser um exame ou laudo médico. Envie um resultado de exame (sangue, imagem ou laudo).' },
+      });
+      console.log(`[extraction] exame ${examId} descartado: não parece exame/laudo médico`);
+      return;
     }
 
     if (items.length) {
