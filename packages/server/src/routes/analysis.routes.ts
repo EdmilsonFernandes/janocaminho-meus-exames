@@ -71,7 +71,7 @@ router.get('/:id', async (req, res, next) => {
 });
 
 // CHAT num resumo (thread) — streaming SSE
-router.post('/:id/chat', requirePlan, async (req: AuthedRequest, res, next) => {
+router.post('/:id/chat', async (req: AuthedRequest, res, next) => {
   try {
     const parent = await prisma.aiAnalysis.findUnique({ where: { id: String(req.params.id) } });
     if (!parent || !parent.examId) {

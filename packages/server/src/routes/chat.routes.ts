@@ -1,13 +1,13 @@
 import { Router } from 'express';
 import { prisma } from '../prisma';
-import { requireAuth, requirePlan, AuthedRequest, userPatientIds } from '../middleware/auth';
+import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
 import { streamChat } from '../analysis/chat';
 
 const router = Router();
 router.use(requireAuth);
 
 // CHAT global (contexto = exames recentes do paciente) — streaming SSE
-router.post('/', requirePlan, async (req: AuthedRequest, res, next) => {
+router.post('/', async (req: AuthedRequest, res, next) => {
   try {
     const message = String((req.body as any)?.message ?? '');
     if (!message) {

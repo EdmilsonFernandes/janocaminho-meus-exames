@@ -23,11 +23,11 @@ router.get('/plans', (_req, res) => {
 // Status do plano do usuário logado
 router.get('/status', requireAuth, async (req: AuthedRequest, res, next) => {
   try {
-    const user = await prisma.user.findUnique({ where: { id: req.userId! }, select: { planExpiresAt: true } });
+    const user = await prisma.user.findUnique({ where: { id: req.userId! }, select: { planExpiresAt: true, credits: true } });
     const active = !!user?.planExpiresAt && user.planExpiresAt > new Date();
     const pids = await userPatientIds(req.userId!);
     const examsCount = await prisma.exam.count({ where: { patientId: { in: pids } } });
-    res.json({ active, planExpiresAt: user?.planExpiresAt ?? null, examsCount, freeExamLimit: config.freeExamLimit });
+    res.json({ active, planExpiresAt: user?.planExpiresAt ?? null, examsCount, freeExamLimit: config.freeExamLimit, credits: user?.credits ?? 0 });
   } catch (e) { next(e); }
 });
 

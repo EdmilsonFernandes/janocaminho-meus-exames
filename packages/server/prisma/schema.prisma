@@ -18,6 +18,7 @@ model User {
   name         String
   role         Role     @default(OWNER)
   planExpiresAt DateTime?   // ativo enquanto no futuro (null = free/expirado)
+  credits      Int      @default(100)  // créditos: upload=10, resumo=5, chat=1. Recarrega com plano.
   createdAt    DateTime @default(now())
   patients     Patient[]
   subscriptions Subscription[]
