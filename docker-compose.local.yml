@@ -21,6 +21,9 @@ services:
       NODE_ENV: production
       # conecta no banco LOCAL (mesmo do dev, com todos os dados) via host-gateway
       DATABASE_URL: postgresql://meus_exames:meus_exames_dev@host.docker.internal:5433/meus_exames?schema=public
+      # Paths absolutos alinhados aos volumes (o node roda em /app/packages/server, então './data' cairia no lugar errado)
+      UPLOAD_DIR: /app/data/exams
+      PHOTOS_DIR: /app/data/photos
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
