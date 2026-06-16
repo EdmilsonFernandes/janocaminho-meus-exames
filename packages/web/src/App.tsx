@@ -71,7 +71,7 @@ export const App = () => {
       <Route path="/recuperar-senha" element={<ResetPage />} />
     </CustomRoutes>
 
-    <Resource name="exams" list={ExamList} show={ExamShow} create={ExamCreate} options={{ label: 'Exames' }} create={{ label: 'Enviar' }} />
+    <Resource name="exams" list={ExamList} show={ExamShow} create={ExamCreate} options={{ label: 'Exames' }} />
     <Resource name="patients" list={PatientList} edit={PatientEdit} options={{ label: 'Perfil' }} />
     <Resource name="items" options={{ label: 'Itens' }} />
     <Resource name="analyses" options={{ label: 'Análises' }} />
