@@ -121,7 +121,7 @@ export const LandingPage = () => {
               </Card>
             </Grid>
           ))}
-        </Container>
+        </Grid>
       </Container>
 
       {/* CTA FINAL */}
