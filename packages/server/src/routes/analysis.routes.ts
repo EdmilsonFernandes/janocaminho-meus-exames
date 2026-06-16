@@ -46,17 +46,24 @@ router.post('/consolidated', async (req: AuthedRequest, res, next) => {
       res.status(403).json({ error: 'Paciente inválido' });
       return;
     }
+    // exames que serviram de base (mostrados no relatório + na impressão)
+    const sourceExams = await prisma.exam.findMany({
+      where: { patientId, status: 'EXTRACTED' },
+      orderBy: { performedAt: 'desc' },
+      take: 5,
+      select: { title: true, performedAt: true, sourceLab: true, kind: true },
+    });
     // dedup: se já existe resumo consolidado há menos de 1h, devolve (economiza tokens)
     const recent = await prisma.aiAnalysis.findFirst({
       where: { patientId, type: 'SUMMARY', examId: null, createdAt: { gt: new Date(Date.now() - 3600_000) } },
       orderBy: { createdAt: 'desc' },
     });
-    if (recent) { res.json(recent); return; }
+    if (recent) { res.json({ ...recent, sourceExams }); return; }
     const { summary, contentMd, modelUsed, usage } = await generateConsolidatedSummary(patientId);
     const analysis = await prisma.aiAnalysis.create({
       data: { patientId, examId: null, type: 'SUMMARY', contentMd, structured: summary as any, modelUsed, tokenUsage: usage as any },
     });
-    res.status(201).json(analysis);
+    res.status(201).json({ ...analysis, sourceExams });
   } catch (e: any) {
     if (!res.headersSent) next(e);
   }

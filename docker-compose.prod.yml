@@ -19,3 +19,5 @@ services:
     volumes:
       # PDFs enviados (persistem entre deploys)
       - ./data/exams:/app/data/exams
+      # Fotos dos pacientes (persistem entre deploys)
+      - ./data/photos:/app/data/photos

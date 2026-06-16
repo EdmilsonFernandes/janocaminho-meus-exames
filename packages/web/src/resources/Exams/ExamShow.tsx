@@ -140,7 +140,7 @@ export const ExamShow = () => {
   const fm = (f: string) => flagMeta[f] ?? flagMeta.UNKNOWN;
 
   return (
-    <Box sx={{ maxWidth: 980, mx: 'auto', p: { xs: 1, md: 2 } }}>
+    <Box sx={{ maxWidth: 1080, mx: 'auto', p: { xs: 1, md: 2 } }}>
       <Title title={exam.title} />
 
       {/* Cabeçalho */}
@@ -208,7 +208,7 @@ export const ExamShow = () => {
             <Card key={panel} sx={{ mt: 2 }}>
               <CardContent sx={{ pb: '8px !important' }}>
                 <Typography variant="h6" sx={{ mb: 1 }}>{panel}</Typography>
-                <Stack divider={<Divider />}>
+                <Stack divider={<Divider sx={{ borderColor: '#eef2f7', my: 0.5 }} />}>
                   {(list as any[]).map((it) => {
                     const m = fm(it.flag);
                     const out = it.isAbnormal;

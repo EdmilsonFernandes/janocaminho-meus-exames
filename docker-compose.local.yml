@@ -27,3 +27,4 @@ services:
       - "4011:4001"            # http://localhost:4011/meus-exames/   (não briga com o dev na 4001)
     volumes:
       - ./data/exams:/app/data/exams
+      - ./data/photos:/app/data/photos

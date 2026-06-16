@@ -1,4 +1,5 @@
 import { List, Datagrid, TextField, DateField, FunctionField, Edit, SimpleForm, TextInput, DateInput, useRecordContext } from 'react-admin';
+import { Box } from '@mui/material';
 import { PhotoUpload } from '../../components/PhotoUpload';
 
 const PhotoField = () => {
@@ -24,12 +25,14 @@ export const PatientList = () => (
 
 export const PatientEdit = () => (
   <Edit title="Perfil do paciente">
-    <SimpleForm>
-      <PhotoField />
+    <SimpleForm sx={{ maxWidth: 640, pt: 1 }}>
+      <Box sx={{ pt: 2, pb: 1 }}>
+        <PhotoField />
+      </Box>
       <TextInput source="fullName" label="Nome completo" fullWidth />
       <TextInput source="relationship" label="Parentesco (Titular, Filha, Mãe...)" fullWidth />
       <TextInput source="phone" label="Telefone / WhatsApp" fullWidth />
-      <DateInput source="dateOfBirth" label="Data de nascimento" />
+      <DateInput source="dateOfBirth" label="Data de nascimento" fullWidth />
       <TextInput
         source="clinicalProfile"
         label="Perfil clínico (condições, medicações, histórico relevante)"
