@@ -94,19 +94,19 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
 
   return (
     <Card sx={{ mt: 3, borderRadius: 4, overflow: 'hidden', boxShadow: '0 4px 20px rgba(11,92,171,.08)' }}>
-      {/* Header premium */}
-      <Box sx={{ background: 'linear-gradient(135deg,#0b5cab,#1565c0)', p: 2.5, color: '#fff' }}>
+      {/* Header */}
+      <Box sx={{ background: 'linear-gradient(135deg,#f0f7ff,#e6f3ff)', p: 2.5, borderBottom: '2px solid #336886' }}>
         <Stack direction="row" alignItems="center" spacing={2}>
-          <DrExame size={48} sx={{ borderRadius: '12px', border: '2px solid rgba(255,255,255,.3)' }} />
+          <DrExame size={48} sx={{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }} />
           <Box sx={{ flex: 1 }}>
-            <Typography variant="h6" sx={{ fontWeight: 800 }}>Análise de Saúde</Typography>
-            <Typography sx={{ opacity: .85, fontSize: 13 }}>Resumo educativo — não substitui consulta médica</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a' }}>Análise de Saúde</Typography>
+            <Typography sx={{ color: '#64748b', fontSize: 13 }}>Resumo educativo — não substitui consulta médica</Typography>
           </Box>
         </Stack>
         <Stack direction="row" spacing={1} sx={{ mt: 2 }} useFlexGap flexWrap="wrap">
-          <Button size="small" sx={{ color: '#fff', borderColor: 'rgba(255,255,255,.4)', bgcolor: 'rgba(255,255,255,.1)' }} startIcon={<DrExame size={20} />} onClick={speak}>Dr. Exame fala</Button>
-          <Button size="small" variant="outlined" sx={{ color: '#fff', borderColor: 'rgba(255,255,255,.4)' }} startIcon={<ShareIcon />} onClick={share}>Compartilhar</Button>
-          <Button size="small" variant="outlined" sx={{ color: '#fff', borderColor: 'rgba(255,255,255,.4)' }} startIcon={<PrintIcon />} onClick={printSummary}>Imprimir</Button>
+          <Button size="small" variant="contained" startIcon={<DrExame size={20} />} onClick={speak}>Dr. Exame fala</Button>
+          <Button size="small" variant="outlined" startIcon={<ShareIcon />} onClick={share}>Compartilhar</Button>
+          <Button size="small" variant="outlined" startIcon={<PrintIcon />} onClick={printSummary}>Imprimir</Button>
         </Stack>
       </Box>
 

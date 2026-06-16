@@ -43,7 +43,7 @@ export const PatientSwitcher = () => {
   return (
     <Box sx={{ px: 2, py: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
       <FormControl size="small" sx={{ flex: 1 }}>
-        <Select value={pid ?? ''} onChange={(e) => { setSel(e.target.value as string); navigate('/'); }} displayEmpty sx={{ fontSize: 14 }}>
+        <Select value={pid ?? ''} onChange={(e) => { setSel(e.target.value as string); window.location.href = '/'; }} displayEmpty sx={{ fontSize: 14 }}>
           {patients.map((p) => (
             <MenuItem key={p.id} value={p.id}>
               {p.fullName}{p.relationship ? ` (${p.relationship})` : ''}

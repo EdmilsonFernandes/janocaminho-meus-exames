@@ -148,7 +148,8 @@ export const ExamShow = () => {
           <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mb: 0.5 }}>
             <Typography variant="h5" component="h1">{exam.title}</Typography>
             <Chip color={statusColor[exam.status] ?? 'default'} label={statusLabel[exam.status] ?? exam.status} />
-            <Chip variant="outlined" label={kindLabel[exam.kind] ?? exam.kind} />
+            {exam.kind === 'IMAGING' && <Chip variant="outlined" label="Imagem" />}
+            {exam.kind === 'LAB_PANEL' && <Chip variant="outlined" label="Laboratorial" />}
             {exam.reviewRequired && <Chip color="warning" label="verificar citações" />}
           </Stack>
           <Typography color="text.secondary">
