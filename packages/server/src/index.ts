@@ -33,6 +33,17 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/api/health', (_req, res) => res.json({ ok: true, ts: new Date().toISOString() }));
 
 app.use('/api/auth', authRoutes);
+// ROTA PÚBLICA: foto do paciente (sem auth — precisa funcionar em <img src>)
+app.get('/api/patients/:id/photo', async (req, res) => {
+  try {
+    const dir = path.join(__dirname, '../../../data/photos');
+    const fs = await import('fs');
+    const files = fs.readdirSync(dir).filter((f: string) => f.startsWith(`patient-${req.params.id}.`));
+    if (!files.length) { res.status(404).type('html').send('sem foto'); return; }
+    res.sendFile(path.join(dir, files[0]));
+  } catch { res.status(404).type('html').send('sem foto'); }
+});
+
 app.use('/api/patients', patientRoutes);
 app.use('/api/exams', examRoutes);
 app.use('/api/items', itemRoutes);
