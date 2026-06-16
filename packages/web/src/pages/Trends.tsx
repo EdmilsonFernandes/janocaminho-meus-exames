@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, MenuItem, Select, FormControl, InputLabel, CircularProgress } from '@mui/material';
+import { Box, Card, CardContent, Typography, MenuItem, Select, FormControl, InputLabel, CircularProgress, Stack } from '@mui/material';
 import { Title } from 'react-admin';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceArea, Legend } from 'recharts';
 import { API_URL, token } from '../config';
@@ -71,11 +71,11 @@ export const TrendsPage = () => {
   }
 
   return (
-    <Box>
+    <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 980, mx: 'auto' }}>
       <Title title="Tendências" />
       <Card><CardContent>
         <Typography variant="h6" gutterBottom>Evolução de um analito</Typography>
-        <FormControl sx={{ minWidth: 280, mb: 2 }}>
+        <FormControl fullWidth sx={{ minWidth: { xs: 0, sm: 280 }, mb: 2 }}>
           <InputLabel>Escolha o exame/analito</InputLabel>
           <Select value={sel} label="Escolha o exame/analito" onChange={(e) => setSel(e.target.value as string)}>
             {names.map((n) => <MenuItem key={n.nameCanonical} value={n.nameCanonical}>{n.nameCanonical} ({n.count})</MenuItem>)}
@@ -97,7 +97,7 @@ export const TrendsPage = () => {
                 {ts.refLow != null && ts.refHigh != null && (
                   <ReferenceArea y1={ts.refLow} y2={ts.refHigh} fill="#2e7d32" fillOpacity={0.12} />
                 )}
-                <Line type="monotone" dataKey="valor" stroke="#2a93b8" strokeWidth={3} dot={{ r: 5, fill: '#2a93b8' }} activeDot={{ r: 8, stroke: '#fff', strokeWidth: 2 }} />
+                <Line type="monotone" dataKey="valor" stroke="#20b2aa" strokeWidth={3} dot={{ r: 5, fill: '#20b2aa' }} activeDot={{ r: 8, stroke: '#fff', strokeWidth: 2 }} />
               </LineChart>
             </ResponsiveContainer>
 
@@ -114,13 +114,15 @@ export const TrendsPage = () => {
             )}
 
             <Box sx={{ mt: 2 }}>
-              <Typography variant="subtitle2">Pontos</Typography>
-              {data.map((d, i) => (
-                <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <span>{d.name} — {d.title}: <strong>{d.valor}</strong></span>
-                  <Flag flag={d.flag} />
-                </Box>
-              ))}
+              <Typography variant="subtitle2" sx={{ mb: 0.5 }}>Pontos (do mais recente)</Typography>
+              <Stack spacing={0.5}>
+                {[...data].reverse().map((d, i) => (
+                  <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                    <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>{d.name} — <strong>{d.valor}</strong>{ts?.unit ? ` ${ts.unit}` : ''} <Box component="span" sx={{ color: 'text.secondary' }}>({d.title})</Box></Typography>
+                    <Flag flag={d.flag} />
+                  </Box>
+                ))}
+              </Stack>
             </Box>
           </>
         )}
