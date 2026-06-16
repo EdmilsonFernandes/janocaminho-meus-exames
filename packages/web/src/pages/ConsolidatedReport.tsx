@@ -7,6 +7,7 @@ import WhatsAppIcon from '@mui/icons-material/Share';
 import { API_URL, apiHeaders } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import { ShareDialog } from '../components/ShareDialog';
+import { AnimatedDoctor } from '../components/AnimatedDoctor';
 
 interface Summary {
   resumoGeral?: string;
@@ -121,7 +122,7 @@ td,th{border:1px solid #e2e8f0;padding:7px 9px;text-align:left}th{background:#f0
   };
 
   return (
-    <Box>
+    <Box sx={{ p: { xs: 2, md: 3 } }}>
       <Title title="Relatório completo" />
       <Typography variant="h5" gutterBottom>🧾 Relatório completo de saúde</Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -129,9 +130,12 @@ td,th{border:1px solid #e2e8f0;padding:7px 9px;text-align:left}th{background:#f0
       </Typography>
 
       {!analysis && (
-        <Button variant="contained" size="large" startIcon={loading ? <CircularProgress size={18} color="inherit" /> : <DescriptionIcon />} onClick={generate} disabled={loading || !pid}>
-          {loading ? 'Gerando...' : 'Gerar relatório completo'}
-        </Button>
+        <>
+          <Button variant="contained" size="large" startIcon={loading ? <CircularProgress size={18} color="inherit" /> : <DescriptionIcon />} onClick={generate} disabled={loading || !pid}>
+            {loading ? 'Gerando...' : 'Gerar relatório completo'}
+          </Button>
+          {loading && <AnimatedDoctor text="Dr. Exame está preparando seu relatório…" size={80} />}
+        </>
       )}
       {!pid && <Typography color="text.secondary" sx={{ mt: 1 }}>Selecione um perfil no topo para gerar o relatório.</Typography>}
       {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}

@@ -39,6 +39,7 @@ import { ExpensesPage } from './pages/Expenses';
 import { EvolutionPage } from './pages/Evolution';
 import { FamilyPage } from './pages/Family';
 import { ConsolidatedReportPage } from './pages/ConsolidatedReport';
+import { ProfilePage } from './pages/Profile';
 import { LoginPage, RegisterPage, ResetPage } from './pages/Auth';
 import { LandingPage } from './pages/Landing';
 import { PatientSwitcher } from './components/PatientSwitcher';
@@ -64,6 +65,7 @@ const CustomAppBar = (props: AppBarProps) => {
 const AppMenu = () => (
   <Menu>
     <Menu.DashboardItem />
+    <Menu.Item to="/perfil" primaryText="Meu perfil" leftIcon={<AccountCircleIcon sx={{ color: '#8b5cf6' }} />} />
     <Menu.Item to="/evolucao" primaryText="Evolução da saúde" leftIcon={<InsightsIcon sx={{ color: '#0ea5e9' }} />} />
     <Menu.ResourceItems />
     <Menu.Item to="/familia" primaryText="Saúde da Família" leftIcon={<Diversity3Icon sx={{ color: '#f59e0b' }} />} />
@@ -109,11 +111,12 @@ export const App = () => {
     </CustomRoutes>
 
     <Resource name="exams" list={ExamList} show={ExamShow} create={ExamCreate} options={{ label: 'Exames' }} icon={MedicalInformationIcon} />
-    <Resource name="patients" list={PatientList} edit={PatientEdit} options={{ label: 'Perfil' }} icon={AccountCircleIcon} />
+    <Resource name="patients" list={PatientList} edit={PatientEdit} options={{ label: 'Dependentes' }} icon={Diversity3Icon} />
     <Resource name="items" options={{ label: 'Itens' }} />
     <Resource name="analyses" options={{ label: 'Análises' }} />
 
     <CustomRoutes>
+      <Route path="/perfil" element={<ProfilePage />} />
       <Route path="/evolucao" element={<EvolutionPage />} />
       <Route path="/familia" element={<FamilyPage />} />
       <Route path="/tendencias" element={<TrendsPage />} />

@@ -9,6 +9,7 @@ import { HealthSummary } from '../../components/HealthSummary';
 import { ValueBar } from '../../components/ValueBar';
 import { ExplainItem, ExplainButton } from '../../components/ExplainItem';
 import { ExtractionProgress } from '../../components/ExtractionProgress';
+import { AnimatedDoctor } from '../../components/AnimatedDoctor';
 
 const statusColor: Record<string, 'success' | 'error' | 'warning' | 'info' | 'default'> = {
   EXTRACTED: 'success', FAILED: 'error', UPLOADED: 'warning', EXTRACTING: 'info',
@@ -310,6 +311,7 @@ export const ExamShow = () => {
                 <Button variant="contained" size="large" onClick={generateSummary} disabled={genLoading}>
                   {genLoading ? <CircularProgress size={22} /> : 'Gerar resumo'}
                 </Button>
+                {genLoading && <AnimatedDoctor text="Dr. Exame está analisando seu exame…" />}
               </CardContent>
             </Card>
           )}

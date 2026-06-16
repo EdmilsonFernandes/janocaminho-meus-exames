@@ -34,6 +34,19 @@ export const TrendsPage = () => {
     valor: p.valueNumeric, flag: p.flag, title: p.title,
   }));
 
+  // Tooltip premium (mostra data + valor + unidade + flag)
+  const TooltipBox = ({ active, payload }: any) => {
+    if (!active || !payload?.length) return null;
+    const d = payload[0].payload;
+    return (
+      <Box sx={{ bgcolor: 'rgba(15,23,42,0.92)', color: '#fff', p: 1.25, borderRadius: 2, boxShadow: 4, minWidth: 120 }}>
+        <Box sx={{ fontWeight: 700, fontSize: 11, opacity: 0.8 }}>{d.name}</Box>
+        <Box sx={{ fontSize: 19, fontWeight: 800 }}>{d.valor}{ts?.unit ? ` ${ts.unit}` : ''}</Box>
+        {d.flag && d.flag !== 'NORMAL' && <Box sx={{ color: '#fca5a5', fontSize: 12, fontWeight: 700 }}>{d.flag === 'HIGH' ? '↑ Acima' : d.flag === 'LOW' ? '↓ Abaixo' : d.flag}</Box>}
+      </Box>
+    );
+  };
+
   let predict: { dir: string; months?: number } | null = null;
   const pts = ts?.points ?? [];
   if (pts.length >= 2) {
@@ -80,11 +93,11 @@ export const TrendsPage = () => {
             <ResponsiveContainer width="100%" height={340}>
               <LineChart data={data} margin={{ top: 10, right: 20, bottom: 10, left: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" /><YAxis /><Tooltip /><Legend />
+                <XAxis dataKey="name" /><YAxis /><Tooltip content={<TooltipBox />} />
                 {ts.refLow != null && ts.refHigh != null && (
                   <ReferenceArea y1={ts.refLow} y2={ts.refHigh} fill="#2e7d32" fillOpacity={0.12} />
                 )}
-                <Line type="monotone" dataKey="valor" stroke="#1565c0" strokeWidth={2} dot={{ r: 4 }} />
+                <Line type="monotone" dataKey="valor" stroke="#2a93b8" strokeWidth={3} dot={{ r: 5, fill: '#2a93b8' }} activeDot={{ r: 8, stroke: '#fff', strokeWidth: 2 }} />
               </LineChart>
             </ResponsiveContainer>
 

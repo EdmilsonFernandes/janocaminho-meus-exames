@@ -138,10 +138,29 @@ router.get('/me', requireAuth, async (req: AuthedRequest, res, next) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.userId! },
-      select: { id: true, email: true, name: true, role: true },
+      select: { id: true, email: true, name: true, role: true, planExpiresAt: true, credits: true },
     });
     const patientId = user ? await firstPatientId(user.id) : null;
     res.json({ user, patientId });
+  } catch (e) { next(e); }
+});
+
+// TROCAR SENHA (usuário logado informa a atual)
+router.post('/change-password', requireAuth, async (req: AuthedRequest, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body ?? {};
+    const pwd = String(newPassword ?? '');
+    if (!currentPassword || pwd.length < 6) {
+      res.status(400).json({ error: 'Informe a senha atual e a nova (mín. 6 caracteres).' });
+      return;
+    }
+    const user = await prisma.user.findUnique({ where: { id: req.userId! } });
+    if (!user || !(await comparePassword(String(currentPassword), user.passwordHash))) {
+      res.status(401).json({ error: 'Senha atual incorreta.' });
+      return;
+    }
+    await prisma.user.update({ where: { id: user.id }, data: { passwordHash: await hashPassword(pwd) } });
+    res.json({ ok: true });
   } catch (e) { next(e); }
 });
 

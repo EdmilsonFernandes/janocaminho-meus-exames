@@ -36,7 +36,7 @@ export const EvolutionPage = () => {
   const stable = items.filter((i) => i.direction === 'stable');
 
   return (
-    <Box>
+    <Box sx={{ p: { xs: 2, md: 3 } }}>
       <Title title="Evolução da minha saúde" />
       <Typography variant="h5" gutterBottom>📈 Evolução ao longo do tempo</Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
