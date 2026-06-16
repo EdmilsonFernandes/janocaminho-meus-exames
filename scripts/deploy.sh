@@ -8,7 +8,7 @@ ROOT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 cd "$ROOT_DIR"
 
 ENV_FILE="${ENV_FILE:-$ROOT_DIR/.env.prod}"
-SUBPATH="${SUBPATH:-meus-exames}"               # ex.: meus-exames, minhasaude, dr-exame
+SUBPATH="${SUBPATH:-minhasaude}"               # escolhido: minhasaude (outros: meus-exames, dr-exame...)
 HOST="${HOST:-janocaminho.com.br}"
 APP_PORT="${APP_PORT:-4010}"                     # porta local do container (nginx aponta pra cá)
 

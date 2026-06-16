@@ -13,9 +13,9 @@ COPY . .
 RUN cd packages/server && npx prisma generate
 # build do servidor (tsc)
 RUN npm run build --workspace packages/server
-# build do front em modo produção, no sub-caminho /meus-exames (API em /meus-exames/api)
-ARG VITE_BASE=/meus-exames/
-ARG VITE_API_URL=/meus-exames/api
+# build do front em modo produção, no sub-caminho /minhasaude (API em /minhasaude/api)
+ARG VITE_BASE=/minhasaude/
+ARG VITE_API_URL=/minhasaude/api
 RUN VITE_BASE=$VITE_BASE VITE_API_URL=$VITE_API_URL npm run build --workspace packages/web
 
 # ---- runtime enxuto ----

@@ -1,7 +1,7 @@
 # Deploy "puxadinho" do Meus Exames (sem custo novo)
 
 Mesmo **EC2** e mesmo **domínio** (janocaminho.com.br) do EdEspeto. Sem domínio novo, sem EC2 novo, sem Postgres novo.
-O app roda em **`https://janocaminho.com.br/meus-exames`** e **não mexe em nada** que já existe — só:
+O app roda em **`https://janocaminho.com.br/minhasaude`** e **não mexe em nada** que já existe — só:
 1. cria um **banco novo** no Postgres que já roda;
 2. sobe **1 container** novo (`meus-exames-app`);
 3. adiciona **1 rota** nova no nginx existente.
@@ -65,24 +65,24 @@ docker logs meus-exames-app --tail 30
 ### 4) Adicionar a rota no nginx existente (sem tocar no EdEspeto)
 Edite o server block de `janocaminho.com.br` (HTTPS) e acrescente UMA location:
 ```nginx
-location /meus-exames/ {
-    client_max_body_size 40M;                 # upload de PDFs
-    proxy_pass http://127.0.0.1:4010/;        # stripa /meus-exames e manda pro app
+location /minhasaude/ {
+    client_max_body_size 40M;                  # upload de PDFs
+    proxy_pass http://127.0.0.1:4010/;         # stripa /minhasaude e manda pro app
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
 }
 ```
-Recarregue: `sudo nginx -t && sudo nginx -s reload`.
+⚠️ **Valide ANTES de recarregar** (protege o EdEspeto e os outros sites): `sudo nginx -t` → só se der `syntax is ok / test is successful`, recarregue com `sudo nginx -s reload`. Reload é **graceful** — não derruba conexões nem reinicia o nginx ou os outros sites.
 
-Pronto — acesse **`https://janocaminho.com.br/meus-exames/`**. (Login: o `SEED_*` que você definiu.)
+Pronto — acesse **`https://janocaminho.com.br/minhasaude/`**. (Login: o `SEED_*` que você definiu.)
 
 ## APK apontando pra essa URL
 No `packages/web/.env` (ou direto no build), defina:
 ```
 VITE_BASE=/
-VITE_API_URL=https://janocaminho.com.br/meus-exames/api
+VITE_API_URL=https://janocaminho.com.br/minhasaude/api
 ```
 Depois: `cd packages/mobile && npm run sync && cd android && ./gradlew.bat assembleDebug`.
 
@@ -100,7 +100,10 @@ BACKUP_S3_BUCKET=meu-bucket sh scripts/pg-backup.sh       # + envio p/ S3
 ```
 Dica de cron (diário 3h): `0 3 * * * cd ~/meus-exames && sh scripts/pg-backup.sh`
 
-## Isolamento / segurança
+## Isolamento / segurança (NÃO reinicia serviços existentes)
+- `scripts/setup-db.sh` só roda `CREATE DATABASE/ROLE` via `psql` no postgres existente — **não reinicia o Postgres**.
+- `scripts/deploy.sh` só gerencia o container **`meus-exames-app`** (porta `127.0.0.1:4010`, própria) — **não toca no EdEspeto, nem no Postgres, nem em outros containers**.
+- Nginx: só **adiciona 1 `location`** nova e faz `reload` (graceful) — não reinicia o nginx nem os outros sites (sempre `nginx -t` antes).
 - Banco novo `meus_exames`, isolado do `espetinho` (EdEspeto não enxerga nem é afetado).
-- Chave da IA e SMTP **só no servidor**. O APK só fala com `https://janocaminho.com.br/meus-exames/api`.
+- Chave da IA e SMTP **só no servidor**. O APK só fala com `https://janocaminho.com.br/minhasaude/api`.
 - PDFs ficam em `./data/exams` (volume no EC2).
