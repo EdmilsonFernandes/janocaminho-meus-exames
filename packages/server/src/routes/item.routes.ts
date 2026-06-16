@@ -74,6 +74,7 @@ router.get('/', async (req: AuthedRequest, res, next) => {
     const { start, take } = parseListParams(req);
     const q = req.query as Record<string, string | undefined>;
     const where: any = { exam: { patientId: { in: pids } } };
+    if (q.patientId) where.exam = { patientId: q.patientId }; // escopo por paciente específico
     if (q.examId) where.examId = q.examId;
     if (q.abnormal === 'true') where.isAbnormal = true;
     const [total, rows] = await prisma.$transaction([

@@ -47,7 +47,9 @@ export const theme = createTheme({
     MuiDrawer: {
       styleOverrides: {
         paper: {
-          background: 'linear-gradient(180deg, #1a2738 0%, #0f1923 100%)',
+          background: '#0f1923',
+          backgroundImage: 'linear-gradient(180deg, #1a2738 0%, #0f1923 100%)',
+          backgroundAttachment: 'fixed',
           borderRight: 'none',
           width: 240,
         },
