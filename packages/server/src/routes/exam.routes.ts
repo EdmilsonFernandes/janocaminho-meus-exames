@@ -54,6 +54,7 @@ router.get('/:id', async (req, res, next) => {
       include: {
         items: { orderBy: [{ panel: 'asc' }, { name: 'asc' }] },
         analyses: { where: { type: 'SUMMARY' }, orderBy: { createdAt: 'desc' }, take: 1 },
+        patient: { select: { fullName: true, relationship: true } },
       },
     });
     if (!exam) {

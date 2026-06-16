@@ -92,6 +92,8 @@ export const theme = createTheme({
         root: {
           borderRadius: 10,
           margin: '2px 8px',
+          color: '#cbd5e1',
+          '&:hover': { background: 'rgba(255,255,255,0.08)' },
           '&.RaMenuItem-activeMenuItem': {
             background: alpha('#5FD35A', 0.15),
             color: '#5FD35A',

@@ -31,9 +31,11 @@ NUNCA invente valor. Se não conseguir ler com confiança, omita o analito. Agru
 
 Devolva EXATAMENTE este formato JSON:
 {
+  "patientName": "NOME COMPLETO do paciente como está no documento",
   "examTitle": "HEMOGRAMA COMPLETO",
   "performedAt": "12/06/2026",
-  "sourceLab": "nome do laboratório",
+  "sourceLab": "nome do laboratório/unidade",
+  "requestingDoctor": "nome do médico solicitante (se houver)",
   "panels": [
     {
       "name": "HEMOGRAMA",

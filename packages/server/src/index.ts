@@ -37,18 +37,47 @@ app.use('/api/billing', billingRoutes);
 app.use('/api/measurements', measurementRoutes);
 app.use('/api/vaccines', vaccineRoutes);
 
-// ROTA PÚBLICA: médico vê o resumo compartilhado (sem login)
+// ROTA PÚBLICA: médico vê o resumo compartilhado (sem login, expira em 3 dias)
 app.get('/api/public/shared/:token', async (req, res) => {
+  const token = String(req.params.token);
+  const parts = token.split('.');
+  if (parts.length === 2) {
+    const expires = Number(parts[1]);
+    if (Date.now() > expires) {
+      res.status(410).type('html').send(emailTemplate({
+        title: 'Link expirado',
+        content: '<p style="text-align:center;font-size:16px;color:#64748b;margin-top:20px">⏰ Este link expirou (válido por 3 dias).\nPeça ao paciente para gerar um novo.</p>',
+      }));
+      return;
+    }
+  }
   const a = await prisma.aiAnalysis.findFirst({
-    where: { shareToken: String(req.params.token), type: 'SUMMARY' },
-    include: { exam: { select: { title: true, performedAt: true, patient: { select: { fullName: true } } } } },
+    where: { shareToken: token, type: 'SUMMARY' },
+    include: { exam: { select: { title: true, performedAt: true, sourceLab: true, patient: { select: { fullName: true } } } } },
   });
-  if (!a) { res.status(404).type('html').send('<h1 style="font-family:sans-serif;text-align:center;margin-top:40px">Link inválido ou expirado.</h1>'); return; }
+  if (!a) {
+    res.status(404).type('html').send(emailTemplate({
+      title: 'Link inválido',
+      content: '<p style="text-align:center;font-size:16px;color:#64748b;margin-top:20px">Link inválido ou não encontrado.</p>',
+    }));
+    return;
+  }
   const date = a.exam?.performedAt ? new Date(a.exam.performedAt as Date).toLocaleDateString('pt-BR') : '';
+  const patientName = a.exam?.patient?.fullName ?? '';
+  const lab = a.exam?.sourceLab ?? '';
+  // converte markdown básico para HTML (###, **, -, 1.)
+  const html = (a.contentMd || '').replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/^### (.+)$/gm, '<h3 style="color:#336886;margin:20px 0 8px">$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2 style="color:#336886;margin:24px 0 10px">$1</h2>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>.+<\/li>)/s, '<ul>$1</ul>')
+    .replace(/\n/g, '<br>');
   res.type('html').send(emailTemplate({
-    title: `Resumo — ${a.exam?.title ?? 'Exame'}`,
-    preheader: `${a.exam?.patient?.fullName ?? ''} • ${date}`,
-    content: `<div style="white-space:pre-wrap;font-size:15px;color:#15233b;line-height:1.7">${a.contentMd}</div>`,
+    title: `Resumo de Saúde — ${a.exam?.title ?? 'Exame'}`,
+    preheader: `${patientName} • ${date}${lab ? ' • ' + lab : ''}`,
+    content: html,
   }));
 });
 

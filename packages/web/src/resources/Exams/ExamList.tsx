@@ -1,4 +1,4 @@
-import { List, Datagrid, TextField, DateField, FunctionField, ShowButton } from 'react-admin';
+import { List, Datagrid, TextField, DateField, FunctionField, ShowButton, DeleteButton } from 'react-admin';
 import { Chip } from '@mui/material';
 import { useSelectedPatient } from '../../patient-context';
 
@@ -25,8 +25,8 @@ const kindLabel: Record<string, string> = {
 export const ExamList = () => {
   const [pid] = useSelectedPatient();
   return (
-  <List sort={{ field: 'performedAt', order: 'DESC' }} exporter={false} perPage={25} filter={{ patientId: pid || 'none' }}>
-    <Datagrid rowClick="show">
+  <List key={pid} sort={{ field: 'performedAt', order: 'DESC' }} exporter={false} perPage={25} filter={{ patientId: pid || 'none' }}>
+    <Datagrid bulkActionButtons={false} rowClick="show">
       <TextField source="title" label="Exame" />
       <FunctionField label="Tipo" render={(r: any) => kindLabel[r.kind] ?? r.kind} />
       <DateField source="performedAt" label="Data" locales="pt-BR" />
@@ -37,11 +37,8 @@ export const ExamList = () => {
         )}
       />
       <FunctionField label="Itens" render={(r: any) => r._count?.items ?? 0} />
-      <FunctionField
-        label="Revisar"
-        render={(r: any) => (r.reviewRequired ? <Chip size="small" color="warning" label="verificar citações" /> : '—')}
-      />
       <ShowButton />
+      <DeleteButton />
     </Datagrid>
   </List>
   );

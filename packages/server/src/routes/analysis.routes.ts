@@ -122,10 +122,12 @@ router.post('/:id/share', async (req, res, next) => {
   try {
     const a = await prisma.aiAnalysis.findUnique({ where: { id: String(req.params.id) } });
     if (!a) { res.status(404).json({ error: 'Análise não encontrada' }); return; }
-    const token = a.shareToken || crypto.randomUUID();
+    // token com expiração de 3 dias embutida: uuid.timestampExpira
+    const expires = Date.now() + 3 * 24 * 60 * 60 * 1000;
+    const token = `${crypto.randomUUID()}.${expires}`;
     await prisma.aiAnalysis.update({ where: { id: a.id }, data: { shareToken: token } });
     const link = `${req.protocol}://${req.get('host')}/api/public/shared/${token}`;
-    res.json({ link });
+    res.json({ link, expiresAt: new Date(expires).toISOString() });
   } catch (e) { next(e); }
 });
 
