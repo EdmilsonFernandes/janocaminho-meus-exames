@@ -35,3 +35,10 @@ services:
       - ./data/photos:/app/data/photos
       # Memória do agente (historico.md por paciente)
       - ./data/agent:/app/data/agent
+    networks:
+      # Rede compartilhada do ecossistema — assim alcança o janocaminho-postgres pelo nome
+      - janocaminho_default
+
+networks:
+  janocaminho_default:
+    external: true
