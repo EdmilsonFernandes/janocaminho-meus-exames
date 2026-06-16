@@ -271,6 +271,24 @@ export const ExamShow = () => {
         </Card>
       )}
 
+      {/* PREPARO DE CONSULTA */}
+      {exam.status === 'EXTRACTED' && (
+        <Card sx={{ mt: 2, background: 'linear-gradient(135deg,#e8f5e9,#c8e6c9)', border: '1px solid #a5d6a7' }}>
+          <CardContent>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Typography variant="h6" sx={{ color: '#2e7d32', flex: 1 }}>📋 Preparar visita ao médico</Typography>
+              <Button variant="contained" color="success" size="large"
+                onClick={() => window.open(`${API_URL}/consulta/exams/${id}?html=1`, '_blank')}>
+                Gerar documento
+              </Button>
+            </Stack>
+            <Typography variant="body2" sx={{ color: '#555', mt: 0.5 }}>
+              1 página com valores alterados + perfil clínico + comparação. Pronto para levar na consulta.
+            </Typography>
+          </CardContent>
+        </Card>
+      )}
+
       {/* RESUMO de IA */}
       {exam.status === 'EXTRACTED' && (
         <Box sx={{ mt: 2 }}>
