@@ -6,6 +6,7 @@ import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import { useNavigate } from 'react-router-dom';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
+import { syncPushToken } from '../push';
 
 const readTotal = (r: Response) => Number(r.headers.get('X-Total-Count') ?? r.headers.get('content-range')?.split('/')?.[1] ?? '0');
 
@@ -32,6 +33,7 @@ export const Dashboard = () => {
       } else {
         setScore(null);
       }
+      void syncPushToken(); // registra token FCM do dispositivo após login (no-op no web)
     })();
   }, [pid]);
 

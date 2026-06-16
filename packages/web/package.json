@@ -9,8 +9,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@capacitor/browser": "^7.0.0",
     "@capacitor/camera": "^7.0.5",
     "@capacitor/core": "^7.6.6",
+    "@capacitor/push-notifications": "^7.0.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@meus-exames/shared": "*",

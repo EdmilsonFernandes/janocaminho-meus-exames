@@ -22,6 +22,7 @@ model User {
   createdAt    DateTime @default(now())
   patients     Patient[]
   subscriptions Subscription[]
+  deviceTokens DeviceToken[]
 
   @@map("users")
 }
@@ -51,6 +52,7 @@ model Patient {
   reminders    Reminder[]
   measurements Measurement[]
   vaccines     Vaccine[]
+  expenses     Expense[]
 
   @@index([ownerId])
   @@map("patients")
@@ -237,4 +239,32 @@ model Vaccine {
 
   @@index([patientId, dateApplied])
   @@map("vaccines")
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  patientId   String
+  patient     Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  ownerId     String
+  description String
+  category    String   // Exame | Consulta | Remédio | Outro
+  amount      Float
+  spentAt     DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([patientId, spentAt])
+  @@map("expenses")
+}
+
+model DeviceToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  platform  String?  // android | web | ios
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("device_tokens")
 }

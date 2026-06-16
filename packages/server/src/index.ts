@@ -17,6 +17,8 @@ import reminderRoutes from './routes/reminder.routes';
 import billingRoutes from './routes/billing.routes';
 import measurementRoutes from './routes/measurement.routes';
 import vaccineRoutes from './routes/vaccine.routes';
+import expenseRoutes from './routes/expense.routes';
+import deviceRoutes from './routes/device.routes';
 import consultaRoutes from './routes/consulta';
 
 const app = express();
@@ -53,6 +55,8 @@ app.use('/api/reminders', reminderRoutes);
 app.use('/api/billing', billingRoutes);
 app.use('/api/measurements', measurementRoutes);
 app.use('/api/vaccines', vaccineRoutes);
+app.use('/api/expenses', expenseRoutes);
+app.use('/api/devices', deviceRoutes);
 app.use('/api/consulta', consultaRoutes);
 
 // ROTA PÚBLICA: médico vê o resumo compartilhado (sem login, expira em 3 dias)

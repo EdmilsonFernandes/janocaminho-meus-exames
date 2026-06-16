@@ -5,6 +5,8 @@ import StarIcon from '@mui/icons-material/Star';
 import { Title, useNotify } from 'react-admin';
 import { useSearchParams } from 'react-router-dom';
 import { API_URL, token } from '../config';
+import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
 
 interface Status { active: boolean; planExpiresAt: string | null; examsCount: number; freeExamLimit: number; }
 interface PlanInfo { plans: { id: string; label: string; price: number; periodDays: number }[]; freeExamLimit: number; mercadoPagoEnabled: boolean; }
@@ -41,7 +43,15 @@ export const PlansPage = () => {
       });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Falha');
-      if (d.init_point) window.location.href = d.init_point; // vai pro checkout do Mercado Pago
+      if (d.init_point) {
+        // No app (Play Store): abre o checkout no NAVEGADOR DO SISTEMA (externalização — compliance Google).
+        // No web: navega na mesma aba.
+        if (Capacitor.isNativePlatform()) {
+          await Browser.open({ url: d.init_point });
+        } else {
+          window.location.href = d.init_point;
+        }
+      }
     } catch (e: any) {
       notify(e.message, { type: 'error' });
     } finally { setLoading(''); }

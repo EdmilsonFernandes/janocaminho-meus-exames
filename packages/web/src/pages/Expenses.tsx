@@ -1,42 +1,57 @@
 import { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, Button, TextField, List, ListItem, ListItemText, IconButton, Stack, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
+import { Box, Card, CardContent, Typography, Button, TextField, IconButton, Stack, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, CircularProgress } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { Title } from 'react-admin';
-import { API_URL, token } from '../config';
+import { Title, useNotify } from 'react-admin';
+import { API_URL, apiHeaders, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
+
+interface Expense { id: string; description: string; category: string; amount: number; spentAt: string; }
 
 export const ExpensesPage = () => {
   const [pid] = useSelectedPatient();
-  const [items, setItems] = useState<any[]>([]);
+  const notify = useNotify();
+  const [items, setItems] = useState<Expense[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [desc, setDesc] = useState('');
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [category, setCategory] = useState('Exame');
 
   const load = async () => {
-    if (!pid) return;
-    // reusa measurements endpoint temporariamente como despesas (campo type = EXPENSE)
-    // idealmente ter tabela própria — por enquanto guarda local no browser
-    const stored = JSON.parse(localStorage.getItem(`expenses_${pid}`) || '[]');
-    setItems(stored.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+    if (!pid) { setItems([]); return; }
+    setLoading(true);
+    try {
+      const r = await fetch(`${API_URL}/expenses?patientId=${pid}&_start=0&_end=200`, { headers: { Authorization: `Bearer ${token()}` } });
+      if (r.ok) setItems(await r.json());
+    } catch { /* ignore */ }
+    setLoading(false);
   };
   useEffect(() => { load(); }, [pid]);
 
-  const add = () => {
-    if (!desc.trim() || !amount) return;
-    const stored = JSON.parse(localStorage.getItem(`expenses_${pid}`) || '[]');
-    stored.push({ id: Date.now(), desc: desc.trim(), amount: parseFloat(amount), date, category });
-    localStorage.setItem(`expenses_${pid}`, JSON.stringify(stored));
-    setDesc(''); setAmount(''); load();
+  const add = async () => {
+    if (!pid || !desc.trim() || !amount) return;
+    setSaving(true);
+    try {
+      const r = await fetch(`${API_URL}/expenses`, {
+        method: 'POST', headers: apiHeaders(true), body: JSON.stringify({ patientId: pid, description: desc.trim(), category, amount: parseFloat(amount), spentAt: date }),
+      });
+      if (!r.ok) throw new Error('Falha ao salvar');
+      setDesc(''); setAmount('');
+      await load();
+    } catch (e: any) { notify(e.message, { type: 'error' }); }
+    setSaving(false);
   };
-  const del = (id: number) => {
-    const stored = JSON.parse(localStorage.getItem(`expenses_${pid}`) || '[]').filter((x: any) => x.id !== id);
-    localStorage.setItem(`expenses_${pid}`, JSON.stringify(stored));
-    load();
+
+  const del = async (id: string) => {
+    try {
+      await fetch(`${API_URL}/expenses/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });
+      await load();
+    } catch { /* ignore */ }
   };
 
   const total = items.reduce((s, i) => s + i.amount, 0);
-  const byCategory = items.reduce((acc: any, i) => { acc[i.category] = (acc[i.category] || 0) + i.amount; return acc; }, {});
+  const byCategory = items.reduce((acc: Record<string, number>, i) => { acc[i.category] = (acc[i.category] || 0) + i.amount; return acc; }, {});
 
   return (
     <Box sx={{ maxWidth: 760, mx: 'auto', p: { xs: 1, md: 2 } }}>
@@ -46,8 +61,8 @@ export const ExpensesPage = () => {
           <Typography variant="h4" sx={{ fontWeight: 800, color: '#1565c0' }}>R$ {total.toFixed(2).replace('.', ',')}</Typography>
           <Typography color="text.secondary">Total gasto em saúde</Typography>
           <Stack direction="row" spacing={1} sx={{ mt: 1 }} useFlexGap flexWrap="wrap">
-            {Object.entries(byCategory).map(([cat, val]: any) => (
-              <Typography key={cat} variant="body2" sx={{ color: '#555' }}>{cat}: <strong>R$ {Number(val).toFixed(2)}</strong></Typography>
+            {Object.entries(byCategory).map(([cat, val]) => (
+              <Typography key={cat} variant="body2" sx={{ color: '#555' }}>{cat}: <strong>R$ {val.toFixed(2)}</strong></Typography>
             ))}
           </Stack>
         </CardContent>
@@ -62,14 +77,16 @@ export const ExpensesPage = () => {
             </TextField>
             <TextField size="small" label="Valor (R$)" type="number" value={amount} onChange={(e) => setAmount(e.target.value)} sx={{ width: 120 }} />
             <TextField size="small" type="date" value={date} onChange={(e) => setDate(e.target.value)} InputLabelProps={{ shrink: true }} />
-            <Button variant="contained" onClick={add} disabled={!desc.trim() || !amount}>Adicionar</Button>
+            <Button variant="contained" onClick={add} disabled={!desc.trim() || !amount || saving}>{saving ? 'Salvando…' : 'Adicionar'}</Button>
           </Stack>
         </CardContent>
       </Card>
       <Card>
         <CardContent>
           <Typography variant="h6" gutterBottom>Histórico de despesas</Typography>
-          {items.length === 0 ? (
+          {loading ? (
+            <CircularProgress size={20} />
+          ) : items.length === 0 ? (
             <Typography color="text.secondary" sx={{ py: 2 }}>Nenhuma despesa registrada.</Typography>
           ) : (
             <TableContainer component={Paper} variant="outlined">
@@ -80,10 +97,10 @@ export const ExpensesPage = () => {
                 <TableBody>
                   {items.map((item) => (
                     <TableRow key={item.id}>
-                      <TableCell>{item.desc}</TableCell>
+                      <TableCell>{item.description}</TableCell>
                       <TableCell>{item.category}</TableCell>
                       <TableCell align="right" sx={{ fontWeight: 600 }}>R$ {item.amount.toFixed(2)}</TableCell>
-                      <TableCell>{new Date(item.date).toLocaleDateString('pt-BR')}</TableCell>
+                      <TableCell>{new Date(item.spentAt).toLocaleDateString('pt-BR')}</TableCell>
                       <TableCell><IconButton size="small" onClick={() => del(item.id)}><DeleteIcon fontSize="small" /></IconButton></TableCell>
                     </TableRow>
                   ))}

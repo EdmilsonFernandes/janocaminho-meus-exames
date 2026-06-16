@@ -45,6 +45,9 @@ export const config = {
 
   // Paywall: nº de exames gratuitos antes de exigir assinatura
   freeExamLimit: Number(process.env.FREE_EXAM_LIMIT ?? 2),
+
+  // Firebase (push notifications) — caminho do service account (admin SDK)
+  firebaseServiceAccountPath: process.env.FIREBASE_SERVICE_ACCOUNT_PATH ?? '',
 } as const;
 
 export const hasMercadoPago = () => config.mpAccessToken.trim().length > 0;

@@ -1,5 +1,6 @@
 import { Admin, Resource, CustomRoutes, Layout, Menu, AppBar, TitlePortal, AppBarProps } from 'react-admin';
 import { Route } from 'react-router-dom';
+import { useEffect } from 'react';
 import { Box, Typography } from '@mui/material';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import ChatIcon from '@mui/icons-material/MedicalServices';
@@ -36,6 +37,7 @@ import { ConsolidatedReportPage } from './pages/ConsolidatedReport';
 import { LoginPage, RegisterPage, ResetPage } from './pages/Auth';
 import { LandingPage } from './pages/Landing';
 import { PatientSwitcher } from './components/PatientSwitcher';
+import { initPush } from './push';
 
 // AppBar com o switcher no topo (sempre visível, não quebra quando menu colapsa)
 const CustomAppBar = (props: AppBarProps) => (
@@ -70,6 +72,7 @@ const AppLayout = (props: any) => <Layout {...props} menu={AppMenu} appBar={Cust
 export const App = () => {
   const base = import.meta.env.BASE_URL;
   const basename = base && base !== '/' ? base.replace(/\/$/, '') : undefined;
+  useEffect(() => { void initPush(); }, []);
   return (
   <Admin
     dataProvider={dataProvider}
