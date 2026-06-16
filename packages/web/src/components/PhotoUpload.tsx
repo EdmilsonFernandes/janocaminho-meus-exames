@@ -8,6 +8,7 @@ export const PhotoUpload = ({ patientId, photoUrl, size = 80 }: { patientId?: st
   const inputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | undefined>(patientId && photoUrl ? photoUrlFor(patientId) : undefined);
   const [uploading, setUploading] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -22,6 +23,7 @@ export const PhotoUpload = ({ patientId, photoUrl, size = 80 }: { patientId?: st
       if (r.ok) {
         const d = await r.json();
         setPreview(photoUrlFor(patientId));
+        setSaved(true);
       } else {
         console.error('photo upload failed:', r.status, await r.text());
       }
@@ -48,8 +50,8 @@ export const PhotoUpload = ({ patientId, photoUrl, size = 80 }: { patientId?: st
         <input ref={inputRef} type="file" hidden accept="image/jpeg,image/png" onChange={onFile} />
       </Box>
       <Box>
-        <Typography variant="body2" color="text.secondary">
-          {uploading ? 'Enviando...' : 'Clique na câmera para enviar uma foto'}
+        <Typography variant="body2" sx={{ color: saved ? 'success.main' : 'text.secondary', fontWeight: saved ? 700 : 400 }}>
+          {uploading ? 'Enviando...' : saved ? '✓ Foto salva' : 'Clique na câmera para enviar uma foto'}
         </Typography>
       </Box>
     </Box>

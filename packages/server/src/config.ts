@@ -48,6 +48,9 @@ export const config = {
 
   // Firebase (push notifications) — caminho do service account (admin SDK)
   firebaseServiceAccountPath: process.env.FIREBASE_SERVICE_ACCOUNT_PATH ?? '',
+
+  // "Memória" do agente (historico.md por paciente) — path absoluto alinhado ao volume
+  agentDir: process.env.AGENT_DIR ?? './data/agent',
 } as const;
 
 export const hasMercadoPago = () => config.mpAccessToken.trim().length > 0;

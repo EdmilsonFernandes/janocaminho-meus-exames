@@ -3,6 +3,7 @@ import { HealthSummarySchema, type HealthSummary } from '../extraction/schemas';
 import { prisma } from '../prisma';
 import { HEALTH_SYSTEM, diagnosticGuard } from './system';
 import { JSON_SUFFIX, extractJsonObject } from '../utils/json';
+import { patientSlug, memoryDigest, appendPatientMemory } from './agent-memory';
 
 /** Resumo CONSOLIDADO: junta os últimos exames (sangue/imagem/laudo) num documento único — "segunda opinião documental". */
 export async function generateConsolidatedSummary(patientId: string): Promise<{ summary: HealthSummary; contentMd: string; modelUsed: string; usage: any }> {
@@ -26,6 +27,9 @@ export async function generateConsolidatedSummary(patientId: string): Promise<{ 
 
   const perfil = patient.clinicalProfile?.trim();
   const perfilText = perfil ? `\nPERFIL CLÍNICO DO PACIENTE (use para contextualizar, nunca para diagnosticar):\n${perfil}\n` : '';
+  const slug = patientSlug(patient.fullName, patientId);
+  const digest = memoryDigest(slug);
+  const memoryText = digest ? `\nHISTÓRICO DE ANÁLISES ANTERIORES (use como contexto; não repita):\n${digest}\n` : '';
   const examContext = exams.map((e) => ({
     titulo: e.title,
     tipo: e.kind,
@@ -51,7 +55,7 @@ export async function generateConsolidatedSummary(patientId: string): Promise<{ 
           `Monte um RESUMO CONSOLIDADO da saúde do paciente considerando TODOS os exames abaixo (pode haver laboratorial, imagem e laudo — do mais recente ao mais antigo).\n` +
           `PACIENTE: ${patient.fullName}\n` +
           `Exames incluídos: ${exams.length}.\n` +
-          perfilText + '\n' +
+          perfilText + '\n' + memoryText +
           `EXAMES (apenas alterações relevantes):\n${JSON.stringify(examContext, null, 2)}\n\n` +
           `Monte o JSON com: resumoGeral (visão geral integrada), comparativo (itens alterados: {name, anterior, atual, leitura, entenda}), ` +
           `pontosAtencao ({titulo, detalhe}), coisasBoas, leituraFinal, perguntasParaOMedico (3-5), ` +
@@ -74,6 +78,8 @@ export async function generateConsolidatedSummary(patientId: string): Promise<{ 
   const summary = (z.success ? z.data : json) as HealthSummary;
   let contentMd = renderSummaryMd(summary);
   contentMd = diagnosticGuard(contentMd).text;
+  appendPatientMemory(slug, `Relatório consolidado (${exams.length} exames)`,
+    `${summary.resumoGeral ?? ''}\nPontos de atenção: ${(summary.pontosAtencao ?? []).map((p) => p.titulo).join('; ')}\nPerguntas p/ médico: ${(summary.perguntasParaOMedico ?? []).join('; ')}`);
   return { summary, contentMd, modelUsed: response.model, usage: response.usage };
 }
 
@@ -104,6 +110,13 @@ async function loadPriorExam(patientId: string, currentId: string) {
 export async function generateHealthSummary(examId: string): Promise<{ summary: HealthSummary; contentMd: string; modelUsed: string; usage: any }> {
   const exam = await loadExamContext(examId);
   const prior = await loadPriorExam(exam.patientId, exam.id);
+
+  // Memória do agente: lê o histórico de análises anteriores do paciente (continuidade + economia de token)
+  const slug = patientSlug(exam.patient.fullName, exam.patient.id);
+  const digest = memoryDigest(slug);
+  const memoryText = digest
+    ? `\nHISTÓRICO DE ANÁLISES ANTERIORES DESTE PACIENTE (use como contexto p/ manter coerência; não repita):\n${digest}\n`
+    : '';
 
   const priorMap = new Map<string, string>();
   for (const it of prior?.items ?? []) {
@@ -141,7 +154,7 @@ export async function generateHealthSummary(examId: string): Promise<{ summary: 
           `LABORATÓRIO: ${exam.sourceLab ?? (exam.rawExtraction as any)?.sourceLab ?? 'Não identificado'}\n` +
           `MÉDICO SOLICITANTE: ${(exam.rawExtraction as any)?.requestingDoctor ?? 'Não identificado'}\n` +
           (prior ? `Exame anterior de comparação: ${prior.title} (${prior.performedAt?.toLocaleDateString('pt-BR') ?? 's/d'}).\n` : 'Não há exame anterior para comparar; use apenas o atual.\n') +
-          profileText + '\n' +
+          profileText + '\n' + memoryText +
           `ITENS (atual x anterior x referência):\n${JSON.stringify(comparativoInput, null, 2)}\n\n` +
           `VALORES FORA DA FAIXA NO ATUAL:\n${JSON.stringify(foraDaFaixa, null, 2)}\n\n` +
           `Monte o JSON com estas chaves:\n` +
@@ -175,6 +188,9 @@ export async function generateHealthSummary(examId: string): Promise<{ summary: 
 
   let contentMd = renderSummaryMd(summary);
   contentMd = diagnosticGuard(contentMd).text;
+
+  appendPatientMemory(slug, `${exam.title} (${exam.performedAt ? new Date(exam.performedAt as Date).toLocaleDateString('pt-BR') : 's/d'})`,
+    `${summary.resumoGeral ?? ''}\nPontos de atenção: ${(summary.pontosAtencao ?? []).map((p) => p.titulo).join('; ')}\nPerguntas p/ médico: ${(summary.perguntasParaOMedico ?? []).join('; ')}`);
 
   return { summary, contentMd, modelUsed: response.model, usage: response.usage };
 }

@@ -54,11 +54,11 @@ router.get('/:id/health-score', async (req: AuthedRequest, res, next) => {
     const id = String(req.params.id);
     if (!pids.includes(id)) { res.status(403).json({ error: 'Paciente não pertence ao usuário' }); return; }
     const exam = await prisma.exam.findFirst({
-      where: { patientId: id, status: 'EXTRACTED', kind: 'LAB_PANEL' },
+      where: { patientId: id, status: 'EXTRACTED' },
       orderBy: { performedAt: 'desc' },
       include: { items: true },
     });
-    if (!exam) { res.json({ score: null, message: 'Envie um exame laboratorial para calcular seu score.' }); return; }
+    if (!exam) { res.json({ score: null, message: 'Envie um exame para calcular seu score.' }); return; }
     const withRef = exam.items.filter((i) => i.refLow != null || i.refHigh != null);
     const abnormal = withRef.filter((i) => i.isAbnormal).length;
     const score = withRef.length ? Math.round((100 * (withRef.length - abnormal)) / withRef.length) : null;
@@ -84,7 +84,7 @@ router.get('/family-overview', async (req: AuthedRequest, res, next) => {
     const abnormalByAnalyte = new Map<string, string[]>();
     for (const p of patients) {
       const exam = await prisma.exam.findFirst({
-        where: { patientId: p.id, status: 'EXTRACTED', kind: 'LAB_PANEL' },
+        where: { patientId: p.id, status: 'EXTRACTED' },
         orderBy: { performedAt: 'desc' },
         include: { items: true },
       });

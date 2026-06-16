@@ -39,12 +39,22 @@ app.use('/api/auth', authRoutes);
 // ROTA PÚBLICA: foto do paciente (sem auth — precisa funcionar em <img src>)
 app.get('/api/patients/:id/photo', async (req, res) => {
   try {
-    const p = await prisma.patient.findUnique({ where: { id: String(req.params.id) }, select: { photoUrl: true } });
-    if (!p?.photoUrl) { res.status(404).type('html').send('sem foto'); return; }
+    const id = String(req.params.id);
+    const p = await prisma.patient.findUnique({ where: { id }, select: { photoUrl: true } });
     const { resolvePatientPhoto } = await import('./utils/storage');
-    const r = await resolvePatientPhoto(p.photoUrl);
-    if (r.kind === 'url') { res.redirect(r.url); return; } // S3: redireciona p/ URL pré-assinada
-    res.sendFile(path.resolve(r.file));                     // disco: serve o arquivo
+    // 1) se photoUrl é um ref de storage (chave S3 ou caminho de disco), resolve
+    if (p?.photoUrl && !p.photoUrl.startsWith('/api/')) {
+      const r = await resolvePatientPhoto(p.photoUrl);
+      if (r.kind === 'url') { res.redirect(r.url); return; }       // S3: redireciona p/ pré-assinada
+      if (fs.existsSync(r.file)) { res.sendFile(path.resolve(r.file)); return; }
+    }
+    // 2) fallback: procura patient-<id>.* no disco (convenção antiga + dev)
+    const dir = path.resolve(config.photosDir);
+    if (fs.existsSync(dir)) {
+      const files = fs.readdirSync(dir).filter((f) => f.startsWith(`patient-${id}.`));
+      if (files.length) { res.sendFile(path.join(dir, files[0])); return; }
+    }
+    res.status(404).type('html').send('sem foto');
   } catch { res.status(404).type('html').send('sem foto'); }
 });
 

@@ -14,6 +14,7 @@ services:
       # Paths absolutos alinhados aos volumes (o node roda em /app/packages/server)
       UPLOAD_DIR: /app/data/exams
       PHOTOS_DIR: /app/data/photos
+      AGENT_DIR: /app/data/agent
     # permite ao container alcançar o janocaminho-postgres exposto no host (5432)
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -25,3 +26,5 @@ services:
       - ./data/exams:/app/data/exams
       # Fotos dos pacientes (persistem entre deploys)
       - ./data/photos:/app/data/photos
+      # Memória do agente (historico.md por paciente)
+      - ./data/agent:/app/data/agent

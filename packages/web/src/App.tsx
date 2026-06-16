@@ -20,6 +20,7 @@ import { dataProvider } from './dataProvider';
 import { authProvider } from './authProvider';
 import { theme } from './theme';
 import { i18nProvider } from './i18n';
+import pkg from '../package.json';
 import { Dashboard } from './pages/Dashboard';
 import { ExamList } from './resources/Exams/ExamList';
 import { ExamShow } from './resources/Exams/ExamShow';
@@ -67,6 +68,9 @@ const AppMenu = () => (
     <Menu.Item to="/emergencia" primaryText="Cartão de Emergência" leftIcon={<HealthAndSafetyIcon />} />
     <Menu.Item to="/chat" primaryText="Assistente de saúde" leftIcon={<AutoAwesomeIcon />} />
     <Menu.Item to="/planos" primaryText="Planos / Assinar" leftIcon={<WorkspacePremiumIcon />} />
+    <Box sx={{ mt: 'auto', px: 2, py: 1.5, fontSize: 11, color: 'text.secondary', borderTop: '1px solid #e2e8f0' }}>
+      Meus Exames v{pkg.version}
+    </Box>
   </Menu>
 );
 

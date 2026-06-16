@@ -24,6 +24,7 @@ services:
       # Paths absolutos alinhados aos volumes (o node roda em /app/packages/server, então './data' cairia no lugar errado)
       UPLOAD_DIR: /app/data/exams
       PHOTOS_DIR: /app/data/photos
+      AGENT_DIR: /app/data/agent
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
@@ -31,3 +32,4 @@ services:
     volumes:
       - ./data/exams:/app/data/exams
       - ./data/photos:/app/data/photos
+      - ./data/agent:/app/data/agent
