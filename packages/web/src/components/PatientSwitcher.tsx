@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Box, Avatar, Select, MenuItem, FormControl, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, InputLabel, Typography } from '@mui/material';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import { API_URL, token } from '../config';
@@ -9,7 +8,6 @@ const RELACOES = ['Titular', 'Cônjuge', 'Filho(a)', 'Mãe', 'Pai', 'Irmão(ã)'
 
 export const PatientSwitcher = () => {
   const [pid, setSel] = useSelectedPatient();
-  const navigate = useNavigate();
   const [patients, setPatients] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
@@ -40,53 +38,36 @@ export const PatientSwitcher = () => {
     }
   };
 
-  const current = patients.find((p) => p.id === pid);
-
   return (
-    <Box sx={{ px: 1.5, py: 1 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-        {current && (
-          <Avatar
-            src={current.photoUrl ? `${API_URL.replace('/api', '')}${current.photoUrl}` : undefined}
-            sx={{ width: 36, height: 36, bgcolor: '#336886', fontSize: 14, flexShrink: 0 }}
-          >
-            {current.fullName?.charAt(0)?.toUpperCase()}
-          </Avatar>
-        )}
-        <FormControl size="small" sx={{ flex: 1, minWidth: 0 }}>
-          <Select
-            value={pid ?? ''}
-            onChange={(e) => { setSel(e.target.value as string); window.location.href = '/'; }}
-            displayEmpty
-            sx={{ fontSize: 13 }}
-          >
-            {patients.map((p) => (
-              <MenuItem key={p.id} value={p.id} sx={{ py: 0.5 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Avatar
-                    src={p.photoUrl ? `${API_URL.replace('/api', '')}${p.photoUrl}?t=${Date.now()}` : undefined}
-                    sx={{ width: 24, height: 24, fontSize: 11, bgcolor: '#336886' }}
-                  >
-                    {p.fullName?.charAt(0)?.toUpperCase()}
-                  </Avatar>
-                  <Box>
-                    <Typography component="span" sx={{ fontSize: 13 }}>{p.fullName}</Typography>
-                    {p.relationship && <Typography component="span" sx={{ fontSize: 11, color: 'text.secondary', ml: 0.5 }}>({p.relationship})</Typography>}
-                  </Box>
-                </Box>
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <IconButton size="small" title="Adicionar dependente" onClick={() => setOpen(true)} sx={{ flexShrink: 0 }}>
-          <PersonAddIcon fontSize="small" />
-        </IconButton>
-      </Box>
+    <Box sx={{ px: 2, py: 1, borderBottom: '1px solid #e2e8f0', mb: 1 }}>
+      <FormControl fullWidth size="small">
+        <InputLabel sx={{ fontSize: 13 }}>Paciente</InputLabel>
+        <Select
+          value={pid ?? ''}
+          label="Paciente"
+          onChange={(e) => { setSel(e.target.value as string); window.location.href = '/'; }}
+          sx={{ fontSize: 13 }}
+        >
+          {patients.map((p) => (
+            <MenuItem key={p.id} value={p.id} sx={{ py: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <Avatar src={p.photoUrl ? `${API_URL.replace('/api', '')}${p.photoUrl}?t=${Date.now()}` : undefined} sx={{ width: 28, height: 28, fontSize: 12, bgcolor: '#336886' }}>
+                  {p.fullName?.charAt(0)?.toUpperCase()}
+                </Avatar>
+                <Typography component="span" sx={{ fontSize: 13 }}>{p.fullName}</Typography>
+                {p.relationship && <Typography component="span" sx={{ fontSize: 11, color: 'text.secondary' }}>({p.relationship})</Typography>}
+              </Box>
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+      <IconButton size="small" title="Adicionar dependente" onClick={() => setOpen(true)} sx={{ mt: 0.5 }}>
+        <PersonAddIcon fontSize="small" />
+      </IconButton>
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle>Adicionar dependente</DialogTitle>
         <DialogContent>
-          <TextField autoFocus fullWidth label="Nome" placeholder="Nome da pessoa" value={name}
-            onChange={(e) => setName(e.target.value)} sx={{ mt: 1, mb: 2 }} />
+          <TextField autoFocus fullWidth label="Nome" value={name} onChange={(e) => setName(e.target.value)} sx={{ mt: 1, mb: 2 }} />
           <FormControl fullWidth size="small">
             <InputLabel>Parentesco</InputLabel>
             <Select label="Parentesco" value={rel} onChange={(e) => setRel(e.target.value)}>

@@ -14,6 +14,10 @@ interface Summary {
   coisasBoas?: string[];
   leituraFinal?: string;
   perguntasParaOMedico?: string[];
+  interacoesMedicamentos?: { medicamento: string; analito: string; observacao: string }[];
+  sugestoesNutricao?: string[];
+  comparacaoFamiliar?: string | null;
+  metasSaude?: { analito: string; meta: string; prazo?: string | null }[];
   disclaimer?: string;
 }
 
@@ -185,6 +189,47 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
           <SectionCard icon="🩺" title="Perguntas para levar ao médico" color="#7b1fa2">
             {structured.perguntasParaOMedico.map((q, i) => (
               <Typography key={i} sx={{ py: 0.5, pl: 1, borderLeft: '3px solid #7b1fa233' }}>{i + 1}. {q}</Typography>
+            ))}
+          </SectionCard>
+        )}
+
+        {/* 💊 Interações medicamento × exame */}
+        {structured.interacoesMedicamentos && structured.interacoesMedicamentos.length > 0 && (
+          <SectionCard icon="💊" title="Interações medicamento × exame" color="#d32f2f">
+            {structured.interacoesMedicamentos.map((m, i) => (
+              <Box key={i} sx={{ mb: 1, p: 1.5, borderRadius: 2, bgcolor: '#fff5f5' }}>
+                <Typography sx={{ fontWeight: 700, fontSize: '0.95rem' }}>{m.medicamento} → {m.analito}</Typography>
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>{m.observacao}</Typography>
+              </Box>
+            ))}
+          </SectionCard>
+        )}
+
+        {/* 🥗 Sugestões de nutrição */}
+        {structured.sugestoesNutricao && structured.sugestoesNutricao.length > 0 && (
+          <SectionCard icon="🥗" title="Sugestões de nutrição" color="#2e7d32">
+            {structured.sugestoesNutricao.map((s, i) => (
+              <Typography key={i} sx={{ py: 0.3 }}>• {s}</Typography>
+            ))}
+          </SectionCard>
+        )}
+
+        {/* 👨‍👩‍👧 Comparação familiar */}
+        {structured.comparacaoFamiliar && (
+          <SectionCard icon="👨‍👩‍👧" title="Comparação familiar" color="#7b1fa2">
+            <Typography sx={{ lineHeight: 1.7 }}>{structured.comparacaoFamiliar}</Typography>
+          </SectionCard>
+        )}
+
+        {/* 🎯 Metas de saúde */}
+        {structured.metasSaude && structured.metasSaude.length > 0 && (
+          <SectionCard icon="🎯" title="Metas de saúde" color="#0288d1">
+            {structured.metasSaude.map((m, i) => (
+              <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                <Typography sx={{ fontWeight: 600, flex: 1 }}>{m.analito}</Typography>
+                <Typography sx={{ color: 'text.secondary', flex: 2 }}>{m.meta}</Typography>
+                {m.prazo && <Chip size="small" label={m.prazo} sx={{ bgcolor: '#0288d115', color: '#0288d1' }} />}
+              </Box>
             ))}
           </SectionCard>
         )}

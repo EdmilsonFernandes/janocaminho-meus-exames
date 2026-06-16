@@ -1,10 +1,18 @@
 import { fetchUtils } from 'react-admin';
 import simpleRestProvider from 'ra-data-simple-rest';
-import { API_URL, apiHeaders } from './config';
+import { API_URL, token } from './config';
 
-const rest = simpleRestProvider(API_URL, (url, options: any = {}) => {
-  return fetchUtils.fetchJson(url, { ...options, headers: { ...options.headers, ...apiHeaders() } });
-});
+// httpClient correto: usa Headers object (não spread de plain object)
+const httpClient = (url: string, options: any = {}) => {
+  const headers = new Headers(options.headers || {});
+  const t = token();
+  if (t) headers.set('Authorization', `Bearer ${t}`);
+  const pid = localStorage.getItem('selPatientId') || localStorage.getItem('patientId');
+  if (pid) headers.set('X-Patient-Id', pid);
+  return fetchUtils.fetchJson(url, { ...options, headers });
+};
+
+const rest = simpleRestProvider(API_URL, httpClient);
 
 export const dataProvider = {
   ...rest,
