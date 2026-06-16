@@ -1,11 +1,11 @@
 import { Box } from '@mui/material';
 
-/** Mascote da marca (mesma identidade do ecossistema EdEspeto). */
+/** Mascote Dr. Exame — robô de saúde (teal + cobre). */
 export const DrExame = ({ size = 64, sx }: { size?: number; sx?: any }) => (
   <Box
     component="img"
-    src={`${import.meta.env.BASE_URL}brand.jpg`}
+    src={`${import.meta.env.BASE_URL}brand.png`}
     alt="Dr. Exame"
-    sx={{ width: size, height: size, display: 'block', borderRadius: '18%', objectFit: 'cover', ...sx }}
+    sx={{ width: size, height: size, display: 'block', borderRadius: '16%', objectFit: 'cover', ...sx }}
   />
 );

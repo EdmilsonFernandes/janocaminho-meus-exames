@@ -66,7 +66,7 @@ export const FamilyPage = () => {
                 <Grid key={p.id} size={{ xs: 12, sm: 4 }} sx={{ order: { xs: idx, sm: idx === 0 ? 1 : idx === 1 ? 0 : 2 } }}>
                   <Box sx={{ textAlign: 'center', p: 2, borderRadius: 4, background: PODIUM_BG[idx], minHeight: idx === 0 ? 150 : 120, border: '1px solid rgba(0,0,0,.06)' }}>
                     <Typography sx={{ fontSize: 40, lineHeight: 1 }}>{MEDAL[idx]}</Typography>
-                    <Avatar src={p.photoUrl ? photoUrlFor(p.id) : undefined} sx={{ width: idx === 0 ? 56 : 44, height: idx === 0 ? 56 : 44, mx: 'auto', my: 0.5, bgcolor: '#2a93b8', fontWeight: 800 }}>{p.fullName.charAt(0).toUpperCase()}</Avatar>
+                    <Avatar src={p.photoUrl ? photoUrlFor(p.id) : undefined} sx={{ width: idx === 0 ? 56 : 44, height: idx === 0 ? 56 : 44, mx: 'auto', my: 0.5, bgcolor: 'primary.main', fontWeight: 800 }}>{p.fullName.charAt(0).toUpperCase()}</Avatar>
                     <Typography sx={{ fontWeight: 800, fontSize: 14 }}>{p.fullName}</Typography>
                     <Typography sx={{ fontWeight: 800, fontSize: idx === 0 ? 30 : 24, color: scoreColor(p.score) }}>{p.score}<span style={{ fontSize: 13 }}> /100</span></Typography>
                   </Box>
@@ -85,13 +85,13 @@ export const FamilyPage = () => {
           <Grid key={p.id} size={{ xs: 12, md: 6 }}>
             <Card variant="outlined" sx={{ borderRadius: 4, height: '100%' }}>
               <CardContent>
-                <Stack direction="row" alignItems="center" spacing={2}>
-                  <Avatar src={p.photoUrl ? photoUrlFor(p.id) : undefined} sx={{ width: 52, height: 52, bgcolor: '#2a93b8', fontSize: 20 }}>{p.fullName.charAt(0).toUpperCase()}</Avatar>
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="h6">{p.fullName}</Typography>
+                <Stack direction="row" alignItems="center" spacing={1.5} sx={{ flexWrap: 'wrap', rowGap: 1 }}>
+                  <Avatar src={p.photoUrl ? photoUrlFor(p.id) : undefined} sx={{ width: 48, height: 48, bgcolor: 'primary.main', fontSize: 20 }}>{p.fullName.charAt(0).toUpperCase()}</Avatar>
+                  <Box sx={{ flex: '1 1 55%', minWidth: 0 }}>
+                    <Typography variant="h6" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.fullName}</Typography>
                     {p.relationship && <Chip size="small" label={p.relationship} variant="outlined" />}
                   </Box>
-                  <Box sx={{ textAlign: 'center' }}>
+                  <Box sx={{ textAlign: 'center', ml: 'auto' }}>
                     <Typography variant="h4" sx={{ fontWeight: 800, color: scoreColor(p.score), lineHeight: 1 }}>{p.score ?? '—'}</Typography>
                     <Typography variant="caption" color="text.secondary">/100</Typography>
                   </Box>

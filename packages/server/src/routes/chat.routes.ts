@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
 import { streamChat } from '../analysis/chat';
-import { memoryDigest, patientSlug } from '../analysis/agent-memory';
+import { memoryDigest, patientSlug, appendConversation } from '../analysis/agent-memory';
 
 const router = Router();
 router.use(requireAuth);
@@ -74,6 +74,8 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     await prisma.aiAnalysis.create({
       data: { type: 'CHAT', patientId: pid, userMessage: message, contentMd: text, modelUsed: model },
     });
+    // Persiste a conversa em .md (não se perde; vira memória durável do paciente)
+    appendConversation(slug, message, text);
   } catch (e) {
     if (!res.headersSent) next(e);
     else console.error('[chat.global] erro no stream:', e);

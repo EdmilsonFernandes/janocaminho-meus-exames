@@ -25,7 +25,7 @@ interface SourceExam { title: string; performedAt: string | null; sourceLab: str
 
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <>
-    <Typography variant="subtitle1" sx={{ mt: 2, mb: 1, color: '#336886', fontWeight: 700 }}>{title}</Typography>
+    <Typography variant="subtitle1" sx={{ mt: 2.5, mb: 1, color: '#178f89', fontWeight: 700 }}>{title}</Typography>
     {children}
   </>
 );
@@ -87,18 +87,18 @@ export const ConsolidatedReportPage = () => {
     const perg = (s?.perguntasParaOMedico ?? []).map((q) => `<li>${esc(q)}</li>`).join('');
     w.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Relatório de Saúde</title>
 <style>
-*{box-sizing:border-box}body{font-family:'Inter','Segoe UI',Arial,sans-serif;color:#15233b;background:#f8fafc;margin:0;padding:32px;line-height:1.6}
-.doc{max-width:760px;margin:0 auto;background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 6px 30px rgba(0,0,0,.1)}
-.head{background:linear-gradient(135deg,#336886,#2a5a73);color:#fff;padding:28px 32px}
-.head h1{margin:0;font-size:24px;font-weight:800}.head p{margin:4px 0 0;opacity:.85;font-size:13px}
+*{box-sizing:border-box}body{font-family:'Inter','Segoe UI',Arial,sans-serif;color:#2d3748;background:#eef7f6;margin:0;padding:32px;line-height:1.6}
+.doc{max-width:760px;margin:0 auto;background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 6px 30px rgba(32,178,170,.18)}
+.head{background:linear-gradient(135deg,#20b2aa,#178f89);color:#fff;padding:28px 32px}
+.head h1{margin:0;font-size:24px;font-weight:800;font-family:'Poppins',Arial,sans-serif}.head p{margin:4px 0 0;opacity:.9;font-size:13px}
 .body{padding:28px 32px}
-.base{background:#f0f7ff;border-left:4px solid #336886;border-radius:10px;padding:14px 16px;margin-bottom:18px;font-size:13px}
-.base b{color:#336886}
-h2{font-size:15px;color:#336886;margin:22px 0 8px;border-bottom:2px solid #eef2f7;padding-bottom:4px}
+.base{background:#e6f7f6;border-left:4px solid #20b2aa;border-radius:10px;padding:14px 16px;margin-bottom:18px;font-size:13px}
+.base b{color:#178f89}
+h2{font-size:15px;color:#178f89;margin:22px 0 8px;border-bottom:2px solid #e6f1f0;padding-bottom:4px;font-family:'Poppins',Arial,sans-serif}
 ul,ol{margin:6px 0;padding-left:22px}li{margin:4px 0;font-size:14px}
 table{border-collapse:collapse;width:100%;font-size:13px;margin-top:6px}
-td,th{border:1px solid #e2e8f0;padding:7px 9px;text-align:left}th{background:#f0f7ff;font-weight:700}
-.foot{text-align:center;color:#94a3b8;font-size:11px;padding:16px}
+td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6f7f6;font-weight:700;color:#178f89}
+.foot{text-align:center;color:#718096;font-size:11px;padding:16px}
 </style></head><body>
 <div class="doc">
   <div class="head"><h1>Relatório de Saúde</h1><p>Análise educativa consolidada — não substitui consulta médica</p></div>
@@ -122,9 +122,9 @@ td,th{border:1px solid #e2e8f0;padding:7px 9px;text-align:left}th{background:#f0
   };
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3 } }}>
+    <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 920, mx: 'auto' }}>
       <Title title="Relatório completo" />
-      <Typography variant="h5" gutterBottom>🧾 Relatório completo de saúde</Typography>
+      <Typography variant="h5" gutterBottom sx={{ fontWeight: 800 }}>🧾 Relatório completo de saúde</Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
         A IA junta seus últimos exames (sangue, imagem e laudo) num documento único — ótimo para levar ao médico ou pedir segunda opinião documental.
       </Typography>
@@ -141,36 +141,36 @@ td,th{border:1px solid #e2e8f0;padding:7px 9px;text-align:left}th{background:#f0
       {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
 
       {analysis && s && (
-        <Card sx={{ mt: 2, borderRadius: 4, overflow: 'hidden', boxShadow: '0 4px 20px rgba(11,92,171,.08)' }}>
-          <Box sx={{ background: 'linear-gradient(135deg,#336886,#2a5a73)', color: '#fff', p: 2.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
-            <Box>
+        <Card sx={{ mt: 2, borderRadius: 4, overflow: 'hidden', boxShadow: '0 4px 20px rgba(32,178,170,.12)' }}>
+          <Box sx={{ background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff', p: { xs: 2, md: 2.5 }, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
+            <Box sx={{ minWidth: 0, flex: '1 1 60%' }}>
               <Typography variant="h6" sx={{ fontWeight: 800 }}>Relatório consolidado 🩺</Typography>
               <Typography sx={{ fontSize: 13, opacity: 0.9 }}>Análise educativa — não substitui consulta médica</Typography>
             </Box>
-            <Box>
-              <Button size="small" variant="outlined" sx={{ color: '#fff', borderColor: 'rgba(255,255,255,.5)', mr: 1 }} startIcon={<WhatsAppIcon />} onClick={() => setShareOpen(true)}>Compartilhar</Button>
-              <Button size="small" variant="outlined" sx={{ color: '#fff', borderColor: 'rgba(255,255,255,.5)' }} startIcon={<PrintIcon />} onClick={printReport}>Imprimir / PDF</Button>
-            </Box>
+            <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+              <Button size="small" variant="outlined" sx={{ color: '#fff', borderColor: 'rgba(255,255,255,.6)' }} startIcon={<WhatsAppIcon />} onClick={() => setShareOpen(true)}>Compartilhar</Button>
+              <Button size="small" variant="outlined" sx={{ color: '#fff', borderColor: 'rgba(255,255,255,.6)' }} startIcon={<PrintIcon />} onClick={printReport}>Imprimir / PDF</Button>
+            </Stack>
           </Box>
 
-          <CardContent sx={{ p: 3 }}>
+          <CardContent sx={{ p: { xs: 2, md: 3 } }}>
             {sourceExams.length > 0 && (
-              <Box sx={{ mb: 2, p: 1.5, borderRadius: 2, background: '#f0f7ff', borderLeft: '4px solid #336886' }}>
-                <Typography sx={{ fontWeight: 700, color: '#336886', fontSize: 14, mb: 1 }}>📊 Relatório baseado em {sourceExams.length} exame(s):</Typography>
+              <Box sx={{ mb: 2, p: 1.5, borderRadius: 2, background: '#e6f7f6', borderLeft: '4px solid #20b2aa' }}>
+                <Typography sx={{ fontWeight: 700, color: '#178f89', fontSize: 14, mb: 1 }}>📊 Relatório baseado em {sourceExams.length} exame(s):</Typography>
                 <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
                   {sourceExams.map((e, i) => (
-                    <Chip key={i} size="small" sx={{ bgcolor: '#33688615', color: '#336886', fontWeight: 600 }} label={`${e.title}${e.performedAt ? ` • ${fmtDate(e.performedAt)}` : ''}`} />
+                    <Chip key={i} size="small" sx={{ bgcolor: 'rgba(32,178,170,.10)', color: '#178f89', fontWeight: 600 }} label={`${e.title}${e.performedAt ? ` • ${fmtDate(e.performedAt)}` : ''}`} />
                   ))}
                 </Stack>
               </Box>
             )}
 
-            {s.resumoGeral && <Typography paragraph sx={{ fontSize: '1.05rem', lineHeight: 1.7 }}>{s.resumoGeral}</Typography>}
+            {s.resumoGeral && <Typography paragraph sx={{ fontSize: '1.05rem', lineHeight: 1.7, wordBreak: 'break-word' }}>{s.resumoGeral}</Typography>}
 
             {s.comparativo?.length ? (
               <Section title="Itens em destaque">
                 <Stack spacing={1}>{s.comparativo.map((c, i) => (
-                  <Box key={i}><Typography><strong>{c.name}</strong>{c.atual ? ` — ${c.atual}` : ''} {c.leitura && `→ ${c.leitura}`}</Typography>
+                  <Box key={i} sx={{ wordBreak: 'break-word' }}><Typography><strong>{c.name}</strong>{c.atual ? ` — ${c.atual}` : ''} {c.leitura && `→ ${c.leitura}`}</Typography>
                   {c.entenda && <Typography variant="body2" color="text.secondary">{c.entenda}</Typography>}</Box>
                 ))}</Stack>
               </Section>
@@ -178,7 +178,7 @@ td,th{border:1px solid #e2e8f0;padding:7px 9px;text-align:left}th{background:#f0
 
             {s.pontosAtencao?.length ? (
               <Section title="🚩 Pontos de atenção">
-                <Stack spacing={1}>{s.pontosAtencao.map((p, i) => <Typography key={i} variant="body2"><strong>{p.titulo}</strong> — {p.detalhe}</Typography>)}</Stack>
+                <Stack spacing={1}>{s.pontosAtencao.map((p, i) => <Typography key={i} variant="body2" sx={{ wordBreak: 'break-word' }}><strong>{p.titulo}</strong> — {p.detalhe}</Typography>)}</Stack>
               </Section>
             ) : null}
 
@@ -206,7 +206,7 @@ td,th{border:1px solid #e2e8f0;padding:7px 9px;text-align:left}th{background:#f0
               </Section>
             ) : null}
 
-            {s.leituraFinal && <Section title="Leitura final"><Typography paragraph>{s.leituraFinal}</Typography></Section>}
+            {s.leituraFinal && <Section title="Leitura final"><Typography paragraph sx={{ wordBreak: 'break-word' }}>{s.leituraFinal}</Typography></Section>}
 
             {s.perguntasParaOMedico?.length ? (
               <Section title="🩺 Perguntas para levar ao médico">

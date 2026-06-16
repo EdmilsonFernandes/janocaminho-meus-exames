@@ -3,7 +3,7 @@ import { HealthSummarySchema, type HealthSummary } from '../extraction/schemas';
 import { prisma } from '../prisma';
 import { HEALTH_SYSTEM, diagnosticGuard } from './system';
 import { JSON_SUFFIX, extractJsonObject } from '../utils/json';
-import { patientSlug, memoryDigest, appendPatientMemory } from './agent-memory';
+import { patientSlug, memoryDigest, appendPatientMemory, saveFullReport } from './agent-memory';
 
 /** Resumo CONSOLIDADO: junta os últimos exames (sangue/imagem/laudo) num documento único — "segunda opinião documental". */
 export async function generateConsolidatedSummary(patientId: string): Promise<{ summary: HealthSummary; contentMd: string; modelUsed: string; usage: any }> {
@@ -80,6 +80,8 @@ export async function generateConsolidatedSummary(patientId: string): Promise<{ 
   contentMd = diagnosticGuard(contentMd).text;
   appendPatientMemory(slug, `Relatório consolidado (${exams.length} exames)`,
     `${summary.resumoGeral ?? ''}\nPontos de atenção: ${(summary.pontosAtencao ?? []).map((p) => p.titulo).join('; ')}\nPerguntas p/ médico: ${(summary.perguntasParaOMedico ?? []).join('; ')}`);
+  // Persiste o relatório COMPLETO em .md (não se perde; pode ser relido sem regenerar)
+  saveFullReport(slug, `Relatório consolidado (${exams.length} exames)`, contentMd);
   return { summary, contentMd, modelUsed: response.model, usage: response.usage };
 }
 
