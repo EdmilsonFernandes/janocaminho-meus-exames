@@ -27,6 +27,7 @@ import { EmergencyCardPage } from './pages/EmergencyCard';
 import { TimelinePage } from './pages/Timeline';
 import { ExpensesPage } from './pages/Expenses';
 import { LoginPage, RegisterPage, ResetPage } from './pages/Auth';
+import { LandingPage } from './pages/Landing';
 import { PatientSwitcher } from './components/PatientSwitcher';
 
 const AppMenu = () => (
@@ -64,6 +65,7 @@ export const App = () => {
     disableTelemetry
   >
     <CustomRoutes noLayout>
+      <Route path="/landing" element={<LandingPage />} />
       <Route path="/registrar" element={<RegisterPage />} />
       <Route path="/recuperar-senha" element={<ResetPage />} />
     </CustomRoutes>
