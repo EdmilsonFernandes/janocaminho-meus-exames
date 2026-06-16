@@ -23,6 +23,7 @@ export const config = {
   extractionDryRun: process.env.EXTRACTION_DRY_RUN === 'true',
 
   uploadDir: process.env.UPLOAD_DIR ?? './data/exams',
+  photosDir: process.env.PHOTOS_DIR ?? './data/photos',
   webOrigin: process.env.WEB_ORIGIN ?? 'http://localhost:5173',
   webBasePath: (process.env.WEB_BASE_PATH ?? '').replace(/\/$/, ''), // ex.: /meus-exames
 

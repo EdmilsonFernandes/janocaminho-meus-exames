@@ -83,6 +83,23 @@ export const Dashboard = () => {
       </Grid>
 
       <Grid container spacing={2}>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Card variant="outlined" sx={{ background: 'linear-gradient(135deg,#33688614,#5FD35A14)', borderColor: '#33688655' }}><CardContent>
+            <Typography variant="h6">📈 Evolução da minha saúde</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>O que subiu, o que caiu e a previsão dos próximos meses.</Typography>
+            <Button variant="contained" startIcon={<ShowChartIcon />} onClick={() => navigate('/evolucao')}>Ver evolução</Button>
+          </CardContent></Card>
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Card variant="outlined"><CardContent>
+            <Typography variant="h6">🧾 Relatório completo</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>Junte seus exames num documento para o médico.</Typography>
+            <Button variant="outlined" startIcon={<UploadFileIcon />} onClick={() => navigate('/relatorio')}>Gerar relatório</Button>
+          </CardContent></Card>
+        </Grid>
+      </Grid>
+
+      <Grid container spacing={2}>
         <Grid size={{ xs: 12, md: 4 }}>
           <Card variant="outlined"><CardContent>
             <Typography variant="h6">Enviar exame</Typography>
@@ -92,9 +109,9 @@ export const Dashboard = () => {
         </Grid>
         <Grid size={{ xs: 12, md: 4 }}>
           <Card variant="outlined"><CardContent>
-            <Typography variant="h6">Tendências</Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>Evolução dos valores ao longo do tempo.</Typography>
-            <Button variant="outlined" startIcon={<ShowChartIcon />} onClick={() => navigate('/tendencias')}>Ver gráficos</Button>
+            <Typography variant="h6">Saúde da Família</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>Compare o score de cada dependente.</Typography>
+            <Button variant="outlined" startIcon={<MedicalServicesIcon />} onClick={() => navigate('/familia')}>Ver família</Button>
           </CardContent></Card>
         </Grid>
         <Grid size={{ xs: 12, md: 4 }}>

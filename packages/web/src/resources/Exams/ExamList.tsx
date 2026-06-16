@@ -1,6 +1,12 @@
-import { List, Datagrid, TextField, DateField, FunctionField, ShowButton, DeleteButton } from 'react-admin';
+import { List, Datagrid, TextField, DateField, FunctionField, ShowButton, DeleteButton, CreateButton, TopToolbar } from 'react-admin';
 import { Chip } from '@mui/material';
 import { useSelectedPatient } from '../../patient-context';
+
+const ExamListActions = () => (
+  <TopToolbar>
+    <CreateButton label="Enviar exame" variant="contained" />
+  </TopToolbar>
+);
 
 const statusColor: Record<string, any> = {
   EXTRACTED: 'success',
@@ -25,7 +31,7 @@ const kindLabel: Record<string, string> = {
 export const ExamList = () => {
   const [pid] = useSelectedPatient();
   return (
-  <List key={pid} sort={{ field: 'performedAt', order: 'DESC' }} exporter={false} perPage={25} filter={{ patientId: pid || 'none' }}>
+  <List key={pid} sort={{ field: 'performedAt', order: 'DESC' }} exporter={false} perPage={25} filter={{ patientId: pid || 'none' }} actions={<ExamListActions />}>
     <Datagrid bulkActionButtons={false} rowClick="show">
       <TextField source="title" label="Exame" />
       <FunctionField label="Tipo" render={(r: any) => kindLabel[r.kind] ?? r.kind} />

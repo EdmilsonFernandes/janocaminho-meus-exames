@@ -5,6 +5,7 @@ import { parseListParams, setListHeaders } from '../utils/list';
 import { upload } from '../middleware/upload';
 import fs from 'fs';
 import path from 'path';
+import { config } from '../config';
 
 const router = Router();
 router.use(requireAuth);
@@ -70,6 +71,46 @@ router.get('/:id/health-score', async (req: AuthedRequest, res, next) => {
   } catch (e) { next(e); }
 });
 
+// VISÃO DA FAMÍLIA: score + alterações de cada dependente + alertas cruzados (>=2 com mesmo analito alterado)
+router.get('/family-overview', async (req: AuthedRequest, res, next) => {
+  try {
+    const patients = await prisma.patient.findMany({
+      where: { ownerId: req.userId },
+      orderBy: { createdAt: 'asc' },
+      select: { id: true, fullName: true, relationship: true, photoUrl: true },
+    });
+    const result: any[] = [];
+    const abnormalByAnalyte = new Map<string, string[]>();
+    for (const p of patients) {
+      const exam = await prisma.exam.findFirst({
+        where: { patientId: p.id, status: 'EXTRACTED', kind: 'LAB_PANEL' },
+        orderBy: { performedAt: 'desc' },
+        include: { items: true },
+      });
+      let score: number | null = null;
+      let abnormalCount = 0;
+      const topAbnormal: any[] = [];
+      if (exam) {
+        const withRef = exam.items.filter((i) => i.refLow != null || i.refHigh != null);
+        const abn = withRef.filter((i) => i.isAbnormal);
+        score = withRef.length ? Math.round((100 * (withRef.length - abn.length)) / withRef.length) : null;
+        abnormalCount = abn.length;
+        for (const i of abn.slice(0, 6)) {
+          topAbnormal.push({ name: i.name, value: i.valueText, flag: i.flag });
+          const arr = abnormalByAnalyte.get(i.nameCanonical) ?? [];
+          arr.push(p.fullName);
+          abnormalByAnalyte.set(i.nameCanonical, arr);
+        }
+      }
+      result.push({ ...p, score, abnormalCount, topAbnormal, examTitle: exam?.title ?? null, performedAt: exam?.performedAt ?? null });
+    }
+    const crossAlerts = [...abnormalByAnalyte.entries()]
+      .filter(([, names]) => new Set(names).size >= 2)
+      .map(([analyte, names]) => ({ analyte, patients: [...new Set(names)] }));
+    res.json({ patients: result, crossAlerts });
+  } catch (e) { next(e); }
+});
+
 router.get('/:id', async (req, res, next) => {
   try {
     const p = await prisma.patient.findUnique({ where: { id: req.params.id } });
@@ -90,7 +131,7 @@ router.post('/:id/photo', upload.single('photo'), async (req: AuthedRequest, res
     const pids = await userPatientIds(req.userId!);
     if (!pids.includes(id)) { res.status(403).json({ error: 'Sem permissão' }); return; }
     if (!req.file) { res.status(400).json({ error: 'Foto não enviada' }); return; }
-    const dir = path.join(__dirname, '../../../data/photos');
+    const dir = path.resolve(config.photosDir);
     fs.mkdirSync(dir, { recursive: true });
     const ext = req.file.originalname.match(/\.(jpg|jpeg|png)$/i)?.[0] || '.jpg';
     const filename = `patient-${id}${ext}`;
@@ -105,7 +146,8 @@ router.post('/:id/photo', upload.single('photo'), async (req: AuthedRequest, res
 router.get('/:id/photo', async (req, res) => {
   try {
     const id = String(req.params.id);
-    const dir = path.join(__dirname, '../../../data/photos');
+    const dir = path.resolve(config.photosDir);
+    if (!fs.existsSync(dir)) { res.status(404).send('sem foto'); return; }
     const files = fs.readdirSync(dir).filter(f => f.startsWith(`patient-${id}.`));
     if (!files.length) { res.status(404).send('sem foto'); return; }
     res.sendFile(path.join(dir, files[0]));

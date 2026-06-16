@@ -4,6 +4,72 @@ import { prisma } from '../prisma';
 import { HEALTH_SYSTEM, diagnosticGuard } from './system';
 import { JSON_SUFFIX, extractJsonObject } from '../utils/json';
 
+/** Resumo CONSOLIDADO: junta os últimos exames (sangue/imagem/laudo) num documento único — "segunda opinião documental". */
+export async function generateConsolidatedSummary(patientId: string): Promise<{ summary: HealthSummary; contentMd: string; modelUsed: string; usage: any }> {
+  const patient = await prisma.patient.findUnique({ where: { id: patientId } });
+  if (!patient) {
+    const err = new Error('Paciente não encontrado');
+    (err as any).status = 404;
+    throw err;
+  }
+  const exams = await prisma.exam.findMany({
+    where: { patientId, status: 'EXTRACTED' },
+    orderBy: { performedAt: 'desc' },
+    take: 5,
+    include: { items: { where: { isAbnormal: true }, orderBy: { name: 'asc' }, take: 12 } },
+  });
+  if (!exams.length) {
+    const err = new Error('Nenhum exame extraído para consolidar');
+    (err as any).status = 400;
+    throw err;
+  }
+
+  const perfil = patient.clinicalProfile?.trim();
+  const perfilText = perfil ? `\nPERFIL CLÍNICO DO PACIENTE (use para contextualizar, nunca para diagnosticar):\n${perfil}\n` : '';
+  const examContext = exams.map((e) => ({
+    titulo: e.title,
+    tipo: e.kind,
+    data: e.performedAt ? new Date(e.performedAt as Date).toLocaleDateString('pt-BR') : 's/d',
+    laboratorio: e.sourceLab ?? null,
+    alteracoes: e.items.map((i) => ({
+      name: i.name,
+      value: i.valueText,
+      ref: i.refText ?? [i.refLow, i.refHigh].filter((x) => x != null).join('-'),
+      flag: i.flag,
+    })),
+  }));
+
+  const client = getAnthropic();
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 6000,
+    system: HEALTH_SYSTEM,
+    messages: [
+      {
+        role: 'user',
+        content:
+          `Monte um RESUMO CONSOLIDADO da saúde do paciente considerando TODOS os exames abaixo (pode haver laboratorial, imagem e laudo — do mais recente ao mais antigo).\n` +
+          `PACIENTE: ${patient.fullName}\n` +
+          `Exames incluídos: ${exams.length}.\n` +
+          perfilText + '\n' +
+          `EXAMES (apenas alterações relevantes):\n${JSON.stringify(examContext, null, 2)}\n\n` +
+          `Monte o JSON com: resumoGeral (visão geral integrada), comparativo (itens alterados: {name, anterior, atual, leitura, entenda}), ` +
+          `pontosAtencao ({titulo, detalhe}), coisasBoas, leituraFinal, perguntasParaOMedico (3-5), ` +
+          `interacoesMedicamentos, sugestoesNutricao, comparacaoFamiliar, metasSaude ({analito, meta, prazo}), disclaimer.\n` +
+          JSON_SUFFIX,
+      },
+    ],
+  } as any);
+
+  const text = (response.content as any[]).filter((b) => b.type === 'text').map((b) => b.text).join('');
+  const json = extractJsonObject(text);
+  const z = HealthSummarySchema.safeParse(json);
+  const summary = (z.success ? z.data : json) as HealthSummary;
+  let contentMd = renderSummaryMd(summary);
+  contentMd = diagnosticGuard(contentMd).text;
+  return { summary, contentMd, modelUsed: response.model, usage: response.usage };
+}
+
 /** Carrega o exame + itens + paciente (para o perfil clínico). */
 export async function loadExamContext(examId: string) {
   const exam = await prisma.exam.findUnique({
@@ -68,7 +134,6 @@ export async function generateHealthSummary(examId: string): Promise<{ summary: 
           `LABORATÓRIO: ${exam.sourceLab ?? (exam.rawExtraction as any)?.sourceLab ?? 'Não identificado'}\n` +
           `MÉDICO SOLICITANTE: ${(exam.rawExtraction as any)?.requestingDoctor ?? 'Não identificado'}\n` +
           (prior ? `Exame anterior de comparação: ${prior.title} (${prior.performedAt?.toLocaleDateString('pt-BR') ?? 's/d'}).\n` : 'Não há exame anterior para comparar; use apenas o atual.\n') +
-          (prior ? `Exame anterior de comparação: ${prior.title} (${prior.performedAt?.toISOString().slice(0, 10) ?? 's/d'}).\n` : 'Não há exame anterior para comparar; use apenas o atual.\n') +
           profileText + '\n' +
           `ITENS (atual x anterior x referência):\n${JSON.stringify(comparativoInput, null, 2)}\n\n` +
           `VALORES FORA DA FAIXA NO ATUAL:\n${JSON.stringify(foraDaFaixa, null, 2)}\n\n` +

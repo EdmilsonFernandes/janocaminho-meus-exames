@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import crypto from 'crypto';
 import { prisma } from '../prisma';
-import { requireAuth, requirePlan, AuthedRequest } from '../middleware/auth';
-import { generateHealthSummary, loadExamContext } from '../analysis/health-summary';
+import { requireAuth, requirePlan, AuthedRequest, userPatientIds } from '../middleware/auth';
+import { generateHealthSummary, generateConsolidatedSummary, loadExamContext } from '../analysis/health-summary';
 import { streamChat } from '../analysis/chat';
 import { parseListParams, setListHeaders } from '../utils/list';
 
@@ -30,6 +30,31 @@ router.post('/', async (req: AuthedRequest, res, next) => {
         modelUsed,
         tokenUsage: usage as any,
       },
+    });
+    res.status(201).json(analysis);
+  } catch (e: any) {
+    if (!res.headersSent) next(e);
+  }
+});
+
+// RESUMO CONSOLIDADO (multi-exame) — junta os últimos exames num documento único
+router.post('/consolidated', async (req: AuthedRequest, res, next) => {
+  try {
+    const { patientId } = req.body ?? {};
+    const pids = await userPatientIds(req.userId!);
+    if (!patientId || !pids.includes(patientId)) {
+      res.status(403).json({ error: 'Paciente inválido' });
+      return;
+    }
+    // dedup: se já existe resumo consolidado há menos de 1h, devolve (economiza tokens)
+    const recent = await prisma.aiAnalysis.findFirst({
+      where: { patientId, type: 'SUMMARY', examId: null, createdAt: { gt: new Date(Date.now() - 3600_000) } },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (recent) { res.json(recent); return; }
+    const { summary, contentMd, modelUsed, usage } = await generateConsolidatedSummary(patientId);
+    const analysis = await prisma.aiAnalysis.create({
+      data: { patientId, examId: null, type: 'SUMMARY', contentMd, structured: summary as any, modelUsed, tokenUsage: usage as any },
     });
     res.status(201).json(analysis);
   } catch (e: any) {
