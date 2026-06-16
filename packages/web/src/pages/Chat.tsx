@@ -2,7 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import { Box, Card, CardContent, Typography, Button, CircularProgress, Paper, Stack } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import { Title, useNotify } from 'react-admin';
-import { API_URL, token } from '../config';
+import { API_URL, apiHeaders } from '../config';
+import { useSelectedPatient } from '../patient-context';
 
 interface Msg { role: 'user' | 'assistant'; text: string }
 
@@ -10,10 +11,26 @@ export const ChatPage = () => {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
+  const [pid] = useSelectedPatient();
   const scrollRef = useRef<HTMLDivElement>(null);
   const notify = useNotify();
 
   useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' }); }, [messages]);
+
+  // carrega a conversa anterior do paciente (persiste entre sessões/reload)
+  useEffect(() => {
+    if (!pid) return;
+    fetch(`${API_URL}/chat?patientId=${pid}`, { headers: apiHeaders() })
+      .then((r) => (r.ok ? r.json() : []))
+      .then((turns: any[]) => {
+        const msgs = (turns ?? []).flatMap((t) => [
+          ...(t.userMessage ? [{ role: 'user' as const, text: t.userMessage }] : []),
+          ...(t.contentMd ? [{ role: 'assistant' as const, text: t.contentMd }] : []),
+        ]);
+        setMessages(msgs);
+      })
+      .catch(() => {});
+  }, [pid]);
 
   const send = async () => {
     const message = input.trim();
@@ -25,8 +42,8 @@ export const ChatPage = () => {
     try {
       const r = await fetch(`${API_URL}/chat`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
-        body: JSON.stringify({ message }),
+        headers: apiHeaders(true),
+        body: JSON.stringify({ message, patientId: pid }),
       });
       if (!r.ok || !r.body) throw new Error('falha no chat');
       const reader = r.body.getReader();

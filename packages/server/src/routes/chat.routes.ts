@@ -2,43 +2,77 @@ import { Router } from 'express';
 import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
 import { streamChat } from '../analysis/chat';
+import { memoryDigest, patientSlug } from '../analysis/agent-memory';
 
 const router = Router();
 router.use(requireAuth);
 
-// CHAT global (contexto = exames recentes do paciente) — streaming SSE
+// HISTÓRICO da conversa do paciente (pra persistir entre sessões / reload)
+router.get('/', async (req: AuthedRequest, res, next) => {
+  try {
+    const pids = await userPatientIds(req.userId!);
+    const pid = String(req.query.patientId ?? req.headers['x-patient-id'] ?? '');
+    if (!pid || !pids.includes(pid)) { res.json([]); return; }
+    const turns = await prisma.aiAnalysis.findMany({
+      where: { patientId: pid, type: 'CHAT' },
+      orderBy: { createdAt: 'asc' },
+      take: 40,
+      select: { userMessage: true, contentMd: true },
+    });
+    res.json(turns);
+  } catch (e) { next(e); }
+});
+
+// CHAT global — RAG: contexto = memória do paciente (historico.md) + exames + histórico da conversa
 router.post('/', async (req: AuthedRequest, res, next) => {
   try {
     const message = String((req.body as any)?.message ?? '');
-    if (!message) {
-      res.status(400).json({ error: 'message obrigatório' });
-      return;
-    }
+    if (!message) { res.status(400).json({ error: 'message obrigatório' }); return; }
     const pids = await userPatientIds(req.userId!);
+    const pid = String((req.body as any)?.patientId ?? req.headers['x-patient-id'] ?? pids[0] ?? '');
+    if (!pid || !pids.includes(pid)) { res.status(403).json({ error: 'Paciente inválido' }); return; }
+
+    const patient = await prisma.patient.findUnique({ where: { id: pid } });
 
     const recent = await prisma.exam.findMany({
-      where: { patientId: { in: pids }, status: 'EXTRACTED' },
+      where: { patientId: pid, status: 'EXTRACTED' },
       orderBy: { performedAt: 'desc' },
       take: 6,
-      include: { items: { where: { isAbnormal: true } } },
+      include: { items: { where: { isAbnormal: true }, take: 8 } },
     });
-    const patient = pids[0] ? await prisma.patient.findUnique({ where: { id: pids[0] } }) : null;
+
+    // RAG: memória do agente (análises anteriores do paciente)
+    const slug = patientSlug(patient?.fullName ?? 'paciente', pid);
+    const memory = memoryDigest(slug, 3);
+
+    // histórico da conversa (últimos turnos deste paciente)
+    const prior = await prisma.aiAnalysis.findMany({
+      where: { patientId: pid, type: 'CHAT' },
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+    });
+    const history = prior
+      .reverse()
+      .flatMap((t) => [
+        ...(t.userMessage ? [{ role: 'user' as const, content: t.userMessage }] : []),
+        ...(t.contentMd ? [{ role: 'assistant' as const, content: t.contentMd }] : []),
+      ])
+      .slice(-12);
 
     const contextText =
-      `Resumo dos exames recentes do paciente:\n` +
+      `Paciente: ${patient?.fullName ?? '—'}\n` +
+      (patient?.clinicalProfile ? `Perfil clínico: ${patient.clinicalProfile}\n` : '') +
+      `\nExames recentes:\n` +
       (recent.length
         ? recent
-            .map(
-              (e) =>
-                `- ${e.title} (${e.performedAt?.toISOString().slice(0, 10) ?? 's/d'}): ${e.items.length} valor(es) fora da faixa`,
-            )
+            .map((e) => `- ${e.title} (${e.performedAt ? new Date(e.performedAt as Date).toLocaleDateString('pt-BR') : 's/d'}): ${e.items.length} valor(es) alterado(s)`)
             .join('\n')
-        : '(ainda não há exames extraídos)') +
-      (patient?.clinicalProfile ? `\nPerfil clínico: ${patient.clinicalProfile}` : '');
+        : '(sem exames extraídos ainda)') +
+      (memory ? `\n\nHISTÓRICO DE ANÁLISES ANTERIORES (memória do assistente — use como contexto, mantenha coerência, não repita):\n${memory}\n` : '');
 
-    const { text, model } = await streamChat({ res, contextText, history: [], message });
+    const { text, model } = await streamChat({ res, contextText, history, message });
     await prisma.aiAnalysis.create({
-      data: { type: 'CHAT', patientId: pids[0] ?? null, userMessage: message, contentMd: text, modelUsed: model },
+      data: { type: 'CHAT', patientId: pid, userMessage: message, contentMd: text, modelUsed: model },
     });
   } catch (e) {
     if (!res.headersSent) next(e);
