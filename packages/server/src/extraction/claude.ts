@@ -21,6 +21,8 @@ function contentBlockFromBuffer(buffer: Buffer, mediaType: string): any {
 
 const LAB_INSTRUCTIONS = `Você é um especialista em ler resultados de EXAMES LABORATORIAIS brasileiros a partir de um documento.
 
+LEIA TODAS AS PÁGINAS do documento. Extraia TODOS os analitos de TODOS os painéis/seções (hemograma, urina, bioquímica, hormônios, coagulação, etc.). NÃO pule nenhum painel. NÃO pare antes de extrair tudo.
+
 LEIA AS TABELAS COM CUIDADO: cada analito tem um valor e colunas de valores de referência (Homens, Mulheres, Crianças...). NÃO confunda o valor do paciente com a faixa de referência.
 
 Para cada analito: nome, valor (como impresso), valor numérico (vírgula→ponto, sem unidade), unidade, faixas de referência e a PÁGINA onde leu o valor.
@@ -86,7 +88,7 @@ async function createJson(buffer: Buffer, mediaType: string, instruction: string
 }
 
 export async function extractLabPanel(buffer: Buffer, mediaType = 'application/pdf'): Promise<LabExtraction> {
-  const json = await createJson(buffer, mediaType, LAB_INSTRUCTIONS, 12000);
+  const json = await createJson(buffer, mediaType, LAB_INSTRUCTIONS, 32000);
   const z = LabExtractionSchema.safeParse(json);
   if (!z.success) console.warn('[extraction] Zod estrito falhou, usando JSON bruto:', z.error.issues.slice(0, 3));
   return (z.success ? z.data : json) as LabExtraction;
