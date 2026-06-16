@@ -6,6 +6,7 @@ import { upload } from '../middleware/upload';
 import fs from 'fs';
 import path from 'path';
 import { config } from '../config';
+import { savePatientPhoto, patientSlug } from '../utils/storage';
 
 const router = Router();
 router.use(requireAuth);
@@ -124,21 +125,19 @@ router.get('/:id', async (req, res, next) => {
   }
 });
 
-// UPLOAD de foto do paciente
+// UPLOAD de foto do paciente — S3 (prod) ou disco (dev)
 router.post('/:id/photo', upload.single('photo'), async (req: AuthedRequest, res, next) => {
   try {
     const id = String(req.params.id);
     const pids = await userPatientIds(req.userId!);
     if (!pids.includes(id)) { res.status(403).json({ error: 'Sem permissão' }); return; }
     if (!req.file) { res.status(400).json({ error: 'Foto não enviada' }); return; }
-    const dir = path.resolve(config.photosDir);
-    fs.mkdirSync(dir, { recursive: true });
-    const ext = req.file.originalname.match(/\.(jpg|jpeg|png)$/i)?.[0] || '.jpg';
-    const filename = `patient-${id}${ext}`;
-    fs.writeFileSync(path.join(dir, filename), req.file.buffer);
-    const photoUrl = `/api/patients/${id}/photo`;
-    await prisma.patient.update({ where: { id }, data: { photoUrl } });
-    res.json({ photoUrl });
+    const patient = await prisma.patient.findUnique({ where: { id }, select: { fullName: true } });
+    const slug = patientSlug(patient?.fullName ?? 'paciente', id);
+    const contentType = req.file.mimetype || 'image/jpeg';
+    const ref = await savePatientPhoto(id, slug, req.file.buffer, contentType);
+    await prisma.patient.update({ where: { id }, data: { photoUrl: ref } }); // guarda o REF (chave S3 ou caminho disco)
+    res.json({ photoUrl: `/api/patients/${id}/photo` }); // URL pública estável pro <img>
   } catch (e) { next(e); }
 });
 

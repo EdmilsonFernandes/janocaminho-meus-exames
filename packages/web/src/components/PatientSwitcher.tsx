@@ -6,7 +6,7 @@ import {
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import CheckIcon from '@mui/icons-material/Check';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import { API_URL, token } from '../config';
+import { API_URL, token, photoUrlFor } from '../config';
 import { useSelectedPatient, setSelectedPatient } from '../patient-context';
 
 const RELACOES = ['Titular', 'Cônjuge', 'Filho(a)', 'Mãe', 'Pai', 'Irmão(ã)', 'Avó/Avô', 'Outro'];
@@ -20,7 +20,7 @@ export const PatientSwitcher = () => {
   const [name, setName] = useState('');
   const [rel, setRel] = useState('Filho(a)');
 
-  const photoFor = (p?: any) => (p?.photoUrl ? `${API_URL.replace('/api', '')}${p.photoUrl}?t=${Date.now()}` : undefined);
+  const photoFor = (p?: any) => (p?.photoUrl ? photoUrlFor(p.id) : undefined);
 
   const load = async () => {
     const r = await fetch(`${API_URL}/patients`, { headers: { Authorization: `Bearer ${token()}` } });

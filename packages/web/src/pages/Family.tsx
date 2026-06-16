@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Box, Card, CardContent, Typography, CircularProgress, Grid, Stack, Chip, Avatar, Alert, AlertTitle } from '@mui/material';
 import { Title } from 'react-admin';
-import { API_URL, token } from '../config';
+import { API_URL, token, photoUrlFor } from '../config';
 
 interface FamPatient {
   id: string; fullName: string; relationship: string | null; photoUrl: string | null;
@@ -58,7 +58,7 @@ export const FamilyPage = () => {
           <Grid key={p.id} size={{ xs: 12, md: 6 }}>
             <Card variant="outlined"><CardContent>
               <Stack direction="row" alignItems="center" spacing={2}>
-                <Avatar src={p.photoUrl ?? undefined}>{p.fullName.charAt(0).toUpperCase()}</Avatar>
+                <Avatar src={p.photoUrl ? photoUrlFor(p.id) : undefined}>{p.fullName.charAt(0).toUpperCase()}</Avatar>
                 <Box sx={{ flex: 1 }}>
                   <Typography variant="h6">{p.fullName}</Typography>
                   {p.relationship && <Chip size="small" label={p.relationship} variant="outlined" />}

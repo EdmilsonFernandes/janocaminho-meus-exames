@@ -12,3 +12,7 @@ export function apiHeaders(json = false): Record<string, string> {
   if (json) h['Content-Type'] = 'application/json';
   return h;
 }
+
+/** URL pública estável da foto do paciente (sempre via rota /api/patients/:id/photo). */
+export const photoUrlFor = (patientId: string): string =>
+  `${API_URL.replace('/api', '')}/api/patients/${patientId}/photo?t=${Date.now()}`;

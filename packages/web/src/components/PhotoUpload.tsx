@@ -1,12 +1,12 @@
 import { useState, useRef } from 'react';
 import { Avatar, IconButton, Box, Typography } from '@mui/material';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
-import { API_URL, token } from '../config';
+import { API_URL, token, photoUrlFor } from '../config';
 
 /** Upload de foto com preview circular (avatar). */
 export const PhotoUpload = ({ patientId, photoUrl, size = 80 }: { patientId?: string; photoUrl?: string | null; size?: number }) => {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [preview, setPreview] = useState<string | undefined>(photoUrl || undefined);
+  const [preview, setPreview] = useState<string | undefined>(patientId && photoUrl ? photoUrlFor(patientId) : undefined);
   const [uploading, setUploading] = useState(false);
 
   const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -21,7 +21,7 @@ export const PhotoUpload = ({ patientId, photoUrl, size = 80 }: { patientId?: st
       });
       if (r.ok) {
         const d = await r.json();
-        setPreview(`${API_URL.replace('/api', '')}${d.photoUrl}?t=${Date.now()}`);
+        setPreview(photoUrlFor(patientId));
       } else {
         console.error('photo upload failed:', r.status, await r.text());
       }

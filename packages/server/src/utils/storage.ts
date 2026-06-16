@@ -94,3 +94,28 @@ export async function deleteExamFile(ref: string): Promise<void> {
   }
   if (ref) fs.promises.unlink(ref).catch(() => {});
 }
+
+// ===== FOTOS de paciente (mesma abstração S3/disco dos exames) =====
+
+/** Salva a foto do paciente — S3 (produção, organizado por paciente) ou disco (dev). Devolve o ref. */
+export async function savePatientPhoto(patientId: string, slug: string, buffer: Buffer, contentType: string): Promise<string> {
+  const ext = contentType === 'image/png' ? '.png' : '.jpg';
+  if (useS3()) {
+    const key = `${config.s3Prefix}fotos/${slug}/avatar${ext}`;
+    await s3().send(new PutObjectCommand({ Bucket: config.s3Bucket, Key: key, Body: buffer, ContentType: contentType }));
+    return key;
+  }
+  fs.mkdirSync(config.photosDir, { recursive: true });
+  const local = path.join(config.photosDir, `patient-${patientId}${ext}`);
+  fs.writeFileSync(local, buffer);
+  return local;
+}
+
+/** Resolve a foto p/ servir: URL pré-assinada (S3, 15 min) ou caminho local (disco). */
+export async function resolvePatientPhoto(ref: string): Promise<{ kind: 'url'; url: string } | { kind: 'file'; file: string }> {
+  if (useS3()) {
+    const url = await getSignedUrl(s3(), new GetObjectCommand({ Bucket: config.s3Bucket, Key: ref }), { expiresIn: 900 });
+    return { kind: 'url', url };
+  }
+  return { kind: 'file', file: ref };
+}

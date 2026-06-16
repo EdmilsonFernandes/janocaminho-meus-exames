@@ -39,11 +39,12 @@ app.use('/api/auth', authRoutes);
 // ROTA PÚBLICA: foto do paciente (sem auth — precisa funcionar em <img src>)
 app.get('/api/patients/:id/photo', async (req, res) => {
   try {
-    const dir = path.resolve(config.photosDir);
-    fs.mkdirSync(dir, { recursive: true });
-    const files = fs.readdirSync(dir).filter((f: string) => f.startsWith(`patient-${req.params.id}.`));
-    if (!files.length) { res.status(404).type('html').send('sem foto'); return; }
-    res.sendFile(path.join(dir, files[0]));
+    const p = await prisma.patient.findUnique({ where: { id: String(req.params.id) }, select: { photoUrl: true } });
+    if (!p?.photoUrl) { res.status(404).type('html').send('sem foto'); return; }
+    const { resolvePatientPhoto } = await import('./utils/storage');
+    const r = await resolvePatientPhoto(p.photoUrl);
+    if (r.kind === 'url') { res.redirect(r.url); return; } // S3: redireciona p/ URL pré-assinada
+    res.sendFile(path.resolve(r.file));                     // disco: serve o arquivo
   } catch { res.status(404).type('html').send('sem foto'); }
 });
 
