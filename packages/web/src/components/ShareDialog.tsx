@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
-  Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Box, IconButton, TextField, Stack, Alert, CircularProgress,
+  Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Box, IconButton, TextField, Stack, Alert, CircularProgress, useMediaQuery, useTheme,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
@@ -9,6 +9,8 @@ import { API_URL, token } from '../config';
 
 /** Gera e mostra um link seguro (12h) + PIN p/ compartilhar com o médico, com botão de WhatsApp. */
 export const ShareDialog = ({ analysisId, open, onClose }: { analysisId?: string; open: boolean; onClose: () => void }) => {
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<{ link: string; pin: string } | null>(null);
   const [error, setError] = useState('');
@@ -33,7 +35,7 @@ export const ShareDialog = ({ analysisId, open, onClose }: { analysisId?: string
     : '';
 
   return (
-    <Dialog open={open} onClose={onClose} PaperProps={{ sx: { borderRadius: 3, minWidth: { xs: 320, sm: 440 } } }}>
+    <Dialog open={open} onClose={onClose} fullScreen={fullScreen} PaperProps={{ sx: { borderRadius: fullScreen ? 0 : 3, minWidth: { xs: 320, sm: 440 } } }}>
       <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
         🔗 Compartilhar com o médico
         <IconButton onClick={onClose} size="small"><CloseIcon /></IconButton>

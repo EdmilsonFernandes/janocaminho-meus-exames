@@ -61,7 +61,7 @@ export const PatientSwitcher = () => {
           maxWidth: { xs: 180, sm: 260 },
         }}
         startIcon={
-          <Avatar src={photoFor(current)} sx={{ width: 28, height: 28, bgcolor: '#336886', fontSize: 13 }}>
+          <Avatar src={photoFor(current)} sx={{ width: 32, height: 32, bgcolor: '#336886', fontSize: 14 }}>
             {current?.fullName?.charAt(0)?.toUpperCase()}
           </Avatar>
         }

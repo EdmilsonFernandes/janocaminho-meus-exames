@@ -1,4 +1,4 @@
-import { Dialog, DialogTitle, DialogContent, Typography, IconButton, Box, keyframes } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, Typography, IconButton, Box, keyframes, useMediaQuery, useTheme } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { explainExam } from '../data/examDictionary';
@@ -13,12 +13,14 @@ interface Props {
 }
 
 export const ExplainItem = ({ open, item, onClose }: Props) => {
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
   if (!item) return null;
   const ex = explainExam(item.nameCanonical);
   const titulo = ex?.titulo ?? item.name;
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth fullScreen={fullScreen} PaperProps={{ sx: { borderRadius: fullScreen ? 0 : 3 } }}>
       <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pr: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <DrExame size={42} sx={{ animation: `${bounce} 1.5s ease-in-out infinite` }} />
