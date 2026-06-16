@@ -2,6 +2,9 @@ import { Router } from 'express';
 import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
 import { parseListParams, setListHeaders } from '../utils/list';
+import { upload } from '../middleware/upload';
+import fs from 'fs';
+import path from 'path';
 
 const router = Router();
 router.use(requireAuth);
@@ -78,6 +81,35 @@ router.get('/:id', async (req, res, next) => {
   } catch (e) {
     next(e);
   }
+});
+
+// UPLOAD de foto do paciente
+router.post('/:id/photo', upload.single('photo'), async (req: AuthedRequest, res, next) => {
+  try {
+    const id = String(req.params.id);
+    const pids = await userPatientIds(req.userId!);
+    if (!pids.includes(id)) { res.status(403).json({ error: 'Sem permissão' }); return; }
+    if (!req.file) { res.status(400).json({ error: 'Foto não enviada' }); return; }
+    const dir = path.join(__dirname, '../../../data/photos');
+    fs.mkdirSync(dir, { recursive: true });
+    const ext = req.file.originalname.match(/\.(jpg|jpeg|png)$/i)?.[0] || '.jpg';
+    const filename = `patient-${id}${ext}`;
+    fs.writeFileSync(path.join(dir, filename), req.file.buffer);
+    const photoUrl = `/api/patients/${id}/photo`;
+    await prisma.patient.update({ where: { id }, data: { photoUrl } });
+    res.json({ photoUrl });
+  } catch (e) { next(e); }
+});
+
+// SERVE a foto do paciente
+router.get('/:id/photo', async (req, res, next) => {
+  try {
+    const id = String(req.params.id);
+    const dir = path.join(__dirname, '../../../data/photos');
+    const files = fs.readdirSync(dir).filter(f => f.startsWith(`patient-${id}.`));
+    if (!files.length) { res.status(404).send('sem foto'); return; }
+    res.sendFile(path.join(dir, files[0]));
+  } catch { res.status(404).send('sem foto'); }
 });
 
 // Atualiza perfil clínico (condições/medicações que alimentam a IA) e dados básicos
