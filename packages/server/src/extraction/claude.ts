@@ -63,10 +63,10 @@ const IMAGING_INSTRUCTIONS = `Você está lendo o LAUDO de um exame (tomografia,
 }
 Copie fielmente o texto. Não invente achados nem nomes.`;
 
-/** Chamada base (relay-compatível: sem thinking/effort/output_config; JSON pedido no prompt). */
-async function createJson(buffer: Buffer, mediaType: string, instruction: string, maxTokens = 12000): Promise<any> {
+/** Chamada base — usa STREAMING (necessário para max_tokens altos + evita timeout de 10min). */
+async function createJson(buffer: Buffer, mediaType: string, instruction: string, maxTokens = 16000): Promise<any> {
   const client = getAnthropic();
-  const response = await client.messages.create({
+  const stream = client.messages.stream({
     model: MODEL,
     max_tokens: maxTokens,
     messages: [
@@ -76,6 +76,8 @@ async function createJson(buffer: Buffer, mediaType: string, instruction: string
       },
     ],
   } as any);
+
+  const response = await stream.finalMessage();
 
   if (response.stop_reason === 'max_tokens') {
     const err = new Error('Exame grande demais para extrair em uma chamada (limite de saída).');
@@ -90,7 +92,7 @@ async function createJson(buffer: Buffer, mediaType: string, instruction: string
 }
 
 export async function extractLabPanel(buffer: Buffer, mediaType = 'application/pdf'): Promise<LabExtraction> {
-  const json = await createJson(buffer, mediaType, LAB_INSTRUCTIONS, 32000);
+  const json = await createJson(buffer, mediaType, LAB_INSTRUCTIONS, 16000);
   const z = LabExtractionSchema.safeParse(json);
   if (!z.success) console.warn('[extraction] Zod estrito falhou, usando JSON bruto:', z.error.issues.slice(0, 3));
   return (z.success ? z.data : json) as LabExtraction;

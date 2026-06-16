@@ -47,10 +47,8 @@ export const theme = createTheme({
     MuiDrawer: {
       styleOverrides: {
         paper: {
-          background: '#0f1923',
-          backgroundImage: 'linear-gradient(180deg, #1a2738 0%, #0f1923 100%)',
-          backgroundAttachment: 'fixed',
-          borderRight: 'none',
+          background: '#ffffff',
+          borderRight: '1px solid #e2e8f0',
           width: 240,
         },
       },
@@ -87,18 +85,25 @@ export const theme = createTheme({
         },
       },
     },
+    MuiListItemButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 10,
+          margin: '2px 8px',
+          '&:hover': { background: alpha('#336886', 0.06) },
+          '&.RaMenuItem-activeMenuItem, &[class*="active"]': {
+            background: alpha('#336886', 0.1),
+            color: '#336886',
+            fontWeight: 700,
+          },
+        },
+      },
+    },
     MuiMenuItem: {
       styleOverrides: {
         root: {
           borderRadius: 10,
           margin: '2px 8px',
-          color: '#cbd5e1',
-          '&:hover': { background: 'rgba(255,255,255,0.08)' },
-          '&.RaMenuItem-activeMenuItem': {
-            background: alpha('#5FD35A', 0.15),
-            color: '#5FD35A',
-            fontWeight: 700,
-          },
         },
       },
     },
