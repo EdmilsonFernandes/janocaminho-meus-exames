@@ -79,6 +79,10 @@ export async function generateHealthSummary(examId: string): Promise<{ summary: 
           `- coisasBoas (array de strings)\n` +
           `- leituraFinal (string, 1 parágrafo direto)\n` +
           `- perguntasParaOMedico (array de strings, 3 a 5)\n` +
+          `- interacoesMedicamentos (array de {medicamento, analito, observacao}) — CRUZE cada medicação do perfil clínico com os valores alterados. Ex.: {medicamento:"testosterona", analito:"Hemoglobina", observacao:"A testosterona pode elevar hemoglobina/hematócrito"}. Se não houver medicação relevante, array vazio.\n` +
+          `- sugestoesNutricao (array de strings) — sugestões alimentares EDUCATIVAS baseadas nos valores alterados. Ex.: "LDL alto: reduza carnes vermelhas e frituras; aumente aveia e azeite". 3-5 sugestões práticas.\n` +
+          `- comparacaoFamiliar (string ou null) — se o perfil sugere predisposição familiar (ex.: vários com colesterol alto), comente. Se não houver dados familiares, null.\n` +
+          `- metasSaude (array de {analito, meta, prazo}) — metas concretas para os próximos 3-6 meses baseadas nos valores atuais. Ex.: {analito:"LDL", meta:"Reduzir para abaixo de 100", prazo:"3 meses com dieta"}.\n` +
           `- disclaimer (string curta)` +
           JSON_SUFFIX,
       },

@@ -78,6 +78,19 @@ export const HealthSummarySchema = z.object({
   coisasBoas: z.array(z.string()).default([]),
   leituraFinal: z.string(),
   perguntasParaOMedico: z.array(z.string()).default([]),
+  // FEATURES PREMIUM
+  interacoesMedicamentos: z.array(z.object({
+    medicamento: z.string(),
+    analito: z.string(),
+    observacao: z.string(),
+  })).default([]),
+  sugestoesNutricao: z.array(z.string()).default([]),
+  comparacaoFamiliar: z.string().nullable().optional(),
+  metasSaude: z.array(z.object({
+    analito: z.string(),
+    meta: z.string(),
+    prazo: z.string().nullable().optional(),
+  })).default([]),
   disclaimer: z.string().default(''),
 });
 
