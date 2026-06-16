@@ -2,8 +2,18 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#2a93b8" />
     <title>Meus Exames</title>
+    <style>
+      /* Mobile: trava o overflow horizontal (tela não escorrega pro lado) */
+      html, body, #root { max-width: 100%; overflow-x: hidden; }
+      body { -webkit-text-size-adjust: 100%; }
+      /* Tabelas rolam horizontal dentro do card em vez de empurrar a página */
+      .MuiTableContainer-root { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      /* Evita zoom de inputs no iOS */
+      input, select, textarea { font-size: 16px; }
+    </style>
   </head>
   <body>
     <div id="root"></div>

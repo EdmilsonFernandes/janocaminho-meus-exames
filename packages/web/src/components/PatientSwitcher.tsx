@@ -68,11 +68,11 @@ export const PatientSwitcher = () => {
         endIcon={<KeyboardArrowDownIcon sx={{ opacity: 0.6 }} />}
       >
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.15, overflow: 'hidden' }}>
-          <Typography component="span" sx={{ fontSize: 13, fontWeight: 700, maxWidth: { xs: 70, sm: 130 }, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <Typography component="span" sx={{ fontSize: 13, fontWeight: 700, maxWidth: { xs: 56, sm: 130 }, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {current?.fullName ?? 'Selecionar'}
           </Typography>
           {current?.relationship && (
-            <Typography component="span" sx={{ fontSize: 10, color: 'text.secondary' }}>{current.relationship}</Typography>
+            <Typography component="span" sx={{ display: { xs: 'none', sm: 'block' }, fontSize: 10, color: 'text.secondary' }}>{current.relationship}</Typography>
           )}
         </Box>
       </Button>
