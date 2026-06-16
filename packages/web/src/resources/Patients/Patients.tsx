@@ -4,7 +4,7 @@ import { PhotoUpload } from '../../components/PhotoUpload';
 const PhotoField = () => {
   const record = useRecordContext();
   if (!record) return null;
-  return <PhotoUpload patientId={record.id} photoUrl={record.photoUrl} size={90} />;
+  return <PhotoUpload patientId={String(record.id)} photoUrl={record.photoUrl} size={90} />;
 };
 
 export const PatientList = () => (
