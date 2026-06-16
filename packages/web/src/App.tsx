@@ -88,8 +88,6 @@ const AppMenu = () => (
 const AppLayout = (props: any) => <Layout {...props} menu={AppMenu} appBar={CustomAppBar} />;
 
 export const App = () => {
-  const base = import.meta.env.BASE_URL;
-  const basename = base && base !== '/' ? base.replace(/\/$/, '') : undefined;
   useEffect(() => { void initPush(); }, []);
   return (
   <Admin
@@ -100,7 +98,6 @@ export const App = () => {
     layout={AppLayout}
     dashboard={Dashboard}
     loginPage={LoginPage}
-    basename={basename}
     title="Meus Exames"
     disableTelemetry
   >
