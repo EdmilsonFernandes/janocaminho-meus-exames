@@ -6,11 +6,18 @@
 # Uso no EC2:  docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
 services:
   meus-exames-app:
-    build: .
+    build:
+      context: .
+      args:
+        # Sub-caminho configurável (default meus-exames). Mudou? rebuilda + ajusta o nginx.
+        VITE_BASE: ${VITE_BASE:-/meus-exames/}
+        VITE_API_URL: ${VITE_API_URL:-/meus-exames/api}
     container_name: meus-exames-app
     restart: unless-stopped
     env_file: .env.prod
     environment:
+      WEB_ORIGIN: ${WEB_ORIGIN:-https://janocaminho.com.br}
+      WEB_BASE_PATH: ${WEB_BASE_PATH:-/meus-exames}
       # Paths absolutos alinhados aos volumes (o node roda em /app/packages/server)
       UPLOAD_DIR: /app/data/exams
       PHOTOS_DIR: /app/data/photos
