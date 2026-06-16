@@ -72,20 +72,27 @@ app.get('/api/public/shared/:token', async (req, res) => {
   const date = a.exam?.performedAt ? new Date(a.exam.performedAt as Date).toLocaleDateString('pt-BR') : '';
   const patientName = a.exam?.patient?.fullName ?? '';
   const lab = a.exam?.sourceLab ?? '';
-  // converte markdown básico para HTML (###, **, -, 1.)
   const html = (a.contentMd || '').replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/^### (.+)$/gm, '<h3 style="color:#336886;margin:20px 0 8px">$1</h3>')
-    .replace(/^## (.+)$/gm, '<h2 style="color:#336886;margin:24px 0 10px">$1</h2>')
+    .replace(/^### (.+)$/gm, '<h3 style="color:#336886;margin:20px 0 8px;font-size:16px">$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2 style="color:#336886;margin:24px 0 10px;font-size:18px">$1</h2>')
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/^- (.+)$/gm, '<li>$1</li>')
-    .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
-    .replace(/(<li>.+<\/li>)/s, '<ul>$1</ul>')
+    .replace(/^- (.+)$/gm, '<li style="margin:4px 0">$1</li>')
+    .replace(/^\d+\. (.+)$/gm, '<li style="margin:4px 0">$1</li>')
     .replace(/\n/g, '<br>');
-  res.type('html').send(emailTemplate({
-    title: `Resumo de Saúde — ${a.exam?.title ?? 'Exame'}`,
-    preheader: `${patientName} • ${date}${lab ? ' • ' + lab : ''}`,
-    content: html,
-  }));
+  const docHtml = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Resumo de Saúde — ${patientName}</title>
+    <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',Arial,sans-serif;color:#15233b;background:#f8fafc;padding:24px}
+    .doc{max-width:720px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+    .header{background:linear-gradient(135deg,#336886,#1565c0);color:#fff;padding:28px 32px}
+    .header h1{font-size:22px;font-weight:800}.header .sub{font-size:13px;opacity:.85;margin-top:4px}
+    .body{padding:24px 32px;line-height:1.7;font-size:15px}
+    .info-bar{background:#f0f7ff;border-radius:10px;padding:12px 16px;margin-bottom:20px;border-left:4px solid #336886;font-size:14px}
+    .footer{text-align:center;padding:16px;font-size:11px;color:#aaa}
+    ul{padding-left:20px;margin:8px 0}</style></head><body>
+    <div class="doc"><div class="header"><h1>Resumo de Saúde</h1><div class="sub">Análise educativa — não substitui consulta médica</div></div>
+    <div class="body"><div class="info-bar"><b>Paciente:</b> ${patientName}<br><b>Exame:</b> ${a.exam?.title ?? ''} — ${date}${lab ? ' • ' + lab : ''}</div>${html}</div>
+    <div class="footer">Meus Exames • Análise educativa • Link expira em 3 dias</div></div></body></html>`;
+  res.type('html').send(docHtml);
 });
 
 // Em produção: serve o build do front (SPA) no mesmo container (1 domínio só)

@@ -21,9 +21,11 @@ export const PhotoUpload = ({ patientId, photoUrl, size = 80 }: { patientId?: st
       });
       if (r.ok) {
         const d = await r.json();
-        setPreview(`${d.photoUrl}?t=${Date.now()}`); // cache-busting
+        setPreview(`${API_URL.replace('/api', '')}${d.photoUrl}?t=${Date.now()}`);
+      } else {
+        console.error('photo upload failed:', r.status, await r.text());
       }
-    } catch { /* ignore */ }
+    } catch (err) { console.error('photo upload error:', err); }
     finally { setUploading(false); }
   };
 

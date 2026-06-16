@@ -1,12 +1,11 @@
 import { Router } from 'express';
 import { prisma } from '../prisma';
-import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
-import { emailTemplate } from '../utils/emailTemplate';
+import { requireAuth, AuthedRequest } from '../middleware/auth';
 
 const router = Router();
 router.use(requireAuth);
 
-/** Preparo de consulta: gera 1 página HTML otimizada para o médico (30s de leitura). */
+/** Preparo de consulta: gera 1 página HTML profissional para o médico. */
 router.post('/exams/:examId', async (req: AuthedRequest, res, next) => {
   try {
     const exam = await prisma.exam.findUnique({
@@ -34,30 +33,55 @@ router.post('/exams/:examId', async (req: AuthedRequest, res, next) => {
     const doctor = (exam.rawExtraction as any)?.requestingDoctor ?? '';
     const profile = exam.patient?.clinicalProfile ?? '';
 
-    const concernsHtml = exam.items.map((i, idx) =>
-      `<tr><td style="padding:6px 8px;border-bottom:1px solid #eee"><b>${i.name}</b></td><td style="padding:6px 8px;border-bottom:1px solid #eee">${i.valueText ?? '—'}</td><td style="padding:6px 8px;border-bottom:1px solid #eee">${i.refText ?? [i.refLow, i.refHigh].filter(x=>x!=null).join('-') ?? '—'}</td><td style="padding:6px 8px;border-bottom:1px solid #eee;color:${i.flag==='HIGH'?'#d32f2f':i.flag==='LOW'?'#e65100':'#666'};font-weight:700">${i.flag}</td></tr>`
+    const concernsHtml = exam.items.map((i) =>
+      `<tr><td style="padding:8px 10px;border-bottom:1px solid #e8e8e8"><b>${i.name}</b></td><td style="padding:8px 10px;border-bottom:1px solid #e8e8e8">${i.valueText ?? '—'}</td><td style="padding:8px 10px;border-bottom:1px solid #e8e8e8;color:#888">${i.refText ?? [i.refLow, i.refHigh].filter(x=>x!=null).join('-') ?? '—'}</td><td style="padding:8px 10px;border-bottom:1px solid #e8e8e8;font-weight:700;color:${i.flag==='HIGH'?'#d32f2f':i.flag==='LOW'?'#e65100':'#666'}">${i.flag === 'HIGH' ? '↑ Acima' : i.flag === 'LOW' ? '↓ Abaixo' : i.flag}</td></tr>`
     ).join('');
 
-    const priorHtml = prior ? `<p style="font-size:12px;color:#666;margin:4px 0">Comparado com exame anterior: ${prior.title} (${prior.performedAt ? new Date(prior.performedAt).toLocaleDateString('pt-BR') : 's/d'})</p>` : '';
+    const priorHtml = prior ? `<p style="font-size:12px;color:#888;margin:6px 0">Comparado com: ${prior.title} (${prior.performedAt ? new Date(prior.performedAt).toLocaleDateString('pt-BR') : 's/d'}) — ${prior.items.length} valor(es) alterado(s) no exame anterior</p>` : '';
 
     const html = `<!doctype html><html><head><meta charset="utf-8"><title>Preparo de Consulta — ${name}</title>
-      <style>body{font-family:Segoe UI,Arial,sans-serif;padding:30px;max-width:720px;margin:auto;color:#15233b}
-      h1{font-size:20px;margin:0 0 4px;color:#336886}h2{font-size:14px;margin:18px 0 6px;color:#336886;border-bottom:2px solid #336886;padding-bottom:3px}
-      table{width:100%;border-collapse:collapse;font-size:13px}.info{font-size:13px;color:#555;margin:2px 0}
-      .highlight{background:#fff3e0;padding:10px;border-radius:6px;margin:8px 0}</style></head><body>
-      <h1>📋 Preparo de Consulta</h1>
-      <p class="info"><b>Paciente:</b> ${name}${age ? ` (${age} anos)` : ''}</p>
-      <p class="info"><b>Exame:</b> ${exam.title} — ${date}${lab ? ` • ${lab}` : ''}${doctor ? ` • Dr: ${doctor}` : ''}</p>
-      ${profile ? `<div class="highlight"><b>Perfil clínico:</b> ${profile}</div>` : ''}
-      ${priorHtml}
-      <h2>🚩 Valores fora da faixa (${exam.items.length})</h2>
-      <table><tr style="background:#eef3fb"><th style="padding:6px 8px;text-align:left">Exame</th><th style="padding:6px 8px;text-align:left">Resultado</th><th style="padding:6px 8px;text-align:left">Referência</th><th style="padding:6px 8px;text-align:left">Status</th></tr>${concernsHtml || '<tr><td colspan=4 style="padding:12px;text-align:center;color:#2e7d32">✅ Todos os valores dentro da faixa</td></tr>'}</table>
-      <h2>📝 Observações</h2>
-      <p style="font-size:13px;color:#666">Documento gerado automaticamente pelo app Meus Exames. Análise educativa — não substitui avaliação médica.</p>
+      <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; color: #15233b; background: #f8fafc; padding: 24px; }
+        .doc { max-width: 720px; margin: 0 auto; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,.08); }
+        .header { background: linear-gradient(135deg, #336886, #1565c0); color: #fff; padding: 24px 32px; }
+        .header h1 { font-size: 22px; font-weight: 800; }
+        .header .sub { font-size: 13px; opacity: .85; margin-top: 2px; }
+        .body { padding: 24px 32px; }
+        .patient-box { background: #f0f7ff; border-radius: 10px; padding: 16px; margin-bottom: 20px; border-left: 4px solid #336886; }
+        .patient-box p { font-size: 14px; margin: 2px 0; }
+        .section-title { font-size: 15px; font-weight: 700; color: #336886; margin: 20px 0 8px; padding-bottom: 4px; border-bottom: 2px solid #336886; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { background: #eef3fb; padding: 8px 10px; text-align: left; font-weight: 700; color: #336886; }
+        .highlight { background: #fff8e1; border-radius: 8px; padding: 12px; margin: 8px 0; font-size: 13px; }
+        .footer { text-align: center; padding: 16px; font-size: 11px; color: #aaa; }
+        @media print { body { background: #fff; padding: 0; } .doc { box-shadow: none; max-width: 100%; } }
+      </style></head><body>
+      <div class="doc">
+        <div class="header">
+          <h1>📋 Preparo de Consulta</h1>
+          <div class="sub">Meus Exames — documento gerado para o médico assistente</div>
+        </div>
+        <div class="body">
+          <div class="patient-box">
+            <p><b>👤 Paciente:</b> ${name}${age ? ` (${age} anos)` : ''}</p>
+            <p><b>🧪 Exame:</b> ${exam.title} — ${date}${lab ? ` • Laboratório: ${lab}` : ''}${doctor ? ` • Solicitante: Dr. ${doctor}` : ''}</p>
+            ${profile ? `<p><b>💊 Perfil clínico:</b> ${profile}</p>` : ''}
+          </div>
+          ${priorHtml}
+          <div class="section-title">🚩 Valores fora da faixa (${exam.items.length})</div>
+          <table>
+            <tr><th>Exame</th><th>Resultado</th><th>Referência</th><th>Status</th></tr>
+            ${concernsHtml || '<tr><td colspan="4" style="padding:16px;text-align:center;color:#2e7d32">✅ Todos os valores dentro da faixa de referência</td></tr>'}
+          </table>
+          <div class="section-title">📝 Observações</div>
+          <div class="highlight">Este documento foi gerado automaticamente pelo app <b>Meus Exames</b>. Os valores foram extraídos por IA a partir do PDF do exame. Análise educativa — não substitui avaliação médica.</div>
+        </div>
+        <div class="footer">Meus Exames • Análise educativa de saúde • meus-exames.app</div>
+      </div>
       </body></html>`;
 
-    if (req.query.html) { res.type('html').send(html); return; }
-    res.json({ html, url: `${req.protocol}://${req.get('host')}/api/consulta/exams/${exam.id}?html=1` });
+    res.json({ html });
   } catch (e) { next(e); }
 });
 

@@ -278,7 +278,16 @@ export const ExamShow = () => {
             <Stack direction="row" spacing={2} alignItems="center">
               <Typography variant="h6" sx={{ color: '#2e7d32', flex: 1 }}>📋 Preparar visita ao médico</Typography>
               <Button variant="contained" color="success" size="large"
-                onClick={() => window.open(`${API_URL}/consulta/exams/${id}?html=1`, '_blank')}>
+                onClick={async () => {
+                  const r = await fetch(`${API_URL}/consulta/exams/${id}`, {
+                    method: 'POST', headers: { Authorization: `Bearer ${token()}` },
+                  });
+                  const d = await r.json();
+                  if (d.html) {
+                    const blob = new Blob([d.html], { type: 'text/html' });
+                    window.open(URL.createObjectURL(blob), '_blank');
+                  }
+                }}>
                 Gerar documento
               </Button>
             </Stack>

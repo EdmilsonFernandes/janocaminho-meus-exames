@@ -101,8 +101,8 @@ router.post('/:id/photo', upload.single('photo'), async (req: AuthedRequest, res
   } catch (e) { next(e); }
 });
 
-// SERVE a foto do paciente
-router.get('/:id/photo', async (req, res, next) => {
+// SERVE a foto do paciente (público — sem auth, pra funcionar em <img src>)
+router.get('/:id/photo', async (req, res) => {
   try {
     const id = String(req.params.id);
     const dir = path.join(__dirname, '../../../data/photos');
