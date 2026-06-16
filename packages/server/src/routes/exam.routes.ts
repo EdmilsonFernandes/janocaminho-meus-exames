@@ -19,8 +19,9 @@ router.get('/', async (req: AuthedRequest, res, next) => {
     const pids = await userPatientIds(req.userId!);
     const { start, take, sort, order } = parseListParams(req);
     const q = req.query as Record<string, string | undefined>;
-    const where: any = { patientId: { in: pids } };
-    if (q.patientId) where.patientId = q.patientId;
+    const headerPid = req.headers['x-patient-id'] as string | undefined;
+    const activePid = (headerPid && pids.includes(headerPid)) ? headerPid : (q.patientId && pids.includes(q.patientId) ? q.patientId : undefined);
+    const where: any = activePid ? { patientId: activePid } : { patientId: { in: pids } };
     if (q.kind) where.kind = q.kind;
     if (q.q) where.title = { contains: q.q, mode: 'insensitive' };
 
@@ -75,8 +76,9 @@ router.post('/', upload.single('file'), async (req: AuthedRequest, res, next) =>
       return;
     }
     const pids = await userPatientIds(req.userId!);
+    const headerPid = req.headers['x-patient-id'] as string | undefined;
     const requested = req.body.patientId as string | undefined;
-    let patientId: string | null | undefined = requested && pids.includes(requested) ? requested : pids[0];
+    let patientId: string | null | undefined = (headerPid && pids.includes(headerPid)) ? headerPid : (requested && pids.includes(requested) ? requested : pids[0]);
     if (!patientId) patientId = await firstPatientId(req.userId!);
     if (!patientId) {
       res.status(400).json({ error: 'Nenhum paciente vinculado ao usuário' });
