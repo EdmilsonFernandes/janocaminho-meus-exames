@@ -11,8 +11,10 @@ build/
 .env.local
 .env.*.local
 
-# Dados sensíveis (PDFs de exames = PII sob LGPD; nunca commitar)
-data/
+# Dados sensíveis (PDFs/fotos = PII sob LGPD; nunca commitar) — dirs de RUNTIME, NÃO o código em web/src/data
+/data/
+packages/server/data/
+packages/data/
 uploads/
 samples/*.pdf
 samples/*.jpg
