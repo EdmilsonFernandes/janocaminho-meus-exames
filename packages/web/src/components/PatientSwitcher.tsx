@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box, Avatar, Button, Menu, MenuItem, ListItemIcon, ListItemText, Dialog,
   DialogTitle, DialogContent, DialogActions, TextField, FormControl, InputLabel, Select, Divider, Typography,
@@ -13,6 +14,7 @@ const RELACOES = ['Titular', 'Cônjuge', 'Filho(a)', 'Mãe', 'Pai', 'Irmão(ã)'
 
 /** Seletor de paciente em "pill" premium (avatar + nome + seta) com menu dropdown. */
 export const PatientSwitcher = () => {
+  const navigate = useNavigate();
   const [pid, setSel] = useSelectedPatient();
   const [patients, setPatients] = useState<any[]>([]);
   const [anchor, setAnchor] = useState<null | HTMLElement>(null);
@@ -43,7 +45,7 @@ export const PatientSwitcher = () => {
       setOpen(false); setName(''); setRel('Filho(a)');
       await load();
       setSel(p.id);
-      window.location.href = '/';
+      navigate('/'); // fica no app (router) — não recarrega pra janocaminho.com.br
     }
   };
 
@@ -55,20 +57,20 @@ export const PatientSwitcher = () => {
         onClick={(e) => setAnchor(e.currentTarget)}
         disableElevation
         sx={{
-          borderRadius: 99, pl: 0.75, pr: 1, py: 0.4, color: 'inherit', textTransform: 'none',
-          bgcolor: 'rgba(51,104,134,0.07)',
-          '&:hover': { bgcolor: 'rgba(51,104,134,0.14)' },
-          maxWidth: { xs: 180, sm: 260 },
+          borderRadius: 99, pl: 0.5, pr: 1, py: 0.3, color: 'inherit', textTransform: 'none',
+          bgcolor: 'rgba(32,178,170,0.08)',
+          '&:hover': { bgcolor: 'rgba(32,178,170,0.16)' },
+          maxWidth: { xs: 190, sm: 280 },
         }}
         startIcon={
-          <Avatar src={photoFor(current)} sx={{ width: 32, height: 32, bgcolor: '#336886', fontSize: 14 }}>
+          <Avatar src={photoFor(current)} sx={{ width: 40, height: 40, bgcolor: 'primary.main', fontSize: 16, border: '2px solid #fff', boxShadow: '0 2px 6px rgba(0,0,0,.15)' }}>
             {current?.fullName?.charAt(0)?.toUpperCase()}
           </Avatar>
         }
         endIcon={<KeyboardArrowDownIcon sx={{ opacity: 0.6 }} />}
       >
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.15, overflow: 'hidden' }}>
-          <Typography component="span" sx={{ fontSize: 13, fontWeight: 700, maxWidth: { xs: 56, sm: 130 }, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <Typography component="span" sx={{ fontSize: 13, fontWeight: 700, maxWidth: { xs: 64, sm: 140 }, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {current?.fullName ?? 'Selecionar'}
           </Typography>
           {current?.relationship && (
@@ -77,17 +79,17 @@ export const PatientSwitcher = () => {
         </Box>
       </Button>
 
-      <Menu anchorEl={anchor} open={!!anchor} onClose={() => setAnchor(null)} slotProps={{ paper: { sx: { mt: 1, minWidth: 250, borderRadius: 2, boxShadow: '0 8px 28px rgba(0,0,0,0.14)' } } }}>
+      <Menu anchorEl={anchor} open={!!anchor} onClose={() => setAnchor(null)} slotProps={{ paper: { sx: { mt: 1, minWidth: 260, borderRadius: 2, boxShadow: '0 8px 28px rgba(0,0,0,0.14)' } } }}>
         {patients.map((p) => (
-          <MenuItem key={p.id} sx={{ py: 1, borderRadius: 1, m: 0.5 }} onClick={() => { setSel(p.id); setAnchor(null); window.location.href = '/'; }}>
-            <Avatar src={photoFor(p)} sx={{ width: 32, height: 32, mr: 1.5, bgcolor: '#336886', fontSize: 14 }}>{p.fullName?.charAt(0)?.toUpperCase()}</Avatar>
+          <MenuItem key={p.id} sx={{ py: 1, borderRadius: 1, m: 0.5 }} onClick={() => { setSel(p.id); setAnchor(null); navigate('/'); }}>
+            <Avatar src={photoFor(p)} sx={{ width: 36, height: 36, mr: 1.5, bgcolor: 'primary.main', fontSize: 14 }}>{p.fullName?.charAt(0)?.toUpperCase()}</Avatar>
             <ListItemText primary={p.fullName} secondary={p.relationship} primaryTypographyProps={{ fontSize: 14, fontWeight: 600 }} secondaryTypographyProps={{ fontSize: 11 }} />
             {p.id === pid && <CheckIcon fontSize="small" color="primary" sx={{ ml: 1 }} />}
           </MenuItem>
         ))}
         <Divider sx={{ my: 0.5 }} />
-        <MenuItem sx={{ py: 1, borderRadius: 1, m: 0.5, color: '#336886' }} onClick={() => { setAnchor(null); setOpen(true); }}>
-          <ListItemIcon sx={{ color: '#336886' }}><PersonAddIcon fontSize="small" /></ListItemIcon>
+        <MenuItem sx={{ py: 1, borderRadius: 1, m: 0.5, color: 'primary.main' }} onClick={() => { setAnchor(null); setOpen(true); }}>
+          <ListItemIcon sx={{ color: 'primary.main' }}><PersonAddIcon fontSize="small" /></ListItemIcon>
           <ListItemText primaryTypographyProps={{ fontWeight: 600, fontSize: 14 }}>Adicionar dependente</ListItemText>
         </MenuItem>
       </Menu>

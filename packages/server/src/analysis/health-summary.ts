@@ -1,4 +1,5 @@
 import { getAnthropic, MODEL } from '../claude/client';
+import { withRateLimitRetry } from '../utils/retry';
 import { HealthSummarySchema, type HealthSummary } from '../extraction/schemas';
 import { prisma } from '../prisma';
 import { HEALTH_SYSTEM, diagnosticGuard } from './system';
@@ -43,32 +44,30 @@ export async function generateConsolidatedSummary(patientId: string): Promise<{ 
     })),
   }));
 
-  const client = getAnthropic();
-  const stream = client.messages.stream({
-    model: MODEL,
-    max_tokens: 6000,
-    system: HEALTH_SYSTEM,
-    messages: [
-      {
-        role: 'user',
-        content:
-          `Monte um RESUMO CONSOLIDADO da saúde do paciente considerando TODOS os exames abaixo (pode haver laboratorial, imagem e laudo — do mais recente ao mais antigo).\n` +
-          `PACIENTE: ${patient.fullName}\n` +
-          `Exames incluídos: ${exams.length}.\n` +
-          perfilText + '\n' + memoryText +
-          `EXAMES (apenas alterações relevantes):\n${JSON.stringify(examContext, null, 2)}\n\n` +
-          `Monte o JSON com: resumoGeral (visão geral integrada), comparativo (itens alterados: {name, anterior, atual, leitura, entenda}), ` +
-          `pontosAtencao ({titulo, detalhe}), coisasBoas, leituraFinal, perguntasParaOMedico (3-5), ` +
-          `interacoesMedicamentos, sugestoesNutricao, comparacaoFamiliar, metasSaude ({analito, meta, prazo}), disclaimer.\n` +
-          JSON_SUFFIX,
-      },
-    ],
-  } as any);
+  const messages = [
+    {
+      role: 'user',
+      content:
+        `Monte um RESUMO CONSOLIDADO da saúde do paciente considerando TODOS os exames abaixo (pode haver laboratorial, imagem e laudo — do mais recente ao mais antigo).\n` +
+        `PACIENTE: ${patient.fullName}\n` +
+        `Exames incluídos: ${exams.length}.\n` +
+        perfilText + '\n' + memoryText +
+        `EXAMES (apenas alterações relevantes):\n${JSON.stringify(examContext, null, 2)}\n\n` +
+        `Monte o JSON com: resumoGeral (visão geral integrada), comparativo (itens alterados: {name, anterior, atual, leitura, entenda}), ` +
+        `pontosAtencao ({titulo, detalhe}), coisasBoas, leituraFinal, perguntasParaOMedico (3-5), ` +
+        `interacoesMedicamentos, sugestoesNutricao, comparacaoFamiliar, metasSaude ({analito, meta, prazo}), disclaimer.\n` +
+        JSON_SUFFIX,
+    },
+  ];
   let response: any;
   try {
-    response = await stream.finalMessage();
+    response = await withRateLimitRetry(async () => {
+      const client = getAnthropic();
+      const stream = client.messages.stream({ model: MODEL, max_tokens: 6000, system: HEALTH_SYSTEM, messages } as any);
+      return await stream.finalMessage();
+    });
   } catch (e: any) {
-    console.error('[IA] erro ao gerar (status/msg):', e?.status, e?.message);
+    console.error('[IA] erro ao gerar consolidado (status/msg):', e?.status, e?.message);
     throw new Error('Não foi possível gerar agora (serviço de IA indisponível). Tente novamente em instantes.');
   }
 

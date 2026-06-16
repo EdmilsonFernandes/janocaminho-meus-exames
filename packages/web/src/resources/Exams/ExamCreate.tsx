@@ -67,7 +67,9 @@ export const ExamCreate = () => {
     const errors: string[] = [];
     for (let i = 0; i < files.length; i++) {
       try {
-        await uploadOne(files[i], files[i].name, pid, title || files[i].name.replace(/\.pdf$/i, ''));
+        const res: any = await uploadOne(files[i], files[i].name, pid, title || files[i].name.replace(/\.pdf$/i, ''));
+        if (res?.duplicate) notify(`"${files[i].name}": este documento já foi enviado (duplicata ignorada).`, { type: 'info' });
+        else if (res?.duplicateElsewhere) notify(`"${files[i].name}": este mesmo arquivo já está em outro perfil seu.`, { type: 'warning' });
         setProgress({ done: i + 1, total: files.length, errors });
       } catch (err: any) {
         if (err?.code === 'free_limit') {

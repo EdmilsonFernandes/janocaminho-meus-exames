@@ -49,6 +49,7 @@ export const ExamShow = () => {
   const [chatBusy, setChatBusy] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [explain, setExplain] = useState<any | null>(null);
+  const [attesting, setAttesting] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -66,8 +67,20 @@ export const ExamShow = () => {
   }, [id]);
 
   const summary = exam?.analyses?.[0] ?? null;
+  const nm = exam?.rawExtraction?.nameMatch as any;
+  const nameBlock = !!nm?.mismatch && !exam?.rawExtraction?.nameAttested;
+  const attest = async () => {
+    setAttesting(true);
+    try {
+      await fetch(`${API_URL}/exams/${id}/attest`, { method: 'POST', headers: { Authorization: `Bearer ${token()}` } });
+      setExam({ ...exam, rawExtraction: { ...exam?.rawExtraction, nameAttested: true } });
+      notify('Titularidade confirmada. Já pode gerar a análise.', { type: 'success' });
+    } catch { notify('Falha ao confirmar', { type: 'error' }); }
+    finally { setAttesting(false); }
+  };
 
   const generateSummary = async () => {
+    if (nameBlock) { notify('Confirme a titularidade deste exame antes de gerar a análise.', { type: 'warning' }); return; }
     setGenLoading(true);
     try {
       const r = await fetch(`${API_URL}/analyses`, {
@@ -177,6 +190,20 @@ export const ExamShow = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* BLOQUEIO SUAVE: nome do documento ≠ perfil */}
+      {nameBlock && (
+        <Card sx={{ mt: 2, borderLeft: '6px solid', borderColor: 'error.main' }}>
+          <CardContent>
+            <Typography sx={{ fontWeight: 700, color: 'error.main' }}>⚠️ Possível divergência de titularidade</Typography>
+            <Typography variant="body2" sx={{ mt: 0.5 }}>
+              O nome no documento (<strong>{nm.docName}</strong>) difere do perfil (<strong>{nm.profileName}</strong> — similaridade {Math.round((nm.score || 0) * 100)}%).
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>Se o exame é realmente deste paciente, confirme para liberar a análise.</Typography>
+            <Box sx={{ mt: 1.5 }}><Button size="small" variant="contained" onClick={attest} disabled={attesting}>Confirmo que este exame é do paciente</Button></Box>
+          </CardContent>
+        </Card>
+      )}
 
       {/* LABORATORIAL: valores */}
       {exam.status === 'EXTRACTED' && exam.kind !== 'IMAGING' && items.length > 0 && (

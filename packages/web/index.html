@@ -22,6 +22,10 @@
       .MuiDrawer-paper { overflow-y: auto !important; }
       /* Células de tabela quebram palavra longa em vez de estourar layout */
       .MuiTableCell-root { word-break: break-word; }
+      /* Safe-area (notch/status bar): header e menu respeitam o inset (0 onde não há notch) */
+      .MuiAppBar-root { padding-top: env(safe-area-inset-top); }
+      .RaLayout-appBar { padding-top: env(safe-area-inset-top); }
+      .MuiDrawer-paper { padding-top: env(safe-area-inset-top); }
     </style>
   </head>
   <body>

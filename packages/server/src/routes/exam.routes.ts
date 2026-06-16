@@ -106,7 +106,7 @@ router.post('/', upload.single('file'), async (req: AuthedRequest, res, next) =>
       where: { patientId_fileSha256: { patientId, fileSha256 } },
     });
     if (existing) {
-      res.json(serializeExam(existing));
+      res.json({ ...serializeExam(existing), duplicate: true });
       return;
     }
 
@@ -131,9 +131,14 @@ router.post('/', upload.single('file'), async (req: AuthedRequest, res, next) =>
       },
     });
 
+    // avisa se o MESMO checksum já existe em outro perfil do usuário
+    const elsewhere = await prisma.exam.findFirst({
+      where: { fileSha256, patientId: { not: patientId }, patient: { ownerId: req.userId! } },
+      select: { id: true },
+    });
     // dispara extração assíncrona (não bloqueia a resposta)
     runExtraction(exam.id).catch((e) => console.error('[upload] extração falhou:', e?.message));
-    res.status(201).json(serializeExam(exam));
+    res.status(201).json({ ...serializeExam(exam), duplicateElsewhere: !!elsewhere });
   } catch (e) {
     next(e);
   }
@@ -185,6 +190,26 @@ router.delete('/:id', async (req, res, next) => {
     await deleteExamFile(exam.filePath);
     await prisma.exam.delete({ where: { id: exam.id } });
     res.json({ id: exam.id });
+  } catch (e) {
+    next(e);
+  }
+});
+
+// ATESTO de titularidade — bloqueio suave anti-fraude (nome do doc ≠ paciente)
+router.post('/:id/attest', async (req: AuthedRequest, res, next) => {
+  try {
+    const pids = await userPatientIds(req.userId!);
+    const exam = await prisma.exam.findUnique({ where: { id: String(req.params.id) } });
+    if (!exam || !pids.includes(exam.patientId)) {
+      res.status(404).json({ error: 'Exame não encontrado' });
+      return;
+    }
+    const raw: any = exam.rawExtraction ?? {};
+    await prisma.exam.update({
+      where: { id: exam.id },
+      data: { rawExtraction: { ...raw, nameAttested: true, nameAttestedAt: new Date().toISOString() } },
+    });
+    res.json({ ok: true });
   } catch (e) {
     next(e);
   }

@@ -43,6 +43,7 @@ export function runExtraction(examId: string): Promise<void> {
 async function runExtractionOnce(examId: string): Promise<void> {
   const exam = await prisma.exam.findUnique({ where: { id: examId } });
   if (!exam) return;
+  const patient = await prisma.patient.findUnique({ where: { id: exam.patientId }, select: { fullName: true } });
 
   await prisma.exam.update({
     where: { id: examId },
@@ -85,6 +86,11 @@ async function runExtractionOnce(examId: string): Promise<void> {
 
     // trava anti-alucinação (apenas painel lab): compara itens extraídos vs. densidade de valores no texto
     const reviewRequired = kind !== 'IMAGING' ? sanityCheckItems(text, items) : false;
+
+    // bloqueio suave anti-fraude: compara o nome do paciente no documento vs. perfil
+    if (raw && patient?.fullName && raw.patientName) {
+      raw.nameMatch = computeNameMatch(String(raw.patientName), patient.fullName);
+    }
 
     if (items.length) {
       await prisma.examItem.deleteMany({ where: { examId } });
@@ -175,4 +181,21 @@ function parseDate(s?: string | null): Date | null {
   const iso = new Date(s);
   if (!isNaN(iso.getTime())) return iso;
   return null;
+}
+
+/** Normaliza nome p/ comparar: minúsculas, sem acento, tokens alfanuméricos >1 char. */
+function normNameTokens(s: string): Set<string> {
+  return new Set(
+    s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter((w) => w.length > 1),
+  );
+}
+
+/** Compara nome do documento vs nome do perfil (Jaccard de tokens). mismatch se score < 0.34. */
+function computeNameMatch(docName: string, profileName: string) {
+  const a = normNameTokens(docName), b = normNameTokens(profileName);
+  const inter = [...a].filter((x) => b.has(x)).length;
+  const uni = new Set([...a, ...b]).size || 1;
+  const score = Math.round((inter / uni) * 100) / 100;
+  return { score, docName, profileName, mismatch: score < 0.34 };
 }

@@ -17,6 +17,13 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       res.status(400).json({ error: 'examId obrigatório' });
       return;
     }
+    // bloqueio suave anti-fraude: nome no documento ≠ perfil exige atesto de titularidade
+    const examRow = await prisma.exam.findUnique({ where: { id: examId }, select: { rawExtraction: true } });
+    const nm = (examRow?.rawExtraction as any)?.nameMatch;
+    if (nm?.mismatch && !(examRow?.rawExtraction as any)?.nameAttested) {
+      res.status(403).json({ error: 'name_mismatch', message: `O nome no documento (${nm.docName}) difere do perfil (${nm.profileName}). Confirme a titularidade deste exame antes de gerar a análise.` });
+      return;
+    }
     // 1 resumo por exame: se já existe, devolve (não gasta tokens de novo)
     const existing = await prisma.aiAnalysis.findFirst({ where: { examId, type: 'SUMMARY' }, orderBy: { createdAt: 'desc' } });
     if (existing) { res.json(existing); return; }
@@ -59,11 +66,22 @@ router.post('/consolidated', async (req: AuthedRequest, res, next) => {
       orderBy: { createdAt: 'desc' },
     });
     if (recent) { res.json({ ...recent, sourceExams }); return; }
-    const { summary, contentMd, modelUsed, usage } = await generateConsolidatedSummary(patientId);
-    const analysis = await prisma.aiAnalysis.create({
-      data: { patientId, examId: null, type: 'SUMMARY', contentMd, structured: summary as any, modelUsed, tokenUsage: usage as any },
-    });
-    res.status(201).json({ ...analysis, sourceExams });
+    try {
+      const { summary, contentMd, modelUsed, usage } = await generateConsolidatedSummary(patientId);
+      const analysis = await prisma.aiAnalysis.create({
+        data: { patientId, examId: null, type: 'SUMMARY', contentMd, structured: summary as any, modelUsed, tokenUsage: usage as any },
+      });
+      res.status(201).json({ ...analysis, sourceExams });
+    } catch (genErr: any) {
+      // RAG: se a (re)geração falhou, devolve o ÚLTIMO relatório salvo em vez de erro
+      const last = await prisma.aiAnalysis.findFirst({ where: { patientId, type: 'SUMMARY', examId: null }, orderBy: { createdAt: 'desc' } });
+      if (last) {
+        console.warn('[consolidated] geração falhou — devolvendo último salvo:', genErr?.message);
+        res.status(200).json({ ...last, sourceExams, fromCache: true, warning: 'Mostrando seu último relatório salvo (a regeração falhou: ' + (genErr?.message ?? 'erro de IA') + ').' });
+        return;
+      }
+      throw genErr;
+    }
   } catch (e: any) {
     if (!res.headersSent) next(e);
   }
