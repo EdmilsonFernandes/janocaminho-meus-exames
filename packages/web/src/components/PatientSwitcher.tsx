@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Select, MenuItem, FormControl, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, InputLabel } from '@mui/material';
+import { Box, Avatar, Select, MenuItem, FormControl, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, InputLabel, Typography } from '@mui/material';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import { API_URL, token } from '../config';
 import { useSelectedPatient, setSelectedPatient } from '../patient-context';
 
 const RELACOES = ['Titular', 'Cônjuge', 'Filho(a)', 'Mãe', 'Pai', 'Irmão(ã)', 'Avó/Avô', 'Outro'];
 
-/** Seletor de paciente/dependente (escopo dos exames, tendências etc.). */
 export const PatientSwitcher = () => {
   const [pid, setSel] = useSelectedPatient();
   const navigate = useNavigate();
@@ -37,23 +36,52 @@ export const PatientSwitcher = () => {
       setOpen(false); setName(''); setRel('Filho(a)');
       await load();
       setSel(p.id);
+      window.location.href = '/';
     }
   };
 
+  const current = patients.find((p) => p.id === pid);
+
   return (
-    <Box sx={{ px: 2, py: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
-      <FormControl size="small" sx={{ flex: 1 }}>
-        <Select value={pid ?? ''} onChange={(e) => { setSel(e.target.value as string); window.location.href = '/'; }} displayEmpty sx={{ fontSize: 14 }}>
-          {patients.map((p) => (
-            <MenuItem key={p.id} value={p.id}>
-              {p.fullName}{p.relationship ? ` (${p.relationship})` : ''}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-      <IconButton size="small" title="Adicionar dependente" onClick={() => setOpen(true)}>
-        <PersonAddIcon fontSize="small" />
-      </IconButton>
+    <Box sx={{ px: 1.5, py: 1 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+        {current && (
+          <Avatar
+            src={current.photoUrl ? `${API_URL.replace('/api', '')}${current.photoUrl}` : undefined}
+            sx={{ width: 36, height: 36, bgcolor: '#336886', fontSize: 14, flexShrink: 0 }}
+          >
+            {current.fullName?.charAt(0)?.toUpperCase()}
+          </Avatar>
+        )}
+        <FormControl size="small" sx={{ flex: 1, minWidth: 0 }}>
+          <Select
+            value={pid ?? ''}
+            onChange={(e) => { setSel(e.target.value as string); window.location.href = '/'; }}
+            displayEmpty
+            sx={{ fontSize: 13 }}
+          >
+            {patients.map((p) => (
+              <MenuItem key={p.id} value={p.id} sx={{ py: 0.5 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Avatar
+                    src={p.photoUrl ? `${API_URL.replace('/api', '')}${p.photoUrl}?t=${Date.now()}` : undefined}
+                    sx={{ width: 24, height: 24, fontSize: 11, bgcolor: '#336886' }}
+                  >
+                    {p.fullName?.charAt(0)?.toUpperCase()}
+                  </Avatar>
+                  <Box>
+                    <Typography component="span" sx={{ fontSize: 13 }}>{p.fullName}</Typography>
+                    {p.relationship && <Typography component="span" sx={{ fontSize: 11, color: 'text.secondary', ml: 0.5 }}>({p.relationship})</Typography>}
+                  </Box>
+                </Box>
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <IconButton size="small" title="Adicionar dependente" onClick={() => setOpen(true)} sx={{ flexShrink: 0 }}>
+          <PersonAddIcon fontSize="small" />
+        </IconButton>
+      </Box>
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle>Adicionar dependente</DialogTitle>
         <DialogContent>

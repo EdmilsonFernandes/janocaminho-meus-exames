@@ -62,8 +62,12 @@ export async function generateHealthSummary(examId: string): Promise<{ summary: 
         role: 'user',
         content:
           `Analise o exame abaixo em português, no estilo "comparativo do atual vs. anterior".\n` +
-          `Exame: ${exam.title} (tipo: ${exam.kind})` +
-          (exam.performedAt ? ` — data: ${exam.performedAt.toISOString().slice(0, 10)}` : '') + '.\n' +
+          `PACIENTE: ${exam.rawExtraction?.patientName ?? exam.patient?.fullName ?? 'Não identificado'}\n` +
+          `EXAME: ${exam.title} (tipo: ${exam.kind})` +
+          (exam.performedAt ? ` — data: ${exam.performedAt.toLocaleDateString('pt-BR')}` : '') + '\n' +
+          `LABORATÓRIO: ${exam.sourceLab ?? exam.rawExtraction?.sourceLab ?? 'Não identificado'}\n` +
+          `MÉDICO SOLICITANTE: ${exam.rawExtraction?.requestingDoctor ?? 'Não identificado'}\n` +
+          (prior ? `Exame anterior de comparação: ${prior.title} (${prior.performedAt?.toLocaleDateString('pt-BR') ?? 's/d'}).\n` : 'Não há exame anterior para comparar; use apenas o atual.\n') +
           (prior ? `Exame anterior de comparação: ${prior.title} (${prior.performedAt?.toISOString().slice(0, 10) ?? 's/d'}).\n` : 'Não há exame anterior para comparar; use apenas o atual.\n') +
           profileText + '\n' +
           `ITENS (atual x anterior x referência):\n${JSON.stringify(comparativoInput, null, 2)}\n\n` +

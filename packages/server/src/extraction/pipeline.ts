@@ -159,9 +159,11 @@ function sanityCheckItems(text: string, items: ItemRow[]): boolean {
 
 function parseDate(s?: string | null): Date | null {
   if (!s) return null;
+  // Formato brasileiro PRIMEIRO (dd/mm/yyyy) — new Date() usa MM/DD (americano) e erra
+  const m = String(s).match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (m) return new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1])); // yyyy, mm-1, dd
+  // Fall back para ISO ou outros formatos
   const iso = new Date(s);
   if (!isNaN(iso.getTime())) return iso;
-  const m = s.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/); // dd/mm/yyyy
-  if (m) return new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
   return null;
 }
