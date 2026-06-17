@@ -1,7 +1,7 @@
 import { Admin, Resource, CustomRoutes, Layout, Menu, AppBar, TitlePortal, AppBarProps, useLogout } from 'react-admin';
 import { Route } from 'react-router-dom';
-import { useEffect } from 'react';
-import { Box, Typography, IconButton, useMediaQuery, useTheme } from '@mui/material';
+import { useEffect, useState, useRef } from 'react';
+import { Box, Typography, IconButton, useMediaQuery, useTheme, CircularProgress } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
 import InsightsIcon from '@mui/icons-material/Insights';
 import AutoGraphIcon from '@mui/icons-material/AutoGraph';
@@ -90,10 +90,33 @@ const AppMenu = () => (
   </Menu>
 );
 
+// Pull-to-refresh no mobile: puxa a tela no topo e solta p/ recarregar
+const PullToRefresh = () => {
+  const [shown, setShown] = useState(0);
+  const dist = useRef(0);
+  useEffect(() => {
+    let startY = 0; let active = false;
+    const onStart = (e: TouchEvent) => { if ((window.scrollY ?? 0) <= 0) { startY = e.touches[0].clientY; active = true; } };
+    const onMove = (e: TouchEvent) => { if (!active) return; const d = Math.min(e.touches[0].clientY - startY, 100); dist.current = d; setShown(d); };
+    const onEnd = () => { if (active && dist.current > 70) window.location.reload(); active = false; dist.current = 0; setShown(0); };
+    window.addEventListener('touchstart', onStart, { passive: true });
+    window.addEventListener('touchmove', onMove, { passive: true });
+    window.addEventListener('touchend', onEnd);
+    return () => { window.removeEventListener('touchstart', onStart); window.removeEventListener('touchmove', onMove); window.removeEventListener('touchend', onEnd); };
+  }, []);
+  if (shown <= 5) return null;
+  return (
+    <Box sx={{ position: 'fixed', top: 0, left: 0, right: 0, display: 'flex', justifyContent: 'center', height: shown, zIndex: 1500, pointerEvents: 'none' }}>
+      <CircularProgress size={26} sx={{ mt: 1, opacity: Math.min(shown / 70, 1), color: 'primary.main' }} />
+    </Box>
+  );
+};
+
 const AppLayout = (props: any) => (
   <>
     <Layout {...props} menu={AppMenu} appBar={CustomAppBar} />
     <FloatingChat />
+    <PullToRefresh />
   </>
 );
 
