@@ -63,6 +63,20 @@ export const ExamCreate = () => {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!files.length) { notify('Selecione ao menos um arquivo.', { type: 'error' }); return; }
+    // Trava mole de duplicata por NOME: se o nome do arquivo (sem extensão) bate com
+    // o título de um exame já enviado deste paciente, pergunta antes. (O bloqueio forte
+    // por arquivo idêntico é por sha256, no backend.)
+    try {
+      const r = await fetch(`${API_URL}/exams?_start=0&_end=200${pid ? `&patientId=${pid}` : ''}`, { headers: { Authorization: `Bearer ${token()}` } });
+      const existing: any[] = r.ok ? await r.json() : [];
+      const norm = (s: string) => (s || '').toLowerCase().replace(/\.[a-z0-9]+$/, '').replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim();
+      const titles = existing.map((ex) => norm(ex.title));
+      const suspicious = files.some((f) => {
+        const n = norm(f.name);
+        return n.length > 3 && titles.some((t) => t === n || (t.length > 3 && (t.includes(n) || n.includes(t))));
+      });
+      if (suspicious && !window.confirm('Parece que você já enviou um exame com nome parecido pra este perfil. Quer enviar mesmo assim?')) return;
+    } catch { /* falhou a checagem — segue o upload (sha256 continua protegendo) */ }
     setBusy(true);
     setProgress({ done: 0, total: files.length, errors: [] });
     const errors: string[] = [];
