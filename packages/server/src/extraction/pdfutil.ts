@@ -1,12 +1,5 @@
 import type { ExamKind } from '@prisma/client';
-
-// pdf-parse v2 exporta a classe PDFParse (API: load(Buffer) -> getText/getInfo).
-async function loadPdf(buffer: Buffer): Promise<any> {
-  const mod: any = await import('pdf-parse');
-  const pdf = new mod.PDFParse();
-  await pdf.load(buffer);
-  return pdf;
-}
+import { pdfToText } from './pdfToText';
 
 export interface PdfInfo {
   pageCount: number;
@@ -14,21 +7,15 @@ export interface PdfInfo {
 }
 
 /**
- * Conta páginas + extrai texto bruto (apenas p/ metadados e trava anti-alucinação;
- * a fonte de verdade é a VISÃO do modelo). Não-fatal: se falhar, retorna vazio.
+ * Conta páginas + extrai texto via pdftotext -layout (preserva colunas da tabela).
+ * Fonte de verdade para a extração (o relay GLM lê TEXTO, não imagem).
+ * Não-fatal: se falhar, retorna vazio.
  */
 export async function readPdf(buffer: Buffer): Promise<PdfInfo> {
   try {
-    const pdf = await loadPdf(buffer);
-    const [text, info] = await Promise.all([
-      pdf.getText?.().catch(() => ''),
-      pdf.getInfo?.().catch(() => null),
-    ]);
-    const pageCount = Number(
-      info?.numPages ?? info?.pages ?? info?.pageCount ?? info?.metadata?.numPages ?? 0,
-    );
-    pdf.destroy?.();
-    return { pageCount, text: String(text ?? '') };
+    const text = await pdfToText(buffer);
+    const pageCount = text.split('\f').length; // pdftotext separa páginas com form-feed
+    return { pageCount: Math.max(pageCount, 1), text };
   } catch (e) {
     console.warn('[pdfutil] leitura de PDF falhou (não fatal):', (e as Error).message);
     return { pageCount: 0, text: '' };
