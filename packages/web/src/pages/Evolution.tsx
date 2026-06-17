@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Box, Button, Card, CardContent, Typography, CircularProgress, Chip, Stack } from '@mui/material';
 import { Title } from 'react-admin';
+import { ResponsiveContainer, LineChart, Line, ReferenceArea, YAxis } from 'recharts';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import TrendingFlatIcon from '@mui/icons-material/TrendingFlat';
@@ -104,6 +105,17 @@ const EvoCard = ({ it }: { it: EvoItem }) => {
           {it.firstValue}{it.unit ? ` ${it.unit}` : ''} ({fmtDate(it.firstDate)}) <strong>→</strong>{' '}
           {it.lastValue}{it.unit ? ` ${it.unit}` : ''} ({fmtDate(it.lastDate)})
         </Typography>
+        {it.points.length >= 2 && (
+          <Box sx={{ mt: 1, height: 72, width: '100%' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={it.points.map((p) => ({ v: p.value }))} margin={{ top: 4, right: 6, bottom: 4, left: 6 }}>
+                {it.refLow != null && it.refHigh != null && <ReferenceArea y1={it.refLow} y2={it.refHigh} fill="#10b981" fillOpacity={0.14} />}
+                <YAxis hide domain={['auto', 'auto']} />
+                <Line type="monotone" dataKey="v" stroke={up ? '#e65100' : '#0b5cab'} strokeWidth={2.5} dot={{ r: 3, fill: up ? '#e65100' : '#0b5cab' }} isAnimationActive={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </Box>
+        )}
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
           {up ? 'Subindo' : 'Caindo'} ao longo de {it.count} {it.count === 1 ? 'medição' : 'medições'}.
           {(it.refLow != null || it.refHigh != null) &&

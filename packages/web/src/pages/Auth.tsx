@@ -106,9 +106,14 @@ export const LoginPage = () => {
           <Link component="button" variant="body2" onClick={() => sendOtp()}>Reenviar código</Link>
         </Box>
       )}
-      <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 2, flexWrap: 'wrap', gap: 1 }}>
+      {mode === 'password' && (
+        <Typography variant="caption" align="center" sx={{ display: 'block', mt: 1.5, color: 'text.secondary', lineHeight: 1.5 }}>
+          Esqueceu a senha ou <strong>não confirmou o e-mail</strong>? Use “Entrar com código no e-mail” — recebe um código e entra sem senha.
+        </Typography>
+      )}
+      <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 1.5, flexWrap: 'wrap', gap: 1 }}>
         {mode === 'password' && (
-          <Link component="button" variant="body2" onClick={() => sendOtp()}>Entrar com código no e-mail</Link>
+          <Link component="button" variant="body2" sx={{ fontWeight: 700, color: 'primary.main' }} onClick={() => sendOtp()}>🔑 Entrar com código no e-mail</Link>
         )}
         {mode === 'otp-code' && (
           <Link component="button" variant="body2" onClick={() => setMode('password')}>Voltar (senha)</Link>
@@ -140,6 +145,14 @@ export const RegisterPage = () => {
         body: JSON.stringify({ name: name.trim(), email: email.trim(), password: pwd }),
       });
       const d = await r.json();
+      if (r.status === 409) {
+        // Conta já existe (talvez criada antes e não confirmada). Ela NÃO fica presa:
+        // pode logar com a senha, usar "entrar com código" (verifica por e-mail, sem senha)
+        // ou recuperar a senha. Encaminha pro login com as opções.
+        notify('Este e-mail já tem conta. Use sua senha, “entrar com código” ou “esqueci a senha”.', { type: 'warning' });
+        navigate('/');
+        return;
+      }
       if (!r.ok) throw new Error(d.error || 'Falha no cadastro');
       localStorage.setItem('token', d.token);
       if (d.patientId) { localStorage.setItem('patientId', d.patientId); localStorage.setItem('selPatientId', d.patientId); }
