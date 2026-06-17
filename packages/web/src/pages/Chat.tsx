@@ -45,6 +45,7 @@ export const ChatPage = () => {
         headers: apiHeaders(true),
         body: JSON.stringify({ message, patientId: pid }),
       });
+      if (r.status === 402) { setMessages((m) => m.slice(0, -2)); const e = await r.json().catch(() => ({})); notify(e.message || 'Sem créditos para conversar.', { type: 'warning' }); return; }
       if (!r.ok || !r.body) throw new Error('falha no chat');
       const reader = r.body.getReader();
       const dec = new TextDecoder();
@@ -70,7 +71,8 @@ export const ChatPage = () => {
         }
       }
     } catch {
-      notify('Erro ao conversar com a IA.', { type: 'error' });
+      setMessages((m) => m.slice(0, -2)); // limpa placeholders (sua pergunta + resposta vazia)
+      notify('A IA não respondeu agora. Tente novamente em instantes.', { type: 'error' });
     } finally {
       setBusy(false);
     }
