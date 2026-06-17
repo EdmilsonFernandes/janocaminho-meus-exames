@@ -13,6 +13,8 @@ COPY . .
 RUN cd packages/server && npx prisma generate
 # build do servidor (tsc)
 RUN npm run build --workspace packages/server
+# typecheck do front (PEGA imports faltando como o Button antes de empacotar)
+RUN npm run typecheck --workspace packages/web
 # build do front em modo produção, no sub-caminho /minhasaude (API em /minhasaude/api)
 ARG VITE_BASE=/minhasaude/
 ARG VITE_API_URL=/minhasaude/api
