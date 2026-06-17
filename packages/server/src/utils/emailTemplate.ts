@@ -1,15 +1,19 @@
 /** Template HTML profissional para e-mails transacionais do Meus Exames. */
+const _origin = (process.env.WEB_ORIGIN || '').replace(/\/$/, '');
+const _base = (process.env.WEB_BASE_PATH || '').replace(/^\/+|\/+$/g, '');
+const BRAND_URL = _base ? `${_origin}/${_base}/brand.png` : `${_origin}/brand.png`;
+
 export function emailTemplate(opts: { title: string; preheader?: string; content: string }): string {
   return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${opts.title}</title></head>
 <body style="margin:0;padding:0;background:#eef3fb;font-family:'Segoe UI',Roboto,Arial,sans-serif">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#eef3fb;padding:24px 0">
     <tr><td align="center">
-      <table width="480" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(11,92,171,.08)">
-        <!-- header -->
-        <tr><td style="background:linear-gradient(135deg,#0b5cab,#1565c0);padding:28px 32px;text-align:center">
-          <div style="font-size:36px;line-height:1">🤖</div>
-          <h1 style="color:#fff;font-size:22px;margin:8px 0 0;font-weight:800;letter-spacing:.5px">Meus Exames</h1>
-          <p style="color:rgba(255,255,255,.8);font-size:13px;margin:4px 0 0">Seu assistente de saúde no bolso</p>
+      <table width="480" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(32,178,170,.10)">
+        <!-- header (mascote oficial + identidade teal da marca) -->
+        <tr><td style="background:linear-gradient(135deg,#20b2aa,#178f89);padding:22px 32px;text-align:center">
+          <img src="${BRAND_URL}" width="56" height="56" alt="Dr. Exame" style="border-radius:14px;display:block;margin:0 auto 8px" />
+          <h1 style="color:#fff;font-size:22px;margin:0;font-weight:800;letter-spacing:.5px">Meus Exames</h1>
+          <p style="color:rgba(255,255,255,.88);font-size:13px;margin:4px 0 0">Seu assistente de saúde no bolso</p>
         </td></tr>
         <!-- body -->
         <tr><td style="padding:32px">
