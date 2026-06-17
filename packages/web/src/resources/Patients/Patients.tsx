@@ -1,4 +1,4 @@
-import { List, Datagrid, TextField, DateField, FunctionField, Edit, SimpleForm, TextInput, DateInput, useRecordContext } from 'react-admin';
+import { List, Datagrid, TextField, DateField, FunctionField, Edit, SimpleForm, TextInput, DateInput, useRecordContext, SimpleList } from 'react-admin';
 import { Box, Avatar, useMediaQuery, useTheme } from '@mui/material';
 import { PhotoUpload } from '../../components/PhotoUpload';
 import { photoUrlFor } from '../../config';
@@ -14,24 +14,33 @@ export const PatientList = () => {
   const isDesktop = useMediaQuery(theme.breakpoints.up('sm'));
   return (
   <List exporter={false} pagination={false}>
-    <Datagrid bulkActionButtons={false} rowClick="edit" sx={{ '& .MuiTableCell-root': { whiteSpace: 'normal', wordBreak: 'break-word' } }}>
-      <FunctionField
-        label="Foto"
-        render={(r: any) => (
-          <Avatar src={r.photoUrl ? photoUrlFor(String(r.id)) : undefined} sx={{ width: 38, height: 38, bgcolor: 'primary.main', fontWeight: 700 }}>
-            {r.fullName?.charAt(0)?.toUpperCase()}
-          </Avatar>
+    {isDesktop ? (
+      <Datagrid bulkActionButtons={false} rowClick="edit" sx={{ '& .MuiTableCell-root': { whiteSpace: 'normal', wordBreak: 'break-word' } }}>
+        <FunctionField
+          label="Foto"
+          render={(r: any) => (
+            <Avatar src={r.photoUrl ? photoUrlFor(String(r.id)) : undefined} sx={{ width: 38, height: 38, bgcolor: 'primary.main', fontWeight: 700 }}>
+              {r.fullName?.charAt(0)?.toUpperCase()}
+            </Avatar>
+          )}
+        />
+        <TextField source="fullName" label="Paciente" />
+        <TextField source="relationship" label="Parentesco" />
+        <TextField source="phone" label="Telefone" />
+        <DateField source="dateOfBirth" label="Nascimento" locales="pt-BR" />
+        <FunctionField label="Perfil clínico" render={(r: any) => (r.clinicalProfile ? 'preenchido' : '—')} />
+      </Datagrid>
+    ) : (
+      <SimpleList
+        leftIcon={(r: any) => (
+          <Avatar src={r.photoUrl ? photoUrlFor(String(r.id)) : undefined} sx={{ width: 42, height: 42, bgcolor: 'primary.main', fontWeight: 700 }}>{r.fullName?.charAt(0)?.toUpperCase()}</Avatar>
         )}
+        primaryText={(r: any) => r.fullName}
+        secondaryText={(r: any) => `${r.relationship ?? '—'}${r.clinicalProfile ? ' • perfil clínico ok' : ''}`}
+        linkType="edit"
+        sx={{ '& .MuiTypography-root': { whiteSpace: 'normal' } }}
       />
-      <TextField source="fullName" label="Paciente" />
-      <TextField source="relationship" label="Parentesco" />
-      {isDesktop && <TextField source="phone" label="Telefone" />}
-      {isDesktop && <DateField source="dateOfBirth" label="Nascimento" locales="pt-BR" />}
-      <FunctionField
-        label="Perfil clínico"
-        render={(r: any) => (r.clinicalProfile ? 'preenchido' : '—')}
-      />
-    </Datagrid>
+    )}
   </List>
   );
 };

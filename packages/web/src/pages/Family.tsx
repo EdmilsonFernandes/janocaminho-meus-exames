@@ -12,8 +12,7 @@ interface FamPatient {
 interface CrossAlert { analyte: string; patients: string[]; }
 
 const scoreColor = (s: number | null) => (s == null ? '#9e9e9e' : s >= 80 ? '#10b981' : s >= 60 ? '#f59e0b' : '#ef4444');
-const MEDAL = ['🥇', '🥈', '🥉'];
-const PODIUM_BG = ['linear-gradient(135deg,#fef3c7,#fde68a)', 'linear-gradient(135deg,#f1f5f9,#e2e8f0)', 'linear-gradient(135deg,#fef3c7,#fcd34d)'];
+const fmtDate = (d: string | null) => (d ? new Date(d).toLocaleDateString('pt-BR') : null);
 
 export const FamilyPage = () => {
   const [data, setData] = useState<{ patients: FamPatient[]; crossAlerts: CrossAlert[] } | null>(null);
@@ -31,23 +30,22 @@ export const FamilyPage = () => {
   if (loading) return <Box sx={{ p: 4, textAlign: 'center' }}><CircularProgress /></Box>;
 
   const patients = data?.patients ?? [];
-  const withScore = patients.filter((p) => p.score != null).sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
-  const podium = withScore.slice(0, 3);
+  const ranked = [...patients].sort((a, b) => (b.score ?? -1) - (a.score ?? -1)); // 1º = maior score
 
   return (
     <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 980, mx: 'auto' }}>
       <Title title="Saúde da Família" />
       <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
-        <EmojiEventsIcon sx={{ color: '#f59e0b' }} />
+        <EmojiEventsIcon sx={{ color: '#d4a574' }} />
         <Typography variant="h5" sx={{ fontWeight: 800 }}>Saúde da Família</Typography>
       </Stack>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        Score de cada um (último exame) e padrões que aparecem em mais de uma pessoa.
+        Score de cada um e padrões que aparecem em mais de uma pessoa.
       </Typography>
 
       {(data?.crossAlerts ?? []).length > 0 && (
         <Alert severity="warning" sx={{ mb: 3, borderRadius: 3 }}>
-          <AlertTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>🧬 Padrão familiar detectado</AlertTitle>
+          <AlertTitle>🧬 Padrão familiar detectado</AlertTitle>
           <Stack spacing={0.5}>
             {data!.crossAlerts.map((c) => (
               <Typography key={c.analyte} variant="body2"><strong>{c.analyte}</strong> alterado em: {c.patients.join(', ')}.</Typography>
@@ -56,34 +54,14 @@ export const FamilyPage = () => {
         </Alert>
       )}
 
-      {/* PÓDIO — top 3 por score */}
-      {podium.length > 0 && (
-        <Card sx={{ mb: 3, borderRadius: 4, background: 'linear-gradient(135deg,#fffbeb,#fef3c7)' }} variant="outlined">
-          <CardContent>
-            <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>🏆 Ranking de saúde</Typography>
-            <Grid container spacing={2} alignItems="end" justifyContent="center">
-              {podium.map((p, idx) => (
-                <Grid key={p.id} size={{ xs: 12, sm: 4 }} sx={{ order: { xs: idx, sm: idx === 0 ? 1 : idx === 1 ? 0 : 2 } }}>
-                  <Box sx={{ textAlign: 'center', p: 2, borderRadius: 4, background: PODIUM_BG[idx], minHeight: idx === 0 ? 150 : 120, border: '1px solid rgba(0,0,0,.06)' }}>
-                    <Typography sx={{ fontSize: 40, lineHeight: 1 }}>{MEDAL[idx]}</Typography>
-                    <Avatar src={p.photoUrl ? photoUrlFor(p.id) : undefined} sx={{ width: idx === 0 ? 56 : 44, height: idx === 0 ? 56 : 44, mx: 'auto', my: 0.5, bgcolor: 'primary.main', fontWeight: 800 }}>{p.fullName.charAt(0).toUpperCase()}</Avatar>
-                    <Typography sx={{ fontWeight: 800, fontSize: 14 }}>{p.fullName}</Typography>
-                    <Typography sx={{ fontWeight: 800, fontSize: idx === 0 ? 30 : 24, color: scoreColor(p.score) }}>{p.score}<span style={{ fontSize: 13 }}> /100</span></Typography>
-                  </Box>
-                </Grid>
-              ))}
-            </Grid>
-          </CardContent>
-        </Card>
-      )}
-
       {patients.length === 0 && <Typography color="text.secondary">Nenhum perfil cadastrado.</Typography>}
 
-      {/* CARDS dos membros */}
+      {/* Cards dos membros (sem pódio redundante — 🥇 no 1º lugar) */}
       <Grid container spacing={2}>
-        {patients.map((p) => (
+        {ranked.map((p, idx) => (
           <Grid key={p.id} size={{ xs: 12, md: 6 }}>
-            <Card variant="outlined" sx={{ borderRadius: 4, height: '100%' }}>
+            <Card variant="outlined" sx={{ borderRadius: 4, height: '100%', position: 'relative', ...(idx === 0 && p.score != null ? { borderColor: '#d4a574', borderWidth: 2 } : {}) }}>
+              {idx === 0 && p.score != null && <Chip size="small" label="🥇 Melhor score" sx={{ position: 'absolute', top: 10, right: 10, bgcolor: 'rgba(212,165,116,.2)', color: '#b88a54', fontWeight: 700 }} />}
               <CardContent>
                 <Stack direction="row" alignItems="center" spacing={1.5} sx={{ flexWrap: 'wrap', rowGap: 1 }}>
                   <Avatar src={p.photoUrl ? photoUrlFor(p.id) : undefined} sx={{ width: 48, height: 48, bgcolor: 'primary.main', fontSize: 20 }}>{p.fullName.charAt(0).toUpperCase()}</Avatar>
@@ -103,11 +81,11 @@ export const FamilyPage = () => {
                 )}
                 <Typography variant="body2" sx={{ mt: 1 }}>
                   {p.abnormalCount > 0 ? `⚠️ ${p.abnormalCount} valor(es) alterado(s)` : '✅ Tudo dentro da faixa'}
-                  {p.performedAt && ` • ${new Date(p.performedAt).toLocaleDateString('pt-BR')}`}
+                  {fmtDate(p.performedAt) && ` • ${fmtDate(p.performedAt)}`}
                 </Typography>
                 {p.score == null && <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>Sem exame enviado.</Typography>}
                 {p.topAbnormal.length > 0 && (
-                  <Stack direction="row" spacing={0.5} sx={{ mt: 1, flexWrap: 'wrap', gap: 0.5 }}>
+                  <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 1 }}>
                     {p.topAbnormal.map((a, i) => <Chip key={i} size="small" color="error" variant="outlined" label={a.name} />)}
                   </Stack>
                 )}
@@ -118,7 +96,7 @@ export const FamilyPage = () => {
       </Grid>
 
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 3 }}>
-        *Scores baseados no último exame de cada um. Análise educativa, não substitui o médico.
+        *Scores do último exame de cada um. Análise educativa, não substitui o médico.
       </Typography>
     </Box>
   );
