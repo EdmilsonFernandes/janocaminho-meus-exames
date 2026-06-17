@@ -112,6 +112,27 @@ router.get('/family-overview', async (req: AuthedRequest, res, next) => {
   } catch (e) { next(e); }
 });
 
+// COMPARATIVO familiar por analito (último valor de cada membro; só analitos em 2+ pessoas)
+router.get('/family-compare', async (req: AuthedRequest, res, next) => {
+  try {
+    const patients = await prisma.patient.findMany({ where: { ownerId: req.userId }, select: { id: true, fullName: true } });
+    const byAnalyte = new Map<string, any>();
+    for (const p of patients) {
+      const exam = await prisma.exam.findFirst({ where: { patientId: p.id, status: 'EXTRACTED' }, orderBy: { performedAt: 'desc' }, include: { items: true } });
+      if (!exam) continue;
+      for (const it of exam.items) {
+        const e = byAnalyte.get(it.nameCanonical) ?? { unit: it.unit, members: [] as any[] };
+        e.members.push({ name: p.fullName, value: it.valueText ?? String(it.valueNumeric ?? ''), flag: it.flag, date: exam.performedAt });
+        byAnalyte.set(it.nameCanonical, e);
+      }
+    }
+    const rows = [...byAnalyte.entries()].filter(([, v]) => v.members.length >= 2).map(([analyte, v]) => ({ analyte, unit: v.unit, members: v.members }));
+    rows.sort((a, b) => b.members.length - a.members.length);
+    res.json({ rows });
+  } catch (e) { next(e); }
+});
+
+// GET ONE
 router.get('/:id', async (req, res, next) => {
   try {
     const p = await prisma.patient.findUnique({ where: { id: req.params.id } });

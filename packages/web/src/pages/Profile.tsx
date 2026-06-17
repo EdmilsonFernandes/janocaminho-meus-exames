@@ -4,6 +4,8 @@ import { Title, useNotify } from 'react-admin';
 import LockIcon from '@mui/icons-material/Lock';
 import SaveIcon from '@mui/icons-material/Save';
 import BadgeIcon from '@mui/icons-material/WorkspacePremium';
+import DownloadIcon from '@mui/icons-material/Download';
+import UploadIcon from '@mui/icons-material/Upload';
 import { API_URL, token, apiHeaders } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import { PhotoUpload } from '../components/PhotoUpload';
@@ -55,6 +57,26 @@ export const ProfilePage = () => {
     const r = await fetch(`${API_URL}/auth/account`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });
     if (r.ok) { localStorage.clear(); window.location.hash = '/landing'; window.location.reload(); }
     else notify('Falha ao excluir conta. Tente novamente.', { type: 'error' });
+  };
+  const exportData = async () => {
+    const r = await fetch(`${API_URL}/data/export`, { headers: { Authorization: `Bearer ${token()}` } });
+    if (!r.ok) { notify('Falha ao exportar', { type: 'error' }); return; }
+    const blob = await r.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'meus-exames-backup.json'; a.click();
+    URL.revokeObjectURL(url);
+    notify('Backup exportado!', { type: 'success' });
+  };
+  const importData = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0]; if (!f) return;
+    if (!window.confirm('Importar cria NOVOS perfis/exames (não sobrescreve os atuais). Continuar?')) { e.target.value = ''; return; }
+    try {
+      const r = await fetch(`${API_URL}/data/import`, { method: 'POST', headers: apiHeaders(true), body: await f.text() });
+      const d = await r.json();
+      if (r.ok) { notify(`Importado! ${d.counts?.patients || 0} perfil(is), ${d.counts?.exams || 0} exame(s).`, { type: 'success' }); setTimeout(() => window.location.reload(), 1500); }
+      else notify(d.error || 'Falha ao importar', { type: 'error' });
+    } catch { notify('Arquivo inválido', { type: 'error' }); }
+    e.target.value = '';
   };
 
   if (!pid) return <Box sx={{ p: 4, textAlign: 'center' }}><CircularProgress /></Box>;
@@ -132,6 +154,10 @@ export const ProfilePage = () => {
           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
             <Button variant="outlined" color="error" onClick={delAccount}>Excluir minha conta</Button>
             <Button variant="text" onClick={() => { window.location.hash = '/termos'; }}>Termos de uso e LGPD</Button>
+            <Button variant="outlined" startIcon={<DownloadIcon />} onClick={exportData}>Exportar dados</Button>
+            <Button variant="outlined" component="label" startIcon={<UploadIcon />}>Importar dados
+              <input type="file" hidden accept="application/json" onChange={importData} />
+            </Button>
           </Stack>
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>A exclusão apaga definitivamente todos os exames, análises e dados (LGPD). Não pode ser desfeita.</Typography>
         </CardContent>

@@ -17,6 +17,7 @@ const fmtDate = (d: string | null) => (d ? new Date(d).toLocaleDateString('pt-BR
 export const FamilyPage = () => {
   const [data, setData] = useState<{ patients: FamPatient[]; crossAlerts: CrossAlert[] } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [cmp, setCmp] = useState<any[]>([]);
 
   useEffect(() => {
     setLoading(true);
@@ -25,6 +26,10 @@ export const FamilyPage = () => {
       .then((d) => setData(d))
       .catch(() => setData(null))
       .finally(() => setLoading(false));
+    fetch(`${API_URL}/patients/family-compare`, { headers: { Authorization: `Bearer ${token()}` } })
+      .then((r) => r.json())
+      .then((d) => setCmp(d.rows ?? []))
+      .catch(() => {});
   }, []);
 
   if (loading) return <Box sx={{ p: 4, textAlign: 'center' }}><CircularProgress /></Box>;
@@ -98,6 +103,29 @@ export const FamilyPage = () => {
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 3 }}>
         *Scores do último exame de cada um. Análise educativa, não substitui o médico.
       </Typography>
+
+      {/* COMPARATIVO por analito (último valor de cada membro) */}
+      {cmp.length > 0 && (
+        <Box sx={{ mt: 3 }}>
+          <Typography variant="h6" sx={{ fontWeight: 800, mb: 0.5 }}>🧬 Comparativo por analito</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>Último valor de cada membro nos analitos em comum (verde = na faixa, vermelho = alterado).</Typography>
+          <Stack spacing={1}>
+            {cmp.map((row) => (
+              <Card key={row.analyte} variant="outlined" sx={{ borderRadius: 2 }}>
+                <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
+                  <Typography sx={{ fontWeight: 700, mb: 0.5 }}>{row.analyte} {row.unit ? <Box component="span" sx={{ color: 'text.secondary', fontWeight: 400 }}>({row.unit})</Box> : null}</Typography>
+                  <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
+                    {row.members.map((m: any, i: number) => (
+                      <Chip key={i} size="small" variant="outlined" label={`${(m.name ?? '').split(' ')[0]}: ${m.value}`}
+                        color={m.flag === 'NORMAL' ? 'success' : (['HIGH', 'LOW', 'ABNORMAL', 'CRITICAL'].includes(m.flag) ? 'error' : 'default')} />
+                    ))}
+                  </Stack>
+                </CardContent>
+              </Card>
+            ))}
+          </Stack>
+        </Box>
+      )}
     </Box>
   );
 };

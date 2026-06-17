@@ -21,6 +21,7 @@ import vaccineRoutes from './routes/vaccine.routes';
 import expenseRoutes from './routes/expense.routes';
 import deviceRoutes from './routes/device.routes';
 import consultaRoutes from './routes/consulta';
+import dataRoutes from './routes/data.routes';
 
 const app = express();
 
@@ -76,6 +77,7 @@ app.use('/api/vaccines', vaccineRoutes);
 app.use('/api/expenses', expenseRoutes);
 app.use('/api/devices', deviceRoutes);
 app.use('/api/consulta', consultaRoutes);
+app.use('/api/data', dataRoutes);
 
 // ROTA PÚBLICA: médico vê o resumo compartilhado (sem login, expira em 3 dias)
 app.get('/api/public/shared/:token', async (req, res) => {
