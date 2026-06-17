@@ -215,7 +215,10 @@ export const ResetPage = () => {
   return (
     <Shell title="Redefinição de senha">
       {stage === 'done' ? (
-        <Typography align="center" sx={{ py: 2 }}>Verifique seu e-mail (e o console do servidor em dev) e clique no link recebido.</Typography>
+        <Box sx={{ py: 2, textAlign: 'center' }}>
+          <Typography sx={{ mb: 1 }}>📩 Se o e-mail existir, enviamos um link de redefinição.</Typography>
+          <Typography variant="body2" color="text.secondary">Abra o e-mail e clique no link para criar uma nova senha. Confira também o <strong>spam/lixo eletrônico</strong>.</Typography>
+        </Box>
       ) : stage === 'reset' ? (
         <Box component="form" onSubmit={doReset} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <Box component="input" type="password" required placeholder="Nova senha (mín. 6)" value={pwd} onChange={(e: any) => setPwd(e.target.value)} style={{ width: '100%', padding: '12px', fontSize: 16, borderRadius: 8, border: '1px solid #c4d0e0' }} />

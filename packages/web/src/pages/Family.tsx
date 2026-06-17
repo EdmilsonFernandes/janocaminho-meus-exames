@@ -66,9 +66,11 @@ export const FamilyPage = () => {
       <Grid container spacing={2}>
         {ranked.map((p, idx) => (
           <Grid key={p.id} size={{ xs: 12, md: 6 }}>
-            <Card variant="outlined" sx={{ borderRadius: 4, height: '100%', position: 'relative', ...(idx === 0 && p.score != null ? { borderColor: '#d4a574', borderWidth: 2 } : {}) }}>
-              {idx === 0 && p.score != null && <Chip size="small" label="🥇 Melhor score" sx={{ position: 'absolute', top: 10, right: 10, bgcolor: 'rgba(212,165,116,.2)', color: '#b88a54', fontWeight: 700 }} />}
+            <Card variant="outlined" sx={{ borderRadius: 4, height: '100%', ...(idx === 0 && p.score != null ? { borderColor: '#d4a574', borderWidth: 2 } : {}) }}>
               <CardContent>
+                {idx === 0 && p.score != null && (
+                  <Chip size="small" label="🥇 Melhor score da família" sx={{ mb: 1, bgcolor: 'rgba(212,165,116,.2)', color: '#b88a54', fontWeight: 700 }} />
+                )}
                 <Stack direction="row" alignItems="center" spacing={1.5} sx={{ flexWrap: 'wrap', rowGap: 1 }}>
                   <Avatar src={p.photoUrl ? photoUrlFor(p.id) : undefined} sx={{ width: 48, height: 48, bgcolor: 'primary.main', fontSize: 20 }}>{p.fullName.charAt(0).toUpperCase()}</Avatar>
                   <Box sx={{ flex: '1 1 55%', minWidth: 0 }}>

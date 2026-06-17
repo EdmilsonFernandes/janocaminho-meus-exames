@@ -40,7 +40,9 @@ export const FloatingChat = () => {
     return () => { window.removeEventListener('mousemove', onMove); cancelAnimationFrame(raf); };
   }, []);
 
-  if (pathname.startsWith('/chat')) return null;
+  // Esconde onde já existe chat/input inline (não competir com outra ação na mesma tela):
+  // /chat (tela do Dr. Exame) e /exams/:id/show (chat inline no detalhe do exame).
+  if (pathname.startsWith('/chat') || /^\/exams\/[^/]+\/show/.test(pathname)) return null;
   return (
     <Fab
       ref={fabRef}

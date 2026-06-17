@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, Chip, Stack, CircularProgress, Dialog, DialogTitle, DialogContent, IconButton, useMediaQuery, useTheme } from '@mui/material';
+import { Box, Card, CardContent, Typography, Chip, Stack, CircularProgress, Dialog, DialogTitle, DialogContent, IconButton, Button, useMediaQuery, useTheme } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import LocalHospitalIcon from '@mui/icons-material/Image';
 import ScienceIcon from '@mui/icons-material/Science';
@@ -112,7 +112,7 @@ export const TimelinePage = () => {
             <Typography sx={{ fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sel?.title}</Typography>
             <Typography variant="caption" color="text.secondary">{sel?.date ? new Date(sel.date).toLocaleDateString('pt-BR') : 's/d'}</Typography>
           </Box>
-          <IconButton onClick={() => setSel(null)}><CloseIcon /></IconButton>
+          <IconButton onClick={() => setSel(null)} sx={{ flexShrink: 0, p: 1 }}><CloseIcon sx={{ fontSize: 28 }} /></IconButton>
         </DialogTitle>
         <DialogContent dividers>
           {abnLoading ? (
@@ -138,6 +138,7 @@ export const TimelinePage = () => {
             </Stack>
           )}
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>*Educativo. A interpretação final é do seu médico.</Typography>
+          <Button variant="outlined" fullWidth startIcon={<CloseIcon />} onClick={() => setSel(null)} sx={{ mt: 2 }}>Fechar</Button>
         </DialogContent>
       </Dialog>
     </Box>
