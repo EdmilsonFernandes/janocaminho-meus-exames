@@ -16,7 +16,8 @@ export const CreditsChip = () => {
     load();
     const h = () => load();
     window.addEventListener('selPatientChanged', h);
-    return () => window.removeEventListener('selPatientChanged', h);
+    window.addEventListener('creditsChanged', h);
+    return () => { window.removeEventListener('selPatientChanged', h); window.removeEventListener('creditsChanged', h); };
   }, []);
   if (credits == null) return null;
   return (

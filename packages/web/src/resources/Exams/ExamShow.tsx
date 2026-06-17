@@ -96,6 +96,7 @@ export const ExamShow = () => {
       if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.error || 'Falha'); }
       const analysis = await r.json();
       setExam({ ...exam, analyses: [analysis, ...(exam.analyses ?? [])] });
+      window.dispatchEvent(new Event('creditsChanged'));
     } catch (e: any) { notify(e.message, { type: 'error' }); }
     finally { setGenLoading(false); }
   };
@@ -144,7 +145,7 @@ export const ExamShow = () => {
         }
       }
     } catch { notify('Erro no chat', { type: 'error' }); }
-    finally { setChatBusy(false); }
+    finally { setChatBusy(false); window.dispatchEvent(new Event('creditsChanged')); }
   };
 
   if (!exam) return <Box sx={{ p: 4, textAlign: 'center' }}><CircularProgress /></Box>;

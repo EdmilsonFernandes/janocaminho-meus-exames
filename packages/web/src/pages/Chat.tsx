@@ -75,6 +75,7 @@ export const ChatPage = () => {
       notify('A IA não respondeu agora. Tente novamente em instantes.', { type: 'error' });
     } finally {
       setBusy(false);
+      window.dispatchEvent(new Event('creditsChanged'));
     }
   };
 
