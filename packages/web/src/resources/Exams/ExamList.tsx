@@ -35,13 +35,19 @@ export const ExamList = () => {
       <SimpleList
         leftIcon={(r: any) => {
           const I = r.kind === 'IMAGING' ? ImageIcon : r.kind === 'LAB_PANEL' ? ScienceIcon : DescriptionOutlinedIcon;
-          return <I sx={{ color: 'primary.main' }} />;
+          const sc = statusColor[r.status] ?? 'default';
+          const c = sc === 'success' ? '#10b981' : sc === 'error' ? '#ef4444' : sc === 'warning' ? '#f59e0b' : sc === 'info' ? '#0ea5e9' : '#94a3b8';
+          return <I sx={{ color: c }} />;
         }}
         primaryText={(r: any) => r.title}
         secondaryText={(r: any) => `${kindLabel[r.kind] ?? r.kind} • ${r.performedAt ? new Date(r.performedAt).toLocaleDateString('pt-BR') : 's/d'}${r.sourceLab ? ` • ${r.sourceLab}` : ''}`}
         tertiaryText={(r: any) => statusLabel[r.status] ?? r.status}
         linkType="show"
-        rowSx={(r: any) => r.status === 'FAILED' ? { borderLeft: '4px solid #ef4444' } : {}}
+        rowSx={(r: any) => {
+          const sc = statusColor[r.status];
+          const c = sc === 'success' ? '#10b981' : sc === 'error' ? '#ef4444' : sc === 'warning' ? '#f59e0b' : sc === 'info' ? '#0ea5e9' : undefined;
+          return c ? { borderLeft: `4px solid ${c}` } : {};
+        }}
         sx={{ '& .MuiTypography-root': { whiteSpace: 'normal' } }}
       />
     )}

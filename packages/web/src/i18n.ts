@@ -43,7 +43,6 @@ const ptMessages = {
   'ra.navigation.no_results': 'Nenhum resultado encontrado',
   'ra.navigation.no_more_results': 'Não há mais resultados',
   'ra.navigation.page_out_of_boundaries': 'Página fora do intervalo',
-  'ra.navigation.page_range_info': '%{offset}–%{offset_end} de %{total}',
   'ra.navigation.page_rows_per_page': 'Itens por página:',
   'ra.navigation.next': 'Próxima',
   'ra.navigation.prev': 'Anterior',

@@ -37,7 +37,6 @@ export const Dashboard = () => {
   const [stats, setStats] = useState({ exams: 0, abnormal: 0 });
   const [deps, setDeps] = useState(0);
   const [lastExam, setLastExam] = useState<string | null>(null);
-  const [score, setScore] = useState<number | null>(null);
   const [buckets, setBuckets] = useState<{ bons: number; alerta: number; alterados: number }>({ bons: 0, alerta: 0, alterados: 0 });
   const tip = TIPS[new Date().getDate() % TIPS.length];
 
@@ -57,20 +56,13 @@ export const Dashboard = () => {
         const fs = await fetch(`${API_URL}/items/flag-summary${pid ? `?patientId=${pid}` : ''}`, { headers: h });
         if (fs.ok) { const fd = await fs.json(); setBuckets(fd.buckets ?? { bons: 0, alerta: 0, alterados: 0 }); }
       } catch { /* ignore */ }
-      if (pid) {
-        try {
-          const sr = await fetch(`${API_URL}/patients/${pid}/health-score`, { headers: h });
-          if (sr.ok) { const sd = await sr.json(); setScore(typeof sd.score === 'number' ? sd.score : null); }
-        } catch { /* ignore */ }
-      } else {
-        setScore(null);
-      }
       void syncPushToken();
     })();
   }, [pid]);
 
   const scoreColor = (s: number) => (s >= 80 ? '#2e7d32' : s >= 60 ? '#e65100' : '#c62828');
   const totalVals = buckets.bons + buckets.alerta + buckets.alterados;
+  const score = totalVals ? Math.round((buckets.bons / totalVals) * 100) : null; // consistente com o donut
   const donutData = DONUT.map((d) => ({ ...d, value: (buckets as any)[d.key] })).filter((d) => d.value > 0);
 
   const statCard = (label: string, value: React.ReactNode, color: string, to: string) => (
@@ -118,7 +110,7 @@ export const Dashboard = () => {
       {/* Contadores clicáveis */}
       <Grid container spacing={2} sx={{ mt: score === null ? 2 : 1, mb: 2 }}>
         {statCard('Exames enviados', stats.exams, 'primary.main', '/exams')}
-        {statCard('Valores alterados', stats.abnormal, stats.abnormal ? 'error.main' : 'success.main', '/exams')}
+        {statCard('Valores alterados', stats.abnormal, stats.abnormal ? 'error.main' : 'success.main', '/relatorio')}
         {statCard('Perfis (dependentes)', deps, '#8b5cf6', '/familia')}
         {statCard('Última atualização', <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.2, mt: 1 }}>{lastExam ? new Date(lastExam).toLocaleDateString('pt-BR') : '—'}</Typography>, '#0ea5e9', '/linha-do-tempo')}
       </Grid>
