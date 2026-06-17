@@ -1,7 +1,7 @@
 import { Admin, Resource, CustomRoutes, Layout, Menu, AppBar, TitlePortal, AppBarProps, useLogout, useTranslate, useLocale, useSetLocale, useRefresh } from 'react-admin';
 import { Route, useNavigate, useLocation } from 'react-router-dom';
 import { useEffect, useState, useRef } from 'react';
-import { Box, Typography, IconButton, Button, useMediaQuery, useTheme, CircularProgress, Menu as MuiMenu, MenuItem } from '@mui/material';
+import { Box, Typography, IconButton, Button, useMediaQuery, useTheme, CircularProgress, Menu as MuiMenu, MenuItem, Divider, ListItemIcon, ListItemText } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -90,6 +90,7 @@ const CustomAppBar = (props: AppBarProps) => {
 // Ícones coloridos (cada item com sua cor) — menu traduzível (PT/EN)
 const AppMenu = () => {
   const t = useTranslate();
+  const logout = useLogout();
   return (
   <Menu>
     <Menu.DashboardItem />
@@ -108,6 +109,11 @@ const AppMenu = () => {
     <Menu.Item to="/emergencia" primaryText={t('menu.emergency')} leftIcon={<HealthAndSafetyIcon sx={{ color: '#ef4444' }} />} />
     <Menu.Item to="/chat" primaryText={t('menu.chat')} leftIcon={<AutoAwesomeIcon sx={{ color: '#a855f7' }} />} />
     <Menu.Item to="/planos" primaryText={t('menu.plans')} leftIcon={<WorkspacePremiumIcon sx={{ color: '#f97316' }} />} />
+    <Divider sx={{ my: 1 }} />
+    <MenuItem onClick={() => logout()} sx={{ mx: 0.5, my: 0.25, borderRadius: 1, py: 1, color: 'error.main', '&:hover': { bgcolor: 'rgba(239,68,68,.08)' } }}>
+      <ListItemIcon sx={{ color: 'error.main', minWidth: 36 }}><LogoutIcon fontSize="small" /></ListItemIcon>
+      <ListItemText primaryTypographyProps={{ fontSize: 14, fontWeight: 500 }}>{t('menu.logout', 'Sair da conta')}</ListItemText>
+    </MenuItem>
     <Box sx={{ mt: 'auto', px: 2, py: 1.5, fontSize: 11, color: 'text.secondary', borderTop: '1px solid #e2e8f0' }}>
       Meus Exames v{pkg.version}
     </Box>

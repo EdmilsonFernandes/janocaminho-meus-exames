@@ -22,6 +22,7 @@ const ptMessages = {
   'menu.plans': 'Planos e Créditos',
   'menu.exams': 'Exames',
   'menu.dependents': 'Dependentes',
+  'menu.logout': 'Sair da conta',
 
   // ações / botões
   'ra.action.delete': 'Excluir',
@@ -98,6 +99,7 @@ const enMessages = {
   'menu.plans': 'Plans & Credits',
   'menu.exams': 'Exams',
   'menu.dependents': 'Dependents',
+  'menu.logout': 'Sign out',
 };
 
 const initialLocale = typeof localStorage !== 'undefined' && localStorage.getItem('lang') === 'en' ? 'en' : 'pt';
