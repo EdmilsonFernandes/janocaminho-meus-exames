@@ -1,0 +1,23 @@
+project_name: "Meus Exames"
+
+# TypeScript p/ todo o monorepo (web react-admin/MUI + server Node/Express/Prisma + mobile Capacitor)
+languages:
+- typescript
+
+encoding: "utf-8"
+ignore_all_files_in_gitignore: true
+
+# ignora dependências, builds e dados p/ o LSP não indexar lixo
+ignored_paths:
+- "node_modules"
+- "**/node_modules/**"
+- "dist"
+- "**/dist/**"
+- "graphify-out"
+- "**/graphify-out/**"
+- "data"
+- "packages/mobile/android"
+- "packages/mobile/node_modules"
+
+read_only: false
+excluded_tools: []

@@ -43,3 +43,10 @@ packages/mobile/android/.idea/
 packages/mobile/ios/App/App/Private/
 android-build.log
 .shot-*.png
+
+# Análise de código (regenerável — graphify/serena geram localmente)
+graphify-out/
+**/graphify-out/
+.serena/cache/
+.serena/memories/
+
