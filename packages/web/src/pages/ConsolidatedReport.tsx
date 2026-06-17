@@ -167,7 +167,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
               <Button size="small" variant="contained" sx={{ bgcolor: 'rgba(255,255,255,.18)' }} disabled={loading} onClick={generate} title="Regenera o relatório com os exames mais recentes">
                 {loading ? 'Atualizando…' : '↻ Atualizar'}
               </Button>
-              <CreditBadge amount={CREDIT_COSTS.consolidated} />
+              <CreditBadge amount={CREDIT_COSTS.consolidated} sx={{ bgcolor: 'rgba(255,255,255,.95) !important', color: '#178f89 !important' }} />
             </Stack>
           </Box>
 
