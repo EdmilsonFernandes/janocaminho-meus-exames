@@ -21,7 +21,7 @@ RUN VITE_BASE=$VITE_BASE VITE_API_URL=$VITE_API_URL npm run build --workspace pa
 # ---- runtime enxuto ----
 FROM node:20-bookworm-slim AS app
 WORKDIR /app
-RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates poppler-utils && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates poppler-utils tesseract-ocr tesseract-ocr-por && rm -rf /var/lib/apt/lists/*
 ENV NODE_ENV=production
 COPY package*.json ./
 COPY packages/server/package.json packages/server/

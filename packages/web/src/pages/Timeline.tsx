@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, Chip, Stack, CircularProgress } from '@mui/material';
+import { Box, Card, CardContent, Typography, Chip, Stack, CircularProgress, Dialog, DialogTitle, DialogContent, IconButton, useMediaQuery, useTheme } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import LocalHospitalIcon from '@mui/icons-material/Image';
 import ScienceIcon from '@mui/icons-material/Science';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
+import CloseIcon from '@mui/icons-material/Close';
 import { Title } from 'react-admin';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
 
-interface Event { date: string | null; title: string; kind: string; abnormalCount: number; itemCount: number }
+interface Event { id: string; date: string | null; title: string; kind: string; abnormalCount: number; itemCount: number }
 
 export const TimelinePage = () => {
   const [pid] = useSelectedPatient();
@@ -21,13 +22,26 @@ export const TimelinePage = () => {
     fetch(`${API_URL}/exams?_start=0&_end=100&patientId=${pid}`, { headers: { Authorization: `Bearer ${token()}` } })
       .then((r) => r.json())
       .then((rows: any[]) => setEvents(rows.filter((e: any) => e.status === 'EXTRACTED').map((e: any) => ({
-        date: e.performedAt, title: e.title, kind: e.kind, abnormalCount: e._count?.items ?? 0, itemCount: e._count?.items ?? 0,
+        id: e.id, date: e.performedAt, title: e.title, kind: e.kind, abnormalCount: e._count?.items ?? 0, itemCount: e._count?.items ?? 0,
       }))))
       .finally(() => setLoading(false));
   }, [pid]);
 
   const sorted = [...events].sort((a, b) => new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime()); // mais recente primeiro
   const totalAbnormal = events.reduce((s, e) => s + e.abnormalCount, 0);
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
+  const [sel, setSel] = useState<Event | null>(null);
+  const [abn, setAbn] = useState<any[]>([]);
+  const [abnLoading, setAbnLoading] = useState(false);
+  const openExam = async (e: Event) => {
+    setSel(e); setAbn([]); setAbnLoading(true);
+    try {
+      const r = await fetch(`${API_URL}/items?_start=0&_end=200&examId=${e.id}&abnormal=true`, { headers: { Authorization: `Bearer ${token()}` } });
+      if (r.ok) setAbn(await r.json());
+    } catch { /* */ }
+    setAbnLoading(false);
+  };
 
   return (
     <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 760, mx: 'auto' }}>
@@ -59,7 +73,7 @@ export const TimelinePage = () => {
                   }}>
                     {isImaging ? <LocalHospitalIcon sx={{ color: '#fff', fontSize: 12 }} /> : hasIssues ? <TrendingDownIcon sx={{ color: '#fff', fontSize: 12 }} /> : <CheckCircleIcon sx={{ color: '#fff', fontSize: 12 }} />}
                   </Box>
-                  <Card sx={{ borderRadius: 3, ml: 1.5, borderLeft: `5px solid ${dotColor}`, transition: 'transform .15s', '&:hover': { transform: 'translateX(2px)' } }}>
+                  <Card onClick={() => openExam(e)} sx={{ borderRadius: 3, ml: 1.5, borderLeft: `5px solid ${dotColor}`, transition: 'transform .15s', cursor: 'pointer', '&:hover': { transform: 'translateX(2px)' } }}>
                     <CardContent sx={{ pb: '12px !important' }}>
                       <Stack direction="row" justifyContent="space-between" alignItems="flex-start" flexWrap="wrap" gap={1}>
                         <Box>
@@ -89,6 +103,39 @@ export const TimelinePage = () => {
           </Stack>
         </Box>
       )}
+
+      {/* POPUP: valores fora da faixa do exame clicado */}
+      <Dialog open={!!sel} onClose={() => setSel(null)} fullScreen={fullScreen} PaperProps={{ sx: { borderRadius: fullScreen ? 0 : 3 } }}>
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pr: 1, gap: 1 }}>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography sx={{ fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sel?.title}</Typography>
+            <Typography variant="caption" color="text.secondary">{sel?.date ? new Date(sel.date).toLocaleDateString('pt-BR') : 's/d'}</Typography>
+          </Box>
+          <IconButton onClick={() => setSel(null)}><CloseIcon /></IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          {abnLoading ? (
+            <CircularProgress size={24} />
+          ) : abn.length === 0 ? (
+            <Typography color="text.secondary">Nenhum valor fora da faixa neste exame. Tudo dentro da referência. ✅</Typography>
+          ) : (
+            <Stack spacing={1}>
+              <Typography variant="body2" sx={{ color: 'error.main', fontWeight: 700 }}>🚩 {abn.length} valor(es) fora da faixa</Typography>
+              {abn.map((it) => (
+                <Box key={it.id} sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1, borderRadius: 2, bgcolor: 'rgba(239,68,68,.06)' }}>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography sx={{ fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.name}</Typography>
+                    <Typography variant="caption" color="text.secondary">Ref: {it.refText || [it.refLow, it.refHigh].filter((x: any) => x != null).join('–') || '—'}</Typography>
+                  </Box>
+                  <Typography sx={{ fontWeight: 800, color: 'error.main', fontSize: '1.2rem' }}>{it.valueText}</Typography>
+                  {it.unit ? <Typography variant="caption" color="text.secondary">{it.unit}</Typography> : null}
+                </Box>
+              ))}
+            </Stack>
+          )}
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>*Educativo. A interpretação final é do seu médico.</Typography>
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 };

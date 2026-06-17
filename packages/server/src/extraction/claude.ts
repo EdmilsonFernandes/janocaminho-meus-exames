@@ -8,6 +8,7 @@ import {
 import { JSON_SUFFIX, extractJsonObject } from '../utils/json';
 import { withRateLimitRetry } from '../utils/retry';
 import { pdfToText } from './pdfToText';
+import { imageToText } from './imageToText';
 
 import { pdfToImages } from './pdfToImages';
 
@@ -86,14 +87,21 @@ Copie fielmente o texto. Não invente achados nem nomes.`;
 async function createJson(buffer: Buffer, mediaType: string, instruction: string, maxTokens = 16000): Promise<any> {
   const client = getAnthropic();
   const response = await withRateLimitRetry(async () => {
-    // PDF: extrai o TEXTO (pdftotext) e manda como texto — o relay GLM NAO enxerga imagem/PDF.
-    // Imagem (foto): visão (best-effort; relay limitado).
+    // PDF: extrai o TEXTO (pdftotext). Imagem/foto: OCR (tesseract). Em ambos manda TEXTO
+    // ao GLM (o relay NÃO enxerga imagem/PDF). Visão só como último recurso.
     let content: any[];
     if (mediaType === 'application/pdf') {
       const text = await pdfToText(buffer);
       content = [{ type: 'text', text: instruction + '\n\n=== CONTEÚDO EXTRAÍDO DO EXAME (use EXATAMENTE estes dados; NUNCA invente valores/nomes) ===\n' + text + '\n' + JSON_SUFFIX }];
     } else {
-      content = [...(await contentBlocksFromBuffer(buffer, mediaType)), { type: 'text', text: instruction + JSON_SUFFIX }];
+      let ocr = '';
+      try { ocr = await imageToText(buffer); } catch (e) { console.warn('[extraction] OCR falhou:', (e as Error).message); }
+      if (ocr && ocr.trim().length > 50) {
+        console.log('[extraction] imagem OCRizada,', ocr.length, 'chars');
+        content = [{ type: 'text', text: instruction + '\n\n=== CONTEÚDO EXTRAÍDO DO EXAME via OCR (use EXATAMENTE estes dados; NUNCA invente) ===\n' + ocr + '\n' + JSON_SUFFIX }];
+      } else {
+        content = [...(await contentBlocksFromBuffer(buffer, mediaType)), { type: 'text', text: instruction + JSON_SUFFIX }];
+      }
     }
     const stream = client.messages.stream({
       model: MODEL,
