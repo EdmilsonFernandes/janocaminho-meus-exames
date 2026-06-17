@@ -1,5 +1,5 @@
 import { List, Datagrid, TextField, DateField, FunctionField, ShowButton, DeleteButton, CreateButton, TopToolbar, useListContext, useRefresh, useNotify } from 'react-admin';
-import { Chip, useMediaQuery, useTheme, Box, Card, CardContent, Typography, IconButton, Stack, LinearProgress } from '@mui/material';
+import { Chip, useMediaQuery, useTheme, Box, Card, CardContent, Typography, IconButton, Stack, LinearProgress, Button } from '@mui/material';
 import ScienceIcon from '@mui/icons-material/Science';
 import ImageIcon from '@mui/icons-material/Image';
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
@@ -34,6 +34,11 @@ const MobileExams = () => {
     const r = await fetch(`${API_URL}/exams/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });
     if (r.ok) { notify('Exame excluído', { type: 'success' }); refresh(); } else notify('Falha ao excluir', { type: 'error' });
   };
+  const reextract = async (e: any, id: string) => {
+    e.stopPropagation();
+    const r = await fetch(`${API_URL}/exams/${id}/reextract`, { method: 'POST', headers: { Authorization: `Bearer ${token()}` } });
+    if (r.ok) { notify('Re-extraindo…', { type: 'success' }); refresh(); } else notify('Falha ao re-extrair', { type: 'error' });
+  };
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, p: { xs: 1.5, sm: 2 }, pb: 4 }}>
       {(data ?? []).map((r) => {
@@ -55,6 +60,14 @@ const MobileExams = () => {
               <ChevronRightIcon sx={{ color: 'text.disabled', flexShrink: 0 }} />
             </CardContent>
             {(r.status === 'EXTRACTING' || r.status === 'UPLOADED') && <LinearProgress sx={{ height: 3 }} />}
+            {r.status === 'FAILED' && (
+              <Box onClick={(e) => e.stopPropagation()} sx={{ px: 1.5, pb: 1.25 }}>
+                <Typography variant="caption" sx={{ color: 'error.main', display: 'block', lineHeight: 1.35 }}>
+                  ⚠️ {(r.extractionError || 'Falha na leitura do documento').slice(0, 140)}
+                </Typography>
+                <Button size="small" color="primary" onClick={(e) => reextract(e, r.id)} sx={{ mt: 0.5, textTransform: 'none', fontWeight: 700 }}>↻ Re-extrair</Button>
+              </Box>
+            )}
           </Card>
         );
       })}

@@ -51,8 +51,10 @@
       /* Safe-area: AppBar sticky cobre o notch; conteúdo flui logo abaixo (sem sobrepor) */
       .MuiAppBar-root { position: sticky !important; top: 0; padding-top: env(safe-area-inset-top); }
       /* Gap no topo em TODAS as telas: zera a margem/padding-top do wrapper de conteúdo do react-admin v5
-         ( AppBar é sticky, então o <main> não precisa do offset de appbar fixed ). */
+         ( AppBar é sticky, então o <main> não precisa do offset de appbar fixed ). + largura total
+         (sem isso, o conteúdo colapsava p/ ~1 caractere em algumas telas → texto na vertical). */
       #main-content, main, [class*="RaLayout"] { margin-top: 0 !important; padding-top: 0 !important; }
+      #main-content { width: 100% !important; max-width: 100% !important; box-sizing: border-box; }
       .MuiDrawer-paper { padding-top: env(safe-area-inset-top); }
       /* Dr. Exame flutuante: pulso suave pra convidar a perguntar (só desktop, JS controla o segue-cur sor) */
       @keyframes drPulse { 0%,100% { box-shadow: 0 6px 18px rgba(32,178,170,.35); } 50% { box-shadow: 0 6px 26px rgba(32,178,170,.75); } }

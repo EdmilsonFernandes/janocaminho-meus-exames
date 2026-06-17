@@ -1,7 +1,8 @@
 import { Chip, Box } from '@mui/material';
 
 // Espelho do CREDIT_COSTS do backend (packages/server/src/utils/credits.ts) — mantenha sincronizado.
-export const CREDIT_COSTS = { extraction: 5, summary: 5, consolidated: 25, chat: 1 } as const;
+// extração (upload) é GRÁTIS (Modelo A).
+export const CREDIT_COSTS = { extraction: 0, summary: 5, consolidated: 25, chat: 1 } as const;
 
 /** Selo "💎 N créditos" que mostra o custo de uma ação de IA antes do clique. */
 export const CreditBadge = ({ amount, label, size = 'small', sx }: { amount: number; label?: string; size?: 'small' | 'medium'; sx?: any }) => (

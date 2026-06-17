@@ -80,7 +80,7 @@ export const PlansPage = () => {
   const mpOn = plans?.mercadoPagoEnabled ?? false;
 
   return (
-    <Box sx={{ maxWidth: 860, mx: 'auto', p: { xs: 2, md: 3 } }}>
+    <Box sx={{ width: '100%', maxWidth: 860, mx: 'auto', p: { xs: 2, md: 3 }, boxSizing: 'border-box' }}>
       <Title title="Planos e Créditos" />
       <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5 }}>💎 Planos e Créditos</Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -136,9 +136,9 @@ export const PlansPage = () => {
 
       {/* PACOTES DE CRÉDITOS */}
       <Typography variant="h6" sx={{ mt: 1, mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}><BoltIcon color="secondary" /> Comprar créditos (PIX instantâneo)</Typography>
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr' }, gap: 2, mb: 3, maxWidth: '100%' }}>
+      <Stack spacing={2} sx={{ mb: 3, width: '100%' }}>
         {packs.map((p) => (
-          <Card key={p.id} sx={{ borderRadius: 4, border: p.popular ? '2px solid #20b2aa' : '1px solid #e2e8f0', minWidth: 0 }}>
+          <Card key={p.id} sx={{ borderRadius: 4, border: p.popular ? '2px solid #20b2aa' : '1px solid #e2e8f0', width: '100%' }}>
             {p.popular && <Box sx={{ textAlign: 'center', pt: 1.5 }}><Chip color="primary" label="MAIS VENDIDO" size="small" /></Box>}
             <CardContent sx={{ textAlign: 'center', pt: p.popular ? 1 : 2 }}>
               <Typography sx={{ fontWeight: 800, fontSize: 28, color: 'primary.main', lineHeight: 1.1 }}>{p.credits}</Typography>
@@ -148,9 +148,9 @@ export const PlansPage = () => {
             </CardContent>
           </Card>
         ))}
-      </Box>
+      </Stack>
 
-      <Divider sx={{ my: 2 }}><Chip label="ou assine" /></Divider>
+      <Typography align="center" color="text.secondary" sx={{ my: 2, fontWeight: 600 }}>— ou assine —</Typography>
 
       {/* PLANO MENSAL */}
       <Card sx={{ borderRadius: 4, background: 'linear-gradient(135deg,#ffffff,#f1fafa)', border: '2px solid #20b2aa' }}>

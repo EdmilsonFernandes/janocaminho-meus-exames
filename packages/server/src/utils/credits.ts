@@ -1,7 +1,8 @@
 import { prisma } from '../prisma';
 
 // Custos em créditos por ação de IA (extração por visão conta!).
-export const CREDIT_COSTS = { extraction: 5, summary: 5, consolidated: 25, chat: 1 } as const;
+// extração (upload) é GRÁTIS (Modelo A: o gancho é subir exames; a IA interpretação é que custa).
+export const CREDIT_COSTS = { extraction: 0, summary: 5, consolidated: 25, chat: 1 } as const;
 
 /** Débito atômico: só desconta se houver saldo suficiente. true = debitado. */
 export async function chargeCredits(userId: string, amount: number): Promise<boolean> {

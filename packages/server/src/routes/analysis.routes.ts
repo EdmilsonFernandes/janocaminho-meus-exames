@@ -219,7 +219,7 @@ router.post('/:id/share', async (req, res, next) => {
     }
     const origin = process.env.WEB_ORIGIN || `${req.protocol}://${req.get('host')}`;
     const link = `${origin}${base}/api/public/shared/${token}`;
-    res.json({ link, pin, expiresAt: new Date(expires).toISOString() });
+    res.json({ link, token, pin, expiresAt: new Date(expires).toISOString() });
   } catch (e) { next(e); }
 });
 
