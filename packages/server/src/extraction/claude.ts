@@ -8,16 +8,27 @@ import {
 import { JSON_SUFFIX, extractJsonObject } from '../utils/json';
 import { withRateLimitRetry } from '../utils/retry';
 
+import { pdfToImages } from './pdfToImages';
+
 /**
- * Cria o bloco de conteúdo (document p/ PDF, image p/ JPEG/PNG) a partir do buffer.
- * O modelo lê por VISÃO, preservando a estrutura 2D das tabelas.
+ * Cria os blocos de conteúdo (image) a partir do buffer.
+ * PDF é rasterizado em PNGs (o relay Z.ai descarta blocos "document" de PDF — só lê "image").
  */
-function contentBlockFromBuffer(buffer: Buffer, mediaType: string): any {
+async function contentBlocksFromBuffer(buffer: Buffer, mediaType: string): Promise<any[]> {
   const data = buffer.toString('base64');
   if (mediaType === 'application/pdf') {
-    return { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data } };
+    try {
+      const imgs = await pdfToImages(buffer, 12, 150);
+      if (imgs.length) {
+        console.log('[extraction] PDF rasterizado em', imgs.length, 'imagem(ns) PNG');
+        return imgs.map((b) => ({ type: 'image', source: { type: 'base64', media_type: 'image/png', data: b.toString('base64') } }));
+      }
+    } catch (e) {
+      console.warn('[extraction] pdftoppm falhou, caindo p/ bloco document:', (e as Error).message);
+    }
+    return [{ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data } }];
   }
-  return { type: 'image', source: { type: 'base64', media_type: mediaType, data } };
+  return [{ type: 'image', source: { type: 'base64', media_type: mediaType, data } }];
 }
 
 const LAB_INSTRUCTIONS = `Você é um especialista em ler resultados de EXAMES LABORATORIAIS brasileiros a partir de um documento.
@@ -80,7 +91,7 @@ async function createJson(buffer: Buffer, mediaType: string, instruction: string
       messages: [
         {
           role: 'user',
-          content: [contentBlockFromBuffer(buffer, mediaType), { type: 'text', text: instruction + JSON_SUFFIX }],
+          content: [...(await contentBlocksFromBuffer(buffer, mediaType)), { type: 'text', text: instruction + JSON_SUFFIX }],
         },
       ],
     } as any);
