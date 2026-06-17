@@ -84,7 +84,7 @@ export const PlansPage = () => {
       <Title title="Planos e Créditos" />
       <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5 }}>💎 Planos e Créditos</Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        Use à vontade: assine o <strong>mensal</strong> (IA ilimitada) ou compre <strong>créditos avulsos</strong> via PIX.
+        Use à vontade: assine o <strong>mensal</strong> (1.500 créditos de IA por mês) ou compre <strong>créditos avulsos</strong> via PIX.
       </Typography>
 
       {/* Saldo + consumo */}

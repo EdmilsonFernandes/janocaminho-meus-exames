@@ -25,9 +25,9 @@ const features = [
 ];
 
 const plans = [
-  { name: 'Grátis', price: 'R$ 0', period: '', badge: '', features: ['500 créditos de cortesia', '2 exames enviados', 'Ver valores + referência', 'Score de Saúde', '1 perfil'], highlight: false, cta: 'Começar grátis' },
-  { name: 'Mensal', price: 'R$ 19,90', period: '/mês', badge: 'ILIMITADO', features: ['IA ilimitada (não gasta créditos)', 'Exames ilimitados', 'Comparativo + Dr. Exame', 'Chat, Tendências, Relatório', 'Todos os recursos'], highlight: true, cta: 'Assinar mensal' },
-  { name: 'Créditos', price: 'PIX', period: 'avulso', badge: 'PAGUE SO O QUE USAR', features: ['Pacotes a partir de R$ 9,90', 'PIX instantâneo (QR)', 'Cada análise consome créditos', 'Sem mensalidade', 'Use quando precisar'], highlight: false, cta: 'Ver pacotes' },
+  { name: 'Grátis', price: 'R$ 0', period: '', badge: '', features: ['100 créditos pra testar', 'Envie exames (PDF/foto)', 'Valores + referência', 'Score de Saúde', 'Pergunte ao Dr. Exame'], highlight: false, cta: 'Começar grátis' },
+  { name: 'Mensal', price: 'R$ 19,90', period: '/mês', badge: 'MAIS POPULAR', features: ['1.500 créditos de IA por mês', 'Exames + dependentes', 'Comparativo + Tendências', 'Relatório completo + impressão', 'Chat com o Dr. Exame'], highlight: true, cta: 'Assinar mensal' },
+  { name: 'Créditos', price: 'PIX', period: 'avulso', badge: 'PAGUE SÓ O QUE USAR', features: ['Pacotes a partir de R$ 9,90', 'PIX instantâneo (QR)', 'Cada análise consome créditos', 'Sem mensalidade', 'Use quando precisar'], highlight: false, cta: 'Ver pacotes' },
 ];
 
 export const LandingPage = () => {
