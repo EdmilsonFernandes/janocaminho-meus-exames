@@ -154,8 +154,8 @@ export const Dashboard = () => {
               <Typography color="text.secondary">Sem valores extraídos ainda. Envie um exame.</Typography>
             ) : (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
-                <Box sx={{ width: 150, height: 150, position: 'relative' }}>
-                  <ResponsiveContainer width="100%" height="100%">
+                <Box sx={{ width: 150, height: 150, position: 'relative', flexShrink: 0 }}>
+                  <ResponsiveContainer width={150} height={150}>
                     <PieChart>
                       <Pie data={donutData as any} dataKey="value" innerRadius={45} outerRadius={70} paddingAngle={2} stroke="none">
                         {donutData.map((d, i) => <Cell key={i} fill={d.color} />)}

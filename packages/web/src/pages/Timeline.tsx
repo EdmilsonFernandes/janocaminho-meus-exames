@@ -8,6 +8,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import { Title } from 'react-admin';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
+import { ExplainButton } from '../components/ExplainItem';
 
 interface Event { id: string; date: string | null; title: string; kind: string; abnormalCount: number; itemCount: number }
 
@@ -124,8 +125,11 @@ export const TimelinePage = () => {
               {abn.map((it) => (
                 <Box key={it.id} sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1, borderRadius: 2, bgcolor: 'rgba(239,68,68,.06)' }}>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography sx={{ fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.name}</Typography>
-                    <Typography variant="caption" color="text.secondary">Ref: {it.refText || [it.refLow, it.refHigh].filter((x: any) => x != null).join('–') || '—'}</Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}>
+                      <Typography sx={{ fontWeight: 700, wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.2 }}>{it.name}</Typography>
+                      <ExplainButton name={it.name} nameCanonical={it.nameCanonical} />
+                    </Box>
+                    <Typography variant="caption" color="text.secondary" sx={{ wordBreak: 'break-word' }}>Ref: {it.refText || [it.refLow, it.refHigh].filter((x: any) => x != null).join('–') || '—'}</Typography>
                   </Box>
                   <Typography sx={{ fontWeight: 800, color: 'error.main', fontSize: '1.2rem' }}>{it.valueText}</Typography>
                   {it.unit ? <Typography variant="caption" color="text.secondary">{it.unit}</Typography> : null}

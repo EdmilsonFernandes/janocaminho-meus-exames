@@ -3,6 +3,7 @@ import { Box, Card, CardContent, Typography, CircularProgress, Grid, Stack, Chip
 import { Title } from 'react-admin';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import { API_URL, token, photoUrlFor } from '../config';
+import { ExplainButton } from '../components/ExplainItem';
 
 interface FamPatient {
   id: string; fullName: string; relationship: string | null; photoUrl: string | null;
@@ -106,14 +107,18 @@ export const FamilyPage = () => {
 
       {/* COMPARATIVO por analito (último valor de cada membro) */}
       {cmp.length > 0 && (
-        <Box sx={{ mt: 3 }}>
+        <Box sx={{ mt: 5, pt: 3, borderTop: '1px dashed', borderColor: 'divider' }}>
           <Typography variant="h6" sx={{ fontWeight: 800, mb: 0.5 }}>🧬 Comparativo por analito</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>Último valor de cada membro nos analitos em comum (verde = na faixa, vermelho = alterado).</Typography>
           <Stack spacing={1}>
             {cmp.map((row) => (
               <Card key={row.analyte} variant="outlined" sx={{ borderRadius: 2 }}>
                 <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-                  <Typography sx={{ fontWeight: 700, mb: 0.5 }}>{row.analyte} {row.unit ? <Box component="span" sx={{ color: 'text.secondary', fontWeight: 400 }}>({row.unit})</Box> : null}</Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5, flexWrap: 'wrap' }}>
+                    <Typography component="span" sx={{ fontWeight: 700, wordBreak: 'break-word' }}>{row.analyte}</Typography>
+                    {row.unit ? <Typography component="span" sx={{ color: 'text.secondary', fontWeight: 400, fontSize: 13 }}>({row.unit})</Typography> : null}
+                    <ExplainButton name={row.analyte} />
+                  </Box>
                   <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
                     {row.members.map((m: any, i: number) => (
                       <Chip key={i} size="small" variant="outlined" label={`${(m.name ?? '').split(' ')[0]}: ${m.value}`}

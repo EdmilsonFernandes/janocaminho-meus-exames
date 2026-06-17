@@ -8,6 +8,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { useNavigate } from 'react-router-dom';
 import { useSelectedPatient } from '../../patient-context';
 import { API_URL, token } from '../../config';
+import { ExplainButton } from '../../components/ExplainItem';
 
 const ExamListActions = () => (
   <TopToolbar>
@@ -43,7 +44,10 @@ const MobileExams = () => {
             <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, '&:last-child': { pb: 1.5 } }}>
               <Icon sx={{ color: c, flexShrink: 0 }} />
               <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Typography sx={{ fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.title}</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}>
+                  <Typography sx={{ fontWeight: 700, wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.2 }}>{r.title}</Typography>
+                  <Box onClick={(e) => e.stopPropagation()} sx={{ flexShrink: 0, mt: -0.5 }}><ExplainButton name={r.title} /></Box>
+                </Box>
                 <Typography variant="caption" color="text.secondary">{kindLabel[r.kind] ?? r.kind} • {r.performedAt ? new Date(r.performedAt).toLocaleDateString('pt-BR') : 's/d'}{r._count?.items ? ` • ${r._count.items} itens` : ''}</Typography>
                 <Box sx={{ mt: 0.5 }}><Chip size="small" label={statusLabel[r.status] ?? r.status} sx={{ bgcolor: c + '18', color: c, fontWeight: 700, height: 20 }} /></Box>
               </Box>

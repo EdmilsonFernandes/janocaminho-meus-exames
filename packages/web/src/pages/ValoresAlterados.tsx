@@ -4,6 +4,7 @@ import { Title } from 'react-admin';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
+import { ExplainButton } from '../components/ExplainItem';
 
 /** Mostra SÓ os valores fora da faixa (mapeados), do exame mais recente ao mais antigo. */
 export const ValoresAlteradosPage = () => {
@@ -39,8 +40,11 @@ export const ValoresAlteradosPage = () => {
             <Card key={it.id} variant="outlined" sx={{ borderLeft: '5px solid', borderColor: 'error.main', borderRadius: 3 }}>
               <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', py: 1.5, '&:last-child': { pb: 1.5 } }}>
                 <Box sx={{ flex: '1 1 55%', minWidth: 0 }}>
-                  <Typography sx={{ fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.name}</Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.examTitle} • {it.performedAt ? new Date(it.performedAt).toLocaleDateString('pt-BR') : 's/d'}</Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}>
+                    <Typography sx={{ fontWeight: 700, wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.2 }}>{it.name}</Typography>
+                    <ExplainButton name={it.name} nameCanonical={it.nameCanonical} />
+                  </Box>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{it.examTitle} • {it.performedAt ? new Date(it.performedAt).toLocaleDateString('pt-BR') : 's/d'}</Typography>
                 </Box>
                 <Box sx={{ textAlign: 'right' }}>
                   <Typography component="span" sx={{ fontSize: '1.4rem', fontWeight: 800, color: 'error.main' }}>{it.valueText}</Typography>

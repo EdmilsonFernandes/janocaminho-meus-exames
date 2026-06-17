@@ -8,6 +8,7 @@ import { API_URL, apiHeaders } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import { ShareDialog } from '../components/ShareDialog';
 import { AnimatedDoctor } from '../components/AnimatedDoctor';
+import { ExplainButton } from '../components/ExplainItem';
 
 interface Summary {
   resumoGeral?: string;
@@ -167,9 +168,11 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
             {sourceExams.length > 0 && (
               <Box sx={{ mb: 2, p: 1.5, borderRadius: 2, background: '#e6f7f6', borderLeft: '4px solid #20b2aa' }}>
                 <Typography sx={{ fontWeight: 700, color: '#178f89', fontSize: 14, mb: 1 }}>📊 Relatório baseado em {sourceExams.length} exame(s):</Typography>
-                <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+                <Stack spacing={0.5} useFlexGap>
                   {sourceExams.map((e, i) => (
-                    <Chip key={i} size="small" sx={{ bgcolor: 'rgba(32,178,170,.10)', color: '#178f89', fontWeight: 600 }} label={`${e.title}${e.performedAt ? ` • ${fmtDate(e.performedAt)}` : ''}`} />
+                    <Typography key={i} variant="body2" sx={{ wordBreak: 'break-word', overflowWrap: 'anywhere', color: '#0f6f6a', fontWeight: 600, lineHeight: 1.35 }}>
+                      • {e.title}{e.performedAt ? ` — ${fmtDate(e.performedAt)}` : ''}{e.sourceLab ? ` • ${e.sourceLab}` : ''}
+                    </Typography>
                   ))}
                 </Stack>
               </Box>
@@ -180,8 +183,9 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
             {s.comparativo?.length ? (
               <Section title="Itens em destaque">
                 <Stack spacing={1}>{s.comparativo.map((c, i) => (
-                  <Box key={i} sx={{ wordBreak: 'break-word' }}><Typography><strong>{c.name}</strong>{c.atual ? ` — ${c.atual}` : ''} {c.leitura && `→ ${c.leitura}`}</Typography>
-                  {c.entenda && <Typography variant="body2" color="text.secondary">{c.entenda}</Typography>}</Box>
+                  <Box key={i} sx={{ wordBreak: 'break-word', display: 'flex', alignItems: 'flex-start', gap: 0.5 }}><Typography sx={{ flex: 1, minWidth: 0 }}><strong>{c.name}</strong>{c.atual ? ` — ${c.atual}` : ''} {c.leitura && `→ ${c.leitura}`}</Typography>
+                  <ExplainButton name={c.name} />
+                  {c.entenda && <Typography variant="body2" color="text.secondary" sx={{ flexBasis: '100%' }}>{c.entenda}</Typography>}</Box>
                 ))}</Stack>
               </Section>
             ) : null}

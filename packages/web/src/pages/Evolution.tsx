@@ -7,6 +7,7 @@ import TrendingFlatIcon from '@mui/icons-material/TrendingFlat';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import { useNavigate } from 'react-router-dom';
+import { ExplainButton } from '../components/ExplainItem';
 
 interface EvoItem {
   nameCanonical: string; unit: string | null; refLow: number | null; refHigh: number | null;
@@ -95,6 +96,7 @@ const EvoCard = ({ it }: { it: EvoItem }) => {
         <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1, flexWrap: 'wrap' }}>
           <Icon sx={{ color }} />
           <Typography variant="h6">{it.nameCanonical}</Typography>
+          <ExplainButton name={it.nameCanonical} nameCanonical={it.nameCanonical} />
           <Chip size="small" sx={{ bgcolor: `${color}14`, color, fontWeight: 700 }} label={`${it.pctChange > 0 ? '+' : ''}${it.pctChange}%`} />
           {!it.inRange && <Chip size="small" color="error" variant="outlined" label="fora da faixa" />}
         </Stack>
