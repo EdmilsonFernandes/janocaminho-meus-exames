@@ -25,6 +25,7 @@ export const PlansPage = () => {
   const [histPage, setHistPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [histLoading, setHistLoading] = useState(false);
+  const [histTotal, setHistTotal] = useState(0);
 
   const loadHistory = async (page: number) => {
     setHistLoading(true);
@@ -32,9 +33,10 @@ export const PlansPage = () => {
     const r = await fetch(`${API_URL}/billing/credits/history?page=${page}`, { headers: h });
     if (r.ok) {
       const d = await r.json();
-      setHist((prev) => page === 1 ? (d.items ?? []) : [...prev, ...(d.items ?? [])]);
+      setHist(d.items ?? []);
       setHasMore(!!d.hasMore);
       setHistPage(page);
+      setHistTotal(d.total ?? 0);
     }
     setHistLoading(false);
   };
@@ -122,12 +124,12 @@ export const PlansPage = () => {
               );
             })}
           </Stack>
-          {hasMore && (
-            <Box sx={{ textAlign: 'center', mt: 1 }}>
-              <Button size="small" variant="outlined" disabled={histLoading} onClick={() => loadHistory(histPage + 1)}>
-                {histLoading ? 'Carregando…' : 'Carregar mais'}
-              </Button>
-            </Box>
+          {histTotal > 15 && (
+            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 1.5 }}>
+              <Button size="small" disabled={histPage <= 1 || histLoading} onClick={() => loadHistory(histPage - 1)}>← Anterior</Button>
+              <Typography variant="caption" color="text.secondary">Pág. {histPage} de {Math.ceil(histTotal / 15)}</Typography>
+              <Button size="small" disabled={!hasMore || histLoading} onClick={() => loadHistory(histPage + 1)}>Próxima →</Button>
+            </Stack>
           )}
         </CardContent></Card>
       )}

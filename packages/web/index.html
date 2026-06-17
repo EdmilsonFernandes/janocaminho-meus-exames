@@ -38,6 +38,16 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Limpa Service Worker de OUTRO app (EdEspeto) que pode interceptar /minhasaude e redirecionar
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(regs) {
+          regs.forEach(function(reg) {
+            if (reg.scope && !reg.scope.includes('minhasaude')) { reg.unregister(); }
+          });
+        });
+      }
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
