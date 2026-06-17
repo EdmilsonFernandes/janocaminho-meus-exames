@@ -126,55 +126,25 @@ export const RegisterPage = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [pwd, setPwd] = useState('');
-  const [code, setCode] = useState('');
-  const [stage, setStage] = useState<'form' | 'verify'>('form');
   const [loading, setLoading] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      // 1. cria a conta (sem logar)
+      // /register cria a conta e já devolve token + patientId → entra direto.
+      // (Antes exigia confirmação por OTP; se a pessoa saía sem confirmar, ficava presa.
+      //  Login por e-mail/senha continua valendo; "entrar com código" segue disponível.)
       const r = await fetch(`${import.meta.env.VITE_API_URL}/auth/register`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: name.trim(), email: email.trim(), password: pwd }),
       });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Falha no cadastro');
-      // 2. envia código OTP (NÃO loga — precisa confirmar o e-mail)
-      const r2 = await fetch(`${import.meta.env.VITE_API_URL}/auth/otp/request`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim() }),
-      });
-      if (!r2.ok) {
-        const d2 = await r2.json().catch(() => ({}));
-        // conta foi criada, mas o e-mail não saiu — avisa e ainda assim deixa colar o código se chegar
-        notify(d2.error || 'Criamos a conta, mas o código não saiu. Toque em reenviar.', { type: 'warning' });
-      } else {
-        notify('Conta criada! Enviamos um código para seu e-mail.', { type: 'success' });
-      }
-      setStage('verify'); // pede o código
-    } catch (err: any) {
-      notify(err.message, { type: 'error' });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const verifyCode = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const r = await fetch(`${import.meta.env.VITE_API_URL}/auth/otp/verify`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim(), code }),
-      });
-      const d = await r.json();
-      if (!r.ok) throw new Error(d.error || 'Código inválido');
       localStorage.setItem('token', d.token);
-      if (d.patientId) localStorage.setItem('patientId', d.patientId);
+      if (d.patientId) { localStorage.setItem('patientId', d.patientId); localStorage.setItem('selPatientId', d.patientId); }
       localStorage.setItem('user', JSON.stringify(d.user));
-      notify('E-mail confirmado! Bem-vindo! 🎉', { type: 'success' });
+      notify('Conta criada! Bem-vindo! 🎉', { type: 'success' });
       window.location.href = '/';
     } catch (err: any) {
       notify(err.message, { type: 'error' });
@@ -182,21 +152,6 @@ export const RegisterPage = () => {
       setLoading(false);
     }
   };
-
-  if (stage === 'verify') {
-    return (
-      <Shell title="Confirme seu e-mail">
-        <Typography color="text.secondary" sx={{ fontSize: 14, mb: 2 }}>Enviamos um código para <strong>{email}</strong></Typography>
-        <Box component="form" onSubmit={verifyCode} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Box component="input" required placeholder="Código de 6 dígitos" inputMode="numeric" value={code}
-            onChange={(e: any) => setCode(e.target.value)} style={{ width: '100%', padding: '12px', fontSize: 18, letterSpacing: 4, borderRadius: 8, border: '1px solid #c4d0e0', textAlign: 'center' }} />
-          <Button type="submit" variant="contained" size="large" fullWidth disabled={loading}>
-            {loading ? <CircularProgress size={22} /> : 'Confirmar e entrar'}
-          </Button>
-        </Box>
-      </Shell>
-    );
-  }
 
   return (
     <Shell title="Crie sua conta gratuita">
@@ -218,7 +173,9 @@ export const RegisterPage = () => {
 export const ResetPage = () => {
   const navigate = useNavigate();
   const notify = useNotify();
-  const params = new URLSearchParams(window.location.search);
+  // HashRouter: o token vem DEPOIS do #/ (ex: .../#/recuperar-senha?token=X). Lê do hash; fallback p/ search.
+  const hashQuery = window.location.hash.split('?')[1] || '';
+  const params = new URLSearchParams(hashQuery || window.location.search);
   const token = params.get('token') || '';
   const [pwd, setPwd] = useState('');
   const [email, setEmail] = useState('');

@@ -9,9 +9,14 @@ const notified = new Set<string>();
 export function startReminderEmailJob(): void {
   const check = async () => {
     try {
-      const soon = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      const now = Date.now();
+      const soon = new Date(now + 24 * 60 * 60 * 1000);
+      // Janela: só avisa de 2h ATÉ a hora ATÉ 24h à frente.
+      // Antes o "Set notified" era só em memória → zerava a cada restart/deploy e
+      // reenviava lembretes muito atrasados infinitamente. O gte corta isso.
+      const cutoff = new Date(now - 2 * 60 * 60 * 1000);
       const reminders = await prisma.reminder.findMany({
-        where: { done: false, dueDate: { lte: soon } },
+        where: { done: false, dueDate: { gte: cutoff, lte: soon } },
         include: { patient: { include: { owner: { select: { id: true, email: true, name: true } } } } },
       });
       for (const r of reminders) {

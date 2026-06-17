@@ -74,7 +74,8 @@ router.post('/forgot', async (req, res, next) => {
       const { signResetToken } = require('../auth/jwt');
       const token = signResetToken(user.id);
       const base = (process.env.WEB_BASE_PATH ?? '').replace(/\/$/, '');
-      const link = `${process.env.WEB_ORIGIN || 'http://localhost:5173'}${base}/recuperar-senha?token=${token}`;
+      // App usa HashRouter → a rota tem que ir depois do #/ (senão nunca chega na tela de reset)
+      const link = `${process.env.WEB_ORIGIN || 'http://localhost:5173'}${base}/#/recuperar-senha?token=${token}`;
       try {
         await sendEmail({
           to: user.email,
