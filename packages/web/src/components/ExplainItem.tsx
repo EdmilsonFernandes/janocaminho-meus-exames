@@ -1,67 +1,61 @@
-import { Dialog, DialogTitle, DialogContent, Typography, IconButton, Box, keyframes, useMediaQuery, useTheme } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
+import { useState } from 'react';
+import { Popover, IconButton, Box, Typography, CircularProgress } from '@mui/material';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
-import { explainExam } from '../data/examDictionary';
-import { DrExame } from './DrExame';
+import { explainExam, type ExamExplain } from '../data/examDictionary';
+import { API_URL, token } from '../config';
 
-const bounce = keyframes`0%,100%{transform:translateY(0) rotate(0)}25%{transform:translateY(-6px) rotate(-3deg)}75%{transform:translateY(-4px) rotate(3deg)}`;
+/**
+ * Botão "?" reutilizável: abre um POPOVER (balão, não tela cheia) com a explicação.
+ * Usa o dicionário local primeiro; se não tiver, consulta a IA (/items/explain).
+ * Use em qualquer lugar que mencione um exame: <ExplainButton name={it.name} nameCanonical={it.nameCanonical} />
+ */
+export const ExplainButton = ({ name, nameCanonical, size = 'small' }: { name: string; nameCanonical?: string; size?: 'small' | 'medium' }) => {
+  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
+  const [data, setData] = useState<ExamExplain | null>(null);
+  const [loading, setLoading] = useState(false);
 
-interface Props {
-  open: boolean;
-  item: any | null;
-  onClose: () => void;
-}
-
-export const ExplainItem = ({ open, item, onClose }: Props) => {
-  const theme = useTheme();
-  const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
-  if (!item) return null;
-  const ex = explainExam(item.nameCanonical);
-  const titulo = ex?.titulo ?? item.name;
+  const open = async (e: React.MouseEvent<HTMLElement>) => {
+    setAnchor(e.currentTarget);
+    const local = explainExam(nameCanonical || name);
+    if (local) { setData(local); setLoading(false); return; }
+    setData(null); setLoading(true);
+    try {
+      const r = await fetch(`${API_URL}/items/explain`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
+        body: JSON.stringify({ name }),
+      });
+      if (r.ok) setData(await r.json());
+    } catch { /* */ }
+    setLoading(false);
+  };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth fullScreen={fullScreen} PaperProps={{ sx: { borderRadius: fullScreen ? 0 : 3 } }}>
-      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pr: 1 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <DrExame size={42} sx={{ animation: `${bounce} 1.5s ease-in-out infinite` }} />
-          <Box>
-            <Typography component="span" sx={{ fontWeight: 800, fontSize: '1.15rem' }}>{titulo}</Typography>
-            <Typography component="div" sx={{ fontSize: '0.8rem', color: 'text.secondary' }}>Dr. Exame explica</Typography>
-          </Box>
+    <>
+      <IconButton size={size} onClick={open} sx={{ color: 'primary.main', padding: size === 'small' ? 0.5 : 1 }} title="O que é este exame?">
+        <HelpOutlineIcon fontSize={size} />
+      </IconButton>
+      <Popover
+        open={!!anchor} anchorEl={anchor} onClose={() => setAnchor(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} transformOrigin={{ vertical: 'top', horizontal: 'center' }}
+        slotProps={{ paper: { sx: { maxWidth: 340, borderRadius: 3, mt: 0.5 } } }}>
+        <Box sx={{ p: 2, maxWidth: 340 }}>
+          {loading ? (
+            <Box sx={{ textAlign: 'center', py: 1 }}><CircularProgress size={22} /></Box>
+          ) : data ? (
+            <>
+              <Typography sx={{ fontWeight: 800, color: '#178f89', fontSize: '1.05rem' }}>{data.titulo}</Typography>
+              <Typography variant="body2" sx={{ mt: 0.5 }}>{data.resumo}</Typography>
+              {data.analogia && <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>💡 {data.analogia}</Typography>}
+              {data.alterado && (
+                <Typography variant="caption" sx={{ display: 'block', mt: 1, p: 1, bgcolor: 'rgba(245,158,11,.08)', borderRadius: 1, lineHeight: 1.5 }}>⚠️ {data.alterado}</Typography>
+              )}
+            </>
+          ) : (
+            <Typography variant="body2" color="text.secondary">Sem explicação disponível agora.</Typography>
+          )}
+          <Typography variant="caption" sx={{ display: 'block', mt: 1.5, color: 'text.secondary' }}>*Educativo. Sempre confirme com seu médico.</Typography>
         </Box>
-        <IconButton onClick={onClose} size="small"><CloseIcon /></IconButton>
-      </DialogTitle>
-      <DialogContent dividers>
-        {ex ? (
-          <Box>
-            <Typography sx={{ fontSize: '1.12rem', fontWeight: 600, mb: 1.5 }}>{ex.resumo}</Typography>
-            <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start', mb: 1.5, p: 1.5, background: '#eef3fb', borderRadius: 2 }}>
-              <span style={{ fontSize: 22 }}>💡</span>
-              <Typography>{ex.analogia}</Typography>
-            </Box>
-            <Box sx={{ p: 1.5, background: '#fff8e1', borderRadius: 2, borderLeft: '4px solid #ffb300' }}>
-              <Typography sx={{ fontWeight: 700, mb: 0.5, fontSize: '0.95rem' }}>Se estiver alterado:</Typography>
-              <Typography variant="body2">{ex.alterado}</Typography>
-            </Box>
-          </Box>
-        ) : (
-          <Box>
-            <Typography sx={{ mb: 1 }}>Esse exame ainda não tem explicação pronta no nosso guia.</Typography>
-            <Typography variant="body2" color="text.secondary">
-              Use o <strong>Assistente de saúde</strong> (menu lateral) e pergunte “o que significa {item.name}?” que a IA explica de forma simples.
-            </Typography>
-          </Box>
-        )}
-        <Typography variant="caption" sx={{ display: 'block', mt: 2, color: 'text.secondary' }}>
-          *Explicação educativa. Sempre confirme com seu médico.
-        </Typography>
-      </DialogContent>
-    </Dialog>
+      </Popover>
+    </>
   );
 };
-
-export const ExplainButton = ({ onClick }: { onClick: () => void }) => (
-  <IconButton size="small" onClick={onClick} title="O que é isso?" sx={{ color: 'primary.main' }}>
-    <HelpOutlineIcon fontSize="small" />
-  </IconButton>
-);

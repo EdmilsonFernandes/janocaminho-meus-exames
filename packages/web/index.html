@@ -10,10 +10,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet" />
     <style>
       /* Mobile: trava o overflow horizontal (tela não escorrega pro lado) */
-      html, body, #root { max-width: 100%; overflow-x: hidden; }
+      html, body, #root { max-width: 100vw; overflow-x: hidden; }
       body { -webkit-text-size-adjust: 100%; font-family: "Inter", "Segoe UI", Roboto, system-ui, sans-serif; }
+      /* NUCLEAR: força TODOS os elementos a respeitar a largura da tela no mobile */
+      *, *::before, *::after { box-sizing: border-box; }
+      .RaLayout-content { max-width: 100vw !important; overflow-x: hidden !important; overflow-wrap: break-word; word-break: break-word; }
+      .MuiCard-root { max-width: 100% !important; overflow-wrap: break-word; }
+      .MuiContainer-root { max-width: 100% !important; padding-left: 12px; padding-right: 12px; }
+      .MuiContainer-maxWidthMd, .MuiContainer-maxWidthLg { max-width: 100% !important; }
+      pre, code, table { max-width: 100%; overflow-x: auto; }
+      img { max-width: 100%; height: auto; }
       /* Tabelas rolam horizontal dentro do card em vez de empurrar a página */
-      .MuiTableContainer-root { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .MuiTableContainer-root { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
       /* Evita zoom de inputs no iOS */
       input, select, textarea { font-size: 16px; }
       /* Menu lateral: labels NUNCA cortam — quebram de linha em vez de truncar */

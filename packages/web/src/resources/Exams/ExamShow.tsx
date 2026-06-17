@@ -7,7 +7,7 @@ import { Title, useNotify } from 'react-admin';
 import { API_URL, token } from '../../config';
 import { HealthSummary } from '../../components/HealthSummary';
 import { ValueBar } from '../../components/ValueBar';
-import { ExplainItem, ExplainButton } from '../../components/ExplainItem';
+import { ExplainButton } from '../../components/ExplainItem';
 import { ExtractionProgress } from '../../components/ExtractionProgress';
 import { AnimatedDoctor } from '../../components/AnimatedDoctor';
 
@@ -254,7 +254,7 @@ export const ExamShow = () => {
                           <Stack direction="row" justifyContent="space-between" alignItems="center" useFlexGap spacing={1}>
                             <Stack direction="row" alignItems="center" spacing={0.5}>
                               <Typography sx={{ fontWeight: 700, fontSize: '1.08rem' }}>{it.name}</Typography>
-                              <ExplainButton onClick={() => setExplain(it)} />
+                              <ExplainButton name={it.name} nameCanonical={it.nameCanonical} />
                             </Stack>
                             <Chip color={m.color} label={m.label} size="small" />
                           </Stack>
@@ -372,7 +372,6 @@ export const ExamShow = () => {
         </Card>
       )}
 
-      <ExplainItem open={!!explain} item={explain} onClose={() => setExplain(null)} />
     </Box>
   );
 };

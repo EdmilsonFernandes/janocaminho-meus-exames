@@ -1,9 +1,10 @@
-import { Admin, Resource, CustomRoutes, Layout, Menu, AppBar, TitlePortal, AppBarProps, useLogout, useTranslate, useLocale, useSetLocale } from 'react-admin';
+import { Admin, Resource, CustomRoutes, Layout, Menu, AppBar, TitlePortal, AppBarProps, useLogout, useTranslate, useLocale, useSetLocale, useRefresh } from 'react-admin';
 import { Route, useNavigate, useLocation } from 'react-router-dom';
 import { useEffect, useState, useRef } from 'react';
-import { Box, Typography, IconButton, Button, useMediaQuery, useTheme, CircularProgress } from '@mui/material';
+import { Box, Typography, IconButton, Button, useMediaQuery, useTheme, CircularProgress, Menu as MuiMenu, MenuItem } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import InsightsIcon from '@mui/icons-material/Insights';
 import AutoGraphIcon from '@mui/icons-material/AutoGraph';
 import HistoryIcon from '@mui/icons-material/History';
@@ -57,7 +58,12 @@ const CustomAppBar = (props: AppBarProps) => {
   const isDesktop = useMediaQuery(theme.breakpoints.up('sm'));
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const canBack = !isDesktop && pathname !== '/'; // sub-páginas no mobile têm seta de voltar
+  const canBack = !isDesktop && pathname !== '/';
+  const refresh = useRefresh();
+  const locale = useLocale();
+  const setLocale = useSetLocale();
+  const [menuA, setMenuA] = useState<HTMLElement | null>(null);
+  const toggleLang = () => { const l = locale === 'pt' ? 'en' : 'pt'; setLocale(l); try { localStorage.setItem('lang', l); } catch {} setMenuA(null); };
   return (
     <AppBar {...props} userMenu={false}>
       {canBack && (
@@ -67,13 +73,16 @@ const CustomAppBar = (props: AppBarProps) => {
       )}
       {isDesktop && <TitlePortal />}
       <Box sx={{ flex: 1 }} />
-      <LangToggle />
       <CreditsChip />
       <PatientSwitcher />
-      <IconButton color="inherit" onClick={() => logout()} title="Sair" size="small"
-        sx={{ ml: 0.5, bgcolor: 'rgba(0,0,0,0.05)', '&:hover': { bgcolor: 'rgba(0,0,0,0.1)' } }}>
-        <LogoutIcon fontSize="small" />
+      <IconButton color="inherit" onClick={(e: any) => setMenuA(e.currentTarget)} title="Mais opções" size="small" sx={{ flexShrink: 0 }}>
+        <MoreVertIcon fontSize="small" />
       </IconButton>
+      <MuiMenu anchorEl={menuA} open={!!menuA} onClose={() => setMenuA(null)} slotProps={{ paper: { sx: { mt: 1, minWidth: 180, borderRadius: 2 } } }}>
+        <MenuItem onClick={toggleLang}>🌐 {locale === 'pt' ? 'Mudar para English' : 'Switch to Português'}</MenuItem>
+        <MenuItem onClick={() => { refresh(); setMenuA(null); }}>↻ Atualizar</MenuItem>
+        <MenuItem onClick={() => logout()} sx={{ color: 'error.main' }}>↩ Sair</MenuItem>
+      </MuiMenu>
     </AppBar>
   );
 };

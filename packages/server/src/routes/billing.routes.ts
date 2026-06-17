@@ -53,7 +53,7 @@ router.get('/credits/history', requireAuth, async (req: AuthedRequest, res, next
   try {
     const pids = await userPatientIds(req.userId!);
     const page = Math.max(1, Number(req.query.page ?? 1));
-    const perPage = 50;
+    const perPage = 15;
     const [analyses, subs, patients] = await Promise.all([
       prisma.aiAnalysis.findMany({ where: { patientId: { in: pids } }, orderBy: { createdAt: 'desc' }, take: 2000, select: { id: true, type: true, examId: true, patientId: true, createdAt: true } }),
       prisma.subscription.findMany({ where: { userId: req.userId!, status: 'APPROVED', periodDays: 0 }, orderBy: { updatedAt: 'desc' }, take: 500, select: { id: true, amount: true, updatedAt: true } }),

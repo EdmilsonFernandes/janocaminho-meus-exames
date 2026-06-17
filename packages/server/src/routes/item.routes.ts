@@ -2,6 +2,8 @@ import { Router } from 'express';
 import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
 import { parseListParams, setListHeaders } from '../utils/list';
+import { getAnthropic, MODEL } from '../claude/client';
+import { JSON_SUFFIX, extractJsonObject } from '../utils/json';
 
 const router = Router();
 router.use(requireAuth);
@@ -153,6 +155,25 @@ router.get('/flag-summary', async (req: AuthedRequest, res, next) => {
     });
   } catch (e) {
     next(e);
+  }
+});
+
+// EXPLICA um exame/analito em linguagem simples (IA — cobre qualquer exame, mesmo fora do dicionário local)
+router.post('/explain', async (req: AuthedRequest, res) => {
+  try {
+    const name = String((req.body as any)?.name ?? '').trim();
+    if (!name) { res.status(400).json({ error: 'name obrigatório' }); return; }
+    const client = getAnthropic();
+    const stream = client.messages.stream({
+      model: MODEL, max_tokens: 700,
+      messages: [{ role: 'user', content: `Explique de forma SIMPLES e CURTA (português, leigo) o exame/analito "${name}". Devolva APENAS JSON: {"titulo":"nome amigável","resumo":"1 frase: o que mede","analogia":"analogia do dia a dia","alterado":"o que pode significar se alto/baixo (sem diagnosticar)"}${JSON_SUFFIX}` }],
+    } as any);
+    const resp = await stream.finalMessage();
+    const text = (resp.content as any[]).filter((b) => b.type === 'text').map((b) => b.text).join('');
+    res.json(extractJsonObject(text));
+  } catch (e: any) {
+    console.error('[explain] erro:', e?.message);
+    res.status(502).json({ error: 'Não consegui explicar agora. Tente novamente.' });
   }
 });
 
