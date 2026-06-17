@@ -7,7 +7,7 @@ set -euo pipefail
 CONTAINER_NAME="${POSTGRES_CONTAINER_NAME:-janocaminho-postgres}"
 DB_NAME="${PGDATABASE:-meus_exames}"
 USER_NAME="${PGUSER:-postgres}"
-OUT_DIR="${BACKUP_DIR:-/var/backups/meus-exames}"
+OUT_DIR="${BACKUP_DIR:-$HOME/backups/meus-exames}"
 S3_BUCKET="${BACKUP_S3_BUCKET:-jnc-db-backups-prod-222984221398}"
 S3_PREFIX="${BACKUP_S3_PREFIX:-postgres/${DB_NAME}}"
 S3_STORAGE_CLASS="${BACKUP_S3_STORAGE_CLASS:-STANDARD}"

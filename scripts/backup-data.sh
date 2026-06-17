@@ -4,7 +4,7 @@ set -euo pipefail
 # Roda no EC2 (cron). S3 via role da instancia.
 APP_DIR="${APP_DIR:-$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)}"
 DATA_DIR="${DATA_DIR:-$APP_DIR/data}"
-OUT_DIR="${BACKUP_DIR:-/var/backups/meus-exames}"
+OUT_DIR="${BACKUP_DIR:-$HOME/backups/meus-exames}"
 S3_BUCKET="${BACKUP_S3_BUCKET:-jnc-db-backups-prod-222984221398}"
 S3_PREFIX="${BACKUP_S3_DATA_PREFIX:-data/meus-exames}"
 S3_SSE="${BACKUP_S3_SSE:-AES256}"
