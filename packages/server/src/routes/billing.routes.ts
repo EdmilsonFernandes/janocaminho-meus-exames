@@ -64,12 +64,12 @@ router.get('/credits/history', requireAuth, async (req: AuthedRequest, res, next
       items.push({
         kind: 'debit', id: 'a' + a.id, createdAt: a.createdAt,
         label: a.type === 'CHAT' ? 'Chat com a IA' : a.examId ? 'Resumo do exame' : 'Relatório consolidado',
-        patient: pmap.get(a.patientId) ?? null,
+        patient: (a.patientId && pmap.get(a.patientId)) || null,
         amount: -(a.type === 'CHAT' ? CREDIT_COSTS.chat : a.examId ? CREDIT_COSTS.summary : CREDIT_COSTS.consolidated),
       });
     }
     for (const s of subs) {
-      items.push({ kind: 'credit', id: 's' + s.id, createdAt: s.updatedAt, label: `Compra de créditos — R$ ${Number(s.amount).toFixed(2).replace('.', ',')}`, patient: null, amount: creditsForPrice(s.amount) });
+      items.push({ kind: 'credit', id: 's' + s.id, createdAt: s.updatedAt, label: `Compra de créditos — R$ ${Number(s.amount).toFixed(2).replace('.', ',')}`, patient: null, amount: creditsForPrice(Number(s.amount)) });
     }
     items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     res.json({ items });
