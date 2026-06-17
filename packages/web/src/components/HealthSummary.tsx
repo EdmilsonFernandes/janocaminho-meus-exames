@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Card, CardContent, Typography, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Chip, Stack, Divider, Button, IconButton } from '@mui/material';
+import { Card, CardContent, Typography, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Chip, Stack, Divider, Button, IconButton, Accordion, AccordionSummary, AccordionDetails, useMediaQuery, useTheme, Popover } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PrintIcon from '@mui/icons-material/Print';
 import { DrExame } from './DrExame';
 import ShareIcon from '@mui/icons-material/Share';
@@ -45,10 +46,39 @@ const Variation = ({ anterior, atual, leitura }: { anterior?: string | null; atu
 
 const asArr = (x: any): any[] => (Array.isArray(x) ? x : x == null ? [] : [x]);
 
+/** Nome de exame: trunca em 2 linhas; se longo, clica e abre popover com o texto completo + "entenda". */
+export const NameToggle = ({ name, entenda }: { name: string; entenda?: string | null }) => {
+  const [a, setA] = useState<HTMLElement | null>(null);
+  const long = (name || '').length > 24;
+  return (
+    <>
+      <Box
+        component="span"
+        onClick={long ? (e) => { e.stopPropagation(); setA(e.currentTarget); } : undefined}
+        sx={{
+          fontWeight: 700, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+          cursor: long ? 'pointer' : 'default', minWidth: 0,
+        }}
+      >
+        {name}{long && <Box component="span" sx={{ color: 'primary.main', fontSize: 12, ml: 0.5 }}>…mais</Box>}
+      </Box>
+      <Popover open={!!a} anchorEl={a} onClose={() => setA(null)} anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        slotProps={{ paper: { sx: { maxWidth: 340, borderRadius: 3 } } }}>
+        <Box sx={{ p: 2, maxWidth: 340 }}>
+          <Typography sx={{ fontWeight: 800, color: '#178f89' }}>{name}</Typography>
+          {entenda && <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>💡 {entenda}</Typography>}
+        </Box>
+      </Popover>
+    </>
+  );
+};
+
 export const HealthSummary = ({ analysis }: { analysis?: any }) => {
   const raw: Summary | undefined = analysis?.structured;
   const contentMd: string | undefined = analysis?.contentMd;
   const [shareOpen, setShareOpen] = useState(false);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   // Normaliza: a IA às vezes devolve esses campos como string/null em vez de array — força array p/ não quebrar o .map
   const structured: Summary | undefined = raw
     ? {
@@ -99,11 +129,20 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
     );
   }
 
-  const SectionCard = ({ icon, title, color, children }: any) => (
-    <Box sx={{ mt: 2, p: 2, borderRadius: 3, background: `${color}08`, border: `1px solid ${color}22`, borderLeft: `4px solid ${color}` }}>
-      <Typography sx={{ fontWeight: 800, color, mb: 1, display: 'flex', alignItems: 'center', gap: 1, fontSize: '1.05rem' }}>{icon} {title}</Typography>
-      {children}
-    </Box>
+  // Seção colapsável (Accordion) — acaba com o "scroll infinito" da análise.
+  const AccordionSection = ({ icon, title, color, count, defaultExpanded = false, children }: any) => (
+    <Accordion defaultExpanded={defaultExpanded} disableGutters elevation={0} sx={{
+      mt: 1.5, borderRadius: '12px !important', overflow: 'hidden',
+      background: `${color}08`, border: `1px solid ${color}22`, borderLeft: `4px solid ${color}`, '&:before': { display: 'none' },
+    }}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '48px !important', '& .MuiAccordionSummary-content': { my: 0.75 } }}>
+        <Typography sx={{ fontWeight: 800, color, display: 'flex', alignItems: 'center', gap: 1, fontSize: '1.02rem' }}>
+          <Box component="span" sx={{ fontSize: '1.1rem' }}>{icon}</Box> {title}
+          {count != null && <Chip size="small" label={count} sx={{ ml: 0.5, bgcolor: `${color}22`, color, height: 20, fontWeight: 700 }} />}
+        </Typography>
+      </AccordionSummary>
+      <AccordionDetails sx={{ pt: 1, pb: 2, px: 2 }}>{children}</AccordionDetails>
+    </Accordion>
   );
 
   return (
@@ -132,29 +171,48 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
 
         {/* Comparativo */}
         {structured.comparativo && structured.comparativo.length > 0 && (
-          <SectionCard icon="📊" title="Comparativo (anterior × atual)" color="#1565c0">
-            <TableContainer component={Paper} variant="outlined" sx={{ border: 'none' }}>
-              <Table size="small">
-                <TableHead>
-                  <TableRow sx={{ '& th': { fontWeight: 700, bgcolor: '#eef3fb', borderBottom: '2px solid #1565c0' } }}>
-                    <TableCell>Exame</TableCell>
-                    <TableCell align="center">Anterior</TableCell>
-                    <TableCell align="center">Atual</TableCell>
-                    <TableCell align="center">Variação</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {structured.comparativo.map((c, i) => (
-                    <TableRow key={i} sx={{ '&:hover': { bgcolor: '#f8fbff' }, '& td': { py: 1.2, fontSize: '0.95rem' } }}>
-                      <TableCell sx={{ fontWeight: 600 }}>{c.name}</TableCell>
-                      <TableCell align="center" sx={{ color: 'text.secondary' }}>{c.anterior || '—'}</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 800, fontSize: '1.1rem !important' }}>{c.atual || '—'}</TableCell>
-                      <TableCell align="center"><Variation anterior={c.anterior} atual={c.atual} leitura={c.leitura} /></TableCell>
+          <AccordionSection icon="📊" title="Comparativo (anterior × atual)" color="#1565c0" count={structured.comparativo.length} defaultExpanded>
+            {isMobile ? (
+              // Mobile: cards (não quebra labels como a tabela)
+              <Stack spacing={1}>
+                {structured.comparativo.map((c, i) => (
+                  <Box key={i} sx={{ p: 1.25, borderRadius: 2, bgcolor: '#f6faff', border: '1px solid #e0e8f5' }}>
+                    <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={1}>
+                      <NameToggle name={c.name} entenda={c.entenda} />
+                      <Variation anterior={c.anterior} atual={c.atual} leitura={c.leitura} />
+                    </Stack>
+                    <Stack direction="row" spacing={0.75} alignItems="baseline" sx={{ mt: 0.5 }} flexWrap="wrap">
+                      <Typography variant="body2" color="text.secondary">{c.anterior || '—'}</Typography>
+                      <Typography variant="body2" color="primary.main" sx={{ fontWeight: 800 }}>→</Typography>
+                      <Typography sx={{ fontWeight: 800, color: '#0b5cab' }}>{c.atual || '—'}</Typography>
+                    </Stack>
+                  </Box>
+                ))}
+              </Stack>
+            ) : (
+              <TableContainer component={Paper} variant="outlined" sx={{ border: 'none' }}>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow sx={{ '& th': { fontWeight: 700, bgcolor: '#eef3fb', borderBottom: '2px solid #1565c0' } }}>
+                      <TableCell>Exame</TableCell>
+                      <TableCell align="center">Anterior</TableCell>
+                      <TableCell align="center">Atual</TableCell>
+                      <TableCell align="center">Variação</TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                  </TableHead>
+                  <TableBody>
+                    {structured.comparativo.map((c, i) => (
+                      <TableRow key={i} sx={{ '&:hover': { bgcolor: '#f8fbff' }, '& td': { py: 1.2, fontSize: '0.95rem' } }}>
+                        <TableCell sx={{ fontWeight: 600, maxWidth: 240 }}><NameToggle name={c.name} entenda={c.entenda} /></TableCell>
+                        <TableCell align="center" sx={{ color: 'text.secondary' }}>{c.anterior || '—'}</TableCell>
+                        <TableCell align="center" sx={{ fontWeight: 800, fontSize: '1.1rem !important' }}>{c.atual || '—'}</TableCell>
+                        <TableCell align="center"><Variation anterior={c.anterior} atual={c.atual} leitura={c.leitura} /></TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
             {structured.comparativo.some((c) => c.entenda) && (
               <Box sx={{ mt: 1 }}>
                 {structured.comparativo.filter((c) => c.entenda).slice(0, 3).map((c, i) => (
@@ -162,28 +220,28 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
                 ))}
               </Box>
             )}
-          </SectionCard>
+          </AccordionSection>
         )}
 
         {/* Pontos de atenção */}
         {structured.pontosAtencao && structured.pontosAtencao.length > 0 && (
-          <SectionCard icon="🚩" title="Pontos que merecem atenção" color="#e65100">
+          <AccordionSection icon="🚩" title="Pontos que merecem atenção" color="#e65100" count={structured.pontosAtencao.length} defaultExpanded>
             {structured.pontosAtencao.map((p, i) => (
               <Box key={i} sx={{ mb: 1.5, '&:last-child': { mb: 0 } }}>
                 <Typography sx={{ fontWeight: 700, color: '#15233b' }}>{i + 1}. {p.titulo}</Typography>
                 <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.3 }}>{p.detalhe}</Typography>
               </Box>
             ))}
-          </SectionCard>
+          </AccordionSection>
         )}
 
         {/* Coisas boas */}
         {structured.coisasBoas && structured.coisasBoas.length > 0 && (
-          <SectionCard icon="✅" title="Coisas boas" color="#2e7d32">
+          <AccordionSection icon="✅" title="Coisas boas" color="#2e7d32">
             <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
               {structured.coisasBoas.map((b, i) => <Chip key={i} sx={{ bgcolor: '#2e7d3215', color: '#2e7d32', fontWeight: 600 }} label={b} />)}
             </Stack>
-          </SectionCard>
+          </AccordionSection>
         )}
 
         {/* Leitura final */}
@@ -196,52 +254,56 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
 
         {/* Perguntas */}
         {structured.perguntasParaOMedico && structured.perguntasParaOMedico.length > 0 && (
-          <SectionCard icon="🩺" title="Perguntas para levar ao médico" color="#7b1fa2">
+          <AccordionSection icon="🩺" title="Perguntas para levar ao médico" color="#7b1fa2" count={structured.perguntasParaOMedico.length}>
             {structured.perguntasParaOMedico.map((q, i) => (
               <Typography key={i} sx={{ py: 0.5, pl: 1, borderLeft: '3px solid #7b1fa233' }}>{i + 1}. {q}</Typography>
             ))}
-          </SectionCard>
+          </AccordionSection>
         )}
 
         {/* 💊 Interações medicamento × exame */}
         {structured.interacoesMedicamentos && structured.interacoesMedicamentos.length > 0 && (
-          <SectionCard icon="💊" title="Interações medicamento × exame" color="#d32f2f">
+          <AccordionSection icon="💊" title="Interações medicamento × exame" color="#d32f2f">
             {structured.interacoesMedicamentos.map((m, i) => (
               <Box key={i} sx={{ mb: 1, p: 1.5, borderRadius: 2, bgcolor: '#fff5f5' }}>
                 <Typography sx={{ fontWeight: 700, fontSize: '0.95rem' }}>{m.medicamento} → {m.analito}</Typography>
                 <Typography variant="body2" sx={{ color: 'text.secondary' }}>{m.observacao}</Typography>
               </Box>
             ))}
-          </SectionCard>
+          </AccordionSection>
         )}
 
         {/* 🥗 Sugestões de nutrição */}
         {structured.sugestoesNutricao && structured.sugestoesNutricao.length > 0 && (
-          <SectionCard icon="🥗" title="Sugestões de nutrição" color="#2e7d32">
+          <AccordionSection icon="🥗" title="Sugestões de nutrição" color="#2e7d32">
             {structured.sugestoesNutricao.map((s, i) => (
               <Typography key={i} sx={{ py: 0.3 }}>• {s}</Typography>
             ))}
-          </SectionCard>
+          </AccordionSection>
         )}
 
         {/* 👨‍👩‍👧 Comparação familiar */}
         {structured.comparacaoFamiliar && (
-          <SectionCard icon="👨‍👩‍👧" title="Comparação familiar" color="#7b1fa2">
+          <AccordionSection icon="👨‍👩‍👧" title="Comparação familiar" color="#7b1fa2">
             <Typography sx={{ lineHeight: 1.7 }}>{structured.comparacaoFamiliar}</Typography>
-          </SectionCard>
+          </AccordionSection>
         )}
 
         {/* 🎯 Metas de saúde */}
         {structured.metasSaude && structured.metasSaude.length > 0 && (
-          <SectionCard icon="🎯" title="Metas de saúde" color="#0288d1">
-            {structured.metasSaude.map((m, i) => (
-              <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                <Typography sx={{ fontWeight: 600, flex: 1 }}>{m.analito}</Typography>
-                <Typography sx={{ color: 'text.secondary', flex: 2 }}>{m.meta}</Typography>
-                {m.prazo && <Chip size="small" label={m.prazo} sx={{ bgcolor: '#0288d115', color: '#0288d1' }} />}
-              </Box>
-            ))}
-          </SectionCard>
+          <AccordionSection icon="🎯" title="Metas de saúde" color="#0288d1" count={structured.metasSaude.length}>
+            <Stack spacing={1}>
+              {structured.metasSaude.map((m, i) => (
+                <Box key={i} sx={{ p: 1.5, borderRadius: 2, bgcolor: '#f0f9ff', border: '1px solid #cfe8f5' }}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1} sx={{ mb: 0.5 }}>
+                    <Typography sx={{ fontWeight: 700, color: '#01579b' }}>🎯 {m.analito}</Typography>
+                    {m.prazo && <Chip size="small" label={m.prazo} sx={{ bgcolor: '#0288d115', color: '#0288d1', fontWeight: 700 }} />}
+                  </Stack>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.5, wordBreak: 'break-word' }}>{m.meta}</Typography>
+                </Box>
+              ))}
+            </Stack>
+          </AccordionSection>
         )}
 
         <Divider sx={{ my: 2 }} />

@@ -5,6 +5,7 @@ import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tool
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import { Flag } from '../components/Flag';
+import { ExplainButton } from '../components/ExplainItem';
 
 interface TS { nameCanonical: string; unit: string | null; refLow: number | null; refHigh: number | null;
   points: { performedAt: string | null; valueNumeric: number; flag: string; title: string }[]; }
@@ -89,6 +90,10 @@ export const TrendsPage = () => {
 
         {!loading && ts && ts.points.length > 0 && (
           <>
+            <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mb: 1 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#178f89' }}>{ts.nameCanonical}</Typography>
+              <ExplainButton name={ts.nameCanonical} nameCanonical={ts.nameCanonical} />
+            </Stack>
             <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mb: 1.5 }}>
               <Chip size="small" color="primary" label={`Último: ${data[data.length - 1].valor}${ts.unit ? ' ' + ts.unit : ''}`} />
               {predict?.dir === 'up' && <Chip size="small" color="warning" label="↑ Subindo" />}

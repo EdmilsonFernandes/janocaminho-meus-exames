@@ -10,6 +10,7 @@ import { ShareDialog } from '../components/ShareDialog';
 import { AnimatedDoctor } from '../components/AnimatedDoctor';
 import { ExplainButton } from '../components/ExplainItem';
 import { CreditBadge, CREDIT_COSTS } from '../components/CreditBadge';
+import { NameToggle } from '../components/HealthSummary';
 
 interface Summary {
   resumoGeral?: string;
@@ -185,9 +186,18 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
             {s.comparativo?.length ? (
               <Section title="Itens em destaque">
                 <Stack spacing={1}>{s.comparativo.map((c, i) => (
-                  <Box key={i} sx={{ wordBreak: 'break-word', display: 'flex', alignItems: 'flex-start', gap: 0.5 }}><Typography sx={{ flex: 1, minWidth: 0 }}><strong>{c.name}</strong>{c.atual ? ` — ${c.atual}` : ''} {c.leitura && `→ ${c.leitura}`}</Typography>
-                  <ExplainButton name={c.name} />
-                  {c.entenda && <Typography variant="body2" color="text.secondary" sx={{ flexBasis: '100%' }}>{c.entenda}</Typography>}</Box>
+                  <Box key={i} sx={{ p: 1.25, borderRadius: 2, bgcolor: '#f6faff', border: '1px solid #e0e8f5' }}>
+                    <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={1}>
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <NameToggle name={c.name} entenda={c.entenda} />
+                        <Typography variant="body2" sx={{ mt: 0.25 }}>
+                          {c.atual && <><strong>{c.atual}</strong>{' '}</>}
+                          {c.leitura && <span style={{ color: '#666' }}>→ {c.leitura}</span>}
+                        </Typography>
+                      </Box>
+                      <ExplainButton name={c.name} />
+                    </Stack>
+                  </Box>
                 ))}</Stack>
               </Section>
             ) : null}

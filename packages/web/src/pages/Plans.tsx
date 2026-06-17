@@ -155,27 +155,26 @@ export const PlansPage = () => {
       <Divider sx={{ my: 2 }}><Chip label="ou assine" /></Divider>
 
       {/* PLANO MENSAL */}
-      <Card sx={{ borderRadius: 4 }}>
+      <Card sx={{ borderRadius: 4, background: 'linear-gradient(135deg,#ffffff,#f1fafa)', border: '2px solid #20b2aa' }}>
         <CardContent>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="space-between" alignItems="center" flexWrap="wrap" useFlexGap>
-            <Box sx={{ flex: '1 1 60%', minWidth: 0 }}>
-              <Typography variant="h6" sx={{ fontWeight: 800 }}>Premium Mensal — 1.500 créditos/mês</Typography>
-              <Typography color="text.secondary" sx={{ fontSize: 14 }}>
-                1.500 créditos inclusos todo mês (renova sozinho). Cancele quando quiser.
-              </Typography>
-              <Box component="ul" sx={{ pl: 2.5, mt: 1, mb: 0, lineHeight: 1.7, fontSize: 14 }}>
-                <li>1.500 créditos inclusos por mês</li>
-                <li>Exames + dependentes</li>
-                <li>Relatório completo + impressão</li>
-              </Box>
+          <Typography variant="h6" sx={{ fontWeight: 800, color: '#178f89' }}>💎 Premium Mensal</Typography>
+          <Typography color="text.secondary" sx={{ fontSize: 14, mt: 0.5 }}>
+            1.500 créditos inclusos todo mês (renova sozinho). Cancele quando quiser.
+          </Typography>
+          <Box component="ul" sx={{ pl: 2.5, mt: 1.5, mb: 2, lineHeight: 1.8, fontSize: 14 }}>
+            <li>1.500 créditos de IA por mês</li>
+            <li>Exames + dependentes</li>
+            <li>Relatório completo + impressão</li>
+          </Box>
+          <Divider sx={{ mb: 2 }} />
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center" justifyContent="space-between" useFlexGap flexWrap="wrap">
+            <Box>
+              <Typography variant="h4" sx={{ fontWeight: 800, color: '#178f89', lineHeight: 1 }}>R$ 19,90</Typography>
+              <Typography color="text.secondary" sx={{ fontSize: 13 }}>/mês · sem anual · sem fidelidade</Typography>
             </Box>
-            <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="h4" sx={{ fontWeight: 800 }}>R$ 19,90</Typography>
-              <Typography color="text.secondary" sx={{ mb: 1 }}>/mês · sem anual</Typography>
-              <Button variant="contained" size="large" disabled={!mpOn || subLoading || !!status?.active} onClick={subscribe}>
-                {status?.active ? 'Ativo' : subLoading ? 'Abrindo…' : 'Assinar'}
-              </Button>
-            </Box>
+            <Button variant="contained" size="large" disabled={!mpOn || subLoading || !!status?.active} onClick={subscribe} sx={{ minWidth: 160 }}>
+              {status?.active ? '✓ Ativo' : subLoading ? 'Abrindo…' : 'Assinar mensal'}
+            </Button>
           </Stack>
         </CardContent>
       </Card>
