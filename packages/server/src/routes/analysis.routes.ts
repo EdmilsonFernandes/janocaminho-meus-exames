@@ -28,9 +28,8 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     // 1 resumo por exame: se já existe, devolve (não gasta tokens de novo)
     const existing = await prisma.aiAnalysis.findFirst({ where: { examId, type: 'SUMMARY' }, orderBy: { createdAt: 'desc' } });
     if (existing) { res.json(existing); return; }
-    const me = await prisma.user.findUnique({ where: { id: req.userId! }, select: { credits: true, planExpiresAt: true } });
-    const premium = !!me?.planExpiresAt && me.planExpiresAt > new Date();
-    if (!premium && (me?.credits ?? 0) < CREDIT_COSTS.summary) {
+    const me = await prisma.user.findUnique({ where: { id: req.userId! }, select: { credits: true } });
+    if ((me?.credits ?? 0) < CREDIT_COSTS.summary) {
       res.status(402).json({ error: 'insufficient_credits', message: 'Sem créditos suficientes. Compre um pacote de créditos para gerar análises com IA.' });
       return;
     }
@@ -45,7 +44,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
         tokenUsage: usage as any,
       },
     });
-    if (!premium) await chargeCredits(req.userId!, CREDIT_COSTS.summary);
+    await chargeCredits(req.userId!, CREDIT_COSTS.summary);
     res.status(201).json(analysis);
   } catch (e: any) {
     if (!res.headersSent) next(e);
@@ -74,9 +73,8 @@ router.post('/consolidated', async (req: AuthedRequest, res, next) => {
       orderBy: { createdAt: 'desc' },
     });
     if (recent) { res.json({ ...recent, sourceExams }); return; }
-    const me = await prisma.user.findUnique({ where: { id: req.userId! }, select: { credits: true, planExpiresAt: true } });
-    const premium = !!me?.planExpiresAt && me.planExpiresAt > new Date();
-    if (!premium && (me?.credits ?? 0) < CREDIT_COSTS.consolidated) {
+    const me = await prisma.user.findUnique({ where: { id: req.userId! }, select: { credits: true } });
+    if ((me?.credits ?? 0) < CREDIT_COSTS.consolidated) {
       res.status(402).json({ error: 'insufficient_credits', message: 'Sem créditos suficientes. Compre um pacote para gerar o relatório completo.' });
       return;
     }
@@ -85,7 +83,7 @@ router.post('/consolidated', async (req: AuthedRequest, res, next) => {
       const analysis = await prisma.aiAnalysis.create({
         data: { patientId, examId: null, type: 'SUMMARY', contentMd, structured: summary as any, modelUsed, tokenUsage: usage as any },
       });
-      if (!premium) await chargeCredits(req.userId!, CREDIT_COSTS.consolidated);
+      await chargeCredits(req.userId!, CREDIT_COSTS.consolidated);
       res.status(201).json({ ...analysis, sourceExams });
     } catch (genErr: any) {
       // RAG: se a (re)geração falhou, devolve o ÚLTIMO relatório salvo em vez de erro

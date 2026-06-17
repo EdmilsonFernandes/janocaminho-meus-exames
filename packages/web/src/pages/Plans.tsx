@@ -21,15 +21,18 @@ export const PlansPage = () => {
   const [plans, setPlans] = useState<PlanInfo | null>(null);
   const [subLoading, setSubLoading] = useState(false);
   const [pixPack, setPixPack] = useState<string | null>(null);
+  const [hist, setHist] = useState<any[]>([]);
 
   const load = async () => {
     const h = { Authorization: `Bearer ${token()}` };
-    const [s, p] = await Promise.all([
+    const [s, p, hi] = await Promise.all([
       fetch(`${API_URL}/billing/status`, { headers: h }),
       fetch(`${API_URL}/billing/plans`),
+      fetch(`${API_URL}/billing/credits/history`, { headers: h }),
     ]);
     if (s.ok) setStatus(await s.json());
     if (p.ok) setPlans(await p.json());
+    if (hi.ok) setHist((await hi.json()).items ?? []);
   };
   useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
 
@@ -90,6 +93,24 @@ export const PlansPage = () => {
         </CardContent>
       </Card>
 
+      {/* CONSUMO RECENTE */}
+      {hist.length > 0 && (
+        <Card sx={{ mb: 2, borderRadius: 4 }}><CardContent>
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>Consumo recente de créditos</Typography>
+          <Stack divider={<Divider />} spacing={0}>
+            {hist.slice(0, 8).map((it) => (
+              <Stack key={it.id} direction="row" justifyContent="space-between" alignItems="center" sx={{ py: 0.75 }}>
+                <Box>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>{it.label}</Typography>
+                  <Typography variant="caption" color="text.secondary">{new Date(it.createdAt).toLocaleString('pt-BR')}</Typography>
+                </Box>
+                <Chip size="small" label={`-${it.cost}`} sx={{ bgcolor: 'rgba(239,68,68,.1)', color: 'error.main', fontWeight: 700 }} />
+              </Stack>
+            ))}
+          </Stack>
+        </CardContent></Card>
+      )}
+
       {/* PACOTES DE CRÉDITOS */}
       <Typography variant="h6" sx={{ mt: 1, mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}><BoltIcon color="secondary" /> Comprar créditos (PIX instantâneo)</Typography>
       <Grid container spacing={2} sx={{ mb: 3 }}>
@@ -115,13 +136,13 @@ export const PlansPage = () => {
         <CardContent>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="space-between" alignItems="center" flexWrap="wrap" useFlexGap>
             <Box sx={{ flex: '1 1 60%', minWidth: 0 }}>
-              <Typography variant="h6" sx={{ fontWeight: 800 }}>Premium Mensal — IA ilimitada</Typography>
+              <Typography variant="h6" sx={{ fontWeight: 800 }}>Premium Mensal — 1.000 créditos/mês</Typography>
               <Typography color="text.secondary" sx={{ fontSize: 14 }}>
-                Exames, comparativos, relatórios, tendências e chat <strong>sem gastar créditos</strong>. Cancele quando quiser.
+                1.000 créditos inclusos todo mês (renova sozinho). Cancele quando quiser.
               </Typography>
               <Box component="ul" sx={{ pl: 2.5, mt: 1, mb: 0, lineHeight: 1.7, fontSize: 14 }}>
-                <li>IA ilimitada (não consome créditos)</li>
-                <li>Exames ilimitados + dependentes</li>
+                <li>1.000 créditos inclusos por mês</li>
+                <li>Exames + dependentes</li>
                 <li>Relatório completo + impressão</li>
               </Box>
             </Box>

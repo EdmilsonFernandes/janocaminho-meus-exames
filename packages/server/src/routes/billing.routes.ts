@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { prisma } from '../prisma';
 import { config, hasMercadoPago } from '../config';
 import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
+import { CREDIT_COSTS } from '../utils/credits';
 
 const router = Router();
 
@@ -44,6 +45,27 @@ router.get('/status', requireAuth, async (req: AuthedRequest, res, next) => {
       return s + (Number(u?.input_tokens ?? 0) + Number(u?.output_tokens ?? 0));
     }, 0);
     res.json({ active, planExpiresAt: user?.planExpiresAt ?? null, examsCount, freeExamLimit: config.freeExamLimit, credits: user?.credits ?? 0, tokensUsed });
+  } catch (e) { next(e); }
+});
+
+// HISTÓRICO de consumo de créditos (cada análise de IA = um gasto)
+router.get('/credits/history', requireAuth, async (req: AuthedRequest, res, next) => {
+  try {
+    const pids = await userPatientIds(req.userId!);
+    const rows = await prisma.aiAnalysis.findMany({
+      where: { patientId: { in: pids } },
+      orderBy: { createdAt: 'desc' },
+      take: 30,
+      select: { id: true, type: true, examId: true, createdAt: true },
+    });
+    const items = rows.map((r) => ({
+      id: r.id,
+      type: r.type,
+      createdAt: r.createdAt,
+      label: r.type === 'CHAT' ? 'Chat com a IA' : r.examId ? 'Resumo do exame' : 'Relatório consolidado',
+      cost: r.type === 'CHAT' ? CREDIT_COSTS.chat : r.examId ? CREDIT_COSTS.summary : CREDIT_COSTS.consolidated,
+    }));
+    res.json({ items });
   } catch (e) { next(e); }
 });
 
@@ -174,13 +196,13 @@ router.post('/webhook', async (req, res) => {
                 console.log(`[billing] créditos +${credits} p/ user ${sub.userId} (sub ${sub.id})`);
               }
             } else if (sub.periodDays > 0) {
-              // PLANO MENSAL
+              // PLANO MENSAL — ativa + concede pacote mensal de créditos (NÃO é ilimitado)
               const expires = new Date(Date.now() + sub.periodDays * 86400000);
               await prisma.$transaction([
                 prisma.subscription.update({ where: { id: sub.id }, data: { status: 'APPROVED', mpPaymentId: String(paymentId) } }),
-                prisma.user.update({ where: { id: sub.userId }, data: { planExpiresAt: expires } }),
+                prisma.user.update({ where: { id: sub.userId }, data: { planExpiresAt: expires, credits: { increment: 1000 } } }),
               ]);
-              console.log(`[billing] mensal aprovado — user ${sub.userId} ativo até ${expires.toISOString()}`);
+              console.log(`[billing] mensal aprovado — user ${sub.userId} +1000 créditos, ativo até ${expires.toISOString()}`);
             }
           }
         }

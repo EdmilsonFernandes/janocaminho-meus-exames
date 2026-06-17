@@ -43,6 +43,8 @@ import { ProfilePage } from './pages/Profile';
 import { LoginPage, RegisterPage, ResetPage } from './pages/Auth';
 import { LandingPage } from './pages/Landing';
 import { PatientSwitcher } from './components/PatientSwitcher';
+import { CreditsChip } from './components/CreditsChip';
+import { FloatingChat } from './components/FloatingChat';
 import { initPush } from './push';
 
 // AppBar: só o seletor de paciente (titular = quem loga) + botão Sair (sem conflito de avatares)
@@ -54,6 +56,7 @@ const CustomAppBar = (props: AppBarProps) => {
     <AppBar {...props} userMenu={false}>
       {isDesktop && <TitlePortal />}
       <Box sx={{ flex: 1 }} />
+      <CreditsChip />
       <PatientSwitcher />
       <IconButton color="inherit" onClick={() => logout()} title="Sair" size="small"
         sx={{ ml: 0.5, bgcolor: 'rgba(0,0,0,0.05)', '&:hover': { bgcolor: 'rgba(0,0,0,0.1)' } }}>
@@ -87,7 +90,12 @@ const AppMenu = () => (
   </Menu>
 );
 
-const AppLayout = (props: any) => <Layout {...props} menu={AppMenu} appBar={CustomAppBar} />;
+const AppLayout = (props: any) => (
+  <>
+    <Layout {...props} menu={AppMenu} appBar={CustomAppBar} />
+    <FloatingChat />
+  </>
+);
 
 export const App = () => {
   useEffect(() => { void initPush(); }, []);

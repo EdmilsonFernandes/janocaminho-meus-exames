@@ -149,7 +149,7 @@ export async function generateHealthSummary(examId: string): Promise<{ summary: 
         role: 'user',
         content:
           `Analise o exame abaixo em português, no estilo "comparativo do atual vs. anterior".\n` +
-          `PACIENTE: ${(exam.rawExtraction as any)?.patientName ?? exam.patient?.fullName ?? 'Não identificado'}\n` +
+          `PACIENTE: ${exam.patient?.fullName ?? 'Não identificado'}\n` +
           `EXAME: ${exam.title} (tipo: ${exam.kind})` +
           (exam.performedAt ? ` — data: ${exam.performedAt.toLocaleDateString('pt-BR')}` : '') + '\n' +
           `LABORATÓRIO: ${exam.sourceLab ?? (exam.rawExtraction as any)?.sourceLab ?? 'Não identificado'}\n` +

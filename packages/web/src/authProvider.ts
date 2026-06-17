@@ -17,14 +17,19 @@ export const authProvider = {
     if (!r.ok) throw new Error('Credenciais inválidas');
     const { token, patientId, user } = await r.json();
     localStorage.setItem('token', token);
-    if (patientId) localStorage.setItem('patientId', patientId);
+    // Zera perfil de outra conta (evita vazar paciente de sessão anterior) e fixa o do usuário logado
+    localStorage.removeItem('selPatientId');
+    if (patientId) { localStorage.setItem('patientId', patientId); localStorage.setItem('selPatientId', patientId); }
     localStorage.setItem('user', JSON.stringify(user));
+    window.dispatchEvent(new Event('selPatientChanged'));
   },
 
   async logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('patientId');
+    localStorage.removeItem('selPatientId');
     localStorage.removeItem('user');
+    window.dispatchEvent(new Event('selPatientChanged'));
   },
 
   async checkAuth() {
