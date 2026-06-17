@@ -148,6 +148,7 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
     }
     const pay: any = await r.json();
     const td = pay?.point_of_interaction?.transaction_data;
+    console.log('[buy-credits] MP payment:', pay.id, '| status:', pay.status, '| tem QR:', !!td?.qr_code_base64, '| tem td:', !!td, '| msg:', pay.message || pay.error);
     await prisma.subscription.update({ where: { id: sub.id }, data: { mpPaymentId: String(pay.id) } });
     res.json({
       paymentId: String(pay.id),
