@@ -192,10 +192,10 @@ router.get('/abnormal', async (req: AuthedRequest, res, next) => {
     const rows = await prisma.examItem.findMany({
       where: { isAbnormal: true, exam: { patientId: scope, status: 'EXTRACTED' } },
       orderBy: { exam: { performedAt: 'desc' } },
-      include: { exam: { select: { title: true, performedAt: true } } },
+      include: { exam: { select: { id: true, title: true, performedAt: true } } },
       take: 300,
     });
-    res.json({ items: rows.map((i) => ({ id: i.id, name: i.name, valueText: i.valueText, unit: i.unit, flag: i.flag, refText: i.refText, examTitle: i.exam.title, performedAt: i.exam.performedAt })) });
+    res.json({ items: rows.map((i) => ({ id: i.id, examId: i.exam.id, name: i.name, nameCanonical: i.nameCanonical, valueText: i.valueText, unit: i.unit, flag: i.flag, refText: i.refText, examTitle: i.exam.title, performedAt: i.exam.performedAt })) });
   } catch (e) { next(e); }
 });
 

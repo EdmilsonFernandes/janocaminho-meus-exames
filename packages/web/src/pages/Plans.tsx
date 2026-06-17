@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, Button, Grid, Chip, Alert, Stack, Divider } from '@mui/material';
+import { Box, Card, CardContent, Typography, Button, Chip, Alert, Stack, Divider } from '@mui/material';
 import CheckIcon from '@mui/icons-material/CheckCircle';
 import BoltIcon from '@mui/icons-material/Bolt';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
@@ -136,21 +136,19 @@ export const PlansPage = () => {
 
       {/* PACOTES DE CRÉDITOS */}
       <Typography variant="h6" sx={{ mt: 1, mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}><BoltIcon color="secondary" /> Comprar créditos (PIX instantâneo)</Typography>
-      <Grid container spacing={2} sx={{ mb: 3 }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr' }, gap: 2, mb: 3, maxWidth: '100%' }}>
         {packs.map((p) => (
-          <Grid size={{ xs: 12, sm: 4 }} key={p.id}>
-            <Card sx={{ height: '100%', borderRadius: 4, border: p.popular ? '2px solid #20b2aa' : '1px solid #e2e8f0' }}>
-              {p.popular && <Box sx={{ textAlign: 'center', pt: 1.5 }}><Chip color="primary" label="MAIS VENDIDO" size="small" /></Box>}
-              <CardContent sx={{ textAlign: 'center', pt: p.popular ? 1 : 2 }}>
-                <Typography sx={{ fontWeight: 800, fontSize: 28, color: 'primary.main' }}>{p.credits}</Typography>
-                <Typography color="text.secondary">créditos</Typography>
-                <Typography variant="h5" sx={{ my: 1, fontWeight: 800 }}>R$ {p.price.toFixed(2).replace('.', ',')}</Typography>
-                <Button variant={p.popular ? 'contained' : 'outlined'} fullWidth disabled={!mpOn} onClick={() => setPixPack(p.id)}>Comprar via PIX</Button>
-              </CardContent>
-            </Card>
-          </Grid>
+          <Card key={p.id} sx={{ borderRadius: 4, border: p.popular ? '2px solid #20b2aa' : '1px solid #e2e8f0', minWidth: 0 }}>
+            {p.popular && <Box sx={{ textAlign: 'center', pt: 1.5 }}><Chip color="primary" label="MAIS VENDIDO" size="small" /></Box>}
+            <CardContent sx={{ textAlign: 'center', pt: p.popular ? 1 : 2 }}>
+              <Typography sx={{ fontWeight: 800, fontSize: 28, color: 'primary.main', lineHeight: 1.1 }}>{p.credits}</Typography>
+              <Typography color="text.secondary">créditos</Typography>
+              <Typography variant="h5" sx={{ my: 1, fontWeight: 800 }}>R$ {p.price.toFixed(2).replace('.', ',')}</Typography>
+              <Button variant={p.popular ? 'contained' : 'outlined'} fullWidth disabled={!mpOn} onClick={() => setPixPack(p.id)}>Comprar via PIX</Button>
+            </CardContent>
+          </Card>
         ))}
-      </Grid>
+      </Box>
 
       <Divider sx={{ my: 2 }}><Chip label="ou assine" /></Divider>
 

@@ -20,12 +20,20 @@ export const TimelinePage = () => {
   useEffect(() => {
     if (!pid) return;
     setLoading(true);
-    fetch(`${API_URL}/exams?_start=0&_end=100&patientId=${pid}`, { headers: { Authorization: `Bearer ${token()}` } })
-      .then((r) => r.json())
-      .then((rows: any[]) => setEvents(rows.filter((e: any) => e.status === 'EXTRACTED').map((e: any) => ({
-        id: e.id, date: e.performedAt, title: e.title, kind: e.kind, abnormalCount: e._count?.items ?? 0, itemCount: e._count?.items ?? 0,
-      }))))
-      .finally(() => setLoading(false));
+    const h = { Authorization: `Bearer ${token()}` };
+    // busca exames E itens fora-da-faixa; conta por exame p/ consistência (card = popup).
+    Promise.all([
+      fetch(`${API_URL}/exams?_start=0&_end=100&patientId=${pid}`, { headers: h }).then((r) => r.json()).catch(() => []),
+      fetch(`${API_URL}/items/abnormal?patientId=${pid}`, { headers: h }).then((r) => r.json()).catch(() => ({ items: [] })),
+    ]).then(([rows, abn]: any[]) => {
+      const byExam: Record<string, number> = {};
+      for (const it of abn?.items ?? []) byExam[it.examId] = (byExam[it.examId] ?? 0) + 1;
+      setEvents((rows as any[]).filter((e: any) => e.status === 'EXTRACTED').map((e: any) => ({
+        id: e.id, date: e.performedAt, title: e.title, kind: e.kind,
+        abnormalCount: byExam[e.id] ?? 0, // real (antes vinha _count.items = total, dava 61 vs 8)
+        itemCount: e._count?.items ?? 0,
+      })));
+    }).finally(() => setLoading(false));
   }, [pid]);
 
   const sorted = [...events].sort((a, b) => new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime()); // mais recente primeiro
