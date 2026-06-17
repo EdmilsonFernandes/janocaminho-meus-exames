@@ -63,14 +63,14 @@ export const PatientSwitcher = () => {
           maxWidth: { xs: 190, sm: 280 },
         }}
         startIcon={
-          <Avatar src={photoFor(current)} sx={{ width: 40, height: 40, bgcolor: 'primary.main', fontSize: 16, border: '2px solid #fff', boxShadow: '0 2px 6px rgba(0,0,0,.15)' }}>
+          <Avatar src={photoFor(current)} sx={{ width: 36, height: 36, bgcolor: 'primary.main', fontSize: 15, border: '2px solid #fff', boxShadow: '0 2px 6px rgba(0,0,0,.15)' }}>
             {current?.fullName?.charAt(0)?.toUpperCase()}
           </Avatar>
         }
-        endIcon={<KeyboardArrowDownIcon sx={{ opacity: 0.6 }} />}
+        endIcon={<KeyboardArrowDownIcon sx={{ opacity: 0.6, display: { xs: 'none', sm: 'block' } }} />}
       >
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.15, overflow: 'hidden' }}>
-          <Typography component="span" sx={{ fontSize: 13, fontWeight: 700, maxWidth: { xs: 64, sm: 140 }, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <Box sx={{ display: { xs: 'none', sm: 'flex' }, flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.15, overflow: 'hidden' }}>
+          <Typography component="span" sx={{ fontSize: 13, fontWeight: 700, maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {current?.fullName ?? 'Selecionar'}
           </Typography>
           {current?.relationship && (

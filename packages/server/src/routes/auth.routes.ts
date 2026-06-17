@@ -75,11 +75,15 @@ router.post('/forgot', async (req, res, next) => {
       const token = signResetToken(user.id);
       const base = (process.env.WEB_BASE_PATH ?? '').replace(/\/$/, '');
       const link = `${process.env.WEB_ORIGIN || 'http://localhost:5173'}${base}/recuperar-senha?token=${token}`;
-      await sendEmail({
-        to: user.email,
-        subject: 'Redefinição de senha — Meus Exames',
-        html: resetEmail(user.name, link),
-      }).catch((e) => console.error('[forgot] e-mail falhou:', e?.message));
+      try {
+        await sendEmail({
+          to: user.email,
+          subject: 'Redefinição de senha — Meus Exames',
+          html: resetEmail(user.name, link),
+        });
+      } catch (e: any) {
+        console.error('[forgot] falha SMTP:', e?.message);
+      }
     }
     res.json({ ok: true, message: 'Se o e-mail existir, enviamos o link de redefinição.' });
   } catch (e) { next(e); }
@@ -109,11 +113,21 @@ router.post('/otp/request', async (req, res, next) => {
     const email = String(req.body?.email ?? '').toLowerCase().trim();
     if (!email) { res.status(400).json({ error: 'Informe o e-mail.' }); return; }
     const code = issueOtp(email);
-    await sendEmail({
-      to: email,
-      subject: 'Seu código de acesso — Meus Exames',
-      html: otpEmail(email.split('@')[0], code),
-    }).catch((e) => console.error('[otp] e-mail falhou:', e?.message));
+    const masked = email.replace(/^(.{1,2}).*(@)/, '$1***$2');
+    try {
+      const r = await sendEmail({
+        to: email,
+        subject: 'Seu código de acesso — Meus Exames',
+        html: otpEmail(email.split('@')[0], code),
+      });
+      if (!r.sent) console.warn('[otp] e-mail NÃO enviado (sem SMTP / dev) p/', masked);
+      else console.log('[otp] código enviado p/', masked);
+    } catch (e: any) {
+      // Falha de transporte (auth/config/conexão/rejeição síncrona) — feedback real, não "mentira".
+      console.error('[otp] falha SMTP p/', masked, ':', e?.message);
+      res.status(502).json({ error: 'Não conseguimos enviar o e-mail agora. Verifique o endereço e tente novamente.' });
+      return;
+    }
     res.json({ ok: true, message: 'Se o e-mail for válido, enviamos o código.' });
   } catch (e) { next(e); }
 });

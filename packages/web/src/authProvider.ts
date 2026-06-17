@@ -33,14 +33,16 @@ export const authProvider = {
   },
 
   async checkAuth() {
-    if (!localStorage.getItem('token')) throw new Error('not-authenticated');
+    // Sem token: redireciona pro login. Mensagem vazia = não mostra notificação técnica assustadora.
+    if (!localStorage.getItem('token')) throw new Error('');
   },
 
   async checkError(error: any) {
     const status = error?.status ?? error?.message?.status;
     if (status === 401 || status === 403) {
       localStorage.removeItem('token');
-      throw new Error('session-expired');
+      // Sessão expirada: mensagem amigável em PT (não o cru "session-expired").
+      throw new Error('Sua sessão expirou. Faça login novamente.');
     }
   },
 

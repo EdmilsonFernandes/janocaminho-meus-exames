@@ -53,6 +53,11 @@ export const LoginPage = () => {
       const r = await fetch(`${import.meta.env.VITE_API_URL}/auth/otp/request`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email.trim() }),
       });
+      if (!r.ok) {
+        const d = await r.json().catch(() => ({}));
+        notify(d.error || 'Não conseguimos enviar o código agora.', { type: 'error' });
+        return;
+      }
       notify('Enviamos o código no seu e-mail (cheque também o spam).', { type: 'success' });
       setMode('otp-code');
     } catch { notify('Falha ao enviar o código.', { type: 'error' }); }
@@ -137,11 +142,17 @@ export const RegisterPage = () => {
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Falha no cadastro');
       // 2. envia código OTP (NÃO loga — precisa confirmar o e-mail)
-      await fetch(`${import.meta.env.VITE_API_URL}/auth/otp/request`, {
+      const r2 = await fetch(`${import.meta.env.VITE_API_URL}/auth/otp/request`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim() }),
       });
-      notify('Conta criada! Enviamos um código para seu e-mail.', { type: 'success' });
+      if (!r2.ok) {
+        const d2 = await r2.json().catch(() => ({}));
+        // conta foi criada, mas o e-mail não saiu — avisa e ainda assim deixa colar o código se chegar
+        notify(d2.error || 'Criamos a conta, mas o código não saiu. Toque em reenviar.', { type: 'warning' });
+      } else {
+        notify('Conta criada! Enviamos um código para seu e-mail.', { type: 'success' });
+      }
       setStage('verify'); // pede o código
     } catch (err: any) {
       notify(err.message, { type: 'error' });
