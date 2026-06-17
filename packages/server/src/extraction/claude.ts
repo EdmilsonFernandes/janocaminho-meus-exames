@@ -34,6 +34,8 @@ ATENÇÃO AOS NOMES (PRECISÃO): patientName = o nome do PACIENTE, lido SEMPRE d
 
 NUNCA invente valor. Se não conseguir ler com confiança, omita o analito. Agrupe em "panels" pelo título da seção.
 
+CRÍTICO — ANTI-ALUCINAÇÃO: leia SEMPRE do documento real. Os valores/nomes do exemplo acima são SÓ exemplos — nunca os copie. Se o documento estiver ilegível/vazio ou você não conseguir ler os dados do paciente, devolva { patientName: "", requestingDoctor: "", panels: [] } — NUNCA invente um nome (ex.: "TESTE LABORATORIAL", "MÉDICO SOLICITANTE") nem valores. Para o VALOR de cada analito, leia a coluna RESULTADO/RESULTADO DO PACIENTE (não a coluna de referência/valor de referência).
+
 Devolva EXATAMENTE este formato JSON:
 {
   "patientName": "NOME COMPLETO do PACIENTE (campo 'Nome:' no cabeçalho — nunca o assinante/médico)",

@@ -163,7 +163,7 @@ export const ExamShow = () => {
       <Card>
         <CardContent>
           <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mb: 0.5 }}>
-            <Typography variant="h5" component="h1">{exam.title}</Typography>
+            <Typography variant="h5" component="h1" title={exam.title} sx={{ fontSize: { xs: '1.15rem', md: '1.5rem' }, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', minWidth: 0 }}>{exam.title}</Typography>
             <Chip color={statusColor[exam.status] ?? 'default'} label={statusLabel[exam.status] ?? exam.status} />
             {exam.kind === 'IMAGING' && <Chip variant="outlined" label="Imagem" />}
             {exam.kind === 'LAB_PANEL' && <Chip variant="outlined" label="Laboratorial" />}
