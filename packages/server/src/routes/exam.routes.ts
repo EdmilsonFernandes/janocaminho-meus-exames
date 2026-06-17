@@ -9,6 +9,7 @@ import { parseListParams, setListHeaders } from '../utils/list';
 import { serializeExam } from '../utils/serialize';
 import { runExtraction } from '../extraction/pipeline';
 import { config } from '../config';
+import { CREDIT_COSTS } from '../utils/credits';
 
 const router = Router();
 router.use(requireAuth);
@@ -86,15 +87,15 @@ router.post('/', upload.single('file'), async (req: AuthedRequest, res, next) =>
       return;
     }
 
-    // PAYWALL: free limit por parentesco (titular 5, dependente 3) — exceto plano ativo
-    const me = await prisma.user.findUnique({ where: { id: req.userId! }, select: { planExpiresAt: true } });
+    // PAYWALL: grátis = 3 exames. Além disso precisa de CRÉDITOS (cada upload debita 5 na
+    // extração) OU plano ativo (ilimitado). Antes o limite bloqueava mesmo quem tinha crédito.
+    const me = await prisma.user.findUnique({ where: { id: req.userId! }, select: { planExpiresAt: true, credits: true } });
     const active = !!me?.planExpiresAt && me.planExpiresAt > new Date();
     if (!active) {
-      const pat = await prisma.patient.findUnique({ where: { id: patientId }, select: { relationship: true } });
-      const limit = pat?.relationship === 'Titular' ? 5 : 3;
+      const limit = 3;
       const count = await prisma.exam.count({ where: { patientId } });
-      if (count >= limit) {
-        res.status(402).json({ error: 'free_limit', message: `Você atingiu o limite de ${limit} exames gratuitos${pat?.relationship === 'Titular' ? '' : ' por dependente'}. Assine para enviar mais.`, limit });
+      if (count >= limit && (!me || me.credits < CREDIT_COSTS.extraction)) {
+        res.status(402).json({ error: 'free_limit', message: `Você atingiu o limite de ${limit} exames gratuitos. Compre créditos (PIX) ou assine o mensal para enviar mais.`, limit });
         return;
       }
     }
