@@ -2,6 +2,7 @@ import { prisma } from '../prisma';
 import { config } from '../config';
 import { ExamKind, type ItemFlag } from '@prisma/client';
 import { readPdf, classifyKind, looksLikeMedical } from './pdfutil';
+import { classifyDoc } from './docPatterns';
 import { extractLabPanel, extractImaging } from './claude';
 import { canonicalName, computeFlag, parseNumeric } from '../utils/normalize';
 import { readExamFile, mediaTypeFromRef } from '../utils/storage';
@@ -68,6 +69,15 @@ async function runExtractionOnce(examId: string): Promise<void> {
     const { pageCount, text } = await readPdf(buffer);
     const kind: ExamKind = exam.kind !== 'OTHER' ? exam.kind : classifyKind(text);
 
+    // RAG de padrões: rejeita cedo (msg específica) documentos que claramente NÃO são
+    // exame (receita, nota fiscal, RG, rótulo...) — antes de gastar IA.
+    const cls = classifyDoc(text);
+    if (!cls.accept && cls.strong) {
+      await prisma.exam.update({ where: { id: examId }, data: { status: 'FAILED', extractionError: cls.reason } });
+      console.log(`[extraction] ${examId} rejeitado (padrão): ${cls.reason}`);
+      return;
+    }
+
     let title = exam.title;
     let performedAt = exam.performedAt;
     let sourceLab = exam.sourceLab;
@@ -104,11 +114,11 @@ async function runExtractionOnce(examId: string): Promise<void> {
       raw.nameMatch = computeNameMatch(String(raw.patientName), patient.fullName);
     }
 
-    // descarta documento que NÃO parece exame/laudo médico (sem itens e sem sinais médicos)
+    // descarta documento que NÃO parece exame/laudo médico (sem itens e sem sinais médicos) — msg do KB
     if (kind !== 'IMAGING' && items.length === 0 && !looksLikeMedical(text)) {
       await prisma.exam.update({
         where: { id: examId },
-        data: { status: 'FAILED', extractionError: 'Este documento não parece ser um exame ou laudo médico. Envie um resultado de exame (sangue, imagem ou laudo).' },
+        data: { status: 'FAILED', extractionError: cls.reason || 'Este documento não parece ser um exame ou laudo médico. Envie um resultado de exame (sangue, imagem ou laudo).' },
       });
       console.log(`[extraction] exame ${examId} descartado: não parece exame/laudo médico`);
       return;

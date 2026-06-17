@@ -157,7 +157,7 @@ export const PlansPage = () => {
         <CardContent>
           <Typography variant="h6" sx={{ fontWeight: 800, color: '#178f89' }}>💎 Premium Mensal</Typography>
           <Typography color="text.secondary" sx={{ fontSize: 14, mt: 0.5 }}>
-            1.500 créditos inclusos todo mês (renova sozinho). Cancele quando quiser.
+            1.500 créditos que <strong>somam</strong> ao seu saldo. Válido 30 dias. Seus créditos <strong>não expiram</strong> — você decide se renova.
           </Typography>
           <Box component="ul" sx={{ pl: 2.5, mt: 1.5, mb: 2, lineHeight: 1.8, fontSize: 14 }}>
             <li>1.500 créditos de IA por mês</li>
