@@ -11,15 +11,11 @@
     <style>
       /* Mobile: trava o overflow horizontal (tela não escorrega pro lado) */
       html, body, #root { max-width: 100vw; overflow-x: hidden; }
-      /* Feel de app nativo no iPhone: SEM "rebolada" lateral / rubber-band.
-         SÓ no mobile/touch — no desktop (mouse) não mexe (quebrou o scroll do mouse). */
-      @media (hover: none), (max-width: 599px) {
-        html, body {
-          overscroll-behavior-x: none;   /* sem bounce/arrasto horizontal */
-          overscroll-behavior-y: none;   /* sem rubber-band vertical no topo/fundo */
-          touch-action: pan-y;           /* só gesto de rolar vertical */
-        }
-      }
+      /* Mobile: trava o overflow horizontal (tela não escorrega pro lado).
+         (O CSS de "no-bounce" com touch-action/overscroll travava o scroll no mobile e
+         quebrava o scroll do mouse no desktop — removido. A trava lateral via overflow-x
+         já impede o arrasto pro lado, que era o problema relatado.) */
+      html, body, #root { max-width: 100vw; overflow-x: hidden; }
       body { -webkit-text-size-adjust: 100%; font-family: "Inter", "Segoe UI", Roboto, system-ui, sans-serif; }
       /* NUCLEAR: força TODOS os elementos a respeitar a largura da tela no mobile */
       *, *::before, *::after { box-sizing: border-box; }
