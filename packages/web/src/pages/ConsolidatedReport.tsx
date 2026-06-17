@@ -161,9 +161,13 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
               <Typography variant="h6" sx={{ fontWeight: 800 }}>Relatório consolidado 🩺</Typography>
               <Typography sx={{ fontSize: 13, opacity: 0.9 }}>Análise educativa — não substitui consulta médica</Typography>
             </Box>
-            <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+            <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" alignItems="center">
               <Button size="small" variant="outlined" sx={{ color: '#fff', borderColor: 'rgba(255,255,255,.6)' }} startIcon={<WhatsAppIcon />} onClick={() => setShareOpen(true)}>Compartilhar</Button>
               <Button size="small" variant="outlined" sx={{ color: '#fff', borderColor: 'rgba(255,255,255,.6)' }} startIcon={<PrintIcon />} onClick={printReport}>Imprimir / PDF</Button>
+              <Button size="small" variant="contained" sx={{ bgcolor: 'rgba(255,255,255,.18)' }} disabled={loading} onClick={generate} title="Regenera o relatório com os exames mais recentes">
+                {loading ? 'Atualizando…' : '↻ Atualizar'}
+              </Button>
+              <CreditBadge amount={CREDIT_COSTS.consolidated} />
             </Stack>
           </Box>
 

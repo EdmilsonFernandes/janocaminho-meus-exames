@@ -35,10 +35,11 @@ export async function streamChat(opts: {
   let full = '';
   const stream = client.messages.stream({
     model: MODEL,
-    max_tokens: 4000,
+    max_tokens: 900,
     system: [
       { type: 'text', text: HEALTH_SYSTEM, cache_control: { type: 'ephemeral' } },
       { type: 'text', text: contextText, cache_control: { type: 'ephemeral' } },
+      { type: 'text', text: 'ESTILO DO CHAT: seja CONCISO e DIRETO. Resposta curta (em geral 80-150 palavras), português simples. Vá direto ao ponto, NÃO repita a pergunta. Use markdown enxuto (negrado + listas curtas). Se o usuário perguntar algo assustador ("posso morrer?"), acalme com FATOS concretos do exame dele e oriente o médico — sem textão nem rodeios.' },
     ],
     messages,
   } as any);

@@ -5,6 +5,15 @@ import { Title, useNotify } from 'react-admin';
 import { API_URL, apiHeaders } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import { CreditBadge, CREDIT_COSTS } from '../components/CreditBadge';
+import { DrExame } from '../components/DrExame';
+import ReactMarkdown from 'react-markdown';
+
+const SUGGESTIONS = [
+  'Como está minha saúde no geral?',
+  'O que mudou no meu colesterol?',
+  'Quais valores devo preocupar?',
+  'O que perguntar pro médico?',
+];
 
 interface Msg { role: 'user' | 'assistant'; text: string }
 
@@ -93,24 +102,43 @@ export const ChatPage = () => {
           {/* área de mensagens (rolável) */}
           <Box ref={scrollRef} sx={{ flex: 1, minHeight: 0, overflowY: 'auto', p: 1, background: '#f3f6fb', borderRadius: 2 }}>
             {messages.length === 0 && (
-              <Typography variant="body2" color="text.secondary" sx={{ p: 2, textAlign: 'center' }}>
-                Ex.: “Como está minha saúde no geral?” ou “O que mudou no meu colesterol?”
-              </Typography>
+              <Box sx={{ textAlign: 'center', py: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1 }}><DrExame size={56} sx={{ borderRadius: '18%' }} /></Box>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>Olá! Sou o Dr. Exame. Toque numa sugestão ou pergunte à vontade:</Typography>
+                <Stack spacing={0.75} sx={{ maxWidth: 460, mx: 'auto' }}>
+                  {SUGGESTIONS.map((s) => (
+                    <Paper key={s} elevation={0} onClick={() => setInput(s)} sx={{ cursor: 'pointer', p: 1, px: 1.5, borderRadius: 2, border: '1px solid #d6e4ee', bgcolor: '#fff', textAlign: 'left', fontSize: 14, '&:hover': { bgcolor: '#eef7f6', borderColor: 'primary.main' } }}>
+                      💬 {s}
+                    </Paper>
+                  ))}
+                </Stack>
+              </Box>
             )}
             <Stack spacing={1.5}>
-              {messages.map((m, i) => (
-                <Box key={i} sx={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
-                  <Paper elevation={0} sx={{
-                    maxWidth: '85%', px: 1.5, py: 1, borderRadius: 2,
-                    bgcolor: m.role === 'user' ? 'primary.main' : '#ffffff',
-                    color: m.role === 'user' ? '#fff' : 'text.primary',
-                    border: m.role === 'user' ? 'none' : '1px solid #e0e6f0',
-                    whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-                  }}>
-                    {m.text || (busy && m.role === 'assistant' ? '…' : '')}
-                  </Paper>
-                </Box>
-              ))}
+              {messages.map((m, i) => {
+                const isLastAssistant = m.role === 'assistant' && i === messages.length - 1 && busy && !m.text;
+                return (
+                  <Box key={i} sx={{ display: 'flex', gap: 0.75, justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start', alignItems: 'flex-end' }}>
+                    {m.role === 'assistant' && <DrExame size={28} sx={{ borderRadius: '50%', flexShrink: 0, mb: 0.25 }} />}
+                    <Paper elevation={0} sx={{
+                      maxWidth: '82%', px: 1.5, py: 1, borderRadius: 2,
+                      bgcolor: m.role === 'user' ? 'primary.main' : '#ffffff',
+                      color: m.role === 'user' ? '#fff' : 'text.primary',
+                      border: m.role === 'user' ? 'none' : '1px solid #e0e6f0',
+                      wordBreak: 'break-word',
+                      '& p': { margin: '0.3em 0' }, '& h3': { fontSize: '0.95rem', fontWeight: 800, margin: '0.6em 0 0.2em', color: '#178f89' },
+                      '& ul, & ol': { margin: '0.3em 0', paddingLeft: '1.2em' }, '& li': { margin: '0.15em 0' },
+                      '& strong': { fontWeight: 700 }, '& code': { bgcolor: 'rgba(0,0,0,.06)', px: 0.4, borderRadius: 0.5, fontSize: '0.9em' },
+                    }}>
+                      {m.text
+                        ? (m.role === 'assistant'
+                          ? <ReactMarkdown>{m.text}</ReactMarkdown>
+                          : <Box sx={{ whiteSpace: 'pre-wrap' }}>{m.text}</Box>)
+                        : (isLastAssistant ? <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center', color: '#94a3b8' }}><CircularProgress size={14} /> Dr. Exame está escrevendo…</Box> : '')}
+                    </Paper>
+                  </Box>
+                );
+              })}
             </Stack>
           </Box>
 

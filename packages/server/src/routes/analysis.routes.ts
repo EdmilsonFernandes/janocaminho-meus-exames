@@ -208,7 +208,15 @@ router.post('/:id/share', async (req, res, next) => {
     const pin = String(Math.floor(100000 + Math.random() * 900000));
     const pinHash = crypto.createHash('sha256').update(`${pin}:${token}`).digest('hex');
     await prisma.aiAnalysis.update({ where: { id: a.id }, data: { shareToken: token, sharePin: pinHash } });
-    const base = (process.env.WEB_BASE_PATH ?? '').replace(/\/$/, '');
+    // base do sub-caminho (/minhasaude). WEB_BASE_PATH é a fonte; se vier vazio no container,
+    // deriva do Referer da página (ela tá em /minhasaude/#/...). Sem isso o link nasce sem o
+    // /minhasaude e o médico recebe 404 ("Cannot GET /api/public/shared/...").
+    let base = (process.env.WEB_BASE_PATH ?? '').replace(/\/$/, '');
+    if (!base) {
+      const ref = req.get('referer') || req.get('referrer') || '';
+      const m = ref.match(/^https?:\/\/[^/]+(\/[^/?#]+)/);
+      if (m) base = m[1].replace(/\/$/, '');
+    }
     const origin = process.env.WEB_ORIGIN || `${req.protocol}://${req.get('host')}`;
     const link = `${origin}${base}/api/public/shared/${token}`;
     res.json({ link, pin, expiresAt: new Date(expires).toISOString() });
