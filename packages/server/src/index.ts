@@ -94,7 +94,9 @@ app.get('/api/public/shared/:token', async (req, res) => {
     }
   }
   const a = await prisma.aiAnalysis.findFirst({
-    where: { shareToken: token, type: 'SUMMARY' },
+    // shareToken é único — NÃO filtra por type (antes exigia SUMMMARY e o relatório
+    // CONSOLIDADO, que é o principal compartilhado, caía em "Link inválido").
+    where: { shareToken: token },
     include: { exam: { select: { title: true, performedAt: true, sourceLab: true, patient: { select: { fullName: true } } } } },
   });
   if (!a) {
