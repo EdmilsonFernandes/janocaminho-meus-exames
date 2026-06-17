@@ -1,5 +1,5 @@
 import { List, Datagrid, TextField, DateField, FunctionField, ShowButton, DeleteButton, CreateButton, TopToolbar, SimpleList } from 'react-admin';
-import { Chip, useMediaQuery, useTheme } from '@mui/material';
+import { Chip, useMediaQuery, useTheme, Box } from '@mui/material';
 import ScienceIcon from '@mui/icons-material/Science';
 import ImageIcon from '@mui/icons-material/Image';
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
@@ -23,7 +23,9 @@ export const ExamList = () => {
   <List key={pid} sort={{ field: 'performedAt', order: 'DESC' }} exporter={false} perPage={25} filter={{ patientId: pid || 'none' }} actions={<ExamListActions />}>
     {isDesktop ? (
       <Datagrid bulkActionButtons={false} rowClick="show" sx={{ '& .MuiTableCell-root': { whiteSpace: 'normal', wordBreak: 'break-word' } }}>
-        <TextField source="title" label="Exame" />
+        <FunctionField label="Exame" render={(r: any) => (
+          <Box component="span" title={r.title} sx={{ display: 'inline-block', maxWidth: { xs: 140, md: 300 }, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', verticalAlign: 'bottom' }}>{r.title}</Box>
+        )} />
         <FunctionField label="Tipo" render={(r: any) => kindLabel[r.kind] ?? r.kind} />
         <DateField source="performedAt" label="Data" locales="pt-BR" />
         <FunctionField label="Status" render={(r: any) => <Chip size="small" color={statusColor[r.status] ?? 'default'} label={statusLabel[r.status] ?? r.status} />} />

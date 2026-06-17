@@ -156,6 +156,22 @@ router.get('/flag-summary', async (req: AuthedRequest, res, next) => {
   }
 });
 
+// VALORES ALTERADOS (todos os fora-da-faixa do paciente, do mais recente) — alimenta a página "Valores alterados"
+router.get('/abnormal', async (req: AuthedRequest, res, next) => {
+  try {
+    const pids = await userPatientIds(req.userId!);
+    const patientId = req.query.patientId ? String(req.query.patientId) : undefined;
+    const scope = patientId && pids.includes(patientId) ? patientId : { in: pids };
+    const rows = await prisma.examItem.findMany({
+      where: { isAbnormal: true, exam: { patientId: scope, status: 'EXTRACTED' } },
+      orderBy: { exam: { performedAt: 'desc' } },
+      include: { exam: { select: { title: true, performedAt: true } } },
+      take: 300,
+    });
+    res.json({ items: rows.map((i) => ({ id: i.id, name: i.name, valueText: i.valueText, unit: i.unit, flag: i.flag, refText: i.refText, examTitle: i.exam.title, performedAt: i.exam.performedAt })) });
+  } catch (e) { next(e); }
+});
+
 // LIST (react-admin)
 router.get('/', async (req: AuthedRequest, res, next) => {
   try {

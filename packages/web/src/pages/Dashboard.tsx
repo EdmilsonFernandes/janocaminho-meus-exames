@@ -107,11 +107,21 @@ export const Dashboard = () => {
                 {score >= 80 ? 'Tudo bem! A maioria dos seus valores está dentro da faixa.' : score >= 60 ? 'Atenção a alguns valores — vale conversar com seu médico.' : 'Vários valores fora da faixa no último exame — procure orientação médica.'}
               </Typography>
               <Typography variant="caption" color="text.secondary">*Baseado em todos os seus exames extraídos. Educativo, não substitui o médico.</Typography>
-              {credits != null && (
-                <Chip size="small" icon={<BoltIcon />} onClick={() => navigate('/planos')} clickable label={`${credits} créditos`}
-                  sx={{ mt: 1, fontWeight: 800, bgcolor: creditColor(credits) + '22', color: creditColor(credits), '& .MuiChip-icon': { color: creditColor(credits) } }} />
-              )}
             </Box>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Badge de créditos (separada do score) */}
+      {credits != null && (
+        <Card onClick={() => navigate('/planos')} sx={{ mt: 2, mb: 2, cursor: 'pointer', borderRadius: 4, background: creditColor(credits) + '14', border: `1px solid ${creditColor(credits)}44` }}>
+          <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 1.5, '&:last-child': { pb: 1.5 } }}>
+            <BoltIcon sx={{ color: creditColor(credits), fontSize: 30 }} />
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography sx={{ fontWeight: 800, fontSize: 18, color: creditColor(credits) }}>{credits} créditos disponíveis</Typography>
+              <Typography variant="caption" color="text.secondary">Toque para comprar mais ou ver o extrato</Typography>
+            </Box>
+            <Typography variant="button" sx={{ color: creditColor(credits), fontWeight: 700, display: { xs: 'none', sm: 'block' } }}>Planos →</Typography>
           </CardContent>
         </Card>
       )}
@@ -119,7 +129,7 @@ export const Dashboard = () => {
       {/* Contadores clicáveis */}
       <Grid container spacing={2} sx={{ mt: score === null ? 2 : 1, mb: 2 }}>
         {statCard('Exames enviados', stats.exams, 'primary.main', '/exams')}
-        {statCard('Valores alterados', stats.abnormal, stats.abnormal ? 'error.main' : 'success.main', '/relatorio')}
+        {statCard('Valores alterados', stats.abnormal, stats.abnormal ? 'error.main' : 'success.main', '/alterados')}
         {statCard('Perfis (dependentes)', deps, '#8b5cf6', '/familia')}
         {statCard('Última atualização', <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.2, mt: 1 }}>{lastExam ? new Date(lastExam).toLocaleDateString('pt-BR') : '—'}</Typography>, '#0ea5e9', '/linha-do-tempo')}
       </Grid>

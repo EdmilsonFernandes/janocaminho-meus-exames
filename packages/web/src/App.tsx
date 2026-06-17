@@ -39,6 +39,7 @@ import { ExpensesPage } from './pages/Expenses';
 import { EvolutionPage } from './pages/Evolution';
 import { FamilyPage } from './pages/Family';
 import { ConsolidatedReportPage } from './pages/ConsolidatedReport';
+import { ValoresAlteradosPage } from './pages/ValoresAlterados';
 import { ProfilePage } from './pages/Profile';
 import { LoginPage, RegisterPage, ResetPage } from './pages/Auth';
 import { LandingPage } from './pages/Landing';
@@ -152,6 +153,7 @@ export const App = () => {
       <Route path="/tendencias" element={<TrendsPage />} />
       <Route path="/linha-do-tempo" element={<TimelinePage />} />
       <Route path="/relatorio" element={<ConsolidatedReportPage />} />
+      <Route path="/alterados" element={<ValoresAlteradosPage />} />
       <Route path="/lembretes" element={<RemindersPage />} />
       <Route path="/medicoes" element={<MeasurementsPage />} />
       <Route path="/vacinas" element={<VaccinesPage />} />
