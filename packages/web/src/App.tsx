@@ -1,8 +1,9 @@
 import { Admin, Resource, CustomRoutes, Layout, Menu, AppBar, TitlePortal, AppBarProps, useLogout } from 'react-admin';
-import { Route } from 'react-router-dom';
+import { Route, useNavigate, useLocation } from 'react-router-dom';
 import { useEffect, useState, useRef } from 'react';
 import { Box, Typography, IconButton, useMediaQuery, useTheme, CircularProgress } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import InsightsIcon from '@mui/icons-material/Insights';
 import AutoGraphIcon from '@mui/icons-material/AutoGraph';
 import HistoryIcon from '@mui/icons-material/History';
@@ -53,8 +54,16 @@ const CustomAppBar = (props: AppBarProps) => {
   const logout = useLogout();
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('sm'));
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const canBack = !isDesktop && pathname !== '/'; // sub-páginas no mobile têm seta de voltar
   return (
     <AppBar {...props} userMenu={false}>
+      {canBack && (
+        <IconButton color="inherit" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))} title="Voltar" size="small" sx={{ mr: 0.5 }}>
+          <ArrowBackIcon fontSize="small" />
+        </IconButton>
+      )}
       {isDesktop && <TitlePortal />}
       <Box sx={{ flex: 1 }} />
       <CreditsChip />
@@ -122,7 +131,21 @@ const AppLayout = (props: any) => (
 );
 
 export const App = () => {
-  useEffect(() => { void initPush(); }, []);
+  useEffect(() => {
+    void initPush();
+    // Botão/gesto de voltar do Android (Capacitor) — volta no histórico ou sai do app na raiz
+    let remove: (() => void) | undefined;
+    (async () => {
+      try {
+        const [{ App }, { Capacitor }] = await Promise.all([import('@capacitor/app'), import('@capacitor/core')]);
+        if (Capacitor.isNativePlatform()) {
+          const h = await App.addListener('backButton', ({ canGoBack }) => { if (canGoBack) window.history.back(); else App.exitApp(); });
+          remove = () => { h.remove(); };
+        }
+      } catch { /* web: sem @capacitor — browser back já funciona */ }
+    })();
+    return () => { remove?.(); };
+  }, []);
   return (
   <Admin
     dataProvider={dataProvider}

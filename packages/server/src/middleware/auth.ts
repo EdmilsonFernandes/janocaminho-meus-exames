@@ -33,10 +33,12 @@ export async function userPatientIds(userId: string): Promise<string[]> {
   return rows.map((r) => r.id);
 }
 
-/** Devolve o 1º paciente do usuário (caso de uso single-patient do MVP). */
+/** Devolve o paciente TITULAR do usuário (ou o 1º disponível como fallback). */
 export async function firstPatientId(userId: string): Promise<string | null> {
-  const p = await prisma.patient.findFirst({ where: { ownerId: userId }, select: { id: true } });
-  return p?.id ?? null;
+  const titular = await prisma.patient.findFirst({ where: { ownerId: userId, relationship: 'Titular' }, select: { id: true } });
+  if (titular) return titular.id;
+  const any = await prisma.patient.findFirst({ where: { ownerId: userId }, orderBy: { createdAt: 'asc' }, select: { id: true } });
+  return any?.id ?? null;
 }
 
 /** Middleware que exige plano PREMIUM ativo (para recursos pagos: resumo IA, chat, etc). */
