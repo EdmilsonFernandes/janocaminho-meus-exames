@@ -1,7 +1,7 @@
 import { Admin, Resource, CustomRoutes, Layout, Menu, AppBar, TitlePortal, AppBarProps, useLogout } from 'react-admin';
 import { Route } from 'react-router-dom';
 import { useEffect } from 'react';
-import { Box, Typography, IconButton } from '@mui/material';
+import { Box, Typography, IconButton, useMediaQuery, useTheme } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
 import InsightsIcon from '@mui/icons-material/Insights';
 import AutoGraphIcon from '@mui/icons-material/AutoGraph';
@@ -48,9 +48,11 @@ import { initPush } from './push';
 // AppBar: só o seletor de paciente (titular = quem loga) + botão Sair (sem conflito de avatares)
 const CustomAppBar = (props: AppBarProps) => {
   const logout = useLogout();
+  const theme = useTheme();
+  const isDesktop = useMediaQuery(theme.breakpoints.up('sm'));
   return (
     <AppBar {...props} userMenu={false}>
-      <TitlePortal />
+      {isDesktop && <TitlePortal />}
       <Box sx={{ flex: 1 }} />
       <PatientSwitcher />
       <IconButton color="inherit" onClick={() => logout()} title="Sair" size="small"

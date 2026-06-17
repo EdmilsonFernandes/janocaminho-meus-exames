@@ -89,7 +89,10 @@ export const theme = createTheme({
     MuiAppBar: {
       styleOverrides: {
         root: {
-          background: 'rgba(255,255,255,0.85)',
+          position: 'sticky',
+          top: 0,
+          paddingTop: 'env(safe-area-inset-top)',
+          background: 'rgba(255,255,255,0.92)',
           backdropFilter: 'blur(12px)',
           borderBottom: '1px solid #dceaea',
           boxShadow: 'none',

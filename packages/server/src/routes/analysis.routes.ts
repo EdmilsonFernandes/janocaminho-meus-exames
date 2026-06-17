@@ -102,6 +102,23 @@ router.post('/consolidated', async (req: AuthedRequest, res, next) => {
   }
 });
 
+// ÚLTIMO relatório consolidado salvo (não regenera — só mostra o que já existe, economiza créditos)
+router.get('/consolidated/latest', async (req: AuthedRequest, res, next) => {
+  try {
+    const pids = await userPatientIds(req.userId!);
+    const patientId = String(req.query.patientId ?? '');
+    if (!patientId || !pids.includes(patientId)) { res.json({ analysis: null, sourceExams: [] }); return; }
+    const sourceExams = await prisma.exam.findMany({
+      where: { patientId, status: 'EXTRACTED' },
+      orderBy: { performedAt: 'desc' },
+      take: 5,
+      select: { title: true, performedAt: true, sourceLab: true, kind: true },
+    });
+    const last = await prisma.aiAnalysis.findFirst({ where: { patientId, type: 'SUMMARY', examId: null }, orderBy: { createdAt: 'desc' } });
+    res.json({ analysis: last, sourceExams });
+  } catch (e) { next(e); }
+});
+
 // LIST (react-admin)
 router.get('/', async (req: AuthedRequest, res, next) => {
   try {

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Box, Card, CardContent, Typography, Button, CircularProgress, Divider, Stack, Alert, Chip } from '@mui/material';
 import { Title } from 'react-admin';
 import DescriptionIcon from '@mui/icons-material/Description';
@@ -38,6 +38,15 @@ export const ConsolidatedReportPage = () => {
   const [analysis, setAnalysis] = useState<any>(null);
   const [error, setError] = useState('');
   const [shareOpen, setShareOpen] = useState(false);
+
+  // Carrega o ÚLTIMO relatório salvo ao entrar (não repensa a cada visita — economiza créditos)
+  useEffect(() => {
+    if (!pid) return;
+    fetch(`${API_URL}/analyses/consolidated/latest?patientId=${pid}`, { headers: apiHeaders() })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d?.analysis) setAnalysis({ ...d.analysis, sourceExams: d.sourceExams ?? [] }); })
+      .catch(() => {});
+  }, [pid]);
 
   const generate = () => {
     if (!pid) return;
@@ -122,7 +131,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
   };
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 920, mx: 'auto' }}>
+    <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 920, mx: 'auto', overflowX: 'hidden' }}>
       <Title title="Relatório completo" />
       <Typography variant="h5" gutterBottom sx={{ fontWeight: 800 }}>🧾 Relatório completo de saúde</Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
