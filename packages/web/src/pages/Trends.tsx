@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, MenuItem, Select, FormControl, InputLabel, CircularProgress, Stack } from '@mui/material';
+import { Box, Card, CardContent, Typography, MenuItem, Select, FormControl, InputLabel, CircularProgress, Stack, Chip, useMediaQuery, useTheme } from '@mui/material';
 import { Title } from 'react-admin';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceArea, Legend } from 'recharts';
 import { API_URL, token } from '../config';
@@ -15,6 +15,8 @@ export const TrendsPage = () => {
   const [sel, setSel] = useState('');
   const [ts, setTs] = useState<TS | null>(null);
   const [loading, setLoading] = useState(false);
+  const theme = useTheme() as any;
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   useEffect(() => {
     fetch(`${API_URL}/items/distinct-names${pid ? `?patientId=${pid}` : ''}`, { headers: { Authorization: `Bearer ${token()}` } })
@@ -73,9 +75,9 @@ export const TrendsPage = () => {
   return (
     <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 980, mx: 'auto' }}>
       <Title title="Tendências" />
-      <Card><CardContent>
+      <Card sx={{ borderRadius: 3 }}><CardContent sx={{ p: { xs: 1.5, md: 3 } }}>
         <Typography variant="h6" gutterBottom>Evolução de um analito</Typography>
-        <FormControl fullWidth sx={{ minWidth: { xs: 0, sm: 280 }, mb: 2 }}>
+        <FormControl fullWidth sx={{ minWidth: { xs: 0, sm: 280 }, mb: 1.5 }}>
           <InputLabel>Escolha o exame/analito</InputLabel>
           <Select value={sel} label="Escolha o exame/analito" onChange={(e) => setSel(e.target.value as string)}>
             {names.map((n) => <MenuItem key={n.nameCanonical} value={n.nameCanonical}>{n.nameCanonical} ({n.count})</MenuItem>)}
@@ -87,13 +89,17 @@ export const TrendsPage = () => {
 
         {!loading && ts && ts.points.length > 0 && (
           <>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-              Faixa de referência destacada em verde {ts.unit ? `(${ts.unit})` : ''}.
-            </Typography>
-            <ResponsiveContainer width="100%" height={340}>
-              <LineChart data={data} margin={{ top: 10, right: 20, bottom: 10, left: 0 }}>
+            <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mb: 1.5 }}>
+              <Chip size="small" color="primary" label={`Último: ${data[data.length - 1].valor}${ts.unit ? ' ' + ts.unit : ''}`} />
+              {predict?.dir === 'up' && <Chip size="small" color="warning" label="↑ Subindo" />}
+              {predict?.dir === 'down' && <Chip size="small" color="info" label="↓ Caindo" />}
+              {predict?.dir === 'stable' && <Chip size="small" color="success" label="→ Estável" />}
+              {(ts.refLow != null && ts.refHigh != null) && <Chip size="small" variant="outlined" label={`Faixa ${ts.refLow}–${ts.refHigh}`} />}
+            </Stack>
+            <ResponsiveContainer width="100%" height={isMobile ? 240 : 340}>
+              <LineChart data={data} margin={{ top: 10, right: isMobile ? 8 : 20, bottom: 10, left: isMobile ? -10 : 0 }}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" /><YAxis /><Tooltip content={<TooltipBox />} />
+                <XAxis dataKey="name" tick={{ fontSize: isMobile ? 10 : 12 }} /><YAxis tick={{ fontSize: isMobile ? 10 : 12 }} /><Tooltip content={<TooltipBox />} />
                 {ts.refLow != null && ts.refHigh != null && (
                   <ReferenceArea y1={ts.refLow} y2={ts.refHigh} fill="#2e7d32" fillOpacity={0.12} />
                 )}
