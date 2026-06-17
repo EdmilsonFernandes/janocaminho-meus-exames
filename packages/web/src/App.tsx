@@ -44,6 +44,7 @@ import { ValoresAlteradosPage } from './pages/ValoresAlterados';
 import { ProfilePage } from './pages/Profile';
 import { LoginPage, RegisterPage, ResetPage } from './pages/Auth';
 import { LandingPage } from './pages/Landing';
+import { TermsPage } from './pages/Terms';
 import { PatientSwitcher } from './components/PatientSwitcher';
 import { CreditsChip } from './components/CreditsChip';
 import { FloatingChat } from './components/FloatingChat';
@@ -160,6 +161,7 @@ export const App = () => {
   >
     <CustomRoutes noLayout>
       <Route path="/landing" element={<LandingPage />} />
+      <Route path="/termos" element={<TermsPage />} />
       <Route path="/registrar" element={<RegisterPage />} />
       <Route path="/recuperar-senha" element={<ResetPage />} />
     </CustomRoutes>

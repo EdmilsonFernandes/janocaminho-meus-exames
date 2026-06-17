@@ -49,6 +49,13 @@ export const ProfilePage = () => {
     if (r.ok) { notify('Senha alterada com sucesso!', { type: 'success' }); setCur(''); setNw(''); setCf(''); }
     else { const e = await r.json().catch(() => ({})); notify(e.error || 'Erro ao trocar senha', { type: 'error' }); }
   };
+  const delAccount = async () => {
+    if (!window.confirm('ATENÇÃO: excluir a conta apaga TODOS os seus dados (exames, análises, perfil, fotos) definitivamente. NÃO dá pra desfazer. Continuar?')) return;
+    if (!window.confirm('Tem certeza ABSOLUTA? Todos os exames e análises serão perdidos para sempre.')) return;
+    const r = await fetch(`${API_URL}/auth/account`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });
+    if (r.ok) { localStorage.clear(); window.location.hash = '/landing'; window.location.reload(); }
+    else notify('Falha ao excluir conta. Tente novamente.', { type: 'error' });
+  };
 
   if (!pid) return <Box sx={{ p: 4, textAlign: 'center' }}><CircularProgress /></Box>;
 
@@ -115,6 +122,18 @@ export const ProfilePage = () => {
           <Box sx={{ mt: 2 }}>
             <Button variant="outlined" startIcon={<LockIcon />} onClick={changePw} disabled={pwLoading || !cur || !nw}> {pwLoading ? 'Alterando…' : 'Alterar senha'}</Button>
           </Box>
+        </CardContent>
+      </Card>
+
+      {/* Conta e privacidade (LGPD) */}
+      <Card sx={{ borderRadius: 4, mt: 2, borderColor: 'error.main' }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>Conta e privacidade</Typography>
+          <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+            <Button variant="outlined" color="error" onClick={delAccount}>Excluir minha conta</Button>
+            <Button variant="text" onClick={() => { window.location.hash = '/termos'; }}>Termos de uso e LGPD</Button>
+          </Stack>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>A exclusão apaga definitivamente todos os exames, análises e dados (LGPD). Não pode ser desfeita.</Typography>
         </CardContent>
       </Card>
     </Box>

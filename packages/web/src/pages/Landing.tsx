@@ -137,6 +137,9 @@ export const LandingPage = () => {
           <Typography sx={{ mt: 3, opacity: .55, fontSize: 12 }}>
             🔒 Seus dados são criptografados. Análise educativa — não substitui consulta médica.
           </Typography>
+          <Box component="span" sx={{ display: 'inline-block', mt: 1.5, color: '#20b2aa', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }} onClick={() => navigate('/termos')}>
+            Termos de uso e LGPD
+          </Box>
         </Container>
       </Box>
     </Box>

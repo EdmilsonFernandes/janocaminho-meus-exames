@@ -8,6 +8,10 @@ import { issueOtp, verifyOtp } from '../auth/otp';
 import { requireAuth, AuthedRequest, firstPatientId } from '../middleware/auth';
 import { sendEmail } from '../utils/mailer';
 import { otpEmail, resetEmail } from '../utils/emailTemplate';
+import fs from 'fs';
+import path from 'path';
+import { config } from '../config';
+import { deleteExamFile, patientSlug } from '../utils/storage';
 
 const router = Router();
 
@@ -158,6 +162,38 @@ router.post('/change-password', requireAuth, async (req: AuthedRequest, res, nex
       return;
     }
     await prisma.user.update({ where: { id: user.id }, data: { passwordHash: await hashPassword(pwd) } });
+    res.json({ ok: true });
+  } catch (e) { next(e); }
+});
+
+// EXCLUIR CONTA + TODOS OS DADOS (LGPD) — exigência p/ Play Store
+router.delete('/account', requireAuth, async (req: AuthedRequest, res, next) => {
+  try {
+    const userId = req.userId!;
+    const patients = await prisma.patient.findMany({ where: { ownerId: userId }, select: { id: true, fullName: true } });
+    const pids = patients.map((p) => p.id);
+    // 1) análises órfãs (chat/consolidado sem exame) por paciente
+    if (pids.length) await prisma.aiAnalysis.deleteMany({ where: { patientId: { in: pids } } });
+    // 2) arquivos dos exames (PDFs/imagens no disco/S3)
+    const exams = await prisma.exam.findMany({ where: { patientId: { in: pids } }, select: { filePath: true } });
+    for (const e of exams) { try { await deleteExamFile(e.filePath); } catch { /* */ } }
+    // 3) fotos dos pacientes (disco)
+    try {
+      const pdir = path.resolve(config.photosDir);
+      if (fs.existsSync(pdir)) {
+        for (const id of pids) {
+          for (const f of fs.readdirSync(pdir).filter((x) => x.startsWith(`patient-${id}.`))) {
+            try { fs.unlinkSync(path.join(pdir, f)); } catch { /* */ }
+          }
+        }
+      }
+    } catch { /* */ }
+    // 4) memória do agente (.md por paciente)
+    for (const p of patients) {
+      try { fs.rmSync(path.join(path.resolve(config.agentDir), patientSlug(p.fullName ?? 'paciente', p.id)), { recursive: true, force: true }); } catch { /* */ }
+    }
+    // 5) usuário (cascata: Patient→Exam→Itens/Análises, Subscription, DeviceToken, lembretes, medições, vacinas, despesas)
+    await prisma.user.delete({ where: { id: userId } });
     res.json({ ok: true });
   } catch (e) { next(e); }
 });
