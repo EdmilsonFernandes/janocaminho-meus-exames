@@ -161,10 +161,13 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
     const td = pay?.point_of_interaction?.transaction_data;
     console.log('[buy-credits] MP payment:', pay.id, '| status:', pay.status, '| tem QR:', !!td?.qr_code_base64, '| tem td:', !!td, '| msg:', pay.message || pay.error);
     await prisma.subscription.update({ where: { id: sub.id }, data: { mpPaymentId: String(pay.id) } });
+    // MP devolve qr_code_base64 em base64 PURO — prefixa p/ virar data URI e renderizar no <img>
+    const rawB64 = td?.qr_code_base64 ?? '';
+    const qrImg = rawB64 ? (rawB64.startsWith('data:') ? rawB64 : `data:image/png;base64,${rawB64}`) : '';
     res.json({
       paymentId: String(pay.id),
       qrCode: td?.qr_code ?? '',
-      qrBase64: td?.qr_code_base64 ?? '',
+      qrBase64: qrImg,
       expiresAt: expires.toISOString(),
       credits: pack.credits,
       price: pack.price,
