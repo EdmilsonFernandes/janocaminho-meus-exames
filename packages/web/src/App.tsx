@@ -1,4 +1,4 @@
-import { Admin, Resource, CustomRoutes, Layout, Menu, AppBar, TitlePortal, AppBarProps, useLogout } from 'react-admin';
+import { Admin, Resource, CustomRoutes, Layout, Menu, AppBar, TitlePortal, AppBarProps, useLogout, useTranslate, useLocale, useSetLocale } from 'react-admin';
 import { Route, useNavigate, useLocation } from 'react-router-dom';
 import { useEffect, useState, useRef } from 'react';
 import { Box, Typography, IconButton, useMediaQuery, useTheme, CircularProgress } from '@mui/material';
@@ -67,6 +67,7 @@ const CustomAppBar = (props: AppBarProps) => {
       )}
       {isDesktop && <TitlePortal />}
       <Box sx={{ flex: 1 }} />
+      <LangToggle />
       <CreditsChip />
       <PatientSwitcher />
       <IconButton color="inherit" onClick={() => logout()} title="Sair" size="small"
@@ -77,29 +78,47 @@ const CustomAppBar = (props: AppBarProps) => {
   );
 };
 
-// Ícones coloridos (cada item com sua cor) — menu mais vivo e premium
-const AppMenu = () => (
+// Ícones coloridos (cada item com sua cor) — menu traduzível (PT/EN)
+const AppMenu = () => {
+  const t = useTranslate();
+  return (
   <Menu>
     <Menu.DashboardItem />
-    <Menu.Item to="/perfil" primaryText="Meu perfil" leftIcon={<AccountCircleIcon sx={{ color: '#8b5cf6' }} />} />
-    <Menu.Item to="/evolucao" primaryText="Evolução da saúde" leftIcon={<InsightsIcon sx={{ color: '#0ea5e9' }} />} />
-    <Menu.ResourceItems />
-    <Menu.Item to="/familia" primaryText="Saúde da Família" leftIcon={<Diversity3Icon sx={{ color: '#f59e0b' }} />} />
-    <Menu.Item to="/tendencias" primaryText="Tendências" leftIcon={<AutoGraphIcon sx={{ color: '#10b981' }} />} />
-    <Menu.Item to="/linha-do-tempo" primaryText="Linha do Tempo" leftIcon={<HistoryIcon sx={{ color: '#6366f1' }} />} />
-    <Menu.Item to="/relatorio" primaryText="Relatório completo" leftIcon={<SummarizeIcon sx={{ color: '#0891b2' }} />} />
-    <Menu.Item to="/lembretes" primaryText="Lembretes" leftIcon={<EventAvailableIcon sx={{ color: '#eab308' }} />} />
-    <Menu.Item to="/medicoes" primaryText="Medições" leftIcon={<MonitorHeartIcon sx={{ color: '#ec4899' }} />} />
-    <Menu.Item to="/vacinas" primaryText="Vacinas" leftIcon={<VaccinesIcon sx={{ color: '#14b8a6' }} />} />
-    <Menu.Item to="/despesas" primaryText="Despesas Médicas" leftIcon={<AccountBalanceWalletIcon sx={{ color: '#22c55e' }} />} />
-    <Menu.Item to="/emergencia" primaryText="Cartão de Emergência" leftIcon={<HealthAndSafetyIcon sx={{ color: '#ef4444' }} />} />
-    <Menu.Item to="/chat" primaryText="Assistente de saúde" leftIcon={<AutoAwesomeIcon sx={{ color: '#a855f7' }} />} />
-    <Menu.Item to="/planos" primaryText="Planos e Créditos" leftIcon={<WorkspacePremiumIcon sx={{ color: '#f97316' }} />} />
+    <Menu.Item to="/perfil" primaryText={t('menu.profile')} leftIcon={<AccountCircleIcon sx={{ color: '#8b5cf6' }} />} />
+    <Menu.Item to="/evolucao" primaryText={t('menu.evolution')} leftIcon={<InsightsIcon sx={{ color: '#0ea5e9' }} />} />
+    <Menu.Item to="/exams" primaryText={t('menu.exams')} leftIcon={<MedicalInformationIcon sx={{ color: '#d4a574' }} />} />
+    <Menu.Item to="/patients" primaryText={t('menu.dependents')} leftIcon={<Diversity3Icon sx={{ color: '#f59e0b' }} />} />
+    <Menu.Item to="/familia" primaryText={t('menu.family')} leftIcon={<Diversity3Icon sx={{ color: '#f59e0b' }} />} />
+    <Menu.Item to="/tendencias" primaryText={t('menu.trends')} leftIcon={<AutoGraphIcon sx={{ color: '#10b981' }} />} />
+    <Menu.Item to="/linha-do-tempo" primaryText={t('menu.timeline')} leftIcon={<HistoryIcon sx={{ color: '#6366f1' }} />} />
+    <Menu.Item to="/relatorio" primaryText={t('menu.report')} leftIcon={<SummarizeIcon sx={{ color: '#0891b2' }} />} />
+    <Menu.Item to="/lembretes" primaryText={t('menu.reminders')} leftIcon={<EventAvailableIcon sx={{ color: '#eab308' }} />} />
+    <Menu.Item to="/medicoes" primaryText={t('menu.measurements')} leftIcon={<MonitorHeartIcon sx={{ color: '#ec4899' }} />} />
+    <Menu.Item to="/vacinas" primaryText={t('menu.vaccines')} leftIcon={<VaccinesIcon sx={{ color: '#14b8a6' }} />} />
+    <Menu.Item to="/despesas" primaryText={t('menu.expenses')} leftIcon={<AccountBalanceWalletIcon sx={{ color: '#22c55e' }} />} />
+    <Menu.Item to="/emergencia" primaryText={t('menu.emergency')} leftIcon={<HealthAndSafetyIcon sx={{ color: '#ef4444' }} />} />
+    <Menu.Item to="/chat" primaryText={t('menu.chat')} leftIcon={<AutoAwesomeIcon sx={{ color: '#a855f7' }} />} />
+    <Menu.Item to="/planos" primaryText={t('menu.plans')} leftIcon={<WorkspacePremiumIcon sx={{ color: '#f97316' }} />} />
     <Box sx={{ mt: 'auto', px: 2, py: 1.5, fontSize: 11, color: 'text.secondary', borderTop: '1px solid #e2e8f0' }}>
       Meus Exames v{pkg.version}
     </Box>
   </Menu>
-);
+  );
+};
+
+// Seletor de idioma PT/EN (persiste em localStorage)
+const LangToggle = () => {
+  const locale = useLocale();
+  const setLocale = useSetLocale();
+  return (
+    <Button size="small" color="inherit"
+      onClick={() => { const l = locale === 'pt' ? 'en' : 'pt'; setLocale(l); try { localStorage.setItem('lang', l); } catch {} }}
+      sx={{ minWidth: 0, px: 1, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(0,0,0,.06)', '&:hover': { bgcolor: 'rgba(0,0,0,.12)' } }}
+      title="Trocar idioma">
+      🌐 {locale === 'pt' ? 'EN' : 'PT'}
+    </Button>
+  );
+};
 
 // Pull-to-refresh no mobile: puxa a tela no topo e solta p/ recarregar
 const PullToRefresh = () => {

@@ -5,6 +5,24 @@ import englishMessages from 'ra-language-english';
 const ptMessages = {
   ...englishMessages,
 
+  // menu lateral (chaves usadas no AppMenu via useTranslate)
+  'menu.dashboard': 'Painel',
+  'menu.profile': 'Meu perfil',
+  'menu.evolution': 'Evolução da saúde',
+  'menu.family': 'Saúde da Família',
+  'menu.trends': 'Tendências',
+  'menu.timeline': 'Linha do Tempo',
+  'menu.report': 'Relatório completo',
+  'menu.reminders': 'Lembretes',
+  'menu.measurements': 'Medições',
+  'menu.vaccines': 'Vacinas',
+  'menu.expenses': 'Despesas Médicas',
+  'menu.emergency': 'Cartão de Emergência',
+  'menu.chat': 'Assistente de saúde',
+  'menu.plans': 'Planos e Créditos',
+  'menu.exams': 'Exames',
+  'menu.dependents': 'Dependentes',
+
   // ações / botões
   'ra.action.delete': 'Excluir',
   'ra.action.delete_item': 'Excluir',
@@ -23,13 +41,9 @@ const ptMessages = {
   'ra.action.remove': 'Remover',
   'ra.action.export': 'Exportar',
   'ra.action.refresh': 'Atualizar',
-
-  // mensagens / confirmação
   'ra.message.delete_title': 'Excluir %{name}',
   'ra.message.delete_content': 'Tem certeza que deseja excluir este registro?',
   'ra.message.are_you_sure': 'Tem certeza?',
-
-  // notificações
   'ra.notification.updated': 'Registro atualizado',
   'ra.notification.created': 'Registro criado',
   'ra.notification.deleted': 'Registro excluído',
@@ -38,8 +52,6 @@ const ptMessages = {
   'ra.notification.not_deleted': 'Não foi possível excluir',
   'ra.notification.http_error': 'Erro de comunicação com o servidor',
   'ra.notification.item_doesnt_exist': 'Este registro não existe mais',
-
-  // navegação / paginação
   'ra.navigation.no_results': 'Nenhum resultado encontrado',
   'ra.navigation.no_more_results': 'Não há mais resultados',
   'ra.navigation.page_out_of_boundaries': 'Página fora do intervalo',
@@ -47,8 +59,6 @@ const ptMessages = {
   'ra.navigation.next': 'Próxima',
   'ra.navigation.prev': 'Anterior',
   'ra.navigation.skip_nav': 'Pular para o conteúdo',
-
-  // páginas / títulos
   'ra.page.list': '%{name}',
   'ra.page.create': 'Adicionar %{name}',
   'ra.page.edit': 'Editar %{name}',
@@ -59,20 +69,40 @@ const ptMessages = {
   'ra.page.loading': 'Carregando…',
   'ra.page.not_found': 'Não encontrado',
   'ra.page.empty': 'Ainda não há %{name}.',
-
-  // boolean / misc
   'ra.boolean.true': 'Sim',
   'ra.boolean.false': 'Não',
-
-  // inputs
   'ra.input.file.upload': 'Solte um arquivo aqui ou clique para selecionar',
   'ra.input.image.upload': 'Solte uma imagem aqui ou clique para selecionar',
-
-  // consultas salvas
   'ra.saved_queries.label': 'Consultas salvas',
   'ra.saved_queries.placeholder': 'Adicionar consulta salva',
   'ra.saved_queries.help': 'Digite um nome e pressione Enter para salvar.',
   'ra.saved_queries.remove_label': 'Remover consulta salva',
 };
 
-export const i18nProvider = polyglotI18nProvider(() => ptMessages, 'pt');
+// EN (English) — framework + menu. Conteúdo custom das páginas ainda em PT (a traduzir gradualmente).
+const enMessages = {
+  ...englishMessages,
+  'menu.dashboard': 'Dashboard',
+  'menu.profile': 'My profile',
+  'menu.evolution': 'Health evolution',
+  'menu.family': 'Family Health',
+  'menu.trends': 'Trends',
+  'menu.timeline': 'Timeline',
+  'menu.report': 'Full report',
+  'menu.reminders': 'Reminders',
+  'menu.measurements': 'Measurements',
+  'menu.vaccines': 'Vaccines',
+  'menu.expenses': 'Medical Expenses',
+  'menu.emergency': 'Emergency Card',
+  'menu.chat': 'Health Assistant',
+  'menu.plans': 'Plans & Credits',
+  'menu.exams': 'Exams',
+  'menu.dependents': 'Dependents',
+};
+
+const initialLocale = typeof localStorage !== 'undefined' && localStorage.getItem('lang') === 'en' ? 'en' : 'pt';
+
+export const i18nProvider = polyglotI18nProvider(
+  (locale: string) => (locale === 'en' ? enMessages : ptMessages),
+  initialLocale,
+);
