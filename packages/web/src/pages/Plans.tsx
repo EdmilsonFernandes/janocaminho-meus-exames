@@ -139,7 +139,7 @@ export const PlansPage = () => {
           <Grid size={{ xs: 12, sm: 4 }} key={p.id}>
             <Card sx={{ height: '100%', borderRadius: 4, border: p.popular ? '2px solid #20b2aa' : '1px solid #e2e8f0', position: 'relative' }}>
               {p.popular && <Chip color="primary" label="MAIS VENDIDO" size="small" sx={{ position: 'absolute', top: 10, right: 10 }} />}
-              <CardContent sx={{ textAlign: 'center' }}>
+              <CardContent sx={{ textAlign: 'center', pt: p.popular ? 3.5 : 2 }}>
                 <Typography sx={{ fontWeight: 800, fontSize: 28, color: 'primary.main' }}>{p.credits}</Typography>
                 <Typography color="text.secondary">créditos</Typography>
                 <Typography variant="h5" sx={{ my: 1, fontWeight: 800 }}>R$ {p.price.toFixed(2).replace('.', ',')}</Typography>
