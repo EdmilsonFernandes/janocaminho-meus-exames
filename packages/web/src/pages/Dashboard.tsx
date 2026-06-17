@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, Button, Grid, CircularProgress, Stack } from '@mui/material';
+import { Box, Card, CardContent, Typography, Button, Grid, CircularProgress, Stack, Chip } from '@mui/material';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
@@ -7,6 +7,7 @@ import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import Diversity3Icon from '@mui/icons-material/Diversity3';
 import LightbulbIcon from '@mui/icons-material/Lightbulb';
+import BoltIcon from '@mui/icons-material/Bolt';
 import { useNavigate } from 'react-router-dom';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
@@ -38,6 +39,7 @@ export const Dashboard = () => {
   const [deps, setDeps] = useState(0);
   const [lastExam, setLastExam] = useState<string | null>(null);
   const [buckets, setBuckets] = useState<{ bons: number; alerta: number; alterados: number }>({ bons: 0, alerta: 0, alterados: 0 });
+  const [credits, setCredits] = useState<number | null>(null);
   const tip = TIPS[new Date().getDate() % TIPS.length];
 
   useEffect(() => {
@@ -55,12 +57,15 @@ export const Dashboard = () => {
         if (p.ok) { const pd = await p.json(); setDeps(Array.isArray(pd) ? pd.length : 0); }
         const fs = await fetch(`${API_URL}/items/flag-summary${pid ? `?patientId=${pid}` : ''}`, { headers: h });
         if (fs.ok) { const fd = await fs.json(); setBuckets(fd.buckets ?? { bons: 0, alerta: 0, alterados: 0 }); }
+        const st = await fetch(`${API_URL}/billing/status`, { headers: h });
+        if (st.ok) { const sd = await st.json(); setCredits(typeof sd.credits === 'number' ? sd.credits : null); }
       } catch { /* ignore */ }
       void syncPushToken();
     })();
   }, [pid]);
 
   const scoreColor = (s: number) => (s >= 80 ? '#2e7d32' : s >= 60 ? '#e65100' : '#c62828');
+  const creditColor = (c: number) => (c >= 100 ? '#10b981' : c >= 30 ? '#f59e0b' : '#ef4444');
   const totalVals = buckets.bons + buckets.alerta + buckets.alterados;
   const score = totalVals ? Math.round((buckets.bons / totalVals) * 100) : null; // consistente com o donut
   const donutData = DONUT.map((d) => ({ ...d, value: (buckets as any)[d.key] })).filter((d) => d.value > 0);
@@ -101,7 +106,11 @@ export const Dashboard = () => {
               <Typography variant="body2" color="text.secondary">
                 {score >= 80 ? 'Tudo bem! A maioria dos seus valores está dentro da faixa.' : score >= 60 ? 'Atenção a alguns valores — vale conversar com seu médico.' : 'Vários valores fora da faixa no último exame — procure orientação médica.'}
               </Typography>
-              <Typography variant="caption" color="text.secondary">*Baseado no último exame laboratorial. Educativo, não substitui o médico.</Typography>
+              <Typography variant="caption" color="text.secondary">*Baseado em todos os seus exames extraídos. Educativo, não substitui o médico.</Typography>
+              {credits != null && (
+                <Chip size="small" icon={<BoltIcon />} onClick={() => navigate('/planos')} clickable label={`${credits} créditos`}
+                  sx={{ mt: 1, fontWeight: 800, bgcolor: creditColor(credits) + '22', color: creditColor(credits), '& .MuiChip-icon': { color: creditColor(credits) } }} />
+              )}
             </Box>
           </CardContent>
         </Card>

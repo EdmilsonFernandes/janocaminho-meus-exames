@@ -96,7 +96,8 @@ router.post('/consolidated', async (req: AuthedRequest, res, next) => {
       throw genErr;
     }
   } catch (e: any) {
-    if (!res.headersSent) next(e);
+    console.error('[consolidated] erro ao gerar:', e?.status, e?.message);
+    if (!res.headersSent) res.status(500).json({ error: 'Não foi possível gerar o relatório agora (serviço de IA). Tente novamente em instantes.' });
   }
 });
 
