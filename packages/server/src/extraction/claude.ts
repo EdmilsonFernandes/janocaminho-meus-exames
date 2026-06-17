@@ -92,6 +92,8 @@ async function createJson(buffer: Buffer, mediaType: string, instruction: string
     (err as any).status = 413;
     throw err;
   }
+  // diagnóstico: input_tokens pequeno => o PDF/documento não chegou ao modelo (relay dropou)
+  console.log('[extraction] model:', MODEL, '| usage:', JSON.stringify(response.usage));
   const text = (response.content as any[])
     .filter((b) => b.type === 'text')
     .map((b) => b.text)

@@ -19,7 +19,8 @@ export const config = {
   jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? '7d',
 
   anthropicApiKey: process.env.ANTHROPIC_API_KEY ?? '',
-  extractionModel: process.env.EXTRACTION_MODEL ?? 'claude-opus-4-8',
+  // Relay Z.ai aceita modelos GLM (ANTHROPIC_MODEL); NÃO use "claude-opus-4-8" (o relay rejeita).
+  extractionModel: process.env.ANTHROPIC_MODEL || process.env.EXTRACTION_MODEL || 'glm-4.6',
   extractionDryRun: process.env.EXTRACTION_DRY_RUN === 'true',
 
   uploadDir: process.env.UPLOAD_DIR ?? './data/exams',
