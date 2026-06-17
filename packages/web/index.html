@@ -22,7 +22,9 @@
       .MuiDrawer-paper { overflow-y: auto !important; }
       /* Células de tabela quebram palavra longa em vez de estourar layout */
       .MuiTableCell-root { word-break: break-word; }
-      /* Safe-area: AppBar (sticky no theme) + menu lateral respeitam o notch */
+      /* Safe-area: AppBar sticky cobre o notch; conteúdo flui logo abaixo (sem sobrepor) */
+      .MuiAppBar-root { position: sticky !important; top: 0; padding-top: env(safe-area-inset-top); }
+      .RaLayout-content { margin-top: 0 !important; padding-top: 0 !important; }
       .MuiDrawer-paper { padding-top: env(safe-area-inset-top); }
     </style>
   </head>

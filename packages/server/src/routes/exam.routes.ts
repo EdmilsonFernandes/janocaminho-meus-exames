@@ -23,6 +23,7 @@ router.get('/', async (req: AuthedRequest, res, next) => {
     const activePid = (headerPid && pids.includes(headerPid)) ? headerPid : (q.patientId && pids.includes(q.patientId) ? q.patientId : undefined);
     const where: any = activePid ? { patientId: activePid } : { patientId: { in: pids } };
     if (q.kind) where.kind = q.kind;
+    if (q.status) where.status = q.status;
     if (q.q) where.title = { contains: q.q, mode: 'insensitive' };
 
     const orderBy: any =

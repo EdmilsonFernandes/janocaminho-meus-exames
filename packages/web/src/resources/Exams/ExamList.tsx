@@ -1,5 +1,5 @@
 import { List, Datagrid, TextField, DateField, FunctionField, ShowButton, DeleteButton, CreateButton, TopToolbar, useListContext, useRefresh, useNotify } from 'react-admin';
-import { Chip, useMediaQuery, useTheme, Box, Card, CardContent, Typography, IconButton, Stack } from '@mui/material';
+import { Chip, useMediaQuery, useTheme, Box, Card, CardContent, Typography, IconButton, Stack, LinearProgress } from '@mui/material';
 import ScienceIcon from '@mui/icons-material/Science';
 import ImageIcon from '@mui/icons-material/Image';
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
@@ -39,17 +39,18 @@ const MobileExams = () => {
         const c = hexFor(r.status);
         const Icon = r.kind === 'IMAGING' ? ImageIcon : r.kind === 'LAB_PANEL' ? ScienceIcon : DescriptionOutlinedIcon;
         return (
-          <Card key={r.id} variant="outlined" onClick={() => navigate(`/exams/${r.id}/show`)} sx={{ cursor: 'pointer', borderRadius: 3, borderLeft: `4px solid ${c}` }}>
+          <Card key={r.id} variant="outlined" onClick={() => navigate(`/exams/${r.id}/show`)} sx={{ cursor: 'pointer', borderRadius: 3, borderLeft: `4px solid ${c}`, overflow: 'hidden', maxWidth: '100%' }}>
             <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, '&:last-child': { pb: 1.5 } }}>
-              <Icon sx={{ color: c }} />
+              <Icon sx={{ color: c, flexShrink: 0 }} />
               <Box sx={{ flex: 1, minWidth: 0 }}>
                 <Typography sx={{ fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.title}</Typography>
                 <Typography variant="caption" color="text.secondary">{kindLabel[r.kind] ?? r.kind} • {r.performedAt ? new Date(r.performedAt).toLocaleDateString('pt-BR') : 's/d'}{r._count?.items ? ` • ${r._count.items} itens` : ''}</Typography>
                 <Box sx={{ mt: 0.5 }}><Chip size="small" label={statusLabel[r.status] ?? r.status} sx={{ bgcolor: c + '18', color: c, fontWeight: 700, height: 20 }} /></Box>
               </Box>
-              <IconButton size="small" onClick={(e) => del(e, r.id, r.title)} title="Excluir"><DeleteOutlineIcon fontSize="small" /></IconButton>
-              <ChevronRightIcon sx={{ color: 'text.disabled' }} />
+              <IconButton size="small" onClick={(e) => del(e, r.id, r.title)} title="Excluir" sx={{ flexShrink: 0 }}><DeleteOutlineIcon fontSize="small" /></IconButton>
+              <ChevronRightIcon sx={{ color: 'text.disabled', flexShrink: 0 }} />
             </CardContent>
+            {(r.status === 'EXTRACTING' || r.status === 'UPLOADED') && <LinearProgress sx={{ height: 3 }} />}
           </Card>
         );
       })}

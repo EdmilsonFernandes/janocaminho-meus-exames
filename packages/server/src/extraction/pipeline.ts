@@ -32,13 +32,23 @@ interface ItemRow {
  * normaliza os nomes canônicos -> calcula as flags -> persiste itens + JSON bruto.
  * Idempotente: pode ser re-rodado (reextract).
  */
-// Fila SERIAL de extração: processa um exame por vez para não disparar muitas
-// chamadas à IA em paralelo (evita rate limit do relay em uploads em rajada).
-let extractionChain: Promise<void> = Promise.resolve();
-export function runExtraction(examId: string): Promise<void> {
-  const p = extractionChain.then(() => runExtractionOnce(examId), () => runExtractionOnce(examId));
-  extractionChain = p.then(() => undefined, () => undefined); // mantém a cadeia mesmo se um exame falhar
-  return p;
+// Extração PARALELA (vários exames ao mesmo tempo) + 3 tentativas + erro amigável (sem stack pro usuário).
+export async function runExtraction(examId: string): Promise<void> {
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      await runExtractionOnce(examId);
+      return;
+    } catch (e: any) {
+      console.warn(`[extraction] ${examId} tentativa ${attempt}/3 falhou:`, e?.message);
+      if (attempt >= 3) {
+        try {
+          await prisma.exam.update({ where: { id: examId }, data: { status: 'FAILED', extractionError: 'Não conseguimos ler este exame agora. Toque em "Re-extrair" para tentar de novo.' } });
+        } catch { /* */ }
+        return; // não propaga erro cru
+      }
+      await new Promise((r) => setTimeout(r, 2500 * attempt));
+    }
+  }
 }
 
 async function runExtractionOnce(examId: string): Promise<void> {
@@ -129,13 +139,8 @@ async function runExtractionOnce(examId: string): Promise<void> {
     // Extração por visão consome créditos (não bloqueia a ingestão mesmo sem saldo)
     if (patient?.ownerId) { try { await chargeCredits(patient.ownerId, CREDIT_COSTS.extraction); } catch { /* não bloqueia */ } }
   } catch (e: any) {
-    const message = e?.message ?? String(e);
-    await prisma.exam.update({
-      where: { id: examId },
-      data: { status: 'FAILED', extractionError: message },
-    });
-    console.error(`[extraction] exame ${examId} falhou:`, message);
-    throw e;
+    console.error(`[extraction] exame ${examId} falhou (tentativa):`, e?.message);
+    throw e; // runExtraction cuida do retry + do FAILED amigável
   }
 }
 

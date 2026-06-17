@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, Button, Grid, CircularProgress, Stack, Chip } from '@mui/material';
+import { Box, Card, CardContent, Typography, Button, Grid, CircularProgress, Stack, Chip, Alert } from '@mui/material';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
@@ -36,6 +36,7 @@ export const Dashboard = () => {
   const navigate = useNavigate();
   const [pid] = useSelectedPatient();
   const [stats, setStats] = useState({ exams: 0, abnormal: 0 });
+  const [failed, setFailed] = useState(0);
   const [deps, setDeps] = useState(0);
   const [lastExam, setLastExam] = useState<string | null>(null);
   const [buckets, setBuckets] = useState<{ bons: number; alerta: number; alterados: number }>({ bons: 0, alerta: 0, alterados: 0 });
@@ -51,6 +52,8 @@ export const Dashboard = () => {
         const eData = await e.json().catch(() => []);
         setStats((s) => ({ ...s, exams: readTotal(e) }));
         if (Array.isArray(eData) && eData[0]?.performedAt) setLastExam(eData[0].performedAt);
+        const fe = await fetch(`${API_URL}/exams?_start=0&_end=1&status=FAILED${pidQ}`, { headers: h });
+        setFailed(readTotal(fe));
         const a = await fetch(`${API_URL}/items?abnormal=true&_start=0&_end=1${pidQ}`, { headers: h });
         setStats((s) => ({ ...s, abnormal: readTotal(a) }));
         const p = await fetch(`${API_URL}/patients`, { headers: h });
@@ -110,6 +113,13 @@ export const Dashboard = () => {
             </Box>
           </CardContent>
         </Card>
+      )}
+
+      {/* Aviso de exames que falharam (pra reprocessar) */}
+      {failed > 0 && (
+        <Alert severity="warning" sx={{ mt: 2, mb: 1, borderRadius: 3 }} action={<Button size="small" color="inherit" onClick={() => navigate('/exams')}>Ver</Button>} onClick={() => navigate('/exams')}>
+          {failed} exame(s) falhou(aram) na leitura — abra e toque em “Re-extrair”.
+        </Alert>
       )}
 
       {/* Badge de créditos (separada do score) */}
