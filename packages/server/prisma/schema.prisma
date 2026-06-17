@@ -38,6 +38,7 @@ model Patient {
   owner        User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   fullName     String
   relationship String?   // parentesco: "Titular", "Filha", "Mãe", "Cônjuge"...
+  gender       String?   // "male" | "female" — define a coluna de referência (Homens/Mulheres)
   dateOfBirth  DateTime?
   // PII criptografada (AES-256-GCM, chave APP_ENCRYPTION_KEY)
   cpfEncrypted String?

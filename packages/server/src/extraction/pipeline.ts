@@ -25,7 +25,7 @@ interface ItemRow {
   rawRow: any;
 }
 
-const DEMOGRAPHIC = 'Homens'; // paciente: homem adulto (Edmilson, nascido 1978)
+// Coluna de referência por gênero do paciente (default Homens se não informado).
 
 /**
  * Orquestra a extração de um exame: classifica o tipo -> chama o Claude por VISÃO ->
@@ -44,7 +44,8 @@ export function runExtraction(examId: string): Promise<void> {
 async function runExtractionOnce(examId: string): Promise<void> {
   const exam = await prisma.exam.findUnique({ where: { id: examId } });
   if (!exam) return;
-  const patient = await prisma.patient.findUnique({ where: { id: exam.patientId }, select: { fullName: true, ownerId: true } });
+  const patient = await prisma.patient.findUnique({ where: { id: exam.patientId }, select: { fullName: true, ownerId: true, gender: true } });
+  const demo = patient?.gender === 'female' ? 'Mulheres' : 'Homens';
 
   await prisma.exam.update({
     where: { id: examId },
@@ -78,11 +79,11 @@ async function runExtractionOnce(examId: string): Promise<void> {
         title = lab.examTitle ?? title;
         performedAt = parseDate(lab.performedAt) ?? performedAt;
         sourceLab = lab.sourceLab ?? sourceLab;
-        items = flattenLabItems(lab, DEMOGRAPHIC);
+        items = flattenLabItems(lab, demo);
       }
     } else if (dryRun && raw && Array.isArray(raw.panels)) {
       // replay: apenas re-normaliza a partir do JSON guardado
-      items = flattenLabItems(raw as LabExtraction, DEMOGRAPHIC);
+      items = flattenLabItems(raw as LabExtraction, demo);
     }
 
     // trava anti-alucinação (apenas painel lab): compara itens extraídos vs. densidade de valores no texto

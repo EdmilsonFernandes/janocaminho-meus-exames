@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, TextField, Button, Stack, Chip, CircularProgress } from '@mui/material';
+import { Box, Card, CardContent, Typography, TextField, Button, Stack, Chip, CircularProgress, MenuItem } from '@mui/material';
 import { Title, useNotify } from 'react-admin';
 import LockIcon from '@mui/icons-material/Lock';
 import SaveIcon from '@mui/icons-material/Save';
@@ -16,6 +16,7 @@ export const ProfilePage = () => {
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [clinical, setClinical] = useState('');
+  const [gender, setGender] = useState('');
   const [saving, setSaving] = useState(false);
   const [photoVer, setPhotoVer] = useState(0); // cache-bust sincronizado entre header
   const [cur, setCur] = useState(''); const [nw, setNw] = useState(''); const [cf, setCf] = useState('');
@@ -27,7 +28,7 @@ export const ProfilePage = () => {
     if (me.ok) setUser((await me.json())?.user);
     if (pid) {
       const pr = await fetch(`${API_URL}/patients/${pid}`, { headers: h });
-      if (pr.ok) { const p = await pr.json(); setPatient(p); setFullName(p.fullName ?? ''); setPhone(p.phone ?? ''); setClinical(p.clinicalProfile ?? ''); }
+      if (pr.ok) { const p = await pr.json(); setPatient(p); setFullName(p.fullName ?? ''); setPhone(p.phone ?? ''); setClinical(p.clinicalProfile ?? ''); setGender(p.gender ?? ''); }
     }
   };
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [pid]);
@@ -35,7 +36,7 @@ export const ProfilePage = () => {
   const saveProfile = async () => {
     if (!pid) return;
     setSaving(true);
-    const r = await fetch(`${API_URL}/patients/${pid}`, { method: 'PUT', headers: apiHeaders(true), body: JSON.stringify({ fullName, phone, clinicalProfile: clinical }) });
+    const r = await fetch(`${API_URL}/patients/${pid}`, { method: 'PUT', headers: apiHeaders(true), body: JSON.stringify({ fullName, phone, clinicalProfile: clinical, gender }) });
     setSaving(false);
     notify(r.ok ? 'Perfil atualizado!' : 'Erro ao salvar', { type: r.ok ? 'success' : 'error' });
   };
@@ -83,6 +84,11 @@ export const ProfilePage = () => {
           <Stack spacing={2}>
             <TextField label="Nome completo" value={fullName} onChange={(e) => setFullName(e.target.value)} fullWidth size="small" />
             <TextField label="Telefone / WhatsApp" value={phone} onChange={(e) => setPhone(e.target.value)} fullWidth size="small" />
+            <TextField select label="Sexo (define a faixa de referência dos exames)" value={gender} onChange={(e) => setGender(e.target.value)} fullWidth size="small" helperText="Mulher usa a coluna 'Mulheres', homem a 'Homens' do laudo.">
+              <MenuItem value="">Prefiro não informar (usa Homens)</MenuItem>
+              <MenuItem value="female">Feminino</MenuItem>
+              <MenuItem value="male">Masculino</MenuItem>
+            </TextField>
             <TextField
               label="Perfil clínico (condições, medicações, histórico)"
               value={clinical} onChange={(e) => setClinical(e.target.value)} multiline minRows={4} fullWidth

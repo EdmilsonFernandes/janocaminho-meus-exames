@@ -162,9 +162,10 @@ router.put('/:id', async (req: AuthedRequest, res, next) => {
       res.status(403).json({ error: 'Paciente não pertence ao usuário' });
       return;
     }
-    const { fullName, relationship, dateOfBirth, clinicalProfile, phone, photoUrl } = req.body ?? {};
+    const { fullName, relationship, dateOfBirth, clinicalProfile, phone, photoUrl, gender } = req.body ?? {};
     const data: any = {};
     if (fullName != null) data.fullName = String(fullName);
+    if (gender !== undefined) data.gender = gender ? String(gender) : null;
     if (relationship !== undefined) data.relationship = relationship ? String(relationship) : null;
     if (dateOfBirth !== undefined) data.dateOfBirth = dateOfBirth ? new Date(dateOfBirth) : null;
     if (clinicalProfile != null) data.clinicalProfile = String(clinicalProfile);
