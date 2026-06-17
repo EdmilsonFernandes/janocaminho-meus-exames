@@ -14,9 +14,9 @@ const PLANS = {
 
 // Pacotes de CRÉDITOS (a moeda da IA — pay-per-use). Generosos.
 const CREDIT_PACKS = [
-  { id: 'p200', credits: 200, price: 9.9, label: 'Início', popular: false },
-  { id: 'p600', credits: 600, price: 24.9, label: 'Popular', popular: true },
-  { id: 'p1500', credits: 1500, price: 49.9, label: 'Família', popular: false },
+  { id: 'p250', credits: 250, price: 9.9, label: 'Início', popular: false },
+  { id: 'p700', credits: 700, price: 24.9, label: 'Popular', popular: true },
+  { id: 'p1800', credits: 1800, price: 49.9, label: 'Família', popular: false },
 ];
 const packById = (id: string) => CREDIT_PACKS.find((p) => p.id === id);
 
@@ -48,23 +48,30 @@ router.get('/status', requireAuth, async (req: AuthedRequest, res, next) => {
   } catch (e) { next(e); }
 });
 
-// HISTÓRICO de consumo de créditos (cada análise de IA = um gasto)
+// EXTRATO de créditos: débitos (IA, por dependente) + créditos (compras), do mais recente
 router.get('/credits/history', requireAuth, async (req: AuthedRequest, res, next) => {
   try {
     const pids = await userPatientIds(req.userId!);
-    const rows = await prisma.aiAnalysis.findMany({
-      where: { patientId: { in: pids } },
-      orderBy: { createdAt: 'desc' },
-      take: 30,
-      select: { id: true, type: true, examId: true, createdAt: true },
-    });
-    const items = rows.map((r) => ({
-      id: r.id,
-      type: r.type,
-      createdAt: r.createdAt,
-      label: r.type === 'CHAT' ? 'Chat com a IA' : r.examId ? 'Resumo do exame' : 'Relatório consolidado',
-      cost: r.type === 'CHAT' ? CREDIT_COSTS.chat : r.examId ? CREDIT_COSTS.summary : CREDIT_COSTS.consolidated,
-    }));
+    const [analyses, subs, patients] = await Promise.all([
+      prisma.aiAnalysis.findMany({ where: { patientId: { in: pids } }, orderBy: { createdAt: 'desc' }, take: 50, select: { id: true, type: true, examId: true, patientId: true, createdAt: true } }),
+      prisma.subscription.findMany({ where: { userId: req.userId!, status: 'APPROVED', periodDays: 0 }, orderBy: { updatedAt: 'desc' }, take: 20, select: { id: true, amount: true, updatedAt: true } }),
+      prisma.patient.findMany({ where: { id: { in: pids } }, select: { id: true, fullName: true } }),
+    ]);
+    const pmap = new Map(patients.map((p) => [p.id, p.fullName]));
+    const creditsForPrice = (price: number) => CREDIT_PACKS.find((p) => Math.abs(p.price - price) < 0.01)?.credits ?? Math.round(price * 25);
+    const items: any[] = [];
+    for (const a of analyses) {
+      items.push({
+        kind: 'debit', id: 'a' + a.id, createdAt: a.createdAt,
+        label: a.type === 'CHAT' ? 'Chat com a IA' : a.examId ? 'Resumo do exame' : 'Relatório consolidado',
+        patient: pmap.get(a.patientId) ?? null,
+        amount: -(a.type === 'CHAT' ? CREDIT_COSTS.chat : a.examId ? CREDIT_COSTS.summary : CREDIT_COSTS.consolidated),
+      });
+    }
+    for (const s of subs) {
+      items.push({ kind: 'credit', id: 's' + s.id, createdAt: s.updatedAt, label: `Compra de créditos — R$ ${Number(s.amount).toFixed(2).replace('.', ',')}`, patient: null, amount: creditsForPrice(s.amount) });
+    }
+    items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     res.json({ items });
   } catch (e) { next(e); }
 });
@@ -201,9 +208,9 @@ router.post('/webhook', async (req, res) => {
               const expires = new Date(Date.now() + sub.periodDays * 86400000);
               await prisma.$transaction([
                 prisma.subscription.update({ where: { id: sub.id }, data: { status: 'APPROVED', mpPaymentId: String(paymentId) } }),
-                prisma.user.update({ where: { id: sub.userId }, data: { planExpiresAt: expires, credits: { increment: 1000 } } }),
+                prisma.user.update({ where: { id: sub.userId }, data: { planExpiresAt: expires, credits: { increment: 1500 } } }),
               ]);
-              console.log(`[billing] mensal aprovado — user ${sub.userId} +1000 créditos, ativo até ${expires.toISOString()}`);
+              console.log(`[billing] mensal aprovado — user ${sub.userId} +1500 créditos, ativo até ${expires.toISOString()}`);
             }
           }
         }

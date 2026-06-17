@@ -65,6 +65,7 @@ export const ConsolidatedReportPage = () => {
   };
 
   const asArr = (x: any): any[] => (Array.isArray(x) ? x : x == null ? [] : [x]);
+  const txt = (x: any): string => typeof x === 'string' ? x : (x?.texto || x?.titulo || x?.dethe || x?.detalhe || x?.name || (x && typeof x === 'object' ? JSON.stringify(x) : String(x ?? '')));
   const s: Summary | undefined = analysis?.structured
     ? {
         ...analysis.structured,
@@ -89,11 +90,11 @@ export const ConsolidatedReportPage = () => {
       .join('');
     const comp = (s?.comparativo ?? []).map((c) => `<tr><td>${esc(c.name)}</td><td>${esc(c.anterior ?? '—')}</td><td><b>${esc(c.atual ?? '—')}</b></td><td>${esc(c.leitura ?? '')}</td></tr>`).join('');
     const atencao = (s?.pontosAtencao ?? []).map((p) => `<li><b>${esc(p.titulo)}</b> — ${esc(p.detalhe)}</li>`).join('');
-    const boas = (s?.coisasBoas ?? []).map((b) => `<li>${esc(b)}</li>`).join('');
-    const nut = (s?.sugestoesNutricao ?? []).map((b) => `<li>${esc(b)}</li>`).join('');
+    const boas = (s?.coisasBoas ?? []).map((b) => `<li>${esc(txt(b))}</li>`).join('');
+    const nut = (s?.sugestoesNutricao ?? []).map((b) => `<li>${esc(txt(b))}</li>`).join('');
     const metas = (s?.metasSaude ?? []).map((m) => `<li><b>${esc(m.analito)}</b>: ${esc(m.meta)}${m.prazo ? ` (${esc(m.prazo)})` : ''}</li>`).join('');
     const inter = (s?.interacoesMedicamentos ?? []).map((m) => `<li><b>${esc(m.medicamento)}</b> × ${esc(m.analito)}: ${esc(m.observacao)}</li>`).join('');
-    const perg = (s?.perguntasParaOMedico ?? []).map((q) => `<li>${esc(q)}</li>`).join('');
+    const perg = (s?.perguntasParaOMedico ?? []).map((q) => `<li>${esc(txt(q))}</li>`).join('');
     w.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Relatório de Saúde</title>
 <style>
 *{box-sizing:border-box}body{font-family:'Inter','Segoe UI',Arial,sans-serif;color:#2d3748;background:#eef7f6;margin:0;padding:32px;line-height:1.6}
@@ -162,7 +163,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
             </Stack>
           </Box>
 
-          <CardContent sx={{ p: { xs: 2, md: 3 } }}>
+          <CardContent sx={{ p: { xs: 2, md: 3 }, overflowWrap: 'break-word' }}>
             {sourceExams.length > 0 && (
               <Box sx={{ mb: 2, p: 1.5, borderRadius: 2, background: '#e6f7f6', borderLeft: '4px solid #20b2aa' }}>
                 <Typography sx={{ fontWeight: 700, color: '#178f89', fontSize: 14, mb: 1 }}>📊 Relatório baseado em {sourceExams.length} exame(s):</Typography>
@@ -193,7 +194,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
 
             {s.coisasBoas?.length ? (
               <Section title="✅ Pontos positivos">
-                <ul style={{ margin: 0, paddingLeft: 20 }}>{s.coisasBoas.map((b, i) => <li key={i}><Typography variant="body2">{b}</Typography></li>)}</ul>
+                <ul style={{ margin: 0, paddingLeft: 20 }}>{s.coisasBoas.map((b, i) => <li key={i}><Typography variant="body2">{txt(b)}</Typography></li>)}</ul>
               </Section>
             ) : null}
 
@@ -205,7 +206,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
 
             {s.sugestoesNutricao?.length ? (
               <Section title="🥗 Sugestões de nutrição">
-                <ul style={{ margin: 0, paddingLeft: 20 }}>{s.sugestoesNutricao.map((b, i) => <li key={i}><Typography variant="body2">{b}</Typography></li>)}</ul>
+                <ul style={{ margin: 0, paddingLeft: 20 }}>{s.sugestoesNutricao.map((b, i) => <li key={i}><Typography variant="body2">{txt(b)}</Typography></li>)}</ul>
               </Section>
             ) : null}
 
@@ -219,7 +220,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
 
             {s.perguntasParaOMedico?.length ? (
               <Section title="🩺 Perguntas para levar ao médico">
-                <ol style={{ margin: 0, paddingLeft: 20 }}>{s.perguntasParaOMedico.map((q, i) => <li key={i}><Typography variant="body2">{q}</Typography></li>)}</ol>
+                <ol style={{ margin: 0, paddingLeft: 20 }}>{s.perguntasParaOMedico.map((q, i) => <li key={i}><Typography variant="body2">{txt(q)}</Typography></li>)}</ol>
               </Section>
             ) : null}
 

@@ -1,8 +1,7 @@
 import { prisma } from '../prisma';
 
-// Custos em créditos por ação de IA (generosos: os 500 do trial dão p/ usar bastante).
-// Usuário com plano mensal ativo (premium) NÃO consome créditos.
-export const CREDIT_COSTS = { summary: 8, consolidated: 15, chat: 1 } as const;
+// Custos em créditos por ação de IA (extração por visão conta!).
+export const CREDIT_COSTS = { extraction: 5, summary: 5, consolidated: 10, chat: 1 } as const;
 
 /** Débito atômico: só desconta se houver saldo suficiente. true = debitado. */
 export async function chargeCredits(userId: string, amount: number): Promise<boolean> {

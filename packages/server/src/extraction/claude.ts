@@ -30,15 +30,17 @@ Para cada analito: nome, valor (como impresso), valor numérico (vírgula→pont
 
 ATENÇÃO À DATA (PRECISÃO): performedAt deve ser a DATA DO ATENDIMENTO/COLETA do exame (ex.: campo "Atendimento: 08/04/2026", "Data da coleta" ou "Data de realização"), no formato dd/mm/aaaa. NUNCA use a data de impressão, emissão, liberação ou entrega do laudo — use SEMPRE a data em que o exame foi feito/coletado.
 
+ATENÇÃO AOS NOMES (PRECISÃO): patientName = o nome do PACIENTE, lido SEMPRE do campo "Nome:" do cabeçalho do documento. NUNCA use o nome de quem assinou o laudo (ex.: "assinado eletronicamente por Dr. Fulano") nem o nome do médico como patientName. requestingDoctor = o nome do campo "Médico:" do cabeçalho.
+
 NUNCA invente valor. Se não conseguir ler com confiança, omita o analito. Agrupe em "panels" pelo título da seção.
 
 Devolva EXATAMENTE este formato JSON:
 {
-  "patientName": "NOME COMPLETO do paciente como está no documento",
+  "patientName": "NOME COMPLETO do PACIENTE (campo 'Nome:' no cabeçalho — nunca o assinante/médico)",
   "examTitle": "HEMOGRAMA COMPLETO",
   "performedAt": "12/06/2026",
   "sourceLab": "nome do laboratório/unidade",
-  "requestingDoctor": "nome do médico solicitante (se houver)",
+  "requestingDoctor": "nome do médico SOLICITANTE (campo 'Médico:' no cabeçalho)",
   "panels": [
     {
       "name": "HEMOGRAMA",

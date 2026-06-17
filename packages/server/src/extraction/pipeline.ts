@@ -6,6 +6,7 @@ import { extractLabPanel, extractImaging } from './claude';
 import { canonicalName, computeFlag, parseNumeric } from '../utils/normalize';
 import { readExamFile, mediaTypeFromRef } from '../utils/storage';
 import type { LabExtraction, ExtractionItem } from './schemas';
+import { chargeCredits, CREDIT_COSTS } from '../utils/credits';
 
 interface ItemRow {
   panel: string | null;
@@ -43,7 +44,7 @@ export function runExtraction(examId: string): Promise<void> {
 async function runExtractionOnce(examId: string): Promise<void> {
   const exam = await prisma.exam.findUnique({ where: { id: examId } });
   if (!exam) return;
-  const patient = await prisma.patient.findUnique({ where: { id: exam.patientId }, select: { fullName: true } });
+  const patient = await prisma.patient.findUnique({ where: { id: exam.patientId }, select: { fullName: true, ownerId: true } });
 
   await prisma.exam.update({
     where: { id: examId },
@@ -124,6 +125,8 @@ async function runExtractionOnce(examId: string): Promise<void> {
       },
     });
     console.log(`[extraction] exame ${examId} extraído: ${items.length} itens (kind=${kind}, review=${reviewRequired})`);
+    // Extração por visão consome créditos (não bloqueia a ingestão mesmo sem saldo)
+    if (patient?.ownerId) { try { await chargeCredits(patient.ownerId, CREDIT_COSTS.extraction); } catch { /* não bloqueia */ } }
   } catch (e: any) {
     const message = e?.message ?? String(e);
     await prisma.exam.update({

@@ -82,12 +82,7 @@ export const PlansPage = () => {
                 : <Typography variant="caption" sx={{ opacity: 0.9 }}>Sem assinatura — créditos custeiam a IA.</Typography>}
             </Box>
             <Box sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
-              <Stack direction="row" spacing={0.5} alignItems="center" justifyContent={{ xs: 'flex-start', sm: 'flex-end' }}>
-                <TrendingUpIcon fontSize="small" />
-                <Typography sx={{ opacity: 0.9, fontSize: 13 }}>Consumo de IA</Typography>
-              </Stack>
-              <Typography variant="h5" sx={{ fontWeight: 700 }}>{(status?.tokensUsed ?? 0).toLocaleString('pt-BR')}</Typography>
-              <Typography variant="caption" sx={{ opacity: 0.85 }}>tokens processados</Typography>
+              <Typography variant="caption" sx={{ opacity: 0.85 }}>Ver extrato detalhado abaixo ↓</Typography>
             </Box>
           </Stack>
         </CardContent>
@@ -96,17 +91,21 @@ export const PlansPage = () => {
       {/* CONSUMO RECENTE */}
       {hist.length > 0 && (
         <Card sx={{ mb: 2, borderRadius: 4 }}><CardContent>
-          <Typography variant="subtitle2" sx={{ mb: 1 }}>Consumo recente de créditos</Typography>
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>Extrato de créditos</Typography>
           <Stack divider={<Divider />} spacing={0}>
-            {hist.slice(0, 8).map((it) => (
-              <Stack key={it.id} direction="row" justifyContent="space-between" alignItems="center" sx={{ py: 0.75 }}>
-                <Box>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>{it.label}</Typography>
-                  <Typography variant="caption" color="text.secondary">{new Date(it.createdAt).toLocaleString('pt-BR')}</Typography>
-                </Box>
-                <Chip size="small" label={`-${it.cost}`} sx={{ bgcolor: 'rgba(239,68,68,.1)', color: 'error.main', fontWeight: 700 }} />
-              </Stack>
-            ))}
+            {hist.slice(0, 12).map((it) => {
+              const credit = it.kind === 'credit';
+              return (
+                <Stack key={it.id} direction="row" justifyContent="space-between" alignItems="center" sx={{ py: 0.75 }}>
+                  <Box sx={{ minWidth: 0, flex: 1, mr: 1 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{it.label}</Typography>
+                    <Typography variant="caption" color="text.secondary">{new Date(it.createdAt).toLocaleString('pt-BR')}{it.patient ? ` • ${it.patient}` : ''}</Typography>
+                  </Box>
+                  <Chip size="small" label={`${it.amount > 0 ? '+' : ''}${it.amount}`}
+                    sx={{ fontWeight: 800, bgcolor: credit ? 'rgba(16,185,129,.14)' : 'rgba(239,68,68,.1)', color: credit ? 'success.main' : 'error.main' }} />
+                </Stack>
+              );
+            })}
           </Stack>
         </CardContent></Card>
       )}
@@ -136,12 +135,12 @@ export const PlansPage = () => {
         <CardContent>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="space-between" alignItems="center" flexWrap="wrap" useFlexGap>
             <Box sx={{ flex: '1 1 60%', minWidth: 0 }}>
-              <Typography variant="h6" sx={{ fontWeight: 800 }}>Premium Mensal — 1.000 créditos/mês</Typography>
+              <Typography variant="h6" sx={{ fontWeight: 800 }}>Premium Mensal — 1.500 créditos/mês</Typography>
               <Typography color="text.secondary" sx={{ fontSize: 14 }}>
-                1.000 créditos inclusos todo mês (renova sozinho). Cancele quando quiser.
+                1.500 créditos inclusos todo mês (renova sozinho). Cancele quando quiser.
               </Typography>
               <Box component="ul" sx={{ pl: 2.5, mt: 1, mb: 0, lineHeight: 1.7, fontSize: 14 }}>
-                <li>1.000 créditos inclusos por mês</li>
+                <li>1.500 créditos inclusos por mês</li>
                 <li>Exames + dependentes</li>
                 <li>Relatório completo + impressão</li>
               </Box>
