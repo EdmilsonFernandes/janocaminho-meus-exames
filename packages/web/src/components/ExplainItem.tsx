@@ -4,6 +4,10 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { explainExam, type ExamExplain } from '../data/examDictionary';
 import { API_URL, token } from '../config';
 
+// Cache de sessão: 2ª vez que abre o mesmo "?" não vai na rede (o backend também
+// cacheia em arquivo, então a 1ª vez de QUALQUER usuário já fica salva p/ todos).
+const memCache = new Map<string, ExamExplain>();
+
 /**
  * Botão "?" reutilizável: abre um POPOVER (balão, não tela cheia) com a explicação.
  * Usa o dicionário local primeiro; se não tiver, consulta a IA (/items/explain).
@@ -18,13 +22,16 @@ export const ExplainButton = ({ name, nameCanonical, size = 'small' }: { name: s
     setAnchor(e.currentTarget);
     const local = explainExam(nameCanonical || name);
     if (local) { setData(local); setLoading(false); return; }
+    const key = (nameCanonical || name).toLowerCase();
+    const cached = memCache.get(key);
+    if (cached) { setData(cached); setLoading(false); return; }
     setData(null); setLoading(true);
     try {
       const r = await fetch(`${API_URL}/items/explain`, {
         method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
         body: JSON.stringify({ name }),
       });
-      if (r.ok) setData(await r.json());
+      if (r.ok) { const d = await r.json(); memCache.set(key, d); setData(d); }
     } catch { /* */ }
     setLoading(false);
   };

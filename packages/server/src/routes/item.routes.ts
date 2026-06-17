@@ -4,6 +4,7 @@ import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
 import { parseListParams, setListHeaders } from '../utils/list';
 import { getAnthropic, MODEL } from '../claude/client';
 import { JSON_SUFFIX, extractJsonObject } from '../utils/json';
+import { getCachedExplanation, setCachedExplanation } from '../utils/explanationsCache';
 
 const router = Router();
 router.use(requireAuth);
@@ -158,11 +159,14 @@ router.get('/flag-summary', async (req: AuthedRequest, res, next) => {
   }
 });
 
-// EXPLICA um exame/analito em linguagem simples (IA — cobre qualquer exame, mesmo fora do dicionário local)
+// EXPLICA um exame/analito em linguagem simples. RAG: cache em arquivo primeiro (sem IA);
+// só chama a IA se ainda não tiver a explicação — e então grava pra reaproveitar.
 router.post('/explain', async (req: AuthedRequest, res) => {
   try {
     const name = String((req.body as any)?.name ?? '').trim();
     if (!name) { res.status(400).json({ error: 'name obrigatório' }); return; }
+    const cached = getCachedExplanation(name);
+    if (cached) { res.json(cached); return; }
     const client = getAnthropic();
     const stream = client.messages.stream({
       model: MODEL, max_tokens: 700,
@@ -170,7 +174,9 @@ router.post('/explain', async (req: AuthedRequest, res) => {
     } as any);
     const resp = await stream.finalMessage();
     const text = (resp.content as any[]).filter((b) => b.type === 'text').map((b) => b.text).join('');
-    res.json(extractJsonObject(text));
+    const parsed = extractJsonObject(text);
+    if (parsed?.resumo) setCachedExplanation(name, parsed);
+    res.json(parsed);
   } catch (e: any) {
     console.error('[explain] erro:', e?.message);
     res.status(502).json({ error: 'Não consegui explicar agora. Tente novamente.' });
