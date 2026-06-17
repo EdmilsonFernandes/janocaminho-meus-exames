@@ -21,6 +21,18 @@ async function issueSession(userId: string) {
   return { token, patientId };
 }
 
+/** Avisa o admin (dev) de cada novo cadastro — cópia pra edmls2008@gmail.com (ou ADMIN_EMAIL). */
+async function notifyNewUser(name: string, email: string) {
+  const admin = process.env.ADMIN_EMAIL || 'edmls2008@gmail.com';
+  try {
+    await sendEmail({
+      to: admin,
+      subject: `Novo cadastro no Meus Exames: ${name}`,
+      html: `<div style="font-family:Segoe UI,Arial,sans-serif;color:#15233b"><h3 style="color:#178f89">Novo usuário 🎉</h3><p><b>Nome:</b> ${name}</p><p><b>E-mail:</b> ${email}</p><p style="color:#888;font-size:12px;margin-top:16px">Notificação automática — toda conta criada chega aqui.</p></div>`,
+    });
+  } catch (e: any) { console.error('[notifyNewUser] falhou:', e?.message); }
+}
+
 // LOGIN (react-admin envia {username, password})
 router.post('/login', async (req, res, next) => {
   try {
@@ -55,6 +67,7 @@ router.post('/register', async (req, res, next) => {
     const passwordHash = await hashPassword(pwd);
     const user = await prisma.user.create({ data: { email: mail, name: String(name), passwordHash, credits: 100 } });
     await prisma.patient.create({ data: { ownerId: user.id, fullName: String(name), relationship: 'Titular' } });
+    notifyNewUser(String(name), mail);
     const { token, patientId } = await issueSession(user.id);
     res.status(201).json({
       token, patientId,
@@ -74,8 +87,9 @@ router.post('/forgot', async (req, res, next) => {
       const { signResetToken } = require('../auth/jwt');
       const token = signResetToken(user.id);
       const base = (process.env.WEB_BASE_PATH ?? '').replace(/\/$/, '');
-      // App usa HashRouter → a rota tem que ir depois do #/ (senão nunca chega na tela de reset)
-      const link = `${process.env.WEB_ORIGIN || 'http://localhost:5173'}${base}/#/recuperar-senha?token=${token}`;
+      // Token na QUERY REAL (email clients rastreiam normal) + rota no HASH (HashRouter).
+      // Antes vinha "#/recuperar-senha?token=" (token no fragmento) — alguns clientes não clicavam.
+      const link = `${process.env.WEB_ORIGIN || 'http://localhost:5173'}${base}/?token=${token}#/recuperar-senha`;
       try {
         await sendEmail({
           to: user.email,
@@ -144,6 +158,7 @@ router.post('/otp/verify', async (req, res, next) => {
       const name = email.split('@')[0];
       user = await prisma.user.create({ data: { email, name, passwordHash: await hashPassword(crypto.randomUUID()), credits: 100 } });
       await prisma.patient.create({ data: { ownerId: user.id, fullName: name, relationship: 'Titular' } });
+      notifyNewUser(name, email);
     }
     const { token, patientId } = await issueSession(user.id);
     res.json({ token, patientId, user: { id: user.id, email: user.email, name: user.name, role: user.role } });
