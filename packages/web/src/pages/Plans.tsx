@@ -124,10 +124,10 @@ export const PlansPage = () => {
               );
             })}
           </Stack>
-          {histTotal > 15 && (
+          {histTotal > 7 && (
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 1.5 }}>
               <Button size="small" disabled={histPage <= 1 || histLoading} onClick={() => loadHistory(histPage - 1)}>← Anterior</Button>
-              <Typography variant="caption" color="text.secondary">Pág. {histPage} de {Math.ceil(histTotal / 15)}</Typography>
+              <Typography variant="caption" color="text.secondary">Pág. {histPage} de {Math.ceil(histTotal / 7)}</Typography>
               <Button size="small" disabled={!hasMore || histLoading} onClick={() => loadHistory(histPage + 1)}>Próxima →</Button>
             </Stack>
           )}
@@ -139,9 +139,9 @@ export const PlansPage = () => {
       <Grid container spacing={2} sx={{ mb: 3 }}>
         {packs.map((p) => (
           <Grid size={{ xs: 12, sm: 4 }} key={p.id}>
-            <Card sx={{ height: '100%', borderRadius: 4, border: p.popular ? '2px solid #20b2aa' : '1px solid #e2e8f0', position: 'relative' }}>
-              {p.popular && <Chip color="primary" label="MAIS VENDIDO" size="small" sx={{ position: 'absolute', top: 10, right: 10 }} />}
-              <CardContent sx={{ textAlign: 'center', pt: p.popular ? 3.5 : 2 }}>
+            <Card sx={{ height: '100%', borderRadius: 4, border: p.popular ? '2px solid #20b2aa' : '1px solid #e2e8f0' }}>
+              {p.popular && <Box sx={{ textAlign: 'center', pt: 1.5 }}><Chip color="primary" label="MAIS VENDIDO" size="small" /></Box>}
+              <CardContent sx={{ textAlign: 'center', pt: p.popular ? 1 : 2 }}>
                 <Typography sx={{ fontWeight: 800, fontSize: 28, color: 'primary.main' }}>{p.credits}</Typography>
                 <Typography color="text.secondary">créditos</Typography>
                 <Typography variant="h5" sx={{ my: 1, fontWeight: 800 }}>R$ {p.price.toFixed(2).replace('.', ',')}</Typography>

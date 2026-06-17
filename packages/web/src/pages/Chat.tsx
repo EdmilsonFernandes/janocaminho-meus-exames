@@ -4,6 +4,7 @@ import SendIcon from '@mui/icons-material/Send';
 import { Title, useNotify } from 'react-admin';
 import { API_URL, apiHeaders } from '../config';
 import { useSelectedPatient } from '../patient-context';
+import { CreditBadge, CREDIT_COSTS } from '../components/CreditBadge';
 
 interface Msg { role: 'user' | 'assistant'; text: string }
 
@@ -87,6 +88,7 @@ export const ChatPage = () => {
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
             🤖 Pergunte sobre seus exames. Respostas educativas — não substituem o médico.
           </Typography>
+          <Box sx={{ mb: 1 }}><CreditBadge amount={CREDIT_COSTS.chat} label={`${CREDIT_COSTS.chat} crédito por pergunta`} /></Box>
 
           {/* área de mensagens (rolável) */}
           <Box ref={scrollRef} sx={{ flex: 1, minHeight: 0, overflowY: 'auto', p: 1, background: '#f3f6fb', borderRadius: 2 }}>

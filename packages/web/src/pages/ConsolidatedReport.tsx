@@ -9,6 +9,7 @@ import { useSelectedPatient } from '../patient-context';
 import { ShareDialog } from '../components/ShareDialog';
 import { AnimatedDoctor } from '../components/AnimatedDoctor';
 import { ExplainButton } from '../components/ExplainItem';
+import { CreditBadge, CREDIT_COSTS } from '../components/CreditBadge';
 
 interface Summary {
   resumoGeral?: string;
@@ -144,7 +145,8 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
         <>
           <Button variant="contained" size="large" startIcon={loading ? <CircularProgress size={18} color="inherit" /> : <DescriptionIcon />} onClick={generate} disabled={loading || !pid}>
             {loading ? 'Gerando...' : 'Gerar relatório completo'}
-          </Button>
+          </Button>{' '}
+          <CreditBadge amount={CREDIT_COSTS.consolidated} />
           {loading && <AnimatedDoctor text="Dr. Exame está preparando seu relatório…" size={80} />}
         </>
       )}

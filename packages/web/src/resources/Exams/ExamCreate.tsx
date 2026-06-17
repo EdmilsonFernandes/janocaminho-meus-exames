@@ -5,6 +5,7 @@ import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import { Title, useNotify, useRedirect, useRefresh } from 'react-admin';
 import { API_URL, token } from '../../config';
 import { useSelectedPatient } from '../../patient-context';
+import { CreditBadge, CREDIT_COSTS } from '../../components/CreditBadge';
 import { Capacitor } from '@capacitor/core';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 
@@ -137,6 +138,7 @@ export const ExamCreate = () => {
               <Button type="submit" variant="contained" size="large" disabled={busy || !files.length}>
                 {busy ? 'Enviando…' : `Enviar ${files.length || ''} e extrair`}
               </Button>
+              <CreditBadge amount={CREDIT_COSTS.extraction} label={`${CREDIT_COSTS.extraction} créditos por arquivo`} />
             </Box>
           </Box>
         </CardContent>

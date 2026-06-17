@@ -10,6 +10,7 @@ import { ValueBar } from '../../components/ValueBar';
 import { ExplainButton } from '../../components/ExplainItem';
 import { ExtractionProgress } from '../../components/ExtractionProgress';
 import { AnimatedDoctor } from '../../components/AnimatedDoctor';
+import { CreditBadge, CREDIT_COSTS } from '../../components/CreditBadge';
 
 const statusColor: Record<string, 'success' | 'error' | 'warning' | 'info' | 'default'> = {
   EXTRACTED: 'success', FAILED: 'error', UPLOADED: 'warning', EXTRACTING: 'info',
@@ -339,7 +340,8 @@ export const ExamShow = () => {
                 </Typography>
                 <Button variant="contained" size="large" onClick={generateSummary} disabled={genLoading}>
                   {genLoading ? <CircularProgress size={22} /> : 'Gerar resumo'}
-                </Button>
+                </Button>{' '}
+                <CreditBadge amount={CREDIT_COSTS.summary} />
                 {genLoading && <AnimatedDoctor text="Dr. Exame está analisando seu exame…" />}
               </CardContent>
             </Card>
@@ -352,6 +354,7 @@ export const ExamShow = () => {
         <Card sx={{ mt: 2 }}>
           <CardContent>
             <Typography variant="h6" gutterBottom>Pergunte sobre este exame</Typography>
+            <Box sx={{ mb: 1 }}><CreditBadge amount={CREDIT_COSTS.chat} label={`${CREDIT_COSTS.chat} por pergunta`} /></Box>
             <Box sx={{ maxHeight: 320, overflowY: 'auto', mb: 1, p: 1, background: '#f3f6fb', borderRadius: 1 }}>
               {chatMessages.length === 0 && <Typography color="text.secondary">Ex.: "Por que minha hemoglobina subiu?"</Typography>}
               {chatMessages.map((m, i) => (
