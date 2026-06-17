@@ -194,6 +194,51 @@ export const ExamShow = () => {
         </CardContent>
       </Card>
 
+      {/* DR. EXAME NO TOPO: gera resumo + pergunte sobre este exame */}
+      {exam.status === 'EXTRACTED' && (
+        <Box sx={{ mt: 2 }}>
+          {summary ? <HealthSummary analysis={summary} /> : (
+            <Card variant="outlined">
+              <CardContent>
+                <Typography variant="h6" gutterBottom>Análise de saúde</Typography>
+                <Typography color="text.secondary" sx={{ mb: 2 }}>
+                  Gera um resumo educativo comparando com o exame anterior e os pontos a levar ao médico.
+                </Typography>
+                <Button variant="contained" size="large" onClick={generateSummary} disabled={genLoading}>
+                  {genLoading ? <CircularProgress size={22} /> : 'Gerar resumo'}
+                </Button>{' '}
+                <CreditBadge amount={CREDIT_COSTS.summary} />
+                {genLoading && <AnimatedDoctor text="Dr. Exame está analisando seu exame…" />}
+              </CardContent>
+            </Card>
+          )}
+        </Box>
+      )}
+      {exam.status === 'EXTRACTED' && summary && (
+        <Card sx={{ mt: 2 }}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>Pergunte sobre este exame</Typography>
+            <Box sx={{ mb: 1 }}><CreditBadge amount={CREDIT_COSTS.chat} label={`${CREDIT_COSTS.chat} por pergunta`} /></Box>
+            <Box sx={{ maxHeight: 320, overflowY: 'auto', mb: 1, p: 1, background: '#f3f6fb', borderRadius: 1 }}>
+              {chatMessages.length === 0 && <Typography color="text.secondary">Ex.: "Por que minha hemoglobina subiu?"</Typography>}
+              {chatMessages.map((m, i) => (
+                <Box key={i} sx={{ textAlign: m.role === 'user' ? 'right' : 'left', mb: 1 }}>
+                  <Chip color={m.role === 'user' ? 'primary' : 'default'} label={m.text || '…'} sx={{ maxWidth: '85%', whiteSpace: 'pre-wrap', height: 'auto', padding: '8px' }} />
+                </Box>
+              ))}
+            </Box>
+            <Divider sx={{ my: 1 }} />
+            <Stack direction="row" spacing={1}>
+              <Box component="input" value={chatInput} disabled={chatBusy} placeholder="Pergunte sobre o exame…"
+                onChange={(e: any) => setChatInput(e.target.value)}
+                onKeyDown={(e: any) => { if (e.key === 'Enter' && !chatBusy) sendChat(); }}
+                style={{ flex: 1, padding: '10px 12px', fontSize: 16, borderRadius: 8, border: '1px solid #c4d0e0' }} />
+              <Button variant="contained" onClick={sendChat} disabled={chatBusy || !chatInput.trim()}>Enviar</Button>
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
+
       {/* BLOQUEIO SUAVE: nome do documento ≠ perfil */}
       {nameBlock && (
         <Card sx={{ mt: 2, borderLeft: '6px solid', borderColor: 'error.main' }}>
@@ -324,53 +369,6 @@ export const ExamShow = () => {
             <Typography variant="body2" sx={{ color: '#555', mt: 0.5 }}>
               1 página com valores alterados + perfil clínico + comparação. Pronto para levar na consulta.
             </Typography>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* RESUMO de IA */}
-      {exam.status === 'EXTRACTED' && (
-        <Box sx={{ mt: 2 }}>
-          {summary ? <HealthSummary analysis={summary} /> : (
-            <Card variant="outlined">
-              <CardContent>
-                <Typography variant="h6" gutterBottom>Análise de saúde</Typography>
-                <Typography color="text.secondary" sx={{ mb: 2 }}>
-                  Gera um resumo educativo comparando com o exame anterior e os pontos a levar ao médico.
-                </Typography>
-                <Button variant="contained" size="large" onClick={generateSummary} disabled={genLoading}>
-                  {genLoading ? <CircularProgress size={22} /> : 'Gerar resumo'}
-                </Button>{' '}
-                <CreditBadge amount={CREDIT_COSTS.summary} />
-                {genLoading && <AnimatedDoctor text="Dr. Exame está analisando seu exame…" />}
-              </CardContent>
-            </Card>
-          )}
-        </Box>
-      )}
-
-      {/* CHAT */}
-      {exam.status === 'EXTRACTED' && summary && (
-        <Card sx={{ mt: 2 }}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>Pergunte sobre este exame</Typography>
-            <Box sx={{ mb: 1 }}><CreditBadge amount={CREDIT_COSTS.chat} label={`${CREDIT_COSTS.chat} por pergunta`} /></Box>
-            <Box sx={{ maxHeight: 320, overflowY: 'auto', mb: 1, p: 1, background: '#f3f6fb', borderRadius: 1 }}>
-              {chatMessages.length === 0 && <Typography color="text.secondary">Ex.: "Por que minha hemoglobina subiu?"</Typography>}
-              {chatMessages.map((m, i) => (
-                <Box key={i} sx={{ textAlign: m.role === 'user' ? 'right' : 'left', mb: 1 }}>
-                  <Chip color={m.role === 'user' ? 'primary' : 'default'} label={m.text || '…'} sx={{ maxWidth: '85%', whiteSpace: 'pre-wrap', height: 'auto', padding: '8px' }} />
-                </Box>
-              ))}
-            </Box>
-            <Divider sx={{ my: 1 }} />
-            <Stack direction="row" spacing={1}>
-              <Box component="input" value={chatInput} disabled={chatBusy} placeholder="Pergunte sobre o exame…"
-                onChange={(e: any) => setChatInput(e.target.value)}
-                onKeyDown={(e: any) => { if (e.key === 'Enter' && !chatBusy) sendChat(); }}
-                style={{ flex: 1, padding: '10px 12px', fontSize: 16, borderRadius: 8, border: '1px solid #c4d0e0' }} />
-              <Button variant="contained" onClick={sendChat} disabled={chatBusy || !chatInput.trim()}>Enviar</Button>
-            </Stack>
           </CardContent>
         </Card>
       )}
