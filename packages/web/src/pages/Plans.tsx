@@ -22,17 +22,32 @@ export const PlansPage = () => {
   const [subLoading, setSubLoading] = useState(false);
   const [pixPack, setPixPack] = useState<string | null>(null);
   const [hist, setHist] = useState<any[]>([]);
+  const [histPage, setHistPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [histLoading, setHistLoading] = useState(false);
+
+  const loadHistory = async (page: number) => {
+    setHistLoading(true);
+    const h = { Authorization: `Bearer ${token()}` };
+    const r = await fetch(`${API_URL}/billing/credits/history?page=${page}`, { headers: h });
+    if (r.ok) {
+      const d = await r.json();
+      setHist((prev) => page === 1 ? (d.items ?? []) : [...prev, ...(d.items ?? [])]);
+      setHasMore(!!d.hasMore);
+      setHistPage(page);
+    }
+    setHistLoading(false);
+  };
 
   const load = async () => {
     const h = { Authorization: `Bearer ${token()}` };
-    const [s, p, hi] = await Promise.all([
+    const [s, p] = await Promise.all([
       fetch(`${API_URL}/billing/status`, { headers: h }),
       fetch(`${API_URL}/billing/plans`),
-      fetch(`${API_URL}/billing/credits/history`, { headers: h }),
     ]);
     if (s.ok) setStatus(await s.json());
     if (p.ok) setPlans(await p.json());
-    if (hi.ok) setHist((await hi.json()).items ?? []);
+    void loadHistory(1);
   };
   useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
 
@@ -93,7 +108,7 @@ export const PlansPage = () => {
         <Card sx={{ mb: 2, borderRadius: 4 }}><CardContent>
           <Typography variant="subtitle2" sx={{ mb: 1 }}>Extrato de créditos</Typography>
           <Stack divider={<Divider />} spacing={0}>
-            {hist.slice(0, 12).map((it) => {
+            {hist.map((it) => {
               const credit = it.kind === 'credit';
               return (
                 <Stack key={it.id} direction="row" justifyContent="space-between" alignItems="center" sx={{ py: 0.75 }}>
@@ -107,6 +122,13 @@ export const PlansPage = () => {
               );
             })}
           </Stack>
+          {hasMore && (
+            <Box sx={{ textAlign: 'center', mt: 1 }}>
+              <Button size="small" variant="outlined" disabled={histLoading} onClick={() => loadHistory(histPage + 1)}>
+                {histLoading ? 'Carregando…' : 'Carregar mais'}
+              </Button>
+            </Box>
+          )}
         </CardContent></Card>
       )}
 

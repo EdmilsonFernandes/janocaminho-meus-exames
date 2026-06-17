@@ -48,13 +48,15 @@ router.get('/status', requireAuth, async (req: AuthedRequest, res, next) => {
   } catch (e) { next(e); }
 });
 
-// EXTRATO de créditos: débitos (IA, por dependente) + créditos (compras), do mais recente
+// EXTRATO de créditos (paginado 50/página, sempre do mais recente): débitos IA + créditos de compra
 router.get('/credits/history', requireAuth, async (req: AuthedRequest, res, next) => {
   try {
     const pids = await userPatientIds(req.userId!);
+    const page = Math.max(1, Number(req.query.page ?? 1));
+    const perPage = 50;
     const [analyses, subs, patients] = await Promise.all([
-      prisma.aiAnalysis.findMany({ where: { patientId: { in: pids } }, orderBy: { createdAt: 'desc' }, take: 50, select: { id: true, type: true, examId: true, patientId: true, createdAt: true } }),
-      prisma.subscription.findMany({ where: { userId: req.userId!, status: 'APPROVED', periodDays: 0 }, orderBy: { updatedAt: 'desc' }, take: 20, select: { id: true, amount: true, updatedAt: true } }),
+      prisma.aiAnalysis.findMany({ where: { patientId: { in: pids } }, orderBy: { createdAt: 'desc' }, take: 2000, select: { id: true, type: true, examId: true, patientId: true, createdAt: true } }),
+      prisma.subscription.findMany({ where: { userId: req.userId!, status: 'APPROVED', periodDays: 0 }, orderBy: { updatedAt: 'desc' }, take: 500, select: { id: true, amount: true, updatedAt: true } }),
       prisma.patient.findMany({ where: { id: { in: pids } }, select: { id: true, fullName: true } }),
     ]);
     const pmap = new Map(patients.map((p) => [p.id, p.fullName]));
@@ -72,7 +74,9 @@ router.get('/credits/history', requireAuth, async (req: AuthedRequest, res, next
       items.push({ kind: 'credit', id: 's' + s.id, createdAt: s.updatedAt, label: `Compra de créditos — R$ ${Number(s.amount).toFixed(2).replace('.', ',')}`, patient: null, amount: creditsForPrice(Number(s.amount)) });
     }
     items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    res.json({ items });
+    const total = items.length;
+    const start = (page - 1) * perPage;
+    res.json({ items: items.slice(start, start + perPage), total, page, perPage, hasMore: start + perPage < total });
   } catch (e) { next(e); }
 });
 
