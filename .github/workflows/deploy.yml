@@ -48,6 +48,7 @@ jobs:
              git pull --ff-only; \
              docker compose -f docker-compose.prod.yml --env-file .env.prod pull; \
              docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --force-recreate; \
+             docker image prune -f; \
              echo 'Deploy OK'"
 
       - name: Saúde (health check)
