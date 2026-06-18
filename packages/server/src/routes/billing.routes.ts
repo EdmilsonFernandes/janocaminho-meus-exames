@@ -20,6 +20,13 @@ const CREDIT_PACKS = [
 ];
 const packById = (id: string) => CREDIT_PACKS.find((p) => p.id === id);
 
+/** notification_url só vale se for HTTPS público — localhost/HTTP faz o MP rejeitar
+ *  ("notification_url attribute must be url valid"). Em dev (localhost) devolve undefined. */
+const publicNotifyUrl = (): string | undefined => {
+  const u = config.mpNotificationUrl;
+  return u && /^https:\/\/(?!localhost|127\.0\.0\.1)(?!.*\.local\b)/i.test(u) ? u : undefined;
+};
+
 router.get('/plans', (_req, res) => {
   res.json({
     plans: Object.values(PLANS),
@@ -107,7 +114,7 @@ router.post('/checkout', requireAuth, async (req: AuthedRequest, res, next) => {
         auto_return: 'approved',
         external_reference: sub.id, // mensal: external_reference = sub.id (sem "|")
         statement_descriptor: 'MEUS EXAMES',
-        notification_url: config.mpNotificationUrl || undefined,
+        notification_url: publicNotifyUrl(),
       }),
     });
     if (!prefResp.ok) {
@@ -121,12 +128,13 @@ router.post('/checkout', requireAuth, async (req: AuthedRequest, res, next) => {
   } catch (e) { next(e); }
 });
 
-// Comprar CRÉDITOS via PIX — gera QR Code + código copia-cola + expiração (10 min)
+// Comprar CRÉDITOS — PIX (QR inline) OU Cartão/Débito (Checkout Pro redirect, MP).
 router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) => {
   try {
     if (!hasMercadoPago()) { res.status(503).json({ error: 'Pagamentos não configurados.' }); return; }
     const pack = packById(String(req.body?.pack ?? ''));
     if (!pack) { res.status(400).json({ error: 'Pacote inválido' }); return; }
+    const method = String(req.body?.method ?? 'pix').toLowerCase(); // pix | card | debit
     const user = await prisma.user.findUnique({ where: { id: req.userId! } });
     if (!user) { res.status(404).json({ error: 'Usuário não encontrado' }); return; }
 
@@ -136,7 +144,41 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
     });
     const externalReference = `${sub.id}|${pack.credits}`; // webhook diferencia pacote de mensal pelo "|"
     const expires = new Date(Date.now() + 10 * 60 * 1000); // 10 min
+    const base = (process.env.WEB_BASE_PATH ?? '').replace(/\/$/, '');
+    const origin = process.env.WEB_ORIGIN || '';
 
+    if (method !== 'pix') {
+      // CARTÃO / DÉBITO — Checkout Pro (página segura do MP; usuário paga lá e volta).
+      // O webhook (external_reference subId|credits) credita os créditos na aprovação.
+      const prefResp = await fetch(`${config.mpApiBaseUrl}/checkout/preferences`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${config.mpAccessToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: [{ id: pack.id, title: `Meus Exames — ${pack.credits} créditos`, quantity: 1, unit_price: pack.price, currency_id: 'BRL' }],
+          payer: { email: user.email, name: user.name },
+          external_reference: externalReference,
+          back_urls: {
+            success: `${origin}${base}/planos?status=success`,
+            failure: `${origin}${base}/planos?status=failure`,
+            pending: `${origin}${base}/planos?status=pending`,
+          },
+          auto_return: 'approved',
+          notification_url: publicNotifyUrl(),
+          statement_descriptor: 'MEUS EXAMES',
+        }),
+      });
+      if (!prefResp.ok) {
+        console.error('[billing] MP Checkout Pro falhou:', prefResp.status, await prefResp.text());
+        await prisma.subscription.update({ where: { id: sub.id }, data: { status: 'FAILED' } });
+        res.status(502).json({ error: 'Falha ao abrir o pagamento no Mercado Pago.' });
+        return;
+      }
+      const pref: any = await prefResp.json();
+      res.json({ init_point: pref.init_point ?? pref.sandbox_init_point, credits: pack.credits, price: pack.price });
+      return;
+    }
+
+    // PIX — QR Code inline (copia-cola + countdown)
     const r = await fetch(`${config.mpApiBaseUrl}/v1/payments`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${config.mpAccessToken}`, 'Content-Type': 'application/json', 'X-Idempotency-Key': crypto.randomUUID() },
@@ -147,7 +189,7 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
         payer: { email: user.email, first_name: (user.name || 'Cliente').split(' ')[0] },
         external_reference: externalReference,
         date_of_expiration: expires.toISOString(),
-        notification_url: config.mpNotificationUrl || undefined,
+        notification_url: publicNotifyUrl(),
         statement_descriptor: 'MEUS EXAMES',
       }),
     });

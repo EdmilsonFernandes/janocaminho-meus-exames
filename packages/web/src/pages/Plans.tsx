@@ -9,6 +9,7 @@ import { API_URL, token } from '../config';
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
 import { PixModal } from '../components/PixModal';
+import { PaymentChooser } from '../components/PaymentChooser';
 
 interface Status { active: boolean; planExpiresAt: string | null; examsCount: number; freeExamLimit: number; credits: number; tokensUsed: number; }
 interface Pack { id: string; credits: number; price: number; label: string; popular: boolean; }
@@ -21,6 +22,8 @@ export const PlansPage = () => {
   const [plans, setPlans] = useState<PlanInfo | null>(null);
   const [subLoading, setSubLoading] = useState(false);
   const [pixPack, setPixPack] = useState<string | null>(null);
+  const [chooserPack, setChooserPack] = useState<string | null>(null);
+  const [chooserLabel, setChooserLabel] = useState('');
   const [hist, setHist] = useState<any[]>([]);
   const [histPage, setHistPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
@@ -144,7 +147,7 @@ export const PlansPage = () => {
               <Typography sx={{ fontWeight: 800, fontSize: 28, color: 'primary.main', lineHeight: 1.1 }}>{p.credits}</Typography>
               <Typography color="text.secondary">créditos</Typography>
               <Typography variant="h5" sx={{ my: 1, fontWeight: 800 }}>R$ {p.price.toFixed(2).replace('.', ',')}</Typography>
-              <Button variant={p.popular ? 'contained' : 'outlined'} fullWidth disabled={!mpOn} onClick={() => setPixPack(p.id)}>Comprar via PIX</Button>
+              <Button variant={p.popular ? 'contained' : 'outlined'} fullWidth disabled={!mpOn} onClick={() => { setChooserLabel(`${p.credits} créditos • R$ ${p.price.toFixed(2).replace('.', ',')}`); setChooserPack(p.id); }}>Comprar</Button>
             </CardContent>
           </Card>
         ))}
@@ -183,6 +186,7 @@ export const PlansPage = () => {
         </Alert>
       )}
 
+      <PaymentChooser packId={chooserPack} packLabel={chooserLabel} onClose={() => setChooserPack(null)} onPix={() => setPixPack(chooserPack)} />
       <PixModal packId={pixPack} onClose={() => setPixPack(null)} onApproved={() => { setPixPack(null); notify('Créditos adicionados! 🎉', { type: 'success' }); load(); }} />
     </Box>
   );
