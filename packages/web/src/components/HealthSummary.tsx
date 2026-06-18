@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Card, CardContent, Typography, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Chip, Stack, Divider, Button, IconButton, Accordion, AccordionSummary, AccordionDetails, useMediaQuery, useTheme, Popover } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PrintIcon from '@mui/icons-material/Print';
@@ -79,6 +79,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
   const [shareOpen, setShareOpen] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [rate, setRate] = useState(1);
+  const restartingRef = useRef(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   // Normaliza: a IA às vezes devolve esses campos como string/null em vez de array — força array p/ não quebrar o .map
@@ -106,13 +107,20 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
     u.rate = newRate ?? rate;
     const v = synth.getVoices().find((vv) => vv.lang?.toLowerCase().startsWith('pt'));
     if (v) u.voice = v;
-    u.onend = () => setSpeaking(false);
-    u.onerror = () => setSpeaking(false);
+    u.onend = () => { if (!restartingRef.current) setSpeaking(false); };
+    u.onerror = () => { if (!restartingRef.current) setSpeaking(false); };
     setSpeaking(true);
     synth.speak(u);
   };
   const stopSpeak = () => { window.speechSynthesis?.cancel(); setSpeaking(false); };
-  const changeRate = (r: number) => { setRate(r); if (speaking) speak(r); };
+  const changeRate = (r: number) => {
+    setRate(r);
+    if (speaking) {
+      restartingRef.current = true;
+      speak(r);
+      setTimeout(() => { restartingRef.current = false; }, 600);
+    }
+  };
 
   const printSummary = () => {
     const w = window.open('', '_blank', 'width=820,height=940');
