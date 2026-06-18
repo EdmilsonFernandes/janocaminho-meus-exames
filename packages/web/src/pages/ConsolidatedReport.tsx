@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Box, Card, CardContent, Typography, Button, CircularProgress, Divider, Stack, Alert, Chip } from '@mui/material';
 import { Title } from 'react-admin';
 import DescriptionIcon from '@mui/icons-material/Description';
@@ -11,6 +12,7 @@ import { AnimatedDoctor } from '../components/AnimatedDoctor';
 import { ExplainButton } from '../components/ExplainItem';
 import { CreditBadge, CREDIT_COSTS } from '../components/CreditBadge';
 import { NameToggle } from '../components/HealthSummary';
+import { ConfirmSpend } from '../components/ConfirmSpend';
 import { DocPreview } from '../components/DocPreview';
 
 interface Summary {
@@ -37,6 +39,7 @@ const Section = ({ title, children }: { title: string; children: React.ReactNode
 const fmtDate = (d: string | null) => (d ? new Date(d).toLocaleDateString('pt-BR') : 's/d');
 
 export const ConsolidatedReportPage = () => {
+  const navigate = useNavigate();
   const [pid] = useSelectedPatient();
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState<any>(null);
@@ -52,9 +55,16 @@ export const ConsolidatedReportPage = () => {
       .catch(() => {});
   }, [pid]);
 
+  const [confirmSpend, setConfirmSpend] = useState<{ open: boolean; onYes: () => void }>({ open: false, onYes: () => {} });
   const generate = (force = false) => {
     if (!pid) return;
-    if (force && !window.confirm('Gerar um NOVO relatório custa 30 créditos. Continuar?')) return;
+    if (force) {
+      setConfirmSpend({ open: true, onYes: () => { setConfirmSpend(s => ({ ...s, open: false })); doGenerate(true); } });
+      return;
+    }
+    doGenerate(false);
+  };
+  const doGenerate = (force: boolean) => {
     setLoading(true);
     setError('');
     fetch(`${API_URL}/analyses/consolidated`, {
@@ -181,7 +191,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
                 <Typography sx={{ fontWeight: 700, color: '#178f89', fontSize: 14, mb: 1 }}>📊 Relatório baseado em {sourceExams.length} exame(s):</Typography>
                 <Stack spacing={0.5} useFlexGap>
                   {sourceExams.map((e, i) => (
-                    <Box key={i} component="a" href={`#${import.meta.env.BASE_URL}#/exams/${e.id}/show`} sx={{ textDecoration: 'none', '&:hover': { opacity: 0.8 } }}>
+                    <Box key={i} onClick={() => navigate(`/exams/${e.id}/show`)} sx={{ cursor: 'pointer', '&:hover': { opacity: 0.8 } }}>
                       <Typography variant="body2" sx={{ wordBreak: 'break-word', overflowWrap: 'anywhere', color: 'primary.main', fontWeight: 600, lineHeight: 1.35, cursor: 'pointer' }}>
                         📄 {e.title}{e.performedAt ? ` — ${fmtDate(e.performedAt)}` : ''}{e.sourceLab ? ` • ${e.sourceLab}` : ''}
                       </Typography>
@@ -259,6 +269,9 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
       )}
       <ShareDialog analysisId={analysis?.id} open={shareOpen} onClose={() => setShareOpen(false)} />
       <DocPreview html={docHtml} open={docOpen} onClose={() => setDocOpen(false)} title="Relatório de Saúde" />
+      <ConfirmSpend open={confirmSpend.open} credits={CREDIT_COSTS.consolidated} title="Gerar novo relatório"
+        desc="Vamos analisar seus exames mais recentes com a IA e gerar um relatório completo."
+        onClose={() => setConfirmSpend(s => ({ ...s, open: false }))} onConfirm={confirmSpend.onYes} />
     </Box>
   );
 };

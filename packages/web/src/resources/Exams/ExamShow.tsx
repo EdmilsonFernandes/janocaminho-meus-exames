@@ -13,6 +13,7 @@ import { ExplainButton } from '../../components/ExplainItem';
 import { ExtractionProgress } from '../../components/ExtractionProgress';
 import { AnimatedDoctor } from '../../components/AnimatedDoctor';
 import { CreditBadge, CREDIT_COSTS } from '../../components/CreditBadge';
+import { ConfirmSpend } from '../../components/ConfirmSpend';
 import { DocPreview } from '../../components/DocPreview';
 
 const statusColor: Record<string, 'success' | 'error' | 'warning' | 'info' | 'default'> = {
@@ -57,6 +58,7 @@ export const ExamShow = () => {
   const [docHtml, setDocHtml] = useState('');
   const [docOpen, setDocOpen] = useState(false);
   const [docTitle, setDocTitle] = useState('Documento');
+  const [confirmSpend, setConfirmSpend] = useState<{ open: boolean; credits: number; title: string; desc?: string; onYes: () => void }>({ open: false, credits: 0, title: '', onYes: () => {} });
 
   useEffect(() => {
     let active = true;
@@ -88,7 +90,13 @@ export const ExamShow = () => {
 
   const generateSummary = async (force = false) => {
     if (nameBlock) { notify('Confirme a titularidade deste exame antes de gerar a análise.', { type: 'warning' }); return; }
-    if (force && !window.confirm('Gerar um NOVO resumo custa 10 créditos. Continuar?')) return;
+    if (force) {
+      setConfirmSpend({ open: true, credits: CREDIT_COSTS.summary, title: 'Regenerar resumo', desc: 'Vamos gerar uma nova análise deste exame com a IA.', onYes: () => { setConfirmSpend(s => ({ ...s, open: false })); doGenerateSummary(true); } });
+      return;
+    }
+    doGenerateSummary(false);
+  };
+  const doGenerateSummary = async (force: boolean) => {
     setGenLoading(true);
     try {
       const r = await fetch(`${API_URL}/analyses`, {
@@ -389,6 +397,8 @@ export const ExamShow = () => {
       )}
 
       <DocPreview html={docHtml} open={docOpen} onClose={() => setDocOpen(false)} title={docTitle} />
+      <ConfirmSpend open={confirmSpend.open} credits={confirmSpend.credits} title={confirmSpend.title} desc={confirmSpend.desc}
+        onClose={() => setConfirmSpend(s => ({ ...s, open: false }))} onConfirm={confirmSpend.onYes} />
     </Box>
   );
 };
