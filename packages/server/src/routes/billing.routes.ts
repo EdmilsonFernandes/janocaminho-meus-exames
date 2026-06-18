@@ -33,6 +33,7 @@ router.get('/plans', (_req, res) => {
     creditPacks: CREDIT_PACKS,
     freeExamLimit: config.freeExamLimit,
     mercadoPagoEnabled: hasMercadoPago(),
+    creditCosts: CREDIT_COSTS, // pra o front sincronizar (admin pode ter mudado)
   });
 });
 

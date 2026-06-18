@@ -52,6 +52,7 @@ import { PatientSwitcher } from './components/PatientSwitcher';
 import { CreditsChip } from './components/CreditsChip';
 import { FloatingChat } from './components/FloatingChat';
 import { initPush } from './push';
+import { syncCreditCosts } from './components/CreditBadge';
 
 // AppBar: só o seletor de paciente (titular = quem loga) + botão Sair (sem conflito de avatares)
 const CustomAppBar = (props: AppBarProps) => {
@@ -174,6 +175,7 @@ const AppLayout = (props: any) => (
 export const App = () => {
   useEffect(() => {
     void initPush();
+    void syncCreditCosts();
     // Botão/gesto de voltar do Android (Capacitor) — volta no histórico ou sai do app na raiz
     let remove: (() => void) | undefined;
     (async () => {

@@ -5,6 +5,7 @@ import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import { Title, useNotify, useRedirect, useRefresh } from 'react-admin';
 import { API_URL, token } from '../../config';
 import { useSelectedPatient } from '../../patient-context';
+import { CREDIT_COSTS } from '../../components/CreditBadge';
 import { Capacitor } from '@capacitor/core';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 
@@ -169,12 +170,16 @@ export const ExamCreate = () => {
                 {progress.errors.map((er, i) => <Typography key={i} variant="caption" color="error">⚠ {er}</Typography>)}
               </Box>
             )}
-            <Box>
-              <Button type="submit" variant="contained" size="large" disabled={busy || !files.length}>
+            <Stack spacing={1}>
+              <Button type="submit" variant="contained" size="large" disabled={busy || !files.length} sx={{ alignSelf: 'flex-start' }}>
                 {busy ? 'Enviando…' : `Enviar ${files.length || ''} e extrair`}
               </Button>
-              <Typography variant="caption" color="success.main" sx={{ fontWeight: 600 }}>✓ Envio e extração grátis — você só usa créditos na interpretação (resumo/chat/relatório).</Typography>
-            </Box>
+              <Typography variant="caption" color="text.secondary">
+                {CREDIT_COSTS.extraction > 0
+                  ? `📤 Custa ${CREDIT_COSTS.extraction} crédito${CREDIT_COSTS.extraction > 1 ? 's' : ''} por arquivo.`
+                  : '✓ Envio e extração grátis — você só usa créditos na interpretação (resumo/chat/relatório).'}
+              </Typography>
+            </Stack>
           </Box>
         </CardContent>
       </Card>
