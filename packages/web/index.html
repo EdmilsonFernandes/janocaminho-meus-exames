@@ -64,21 +64,23 @@
     <div id="root"></div>
     <script>
       // LIMPA Service Workers de OUTROS apps (ex.: EdEspeto) que interceptam /minhasaude
-      // e quebram o fetch ("/api/exams" → "failed to fetch") + abrem o PWA errado.
-      // O Meus Exames tem seu próprio manifest (scope /minhasaude/) — não precisa de SW alheio.
+      // e quebram o fetch ("/api/exams" → "failed to fetch" no Chrome mobile; Firefox funciona).
+      // Remove TODOS os SWs + caches. Se achou algum, RECARREGA (garante estado limpo).
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(function(regs) {
+          var removed = false;
           regs.forEach(function(reg) {
-            // remove QUALQUER SW que não seja exclusivamente do /minhasaude
-            if (!reg.scope || reg.scope.indexOf('minhasaude') === -1) {
-              reg.unregister();
-            }
+            reg.unregister().then(function() { removed = true; });
           });
+          if ('caches' in window) {
+            caches.keys().then(function(keys) { keys.forEach(function(k) { caches.delete(k); }); });
+          }
+          // se removeu SW, recarrega UMA vez (sessionStorage evita loop)
+          if (regs.length && !sessionStorage.getItem('swCleaned')) {
+            sessionStorage.setItem('swCleaned', '1');
+            setTimeout(function() { window.location.reload(); }, 800);
+          }
         });
-        // limpa caches de SW antigos (EdEspeto) que podem servir conteúdo errado
-        if ('caches' in window) {
-          caches.keys().then(function(keys) { keys.forEach(function(k) { caches.delete(k); }); });
-        }
       }
     </script>
     <script type="module" src="/src/main.tsx"></script>
