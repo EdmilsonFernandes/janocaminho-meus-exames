@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import {
   Box, Card, CardContent, Typography, Chip, Button, CircularProgress, Alert, Divider, Stack,
+  Accordion, AccordionSummary, AccordionDetails,
 } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Title, useNotify } from 'react-admin';
 import { API_URL, token } from '../../config';
 import { HealthSummary } from '../../components/HealthSummary';
@@ -283,11 +285,19 @@ export const ExamShow = () => {
             </CardContent>
           </Card>
 
-          {/* itens por painel */}
-          {Object.entries(grouped).map(([panel, list]: any) => (
-            <Card key={panel} sx={{ mt: 2 }}>
-              <CardContent sx={{ pb: '8px !important' }}>
-                <Typography variant="h6" sx={{ mb: 1 }}>{panel}</Typography>
+          {/* itens por painel — Acoordion colapsável (sem scroll infinito em exames grandes) */}
+          {Object.entries(grouped).map(([panel, list]: any) => {
+            const abn = (list as any[]).filter((i: any) => i.isAbnormal).length;
+            const fewPanels = Object.keys(grouped).length <= 2;
+            return (
+            <Accordion key={panel} disableGutters elevation={0} defaultExpanded={fewPanels}
+              sx={{ mt: 1.5, borderRadius: '12px !important', overflow: 'hidden', border: '1px solid #e6f1f0', '&:before': { display: 'none' } }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '48px !important', '& .MuiAccordionSummary-content': { my: 0.75, alignItems: 'center' } }}>
+                <Typography sx={{ fontWeight: 700, fontSize: '1rem' }}>{panel}</Typography>
+                {abn > 0 && <Chip size="small" color="error" variant="outlined" label={`${abn} alterado${abn > 1 ? 's' : ''}`} sx={{ ml: 1.5, height: 20 }} />}
+                <Chip size="small" label={`${(list as any[]).length} itens`} sx={{ ml: 1, bgcolor: 'rgba(0,0,0,.05)', color: 'text.secondary', height: 20 }} />
+              </AccordionSummary>
+              <AccordionDetails sx={{ p: 1 }}>
                 <Stack divider={<Divider sx={{ borderColor: '#eef2f7', my: 0.5 }} />}>
                   {(list as any[]).map((it) => {
                     const m = fm(it.flag);
@@ -329,9 +339,10 @@ export const ExamShow = () => {
                     );
                   })}
                 </Stack>
-              </CardContent>
-            </Card>
-          ))}
+              </AccordionDetails>
+            </Accordion>
+          );
+          })}
         </>
       )}
 
