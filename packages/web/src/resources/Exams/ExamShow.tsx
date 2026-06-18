@@ -86,14 +86,15 @@ export const ExamShow = () => {
     finally { setAttesting(false); }
   };
 
-  const generateSummary = async () => {
+  const generateSummary = async (force = false) => {
     if (nameBlock) { notify('Confirme a titularidade deste exame antes de gerar a análise.', { type: 'warning' }); return; }
+    if (force && !window.confirm('Gerar um NOVO resumo custa 10 créditos. Continuar?')) return;
     setGenLoading(true);
     try {
       const r = await fetch(`${API_URL}/analyses`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
-        body: JSON.stringify({ examId: id }),
+        body: JSON.stringify({ examId: id, force }),
       });
       if (r.status === 402) {
         notify('💎 Sem créditos. Compre um pacote (PIX) ou assine o mensal em “Planos e Créditos”.', { type: 'warning' });
@@ -311,14 +312,24 @@ export const ExamShow = () => {
       {/* DR. EXAME (depois dos valores): resumo + pergunte sobre este exame */}
       {exam.status === 'EXTRACTED' && (
         <Box sx={{ mt: 2 }}>
-          {summary ? <HealthSummary analysis={summary} /> : (
+          {summary ? (
+            <>
+              <HealthSummary analysis={summary} />
+              <Box sx={{ mt: 1.5, textAlign: 'center' }}>
+                <Button size="small" variant="outlined" onClick={() => generateSummary(true)} disabled={genLoading}>
+                  {genLoading ? <CircularProgress size={18} /> : '↻ Regenerar resumo'}
+                </Button>{' '}
+                <CreditBadge amount={CREDIT_COSTS.summary} />
+              </Box>
+            </>
+          ) : (
             <Card variant="outlined">
               <CardContent>
                 <Typography variant="h6" gutterBottom>Análise de saúde</Typography>
                 <Typography color="text.secondary" sx={{ mb: 2 }}>
                   Gera um resumo educativo comparando com o exame anterior e os pontos a levar ao médico.
                 </Typography>
-                <Button variant="contained" size="large" onClick={generateSummary} disabled={genLoading}>
+                <Button variant="contained" size="large" onClick={() => generateSummary(false)} disabled={genLoading}>
                   {genLoading ? <CircularProgress size={22} /> : 'Gerar resumo'}
                 </Button>{' '}
                 <CreditBadge amount={CREDIT_COSTS.summary} />

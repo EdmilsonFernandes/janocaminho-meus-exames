@@ -155,7 +155,7 @@ export const LandingPage = () => {
             © {new Date().getFullYear()} janocaminho.com.br • contato@janocaminho.com.br
           </Typography>
           <Typography variant="caption" sx={{ opacity: .65, display: 'block' }}>
-            Edmilson Fernandes • CNPJ: [informe seu CNPJ] • Análise educativa, não substitui consulta médica.
+            Edmilson Fernandes • CNPJ: 44.771.427/0001-69 • Análise educativa, não substitui consulta médica.
           </Typography>
           <Box sx={{ mt: 1.5, display: 'flex', gap: 3, justifyContent: 'center', flexWrap: 'wrap' }}>
             <Box component="span" sx={{ color: '#5fc9c3', fontWeight: 700, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }} onClick={() => navigate('/termos')}>Termos e LGPD</Box>

@@ -22,6 +22,7 @@ import expenseRoutes from './routes/expense.routes';
 import deviceRoutes from './routes/device.routes';
 import consultaRoutes from './routes/consulta';
 import dataRoutes from './routes/data.routes';
+import adminRoutes from './routes/admin.routes';
 
 const app = express();
 
@@ -78,6 +79,7 @@ app.use('/api/expenses', expenseRoutes);
 app.use('/api/devices', deviceRoutes);
 app.use('/api/consulta', consultaRoutes);
 app.use('/api/data', dataRoutes);
+app.use('/api/admin', adminRoutes);
 
 // ROTA PÚBLICA: médico vê o resumo compartilhado (sem login, expira em 3 dias)
 app.get('/api/public/shared/:token', async (req, res) => {

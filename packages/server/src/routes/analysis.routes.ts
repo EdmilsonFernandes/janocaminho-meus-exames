@@ -25,9 +25,10 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       res.status(403).json({ error: 'name_mismatch', message: `O nome no documento (${nm.docName}) difere do perfil (${nm.profileName}). Confirme a titularidade deste exame antes de gerar a análise.` });
       return;
     }
-    // 1 resumo por exame: se já existe, devolve (não gasta tokens de novo)
+    // 1 resumo por exame: se já existe, devolve (não gasta tokens de novo).
+    // Se force=true, REGENERA (cobra de novo).
     const existing = await prisma.aiAnalysis.findFirst({ where: { examId, type: 'SUMMARY' }, orderBy: { createdAt: 'desc' } });
-    if (existing) { res.json(existing); return; }
+    if (existing && !req.body?.force) { res.json(existing); return; }
     const me = await prisma.user.findUnique({ where: { id: req.userId! }, select: { credits: true } });
     if ((me?.credits ?? 0) < CREDIT_COSTS.summary) {
       res.status(402).json({ error: 'insufficient_credits', message: 'Sem créditos suficientes. Compre um pacote de créditos para gerar análises com IA.' });
@@ -65,14 +66,14 @@ router.post('/consolidated', async (req: AuthedRequest, res, next) => {
       where: { patientId, status: 'EXTRACTED' },
       orderBy: { performedAt: 'desc' },
       take: 5,
-      select: { title: true, performedAt: true, sourceLab: true, kind: true },
+      select: { id: true, title: true, performedAt: true, sourceLab: true, kind: true },
     });
     // dedup: se já existe resumo consolidado há menos de 1h, devolve (economiza tokens)
     const recent = await prisma.aiAnalysis.findFirst({
       where: { patientId, type: 'SUMMARY', examId: null, createdAt: { gt: new Date(Date.now() - 3600_000) } },
       orderBy: { createdAt: 'desc' },
     });
-    if (recent) { res.json({ ...recent, sourceExams }); return; }
+    if (recent && !req.body?.force) { res.json({ ...recent, sourceExams }); return; }
     const me = await prisma.user.findUnique({ where: { id: req.userId! }, select: { credits: true } });
     if ((me?.credits ?? 0) < CREDIT_COSTS.consolidated) {
       res.status(402).json({ error: 'insufficient_credits', message: 'Sem créditos suficientes. Compre um pacote para gerar o relatório completo.' });
@@ -111,7 +112,7 @@ router.get('/consolidated/latest', async (req: AuthedRequest, res, next) => {
       where: { patientId, status: 'EXTRACTED' },
       orderBy: { performedAt: 'desc' },
       take: 5,
-      select: { title: true, performedAt: true, sourceLab: true, kind: true },
+      select: { id: true, title: true, performedAt: true, sourceLab: true, kind: true },
     });
     const last = await prisma.aiAnalysis.findFirst({ where: { patientId, type: 'SUMMARY', examId: null }, orderBy: { createdAt: 'desc' } });
     res.json({ analysis: last, sourceExams });

@@ -25,7 +25,7 @@ interface Summary {
   metasSaude?: { analito: string; meta: string; prazo?: string | null }[];
   disclaimer?: string;
 }
-interface SourceExam { title: string; performedAt: string | null; sourceLab: string | null; kind: string }
+interface SourceExam { id: string; title: string; performedAt: string | null; sourceLab: string | null; kind: string }
 
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <>
@@ -52,12 +52,13 @@ export const ConsolidatedReportPage = () => {
       .catch(() => {});
   }, [pid]);
 
-  const generate = () => {
+  const generate = (force = false) => {
     if (!pid) return;
+    if (force && !window.confirm('Gerar um NOVO relatório custa 30 créditos. Continuar?')) return;
     setLoading(true);
     setError('');
     fetch(`${API_URL}/analyses/consolidated`, {
-      method: 'POST', headers: apiHeaders(true), body: JSON.stringify({ patientId: pid }),
+      method: 'POST', headers: apiHeaders(true), body: JSON.stringify({ patientId: pid, force }),
     })
       .then(async (r) => {
         if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || 'Falha ao gerar relatório');
@@ -147,7 +148,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
 
       {!analysis && (
         <>
-          <Button variant="contained" size="large" startIcon={loading ? <CircularProgress size={18} color="inherit" /> : <DescriptionIcon />} onClick={generate} disabled={loading || !pid}>
+          <Button variant="contained" size="large" startIcon={loading ? <CircularProgress size={18} color="inherit" /> : <DescriptionIcon />} onClick={() => generate(false)} disabled={loading || !pid}>
             {loading ? 'Gerando...' : 'Gerar relatório completo'}
           </Button>{' '}
           <CreditBadge amount={CREDIT_COSTS.consolidated} />
@@ -167,7 +168,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
             <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" alignItems="center">
               <Button size="small" variant="outlined" sx={{ color: '#fff', borderColor: 'rgba(255,255,255,.6)' }} startIcon={<WhatsAppIcon />} onClick={() => setShareOpen(true)}>Compartilhar</Button>
               <Button size="small" variant="outlined" sx={{ color: '#fff', borderColor: 'rgba(255,255,255,.6)' }} startIcon={<PrintIcon />} onClick={printReport}>Imprimir / PDF</Button>
-              <Button size="small" variant="contained" sx={{ bgcolor: 'rgba(255,255,255,.18)' }} disabled={loading} onClick={generate} title="Regenera o relatório com os exames mais recentes">
+              <Button size="small" variant="contained" sx={{ bgcolor: 'rgba(255,255,255,.18)' }} disabled={loading} onClick={() => generate(true)} title="Regenera o relatório com os exames mais recentes">
                 {loading ? 'Atualizando…' : '↻ Atualizar'}
               </Button>
               <CreditBadge amount={CREDIT_COSTS.consolidated} sx={{ bgcolor: 'rgba(255,255,255,.95) !important', color: '#178f89 !important' }} />
@@ -180,9 +181,11 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
                 <Typography sx={{ fontWeight: 700, color: '#178f89', fontSize: 14, mb: 1 }}>📊 Relatório baseado em {sourceExams.length} exame(s):</Typography>
                 <Stack spacing={0.5} useFlexGap>
                   {sourceExams.map((e, i) => (
-                    <Typography key={i} variant="body2" sx={{ wordBreak: 'break-word', overflowWrap: 'anywhere', color: '#0f6f6a', fontWeight: 600, lineHeight: 1.35 }}>
-                      • {e.title}{e.performedAt ? ` — ${fmtDate(e.performedAt)}` : ''}{e.sourceLab ? ` • ${e.sourceLab}` : ''}
-                    </Typography>
+                    <Box key={i} component="a" href={`#${import.meta.env.BASE_URL}#/exams/${e.id}/show`} sx={{ textDecoration: 'none', '&:hover': { opacity: 0.8 } }}>
+                      <Typography variant="body2" sx={{ wordBreak: 'break-word', overflowWrap: 'anywhere', color: 'primary.main', fontWeight: 600, lineHeight: 1.35, cursor: 'pointer' }}>
+                        📄 {e.title}{e.performedAt ? ` — ${fmtDate(e.performedAt)}` : ''}{e.sourceLab ? ` • ${e.sourceLab}` : ''}
+                      </Typography>
+                    </Box>
                   ))}
                 </Stack>
               </Box>

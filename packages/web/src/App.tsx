@@ -43,6 +43,7 @@ import { FamilyPage } from './pages/Family';
 import { ConsolidatedReportPage } from './pages/ConsolidatedReport';
 import { ValoresAlteradosPage } from './pages/ValoresAlterados';
 import { ProfilePage } from './pages/Profile';
+import { AdminPage } from './pages/Admin';
 import { LoginPage, RegisterPage, ResetPage } from './pages/Auth';
 import { LandingPage } from './pages/Landing';
 import { TermsPage } from './pages/Terms';
@@ -207,6 +208,7 @@ export const App = () => {
 
     <CustomRoutes>
       <Route path="/perfil" element={<ProfilePage />} />
+      <Route path="/admin" element={<AdminPage />} />
       <Route path="/evolucao" element={<EvolutionPage />} />
       <Route path="/familia" element={<FamilyPage />} />
       <Route path="/tendencias" element={<TrendsPage />} />
