@@ -1,30 +1,22 @@
-name: Deploy to EC2
+name: Deploy to EC2 (GHCR)
 
-# Deploy AUTOMÁTICO: push em main → SSH no EC2 → git pull + rebuild.
-# ⚠️ Segredos são POR REPOSITÓRIO (não vêm do janocaminho). Crie neste repo:
-#   Settings → Secrets and variables → Actions:
-#   PROD_SSH_HOST = ec2-3-137-119-152.us-east-2.compute.amazonaws.com
-#   PROD_SSH_KEY  = (conteúdo inteiro da chave privada medtrack-temp.pem)
-#   PROD_SSH_USER = ec2-user
-#   PROD_SSH_PORT = 22
-
+# Deploy: depois do publish (GHCR) → SSH no EC2 → docker compose PULL (baixa imagem) + UP.
+# O EC2 NÃO builda (zero pressão de RAM). Mesmo padrão do EdEspeto.
 on:
-  push:
-    branches: ["main"]
+  workflow_run:
+    workflows: ["Publish Docker Image (GHCR)"]
+    types: [completed]
   workflow_dispatch:
-
-concurrency:
-  group: deploy-meus-exames
-  cancel-in-progress: false
 
 permissions:
   contents: read
+  packages: read
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: production
-    timeout-minutes: 20
+    timeout-minutes: 10
     steps:
       - name: Preparar SSH + validar secrets
         shell: bash
@@ -33,36 +25,33 @@ jobs:
           PROD_SSH_KEY: ${{ secrets.PROD_SSH_KEY }}
           PROD_SSH_PORT: ${{ secrets.PROD_SSH_PORT }}
         run: |
-          if [ -z "${PROD_SSH_HOST:-}" ]; then echo "❌ Secret ausente: PROD_SSH_HOST (crie no repo do Meus Exames)" >&2; exit 1; fi
+          if [ -z "${PROD_SSH_HOST:-}" ]; then echo "❌ Secret ausente: PROD_SSH_HOST" >&2; exit 1; fi
           if [ -z "${PROD_SSH_KEY:-}" ]; then echo "❌ Secret ausente: PROD_SSH_KEY" >&2; exit 1; fi
           install -m 700 -d ~/.ssh
-          printf '%s\n' "$PROD_SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+          printf '%s\n' "$PROD_SSH_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -p "${PROD_SSH_PORT:-22}" -H "$PROD_SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
 
-      - name: Testar acesso SSH
+      - name: Deploy no EC2 (pull imagem GHCR + restart — SEM build)
         shell: bash
         env:
           PROD_SSH_HOST: ${{ secrets.PROD_SSH_HOST }}
           PROD_SSH_PORT: ${{ secrets.PROD_SSH_PORT }}
           PROD_SSH_USER: ${{ secrets.PROD_SSH_USER }}
         run: |
-          ssh -i ~/.ssh/id_rsa -p "${PROD_SSH_PORT:-22}" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=no \
-            "${PROD_SSH_USER:-ec2-user}@$PROD_SSH_HOST" "echo github-actions-ssh-ok"
+          ssh_user="${PROD_SSH_USER:-ec2-user}"
+          ssh_port="${PROD_SSH_PORT:-22}"
+          ssh -i ~/.ssh/id_ed25519 -p "$ssh_port" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=yes -o ServerAliveInterval=30 \
+            "${ssh_user}@${PROD_SSH_HOST}" \
+            "set -eu; \
+             cd ~/meus-exames/janocaminho-meus-exames; \
+             git pull --ff-only; \
+             docker compose -f docker-compose.prod.yml --env-file .env.prod pull; \
+             docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --force-recreate; \
+             echo 'Deploy OK'"
 
-      - name: Deploy no EC2 (git pull + docker compose build + up)
-        shell: bash
-        env:
-          PROD_SSH_HOST: ${{ secrets.PROD_SSH_HOST }}
-          PROD_SSH_PORT: ${{ secrets.PROD_SSH_PORT }}
-          PROD_SSH_USER: ${{ secrets.PROD_SSH_USER }}
-        run: |
-          ssh -i ~/.ssh/id_rsa -p "${PROD_SSH_PORT:-22}" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 \
-            "${PROD_SSH_USER:-ec2-user}@$PROD_SSH_HOST" \
-            'cd ~/meus-exames/janocaminho-meus-exames && pkill -f scripts/deploy.sh 2>/dev/null; SUBPATH=minhasaude sh scripts/deploy.sh'
-
-      - name: Saúde (health check público)
+      - name: Saúde (health check)
         run: |
           sleep 5
           curl -sf -m 30 "https://janocaminho.com.br/minhasaude/api/health" && echo " ✅ app saudável" \
-            || echo "⚠️ health não respondeu (veja logs no EC2)"
+            || echo "⚠️ health não respondeu"
