@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest } from '../middleware/auth';
+import { CREDIT_COSTS } from '../utils/credits';
 
 const router = Router();
 router.use(requireAuth);
@@ -20,9 +21,32 @@ router.get('/users', async (_req, res, next) => {
       select: { id: true, email: true, name: true, role: true, credits: true, planExpiresAt: true, createdAt: true },
       orderBy: { createdAt: 'desc' },
     });
-    const count = await prisma.exam.count();
-    res.json({ users, stats: { users: users.length, exams: count } });
+    const examCount = await prisma.exam.count();
+    const subCount = await prisma.subscription.count();
+    const approvedRevenue = await prisma.subscription.aggregate({ where: { status: 'APPROVED' }, _sum: { amount: true } });
+    res.json({ users, stats: { users: users.length, exams: examCount, subscriptions: subCount, revenue: approvedRevenue._sum.amount ?? 0 } });
   } catch (e) { next(e); }
+});
+
+// LISTAR pagamentos (com MP details)
+router.get('/payments', async (req, res, next) => {
+  try {
+    const page = Math.max(1, Number(req.query.page ?? 1));
+    const take = 20;
+    const [subs, total] = await Promise.all([
+      prisma.subscription.findMany({
+        orderBy: { createdAt: 'desc' }, skip: (page - 1) * take, take,
+        include: { user: { select: { email: true, name: true } } },
+      }),
+      prisma.subscription.count(),
+    ]);
+    res.json({ payments: subs, total, page, hasMore: page * take < total });
+  } catch (e) { next(e); }
+});
+
+// CONFIG — custos atuais (leitura)
+router.get('/config', (_req, res) => {
+  res.json({ creditCosts: CREDIT_COSTS, plans: { monthly: { price: 19.90, credits: 1500 } } });
 });
 
 // AJUSTAR créditos
