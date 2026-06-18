@@ -302,39 +302,31 @@ export const ExamShow = () => {
                   {(list as any[]).map((it) => {
                     const m = fm(it.flag);
                     const out = it.isAbnormal;
+                    const valColor = out ? (m.color === 'error' ? 'error.main' : 'warning.main') : 'success.main';
                     return (
                       <Box key={it.id} sx={{
-                        display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1, py: 1.25,
+                        py: 1.25, pl: 1, borderRadius: 1,
                         borderLeft: out ? '5px solid' : '5px solid transparent',
                         borderColor: out ? (m.color === 'error' ? 'error.main' : 'warning.main') : 'transparent',
-                        pl: 1, borderRadius: 1,
                         background: out ? (m.color === 'error' ? 'rgba(198,40,40,.06)' : 'rgba(230,81,0,.06)') : 'transparent',
                       }}>
-                        <Box sx={{ flex: '1 1 60%', minWidth: 220 }}>
-                          <Stack direction="row" justifyContent="space-between" alignItems="center" useFlexGap spacing={1}>
-                            <Stack direction="row" alignItems="center" spacing={0.5}>
-                              <Typography sx={{ fontWeight: 700, fontSize: '1.08rem' }}>{it.name}</Typography>
-                              <ExplainButton name={it.name} nameCanonical={it.nameCanonical} />
-                            </Stack>
-                            <Chip color={m.color} label={m.label} size="small" />
-                          </Stack>
-                          <Typography sx={{ fontSize: '0.92rem', color: 'text.secondary', mt: 0.25 }}>
-                            <strong>Referência:</strong> {fmtRef(it)}
-                          </Typography>
-                          <ValueBar value={it.valueNumeric} low={it.refLow} high={it.refHigh} />
-                        </Box>
-                        <Box sx={{ flex: '0 0 auto', textAlign: 'right', pr: 1 }}>
-                          <Typography component="span" sx={{
-                            fontSize: '1.7rem', fontWeight: 800, lineHeight: 1,
-                            color: out ? (m.color === 'error' ? 'error.main' : 'warning.main') : 'success.main',
-                          }}>{it.valueText ?? '—'}</Typography>
-                          {it.unit ? <Typography component="span" sx={{ color: 'text.secondary', ml: 0.5, fontSize: '0.85rem' }}>{it.unit}</Typography> : null}
-                          <Box>
-                            <Button size="small" sx={{ fontSize: '0.75rem', minWidth: 0, p: 0 }} onClick={() => openCitation(it.extractedPage)}>
-                              pág. {it.extractedPage}
-                            </Button>
-                          </Box>
-                        </Box>
+                        {/* Nome (quebra linha, não corta) + ? + status */}
+                        <Stack direction="row" alignItems="flex-start" useFlexGap spacing={0.5} sx={{ mb: 0.25 }}>
+                          <Typography sx={{ fontWeight: 700, fontSize: '1.05rem', flex: 1, minWidth: 0, wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.3 }}>{it.name}</Typography>
+                          <ExplainButton name={it.name} nameCanonical={it.nameCanonical} />
+                          <Chip color={m.color} label={m.label} size="small" sx={{ flexShrink: 0 }} />
+                        </Stack>
+                        {/* Valor grande + cor (vermelho alterado, laranja alerta, verde normal) + unidade + pág */}
+                        <Stack direction="row" spacing={1} alignItems="baseline" useFlexGap flexWrap="wrap">
+                          <Typography sx={{ fontSize: '1.5rem', fontWeight: 800, lineHeight: 1.2, color: valColor }}>{it.valueText ?? '—'}</Typography>
+                          {it.unit ? <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem' }}>{it.unit}</Typography> : null}
+                          <Button size="small" sx={{ fontSize: '0.75rem', minWidth: 0, p: 0 }} onClick={() => openCitation(it.extractedPage)}>pág. {it.extractedPage}</Button>
+                        </Stack>
+                        {/* Referência + barra visual */}
+                        <Typography sx={{ fontSize: '0.85rem', color: 'text.secondary', mt: 0.25, wordBreak: 'break-word' }}>
+                          <strong>Referência:</strong> {fmtRef(it)}
+                        </Typography>
+                        <ValueBar value={it.valueNumeric} low={it.refLow} high={it.refHigh} />
                       </Box>
                     );
                   })}
