@@ -1,16 +1,21 @@
 name: Deploy to EC2
 
-# Deploy AUTOMÁTICO: todo push pra main dispara SSH no EC2 → git pull + rebuild.
-# Usa os MESMOS secrets do janocaminho (PROD_SSH_*). Builda no próprio EC2 (sem GHCR).
+# Deploy AUTOMÁTICO: push em main → SSH no EC2 → git pull + rebuild.
+# ⚠️ Segredos são POR REPOSITÓRIO (não vêm do janocaminho). Crie neste repo:
+#   Settings → Secrets and variables → Actions:
+#   PROD_SSH_HOST = ec2-3-137-119-152.us-east-2.compute.amazonaws.com
+#   PROD_SSH_KEY  = (conteúdo inteiro da chave privada medtrack-temp.pem)
+#   PROD_SSH_USER = ec2-user
+#   PROD_SSH_PORT = 22
 
 on:
   push:
     branches: ["main"]
-  workflow_dispatch: # permite disparar manualmente na aba Actions
+  workflow_dispatch:
 
 concurrency:
   group: deploy-meus-exames
-  cancel-in-progress: false # não corta um deploy no meio
+  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -20,28 +25,43 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Configurar chave SSH
+      - name: Preparar SSH + validar secrets
+        shell: bash
         env:
-          PROD_SSH_KEY: ${{ secrets.PROD_SSH_KEY }}
           PROD_SSH_HOST: ${{ secrets.PROD_SSH_HOST }}
+          PROD_SSH_KEY: ${{ secrets.PROD_SSH_KEY }}
+          PROD_SSH_PORT: ${{ secrets.PROD_SSH_PORT }}
         run: |
+          if [ -z "${PROD_SSH_HOST:-}" ]; then echo "❌ Secret ausente: PROD_SSH_HOST (crie no repo do Meus Exames)" >&2; exit 1; fi
+          if [ -z "${PROD_SSH_KEY:-}" ]; then echo "❌ Secret ausente: PROD_SSH_KEY" >&2; exit 1; fi
           install -m 700 -d ~/.ssh
           printf '%s\n' "$PROD_SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -p "${PROD_SSH_PORT:-22}" -H "$PROD_SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
 
-      - name: Deploy no EC2 (git pull + docker compose build + up)
+      - name: Testar acesso SSH
+        shell: bash
         env:
-          PROD_SSH_USER: ${{ secrets.PROD_SSH_USER || 'ec2-user' }}
           PROD_SSH_HOST: ${{ secrets.PROD_SSH_HOST }}
-          PROD_SSH_PORT: ${{ secrets.PROD_SSH_PORT || '22' }}
+          PROD_SSH_PORT: ${{ secrets.PROD_SSH_PORT }}
+          PROD_SSH_USER: ${{ secrets.PROD_SSH_USER }}
         run: |
-          ssh -i ~/.ssh/id_rsa -p "$PROD_SSH_PORT" -o StrictHostKeyChecking=no -o ServerAliveInterval=30 \
-            "$PROD_SSH_USER@$PROD_SSH_HOST" \
+          ssh -i ~/.ssh/id_rsa -p "${PROD_SSH_PORT:-22}" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=no \
+            "${PROD_SSH_USER:-ec2-user}@$PROD_SSH_HOST" "echo github-actions-ssh-ok"
+
+      - name: Deploy no EC2 (git pull + docker compose build + up)
+        shell: bash
+        env:
+          PROD_SSH_HOST: ${{ secrets.PROD_SSH_HOST }}
+          PROD_SSH_PORT: ${{ secrets.PROD_SSH_PORT }}
+          PROD_SSH_USER: ${{ secrets.PROD_SSH_USER }}
+        run: |
+          ssh -i ~/.ssh/id_rsa -p "${PROD_SSH_PORT:-22}" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 \
+            "${PROD_SSH_USER:-ec2-user}@$PROD_SSH_HOST" \
             'cd ~/meus-exames/janocaminho-meus-exames && pkill -f scripts/deploy.sh 2>/dev/null; SUBPATH=minhasaude sh scripts/deploy.sh'
 
       - name: Saúde (health check público)
         run: |
           sleep 5
-          curl -sf -m 30 "https://janocaminho.com.br/minhasaude/api/health" \
-            && echo "✅ app saudável" || echo "⚠️ health não respondeu (verifique logs no EC2)"
+          curl -sf -m 30 "https://janocaminho.com.br/minhasaude/api/health" && echo " ✅ app saudável" \
+            || echo "⚠️ health não respondeu (veja logs no EC2)"
