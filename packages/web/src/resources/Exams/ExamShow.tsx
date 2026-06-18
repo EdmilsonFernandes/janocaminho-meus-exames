@@ -11,6 +11,7 @@ import { ExplainButton } from '../../components/ExplainItem';
 import { ExtractionProgress } from '../../components/ExtractionProgress';
 import { AnimatedDoctor } from '../../components/AnimatedDoctor';
 import { CreditBadge, CREDIT_COSTS } from '../../components/CreditBadge';
+import { DocPreview } from '../../components/DocPreview';
 
 const statusColor: Record<string, 'success' | 'error' | 'warning' | 'info' | 'default'> = {
   EXTRACTED: 'success', FAILED: 'error', UPLOADED: 'warning', EXTRACTING: 'info',
@@ -51,6 +52,9 @@ export const ExamShow = () => {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [explain, setExplain] = useState<any | null>(null);
   const [attesting, setAttesting] = useState(false);
+  const [docHtml, setDocHtml] = useState('');
+  const [docOpen, setDocOpen] = useState(false);
+  const [docTitle, setDocTitle] = useState('Documento');
 
   useEffect(() => {
     let active = true;
@@ -358,10 +362,7 @@ export const ExamShow = () => {
                     method: 'POST', headers: { Authorization: `Bearer ${token()}` },
                   });
                   const d = await r.json();
-                  if (d.html) {
-                    const blob = new Blob([d.html], { type: 'text/html' });
-                    window.open(URL.createObjectURL(blob), '_blank');
-                  }
+                  if (d.html) { setDocHtml(d.html); setDocTitle('Preparo de consulta'); setDocOpen(true); }
                 }}>
                 Gerar documento
               </Button>
@@ -373,6 +374,7 @@ export const ExamShow = () => {
         </Card>
       )}
 
+      <DocPreview html={docHtml} open={docOpen} onClose={() => setDocOpen(false)} title={docTitle} />
     </Box>
   );
 };

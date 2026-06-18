@@ -11,6 +11,7 @@ import { AnimatedDoctor } from '../components/AnimatedDoctor';
 import { ExplainButton } from '../components/ExplainItem';
 import { CreditBadge, CREDIT_COSTS } from '../components/CreditBadge';
 import { NameToggle } from '../components/HealthSummary';
+import { DocPreview } from '../components/DocPreview';
 
 interface Summary {
   resumoGeral?: string;
@@ -83,10 +84,11 @@ export const ConsolidatedReportPage = () => {
     : undefined;
   const sourceExams: SourceExam[] = analysis?.sourceExams ?? [];
 
-  /** Imprime/salva PDF premium (nova janela com HTML estilizado). */
+  /** Imprime/salva PDF premium — mostra num preview DENTRO do app (DocPreview),
+   *  sem window.open (que é bloqueado no PWA mobile). */
+  const [docHtml, setDocHtml] = useState('');
+  const [docOpen, setDocOpen] = useState(false);
   const printReport = () => {
-    const w = window.open('', '_blank', 'width=840,height=1000');
-    if (!w) return;
     const esc = (str?: string) => (str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\n/g, '<br>');
     const examList = sourceExams
       .map((e) => `<li><b>${esc(e.title)}</b>${e.performedAt ? ' — ' + fmtDate(e.performedAt) : ''}${e.sourceLab ? ' • ' + esc(e.sourceLab) : ''}</li>`)
@@ -98,7 +100,7 @@ export const ConsolidatedReportPage = () => {
     const metas = (s?.metasSaude ?? []).map((m) => `<li><b>${esc(m.analito)}</b>: ${esc(m.meta)}${m.prazo ? ` (${esc(m.prazo)})` : ''}</li>`).join('');
     const inter = (s?.interacoesMedicamentos ?? []).map((m) => `<li><b>${esc(m.medicamento)}</b> × ${esc(m.analito)}: ${esc(m.observacao)}</li>`).join('');
     const perg = (s?.perguntasParaOMedico ?? []).map((q) => `<li>${esc(txt(q))}</li>`).join('');
-    w.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Relatório de Saúde</title>
+    const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Relatório de Saúde</title>
 <style>
 *{box-sizing:border-box}body{font-family:'Inter','Segoe UI',Arial,sans-serif;color:#2d3748;background:#eef7f6;margin:0;padding:32px;line-height:1.6}
 .doc{max-width:760px;margin:0 auto;background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 6px 30px rgba(32,178,170,.18)}
@@ -130,8 +132,9 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
   </div>
 </div>
 <script>window.onload=function(){setTimeout(function(){window.print()},300)}</script>
-</body></html>`);
-    w.document.close();
+</body></html>`;
+    setDocHtml(html);
+    setDocOpen(true);
   };
 
   return (
@@ -252,6 +255,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
         </Card>
       )}
       <ShareDialog analysisId={analysis?.id} open={shareOpen} onClose={() => setShareOpen(false)} />
+      <DocPreview html={docHtml} open={docOpen} onClose={() => setDocOpen(false)} title="Relatório de Saúde" />
     </Box>
   );
 };
