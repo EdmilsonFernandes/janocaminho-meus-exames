@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Box, Card, CardContent, Button, TextField, Typography, Alert, Chip, Stack, LinearProgress } from '@mui/material';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
@@ -31,6 +31,7 @@ export const ExamCreate = () => {
   const [pid] = useSelectedPatient();
   const [files, setFiles] = useState<File[]>([]);
   const [title, setTitle] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number; errors: string[] } | null>(null);
   const notify = useNotify();
@@ -56,6 +57,26 @@ export const ExamCreate = () => {
     } catch (e: any) {
       if (e?.code === 'free_limit') { notify('Você atingiu o limite gratuito. Assine para continuar.', { type: 'warning' }); redirect('/planos'); return; }
       if (e?.message !== 'User cancelled photos app') notify(e.message || 'Falha na foto', { type: 'error' });
+    }
+  };
+
+  // Picker NATIVO (APK): abre o seletor de arquivos do sistema (PDF + imagens).
+  // ⚠️ Requer `npx cap sync android` + rebuild do APK p/ o lado nativo do plugin existir
+  //    (sem isso: "not implemented" — roda o fallback web).
+  const pickNative = async () => {
+    try {
+      const { FilePicker } = await import('@capawesome/capacitor-file-picker');
+      const res = await FilePicker.pickFiles({ limit: 0, readData: true, types: ['application/pdf', 'image/jpeg', 'image/png'] });
+      const picked: File[] = [];
+      for (const d of res.files ?? []) {
+        if (!d.data) continue;
+        const bytes = Uint8Array.from(atob(d.data), (c) => c.charCodeAt(0));
+        const blob = new Blob([bytes], { type: d.mimeType || 'application/octet-stream' });
+        picked.push(new File([blob], d.name || `exame-${Date.now()}.pdf`, { type: blob.type }));
+      }
+      if (picked.length) onPick({ length: picked.length, [Symbol.iterator]: function* () { for (const f of picked) yield f; } } as any as FileList);
+    } catch (e: any) {
+      if (e?.message !== 'User cancelled documents picker') notify(e.message || 'Falha ao escolher documento', { type: 'error' });
     }
   };
 
@@ -115,10 +136,18 @@ export const ExamCreate = () => {
         <CardContent>
           <Typography variant="h6" gutterBottom>Enviar resultado(s) de exame</Typography>
           <Box component="form" onSubmit={submit} sx={{ display: 'flex', flexDirection: 'column', gap: 2, maxWidth: 560 }}>
-            <Button variant="outlined" component="label" startIcon={<UploadFileIcon />} sx={{ justifyContent: 'flex-start' }}>
-              {files.length ? `${files.length} arquivo(s) selecionado(s)` : 'Escolher PDF / imagem (vários)'}
-              <input type="file" hidden multiple accept=".pdf,.jpg,.jpeg,.png,image/*,application/pdf" onChange={(e) => onPick(e.target.files)} />
-            </Button>
+            {isNative ? (
+              <Button variant="outlined" startIcon={<UploadFileIcon />} sx={{ justifyContent: 'flex-start' }} onClick={pickNative}>
+                {files.length ? `${files.length} arquivo(s) selecionado(s)` : 'Escolher PDF / foto (documentos)'}
+              </Button>
+            ) : (
+              <>
+                <input ref={fileInputRef} type="file" multiple accept=".pdf,.jpg,.jpeg,.png,image/*,application/pdf" style={{ display: 'none' }} onChange={(e) => { onPick(e.target.files); if (e.target) e.target.value = ''; }} />
+                <Button variant="outlined" startIcon={<UploadFileIcon />} sx={{ justifyContent: 'flex-start' }} onClick={() => fileInputRef.current?.click()}>
+                  {files.length ? `${files.length} arquivo(s) selecionado(s)` : 'Escolher PDF / imagem (vários)'}
+                </Button>
+              </>
+            )}
             {files.length > 0 && (
               <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
                 {files.map((f, i) => (
