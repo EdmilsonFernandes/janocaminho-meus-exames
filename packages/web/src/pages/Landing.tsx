@@ -1,167 +1,185 @@
-import { Box, Container, Typography, Button, Card, CardContent, Grid, Stack, Chip, Divider } from '@mui/material';
+import { Box, Container, Typography, Button, Stack, Chip, Divider, Fade } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { DrExame } from '../components/DrExame';
+import { useState, useEffect } from 'react';
 
-const features = [
-  { icon: '📸', title: 'Extração por Visão (IA)', desc: 'Envie o PDF ou a FOTO do exame. A IA lê por visão e extrai TODOS os valores com a página de origem. Nada de digitar.' },
-  { icon: '📊', title: 'Comparativo Anterior × Atual', desc: 'Veja o que mudou entre exames. "Hemoglobina: 13,8 → 15,4 (Melhorou)". Fácil de entender.' },
-  { icon: '🤖', title: 'Dr. Exame — Análise', desc: 'Resumo em português claro: comparativo, pontos de atenção e perguntas pra levar ao médico.' },
-  { icon: '💡', title: 'Cada exame explicado', desc: 'Clique no ❓ e entenda o que é cada analito: "Hemoglobina é a tinta vermelha que leva oxigênio".' },
-  { icon: '🎯', title: 'Score de Saúde (0-100)', desc: 'Um número que resume como estão seus exames + gráfico de distribuição (bons/alerta/alterados).' },
-  { icon: '📈', title: 'Tendências + Previsão', desc: 'Gráfico de evolução com faixa de referência destacada. "Neste ritmo, sua glicose sai da faixa em ~4 meses".' },
-  { icon: '💊', title: 'Interação Medicamento × Exame', desc: '"Sua hemoglobina subiu — pode ser a testosterona". A IA cruza suas medicações com os valores alterados.' },
-  { icon: '📋', title: 'Preparo de Consulta', desc: '1 página pronta para o médico: valores alterados, perfil clínico, comparação. Ele escaneia em 30 segundos.' },
-  { icon: '🥗', title: 'Sugestões de Nutrição', desc: '"LDL alto: reduza carnes vermelhas; aumente aveia". Sugestões práticas baseadas nos seus exames.' },
-  { icon: '🛡️', title: 'Anti-fraude inteligente', desc: 'Confere se o nome no documento bate com o perfil e avisa se for de outra pessoa. Rejeita documento que não é exame.' },
-  { icon: '🔁', title: 'Sem duplicidade', desc: 'Manda o mesmo exame 2x? O sistema reconhece pelo código do arquivo e avisa — você não desperdiça créditos.' },
-  { icon: '📅', title: 'Linha do Tempo da Saúde', desc: 'Trilha cronológica visual: "Jun/25: triglicérides caiu 40% 🎉" / "Mar/26: TSH subiu ⚠️".' },
-  { icon: '👨‍👩‍👧', title: 'Multi-perfil (Dependentes)', desc: 'Gerencie exames de mãe, filho, cônjuge. Cada um com seus dados separados + score familiar.' },
-  { icon: '🚨', title: 'Cartão de Emergência', desc: 'Carteirinha digital: tipo sanguíneo, alergias, medicações, contato. Imprima ou mostre no celular.' },
-  { icon: '🔔', title: 'Lembretes + E-mail', desc: '"Refazer hemograma em 6 meses". Lembretes inteligentes chegam por e-mail automaticamente.' },
-  { icon: '🩺', title: 'Chat com IA de Saúde', desc: 'Converse com a IA sobre seus exames. "Por que minha hemoglobina subiu?" Respostas em streaming.' },
-  { icon: '📏', title: 'Medições Manuais', desc: 'Registre pressão, peso, glicose no dia a dia. Acompanhe sua evolução sem precisar de exame.' },
-  { icon: '💉', title: 'Carteira de Vacinação', desc: 'Controle de vacinas + lembrete de próxima dose. Nunca mais esqueça um reforço.' },
-  { icon: '📤', title: 'Compartilhar com Médico', desc: 'Link temporário (expira) com seu resumo + senha. O médico vê sem instalar nada.' },
+const navigate = useNavigate;
+
+const benefits = [
+  { icon: '🤖', title: 'IA que entende seus exames', desc: 'Envie o PDF ou foto. O Dr. Exame lê tudo, extrai os valores e explica em português simples — sem jargão.' },
+  { icon: '📊', title: 'Comparativo visual', desc: 'Veja o que mudou entre exames. Hemoglobina subiu? Colesterol caiu? Gráficos claros com faixa de referência.' },
+  { icon: '📈', title: 'Evolução + Previsão', desc: 'Acompanhe tendências ao longo do tempo e saiba quando um valor pode sair da faixa.' },
+  { icon: '👨‍👩‍👧', title: 'Toda a família', desc: 'Gerencie exames de cada dependente. Score familiar + comparativo entre membros.' },
+  { icon: '🩺', title: 'Dr. Exame responde', desc: 'Converse com a IA sobre seus resultados. "Por que minha hemoglobina subiu?" — resposta na hora.' },
+  { icon: '📋', title: 'Pronto para o médico', desc: 'Documento de 1 página com valores alterados + perfil clínico. Seu médico escaneia em 30 segundos.' },
+  { icon: '🤟', title: 'Acessível em Libras', desc: 'Tradução automática para Libras. Pacientes surdos entendem cada resultado.' },
+  { icon: '🔒', title: 'Dados protegidos', desc: 'Criptografia, PIN de compartilhamento, exclusão a qualquer momento. LGPD completa.' },
 ];
 
-const plans = [
-  { name: 'Grátis', price: 'R$ 0', period: '', badge: '', features: ['100 créditos pra testar', 'Envie exames (PDF/foto)', 'Valores + referência', 'Score de Saúde', 'Pergunte ao Dr. Exame'], highlight: false, cta: 'Começar grátis' },
-  { name: 'Mensal', price: 'R$ 19,90', period: '/mês', badge: 'MAIS POPULAR', features: ['1.500 créditos de IA por mês', 'Exames + dependentes', 'Comparativo + Tendências', 'Relatório completo + impressão', 'Chat com o Dr. Exame'], highlight: true, cta: 'Assinar mensal' },
-  { name: 'Créditos', price: 'a partir de R$ 9,90', period: 'avulso', badge: 'PAGUE SÓ O QUE USAR', features: ['PIX, cartão ou débito', 'PIX instantâneo (QR) ou checkout', 'Cada análise consome créditos', 'Sem mensalidade', 'Use quando precisar'], highlight: false, cta: 'Ver pacotes' },
+const steps = [
+  { n: 1, title: 'Envie o exame', desc: 'PDF ou foto do exame de sangue, imagem ou laudo. A IA extrai todos os valores automaticamente.' },
+  { n: 2, title: 'Entenda os resultados', desc: 'O Dr. Exame explica cada valor em linguagem simples, compara com exames anteriores e destaca o que precisa de atenção.' },
+  { n: 3, title: 'Leve ao médico', desc: 'Gere um documento pronto ou compartilhe por link seguro. Perguntas prontas pra fazer na consulta.' },
+];
+
+const planData = [
+  { name: 'Grátis', price: 'R$ 0', period: '', features: ['100 créditos pra testar', 'Envie exames (PDF/foto)', 'Valores + referência', 'Score de Saúde', 'Pergunte ao Dr. Exame'], highlight: false, cta: 'Começar grátis' },
+  { name: 'Mensal', price: 'R$ 19,90', period: '/mês', features: ['1.500 créditos de IA/mês', 'Exames + dependentes', 'Comparativo + Tendências', 'Relatório completo + PDF', 'Chat com o Dr. Exame'], highlight: true, cta: 'Assinar mensal' },
+  { name: 'Créditos', price: 'a partir de R$ 9,90', period: 'avulso', features: ['PIX, cartão ou débito', 'Pacotes flexíveis', 'Cada análise consome créditos', 'Sem mensalidade', 'Use quando precisar'], highlight: false, cta: 'Ver pacotes' },
 ];
 
 export const LandingPage = () => {
   const navigate = useNavigate();
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => { const h = () => setScrolled(window.scrollY > 40); window.addEventListener('scroll', h, { passive: true }); return () => window.removeEventListener('scroll', h); }, []);
+
   return (
-    <Box sx={{ background: '#eef7f6', minHeight: '100vh' }}>
-      {/* HERO */}
-      <Box sx={{ background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff', py: { xs: 5, md: 8 }, textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
-        <Box sx={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 50% 0%, rgba(255,255,255,.12), transparent 60%)' }} />
-        <Container maxWidth="md" sx={{ position: 'relative' }}>
-          {/* Robô INTEIRO (height auto, não força quadrado que cortava só a cabeça) */}
-          <Box component="img" src={`${import.meta.env.BASE_URL}brand.png`} alt="Dr. Exame — seu assistente de saúde com IA"
-            sx={{ width: { xs: 140, md: 180 }, height: 'auto', mx: 'auto', mb: 1, display: 'block', filter: 'drop-shadow(0 12px 26px rgba(0,0,0,.30))' }} />
-          <Typography variant="h3" sx={{ fontWeight: 900, mb: 1, textShadow: '0 2px 12px rgba(0,0,0,.2)' }}>Meus Exames</Typography>
-          <Typography variant="h6" sx={{ opacity: .95, mb: 3, fontWeight: 400, maxWidth: 540, mx: 'auto' }}>
-            Seu assistente de saúde com IA. Envie o exame (PDF ou foto), entenda tudo e acompanhe a evolução.
-          </Typography>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} justifyContent="center" useFlexGap alignItems="center">
-            <Button size="large" onClick={() => navigate('/registrar')}
-              sx={{ bgcolor: '#d4a574', color: '#fff', fontWeight: 800, fontSize: 17, px: 5, py: 1.5, borderRadius: 99, boxShadow: '0 8px 24px rgba(212,165,116,.5)', '&:hover': { bgcolor: '#c89863', transform: 'translateY(-2px)', boxShadow: '0 10px 28px rgba(212,165,116,.6)' }, transition: 'all .15s' }}>
-              Criar conta grátis →
-            </Button>
-            <Button size="large" onClick={() => navigate('/')}
-              sx={{ color: '#fff', fontWeight: 700, px: 3, '&:hover': { bgcolor: 'rgba(255,255,255,.14)' } }}>
-              Já tenho conta
-            </Button>
+    <Box sx={{ bgcolor: '#fff', minHeight: '100vh' }}>
+      {/* NAVBAR flutuante */}
+      <Box sx={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000, transition: 'all .3s', bgcolor: scrolled ? 'rgba(15,23,42,.95)' : 'transparent', backdropFilter: scrolled ? 'blur(12px)' : 'none' }}>
+        <Container maxWidth="lg" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', py: 1.5 }}>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <Box component="img" src={`${import.meta.env.BASE_URL}brand.png`} alt="Dr. Exame" sx={{ width: 34, height: 'auto', borderRadius: '8px' }} />
+            <Typography sx={{ color: '#fff', fontWeight: 800, fontSize: 18, fontFamily: 'Poppins, sans-serif' }}>Meus Exames</Typography>
           </Stack>
-          <Typography sx={{ mt: 2.5, opacity: .8, fontSize: 13 }}>Análise educativa — não substitui consulta médica.</Typography>
+          <Stack direction="row" spacing={1.5} alignItems="center">
+            <Button onClick={() => navigate('/')} sx={{ color: scrolled ? '#fff' : '#fff', fontWeight: 600, textTransform: 'none', '&:hover': { bgcolor: 'rgba(255,255,255,.1)' } }}>Entrar</Button>
+            <Button variant="contained" size="small" onClick={() => navigate('/registrar')} sx={{ bgcolor: '#20b2aa', color: '#fff', fontWeight: 700, textTransform: 'none', borderRadius: 99, px: 2.5, '&:hover': { bgcolor: '#178f89' } }}>Criar conta</Button>
+          </Stack>
         </Container>
       </Box>
 
-      {/* FEATURES */}
-      <Container maxWidth="lg" sx={{ py: { xs: 5, md: 8 } }}>
-        <Typography variant="h4" align="center" sx={{ fontWeight: 800, mb: 1, color: '#2d3748' }}>Tudo que o app faz por você</Typography>
-        <Typography align="center" color="text.secondary" sx={{ mb: 5 }}>19 funcionalidades pra você dominar sua saúde</Typography>
-        <Grid container spacing={3}>
-          {features.map((f, i) => (
-            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={i}>
-              <Card sx={{ height: '100%', borderRadius: 3, transition: 'transform .2s, box-shadow .2s', '&:hover': { transform: 'translateY(-4px)', boxShadow: 6 } }}>
-                <CardContent>
-                  <Typography sx={{ fontSize: 32, mb: 1 }}>{f.icon}</Typography>
-                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, color: '#2d3748' }}>{f.title}</Typography>
-                  <Typography variant="body2" color="text.secondary">{f.desc}</Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
-      </Container>
-
-      {/* DR EXAME SPOTLIGHT */}
-      <Box sx={{ background: 'linear-gradient(135deg,#e6f7f6,#d4a57414)', py: { xs: 5, md: 8 } }}>
-        <Container maxWidth="md">
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={4} alignItems="center">
-            <Box component="img" src={`${import.meta.env.BASE_URL}brand.png`} alt="Dr. Exame"
-              sx={{ width: { xs: 140, md: 180 }, height: 'auto', flexShrink: 0, filter: 'drop-shadow(0 10px 22px rgba(0,0,0,.22))' }} />
+      {/* HERO — fundo escuro premium */}
+      <Box sx={{ bgcolor: '#0f172a', color: '#fff', position: 'relative', overflow: 'hidden', pt: { xs: 10, md: 14 }, pb: { xs: 8, md: 12 } }}>
+        <Box sx={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 70% 30%, rgba(32,178,170,.15), transparent 60%)' }} />
+        <Container maxWidth="lg" sx={{ position: 'relative' }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.1fr .9fr' }, gap: { xs: 4, md: 8 }, alignItems: 'center' }}>
+            {/* Coluna texto */}
             <Box>
-              <Typography variant="h4" sx={{ fontWeight: 800, color: '#178f89', mb: 1 }}>Conheça o Dr. Exame 🤖</Typography>
-              <Typography color="text.secondary" sx={{ mb: 2, lineHeight: 1.7 }}>
-                Seu assistente pessoal de saúde. Ele lê seus exames por visão, explica cada valor em linguagem simples,
-                compara com exames anteriores, cruza com suas medicações, sugere alimentação, define metas — e ainda
-                <strong> guarda tudo na memória</strong> pra nunca perder o contexto.
+              <Chip label="🤖 IA de Saúde no seu bolso" sx={{ bgcolor: 'rgba(32,178,170,.15)', color: '#5fc9c3', fontWeight: 700, mb: 3, fontSize: 13 }} />
+              <Typography variant="h1" sx={{ fontSize: { xs: '2.2rem', md: '3.5rem' }, fontWeight: 900, lineHeight: 1.1, mb: 3, fontFamily: 'Poppins, sans-serif', letterSpacing: '-0.03em' }}>
+                Entenda seus<br />exames como<br /><Box component="span" sx={{ color: '#20b2aa' }}>nunca antes.</Box>
               </Typography>
-              <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-                <Chip label="💬 Explica em português simples" sx={{ bgcolor: 'rgba(32,178,170,.12)', color: '#178f89', fontWeight: 600 }} />
-                <Chip label="🧠 Memória de longo prazo" sx={{ bgcolor: 'rgba(32,178,170,.12)', color: '#178f89', fontWeight: 600 }} />
-                <Chip label="🎯 Define metas" sx={{ bgcolor: 'rgba(32,178,170,.12)', color: '#178f89', fontWeight: 600 }} />
-                <Chip label="🚫 Nunca diagnostica" sx={{ bgcolor: 'rgba(46,125,50,.12)', color: '#2e7d32', fontWeight: 600 }} />
+              <Typography sx={{ fontSize: { xs: 17, md: 20 }, color: 'rgba(255,255,255,.7)', mb: 4, lineHeight: 1.6, maxWidth: 480 }}>
+                Envie o exame de sangue, imagem ou laudo. O Dr. Exame lê tudo com IA, explica em português simples e acompanha sua evolução.
+              </Typography>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap>
+                <Button size="large" onClick={() => navigate('/registrar')} sx={{ bgcolor: '#20b2aa', color: '#fff', fontWeight: 800, fontSize: 17, borderRadius: 99, px: 4, py: 1.5, textTransform: 'none', boxShadow: '0 8px 30px rgba(32,178,170,.4)', '&:hover': { bgcolor: '#178f89', transform: 'translateY(-2px)' }, transition: 'all .2s' }}>
+                  Começar grátis →
+                </Button>
+                <Button size="large" onClick={() => navigate('/')} sx={{ color: '#fff', fontWeight: 700, fontSize: 17, borderRadius: 99, px: 4, py: 1.5, border: '1px solid rgba(255,255,255,.2)', textTransform: 'none', '&:hover': { bgcolor: 'rgba(255,255,255,.08)' } }}>
+                  Já tenho conta
+                </Button>
+              </Stack>
+              <Stack direction="row" spacing={3} sx={{ mt: 4 }}>
+                {['Sem cartão', '100 créditos grátis', 'LGPD'].map((t) => (
+                  <Typography key={t} sx={{ color: 'rgba(255,255,255,.5)', fontSize: 13 }}>✓ {t}</Typography>
+                ))}
               </Stack>
             </Box>
-          </Stack>
+            {/* Coluna visual — robô + "mockup" */}
+            <Box sx={{ display: 'flex', justifyContent: 'center', position: 'relative' }}>
+              <Box sx={{ position: 'relative' }}>
+                <Box component="img" src={`${import.meta.env.BASE_URL}brand.png`} alt="Dr. Exame" sx={{ width: { xs: 200, md: 300 }, height: 'auto', filter: 'drop-shadow(0 20px 40px rgba(32,178,170,.3))' }} />
+                {/* Cards flutuantes */}
+                <Box sx={{ position: 'absolute', top: { xs: -10, md: -20 }, left: { xs: -30, md: -60 }, bgcolor: '#fff', borderRadius: 3, p: 1.5, boxShadow: '0 8px 30px rgba(0,0,0,.15)', maxWidth: 180 }}>
+                  <Typography sx={{ fontSize: 11, color: '#64748b', mb: 0.5 }}>Hemoglobina</Typography>
+                  <Typography sx={{ fontSize: 22, fontWeight: 800, color: '#10b981' }}>15,3 <Box component="span" sx={{ fontSize: 12, color: '#10b981' }}>✓ Normal</Box></Typography>
+                </Box>
+                <Box sx={{ position: 'absolute', bottom: { xs: -10, md: -20 }, right: { xs: -20, md: -50 }, bgcolor: '#fff', borderRadius: 3, p: 1.5, boxShadow: '0 8px 30px rgba(0,0,0,.15)', maxWidth: 180 }}>
+                  <Typography sx={{ fontSize: 11, color: '#64748b', mb: 0.5 }}>Score de Saúde</Typography>
+                  <Typography sx={{ fontSize: 22, fontWeight: 800, color: '#20b2aa' }}>87/100 🎯</Typography>
+                </Box>
+              </Box>
+            </Box>
+          </Box>
         </Container>
       </Box>
 
-      {/* PLANOS */}
-      <Container maxWidth="lg" sx={{ py: { xs: 5, md: 8 } }}>
-        <Typography variant="h4" align="center" sx={{ fontWeight: 800, mb: 1 }}>Planos simples e justos</Typography>
-        <Typography align="center" color="text.secondary" sx={{ mb: 5 }}>Comece grátis. Assine o mensal ou pague só pelo que usar (créditos via PIX).</Typography>
-        <Grid container spacing={3} justifyContent="center">
-          {plans.map((p) => (
-            <Grid size={{ xs: 12, sm: 4 }} key={p.name}>
-              <Card sx={{ height: '100%', borderRadius: 4, border: p.highlight ? '2px solid #20b2aa' : '1px solid #e2e8f0', position: 'relative' }}>
-                {p.badge && <Chip label={p.badge} color={p.highlight ? 'primary' : 'default'} size="small" sx={{ position: 'absolute', top: 16, right: 16, fontWeight: 700 }} />}
-                <CardContent sx={{ p: 3 }}>
-                  <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>{p.name}</Typography>
-                  <Typography variant="h3" sx={{ fontWeight: 900, color: '#178f89' }}>
-                    {p.price}<Typography component="span" variant="body2" color="text.secondary"> {p.period}</Typography>
-                  </Typography>
-                  <Divider sx={{ my: 2 }} />
-                  {p.features.map((f, i) => (
-                    <Typography key={i} sx={{ py: 0.5, fontSize: '0.9rem' }}>✅ {f}</Typography>
-                  ))}
-                  <Button fullWidth variant={p.highlight ? 'contained' : 'outlined'} sx={{ mt: 2 }} onClick={() => navigate('/registrar')}>
-                    {p.cta}
-                  </Button>
-                </CardContent>
-              </Card>
-            </Grid>
+      {/* BENEFÍCIOS — fundo branco */}
+      <Container maxWidth="lg" sx={{ py: { xs: 8, md: 12 } }}>
+        <Typography align="center" sx={{ fontSize: { xs: '1.8rem', md: '2.5rem' }, fontWeight: 900, color: '#0f172a', mb: 1, fontFamily: 'Poppins, sans-serif', letterSpacing: '-0.02em' }}>
+          Tudo que você precisa pra dominar sua saúde
+        </Typography>
+        <Typography align="center" sx={{ color: '#64748b', fontSize: 17, mb: 6, maxWidth: 600, mx: 'auto' }}>
+          Não é só um leitor de PDF. É um assistente completo que entende, compara e prevê.
+        </Typography>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr 1fr' }, gap: 3 }}>
+          {benefits.map((b, i) => (
+            <Fade key={i} in timeout={400 + i * 100}>
+              <Box sx={{ p: 3, borderRadius: 3, bgcolor: '#fff', border: '1px solid #f1f5f9', transition: 'all .2s', '&:hover': { boxShadow: '0 8px 30px rgba(0,0,0,.06)', transform: 'translateY(-4px)', borderColor: '#20b2aa' } }}>
+                <Typography sx={{ fontSize: 32, mb: 1.5 }}>{b.icon}</Typography>
+                <Typography sx={{ fontWeight: 800, fontSize: 16, color: '#0f172a', mb: 1, fontFamily: 'Poppins, sans-serif' }}>{b.title}</Typography>
+                <Typography sx={{ fontSize: 14, color: '#64748b', lineHeight: 1.6 }}>{b.desc}</Typography>
+              </Box>
+            </Fade>
           ))}
-        </Grid>
+        </Box>
       </Container>
 
-      {/* CTA FINAL */}
-      <Box sx={{ background: '#2d3748', color: '#fff', py: { xs: 5, md: 6 }, textAlign: 'center' }}>
-        <Container maxWidth="sm">
-          <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>Pronto para entender sua saúde?</Typography>
-          <Typography sx={{ opacity: .7, mb: 3 }}>Crie sua conta grátis e envie seu primeiro exame em menos de 1 minuto.</Typography>
-          <Button variant="contained" size="large" onClick={() => navigate('/registrar')} sx={{ bgcolor: '#20b2aa', px: 5, py: 1.5, fontSize: 16, '&:hover': { bgcolor: '#178f89' } }}>
-            Começar agora →
-          </Button>
-          <Typography sx={{ mt: 3, opacity: .55, fontSize: 12 }}>
-            🔒 Seus dados são criptografados. Análise educativa — não substitui consulta médica.
+      {/* COMO FUNCIONA — fundo escuro */}
+      <Box sx={{ bgcolor: '#0f172a', color: '#fff', py: { xs: 8, md: 12 } }}>
+        <Container maxWidth="lg">
+          <Typography align="center" sx={{ fontSize: { xs: '1.8rem', md: '2.5rem' }, fontWeight: 900, mb: 1, fontFamily: 'Poppins, sans-serif' }}>
+            Como funciona
           </Typography>
-          <Box component="span" sx={{ display: 'inline-block', mt: 1.5, color: '#20b2aa', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }} onClick={() => navigate('/termos')}>
-            Termos de uso e LGPD
+          <Typography align="center" sx={{ color: 'rgba(255,255,255,.6)', mb: 6, fontSize: 17 }}>3 passos. Menos de 1 minuto.</Typography>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' }, gap: 4 }}>
+            {steps.map((s) => (
+              <Box key={s.n} sx={{ textAlign: 'center' }}>
+                <Box sx={{ width: 64, height: 64, borderRadius: '50%', bgcolor: '#20b2aa', display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 2, fontSize: 28, fontWeight: 900, fontFamily: 'Poppins, sans-serif' }}>{s.n}</Box>
+                <Typography sx={{ fontWeight: 800, fontSize: 18, mb: 1, fontFamily: 'Poppins, sans-serif' }}>{s.title}</Typography>
+                <Typography sx={{ color: 'rgba(255,255,255,.6)', fontSize: 15, lineHeight: 1.6, maxWidth: 280, mx: 'auto' }}>{s.desc}</Typography>
+              </Box>
+            ))}
           </Box>
+        </Container>
+      </Box>
+
+      {/* PLANOS — fundo claro */}
+      <Box sx={{ bgcolor: '#f8fafc', py: { xs: 8, md: 12 } }}>
+        <Container maxWidth="md">
+          <Typography align="center" sx={{ fontSize: { xs: '1.8rem', md: '2.5rem' }, fontWeight: 900, color: '#0f172a', mb: 1, fontFamily: 'Poppins, sans-serif' }}>Planos simples e justos</Typography>
+          <Typography align="center" sx={{ color: '#64748b', mb: 6, fontSize: 17 }}>Comece grátis. Assine quando precisar — ou pague só pelo que usar.</Typography>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr' }, gap: 3, alignItems: 'center' }}>
+            {planData.map((p) => (
+              <Box key={p.name} sx={{
+                p: 3, borderRadius: 4, bgcolor: '#fff',
+                border: p.highlight ? '2px solid #20b2aa' : '1px solid #e2e8f0',
+                boxShadow: p.highlight ? '0 12px 40px rgba(32,178,170,.12)' : '0 2px 8px rgba(0,0,0,.04)',
+                position: 'relative', transform: p.highlight ? 'scale(1.03)' : 'none',
+              }}>
+                {p.highlight && <Chip label="RECOMENDADO" size="small" sx={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', bgcolor: '#20b2aa', color: '#fff', fontWeight: 800, fontSize: 11 }} />}
+                <Typography sx={{ fontWeight: 800, fontSize: 18, color: '#0f172a', mb: 1, fontFamily: 'Poppins, sans-serif' }}>{p.name}</Typography>
+                <Typography sx={{ fontWeight: 900, fontSize: 32, color: p.highlight ? '#20b2aa' : '#0f172a', mb: 0.5 }}>{p.price}<Typography component="span" sx={{ fontSize: 14, color: '#64748b' }}>{p.period}</Typography></Typography>
+                <Divider sx={{ my: 2 }} />
+                {p.features.map((f) => <Typography key={f} sx={{ py: 0.5, fontSize: 14, color: '#334155' }}>✓ {f}</Typography>)}
+                <Button fullWidth variant={p.highlight ? 'contained' : 'outlined'} onClick={() => navigate('/registrar')} sx={{ mt: 2.5, textTransform: 'none', fontWeight: 700, borderRadius: 99, ...(p.highlight ? { bgcolor: '#20b2aa', '&:hover': { bgcolor: '#178f89' } } : { borderColor: '#cbd5e1', color: '#334155' }) }}>{p.cta}</Button>
+              </Box>
+            ))}
+          </Box>
+        </Container>
+      </Box>
+
+      {/* CTA FINAL — escuro */}
+      <Box sx={{ bgcolor: '#0f172a', color: '#fff', textAlign: 'center', py: { xs: 8, md: 12 } }}>
+        <Container maxWidth="sm">
+          <Typography sx={{ fontSize: { xs: '1.6rem', md: '2.2rem' }, fontWeight: 900, mb: 2, fontFamily: 'Poppins, sans-serif' }}>Pronto pra entender sua saúde?</Typography>
+          <Typography sx={{ color: 'rgba(255,255,255,.6)', mb: 4, fontSize: 17 }}>Crie sua conta grátis e envie seu primeiro exame em menos de 1 minuto.</Typography>
+          <Button size="large" onClick={() => navigate('/registrar')} sx={{ bgcolor: '#20b2aa', color: '#fff', fontWeight: 800, fontSize: 18, borderRadius: 99, px: 5, py: 1.5, textTransform: 'none', boxShadow: '0 8px 30px rgba(32,178,170,.4)', '&:hover': { bgcolor: '#178f89' } }}>Começar agora →</Button>
         </Container>
       </Box>
 
       {/* RODAPÉ */}
-      <Box sx={{ background: '#1a202c', color: '#cbd5e0', py: 4, textAlign: 'center' }}>
+      <Box sx={{ bgcolor: '#020617', color: '#475569', py: 5, textAlign: 'center' }}>
         <Container maxWidth="md">
           <Typography sx={{ fontWeight: 800, color: '#fff', mb: 0.5, fontFamily: 'Poppins, sans-serif' }}>Meus Exames</Typography>
-          <Typography variant="body2" sx={{ opacity: .8, mb: 1 }}>
-            © {new Date().getFullYear()} janocaminho.com.br • contato@janocaminho.com.br
-          </Typography>
-          <Typography variant="caption" sx={{ opacity: .65, display: 'block' }}>
-            Edmilson Fernandes • CNPJ: 44.771.427/0001-69 • Análise educativa, não substitui consulta médica.
-          </Typography>
-          <Box sx={{ mt: 1.5, display: 'flex', gap: 3, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Box component="span" sx={{ color: '#5fc9c3', fontWeight: 700, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }} onClick={() => navigate('/termos')}>Termos e LGPD</Box>
-            <Box component="span" sx={{ color: '#5fc9c3', fontWeight: 700, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }} onClick={() => navigate('/registrar')}>Criar conta</Box>
-            <Box component="span" sx={{ color: '#5fc9c3', fontWeight: 700, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }} onClick={() => navigate('/')}>Entrar</Box>
-          </Box>
+          <Typography sx={{ fontSize: 13, mb: 1 }}>© {new Date().getFullYear()} janocaminho.com.br • contato@janocaminho.com.br</Typography>
+          <Typography sx={{ fontSize: 12, opacity: .7 }}>Edmilson Fernandes • CNPJ: 44.771.427/0001-69 • Análise educativa, não substitui consulta médica.</Typography>
+          <Stack direction="row" spacing={3} justifyContent="center" sx={{ mt: 2 }}>
+            <Box component="span" sx={{ color: '#20b2aa', cursor: 'pointer', fontSize: 13, fontWeight: 700, '&:hover': { textDecoration: 'underline' } }} onClick={() => navigate('/termos')}>Termos e LGPD</Box>
+            <Box component="span" sx={{ color: '#20b2aa', cursor: 'pointer', fontSize: 13, fontWeight: 700, '&:hover': { textDecoration: 'underline' } }} onClick={() => navigate('/registrar')}>Criar conta</Box>
+            <Box component="span" sx={{ color: '#20b2aa', cursor: 'pointer', fontSize: 13, fontWeight: 700, '&:hover': { textDecoration: 'underline' } }} onClick={() => navigate('/')}>Entrar</Box>
+          </Stack>
         </Container>
       </Box>
     </Box>
