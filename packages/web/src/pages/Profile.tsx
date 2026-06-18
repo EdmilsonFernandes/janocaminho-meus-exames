@@ -19,6 +19,7 @@ export const ProfilePage = () => {
   const [phone, setPhone] = useState('');
   const [clinical, setClinical] = useState('');
   const [gender, setGender] = useState('');
+  const [birthDate, setBirthDate] = useState('');
   const [saving, setSaving] = useState(false);
   const [photoVer, setPhotoVer] = useState(0); // cache-bust sincronizado entre header
   const [cur, setCur] = useState(''); const [nw, setNw] = useState(''); const [cf, setCf] = useState('');
@@ -30,7 +31,7 @@ export const ProfilePage = () => {
     if (me.ok) setUser((await me.json())?.user);
     if (pid) {
       const pr = await fetch(`${API_URL}/patients/${pid}`, { headers: h });
-      if (pr.ok) { const p = await pr.json(); setPatient(p); setFullName(p.fullName ?? ''); setPhone(p.phone ?? ''); setClinical(p.clinicalProfile ?? ''); setGender(p.gender ?? ''); }
+      if (pr.ok) { const p = await pr.json(); setPatient(p); setFullName(p.fullName ?? ''); setPhone(p.phone ?? ''); setClinical(p.clinicalProfile ?? ''); setGender(p.gender ?? ''); setBirthDate(p.dateOfBirth ? p.dateOfBirth.split('T')[0] : ''); }
     }
   };
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [pid]);
@@ -38,7 +39,7 @@ export const ProfilePage = () => {
   const saveProfile = async () => {
     if (!pid) return;
     setSaving(true);
-    const r = await fetch(`${API_URL}/patients/${pid}`, { method: 'PUT', headers: apiHeaders(true), body: JSON.stringify({ fullName, phone, clinicalProfile: clinical, gender }) });
+    const r = await fetch(`${API_URL}/patients/${pid}`, { method: 'PUT', headers: apiHeaders(true), body: JSON.stringify({ fullName, phone, clinicalProfile: clinical, gender, dateOfBirth: birthDate || null }) });
     setSaving(false);
     notify(r.ok ? 'Perfil atualizado!' : 'Erro ao salvar', { type: r.ok ? 'success' : 'error' });
   };
@@ -118,6 +119,7 @@ export const ProfilePage = () => {
               <MenuItem value="female">Feminino</MenuItem>
               <MenuItem value="male">Masculino</MenuItem>
             </TextField>
+            <TextField type="date" label="Data de nascimento" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} fullWidth size="small" InputLabelProps={{ shrink: true }} helperText="Usado pra calcular idade e ajustar faixas de referência." />
             <TextField
               label="Perfil clínico (condições, medicações, histórico)"
               value={clinical} onChange={(e) => setClinical(e.target.value)} multiline minRows={4} fullWidth
