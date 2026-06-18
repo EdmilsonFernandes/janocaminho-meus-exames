@@ -15,6 +15,7 @@ import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import MedicalInformationIcon from '@mui/icons-material/MedicalInformation';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import Diversity3Icon from '@mui/icons-material/Diversity3';
@@ -92,6 +93,9 @@ const CustomAppBar = (props: AppBarProps) => {
 const AppMenu = () => {
   const t = useTranslate();
   const logout = useLogout();
+  // Verifica se é admin (lê do localStorage — salvo no login)
+  const userStr = typeof localStorage !== 'undefined' ? localStorage.getItem('user') : null;
+  const isAdmin = userStr ? (JSON.parse(userStr)?.role === 'ADMIN') : false;
   return (
   <Menu>
     <Menu.DashboardItem />
@@ -110,6 +114,7 @@ const AppMenu = () => {
     <Menu.Item to="/emergencia" primaryText={t('menu.emergency')} leftIcon={<HealthAndSafetyIcon sx={{ color: '#ef4444' }} />} />
     <Menu.Item to="/chat" primaryText={t('menu.chat')} leftIcon={<AutoAwesomeIcon sx={{ color: '#a855f7' }} />} />
     <Menu.Item to="/planos" primaryText={t('menu.plans')} leftIcon={<WorkspacePremiumIcon sx={{ color: '#f97316' }} />} />
+    {isAdmin && <Menu.Item to="/admin" primaryText="Painel Admin" leftIcon={<AdminPanelSettingsIcon sx={{ color: '#ef4444' }} />} />}
     <Divider sx={{ my: 1 }} />
     <MenuItem onClick={() => logout()} sx={{ mx: 0.5, my: 0.25, borderRadius: 1, py: 1, color: 'error.main', '&:hover': { bgcolor: 'rgba(239,68,68,.08)' } }}>
       <ListItemIcon sx={{ color: 'error.main', minWidth: 36 }}><LogoutIcon fontSize="small" /></ListItemIcon>
