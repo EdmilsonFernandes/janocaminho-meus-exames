@@ -27,7 +27,7 @@ const features = [
 const plans = [
   { name: 'Grátis', price: 'R$ 0', period: '', badge: '', features: ['100 créditos pra testar', 'Envie exames (PDF/foto)', 'Valores + referência', 'Score de Saúde', 'Pergunte ao Dr. Exame'], highlight: false, cta: 'Começar grátis' },
   { name: 'Mensal', price: 'R$ 19,90', period: '/mês', badge: 'MAIS POPULAR', features: ['1.500 créditos de IA por mês', 'Exames + dependentes', 'Comparativo + Tendências', 'Relatório completo + impressão', 'Chat com o Dr. Exame'], highlight: true, cta: 'Assinar mensal' },
-  { name: 'Créditos', price: 'PIX', period: 'avulso', badge: 'PAGUE SÓ O QUE USAR', features: ['Pacotes a partir de R$ 9,90', 'PIX instantâneo (QR)', 'Cada análise consome créditos', 'Sem mensalidade', 'Use quando precisar'], highlight: false, cta: 'Ver pacotes' },
+  { name: 'Créditos', price: 'a partir de R$ 9,90', period: 'avulso', badge: 'PAGUE SÓ O QUE USAR', features: ['PIX, cartão ou débito', 'PIX instantâneo (QR) ou checkout', 'Cada análise consome créditos', 'Sem mensalidade', 'Use quando precisar'], highlight: false, cta: 'Ver pacotes' },
 ];
 
 export const LandingPage = () => {
@@ -35,24 +35,27 @@ export const LandingPage = () => {
   return (
     <Box sx={{ background: '#eef7f6', minHeight: '100vh' }}>
       {/* HERO */}
-      <Box sx={{ background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff', py: { xs: 5, md: 8 }, textAlign: 'center' }}>
-        <Container maxWidth="md">
-          <DrExame size={88} sx={{ mx: 'auto', mb: 2, borderRadius: '20%', border: '3px solid rgba(255,255,255,.35)' }} />
-          <Typography variant="h3" sx={{ fontWeight: 900, mb: 1 }}>Meus Exames</Typography>
-          <Typography variant="h6" sx={{ opacity: .92, mb: 3, fontWeight: 400 }}>
+      <Box sx={{ background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff', py: { xs: 5, md: 8 }, textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+        <Box sx={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 50% 0%, rgba(255,255,255,.12), transparent 60%)' }} />
+        <Container maxWidth="md" sx={{ position: 'relative' }}>
+          {/* Robô INTEIRO (height auto, não força quadrado que cortava só a cabeça) */}
+          <Box component="img" src={`${import.meta.env.BASE_URL}brand.png`} alt="Dr. Exame — seu assistente de saúde com IA"
+            sx={{ width: { xs: 140, md: 180 }, height: 'auto', mx: 'auto', mb: 1, display: 'block', filter: 'drop-shadow(0 12px 26px rgba(0,0,0,.30))' }} />
+          <Typography variant="h3" sx={{ fontWeight: 900, mb: 1, textShadow: '0 2px 12px rgba(0,0,0,.2)' }}>Meus Exames</Typography>
+          <Typography variant="h6" sx={{ opacity: .95, mb: 3, fontWeight: 400, maxWidth: 540, mx: 'auto' }}>
             Seu assistente de saúde com IA. Envie o exame (PDF ou foto), entenda tudo e acompanhe a evolução.
           </Typography>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center" useFlexGap>
-            <Button variant="contained" size="large" onClick={() => navigate('/registrar')}
-              sx={{ bgcolor: '#fff', color: '#178f89', fontWeight: 800, px: 4, '&:hover': { bgcolor: '#f0fbfa' } }}>
-              Criar conta grátis
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} justifyContent="center" useFlexGap alignItems="center">
+            <Button size="large" onClick={() => navigate('/registrar')}
+              sx={{ bgcolor: '#d4a574', color: '#fff', fontWeight: 800, fontSize: 17, px: 5, py: 1.5, borderRadius: 99, boxShadow: '0 8px 24px rgba(212,165,116,.5)', '&:hover': { bgcolor: '#c89863', transform: 'translateY(-2px)', boxShadow: '0 10px 28px rgba(212,165,116,.6)' }, transition: 'all .15s' }}>
+              Criar conta grátis →
             </Button>
-            <Button variant="outlined" size="large" onClick={() => navigate('/')}
-              sx={{ borderColor: 'rgba(255,255,255,.6)', color: '#fff', px: 4 }}>
-              Entrar
+            <Button size="large" onClick={() => navigate('/')}
+              sx={{ color: '#fff', fontWeight: 700, px: 3, '&:hover': { bgcolor: 'rgba(255,255,255,.14)' } }}>
+              Já tenho conta
             </Button>
           </Stack>
-          <Typography sx={{ mt: 2, opacity: .75, fontSize: 13 }}>Análise educativa — não substitui consulta médica.</Typography>
+          <Typography sx={{ mt: 2.5, opacity: .8, fontSize: 13 }}>Análise educativa — não substitui consulta médica.</Typography>
         </Container>
       </Box>
 
@@ -79,7 +82,8 @@ export const LandingPage = () => {
       <Box sx={{ background: 'linear-gradient(135deg,#e6f7f6,#d4a57414)', py: { xs: 5, md: 8 } }}>
         <Container maxWidth="md">
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={4} alignItems="center">
-            <DrExame size={120} sx={{ borderRadius: '24%', flexShrink: 0 }} />
+            <Box component="img" src={`${import.meta.env.BASE_URL}brand.png`} alt="Dr. Exame"
+              sx={{ width: { xs: 140, md: 180 }, height: 'auto', flexShrink: 0, filter: 'drop-shadow(0 10px 22px rgba(0,0,0,.22))' }} />
             <Box>
               <Typography variant="h4" sx={{ fontWeight: 800, color: '#178f89', mb: 1 }}>Conheça o Dr. Exame 🤖</Typography>
               <Typography color="text.secondary" sx={{ mb: 2, lineHeight: 1.7 }}>
@@ -139,6 +143,24 @@ export const LandingPage = () => {
           </Typography>
           <Box component="span" sx={{ display: 'inline-block', mt: 1.5, color: '#20b2aa', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }} onClick={() => navigate('/termos')}>
             Termos de uso e LGPD
+          </Box>
+        </Container>
+      </Box>
+
+      {/* RODAPÉ */}
+      <Box sx={{ background: '#1a202c', color: '#cbd5e0', py: 4, textAlign: 'center' }}>
+        <Container maxWidth="md">
+          <Typography sx={{ fontWeight: 800, color: '#fff', mb: 0.5, fontFamily: 'Poppins, sans-serif' }}>Meus Exames</Typography>
+          <Typography variant="body2" sx={{ opacity: .8, mb: 1 }}>
+            © {new Date().getFullYear()} janocaminho.com.br • contato@janocaminho.com.br
+          </Typography>
+          <Typography variant="caption" sx={{ opacity: .65, display: 'block' }}>
+            Edmilson Fernandes • CNPJ: [informe seu CNPJ] • Análise educativa, não substitui consulta médica.
+          </Typography>
+          <Box sx={{ mt: 1.5, display: 'flex', gap: 3, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Box component="span" sx={{ color: '#5fc9c3', fontWeight: 700, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }} onClick={() => navigate('/termos')}>Termos e LGPD</Box>
+            <Box component="span" sx={{ color: '#5fc9c3', fontWeight: 700, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }} onClick={() => navigate('/registrar')}>Criar conta</Box>
+            <Box component="span" sx={{ color: '#5fc9c3', fontWeight: 700, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }} onClick={() => navigate('/')}>Entrar</Box>
           </Box>
         </Container>
       </Box>

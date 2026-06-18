@@ -59,26 +59,6 @@ export const ExamCreate = () => {
     }
   };
 
-  // Picker NATIVO (APK/Capacitor): abre o seletor de documentos do sistema (PDF, etc.).
-  // No PWA cai no <input type=file> (PWA em iOS só mostrava fotos c/ accept restrito).
-  const pickNative = async () => {
-    try {
-      // Plugin instalado também no web (vai pro bundle que o APK usa). Só roda no nativo (isNative).
-      const { FilePicker } = await import('@capawesome/capacitor-file-picker');
-      const res = await FilePicker.pickFiles({ limit: 0, readData: true, types: ['application/pdf', 'image/jpeg', 'image/png'] });
-      const picked: File[] = [];
-      for (const d of res.files ?? []) {
-        if (!d.data) continue;
-        const bytes = Uint8Array.from(atob(d.data), (c) => c.charCodeAt(0));
-        const blob = new Blob([bytes], { type: d.mimeType || 'application/octet-stream' });
-        picked.push(new File([blob], d.name || `exame-${Date.now()}.pdf`, { type: blob.type }));
-      }
-      if (picked.length) onPick({ length: picked.length, [Symbol.iterator]: function* () { for (const f of picked) yield f; } } as any as FileList);
-    } catch (e: any) {
-      if (e?.message !== 'User cancelled documents picker') notify(e.message || 'Falha ao escolher documento', { type: 'error' });
-    }
-  };
-
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!files.length) { notify('Selecione ao menos um arquivo.', { type: 'error' }); return; }
@@ -135,16 +115,10 @@ export const ExamCreate = () => {
         <CardContent>
           <Typography variant="h6" gutterBottom>Enviar resultado(s) de exame</Typography>
           <Box component="form" onSubmit={submit} sx={{ display: 'flex', flexDirection: 'column', gap: 2, maxWidth: 560 }}>
-            {isNative ? (
-              <Button variant="outlined" startIcon={<UploadFileIcon />} sx={{ justifyContent: 'flex-start' }} onClick={pickNative}>
-                {files.length ? `${files.length} arquivo(s) selecionado(s)` : 'Escolher PDF / documento'}
-              </Button>
-            ) : (
-              <Button variant="outlined" component="label" startIcon={<UploadFileIcon />} sx={{ justifyContent: 'flex-start' }}>
-                {files.length ? `${files.length} arquivo(s) selecionado(s)` : 'Escolher PDF / imagem (vários)'}
-                <input type="file" hidden multiple accept=".pdf,.jpg,.jpeg,.png,image/*,application/pdf" onChange={(e) => onPick(e.target.files)} />
-              </Button>
-            )}
+            <Button variant="outlined" component="label" startIcon={<UploadFileIcon />} sx={{ justifyContent: 'flex-start' }}>
+              {files.length ? `${files.length} arquivo(s) selecionado(s)` : 'Escolher PDF / imagem (vários)'}
+              <input type="file" hidden multiple accept=".pdf,.jpg,.jpeg,.png,image/*,application/pdf" onChange={(e) => onPick(e.target.files)} />
+            </Button>
             {files.length > 0 && (
               <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
                 {files.map((f, i) => (
