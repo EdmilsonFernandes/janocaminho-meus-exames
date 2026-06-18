@@ -77,6 +77,8 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
   const raw: Summary | undefined = analysis?.structured;
   const contentMd: string | undefined = analysis?.contentMd;
   const [shareOpen, setShareOpen] = useState(false);
+  const [speaking, setSpeaking] = useState(false);
+  const [rate, setRate] = useState(1);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   // Normaliza: a IA às vezes devolve esses campos como string/null em vez de array — força array p/ não quebrar o .map
@@ -93,7 +95,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
       }
     : undefined;
 
-  const speak = () => {
+  const speak = (newRate?: number) => {
     const synth = window.speechSynthesis;
     if (!synth) return;
     synth.cancel();
@@ -101,10 +103,16 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
     if (!text) return;
     const u = new SpeechSynthesisUtterance(text);
     u.lang = 'pt-BR';
+    u.rate = newRate ?? rate;
     const v = synth.getVoices().find((vv) => vv.lang?.toLowerCase().startsWith('pt'));
     if (v) u.voice = v;
+    u.onend = () => setSpeaking(false);
+    u.onerror = () => setSpeaking(false);
+    setSpeaking(true);
     synth.speak(u);
   };
+  const stopSpeak = () => { window.speechSynthesis?.cancel(); setSpeaking(false); };
+  const changeRate = (r: number) => { setRate(r); if (speaking) speak(r); };
 
   const printSummary = () => {
     const w = window.open('', '_blank', 'width=820,height=940');
@@ -157,7 +165,16 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
           </Box>
         </Stack>
         <Stack direction="row" spacing={1} sx={{ mt: 2 }} useFlexGap flexWrap="wrap">
-          <Button size="small" variant="contained" startIcon={<DrExame size={20} />} onClick={speak}>Dr. Exame fala</Button>
+          <Button size="small" variant="contained" startIcon={<DrExame size={20} />} onClick={speaking ? stopSpeak : () => speak()}>
+            {speaking ? '⏹ Parar' : '🔊 Dr. Exame fala'}
+          </Button>
+          {speaking && (
+            <>
+              <Button size="small" variant={rate === 1 ? 'contained' : 'outlined'} onClick={() => changeRate(1)} sx={{ minWidth: 40, px: 1 }}>1x</Button>
+              <Button size="small" variant={rate === 1.3 ? 'contained' : 'outlined'} onClick={() => changeRate(1.3)} sx={{ minWidth: 40, px: 1 }}>1.3x</Button>
+              <Button size="small" variant={rate === 1.5 ? 'contained' : 'outlined'} onClick={() => changeRate(1.5)} sx={{ minWidth: 40, px: 1 }}>1.5x</Button>
+            </>
+          )}
           <Button size="small" variant="outlined" startIcon={<ShareIcon />} onClick={() => setShareOpen(true)}>Compartilhar</Button>
           <Button size="small" variant="outlined" startIcon={<PrintIcon />} onClick={printSummary}>Imprimir</Button>
         </Stack>
