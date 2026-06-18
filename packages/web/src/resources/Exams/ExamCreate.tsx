@@ -17,14 +17,33 @@ async function uploadOne(file: File | Blob, filename: string, pid: string | null
   fd.append('file', file, filename);
   if (pid) fd.append('patientId', pid);
   if (title?.trim()) fd.append('title', title.trim());
-  const r = await fetch(`${API_URL}/exams`, { method: 'POST', headers: { Authorization: `Bearer ${token()}` }, body: fd });
-  if (!r.ok) {
-    const e = await r.json().catch(() => ({}));
-    const err: any = new Error(e.message || e.error || 'Falha no envio');
-    err.code = e.error; // ex.: 'free_limit'
-    throw err;
+
+  let lastErr: any = null;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const r = await fetch(`${API_URL}/exams`, { method: 'POST', headers: { Authorization: `Bearer ${token()}` }, body: fd });
+      if (!r.ok) {
+        const e = await r.json().catch(() => ({}));
+        const err: any = new Error(e.message || e.error || 'Falha no envio');
+        err.code = e.error;
+        throw err;
+      }
+      return r.json();
+    } catch (e: any) {
+      lastErr = e;
+      if (e?.tooBig || e?.code === 'free_limit') throw e; // não retenta erros definitivos
+      if (attempt < 3) {
+        notifyRetry(attempt);
+        await new Promise((res) => setTimeout(res, 1500 * attempt)); // espera crescente
+      }
+    }
   }
-  return r.json();
+  throw lastErr ?? new Error('Falha no envio após 3 tentativas. Verifique sua conexão.');
+}
+
+// Avisa o usuário que está retentando (rede móvel instável = "failed to fetch")
+function notifyRetry(attempt: number) {
+  try { console.warn(`[upload] retentando (tentativa ${attempt + 1}/3)…`); } catch { /* */ }
 }
 
 export const ExamCreate = () => {
