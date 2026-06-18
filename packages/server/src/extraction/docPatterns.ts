@@ -33,10 +33,12 @@ export interface DocClass { accept: boolean; strong: boolean; reason?: string }
 export function classifyDoc(text: string): DocClass {
   const t = (text || '').trim();
   if (!t) return { accept: false, strong: true, reason: 'Documento vazio ou ilegível. Envie uma foto/scan nítido do exame.' };
-  // 1. Rejeição específica (categoria conhecida de não-exame) → strong.
-  for (const r of REJECT) if (r.test.test(t)) return { accept: false, strong: true, reason: r.reason };
-  // 2. Aceita se há sinais fortes de exame/laudo.
+  // 1. Aceita PRIMEIRO se há sinais fortes de exame/laudo — mesmo que o texto
+  //    tenha alguma palavra de rejeição (ex.: exame que cita "CPF"/"RG" do paciente).
+  //    (Antes checava REJECT antes → exame real caía em "parece RG" = falso positivo.)
   if (VALID_MEDICAL.test(t)) return { accept: true, strong: false };
+  // 2. Sem sinais médicos → rejeição específica (categoria conhecida de não-exame).
+  for (const r of REJECT) if (r.test.test(t)) return { accept: false, strong: true, reason: r.reason };
   // 3. Caso geral: sem sinais fortes (pipeline decide após a extração da IA).
   return { accept: false, strong: false, reason: 'Não reconhecemos um exame/laudo médico neste documento. Envie um resultado de exame (sangue, imagem ou laudo).' };
 }
