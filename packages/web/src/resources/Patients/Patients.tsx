@@ -1,7 +1,8 @@
-import { List, Datagrid, TextField, DateField, FunctionField, Edit, SimpleForm, TextInput, DateInput, useRecordContext, SimpleList } from 'react-admin';
+import { List, Datagrid, TextField, DateField, FunctionField, Edit, SimpleForm, TextInput, DateInput, useRecordContext, SimpleList, DeleteButton, useNotify, useRefresh } from 'react-admin';
 import { Box, Avatar, useMediaQuery, useTheme } from '@mui/material';
 import { PhotoUpload } from '../../components/PhotoUpload';
-import { photoUrlFor } from '../../config';
+import { photoUrlFor, API_URL, token } from '../../config';
+import { useState } from 'react';
 
 const PhotoField = () => {
   const record = useRecordContext();
@@ -12,6 +13,26 @@ const PhotoField = () => {
 export const PatientList = () => {
   const theme = useTheme() as any;
   const isDesktop = useMediaQuery(theme.breakpoints.up('sm'));
+  const notify = useNotify();
+  const refresh = useRefresh();
+  const [deleting, setDeleting] = useState<string | null>(null);
+
+  const handleDelete = async (id: string, name: string) => {
+    if (!window.confirm(`Excluir "${name}" e TODOS os exames/análises deste perfil? Não dá pra desfazer.`)) return;
+    setDeleting(id);
+    try {
+      const r = await fetch(`${API_URL}/patients/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });
+      if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.error || 'Falha ao excluir'); }
+      notify('Perfil excluído com sucesso!', { type: 'success' });
+      window.dispatchEvent(new Event('selPatientChanged'));
+      refresh();
+    } catch (e: any) {
+      notify(e.message, { type: 'error' });
+    } finally {
+      setDeleting(null);
+    }
+  };
+
   return (
   <List exporter={false} pagination={false}>
     {isDesktop ? (
@@ -29,6 +50,12 @@ export const PatientList = () => {
         <TextField source="phone" label="Telefone" />
         <DateField source="dateOfBirth" label="Nascimento" locales="pt-BR" />
         <FunctionField label="Perfil clínico" render={(r: any) => (r.clinicalProfile ? 'preenchido' : '—')} />
+        <FunctionField label="Ações" render={(r: any) => (
+          <Box component="button" onClick={(e: any) => { e.preventDefault(); e.stopPropagation(); handleDelete(r.id, r.fullName); }} disabled={deleting === r.id}
+            sx={{ background: 'none', border: 'none', color: 'error.main', cursor: 'pointer', fontSize: 13, '&:hover': { textDecoration: 'underline' } }}>
+            {deleting === r.id ? 'Excluindo…' : '🗑 Excluir'}
+          </Box>
+        )} />
       </Datagrid>
     ) : (
       <SimpleList
@@ -36,7 +63,13 @@ export const PatientList = () => {
           <Avatar src={r.photoUrl ? photoUrlFor(String(r.id)) : undefined} sx={{ width: 42, height: 42, bgcolor: 'primary.main', fontWeight: 700 }}>{r.fullName?.charAt(0)?.toUpperCase()}</Avatar>
         )}
         primaryText={(r: any) => r.fullName}
-        secondaryText={(r: any) => `${r.relationship ?? '—'}${r.clinicalProfile ? ' • perfil clínico ok' : ''}`}
+        secondaryText={(r: any) => `${r.relationship ?? '—'}${r.clinicalProfile ? ' • perfil clínico ok' : ''} — toque e segure pra editar`}
+        tertiaryText={(r: any) => (
+          <Box component="button" onClick={(e: any) => { e.preventDefault(); e.stopPropagation(); handleDelete(r.id, r.fullName); }} disabled={deleting === r.id}
+            sx={{ background: 'none', border: 'none', color: 'error.main', cursor: 'pointer', fontSize: 12 }}>
+            {deleting === r.id ? '⏳' : '🗑 Excluir'}
+          </Box>
+        )}
         linkType="edit"
         sx={{ '& .MuiTypography-root': { whiteSpace: 'normal' } }}
       />

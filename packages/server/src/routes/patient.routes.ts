@@ -6,7 +6,7 @@ import { upload } from '../middleware/upload';
 import fs from 'fs';
 import path from 'path';
 import { config } from '../config';
-import { savePatientPhoto, patientSlug } from '../utils/storage';
+import { savePatientPhoto, patientSlug, deleteExamFile } from '../utils/storage';
 
 const router = Router();
 router.use(requireAuth);
@@ -194,6 +194,32 @@ router.put('/:id', async (req: AuthedRequest, res, next) => {
     if (photoUrl !== undefined) data.photoUrl = photoUrl ? String(photoUrl) : null;
     const updated = await prisma.patient.update({ where: { id }, data });
     res.json(updated);
+  } catch (e) {
+    next(e);
+  }
+});
+
+// DELETE paciente (dependente) + cascata de exames/análises
+router.delete('/:id', async (req: AuthedRequest, res, next) => {
+  try {
+    const id = String(req.params.id);
+    const pids = await userPatientIds(req.userId!);
+    if (!pids.includes(id)) {
+      res.status(403).json({ error: 'Paciente não pertence ao usuário' });
+      return;
+    }
+    // não deleta o TITULAR (precisa de pelo menos 1)
+    const patient = await prisma.patient.findUnique({ where: { id }, select: { relationship: true, ownerId: true } });
+    if (patient?.relationship === 'Titular') {
+      const count = await prisma.patient.count({ where: { ownerId: patient.ownerId } });
+      if (count <= 1) { res.status(400).json({ error: 'Não é possível excluir o perfil titular.' }); return; }
+    }
+    // deleta arquivos dos exames (PDFs/fotos no S3/disco)
+    const exams = await prisma.exam.findMany({ where: { patientId: id }, select: { filePath: true } });
+    for (const e of exams) { try { await deleteExamFile(e.filePath); } catch { /* */ } }
+    // cascade: Patient → Exam → ExamItem/AiAnalysis, etc (onDelete: Cascade no schema)
+    await prisma.patient.delete({ where: { id } });
+    res.json({ ok: true, id });
   } catch (e) {
     next(e);
   }
