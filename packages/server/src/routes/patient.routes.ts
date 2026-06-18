@@ -19,6 +19,22 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       res.status(400).json({ error: 'Informe o nome.' });
       return;
     }
+    // LIMITE DE DEPENDENTES: titular + 3 grátis. Além disso, 50 créditos por extra.
+    const FREE_LIMIT = 4; // titular + 3
+    const EXTRA_COST = 50;
+    const count = await prisma.patient.count({ where: { ownerId: req.userId! } });
+    if (count >= FREE_LIMIT) {
+      const user = await prisma.user.findUnique({ where: { id: req.userId! }, select: { credits: true, planExpiresAt: true } });
+      const active = !!user?.planExpiresAt && user.planExpiresAt > new Date();
+      if (!active && (!user || user.credits < EXTRA_COST)) {
+        res.status(402).json({ error: 'dependent_limit', message: `Você atingiu o limite de ${FREE_LIMIT - 1} dependentes grátis. Compre 50 créditos pra adicionar mais.` });
+        return;
+      }
+      // debita 50 créditos (ou passa se premium)
+      if (!active) {
+        await prisma.user.update({ where: { id: req.userId! }, data: { credits: { decrement: EXTRA_COST } } });
+      }
+    }
     const p = await prisma.patient.create({
       data: {
         ownerId: req.userId!,

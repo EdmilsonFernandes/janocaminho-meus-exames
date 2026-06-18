@@ -5,7 +5,7 @@ import ImageIcon from '@mui/icons-material/Image';
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelectedPatient } from '../../patient-context';
 import { API_URL, token } from '../../config';
 import { ExplainButton } from '../../components/ExplainItem';
@@ -32,7 +32,11 @@ const MobileExams = () => {
     e.stopPropagation();
     if (!window.confirm(`Excluir "${title}"? Esta ação não desfaz.`)) return;
     const r = await fetch(`${API_URL}/exams/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });
-    if (r.ok) { notify('Exame excluído', { type: 'success' }); refresh(); } else notify('Falha ao excluir', { type: 'error' });
+    if (r.ok) {
+      notify('Exame excluído', { type: 'success' });
+      // navigate em vez de refresh (refresh às vezes mostra cache)
+      navigate(0);
+    } else notify('Falha ao excluir', { type: 'error' });
   };
   const reextract = async (e: any, id: string) => {
     e.stopPropagation();

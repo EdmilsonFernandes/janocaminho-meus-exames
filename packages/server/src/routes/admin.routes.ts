@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest } from '../middleware/auth';
 import { CREDIT_COSTS } from '../utils/credits';
+import { deleteExamFile } from '../utils/storage';
 
 const router = Router();
 router.use(requireAuth);
@@ -80,10 +81,28 @@ router.patch('/users/:id/plan', async (req: AuthedRequest, res, next) => {
   } catch (e) { next(e); }
 });
 
+// DELETAR usuário — lista o que vai ser apagado antes
+router.get('/users/:id/impact', async (req, res, next) => {
+  try {
+    const id = String(req.params.id);
+    const patientIds = (await prisma.patient.findMany({ where: { ownerId: id }, select: { id: true } })).map(p => p.id);
+    const [patients, exams, analyses] = await Promise.all([
+      prisma.patient.count({ where: { ownerId: id } }),
+      prisma.exam.count({ where: { patientId: { in: patientIds } } }),
+      prisma.aiAnalysis.count({ where: { patientId: { in: patientIds } } }),
+    ]);
+    res.json({ patients, exams, analyses });
+  } catch (e) { next(e); }
+});
+
 // DELETAR usuário
 router.delete('/users/:id', async (req, res, next) => {
   try {
-    await prisma.user.delete({ where: { id: String(req.params.id) } });
+    const id = String(req.params.id);
+    // deleta arquivos dos exames antes do cascade
+    const exams = await prisma.exam.findMany({ where: { patient: { ownerId: id } }, select: { filePath: true } });
+    for (const e of exams) { try { await deleteExamFile(e.filePath); } catch { /* */ } }
+    await prisma.user.delete({ where: { id } }); // cascade: Patient→Exam→Items/Analyses
     res.json({ ok: true });
   } catch (e) { next(e); }
 });

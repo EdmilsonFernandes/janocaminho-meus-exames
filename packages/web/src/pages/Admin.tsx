@@ -46,9 +46,20 @@ export const AdminPage = () => {
     notify('Plano atualizado!', { type: 'success' }); setEditUser(null); void load();
   };
   const delUser = async (id: string, email: string) => {
-    if (!window.confirm(`Excluir ${email}? Todos os dados serão perdidos.`)) return;
-    await fetch(`${API_URL}/admin/users/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });
-    notify('Usuário excluído', { type: 'success' }); void load();
+    const ir = await fetch(`${API_URL}/admin/users/${id}/impact`, { headers: { Authorization: `Bearer ${token()}` } });
+    const impact = ir.ok ? await ir.json() : { patients: 0, exams: 0, analyses: 0 };
+    const msg = `Excluir ${email}?
+
+Isso vai apagar DEFINITIVAMENTE:
+• ${impact.patients} perfil(is)
+• ${impact.exams} exame(s) + PDFs
+• ${impact.analyses} análise(s)
+
+NÃO dá pra desfazer.`;
+    if (!window.confirm(msg)) return;
+    const r = await fetch(`${API_URL}/admin/users/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });
+    if (r.ok) { notify('Usuário + documentos excluídos', { type: 'success' }); void load(); }
+    else notify('Erro ao excluir', { type: 'error' });
   };
 
   if (loading) return <Box sx={{ p: 4, textAlign: 'center' }}><CircularProgress /></Box>;
