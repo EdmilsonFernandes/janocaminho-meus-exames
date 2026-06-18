@@ -146,6 +146,29 @@ router.post('/', upload.single('file'), async (req: AuthedRequest, res, next) =>
   }
 });
 
+// DETECTAR DUPLICATAS — agrupa exames do mesmo paciente com mesma data + título similar
+router.get('/duplicates/list', async (req: AuthedRequest, res, next) => {
+  try {
+    const pids = await userPatientIds(req.userId!);
+    const activePid = req.query.patientId ? String(req.query.patientId) : undefined;
+    const scope = activePid && pids.includes(activePid) ? activePid : { in: pids };
+    const exams = await prisma.exam.findMany({
+      where: { patientId: scope, status: 'EXTRACTED' },
+      select: { id: true, title: true, performedAt: true, kind: true, createdAt: true },
+      orderBy: { performedAt: 'desc' },
+    });
+    const norm = (s: string) => s.toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Z0-9]/g, ' ').replace(/\s+/g, ' ').trim();
+    const groups: Record<string, typeof exams> = {};
+    for (const e of exams) {
+      const date = e.performedAt ? new Date(e.performedAt).toISOString().split('T')[0] : 's/d';
+      const key = `${date}|${norm(e.title || '')}`;
+      (groups[key] ??= []).push(e);
+    }
+    const dupes = Object.values(groups).filter((g) => g.length > 1);
+    res.json({ duplicates: dupes, total: dupes.length });
+  } catch (e) { next(e); }
+});
+
 // REEXTRACT
 router.post('/:id/reextract', async (req, res, next) => {
   try {

@@ -44,9 +44,21 @@ router.get('/payments', async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
-// CONFIG — custos atuais (leitura)
+// CONFIG — custos atuais (leitura + escrita)
 router.get('/config', (_req, res) => {
   res.json({ creditCosts: CREDIT_COSTS, plans: { monthly: { price: 19.90, credits: 1500 } } });
+});
+
+// CONFIG — atualizar custos (edita o objeto em memória; redeploy pra persistir)
+const editableCosts = { ...CREDIT_COSTS };
+router.patch('/config/costs', async (req, res) => {
+  const { chat, summary, consolidated, extraction } = req.body ?? {};
+  if (chat != null) { editableCosts.chat = Number(chat); CREDIT_COSTS.chat = Number(chat); }
+  if (summary != null) { editableCosts.summary = Number(summary); CREDIT_COSTS.summary = Number(summary); }
+  if (consolidated != null) { editableCosts.consolidated = Number(consolidated); CREDIT_COSTS.consolidated = Number(consolidated); }
+  if (extraction != null) { editableCosts.extraction = Number(extraction); CREDIT_COSTS.extraction = Number(extraction); }
+  console.log('[admin] custos atualizados:', CREDIT_COSTS);
+  res.json({ creditCosts: CREDIT_COSTS });
 });
 
 // AJUSTAR créditos

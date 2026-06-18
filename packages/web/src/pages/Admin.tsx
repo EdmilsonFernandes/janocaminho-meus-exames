@@ -134,30 +134,31 @@ export const AdminPage = () => {
         <Card sx={{ borderRadius: 4 }}>
           <CardContent>
             <Typography variant="h6" gutterBottom>Custos de créditos (por ação de IA)</Typography>
-            <Stack spacing={1}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography>💬 Chat com IA (por pergunta)</Typography>
-                <Chip label={`${config.creditCosts?.chat ?? 0} créditos`} color="primary" />
-              </Box>
-              <Divider />
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography>📄 Resumo de exame</Typography>
-                <Chip label={`${config.creditCosts?.summary ?? 0} créditos`} color="primary" />
-              </Box>
-              <Divider />
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography>🧾 Relatório consolidado</Typography>
-                <Chip label={`${config.creditCosts?.consolidated ?? 0} créditos`} color="primary" />
-              </Box>
-              <Divider />
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography>📤 Upload de exame</Typography>
-                <Chip label={`${config.creditCosts?.extraction ?? 0} créditos (grátis)`} color="success" />
-              </Box>
-            </Stack>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
-              * Valores definidos no código (credits.ts). Pra alterar, edite e redeploy.
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+              Edite e salve — aplica na hora (sem redeploy). *Volta ao padrão se reiniciar o container.
             </Typography>
+            <Stack spacing={2}>
+              {([['chat', '💬 Chat com IA (por pergunta)'], ['summary', '📄 Resumo de exame'], ['consolidated', '🧾 Relatório consolidado'], ['extraction', '📤 Upload de exame (0 = grátis)']] as const).map(([key, label]) => (
+                <Stack key={key} direction="row" spacing={2} alignItems="center" useFlexGap flexWrap="wrap">
+                  <Typography sx={{ flex: 1, minWidth: 200 }}>{label}</Typography>
+                  <TextField type="number" size="small" defaultValue={config.creditCosts?.[key] ?? 0}
+                    sx={{ width: 100 }}
+                    id={`cost-${key}`}
+                  />
+                  <span style={{ fontSize: 13, color: '#888' }}>créditos</span>
+                </Stack>
+              ))}
+              <Button variant="contained" onClick={async () => {
+                const body: any = {};
+                for (const k of ['chat', 'summary', 'consolidated', 'extraction']) {
+                  const el = document.getElementById(`cost-${k}`) as HTMLInputElement;
+                  if (el) body[k] = Number(el.value);
+                }
+                const r = await fetch(`${API_URL}/admin/config/costs`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` }, body: JSON.stringify(body) });
+                if (r.ok) { const d = await r.json(); setConfig({ ...config, creditCosts: d.creditCosts }); notify('Custos atualizados na hora!', { type: 'success' }); }
+                else notify('Erro ao salvar', { type: 'error' });
+              }}>Salvar custos</Button>
+            </Stack>
           </CardContent>
         </Card>
       )}
