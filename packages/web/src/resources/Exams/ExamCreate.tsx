@@ -31,7 +31,6 @@ export const ExamCreate = () => {
   const [pid] = useSelectedPatient();
   const [files, setFiles] = useState<File[]>([]);
   const [title, setTitle] = useState('');
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number; errors: string[] } | null>(null);
   const notify = useNotify();
@@ -116,9 +115,9 @@ export const ExamCreate = () => {
         <CardContent>
           <Typography variant="h6" gutterBottom>Enviar resultado(s) de exame</Typography>
           <Box component="form" onSubmit={submit} sx={{ display: 'flex', flexDirection: 'column', gap: 2, maxWidth: 560 }}>
-            <input ref={fileInputRef} type="file" multiple accept=".pdf,.jpg,.jpeg,.png,image/*,application/pdf" style={{ display: 'none' }} onChange={(e) => { onPick(e.target.files); if (e.target) e.target.value = ''; }} />
-            <Button variant="outlined" startIcon={<UploadFileIcon />} sx={{ justifyContent: 'flex-start' }} onClick={() => fileInputRef.current?.click()}>
+            <Button variant="outlined" component="label" startIcon={<UploadFileIcon />} sx={{ justifyContent: 'flex-start' }}>
               {files.length ? `${files.length} arquivo(s) selecionado(s)` : 'Escolher PDF / imagem (vários)'}
+              <input type="file" hidden multiple accept=".pdf,.jpg,.jpeg,.png,image/*,application/pdf" onChange={(e) => { onPick(e.target.files); if (e.target) e.target.value = ''; }} />
             </Button>
             {files.length > 0 && (
               <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
