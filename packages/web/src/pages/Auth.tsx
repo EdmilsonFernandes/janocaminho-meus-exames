@@ -77,7 +77,7 @@ export const LoginPage = () => {
       if (d.patientId) localStorage.setItem('patientId', d.patientId);
       localStorage.setItem('user', JSON.stringify(d.user));
       notify('Bem-vindo! 🎉', { type: 'success' });
-      window.location.href = '/'; // navegação completa garante que o react-admin reinicia logado
+      window.location.href = import.meta.env.BASE_URL; // fica em /minhasaude/ (não vai pro app errado)
     } catch (err: any) {
       notify(err.message, { type: 'error' });
     } finally { setLoading(false); }
@@ -158,7 +158,7 @@ export const RegisterPage = () => {
       if (d.patientId) { localStorage.setItem('patientId', d.patientId); localStorage.setItem('selPatientId', d.patientId); }
       localStorage.setItem('user', JSON.stringify(d.user));
       notify('Conta criada! Bem-vindo! 🎉', { type: 'success' });
-      window.location.href = '/';
+      window.location.href = import.meta.env.BASE_URL; // fica em /minhasaude/
     } catch (err: any) {
       notify(err.message, { type: 'error' });
     } finally {
