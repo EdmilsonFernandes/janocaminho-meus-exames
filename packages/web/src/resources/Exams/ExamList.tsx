@@ -23,7 +23,7 @@ const hexFor = (s: string) => { const sc = statusColor[s] ?? 'default'; return s
 
 /** Cards mobile: toca p/ ver; ícone de lixeira p/ excluir. */
 const MobileExams = () => {
-  const { data, isLoading } = useListContext<any>();
+  const { data, isLoading, total } = useListContext<any>();
   const navigate = useNavigate();
   const refresh = useRefresh();
   const notify = useNotify();
@@ -41,6 +41,11 @@ const MobileExams = () => {
   };
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, p: { xs: 1.5, sm: 2 }, pb: 4 }}>
+      {total != null && total > 0 && (
+        <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, mb: 0.5 }}>
+          📋 {total} exame{total !== 1 ? 's' : ''} no total
+        </Typography>
+      )}
       {(data ?? []).map((r) => {
         const c = hexFor(r.status);
         const Icon = r.kind === 'IMAGING' ? ImageIcon : r.kind === 'LAB_PANEL' ? ScienceIcon : DescriptionOutlinedIcon;
@@ -53,7 +58,7 @@ const MobileExams = () => {
                   <Typography sx={{ fontWeight: 700, wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.2 }}>{r.title}</Typography>
                   <Box onClick={(e) => e.stopPropagation()} sx={{ flexShrink: 0, mt: -0.5 }}><ExplainButton name={r.title} /></Box>
                 </Box>
-                <Typography variant="caption" color="text.secondary">{kindLabel[r.kind] ?? r.kind} • {r.performedAt ? new Date(r.performedAt).toLocaleDateString('pt-BR') : 's/d'}{r._count?.items ? ` • ${r._count.items} itens` : ''}</Typography>
+                <Typography variant="caption" color="text.secondary">{kindLabel[r.kind] ?? r.kind} • {r.performedAt ? new Date(r.performedAt).toLocaleDateString('pt-BR') : 's/d'}{r._count?.items ? ` • ${r._count.items} itens` : ''}{r.createdAt ? ` • Enviado ${new Date(r.createdAt).toLocaleDateString('pt-BR')}` : ''}</Typography>
                 <Box sx={{ mt: 0.5 }}><Chip size="small" label={statusLabel[r.status] ?? r.status} sx={{ bgcolor: c + '18', color: c, fontWeight: 700, height: 20 }} /></Box>
               </Box>
               <IconButton size="small" onClick={(e) => del(e, r.id, r.title)} title="Excluir" sx={{ flexShrink: 0 }}><DeleteOutlineIcon fontSize="small" /></IconButton>
