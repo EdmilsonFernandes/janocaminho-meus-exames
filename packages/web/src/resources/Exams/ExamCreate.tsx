@@ -13,8 +13,12 @@ const isNative = typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform(
 
 async function uploadOne(file: File | Blob, filename: string, pid: string | null, title?: string) {
   if (file.size > MAX_BYTES) throw Object.assign(new Error(`${filename} excede 32MB`), { tooBig: true });
+  // Chrome mobile: FormData + File do <input> pode dar "failed to fetch". Lendo como
+  // ArrayBuffer → criando um Blob NOVO (desacoplado do input) → Chrome lida corretamente.
+  const buf = await file.arrayBuffer();
+  const blob = new Blob([buf], { type: (file as File).type || 'application/octet-stream' });
   const fd = new FormData();
-  fd.append('file', file, filename);
+  fd.append('file', blob, filename);
   if (pid) fd.append('patientId', pid);
   if (title?.trim()) fd.append('title', title.trim());
 
@@ -31,10 +35,9 @@ async function uploadOne(file: File | Blob, filename: string, pid: string | null
       return r.json();
     } catch (e: any) {
       lastErr = e;
-      if (e?.tooBig || e?.code === 'free_limit') throw e; // não retenta erros definitivos
+      if (e?.tooBig || e?.code === 'free_limit') throw e;
       if (attempt < 3) {
-        notifyRetry(attempt);
-        await new Promise((res) => setTimeout(res, 1500 * attempt)); // espera crescente
+        await new Promise((res) => setTimeout(res, 1500 * attempt));
       }
     }
   }
