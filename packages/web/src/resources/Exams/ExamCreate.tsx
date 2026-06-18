@@ -63,11 +63,11 @@ export const ExamCreate = () => {
   // No PWA cai no <input type=file> (PWA em iOS só mostrava fotos c/ accept restrito).
   const pickNative = async () => {
     try {
-      // @ts-ignore + @vite-ignore — plugin só está em mobile/ (APK); no PWA/web nunca chega aqui.
-      const { FilePicker } = await import(/* @vite-ignore */ '@capawesome/capacitor-file-picker');
-      const res = await FilePicker.pickDocuments({ limit: 5, readData: true });
+      // Plugin instalado também no web (vai pro bundle que o APK usa). Só roda no nativo (isNative).
+      const { FilePicker } = await import('@capawesome/capacitor-file-picker');
+      const res = await FilePicker.pickFiles({ limit: 0, readData: true, types: ['application/pdf', 'image/jpeg', 'image/png'] });
       const picked: File[] = [];
-      for (const d of res.documents ?? []) {
+      for (const d of res.files ?? []) {
         if (!d.data) continue;
         const bytes = Uint8Array.from(atob(d.data), (c) => c.charCodeAt(0));
         const blob = new Blob([bytes], { type: d.mimeType || 'application/octet-stream' });
