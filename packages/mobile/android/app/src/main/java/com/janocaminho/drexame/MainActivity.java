@@ -1,4 +1,4 @@
-package com.edmilson.exames;
+package com.janocaminho.drexame;
 
 import com.getcapacitor.BridgeActivity;
 
