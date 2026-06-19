@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, Button, Grid, CircularProgress, Stack, Chip, Alert } from '@mui/material';
+import { Box, Card, CardContent, Typography, Button, Grid, CircularProgress, Stack, Chip, Alert, Avatar } from '@mui/material';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
@@ -9,10 +9,9 @@ import Diversity3Icon from '@mui/icons-material/Diversity3';
 import LightbulbIcon from '@mui/icons-material/Lightbulb';
 import BoltIcon from '@mui/icons-material/Bolt';
 import { useNavigate } from 'react-router-dom';
-import { API_URL, token } from '../config';
+import { API_URL, token, photoUrlFor } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import { syncPushToken } from '../push';
-import { DrExame } from '../components/DrExame';
 
 const readTotal = (r: Response) => Number(r.headers.get('X-Total-Count') ?? r.headers.get('content-range')?.split('/')?.[1] ?? '0');
 
@@ -41,6 +40,8 @@ export const Dashboard = () => {
   const [lastExam, setLastExam] = useState<string | null>(null);
   const [buckets, setBuckets] = useState<{ bons: number; alerta: number; alterados: number }>({ bons: 0, alerta: 0, alterados: 0 });
   const [credits, setCredits] = useState<number | null>(null);
+  const [me, setMe] = useState<any>(null);
+  const [loaded, setLoaded] = useState(false);
   const tip = TIPS[new Date().getDate() % TIPS.length];
 
   useEffect(() => {
@@ -57,12 +58,12 @@ export const Dashboard = () => {
         const a = await fetch(`${API_URL}/items?abnormal=true&_start=0&_end=1${pidQ}`, { headers: h });
         setStats((s) => ({ ...s, abnormal: readTotal(a) }));
         const p = await fetch(`${API_URL}/patients`, { headers: h });
-        if (p.ok) { const pd = await p.json(); setDeps(Array.isArray(pd) ? pd.length : 0); }
+        if (p.ok) { const pd = await p.json(); setDeps(Array.isArray(pd) ? pd.length : 0); setMe(pd.find((x: any) => x.id === pid) ?? pd[0] ?? null); }
         const fs = await fetch(`${API_URL}/items/flag-summary${pid ? `?patientId=${pid}` : ''}`, { headers: h });
         if (fs.ok) { const fd = await fs.json(); setBuckets(fd.buckets ?? { bons: 0, alerta: 0, alterados: 0 }); }
         const st = await fetch(`${API_URL}/billing/status`, { headers: h });
         if (st.ok) { const sd = await st.json(); setCredits(typeof sd.credits === 'number' ? sd.credits : null); }
-      } catch { /* ignore */ }
+      } catch { /* ignore */ } finally { setLoaded(true); }
       void syncPushToken();
     })();
   }, [pid]);
@@ -87,14 +88,20 @@ export const Dashboard = () => {
   return (
     <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 1080, mx: 'auto' }}>
       <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 0.5 }}>
-        <DrExame size={56} sx={{ borderRadius: '18%' }} />
+        <Avatar src={me?.photoUrl ? photoUrlFor(me.id) : undefined} sx={{ width: 56, height: 56, bgcolor: 'primary.main', fontWeight: 800, fontSize: 22, boxShadow: '0 4px 12px rgba(32,178,170,.25)' }}>{me?.fullName?.charAt(0)?.toUpperCase()}</Avatar>
         <Box>
           <Typography variant="h4" sx={{ fontWeight: 800 }}>Meus Exames</Typography>
           <Typography variant="body2" color="text.secondary">Seu assistente de saúde com IA — educativo, não substitui o médico.</Typography>
         </Box>
       </Stack>
 
-      {score !== null && (
+      {!loaded && (
+        <Card sx={{ mt: 3, borderRadius: 4, minHeight: 144, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5 }}>
+          <CircularProgress size={28} sx={{ color: 'primary.main' }} />
+          <Typography sx={{ fontWeight: 600, color: 'text.secondary' }}>Calculando seu score…</Typography>
+        </Card>
+      )}
+      {loaded && score !== null && (
         <Card sx={{ mt: 3, borderRadius: 4, background: 'linear-gradient(135deg,#ffffff,#e6f7f6)' }}>
           <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
             <Box sx={{ position: 'relative', display: 'inline-flex' }}>

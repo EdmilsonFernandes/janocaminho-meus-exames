@@ -22,7 +22,7 @@ export const MobileBottomNav = () => {
     <Box component="nav" sx={{
       position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1100,
       display: 'flex', justifyContent: 'space-around', alignItems: 'stretch',
-      bgcolor: 'rgba(255,255,255,.97)', backdropFilter: 'blur(14px)',
+      bgcolor: 'rgba(238,247,246,.96)', backdropFilter: 'blur(14px)',
       borderTop: '1px solid #dceaea', pb: 'env(safe-area-inset-bottom)',
       boxShadow: '0 -6px 24px rgba(32,178,170,.10)',
     }}>
@@ -31,7 +31,7 @@ export const MobileBottomNav = () => {
         return (
           <Box key={it.to} onClick={() => navigate(it.to)} sx={{
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            py: 0.6, cursor: 'pointer', userSelect: 'none', color: on ? '#178f89' : '#8a979c',
+            py: 0.95, cursor: 'pointer', userSelect: 'none', color: on ? '#178f89' : '#8a979c',
             transition: 'color .15s, transform .1s', '&:active': { transform: 'scale(.92)' },
           }}>
             <Box sx={{ fontSize: 21, lineHeight: 1, filter: on ? 'none' : 'grayscale(.2)', transform: on ? 'translateY(-1px)' : 'none', transition: 'transform .15s' }}>{it.icon}</Box>

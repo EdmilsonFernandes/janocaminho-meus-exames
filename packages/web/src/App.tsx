@@ -186,7 +186,9 @@ const AppLayout = (props: any) => {
 };
 
 export const App = () => {
+  const [booted, setBooted] = useState(false);
   useEffect(() => {
+    const bootTimer = setTimeout(() => setBooted(true), 1100); // splash visível na abertura
     void initPush();
     void syncCreditCosts();
     // Botão/gesto de voltar do Android (Capacitor) — volta no histórico ou sai do app na raiz
@@ -200,8 +202,9 @@ export const App = () => {
         }
       } catch { /* web: sem @capacitor — browser back já funciona */ }
     })();
-    return () => { remove?.(); };
+    return () => { clearTimeout(bootTimer); remove?.(); };
   }, []);
+  if (!booted) return <BootSplash />;
   return (
   <Admin
     dataProvider={dataProvider}
