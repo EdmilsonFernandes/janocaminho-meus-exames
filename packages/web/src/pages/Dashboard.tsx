@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { API_URL, token, photoUrlFor } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import { syncPushToken } from '../push';
+import { DrExame } from '../components/DrExame';
 
 const readTotal = (r: Response) => Number(r.headers.get('X-Total-Count') ?? r.headers.get('content-range')?.split('/')?.[1] ?? '0');
 
@@ -42,6 +43,7 @@ export const Dashboard = () => {
   const [credits, setCredits] = useState<number | null>(null);
   const [me, setMe] = useState<any>(null);
   const [loaded, setLoaded] = useState(false);
+  const [tipData, setTipData] = useState<{ abnormal: any; good: any }>({ abnormal: null, good: null });
   const tip = TIPS[new Date().getDate() % TIPS.length];
 
   useEffect(() => {
@@ -61,6 +63,8 @@ export const Dashboard = () => {
         if (p.ok) { const pd = await p.json(); setDeps(Array.isArray(pd) ? pd.length : 0); setMe(pd.find((x: any) => x.id === pid) ?? pd[0] ?? null); }
         const fs = await fetch(`${API_URL}/items/flag-summary${pid ? `?patientId=${pid}` : ''}`, { headers: h });
         if (fs.ok) { const fd = await fs.json(); setBuckets(fd.buckets ?? { bons: 0, alerta: 0, alterados: 0 }); }
+        const it = await fetch(`${API_URL}/items?_start=0&_end=20${pidQ}`, { headers: h });
+        if (it.ok) { const items = await it.json(); setTipData({ abnormal: items.find((x: any) => x.isAbnormal) ?? null, good: items.find((x: any) => !x.isAbnormal && x.value != null) ?? null }); }
         const st = await fetch(`${API_URL}/billing/status`, { headers: h });
         if (st.ok) { const sd = await st.json(); setCredits(typeof sd.credits === 'number' ? sd.credits : null); }
       } catch { /* ignore */ } finally { setLoaded(true); }
@@ -70,6 +74,8 @@ export const Dashboard = () => {
 
   const scoreColor = (s: number) => (s >= 80 ? '#2e7d32' : s >= 60 ? '#e65100' : '#c62828');
   const creditColor = (c: number) => (c >= 100 ? '#10b981' : c >= 30 ? '#f59e0b' : '#ef4444');
+  const firstName = (me?.fullName || '').split(' ')[0];
+  const fmtItem = (x: any) => `${x.value ?? ''}${x.unit ? ' ' + x.unit : ''}`.trim();
   const totalVals = buckets.bons + buckets.alerta + buckets.alterados;
   const score = totalVals ? Math.round((buckets.bons / totalVals) * 100) : null; // consistente com o donut
   const donutData = DONUT.map((d) => ({ ...d, value: (buckets as any)[d.key] })).filter((d) => d.value > 0);
@@ -87,13 +93,12 @@ export const Dashboard = () => {
 
   return (
     <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 1080, mx: 'auto' }}>
-      <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 0.5 }}>
-        <Avatar src={me?.photoUrl ? photoUrlFor(me.id) : undefined} sx={{ width: 56, height: 56, bgcolor: 'primary.main', fontWeight: 800, fontSize: 22, boxShadow: '0 4px 12px rgba(32,178,170,.25)' }}>{me?.fullName?.charAt(0)?.toUpperCase()}</Avatar>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 800 }}>Meus Exames</Typography>
-          <Typography variant="body2" color="text.secondary">Seu assistente de saúde com IA — educativo, não substitui o médico.</Typography>
-        </Box>
-      </Stack>
+      <Box sx={{ textAlign: 'center', py: { xs: 0.5, md: 1.5 } }}>
+        <Avatar src={me?.photoUrl ? photoUrlFor(me.id) : undefined} sx={{ width: { xs: 82, md: 96 }, height: { xs: 82, md: 96 }, mx: 'auto', bgcolor: 'primary.main', fontWeight: 800, fontSize: 30, border: '4px solid #fff', boxShadow: '0 6px 18px rgba(32,178,170,.28)' }}>{me?.fullName?.charAt(0)?.toUpperCase()}</Avatar>
+        <Typography variant="h3" sx={{ fontWeight: 800, mt: 1.5, letterSpacing: '-0.02em' }}>{(me?.fullName || 'Olá').split(' ')[0]}</Typography>
+        <Typography color="text.secondary" sx={{ fontSize: 15 }}>Seu painel pessoal de saúde</Typography>
+        <Typography variant="caption" color="text.secondary">Assistente de saúde com IA — educativo, não substitui o médico.</Typography>
+      </Box>
 
       {!loaded && (
         <Card sx={{ mt: 3, borderRadius: 4, minHeight: 144, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5 }}>
@@ -122,6 +127,23 @@ export const Dashboard = () => {
         </Card>
       )}
 
+      {/* Dica personalizada da IA (baseada no exame mais recente) */}
+      <Card sx={{ mt: 2, borderRadius: 4, background: 'linear-gradient(135deg,#a7f3d0,#d1fae5)', border: '1px solid #6ee7b7', boxShadow: '0 4px 14px rgba(16,185,129,.15)' }}>
+        <CardContent sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5, py: 1.5, '&:last-child': { pb: 1.5 } }}>
+          <DrExame size={40} sx={{ borderRadius: '50%', flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,.1)' }} />
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography sx={{ fontWeight: 800, color: '#065f46', fontSize: 14 }}>✨ Dica personalizada (IA)</Typography>
+            <Typography sx={{ fontSize: 14, color: '#064e3b', lineHeight: 1.5, mt: 0.25 }}>
+              {tipData.abnormal
+                ? `Atenção: seu ${tipData.abnormal.name} está ${tipData.abnormal.flag === 'HIGH' ? 'alto' : 'baixo'}${tipData.abnormal.value ? ` (${fmtItem(tipData.abnormal)})` : ''}. Vale conversar com seu médico.`
+                : tipData.good
+                  ? `${firstName ? firstName + ', s' : 'S'}eu ${tipData.good.name} está ótimo${tipData.good.value ? ` (${fmtItem(tipData.good)})` : ''}! Continue assim.`
+                  : tip}
+            </Typography>
+          </Box>
+        </CardContent>
+      </Card>
+
       {/* Aviso de exames que falharam (pra reprocessar) */}
       {failed > 0 && (
         <Alert severity="warning" sx={{ mt: 2, mb: 1, borderRadius: 3 }} action={<Button size="small" color="inherit" onClick={() => navigate('/exams')}>Ver</Button>} onClick={() => navigate('/exams')}>
@@ -129,16 +151,18 @@ export const Dashboard = () => {
         </Alert>
       )}
 
-      {/* Badge de créditos (separada do score) */}
+      {/* Créditos (card premium verde) */}
       {credits != null && (
-        <Card onClick={() => navigate('/planos')} sx={{ mt: 2, mb: 2, cursor: 'pointer', borderRadius: 4, background: creditColor(credits) + '14', border: `1px solid ${creditColor(credits)}44` }}>
-          <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 1.5, '&:last-child': { pb: 1.5 } }}>
-            <BoltIcon sx={{ color: creditColor(credits), fontSize: 30 }} />
-            <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography sx={{ fontWeight: 800, fontSize: 18, color: creditColor(credits) }}>{credits} créditos disponíveis</Typography>
-              <Typography variant="caption" color="text.secondary">Toque para comprar mais ou ver o extrato</Typography>
+        <Card onClick={() => navigate('/planos')} sx={{ mt: 2, mb: 2, cursor: 'pointer', borderRadius: 4, background: 'linear-gradient(135deg,#ecfdf5,#d1fae5)', border: '1px solid #6ee7b7', boxShadow: '0 4px 14px rgba(16,185,129,.12)', '&:hover': { transform: 'translateY(-1px)', boxShadow: '0 8px 20px rgba(16,185,129,.2)' }, transition: 'all .15s' }}>
+          <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.75, '&:last-child': { pb: 1.75 } }}>
+            <Box sx={{ width: 46, height: 46, borderRadius: 2.5, background: 'rgba(16,185,129,.16)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <BoltIcon sx={{ color: '#059669', fontSize: 26 }} />
             </Box>
-            <Typography variant="button" sx={{ color: creditColor(credits), fontWeight: 700, display: { xs: 'none', sm: 'block' } }}>Planos →</Typography>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography sx={{ fontWeight: 800, fontSize: 20, color: '#065f46', lineHeight: 1.1 }}>{credits.toLocaleString('pt-BR')} <Box component="span" sx={{ fontSize: 13, fontWeight: 600, color: '#047857' }}>créditos disponíveis</Box></Typography>
+              <Typography variant="caption" sx={{ color: '#047857' }}>Toque para comprar mais ou ver o extrato</Typography>
+            </Box>
+            <Typography variant="button" sx={{ color: '#059669', fontWeight: 700, display: { xs: 'none', sm: 'block' } }}>Planos →</Typography>
           </CardContent>
         </Card>
       )}
