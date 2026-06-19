@@ -42,7 +42,7 @@ export const TermsPage = () => {
         <P>O app não é direcionado a menores de 18 anos sem supervisão de um responsável. Perfis de dependentes devem ser criados e geridos por um adulto responsável.</P>
 
         <H>8. Alterações e contato</H>
-        <P>Estes termos podem ser atualizados; mudanças relevantes serão comunicadas no app. Dúvidas ou solicitações (LGPD): <strong>contato@chamanoespeto.com.br</strong>.</P>
+        <P>Estes termos podem ser atualizados; mudanças relevantes serão comunicadas no app. Dúvidas ou solicitações (LGPD): <strong>contato@janocaminho.com.br</strong>.</P>
 
         <Divider sx={{ my: 3 }} />
         <Box sx={{ textAlign: 'center' }}>

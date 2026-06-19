@@ -81,6 +81,7 @@ export const PlansPage = () => {
   const fmt = (d: string) => new Date(d).toLocaleDateString('pt-BR');
   const packs = plans?.creditPacks ?? [];
   const mpOn = plans?.mercadoPagoEnabled ?? false;
+  const isNative = Capacitor.isNativePlatform();
 
   return (
     <Box sx={{ width: '100%', maxWidth: 860, mx: 'auto', p: { xs: 2, md: 3 }, boxSizing: 'border-box' }}>
@@ -137,6 +138,27 @@ export const PlansPage = () => {
         </CardContent></Card>
       )}
 
+      {isNative ? (
+        /* Android (Play Store): SEM compra dentro do app — o usuário assina/compra créditos
+           pelo SITE. Evita violar a política de pagamentos do Google (Play Billing p/ bens digitais).
+           O saldo e o Premium adquirados no site aparecem aqui automaticamente. */
+        <Card sx={{ mt: 1, borderRadius: 4, border: '2px dashed #20b2aa', background: 'linear-gradient(135deg,#f1fafa,#e6f7f5)' }}>
+          <CardContent>
+            <Typography variant="h6" sx={{ fontWeight: 800, color: '#178f89' }}>💎 Premium e Créditos de IA</Typography>
+            <Typography sx={{ mt: 1, fontSize: 15 }}>
+              O <strong>Plano Premium</strong> (R$ 19,90/mês) e os <strong>créditos</strong> para a IA são adquirados pelo nosso <strong>site</strong>, com PIX instantâneo.
+            </Typography>
+            <Typography sx={{ mt: 2, fontWeight: 700 }}>Acesse pelo navegador:</Typography>
+            <Typography sx={{ fontFamily: 'monospace', fontSize: 16, bgcolor: '#fff', border: '1px solid #cfe9e5', p: 1, borderRadius: 1, mt: 0.5, userSelect: 'all' }}>
+              janocaminho.com.br/minhasaude
+            </Typography>
+            <Alert severity="info" sx={{ mt: 2 }} icon={false}>
+              Depois de assinar ou comprar créditos no site, entre no app com o <strong>mesmo login</strong> — o saldo e o Premium aparecem aqui automaticamente.
+            </Alert>
+          </CardContent>
+        </Card>
+      ) : (
+        <>
       {/* PACOTES DE CRÉDITOS */}
       <Typography variant="h6" sx={{ mt: 1, mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}><BoltIcon color="secondary" /> Comprar créditos (PIX instantâneo)</Typography>
       <Stack spacing={2} sx={{ mb: 3, width: '100%' }}>
@@ -188,6 +210,8 @@ export const PlansPage = () => {
 
       <PaymentChooser packId={chooserPack} packLabel={chooserLabel} onClose={() => setChooserPack(null)} onPix={() => setPixPack(chooserPack)} />
       <PixModal packId={pixPack} onClose={() => setPixPack(null)} onApproved={() => { setPixPack(null); notify('Créditos adicionados! 🎉', { type: 'success' }); load(); }} />
+        </>
+      )}
     </Box>
   );
 };
