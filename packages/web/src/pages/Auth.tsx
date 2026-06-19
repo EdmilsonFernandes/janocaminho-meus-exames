@@ -30,9 +30,12 @@ const Shell = ({ children }: { children: ReactNode }) => (
         </Box>
       </Stack>
       {children}
-      <Typography sx={{ mt: 3, fontSize: 11.5, fontStyle: 'italic', color: '#9aa7ad', textAlign: 'center' }}>
-        Educativo. Não substitui o médico.
-      </Typography>
+      <Box sx={{ mt: 3, display: 'flex', gap: 1, alignItems: 'flex-start', p: 1.25, borderRadius: 2, background: '#f0f9f7', border: '1px solid #d6ece8' }}>
+        <Box sx={{ fontSize: 16, lineHeight: 1.3, flexShrink: 0 }}>🩺</Box>
+        <Typography sx={{ fontSize: 11.5, color: '#4a6b66', lineHeight: 1.45 }}>
+          <strong>Conteúdo educativo.</strong> Não substitui consulta, diagnóstico ou tratamento médico. Em urgências, procure um serviço de saúde.
+        </Typography>
+      </Box>
     </Box>
   </Box>
 );

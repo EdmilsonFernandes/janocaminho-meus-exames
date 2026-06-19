@@ -33,8 +33,9 @@ export const authProvider = {
   },
 
   async checkAuth() {
-    // Sem token: redireciona pro login. Mensagem vazia = não mostra notificação técnica assustadora.
-    if (!localStorage.getItem('token')) throw new Error('');
+    // Sem token: redireciona pro login SEM notificação.
+    // Objeto {message:false} faz o react-admin pular o toast (useCheckAuth: shouldSkipNotify).
+    if (!localStorage.getItem('token')) throw { message: false };
   },
 
   async checkError(error: any) {
