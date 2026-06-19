@@ -292,7 +292,7 @@ export const ExamShow = () => {
                           <strong>Referência:</strong> {fmtRef(it)}
                         </Typography>
                         <ValueBar value={it.valueNumeric} low={it.refLow} high={it.refHigh} />
-                        {out && (<Box sx={{ mt: 1 }}><TelemedicineButton compact /></Box>)}
+                        {out && (<Box sx={{ mt: 1 }}><TelemedicineButton marker={it.nameCanonical} compact /></Box>)}
                       </Box>
                     );
                   })}

@@ -29,10 +29,7 @@ export const ValoresAlteradosPage = () => {
         <WarningAmberIcon sx={{ color: 'error.main' }} />
         <Typography variant="h5" sx={{ fontWeight: 800 }}>Valores fora da faixa</Typography>
       </Stack>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Todos os valores alterados dos seus exames, do mais recente.</Typography>
-      {items.length > 0 && (
-        <Box sx={{ mb: 2 }}><TelemedicineButton /></Box>
-      )}
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Todos os valores alterados, do mais recente — toque em <strong>Agendar</strong> para o especialista daquele marcador.</Typography>
 
       {loading ? (
         <Box sx={{ textAlign: 'center', py: 4 }}><CircularProgress /></Box>
@@ -55,6 +52,7 @@ export const ValoresAlteradosPage = () => {
                   {it.unit ? <Typography component="span" sx={{ color: 'text.secondary', ml: 0.5, fontSize: '0.8rem' }}>{it.unit}</Typography> : null}
                 </Box>
                 <Chip size="small" color="error" variant="outlined" label={`Ref: ${it.refText || '—'}`} />
+                <TelemedicineButton marker={it.nameCanonical} compact />
               </CardContent>
             </Card>
           ))}
