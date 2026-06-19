@@ -12,7 +12,9 @@ console.log('[mobile] compilando packages/web ...');
 const r = spawnSync(
   process.platform === 'win32' ? 'npm.cmd' : 'npm',
   ['run', 'build', '--workspace', 'packages/web'],
-  { cwd: repoRoot, stdio: 'inherit', shell: true },
+  // APK roda na raiz (sem o sub-caminho /minhasaude/) → força VITE_BASE=/,
+  // independente do .env (protege contra regressão se o .env mudar).
+  { cwd: repoRoot, stdio: 'inherit', shell: true, env: { ...process.env, VITE_BASE: '/' } },
 );
 if (r.status !== 0) {
   console.error('[mobile] build do web falhou');

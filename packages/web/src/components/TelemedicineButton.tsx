@@ -2,6 +2,8 @@ import { Button } from '@mui/material';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import { TELEMEDICINE_URL } from '../config';
 import { specialtyForMarker, doctoraliaUrl } from './telemedicineMap';
+import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
 
 /**
  * Botão "Agendar Telemedicina" — visual ultra-premium (gradiente esmeralda +
@@ -32,6 +34,7 @@ export const TelemedicineButton = ({
       target="_blank"
       rel="noopener noreferrer"
       disableElevation
+      onClick={(e) => { if (Capacitor.isNativePlatform()) { e.preventDefault(); Browser.open({ url }); } }}
       sx={{
         mt: 1,
         borderRadius: 14,
