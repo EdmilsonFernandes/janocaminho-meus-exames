@@ -1,5 +1,5 @@
-import { List, Datagrid, TextField, DateField, FunctionField, ShowButton, DeleteButton, CreateButton, TopToolbar, useListContext, useRefresh, useNotify } from 'react-admin';
-import { Chip, useMediaQuery, useTheme, Box, Card, CardContent, Typography, IconButton, Stack, LinearProgress, Button, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
+import { List, useListContext, useRefresh, useNotify, CreateButton, TopToolbar } from 'react-admin';
+import { Chip, Box, Card, CardContent, Typography, IconButton, Stack, LinearProgress, Button, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
 import ScienceIcon from '@mui/icons-material/Science';
 import ImageIcon from '@mui/icons-material/Image';
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
@@ -7,7 +7,7 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import LockIcon from '@mui/icons-material/Lock';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useSelectedPatient } from '../../patient-context';
 import { API_URL, token } from '../../config';
 import { ExplainButton } from '../../components/ExplainItem';
@@ -25,8 +25,8 @@ const statusLabel: Record<string, string> = { EXTRACTED: 'Pronto', FAILED: 'Falh
 const kindLabel: Record<string, string> = { LAB_PANEL: 'Laboratorial', IMAGING: 'Imagem', OTHER: 'Outro' };
 const hexFor = (s: string) => { const sc = statusColor[s] ?? 'default'; return sc === 'success' ? '#10b981' : sc === 'error' ? '#ef4444' : sc === 'warning' ? '#f59e0b' : sc === 'info' ? '#0ea5e9' : '#94a3b8'; };
 
-/** Cards mobile agrupados por ano (colapsáveis). Ano recente aberto; antigos = Premium p/ grátis. */
-const MobileExams = () => {
+/** Cards agrupados por ano (colapsáveis). Mesmo layout em mobile e desktop. */
+const ExamCards = () => {
   const { data, isLoading, total } = useListContext<any>();
   const navigate = useNavigate();
   const refresh = useRefresh();
@@ -83,7 +83,7 @@ const MobileExams = () => {
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, p: { xs: 1.5, sm: 2 }, pb: 4 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, p: { xs: 1.5, sm: 2 }, pb: 4, maxWidth: 760, mx: 'auto' }}>
       {total != null && total > 0 && (
         <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, mb: 0.5 }}>
           📋 {total} exame{total !== 1 ? 's' : ''} no total
@@ -107,8 +107,8 @@ const MobileExams = () => {
           <Accordion key={String(g.year)} defaultExpanded={g.year === latestYear} disableGutters elevation={0}
             sx={{ borderRadius: '12px !important', overflow: 'hidden', border: '1px solid #eef2f7', '&:before': { display: 'none' } }}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '48px !important', '& .MuiAccordionSummary-content': { my: 0.75, alignItems: 'center' } }}>
-              <Typography sx={{ fontWeight: 800 }}>📅 {g.label}</Typography>
-              <Chip size="small" label={`${g.items.length}`} sx={{ ml: 1.5, bgcolor: 'rgba(0,0,0,.05)', color: 'text.secondary', height: 20 }} />
+              <Typography sx={{ fontWeight: 800, flex: '1 1 auto', minWidth: 0 }}>📅 {g.label}</Typography>
+              <Chip size="small" label={`${g.items.length}`} sx={{ ml: 1.5, bgcolor: 'rgba(0,0,0,.05)', color: 'text.secondary', height: 20, flexShrink: 0 }} />
             </AccordionSummary>
             <AccordionDetails sx={{ p: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
               {g.items.map(renderCard)}
@@ -122,25 +122,9 @@ const MobileExams = () => {
 
 export const ExamList = () => {
   const [pid] = useSelectedPatient();
-  const theme = useTheme() as any;
-  const isDesktop = useMediaQuery(theme.breakpoints.up('sm'));
   return (
-  <List key={pid} sort={{ field: 'performedAt', order: 'DESC' }} exporter={false} perPage={25} filter={{ patientId: pid || 'none' }} actions={<ExamListActions />}>
-    {isDesktop ? (
-      <Datagrid bulkActionButtons={false} rowClick="show" sx={{ '& .MuiTableCell-root': { whiteSpace: 'normal', wordBreak: 'break-word' } }}>
-        <FunctionField label="Exame" render={(r: any) => (
-          <Box component="span" title={r.title} sx={{ display: 'inline-block', maxWidth: { xs: 140, md: 300 }, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', verticalAlign: 'bottom' }}>{r.title}</Box>
-        )} />
-        <FunctionField label="Tipo" render={(r: any) => kindLabel[r.kind] ?? r.kind} />
-        <DateField source="performedAt" label="Data" locales="pt-BR" />
-        <FunctionField label="Status" render={(r: any) => <Chip size="small" color={statusColor[r.status] ?? 'default'} label={statusLabel[r.status] ?? r.status} />} />
-        <FunctionField label="Itens" render={(r: any) => r._count?.items ?? 0} />
-        <ShowButton />
-        <DeleteButton />
-      </Datagrid>
-    ) : (
-      <MobileExams />
-    )}
-  </List>
+    <List key={pid} sort={{ field: 'performedAt', order: 'DESC' }} exporter={false} perPage={25} filter={{ patientId: pid || 'none' }} actions={<ExamListActions />}>
+      <ExamCards />
+    </List>
   );
 };

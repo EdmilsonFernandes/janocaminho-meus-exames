@@ -6,6 +6,7 @@ import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import { ExplainButton } from '../components/ExplainItem';
 import { TelemedicineButton } from '../components/TelemedicineButton';
+import { fmtVal } from '../utils/format';
 
 /** Mostra SÓ os valores fora da faixa (mapeados), do exame mais recente ao mais antigo. */
 export const ValoresAlteradosPage = () => {
@@ -48,7 +49,7 @@ export const ValoresAlteradosPage = () => {
                   <Typography variant="caption" color="text.secondary" sx={{ display: 'block', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{it.examTitle} • {it.performedAt ? new Date(it.performedAt).toLocaleDateString('pt-BR') : 's/d'}</Typography>
                 </Box>
                 <Box sx={{ textAlign: 'right' }}>
-                  <Typography component="span" sx={{ fontSize: '1.4rem', fontWeight: 800, color: 'error.main' }}>{it.valueText}</Typography>
+                  <Typography component="span" sx={{ fontSize: '1.4rem', fontWeight: 800, color: 'error.main' }}>{fmtVal(it)}</Typography>
                   {it.unit ? <Typography component="span" sx={{ color: 'text.secondary', ml: 0.5, fontSize: '0.8rem' }}>{it.unit}</Typography> : null}
                 </Box>
                 <Chip size="small" color="error" variant="outlined" label={`Ref: ${it.refText || '—'}`} />

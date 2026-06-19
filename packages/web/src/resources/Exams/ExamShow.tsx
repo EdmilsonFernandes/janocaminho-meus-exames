@@ -11,6 +11,7 @@ import { HealthSummary } from '../../components/HealthSummary';
 import { ValueBar } from '../../components/ValueBar';
 import { ExplainButton } from '../../components/ExplainItem';
 import { TelemedicineButton } from '../../components/TelemedicineButton';
+import { fmtVal } from '../../utils/format';
 import { ExtractionProgress } from '../../components/ExtractionProgress';
 import { AnimatedDoctor } from '../../components/AnimatedDoctor';
 import { CreditBadge, CREDIT_COSTS } from '../../components/CreditBadge';
@@ -258,9 +259,9 @@ export const ExamShow = () => {
             <Accordion key={panel} disableGutters elevation={0} defaultExpanded={fewPanels}
               sx={{ mt: 1.5, borderRadius: '12px !important', overflow: 'hidden', border: '1px solid #e6f1f0', '&:before': { display: 'none' } }}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '48px !important', '& .MuiAccordionSummary-content': { my: 0.75, alignItems: 'center' } }}>
-                <Typography sx={{ fontWeight: 700, fontSize: '1rem' }}>{panel}</Typography>
-                {abn > 0 && <Chip size="small" color="error" variant="outlined" label={`${abn} alterado${abn > 1 ? 's' : ''}`} sx={{ ml: 1.5, height: 20 }} />}
-                <Chip size="small" label={`${(list as any[]).length} itens`} sx={{ ml: 1, bgcolor: 'rgba(0,0,0,.05)', color: 'text.secondary', height: 20 }} />
+                <Typography sx={{ fontWeight: 700, fontSize: '1rem', flex: '1 1 auto', minWidth: 0, wordBreak: 'break-word', overflowWrap: 'anywhere', pr: 1 }}>{panel}</Typography>
+                {abn > 0 && <Chip size="small" color="error" variant="outlined" label={`${abn} alterado${abn > 1 ? 's' : ''}`} sx={{ ml: 0.5, height: 20, flexShrink: 0 }} />}
+                <Chip size="small" label={`${(list as any[]).length} itens`} sx={{ ml: 0.5, bgcolor: 'rgba(0,0,0,.05)', color: 'text.secondary', height: 20, flexShrink: 0 }} />
               </AccordionSummary>
               <AccordionDetails sx={{ p: 1 }}>
                 <Stack divider={<Divider sx={{ borderColor: '#eef2f7', my: 0.5 }} />}>
@@ -283,7 +284,7 @@ export const ExamShow = () => {
                         </Stack>
                         {/* Valor grande + cor (vermelho alterado, laranja alerta, verde normal) + unidade + pág */}
                         <Stack direction="row" spacing={1} alignItems="baseline" useFlexGap flexWrap="wrap">
-                          <Typography sx={{ fontSize: '1.5rem', fontWeight: 800, lineHeight: 1.2, color: valColor }}>{it.valueText ?? '—'}</Typography>
+                          <Typography sx={{ fontSize: '1.5rem', fontWeight: 800, lineHeight: 1.2, color: valColor }}>{fmtVal(it)}</Typography>
                           {it.unit ? <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem' }}>{it.unit}</Typography> : null}
                           <Button size="small" sx={{ fontSize: '0.75rem', minWidth: 0, p: 0 }} onClick={() => openCitation(it.extractedPage)}>pág. {it.extractedPage}</Button>
                         </Stack>
