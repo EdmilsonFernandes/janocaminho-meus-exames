@@ -46,7 +46,14 @@ export const TrendsPage = () => {
       <Box sx={{ bgcolor: 'rgba(15,23,42,0.92)', color: '#fff', p: 1.25, borderRadius: 2, boxShadow: 4, minWidth: 120 }}>
         <Box sx={{ fontWeight: 700, fontSize: 11, opacity: 0.8 }}>{d.name}</Box>
         <Box sx={{ fontSize: 19, fontWeight: 800 }}>{d.valor}{ts?.unit ? ` ${ts.unit}` : ''}</Box>
-        {d.flag && d.flag !== 'NORMAL' && <Box sx={{ color: '#fca5a5', fontSize: 12, fontWeight: 700 }}>{d.flag === 'HIGH' ? '↑ Acima' : d.flag === 'LOW' ? '↓ Abaixo' : d.flag}</Box>}
+        {(() => {
+          const f = d.flag as string;
+          if (f === 'HIGH') return <Box sx={{ color: '#fca5a5', fontSize: 12, fontWeight: 700 }}>↑ Acima da referência</Box>;
+          if (f === 'LOW') return <Box sx={{ color: '#fca5a5', fontSize: 12, fontWeight: 700 }}>↓ Abaixo da referência</Box>;
+          if (f === 'ABNORMAL' || f === 'CRITICAL') return <Box sx={{ color: '#fca5a5', fontSize: 12, fontWeight: 700 }}>⚠ Alterado</Box>;
+          if (f === 'UNKNOWN') return <Box sx={{ color: 'rgba(255,255,255,.65)', fontSize: 12, fontWeight: 600 }}>sem faixa de referência</Box>;
+          return null;
+        })()}
       </Box>
     );
   };
