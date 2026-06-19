@@ -8,7 +8,7 @@ import WhatsAppIcon from '@mui/icons-material/Share';
 import { API_URL, apiHeaders } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import { ShareDialog } from '../components/ShareDialog';
-import { AnimatedDoctor } from '../components/AnimatedDoctor';
+import { BootSplash } from '../components/BootSplash';
 import { ExplainButton } from '../components/ExplainItem';
 import { CreditBadge, CREDIT_COSTS } from '../components/CreditBadge';
 import { NameToggle } from '../components/HealthSummary';
@@ -162,7 +162,6 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
             {loading ? 'Gerando...' : 'Gerar relatório completo'}
           </Button>{' '}
           <CreditBadge amount={CREDIT_COSTS.consolidated} />
-          {loading && <AnimatedDoctor text="Dr. Exame está preparando seu relatório…" size={80} />}
         </>
       )}
       {!pid && <Typography color="text.secondary" sx={{ mt: 1 }}>Selecione um perfil no topo para gerar o relatório.</Typography>}
@@ -170,11 +169,6 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
 
       {analysis && s && (
         <Card sx={{ mt: 2, borderRadius: 4, overflow: 'hidden', position: 'relative', boxShadow: '0 4px 20px rgba(32,178,170,.12)' }}>
-          {loading && (
-            <Box sx={{ position: 'absolute', inset: 0, bgcolor: 'rgba(245,252,251,.88)', backdropFilter: 'blur(3px)', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', px: 2, textAlign: 'center' }}>
-              <AnimatedDoctor text="Dr. Exame está regenerando seu relatório…" size={84} />
-            </Box>
-          )}
           <Box sx={{ background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff', p: { xs: 2, md: 2.5 }, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
             <Box sx={{ minWidth: 0, flex: '1 1 60%' }}>
               <Typography variant="h6" sx={{ fontWeight: 800 }}>Relatório consolidado 🩺</Typography>
@@ -277,6 +271,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
       <ConfirmSpend open={confirmSpend.open} credits={CREDIT_COSTS.consolidated} title="Gerar novo relatório"
         desc="Vamos analisar seus exames mais recentes com a IA e gerar um relatório completo."
         onClose={() => setConfirmSpend(s => ({ ...s, open: false }))} onConfirm={confirmSpend.onYes} />
+      {loading && <BootSplash title="Gerando seu relatório" subtitle="Dr. Exame está preparando sua análise com IA…" />}
     </Box>
   );
 };

@@ -215,7 +215,7 @@ export const App = () => {
     dashboard={Dashboard}
     loginPage={LoginPage}
     title="Meus Exames"
-    loading={BootSplash}
+    loading={() => <BootSplash />}
     disableTelemetry
   >
     <CustomRoutes noLayout>

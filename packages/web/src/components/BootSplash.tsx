@@ -3,7 +3,7 @@ import { DrExame } from './DrExame';
 
 /** Tela de boot/splash premium — mostra enquanto o app inicializa (auth/data).
  *  Fundo teal + DrExame respirando + linha de batimento + "Meus Exames". */
-export const BootSplash = () => (
+export const BootSplash = ({ title = 'Meus Exames', subtitle = 'Seu assistente de saúde com IA' }: { title?: string; subtitle?: string }) => (
   <Box sx={{
     position: 'fixed', inset: 0, zIndex: 9999,
     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1.5,
@@ -12,8 +12,8 @@ export const BootSplash = () => (
     <Box sx={{ animation: 'bootBreathe 2s ease-in-out infinite' }}>
       <DrExame size={118} sx={{ borderRadius: '24%', boxShadow: '0 18px 44px rgba(0,0,0,.28)' }} />
     </Box>
-    <Typography variant="h4" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', letterSpacing: '-0.02em', mt: 0.5 }}>Meus Exames</Typography>
-    <Typography sx={{ opacity: 0.92, fontSize: 15 }}>Seu assistente de saúde com IA</Typography>
+    <Typography variant="h4" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', letterSpacing: '-0.02em', mt: 0.5 }}>{title}</Typography>
+    <Typography sx={{ opacity: 0.92, fontSize: 15 }}>{subtitle}</Typography>
 
     {/* linha de batimento cardíaco */}
     <Box sx={{ width: 200, height: 26, mt: 1, opacity: 0.95, '& path': { strokeDasharray: 260, animation: 'bootBeat 2.4s linear infinite' } }}>

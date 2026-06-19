@@ -9,6 +9,29 @@ import { getCachedExplanation, setCachedExplanation } from '../utils/explanation
 const router = Router();
 router.use(requireAuth);
 
+// ATUALIZAR item (corrigir valor extraído — usuário corrige erro de OCR; recalc flag)
+router.patch('/:id', async (req: AuthedRequest, res, next) => {
+  try {
+    const existing = await prisma.examItem.findUnique({ where: { id: String(req.params.id) }, include: { exam: { select: { patientId: true } } } });
+    if (!existing) { res.status(404).json({ error: 'Item não encontrado' }); return; }
+    const pids = await userPatientIds(req.userId!);
+    if (!pids.includes(existing.exam.patientId)) { res.status(403).json({ error: 'Sem permissão' }); return; }
+    const b = req.body ?? {};
+    const valueText = b.valueText != null ? String(b.valueText) : existing.valueText;
+    const valueNumeric = b.valueNumeric != null ? (b.valueNumeric === '' || b.valueNumeric == null ? null : Number(b.valueNumeric)) : existing.valueNumeric;
+    const unit = b.unit != null ? (b.unit || null) : existing.unit;
+    const refLow = b.refLow != null ? (b.refLow === '' || b.refLow == null ? null : Number(b.refLow)) : existing.refLow;
+    const refHigh = b.refHigh != null ? (b.refHigh === '' || b.refHigh == null ? null : Number(b.refHigh)) : existing.refHigh;
+    let flag = existing.flag; let isAbnormal = existing.isAbnormal;
+    if (valueNumeric != null && refLow != null && refHigh != null) {
+      isAbnormal = valueNumeric < refLow || valueNumeric > refHigh;
+      flag = isAbnormal ? (valueNumeric > refHigh ? 'HIGH' : 'LOW') : 'NORMAL';
+    }
+    const updated = await prisma.examItem.update({ where: { id: String(req.params.id) }, data: { valueText, valueNumeric, unit, refLow, refHigh, flag, isAbnormal } });
+    res.json(updated);
+  } catch (e) { next(e); }
+});
+
 // SÉRIE TEMPORAL de um analito (para o gráfico de evolução)
 router.get('/timeseries', async (req: AuthedRequest, res, next) => {
   try {

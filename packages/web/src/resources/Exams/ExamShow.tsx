@@ -18,6 +18,33 @@ import { CreditBadge, CREDIT_COSTS } from '../../components/CreditBadge';
 import { ConfirmSpend } from '../../components/ConfirmSpend';
 import { DocPreview } from '../../components/DocPreview';
 
+/** Valor do item editável inline (corrigir erro de OCR). Salva via PATCH /items/:id. */
+const EditableItemValue = ({ it, color, onSaved }: { it: any; color: string; onSaved: (u: any) => void }) => {
+  const [editing, setEditing] = useState(false);
+  const [v, setV] = useState(it.valueText ?? '');
+  const [busy, setBusy] = useState(false);
+  const save = async () => {
+    const num = parseFloat(String(v).replace(',', '.'));
+    setBusy(true);
+    try {
+      const r = await fetch(`${API_URL}/items/${it.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` }, body: JSON.stringify({ valueText: v, valueNumeric: isNaN(num) ? null : num }) });
+      if (r.ok) { const u = await r.json(); onSaved(u); setEditing(false); }
+    } finally { setBusy(false); }
+  };
+  if (editing) return (
+    <Box component="input" value={v} autoFocus disabled={busy}
+      onChange={(e: any) => setV(e.target.value)} onBlur={save}
+      onKeyDown={(e: any) => { if (e.key === 'Enter') save(); if (e.key === 'Escape') { setV(it.valueText ?? ''); setEditing(false); } }}
+      sx={{ fontSize: '1.4rem', fontWeight: 800, p: '2px 6px', borderRadius: 1, border: '2px solid #20b2aa', outline: 'none', width: 150, bgcolor: '#fff', color }} />
+  );
+  return (
+    <Typography onClick={() => setEditing(true)} title="Toque para corrigir o valor"
+      sx={{ fontSize: '1.5rem', fontWeight: 800, lineHeight: 1.2, color, cursor: 'pointer', borderBottom: '2px dotted rgba(32,178,170,.45)', '&:hover': { color: '#178f89' } }}>
+      {fmtVal(it)} <Box component="span" sx={{ fontSize: '0.8rem', opacity: 0.6 }}>✏️</Box>
+    </Typography>
+  );
+};
+
 const statusColor: Record<string, 'success' | 'error' | 'warning' | 'info' | 'default'> = {
   EXTRACTED: 'success', FAILED: 'error', UPLOADED: 'warning', EXTRACTING: 'info',
 };
@@ -284,7 +311,7 @@ export const ExamShow = () => {
                         </Stack>
                         {/* Valor grande + cor (vermelho alterado, laranja alerta, verde normal) + unidade + pág */}
                         <Stack direction="row" spacing={1} alignItems="baseline" useFlexGap flexWrap="wrap">
-                          <Typography sx={{ fontSize: '1.5rem', fontWeight: 800, lineHeight: 1.2, color: valColor }}>{fmtVal(it)}</Typography>
+                          <EditableItemValue it={it} color={valColor} onSaved={(u) => setExam((e: any) => e ? { ...e, items: (e.items ?? []).map((i: any) => i.id === u.id ? { ...i, ...u } : i) } : e)} />
                           {it.unit ? <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem' }}>{it.unit}</Typography> : null}
                           <Button size="small" sx={{ fontSize: '0.75rem', minWidth: 0, p: 0 }} onClick={() => openCitation(it.extractedPage)}>pág. {it.extractedPage}</Button>
                         </Stack>
