@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Fundo teal do splash nativo (elimina o flash branco antes do React montar) -->
+    <color name="splash_bg">#20B2AA</color>
+</resources>

@@ -52,6 +52,8 @@ import { TermsPage } from './pages/Terms';
 import { PatientSwitcher } from './components/PatientSwitcher';
 import { CreditsChip } from './components/CreditsChip';
 import { FloatingChat } from './components/FloatingChat';
+import { BootSplash } from './components/BootSplash';
+import { MobileBottomNav } from './components/MobileBottomNav';
 import { initPush } from './push';
 import { syncCreditCosts } from './components/CreditBadge';
 
@@ -168,13 +170,20 @@ const PullToRefresh = () => {
   );
 };
 
-const AppLayout = (props: any) => (
-  <>
-    <Layout {...props} menu={AppMenu} appBar={CustomAppBar} />
-    <FloatingChat />
-    <PullToRefresh />
-  </>
-);
+const AppLayout = (props: any) => {
+  const theme = useTheme();
+  const isDesktop = useMediaQuery(theme.breakpoints.up('sm'));
+  return (
+    <>
+      {/* gap reduzido + espaço pra não cobrir conteúdo com o menu rodapé (mobile) */}
+      <Layout {...props} menu={AppMenu} appBar={CustomAppBar}
+        sx={{ '& .RaLayout-content': { padding: { xs: '8px 0 64px', sm: '14px 0 28px' } } }} />
+      {isDesktop && <FloatingChat />}
+      <PullToRefresh />
+      <MobileBottomNav />
+    </>
+  );
+};
 
 export const App = () => {
   useEffect(() => {
@@ -203,6 +212,7 @@ export const App = () => {
     dashboard={Dashboard}
     loginPage={LoginPage}
     title="Meus Exames"
+    loading={BootSplash}
     disableTelemetry
   >
     <CustomRoutes noLayout>

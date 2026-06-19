@@ -169,7 +169,12 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
       {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
 
       {analysis && s && (
-        <Card sx={{ mt: 2, borderRadius: 4, overflow: 'hidden', boxShadow: '0 4px 20px rgba(32,178,170,.12)' }}>
+        <Card sx={{ mt: 2, borderRadius: 4, overflow: 'hidden', position: 'relative', boxShadow: '0 4px 20px rgba(32,178,170,.12)' }}>
+          {loading && (
+            <Box sx={{ position: 'absolute', inset: 0, bgcolor: 'rgba(245,252,251,.88)', backdropFilter: 'blur(3px)', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', px: 2, textAlign: 'center' }}>
+              <AnimatedDoctor text="Dr. Exame está regenerando seu relatório…" size={84} />
+            </Box>
+          )}
           <Box sx={{ background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff', p: { xs: 2, md: 2.5 }, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
             <Box sx={{ minWidth: 0, flex: '1 1 60%' }}>
               <Typography variant="h6" sx={{ fontWeight: 800 }}>Relatório consolidado 🩺</Typography>
@@ -178,8 +183,8 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
             <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" alignItems="center">
               <Button size="small" variant="outlined" sx={{ color: '#fff', borderColor: 'rgba(255,255,255,.6)' }} startIcon={<WhatsAppIcon />} onClick={() => setShareOpen(true)}>Compartilhar</Button>
               <Button size="small" variant="outlined" sx={{ color: '#fff', borderColor: 'rgba(255,255,255,.6)' }} startIcon={<PrintIcon />} onClick={printReport}>Imprimir / PDF</Button>
-              <Button size="small" variant="contained" sx={{ bgcolor: 'rgba(255,255,255,.18)' }} disabled={loading} onClick={() => generate(true)} title="Regenera o relatório com os exames mais recentes">
-                {loading ? 'Atualizando…' : '↻ Atualizar'}
+              <Button size="small" variant="contained" sx={{ bgcolor: 'rgba(255,255,255,.18)' }} disabled={loading} onClick={() => generate(true)} title="Regenera o relatório com os exames mais recentes" startIcon={loading ? <CircularProgress size={14} color="inherit" /> : undefined}>
+                {loading ? 'Gerando novo…' : '↻ Atualizar'}
               </Button>
               <CreditBadge amount={CREDIT_COSTS.consolidated} sx={{ bgcolor: 'rgba(255,255,255,.95) !important', color: '#178f89 !important' }} />
             </Stack>
