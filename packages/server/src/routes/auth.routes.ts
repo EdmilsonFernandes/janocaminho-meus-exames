@@ -46,7 +46,7 @@ router.post('/login', async (req, res, next) => {
     const { token, patientId } = await issueSession(user.id);
     res.json({
       token,
-      user: { id: user.id, email: user.email, name: user.name, role: user.role },
+      user: { id: user.id, email: user.email, name: user.name, role: user.role, planExpiresAt: user.planExpiresAt, credits: user.credits },
       patientId,
     });
   } catch (e) { next(e); }
@@ -71,7 +71,7 @@ router.post('/register', async (req, res, next) => {
     const { token, patientId } = await issueSession(user.id);
     res.status(201).json({
       token, patientId,
-      user: { id: user.id, email: user.email, name: user.name, role: user.role },
+      user: { id: user.id, email: user.email, name: user.name, role: user.role, planExpiresAt: user.planExpiresAt, credits: user.credits },
     });
   } catch (e) { next(e); }
 });
@@ -161,7 +161,7 @@ router.post('/otp/verify', async (req, res, next) => {
       notifyNewUser(name, email);
     }
     const { token, patientId } = await issueSession(user.id);
-    res.json({ token, patientId, user: { id: user.id, email: user.email, name: user.name, role: user.role } });
+    res.json({ token, patientId, user: { id: user.id, email: user.email, name: user.name, role: user.role, planExpiresAt: user.planExpiresAt, credits: user.credits } });
   } catch (e) { next(e); }
 });
 

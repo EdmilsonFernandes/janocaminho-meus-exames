@@ -2,48 +2,54 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { Box, Button, Typography } from '@mui/material';
 import LockIcon from '@mui/icons-material/Lock';
 import { useNavigate } from 'react-router-dom';
+import { API_URL, token } from '../config';
 
-/** Lê o user do localStorage e devolve se o plano premium está ativo agora. */
+/**
+ * Devolve se o plano premium está ativo. Fast-path pelo localStorage('user')
+ * (que agora inclui planExpiresAt no login) + correção autoritativa via /billing/status.
+ */
 export function usePremium(): boolean {
-  const [premium, setPremium] = useState(false);
+  const [premium, setPremium] = useState<boolean>(false);
   useEffect(() => {
     try {
       const raw = localStorage.getItem('user');
       if (raw) {
         const u = JSON.parse(raw);
-        setPremium(!!u?.planExpiresAt && new Date(u.planExpiresAt) > new Date());
+        if (u?.planExpiresAt && new Date(u.planExpiresAt) > new Date()) setPremium(true);
       }
     } catch {
-      /* user ausente/malformado → considera não-premium */
+      /* user ausente */
     }
+    fetch(`${API_URL}/billing/status`, { headers: { Authorization: `Bearer ${token()}` } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d) setPremium(!!d.active); })
+      .catch(() => {});
   }, []);
   return premium;
 }
 
 /**
- * Envolve conteúdo premium: se o usuário NÃO for premium, aplica blur + overlay
- * com CTA de upgrade (linka pra /planos). Premium vê o conteúdo normal.
+ * Envolve conteúdo premium. Premium vê o conteúdo. Não-premium vê um card de
+ * upgrade limpo (sem blur → nada cortado) com CTA "Ver planos".
  */
 export const PremiumGate = ({ children }: { children: ReactNode }) => {
   const premium = usePremium();
   const navigate = useNavigate();
   if (premium) return <>{children}</>;
   return (
-    <Box sx={{ position: 'relative', borderRadius: 2, overflow: 'hidden' }}>
-      <Box sx={{ filter: 'blur(4px)', opacity: 0.55, pointerEvents: 'none', userSelect: 'none' }}>
-        {children}
-      </Box>
-      <Box sx={{
-        position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center', gap: 1, textAlign: 'center', p: 2,
-      }}>
-        <LockIcon sx={{ fontSize: 34, color: 'text.secondary' }} />
-        <Typography sx={{ fontWeight: 700, fontSize: 14 }}>Previsão exclusiva do Premium</Typography>
-        <Button variant="contained" size="small" onClick={() => navigate('/planos')}
-          sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 700, boxShadow: 'none' }}>
-          Ver planos
-        </Button>
-      </Box>
+    <Box sx={{
+      mt: 2, p: 2.5, borderRadius: 2, textAlign: 'center',
+      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1,
+      background: 'linear-gradient(135deg, rgba(32,178,170,.10), rgba(32,178,170,.02))',
+      border: '1px dashed rgba(32,178,170,.45)',
+    }}>
+      <LockIcon sx={{ fontSize: 30, color: '#178f89' }} />
+      <Typography sx={{ fontWeight: 800, fontSize: 15, color: '#0f172a' }}>Previsão exclusiva do Premium</Typography>
+      <Typography variant="caption" color="text.secondary">Assine pra ver quando seu marcador deve sair da faixa de referência.</Typography>
+      <Button variant="contained" size="small" onClick={() => navigate('/planos')}
+        sx={{ mt: 0.5, borderRadius: 2, textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', boxShadow: 'none', '&:hover': { bgcolor: '#178f89' } }}>
+        Ver planos
+      </Button>
     </Box>
   );
 };
