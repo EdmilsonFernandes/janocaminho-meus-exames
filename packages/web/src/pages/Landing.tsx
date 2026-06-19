@@ -5,14 +5,14 @@ import { useState, useEffect } from 'react';
 const navigate = useNavigate;
 
 const benefits = [
-  { icon: '🤖', title: 'IA que entende seus exames', desc: 'Envie o PDF ou foto. O Dr. Exame lê tudo, extrai os valores e explica em português simples — sem jargão.' },
+  { icon: '🤖', title: 'IA que lê seus exames', desc: 'Envie o PDF ou foto. O Dr. Exame extrai todos os valores e explica em português simples — sem jargão.' },
+  { icon: '💬', title: 'Chat inteligente (economiza)', desc: 'Perguntas simples ("qual meu último TSH?") são respondidas na hora e de graça. Só as complexas vão pra IA.' },
   { icon: '📊', title: 'Comparativo visual', desc: 'Veja o que mudou entre exames. Hemoglobina subiu? Colesterol caiu? Gráficos claros com faixa de referência.' },
-  { icon: '📈', title: 'Evolução + Previsão', desc: 'Acompanhe tendências ao longo do tempo e saiba quando um valor pode sair da faixa.' },
+  { icon: '📈', title: 'Evolução + Previsão', desc: 'Acompanhe tendências e saiba quando um valor pode sair da faixa (previsão exclusiva do Premium).' },
+  { icon: '🩺', title: 'Telemedicina pelo marcador', desc: 'Valor alterado? Um toque leva ao especialista certo no Doctoralia — endócrino, cardio, hemato e mais.' },
   { icon: '👨‍👩‍👧', title: 'Toda a família', desc: 'Gerencie exames de cada dependente. Score familiar + comparativo entre membros.' },
-  { icon: '🩺', title: 'Dr. Exame responde', desc: 'Converse com a IA sobre seus resultados. "Por que minha hemoglobina subiu?" — resposta na hora.' },
-  { icon: '📋', title: 'Pronto para o médico', desc: 'Documento de 1 página com valores alterados + perfil clínico. Seu médico escaneia em 30 segundos.' },
-  { icon: '🤟', title: 'Acessível em Libras', desc: 'Tradução automática para Libras. Pacientes surdos entendem cada resultado.' },
-  { icon: '🔒', title: 'Dados protegidos', desc: 'Criptografia, PIN de compartilhamento, exclusão a qualquer momento. LGPD completa.' },
+  { icon: '📋', title: 'Pronto para o médico', desc: 'Relatório de 1 página com valores alterados + perfil clínico. Compartilhe por link seguro com PIN.' },
+  { icon: '🔒', title: 'Dados protegidos + Libras', desc: 'Criptografia, PIN de compartilhamento, exclusão a qualquer momento. LGPD completa e VLibras.' },
 ];
 
 const steps = [
