@@ -76,6 +76,20 @@ export const Dashboard = () => {
   const creditColor = (c: number) => (c >= 100 ? '#10b981' : c >= 30 ? '#f59e0b' : '#ef4444');
   const firstName = (me?.fullName || '').split(' ')[0];
   const fmtItem = (x: any) => `${x.value ?? ''}${x.unit ? ' ' + x.unit : ''}`.trim();
+  const tipMsg = tipData.abnormal
+    ? `Atenção: seu ${tipData.abnormal.name} está ${tipData.abnormal.flag === 'HIGH' ? 'alto' : 'baixo'}${tipData.abnormal.value ? ` (${fmtItem(tipData.abnormal)})` : ''}. Vale conversar com seu médico.`
+    : tipData.good
+      ? `${firstName ? firstName + ', s' : 'S'}eu ${tipData.good.name} está ótimo${tipData.good.value ? ` (${fmtItem(tipData.good)})` : ''}! Continue assim.`
+      : tip;
+  const renderTip = () => (
+    <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
+      <DrExame size={36} sx={{ borderRadius: '50%', flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,.1)' }} />
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Typography sx={{ fontWeight: 800, color: '#178f89', fontSize: 13 }}>✨ Dica personalizada (IA)</Typography>
+        <Typography sx={{ fontSize: 14, color: '#0f3d3a', lineHeight: 1.5, mt: 0.25 }}>{tipMsg}</Typography>
+      </Box>
+    </Box>
+  );
   const totalVals = buckets.bons + buckets.alerta + buckets.alterados;
   const score = totalVals ? Math.round((buckets.bons / totalVals) * 100) : null; // consistente com o donut
   const donutData = DONUT.map((d) => ({ ...d, value: (buckets as any)[d.key] })).filter((d) => d.value > 0);
@@ -108,7 +122,8 @@ export const Dashboard = () => {
       )}
       {loaded && score !== null && (
         <Card sx={{ mt: 3, borderRadius: 4, background: 'linear-gradient(135deg,#ffffff,#e6f7f6)' }}>
-          <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
             <Box sx={{ position: 'relative', display: 'inline-flex' }}>
               <CircularProgress variant="determinate" value={score} size={104} thickness={6} sx={{ color: scoreColor(score), '& .MuiCircularProgress-circle': { strokeLinecap: 'round' } }} />
               <Box sx={{ top: 0, left: 0, bottom: 0, right: 0, position: 'absolute', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
@@ -123,26 +138,18 @@ export const Dashboard = () => {
               </Typography>
               <Typography variant="caption" color="text.secondary">*Baseado em todos os seus exames extraídos. Educativo, não substitui o médico.</Typography>
             </Box>
+            </Box>
+            <Box sx={{ mt: 2, pt: 2, borderTop: '1px dashed #bfe7e3' }}>{renderTip()}</Box>
           </CardContent>
         </Card>
       )}
 
-      {/* Dica personalizada da IA (baseada no exame mais recente) */}
-      <Card sx={{ mt: 2, borderRadius: 4, background: 'linear-gradient(135deg,#a7f3d0,#d1fae5)', border: '1px solid #6ee7b7', boxShadow: '0 4px 14px rgba(16,185,129,.15)' }}>
-        <CardContent sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5, py: 1.5, '&:last-child': { pb: 1.5 } }}>
-          <DrExame size={40} sx={{ borderRadius: '50%', flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,.1)' }} />
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography sx={{ fontWeight: 800, color: '#065f46', fontSize: 14 }}>✨ Dica personalizada (IA)</Typography>
-            <Typography sx={{ fontSize: 14, color: '#064e3b', lineHeight: 1.5, mt: 0.25 }}>
-              {tipData.abnormal
-                ? `Atenção: seu ${tipData.abnormal.name} está ${tipData.abnormal.flag === 'HIGH' ? 'alto' : 'baixo'}${tipData.abnormal.value ? ` (${fmtItem(tipData.abnormal)})` : ''}. Vale conversar com seu médico.`
-                : tipData.good
-                  ? `${firstName ? firstName + ', s' : 'S'}eu ${tipData.good.name} está ótimo${tipData.good.value ? ` (${fmtItem(tipData.good)})` : ''}! Continue assim.`
-                  : tip}
-            </Typography>
-          </Box>
-        </CardContent>
-      </Card>
+      {/* Dica da IA — standalone só quando NÃO há score (com score vai dentro do card do score) */}
+      {loaded && score === null && (
+        <Card sx={{ mt: 3, borderRadius: 4, background: 'linear-gradient(135deg,#a7f3d0,#d1fae5)', border: '1px solid #6ee7b7' }}>
+          <CardContent>{renderTip()}</CardContent>
+        </Card>
+      )}
 
       {/* Aviso de exames que falharam (pra reprocessar) */}
       {failed > 0 && (
@@ -177,7 +184,7 @@ export const Dashboard = () => {
 
       {/* Donut de distribuição + Dica */}
       <Grid container spacing={2} sx={{ mb: 2 }}>
-        <Grid size={{ xs: 12, md: 7 }}>
+        <Grid size={{ xs: 12 }}>
           <Card sx={{ height: '100%', borderRadius: 4 }}><CardContent>
             <Typography variant="h6" sx={{ fontWeight: 700 }}>Distribuição dos valores</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>Últimos exames extraídos deste perfil.</Typography>
@@ -209,17 +216,6 @@ export const Dashboard = () => {
               </Box>
             )}
           </CardContent></Card>
-        </Grid>
-        <Grid size={{ xs: 12, md: 5 }}>
-          <Card variant="outlined" sx={{ height: '100%', borderRadius: 4, borderColor: 'secondary.main', background: 'linear-gradient(135deg,#fffaf3,#fdf3e7)' }}>
-            <CardContent sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start', height: '100%' }}>
-              <LightbulbIcon sx={{ color: '#d4a574', mt: 0.3 }} />
-              <Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#b88a54' }}>Dica do Dr. Exame</Typography>
-                <Typography variant="body2" sx={{ mt: 0.3 }}>{tip}</Typography>
-              </Box>
-            </CardContent>
-          </Card>
         </Grid>
       </Grid>
 
