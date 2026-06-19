@@ -8,8 +8,20 @@ import { app } from '../src/app';
 /**
  * Truncate todas as tabelas públicas entre testes (CASCADE). Descobre os nomes
  * dinamicamente — tolerante a drift de schema (ex.: modelo sem migration).
+ *
+ * TRAVA DE SEGURANÇA: recusa truncar se DATABASE_URL não for o DB de teste.
+ * Evita que testes rodem sem setup (ex.: vitest invocado do diretório errado,
+ * sem carregar vitest.config/setup.ts) e destruam o banco de DEV/PROD.
  */
 export async function resetDb(): Promise<void> {
+  const url = process.env.DATABASE_URL ?? '';
+  if (!url.includes('meus_exames_test')) {
+    throw new Error(
+      `[resetDb] RECUSEI truncar — DATABASE_URL não é o DB de teste ("${url}"). ` +
+        `O setup.ts (que aponta pro meus_exames_test) não rodou. ` +
+        `Rode os testes via: npm test --workspace packages/server`,
+    );
+  }
   const rows = await prisma.$queryRawUnsafe<{ tablename: string }[]>(
     `SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename <> '_prisma_migrations';`,
   );

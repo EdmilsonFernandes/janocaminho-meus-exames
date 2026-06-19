@@ -83,3 +83,23 @@ export function parseNumeric(valueText?: string | null): number | null {
   const m = cleaned.match(/-?\d+(\.\d+)?/);
   return m ? Number(m[0]) : null;
 }
+
+
+/** Procura um marcador conhecido num texto livre (ex.: pergunta do chat) e devolve o nome canônico, ou null. */
+export function findMarkerInText(text: string): string | null {
+  const n = normalizeKey(text);
+  if (!n) return null;
+  // testa do token mais longo pro mais curto (prioriza "HEMOGLOBINA GLICADA" > "HEMOGLOBINA").
+  // ignora sinônimos < 3 chars alfanuméricos (K, CA, NA, MG...) — colidem com palavras comuns do PT.
+  const candidates = [...REVERSE.keys()]
+    .filter((k) => k.replace(/[^A-Z0-9]/g, '').length >= 3)
+    .sort((a, b) => b.length - a.length);
+  for (const k of candidates) {
+    const needle = k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    // borda de não-alfanumérico p/ não casar substring ("LDL" não casa dentro de "LDLC")
+    if (new RegExp(`(^|[^A-Z0-9])${needle}([^A-Z0-9]|$)`).test(n)) {
+      return REVERSE.get(k) ?? null;
+    }
+  }
+  return null;
+}

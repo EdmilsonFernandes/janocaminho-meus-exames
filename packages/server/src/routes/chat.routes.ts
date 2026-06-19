@@ -4,6 +4,7 @@ import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
 import { streamChat } from '../analysis/chat';
 import { memoryDigest, patientSlug, appendConversation } from '../analysis/agent-memory';
 import { chargeCredits, CREDIT_COSTS } from '../utils/credits';
+import { tryLocalAnswer, streamLocalAnswer } from '../analysis/chat-router';
 
 const router = Router();
 router.use(requireAuth);
@@ -32,6 +33,16 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     const pids = await userPatientIds(req.userId!);
     const pid = String((req.body as any)?.patientId ?? req.headers['x-patient-id'] ?? pids[0] ?? '');
     if (!pid || !pids.includes(pid)) { res.status(403).json({ error: 'Paciente inválido' }); return; }
+
+    // PRÉ-ROTEADOR: pergunta factual → responde do banco (token zero, grátis). Só interpretativa vai à IA.
+    const local = await tryLocalAnswer({ message, userId: req.userId!, patientId: pid });
+    if (local.answered && local.text != null) {
+      streamLocalAnswer(res, local.text);
+      await prisma.aiAnalysis.create({ data: { type: 'CHAT', patientId: pid, userMessage: message, contentMd: local.text, modelUsed: 'local-router' } });
+      console.log('[chat] router_hit (resposta local, sem IA)');
+      return;
+    }
+    console.log('[chat] router_miss → IA');
 
     const patient = await prisma.patient.findUnique({ where: { id: pid } });
 
