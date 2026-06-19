@@ -104,3 +104,6 @@ app/src/main/res/xml/config.xml
 *.keystore
 *.jks
 keystore.properties
+
+# Atalhos Windows
+*.lnk
