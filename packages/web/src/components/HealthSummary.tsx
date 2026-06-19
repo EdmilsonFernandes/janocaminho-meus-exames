@@ -3,7 +3,7 @@ import { Card, CardContent, Typography, Box, Table, TableBody, TableCell, TableC
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PrintIcon from '@mui/icons-material/Print';
 import { DrExame } from './DrExame';
-import { printDocument } from '../utils/nativeDoc';
+import { printDocument, speakText, stopSpeakText } from '../utils/nativeDoc';
 import ShareIcon from '@mui/icons-material/Share';
 import VolumeUpIcon from '@mui/icons-material/RecordVoiceOver';
 import ReactMarkdown from 'react-markdown';
@@ -98,22 +98,17 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
     : undefined;
 
   const speak = (newRate?: number) => {
-    const synth = window.speechSynthesis;
-    if (!synth) return;
-    synth.cancel();
     const text = [structured?.resumoGeral, structured?.leituraFinal].filter(Boolean).join('. ');
     if (!text) return;
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'pt-BR';
-    u.rate = newRate ?? rate;
-    const v = synth.getVoices().find((vv) => vv.lang?.toLowerCase().startsWith('pt'));
-    if (v) u.voice = v;
-    u.onend = () => { if (!restartingRef.current) setSpeaking(false); };
-    u.onerror = () => { if (!restartingRef.current) setSpeaking(false); };
     setSpeaking(true);
-    synth.speak(u);
+    // speakText usa TTS nativo (voz pt-BR) no APK e speechSynthesis no web.
+    void speakText(text, {
+      rate: newRate ?? rate,
+      onDone: () => { if (!restartingRef.current) setSpeaking(false); },
+      onFail: () => { if (!restartingRef.current) setSpeaking(false); },
+    });
   };
-  const stopSpeak = () => { window.speechSynthesis?.cancel(); setSpeaking(false); };
+  const stopSpeak = () => { void stopSpeakText(); setSpeaking(false); };
   const changeRate = (r: number) => {
     setRate(r);
     if (speaking) {

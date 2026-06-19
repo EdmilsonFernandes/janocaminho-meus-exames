@@ -42,3 +42,49 @@ export async function printPage(title = 'Documento'): Promise<void> {
   }
   window.print();
 }
+
+
+/** Fala um texto. No APK usa TTS nativo (voz pt-BR do Android); no web usa speechSynthesis. */
+export async function speakText(
+  text: string,
+  opts: { rate?: number; lang?: string; onDone?: () => void; onFail?: () => void } = {},
+): Promise<void> {
+  if (!text) return;
+  const lang = opts.lang ?? 'pt-BR';
+  const rate = opts.rate ?? 1.0;
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const { TextToSpeech } = await import('@capacitor-community/text-to-speech');
+      // resolve qdo termina de falar (ou é cancelado por stop)
+      await TextToSpeech.speak({ text, lang, rate, pitch: 1.0, volume: 1.0 });
+      opts.onDone?.();
+    } catch (e) {
+      console.warn('[tts] speak falhou:', e);
+      opts.onFail?.();
+    }
+  } else {
+    const synth = window.speechSynthesis;
+    if (!synth) { opts.onFail?.(); return; }
+    synth.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = lang;
+    u.rate = rate;
+    const v = synth.getVoices().find((vv) => vv.lang?.toLowerCase().startsWith(lang.split('-')[0]));
+    if (v) u.voice = v;
+    u.onend = () => opts.onDone?.();
+    u.onerror = () => opts.onFail?.();
+    synth.speak(u);
+  }
+}
+
+/** Para a fala (qualquer plataforma). */
+export async function stopSpeakText(): Promise<void> {
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const { TextToSpeech } = await import('@capacitor-community/text-to-speech');
+      await TextToSpeech.stop();
+    } catch { /* */ }
+  } else {
+    window.speechSynthesis?.cancel();
+  }
+}
