@@ -5,6 +5,7 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import { ExplainButton } from '../components/ExplainItem';
+import { TelemedicineButton } from '../components/TelemedicineButton';
 
 /** Mostra SÓ os valores fora da faixa (mapeados), do exame mais recente ao mais antigo. */
 export const ValoresAlteradosPage = () => {
@@ -29,6 +30,9 @@ export const ValoresAlteradosPage = () => {
         <Typography variant="h5" sx={{ fontWeight: 800 }}>Valores fora da faixa</Typography>
       </Stack>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Todos os valores alterados dos seus exames, do mais recente.</Typography>
+      {items.length > 0 && (
+        <Box sx={{ mb: 2 }}><TelemedicineButton /></Box>
+      )}
 
       {loading ? (
         <Box sx={{ textAlign: 'center', py: 4 }}><CircularProgress /></Box>

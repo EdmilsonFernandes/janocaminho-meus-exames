@@ -1,5 +1,8 @@
 export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4001/api';
 
+/** Link de telemedicina (preenchido via VITE_TELEMEDICINE_URL). Vazio → botão fica oculto. */
+export const TELEMEDICINE_URL = import.meta.env.VITE_TELEMEDICINE_URL || '';
+
 export const token = () => localStorage.getItem('token');
 
 /** Headers padrão com token + paciente selecionado (garante escopo no servidor). */

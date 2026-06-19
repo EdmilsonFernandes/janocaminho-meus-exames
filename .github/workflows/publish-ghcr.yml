@@ -38,5 +38,6 @@ jobs:
           build-args: |
             VITE_BASE=/minhasaude/
             VITE_API_URL=/minhasaude/api
+            VITE_TELEMEDICINE_URL=${{ vars.VITE_TELEMEDICINE_URL }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

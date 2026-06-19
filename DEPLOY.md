@@ -83,6 +83,7 @@ No `packages/web/.env` (ou direto no build), defina:
 ```
 VITE_BASE=/
 VITE_API_URL=https://janocaminho.com.br/minhasaude/api
+VITE_TELEMEDICINE_URL=https://sua-plataforma-de-telemedicina.com/agendar  # link do botão "Agendar Telemedicina" nos resultados alterados (vazio = botão oculto)
 ```
 Depois: `cd packages/mobile && npm run sync && cd android && ./gradlew.bat assembleDebug`.
 

@@ -6,6 +6,7 @@ import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import { Flag } from '../components/Flag';
 import { ExplainButton } from '../components/ExplainItem';
+import { PremiumGate } from '../components/PremiumGate';
 
 interface TS { nameCanonical: string; unit: string | null; refLow: number | null; refHigh: number | null;
   points: { performedAt: string | null; valueNumeric: number; flag: string; title: string }[]; }
@@ -113,10 +114,12 @@ export const TrendsPage = () => {
             </ResponsiveContainer>
 
             {predict && predict.dir !== 'stable' && predict.months && (
-              <Box sx={{ mt: 2, p: 1.5, borderRadius: 2, background: predict.dir === 'up' ? 'rgba(230,81,0,.08)' : 'rgba(11,92,171,.08)', border: `1px solid ${predict.dir === 'up' ? '#e6510033' : '#0b5cab33'}` }}>
-                <Typography sx={{ fontWeight: 700, color: predict.dir === 'up' ? '#e65100' : '#0b5cab' }}>📈 Tendência: {predict.dir === 'up' ? 'subindo' : 'caindo'}</Typography>
-                <Typography variant="body2" sx={{ mt: 0.5 }}>Neste ritmo, {ts?.nameCanonical} {predict.dir === 'up' ? 'ultrapassa' : 'fica abaixo de'} a faixa em <strong>~{predict.months} {predict.months === 1 ? 'mês' : 'meses'}</strong>.</Typography>
-              </Box>
+              <PremiumGate>
+                <Box sx={{ mt: 2, p: 1.5, borderRadius: 2, background: predict.dir === 'up' ? 'rgba(230,81,0,.08)' : 'rgba(11,92,171,.08)', border: `1px solid ${predict.dir === 'up' ? '#e6510033' : '#0b5cab33'}` }}>
+                  <Typography sx={{ fontWeight: 700, color: predict.dir === 'up' ? '#e65100' : '#0b5cab' }}>📈 Tendência: {predict.dir === 'up' ? 'subindo' : 'caindo'}</Typography>
+                  <Typography variant="body2" sx={{ mt: 0.5 }}>Neste ritmo, {ts?.nameCanonical} {predict.dir === 'up' ? 'ultrapassa' : 'fica abaixo de'} a faixa em <strong>~{predict.months} {predict.months === 1 ? 'mês' : 'meses'}</strong>.</Typography>
+                </Box>
+              </PremiumGate>
             )}
             {predict && predict.dir === 'stable' && (
               <Box sx={{ mt: 2, p: 1.5, borderRadius: 2, background: 'rgba(46,125,50,.08)' }}>

@@ -18,7 +18,8 @@ RUN npm run typecheck --workspace packages/web
 # build do front em modo produção, no sub-caminho /minhasaude (API em /minhasaude/api)
 ARG VITE_BASE=/minhasaude/
 ARG VITE_API_URL=/minhasaude/api
-RUN VITE_BASE=$VITE_BASE VITE_API_URL=$VITE_API_URL npm run build --workspace packages/web
+ARG VITE_TELEMEDICINE_URL=
+RUN VITE_BASE=$VITE_BASE VITE_API_URL=$VITE_API_URL VITE_TELEMEDICINE_URL=$VITE_TELEMEDICINE_URL npm run build --workspace packages/web
 
 # ---- runtime enxuto ----
 FROM node:20-bookworm-slim AS app

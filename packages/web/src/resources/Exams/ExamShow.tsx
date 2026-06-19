@@ -10,6 +10,7 @@ import { API_URL, token } from '../../config';
 import { HealthSummary } from '../../components/HealthSummary';
 import { ValueBar } from '../../components/ValueBar';
 import { ExplainButton } from '../../components/ExplainItem';
+import { TelemedicineButton } from '../../components/TelemedicineButton';
 import { ExtractionProgress } from '../../components/ExtractionProgress';
 import { AnimatedDoctor } from '../../components/AnimatedDoctor';
 import { CreditBadge, CREDIT_COSTS } from '../../components/CreditBadge';
@@ -291,6 +292,7 @@ export const ExamShow = () => {
                           <strong>Referência:</strong> {fmtRef(it)}
                         </Typography>
                         <ValueBar value={it.valueNumeric} low={it.refLow} high={it.refHigh} />
+                        {out && (<Box sx={{ mt: 1 }}><TelemedicineButton compact /></Box>)}
                       </Box>
                     );
                   })}
