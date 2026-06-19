@@ -147,11 +147,14 @@ const LangToggle = () => {
 const PullToRefresh = () => {
   const [shown, setShown] = useState(0);
   const dist = useRef(0);
+  const refresh = useRefresh();
   useEffect(() => {
     let startY = 0; let active = false;
     const onStart = (e: TouchEvent) => { if ((window.scrollY ?? 0) <= 0) { startY = e.touches[0].clientY; active = true; } };
     const onMove = (e: TouchEvent) => { if (!active) return; const d = Math.min(e.touches[0].clientY - startY, 100); dist.current = d; setShown(d); };
-    const onEnd = () => { if (active && dist.current > 70) window.location.reload(); active = false; dist.current = 0; setShown(0); };
+    // refresh() (refetch via dataProvider) em vez de window.location.reload():
+    // reload recarrega o WebView inteiro e crasha o app nativo (Capacitor).
+    const onEnd = () => { if (active && dist.current > 70) refresh(); active = false; dist.current = 0; setShown(0); };
     window.addEventListener('touchstart', onStart, { passive: true });
     window.addEventListener('touchmove', onMove, { passive: true });
     window.addEventListener('touchend', onEnd);

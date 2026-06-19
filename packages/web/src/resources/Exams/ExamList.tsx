@@ -1,5 +1,5 @@
 import { List, useListContext, useRefresh, useNotify, CreateButton, TopToolbar } from 'react-admin';
-import { Chip, Box, Card, CardContent, Typography, IconButton, Stack, LinearProgress, Button, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
+import { Chip, Box, Card, CardContent, Typography, IconButton, Stack, LinearProgress, Button, Accordion, AccordionSummary, AccordionDetails, Alert } from '@mui/material';
 import ScienceIcon from '@mui/icons-material/Science';
 import ImageIcon from '@mui/icons-material/Image';
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
@@ -36,11 +36,17 @@ const ExamCards = () => {
   const del = async (e: any, id: string, title: string) => {
     e.stopPropagation();
     if (!window.confirm(`Excluir "${title}"? Esta ação não desfaz.`)) return;
-    const r = await fetch(`${API_URL}/exams/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });
-    if (r.ok) {
-      notify('Exame excluído', { type: 'success' });
-      navigate(0);
-    } else notify('Falha ao excluir', { type: 'error' });
+    try {
+      const r = await fetch(`${API_URL}/exams/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });
+      if (r.ok) {
+        notify('Exame excluído', { type: 'success' });
+        // refresh() atualiza a lista via dataProvider (mesmo do reextract).
+        // NÃO usar navigate(0)/reload — recarrega o WebView inteiro e crasha o app nativo.
+        refresh();
+      } else notify('Falha ao excluir', { type: 'error' });
+    } catch {
+      notify('Falha de conexão ao excluir.', { type: 'error' });
+    }
   };
   const reextract = async (e: any, id: string) => {
     e.stopPropagation();
@@ -48,8 +54,11 @@ const ExamCards = () => {
     if (r.ok) { notify('Re-extraindo…', { type: 'success' }); refresh(); } else notify('Falha ao re-extrair', { type: 'error' });
   };
 
+  const failed = (data ?? []).filter((r: any) => r.status === 'FAILED');
   const groups = groupByYear(data ?? [], (r) => r.performedAt);
   const latestYear = groups[0]?.year ?? null;
+  // Falhas de leitura aparecem primeiro no grupo — não escondidas no fim da lista.
+  groups.forEach((g) => g.items.sort((a: any, b: any) => (a.status === 'FAILED' ? 0 : 1) - (b.status === 'FAILED' ? 0 : 1)));
 
   const renderCard = (r: any) => {
     const c = hexFor(r.status);
@@ -84,6 +93,12 @@ const ExamCards = () => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, p: { xs: 1.5, sm: 2 }, pb: 4, maxWidth: 760, mx: 'auto' }}>
+      {failed.length > 0 && (
+        <Alert severity="warning" icon={false} sx={{ borderRadius: 3, alignItems: 'flex-start', '& .MuiAlert-message': { width: '100%' } }}>
+          <Typography sx={{ fontWeight: 800, color: '#b45309' }}>⚠️ {failed.length} documento{failed.length !== 1 ? 's' : ''} não consegui{failed.length !== 1 ? 'ram' : 'u'} ser lido{failed.length !== 1 ? 's' : ''} como exame</Typography>
+          <Typography variant="caption" sx={{ display: 'block', color: '#92400e', mt: 0.25 }}>Pode não ser um exame (receita, nota, documento) ou estar ilegível. Revise os itens marcados "Falhou" abaixo ou exclua.</Typography>
+        </Alert>
+      )}
       {total != null && total > 0 && (
         <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, mb: 0.5 }}>
           📋 {total} exame{total !== 1 ? 's' : ''} no total
@@ -104,7 +119,7 @@ const ExamCards = () => {
           );
         }
         return (
-          <Accordion key={String(g.year)} defaultExpanded={g.year === latestYear} disableGutters elevation={0}
+          <Accordion key={String(g.year)} defaultExpanded={g.year === latestYear || (g.year === null && g.items.some((r: any) => r.status === 'FAILED'))} disableGutters elevation={0}
             sx={{ borderRadius: '12px !important', overflow: 'hidden', border: '1px solid #eef2f7', '&:before': { display: 'none' } }}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '48px !important', '& .MuiAccordionSummary-content': { my: 0.75, alignItems: 'center' } }}>
               <Typography sx={{ fontWeight: 800, flex: '1 1 auto', minWidth: 0 }}>📅 {g.label}</Typography>
