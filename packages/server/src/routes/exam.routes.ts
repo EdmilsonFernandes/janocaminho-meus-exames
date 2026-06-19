@@ -9,7 +9,7 @@ import { parseListParams, setListHeaders } from '../utils/list';
 import { serializeExam } from '../utils/serialize';
 import { runExtraction } from '../extraction/pipeline';
 import { config } from '../config';
-import { chargeCredits, computeUploadCost } from '../utils/credits';
+import { chargeCredits, computeUploadCost, UPLOAD_RULES } from '../utils/credits';
 
 const router = Router();
 router.use(requireAuth);
@@ -99,8 +99,8 @@ router.post('/', upload.single('file'), async (req: AuthedRequest, res, next) =>
     const uploadCost = computeUploadCost(active, countSoFar);
     if (uploadCost > 0 && (!me || me.credits < uploadCost)) {
       const msg = active
-        ? `Você já usou seus ${config.uploadRules.premiumFreeQuota} envios grátis deste mês neste perfil. Para enviar mais, recarregue créditos (${uploadCost} por envio).`
-        : `Para enviar um exame é preciso ${config.uploadRules.freeCost} crédito. Recarregue créditos (PIX) ou assine o mensal (${config.uploadRules.premiumFreeQuota} envios grátis/mês em cada perfil).`;
+        ? `Você já usou seus ${UPLOAD_RULES.premiumFreeQuota} envios grátis deste mês neste perfil. Para enviar mais, recarregue créditos (${uploadCost} por envio).`
+        : `Para enviar um exame é preciso ${UPLOAD_RULES.freeCost} crédito. Recarregue créditos (PIX) ou assine o mensal (${UPLOAD_RULES.premiumFreeQuota} envios grátis/mês em cada perfil).`;
       res.status(402).json({ error: 'no_credits_upload', message: msg, cost: uploadCost, plan: active ? 'premium' : 'free' });
       return;
     }

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest } from '../middleware/auth';
-import { CREDIT_COSTS } from '../utils/credits';
+import { CREDIT_COSTS, UPLOAD_RULES } from '../utils/credits';
 import { deleteExamFile } from '../utils/storage';
 
 const router = Router();
@@ -47,7 +47,7 @@ router.get('/payments', async (req, res, next) => {
 
 // CONFIG — custos atuais (leitura + escrita)
 router.get('/config', (_req, res) => {
-  res.json({ creditCosts: CREDIT_COSTS, plans: { monthly: { price: 19.90, credits: 1500 } } });
+  res.json({ creditCosts: CREDIT_COSTS, uploadRules: UPLOAD_RULES, plans: { monthly: { price: 19.90, credits: 1500 } } });
 });
 
 // CONFIG — atualizar custos (edita o objeto em memória; redeploy pra persistir)
@@ -58,8 +58,12 @@ router.patch('/config/costs', async (req, res) => {
   if (summary != null) { editableCosts.summary = Number(summary); CREDIT_COSTS.summary = Number(summary); }
   if (consolidated != null) { editableCosts.consolidated = Number(consolidated); CREDIT_COSTS.consolidated = Number(consolidated); }
   if (extraction != null) { editableCosts.extraction = Number(extraction); CREDIT_COSTS.extraction = Number(extraction); }
-  console.log('[admin] custos atualizados:', CREDIT_COSTS);
-  res.json({ creditCosts: CREDIT_COSTS });
+  const { freeCost, premiumFreeQuota, premiumCost } = req.body ?? {};
+  if (freeCost != null) UPLOAD_RULES.freeCost = Number(freeCost);
+  if (premiumFreeQuota != null) UPLOAD_RULES.premiumFreeQuota = Number(premiumFreeQuota);
+  if (premiumCost != null) UPLOAD_RULES.premiumCost = Number(premiumCost);
+  console.log('[admin] custos atualizados:', CREDIT_COSTS, UPLOAD_RULES);
+  res.json({ creditCosts: CREDIT_COSTS, uploadRules: UPLOAD_RULES });
 });
 
 // AJUSTAR créditos

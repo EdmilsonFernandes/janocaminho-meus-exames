@@ -170,6 +170,29 @@ NÃO dá pra desfazer.`;
                 else notify('Erro ao salvar', { type: 'error' });
               }}>Salvar custos</Button>
             </Stack>
+
+            <Typography variant="h6" sx={{ mt: 3 }}>📤 Regras de envio de exame</Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+              Free: créditos por envio. Premium: X envios grátis/mês por dependente, depois Y cada.
+            </Typography>
+            <Stack spacing={2}>
+              {([['freeCost', 'Free: créditos por envio'], ['premiumFreeQuota', 'Premium: envios grátis/mês'], ['premiumCost', 'Premium: créditos após a cota']] as const).map(([key, label]) => (
+                <Stack key={key} direction="row" spacing={2} alignItems="center" useFlexGap flexWrap="wrap">
+                  <Typography sx={{ flex: 1, minWidth: 200 }}>{label}</Typography>
+                  <TextField type="number" size="small" defaultValue={config.uploadRules?.[key] ?? 0} sx={{ width: 100 }} id={`up-${key}`} />
+                </Stack>
+              ))}
+              <Button variant="contained" onClick={async () => {
+                const body: any = {};
+                for (const k of ['freeCost', 'premiumFreeQuota', 'premiumCost']) {
+                  const el = document.getElementById(`up-${k}`) as HTMLInputElement;
+                  if (el) body[k] = Number(el.value);
+                }
+                const r = await fetch(`${API_URL}/admin/config/costs`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` }, body: JSON.stringify(body) });
+                if (r.ok) { const d = await r.json(); setConfig({ ...config, uploadRules: d.uploadRules }); notify('Regras de envio atualizadas!', { type: 'success' }); }
+                else notify('Erro ao salvar', { type: 'error' });
+              }}>Salvar regras de envio</Button>
+            </Stack>
           </CardContent>
         </Card>
       )}

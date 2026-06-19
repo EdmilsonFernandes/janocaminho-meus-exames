@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import { prisma } from '../prisma';
 import { config, hasMercadoPago } from '../config';
 import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
-import { CREDIT_COSTS } from '../utils/credits';
+import { CREDIT_COSTS, UPLOAD_RULES } from '../utils/credits';
 
 const router = Router();
 
@@ -34,7 +34,7 @@ router.get('/plans', (_req, res) => {
     freeExamLimit: config.freeExamLimit,
     mercadoPagoEnabled: hasMercadoPago(),
     creditCosts: CREDIT_COSTS, // pra o front sincronizar (admin pode ter mudado)
-    uploadRules: config.uploadRules, // regras de cobrança de upload (front mostra pro usuário)
+    uploadRules: UPLOAD_RULES, // regras de cobrança de upload (admin pode editar em runtime)
   });
 });
 

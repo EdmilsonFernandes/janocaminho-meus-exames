@@ -6,6 +6,14 @@ import { config } from '../config';
 // NÃO usar `as const` — o admin edita esses valores em runtime.
 export const CREDIT_COSTS: { extraction: number; summary: number; consolidated: number; chat: number } = { extraction: 0, summary: 10, consolidated: 30, chat: 3 };
 
+// Regras de cobrança de UPLOAD de exame (mutável em runtime via painel admin;
+// inicializado dos defaults do config/env). *Volta ao padrão se reiniciar o container.
+export const UPLOAD_RULES: { freeCost: number; premiumFreeQuota: number; premiumCost: number } = {
+  freeCost: config.uploadRules.freeCost,
+  premiumFreeQuota: config.uploadRules.premiumFreeQuota,
+  premiumCost: config.uploadRules.premiumCost,
+};
+
 /** Débito atômico: só desconta se houver saldo suficiente. true = debitado. */
 export async function chargeCredits(userId: string, amount: number): Promise<boolean> {
   if (amount <= 0) return true;
@@ -29,7 +37,7 @@ export async function isPremium(userId: string): Promise<boolean> {
 export function computeUploadCost(
   active: boolean,
   countSoFarThisMonth: number,
-  rules: { freeCost: number; premiumFreeQuota: number; premiumCost: number } = config.uploadRules,
+  rules: { freeCost: number; premiumFreeQuota: number; premiumCost: number } = UPLOAD_RULES,
 ): number {
   const countAfter = countSoFarThisMonth + 1;
   if (active) return countAfter <= rules.premiumFreeQuota ? 0 : rules.premiumCost;
