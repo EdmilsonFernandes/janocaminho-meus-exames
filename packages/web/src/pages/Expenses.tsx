@@ -4,6 +4,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { Title, useNotify } from 'react-admin';
 import { API_URL, apiHeaders, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
+import { printPage } from '../utils/nativeDoc';
 
 interface Expense { id: string; description: string; category: string; amount: number; spentAt: string; }
 
@@ -109,7 +110,7 @@ export const ExpensesPage = () => {
             </TableContainer>
           )}
           {items.length > 0 && (
-            <Button variant="outlined" size="small" sx={{ mt: 2 }} onClick={() => window.print()}>🖨️ Imprimir relatório (IR)</Button>
+            <Button variant="outlined" size="small" sx={{ mt: 2 }} onClick={() => printPage('Relatório de Despesas')}>🖨️ Imprimir relatório (IR)</Button>
           )}
         </CardContent>
       </Card>

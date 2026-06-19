@@ -4,6 +4,7 @@ import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import { Title } from 'react-admin';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
+import { printPage } from '../utils/nativeDoc';
 
 export const EmergencyCardPage = () => {
   const [pid] = useSelectedPatient();
@@ -57,7 +58,7 @@ export const EmergencyCardPage = () => {
                   <Typography variant="caption" color="text.secondary">ID emergencial</Typography>
                 </Box>
               </Box>
-              <Button fullWidth variant="contained" color="error" sx={{ mt: 3 }} onClick={() => window.print()}>
+              <Button fullWidth variant="contained" color="error" sx={{ mt: 3 }} onClick={() => printPage('Cartão de Emergência')}>
                 🖨️ Imprimir carteirinha
               </Button>
             </>

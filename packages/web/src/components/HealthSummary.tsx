@@ -3,6 +3,7 @@ import { Card, CardContent, Typography, Box, Table, TableBody, TableCell, TableC
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PrintIcon from '@mui/icons-material/Print';
 import { DrExame } from './DrExame';
+import { printDocument } from '../utils/nativeDoc';
 import ShareIcon from '@mui/icons-material/Share';
 import VolumeUpIcon from '@mui/icons-material/RecordVoiceOver';
 import ReactMarkdown from 'react-markdown';
@@ -123,15 +124,13 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
   };
 
   const printSummary = () => {
-    const w = window.open('', '_blank', 'width=820,height=940');
-    if (!w) return;
     const esc = (s?: string) => (s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;');
     const rows = (structured?.comparativo ?? []).map((c) => `<tr><td>${esc(c.name)}</td><td>${esc(c.anterior ?? '—')}</td><td style="font-weight:700">${esc(c.atual ?? '—')}</td><td>${esc(c.leitura ?? '')}</td><td style="font-size:12px;color:#555">${esc(c.entenda ?? '')}</td></tr>`).join('');
     const atencao = (structured?.pontosAtencao ?? []).map((p) => `<li><b>${esc(p.titulo)}</b> — ${esc(p.detalhe)}</li>`).join('');
     const boas = (structured?.coisasBoas ?? []).map((b) => `<li>${esc(b)}</li>`).join('');
     const perg = (structured?.perguntasParaOMedico ?? []).map((q) => `<li>${esc(q)}</li>`).join('');
-    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Resumo de Saúde</title><style>body{font-family:Segoe UI,Arial,sans-serif;padding:34px;line-height:1.6;color:#15233b;max-width:760px;margin:auto}h1{font-size:22px}h2{font-size:16px;margin-top:22px;color:#0b5cab}table{border-collapse:collapse;width:100%;font-size:13px}td,th{border:1px solid #ddd;padding:6px 8px}th{background:#eef3fb}</style></head><body><h1>Resumo de Saúde</h1>${structured?.resumoGeral ? `<p>${esc(structured.resumoGeral)}</p>` : ''}${rows ? `<h2>Comparativo</h2><table><tr><th>Exame</th><th>Anterior</th><th>Atual</th><th>Variação</th><th>O que significa</th></tr>${rows}</table>` : ''}${atencao ? `<h2>Pontos de atenção</h2><ul>${atencao}</ul>` : ''}${boas ? `<h2>Coisas boas</h2><ul>${boas}</ul>` : ''}${structured?.leituraFinal ? `<h2>Leitura final</h2><p>${esc(structured.leituraFinal)}</p>` : ''}${perg ? `<h2>Perguntas para o médico</h2><ol>${perg}</ol>` : ''}<p style="color:#888;font-size:12px">${esc(structured?.disclaimer || 'Análise educativa. Não substitui avaliação médica.')}</p></body></html>`);
-    w.document.close(); w.focus(); setTimeout(() => w.print(), 300);
+    const __docHtml = (`<!doctype html><html><head><meta charset="utf-8"><title>Resumo de Saúde</title><style>body{font-family:Segoe UI,Arial,sans-serif;padding:34px;line-height:1.6;color:#15233b;max-width:760px;margin:auto}h1{font-size:22px}h2{font-size:16px;margin-top:22px;color:#0b5cab}table{border-collapse:collapse;width:100%;font-size:13px}td,th{border:1px solid #ddd;padding:6px 8px}th{background:#eef3fb}</style></head><body><h1>Resumo de Saúde</h1>${structured?.resumoGeral ? `<p>${esc(structured.resumoGeral)}</p>` : ''}${rows ? `<h2>Comparativo</h2><table><tr><th>Exame</th><th>Anterior</th><th>Atual</th><th>Variação</th><th>O que significa</th></tr>${rows}</table>` : ''}${atencao ? `<h2>Pontos de atenção</h2><ul>${atencao}</ul>` : ''}${boas ? `<h2>Coisas boas</h2><ul>${boas}</ul>` : ''}${structured?.leituraFinal ? `<h2>Leitura final</h2><p>${esc(structured.leituraFinal)}</p>` : ''}${perg ? `<h2>Perguntas para o médico</h2><ol>${perg}</ol>` : ''}<p style="color:#888;font-size:12px">${esc(structured?.disclaimer || 'Análise educativa. Não substitui avaliação médica.')}</p></body></html>`);
+    void printDocument('Resumo de Saúde', __docHtml);
   };
 
   if (!structured) {

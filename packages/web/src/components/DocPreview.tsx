@@ -2,6 +2,8 @@ import { useRef } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, IconButton, useMediaQuery, useTheme } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import PrintIcon from '@mui/icons-material/Print';
+import { Capacitor } from '@capacitor/core';
+import { printDocument } from '../utils/nativeDoc';
 
 /**
  * Mostra um documento HTML DENTRO do app (iframe num Dialog) — sem window.open,
@@ -12,7 +14,11 @@ export const DocPreview = ({ html, open, onClose, title = 'Documento' }: { html:
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
-  const print = () => { try { iframeRef.current?.contentWindow?.focus(); iframeRef.current?.contentWindow?.print(); } catch { /* */ } };
+  const print = () => {
+    // No APK o WebView não imprime → compartilha o documento (abre no navegador/PDF).
+    if (Capacitor.isNativePlatform()) { void printDocument(title, html); return; }
+    try { iframeRef.current?.contentWindow?.focus(); iframeRef.current?.contentWindow?.print(); } catch { /* */ }
+  };
   return (
     <Dialog open={open} onClose={onClose} fullScreen={fullScreen} PaperProps={{ sx: { borderRadius: fullScreen ? 0 : 3, height: fullScreen ? '100%' : '90vh', width: '100%', maxWidth: 900 } }}>
       <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
