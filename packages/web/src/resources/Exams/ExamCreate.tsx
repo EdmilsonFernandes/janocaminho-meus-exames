@@ -77,7 +77,7 @@ export const ExamCreate = () => {
       notify('Foto enviada! Extraindo…', { type: 'success' });
       redirect('list', 'exams');
     } catch (e: any) {
-      if (e?.code === 'free_limit') { notify('Você atingiu o limite gratuito. Assine para continuar.', { type: 'warning' }); redirect('/planos'); return; }
+      if (e?.code === 'free_limit' || e?.code === 'no_credits_upload') { notify(e.message || 'Sem créditos para enviar. Assine ou recarregue.', { type: 'warning' }); redirect('/planos'); return; }
       if (e?.message !== 'User cancelled photos app') notify(e.message || 'Falha na foto', { type: 'error' });
     }
   };
@@ -109,8 +109,8 @@ export const ExamCreate = () => {
         else if (res?.duplicateElsewhere) notify(`"${files[i].name}": este mesmo arquivo já está em outro perfil seu.`, { type: 'warning' });
         setProgress({ done: i + 1, total: files.length, errors });
       } catch (err: any) {
-        if (err?.code === 'free_limit') {
-          notify('Você atingiu o limite gratuito. Assine para enviar mais exames.', { type: 'warning' });
+        if (err?.code === 'free_limit' || err?.code === 'no_credits_upload') {
+          notify(err.message || 'Sem créditos para enviar exame. Assine o mensal ou recarregue créditos.', { type: 'warning' });
           redirect('/planos');
           setBusy(false);
           return;
@@ -175,9 +175,7 @@ export const ExamCreate = () => {
                 {busy ? 'Enviando…' : `Enviar ${files.length || ''} e extrair`}
               </Button>
               <Typography variant="caption" color="text.secondary">
-                {CREDIT_COSTS.extraction > 0
-                  ? `📤 Custa ${CREDIT_COSTS.extraction} crédito${CREDIT_COSTS.extraction > 1 ? 's' : ''} por arquivo.`
-                  : '✓ Envio e extração grátis — você só usa créditos na interpretação (resumo/chat/relatório).'}
+                📤 Envio de exame: <strong>1 crédito</strong> cada (plano grátis). <strong>Premium</strong>: 6 envios grátis por mês em cada perfil, depois 5 créditos cada.
               </Typography>
             </Stack>
           </Box>

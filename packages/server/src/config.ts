@@ -47,6 +47,16 @@ export const config = {
   // Paywall: nº de exames gratuitos antes de exigir assinatura
   freeExamLimit: Number(process.env.FREE_EXAM_LIMIT ?? 2),
 
+  // Cobrança de UPLOAD de exame (por dependente, cota mensal).
+  //   Free: freeCost créditos por envio (sempre).
+  //   Premium ativo: primeiros premiumFreeQuota envios do mês = grátis; depois premiumCost cada.
+  //   O contador (monthlyUploadCount) é mensal e NÃO devolve ao deletar exame (anti-gambiarra).
+  uploadRules: {
+    freeCost: Number(process.env.UPLOAD_FREE_COST ?? 1),
+    premiumFreeQuota: Number(process.env.UPLOAD_PREMIUM_FREE ?? 6),
+    premiumCost: Number(process.env.UPLOAD_PREMIUM_COST ?? 5),
+  },
+
   // Firebase (push notifications) — caminho do service account (admin SDK)
   firebaseServiceAccountPath: process.env.FIREBASE_SERVICE_ACCOUNT_PATH ?? '',
 

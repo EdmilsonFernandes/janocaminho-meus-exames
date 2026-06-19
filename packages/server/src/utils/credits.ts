@@ -1,4 +1,5 @@
 import { prisma } from '../prisma';
+import { config } from '../config';
 
 // Custos em créditos por ação de IA (extração por visão conta!).
 // extração (upload) é GRÁTIS (Modelo A: o gancho é subir exames; a IA interpretação é que custa).
@@ -19,4 +20,18 @@ export async function chargeCredits(userId: string, amount: number): Promise<boo
 export async function isPremium(userId: string): Promise<boolean> {
   const u = await prisma.user.findUnique({ where: { id: userId }, select: { planExpiresAt: true } });
   return !!u?.planExpiresAt && u.planExpiresAt > new Date();
+}
+
+/** Custo em créditos de 1 upload, dado o plano e quantos envios já fez no mês (naquele dependente).
+ *  - Premium ativo: primeiros premiumFreeQuota do mês = grátis (0); depois = premiumCost.
+ *  - Free: sempre freeCost.
+ *  `countSoFarThisMonth` = envios já contabilizados no mês (antes deste). Função PURA (testável). */
+export function computeUploadCost(
+  active: boolean,
+  countSoFarThisMonth: number,
+  rules: { freeCost: number; premiumFreeQuota: number; premiumCost: number } = config.uploadRules,
+): number {
+  const countAfter = countSoFarThisMonth + 1;
+  if (active) return countAfter <= rules.premiumFreeQuota ? 0 : rules.premiumCost;
+  return rules.freeCost;
 }

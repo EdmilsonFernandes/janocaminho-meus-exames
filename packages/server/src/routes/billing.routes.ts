@@ -34,6 +34,7 @@ router.get('/plans', (_req, res) => {
     freeExamLimit: config.freeExamLimit,
     mercadoPagoEnabled: hasMercadoPago(),
     creditCosts: CREDIT_COSTS, // pra o front sincronizar (admin pode ter mudado)
+    uploadRules: config.uploadRules, // regras de cobrança de upload (front mostra pro usuário)
   });
 });
 

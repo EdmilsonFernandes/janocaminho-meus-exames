@@ -9,7 +9,7 @@ import { parseListParams, setListHeaders } from '../utils/list';
 import { serializeExam } from '../utils/serialize';
 import { runExtraction } from '../extraction/pipeline';
 import { config } from '../config';
-import { CREDIT_COSTS } from '../utils/credits';
+import { chargeCredits, computeUploadCost } from '../utils/credits';
 
 const router = Router();
 router.use(requireAuth);
@@ -87,18 +87,24 @@ router.post('/', upload.single('file'), async (req: AuthedRequest, res, next) =>
       return;
     }
 
-    // PAYWALL: grátis = 3 exames. Além disso precisa de CRÉDITOS (cada upload debita 5 na
-    // extração) OU plano ativo (ilimitado). Antes o limite bloqueava mesmo quem tinha crédito.
+    // COBRANÇA DE UPLOAD (por dependente, cota mensal — não devolve ao deletar exame):
+    //   Premium ativo: primeiros premiumFreeQuota envios do mês = grátis; depois premiumCost cada.
+    //   Free: freeCost créditos por envio (sempre).
     const me = await prisma.user.findUnique({ where: { id: req.userId! }, select: { planExpiresAt: true, credits: true } });
     const active = !!me?.planExpiresAt && me.planExpiresAt > new Date();
-    if (!active) {
-      const limit = 3;
-      const count = await prisma.exam.count({ where: { patientId } });
-      if (count >= limit && (!me || me.credits < CREDIT_COSTS.extraction)) {
-        res.status(402).json({ error: 'free_limit', message: `Você atingiu o limite de ${limit} exames gratuitos. Compre créditos (PIX) ou assine o mensal para enviar mais.`, limit });
-        return;
-      }
+    const now = new Date();
+    const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const pCounter = await prisma.patient.findUnique({ where: { id: patientId }, select: { uploadMonth: true, monthlyUploadCount: true } });
+    const countSoFar = pCounter?.uploadMonth === monthKey ? (pCounter?.monthlyUploadCount ?? 0) : 0;
+    const uploadCost = computeUploadCost(active, countSoFar);
+    if (uploadCost > 0 && (!me || me.credits < uploadCost)) {
+      const msg = active
+        ? `Você já usou seus ${config.uploadRules.premiumFreeQuota} envios grátis deste mês neste perfil. Para enviar mais, recarregue créditos (${uploadCost} por envio).`
+        : `Para enviar um exame é preciso ${config.uploadRules.freeCost} crédito. Recarregue créditos (PIX) ou assine o mensal (${config.uploadRules.premiumFreeQuota} envios grátis/mês em cada perfil).`;
+      res.status(402).json({ error: 'no_credits_upload', message: msg, cost: uploadCost, plan: active ? 'premium' : 'free' });
+      return;
     }
+    const uploadCountAfter = countSoFar + 1;
 
     const buffer = req.file.buffer;
     const fileSha256 = sha256Buffer(buffer);
@@ -132,6 +138,10 @@ router.post('/', upload.single('file'), async (req: AuthedRequest, res, next) =>
         fileSizeBytes: buffer.length,
       },
     });
+
+    // cobra créditos (atômico) + atualiza contador mensal do dependente (persiste mesmo se excluir)
+    if (uploadCost > 0) await chargeCredits(req.userId!, uploadCost);
+    await prisma.patient.update({ where: { id: patientId }, data: { uploadMonth: monthKey, monthlyUploadCount: uploadCountAfter } });
 
     // avisa se o MESMO checksum já existe em outro perfil do usuário
     const elsewhere = await prisma.exam.findFirst({

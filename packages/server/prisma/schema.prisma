@@ -48,6 +48,8 @@ model Patient {
   clinicalProfile String?
   phone        String?
   photoUrl     String?
+  uploadMonth        String?   // YYYY-MM do contador mensal de envios (cota grátis do premium)
+  monthlyUploadCount Int       @default(0)  // envios neste mês — NÃO devolve ao deletar exame
   createdAt    DateTime  @default(now())
   exams        Exam[]
   reminders    Reminder[]
