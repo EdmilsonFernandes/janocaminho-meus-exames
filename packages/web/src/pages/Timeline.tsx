@@ -5,15 +5,21 @@ import LocalHospitalIcon from '@mui/icons-material/Image';
 import ScienceIcon from '@mui/icons-material/Science';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import CloseIcon from '@mui/icons-material/Close';
+import LockIcon from '@mui/icons-material/Lock';
 import { Title } from 'react-admin';
+import { useNavigate } from 'react-router-dom';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import { ExplainButton } from '../components/ExplainItem';
+import { usePremium } from '../components/PremiumGate';
+import { groupByYear } from '../utils/groupByYear';
 
 interface Event { id: string; date: string | null; title: string; kind: string; abnormalCount: number; itemCount: number }
 
 export const TimelinePage = () => {
   const [pid] = useSelectedPatient();
+  const navigate = useNavigate();
+  const premium = usePremium();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -21,7 +27,6 @@ export const TimelinePage = () => {
     if (!pid) return;
     setLoading(true);
     const h = { Authorization: `Bearer ${token()}` };
-    // busca exames E itens fora-da-faixa; conta por exame p/ consistência (card = popup).
     Promise.all([
       fetch(`${API_URL}/exams?_start=0&_end=100&patientId=${pid}`, { headers: h }).then((r) => r.json()).catch(() => []),
       fetch(`${API_URL}/items/abnormal?patientId=${pid}`, { headers: h }).then((r) => r.json()).catch(() => ({ items: [] })),
@@ -30,13 +35,15 @@ export const TimelinePage = () => {
       for (const it of abn?.items ?? []) byExam[it.examId] = (byExam[it.examId] ?? 0) + 1;
       setEvents((rows as any[]).filter((e: any) => e.status === 'EXTRACTED').map((e: any) => ({
         id: e.id, date: e.performedAt, title: e.title, kind: e.kind,
-        abnormalCount: byExam[e.id] ?? 0, // real (antes vinha _count.items = total, dava 61 vs 8)
+        abnormalCount: byExam[e.id] ?? 0,
         itemCount: e._count?.items ?? 0,
       })));
     }).finally(() => setLoading(false));
   }, [pid]);
 
-  const sorted = [...events].sort((a, b) => new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime()); // mais recente primeiro
+  const sorted = [...events].sort((a, b) => new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime());
+  const groups = groupByYear(sorted, (e) => e.date);
+  const latestYear = groups[0]?.year ?? null;
   const totalAbnormal = events.reduce((s, e) => s + e.abnormalCount, 0);
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
@@ -52,6 +59,43 @@ export const TimelinePage = () => {
     setAbnLoading(false);
   };
 
+  const renderEvent = (e: Event, i: number) => {
+    const isImaging = e.kind === 'IMAGING';
+    const hasIssues = e.abnormalCount > 0;
+    const dotColor = isImaging ? '#0ea5e9' : hasIssues ? '#ef4444' : '#10b981';
+    return (
+      <Box key={i} sx={{ position: 'relative' }}>
+        <Box sx={{ position: 'absolute', left: -3.5, top: 14, width: 22, height: 22, borderRadius: '50%', bgcolor: dotColor, border: '3px solid #fff', boxShadow: '0 2px 6px rgba(0,0,0,.2)', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {isImaging ? <LocalHospitalIcon sx={{ color: '#fff', fontSize: 12 }} /> : hasIssues ? <TrendingDownIcon sx={{ color: '#fff', fontSize: 12 }} /> : <CheckCircleIcon sx={{ color: '#fff', fontSize: 12 }} />}
+        </Box>
+        <Card onClick={() => openExam(e)} sx={{ borderRadius: 3, ml: 1.5, borderLeft: `5px solid ${dotColor}`, transition: 'transform .15s', cursor: 'pointer', '&:hover': { transform: 'translateX(2px)' } }}>
+          <CardContent sx={{ pb: '12px !important' }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="flex-start" flexWrap="wrap" gap={1}>
+              <Box>
+                <Typography sx={{ fontWeight: 800, fontSize: '1.02rem' }}>{e.title}</Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {e.date ? new Date(e.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }) : 'Data não identificada'}
+                </Typography>
+              </Box>
+              <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap">
+                {isImaging
+                  ? <Chip size="small" sx={{ bgcolor: '#0ea5e915', color: '#0ea5e9' }} icon={<ScienceIcon sx={{ fontSize: 14 }} />} label="Imagem" />
+                  : <Chip size="small" sx={{ bgcolor: '#2a93b815', color: '#2a93b8' }} label="Laboratorial" />}
+              </Stack>
+            </Stack>
+            <Box sx={{ mt: 1 }}>
+              {hasIssues ? (
+                <Chip size="small" color="error" variant="outlined" label={`⚠️ ${e.abnormalCount} valor(es) fora da faixa`} />
+              ) : (
+                <Chip size="small" color="success" variant="outlined" icon={<CheckCircleIcon sx={{ fontSize: 16 }} />} label="Tudo dentro da faixa" />
+              )}
+            </Box>
+          </CardContent>
+        </Card>
+      </Box>
+    );
+  };
+
   return (
     <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 760, mx: 'auto' }}>
       <Title title="Linha do Tempo" />
@@ -65,52 +109,34 @@ export const TimelinePage = () => {
       ) : sorted.length === 0 ? (
         <Card sx={{ borderRadius: 4 }}><CardContent><Typography color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>Nenhum exame extraído ainda. Envie um exame para começar sua linha do tempo.</Typography></CardContent></Card>
       ) : (
-        <Box sx={{ position: 'relative', pl: 3.5 }}>
-          {/* linha vertical */}
-          <Box sx={{ position: 'absolute', left: 15, top: 8, bottom: 8, width: 3, background: 'linear-gradient(#2a93b8,#5FD35A)', borderRadius: 3 }} />
-          <Stack spacing={2}>
-            {sorted.map((e, i) => {
-              const isImaging = e.kind === 'IMAGING';
-              const hasIssues = e.abnormalCount > 0;
-              const dotColor = isImaging ? '#0ea5e9' : hasIssues ? '#ef4444' : '#10b981';
-              return (
-                <Box key={i} sx={{ position: 'relative' }}>
-                  {/* bolinha */}
-                  <Box sx={{
-                    position: 'absolute', left: -3.5, top: 14, width: 22, height: 22, borderRadius: '50%',
-                    bgcolor: dotColor, border: '3px solid #fff', boxShadow: '0 2px 6px rgba(0,0,0,.2)', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    {isImaging ? <LocalHospitalIcon sx={{ color: '#fff', fontSize: 12 }} /> : hasIssues ? <TrendingDownIcon sx={{ color: '#fff', fontSize: 12 }} /> : <CheckCircleIcon sx={{ color: '#fff', fontSize: 12 }} />}
-                  </Box>
-                  <Card onClick={() => openExam(e)} sx={{ borderRadius: 3, ml: 1.5, borderLeft: `5px solid ${dotColor}`, transition: 'transform .15s', cursor: 'pointer', '&:hover': { transform: 'translateX(2px)' } }}>
-                    <CardContent sx={{ pb: '12px !important' }}>
-                      <Stack direction="row" justifyContent="space-between" alignItems="flex-start" flexWrap="wrap" gap={1}>
-                        <Box>
-                          <Typography sx={{ fontWeight: 800, fontSize: '1.02rem' }}>{e.title}</Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {e.date ? new Date(e.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }) : 'Data não identificada'}
-                          </Typography>
-                        </Box>
-                        <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap">
-                          {isImaging
-                            ? <Chip size="small" sx={{ bgcolor: '#0ea5e915', color: '#0ea5e9' }} icon={<ScienceIcon sx={{ fontSize: 14 }} />} label="Imagem" />
-                            : <Chip size="small" sx={{ bgcolor: '#2a93b815', color: '#2a93b8' }} label="Laboratorial" />}
-                        </Stack>
-                      </Stack>
-                      <Box sx={{ mt: 1 }}>
-                        {hasIssues ? (
-                          <Chip size="small" color="error" variant="outlined" label={`⚠️ ${e.abnormalCount} valor(es) fora da faixa`} />
-                        ) : (
-                          <Chip size="small" color="success" variant="outlined" icon={<CheckCircleIcon sx={{ fontSize: 16 }} />} label="Tudo dentro da faixa" />
-                        )}
-                      </Box>
-                    </CardContent>
-                  </Card>
+        <Stack spacing={3}>
+          {groups.map((g) => {
+            const locked = !premium && g.year !== latestYear && g.year != null;
+            return (
+              <Box key={String(g.year)}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                  <Chip label={`📅 ${g.label}`} sx={{ fontWeight: 800, bgcolor: '#0f172a', color: '#fff' }} />
+                  <Typography variant="caption" color="text.secondary">{g.items.length} exame(s){locked ? ' • Premium' : ''}</Typography>
                 </Box>
-              );
-            })}
-          </Stack>
-        </Box>
+                {locked ? (
+                  <Card sx={{ borderRadius: 3, p: 2, display: 'flex', alignItems: 'center', gap: 1.5, background: 'linear-gradient(135deg, rgba(32,178,170,.06), transparent)' }}>
+                    <LockIcon sx={{ color: '#178f89' }} />
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography sx={{ fontWeight: 800 }}>Histórico de {g.label}</Typography>
+                      <Typography variant="caption" color="text.secondary">Desbloqueie todo o seu histórico de exames (Premium).</Typography>
+                    </Box>
+                    <Button size="small" variant="contained" onClick={() => navigate('/planos')} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', boxShadow: 'none', '&:hover': { bgcolor: '#178f89' } }}>Ver planos</Button>
+                  </Card>
+                ) : (
+                  <Box sx={{ position: 'relative', pl: 3.5 }}>
+                    <Box sx={{ position: 'absolute', left: 15, top: 8, bottom: 8, width: 3, background: 'linear-gradient(#2a93b8,#5FD35A)', borderRadius: 3 }} />
+                    <Stack spacing={2}>{g.items.map(renderEvent)}</Stack>
+                  </Box>
+                )}
+              </Box>
+            );
+          })}
+        </Stack>
       )}
 
       {/* POPUP: valores fora da faixa do exame clicado */}
