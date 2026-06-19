@@ -32,8 +32,12 @@ export const TermsPage = () => {
         <H>4. Armazenamento e segurança</H>
         <P>Seus dados ficam em servidor próprio (Brasil/EUA-EC2), com acesso restrito e autenticação. Dados sensíveis de saúde são tratados com cuidado; senhas são armazenadas com hash (bcrypt). Mesmo assim, nenhum sistema é 100% seguro — faça backups dos seus exames originais.</P>
 
-        <H>5. Seus direitos (titular dos dados)</H>
-        <P>Você pode, a qualquer momento: <strong>acessar, corrigir, portar ou EXCLUIR</strong> seus dados. Para excluir tudo, use <strong>“Excluir conta”</strong> no seu Perfil — isso apaga definitivamente conta, exames, análises, fotos e memória da IA. Você também pode solicitar por e-mail.</P>
+        <H>5. Exclusão de conta e dados (titular dos dados — LGPD)</H>
+        <P>Você pode, a qualquer momento: <strong>acessar, corrigir, portar ou excluir</strong> seus dados do <strong>Meus Exames</strong>, total ou parcialmente.</P>
+        <P><strong>Como solicitar a exclusão da conta e dos dados:</strong></P>
+        <P>1. <strong>Pelo app:</strong> acesse <strong>Perfil → “Excluir conta”</strong>. Apaga definitivamente a conta (nome e e-mail), os exames (PDFs e imagens), os valores extraídos, as análises da IA, as fotos e a memória do assistente Dr. Exame.<br />2. <strong>Por e-mail:</strong> envie um pedido para <strong>contato@janocaminho.com.br</strong> informando o nome e o e-mail da conta. O prazo máximo de atendimento é de 30 dias (LGPD).</P>
+        <P><strong>Excluir apenas parte dos dados (sem excluir a conta):</strong> dentro do app você pode apagar exames, dependentes ou a memória da IA individualmente, a qualquer momento.</P>
+        <P><strong>O que pode ser mantido temporariamente:</strong> logs de segurança/auditoria e registros necessários para cumprimento legal podem ser retidos por até <strong>90 dias</strong> após a exclusão, sendo então completamente apagados.</P>
 
         <H>6. Responsabilidade</H>
         <P>O app é fornecido “no estado em que se encontra”. Não nos responsabilizamos por decisões tomadas com base nas análises educativas, nem por eventuais erros de leitura da IA. <strong>Sempre confirme valores e decisões com seu médico.</strong> O recurso anti-fraude (conferir o nome do documento) é um auxílio, não uma garantia.</P>
