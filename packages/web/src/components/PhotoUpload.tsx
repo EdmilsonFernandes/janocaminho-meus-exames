@@ -17,12 +17,16 @@ export const PhotoUpload = ({
   const [localVer, setLocalVer] = useState(0);
   const [uploading, setUploading] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [localSrc, setLocalSrc] = useState<string | undefined>(undefined); // preview instantâneo do arquivo escolhido
   const ver = version ?? localVer;
-  const preview = patientId && photoUrl ? photoUrlFor(patientId, ver) : undefined;
+  const preview = localSrc ?? (patientId && photoUrl ? photoUrlFor(patientId, ver) : undefined);
 
   const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !patientId) return;
+    // preview LOCAL instantâneo: mostra a foto nova na hora (antes/depois do upload),
+    // em vez de ficar na foto antiga até o servidor responder.
+    setLocalSrc((prev) => { if (prev) URL.revokeObjectURL(prev); return URL.createObjectURL(file); });
     setUploading(true);
     const fd = new FormData();
     fd.append('photo', file);
