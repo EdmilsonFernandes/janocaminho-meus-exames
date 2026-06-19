@@ -19,6 +19,10 @@ export async function syncPushToken(): Promise<void> {
 /** Registra o app para receber push (Android). No web é no-op. */
 export async function initPush(): Promise<void> {
   if (!Capacitor.isNativePlatform()) return;
+  // Push exige google-services.json + Firebase configurados. Sem isso, PushNotifications.register()
+  // causa um CRASH NATIVO (FirebaseApp não inicializado) que derruba o app — foi o que fez o APK
+  // abrir o login e fechar. Só ativar quando o FCM estiver pronto (VITE_PUSH_ENABLED=true no build).
+  if (import.meta.env.VITE_PUSH_ENABLED !== 'true') return;
   try {
     const { PushNotifications } = await import('@capacitor/push-notifications');
     let perm = await PushNotifications.checkPermissions();
