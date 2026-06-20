@@ -18,19 +18,28 @@ describe('auth + requireAuth', () => {
     expect(r.body.ok).toBe(true);
   });
 
-  it('register cria user (100 créditos) + paciente Titular e devolve token', async () => {
-    const r = await api().post('/api/auth/register').send({
-      name: 'Fulana da Silva',
-      email: 'fulana@exemplo.com',
-      password: 'senha123',
-    });
+  it('register cria user INATIVO + pede verificação; verify-email ativa e loga', async () => {
+    sendEmail.mockClear();
+    const r = await api().post('/api/auth/register').send({ name: 'Fulana da Silva', email: 'fulana@exemplo.com', password: 'senha123' });
     expect(r.status).toBe(201);
-    expect(r.body.token).toBeTruthy();
-    expect(r.body.user.email).toBe('fulana@exemplo.com');
-    expect(r.body.patientId).toBeTruthy();
-
+    expect(r.body.needsVerification).toBe(true);
+    expect(r.body.token).toBeFalsy(); // sem token — conta inativa até validar e-mail
+    // login bloqueado (e-mail não verificado)
+    const blocked = await api().post('/api/auth/login').send({ email: 'fulana@exemplo.com', password: 'senha123' });
+    expect(blocked.status).toBe(403);
+    // extrai o código do e-mail de verificação (último sendEmail mockado)
+    const code = lastMailHtml().match(/\b(\d{6})\b/)![1];
+    const v = await api().post('/api/auth/verify-email').send({ email: 'fulana@exemplo.com', code });
+    expect(v.status).toBe(200);
+    expect(v.body.token).toBeTruthy();
+    expect(v.body.user.email).toBe('fulana@exemplo.com');
+    // agora login funciona
+    const login = await api().post('/api/auth/login').send({ email: 'fulana@exemplo.com', password: 'senha123' });
+    expect(login.status).toBe(200);
+    // créditos + paciente titular + e-mail verificado
     const dbUser = await prisma.user.findUnique({ where: { email: 'fulana@exemplo.com' } });
     expect(dbUser?.credits).toBe(100);
+    expect(dbUser?.emailVerified).toBe(true);
     const titular = await prisma.patient.findFirst({ where: { ownerId: dbUser!.id } });
     expect(titular?.relationship).toBe('Titular');
   });

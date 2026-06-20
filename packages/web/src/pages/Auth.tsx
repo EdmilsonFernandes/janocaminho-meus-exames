@@ -179,6 +179,8 @@ export const RegisterPage = () => {
   const [pwd, setPwd] = useState('');
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [verifyEmail, setVerifyEmail] = useState<string | null>(null);
+  const [verifyCode, setVerifyCode] = useState('');
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -191,6 +193,7 @@ export const RegisterPage = () => {
       const d = await r.json();
       if (r.status === 409) { notify('Este e-mail já tem conta. Use sua senha, "entrar com token" ou "esqueci a senha".', { type: 'warning' }); navigate('/'); return; }
       if (!r.ok) throw new Error(d.error || 'Falha no cadastro');
+      if (d.needsVerification) { setVerifyEmail(d.email); notify('Enviamos um código de ativação no seu e-mail (cheque o spam).', { type: 'success' }); return; }
       localStorage.setItem('token', d.token);
       if (d.patientId) { localStorage.setItem('patientId', d.patientId); localStorage.setItem('selPatientId', d.patientId); }
       localStorage.setItem('user', JSON.stringify(d.user));
@@ -200,8 +203,36 @@ export const RegisterPage = () => {
     finally { setLoading(false); }
   };
 
+  const verify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const r = await fetch(`${API_URL}/auth/verify-email`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: verifyEmail, code: verifyCode }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Código inválido');
+      localStorage.setItem('token', d.token);
+      if (d.patientId) { localStorage.setItem('patientId', d.patientId); localStorage.setItem('selPatientId', d.patientId); }
+      localStorage.setItem('user', JSON.stringify(d.user));
+      notify('Conta ativada! Bem-vindo! 🎉', { type: 'success' });
+      window.location.href = import.meta.env.BASE_URL;
+    } catch (err: any) { notify(err.message, { type: 'error' }); }
+    finally { setLoading(false); }
+  };
+
   return (
     <Shell>
+      {verifyEmail ? (
+        <Box component="form" onSubmit={verify} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Typography sx={{ fontSize: 14, color: '#46555a' }}>Enviamos um código de ativação para <strong>{verifyEmail}</strong>. Digite abaixo pra ativar sua conta.</Typography>
+          <TextField placeholder="Código de 6 dígitos" required inputMode="numeric" value={verifyCode} onChange={(e) => setVerifyCode(e.target.value)} sx={{ ...fieldSx, '& .MuiOutlinedInput-input': { letterSpacing: 4, textAlign: 'center', fontSize: 18 } }} slotProps={{ input: { startAdornment: <InputAdornment position="start"><I.Key /></InputAdornment> } }} />
+          <Button type="submit" variant="contained" size="large" fullWidth disabled={loading} endIcon={<I.ArrowRight />} sx={primaryBtnSx}>{loading ? <CircularProgress size={22} color="inherit" /> : 'Ativar conta'}</Button>
+          <Link component="button" type="button" variant="body2" sx={{ fontSize: 12.5, color: '#757575' }} onClick={() => setVerifyEmail(null)}>Voltar ao cadastro</Link>
+        </Box>
+      ) : (
+        <>
       <Box component="form" onSubmit={submit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <Typography sx={{ fontSize: 14, color: '#46555a' }}>Crie sua conta gratuita em segundos.</Typography>
         <TextField placeholder="Seu nome" required value={name} onChange={(e) => setName(e.target.value)} sx={fieldSx}
@@ -220,6 +251,8 @@ export const RegisterPage = () => {
       <Typography align="center" sx={{ mt: 2, fontSize: 13 }}>
         Já tem conta? <Link component="button" type="button" sx={{ fontWeight: 700, color: '#00897b' }} onClick={() => navigate('/')}>Entrar</Link>
       </Typography>
+        </>
+      )}
     </Shell>
   );
 };

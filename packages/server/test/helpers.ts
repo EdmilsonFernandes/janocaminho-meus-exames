@@ -68,6 +68,7 @@ export async function createUser(opts: {
       name: opts.name ?? 'Usuário Teste',
       passwordHash,
       credits: opts.credits ?? 100,
+      emailVerified: true,
       role: 'OWNER',
       planExpiresAt: opts.premium ? new Date(Date.now() + 30 * 86400_000) : null,
     },

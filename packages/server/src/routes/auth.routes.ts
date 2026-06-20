@@ -43,6 +43,7 @@ router.post('/login', async (req, res, next) => {
       res.status(401).json({ error: 'Credenciais inválidas' });
       return;
     }
+    if (!user.emailVerified) { res.status(403).json({ error: 'Verifique seu e-mail para ativar a conta.', needsVerification: true }); return; }
     const { token, patientId } = await issueSession(user.id);
     res.json({
       token,
@@ -68,8 +69,24 @@ router.post('/register', async (req, res, next) => {
     const user = await prisma.user.create({ data: { email: mail, name: String(name), passwordHash, credits: 100 } });
     await prisma.patient.create({ data: { ownerId: user.id, fullName: String(name), relationship: 'Titular' } });
     notifyNewUser(String(name), mail);
+    // Envia código de verificação por e-mail — conta fica inativa até validar (previne e-mail fake)
+    const code = issueOtp(mail);
+    try { await sendEmail({ to: mail, subject: 'Ative sua conta — Meus Exames', html: otpEmail(String(name), code) }); } catch (e: any) { console.error('[register] falha SMTP verificação:', e?.message); }
+    res.status(201).json({ needsVerification: true, email: mail });
+  } catch (e) { next(e); }
+});
+
+// VERIFICAR E-MAIL (ativa conta após cadastro) — código por e-mail
+router.post('/verify-email', async (req, res, next) => {
+  try {
+    const mail = String(req.body?.email ?? '').toLowerCase().trim();
+    const code = String(req.body?.code ?? '');
+    const user = await prisma.user.findUnique({ where: { email: mail } });
+    if (!user) { res.status(404).json({ error: 'Conta não encontrada. Cadastre-se novamente.' }); return; }
+    if (!verifyOtp(mail, code)) { res.status(401).json({ error: 'Código inválido ou expirado.' }); return; }
+    await prisma.user.update({ where: { id: user.id }, data: { emailVerified: true } });
     const { token, patientId } = await issueSession(user.id);
-    res.status(201).json({
+    res.json({
       token, patientId,
       user: { id: user.id, email: user.email, name: user.name, role: user.role, planExpiresAt: user.planExpiresAt, credits: user.credits },
     });
@@ -159,6 +176,7 @@ router.post('/otp/verify', async (req, res, next) => {
       await prisma.patient.create({ data: { ownerId: user.id, fullName: name, relationship: 'Titular' } });
       notifyNewUser(name, email);
     }
+    if (!user.emailVerified) { await prisma.user.update({ where: { id: user.id }, data: { emailVerified: true } }); }
     const { token, patientId } = await issueSession(user.id);
     res.json({ token, patientId, user: { id: user.id, email: user.email, name: user.name, role: user.role, planExpiresAt: user.planExpiresAt, credits: user.credits } });
   } catch (e) { next(e); }
