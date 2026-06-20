@@ -59,6 +59,7 @@ import { checkAppUpdate } from './utils/version';
 import { NotificationBell } from './components/NotificationBell';
 import { NotificationsPage } from './pages/Notifications';
 import { DoctorPortalPage } from './pages/DoctorPortal';
+import { MedicosPage } from './pages/Medicos';
 import { initPush } from './push';
 import { syncCreditCosts } from './components/CreditBadge';
 
@@ -258,6 +259,7 @@ export const App = () => {
       <Route path="/chat" element={<ChatPage />} />
       <Route path="/notificacoes" element={<NotificationsPage />} />
       <Route path="/planos" element={<PlansPage />} />
+      <Route path="/medicos" element={<MedicosPage />} />
     </CustomRoutes>
   </Admin>
   );

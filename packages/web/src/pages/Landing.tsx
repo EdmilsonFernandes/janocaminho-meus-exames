@@ -166,6 +166,11 @@ export const LandingPage = () => {
           <Typography sx={{ fontSize: { xs: '1.6rem', md: '2.2rem' }, fontWeight: 900, mb: 2, fontFamily: 'Poppins, sans-serif' }}>Pronto pra entender sua saúde?</Typography>
           <Typography sx={{ color: 'rgba(255,255,255,.6)', mb: 4, fontSize: 17 }}>Crie sua conta grátis e envie seu primeiro exame em menos de 1 minuto.</Typography>
           <Button size="large" onClick={() => navigate('/registrar')} sx={{ bgcolor: '#20b2aa', color: '#fff', fontWeight: 800, fontSize: 18, borderRadius: 99, px: 5, py: 1.5, textTransform: 'none', boxShadow: '0 8px 30px rgba(32,178,170,.4)', '&:hover': { bgcolor: '#178f89' } }}>Começar agora →</Button>
+          {/* QR Code — escaneie pra acessar */}
+          <Box sx={{ mt: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+            <Box component="img" src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=https://janocaminho.com.br/minhasaude/&color=20b2aa&bgcolor=ffffff&margin=0" alt="QR Code - Meus Exames" sx={{ borderRadius: 3, p: 1.5, bgcolor: '#fff', width: 160, height: 160 }} />
+            <Typography sx={{ color: 'rgba(255,255,255,.5)', fontSize: 13 }}>📱 Escaneie com a camera do celular</Typography>
+          </Box>
         </Container>
       </Box>
 
