@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest } from '../middleware/auth';
+import { subscribeToTopic, PUSH_TOPIC } from '../utils/firebase';
 
 const router = Router();
 router.use(requireAuth);
@@ -16,6 +17,8 @@ router.post('/token', async (req: AuthedRequest, res, next) => {
       update: { userId: req.userId!, platform, updatedAt: new Date() },
       create: { token, userId: req.userId!, platform },
     });
+    // Inscreve no tópico de nudges (best-effort — só ativa com Firebase Admin configurado)
+    void subscribeToTopic([token], PUSH_TOPIC);
     res.json({ ok: true, id: dt.id });
   } catch (e) { next(e); }
 });

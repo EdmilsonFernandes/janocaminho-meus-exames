@@ -14,7 +14,7 @@ const r = spawnSync(
   ['run', 'build', '--workspace', 'packages/web'],
   // APK roda na raiz (sem o sub-caminho /minhasaude/) → força VITE_BASE=/,
   // independente do .env (protege contra regressão se o .env mudar).
-  { cwd: repoRoot, stdio: 'inherit', shell: true, env: { ...process.env, VITE_BASE: '/' } },
+  { cwd: repoRoot, stdio: 'inherit', shell: true, env: { ...process.env, VITE_BASE: '/', VITE_PUSH_ENABLED: 'true' } },
 );
 if (r.status !== 0) {
   console.error('[mobile] build do web falhou');

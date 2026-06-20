@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Box, Button, Card, CardContent, Typography, CircularProgress, Chip, Stack, Accordion, AccordionSummary, AccordionDetails, InputBase, Paper } from '@mui/material';
+import { Box, Button, Card, CardContent, Typography, CircularProgress, Chip, Stack, Grid, Accordion, AccordionSummary, AccordionDetails, InputBase, Paper } from '@mui/material';
 import { Title } from 'react-admin';
 import { ResponsiveContainer, LineChart, Line, ReferenceArea, YAxis } from 'recharts';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -78,15 +78,18 @@ export const EvolutionPage = () => {
       {!loading && items.length > 0 && (
         <>
           {/* Resumo interativo (chips que filtram) */}
-          <Stack direction="row" spacing={1} useFlexGap sx={{ mb: 2, flexWrap: 'wrap', rowGap: 1 }}>
+          {/* Resumo interativo — Grid 2x2 no mobile, 4 colunas no desktop (mobile-first, nunca estoura) */}
+          <Grid container spacing={1} sx={{ mb: 2 }}>
             {CHIPS.map((c) => {
               const on = filter === c.key;
               return (
-                <Chip key={c.key} onClick={() => setFilter(c.key)} label={`${c.emoji} ${c.label} (${c.count})`}
-                  sx={{ bgcolor: on ? c.color : `${c.color}1a`, color: on ? '#fff' : c.color, fontWeight: 700, border: `1px solid ${c.color}55`, '&:hover': { bgcolor: on ? c.color : `${c.color}2e` } }} />
+                <Grid key={c.key} size={{ xs: 6, sm: 3 }}>
+                  <Chip onClick={() => setFilter(c.key)} label={`${c.emoji} ${c.label} (${c.count})`}
+                    sx={{ width: '100%', height: 38, borderRadius: 2, bgcolor: on ? c.color : `${c.color}1a`, color: on ? '#fff' : c.color, fontWeight: 700, border: `1px solid ${c.color}55`, '&:hover': { bgcolor: on ? c.color : `${c.color}2e` } }} />
+                </Grid>
               );
             })}
-          </Stack>
+          </Grid>
 
           {/* Busca fixa (sticky) */}
           <Paper variant="outlined" sx={{ p: '2px 12px', mb: 2, display: 'flex', alignItems: 'center', gap: 1, borderRadius: 99, position: 'sticky', top: 60, zIndex: 5, bgcolor: 'rgba(255,255,255,.96)', backdropFilter: 'blur(8px)' }}>
