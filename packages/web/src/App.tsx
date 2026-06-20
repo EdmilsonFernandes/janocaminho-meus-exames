@@ -56,6 +56,8 @@ import { BootSplash } from './components/BootSplash';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { ForceUpdate } from './components/ForceUpdate';
 import { checkAppUpdate } from './utils/version';
+import { NotificationBell } from './components/NotificationBell';
+import { NotificationsPage } from './pages/Notifications';
 import { initPush } from './push';
 import { syncCreditCosts } from './components/CreditBadge';
 
@@ -83,6 +85,7 @@ const CustomAppBar = (props: AppBarProps) => {
       <Box sx={{ flex: 1 }} />
       <CreditsChip />
       <PatientSwitcher />
+      <NotificationBell />
       <IconButton color="inherit" onClick={(e: any) => setMenuA(e.currentTarget)} title="Mais opções" size="small" sx={{ flexShrink: 0 }}>
         <MoreVertIcon fontSize="small" />
       </IconButton>
@@ -251,6 +254,7 @@ export const App = () => {
       <Route path="/despesas" element={<ExpensesPage />} />
       <Route path="/emergencia" element={<EmergencyCardPage />} />
       <Route path="/chat" element={<ChatPage />} />
+      <Route path="/notificacoes" element={<NotificationsPage />} />
       <Route path="/planos" element={<PlansPage />} />
     </CustomRoutes>
   </Admin>

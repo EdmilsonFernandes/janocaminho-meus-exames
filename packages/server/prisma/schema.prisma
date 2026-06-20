@@ -23,6 +23,7 @@ model User {
   patients     Patient[]
   subscriptions Subscription[]
   deviceTokens DeviceToken[]
+  notifications Notification[]
 
   @@map("users")
 }
@@ -271,4 +272,20 @@ model DeviceToken {
 
   @@index([userId])
   @@map("device_tokens")
+}
+
+// Central de notificações (nudges de saúde do scheduler + histórico p/ o usuário)
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String   // 'alert' | 'trend' | 'reminder' | 'info'
+  title     String
+  body      String
+  data      Json?    // ex.: { examId, nameCanonical } p/ deep link
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, read])
+  @@map("notifications")
 }
