@@ -4,6 +4,7 @@ import { useLogin, useNotify } from 'react-admin';
 import { Box, Typography, Button, Link, CircularProgress, Stack, TextField, InputAdornment, IconButton } from '@mui/material';
 import { DrExame } from '../components/DrExame';
 import { API_URL } from '../config';
+import { OtpInput } from '../components/OtpInput';
 
 /* ---------- ícones inline (sem dependência de @mui/icons-material) ---------- */
 const I = {
@@ -153,11 +154,7 @@ export const LoginPage = () => {
       ) : (
         <Box component="form" onSubmit={verifyOtp} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <Typography color="text.secondary" sx={{ fontSize: 13.5 }}>Enviamos um token para <strong>{email}</strong></Typography>
-          <TextField
-            placeholder="Token de 6 dígitos" required inputMode="numeric" value={code}
-            onChange={(e) => setCode(e.target.value)} sx={{ ...fieldSx, '& .MuiOutlinedInput-input': { letterSpacing: 4, textAlign: 'center', fontSize: 18 } }}
-            slotProps={{ input: { startAdornment: <InputAdornment position="start"><I.Key /></InputAdornment> } }}
-          />
+          <OtpInput value={code} onChange={setCode} />
           <Button type="submit" variant="contained" size="large" fullWidth disabled={loading} endIcon={<I.ArrowRight />} sx={primaryBtnSx}>
             {loading ? <CircularProgress size={22} color="inherit" /> : 'Verificar e entrar'}
           </Button>
@@ -227,7 +224,7 @@ export const RegisterPage = () => {
       {verifyEmail ? (
         <Box component="form" onSubmit={verify} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <Typography sx={{ fontSize: 14, color: '#46555a' }}>Enviamos um código de ativação para <strong>{verifyEmail}</strong>. Digite abaixo pra ativar sua conta.</Typography>
-          <TextField placeholder="Código de 6 dígitos" required inputMode="numeric" value={verifyCode} onChange={(e) => setVerifyCode(e.target.value)} sx={{ ...fieldSx, '& .MuiOutlinedInput-input': { letterSpacing: 4, textAlign: 'center', fontSize: 18 } }} slotProps={{ input: { startAdornment: <InputAdornment position="start"><I.Key /></InputAdornment> } }} />
+          <OtpInput value={verifyCode} onChange={setVerifyCode} />
           <Button type="submit" variant="contained" size="large" fullWidth disabled={loading} endIcon={<I.ArrowRight />} sx={primaryBtnSx}>{loading ? <CircularProgress size={22} color="inherit" /> : 'Ativar conta'}</Button>
           <Link component="button" type="button" variant="body2" sx={{ fontSize: 12.5, color: '#757575' }} onClick={() => setVerifyEmail(null)}>Voltar ao cadastro</Link>
         </Box>

@@ -41,8 +41,9 @@ export function otpEmail(name: string, code: string): string {
     content: `
       <p style="font-size:16px;color:#15233b;margin:0 0 8px">Olá <strong>${name}</strong>!</p>
       <p style="font-size:15px;color:#51607a;margin:0 0 24px">Use o código abaixo para acessar o Meus Exames. Ele expira em <strong>10 minutos</strong>.</p>
-      <div style="text-align:center;background:#eef3fb;border-radius:12px;padding:24px;margin:0 0 24px">
-        <span style="font-size:38px;font-weight:800;letter-spacing:8px;color:#0b5cab">${code}</span>
+      <div style="text-align:center;background:#e6f7f5;border:2px dashed #20b2aa;border-radius:16px;padding:28px 20px;margin:0 0 16px">
+        <span style="font-size:46px;font-weight:800;letter-spacing:10px;color:#0f3d3a;font-family:'Courier New',monospace">${code}</span>
+        <p style="font-size:12px;color:#757575;margin:14px 0 0">👆 Toque e segure no código pra copiar, depois cole no app.</p>
       </div>
       <p style="font-size:14px;color:#8b9bb4;margin:0">Se não foi você quem pediu este código, ignore este e-mail.</p>`,
   });
