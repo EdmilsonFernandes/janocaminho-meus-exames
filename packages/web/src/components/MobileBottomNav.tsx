@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Box, Typography, useMediaQuery, useTheme, Drawer, List, ListItemButton, ListItemIcon, ListItemText, Divider } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { DrExame } from './DrExame';
 
 /** Menu rodapé fixo (só mobile) — 4 atalhos + "Mais" que abre o menu lateral (drawer). */
 const NAV = [
@@ -59,7 +60,7 @@ export const MobileBottomNav = () => {
 
       <Drawer open={mais} onClose={() => setMais(false)} PaperProps={{ sx: { width: 296, background: 'linear-gradient(180deg,#ffffff,#f1f9f8)' } }}>
         <Box sx={{ p: 2, pb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Box sx={{ width: 34, height: 34, borderRadius: '22%', bgcolor: 'linear-gradient(135deg,#20b2aa,#178f89)', background: 'linear-gradient(135deg,#20b2aa,#178f89)' }} />
+          <DrExame size={36} sx={{ borderRadius: '22%', boxShadow: '0 2px 6px rgba(32,178,170,.25)' }} />
           <Box>
             <Typography sx={{ fontWeight: 800, color: '#178f89', lineHeight: 1.1 }}>Meus Exames</Typography>
             <Typography variant="caption" color="text.secondary">Mais opções</Typography>

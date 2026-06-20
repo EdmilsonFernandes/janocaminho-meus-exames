@@ -149,6 +149,20 @@ export const ProfilePage = () => {
         </CardContent>
       </Card>
 
+      {/* Token de push — pra testar no Firebase Console (Testar no dispositivo) */}
+      <Card sx={{ borderRadius: 4, mt: 2 }}>
+        <CardContent>
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>🔔 Token de notificação (testes)</Typography>
+          {(() => { const tk = typeof localStorage !== 'undefined' ? localStorage.getItem('fcmToken') : null; return tk
+            ? <Stack direction="row" spacing={1} alignItems="center" useFlexGap flexWrap="wrap">
+                <Typography variant="caption" sx={{ fontFamily: 'monospace', wordBreak: 'break-all', bgcolor: '#f1f5f9', p: 0.75, borderRadius: 1, flex: '1 1 200px' }}>{tk}</Typography>
+                <Button size="small" variant="outlined" onClick={() => { navigator.clipboard?.writeText(tk); notify('Token copiado! Cole no Firebase → Testar no dispositivo.', { type: 'success' }); }}>Copiar</Button>
+              </Stack>
+            : <Typography variant="caption" color="text.secondary">Sem token ainda. No celular: abra o app e permita notificações — o token aparece aqui em seguida. (No navegador/web não há token.)</Typography>;
+          })()}
+        </CardContent>
+      </Card>
+
       {/* Conta e privacidade (LGPD) */}
       <Card sx={{ borderRadius: 4, mt: 2, borderColor: 'error.main' }}>
         <CardContent>
