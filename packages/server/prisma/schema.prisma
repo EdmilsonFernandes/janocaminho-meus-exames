@@ -58,6 +58,7 @@ model Patient {
   measurements Measurement[]
   vaccines     Vaccine[]
   expenses     Expense[]
+  doctorShares DoctorShare[]
 
   @@index([ownerId])
   @@map("patients")
@@ -289,4 +290,36 @@ model Notification {
 
   @@index([userId, read])
   @@map("notifications")
+}
+
+// Portal do Médico — médico + compartilhamento seletivo de dados
+model Doctor {
+  id           String   @id @default(cuid())
+  name         String
+  crm          String   @unique
+  specialty    String?
+  photoUrl     String?
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  shares       DoctorShare[]
+
+  @@map("doctors")
+}
+
+model DoctorShare {
+  id         String    @id @default(cuid())
+  patientId  String
+  patient    Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctorId   String
+  doctor     Doctor    @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  scopes     String[]  // ['exams','evolution','alerts','summary'] — controle granular
+  convenio   String?   // particular / convênio X
+  active     Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+  revokedAt  DateTime?
+
+  @@unique([patientId, doctorId])
+  @@index([doctorId, active])
+  @@map("doctor_shares")
 }
