@@ -1,7 +1,8 @@
 import { Box, Typography, Button } from '@mui/material';
 import { DrExame } from './DrExame';
 
-const PLAY_URL = 'https://play.google.com/store/apps/details?id=com.janocaminho.drexame';
+// App distribuído por APK (Play rejeita) → link pro site (PWA) + aviso p/ instalar novo APK.
+const UPDATE_URL = 'https://janocaminho.com.br/minhasaude/';
 
 /** Tela bloqueante: versão instalada abaixo da mínima exigida pelo backend. */
 export const ForceUpdate = ({ latest }: { latest: string }) => (
@@ -11,7 +12,7 @@ export const ForceUpdate = ({ latest }: { latest: string }) => (
     <Typography sx={{ opacity: 0.92, maxWidth: 360, mb: 3, lineHeight: 1.6 }}>
       Liberamos uma versão nova do Meus Exames ({latest}) com melhorias importantes. Atualize pra continuar usando com segurança.
     </Typography>
-    <Button variant="contained" size="large" onClick={() => window.open(PLAY_URL, '_blank')}
+    <Button variant="contained" size="large" onClick={() => window.open(UPDATE_URL, '_blank')}
       sx={{ bgcolor: '#fff', color: '#178f89', fontWeight: 800, borderRadius: 3, px: 4, textTransform: 'none', fontSize: 16, '&:hover': { bgcolor: '#f0f9f8' } }}>
       ⬇ Atualizar agora
     </Button>
