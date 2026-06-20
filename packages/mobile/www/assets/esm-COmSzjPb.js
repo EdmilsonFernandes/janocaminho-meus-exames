@@ -1,0 +1,2 @@
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["assets/web-kRoamMoP.js","assets/index-D61nVHg_.js"])))=>i.map(i=>d[i]);
+import{i as e,r as t}from"./index-D61nVHg_.js";var n=t(`Share`,{web:()=>e(()=>import(`./web-kRoamMoP.js`).then(e=>new e.ShareWeb),__vite__mapDeps([0,1]))});export{n as Share};

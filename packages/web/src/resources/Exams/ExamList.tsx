@@ -94,16 +94,19 @@ const ExamCards = () => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, p: { xs: 1.5, sm: 2 }, pb: 4, maxWidth: 760, mx: 'auto' }}>
+      {/* Cabeçalho da lista — preenche o espaço do topo (sem área branca) + botão enviar */}
+      <Stack direction="row" alignItems="center" justifyContent="space-between" useFlexGap flexWrap="wrap" gap={1} sx={{ mb: 0.5 }}>
+        <Box>
+          <Typography variant="h6" sx={{ fontWeight: 800 }}>📋 Seus exames</Typography>
+          <Typography variant="caption" color="text.secondary">{total ?? 0} exame{(total ?? 0) !== 1 ? 's' : ''} no total • toque pra ver detalhes</Typography>
+        </Box>
+        <CreateButton label="＋ Enviar exame" variant="contained" size="small" sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, boxShadow: 'none' }} />
+      </Stack>
       {failed.length > 0 && (
         <Alert severity="warning" icon={false} sx={{ borderRadius: 3, alignItems: 'flex-start', '& .MuiAlert-message': { width: '100%' } }}>
           <Typography sx={{ fontWeight: 800, color: '#b45309' }}>⚠️ {failed.length} documento{failed.length !== 1 ? 's' : ''} não consegui{failed.length !== 1 ? 'ram' : 'u'} ser lido{failed.length !== 1 ? 's' : ''} como exame</Typography>
           <Typography variant="caption" sx={{ display: 'block', color: '#92400e', mt: 0.25 }}>Pode não ser um exame (receita, nota, documento) ou estar ilegível. Revise os itens marcados "Falhou" abaixo ou exclua.</Typography>
         </Alert>
-      )}
-      {total != null && total > 0 && (
-        <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, mb: 0.5 }}>
-          📋 {total} exame{total !== 1 ? 's' : ''} no total
-        </Typography>
       )}
       {groups.map((g) => {
         const locked = !premium && g.year !== latestYear && g.year != null;
@@ -139,7 +142,7 @@ const ExamCards = () => {
 export const ExamList = () => {
   const [pid] = useSelectedPatient();
   return (
-    <List key={pid} sort={{ field: 'performedAt', order: 'DESC' }} exporter={false} perPage={25} filter={{ patientId: pid || 'none' }} actions={<ExamListActions />}>
+    <List key={pid} sort={{ field: 'performedAt', order: 'DESC' }} exporter={false} perPage={25} filter={{ patientId: pid || 'none' }} actions={false}>
       <ExamCards />
     </List>
   );

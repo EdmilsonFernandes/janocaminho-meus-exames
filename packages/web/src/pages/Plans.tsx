@@ -28,6 +28,7 @@ export const PlansPage = () => {
   const [histPage, setHistPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [histLoading, setHistLoading] = useState(false);
+  const [histFilter, setHistFilter] = useState<string>('all');
   const [histTotal, setHistTotal] = useState(0);
 
   const loadHistory = async (page: number) => {
@@ -115,17 +116,32 @@ export const PlansPage = () => {
       {hist.length > 0 && (
         <Card sx={{ mb: 2, borderRadius: 4 }}><CardContent>
           <Typography variant="subtitle2" sx={{ mb: 1 }}>Extrato de créditos</Typography>
+          {/* Filtros rápidos */}
+          <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mb: 1.5 }}>
+            {[{ k: 'all', l: 'Todos' }, { k: 'chat', l: '🤖 Chat' }, { k: 'report', l: '🧾 Relatórios' }, { k: 'credit', l: '➕ Compras' }].map((f) => (
+              <Chip key={f.k} size="small" label={f.l} onClick={() => setHistFilter(f.k)} variant={histFilter === f.k ? 'filled' : 'outlined'} color={histFilter === f.k ? 'primary' : 'default'} sx={{ fontWeight: 600 }} />
+            ))}
+          </Stack>
           <Stack divider={<Divider />} spacing={0}>
-            {hist.map((it) => {
+            {hist.filter((it) => {
+              if (histFilter === 'all') return true;
+              if (histFilter === 'credit') return it.kind === 'credit';
+              const l = (it.label || '').toLowerCase();
+              if (histFilter === 'chat') return l.includes('chat');
+              if (histFilter === 'report') return l.includes('consolid') || l.includes('relat') || l.includes('resumo');
+              return true;
+            }).map((it) => {
               const credit = it.kind === 'credit';
+              const ll = (it.label || '').toLowerCase();
+              const icon = credit ? '➕' : ll.includes('chat') ? '🤖' : ll.includes('consolid') ? '🧾' : '📄';
               return (
-                <Stack key={it.id} direction="row" justifyContent="space-between" alignItems="center" sx={{ py: 0.75 }}>
-                  <Box sx={{ minWidth: 0, flex: 1, mr: 1 }}>
+                <Stack key={it.id} direction="row" alignItems="center" spacing={1.25} sx={{ py: 0.75 }}>
+                  <Box sx={{ fontSize: 18, flexShrink: 0 }}>{icon}</Box>
+                  <Box sx={{ minWidth: 0, flex: 1 }}>
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>{it.label}</Typography>
                     <Typography variant="caption" color="text.secondary">{new Date(it.createdAt).toLocaleString('pt-BR')}{it.patient ? ` • ${it.patient}` : ''}</Typography>
                   </Box>
-                  <Chip size="small" label={`${it.amount > 0 ? '+' : ''}${it.amount}`}
-                    sx={{ fontWeight: 800, bgcolor: credit ? 'rgba(16,185,129,.14)' : 'rgba(239,68,68,.1)', color: credit ? 'success.main' : 'error.main' }} />
+                  <Chip size="small" label={`${it.amount > 0 ? '+' : ''}${it.amount}`} sx={{ fontWeight: 800, bgcolor: credit ? 'rgba(16,185,129,.14)' : 'rgba(239,68,68,.1)', color: credit ? 'success.main' : 'error.main' }} />
                 </Stack>
               );
             })}
