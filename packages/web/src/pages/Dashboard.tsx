@@ -122,23 +122,24 @@ export const Dashboard = () => {
       {loaded && score !== null && (
         <Card sx={{ mt: 3, borderRadius: 4, background: 'linear-gradient(135deg,#ffffff,#e6f7f6)' }}>
           <CardContent>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
-            <Box sx={{ position: 'relative', display: 'inline-flex' }}>
-              <CircularProgress variant="determinate" value={score} size={104} thickness={6} sx={{ color: scoreColor(score), '& .MuiCircularProgress-circle': { strokeLinecap: 'round' } }} />
+            {/* Score (esquerda) + Dica IA (direita) lado a lado */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5, flexWrap: 'wrap' }}>
+            <Box sx={{ position: 'relative', display: 'inline-flex', flexShrink: 0 }}>
+              <CircularProgress variant="determinate" value={score} size={108} thickness={6} sx={{ color: scoreColor(score), '& .MuiCircularProgress-circle': { strokeLinecap: 'round' } }} />
               <Box sx={{ top: 0, left: 0, bottom: 0, right: 0, position: 'absolute', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
                 <Typography variant="h4" sx={{ fontWeight: 800, lineHeight: 1 }}>{score}</Typography>
                 <Typography variant="caption" color="text.secondary">/ 100</Typography>
               </Box>
             </Box>
-            <Box sx={{ flex: '1 1 220px', minWidth: 0 }}>
+            <Box sx={{ flex: '1 1 190px', minWidth: 0 }}>{renderTip()}</Box>
+            </Box>
+            <Box sx={{ mt: 1.5, pt: 1.5, borderTop: '1px dashed #bfe7e3' }}>
               <Typography variant="h6" sx={{ fontWeight: 700 }}>Seu Score de Saúde</Typography>
               <Typography variant="body2" color="text.secondary">
-                {score >= 80 ? 'Tudo bem! A maioria dos seus valores está dentro da faixa.' : score >= 60 ? 'Atenção a alguns valores — vale conversar com seu médico.' : 'Vários valores fora da faixa no último exame — procure orientação médica.'}
+                {score >= 80 ? 'Tudo bem! A maioria dos seus valores está na faixa.' : score >= 60 ? 'Atenção a alguns valores — converse com seu médico.' : 'Vários valores fora da faixa — procure orientação médica.'}
               </Typography>
-              <Typography variant="caption" color="text.secondary">*Baseado em todos os seus exames extraídos. Educativo, não substitui o médico.</Typography>
+              <Typography variant="caption" color="text.secondary">*Educativo, não substitui o médico. {stats.abnormal > 0 ? `${stats.abnormal} valor(es) alterado(s) — a maioria costuma ser variação leve.` : 'Nenhum valor alterado.'}</Typography>
             </Box>
-            </Box>
-            <Box sx={{ mt: 2, pt: 2, borderTop: '1px dashed #bfe7e3' }}>{renderTip()}</Box>
           </CardContent>
         </Card>
       )}

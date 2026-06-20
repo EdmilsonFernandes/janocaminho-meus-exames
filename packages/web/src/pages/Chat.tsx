@@ -104,6 +104,11 @@ export const ChatPage = () => {
           </Typography>
           <Box sx={{ mb: 1 }}><CreditBadge amount={CREDIT_COSTS.chat} label={`${CREDIT_COSTS.chat} crédito por pergunta`} /></Box>
 
+          {/* Sugestões sempre visíveis (barra horizontal) — não perde o usuário no histórico */}
+          <Stack direction="row" spacing={0.75} sx={{ mb: 1, overflowX: 'auto', '&::-webkit-scrollbar': { display: 'none' }, '& > *': { flexShrink: 0 } }}>
+            {SUGGESTIONS.map((s) => <Chip key={s} size="small" label={s} onClick={() => setInput(s)} sx={{ maxWidth: 240, bgcolor: 'rgba(32,178,170,.08)', color: '#178f89', fontWeight: 600, '&:hover': { bgcolor: 'rgba(32,178,170,.16)' } }} />)}
+          </Stack>
+
           {/* área de mensagens (rolável) */}
           <Box ref={scrollRef} sx={{ flex: 1, minHeight: 0, overflowY: 'auto', p: 1, background: '#f3f6fb', borderRadius: 2 }}>
             {messages.length === 0 && (
