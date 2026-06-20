@@ -178,7 +178,7 @@ const AppLayout = (props: any) => {
       {/* gap reduzido + espaço pra não cobrir conteúdo com o menu rodapé (mobile) */}
       <Layout {...props} menu={AppMenu} appBar={CustomAppBar}
         sx={{ '& .RaLayout-content, & main': { padding: { xs: '2px 0 64px', sm: '6px 0 28px' } }, '& .RaList-toolbar, [class*="List-toolbar"]': { minHeight: '40px !important', paddingBottom: '4px !important' } }} />
-      {isDesktop && <FloatingChat />}
+      <FloatingChat />
       <PullToRefresh />
       <MobileBottomNav />
     </>

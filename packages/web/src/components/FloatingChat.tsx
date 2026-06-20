@@ -50,7 +50,7 @@ export const FloatingChat = () => {
       title="Pergunte ao Dr. Exame"
       color="primary"
       sx={{
-        position: 'fixed', bottom: { xs: 16, md: 24 }, right: { xs: 16, md: 24 }, zIndex: 1300,
+        position: 'fixed', bottom: { xs: 76, md: 24 }, right: { xs: 14, md: 24 }, zIndex: 1200,
         width: 60, height: 60,
         boxShadow: '0 6px 18px rgba(32,178,170,.4)',
         animation: 'drPulse 2.8s ease-in-out infinite',
