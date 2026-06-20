@@ -72,10 +72,22 @@ export const LoginPage = () => {
   const [showPwd, setShowPwd] = useState(false);
   const [mode, setMode] = useState<'password' | 'otp'>('password');
   const [loading, setLoading] = useState(false);
+  const [role, setRole] = useState<'paciente' | 'medico'>('paciente');
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    if (role === 'medico') {
+      try {
+        const r = await fetch(`${API_URL}/doctor/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email.trim(), password: pwd }) });
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.error || 'Falha');
+        localStorage.setItem('doctorToken', d.token);
+        notify(`Bem-vindo, ${d.doctor.name}! \u{1F3E5}`, { type: 'success' });
+        navigate('/doctor');
+      } catch (err: any) { notify(err.message, { type: 'error' }); } finally { setLoading(false); }
+      return;
+    }
     try { await login({ username: email.trim(), password: pwd }); }
     catch { notify('E-mail ou senha incorretos.', { type: 'error' }); }
     finally { setLoading(false); }
@@ -116,6 +128,11 @@ export const LoginPage = () => {
 
   return (
     <Shell>
+      {/* Toggle Paciente / Médico */}
+      <Box sx={{ display: 'flex', mb: 2, borderRadius: 99, overflow: 'hidden', border: '1px solid #bfe7e3' }}>
+        <Button onClick={() => { setRole('paciente'); setMode('password'); }} sx={{ flex: 1, py: 0.8, textTransform: 'none', fontWeight: 700, fontSize: 14, bgcolor: role === 'paciente' ? '#20b2aa' : 'transparent', color: role === 'paciente' ? '#fff' : '#178f89' }}>Paciente</Button>
+        <Button onClick={() => { setRole('medico'); setMode('password'); }} sx={{ flex: 1, py: 0.8, textTransform: 'none', fontWeight: 700, fontSize: 14, bgcolor: role === 'medico' ? '#20b2aa' : 'transparent', color: role === 'medico' ? '#fff' : '#178f89' }}>🩺 Médico</Button>
+      </Box>
       {mode === 'password' ? (
         <Box component="form" onSubmit={submit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <TextField
