@@ -19,6 +19,7 @@ services:
       - ./data/exams:/app/data/exams
       - ./data/photos:/app/data/photos
       - ./data/agent:/app/data/agent
+      - ./keys:/app/keys:ro
     networks:
       - janocaminho_default
     pull_policy: always
