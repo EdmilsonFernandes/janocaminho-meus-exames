@@ -6,6 +6,7 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import PrintIcon from '@mui/icons-material/Print';
 import WhatsAppIcon from '@mui/icons-material/Share';
 import { API_URL, apiHeaders } from '../config';
+import { speakText, stopSpeakText } from '../utils/nativeDoc';
 import { useSelectedPatient } from '../patient-context';
 import { ShareDialog } from '../components/ShareDialog';
 import { BootSplash } from '../components/BootSplash';
@@ -42,6 +43,7 @@ export const ConsolidatedReportPage = () => {
   const navigate = useNavigate();
   const [pid] = useSelectedPatient();
   const [loading, setLoading] = useState(false);
+  const [speaking, setSpeaking] = useState(false);
   const [analysis, setAnalysis] = useState<any>(null);
   const [error, setError] = useState('');
   const [shareOpen, setShareOpen] = useState(false);
@@ -99,6 +101,12 @@ export const ConsolidatedReportPage = () => {
    *  sem window.open (que é bloqueado no PWA mobile). */
   const [docHtml, setDocHtml] = useState('');
   const [docOpen, setDocOpen] = useState(false);
+  const speak = () => {
+    const text = s?.resumoGeral;
+    if (!text) return;
+    if (speaking) { stopSpeakText(); setSpeaking(false); }
+    else { speakText(text, { onDone: () => setSpeaking(false), onFail: () => setSpeaking(false) }); setSpeaking(true); }
+  };
   const printReport = () => {
     const esc = (str?: string) => (str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\n/g, '<br>');
     const examList = sourceExams
@@ -175,8 +183,9 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
               <Typography sx={{ fontSize: 13, opacity: 0.9 }}>Análise educativa — não substitui consulta médica</Typography>
             </Box>
             <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" alignItems="center">
-              <Button size="small" variant="outlined" sx={{ color: '#fff', borderColor: 'rgba(255,255,255,.6)' }} startIcon={<WhatsAppIcon />} onClick={() => setShareOpen(true)}>Compartilhar</Button>
-              <Button size="small" variant="outlined" sx={{ color: '#fff', borderColor: 'rgba(255,255,255,.6)' }} startIcon={<PrintIcon />} onClick={printReport}>Imprimir / PDF</Button>
+              <Button size="small" variant="outlined" sx={{ color: '#fff', borderColor: 'rgba(255,255,255,.6)' }} onClick={speak} title="Dr. Exame fala o resumo">🔊 {speaking ? 'Parar' : 'Ouvir'}</Button>
+              <Button size="small" variant="outlined" sx={{ color: '#fff', borderColor: 'rgba(255,255,255,.6)', minWidth: 0, px: 1.25 }} onClick={() => setShareOpen(true)} title="Compartilhar"><WhatsAppIcon /></Button>
+              <Button size="small" variant="outlined" sx={{ color: '#fff', borderColor: 'rgba(255,255,255,.6)', minWidth: 0, px: 1.25 }} onClick={printReport} title="Imprimir / PDF"><PrintIcon /></Button>
               <Button size="small" variant="contained" sx={{ bgcolor: 'rgba(255,255,255,.18)' }} disabled={loading} onClick={() => generate(true)} title="Regenera o relatório com os exames mais recentes" startIcon={loading ? <CircularProgress size={14} color="inherit" /> : undefined}>
                 {loading ? 'Gerando novo…' : '↻ Atualizar'}
               </Button>

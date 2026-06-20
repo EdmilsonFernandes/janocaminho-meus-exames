@@ -1,7 +1,7 @@
 import { API_URL } from '../config';
 
 /** Versão atual do app (espelha o versionName do Android build.gradle). Atualizar a cada release. */
-export const APP_VERSION = '1.3.8';
+export const APP_VERSION = '1.4.4';
 
 /** Compara versões semver ("1.3.8" vs "1.4.0"). -1 se a<b, 0 =, 1 se a>b. */
 export function compareVersions(a: string, b: string): number {

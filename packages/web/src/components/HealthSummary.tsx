@@ -177,8 +177,8 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
               <Button size="small" variant={rate === 1.5 ? 'contained' : 'outlined'} onClick={() => changeRate(1.5)} sx={{ minWidth: 40, px: 1 }}>1.5x</Button>
             </>
           )}
-          <Button size="small" variant="outlined" startIcon={<ShareIcon />} onClick={() => setShareOpen(true)}>Compartilhar</Button>
-          <Button size="small" variant="outlined" startIcon={<PrintIcon />} onClick={printSummary}>Imprimir</Button>
+          <Button size="small" variant="outlined" onClick={() => setShareOpen(true)} title="Compartilhar" sx={{ minWidth: 0, px: 1.25, py: 0.5 }}><ShareIcon /></Button>
+          <Button size="small" variant="outlined" onClick={printSummary} title="Imprimir / PDF" sx={{ minWidth: 0, px: 1.25, py: 0.5 }}><PrintIcon /></Button>
         </Stack>
       </Box>
 

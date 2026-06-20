@@ -34,7 +34,7 @@ export const BootSplash = ({
     <Box sx={{
       position: 'fixed', inset: 0, zIndex: 9999,
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1.5,
-      background: 'radial-gradient(circle at 50% 38%, #114843 0%, #0a2521 55%, #061614 100%)', color: '#fff',
+      background: 'radial-gradient(circle at 50% 38%, #107a6f 0%, #082a25 52%, #041513 100%)', color: '#fff',
     }}>
       <Box sx={{ position: 'relative', animation: 'bootBreathe 2.2s ease-in-out infinite' }}>
         <Box sx={{ position: 'absolute', inset: -24, borderRadius: '50%', background: 'radial-gradient(circle, rgba(32,178,170,.5), transparent 70%)', filter: 'blur(10px)' }} />
