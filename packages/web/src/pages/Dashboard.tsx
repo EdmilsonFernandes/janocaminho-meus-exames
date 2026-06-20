@@ -107,11 +107,10 @@ export const Dashboard = () => {
 
   return (
     <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 1080, mx: 'auto' }}>
-      <Box sx={{ textAlign: 'center', py: { xs: 0.5, md: 1.5 } }}>
-        <Avatar src={me?.photoUrl ? photoUrlFor(me.id) : undefined} sx={{ width: { xs: 82, md: 96 }, height: { xs: 82, md: 96 }, mx: 'auto', bgcolor: 'primary.main', fontWeight: 800, fontSize: 30, border: '4px solid #fff', boxShadow: '0 6px 18px rgba(32,178,170,.28)' }}>{me?.fullName?.charAt(0)?.toUpperCase()}</Avatar>
-        <Typography variant="h3" sx={{ fontWeight: 800, mt: 1.5, letterSpacing: '-0.02em' }}>{(me?.fullName || 'Olá').split(' ')[0]}</Typography>
-        <Typography color="text.secondary" sx={{ fontSize: 15 }}>Seu painel pessoal de saúde</Typography>
-        <Typography variant="caption" color="text.secondary">Assistente de saúde com IA — educativo, não substitui o médico.</Typography>
+      {/* Header compacto: SEM avatar (ele já aparece no menu superior — evita redundância). */}
+      <Box sx={{ mb: 0.5 }}>
+        <Typography variant="h5" sx={{ fontWeight: 800 }}>Olá, {firstName || 'tudo bem?'} 👋</Typography>
+        <Typography variant="body2" color="text.secondary">Seu painel de saúde — educativo, não substitui o médico.</Typography>
       </Box>
 
       {!loaded && (

@@ -81,7 +81,9 @@ export const PlansPage = () => {
   const fmt = (d: string) => new Date(d).toLocaleDateString('pt-BR');
   const packs = plans?.creditPacks ?? [];
   const mpOn = plans?.mercadoPagoEnabled ?? false;
-  const isNative = Capacitor.isNativePlatform();
+  // REVERTIDO: compra PIX volta a funcionar no app Android também.
+  // (A Play Store rejeita venda de bem digital sem conta de organização — assumido pelo Edmilson.)
+  const isNative = false;
 
   return (
     <Box sx={{ width: '100%', maxWidth: 860, mx: 'auto', p: { xs: 2, md: 3 }, boxSizing: 'border-box' }}>

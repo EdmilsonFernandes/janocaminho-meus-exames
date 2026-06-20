@@ -79,6 +79,10 @@
     </script>
     <script type="module" src="/src/main.tsx"></script>
     <!-- VLibras: tradução automática de texto para Libras (acessibilidade — pacientes surdos) -->
+    <style>
+      /* VLibras um pouco menor pra não tomar muito espaço na tela */
+      .vw-access-button { transform: scale(0.82) !important; transform-origin: bottom right !important; }
+    </style>
     <div vw class="enabled">
       <div vw-access-button class="active"></div>
       <div vw-plugin-wrapper>
