@@ -58,6 +58,7 @@ import { ForceUpdate } from './components/ForceUpdate';
 import { checkAppUpdate } from './utils/version';
 import { NotificationBell } from './components/NotificationBell';
 import { NotificationsPage } from './pages/Notifications';
+import { DoctorPortalPage } from './pages/DoctorPortal';
 import { initPush } from './push';
 import { syncCreditCosts } from './components/CreditBadge';
 
@@ -231,6 +232,7 @@ export const App = () => {
       <Route path="/termos" element={<TermsPage />} />
       <Route path="/registrar" element={<RegisterPage />} />
       <Route path="/recuperar-senha" element={<ResetPage />} />
+      <Route path="/doctor" element={<DoctorPortalPage />} />
     </CustomRoutes>
 
     <Resource name="exams" list={ExamList} show={ExamShow} create={ExamCreate} options={{ label: 'Exames' }} icon={MedicalInformationIcon} />
