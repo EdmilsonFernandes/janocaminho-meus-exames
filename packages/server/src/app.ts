@@ -29,8 +29,9 @@ import adminRoutes from './routes/admin.routes';
 export const app = express();
 
 app.use(cors({
-  // webOrigin (dev/prod) + origins do Capacitor (app mobile faz fetch como http(s)://localhost)
-  origin: [config.webOrigin, 'https://localhost', 'http://localhost', 'capacitor://localhost'],
+  // API usa token (Authorization), sem cookie/session → refletir qualquer origin é seguro
+  // e resolve o "failed to fetch" no APK (origin do Capacitor = https://localhost).
+  origin: true,
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Patient-Id', 'Range'],
   exposedHeaders: ['Content-Range', 'X-Total-Count'],
