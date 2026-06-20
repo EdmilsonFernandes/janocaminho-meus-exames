@@ -54,6 +54,8 @@ import { CreditsChip } from './components/CreditsChip';
 import { FloatingChat } from './components/FloatingChat';
 import { BootSplash } from './components/BootSplash';
 import { MobileBottomNav } from './components/MobileBottomNav';
+import { ForceUpdate } from './components/ForceUpdate';
+import { checkAppUpdate } from './utils/version';
 import { initPush } from './push';
 import { syncCreditCosts } from './components/CreditBadge';
 
@@ -187,9 +189,11 @@ const AppLayout = (props: any) => {
 
 export const App = () => {
   const [booted, setBooted] = useState(false);
+  const [forceUpdate, setForceUpdate] = useState<string | null>(null);
   useEffect(() => {
     const bootTimer = setTimeout(() => setBooted(true), 1100); // splash visível na abertura
     void initPush();
+    void checkAppUpdate().then((r) => { if (r.required) setForceUpdate(r.latest); }); // força-update se versão instalada < mínima
     void syncCreditCosts();
     // Botão/gesto de voltar do Android (Capacitor) — volta no histórico ou sai do app na raiz
     let remove: (() => void) | undefined;
@@ -204,7 +208,8 @@ export const App = () => {
     })();
     return () => { clearTimeout(bootTimer); remove?.(); };
   }, []);
-  if (!booted) return <BootSplash />;
+  if (!booted) return <BootSplash messages={['Iniciando o Dr. Exame…', 'Carregando seus exames…', 'Preparando seu painel…', 'Quase lá…']} />;
+  if (forceUpdate) return <ForceUpdate latest={forceUpdate} />;
   return (
   <Admin
     dataProvider={dataProvider}

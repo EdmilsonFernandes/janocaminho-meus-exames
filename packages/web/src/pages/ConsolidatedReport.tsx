@@ -271,7 +271,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
       <ConfirmSpend open={confirmSpend.open} credits={CREDIT_COSTS.consolidated} title="Gerar novo relatório"
         desc="Vamos analisar seus exames mais recentes com a IA e gerar um relatório completo."
         onClose={() => setConfirmSpend(s => ({ ...s, open: false }))} onConfirm={confirmSpend.onYes} />
-      {loading && <BootSplash title="Gerando seu relatório" subtitle="Dr. Exame está preparando sua análise com IA…" />}
+      {loading && <BootSplash title="Gerando seu relatório" messages={['Analisando seu histórico de exames…', 'Cruzando dados laboratoriais…', 'Identificando tendências…', 'Preparando insights…']} />}
     </Box>
   );
 };

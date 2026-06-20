@@ -57,6 +57,11 @@ export const config = {
     premiumCost: Number(process.env.UPLOAD_PREMIUM_COST ?? 5),
   },
 
+  // Force-update: versão mínima exigida + última disponível.
+  // Pra forçar update: suba APP_MIN_VERSION no .env do server (ex.: '1.4.0').
+  appLatestVersion: process.env.APP_LATEST_VERSION ?? '1.3.8',
+  appMinVersion: process.env.APP_MIN_VERSION ?? '1.0.0',
+
   // Firebase (push notifications) — caminho do service account (admin SDK)
   firebaseServiceAccountPath: process.env.FIREBASE_SERVICE_ACCOUNT_PATH ?? '',
 

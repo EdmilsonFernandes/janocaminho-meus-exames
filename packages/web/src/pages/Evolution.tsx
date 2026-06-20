@@ -78,7 +78,7 @@ export const EvolutionPage = () => {
       {!loading && items.length > 0 && (
         <>
           {/* Resumo interativo (chips que filtram) */}
-          <Stack direction="row" spacing={1} sx={{ mb: 2, overflowX: 'auto', '&::-webkit-scrollbar': { display: 'none' }, '& > *': { flexShrink: 0 } }}>
+          <Stack direction="row" spacing={1} useFlexGap sx={{ mb: 2, flexWrap: 'wrap', rowGap: 1 }}>
             {CHIPS.map((c) => {
               const on = filter === c.key;
               return (
@@ -125,12 +125,12 @@ const EvoRow = ({ it, defaultExpanded }: { it: EvoItem; defaultExpanded?: boolea
   const lineColor = st === 'out' ? '#ef4444' : up ? '#e65100' : '#0b5cab';
   return (
     <Accordion defaultExpanded={defaultExpanded} disableGutters elevation={0}
-      sx={{ '&:before': { display: 'none' }, border: `1px solid ${meta.color}33`, borderRadius: '12px !important', overflow: 'hidden' }}>
-      <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '52px !important', '& .MuiAccordionSummary-content': { my: 0.75 } }}>
-        <Stack direction="row" alignItems="center" spacing={1} sx={{ flex: 1, minWidth: 0, pr: 1 }}>
+      sx={{ '&:before': { display: 'none' }, border: `1px solid ${meta.color}33`, borderRadius: '12px !important' }}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '52px !important', '& .MuiAccordionSummary-content': { my: 0.75, flexWrap: 'wrap', gap: 0.5 } }}>
+        <Stack direction="row" alignItems="center" spacing={1} useFlexGap sx={{ flex: 1, minWidth: 0, pr: 1, flexWrap: 'wrap', gap: 0.5 }}>
           <Box sx={{ fontSize: 15 }}>{meta.emoji}</Box>
-          <Typography sx={{ fontWeight: 700, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.nameCanonical}</Typography>
-          <Typography sx={{ fontWeight: 800, color: meta.color, flexShrink: 0 }}>{it.lastValue}{it.unit ? ` ${it.unit}` : ''}</Typography>
+          <Typography sx={{ fontWeight: 700, flex: '1 1 60%', minWidth: 120 }}>{it.nameCanonical}</Typography>
+          <Typography sx={{ fontWeight: 800, color: meta.color }}>{it.lastValue}{it.unit ? ` ${it.unit}` : ''}</Typography>
           {st !== 'stable' && it.pctChange !== 0 && <Chip size="small" sx={{ bgcolor: `${lineColor}14`, color: lineColor, fontWeight: 700, height: 20 }} label={`${it.pctChange > 0 ? '+' : ''}${it.pctChange}%`} />}
         </Stack>
       </AccordionSummary>

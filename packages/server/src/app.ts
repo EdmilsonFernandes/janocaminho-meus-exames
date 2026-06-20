@@ -38,6 +38,8 @@ app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 app.get('/api/health', (_req, res) => res.json({ ok: true, ts: new Date().toISOString() }));
+// Força-atualização (público, sem auth): app compara a versão instalada com a mínima exigida.
+app.get('/api/app/version', (_req, res) => res.json({ latest: config.appLatestVersion, minRequired: config.appMinVersion }));
 
 app.use('/api/auth', authRoutes);
 // ROTA PÚBLICA: foto do paciente (sem auth — precisa funcionar em <img src>)
