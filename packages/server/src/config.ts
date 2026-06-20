@@ -1,4 +1,6 @@
 import 'dotenv/config';
+import fs from 'fs';
+import path from 'path';
 
 function required(key: string, fallback?: string): string {
   const v = process.env[key] ?? fallback;
@@ -7,6 +9,20 @@ function required(key: string, fallback?: string): string {
     if (fallback === undefined) return '';
   }
   return v ?? '';
+}
+
+// Auto-detecta o serviceAccountKey.json do Firebase (Admin) se FIREBASE_SERVICE_ACCOUNT_PATH não estiver setado.
+function resolveFirebaseKey(): string {
+  const env = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
+  if (env) return env;
+  const dirs = [process.cwd(), __dirname, path.resolve(__dirname, '..'), path.resolve(__dirname, '../..')];
+  for (const d of dirs) {
+    try {
+      const hit = fs.readdirSync(d).find((f) => /firebase-adminsdk.*\.json$/.test(f));
+      if (hit) return path.join(d, hit);
+    } catch { /* dir inexistente */ }
+  }
+  return '';
 }
 
 export const config = {
@@ -63,7 +79,7 @@ export const config = {
   appMinVersion: process.env.APP_MIN_VERSION ?? '1.0.0',
 
   // Firebase (push notifications) — caminho do service account (admin SDK)
-  firebaseServiceAccountPath: process.env.FIREBASE_SERVICE_ACCOUNT_PATH ?? '',
+  firebaseServiceAccountPath: resolveFirebaseKey(),
 
   // "Memória" do agente (historico.md por paciente) — path absoluto alinhado ao volume
   agentDir: process.env.AGENT_DIR ?? './data/agent',

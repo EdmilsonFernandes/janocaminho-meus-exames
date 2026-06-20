@@ -48,6 +48,7 @@ android-build.log
 **/google-services.json
 **/google-services.*.json
 **/serviceAccountKey.json
+**/*firebase-adminsdk*.json
 packages/mobile/android/app/keystore.properties
 *.keystore
 

@@ -1,6 +1,9 @@
 import { config } from '../config';
 import { prisma } from '../prisma';
 
+/** Tópico Firebase dos nudges de saúde (criar no console Firebase com este nome). */
+export const PUSH_TOPIC = 'dr_exame_nudges';
+
 let messaging: any = null;
 let initTried = false;
 
@@ -55,4 +58,12 @@ export async function sendPush(tokens: string[], title: string, body: string, da
 export async function sendPushToUser(userId: string, title: string, body: string, data?: Record<string, string>): Promise<void> {
   const tokens = await prisma.deviceToken.findMany({ where: { userId }, select: { token: true } });
   await sendPush(tokens.map((t) => t.token), title, body, data);
+}
+
+/** Inscreve tokens num tópico (best-effort — só ativa com Firebase Admin configurado). */
+export async function subscribeToTopic(tokens: string[], topic: string = PUSH_TOPIC): Promise<void> {
+  if (!tokens.length) return;
+  const m = await getMessaging();
+  if (!m) return;
+  try { await m.subscribeToTopic(tokens, topic); } catch (e: any) { console.warn('[push] subscribeToTopic falhou:', e?.message); }
 }

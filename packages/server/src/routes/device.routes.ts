@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest } from '../middleware/auth';
-import { subscribeToTopic, PUSH_TOPIC } from '../utils/firebase';
+import { subscribeToTopic, PUSH_TOPIC } from '../utils/push';
 
 const router = Router();
 router.use(requireAuth);
