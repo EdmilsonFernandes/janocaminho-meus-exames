@@ -166,7 +166,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
             <Typography sx={{ color: '#64748b', fontSize: 13 }}>Resumo educativo — não substitui consulta médica</Typography>
           </Box>
         </Stack>
-        <Stack direction="row" spacing={1} sx={{ mt: 2, overflowX: 'auto', '&::-webkit-scrollbar': { display: 'none' }, '& .MuiButton-root': { flexShrink: 0, whiteSpace: 'nowrap' } }} useFlexGap>
+        <Stack direction="row" spacing={1} sx={{ mt: 2, width: '100%', overflowX: 'auto', flexWrap: 'nowrap', '&::-webkit-scrollbar': { display: 'none' }, '& .MuiButton-root': { flexShrink: 0, whiteSpace: 'nowrap' } }} useFlexGap>
           <Button size="small" variant="contained" startIcon={<DrExame size={20} />} onClick={speaking ? stopSpeak : () => speak()}>
             {speaking ? '⏹ Parar' : '🔊 Dr. Exame fala'}
           </Button>

@@ -1,6 +1,13 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { api, authHeader, resetDb, createUser, mintToken } from './helpers';
 import { prisma } from '../src/prisma';
+import { sendEmail } from '../src/utils/mailer';
+
+// helper: html do último sendEmail (mockado) — pra extrair token/código do "e-mail"
+const lastMailHtml = (): string => {
+  const c = sendEmail.mock.calls;
+  return (c[c.length - 1]?.[0] as any)?.html ?? '';
+};
 
 describe('auth + requireAuth', () => {
   beforeEach(async () => { await resetDb(); });
@@ -74,5 +81,44 @@ describe('auth + requireAuth', () => {
     const orphan = mintToken('cuida-nao-existe');
     const r = await api().get('/api/exams').set(authHeader(orphan));
     expect(r.status).toBe(401);
+  });
+
+  it('E2E: esqueci senha — forgot → reset → login com nova senha', async () => {
+    await createUser({ email: 'forgot@exemplo.com', password: 'senha123' });
+    sendEmail.mockClear();
+    const f = await api().post('/api/auth/forgot').send({ email: 'forgot@exemplo.com' });
+    expect(f.status).toBe(200);
+    // extrai o reset token do link no e-mail
+    const m = lastMailHtml().match(/token=([^&#]+)/);
+    expect(m).toBeTruthy();
+    const resetToken = decodeURIComponent(m![1]);
+    // redefine
+    const rs = await api().post('/api/auth/reset').send({ token: resetToken, password: 'nova456' });
+    expect(rs.status).toBe(200);
+    // login com a NOVA senha
+    const ok = await api().post('/api/auth/login').send({ email: 'forgot@exemplo.com', password: 'nova456' });
+    expect(ok.status).toBe(200);
+    expect(ok.body.token).toBeTruthy();
+    // senha antiga não funciona mais
+    const velha = await api().post('/api/auth/login').send({ email: 'forgot@exemplo.com', password: 'senha123' });
+    expect(velha.status).toBe(401);
+  });
+
+  it('E2E: login por token (OTP) — request → verify → loga', async () => {
+    await createUser({ email: 'otp@exemplo.com', password: 'senha123' });
+    sendEmail.mockClear();
+    const req = await api().post('/api/auth/otp/request').send({ email: 'otp@exemplo.com' });
+    expect(req.status).toBe(200);
+    // extrai o código de 6 dígitos do e-mail
+    const m = lastMailHtml().match(/\b(\d{6})\b/);
+    expect(m).toBeTruthy();
+    const code = m![1];
+    const ver = await api().post('/api/auth/otp/verify').send({ email: 'otp@exemplo.com', code });
+    expect(ver.status).toBe(200);
+    expect(ver.body.token).toBeTruthy();
+    expect(ver.body.user.email).toBe('otp@exemplo.com');
+    // código errado rejeita
+    const bad = await api().post('/api/auth/otp/verify').send({ email: 'otp@exemplo.com', code: '000000' });
+    expect(bad.status).toBe(401);
   });
 });

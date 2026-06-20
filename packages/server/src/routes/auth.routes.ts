@@ -2,7 +2,7 @@ import { Router } from 'express';
 import crypto from 'crypto';
 import { prisma } from '../prisma';
 import {
-  signToken, verifyToken, verifyResetToken, hashPassword, comparePassword,
+  signToken, signResetToken, verifyToken, verifyResetToken, hashPassword, comparePassword,
 } from '../auth/jwt';
 import { issueOtp, verifyOtp } from '../auth/otp';
 import { requireAuth, AuthedRequest, firstPatientId } from '../middleware/auth';
@@ -84,7 +84,6 @@ router.post('/forgot', async (req, res, next) => {
     const user = await prisma.user.findUnique({ where: { email: mail } });
     // não revela se o e-mail existe (segurança)
     if (user) {
-      const { signResetToken } = require('../auth/jwt');
       const token = signResetToken(user.id);
       const base = (process.env.WEB_BASE_PATH ?? '').replace(/\/$/, '');
       // Token na QUERY REAL (email clients rastreiam normal) + rota no HASH (HashRouter).
