@@ -160,13 +160,13 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
       {/* Header */}
       <Box sx={{ background: 'linear-gradient(135deg,#f0f7ff,#e6f3ff)', p: 2.5, borderBottom: '2px solid #336886' }}>
         <Stack direction="row" alignItems="center" spacing={2}>
-          <DrExame size={48} sx={{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }} />
+          <DrExame size={48} sx={{ borderRadius: '50%', border: '3px solid #fff', boxShadow: '0 4px 14px rgba(11,92,171,.22)' }} />
           <Box sx={{ flex: 1 }}>
             <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a' }}>Análise de Saúde</Typography>
             <Typography sx={{ color: '#64748b', fontSize: 13 }}>Resumo educativo — não substitui consulta médica</Typography>
           </Box>
         </Stack>
-        <Stack direction="row" spacing={1} sx={{ mt: 2 }} useFlexGap flexWrap="wrap">
+        <Stack direction="row" spacing={1} sx={{ mt: 2, overflowX: 'auto', '&::-webkit-scrollbar': { display: 'none' }, '& .MuiButton-root': { flexShrink: 0, whiteSpace: 'nowrap' } }} useFlexGap>
           <Button size="small" variant="contained" startIcon={<DrExame size={20} />} onClick={speaking ? stopSpeak : () => speak()}>
             {speaking ? '⏹ Parar' : '🔊 Dr. Exame fala'}
           </Button>

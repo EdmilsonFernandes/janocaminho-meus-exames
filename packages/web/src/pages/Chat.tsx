@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Box, Card, CardContent, Typography, Button, CircularProgress, Paper, Stack } from '@mui/material';
+import { Box, Card, CardContent, Typography, Button, CircularProgress, Paper, Stack, Chip } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import { Title, useNotify } from 'react-admin';
 import { API_URL, apiHeaders } from '../config';
@@ -24,6 +24,11 @@ export const ChatPage = () => {
   const [pid] = useSelectedPatient();
   const scrollRef = useRef<HTMLDivElement>(null);
   const notify = useNotify();
+  // Saudação dinâmica por horário + gancho variado (engaja, faz voltar)
+  const firstName = (JSON.parse(localStorage.getItem('user') || '{}')?.name || '').split(' ')[0];
+  const greeting = (() => { const h = new Date().getHours(); return h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite'; })();
+  const HOOKS = ['Bora dar uma olhada nos seus exames hoje? 🩺', 'Tem dúvida sobre algum resultado? Manda ver 👇', 'Seus exames tão aqui, organizados. O que quer saber?', 'Posso resumir, comparar ou explicar qualquer valor. Pergunta!'];
+  const hook = HOOKS[new Date().getDate() % HOOKS.length];
 
   useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' }); }, [messages]);
 
@@ -104,7 +109,8 @@ export const ChatPage = () => {
             {messages.length === 0 && (
               <Box sx={{ textAlign: 'center', py: 2 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1 }}><DrExame size={56} sx={{ borderRadius: '18%' }} /></Box>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>Olá! Sou o Dr. Exame. Toque numa sugestão ou pergunte à vontade:</Typography>
+                <Typography sx={{ fontWeight: 800, fontSize: 17, color: '#178f89' }}>{greeting}, {firstName || 'tudo bem'}! 👋</Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5, mt: 0.25 }}>{hook}</Typography>
                 <Stack spacing={0.75} sx={{ maxWidth: 460, mx: 'auto' }}>
                   {SUGGESTIONS.map((s) => (
                     <Paper key={s} elevation={0} onClick={() => setInput(s)} sx={{ cursor: 'pointer', p: 1, px: 1.5, borderRadius: 2, border: '1px solid #d6e4ee', bgcolor: '#fff', textAlign: 'left', fontSize: 14, '&:hover': { bgcolor: '#eef7f6', borderColor: 'primary.main' } }}>
