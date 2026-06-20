@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLogin, useNotify } from 'react-admin';
 import { Box, Typography, Button, Link, CircularProgress, Stack, TextField, InputAdornment, IconButton } from '@mui/material';
 import { DrExame } from '../components/DrExame';
+import { API_URL } from '../config';
 
 /* ---------- ícones inline (sem dependência de @mui/icons-material) ---------- */
 const I = {
@@ -84,7 +85,7 @@ export const LoginPage = () => {
     if (!email.trim()) { notify('Informe o e-mail para enviarmos o token.', { type: 'error' }); return; }
     setLoading(true);
     try {
-      const r = await fetch(`${import.meta.env.VITE_API_URL}/auth/otp/request`, {
+      const r = await fetch(`${API_URL}/auth/otp/request`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email.trim() }),
       });
       if (!r.ok) { const d = await r.json().catch(() => ({})); notify(d.error || 'Não conseguimos enviar o token agora.', { type: 'error' }); return; }
@@ -98,7 +99,7 @@ export const LoginPage = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const r = await fetch(`${import.meta.env.VITE_API_URL}/auth/otp/verify`, {
+      const r = await fetch(`${API_URL}/auth/otp/verify`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email.trim(), code }),
       });
       const d = await r.json();
@@ -183,7 +184,7 @@ export const RegisterPage = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const r = await fetch(`${import.meta.env.VITE_API_URL}/auth/register`, {
+      const r = await fetch(`${API_URL}/auth/register`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: name.trim(), email: email.trim(), password: pwd }),
       });
@@ -239,7 +240,7 @@ export const ResetPage = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await fetch(`${import.meta.env.VITE_API_URL}/auth/forgot`, {
+      await fetch(`${API_URL}/auth/forgot`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim() }),
       });
@@ -252,7 +253,7 @@ export const ResetPage = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const r = await fetch(`${import.meta.env.VITE_API_URL}/auth/reset`, {
+      const r = await fetch(`${API_URL}/auth/reset`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token, password: pwd }),
       });

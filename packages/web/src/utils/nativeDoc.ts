@@ -88,3 +88,32 @@ export async function stopSpeakText(): Promise<void> {
     window.speechSynthesis?.cancel();
   }
 }
+
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onloadend = () => { const s = String(fr.result || ''); resolve(s.includes(',') ? s.split(',')[1] : s); };
+    fr.onerror = reject;
+    fr.readAsDataURL(blob);
+  });
+}
+
+/** Abre um arquivo blob (ex.: PDF do exame).
+ *  - APK (nativo): grava em cache + Share (usuário abre no visualizador de PDF).
+ *  - Web: object URL + window.open. */
+export async function openBlobFile(blob: Blob, filename: string): Promise<void> {
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const { Filesystem, Directory } = await import('@capacitor/filesystem');
+      const { Share } = await import('@capacitor/share');
+      const b64 = await blobToBase64(blob);
+      const r = await Filesystem.writeFile({ path: filename, data: b64, directory: Directory.Cache, recursive: true });
+      await Share.share({ title: filename, dialogTitle: 'Abrir documento', files: [r.uri] }).catch(() => {});
+      setTimeout(() => { Filesystem.deleteFile({ path: filename, directory: Directory.Cache }).catch(() => {}); }, 60000);
+    } catch (e) { console.warn('[openBlobFile] falhou:', e); }
+  } else {
+    const url = URL.createObjectURL(blob);
+    window.open(url);
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  }
+}

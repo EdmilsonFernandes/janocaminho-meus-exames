@@ -7,6 +7,8 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Title, useNotify } from 'react-admin';
 import { API_URL, token } from '../../config';
+import { Capacitor } from '@capacitor/core';
+import { openBlobFile } from '../../utils/nativeDoc';
 import { HealthSummary } from '../../components/HealthSummary';
 import { ValueBar } from '../../components/ValueBar';
 import { ExplainButton } from '../../components/ExplainItem';
@@ -156,12 +158,19 @@ export const ExamShow = () => {
   };
 
   const openCitation = async (page: number) => {
-    if (!pdfUrl) {
+    try {
+      if (pdfUrl && !Capacitor.isNativePlatform()) { window.open(`${pdfUrl}#page=${page}`); return; }
       const r = await fetch(`${API_URL}/exams/${id}/file`, { headers: { Authorization: `Bearer ${token()}` } });
-      const url = URL.createObjectURL(await r.blob());
-      setPdfUrl(url);
-      window.open(`${url}#page=${page}`);
-    } else { window.open(`${pdfUrl}#page=${page}`); }
+      if (!r.ok) throw new Error('Falha ao baixar');
+      const blob = await r.blob();
+      if (Capacitor.isNativePlatform()) {
+        await openBlobFile(blob, `exame-${id}.pdf`); // APK: salva + Share (abre no visualizador)
+      } else {
+        const url = URL.createObjectURL(blob);
+        setPdfUrl(url);
+        window.open(`${url}#page=${page}`);
+      }
+    } catch { notify('Não consegui abrir o PDF do exame.', { type: 'error' }); }
   };
 
   const sendChat = async () => {
