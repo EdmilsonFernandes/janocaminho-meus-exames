@@ -58,6 +58,7 @@ import { ForceUpdate } from './components/ForceUpdate';
 import { checkAppUpdate } from './utils/version';
 import { NotificationBell } from './components/NotificationBell';
 import { NotificationPopup } from './components/NotificationPopup';
+import { Onboarding } from './components/Onboarding';
 import { NotificationsPage } from './pages/Notifications';
 import { DoctorPortalPage } from './pages/DoctorPortal';
 import { MedicosPage } from './pages/Medicos';
@@ -190,6 +191,7 @@ const AppLayout = (props: any) => {
       <PullToRefresh />
       <MobileBottomNav />
       <NotificationPopup />
+      <Onboarding />
     </>
   );
 };

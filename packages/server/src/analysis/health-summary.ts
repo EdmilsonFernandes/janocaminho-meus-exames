@@ -48,14 +48,24 @@ export async function generateConsolidatedSummary(patientId: string): Promise<{ 
     {
       role: 'user',
       content:
-        `Monte um RESUMO CONSOLIDADO da saúde do paciente considerando TODOS os exames abaixo (pode haver laboratorial, imagem e laudo — do mais recente ao mais antigo).\n` +
+        `Atue como um consultor de SAUDE de alto nivel. Analise TODOS os exames do paciente seguindo esta estrutura (Chain-of-Thought):\n\n` +
+        `PASSO 1 - TRIAGEM: Agrupe os itens por categorias medicas (Hormonios, Hemograma, Lipidios, Hepatico, Renal, Glicidico, Outros).\n` +
+        `PASSO 2 - TENDENCIA: Para cada categoria, identifique o que esta alterado + a DIRECAO (melhorando, piorando, estavel, primeiro exame).\n` +
+        `PASSO 3 - SINTER EXECUTIVA: Gere o relatorio final com tom humano, acolhedor e direto.\n\n` +
         `PACIENTE: ${patient.fullName}\n` +
-        `Exames incluídos: ${exams.length}.\n` +
+        `Exames incluidos: ${exams.length}.\n` +
         perfilText + '\n' + memoryText +
-        `EXAMES (apenas alterações relevantes):\n${JSON.stringify(examContext, null, 2)}\n\n` +
-        `Monte o JSON com: resumoGeral (visão geral integrada), comparativo (itens alterados: {name, anterior, atual, leitura, entenda}), ` +
-        `pontosAtencao ({titulo, detalhe}), coisasBoas, leituraFinal, perguntasParaOMedico (3-5), ` +
-        `interacoesMedicamentos, sugestoesNutricao, comparacaoFamiliar, metasSaude ({analito, meta, prazo}), disclaimer.\n` +
+        `EXAMES (apenas alteracoes relevantes, do mais recente ao mais antigo):\n${JSON.stringify(examContext, null, 2)}\n\n` +
+        `ESTILO: portugues simples, SEM jargao, SEM diagnostico, SEM receitar. Sempre cite o NOME do paciente + valores reais (ex: "Edmilson, sua glicose caiu de 110 pra 98").\n\n` +
+        `Monte o JSON com:\n` +
+        `- resumoGeral: visao integrada em 2-3 frases (o que esta bem + o que precisa atencao)\n` +
+        `- comparativo (array de {name, anterior, atual, leitura, entenda}): itens alterados. "leitura" = Melhorou/Piorou/Estavel/Atencao/Primeiro exame. "entenda" = UMA frase SIMPLES sobre o que e o exame.\n` +
+        `- pontosAtencao (array de {titulo, detalhe}): o que requer acao AGORA\n` +
+        `- coisasBoas (array de strings): o que melhorou (reforco positivo)\n` +
+        `- leituraFinal: 1 paragrafo direto, amigavel, com TOM HUMANO (ex: "${patient.fullName?.split(' ')[0] || 'Paciente'}, seu colesterol caiu 15% — continue assim!")\n` +
+        `- perguntasParaOMedico (array de 3-5 strings): perguntas OBJETIVAS com valores reais (ex: "Meu TSH subiu de 1.2 pra 3.8. Preciso ajustar a levotiroxina?")\n` +
+        `- metasSaude (array de {analito, meta, prazo}): metas praticas (ex: "Colesterol total abaixo de 200 em 3 meses")\n` +
+        `- interacoesMedicamentos, sugestoesNutricao, comparacaoFamiliar, disclaimer.\n` +
         JSON_SUFFIX,
     },
   ];
