@@ -57,7 +57,7 @@ import { FloatingChat } from './components/FloatingChat';
 import { BootSplash } from './components/BootSplash';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { ForceUpdate } from './components/ForceUpdate';
-import { checkAppUpdate } from './utils/version';
+import { checkAppUpdate, checkPlayUpdate } from './utils/version';
 import { NotificationBell } from './components/NotificationBell';
 import { NotificationPopup } from './components/NotificationPopup';
 import { Onboarding } from './components/Onboarding';
@@ -221,6 +221,7 @@ export const App = () => {
     const bootTimer = setTimeout(() => setBooted(true), 1100); // splash visível na abertura
     void initPush();
     void checkAppUpdate().then((r) => { if (r.required) setForceUpdate(r.latest); }); // força-update se versão instalada < mínima
+    void checkPlayUpdate(); // in-app update NATIVO do Google Play (baixa e atualiza sozinho) — só em builds da Play Store
     void syncCreditCosts();
     // Botão/gesto de voltar do Android (Capacitor) — volta no histórico ou sai do app na raiz
     let remove: (() => void) | undefined;

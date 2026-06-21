@@ -1,6 +1,25 @@
 import { Capacitor } from '@capacitor/core';
 import { API_URL } from '../config';
 
+/**
+ * In-app update NATIVO do Google Play (o mesmo fluxo dos apps comerciais — baixa e atualiza sozinho).
+ * Só funciona em builds instalados PELA PLAY STORE. Em sideload/web/outras lojas é no-op (cai no fallback checkAppUpdate).
+ * Prefere atualização imediata (tela cheia bloqueante); se não permitir, faz flexível (baixa em background).
+ */
+export async function checkPlayUpdate(): Promise<void> {
+  try {
+    const [{ AppUpdate }] = await Promise.all([import('@capawesome/capacitor-app-update')]);
+    if (!Capacitor.isNativePlatform()) return;
+    const info = await AppUpdate.getAppUpdateInfo();
+    if (info.updateAvailability === 2 /* UPDATE_AVAILABLE */) {
+      if (info.immediateUpdateAllowed) await AppUpdate.startImmediateUpdate();
+      else if (info.flexibleUpdateAllowed) await AppUpdate.startFlexibleUpdate();
+    }
+  } catch (e) {
+    console.warn('[play-update] indisponível (provavelmente não-instalado pela Play Store):', e);
+  }
+}
+
 /** Versão atual do app (espelha o versionName do Android build.gradle). Atualizar a cada release. */
 export const APP_VERSION = import.meta.env.VITE_APP_VERSION || '1.4.4';
 

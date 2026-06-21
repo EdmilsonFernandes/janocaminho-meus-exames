@@ -8,10 +8,10 @@ import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import { SPECIALTIES, CONVENIOS } from '../utils/medicalData';
 
 const ALL_SCOPES = [
-  { key: 'exams', label: 'Exames' },
-  { key: 'evolution', label: 'Evolucao' },
-  { key: 'alerts', label: 'Alertas' },
-  { key: 'summary', label: 'Resumos IA' },
+  { key: 'exams', label: 'Exames', icon: '📋' },
+  { key: 'evolution', label: 'Evolução', icon: '📈' },
+  { key: 'alerts', label: 'Alertas', icon: '🚨' },
+  { key: 'summary', label: 'Resumos IA', icon: '🤖' },
 ];
 
 export const MedicosPage = () => {
@@ -94,7 +94,7 @@ export const MedicosPage = () => {
             <Box>
               <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: 0.5 }}>O que compartilhar:</Typography>
               <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
-                {ALL_SCOPES.map((s) => <Chip key={s.key} label={s.label} onClick={() => toggleScope(s.key)} color={scopes.includes(s.key) ? 'primary' : 'default'} variant={scopes.includes(s.key) ? 'filled' : 'outlined'} size="small" />)}
+                {ALL_SCOPES.map((s) => <Chip key={s.key} label={`${s.icon} ${s.label}`} onClick={() => toggleScope(s.key)} color={scopes.includes(s.key) ? 'primary' : 'default'} variant={scopes.includes(s.key) ? 'filled' : 'outlined'} size="small" />)}
               </Stack>
             </Box>
             <Button type="submit" variant="contained" disabled={saving} sx={{ alignSelf: 'flex-start', borderRadius: 2, textTransform: 'none', fontWeight: 700 }}>
@@ -110,21 +110,27 @@ export const MedicosPage = () => {
       )}
       <Stack spacing={1.5}>
         {shares.map((s) => (
-          <Card key={s.id} variant="outlined" sx={{ borderRadius: 3, opacity: s.active ? 1 : 0.6, borderLeft: s.active ? '4px solid #20b2aa' : '4px solid #ccc' }}>
-            <CardContent>
-              <Stack direction="row" alignItems="center" spacing={2}>
-                <Avatar sx={{ bgcolor: s.doctor.specialty ? '#0b5cab' : '#757575' }}>{s.doctor.name?.charAt(0)}</Avatar>
+          <Card key={s.id} sx={{ borderRadius: 4, overflow: 'hidden', position: 'relative', opacity: s.active ? 1 : 0.65, border: '1px solid #e2efec', boxShadow: s.active ? '0 4px 16px rgba(32,178,170,.08)' : 'none', transition: 'all .15s', '&:hover': { boxShadow: '0 8px 24px rgba(32,178,170,.12)' } }}>
+            <Box sx={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 5, background: s.active ? 'linear-gradient(180deg,#20b2aa,#178f89)' : '#cbd5e1' }} />
+            <CardContent sx={{ pl: 2.5 }}>
+              <Stack direction="row" alignItems="center" spacing={1.75}>
+                <Avatar src={s.doctor.id ? `${API_URL}/doctor/photo/${s.doctor.id}` : undefined} sx={{ width: 52, height: 52, fontWeight: 800, fontSize: 20, border: '2px solid #e0f2f1', background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff' }}>{s.doctor.name?.charAt(0)?.toUpperCase()}</Avatar>
                 <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography sx={{ fontWeight: 800 }}>{s.doctor.name}</Typography>
-                  <Typography variant="caption" color="text.secondary">{s.doctor.specialty || 'Medico'} | CRM {s.doctor.crm}{s.convenio ? ` | ${s.convenio}` : ''}</Typography>
-                  <Box sx={{ mt: 0.5 }}>
+                  <Stack direction="row" alignItems="center" spacing={0.75} useFlexGap flexWrap="wrap">
+                    <Typography sx={{ fontWeight: 800, color: '#0f3d3a', fontSize: 16 }}>{s.doctor.name}</Typography>
+                    {s.doctor.specialty && <Chip size="small" label={s.doctor.specialty} sx={{ height: 20, fontSize: 10, bgcolor: '#e0f2f1', color: '#178f89', fontWeight: 700 }} />}
+                    {!s.active && <Chip size="small" label="revogado" sx={{ height: 20, fontSize: 10, bgcolor: '#fee2e2', color: '#b91c1c', fontWeight: 700 }} />}
+                  </Stack>
+                  <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mt: 0.25 }}>CRM {s.doctor.crm}{s.convenio ? ` • ${s.convenio}` : ''}</Typography>
+                  <Typography variant="caption" sx={{ fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', fontSize: 10, letterSpacing: 0.4, display: 'block', mt: 1 }}>Compartilhando:</Typography>
+                  <Box sx={{ mt: 0.25, display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
                     {ALL_SCOPES.map((sc) => {
                       const on = s.scopes?.includes(sc.key);
-                      return <Chip key={sc.key} size="small" label={sc.label} onClick={() => { const ns = on ? s.scopes.filter((x: string) => x !== sc.key) : [...(s.scopes || []), sc.key]; updateScopes(s.id, ns); }} sx={{ mr: 0.5, height: 20, fontSize: 10, bgcolor: on ? 'rgba(32,178,170,.14)' : 'transparent', color: on ? '#178f89' : '#aaa', border: on ? '1px solid rgba(32,178,170,.3)' : '1px solid #e0e0e0' }} />;
+                      return <Chip key={sc.key} size="small" label={`${sc.icon} ${sc.label}`} onClick={() => { const ns = on ? s.scopes.filter((x: string) => x !== sc.key) : [...(s.scopes || []), sc.key]; updateScopes(s.id, ns); }} sx={{ height: 24, fontSize: 11, fontWeight: 600, cursor: 'pointer', bgcolor: on ? '#178f89' : '#f1f5f9', color: on ? '#fff' : '#94a3b8', border: on ? '1px solid #178f89' : '1px solid #e2e8f0', '&:hover': { bgcolor: on ? '#0f7670' : '#e2e8f0' } }} />;
                     })}
                   </Box>
                 </Box>
-                {s.active ? <IconButton color="error" onClick={() => revoke(s.id)} title="Revogar acesso"><DeleteIcon /></IconButton> : <Chip size="small" label="revogado" color="default" />}
+                {s.active && <IconButton color="error" onClick={() => revoke(s.id)} title="Revogar acesso" sx={{ bgcolor: '#fef2f2', '&:hover': { bgcolor: '#fee2e2' } }}><DeleteIcon /></IconButton>}
               </Stack>
             </CardContent>
           </Card>

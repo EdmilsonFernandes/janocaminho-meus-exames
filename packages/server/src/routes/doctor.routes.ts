@@ -47,11 +47,12 @@ router.post('/register', async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
-// LOGIN do médico
+// LOGIN do médico — aceita E-MAIL ou CRM (o que ele lembrar mais fácil)
 router.post('/login', async (req, res, next) => {
   try {
-    const doctor = await prisma.doctor.findUnique({ where: { email: String(req.body?.email ?? '').toLowerCase() } });
-    if (!doctor || !(await comparePassword(String(req.body?.password ?? ''), doctor.passwordHash))) {
+    const id = String(req.body?.email ?? req.body?.login ?? '').trim();
+    const doctor = await prisma.doctor.findFirst({ where: { OR: [{ email: id.toLowerCase() }, { crm: id }] } });
+    if (!doctor || doctor.passwordHash === 'pending-invite' || !(await comparePassword(String(req.body?.password ?? ''), doctor.passwordHash))) {
       res.status(401).json({ error: 'Credenciais inválidas.' }); return;
     }
     res.json({ token: signDoctorToken(doctor.id), doctor: { id: doctor.id, name: doctor.name, crm: doctor.crm, specialty: doctor.specialty, email: doctor.email, photoUrl: doctor.photoUrl } });

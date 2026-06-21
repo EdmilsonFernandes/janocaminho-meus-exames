@@ -156,7 +156,8 @@ export const EvolutionPage = () => {
 
 /** Grupo colapsável por categoria médica — header com emoji, nome, pior status e contagem; dentro ficam os cards de cada analito. */
 const CategoryGroup = ({ group, expandOuts }: { group: { cat: string; emoji: string; color: string; items: EvoItem[] }; expandOuts?: boolean }) => {
-  const [open, setOpen] = useState(true);
+  // Recolhido por padrão. Exceção: no filtro "Fora da faixa", abre só os grupos que têm alerta.
+  const [open, setOpen] = useState(!!expandOuts && group.items.some((i) => statusOf(i) === 'out'));
   const worst: Status = group.items.some((i) => statusOf(i) === 'out') ? 'out' : group.items.some((i) => statusOf(i) === 'change') ? 'change' : 'stable';
   return (
     <Card sx={{ borderRadius: 3, border: `1px solid ${group.color}26`, overflow: 'hidden' }}>

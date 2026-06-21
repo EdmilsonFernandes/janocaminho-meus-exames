@@ -14,7 +14,13 @@ export async function requireAuth(req: AuthedRequest, res: Response, next: NextF
     return;
   }
   try {
-    const { userId } = verifyToken(header.slice(7));
+    const payload: any = verifyToken(header.slice(7));
+    // GARANTIA DE ISOLAMENTO: token de MÉDICO (type:'doctor') nunca acessa a área do paciente.
+    if (payload?.type === 'doctor') {
+      res.status(401).json({ error: 'Use o login de paciente. Conta de médico não acessa esta área.' });
+      return;
+    }
+    const userId: string | undefined = payload?.userId;
     const user = await prisma.user.findUnique({ where: { id: userId }, select: { id: true } });
     if (!user) {
       res.status(401).json({ error: 'Usuário inválido' });

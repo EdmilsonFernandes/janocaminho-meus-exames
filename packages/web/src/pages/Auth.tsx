@@ -152,7 +152,7 @@ export const LoginPage = () => {
       {mode === 'password' ? (
         <Box component="form" onSubmit={submit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <TextField
-            placeholder="E-mail" type="email" required autoComplete="username" value={email}
+            placeholder={role === 'medico' ? 'E-mail ou CRM' : 'E-mail'} type={role === 'medico' ? 'text' : 'email'} required autoComplete="username" value={email}
             onChange={(e) => setEmail(e.target.value)} sx={fieldSx}
             slotProps={{ input: { startAdornment: <InputAdornment position="start"><I.Mail /></InputAdornment> } }}
           />

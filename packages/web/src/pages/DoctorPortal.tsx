@@ -88,7 +88,7 @@ export const DoctorPortalPage = () => {
               {SPECIALTIES.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
             </TextField>
           </>)}
-          <TextField placeholder="E-mail" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} sx={fieldSx}
+          <TextField placeholder="E-mail ou CRM" type="text" required value={email} onChange={(e) => setEmail(e.target.value)} sx={fieldSx}
             slotProps={{ input: { startAdornment: <InputAdornment position="start"><I.Mail /></InputAdornment> } }} />
           <TextField placeholder="Senha (mín. 6 caracteres)" type={showPwd ? 'text' : 'password'} required value={pwd} onChange={(e) => setPwd(e.target.value)} sx={fieldSx}
             slotProps={{ input: { startAdornment: <InputAdornment position="start"><I.Lock /></InputAdornment>, endAdornment: <InputAdornment position="end"><IconButton onClick={() => setShowPwd((s) => !s)} edge="end" size="small">{showPwd ? <I.Eye /> : <I.EyeOff />}</IconButton></InputAdornment> } }} />
