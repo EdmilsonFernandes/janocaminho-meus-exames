@@ -1,27 +1,49 @@
 import { useState, useEffect } from 'react';
-import { Box, Card, CardContent, Typography, TextField, Button, CircularProgress, Stack, Chip, Avatar, Divider, Alert, MenuItem } from '@mui/material';
+import { Box, Card, CardContent, Typography, TextField, Button, CircularProgress, Stack, Chip, Avatar, MenuItem, Tabs, Tab, Alert, Divider, InputAdornment, IconButton, Link } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import { API_URL } from '../config';
 import { DrExame } from '../components/DrExame';
 import { SPECIALTIES } from '../utils/medicalData';
 
 const docKey = 'doctorToken';
 
+/* Ícones inline (sem dependência extra). */
+const I = {
+  Mail: () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9aa7ad" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></svg>),
+  Lock: () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9aa7ad" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>),
+  Person: () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9aa7ad" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-3.3 3.6-5 8-5s8 1.7 8 5" /></svg>),
+  Badge: () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9aa7ad" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 10h18M8 4v4M16 4v4" /></svg>),
+  Eye: () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9aa7ad" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></svg>),
+  EyeOff: () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9aa7ad" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3l18 18" /><path d="M10.6 5.1A10.9 10.9 0 0 1 12 5c6.5 0 10 7 10 7a18 18 0 0 1-3.2 4M6.6 6.6A18 18 0 0 0 2 12s3.5 7 10 7a10.8 10.8 0 0 0 5.4-1.5" /><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" /></svg>),
+};
+
+const fieldSx = {
+  '& .MuiOutlinedInput-root': { borderRadius: '8px', bgcolor: '#fff', '& fieldset': { borderColor: '#dde3e8' }, '&:hover fieldset': { borderColor: '#7fcfc6' }, '&.Mui-focused fieldset': { borderColor: '#20b2aa', borderWidth: '1.5px' } },
+} as const;
+
+const SCOPE_META: Record<string, { label: string; icon: string }> = {
+  exams: { label: 'Exames', icon: '📋' },
+  evolution: { label: 'Evolução', icon: '📈' },
+  alerts: { label: 'Alertas', icon: '🚨' },
+  summary: { label: 'Resumos IA', icon: '🤖' },
+};
+
 export const DoctorPortalPage = () => {
+  const navigate = useNavigate();
   const [token, setToken] = useState<string | null>(localStorage.getItem(docKey));
   const [doctor, setDoctor] = useState<any>(null);
   const [email, setEmail] = useState('');
   const [pwd, setPwd] = useState('');
+  const [showPwd, setShowPwd] = useState(false);
   const [mode, setMode] = useState<'login' | 'register'>(() => { const q = window.location.hash.split('?')[1] || ''; return new URLSearchParams(q).get('mode') === 'register' ? 'register' : 'login'; });
   const [regName, setRegName] = useState(''); const [regCrm, setRegCrm] = useState(''); const [regSpec, setRegSpec] = useState('');
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState('');
 
-  const docHeaders = () => token ? { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` } : { 'Content-Type': 'application/json' };
-
   const submit = async (e: React.FormEvent) => {
     e.preventDefault(); setLoading(true); setErr('');
     try {
-      const body = mode === 'login' ? { email, password: pwd } : { name: regName, crm: regCrm, specialty: regSpec, email, password: pwd };
+      const body = mode === 'login' ? { email: email.trim().toLowerCase(), password: pwd } : { name: regName.trim(), crm: regCrm.trim(), specialty: regSpec, email: email.trim().toLowerCase(), password: pwd };
       const r = await fetch(`${API_URL}/doctor/${mode}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Falha');
@@ -29,54 +51,70 @@ export const DoctorPortalPage = () => {
     } catch (e: any) { setErr(e.message); } finally { setLoading(false); }
   };
 
-  const logout = () => { localStorage.removeItem(docKey); setToken(null); setDoctor(null); };
+  const logout = () => { localStorage.removeItem(docKey); setToken(null); setDoctor(null); setEmail(''); setPwd(''); setMode('login'); };
 
   if (token) return <DoctorDashboard token={token} onLogout={logout} />;
 
   return (
-    <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2, background: 'linear-gradient(160deg,#f0f9ff,#e6f7f5)' }}>
-      <Box sx={{ width: '100%', maxWidth: 420, bgcolor: '#fff', borderRadius: 4, p: { xs: 3, sm: 4 }, boxShadow: '0 8px 40px rgba(11,92,171,.12)' }}>
+    <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2, background: 'linear-gradient(135deg,#e6f7f5,#d4f0ec)' }}>
+      <Box sx={{ width: '100%', maxWidth: 420, bgcolor: '#fff', borderRadius: '16px', boxShadow: '0 10px 40px rgba(0,80,70,.12)', p: { xs: 3, sm: 4 } }}>
         <Box sx={{ mb: 1 }}>
-          <Button size="small" onClick={() => { window.location.hash = '/'; }} sx={{ color: '#64748b', textTransform: 'none', fontWeight: 700, p: 0, minWidth: 0, '&:hover': { bgcolor: 'transparent', color: '#0b5cab' } }}>← Voltar ao app</Button>
+          <Button size="small" onClick={() => navigate('/')} sx={{ color: '#64748b', textTransform: 'none', fontWeight: 700, p: 0, minWidth: 0, '&:hover': { bgcolor: 'transparent', color: TEAL } }}>← Voltar ao app</Button>
         </Box>
         <Stack alignItems="center" spacing={1} sx={{ mb: 3 }}>
-          <Box sx={{ width: 64, height: 64, borderRadius: '50%', bgcolor: '#e6f7f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><DrExame size={44} sx={{ borderRadius: '50%' }} /></Box>
-          <Typography variant="h5" sx={{ fontWeight: 800, color: '#0f172a' }}>Portal do Médico</Typography>
-          <Typography variant="caption" color="text.secondary">Acesso restrito a profissionais de saúde</Typography>
+          <Box sx={{ width: 78, height: 78, borderRadius: '50%', bgcolor: '#e0f2f1', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'inset 0 0 0 1px rgba(32,178,170,.15)' }}>
+            <DrExame size={56} sx={{ borderRadius: '50%' }} />
+          </Box>
+          <Typography variant="h5" sx={{ fontWeight: 800, color: '#0f3d3a', fontFamily: 'Poppins, sans-serif' }}>Portal do Médico</Typography>
+          <Typography variant="caption" sx={{ color: '#757575' }}>{mode === 'register' ? 'Crie sua conta de profissional de saúde' : 'Acesso restrito a profissionais'}</Typography>
         </Stack>
+
         <Box component="form" onSubmit={submit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {mode === 'register' && (<>
-            <TextField label="Nome completo" required value={regName} onChange={(e) => setRegName(e.target.value)} size="small" fullWidth />
-            <TextField label="CRM (ex.: 12345-SP)" required value={regCrm} onChange={(e) => setRegCrm(e.target.value)} size="small" fullWidth helperText="Mesmo CRM que o paciente usou no convite." />
-            <TextField select label="Especialidade" value={regSpec} onChange={(e) => setRegSpec(e.target.value)} size="small" fullWidth>
+            <TextField placeholder="Nome completo" required value={regName} onChange={(e) => setRegName(e.target.value)} sx={fieldSx}
+              slotProps={{ input: { startAdornment: <InputAdornment position="start"><I.Person /></InputAdornment> } }} />
+            <TextField placeholder="CRM (ex.: 12345-SP)" required value={regCrm} onChange={(e) => setRegCrm(e.target.value)} sx={fieldSx} helperText="Use o mesmo CRM que o paciente informou no convite."
+              slotProps={{ input: { startAdornment: <InputAdornment position="start"><I.Badge /></InputAdornment> } }} />
+            <TextField select label="Especialidade" value={regSpec} onChange={(e) => setRegSpec(e.target.value)} sx={fieldSx} fullWidth>
               <MenuItem value=""><em>Selecione…</em></MenuItem>
               {SPECIALTIES.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
             </TextField>
           </>)}
-          <TextField label="E-mail" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} size="small" fullWidth />
-          <TextField label="Senha" type="password" required value={pwd} onChange={(e) => setPwd(e.target.value)} size="small" fullWidth />
-          {err && <Alert severity="error" sx={{ py: 0.5 }}>{err}</Alert>}
-          <Button type="submit" variant="contained" fullWidth disabled={loading} sx={{ borderRadius: 2, py: 1.3, fontWeight: 800, textTransform: 'none', background: 'linear-gradient(135deg,#0b5cab,#1565c0)' }}>
-            {loading ? <CircularProgress size={22} color="inherit" /> : mode === 'login' ? 'Entrar' : 'Cadastrar'}
+          <TextField placeholder="E-mail" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} sx={fieldSx}
+            slotProps={{ input: { startAdornment: <InputAdornment position="start"><I.Mail /></InputAdornment> } }} />
+          <TextField placeholder="Senha (mín. 6 caracteres)" type={showPwd ? 'text' : 'password'} required value={pwd} onChange={(e) => setPwd(e.target.value)} sx={fieldSx}
+            slotProps={{ input: { startAdornment: <InputAdornment position="start"><I.Lock /></InputAdornment>, endAdornment: <InputAdornment position="end"><IconButton onClick={() => setShowPwd((s) => !s)} edge="end" size="small">{showPwd ? <I.Eye /> : <I.EyeOff />}</IconButton></InputAdornment> } }} />
+          {err && <Alert severity="error" sx={{ py: 0.5, borderRadius: 2 }}>{err}</Alert>}
+          <Button type="submit" variant="contained" size="large" fullWidth disabled={loading} sx={{ borderRadius: '8px', py: 1.35, fontWeight: 800, textTransform: 'none', fontSize: 16, background: 'linear-gradient(180deg,#20b2aa,#009688)', boxShadow: '0 6px 18px rgba(0,150,136,.3)', '&:hover': { background: 'linear-gradient(180deg,#1ca39e,#00897b)' } }}>
+            {loading ? <CircularProgress size={22} color="inherit" /> : mode === 'login' ? 'Entrar' : 'Criar conta médica'}
           </Button>
         </Box>
-        <Typography align="center" sx={{ mt: 2, fontSize: 13 }}>
+
+        <Typography align="center" sx={{ mt: 2, fontSize: 13, color: '#46555a' }}>
           {mode === 'login' ? 'Primeiro acesso?' : 'Já tem conta?'}{' '}
-          <Box component="button" type="button" onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setErr(''); }} sx={{ background: 'none', border: 'none', color: '#0b5cab', fontWeight: 700, cursor: 'pointer' }}>
-            {mode === 'login' ? 'Cadastre-se' : 'Fazer login'}
-          </Box>
+          <Link component="button" type="button" onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setErr(''); }} sx={{ fontWeight: 700, color: '#00897b' }}>
+            {mode === 'login' ? 'Cadastrar' : 'Fazer login'}
+          </Link>
         </Typography>
-        <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 2, color: '#9aa7ad' }}>Conteúdo educativo — não substitui avaliação médica.</Typography>
+        <Box sx={{ mt: 2, display: 'flex', gap: 1, alignItems: 'flex-start', p: 1.25, borderRadius: 2, background: '#f0f9f7', border: '1px solid #d6ece8' }}>
+          <Box sx={{ fontSize: 16, lineHeight: 1.3, flexShrink: 0 }}>🩺</Box>
+          <Typography sx={{ fontSize: 11.5, color: '#4a6b66', lineHeight: 1.45 }}><strong>Conteúdo educativo.</strong> O paciente controla o que compartilha. Você vê apenas os exames e dados autorizados.</Typography>
+        </Box>
       </Box>
     </Box>
   );
 };
 
+const TEAL = '#178f89';
+
 const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => void }) => {
   const [patients, setPatients] = useState<any[]>([]);
   const [selected, setSelected] = useState<any | null>(null);
+  const [tab, setTab] = useState('exams');
   const [exams, setExams] = useState<any[]>([]);
+  const [evolution, setEvolution] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [detailLoading, setDetailLoading] = useState(false);
   const [doctor, setDoctor] = useState<any>(null);
   const h = { Authorization: `Bearer ${token}` };
 
@@ -85,60 +123,172 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     fetch(`${API_URL}/doctor/patients`, { headers: h }).then((r) => r.json()).then((d) => { setPatients(d.items ?? []); setLoading(false); }).catch(() => setLoading(false));
   }, []);
 
-  const viewExams = async (p: any) => {
+  // Abas disponíveis = escopos que o paciente autorizou (e que suportamos visualmente)
+  const scopes: string[] = selected?.scopes ?? [];
+  const supportedTabs = ['exams', 'alerts', 'evolution', 'summary'].filter((s) => scopes.includes(s));
+
+  const openPatient = async (p: any) => {
     setSelected(p);
-    const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/exams`, { headers: h });
-    const d = await r.json();
-    setExams(r.ok ? (d.items ?? []) : []);
+    const pScopes: string[] = p.scopes ?? [];
+    const pTabs = ['exams', 'alerts', 'evolution', 'summary'].filter((s) => pScopes.includes(s));
+    const wantExams = pScopes.includes('exams') || pScopes.includes('alerts');
+    const wantEvol = pScopes.includes('evolution');
+    setTab(pTabs[0] || 'exams');
+    setDetailLoading(true); setExams([]); setEvolution([]);
+    try {
+      if (wantExams) { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/exams`, { headers: h }); const d = await r.json(); if (r.ok) setExams(d.items ?? []); }
+      if (wantEvol) { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/evolution`, { headers: h }); const d = await r.json(); if (r.ok) setEvolution(d.items ?? []); }
+    } catch {} finally { setDetailLoading(false); }
   };
 
+  // Alertas = todos os valores alterados agregados dos exames
+  const allAlerts = exams.flatMap((ex: any) => (ex.items ?? []).map((it: any) => ({ ...it, examTitle: ex.title, examDate: ex.performedAt })));
+
+  const fmtDate = (d?: string) => d ? new Date(d).toLocaleDateString('pt-BR') : 's/d';
+
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc' }}>
-      <Box sx={{ bgcolor: 'linear-gradient(135deg,#0b5cab,#1565c0)', background: 'linear-gradient(135deg,#0b5cab,#1565c0)', color: '#fff', p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Box><Typography sx={{ fontWeight: 800 }}>🩺 {doctor?.name || 'Médico'}</Typography>{doctor?.specialty && <Typography variant="caption" sx={{ opacity: .85 }}>{doctor.specialty} • CRM {doctor?.crm}</Typography>}</Box>
-        <Button size="small" onClick={onLogout} sx={{ color: '#fff', borderColor: 'rgba(255,255,255,.4)' }} variant="outlined">Sair</Button>
+    <Box sx={{ minHeight: '100vh', bgcolor: '#f4faf9' }}>
+      {/* Header — mesma identidade teal do app do paciente */}
+      <Box sx={{ background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff', px: { xs: 2, md: 3 }, py: 2, display: 'flex', alignItems: 'center', gap: 2, boxShadow: '0 4px 20px rgba(32,178,170,.25)' }}>
+        <Avatar src={doctor?.photoUrl} sx={{ bgcolor: 'rgba(255,255,255,.2)', fontWeight: 800 }}>{doctor?.name?.charAt(0)}</Avatar>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>🩺 {doctor?.name || 'Médico'}</Typography>
+            <Chip size="small" label="Profissional" sx={{ bgcolor: 'rgba(255,255,255,.2)', color: '#fff', fontWeight: 700, height: 20, fontSize: 10 }} />
+          </Stack>
+          <Typography variant="caption" sx={{ opacity: 0.9 }}>{[doctor?.specialty, doctor?.crm && `CRM ${doctor.crm}`].filter(Boolean).join(' • ') || 'Portal do Médico'}</Typography>
+        </Box>
+        <Button size="small" variant="outlined" onClick={onLogout} sx={{ color: '#fff', borderColor: 'rgba(255,255,255,.5)', textTransform: 'none', fontWeight: 700, borderRadius: 99, '&:hover': { borderColor: '#fff', bgcolor: 'rgba(255,255,255,.1)' } }}>Sair</Button>
       </Box>
-      <Box sx={{ maxWidth: 900, mx: 'auto', p: { xs: 2, md: 3 } }}>
-        {loading && <CircularProgress />}
+
+      <Box sx={{ maxWidth: 920, mx: 'auto', p: { xs: 2, md: 3 } }}>
+        {loading && <Box sx={{ textAlign: 'center', py: 6 }}><CircularProgress sx={{ color: TEAL }} /></Box>}
+
+        {/* LISTA DE PACIENTES */}
         {!loading && !selected && (
           <>
-            <Typography variant="h6" sx={{ mb: 2, fontWeight: 800 }}>Pacientes ({patients.length})</Typography>
-            {patients.length === 0 && <Card><CardContent><Typography color="text.secondary">Nenhum paciente compartilhou dados com você ainda.</Typography></CardContent></Card>}
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 800, color: '#0f3d3a' }}>Pacientes que compartilharam ({patients.length})</Typography>
+            {patients.length === 0 && (
+              <Card sx={{ borderRadius: 4 }}><CardContent><Box sx={{ textAlign: 'center', py: 4 }}>
+                <Box sx={{ fontSize: 48, mb: 1 }}>📭</Box>
+                <Typography color="text.secondary">Nenhum paciente compartilhou dados com você ainda.</Typography>
+                <Typography variant="caption" color="text.secondary">O compartilhamento é feito pelo paciente no app dele.</Typography>
+              </Box></CardContent></Card>
+            )}
             <Stack spacing={1.5}>
               {patients.map((p) => (
-                <Card key={p.shareId} variant="outlined" sx={{ cursor: 'pointer', '&:hover': { boxShadow: 3 } }} onClick={() => viewExams(p)}>
+                <Card key={p.shareId} sx={{ borderRadius: 4, cursor: 'pointer', transition: 'all .15s', border: '1px solid #e2efec', '&:hover': { boxShadow: '0 8px 24px rgba(32,178,170,.15)', transform: 'translateY(-1px)' } }} onClick={() => openPatient(p)}>
                   <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Avatar src={p.patient?.photoUrl ? undefined : undefined} sx={{ bgcolor: '#0b5cab' }}>{p.patient?.fullName?.charAt(0)}</Avatar>
-                    <Box sx={{ flex: 1 }}>
-                      <Typography sx={{ fontWeight: 700 }}>{p.patient?.fullName}</Typography>
-                      <Typography variant="caption" color="text.secondary">{p.patient?.relationship}{p.convenio ? ` • ${p.convenio}` : ' • Particular'}</Typography>
-                      <Box sx={{ mt: 0.5 }}>{p.scopes?.map((s: string) => <Chip key={s} size="small" label={s} sx={{ mr: 0.5, height: 18, fontSize: 10, bgcolor: '#e6f3ff', color: '#0b5cab' }} />)}</Box>
+                    <Avatar src={p.patient?.photoUrl} sx={{ bgcolor: TEAL, fontWeight: 800 }}>{p.patient?.fullName?.charAt(0)}</Avatar>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography sx={{ fontWeight: 800, color: '#0f3d3a' }}>{p.patient?.fullName}</Typography>
+                      <Typography variant="caption" sx={{ color: '#757575' }}>{[p.patient?.relationship, p.convenio || 'Particular', `desde ${fmtDate(p.createdAt)}`].filter(Boolean).join(' • ')}</Typography>
+                      <Box sx={{ mt: 0.5 }}>{(p.scopes ?? []).map((s: string) => <Chip key={s} size="small" label={`${SCOPE_META[s]?.icon || ''} ${SCOPE_META[s]?.label || s}`} sx={{ mr: 0.5, height: 22, fontSize: 11, bgcolor: '#e0f2f1', color: TEAL, fontWeight: 600 }} />)}</Box>
                     </Box>
+                    <Typography sx={{ color: TEAL, fontWeight: 800 }}>›</Typography>
                   </CardContent>
                 </Card>
               ))}
             </Stack>
           </>
         )}
+
+        {/* DETALHE DO PACIENTE */}
         {selected && (
           <>
-            <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 2 }}>
-              <Button size="small" onClick={() => setSelected(null)}>← Voltar</Button>
-              <Typography variant="h6" sx={{ fontWeight: 800 }}>{selected.patient?.fullName}</Typography>
+            <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
+              <Button size="small" onClick={() => setSelected(null)} sx={{ color: TEAL, textTransform: 'none', fontWeight: 700, minWidth: 0 }}>← Voltar</Button>
+              <Avatar src={selected.patient?.photoUrl} sx={{ bgcolor: TEAL, width: 36, height: 36, fontSize: 16 }}>{selected.patient?.fullName?.charAt(0)}</Avatar>
+              <Box>
+                <Typography sx={{ fontWeight: 800, color: '#0f3d3a', lineHeight: 1.1 }}>{selected.patient?.fullName}</Typography>
+                <Typography variant="caption" sx={{ color: '#757575' }}>{[selected.patient?.relationship, selected.convenio || 'Particular'].filter(Boolean).join(' • ')}</Typography>
+              </Box>
             </Stack>
-            <Stack spacing={1.5}>
-              {exams.length === 0 && <Card><CardContent><Typography color="text.secondary">Sem exames extraídos.</Typography></CardContent></Card>}
-              {exams.map((ex: any) => (
-                <Card key={ex.id} variant="outlined"><CardContent>
-                  <Typography sx={{ fontWeight: 700 }}>{ex.title}</Typography>
-                  <Typography variant="caption" color="text.secondary">{new Date(ex.performedAt).toLocaleDateString('pt-BR')}{ex.sourceLab ? ` • ${ex.sourceLab}` : ''} • {ex._count?.items ?? 0} itens</Typography>
-                  {ex.items?.length > 0 && <Box sx={{ mt: 1 }}>{ex.items.map((it: any, i: number) => <Chip key={i} size="small" color="error" variant="outlined" label={`${it.name}: ${it.valueText}`} sx={{ mr: 0.5, mb: 0.5 }} />)}</Box>}
-                </CardContent></Card>
-              ))}
-            </Stack>
+
+            {selected.patient?.clinicalProfile && (
+              <Card sx={{ mb: 2, borderRadius: 3, bgcolor: '#f0f9f7', border: '1px solid #d6ece8' }}><CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
+                <Typography variant="caption" sx={{ fontWeight: 800, color: TEAL }}>PERFIL CLÍNICO</Typography>
+                <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', mt: 0.25 }}>{selected.patient.clinicalProfile}</Typography>
+              </CardContent></Card>
+            )}
+
+            {/* TABS por escopo — cada uma mostra dados próprios */}
+            {supportedTabs.length > 0 ? (
+              <>
+                <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable" scrollButtons="auto" sx={{ mb: 2, '& .MuiTab-root': { textTransform: 'none', fontWeight: 700, minHeight: 44 }, '& .Mui-selected': { color: `${TEAL} !important` }, '& .MuiTabs-indicator': { bgcolor: TEAL } }}>
+                  {supportedTabs.map((s) => <Tab key={s} value={s} label={`${SCOPE_META[s]?.icon || ''} ${SCOPE_META[s]?.label || s}`} />)}
+                </Tabs>
+
+                {detailLoading && <Box sx={{ textAlign: 'center', py: 4 }}><CircularProgress size={28} sx={{ color: TEAL }} /></Box>}
+
+                {!detailLoading && tab === 'exams' && (
+                  <Stack spacing={1.5}>
+                    {exams.length === 0 && <Empty label="Sem exames extraídos." />}
+                    {exams.map((ex) => (
+                      <Card key={ex.id} variant="outlined" sx={{ borderRadius: 3, borderColor: '#e2efec' }}><CardContent>
+                        <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+                          <Box>
+                            <Typography sx={{ fontWeight: 700, color: '#0f3d3a' }}>{ex.title}</Typography>
+                            <Typography variant="caption" sx={{ color: '#757575' }}>{fmtDate(ex.performedAt)}{ex.sourceLab ? ` • ${ex.sourceLab}` : ''} • {ex._count?.items ?? 0} itens</Typography>
+                          </Box>
+                          {ex.items?.length > 0 && <Chip size="small" color="error" label={`${ex.items.length} alterado(s)`} sx={{ fontWeight: 700, height: 20 }} />}
+                        </Stack>
+                        {ex.items?.length > 0 && <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>{ex.items.map((it: any, i: number) => <Chip key={i} size="small" color="error" variant="outlined" label={`${it.name}: ${it.valueText}`} sx={{ height: 22, fontSize: 11 }} />)}</Box>}
+                      </CardContent></Card>
+                    ))}
+                  </Stack>
+                )}
+
+                {!detailLoading && tab === 'alerts' && (
+                  <Stack spacing={1}>
+                    {allAlerts.length === 0 && <Empty label="Nenhum valor alterado nos exames." />}
+                    {allAlerts.map((a, i) => (
+                      <Card key={i} variant="outlined" sx={{ borderRadius: 2, borderColor: '#f3dada', bgcolor: '#fff8f8' }}><CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.25, '&:last-child': { pb: 1.25 } }}>
+                        <Box sx={{ fontSize: 18 }}>🚩</Box>
+                        <Box sx={{ flex: 1 }}>
+                          <Typography sx={{ fontWeight: 700, color: '#b91c1c' }}>{a.name} <Typography component="span" sx={{ fontWeight: 800 }}>: {a.valueText}</Typography></Typography>
+                          <Typography variant="caption" sx={{ color: '#757575' }}>{a.examTitle} • {fmtDate(a.examDate)}</Typography>
+                        </Box>
+                      </CardContent></Card>
+                    ))}
+                  </Stack>
+                )}
+
+                {!detailLoading && tab === 'evolution' && (
+                  <Stack spacing={1}>
+                    {evolution.length === 0 && <Empty label="Sem dados de evolução (valores numéricos) ainda." />}
+                    {evolution.slice(0, 50).map((it, i) => (
+                      <Card key={i} variant="outlined" sx={{ borderRadius: 2, borderColor: '#e2efec' }}><CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1.25, '&:last-child': { pb: 1.25 } }}>
+                        <Box>
+                          <Typography sx={{ fontWeight: 700, color: '#0f3d3a' }}>{it.name}</Typography>
+                          <Typography variant="caption" sx={{ color: '#757575' }}>Ref: {[it.refLow, it.refHigh].filter((x: any) => x != null).join('-') || '—'} {it.unit || ''}</Typography>
+                        </Box>
+                        <Stack direction="row" spacing={1} alignItems="center">
+                          <Typography sx={{ fontWeight: 800, color: it.isAbnormal ? '#b91c1c' : '#0f3d3a' }}>{it.valueNumeric} {it.unit || ''}</Typography>
+                          {it.flag && <Chip size="small" label={it.flag} color={it.isAbnormal ? 'error' : 'success'} variant="outlined" sx={{ height: 20, fontSize: 10 }} />}
+                        </Stack>
+                      </CardContent></Card>
+                    ))}
+                  </Stack>
+                )}
+
+                {!detailLoading && tab === 'summary' && (
+                  <Empty label="Os resumos de IA do paciente aparecerão aqui em breve. Por enquanto, use as abas Exames e Alertas." icon="🤖" />
+                )}
+              </>
+            ) : (
+              <Empty label="O paciente não autorizou nenhum escopo de visualização." icon="🔒" />
+            )}
           </>
         )}
       </Box>
     </Box>
   );
 };
+
+const Empty = ({ label, icon = '📭' }: { label: string; icon?: string }) => (
+  <Card sx={{ borderRadius: 4 }}><CardContent><Box sx={{ textAlign: 'center', py: 4 }}>
+    <Box sx={{ fontSize: 44, mb: 1 }}>{icon}</Box>
+    <Typography color="text.secondary">{label}</Typography>
+  </Box></CardContent></Card>
+);
