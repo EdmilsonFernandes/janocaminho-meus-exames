@@ -43,7 +43,7 @@ export async function sendPush(tokens: string[], title: string, body: string, da
   if (!m) return;
   await Promise.all(tokens.map(async (token) => {
     try {
-      await m.send({ token, notification: { title, body }, data: data ?? {}, android: { priority: 'high' } });
+      await m.send({ token, notification: { title, body }, data: data ?? {}, android: { priority: 'high', notification: { channel_id: 'meus-exames', default_sound: true, default_vibrate_timings: true } } });
     } catch (e: any) {
       if (e?.code === 'messaging/registration-token-not-registered') {
         await prisma.deviceToken.delete({ where: { token } }).catch(() => {});
