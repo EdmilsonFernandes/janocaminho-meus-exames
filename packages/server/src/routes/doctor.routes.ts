@@ -1,11 +1,12 @@
 import { Router } from 'express';
 import jwt from 'jsonwebtoken';
 import path from 'path';
+import fs from 'fs';
 import { prisma } from '../prisma';
 import { hashPassword, comparePassword } from '../auth/jwt';
 import { config } from '../config';
 import { upload } from '../middleware/upload';
-import { saveDoctorPhoto, resolvePatientPhoto } from '../utils/storage';
+import { saveDoctorPhoto, resolvePatientPhoto, resolveExamFile } from '../utils/storage';
 
 const router = Router();
 
@@ -84,6 +85,19 @@ router.put('/me', requireDoctor, async (req: any, res, next) => {
   } catch (e) { next(e); }
 });
 
+// TROCAR SENHA do médico
+router.put('/me/password', requireDoctor, async (req: any, res, next) => {
+  try {
+    const cur = String(req.body?.currentPassword ?? '');
+    const next0 = String(req.body?.newPassword ?? '');
+    if (next0.length < 6) { res.status(400).json({ error: 'Nova senha mín. 6 caracteres.' }); return; }
+    const doctor = await prisma.doctor.findUnique({ where: { id: req.doctorId }, select: { passwordHash: true } });
+    if (!doctor || !(await comparePassword(cur, doctor.passwordHash))) { res.status(401).json({ error: 'Senha atual incorreta.' }); return; }
+    await prisma.doctor.update({ where: { id: req.doctorId }, data: { passwordHash: await hashPassword(next0) } });
+    res.json({ ok: true });
+  } catch (e) { next(e); }
+});
+
 // UPLOAD de foto do médico — S3 (prod) ou disco (dev). Espelho da rota do paciente.
 router.post('/me/photo', requireDoctor, upload.single('photo'), async (req: any, res, next) => {
   try {
@@ -131,6 +145,33 @@ router.get('/patients/:patientId/exams', requireDoctor, async (req: any, res, ne
       orderBy: { performedAt: 'desc' }, take: 20,
     });
     res.json({ items: exams });
+  } catch (e) { next(e); }
+});
+
+// DETALHE de um exame (TODOS os itens) — só se scope 'exams'. Igual à página do paciente.
+router.get('/patients/:patientId/exams/:examId', requireDoctor, async (req: any, res, next) => {
+  try {
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    if (!share?.scopes.includes('exams')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+    const exam = await prisma.exam.findFirst({
+      where: { id: req.params.examId, patientId: req.params.patientId, status: 'EXTRACTED' },
+      select: { id: true, title: true, kind: true, performedAt: true, sourceLab: true, filePath: true, items: { orderBy: { name: 'asc' }, select: { id: true, name: true, valueText: true, valueNumeric: true, unit: true, flag: true, isAbnormal: true, refLow: true, refHigh: true, refText: true } } },
+    });
+    if (!exam) { res.status(404).json({ error: 'Exame não encontrado.' }); return; }
+    res.json({ exam });
+  } catch (e) { next(e); }
+});
+
+// PDF ORIGINAL do exame (acesso direto à fonte — validação legal do médico)
+router.get('/patients/:patientId/exams/:examId/file', requireDoctor, async (req: any, res, next) => {
+  try {
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    if (!share?.scopes.includes('exams')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+    const exam = await prisma.exam.findFirst({ where: { id: req.params.examId, patientId: req.params.patientId }, select: { filePath: true } });
+    if (!exam?.filePath) { res.status(404).json({ error: 'Arquivo não encontrado.' }); return; }
+    const r = await resolveExamFile(exam.filePath);
+    if (r.kind === 'url') res.redirect(302, r.url as string);
+    else { res.setHeader('Content-Type', 'application/pdf'); fs.createReadStream(r.file as string).pipe(res); }
   } catch (e) { next(e); }
 });
 

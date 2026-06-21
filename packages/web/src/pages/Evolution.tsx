@@ -30,7 +30,7 @@ const STATUS_META: Record<Status, { emoji: string; label: string; color: string 
 };
 
 // Agrupamento por categoria médica (estilo laudo: Hemograma, Função Hepática, etc.)
-const CATS: { key: string; cat: string; emoji: string; color: string; keys: string[] }[] = [
+export const CATS: { key: string; cat: string; emoji: string; color: string; keys: string[] }[] = [
   { key: 'hemo', cat: 'Hemograma', emoji: '🩸', color: '#e11d48', keys: ['hemoglo', 'hematoc', 'eritroc', 'eritróc', 'leucoc', 'leucóc', 'plaque', 'vcm', 'hcm', 'chcm', 'rdw', 'neutro', 'linfoc', 'linfóc', 'monoc', 'eosinofi', 'basofi', 'hemácia', 'hemacia', 'reticuloc', 'vpm', 'cgm', 'rhc'] },
   { key: 'glic', cat: 'Glicemia e Diabetes', emoji: '🍩', color: '#db2777', keys: ['glicose', 'glicemi', 'glicosilada', 'hba1c', 'insulina', 'homa', 'frutosam'] },
   { key: 'lipi', cat: 'Lipídios e Colesterol', emoji: '🧈', color: '#d97706', keys: ['colesterol', 'ldl', 'hdl', 'vldl', 'triglic', 'apolipo', 'castelli', 'nao-hdl', 'não-hdl'] },
@@ -45,7 +45,7 @@ const CATS: { key: string; cat: string; emoji: string; color: string; keys: stri
   { key: 'other', cat: 'Outros exames', emoji: '📋', color: '#64748b', keys: [] },
 ];
 const CAT_ORDER = CATS.map((c) => c.key);
-const categorize = (name: string) => {
+export const categorize = (name: string) => {
   const n = (name || '').toLowerCase();
   for (const c of CATS) if (c.key !== 'other' && c.keys.some((k) => n.includes(k))) return c;
   return CATS.find((c) => c.key === 'other')!;
