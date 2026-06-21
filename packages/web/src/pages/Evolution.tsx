@@ -29,6 +29,28 @@ const STATUS_META: Record<Status, { emoji: string; label: string; color: string 
   stable: { emoji: '✅', label: 'Estável', color: '#10b981' },
 };
 
+// Agrupamento por categoria médica (estilo laudo: Hemograma, Função Hepática, etc.)
+const CATS: { key: string; cat: string; emoji: string; color: string; keys: string[] }[] = [
+  { key: 'hemo', cat: 'Hemograma', emoji: '🩸', color: '#e11d48', keys: ['hemoglo', 'hematoc', 'eritroc', 'eritróc', 'leucoc', 'leucóc', 'plaque', 'vcm', 'hcm', 'chcm', 'rdw', 'neutro', 'linfoc', 'linfóc', 'monoc', 'eosinofi', 'basofi', 'hemácia', 'hemacia', 'reticuloc', 'vpm', 'cgm', 'rhc'] },
+  { key: 'glic', cat: 'Glicemia e Diabetes', emoji: '🍩', color: '#db2777', keys: ['glicose', 'glicemi', 'glicosilada', 'hba1c', 'insulina', 'homa', 'frutosam'] },
+  { key: 'lipi', cat: 'Lipídios e Colesterol', emoji: '🧈', color: '#d97706', keys: ['colesterol', 'ldl', 'hdl', 'vldl', 'triglic', 'apolipo', 'castelli', 'nao-hdl', 'não-hdl'] },
+  { key: 'hepa', cat: 'Função Hepática', emoji: '🫀', color: '#16a34a', keys: ['tgo', 'tgp', 'ast', 'alt', 'gama-gt', 'gama gt', 'ggt', 'gamagt', 'fosfatase alcalin', 'bilirrub', 'transamin', 'albumina'] },
+  { key: 'renal', cat: 'Função Renal', emoji: '🫘', color: '#7c3aed', keys: ['creatinina', 'ureia', 'uréia', 'acido urico', 'ácido úrico', 'tfg', 'egfr', 'depura', 'clearance', 'cistatina'] },
+  { key: 'horm', cat: 'Hormônios', emoji: '⚗️', color: '#0891b2', keys: ['tsh', 't4 livre', 't3 livre', 'tiroxina', 'triiodo', 'tireotropina', 'tireo', 'paratorm', 'testosterona', 'cortisol', 'prolactina', 'estradiol', 'androst', 'dhea', 'progester', 'hormônio', 'hormonio'] },
+  { key: 'card', cat: 'Marcadores Cardíacos', emoji: '❤️', color: '#dc2626', keys: ['troponina', 'creatino quinase', 'ck-mb', 'ck mb', 'ckmb', 'ldh', 'desidrogenase', 'bnp', 'pro-bnp', 'mioglo'] },
+  { key: 'elet', cat: 'Eletrólitos e Minerais', emoji: '⚡', color: '#0d9488', keys: ['sodio', 'sódio', 'potassio', 'potássio', 'calcio', 'cálcio', 'magnesio', 'magnésio', 'cloro', 'cloret', 'fosforo', 'fósforo'] },
+  { key: 'infl', cat: 'Inflamação e Ferro', emoji: '🛡️', color: '#ea580c', keys: ['pcr', 'vhs', 'proteina c reativa', 'proteína c reativa', 'ferritina', 'ferro', 'saturacao', 'saturação', 'transferr', 'tibc', 'uibc'] },
+  { key: 'coag', cat: 'Coagulação', emoji: '🩹', color: '#9333ea', keys: ['protrombina', 'inr', 'ttpa', 'fibrinogen', 'fibrinogên', 'tromboplastina', 'tempo de tromb', 'coagul'] },
+  { key: 'vita', cat: 'Vitaminas e Ácido Fólico', emoji: '💊', color: '#2563eb', keys: ['vitamina', 'acido folico', 'ácido fólico', 'folato', 'homociste'] },
+  { key: 'other', cat: 'Outros exames', emoji: '📋', color: '#64748b', keys: [] },
+];
+const CAT_ORDER = CATS.map((c) => c.key);
+const categorize = (name: string) => {
+  const n = (name || '').toLowerCase();
+  for (const c of CATS) if (c.key !== 'other' && c.keys.some((k) => n.includes(k))) return c;
+  return CATS.find((c) => c.key === 'other')!;
+};
+
 export const EvolutionPage = () => {
   const [pid] = useSelectedPatient();
   const [items, setItems] = useState<EvoItem[]>([]);
@@ -59,6 +81,19 @@ export const EvolutionPage = () => {
       .filter((i) => !q || i.nameCanonical.toLowerCase().includes(q))
       .sort((a, b) => order[statusOf(a)] - order[statusOf(b)]);
   }, [items, filter, query]);
+
+  // Agrupa os itens filtrados por categoria médica (ordem fixa do laudo)
+  const groups = useMemo(() => {
+    const order = { out: 0, change: 1, stable: 2 };
+    const map = new Map<string, { cat: string; emoji: string; color: string; items: EvoItem[] }>();
+    for (const it of filtered) {
+      const c = categorize(it.nameCanonical);
+      if (!map.has(c.key)) map.set(c.key, { cat: c.cat, emoji: c.emoji, color: c.color, items: [] });
+      map.get(c.key)!.items.push(it);
+    }
+    for (const g of map.values()) g.items.sort((a, b) => order[statusOf(a)] - order[statusOf(b)]);
+    return [...map.entries()].sort((a, b) => CAT_ORDER.indexOf(a[0]) - CAT_ORDER.indexOf(b[0])).map(([, g]) => g);
+  }, [filtered]);
 
   const CHIPS: { key: Status | 'all'; emoji: string; label: string; color: string; count: number }[] = [
     { key: 'all', emoji: '📋', label: 'Todos', color: '#178f89', count: items.length },
@@ -111,11 +146,33 @@ export const EvolutionPage = () => {
       )}
 
       {!loading && filtered.length > 0 && (
-        <Stack spacing={0.75}>
-          {filtered.map((it) => <EvoRow key={it.nameCanonical} it={it} defaultExpanded={filter === 'out' && statusOf(it) === 'out'} />)}
+        <Stack spacing={1.5}>
+          {groups.map((g) => <CategoryGroup key={g.cat} group={g} expandOuts={filter === 'out'} />)}
         </Stack>
       )}
     </Box>
+  );
+};
+
+/** Grupo colapsável por categoria médica — header com emoji, nome, pior status e contagem; dentro ficam os cards de cada analito. */
+const CategoryGroup = ({ group, expandOuts }: { group: { cat: string; emoji: string; color: string; items: EvoItem[] }; expandOuts?: boolean }) => {
+  const [open, setOpen] = useState(true);
+  const worst: Status = group.items.some((i) => statusOf(i) === 'out') ? 'out' : group.items.some((i) => statusOf(i) === 'change') ? 'change' : 'stable';
+  return (
+    <Card sx={{ borderRadius: 3, border: `1px solid ${group.color}26`, overflow: 'hidden' }}>
+      <Box onClick={() => setOpen((o) => !o)} sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 1.25, cursor: 'pointer', bgcolor: `${group.color}0a`, '&:hover': { bgcolor: `${group.color}14` } }}>
+        <Box sx={{ fontSize: 19 }}>{group.emoji}</Box>
+        <Typography sx={{ fontWeight: 800, flex: 1, color: '#0f3d3a', fontSize: 15 }}>{group.cat}</Typography>
+        <Box title={STATUS_META[worst].label} sx={{ fontSize: 14 }}>{STATUS_META[worst].emoji}</Box>
+        <Chip size="small" label={group.items.length} sx={{ bgcolor: `${group.color}1a`, color: group.color, fontWeight: 700, height: 22, minWidth: 28 }} />
+        <ExpandMoreIcon sx={{ transform: open ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform .2s', color: group.color, fontSize: 20 }} />
+      </Box>
+      {open && (
+        <Stack spacing={0.75} sx={{ p: 1 }}>
+          {group.items.map((it) => <EvoRow key={it.nameCanonical} it={it} defaultExpanded={!!expandOuts && statusOf(it) === 'out'} />)}
+        </Stack>
+      )}
+    </Card>
   );
 };
 

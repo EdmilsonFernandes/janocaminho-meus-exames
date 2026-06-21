@@ -93,7 +93,7 @@ export const LandingPage = () => {
           <Stack direction="row" spacing={1.5} alignItems="center">
             <Box component="button" onClick={() => goTo('beneficios')} sx={{ ...navBtn(scrolled), display: { xs: 'none', sm: 'inline' } }}>Recursos</Box>
             <Box component="button" onClick={() => goTo('planos')} sx={{ ...navBtn(scrolled), display: { xs: 'none', md: 'inline' } }}>Planos</Box>
-            <Button onClick={() => navigate('/login?login=1')} sx={{ color: TEAL_DARK, fontWeight: 700, textTransform: 'none' }}>Entrar</Button>
+            <Button onClick={() => navigate('/entrar')} sx={{ color: TEAL_DARK, fontWeight: 700, textTransform: 'none' }}>Entrar</Button>
             <Button variant="contained" color="primary" size="small" onClick={() => navigate('/registrar')} sx={{ borderRadius: 99, px: 2.5, textTransform: 'none', fontWeight: 700 }}>Criar conta</Button>
           </Stack>
         </Container>
@@ -122,7 +122,7 @@ export const LandingPage = () => {
                 <Button variant="contained" color="primary" size="large" onClick={() => navigate('/registrar')} sx={{ borderRadius: 99, px: 4, py: 1.5, fontSize: 16.5, textTransform: 'none', fontWeight: 800 }}>
                   Começar grátis →
                 </Button>
-                <Button size="large" onClick={() => navigate('/login?login=1')} sx={{ borderRadius: 99, px: 4, py: 1.5, fontSize: 16.5, textTransform: 'none', fontWeight: 700, color: TEAL_DARK, border: '1px solid #bfe7e3', '&:hover': { bgcolor: 'rgba(32,178,170,.06)', borderColor: TEAL } }}>
+                <Button size="large" onClick={() => navigate('/entrar')} sx={{ borderRadius: 99, px: 4, py: 1.5, fontSize: 16.5, textTransform: 'none', fontWeight: 700, color: TEAL_DARK, border: '1px solid #bfe7e3', '&:hover': { bgcolor: 'rgba(32,178,170,.06)', borderColor: TEAL } }}>
                   Já tenho conta
                 </Button>
               </Stack>
@@ -140,12 +140,11 @@ export const LandingPage = () => {
             <Box sx={{ display: 'flex', justifyContent: 'center', position: 'relative', minHeight: { xs: 280, md: 380 } }}>
               <Box sx={{
                 position: 'relative', width: '100%', maxWidth: 520,
-                borderRadius: 5, overflow: 'hidden', bgcolor: '#fff',
-                border: '1px solid #e6f1f0', p: 1.2,
+                borderRadius: 5, overflow: 'hidden',
                 boxShadow: '0 30px 60px rgba(32,178,170,.18), 0 8px 20px rgba(0,0,0,.06)',
                 animation: 'heroFloat 6s ease-in-out infinite',
               }}>
-                <Box component="img" src={`${import.meta.env.BASE_URL}capa-ia.png`} alt="Dr. Exame — seus exames com IA" sx={{ width: '100%', height: 'auto', display: 'block', borderRadius: 4 }} />
+                <Box component="img" src={`${import.meta.env.BASE_URL}capa-ia.png`} alt="Dr. Exame — seus exames com IA" sx={{ width: '100%', height: 'auto', display: 'block' }} />
               </Box>
 
               {/* Chip flutuante — Score (verde) */}
@@ -389,7 +388,7 @@ export const LandingPage = () => {
           <Stack direction="row" spacing={3} justifyContent="center" useFlexGap sx={{ flexWrap: 'wrap' }}>
             <Box component="span" sx={{ color: '#5fc9c3', cursor: 'pointer', fontSize: 13, fontWeight: 700, '&:hover': { textDecoration: 'underline' } }} onClick={() => navigate('/termos')}>Termos e LGPD</Box>
             <Box component="span" sx={{ color: '#5fc9c3', cursor: 'pointer', fontSize: 13, fontWeight: 700, '&:hover': { textDecoration: 'underline' } }} onClick={() => navigate('/registrar')}>Criar conta</Box>
-            <Box component="span" sx={{ color: '#5fc9c3', cursor: 'pointer', fontSize: 13, fontWeight: 700, '&:hover': { textDecoration: 'underline' } }} onClick={() => navigate('/login?login=1')}>Entrar</Box>
+            <Box component="span" sx={{ color: '#5fc9c3', cursor: 'pointer', fontSize: 13, fontWeight: 700, '&:hover': { textDecoration: 'underline' } }} onClick={() => navigate('/entrar')}>Entrar</Box>
           </Stack>
         </Container>
       </Box>

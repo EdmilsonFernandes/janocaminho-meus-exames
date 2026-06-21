@@ -71,6 +71,13 @@ export const DoctorPortalPage = () => {
 
         <Box component="form" onSubmit={submit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {mode === 'register' && (<>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, p: 1.25, borderRadius: 2, background: 'linear-gradient(135deg,#e0f2f1,#d6ece8)', border: '1px solid #bfe7e3' }}>
+              <Box sx={{ fontSize: 24, flexShrink: 0 }}>🩺</Box>
+              <Box>
+                <Typography sx={{ fontSize: 12.5, fontWeight: 800, color: '#0f3d3a' }}>Conta de Profissional de Saúde</Typography>
+                <Typography sx={{ fontSize: 11, color: '#4a6b66', lineHeight: 1.35 }}>Use o <strong>mesmo CRM</strong> que seu paciente informou no convite pra ativar seu acesso.</Typography>
+              </Box>
+            </Box>
             <TextField placeholder="Nome completo" required value={regName} onChange={(e) => setRegName(e.target.value)} sx={fieldSx}
               slotProps={{ input: { startAdornment: <InputAdornment position="start"><I.Person /></InputAdornment> } }} />
             <TextField placeholder="CRM (ex.: 12345-SP)" required value={regCrm} onChange={(e) => setRegCrm(e.target.value)} sx={fieldSx} helperText="Use o mesmo CRM que o paciente informou no convite."

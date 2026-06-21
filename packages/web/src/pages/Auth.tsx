@@ -16,6 +16,8 @@ const I = {
   ArrowRight: (p?: any) => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M5 12h14M13 6l6 6-6 6" /></svg>),
   Key: (p?: any) => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><circle cx="8" cy="15" r="4" /><path d="M10.8 12.2 21 2m-4 4 3 3m-6 1 3 3" /></svg>),
   Shield: (p?: any) => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#178f89" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3Z" /><path d="m9 12 2 2 4-4" /></svg>),
+  Doctor: (p?: any) => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M5 3v5a4 4 0 0 0 8 0V3" /><path d="M9 12v2.5A5.5 5.5 0 0 0 20 14.5V13" /><circle cx="20" cy="11" r="2" /></svg>),
+  User: (p?: any) => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><circle cx="12" cy="8" r="4" /><path d="M4 20c0-3.3 3.6-5 8-5s8 1.7 8 5" /></svg>),
 };
 
 /** Card centralizado sobre fundo menta (layout loginIdea). */
@@ -128,10 +130,24 @@ export const LoginPage = () => {
 
   return (
     <Shell>
-      {/* Toggle Paciente / Médico */}
-      <Box sx={{ display: 'flex', mb: 2, borderRadius: 99, overflow: 'hidden', border: '1px solid #bfe7e3' }}>
-        <Button onClick={() => { setRole('paciente'); setMode('password'); }} sx={{ flex: 1, py: 0.8, textTransform: 'none', fontWeight: 700, fontSize: 14, bgcolor: role === 'paciente' ? '#20b2aa' : 'transparent', color: role === 'paciente' ? '#fff' : '#178f89' }}>Paciente</Button>
-        <Button onClick={() => { setRole('medico'); setMode('password'); }} sx={{ flex: 1, py: 0.8, textTransform: 'none', fontWeight: 700, fontSize: 14, bgcolor: role === 'medico' ? '#20b2aa' : 'transparent', color: role === 'medico' ? '#fff' : '#178f89' }}>🩺 Médico</Button>
+      {/* Toggle Paciente / Médico — segmented control premium */}
+      <Box sx={{ display: 'flex', p: 0.5, mb: 2, gap: 0.5, borderRadius: 99, bgcolor: '#eef7f5', border: '1px solid #d6ece8' }}>
+        <Button onClick={() => { setRole('paciente'); setMode('password'); }} startIcon={<I.User />} fullWidth
+          sx={{ py: 1, borderRadius: 99, textTransform: 'none', fontWeight: 800, fontSize: 13.5, minHeight: 40, transition: 'all .2s',
+            background: role === 'paciente' ? 'linear-gradient(180deg,#20b2aa,#009688)' : 'transparent',
+            color: role === 'paciente' ? '#fff' : '#178f89',
+            boxShadow: role === 'paciente' ? '0 4px 12px rgba(0,150,136,.3)' : 'none',
+            '&:hover': { background: role === 'paciente' ? 'linear-gradient(180deg,#1ca39e,#00897b)' : 'rgba(32,178,170,.08)' } }}>
+          Paciente
+        </Button>
+        <Button onClick={() => { setRole('medico'); setMode('password'); }} startIcon={<I.Doctor />} fullWidth
+          sx={{ py: 1, borderRadius: 99, textTransform: 'none', fontWeight: 800, fontSize: 13.5, minHeight: 40, transition: 'all .2s',
+            background: role === 'medico' ? 'linear-gradient(180deg,#20b2aa,#009688)' : 'transparent',
+            color: role === 'medico' ? '#fff' : '#178f89',
+            boxShadow: role === 'medico' ? '0 4px 12px rgba(0,150,136,.3)' : 'none',
+            '&:hover': { background: role === 'medico' ? 'linear-gradient(180deg,#1ca39e,#00897b)' : 'rgba(32,178,170,.08)' } }}>
+          Médico
+        </Button>
       </Box>
       {mode === 'password' ? (
         <Box component="form" onSubmit={submit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>

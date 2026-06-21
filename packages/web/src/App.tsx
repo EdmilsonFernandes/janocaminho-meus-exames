@@ -201,16 +201,11 @@ const AppLayout = (props: any) => {
 };
 
 // Porta de entrada pública: o react-admin mostra o "loginPage" sempre que um anônimo
-// cai em / (dashboard → checkAuth falha → Navigate /login). Aproveitamos isso pra
-// mostrar a LANDING (vitrine) em vez do formulário — o form só aparece quando o
-// usuário clica "Entrar" (navega pra /login?login=1). Funciona mesmo com token
-// inválido/velho no localStorage (caso que o redirect de boot não cobria).
-const LoginPageGate = (props: any) => {
-  const loc = useLocation();
-  const wantLogin = new URLSearchParams(loc.search).get('login') === '1';
-  return wantLogin ? <LoginPage {...props} /> : <LandingPage />;
-};
-
+// cai em / (dashboard → checkAuth falha → Navigate /login) ou quando a sessão expira.
+// Setamos loginPage = LandingPage, então o anônimo sempre vê a VITRINE. O formulário
+// real de login fica numa rota dedicada /entrar (CustomRoutes noLayout), alcançável só
+// via o botão "Entrar" — path dedicado é confiável (query param ?login=1 não funcionava:
+// o react-admin normaliza /login e descarta a query).
 export const App = () => {
   const [booted, setBooted] = useState(false);
   const [forceUpdate, setForceUpdate] = useState<string | null>(null);
@@ -250,12 +245,13 @@ export const App = () => {
     i18nProvider={i18nProvider}
     layout={AppLayout}
     dashboard={Dashboard}
-    loginPage={LoginPageGate}
+    loginPage={LandingPage}
     title="Meus Exames"
     loading={() => <BootSplash />}
     disableTelemetry
   >
     <CustomRoutes noLayout>
+      <Route path="/entrar" element={<LoginPage />} />
       <Route path="/landing" element={<LandingPage />} />
       <Route path="/termos" element={<TermsPage />} />
       <Route path="/registrar" element={<RegisterPage />} />
