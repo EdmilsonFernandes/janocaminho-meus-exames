@@ -73,9 +73,14 @@ export const config = {
     premiumCost: Number(process.env.UPLOAD_PREMIUM_COST ?? 5),
   },
 
-  // Force-update: versão mínima exigida + última disponível.
-  // Pra forçar update: suba APP_MIN_VERSION no .env do server (ex.: '1.4.0').
-  appLatestVersion: process.env.APP_LATEST_VERSION ?? '1.3.8',
+  // Force-update: latest AUTO-DERIVADO do build.gradle (bumpa versionName + pusha + deploya).
+  // min: pra forçar update crítico, seta APP_MIN_VERSION no .env do server.
+  appLatestVersion: (() => {
+    const env = process.env.APP_LATEST_VERSION;
+    if (env) return env;
+    try { const g = fs.readFileSync(path.join(process.cwd(), 'packages/mobile/android/app/build.gradle'), 'utf8'); const m = g.match(/versionName\s+"([^"]+)"/); if (m) return m[1]; } catch {}
+    return '1.4.15';
+  })(),
   appMinVersion: process.env.APP_MIN_VERSION ?? '1.0.0',
 
   // Firebase (push notifications) — caminho do service account (admin SDK)
