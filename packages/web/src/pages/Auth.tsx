@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLogin, useNotify } from 'react-admin';
-import { Box, Typography, Button, Link, CircularProgress, Stack, TextField, InputAdornment, IconButton } from '@mui/material';
+import { Box, Typography, Button, Link, CircularProgress, Stack, TextField, InputAdornment, IconButton, Checkbox, FormControlLabel } from '@mui/material';
 import { DrExame } from '../components/DrExame';
 import { API_URL } from '../config';
 import { OtpInput } from '../components/OtpInput';
@@ -165,7 +165,7 @@ export const LoginPage = () => {
             </Box>
           </Box>
           <Typography align="center" sx={{ mt: 1, fontSize: 13 }}>
-            Não tem conta? <Link component="button" type="button" sx={{ fontWeight: 700, color: '#00897b' }} onClick={() => navigate('/registrar')}>Criar agora</Link>
+            {role === 'medico' ? 'Ainda não tem conta médica?' : 'Não tem conta?'} <Link component="button" type="button" sx={{ fontWeight: 700, color: '#00897b' }} onClick={() => navigate(role === 'medico' ? '/doctor?mode=register' : '/registrar')}>{role === 'medico' ? 'Cadastrar' : 'Criar agora'}</Link>
           </Typography>
         </Box>
       ) : (
@@ -195,9 +195,11 @@ export const RegisterPage = () => {
   const [loading, setLoading] = useState(false);
   const [verifyEmail, setVerifyEmail] = useState<string | null>(null);
   const [verifyCode, setVerifyCode] = useState('');
+  const [accepted, setAccepted] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!accepted) { notify('Você precisa aceitar os Termos de Uso e a Política de Privacidade.', { type: 'error' }); return; }
     setLoading(true);
     try {
       const r = await fetch(`${API_URL}/auth/register`, {
@@ -258,6 +260,11 @@ export const RegisterPage = () => {
             startAdornment: <InputAdornment position="start"><I.Lock /></InputAdornment>,
             endAdornment: <InputAdornment position="end"><IconButton onClick={() => setShowPwd((s) => !s)} edge="end" size="small">{showPwd ? <I.Eye /> : <I.EyeOff />}</IconButton></InputAdornment>,
           } }} />
+        <FormControlLabel
+          control={<Checkbox checked={accepted} onChange={(e) => setAccepted(e.target.checked)} size="small" sx={{ color: '#20b2aa', '&.Mui-checked': { color: '#20b2aa' } }} />}
+          label={<Typography sx={{ fontSize: 12.5, color: '#46555a' }}>Li e aceito os <Link component="a" href="#/termos" target="_blank" rel="noopener" sx={{ color: '#00897b', fontWeight: 700 }}>Termos de Uso e Política de Privacidade</Link>.</Typography>}
+          sx={{ alignItems: 'flex-start', m: 0, '& .MuiCheckbox-root': { pt: 0.5 } }}
+        />
         <Button type="submit" variant="contained" size="large" fullWidth disabled={loading} endIcon={<I.ArrowRight />} sx={primaryBtnSx}>
           {loading ? <CircularProgress size={22} color="inherit" /> : 'Criar conta'}
         </Button>

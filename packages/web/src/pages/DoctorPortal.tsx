@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Box, Card, CardContent, Typography, TextField, Button, CircularProgress, Stack, Chip, Avatar, Divider, Alert } from '@mui/material';
+import { Box, Card, CardContent, Typography, TextField, Button, CircularProgress, Stack, Chip, Avatar, Divider, Alert, MenuItem } from '@mui/material';
 import { API_URL } from '../config';
 import { DrExame } from '../components/DrExame';
+import { SPECIALTIES } from '../utils/medicalData';
 
 const docKey = 'doctorToken';
 
@@ -10,7 +11,7 @@ export const DoctorPortalPage = () => {
   const [doctor, setDoctor] = useState<any>(null);
   const [email, setEmail] = useState('');
   const [pwd, setPwd] = useState('');
-  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [mode, setMode] = useState<'login' | 'register'>(() => { const q = window.location.hash.split('?')[1] || ''; return new URLSearchParams(q).get('mode') === 'register' ? 'register' : 'login'; });
   const [regName, setRegName] = useState(''); const [regCrm, setRegCrm] = useState(''); const [regSpec, setRegSpec] = useState('');
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState('');
@@ -35,6 +36,9 @@ export const DoctorPortalPage = () => {
   return (
     <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2, background: 'linear-gradient(160deg,#f0f9ff,#e6f7f5)' }}>
       <Box sx={{ width: '100%', maxWidth: 420, bgcolor: '#fff', borderRadius: 4, p: { xs: 3, sm: 4 }, boxShadow: '0 8px 40px rgba(11,92,171,.12)' }}>
+        <Box sx={{ mb: 1 }}>
+          <Button size="small" onClick={() => { window.location.hash = '/'; }} sx={{ color: '#64748b', textTransform: 'none', fontWeight: 700, p: 0, minWidth: 0, '&:hover': { bgcolor: 'transparent', color: '#0b5cab' } }}>← Voltar ao app</Button>
+        </Box>
         <Stack alignItems="center" spacing={1} sx={{ mb: 3 }}>
           <Box sx={{ width: 64, height: 64, borderRadius: '50%', bgcolor: '#e6f7f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><DrExame size={44} sx={{ borderRadius: '50%' }} /></Box>
           <Typography variant="h5" sx={{ fontWeight: 800, color: '#0f172a' }}>Portal do Médico</Typography>
@@ -43,8 +47,11 @@ export const DoctorPortalPage = () => {
         <Box component="form" onSubmit={submit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {mode === 'register' && (<>
             <TextField label="Nome completo" required value={regName} onChange={(e) => setRegName(e.target.value)} size="small" fullWidth />
-            <TextField label="CRM (ex.: 12345-SP)" required value={regCrm} onChange={(e) => setRegCrm(e.target.value)} size="small" fullWidth />
-            <TextField label="Especialidade" value={regSpec} onChange={(e) => setRegSpec(e.target.value)} size="small" fullWidth />
+            <TextField label="CRM (ex.: 12345-SP)" required value={regCrm} onChange={(e) => setRegCrm(e.target.value)} size="small" fullWidth helperText="Mesmo CRM que o paciente usou no convite." />
+            <TextField select label="Especialidade" value={regSpec} onChange={(e) => setRegSpec(e.target.value)} size="small" fullWidth>
+              <MenuItem value=""><em>Selecione…</em></MenuItem>
+              {SPECIALTIES.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
+            </TextField>
           </>)}
           <TextField label="E-mail" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} size="small" fullWidth />
           <TextField label="Senha" type="password" required value={pwd} onChange={(e) => setPwd(e.target.value)} size="small" fullWidth />

@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core';
 import { API_URL } from '../config';
 
 /** Versão atual do app (espelha o versionName do Android build.gradle). Atualizar a cada release. */
@@ -17,8 +18,11 @@ export function compareVersions(a: string, b: string): number {
 }
 
 /** Checa no backend se a versão instalada (APP_VERSION) está abaixo da mínima exigida.
- *  Retorna { required, latest, min } — required=true força a tela de atualização. */
+ *  Retorna { required, latest, min } — required=true força a tela de atualização.
+ *  Só vale no APP NATIVO (APK). Na WEB/PWA NUNCA força — a versão servida já é sempre a mais recente
+ *  (deploy automático); web não tem "atualizar APK". */
 export async function checkAppUpdate(): Promise<{ required: boolean; latest: string; min: string }> {
+  if (!Capacitor.isNativePlatform()) return { required: false, latest: APP_VERSION, min: '0.0.0' };
   try {
     const r = await fetch(`${API_URL}/app/version`);
     if (!r.ok) return { required: false, latest: APP_VERSION, min: '0.0.0' };

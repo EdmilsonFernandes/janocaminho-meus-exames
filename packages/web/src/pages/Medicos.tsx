@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, Button, TextField, CircularProgress, Stack, Chip, Avatar, IconButton, Alert, Divider, Switch, FormControlLabel } from '@mui/material';
+import { Box, Card, CardContent, Typography, Button, TextField, CircularProgress, Stack, Chip, Avatar, IconButton, Alert, Divider, Switch, FormControlLabel, MenuItem } from '@mui/material';
 import { Title, useNotify } from 'react-admin';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import DeleteIcon from '@mui/icons-material/DeleteOutline';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import { SPECIALTIES, CONVENIOS } from '../utils/medicalData';
 
 const ALL_SCOPES = [
   { key: 'exams', label: 'Exames' },
@@ -21,7 +22,7 @@ export const MedicosPage = () => {
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState(''); const [crm, setCrm] = useState(''); const [spec, setSpec] = useState(''); const [email, setEmail] = useState('');
   const [scopes, setScopes] = useState<string[]>(['exams']);
-  const [convenio, setConvenio] = useState('particular');
+  const [convenio, setConvenio] = useState('Particular');
   const [saving, setSaving] = useState(false);
 
   const load = () => {
@@ -45,7 +46,7 @@ export const MedicosPage = () => {
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Falha');
       notify('Compartilhamento criado! O medico foi avisado por e-mail.', { type: 'success' });
-      setShowForm(false); setName(''); setCrm(''); setSpec(''); setEmail(''); setScopes(['exams']); setConvenio('particular');
+      setShowForm(false); setName(''); setCrm(''); setSpec(''); setEmail(''); setScopes(['exams']); setConvenio('Particular');
       load();
     } catch (e: any) { notify(e.message, { type: 'error' }); } finally { setSaving(false); }
   };
@@ -81,10 +82,15 @@ export const MedicosPage = () => {
               <TextField label="CRM (ex: 12345-SP)" required value={crm} onChange={(e) => setCrm(e.target.value)} size="small" sx={{ width: 150 }} />
             </Stack>
             <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap>
-              <TextField label="Especialidade" value={spec} onChange={(e) => setSpec(e.target.value)} size="small" sx={{ flex: '1 1 200px' }} />
+              <TextField select label="Especialidade" value={spec} onChange={(e) => setSpec(e.target.value)} size="small" sx={{ flex: '1 1 200px' }}>
+                <MenuItem value=""><em>Selecione…</em></MenuItem>
+                {SPECIALTIES.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
+              </TextField>
               <TextField label="E-mail (opcional)" value={email} onChange={(e) => setEmail(e.target.value)} size="small" sx={{ flex: '1 1 200px' }} />
             </Stack>
-            <TextField label="Convenio" value={convenio} onChange={(e) => setConvenio(e.target.value)} size="small" sx={{ width: 200 }} helperText="particular, Unimed, Bradesco Saude, etc." />
+            <TextField select label="Convênio" value={convenio} onChange={(e) => setConvenio(e.target.value)} size="small" sx={{ width: 220 }}>
+              {CONVENIOS.map((c) => <MenuItem key={c} value={c}>{c}</MenuItem>)}
+            </TextField>
             <Box>
               <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: 0.5 }}>O que compartilhar:</Typography>
               <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>

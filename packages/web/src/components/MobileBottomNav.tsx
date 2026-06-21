@@ -14,6 +14,7 @@ const MORE = [
   { icon: '👤', label: 'Meu perfil', to: '/perfil' },
   { icon: '🩺', label: 'Meus Médicos', to: '/medicos' },
   { icon: '👨‍👩‍👧', label: 'Dependentes', to: '/patients' },
+  { icon: '🌳', label: 'Família', to: '/familia' },
   { icon: '📊', label: 'Tendências', to: '/tendencias' },
   { icon: '🕒', label: 'Linha do tempo', to: '/linha-do-tempo' },
   { icon: '🧾', label: 'Relatório completo', to: '/relatorio' },

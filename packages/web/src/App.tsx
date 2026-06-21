@@ -17,6 +17,8 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import MedicalInformationIcon from '@mui/icons-material/MedicalInformation';
+import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import Diversity3Icon from '@mui/icons-material/Diversity3';
 import SummarizeIcon from '@mui/icons-material/Summarize';
@@ -117,9 +119,11 @@ const AppMenu = () => {
     <Menu.Item to="/exams" primaryText={t('menu.exams')} leftIcon={<MedicalInformationIcon sx={{ color: '#d4a574' }} />} />
     <Menu.Item to="/patients" primaryText={t('menu.dependents')} leftIcon={<Diversity3Icon sx={{ color: '#f59e0b' }} />} />
     <Menu.Item to="/familia" primaryText={t('menu.family')} leftIcon={<Diversity3Icon sx={{ color: '#f59e0b' }} />} />
+    <Menu.Item to="/medicos" primaryText="Meus Médicos" leftIcon={<MedicalServicesIcon sx={{ color: '#0b5cab' }} />} />
     <Menu.Item to="/tendencias" primaryText={t('menu.trends')} leftIcon={<AutoGraphIcon sx={{ color: '#10b981' }} />} />
     <Menu.Item to="/linha-do-tempo" primaryText={t('menu.timeline')} leftIcon={<HistoryIcon sx={{ color: '#6366f1' }} />} />
     <Menu.Item to="/relatorio" primaryText={t('menu.report')} leftIcon={<SummarizeIcon sx={{ color: '#0891b2' }} />} />
+    <Menu.Item to="/alterados" primaryText="Valores alterados" leftIcon={<WarningAmberIcon sx={{ color: '#f59e0b' }} />} />
     <Menu.Item to="/lembretes" primaryText={t('menu.reminders')} leftIcon={<EventAvailableIcon sx={{ color: '#eab308' }} />} />
     <Menu.Item to="/medicoes" primaryText={t('menu.measurements')} leftIcon={<MonitorHeartIcon sx={{ color: '#ec4899' }} />} />
     <Menu.Item to="/vacinas" primaryText={t('menu.vaccines')} leftIcon={<VaccinesIcon sx={{ color: '#14b8a6' }} />} />
@@ -196,10 +200,29 @@ const AppLayout = (props: any) => {
   );
 };
 
+// Porta de entrada pública: o react-admin mostra o "loginPage" sempre que um anônimo
+// cai em / (dashboard → checkAuth falha → Navigate /login). Aproveitamos isso pra
+// mostrar a LANDING (vitrine) em vez do formulário — o form só aparece quando o
+// usuário clica "Entrar" (navega pra /login?login=1). Funciona mesmo com token
+// inválido/velho no localStorage (caso que o redirect de boot não cobria).
+const LoginPageGate = (props: any) => {
+  const loc = useLocation();
+  const wantLogin = new URLSearchParams(loc.search).get('login') === '1';
+  return wantLogin ? <LoginPage {...props} /> : <LandingPage />;
+};
+
 export const App = () => {
   const [booted, setBooted] = useState(false);
   const [forceUpdate, setForceUpdate] = useState<string | null>(null);
   useEffect(() => {
+    // Anônimo na raiz "/" → landing (porta de entrada pública).
+    // replaceState muda a URL em SILÊNCIO, sem reload — seguro no APK (reload recarrega o WebView e crasha o app nativo).
+    try {
+      const p = window.location.pathname || '/';
+      if ((p === '/' || p === '') && !localStorage.getItem('token')) {
+        window.history.replaceState({}, '', '/landing');
+      }
+    } catch { /* ignore */ }
     const bootTimer = setTimeout(() => setBooted(true), 1100); // splash visível na abertura
     void initPush();
     void checkAppUpdate().then((r) => { if (r.required) setForceUpdate(r.latest); }); // força-update se versão instalada < mínima
@@ -227,7 +250,7 @@ export const App = () => {
     i18nProvider={i18nProvider}
     layout={AppLayout}
     dashboard={Dashboard}
-    loginPage={LoginPage}
+    loginPage={LoginPageGate}
     title="Meus Exames"
     loading={() => <BootSplash />}
     disableTelemetry
