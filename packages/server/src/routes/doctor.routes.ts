@@ -27,7 +27,18 @@ router.post('/register', async (req, res, next) => {
       res.status(400).json({ error: 'Nome, CRM, e-mail e senha (mín. 6) obrigatórios.' }); return;
     }
     const existing = await prisma.doctor.findFirst({ where: { OR: [{ email: String(email).toLowerCase() }, { crm }] } });
-    if (existing) { res.status(409).json({ error: 'CRM ou e-mail já cadastrado.' }); return; }
+    if (existing) {
+      if (existing.passwordHash === 'pending-invite') {
+        // CLAIM: paciente pré-cadastrou → médico completa com dados reais + senha
+        const claimed = await prisma.doctor.update({
+          where: { id: existing.id },
+          data: { name, specialty: specialty || existing.specialty, email: String(email).toLowerCase(), passwordHash: await hashPassword(String(password)) },
+        });
+        res.status(201).json({ token: signDoctorToken(claimed.id), doctor: { id: claimed.id, name: claimed.name, crm: claimed.crm, specialty: claimed.specialty, email: claimed.email } });
+        return;
+      }
+      res.status(409).json({ error: 'CRM ou e-mail ja cadastrado. Faca login.' }); return;
+    }
     const doctor = await prisma.doctor.create({ data: { name, crm, specialty, email: String(email).toLowerCase(), passwordHash: await hashPassword(String(password)) } });
     res.status(201).json({ token: signDoctorToken(doctor.id), doctor: { id: doctor.id, name, crm, specialty, email } });
   } catch (e) { next(e); }

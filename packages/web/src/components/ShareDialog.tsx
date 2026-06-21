@@ -22,9 +22,9 @@ export const ShareDialog = ({ analysisId, open, onClose }: { analysisId?: string
       const r = await fetch(`${API_URL}/analyses/${analysisId}/share`, { method: 'POST', headers: { Authorization: `Bearer ${token()}` } });
       if (!r.ok) throw new Error('Falha ao gerar link');
       const d = await r.json();
-      // Link montado no FRONT (conhece o BASE_URL /minhasaude/). Antes o backend montava e
-      // o WEB_BASE_PATH/Referer não chegavam → link sem /minhasaude → "Cannot GET".
-      const link = `${window.location.origin}${import.meta.env.BASE_URL}api/public/shared/${d.token}`;
+      // Link sempre aponta pro PROD (não localhost). No APK window.origin é https://localhost.
+      const SHARE_BASE = 'https://janocaminho.com.br/minhasaude';
+      const link = `${SHARE_BASE}/api/public/shared/${d.token}`;
       setData({ link, pin: d.pin });
     } catch (e: any) { setError(e.message); }
     setLoading(false);
