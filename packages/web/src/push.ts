@@ -35,6 +35,14 @@ export async function initPush(): Promise<void> {
     await PushNotifications.addListener('registrationError', (e) => {
       console.warn('[push] registration error', e);
     });
+    // Push recebido com app aberto (foreground) -> dispara evento pro app mostrar popup
+    await PushNotifications.addListener('pushNotificationReceived', (notification) => {
+      window.dispatchEvent(new CustomEvent('pushReceived', { detail: { title: (notification as any).title || 'Notificacao', body: (notification as any).body || '' } }));
+    });
+    // Usuario tocou na notificacao (tray) -> abre a central
+    await PushNotifications.addListener('pushNotificationActionPerformed', () => {
+      window.dispatchEvent(new Event('pushTapped'));
+    });
     await PushNotifications.register();
   } catch (e) {
     console.warn('[push] init falhou:', e);

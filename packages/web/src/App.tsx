@@ -57,6 +57,7 @@ import { MobileBottomNav } from './components/MobileBottomNav';
 import { ForceUpdate } from './components/ForceUpdate';
 import { checkAppUpdate } from './utils/version';
 import { NotificationBell } from './components/NotificationBell';
+import { NotificationPopup } from './components/NotificationPopup';
 import { NotificationsPage } from './pages/Notifications';
 import { DoctorPortalPage } from './pages/DoctorPortal';
 import { MedicosPage } from './pages/Medicos';
@@ -188,6 +189,7 @@ const AppLayout = (props: any) => {
       <FloatingChat />
       <PullToRefresh />
       <MobileBottomNav />
+      <NotificationPopup />
     </>
   );
 };
