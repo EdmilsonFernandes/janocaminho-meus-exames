@@ -136,37 +136,46 @@ export const LandingPage = () => {
               </Stack>
             </Box>
 
-            {/* Coluna visual — capaIA em card premium + chips flutuantes */}
-            <Box sx={{ display: 'flex', justifyContent: 'center', position: 'relative', minHeight: { xs: 280, md: 380 } }}>
+            {/* Coluna visual — mascote Dr. Exame em orbe brilhante + cards de vidro.
+                Tudo dentro de um container com altura definida e cards com offset NÃO-negativo no rodapé => sem borda irregular, sem espaço branco. */}
+            <Box sx={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', minHeight: { xs: 330, md: 420 } }}>
+              {/* Halo / orbe de fundo (teal + toque cobre) */}
               <Box sx={{
-                position: 'relative', width: '100%', maxWidth: 520,
-                borderRadius: 5, overflow: 'hidden',
-                boxShadow: '0 30px 60px rgba(32,178,170,.18), 0 8px 20px rgba(0,0,0,.06)',
+                position: 'absolute', width: { xs: 280, md: 360 }, height: { xs: 280, md: 360 }, borderRadius: '50%',
+                background: 'radial-gradient(circle at 50% 42%, rgba(32,178,170,.30), rgba(212,165,116,.08) 48%, transparent 70%)',
+              }} />
+              {/* Anel decorativo tracejado */}
+              <Box sx={{
+                position: 'absolute', width: { xs: 250, md: 320 }, height: { xs: 250, md: 320 }, borderRadius: '50%',
+                border: '1.5px dashed rgba(32,178,170,.30)',
+              }} />
+              {/* Mascote Dr. Exame (o robô limpo do app) */}
+              <Box component="img" src={`${import.meta.env.BASE_URL}brand.png`} alt="Dr. Exame — seu assistente de saúde com IA" sx={{
+                position: 'relative', zIndex: 2, width: { xs: 150, md: 190 }, height: 'auto', borderRadius: '24%',
+                filter: 'drop-shadow(0 24px 34px rgba(15,61,58,.30))',
                 animation: 'heroFloat 6s ease-in-out infinite',
-              }}>
-                <Box component="img" src={`${import.meta.env.BASE_URL}capa-ia.png`} alt="Dr. Exame — seus exames com IA" sx={{ width: '100%', height: 'auto', display: 'block' }} />
-              </Box>
+              }} />
 
-              {/* Chip flutuante — Score (verde) */}
+              {/* Card de vidro — Score 92/100 (topo esquerdo) */}
               <Box sx={{
-                position: 'absolute', top: { xs: 6, md: 0 }, left: { xs: 0, md: -28 }, bgcolor: '#fff', borderRadius: 3, p: 1.5, pr: 2,
-                display: 'flex', alignItems: 'center', gap: 1, boxShadow: '0 12px 30px rgba(0,0,0,.12)', border: '1px solid #e6f1f0',
+                position: 'absolute', top: { xs: 6, md: 10 }, left: { xs: 0, md: -8 }, bgcolor: '#fff', borderRadius: 3, p: 1.5, pr: 2, zIndex: 3,
+                display: 'flex', alignItems: 'center', gap: 1, boxShadow: '0 14px 34px rgba(15,61,58,.14)', border: '1px solid #e6f1f0',
                 animation: 'chipFloatA 5s ease-in-out infinite',
               }}>
                 <Box sx={{ position: 'relative', display: 'inline-flex' }}>
-                  <CircularProgress variant="determinate" value={100} size={42} thickness={5} sx={{ color: '#e6f1f0' }} />
-                  <CircularProgress variant="determinate" value={92} size={42} thickness={5} sx={{ color: GREEN, position: 'absolute', left: 0, '& .MuiCircularProgress-circle': { strokeLinecap: 'round' } }} />
+                  <CircularProgress variant="determinate" value={100} size={44} thickness={5} sx={{ color: '#e6f1f0' }} />
+                  <CircularProgress variant="determinate" value={92} size={44} thickness={5} sx={{ color: GREEN, position: 'absolute', left: 0, '& .MuiCircularProgress-circle': { strokeLinecap: 'round' } }} />
                 </Box>
                 <Box>
                   <Typography sx={{ fontSize: 10, color: 'text.secondary', lineHeight: 1 }}>Score</Typography>
-                  <Typography sx={{ fontSize: 17, fontWeight: 800, color: INK, lineHeight: 1.1 }}>92/100</Typography>
+                  <Typography sx={{ fontSize: 18, fontWeight: 800, color: INK, lineHeight: 1.1 }}>92/100</Typography>
                 </Box>
               </Box>
 
-              {/* Chip flutuante — valor normal */}
+              {/* Card de vidro — valor normal (centro direito) */}
               <Box sx={{
-                position: 'absolute', bottom: { xs: 10, md: 24 }, right: { xs: 0, md: -24 }, bgcolor: '#fff', borderRadius: 3, p: 1.5,
-                boxShadow: '0 12px 30px rgba(0,0,0,.12)', border: '1px solid #e6f1f0', maxWidth: 170,
+                position: 'absolute', top: { xs: '46%', md: '44%' }, right: { xs: 0, md: -10 }, bgcolor: '#fff', borderRadius: 3, p: 1.5, zIndex: 3,
+                boxShadow: '0 14px 34px rgba(15,61,58,.14)', border: '1px solid #e6f1f0', maxWidth: 168,
                 display: { xs: 'none', sm: 'block' },
                 animation: 'chipFloatB 5.5s ease-in-out infinite',
               }}>
@@ -174,14 +183,17 @@ export const LandingPage = () => {
                 <Typography sx={{ fontSize: 19, fontWeight: 800, color: GREEN, lineHeight: 1.1 }}>15,3 <Box component="span" sx={{ fontSize: 11, color: GREEN, fontWeight: 700 }}>✓ Normal</Box></Typography>
               </Box>
 
-              {/* Chip flutuante — Dica IA */}
+              {/* Card de vidro — Dica IA (base esquerda, DENTRO dos limites) */}
               <Box sx={{
-                position: 'absolute', top: { xs: 'auto', md: -16 }, bottom: { xs: -14, md: 'auto' }, right: { xs: 8, md: 40 }, bgcolor: 'rgba(255,255,255,.96)', borderRadius: 3, p: 1, pl: 1.25,
-                display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 1, boxShadow: '0 12px 30px rgba(0,0,0,.12)', border: '1px solid #d1fae5',
+                position: 'absolute', bottom: { xs: 4, md: 14 }, left: { xs: 6, md: 12 }, bgcolor: 'rgba(255,255,255,.97)', borderRadius: 3, p: 1, pl: 1.25, zIndex: 3,
+                display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 1, boxShadow: '0 14px 34px rgba(15,61,58,.14)', border: '1px solid #d1fae5',
                 animation: 'chipFloatA 6s ease-in-out infinite',
               }}>
-                <DrExame size={26} sx={{ borderRadius: '50%' }} />
-                <Typography sx={{ fontSize: 11.5, color: INK, fontWeight: 600 }}>Dica da IA ✨</Typography>
+                <DrExame size={30} sx={{ borderRadius: '50%' }} />
+                <Box>
+                  <Typography sx={{ fontSize: 11, fontWeight: 800, color: TEAL_DARK, lineHeight: 1 }}>Dica da IA</Typography>
+                  <Typography sx={{ fontSize: 10.5, color: 'text.secondary' }}>Hidrate-se 💧</Typography>
+                </Box>
               </Box>
             </Box>
           </Box>
