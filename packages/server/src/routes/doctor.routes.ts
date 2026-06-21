@@ -1,8 +1,11 @@
 import { Router } from 'express';
 import jwt from 'jsonwebtoken';
+import path from 'path';
 import { prisma } from '../prisma';
 import { hashPassword, comparePassword } from '../auth/jwt';
 import { config } from '../config';
+import { upload } from '../middleware/upload';
+import { saveDoctorPhoto, resolvePatientPhoto } from '../utils/storage';
 
 const router = Router();
 
@@ -60,6 +63,46 @@ router.get('/me', requireDoctor, async (req: any, res) => {
   const doctor = await prisma.doctor.findUnique({ where: { id: req.doctorId }, select: { id: true, name: true, crm: true, specialty: true, email: true, photoUrl: true } });
   if (!doctor) { res.status(404).json({ error: 'Médico não encontrado.' }); return; }
   res.json({ doctor });
+});
+
+// ATUALIZAR PERFIL do médico (nome, especialidade, e-mail). CRM não é editável (identidade profissional).
+router.put('/me', requireDoctor, async (req: any, res, next) => {
+  try {
+    const { name, specialty, email } = req.body ?? {};
+    const data: any = {};
+    if (name != null && String(name).trim()) data.name = String(name).trim();
+    if (specialty != null) data.specialty = String(specialty).trim() || null;
+    if (email != null) {
+      const e = String(email).toLowerCase().trim();
+      const dup = await prisma.doctor.findFirst({ where: { email: e, NOT: { id: req.doctorId } } });
+      if (dup) { res.status(409).json({ error: 'E-mail já usado por outro médico.' }); return; }
+      data.email = e;
+    }
+    const updated = await prisma.doctor.update({ where: { id: req.doctorId }, data, select: { id: true, name: true, crm: true, specialty: true, email: true, photoUrl: true } });
+    res.json({ doctor: updated });
+  } catch (e) { next(e); }
+});
+
+// UPLOAD de foto do médico — S3 (prod) ou disco (dev). Espelho da rota do paciente.
+router.post('/me/photo', requireDoctor, upload.single('photo'), async (req: any, res, next) => {
+  try {
+    if (!req.file) { res.status(400).json({ error: 'Foto não enviada' }); return; }
+    const contentType = req.file.mimetype || 'image/jpeg';
+    const ref = await saveDoctorPhoto(req.doctorId, req.file.buffer, contentType);
+    await prisma.doctor.update({ where: { id: req.doctorId }, data: { photoUrl: ref } });
+    res.json({ photoUrl: `/api/doctor/photo/${req.doctorId}` });
+  } catch (e) { next(e); }
+});
+
+// SERVE a foto do médico (público — sem auth, pra funcionar em <img src>)
+router.get('/photo/:id', async (req, res) => {
+  try {
+    const doctor = await prisma.doctor.findUnique({ where: { id: String(req.params.id) }, select: { photoUrl: true } });
+    if (!doctor?.photoUrl) { res.status(404).send('sem foto'); return; }
+    const r = await resolvePatientPhoto(doctor.photoUrl);
+    if (r.kind === 'url') return res.redirect(r.url);
+    return res.sendFile(path.resolve(r.file));
+  } catch { res.status(404).send('sem foto'); }
 });
 
 // === DADOS SCOPED (médico vê SÓ o que o paciente autorizou) ===

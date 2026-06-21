@@ -119,3 +119,17 @@ export async function resolvePatientPhoto(ref: string): Promise<{ kind: 'url'; u
   }
   return { kind: 'file', file: ref };
 }
+
+/** Salva foto do MÉDICO — espelho do savePatientPhoto, prefixo 'doctor-'. S3 (prod) ou disco (dev). */
+export async function saveDoctorPhoto(doctorId: string, buffer: Buffer, contentType: string): Promise<string> {
+  const ext = contentType === 'image/png' ? '.png' : '.jpg';
+  if (useS3()) {
+    const key = `${config.s3Prefix}fotos-doctor/${doctorId}/avatar${ext}`;
+    await s3().send(new PutObjectCommand({ Bucket: config.s3Bucket, Key: key, Body: buffer, ContentType: contentType }));
+    return key;
+  }
+  fs.mkdirSync(config.photosDir, { recursive: true });
+  const local = path.join(config.photosDir, `doctor-${doctorId}${ext}`);
+  fs.writeFileSync(local, buffer);
+  return local;
+}

@@ -10,8 +10,10 @@ import { API_URL, token, photoUrlFor } from '../config';
  */
 export const PhotoUpload = ({
   patientId, photoUrl, size = 80, hideLabel, version, onUploaded,
+  endpoint, src, authToken,
 }: {
   patientId?: string; photoUrl?: string | null; size?: number; hideLabel?: boolean; version?: number; onUploaded?: () => void;
+  endpoint?: string; src?: string; authToken?: string;
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [localVer, setLocalVer] = useState(0);
@@ -19,11 +21,13 @@ export const PhotoUpload = ({
   const [saved, setSaved] = useState(false);
   const [localSrc, setLocalSrc] = useState<string | undefined>(undefined); // preview instantâneo do arquivo escolhido
   const ver = version ?? localVer;
-  const preview = localSrc ?? (patientId && photoUrl ? photoUrlFor(patientId, ver) : undefined);
+  const targetUrl = endpoint ?? (patientId ? `${API_URL}/patients/${patientId}/photo` : null);
+  const auth = authToken ?? token();
+  const preview = localSrc ?? src ?? (patientId && photoUrl ? photoUrlFor(patientId, ver) : undefined);
 
   const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !patientId) return;
+    if (!file || !targetUrl) return;
     // preview LOCAL instantâneo: mostra a foto nova na hora (antes/depois do upload),
     // em vez de ficar na foto antiga até o servidor responder.
     setLocalSrc((prev) => { if (prev) URL.revokeObjectURL(prev); return URL.createObjectURL(file); });
@@ -31,8 +35,8 @@ export const PhotoUpload = ({
     const fd = new FormData();
     fd.append('photo', file);
     try {
-      const r = await fetch(`${API_URL}/patients/${patientId}/photo`, {
-        method: 'POST', headers: { Authorization: `Bearer ${token()}` }, body: fd,
+      const r = await fetch(targetUrl, {
+        method: 'POST', headers: { Authorization: `Bearer ${auth}` }, body: fd,
       });
       if (r.ok) {
         setLocalVer((v) => v + 1);
@@ -59,7 +63,7 @@ export const PhotoUpload = ({
         <IconButton
           size="small"
           onClick={() => inputRef.current?.click()}
-          disabled={uploading || !patientId}
+          disabled={uploading || !targetUrl}
           sx={{ position: 'absolute', bottom: -2, right: -2, bgcolor: 'primary.main', color: '#fff', '&:hover': { bgcolor: 'primary.dark' }, width: 28, height: 28 }}
         >
           <PhotoCameraIcon sx={{ fontSize: 16 }} />

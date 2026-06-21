@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { API_URL } from '../config';
 import { DrExame } from '../components/DrExame';
 import { SPECIALTIES } from '../utils/medicalData';
+import { PhotoUpload } from '../components/PhotoUpload';
 
 const docKey = 'doctorToken';
 
@@ -123,6 +124,8 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
   const [doctor, setDoctor] = useState<any>(null);
+  const [view, setView] = useState<'patients' | 'profile'>('patients');
+  const [photoVer, setPhotoVer] = useState(0);
   const h = { Authorization: `Bearer ${token}` };
 
   useEffect(() => {
@@ -157,7 +160,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     <Box sx={{ minHeight: '100vh', bgcolor: '#f4faf9' }}>
       {/* Header — mesma identidade teal do app do paciente */}
       <Box sx={{ background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff', px: { xs: 2, md: 3 }, py: 2, display: 'flex', alignItems: 'center', gap: 2, boxShadow: '0 4px 20px rgba(32,178,170,.25)' }}>
-        <Avatar src={doctor?.photoUrl} sx={{ bgcolor: 'rgba(255,255,255,.2)', fontWeight: 800 }}>{doctor?.name?.charAt(0)}</Avatar>
+        <Avatar src={doctor?.id ? `${API_URL}/doctor/photo/${doctor.id}?v=${photoVer}` : undefined} sx={{ bgcolor: 'rgba(255,255,255,.2)', fontWeight: 800, border: '2px solid rgba(255,255,255,.5)' }}>{doctor?.name?.charAt(0)}</Avatar>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Stack direction="row" alignItems="center" spacing={1}>
             <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>🩺 {doctor?.name || 'Médico'}</Typography>
@@ -165,14 +168,18 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           </Stack>
           <Typography variant="caption" sx={{ opacity: 0.9 }}>{[doctor?.specialty, doctor?.crm && `CRM ${doctor.crm}`].filter(Boolean).join(' • ') || 'Portal do Médico'}</Typography>
         </Box>
-        <Button size="small" variant="outlined" onClick={onLogout} sx={{ color: '#fff', borderColor: 'rgba(255,255,255,.5)', textTransform: 'none', fontWeight: 700, borderRadius: 99, '&:hover': { borderColor: '#fff', bgcolor: 'rgba(255,255,255,.1)' } }}>Sair</Button>
+        <Stack direction="row" spacing={1}>
+          <Button size="small" variant="outlined" onClick={() => setView('profile')} sx={{ color: '#fff', borderColor: 'rgba(255,255,255,.5)', textTransform: 'none', fontWeight: 700, borderRadius: 99, '&:hover': { borderColor: '#fff', bgcolor: 'rgba(255,255,255,.1)' } }}>Meu perfil</Button>
+          <Button size="small" variant="outlined" onClick={onLogout} sx={{ color: '#fff', borderColor: 'rgba(255,255,255,.5)', textTransform: 'none', fontWeight: 700, borderRadius: 99, '&:hover': { borderColor: '#fff', bgcolor: 'rgba(255,255,255,.1)' } }}>Sair</Button>
+        </Stack>
       </Box>
 
       <Box sx={{ maxWidth: 920, mx: 'auto', p: { xs: 2, md: 3 } }}>
-        {loading && <Box sx={{ textAlign: 'center', py: 6 }}><CircularProgress sx={{ color: TEAL }} /></Box>}
+        {view === 'profile' && <DoctorProfile token={token} doctor={doctor} onBack={() => setView('patients')} onSaved={(d) => setDoctor(d)} onPhoto={() => setPhotoVer((v) => v + 1)} photoVer={photoVer} />}
+        {view !== 'profile' && loading && <Box sx={{ textAlign: 'center', py: 6 }}><CircularProgress sx={{ color: TEAL }} /></Box>}
 
         {/* LISTA DE PACIENTES */}
-        {!loading && !selected && (
+        {view !== 'profile' && !loading && !selected && (
           <>
             <Typography variant="h6" sx={{ mb: 2, fontWeight: 800, color: '#0f3d3a' }}>Pacientes que compartilharam ({patients.length})</Typography>
             {patients.length === 0 && (
@@ -201,7 +208,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         )}
 
         {/* DETALHE DO PACIENTE */}
-        {selected && (
+        {view !== 'profile' && selected && (
           <>
             <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
               <Button size="small" onClick={() => setSelected(null)} sx={{ color: TEAL, textTransform: 'none', fontWeight: 700, minWidth: 0 }}>← Voltar</Button>
@@ -299,3 +306,61 @@ const Empty = ({ label, icon = '📭' }: { label: string; icon?: string }) => (
     <Typography color="text.secondary">{label}</Typography>
   </Box></CardContent></Card>
 );
+
+/** Perfil do médico: foto (reusa PhotoUpload) + edição de nome/especialidade/e-mail. CRM fixo. */
+const DoctorProfile = ({ token, doctor, onBack, onSaved, onPhoto, photoVer }: { token: string; doctor: any; onBack: () => void; onSaved: (d: any) => void; onPhoto: () => void; photoVer: number }) => {
+  const [name, setName] = useState(doctor?.name ?? '');
+  const [spec, setSpec] = useState(doctor?.specialty ?? '');
+  const [email, setEmail] = useState(doctor?.email ?? '');
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
+
+  const save = async () => {
+    setSaving(true); setMsg(null);
+    try {
+      const r = await fetch(`${API_URL}/doctor/me`, { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ name, specialty: spec, email }) });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Falha ao salvar');
+      onSaved(d.doctor); setMsg({ type: 'ok', text: 'Perfil atualizado!' });
+    } catch (e: any) { setMsg({ type: 'err', text: e.message }); } finally { setSaving(false); }
+  };
+
+  return (
+    <Box>
+      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
+        <Button size="small" onClick={onBack} sx={{ color: TEAL, textTransform: 'none', fontWeight: 700, minWidth: 0 }}>← Voltar</Button>
+        <Typography sx={{ fontWeight: 800, color: '#0f3d3a' }}>Meu perfil</Typography>
+      </Stack>
+
+      <Card sx={{ borderRadius: 4, mb: 2, background: 'linear-gradient(135deg,#e0f2f1,#d6ece8)', border: '1px solid #bfe7e3' }}>
+        <CardContent>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <PhotoUpload endpoint={`${API_URL}/doctor/me/photo`} authToken={token} src={doctor?.id ? `${API_URL}/doctor/photo/${doctor.id}?v=${photoVer}` : undefined} onUploaded={onPhoto} size={84} hideLabel />
+            <Box>
+              <Typography sx={{ fontWeight: 800, color: '#0f3d3a' }}>{name || 'Médico'}</Typography>
+              <Typography variant="caption" color="text.secondary">CRM {doctor?.crm}{spec ? ` • ${spec}` : ''}</Typography>
+              <Typography variant="caption" sx={{ display: 'block', color: '#94a3b8' }}>Toque na câmera pra trocar a foto.</Typography>
+            </Box>
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <Card sx={{ borderRadius: 4 }}>
+        <CardContent>
+          <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 800, color: TEAL }}>DADOS PROFISSIONAIS</Typography>
+          <Stack spacing={2}>
+            <TextField label="Nome completo" value={name} onChange={(e) => setName(e.target.value)} size="small" fullWidth />
+            <TextField label="CRM" value={doctor?.crm ?? ''} disabled size="small" fullWidth helperText="O CRM não pode ser alterado (identidade profissional)." />
+            <TextField select label="Especialidade" value={spec} onChange={(e) => setSpec(e.target.value)} size="small" fullWidth>
+              <MenuItem value=""><em>Selecione…</em></MenuItem>
+              {SPECIALTIES.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
+            </TextField>
+            <TextField label="E-mail" type="email" value={email} onChange={(e) => setEmail(e.target.value)} size="small" fullWidth />
+          </Stack>
+          {msg && <Alert severity={msg.type === 'ok' ? 'success' : 'error'} sx={{ mt: 1.5, py: 0.5, borderRadius: 2 }}>{msg.text}</Alert>}
+          <Button variant="contained" onClick={save} disabled={saving} startIcon={saving ? <CircularProgress size={18} color="inherit" /> : undefined} sx={{ mt: 2, borderRadius: 2, textTransform: 'none', fontWeight: 800, background: 'linear-gradient(180deg,#20b2aa,#009688)', '&:hover': { background: 'linear-gradient(180deg,#1ca39e,#00897b)' } }}>{saving ? 'Salvando…' : 'Salvar perfil'}</Button>
+        </CardContent>
+      </Card>
+    </Box>
+  );
+};

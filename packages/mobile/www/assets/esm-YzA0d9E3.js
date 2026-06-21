@@ -1,0 +1,2 @@
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["assets/web-834q2aFW.js","assets/index-CwLWj_em.js"])))=>i.map(i=>d[i]);
+import{i as e,r as t}from"./index-CwLWj_em.js";var n;(function(e){e[e.Flush=0]=`Flush`,e[e.Add=1]=`Add`})(n||={});var r=t(`TextToSpeech`,{web:()=>e(()=>import(`./web-834q2aFW.js`).then(e=>new e.TextToSpeechWeb),__vite__mapDeps([0,1]))});`speechSynthesis`in window&&window.speechSynthesis;export{r as TextToSpeech};
