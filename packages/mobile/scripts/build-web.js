@@ -13,12 +13,14 @@ console.log('[mobile] compilando packages/web ...');
 const gradle = fs.readFileSync(path.join(repoRoot, 'packages/mobile/android/app/build.gradle'), 'utf8');
 const appVersion = (gradle.match(/versionName\s+"([^"]+)"/) || [])[1] || '1.0.0';
 
+// base RELATIVA ('./') — imune ao path-mangling do MSYS/Git-Bash ('/' vira '/Program Files/Git/'),
+// que corrompia o <script src> do index.html e deixava o WebView do Capacitor em TELA BRANCA
+// (o JS nunca carregava: 404 em https://localhost/Program Files/Git/assets/...). Base relativa
+// funciona em qualquer origem (https://localhost do Capacitor) e o app só tem rotas de 1 nível.
 const r = spawnSync(
   process.platform === 'win32' ? 'npm.cmd' : 'npm',
   ['run', 'build', '--workspace', 'packages/web'],
-  // APK roda na raiz (sem o sub-caminho /minhasaude/) → força VITE_BASE=/,
-  // independente do .env (protege contra regressão se o .env mudar).
-  { cwd: repoRoot, stdio: 'inherit', shell: true, env: { ...process.env, VITE_BASE: '/', VITE_PUSH_ENABLED: 'true', VITE_APP_VERSION: appVersion } },
+  { cwd: repoRoot, stdio: 'inherit', shell: true, env: { ...process.env, MSYS_NO_PATHCONV: '1', MSYS2_ARG_CONV_EXCL: '*', VITE_BASE: './', VITE_PUSH_ENABLED: 'true', VITE_APP_VERSION: appVersion } },
 );
 if (r.status !== 0) {
   console.error('[mobile] build do web falhou');

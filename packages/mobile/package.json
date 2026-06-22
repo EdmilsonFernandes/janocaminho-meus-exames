@@ -17,6 +17,7 @@
     "@capacitor/browser": "^7.0.0",
     "@capacitor/camera": "^7.0.5",
     "@capacitor/core": "^7.6.6",
+    "@capacitor-mlkit/document-scanner": "^7.5.0",
     "@capacitor/filesystem": "^7.1.8",
     "@capacitor/preferences": "^7.0.4",
     "@capacitor/push-notifications": "^7.0.0",

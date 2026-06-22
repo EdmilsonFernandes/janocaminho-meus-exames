@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@capacitor-community/text-to-speech": "^6.1.0",
+    "@capacitor-mlkit/document-scanner": "^7.5.0",
     "@capacitor/app": "^7.1.2",
     "@capacitor/browser": "^7.0.0",
     "@capacitor/camera": "^7.0.5",

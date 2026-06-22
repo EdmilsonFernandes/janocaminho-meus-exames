@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { Box, Card, CardContent, Button, TextField, Typography, Alert, Chip, Stack, LinearProgress } from '@mui/material';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
+import DocumentScannerIcon from '@mui/icons-material/DocumentScanner';
 import { Title, useNotify, useRedirect, useRefresh } from 'react-admin';
 import { API_URL, token } from '../../config';
 import { useSelectedPatient } from '../../patient-context';
@@ -82,6 +83,41 @@ export const ExamCreate = () => {
     }
   };
 
+  // SCANNER de documento (ML Kit): captura automática, detecção de borda, correção de
+  // perspectiva e filtro documento — a imagem chega LIMPA pro tesseract (OCR) → GLM.
+  // Resulta em foto tão legível quanto PDF. Fallback pra câmera normal se indisponível.
+  const scanDocument = async () => {
+    try {
+      const { DocumentScanner } = await import('@capacitor-mlkit/document-scanner');
+      const result = await DocumentScanner.scanDocument({ galleryImportAllowed: true, pageLimit: 5, resultFormats: 'JPEG', scannerMode: 'FULL' });
+      const imgs = result.scannedImages ?? [];
+      if (!imgs.length) { notify('Nenhuma página capturada.', { type: 'info' }); return; }
+      setBusy(true);
+      setProgress({ done: 0, total: imgs.length, errors: [] });
+      const errors: string[] = [];
+      for (let i = 0; i < imgs.length; i++) {
+        try {
+          const blob = await (await fetch(imgs[i])).blob();
+          const name = imgs.length > 1 ? (title || 'Exame escaneado') + ` (${i + 1}/${imgs.length})` : (title || 'Exame escaneado');
+          await uploadOne(blob, `scan-${Date.now()}-${i + 1}.jpg`, pid, name);
+          setProgress({ done: i + 1, total: imgs.length, errors });
+        } catch (err: any) {
+          if (err?.code === 'free_limit' || err?.code === 'no_credits_upload') { notify(err.message || 'Sem créditos para enviar.', { type: 'warning' }); redirect('/planos'); setBusy(false); return; }
+          errors.push(`Página ${i + 1}: ${err.message}`);
+          setProgress({ done: i + 1, total: imgs.length, errors });
+        }
+      }
+      setBusy(false);
+      if (errors.length === imgs.length) notify('Nenhum envio concluído.', { type: 'error' });
+      else { notify(`${imgs.length - errors.length} de ${imgs.length} página(s) enviada(s) e extraindo.`, { type: 'success' }); refresh(); redirect('list', 'exams'); }
+    } catch (e: any) {
+      if (e?.message && /cancel/i.test(e.message)) return; // usuário cancelou o scanner
+      // Scanner indisponível (módulo ML Kit ainda baixando, ou RAM < 1.7GB) → câmera normal
+      notify('Scanner indisponível agora — usando a câmera normal. Tente o scanner novamente em instantes.', { type: 'info' });
+      takePhoto();
+    }
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!files.length) { notify('Selecione ao menos um arquivo.', { type: 'error' }); return; }
@@ -151,11 +187,11 @@ export const ExamCreate = () => {
             )}
             {isNative && (
               <>
-                <Alert severity="info" icon={<PhotoCameraIcon />} sx={{ py: 0 }}>
-                  📷 Para a <strong>foto ficar nítida</strong>: boa iluminação, documento centralizado e ocupando a tela, sem reflexo nem sombra. A IA lê melhor fotos nítidas.
+                <Alert severity="success" icon={<DocumentScannerIcon />} sx={{ py: 0.5, borderRadius: 2 }}>
+                  📷 <strong>Scanner inteligente</strong>: o app detecta as bordas do papel, corta o fundo, estica a foto (corrige perspectiva) e aplica um filtro que deixa o texto preto bem nítido. Resultado: a IA lê a foto <strong>tão bem quanto um PDF</strong>. Dica: boa iluminação, sem reflexo.
                 </Alert>
-                <Button variant="outlined" color="secondary" startIcon={<PhotoCameraIcon />} onClick={takePhoto}>
-                  Tirar foto do exame
+                <Button variant="contained" color="secondary" size="large" startIcon={<DocumentScannerIcon />} onClick={scanDocument} disabled={busy} sx={{ alignSelf: 'flex-start', borderRadius: 2, textTransform: 'none', fontWeight: 800 }}>
+                  Escanear exame (câmera)
                 </Button>
               </>
             )}
