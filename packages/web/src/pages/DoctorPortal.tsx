@@ -9,6 +9,7 @@ import PdfIcon from '@mui/icons-material/PictureAsPdf';
 import SearchIcon from '@mui/icons-material/Search';
 import { API_URL } from '../config';
 import { DrExame } from '../components/DrExame';
+import { MfaSetupCard } from '../components/mfa/MfaSetupCard';
 import { SPECIALTIES } from '../utils/medicalData';
 import { PhotoUpload } from '../components/PhotoUpload';
 import { CATS, categorize, refLabel } from '../utils/medicalData';
@@ -614,6 +615,10 @@ const DoctorProfile = ({ token, doctor, onBack, onSaved, onPhoto, photoVer }: { 
           </Stack>
         </CardContent>
       </Card>
+
+      <Box sx={{ mt: 2 }}>
+        <MfaSetupCard apiBase={`${API_URL}/doctor`} authToken={token} />
+      </Box>
 
       <Card sx={{ borderRadius: 4 }}>
         <CardContent>

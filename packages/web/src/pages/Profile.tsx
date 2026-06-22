@@ -7,6 +7,7 @@ import BadgeIcon from '@mui/icons-material/WorkspacePremium';
 import DownloadIcon from '@mui/icons-material/Download';
 import UploadIcon from '@mui/icons-material/Upload';
 import { API_URL, token, apiHeaders } from '../config';
+import { MfaSetupCard } from '../components/mfa/MfaSetupCard';
 import { useSelectedPatient } from '../patient-context';
 import { PhotoUpload } from '../components/PhotoUpload';
 
@@ -148,6 +149,11 @@ export const ProfilePage = () => {
           </Box>
         </CardContent>
       </Card>
+
+      {/* Segurança: 2FA (TOTP) */}
+      <Box sx={{ mt: 2 }}>
+        <MfaSetupCard apiBase={`${API_URL}/auth`} authToken={token() || ''} />
+      </Box>
 
       {/* Conta e privacidade (LGPD) */}
       <Card sx={{ borderRadius: 4, mt: 2, borderColor: 'error.main' }}>
