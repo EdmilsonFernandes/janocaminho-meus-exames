@@ -32,8 +32,8 @@ else echo "❌ docker compose indisponível." >&2; exit 1; fi
 echo "🚀 Meus Exames — deploy em https://${HOST}/${SUBPATH}/"
 if command -v git >/dev/null 2>&1 && git -C "$ROOT_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   echo "   revisão atual: $(git -C "$ROOT_DIR" rev-parse --short HEAD)"
-  echo "   git pull..."
-  git -C "$ROOT_DIR" pull --ff-only 2>/dev/null || echo "   (git pull pulou — sem remote?)"
+  echo "   git fetch + reset (determinístico, imune a raça de fetch)..."
+  git -C "$ROOT_DIR" fetch origin --prune 2>/dev/null && git -C "$ROOT_DIR" reset --hard origin/main 2>/dev/null || echo "   (git sync pulou — sem remote?)"
 fi
 
 echo "🔨 build + up (migrations rodam no startup do container)..."

@@ -45,7 +45,9 @@ jobs:
             "${ssh_user}@${PROD_SSH_HOST}" \
             "set -eu; \
              cd ~/meus-exames/janocaminho-meus-exames; \
-             git pull --ff-only; \
+             exec 9>/tmp/meus-exames-deploy.lock; flock 9 2>/dev/null || true; \
+             git fetch origin --prune; \
+             git reset --hard origin/main; \
              docker compose -f docker-compose.prod.yml --env-file .env.prod pull; \
              docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --force-recreate; \
              docker image prune -f; \
