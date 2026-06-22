@@ -62,7 +62,7 @@ export const DoctorPortalPage = () => {
     } catch (e: any) { setErr(e.message); } finally { setLoading(false); }
   };
 
-  const logout = () => { localStorage.removeItem(docKey); setToken(null); setDoctor(null); setEmail(''); setPwd(''); setMode('login'); };
+  const logout = () => { localStorage.removeItem(docKey); navigate('/entrar'); };
 
   if (token) return <DoctorDashboard token={token} onLogout={logout} />;
 
@@ -240,8 +240,8 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   };
   backRef.current = () => {
     if (selExam || selected || view !== 'patients') { goBack(); return; }
-    // Topo do portal: volta pro login no histórico — NUNCA sai do app no gesto de voltar.
-    if (window.history.length > 1) window.history.back();
+    // Topo do portal: NÃO faz history.back (vai pra blank/exit = "mata o app" no gesto).
+    // Fica no portal; o médico sai pela opção Sair do menu.
   };
   // Escuta o evento global 'app:back' (dispatchado pelo handler central no App.tsx).
   // Trata o back por estado (fecha exame → paciente → lista) e cancela o default p/ o App não sair do app.
@@ -300,44 +300,65 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               </Box></CardContent></Card>
             )}
             <Stack spacing={1.5}>
-              {patients.filter((p) => { const q = patQuery.trim().toLowerCase(); return (!q || (p.patient?.fullName || '').toLowerCase().includes(q) || (p.code || '').toLowerCase().includes(q)) && (!patAlertOnly || p.hasAlerts); }).slice().sort((a, b) => { const oa = a.ownerId || '', ob = b.ownerId || ''; if (oa !== ob) return (a.ownerName || '').localeCompare(b.ownerName || ''); return (Number(!!b.hasAlerts) - Number(!!a.hasAlerts)) || ((b.lastExamAt ? new Date(b.lastExamAt).getTime() : 0) - (a.lastExamAt ? new Date(a.lastExamAt).getTime() : 0)); }).map((p, i, arr) => {
-                const sex = p.sex === 'female' ? 'F' : p.sex === 'male' ? 'M' : null;
-                const ownerId = p.ownerId || '';
-                const prevOwner = i > 0 ? (arr[i - 1].ownerId || '') : null;
-                const famCount = arr.filter((x) => (x.ownerId || '') === ownerId).length;
-                const showFamHdr = famCount > 1 && ownerId !== prevOwner;
-                return (
-                  <Box key={p.shareId}>
-                  {showFamHdr && (
-                    <Typography sx={{ fontWeight: 800, fontSize: 14, color: '#0f3d3a', mt: i > 0 ? 2 : 0, mb: 0.75, display: 'flex', alignItems: 'center', gap: 0.5 }}>👨‍👩‍👧 Família {p.ownerName || 'Sem titular'} <Chip size="small" label={`${famCount}`} sx={{ height: 18, fontSize: 10, bgcolor: '#e0f2f1', color: TEAL, fontWeight: 700 }} /></Typography>
-                  )}
-                  <Card sx={{ borderRadius: 4, cursor: 'pointer', transition: 'all .15s', border: '1px solid #e2efec', borderLeft: p.hasAlerts ? '5px solid #ef4444' : '5px solid transparent', '&:hover': { boxShadow: '0 8px 24px rgba(32,178,170,.15)', transform: 'translateY(-1px)' } }} onClick={() => openPatient(p)}>
-                    <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.75, py: 1.5 }}>
-                      <Badge color="error" variant="dot" invisible={!p.hasAlerts} overlap="circular" anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
-                        <Avatar src={p.patient?.id ? `${API_URL}/patients/${p.patient.id}/photo` : undefined} sx={{ bgcolor: TEAL, fontWeight: 800, width: 48, height: 48 }}>{p.patient?.fullName?.charAt(0)}</Avatar>
-                      </Badge>
-                      <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <Stack direction="row" alignItems="center" spacing={0.75} useFlexGap flexWrap="wrap">
-                          <Typography sx={{ fontWeight: 800, color: '#0f3d3a' }}>{p.patient?.fullName}</Typography>
-                          {p.code && <Chip size="small" label={p.code} sx={{ height: 18, fontSize: 10, bgcolor: '#0f3d3a', color: '#fff', fontWeight: 700, fontFamily: 'monospace' }} />}
-                          {p.relationship && <Chip size="small" label={p.relationship} sx={{ height: 18, fontSize: 10, bgcolor: '#f1f5f9', color: '#475569', fontWeight: 600 }} />}
-                          {p.age != null && <Chip size="small" label={`${p.age}a`} sx={{ height: 18, fontSize: 10, bgcolor: '#f1f5f9', color: '#475569', fontWeight: 700 }} />}
-                          {sex && <Chip size="small" label={sex} sx={{ height: 18, fontSize: 10, bgcolor: sex === 'F' ? '#fce7f3' : '#dbeafe', color: sex === 'F' ? '#be185d' : '#1d4ed8', fontWeight: 700 }} />}
-                          {p.hasAlerts && <Chip size="small" label="alerta" sx={{ height: 18, fontSize: 10, bgcolor: '#fee2e2', color: '#b91c1c', fontWeight: 700 }} />}
-                        </Stack>
-                        <Box sx={{ mt: 0.5, display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-                          {p.latestWeight && <Chip size="small" label={`⚖️ ${p.latestWeight.value}kg`} sx={{ height: 20, fontSize: 10, bgcolor: '#f0f9f7', color: '#0f3d3a' }} />}
-                          {p.lastExamAt && <Chip size="small" label={`📅 ${fmtDate(p.lastExamAt)}`} sx={{ height: 20, fontSize: 10, bgcolor: '#f0f9f7', color: '#0f3d3a' }} />}
-                          {p.examsCount > 0 && <Chip size="small" label={`📋 ${p.examsCount}`} sx={{ height: 20, fontSize: 10, bgcolor: '#f0f9f7', color: '#0f3d3a' }} />}
-                          <Chip size="small" label={p.convenio || 'Particular'} sx={{ height: 20, fontSize: 10, bgcolor: '#e0f2f1', color: TEAL, fontWeight: 600 }} />
+              {(() => {
+                const q = patQuery.trim().toLowerCase();
+                const filtered = patients.filter((p) => (!q || (p.patient?.fullName || '').toLowerCase().includes(q) || (p.code || '').toLowerCase().includes(q)) && (!patAlertOnly || p.hasAlerts));
+                filtered.sort((a, b) => { const oa = a.ownerId || '', ob = b.ownerId || ''; if (oa !== ob) return (a.ownerName || '').localeCompare(b.ownerName || ''); return (Number(!!b.hasAlerts) - Number(!!a.hasAlerts)) || ((b.lastExamAt ? new Date(b.lastExamAt).getTime() : 0) - (a.lastExamAt ? new Date(a.lastExamAt).getTime() : 0)); });
+                // Agrupa por titular (ownerId). 1 membro = card solto; 2+ = accordion COLAPSADO (não inunda com 100 famílias).
+                const groups: { ownerId: string; ownerName: string; items: any[] }[] = [];
+                for (const p of filtered) {
+                  const oid = p.ownerId || p.shareId;
+                  let g = groups.find((x) => x.ownerId === oid);
+                  if (!g) { g = { ownerId: oid, ownerName: p.ownerName || 'Sem titular', items: [] }; groups.push(g); }
+                  g.items.push(p);
+                }
+                const card = (p: any, key: string) => {
+                  const sex = p.sex === 'female' ? 'F' : p.sex === 'male' ? 'M' : null;
+                  return (
+                    <Card key={key} sx={{ borderRadius: 4, cursor: 'pointer', transition: 'all .15s', border: '1px solid #e2efec', borderLeft: p.hasAlerts ? '5px solid #ef4444' : '5px solid transparent', '&:hover': { boxShadow: '0 8px 24px rgba(32,178,170,.15)', transform: 'translateY(-1px)' } }} onClick={() => openPatient(p)}>
+                      <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.75, py: 1.5 }}>
+                        <Badge color="error" variant="dot" invisible={!p.hasAlerts} overlap="circular" anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
+                          <Avatar src={p.patient?.id ? `${API_URL}/patients/${p.patient.id}/photo` : undefined} sx={{ bgcolor: TEAL, fontWeight: 800, width: 48, height: 48 }}>{p.patient?.fullName?.charAt(0)}</Avatar>
+                        </Badge>
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          <Stack direction="row" alignItems="center" spacing={0.75} useFlexGap flexWrap="wrap">
+                            <Typography sx={{ fontWeight: 800, color: '#0f3d3a' }}>{p.patient?.fullName}</Typography>
+                            {p.code && <Chip size="small" label={p.code} sx={{ height: 18, fontSize: 10, bgcolor: '#0f3d3a', color: '#fff', fontWeight: 700, fontFamily: 'monospace' }} />}
+                            {p.relationship && <Chip size="small" label={p.relationship} sx={{ height: 18, fontSize: 10, bgcolor: '#f1f5f9', color: '#475569', fontWeight: 600 }} />}
+                            {p.age != null && <Chip size="small" label={`${p.age}a`} sx={{ height: 18, fontSize: 10, bgcolor: '#f1f5f9', color: '#475569', fontWeight: 700 }} />}
+                            {sex && <Chip size="small" label={sex} sx={{ height: 18, fontSize: 10, bgcolor: sex === 'F' ? '#fce7f3' : '#dbeafe', color: sex === 'F' ? '#be185d' : '#1d4ed8', fontWeight: 700 }} />}
+                            {p.hasAlerts && <Chip size="small" label="alerta" sx={{ height: 18, fontSize: 10, bgcolor: '#fee2e2', color: '#b91c1c', fontWeight: 700 }} />}
+                          </Stack>
+                          <Box sx={{ mt: 0.5, display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                            {p.latestWeight && <Chip size="small" label={`⚖️ ${p.latestWeight.value}kg`} sx={{ height: 20, fontSize: 10, bgcolor: '#f0f9f7', color: '#0f3d3a' }} />}
+                            {p.lastExamAt && <Chip size="small" label={`📅 ${fmtDate(p.lastExamAt)}`} sx={{ height: 20, fontSize: 10, bgcolor: '#f0f9f7', color: '#0f3d3a' }} />}
+                            {p.examsCount > 0 && <Chip size="small" label={`📋 ${p.examsCount}`} sx={{ height: 20, fontSize: 10, bgcolor: '#f0f9f7', color: '#0f3d3a' }} />}
+                            <Chip size="small" label={p.convenio || 'Particular'} sx={{ height: 20, fontSize: 10, bgcolor: '#e0f2f1', color: TEAL, fontWeight: 600 }} />
+                          </Box>
                         </Box>
-                      </Box>
-                      <Typography sx={{ color: TEAL, fontWeight: 800, fontSize: 20 }}>›</Typography>
-                    </CardContent>
-                  </Card>
-                  </Box>
-                );
-              })}
+                        <Typography sx={{ color: TEAL, fontWeight: 800, fontSize: 20 }}>›</Typography>
+                      </CardContent>
+                    </Card>
+                  );
+                };
+                return groups.map((g) => {
+                  if (g.items.length === 1) return card(g.items[0], g.items[0].shareId);
+                  const famAlerts = g.items.filter((p) => p.hasAlerts).length;
+                  return (
+                    <Accordion key={g.ownerId} defaultExpanded={false} disableGutters elevation={0} sx={{ '&:before': { display: 'none' }, border: '1px solid #e2efec', borderRadius: '12px !important', overflow: 'hidden' }}>
+                      <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: '#f0f9f7', minHeight: '48px !important', '& .MuiAccordionSummary-content': { my: 0.5 } }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+                          <Box sx={{ fontSize: 18 }}>👨‍👩‍👧</Box>
+                          <Typography sx={{ fontWeight: 800, color: '#0f3d3a', flex: 1, minWidth: 0 }}>Família {g.ownerName}</Typography>
+                          <Chip size="small" label={`${g.items.length}`} sx={{ height: 20, fontSize: 10, bgcolor: '#e0f2f1', color: TEAL, fontWeight: 700 }} />
+                          {famAlerts > 0 && <Chip size="small" color="error" label={`${famAlerts} alerta`} sx={{ height: 20, fontSize: 10, fontWeight: 700 }} />}
+                        </Box>
+                      </AccordionSummary>
+                      <AccordionDetails sx={{ p: 1.25, bgcolor: '#fbfdfc' }}><Stack spacing={1.25}>{g.items.map((p) => card(p, p.shareId))}</Stack></AccordionDetails>
+                    </Accordion>
+                  );
+                });
+              })()}
             </Stack>
           </>
         )}
@@ -346,7 +367,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         {view === 'patients' && selected && (
           <>
             <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
-              {!selExam && <Button size="small" onClick={() => setSelected(null)} sx={{ color: TEAL, textTransform: 'none', fontWeight: 700, minWidth: 0 }}>← Voltar</Button>}
+              {/* Voltar só no header (←) — um botão só, igual app profissional */}
               <Avatar src={selected.patient?.id ? `${API_URL}/patients/${selected.patient.id}/photo` : undefined} sx={{ bgcolor: TEAL, width: 36, height: 36, fontSize: 16 }}>{selected.patient?.fullName?.charAt(0)}</Avatar>
               <Box>
                 <Stack direction="row" alignItems="center" spacing={0.75}>
@@ -637,7 +658,7 @@ const DoctorExamDetail = ({ exam, detail, patientId, token, onBack }: { exam: an
   return (
     <Box>
       <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1.5 }}>
-        <Button size="small" onClick={onBack} sx={{ color: TEAL, textTransform: 'none', fontWeight: 700, minWidth: 0 }}>← Voltar</Button>
+        {/* Voltar só no header (←) do portal — um botão só */}
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography sx={{ fontWeight: 800, color: '#0f3d3a' }}>{detail?.title || exam.title}</Typography>
           <Typography variant="caption" sx={{ color: '#757575' }}>{detail?.performedAt ? new Date(detail.performedAt).toLocaleDateString('pt-BR') : 's/d'}{detail?.sourceLab ? ` • ${detail.sourceLab}` : ''}{detail ? ` • ${items.length} itens` : ''}</Typography>
@@ -647,7 +668,7 @@ const DoctorExamDetail = ({ exam, detail, patientId, token, onBack }: { exam: an
       {!detail && <Box sx={{ textAlign: 'center', py: 4 }}><CircularProgress sx={{ color: TEAL }} /></Box>}
       {detail && groups.length === 0 && <Empty label="Exame sem itens extraídos." />}
       {detail && groups.map((g) => (
-        <Accordion key={g.cat} defaultExpanded disableGutters elevation={0} sx={{ '&:before': { display: 'none' }, mb: 1, border: `1px solid ${g.color}26`, borderRadius: '12px !important', overflow: 'hidden' }}>
+        <Accordion key={g.cat} disableGutters elevation={0} sx={{ '&:before': { display: 'none' }, mb: 1, border: `1px solid ${g.color}26`, borderRadius: '12px !important', overflow: 'hidden' }}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: `${g.color}0a`, minHeight: '46px !important', '& .MuiAccordionSummary-content': { my: 0.5 } }}>
             <Box sx={{ fontSize: 18, mr: 1, display: 'inline-block' }}>{g.emoji}</Box>
             <Typography sx={{ fontWeight: 800, color: '#0f3d3a', display: 'inline-block' }}>{g.cat}</Typography>

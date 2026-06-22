@@ -94,7 +94,10 @@ export const ExamShow = () => {
   useEffect(() => {
     let active = true;
     let timer: any;
+    let attempts = 0;
     const load = async () => {
+      attempts++;
+      if (attempts > 20) { notify('A extração está demorando mais que o normal. Volte em instantes.', { type: 'warning' }); return; }
       const r = await fetch(`${API_URL}/exams/${id}`, { headers: { Authorization: `Bearer ${token()}` } });
       if (!active || !r.ok) return;
       const d = await r.json();

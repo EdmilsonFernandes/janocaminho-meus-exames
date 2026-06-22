@@ -213,6 +213,7 @@ export const App = () => {
   const [exitHint, setExitHint] = useState(false);
   const isNativeApp = Capacitor.isNativePlatform();
   useEffect(() => {
+    let cancelled = false; // previne setState após unmount (race condition)
     // WEB: anônimo na raiz → landing (porta pública/vitrine). APK: abre direto no LOGIN (app instalado não precisa de vitrine).
     // replaceState muda a URL em SILÊNCIO, sem reload — seguro no APK (reload recarrega o WebView e crasha o app nativo).
     try {
@@ -221,9 +222,9 @@ export const App = () => {
         window.history.replaceState({}, '', '/landing');
       }
     } catch { /* ignore */ }
-    const bootTimer = setTimeout(() => setBooted(true), 1100); // splash visível na abertura
+    const bootTimer = setTimeout(() => { if (!cancelled) setBooted(true); }, 1100); // splash visível na abertura
     void initPush();
-    void checkAppUpdate().then((r) => { if (r.required) setForceUpdate(r.latest); }); // força-update se versão instalada < mínima
+    void checkAppUpdate().then((r) => { if (!cancelled && r.required) setForceUpdate(r.latest); }); // força-update se versão instalada < mínima
     void checkPlayUpdate(); // in-app update NATIVO do Google Play (baixa e atualiza sozinho) — só em builds da Play Store
     void syncCreditCosts();
     // Botão/gesto de voltar do Android (Capacitor) — volta no histórico ou sai do app na raiz
@@ -248,7 +249,7 @@ export const App = () => {
         }
       } catch { /* web: sem @capacitor — browser back já funciona */ }
     })();
-    return () => { clearTimeout(bootTimer); remove?.(); };
+    return () => { cancelled = true; clearTimeout(bootTimer); remove?.(); };
   }, []);
   if (!booted) return <BootSplash messages={['Iniciando o Dr. Exame…', 'Carregando seus exames…', 'Preparando seu painel…', 'Quase lá…']} />;
   if (forceUpdate) return <ForceUpdate latest={forceUpdate} />;
