@@ -3,6 +3,7 @@ import { app } from './app';
 import { config, hasAnthropicKey } from './config';
 import { startReminderEmailJob } from './jobs/reminderEmails';
 import { startHealthNudgeJob } from './jobs/healthNudges';
+import { startPlanExpiryJob } from './jobs/planExpiry';
 import { loadSettings } from './utils/settings';
 
 // Carrega config de monetização do banco (custos/grants/shares) e sincroniza os objetos vivos
@@ -13,6 +14,7 @@ app.listen(config.port, () => {
   console.log(`[server] rodando em http://localhost:${config.port} (env=${config.nodeEnv})`);
   startReminderEmailJob();
   startHealthNudgeJob();
+  startPlanExpiryJob();
   if (!hasAnthropicKey()) {
     console.warn(
       '[server] AVISO: ANTHROPIC_API_KEY não configurada. Extração e análise de IA ficarão indisponíveis até definir a chave em packages/server/.env',
