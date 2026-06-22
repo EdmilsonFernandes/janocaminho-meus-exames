@@ -15,7 +15,10 @@ export const authProvider = {
       body: JSON.stringify({ username, password }),
     });
     if (!r.ok) throw new Error('Credenciais inválidas');
-    const { token, patientId, user } = await r.json();
+    const data = await r.json();
+    // MFA: senha OK mas 2FA ativo → sinaliza pra UI mostrar o desafio (não grava token)
+    if (data.mfaRequired) throw { mfaRequired: true, challengeToken: data.challengeToken, account: data.account };
+    const { token, patientId, user } = data;
     localStorage.setItem('token', token);
     // Zera perfil de outra conta (evita vazar paciente de sessão anterior) e fixa o do usuário logado
     localStorage.removeItem('selPatientId');

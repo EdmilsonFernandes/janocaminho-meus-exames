@@ -5,6 +5,7 @@ import { Box, Typography, Button, Link, CircularProgress, Stack, TextField, Inpu
 import { DrExame } from '../components/DrExame';
 import { API_URL } from '../config';
 import { OtpInput } from '../components/OtpInput';
+import { MfaChallengeDialog } from '../components/mfa/MfaChallengeDialog';
 
 /* ---------- ícones inline (sem dependência de @mui/icons-material) ---------- */
 const I = {
@@ -75,6 +76,7 @@ export const LoginPage = () => {
   const [mode, setMode] = useState<'password' | 'otp'>('password');
   const [loading, setLoading] = useState(false);
   const [role, setRole] = useState<'paciente' | 'medico'>('paciente');
+  const [mfaChallenge, setMfaChallenge] = useState<{ token: string; account?: string; verifyUrl: string; isDoctor: boolean } | null>(null);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,6 +86,7 @@ export const LoginPage = () => {
         const r = await fetch(`${API_URL}/doctor/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email.trim(), password: pwd }) });
         const d = await r.json();
         if (!r.ok) throw new Error(d.error || 'Falha');
+        if (d.mfaRequired) { setMfaChallenge({ token: d.challengeToken, account: d.account, verifyUrl: `${API_URL}/doctor/mfa/verify`, isDoctor: true }); return; }
         localStorage.setItem('doctorToken', d.token);
         notify(`Bem-vindo, ${d.doctor.name}! \u{1F3E5}`, { type: 'success' });
         navigate('/doctor');
@@ -91,8 +94,21 @@ export const LoginPage = () => {
       return;
     }
     try { await login({ username: email.trim(), password: pwd }); }
-    catch { notify('E-mail ou senha incorretos.', { type: 'error' }); }
+    catch (e: any) {
+      if (e?.mfaRequired) { setMfaChallenge({ token: e.challengeToken, account: e.account, verifyUrl: `${API_URL}/auth/mfa/verify`, isDoctor: false }); return; }
+      notify('E-mail ou senha incorretos.', { type: 'error' });
+    }
     finally { setLoading(false); }
+  };
+
+  const onMfaSuccess = (d: any) => {
+    setMfaChallenge(null);
+    if (mfaChallenge?.isDoctor) { localStorage.setItem('doctorToken', d.token); navigate('/doctor'); return; }
+    localStorage.setItem('token', d.token);
+    if (d.patientId) { localStorage.setItem('patientId', d.patientId); localStorage.setItem('selPatientId', d.patientId); }
+    localStorage.setItem('user', JSON.stringify(d.user));
+    window.dispatchEvent(new Event('selPatientChanged'));
+    window.location.href = import.meta.env.BASE_URL;
   };
 
   const sendOtp = async (e?: React.FormEvent) => {
@@ -197,6 +213,7 @@ export const LoginPage = () => {
           </Stack>
         </Box>
       )}
+      <MfaChallengeDialog open={!!mfaChallenge} challengeToken={mfaChallenge?.token || ''} account={mfaChallenge?.account} verifyUrl={mfaChallenge?.verifyUrl || ''} onSuccess={onMfaSuccess} onClose={() => setMfaChallenge(null)} />
     </Shell>
   );
 };
