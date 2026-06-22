@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Box, Typography, useMediaQuery, useTheme, Drawer, List, ListItemButton, ListItemIcon, ListItemText, Divider } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useLogout } from 'react-admin';
 import { DrExame } from './DrExame';
 
 /** Menu rodapé fixo (só mobile) — 4 atalhos + "Mais" que abre o menu lateral (drawer). */
@@ -10,32 +11,44 @@ const NAV = [
   { icon: '🤖', label: 'Dr. Exame', to: '/chat' },
   { icon: '📈', label: 'Evolução', to: '/evolucao' },
 ];
+// Menu "Mais" = ESPELHO do menu lateral (AppMenu). Mesmas opções/rotas, mesma ordem.
+// (Início/Evolução/Exames/Chat também ficam aqui pra ter paridade total com a sidebar.)
 const MORE = [
+  { icon: '🏠', label: 'Início', to: '/' },
   { icon: '👤', label: 'Meu perfil', to: '/perfil' },
-  { icon: '🩺', label: 'Meus Médicos', to: '/medicos' },
+  { icon: '📈', label: 'Evolução', to: '/evolucao' },
+  { icon: '📋', label: 'Exames', to: '/exams' },
   { icon: '👨‍👩‍👧', label: 'Dependentes', to: '/patients' },
   { icon: '🌳', label: 'Família', to: '/familia' },
+  { icon: '🩺', label: 'Meus Médicos', to: '/medicos' },
   { icon: '📊', label: 'Tendências', to: '/tendencias' },
   { icon: '🕒', label: 'Linha do tempo', to: '/linha-do-tempo' },
   { icon: '🧾', label: 'Relatório completo', to: '/relatorio' },
   { icon: '⚠️', label: 'Valores alterados', to: '/alterados' },
-  { icon: '💰', label: 'Despesas médicas', to: '/despesas' },
-  { icon: '💉', label: 'Vacinas', to: '/vacinas' },
-  { icon: '📏', label: 'Medições', to: '/medicoes' },
-  { icon: '🚨', label: 'Cartão de emergência', to: '/emergencia' },
   { icon: '🔔', label: 'Lembretes', to: '/lembretes' },
+  { icon: '📏', label: 'Medições', to: '/medicoes' },
+  { icon: '💉', label: 'Vacinas', to: '/vacinas' },
+  { icon: '💰', label: 'Despesas médicas', to: '/despesas' },
+  { icon: '🚨', label: 'Cartão de emergência', to: '/emergencia' },
+  { icon: '🤖', label: 'Chat (Dr. Exame)', to: '/chat' },
   { icon: '💎', label: 'Planos e créditos', to: '/planos' },
 ];
+const NAV_TO = new Set(NAV.map((n) => n.to));
 
 export const MobileBottomNav = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const logout = useLogout();
   const [mais, setMais] = useState(false);
+  // Admin só aparece pra ADMIN (lê do localStorage — salvo no login, igual ao AppMenu)
+  const userStr = typeof localStorage !== 'undefined' ? localStorage.getItem('user') : null;
+  const isAdmin = userStr ? (JSON.parse(userStr)?.role === 'ADMIN') : false;
   if (!isMobile) return null;
   const active = (to: string) => (to === '/' ? pathname === '/' : pathname.startsWith(to));
-  const anyMoreActive = MORE.some((m) => active(m.to));
+  // "Mais" fica destacado só numa rota SECUNDÁRIA (não nas 4 do rodapé) — evita destaque duplo
+  const anyMoreActive = MORE.some((m) => !NAV_TO.has(m.to) && active(m.to));
 
   const item = (it: { icon: string; label: string; to: string }, onClick?: () => void, on?: boolean) => (
     <Box key={it.to} onClick={onClick ?? (() => navigate(it.to))} sx={{
@@ -65,17 +78,30 @@ export const MobileBottomNav = () => {
           <DrExame size={36} sx={{ borderRadius: '22%', boxShadow: '0 2px 6px rgba(32,178,170,.25)' }} />
           <Box>
             <Typography sx={{ fontWeight: 800, color: '#178f89', lineHeight: 1.1 }}>Meus Exames</Typography>
-            <Typography variant="caption" color="text.secondary">Mais opções</Typography>
+            <Typography variant="caption" color="text.secondary">Menu completo</Typography>
           </Box>
         </Box>
         <Divider />
-        <List sx={{ pt: 1, '& .MuiListItemButton-root': { borderRadius: 2, m: '2px 10px' } }}>
+        <List sx={{ pt: 1, pb: 1, '& .MuiListItemButton-root': { borderRadius: 2, m: '2px 10px' } }}>
           {MORE.map((m) => (
             <ListItemButton key={m.to} onClick={() => { setMais(false); navigate(m.to); }} selected={active(m.to)}>
               <ListItemIcon sx={{ minWidth: 34, fontSize: 18 }}>{m.icon}</ListItemIcon>
               <ListItemText primary={m.label} primaryTypographyProps={{ fontSize: 14, fontWeight: active(m.to) ? 700 : 500 }} />
             </ListItemButton>
           ))}
+          {isAdmin && (
+            <ListItemButton onClick={() => { setMais(false); navigate('/admin'); }} selected={active('/admin')}>
+              <ListItemIcon sx={{ minWidth: 34, fontSize: 18 }}>🛠️</ListItemIcon>
+              <ListItemText primary="Painel Admin" primaryTypographyProps={{ fontSize: 14, fontWeight: active('/admin') ? 700 : 500 }} />
+            </ListItemButton>
+          )}
+        </List>
+        <Divider />
+        <List sx={{ pt: 1, '& .MuiListItemButton-root': { borderRadius: 2, m: '2px 10px' } }}>
+          <ListItemButton onClick={() => { setMais(false); logout(); }} sx={{ color: 'error.main' }}>
+            <ListItemIcon sx={{ minWidth: 34, fontSize: 18, color: 'error.main' }}>↩</ListItemIcon>
+            <ListItemText primary="Sair da conta" primaryTypographyProps={{ fontSize: 14, fontWeight: 600 }} />
+          </ListItemButton>
         </List>
       </Drawer>
     </>

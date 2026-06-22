@@ -144,6 +144,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const [newNote, setNewNote] = useState('');
   const [chartFilter, setChartFilter] = useState<'6m' | '1y' | 'all'>('1y');
   const [patQuery, setPatQuery] = useState('');
+  const [patAlertOnly, setPatAlertOnly] = useState(false);
   const h = { Authorization: `Bearer ${token}` };
 
   useEffect(() => {
@@ -284,12 +285,17 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f3d3a' }}>Pacientes ({patients.length})</Typography>
               {patients.some((p) => p.hasAlerts) && <Chip size="small" color="error" label={`🔴 ${patients.filter((p) => p.hasAlerts).length} com alerta`} sx={{ fontWeight: 700 }} />}
             </Stack>
-            {patients.length > 4 && (
-              <Paper variant="outlined" sx={{ p: '2px 12px', mb: 1.5, display: 'flex', alignItems: 'center', gap: 1, borderRadius: 99 }}>
-                <SearchIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
-                <InputBase value={patQuery} onChange={(e: any) => setPatQuery(e.target.value)} placeholder="Buscar paciente pelo nome…" sx={{ flex: 1, fontSize: 14 }} />
-                {patQuery && <Chip size="small" label="limpar" onClick={() => setPatQuery('')} sx={{ height: 22 }} />}
-              </Paper>
+            {patients.length > 0 && (
+              <Stack spacing={1} sx={{ mb: 1.5 }}>
+                <Paper variant="outlined" sx={{ p: '2px 12px', display: 'flex', alignItems: 'center', gap: 1, borderRadius: 99 }}>
+                  <SearchIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
+                  <InputBase value={patQuery} onChange={(e: any) => setPatQuery(e.target.value)} placeholder="Buscar paciente pelo nome…" sx={{ flex: 1, fontSize: 14 }} />
+                  {patQuery && <Chip size="small" label="limpar" onClick={() => setPatQuery('')} sx={{ height: 22 }} />}
+                </Paper>
+                {patients.some((p) => p.hasAlerts) && (
+                  <Chip size="small" icon={<Box component="span" sx={{ pl: 0.75 }}>🔴</Box>} label="Só com alerta" onClick={() => setPatAlertOnly((v) => !v)} color={patAlertOnly ? 'error' : 'default'} variant={patAlertOnly ? 'filled' : 'outlined'} sx={{ fontWeight: 700, alignSelf: 'flex-start' }} />
+                )}
+              </Stack>
             )}
             {patients.length === 0 && (
               <Card sx={{ borderRadius: 4 }}><CardContent><Box sx={{ textAlign: 'center', py: 4 }}>
@@ -299,7 +305,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               </Box></CardContent></Card>
             )}
             <Stack spacing={1.5}>
-              {patients.filter((p) => !patQuery.trim() || (p.patient?.fullName || '').toLowerCase().includes(patQuery.trim().toLowerCase())).map((p) => {
+              {patients.filter((p) => (!patQuery.trim() || (p.patient?.fullName || '').toLowerCase().includes(patQuery.trim().toLowerCase())) && (!patAlertOnly || p.hasAlerts)).slice().sort((a, b) => (Number(!!b.hasAlerts) - Number(!!a.hasAlerts)) || ((b.lastExamAt ? new Date(b.lastExamAt).getTime() : 0) - (a.lastExamAt ? new Date(a.lastExamAt).getTime() : 0))).map((p) => {
                 const sex = p.sex === 'female' ? 'F' : p.sex === 'male' ? 'M' : null;
                 return (
                   <Card key={p.shareId} sx={{ borderRadius: 4, cursor: 'pointer', transition: 'all .15s', border: '1px solid #e2efec', borderLeft: p.hasAlerts ? '5px solid #ef4444' : '5px solid transparent', '&:hover': { boxShadow: '0 8px 24px rgba(32,178,170,.15)', transform: 'translateY(-1px)' } }} onClick={() => openPatient(p)}>
@@ -422,20 +428,41 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                   </Stack>
                 )}
 
-                {!detailLoading && tab === 'alerts' && (
-                  <Stack spacing={1}>
-                    {allAlerts.length === 0 && <Empty label="Nenhum valor alterado nos exames." />}
-                    {allAlerts.map((a, i) => (
-                      <Card key={i} variant="outlined" sx={{ borderRadius: 2, borderColor: '#f3dada', bgcolor: '#fff8f8' }}><CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.25, '&:last-child': { pb: 1.25 } }}>
-                        <Box sx={{ fontSize: 18 }}>🚩</Box>
-                        <Box sx={{ flex: 1 }}>
-                          <Typography sx={{ fontWeight: 700, color: '#b91c1c' }}>{a.name} <Typography component="span" sx={{ fontWeight: 800 }}>: {a.valueText}</Typography></Typography>
-                          <Typography variant="caption" sx={{ color: '#757575' }}>{a.examTitle} • {fmtDate(a.examDate)}</Typography>
-                        </Box>
-                      </CardContent></Card>
-                    ))}
-                  </Stack>
-                )}
+                {!detailLoading && tab === 'alerts' && (() => {
+                  const exWithAlerts = exams.filter((ex: any) => ex.items?.length).map((ex: any) => ({ ...ex, items: [...ex.items].sort((a: any, b: any) => categorize(a.name).key.localeCompare(categorize(b.name).key)) }));
+                  if (!exWithAlerts.length) return <Empty label="Nenhum valor alterado nos exames." />;
+                  return (
+                    <Stack spacing={1}>
+                      {exWithAlerts.map((ex, idx) => (
+                        <Accordion key={ex.id} defaultExpanded={idx === 0} disableGutters elevation={0} sx={{ border: '1px solid #f3dada', borderRadius: '12px', overflow: 'hidden', '&:before': { display: 'none' } }}>
+                          <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: '#fff5f5' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 1 }}>
+                              <Box component="span" sx={{ fontSize: 18 }}>🚨</Box>
+                              <Box sx={{ flex: 1, minWidth: 0 }}>
+                                <Typography sx={{ fontWeight: 800, color: '#b91c1c', lineHeight: 1.2 }}>{ex.title}</Typography>
+                                <Typography variant="caption" sx={{ color: '#9b3a3a' }}>{fmtDate(ex.performedAt)}{ex.sourceLab ? ` • ${ex.sourceLab}` : ''}</Typography>
+                              </Box>
+                              <Chip size="small" color="error" label={`${ex.items.length} alterado(s)`} sx={{ fontWeight: 700, height: 20 }} />
+                            </Box>
+                          </AccordionSummary>
+                          <AccordionDetails sx={{ p: 1 }}>
+                            <Stack spacing={0}>
+                              {ex.items.map((it: any, i: number) => (
+                                <Box key={i} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1, px: 1, py: 0.75, borderBottom: i < ex.items.length - 1 ? '1px solid #fde8e8' : 'none' }}>
+                                  <Box sx={{ minWidth: 0 }}>
+                                    <Typography sx={{ fontWeight: 700, fontSize: 13.5, color: '#b91c1c' }}>{it.name}</Typography>
+                                    <Typography variant="caption" sx={{ color: '#94a3b8' }}>{refLabel(it)}</Typography>
+                                  </Box>
+                                  <Typography sx={{ fontWeight: 800, color: '#b91c1c', flexShrink: 0 }}>{it.valueText}</Typography>
+                                </Box>
+                              ))}
+                            </Stack>
+                          </AccordionDetails>
+                        </Accordion>
+                      ))}
+                    </Stack>
+                  );
+                })()}
 
                 {!detailLoading && tab === 'evolution' && (
                   <EvolutionCharts items={evolution} filter={chartFilter} setFilter={setChartFilter} />

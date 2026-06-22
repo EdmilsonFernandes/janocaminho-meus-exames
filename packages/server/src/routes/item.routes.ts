@@ -118,7 +118,7 @@ router.get('/evolution', async (req: AuthedRequest, res, next) => {
     }
     const out: any[] = [];
     for (const [name, items] of byName) {
-      if (items.length < 2) continue; // precisa de >=2 pontos p/ evolução
+      // Mostra TODOS os analitos medidos (mesmo com 1 exame só = "primeiro exame"); antes exigia >=2.
       const first = items[0];
       const last = items[items.length - 1];
       const v0 = first.valueNumeric!, v1 = last.valueNumeric!;
@@ -223,7 +223,7 @@ router.get('/abnormal', async (req: AuthedRequest, res, next) => {
       include: { exam: { select: { id: true, title: true, performedAt: true } } },
       take: 300,
     });
-    res.json({ items: rows.map((i) => ({ id: i.id, examId: i.exam.id, name: i.name, nameCanonical: i.nameCanonical, valueText: i.valueText, unit: i.unit, flag: i.flag, refText: i.refText, examTitle: i.exam.title, performedAt: i.exam.performedAt })) });
+    res.json({ items: rows.map((i) => ({ id: i.id, examId: i.exam.id, name: i.name, nameCanonical: i.nameCanonical, valueText: i.valueText, unit: i.unit, flag: i.flag, refText: i.refText, refLow: i.refLow, refHigh: i.refHigh, examTitle: i.exam.title, performedAt: i.exam.performedAt })) });
   } catch (e) { next(e); }
 });
 

@@ -62,7 +62,7 @@
       /* Mobile: folga no rodapé do conteúdo pra o FAB do Dr. Exame não cobrir paginação/rodapé. */
       @media (max-width: 599px) { #main-content { padding-bottom: 84px !important; } }
     </style>
-    <script type="module" crossorigin src="./assets/index-DmQanO1E.js"></script>
+    <script type="module" crossorigin src="./assets/index-DDp7R1mN.js"></script>
   </head>
   <body>
     <div id="root"></div>
@@ -82,6 +82,10 @@
     <style>
       /* VLibras um pouco menor pra não tomar muito espaço na tela */
       .vw-access-button { transform: scale(0.82) !important; transform-origin: bottom right !important; }
+      /* VLibras ACIMA de tudo (FAB do chat z1200, AppBar/nav z1100): sem isso, o popup de
+         consentimento "aceitar sim/não" (1ª vez) fica coberto pelos elementos fixos do app
+         e não dá pra clicar em Sim/Não nem fechar. */
+      [vw], [class^="vpw-"], [class^="vw-"] { z-index: 2147483647 !important; }
     </style>
     <div vw class="enabled">
       <div vw-access-button class="active"></div>
