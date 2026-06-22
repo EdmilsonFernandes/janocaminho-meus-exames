@@ -329,6 +329,7 @@ model DoctorShare {
   active     Boolean   @default(true)
   createdAt  DateTime  @default(now())
   revokedAt  DateTime?
+  creditsCharged Int @default(0) // créditos debitados do paciente ao criar o share (pro extrato)
 
   @@unique([patientId, doctorId])
   @@index([doctorId, active])

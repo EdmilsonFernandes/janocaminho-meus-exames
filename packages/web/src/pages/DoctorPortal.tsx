@@ -300,16 +300,16 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               </Box></CardContent></Card>
             )}
             <Stack spacing={1.5}>
-              {patients.filter((p) => (!patQuery.trim() || (p.patient?.fullName || '').toLowerCase().includes(patQuery.trim().toLowerCase())) && (!patAlertOnly || p.hasAlerts)).slice().sort((a, b) => { const oa = (a.patient?.owner?.name || ''), ob = (b.patient?.owner?.name || ''); if (oa !== ob) return oa.localeCompare(ob); return (Number(!!b.hasAlerts) - Number(!!a.hasAlerts)) || ((b.lastExamAt ? new Date(b.lastExamAt).getTime() : 0) - (a.lastExamAt ? new Date(a.lastExamAt).getTime() : 0)); }).map((p, i, arr) => {
+              {patients.filter((p) => { const q = patQuery.trim().toLowerCase(); return (!q || (p.patient?.fullName || '').toLowerCase().includes(q) || (p.code || '').toLowerCase().includes(q)) && (!patAlertOnly || p.hasAlerts); }).slice().sort((a, b) => { const oa = a.ownerId || '', ob = b.ownerId || ''; if (oa !== ob) return (a.ownerName || '').localeCompare(b.ownerName || ''); return (Number(!!b.hasAlerts) - Number(!!a.hasAlerts)) || ((b.lastExamAt ? new Date(b.lastExamAt).getTime() : 0) - (a.lastExamAt ? new Date(a.lastExamAt).getTime() : 0)); }).map((p, i, arr) => {
                 const sex = p.sex === 'female' ? 'F' : p.sex === 'male' ? 'M' : null;
-                const ownerName = p.patient?.owner?.name || '';
-                const prevOwner = i > 0 ? (arr[i - 1].patient?.owner?.name || '') : null;
-                const famCount = arr.filter((x) => (x.patient?.owner?.name || '') === ownerName).length;
-                const showFamHdr = famCount > 1 && ownerName !== prevOwner;
+                const ownerId = p.ownerId || '';
+                const prevOwner = i > 0 ? (arr[i - 1].ownerId || '') : null;
+                const famCount = arr.filter((x) => (x.ownerId || '') === ownerId).length;
+                const showFamHdr = famCount > 1 && ownerId !== prevOwner;
                 return (
                   <Box key={p.shareId}>
                   {showFamHdr && (
-                    <Typography sx={{ fontWeight: 800, fontSize: 14, color: '#0f3d3a', mt: i > 0 ? 2 : 0, mb: 0.75, display: 'flex', alignItems: 'center', gap: 0.5 }}>👨‍👩‍👧 Família {ownerName} <Chip size="small" label={`${famCount}`} sx={{ height: 18, fontSize: 10, bgcolor: '#e0f2f1', color: TEAL, fontWeight: 700 }} /></Typography>
+                    <Typography sx={{ fontWeight: 800, fontSize: 14, color: '#0f3d3a', mt: i > 0 ? 2 : 0, mb: 0.75, display: 'flex', alignItems: 'center', gap: 0.5 }}>👨‍👩‍👧 Família {p.ownerName || 'Sem titular'} <Chip size="small" label={`${famCount}`} sx={{ height: 18, fontSize: 10, bgcolor: '#e0f2f1', color: TEAL, fontWeight: 700 }} /></Typography>
                   )}
                   <Card sx={{ borderRadius: 4, cursor: 'pointer', transition: 'all .15s', border: '1px solid #e2efec', borderLeft: p.hasAlerts ? '5px solid #ef4444' : '5px solid transparent', '&:hover': { boxShadow: '0 8px 24px rgba(32,178,170,.15)', transform: 'translateY(-1px)' } }} onClick={() => openPatient(p)}>
                     <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.75, py: 1.5 }}>
@@ -319,6 +319,8 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                       <Box sx={{ flex: 1, minWidth: 0 }}>
                         <Stack direction="row" alignItems="center" spacing={0.75} useFlexGap flexWrap="wrap">
                           <Typography sx={{ fontWeight: 800, color: '#0f3d3a' }}>{p.patient?.fullName}</Typography>
+                          {p.code && <Chip size="small" label={p.code} sx={{ height: 18, fontSize: 10, bgcolor: '#0f3d3a', color: '#fff', fontWeight: 700, fontFamily: 'monospace' }} />}
+                          {p.relationship && <Chip size="small" label={p.relationship} sx={{ height: 18, fontSize: 10, bgcolor: '#f1f5f9', color: '#475569', fontWeight: 600 }} />}
                           {p.age != null && <Chip size="small" label={`${p.age}a`} sx={{ height: 18, fontSize: 10, bgcolor: '#f1f5f9', color: '#475569', fontWeight: 700 }} />}
                           {sex && <Chip size="small" label={sex} sx={{ height: 18, fontSize: 10, bgcolor: sex === 'F' ? '#fce7f3' : '#dbeafe', color: sex === 'F' ? '#be185d' : '#1d4ed8', fontWeight: 700 }} />}
                           {p.hasAlerts && <Chip size="small" label="alerta" sx={{ height: 18, fontSize: 10, bgcolor: '#fee2e2', color: '#b91c1c', fontWeight: 700 }} />}
@@ -347,7 +349,10 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               {!selExam && <Button size="small" onClick={() => setSelected(null)} sx={{ color: TEAL, textTransform: 'none', fontWeight: 700, minWidth: 0 }}>← Voltar</Button>}
               <Avatar src={selected.patient?.id ? `${API_URL}/patients/${selected.patient.id}/photo` : undefined} sx={{ bgcolor: TEAL, width: 36, height: 36, fontSize: 16 }}>{selected.patient?.fullName?.charAt(0)}</Avatar>
               <Box>
-                <Typography sx={{ fontWeight: 800, color: '#0f3d3a', lineHeight: 1.1 }}>{selected.patient?.fullName}</Typography>
+                <Stack direction="row" alignItems="center" spacing={0.75}>
+                  <Typography sx={{ fontWeight: 800, color: '#0f3d3a', lineHeight: 1.1 }}>{selected.patient?.fullName}</Typography>
+                  {selected.code && <Chip size="small" label={selected.code} sx={{ height: 18, fontSize: 10, bgcolor: '#0f3d3a', color: '#fff', fontWeight: 700, fontFamily: 'monospace' }} />}
+                </Stack>
                 <Typography variant="caption" sx={{ color: '#757575' }}>{[selected.age != null ? `${selected.age} anos` : null, selected.sex === 'female' ? 'Feminino' : selected.sex === 'male' ? 'Masculino' : null, selected.patient?.relationship, selected.convenio || 'Particular', selected.latestWeight ? `${selected.latestWeight.value} kg` : null].filter(Boolean).join(' • ')}</Typography>
               </Box>
             </Stack>
@@ -512,6 +517,11 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           </Stack>
         </Box>
         <Divider />
+        <Box sx={{ mx: '10px', mt: 1.5, p: 1.25, borderRadius: 2, background: 'linear-gradient(135deg,#e0f2f1,#d6ece8)', border: '1px solid #bfe7e3' }}>
+          <Typography variant="caption" sx={{ fontWeight: 800, color: TEAL, display: 'block' }}>PLANO</Typography>
+          <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#0f3d3a' }}>✅ Grátis (médico)</Typography>
+          <Typography variant="caption" sx={{ color: '#4a6b66' }}>O portal do médico é gratuito por ora. Em breve: Premium do Médico.</Typography>
+        </Box>
         <List sx={{ pt: 1, '& .MuiListItemButton-root': { borderRadius: 2, m: '2px 10px' } }}>
           <ListItemButton onClick={() => { setView('profile'); setMenuOpen(false); }}><ListItemIcon sx={{ minWidth: 38 }}><PersonIcon sx={{ color: TEAL }} /></ListItemIcon><ListItemText primary="Meu perfil" primaryTypographyProps={{ fontWeight: 600 }} /></ListItemButton>
           <ListItemButton onClick={() => { setView('password'); setMenuOpen(false); }}><ListItemIcon sx={{ minWidth: 38 }}><LockIcon sx={{ color: TEAL }} /></ListItemIcon><ListItemText primary="Trocar senha" primaryTypographyProps={{ fontWeight: 600 }} /></ListItemButton>

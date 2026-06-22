@@ -53,7 +53,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       if ((me?.credits ?? 0) < shareCost) { res.status(402).json({ error: 'insufficient_credits', message: `Compartilhar custa ${shareCost} créditos.` }); return; }
       if (!(await chargeCredits(req.userId!, shareCost))) { res.status(402).json({ error: 'insufficient_credits', message: 'Saldo insuficiente.' }); return; }
     }
-    const share = await prisma.doctorShare.create({ data: { patientId: pid, doctorId: doctor.id, scopes: selectedScopes, convenio: convenio ? String(convenio) : null } });
+    const share = await prisma.doctorShare.create({ data: { patientId: pid, doctorId: doctor.id, scopes: selectedScopes, convenio: convenio ? String(convenio) : null, creditsCharged: shareCost } });
 
     // notifica o médico por e-mail
     if (doctor.email && !doctor.email.includes('@invite.com')) {

@@ -66,10 +66,11 @@ router.get('/credits/history', requireAuth, async (req: AuthedRequest, res, next
     const pids = await userPatientIds(req.userId!);
     const page = Math.max(1, Number(req.query.page ?? 1));
     const perPage = 7;
-    const [analyses, subs, patients] = await Promise.all([
+    const [analyses, subs, patients, shares] = await Promise.all([
       prisma.aiAnalysis.findMany({ where: { patientId: { in: pids } }, orderBy: { createdAt: 'desc' }, take: 2000, select: { id: true, type: true, examId: true, patientId: true, createdAt: true } }),
       prisma.subscription.findMany({ where: { userId: req.userId!, status: 'APPROVED', periodDays: 0 }, orderBy: { updatedAt: 'desc' }, take: 500, select: { id: true, amount: true, updatedAt: true } }),
       prisma.patient.findMany({ where: { id: { in: pids } }, select: { id: true, fullName: true } }),
+      prisma.doctorShare.findMany({ where: { patientId: { in: pids }, creditsCharged: { gt: 0 } }, orderBy: { createdAt: 'desc' }, take: 500, select: { id: true, patientId: true, creditsCharged: true, createdAt: true } }),
     ]);
     const pmap = new Map(patients.map((p) => [p.id, p.fullName]));
     const creditsForPrice = (price: number) => CREDIT_PACKS.find((p) => Math.abs(p.price - price) < 0.01)?.credits ?? Math.round(price * 25);
@@ -84,6 +85,9 @@ router.get('/credits/history', requireAuth, async (req: AuthedRequest, res, next
     }
     for (const s of subs) {
       items.push({ kind: 'credit', id: 's' + s.id, createdAt: s.updatedAt, label: `Compra de créditos — R$ ${Number(s.amount).toFixed(2).replace('.', ',')}`, patient: null, amount: creditsForPrice(Number(s.amount)) });
+    }
+    for (const sh of shares) {
+      items.push({ kind: 'debit', id: 'sh' + sh.id, createdAt: sh.createdAt, label: 'Compartilhamento com médico', patient: (sh.patientId && pmap.get(sh.patientId)) || null, amount: -sh.creditsCharged });
     }
     items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     const total = items.length;

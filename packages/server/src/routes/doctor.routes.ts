@@ -127,7 +127,7 @@ router.get('/patients', requireDoctor, async (req: any, res, next) => {
   try {
     const shares = await prisma.doctorShare.findMany({
       where: { doctorId: req.doctorId, active: true },
-      include: { patient: { select: { id: true, fullName: true, relationship: true, dateOfBirth: true, photoUrl: true, gender: true, clinicalProfile: true, owner: { select: { name: true } } } } },
+      include: { patient: { select: { id: true, fullName: true, relationship: true, dateOfBirth: true, photoUrl: true, gender: true, clinicalProfile: true, owner: { select: { id: true, name: true } } } } },
       orderBy: { createdAt: 'desc' },
     });
     const pids = shares.map((s) => s.patient.id);
@@ -148,6 +148,10 @@ router.get('/patients', requireDoctor, async (req: any, res, next) => {
         return {
           shareId: s.id, scopes: s.scopes, convenio: s.convenio, createdAt: s.createdAt,
           patient: s.patient,
+          code: '#' + s.patient.id.slice(-4).toUpperCase(),
+          ownerId: s.patient.owner?.id ?? null,
+          ownerName: s.patient.owner?.name ?? '',
+          relationship: s.patient.relationship ?? null,
           age: s.patient.dateOfBirth ? calcAge(s.patient.dateOfBirth) : null,
           sex: s.patient.gender ?? null,
           latestWeight: weightByPid.get(s.patient.id) ?? null,
