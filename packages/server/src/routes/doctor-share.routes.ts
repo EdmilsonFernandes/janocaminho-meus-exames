@@ -47,7 +47,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     // Custo de compartilhar = soma dos escopos selecionados (parametrizado em app_settings).
     // Só cobra na CRIAÇÃO nova (reativar existente / editar escopos = grátis, sem fricção).
     const selectedScopes: string[] = Array.isArray(scopes) && scopes.length ? scopes : ['exams'];
-    const shareCost = selectedScopes.reduce((sum: number, k: string) => sum + (getSettings().shares[k] ?? 0), 0);
+    const shareCost = selectedScopes.reduce((sum: number, k: string) => sum + ((getSettings().shares as Record<string, number>)[k] ?? 0), 0);
     if (shareCost > 0) {
       const me = await prisma.user.findUnique({ where: { id: req.userId! }, select: { credits: true } });
       if ((me?.credits ?? 0) < shareCost) { res.status(402).json({ error: 'insufficient_credits', message: `Compartilhar custa ${shareCost} créditos.` }); return; }

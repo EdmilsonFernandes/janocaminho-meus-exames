@@ -300,10 +300,18 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               </Box></CardContent></Card>
             )}
             <Stack spacing={1.5}>
-              {patients.filter((p) => (!patQuery.trim() || (p.patient?.fullName || '').toLowerCase().includes(patQuery.trim().toLowerCase())) && (!patAlertOnly || p.hasAlerts)).slice().sort((a, b) => (Number(!!b.hasAlerts) - Number(!!a.hasAlerts)) || ((b.lastExamAt ? new Date(b.lastExamAt).getTime() : 0) - (a.lastExamAt ? new Date(a.lastExamAt).getTime() : 0))).map((p) => {
+              {patients.filter((p) => (!patQuery.trim() || (p.patient?.fullName || '').toLowerCase().includes(patQuery.trim().toLowerCase())) && (!patAlertOnly || p.hasAlerts)).slice().sort((a, b) => { const oa = (a.patient?.owner?.name || ''), ob = (b.patient?.owner?.name || ''); if (oa !== ob) return oa.localeCompare(ob); return (Number(!!b.hasAlerts) - Number(!!a.hasAlerts)) || ((b.lastExamAt ? new Date(b.lastExamAt).getTime() : 0) - (a.lastExamAt ? new Date(a.lastExamAt).getTime() : 0)); }).map((p, i, arr) => {
                 const sex = p.sex === 'female' ? 'F' : p.sex === 'male' ? 'M' : null;
+                const ownerName = p.patient?.owner?.name || '';
+                const prevOwner = i > 0 ? (arr[i - 1].patient?.owner?.name || '') : null;
+                const famCount = arr.filter((x) => (x.patient?.owner?.name || '') === ownerName).length;
+                const showFamHdr = famCount > 1 && ownerName !== prevOwner;
                 return (
-                  <Card key={p.shareId} sx={{ borderRadius: 4, cursor: 'pointer', transition: 'all .15s', border: '1px solid #e2efec', borderLeft: p.hasAlerts ? '5px solid #ef4444' : '5px solid transparent', '&:hover': { boxShadow: '0 8px 24px rgba(32,178,170,.15)', transform: 'translateY(-1px)' } }} onClick={() => openPatient(p)}>
+                  <Box key={p.shareId}>
+                  {showFamHdr && (
+                    <Typography sx={{ fontWeight: 800, fontSize: 14, color: '#0f3d3a', mt: i > 0 ? 2 : 0, mb: 0.75, display: 'flex', alignItems: 'center', gap: 0.5 }}>👨‍👩‍👧 Família {ownerName} <Chip size="small" label={`${famCount}`} sx={{ height: 18, fontSize: 10, bgcolor: '#e0f2f1', color: TEAL, fontWeight: 700 }} /></Typography>
+                  )}
+                  <Card sx={{ borderRadius: 4, cursor: 'pointer', transition: 'all .15s', border: '1px solid #e2efec', borderLeft: p.hasAlerts ? '5px solid #ef4444' : '5px solid transparent', '&:hover': { boxShadow: '0 8px 24px rgba(32,178,170,.15)', transform: 'translateY(-1px)' } }} onClick={() => openPatient(p)}>
                     <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.75, py: 1.5 }}>
                       <Badge color="error" variant="dot" invisible={!p.hasAlerts} overlap="circular" anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
                         <Avatar src={p.patient?.id ? `${API_URL}/patients/${p.patient.id}/photo` : undefined} sx={{ bgcolor: TEAL, fontWeight: 800, width: 48, height: 48 }}>{p.patient?.fullName?.charAt(0)}</Avatar>
@@ -325,6 +333,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                       <Typography sx={{ color: TEAL, fontWeight: 800, fontSize: 20 }}>›</Typography>
                     </CardContent>
                   </Card>
+                  </Box>
                 );
               })}
             </Stack>

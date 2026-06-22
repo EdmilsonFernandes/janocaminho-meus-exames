@@ -4,6 +4,7 @@ import { prisma } from '../prisma';
 import { config, hasMercadoPago } from '../config';
 import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
 import { CREDIT_COSTS, UPLOAD_RULES } from '../utils/credits';
+import { getSettings } from '../utils/settings';
 
 const router = Router();
 
@@ -36,6 +37,7 @@ router.get('/plans', (_req, res) => {
     mercadoPagoEnabled: hasMercadoPago(),
     creditCosts: CREDIT_COSTS, // pra o front sincronizar (admin pode ter mudado)
     uploadRules: UPLOAD_RULES, // regras de cobrança de upload (admin pode editar em runtime)
+    shares: getSettings().shares, // custo por escopo ao compartilhar c/ médico (pré-visualização no app)
   });
 });
 
@@ -256,13 +258,14 @@ router.post('/webhook', async (req, res) => {
                 console.log(`[billing] créditos +${credits} p/ user ${sub.userId} (sub ${sub.id})`);
               }
             } else if (sub.periodDays > 0) {
-              // PLANO MENSAL — ativa + concede pacote mensal de créditos (NÃO é ilimitado)
+              // PLANO MENSAL — ativa + concede pacote mensal de créditos (parametrizado em app_settings)
               const expires = new Date(Date.now() + sub.periodDays * 86400000);
+              const monthlyCredits = getSettings().grants.monthly;
               await prisma.$transaction([
                 prisma.subscription.update({ where: { id: sub.id }, data: { status: 'APPROVED', mpPaymentId: String(paymentId) } }),
-                prisma.user.update({ where: { id: sub.userId }, data: { planExpiresAt: expires, credits: { increment: 250 } } }),
+                prisma.user.update({ where: { id: sub.userId }, data: { planExpiresAt: expires, credits: { increment: monthlyCredits } } }),
               ]);
-              console.log(`[billing] mensal aprovado — user ${sub.userId} +250 créditos, ativo até ${expires.toISOString()}`);
+              console.log(`[billing] mensal aprovado — user ${sub.userId} +${monthlyCredits} créditos, ativo até ${expires.toISOString()}`);
             }
           }
         }

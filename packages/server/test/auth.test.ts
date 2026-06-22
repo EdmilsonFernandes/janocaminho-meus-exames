@@ -36,9 +36,9 @@ describe('auth + requireAuth', () => {
     // agora login funciona
     const login = await api().post('/api/auth/login').send({ email: 'fulana@exemplo.com', password: 'senha123' });
     expect(login.status).toBe(200);
-    // créditos + paciente titular + e-mail verificado
+    // créditos (grant parametrizado = 60 por default) + paciente titular + e-mail verificado
     const dbUser = await prisma.user.findUnique({ where: { email: 'fulana@exemplo.com' } });
-    expect(dbUser?.credits).toBe(100);
+    expect(dbUser?.credits).toBe(60);
     expect(dbUser?.emailVerified).toBe(true);
     const titular = await prisma.patient.findFirst({ where: { ownerId: dbUser!.id } });
     expect(titular?.relationship).toBe('Titular');

@@ -146,7 +146,7 @@ NÃO dá pra desfazer.`;
           <CardContent>
             <Typography variant="h6" gutterBottom>Custos de créditos (por ação de IA)</Typography>
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
-              Edite e salve — aplica na hora (sem redeploy). *Volta ao padrão se reiniciar o container.
+              Edite e salve — <strong>persiste no banco</strong> (sobrevive a restart/redeploy, sem editar código).
             </Typography>
             <Stack spacing={2}>
               {([['chat', '💬 Chat com IA (por pergunta)'], ['summary', '📄 Resumo de exame'], ['consolidated', '🧾 Relatório consolidado'], ['extraction', '📤 Upload de exame (0 = grátis)']] as const).map(([key, label]) => (
@@ -160,7 +160,7 @@ NÃO dá pra desfazer.`;
                 </Stack>
               ))}
               <Button variant="contained" onClick={async () => {
-                const body: any = {};
+                const body: any = { category: 'creditCosts' };
                 for (const k of ['chat', 'summary', 'consolidated', 'extraction']) {
                   const el = document.getElementById(`cost-${k}`) as HTMLInputElement;
                   if (el) body[k] = Number(el.value);
@@ -183,7 +183,7 @@ NÃO dá pra desfazer.`;
                 </Stack>
               ))}
               <Button variant="contained" onClick={async () => {
-                const body: any = {};
+                const body: any = { category: 'uploadRules' };
                 for (const k of ['freeCost', 'premiumFreeQuota', 'premiumCost']) {
                   const el = document.getElementById(`up-${k}`) as HTMLInputElement;
                   if (el) body[k] = Number(el.value);
@@ -192,6 +192,44 @@ NÃO dá pra desfazer.`;
                 if (r.ok) { const d = await r.json(); setConfig({ ...config, uploadRules: d.uploadRules }); notify('Regras de envio atualizadas!', { type: 'success' }); }
                 else notify('Erro ao salvar', { type: 'error' });
               }}>Salvar regras de envio</Button>
+            </Stack>
+
+            <Typography variant="h6" sx={{ mt: 3 }}>🩺 Custo de compartilhar com médico (por escopo)</Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+              Soma dos escopos selecionados ao criar um compartilhamento. Reativar/editar = grátis.
+            </Typography>
+            <Stack spacing={2}>
+              {([['exams', '📋 Exames'], ['evolution', '📈 Evolução'], ['alerts', '🚨 Alertas'], ['summary', '🤖 Resumos IA']] as const).map(([key, label]) => (
+                <Stack key={key} direction="row" spacing={2} alignItems="center" useFlexGap flexWrap="wrap">
+                  <Typography sx={{ flex: 1, minWidth: 200 }}>{label}</Typography>
+                  <TextField type="number" size="small" defaultValue={config.shares?.[key] ?? 0} sx={{ width: 100 }} id={`sh-${key}`} />
+                  <span style={{ fontSize: 13, color: '#888' }}>créditos</span>
+                </Stack>
+              ))}
+              <Button variant="contained" onClick={async () => {
+                const body: any = { category: 'shares' };
+                for (const k of ['exams', 'evolution', 'alerts', 'summary']) { const el = document.getElementById(`sh-${k}`) as HTMLInputElement; if (el) body[k] = Number(el.value); }
+                const r = await fetch(`${API_URL}/admin/config/costs`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` }, body: JSON.stringify(body) });
+                if (r.ok) { const d = await r.json(); setConfig({ ...config, shares: d.shares }); notify('Custo de compartilhar salvo!', { type: 'success' }); }
+                else notify('Erro ao salvar', { type: 'error' });
+              }}>Salvar compartilhamento</Button>
+            </Stack>
+
+            <Typography variant="h6" sx={{ mt: 3 }}>🎁 Créditos (cadastro / mensal / limite)</Typography>
+            <Stack spacing={2}>
+              {([['freeSignup', '🆕 Créditos no cadastro (free)'], ['monthly', '💎 Créditos do plano mensal'], ['freeExamLimit', '📤 Limite de exames grátis (paywall)']] as const).map(([key, label]) => (
+                <Stack key={key} direction="row" spacing={2} alignItems="center" useFlexGap flexWrap="wrap">
+                  <Typography sx={{ flex: 1, minWidth: 200 }}>{label}</Typography>
+                  <TextField type="number" size="small" defaultValue={config.grants?.[key] ?? 0} sx={{ width: 100 }} id={`gr-${key}`} />
+                </Stack>
+              ))}
+              <Button variant="contained" onClick={async () => {
+                const body: any = { category: 'grants' };
+                for (const k of ['freeSignup', 'monthly', 'freeExamLimit']) { const el = document.getElementById(`gr-${k}`) as HTMLInputElement; if (el) body[k] = Number(el.value); }
+                const r = await fetch(`${API_URL}/admin/config/costs`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` }, body: JSON.stringify(body) });
+                if (r.ok) { const d = await r.json(); setConfig({ ...config, grants: d.grants }); notify('Grants salvos!', { type: 'success' }); }
+                else notify('Erro ao salvar', { type: 'error' });
+              }}>Salvar grants</Button>
             </Stack>
           </CardContent>
         </Card>

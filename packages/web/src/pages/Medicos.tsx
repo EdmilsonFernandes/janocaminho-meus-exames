@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Box, Card, CardContent, Typography, Button, TextField, CircularProgress, Stack, Chip, Avatar, IconButton, Alert, Divider, Switch, FormControlLabel, MenuItem } from '@mui/material';
 import { Title, useNotify } from 'react-admin';
 import { API_URL, token } from '../config';
@@ -24,6 +24,8 @@ export const MedicosPage = () => {
   const [scopes, setScopes] = useState<string[]>([]);
   const [convenio, setConvenio] = useState('Particular');
   const [saving, setSaving] = useState(false);
+  const [shareCosts, setShareCosts] = useState<Record<string, number>>({});
+  const [credits, setCredits] = useState<number | null>(null);
 
   const load = () => {
     fetch(`${API_URL}/doctor-shares`, { headers: { Authorization: `Bearer ${token()}` } })
@@ -31,8 +33,25 @@ export const MedicosPage = () => {
       .catch(() => setLoading(false));
   };
   useEffect(() => { load(); }, []);
+  // Custo por escopo (compartilhar) + saldo do usuário — pra pré-visualizar/bloquear antes de enviar.
+  useEffect(() => {
+    fetch(`${API_URL}/billing/plans`).then((r) => r.json()).then((d) => setShareCosts(d.shares ?? {})).catch(() => {});
+    fetch(`${API_URL}/billing/status`, { headers: { Authorization: `Bearer ${token()}` } }).then((r) => r.json()).then((d) => setCredits(typeof d.credits === 'number' ? d.credits : null)).catch(() => {});
+  }, []);
 
   const toggleScope = (k: string) => setScopes((s) => s.includes(k) ? s.filter((x) => x !== k) : [...s, k]);
+  const shareCost = scopes.reduce((sum, k) => sum + (shareCosts[k] ?? 0), 0);
+  const insufficient = credits != null && credits < shareCost;
+  // Médicos já cadastrados (em qualquer perfil) — pra REUSAR em vez de digitar CRM de novo
+  const existingDocs = useMemo(() => {
+    const seen = new Set<string>(); const list: any[] = [];
+    for (const s of shares) { const crm = s.doctor?.crm; if (crm && !seen.has(crm)) { seen.add(crm); list.push(s.doctor); } }
+    return list;
+  }, [shares]);
+  const reuseDoc = (crm: string) => {
+    const d = existingDocs.find((x) => x.crm === crm);
+    if (d) { setName(d.name || ''); setCrm(d.crm); setSpec(d.specialty || ''); setEmail(!d.email || d.email.includes('@invite') ? '' : d.email); }
+  };
 
   const add = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,6 +96,12 @@ export const MedicosPage = () => {
       {showForm && (
         <Card sx={{ mb: 2, borderRadius: 4, border: '2px solid #20b2aa' }}><CardContent>
           <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 800, color: '#178f89' }}>Compartilhar com um medico</Typography>
+          {existingDocs.length > 0 && (
+            <TextField select label="Reusar médico já cadastrado (opcional)" value="" onChange={(e: any) => reuseDoc(e.target.value)} size="small" fullWidth helperText="Ou preencha um novo abaixo">
+              <MenuItem value=""><em>Novo médico…</em></MenuItem>
+              {existingDocs.map((d: any) => <MenuItem key={d.crm} value={d.crm}>{d.name} — CRM {d.crm}</MenuItem>)}
+            </TextField>
+          )}
           <Box component="form" onSubmit={add} sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
             <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap>
               <TextField label="Nome do medico" required value={name} onChange={(e) => setName(e.target.value)} size="small" sx={{ flex: '1 1 200px' }} />
@@ -98,9 +123,16 @@ export const MedicosPage = () => {
                 {ALL_SCOPES.map((s) => <Chip key={s.key} label={`${s.icon} ${s.label}`} onClick={() => toggleScope(s.key)} color={scopes.includes(s.key) ? 'primary' : 'default'} variant={scopes.includes(s.key) ? 'filled' : 'outlined'} size="small" />)}
               </Stack>
             </Box>
-            <Button type="submit" variant="contained" disabled={saving} sx={{ alignSelf: 'flex-start', borderRadius: 2, textTransform: 'none', fontWeight: 700 }}>
-              {saving ? <CircularProgress size={20} /> : 'Compartilhar dados'}
-            </Button>
+            <Box>
+              <Button type="submit" variant="contained" disabled={saving || insufficient} sx={{ alignSelf: 'flex-start', borderRadius: 2, textTransform: 'none', fontWeight: 700 }}>
+                {saving ? <CircularProgress size={20} /> : shareCost > 0 ? `Compartilhar (${shareCost} créditos)` : 'Compartilhar dados'}
+              </Button>
+              {shareCost > 0 && (
+                <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: insufficient ? 'error.main' : 'text.secondary' }}>
+                  {insufficient ? `Saldo insuficiente — faltam ${shareCost - (credits ?? 0)} créditos.` : `Custa ${shareCost} créditos (soma dos escopos). Cobrado só na criação.`}
+                </Typography>
+              )}
+            </Box>
           </Box>
         </CardContent></Card>
       )}
