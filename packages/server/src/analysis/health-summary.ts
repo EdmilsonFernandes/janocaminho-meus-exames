@@ -14,11 +14,13 @@ export async function generateConsolidatedSummary(patientId: string): Promise<{ 
     (err as any).status = 404;
     throw err;
   }
+  // Foco no(s) MAIS RECENTE(S): consolidado mostra os 3 últimos (estado atual + tendência),
+  // não "tudo". O 1º da lista é o exame mais recente (orderBy desc).
   const exams = await prisma.exam.findMany({
     where: { patientId, status: 'EXTRACTED' },
     orderBy: { performedAt: 'desc' },
-    take: 5,
-    include: { items: { where: { isAbnormal: true }, orderBy: { name: 'asc' }, take: 12 } },
+    take: 3,
+    include: { items: { where: { isAbnormal: true }, orderBy: { name: 'asc' }, take: 10 } },
   });
   if (!exams.length) {
     const err = new Error('Nenhum exame extraído para consolidar');
@@ -48,12 +50,13 @@ export async function generateConsolidatedSummary(patientId: string): Promise<{ 
     {
       role: 'user',
       content:
-        `Atue como um consultor de SAUDE de alto nivel. Analise TODOS os exames do paciente seguindo esta estrutura (Chain-of-Thought):\n\n` +
+        `Atue como um consultor de SAUDE de alto nivel. Analise os exames do paciente (FOCO NO MAIS RECENTE = estado atual) seguindo esta estrutura (Chain-of-Thought):\n\n` +
         `PASSO 1 - TRIAGEM: Agrupe os itens por categorias medicas (Hormonios, Hemograma, Lipidios, Hepatico, Renal, Glicidico, Outros).\n` +
         `PASSO 2 - TENDENCIA: Para cada categoria, identifique o que esta alterado + a DIRECAO (melhorando, piorando, estavel, primeiro exame).\n` +
         `PASSO 3 - SINTER EXECUTIVA: Gere o relatorio final com tom humano, acolhedor e direto.\n\n` +
+        `IMPORTANTE: o 1o exame da lista é o MAIS RECENTE. Priorize o estado ATUAL dele no resumo; use os anteriores só como contexto de tendência (não repita tudo).\n\n` +
         `PACIENTE: ${patient.fullName}\n` +
-        `Exames incluidos: ${exams.length}.\n` +
+        `Exames incluidos: ${exams.length} (do mais recente ao mais antigo).\n` +
         perfilText + '\n' + memoryText +
         `EXAMES (apenas alteracoes relevantes, do mais recente ao mais antigo):\n${JSON.stringify(examContext, null, 2)}\n\n` +
         `ESTILO: portugues simples, SEM jargao, SEM diagnostico, SEM receitar. Sempre cite o NOME do paciente + valores reais (ex: "Edmilson, sua glicose caiu de 110 pra 98").\n\n` +
