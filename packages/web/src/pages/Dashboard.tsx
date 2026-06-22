@@ -47,6 +47,12 @@ export const Dashboard = () => {
   const tip = TIPS[new Date().getDate() % TIPS.length];
 
   useEffect(() => {
+    // Score cacheado no localStorage por paciente → mostra INSTANTÂNEO (sem "Calculando…")
+    // quando já existe cache. Só recalcula/busca em background; spinner só na 1ª visita.
+    try {
+      const c = pid ? localStorage.getItem(`dashScore:${pid}`) : null;
+      if (c) setBuckets(JSON.parse(c));
+    } catch { /* ignore */ }
     (async () => {
       const h = { Authorization: `Bearer ${token()}` };
       try {
@@ -62,7 +68,12 @@ export const Dashboard = () => {
         const p = await fetch(`${API_URL}/patients`, { headers: h });
         if (p.ok) { const pd = await p.json(); setDeps(Array.isArray(pd) ? pd.length : 0); setMe(pd.find((x: any) => x.id === pid) ?? pd[0] ?? null); }
         const fs = await fetch(`${API_URL}/items/flag-summary${pid ? `?patientId=${pid}` : ''}`, { headers: h });
-        if (fs.ok) { const fd = await fs.json(); setBuckets(fd.buckets ?? { bons: 0, alerta: 0, alterados: 0 }); }
+        if (fs.ok) {
+          const fd = await fs.json();
+          const b = fd.buckets ?? { bons: 0, alerta: 0, alterados: 0 };
+          setBuckets(b);
+          try { if (pid) localStorage.setItem(`dashScore:${pid}`, JSON.stringify(b)); } catch { /* ignore */ }
+        }
         const it = await fetch(`${API_URL}/items?_start=0&_end=20${pidQ}`, { headers: h });
         if (it.ok) { const items = await it.json(); setTipData({ abnormal: items.find((x: any) => x.isAbnormal) ?? null, good: items.find((x: any) => !x.isAbnormal && x.value != null) ?? null }); }
         const st = await fetch(`${API_URL}/billing/status`, { headers: h });
@@ -113,13 +124,13 @@ export const Dashboard = () => {
         <Typography variant="body2" color="text.secondary">Seu painel de saúde — educativo, não substitui o médico.</Typography>
       </Box>
 
-      {!loaded && (
+      {!loaded && score === null && (
         <Card sx={{ mt: 3, borderRadius: 4, minHeight: 144, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5 }}>
           <CircularProgress size={28} sx={{ color: 'primary.main' }} />
           <Typography sx={{ fontWeight: 600, color: 'text.secondary' }}>Calculando seu score…</Typography>
         </Card>
       )}
-      {loaded && score !== null && (
+      {score !== null && (
         <Card sx={{ mt: 3, borderRadius: 4, background: 'linear-gradient(135deg,#ffffff,#e6f7f6)' }}>
           <CardContent>
             {/* Score (esquerda) + Dica IA (direita) lado a lado */}

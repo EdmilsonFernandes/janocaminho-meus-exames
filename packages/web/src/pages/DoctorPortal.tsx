@@ -11,7 +11,7 @@ import { API_URL } from '../config';
 import { DrExame } from '../components/DrExame';
 import { SPECIALTIES } from '../utils/medicalData';
 import { PhotoUpload } from '../components/PhotoUpload';
-import { CATS, categorize } from '../utils/medicalData';
+import { CATS, categorize, refLabel } from '../utils/medicalData';
 import ReactMarkdown from 'react-markdown';
 import { ResponsiveContainer, LineChart, Line, ReferenceArea, XAxis, YAxis, Tooltip } from 'recharts';
 
@@ -231,11 +231,16 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   // Gesto de voltar do Android (Capacitor): fecha detalhe do exame → fecha paciente → volta à lista → sai.
   // O App.tsx ignora o back na rota /doctor; este listener é o dono da navegação aqui.
   const backRef = useRef<() => void>(() => {});
-  backRef.current = () => {
+  // Voltar de UI (fecha exame → fecha paciente → lista). Sem sair do app.
+  const goBack = () => {
     if (selExam) { setSelExam(null); setExamDetail(null); return; }
     if (selected) { setSelected(null); return; }
-    if (view !== 'patients') { setView('patients'); return; }
-    (async () => { try { const { App } = await import('@capacitor/app'); await App.exitApp(); } catch { /* web */ } })();
+    if (view !== 'patients') setView('patients');
+  };
+  backRef.current = () => {
+    if (selExam || selected || view !== 'patients') { goBack(); return; }
+    // Topo do portal: volta pro login no histórico — NUNCA sai do app no gesto de voltar.
+    if (window.history.length > 1) window.history.back();
   };
   useEffect(() => {
     let remove: (() => void) | undefined;
@@ -254,6 +259,9 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     <Box sx={{ minHeight: '100vh', bgcolor: '#f4faf9' }}>
       {/* Header — mesma identidade teal do app do paciente */}
       <Box sx={{ background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff', px: { xs: 2, md: 3 }, pt: 'calc(env(safe-area-inset-top) + 12px)', pb: 2, display: 'flex', alignItems: 'center', gap: 2, boxShadow: '0 4px 20px rgba(32,178,170,.25)' }}>
+        {(selected || selExam) && (
+          <IconButton onClick={goBack} size="small" title="Voltar" sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,.15)', '&:hover': { bgcolor: 'rgba(255,255,255,.25)' }, flexShrink: 0, width: 34, height: 34 }}>←</IconButton>
+        )}
         <Avatar src={doctor?.id ? `${API_URL}/doctor/photo/${doctor.id}?v=${photoVer}` : undefined} sx={{ bgcolor: 'rgba(255,255,255,.2)', fontWeight: 800, border: '2px solid rgba(255,255,255,.5)' }}>{doctor?.name?.charAt(0)}</Avatar>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Stack direction="row" alignItems="center" spacing={1}>
@@ -394,12 +402,14 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                           <Stack spacing={1}>
                             {g.items.map((ex) => (
                               <Card key={ex.id} variant="outlined" onClick={() => openExam(ex)} sx={{ borderRadius: 2.5, borderColor: '#e2efec', cursor: 'pointer', transition: 'all .15s', '&:hover': { borderColor: TEAL, boxShadow: '0 4px 12px rgba(32,178,170,.1)' } }}><CardContent sx={{ py: 1.25, '&:last-child': { pb: 1.25 } }}>
-                                <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-                                  <Box>
+                                <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1.5}>
+                                  <Box sx={{ flex: '1 1 auto', minWidth: 0 }}>
                                     <Typography sx={{ fontWeight: 700, color: '#0f3d3a' }}>{ex.title}</Typography>
                                     <Typography variant="caption" sx={{ color: '#757575' }}>{fmtDate(ex.performedAt)}{ex.sourceLab ? ` • ${ex.sourceLab}` : ''} • {ex._count?.items ?? 0} itens{ex.requestingDoctor ? ` • Dr. ${ex.requestingDoctor}` : ''}</Typography>
                                   </Box>
-                                  {ex.items?.length > 0 ? <Chip size="small" color="error" label={`${ex.items.length} alterado`} sx={{ fontWeight: 700, height: 20 }} /> : <Chip size="small" label="normal" sx={{ bgcolor: '#dcfce7', color: '#15803d', fontWeight: 700, height: 20 }} />}
+                                  <Box sx={{ flexShrink: 0, pt: 0.25 }}>
+                                    {ex.items?.length > 0 ? <Chip size="small" color="error" label={`${ex.items.length} alterado`} sx={{ fontWeight: 700, height: 20, whiteSpace: 'nowrap' }} /> : <Chip size="small" label="normal" sx={{ bgcolor: '#dcfce7', color: '#15803d', fontWeight: 700, height: 20, whiteSpace: 'nowrap' }} />}
+                                  </Box>
                                 </Stack>
                                 {ex.items?.length > 0 && <Box sx={{ mt: 0.75, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>{ex.items.slice(0, 6).map((it: any, i: number) => <Chip key={i} size="small" color="error" variant="outlined" label={`${it.name}: ${it.valueText}`} sx={{ height: 20, fontSize: 10 }} />)}</Box>}
                                 <Typography variant="caption" sx={{ display: 'block', mt: 0.75, color: TEAL, fontWeight: 700 }}>Toque para ver todos os itens →</Typography>
@@ -607,7 +617,7 @@ const DoctorExamDetail = ({ exam, detail, patientId, token, onBack }: { exam: an
               <Box key={it.id || idx} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 1.5, py: 1, borderBottom: idx < g.items.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
                 <Box sx={{ minWidth: 0, pr: 1 }}>
                   <Typography sx={{ fontSize: 13.5, fontWeight: it.isAbnormal ? 700 : 500, color: it.isAbnormal ? '#b91c1c' : '#0f3d3a' }}>{it.name}</Typography>
-                  <Typography variant="caption" sx={{ color: '#94a3b8' }}>Ref: {it.refText || [it.refLow, it.refHigh].filter((x: any) => x != null).join(' - ') || '—'}{it.unit ? ` ${it.unit}` : ''}</Typography>
+                  <Typography variant="caption" sx={{ color: '#94a3b8' }}>{refLabel(it)}</Typography>
                 </Box>
                 <Stack direction="row" spacing={1} alignItems="center" sx={{ flexShrink: 0 }}>
                   <Typography sx={{ fontWeight: 800, fontSize: 14, color: it.isAbnormal ? '#b91c1c' : '#0f3d3a' }}>{it.valueText ?? '—'}</Typography>
@@ -726,13 +736,13 @@ const EvolutionCharts = ({ items, filter, setFilter }: { items: any[]; filter: '
             <Card key={g.name} variant="outlined" sx={{ borderRadius: 3, borderColor: '#e2efec' }}><CardContent>
               <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
                 <Typography sx={{ fontWeight: 700, color: '#0f3d3a' }}>{g.name}</Typography>
-                <Typography variant="caption" sx={{ color: '#94a3b8' }}>Ref: {[g.refLow, g.refHigh].filter((x) => x != null).join('-') || '—'} {g.unit || ''}</Typography>
+                <Typography variant="caption" sx={{ color: '#94a3b8' }}>{refLabel(g)}</Typography>
               </Stack>
               <Box sx={{ height: 120, width: '100%' }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={g.points} margin={{ top: 4, right: 6, bottom: 4, left: 6 }}>
+                  <LineChart data={g.points} margin={{ top: 4, right: 18, bottom: 4, left: 6 }}>
                     {g.refLow != null && g.refHigh != null && <ReferenceArea y1={g.refLow} y2={g.refHigh} fill="#10b981" fillOpacity={0.14} />}
-                    <XAxis dataKey="date" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
+                    <XAxis dataKey="date" tick={{ fontSize: 10 }} interval="preserveStartEnd" tickMargin={6} />
                     <YAxis tick={{ fontSize: 10 }} width={32} domain={['auto', 'auto']} />
                     <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12 }} />
                     <Line type="monotone" dataKey="value" stroke={lineColor} strokeWidth={2.5} dot={{ r: 3, fill: lineColor }} isAnimationActive={false} />

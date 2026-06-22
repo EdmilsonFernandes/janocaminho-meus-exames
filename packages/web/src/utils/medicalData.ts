@@ -36,3 +36,18 @@ export const categorize = (name: string) => {
   for (const c of CATS) if (c.key !== 'other' && c.keys.some((k) => n.includes(k))) return c;
   return CATS.find((c) => c.key === 'other')!;
 };
+
+/**
+ * Label pronto pra exibir da faixa de referência de um item/exame.
+ * - Com faixa (refText ou refLow/refHigh): "Ref: 3,5 - 5,0 mUI/L".
+ * - Sem faixa nenhuma: "sem faixa de referência" (em vez do confuso "Ref: —").
+ */
+export const refLabel = (it: any): string => {
+  if (it?.refText) return `Ref: ${it.refText}`;
+  const lo = it?.refLow, hi = it?.refHigh;
+  if (lo != null || hi != null) {
+    const range = (lo != null && hi != null) ? `${lo} - ${hi}` : `${lo ?? hi}`;
+    return it?.unit ? `Ref: ${range} ${it.unit}` : `Ref: ${range}`;
+  }
+  return 'sem faixa de referência';
+};

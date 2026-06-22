@@ -7,6 +7,7 @@ import { useSelectedPatient } from '../patient-context';
 import { ExplainButton } from '../components/ExplainItem';
 import { TelemedicineButton } from '../components/TelemedicineButton';
 import { fmtVal } from '../utils/format';
+import { refLabel } from '../utils/medicalData';
 
 /** Mostra SÓ os valores fora da faixa (mapeados), do exame mais recente ao mais antigo. */
 export const ValoresAlteradosPage = () => {
@@ -52,7 +53,7 @@ export const ValoresAlteradosPage = () => {
                   <Typography component="span" sx={{ fontSize: '1.4rem', fontWeight: 800, color: 'error.main' }}>{fmtVal(it)}</Typography>
                   {it.unit ? <Typography component="span" sx={{ color: 'text.secondary', ml: 0.5, fontSize: '0.8rem' }}>{it.unit}</Typography> : null}
                 </Box>
-                <Chip size="small" color="error" variant="outlined" label={`Ref: ${it.refText || '—'}`} />
+                <Chip size="small" color="error" variant="outlined" label={refLabel(it)} />
                 <TelemedicineButton marker={it.nameCanonical} compact />
               </CardContent>
             </Card>

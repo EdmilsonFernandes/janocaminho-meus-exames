@@ -1,18 +1,20 @@
-import { Fab, Box } from '@mui/material';
+import { Box } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useRef } from 'react';
 import { DrExame } from './DrExame';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 
 /**
- * Dr. Exame flutuante (FAB).
- * No desktop, o robô segue o cursor DISCRETAMENTE (até 8px, só quando o mouse está perto)
- * + um pulso suave pra convidar o usuário a perguntar. No mobile (sem cursor) fica estático.
+ * Dr. Exame flutuante — atalho pro chat.
+ * Robô (sem círculo/borda verde sólida) sobre uma AURA teal pulsante (glow borrado) +
+ * badge ✨ (AutoAwesome = símbolo universal de IA) que pisca. Flutua leve e, no desktop,
+ * segue o cursor discretamente quando ele chega perto.
  */
 export const FloatingChat = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const innerRef = useRef<HTMLDivElement>(null);
-  const fabRef = useRef<HTMLButtonElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // touch-only (mobile) não tem cursor → não segue
@@ -21,10 +23,10 @@ export const FloatingChat = () => {
     const onMove = (e: MouseEvent) => {
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => {
-        const fab = fabRef.current;
+        const wrap = wrapRef.current;
         const inner = innerRef.current;
-        if (!fab || !inner) return;
-        const r = fab.getBoundingClientRect();
+        if (!wrap || !inner) return;
+        const r = wrap.getBoundingClientRect();
         const cx = r.left + r.width / 2;
         const cy = r.top + r.height / 2;
         const dx = e.clientX - cx;
@@ -32,7 +34,7 @@ export const FloatingChat = () => {
         const dist = Math.hypot(dx, dy) || 1;
         // só reage quando o cursor está relativamente perto (<= 240px) — discreto
         if (dist > 240) { inner.style.transform = 'translate(0,0)'; return; }
-        const pull = Math.min(8, 90 / dist); // mais perto → puxa mais (máx 8px)
+        const pull = Math.min(9, 100 / dist); // mais perto → puxa mais (máx 9px)
         inner.style.transform = `translate(${(dx / dist) * pull}px, ${(dy / dist) * pull}px)`;
       });
     };
@@ -43,26 +45,52 @@ export const FloatingChat = () => {
   // Esconde onde já existe chat/input/ação (não competir com outra ação na mesma tela):
   // /chat, /exams (lista tem o "+"), /exams/:id/show (chat inline), /exams/create (form de upload).
   if (pathname.startsWith('/chat') || /^\/exams(\/|$)/.test(pathname)) return null;
+
   return (
-    <Fab
-      ref={fabRef}
-      onClick={() => navigate('/chat')}
-      title="Pergunte ao Dr. Exame"
-      color="primary"
-      sx={{
-        position: 'fixed', bottom: { xs: 76, md: 24 }, right: { xs: 14, md: 24 }, zIndex: 1200,
-        width: 60, height: 60,
-        boxShadow: '0 6px 18px rgba(32,178,170,.4)',
-        animation: 'drPulse 2.8s ease-in-out infinite',
-        '&:hover': { transform: 'scale(1.07)' },
-      }}
-    >
-      <Box ref={innerRef} sx={{
-        transition: 'transform .25s ease-out', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        pointerEvents: 'none', willChange: 'transform',
-      }}>
-        <DrExame size={46} sx={{ borderRadius: '50%' }} />
+    <>
+      <style>{`
+        @keyframes drAura { 0%,100%{transform:scale(.92);opacity:.4} 50%{transform:scale(1.14);opacity:.72} }
+        @keyframes drBob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+        @keyframes drSpark { 0%,100%{transform:scale(.82) rotate(0deg);opacity:.65} 45%{transform:scale(1.18) rotate(18deg);opacity:1} 70%{transform:scale(1) rotate(8deg);opacity:.9} }
+      `}</style>
+      <Box
+        ref={wrapRef}
+        component="button"
+        aria-label="Pergunte ao Dr. Exame"
+        onClick={() => navigate('/chat')}
+        title="Pergunte ao Dr. Exame"
+        sx={{
+          position: 'fixed', bottom: { xs: 76, md: 24 }, right: { xs: 14, md: 24 }, zIndex: 1200,
+          width: 64, height: 64, p: 0, border: 0, bgcolor: 'transparent', cursor: 'pointer',
+          '&:active': { transform: 'scale(.94)' },
+        }}
+      >
+        {/* AURA teal pulsante (glow borrado — substitui o círculo/borda sólidos) */}
+        <Box sx={{
+          position: 'absolute', inset: -12, borderRadius: '50%', pointerEvents: 'none',
+          background: 'radial-gradient(circle, rgba(32,178,170,.55) 0%, rgba(32,178,170,.20) 45%, transparent 72%)',
+          filter: 'blur(6px)', animation: 'drAura 2.6s ease-in-out infinite',
+        }} />
+        {/* Robô + badge ✨ (seguem o cursor no desktop) */}
+        <Box ref={innerRef} sx={{
+          position: 'relative', width: '100%', height: '100%',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          transition: 'transform .25s ease-out', willChange: 'transform',
+        }}>
+          <Box sx={{ animation: 'drBob 3.4s ease-in-out infinite' }}>
+            <DrExame size={58} sx={{ borderRadius: '26%', boxShadow: '0 8px 18px rgba(0,0,0,.28)', filter: 'drop-shadow(0 2px 4px rgba(32,178,170,.45))' }} />
+          </Box>
+          {/* Badge ✨ IA — símbolo universal de inteligência artificial */}
+          <Box sx={{
+            position: 'absolute', top: -2, right: -4, width: 26, height: 26, borderRadius: '50%',
+            bgcolor: '#fff', border: '2px solid #e6f7f6', boxShadow: '0 3px 8px rgba(0,0,0,.22)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            animation: 'drSpark 2.2s ease-in-out infinite',
+          }}>
+            <AutoAwesomeIcon sx={{ fontSize: 15, color: '#178f89' }} />
+          </Box>
+        </Box>
       </Box>
-    </Fab>
+    </>
   );
 };

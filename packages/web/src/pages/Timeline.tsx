@@ -12,6 +12,7 @@ import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import { ExplainButton } from '../components/ExplainItem';
 import { usePremium } from '../components/PremiumGate';
+import { refLabel } from '../utils/medicalData';
 import { groupByYear } from '../utils/groupByYear';
 
 interface Event { id: string; date: string | null; title: string; kind: string; abnormalCount: number; itemCount: number }
@@ -163,7 +164,7 @@ export const TimelinePage = () => {
                       <Typography sx={{ fontWeight: 700, wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.2 }}>{it.name}</Typography>
                       <ExplainButton name={it.name} nameCanonical={it.nameCanonical} />
                     </Box>
-                    <Typography variant="caption" color="text.secondary" sx={{ wordBreak: 'break-word' }}>Ref: {it.refText || [it.refLow, it.refHigh].filter((x: any) => x != null).join('–') || '—'}</Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ wordBreak: 'break-word' }}>{refLabel(it)}</Typography>
                   </Box>
                   <Typography sx={{ fontWeight: 800, color: 'error.main', fontSize: '1.2rem' }}>{it.valueText}</Typography>
                   {it.unit ? <Typography variant="caption" color="text.secondary">{it.unit}</Typography> : null}
