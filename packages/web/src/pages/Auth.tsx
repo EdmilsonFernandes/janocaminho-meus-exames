@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLogin, useNotify } from 'react-admin';
 import { Box, Typography, Button, Link, CircularProgress, Stack, TextField, InputAdornment, IconButton, Checkbox, FormControlLabel } from '@mui/material';
@@ -6,6 +6,7 @@ import { DrExame } from '../components/DrExame';
 import { API_URL } from '../config';
 import { OtpInput } from '../components/OtpInput';
 import { MfaChallengeDialog } from '../components/mfa/MfaChallengeDialog';
+import { BiometricService } from '../components/BiometricService';
 
 /* ---------- ícones inline (sem dependência de @mui/icons-material) ---------- */
 const I = {
@@ -77,6 +78,16 @@ export const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [role, setRole] = useState<'paciente' | 'medico'>('paciente');
   const [mfaChallenge, setMfaChallenge] = useState<{ token: string; account?: string; verifyUrl: string; isDoctor: boolean } | null>(null);
+  const [bioReady, setBioReady] = useState(false);
+
+  useEffect(() => { setBioReady(BiometricService.isSupported() && BiometricService.hasEnrollment()); }, []);
+
+  const bioLogin = async () => {
+    const r = await BiometricService.loginWithBiometric();
+    if (!r) { notify('Biometria cancelada ou falhou.', { type: 'error' }); return; }
+    if (r.isDoctor) { localStorage.setItem('doctorToken', r.token); navigate('/doctor'); }
+    else { localStorage.setItem('token', r.token); window.location.href = import.meta.env.BASE_URL; }
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -183,6 +194,11 @@ export const LoginPage = () => {
           <Box sx={{ textAlign: 'right', mt: -0.5 }}>
             <Link component="button" type="button" variant="body2" sx={{ fontSize: 12.5, color: '#00897b', fontWeight: 600 }} onClick={() => navigate('/recuperar-senha')}>Esqueci minha senha</Link>
           </Box>
+          {bioReady && (
+            <Button type="button" fullWidth variant="outlined" startIcon={<I.Shield />} onClick={bioLogin} sx={{ ...tokenBtnSx, borderColor: '#20b2aa', color: '#178f89', mb: 1, py: 1.2 }}>
+              🔐 Entrar com biometria
+            </Button>
+          )}
           <Button type="submit" variant="contained" size="large" fullWidth disabled={loading} endIcon={<I.ArrowRight />} sx={primaryBtnSx}>
             {loading ? <CircularProgress size={22} color="inherit" /> : 'Entrar'}
           </Button>

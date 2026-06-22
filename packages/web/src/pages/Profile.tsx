@@ -8,6 +8,7 @@ import DownloadIcon from '@mui/icons-material/Download';
 import UploadIcon from '@mui/icons-material/Upload';
 import { API_URL, token, apiHeaders } from '../config';
 import { MfaSetupCard } from '../components/mfa/MfaSetupCard';
+import { BiometricService } from '../components/BiometricService';
 import { ReferralCard } from '../components/ReferralCard';
 import { useSelectedPatient } from '../patient-context';
 import { PhotoUpload } from '../components/PhotoUpload';
@@ -158,6 +159,22 @@ export const ProfilePage = () => {
       <Box sx={{ mt: 2 }}>
         <MfaSetupCard apiBase={`${API_URL}/auth`} authToken={token() || ''} />
       </Box>
+
+      {BiometricService.isSupported() && (
+        <Card sx={{ mt: 2, borderRadius: 3 }}>
+          <CardContent>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
+              <Box>
+                <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f3d3a' }}>🔐 Biometria</Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ fontSize: 13.5 }}>Entrar com face/digital sem digitar senha neste aparelho.</Typography>
+              </Box>
+              {BiometricService.hasEnrollment()
+                ? <Button variant="outlined" color="error" size="small" onClick={() => { BiometricService.forget(); notify('Biometria desativada neste aparelho.'); window.location.reload(); }}>Desativar</Button>
+                : <Button variant="contained" size="small" onClick={() => { BiometricService.enroll(token() || '', false); notify('Biometria ativada! 🎉', { type: 'success' }); window.location.reload(); }}>Ativar</Button>}
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Conta e privacidade (LGPD) */}
       <Card sx={{ borderRadius: 4, mt: 2, borderColor: 'error.main' }}>
