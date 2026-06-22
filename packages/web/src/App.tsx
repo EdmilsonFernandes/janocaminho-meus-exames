@@ -1,6 +1,7 @@
 import { Admin, Resource, CustomRoutes, Layout, Menu, AppBar, TitlePortal, AppBarProps, useLogout, useTranslate, useLocale, useSetLocale, useRefresh } from 'react-admin';
 import { Route, useNavigate, useLocation } from 'react-router-dom';
 import { useEffect, useState, useRef } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { Box, Typography, IconButton, Button, useMediaQuery, useTheme, CircularProgress, Menu as MuiMenu, MenuItem, Divider, ListItemIcon, ListItemText } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -209,12 +210,13 @@ const AppLayout = (props: any) => {
 export const App = () => {
   const [booted, setBooted] = useState(false);
   const [forceUpdate, setForceUpdate] = useState<string | null>(null);
+  const isNativeApp = Capacitor.isNativePlatform();
   useEffect(() => {
-    // Anônimo na raiz "/" → landing (porta de entrada pública).
+    // WEB: anônimo na raiz → landing (porta pública/vitrine). APK: abre direto no LOGIN (app instalado não precisa de vitrine).
     // replaceState muda a URL em SILÊNCIO, sem reload — seguro no APK (reload recarrega o WebView e crasha o app nativo).
     try {
       const p = window.location.pathname || '/';
-      if ((p === '/' || p === '') && !localStorage.getItem('token')) {
+      if (!isNativeApp && (p === '/' || p === '') && !localStorage.getItem('token')) {
         window.history.replaceState({}, '', '/landing');
       }
     } catch { /* ignore */ }
@@ -249,7 +251,7 @@ export const App = () => {
     i18nProvider={i18nProvider}
     layout={AppLayout}
     dashboard={Dashboard}
-    loginPage={LandingPage}
+    loginPage={isNativeApp ? LoginPage : LandingPage}
     title="Meus Exames"
     loading={() => <BootSplash />}
     disableTelemetry

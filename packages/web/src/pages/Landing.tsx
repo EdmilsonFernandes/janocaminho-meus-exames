@@ -106,6 +106,7 @@ export const LandingPage = () => {
       {/* NAVBAR flutuante (claro/glassy) */}
       <Box sx={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000, transition: 'all .3s',
+        paddingTop: 'env(safe-area-inset-top)',
         bgcolor: scrolled ? 'rgba(255,255,255,.92)' : 'transparent',
         backdropFilter: scrolled ? 'blur(12px)' : 'none',
         borderBottom: scrolled ? '1px solid #dceaea' : '1px solid transparent',
