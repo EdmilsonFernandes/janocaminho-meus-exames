@@ -15,7 +15,9 @@ function required(key: string, fallback?: string): string {
 function resolveFirebaseKey(): string {
   const env = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
   if (env) return env;
-  const dirs = [process.cwd(), __dirname, path.resolve(__dirname, '..'), path.resolve(__dirname, '../..')];
+  // Procura nos dirs base E nos subdirs 'keys' (onde o volume do docker monta /app/keys)
+  const base = [process.cwd(), __dirname, path.resolve(__dirname, '..'), path.resolve(__dirname, '../..'), '/app/keys', '/app/packages/server/keys'];
+  const dirs = [...new Set([...base, ...base.map((d) => path.join(d, 'keys'))])];
   for (const d of dirs) {
     try {
       const hit = fs.readdirSync(d).find((f) => /firebase-adminsdk.*\.json$/.test(f));
