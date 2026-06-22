@@ -66,7 +66,7 @@ router.post('/register', async (req, res, next) => {
     const existing = await prisma.user.findUnique({ where: { email: mail } });
     if (existing) { res.status(409).json({ error: 'Já existe conta com este e-mail.' }); return; }
     const passwordHash = await hashPassword(pwd);
-    const user = await prisma.user.create({ data: { email: mail, name: String(name), passwordHash, credits: 100 } });
+    const user = await prisma.user.create({ data: { email: mail, name: String(name), passwordHash, credits: 60 } });
     await prisma.patient.create({ data: { ownerId: user.id, fullName: String(name), relationship: 'Titular' } });
     notifyNewUser(String(name), mail);
     // Envia código de verificação por e-mail — conta fica inativa até validar (previne e-mail fake)
@@ -172,7 +172,7 @@ router.post('/otp/verify', async (req, res, next) => {
     let user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
       const name = email.split('@')[0];
-      user = await prisma.user.create({ data: { email, name, passwordHash: await hashPassword(crypto.randomUUID()), credits: 100 } });
+      user = await prisma.user.create({ data: { email, name, passwordHash: await hashPassword(crypto.randomUUID()), credits: 60 } });
       await prisma.patient.create({ data: { ownerId: user.id, fullName: name, relationship: 'Titular' } });
       notifyNewUser(name, email);
     }

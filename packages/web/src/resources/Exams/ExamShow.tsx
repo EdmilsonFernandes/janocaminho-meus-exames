@@ -118,6 +118,15 @@ export const ExamShow = () => {
     } catch { notify('Falha ao confirmar', { type: 'error' }); }
     finally { setAttesting(false); }
   };
+  const rejectExam = async () => {
+    if (!window.confirm('Este exame NÃO é deste paciente? Ele será excluído definitivamente.')) return;
+    setAttesting(true);
+    try {
+      await fetch(`${API_URL}/exams/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });
+      notify('Exame excluído (não era deste paciente).', { type: 'success' });
+      setTimeout(() => { window.location.hash = '#/exams'; window.location.reload(); }, 600);
+    } catch { notify('Falha ao excluir', { type: 'error' }); setAttesting(false); }
+  };
 
   const generateSummary = async (force = false) => {
     if (nameBlock) { notify('Confirme a titularidade deste exame antes de gerar a análise.', { type: 'warning' }); return; }
@@ -255,8 +264,11 @@ export const ExamShow = () => {
             <Typography variant="body2" sx={{ mt: 0.5 }}>
               O nome no documento (<strong>{nm.docName}</strong>) difere do perfil (<strong>{nm.profileName}</strong> — similaridade {Math.round((nm.score || 0) * 100)}%).
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>Se o exame é realmente deste paciente, confirme para liberar a análise.</Typography>
-            <Box sx={{ mt: 1.5 }}><Button size="small" variant="contained" onClick={attest} disabled={attesting}>Confirmo que este exame é do paciente</Button></Box>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>Se o exame é realmente deste paciente, confirme para liberar a análise. Se não for, exclua — não use dados de outra pessoa.</Typography>
+            <Box sx={{ mt: 1.5, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+              <Button size="small" variant="contained" onClick={attest} disabled={attesting}>✓ Confirmo que é deste paciente</Button>
+              <Button size="small" variant="outlined" color="error" onClick={rejectExam} disabled={attesting}>✕ Não é deste paciente (excluir)</Button>
+            </Box>
           </CardContent>
         </Card>
       )}

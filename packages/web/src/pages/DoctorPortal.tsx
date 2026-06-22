@@ -243,17 +243,12 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     // Topo do portal: volta pro login no histórico — NUNCA sai do app no gesto de voltar.
     if (window.history.length > 1) window.history.back();
   };
+  // Escuta o evento global 'app:back' (dispatchado pelo handler central no App.tsx).
+  // Trata o back por estado (fecha exame → paciente → lista) e cancela o default p/ o App não sair do app.
   useEffect(() => {
-    let remove: (() => void) | undefined;
-    (async () => {
-      try {
-        const [{ App }, { Capacitor }] = await Promise.all([import('@capacitor/app'), import('@capacitor/core')]);
-        if (!Capacitor.isNativePlatform()) return;
-        const h = await App.addListener('backButton', () => backRef.current());
-        remove = () => { h.remove(); };
-      } catch { /* web */ }
-    })();
-    return () => { remove?.(); };
+    const handler = (e: Event) => { e.preventDefault(); backRef.current(); };
+    window.addEventListener('app:back', handler);
+    return () => window.removeEventListener('app:back', handler);
   }, []);
 
   return (

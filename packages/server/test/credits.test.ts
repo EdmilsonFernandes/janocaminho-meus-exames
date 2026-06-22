@@ -49,7 +49,7 @@ describe('créditos: débito atômico + cache (não cobrar 2x)', () => {
     expect(r.body.error).toBe('insufficient_credits');
   });
 
-  it('POST /analyses/consolidated cobra 30 e usa cache de 1h', async () => {
+  it('POST /analyses/consolidated cobra 20 e usa cache de 1h', async () => {
     const { user, patient, token } = await createUser({ credits: 100 });
     await createExam(patient.id); // precisa de ≥1 exame extraído
 
@@ -63,7 +63,7 @@ describe('créditos: débito atômico + cache (não cobrar 2x)', () => {
     expect(await getUserCredits(user.id)).toBe(100 - CREDIT_COSTS.consolidated);
   });
 
-  it('POST /chat cobra 3 créditos por mensagem; 402 se insuficiente', async () => {
+  it('POST /chat cobra 2 créditos por mensagem; 402 se insuficiente', async () => {
     const { user, patient, token } = await createUser({ credits: 10 });
 
     const ok = await api().post('/api/chat').set(authHeader(token)).send({ message: 'oi', patientId: patient.id });
@@ -74,7 +74,7 @@ describe('créditos: débito atômico + cache (não cobrar 2x)', () => {
     expect(turns).toBe(1);
 
     // sem créditos suficientes p/ outra (7 < 3? não; 7>=3). Cenário isolado:
-    const poor = await createUser({ credits: 2 });
+    const poor = await createUser({ credits: 1 });
     const fail = await api().post('/api/chat').set(authHeader(poor.token)).send({ message: 'oi', patientId: poor.patient.id });
     expect(fail.status).toBe(402);
   });

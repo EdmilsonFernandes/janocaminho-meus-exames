@@ -12,11 +12,12 @@ const PLANS = {
   monthly: { id: 'monthly', label: 'Mensal', price: 19.9, periodDays: 30 },
 };
 
-// Pacotes de CRÉDITOS (a moeda da IA — pay-per-use). Generosos.
+// Pacotes de CRÉDITOS (a moeda da IA — pay-per-use). Proposta propositamente MENOS
+// atrativa que o mensal (250 créditos/R$19,90 + Premium) → empurra pra assinatura recorrente.
 const CREDIT_PACKS = [
-  { id: 'p250', credits: 250, price: 9.9, label: 'Início', popular: false },
-  { id: 'p700', credits: 700, price: 24.9, label: 'Popular', popular: true },
-  { id: 'p1800', credits: 1800, price: 49.9, label: 'Família', popular: false },
+  { id: 'p50', credits: 50, price: 9.9, label: 'Início', popular: false },
+  { id: 'p140', credits: 140, price: 24.9, label: 'Popular', popular: true },
+  { id: 'p320', credits: 320, price: 49.9, label: 'Bônus', popular: false },
 ];
 const packById = (id: string) => CREDIT_PACKS.find((p) => p.id === id);
 
@@ -259,9 +260,9 @@ router.post('/webhook', async (req, res) => {
               const expires = new Date(Date.now() + sub.periodDays * 86400000);
               await prisma.$transaction([
                 prisma.subscription.update({ where: { id: sub.id }, data: { status: 'APPROVED', mpPaymentId: String(paymentId) } }),
-                prisma.user.update({ where: { id: sub.userId }, data: { planExpiresAt: expires, credits: { increment: 1500 } } }),
+                prisma.user.update({ where: { id: sub.userId }, data: { planExpiresAt: expires, credits: { increment: 250 } } }),
               ]);
-              console.log(`[billing] mensal aprovado — user ${sub.userId} +1500 créditos, ativo até ${expires.toISOString()}`);
+              console.log(`[billing] mensal aprovado — user ${sub.userId} +250 créditos, ativo até ${expires.toISOString()}`);
             }
           }
         }

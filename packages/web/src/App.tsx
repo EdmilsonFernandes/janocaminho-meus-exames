@@ -210,6 +210,7 @@ const AppLayout = (props: any) => {
 export const App = () => {
   const [booted, setBooted] = useState(false);
   const [forceUpdate, setForceUpdate] = useState<string | null>(null);
+  const [exitHint, setExitHint] = useState(false);
   const isNativeApp = Capacitor.isNativePlatform();
   useEffect(() => {
     // WEB: anônimo na raiz → landing (porta pública/vitrine). APK: abre direto no LOGIN (app instalado não precisa de vitrine).
@@ -231,9 +232,17 @@ export const App = () => {
       try {
         const [{ App }, { Capacitor }] = await Promise.all([import('@capacitor/app'), import('@capacitor/core')]);
         if (Capacitor.isNativePlatform()) {
+          let lastBack = 0;
           const h = await App.addListener('backButton', ({ canGoBack }) => {
-            if (window.location.hash.startsWith('#/doctor')) return; // Portal do Médico cuida do próprio back (navegação por estado)
-            if (canGoBack) window.history.back(); else App.exitApp();
+            // Telas podem tratar o back (ex.: portal médico fecha exame/paciente por estado)
+            const ev = new CustomEvent('app:back', { cancelable: true });
+            window.dispatchEvent(ev);
+            if (ev.defaultPrevented) return;
+            if (canGoBack) { window.history.back(); return; }
+            // Raiz: double-tap pra sair (evita saída acidental num toque só)
+            const now = Date.now();
+            if (now - lastBack < 2500) { lastBack = 0; App.exitApp(); }
+            else { lastBack = now; setExitHint(true); setTimeout(() => setExitHint(false), 2500); }
           });
           remove = () => { h.remove(); };
         }
@@ -244,6 +253,10 @@ export const App = () => {
   if (!booted) return <BootSplash messages={['Iniciando o Dr. Exame…', 'Carregando seus exames…', 'Preparando seu painel…', 'Quase lá…']} />;
   if (forceUpdate) return <ForceUpdate latest={forceUpdate} />;
   return (
+  <>
+  {exitHint && (
+    <Box sx={{ position: 'fixed', bottom: 84, left: '50%', transform: 'translateX(-50%)', bgcolor: 'rgba(15,61,58,.96)', color: '#fff', px: 2.5, py: 1.2, borderRadius: 99, zIndex: 3000, fontSize: 13.5, fontWeight: 700, boxShadow: '0 8px 24px rgba(0,0,0,.3)' }}>Pressione voltar de novo para sair</Box>
+  )}
   <Admin
     dataProvider={dataProvider}
     authProvider={authProvider}
@@ -291,5 +304,6 @@ export const App = () => {
       <Route path="/medicos" element={<MedicosPage />} />
     </CustomRoutes>
   </Admin>
+  </>
   );
 };

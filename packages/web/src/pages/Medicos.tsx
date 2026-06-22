@@ -21,7 +21,7 @@ export const MedicosPage = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState(''); const [crm, setCrm] = useState(''); const [spec, setSpec] = useState(''); const [email, setEmail] = useState('');
-  const [scopes, setScopes] = useState<string[]>(['exams']);
+  const [scopes, setScopes] = useState<string[]>([]);
   const [convenio, setConvenio] = useState('Particular');
   const [saving, setSaving] = useState(false);
 
@@ -36,7 +36,8 @@ export const MedicosPage = () => {
 
   const add = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !crm) { notify('Nome e CRM do medico sao obrigatorios.', { type: 'error' }); return; }
+    if (!name || !crm) { notify('Nome e CRM do médico são obrigatórios.', { type: 'error' }); return; }
+    if (scopes.length === 0) { notify('Selecione ao menos um tipo de dado para compartilhar.', { type: 'error' }); return; }
     setSaving(true);
     try {
       const r = await fetch(`${API_URL}/doctor-shares`, {
@@ -46,7 +47,7 @@ export const MedicosPage = () => {
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Falha');
       notify('Compartilhamento criado! O medico foi avisado por e-mail.', { type: 'success' });
-      setShowForm(false); setName(''); setCrm(''); setSpec(''); setEmail(''); setScopes(['exams']); setConvenio('Particular');
+      setShowForm(false); setName(''); setCrm(''); setSpec(''); setEmail(''); setScopes([]); setConvenio('Particular');
       load();
     } catch (e: any) { notify(e.message, { type: 'error' }); } finally { setSaving(false); }
   };
@@ -105,11 +106,11 @@ export const MedicosPage = () => {
       )}
 
       {loading && <CircularProgress />}
-      {!loading && shares.length === 0 && (
-        <Card><CardContent><Typography color="text.secondary" sx={{ textAlign: 'center', py: 3 }}>Voce nao compartilhou dados com nenhum medico ainda. Clique em "Compartilhar" pra comecar.</Typography></CardContent></Card>
+      {!loading && shares.filter((s) => !pid || s.patientId === pid).length === 0 && (
+        <Card><CardContent><Typography color="text.secondary" sx={{ textAlign: 'center', py: 3 }}>Nenhum médico compartilhado com este perfil ainda. Clique em "Compartilhar" pra começar.</Typography></CardContent></Card>
       )}
       <Stack spacing={1.5}>
-        {shares.map((s) => (
+        {shares.filter((s) => !pid || s.patientId === pid).map((s) => (
           <Card key={s.id} sx={{ borderRadius: 4, overflow: 'hidden', position: 'relative', opacity: s.active ? 1 : 0.65, border: '1px solid #e2efec', boxShadow: s.active ? '0 4px 16px rgba(32,178,170,.08)' : 'none', transition: 'all .15s', '&:hover': { boxShadow: '0 8px 24px rgba(32,178,170,.12)' } }}>
             <Box sx={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 5, background: s.active ? 'linear-gradient(180deg,#20b2aa,#178f89)' : '#cbd5e1' }} />
             <CardContent sx={{ pl: 2.5 }}>

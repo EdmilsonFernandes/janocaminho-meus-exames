@@ -47,7 +47,7 @@ router.get('/payments', async (req, res, next) => {
 
 // CONFIG — custos atuais (leitura + escrita)
 router.get('/config', (_req, res) => {
-  res.json({ creditCosts: CREDIT_COSTS, uploadRules: UPLOAD_RULES, plans: { monthly: { price: 19.90, credits: 1500 } } });
+  res.json({ creditCosts: CREDIT_COSTS, uploadRules: UPLOAD_RULES, plans: { monthly: { price: 19.90, credits: 250 } } });
 });
 
 // CONFIG — atualizar custos (edita o objeto em memória; redeploy pra persistir)

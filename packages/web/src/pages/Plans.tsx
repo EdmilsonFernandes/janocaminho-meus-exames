@@ -99,7 +99,7 @@ export const PlansPage = () => {
       <Title title="Planos e Créditos" />
       <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5 }}>💎 Planos e Créditos</Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        Use à vontade: assine o <strong>mensal</strong> (1.500 créditos de IA por mês) ou compre <strong>créditos avulsos</strong> via PIX.
+        Use à vontade: assine o <strong>mensal</strong> (250 créditos de IA por mês) ou compre <strong>créditos avulsos</strong> via PIX.
       </Typography>
 
       {/* Saldo + consumo */}
@@ -220,10 +220,10 @@ export const PlansPage = () => {
         <CardContent>
           <Typography variant="h6" sx={{ fontWeight: 800, color: '#178f89' }}>💎 Premium Mensal</Typography>
           <Typography color="text.secondary" sx={{ fontSize: 14, mt: 0.5 }}>
-            1.500 créditos que <strong>somam</strong> ao seu saldo. Válido 30 dias. Seus créditos <strong>não expiram</strong> — você decide se renova.
+            250 créditos que <strong>somam</strong> ao seu saldo. Válido 30 dias. Seus créditos <strong>não expiram</strong> — você decide se renova.
           </Typography>
           <Box component="ul" sx={{ pl: 2.5, mt: 1.5, mb: 2, lineHeight: 1.8, fontSize: 14 }}>
-            <li>1.500 créditos de IA por mês</li>
+            <li>250 créditos de IA por mês</li>
             <li>Exames + dependentes</li>
             <li>Relatório completo + impressão</li>
           </Box>

@@ -18,7 +18,7 @@ model User {
   name         String
   role         Role     @default(OWNER)
   planExpiresAt DateTime?   // ativo enquanto no futuro (null = free/expirado)
-  credits      Int      @default(100)  // créditos: upload=10, resumo=5, chat=1. Recarrega com plano.
+  credits      Int      @default(60)   // créditos de IA — custos/grants parametrizados em app_settings. Recarrega com plano.
   emailVerified Boolean @default(false) // valida e-mail no cadastro (previne conta com e-mail fake)
   createdAt    DateTime @default(now())
   patients     Patient[]
@@ -27,6 +27,15 @@ model User {
   notifications Notification[]
 
   @@map("users")
+}
+
+// Config de monetização parametrizada no banco (lida no boot, editável pelo painel admin).
+// key = categoria (creditCosts/uploadRules/grants/shares); value = objeto JSON.
+model AppSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+  @@map("app_settings")
 }
 
 enum Role {

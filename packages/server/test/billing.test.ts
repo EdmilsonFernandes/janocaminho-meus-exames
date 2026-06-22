@@ -29,7 +29,7 @@ describe('billing: planos, webhook (idempotente), compra de créditos', () => {
     expect(r.body.examsCount).toBe(0);
   });
 
-  it('webhook MENSAL aprova: ativa plano + 1500 créditos', async () => {
+  it('webhook MENSAL aprova: ativa plano + 250 créditos', async () => {
     const { user } = await createUser({ credits: 0 });
     const sub = await prisma.subscription.create({
       data: { userId: user.id, amount: 19.9, periodDays: 30, status: 'PENDING' },
@@ -41,7 +41,7 @@ describe('billing: planos, webhook (idempotente), compra de créditos', () => {
 
     const dbSub = await prisma.subscription.findUnique({ where: { id: sub.id } });
     expect(dbSub?.status).toBe('APPROVED');
-    expect(await getUserCredits(user.id)).toBe(1500);
+    expect(await getUserCredits(user.id)).toBe(250);
     const u = await prisma.user.findUnique({ where: { id: user.id } });
     expect(u?.planExpiresAt).toBeTruthy();
     expect(u!.planExpiresAt!.getTime()).toBeGreaterThan(Date.now());
@@ -57,7 +57,7 @@ describe('billing: planos, webhook (idempotente), compra de créditos', () => {
 
     await api().post('/api/billing/webhook').send({ type: 'payment', data: { id: 'pay1' } });
     await api().post('/api/billing/webhook').send({ type: 'payment', data: { id: 'pay1' } });
-    expect(await getUserCredits(user.id)).toBe(1500); // não virou 3000
+    expect(await getUserCredits(user.id)).toBe(250); // não virou 500
   });
 
   it('webhook de PACOTE (external_reference subId|credits) credita N créditos', async () => {
@@ -87,9 +87,9 @@ describe('billing: planos, webhook (idempotente), compra de créditos', () => {
       point_of_interaction: { transaction_data: { qr_code: 'COPYPASTE', qr_code_base64: 'AAAA' } },
     }));
     const r = await api().post('/api/billing/buy-credits').set(authHeader(token))
-      .send({ pack: 'p250', method: 'pix' });
+      .send({ pack: 'p140', method: 'pix' });
     expect(r.status).toBe(200);
     expect(r.body.qrCode).toBe('COPYPASTE');
-    expect(r.body.credits).toBe(250);
+    expect(r.body.credits).toBe(140);
   });
 });

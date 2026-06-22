@@ -48,8 +48,8 @@ const steps = [
 ];
 
 const planData = [
-  { name: 'Grátis', price: 'R$ 0', period: '', features: ['100 créditos pra testar', 'Envie exames (PDF/foto)', 'Valores + referência', 'Score de Saúde', 'Pergunte ao Dr. Exame'], highlight: false, cta: 'Começar grátis' },
-  { name: 'Mensal', price: 'R$ 19,90', period: '/mês', features: ['1.500 créditos de IA/mês', 'Exames + dependentes', 'Comparativo + Tendências', 'Relatório completo + PDF', 'Chat com o Dr. Exame'], highlight: true, cta: 'Assinar mensal' },
+  { name: 'Grátis', price: 'R$ 0', period: '', features: ['60 créditos pra testar', 'Envie exames (PDF/foto)', 'Valores + referência', 'Score de Saúde', 'Pergunte ao Dr. Exame'], highlight: false, cta: 'Começar grátis' },
+  { name: 'Mensal', price: 'R$ 19,90', period: '/mês', features: ['250 créditos de IA/mês', 'Exames + dependentes', 'Comparativo + Tendências', 'Relatório completo + PDF', 'Chat com o Dr. Exame'], highlight: true, cta: 'Assinar mensal' },
   { name: 'Créditos', price: 'a partir de R$ 9,90', period: 'avulso', features: ['PIX, cartão ou débito', 'Pacotes flexíveis', 'Cada análise consome créditos', 'Sem mensalidade', 'Use quando precisar'], highlight: false, cta: 'Ver pacotes' },
 ];
 
@@ -154,7 +154,7 @@ export const LandingPage = () => {
                 </Button>
               </Stack>
               <Stack direction="row" spacing={2.5} useFlexGap sx={{ flexWrap: 'wrap', rowGap: 1 }}>
-                {['Sem cartão', '100 créditos grátis', 'LGPD'].map((t) => (
+                {['Sem cartão', '60 créditos grátis', 'LGPD'].map((t) => (
                   <Stack key={t} direction="row" spacing={0.5} alignItems="center">
                     <CheckCircleIcon sx={{ fontSize: 17, color: GREEN }} />
                     <Typography sx={{ color: 'text.secondary', fontSize: 13.5, fontWeight: 600 }}>{t}</Typography>
