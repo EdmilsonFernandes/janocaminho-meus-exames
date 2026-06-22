@@ -91,7 +91,12 @@ async function createJson(buffer: Buffer, mediaType: string, instruction: string
     // ao GLM (o relay NÃO enxerga imagem/PDF). Visão só como último recurso.
     let content: any[];
     if (mediaType === 'application/pdf') {
-      const text = await pdfToText(buffer);
+      let text = '';
+      try { text = await pdfToText(buffer); } catch { /* não é PDF válido */ }
+      // Rede de segurança: PDF sem texto (só-imagem, ou imagem mal-rotulada como PDF) → OCR tesseract.
+      if (!text || text.trim().length < 50) {
+        try { const ocr = await imageToText(buffer); if (ocr && ocr.trim().length > 50) { console.log('[extraction] PDF sem texto → OCR fallback,', ocr.length, 'chars'); text = ocr; } } catch { /* sem tesseract */ }
+      }
       content = [{ type: 'text', text: instruction + '\n\n=== CONTEÚDO EXTRAÍDO DO EXAME (use EXATAMENTE estes dados; NUNCA invente valores/nomes) ===\n' + text + '\n' + JSON_SUFFIX }];
     } else {
       let ocr = '';

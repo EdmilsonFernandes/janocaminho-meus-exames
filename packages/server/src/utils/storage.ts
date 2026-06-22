@@ -43,8 +43,13 @@ function buildKey(slug: string, filename: string): string {
  * Devolve um "ref": chave S3 (modo S3) ou caminho local (modo disco).
  */
 export async function saveExamFile(buffer: Buffer, slug: string, filename: string, contentType: string): Promise<string> {
+  // Extensão CONFIÁVEL pelo content-type (multer detecta o MIME direito). O nome do arquivo
+  // pode chegar SEM extensão no WebView móvel — e o mediaTypeFromRef decide imagem vs PDF
+  // pela extensão do ref. Antes defaultava p/ .pdf → imagem ia pro pdftotext e falhava.
+  const ext = /png/i.test(contentType) ? '.png' : /jpe?g/i.test(contentType) ? '.jpg' : '.pdf';
   if (useS3()) {
-    const key = buildKey(slug, filename);
+    const safeBase = (filename || 'exame').replace(/\.[a-zA-Z0-9]+$/, '').replace(/[^a-zA-Z0-9._-]/g, '_').slice(-50);
+    const key = buildKey(slug, `${safeBase}${ext}`);
     await s3().send(new PutObjectCommand({
       Bucket: config.s3Bucket,
       Key: key,
@@ -55,7 +60,6 @@ export async function saveExamFile(buffer: Buffer, slug: string, filename: strin
   }
   // disco local (dev)
   fs.mkdirSync(config.uploadDir, { recursive: true });
-  const ext = path.extname(filename).toLowerCase() || '.pdf';
   const local = path.join(config.uploadDir, `${crypto.randomUUID()}${ext}`);
   fs.writeFileSync(local, buffer);
   return local;
