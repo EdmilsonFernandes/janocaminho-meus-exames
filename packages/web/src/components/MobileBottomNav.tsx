@@ -98,7 +98,7 @@ export const MobileBottomNav = () => {
         </List>
         <Divider />
         <List sx={{ pt: 1, '& .MuiListItemButton-root': { borderRadius: 2, m: '2px 10px' } }}>
-          <ListItemButton onClick={() => { setMais(false); logout(); }} sx={{ color: 'error.main' }}>
+          <ListItemButton onClick={() => { setMais(false); logout('/entrar'); }} sx={{ color: 'error.main' }}>
             <ListItemIcon sx={{ minWidth: 34, fontSize: 18, color: 'error.main' }}>↩</ListItemIcon>
             <ListItemText primary="Sair da conta" primaryTypographyProps={{ fontSize: 14, fontWeight: 600 }} />
           </ListItemButton>

@@ -99,7 +99,7 @@ const CustomAppBar = (props: AppBarProps) => {
       <MuiMenu anchorEl={menuA} open={!!menuA} onClose={() => setMenuA(null)} slotProps={{ paper: { sx: { mt: 1, minWidth: 180, borderRadius: 2 } } }}>
         <MenuItem onClick={toggleLang}>🌐 {locale === 'pt' ? 'Mudar para English' : 'Switch to Português'}</MenuItem>
         <MenuItem onClick={() => { refresh(); setMenuA(null); }}>↻ Atualizar</MenuItem>
-        <MenuItem onClick={() => logout()} sx={{ color: 'error.main' }}>↩ Sair</MenuItem>
+        <MenuItem onClick={() => logout('/entrar')} sx={{ color: 'error.main' }}>↩ Sair</MenuItem>
       </MuiMenu>
     </AppBar>
   );
@@ -134,7 +134,7 @@ const AppMenu = () => {
     <Menu.Item to="/planos" primaryText={t('menu.plans')} leftIcon={<WorkspacePremiumIcon sx={{ color: '#f97316' }} />} />
     {isAdmin && <Menu.Item to="/admin" primaryText="Painel Admin" leftIcon={<AdminPanelSettingsIcon sx={{ color: '#ef4444' }} />} />}
     <Divider sx={{ my: 1 }} />
-    <MenuItem onClick={() => logout()} sx={{ mx: 0.5, my: 0.25, borderRadius: 1, py: 1, color: 'error.main', '&:hover': { bgcolor: 'rgba(239,68,68,.08)' } }}>
+    <MenuItem onClick={() => logout('/entrar')} sx={{ mx: 0.5, my: 0.25, borderRadius: 1, py: 1, color: 'error.main', '&:hover': { bgcolor: 'rgba(239,68,68,.08)' } }}>
       <ListItemIcon sx={{ color: 'error.main', minWidth: 36 }}><LogoutIcon fontSize="small" /></ListItemIcon>
       <ListItemText primaryTypographyProps={{ fontSize: 14, fontWeight: 500 }}>{t('menu.logout', 'Sair da conta')}</ListItemText>
     </MenuItem>
