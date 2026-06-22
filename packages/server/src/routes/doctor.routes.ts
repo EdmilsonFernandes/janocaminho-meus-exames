@@ -190,7 +190,7 @@ router.get('/patients/:patientId/evolution', requireDoctor, async (req: any, res
     const items = await prisma.examItem.findMany({
       where: { exam: { patientId: req.params.patientId, status: 'EXTRACTED' }, valueNumeric: { not: null } },
       select: { name: true, nameCanonical: true, valueNumeric: true, unit: true, flag: true, isAbnormal: true, refLow: true, refHigh: true, exam: { select: { performedAt: true } } },
-      orderBy: { exam: { performedAt: 'desc' } }, take: 100,
+      orderBy: { exam: { performedAt: 'desc' } }, take: 300,
     });
     res.json({ items });
   } catch (e) { next(e); }
@@ -208,6 +208,58 @@ router.get('/patients/:patientId/summaries', requireDoctor, async (req: any, res
       select: { id: true, contentMd: true, createdAt: true, exam: { select: { title: true, performedAt: true } } },
     });
     res.json({ items });
+  } catch (e) { next(e); }
+});
+
+// === ANOTAÇÕES CLÍNICAS (histórico de atendimento) — disponível p/ qualquer paciente compartilhado ===
+const requireShare = async (doctorId: string, patientId: string) => {
+  const share = await prisma.doctorShare.findFirst({ where: { doctorId, patientId, active: true } });
+  return !!share;
+};
+
+// LISTAR anotações do paciente
+router.get('/patients/:patientId/notes', requireDoctor, async (req: any, res, next) => {
+  try {
+    if (!(await requireShare(req.doctorId, req.params.patientId))) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+    const items = await prisma.doctorNote.findMany({
+      where: { doctorId: req.doctorId, patientId: req.params.patientId },
+      orderBy: { createdAt: 'desc' }, take: 100,
+      select: { id: true, content: true, createdAt: true, updatedAt: true },
+    });
+    res.json({ items });
+  } catch (e) { next(e); }
+});
+
+// CRIAR anotação
+router.post('/patients/:patientId/notes', requireDoctor, async (req: any, res, next) => {
+  try {
+    if (!(await requireShare(req.doctorId, req.params.patientId))) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+    const content = String(req.body?.content ?? '').trim();
+    if (!content) { res.status(400).json({ error: 'Conteúdo obrigatório.' }); return; }
+    const note = await prisma.doctorNote.create({ data: { doctorId: req.doctorId, patientId: req.params.patientId, content } });
+    res.status(201).json({ note });
+  } catch (e) { next(e); }
+});
+
+// EDITAR anotação
+router.patch('/notes/:id', requireDoctor, async (req: any, res, next) => {
+  try {
+    const content = String(req.body?.content ?? '').trim();
+    const note = await prisma.doctorNote.findFirst({ where: { id: String(req.params.id), doctorId: req.doctorId } });
+    if (!note) { res.status(404).json({ error: 'Anotação não encontrada.' }); return; }
+    if (!content) { res.status(400).json({ error: 'Conteúdo obrigatório.' }); return; }
+    const updated = await prisma.doctorNote.update({ where: { id: note.id }, data: { content } });
+    res.json({ note: updated });
+  } catch (e) { next(e); }
+});
+
+// EXCLUIR anotação
+router.delete('/notes/:id', requireDoctor, async (req: any, res, next) => {
+  try {
+    const note = await prisma.doctorNote.findFirst({ where: { id: String(req.params.id), doctorId: req.doctorId } });
+    if (!note) { res.status(404).json({ error: 'Anotação não encontrada.' }); return; }
+    await prisma.doctorNote.delete({ where: { id: note.id } });
+    res.json({ ok: true });
   } catch (e) { next(e); }
 });
 

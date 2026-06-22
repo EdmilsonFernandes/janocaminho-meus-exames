@@ -10,8 +10,9 @@ import { API_URL } from '../config';
 import { DrExame } from '../components/DrExame';
 import { SPECIALTIES } from '../utils/medicalData';
 import { PhotoUpload } from '../components/PhotoUpload';
-import { CATS, categorize } from './Evolution';
+import { CATS, categorize } from '../utils/medicalData';
 import ReactMarkdown from 'react-markdown';
+import { ResponsiveContainer, LineChart, Line, ReferenceArea, XAxis, YAxis, Tooltip } from 'recharts';
 
 const docKey = 'doctorToken';
 
@@ -34,6 +35,7 @@ const SCOPE_META: Record<string, { label: string; icon: string }> = {
   evolution: { label: 'Evolução', icon: '📈' },
   alerts: { label: 'Alertas', icon: '🚨' },
   summary: { label: 'Resumos IA', icon: '🤖' },
+  notes: { label: 'Anotações', icon: '📝' },
 };
 
 export const DoctorPortalPage = () => {
@@ -137,6 +139,9 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const [selExam, setSelExam] = useState<any | null>(null);
   const [examDetail, setExamDetail] = useState<any | null>(null);
   const [summaries, setSummaries] = useState<any[]>([]);
+  const [notes, setNotes] = useState<any[]>([]);
+  const [newNote, setNewNote] = useState('');
+  const [chartFilter, setChartFilter] = useState<'6m' | '1y' | 'all'>('1y');
   const h = { Authorization: `Bearer ${token}` };
 
   useEffect(() => {
@@ -146,7 +151,44 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
 
   // Abas disponíveis = escopos que o paciente autorizou (e que suportamos visualmente)
   const scopes: string[] = selected?.scopes ?? [];
-  const supportedTabs = ['exams', 'alerts', 'evolution', 'summary'].filter((s) => scopes.includes(s));
+  const supportedTabs = [...['exams', 'alerts', 'evolution', 'summary'].filter((s) => scopes.includes(s)), 'notes'];
+
+  // --- Anotações ---
+  const addNote = async () => {
+    const content = newNote.trim();
+    if (!content || !selected) return;
+    const r = await fetch(`${API_URL}/doctor/patients/${selected.patient.id}/notes`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ content }) });
+    const d = await r.json();
+    if (r.ok) { setNotes((n) => [{ ...d.note }, ...n]); setNewNote(''); }
+  };
+  const delNote = async (id: string) => {
+    if (!window.confirm('Excluir esta anotação?')) return;
+    await fetch(`${API_URL}/doctor/notes/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+    setNotes((n) => n.filter((x) => x.id !== id));
+  };
+  const saveNote = async (id: string, content: string) => {
+    const r = await fetch(`${API_URL}/doctor/notes/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ content }) });
+    const d = await r.json();
+    if (r.ok) setNotes((n) => n.map((x) => x.id === id ? d.note : x));
+  };
+
+  // --- Copiar resumo pro prontuário (#4) ---
+  const copySummary = async () => {
+    if (!selected) return;
+    const lines = [
+      `Paciente: ${selected.patient?.fullName ?? ''}`,
+      selected.convenio ? `Convênio: ${selected.convenio}` : '',
+      exams[0] ? `Último exame: ${exams[0].title} (${fmtDate(exams[0].performedAt)})${exams[0].sourceLab ? ` — ${exams[0].sourceLab}` : ''}` : 'Sem exames extraídos.',
+      allAlerts.length ? `Valores alterados (${allAlerts.length}):` : 'Sem valores alterados.',
+      ...allAlerts.map((a) => `- ${a.name}: ${a.valueText} (${a.examTitle}, ${fmtDate(a.examDate)})`),
+      '',
+      'Resumo gerado pelo app Meus Exames — conteúdo educativo, não substitui avaliação clínica.',
+    ].filter((x) => x !== '');
+    try {
+      await navigator.clipboard.writeText(lines.join('\n'));
+      window.alert('Resumo copiado! Cole no prontuário do paciente.');
+    } catch { window.alert('Não foi possível copiar. Selecione e copie manualmente.'); }
+  };
 
   const openPatient = async (p: any) => {
     setSelected(p);
@@ -156,11 +198,13 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     const wantEvol = pScopes.includes('evolution');
     const wantSummary = pScopes.includes('summary');
     setTab(pTabs[0] || 'exams');
-    setDetailLoading(true); setExams([]); setEvolution([]); setSummaries([]);
+    setDetailLoading(true); setExams([]); setEvolution([]); setSummaries([]); setNotes([]);
     try {
       if (wantExams) { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/exams`, { headers: h }); const d = await r.json(); if (r.ok) setExams(d.items ?? []); }
       if (wantEvol) { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/evolution`, { headers: h }); const d = await r.json(); if (r.ok) setEvolution(d.items ?? []); }
       if (wantSummary) { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/summaries`, { headers: h }); const d = await r.json(); if (r.ok) setSummaries(d.items ?? []); }
+      // Anotações sempre (são do próprio médico, não dependem de escopo)
+      { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/notes`, { headers: h }); const d = await r.json(); if (r.ok) setNotes(d.items ?? []); }
     } catch {} finally { setDetailLoading(false); }
   };
 
@@ -249,6 +293,27 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               </CardContent></Card>
             )}
 
+            {/* HERO "resumo de 10 segundos" — alertas críticos + último exame + copiar resumo */}
+            {!selExam && (
+              <Card sx={{ mb: 2, borderRadius: 4, background: 'linear-gradient(135deg,#0f3d3a,#178f89)', color: '#fff', overflow: 'hidden', boxShadow: '0 8px 28px rgba(15,61,58,.22)' }}>
+                <CardContent>
+                  <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: allAlerts.length ? 1.25 : 0 }}>
+                    <Box sx={{ flex: '1 1 200px' }}>
+                      <Typography variant="caption" sx={{ opacity: 0.8, fontWeight: 800, letterSpacing: 0.6 }}>RESUMO RÁPIDO</Typography>
+                      <Typography sx={{ fontWeight: 800, fontSize: 19, fontFamily: 'Poppins, sans-serif', lineHeight: 1.2 }}>{allAlerts.length > 0 ? `🔴 ${allAlerts.length} valor(es) alterado(s)` : '✅ Sem alterações relevantes'}</Typography>
+                      <Typography variant="caption" sx={{ opacity: 0.88, display: 'block', mt: 0.25 }}>{exams[0] ? `${exams[0].title} • ${fmtDate(exams[0].performedAt)}` : 'Sem exames extraídos'}{exams.length > 0 ? ` • ${exams.length} exame(s)` : ''}</Typography>
+                    </Box>
+                    <Button size="small" variant="outlined" onClick={copySummary} sx={{ color: '#fff', borderColor: 'rgba(255,255,255,.5)', textTransform: 'none', fontWeight: 700, borderRadius: 99, flexShrink: 0, '&:hover': { borderColor: '#fff', bgcolor: 'rgba(255,255,255,.12)' } }}>📋 Copiar resumo</Button>
+                  </Stack>
+                  {allAlerts.length > 0 && (
+                    <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                      {allAlerts.slice(0, 10).map((a, i) => <Chip key={i} size="small" label={`${a.name}: ${a.valueText}`} sx={{ bgcolor: 'rgba(255,255,255,.18)', color: '#fff', fontWeight: 600, height: 22, fontSize: 11 }} />)}
+                    </Box>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
             {/* Detalhe de um exame (todos os itens + PDF) OU tabs por escopo */}
             {selExam ? (
               <DoctorExamDetail exam={selExam} detail={examDetail} patientId={selected.patient.id} token={token} onBack={() => { setSelExam(null); setExamDetail(null); }} />
@@ -308,21 +373,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 )}
 
                 {!detailLoading && tab === 'evolution' && (
-                  <Stack spacing={1}>
-                    {evolution.length === 0 && <Empty label="Sem dados de evolução (valores numéricos) ainda." />}
-                    {evolution.slice(0, 50).map((it, i) => (
-                      <Card key={i} variant="outlined" sx={{ borderRadius: 2, borderColor: '#e2efec' }}><CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1.25, '&:last-child': { pb: 1.25 } }}>
-                        <Box>
-                          <Typography sx={{ fontWeight: 700, color: '#0f3d3a' }}>{it.name}</Typography>
-                          <Typography variant="caption" sx={{ color: '#757575' }}>Ref: {[it.refLow, it.refHigh].filter((x: any) => x != null).join('-') || '—'} {it.unit || ''}</Typography>
-                        </Box>
-                        <Stack direction="row" spacing={1} alignItems="center">
-                          <Typography sx={{ fontWeight: 800, color: it.isAbnormal ? '#b91c1c' : '#0f3d3a' }}>{it.valueNumeric} {it.unit || ''}</Typography>
-                          {it.flag && <Chip size="small" label={it.flag} color={it.isAbnormal ? 'error' : 'success'} variant="outlined" sx={{ height: 20, fontSize: 10 }} />}
-                        </Stack>
-                      </CardContent></Card>
-                    ))}
-                  </Stack>
+                  <EvolutionCharts items={evolution} filter={chartFilter} setFilter={setChartFilter} />
                 )}
 
                 {!detailLoading && tab === 'summary' && (
@@ -340,6 +391,10 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                       </CardContent></Card>
                     ))}
                   </Stack>
+                )}
+
+                {!detailLoading && tab === 'notes' && (
+                  <NotesTab notes={notes} newNote={newNote} setNewNote={setNewNote} onAdd={addNote} onDelete={delNote} onSave={saveNote} />
                 )}
               </>
             ) : (
@@ -539,6 +594,100 @@ const DoctorChangePassword = ({ token, onBack }: { token: string; onBack: () => 
           <Button variant="contained" onClick={save} disabled={saving || !cur || !nw} startIcon={saving ? <CircularProgress size={18} color="inherit" /> : <LockIcon />} sx={{ alignSelf: 'flex-start', borderRadius: 2, textTransform: 'none', fontWeight: 800, background: 'linear-gradient(180deg,#20b2aa,#009688)', '&:hover': { background: 'linear-gradient(180deg,#1ca39e,#00897b)' } }}>{saving ? 'Alterando…' : 'Alterar senha'}</Button>
         </Stack>
       </CardContent></Card>
+    </Box>
+  );
+};
+
+/** #1 Anotações clínicas (histórico de atendimento) — adicionar / editar / excluir. */
+const NotesTab = ({ notes, newNote, setNewNote, onAdd, onDelete, onSave }: { notes: any[]; newNote: string; setNewNote: (s: string) => void; onAdd: () => void; onDelete: (id: string) => void; onSave: (id: string, content: string) => void }) => {
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editText, setEditText] = useState('');
+  const btnSx = { borderRadius: 2, textTransform: 'none', fontWeight: 800, bgcolor: TEAL, '&:hover': { bgcolor: '#0f7670' } } as const;
+  return (
+    <Box>
+      <Card sx={{ mb: 2, borderRadius: 4, border: '1px solid #bfe7e3' }}><CardContent>
+        <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 800, color: TEAL }}>📝 Nova anotação</Typography>
+        <TextField value={newNote} onChange={(e) => setNewNote(e.target.value)} multiline minRows={2} fullWidth size="small" placeholder="Conduta, observação clínica, retorno solicitado…" />
+        <Button variant="contained" onClick={onAdd} disabled={!newNote.trim()} sx={{ mt: 1, ...btnSx }}>Adicionar</Button>
+      </CardContent></Card>
+      {notes.length === 0 && <Empty label="Nenhuma anotação ainda. Use o campo acima pra registrar uma conduta." icon="📝" />}
+      <Stack spacing={1.25}>
+        {notes.map((n) => (
+          <Card key={n.id} variant="outlined" sx={{ borderRadius: 3, borderColor: '#e2efec' }}><CardContent>
+            {editingId === n.id ? (
+              <>
+                <TextField value={editText} onChange={(e) => setEditText(e.target.value)} multiline minRows={2} fullWidth size="small" autoFocus />
+                <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+                  <Button size="small" variant="contained" disabled={!editText.trim()} onClick={() => { onSave(n.id, editText.trim()); setEditingId(null); }} sx={btnSx}>Salvar</Button>
+                  <Button size="small" onClick={() => setEditingId(null)}>Cancelar</Button>
+                </Stack>
+              </>
+            ) : (
+              <>
+                <Typography sx={{ whiteSpace: 'pre-wrap', fontSize: 14, color: '#0f3d3a' }}>{n.content}</Typography>
+                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 1 }}>
+                  <Typography variant="caption" color="text.secondary">{new Date(n.createdAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })}</Typography>
+                  <Stack direction="row" spacing={0.5}>
+                    <Button size="small" sx={{ minWidth: 0, color: '#64748b' }} onClick={() => { setEditingId(n.id); setEditText(n.content); }}>✏️</Button>
+                    <Button size="small" sx={{ minWidth: 0, color: 'error.main' }} onClick={() => onDelete(n.id)}>🗑️</Button>
+                  </Stack>
+                </Stack>
+              </>
+            )}
+          </CardContent></Card>
+        ))}
+      </Stack>
+    </Box>
+  );
+};
+
+/** #2 Gráficos de evolução por analito, com zona de referência e filtro de período. */
+const EvolutionCharts = ({ items, filter, setFilter }: { items: any[]; filter: '6m' | '1y' | 'all'; setFilter: (f: '6m' | '1y' | 'all') => void }) => {
+  const groups = useMemo(() => {
+    const now = Date.now();
+    const cutoff = filter === '6m' ? now - 180 * 86400000 : filter === '1y' ? now - 365 * 86400000 : 0;
+    const map = new Map<string, { name: string; unit: string | null; refLow: number | null; refHigh: number | null; points: { date: string; ts: number; value: number; abnormal: boolean }[] }>();
+    for (const it of items) {
+      const ts = it.exam?.performedAt ? new Date(it.exam.performedAt).getTime() : 0;
+      if (ts < cutoff) continue;
+      const key = it.nameCanonical || it.name;
+      if (!map.has(key)) map.set(key, { name: it.name, unit: it.unit ?? null, refLow: it.refLow ?? null, refHigh: it.refHigh ?? null, points: [] });
+      map.get(key)!.points.push({ date: it.exam?.performedAt ? new Date(it.exam.performedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : 's/d', ts, value: it.valueNumeric, abnormal: !!it.isAbnormal });
+    }
+    return [...map.values()].map((g) => ({ ...g, points: g.points.sort((a, b) => a.ts - b.ts) })).filter((g) => g.points.length >= 2).sort((a, b) => b.points.length - a.points.length);
+  }, [items, filter]);
+  return (
+    <Box>
+      <Stack direction="row" spacing={0.5} sx={{ mb: 1.5 }}>
+        {([['6m', '6 meses'], ['1y', '1 ano'], ['all', 'Tudo']] as const).map(([k, l]) => (
+          <Chip key={k} size="small" label={l} onClick={() => setFilter(k)} variant={filter === k ? 'filled' : 'outlined'} color={filter === k ? 'primary' : 'default'} sx={{ fontWeight: 600 }} />
+        ))}
+      </Stack>
+      {groups.length === 0 && <Empty label="Sem dados suficientes pra gráficos (precisa de ≥2 medições do mesmo analito no período)." icon="📈" />}
+      <Stack spacing={1.5}>
+        {groups.slice(0, 12).map((g) => {
+          const lineColor = g.points.some((p) => p.abnormal) ? '#ef4444' : '#178f89';
+          return (
+            <Card key={g.name} variant="outlined" sx={{ borderRadius: 3, borderColor: '#e2efec' }}><CardContent>
+              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+                <Typography sx={{ fontWeight: 700, color: '#0f3d3a' }}>{g.name}</Typography>
+                <Typography variant="caption" sx={{ color: '#94a3b8' }}>Ref: {[g.refLow, g.refHigh].filter((x) => x != null).join('-') || '—'} {g.unit || ''}</Typography>
+              </Stack>
+              <Box sx={{ height: 120, width: '100%' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={g.points} margin={{ top: 4, right: 6, bottom: 4, left: 6 }}>
+                    {g.refLow != null && g.refHigh != null && <ReferenceArea y1={g.refLow} y2={g.refHigh} fill="#10b981" fillOpacity={0.14} />}
+                    <XAxis dataKey="date" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
+                    <YAxis tick={{ fontSize: 10 }} width={32} domain={['auto', 'auto']} />
+                    <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12 }} />
+                    <Line type="monotone" dataKey="value" stroke={lineColor} strokeWidth={2.5} dot={{ r: 3, fill: lineColor }} isAnimationActive={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </Box>
+            </CardContent></Card>
+          );
+        })}
+      </Stack>
     </Box>
   );
 };

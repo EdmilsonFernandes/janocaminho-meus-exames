@@ -38,6 +38,7 @@ model Patient {
   id           String    @id @default(cuid())
   ownerId      String
   owner        User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  notes        DoctorNote[]
   fullName     String
   relationship String?   // parentesco: "Titular", "Filha", "Mãe", "Cônjuge"...
   gender       String?   // "male" | "female" — define a coluna de referência (Homens/Mulheres)
@@ -303,6 +304,7 @@ model Doctor {
   passwordHash String
   createdAt    DateTime @default(now())
   shares       DoctorShare[]
+  notes        DoctorNote[]
 
   @@map("doctors")
 }
@@ -322,4 +324,20 @@ model DoctorShare {
   @@unique([patientId, doctorId])
   @@index([doctorId, active])
   @@map("doctor_shares")
+}
+
+// Anotações clínicas do médico sobre um paciente compartilhado (histórico de atendimento)
+model DoctorNote {
+  id        String   @id @default(cuid())
+  doctorId  String
+  doctor    Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  patientId String
+  patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([patientId, createdAt])
+  @@index([doctorId, createdAt])
+  @@map("doctor_notes")
 }
