@@ -1,0 +1,4 @@
+
+# imagens reais de exame pra teste de OCR (NAO commitadar — dado de saúde)
+test/fixtures/*
+!test/fixtures/.gitkeep
