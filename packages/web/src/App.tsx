@@ -229,7 +229,10 @@ export const App = () => {
       try {
         const [{ App }, { Capacitor }] = await Promise.all([import('@capacitor/app'), import('@capacitor/core')]);
         if (Capacitor.isNativePlatform()) {
-          const h = await App.addListener('backButton', ({ canGoBack }) => { if (canGoBack) window.history.back(); else App.exitApp(); });
+          const h = await App.addListener('backButton', ({ canGoBack }) => {
+            if (window.location.hash.startsWith('#/doctor')) return; // Portal do Médico cuida do próprio back (navegação por estado)
+            if (canGoBack) window.history.back(); else App.exitApp();
+          });
           remove = () => { h.remove(); };
         }
       } catch { /* web: sem @capacitor — browser back já funciona */ }

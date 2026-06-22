@@ -1,8 +1,6 @@
-import { Box, Container, Typography, Button, Stack, Chip, Fade, CircularProgress } from '@mui/material';
+import { Box, Container, Typography, Button, Stack, Chip, Fade } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { AreaChart, Area, ResponsiveContainer, YAxis, ReferenceArea } from 'recharts';
-import { DrExame } from '../components/DrExame';
 
 // Ícones MUI (premium, no lugar dos emojis antigos)
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
@@ -21,6 +19,9 @@ import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import AccessibilityNewIcon from '@mui/icons-material/AccessibilityNew';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import DonutLargeIcon from '@mui/icons-material/DonutLarge';
+import TrendingDownIcon from '@mui/icons-material/TrendingDown';
+import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 
 // ---- Tokens (espelham theme.ts) ----
 const TEAL = '#20b2aa';
@@ -52,11 +53,32 @@ const planData = [
   { name: 'Créditos', price: 'a partir de R$ 9,90', period: 'avulso', features: ['PIX, cartão ou débito', 'Pacotes flexíveis', 'Cada análise consome créditos', 'Sem mensalidade', 'Use quando precisar'], highlight: false, cta: 'Ver pacotes' },
 ];
 
-// Mock de evolução (Hemoglobina subindo dentro da faixa)
-const trendData = [
-  { m: 'Jan', v: 13.1 }, { m: 'Fev', v: 13.4 }, { m: 'Mar', v: 13.7 },
-  { m: 'Abr', v: 14.1 }, { m: 'Mai', v: 14.6 }, { m: 'Jun', v: 15.3 },
-];
+// Moldura de celular premium (bezel escuro + cantos arredondados + sombra teal).
+// Usa as screenshots REAIS do app — autêntico vende mais que mockup recriado.
+const PhoneFrame = ({ src, alt, label, Icon, caption }: {
+  src: string; alt: string; label: string; Icon: any; caption: string;
+}) => (
+  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+    <Box sx={{
+      width: '100%', maxWidth: 288, mx: 'auto',
+      borderRadius: '38px', p: '8px',
+      background: 'linear-gradient(160deg,#16302e,#0c2422)',
+      boxShadow: '0 30px 60px rgba(32,178,170,.22), 0 12px 26px rgba(0,0,0,.12)',
+      border: '1px solid rgba(255,255,255,.05)',
+      transition: 'transform .3s ease, box-shadow .3s ease',
+      '&:hover': { transform: 'translateY(-6px)', boxShadow: '0 38px 70px rgba(32,178,170,.28), 0 14px 30px rgba(0,0,0,.14)' },
+    }}>
+      <Box sx={{ borderRadius: '30px', overflow: 'hidden', bgcolor: '#fff' }}>
+        <Box component="img" src={`${import.meta.env.BASE_URL}${src}`} alt={alt} sx={{ width: '100%', height: 'auto', display: 'block' }} />
+      </Box>
+    </Box>
+    <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 2.5, mb: 0.5 }}>
+      <Icon sx={{ fontSize: 19, color: TEAL }} />
+      <Typography variant="h6" sx={{ fontWeight: 800, fontSize: 16.5, color: INK }}>{label}</Typography>
+    </Stack>
+    <Typography sx={{ fontSize: 13.5, color: 'text.secondary', lineHeight: 1.55, maxWidth: 272 }}>{caption}</Typography>
+  </Box>
+);
 
 export const LandingPage = () => {
   const navigate = useNavigate();
@@ -210,60 +232,30 @@ export const LandingPage = () => {
             Veja na prática
           </Typography>
           <Typography align="center" sx={{ color: 'text.secondary', fontSize: 17, mb: 6, maxWidth: 600, mx: 'auto' }}>
-            O Dr. Exame transforma seus exames em clareza — score, dicas e evolução num só lugar.
+            Telas reais do app — do painel ao detalhe, tudo pensado pra você entender sua saúde de verdade.
           </Typography>
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' }, gap: 3, alignItems: 'stretch' }}>
-            {/* Mock A — Score */}
-            <Box sx={{ p: 3.5, borderRadius: 5, background: 'linear-gradient(135deg,#ffffff,#e6f7f6)', border: '1px solid #e6f1f0', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-              <Typography variant="h6" sx={{ fontWeight: 800, color: INK, mb: 2 }}>Score de Saúde</Typography>
-              <Box sx={{ position: 'relative', display: 'inline-flex', my: 1 }}>
-                <CircularProgress variant="determinate" value={100} size={128} thickness={6} sx={{ color: '#e6f1f0' }} />
-                <CircularProgress variant="determinate" value={92} size={128} thickness={6} sx={{ color: GREEN, position: 'absolute', left: 0, '& .MuiCircularProgress-circle': { strokeLinecap: 'round' } }} />
-                <Box sx={{ top: 0, left: 0, bottom: 0, right: 0, position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                  <Typography sx={{ fontSize: 34, fontWeight: 800, color: INK, lineHeight: 1 }}>92</Typography>
-                  <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>/ 100</Typography>
-                </Box>
-              </Box>
-              <Typography sx={{ fontSize: 14, color: 'text.secondary', mt: 2 }}>Tudo bem! A maioria dos seus valores está dentro da faixa.</Typography>
-            </Box>
-
-            {/* Mock B — Dica IA */}
-            <Box sx={{ p: 3.5, borderRadius: 5, background: 'linear-gradient(135deg,#ecfdf5,#d1fae5)', border: '1px solid #6ee7b7', display: 'flex', flexDirection: 'column' }}>
-              <Typography variant="h6" sx={{ fontWeight: 800, color: INK, mb: 2 }}>Dica personalizada (IA)</Typography>
-              <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start', flex: 1 }}>
-                <DrExame size={42} sx={{ borderRadius: '50%', flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,.1)' }} />
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography sx={{ fontSize: 14.5, color: '#0f3d3a', lineHeight: 1.55 }}>
-                    <b>Heloísa, seu score está excelente!</b> Continue assim — mantenha a hidratação e fique de olho na ingestão de sódio. 🥗
-                  </Typography>
-                </Box>
-              </Box>
-              <Typography sx={{ fontSize: 12, color: '#0f766e', mt: 2, fontStyle: 'italic' }}>Educativo, não substitui consulta médica.</Typography>
-            </Box>
-
-            {/* Mock C — Evolução */}
-            <Box sx={{ p: 3.5, borderRadius: 5, background: 'linear-gradient(135deg,#ffffff,#f0f9ff)', border: '1px solid #e6f1f0', display: 'flex', flexDirection: 'column' }}>
-              <Typography variant="h6" sx={{ fontWeight: 800, color: INK, mb: 0.5 }}>Evolução</Typography>
-              <Typography sx={{ fontSize: 13, color: 'text.secondary', mb: 2 }}>Hemoglobina — 6 meses</Typography>
-              <Box sx={{ width: '100%', height: 130, mt: 'auto' }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={trendData} margin={{ top: 5, right: 5, bottom: 0, left: 5 }}>
-                    <defs>
-                      <linearGradient id="gHero" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={TEAL} stopOpacity={0.35} />
-                        <stop offset="100%" stopColor={TEAL} stopOpacity={0.02} />
-                      </linearGradient>
-                    </defs>
-                    <ReferenceArea y1={13.5} y2={17.5} fill={GREEN} fillOpacity={0.06} />
-                    <YAxis domain={[12, 16]} hide />
-                    <Area type="monotone" dataKey="v" stroke={TEAL_DARK} strokeWidth={3} fill="url(#gHero)" dot={{ r: 3, fill: TEAL_DARK }} />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </Box>
-              <Typography sx={{ fontSize: 14, color: 'text.secondary', mt: 1.5 }}>
-                Subindo <b style={{ color: GREEN }}>+2,2</b> e dentro da faixa de referência. 📈
-              </Typography>
-            </Box>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' }, gap: { xs: 5, md: 4 }, alignItems: 'start', justifyContent: 'center' }}>
+            <PhoneFrame
+              Icon={DonutLargeIcon}
+              label="Seu painel"
+              caption="Score de Saúde, dica do Dr. Exame e relatório num só lugar."
+              src="app-dashboard.jpg"
+              alt="Painel com score de saúde e dica do Dr. Exame"
+            />
+            <PhoneFrame
+              Icon={TrendingDownIcon}
+              label="Evolução das taxas"
+              caption="Veja cada valor evoluir — colesterol caindo mês a mês, com tendência."
+              src="app-evolucao.jpg"
+              alt="Evolução do colesterol ao longo do tempo"
+            />
+            <PhoneFrame
+              Icon={EventAvailableIcon}
+              label="Detalhe + Médico"
+              caption="Valores com badge verde/vermelho e agende direto com o especialista."
+              src="app-detalhe.jpg"
+              alt="Detalhe do exame com agendamento médico"
+            />
           </Box>
         </Container>
       </Box>

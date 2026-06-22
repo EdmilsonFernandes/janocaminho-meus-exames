@@ -1,11 +1,12 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Box, Card, CardContent, Typography, TextField, Button, CircularProgress, Stack, Chip, Avatar, MenuItem, Tabs, Tab, Alert, Divider, InputAdornment, IconButton, Link, Drawer, List, ListItemButton, ListItemText, ListItemIcon, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { Box, Card, CardContent, Typography, TextField, Button, CircularProgress, Stack, Chip, Avatar, MenuItem, Alert, Divider, InputAdornment, IconButton, Link, Drawer, List, ListItemButton, ListItemText, ListItemIcon, Accordion, AccordionSummary, AccordionDetails, Badge, InputBase, Paper } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import LogoutIcon from '@mui/icons-material/Logout';
 import LockIcon from '@mui/icons-material/Lock';
 import PersonIcon from '@mui/icons-material/Person';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PdfIcon from '@mui/icons-material/PictureAsPdf';
+import SearchIcon from '@mui/icons-material/Search';
 import { API_URL } from '../config';
 import { DrExame } from '../components/DrExame';
 import { SPECIALTIES } from '../utils/medicalData';
@@ -142,6 +143,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const [notes, setNotes] = useState<any[]>([]);
   const [newNote, setNewNote] = useState('');
   const [chartFilter, setChartFilter] = useState<'6m' | '1y' | 'all'>('1y');
+  const [patQuery, setPatQuery] = useState('');
   const h = { Authorization: `Bearer ${token}` };
 
   useEffect(() => {
@@ -226,6 +228,28 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
 
   const fmtDate = (d?: string) => d ? new Date(d).toLocaleDateString('pt-BR') : 's/d';
 
+  // Gesto de voltar do Android (Capacitor): fecha detalhe do exame → fecha paciente → volta à lista → sai.
+  // O App.tsx ignora o back na rota /doctor; este listener é o dono da navegação aqui.
+  const backRef = useRef<() => void>(() => {});
+  backRef.current = () => {
+    if (selExam) { setSelExam(null); setExamDetail(null); return; }
+    if (selected) { setSelected(null); return; }
+    if (view !== 'patients') { setView('patients'); return; }
+    (async () => { try { const { App } = await import('@capacitor/app'); await App.exitApp(); } catch { /* web */ } })();
+  };
+  useEffect(() => {
+    let remove: (() => void) | undefined;
+    (async () => {
+      try {
+        const [{ App }, { Capacitor }] = await Promise.all([import('@capacitor/app'), import('@capacitor/core')]);
+        if (!Capacitor.isNativePlatform()) return;
+        const h = await App.addListener('backButton', () => backRef.current());
+        remove = () => { h.remove(); };
+      } catch { /* web */ }
+    })();
+    return () => { remove?.(); };
+  }, []);
+
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#f4faf9' }}>
       {/* Header — mesma identidade teal do app do paciente */}
@@ -248,7 +272,17 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         {/* LISTA DE PACIENTES */}
         {view === 'patients' && !loading && !selected && (
           <>
-            <Typography variant="h6" sx={{ mb: 2, fontWeight: 800, color: '#0f3d3a' }}>Pacientes que compartilharam ({patients.length})</Typography>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
+              <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f3d3a' }}>Pacientes ({patients.length})</Typography>
+              {patients.some((p) => p.hasAlerts) && <Chip size="small" color="error" label={`🔴 ${patients.filter((p) => p.hasAlerts).length} com alerta`} sx={{ fontWeight: 700 }} />}
+            </Stack>
+            {patients.length > 4 && (
+              <Paper variant="outlined" sx={{ p: '2px 12px', mb: 1.5, display: 'flex', alignItems: 'center', gap: 1, borderRadius: 99 }}>
+                <SearchIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
+                <InputBase value={patQuery} onChange={(e: any) => setPatQuery(e.target.value)} placeholder="Buscar paciente pelo nome…" sx={{ flex: 1, fontSize: 14 }} />
+                {patQuery && <Chip size="small" label="limpar" onClick={() => setPatQuery('')} sx={{ height: 22 }} />}
+              </Paper>
+            )}
             {patients.length === 0 && (
               <Card sx={{ borderRadius: 4 }}><CardContent><Box sx={{ textAlign: 'center', py: 4 }}>
                 <Box sx={{ fontSize: 48, mb: 1 }}>📭</Box>
@@ -257,19 +291,33 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               </Box></CardContent></Card>
             )}
             <Stack spacing={1.5}>
-              {patients.map((p) => (
-                <Card key={p.shareId} sx={{ borderRadius: 4, cursor: 'pointer', transition: 'all .15s', border: '1px solid #e2efec', '&:hover': { boxShadow: '0 8px 24px rgba(32,178,170,.15)', transform: 'translateY(-1px)' } }} onClick={() => openPatient(p)}>
-                  <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Avatar src={p.patient?.id ? `${API_URL}/patients/${p.patient.id}/photo` : undefined} sx={{ bgcolor: TEAL, fontWeight: 800 }}>{p.patient?.fullName?.charAt(0)}</Avatar>
-                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Typography sx={{ fontWeight: 800, color: '#0f3d3a' }}>{p.patient?.fullName}</Typography>
-                      <Typography variant="caption" sx={{ color: '#757575' }}>{[p.patient?.relationship, p.convenio || 'Particular', `desde ${fmtDate(p.createdAt)}`].filter(Boolean).join(' • ')}</Typography>
-                      <Box sx={{ mt: 0.5 }}>{(p.scopes ?? []).map((s: string) => <Chip key={s} size="small" label={`${SCOPE_META[s]?.icon || ''} ${SCOPE_META[s]?.label || s}`} sx={{ mr: 0.5, height: 22, fontSize: 11, bgcolor: '#e0f2f1', color: TEAL, fontWeight: 600 }} />)}</Box>
-                    </Box>
-                    <Typography sx={{ color: TEAL, fontWeight: 800 }}>›</Typography>
-                  </CardContent>
-                </Card>
-              ))}
+              {patients.filter((p) => !patQuery.trim() || (p.patient?.fullName || '').toLowerCase().includes(patQuery.trim().toLowerCase())).map((p) => {
+                const sex = p.sex === 'female' ? 'F' : p.sex === 'male' ? 'M' : null;
+                return (
+                  <Card key={p.shareId} sx={{ borderRadius: 4, cursor: 'pointer', transition: 'all .15s', border: '1px solid #e2efec', borderLeft: p.hasAlerts ? '5px solid #ef4444' : '5px solid transparent', '&:hover': { boxShadow: '0 8px 24px rgba(32,178,170,.15)', transform: 'translateY(-1px)' } }} onClick={() => openPatient(p)}>
+                    <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.75, py: 1.5 }}>
+                      <Badge color="error" variant="dot" invisible={!p.hasAlerts} overlap="circular" anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
+                        <Avatar src={p.patient?.id ? `${API_URL}/patients/${p.patient.id}/photo` : undefined} sx={{ bgcolor: TEAL, fontWeight: 800, width: 48, height: 48 }}>{p.patient?.fullName?.charAt(0)}</Avatar>
+                      </Badge>
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Stack direction="row" alignItems="center" spacing={0.75} useFlexGap flexWrap="wrap">
+                          <Typography sx={{ fontWeight: 800, color: '#0f3d3a' }}>{p.patient?.fullName}</Typography>
+                          {p.age != null && <Chip size="small" label={`${p.age}a`} sx={{ height: 18, fontSize: 10, bgcolor: '#f1f5f9', color: '#475569', fontWeight: 700 }} />}
+                          {sex && <Chip size="small" label={sex} sx={{ height: 18, fontSize: 10, bgcolor: sex === 'F' ? '#fce7f3' : '#dbeafe', color: sex === 'F' ? '#be185d' : '#1d4ed8', fontWeight: 700 }} />}
+                          {p.hasAlerts && <Chip size="small" label="alerta" sx={{ height: 18, fontSize: 10, bgcolor: '#fee2e2', color: '#b91c1c', fontWeight: 700 }} />}
+                        </Stack>
+                        <Box sx={{ mt: 0.5, display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                          {p.latestWeight && <Chip size="small" label={`⚖️ ${p.latestWeight.value}kg`} sx={{ height: 20, fontSize: 10, bgcolor: '#f0f9f7', color: '#0f3d3a' }} />}
+                          {p.lastExamAt && <Chip size="small" label={`📅 ${fmtDate(p.lastExamAt)}`} sx={{ height: 20, fontSize: 10, bgcolor: '#f0f9f7', color: '#0f3d3a' }} />}
+                          {p.examsCount > 0 && <Chip size="small" label={`📋 ${p.examsCount}`} sx={{ height: 20, fontSize: 10, bgcolor: '#f0f9f7', color: '#0f3d3a' }} />}
+                          <Chip size="small" label={p.convenio || 'Particular'} sx={{ height: 20, fontSize: 10, bgcolor: '#e0f2f1', color: TEAL, fontWeight: 600 }} />
+                        </Box>
+                      </Box>
+                      <Typography sx={{ color: TEAL, fontWeight: 800, fontSize: 20 }}>›</Typography>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </Stack>
           </>
         )}
@@ -282,7 +330,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               <Avatar src={selected.patient?.id ? `${API_URL}/patients/${selected.patient.id}/photo` : undefined} sx={{ bgcolor: TEAL, width: 36, height: 36, fontSize: 16 }}>{selected.patient?.fullName?.charAt(0)}</Avatar>
               <Box>
                 <Typography sx={{ fontWeight: 800, color: '#0f3d3a', lineHeight: 1.1 }}>{selected.patient?.fullName}</Typography>
-                <Typography variant="caption" sx={{ color: '#757575' }}>{[selected.patient?.relationship, selected.convenio || 'Particular'].filter(Boolean).join(' • ')}</Typography>
+                <Typography variant="caption" sx={{ color: '#757575' }}>{[selected.age != null ? `${selected.age} anos` : null, selected.sex === 'female' ? 'Feminino' : selected.sex === 'male' ? 'Masculino' : null, selected.patient?.relationship, selected.convenio || 'Particular', selected.latestWeight ? `${selected.latestWeight.value} kg` : null].filter(Boolean).join(' • ')}</Typography>
               </Box>
             </Stack>
 
@@ -319,9 +367,16 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               <DoctorExamDetail exam={selExam} detail={examDetail} patientId={selected.patient.id} token={token} onBack={() => { setSelExam(null); setExamDetail(null); }} />
             ) : supportedTabs.length > 0 ? (
               <>
-                <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable" scrollButtons="auto" sx={{ mb: 2, '& .MuiTab-root': { textTransform: 'none', fontWeight: 700, minHeight: 44 }, '& .Mui-selected': { color: `${TEAL} !important` }, '& .MuiTabs-indicator': { bgcolor: TEAL } }}>
-                  {supportedTabs.map((s) => <Tab key={s} value={s} label={`${SCOPE_META[s]?.icon || ''} ${SCOPE_META[s]?.label || s}`} />)}
-                </Tabs>
+                {/* Abas como controle segmentado (wrap) — todas visíveis, sem rolagem escondida */}
+                <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mb: 2 }}>
+                  {supportedTabs.map((s) => {
+                    const on = tab === s;
+                    const meta = SCOPE_META[s] || { icon: '📄', label: s };
+                    return (
+                      <Chip key={s} onClick={() => setTab(s)} label={`${meta.icon} ${meta.label}`} sx={{ height: 32, borderRadius: 99, fontSize: 12.5, fontWeight: on ? 800 : 600, cursor: 'pointer', bgcolor: on ? TEAL : 'transparent', color: on ? '#fff' : TEAL, border: `1px solid ${on ? TEAL : '#bfe0dc'}`, '&:hover': { bgcolor: on ? '#0f7670' : 'rgba(32,178,170,.08)' } }} />
+                    );
+                  })}
+                </Stack>
 
                 {detailLoading && <Box sx={{ textAlign: 'center', py: 4 }}><CircularProgress size={28} sx={{ color: TEAL }} /></Box>}
 

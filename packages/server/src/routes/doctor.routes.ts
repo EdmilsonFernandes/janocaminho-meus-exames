@@ -127,12 +127,48 @@ router.get('/patients', requireDoctor, async (req: any, res, next) => {
   try {
     const shares = await prisma.doctorShare.findMany({
       where: { doctorId: req.doctorId, active: true },
-      include: { patient: { select: { id: true, fullName: true, relationship: true, dateOfBirth: true, photoUrl: true, clinicalProfile: true, owner: { select: { name: true } } } } },
+      include: { patient: { select: { id: true, fullName: true, relationship: true, dateOfBirth: true, photoUrl: true, gender: true, clinicalProfile: true, owner: { select: { name: true } } } } },
       orderBy: { createdAt: 'desc' },
     });
-    res.json({ items: shares.map((s) => ({ shareId: s.id, scopes: s.scopes, convenio: s.convenio, createdAt: s.createdAt, patient: s.patient })), total: shares.length });
+    const pids = shares.map((s) => s.patient.id);
+    // Agregados em lote (1 query cada) — idade calculada do dateOfBirth
+    const [weights, examStats, abnormal] = await Promise.all([
+      prisma.measurement.findMany({ where: { patientId: { in: pids }, type: 'WEIGHT' }, orderBy: { measuredAt: 'desc' }, select: { patientId: true, value: true, measuredAt: true } }),
+      prisma.exam.groupBy({ by: ['patientId'], where: { patientId: { in: pids }, status: 'EXTRACTED' }, _count: { _all: true }, _max: { performedAt: true } }),
+      prisma.examItem.findMany({ where: { isAbnormal: true, exam: { patientId: { in: pids }, status: 'EXTRACTED' } }, select: { exam: { select: { patientId: true } } } }),
+    ]);
+    const weightByPid = new Map<string, any>();
+    for (const w of weights) if (!weightByPid.has(w.patientId)) weightByPid.set(w.patientId, w); // ordenado desc → 1º = mais recente
+    const statByPid = new Map(examStats.map((e) => [e.patientId, e]));
+    const alertPids = new Set(abnormal.map((a) => a.exam.patientId));
+
+    res.json({
+      items: shares.map((s) => {
+        const st = statByPid.get(s.patient.id);
+        return {
+          shareId: s.id, scopes: s.scopes, convenio: s.convenio, createdAt: s.createdAt,
+          patient: s.patient,
+          age: s.patient.dateOfBirth ? calcAge(s.patient.dateOfBirth) : null,
+          sex: s.patient.gender ?? null,
+          latestWeight: weightByPid.get(s.patient.id) ?? null,
+          examsCount: st?._count?._all ?? 0,
+          lastExamAt: st?._max?.performedAt ?? null,
+          hasAlerts: alertPids.has(s.patient.id),
+        };
+      }),
+      total: shares.length,
+    });
   } catch (e) { next(e); }
 });
+
+// Idade (anos) a partir da data de nascimento
+function calcAge(dob: Date | string): number {
+  const d = new Date(dob); const now = new Date();
+  let age = now.getFullYear() - d.getFullYear();
+  const m = now.getMonth() - d.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < d.getDate())) age--;
+  return age;
+}
 
 // EXAMES do paciente (só se scope 'exams')
 router.get('/patients/:patientId/exams', requireDoctor, async (req: any, res, next) => {
