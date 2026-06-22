@@ -18,7 +18,8 @@ export function startHealthNudgeJob(): void {
       const cutoff = new Date(Date.now() - COOLDOWN_MS);
       const users = await prisma.user.findMany({
         where: {
-          notifications: { none: { createdAt: { gte: cutoff } } }, // cooldown respeitado
+          // COOLDOWN só conta nudges de SAÚDE (alert/reminder) — não bloqueia por notificação de share/welcome
+          notifications: { none: { createdAt: { gte: cutoff }, type: { in: ['alert', 'reminder'] } } },
           patients: { some: { exams: { some: { status: 'EXTRACTED' } } } }, // tem exames
         },
         select: { id: true, name: true },
@@ -40,8 +41,9 @@ async function maybeNudge(userId: string, userName: string): Promise<void> {
   const first = (userName || '').split(' ')[0];
   // valor alterado em exame recente?
   const since = new Date(Date.now() - RECENT_MS);
+  // valor alterado em exame recente? (performedAt OU createdAt — imagem sem data no cabeçalho conta pelo upload)
   const abnormal = await prisma.examItem.findFirst({
-    where: { isAbnormal: true, exam: { patient: { ownerId: userId }, performedAt: { gte: since } } },
+    where: { isAbnormal: true, exam: { patient: { ownerId: userId }, OR: [{ performedAt: { gte: since } }, { performedAt: null, createdAt: { gte: since } }] } },
     orderBy: { exam: { performedAt: 'desc' } },
     select: { name: true, nameCanonical: true, exam: { select: { id: true } } },
   });
