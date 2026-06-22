@@ -64,27 +64,33 @@ router.get('/', async (req: AuthedRequest, res, next) => {
 });
 
 // SCORE DE SAÚDE (0-100) — do exame laboratorial mais recente com referência
+// Cache em memória do score: só recalcula quando muda o último exame (id + qtd de itens).
+// Sem schema/migration; resetado no restart (recomputado na próxima chamada — ok).
+const scoreCache = new Map<string, { sig: string; data: any }>();
+
 router.get('/:id/health-score', async (req: AuthedRequest, res, next) => {
   try {
     const pids = await userPatientIds(req.userId!);
     const id = String(req.params.id);
     if (!pids.includes(id)) { res.status(403).json({ error: 'Paciente não pertence ao usuário' }); return; }
-    const exam = await prisma.exam.findFirst({
+    // PROBE leve: só id/título/data/qtd do último exame (sem carregar todos os itens)
+    const latest = await prisma.exam.findFirst({
       where: { patientId: id, status: 'EXTRACTED' },
       orderBy: { performedAt: 'desc' },
-      include: { items: true },
+      select: { id: true, title: true, performedAt: true, _count: { select: { items: true } } },
     });
-    if (!exam) { res.json({ score: null, message: 'Envie um exame para calcular seu score.' }); return; }
-    const withRef = exam.items.filter((i) => i.refLow != null || i.refHigh != null);
+    if (!latest) { res.json({ score: null, message: 'Envie um exame para calcular seu score.' }); return; }
+    const sig = `${latest.id}:${latest._count.items}`;
+    const hit = scoreCache.get(id);
+    if (hit && hit.sig === sig) { res.json(hit.data); return; } // cache válido → não recalcula
+    // MISS: carrega os itens e calcula (só acontece quando entra exame novo / muda o último)
+    const exam = await prisma.exam.findUnique({ where: { id: latest.id }, include: { items: true } });
+    const withRef = (exam?.items ?? []).filter((i) => i.refLow != null || i.refHigh != null);
     const abnormal = withRef.filter((i) => i.isAbnormal).length;
     const score = withRef.length ? Math.round((100 * (withRef.length - abnormal)) / withRef.length) : null;
-    res.json({
-      score,
-      total: withRef.length,
-      abnormal,
-      examTitle: exam.title,
-      performedAt: exam.performedAt,
-    });
+    const data = { score, total: withRef.length, abnormal, examTitle: latest.title, performedAt: latest.performedAt };
+    scoreCache.set(id, { sig, data });
+    res.json(data);
   } catch (e) { next(e); }
 });
 

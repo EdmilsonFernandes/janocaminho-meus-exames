@@ -1,2 +1,0 @@
-const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["assets/web-D984fOw3.js","assets/index-BKTT99wL.js"])))=>i.map(i=>d[i]);
-import{i as e,r as t}from"./index-BKTT99wL.js";var n;(function(e){e[e.Flush=0]=`Flush`,e[e.Add=1]=`Add`})(n||={});var r=t(`TextToSpeech`,{web:()=>e(()=>import(`./web-D984fOw3.js`).then(e=>new e.TextToSpeechWeb),__vite__mapDeps([0,1]))});`speechSynthesis`in window&&window.speechSynthesis;export{r as TextToSpeech};

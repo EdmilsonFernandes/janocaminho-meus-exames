@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Box, Card, CardContent, Typography, TextField, Button, CircularProgress, Stack, Chip, Avatar, MenuItem, Tabs, Tab, Alert, Divider, InputAdornment, IconButton, Link, Drawer, List, ListItemButton, ListItemText, ListItemIcon, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import MenuIcon from '@mui/icons-material/Menu';
 import LogoutIcon from '@mui/icons-material/Logout';
 import LockIcon from '@mui/icons-material/Lock';
 import PersonIcon from '@mui/icons-material/Person';
@@ -12,6 +11,7 @@ import { DrExame } from '../components/DrExame';
 import { SPECIALTIES } from '../utils/medicalData';
 import { PhotoUpload } from '../components/PhotoUpload';
 import { CATS, categorize } from './Evolution';
+import ReactMarkdown from 'react-markdown';
 
 const docKey = 'doctorToken';
 
@@ -136,6 +136,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const [menuOpen, setMenuOpen] = useState(false);
   const [selExam, setSelExam] = useState<any | null>(null);
   const [examDetail, setExamDetail] = useState<any | null>(null);
+  const [summaries, setSummaries] = useState<any[]>([]);
   const h = { Authorization: `Bearer ${token}` };
 
   useEffect(() => {
@@ -153,11 +154,13 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     const pTabs = ['exams', 'alerts', 'evolution', 'summary'].filter((s) => pScopes.includes(s));
     const wantExams = pScopes.includes('exams') || pScopes.includes('alerts');
     const wantEvol = pScopes.includes('evolution');
+    const wantSummary = pScopes.includes('summary');
     setTab(pTabs[0] || 'exams');
-    setDetailLoading(true); setExams([]); setEvolution([]);
+    setDetailLoading(true); setExams([]); setEvolution([]); setSummaries([]);
     try {
       if (wantExams) { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/exams`, { headers: h }); const d = await r.json(); if (r.ok) setExams(d.items ?? []); }
       if (wantEvol) { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/evolution`, { headers: h }); const d = await r.json(); if (r.ok) setEvolution(d.items ?? []); }
+      if (wantSummary) { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/summaries`, { headers: h }); const d = await r.json(); if (r.ok) setSummaries(d.items ?? []); }
     } catch {} finally { setDetailLoading(false); }
   };
 
@@ -182,7 +185,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#f4faf9' }}>
       {/* Header — mesma identidade teal do app do paciente */}
-      <Box sx={{ background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff', px: { xs: 2, md: 3 }, py: 2, display: 'flex', alignItems: 'center', gap: 2, boxShadow: '0 4px 20px rgba(32,178,170,.25)' }}>
+      <Box sx={{ background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff', px: { xs: 2, md: 3 }, pt: 'calc(env(safe-area-inset-top) + 12px)', pb: 2, display: 'flex', alignItems: 'center', gap: 2, boxShadow: '0 4px 20px rgba(32,178,170,.25)' }}>
         <Avatar src={doctor?.id ? `${API_URL}/doctor/photo/${doctor.id}?v=${photoVer}` : undefined} sx={{ bgcolor: 'rgba(255,255,255,.2)', fontWeight: 800, border: '2px solid rgba(255,255,255,.5)' }}>{doctor?.name?.charAt(0)}</Avatar>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Stack direction="row" alignItems="center" spacing={1}>
@@ -191,10 +194,9 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           </Stack>
           <Typography variant="caption" sx={{ opacity: 0.9 }}>{[doctor?.specialty, doctor?.crm && `CRM ${doctor.crm}`].filter(Boolean).join(' • ') || 'Portal do Médico'}</Typography>
         </Box>
-        <IconButton onClick={() => setMenuOpen(true)} title="Menu" sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,.15)', '&:hover': { bgcolor: 'rgba(255,255,255,.25)' } }}><MenuIcon /></IconButton>
       </Box>
 
-      <Box sx={{ maxWidth: 920, mx: 'auto', p: { xs: 2, md: 3 } }}>
+      <Box sx={{ maxWidth: 920, mx: 'auto', p: { xs: 2, md: 3 }, pb: { xs: 11, md: 4 } }}>
         {view === 'profile' && <DoctorProfile token={token} doctor={doctor} onBack={() => setView('patients')} onSaved={(d) => setDoctor(d)} onPhoto={() => setPhotoVer((v) => v + 1)} photoVer={photoVer} />}
         {view === 'password' && <DoctorChangePassword token={token} onBack={() => setView('patients')} />}
         {view === 'patients' && loading && <Box sx={{ textAlign: 'center', py: 6 }}><CircularProgress sx={{ color: TEAL }} /></Box>}
@@ -214,7 +216,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               {patients.map((p) => (
                 <Card key={p.shareId} sx={{ borderRadius: 4, cursor: 'pointer', transition: 'all .15s', border: '1px solid #e2efec', '&:hover': { boxShadow: '0 8px 24px rgba(32,178,170,.15)', transform: 'translateY(-1px)' } }} onClick={() => openPatient(p)}>
                   <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Avatar src={p.patient?.photoUrl} sx={{ bgcolor: TEAL, fontWeight: 800 }}>{p.patient?.fullName?.charAt(0)}</Avatar>
+                    <Avatar src={p.patient?.id ? `${API_URL}/patients/${p.patient.id}/photo` : undefined} sx={{ bgcolor: TEAL, fontWeight: 800 }}>{p.patient?.fullName?.charAt(0)}</Avatar>
                     <Box sx={{ flex: 1, minWidth: 0 }}>
                       <Typography sx={{ fontWeight: 800, color: '#0f3d3a' }}>{p.patient?.fullName}</Typography>
                       <Typography variant="caption" sx={{ color: '#757575' }}>{[p.patient?.relationship, p.convenio || 'Particular', `desde ${fmtDate(p.createdAt)}`].filter(Boolean).join(' • ')}</Typography>
@@ -232,8 +234,8 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         {view === 'patients' && selected && (
           <>
             <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
-              <Button size="small" onClick={() => setSelected(null)} sx={{ color: TEAL, textTransform: 'none', fontWeight: 700, minWidth: 0 }}>← Voltar</Button>
-              <Avatar src={selected.patient?.photoUrl} sx={{ bgcolor: TEAL, width: 36, height: 36, fontSize: 16 }}>{selected.patient?.fullName?.charAt(0)}</Avatar>
+              {!selExam && <Button size="small" onClick={() => setSelected(null)} sx={{ color: TEAL, textTransform: 'none', fontWeight: 700, minWidth: 0 }}>← Voltar</Button>}
+              <Avatar src={selected.patient?.id ? `${API_URL}/patients/${selected.patient.id}/photo` : undefined} sx={{ bgcolor: TEAL, width: 36, height: 36, fontSize: 16 }}>{selected.patient?.fullName?.charAt(0)}</Avatar>
               <Box>
                 <Typography sx={{ fontWeight: 800, color: '#0f3d3a', lineHeight: 1.1 }}>{selected.patient?.fullName}</Typography>
                 <Typography variant="caption" sx={{ color: '#757575' }}>{[selected.patient?.relationship, selected.convenio || 'Particular'].filter(Boolean).join(' • ')}</Typography>
@@ -275,7 +277,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                                 <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
                                   <Box>
                                     <Typography sx={{ fontWeight: 700, color: '#0f3d3a' }}>{ex.title}</Typography>
-                                    <Typography variant="caption" sx={{ color: '#757575' }}>{fmtDate(ex.performedAt)}{ex.sourceLab ? ` • ${ex.sourceLab}` : ''} • {ex._count?.items ?? 0} itens</Typography>
+                                    <Typography variant="caption" sx={{ color: '#757575' }}>{fmtDate(ex.performedAt)}{ex.sourceLab ? ` • ${ex.sourceLab}` : ''} • {ex._count?.items ?? 0} itens{ex.requestingDoctor ? ` • Dr. ${ex.requestingDoctor}` : ''}</Typography>
                                   </Box>
                                   {ex.items?.length > 0 ? <Chip size="small" color="error" label={`${ex.items.length} alterado`} sx={{ fontWeight: 700, height: 20 }} /> : <Chip size="small" label="normal" sx={{ bgcolor: '#dcfce7', color: '#15803d', fontWeight: 700, height: 20 }} />}
                                 </Stack>
@@ -324,7 +326,20 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 )}
 
                 {!detailLoading && tab === 'summary' && (
-                  <Empty label="Os resumos de IA do paciente aparecerão aqui em breve. Por enquanto, use as abas Exames e Alertas." icon="🤖" />
+                  <Stack spacing={1.5}>
+                    {summaries.length === 0 && <Empty label="O paciente ainda não gerou resumos de IA." icon="🤖" />}
+                    {summaries.map((s) => (
+                      <Card key={s.id} variant="outlined" sx={{ borderRadius: 3, borderColor: '#e2efec' }}><CardContent>
+                        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1 }}>
+                          <Typography sx={{ fontWeight: 700, color: '#0f3d3a' }}>🤖 {s.exam?.title || 'Resumo de IA'}</Typography>
+                          <Typography variant="caption" sx={{ color: '#94a3b8' }}>{new Date(s.createdAt).toLocaleDateString('pt-BR')}</Typography>
+                        </Stack>
+                        <Box sx={{ '& p': { margin: '0.3em 0', fontSize: 14 }, '& h3': { fontSize: '0.95rem', fontWeight: 800, color: TEAL }, '& ul,& ol': { margin: '0.3em 0', paddingLeft: '1.2em' }, '& strong': { fontWeight: 700 } }}>
+                          <ReactMarkdown>{s.contentMd}</ReactMarkdown>
+                        </Box>
+                      </CardContent></Card>
+                    ))}
+                  </Stack>
                 )}
               </>
             ) : (
@@ -354,6 +369,21 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         </List>
         <Typography variant="caption" sx={{ mt: 'auto', p: 2, color: '#94a3b8' }}>Portal do Médico</Typography>
       </Drawer>
+
+      {/* MENU RODAPÉ (igual app do paciente) — Pacientes · Perfil · Mais */}
+      <Box component="nav" sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1100, display: 'flex', justifyContent: 'space-around', bgcolor: 'rgba(238,247,246,.97)', backdropFilter: 'blur(14px)', borderTop: '1px solid #dceaea', pb: 'env(safe-area-inset-bottom)', boxShadow: '0 -6px 24px rgba(32,178,170,.10)' }}>
+        {([
+          { icon: '👥', label: 'Pacientes', on: view === 'patients', onClick: () => { setView('patients'); setSelected(null); setSelExam(null); } },
+          { icon: '👤', label: 'Perfil', on: view === 'profile' || view === 'password', onClick: () => setView('profile') },
+          { icon: '☰', label: 'Mais', on: menuOpen, onClick: () => setMenuOpen(true) },
+        ] as const).map((it) => (
+          <Box key={it.label} onClick={it.onClick} sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 0.9, cursor: 'pointer', color: it.on ? TEAL : '#8a979c', transition: 'color .15s', '&:active': { transform: 'scale(.92)' } }}>
+            <Box sx={{ fontSize: 21, lineHeight: 1 }}>{it.icon}</Box>
+            <Typography sx={{ fontSize: 10, fontWeight: it.on ? 800 : 600, mt: 0.25, fontFamily: 'Poppins, sans-serif' }}>{it.label}</Typography>
+            <Box sx={{ height: 3, width: it.on ? 22 : 0, borderRadius: 9, bgcolor: '#20b2aa', mt: 0.3, transition: 'width .2s' }} />
+          </Box>
+        ))}
+      </Box>
     </Box>
   );
 };
@@ -434,8 +464,14 @@ const DoctorExamDetail = ({ exam, detail, patientId, token, onBack }: { exam: an
   }, [items]);
   const openPdf = async () => {
     setPdfLoading(true);
-    try { const r = await fetch(`${API_URL}/doctor/patients/${patientId}/exams/${exam.id}/file`, { headers: { Authorization: `Bearer ${token}` } }); if (!r.ok) throw new Error(); const blob = await r.blob(); const url = URL.createObjectURL(blob); window.open(url, '_blank'); }
-    catch { window.alert('Não foi possível abrir o PDF.'); } finally { setPdfLoading(false); }
+    try {
+      const url = `${API_URL}/doctor/patients/${patientId}/exams/${exam.id}/file?token=${encodeURIComponent(token)}`;
+      try {
+        const { Capacitor } = await import('@capacitor/core');
+        if (Capacitor.isNativePlatform()) { const { Browser } = await import('@capacitor/browser'); await Browser.open({ url }); return; }
+      } catch { /* web: cai pra window.open */ }
+      window.open(url, '_blank');
+    } catch { window.alert('Não foi possível abrir o PDF.'); } finally { setPdfLoading(false); }
   };
   return (
     <Box>

@@ -123,10 +123,10 @@ export const MedicosPage = () => {
                   </Stack>
                   <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mt: 0.25 }}>CRM {s.doctor.crm}{s.convenio ? ` • ${s.convenio}` : ''}</Typography>
                   <Typography variant="caption" sx={{ fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', fontSize: 10, letterSpacing: 0.4, display: 'block', mt: 1 }}>Compartilhando:</Typography>
-                  <Box sx={{ mt: 0.25, display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                  <Box sx={{ mt: 0.25, display: 'flex', gap: 0.5, flexWrap: 'nowrap', overflowX: 'auto', pb: 0.25, '&::-webkit-scrollbar': { display: 'none' } }}>
                     {ALL_SCOPES.map((sc) => {
                       const on = s.scopes?.includes(sc.key);
-                      return <Chip key={sc.key} size="small" label={`${sc.icon} ${sc.label}`} onClick={() => { const ns = on ? s.scopes.filter((x: string) => x !== sc.key) : [...(s.scopes || []), sc.key]; updateScopes(s.id, ns); }} sx={{ height: 24, fontSize: 11, fontWeight: 600, cursor: 'pointer', bgcolor: on ? '#178f89' : '#f1f5f9', color: on ? '#fff' : '#94a3b8', border: on ? '1px solid #178f89' : '1px solid #e2e8f0', '&:hover': { bgcolor: on ? '#0f7670' : '#e2e8f0' } }} />;
+                      return <Chip key={sc.key} size="small" label={`${sc.icon} ${sc.label}`} onClick={() => { const ns = on ? s.scopes.filter((x: string) => x !== sc.key) : [...(s.scopes || []), sc.key]; updateScopes(s.id, ns); }} sx={{ height: 24, fontSize: 11, fontWeight: 600, cursor: 'pointer', flexShrink: 0, bgcolor: on ? '#178f89' : '#f1f5f9', color: on ? '#fff' : '#94a3b8', border: on ? '1px solid #178f89' : '1px solid #e2e8f0', '&:hover': { bgcolor: on ? '#0f7670' : '#e2e8f0' } }} />;
                     })}
                   </Box>
                 </Box>

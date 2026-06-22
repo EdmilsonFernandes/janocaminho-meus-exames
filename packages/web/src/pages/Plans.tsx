@@ -30,18 +30,26 @@ export const PlansPage = () => {
   const [histLoading, setHistLoading] = useState(false);
   const [histFilter, setHistFilter] = useState<string>('all');
   const [histTotal, setHistTotal] = useState(0);
+  const [dispPage, setDispPage] = useState(1);
 
-  const loadHistory = async (page: number) => {
+  const loadHistory = async () => {
     setHistLoading(true);
     const h = { Authorization: `Bearer ${token()}` };
-    const r = await fetch(`${API_URL}/billing/credits/history?page=${page}`, { headers: h });
-    if (r.ok) {
+    // Carrega TODAS as páginas de uma vez — assim o filtro (client-side) enxerga o histórico inteiro.
+    let page = 1; let all: any[] = []; let more = true;
+    while (more && page < 50) {
+      const r = await fetch(`${API_URL}/billing/credits/history?page=${page}`, { headers: h });
+      if (!r.ok) break;
       const d = await r.json();
-      setHist(d.items ?? []);
-      setHasMore(!!d.hasMore);
-      setHistPage(page);
-      setHistTotal(d.total ?? 0);
+      all = all.concat(d.items ?? []);
+      more = !!d.hasMore;
+      setHistTotal(d.total ?? all.length);
+      page++;
     }
+    setHist(all);
+    setHasMore(false);
+    setHistPage(1);
+    setDispPage(1);
     setHistLoading(false);
   };
 
@@ -53,7 +61,7 @@ export const PlansPage = () => {
     ]);
     if (s.ok) setStatus(await s.json());
     if (p.ok) setPlans(await p.json());
-    void loadHistory(1);
+    void loadHistory();
   };
   useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
 
@@ -116,43 +124,55 @@ export const PlansPage = () => {
       {hist.length > 0 && (
         <Card sx={{ mb: 2, borderRadius: 4 }}><CardContent>
           <Typography variant="subtitle2" sx={{ mb: 1 }}>Extrato de créditos</Typography>
-          {/* Filtros rápidos */}
+          {/* Filtros rápidos — aplicam sobre TODO o histórico carregado */}
           <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mb: 1.5 }}>
             {[{ k: 'all', l: 'Todos' }, { k: 'chat', l: '🤖 Chat' }, { k: 'report', l: '🧾 Relatórios' }, { k: 'credit', l: '➕ Compras' }].map((f) => (
-              <Chip key={f.k} size="small" label={f.l} onClick={() => setHistFilter(f.k)} variant={histFilter === f.k ? 'filled' : 'outlined'} color={histFilter === f.k ? 'primary' : 'default'} sx={{ fontWeight: 600 }} />
+              <Chip key={f.k} size="small" label={f.l} onClick={() => { setHistFilter(f.k); setDispPage(1); }} variant={histFilter === f.k ? 'filled' : 'outlined'} color={histFilter === f.k ? 'primary' : 'default'} sx={{ fontWeight: 600 }} />
             ))}
           </Stack>
-          <Stack divider={<Divider />} spacing={0}>
-            {hist.filter((it) => {
+          {(() => {
+            const filtered = hist.filter((it: any) => {
               if (histFilter === 'all') return true;
               if (histFilter === 'credit') return it.kind === 'credit';
               const l = (it.label || '').toLowerCase();
               if (histFilter === 'chat') return l.includes('chat');
               if (histFilter === 'report') return l.includes('consolid') || l.includes('relat') || l.includes('resumo');
               return true;
-            }).map((it) => {
-              const credit = it.kind === 'credit';
-              const ll = (it.label || '').toLowerCase();
-              const icon = credit ? '➕' : ll.includes('chat') ? '🤖' : ll.includes('consolid') ? '🧾' : '📄';
-              return (
-                <Stack key={it.id} direction="row" alignItems="center" spacing={1.25} sx={{ py: 0.75 }}>
-                  <Box sx={{ fontSize: 18, flexShrink: 0 }}>{icon}</Box>
-                  <Box sx={{ minWidth: 0, flex: 1 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{it.label}</Typography>
-                    <Typography variant="caption" color="text.secondary">{new Date(it.createdAt).toLocaleString('pt-BR')}{it.patient ? ` • ${it.patient}` : ''}</Typography>
-                  </Box>
-                  <Chip size="small" label={`${it.amount > 0 ? '+' : ''}${it.amount}`} sx={{ fontWeight: 800, bgcolor: credit ? 'rgba(16,185,129,.14)' : 'rgba(239,68,68,.1)', color: credit ? 'success.main' : 'error.main' }} />
+            });
+            const PS = 7;
+            const totalPages = Math.max(1, Math.ceil(filtered.length / PS));
+            const safePage = Math.min(dispPage, totalPages);
+            const pageItems = filtered.slice((safePage - 1) * PS, safePage * PS);
+            return (
+              <>
+                <Stack divider={<Divider />} spacing={0}>
+                  {pageItems.length === 0 && <Typography variant="body2" color="text.secondary" sx={{ py: 1 }}>Nenhum lançamento neste filtro.</Typography>}
+                  {pageItems.map((it: any) => {
+                    const credit = it.kind === 'credit';
+                    const ll = (it.label || '').toLowerCase();
+                    const icon = credit ? '➕' : ll.includes('chat') ? '🤖' : ll.includes('consolid') ? '🧾' : '📄';
+                    return (
+                      <Stack key={it.id} direction="row" alignItems="center" spacing={1.25} sx={{ py: 0.75 }}>
+                        <Box sx={{ fontSize: 18, flexShrink: 0 }}>{icon}</Box>
+                        <Box sx={{ minWidth: 0, flex: 1 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>{it.label}</Typography>
+                          <Typography variant="caption" color="text.secondary">{new Date(it.createdAt).toLocaleString('pt-BR')}{it.patient ? ` • ${it.patient}` : ''}</Typography>
+                        </Box>
+                        <Chip size="small" label={`${it.amount > 0 ? '+' : ''}${it.amount}`} sx={{ fontWeight: 800, bgcolor: credit ? 'rgba(16,185,129,.14)' : 'rgba(239,68,68,.1)', color: credit ? 'success.main' : 'error.main' }} />
+                      </Stack>
+                    );
+                  })}
                 </Stack>
-              );
-            })}
-          </Stack>
-          {histTotal > 7 && (
-            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 1.5 }}>
-              <Button size="small" disabled={histPage <= 1 || histLoading} onClick={() => loadHistory(histPage - 1)}>← Anterior</Button>
-              <Typography variant="caption" color="text.secondary">Pág. {histPage} de {Math.ceil(histTotal / 7)}</Typography>
-              <Button size="small" disabled={!hasMore || histLoading} onClick={() => loadHistory(histPage + 1)}>Próxima →</Button>
-            </Stack>
-          )}
+                {filtered.length > PS && (
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 1.5 }}>
+                    <Button size="small" disabled={safePage <= 1 || histLoading} onClick={() => setDispPage(safePage - 1)}>← Anterior</Button>
+                    <Typography variant="caption" color="text.secondary">{filtered.length} lançamento(s) • pág. {safePage} de {totalPages}</Typography>
+                    <Button size="small" disabled={safePage >= totalPages || histLoading} onClick={() => setDispPage(safePage + 1)}>Próxima →</Button>
+                  </Stack>
+                )}
+              </>
+            );
+          })()}
         </CardContent></Card>
       )}
 

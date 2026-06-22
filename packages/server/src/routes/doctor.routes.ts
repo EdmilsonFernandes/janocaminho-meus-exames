@@ -141,10 +141,10 @@ router.get('/patients/:patientId/exams', requireDoctor, async (req: any, res, ne
     if (!share?.scopes.includes('exams')) { res.status(403).json({ error: 'Sem permissão para ver exames deste paciente.' }); return; }
     const exams = await prisma.exam.findMany({
       where: { patientId: req.params.patientId, status: 'EXTRACTED' },
-      select: { id: true, title: true, kind: true, performedAt: true, sourceLab: true, _count: { select: { items: true } }, items: { where: { isAbnormal: true }, select: { name: true, valueText: true, flag: true } } },
+      select: { id: true, title: true, kind: true, performedAt: true, sourceLab: true, rawExtraction: true, _count: { select: { items: true } }, items: { where: { isAbnormal: true }, select: { name: true, valueText: true, flag: true } } },
       orderBy: { performedAt: 'desc' }, take: 20,
     });
-    res.json({ items: exams });
+    res.json({ items: exams.map((e) => ({ id: e.id, title: e.title, kind: e.kind, performedAt: e.performedAt, sourceLab: e.sourceLab, requestingDoctor: (e.rawExtraction as any)?.requestingDoctor ?? null, _count: e._count, items: e.items })) });
   } catch (e) { next(e); }
 });
 
@@ -162,10 +162,17 @@ router.get('/patients/:patientId/exams/:examId', requireDoctor, async (req: any,
   } catch (e) { next(e); }
 });
 
-// PDF ORIGINAL do exame (acesso direto à fonte — validação legal do médico)
-router.get('/patients/:patientId/exams/:examId/file', requireDoctor, async (req: any, res, next) => {
+// PDF ORIGINAL do exame (acesso direto à fonte — validação legal do médico).
+// Aceita token via header Authorization OU via query ?token= (pra abrir no navegador do celular).
+router.get('/patients/:patientId/exams/:examId/file', async (req, res, next) => {
   try {
-    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    const authHeader = req.headers.authorization;
+    const queryToken = typeof req.query.token === 'string' ? req.query.token : '';
+    const tok = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : queryToken;
+    const payload = tok ? verifyDoctorToken(tok) : null;
+    const doctorId = payload?.doctorId;
+    if (!doctorId) { res.status(401).json({ error: 'Sem permissão.' }); return; }
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId, patientId: req.params.patientId, active: true } });
     if (!share?.scopes.includes('exams')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     const exam = await prisma.exam.findFirst({ where: { id: req.params.examId, patientId: req.params.patientId }, select: { filePath: true } });
     if (!exam?.filePath) { res.status(404).json({ error: 'Arquivo não encontrado.' }); return; }
@@ -184,6 +191,21 @@ router.get('/patients/:patientId/evolution', requireDoctor, async (req: any, res
       where: { exam: { patientId: req.params.patientId, status: 'EXTRACTED' }, valueNumeric: { not: null } },
       select: { name: true, nameCanonical: true, valueNumeric: true, unit: true, flag: true, isAbnormal: true, refLow: true, refHigh: true, exam: { select: { performedAt: true } } },
       orderBy: { exam: { performedAt: 'desc' } }, take: 100,
+    });
+    res.json({ items });
+  } catch (e) { next(e); }
+});
+
+// RESUMOS DE IA do paciente (só se scope 'summary') — análises SUMMARY já geradas
+router.get('/patients/:patientId/summaries', requireDoctor, async (req: any, res, next) => {
+  try {
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    if (!share?.scopes.includes('summary')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+    const items = await prisma.aiAnalysis.findMany({
+      where: { patientId: req.params.patientId, type: 'SUMMARY' },
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+      select: { id: true, contentMd: true, createdAt: true, exam: { select: { title: true, performedAt: true } } },
     });
     res.json({ items });
   } catch (e) { next(e); }
