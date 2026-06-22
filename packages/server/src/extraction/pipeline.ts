@@ -4,6 +4,7 @@ import { ExamKind, type ItemFlag } from '@prisma/client';
 import { readPdf, classifyKind, looksLikeMedical } from './pdfutil';
 import { classifyDoc } from './docPatterns';
 import { extractLabPanel, extractImaging } from './claude';
+import { imageToText } from './imageToText';
 import { canonicalName, computeFlag, parseNumeric } from '../utils/normalize';
 import { readExamFile, mediaTypeFromRef } from '../utils/storage';
 import type { LabExtraction, ExtractionItem } from './schemas';
@@ -66,7 +67,16 @@ async function runExtractionOnce(examId: string): Promise<void> {
   try {
     const buffer = await readExamFile(exam.filePath);
     const media = mediaTypeFromRef(exam.filePath);
-    const { pageCount, text } = await readPdf(buffer);
+    // Pre-check (texto pra classificar): PDF → pdftotext; IMAGEM → tesseract (OCR).
+    // Antes chamava readPdf em tudo → imagem virava texto vazio → "Documento vazio".
+    let pageCount = 1;
+    let text = '';
+    if (media === 'application/pdf') {
+      const r = await readPdf(buffer);
+      pageCount = r.pageCount; text = r.text;
+    } else {
+      try { text = await imageToText(buffer); } catch (e) { console.warn('[extraction] OCR no pre-check falhou:', (e as Error).message); }
+    }
     const kind: ExamKind = exam.kind !== 'OTHER' ? exam.kind : classifyKind(text);
 
     // RAG de padrões: rejeita cedo (msg específica) documentos que claramente NÃO são
