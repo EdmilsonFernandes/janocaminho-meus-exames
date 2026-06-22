@@ -58,7 +58,7 @@ describe('itens: flags, alterados, série temporal, evolução', () => {
     const e2 = await createExam(patient.id, { title: 'Mar', performedAt: D2 });
     await createItem(e1.id, { name: 'HEMOGLOBINA', nameCanonical: 'HEMOGLOBINA', valueNumeric: 13, refLow: 12, refHigh: 16 });
     await createItem(e2.id, { name: 'HEMOGLOBINA', nameCanonical: 'HEMOGLOBINA', valueNumeric: 17, refLow: 12, refHigh: 16 });
-    // analito com 1 ponto só → NÃO entra na evolução
+    // analito com 1 ponto só → AGORA ENTRA na evolução (primeiro exame, sem comparação)
     await createItem(e2.id, { name: 'GLICEMIA', nameCanonical: 'GLICEMIA', valueNumeric: 90, refLow: 70, refHigh: 99 });
 
     const r = await api().get('/api/items/evolution').set(authHeader(token));
@@ -67,6 +67,8 @@ describe('itens: flags, alterados, série temporal, evolução', () => {
     expect(hemo).toBeTruthy();
     expect(hemo.firstValue).toBe(13);
     expect(hemo.lastValue).toBe(17);
-    expect(r.body.items.find((i: any) => i.nameCanonical === 'GLICEMIA')).toBeUndefined();
+    // GLICEMIA (1 ponto) agora aparece — antes era filtrada (exigia ≥2)
+    const glic = r.body.items.find((i: any) => i.nameCanonical === 'GLICEMIA');
+    expect(glic).toBeTruthy();
   });
 });

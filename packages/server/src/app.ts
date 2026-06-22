@@ -5,6 +5,7 @@ import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
+import rateLimit from 'express-rate-limit';
 import { config } from './config';
 import { prisma } from './prisma';
 import { errorHandler, notFound } from './middleware/errorHandler';
@@ -40,6 +41,16 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Rate limiting — protege contra brute force, DoS e dreno de créditos. Skip em dev/test.
+const skipDev = () => process.env.NODE_ENV !== 'production';
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false, skip: skipDev, message: { error: 'Muitas tentativas. Aguarde 15 minutos.' } });
+const aiLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 40, standardHeaders: true, legacyHeaders: false, skip: skipDev, message: { error: 'Limite de IA por hora atingido.' } });
+const generalLimiter = rateLimit({ windowMs: 60 * 1000, max: 120, standardHeaders: true, legacyHeaders: false, skip: skipDev, message: { error: 'Muitas requisições. Aguarde 1 minuto.' } });
+app.use('/api/auth', authLimiter);
+app.use('/api/analyses', aiLimiter);
+app.use('/api/chat', aiLimiter);
+app.use('/api/', generalLimiter);
 
 app.get('/api/health', (_req, res) => res.json({ ok: true, ts: new Date().toISOString() }));
 // Força-atualização (público, sem auth): app compara a versão instalada com a mínima exigida.

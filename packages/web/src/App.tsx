@@ -111,7 +111,7 @@ const AppMenu = () => {
   const logout = useLogout();
   // Verifica se é admin (lê do localStorage — salvo no login)
   const userStr = typeof localStorage !== 'undefined' ? localStorage.getItem('user') : null;
-  const isAdmin = userStr ? (JSON.parse(userStr)?.role === 'ADMIN') : false;
+  const isAdmin = (() => { try { return userStr ? (JSON.parse(userStr)?.role === 'ADMIN') : false; } catch { return false; } })();
   return (
   <Menu>
     <Menu.DashboardItem />
