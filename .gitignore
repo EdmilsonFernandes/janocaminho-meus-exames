@@ -58,3 +58,6 @@ graphify-out/
 .serena/cache/
 .serena/memories/
 
+
+# build temp do workaround de dist travado
+packages/web/dist2/
