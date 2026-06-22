@@ -12,7 +12,7 @@ export async function checkPlayUpdate(): Promise<void> {
     if (!Capacitor.isNativePlatform()) return;
     const info = await AppUpdate.getAppUpdateInfo();
     if (info.updateAvailability === 2 /* UPDATE_AVAILABLE */) {
-      if (info.immediateUpdateAllowed) await AppUpdate.startImmediateUpdate();
+      if (info.immediateUpdateAllowed) await AppUpdate.performImmediateUpdate();
       else if (info.flexibleUpdateAllowed) await AppUpdate.startFlexibleUpdate();
     }
   } catch (e) {
