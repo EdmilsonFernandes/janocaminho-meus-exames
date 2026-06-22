@@ -128,20 +128,27 @@ router.post('/', upload.single('file'), async (req: AuthedRequest, res, next) =>
     const kind = ['LAB_PANEL', 'IMAGING', 'OTHER'].includes(kindRaw as string)
       ? (kindRaw as any)
       : 'OTHER';
-    const exam = await prisma.exam.create({
-      data: {
-        patientId,
-        title,
-        kind,
-        filePath: ref,
-        fileSha256,
-        fileSizeBytes: buffer.length,
-      },
+    // TRANSAÇÃO ATÔMICA: cria exame + debita créditos + atualiza contador mensal.
+    // Se QUALQUER passo falhar (ex: sem créditos), tudo é desfeito (rollback) — não cria exame grátis.
+    const exam = await prisma.$transaction(async (tx) => {
+      const created = await tx.exam.create({
+        data: {
+          patientId,
+          title,
+          kind,
+          filePath: ref,
+          fileSha256,
+          fileSizeBytes: buffer.length,
+        },
+      });
+      await tx.patient.update({ where: { id: patientId }, data: { uploadMonth: monthKey, monthlyUploadCount: uploadCountAfter } });
+      if (uploadCost > 0) {
+        // Débito atômico: só decrementa se credits >= uploadCost (guarda no WHERE do updateMany)
+        const r = await tx.user.updateMany({ where: { id: req.userId!, credits: { gte: uploadCost } }, data: { credits: { decrement: uploadCost } } });
+        if (r.count === 0) throw new Error('Sem créditos suficientes pra este upload.');
+      }
+      return created;
     });
-
-    // cobra créditos (atômico) + atualiza contador mensal do dependente (persiste mesmo se excluir)
-    if (uploadCost > 0) await chargeCredits(req.userId!, uploadCost);
-    await prisma.patient.update({ where: { id: patientId }, data: { uploadMonth: monthKey, monthlyUploadCount: uploadCountAfter } });
 
     // avisa se o MESMO checksum já existe em outro perfil do usuário
     const elsewhere = await prisma.exam.findFirst({
