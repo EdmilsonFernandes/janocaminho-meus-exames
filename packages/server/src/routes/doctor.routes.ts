@@ -223,10 +223,19 @@ router.get('/patients/:patientId/evolution', requireDoctor, async (req: any, res
   try {
     const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
     if (!share?.scopes.includes('evolution')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
-    const items = await prisma.examItem.findMany({
+    const raw = await prisma.examItem.findMany({
       where: { exam: { patientId: req.params.patientId, status: 'EXTRACTED' }, valueNumeric: { not: null } },
       select: { name: true, nameCanonical: true, valueNumeric: true, unit: true, flag: true, isAbnormal: true, refLow: true, refHigh: true, exam: { select: { performedAt: true } } },
       orderBy: { exam: { performedAt: 'desc' } }, take: 300,
+    });
+    // Dedup por (analito + data + valor) — exames duplicados viram 1 ponto só no gráfico
+    const seen = new Set<string>();
+    const items = raw.filter((r) => {
+      const day = r.exam?.performedAt ? new Date(r.exam.performedAt).toDateString() : 's/d';
+      const k = `${r.nameCanonical}|${day}|${r.valueNumeric}`;
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
     });
     res.json({ items });
   } catch (e) { next(e); }

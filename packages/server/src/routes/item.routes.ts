@@ -106,7 +106,12 @@ router.get('/evolution', async (req: AuthedRequest, res, next) => {
       orderBy: { exam: { performedAt: 'asc' } },
     });
     const byName = new Map<string, any[]>();
+    const seen = new Set<string>(); // dedup por (analito + data + valor) — exames duplicados viram 1 ponto só
     for (const r of rows) {
+      const day = r.exam.performedAt ? new Date(r.exam.performedAt).toDateString() : 's/d';
+      const dedupKey = `${r.nameCanonical}|${day}|${r.valueNumeric}`;
+      if (seen.has(dedupKey)) continue;
+      seen.add(dedupKey);
       const arr = byName.get(r.nameCanonical) ?? [];
       arr.push(r);
       byName.set(r.nameCanonical, arr);
