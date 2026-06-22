@@ -20,6 +20,12 @@ model User {
   planExpiresAt DateTime?   // ativo enquanto no futuro (null = free/expirado)
   credits      Int      @default(60)   // créditos de IA — custos/grants parametrizados em app_settings. Recarrega com plano.
   emailVerified Boolean @default(false) // valida e-mail no cadastro (previne conta com e-mail fake)
+  // MFA (TOTP 2FA) — secret cifrado AES-256-GCM (null = desativado)
+  mfaEnabled          Boolean   @default(false)
+  mfaSecretEncrypted  String?
+  mfaSecretIv         String?
+  mfaSecretAuthTag    String?
+  mfaConfirmedAt      DateTime?
   createdAt    DateTime @default(now())
   patients     Patient[]
   subscriptions Subscription[]
@@ -314,8 +320,30 @@ model Doctor {
   createdAt    DateTime @default(now())
   shares       DoctorShare[]
   notes        DoctorNote[]
+  // MFA (TOTP 2FA) — mesmo esquema do User
+  mfaEnabled          Boolean   @default(false)
+  mfaSecretEncrypted  String?
+  mfaSecretIv         String?
+  mfaSecretAuthTag    String?
+  mfaConfirmedAt      DateTime?
 
   @@map("doctors")
+}
+
+// Desafio MFA no login (transient — cria na senha OK, consome no verify do código).
+model MfaChallenge {
+  id              String   @id @default(cuid())
+  tokenHash       String   @unique // SHA-256 do challengeToken (o cliente manda o original)
+  ownerType       String   // 'USER' | 'DOCTOR'
+  ownerId         String
+  sessionPayload  Json     // sessão pendente pra emitir no sucesso (userId/doctorId)
+  expiresAt       DateTime // TTL 5 min
+  consumedAt      DateTime?
+  attemptsCount   Int      @default(0)
+  createdAt       DateTime @default(now())
+
+  @@index([ownerType, ownerId])
+  @@map("mfa_challenges")
 }
 
 model DoctorShare {

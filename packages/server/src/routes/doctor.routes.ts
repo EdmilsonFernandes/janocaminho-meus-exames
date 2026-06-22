@@ -7,6 +7,7 @@ import { hashPassword, comparePassword } from '../auth/jwt';
 import { config } from '../config';
 import { upload } from '../middleware/upload';
 import { saveDoctorPhoto, resolvePatientPhoto, resolveExamFile } from '../utils/storage';
+import { evaluateMfaOnLogin, verifyChallenge, getStatus as mfaStatus, startSetup as mfaStart, confirmSetup as mfaConfirm, disableMfa as mfaDisable } from '../utils/mfa';
 
 const router = Router();
 
@@ -56,9 +57,27 @@ router.post('/login', async (req, res, next) => {
     if (!doctor || doctor.passwordHash === 'pending-invite' || !(await comparePassword(String(req.body?.password ?? ''), doctor.passwordHash))) {
       res.status(401).json({ error: 'Credenciais inválidas.' }); return;
     }
+    // MFA: se ativado, cria desafio
+    const mfa = await evaluateMfaOnLogin('DOCTOR', doctor.id, { doctorId: doctor.id }, doctor.email);
+    if (mfa) { res.json(mfa); return; }
     res.json({ token: signDoctorToken(doctor.id), doctor: { id: doctor.id, name: doctor.name, crm: doctor.crm, specialty: doctor.specialty, email: doctor.email, photoUrl: doctor.photoUrl } });
   } catch (e) { next(e); }
 });
+
+// MFA do médico — verifica desafio (2ª etapa do login)
+router.post('/mfa/verify', async (req, res) => {
+  try {
+    const result = await verifyChallenge(String(req.body?.challengeToken ?? ''), String(req.body?.code ?? ''));
+    const doctorId = result.sessionPayload.doctorId;
+    const d = await prisma.doctor.findUnique({ where: { id: doctorId }, select: { id: true, name: true, crm: true, specialty: true, email: true, photoUrl: true } });
+    res.json({ token: signDoctorToken(doctorId), doctor: d });
+  } catch (e: any) { res.status(e.status || 500).json({ error: e.message || 'Erro no MFA' }); }
+});
+
+router.get('/mfa/status', requireDoctor, async (req: any, res) => { res.json(await mfaStatus('DOCTOR', req.doctorId)); });
+router.post('/mfa/setup/start', requireDoctor, async (req: any, res) => { try { res.json(await mfaStart('DOCTOR', req.doctorId)); } catch (e: any) { res.status(e.status || 500).json({ error: e.message || 'Erro' }); } });
+router.post('/mfa/setup/confirm', requireDoctor, async (req: any, res) => { try { res.json(await mfaConfirm('DOCTOR', req.doctorId, String(req.body?.code ?? ''))); } catch (e: any) { res.status(e.status || 500).json({ error: e.message || 'Erro' }); } });
+router.post('/mfa/disable', requireDoctor, async (req: any, res) => { try { res.json(await mfaDisable('DOCTOR', req.doctorId, String(req.body?.code ?? ''))); } catch (e: any) { res.status(e.status || 500).json({ error: e.message || 'Erro' }); } });
 
 // PERFIL do médico
 router.get('/me', requireDoctor, async (req: any, res) => {

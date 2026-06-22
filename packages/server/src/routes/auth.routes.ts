@@ -9,6 +9,7 @@ import { requireAuth, AuthedRequest, firstPatientId } from '../middleware/auth';
 import { sendEmail } from '../utils/mailer';
 import { otpEmail, resetEmail } from '../utils/emailTemplate';
 import { getSettings } from '../utils/settings';
+import { evaluateMfaOnLogin, verifyChallenge, getStatus as mfaStatus, startSetup as mfaStart, confirmSetup as mfaConfirm, disableMfa as mfaDisable } from '../utils/mfa';
 import fs from 'fs';
 import path from 'path';
 import { config } from '../config';
@@ -45,6 +46,9 @@ router.post('/login', async (req, res, next) => {
       return;
     }
     if (!user.emailVerified) { res.status(403).json({ error: 'Verifique seu e-mail para ativar a conta.', needsVerification: true }); return; }
+    // MFA: se ativado, cria desafio (senha OK mas precisa do código TOTP pra entrar)
+    const mfa = await evaluateMfaOnLogin('USER', user.id, { userId: user.id }, user.email);
+    if (mfa) { res.json(mfa); return; }
     const { token, patientId } = await issueSession(user.id);
     res.json({
       token,
@@ -52,6 +56,36 @@ router.post('/login', async (req, res, next) => {
       patientId,
     });
   } catch (e) { next(e); }
+});
+
+// MFA — verifica o código do desafio (2ª etapa do login; pública — tem o challengeToken)
+router.post('/mfa/verify', async (req, res) => {
+  try {
+    const result = await verifyChallenge(String(req.body?.challengeToken ?? ''), String(req.body?.code ?? ''));
+    const { token, patientId } = await issueSession(result.sessionPayload.userId);
+    const u = await prisma.user.findUnique({ where: { id: result.sessionPayload.userId }, select: { id: true, email: true, name: true, role: true, planExpiresAt: true, credits: true } });
+    res.json({ token, user: u, patientId });
+  } catch (e: any) { res.status(e.status || 500).json({ error: e.message || 'Erro no MFA' }); }
+});
+
+// MFA — status (autenticado)
+router.get('/mfa/status', requireAuth, async (req: AuthedRequest, res) => {
+  res.json(await mfaStatus('USER', req.userId!));
+});
+
+// MFA — setup start (autenticado): gera secret + QR
+router.post('/mfa/setup/start', requireAuth, async (req: AuthedRequest, res) => {
+  try { res.json(await mfaStart('USER', req.userId!)); } catch (e: any) { res.status(e.status || 500).json({ error: e.message || 'Erro' }); }
+});
+
+// MFA — setup confirm (autenticado): valida 1º código → ativa
+router.post('/mfa/setup/confirm', requireAuth, async (req: AuthedRequest, res) => {
+  try { res.json(await mfaConfirm('USER', req.userId!, String(req.body?.code ?? ''))); } catch (e: any) { res.status(e.status || 500).json({ error: e.message || 'Erro' }); }
+});
+
+// MFA — disable (autenticado)
+router.post('/mfa/disable', requireAuth, async (req: AuthedRequest, res) => {
+  try { res.json(await mfaDisable('USER', req.userId!, String(req.body?.code ?? ''))); } catch (e: any) { res.status(e.status || 500).json({ error: e.message || 'Erro' }); }
 });
 
 // REGISTRO (auto-atendimento — Play Store)
