@@ -71,6 +71,54 @@ router.patch('/config/costs', async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
+// MÉTRICAS/FUNIL (analytics) — signups → free → pago, receita (MRR/total), churn/retensão no
+// vencimento e cohort por mês de signup. Pra o admin decidir com dado (ajustar preço/grants/custo).
+router.get('/metrics', async (_req, res, next) => {
+  try {
+    const now = new Date();
+    // --- FUNIL ---
+    const [signups, verified, premiumActive] = await Promise.all([
+      prisma.user.count({ where: { role: 'OWNER' } }),
+      prisma.user.count({ where: { role: 'OWNER', emailVerified: true } }),
+      prisma.user.count({ where: { role: 'OWNER', planExpiresAt: { gt: now } } }),
+    ]);
+    const freeActive = Math.max(0, verified - premiumActive);
+    // --- RECEITA ---
+    const agg = await prisma.subscription.aggregate({ where: { status: 'APPROVED' }, _sum: { amount: true } });
+    const [monthlyPayments, creditPurchases] = await Promise.all([
+      prisma.subscription.count({ where: { status: 'APPROVED', periodDays: { gt: 0 } } }),
+      prisma.subscription.count({ where: { status: 'APPROVED', periodDays: 0 } }),
+    ]);
+    // --- CHURN/RETENÇÃO (no vencimento) ---
+    const everRows = await prisma.subscription.findMany({ where: { status: 'APPROVED', periodDays: { gt: 0 } }, select: { userId: true }, distinct: ['userId'] });
+    const everPremium = everRows.length;
+    const stillActive = await prisma.user.count({ where: { role: 'OWNER', planExpiresAt: { gt: now }, subscriptions: { some: { status: 'APPROVED', periodDays: { gt: 0 } } } } });
+    const churned = Math.max(0, everPremium - stillActive);
+    const renewalRows = await prisma.$queryRaw<{ cnt: bigint }[]>`SELECT COUNT(*)::int AS cnt FROM (SELECT "userId" FROM subscriptions WHERE status='APPROVED' AND "periodDays" > 0 GROUP BY "userId" HAVING COUNT(*) >= 2) t`;
+    const renewals = Number(renewalRows[0]?.cnt ?? 0);
+    // --- COHORT (signup mês → conversão) ---
+    const cohort = await prisma.$queryRaw<{ month: string; signups: bigint; converted: bigint }[]>`
+      SELECT TO_CHAR(DATE_TRUNC('month', u."createdAt"), 'YYYY-MM') AS month,
+             COUNT(DISTINCT u.id) AS signups,
+             COUNT(DISTINCT s."userId") AS converted
+      FROM users u
+      LEFT JOIN subscriptions s ON s."userId" = u.id AND s.status = 'APPROVED' AND s."periodDays" > 0
+      WHERE u."role" = 'OWNER'
+      GROUP BY 1 ORDER BY 1 DESC LIMIT 12`;
+    // --- RECEITA por mês (pagamento aprovado) ---
+    const revenueByMonth = await prisma.$queryRaw<{ month: string; amount: bigint }[]>`
+      SELECT TO_CHAR(DATE_TRUNC('month', "updatedAt"), 'YYYY-MM') AS month, SUM("amount")::bigint AS amount
+      FROM subscriptions WHERE status = 'APPROVED' GROUP BY 1 ORDER BY 1 DESC LIMIT 12`;
+    res.json({
+      funnel: { signups, verified, freeActive, premiumActive, conversionPct: verified ? Math.round((premiumActive / verified) * 1000) / 10 : 0 },
+      revenue: { mrr: Math.round(premiumActive * 19.9 * 100) / 100, total: Math.round((agg._sum.amount ?? 0) * 100) / 100, monthlyPayments, creditPurchases },
+      churn: { everPremium, stillActive, churned, renewals, retentionPct: everPremium ? Math.round((stillActive / everPremium) * 1000) / 10 : 0 },
+      cohort: cohort.map((r) => ({ month: r.month, signups: Number(r.signups), converted: Number(r.converted) })).filter((r) => r.month),
+      revenueByMonth: revenueByMonth.map((r) => ({ month: r.month, amount: Number(r.amount) })).filter((r) => r.month),
+    });
+  } catch (e) { next(e); }
+});
+
 // AJUSTAR créditos
 router.patch('/users/:id/credits', async (req: AuthedRequest, res, next) => {
   try {
