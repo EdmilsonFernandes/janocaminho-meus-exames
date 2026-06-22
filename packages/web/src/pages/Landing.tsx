@@ -15,6 +15,8 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import LockIcon from '@mui/icons-material/Lock';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import ShareIcon from '@mui/icons-material/Share';
+import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import AccessibilityNewIcon from '@mui/icons-material/AccessibilityNew';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
@@ -31,7 +33,7 @@ const benefits = [
   { Icon: ChatIcon, title: 'Chat inteligente (economiza)', desc: 'Perguntas simples ("qual meu último TSH?") são respondidas na hora e de graça. Só as complexas vão pra IA.' },
   { Icon: CompareArrowsIcon, title: 'Comparativo visual', desc: 'Veja o que mudou entre exames. Hemoglobina subiu? Colesterol caiu? Gráficos claros com faixa de referência.' },
   { Icon: TrendingUpIcon, title: 'Evolução + Previsão', desc: 'Acompanhe tendências e saiba quando um valor pode sair da faixa (previsão exclusiva do Premium).' },
-  { Icon: MedicalServicesIcon, title: 'Telemedicina pelo marcador', desc: 'Valor alterado? Um toque leva ao especialista certo no Doctoralia — endócrino, cardio, hemato e mais.' },
+  { Icon: MedicalServicesIcon, title: 'Portal do seu médico', desc: 'Indique pelo CRM e seu médico ganha um portal próprio — vê apenas o que você autorizar: exames, alertas e evolução.' },
   { Icon: Diversity3Icon, title: 'Toda a família', desc: 'Gerencie exames de cada dependente. Score familiar + comparativo entre membros.' },
   { Icon: DescriptionIcon, title: 'Pronto para o médico', desc: 'Relatório de 1 página com valores alterados + perfil clínico. Compartilhe por link seguro com PIN.' },
   { Icon: LockIcon, title: 'Dados protegidos + Libras', desc: 'Criptografia, PIN de compartilhamento, exclusão a qualquer momento. LGPD completa e VLibras.' },
@@ -39,8 +41,9 @@ const benefits = [
 
 const steps = [
   { n: 1, Icon: UploadFileIcon, title: 'Envie o exame', desc: 'PDF ou foto do exame de sangue, imagem ou laudo. A IA extrai todos os valores automaticamente.' },
-  { n: 2, Icon: AutoAwesomeIcon, title: 'Entenda os resultados', desc: 'O Dr. Exame explica cada valor em linguagem simples, compara com exames anteriores e destaca o que precisa de atenção.' },
-  { n: 3, Icon: ShareIcon, title: 'Leve ao médico', desc: 'Gere um documento pronto ou compartilhe por link seguro. Perguntas prontas pra fazer na consulta.' },
+  { n: 2, Icon: AutoAwesomeIcon, title: 'A IA lê e explica', desc: 'O Dr. Exame explica cada valor em linguagem simples, compara com exames anteriores e destaca o que precisa de atenção.' },
+  { n: 3, Icon: AssignmentIndIcon, title: 'Indique seu médico', desc: 'Informe o CRM. Seu médico é pré-cadastrado sozinho e recebe um aviso pra ativar o acesso.' },
+  { n: 4, Icon: MedicalServicesIcon, title: 'O médico vê tudo', desc: 'Ele finaliza o cadastro com o mesmo CRM e você aparece no portal dele — só o que você autorizou.' },
 ];
 
 const planData = [
@@ -93,6 +96,7 @@ export const LandingPage = () => {
           <Stack direction="row" spacing={1.5} alignItems="center">
             <Box component="button" onClick={() => goTo('beneficios')} sx={{ ...navBtn(scrolled), display: { xs: 'none', sm: 'inline' } }}>Recursos</Box>
             <Box component="button" onClick={() => goTo('planos')} sx={{ ...navBtn(scrolled), display: { xs: 'none', md: 'inline' } }}>Planos</Box>
+            <Box component="button" onClick={() => goTo('portal-medico')} sx={{ ...navBtn(scrolled), color: TEAL_DARK, fontWeight: 700, display: { xs: 'none', md: 'inline' } }}>🩺 Sou médico</Box>
             <Button onClick={() => navigate('/entrar')} sx={{ color: TEAL_DARK, fontWeight: 700, textTransform: 'none' }}>Entrar</Button>
             <Button variant="contained" color="primary" size="small" onClick={() => navigate('/registrar')} sx={{ borderRadius: 99, px: 2.5, textTransform: 'none', fontWeight: 700 }}>Criar conta</Button>
           </Stack>
@@ -134,6 +138,9 @@ export const LandingPage = () => {
                   </Stack>
                 ))}
               </Stack>
+              <Typography sx={{ mt: 2.5, fontSize: 14 }}>
+                É médico? <Box component="span" onClick={() => navigate('/doctor')} sx={{ color: TEAL_DARK, fontWeight: 700, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}>Acesse o Portal do Médico →</Box>
+              </Typography>
             </Box>
 
             {/* Coluna visual — capaIA de ponta a ponta, sem matte e sem cards flutuantes => preenche tudo, sem espaço branco. */}
@@ -157,7 +164,7 @@ export const LandingPage = () => {
             {[
               { Icon: VerifiedUserIcon, t: 'Conforme a LGPD' },
               { Icon: AccessibilityNewIcon, t: 'Acessível em Libras' },
-              { Icon: MedicalServicesIcon, t: 'Telemedicina (Doctoralia)' },
+              { Icon: MedicalServicesIcon, t: 'Portal do Médico' },
               { Icon: CreditCardIcon, t: 'Sem cartão pra começar' },
             ].map(({ Icon, t }) => (
               <Stack key={t} direction="row" spacing={1} alignItems="center">
@@ -261,14 +268,110 @@ export const LandingPage = () => {
         </Container>
       </Box>
 
+      {/* SEÇÃO — Compartilhe com seu médico (paciente) */}
+      <Box sx={{ bgcolor: '#fff', borderTop: '1px solid #e6f1f0', borderBottom: '1px solid #e6f1f0', py: { xs: 8, md: 11 } }}>
+        <Container maxWidth="lg">
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: { xs: 5, md: 7 }, alignItems: 'center' }}>
+            {/* texto */}
+            <Box>
+              <Chip icon={<ShareIcon sx={{ fontSize: 17 }} />} label="Compartilhamento" sx={{ bgcolor: 'rgba(32,178,170,.12)', color: TEAL_DARK, fontWeight: 700, mb: 3, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: TEAL } }} />
+              <Typography variant="h2" sx={{ fontSize: { xs: '1.8rem', md: '2.4rem' }, fontWeight: 800, color: INK, mb: 2, letterSpacing: '-0.02em' }}>Compartilhe com seu médico — você no controle</Typography>
+              <Typography sx={{ fontSize: 17, color: 'text.secondary', mb: 3.5, lineHeight: 1.6 }}>
+                Escolha o que enviar, indique pelo CRM e seu médico é cadastrado sozinho. Revoga quando quiser — ele perde o acesso na hora.
+              </Typography>
+              {[
+                { Icon: DescriptionIcon, t: 'Você escolhe os escopos: Exames, Evolução, Alertas e Resumos IA.' },
+                { Icon: AssignmentIndIcon, t: 'Indica o médico pelo CRM — ele recebe um aviso por e-mail.' },
+                { Icon: LockIcon, t: 'Revoga o acesso a qualquer momento, com 1 toque.' },
+              ].map(({ Icon, t }) => (
+                <Stack key={t} direction="row" spacing={1.5} alignItems="flex-start" sx={{ mb: 2 }}>
+                  <Box sx={{ width: 34, height: 34, borderRadius: 2, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(32,178,170,.10)' }}><Icon sx={{ fontSize: 19, color: TEAL_DARK }} /></Box>
+                  <Typography sx={{ fontSize: 15, color: '#334155', lineHeight: 1.5, pt: 0.4 }}>{t}</Typography>
+                </Stack>
+              ))}
+              <Button variant="contained" color="primary" onClick={() => navigate('/registrar')} sx={{ mt: 1.5, borderRadius: 99, px: 4, py: 1.3, textTransform: 'none', fontWeight: 800 }}>Começar grátis</Button>
+            </Box>
+            {/* mockup */}
+            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+              <Box sx={{ width: '100%', maxWidth: 400, borderRadius: 5, bgcolor: '#fff', border: '1px solid #e6f1f0', boxShadow: '0 20px 44px rgba(15,61,58,.10)', p: 3 }}>
+                <Typography sx={{ fontSize: 13, color: 'text.secondary', mb: 1 }}>O que compartilhar:</Typography>
+                <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', rowGap: 1, mb: 2.5 }}>
+                  {([{ Icon: DescriptionIcon, l: 'Exames', on: true }, { Icon: TrendingUpIcon, l: 'Evolução', on: true }, { Icon: WarningAmberIcon, l: 'Alertas', on: true }, { Icon: AutoAwesomeIcon, l: 'Resumos IA', on: false }] as const).map(({ Icon, l, on }) => (
+                    <Chip key={l} icon={<Icon sx={{ fontSize: 16 }} />} label={l} size="small" sx={{ bgcolor: on ? 'rgba(16,185,129,.12)' : '#f1f5f9', color: on ? '#047857' : '#94a3b8', fontWeight: 700, border: on ? '1px solid #6ee7b7' : '1px solid #e2e8f0', '& .MuiChip-icon': { color: on ? GREEN : '#94a3b8' } }} />
+                  ))}
+                </Stack>
+                <Box sx={{ borderRadius: 2, border: '1px solid #e6f1f0', bgcolor: '#f8fafb', px: 1.5, py: 1.25, mb: 2.5 }}>
+                  <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>CRM do médico</Typography>
+                  <Typography sx={{ fontSize: 15, fontWeight: 700, color: INK }}>12345-SP • Dra. Helena Costa</Typography>
+                </Box>
+                <Button fullWidth variant="contained" color="primary" sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700 }}>Compartilhar dados</Button>
+                <Typography sx={{ fontSize: 11.5, color: 'text.secondary', mt: 1.5, textAlign: 'center' }}>🔒 Você pode revogar a qualquer momento.</Typography>
+              </Box>
+            </Box>
+          </Box>
+        </Container>
+      </Box>
+
+      {/* SEÇÃO — Portal do Médico */}
+      <Box id="portal-medico" sx={{ bgcolor: '#eef7f6', py: { xs: 8, md: 11 }, scrollMarginTop: 80 }}>
+        <Container maxWidth="lg">
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: { xs: 5, md: 7 }, alignItems: 'center' }}>
+            {/* mockup (esquerda) */}
+            <Box sx={{ display: 'flex', justifyContent: 'center', order: { xs: 2, md: 1 } }}>
+              <Box sx={{ width: '100%', maxWidth: 400, borderRadius: 5, bgcolor: '#fff', border: '1px solid #e6f1f0', boxShadow: '0 20px 44px rgba(15,61,58,.10)', p: 3 }}>
+                <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mb: 2 }}>
+                  <Box sx={{ width: 44, height: 44, borderRadius: '50%', background: 'linear-gradient(135deg,#20b2aa,#178f89)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><MedicalServicesIcon sx={{ color: '#fff', fontSize: 22 }} /></Box>
+                  <Box><Typography sx={{ fontSize: 12, color: 'text.secondary' }}>Portal do Médico</Typography><Typography sx={{ fontSize: 15, fontWeight: 800, color: INK }}>Pacientes que compartilharam (3)</Typography></Box>
+                </Stack>
+                <Box sx={{ borderRadius: 3, border: '1px solid #e6f1f0', p: 2, mb: 1.5 }}>
+                  <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mb: 1.25 }}>
+                    <Box sx={{ width: 38, height: 38, borderRadius: '50%', bgcolor: '#d4a574' }} />
+                    <Box sx={{ flex: 1 }}><Typography sx={{ fontSize: 14, fontWeight: 800, color: INK }}>Heloísa Santos</Typography><Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>Particular • desde jan/2026</Typography></Box>
+                    <Chip label="2 alterados" size="small" sx={{ bgcolor: '#fef2f2', color: '#ef4444', fontWeight: 700, fontSize: 11 }} />
+                  </Stack>
+                  <Stack direction="row" spacing={0.75} useFlexGap sx={{ flexWrap: 'wrap', rowGap: 0.75 }}>
+                    {([{ Icon: DescriptionIcon, l: 'Exames' }, { Icon: TrendingUpIcon, l: 'Evolução' }, { Icon: WarningAmberIcon, l: 'Alertas' }] as const).map(({ Icon, l }) => (
+                      <Chip key={l} icon={<Icon sx={{ fontSize: 15 }} />} label={l} size="small" sx={{ bgcolor: 'rgba(32,178,170,.10)', color: TEAL_DARK, fontWeight: 600, fontSize: 11, '& .MuiChip-icon': { color: TEAL } }} />
+                    ))}
+                  </Stack>
+                </Box>
+                <Box sx={{ borderRadius: 3, border: '1px solid #e6f1f0', p: 2, opacity: .6 }}>
+                  <Typography sx={{ fontSize: 13, fontWeight: 700, color: INK }}>José Lima</Typography>
+                  <Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>Unimed • 📋 Exames, 🤖 Resumos IA</Typography>
+                </Box>
+              </Box>
+            </Box>
+            {/* texto (direita) */}
+            <Box sx={{ order: { xs: 1, md: 2 } }}>
+              <Chip icon={<MedicalServicesIcon sx={{ fontSize: 17 }} />} label="Para profissionais de saúde" sx={{ bgcolor: 'rgba(212,165,116,.16)', color: '#b88a54', fontWeight: 700, mb: 3, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: '#b88a54' } }} />
+              <Typography variant="h2" sx={{ fontSize: { xs: '1.8rem', md: '2.4rem' }, fontWeight: 800, color: INK, mb: 2, letterSpacing: '-0.02em' }}>O paciente chega pronto no seu consultório</Typography>
+              <Typography sx={{ fontSize: 17, color: 'text.secondary', mb: 3.5, lineHeight: 1.6 }}>
+                Use o <Box component="span" sx={{ color: INK, fontWeight: 800 }}>mesmo CRM</Box> que seu paciente informou no convite. Ele aparece automaticamente no seu painel — com exames, valores alterados, evolução e o PDF original.
+              </Typography>
+              {[
+                'Pré-cadastro automático quando o paciente indica pelo CRM.',
+                'Exames, Alertas, Evolução e Resumos IA — só o que o paciente autorizou.',
+                'Valores alterados em destaque + PDF original do laboratório.',
+              ].map((t) => (
+                <Stack key={t} direction="row" spacing={1.25} alignItems="flex-start" sx={{ mb: 1.75 }}>
+                  <CheckCircleIcon sx={{ fontSize: 20, color: GREEN, mt: 0.1, flexShrink: 0 }} />
+                  <Typography sx={{ fontSize: 15, color: '#334155', lineHeight: 1.5 }}>{t}</Typography>
+                </Stack>
+              ))}
+              <Button variant="contained" color="primary" onClick={() => navigate('/doctor')} sx={{ mt: 1.5, borderRadius: 99, px: 4, py: 1.3, textTransform: 'none', fontWeight: 800 }}>Acessar o Portal do Médico →</Button>
+            </Box>
+          </Box>
+        </Container>
+      </Box>
+
       {/* COMO FUNCIONA */}
       <Box id="como-funciona" sx={{ bgcolor: '#eef7f6', py: { xs: 8, md: 11 }, scrollMarginTop: 80 }}>
         <Container maxWidth="lg">
           <Typography align="center" variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: INK, mb: 1.5, letterSpacing: '-0.02em' }}>
             Como funciona
           </Typography>
-          <Typography align="center" sx={{ color: 'text.secondary', fontSize: 17, mb: 6 }}>3 passos. Menos de 1 minuto.</Typography>
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' }, gap: 4 }}>
+          <Typography align="center" sx={{ color: 'text.secondary', fontSize: 17, mb: 6 }}>4 passos. Do exame ao médico.</Typography>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr 1fr' }, gap: 4 }}>
             {steps.map((s) => (
               <Box key={s.n} sx={{ textAlign: 'center' }}>
                 <Box sx={{ position: 'relative', width: 76, height: 76, mx: 'auto', mb: 2.5 }}>
@@ -348,6 +451,7 @@ export const LandingPage = () => {
           <Typography sx={{ fontSize: 13, mb: 1 }}>© {new Date().getFullYear()} janocaminho.com.br • contato@janocaminho.com.br</Typography>
           <Typography sx={{ fontSize: 12, opacity: .8, mb: 2 }}>Edmilson Fernandes • CNPJ: 44.771.427/0001-69 • Análise educativa, não substitui consulta médica.</Typography>
           <Stack direction="row" spacing={3} justifyContent="center" useFlexGap sx={{ flexWrap: 'wrap' }}>
+            <Box component="span" sx={{ color: '#5fc9c3', cursor: 'pointer', fontSize: 13, fontWeight: 700, '&:hover': { textDecoration: 'underline' } }} onClick={() => navigate('/doctor')}>Portal do Médico</Box>
             <Box component="span" sx={{ color: '#5fc9c3', cursor: 'pointer', fontSize: 13, fontWeight: 700, '&:hover': { textDecoration: 'underline' } }} onClick={() => navigate('/termos')}>Termos e LGPD</Box>
             <Box component="span" sx={{ color: '#5fc9c3', cursor: 'pointer', fontSize: 13, fontWeight: 700, '&:hover': { textDecoration: 'underline' } }} onClick={() => navigate('/registrar')}>Criar conta</Box>
             <Box component="span" sx={{ color: '#5fc9c3', cursor: 'pointer', fontSize: 13, fontWeight: 700, '&:hover': { textDecoration: 'underline' } }} onClick={() => navigate('/entrar')}>Entrar</Box>
