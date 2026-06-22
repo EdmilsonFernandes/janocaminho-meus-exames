@@ -2,6 +2,8 @@ import { Router } from 'express';
 import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
 import { sendEmail } from '../utils/mailer';
+import { getSettings } from '../utils/settings';
+import { chargeCredits } from '../utils/credits';
 
 const router = Router();
 router.use(requireAuth);
@@ -42,7 +44,16 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       const updated = await prisma.doctorShare.update({ where: { id: existing.id }, data: { active: true, scopes: scopes || existing.scopes, convenio: convenio != null ? String(convenio) : existing.convenio, revokedAt: null } });
       res.json({ share: updated, doctor }); return;
     }
-    const share = await prisma.doctorShare.create({ data: { patientId: pid, doctorId: doctor.id, scopes: scopes || ['exams'], convenio: convenio ? String(convenio) : null } });
+    // Custo de compartilhar = soma dos escopos selecionados (parametrizado em app_settings).
+    // Só cobra na CRIAÇÃO nova (reativar existente / editar escopos = grátis, sem fricção).
+    const selectedScopes: string[] = Array.isArray(scopes) && scopes.length ? scopes : ['exams'];
+    const shareCost = selectedScopes.reduce((sum: number, k: string) => sum + (getSettings().shares[k] ?? 0), 0);
+    if (shareCost > 0) {
+      const me = await prisma.user.findUnique({ where: { id: req.userId! }, select: { credits: true } });
+      if ((me?.credits ?? 0) < shareCost) { res.status(402).json({ error: 'insufficient_credits', message: `Compartilhar custa ${shareCost} créditos.` }); return; }
+      if (!(await chargeCredits(req.userId!, shareCost))) { res.status(402).json({ error: 'insufficient_credits', message: 'Saldo insuficiente.' }); return; }
+    }
+    const share = await prisma.doctorShare.create({ data: { patientId: pid, doctorId: doctor.id, scopes: selectedScopes, convenio: convenio ? String(convenio) : null } });
 
     // notifica o médico por e-mail
     if (doctor.email && !doctor.email.includes('@invite.com')) {
@@ -60,7 +71,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
         });
       } catch (e: any) { console.error('[doctor-share] falha email:', e?.message); }
     }
-    res.status(201).json({ share, doctor });
+    res.status(201).json({ share, doctor, chargedCredits: shareCost });
   } catch (e) { next(e); }
 });
 

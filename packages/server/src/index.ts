@@ -3,6 +3,11 @@ import { app } from './app';
 import { config, hasAnthropicKey } from './config';
 import { startReminderEmailJob } from './jobs/reminderEmails';
 import { startHealthNudgeJob } from './jobs/healthNudges';
+import { loadSettings } from './utils/settings';
+
+// Carrega config de monetização do banco (custos/grants/shares) e sincroniza os objetos vivos
+// (CREDIT_COSTS/UPLOAD_RULES). Antes disso, os defaults do código já estão ativos.
+void loadSettings();
 
 app.listen(config.port, () => {
   console.log(`[server] rodando em http://localhost:${config.port} (env=${config.nodeEnv})`);

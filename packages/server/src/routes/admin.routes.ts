@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest } from '../middleware/auth';
-import { CREDIT_COSTS, UPLOAD_RULES } from '../utils/credits';
+import { getSettings, saveSettings, type SettingCategory } from '../utils/settings';
 import { deleteExamFile } from '../utils/storage';
 
 const router = Router();
@@ -45,25 +45,30 @@ router.get('/payments', async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
-// CONFIG — custos atuais (leitura + escrita)
+// CONFIG — leitura (tudo do banco: creditCosts/uploadRules/grants/shares)
 router.get('/config', (_req, res) => {
-  res.json({ creditCosts: CREDIT_COSTS, uploadRules: UPLOAD_RULES, plans: { monthly: { price: 19.90, credits: 250 } } });
+  const s = getSettings();
+  res.json({ ...s, plans: { monthly: { price: 19.90, credits: s.grants.monthly } } });
 });
 
-// CONFIG — atualizar custos (edita o objeto em memória; redeploy pra persistir)
-const editableCosts = { ...CREDIT_COSTS };
-router.patch('/config/costs', async (req, res) => {
-  const { chat, summary, consolidated, extraction } = req.body ?? {};
-  if (chat != null) { editableCosts.chat = Number(chat); CREDIT_COSTS.chat = Number(chat); }
-  if (summary != null) { editableCosts.summary = Number(summary); CREDIT_COSTS.summary = Number(summary); }
-  if (consolidated != null) { editableCosts.consolidated = Number(consolidated); CREDIT_COSTS.consolidated = Number(consolidated); }
-  if (extraction != null) { editableCosts.extraction = Number(extraction); CREDIT_COSTS.extraction = Number(extraction); }
-  const { freeCost, premiumFreeQuota, premiumCost } = req.body ?? {};
-  if (freeCost != null) UPLOAD_RULES.freeCost = Number(freeCost);
-  if (premiumFreeQuota != null) UPLOAD_RULES.premiumFreeQuota = Number(premiumFreeQuota);
-  if (premiumCost != null) UPLOAD_RULES.premiumCost = Number(premiumCost);
-  console.log('[admin] custos atualizados:', CREDIT_COSTS, UPLOAD_RULES);
-  res.json({ creditCosts: CREDIT_COSTS, uploadRules: UPLOAD_RULES });
+// CONFIG — atualizar (PERSISTE no banco via saveSettings). body: { category, ...valores }
+// category ∈ creditCosts | uploadRules | grants | shares
+router.patch('/config/costs', async (req, res, next) => {
+  try {
+    const category = String(req.body?.category);
+    const patch: Record<string, number> = {};
+    for (const [k, v] of Object.entries(req.body ?? {})) {
+      if (k === 'category') continue;
+      const n = Number(v);
+      if (!isNaN(n)) patch[k] = n;
+    }
+    if (!['creditCosts', 'uploadRules', 'grants', 'shares'].includes(category) || Object.keys(patch).length === 0) {
+      res.status(400).json({ error: 'Envie { category, ...valores }. category ∈ creditCosts|uploadRules|grants|shares.' }); return;
+    }
+    const s = await saveSettings(category as SettingCategory, patch);
+    console.log('[admin] config atualizada (persistida no banco):', category, patch);
+    res.json({ ...s, plans: { monthly: { price: 19.90, credits: s.grants.monthly } } });
+  } catch (e) { next(e); }
 });
 
 // AJUSTAR créditos
