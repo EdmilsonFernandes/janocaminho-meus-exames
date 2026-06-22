@@ -8,6 +8,7 @@ import DownloadIcon from '@mui/icons-material/Download';
 import UploadIcon from '@mui/icons-material/Upload';
 import { API_URL, token, apiHeaders } from '../config';
 import { MfaSetupCard } from '../components/mfa/MfaSetupCard';
+import { ReferralCard } from '../components/ReferralCard';
 import { useSelectedPatient } from '../patient-context';
 import { PhotoUpload } from '../components/PhotoUpload';
 
@@ -149,6 +150,9 @@ export const ProfilePage = () => {
           </Box>
         </CardContent>
       </Card>
+
+      {/* INDICAÇÃO — convide amigos, ganhe créditos */}
+      <ReferralCard code={user?.referralCode} />
 
       {/* Segurança: 2FA (TOTP) */}
       <Box sx={{ mt: 2 }}>

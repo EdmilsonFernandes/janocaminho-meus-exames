@@ -224,6 +224,7 @@ export const RegisterPage = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [pwd, setPwd] = useState('');
+  const [referral, setReferral] = useState(() => new URLSearchParams(window.location.hash.split('?')[1] || '').get('ref') || '');
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
   const [verifyEmail, setVerifyEmail] = useState<string | null>(null);
@@ -237,7 +238,7 @@ export const RegisterPage = () => {
     try {
       const r = await fetch(`${API_URL}/auth/register`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name.trim(), email: email.trim(), password: pwd }),
+        body: JSON.stringify({ name: name.trim(), email: email.trim(), password: pwd, referral: referral.trim() || undefined }),
       });
       const d = await r.json();
       if (r.status === 409) { notify('Este e-mail já tem conta. Use sua senha, "entrar com token" ou "esqueci a senha".', { type: 'warning' }); navigate('/'); return; }
@@ -293,6 +294,13 @@ export const RegisterPage = () => {
             startAdornment: <InputAdornment position="start"><I.Lock /></InputAdornment>,
             endAdornment: <InputAdornment position="end"><IconButton onClick={() => setShowPwd((s) => !s)} edge="end" size="small">{showPwd ? <I.Eye /> : <I.EyeOff />}</IconButton></InputAdornment>,
           } }} />
+        {referral ? (
+          <Box sx={{ p: 1, borderRadius: 2, bgcolor: '#f0f9f7', border: '1px solid #d6ece8', display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography sx={{ fontSize: 12, color: '#178f89', fontWeight: 700 }}>🎁 Indicado por <strong>{referral}</strong> — você ganha +30 créditos!</Typography>
+          </Box>
+        ) : (
+          <TextField placeholder="Código de indicação (opcional)" value={referral} onChange={(e) => setReferral(e.target.value.toUpperCase())} sx={fieldSx} />
+        )}
         <FormControlLabel
           control={<Checkbox checked={accepted} onChange={(e) => setAccepted(e.target.checked)} size="small" sx={{ color: '#20b2aa', '&.Mui-checked': { color: '#20b2aa' } }} />}
           label={<Typography sx={{ fontSize: 12.5, color: '#46555a' }}>Li e aceito os <Link component="a" href="#/termos" target="_blank" rel="noopener" sx={{ color: '#00897b', fontWeight: 700 }}>Termos de Uso e Política de Privacidade</Link>.</Typography>}

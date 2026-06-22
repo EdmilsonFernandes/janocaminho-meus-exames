@@ -91,7 +91,7 @@ router.post('/mfa/disable', requireAuth, async (req: AuthedRequest, res) => {
 // REGISTRO (auto-atendimento — Play Store)
 router.post('/register', async (req, res, next) => {
   try {
-    const { name, email, password } = req.body ?? {};
+    const { name, email, password, referral } = req.body ?? {};
     const mail = String(email ?? '').toLowerCase().trim();
     const pwd = String(password ?? '');
     if (!name || !mail || pwd.length < 6) {
@@ -100,14 +100,45 @@ router.post('/register', async (req, res, next) => {
     }
     const existing = await prisma.user.findUnique({ where: { email: mail } });
     if (existing) { res.status(409).json({ error: 'Já existe conta com este e-mail.' }); return; }
+
+    // === REFERRAL: valida código de indicação (se veio) ===
+    const REFERRAL_BONUS = 30; // créditos pra cada lado (configurável depois via settings)
+    let referrer: any = null;
+    const refCode = String(referral ?? '').trim().toUpperCase();
+    if (refCode) {
+      referrer = await prisma.user.findFirst({ where: { referralCode: refCode, emailVerified: true } });
+      if (!referrer) { res.status(400).json({ error: 'Código de indicação inválido.' }); return; }
+    }
+
+    // Gera código de indicação único pro novo usuário (PRIMEIRO-NOME + 4 chars)
+    const firstName = String(name).split(' ')[0].toUpperCase().replace(/[^A-Z]/g, '').slice(0, 10) || 'USER';
+    let referralCode = '';
+    for (let i = 0; i < 10; i++) {
+      const candidate = `${firstName}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+      const clash = await prisma.user.findFirst({ where: { referralCode: candidate } });
+      if (!clash) { referralCode = candidate; break; }
+    }
+
     const passwordHash = await hashPassword(pwd);
-    const user = await prisma.user.create({ data: { email: mail, name: String(name), passwordHash, credits: getSettings().grants.freeSignup } });
+    const signupCredits = getSettings().grants.freeSignup + (referrer ? REFERRAL_BONUS : 0);
+    const user = await prisma.user.create({
+      data: { email: mail, name: String(name), passwordHash, credits: signupCredits, referralCode, referredBy: referrer?.referralCode ?? null },
+    });
     await prisma.patient.create({ data: { ownerId: user.id, fullName: String(name), relationship: 'Titular' } });
+
+    // Bônus pro indicador (referral bonus)
+    if (referrer) {
+      await prisma.user.update({ where: { id: referrer.id }, data: { credits: { increment: REFERRAL_BONUS } } });
+      try {
+        await prisma.notification.create({ data: { userId: referrer.id, type: 'referral', title: '🎉 Você indicou e ganhou!', body: `${String(name)} se cadastrou com seu código. +${REFERRAL_BONUS} créditos pra você!` } });
+      } catch { /* notificação não é crítica */ }
+      console.log(`[referral] ${referrer.email} ganhou +${REFERRAL_BONUS} (indicou ${mail})`);
+    }
+
     notifyNewUser(String(name), mail);
-    // Envia código de verificação por e-mail — conta fica inativa até validar (previne e-mail fake)
     const code = issueOtp(mail);
     try { await sendEmail({ to: mail, subject: 'Ative sua conta — Meus Exames', html: otpEmail(String(name), code) }); } catch (e: any) { console.error('[register] falha SMTP verificação:', e?.message); }
-    res.status(201).json({ needsVerification: true, email: mail });
+    res.status(201).json({ needsVerification: true, email: mail, referralBonus: !!referrer });
   } catch (e) { next(e); }
 });
 
@@ -222,7 +253,7 @@ router.get('/me', requireAuth, async (req: AuthedRequest, res, next) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.userId! },
-      select: { id: true, email: true, name: true, role: true, planExpiresAt: true, credits: true },
+      select: { id: true, email: true, name: true, role: true, planExpiresAt: true, credits: true, referralCode: true, referredBy: true },
     });
     const patientId = user ? await firstPatientId(user.id) : null;
     res.json({ user, patientId });
@@ -277,6 +308,21 @@ router.delete('/account', requireAuth, async (req: AuthedRequest, res, next) => 
     // 5) usuário (cascata: Patient→Exam→Itens/Análises, Subscription, DeviceToken, lembretes, medições, vacinas, despesas)
     await prisma.user.delete({ where: { id: userId } });
     res.json({ ok: true });
+  } catch (e) { next(e); }
+});
+
+// ESTATÍSTICAS DE INDICAÇÃO — quantos amigos indicou, créditos ganhos
+router.get('/referrals/stats', requireAuth, async (req: AuthedRequest, res, next) => {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.userId! }, select: { referralCode: true } });
+    if (!user?.referralCode) { res.json({ code: '', count: 0, creditsEarned: 0 }); return; }
+    const referred = await prisma.user.findMany({
+      where: { referredBy: user.referralCode },
+      select: { id: true, name: true, createdAt: true },
+      orderBy: { createdAt: 'desc' },
+    });
+    const REFERRAL_BONUS = 30;
+    res.json({ code: user.referralCode, count: referred.length, creditsEarned: referred.length * REFERRAL_BONUS, friends: referred.map((r) => ({ name: r.name.split(' ')[0], date: r.createdAt })) });
   } catch (e) { next(e); }
 });
 

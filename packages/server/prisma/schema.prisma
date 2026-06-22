@@ -20,6 +20,8 @@ model User {
   planExpiresAt DateTime?   // ativo enquanto no futuro (null = free/expirado)
   credits      Int      @default(60)   // créditos de IA — custos/grants parametrizados em app_settings. Recarrega com plano.
   emailVerified Boolean @default(false) // valida e-mail no cadastro (previne conta com e-mail fake)
+  referralCode String?  @unique  // código de indicação (ex: EDMILSON-A1B2) — vira bônus pra ambos
+  referredBy   String?            // código de quem indicou este usuário
   // MFA (TOTP 2FA) — secret cifrado AES-256-GCM (null = desativado)
   mfaEnabled          Boolean   @default(false)
   mfaSecretEncrypted  String?
