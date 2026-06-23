@@ -27,6 +27,7 @@ export const ProfilePage = () => {
   const [photoVer, setPhotoVer] = useState(0); // cache-bust sincronizado entre header
   const [cur, setCur] = useState(''); const [nw, setNw] = useState(''); const [cf, setCf] = useState('');
   const [pwLoading, setPwLoading] = useState(false);
+  const [bioOn, setBioOn] = useState(BiometricService.hasEnrollment());
 
   const load = async () => {
     const h = { Authorization: `Bearer ${token()}` };
@@ -163,14 +164,14 @@ export const ProfilePage = () => {
       {BiometricService.isSupported() && (
         <Card sx={{ mt: 2, borderRadius: 3 }}>
           <CardContent>
-            <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
-              <Box>
-                <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f3d3a' }}>🔐 Biometria</Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ fontSize: 13.5 }}>Entrar com face/digital sem digitar senha neste aparelho.</Typography>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'flex-start', sm: 'center' }}>
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography sx={{ fontWeight: 800, color: '#0f3d3a', fontSize: 17 }}>🔐 Biometria (face/digital)</Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ fontSize: 13.5, mt: 0.5 }}>Entrar sem digitar senha, usando a biometria do aparelho.</Typography>
               </Box>
-              {BiometricService.hasEnrollment()
-                ? <Button variant="outlined" color="error" size="small" onClick={() => { BiometricService.forget(); notify('Biometria desativada neste aparelho.'); window.location.reload(); }}>Desativar</Button>
-                : <Button variant="contained" size="small" onClick={() => { BiometricService.enroll(token() || '', false); notify('Biometria ativada! 🎉', { type: 'success' }); window.location.reload(); }}>Ativar</Button>}
+              {bioOn
+                ? <Button variant="outlined" color="error" size="small" sx={{ flexShrink: 0, width: { xs: '100%', sm: 'auto' } }} onClick={() => { BiometricService.forget(); setBioOn(false); notify('Biometria desativada neste aparelho.'); }}>Desativar</Button>
+                : <Button variant="contained" size="small" sx={{ flexShrink: 0, width: { xs: '100%', sm: 'auto' } }} onClick={() => { BiometricService.enroll(token() || '', false); setBioOn(true); notify('Biometria ativada! 🎉', { type: 'success' }); }}>Ativar biometria</Button>}
             </Stack>
           </CardContent>
         </Card>

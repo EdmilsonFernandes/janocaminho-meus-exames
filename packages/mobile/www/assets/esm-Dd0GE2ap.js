@@ -1,0 +1,2 @@
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./web-Bp22sGpp.js","./index-yDF0jwvd.js"])))=>i.map(i=>d[i]);
+import{c as e,s as t}from"./index-yDF0jwvd.js";var n=t(`App`,{web:()=>e(()=>import(`./web-Bp22sGpp.js`).then(e=>new e.AppWeb),__vite__mapDeps([0,1]),import.meta.url)});export{n as App};

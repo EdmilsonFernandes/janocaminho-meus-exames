@@ -1,8 +1,9 @@
 /* Biometria (face/digital) via @capgo/capacitor-native-biometric (nativo Android).
- * No web: não disponível (esconde o botão).
- * Padrão: após login por senha, oferece ativar biometria no aparelho.
- * Próximo login: botão "Entrar com biometria" → prompt de face/digital → auto-login. */
+ * Plugin: NativeBiometric.verifyIdentity() — NÃO é authenticate().
+ * No web: não disponível (esconde o botão). */
 import { Capacitor } from '@capacitor/core';
+// @ts-ignore — pacote hoisted na raiz; em web é no-op (web impl do Capacitor)
+import { NativeBiometric } from '@capgo/capacitor-native-biometric';
 
 const ENROLL_TOKEN = 'bio_token';
 const ENROLL_ROLE = 'bio_role'; // 'patient' | 'doctor'
@@ -33,9 +34,11 @@ export const BiometricService = {
   loginWithBiometric: async (): Promise<{ token: string; isDoctor: boolean } | null> => {
     if (!Capacitor.isNativePlatform()) return null;
     try {
-      const mod: any = await import('@capgo/capacitor-native-biometric');
-      const bio = mod.NativeBiometric || mod.default;
-      await bio.authenticate({ reason: 'Confirme sua identidade para entrar no Meus Exames', title: 'Meus Exames' });
+      // verifyIdentity = o método correto do plugin (NÃO é authenticate)
+      await NativeBiometric.verifyIdentity({
+        reason: 'Confirme sua identidade para entrar no Meus Exames',
+        title: 'Meus Exames',
+      });
       const token = localStorage.getItem(ENROLL_TOKEN);
       const role = localStorage.getItem(ENROLL_ROLE);
       if (token) return { token, isDoctor: role === 'doctor' };
