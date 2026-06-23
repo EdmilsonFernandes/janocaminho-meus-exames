@@ -28,6 +28,7 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import Diversity3Icon from '@mui/icons-material/Diversity3';
 import SummarizeIcon from '@mui/icons-material/Summarize';
 import { dataProvider } from './dataProvider';
+import { API_URL } from './config';
 import { authProvider } from './authProvider';
 import { theme } from './theme';
 import { i18nProvider } from './i18n';
@@ -246,6 +247,8 @@ const AppDrawer = () => {
   const { pathname } = useLocation();
   const userStr = typeof localStorage !== 'undefined' ? localStorage.getItem('user') : null;
   const userName = (() => { try { return userStr ? (JSON.parse(userStr)?.name as string) : null; } catch { return null; } })();
+  const patientId = typeof localStorage !== 'undefined' ? (localStorage.getItem('selPatientId') || localStorage.getItem('patientId')) : null;
+  const userPhoto = patientId ? `${API_URL}/patients/${patientId}/photo` : undefined;
   // auto-close ao navegar (clica num item → rota muda → fecha)
   useEffect(() => { closeDrawer(); /* deps intencional: só pathname */ }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
@@ -255,10 +258,10 @@ const AppDrawer = () => {
       <Box sx={{ background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff', px: 2, pt: 'calc(env(safe-area-inset-top) + 14px)', pb: 2, boxShadow: '0 4px 16px rgba(32,178,170,.22)' }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between">
           <Stack direction="row" alignItems="center" spacing={1.5}>
-            <Avatar sx={{ bgcolor: 'rgba(255,255,255,.2)', fontWeight: 800, border: '2px solid rgba(255,255,255,.5)' }}>{userName?.charAt(0)?.toUpperCase() || '🤖'}</Avatar>
+            <Avatar src={userPhoto} sx={{ bgcolor: 'rgba(255,255,255,.2)', fontWeight: 800, border: '2px solid rgba(255,255,255,.5)' }}>{userName?.charAt(0)?.toUpperCase()}</Avatar>
             <Box>
               <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', lineHeight: 1.1 }}>Meus Exames</Typography>
-              <Typography sx={{ fontSize: 12, opacity: 0.9 }}>Menu completo</Typography>
+              <Typography sx={{ fontSize: 12, opacity: 0.9 }}>{userName ? `Olá, ${userName.split(' ')[0]}` : 'Bem-vindo'}</Typography>
             </Box>
           </Stack>
           <IconButton onClick={closeDrawer} size="small" title="Fechar" sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,.15)', '&:hover': { bgcolor: 'rgba(255,255,255,.25)' } }}><CloseIcon fontSize="small" /></IconButton>
