@@ -130,7 +130,11 @@ router.post('/register', validate(schemas.register), async (req, res, next) => {
 
     notifyNewUser(String(name), mail);
     const code = issueOtp(mail);
-    try { await sendEmail({ to: mail, subject: 'Ative sua conta — Meus Exames', html: otpEmail(String(name), code) }); } catch (e: any) { console.error('[register] falha SMTP verificação:', e?.message); }
+    // Fire-and-forget: NÃO espera o SMTP concluir. Antes o `await` travava a resposta HTTP
+    // até o Zoho responder (lento/instável) → o app dava "failed to fetch" mesmo a conta
+    // tendo sido criada (aí o usuário tentava de novo e pegava 409 "já existe").
+    sendEmail({ to: mail, subject: 'Ative sua conta — Meus Exames', html: otpEmail(String(name), code) })
+      .catch((e: any) => console.error('[register] falha SMTP verificação:', e?.message));
     res.status(201).json({ needsVerification: true, email: mail, referralBonus: !!referrer });
   } catch (e) { next(e); }
 });
