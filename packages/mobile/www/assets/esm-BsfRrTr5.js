@@ -1,0 +1,1 @@
+import{t as e}from"./preload-helper-kNaey6uv.js";import{registerPlugin as t}from"@capacitor/core";var n;(function(e){e[e.Flush=0]=`Flush`,e[e.Add=1]=`Add`})(n||={});var r=t(`TextToSpeech`,{web:()=>e(()=>import(`./web-DApR9bEx.js`).then(e=>new e.TextToSpeechWeb),[],import.meta.url)});`speechSynthesis`in window&&window.speechSynthesis;export{r as TextToSpeech};
