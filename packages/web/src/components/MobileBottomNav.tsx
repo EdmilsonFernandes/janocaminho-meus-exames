@@ -12,25 +12,24 @@ const NAV = [
   { icon: '📈', label: 'Evolução', to: '/evolucao' },
 ];
 // Menu "Mais" = ESPELHO do menu lateral (AppMenu). Mesmas opções/rotas, mesma ordem.
-// (Início/Evolução/Exames/Chat também ficam aqui pra ter paridade total com a sidebar.)
 const MORE = [
   { icon: '🏠', label: 'Início', to: '/' },
-  { icon: '👤', label: 'Meu perfil', to: '/perfil' },
-  { icon: '📈', label: 'Evolução', to: '/evolucao' },
   { icon: '📋', label: 'Exames', to: '/exams' },
-  { icon: '👨‍👩‍👧', label: 'Dependentes', to: '/patients' },
-  { icon: '🌳', label: 'Família', to: '/familia' },
-  { icon: '🩺', label: 'Meus Médicos', to: '/medicos' },
+  { icon: '📈', label: 'Evolução', to: '/evolucao' },
+  { icon: '🤖', label: 'Dr. Exame (IA)', to: '/chat' },
+  { icon: '⚠️', label: 'Valores alterados', to: '/alterados' },
   { icon: '📊', label: 'Tendências', to: '/tendencias' },
   { icon: '🕒', label: 'Linha do tempo', to: '/linha-do-tempo' },
-  { icon: '🧾', label: 'Relatório completo', to: '/relatorio' },
-  { icon: '⚠️', label: 'Valores alterados', to: '/alterados' },
-  { icon: '🔔', label: 'Lembretes', to: '/lembretes' },
   { icon: '📏', label: 'Medições', to: '/medicoes' },
   { icon: '💉', label: 'Vacinas', to: '/vacinas' },
-  { icon: '💰', label: 'Despesas médicas', to: '/despesas' },
+  { icon: '🔔', label: 'Lembretes', to: '/lembretes' },
   { icon: '🚨', label: 'Cartão de emergência', to: '/emergencia' },
-  { icon: '🤖', label: 'Chat (Dr. Exame)', to: '/chat' },
+  { icon: '🌳', label: 'Família', to: '/familia' },
+  { icon: '👨‍👩‍👧', label: 'Dependentes', to: '/patients' },
+  { icon: '🩺', label: 'Meus Médicos', to: '/medicos' },
+  { icon: '🧾', label: 'Relatório completo', to: '/relatorio' },
+  { icon: '💰', label: 'Despesas médicas', to: '/despesas' },
+  { icon: '👤', label: 'Meu perfil', to: '/perfil' },
   { icon: '💎', label: 'Planos e créditos', to: '/planos' },
 ];
 const NAV_TO = new Set(NAV.map((n) => n.to));
