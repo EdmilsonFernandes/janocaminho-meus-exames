@@ -10,4 +10,11 @@ export default defineConfig({
     port: 5173,
     host: true,
   },
+  build: {
+    // Capacitor packages são runtime-only (fornecidos pelo WebView nativo, não no bundle web).
+    // Sem isso, o rolldown falha ao resolver @capacitor/core no build Docker.
+    rollupOptions: {
+      external: [/^@capacitor\//, /^@capawesome\//],
+    },
+  },
 });
