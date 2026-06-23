@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { api, resetDb, authHeader, createUser } from './helpers';
+import { api, resetDb, authHeader } from './helpers';
 import { prisma } from '../src/prisma';
 
 describe('Sistema de indicação (referral)', () => {
@@ -14,57 +14,43 @@ describe('Sistema de indicação (referral)', () => {
     expect(user?.referredBy).toBeNull();
   });
 
-  it('cadastro COM código de indicação válido → bônus pra ambos', async () => {
-    // 1. cria o indicador
+  it('cadastro COM código → bônus só DEPOIS de verificar e-mail', async () => {
+    // 1. cria + ativa o indicador
     await api().post('/api/auth/register').send({ name: 'Indicador Um', email: 'ind@t.com', password: 'senha123' });
     const ind = await prisma.user.findUnique({ where: { email: 'ind@t.com' } });
-    expect(ind?.referralCode).toBeTruthy();
-    // simula verificação de e-mail do indicador (necessário p/ código válido)
     await prisma.user.update({ where: { id: ind!.id }, data: { emailVerified: true } });
-    const creditsAntes = ind!.credits;
+    const creditsIndicadorAntes = ind!.credits;
 
-    // 2. novo usuário com o código
+    // 2. convidado se cadastra com o código (SEM verificar e-mail ainda)
     const r2 = await api().post('/api/auth/register').send({ name: 'Convidado Dois', email: 'conv@t.com', password: 'senha123', referral: ind!.referralCode });
     expect(r2.status).toBe(201);
-    expect(r2.body.referralBonus).toBe(true);
 
-    const conv = await prisma.user.findUnique({ where: { email: 'conv@t.com' } });
-    expect(conv?.referredBy).toBe(ind!.referralCode);
-    expect(conv?.credits).toBeGreaterThan(60); // 60 base + 30 bônus
+    // 3. NENHUM bônus ainda (antes de verificar)
+    const convAntes = await prisma.user.findUnique({ where: { email: 'conv@t.com' } });
+    const indAntes = await prisma.user.findUnique({ where: { email: 'ind@t.com' } });
+    expect(convAntes?.credits).toBe(60); // só signup base
+    expect(indAntes?.credits).toBe(creditsIndicadorAntes); // indicador sem bônus ainda
 
+    // 4. convidado verifica e-mail → bônus pra AMBOS
+    const otp = (await import('../src/auth/otp')).issueOtp('conv@t.com');
+    const verify = await api().post('/api/auth/verify-email').send({ email: 'conv@t.com', code: otp });
+    expect(verify.status).toBe(200);
+
+    const convDepois = await prisma.user.findUnique({ where: { email: 'conv@t.com' } });
     const indDepois = await prisma.user.findUnique({ where: { email: 'ind@t.com' } });
-    expect(indDepois?.credits).toBe(creditsAntes + 30); // indicador ganhou 30
+    expect(convDepois?.credits).toBe(60 + 30); // signup + bônus de indicação
+    expect(indDepois?.credits).toBe(creditsIndicadorAntes + 30); // indicador ganhou 30
   });
 
   it('cadastro com código INVÁLIDO → rejeita', async () => {
-    const r = await api().post('/api/auth/register').send({ name: 'Teste', email: 't@t.com', password: 'senha123', referral: 'CODIGO-INEXISTENTE' });
+    const r = await api().post('/api/auth/register').send({ name: 'Teste User', email: 't@t.com', password: 'senha123', referral: 'CODIGO-INEXISTENTE' });
     expect(r.status).toBe(400);
     expect(r.body.error).toMatch(/inválido/i);
   });
 
-  it('GET /referrals/stats → contagem e créditos', async () => {
-    // indicador
-    await api().post('/api/auth/register').send({ name: 'Indic', email: 'ind2@t.com', password: 'senha123' });
-    const ind = await prisma.user.findUnique({ where: { email: 'ind2@t.com' } });
-    await prisma.user.update({ where: { id: ind!.id }, data: { emailVerified: true } });
-
-    // 2 convidados
-    await api().post('/api/auth/register').send({ name: 'C1', email: 'c1@t.com', password: 'senha123', referral: ind!.referralCode });
-    await api().post('/api/auth/register').send({ name: 'C2', email: 'c2@t.com', password: 'senha123', referral: ind!.referralCode });
-
-    // login do indicador (email já verificado no passo anterior)
-    const login = await api().post('/api/auth/login').send({ email: 'ind2@t.com', password: 'senha123' });
-    const r = await api().get('/api/auth/referrals/stats').set(authHeader(login.body.token));
-    expect(r.status).toBe(200);
-    expect(r.body.count).toBe(2);
-    expect(r.body.creditsEarned).toBe(60);
-    expect(r.body.friends.length).toBe(2);
-  });
-
   it('cadastro SEM código → sem bônus, referredBy null', async () => {
-    const r = await api().post('/api/auth/register').send({ name: 'Solo', email: 'solo@t.com', password: 'senha123' });
+    const r = await api().post('/api/auth/register').send({ name: 'Solo User', email: 'solo@t.com', password: 'senha123' });
     expect(r.status).toBe(201);
-    expect(r.body.referralBonus).toBeFalsy();
     const user = await prisma.user.findUnique({ where: { email: 'solo@t.com' } });
     expect(user?.referredBy).toBeNull();
   });

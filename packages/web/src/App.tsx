@@ -17,6 +17,7 @@ import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import LockIcon from '@mui/icons-material/Lock';
 import MedicalInformationIcon from '@mui/icons-material/MedicalInformation';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
@@ -112,7 +113,7 @@ const ChevronIcon = ({ open }: { open: boolean }) => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}><path d="m6 9 6 6 6-6" /></svg>
 );
 const MenuGroup = ({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) => {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true); // EXPANDIDO por padrão (EdEspeto-style)
   return (
     <>
       <ListItemButton onClick={() => setOpen(!open)} sx={{ borderRadius: 1, m: '0 8px', py: 0.5, '&:hover': { bgcolor: 'rgba(32,178,170,.06)' } }}>
@@ -162,6 +163,7 @@ const AppMenu = () => {
 
     <MenuGroup title="⚙️ Conta" icon={<AccountCircleIcon sx={{ color: '#8b5cf6' }} />}>
       <Menu.Item to="/perfil" primaryText="Meu perfil" leftIcon={<AccountCircleIcon sx={{ color: '#8b5cf6', fontSize: 18 }} />} />
+      <Menu.Item to="/perfil" primaryText="🔐 Segurança da conta (MFA + biometria)" leftIcon={<LockIcon sx={{ color: '#8b5cf6', fontSize: 18 }} />} />
       <Menu.Item to="/planos" primaryText="Planos e créditos" leftIcon={<WorkspacePremiumIcon sx={{ color: '#f97316', fontSize: 18 }} />} />
       {isAdmin && <Menu.Item to="/admin" primaryText="Painel Admin" leftIcon={<AdminPanelSettingsIcon sx={{ color: '#ef4444', fontSize: 18 }} />} />}
     </MenuGroup>

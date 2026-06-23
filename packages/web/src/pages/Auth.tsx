@@ -107,6 +107,8 @@ export const LoginPage = () => {
     try { await login({ username: email.trim(), password: pwd }); }
     catch (e: any) {
       if (e?.mfaRequired) { setMfaChallenge({ token: e.challengeToken, account: e.account, verifyUrl: `${API_URL}/auth/mfa/verify`, isDoctor: false }); return; }
+      // Conta não verificada → redireciona pra tela de ativação por e-mail
+      if (e?.needsVerification) { notify('Sua conta ainda não foi ativada. Enviamos um código pro seu e-mail.', { type: 'warning' }); setMode('otp'); setLoading(false); return; }
       notify('E-mail ou senha incorretos.', { type: 'error' });
     }
     finally { setLoading(false); }

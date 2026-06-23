@@ -14,8 +14,10 @@ export const authProvider = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password }),
     });
+    const data = await r.json().catch(() => ({}));
+    // Conta não verificada → sinaliza pra UI redirecionar pra ativação por e-mail
+    if (r.status === 403 && data.needsVerification) throw { needsVerification: true, email: username };
     if (!r.ok) throw new Error('Credenciais inválidas');
-    const data = await r.json();
     // MFA: senha OK mas 2FA ativo → sinaliza pra UI mostrar o desafio (não grava token)
     if (data.mfaRequired) throw { mfaRequired: true, challengeToken: data.challengeToken, account: data.account };
     const { token, patientId, user } = data;

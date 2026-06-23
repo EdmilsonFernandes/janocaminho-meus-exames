@@ -121,20 +121,12 @@ router.post('/register', validate(schemas.register), async (req, res, next) => {
     }
 
     const passwordHash = await hashPassword(pwd);
-    const signupCredits = getSettings().grants.freeSignup + (referrer ? REFERRAL_BONUS : 0);
+    // NÃO dá bônus de indicação aqui — só DEPOIS de verificar o e-mail (verify-email).
+    const signupCredits = getSettings().grants.freeSignup;
     const user = await prisma.user.create({
       data: { email: mail, name: String(name), passwordHash, credits: signupCredits, referralCode, referredBy: referrer?.referralCode ?? null },
     });
     await prisma.patient.create({ data: { ownerId: user.id, fullName: String(name), relationship: 'Titular' } });
-
-    // Bônus pro indicador (referral bonus)
-    if (referrer) {
-      await prisma.user.update({ where: { id: referrer.id }, data: { credits: { increment: REFERRAL_BONUS } } });
-      try {
-        await prisma.notification.create({ data: { userId: referrer.id, type: 'referral', title: '🎉 Você indicou e ganhou!', body: `${String(name)} se cadastrou com seu código. +${REFERRAL_BONUS} créditos pra você!` } });
-      } catch { /* notificação não é crítica */ }
-      console.log(`[referral] ${referrer.email} ganhou +${REFERRAL_BONUS} (indicou ${mail})`);
-    }
 
     notifyNewUser(String(name), mail);
     const code = issueOtp(mail);
@@ -151,12 +143,39 @@ router.post('/verify-email', async (req, res, next) => {
     const user = await prisma.user.findUnique({ where: { email: mail } });
     if (!user) { res.status(404).json({ error: 'Conta não encontrada. Cadastre-se novamente.' }); return; }
     if (!verifyOtp(mail, code)) { res.status(401).json({ error: 'Código inválido ou expirado.' }); return; }
-    await prisma.user.update({ where: { id: user.id }, data: { emailVerified: true } });
+
+    // REFERRAL BONUS — só aqui (depois de verificar e-mail). Bônus pra AMBOS.
+    // LIMITE: máx 10 indicações por mês (anti-abuso).
+    const REFERRAL_BONUS = 30;
+    const REFERRAL_MONTHLY_LIMIT = 10;
+    let bonusCredits = 0;
+    if (user.referredBy) {
+      const referrer = await prisma.user.findFirst({ where: { referralCode: user.referredBy } });
+      if (referrer) {
+        // Conta quantas indicações ativou este mês
+        const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
+        const monthReferrals = await prisma.subscription.count({
+          where: { userId: referrer.id, status: 'APPROVED', periodDays: 0, createdAt: { gte: monthStart } },
+        });
+        if (monthReferrals < REFERRAL_MONTHLY_LIMIT) {
+          // Bônus pro INDICADOR + registra no extrato (Subscription periodDays=0 = pacote avulso)
+          await prisma.$transaction([
+            prisma.user.update({ where: { id: referrer.id }, data: { credits: { increment: REFERRAL_BONUS } } }),
+            prisma.subscription.create({ data: { userId: referrer.id, amount: REFERRAL_BONUS, periodDays: 0, status: 'APPROVED', mpPreferenceId: `referral_${user.id}` } }),
+          ]);
+          try { await prisma.notification.create({ data: { userId: referrer.id, type: 'referral', title: '🎉 Você indicou e ganhou!', body: `${user.name} ativou a conta com seu código. +${REFERRAL_BONUS} créditos pra você!` } }); } catch {}
+          console.log(`[referral] ${referrer.email} +${REFERRAL_BONUS} (${monthReferrals + 1}/${REFERRAL_MONTHLY_LIMIT} este mês)`);
+          bonusCredits = REFERRAL_BONUS;
+        } else {
+          console.log(`[referral] ${referrer.email} atingiu limite mensal (${REFERRAL_MONTHLY_LIMIT})`);
+        }
+      }
+    }
+
+    await prisma.user.update({ where: { id: user.id }, data: { emailVerified: true, credits: { increment: bonusCredits } } });
+    const freshUser = await prisma.user.findUnique({ where: { id: user.id }, select: { id: true, email: true, name: true, role: true, planExpiresAt: true, credits: true, referralCode: true, referredBy: true } });
     const { token, patientId } = await issueSession(user.id);
-    res.json({
-      token, patientId,
-      user: { id: user.id, email: user.email, name: user.name, role: user.role, planExpiresAt: user.planExpiresAt, credits: user.credits },
-    });
+    res.json({ token, patientId, user: freshUser });
   } catch (e) { next(e); }
 });
 
