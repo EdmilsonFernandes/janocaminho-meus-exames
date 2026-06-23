@@ -1,40 +1,68 @@
-/* "Biometria" / quick-login: guarda o token após login, e na próxima vez
- * o usuário entra sem senha (o aparelho já tem trava de tela/digital/face do SO).
- * Sem plugin nativo (compatível com Capacitor 7 — não quebra o Docker build). */
+/* Biometria nativa (face/digital) via bridge customizado window.DxBiometrics.
+ * Padrão EdEspeto: BiometricPrompt + EncryptedSharedPreferences (Keystore) + event dispatch.
+ * No web: não disponível (esconde o botão). */
 import { Capacitor } from '@capacitor/core';
 
-const ENROLL_TOKEN = 'bio_token';
-const ENROLL_ROLE = 'bio_role'; // 'patient' | 'doctor'
+const BIO_EVENT = 'dx:biometric-result';
+
+// Acesso ao bridge nativo (injetado pelo MainActivity.java no WebView)
+const bio = (): any => {
+  try { return (typeof window !== 'undefined') ? (window as any).DxBiometrics : undefined; }
+  catch { return undefined; }
+};
 
 export const BiometricService = {
-  // No nativo mostra o botão; no web esconde (web usa senha/OTP).
   isSupported: (): boolean => {
-    try { return Capacitor.isNativePlatform(); } catch { return false; }
+    try { return Capacitor.isNativePlatform() && !!bio()?.isBiometricAvailable?.(); }
+    catch { return false; }
   },
 
-  hasEnrollment: (): boolean => !!localStorage.getItem(ENROLL_TOKEN),
+  hasEnrollment: (): boolean => {
+    const b = bio();
+    return !!(b?.hasToken?.('patient') || b?.hasToken?.('doctor'));
+  },
 
   getEnrolledRole: (): 'patient' | 'doctor' | null => {
-    const r = localStorage.getItem(ENROLL_ROLE);
-    return r === 'doctor' ? 'doctor' : r === 'patient' ? 'patient' : null;
+    const b = bio();
+    if (!b) return null;
+    if (b.hasToken?.('doctor')) return 'doctor';
+    if (b.hasToken?.('patient')) return 'patient';
+    return null;
   },
 
   enroll: (token: string, isDoctor: boolean) => {
-    localStorage.setItem(ENROLL_TOKEN, token);
-    localStorage.setItem(ENROLL_ROLE, isDoctor ? 'doctor' : 'patient');
+    const role = isDoctor ? 'doctor' : 'patient';
+    bio()?.saveToken?.(role, token);
+    // limpa keys antigas do localStorage (migração do quick-login)
+    try { localStorage.removeItem('bio_token'); localStorage.removeItem('bio_role'); } catch {}
   },
 
   forget: () => {
-    localStorage.removeItem(ENROLL_TOKEN);
-    localStorage.removeItem(ENROLL_ROLE);
+    const b = bio();
+    b?.clearToken?.('patient');
+    b?.clearToken?.('doctor');
   },
 
-  /** Recupera o token guardado (login sem senha). No aparelho com trava de tela,
-   *  o SO já protege o acesso — o token fica disponível só depois do desbloqueio. */
+  /** Mostra o prompt nativo de biometria (face/digital). No sucesso, devolve o token do Keystore. */
   loginWithBiometric: async (): Promise<{ token: string; isDoctor: boolean } | null> => {
-    const token = localStorage.getItem(ENROLL_TOKEN);
-    const role = localStorage.getItem(ENROLL_ROLE);
-    if (token) return { token, isDoctor: role === 'doctor' };
-    return null;
+    const b = bio();
+    if (!b || !b.isBiometricAvailable?.()) return null;
+    const role = BiometricService.getEnrolledRole();
+    if (!role) return null;
+
+    return new Promise((resolve) => {
+      const requestId = Math.random().toString(36).slice(2);
+      const handler = (e: any) => {
+        const d = e.detail;
+        if (!d || d.requestId !== requestId) return;
+        window.removeEventListener(BIO_EVENT, handler);
+        if (d.success) {
+          const token = b.getToken?.(role);
+          resolve(token ? { token, isDoctor: role === 'doctor' } : null);
+        } else { resolve(null); }
+      };
+      window.addEventListener(BIO_EVENT, handler);
+      b.authenticate?.(requestId, 'Meus Exames', 'Confirme sua identidade para entrar');
+    });
   },
 };
