@@ -78,9 +78,9 @@ export const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [role, setRole] = useState<'paciente' | 'medico'>('paciente');
   const [mfaChallenge, setMfaChallenge] = useState<{ token: string; account?: string; verifyUrl: string; isDoctor: boolean } | null>(null);
-  const [bioReady, setBioReady] = useState(false);
-
-  useEffect(() => { setBioReady(BiometricService.isSupported() && BiometricService.hasEnrollment()); }, []);
+  // Quick-login só aparece se a aba atual bate com o role matriculado (paciente ≠ médico)
+  const enrolledRole = BiometricService.getEnrolledRole();
+  const bioReady = BiometricService.isSupported() && BiometricService.hasEnrollment() && enrolledRole === (role === 'medico' ? 'doctor' : 'patient');
 
   const bioLogin = async () => {
     const r = await BiometricService.loginWithBiometric();

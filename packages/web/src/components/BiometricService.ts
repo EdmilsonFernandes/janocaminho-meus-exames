@@ -14,6 +14,11 @@ export const BiometricService = {
 
   hasEnrollment: (): boolean => !!localStorage.getItem(ENROLL_TOKEN),
 
+  getEnrolledRole: (): 'patient' | 'doctor' | null => {
+    const r = localStorage.getItem(ENROLL_ROLE);
+    return r === 'doctor' ? 'doctor' : r === 'patient' ? 'patient' : null;
+  },
+
   enroll: (token: string, isDoctor: boolean) => {
     localStorage.setItem(ENROLL_TOKEN, token);
     localStorage.setItem(ENROLL_ROLE, isDoctor ? 'doctor' : 'patient');
