@@ -28,10 +28,10 @@ describe('Doctor Portal - auth + shares + scoped', () => {
   });
 
   it('doctor register rejects dup CRM + short pw', async () => {
-    await api().post('/api/doctor/register').send({ name: 'A', crm: 'DUP-SP', specialty: 'X', email: 'a@t.com', password: 'senha123' });
-    const dup = await api().post('/api/doctor/register').send({ name: 'B', crm: 'DUP-SP', specialty: 'Y', email: 'b@t.com', password: 'senha123' });
+    await api().post('/api/doctor/register').send({ name: 'Alice Dup', crm: 'DUP-SP', specialty: 'X', email: 'a@t.com', password: 'senha123' });
+    const dup = await api().post('/api/doctor/register').send({ name: 'Bob Dup', crm: 'DUP-SP', specialty: 'Y', email: 'b@t.com', password: 'senha123' });
     expect(dup.status).toBe(409);
-    const short = await api().post('/api/doctor/register').send({ name: 'C', crm: 'C-SP', specialty: 'Z', email: 'c@t.com', password: '123' });
+    const short = await api().post('/api/doctor/register').send({ name: 'Charlie Short', crm: 'C-SP', specialty: 'Z', email: 'c@t.com', password: '123' });
     expect(short.status).toBe(400);
   });
 

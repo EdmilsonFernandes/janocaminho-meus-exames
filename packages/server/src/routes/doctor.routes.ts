@@ -1,3 +1,5 @@
+import { auditLog } from '../middleware/auditLog';
+import { validate, schemas } from '../middleware/validate';
 import { Router } from 'express';
 import jwt from 'jsonwebtoken';
 import path from 'path';
@@ -25,7 +27,7 @@ const requireDoctor = async (req: any, res: any, next: any) => {
 };
 
 // CADASTRO do médico
-router.post('/register', async (req, res, next) => {
+router.post('/register', validate(schemas.doctorRegister), async (req, res, next) => {
   try {
     const { name, crm, specialty, email, password } = req.body ?? {};
     if (!name || !crm || !email || !password || String(password).length < 6) {
@@ -195,6 +197,7 @@ function calcAge(dob: Date | string): number {
 
 // EXAMES do paciente (só se scope 'exams')
 router.get('/patients/:patientId/exams', requireDoctor, async (req: any, res, next) => {
+    void auditLog(req, 'doctor_viewed_exams', String(req.params.patientId));
   try {
     const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
     if (!share?.scopes.includes('exams')) { res.status(403).json({ error: 'Sem permissão para ver exames deste paciente.' }); return; }
@@ -266,6 +269,7 @@ router.get('/patients/:patientId/evolution', requireDoctor, async (req: any, res
 
 // RESUMOS DE IA do paciente (só se scope 'summary') — análises SUMMARY já geradas
 router.get('/patients/:patientId/summaries', requireDoctor, async (req: any, res, next) => {
+    void auditLog(req, 'doctor_viewed_summaries', String(req.params.patientId));
   try {
     const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
     if (!share?.scopes.includes('summary')) { res.status(403).json({ error: 'Sem permissão.' }); return; }

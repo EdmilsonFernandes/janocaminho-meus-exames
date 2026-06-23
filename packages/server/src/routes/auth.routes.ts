@@ -14,6 +14,7 @@ import fs from 'fs';
 import path from 'path';
 import { config } from '../config';
 import { deleteExamFile, patientSlug } from '../utils/storage';
+import { validate, schemas } from '../middleware/validate';
 
 const router = Router();
 
@@ -36,7 +37,7 @@ async function notifyNewUser(name: string, email: string) {
 }
 
 // LOGIN (react-admin envia {username, password})
-router.post('/login', async (req, res, next) => {
+router.post('/login', validate(schemas.login), async (req, res, next) => {
   try {
     const { username, email, password } = req.body ?? {};
     const mail = String(email ?? username ?? '').toLowerCase().trim();
@@ -89,7 +90,7 @@ router.post('/mfa/disable', requireAuth, async (req: AuthedRequest, res) => {
 });
 
 // REGISTRO (auto-atendimento — Play Store)
-router.post('/register', async (req, res, next) => {
+router.post('/register', validate(schemas.register), async (req, res, next) => {
   try {
     const { name, email, password, referral } = req.body ?? {};
     const mail = String(email ?? '').toLowerCase().trim();

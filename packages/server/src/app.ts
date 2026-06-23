@@ -56,7 +56,12 @@ app.use('/api/analyses', aiLimiter);
 app.use('/api/chat', aiLimiter);
 app.use('/api/', generalLimiter);
 
-app.get('/api/health', (_req, res) => res.json({ ok: true, ts: new Date().toISOString() }));
+app.get('/api/health', async (_req, res) => {
+  const checks: Record<string, string> = {};
+  try { await prisma.$queryRaw`SELECT 1`; checks.db = 'ok'; } catch { checks.db = 'down'; }
+  const ok = Object.values(checks).every((v) => v === 'ok');
+  res.status(ok ? 200 : 503).json({ ok, ts: new Date().toISOString(), checks });
+});
 // Força-atualização (público, sem auth): app compara a versão instalada com a mínima exigida.
 app.get('/api/app/version', (_req, res) => res.json({ latest: config.appLatestVersion, minRequired: config.appMinVersion }));
 

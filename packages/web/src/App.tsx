@@ -34,9 +34,12 @@ import { ExamShow } from './resources/Exams/ExamShow';
 import { ExamCreate } from './resources/Exams/ExamCreate';
 import { PatientList, PatientEdit } from './resources/Patients/Patients';
 import { TrendsPage } from './pages/Trends';
-import { ChatPage } from './pages/Chat';
-import { RemindersPage } from './pages/Reminders';
-import { PlansPage } from './pages/Plans';
+// Code splitting — páginas pesadas carregam sob demanda (bundle inicial menor)
+const ChatPage = lazy(() => import('./pages/Chat').then(m => ({ default: m.ChatPage })));
+const DoctorPortalPage = lazy(() => import('./pages/DoctorPortal').then(m => ({ default: m.DoctorPortalPage })));
+const LandingPage = lazy(() => import('./pages/Landing').then(m => ({ default: m.LandingPage })));
+const PlansPage = lazy(() => import('./pages/Plans').then(m => ({ default: m.PlansPage })));
+const RemindersPage = lazy(() => import('./pages/Reminders').then(m => ({ default: m.RemindersPage })));
 import { MeasurementsPage } from './pages/Measurements';
 import { VaccinesPage } from './pages/Vaccines';
 import { EmergencyCardPage } from './pages/EmergencyCard';
@@ -50,7 +53,6 @@ import { ProfilePage } from './pages/Profile';
 import { AdminPage } from './pages/Admin';
 import { NotFoundPage } from './pages/NotFound';
 import { LoginPage, RegisterPage, ResetPage } from './pages/Auth';
-import { LandingPage } from './pages/Landing';
 import { TermsPage } from './pages/Terms';
 import { PatientSwitcher } from './components/PatientSwitcher';
 import { CreditsChip } from './components/CreditsChip';
@@ -64,7 +66,6 @@ import { NotificationBell } from './components/NotificationBell';
 import { NotificationPopup } from './components/NotificationPopup';
 import { Onboarding } from './components/Onboarding';
 import { NotificationsPage } from './pages/Notifications';
-import { DoctorPortalPage } from './pages/DoctorPortal';
 import { MedicosPage } from './pages/Medicos';
 import { initPush } from './push';
 import { syncCreditCosts } from './components/CreditBadge';
@@ -114,12 +115,12 @@ const MenuGroup = ({ title, icon, children }: { title: string; icon: React.React
   const [open, setOpen] = useState(false);
   return (
     <>
-      <ListItemButton onClick={() => setOpen(!open)} sx={{ borderRadius: 1, m: '2px 10px', py: 0.75, '&:hover': { bgcolor: 'rgba(32,178,170,.06)' } }}>
-        <ListItemIcon sx={{ minWidth: 36 }}>{icon}</ListItemIcon>
-        <ListItemText primary={title} primaryTypographyProps={{ fontSize: 13.5, fontWeight: 800, color: '#0f3d3a' }} />
+      <ListItemButton onClick={() => setOpen(!open)} sx={{ borderRadius: 1, m: '0 8px', py: 0.5, '&:hover': { bgcolor: 'rgba(32,178,170,.06)' } }}>
+        <ListItemIcon sx={{ minWidth: 34 }}>{icon}</ListItemIcon>
+        <ListItemText primary={title} primaryTypographyProps={{ fontSize: 13, fontWeight: 700, color: '#0f3d3a' }} />
         <ChevronIcon open={open} />
       </ListItemButton>
-      <Collapse in={open} sx={{ pl: 1 }}>{children}</Collapse>
+      <Collapse in={open} timeout="auto" sx={{ '& .MuiMenuItem-root, & .MuiListItem-root': { py: 0.25 } }}>{children}</Collapse>
     </>
   );
 };
@@ -308,11 +309,11 @@ export const App = () => {
   >
     <CustomRoutes noLayout>
       <Route path="/entrar" element={<LoginPage />} />
-      <Route path="/landing" element={<LandingPage />} />
+      <Route path="/landing" element={<Suspense fallback={<Box sx={{ display:'flex', justifyContent:'center', py: 8 }}><CircularProgress /></Box>}><LandingPage /></Suspense>} />
       <Route path="/termos" element={<TermsPage />} />
       <Route path="/registrar" element={<RegisterPage />} />
       <Route path="/recuperar-senha" element={<ResetPage />} />
-      <Route path="/doctor" element={<DoctorPortalPage />} />
+      <Route path="/doctor" element={<Suspense fallback={<Box sx={{ display:'flex', justifyContent:'center', py: 8 }}><CircularProgress /></Box>}><DoctorPortalPage /></Suspense>} />
     </CustomRoutes>
 
     <Resource name="exams" list={ExamList} show={ExamShow} create={ExamCreate} options={{ label: 'Exames' }} icon={MedicalInformationIcon} />
@@ -330,14 +331,14 @@ export const App = () => {
       <Route path="/linha-do-tempo" element={<TimelinePage />} />
       <Route path="/relatorio" element={<ConsolidatedReportPage />} />
       <Route path="/alterados" element={<ValoresAlteradosPage />} />
-      <Route path="/lembretes" element={<RemindersPage />} />
+      <Route path="/lembretes" element={<Suspense fallback={<Box sx={{ display:'flex', justifyContent:'center', py: 8 }}><CircularProgress /></Box>}><RemindersPage /></Suspense>} />
       <Route path="/medicoes" element={<MeasurementsPage />} />
       <Route path="/vacinas" element={<VaccinesPage />} />
       <Route path="/despesas" element={<ExpensesPage />} />
       <Route path="/emergencia" element={<EmergencyCardPage />} />
-      <Route path="/chat" element={<ChatPage />} />
+      <Route path="/chat" element={<Suspense fallback={<Box sx={{ display:'flex', justifyContent:'center', py: 8 }}><CircularProgress /></Box>}><ChatPage /></Suspense>} />
       <Route path="/notificacoes" element={<NotificationsPage />} />
-      <Route path="/planos" element={<PlansPage />} />
+      <Route path="/planos" element={<Suspense fallback={<Box sx={{ display:'flex', justifyContent:'center', py: 8 }}><CircularProgress /></Box>}><PlansPage /></Suspense>} />
       <Route path="/medicos" element={<MedicosPage />} />
     </CustomRoutes>
   </Admin>

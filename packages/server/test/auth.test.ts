@@ -51,7 +51,7 @@ describe('auth + requireAuth', () => {
 
     await createUser({ email: 'dup@exemplo.com' });
     const dup = await api().post('/api/auth/register')
-      .send({ name: 'X', email: 'dup@exemplo.com', password: 'senha123' });
+      .send({ name: 'Dup User', email: 'dup@exemplo.com', password: 'senha123' });
     expect(dup.status).toBe(409);
   });
 
