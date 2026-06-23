@@ -11,10 +11,11 @@ export default defineConfig({
     host: true,
   },
   build: {
-    // Capacitor packages são runtime-only (fornecidos pelo WebView nativo, não no bundle web).
-    // Sem isso, o rolldown falha ao resolver @capacitor/core no build Docker.
-    rollupOptions: {
-      external: [/^@capacitor\//, /^@capawesome\//],
-    },
+    // NÃO externalizar @capacitor/* : esses pacotes trazem uma implementação WEB (JS) que DEVE
+    // entrar no bundle — é ela que faz isNativePlatform() retornar false no browser. Externalizar
+    // deixava `import "@capacitor/core"` como specifier nu no bundle → o browser quebrava com
+    // "Failed to resolve module specifier @capacitor/core". No APK o nativo ainda wins porque o
+    // bridge injeta as implementações reais por cima. (Já foi external p/ o build Docker passar
+    // quando @capacitor/core ainda não era dep do web — hoje é, então virou obsoleto e nocivo.)
   },
 });

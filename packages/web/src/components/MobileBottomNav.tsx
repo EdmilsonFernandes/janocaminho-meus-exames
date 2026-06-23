@@ -1,8 +1,8 @@
 import { Box, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useSidebarState } from 'react-admin';
+import { useAppDrawer } from './drawerState';
 
-/** Menu rodapé fixo (só mobile) — 4 atalhos + "Mais" que abre o MESMO sidebar do react-admin (unificado com o ☰). */
+/** Menu rodapé fixo (só mobile) — 4 atalhos + "Mais" que abre o MESMO drawer do ☰ (AppDrawer unificado). */
 const NAV = [
   { icon: '🏠', label: 'Início', to: '/' },
   { icon: '📋', label: 'Exames', to: '/exams' },
@@ -16,8 +16,7 @@ export const MobileBottomNav = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const sidebarState = useSidebarState();
-  const setSidebarOpen = sidebarState[1];
+  const { openDrawer } = useAppDrawer();
   if (!isMobile) return null;
   const active = (to: string) => (to === '/' ? pathname === '/' : pathname.startsWith(to));
   const maisActive = SECONDARY_ROUTES.some((r) => active(r));
@@ -41,8 +40,8 @@ export const MobileBottomNav = () => {
       pb: 'env(safe-area-inset-bottom)', boxShadow: '0 -6px 24px rgba(32,178,170,.10)',
     }}>
       {NAV.map((it) => item(it, undefined, active(it.to)))}
-      {/* "Mais" abre o MESMO sidebar do react-admin (AppMenu com grupos, Ajuda, Sobre, Sair) */}
-      {item({ icon: '☰', label: 'Mais', to: '#mais' }, () => setSidebarOpen(true), maisActive)}
+      {/* "Mais" abre o MESMO AppDrawer do ☰ — menu idêntico nos dois gatilhos */}
+      {item({ icon: '☰', label: 'Mais', to: '#mais' }, () => openDrawer(), maisActive)}
     </Box>
   );
 };

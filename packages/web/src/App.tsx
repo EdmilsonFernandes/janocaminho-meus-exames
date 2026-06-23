@@ -2,9 +2,11 @@ import { Admin, Resource, CustomRoutes, Layout, Menu, AppBar, TitlePortal, AppBa
 import { Route, useNavigate, useLocation } from 'react-router-dom';
 import { useEffect, useState, useRef, lazy, Suspense } from 'react';
 import { Capacitor } from '@capacitor/core';
-import { Box, Typography, IconButton, Button, useMediaQuery, useTheme, CircularProgress, Menu as MuiMenu, MenuItem, Divider, ListItemIcon, ListItemText, Collapse, ListItemButton, Dialog, DialogTitle, DialogContent, DialogActions, Chip } from '@mui/material';
+import { Box, Typography, IconButton, Button, useMediaQuery, useTheme, CircularProgress, Menu as MuiMenu, MenuItem, Divider, ListItemIcon, ListItemText, Collapse, ListItemButton, Dialog, DialogTitle, DialogContent, DialogActions, Chip, Drawer, Avatar, Stack } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import CloseIcon from '@mui/icons-material/Close';
+import MenuIcon from '@mui/icons-material/Menu';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import InsightsIcon from '@mui/icons-material/Insights';
 import AutoGraphIcon from '@mui/icons-material/AutoGraph';
@@ -60,6 +62,7 @@ import { CreditsChip } from './components/CreditsChip';
 import { FloatingChat } from './components/FloatingChat';
 import { BootSplash } from './components/BootSplash';
 import { MobileBottomNav } from './components/MobileBottomNav';
+import { DrawerProvider, useAppDrawer } from './components/drawerState';
 import { OfflineBanner } from './components/OfflineBanner';
 import { ForceUpdate } from './components/ForceUpdate';
 import { checkAppUpdate, checkPlayUpdate } from './utils/version';
@@ -82,10 +85,19 @@ const CustomAppBar = (props: AppBarProps) => {
   const refresh = useRefresh();
   const locale = useLocale();
   const setLocale = useSetLocale();
+  const { openDrawer } = useAppDrawer();
   const [menuA, setMenuA] = useState<HTMLElement | null>(null);
   const toggleLang = () => { const l = locale === 'pt' ? 'en' : 'pt'; setLocale(l); try { localStorage.setItem('lang', l); } catch {} setMenuA(null); };
   return (
+    // O ☰ nativo do react-admin (SidebarToggleButton) é escondido no mobile via CSS no AppLayout
+    // (classe .RaAppBar-menuButton → display:none em telas pequenas). No mobile, o ☰ abaixo
+    // abre o AppDrawer UNIFICADO (mesmo menu do "Mais" do rodapé). Desktop mantém o toggle nativo.
     <AppBar {...props} userMenu={false}>
+      {!isDesktop && (
+        <IconButton color="inherit" onClick={openDrawer} title="Menu" size="small" sx={{ mr: 0.5 }}>
+          <MenuIcon fontSize="small" />
+        </IconButton>
+      )}
       {canBack && (
         <IconButton color="inherit" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))} title="Voltar" size="small" sx={{ mr: 0.5 }}>
           <ArrowBackIcon fontSize="small" />
@@ -218,6 +230,38 @@ const AppMenu = () => {
   );
 };
 
+// Menu lateral UNIFICADO (mobile). O ☰ do AppBar e o "Mais" do rodapé abem o
+// MESMO AppDrawer aqui — mesma fonte de verdade (AppMenu), zero divergência de layout.
+// Fecha sozinho ao trocar de rota (mesmo comportamento do Sidebar nativo).
+const AppDrawer = () => {
+  const { open, closeDrawer } = useAppDrawer();
+  const { pathname } = useLocation();
+  const userStr = typeof localStorage !== 'undefined' ? localStorage.getItem('user') : null;
+  const userName = (() => { try { return userStr ? (JSON.parse(userStr)?.name as string) : null; } catch { return null; } })();
+  // auto-close ao navegar (clica num item → rota muda → fecha)
+  useEffect(() => { closeDrawer(); /* deps intencional: só pathname */ }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+  return (
+    <Drawer anchor="left" open={open} onClose={closeDrawer} keepMounted={false}
+      PaperProps={{ sx: { width: { xs: '86vw', sm: 340 }, maxWidth: 360, display: 'flex', flexDirection: 'column', bgcolor: '#fff' } }}>
+      {/* Header teal — identidade visual do app (mesmo padrão do portal/landing) */}
+      <Box sx={{ background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff', px: 2, pt: 'calc(env(safe-area-inset-top) + 14px)', pb: 2, boxShadow: '0 4px 16px rgba(32,178,170,.22)' }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between">
+          <Stack direction="row" alignItems="center" spacing={1.5}>
+            <Avatar sx={{ bgcolor: 'rgba(255,255,255,.2)', fontWeight: 800, border: '2px solid rgba(255,255,255,.5)' }}>{userName?.charAt(0)?.toUpperCase() || '🤖'}</Avatar>
+            <Box>
+              <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', lineHeight: 1.1 }}>Meus Exames</Typography>
+              <Typography sx={{ fontSize: 12, opacity: 0.9 }}>Menu completo</Typography>
+            </Box>
+          </Stack>
+          <IconButton onClick={closeDrawer} size="small" title="Fechar" sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,.15)', '&:hover': { bgcolor: 'rgba(255,255,255,.25)' } }}><CloseIcon fontSize="small" /></IconButton>
+        </Stack>
+      </Box>
+      {/* Corpo rolável — reutiliza o MESMO AppMenu do Sidebar (fonte única de verdade) */}
+      <Box sx={{ flex: 1, overflowY: 'auto', pb: 2 }}><AppMenu /></Box>
+    </Drawer>
+  );
+};
+
 // Seletor de idioma PT/EN (persiste em localStorage)
 const LangToggle = () => {
   const locale = useLocale();
@@ -261,19 +305,59 @@ const AppLayout = (props: any) => {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('sm'));
   return (
-    <>
+    <DrawerProvider>
       {/* gap reduzido + espaço pra não cobrir conteúdo com o menu rodapé (mobile) */}
       <Layout {...props} menu={AppMenu} appBar={CustomAppBar}
-        sx={{ '& .RaLayout-content, & main': { padding: { xs: '2px 0 64px', sm: '6px 0 28px' } }, '& .RaList-toolbar, [class*="List-toolbar"]': { minHeight: '40px !important', paddingBottom: '4px !important' } }} />
+        sx={{
+          // Esconde o ☰ nativo do react-admin no mobile (vamos usar nosso AppDrawer unificado). Desktop mantém.
+          '& .RaAppBar-menuButton': { display: { xs: 'none', sm: 'inline-flex' } },
+          '& .RaLayout-content, & main': { padding: { xs: '2px 0 64px', sm: '6px 0 28px' } },
+          '& .RaList-toolbar, [class*="List-toolbar"]': { minHeight: '40px !important', paddingBottom: '4px !important' },
+        }} />
+      {/* Menu lateral UNIFICADO (mobile) — ☰ e "Mais" abem o mesmo drawer */}
+      <AppDrawer />
       <FloatingChat />
       <OfflineBanner />
       <PullToRefresh />
       <MobileBottomNav />
       <NotificationPopup />
       <Onboarding />
-    </>
+    </DrawerProvider>
   );
 };
+
+// === Pilha de navegação IN-APP para o botão/gesto VOLTAR (Android/Capacitor) ===
+// App.tsx é a raiz (fora do contexto do Router), então não temos useNavigate/useLocation.
+// Em vez disso, rastreamos a navegação patcheando history.pushState/replaceState + popstate.
+// Assim sabemos se existe uma tela anterior REAL dentro do app, e só chamamos history.back()
+// quando faz sentido — nunca deixa o gesto levar o app de volta pra Google Play.
+//
+// BUG ANTERIOR: o handler lia window.location.hash, que é SEMPRE vazio no BrowserRouter do
+// react-admin → acreditava estar sempre na raiz ("/") → NUNCA voltava; o gesto só saía do app.
+const readPath = (): string => {
+  // Suporta BrowserRouter (pathname) e HashRouter (hash) — whichever tiver conteúdo.
+  const h = typeof window !== 'undefined' && window.location.hash ? window.location.hash.replace(/^#/, '') : '';
+  if (h) return h;
+  return (typeof window !== 'undefined' && window.location.pathname) || '/';
+};
+const inAppStack: string[] = [readPath()];
+const recordPush = () => {
+  const p = readPath();
+  const last = inAppStack[inAppStack.length - 1];
+  if (p === last) return;
+  const idx = inAppStack.lastIndexOf(p); // voltou pra uma tela conhecida → trunca (evita crescer p/ sempre)
+  if (idx >= 0) inAppStack.length = idx + 1;
+  else inAppStack.push(p);
+};
+const recordReplace = () => { inAppStack[inAppStack.length - 1] = readPath(); }; // replaceState = mesma entrada
+if (typeof window !== 'undefined' && !(window as any).__navPatched) {
+  (window as any).__navPatched = true;
+  const origPush = history.pushState.bind(history);
+  const origReplace = history.replaceState.bind(history);
+  history.pushState = function (data: any, unused: string, url?: string | URL | null) { const r = origPush(data, unused, url ?? null); setTimeout(recordPush, 0); return r; };
+  history.replaceState = function (data: any, unused: string, url?: string | URL | null) { const r = origReplace(data, unused, url ?? null); setTimeout(recordReplace, 0); return r; };
+  window.addEventListener('popstate', recordPush); // gesto/botão voltar nativo do browser → atualiza pilha
+}
 
 // Porta de entrada pública: o react-admin mostra o "loginPage" sempre que um anônimo
 // cai em / (dashboard → checkAuth falha → Navigate /login) ou quando a sessão expira.
@@ -303,7 +387,7 @@ export const App = () => {
     // RE-CHECA atualização a cada 10 min enquanto o app tá aberto (Play Store publica versão nova → aparece sem precisar reiniciar)
     const updateInterval = setInterval(() => { if (!cancelled) void checkPlayUpdate(); }, 10 * 60 * 1000);
     void syncCreditCosts();
-    // Botão/gesto de voltar do Android (Capacitor) — volta no histórico ou sai do app na raiz
+    // Botão/gesto de voltar do Android (Capacitor) — volta no histórico IN-APP ou sai do app na raiz.
     let remove: (() => void) | undefined;
     (async () => {
       try {
@@ -311,18 +395,17 @@ export const App = () => {
         if (Capacitor.isNativePlatform()) {
           let lastBack = 0;
           const h = await App.addListener('backButton', () => {
-            // Telas podem interceptar o back (ex.: portal médico fecha exame/paciente, dialogs fecham)
+            // Telas podem interceptar o back (ex.: portal médico fecha exame/paciente, dialogs fecham).
             const ev = new CustomEvent('app:back', { cancelable: true });
             window.dispatchEvent(ev);
             if (ev.defaultPrevented) return;
-            // NÃO usa canGoBack do Capacitor (sempre false com HashRouter).
-            // Verifica o PATH atual: se NÃO tá na raiz → volta no histórico.
-            const path = window.location.hash.replace(/^#/, '') || '/';
-            if (path !== '/' && path !== '' && path !== '/landing') {
+            // Existe uma tela anterior DENTRO do app? → volta pra ela (history.back é seguro aqui,
+            // porque a pilha só contém telas do app — nunca o referrer do Google Play).
+            if (inAppStack.length > 1) {
               window.history.back();
               return;
             }
-            // TÁ na raiz → double-tap pra sair (evita saída acidental num toque só)
+            // Chegou na base da pilha (raiz do app) → double-tap pra sair (evita saída acidental).
             const now = Date.now();
             if (now - lastBack < 2500) { lastBack = 0; App.exitApp(); }
             else { lastBack = now; setExitHint(true); setTimeout(() => setExitHint(false), 2500); }
