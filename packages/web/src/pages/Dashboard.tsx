@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Box, Card, CardContent, Typography, Button, Grid, CircularProgress, Stack, Chip, Alert, Avatar } from '@mui/material';
+import { GamificationBadges } from '../components/GamificationBadges';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
@@ -274,6 +275,11 @@ export const Dashboard = () => {
       <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 3 }}>
         <Typography variant="caption" color="text.secondary" sx={{ mr: 1 }}>Toque nos cards de contador para navegar.</Typography>
       </Stack>
+
+      {/* GAMIFICAÇÃO — badges + streak */}
+      <Box sx={{ mt: 2 }}>
+        <GamificationBadges examsCount={stats.exams} score={score} />
+      </Box>
     </Box>
   );
 };

@@ -1,2 +1,0 @@
-const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./web-BLidAUZt.js","./index-yDF0jwvd.js"])))=>i.map(i=>d[i]);
-import{c as e,s as t}from"./index-yDF0jwvd.js";var n;(function(e){e[e.Flush=0]=`Flush`,e[e.Add=1]=`Add`})(n||={});var r=t(`TextToSpeech`,{web:()=>e(()=>import(`./web-BLidAUZt.js`).then(e=>new e.TextToSpeechWeb),__vite__mapDeps([0,1]),import.meta.url)});`speechSynthesis`in window&&window.speechSynthesis;export{r as TextToSpeech};

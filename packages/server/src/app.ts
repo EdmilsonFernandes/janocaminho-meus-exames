@@ -1,5 +1,6 @@
 // App Express isolado do listen — permite importar `app` nos testes (supertest)
 // sem subir o servidor. Efeitos de boot (cron de e-mails, listen) ficam em index.ts.
+import * as Sentry from '@sentry/node';
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
@@ -199,4 +200,7 @@ if (config.isProd) {
 } else {
   app.use(notFound);
 }
+// Sentry error handler (deve vir ANTES do errorHandler customizado) — captura exceptions no Express
+// @ts-ignore — Handlers existe em runtime no @sentry/node
+if (process.env.SENTRY_DSN) app.use(Sentry.Handlers.errorHandler());
 app.use(errorHandler);

@@ -88,7 +88,7 @@ NÃO dá pra desfazer.`;
           <Chip label={`💰 R$ ${(stats.revenue ?? 0).toFixed(2).replace('.', ',')} aprovado`} color="success" size="small" />
         </Stack>
       )}
-      <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+      <Stack direction="row" spacing={1} sx={{ mb: 2 }} useFlexGap flexWrap="wrap">
         <TabBtn id="users" label="👥 Usuários" />
         <TabBtn id="payments" label="💳 Pagamentos" />
         <TabBtn id="config" label="⚙️ Config" />

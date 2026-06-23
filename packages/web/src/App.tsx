@@ -57,6 +57,7 @@ import { CreditsChip } from './components/CreditsChip';
 import { FloatingChat } from './components/FloatingChat';
 import { BootSplash } from './components/BootSplash';
 import { MobileBottomNav } from './components/MobileBottomNav';
+import { OfflineBanner } from './components/OfflineBanner';
 import { ForceUpdate } from './components/ForceUpdate';
 import { checkAppUpdate, checkPlayUpdate } from './utils/version';
 import { NotificationBell } from './components/NotificationBell';
@@ -193,6 +194,7 @@ const AppLayout = (props: any) => {
       <Layout {...props} menu={AppMenu} appBar={CustomAppBar}
         sx={{ '& .RaLayout-content, & main': { padding: { xs: '2px 0 64px', sm: '6px 0 28px' } }, '& .RaList-toolbar, [class*="List-toolbar"]': { minHeight: '40px !important', paddingBottom: '4px !important' } }} />
       <FloatingChat />
+      <OfflineBanner />
       <PullToRefresh />
       <MobileBottomNav />
       <NotificationPopup />

@@ -1,4 +1,5 @@
 // Entry point de produção/desenvolvimento. O app Express vive em ./app (isolado p/ testes).
+import * as Sentry from '@sentry/node';
 import { app } from './app';
 import { config, hasAnthropicKey } from './config';
 import { prisma } from './prisma';
@@ -6,6 +7,14 @@ import { startReminderEmailJob } from './jobs/reminderEmails';
 import { startHealthNudgeJob } from './jobs/healthNudges';
 import { startPlanExpiryJob } from './jobs/planExpiry';
 import { loadSettings } from './utils/settings';
+
+// SENTRY — error tracking em produção.
+Sentry.init({
+  dsn: process.env.SENTRY_DSN || 'https://80ba46ffe060f8851a79ded388bead7d@o4511611776663552.ingest.us.sentry.io/4511611790163968',
+  environment: config.nodeEnv,
+  tracesSampleRate: 0.1,
+});
+console.log('[server] Sentry ativo');
 
 // Carrega config de monetização do banco (custos/grants/shares) e sincroniza os objetos vivos
 // (CREDIT_COSTS/UPLOAD_RULES). Antes disso, os defaults do código já estão ativos.
