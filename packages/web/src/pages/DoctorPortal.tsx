@@ -786,8 +786,18 @@ const EvolutionCharts = ({ items, filter, setFilter }: { items: any[]; filter: '
       if (!map.has(key)) map.set(key, { name: it.name, unit: it.unit ?? null, refLow: it.refLow ?? null, refHigh: it.refHigh ?? null, points: [] });
       map.get(key)!.points.push({ date: it.exam?.performedAt ? new Date(it.exam.performedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : 's/d', ts, value: it.valueNumeric, abnormal: !!it.isAbnormal });
     }
-    return [...map.values()].map((g) => ({ ...g, points: g.points.sort((a, b) => a.ts - b.ts) })).filter((g) => g.points.length >= 2).sort((a, b) => b.points.length - a.points.length);
+    return [...map.values()].map((g) => ({ ...g, points: g.points.sort((a, b) => a.ts - b.ts) })).filter((g) => g.points.length >= 1);
   }, [items, filter]);
+  // Agrupa por categoria médica (igual à tela do paciente) + ordena por qtd de analitos
+  const byCat = useMemo(() => {
+    const catMap = new Map<string, { cat: string; emoji: string; color: string; items: typeof groups }>();
+    for (const g of groups) {
+      const c = categorize(g.name);
+      if (!catMap.has(c.key)) catMap.set(c.key, { cat: c.cat, emoji: c.emoji, color: c.color, items: [] });
+      catMap.get(c.key)!.items.push(g);
+    }
+    return [...catMap.values()].sort((a, b) => b.items.length - a.items.length);
+  }, [groups]);
   return (
     <Box>
       <Stack direction="row" spacing={0.5} sx={{ mb: 1.5 }}>
@@ -795,31 +805,45 @@ const EvolutionCharts = ({ items, filter, setFilter }: { items: any[]; filter: '
           <Chip key={k} size="small" label={l} onClick={() => setFilter(k)} variant={filter === k ? 'filled' : 'outlined'} color={filter === k ? 'primary' : 'default'} sx={{ fontWeight: 600 }} />
         ))}
       </Stack>
-      {groups.length === 0 && <Empty label="Sem dados suficientes pra gráficos (precisa de ≥2 medições do mesmo analito no período)." icon="📈" />}
-      <Stack spacing={1.5}>
-        {groups.slice(0, 12).map((g) => {
-          const lineColor = g.points.some((p) => p.abnormal) ? '#ef4444' : '#178f89';
-          return (
-            <Card key={g.name} variant="outlined" sx={{ borderRadius: 3, borderColor: '#e2efec' }}><CardContent>
-              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-                <Typography sx={{ fontWeight: 700, color: '#0f3d3a' }}>{g.name}</Typography>
-                <Typography variant="caption" sx={{ color: '#94a3b8' }}>{refLabel(g)}</Typography>
-              </Stack>
-              <Box sx={{ height: 120, width: '100%' }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={g.points} margin={{ top: 4, right: 18, bottom: 4, left: 6 }}>
-                    {g.refLow != null && g.refHigh != null && <ReferenceArea y1={g.refLow} y2={g.refHigh} fill="#10b981" fillOpacity={0.14} />}
-                    <XAxis dataKey="date" tick={{ fontSize: 10 }} interval="preserveStartEnd" tickMargin={6} />
-                    <YAxis tick={{ fontSize: 10 }} width={32} domain={['auto', 'auto']} />
-                    <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12 }} />
-                    <Line type="monotone" dataKey="value" stroke={lineColor} strokeWidth={2.5} dot={{ r: 3, fill: lineColor }} isAnimationActive={false} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </Box>
-            </CardContent></Card>
-          );
-        })}
-      </Stack>
+      {groups.length === 0 && <Empty label="Sem dados de evolução no período selecionado." icon="📈" />}
+      {byCat.map((cg) => (
+        <Box key={cg.cat} sx={{ mb: 2 }}>
+          <Typography sx={{ fontWeight: 800, fontSize: 14, color: cg.color, mb: 1, display: 'flex', alignItems: 'center', gap: 0.75 }}>
+            <Box component="span" sx={{ fontSize: 18 }}>{cg.emoji}</Box> {cg.cat}
+            <Chip size="small" label={`${cg.items.length}`} sx={{ height: 18, fontSize: 10, bgcolor: `${cg.color}1a`, color: cg.color, fontWeight: 700 }} />
+          </Typography>
+          <Stack spacing={1}>
+            {cg.items.map((g) => {
+              const lineColor = g.points.some((p) => p.abnormal) ? '#ef4444' : '#178f89';
+              return (
+                <Card key={g.name} variant="outlined" sx={{ borderRadius: 3, borderColor: '#e2efec' }}><CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
+                    <Typography sx={{ fontWeight: 700, color: '#0f3d3a', fontSize: 14 }}>{g.name}</Typography>
+                    <Typography variant="caption" sx={{ color: '#94a3b8' }}>{refLabel(g)}</Typography>
+                  </Stack>
+                  <Box sx={{ height: g.points.length >= 2 ? 110 : 'auto', width: '100%' }}>
+                    {g.points.length >= 2 ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={g.points} margin={{ top: 4, right: 18, bottom: 4, left: 6 }}>
+                          {g.refLow != null && g.refHigh != null && <ReferenceArea y1={g.refLow} y2={g.refHigh} fill="#10b981" fillOpacity={0.14} />}
+                          <XAxis dataKey="date" tick={{ fontSize: 10 }} interval="preserveStartEnd" tickMargin={6} />
+                          <YAxis tick={{ fontSize: 10 }} width={32} domain={['auto', 'auto']} />
+                          <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12 }} />
+                          <Line type="monotone" dataKey="value" stroke={lineColor} strokeWidth={2.5} dot={{ r: 3, fill: lineColor }} isAnimationActive={false} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <Typography sx={{ fontSize: 13, color: lineColor, fontWeight: 700 }}>
+                        {g.points[0].value} {g.unit || ''} <Typography component="span" variant="caption" sx={{ color: '#94a3b8', ml: 1 }}>{g.points[0].date} · única medição</Typography>
+                      </Typography>
+                    )}
+                  </Box>
+                </CardContent></Card>
+              );
+            })}
+          </Stack>
+        </Box>
+      ))}
     </Box>
   );
 };
