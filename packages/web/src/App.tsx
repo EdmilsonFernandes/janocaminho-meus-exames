@@ -1,4 +1,4 @@
-import { Admin, Resource, CustomRoutes, Layout, Menu, AppBar, TitlePortal, AppBarProps, useLogout, useTranslate, useLocale, useSetLocale, useRefresh } from 'react-admin';
+import { Admin, Resource, CustomRoutes, Layout, AppBar, TitlePortal, AppBarProps, useLogout, useLocale, useSetLocale, useRefresh } from 'react-admin';
 import { Route, useNavigate, useLocation } from 'react-router-dom';
 import { useEffect, useState, useRef, lazy, Suspense } from 'react';
 import { Capacitor } from '@capacitor/core';
@@ -7,6 +7,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CloseIcon from '@mui/icons-material/Close';
 import MenuIcon from '@mui/icons-material/Menu';
+import HomeIcon from '@mui/icons-material/Home';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import InsightsIcon from '@mui/icons-material/Insights';
 import AutoGraphIcon from '@mui/icons-material/AutoGraph';
@@ -138,46 +139,66 @@ const MenuGroup = ({ title, icon, children }: { title: string; icon: React.React
   );
 };
 
+// Item de navegação do menu (MUI puro). NÃO usa react-admin <Menu.Item>: aquele
+// respeita "sidebarIsOpen" e, com o sidebar fechado no mobile, renderiza SÓ ÍCONE
+// (o texto some — bug dos "menus só com ícone"). Este aqui mostra ícone + label
+// SEMPRE, idêntico no Sidebar (desktop) e no AppDrawer (mobile). Mesmas props do
+// Menu.Item (to/primaryText/leftIcon) pra troca ser direta.
+const NavItem = ({ to, primaryText, leftIcon, inset = true }: { to: string; primaryText: string; leftIcon: React.ReactNode; inset?: boolean }) => {
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const active = to === '/' ? pathname === '/' : pathname.startsWith(to);
+  return (
+    <ListItemButton onClick={() => navigate(to)} selected={active}
+      sx={{ borderRadius: 1, m: '0 8px', py: 0.5, pl: inset ? 2.5 : 2,
+        '&.Mui-selected': { bgcolor: 'rgba(32,178,170,.12)' },
+        '&.Mui-selected:hover': { bgcolor: 'rgba(32,178,170,.18)' },
+        '&:hover': { bgcolor: 'rgba(32,178,170,.06)' } }}>
+      <ListItemIcon sx={{ minWidth: 34 }}>{leftIcon}</ListItemIcon>
+      <ListItemText primary={primaryText} primaryTypographyProps={{ fontSize: 13, fontWeight: active ? 700 : 500, color: active ? '#0f3d3a' : '#334155', noWrap: true }} />
+    </ListItemButton>
+  );
+};
+
 // Menu lateral — organizado como app profissional (EdEspeto-style)
 const AppMenu = () => {
-  const t = useTranslate();
   const logout = useLogout();
   const [aboutOpen, setAboutOpen] = useState(false);
   const userStr = typeof localStorage !== 'undefined' ? localStorage.getItem('user') : null;
   const isAdmin = (() => { try { return userStr ? (JSON.parse(userStr)?.role === 'ADMIN') : false; } catch { return false; } })();
   return (
-  <Menu>
-    <Menu.DashboardItem />
-    <Menu.Item to="/exams" primaryText="Exames" leftIcon={<MedicalInformationIcon sx={{ color: '#d4a574' }} />} />
-    <Menu.Item to="/evolucao" primaryText="Evolução" leftIcon={<InsightsIcon sx={{ color: '#0ea5e9' }} />} />
-    <Menu.Item to="/chat" primaryText="Dr. Exame (IA)" leftIcon={<AutoAwesomeIcon sx={{ color: '#a855f7' }} />} />
+  <Box component="nav" sx={{ py: 1, display: 'flex', flexDirection: 'column' }}>
+    <NavItem to="/" primaryText="Início" leftIcon={<HomeIcon sx={{ color: '#178f89' }} />} inset={false} />
+    <NavItem to="/exams" primaryText="Exames" leftIcon={<MedicalInformationIcon sx={{ color: '#d4a574' }} />} />
+    <NavItem to="/evolucao" primaryText="Evolução" leftIcon={<InsightsIcon sx={{ color: '#0ea5e9' }} />} />
+    <NavItem to="/chat" primaryText="Dr. Exame (IA)" leftIcon={<AutoAwesomeIcon sx={{ color: '#a855f7' }} />} />
 
     <MenuGroup title="📊 Minha Saúde" icon={<MonitorHeartIcon sx={{ color: '#ec4899' }} />}>
-      <Menu.Item to="/alterados" primaryText="Valores alterados" leftIcon={<WarningAmberIcon sx={{ color: '#f59e0b', fontSize: 18 }} />} />
-      <Menu.Item to="/tendencias" primaryText="Tendências" leftIcon={<AutoGraphIcon sx={{ color: '#10b981', fontSize: 18 }} />} />
-      <Menu.Item to="/linha-do-tempo" primaryText="Linha do tempo" leftIcon={<HistoryIcon sx={{ color: '#6366f1', fontSize: 18 }} />} />
-      <Menu.Item to="/medicoes" primaryText="Medições" leftIcon={<MonitorHeartIcon sx={{ color: '#ec4899', fontSize: 18 }} />} />
-      <Menu.Item to="/vacinas" primaryText="Vacinas" leftIcon={<VaccinesIcon sx={{ color: '#14b8a6', fontSize: 18 }} />} />
-      <Menu.Item to="/lembretes" primaryText="Lembretes" leftIcon={<EventAvailableIcon sx={{ color: '#eab308', fontSize: 18 }} />} />
-      <Menu.Item to="/emergencia" primaryText="Cartão de emergência" leftIcon={<HealthAndSafetyIcon sx={{ color: '#ef4444', fontSize: 18 }} />} />
+      <NavItem to="/alterados" primaryText="Valores alterados" leftIcon={<WarningAmberIcon sx={{ color: '#f59e0b', fontSize: 18 }} />} />
+      <NavItem to="/tendencias" primaryText="Tendências" leftIcon={<AutoGraphIcon sx={{ color: '#10b981', fontSize: 18 }} />} />
+      <NavItem to="/linha-do-tempo" primaryText="Linha do tempo" leftIcon={<HistoryIcon sx={{ color: '#6366f1', fontSize: 18 }} />} />
+      <NavItem to="/medicoes" primaryText="Medições" leftIcon={<MonitorHeartIcon sx={{ color: '#ec4899', fontSize: 18 }} />} />
+      <NavItem to="/vacinas" primaryText="Vacinas" leftIcon={<VaccinesIcon sx={{ color: '#14b8a6', fontSize: 18 }} />} />
+      <NavItem to="/lembretes" primaryText="Lembretes" leftIcon={<EventAvailableIcon sx={{ color: '#eab308', fontSize: 18 }} />} />
+      <NavItem to="/emergencia" primaryText="Cartão de emergência" leftIcon={<HealthAndSafetyIcon sx={{ color: '#ef4444', fontSize: 18 }} />} />
     </MenuGroup>
 
     <MenuGroup title="👨‍👩‍👧 Família & Médicos" icon={<Diversity3Icon sx={{ color: '#f59e0b' }} />}>
-      <Menu.Item to="/familia" primaryText="Família" leftIcon={<Diversity3Icon sx={{ color: '#f59e0b', fontSize: 18 }} />} />
-      <Menu.Item to="/patients" primaryText="Dependentes" leftIcon={<Diversity3Icon sx={{ color: '#f59e0b', fontSize: 18 }} />} />
-      <Menu.Item to="/medicos" primaryText="Meus Médicos" leftIcon={<MedicalServicesIcon sx={{ color: '#0b5cab', fontSize: 18 }} />} />
+      <NavItem to="/familia" primaryText="Família" leftIcon={<Diversity3Icon sx={{ color: '#f59e0b', fontSize: 18 }} />} />
+      <NavItem to="/patients" primaryText="Dependentes" leftIcon={<Diversity3Icon sx={{ color: '#f59e0b', fontSize: 18 }} />} />
+      <NavItem to="/medicos" primaryText="Meus Médicos" leftIcon={<MedicalServicesIcon sx={{ color: '#0b5cab', fontSize: 18 }} />} />
     </MenuGroup>
 
     <MenuGroup title="📄 Documentos" icon={<SummarizeIcon sx={{ color: '#0891b2' }} />}>
-      <Menu.Item to="/relatorio" primaryText="Relatório completo" leftIcon={<SummarizeIcon sx={{ color: '#0891b2', fontSize: 18 }} />} />
-      <Menu.Item to="/despesas" primaryText="Despesas médicas" leftIcon={<AccountBalanceWalletIcon sx={{ color: '#22c55e', fontSize: 18 }} />} />
+      <NavItem to="/relatorio" primaryText="Relatório completo" leftIcon={<SummarizeIcon sx={{ color: '#0891b2', fontSize: 18 }} />} />
+      <NavItem to="/despesas" primaryText="Despesas médicas" leftIcon={<AccountBalanceWalletIcon sx={{ color: '#22c55e', fontSize: 18 }} />} />
     </MenuGroup>
 
     <MenuGroup title="⚙️ Conta" icon={<AccountCircleIcon sx={{ color: '#8b5cf6' }} />}>
-      <Menu.Item to="/perfil" primaryText="Meu perfil" leftIcon={<AccountCircleIcon sx={{ color: '#8b5cf6', fontSize: 18 }} />} />
-      <Menu.Item to="/perfil" primaryText="🔐 Segurança da conta (MFA + biometria)" leftIcon={<LockIcon sx={{ color: '#8b5cf6', fontSize: 18 }} />} />
-      <Menu.Item to="/planos" primaryText="Planos e créditos" leftIcon={<WorkspacePremiumIcon sx={{ color: '#f97316', fontSize: 18 }} />} />
-      {isAdmin && <Menu.Item to="/admin" primaryText="Painel Admin" leftIcon={<AdminPanelSettingsIcon sx={{ color: '#ef4444', fontSize: 18 }} />} />}
+      <NavItem to="/perfil" primaryText="Meu perfil" leftIcon={<AccountCircleIcon sx={{ color: '#8b5cf6', fontSize: 18 }} />} />
+      <NavItem to="/perfil" primaryText="🔐 Segurança da conta (MFA + biometria)" leftIcon={<LockIcon sx={{ color: '#8b5cf6', fontSize: 18 }} />} />
+      <NavItem to="/planos" primaryText="Planos e créditos" leftIcon={<WorkspacePremiumIcon sx={{ color: '#f97316', fontSize: 18 }} />} />
+      {isAdmin && <NavItem to="/admin" primaryText="Painel Admin" leftIcon={<AdminPanelSettingsIcon sx={{ color: '#ef4444', fontSize: 18 }} />} />}
     </MenuGroup>
 
     <Divider sx={{ my: 1 }} />
@@ -226,7 +247,7 @@ const AppMenu = () => {
         <Button onClick={() => setAboutOpen(false)} variant="contained" sx={{ borderRadius: 99, px: 4, textTransform: 'none', fontWeight: 700, bgcolor: '#178f89' }}>Fechar</Button>
       </DialogActions>
     </Dialog>
-  </Menu>
+  </Box>
   );
 };
 
