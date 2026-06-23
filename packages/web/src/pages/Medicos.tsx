@@ -10,26 +10,30 @@ import SearchIcon from '@mui/icons-material/Search';
 import { SPECIALTIES, CONVENIOS } from '../utils/medicalData';
 
 const SCOPE_META = [
-  { key: 'exams', label: 'Exames', icon: '📋' },
-  { key: 'evolution', label: 'Evolução', icon: '📈' },
-  { key: 'alerts', label: 'Alertas', icon: '🚨' },
-  { key: 'summary', label: 'Resumos IA', icon: '🤖' },
+  { key: 'exams', label: 'Exames', short: 'Exames', icon: '📋' },
+  { key: 'evolution', label: 'Evolução', short: 'Evol.', icon: '📈' },
+  { key: 'alerts', label: 'Alertas', short: 'Alertas', icon: '🚨' },
+  { key: 'summary', label: 'Resumos IA', short: 'IA', icon: '✨' },
 ];
 
-/** Toggle card de escopo — acende quando ativo (premium, não chip). */
-const ScopeToggle = ({ scopeKey, active, onToggle, compact }: { scopeKey: string; active: boolean; onToggle: (k: string) => void; compact?: boolean }) => (
-  <Box onClick={() => onToggle(scopeKey)} sx={{
-    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: compact ? 0 : 0.5,
-    p: compact ? 0.5 : 1, borderRadius: 2, cursor: 'pointer', minWidth: compact ? 52 : 72, transition: 'all .15s',
-    bgcolor: active ? 'rgba(32,178,170,.10)' : '#f8fafb',
-    border: active ? `2px solid #20b2aa` : '2px solid #e8eef0',
-    '&:active': { transform: 'scale(.92)' },
-  }}>
-    <Box sx={{ fontSize: compact ? 16 : 22, filter: active ? 'none' : 'grayscale(1) opacity(.35)', lineHeight: 1 }}>{SCOPE_META.find((s) => s.key === scopeKey)?.icon}</Box>
-    {!compact && <Typography sx={{ fontSize: 10, fontWeight: 700, color: active ? '#178f89' : '#94a3b8' }}>{SCOPE_META.find((s) => s.key === scopeKey)?.label}</Typography>}
-    {active && <Box sx={{ width: compact ? 5 : 6, height: compact ? 5 : 6, borderRadius: '50%', bgcolor: '#10b981', mt: compact ? 0.25 : 0 }} />}
-  </Box>
-);
+/** Toggle card de escopo — SEMPRE mostra label (mesmo compacto) + acende quando ativo. */
+const ScopeToggle = ({ scopeKey, active, onToggle, compact }: { scopeKey: string; active: boolean; onToggle: (k: string) => void; compact?: boolean }) => {
+  const meta = SCOPE_META.find((s) => s.key === scopeKey)!;
+  return (
+    <Box onClick={() => onToggle(scopeKey)} sx={{
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: compact ? 1 : 2,
+      px: compact ? 0.75 : 1.5, py: compact ? 0.5 : 1, borderRadius: 2, cursor: 'pointer',
+      minWidth: compact ? 58 : 72, transition: 'all .15s',
+      bgcolor: active ? 'rgba(32,178,170,.10)' : '#f8fafb',
+      border: active ? `2px solid #20b2aa` : '2px solid #e8eef0',
+      '&:active': { transform: 'scale(.92)' },
+    }}>
+      <Box sx={{ fontSize: compact ? 15 : 22, filter: active ? 'none' : 'grayscale(1) opacity(.35)', lineHeight: 1 }}>{meta.icon}</Box>
+      <Typography sx={{ fontSize: compact ? 8 : 10, fontWeight: 700, lineHeight: 1, whiteSpace: 'nowrap', color: active ? '#178f89' : '#94a3b8' }}>{compact ? meta.short : meta.label}</Typography>
+      {active && <Box sx={{ width: 4, height: 4, borderRadius: '50%', bgcolor: '#10b981' }} />}
+    </Box>
+  );
+};
 
 export const MedicosPage = () => {
   const notify = useNotify();
