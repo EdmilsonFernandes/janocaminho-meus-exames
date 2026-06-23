@@ -18,10 +18,24 @@ import ReactMarkdown from 'react-markdown';
 const TEAL = '#178f89';
 
 const QUICK_ACTIONS = [
+  // Visão geral
   { icon: '📊', title: 'Resumo dos meus exames', prompt: 'Faça um resumo geral dos meus exames mais recentes e destaque o que precisa de atenção.' },
-  { icon: '🩺', title: 'O que perguntar ao médico?', prompt: 'Quais perguntas devo levar ao médico com base nos meus resultados?' },
+  { icon: '⚠️', title: 'O que está alterado', prompt: 'Liste os valores que estão fora da faixa de referência nos meus exames e explique o que cada um significa.' },
+  { icon: '📈', title: 'Minha evolução', prompt: 'Mostre como meus principais exames evoluíram ao longo do tempo e diga se há tendência de melhora ou piora.' },
+  { icon: '🔄', title: 'Comparar exames', prompt: 'Compare meus dois exames mais recentes do mesmo tipo e destaque o que mudou.' },
+  // Entender
   { icon: '📖', title: 'Explicar termo médico', prompt: 'Quero entender um termo médico do meu exame. Pode explicar de forma simples?' },
-  { icon: '💡', title: 'Ações para melhorar minha saúde', prompt: 'Quais ações práticas (alimentação, hábitos) posso tomar para melhorar meus resultados?' },
+  { icon: '🔬', title: 'O que significa meu resultado', prompt: 'Pegue um dos meus resultados, explique o que ele mede e diga se está dentro do esperado.' },
+  { icon: '🎯', title: 'Minhas metas e referências', prompt: 'Quais são as faixas de referência saudáveis dos meus principais exames e onde estou em relação a elas?' },
+  { icon: '🚨', title: 'O que precisa de atenção urgente', prompt: 'Há algum resultado nos meus exames que precise de atenção médica imediata? Seja honesto e indique urgência.' },
+  // Ação
+  { icon: '🩺', title: 'O que perguntar ao médico', prompt: 'Quais perguntas devo levar ao médico na próxima consulta com base nos meus resultados?' },
+  { icon: '💡', title: 'Como melhorar minha saúde', prompt: 'Quais ações práticas (hábitos, exercício, sono) posso tomar para melhorar meus resultados?' },
+  { icon: '🥗', title: 'Alimentação recomendada', prompt: 'Com base nos meus exames, que mudanças na alimentação você recomenda?' },
+  // Acompanhamento
+  { icon: '📅', title: 'Quando repetir os exames', prompt: 'Com base nos meus exames, quais devo repetir e em quanto tempo?' },
+  { icon: '💉', title: 'Vacinas em dia', prompt: 'Verifique meu histórico de vacinas e diga quais estão em atraso ou faltando conforme o calendário.' },
+  { icon: '🗓️', title: 'Lembretes pendentes', prompt: 'Quais lembretes e compromissos de saúde eu tenho pendentes agora?' },
 ];
 
 interface Msg { role: 'user' | 'assistant'; text: string }
@@ -128,7 +142,7 @@ export const ChatPage = () => {
             <Typography sx={{ fontWeight: 800, fontSize: 18, color: TEAL }}>{firstName ? `Oi, ${firstName}! 👋` : 'Olá! 👋'}</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2, mt: 0.5 }}>Sou o Dr. Exame. Pergunte sobre seus exames ou toque em <strong>+</strong> pra ver o que posso fazer.</Typography>
             <Stack spacing={0.75} sx={{ maxWidth: 460, mx: 'auto' }}>
-              {QUICK_ACTIONS.map((a) => (
+              {QUICK_ACTIONS.slice(0, 6).map((a) => (
                 <Paper key={a.title} elevation={0} onClick={() => send(a.prompt)} sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 1.25, p: 1.25, px: 1.5, borderRadius: 2.5, border: '1px solid #d6ece8', bgcolor: '#fff', textAlign: 'left', '&:hover': { bgcolor: '#eefaf8', borderColor: TEAL, transform: 'translateY(-1px)' }, transition: 'all .15s' }}>
                   <Box sx={{ fontSize: 20 }}>{a.icon}</Box>
                   <Typography sx={{ fontSize: 14, fontWeight: 600, color: '#0f3d3a' }}>{a.title}</Typography>
@@ -182,18 +196,17 @@ export const ChatPage = () => {
         <Box sx={{ width: 36, height: 4, bgcolor: '#cbd5e1', borderRadius: 99, mx: 'auto', mb: 2 }} />
         <Typography sx={{ fontWeight: 800, mb: 0.5, color: '#0f3d3a', fontFamily: 'Poppins, sans-serif' }}>Como posso te ajudar? 🤖</Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Toque numa opção pra começar.</Typography>
-        <Stack spacing={1}>
+        <Box sx={{ maxHeight: '68vh', overflowY: 'auto' }}>
+        <Stack spacing={0.75}>
           {QUICK_ACTIONS.map((a) => (
-            <Paper key={a.title} elevation={0} onClick={() => { setSheetOpen(false); send(a.prompt); }} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 1.5, borderRadius: 3, border: '1px solid #e2efec', cursor: 'pointer', '&:hover': { bgcolor: '#f0f9f7', borderColor: TEAL } }}>
-              <Box sx={{ fontSize: 24, width: 40, height: 40, borderRadius: 2, bgcolor: '#e0f2f1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{a.icon}</Box>
-              <Box sx={{ flex: 1 }}>
-                <Typography sx={{ fontWeight: 700, color: '#0f3d3a', fontSize: 14.5 }}>{a.title}</Typography>
-                <Typography variant="caption" color="text.secondary">{a.prompt.slice(0, 60)}…</Typography>
-              </Box>
+            <Paper key={a.title} elevation={0} onClick={() => { setSheetOpen(false); send(a.prompt); }} sx={{ display: 'flex', alignItems: 'center', gap: 1.25, p: 1.1, px: 1.5, borderRadius: 2.5, border: '1px solid #e2efec', cursor: 'pointer', '&:hover': { bgcolor: '#f0f9f7', borderColor: TEAL } }}>
+              <Box sx={{ fontSize: 20, width: 34, height: 34, borderRadius: 1.5, bgcolor: '#e0f2f1', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{a.icon}</Box>
+              <Typography sx={{ flex: 1, fontWeight: 700, color: '#0f3d3a', fontSize: 14.5 }}>{a.title}</Typography>
               <Typography sx={{ color: TEAL, fontWeight: 800 }}>›</Typography>
             </Paper>
           ))}
         </Stack>
+        </Box>
       </SwipeableDrawer>
 
       {/* HISTÓRICO — conversas agrupadas por período */}
