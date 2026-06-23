@@ -55,6 +55,8 @@ import { FamilyPage } from './pages/Family';
 import { ConsolidatedReportPage } from './pages/ConsolidatedReport';
 import { ValoresAlteradosPage } from './pages/ValoresAlterados';
 import { ProfilePage } from './pages/Profile';
+import { SecurityPage } from './pages/Security';
+import { PrivacyPage } from './pages/Privacy';
 import { AdminPage } from './pages/Admin';
 import { NotFoundPage } from './pages/NotFound';
 import { LoginPage, RegisterPage, ResetPage } from './pages/Auth';
@@ -186,7 +188,8 @@ const AppMenu = () => {
     {/* CONTA (rodapé) */}
     <MenuSection title="Conta" />
     <NavItem to="/perfil" primaryText="Meu perfil" icon={<AccountCircleIcon />} />
-    <NavItem to="/perfil" primaryText="Segurança (MFA + biometria)" icon={<LockIcon />} />
+    <NavItem to="/seguranca" primaryText="Segurança" icon={<LockIcon />} />
+    <NavItem to="/privacidade" primaryText="Privacidade e termos" icon={<HealthAndSafetyIcon />} />
     <NavItem to="/planos" primaryText="Planos e créditos" icon={<WorkspacePremiumIcon />} />
     {isAdmin && <NavItem to="/admin" primaryText="Painel Admin" icon={<AdminPanelSettingsIcon />} />}
 
@@ -465,6 +468,8 @@ export const App = () => {
 
     <CustomRoutes>
       <Route path="/perfil" element={<ProfilePage />} />
+      <Route path="/seguranca" element={<SecurityPage />} />
+      <Route path="/privacidade" element={<PrivacyPage />} />
       <Route path="*" element={<NotFoundPage />} />
       <Route path="/admin" element={<AdminPage />} />
       <Route path="/evolucao" element={<EvolutionPage />} />

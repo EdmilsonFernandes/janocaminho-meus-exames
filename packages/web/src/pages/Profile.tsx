@@ -7,8 +7,6 @@ import BadgeIcon from '@mui/icons-material/WorkspacePremium';
 import DownloadIcon from '@mui/icons-material/Download';
 import UploadIcon from '@mui/icons-material/Upload';
 import { API_URL, token, apiHeaders } from '../config';
-import { MfaSetupCard } from '../components/mfa/MfaSetupCard';
-import { BiometricService } from '../components/BiometricService';
 import { ReferralCard } from '../components/ReferralCard';
 import { useSelectedPatient } from '../patient-context';
 import { PhotoUpload } from '../components/PhotoUpload';
@@ -27,7 +25,6 @@ export const ProfilePage = () => {
   const [photoVer, setPhotoVer] = useState(0); // cache-bust sincronizado entre header
   const [cur, setCur] = useState(''); const [nw, setNw] = useState(''); const [cf, setCf] = useState('');
   const [pwLoading, setPwLoading] = useState(false);
-  const [bioOn, setBioOn] = useState(BiometricService.hasEnrollment());
 
   const load = async () => {
     const h = { Authorization: `Bearer ${token()}` };
@@ -156,40 +153,18 @@ export const ProfilePage = () => {
       {/* INDICAÇÃO — convide amigos, ganhe créditos */}
       <ReferralCard code={user?.referralCode} />
 
-      {/* Segurança: 2FA (TOTP) */}
-      <Box sx={{ mt: 2 }}>
-        <MfaSetupCard apiBase={`${API_URL}/auth`} authToken={token() || ''} />
-      </Box>
-
-      {BiometricService.isSupported() && (
-        <Card sx={{ mt: 2, borderRadius: 3 }}>
-          <CardContent>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'flex-start', sm: 'center' }}>
-              <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Typography sx={{ fontWeight: 800, color: '#0f3d3a', fontSize: 17 }}>🔐 Biometria (face/digital)</Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ fontSize: 13.5, mt: 0.5 }}>Entrar sem digitar senha, usando a biometria do aparelho.</Typography>
-              </Box>
-              {bioOn
-                ? <Button variant="outlined" color="error" size="small" sx={{ flexShrink: 0, width: { xs: '100%', sm: 'auto' } }} onClick={() => { BiometricService.forget(); setBioOn(false); notify('Biometria desativada neste aparelho.'); }}>Desativar</Button>
-                : <Button variant="contained" size="small" sx={{ flexShrink: 0, width: { xs: '100%', sm: 'auto' } }} onClick={() => { BiometricService.enroll(token() || '', false); setBioOn(true); notify('Biometria ativada! 🎉', { type: 'success' }); }}>Ativar biometria</Button>}
-            </Stack>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Conta e privacidade (LGPD) */}
+      {/* Dados e conta (exportar/importar/excluir — termos e LGPD estão em /privacidade) */}
       <Card sx={{ borderRadius: 4, mt: 2, borderColor: 'error.main' }}>
         <CardContent>
-          <Typography variant="h6" gutterBottom>Conta e privacidade</Typography>
+          <Typography variant="h6" gutterBottom>Meus dados</Typography>
           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
             <Button variant="outlined" color="error" onClick={delAccount}>Excluir minha conta</Button>
-            <Button variant="text" onClick={() => { window.location.hash = '/termos'; }}>Termos de uso e LGPD</Button>
             <Button variant="outlined" startIcon={<DownloadIcon />} onClick={exportData}>Exportar dados</Button>
             <Button variant="outlined" component="label" startIcon={<UploadIcon />}>Importar dados
               <input type="file" hidden accept="application/json" onChange={importData} />
             </Button>
           </Stack>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>A exclusão apaga definitivamente todos os exames, análises e dados (LGPD). Não pode ser desfeita.</Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>A exclusão apaga definitivamente todos os exames, análises e dados. Termos e LGPD em "Privacidade".</Typography>
         </CardContent>
       </Card>
     </Box>

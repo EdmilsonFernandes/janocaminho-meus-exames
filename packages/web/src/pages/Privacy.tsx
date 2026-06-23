@@ -1,0 +1,55 @@
+import { Box, Card, Typography, Button, Stack, Divider, Link } from '@mui/material';
+import { Title } from 'react-admin';
+import { useNavigate } from 'react-router-dom';
+
+/** Página de Privacidade e Termos — separada do Perfil. */
+export const PrivacyPage = () => {
+  const navigate = useNavigate();
+  return (
+    <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 780, mx: 'auto' }}>
+      <Title title="Privacidade" />
+      <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5 }}>🛡️ Privacidade e Termos</Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>Como seus dados são tratados e seus direitos (LGPD).</Typography>
+
+      <Card sx={{ mb: 2, borderRadius: 3, background: 'linear-gradient(135deg,#f0f9f7,#e8f5f3)', border: '1px solid #bfe7e3' }}>
+        <Box sx={{ p: 2.5 }}>
+          <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f3d3a', mb: 1 }}>📋 Termos de Uso</Typography>
+          <Typography variant="body2" sx={{ color: '#4a6b66', fontSize: 13.5, lineHeight: 1.6, mb: 1.5 }}>
+            O Meus Exames é um app de apoio à gestão de saúde pessoal. A análise gerada pela IA é <strong>educativa</strong> e <strong>não substitui</strong> consulta, diagnóstico ou tratamento médico. Em urgências, procure um serviço de saúde.
+          </Typography>
+          <Button variant="outlined" size="small" onClick={() => window.open('#/termos', '_blank')} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, borderColor: '#20b2aa', color: '#178f89' }}>
+            Ler termos completos →
+          </Button>
+        </Box>
+      </Card>
+
+      <Card sx={{ mb: 2, borderRadius: 3 }}>
+        <Box sx={{ p: 2.5 }}>
+          <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f3d3a', mb: 1 }}>🔐 LGPD (Lei Geral de Proteção de Dados)</Typography>
+          <Stack spacing={1.5}>
+            {[
+              'Seus dados de saúde são criptografados e armazenados em servidores seguros.',
+              'Você controla quem acessa seus dados (compartilhamento com médicos é opcional e revogável).',
+              'Você pode exportar todos os seus dados a qualquer momento (no Perfil).',
+              'Você pode excluir sua conta e todos os dados permanentemente (no Perfil).',
+              'Não vendemos nem compartilhamos seus dados com terceiros.',
+            ].map((t, i) => (
+              <Stack key={i} direction="row" spacing={1.5} alignItems="flex-start">
+                <Box sx={{ width: 20, height: 20, borderRadius: '50%', bgcolor: 'rgba(32,178,170,.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: '#178f89', flexShrink: 0, mt: 0.2 }}>{i + 1}</Box>
+                <Typography variant="body2" sx={{ color: '#334155', fontSize: 13.5, lineHeight: 1.5 }}>{t}</Typography>
+              </Stack>
+            ))}
+          </Stack>
+        </Box>
+      </Card>
+
+      <Card sx={{ borderRadius: 3, borderColor: 'error.main' }}>
+        <Box sx={{ p: 2.5 }}>
+          <Typography variant="h6" sx={{ fontWeight: 800, color: '#ef4444', mb: 0.5 }}>⚙️ Gerenciar seus dados</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ fontSize: 13, mb: 1.5 }}>Exportar ou excluir seus dados está disponível no seu Perfil.</Typography>
+          <Button variant="outlined" color="primary" size="small" onClick={() => navigate('/perfil')} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700 }}>Ir para o Perfil →</Button>
+        </Box>
+      </Card>
+    </Box>
+  );
+};
