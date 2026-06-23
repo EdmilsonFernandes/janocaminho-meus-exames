@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, Button, Grid, CircularProgress, Stack, Chip, Alert, Avatar } from '@mui/material';
+import { Box, Card, CardContent, Typography, Button, Grid, CircularProgress, Stack, Chip, Alert, Avatar, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { GamificationBadges } from '../components/GamificationBadges';
+import { BiometricService } from '../components/BiometricService';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
@@ -44,6 +45,7 @@ export const Dashboard = () => {
   const [credits, setCredits] = useState<number | null>(null);
   const [me, setMe] = useState<any>(null);
   const [loaded, setLoaded] = useState(false);
+  const [bioOffer, setBioOffer] = useState(false);
   const [tipData, setTipData] = useState<{ abnormal: any; good: any }>({ abnormal: null, good: null });
   const tip = TIPS[new Date().getDate() % TIPS.length];
 
@@ -80,6 +82,8 @@ export const Dashboard = () => {
         const st = await fetch(`${API_URL}/billing/status`, { headers: h });
         if (st.ok) { const sd = await st.json(); setCredits(typeof sd.credits === 'number' ? sd.credits : null); }
       } catch { /* ignore */ } finally { setLoaded(true); }
+      // Oferece biometria 1x (nativo + ainda não ativou)
+      if (BiometricService.isSupported() && !BiometricService.hasEnrollment()) setTimeout(() => setBioOffer(true), 1500);
       void syncPushToken();
     })();
   }, [pid]);
@@ -280,6 +284,15 @@ export const Dashboard = () => {
       <Box sx={{ mt: 2 }}>
         <GamificationBadges examsCount={stats.exams} score={score} />
       </Box>
+      {/* Oferta de biometria (1x — nativo + não ativou) */}
+      <Dialog open={bioOffer} onClose={() => setBioOffer(false)} PaperProps={{ sx: { borderRadius: 3 } }}>
+        <DialogTitle sx={{ fontWeight: 800, color: '#0f3d3a' }}>🔐 Entrar com biometria?</DialogTitle>
+        <DialogContent><Typography sx={{ color: 'text.secondary' }}>Ative a entrada por face/digital neste aparelho. Na próxima vez, você entra sem digitar senha — mais rápido e seguro.</Typography></DialogContent>
+        <DialogActions>
+          <Button onClick={() => setBioOffer(false)}>Agora não</Button>
+          <Button variant="contained" onClick={() => { BiometricService.enroll(token() || '', false); setBioOffer(false); }} sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 800 }}>Ativar biometria</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
