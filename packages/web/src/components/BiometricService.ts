@@ -65,4 +65,22 @@ export const BiometricService = {
       b.authenticate?.(requestId, 'Meus Exames', 'Confirme sua identidade para entrar');
     });
   },
+
+  /** Só pede a biometria pra CONFIRMAR identidade (porta de segurança do app) — não devolve token.
+   * Usado pelo BiometricGate na abertura/retorno do app. */
+  verify: (title = 'Meus Exames', subtitle = 'Confirme sua identidade para continuar'): Promise<boolean> => {
+    const b = bio();
+    if (!b || !b.isBiometricAvailable?.()) return Promise.resolve(false);
+    return new Promise((resolve) => {
+      const requestId = Math.random().toString(36).slice(2);
+      const handler = (e: any) => {
+        const d = e.detail;
+        if (!d || d.requestId !== requestId) return;
+        window.removeEventListener(BIO_EVENT, handler);
+        resolve(!!d.success);
+      };
+      window.addEventListener(BIO_EVENT, handler);
+      b.authenticate?.(requestId, title, subtitle);
+    });
+  },
 };

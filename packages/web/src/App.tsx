@@ -64,6 +64,7 @@ import { CreditsChip } from './components/CreditsChip';
 import { FloatingChat } from './components/FloatingChat';
 import { BootSplash } from './components/BootSplash';
 import { MobileBottomNav } from './components/MobileBottomNav';
+import { BiometricGate } from './components/BiometricGate';
 import { DrawerProvider, useAppDrawer } from './components/drawerState';
 import { OfflineBanner } from './components/OfflineBanner';
 import { ForceUpdate } from './components/ForceUpdate';
@@ -317,6 +318,7 @@ const AppLayout = (props: any) => {
   const isDesktop = useMediaQuery(theme.breakpoints.up('sm'));
   return (
     <DrawerProvider>
+      <BiometricGate>
       {/* gap reduzido + espaço pra não cobrir conteúdo com o menu rodapé (mobile) */}
       <Layout {...props} menu={AppMenu} appBar={CustomAppBar}
         sx={{
@@ -333,6 +335,7 @@ const AppLayout = (props: any) => {
       <MobileBottomNav />
       <NotificationPopup />
       <Onboarding />
+      </BiometricGate>
     </DrawerProvider>
   );
 };
