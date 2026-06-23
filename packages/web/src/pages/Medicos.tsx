@@ -1,18 +1,35 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Box, Card, CardContent, Typography, Button, TextField, CircularProgress, Stack, Chip, Avatar, IconButton, Alert, Divider, Switch, FormControlLabel, MenuItem } from '@mui/material';
+import { Box, Card, CardContent, Typography, Button, TextField, CircularProgress, Stack, Chip, Avatar, IconButton, Alert, Divider, Switch, FormControlLabel, MenuItem, Menu as MuiMenu, Dialog, DialogTitle, DialogContent, DialogActions, InputAdornment } from '@mui/material';
 import { Title, useNotify } from 'react-admin';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import DeleteIcon from '@mui/icons-material/DeleteOutline';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import SearchIcon from '@mui/icons-material/Search';
 import { SPECIALTIES, CONVENIOS } from '../utils/medicalData';
 
-const ALL_SCOPES = [
+const SCOPE_META = [
   { key: 'exams', label: 'Exames', icon: '📋' },
   { key: 'evolution', label: 'Evolução', icon: '📈' },
   { key: 'alerts', label: 'Alertas', icon: '🚨' },
   { key: 'summary', label: 'Resumos IA', icon: '🤖' },
 ];
+
+/** Toggle card de escopo — acende quando ativo (premium, não chip). */
+const ScopeToggle = ({ scopeKey, active, onToggle, compact }: { scopeKey: string; active: boolean; onToggle: (k: string) => void; compact?: boolean }) => (
+  <Box onClick={() => onToggle(scopeKey)} sx={{
+    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: compact ? 0 : 0.5,
+    p: compact ? 0.5 : 1, borderRadius: 2, cursor: 'pointer', minWidth: compact ? 52 : 72, transition: 'all .15s',
+    bgcolor: active ? 'rgba(32,178,170,.10)' : '#f8fafb',
+    border: active ? `2px solid #20b2aa` : '2px solid #e8eef0',
+    '&:active': { transform: 'scale(.92)' },
+  }}>
+    <Box sx={{ fontSize: compact ? 16 : 22, filter: active ? 'none' : 'grayscale(1) opacity(.35)', lineHeight: 1 }}>{SCOPE_META.find((s) => s.key === scopeKey)?.icon}</Box>
+    {!compact && <Typography sx={{ fontSize: 10, fontWeight: 700, color: active ? '#178f89' : '#94a3b8' }}>{SCOPE_META.find((s) => s.key === scopeKey)?.label}</Typography>}
+    {active && <Box sx={{ width: compact ? 5 : 6, height: compact ? 5 : 6, borderRadius: '50%', bgcolor: '#10b981', mt: compact ? 0.25 : 0 }} />}
+  </Box>
+);
 
 export const MedicosPage = () => {
   const notify = useNotify();
@@ -20,12 +37,19 @@ export const MedicosPage = () => {
   const [shares, setShares] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  // Form state
   const [name, setName] = useState(''); const [crm, setCrm] = useState(''); const [spec, setSpec] = useState(''); const [email, setEmail] = useState('');
   const [scopes, setScopes] = useState<string[]>([]);
   const [convenio, setConvenio] = useState('Particular');
   const [saving, setSaving] = useState(false);
   const [shareCosts, setShareCosts] = useState<Record<string, number>>({});
   const [credits, setCredits] = useState<number | null>(null);
+  // Filtros
+  const [search, setSearch] = useState('');
+  const [specFilter, setSpecFilter] = useState('');
+  const [activeOnly, setActiveOnly] = useState(false);
+  // Menu ⋯
+  const [menuEl, setMenuEl] = useState<{ id: string; el: HTMLElement } | null>(null);
 
   const load = () => {
     fetch(`${API_URL}/doctor-shares`, { headers: { Authorization: `Bearer ${token()}` } })
@@ -33,7 +57,6 @@ export const MedicosPage = () => {
       .catch(() => setLoading(false));
   };
   useEffect(() => { load(); }, []);
-  // Custo por escopo (compartilhar) + saldo do usuário — pra pré-visualizar/bloquear antes de enviar.
   useEffect(() => {
     fetch(`${API_URL}/billing/plans`).then((r) => r.json()).then((d) => setShareCosts(d.shares ?? {})).catch(() => {});
     fetch(`${API_URL}/billing/status`, { headers: { Authorization: `Bearer ${token()}` } }).then((r) => r.json()).then((d) => setCredits(typeof d.credits === 'number' ? d.credits : null)).catch(() => {});
@@ -42,14 +65,13 @@ export const MedicosPage = () => {
   const toggleScope = (k: string) => setScopes((s) => s.includes(k) ? s.filter((x) => x !== k) : [...s, k]);
   const shareCost = scopes.reduce((sum, k) => sum + (shareCosts[k] ?? 0), 0);
   const insufficient = credits != null && credits < shareCost;
-  // Médicos já cadastrados (em qualquer perfil) — pra REUSAR em vez de digitar CRM de novo
   const existingDocs = useMemo(() => {
     const seen = new Set<string>(); const list: any[] = [];
     for (const s of shares) { const crm = s.doctor?.crm; if (crm && !seen.has(crm)) { seen.add(crm); list.push(s.doctor); } }
     return list;
   }, [shares]);
-  const reuseDoc = (crm: string) => {
-    const d = existingDocs.find((x) => x.crm === crm);
+  const reuseDoc = (crmVal: string) => {
+    const d = existingDocs.find((x) => x.crm === crmVal);
     if (d) { setName(d.name || ''); setCrm(d.crm); setSpec(d.specialty || ''); setEmail(!d.email || d.email.includes('@invite') ? '' : d.email); }
   };
 
@@ -59,52 +81,174 @@ export const MedicosPage = () => {
     if (scopes.length === 0) { notify('Selecione ao menos um tipo de dado para compartilhar.', { type: 'error' }); return; }
     setSaving(true);
     try {
-      const r = await fetch(`${API_URL}/doctor-shares`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
-        body: JSON.stringify({ doctorName: name, doctorCrm: crm, doctorSpecialty: spec, doctorEmail: email, scopes, convenio, patientId: pid }),
-      });
+      const r = await fetch(`${API_URL}/doctor-shares`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` }, body: JSON.stringify({ doctorName: name, doctorCrm: crm, doctorSpecialty: spec, doctorEmail: email, scopes, convenio, patientId: pid }) });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Falha');
-      notify('Compartilhamento criado! O medico foi avisado por e-mail.', { type: 'success' });
+      notify('Compartilhamento criado! O médico foi avisado por e-mail.', { type: 'success' });
       setShowForm(false); setName(''); setCrm(''); setSpec(''); setEmail(''); setScopes([]); setConvenio('Particular');
       load();
     } catch (e: any) { notify(e.message, { type: 'error' }); } finally { setSaving(false); }
   };
-
   const revoke = async (id: string) => {
-    if (!confirm('Revogar compartilhamento? O medico perdera acesso aos seus dados.')) return;
+    setMenuEl(null);
+    if (!confirm('Revogar compartilhamento? O médico perderá acesso aos seus dados.')) return;
     await fetch(`${API_URL}/doctor-shares/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` }, body: JSON.stringify({ active: false }) });
     notify('Acesso revogado.', { type: 'success' }); load();
   };
-
+  const reactivate = async (id: string) => {
+    setMenuEl(null);
+    await fetch(`${API_URL}/doctor-shares/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` }, body: JSON.stringify({ active: true }) });
+    notify('Acesso reativado.', { type: 'success' }); load();
+  };
   const updateScopes = async (id: string, newScopes: string[]) => {
     await fetch(`${API_URL}/doctor-shares/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` }, body: JSON.stringify({ scopes: newScopes }) });
     load();
   };
 
+  // Filtro + agrupamento por especialidade
+  const myShares = shares.filter((s) => !pid || s.patientId === pid);
+  const specialties = useMemo(() => [...new Set(myShares.map((s) => s.doctor?.specialty).filter(Boolean))].sort(), [myShares]);
+  const filtered = useMemo(() => myShares.filter((s) => {
+    const q = search.trim().toLowerCase();
+    const matchSearch = !q || (s.doctor?.name || '').toLowerCase().includes(q) || (s.doctor?.crm || '').toLowerCase().includes(q);
+    const matchSpec = !specFilter || s.doctor?.specialty === specFilter;
+    const matchActive = !activeOnly || s.active;
+    return matchSearch && matchSpec && matchActive;
+  }), [myShares, search, specFilter, activeOnly]);
+  const grouped = useMemo(() => {
+    const active = filtered.filter((s) => s.active);
+    const revoked = filtered.filter((s) => !s.active);
+    const map = new Map<string, any[]>();
+    for (const s of active) { const sp = s.doctor?.specialty || 'Outros'; if (!map.has(sp)) map.set(sp, []); map.get(sp)!.push(s); }
+    const groups = [...map.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+    return { active: groups, revoked };
+  }, [filtered]);
+
+  const activeCount = myShares.filter((s) => s.active).length;
+
   return (
-    <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 720, mx: 'auto' }}>
-      <Title title="Meus Medicos" />
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+    <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 760, mx: 'auto' }}>
+      <Title title="Meus Médicos" />
+      {/* Header */}
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
         <Typography variant="h5" sx={{ fontWeight: 800 }}>🩺 Meus Médicos</Typography>
-        <Button variant="contained" startIcon={<PersonAddIcon />} onClick={() => setShowForm(!showForm)} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700 }}>
-          {showForm ? 'Cancelar' : 'Compartilhar'}
+        <Button variant="contained" startIcon={<PersonAddIcon />} onClick={() => setShowForm(true)} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700 }}>
+          Compartilhar
         </Button>
       </Stack>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Controle quem ve seus dados de saude. Voce escolhe o que compartilhar e pode revogar a qualquer momento.</Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Controle quem vê seus dados. Escolha o que compartilhar e revogue a qualquer momento.</Typography>
 
-      {showForm && (
-        <Card sx={{ mb: 2, borderRadius: 4, border: '2px solid #20b2aa' }}><CardContent>
-          <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 800, color: '#178f89' }}>Compartilhar com um medico</Typography>
-          {existingDocs.length > 0 && (
-            <TextField select label="Reusar médico já cadastrado (opcional)" value="" onChange={(e: any) => reuseDoc(e.target.value)} size="small" fullWidth helperText="Ou preencha um novo abaixo">
-              <MenuItem value=""><em>Novo médico…</em></MenuItem>
-              {existingDocs.map((d: any) => <MenuItem key={d.crm} value={d.crm}>{d.name} — CRM {d.crm}</MenuItem>)}
-            </TextField>
-          )}
-          <Box component="form" onSubmit={add} sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+      {/* Filtros */}
+      {!loading && myShares.length > 0 && (
+        <Stack spacing={1} sx={{ mb: 2 }}>
+          <TextField placeholder="Buscar por nome ou CRM…" value={search} onChange={(e) => setSearch(e.target.value)} size="small" fullWidth
+            slotProps={{ input: { startAdornment: <InputAdornment position="start"><SearchIcon sx={{ fontSize: 18, color: 'text.secondary' }} /></InputAdornment> } }} />
+          <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" alignItems="center">
+            {specialties.length > 1 && (
+              <TextField select size="small" value={specFilter} onChange={(e) => setSpecFilter(e.target.value)} sx={{ minWidth: 160 }} label="Especialidade">
+                <MenuItem value="">Todas</MenuItem>
+                {specialties.map((sp: string) => <MenuItem key={sp} value={sp}>{sp}</MenuItem>)}
+              </TextField>
+            )}
+            <FormControlLabel control={<Switch size="small" checked={activeOnly} onChange={(e) => setActiveOnly(e.target.checked)} />} label={<Typography sx={{ fontSize: 13 }}>Só ativos</Typography>} />
+            <Chip size="small" label={`${myShares.length} médicos • ${activeCount} ativos`} sx={{ bgcolor: '#e0f2f1', color: '#178f89', fontWeight: 700 }} />
+          </Stack>
+        </Stack>
+      )}
+
+      {/* Loading */}
+      {loading && <Box sx={{ textAlign: 'center', py: 4 }}><CircularProgress sx={{ color: '#20b2aa' }} /></Box>}
+
+      {/* Empty state */}
+      {!loading && myShares.length === 0 && (
+        <Card sx={{ borderRadius: 4, background: 'linear-gradient(135deg,#f0f9f7,#e8f5f3)', border: '1px solid #bfe7e3' }}><CardContent sx={{ textAlign: 'center', py: 5 }}>
+          <Box sx={{ fontSize: 56, mb: 1 }}>🩺</Box>
+          <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f3d3a', mb: 0.5 }}>Nenhum médico ainda?</Typography>
+          <Typography color="text.secondary" sx={{ mb: 2.5, maxWidth: 320, mx: 'auto' }}>Compartilhe seus exames com seu médico em segundos — ele recebe tudo organizado.</Typography>
+          <Button variant="contained" size="large" startIcon={<PersonAddIcon />} onClick={() => setShowForm(true)} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 800, px: 4 }}>Compartilhar agora →</Button>
+        </CardContent></Card>
+      )}
+
+      {/* Lista agrupada por especialidade */}
+      {!loading && grouped.active.map(([specName, items]) => (
+        <Box key={specName} sx={{ mb: 2.5 }}>
+          <Typography sx={{ fontWeight: 800, fontSize: 13, color: '#0f3d3a', mb: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            {specName} <Chip size="small" label={items.length} sx={{ height: 18, fontSize: 10, bgcolor: '#e0f2f1', color: '#178f89', fontWeight: 700 }} />
+          </Typography>
+          <Stack spacing={1}>
+            {items.map((s) => (
+              <Card key={s.id} sx={{ borderRadius: 3, position: 'relative', overflow: 'hidden', border: '1px solid #e2efec', '&:hover': { boxShadow: '0 4px 16px rgba(32,178,170,.10)' }, transition: 'all .15s' }}>
+                <Box sx={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, bgcolor: s.active ? '#20b2aa' : '#cbd5e1' }} />
+                <CardContent sx={{ pl: 2.5, py: 1.5, '&:last-child': { pb: 1.5 } }}>
+                  <Stack direction="row" alignItems="flex-start" spacing={1.5}>
+                    <Box sx={{ position: 'relative', flexShrink: 0 }}>
+                      <Avatar src={s.doctor?.id ? `${API_URL}/doctor/photo/${s.doctor.id}` : undefined} sx={{ width: 44, height: 44, fontWeight: 800, fontSize: 18, bgcolor: '#20b2aa' }}>{s.doctor?.name?.charAt(0)?.toUpperCase()}</Avatar>
+                      <Box sx={{ position: 'absolute', bottom: -1, right: -1, width: 13, height: 13, borderRadius: '50%', bgcolor: s.active ? '#10b981' : '#94a3b8', border: '2.5px solid #fff' }} />
+                    </Box>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Stack direction="row" alignItems="center" spacing={0.5} useFlexGap flexWrap="wrap">
+                        <Typography sx={{ fontWeight: 800, color: '#0f3d3a', fontSize: 15 }}>{s.doctor?.name}</Typography>
+                      </Stack>
+                      <Typography variant="caption" sx={{ color: '#64748b', display: 'block' }}>CRM {s.doctor?.crm}{s.convenio ? ` • ${s.convenio}` : ''}</Typography>
+                      {/* Scope toggles */}
+                      <Stack direction="row" spacing={0.5} sx={{ mt: 1 }}>
+                        {SCOPE_META.map((sm) => (
+                          <ScopeToggle key={sm.key} scopeKey={sm.key} active={!!s.scopes?.includes(sm.key)} compact
+                            onToggle={(k) => { const on = s.scopes?.includes(k); const ns = on ? s.scopes.filter((x: string) => x !== k) : [...(s.scopes || []), k]; updateScopes(s.id, ns); }} />
+                        ))}
+                      </Stack>
+                    </Box>
+                    {/* Menu ⋯ */}
+                    <IconButton size="small" onClick={(e) => setMenuEl({ id: s.id, el: e.currentTarget })} sx={{ flexShrink: 0, mt: -0.5 }}><MoreVertIcon fontSize="small" /></IconButton>
+                  </Stack>
+                </CardContent>
+              </Card>
+            ))}
+          </Stack>
+        </Box>
+      ))}
+
+      {/* Revogados (seção colapsada no fim) */}
+      {!loading && grouped.revoked.length > 0 && (
+        <Box sx={{ mt: 2, opacity: 0.7 }}>
+          <Typography sx={{ fontWeight: 700, fontSize: 12, color: '#94a3b8', mb: 1, textTransform: 'uppercase', letterSpacing: 0.5 }}>💤 Revogados ({grouped.revoked.length})</Typography>
+          <Stack spacing={0.75}>
+            {grouped.revoked.map((s) => (
+              <Card key={s.id} sx={{ borderRadius: 2, border: '1px solid #f1f5f9', bgcolor: '#fafbfc' }}>
+                <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.25, py: 1, '&:last-child': { pb: 1 } }}>
+                  <Avatar sx={{ width: 32, height: 32, fontSize: 14, bgcolor: '#cbd5e1', flexShrink: 0 }}>{s.doctor?.name?.charAt(0)}</Avatar>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography sx={{ fontWeight: 600, fontSize: 13, color: '#64748b' }}>{s.doctor?.name}</Typography>
+                    <Typography variant="caption" sx={{ color: '#94a3b8' }}>CRM {s.doctor?.crm}</Typography>
+                  </Box>
+                  <Button size="small" onClick={() => reactivate(s.id)} sx={{ textTransform: 'none', color: '#178f89', fontSize: 12 }}>Reativar</Button>
+                </CardContent>
+              </Card>
+            ))}
+          </Stack>
+        </Box>
+      )}
+
+      {/* Menu ⋯ */}
+      <MuiMenu anchorEl={menuEl?.el ?? null} open={!!menuEl} onClose={() => setMenuEl(null)} slotProps={{ paper: { sx: { borderRadius: 2, minWidth: 180 } } }}>
+        <MenuItem onClick={() => revoke(menuEl!.id)} sx={{ color: 'error.main' }}>
+          <DeleteIcon sx={{ fontSize: 18, mr: 1 }} /> Revogar acesso
+        </MenuItem>
+      </MuiMenu>
+
+      {/* Dialog de compartilhamento */}
+      <Dialog open={showForm} onClose={() => setShowForm(false)} fullWidth maxWidth="sm" PaperProps={{ sx: { borderRadius: 4 } }}>
+        <DialogTitle sx={{ fontWeight: 800, color: '#0f3d3a' }}>🩺 Compartilhar com médico</DialogTitle>
+        <DialogContent>
+          <Box component="form" onSubmit={add} sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mt: 1 }}>
+            {existingDocs.length > 0 && (
+              <TextField select label="Reusar médico já cadastrado" value="" onChange={(e: any) => reuseDoc(e.target.value)} size="small" fullWidth>
+                <MenuItem value=""><em>Novo médico…</em></MenuItem>
+                {existingDocs.map((d: any) => <MenuItem key={d.crm} value={d.crm}>{d.name} — CRM {d.crm}</MenuItem>)}
+              </TextField>
+            )}
             <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap>
-              <TextField label="Nome do medico" required value={name} onChange={(e) => setName(e.target.value)} size="small" sx={{ flex: '1 1 200px' }} />
+              <TextField label="Nome do médico" required value={name} onChange={(e) => setName(e.target.value)} size="small" sx={{ flex: '1 1 200px' }} />
               <TextField label="CRM (ex: 12345-SP)" required value={crm} onChange={(e) => setCrm(e.target.value)} size="small" sx={{ width: 150 }} />
             </Stack>
             <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap>
@@ -118,57 +262,27 @@ export const MedicosPage = () => {
               {CONVENIOS.map((c) => <MenuItem key={c} value={c}>{c}</MenuItem>)}
             </TextField>
             <Box>
-              <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: 0.5 }}>O que compartilhar:</Typography>
-              <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
-                {ALL_SCOPES.map((s) => <Chip key={s.key} label={`${s.icon} ${s.label}`} onClick={() => toggleScope(s.key)} color={scopes.includes(s.key) ? 'primary' : 'default'} variant={scopes.includes(s.key) ? 'filled' : 'outlined'} size="small" />)}
+              <Typography variant="caption" sx={{ fontWeight: 800, display: 'block', mb: 1, color: '#178f89' }}>O que ele pode ver:</Typography>
+              <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+                {SCOPE_META.map((sm) => (
+                  <ScopeToggle key={sm.key} scopeKey={sm.key} active={scopes.includes(sm.key)} onToggle={toggleScope} />
+                ))}
               </Stack>
             </Box>
-            <Box>
-              <Button type="submit" variant="contained" disabled={saving || insufficient} sx={{ alignSelf: 'flex-start', borderRadius: 2, textTransform: 'none', fontWeight: 700 }}>
-                {saving ? <CircularProgress size={20} /> : shareCost > 0 ? `Compartilhar (${shareCost} créditos)` : 'Compartilhar dados'}
-              </Button>
-              {shareCost > 0 && (
-                <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: insufficient ? 'error.main' : 'text.secondary' }}>
-                  {insufficient ? `Saldo insuficiente — faltam ${shareCost - (credits ?? 0)} créditos.` : `Custa ${shareCost} créditos (soma dos escopos). Cobrado só na criação.`}
-                </Typography>
-              )}
-            </Box>
+            {shareCost > 0 && (
+              <Alert severity={insufficient ? 'error' : 'info'} sx={{ borderRadius: 2, py: 0.75 }}>
+                {insufficient ? `Saldo insuficiente — faltam ${shareCost - (credits ?? 0)} créditos.` : `💎 Custo: ${shareCost} créditos (cobrado só na criação). Seu saldo: ${credits}.`}
+              </Alert>
+            )}
           </Box>
-        </CardContent></Card>
-      )}
-
-      {loading && <CircularProgress />}
-      {!loading && shares.filter((s) => !pid || s.patientId === pid).length === 0 && (
-        <Card><CardContent><Typography color="text.secondary" sx={{ textAlign: 'center', py: 3 }}>Nenhum médico compartilhado com este perfil ainda. Clique em "Compartilhar" pra começar.</Typography></CardContent></Card>
-      )}
-      <Stack spacing={1.5}>
-        {shares.filter((s) => !pid || s.patientId === pid).map((s) => (
-          <Card key={s.id} sx={{ borderRadius: 4, overflow: 'hidden', position: 'relative', opacity: s.active ? 1 : 0.65, border: '1px solid #e2efec', boxShadow: s.active ? '0 4px 16px rgba(32,178,170,.08)' : 'none', transition: 'all .15s', '&:hover': { boxShadow: '0 8px 24px rgba(32,178,170,.12)' } }}>
-            <Box sx={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 5, background: s.active ? 'linear-gradient(180deg,#20b2aa,#178f89)' : '#cbd5e1' }} />
-            <CardContent sx={{ pl: 2.5 }}>
-              <Stack direction="row" alignItems="center" spacing={1.75}>
-                <Avatar src={s.doctor.id ? `${API_URL}/doctor/photo/${s.doctor.id}` : undefined} sx={{ width: 52, height: 52, fontWeight: 800, fontSize: 20, border: '2px solid #e0f2f1', background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff' }}>{s.doctor.name?.charAt(0)?.toUpperCase()}</Avatar>
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Stack direction="row" alignItems="center" spacing={0.75} useFlexGap flexWrap="wrap">
-                    <Typography sx={{ fontWeight: 800, color: '#0f3d3a', fontSize: 16 }}>{s.doctor.name}</Typography>
-                    {s.doctor.specialty && <Chip size="small" label={s.doctor.specialty} sx={{ height: 20, fontSize: 10, bgcolor: '#e0f2f1', color: '#178f89', fontWeight: 700 }} />}
-                    {!s.active && <Chip size="small" label="revogado" sx={{ height: 20, fontSize: 10, bgcolor: '#fee2e2', color: '#b91c1c', fontWeight: 700 }} />}
-                  </Stack>
-                  <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mt: 0.25 }}>CRM {s.doctor.crm}{s.convenio ? ` • ${s.convenio}` : ''}</Typography>
-                  <Typography variant="caption" sx={{ fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', fontSize: 10, letterSpacing: 0.4, display: 'block', mt: 1 }}>Compartilhando:</Typography>
-                  <Box sx={{ mt: 0.25, display: 'flex', gap: 0.5, flexWrap: 'nowrap', overflowX: 'auto', pb: 0.25, '&::-webkit-scrollbar': { display: 'none' } }}>
-                    {ALL_SCOPES.map((sc) => {
-                      const on = s.scopes?.includes(sc.key);
-                      return <Chip key={sc.key} size="small" label={`${sc.icon} ${sc.label}`} onClick={() => { const ns = on ? s.scopes.filter((x: string) => x !== sc.key) : [...(s.scopes || []), sc.key]; updateScopes(s.id, ns); }} sx={{ height: 24, fontSize: 11, fontWeight: 600, cursor: 'pointer', flexShrink: 0, bgcolor: on ? '#178f89' : '#f1f5f9', color: on ? '#fff' : '#94a3b8', border: on ? '1px solid #178f89' : '1px solid #e2e8f0', '&:hover': { bgcolor: on ? '#0f7670' : '#e2e8f0' } }} />;
-                    })}
-                  </Box>
-                </Box>
-                {s.active && <IconButton color="error" onClick={() => revoke(s.id)} title="Revogar acesso" sx={{ bgcolor: '#fef2f2', '&:hover': { bgcolor: '#fee2e2' } }}><DeleteIcon /></IconButton>}
-              </Stack>
-            </CardContent>
-          </Card>
-        ))}
-      </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5 }}>
+          <Button onClick={() => setShowForm(false)} sx={{ textTransform: 'none', fontWeight: 700 }}>Cancelar</Button>
+          <Button variant="contained" onClick={add} disabled={saving || insufficient || scopes.length === 0} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 800, px: 3 }}>
+            {saving ? <CircularProgress size={20} color="inherit" /> : shareCost > 0 ? `Compartilhar (${shareCost} 💎)` : 'Compartilhar →'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
