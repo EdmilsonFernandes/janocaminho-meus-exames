@@ -22,7 +22,6 @@
     "@capacitor/share": "^7.0.4",
     "@capawesome/capacitor-app-update": "^7.2.0",
     "@capawesome/capacitor-file-picker": "^7.2.0",
-    "@capgo/capacitor-native-biometric": "^8.4.11",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@meus-exames/shared": "*",

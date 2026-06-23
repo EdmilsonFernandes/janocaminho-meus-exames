@@ -256,6 +256,15 @@ router.get('/me', requireAuth, async (req: AuthedRequest, res, next) => {
       select: { id: true, email: true, name: true, role: true, planExpiresAt: true, credits: true, referralCode: true, referredBy: true },
     });
     const patientId = user ? await firstPatientId(user.id) : null;
+    // Backfill: usuários antigos sem referralCode → gera um (pra ReferralCard aparecer)
+    if (user && !user.referralCode) {
+      const fn = String(user.name).split(' ')[0].toUpperCase().replace(/[^A-Z]/g, '').slice(0, 10) || 'USER';
+      for (let i = 0; i < 10; i++) {
+        const candidate = `${fn}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+        const clash = await prisma.user.findFirst({ where: { referralCode: candidate } });
+        if (!clash) { await prisma.user.update({ where: { id: user.id }, data: { referralCode: candidate } }); user.referralCode = candidate; break; }
+      }
+    }
     res.json({ user, patientId });
   } catch (e) { next(e); }
 });

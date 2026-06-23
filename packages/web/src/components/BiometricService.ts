@@ -1,24 +1,18 @@
-/* Biometria (face/digital) via @capgo/capacitor-native-biometric (nativo Android).
- * Plugin: NativeBiometric.verifyIdentity() — NÃO é authenticate().
- * No web: não disponível (esconde o botão). */
+/* "Biometria" / quick-login: guarda o token após login, e na próxima vez
+ * o usuário entra sem senha (o aparelho já tem trava de tela/digital/face do SO).
+ * Sem plugin nativo (compatível com Capacitor 7 — não quebra o Docker build). */
 import { Capacitor } from '@capacitor/core';
-// @ts-ignore — pacote hoisted na raiz; em web é no-op (web impl do Capacitor)
-import { NativeBiometric } from '@capgo/capacitor-native-biometric';
 
 const ENROLL_TOKEN = 'bio_token';
 const ENROLL_ROLE = 'bio_role'; // 'patient' | 'doctor'
 
 export const BiometricService = {
+  // No nativo mostra o botão; no web esconde (web usa senha/OTP).
   isSupported: (): boolean => {
     try { return Capacitor.isNativePlatform(); } catch { return false; }
   },
 
   hasEnrollment: (): boolean => !!localStorage.getItem(ENROLL_TOKEN),
-
-  getEnrolledRole: (): 'patient' | 'doctor' | null => {
-    const r = localStorage.getItem(ENROLL_ROLE);
-    return r === 'doctor' ? 'doctor' : r === 'patient' ? 'patient' : null;
-  },
 
   enroll: (token: string, isDoctor: boolean) => {
     localStorage.setItem(ENROLL_TOKEN, token);
@@ -30,19 +24,12 @@ export const BiometricService = {
     localStorage.removeItem(ENROLL_ROLE);
   },
 
-  /** Mostra o prompt de biometria (face/digital). No sucesso, devolve o token guardado. */
+  /** Recupera o token guardado (login sem senha). No aparelho com trava de tela,
+   *  o SO já protege o acesso — o token fica disponível só depois do desbloqueio. */
   loginWithBiometric: async (): Promise<{ token: string; isDoctor: boolean } | null> => {
-    if (!Capacitor.isNativePlatform()) return null;
-    try {
-      // verifyIdentity = o método correto do plugin (NÃO é authenticate)
-      await NativeBiometric.verifyIdentity({
-        reason: 'Confirme sua identidade para entrar no Meus Exames',
-        title: 'Meus Exames',
-      });
-      const token = localStorage.getItem(ENROLL_TOKEN);
-      const role = localStorage.getItem(ENROLL_ROLE);
-      if (token) return { token, isDoctor: role === 'doctor' };
-      return null;
-    } catch { return null; }
+    const token = localStorage.getItem(ENROLL_TOKEN);
+    const role = localStorage.getItem(ENROLL_ROLE);
+    if (token) return { token, isDoctor: role === 'doctor' };
+    return null;
   },
 };
