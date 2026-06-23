@@ -1,8 +1,8 @@
 import { Admin, Resource, CustomRoutes, Layout, Menu, AppBar, TitlePortal, AppBarProps, useLogout, useTranslate, useLocale, useSetLocale, useRefresh } from 'react-admin';
 import { Route, useNavigate, useLocation } from 'react-router-dom';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, lazy, Suspense } from 'react';
 import { Capacitor } from '@capacitor/core';
-import { Box, Typography, IconButton, Button, useMediaQuery, useTheme, CircularProgress, Menu as MuiMenu, MenuItem, Divider, ListItemIcon, ListItemText } from '@mui/material';
+import { Box, Typography, IconButton, Button, useMediaQuery, useTheme, CircularProgress, Menu as MuiMenu, MenuItem, Divider, ListItemIcon, ListItemText, Collapse, ListItemButton } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -106,34 +106,68 @@ const CustomAppBar = (props: AppBarProps) => {
   );
 };
 
-// Ícones coloridos (cada item com sua cor) — menu traduzível (PT/EN)
+// Grupo colapsável do menu (accordion — clica no título, expande os itens)
+const ChevronIcon = ({ open }: { open: boolean }) => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}><path d="m6 9 6 6 6-6" /></svg>
+);
+const MenuGroup = ({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <ListItemButton onClick={() => setOpen(!open)} sx={{ borderRadius: 1, m: '2px 10px', py: 0.75, '&:hover': { bgcolor: 'rgba(32,178,170,.06)' } }}>
+        <ListItemIcon sx={{ minWidth: 36 }}>{icon}</ListItemIcon>
+        <ListItemText primary={title} primaryTypographyProps={{ fontSize: 13.5, fontWeight: 800, color: '#0f3d3a' }} />
+        <ChevronIcon open={open} />
+      </ListItemButton>
+      <Collapse in={open} sx={{ pl: 1 }}>{children}</Collapse>
+    </>
+  );
+};
+
+// Menu lateral com grupos colapsáveis (7 categorias em vez de ~19 itens soltos)
 const AppMenu = () => {
   const t = useTranslate();
   const logout = useLogout();
-  // Verifica se é admin (lê do localStorage — salvo no login)
   const userStr = typeof localStorage !== 'undefined' ? localStorage.getItem('user') : null;
   const isAdmin = (() => { try { return userStr ? (JSON.parse(userStr)?.role === 'ADMIN') : false; } catch { return false; } })();
   return (
   <Menu>
     <Menu.DashboardItem />
-    <Menu.Item to="/perfil" primaryText={t('menu.profile')} leftIcon={<AccountCircleIcon sx={{ color: '#8b5cf6' }} />} />
-    <Menu.Item to="/evolucao" primaryText={t('menu.evolution')} leftIcon={<InsightsIcon sx={{ color: '#0ea5e9' }} />} />
-    <Menu.Item to="/exams" primaryText={t('menu.exams')} leftIcon={<MedicalInformationIcon sx={{ color: '#d4a574' }} />} />
-    <Menu.Item to="/patients" primaryText={t('menu.dependents')} leftIcon={<Diversity3Icon sx={{ color: '#f59e0b' }} />} />
-    <Menu.Item to="/familia" primaryText={t('menu.family')} leftIcon={<Diversity3Icon sx={{ color: '#f59e0b' }} />} />
-    <Menu.Item to="/medicos" primaryText="Meus Médicos" leftIcon={<MedicalServicesIcon sx={{ color: '#0b5cab' }} />} />
-    <Menu.Item to="/tendencias" primaryText={t('menu.trends')} leftIcon={<AutoGraphIcon sx={{ color: '#10b981' }} />} />
-    <Menu.Item to="/linha-do-tempo" primaryText={t('menu.timeline')} leftIcon={<HistoryIcon sx={{ color: '#6366f1' }} />} />
-    <Menu.Item to="/relatorio" primaryText={t('menu.report')} leftIcon={<SummarizeIcon sx={{ color: '#0891b2' }} />} />
-    <Menu.Item to="/alterados" primaryText="Valores alterados" leftIcon={<WarningAmberIcon sx={{ color: '#f59e0b' }} />} />
-    <Menu.Item to="/lembretes" primaryText={t('menu.reminders')} leftIcon={<EventAvailableIcon sx={{ color: '#eab308' }} />} />
-    <Menu.Item to="/medicoes" primaryText={t('menu.measurements')} leftIcon={<MonitorHeartIcon sx={{ color: '#ec4899' }} />} />
-    <Menu.Item to="/vacinas" primaryText={t('menu.vaccines')} leftIcon={<VaccinesIcon sx={{ color: '#14b8a6' }} />} />
-    <Menu.Item to="/despesas" primaryText={t('menu.expenses')} leftIcon={<AccountBalanceWalletIcon sx={{ color: '#22c55e' }} />} />
-    <Menu.Item to="/emergencia" primaryText={t('menu.emergency')} leftIcon={<HealthAndSafetyIcon sx={{ color: '#ef4444' }} />} />
+
+    <MenuGroup title="📋 Exames" icon={<MedicalInformationIcon sx={{ color: '#d4a574' }} />}>
+      <Menu.Item to="/exams" primaryText={t('menu.exams')} leftIcon={<MedicalInformationIcon sx={{ color: '#d4a574', fontSize: 18 }} />} />
+      <Menu.Item to="/alterados" primaryText="Valores alterados" leftIcon={<WarningAmberIcon sx={{ color: '#f59e0b', fontSize: 18 }} />} />
+      <Menu.Item to="/linha-do-tempo" primaryText={t('menu.timeline')} leftIcon={<HistoryIcon sx={{ color: '#6366f1', fontSize: 18 }} />} />
+    </MenuGroup>
+
+    <MenuGroup title="📊 Minha Saúde" icon={<MonitorHeartIcon sx={{ color: '#ec4899' }} />}>
+      <Menu.Item to="/evolucao" primaryText={t('menu.evolution')} leftIcon={<InsightsIcon sx={{ color: '#0ea5e9', fontSize: 18 }} />} />
+      <Menu.Item to="/tendencias" primaryText={t('menu.trends')} leftIcon={<AutoGraphIcon sx={{ color: '#10b981', fontSize: 18 }} />} />
+      <Menu.Item to="/medicoes" primaryText={t('menu.measurements')} leftIcon={<MonitorHeartIcon sx={{ color: '#ec4899', fontSize: 18 }} />} />
+      <Menu.Item to="/vacinas" primaryText={t('menu.vaccines')} leftIcon={<VaccinesIcon sx={{ color: '#14b8a6', fontSize: 18 }} />} />
+      <Menu.Item to="/lembretes" primaryText={t('menu.reminders')} leftIcon={<EventAvailableIcon sx={{ color: '#eab308', fontSize: 18 }} />} />
+      <Menu.Item to="/emergencia" primaryText={t('menu.emergency')} leftIcon={<HealthAndSafetyIcon sx={{ color: '#ef4444', fontSize: 18 }} />} />
+    </MenuGroup>
+
+    <MenuGroup title="👨‍👩‍👧 Família & Médicos" icon={<Diversity3Icon sx={{ color: '#f59e0b' }} />}>
+      <Menu.Item to="/patients" primaryText={t('menu.dependents')} leftIcon={<Diversity3Icon sx={{ color: '#f59e0b', fontSize: 18 }} />} />
+      <Menu.Item to="/familia" primaryText={t('menu.family')} leftIcon={<Diversity3Icon sx={{ color: '#f59e0b', fontSize: 18 }} />} />
+      <Menu.Item to="/medicos" primaryText="Meus Médicos" leftIcon={<MedicalServicesIcon sx={{ color: '#0b5cab', fontSize: 18 }} />} />
+    </MenuGroup>
+
+    <MenuGroup title="📄 Relatórios" icon={<SummarizeIcon sx={{ color: '#0891b2' }} />}>
+      <Menu.Item to="/relatorio" primaryText={t('menu.report')} leftIcon={<SummarizeIcon sx={{ color: '#0891b2', fontSize: 18 }} />} />
+      <Menu.Item to="/despesas" primaryText={t('menu.expenses')} leftIcon={<AccountBalanceWalletIcon sx={{ color: '#22c55e', fontSize: 18 }} />} />
+    </MenuGroup>
+
     <Menu.Item to="/chat" primaryText={t('menu.chat')} leftIcon={<AutoAwesomeIcon sx={{ color: '#a855f7' }} />} />
-    <Menu.Item to="/planos" primaryText={t('menu.plans')} leftIcon={<WorkspacePremiumIcon sx={{ color: '#f97316' }} />} />
-    {isAdmin && <Menu.Item to="/admin" primaryText="Painel Admin" leftIcon={<AdminPanelSettingsIcon sx={{ color: '#ef4444' }} />} />}
+
+    <MenuGroup title="⚙️ Conta" icon={<AccountCircleIcon sx={{ color: '#8b5cf6' }} />}>
+      <Menu.Item to="/perfil" primaryText={t('menu.profile')} leftIcon={<AccountCircleIcon sx={{ color: '#8b5cf6', fontSize: 18 }} />} />
+      <Menu.Item to="/planos" primaryText={t('menu.plans')} leftIcon={<WorkspacePremiumIcon sx={{ color: '#f97316', fontSize: 18 }} />} />
+      {isAdmin && <Menu.Item to="/admin" primaryText="Painel Admin" leftIcon={<AdminPanelSettingsIcon sx={{ color: '#ef4444', fontSize: 18 }} />} />}
+    </MenuGroup>
+
     <Divider sx={{ my: 1 }} />
     <MenuItem onClick={() => logout('/entrar')} sx={{ mx: 0.5, my: 0.25, borderRadius: 1, py: 1, color: 'error.main', '&:hover': { bgcolor: 'rgba(239,68,68,.08)' } }}>
       <ListItemIcon sx={{ color: 'error.main', minWidth: 36 }}><LogoutIcon fontSize="small" /></ListItemIcon>
