@@ -300,6 +300,8 @@ export const App = () => {
     void initPush();
     void checkAppUpdate().then((r) => { if (!cancelled && r.required) setForceUpdate(r.latest); }); // força-update se versão instalada < mínima
     void checkPlayUpdate(); // in-app update NATIVO do Google Play (baixa e atualiza sozinho) — só em builds da Play Store
+    // RE-CHECA atualização a cada 10 min enquanto o app tá aberto (Play Store publica versão nova → aparece sem precisar reiniciar)
+    const updateInterval = setInterval(() => { if (!cancelled) void checkPlayUpdate(); }, 10 * 60 * 1000);
     void syncCreditCosts();
     // Botão/gesto de voltar do Android (Capacitor) — volta no histórico ou sai do app na raiz
     let remove: (() => void) | undefined;
@@ -308,13 +310,19 @@ export const App = () => {
         const [{ App }, { Capacitor }] = await Promise.all([import('@capacitor/app'), import('@capacitor/core')]);
         if (Capacitor.isNativePlatform()) {
           let lastBack = 0;
-          const h = await App.addListener('backButton', ({ canGoBack }) => {
-            // Telas podem tratar o back (ex.: portal médico fecha exame/paciente por estado)
+          const h = await App.addListener('backButton', () => {
+            // Telas podem interceptar o back (ex.: portal médico fecha exame/paciente, dialogs fecham)
             const ev = new CustomEvent('app:back', { cancelable: true });
             window.dispatchEvent(ev);
             if (ev.defaultPrevented) return;
-            if (canGoBack) { window.history.back(); return; }
-            // Raiz: double-tap pra sair (evita saída acidental num toque só)
+            // NÃO usa canGoBack do Capacitor (sempre false com HashRouter).
+            // Verifica o PATH atual: se NÃO tá na raiz → volta no histórico.
+            const path = window.location.hash.replace(/^#/, '') || '/';
+            if (path !== '/' && path !== '' && path !== '/landing') {
+              window.history.back();
+              return;
+            }
+            // TÁ na raiz → double-tap pra sair (evita saída acidental num toque só)
             const now = Date.now();
             if (now - lastBack < 2500) { lastBack = 0; App.exitApp(); }
             else { lastBack = now; setExitHint(true); setTimeout(() => setExitHint(false), 2500); }
@@ -323,7 +331,7 @@ export const App = () => {
         }
       } catch { /* web: sem @capacitor — browser back já funciona */ }
     })();
-    return () => { cancelled = true; clearTimeout(bootTimer); remove?.(); };
+    return () => { cancelled = true; clearTimeout(bootTimer); clearInterval(updateInterval); remove?.(); };
   }, []);
   if (!booted) return <BootSplash messages={['Iniciando o Dr. Exame…', 'Carregando seus exames…', 'Preparando seu painel…', 'Quase lá…']} />;
   if (forceUpdate) return <ForceUpdate latest={forceUpdate} />;
