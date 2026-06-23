@@ -11,7 +11,9 @@ import { BiometricService } from './BiometricService';
  * a biometria — agora pede sempre que o app abre ou volta do background).
  */
 export const BiometricGate = ({ children }: { children: React.ReactNode }) => {
-  const enrolled = BiometricService.hasEnrollment();
+  // Só trava se a biometria está ativada E disponível. Sem o "disponível" o usuário
+  // que removeu todas as digitais ficava preso (hasEnrollment=true, mas sem sensor).
+  const active = BiometricService.isSupported() && BiometricService.hasEnrollment();
   const [locked, setLocked] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -22,8 +24,14 @@ export const BiometricGate = ({ children }: { children: React.ReactNode }) => {
     if (ok) setLocked(false);
   };
 
+  // Escape: se a biometria falhar/for removida, o usuário pode voltar pro login com senha.
+  const logoutEscape = () => {
+    try { BiometricService.forget(); localStorage.removeItem('token'); localStorage.removeItem('patientId'); localStorage.removeItem('selPatientId'); } catch {}
+    window.location.href = import.meta.env.BASE_URL;
+  };
+
   useEffect(() => {
-    if (!Capacitor.isNativePlatform() || !enrolled) return;
+    if (!active) return;
     setLocked(true);
     void prompt();
     let remove: (() => void) | undefined;
@@ -49,6 +57,7 @@ export const BiometricGate = ({ children }: { children: React.ReactNode }) => {
       {busy
         ? <CircularProgress sx={{ color: '#20b2aa' }} />
         : <Button variant="contained" onClick={() => void prompt()} sx={{ borderRadius: 99, px: 4, py: 1.1, textTransform: 'none', fontWeight: 800, fontSize: 15, bgcolor: '#20b2aa', '&:hover': { bgcolor: '#0f7670' } }}>Usar biometria</Button>}
+      <Button variant="text" onClick={logoutEscape} sx={{ mt: 1, color: 'rgba(255,255,255,.7)', textTransform: 'none', fontSize: 13, '&:hover': { color: '#fff', bgcolor: 'transparent' } }}>Entrar com senha</Button>
     </Box>
   );
 };
