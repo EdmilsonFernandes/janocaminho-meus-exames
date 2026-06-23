@@ -1,0 +1,2 @@
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./web-DbNKYHQr.js","./dist-CQW00Jk5.js","./Stack-LoIu20lE.js","./preload-helper-kNaey6uv.js"])))=>i.map(i=>d[i]);
+import{t as e}from"./preload-helper-kNaey6uv.js";import{s as t}from"./dist-CQW00Jk5.js";var n;(function(e){e[e.Flush=0]=`Flush`,e[e.Add=1]=`Add`})(n||={});var r=t(`TextToSpeech`,{web:()=>e(()=>import(`./web-DbNKYHQr.js`).then(e=>new e.TextToSpeechWeb),__vite__mapDeps([0,1,2,3]),import.meta.url)});`speechSynthesis`in window&&window.speechSynthesis;export{r as TextToSpeech};
