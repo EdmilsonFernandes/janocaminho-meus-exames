@@ -22,6 +22,16 @@ export const ReferralCard = ({ code }: { code?: string }) => {
   const copy = () => { navigator.clipboard?.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 2000); };
   const share = async () => {
     const text = `📱 Meus Exames — sua saúde com IA! Cadastre-se com meu código ${code} e ganhe +30 créditos: ${link}`;
+    // No celular (Capacitor): usa o plugin nativo @capacitor/share (abre WhatsApp, Instagram, etc)
+    try {
+      const { Capacitor } = await import('@capacitor/core');
+      if (Capacitor.isNativePlatform()) {
+        const { Share } = await import('@capacitor/share');
+        await Share.share({ title: 'Meus Exames', text, dialogTitle: 'Compartilhar indicação' });
+        return;
+      }
+    } catch { /* cai pro web share */ }
+    // Web: navigator.share (Chrome/Edge) ou copiar
     try { if (navigator.share) { await navigator.share({ title: 'Meus Exames', text }); return; } } catch {}
     navigator.clipboard?.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000);
   };

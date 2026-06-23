@@ -54,8 +54,12 @@ export async function sendPush(tokens: string[], title: string, body: string, da
   }));
 }
 
-/** Dispara push para todos os dispositivos de um usuário. */
+/** Dispara push para todos os dispositivos de um usuário + SALVA como notificação in-app. */
 export async function sendPushToUser(userId: string, title: string, body: string, data?: Record<string, string>): Promise<void> {
+  // Salva como notificação in-app (aparece na central do app, independente do push chegar ou não)
+  try {
+    await prisma.notification.create({ data: { userId, type: data?.type || 'push', title, body, data: data?.examId ? { examId: data.examId } : undefined } });
+  } catch { /* não bloqueia o push se falhar */ }
   const tokens = await prisma.deviceToken.findMany({ where: { userId }, select: { token: true } });
   await sendPush(tokens.map((t) => t.token), title, body, data);
 }
