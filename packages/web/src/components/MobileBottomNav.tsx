@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Box, Typography, useMediaQuery, useTheme, Drawer, List, ListItemButton, ListItemIcon, ListItemText, Divider } from '@mui/material';
+import { Box, Typography, useMediaQuery, useTheme, Drawer, List, ListItemButton, ListItemIcon, ListItemText, Divider, Collapse, Stack } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useLogout } from 'react-admin';
 import { DrExame } from './DrExame';
@@ -82,19 +82,40 @@ export const MobileBottomNav = () => {
           </Box>
         </Box>
         <Divider />
-        <List sx={{ pt: 1, pb: 1, '& .MuiListItemButton-root': { borderRadius: 2, m: '2px 10px' } }}>
-          {MORE.map((m) => (
-            <ListItemButton key={m.to} onClick={() => { setMais(false); navigate(m.to); }} selected={active(m.to)}>
-              <ListItemIcon sx={{ minWidth: 34, fontSize: 18 }}>{m.icon}</ListItemIcon>
-              <ListItemText primary={m.label} primaryTypographyProps={{ fontSize: 14, fontWeight: active(m.to) ? 700 : 500 }} />
-            </ListItemButton>
+        <List sx={{ pt: 1, pb: 1, '& .MuiListItemButton-root': { borderRadius: 2, m: '0 10px' } }}>
+          {/* Início + Chat direto */}
+          <ListItemButton onClick={() => { setMais(false); navigate('/'); }} selected={active('/')}><ListItemIcon sx={{ minWidth: 30, fontSize: 16 }}>🏠</ListItemIcon><ListItemText primary="Início" primaryTypographyProps={{ fontSize: 14, fontWeight: active('/') ? 700 : 500 }} /></ListItemButton>
+          <ListItemButton onClick={() => { setMais(false); navigate('/chat'); }} selected={active('/chat')}><ListItemIcon sx={{ minWidth: 30, fontSize: 16 }}>🤖</ListItemIcon><ListItemText primary="Dr. Exame (IA)" primaryTypographyProps={{ fontSize: 14, fontWeight: active('/chat') ? 700 : 500 }} /></ListItemButton>
+
+          {/* 📋 EXAMES */}
+          <Typography sx={{ px: 3, pt: 1.5, pb: 0.25, fontSize: 11, fontWeight: 800, color: '#94a3b8', letterSpacing: 0.5 }}>📋 EXAMES</Typography>
+          {[['📋', 'Todos os exames', '/exams'], ['⚠️', 'Valores alterados', '/alterados'], ['🕒', 'Linha do tempo', '/linha-do-tempo']].map(([icon, label, to]) => (
+            <ListItemButton key={to} onClick={() => { setMais(false); navigate(to); }} selected={active(to)} sx={{ pl: 3 }}><ListItemIcon sx={{ minWidth: 30, fontSize: 16 }}>{icon}</ListItemIcon><ListItemText primary={label} primaryTypographyProps={{ fontSize: 13.5, fontWeight: active(to) ? 700 : 500 }} /></ListItemButton>
           ))}
-          {isAdmin && (
-            <ListItemButton onClick={() => { setMais(false); navigate('/admin'); }} selected={active('/admin')}>
-              <ListItemIcon sx={{ minWidth: 34, fontSize: 18 }}>🛠️</ListItemIcon>
-              <ListItemText primary="Painel Admin" primaryTypographyProps={{ fontSize: 14, fontWeight: active('/admin') ? 700 : 500 }} />
-            </ListItemButton>
-          )}
+
+          {/* 📊 MINHA SAÚDE */}
+          <Typography sx={{ px: 3, pt: 1.5, pb: 0.25, fontSize: 11, fontWeight: 800, color: '#94a3b8', letterSpacing: 0.5 }}>📊 MINHA SAÚDE</Typography>
+          {[['📈', 'Evolução', '/evolucao'], ['📊', 'Tendências', '/tendencias'], ['📏', 'Medições', '/medicoes'], ['💉', 'Vacinas', '/vacinas'], ['🔔', 'Lembretes', '/lembretes'], ['🚨', 'Emergência', '/emergencia']].map(([icon, label, to]) => (
+            <ListItemButton key={to} onClick={() => { setMais(false); navigate(to); }} selected={active(to)} sx={{ pl: 3 }}><ListItemIcon sx={{ minWidth: 30, fontSize: 16 }}>{icon}</ListItemIcon><ListItemText primary={label} primaryTypographyProps={{ fontSize: 13.5, fontWeight: active(to) ? 700 : 500 }} /></ListItemButton>
+          ))}
+
+          {/* 👨‍👩‍👧 FAMÍLIA & MÉDICOS */}
+          <Typography sx={{ px: 3, pt: 1.5, pb: 0.25, fontSize: 11, fontWeight: 800, color: '#94a3b8', letterSpacing: 0.5 }}>👨‍👩‍👧 FAMÍLIA & MÉDICOS</Typography>
+          {[['👨‍👩‍👧', 'Dependentes', '/patients'], ['🌳', 'Família', '/familia'], ['🩺', 'Meus Médicos', '/medicos']].map(([icon, label, to]) => (
+            <ListItemButton key={to} onClick={() => { setMais(false); navigate(to); }} selected={active(to)} sx={{ pl: 3 }}><ListItemIcon sx={{ minWidth: 30, fontSize: 16 }}>{icon}</ListItemIcon><ListItemText primary={label} primaryTypographyProps={{ fontSize: 13.5, fontWeight: active(to) ? 700 : 500 }} /></ListItemButton>
+          ))}
+
+          {/* 📄 RELATÓRIOS */}
+          <Typography sx={{ px: 3, pt: 1.5, pb: 0.25, fontSize: 11, fontWeight: 800, color: '#94a3b8', letterSpacing: 0.5 }}>📄 RELATÓRIOS</Typography>
+          {[['🧾', 'Relatório completo', '/relatorio'], ['💰', 'Despesas', '/despesas']].map(([icon, label, to]) => (
+            <ListItemButton key={to} onClick={() => { setMais(false); navigate(to); }} selected={active(to)} sx={{ pl: 3 }}><ListItemIcon sx={{ minWidth: 30, fontSize: 16 }}>{icon}</ListItemIcon><ListItemText primary={label} primaryTypographyProps={{ fontSize: 13.5, fontWeight: active(to) ? 700 : 500 }} /></ListItemButton>
+          ))}
+
+          {/* ⚙️ CONTA */}
+          <Typography sx={{ px: 3, pt: 1.5, pb: 0.25, fontSize: 11, fontWeight: 800, color: '#94a3b8', letterSpacing: 0.5 }}>⚙️ CONTA</Typography>
+          <ListItemButton onClick={() => { setMais(false); navigate('/perfil'); }} selected={active('/perfil')} sx={{ pl: 3 }}><ListItemIcon sx={{ minWidth: 30, fontSize: 16 }}>👤</ListItemIcon><ListItemText primary="Meu perfil" primaryTypographyProps={{ fontSize: 13.5, fontWeight: active('/perfil') ? 700 : 500 }} /></ListItemButton>
+          <ListItemButton onClick={() => { setMais(false); navigate('/planos'); }} selected={active('/planos')} sx={{ pl: 3 }}><ListItemIcon sx={{ minWidth: 30, fontSize: 16 }}>💎</ListItemIcon><ListItemText primary="Planos e créditos" primaryTypographyProps={{ fontSize: 13.5, fontWeight: active('/planos') ? 700 : 500 }} /></ListItemButton>
+          {isAdmin && <ListItemButton onClick={() => { setMais(false); navigate('/admin'); }} selected={active('/admin')} sx={{ pl: 3 }}><ListItemIcon sx={{ minWidth: 30, fontSize: 16 }}>🛠️</ListItemIcon><ListItemText primary="Painel Admin" primaryTypographyProps={{ fontSize: 13.5, fontWeight: active('/admin') ? 700 : 500 }} /></ListItemButton>}
         </List>
         <Divider />
         <List sx={{ pt: 1, '& .MuiListItemButton-root': { borderRadius: 2, m: '2px 10px' } }}>
