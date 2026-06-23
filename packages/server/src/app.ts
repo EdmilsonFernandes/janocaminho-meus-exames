@@ -31,6 +31,9 @@ import doctorRoutes from './routes/doctor.routes';
 import doctorShareRoutes from './routes/doctor-share.routes';
 
 export const app = express();
+// trust proxy: o container corre atrás de nginx/docker — sem isso o rate-limit
+// não identifica IPs corretamente (todos aparecem como 127.0.0.1).
+app.set('trust proxy', 1);
 
 app.use(cors({
   // API usa token (Authorization), sem cookie/session → refletir qualquer origin é seguro
