@@ -15,24 +15,9 @@ import path from 'path';
 import { config } from '../config';
 import { deleteExamFile, patientSlug } from '../utils/storage';
 import { validate, schemas } from '../middleware/validate';
+import { isBlockedDomain } from '../utils/blockedDomains';
 
 const router = Router();
-
-// Domínios de e-mail temporário/descartável — usados pra farm de créditos (criar várias
-// contas só pra abocanhar o bônus de boas-vindas). Lista curta dos mais comuns.
-const DISPOSABLE_DOMAINS = new Set([
-  'mailinator.com', 'guerrillamail.com', '10minutemail.com', 'tempmail.com', 'temp-mail.org',
-  'yopmail.com', 'trashmail.com', 'throwawaymail.com', 'fakeinbox.com', 'dispostable.com',
-  'sharklasers.com', 'getnada.com', 'maildrop.cc', 'mintemail.com', 'mohmal.com', 'tempmailo.com',
-  'emailondeck.com', 'spambog.com', 'mailnesia.com', 'discard.email', 'mailcatch.com',
-  'tempinbox.com', 'mytemp.email', 'mailnull.com', 'spam4.me', 'fakeemail.com', 'tempr.email',
-  'tmpmail.org', 'tmpmail.net', '1secmail.com', '1secmail.org', 'esiix.com', 'wwjmp.com',
-  'xojxe.com', 'yoggm.com', 'guerrillamail.info', 'grr.la',
-]);
-const isDisposable = (email: string): boolean => {
-  const d = email.split('@')[1]?.toLowerCase().trim();
-  return !!(d && (DISPOSABLE_DOMAINS.has(d) || /\.(tmp|temp|edu\.tmp)$/.test(d)));
-};
 
 async function issueSession(userId: string) {
   const token = signToken({ userId });
@@ -115,7 +100,7 @@ router.post('/register', validate(schemas.register), async (req, res, next) => {
       res.status(400).json({ error: 'Informe nome, e-mail e senha (mín. 6 caracteres).' });
       return;
     }
-    if (isDisposable(mail)) { res.status(400).json({ error: 'Não aceitamos e-mails temporários. Use um e-mail válido (Gmail, Outlook, etc.).' }); return; }
+    if (isBlockedDomain(mail)) { res.status(400).json({ error: 'Não aceitamos e-mails temporários. Use um e-mail válido (Gmail, Outlook, etc.).' }); return; }
     const existing = await prisma.user.findUnique({ where: { email: mail } });
     if (existing) { res.status(409).json({ error: 'Já existe conta com este e-mail.' }); return; }
 
@@ -252,7 +237,7 @@ router.post('/otp/request', async (req, res, next) => {
   try {
     const email = String(req.body?.email ?? '').toLowerCase().trim();
     if (!email) { res.status(400).json({ error: 'Informe o e-mail.' }); return; }
-    if (isDisposable(email)) { res.status(400).json({ error: 'Não aceitamos e-mails temporários. Use um e-mail válido.' }); return; }
+    if (isBlockedDomain(email)) { res.status(400).json({ error: 'Não aceitamos e-mails temporários. Use um e-mail válido.' }); return; }
     const code = issueOtp(email);
     const masked = email.replace(/^(.{1,2}).*(@)/, '$1***$2');
     try {

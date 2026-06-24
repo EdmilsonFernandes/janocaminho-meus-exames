@@ -7,6 +7,7 @@ import { startReminderEmailJob } from './jobs/reminderEmails';
 import { startHealthNudgeJob } from './jobs/healthNudges';
 import { startPlanExpiryJob } from './jobs/planExpiry';
 import { loadSettings } from './utils/settings';
+import { loadBlockedDomains } from './utils/blockedDomains';
 
 // SENTRY — error tracking em produção.
 Sentry.init({
@@ -19,6 +20,8 @@ console.log('[server] Sentry ativo');
 // Carrega config de monetização do banco (custos/grants/shares) e sincroniza os objetos vivos
 // (CREDIT_COSTS/UPLOAD_RULES). Antes disso, os defaults do código já estão ativos.
 void loadSettings();
+// Carrega lista de domínios de e-mail bloqueados (descartáveis/temporários) do banco.
+void loadBlockedDomains();
 
 const server = app.listen(config.port, () => {
   console.log(`[server] rodando em http://localhost:${config.port} (env=${config.nodeEnv})`);

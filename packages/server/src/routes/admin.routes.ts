@@ -3,6 +3,7 @@ import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest } from '../middleware/auth';
 import { getSettings, saveSettings, type SettingCategory } from '../utils/settings';
 import { deleteExamFile } from '../utils/storage';
+import { listBlockedDomains, addBlockedDomain, removeBlockedDomain, syncBlockedDomains } from '../utils/blockedDomains';
 
 const router = Router();
 router.use(requireAuth);
@@ -162,6 +163,32 @@ router.delete('/users/:id', async (req, res, next) => {
     await prisma.user.delete({ where: { id } }); // cascade: Patient→Exam→Items/Analyses
     res.json({ ok: true });
   } catch (e) { next(e); }
+});
+
+// === DOMÍNIOS DE E-MAIL BLOQUEADOS (descartáveis/temporários — anti-farm de créditos) ===
+// Lista configurável (banco). Sync puxa de uma lista pública comunitária e faz merge.
+router.get('/blocked-domains', (_req, res) => {
+  res.json({ domains: listBlockedDomains() });
+});
+router.post('/blocked-domains', async (req, res, next) => {
+  try {
+    const domain = String(req.body?.domain ?? '').trim();
+    if (!domain) { res.status(400).json({ error: 'Informe o domínio (ex.: mailinator.com).' }); return; }
+    await addBlockedDomain(domain);
+    res.json({ ok: true, domains: listBlockedDomains() });
+  } catch (e) { next(e); }
+});
+router.delete('/blocked-domains/:domain', async (req, res, next) => {
+  try {
+    await removeBlockedDomain(String(req.params.domain));
+    res.json({ ok: true, domains: listBlockedDomains() });
+  } catch (e) { next(e); }
+});
+router.post('/blocked-domains/sync', async (_req, res) => {
+  try {
+    const r = await syncBlockedDomains();
+    res.json({ ok: true, ...r });
+  } catch (e: any) { res.status(502).json({ error: e?.message || 'Falha ao sincronizar com a lista pública.' }); }
 });
 
 export default router;
