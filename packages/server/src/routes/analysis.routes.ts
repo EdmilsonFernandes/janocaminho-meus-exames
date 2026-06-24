@@ -45,7 +45,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
         tokenUsage: usage as any,
       },
     });
-    await chargeCredits(req.userId!, CREDIT_COSTS.summary);
+    await chargeCredits(req.userId!, CREDIT_COSTS.summary, 'ai_summary', 'Resumo do exame', analysis.id);
     res.status(201).json(analysis);
   } catch (e: any) {
     if (!res.headersSent) next(e);
@@ -84,7 +84,7 @@ router.post('/consolidated', async (req: AuthedRequest, res, next) => {
       const analysis = await prisma.aiAnalysis.create({
         data: { patientId, examId: null, type: 'SUMMARY', contentMd, structured: summary as any, modelUsed, tokenUsage: usage as any },
       });
-      await chargeCredits(req.userId!, CREDIT_COSTS.consolidated);
+      await chargeCredits(req.userId!, CREDIT_COSTS.consolidated, 'ai_consolidated', 'Relatório consolidado', analysis.id);
       res.status(201).json({ ...analysis, sourceExams });
     } catch (genErr: any) {
       // RAG: se a (re)geração falhou, devolve o ÚLTIMO relatório salvo em vez de erro

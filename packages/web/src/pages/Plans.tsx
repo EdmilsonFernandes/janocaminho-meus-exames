@@ -125,7 +125,7 @@ export const PlansPage = () => {
           <Typography variant="h6" sx={{ mb: 1.5, fontWeight: 800, color: '#0f3d3a', fontSize: 17 }}>Histórico de Uso</Typography>
           {/* Filtros rápidos — segmented control borderless (ativo = verde 14%, inativo = texto sutil) */}
           <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mb: 2 }}>
-            {[{ k: 'all', l: 'Todos' }, { k: 'chat', l: '🤖 Chat' }, { k: 'report', l: '🧾 Relatórios' }, { k: 'credit', l: '➕ Compras' }].map((f) => {
+            {[{ k: 'all', l: 'Todos' }, { k: 'gain', l: '➕ Ganhos' }, { k: 'ai', l: '🤖 IA' }, { k: 'upload', l: '📤 Exames' }, { k: 'achievement', l: '🏆 Conquistas' }, { k: 'referral', l: '🤝 Indicações' }, { k: 'purchase', l: '🛒 Compras' }].map((f) => {
               const on = histFilter === f.k;
               return (
                 <Chip key={f.k} size="small" label={f.l} onClick={() => { setHistFilter(f.k); setDispPage(1); }}
@@ -137,12 +137,16 @@ export const PlansPage = () => {
             })}
           </Stack>
           {(() => {
+            const META: Record<string, { e: string; c: boolean }> = { purchase: { e: '🛒', c: true }, plan_monthly: { e: '📅', c: true }, achievement: { e: '🏆', c: true }, referral: { e: '🤝', c: true }, signup: { e: '🎁', c: true }, ai_chat: { e: '🤖', c: false }, ai_summary: { e: '📄', c: false }, ai_consolidated: { e: '🧾', c: false }, upload: { e: '📤', c: false }, share: { e: '🩺', c: false }, patient_extra: { e: '👥', c: false } };
+            const metaOf = (k: string) => META[k] || { e: '•', c: false };
             const filtered = hist.filter((it: any) => {
               if (histFilter === 'all') return true;
-              if (histFilter === 'credit') return it.kind === 'credit';
-              const l = (it.label || '').toLowerCase();
-              if (histFilter === 'chat') return l.includes('chat');
-              if (histFilter === 'report') return l.includes('consolid') || l.includes('relat') || l.includes('resumo');
+              if (histFilter === 'gain') return metaOf(it.kind).c;
+              if (histFilter === 'ai') return String(it.kind).startsWith('ai_');
+              if (histFilter === 'upload') return it.kind === 'upload';
+              if (histFilter === 'achievement') return it.kind === 'achievement';
+              if (histFilter === 'referral') return it.kind === 'referral' || it.kind === 'signup';
+              if (histFilter === 'purchase') return it.kind === 'purchase' || it.kind === 'plan_monthly';
               return true;
             });
             const PS = 7;
@@ -154,18 +158,17 @@ export const PlansPage = () => {
                 <Stack divider={<Divider />} spacing={0}>
                   {pageItems.length === 0 && <Typography variant="body2" color="text.secondary" sx={{ py: 1 }}>Nenhum lançamento neste filtro.</Typography>}
                   {pageItems.map((it: any) => {
-                    const credit = it.kind === 'credit';
-                    const ll = (it.label || '').toLowerCase();
-                    const icon = credit ? '➕' : ll.includes('chat') ? '🤖' : ll.includes('consolid') ? '🧾' : '📄';
+                    const m = metaOf(it.kind);
+                    const d = Number(it.delta) || 0;
                     return (
                       <Stack key={it.id} direction="row" alignItems="center" spacing={1.5} sx={{ py: 1.5 }}>
-                        <Box sx={{ fontSize: 19, flexShrink: 0, width: 30, textAlign: 'center' }}>{icon}</Box>
+                        <Box sx={{ fontSize: 19, flexShrink: 0, width: 30, textAlign: 'center' }}>{m.e}</Box>
                         <Box sx={{ minWidth: 0, flex: 1 }}>
                           <Typography variant="body2" sx={{ fontWeight: 600 }}>{it.label}</Typography>
-                          <Typography variant="caption" color="text.secondary">{new Date(it.createdAt).toLocaleString('pt-BR')}{it.patient ? ` • ${it.patient}` : ''}</Typography>
+                          <Typography variant="caption" color="text.secondary">{new Date(it.createdAt).toLocaleString('pt-BR')}</Typography>
                         </Box>
-                        <Typography sx={{ fontWeight: 800, fontSize: 15, fontVariantNumeric: 'tabular-nums', minWidth: 52, textAlign: 'right', color: credit ? '#10b981' : '#94a3b8' }}>
-                          {it.amount > 0 ? `+${it.amount}` : it.amount}
+                        <Typography sx={{ fontWeight: 800, fontSize: 15, fontVariantNumeric: 'tabular-nums', minWidth: 52, textAlign: 'right', color: m.c ? '#10b981' : '#94a3b8' }}>
+                          {d > 0 ? `+${d}` : d}
                         </Typography>
                       </Stack>
                     );

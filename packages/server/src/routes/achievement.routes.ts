@@ -87,6 +87,7 @@ router.post('/claim', async (req: AuthedRequest, res, next) => {
         await prisma.$transaction([
           prisma.achievementGrant.create({ data: { userId, badgeId: b.id } }),
           prisma.user.update({ where: { id: userId }, data: { credits: { increment: b.reward } } }),
+          prisma.creditTransaction.create({ data: { userId, delta: b.reward, kind: 'achievement', label: `Conquista: ${b.title}`, refId: b.id } }),
         ]);
         granted.push(b.id);
       } catch (e: any) {

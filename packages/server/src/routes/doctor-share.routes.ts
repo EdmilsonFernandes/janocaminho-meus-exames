@@ -57,7 +57,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     if (shareCost > 0) {
       const me = await prisma.user.findUnique({ where: { id: req.userId! }, select: { credits: true } });
       if ((me?.credits ?? 0) < shareCost) { res.status(402).json({ error: 'insufficient_credits', message: `Compartilhar custa ${shareCost} créditos.` }); return; }
-      if (!(await chargeCredits(req.userId!, shareCost))) { res.status(402).json({ error: 'insufficient_credits', message: 'Saldo insuficiente.' }); return; }
+      if (!(await chargeCredits(req.userId!, shareCost, 'share', 'Compartilhamento com médico'))) { res.status(402).json({ error: 'insufficient_credits', message: 'Saldo insuficiente.' }); return; }
     }
     const share = await prisma.doctorShare.create({ data: { patientId: pid, doctorId: doctor.id, scopes: selectedScopes, convenio: convenio ? String(convenio) : null, creditsCharged: shareCost } });
 
@@ -93,6 +93,27 @@ router.patch('/:id', async (req: AuthedRequest, res, next) => {
       data: { scopes: scopes ?? undefined, active: active ?? undefined, revokedAt: active === false ? new Date() : undefined },
     });
     res.json({ share: updated });
+  } catch (e) { next(e); }
+});
+
+// EXCLUIR compartilhamento (diferente de revogar: REMOVE o registro em vez de só desativar).
+// Se o médico for pending-invite (cadastro errado, nunca claimado/registrou) e não tiver outros
+// shares, exclui o médico também → limpa o diretório de entradas erradas. Médico CLAIMADO (conta
+// real) nunca é excluído aqui — só o share deste paciente.
+router.delete('/:id', async (req: AuthedRequest, res, next) => {
+  try {
+    const pids = await userPatientIds(req.userId!);
+    const share = await prisma.doctorShare.findUnique({ where: { id: String(req.params.id) } });
+    if (!share || !pids.includes(share.patientId)) { res.status(404).json({ error: 'Compartilhamento não encontrado.' }); return; }
+    const doctorId = share.doctorId;
+    await prisma.doctorShare.delete({ where: { id: share.id } });
+    // cleanup: médico pending-invite sem outros shares → remove (era só um cadastro de compartilhamento)
+    const doctor = await prisma.doctor.findUnique({ where: { id: doctorId }, select: { passwordHash: true } });
+    if (doctor?.passwordHash === 'pending-invite') {
+      const remaining = await prisma.doctorShare.count({ where: { doctorId } });
+      if (remaining === 0) await prisma.doctor.delete({ where: { id: doctorId } }).catch(() => {});
+    }
+    res.json({ ok: true });
   } catch (e) { next(e); }
 });
 

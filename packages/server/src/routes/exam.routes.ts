@@ -146,6 +146,7 @@ router.post('/', upload.single('file'), async (req: AuthedRequest, res, next) =>
         // Débito atômico: só decrementa se credits >= uploadCost (guarda no WHERE do updateMany)
         const r = await tx.user.updateMany({ where: { id: req.userId!, credits: { gte: uploadCost } }, data: { credits: { decrement: uploadCost } } });
         if (r.count === 0) throw new Error('Sem créditos suficientes pra este upload.');
+        await tx.creditTransaction.create({ data: { userId: req.userId!, delta: -uploadCost, kind: 'upload', label: `Envio de exame: ${created.title}`, refId: created.id } });
       }
       return created;
     });

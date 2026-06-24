@@ -14,14 +14,30 @@ export const UPLOAD_RULES: { freeCost: number; premiumFreeQuota: number; premium
   premiumCost: config.uploadRules.premiumCost,
 };
 
-/** Débito atômico: só desconta se houver saldo suficiente. true = debitado. */
-export async function chargeCredits(userId: string, amount: number): Promise<boolean> {
+/** Grava uma linha no extrato (ledger). Best-effort: loga erro mas não quebra o fluxo.
+ *  Passe `tx` pra ser atômico com a mudança de saldo. */
+export async function logCredit(userId: string, delta: number, kind: string, label: string, refId?: string | null, tx?: any): Promise<void> {
+  try {
+    const client = tx ?? prisma;
+    await client.creditTransaction.create({ data: { userId, delta, kind, label, refId: refId ?? undefined } });
+  } catch (e: any) {
+    console.error('[credits] falha ao gravar ledger:', kind, (e as Error)?.message);
+  }
+}
+
+/** Débito atômico: só desconta se houver saldo suficiente. true = debitado.
+ *  kind/label/refId (opcionais) gravam a linha no extrato na MESMA transação. */
+export async function chargeCredits(userId: string, amount: number, kind?: string, label?: string, refId?: string): Promise<boolean> {
   if (amount <= 0) return true;
-  const r = await prisma.user.updateMany({
-    where: { id: userId, credits: { gte: amount } },
-    data: { credits: { decrement: amount } },
+  let ok = false;
+  await prisma.$transaction(async (tx) => {
+    const r = await tx.user.updateMany({ where: { id: userId, credits: { gte: amount } }, data: { credits: { decrement: amount } } });
+    if (r.count > 0) {
+      if (kind) await tx.creditTransaction.create({ data: { userId, delta: -amount, kind, label: label || kind, refId } });
+      ok = true;
+    }
   });
-  return r.count > 0;
+  return ok;
 }
 
 /** Plano premium (mensal) ativo agora? */

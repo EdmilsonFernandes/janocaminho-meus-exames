@@ -41,6 +41,7 @@ model User {
   notifications Notification[]
   deviceClaims DeviceClaim[] @relation("DeviceClaims")
   achievementGrants AchievementGrant[]
+  creditTransactions CreditTransaction[]
 
   @@map("users")
 }
@@ -65,6 +66,21 @@ model AchievementGrant {
   createdAt DateTime @default(now())
   @@unique([userId, badgeId])
   @@map("achievement_grants")
+}
+
+// Extrato (ledger) de créditos: toda entrada/saída grava uma linha. Fonte única do Histórico de Uso.
+model CreditTransaction {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  delta     Int      // +ganho / -gasto (em créditos)
+  kind      String   // purchase|plan_monthly|achievement|referral|signup|ai_chat|ai_summary|ai_consolidated|upload|share|patient_extra
+  label     String   // descrição humana exibida no extrato
+  refId     String?  // id do recurso (analysis/exam/grant/sub/share)
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@map("credit_transactions")
 }
 
 // Config de monetização parametrizada no banco (lida no boot, editável pelo painel admin).

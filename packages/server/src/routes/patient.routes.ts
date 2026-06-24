@@ -7,6 +7,7 @@ import fs from 'fs';
 import path from 'path';
 import { config } from '../config';
 import { savePatientPhoto, patientSlug, deleteExamFile } from '../utils/storage';
+import { logCredit } from '../utils/credits';
 
 const router = Router();
 router.use(requireAuth);
@@ -33,6 +34,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       // debita 50 créditos (ou passa se premium)
       if (!active) {
         await prisma.user.update({ where: { id: req.userId! }, data: { credits: { decrement: EXTRA_COST } } });
+        await logCredit(req.userId!, -EXTRA_COST, 'patient_extra', 'Dependente adicional');
       }
     }
     const p = await prisma.patient.create({

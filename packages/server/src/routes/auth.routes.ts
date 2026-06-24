@@ -16,6 +16,7 @@ import { config } from '../config';
 import { deleteExamFile, patientSlug } from '../utils/storage';
 import { validate, schemas } from '../middleware/validate';
 import { isBlockedDomain } from '../utils/blockedDomains';
+import { logCredit } from '../utils/credits';
 
 const router = Router();
 
@@ -185,6 +186,7 @@ router.post('/verify-email', async (req, res, next) => {
           await prisma.$transaction([
             prisma.user.update({ where: { id: referrer.id }, data: { credits: { increment: REFERRAL_BONUS } } }),
             prisma.subscription.create({ data: { userId: referrer.id, amount: REFERRAL_BONUS, periodDays: 0, status: 'APPROVED', mpPreferenceId: `referral_${user.id}` } }),
+            prisma.creditTransaction.create({ data: { userId: referrer.id, delta: REFERRAL_BONUS, kind: 'referral', label: 'Bônus de indicação', refId: `referral_${user.id}` } }),
           ]);
           try { await prisma.notification.create({ data: { userId: referrer.id, type: 'referral', title: '🎉 Você indicou e ganhou!', body: `${user.name} ativou a conta com seu código. +${REFERRAL_BONUS} créditos pra você!` } }); } catch {}
           console.log(`[referral] ${referrer.email} +${REFERRAL_BONUS} (${monthReferrals + 1}/${REFERRAL_MONTHLY_LIMIT} este mês)`);
@@ -196,6 +198,7 @@ router.post('/verify-email', async (req, res, next) => {
     }
 
     await prisma.user.update({ where: { id: user.id }, data: { emailVerified: true, credits: { increment: bonusCredits } } });
+    if (bonusCredits > 0) await logCredit(user.id, bonusCredits, 'signup', 'Bônus de boas-vindas');
     const freshUser = await prisma.user.findUnique({ where: { id: user.id }, select: { id: true, email: true, name: true, role: true, planExpiresAt: true, credits: true, referralCode: true, referredBy: true } });
     const { token, patientId } = await issueSession(user.id);
     res.json({ token, patientId, user: freshUser });

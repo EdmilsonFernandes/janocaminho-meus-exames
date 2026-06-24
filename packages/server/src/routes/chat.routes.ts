@@ -125,7 +125,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     await prisma.aiAnalysis.create({
       data: { type: 'CHAT', patientId: pid, userMessage: message, contentMd: text, modelUsed: model },
     });
-    await chargeCredits(req.userId!, CREDIT_COSTS.chat);
+    await chargeCredits(req.userId!, CREDIT_COSTS.chat, 'ai_chat', 'Chat com a IA');
     // Persiste a conversa em .md (não se perde; vira memória durável do paciente)
     appendConversation(slug, message, text);
   } catch (e) {

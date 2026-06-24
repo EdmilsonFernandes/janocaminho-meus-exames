@@ -63,36 +63,18 @@ router.get('/status', requireAuth, async (req: AuthedRequest, res, next) => {
 // EXTRATO de créditos (paginado 50/página, sempre do mais recente): débitos IA + créditos de compra
 router.get('/credits/history', requireAuth, async (req: AuthedRequest, res, next) => {
   try {
-    const pids = await userPatientIds(req.userId!);
     const page = Math.max(1, Number(req.query.page ?? 1));
     const perPage = 7;
-    const [analyses, subs, patients, shares] = await Promise.all([
-      prisma.aiAnalysis.findMany({ where: { patientId: { in: pids } }, orderBy: { createdAt: 'desc' }, take: 2000, select: { id: true, type: true, examId: true, patientId: true, createdAt: true } }),
-      prisma.subscription.findMany({ where: { userId: req.userId!, status: 'APPROVED', periodDays: 0 }, orderBy: { updatedAt: 'desc' }, take: 500, select: { id: true, amount: true, updatedAt: true } }),
-      prisma.patient.findMany({ where: { id: { in: pids } }, select: { id: true, fullName: true } }),
-      prisma.doctorShare.findMany({ where: { patientId: { in: pids }, creditsCharged: { gt: 0 } }, orderBy: { createdAt: 'desc' }, take: 500, select: { id: true, patientId: true, creditsCharged: true, createdAt: true } }),
+    const [items, total] = await Promise.all([
+      prisma.creditTransaction.findMany({
+        where: { userId: req.userId! },
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * perPage, take: perPage,
+        select: { id: true, delta: true, kind: true, label: true, refId: true, createdAt: true },
+      }),
+      prisma.creditTransaction.count({ where: { userId: req.userId! } }),
     ]);
-    const pmap = new Map(patients.map((p) => [p.id, p.fullName]));
-    const creditsForPrice = (price: number) => CREDIT_PACKS.find((p) => Math.abs(p.price - price) < 0.01)?.credits ?? Math.round(price * 25);
-    const items: any[] = [];
-    for (const a of analyses) {
-      items.push({
-        kind: 'debit', id: 'a' + a.id, createdAt: a.createdAt,
-        label: a.type === 'CHAT' ? 'Chat com a IA' : a.examId ? 'Resumo do exame' : 'Relatório consolidado',
-        patient: (a.patientId && pmap.get(a.patientId)) || null,
-        amount: -(a.type === 'CHAT' ? CREDIT_COSTS.chat : a.examId ? CREDIT_COSTS.summary : CREDIT_COSTS.consolidated),
-      });
-    }
-    for (const s of subs) {
-      items.push({ kind: 'credit', id: 's' + s.id, createdAt: s.updatedAt, label: `Compra de créditos — R$ ${Number(s.amount).toFixed(2).replace('.', ',')}`, patient: null, amount: creditsForPrice(Number(s.amount)) });
-    }
-    for (const sh of shares) {
-      items.push({ kind: 'debit', id: 'sh' + sh.id, createdAt: sh.createdAt, label: 'Compartilhamento com médico', patient: (sh.patientId && pmap.get(sh.patientId)) || null, amount: -sh.creditsCharged });
-    }
-    items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    const total = items.length;
-    const start = (page - 1) * perPage;
-    res.json({ items: items.slice(start, start + perPage), total, page, perPage, hasMore: start + perPage < total });
+    res.json({ items, total, page, perPage, hasMore: page * perPage < total });
   } catch (e) { next(e); }
 });
 
@@ -258,6 +240,7 @@ router.post('/webhook', async (req, res) => {
                 await prisma.$transaction([
                   prisma.subscription.update({ where: { id: sub.id }, data: { status: 'APPROVED', mpPaymentId: String(paymentId) } }),
                   prisma.user.update({ where: { id: sub.userId }, data: { credits: { increment: credits } } }),
+                  prisma.creditTransaction.create({ data: { userId: sub.userId, delta: credits, kind: 'purchase', label: `Compra de créditos (+${credits})`, refId: sub.id } }),
                 ]);
                 console.log(`[billing] créditos +${credits} p/ user ${sub.userId} (sub ${sub.id})`);
               }
@@ -268,6 +251,7 @@ router.post('/webhook', async (req, res) => {
               await prisma.$transaction([
                 prisma.subscription.update({ where: { id: sub.id }, data: { status: 'APPROVED', mpPaymentId: String(paymentId) } }),
                 prisma.user.update({ where: { id: sub.userId }, data: { planExpiresAt: expires, credits: { increment: monthlyCredits } } }),
+                prisma.creditTransaction.create({ data: { userId: sub.userId, delta: monthlyCredits, kind: 'plan_monthly', label: 'Plano Premium (mensal)', refId: sub.id } }),
               ]);
               console.log(`[billing] mensal aprovado — user ${sub.userId} +${monthlyCredits} créditos, ativo até ${expires.toISOString()}`);
             }
