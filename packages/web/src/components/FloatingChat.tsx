@@ -61,14 +61,16 @@ export const FloatingChat = () => {
         title="Pergunte ao Dr. Exame"
         sx={{
           position: 'fixed', bottom: { xs: 76, md: 24 }, right: { xs: 14, md: 24 }, zIndex: 1200,
-          width: 64, height: 64, p: 0, border: 0, bgcolor: 'transparent', cursor: 'pointer',
+          width: 52, height: 52, p: 0, bgcolor: 'rgba(255,255,255,.55)', backdropFilter: 'blur(8px)',
+          border: '1px solid rgba(255,255,255,.6)', borderRadius: '50%', cursor: 'pointer',
+          boxShadow: '0 4px 14px rgba(15,61,58,.14)',
           '&:active': { transform: 'scale(.94)' },
         }}
       >
         {/* AURA teal pulsante (glow borrado — substitui o círculo/borda sólidos) */}
         <Box sx={{
           position: 'absolute', inset: -12, borderRadius: '50%', pointerEvents: 'none',
-          background: 'radial-gradient(circle, rgba(32,178,170,.55) 0%, rgba(32,178,170,.20) 45%, transparent 72%)',
+          background: 'radial-gradient(circle, rgba(32,178,170,.26) 0%, rgba(32,178,170,.10) 45%, transparent 72%)',
           filter: 'blur(6px)', animation: 'drAura 2.6s ease-in-out infinite',
         }} />
         {/* Robô + badge ✨ (seguem o cursor no desktop) */}
@@ -78,16 +80,16 @@ export const FloatingChat = () => {
           transition: 'transform .25s ease-out', willChange: 'transform',
         }}>
           <Box sx={{ animation: 'drBob 3.4s ease-in-out infinite' }}>
-            <DrExame size={58} sx={{ borderRadius: '26%', boxShadow: '0 8px 18px rgba(0,0,0,.28)', filter: 'drop-shadow(0 2px 4px rgba(32,178,170,.45))' }} />
+            <DrExame size={44} sx={{ borderRadius: '26%', filter: 'drop-shadow(0 1px 2px rgba(15,61,58,.20))' }} />
           </Box>
           {/* Badge ✨ IA — símbolo universal de inteligência artificial */}
           <Box sx={{
-            position: 'absolute', top: -2, right: -4, width: 26, height: 26, borderRadius: '50%',
-            bgcolor: '#fff', border: '2px solid #e6f7f6', boxShadow: '0 3px 8px rgba(0,0,0,.22)',
+            position: 'absolute', top: -2, right: -2, width: 20, height: 20, borderRadius: '50%',
+            bgcolor: '#fff', border: '1.5px solid #e6f7f6', boxShadow: '0 2px 6px rgba(0,0,0,.16)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             animation: 'drSpark 2.2s ease-in-out infinite',
           }}>
-            <AutoAwesomeIcon sx={{ fontSize: 15, color: '#178f89' }} />
+            <AutoAwesomeIcon sx={{ fontSize: 12, color: '#178f89' }} />
           </Box>
         </Box>
       </Box>

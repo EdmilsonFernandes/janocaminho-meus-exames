@@ -10,7 +10,7 @@ import { TelemedicineButton } from '../components/TelemedicineButton';
 import { fmtVal } from '../utils/format';
 import { refLabel, categorize } from '../utils/medicalData';
 
-interface AbnItem { id: string; examId: string; examTitle: string; performedAt: string | null; sourceLab: string | null; requestingDoctor: string | null; name: string; nameCanonical: string; valueText: string; unit: string | null; flag: string | null; refText: string | null; refLow: number | null; refHigh: number | null; }
+interface AbnItem { id: string; examId: string; examTitle: string; performedAt: string | null; requestingDoctor: string | null; name: string; nameCanonical: string; valueText: string; unit: string | null; flag: string | null; refText: string | null; refLow: number | null; refHigh: number | null; }
 
 /** Valores fora da faixa, AGRUPADOS POR EXAME (e dentro de cada exame, ordenados por categoria). */
 export const ValoresAlteradosPage = () => {
@@ -28,9 +28,9 @@ export const ValoresAlteradosPage = () => {
   }, [pid]);
 
   const groups = useMemo(() => {
-    const map = new Map<string, { examId: string; examTitle: string; performedAt: string | null; sourceLab: string | null; requestingDoctor: string | null; items: AbnItem[] }>();
+    const map = new Map<string, { examId: string; examTitle: string; performedAt: string | null; requestingDoctor: string | null; items: AbnItem[] }>();
     for (const it of items) {
-      if (!map.has(it.examId)) map.set(it.examId, { examId: it.examId, examTitle: it.examTitle, performedAt: it.performedAt, sourceLab: it.sourceLab, requestingDoctor: it.requestingDoctor, items: [] });
+      if (!map.has(it.examId)) map.set(it.examId, { examId: it.examId, examTitle: it.examTitle, performedAt: it.performedAt, requestingDoctor: it.requestingDoctor, items: [] });
       map.get(it.examId)!.items.push(it);
     }
     // Dentro de cada exame, ordena por categoria (clusteriza Hemograma, Lipídios, etc.)
@@ -67,13 +67,13 @@ export const ValoresAlteradosPage = () => {
       ) : (
         <Stack spacing={1}>
           {groups.map((g, gi) => (
-            <Accordion key={g.examId} defaultExpanded={gi === 0} disableGutters elevation={0} sx={{ border: '1px solid #f3dada', borderRadius: '12px', overflow: 'hidden', '&:before': { display: 'none' } }}>
+            <Accordion key={g.examId} disableGutters elevation={0} sx={{ border: '1px solid #f3dada', borderRadius: '12px', overflow: 'hidden', '&:before': { display: 'none' } }}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: '#fff5f5' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 1 }}>
                   <Box component="span" sx={{ fontSize: 18 }}>🚨</Box>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Typography sx={{ fontWeight: 800, color: '#b91c1c', lineHeight: 1.2 }}>{g.examTitle}</Typography>
-                    <Typography variant="caption" sx={{ color: '#9b3a3a' }}>📅 {fmtDate(g.performedAt)}{g.performedAt ? ` (${timeAgo(g.performedAt)})` : ''}{g.requestingDoctor ? ` · 🩺 Dr. ${g.requestingDoctor}` : ''}{g.sourceLab ? ` · 🏥 ${g.sourceLab}` : ''}</Typography>
+                    <Typography variant="caption" sx={{ color: '#9b3a3a' }}>📅 {fmtDate(g.performedAt)}{g.performedAt ? ` · ${timeAgo(g.performedAt)}` : ''}{g.requestingDoctor ? ` · 🩺 Dr. ${g.requestingDoctor}` : ''}</Typography>
                   </Box>
                   <Chip size="small" color="error" label={`${g.items.length} alterado(s)`} sx={{ fontWeight: 700, height: 20 }} />
                 </Box>

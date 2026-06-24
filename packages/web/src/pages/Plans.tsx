@@ -62,9 +62,10 @@ export const PlansPage = () => {
     ]);
     if (s.ok) setStatus(await s.json());
     if (p.ok) setPlans(await p.json());
-    void loadHistory();
   };
   useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
+  // Histórico (lazy): só busca quando o user expande o extrato — Plans abre rápido.
+  useEffect(() => { if (histOpen && hist.length === 0 && !histLoading) void loadHistory(); /* eslint-disable-next-line */ }, [histOpen]);
 
   useEffect(() => {
     if (params.get('status') === 'success') notify('Pagamento aprovado! Plano ativo. 🎉', { type: 'success' });

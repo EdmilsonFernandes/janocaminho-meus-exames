@@ -64,7 +64,7 @@ router.get('/status', requireAuth, async (req: AuthedRequest, res, next) => {
 router.get('/credits/history', requireAuth, async (req: AuthedRequest, res, next) => {
   try {
     const page = Math.max(1, Number(req.query.page ?? 1));
-    const perPage = 7;
+    const perPage = 50;
     const [items, total] = await Promise.all([
       prisma.creditTransaction.findMany({
         where: { userId: req.userId! },

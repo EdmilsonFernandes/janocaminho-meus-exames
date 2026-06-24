@@ -287,7 +287,7 @@ const AppDrawer = () => {
           <Avatar src={userPhoto} sx={{ width: 48, height: 48, bgcolor: '#e0f2f1', color: '#178f89', fontWeight: 800, border: '2px solid #bfe0dc' }}>{userName?.charAt(0)?.toUpperCase() || '👤'}</Avatar>
           <Box sx={{ minWidth: 0, flex: 1 }}>
             <Typography sx={{ fontWeight: 800, fontSize: 16, color: '#0f3d3a', lineHeight: 1.15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{userName || 'Olá!'}</Typography>
-            <Typography sx={{ fontSize: 12.5, color: '#94a3b8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{isPremium ? '👑 Plano Premium' : (userEmail || '')}</Typography>
+            <Typography sx={{ fontSize: 12.5, color: '#94a3b8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{isPremium ? '👑 Premium' : 'Plano grátis'}{userObj?.credits != null ? ` • 💎 ${userObj.credits}` : ''}</Typography>
             {credits != null && (
               <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 0.25 }}>
                 <Typography sx={{ fontSize: 11.5, color: '#64748b', fontWeight: 600, whiteSpace: 'nowrap' }}>⚡ {credits} créditos</Typography>
@@ -431,6 +431,15 @@ export const App = () => {
     // RE-CHECA atualização a cada 10 min enquanto o app tá aberto (Play Store publica versão nova → aparece sem precisar reiniciar)
     const updateInterval = setInterval(() => { if (!cancelled) void checkPlayUpdate(); }, 10 * 60 * 1000);
     void syncCreditCosts();
+    // SELF-HEAL: sessão com token mas SEM user (ex.: login antigo por biometria que só guardou o token)
+    // → busca /auth/me e popula user/paciente. Assim o drawer (nome+plano+admin) funciona sem re-login.
+    const __tk = localStorage.getItem('token');
+    if (__tk && !localStorage.getItem('user')) {
+      fetch(`${API_URL}/auth/me`, { headers: { Authorization: `Bearer ${__tk}` } })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => { if (!cancelled && d?.user) { localStorage.setItem('user', JSON.stringify(d.user)); if (d.patientId) { localStorage.setItem('patientId', d.patientId); localStorage.setItem('selPatientId', d.patientId); } window.dispatchEvent(new Event('selPatientChanged')); } })
+        .catch(() => {});
+    }
     // Botão/gesto de voltar do Android (Capacitor) — volta no histórico IN-APP ou sai do app na raiz.
     let remove: (() => void) | undefined;
     (async () => {

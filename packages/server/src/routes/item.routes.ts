@@ -220,10 +220,10 @@ router.get('/abnormal', async (req: AuthedRequest, res, next) => {
     const rows = await prisma.examItem.findMany({
       where: { isAbnormal: true, exam: { patientId: scope, status: 'EXTRACTED' } },
       orderBy: { exam: { performedAt: 'desc' } },
-      include: { exam: { select: { id: true, title: true, performedAt: true, sourceLab: true, requestingDoctor: true } } },
+      include: { exam: { select: { id: true, title: true, performedAt: true, sourceLab: true, requestingDoctor: true, rawExtraction: true } } },
       take: 300,
     });
-    res.json({ items: rows.map((i) => ({ id: i.id, examId: i.exam.id, name: i.name, nameCanonical: i.nameCanonical, valueText: i.valueText, unit: i.unit, flag: i.flag, refText: i.refText, refLow: i.refLow, refHigh: i.refHigh, examTitle: i.exam.title, performedAt: i.exam.performedAt, sourceLab: i.exam.sourceLab, requestingDoctor: i.exam.requestingDoctor })) });
+    res.json({ items: rows.map((i) => ({ id: i.id, examId: i.exam.id, name: i.name, nameCanonical: i.nameCanonical, valueText: i.valueText, unit: i.unit, flag: i.flag, refText: i.refText, refLow: i.refLow, refHigh: i.refHigh, examTitle: i.exam.title, performedAt: i.exam.performedAt, requestingDoctor: i.exam.requestingDoctor || (i.exam.rawExtraction as any)?.requestingDoctor || null })) });
   } catch (e) { next(e); }
 });
 

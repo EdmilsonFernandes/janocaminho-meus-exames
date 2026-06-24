@@ -101,7 +101,9 @@ export const Dashboard = () => {
       : tip;
   const renderTip = () => (
     <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
-      <DrExame size={36} sx={{ borderRadius: '50%', flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,.1)' }} />
+      <Box sx={{ flexShrink: 0, width: 44, height: 44, borderRadius: '50%', background: 'radial-gradient(circle, rgba(32,178,170,.16), rgba(32,178,170,.03))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <DrExame size={34} sx={{ borderRadius: '50%' }} />
+      </Box>
       <Box sx={{ flex: 1, minWidth: 0 }}>
         <Typography sx={{ fontWeight: 800, color: '#178f89', fontSize: 13 }}>✨ Dica personalizada (IA)</Typography>
         <Typography sx={{ fontSize: 14, color: '#0f3d3a', lineHeight: 1.5, mt: 0.25 }}>{tipMsg}</Typography>
