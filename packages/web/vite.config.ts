@@ -33,5 +33,20 @@ export default defineConfig({
   build: {
     // NÃO externalizar @capacitor/* (ver bloco do capCoreDir acima): a implementação WEB (JS)
     // DEVE entrar no bundle — é ela que faz isNativePlatform() retornar false no browser.
+    // Vite 8 = rolldown (não rollup) → usa advancedChunks (manualChunks não existe aqui).
+    rolldownOptions: {
+      // Separa os vendors grandes em chunks próprios → o chunk do app encolhe e os vendors
+      // ficam cacheáveis entre releases (mudam só quando a dep muda). Não reduz o total, mas
+      // melhora cache + carregamento paralelo. (Lazy das páginas é o próximo passo p/ 1º load.)
+      output: {
+        codeSplitting: {
+          groups: [
+            { name: 'vendor-ui', test: /@mui|@emotion/ },
+            { name: 'vendor-admin', test: /react-admin|ra-data-simple-rest/ },
+            { name: 'vendor-charts', test: /recharts|react-markdown/ },
+          ],
+        },
+      },
+    },
   },
 });
