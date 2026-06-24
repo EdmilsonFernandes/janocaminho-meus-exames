@@ -185,6 +185,7 @@ const AppMenu = () => {
     <MenuSection title="Gerenciamento" />
     <NavItem to="/familia" primaryText="Família" icon={<Diversity3Icon />} />
     <NavItem to="/patients" primaryText="Dependentes" icon={<Diversity3Icon />} />
+    <NavItem to="/medicos" primaryText="Meus Médicos" icon={<MedicalServicesIcon />} />
     <NavItem to="/relatorio" primaryText="Relatório completo" icon={<SummarizeIcon />} highlight />
     <NavItem to="/despesas" primaryText="Despesas médicas" icon={<AccountBalanceWalletIcon />} />
 
