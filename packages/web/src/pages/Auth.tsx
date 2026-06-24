@@ -204,9 +204,7 @@ export const LoginPage = () => {
           <Button type="submit" variant="contained" size="large" fullWidth disabled={loading} endIcon={<I.ArrowRight />} sx={primaryBtnSx}>
             {loading ? <CircularProgress size={22} color="inherit" /> : 'Entrar'}
           </Button>
-          <Button type="button" variant="outlined" fullWidth startIcon={<I.Key />} onClick={() => sendOtp()} sx={tokenBtnSx}>
-            Entrar com token
-          </Button>
+          {/* "Entrar com token" oculto por ora (OTP segue acessível p/ ativação de conta). */}
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start', mt: 1, color: '#46555a' }}>
             <Box sx={{ mt: '1px' }}><I.Shield /></Box>
             <Box>

@@ -31,6 +31,7 @@ export const PlansPage = () => {
   const [histFilter, setHistFilter] = useState<string>('all');
   const [histTotal, setHistTotal] = useState(0);
   const [dispPage, setDispPage] = useState(1);
+  const [histOpen, setHistOpen] = useState(false); // extrato começa recolhido (não auto-expande)
 
   const loadHistory = async () => {
     setHistLoading(true);
@@ -122,7 +123,11 @@ export const PlansPage = () => {
       {/* CONSUMO RECENTE */}
       {hist.length > 0 && (
         <Card sx={{ mb: 2, borderRadius: 4 }}><CardContent>
-          <Typography variant="h6" sx={{ mb: 1.5, fontWeight: 800, color: '#0f3d3a', fontSize: 17 }}>Histórico de Uso</Typography>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" onClick={() => setHistOpen((v) => !v)} sx={{ mb: histOpen ? 1.5 : 0, cursor: 'pointer', userSelect: 'none', '&:hover': { opacity: 0.8 } }}>
+            <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f3d3a', fontSize: 17 }}>Histórico de Uso</Typography>
+            <Typography variant="caption" sx={{ color: '#178f89', fontWeight: 700 }}>{histOpen ? 'Ocultar ▲' : `${histTotal || hist.length} lançamento(s) ▼`}</Typography>
+          </Stack>
+          {histOpen && (<>
           {/* Filtros rápidos — segmented control borderless (ativo = verde 14%, inativo = texto sutil) */}
           <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mb: 2 }}>
             {[{ k: 'all', l: 'Todos' }, { k: 'gain', l: '➕ Ganhos' }, { k: 'ai', l: '🤖 IA' }, { k: 'upload', l: '📤 Exames' }, { k: 'achievement', l: '🏆 Conquistas' }, { k: 'referral', l: '🤝 Indicações' }, { k: 'purchase', l: '🛒 Compras' }].map((f) => {
@@ -184,6 +189,7 @@ export const PlansPage = () => {
               </>
             );
           })()}
+          </>)}
         </CardContent></Card>
       )}
 

@@ -9,6 +9,13 @@ on:
     branches: ["main"]
   workflow_dispatch:
 
+# Serializa builds: um push novo CANCELA builds antigos concorrentes → a tag :latest
+# sempre reflete o commit mais recente (sem isso, builds lentos de commits antigos
+# sobrescrevem :latest e o prod reverte — race de CI).
+concurrency:
+  group: publish-ghcr-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
   packages: write

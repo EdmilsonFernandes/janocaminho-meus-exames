@@ -8,6 +8,12 @@ on:
     types: [completed]
   workflow_dispatch:
 
+# Cancela deploys antigos quando um novo publish completa → só o deploy do commit
+# mais recente roda no EC2 (evita flapping do container entre versões).
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
   packages: read

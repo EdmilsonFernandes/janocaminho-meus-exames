@@ -19,7 +19,7 @@ describe('doctor-share: custo por escopo ao compartilhar (na criação)', () => 
     const ext = await api().get('/api/billing/credits/history').set(authHeader(token));
     const shareItem = ext.body.items.find((it: any) => it.label === 'Compartilhamento com médico');
     expect(shareItem).toBeTruthy();
-    expect(shareItem.amount).toBe(-10);
+    expect(shareItem.delta).toBe(-10);
   });
 
   it('reativar o MESMO médico (share já existe) NÃO cobra de novo', async () => {
