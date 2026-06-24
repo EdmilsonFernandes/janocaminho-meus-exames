@@ -10,6 +10,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import HomeIcon from '@mui/icons-material/Home';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import InsightsIcon from '@mui/icons-material/Insights';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import AutoGraphIcon from '@mui/icons-material/AutoGraph';
 import HistoryIcon from '@mui/icons-material/History';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
@@ -76,6 +77,7 @@ import { NotificationPopup } from './components/NotificationPopup';
 import { Onboarding } from './components/Onboarding';
 import { NotificationsPage } from './pages/Notifications';
 import { MedicosPage } from './pages/Medicos';
+import { ConquistasPage } from './pages/Conquistas';
 import { initPush } from './push';
 import { syncCreditCosts } from './components/CreditBadge';
 
@@ -176,6 +178,7 @@ const AppMenu = () => {
     <MenuSection title="Inteligência Artificial" />
     <NavItem to="/chat" primaryText="Dr. Exame (IA)" icon={<AutoAwesomeIcon />} highlight />
     <NavItem to="/evolucao" primaryText="Evolução" icon={<InsightsIcon />} />
+    <NavItem to="/conquistas" primaryText="Minhas conquistas" icon={<EmojiEventsIcon />} />
 
     {/* GERENCIAMENTO */}
     <MenuSection title="Gerenciamento" />
@@ -495,6 +498,7 @@ export const App = () => {
       <Route path="/notificacoes" element={<NotificationsPage />} />
       <Route path="/planos" element={<Suspense fallback={<Box sx={{ display:'flex', justifyContent:'center', py: 8 }}><CircularProgress /></Box>}><PlansPage /></Suspense>} />
       <Route path="/medicos" element={<MedicosPage />} />
+      <Route path="/conquistas" element={<ConquistasPage />} />
     </CustomRoutes>
   </Admin>
   </>

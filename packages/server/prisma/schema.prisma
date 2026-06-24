@@ -21,6 +21,10 @@ model User {
   credits      Int      @default(60)   // créditos de IA — custos/grants parametrizados em app_settings. Recarrega com plano.
   emailVerified Boolean @default(false) // valida e-mail no cadastro (previne conta com e-mail fake)
   nudgeEmails   Boolean  @default(true) // recebe nudge de saúde por e-mail (fallback p/ quem NÃO tem push — ex.: iPhone no navegador)
+  // Gamificação (conquistas): streak server-side (anti-farm) + pref de aviso de nova conquista
+  streakDays        Int     @default(0)
+  lastActiveDay     String? // YYYY-MM-DD do último dia ativo (idempotente no dia)
+  achievementAlerts Boolean @default(true) // notifica (in-app) quando desbloqueia conquista
   referralCode String?  @unique  // código de indicação (ex: EDMILSON-A1B2) — vira bônus pra ambos
   referredBy   String?            // código de quem indicou este usuário
   deviceId     String?            // ID estável do aparelho (ANDROID_ID) — 1 bônus de boas-vindas por dispositivo
@@ -36,6 +40,7 @@ model User {
   deviceTokens DeviceToken[]
   notifications Notification[]
   deviceClaims DeviceClaim[] @relation("DeviceClaims")
+  achievementGrants AchievementGrant[]
 
   @@map("users")
 }
@@ -49,6 +54,17 @@ model DeviceClaim {
   user      User?    @relation("DeviceClaims", fields: [userId], references: [id], onDelete: SetNull)
   createdAt DateTime @default(now())
   @@map("device_claims")
+}
+
+// Conquista resgatada (gamificação): 1 crédito por badge, 1x só (anti-farm via unique).
+model AchievementGrant {
+  id        String   @id @default(cuid())
+  userId    String
+  badgeId   String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  @@unique([userId, badgeId])
+  @@map("achievement_grants")
 }
 
 // Config de monetização parametrizada no banco (lida no boot, editável pelo painel admin).

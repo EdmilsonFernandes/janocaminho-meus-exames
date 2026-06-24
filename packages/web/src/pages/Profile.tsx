@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, TextField, Button, Stack, Chip, CircularProgress, MenuItem } from '@mui/material';
+import { Box, Card, CardContent, Typography, TextField, Button, Stack, Chip, CircularProgress, MenuItem, Switch, FormControlLabel } from '@mui/material';
 import { Title, useNotify } from 'react-admin';
 import LockIcon from '@mui/icons-material/Lock';
 import SaveIcon from '@mui/icons-material/Save';
@@ -25,11 +25,12 @@ export const ProfilePage = () => {
   const [photoVer, setPhotoVer] = useState(0); // cache-bust sincronizado entre header
   const [cur, setCur] = useState(''); const [nw, setNw] = useState(''); const [cf, setCf] = useState('');
   const [pwLoading, setPwLoading] = useState(false);
+  const [achAlerts, setAchAlerts] = useState(true); // avisar ao desbloquear conquista
 
   const load = async () => {
     const h = { Authorization: `Bearer ${token()}` };
     const me = await fetch(`${API_URL}/auth/me`, { headers: h });
-    if (me.ok) setUser((await me.json())?.user);
+    if (me.ok) { const mu = (await me.json())?.user; setUser(mu); setAchAlerts(mu?.achievementAlerts ?? true); }
     if (pid) {
       const pr = await fetch(`${API_URL}/patients/${pid}`, { headers: h });
       if (pr.ok) { const p = await pr.json(); setPatient(p); setFullName(p.fullName ?? ''); setPhone(p.phone ?? ''); setClinical(p.clinicalProfile ?? ''); setGender(p.gender ?? ''); setBirthDate(p.dateOfBirth ? p.dateOfBirth.split('T')[0] : ''); }
@@ -43,6 +44,11 @@ export const ProfilePage = () => {
     const r = await fetch(`${API_URL}/patients/${pid}`, { method: 'PUT', headers: apiHeaders(true), body: JSON.stringify({ fullName, phone, clinicalProfile: clinical, gender, dateOfBirth: birthDate || null }) });
     setSaving(false);
     notify(r.ok ? 'Perfil atualizado!' : 'Erro ao salvar', { type: r.ok ? 'success' : 'error' });
+  };
+  const toggleAchAlerts = async (on: boolean) => {
+    setAchAlerts(on);
+    const r = await fetch(`${API_URL}/auth/me`, { method: 'PATCH', headers: apiHeaders(true), body: JSON.stringify({ achievementAlerts: on }) });
+    if (!r.ok) { setAchAlerts(!on); notify('Erro ao salvar preferência.', { type: 'error' }); }
   };
   const changePw = async () => {
     if (nw !== cf) { notify('A nova senha e a confirmação não conferem.', { type: 'error' }); return; }
@@ -130,6 +136,15 @@ export const ProfilePage = () => {
           <Box sx={{ mt: 2 }}>
             <Button variant="contained" startIcon={<SaveIcon />} onClick={saveProfile} disabled={saving}>{saving ? 'Salvando…' : 'Salvar perfil'}</Button>
           </Box>
+        </CardContent>
+      </Card>
+
+      {/* Notificações de conquista */}
+      <Card sx={{ mb: 2, borderRadius: 4 }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>🔔 Notificações</Typography>
+          <FormControlLabel control={<Switch checked={achAlerts} onChange={(e) => toggleAchAlerts(e.target.checked)} />} label="Avisar quando eu desbloquear uma conquista" />
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>Você continua ganhando os créditos mesmo com isso desligado — só não recebe o aviso no sino.</Typography>
         </CardContent>
       </Card>
 

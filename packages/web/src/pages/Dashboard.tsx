@@ -81,6 +81,8 @@ export const Dashboard = () => {
         if (it.ok) { const items = await it.json(); setTipData({ abnormal: items.find((x: any) => x.isAbnormal) ?? null, good: items.find((x: any) => !x.isAbnormal && x.value != null) ?? null }); }
         const st = await fetch(`${API_URL}/billing/status`, { headers: h });
         if (st.ok) { const sd = await st.json(); setCredits(typeof sd.credits === 'number' ? sd.credits : null); }
+        // Streak server-side das conquistas — fire-and-forget (1x/dia, idempotente).
+        fetch(`${API_URL}/achievements/heartbeat`, { method: 'POST', headers: h }).catch(() => {});
       } catch { /* ignore */ } finally { setLoaded(true); }
       // Oferece biometria 1x (nativo + ainda não ativou)
       if (BiometricService.isSupported() && !BiometricService.hasEnrollment()) setTimeout(() => setBioOffer(true), 1500);

@@ -299,7 +299,7 @@ router.get('/me', requireAuth, async (req: AuthedRequest, res, next) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.userId! },
-      select: { id: true, email: true, name: true, role: true, planExpiresAt: true, credits: true, referralCode: true, referredBy: true },
+      select: { id: true, email: true, name: true, role: true, planExpiresAt: true, credits: true, referralCode: true, referredBy: true, achievementAlerts: true },
     });
     const patientId = user ? await firstPatientId(user.id) : null;
     // Backfill: usuários antigos sem referralCode → gera um (pra ReferralCard aparecer)
@@ -312,6 +312,18 @@ router.get('/me', requireAuth, async (req: AuthedRequest, res, next) => {
       }
     }
     res.json({ user, patientId });
+  } catch (e) { next(e); }
+});
+
+// PATCH /me — atualiza preferências do perfil (extensível: achievementAlerts, name...).
+router.patch('/me', requireAuth, async (req: AuthedRequest, res, next) => {
+  try {
+    const data: any = {};
+    if (typeof req.body?.achievementAlerts === 'boolean') data.achievementAlerts = req.body.achievementAlerts;
+    if (typeof req.body?.name === 'string' && req.body.name.trim()) data.name = req.body.name.trim();
+    if (!Object.keys(data).length) { res.status(400).json({ error: 'Nada para atualizar' }); return; }
+    await prisma.user.update({ where: { id: req.userId! }, data });
+    res.json({ ok: true });
   } catch (e) { next(e); }
 });
 
