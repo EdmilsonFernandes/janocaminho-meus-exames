@@ -1,7 +1,6 @@
 import { List, useListContext, useRefresh, useNotify, CreateButton, TopToolbar } from 'react-admin';
-import { Chip, Box, Card, CardContent, Typography, IconButton, Stack, LinearProgress, Button, Accordion, AccordionSummary, AccordionDetails, Alert, Fab } from '@mui/material';
+import { Chip, Box, Card, CardContent, Typography, IconButton, Stack, LinearProgress, Button, Accordion, AccordionSummary, AccordionDetails, Alert } from '@mui/material';
 import ScienceIcon from '@mui/icons-material/Science';
-import AddIcon from '@mui/icons-material/Add';
 import ImageIcon from '@mui/icons-material/Image';
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
@@ -95,8 +94,7 @@ const ExamCards = () => {
   };
 
   return (
-    <>
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, p: { xs: 1.5, sm: 2 }, pb: { xs: 11, sm: 4 }, maxWidth: 760, mx: 'auto' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, p: { xs: 1.5, sm: 2 }, pb: { xs: 'calc(84px + env(safe-area-inset-bottom))', sm: 4 }, maxWidth: 760, mx: 'auto' }}>
       {/* Cabeçalho da lista — preenche o espaço do topo (sem área branca) + botão enviar */}
       <Stack direction="row" alignItems="center" justifyContent="space-between" useFlexGap flexWrap="wrap" gap={1} sx={{ mb: 0.5 }}>
         <Box>
@@ -139,12 +137,6 @@ const ExamCards = () => {
         );
       })}
     </Box>
-    {/* + flutuante: ACIMA do rodapé (não briga com o MobileBottomNav). Mesma posição
-        que o Dr.Exame nas outras telas — bottom:76 limpa a nav (~64px) + safe-area. */}
-    <Fab color="primary" aria-label="Enviar exame" onClick={() => navigate('/exams/create')} sx={{ position: 'fixed', bottom: { xs: 76, md: 24 }, right: { xs: 14, md: 24 }, zIndex: 1200, bgcolor: '#20b2aa', '&:hover': { bgcolor: '#178f89' }, boxShadow: '0 10px 24px rgba(32,178,170,.40)' }}>
-      <AddIcon />
-    </Fab>
-    </>
   );
 };
 
