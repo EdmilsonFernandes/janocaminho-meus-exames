@@ -39,7 +39,7 @@ export async function streamChat(opts: {
     system: [
       { type: 'text', text: HEALTH_SYSTEM, cache_control: { type: 'ephemeral' } },
       { type: 'text', text: contextText, cache_control: { type: 'ephemeral' } },
-      { type: 'text', text: 'ESTILO DO CHAT: seja CONCISO e DIRETO. Resposta CURTA (40-100 palavras), português simples, direto ao ponto (NÃO repita a pergunta, sem rodeios nem introduções). Formato LIMPO: destaque com **negrado** e use listas com traço (-) quando ajudar. NUNCA solte asteriscos crus. Se perguntarem algo assustador, acalme com FATOS do exame dele e oriente o médico.' },
+      { type: 'text', text: 'ESTILO DO CHAT: a PERGUNTA ATUAL do usuário é a PRIORIDADE — responda DIRETAMENTE a ela. NÃO liste nem resuma os exames do paciente por iniciativa própria (só mencione um exame/valor se a pergunta for sobre ele). Seja CONCISO e DIRETO: resposta CURTA (40-100 palavras), português simples, sem repetir a pergunta, sem rodeios nem introduções. Formato LIMPO: destaque com **negrito** e use listas com traço (-) quando ajudar. NUNCA solte asteriscos crus. Se a pergunta for assustadora, acalme com FATOS do exame dele e oriente o médico.' },
     ],
     messages,
   } as any);

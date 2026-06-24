@@ -8,8 +8,9 @@ import { normalizeKey, findMarkerInText, computeFlag } from '../utils/normalize'
 // Perguntas INTERPRETATIVAS → sempre delega pra IA (nunca responde local).
 const INTERPRETIVE = /O QUE (SIGNIFICA|SIGNIFICAÇÃO|PODE|E|SAO|É)|POR QUE|PORQUE|É GRAVE|E PERIGOSO|POSSO|TRATAMENTO|CAUSA|DOENÇ|ANOMAL|PRECISO|PROCURAR|MÉDICO|ALERTA/;
 // Contagem / lista de exames (sem marcador específico).
+// NOTE: o token "QUE" foi removido — era gen demais e capturava "o que são exames?" (deveria ir à IA).
 const COUNT_EXAMS = /QUANTOS EXAMES|QUANTIDADE DE EXAMES|NUMERO DE EXAMES|N EXAMES/;
-const LIST_EXAMS = /\b(QUE|QUAIS|QUANTOS|TODOS|MEUS|LISTA|MOSTR|VER)\b.{0,12}\bEXAMES\b/;
+const LIST_EXAMS = /\b(QUAIS|QUANTOS|TODOS|MEUS|MINHOS|LISTA|LISTAR|MOSTR|MOSTRE|VEJA|EXIB)\b.{0,12}\bEXAMES\b/;
 
 export interface LocalAnswer {
   answered: boolean;

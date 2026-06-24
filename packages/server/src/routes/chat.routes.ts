@@ -71,16 +71,20 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       ])
       .slice(-12);
 
+    // CONTEXTO DE FUNDO — referência passiva. Reframing: os exames NÃO são o tópico;
+    // só devem aparecer na resposta se a pergunta for sobre eles (evita resumo automático a cada turno).
     const contextText =
-      `Paciente: ${patient?.fullName ?? '—'}\n` +
-      (patient?.clinicalProfile ? `Perfil clínico: ${patient.clinicalProfile}\n` : '') +
-      `\nExames recentes:\n` +
+      `CONTEXTO DO PACIENTE (referência de fundo — NÃO liste nem resuma por iniciativa própria; cite um item SÓ se a pergunta for sobre ele):\n` +
+      `- Paciente: ${patient?.fullName ?? '—'}\n` +
+      (patient?.clinicalProfile ? `- Perfil clínico: ${patient.clinicalProfile}\n` : '') +
       (recent.length
-        ? recent
-            .map((e) => `- ${e.title} (${e.performedAt ? new Date(e.performedAt as Date).toLocaleDateString('pt-BR') : 's/d'}): ${e.items.length} valor(es) alterado(s)`)
-            .join('\n')
-        : '(sem exames extraídos ainda)') +
-      (memory ? `\n\nHISTÓRICO DE ANÁLISES ANTERIORES (memória do assistente — use como contexto, mantenha coerência, não repita):\n${memory}\n` : '');
+        ? `- Exames registrados (recentes primeiro):\n` +
+          recent
+            .map((e) => `   • ${e.title}${e.performedAt ? ` (${new Date(e.performedAt as Date).toLocaleDateString('pt-BR')})` : ''}: ${e.items.length} valor(es) alterado(s)`)
+            .join('\n') + '\n'
+        : `- Exames registrados: (nenhum extraído ainda)\n`) +
+      (memory ? `- Resumo de análises anteriores (mantenha coerência, NÃO repita):\n${memory}\n` : '') +
+      `\nDIRETIVA: responda DIRETAMENTE à pergunta atual do usuário. O bloco acima é só referência — não o reproduza nem faça resumo geral dele.`;
 
     // gate de créditos (antes de iniciar o stream — não dá p/ abortar no meio do SSE)
     const me = await prisma.user.findUnique({ where: { id: req.userId! }, select: { credits: true } });
