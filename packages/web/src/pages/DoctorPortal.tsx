@@ -51,16 +51,32 @@ export const DoctorPortalPage = () => {
   const [regName, setRegName] = useState(''); const [regCrm, setRegCrm] = useState(''); const [regUf, setRegUf] = useState(''); const [regSpec, setRegSpec] = useState('');
   const [regLooking, setRegLooking] = useState(false);
   const [regHint, setRegHint] = useState<{ type: 'success' | 'warning'; msg: string } | null>(null);
+  const [regSpecOther, setRegSpecOther] = useState('');
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState('');
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
+  const [verifyCode, setVerifyCode] = useState('');
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault(); setLoading(true); setErr('');
     try {
-      const body = mode === 'login' ? { email: email.trim().toLowerCase(), password: pwd } : { name: regName.trim(), crm: regCrm.trim(), crmUf: regUf, specialty: regSpec, email: email.trim().toLowerCase(), password: pwd };
+      const finalSpec = regSpec === 'Outro' ? regSpecOther.trim() : regSpec;
+      const body = mode === 'login' ? { email: email.trim().toLowerCase(), password: pwd } : { name: regName.trim(), crm: regCrm.trim(), crmUf: regUf, specialty: finalSpec, email: email.trim().toLowerCase(), password: pwd };
       const r = await fetch(`${API_URL}/doctor/${mode}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Falha');
+      if (d.needsVerification) { setPendingEmail(d.email); return; } // médico valida e-mail (OTP) antes de logar
+      localStorage.setItem(docKey, d.token); setToken(d.token); setDoctor(d.doctor);
+    } catch (e: any) { setErr(e.message); } finally { setLoading(false); }
+  };
+
+  // Verifica o código enviado por e-mail → ativa a conta e loga.
+  const verifyEmail = async (e: React.FormEvent) => {
+    e.preventDefault(); setLoading(true); setErr('');
+    try {
+      const r = await fetch(`${API_URL}/doctor/verify-email`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: pendingEmail, code: verifyCode.trim() }) });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Código inválido.');
       localStorage.setItem(docKey, d.token); setToken(d.token); setDoctor(d.doctor);
     } catch (e: any) { setErr(e.message); } finally { setLoading(false); }
   };
@@ -82,6 +98,24 @@ export const DoctorPortalPage = () => {
   };
 
   if (token) return <DoctorDashboard token={token} onLogout={logout} />;
+
+  // Etapa de verificação de e-mail (código OTP enviado no cadastro do médico).
+  if (pendingEmail) {
+    return (
+      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2, background: 'linear-gradient(135deg,#e6f7f5,#d4f0ec)' }}>
+        <Box sx={{ width: '100%', maxWidth: 420, bgcolor: '#fff', borderRadius: '16px', boxShadow: '0 10px 40px rgba(0,80,70,.12)', p: { xs: 3, sm: 4 } }}>
+          <Button size="small" onClick={() => { setPendingEmail(null); setErr(''); }} sx={{ color: '#64748b', textTransform: 'none', fontWeight: 700, p: 0, minWidth: 0, mb: 1 }}>← Voltar</Button>
+          <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f3d3a', mb: 0.5 }}>✉️ Confirme seu e-mail</Typography>
+          <Typography variant="body2" sx={{ color: '#4a6b66', mb: 2 }}>Enviamos um código de 6 dígitos para <strong>{pendingEmail}</strong>. Digite abaixo pra ativar sua conta de médico.</Typography>
+          <Box component="form" onSubmit={verifyEmail} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <TextField autoFocus value={verifyCode} onChange={(e) => setVerifyCode(e.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="Código (6 dígitos)" inputMode="numeric" required sx={fieldSx} />
+            {err && <Alert severity="error" sx={{ py: 0.5, borderRadius: 2 }}>{err}</Alert>}
+            <Button type="submit" variant="contained" size="large" fullWidth disabled={loading} sx={{ borderRadius: '8px', py: 1.35, fontWeight: 800, textTransform: 'none', fontSize: 16, background: 'linear-gradient(180deg,#20b2aa,#009688)' }}>{loading ? <CircularProgress size={22} color="inherit" /> : 'Ativar conta'}</Button>
+          </Box>
+        </Box>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2, background: 'linear-gradient(135deg,#e6f7f5,#d4f0ec)' }}>
@@ -124,6 +158,9 @@ export const DoctorPortalPage = () => {
               <MenuItem value=""><em>Selecione…</em></MenuItem>
               {SPECIALTIES.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
             </TextField>
+            {regSpec === 'Outro' && (
+              <TextField placeholder="Digite sua especialidade (ex.: Cirurgia de Cabeça e Pescoço)" value={regSpecOther} onChange={(e) => setRegSpecOther(e.target.value)} sx={fieldSx} fullWidth required />
+            )}
           </>)}
           <TextField placeholder="E-mail ou CRM" type="text" required value={email} onChange={(e) => setEmail(e.target.value)} sx={fieldSx}
             slotProps={{ input: { startAdornment: <InputAdornment position="start"><I.Mail /></InputAdornment> } }} />

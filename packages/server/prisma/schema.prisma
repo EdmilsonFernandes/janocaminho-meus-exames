@@ -365,6 +365,7 @@ model Doctor {
   specialty    String?
   photoUrl     String?
   email        String   @unique
+  emailVerified Boolean @default(false) // valida e-mail no cadastro (igual o paciente) — antes logava direto
   passwordHash String
   createdAt    DateTime @default(now())
   shares       DoctorShare[]

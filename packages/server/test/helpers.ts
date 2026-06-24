@@ -162,3 +162,17 @@ export async function getUserCredits(userId: string): Promise<number> {
 export function mpResponse(body: unknown, { ok = true, status = 200 }: { ok?: boolean; status?: number } = {}) {
   return { ok, status, json: async () => body, text: async () => JSON.stringify(body) };
 }
+
+/** Cria um médico ATIVO (registra → ativa e-mail → loga) e devolve token + doctor.
+ *  Espelha o fluxo real: no cadastro o médico não loga direto (valida e-mail). No teste,
+ *  pulamos o OTP ativando direto no banco, depois logamos. */
+export async function createDoctor(opts: { name?: string; crm: string; crmUf?: string; specialty?: string; email?: string; password?: string } = { crm: '12345-SP' }): Promise<{ doctor: any; token: string }> {
+  const email = opts.email ?? uniq('doc@exemplo.com');
+  const r = await api().post('/api/doctor/register').send({ name: opts.name ?? 'Dr Teste', crm: opts.crm, crmUf: opts.crmUf, specialty: opts.specialty ?? 'Clinico Geral', email, password: opts.password ?? 'senha123' });
+  if (r.status !== 201) throw new Error(`createDoctor: register falhou ${r.status} ${JSON.stringify(r.body)}`);
+  // ativa o e-mail direto (no teste, pula o OTP) + loga
+  await prisma.doctor.updateMany({ where: { email }, data: { emailVerified: true } });
+  const login = await api().post('/api/doctor/login').send({ email, password: opts.password ?? 'senha123' });
+  if (login.status !== 200) throw new Error(`createDoctor: login falhou ${login.status} ${JSON.stringify(login.body)}`);
+  return { doctor: login.body.doctor, token: login.body.token };
+}

@@ -1,15 +1,15 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { api, resetDb, authHeader, createUser } from './helpers';
+import { api, resetDb, authHeader, createUser, createDoctor } from './helpers';
 import { prisma } from '../src/prisma';
 
 const docH = (t: string) => ({ Authorization: `Bearer ${t}` });
 
 const setupShare = async (crm: string, docEmail: string, pacEmail: string) => {
-  const doc = await api().post('/api/doctor/register').send({ name: 'Dra ' + crm, crm, specialty: 'Clinico Geral', email: docEmail, password: 'senha123' });
+  const { token: docToken } = await createDoctor({ name: 'Dra ' + crm, crm, email: docEmail });
   const { user, token } = await createUser({ email: pacEmail });
   const patient = await prisma.patient.findFirst({ where: { ownerId: user.id } });
   await api().post('/api/doctor-shares').set(authHeader(token)).send({ doctorCrm: crm, scopes: ['exams'] });
-  return { docToken: doc.body.token as string, patientId: patient!.id, patientToken: token };
+  return { docToken, patientId: patient!.id, patientToken: token };
 };
 
 describe('Doctor Portal - anotações clínicas (DoctorNote)', () => {
@@ -53,10 +53,10 @@ describe('Doctor Portal - anotações clínicas (DoctorNote)', () => {
   it('médico SEM share (403) não cria/lista anotação', async () => {
     const a = await setupShare('N4-SP', 'n4@t.com', 'pn4@t.com'); // share do médico A
     // médico B sem share nesse paciente
-    const b = await api().post('/api/doctor/register').send({ name: 'Dr B', crm: 'B4-SP', specialty: 'X', email: 'b4@t.com', password: 'senha123' });
-    const create = await api().post(`/api/doctor/patients/${a.patientId}/notes`).set(docH(b.body.token)).send({ content: 'tentativa' });
+    const { token: bToken } = await createDoctor({ name: 'Dr B', crm: 'B4-SP', email: 'b4@t.com' });
+    const create = await api().post(`/api/doctor/patients/${a.patientId}/notes`).set(docH(bToken)).send({ content: 'tentativa' });
     expect(create.status).toBe(403);
-    const list = await api().get(`/api/doctor/patients/${a.patientId}/notes`).set(docH(b.body.token));
+    const list = await api().get(`/api/doctor/patients/${a.patientId}/notes`).set(docH(bToken));
     expect(list.status).toBe(403);
   });
 

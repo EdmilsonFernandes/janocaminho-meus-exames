@@ -44,7 +44,7 @@ export const MedicosPage = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   // Form state
-  const [name, setName] = useState(''); const [crm, setCrm] = useState(''); const [uf, setUf] = useState(''); const [spec, setSpec] = useState(''); const [email, setEmail] = useState('');
+  const [name, setName] = useState(''); const [crm, setCrm] = useState(''); const [uf, setUf] = useState(''); const [spec, setSpec] = useState(''); const [specOther, setSpecOther] = useState(''); const [email, setEmail] = useState('');
   const [scopes, setScopes] = useState<string[]>([]);
   const [convenio, setConvenio] = useState('Particular');
   const [saving, setSaving] = useState(false);
@@ -117,7 +117,7 @@ export const MedicosPage = () => {
     if (scopes.length === 0) { notify('Selecione ao menos um tipo de dado para compartilhar.', { type: 'error' }); return; }
     setSaving(true);
     try {
-      const r = await fetch(`${API_URL}/doctor-shares`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` }, body: JSON.stringify({ doctorName: name, doctorCrm: crm.replace(/\D/g, ''), doctorUf: uf, doctorSpecialty: spec, doctorEmail: email, scopes, convenio, patientId: pid }) });
+      const r = await fetch(`${API_URL}/doctor-shares`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` }, body: JSON.stringify({ doctorName: name, doctorCrm: crm.replace(/\D/g, ''), doctorUf: uf, doctorSpecialty: spec === 'Outro' ? specOther.trim() : spec, doctorEmail: email, scopes, convenio, patientId: pid }) });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Falha');
       notify('Compartilhamento criado! O médico foi avisado por e-mail.', { type: 'success' });
@@ -317,6 +317,9 @@ export const MedicosPage = () => {
               </TextField>
               <TextField label="E-mail (opcional)" value={email} onChange={(e) => setEmail(e.target.value)} size="small" sx={{ flex: '1 1 200px' }} />
             </Stack>
+            {spec === 'Outro' && (
+              <TextField label="Qual especialidade?" value={specOther} onChange={(e) => setSpecOther(e.target.value)} size="small" fullWidth required placeholder="Ex.: Cirurgia de Cabeça e Pescoço" />
+            )}
             <TextField select label="Convênio" value={convenio} onChange={(e) => setConvenio(e.target.value)} size="small" sx={{ width: 220 }}>
               {CONVENIOS.map((c) => <MenuItem key={c} value={c}>{c}</MenuItem>)}
             </TextField>

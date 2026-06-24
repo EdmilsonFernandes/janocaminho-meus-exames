@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { api, resetDb, authHeader, createUser } from './helpers';
+import { api, resetDb, authHeader, createUser, createDoctor } from './helpers';
 import { prisma } from '../src/prisma';
 
 const docH = (t: string) => ({ Authorization: `Bearer ${t}` });
@@ -7,14 +7,18 @@ const docH = (t: string) => ({ Authorization: `Bearer ${t}` });
 describe('Doctor Portal - auth + shares + scoped', () => {
   beforeEach(async () => { await resetDb(); });
 
-  it('doctor register + login + me', async () => {
+  it('doctor register NÃO loga direto (valida e-mail); após ativar, loga + me', async () => {
     const reg = await api().post('/api/doctor/register').send({
       name: 'Dr House', crm: '12345-SP', specialty: 'Diagnostics', email: 'house@test.com', password: 'senha123',
     });
     expect(reg.status).toBe(201);
-    expect(reg.body.token).toBeTruthy();
-    expect(reg.body.doctor.crm).toBe('12345-SP');
-
+    expect(reg.body.needsVerification).toBe(true); // NÃO vem token antes de verificar o e-mail
+    expect(reg.body.token).toBeFalsy();
+    // login bloqueado antes de verificar o e-mail
+    const blocked = await api().post('/api/doctor/login').send({ email: 'house@test.com', password: 'senha123' });
+    expect(blocked.status).toBe(403);
+    // ativa (verifica) → login funciona
+    await prisma.doctor.updateMany({ where: { email: 'house@test.com' }, data: { emailVerified: true } });
     const login = await api().post('/api/doctor/login').send({ email: 'house@test.com', password: 'senha123' });
     expect(login.status).toBe(200);
     expect(login.body.token).toBeTruthy();
@@ -42,8 +46,7 @@ describe('Doctor Portal - auth + shares + scoped', () => {
   });
 
   it('patient creates share + doctor sees patient + scoped exams', async () => {
-    const doc = await api().post('/api/doctor/register').send({ name: 'Dra Alice', crm: '999-SP', specialty: 'Cardio', email: 'alice@t.com', password: 'senha123' });
-    const docToken = doc.body.token;
+    const { token: docToken } = await createDoctor({ name: 'Dra Alice', crm: '999-SP', specialty: 'Cardio', email: 'alice@t.com' });
 
     const { user, token } = await createUser({ email: 'pac@t.com' });
     const patient = await prisma.patient.findFirst({ where: { ownerId: user.id } });
@@ -71,7 +74,7 @@ describe('Doctor Portal - auth + shares + scoped', () => {
   });
 
   it('patient revokes share -> doctor loses access', async () => {
-    const doc = await api().post('/api/doctor/register').send({ name: 'Dr B', crm: 'B-SP', specialty: 'X', email: 'b@t.com', password: 'senha123' });
+    const { token: docToken } = await createDoctor({ name: 'Dr B', crm: 'B-SP', email: 'b@t.com' });
     const { user, token } = await createUser({ email: 'pac2@t.com' });
     const patient = await prisma.patient.findFirst({ where: { ownerId: user.id } });
 
@@ -82,21 +85,21 @@ describe('Doctor Portal - auth + shares + scoped', () => {
     expect(rev.status).toBe(200);
     expect(rev.body.share.active).toBe(false);
 
-    const patients = await api().get('/api/doctor/patients').set(docH(doc.body.token));
+    const patients = await api().get('/api/doctor/patients').set(docH(docToken));
     expect(patients.body.items.length).toBe(0);
   });
 
   it('doctor without evolution scope gets 403', async () => {
-    const doc = await api().post('/api/doctor/register').send({ name: 'Dr C', crm: 'C-SP', specialty: 'X', email: 'c@t.com', password: 'senha123' });
+    const { token: docToken } = await createDoctor({ name: 'Dr C', crm: 'C-SP', email: 'c@t.com' });
     const { user, token } = await createUser({ email: 'pac3@t.com' });
     const patient = await prisma.patient.findFirst({ where: { ownerId: user.id } });
 
     await api().post('/api/doctor-shares').set(authHeader(token)).send({ doctorCrm: 'C-SP', scopes: ['exams'] });
 
-    const exams = await api().get(`/api/doctor/patients/${patient!.id}/exams`).set(docH(doc.body.token));
+    const exams = await api().get(`/api/doctor/patients/${patient!.id}/exams`).set(docH(docToken));
     expect(exams.status).toBe(200);
 
-    const evo = await api().get(`/api/doctor/patients/${patient!.id}/evolution`).set(docH(doc.body.token));
+    const evo = await api().get(`/api/doctor/patients/${patient!.id}/evolution`).set(docH(docToken));
     expect(evo.status).toBe(403);
   });
 

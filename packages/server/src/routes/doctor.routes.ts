@@ -6,6 +6,9 @@ import path from 'path';
 import fs from 'fs';
 import { prisma } from '../prisma';
 import { hashPassword, comparePassword } from '../auth/jwt';
+import { issueOtp, verifyOtp } from '../auth/otp';
+import { sendEmail } from '../utils/mailer';
+import { otpEmail } from '../utils/emailTemplate';
 import { config } from '../config';
 import { upload } from '../middleware/upload';
 import { saveDoctorPhoto, resolvePatientPhoto, resolveExamFile } from '../utils/storage';
@@ -121,32 +124,59 @@ router.post('/register', validate(schemas.doctorRegister), async (req, res, next
     const norm = normalizeCrmKey(crm, crmUf) ?? normalizeCrmKey(crm);
     const crmKey = norm?.crm ?? String(crm).trim();
     const uf = norm?.uf ?? null;
-    const existing = await prisma.doctor.findFirst({ where: { OR: [{ email: String(email).toLowerCase() }, { crm: crmKey }] } });
+    const mail = String(email).toLowerCase().trim();
+    const existing = await prisma.doctor.findFirst({ where: { OR: [{ email: mail }, { crm: crmKey }] } });
     if (existing) {
       if (existing.passwordHash === 'pending-invite') {
-        // CLAIM: paciente pré-cadastrou → médico completa com dados reais + senha (mesmo id → herda shares)
-        const claimed = await prisma.doctor.update({
+        // CLAIM: paciente pré-cadastrou → médico completa dados + senha (mesmo id → herda shares).
+        // Mas NÃO loga ainda: valida o e-mail (OTP), igual o paciente.
+        await prisma.doctor.update({
           where: { id: existing.id },
-          data: { name, specialty: specialty || existing.specialty, email: String(email).toLowerCase(), passwordHash: await hashPassword(String(password)), crmUf: uf ?? existing.crmUf },
+          data: { name, specialty: specialty || existing.specialty, email: mail, passwordHash: await hashPassword(String(password)), crmUf: uf ?? existing.crmUf, emailVerified: false },
         });
-        res.status(201).json({ token: signDoctorToken(claimed.id), doctor: { id: claimed.id, name: claimed.name, crm: claimed.crm, specialty: claimed.specialty, email: claimed.email } });
-        return;
+      } else {
+        res.status(409).json({ error: 'CRM ou e-mail já cadastrado. Faça login.' }); return;
       }
-      res.status(409).json({ error: 'CRM ou e-mail ja cadastrado. Faca login.' }); return;
+    } else {
+      // NOVO cadastro — fica INATIVO até verificar o e-mail (evita e-mail falso + CRM alheio acessar dados).
+      await prisma.doctor.create({ data: { name, crm: crmKey, crmUf: uf, specialty, email: mail, passwordHash: await hashPassword(String(password)), emailVerified: false } });
     }
-    const doctor = await prisma.doctor.create({ data: { name, crm: crmKey, crmUf: uf, specialty, email: String(email).toLowerCase(), passwordHash: await hashPassword(String(password)) } });
-    res.status(201).json({ token: signDoctorToken(doctor.id), doctor: { id: doctor.id, name, crm: crmKey, specialty, email } });
+    // Envia código de verificação pro e-mail — NÃO emite token antes de confirmar.
+    const code = issueOtp(mail);
+    sendEmail({ to: mail, subject: 'Ative sua conta — Portal do Médico (Meus Exames)', html: otpEmail(String(name), code) })
+      .catch((e: any) => console.error('[doctor/register] falha SMTP verificação:', e?.message));
+    res.status(201).json({ needsVerification: true, email: mail });
   } catch (e) { next(e); }
+});
+
+// VERIFICAR E-MAIL do médico (ativa a conta após o cadastro) — código por e-mail (OTP), igual o paciente.
+router.post('/verify-email', async (req, res) => {
+  try {
+    const mail = String(req.body?.email ?? '').toLowerCase().trim();
+    const code = String(req.body?.code ?? '');
+    const doctor = await prisma.doctor.findFirst({ where: { email: mail } });
+    if (!doctor || doctor.passwordHash === 'pending-invite') { res.status(404).json({ error: 'Conta não encontrada. Cadastre-se novamente.' }); return; }
+    if (!verifyOtp(mail, code)) { res.status(401).json({ error: 'Código inválido ou expirado.' }); return; }
+    const verified = await prisma.doctor.update({ where: { id: doctor.id }, data: { emailVerified: true } });
+    const mfa = await evaluateMfaOnLogin('DOCTOR', doctor.id, { doctorId: doctor.id }, doctor.email);
+    if (mfa) { res.json(mfa); return; }
+    res.json({ token: signDoctorToken(verified.id), doctor: { id: verified.id, name: verified.name, crm: verified.crm, specialty: verified.specialty, email: verified.email, photoUrl: verified.photoUrl } });
+  } catch (e: any) { res.status(500).json({ error: e.message || 'Erro na verificação.' }); }
 });
 
 // LOGIN do médico — aceita E-MAIL ou CRM (o que ele lembrar mais fácil)
 router.post('/login', async (req, res, next) => {
   try {
     const id = String(req.body?.email ?? req.body?.login ?? '').trim();
-    const doctor = await prisma.doctor.findFirst({ where: { OR: [{ email: id.toLowerCase() }, { crm: id }] } });
+    // Aceita e-mail OU CRM. CRM casa no formato exato ("116739-SP") ou só dígitos ("116739" → acha "116739-SP").
+    const digits = id.replace(/\D/g, '');
+    const orClauses: any[] = [{ email: id.toLowerCase() }, { crm: id }];
+    if (digits && !id.includes('@') && !id.includes('-')) orClauses.push({ crm: { startsWith: digits + '-' } });
+    const doctor = await prisma.doctor.findFirst({ where: { OR: orClauses } });
     if (!doctor || doctor.passwordHash === 'pending-invite' || !(await comparePassword(String(req.body?.password ?? ''), doctor.passwordHash))) {
       res.status(401).json({ error: 'Credenciais inválidas.' }); return;
     }
+    if (!doctor.emailVerified) { res.status(403).json({ error: 'Verifique seu e-mail para ativar a conta.', needsVerification: true, email: doctor.email }); return; }
     // MFA: se ativado, cria desafio
     const mfa = await evaluateMfaOnLogin('DOCTOR', doctor.id, { doctorId: doctor.id }, doctor.email);
     if (mfa) { res.json(mfa); return; }
