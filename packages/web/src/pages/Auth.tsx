@@ -6,7 +6,7 @@ import { DrExame } from '../components/DrExame';
 import { API_URL } from '../config';
 import { OtpInput } from '../components/OtpInput';
 import { MfaChallengeDialog } from '../components/mfa/MfaChallengeDialog';
-import { BiometricService } from '../components/BiometricService';
+import { BiometricService, getDeviceId } from '../components/BiometricService';
 
 /* ---------- ícones inline (sem dependência de @mui/icons-material) ---------- */
 const I = {
@@ -144,7 +144,7 @@ export const LoginPage = () => {
     setLoading(true);
     try {
       const r = await fetch(`${API_URL}/auth/otp/verify`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email.trim(), code }),
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email.trim(), code, deviceId: getDeviceId() }),
       });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Token inválido');
@@ -256,7 +256,7 @@ export const RegisterPage = () => {
     try {
       const r = await fetch(`${API_URL}/auth/register`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name.trim(), email: email.trim(), password: pwd, referral: referral.trim() || undefined }),
+        body: JSON.stringify({ name: name.trim(), email: email.trim(), password: pwd, referral: referral.trim() || undefined, deviceId: getDeviceId() }),
       });
       const d = await r.json();
       if (r.status === 409) { notify('Este e-mail já tem conta. Use sua senha, "entrar com token" ou "esqueci a senha".', { type: 'warning' }); navigate('/'); return; }

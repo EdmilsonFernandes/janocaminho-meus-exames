@@ -11,6 +11,12 @@ const bio = (): any => {
   catch { return undefined; }
 };
 
+/** ID estável do aparelho (ANDROID_ID no Android via bridge nativo). '' na web (sem bridge).
+ *  Usado no cadastro/OTP pra garantir 1 bônus de boas-vindas por dispositivo (anti-farm). */
+export const getDeviceId = (): string => {
+  try { return bio()?.getDeviceId?.() || ''; } catch { return ''; }
+};
+
 export const BiometricService = {
   isSupported: (): boolean => {
     try { return Capacitor.isNativePlatform() && !!bio()?.isBiometricAvailable?.(); }

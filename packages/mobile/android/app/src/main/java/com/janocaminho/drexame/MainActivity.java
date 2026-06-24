@@ -100,6 +100,14 @@ public class MainActivity extends BridgeActivity {
         @JavascriptInterface
         public boolean isBiometricAvailable() { return isBioAvailable(); }
 
+        // ID estável do aparelho (ANDROID_ID). Sobrevive a reinstalação do app (só muda em
+        // factory reset). Usado no "1 bônus de boas-vindas por dispositivo" (anti-farm de créditos).
+        @JavascriptInterface
+        public String getDeviceId() {
+            try { return android.provider.Settings.Secure.getString(getContentResolver(), android.provider.Settings.Secure.ANDROID_ID); }
+            catch (Exception e) { return ""; }
+        }
+
         @JavascriptInterface
         public boolean saveToken(String role, String token) {
             if (role == null || token == null || token.isEmpty()) return false;

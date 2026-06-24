@@ -22,6 +22,7 @@ model User {
   emailVerified Boolean @default(false) // valida e-mail no cadastro (previne conta com e-mail fake)
   referralCode String?  @unique  // código de indicação (ex: EDMILSON-A1B2) — vira bônus pra ambos
   referredBy   String?            // código de quem indicou este usuário
+  deviceId     String?            // ID estável do aparelho (ANDROID_ID) — 1 bônus de boas-vindas por dispositivo
   // MFA (TOTP 2FA) — secret cifrado AES-256-GCM (null = desativado)
   mfaEnabled          Boolean   @default(false)
   mfaSecretEncrypted  String?
@@ -33,8 +34,20 @@ model User {
   subscriptions Subscription[]
   deviceTokens DeviceToken[]
   notifications Notification[]
+  deviceClaims DeviceClaim[] @relation("DeviceClaims")
 
   @@map("users")
+}
+
+// Bônus de boas-vindas já resgatado por dispositivo (deviceId @unique → 1 por aparelho, anti-farm).
+// Mesmo se o usuário excluir a conta, o deviceId continua aqui → o aparelho não resgata de novo.
+model DeviceClaim {
+  id        String   @id @default(cuid())
+  deviceId  String   @unique
+  userId    String?
+  user      User?    @relation("DeviceClaims", fields: [userId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  @@map("device_claims")
 }
 
 // Config de monetização parametrizada no banco (lida no boot, editável pelo painel admin).

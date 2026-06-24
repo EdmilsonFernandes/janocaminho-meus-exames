@@ -23,6 +23,7 @@ export const schemas = {
     email: z.string().email('E-mail inválido.'),
     password: z.string().min(6, 'Senha mín. 6 caracteres.'),
     referral: z.string().optional(),
+    deviceId: z.string().optional(),
   }),
 
   login: z.object({

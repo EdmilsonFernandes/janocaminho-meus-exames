@@ -25,6 +25,19 @@ async function issueSession(userId: string) {
   return { token, patientId };
 }
 
+/** Marca o dispositivo como já tendo resgatado o bônus de boas-vindas.
+ *  Retorna true se era a 1ª vez nesse aparelho (pode dar bônus), false se já resgatou.
+ *  Race-safe: o deviceId é UNIQUE no banco — 2 cadastros simultâneos no mesmo aparelho
+ *  só conseguem 1 bônus (o 2º create falha na constraint). Sem deviceId (web) → libera. */
+async function claimDeviceBonus(deviceId?: string | null): Promise<boolean> {
+  const d = String(deviceId ?? '').trim();
+  if (!d) return true;
+  try {
+    await prisma.deviceClaim.create({ data: { deviceId: d } });
+    return true;
+  } catch { return false; } // unique violado → aparelho já resgatou
+}
+
 /** Avisa o admin (dev) de cada novo cadastro — cópia pra edmls2008@gmail.com (ou ADMIN_EMAIL). */
 async function notifyNewUser(name: string, email: string) {
   const admin = process.env.ADMIN_EMAIL || 'edmls2008@gmail.com';
@@ -126,8 +139,9 @@ router.post('/register', validate(schemas.register), async (req, res, next) => {
     // Bônus de boas-vindas (freeSignup) NÃO é mais dado aqui — só após verificar o e-mail
     // (verify-email). Conta recém-criada fica com 0 créditos (e não consegue logar sem verificar).
     // Evita farm: pra pegar o bônus precisa acessar a caixa de entrada de cada e-mail.
+    const deviceId = String(req.body?.deviceId ?? '').trim();
     const user = await prisma.user.create({
-      data: { email: mail, name: String(name), passwordHash, credits: 0, referralCode, referredBy: referrer?.referralCode ?? null },
+      data: { email: mail, name: String(name), passwordHash, credits: 0, referralCode, referredBy: referrer?.referralCode ?? null, deviceId: deviceId || null },
     });
     await prisma.patient.create({ data: { ownerId: user.id, fullName: String(name), relationship: 'Titular' } });
 
@@ -156,8 +170,9 @@ router.post('/verify-email', async (req, res, next) => {
     const REFERRAL_BONUS = 30;
     const REFERRAL_MONTHLY_LIMIT = 10;
     const signupCredits = getSettings().grants.freeSignup;
-    let bonusCredits = signupCredits; // bônus de boas-vindas — liberado só aqui (após verificar e-mail)
-    if (user.referredBy) {
+    const canClaim = await claimDeviceBonus(user.deviceId); // 1 bônus por dispositivo (anti-farm)
+    let bonusCredits = canClaim ? signupCredits : 0; // bônus de boas-vindas — só na 1ª vez no aparelho
+    if (canClaim && user.referredBy) {
       const referrer = await prisma.user.findFirst({ where: { referralCode: user.referredBy } });
       if (referrer) {
         // Conta quantas indicações ativou este mês
@@ -267,7 +282,9 @@ router.post('/otp/verify', async (req, res, next) => {
     let user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
       const name = email.split('@')[0];
-      user = await prisma.user.create({ data: { email, name, passwordHash: await hashPassword(crypto.randomUUID()), credits: getSettings().grants.freeSignup } });
+      const deviceId = String(req.body?.deviceId ?? '').trim();
+      const canClaim = await claimDeviceBonus(deviceId); // OTP também respeita 1 bônus por aparelho
+      user = await prisma.user.create({ data: { email, name, passwordHash: await hashPassword(crypto.randomUUID()), credits: canClaim ? getSettings().grants.freeSignup : 0, deviceId: deviceId || null } });
       await prisma.patient.create({ data: { ownerId: user.id, fullName: name, relationship: 'Titular' } });
       notifyNewUser(name, email);
     }
