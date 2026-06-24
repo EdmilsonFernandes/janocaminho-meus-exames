@@ -43,7 +43,9 @@ export async function sendPush(tokens: string[], title: string, body: string, da
   if (!m) return;
   await Promise.all(tokens.map(async (token) => {
     try {
-      await m.send({ token, notification: { title, body }, data: data ?? {}, android: { priority: 'high', notification: { channel_id: 'meus-exames', default_sound: true, default_vibrate_timings: true } } });
+      // FIX: SEM channel_id 'meus-exames' — o app NÃO cria esse canal → Android 8+ descarta a notificação
+      // silenciosamente. Sem channel_id, o Android usa o canal padrão (criado pelo Capacitor) → exibe.
+      await m.send({ token, notification: { title, body }, data: data ?? {}, android: { priority: 'high' } });
     } catch (e: any) {
       if (e?.code === 'messaging/registration-token-not-registered') {
         await prisma.deviceToken.delete({ where: { token } }).catch(() => {});
