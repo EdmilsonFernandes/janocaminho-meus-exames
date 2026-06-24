@@ -53,8 +53,14 @@ jobs:
              docker image prune -f; \
              echo 'Deploy OK'"
 
-      - name: Saúde (health check)
+      - name: Saúde (health check) + versão deployada
         run: |
           sleep 5
-          curl -sf -m 30 "https://janocaminho.com.br/minhasaude/api/health" && echo " ✅ app saudável" \
-            || echo "⚠️ health não respondeu"
+          body="$(curl -sf -m 30 "https://janocaminho.com.br/minhasaude/api/health" || true)"
+          if [ -n "$body" ]; then
+            echo "✅ app saudável"
+            # versão/commit carimbados na imagem (campo build do health):
+            echo "$body" | grep -o '"versionLabel":"[^"]*"' | head -1 || true
+          else
+            echo "⚠️ health não respondeu"
+          fi

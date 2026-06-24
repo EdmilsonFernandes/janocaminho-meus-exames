@@ -32,7 +32,7 @@ import { API_URL } from './config';
 import { authProvider } from './authProvider';
 import { theme } from './theme';
 import { i18nProvider } from './i18n';
-import pkg from '../package.json';
+import { APP_BUILD_INFO } from './generated/buildInfo';
 import { Dashboard } from './pages/Dashboard';
 import { ExamList } from './resources/Exams/ExamList';
 import { ExamShow } from './resources/Exams/ExamShow';
@@ -210,7 +210,7 @@ const AppMenu = () => {
     </MenuItem>
 
     <Box sx={{ mt: 'auto', px: 2, py: 1.5, fontSize: 11, color: 'text.secondary', borderTop: '1px solid #e2e8f0' }}>
-      Meus Exames v{pkg.version}
+      Meus Exames · {APP_BUILD_INFO.versionLabel}
     </Box>
 
     {/* POPUP "Sobre o App" */}
@@ -220,7 +220,10 @@ const AppMenu = () => {
         Meus Exames
       </DialogTitle>
       <DialogContent sx={{ textAlign: 'center' }}>
-        <Typography sx={{ fontWeight: 800, fontSize: 18, color: '#0f3d3a', mb: 0.5 }}>Versão {pkg.version}</Typography>
+        <Typography sx={{ fontWeight: 800, fontSize: 18, color: '#0f3d3a', mb: 0.5 }}>{APP_BUILD_INFO.versionLabel}</Typography>
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2, fontFamily: 'monospace', fontSize: 11 }}>
+          branch {APP_BUILD_INFO.branch} · build {new Date(APP_BUILD_INFO.builtAt).toLocaleString('pt-BR')}
+        </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Seu assistente de saúde com inteligência artificial.</Typography>
         <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', flexWrap: 'wrap', mb: 2 }}>
           <Chip size="small" label="IA GLM-4.6" sx={{ bgcolor: '#e0f2f1', color: '#178f89', fontWeight: 700 }} />

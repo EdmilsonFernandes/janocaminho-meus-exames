@@ -8,6 +8,7 @@ import fs from 'fs';
 import crypto from 'crypto';
 import rateLimit from 'express-rate-limit';
 import { config } from './config';
+import { APP_BUILD_INFO } from './generated/buildInfo';
 import { prisma } from './prisma';
 import { errorHandler, notFound } from './middleware/errorHandler';
 import { emailTemplate } from './utils/emailTemplate';
@@ -64,8 +65,23 @@ app.get('/api/health', async (_req, res) => {
   const checks: Record<string, string> = {};
   try { await prisma.$queryRaw`SELECT 1`; checks.db = 'ok'; } catch { checks.db = 'down'; }
   const ok = Object.values(checks).every((v) => v === 'ok');
-  res.status(ok ? 200 : 503).json({ ok, ts: new Date().toISOString(), checks });
+  res.status(ok ? 200 : 503).json({
+    ok, ts: new Date().toISOString(), checks,
+    // build carimbado na imagem → identifica exatamente qual versão está no ar no EC2
+    build: {
+      version: APP_BUILD_INFO.version,
+      versionCode: APP_BUILD_INFO.versionCode,
+      commit: APP_BUILD_INFO.shortHash,
+      branch: APP_BUILD_INFO.branch,
+      builtAt: APP_BUILD_INFO.builtAt,
+      versionLabel: APP_BUILD_INFO.versionLabel,
+      source: APP_BUILD_INFO.source,
+    },
+  });
 });
+
+// Build info completo (público) — qual versão/commit está rodando. Útil p/ rastrear deploys.
+app.get('/api/build-info', (_req, res) => res.json(APP_BUILD_INFO));
 // Força-atualização (público, sem auth): app compara a versão instalada com a mínima exigida.
 app.get('/api/app/version', (_req, res) => res.json({ latest: config.appLatestVersion, minRequired: config.appMinVersion }));
 

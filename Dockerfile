@@ -8,7 +8,23 @@ COPY packages/web/package.json packages/web/
 COPY packages/shared/package.json packages/shared/
 COPY packages/mobile/package.json packages/mobile/
 RUN npm install --workspaces --include-workspace-root
+# Build info: carimba versão + commit git na imagem (vindo do CI via build-args).
+# ENV persiste pros RUN abaixo — os scripts npm rodam o gerador automaticamente.
+ARG BUILD_VERSION=
+ARG BUILD_VERSION_CODE=
+ARG BUILD_GIT_SHA=
+ARG BUILD_GIT_SHORT_SHA=
+ARG BUILD_GIT_BRANCH=
+ARG BUILD_TIME_ISO=
+ENV BUILD_VERSION=$BUILD_VERSION \
+    BUILD_VERSION_CODE=$BUILD_VERSION_CODE \
+    BUILD_GIT_SHA=$BUILD_GIT_SHA \
+    BUILD_GIT_SHORT_SHA=$BUILD_GIT_SHORT_SHA \
+    BUILD_GIT_BRANCH=$BUILD_GIT_BRANCH \
+    BUILD_TIME_ISO=$BUILD_TIME_ISO
 COPY . .
+# gera build-info.ts/json (server + web) a partir dos ARGs/git/gradle (lê versionName do build.gradle)
+RUN node scripts/generate-build-info.mjs
 # gera o client Prisma ANTES do tsc (senão faltam os tipos @prisma/client no build)
 RUN cd packages/server && npx prisma generate
 # build do servidor (tsc)

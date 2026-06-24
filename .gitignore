@@ -61,3 +61,7 @@ graphify-out/
 
 # build temp do workaround de dist travado
 packages/web/dist2/
+
+# Build info gerado (versão/commit — regenerado a cada build; não commitar)
+packages/*/src/generated/
+packages/web/public/build-info.json

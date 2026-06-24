@@ -2,6 +2,7 @@
 import * as Sentry from '@sentry/node';
 import { app } from './app';
 import { config, hasAnthropicKey } from './config';
+import { APP_BUILD_INFO } from './generated/buildInfo';
 import { prisma } from './prisma';
 import { startReminderEmailJob } from './jobs/reminderEmails';
 import { startHealthNudgeJob } from './jobs/healthNudges';
@@ -25,6 +26,8 @@ void loadBlockedDomains();
 
 const server = app.listen(config.port, () => {
   console.log(`[server] rodando em http://localhost:${config.port} (env=${config.nodeEnv})`);
+  // Identifica qual build está no ar (vai pro log do container no EC2 — rastreio de deploy).
+  console.log(`[server] build ${APP_BUILD_INFO.versionLabel} · branch ${APP_BUILD_INFO.branch} · ${APP_BUILD_INFO.builtAt} (${APP_BUILD_INFO.source})`);
   startReminderEmailJob();
   startHealthNudgeJob();
   startPlanExpiryJob();

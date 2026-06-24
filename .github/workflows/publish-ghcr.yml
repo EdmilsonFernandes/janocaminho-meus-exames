@@ -22,6 +22,21 @@ jobs:
 
       - uses: docker/setup-buildx-action@v3
 
+      - name: Preparar metadados de build (versão + commit + timestamp do build.gradle/git)
+        id: meta
+        shell: bash
+        run: |
+          short="${GITHUB_SHA::7}"
+          version="$(grep -E 'versionName' packages/mobile/android/app/build.gradle | head -1 | sed -E 's/.*"([^"]+)".*/\1/')"
+          vcode="$(grep -E 'versionCode' packages/mobile/android/app/build.gradle | head -1 | grep -oE '[0-9]+')"
+          built="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          echo "Versão carimbada: v${version}.${vcode} (${short}) @ ${built} branch ${GITHUB_REF_NAME}"
+          echo "short=$short"        >> "$GITHUB_OUTPUT"
+          echo "version=$version"    >> "$GITHUB_OUTPUT"
+          echo "vcode=$vcode"        >> "$GITHUB_OUTPUT"
+          echo "built=$built"        >> "$GITHUB_OUTPUT"
+          echo "branch=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -35,9 +50,25 @@ jobs:
           tags: |
             ${{ env.IMAGE_NAME }}:latest
             ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          # Build-args → viram ENV no Dockerfile → o gerador carimba no buildInfo (server + web).
+          # Labels → ficam NA imagem (docker inspect mostra a versão sem rodar o container).
           build-args: |
             VITE_BASE=/minhasaude/
             VITE_API_URL=/minhasaude/api
             VITE_TELEMEDICINE_URL=${{ vars.VITE_TELEMEDICINE_URL }}
+            BUILD_VERSION=${{ steps.meta.outputs.version }}
+            BUILD_VERSION_CODE=${{ steps.meta.outputs.vcode }}
+            BUILD_GIT_SHA=${{ github.sha }}
+            BUILD_GIT_SHORT_SHA=${{ steps.meta.outputs.short }}
+            BUILD_GIT_BRANCH=${{ steps.meta.outputs.branch }}
+            BUILD_TIME_ISO=${{ steps.meta.outputs.built }}
+          labels: |
+            io.janocaminho.build.app=meus-exames
+            io.janocaminho.build.version=${{ steps.meta.outputs.version }}
+            io.janocaminho.build.version_code=${{ steps.meta.outputs.vcode }}
+            io.janocaminho.build.commit_sha=${{ github.sha }}
+            io.janocaminho.build.short_sha=${{ steps.meta.outputs.short }}
+            io.janocaminho.build.branch=${{ steps.meta.outputs.branch }}
+            io.janocaminho.build.time_iso=${{ steps.meta.outputs.built }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
