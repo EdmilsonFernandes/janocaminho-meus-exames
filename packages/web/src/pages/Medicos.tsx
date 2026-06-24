@@ -4,6 +4,7 @@ import { Title, useNotify } from 'react-admin';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import DeleteIcon from '@mui/icons-material/DeleteOutline';
+import BlockIcon from '@mui/icons-material/Block';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import SearchIcon from '@mui/icons-material/Search';
@@ -134,6 +135,15 @@ export const MedicosPage = () => {
     setMenuEl(null);
     await fetch(`${API_URL}/doctor-shares/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` }, body: JSON.stringify({ active: true }) });
     notify('Acesso reativado.', { type: 'success' }); load();
+  };
+  // EXCLUIR (diferente de revogar): remove o compartilhamento da lista. Se o médico for só um
+  // cadastro de compartilhamento (sem conta ativa nem outros shares), o cadastro dele também sai.
+  const deleteShare = async (id: string) => {
+    setMenuEl(null);
+    if (!confirm('EXCLUIR este compartilhamento? Diferente de revogar, isto APAGA o registro (some da lista). Se o médico não tiver conta ativa nem outros compartilhamentos, o cadastro dele também é removido. Continuar?')) return;
+    const r = await fetch(`${API_URL}/doctor-shares/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });
+    if (r.ok) { notify('Compartilhamento excluído.', { type: 'success' }); load(); }
+    else notify('Falha ao excluir.', { type: 'error' });
   };
   const updateScopes = async (id: string, newScopes: string[]) => {
     await fetch(`${API_URL}/doctor-shares/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` }, body: JSON.stringify({ scopes: newScopes }) });
@@ -266,8 +276,11 @@ export const MedicosPage = () => {
 
       {/* Menu ⋯ */}
       <MuiMenu anchorEl={menuEl?.el ?? null} open={!!menuEl} onClose={() => setMenuEl(null)} slotProps={{ paper: { sx: { borderRadius: 2, minWidth: 180 } } }}>
-        <MenuItem onClick={() => revoke(menuEl!.id)} sx={{ color: 'error.main' }}>
-          <DeleteIcon sx={{ fontSize: 18, mr: 1 }} /> Revogar acesso
+        <MenuItem onClick={() => revoke(menuEl!.id)}>
+          <BlockIcon sx={{ fontSize: 18, mr: 1 }} /> Revogar acesso
+        </MenuItem>
+        <MenuItem onClick={() => deleteShare(menuEl!.id)} sx={{ color: 'error.main' }}>
+          <DeleteIcon sx={{ fontSize: 18, mr: 1 }} /> Excluir compartilhamento
         </MenuItem>
       </MuiMenu>
 
