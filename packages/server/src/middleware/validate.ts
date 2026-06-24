@@ -35,6 +35,7 @@ export const schemas = {
   doctorRegister: z.object({
     name: z.string().min(2, 'Nome obrigatório.'),
     crm: z.string().min(3, 'CRM obrigatório.'),
+    crmUf: z.string().optional(),
     specialty: z.string().optional(),
     email: z.string().email('E-mail inválido.'),
     password: z.string().min(6, 'Senha mín. 6 caracteres.'),
@@ -42,6 +43,7 @@ export const schemas = {
 
   doctorShare: z.object({
     doctorCrm: z.string().min(3, 'CRM obrigatório.'),
+    doctorUf: z.string().optional(),
     doctorName: z.string().optional(),
     doctorSpecialty: z.string().optional(),
     doctorEmail: z.string().optional(),

@@ -7,7 +7,8 @@ import DeleteIcon from '@mui/icons-material/DeleteOutline';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import SearchIcon from '@mui/icons-material/Search';
-import { SPECIALTIES, CONVENIOS } from '../utils/medicalData';
+import { SPECIALTIES, CONVENIOS, UFS } from '../utils/medicalData';
+import type { DoctorLookupResult, DoctorLookupSource } from '../types/doctor';
 
 const SCOPE_META = [
   { key: 'exams', label: 'Exames', short: 'Exames', icon: '📋' },
@@ -42,10 +43,14 @@ export const MedicosPage = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   // Form state
-  const [name, setName] = useState(''); const [crm, setCrm] = useState(''); const [spec, setSpec] = useState(''); const [email, setEmail] = useState('');
+  const [name, setName] = useState(''); const [crm, setCrm] = useState(''); const [uf, setUf] = useState(''); const [spec, setSpec] = useState(''); const [email, setEmail] = useState('');
   const [scopes, setScopes] = useState<string[]>([]);
   const [convenio, setConvenio] = useState('Particular');
   const [saving, setSaving] = useState(false);
+  // Busca de CRM: base → CFM → manual
+  const [looking, setLooking] = useState(false);
+  const [lookup, setLookup] = useState<{ source: DoctorLookupSource; msg: string } | null>(null);
+  const [specialtyOptions, setSpecialtyOptions] = useState<string[]>(SPECIALTIES);
   const [shareCosts, setShareCosts] = useState<Record<string, number>>({});
   const [credits, setCredits] = useState<number | null>(null);
   // Filtros
@@ -64,7 +69,26 @@ export const MedicosPage = () => {
   useEffect(() => {
     fetch(`${API_URL}/billing/plans`).then((r) => r.json()).then((d) => setShareCosts(d.shares ?? {})).catch(() => {});
     fetch(`${API_URL}/billing/status`, { headers: { Authorization: `Bearer ${token()}` } }).then((r) => r.json()).then((d) => setCredits(typeof d.credits === 'number' ? d.credits : null)).catch(() => {});
+    // Especialidades = base ∪ distintas do banco (auto-alimentação).
+    fetch(`${API_URL}/doctor/specialties`, { headers: { Authorization: `Bearer ${token()}` } }).then((r) => r.json()).then((d) => { if (Array.isArray(d.specialties)) setSpecialtyOptions(d.specialties); }).catch(() => {});
   }, []);
+
+  // Busca médico por CRM+UF: nosso banco → CFM → manual. Preenche nome/especialidade.
+  const buscarMedico = async () => {
+    const c = crm.replace(/\D/g, '');
+    if (!c || uf.length !== 2) { notify('Informe o CRM e selecione o estado (UF).', { type: 'warning' }); return; }
+    setLooking(true); setLookup(null);
+    try {
+      const r = await fetch(`${API_URL}/doctor/lookup?crm=${encodeURIComponent(c)}&uf=${encodeURIComponent(uf)}`, { headers: { Authorization: `Bearer ${token()}` } });
+      const d: DoctorLookupResult = await r.json();
+      if (d.source === 'base' && d.doctor) { setName(d.doctor.name ?? name); setSpec(d.doctor.specialty ?? spec); setLookup({ source: 'base', msg: '✅ Médico já cadastrado na plataforma.' }); }
+      else if (d.source === 'cfm' && d.doctor) { setName(d.doctor.name ?? name); setSpec(d.doctor.specialty ?? spec); setLookup({ source: 'cfm', msg: `🔍 Dados obtidos do CFM${d.doctor.situation ? ` • situação: ${d.doctor.situation}` : ''}.` }); }
+      else { setLookup({ source: 'manual', msg: '✍️ Não encontrado — preencha o nome manualmente.' }); }
+      // recarrega especialidades (o CFM pode ter adicionado uma nova)
+      fetch(`${API_URL}/doctor/specialties`, { headers: { Authorization: `Bearer ${token()}` } }).then((r2) => r2.json()).then((dd) => { if (Array.isArray(dd.specialties)) setSpecialtyOptions(dd.specialties); }).catch(() => {});
+    } catch { setLookup({ source: 'manual', msg: '✍️ Busca indisponível — preencha manualmente.' }); }
+    finally { setLooking(false); }
+  };
 
   const toggleScope = (k: string) => setScopes((s) => s.includes(k) ? s.filter((x) => x !== k) : [...s, k]);
   const shareCost = scopes.reduce((sum, k) => sum + (shareCosts[k] ?? 0), 0);
@@ -76,20 +100,27 @@ export const MedicosPage = () => {
   }, [shares]);
   const reuseDoc = (crmVal: string) => {
     const d = existingDocs.find((x) => x.crm === crmVal);
-    if (d) { setName(d.name || ''); setCrm(d.crm); setSpec(d.specialty || ''); setEmail(!d.email || d.email.includes('@invite') ? '' : d.email); }
+    if (!d) return;
+    setName(d.name || '');
+    const m = String(d.crm).match(/^(.*?)-([A-Za-z]{2})$/); // separa "XXXX-UF"
+    if (m) { setCrm(m[1]); setUf(m[2].toUpperCase()); } else { setCrm(d.crm); setUf(''); }
+    setSpec(d.specialty || '');
+    setEmail(!d.email || d.email.includes('@invite') ? '' : d.email);
+    setLookup({ source: 'base', msg: '✅ Médico já cadastrado na plataforma.' });
   };
 
   const add = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !crm) { notify('Nome e CRM do médico são obrigatórios.', { type: 'error' }); return; }
+    if (!crm || uf.length !== 2) { notify('Informe o CRM e selecione o estado (UF).', { type: 'error' }); return; }
+    if (!name) { notify('Informe o nome do médico (use "Buscar" ou preencha manualmente).', { type: 'error' }); return; }
     if (scopes.length === 0) { notify('Selecione ao menos um tipo de dado para compartilhar.', { type: 'error' }); return; }
     setSaving(true);
     try {
-      const r = await fetch(`${API_URL}/doctor-shares`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` }, body: JSON.stringify({ doctorName: name, doctorCrm: crm, doctorSpecialty: spec, doctorEmail: email, scopes, convenio, patientId: pid }) });
+      const r = await fetch(`${API_URL}/doctor-shares`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` }, body: JSON.stringify({ doctorName: name, doctorCrm: crm.replace(/\D/g, ''), doctorUf: uf, doctorSpecialty: spec, doctorEmail: email, scopes, convenio, patientId: pid }) });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Falha');
       notify('Compartilhamento criado! O médico foi avisado por e-mail.', { type: 'success' });
-      setShowForm(false); setName(''); setCrm(''); setSpec(''); setEmail(''); setScopes([]); setConvenio('Particular');
+      setShowForm(false); setName(''); setCrm(''); setUf(''); setSpec(''); setEmail(''); setScopes([]); setConvenio('Particular'); setLookup(null);
       load();
     } catch (e: any) { notify(e.message, { type: 'error' }); } finally { setSaving(false); }
   };
@@ -251,14 +282,25 @@ export const MedicosPage = () => {
                 {existingDocs.map((d: any) => <MenuItem key={d.crm} value={d.crm}>{d.name} — CRM {d.crm}</MenuItem>)}
               </TextField>
             )}
-            <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap>
-              <TextField label="Nome do médico" required value={name} onChange={(e) => setName(e.target.value)} size="small" sx={{ flex: '1 1 200px' }} />
-              <TextField label="CRM (ex: 12345-SP)" required value={crm} onChange={(e) => setCrm(e.target.value)} size="small" sx={{ width: 150 }} />
+            {/* CRM (número) + UF + Buscar médico (nosso banco → CFM → manual) */}
+            <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap alignItems="flex-end">
+              <TextField label="CRM (número)" required value={crm} onChange={(e) => setCrm(e.target.value.replace(/[^\d]/g, ''))} size="small" sx={{ flex: '1 1 120px' }} inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }} />
+              <TextField select label="Estado (UF)" required value={uf} onChange={(e) => setUf(e.target.value)} size="small" sx={{ width: 110 }}>
+                <MenuItem value=""><em>—</em></MenuItem>
+                {UFS.map((u) => <MenuItem key={u} value={u}>{u}</MenuItem>)}
+              </TextField>
+              <Button variant="outlined" onClick={buscarMedico} disabled={looking || !crm || uf.length !== 2} startIcon={looking ? <CircularProgress size={16} color="inherit" /> : <SearchIcon />} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, height: 40 }}>
+                {looking ? 'Buscando…' : 'Buscar médico'}
+              </Button>
             </Stack>
+            {lookup && (
+              <Alert severity={lookup.source === 'manual' ? 'warning' : 'success'} icon={false} sx={{ borderRadius: 2, py: 0.75, '& .MuiAlert-message': { fontSize: 13 } }}>{lookup.msg}</Alert>
+            )}
+            <TextField label="Nome do médico" required value={name} onChange={(e) => setName(e.target.value)} size="small" fullWidth placeholder={lookup?.source === 'manual' ? 'Digite o nome…' : 'Use "Buscar" ou preencha'} />
             <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap>
               <TextField select label="Especialidade" value={spec} onChange={(e) => setSpec(e.target.value)} size="small" sx={{ flex: '1 1 200px' }}>
                 <MenuItem value=""><em>Selecione…</em></MenuItem>
-                {SPECIALTIES.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
+                {specialtyOptions.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
               </TextField>
               <TextField label="E-mail (opcional)" value={email} onChange={(e) => setEmail(e.target.value)} size="small" sx={{ flex: '1 1 200px' }} />
             </Stack>

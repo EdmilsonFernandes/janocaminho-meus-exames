@@ -4,6 +4,7 @@ import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
 import { sendEmail } from '../utils/mailer';
 import { getSettings } from '../utils/settings';
 import { chargeCredits } from '../utils/credits';
+import { normalizeCrmKey } from './doctor.routes';
 
 const router = Router();
 router.use(requireAuth);
@@ -24,16 +25,21 @@ router.get('/', async (req: AuthedRequest, res, next) => {
 // CRIAR compartilhamento (paciente compartilha dados com médico)
 router.post('/', async (req: AuthedRequest, res, next) => {
   try {
-    const { doctorCrm, doctorName, doctorSpecialty, doctorEmail, scopes, convenio, patientId } = req.body ?? {};
+    const { doctorCrm, doctorUf, doctorName, doctorSpecialty, doctorEmail, scopes, convenio, patientId } = req.body ?? {};
     const pids = await userPatientIds(req.userId!);
     const pid = patientId && pids.includes(patientId) ? patientId : pids[0];
     if (!pid) { res.status(400).json({ error: 'Nenhum paciente vinculado.' }); return; }
 
+    // Normaliza CRM pra chave canônica "12345-SP" (compatível c/ o que já existe na base).
+    const norm = normalizeCrmKey(doctorCrm, doctorUf);
+    const crmKey = norm?.crm ?? null;
+    const uf = norm?.uf ?? null;
+
     // encontra o médico pelo CRM, ou cria se vier nome + CRM
-    let doctor = doctorCrm ? await prisma.doctor.findUnique({ where: { crm: String(doctorCrm) } }) : null;
-    if (!doctor && doctorName && doctorCrm) {
+    let doctor = crmKey ? await prisma.doctor.findUnique({ where: { crm: crmKey } }) : null;
+    if (!doctor && doctorName && crmKey) {
       doctor = await prisma.doctor.create({
-        data: { name: String(doctorName), crm: String(doctorCrm), specialty: doctorSpecialty || null, email: (doctorEmail || `pending-${Date.now()}@invite.com`).toLowerCase(), passwordHash: 'pending-invite' },
+        data: { name: String(doctorName), crm: crmKey, crmUf: uf, specialty: doctorSpecialty || null, email: (doctorEmail || `pending-${Date.now()}@invite.com`).toLowerCase(), passwordHash: 'pending-invite' },
       }).catch(() => null);
     }
     if (!doctor) { res.status(404).json({ error: 'Médico não encontrado. Informe nome + CRM pra cadastrá-lo.' }); return; }

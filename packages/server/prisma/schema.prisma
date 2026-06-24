@@ -328,6 +328,7 @@ model Doctor {
   id           String   @id @default(cuid())
   name         String
   crm          String   @unique
+  crmUf        String?
   specialty    String?
   photoUrl     String?
   email        String   @unique

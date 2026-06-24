@@ -10,6 +10,30 @@ import { config } from '../config';
 import { upload } from '../middleware/upload';
 import { saveDoctorPhoto, resolvePatientPhoto, resolveExamFile } from '../utils/storage';
 import { evaluateMfaOnLogin, verifyChallenge, getStatus as mfaStatus, startSetup as mfaStart, confirmSetup as mfaConfirm, disableMfa as mfaDisable } from '../utils/mfa';
+import { requireAuth, AuthedRequest } from '../middleware/auth';
+import { lookupCfm } from '../utils/cfm';
+
+// Especialidades base (espelha o front-end). O dropdown real = base ∪ especialidades que já existem no banco.
+const BASE_SPECIALTIES = [
+  'Clinico Geral', 'Cardiologista', 'Endocrinologista', 'Gastroenterologista',
+  'Ginecologista', 'Hematologista', 'Neurologista', 'Ortopedista', 'Pneumologista',
+  'Psiquiatra', 'Reumatologista', 'Urologista', 'Dermatologista', 'Oftalmologista',
+  'Otorrinolaringologista', 'Pediatra', 'Geriatra', 'Oncologista', 'Nefrologista',
+  'Infectologista', 'Hepatologista', 'Cirurgiao Geral', 'Angiologista', 'Nutrologista',
+  'Medico do Trabalho', 'Medico de Familia', 'Outro',
+];
+
+// Normaliza a chave do CRM. Com UF explícita → "base-UF" (remove sufixo "-XX" se já vier anexado,
+// p/ não virar "12345-SP-SP"). Sem UF → mantém EXATAMENTE como digitado (compatível c/ dados legados
+// como "B-SP", "999-SP" — a chave @unique continua batendo).
+export function normalizeCrmKey(crm?: string, uf?: string): { crm: string; uf: string | null } | null {
+  const raw = String(crm ?? '').trim();
+  if (!raw) return null;
+  const ufClean = String(uf ?? '').trim().match(/^[A-Za-z]{2}$/)?.[0]?.toUpperCase() || null;
+  if (!ufClean) return { crm: raw, uf: null };
+  const base = raw.replace(/[-/\s]\s*[A-Za-z]{2}\s*$/, '').trim() || raw;
+  return { crm: `${base}-${ufClean}`, uf: ufClean };
+}
 
 const router = Router();
 
@@ -25,6 +49,50 @@ const requireDoctor = async (req: any, res: any, next: any) => {
   req.doctorId = payload.doctorId;
   next();
 };
+
+// === BUSCA de médico por CRM+UF (auth PACIENTE) ===
+// Ordem: conta real reclamada (mais fidedigno) → CFM → cadastro pendente local → manual.
+router.get('/lookup', requireAuth, async (req: AuthedRequest, res, next) => {
+  try {
+    const crm = String(req.query.crm ?? '').replace(/\D/g, '');
+    const uf = String(req.query.uf ?? '').trim().toUpperCase();
+    if (!crm || uf.length !== 2) { res.status(400).json({ error: 'CRM e UF (2 letras) obrigatórios.' }); return; }
+    const crmKey = `${crm}-${uf}`;
+
+    // 1) conta real (médico registrou/claimou) — dados mais fidedignos
+    const doc = await prisma.doctor.findUnique({ where: { crm: crmKey } });
+    const docDto = (d: any) => ({ name: d.name, specialty: d.specialty, crm: d.crm, uf: d.crmUf || uf, email: d.email?.includes('@invite.com') ? null : d.email });
+    if (doc && doc.passwordHash !== 'pending-invite') { res.json({ source: 'base', doctor: docDto(doc) }); return; }
+
+    // 2) fallback CFM (fonte oficial) — persiste pra virar diretório + alimentar dropdown de especialidade
+    const cfm = await lookupCfm(crm, uf);
+    if (cfm) {
+      await prisma.doctor.upsert({
+        where: { crm: crmKey },
+        update: { name: cfm.name, specialty: cfm.specialty || undefined, crmUf: uf },
+        create: { name: cfm.name, crm: crmKey, crmUf: uf, specialty: cfm.specialty, email: `pending-${crmKey}@invite.com`.toLowerCase(), passwordHash: 'pending-invite' },
+      }).catch(() => null);
+      res.json({ source: 'cfm', doctor: { name: cfm.name, specialty: cfm.specialty, crm: cfm.crm, uf: cfm.uf, situation: cfm.situation } });
+      return;
+    }
+
+    // 3) cadastro pendente local (paciente já tinha digitado antes) — melhor que manual
+    if (doc && doc.name) { res.json({ source: 'base', doctor: docDto(doc) }); return; }
+
+    // 4) manual
+    res.json({ source: 'manual', doctor: null });
+  } catch (e) { next(e); }
+});
+
+// Especialidades p/ o dropdown: base ∪ distintas que já existem no banco (auto-alimentação).
+router.get('/specialties', requireAuth, async (_req, res, next) => {
+  try {
+    const rows = await prisma.doctor.findMany({ where: { NOT: { specialty: null } }, select: { specialty: true }, distinct: ['specialty'] });
+    const fromDb = rows.map((r) => r.specialty!).filter(Boolean);
+    const merged = Array.from(new Set([...BASE_SPECIALTIES, ...fromDb])).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+    res.json({ specialties: merged });
+  } catch (e) { next(e); }
+});
 
 // CADASTRO do médico
 router.post('/register', validate(schemas.doctorRegister), async (req, res, next) => {

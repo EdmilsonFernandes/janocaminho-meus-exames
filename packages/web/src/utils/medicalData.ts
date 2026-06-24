@@ -14,6 +14,13 @@ export const CONVENIOS = [
   'Amil Dental', 'Bio Saude', 'Cassi', 'Geap', 'Outro',
 ];
 
+/** Unidades federativas (UF) — pro dropdown do CRM ao compartilhar c/ médico. */
+export const UFS = [
+  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS',
+  'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC',
+  'SP', 'SE', 'TO',
+];
+
 /** Agrupamento por categoria médica (estilo laudo: Hemograma, Função Hepática, etc.) */
 export const CATS: { key: string; cat: string; emoji: string; color: string; keys: string[] }[] = [
   { key: 'glic', cat: 'Glicemia e Diabetes', emoji: '🍩', color: '#db2777', keys: ['glicose', 'glicemi', 'glicosilada', 'glicosada', 'hba1c', 'insulina', 'homa', 'frutosam'] },
