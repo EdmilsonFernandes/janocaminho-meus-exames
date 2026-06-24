@@ -25,10 +25,11 @@ describe('Sistema de indicação (referral)', () => {
     const r2 = await api().post('/api/auth/register').send({ name: 'Convidado Dois', email: 'conv@t.com', password: 'senha123', referral: ind!.referralCode });
     expect(r2.status).toBe(201);
 
-    // 3. NENHUM bônus ainda (antes de verificar)
+    // 3. NENHUM bônus ainda (antes de verificar) — conta recém-criada fica com 0 créditos;
+    //    signup + bônus de indicação só vem DEPOIS de verificar o e-mail (anti-farm).
     const convAntes = await prisma.user.findUnique({ where: { email: 'conv@t.com' } });
     const indAntes = await prisma.user.findUnique({ where: { email: 'ind@t.com' } });
-    expect(convAntes?.credits).toBe(60); // só signup base
+    expect(convAntes?.credits).toBe(0); // 0 antes do verify (bônus deferido)
     expect(indAntes?.credits).toBe(creditsIndicadorAntes); // indicador sem bônus ainda
 
     // 4. convidado verifica e-mail → bônus pra AMBOS
