@@ -252,6 +252,7 @@ router.post('/otp/request', async (req, res, next) => {
   try {
     const email = String(req.body?.email ?? '').toLowerCase().trim();
     if (!email) { res.status(400).json({ error: 'Informe o e-mail.' }); return; }
+    if (isDisposable(email)) { res.status(400).json({ error: 'Não aceitamos e-mails temporários. Use um e-mail válido.' }); return; }
     const code = issueOtp(email);
     const masked = email.replace(/^(.{1,2}).*(@)/, '$1***$2');
     try {
