@@ -14,6 +14,9 @@ permissions:
 
 jobs:
   deploy:
+    # Só deploya se o publish-ghcr terminou SUCCESS — se os testes falharam (publish aborted),
+    # nenhum imagem nova foi publicada e o deploy NÃO roda → prod fica na última versão boa.
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     environment: production
     timeout-minutes: 10

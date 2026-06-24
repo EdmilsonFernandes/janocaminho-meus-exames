@@ -155,9 +155,14 @@ router.get('/family-compare', async (req: AuthedRequest, res, next) => {
 });
 
 // GET ONE
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', async (req: AuthedRequest, res, next) => {
   try {
-    const p = await prisma.patient.findUnique({ where: { id: req.params.id } });
+    const id = String(req.params.id);
+    // IDOR fix: só o DONO lê o paciente (nome, perfil clínico, telefone, foto, DoB).
+    // Antes era findUnique direto → qualquer user logado lia qualquer paciente (vazamento de PII/LGPD).
+    const pids = await userPatientIds(req.userId!);
+    if (!pids.includes(id)) { res.status(403).json({ error: 'Paciente não pertence ao usuário' }); return; }
+    const p = await prisma.patient.findUnique({ where: { id } });
     if (!p) {
       res.status(404).json({ error: 'Paciente não encontrado' });
       return;

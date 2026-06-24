@@ -70,4 +70,17 @@ describe('pacientes: CRUD + limite de dependentes', () => {
     expect(r.status).toBe(200);
     expect(await prisma.patient.findUnique({ where: { id: dep.id } })).toBeNull();
   });
+
+  it('GET /patients/:id NÃO permite ler paciente de OUTRO usuário (IDOR → 403)', async () => {
+    const a = await createUser({ email: 'a@t.com' });
+    const b = await createUser({ email: 'b@t.com' });
+    const bPatient = await prisma.patient.findFirst({ where: { ownerId: b.user.id } });
+    // A tenta ler paciente de B → 403 (não vaza PII)
+    const denied = await api().get(`/api/patients/${bPatient!.id}`).set(authHeader(a.token));
+    expect(denied.status).toBe(403);
+    // A lê o próprio → 200
+    const aPatient = await prisma.patient.findFirst({ where: { ownerId: a.user.id } });
+    const ok = await api().get(`/api/patients/${aPatient!.id}`).set(authHeader(a.token));
+    expect(ok.status).toBe(200);
+  });
 });

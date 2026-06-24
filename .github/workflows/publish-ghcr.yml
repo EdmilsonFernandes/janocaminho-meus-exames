@@ -2,6 +2,8 @@ name: Publish Docker Image (GHCR)
 
 # BUILDA a imagem no GitHub (servidores potentes) → publica no GHCR.
 # O EC2 NÃO builda (só baixa a imagem pronta — não estoura a RAM da t2.micro).
+# GATE: job `test` roda a suite (vitest, ~128 testes) ANTES do build — se falhar,
+# nada é buildado/publicado → deploy (workflow_run) só roda em success → prod fica na última versão boa.
 on:
   push:
     branches: ["main"]
@@ -15,7 +17,38 @@ env:
   IMAGE_NAME: ghcr.io/edmilsonfernandes/meus-exames-app
 
 jobs:
+  # === GATE DE TESTE: roda a suite do server contra um postgres efêmero ===
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: meus_exames
+          POSTGRES_PASSWORD: meus_exames_dev
+          POSTGRES_DB: meus_exames_test
+        ports: ['5433:5432']
+        options: >-
+          --health-cmd "pg_isready -U meus_exames"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://meus_exames:meus_exames_dev@localhost:5433/meus_exames_test?schema=public
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: cd packages/server && npx prisma generate
+      - run: cd packages/server && npx prisma db push --skip-generate
+      - run: npm test --workspace packages/server
+
+  # === BUILD + PUSH da imagem (só se os testes passarem) ===
   build-and-push:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
