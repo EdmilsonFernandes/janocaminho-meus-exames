@@ -97,25 +97,31 @@ router.get('/specialties', requireAuth, async (_req, res, next) => {
 // CADASTRO do médico
 router.post('/register', validate(schemas.doctorRegister), async (req, res, next) => {
   try {
-    const { name, crm, specialty, email, password } = req.body ?? {};
+    const { name, crm, crmUf, specialty, email, password } = req.body ?? {};
     if (!name || !crm || !email || !password || String(password).length < 6) {
       res.status(400).json({ error: 'Nome, CRM, e-mail e senha (mín. 6) obrigatórios.' }); return;
     }
-    const existing = await prisma.doctor.findFirst({ where: { OR: [{ email: String(email).toLowerCase() }, { crm }] } });
+    // Normaliza pra chave canônica "numero-UF" — COERENTE com o compartilhamento do paciente.
+    // Assim o médico reclaima o Doctor pendente criado no share (herda os compartilhamentos),
+    // independente de digitar "116739", "116739-SP" ou "116739" + UF.
+    const norm = normalizeCrmKey(crm, crmUf) ?? normalizeCrmKey(crm);
+    const crmKey = norm?.crm ?? String(crm).trim();
+    const uf = norm?.uf ?? null;
+    const existing = await prisma.doctor.findFirst({ where: { OR: [{ email: String(email).toLowerCase() }, { crm: crmKey }] } });
     if (existing) {
       if (existing.passwordHash === 'pending-invite') {
-        // CLAIM: paciente pré-cadastrou → médico completa com dados reais + senha
+        // CLAIM: paciente pré-cadastrou → médico completa com dados reais + senha (mesmo id → herda shares)
         const claimed = await prisma.doctor.update({
           where: { id: existing.id },
-          data: { name, specialty: specialty || existing.specialty, email: String(email).toLowerCase(), passwordHash: await hashPassword(String(password)) },
+          data: { name, specialty: specialty || existing.specialty, email: String(email).toLowerCase(), passwordHash: await hashPassword(String(password)), crmUf: uf ?? existing.crmUf },
         });
         res.status(201).json({ token: signDoctorToken(claimed.id), doctor: { id: claimed.id, name: claimed.name, crm: claimed.crm, specialty: claimed.specialty, email: claimed.email } });
         return;
       }
       res.status(409).json({ error: 'CRM ou e-mail ja cadastrado. Faca login.' }); return;
     }
-    const doctor = await prisma.doctor.create({ data: { name, crm, specialty, email: String(email).toLowerCase(), passwordHash: await hashPassword(String(password)) } });
-    res.status(201).json({ token: signDoctorToken(doctor.id), doctor: { id: doctor.id, name, crm, specialty, email } });
+    const doctor = await prisma.doctor.create({ data: { name, crm: crmKey, crmUf: uf, specialty, email: String(email).toLowerCase(), passwordHash: await hashPassword(String(password)) } });
+    res.status(201).json({ token: signDoctorToken(doctor.id), doctor: { id: doctor.id, name, crm: crmKey, specialty, email } });
   } catch (e) { next(e); }
 });
 

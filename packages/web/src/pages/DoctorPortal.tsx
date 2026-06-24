@@ -10,7 +10,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import { API_URL } from '../config';
 import { DrExame } from '../components/DrExame';
 import { MfaSetupCard } from '../components/mfa/MfaSetupCard';
-import { SPECIALTIES } from '../utils/medicalData';
+import { SPECIALTIES, UFS } from '../utils/medicalData';
 import { PhotoUpload } from '../components/PhotoUpload';
 import { CATS, categorize, refLabel } from '../utils/medicalData';
 import ReactMarkdown from 'react-markdown';
@@ -48,14 +48,14 @@ export const DoctorPortalPage = () => {
   const [pwd, setPwd] = useState('');
   const [showPwd, setShowPwd] = useState(false);
   const [mode, setMode] = useState<'login' | 'register'>(() => { const q = window.location.hash.split('?')[1] || ''; return new URLSearchParams(q).get('mode') === 'register' ? 'register' : 'login'; });
-  const [regName, setRegName] = useState(''); const [regCrm, setRegCrm] = useState(''); const [regSpec, setRegSpec] = useState('');
+  const [regName, setRegName] = useState(''); const [regCrm, setRegCrm] = useState(''); const [regUf, setRegUf] = useState(''); const [regSpec, setRegSpec] = useState('');
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState('');
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault(); setLoading(true); setErr('');
     try {
-      const body = mode === 'login' ? { email: email.trim().toLowerCase(), password: pwd } : { name: regName.trim(), crm: regCrm.trim(), specialty: regSpec, email: email.trim().toLowerCase(), password: pwd };
+      const body = mode === 'login' ? { email: email.trim().toLowerCase(), password: pwd } : { name: regName.trim(), crm: regCrm.trim(), crmUf: regUf, specialty: regSpec, email: email.trim().toLowerCase(), password: pwd };
       const r = await fetch(`${API_URL}/doctor/${mode}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Falha');
@@ -92,8 +92,14 @@ export const DoctorPortalPage = () => {
             </Box>
             <TextField placeholder="Nome completo" required value={regName} onChange={(e) => setRegName(e.target.value)} sx={fieldSx}
               slotProps={{ input: { startAdornment: <InputAdornment position="start"><I.Person /></InputAdornment> } }} />
-            <TextField placeholder="CRM (ex.: 12345-SP)" required value={regCrm} onChange={(e) => setRegCrm(e.target.value)} sx={fieldSx} helperText="Use o mesmo CRM que o paciente informou no convite."
-              slotProps={{ input: { startAdornment: <InputAdornment position="start"><I.Badge /></InputAdornment> } }} />
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <TextField placeholder="CRM (número)" required value={regCrm} onChange={(e) => setRegCrm(e.target.value.replace(/[^\d]/g, ''))} sx={{ ...fieldSx, flex: 1 }} helperText="Mesmo CRM do convite."
+                slotProps={{ input: { startAdornment: <InputAdornment position="start"><I.Badge /></InputAdornment> } }} />
+              <TextField select label="UF" required value={regUf} onChange={(e) => setRegUf(e.target.value)} sx={{ ...fieldSx, width: 92 }}>
+                <MenuItem value=""><em>—</em></MenuItem>
+                {UFS.map((u) => <MenuItem key={u} value={u}>{u}</MenuItem>)}
+              </TextField>
+            </Box>
             <TextField select label="Especialidade" value={regSpec} onChange={(e) => setRegSpec(e.target.value)} sx={fieldSx} fullWidth>
               <MenuItem value=""><em>Selecione…</em></MenuItem>
               {SPECIALTIES.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
