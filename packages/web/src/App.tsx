@@ -24,7 +24,6 @@ import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import LockIcon from '@mui/icons-material/Lock';
 import MedicalInformationIcon from '@mui/icons-material/MedicalInformation';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
-import SearchIcon from '@mui/icons-material/Search';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import Diversity3Icon from '@mui/icons-material/Diversity3';
@@ -136,7 +135,8 @@ const MenuSection = ({ title }: { title: string }) => (
 );
 
 // Item de navegação (MUI puro, monocromático, pill teal no ativo).
-const NavItem = ({ to, primaryText, icon, highlight, badge }: { to: string; primaryText: string; icon: React.ReactNode; highlight?: boolean; badge?: React.ReactNode }) => {
+// `highlight` destaca as funcionalidades PRINCIPAIS (ícone teal + texto mais forte) — sem rótulo de paywall.
+const NavItem = ({ to, primaryText, icon, highlight }: { to: string; primaryText: string; icon: React.ReactNode; highlight?: boolean }) => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const active = to === '/' ? pathname === '/' : pathname.startsWith(to);
@@ -148,21 +148,10 @@ const NavItem = ({ to, primaryText, icon, highlight, badge }: { to: string; prim
         '&.Mui-selected:hover': { bgcolor: 'rgba(32,178,170,.18)' },
         '&:hover': { bgcolor: 'rgba(32,178,170,.06)' } }}>
       <ListItemIcon sx={{ minWidth: 34, color: iconColor, '& svg': { fontSize: 19 } }}>{icon}</ListItemIcon>
-      <ListItemText primary={primaryText} primaryTypographyProps={{ fontSize: 13, fontWeight: active ? 700 : 500, color: active ? '#0f3d3a' : '#334155', noWrap: true }} />
-      {badge && <Box sx={{ ml: 'auto', pl: 0.5, flexShrink: 0, display: 'flex', alignItems: 'center' }}>{badge}</Box>}
+      <ListItemText primary={primaryText} primaryTypographyProps={{ fontSize: 13, fontWeight: active || highlight ? 700 : 500, color: active || highlight ? '#0f3d3a' : '#334155', noWrap: true }} />
     </ListItemButton>
   );
 };
-
-// Item de navegação com AÇÃO (link externo/Doctoralia) — mesmo visual do NavItem, sem rota interna.
-const NavExternal = ({ primaryText, icon, badge, onClick }: { primaryText: string; icon: React.ReactNode; badge?: React.ReactNode; onClick: () => void }) => (
-  <ListItemButton onClick={onClick}
-    sx={{ borderRadius: 1.5, m: '1px 8px', py: 0.7, pl: 2.5, '&:hover': { bgcolor: 'rgba(32,178,170,.06)' } }}>
-    <ListItemIcon sx={{ minWidth: 34, color: '#64748b', '& svg': { fontSize: 19 } }}>{icon}</ListItemIcon>
-    <ListItemText primary={primaryText} primaryTypographyProps={{ fontSize: 13, fontWeight: 500, color: '#334155', noWrap: true }} />
-    {badge && <Box sx={{ ml: 'auto', pl: 0.5, flexShrink: 0, display: 'flex', alignItems: 'center' }}>{badge}</Box>}
-  </ListItemButton>
-);
 
 // Menu lateral — organizado como app profissional (headers de seção, sem acordeão)
 const AppMenu = () => {
@@ -170,15 +159,6 @@ const AppMenu = () => {
   const [aboutOpen, setAboutOpen] = useState(false);
   const userStr = typeof localStorage !== 'undefined' ? localStorage.getItem('user') : null;
   const isAdmin = (() => { try { return userStr ? (JSON.parse(userStr)?.role === 'ADMIN') : false; } catch { return false; } })();
-  // Badges de conversão (gatilhos premium) + destaque Médicos.
-  const PREMIUM_BADGE = <Chip label="👑 PREMIUM" size="small" sx={{ height: 16, fontSize: 8, fontWeight: 800, letterSpacing: 0.3, bgcolor: '#f59e0b', color: '#fff', '& .MuiChip-label': { px: 0.6, py: 0 } }} />;
-  const MEDICOS_BADGE = <Chip label="MÉDICOS" size="small" sx={{ height: 16, fontSize: 8, fontWeight: 800, letterSpacing: 0.3, bgcolor: '#2563eb', color: '#fff', '& .MuiChip-label': { px: 0.6, py: 0 } }} />;
-  // Doctoralia: busca de especialistas em nova aba (Browser nativo no APK, window.open no web).
-  const openDoctoralia = async () => {
-    const url = 'https://www.doctoralia.com.br/search?q=' + encodeURIComponent('Clínico Geral');
-    try { if (Capacitor.isNativePlatform()) { const { Browser } = await import('@capacitor/browser'); await Browser.open({ url }); return; } } catch { /* fallback web */ }
-    window.open(url, '_blank', 'noopener,noreferrer');
-  };
   return (
   <Box component="nav" sx={{ py: 1, display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
     {/* Acesso rápido (sem header) */}
@@ -187,9 +167,9 @@ const AppMenu = () => {
 
     {/* MINHA SAÚDE */}
     <MenuSection title="Minha Saúde" />
-    <NavItem to="/alterados" primaryText="Valores alterados" icon={<WarningAmberIcon />} />
-    <NavItem to="/tendencias" primaryText="Tendências" icon={<AutoGraphIcon />} badge={PREMIUM_BADGE} />
-    <NavItem to="/linha-do-tempo" primaryText="Linha do tempo" icon={<HistoryIcon />} />
+    <NavItem to="/alterados" primaryText="Valores alterados" icon={<WarningAmberIcon />} highlight />
+    <NavItem to="/tendencias" primaryText="Tendências" icon={<AutoGraphIcon />} highlight />
+    <NavItem to="/linha-do-tempo" primaryText="Linha do tempo" icon={<HistoryIcon />} highlight />
     <NavItem to="/medicoes" primaryText="Medições" icon={<MonitorHeartIcon />} />
     <NavItem to="/vacinas" primaryText="Vacinas" icon={<VaccinesIcon />} />
     <NavItem to="/lembretes" primaryText="Lembretes" icon={<EventAvailableIcon />} />
@@ -198,15 +178,14 @@ const AppMenu = () => {
     {/* INTELIGÊNCIA ARTIFICIAL */}
     <MenuSection title="Inteligência Artificial" />
     <NavItem to="/chat" primaryText="Dr. Exame (IA)" icon={<AutoAwesomeIcon />} highlight />
-    <NavItem to="/evolucao" primaryText="Evolução" icon={<InsightsIcon />} badge={PREMIUM_BADGE} />
+    <NavItem to="/evolucao" primaryText="Evolução" icon={<InsightsIcon />} highlight />
     <NavItem to="/conquistas" primaryText="Minhas conquistas" icon={<EmojiEventsIcon />} />
 
     {/* GERENCIAMENTO */}
     <MenuSection title="Gerenciamento" />
     <NavItem to="/familia" primaryText="Família" icon={<Diversity3Icon />} />
     <NavItem to="/patients" primaryText="Dependentes" icon={<Diversity3Icon />} />
-    <NavExternal primaryText="Buscar Especialistas" icon={<MedicalServicesIcon />} badge={MEDICOS_BADGE} onClick={openDoctoralia} />
-    <NavItem to="/relatorio" primaryText="Relatório completo" icon={<SummarizeIcon />} />
+    <NavItem to="/relatorio" primaryText="Relatório completo" icon={<SummarizeIcon />} highlight />
     <NavItem to="/despesas" primaryText="Despesas médicas" icon={<AccountBalanceWalletIcon />} />
 
     {/* CONTA (rodapé) */}
