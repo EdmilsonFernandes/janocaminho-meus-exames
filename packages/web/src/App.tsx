@@ -252,8 +252,10 @@ const AppMenu = () => {
 const AppDrawer = () => {
   const { open, closeDrawer } = useAppDrawer();
   const { pathname } = useLocation();
-  const userStr = typeof localStorage !== 'undefined' ? localStorage.getItem('user') : null;
-  const userName = (() => { try { return userStr ? (JSON.parse(userStr)?.name as string) : null; } catch { return null; } })();
+  const userObj = (() => { try { const s = typeof localStorage !== 'undefined' ? localStorage.getItem('user') : null; return s ? JSON.parse(s) : null; } catch { return null; } })();
+  const userName = (userObj?.name as string) || null;
+  const userEmail = (userObj?.email as string) || null;
+  const isPremium = !!(userObj?.planExpiresAt && new Date(userObj.planExpiresAt) > new Date());
   const patientId = typeof localStorage !== 'undefined' ? (localStorage.getItem('selPatientId') || localStorage.getItem('patientId')) : null;
   const userPhoto = patientId ? `${API_URL}/patients/${patientId}/photo` : undefined;
   // auto-close ao navegar (clica num item → rota muda → fecha)
@@ -261,19 +263,18 @@ const AppDrawer = () => {
   return (
     <Drawer anchor="left" open={open} onClose={closeDrawer} keepMounted={false}
       PaperProps={{ sx: { width: { xs: '86vw', sm: 340 }, maxWidth: 360, display: 'flex', flexDirection: 'column', bgcolor: '#fff' } }}>
-      {/* Header teal — identidade visual do app (mesmo padrão do portal/landing) */}
-      <Box sx={{ background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff', px: 2, pt: 'calc(env(safe-area-inset-top) + 14px)', pb: 2, boxShadow: '0 4px 16px rgba(32,178,170,.22)' }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between">
-          <Stack direction="row" alignItems="center" spacing={1.5}>
-            <Avatar src={userPhoto} sx={{ bgcolor: 'rgba(255,255,255,.2)', fontWeight: 800, border: '2px solid rgba(255,255,255,.5)' }}>{userName?.charAt(0)?.toUpperCase()}</Avatar>
-            <Box>
-              <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', lineHeight: 1.1 }}>Meus Exames</Typography>
-              <Typography sx={{ fontSize: 12, opacity: 0.9 }}>{userName ? `Olá, ${userName.split(' ')[0]}` : 'Bem-vindo'}</Typography>
-            </Box>
-          </Stack>
-          <IconButton onClick={closeDrawer} size="small" title="Fechar" sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,.15)', '&:hover': { bgcolor: 'rgba(255,255,255,.25)' } }}><CloseIcon fontSize="small" /></IconButton>
+      {/* Header — PERFIL do usuário (clean: branco, avatar + nome + plano/email, X discreto). Sem bloco verde. */}
+      <Box sx={{ position: 'relative', px: 2, pt: 'calc(env(safe-area-inset-top) + 16px)', pb: 2 }}>
+        <IconButton onClick={closeDrawer} size="small" title="Fechar" sx={{ position: 'absolute', top: 'calc(env(safe-area-inset-top) + 10px)', right: 8, color: '#94a3b8', '&:hover': { color: '#0f3d3a', bgcolor: 'transparent' } }}><CloseIcon fontSize="small" /></IconButton>
+        <Stack direction="row" alignItems="center" spacing={1.5}>
+          <Avatar src={userPhoto} sx={{ width: 48, height: 48, bgcolor: '#e0f2f1', color: '#178f89', fontWeight: 800, border: '2px solid #bfe0dc' }}>{userName?.charAt(0)?.toUpperCase() || '👤'}</Avatar>
+          <Box sx={{ minWidth: 0, flex: 1 }}>
+            <Typography sx={{ fontWeight: 800, fontSize: 16, color: '#0f3d3a', lineHeight: 1.15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{userName || 'Olá!'}</Typography>
+            <Typography sx={{ fontSize: 12.5, color: '#94a3b8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{isPremium ? '👑 Plano Premium' : (userEmail || '')}</Typography>
+          </Box>
         </Stack>
       </Box>
+      <Divider sx={{ borderColor: '#eef2f1' }} />
       {/* Corpo rolável — reutiliza o MESMO AppMenu do Sidebar (fonte única de verdade) */}
       <Box sx={{ flex: 1, overflowY: 'auto', pb: 2 }}><AppMenu /></Box>
     </Drawer>
