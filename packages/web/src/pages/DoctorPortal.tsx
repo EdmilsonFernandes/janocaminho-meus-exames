@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { Box, Card, CardContent, Typography, TextField, Button, CircularProgress, Stack, Chip, Avatar, MenuItem, Alert, Divider, InputAdornment, IconButton, Link, Drawer, List, ListItemButton, ListItemText, ListItemIcon, Accordion, AccordionSummary, AccordionDetails, Badge, InputBase, Paper } from '@mui/material';
+import { Box, Card, CardContent, Typography, TextField, Button, CircularProgress, Stack, Chip, Avatar, MenuItem, Alert, Divider, InputAdornment, IconButton, Link, Drawer, List, ListItemButton, ListItemText, ListItemIcon, Accordion, AccordionSummary, AccordionDetails, Badge, InputBase, Paper, useMediaQuery, useTheme } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import LogoutIcon from '@mui/icons-material/Logout';
 import LockIcon from '@mui/icons-material/Lock';
@@ -7,6 +7,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PdfIcon from '@mui/icons-material/PictureAsPdf';
 import SearchIcon from '@mui/icons-material/Search';
+import GroupsIcon from '@mui/icons-material/Groups';
 import { API_URL } from '../config';
 import { DrExame } from '../components/DrExame';
 import { MfaSetupCard } from '../components/mfa/MfaSetupCard';
@@ -210,6 +211,10 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const [patQuery, setPatQuery] = useState('');
   const [patAlertOnly, setPatAlertOnly] = useState(false);
   const h = { Authorization: `Bearer ${token}` };
+  // Web (sm+): menu vertical PERMANENTE à esquerda (igual ao app do paciente) + sem rodapé.
+  // Mobile: mantém o Drawer overlay + rodapé (Pacientes · Perfil · Mais).
+  const theme = useTheme();
+  const isDesktop = useMediaQuery(theme.breakpoints.up('sm'));
 
   useEffect(() => {
     fetch(`${API_URL}/doctor/me`, { headers: h }).then((r) => r.json()).then((d) => setDoctor(d.doctor)).catch(() => {});
@@ -315,8 +320,45 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     return () => window.removeEventListener('app:back', handler);
   }, []);
 
+  // Conteúdo do menu vertical (sidebar permanente no desktop / Drawer overlay no mobile).
+  // Mesma fonte de verdade pros dois — preserva a identidade do portal do médico.
+  const renderSideMenu = (onNav: () => void) => (
+    <>
+      <Box sx={{ p: 2, pb: 1.5, background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff' }}>
+        <Stack direction="row" alignItems="center" spacing={1.5}>
+          <Avatar src={doctor?.id ? `${API_URL}/doctor/photo/${doctor.id}?v=${photoVer}` : undefined} sx={{ bgcolor: 'rgba(255,255,255,.2)', fontWeight: 800, border: '2px solid rgba(255,255,255,.5)' }}>{doctor?.name?.charAt(0)}</Avatar>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>🩺 {doctor?.name || 'Médico'}</Typography>
+            <Typography variant="caption" sx={{ opacity: 0.9, display: 'block' }}>{[doctor?.specialty, doctor?.crm && `CRM ${doctor.crm}`].filter(Boolean).join(' • ')}</Typography>
+          </Box>
+        </Stack>
+      </Box>
+      <Divider />
+      <Box sx={{ mx: '10px', mt: 1.5, p: 1.25, borderRadius: 2, background: 'linear-gradient(135deg,#e0f2f1,#d6ece8)', border: '1px solid #bfe7e3' }}>
+        <Typography variant="caption" sx={{ fontWeight: 800, color: TEAL, display: 'block' }}>PLANO</Typography>
+        <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#0f3d3a' }}>✅ Grátis (médico)</Typography>
+        <Typography variant="caption" sx={{ color: '#4a6b66' }}>O portal do médico é gratuito por ora. Em breve: Premium do Médico.</Typography>
+      </Box>
+      <List sx={{ pt: 1, '& .MuiListItemButton-root': { borderRadius: 2, m: '2px 10px' } }}>
+        <ListItemButton selected={view === 'patients'} onClick={() => { setView('patients'); setSelected(null); setSelExam(null); onNav(); }}><ListItemIcon sx={{ minWidth: 38 }}><GroupsIcon sx={{ color: TEAL }} /></ListItemIcon><ListItemText primary="Pacientes" primaryTypographyProps={{ fontWeight: 600 }} /></ListItemButton>
+        <ListItemButton selected={view === 'profile'} onClick={() => { setView('profile'); onNav(); }}><ListItemIcon sx={{ minWidth: 38 }}><PersonIcon sx={{ color: TEAL }} /></ListItemIcon><ListItemText primary="Meu perfil" primaryTypographyProps={{ fontWeight: 600 }} /></ListItemButton>
+        <ListItemButton selected={view === 'password'} onClick={() => { setView('password'); onNav(); }}><ListItemIcon sx={{ minWidth: 38 }}><LockIcon sx={{ color: TEAL }} /></ListItemIcon><ListItemText primary="Trocar senha" primaryTypographyProps={{ fontWeight: 600 }} /></ListItemButton>
+        <Divider sx={{ my: 1 }} />
+        <ListItemButton onClick={() => { onNav(); onLogout(); }} sx={{ color: 'error.main' }}><ListItemIcon sx={{ minWidth: 38 }}><LogoutIcon sx={{ color: 'error.main' }} /></ListItemIcon><ListItemText primary="Sair" primaryTypographyProps={{ fontWeight: 600 }} /></ListItemButton>
+      </List>
+      <Typography variant="caption" sx={{ mt: 'auto', p: 2, color: '#94a3b8' }}>Portal do Médico</Typography>
+    </>
+  );
+
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#f4faf9' }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: '#f4faf9', display: 'flex' }}>
+      {/* MENU vertical PERMANENTE (web/desktop) — abre igual ao app do paciente. Mobile usa o Drawer abaixo. */}
+      {isDesktop && (
+        <Box component="nav" sx={{ width: 290, flexShrink: 0, borderRight: '1px solid #dceaea', bgcolor: '#fff', display: 'flex', flexDirection: 'column', position: 'sticky', top: 0, height: '100vh', overflowY: 'auto' }}>
+          {renderSideMenu(() => {})}
+        </Box>
+      )}
+      <Box sx={{ flex: 1, minWidth: 0 }}>
       {/* Header — mesma identidade teal do app do paciente */}
       <Box sx={{ background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff', px: { xs: 2, md: 3 }, pt: 'calc(env(safe-area-inset-top) + 12px)', pb: 2, display: 'flex', alignItems: 'center', gap: 2, boxShadow: '0 4px 20px rgba(32,178,170,.25)' }}>
         {(selected || selExam) && (
@@ -589,35 +631,17 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           </>
         )}
       </Box>
+      </Box>{/* fim da coluna de conteúdo (flex:1) */}
 
-      {/* MENU vertical (Sair, Perfil, Trocar senha) — igual ao app do paciente */}
-      <Drawer open={menuOpen} onClose={() => setMenuOpen(false)} PaperProps={{ sx: { width: 290, display: 'flex', flexDirection: 'column' } }}>
-        <Box sx={{ p: 2, pb: 1.5, background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff' }}>
-          <Stack direction="row" alignItems="center" spacing={1.5}>
-            <Avatar src={doctor?.id ? `${API_URL}/doctor/photo/${doctor.id}?v=${photoVer}` : undefined} sx={{ bgcolor: 'rgba(255,255,255,.2)', fontWeight: 800, border: '2px solid rgba(255,255,255,.5)' }}>{doctor?.name?.charAt(0)}</Avatar>
-            <Box sx={{ minWidth: 0 }}>
-              <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>🩺 {doctor?.name || 'Médico'}</Typography>
-              <Typography variant="caption" sx={{ opacity: 0.9, display: 'block' }}>{[doctor?.specialty, doctor?.crm && `CRM ${doctor.crm}`].filter(Boolean).join(' • ')}</Typography>
-            </Box>
-          </Stack>
-        </Box>
-        <Divider />
-        <Box sx={{ mx: '10px', mt: 1.5, p: 1.25, borderRadius: 2, background: 'linear-gradient(135deg,#e0f2f1,#d6ece8)', border: '1px solid #bfe7e3' }}>
-          <Typography variant="caption" sx={{ fontWeight: 800, color: TEAL, display: 'block' }}>PLANO</Typography>
-          <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#0f3d3a' }}>✅ Grátis (médico)</Typography>
-          <Typography variant="caption" sx={{ color: '#4a6b66' }}>O portal do médico é gratuito por ora. Em breve: Premium do Médico.</Typography>
-        </Box>
-        <List sx={{ pt: 1, '& .MuiListItemButton-root': { borderRadius: 2, m: '2px 10px' } }}>
-          <ListItemButton onClick={() => { setView('profile'); setMenuOpen(false); }}><ListItemIcon sx={{ minWidth: 38 }}><PersonIcon sx={{ color: TEAL }} /></ListItemIcon><ListItemText primary="Meu perfil" primaryTypographyProps={{ fontWeight: 600 }} /></ListItemButton>
-          <ListItemButton onClick={() => { setView('password'); setMenuOpen(false); }}><ListItemIcon sx={{ minWidth: 38 }}><LockIcon sx={{ color: TEAL }} /></ListItemIcon><ListItemText primary="Trocar senha" primaryTypographyProps={{ fontWeight: 600 }} /></ListItemButton>
-          <Divider sx={{ my: 1 }} />
-          <ListItemButton onClick={() => { setMenuOpen(false); onLogout(); }} sx={{ color: 'error.main' }}><ListItemIcon sx={{ minWidth: 38 }}><LogoutIcon sx={{ color: 'error.main' }} /></ListItemIcon><ListItemText primary="Sair" primaryTypographyProps={{ fontWeight: 600 }} /></ListItemButton>
-        </List>
-        <Typography variant="caption" sx={{ mt: 'auto', p: 2, color: '#94a3b8' }}>Portal do Médico</Typography>
-      </Drawer>
+      {/* MENU vertical OVERLAY (mobile) — no desktop a sidebar permanente acima já está visível */}
+      {!isDesktop && (
+        <Drawer open={menuOpen} onClose={() => setMenuOpen(false)} PaperProps={{ sx: { width: 290, display: 'flex', flexDirection: 'column' } }}>
+          {renderSideMenu(() => setMenuOpen(false))}
+        </Drawer>
+      )}
 
       {/* MENU RODAPÉ (igual app do paciente) — Pacientes · Perfil · Mais */}
-      <Box component="nav" sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1100, display: 'flex', justifyContent: 'space-around', bgcolor: 'rgba(238,247,246,.97)', backdropFilter: 'blur(14px)', borderTop: '1px solid #dceaea', pb: 'env(safe-area-inset-bottom)', boxShadow: '0 -6px 24px rgba(32,178,170,.10)' }}>
+      <Box component="nav" sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1100, display: { xs: 'flex', sm: 'none' }, justifyContent: 'space-around', bgcolor: 'rgba(238,247,246,.97)', backdropFilter: 'blur(14px)', borderTop: '1px solid #dceaea', pb: 'env(safe-area-inset-bottom)', boxShadow: '0 -6px 24px rgba(32,178,170,.10)' }}>
         {([
           { icon: '👥', label: 'Pacientes', on: view === 'patients', onClick: () => { setView('patients'); setSelected(null); setSelExam(null); } },
           { icon: '👤', label: 'Perfil', on: view === 'profile' || view === 'password', onClick: () => setView('profile') },

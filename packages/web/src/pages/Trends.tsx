@@ -81,6 +81,9 @@ export const TrendsPage = () => {
     }
   }
 
+  // Tendência precisa de ≥2 pontos p/ comparar — esconde analitos com só 1 resultado do dropdown.
+  const multi = names.filter((n) => n.count >= 2);
+
   return (
     <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 980, mx: 'auto' }}>
       <Title title="Tendências" />
@@ -89,11 +92,15 @@ export const TrendsPage = () => {
         <FormControl fullWidth sx={{ minWidth: { xs: 0, sm: 280 }, mb: 1.5 }}>
           <InputLabel>Escolha o exame/analito</InputLabel>
           <Select value={sel} label="Escolha o exame/analito" onChange={(e) => setSel(e.target.value as string)}>
-            {names.map((n) => <MenuItem key={n.nameCanonical} value={n.nameCanonical}>{n.nameCanonical} ({n.count})</MenuItem>)}
+            {multi.map((n) => <MenuItem key={n.nameCanonical} value={n.nameCanonical}>{n.nameCanonical} ({n.count})</MenuItem>)}
           </Select>
         </FormControl>
 
-        {!sel && <Typography color="text.secondary">Envie ao menos um exame laboratorial para ver tendências.</Typography>}
+        {!sel && (names.length === 0
+          ? <Typography color="text.secondary">Envie ao menos um exame laboratorial para ver tendências.</Typography>
+          : multi.length === 0
+            ? <Typography color="text.secondary">Você já tem exames, mas ainda falta um 2º resultado do mesmo tipo para comparar — a tendência precisa de pelo menos 2 pontos.</Typography>
+            : null)}
         {loading && <CircularProgress />}
 
         {!loading && ts && ts.points.length > 0 && (

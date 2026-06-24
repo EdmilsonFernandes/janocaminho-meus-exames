@@ -28,6 +28,7 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import Diversity3Icon from '@mui/icons-material/Diversity3';
 import SummarizeIcon from '@mui/icons-material/Summarize';
+import { DrExame } from './components/DrExame';
 import { dataProvider } from './dataProvider';
 import { API_URL, token } from './config';
 import { authProvider } from './authProvider';
@@ -220,7 +221,7 @@ const AppMenu = () => {
     {/* POPUP "Sobre o App" */}
     <Dialog open={aboutOpen} onClose={() => setAboutOpen(false)} maxWidth="xs" fullWidth>
       <DialogTitle sx={{ textAlign: 'center', pb: 0 }}>
-        <Box sx={{ fontSize: 48, mb: 1 }}>🤖</Box>
+        <Box sx={{ mb: 1.5, display: 'flex', justifyContent: 'center' }}><DrExame size={64} /></Box>
         Meus Exames
       </DialogTitle>
       <DialogContent sx={{ textAlign: 'center' }}>
@@ -412,7 +413,6 @@ if (typeof window !== 'undefined' && !(window as any).__navPatched) {
 export const App = () => {
   const [booted, setBooted] = useState(false);
   const [forceUpdate, setForceUpdate] = useState<string | null>(null);
-  const [exitHint, setExitHint] = useState(false);
   const isNativeApp = Capacitor.isNativePlatform();
   useEffect(() => {
     let cancelled = false; // previne setState após unmount (race condition)
@@ -446,7 +446,6 @@ export const App = () => {
       try {
         const [{ App }, { Capacitor }] = await Promise.all([import('@capacitor/app'), import('@capacitor/core')]);
         if (Capacitor.isNativePlatform()) {
-          let lastBack = 0;
           const h = await App.addListener('backButton', () => {
             // Telas podem interceptar o back (ex.: portal médico fecha exame/paciente, dialogs fecham).
             const ev = new CustomEvent('app:back', { cancelable: true });
@@ -454,18 +453,17 @@ export const App = () => {
             if (ev.defaultPrevented) return;
             // Drawer aberto? → fecha (AppDrawer via drawerState)
             if ((window as any).__drawerOpen) { window.dispatchEvent(new Event('app:closeDrawer')); return; }
-            // Tem histórico IN-APP pra voltar? (threshold > 2: inicial + primeira navegação)
-            if (window.history.length > 2) {
+            // Tem histórico pra voltar? Threshold > 1 (igual EdEspeto — > 2 falhava após 1 navegação).
+            // inAppStack (pilha própria, confiável) entra como OR pra robustez no WebView do Capacitor.
+            if (window.history.length > 1 || inAppStack.length > 1) {
               window.history.back();
               return;
             }
-            // Não tá no dashboard? → vai pro dashboard (sempre seguro, nunca sai do app)
+            // Não tá no dashboard? → vai pro dashboard (fica no app, nunca sai).
             const path = window.location.pathname;
             if (path !== '/' && path !== '') { window.history.pushState({}, '', '/'); window.dispatchEvent(new PopStateEvent('popstate')); return; }
-            // Tá na raiz → double-tap pra sair (evita saída acidental).
-            const now = Date.now();
-            if (now - lastBack < 2500) { lastBack = 0; App.exitApp(); }
-            else { lastBack = now; setExitHint(true); setTimeout(() => setExitHint(false), 2500); }
+            // Já no dashboard (1ª tela) → NÃO sai do app (igual EdEspeto). Engole o back.
+            // O usuário sai pelo botão home do Android.
           });
           remove = () => { h.remove(); };
         }
@@ -477,9 +475,6 @@ export const App = () => {
   if (forceUpdate) return <ForceUpdate latest={forceUpdate} />;
   return (
   <>
-  {exitHint && (
-    <Box sx={{ position: 'fixed', bottom: 84, left: '50%', transform: 'translateX(-50%)', bgcolor: 'rgba(15,61,58,.96)', color: '#fff', px: 2.5, py: 1.2, borderRadius: 99, zIndex: 3000, fontSize: 13.5, fontWeight: 700, boxShadow: '0 8px 24px rgba(0,0,0,.3)' }}>Pressione voltar de novo para sair</Box>
-  )}
   <Admin
     dataProvider={dataProvider}
     authProvider={authProvider}
