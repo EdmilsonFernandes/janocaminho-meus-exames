@@ -9,7 +9,7 @@ interface U { id: string; email: string; name: string; role: string; credits: nu
 
 export const AdminPage = () => {
   const notify = useNotify();
-  const [tab, setTab] = useState<'users' | 'payments' | 'config' | 'metrics'>('users');
+  const [tab, setTab] = useState<'users' | 'payments' | 'config' | 'metrics' | 'emails'>('users');
   const [users, setUsers] = useState<U[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [payments, setPayments] = useState<any[]>([]);
@@ -20,6 +20,9 @@ export const AdminPage = () => {
   const [editCredits, setEditCredits] = useState(0);
   const [editPlan, setEditPlan] = useState('');
   const [q, setQ] = useState('');
+  const [blocked, setBlocked] = useState<string[]>([]);
+  const [newDomain, setNewDomain] = useState('');
+  const [syncing, setSyncing] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -70,6 +73,34 @@ NÃO dá pra desfazer.`;
 
   if (loading) return <Box sx={{ p: 4, textAlign: 'center' }}><CircularProgress /></Box>;
 
+  const loadBlocked = async () => {
+    const r = await fetch(`${API_URL}/admin/blocked-domains`, { headers: { Authorization: `Bearer ${token()}` } });
+    if (r.ok) setBlocked((await r.json()).domains || []);
+  };
+  const addDomain = async () => {
+    const d = newDomain.trim().toLowerCase().replace(/^@/, '');
+    if (!d) return;
+    const r = await fetch(`${API_URL}/admin/blocked-domains`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` }, body: JSON.stringify({ domain: d }) });
+    if (r.ok) { setBlocked((await r.json()).domains || []); setNewDomain(''); notify('Domínio bloqueado.'); }
+    else notify('Falha ao bloquear.', { type: 'error' });
+  };
+  const removeDomain = async (d: string) => {
+    const r = await fetch(`${API_URL}/admin/blocked-domains/${encodeURIComponent(d)}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });
+    if (r.ok) setBlocked((await r.json()).domains || []);
+  };
+  const syncDomains = async () => {
+    setSyncing(true);
+    try {
+      const r = await fetch(`${API_URL}/admin/blocked-domains/sync`, { method: 'POST', headers: { Authorization: `Bearer ${token()}` } });
+      const d = r.ok ? await r.json() : null;
+      if (d) notify(`Sincronizado: +${d.added} domínios (total ${d.total}).`, { type: 'success' });
+      else notify('Falha no sync.', { type: 'error' });
+      await loadBlocked();
+    } catch { notify('Falha no sync.', { type: 'error' }); }
+    setSyncing(false);
+  };
+  useEffect(() => { if (tab === 'emails') void loadBlocked(); /* eslint-disable-next-line */ }, [tab]);
+
   const filtered = users.filter((u) => !q || u.email.toLowerCase().includes(q.toLowerCase()) || (u.name || '').toLowerCase().includes(q.toLowerCase()));
   const TabBtn = ({ id, label }: any) => (
     <Button variant={tab === id ? 'contained' : 'outlined'} size="small" onClick={() => setTab(id)} sx={{ borderRadius: 99 }}>{label}</Button>
@@ -92,6 +123,7 @@ NÃO dá pra desfazer.`;
         <TabBtn id="users" label="👥 Usuários" />
         <TabBtn id="payments" label="💳 Pagamentos" />
         <TabBtn id="config" label="⚙️ Config" />
+        <TabBtn id="emails" label="🚫 E-mails" />
         <TabBtn id="metrics" label="📊 Métricas" />
       </Stack>
 
@@ -315,6 +347,26 @@ NÃO dá pra desfazer.`;
             </Table>
           </CardContent></Card>
         </Stack>
+      )}
+
+      {/* TAB: E-MAILS BLOQUEADOS */}
+      {tab === 'emails' && (
+        <Card sx={{ borderRadius: 3 }}><CardContent>
+          <Typography variant="h6" gutterBottom>🚫 E-mails temporários bloqueados</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Domínios descartáveis (mailinator, guerrillamail…) não conseguem se cadastrar — evita farm de contas pra roubar o bônus de créditos. Lista no banco, configurável.</Typography>
+          <Box sx={{ mb: 2, display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+            {blocked.map((d) => (
+              <Chip key={d} label={d} size="small" onDelete={() => removeDomain(d)} />
+            ))}
+            {!blocked.length && <Typography variant="body2" color="text.secondary">Nenhum domínio bloqueado.</Typography>}
+          </Box>
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }} useFlexGap flexWrap="wrap">
+            <TextField size="small" placeholder="exemplo.com" value={newDomain} onChange={(e) => setNewDomain(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') void addDomain(); }} sx={{ width: 220 }} />
+            <Button size="small" variant="contained" onClick={addDomain}>Bloquear</Button>
+            <Button size="small" variant="outlined" onClick={syncDomains} disabled={syncing} startIcon={syncing ? <CircularProgress size={14} /> : undefined}>↻ Sincronizar lista pública</Button>
+          </Stack>
+          <Typography variant="caption" color="text.secondary">{blocked.length} domínios. "Sincronizar" puxa de uma lista pública comunitária (só adiciona, não remove os manuais).</Typography>
+        </CardContent></Card>
       )}
 
       {/* DIALOG: Editar usuário */}
