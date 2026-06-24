@@ -275,6 +275,11 @@ model Reminder {
   dueDate   DateTime
   note      String?
   done      Boolean  @default(false)
+  // Antecedências escolhidas pelo usuário ao criar (estilo Agenda do Google), em MINUTOS antes do dueDate.
+  // 1440=1 dia, 300=5h, 60=1h, 720=12h, 10080=1 semana, 0=na hora.
+  notifyOffsetsMin Int[] @default([1440, 300, 0])
+  // Offsets (em min) JÁ disparados — dedup persistente (sobrevive a restart/deploy; substitui o Set em memória).
+  sentOffsets      Int[] @default([])
   createdAt DateTime @default(now())
 
   @@index([patientId, dueDate])
