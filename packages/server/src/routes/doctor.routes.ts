@@ -94,6 +94,20 @@ router.get('/specialties', requireAuth, async (_req, res, next) => {
   } catch (e) { next(e); }
 });
 
+// BUSCA pública de médico por CRM (consultaCRM) — auto-preenchimento no CADASTRO do médico.
+// Público (o médico ainda não tem conta) + rate-limited em app.ts. Só consultaCRM (dados públicos do conselho),
+// não expõe dados internos. Retorna {found, name, specialty, crm, uf, situation} ou {found:false}.
+router.get('/crm', async (req, res, next) => {
+  try {
+    const crm = String(req.query.crm ?? '').replace(/\D/g, '');
+    const uf = String(req.query.uf ?? '').trim().toUpperCase();
+    if (!crm || uf.length !== 2) { res.status(400).json({ error: 'CRM e UF (2 letras) obrigatórios.' }); return; }
+    const cfm = await lookupCfm(crm, uf);
+    if (!cfm) { res.json({ found: false }); return; }
+    res.json({ found: true, name: cfm.name, specialty: cfm.specialty, crm: cfm.crm, uf: cfm.uf, situation: cfm.situation });
+  } catch (e) { next(e); }
+});
+
 // CADASTRO do médico
 router.post('/register', validate(schemas.doctorRegister), async (req, res, next) => {
   try {

@@ -58,6 +58,7 @@ const generalLimiter = rateLimit({ windowMs: 60 * 1000, max: 120, standardHeader
 // roubar o bônus de créditos. Aplicado ANTES do authLimiter genérico (mais específico primeiro).
 const signupLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 8, standardHeaders: true, legacyHeaders: false, skip: skipDev, message: { error: 'Muitos cadastros deste local. Tente novamente mais tarde.' } });
 app.use('/api/auth/register', signupLimiter);
+app.use('/api/doctor/crm', signupLimiter); // busca pública de CRM (consultaCRM) no cadastro do médico — limita consumo da cota
 app.use('/api/auth', authLimiter);
 app.use('/api/analyses', aiLimiter);
 app.use('/api/chat', aiLimiter);

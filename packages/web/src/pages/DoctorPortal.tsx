@@ -49,6 +49,8 @@ export const DoctorPortalPage = () => {
   const [showPwd, setShowPwd] = useState(false);
   const [mode, setMode] = useState<'login' | 'register'>(() => { const q = window.location.hash.split('?')[1] || ''; return new URLSearchParams(q).get('mode') === 'register' ? 'register' : 'login'; });
   const [regName, setRegName] = useState(''); const [regCrm, setRegCrm] = useState(''); const [regUf, setRegUf] = useState(''); const [regSpec, setRegSpec] = useState('');
+  const [regLooking, setRegLooking] = useState(false);
+  const [regHint, setRegHint] = useState<{ type: 'success' | 'warning'; msg: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState('');
 
@@ -64,6 +66,20 @@ export const DoctorPortalPage = () => {
   };
 
   const logout = () => { localStorage.removeItem(docKey); navigate('/entrar'); };
+
+  // Busca CRM no conselho (consultaCRM) pra pré-preencher nome + especialidade no cadastro.
+  const buscarCrmReg = async () => {
+    const c = regCrm.replace(/\D/g, '');
+    if (!c || regUf.length !== 2) { setRegHint({ type: 'warning', msg: 'Informe o CRM e o estado (UF).' }); return; }
+    setRegLooking(true); setRegHint(null);
+    try {
+      const r = await fetch(`${API_URL}/doctor/crm?crm=${encodeURIComponent(c)}&uf=${encodeURIComponent(regUf)}`);
+      const d = await r.json();
+      if (d.found) { if (d.name) setRegName(d.name); if (d.specialty) setRegSpec(d.specialty); setRegHint({ type: 'success', msg: `🔍 ${d.name}${d.specialty ? ' — ' + d.specialty : ''}${d.situation ? ' • ' + d.situation : ''}. Confirme e complete abaixo.` }); }
+      else setRegHint({ type: 'warning', msg: '✍️ Não encontrado no conselho — preencha nome e especialidade manualmente.' });
+    } catch { setRegHint({ type: 'warning', msg: 'Busca indisponível agora — preencha manualmente.' }); }
+    finally { setRegLooking(false); }
+  };
 
   if (token) return <DoctorDashboard token={token} onLogout={logout} />;
 
@@ -100,6 +116,10 @@ export const DoctorPortalPage = () => {
                 {UFS.map((u) => <MenuItem key={u} value={u}>{u}</MenuItem>)}
               </TextField>
             </Box>
+            <Button type="button" variant="outlined" size="small" onClick={buscarCrmReg} disabled={regLooking} startIcon={regLooking ? <CircularProgress size={15} color="inherit" /> : <span>🔍</span>} sx={{ alignSelf: 'flex-start', borderRadius: 99, textTransform: 'none', fontWeight: 700, color: TEAL, borderColor: TEAL }}>
+              {regLooking ? 'Buscando…' : 'Buscar dados no conselho'}
+            </Button>
+            {regHint && <Alert severity={regHint.type} icon={false} sx={{ py: 0.5, borderRadius: 2, '& .MuiAlert-message': { fontSize: 12.5 } }}>{regHint.msg}</Alert>}
             <TextField select label="Especialidade" value={regSpec} onChange={(e) => setRegSpec(e.target.value)} sx={fieldSx} fullWidth>
               <MenuItem value=""><em>Selecione…</em></MenuItem>
               {SPECIALTIES.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
