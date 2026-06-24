@@ -416,13 +416,17 @@ export const App = () => {
             const ev = new CustomEvent('app:back', { cancelable: true });
             window.dispatchEvent(ev);
             if (ev.defaultPrevented) return;
-            // Existe uma tela anterior DENTRO do app? → volta pra ela (history.back é seguro aqui,
-            // porque a pilha só contém telas do app — nunca o referrer do Google Play).
-            if (inAppStack.length > 1) {
+            // Drawer aberto? → fecha (AppDrawer via drawerState)
+            if ((window as any).__drawerOpen) { window.dispatchEvent(new Event('app:closeDrawer')); return; }
+            // Tem histórico IN-APP pra voltar? (threshold > 2: inicial + primeira navegação)
+            if (window.history.length > 2) {
               window.history.back();
               return;
             }
-            // Chegou na base da pilha (raiz do app) → double-tap pra sair (evita saída acidental).
+            // Não tá no dashboard? → vai pro dashboard (sempre seguro, nunca sai do app)
+            const path = window.location.pathname;
+            if (path !== '/' && path !== '') { window.history.pushState({}, '', '/'); window.dispatchEvent(new PopStateEvent('popstate')); return; }
+            // Tá na raiz → double-tap pra sair (evita saída acidental).
             const now = Date.now();
             if (now - lastBack < 2500) { lastBack = 0; App.exitApp(); }
             else { lastBack = now; setExitHint(true); setTimeout(() => setExitHint(false), 2500); }

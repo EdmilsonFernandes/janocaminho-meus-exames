@@ -1,10 +1,13 @@
-import { Box, Card, Typography, Button, Stack, Divider, Link } from '@mui/material';
+import { useState } from 'react';
+import { Box, Card, Typography, Button, Stack, Divider, Dialog, DialogTitle, DialogContent } from '@mui/material';
 import { Title } from 'react-admin';
 import { useNavigate } from 'react-router-dom';
+import { TermsPage } from './Terms';
 
 /** Página de Privacidade e Termos — separada do Perfil. */
 export const PrivacyPage = () => {
   const navigate = useNavigate();
+  const [termsOpen, setTermsOpen] = useState(false);
   return (
     <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 780, mx: 'auto' }}>
       <Title title="Privacidade" />
@@ -17,7 +20,7 @@ export const PrivacyPage = () => {
           <Typography variant="body2" sx={{ color: '#4a6b66', fontSize: 13.5, lineHeight: 1.6, mb: 1.5 }}>
             O Meus Exames é um app de apoio à gestão de saúde pessoal. A análise gerada pela IA é <strong>educativa</strong> e <strong>não substitui</strong> consulta, diagnóstico ou tratamento médico. Em urgências, procure um serviço de saúde.
           </Typography>
-          <Button variant="outlined" size="small" onClick={() => window.open('#/termos', '_blank')} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, borderColor: '#20b2aa', color: '#178f89' }}>
+          <Button variant="outlined" size="small" onClick={() => setTermsOpen(true)} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, borderColor: '#20b2aa', color: '#178f89' }}>
             Ler termos completos →
           </Button>
         </Box>
@@ -50,6 +53,17 @@ export const PrivacyPage = () => {
           <Button variant="outlined" color="primary" size="small" onClick={() => navigate('/perfil')} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700 }}>Ir para o Perfil →</Button>
         </Box>
       </Card>
+
+      {/* Modal com os termos completos (não navega pra fora → voltar não quebra) */}
+      <Dialog open={termsOpen} onClose={() => setTermsOpen(false)} maxWidth="md" fullWidth PaperProps={{ sx: { borderRadius: 4, maxHeight: '85vh' } }}>
+        <DialogTitle sx={{ fontWeight: 800, color: '#0f3d3a', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          📋 Termos de Uso
+          <Button onClick={() => setTermsOpen(false)} sx={{ minWidth: 0, fontSize: 13 }}>✕ Fechar</Button>
+        </DialogTitle>
+        <DialogContent sx={{ '& p, & li': { fontSize: 13.5, lineHeight: 1.6 } }}>
+          <TermsPage />
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 };
