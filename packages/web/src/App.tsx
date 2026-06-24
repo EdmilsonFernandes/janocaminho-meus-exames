@@ -24,12 +24,13 @@ import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import LockIcon from '@mui/icons-material/Lock';
 import MedicalInformationIcon from '@mui/icons-material/MedicalInformation';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
+import SearchIcon from '@mui/icons-material/Search';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import Diversity3Icon from '@mui/icons-material/Diversity3';
 import SummarizeIcon from '@mui/icons-material/Summarize';
 import { dataProvider } from './dataProvider';
-import { API_URL } from './config';
+import { API_URL, token } from './config';
 import { authProvider } from './authProvider';
 import { theme } from './theme';
 import { i18nProvider } from './i18n';
@@ -135,7 +136,7 @@ const MenuSection = ({ title }: { title: string }) => (
 );
 
 // Item de navegação (MUI puro, monocromático, pill teal no ativo).
-const NavItem = ({ to, primaryText, icon, highlight }: { to: string; primaryText: string; icon: React.ReactNode; highlight?: boolean }) => {
+const NavItem = ({ to, primaryText, icon, highlight, badge }: { to: string; primaryText: string; icon: React.ReactNode; highlight?: boolean; badge?: React.ReactNode }) => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const active = to === '/' ? pathname === '/' : pathname.startsWith(to);
@@ -148,9 +149,20 @@ const NavItem = ({ to, primaryText, icon, highlight }: { to: string; primaryText
         '&:hover': { bgcolor: 'rgba(32,178,170,.06)' } }}>
       <ListItemIcon sx={{ minWidth: 34, color: iconColor, '& svg': { fontSize: 19 } }}>{icon}</ListItemIcon>
       <ListItemText primary={primaryText} primaryTypographyProps={{ fontSize: 13, fontWeight: active ? 700 : 500, color: active ? '#0f3d3a' : '#334155', noWrap: true }} />
+      {badge && <Box sx={{ ml: 'auto', pl: 0.5, flexShrink: 0, display: 'flex', alignItems: 'center' }}>{badge}</Box>}
     </ListItemButton>
   );
 };
+
+// Item de navegação com AÇÃO (link externo/Doctoralia) — mesmo visual do NavItem, sem rota interna.
+const NavExternal = ({ primaryText, icon, badge, onClick }: { primaryText: string; icon: React.ReactNode; badge?: React.ReactNode; onClick: () => void }) => (
+  <ListItemButton onClick={onClick}
+    sx={{ borderRadius: 1.5, m: '1px 8px', py: 0.7, pl: 2.5, '&:hover': { bgcolor: 'rgba(32,178,170,.06)' } }}>
+    <ListItemIcon sx={{ minWidth: 34, color: '#64748b', '& svg': { fontSize: 19 } }}>{icon}</ListItemIcon>
+    <ListItemText primary={primaryText} primaryTypographyProps={{ fontSize: 13, fontWeight: 500, color: '#334155', noWrap: true }} />
+    {badge && <Box sx={{ ml: 'auto', pl: 0.5, flexShrink: 0, display: 'flex', alignItems: 'center' }}>{badge}</Box>}
+  </ListItemButton>
+);
 
 // Menu lateral — organizado como app profissional (headers de seção, sem acordeão)
 const AppMenu = () => {
@@ -158,6 +170,15 @@ const AppMenu = () => {
   const [aboutOpen, setAboutOpen] = useState(false);
   const userStr = typeof localStorage !== 'undefined' ? localStorage.getItem('user') : null;
   const isAdmin = (() => { try { return userStr ? (JSON.parse(userStr)?.role === 'ADMIN') : false; } catch { return false; } })();
+  // Badges de conversão (gatilhos premium) + destaque Médicos.
+  const PREMIUM_BADGE = <Chip label="👑 PREMIUM" size="small" sx={{ height: 16, fontSize: 8, fontWeight: 800, letterSpacing: 0.3, bgcolor: '#f59e0b', color: '#fff', '& .MuiChip-label': { px: 0.6, py: 0 } }} />;
+  const MEDICOS_BADGE = <Chip label="MÉDICOS" size="small" sx={{ height: 16, fontSize: 8, fontWeight: 800, letterSpacing: 0.3, bgcolor: '#2563eb', color: '#fff', '& .MuiChip-label': { px: 0.6, py: 0 } }} />;
+  // Doctoralia: busca de especialistas em nova aba (Browser nativo no APK, window.open no web).
+  const openDoctoralia = async () => {
+    const url = 'https://www.doctoralia.com.br/search?q=' + encodeURIComponent('Clínico Geral');
+    try { if (Capacitor.isNativePlatform()) { const { Browser } = await import('@capacitor/browser'); await Browser.open({ url }); return; } } catch { /* fallback web */ }
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
   return (
   <Box component="nav" sx={{ py: 1, display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
     {/* Acesso rápido (sem header) */}
@@ -167,7 +188,7 @@ const AppMenu = () => {
     {/* MINHA SAÚDE */}
     <MenuSection title="Minha Saúde" />
     <NavItem to="/alterados" primaryText="Valores alterados" icon={<WarningAmberIcon />} />
-    <NavItem to="/tendencias" primaryText="Tendências" icon={<AutoGraphIcon />} />
+    <NavItem to="/tendencias" primaryText="Tendências" icon={<AutoGraphIcon />} badge={PREMIUM_BADGE} />
     <NavItem to="/linha-do-tempo" primaryText="Linha do tempo" icon={<HistoryIcon />} />
     <NavItem to="/medicoes" primaryText="Medições" icon={<MonitorHeartIcon />} />
     <NavItem to="/vacinas" primaryText="Vacinas" icon={<VaccinesIcon />} />
@@ -177,14 +198,14 @@ const AppMenu = () => {
     {/* INTELIGÊNCIA ARTIFICIAL */}
     <MenuSection title="Inteligência Artificial" />
     <NavItem to="/chat" primaryText="Dr. Exame (IA)" icon={<AutoAwesomeIcon />} highlight />
-    <NavItem to="/evolucao" primaryText="Evolução" icon={<InsightsIcon />} />
+    <NavItem to="/evolucao" primaryText="Evolução" icon={<InsightsIcon />} badge={PREMIUM_BADGE} />
     <NavItem to="/conquistas" primaryText="Minhas conquistas" icon={<EmojiEventsIcon />} />
 
     {/* GERENCIAMENTO */}
     <MenuSection title="Gerenciamento" />
     <NavItem to="/familia" primaryText="Família" icon={<Diversity3Icon />} />
     <NavItem to="/patients" primaryText="Dependentes" icon={<Diversity3Icon />} />
-    <NavItem to="/medicos" primaryText="Meus Médicos" icon={<MedicalServicesIcon />} />
+    <NavExternal primaryText="Buscar Especialistas" icon={<MedicalServicesIcon />} badge={MEDICOS_BADGE} onClick={openDoctoralia} />
     <NavItem to="/relatorio" primaryText="Relatório completo" icon={<SummarizeIcon />} />
     <NavItem to="/despesas" primaryText="Despesas médicas" icon={<AccountBalanceWalletIcon />} />
 
@@ -255,6 +276,8 @@ const AppMenu = () => {
 const AppDrawer = () => {
   const { open, closeDrawer } = useAppDrawer();
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const [credits, setCredits] = useState<number | null>(null);
   const userObj = (() => { try { const s = typeof localStorage !== 'undefined' ? localStorage.getItem('user') : null; return s ? JSON.parse(s) : null; } catch { return null; } })();
   const userName = (userObj?.name as string) || null;
   const userEmail = (userObj?.email as string) || null;
@@ -263,6 +286,17 @@ const AppDrawer = () => {
   const userPhoto = patientId ? `${API_URL}/patients/${patientId}/photo` : undefined;
   // auto-close ao navegar (clica num item → rota muda → fecha)
   useEffect(() => { closeDrawer(); /* deps intencional: só pathname */ }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Saldo de créditos no header do drawer (reativo: recarrega quando muda).
+  useEffect(() => {
+    const load = () => fetch(`${API_URL}/billing/status`, { headers: { Authorization: `Bearer ${token()}` } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => setCredits(typeof d?.credits === 'number' ? d.credits : null))
+      .catch(() => {});
+    load();
+    const h = () => load();
+    window.addEventListener('creditsChanged', h);
+    return () => window.removeEventListener('creditsChanged', h);
+  }, []);
   return (
     <Drawer anchor="left" open={open} onClose={closeDrawer} keepMounted={false}
       PaperProps={{ sx: { width: { xs: '86vw', sm: 340 }, maxWidth: 360, display: 'flex', flexDirection: 'column', bgcolor: '#fff' } }}>
@@ -274,6 +308,12 @@ const AppDrawer = () => {
           <Box sx={{ minWidth: 0, flex: 1 }}>
             <Typography sx={{ fontWeight: 800, fontSize: 16, color: '#0f3d3a', lineHeight: 1.15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{userName || 'Olá!'}</Typography>
             <Typography sx={{ fontSize: 12.5, color: '#94a3b8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{isPremium ? '👑 Plano Premium' : (userEmail || '')}</Typography>
+            {credits != null && (
+              <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 0.25 }}>
+                <Typography sx={{ fontSize: 11.5, color: '#64748b', fontWeight: 600, whiteSpace: 'nowrap' }}>⚡ {credits} créditos</Typography>
+                <Box component="button" onClick={() => { closeDrawer(); navigate('/planos'); }} sx={{ fontSize: 11.5, color: '#059669', fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer', p: 0, whiteSpace: 'nowrap' }}>(+ Recarregar)</Box>
+              </Stack>
+            )}
           </Box>
         </Stack>
       </Box>
