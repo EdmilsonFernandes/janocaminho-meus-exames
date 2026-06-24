@@ -11,11 +11,21 @@ function required(key: string, fallback?: string): string {
   return v ?? '';
 }
 
-// Auto-detecta o serviceAccountKey.json do Firebase (Admin) se FIREBASE_SERVICE_ACCOUNT_PATH não estiver setado.
+// Auto-detecta o serviceAccountKey.json do Firebase (Admin).
+// Resolve o FIREBASE_SERVICE_ACCOUNT_PATH mesmo se vier RELATIVO com cwd "errado"
+// (o server roda de /app/packages/server mas o volume monta a chave em /app/keys).
 function resolveFirebaseKey(): string {
   const env = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
-  if (env) return env;
-  // Procura nos dirs base E nos subdirs 'keys' (onde o volume do docker monta /app/keys)
+  if (env) {
+    if (fs.existsSync(env)) return env; // existe no cwd atual → usa direto
+    // relativo que não resolveu: tenta o nome do arquivo contra /app e dirs base
+    const name = path.basename(env);
+    for (const d of ['/app', '/app/keys', process.cwd(), path.join(process.cwd(), 'keys'), __dirname, path.resolve(__dirname, '..')]) {
+      const cand = path.join(d, name);
+      if (fs.existsSync(cand)) return cand;
+    }
+  }
+  // Auto-detecta procurando nos dirs base + 'keys' (onde o volume do docker monta /app/keys)
   const base = [process.cwd(), __dirname, path.resolve(__dirname, '..'), path.resolve(__dirname, '../..'), '/app/keys', '/app/packages/server/keys'];
   const dirs = [...new Set([...base, ...base.map((d) => path.join(d, 'keys'))])];
   for (const d of dirs) {

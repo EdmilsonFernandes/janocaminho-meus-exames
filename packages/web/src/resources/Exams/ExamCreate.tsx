@@ -168,52 +168,71 @@ export const ExamCreate = () => {
   const pct = progress ? (progress.done / progress.total) * 100 : 0;
 
   return (
-    <Box>
+    <Box sx={{ maxWidth: 600, mx: 'auto' }}>
       <Title title="Enviar exames" />
-      <Card>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>Enviar resultado(s) de exame</Typography>
-          <Box component="form" onSubmit={submit} sx={{ display: 'flex', flexDirection: 'column', gap: 2, maxWidth: 560 }}>
-            <Button variant="outlined" component="label" startIcon={<UploadFileIcon />} sx={{ justifyContent: 'flex-start' }}>
-              {files.length ? `${files.length} arquivo(s) selecionado(s)` : 'Escolher PDF / imagem (vários)'}
+      {/* Cabeçalho */}
+      <Stack direction="row" alignItems="center" spacing={1.25} sx={{ mb: 2.5 }}>
+        <Box sx={{ width: 46, height: 46, borderRadius: 2.5, background: 'linear-gradient(135deg,#20b2aa,#178f89)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 22px rgba(32,178,170,.30)' }}>
+          <UploadFileIcon sx={{ color: '#fff' }} />
+        </Box>
+        <Box>
+          <Typography variant="h6" sx={{ fontWeight: 800, lineHeight: 1.1 }}>Enviar exames</Typography>
+          <Typography variant="caption" color="text.secondary">PDF ou foto — a IA extrai os valores pra você.</Typography>
+        </Box>
+      </Stack>
+
+      <Card sx={{ borderRadius: 4, border: '1px solid #e6f1f0', boxShadow: '0 12px 32px rgba(15,61,58,.07)' }}>
+        <CardContent sx={{ p: { xs: 2.5, sm: 3 } }}>
+          <Box component="form" onSubmit={submit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {/* DROPZONE — borda tracejada, vira teal quando tem arquivo */}
+            <Box component="label" sx={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1, textAlign: 'center',
+              py: { xs: 3, sm: 3.75 }, px: 2, borderRadius: 3, cursor: 'pointer',
+              border: '2px dashed', borderColor: files.length ? '#20b2aa' : '#bfe0dc',
+              bgcolor: files.length ? 'rgba(32,178,170,.05)' : '#f6fbfa',
+              transition: 'all .15s', '&:hover': { borderColor: '#20b2aa', bgcolor: 'rgba(32,178,170,.07)' },
+            }}>
               <input type="file" hidden multiple accept=".pdf,.jpg,.jpeg,.png,image/*,application/pdf" onChange={(e) => { onPick(e.target.files); if (e.target) e.target.value = ''; }} />
-            </Button>
+              <Box sx={{ width: 48, height: 48, borderRadius: '50%', bgcolor: '#e0f2f1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><UploadFileIcon sx={{ color: '#178f89', fontSize: 26 }} /></Box>
+              <Box>
+                <Typography sx={{ fontWeight: 700, color: '#0f3d3a' }}>{files.length ? `${files.length} arquivo(s) selecionado(s)` : 'Toque pra escolher PDF ou foto'}</Typography>
+                <Typography variant="caption" color="text.secondary">Vários arquivos de uma vez · até 32 MB cada</Typography>
+              </Box>
+            </Box>
+
             {files.length > 0 && (
-              <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-                {files.map((f, i) => (
-                  <Chip key={i} label={f.name} onDelete={() => setFiles(files.filter((_, j) => j !== i))} />
-                ))}
+              <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
+                {files.map((f, i) => (<Chip key={i} label={f.name} onDelete={() => setFiles(files.filter((_, j) => j !== i))} sx={{ borderRadius: 1.5, maxWidth: '100%' }} />))}
               </Stack>
             )}
+
             {isNative && (
               <>
-                <Alert severity="success" icon={<DocumentScannerIcon />} sx={{ py: 0.5, borderRadius: 2 }}>
-                  📷 <strong>Scanner inteligente</strong>: o app detecta as bordas do papel, corta o fundo, estica a foto (corrige perspectiva) e aplica um filtro que deixa o texto preto bem nítido. Resultado: a IA lê a foto <strong>tão bem quanto um PDF</strong>. Dica: boa iluminação, sem reflexo.
+                <Alert severity="success" icon={<DocumentScannerIcon />} sx={{ borderRadius: 2.5, alignItems: 'flex-start', '& .MuiAlert-message': { fontSize: 13.5 } }}>
+                  <strong>Scanner inteligente</strong>: detecta as bordas do papel, corta o fundo, estica a foto (corrige perspectiva) e deixa o texto nítido — a IA lê tão bem quanto um PDF. Dica: boa iluminação, sem reflexo.
                 </Alert>
-                <Button variant="contained" color="secondary" size="large" startIcon={<DocumentScannerIcon />} onClick={scanDocument} disabled={busy} sx={{ alignSelf: 'flex-start', borderRadius: 2, textTransform: 'none', fontWeight: 800 }}>
-                  Escanear exame (câmera)
+                <Button variant="contained" size="large" startIcon={<DocumentScannerIcon />} onClick={scanDocument} disabled={busy} sx={{ alignSelf: { xs: 'stretch', sm: 'flex-start' }, borderRadius: 99, py: 1.2, textTransform: 'none', fontWeight: 800, bgcolor: '#0f3d3a', '&:hover': { bgcolor: '#0a2e2b' } }}>
+                  📷 Escanear exame (câmera)
                 </Button>
               </>
             )}
-            <TextField label="Título (opcional)" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Hemograma — junho/2026" />
-            <Alert severity="info">
-              A IA lê cada exame por <strong>visão</strong> e extrai os valores em segundo plano. Limite de <strong>32 MB</strong> por arquivo.
-            </Alert>
+
+            <TextField label="Título (opcional)" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Hemograma — junho/2026" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
+
             {progress && (
-              <Box>
-                <Typography variant="body2">Enviando {progress.done}/{progress.total}…</Typography>
-                <LinearProgress variant="determinate" value={pct} sx={{ my: 0.5 }} />
-                {progress.errors.map((er, i) => <Typography key={i} variant="caption" color="error">⚠ {er}</Typography>)}
+              <Box sx={{ bgcolor: '#f6fbfa', p: 1.5, borderRadius: 2.5 }}>
+                <Typography variant="body2" sx={{ fontWeight: 700, color: '#0f3d3a', mb: 0.5 }}>Enviando {progress.done}/{progress.total}…</Typography>
+                <LinearProgress variant="determinate" value={pct} sx={{ height: 8, borderRadius: 99, bgcolor: '#d6ece8', '& .MuiLinearProgress-bar': { borderRadius: 99 } }} />
+                {progress.errors.map((er, i) => <Typography key={i} variant="caption" color="error" sx={{ display: 'block', mt: 0.5 }}>⚠ {er}</Typography>)}
               </Box>
             )}
-            <Stack spacing={1}>
-              <Button type="submit" variant="contained" size="large" disabled={busy || !files.length} sx={{ alignSelf: 'flex-start' }}>
-                {busy ? 'Enviando…' : `Enviar ${files.length || ''} e extrair`}
-              </Button>
-              <Typography variant="caption" color="text.secondary">
-                📤 Envio de exame: <strong>1 crédito</strong> cada (plano grátis). <strong>Premium</strong>: 6 envios grátis por mês em cada perfil, depois 5 créditos cada.
-              </Typography>
-            </Stack>
+
+            <Button type="submit" variant="contained" size="large" disabled={busy || !files.length} sx={{ alignSelf: { xs: 'stretch', sm: 'flex-start' }, borderRadius: 99, py: 1.3, px: 4, textTransform: 'none', fontWeight: 800, fontSize: 15, bgcolor: '#20b2aa', boxShadow: '0 12px 26px rgba(32,178,170,.30)', '&:hover': { bgcolor: '#178f89' }, '&.Mui-disabled': { bgcolor: '#bfe0dc' } }}>
+              {busy ? 'Enviando…' : `Enviar ${files.length || ''} e extrair com IA →`}
+            </Button>
+            <Typography variant="caption" color="text.secondary" sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
+              📤 <strong>1 crédito</strong> por envio (plano grátis) · <strong>Premium</strong>: 6 envios grátis/mês por perfil, depois 5 créditos.
+            </Typography>
           </Box>
         </CardContent>
       </Card>
