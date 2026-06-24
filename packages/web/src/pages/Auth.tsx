@@ -76,7 +76,7 @@ export const LoginPage = () => {
   const [showPwd, setShowPwd] = useState(false);
   const [mode, setMode] = useState<'password' | 'otp'>('password');
   const [loading, setLoading] = useState(false);
-  const [role, setRole] = useState<'paciente' | 'medico'>('paciente');
+  const [role, setRole] = useState<'paciente' | 'medico'>(() => (new URLSearchParams(window.location.hash.split('?')[1] || '').get('role') === 'medico' ? 'medico' : 'paciente'));
   const [mfaChallenge, setMfaChallenge] = useState<{ token: string; account?: string; verifyUrl: string; isDoctor: boolean } | null>(null);
   // Quick-login só aparece se a aba atual bate com o role matriculado (paciente ≠ médico)
   const enrolledRole = BiometricService.getEnrolledRole();
@@ -86,7 +86,20 @@ export const LoginPage = () => {
     const r = await BiometricService.loginWithBiometric();
     if (!r) { notify('Biometria cancelada ou falhou.', { type: 'error' }); return; }
     if (r.isDoctor) { localStorage.setItem('doctorToken', r.token); navigate('/doctor'); }
-    else { localStorage.setItem('token', r.token); window.location.href = import.meta.env.BASE_URL; }
+    else {
+      localStorage.setItem('token', r.token);
+      // Bio login só guardava o token → drawer ficava "Olá" e admin sumia. Popula user/paciente.
+      try {
+        const me = await fetch(`${API_URL}/auth/me`, { headers: { Authorization: `Bearer ${r.token}` } });
+        if (me.ok) {
+          const d = await me.json();
+          if (d.patientId) { localStorage.setItem('patientId', d.patientId); localStorage.setItem('selPatientId', d.patientId); }
+          if (d.user) localStorage.setItem('user', JSON.stringify(d.user));
+          window.dispatchEvent(new Event('selPatientChanged'));
+        }
+      } catch { /* segue mesmo se /me falhar (token já está) */ }
+      window.location.href = import.meta.env.BASE_URL;
+    }
   };
 
   const submit = async (e: React.FormEvent) => {
@@ -99,7 +112,7 @@ export const LoginPage = () => {
         if (!r.ok) throw new Error(d.error || 'Falha');
         if (d.mfaRequired) { setMfaChallenge({ token: d.challengeToken, account: d.account, verifyUrl: `${API_URL}/doctor/mfa/verify`, isDoctor: true }); return; }
         localStorage.setItem('doctorToken', d.token);
-        notify(`Bem-vindo, ${d.doctor.name}! \u{1F3E5}`, { type: 'success' });
+        notify(`Bem-vindo, Dr. ${(d.doctor.name || '').split(' ')[0]}!`, { type: 'success' });
         navigate('/doctor');
       } catch (err: any) { notify(err.message, { type: 'error' }); } finally { setLoading(false); }
       return;

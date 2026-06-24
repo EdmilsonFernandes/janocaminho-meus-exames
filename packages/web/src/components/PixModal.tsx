@@ -14,11 +14,12 @@ export const PixModal = ({ packId, onClose, onApproved }: { packId: string | nul
   const [phase, setPhase] = useState<Phase>('loading');
   const [secs, setSecs] = useState(0);
   const pollRef = useRef<any>(null);
+  const approvedDone = useRef(false); // garante que onApproved dispara só 1x (evita toast duplicado)
 
   useEffect(() => {
     if (!packId) return;
     let cancelled = false;
-    setPhase('loading'); setPix(null);
+    setPhase('loading'); setPix(null); approvedDone.current = false;
     (async () => {
       try {
         const r = await fetch(`${API_URL}/billing/buy-credits`, {
@@ -50,7 +51,12 @@ export const PixModal = ({ packId, onClose, onApproved }: { packId: string | nul
 
   useEffect(() => {
     if (secs <= 0 && phase === 'waiting') setPhase('expired');
-    if (phase === 'approved') { clearInterval(pollRef.current); const t = setTimeout(onApproved, 1800); return () => clearTimeout(t); }
+    if (phase === 'approved' && !approvedDone.current) {
+      approvedDone.current = true;
+      clearInterval(pollRef.current);
+      const t = setTimeout(onApproved, 1800);
+      return () => clearTimeout(t);
+    }
   }, [secs, phase, onApproved]);
 
   const mm = String(Math.floor(secs / 60)).padStart(2, '0');

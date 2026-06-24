@@ -10,7 +10,7 @@ import { TelemedicineButton } from '../components/TelemedicineButton';
 import { fmtVal } from '../utils/format';
 import { refLabel, categorize } from '../utils/medicalData';
 
-interface AbnItem { id: string; examId: string; examTitle: string; performedAt: string | null; name: string; nameCanonical: string; valueText: string; unit: string | null; flag: string | null; refText: string | null; refLow: number | null; refHigh: number | null; }
+interface AbnItem { id: string; examId: string; examTitle: string; performedAt: string | null; sourceLab: string | null; requestingDoctor: string | null; name: string; nameCanonical: string; valueText: string; unit: string | null; flag: string | null; refText: string | null; refLow: number | null; refHigh: number | null; }
 
 /** Valores fora da faixa, AGRUPADOS POR EXAME (e dentro de cada exame, ordenados por categoria). */
 export const ValoresAlteradosPage = () => {
@@ -28,9 +28,9 @@ export const ValoresAlteradosPage = () => {
   }, [pid]);
 
   const groups = useMemo(() => {
-    const map = new Map<string, { examId: string; examTitle: string; performedAt: string | null; items: AbnItem[] }>();
+    const map = new Map<string, { examId: string; examTitle: string; performedAt: string | null; sourceLab: string | null; requestingDoctor: string | null; items: AbnItem[] }>();
     for (const it of items) {
-      if (!map.has(it.examId)) map.set(it.examId, { examId: it.examId, examTitle: it.examTitle, performedAt: it.performedAt, items: [] });
+      if (!map.has(it.examId)) map.set(it.examId, { examId: it.examId, examTitle: it.examTitle, performedAt: it.performedAt, sourceLab: it.sourceLab, requestingDoctor: it.requestingDoctor, items: [] });
       map.get(it.examId)!.items.push(it);
     }
     // Dentro de cada exame, ordena por categoria (clusteriza Hemograma, Lipídios, etc.)
@@ -39,6 +39,17 @@ export const ValoresAlteradosPage = () => {
   }, [items]);
 
   const fmtDate = (d?: string | null) => (d ? new Date(d).toLocaleDateString('pt-BR') : 's/d');
+  // "há 2 meses", "há 6 dias", "hoje" — referência relativa pra saber quando foi pedido
+  const timeAgo = (d?: string | null) => {
+    if (!d) return '';
+    const days = Math.floor((Date.now() - new Date(d).getTime()) / 86400000);
+    if (days < 1) return 'hoje';
+    if (days < 30) return `há ${days} ${days === 1 ? 'dia' : 'dias'}`;
+    const months = Math.floor(days / 30);
+    if (months < 12) return `há ${months} ${months === 1 ? 'mês' : 'meses'}`;
+    const years = Math.floor(months / 12);
+    return `há ${years} ${years === 1 ? 'ano' : 'anos'}`;
+  };
 
   return (
     <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 900, mx: 'auto' }}>
@@ -62,7 +73,7 @@ export const ValoresAlteradosPage = () => {
                   <Box component="span" sx={{ fontSize: 18 }}>🚨</Box>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Typography sx={{ fontWeight: 800, color: '#b91c1c', lineHeight: 1.2 }}>{g.examTitle}</Typography>
-                    <Typography variant="caption" sx={{ color: '#9b3a3a' }}>{fmtDate(g.performedAt)}</Typography>
+                    <Typography variant="caption" sx={{ color: '#9b3a3a' }}>📅 {fmtDate(g.performedAt)}{g.performedAt ? ` (${timeAgo(g.performedAt)})` : ''}{g.requestingDoctor ? ` · 🩺 Dr. ${g.requestingDoctor}` : ''}{g.sourceLab ? ` · 🏥 ${g.sourceLab}` : ''}</Typography>
                   </Box>
                   <Chip size="small" color="error" label={`${g.items.length} alterado(s)`} sx={{ fontWeight: 700, height: 20 }} />
                 </Box>
