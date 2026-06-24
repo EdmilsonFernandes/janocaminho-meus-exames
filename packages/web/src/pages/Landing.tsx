@@ -113,7 +113,7 @@ export const LandingPage = () => {
       }}>
         <Container maxWidth="lg" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', py: 1.5 }}>
           <Stack direction="row" alignItems="center" spacing={1.25} sx={{ cursor: 'pointer' }} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-            <Box component="img" src={`${import.meta.env.BASE_URL}brand.png`} alt="Dr. Exame" sx={{ width: 38, height: 38, borderRadius: '16%', objectFit: 'cover' }} />
+            <Box component="img" src={`${import.meta.env.BASE_URL}app-icon.png`} alt="Dr. Exame" sx={{ width: 38, height: 38, borderRadius: '16%', objectFit: 'cover' }} />
             <Typography variant="h6" sx={{ color: scrolled ? INK : INK, fontWeight: 800, fontSize: 19, letterSpacing: '-0.01em' }}>Meus Exames</Typography>
           </Stack>
           <Stack direction="row" spacing={1.5} alignItems="center">
@@ -459,7 +459,7 @@ export const LandingPage = () => {
       <Box sx={{ bgcolor: INK, color: '#9bc4c0', py: 5 }}>
         <Container maxWidth="md" sx={{ textAlign: 'center' }}>
           <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center" sx={{ mb: 1 }}>
-            <Box component="img" src={`${import.meta.env.BASE_URL}brand.png`} alt="Dr. Exame" sx={{ width: 30, height: 30, borderRadius: '16%' }} />
+            <Box component="img" src={`${import.meta.env.BASE_URL}app-icon.png`} alt="Dr. Exame" sx={{ width: 30, height: 30, borderRadius: '16%' }} />
             <Typography sx={{ fontWeight: 800, color: '#fff', fontSize: 18 }}>Meus Exames</Typography>
           </Stack>
           <Typography sx={{ fontSize: 13, mb: 1 }}>© {new Date().getFullYear()} janocaminho.com.br • contato@janocaminho.com.br</Typography>

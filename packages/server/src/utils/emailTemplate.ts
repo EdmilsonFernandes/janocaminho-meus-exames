@@ -1,7 +1,7 @@
 /** Template HTML profissional para e-mails transacionais do Meus Exames. */
 const _origin = (process.env.WEB_ORIGIN || '').replace(/\/$/, '');
 const _base = (process.env.WEB_BASE_PATH || '').replace(/^\/+|\/+$/g, '');
-const BRAND_URL = _base ? `${_origin}/${_base}/brand.png` : `${_origin}/brand.png`;
+const BRAND_URL = _base ? `${_origin}/${_base}/app-icon.png` : `${_origin}/app-icon.png`;
 
 export function emailTemplate(opts: { title: string; preheader?: string; content: string }): string {
   return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${opts.title}</title></head>
