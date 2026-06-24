@@ -411,6 +411,27 @@ export const LandingPage = () => {
         </Container>
       </Box>
 
+      {/* SEÇÃO — Indique e ganhe (programa de indicação) */}
+      <Box sx={{ bgcolor: '#f4faf9', borderTop: '1px solid #e6f1f0', borderBottom: '1px solid #e6f1f0', py: { xs: 8, md: 10 } }}>
+        <Container maxWidth="md">
+          <Stack direction={{ xs: 'column', md: 'row' }} alignItems="center" spacing={{ xs: 3, md: 6 }} sx={{ textAlign: { xs: 'center', md: 'left' } }}>
+            <Box sx={{ fontSize: { xs: 56, md: 72 }, lineHeight: 1, flexShrink: 0 }}>🎁</Box>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="h2" sx={{ fontSize: { xs: '1.7rem', md: '2.3rem' }, fontWeight: 800, color: INK, mb: 1, letterSpacing: '-0.02em' }}>Indique e ganhe créditos</Typography>
+              <Typography sx={{ color: 'text.secondary', fontSize: 17, mb: 2.5 }}>Compartilhe seu código com amigos. Quando alguém cria a conta com ele, <b style={{ color: TEAL_DARK }}>vocês dois ganham +30 créditos</b> — pra usar no Dr. Exame.</Typography>
+              <Stack direction="row" spacing={1.5} justifyContent={{ xs: 'center', md: 'flex-start' }} flexWrap="wrap" useFlexGap>
+                {[{ n: '+30', l: 'pra você', c: TEAL }, { n: '+30', l: 'pra seu amigo', c: '#0ea5e9' }, { n: '10/mês', l: 'limite anti-abuso', c: '#94a3b8' }].map((x) => (
+                  <Box key={x.l} sx={{ px: 2, py: 1, borderRadius: 3, bgcolor: '#fff', border: '1px solid #e6f1f0', textAlign: 'center', minWidth: 92 }}>
+                    <Typography sx={{ fontWeight: 800, fontSize: 20, color: x.c, lineHeight: 1.1 }}>{x.n}</Typography>
+                    <Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>{x.l}</Typography>
+                  </Box>
+                ))}
+              </Stack>
+            </Box>
+          </Stack>
+        </Container>
+      </Box>
+
       {/* CTA FINAL — painel gradiente */}
       <Box sx={{ py: { xs: 8, md: 11 } }}>
         <Container maxWidth="lg">

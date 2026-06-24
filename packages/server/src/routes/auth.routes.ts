@@ -18,6 +18,22 @@ import { validate, schemas } from '../middleware/validate';
 
 const router = Router();
 
+// Domínios de e-mail temporário/descartável — usados pra farm de créditos (criar várias
+// contas só pra abocanhar o bônus de boas-vindas). Lista curta dos mais comuns.
+const DISPOSABLE_DOMAINS = new Set([
+  'mailinator.com', 'guerrillamail.com', '10minutemail.com', 'tempmail.com', 'temp-mail.org',
+  'yopmail.com', 'trashmail.com', 'throwawaymail.com', 'fakeinbox.com', 'dispostable.com',
+  'sharklasers.com', 'getnada.com', 'maildrop.cc', 'mintemail.com', 'mohmal.com', 'tempmailo.com',
+  'emailondeck.com', 'spambog.com', 'mailnesia.com', 'discard.email', 'mailcatch.com',
+  'tempinbox.com', 'mytemp.email', 'mailnull.com', 'spam4.me', 'fakeemail.com', 'tempr.email',
+  'tmpmail.org', 'tmpmail.net', '1secmail.com', '1secmail.org', 'esiix.com', 'wwjmp.com',
+  'xojxe.com', 'yoggm.com', 'guerrillamail.info', 'grr.la',
+]);
+const isDisposable = (email: string): boolean => {
+  const d = email.split('@')[1]?.toLowerCase().trim();
+  return !!(d && (DISPOSABLE_DOMAINS.has(d) || /\.(tmp|temp|edu\.tmp)$/.test(d)));
+};
+
 async function issueSession(userId: string) {
   const token = signToken({ userId });
   const patientId = await firstPatientId(userId);
@@ -99,6 +115,7 @@ router.post('/register', validate(schemas.register), async (req, res, next) => {
       res.status(400).json({ error: 'Informe nome, e-mail e senha (mín. 6 caracteres).' });
       return;
     }
+    if (isDisposable(mail)) { res.status(400).json({ error: 'Não aceitamos e-mails temporários. Use um e-mail válido (Gmail, Outlook, etc.).' }); return; }
     const existing = await prisma.user.findUnique({ where: { email: mail } });
     if (existing) { res.status(409).json({ error: 'Já existe conta com este e-mail.' }); return; }
 
@@ -121,10 +138,11 @@ router.post('/register', validate(schemas.register), async (req, res, next) => {
     }
 
     const passwordHash = await hashPassword(pwd);
-    // NÃO dá bônus de indicação aqui — só DEPOIS de verificar o e-mail (verify-email).
-    const signupCredits = getSettings().grants.freeSignup;
+    // Bônus de boas-vindas (freeSignup) NÃO é mais dado aqui — só após verificar o e-mail
+    // (verify-email). Conta recém-criada fica com 0 créditos (e não consegue logar sem verificar).
+    // Evita farm: pra pegar o bônus precisa acessar a caixa de entrada de cada e-mail.
     const user = await prisma.user.create({
-      data: { email: mail, name: String(name), passwordHash, credits: signupCredits, referralCode, referredBy: referrer?.referralCode ?? null },
+      data: { email: mail, name: String(name), passwordHash, credits: 0, referralCode, referredBy: referrer?.referralCode ?? null },
     });
     await prisma.patient.create({ data: { ownerId: user.id, fullName: String(name), relationship: 'Titular' } });
 
@@ -152,7 +170,8 @@ router.post('/verify-email', async (req, res, next) => {
     // LIMITE: máx 10 indicações por mês (anti-abuso).
     const REFERRAL_BONUS = 30;
     const REFERRAL_MONTHLY_LIMIT = 10;
-    let bonusCredits = 0;
+    const signupCredits = getSettings().grants.freeSignup;
+    let bonusCredits = signupCredits; // bônus de boas-vindas — liberado só aqui (após verificar e-mail)
     if (user.referredBy) {
       const referrer = await prisma.user.findFirst({ where: { referralCode: user.referredBy } });
       if (referrer) {
@@ -169,7 +188,7 @@ router.post('/verify-email', async (req, res, next) => {
           ]);
           try { await prisma.notification.create({ data: { userId: referrer.id, type: 'referral', title: '🎉 Você indicou e ganhou!', body: `${user.name} ativou a conta com seu código. +${REFERRAL_BONUS} créditos pra você!` } }); } catch {}
           console.log(`[referral] ${referrer.email} +${REFERRAL_BONUS} (${monthReferrals + 1}/${REFERRAL_MONTHLY_LIMIT} este mês)`);
-          bonusCredits = REFERRAL_BONUS;
+          bonusCredits = signupCredits + REFERRAL_BONUS;
         } else {
           console.log(`[referral] ${referrer.email} atingiu limite mensal (${REFERRAL_MONTHLY_LIMIT})`);
         }

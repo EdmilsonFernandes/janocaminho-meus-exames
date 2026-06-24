@@ -51,6 +51,10 @@ const skipDev = () => process.env.NODE_ENV !== 'production';
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false, skip: skipDev, message: { error: 'Muitas tentativas. Aguarde 15 minutos.' } });
 const aiLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 40, standardHeaders: true, legacyHeaders: false, skip: skipDev, message: { error: 'Limite de IA por hora atingido.' } });
 const generalLimiter = rateLimit({ windowMs: 60 * 1000, max: 120, standardHeaders: true, legacyHeaders: false, skip: skipDev, message: { error: 'Muitas requisições. Aguarde 1 minuto.' } });
+// Cadastro tem limite próprio e bem mais apertado (8/hora/IP) — trava farm de contas pra
+// roubar o bônus de créditos. Aplicado ANTES do authLimiter genérico (mais específico primeiro).
+const signupLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 8, standardHeaders: true, legacyHeaders: false, skip: skipDev, message: { error: 'Muitos cadastros deste local. Tente novamente mais tarde.' } });
+app.use('/api/auth/register', signupLimiter);
 app.use('/api/auth', authLimiter);
 app.use('/api/analyses', aiLimiter);
 app.use('/api/chat', aiLimiter);
