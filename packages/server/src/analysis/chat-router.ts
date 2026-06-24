@@ -5,8 +5,11 @@ import type { Response } from 'express';
 import { prisma } from '../prisma';
 import { normalizeKey, findMarkerInText, computeFlag } from '../utils/normalize';
 
-// Perguntas INTERPRETATIVAS → sempre delega pra IA (nunca responde local).
-const INTERPRETIVE = /O QUE (SIGNIFICA|SIGNIFICAÇÃO|PODE|E|SAO|É)|POR QUE|PORQUE|É GRAVE|E PERIGOSO|POSSO|TRATAMENTO|CAUSA|DOENÇ|ANOMAL|PRECISO|PROCURAR|MÉDICO|ALERTA/;
+// Perguntas ANALÍTICAS/INTERPRETATIVAS → sempre IA (nunca responde local).
+// normalizeKey stripa acentos → os patterns são SEM acento. Inclui verbos analíticos (resumo,
+// faixa, comparar, evolução, tendência, atenção, repetir, alimentação, explicar…) que ANTES
+// batiam em LIST_EXAMS e voltavam só com a lista de títulos (sem análise nenhuma).
+const INTERPRETIVE = /O QUE (SIGNIFICA|SIGNIFICACAO|PODE|E|SAO|E)|POR QUE|PORQUE|E GRAVE|E PERIGOSO|POSSO|TRATAMENTO|CAUSA|DOENC|ANOMAL|PRECISO|PROCURAR|MEDIC|ALERTA|RESUMO|FAIXA|REFEREN|FORA DA|COMPAR|EVOLU|TENDEN|MELHOR|PIOR|REPET|ATENCAO|URGEN|ALTERAD|ALIMENT|DIETA|EXPLICA|MEDID|ONDE ESTOU|DESTAQU|CRUZ/;
 // Contagem / lista de exames (sem marcador específico).
 // NOTE: o token "QUE" foi removido — era gen demais e capturava "o que são exames?" (deveria ir à IA).
 const COUNT_EXAMS = /QUANTOS EXAMES|QUANTIDADE DE EXAMES|NUMERO DE EXAMES|N EXAMES/;
@@ -26,6 +29,11 @@ export async function tryLocalAnswer(opts: {
   const { message, patientId } = opts;
   const norm = normalizeKey(message);
   if (!norm) return { answered: false };
+
+  // 0) Analítica/interpretativa → sempre IA. Antes estas perguntas (resumo, valores fora da faixa,
+  //    comparar, evolução, atenção…) batiam em LIST_EXAMS e o router respondia só com a lista de
+  //    títulos — sem usar os valores. Agora vão pra IA, que tem os valores no contexto (RAG).
+  if (INTERPRETIVE.test(norm)) return { answered: false };
 
   // 1) "quantos exames tenho?"
   if (COUNT_EXAMS.test(norm)) {

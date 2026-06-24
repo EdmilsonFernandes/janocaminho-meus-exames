@@ -49,6 +49,19 @@ describe('chat-router: tryLocalAnswer (unit)', () => {
     expect(r.text).toMatch(/Hemograma \+ Tireoide/);
   });
 
+  it('NÃO responde localmente pergunta ANALÍTICA com "exames" → vai pra IA (usar valores)', async () => {
+    // antes estas batiam em LIST_EXAMS e o router devolvia SÓ a lista de títulos, sem análise.
+    const r = await tryLocalAnswer({ message: 'liste os valores fora da faixa de referência nos meus exames', userId: ctx.user.id, patientId: ctx.patient.id });
+    expect(r.answered).toBe(false);
+  });
+
+  it('resumo / comparar / evolução / atenção → IA (analítico, mesmo contendo "exames")', async () => {
+    for (const msg of ['faça um resumo geral dos meus exames', 'compare meus dois exames mais recentes', 'como meus exames evoluíram', 'há resultado que precise de atenção médica?']) {
+      const r = await tryLocalAnswer({ message: msg, userId: ctx.user.id, patientId: ctx.patient.id });
+      expect(r.answered).toBe(false);
+    }
+  });
+
   it('NÃO responde conversa fiada ("oi, tudo bem?")', async () => {
     const r = await tryLocalAnswer({ message: 'oi, tudo bem?', userId: ctx.user.id, patientId: ctx.patient.id });
     expect(r.answered).toBe(false);

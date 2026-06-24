@@ -49,8 +49,8 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     const recent = await prisma.exam.findMany({
       where: { patientId: pid, status: 'EXTRACTED' },
       orderBy: { performedAt: 'desc' },
-      take: 6,
-      include: { items: { where: { isAbnormal: true }, take: 8 } },
+      take: 8,
+      include: { items: { where: { isAbnormal: true }, take: 12, orderBy: { name: 'asc' } } },
     });
 
     // RAG: memória do agente (análises anteriores do paciente)
@@ -71,20 +71,49 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       ])
       .slice(-12);
 
-    // CONTEXTO DE FUNDO — referência passiva. Reframing: os exames NÃO são o tópico;
-    // só devem aparecer na resposta se a pergunta for sobre eles (evita resumo automático a cada turno).
+    // Helpers p/ formatar valores dos itens — a IA PRECISA dos valores (não só títulos) pra responder
+    // com precisão (valores fora da faixa, comparação, evolução, etc.).
+    const fmtDate = (d: Date | string | null) => (d ? new Date(d as any).toLocaleDateString('pt-BR') : 's/d');
+    const fmtVal = (it: any) => it.valueText ?? (it.valueNumeric != null ? String(it.valueNumeric).replace('.', ',') : '—');
+    const fmtRef = (it: any) => it.refText ?? (it.refLow != null && it.refHigh != null ? `${String(it.refLow).replace('.', ',')}-${String(it.refHigh).replace('.', ',')}` : null);
+    const fmtFlag = (it: any) => (it.flag === 'HIGH' ? 'acima' : it.flag === 'LOW' ? 'abaixo' : it.flag === 'CRITICAL' ? 'crítico' : (it.isAbnormal ? 'alterado' : ''));
+    const fmtItem = (it: any) => `${it.name}: ${fmtVal(it)}${it.unit ? ' ' + it.unit : ''}${fmtRef(it) ? ` (ref ${fmtRef(it)})` : ''}${fmtFlag(it) ? ` [${fmtFlag(it)}]` : ''}`;
+
+    // Per-exam: exames recentes com seus itens ALTERADOS (valor + faixa + flag).
+    const examsBlock = recent.length
+      ? recent
+          .map((e) => {
+            const itens = (e.items as any[]).map(fmtItem);
+            return `   • ${e.title} (${fmtDate(e.performedAt as Date | null)})` + (itens.length ? '\n      ' + itens.join('\n      ') : ' — sem alterações');
+          })
+          .join('\n')
+      : '(nenhum exame extraído ainda)';
+
+    // CRUZAMENTO: mesmos analitos alterados ao longo do tempo → a IA usa pra evolução/comparação/tendência.
+    const byAnalyte = new Map<string, { name: string; pts: string[] }>();
+    for (const e of recent) {
+      const dt = fmtDate(e.performedAt as Date | null);
+      for (const it of (e.items as any[])) {
+        const k = it.nameCanonical || it.name;
+        const entry = byAnalyte.get(k) ?? { name: it.name, pts: [] as string[] };
+        entry.pts.push(`${fmtVal(it)}${it.unit ? ' ' + it.unit : ''} (${dt})`);
+        byAnalyte.set(k, entry);
+      }
+    }
+    const trendBlock = [...byAnalyte.values()].map((v) => `   • ${v.name}: ${v.pts.join('  →  ')}`).join('\n');
+
     const contextText =
-      `CONTEXTO DO PACIENTE (referência de fundo — NÃO liste nem resuma por iniciativa própria; cite um item SÓ se a pergunta for sobre ele):\n` +
+      `CONTEXTO DO PACIENTE (use estes dados REAIS pra responder com precisão):\n` +
       `- Paciente: ${patient?.fullName ?? '—'}\n` +
       (patient?.clinicalProfile ? `- Perfil clínico: ${patient.clinicalProfile}\n` : '') +
-      (recent.length
-        ? `- Exames registrados (recentes primeiro):\n` +
-          recent
-            .map((e) => `   • ${e.title}${e.performedAt ? ` (${new Date(e.performedAt as Date).toLocaleDateString('pt-BR')})` : ''}: ${e.items.length} valor(es) alterado(s)`)
-            .join('\n') + '\n'
-        : `- Exames registrados: (nenhum extraído ainda)\n`) +
-      (memory ? `- Resumo de análises anteriores (mantenha coerência, NÃO repita):\n${memory}\n` : '') +
-      `\nDIRETIVA: responda DIRETAMENTE à pergunta atual do usuário. O bloco acima é só referência — não o reproduza nem faça resumo geral dele.`;
+      `- Exames recentes (itens ALTERADOS — nome: valor (ref) [flag]):\n${examsBlock}\n` +
+      (trendBlock ? `\n- Analitos alterados ao longo do tempo (use pra evolução/comparar/tendência):\n${trendBlock}\n` : '') +
+      (memory ? `- Resumo de análises anteriores (mantenha coerência):\n${memory}\n` : '') +
+      `\nDIRETIVA: responda DIRETAMENTE à pergunta USANDO os dados acima. Extraia e CRUZE os itens ` +
+      `específicos pedidos — "valores fora da faixa" → liste cada um com valor+ref+flag; "evolução/comparar/ ` +
+      `tendência" → use a linha do tempo por analito; "atenção/urgência" → aponte os alterados relevantes. ` +
+      `NÃO despeje a lista inteira de exames se a pergunta for específica — responda ao que foi perguntado com ` +
+      `os dados certos. Conteúdo educativo; oriente sempre o médico.`;
 
     // gate de créditos (antes de iniciar o stream — não dá p/ abortar no meio do SSE)
     const me = await prisma.user.findUnique({ where: { id: req.userId! }, select: { credits: true } });
