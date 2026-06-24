@@ -102,33 +102,39 @@ export const PlansPage = () => {
         Use à vontade: assine o <strong>mensal</strong> (250 créditos de IA por mês) ou compre <strong>créditos avulsos</strong> via PIX.
       </Typography>
 
-      {/* Saldo + consumo */}
-      <Card sx={{ mb: 2, borderRadius: 4, background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff' }}>
-        <CardContent>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="space-between" flexWrap="wrap" useFlexGap>
-            <Box>
-              <Typography sx={{ opacity: 0.9, fontSize: 13 }}>Seus créditos</Typography>
-              <Typography variant="h3" sx={{ fontWeight: 800, lineHeight: 1.1 }}>{status?.credits ?? 0}</Typography>
-              {status?.active
-                ? <Chip size="small" sx={{ mt: 1, bgcolor: 'rgba(255,255,255,.2)', color: '#fff', fontWeight: 700 }} label={`Premium ativo até ${status.planExpiresAt ? fmt(status.planExpiresAt) : '—'}`} />
-                : <Typography variant="caption" sx={{ opacity: 0.9 }}>Sem assinatura — créditos custeiam a IA.</Typography>}
-            </Box>
-            <Box sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
-              <Typography variant="caption" sx={{ opacity: 0.85 }}>Ver extrato detalhado abaixo ↓</Typography>
-            </Box>
-          </Stack>
+      {/* HERO — saldo centralizado, gradiente esmeralda + profundidade */}
+      <Card sx={{ mb: 2.5, borderRadius: 5, overflow: 'hidden', position: 'relative', color: '#fff',
+          background: 'linear-gradient(135deg,#0f3d3a 0%,#137a72 55%,#1f9d95 100%)',
+          boxShadow: '0 20px 44px rgba(15,61,58,.28)' }}>
+        <Box sx={{ position: 'absolute', top: '-45%', right: '-12%', width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,.16), transparent 70%)', pointerEvents: 'none' }} />
+        <CardContent sx={{ position: 'relative', textAlign: 'center', py: { xs: 3.5, md: 4.5 } }}>
+          <Typography sx={{ fontSize: 12, fontWeight: 700, letterSpacing: 2.4, textTransform: 'uppercase', color: 'rgba(255,255,255,.72)' }}>Seus créditos</Typography>
+          <Typography sx={{ fontWeight: 800, fontSize: { xs: 52, md: 62 }, lineHeight: 1, mt: 0.5, letterSpacing: '-0.02em', fontFamily: 'Poppins, sans-serif', fontVariantNumeric: 'tabular-nums' }}>{status?.credits ?? 0}</Typography>
+          {status?.active
+            ? <Box sx={{ display: 'inline-flex', mt: 2.5, alignItems: 'center', gap: 0.75, px: 2, py: 0.85, borderRadius: 99, bgcolor: 'rgba(255,255,255,.16)', backdropFilter: 'blur(8px)', boxShadow: '0 6px 18px rgba(0,0,0,.18)', border: '1px solid rgba(255,255,255,.28)' }}>
+                <Box sx={{ fontSize: 14 }}>👑</Box>
+                <Typography sx={{ fontWeight: 700, fontSize: 13, letterSpacing: 0.2 }}>Premium ativo até {status.planExpiresAt ? fmt(status.planExpiresAt) : '—'}</Typography>
+              </Box>
+            : <Typography variant="caption" sx={{ display: 'block', mt: 2.5, color: 'rgba(255,255,255,.75)' }}>Sem assinatura — créditos custeiam a IA.</Typography>}
         </CardContent>
       </Card>
 
       {/* CONSUMO RECENTE */}
       {hist.length > 0 && (
         <Card sx={{ mb: 2, borderRadius: 4 }}><CardContent>
-          <Typography variant="subtitle2" sx={{ mb: 1 }}>Extrato de créditos</Typography>
-          {/* Filtros rápidos — aplicam sobre TODO o histórico carregado */}
-          <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mb: 1.5 }}>
-            {[{ k: 'all', l: 'Todos' }, { k: 'chat', l: '🤖 Chat' }, { k: 'report', l: '🧾 Relatórios' }, { k: 'credit', l: '➕ Compras' }].map((f) => (
-              <Chip key={f.k} size="small" label={f.l} onClick={() => { setHistFilter(f.k); setDispPage(1); }} variant={histFilter === f.k ? 'filled' : 'outlined'} color={histFilter === f.k ? 'primary' : 'default'} sx={{ fontWeight: 600 }} />
-            ))}
+          <Typography variant="h6" sx={{ mb: 1.5, fontWeight: 800, color: '#0f3d3a', fontSize: 17 }}>Histórico de Uso</Typography>
+          {/* Filtros rápidos — segmented control borderless (ativo = verde 14%, inativo = texto sutil) */}
+          <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mb: 2 }}>
+            {[{ k: 'all', l: 'Todos' }, { k: 'chat', l: '🤖 Chat' }, { k: 'report', l: '🧾 Relatórios' }, { k: 'credit', l: '➕ Compras' }].map((f) => {
+              const on = histFilter === f.k;
+              return (
+                <Chip key={f.k} size="small" label={f.l} onClick={() => { setHistFilter(f.k); setDispPage(1); }}
+                  sx={{ fontWeight: 700, fontSize: 12.5, height: 30, px: 1.25, border: 'none',
+                    bgcolor: on ? 'rgba(32,178,170,.14)' : 'transparent',
+                    color: on ? '#0f7670' : '#64748b',
+                    '&:hover': { bgcolor: on ? 'rgba(32,178,170,.2)' : 'rgba(15,23,42,.05)' } }} />
+              );
+            })}
           </Stack>
           {(() => {
             const filtered = hist.filter((it: any) => {
@@ -152,13 +158,15 @@ export const PlansPage = () => {
                     const ll = (it.label || '').toLowerCase();
                     const icon = credit ? '➕' : ll.includes('chat') ? '🤖' : ll.includes('consolid') ? '🧾' : '📄';
                     return (
-                      <Stack key={it.id} direction="row" alignItems="center" spacing={1.25} sx={{ py: 0.75 }}>
-                        <Box sx={{ fontSize: 18, flexShrink: 0 }}>{icon}</Box>
+                      <Stack key={it.id} direction="row" alignItems="center" spacing={1.5} sx={{ py: 1.5 }}>
+                        <Box sx={{ fontSize: 19, flexShrink: 0, width: 30, textAlign: 'center' }}>{icon}</Box>
                         <Box sx={{ minWidth: 0, flex: 1 }}>
                           <Typography variant="body2" sx={{ fontWeight: 600 }}>{it.label}</Typography>
                           <Typography variant="caption" color="text.secondary">{new Date(it.createdAt).toLocaleString('pt-BR')}{it.patient ? ` • ${it.patient}` : ''}</Typography>
                         </Box>
-                        <Chip size="small" label={`${it.amount > 0 ? '+' : ''}${it.amount}`} sx={{ fontWeight: 800, bgcolor: credit ? 'rgba(16,185,129,.14)' : 'rgba(239,68,68,.1)', color: credit ? 'success.main' : 'error.main' }} />
+                        <Typography sx={{ fontWeight: 800, fontSize: 15, fontVariantNumeric: 'tabular-nums', minWidth: 52, textAlign: 'right', color: credit ? '#10b981' : '#94a3b8' }}>
+                          {it.amount > 0 ? `+${it.amount}` : it.amount}
+                        </Typography>
                       </Stack>
                     );
                   })}
