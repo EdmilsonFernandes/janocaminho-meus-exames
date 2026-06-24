@@ -79,3 +79,25 @@ export function reminderEmail(name: string, title: string, dueDate: string): str
       <p style="font-size:14px;color:#8b9bb4;margin:0">Acesse o app para mais detalhes e para marcar como concluído.</p>`,
   });
 }
+
+/**
+ * Nudge de saúde por E-MAIL — canal de fallback p/ quem NÃO tem push (ex.: iPhone no
+ * navegador, onde não há app nativo nem FCM). Mesmo alerta/lembrete do push, em texto.
+ */
+export function nudgeEmail(opts: { name: string; title: string; body: string; ctaUrl: string; ctaLabel?: string; unsubUrl: string }): string {
+  // title vem como "Edmilson, um valor precisa de atenção" → vira headline limpa no corpo.
+  const headline = opts.title.replace(/^[^,]+,\s*/, '').replace(/^./, (c) => c.toUpperCase());
+  return emailTemplate({
+    title: opts.title,
+    preheader: opts.body.slice(0, 140),
+    content: `
+      <p style="font-size:16px;color:#15233b;margin:0 0 10px">Olá <strong>${opts.name}</strong>,</p>
+      <h2 style="font-size:19px;color:#0f3d3a;margin:0 0 12px;line-height:1.35">${headline}</h2>
+      <p style="font-size:15px;color:#51607a;line-height:1.6;margin:0 0 22px">${opts.body}</p>
+      <div style="text-align:center;margin:0 0 22px">
+        <a href="${opts.ctaUrl}" style="display:inline-block;background:#20b2aa;color:#fff;font-size:16px;font-weight:700;padding:14px 36px;border-radius:99px;text-decoration:none">${opts.ctaLabel ?? 'Abrir o app'}</a>
+      </div>
+      <p style="font-size:13px;color:#8b9bb4;line-height:1.55;margin:0 0 6px">Você recebeu este aviso por e-mail porque ainda não recebemos notificações push deste aparelho (por exemplo, iPhone acessando pelo navegador). As notificações dentro do app continuam funcionando normalmente.</p>
+      <p style="font-size:13px;margin:0"><a href="${opts.unsubUrl}" style="color:#8b9bb4;text-decoration:underline">Não quero receber estes avisos por e-mail</a></p>`,
+  });
+}

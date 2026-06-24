@@ -1,5 +1,6 @@
 import { prisma } from '../prisma';
 import { sendPushToUser } from '../utils/push';
+import { sendNudgeEmail } from '../utils/nudgeMail';
 
 /** Scheduler de NUDGES de saúde (Fase 3).
  *  - Roda a cada 1h, mas só ENVIA na janela 8-11h (não incomoda de madrugada).
@@ -22,11 +23,11 @@ export function startHealthNudgeJob(): void {
           notifications: { none: { createdAt: { gte: cutoff }, type: { in: ['alert', 'reminder'] } } },
           patients: { some: { exams: { some: { status: 'EXTRACTED' } } } }, // tem exames
         },
-        select: { id: true, name: true },
+        select: { id: true, name: true, email: true, nudgeEmails: true, emailVerified: true },
         take: 200,
       });
       for (const u of users) {
-        await maybeNudge(u.id, u.name).catch((e) => console.error('[nudges] erro usuário', u.id, (e as Error).message));
+        await maybeNudge(u.id, u.name, u.email, u.nudgeEmails, u.emailVerified).catch((e) => console.error('[nudges] erro usuário', u.id, (e as Error).message));
       }
     } catch (e) {
       console.error('[nudges] job error:', (e as Error).message);
@@ -37,7 +38,7 @@ export function startHealthNudgeJob(): void {
   console.log('[nudges] job de nudges iniciado (janela 8-11h, cooldown 3 dias)');
 }
 
-async function maybeNudge(userId: string, userName: string): Promise<void> {
+async function maybeNudge(userId: string, userName: string, email: string, nudgeEmails: boolean, emailVerified: boolean): Promise<void> {
   const first = (userName || '').split(' ')[0];
   // valor alterado em exame recente?
   const since = new Date(Date.now() - RECENT_MS);
@@ -74,5 +75,12 @@ async function maybeNudge(userId: string, userName: string): Promise<void> {
 
   await prisma.notification.create({ data: { userId, type, title, body, data: data.examId ? data : undefined } });
   await sendPushToUser(userId, title, body, { type, ...(data.examId ? { examId: data.examId } : {}) });
+  // FALLBACK por e-mail: SÓ pra quem NÃO tem push (ex.: iPhone no navegador — sem app nativo/FCM).
+  // Evita duplicar canal pra quem já recebeu o push. Best-effort (sendNudgeEmail loga e não propaga).
+  const tokenCount = await prisma.deviceToken.count({ where: { userId } }).catch(() => 1); // em erro, assume "tem push" (não spamma e-mail)
+  if (!tokenCount && nudgeEmails && emailVerified) {
+    await sendNudgeEmail({ to: email, userId, firstName: first, title, body, examId: data.examId || undefined });
+    console.log(`[nudges] e-mail (sem push) p/ ${userName}: ${title}`);
+  }
   console.log(`[nudges] enviado p/ ${userName}: ${title}`);
 }

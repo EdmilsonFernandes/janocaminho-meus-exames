@@ -20,6 +20,7 @@ model User {
   planExpiresAt DateTime?   // ativo enquanto no futuro (null = free/expirado)
   credits      Int      @default(60)   // créditos de IA — custos/grants parametrizados em app_settings. Recarrega com plano.
   emailVerified Boolean @default(false) // valida e-mail no cadastro (previne conta com e-mail fake)
+  nudgeEmails   Boolean  @default(true) // recebe nudge de saúde por e-mail (fallback p/ quem NÃO tem push — ex.: iPhone no navegador)
   referralCode String?  @unique  // código de indicação (ex: EDMILSON-A1B2) — vira bônus pra ambos
   referredBy   String?            // código de quem indicou este usuário
   deviceId     String?            // ID estável do aparelho (ANDROID_ID) — 1 bônus de boas-vindas por dispositivo

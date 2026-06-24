@@ -12,6 +12,7 @@ import { APP_BUILD_INFO } from './generated/buildInfo';
 import { prisma } from './prisma';
 import { errorHandler, notFound } from './middleware/errorHandler';
 import { emailTemplate } from './utils/emailTemplate';
+import { verifyUnsubToken } from './utils/unsubscribeToken';
 import authRoutes from './routes/auth.routes';
 import patientRoutes from './routes/patient.routes';
 import examRoutes from './routes/exam.routes';
@@ -124,6 +125,31 @@ app.use('/api/measurements', measurementRoutes);
 app.use('/api/vaccines', vaccineRoutes);
 app.use('/api/expenses', expenseRoutes);
 app.use('/api/devices', deviceRoutes);
+// ROTA PÚBLICA: unsubscribe/reativação de nudges por e-mail (1 clique, sem login — link no rodapé do e-mail).
+// Tem que vir ANTES do mount auth-gado de /api/notifications pra funcionar sem token JWT.
+app.get('/api/notifications/unsubscribe', async (req, res) => {
+  const token = String(req.query.token ?? '');
+  const userId = verifyUnsubToken(token);
+  if (!userId) {
+    res.status(404).type('html').send(emailTemplate({ title: 'Link inválido', content: '<p style="text-align:center;font-size:16px;color:#64748b;margin-top:20px">Link inválido ou expirado.</p>' }));
+    return;
+  }
+  const enable = req.query.enable === '1' || req.query.enable === 'true';
+  await prisma.user.update({ where: { id: userId }, data: { nudgeEmails: enable } }).catch(() => { /* usuário sumiu — idempotente */ });
+  const u = await prisma.user.findUnique({ where: { id: userId }, select: { name: true, nudgeEmails: true } });
+  const on = !!u?.nudgeEmails;
+  const first = (u?.name || '').split(' ')[0] || 'olá';
+  const appUrl = `${config.webOrigin}${config.webBasePath}`;
+  const toggle = `${appUrl}/api/notifications/unsubscribe?token=${encodeURIComponent(token)}&enable=${on ? '0' : '1'}`;
+  const btn = (label: string) => `<a href="${appUrl}" style="display:inline-block;background:#20b2aa;color:#fff;font-size:15px;font-weight:700;padding:12px 32px;border-radius:99px;text-decoration:none">${label}</a>`;
+  res.type('html').send(emailTemplate({
+    title: on ? 'Avisos por e-mail reativados' : 'Avisos por e-mail desligados',
+    content: on
+      ? `<div style="text-align:center"><div style="font-size:48px">✅</div><h2 style="font-size:20px;color:#0f3d3a;margin:12px 0 8px">Pronto, ${first}!</h2><p style="font-size:15px;color:#51607a;line-height:1.6;margin:0 0 20px">Você voltará a receber avisos de saúde por e-mail.</p>${btn('Abrir o app')}<p style="font-size:13px;margin:18px 0 0"><a href="${toggle}" style="color:#8b9bb4;text-decoration:underline">Desligar de novo</a></p></div>`
+      : `<div style="text-align:center"><div style="font-size:48px">🔕</div><h2 style="font-size:20px;color:#0f3d3a;margin:12px 0 8px">Avisos por e-mail desligados</h2><p style="font-size:15px;color:#51607a;line-height:1.6;margin:0 0 20px">Pronto, ${first}. Você não vai mais receber estes avisos por e-mail. As notificações dentro do app continuam normais.</p>${btn('Abrir o app')}<p style="font-size:13px;margin:18px 0 0"><a href="${toggle}" style="color:#8b9bb4;text-decoration:underline">Reativar avisos por e-mail</a></p></div>`,
+  }));
+});
+
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/consulta', consultaRoutes);
 app.use('/api/data', dataRoutes);
