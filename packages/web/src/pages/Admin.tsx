@@ -71,8 +71,6 @@ NÃO dá pra desfazer.`;
     else notify('Erro ao excluir', { type: 'error' });
   };
 
-  if (loading) return <Box sx={{ p: 4, textAlign: 'center' }}><CircularProgress /></Box>;
-
   const loadBlocked = async () => {
     const r = await fetch(`${API_URL}/admin/blocked-domains`, { headers: { Authorization: `Bearer ${token()}` } });
     if (r.ok) setBlocked((await r.json()).domains || []);
@@ -99,7 +97,12 @@ NÃO dá pra desfazer.`;
     } catch { notify('Falha no sync.', { type: 'error' }); }
     setSyncing(false);
   };
+  // FIX React #310: todos os useEffect (load, metrics, emails) rodam ANTES de qualquer early-return.
+  // Antes o do loadBlocked vinha depois do `if (loading) return` → o nº de hooks mudava no loading→loaded
+  // → "Rendered more hooks than previous render" (#310) → crash do painel admin.
   useEffect(() => { if (tab === 'emails') void loadBlocked(); /* eslint-disable-next-line */ }, [tab]);
+
+  if (loading) return <Box sx={{ p: 4, textAlign: 'center' }}><CircularProgress /></Box>;
 
   const filtered = users.filter((u) => !q || u.email.toLowerCase().includes(q.toLowerCase()) || (u.name || '').toLowerCase().includes(q.toLowerCase()));
   const TabBtn = ({ id, label }: any) => (
