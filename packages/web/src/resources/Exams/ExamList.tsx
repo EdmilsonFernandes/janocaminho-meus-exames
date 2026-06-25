@@ -94,15 +94,15 @@ const ExamCards = () => {
   const all = data ?? [];
   const processing = all.filter((r: any) => r.status === 'UPLOADED' || r.status === 'EXTRACTING');
   const failed = all.filter((r: any) => r.status === 'FAILED');
-  // "rest" exclui os em-processamento (eles ficam no topo) — isso corrige o bug do novo exame
-  // (performedAt ainda nulo) caír no grupo "Sem data" no fim da lista.
-  const groups = groupByYear(all.filter((r: any) => r.status !== 'UPLOADED' && r.status !== 'EXTRACTING'), (r) => r.performedAt);
+  // Grupos por ano = só os EXTRACTED (com performedAt). Em-processamento e FALHAS ficam em
+  // seções próprias no TOPO — corrige o bug do exame novo/com erro caír em "Sem data" no fim.
+  const groups = groupByYear(all.filter((r: any) => r.status === 'EXTRACTED'), (r) => r.performedAt);
   const latestYear = groups[0]?.year ?? null;
-  // Falhas de leitura aparecem primeiro no grupo — não escondidas no fim da lista.
-  groups.forEach((g) => g.items.sort((a: any, b: any) => (a.status === 'FAILED' ? 0 : 1) - (b.status === 'FAILED' ? 0 : 1)));
 
   const renderCard = (r: any) => {
     const c = hexFor(r.status);
+    // "🆕 Novo" nos exames adicionados nas últimas 48h — ajuda o usuário a achar no grupo do ano qual doc acabou de entrar.
+    const isNew = !!r.createdAt && Date.now() - new Date(r.createdAt).getTime() < 48 * 3600 * 1000;
     const Icon = r.kind === 'IMAGING' ? ImageIcon : r.kind === 'LAB_PANEL' ? ScienceIcon : DescriptionOutlinedIcon;
     return (
       <Card key={r.id} variant="outlined" onClick={() => navigate(`/exams/${r.id}/show`)} sx={{ cursor: 'pointer', borderRadius: 3, borderLeft: `4px solid ${c}`, overflow: 'hidden', maxWidth: '100%' }}>
@@ -116,7 +116,10 @@ const ExamCards = () => {
             {r.sourceLab && <Typography variant="caption" sx={{ display: 'block', color: '#5a6b72', fontWeight: 600, lineHeight: 1.3 }}>🏥 {r.sourceLab}</Typography>}
             {(r as any).rawExtraction?.requestingDoctor && <Typography variant="caption" sx={{ display: 'block', color: '#5a6b72', fontWeight: 600, lineHeight: 1.3 }}>🩺 Dr. {(r as any).rawExtraction.requestingDoctor}</Typography>}
             <Typography variant="caption" color="text.secondary">{kindLabel[r.kind] ?? r.kind} • {r.performedAt ? new Date(r.performedAt).toLocaleDateString('pt-BR') : 's/d'}{r._count?.items ? ` • ${r._count.items} itens` : ''}{r.createdAt ? ` • Enviado ${new Date(r.createdAt).toLocaleDateString('pt-BR')}` : ''}</Typography>
-            <Box sx={{ mt: 0.5 }}><Chip size="small" label={statusLabel[r.status] ?? r.status} sx={{ bgcolor: c + '18', color: c, fontWeight: 700, height: 20 }} /></Box>
+            <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.5 }}>
+              {isNew && <Chip size="small" label="🆕 Novo" sx={{ bgcolor: '#dcfce7', color: '#15803d', fontWeight: 700, height: 20 }} />}
+              <Chip size="small" label={statusLabel[r.status] ?? r.status} sx={{ bgcolor: c + '18', color: c, fontWeight: 700, height: 20 }} />
+            </Stack>
           </Box>
           <IconButton size="small" onClick={(e) => del(e, r.id, r.title)} title="Excluir" sx={{ flexShrink: 0 }}><DeleteOutlineIcon fontSize="small" /></IconButton>
           <ChevronRightIcon sx={{ color: 'text.disabled', flexShrink: 0 }} />
@@ -156,10 +159,18 @@ const ExamCards = () => {
         </Box>
       )}
       {failed.length > 0 && (
-        <Alert severity="warning" icon={false} sx={{ borderRadius: 3, alignItems: 'flex-start', '& .MuiAlert-message': { width: '100%' } }}>
-          <Typography sx={{ fontWeight: 800, color: '#b45309' }}>⚠️ {failed.length} documento{failed.length !== 1 ? 's' : ''} não consegui{failed.length !== 1 ? 'ram' : 'u'} ser lido{failed.length !== 1 ? 's' : ''} como exame</Typography>
-          <Typography variant="caption" sx={{ display: 'block', color: '#92400e', mt: 0.25 }}>Pode não ser um exame (receita, nota, documento) ou estar ilegível. Revise os itens marcados "Falhou" abaixo ou exclua.</Typography>
-        </Alert>
+        <Box>
+          <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.75 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#b91c1c' }}>⚠️ Não foi possível ler</Typography>
+            <Chip size="small" label={failed.length} sx={{ height: 18, bgcolor: '#fee2e2', color: '#b91c1c', fontWeight: 700 }} />
+          </Stack>
+          <Alert severity="warning" icon={false} sx={{ mb: 1.25, borderRadius: 2, py: 0.75, '& .MuiAlert-message': { fontSize: 12.5 } }}>
+            {failed.length === 1 ? 'Este documento não parece ser um exame (receita, nota ou ilegível).' : `${failed.length} documentos não parecem ser exames (receita, nota ou ilegíveis).`} Revise ou exclua abaixo — se for um exame de verdade, toque em <strong>Re-extrair</strong>.
+          </Alert>
+          <Stack spacing={1.5}>
+            {failed.map((r: any) => renderCard(r))}
+          </Stack>
+        </Box>
       )}
       {groups.map((g) => {
         const locked = !premium && g.year !== latestYear && g.year != null;

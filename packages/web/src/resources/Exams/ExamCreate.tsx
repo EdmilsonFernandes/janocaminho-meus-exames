@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Box, Card, CardContent, Button, TextField, Typography, Alert, Chip, Stack, LinearProgress } from '@mui/material';
+import { Box, Card, CardContent, Button, TextField, Typography, Alert, Chip, Stack, LinearProgress, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import DocumentScannerIcon from '@mui/icons-material/DocumentScanner';
@@ -57,6 +57,8 @@ export const ExamCreate = () => {
   const [title, setTitle] = useState('');
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number; errors: string[] } | null>(null);
+  // Duplicata detectada → dialog PROEMINENTE (não um toast fraco) pra o usuário entender que o doc já existe.
+  const [dupInfo, setDupInfo] = useState<{ dups: string[]; elsewhere: string[]; sent: number } | null>(null);
   const notify = useNotify();
   const redirect = useRedirect();
   const refresh = useRefresh();
@@ -74,7 +76,8 @@ export const ExamCreate = () => {
     try {
       const photo = await Camera.getPhoto({ quality: 92, resultType: CameraResultType.DataUrl, source: CameraSource.Camera, correctOrientation: true, saveToGallery: false });
       const blob = await (await fetch(photo.dataUrl!)).blob();
-      await uploadOne(blob, `foto-${Date.now()}.jpg`, pid, title || 'Foto do exame');
+      const res: any = await uploadOne(blob, `foto-${Date.now()}.jpg`, pid, title || 'Foto do exame');
+      if (res?.duplicate) { refresh(); setDupInfo({ dups: ['Foto capturada'], elsewhere: [], sent: 0 }); return; }
       notify('Foto enviada! Extraindo…', { type: 'success' });
       redirect('list', 'exams');
     } catch (e: any) {
@@ -95,11 +98,13 @@ export const ExamCreate = () => {
       setBusy(true);
       setProgress({ done: 0, total: imgs.length, errors: [] });
       const errors: string[] = [];
+      const dups: string[] = [];
       for (let i = 0; i < imgs.length; i++) {
         try {
           const blob = await (await fetch(imgs[i])).blob();
           const name = imgs.length > 1 ? (title || 'Exame escaneado') + ` (${i + 1}/${imgs.length})` : (title || 'Exame escaneado');
-          await uploadOne(blob, `scan-${Date.now()}-${i + 1}.jpg`, pid, name);
+          const res: any = await uploadOne(blob, `scan-${Date.now()}-${i + 1}.jpg`, pid, name);
+          if (res?.duplicate) dups.push(name);
           setProgress({ done: i + 1, total: imgs.length, errors });
         } catch (err: any) {
           if (err?.code === 'free_limit' || err?.code === 'no_credits_upload') { notify(err.message || 'Sem créditos para enviar.', { type: 'warning' }); redirect('/planos'); setBusy(false); return; }
@@ -108,8 +113,11 @@ export const ExamCreate = () => {
         }
       }
       setBusy(false);
-      if (errors.length === imgs.length) notify('Nenhum envio concluído.', { type: 'error' });
-      else { notify(`${imgs.length - errors.length} de ${imgs.length} página(s) enviada(s) e extraindo.`, { type: 'success' }); refresh(); redirect('list', 'exams'); }
+      if (errors.length === imgs.length) { notify('Nenhum envio concluído.', { type: 'error' }); return; }
+      const sent = imgs.length - errors.length - dups.length;
+      refresh();
+      if (dups.length) setDupInfo({ dups, elsewhere: [], sent });
+      else { notify(`${imgs.length - errors.length} de ${imgs.length} página(s) enviada(s) e extraindo.`, { type: 'success' }); redirect('list', 'exams'); }
     } catch (e: any) {
       if (e?.message && /cancel/i.test(e.message)) return; // usuário cancelou o scanner
       // Scanner indisponível (módulo ML Kit ainda baixando, ou RAM < 1.7GB) → câmera normal
@@ -138,11 +146,13 @@ export const ExamCreate = () => {
     setBusy(true);
     setProgress({ done: 0, total: files.length, errors: [] });
     const errors: string[] = [];
+    const dups: string[] = [];
+    const elsewhere: string[] = [];
     for (let i = 0; i < files.length; i++) {
       try {
         const res: any = await uploadOne(files[i], files[i].name, pid, title || files[i].name.replace(/\.pdf$/i, ''));
-        if (res?.duplicate) notify(`"${files[i].name}": este documento já foi enviado (duplicata ignorada).`, { type: 'info' });
-        else if (res?.duplicateElsewhere) notify(`"${files[i].name}": este mesmo arquivo já está em outro perfil seu.`, { type: 'warning' });
+        if (res?.duplicate) dups.push(files[i].name);
+        else if (res?.duplicateElsewhere) elsewhere.push(files[i].name);
         setProgress({ done: i + 1, total: files.length, errors });
       } catch (err: any) {
         if (err?.code === 'free_limit' || err?.code === 'no_credits_upload') {
@@ -156,11 +166,14 @@ export const ExamCreate = () => {
       }
     }
     setBusy(false);
-    if (errors.length === files.length) {
-      notify('Nenhum envio concluído.', { type: 'error' });
+    if (errors.length === files.length) { notify('Nenhum envio concluído.', { type: 'error' }); return; }
+    const sent = files.length - errors.length - dups.length;
+    refresh();
+    if (dups.length || elsewhere.length) {
+      // Duplicata → dialog "de cara" em vez do sucesso enganoso ("X enviados e extraindo"). Não redireciona.
+      setDupInfo({ dups, elsewhere, sent });
     } else {
-      notify(`${files.length - errors.length} de ${files.length} exame(s) enviado(s) e extraindo.`, { type: 'success' });
-      refresh();
+      notify(`${sent} de ${files.length} exame(s) enviado(s) e extraindo.`, { type: 'success' });
       redirect('list', 'exams');
     }
   };
@@ -236,6 +249,27 @@ export const ExamCreate = () => {
           </Box>
         </CardContent>
       </Card>
+
+      {/* DUPLICATA — aviso PROEMINENTE "de cara": o documento já existe no histórico. */}
+      <Dialog open={!!dupInfo} onClose={() => { setDupInfo(null); redirect('list', 'exams'); }} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 800, color: '#0f3d3a' }}>📄 Documento já enviado</DialogTitle>
+        <DialogContent>
+          <Alert severity="warning" sx={{ mb: 1.5, borderRadius: 2 }}>
+            {(dupInfo?.dups.length ?? 0) === 1
+              ? 'Este arquivo já está no seu histórico (conteúdo idêntico) e não foi adicionado de novo.'
+              : `${dupInfo?.dups.length ?? 0} arquivos já estão no seu histórico (conteúdo idêntico) e não foram adicionados de novo.`}
+          </Alert>
+          {(dupInfo?.dups ?? []).map((n, i) => <Typography key={i} variant="body2" sx={{ wordBreak: 'break-all', pl: 1 }}>• {n}</Typography>)}
+          {dupInfo?.elsewhere.length ? <Alert severity="info" sx={{ mt: 1.5, borderRadius: 2 }}>Esse mesmo arquivo também está em outro perfil seu.</Alert> : null}
+          <Typography variant="body2" sx={{ mt: 1.75, fontWeight: 600 }}>
+            {dupInfo && dupInfo.sent > 0 ? `✅ ${dupInfo.sent} exame(s) novo(s) enviado(s) e extraindo.` : 'Nenhum exame novo foi adicionado.'}
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: 'center', pb: 2.5, gap: 1 }}>
+          <Button onClick={() => { setDupInfo(null); redirect('list', 'exams'); }} variant="contained" sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#178f89' }}>Ver meus exames</Button>
+          <Button onClick={() => setDupInfo(null)} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700 }}>Enviar outro</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
