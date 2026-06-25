@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Box, Typography, Slide } from '@mui/material';
 import WifiOffIcon from '@mui/icons-material/WifiOff';
 
-/** Banner fixo no topo quando o dispositivo fica offline (3G caiu, sem wi-fi, etc). */
+/** Indicador offline discreto (pílula no rodapé) — estilo app profissional. */
 export const OfflineBanner = () => {
   const [online, setOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
   useEffect(() => {
@@ -13,10 +13,10 @@ export const OfflineBanner = () => {
     return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
   }, []);
   return (
-    <Slide direction="down" in={!online} mountOnEnter unmountOnExit>
-      <Box sx={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999, bgcolor: '#b91c1c', color: '#fff', py: 0.75, px: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, boxShadow: 2 }}>
-        <WifiOffIcon fontSize="small" />
-        <Typography sx={{ fontSize: 13, fontWeight: 700 }}>Sem conexão — verificando... Alguns recursos podem estar indisponíveis.</Typography>
+    <Slide direction="up" in={!online} mountOnEnter unmountOnExit>
+      <Box sx={{ position: 'fixed', bottom: { xs: 76, sm: 20 }, left: '50%', transform: 'translateX(-50%)', zIndex: 9999, bgcolor: 'rgba(15,23,42,0.92)', color: '#fff', py: 0.7, px: 2.5, borderRadius: 99, display: 'flex', alignItems: 'center', gap: 0.75, boxShadow: '0 4px 16px rgba(0,0,0,.25)' }}>
+        <WifiOffIcon sx={{ fontSize: 16, opacity: 0.8 }} />
+        <Typography sx={{ fontSize: 12.5, fontWeight: 600 }}>Sem conexão</Typography>
       </Box>
     </Slide>
   );
