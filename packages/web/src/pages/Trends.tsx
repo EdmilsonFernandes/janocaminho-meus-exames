@@ -84,78 +84,130 @@ export const TrendsPage = () => {
   // Tendência precisa de ≥2 pontos p/ comparar — esconde analitos com só 1 resultado do dropdown.
   const multi = names.filter((n) => n.count >= 2);
 
+  // AUTO-SELECT: abre já com o 1º analito selecionado (gráfico visível, sem espaço em branco)
+  useEffect(() => {
+    if (!sel && multi.length > 0) setSel(multi[0].nameCanonical);
+  }, [multi.length]);
+
   return (
     <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 980, mx: 'auto' }}>
       <Title title="Tendências" />
-      <Card sx={{ borderRadius: 3 }}><CardContent sx={{ p: { xs: 1.5, md: 3 } }}>
-        <Typography variant="h6" gutterBottom>Evolução de um analito</Typography>
-        <FormControl fullWidth sx={{ minWidth: { xs: 0, sm: 280 }, mb: 1.5 }}>
-          <InputLabel>Escolha o exame/analito</InputLabel>
-          <Select value={sel} label="Escolha o exame/analito" onChange={(e) => setSel(e.target.value as string)}>
-            {multi.map((n) => <MenuItem key={n.nameCanonical} value={n.nameCanonical}>{n.nameCanonical} ({n.count})</MenuItem>)}
-          </Select>
-        </FormControl>
 
-        {!sel && (names.length === 0
-          ? <Typography color="text.secondary">Envie ao menos um exame laboratorial para ver tendências.</Typography>
-          : multi.length === 0
-            ? <Typography color="text.secondary">Você já tem exames, mas ainda falta um 2º resultado do mesmo tipo para comparar — a tendência precisa de pelo menos 2 pontos.</Typography>
-            : null)}
-        {loading && <CircularProgress />}
+      {/* HEADER PREMIUM */}
+      <Card sx={{ mb: 2, borderRadius: 4, overflow: 'hidden', background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff' }}>
+        <CardContent sx={{ py: 2.5 }}>
+          <Typography variant="h5" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>📈 Tendências</Typography>
+          <Typography sx={{ opacity: 0.9, mt: 0.5, fontSize: 14 }}>Veja como seus resultados evoluíram ao longo do tempo.</Typography>
+        </CardContent>
+      </Card>
 
-        {!loading && ts && ts.points.length > 0 && (
-          <>
-            <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mb: 1 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#178f89' }}>{ts.nameCanonical}</Typography>
-              <ExplainButton name={ts.nameCanonical} nameCanonical={ts.nameCanonical} />
-            </Stack>
+      {/* ATALHOS (chips dos principais analitos) + DROPDOWN */}
+      {multi.length > 0 && (
+        <Card sx={{ mb: 2, borderRadius: 3 }}><CardContent sx={{ p: { xs: 1.5, md: 2 } }}>
+          {multi.length > 1 && (
             <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mb: 1.5 }}>
-              <Chip size="small" color="primary" label={`Último: ${data[data.length - 1].valor}${ts.unit ? ' ' + ts.unit : ''}`} />
-              {predict?.dir === 'up' && <Chip size="small" color="warning" label="↑ Subindo" />}
-              {predict?.dir === 'down' && <Chip size="small" color="info" label="↓ Caindo" />}
-              {predict?.dir === 'stable' && <Chip size="small" color="success" label="→ Estável" />}
-              {(ts.refLow != null && ts.refHigh != null) && <Chip size="small" variant="outlined" label={`Faixa ${ts.refLow}–${ts.refHigh}`} />}
+              {multi.slice(0, 10).map((n) => (
+                <Chip key={n.nameCanonical} label={n.nameCanonical} onClick={() => setSel(n.nameCanonical)}
+                  color={sel === n.nameCanonical ? 'primary' : 'default'} size="small"
+                  sx={{ fontWeight: 700, borderRadius: 99, '&.MuiChip-colorPrimary': { bgcolor: '#20b2aa', color: '#fff' } }} />
+              ))}
             </Stack>
-            <ResponsiveContainer width="100%" height={isMobile ? 240 : 340}>
-              <LineChart data={data} margin={{ top: 10, right: isMobile ? 8 : 20, bottom: 10, left: isMobile ? -10 : 0 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" tick={{ fontSize: isMobile ? 10 : 12 }} /><YAxis tick={{ fontSize: isMobile ? 10 : 12 }} /><Tooltip content={<TooltipBox />} />
-                {ts.refLow != null && ts.refHigh != null && (
-                  <ReferenceArea y1={ts.refLow} y2={ts.refHigh} fill="#2e7d32" fillOpacity={0.12} />
-                )}
-                <Line type="monotone" dataKey="valor" stroke="#20b2aa" strokeWidth={3} dot={{ r: 5, fill: '#20b2aa' }} activeDot={{ r: 8, stroke: '#fff', strokeWidth: 2 }} />
-              </LineChart>
-            </ResponsiveContainer>
+          )}
+          <FormControl fullWidth size="small">
+            <Select value={sel} onChange={(e) => setSel(e.target.value as string)} displayEmpty sx={{ borderRadius: 2 }}>
+              <MenuItem value="" disabled><em>Todos os analitos ({multi.length})</em></MenuItem>
+              {multi.map((n) => <MenuItem key={n.nameCanonical} value={n.nameCanonical}>{n.nameCanonical} ({n.count} exames)</MenuItem>)}
+            </Select>
+          </FormControl>
+        </CardContent></Card>
+      )}
 
-            {predict && predict.dir !== 'stable' && predict.months && (
-              <PremiumGate>
-                <Box sx={{ mt: 2, p: 1.5, borderRadius: 2, background: predict.dir === 'up' ? 'rgba(230,81,0,.08)' : 'rgba(11,92,171,.08)', border: `1px solid ${predict.dir === 'up' ? '#e6510033' : '#0b5cab33'}` }}>
-                  <Typography sx={{ fontWeight: 700, color: predict.dir === 'up' ? '#e65100' : '#0b5cab' }}>📈 Tendência: {predict.dir === 'up' ? 'subindo' : 'caindo'}</Typography>
-                  <Typography variant="body2" sx={{ mt: 0.5 }}>Neste ritmo, {ts?.nameCanonical} {predict.dir === 'up' ? 'ultrapassa' : 'fica abaixo de'} a faixa em <strong>~{predict.months} {predict.months === 1 ? 'mês' : 'meses'}</strong>.</Typography>
-                </Box>
-              </PremiumGate>
-            )}
-            {predict && predict.dir === 'stable' && (
-              <Box sx={{ mt: 2, p: 1.5, borderRadius: 2, background: 'rgba(46,125,50,.08)' }}>
-                <Typography sx={{ color: '#2e7d32', fontWeight: 600 }}>✅ Tendência estável.</Typography>
+      {/* EMPTY STATE (sem dados) */}
+      {!sel && multi.length === 0 && (
+        <Card sx={{ borderRadius: 4, textAlign: 'center', py: 5 }}>
+          <CardContent>
+            <Box sx={{ fontSize: 56, mb: 1 }}>📊</Box>
+            <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f3d3a', mb: 0.5 }}>
+              {names.length === 0 ? 'Nada pra comparar ainda' : 'Quase lá!'}
+            </Typography>
+            <Typography color="text.secondary" sx={{ maxWidth: 340, mx: 'auto' }}>
+              {names.length === 0
+                ? 'Envie ao menos um exame laboratorial para começar a acompanhar suas tendências.'
+                : 'Você já tem exames, mas precisa de um 2º resultado do mesmo tipo para comparar a evolução.'}
+            </Typography>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* LOADING */}
+      {loading && <Card sx={{ borderRadius: 3, textAlign: 'center', py: 6 }}><CardContent><CircularProgress sx={{ color: '#20b2aa' }} /></CardContent></Card>}
+
+      {/* GRÁFICO + DETALHES */}
+      {!loading && ts && ts.points.length > 0 && (
+        <Card sx={{ borderRadius: 3 }}><CardContent sx={{ p: { xs: 1.5, md: 3 } }}>
+          {/* Título do analito + botão explicar */}
+          <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mb: 1 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#178f89' }}>{ts.nameCanonical}</Typography>
+            <ExplainButton name={ts.nameCanonical} nameCanonical={ts.nameCanonical} />
+          </Stack>
+
+          {/* Chips: último valor + tendência + faixa */}
+          <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mb: 1.5 }}>
+            <Chip size="small" color="primary" label={`Último: ${data[data.length - 1].valor}${ts.unit ? ' ' + ts.unit : ''}`} />
+            {predict?.dir === 'up' && <Chip size="small" color="warning" label="↑ Subindo" />}
+            {predict?.dir === 'down' && <Chip size="small" color="info" label="↓ Caindo" />}
+            {predict?.dir === 'stable' && <Chip size="small" color="success" label="→ Estável" />}
+            {(ts.refLow != null && ts.refHigh != null) && <Chip size="small" variant="outlined" label={`Faixa ${ts.refLow}–${ts.refHigh}`} />}
+          </Stack>
+
+          {/* Gráfico */}
+          <ResponsiveContainer width="100%" height={isMobile ? 240 : 340}>
+            <LineChart data={data} margin={{ top: 10, right: isMobile ? 8 : 20, bottom: 10, left: isMobile ? -10 : 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis dataKey="name" tick={{ fontSize: isMobile ? 10 : 12, fill: '#94a3b8' }} axisLine={{ stroke: '#e2e8f0' }} />
+              <YAxis tick={{ fontSize: isMobile ? 10 : 12, fill: '#94a3b8' }} axisLine={{ stroke: '#e2e8f0' }} />
+              <Tooltip content={<TooltipBox />} />
+              {ts.refLow != null && ts.refHigh != null && (
+                <ReferenceArea y1={ts.refLow} y2={ts.refHigh} fill="#22c55e" fillOpacity={0.08} />
+              )}
+              <Line type="monotone" dataKey="valor" stroke="#20b2aa" strokeWidth={3} dot={{ r: 5, fill: '#20b2aa', strokeWidth: 0 }} activeDot={{ r: 8, stroke: '#fff', strokeWidth: 2 }} />
+            </LineChart>
+          </ResponsiveContainer>
+
+          {/* Previsão (premium) */}
+          {predict && predict.dir !== 'stable' && predict.months && (
+            <PremiumGate>
+              <Box sx={{ mt: 2, p: 1.5, borderRadius: 2, background: predict.dir === 'up' ? 'rgba(230,81,0,.08)' : 'rgba(11,92,171,.08)', border: `1px solid ${predict.dir === 'up' ? '#e6510033' : '#0b5cab33'}` }}>
+                <Typography sx={{ fontWeight: 700, color: predict.dir === 'up' ? '#e65100' : '#0b5cab' }}>📈 Tendência: {predict.dir === 'up' ? 'subindo' : 'caindo'}</Typography>
+                <Typography variant="body2" sx={{ mt: 0.5 }}>Neste ritmo, {ts?.nameCanonical} {predict.dir === 'up' ? 'ultrapassa' : 'fica abaixo de'} a faixa em <strong>~{predict.months} {predict.months === 1 ? 'mês' : 'meses'}</strong>.</Typography>
               </Box>
-            )}
-
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="subtitle2" sx={{ mb: 0.5 }}>Pontos (do mais recente)</Typography>
-              <Stack spacing={0.5}>
-                {[...data].reverse().map((d, i) => (
-                  <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                    <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>{d.name} — <strong>{d.valor}</strong>{ts?.unit ? ` ${ts.unit}` : ''} <Box component="span" sx={{ color: 'text.secondary' }}>({d.title})</Box></Typography>
-                    <Flag flag={d.flag} />
-                  </Box>
-                ))}
-              </Stack>
+            </PremiumGate>
+          )}
+          {predict && predict.dir === 'stable' && (
+            <Box sx={{ mt: 2, p: 1.5, borderRadius: 2, background: 'rgba(46,125,50,.08)' }}>
+              <Typography sx={{ color: '#2e7d32', fontWeight: 600 }}>✅ Tendência estável.</Typography>
             </Box>
-          </>
-        )}
-        {!loading && ts && ts.points.length === 0 && <Typography color="text.secondary">Sem pontos numéricos.</Typography>}
-      </CardContent></Card>
+          )}
+
+          {/* Pontos (histórico) */}
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="subtitle2" sx={{ mb: 0.5 }}>Histórico (do mais recente)</Typography>
+            <Stack spacing={0.5}>
+              {[...data].reverse().map((d, i) => (
+                <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                  <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>{d.name} — <strong>{d.valor}</strong>{ts?.unit ? ` ${ts.unit}` : ''} <Box component="span" sx={{ color: 'text.secondary' }}>({d.title})</Box></Typography>
+                  <Flag flag={d.flag} />
+                </Box>
+              ))}
+            </Stack>
+          </Box>
+        </CardContent></Card>
+      )}
+      {!loading && ts && ts.points.length === 0 && sel && (
+        <Card sx={{ borderRadius: 3, textAlign: 'center', py: 4 }}>
+          <CardContent><Typography color="text.secondary">Sem pontos numéricos para este analito.</Typography></CardContent>
+        </Card>
+      )}
     </Box>
   );
 };
