@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, Button, ListItem, ListItemIcon, ListItemText, IconButton, Checkbox, TextField, Stack, Chip, List, Divider } from '@mui/material';
+import { Box, Card, CardContent, Typography, Button, ListItem, ListItemIcon, ListItemText, IconButton, Checkbox, TextField, Stack, Chip, List, Divider, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import BellIcon from '@mui/icons-material/NotificationsActive';
 import { Title } from 'react-admin';
 import { API_URL, token } from '../config';
@@ -61,6 +62,29 @@ export const RemindersPage = () => {
   const fmtDate = (d: string) => new Date(d).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   const overdue = (d: string) => new Date(d) < new Date();
 
+  // Separa FUTUROS (agendados) de PASSADOS (histórico) — não se misturam.
+  const now = new Date();
+  const upcoming = items.filter((r) => new Date(r.dueDate) >= now).sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+  const past = items.filter((r) => new Date(r.dueDate) < now).sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
+
+  const renderItem = (r: any) => (
+    <ListItem key={r.id} sx={{ px: 0, borderBottom: '1px solid #eee', opacity: r.done ? 0.5 : 1, alignItems: 'flex-start' }}>
+      <ListItemIcon sx={{ mt: 0.5 }}><Checkbox checked={r.done} onChange={() => toggle(r)} /></ListItemIcon>
+      <ListItemText
+        primary={<span style={{ textDecoration: r.done ? 'line-through' : 'none', fontWeight: 600 }}>{r.title}</span>}
+        secondary={<>
+          <span><EventAvailableIcon fontSize="small" sx={{ verticalAlign: 'middle', mr: 0.5 }} />{fmtDate(r.dueDate)}</span>
+          {Array.isArray(r.notifyOffsetsMin) && r.notifyOffsetsMin.length > 0 && (
+            <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.75 }}>
+              {r.notifyOffsetsMin.map((o: number) => <Chip key={o} size="small" variant="outlined" label={offsetShort(o)} sx={{ height: 22, fontSize: 11 }} />)}
+            </Stack>
+          )}
+        </>}
+      />
+      <IconButton edge="end" onClick={() => del(r)}><DeleteIcon /></IconButton>
+    </ListItem>
+  );
+
   return (
     <Box sx={{ maxWidth: 760, mx: 'auto', p: { xs: 1, md: 2 } }}>
       <Title title="Lembretes" />
@@ -92,34 +116,33 @@ export const RemindersPage = () => {
         </CardContent>
       </Card>
 
-      <Card>
+      {/* PRÓXIMOS (futuros) */}
+      <Card sx={{ mb: 2 }}>
         <CardContent sx={{ pb: '8px !important' }}>
-          <Typography variant="h6" sx={{ mb: 1 }}>Próximos lembretes</Typography>
-          {items.length === 0 ? (
-            <Typography color="text.secondary" sx={{ py: 2 }}>Nenhum lembrete ainda. Crie um acima (ex.: "Refazer hemograma em 6 meses").</Typography>
+          <Typography variant="h6" sx={{ mb: 1 }}>Próximos lembretes {upcoming.length > 0 && <Chip size="small" label={upcoming.length} sx={{ ml: 1, bgcolor: '#e0f2f1', color: '#178f89', fontWeight: 800 }} />}</Typography>
+          {upcoming.length === 0 ? (
+            <Typography color="text.secondary" sx={{ py: 2 }}>Nenhum lembrete agendado. Crie um acima (ex.: "Refazer hemograma em 6 meses").</Typography>
           ) : (
-            <List>
-              {items.map((r) => (
-                <ListItem key={r.id} sx={{ px: 0, borderBottom: '1px solid #eee', opacity: r.done ? 0.55 : 1, alignItems: 'flex-start' }}>
-                  <ListItemIcon sx={{ mt: 0.5 }}><Checkbox checked={r.done} onChange={() => toggle(r)} /></ListItemIcon>
-                  <ListItemText
-                    primary={<span style={{ textDecoration: r.done ? 'line-through' : 'none', fontWeight: 600 }}>{r.title}</span>}
-                    secondary={<>
-                      <span><EventAvailableIcon fontSize="small" sx={{ verticalAlign: 'middle', mr: 0.5 }} />{fmtDate(r.dueDate)} {overdue(r.dueDate) && !r.done && <Chip size="small" color="error" label="vencido" sx={{ ml: 1 }} />}</span>
-                      {Array.isArray(r.notifyOffsetsMin) && r.notifyOffsetsMin.length > 0 && (
-                        <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.75 }}>
-                          {r.notifyOffsetsMin.map((o: number) => <Chip key={o} size="small" variant="outlined" label={offsetShort(o)} sx={{ height: 22, fontSize: 11 }} />)}
-                        </Stack>
-                      )}
-                    </>}
-                  />
-                  <IconButton edge="end" onClick={() => del(r)}><DeleteIcon /></IconButton>
-                </ListItem>
-              ))}
-            </List>
+            <List>{upcoming.map(renderItem)}</List>
           )}
         </CardContent>
       </Card>
+
+      {/* HISTÓRICO (passados) — colapsável, não briga com os agendados */}
+      {past.length > 0 && (
+        <Card>
+          <CardContent sx={{ pb: '8px !important' }}>
+            <Accordion elevation={0} sx={{ '&:before': { display: 'none' } }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ px: 0, minHeight: 40, '& .MuiAccordionSummary-content': { my: 0 } }}>
+                <Typography sx={{ fontWeight: 700, color: '#94a3b8' }}>Histórico <Chip size="small" label={past.length} sx={{ ml: 1, bgcolor: '#f1f5f9', color: '#64748b', fontWeight: 700 }} /></Typography>
+              </AccordionSummary>
+              <AccordionDetails sx={{ px: 0, pt: 0 }}>
+                <List>{past.map(renderItem)}</List>
+              </AccordionDetails>
+            </Accordion>
+          </CardContent>
+        </Card>
+      )}
       <Divider sx={{ my: 2 }} />
     </Box>
   );
