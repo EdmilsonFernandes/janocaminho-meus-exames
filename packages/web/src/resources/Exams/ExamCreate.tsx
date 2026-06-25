@@ -46,6 +46,25 @@ async function uploadOne(file: File | Blob, filename: string, pid: string | null
   throw lastErr ?? new Error('Falha no envio após 3 tentativas. Verifique sua conexão.');
 }
 
+// O scanner (ML Kit) devolve scannedImages como URI de arquivo (file:/// ou content://).
+// O fetch() do WebView do Capacitor NÃO lê file:// → "Failed to fetch" imediato (nem chega no back).
+// convertFileSrc troca por URL servida pelo Capacitor (https://localhost/_capacitor_file_/...);
+// fallback Filesystem.readFile p/ content://. (A câmera usa DataUrl → fetch direto funciona.)
+async function fetchScannedBlob(uri: string): Promise<Blob> {
+  if (uri.startsWith('data:')) return (await fetch(uri)).blob();
+  try {
+    return await (await fetch(Capacitor.convertFileSrc(uri))).blob();
+  } catch {
+    const { Filesystem } = await import('@capacitor/filesystem');
+    const r = await Filesystem.readFile({ path: uri });
+    const b64 = typeof r.data === 'string' ? r.data : '';
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new Blob([bytes], { type: 'image/jpeg' });
+  }
+}
+
 // Avisa o usuário que está retentando (rede móvel instável = "failed to fetch")
 function notifyRetry(attempt: number) {
   try { console.warn(`[upload] retentando (tentativa ${attempt + 1}/3)…`); } catch { /* */ }
@@ -101,7 +120,7 @@ export const ExamCreate = () => {
       const dups: string[] = [];
       for (let i = 0; i < imgs.length; i++) {
         try {
-          const blob = await (await fetch(imgs[i])).blob();
+          const blob = await fetchScannedBlob(imgs[i]);
           const name = imgs.length > 1 ? (title || 'Exame escaneado') + ` (${i + 1}/${imgs.length})` : (title || 'Exame escaneado');
           const res: any = await uploadOne(blob, `scan-${Date.now()}-${i + 1}.jpg`, pid, name);
           if (res?.duplicate) dups.push(name);
