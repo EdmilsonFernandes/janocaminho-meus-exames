@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { List, useListContext, useRefresh, useNotify, CreateButton, TopToolbar } from 'react-admin';
 import { Chip, Box, Card, CardContent, Typography, IconButton, Stack, LinearProgress, Button, Accordion, AccordionSummary, AccordionDetails, Alert, CircularProgress } from '@mui/material';
 import ScienceIcon from '@mui/icons-material/Science';
@@ -27,27 +27,22 @@ const kindLabel: Record<string, string> = { LAB_PANEL: 'Laboratorial', IMAGING: 
 const hexFor = (s: string) => { const sc = statusColor[s] ?? 'default'; return sc === 'success' ? '#10b981' : sc === 'error' ? '#ef4444' : sc === 'warning' ? '#f59e0b' : sc === 'info' ? '#0ea5e9' : '#94a3b8'; };
 
 /** Cartão de exame EM PROCESSAMENTO (UPLOADED/EXTRACTING) — fica sempre no TOPO da lista,
- *  com % animada. Não há progresso real no servidor (a extração é um state machine), então a
- *  % é simulada — igualzinha à barra do Dr. Exame na tela de detalhe — só pra o usuário sentir
- *  que "tá indo". Toca no cartão pra abrir o exame e ver o robô com a barra de progresso. */
+ *  com spinner/barra INDETERMINADOS. Não há progresso real no servidor (a extração é um
+ *  state machine), então antes a % era simulada e travava em ~94% (sensação de pendurado) e
+ *  reiniciava a cada visita. Indeterminado é honesto. Toca no cartão pra ver o robô. */
 const ProcessingCard = ({ r }: { r: any }) => {
   const navigate = useNavigate();
-  const [pct, setPct] = useState(12);
-  useEffect(() => {
-    const t = setInterval(() => setPct((p) => (p < 82 ? p + 3 : Math.min(p + 0.6, 94))), 800);
-    return () => clearInterval(t);
-  }, []);
   return (
     <Card onClick={() => navigate(`/exams/${r.id}/show`)} sx={{ cursor: 'pointer', borderRadius: 3, borderLeft: '4px solid #0ea5e9', overflow: 'hidden', maxWidth: '100%' }}>
       <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, '&:last-child': { pb: 1.5 } }}>
-        <CircularProgress variant="determinate" value={pct} size={34} thickness={5} sx={{ color: '#0ea5e9', flexShrink: 0 }} />
+        <CircularProgress size={34} thickness={5} sx={{ color: '#0ea5e9', flexShrink: 0 }} />
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography sx={{ fontWeight: 700, wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.2 }}>{r.title || 'Novo exame enviado'}</Typography>
-          <Typography variant="caption" color="text.secondary">Dr. Exame está extraindo… <strong>{Math.round(pct)}%</strong></Typography>
+          <Typography variant="caption" color="text.secondary">Dr. Exame está extraindo… toque para acompanhar</Typography>
         </Box>
         <ChevronRightIcon sx={{ color: 'text.disabled', flexShrink: 0 }} />
       </CardContent>
-      <LinearProgress variant="determinate" value={pct} sx={{ height: 4, '& .MuiLinearProgress-bar': { background: 'linear-gradient(90deg,#0ea5e9,#20b2aa)' } }} />
+      <LinearProgress sx={{ height: 4, '& .MuiLinearProgress-bar': { background: 'linear-gradient(90deg,#0ea5e9,#20b2aa)' } }} />
     </Card>
   );
 };
@@ -94,9 +89,10 @@ const ExamCards = () => {
   const all = data ?? [];
   const processing = all.filter((r: any) => r.status === 'UPLOADED' || r.status === 'EXTRACTING');
   const failed = all.filter((r: any) => r.status === 'FAILED');
-  // Grupos por ano = só os EXTRACTED (com performedAt). Em-processamento e FALHAS ficam em
-  // seções próprias no TOPO — corrige o bug do exame novo/com erro caír em "Sem data" no fim.
-  const groups = groupByYear(all.filter((r: any) => r.status === 'EXTRACTED'), (r) => r.performedAt);
+  // Grupos por ano = só os EXTRACTED. dateKey: performedAt (data do exame); se a extração
+  // não achou a data (foto sem cabeçalho legível), cai no ano do ENVIO (createdAt) — não fica
+  // perdido em "Sem data". Em-processamento e FALHAS ficam em seções próprias no TOPO.
+  const groups = groupByYear(all.filter((r: any) => r.status === 'EXTRACTED'), (r) => r.performedAt ?? r.createdAt);
   const latestYear = groups[0]?.year ?? null;
 
   const renderCard = (r: any) => {
@@ -145,8 +141,13 @@ const ExamCards = () => {
           <Typography variant="h6" sx={{ fontWeight: 800 }}>📋 Seus exames</Typography>
           <Typography variant="caption" color="text.secondary">{total ?? 0} exame{(total ?? 0) !== 1 ? 's' : ''} no total • toque pra ver detalhes</Typography>
         </Box>
-        <CreateButton label="＋ Enviar exame" variant="contained" size="small" sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, boxShadow: 'none' }} />
       </Stack>
+      {/* FAB flutuante "＋ Enviar exame" — sempre visível, acima do bottom nav */}
+      <CreateButton label="＋" variant="contained" sx={{
+        position: 'fixed', bottom: { xs: 'calc(80px + env(safe-area-inset-bottom))', sm: 24 }, right: { xs: 16, sm: 32 }, zIndex: 1100,
+        minWidth: 0, width: 56, height: 56, borderRadius: '50%', fontSize: 28, p: 0, boxShadow: '0 6px 20px rgba(32,178,170,.35)',
+        bgcolor: '#20b2aa', '&:hover': { bgcolor: '#178f89' }, '& .RaButton-label': { fontSize: 28 },
+      }} />
       {processing.length > 0 && (
         <Box>
           <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.75 }}>
@@ -188,7 +189,7 @@ const ExamCards = () => {
         }
         return (
           <Accordion key={String(g.year)} defaultExpanded={g.year === latestYear || (g.year === null && g.items.some((r: any) => r.status === 'FAILED'))} disableGutters elevation={0}
-            sx={{ borderRadius: '12px !important', overflow: 'hidden', border: '1px solid #eef2f7', '&:before': { display: 'none' } }}>
+            sx={{ borderRadius: '12px !important', overflow: 'hidden', border: '1px solid', borderColor: 'divider', '&:before': { display: 'none' } }}>
             <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 30, color: '#178f89', bgcolor: 'rgba(32,178,170,.12)', borderRadius: '50%', p: 0.6, boxShadow: '0 2px 6px rgba(32,178,170,.18)' }} />} sx={{ minHeight: '48px !important', '& .MuiAccordionSummary-content': { my: 0.75, alignItems: 'center' } }}>
               <Typography sx={{ fontWeight: 800, flex: '1 1 auto', minWidth: 0 }}>📅 {g.label}</Typography>
               <Chip size="small" label={`${g.items.length}`} sx={{ ml: 1.5, bgcolor: 'rgba(0,0,0,.05)', color: 'text.secondary', height: 20, flexShrink: 0 }} />
