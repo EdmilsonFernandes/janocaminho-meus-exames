@@ -11,7 +11,7 @@ export const ConfirmSpend = ({ open, onClose, onConfirm, credits, title, desc }:
 }) => (
   <Dialog open={open} onClose={onClose} PaperProps={{ sx: { borderRadius: 4, maxWidth: 400, width: '100%' } }}>
     <DialogTitle sx={{ textAlign: 'center', pt: 3, pb: 1 }}>
-      <Typography sx={{ fontWeight: 800, fontSize: 20, fontFamily: 'Poppins, sans-serif', color: '#0f172a' }}>{title}</Typography>
+      <Typography sx={{ fontWeight: 800, fontSize: 20, fontFamily: 'Poppins, sans-serif', color: 'text.primary' }}>{title}</Typography>
     </DialogTitle>
     <DialogContent sx={{ textAlign: 'center', pb: 1 }}>
       {desc && <Typography color="text.secondary" sx={{ mb: 2, fontSize: 15, lineHeight: 1.5 }}>{desc}</Typography>}
@@ -21,7 +21,7 @@ export const ConfirmSpend = ({ open, onClose, onConfirm, credits, title, desc }:
       <Typography variant="caption" color="text.secondary">serão debitados dos seus créditos</Typography>
     </DialogContent>
     <DialogActions sx={{ px: 3, pb: 3, justifyContent: 'center', gap: 1 }}>
-      <Button onClick={onClose} variant="outlined" sx={{ borderRadius: 99, px: 3, textTransform: 'none', fontWeight: 600, borderColor: '#cbd5e1', color: '#475569' }}>Cancelar</Button>
+      <Button onClick={onClose} variant="outlined" sx={{ borderRadius: 99, px: 3, textTransform: 'none', fontWeight: 600, borderColor: 'divider', color: 'text.secondary' }}>Cancelar</Button>
       <Button onClick={onConfirm} variant="contained" sx={{ borderRadius: 99, px: 4, textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', '&:hover': { bgcolor: '#178f89' } }}>Confirmar</Button>
     </DialogActions>
   </Dialog>

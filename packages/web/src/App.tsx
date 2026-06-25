@@ -1,4 +1,4 @@
-import { Admin, Resource, CustomRoutes, Layout, AppBar, TitlePortal, AppBarProps, useLogout, useLocale, useSetLocale, useRefresh } from 'react-admin';
+import { Admin, Resource, CustomRoutes, Layout, AppBar, TitlePortal, AppBarProps, useLogout, useLocale, useSetLocale, useRefresh, useStore } from 'react-admin';
 import { Route, useNavigate, useLocation } from 'react-router-dom';
 import { useEffect, useState, useRef, lazy, Suspense } from 'react';
 import { Capacitor } from '@capacitor/core';
@@ -9,6 +9,8 @@ import CloseIcon from '@mui/icons-material/Close';
 import MenuIcon from '@mui/icons-material/Menu';
 import HomeIcon from '@mui/icons-material/Home';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
 import InsightsIcon from '@mui/icons-material/Insights';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import AutoGraphIcon from '@mui/icons-material/AutoGraph';
@@ -32,7 +34,7 @@ import { DrExame } from './components/DrExame';
 import { dataProvider } from './dataProvider';
 import { API_URL, token } from './config';
 import { authProvider } from './authProvider';
-import { theme } from './theme';
+import { lightTheme, darkTheme } from './theme';
 import { i18nProvider } from './i18n';
 import { APP_BUILD_INFO } from './generated/buildInfo';
 import { Dashboard } from './pages/Dashboard';
@@ -94,6 +96,7 @@ const CustomAppBar = (props: AppBarProps) => {
   const locale = useLocale();
   const setLocale = useSetLocale();
   const { openDrawer } = useAppDrawer();
+  const [themeMode, setThemeMode] = useStore<'light' | 'dark'>('theme', 'light');
   const [menuA, setMenuA] = useState<HTMLElement | null>(null);
   const toggleLang = () => { const l = locale === 'pt' ? 'en' : 'pt'; setLocale(l); try { localStorage.setItem('lang', l); } catch {} setMenuA(null); };
   return (
@@ -115,6 +118,9 @@ const CustomAppBar = (props: AppBarProps) => {
       <Box sx={{ flex: 1 }} />
       <CreditsChip />
       <PatientSwitcher />
+      <IconButton color="inherit" onClick={() => setThemeMode(themeMode === 'dark' ? 'light' : 'dark')} title={themeMode === 'dark' ? 'Modo claro' : 'Modo escuro'} size="small" sx={{ flexShrink: 0 }}>
+        {themeMode === 'dark' ? <Brightness7Icon fontSize="small" /> : <Brightness4Icon fontSize="small" />}
+      </IconButton>
       <NotificationBell />
       <IconButton color="inherit" onClick={(e: any) => setMenuA(e.currentTarget)} title="Mais opções" size="small" sx={{ flexShrink: 0 }}>
         <MoreVertIcon fontSize="small" />
@@ -130,7 +136,7 @@ const CustomAppBar = (props: AppBarProps) => {
 
 // Título de seção do menu (NÃO é clicável — só organiza visualmente)
 const MenuSection = ({ title }: { title: string }) => (
-  <Typography sx={{ px: 3, pt: 1.5, pb: 0.25, fontSize: 10.5, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.6 }}>
+  <Typography sx={{ px: 3, pt: 1.5, pb: 0.25, fontSize: 10.5, fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.6 }}>
     {title}
   </Typography>
 );
@@ -141,7 +147,7 @@ const NavItem = ({ to, primaryText, icon, highlight }: { to: string; primaryText
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const active = to === '/' ? pathname === '/' : pathname.startsWith(to);
-  const iconColor = highlight ? '#178f89' : active ? '#0f3d3a' : '#64748b';
+  const iconColor = highlight ? '#178f89' : active ? 'text.primary' : 'text.secondary';
   return (
     <ListItemButton onClick={() => navigate(to)} selected={active}
       sx={{ borderRadius: 1.5, m: '1px 8px', py: 0.7, pl: 2.5,
@@ -149,7 +155,7 @@ const NavItem = ({ to, primaryText, icon, highlight }: { to: string; primaryText
         '&.Mui-selected:hover': { bgcolor: 'rgba(32,178,170,.18)' },
         '&:hover': { bgcolor: 'rgba(32,178,170,.06)' } }}>
       <ListItemIcon sx={{ minWidth: 34, color: iconColor, '& svg': { fontSize: 19 } }}>{icon}</ListItemIcon>
-      <ListItemText primary={primaryText} primaryTypographyProps={{ fontSize: 13, fontWeight: active || highlight ? 700 : 500, color: active || highlight ? '#0f3d3a' : '#334155', noWrap: true }} />
+      <ListItemText primary={primaryText} primaryTypographyProps={{ fontSize: 13, fontWeight: active || highlight ? 700 : 500, color: active || highlight ? 'text.primary' : 'text.secondary', noWrap: true }} />
     </ListItemButton>
   );
 };
@@ -214,7 +220,7 @@ const AppMenu = () => {
       <ListItemText primaryTypographyProps={{ fontSize: 13, fontWeight: 600 }}>Sair da conta</ListItemText>
     </MenuItem>
 
-    <Box sx={{ mt: 'auto', px: 2, py: 1.5, fontSize: 11, color: 'text.secondary', borderTop: '1px solid #e2e8f0' }}>
+    <Box sx={{ mt: 'auto', px: 2, py: 1.5, fontSize: 11, color: 'text.secondary', borderTop: '1px solid', borderColor: 'divider' }}>
       Meus Exames · {APP_BUILD_INFO.versionLabel}
     </Box>
 
@@ -225,21 +231,21 @@ const AppMenu = () => {
         Meus Exames
       </DialogTitle>
       <DialogContent sx={{ textAlign: 'center' }}>
-        <Typography sx={{ fontWeight: 800, fontSize: 18, color: '#0f3d3a', mb: 0.5 }}>{APP_BUILD_INFO.versionLabel}</Typography>
+        <Typography sx={{ fontWeight: 800, fontSize: 18, color: 'text.primary', mb: 0.5 }}>{APP_BUILD_INFO.versionLabel}</Typography>
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2, fontFamily: 'monospace', fontSize: 11 }}>
           branch {APP_BUILD_INFO.branch} · build {new Date(APP_BUILD_INFO.builtAt).toLocaleString('pt-BR')}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Seu assistente de saúde com inteligência artificial.</Typography>
         <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', flexWrap: 'wrap', mb: 2 }}>
-          <Chip size="small" label="IA GLM-4.6" sx={{ bgcolor: '#e0f2f1', color: '#178f89', fontWeight: 700 }} />
-          <Chip size="small" label="Scanner ML Kit" sx={{ bgcolor: '#e0f2f1', color: '#178f89', fontWeight: 700 }} />
-          <Chip size="small" label="LGPD" sx={{ bgcolor: '#e0f2f1', color: '#178f89', fontWeight: 700 }} />
+          <Chip size="small" label="IA GLM-4.6" sx={{ bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 700 }} />
+          <Chip size="small" label="Scanner ML Kit" sx={{ bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 700 }} />
+          <Chip size="small" label="LGPD" sx={{ bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 700 }} />
         </Box>
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
           📧 contato@janocaminho.com.br<br />
           🌐 janocaminho.com.br/minhasaude
         </Typography>
-        <Typography variant="caption" sx={{ color: '#94a3b8', mt: 1, display: 'block' }}>
+        <Typography variant="caption" sx={{ color: 'text.secondary', mt: 1, display: 'block' }}>
           Conteúdo educativo. Não substitui consulta, diagnóstico ou tratamento médico.
         </Typography>
       </DialogContent>
@@ -280,25 +286,25 @@ const AppDrawer = () => {
   }, []);
   return (
     <Drawer anchor="left" open={open} onClose={closeDrawer} keepMounted={false}
-      PaperProps={{ sx: { width: { xs: '86vw', sm: 340 }, maxWidth: 360, display: 'flex', flexDirection: 'column', bgcolor: '#fff' } }}>
+      PaperProps={{ sx: { width: { xs: '86vw', sm: 340 }, maxWidth: 360, display: 'flex', flexDirection: 'column', bgcolor: 'background.paper' } }}>
       {/* Header — PERFIL do usuário (clean: branco, avatar + nome + plano/email, X discreto). Sem bloco verde. */}
       <Box sx={{ position: 'relative', px: 2, pt: 'calc(env(safe-area-inset-top) + 16px)', pb: 2 }}>
-        <IconButton onClick={closeDrawer} size="small" title="Fechar" sx={{ position: 'absolute', top: 'calc(env(safe-area-inset-top) + 10px)', right: 8, color: '#94a3b8', '&:hover': { color: '#0f3d3a', bgcolor: 'transparent' } }}><CloseIcon fontSize="small" /></IconButton>
+        <IconButton onClick={closeDrawer} size="small" title="Fechar" sx={{ position: 'absolute', top: 'calc(env(safe-area-inset-top) + 10px)', right: 8, color: 'text.secondary', '&:hover': { color: 'text.primary', bgcolor: 'transparent' } }}><CloseIcon fontSize="small" /></IconButton>
         <Stack direction="row" alignItems="center" spacing={1.5}>
-          <Avatar src={userPhoto} sx={{ width: 48, height: 48, bgcolor: '#e0f2f1', color: '#178f89', fontWeight: 800, border: '2px solid #bfe0dc' }}>{userName?.charAt(0)?.toUpperCase() || '👤'}</Avatar>
+          <Avatar src={userPhoto} sx={{ width: 48, height: 48, bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 800, border: '2px solid rgba(32,178,170,0.3)' }}>{userName?.charAt(0)?.toUpperCase() || '👤'}</Avatar>
           <Box sx={{ minWidth: 0, flex: 1 }}>
-            <Typography sx={{ fontWeight: 800, fontSize: 16, color: '#0f3d3a', lineHeight: 1.15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{userName || 'Olá!'}</Typography>
-            <Typography sx={{ fontSize: 12.5, color: '#94a3b8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{isPremium ? '👑 Premium' : 'Plano grátis'}{userObj?.credits != null ? ` • 💎 ${userObj.credits}` : ''}</Typography>
+            <Typography sx={{ fontWeight: 800, fontSize: 16, color: 'text.primary', lineHeight: 1.15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{userName || 'Olá!'}</Typography>
+            <Typography sx={{ fontSize: 12.5, color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{isPremium ? '👑 Premium' : 'Plano grátis'}{userObj?.credits != null ? ` • 💎 ${userObj.credits}` : ''}</Typography>
             {credits != null && (
               <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 0.25 }}>
-                <Typography sx={{ fontSize: 11.5, color: '#64748b', fontWeight: 600, whiteSpace: 'nowrap' }}>⚡ {credits} créditos</Typography>
+                <Typography sx={{ fontSize: 11.5, color: 'text.secondary', fontWeight: 600, whiteSpace: 'nowrap' }}>⚡ {credits} créditos</Typography>
                 <Box component="button" onClick={() => { closeDrawer(); navigate('/planos'); }} sx={{ fontSize: 11.5, color: '#059669', fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer', p: 0, whiteSpace: 'nowrap' }}>(+ Recarregar)</Box>
               </Stack>
             )}
           </Box>
         </Stack>
       </Box>
-      <Divider sx={{ borderColor: '#eef2f1' }} />
+      <Divider sx={{ borderColor: 'divider' }} />
       {/* Corpo rolável — reutiliza o MESMO AppMenu do Sidebar (fonte única de verdade) */}
       <Box sx={{ flex: 1, overflowY: 'auto', pb: 2 }}><AppMenu /></Box>
     </Drawer>
@@ -355,7 +361,7 @@ const AppLayout = (props: any) => {
         sx={{
           // Esconde o ☰ nativo do react-admin no mobile (vamos usar nosso AppDrawer unificado). Desktop mantém.
           '& .RaAppBar-menuButton': { display: { xs: 'none', sm: 'inline-flex' } },
-          '& .RaLayout-content, & main': { padding: { xs: '2px 0 64px', sm: '6px 0 28px' } },
+          '& .RaLayout-content, & main': { padding: { xs: '2px 0 calc(72px + env(safe-area-inset-bottom))', sm: '6px 0 28px' } },
           '& .RaList-toolbar, [class*="List-toolbar"]': { minHeight: '40px !important', paddingBottom: '4px !important' },
         }} />
       {/* Menu lateral UNIFICADO (mobile) — ☰ e "Mais" abem o mesmo drawer */}
@@ -478,7 +484,9 @@ export const App = () => {
   <Admin
     dataProvider={dataProvider}
     authProvider={authProvider}
-    theme={theme}
+    theme={lightTheme}
+    darkTheme={darkTheme}
+    defaultTheme="light"
     i18nProvider={i18nProvider}
     layout={AppLayout}
     dashboard={Dashboard}

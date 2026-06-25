@@ -11,6 +11,9 @@ import { PremiumGate } from '../components/PremiumGate';
 interface TS { nameCanonical: string; unit: string | null; refLow: number | null; refHigh: number | null;
   points: { performedAt: string | null; valueNumeric: number; flag: string; title: string }[]; }
 
+/** Title Case pra exibição (ALL CAPS → legível): "CAPACIDADE_LATENTE" → "Capacidade Latente". */
+const prettyName = (n: string) => (n || '').toLowerCase().replace(/_/g, ' ').replace(/(^|\s)\w/g, (m) => m.toUpperCase());
+
 export const TrendsPage = () => {
   const [pid] = useSelectedPatient();
   const [names, setNames] = useState<{ nameCanonical: string; count: number }[]>([]);
@@ -107,16 +110,16 @@ export const TrendsPage = () => {
           {multi.length > 1 && (
             <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mb: 1.5 }}>
               {multi.slice(0, 10).map((n) => (
-                <Chip key={n.nameCanonical} label={n.nameCanonical} onClick={() => setSel(n.nameCanonical)}
-                  color={sel === n.nameCanonical ? 'primary' : 'default'} size="small"
-                  sx={{ fontWeight: 700, borderRadius: 99, '&.MuiChip-colorPrimary': { bgcolor: '#20b2aa', color: '#fff' } }} />
+                <Chip key={n.nameCanonical} label={prettyName(n.nameCanonical)} onClick={() => setSel(n.nameCanonical)}
+                  color={sel === n.nameCanonical ? 'primary' : 'default'} size="small" title={prettyName(n.nameCanonical)}
+                  sx={{ fontWeight: 700, borderRadius: 99, maxWidth: 165, '& .MuiChip-label': { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }, '&.MuiChip-colorPrimary': { bgcolor: '#20b2aa', color: '#fff' } }} />
               ))}
             </Stack>
           )}
           <FormControl fullWidth size="small">
             <Select value={sel} onChange={(e) => setSel(e.target.value as string)} displayEmpty sx={{ borderRadius: 2 }}>
               <MenuItem value="" disabled><em>Todos os analitos ({multi.length})</em></MenuItem>
-              {multi.map((n) => <MenuItem key={n.nameCanonical} value={n.nameCanonical}>{n.nameCanonical} ({n.count} exames)</MenuItem>)}
+              {multi.map((n) => <MenuItem key={n.nameCanonical} value={n.nameCanonical}>{prettyName(n.nameCanonical)} ({n.count} exames)</MenuItem>)}
             </Select>
           </FormControl>
         </CardContent></Card>
@@ -127,7 +130,7 @@ export const TrendsPage = () => {
         <Card sx={{ borderRadius: 4, textAlign: 'center', py: 5 }}>
           <CardContent>
             <Box sx={{ fontSize: 56, mb: 1 }}>📊</Box>
-            <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f3d3a', mb: 0.5 }}>
+            <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', mb: 0.5 }}>
               {names.length === 0 ? 'Nada pra comparar ainda' : 'Quase lá!'}
             </Typography>
             <Typography color="text.secondary" sx={{ maxWidth: 340, mx: 'auto' }}>
@@ -147,7 +150,7 @@ export const TrendsPage = () => {
         <Card sx={{ borderRadius: 3 }}><CardContent sx={{ p: { xs: 1.5, md: 3 } }}>
           {/* Título do analito + botão explicar */}
           <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mb: 1 }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#178f89' }}>{ts.nameCanonical}</Typography>
+            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#178f89' }}>{prettyName(ts.nameCanonical)}</Typography>
             <ExplainButton name={ts.nameCanonical} nameCanonical={ts.nameCanonical} />
           </Stack>
 
@@ -163,9 +166,9 @@ export const TrendsPage = () => {
           {/* Gráfico */}
           <ResponsiveContainer width="100%" height={isMobile ? 240 : 340}>
             <LineChart data={data} margin={{ top: 10, right: isMobile ? 8 : 20, bottom: 10, left: isMobile ? -10 : 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis dataKey="name" tick={{ fontSize: isMobile ? 10 : 12, fill: '#94a3b8' }} axisLine={{ stroke: '#e2e8f0' }} />
-              <YAxis tick={{ fontSize: isMobile ? 10 : 12, fill: '#94a3b8' }} axisLine={{ stroke: '#e2e8f0' }} />
+              <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
+              <XAxis dataKey="name" tick={{ fontSize: isMobile ? 10 : 12, fill: theme.palette.text.secondary }} axisLine={{ stroke: theme.palette.divider }} />
+              <YAxis tick={{ fontSize: isMobile ? 10 : 12, fill: theme.palette.text.secondary }} axisLine={{ stroke: theme.palette.divider }} />
               <Tooltip content={<TooltipBox />} />
               {ts.refLow != null && ts.refHigh != null && (
                 <ReferenceArea y1={ts.refLow} y2={ts.refHigh} fill="#22c55e" fillOpacity={0.08} />

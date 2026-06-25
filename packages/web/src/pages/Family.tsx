@@ -83,7 +83,7 @@ export const FamilyPage = () => {
                   </Box>
                 </Stack>
                 {p.score != null && (
-                  <Box sx={{ height: 8, borderRadius: 4, bgcolor: '#e2e8f0', mt: 1.5, overflow: 'hidden' }}>
+                  <Box sx={{ height: 8, borderRadius: 4, bgcolor: 'divider', mt: 1.5, overflow: 'hidden' }}>
                     <Box sx={{ height: '100%', width: `${p.score}%`, background: scoreColor(p.score), borderRadius: 4 }} />
                   </Box>
                 )}

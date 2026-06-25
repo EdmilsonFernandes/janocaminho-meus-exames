@@ -30,7 +30,7 @@ const I = {
 };
 
 const fieldSx = {
-  '& .MuiOutlinedInput-root': { borderRadius: '8px', bgcolor: '#fff', '& fieldset': { borderColor: '#dde3e8' }, '&:hover fieldset': { borderColor: '#7fcfc6' }, '&.Mui-focused fieldset': { borderColor: '#20b2aa', borderWidth: '1.5px' } },
+  '& .MuiOutlinedInput-root': { borderRadius: '8px', bgcolor: 'background.paper', '& fieldset': { borderColor: 'divider' }, '&:hover fieldset': { borderColor: '#7fcfc6' }, '&.Mui-focused fieldset': { borderColor: '#20b2aa', borderWidth: '1.5px' } },
 } as const;
 
 const SCOPE_META: Record<string, { label: string; icon: string }> = {
@@ -104,10 +104,10 @@ export const DoctorPortalPage = () => {
   if (pendingEmail) {
     return (
       <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2, background: 'linear-gradient(135deg,#e6f7f5,#d4f0ec)' }}>
-        <Box sx={{ width: '100%', maxWidth: 420, bgcolor: '#fff', borderRadius: '16px', boxShadow: '0 10px 40px rgba(0,80,70,.12)', p: { xs: 3, sm: 4 } }}>
-          <Button size="small" onClick={() => { setPendingEmail(null); setErr(''); }} sx={{ color: '#64748b', textTransform: 'none', fontWeight: 700, p: 0, minWidth: 0, mb: 1 }}>← Voltar</Button>
-          <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f3d3a', mb: 0.5 }}>✉️ Confirme seu e-mail</Typography>
-          <Typography variant="body2" sx={{ color: '#4a6b66', mb: 2 }}>Enviamos um código de 6 dígitos para <strong>{pendingEmail}</strong>. Digite abaixo pra ativar sua conta de médico.</Typography>
+        <Box sx={{ width: '100%', maxWidth: 420, bgcolor: 'background.paper', borderRadius: '16px', boxShadow: '0 10px 40px rgba(0,80,70,.12)', p: { xs: 3, sm: 4 } }}>
+          <Button size="small" onClick={() => { setPendingEmail(null); setErr(''); }} sx={{ color: 'text.secondary', textTransform: 'none', fontWeight: 700, p: 0, minWidth: 0, mb: 1 }}>← Voltar</Button>
+          <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', mb: 0.5 }}>✉️ Confirme seu e-mail</Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>Enviamos um código de 6 dígitos para <strong>{pendingEmail}</strong>. Digite abaixo pra ativar sua conta de médico.</Typography>
           <Box component="form" onSubmit={verifyEmail} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <TextField autoFocus value={verifyCode} onChange={(e) => setVerifyCode(e.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="Código (6 dígitos)" inputMode="numeric" required sx={fieldSx} />
             {err && <Alert severity="error" sx={{ py: 0.5, borderRadius: 2 }}>{err}</Alert>}
@@ -120,25 +120,25 @@ export const DoctorPortalPage = () => {
 
   return (
     <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2, background: 'linear-gradient(135deg,#e6f7f5,#d4f0ec)' }}>
-      <Box sx={{ width: '100%', maxWidth: 420, bgcolor: '#fff', borderRadius: '16px', boxShadow: '0 10px 40px rgba(0,80,70,.12)', p: { xs: 3, sm: 4 } }}>
+      <Box sx={{ width: '100%', maxWidth: 420, bgcolor: 'background.paper', borderRadius: '16px', boxShadow: '0 10px 40px rgba(0,80,70,.12)', p: { xs: 3, sm: 4 } }}>
         <Box sx={{ mb: 1 }}>
-          <Button size="small" onClick={() => navigate('/')} sx={{ color: '#64748b', textTransform: 'none', fontWeight: 700, p: 0, minWidth: 0, '&:hover': { bgcolor: 'transparent', color: TEAL } }}>← Voltar ao app</Button>
+          <Button size="small" onClick={() => navigate('/')} sx={{ color: 'text.secondary', textTransform: 'none', fontWeight: 700, p: 0, minWidth: 0, '&:hover': { bgcolor: 'transparent', color: TEAL } }}>← Voltar ao app</Button>
         </Box>
         <Stack alignItems="center" spacing={1} sx={{ mb: 3 }}>
-          <Box sx={{ width: 78, height: 78, borderRadius: '50%', bgcolor: '#e0f2f1', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'inset 0 0 0 1px rgba(32,178,170,.15)' }}>
+          <Box sx={{ width: 78, height: 78, borderRadius: '50%', bgcolor: 'rgba(32,178,170,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'inset 0 0 0 1px rgba(32,178,170,.15)' }}>
             <DrExame size={56} sx={{ borderRadius: '50%' }} />
           </Box>
-          <Typography variant="h5" sx={{ fontWeight: 800, color: '#0f3d3a', fontFamily: 'Poppins, sans-serif' }}>Portal do Médico</Typography>
-          <Typography variant="caption" sx={{ color: '#757575' }}>{mode === 'register' ? 'Crie sua conta de profissional de saúde' : 'Acesso restrito a profissionais'}</Typography>
+          <Typography variant="h5" sx={{ fontWeight: 800, color: 'text.primary', fontFamily: 'Poppins, sans-serif' }}>Portal do Médico</Typography>
+          <Typography variant="caption" sx={{ color: 'text.secondary' }}>{mode === 'register' ? 'Crie sua conta de profissional de saúde' : 'Acesso restrito a profissionais'}</Typography>
         </Stack>
 
         <Box component="form" onSubmit={submit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {mode === 'register' && (<>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, p: 1.25, borderRadius: 2, background: 'linear-gradient(135deg,#e0f2f1,#d6ece8)', border: '1px solid #bfe7e3' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, p: 1.25, borderRadius: 2, background: 'rgba(32,178,170,0.08)', border: '1px solid', borderColor: 'divider' }}>
               <Box sx={{ fontSize: 24, flexShrink: 0 }}>🩺</Box>
               <Box>
-                <Typography sx={{ fontSize: 12.5, fontWeight: 800, color: '#0f3d3a' }}>Conta de Profissional de Saúde</Typography>
-                <Typography sx={{ fontSize: 11, color: '#4a6b66', lineHeight: 1.35 }}>Use o <strong>mesmo CRM</strong> que seu paciente informou no convite pra ativar seu acesso.</Typography>
+                <Typography sx={{ fontSize: 12.5, fontWeight: 800, color: 'text.primary' }}>Conta de Profissional de Saúde</Typography>
+                <Typography sx={{ fontSize: 11, color: 'text.secondary', lineHeight: 1.35 }}>Use o <strong>mesmo CRM</strong> que seu paciente informou no convite pra ativar seu acesso.</Typography>
               </Box>
             </Box>
             <TextField placeholder="Nome completo" required value={regName} onChange={(e) => setRegName(e.target.value)} sx={fieldSx}
@@ -173,15 +173,15 @@ export const DoctorPortalPage = () => {
           </Button>
         </Box>
 
-        <Typography align="center" sx={{ mt: 2, fontSize: 13, color: '#46555a' }}>
+        <Typography align="center" sx={{ mt: 2, fontSize: 13, color: 'text.secondary' }}>
           {mode === 'login' ? 'Primeiro acesso?' : 'Já tem conta?'}{' '}
           <Link component="button" type="button" onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setErr(''); }} sx={{ fontWeight: 700, color: '#00897b' }}>
             {mode === 'login' ? 'Cadastrar' : 'Fazer login'}
           </Link>
         </Typography>
-        <Box sx={{ mt: 2, display: 'flex', gap: 1, alignItems: 'flex-start', p: 1.25, borderRadius: 2, background: '#f0f9f7', border: '1px solid #d6ece8' }}>
+        <Box sx={{ mt: 2, display: 'flex', gap: 1, alignItems: 'flex-start', p: 1.25, borderRadius: 2, background: 'background.default', border: '1px solid', borderColor: 'divider' }}>
           <Box sx={{ fontSize: 16, lineHeight: 1.3, flexShrink: 0 }}>🩺</Box>
-          <Typography sx={{ fontSize: 11.5, color: '#4a6b66', lineHeight: 1.45 }}><strong>Conteúdo educativo.</strong> O paciente controla o que compartilha. Você vê apenas os exames e dados autorizados.</Typography>
+          <Typography sx={{ fontSize: 11.5, color: 'text.secondary', lineHeight: 1.45 }}><strong>Conteúdo educativo.</strong> O paciente controla o que compartilha. Você vê apenas os exames e dados autorizados.</Typography>
         </Box>
       </Box>
     </Box>
@@ -334,10 +334,10 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         </Stack>
       </Box>
       <Divider />
-      <Box sx={{ mx: '10px', mt: 1.5, p: 1.25, borderRadius: 2, background: 'linear-gradient(135deg,#e0f2f1,#d6ece8)', border: '1px solid #bfe7e3' }}>
+      <Box sx={{ mx: '10px', mt: 1.5, p: 1.25, borderRadius: 2, background: 'rgba(32,178,170,0.08)', border: '1px solid', borderColor: 'divider' }}>
         <Typography variant="caption" sx={{ fontWeight: 800, color: TEAL, display: 'block' }}>PLANO</Typography>
-        <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#0f3d3a' }}>✅ Grátis (médico)</Typography>
-        <Typography variant="caption" sx={{ color: '#4a6b66' }}>O portal do médico é gratuito por ora. Em breve: Premium do Médico.</Typography>
+        <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary' }}>✅ Grátis (médico)</Typography>
+        <Typography variant="caption" sx={{ color: 'text.secondary' }}>O portal do médico é gratuito por ora. Em breve: Premium do Médico.</Typography>
       </Box>
       <List sx={{ pt: 1, '& .MuiListItemButton-root': { borderRadius: 2, m: '2px 10px' } }}>
         <ListItemButton selected={view === 'patients'} onClick={() => { setView('patients'); setSelected(null); setSelExam(null); onNav(); }}><ListItemIcon sx={{ minWidth: 38 }}><GroupsIcon sx={{ color: TEAL }} /></ListItemIcon><ListItemText primary="Pacientes" primaryTypographyProps={{ fontWeight: 600 }} /></ListItemButton>
@@ -346,15 +346,15 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         <Divider sx={{ my: 1 }} />
         <ListItemButton onClick={() => { onNav(); onLogout(); }} sx={{ color: 'error.main' }}><ListItemIcon sx={{ minWidth: 38 }}><LogoutIcon sx={{ color: 'error.main' }} /></ListItemIcon><ListItemText primary="Sair" primaryTypographyProps={{ fontWeight: 600 }} /></ListItemButton>
       </List>
-      <Typography variant="caption" sx={{ mt: 'auto', p: 2, color: '#94a3b8' }}>Portal do Médico</Typography>
+      <Typography variant="caption" sx={{ mt: 'auto', p: 2, color: 'text.secondary' }}>Portal do Médico</Typography>
     </>
   );
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#f4faf9', display: 'flex' }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', display: 'flex' }}>
       {/* MENU vertical PERMANENTE (web/desktop) — abre igual ao app do paciente. Mobile usa o Drawer abaixo. */}
       {isDesktop && (
-        <Box component="nav" sx={{ width: 290, flexShrink: 0, borderRight: '1px solid #dceaea', bgcolor: '#fff', display: 'flex', flexDirection: 'column', position: 'sticky', top: 0, height: '100vh', overflowY: 'auto' }}>
+        <Box component="nav" sx={{ width: 290, flexShrink: 0, borderRight: '1px solid', borderRightColor: 'divider', bgcolor: 'background.paper', display: 'flex', flexDirection: 'column', position: 'sticky', top: 0, height: '100vh', overflowY: 'auto' }}>
           {renderSideMenu(() => {})}
         </Box>
       )}
@@ -383,7 +383,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         {view === 'patients' && !loading && !selected && (
           <>
             <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
-              <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f3d3a' }}>Pacientes ({patients.length})</Typography>
+              <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary' }}>Pacientes ({patients.length})</Typography>
               {patients.some((p) => p.hasAlerts) && <Chip size="small" color="error" label={`🔴 ${patients.filter((p) => p.hasAlerts).length} com alerta`} sx={{ fontWeight: 700 }} />}
             </Stack>
             {patients.length > 0 && (
@@ -421,25 +421,25 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 const card = (p: any, key: string) => {
                   const sex = p.sex === 'female' ? 'F' : p.sex === 'male' ? 'M' : null;
                   return (
-                    <Card key={key} sx={{ borderRadius: 4, cursor: 'pointer', transition: 'all .15s', border: '1px solid #e2efec', borderLeft: p.hasAlerts ? '5px solid #ef4444' : '5px solid transparent', '&:hover': { boxShadow: '0 8px 24px rgba(32,178,170,.15)', transform: 'translateY(-1px)' } }} onClick={() => openPatient(p)}>
+                    <Card key={key} sx={{ borderRadius: 4, cursor: 'pointer', transition: 'all .15s', border: '1px solid', borderColor: 'divider', borderLeft: p.hasAlerts ? '5px solid #ef4444' : '5px solid transparent', '&:hover': { boxShadow: '0 8px 24px rgba(32,178,170,.15)', transform: 'translateY(-1px)' } }} onClick={() => openPatient(p)}>
                       <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.75, py: 1.5 }}>
                         <Badge color="error" variant="dot" invisible={!p.hasAlerts} overlap="circular" anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
                           <Avatar src={p.patient?.id ? `${API_URL}/patients/${p.patient.id}/photo` : undefined} sx={{ bgcolor: TEAL, fontWeight: 800, width: 48, height: 48 }}>{p.patient?.fullName?.charAt(0)}</Avatar>
                         </Badge>
                         <Box sx={{ flex: 1, minWidth: 0 }}>
                           <Stack direction="row" alignItems="center" spacing={0.75} useFlexGap flexWrap="wrap">
-                            <Typography sx={{ fontWeight: 800, color: '#0f3d3a' }}>{p.patient?.fullName}</Typography>
+                            <Typography sx={{ fontWeight: 800, color: 'text.primary' }}>{p.patient?.fullName}</Typography>
                             {p.code && <Chip size="small" label={p.code} sx={{ height: 18, fontSize: 10, bgcolor: '#0f3d3a', color: '#fff', fontWeight: 700, fontFamily: 'monospace' }} />}
-                            {p.relationship && <Chip size="small" label={p.relationship} sx={{ height: 18, fontSize: 10, bgcolor: '#f1f5f9', color: '#475569', fontWeight: 600 }} />}
-                            {p.age != null && <Chip size="small" label={`${p.age}a`} sx={{ height: 18, fontSize: 10, bgcolor: '#f1f5f9', color: '#475569', fontWeight: 700 }} />}
+                            {p.relationship && <Chip size="small" label={p.relationship} sx={{ height: 18, fontSize: 10, bgcolor: 'action.hover', color: 'text.secondary', fontWeight: 600 }} />}
+                            {p.age != null && <Chip size="small" label={`${p.age}a`} sx={{ height: 18, fontSize: 10, bgcolor: 'action.hover', color: 'text.secondary', fontWeight: 700 }} />}
                             {sex && <Chip size="small" label={sex} sx={{ height: 18, fontSize: 10, bgcolor: sex === 'F' ? '#fce7f3' : '#dbeafe', color: sex === 'F' ? '#be185d' : '#1d4ed8', fontWeight: 700 }} />}
                             {p.hasAlerts && <Chip size="small" label="alerta" sx={{ height: 18, fontSize: 10, bgcolor: '#fee2e2', color: '#b91c1c', fontWeight: 700 }} />}
                           </Stack>
                           <Box sx={{ mt: 0.5, display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-                            {p.latestWeight && <Chip size="small" label={`⚖️ ${p.latestWeight.value}kg`} sx={{ height: 20, fontSize: 10, bgcolor: '#f0f9f7', color: '#0f3d3a' }} />}
-                            {p.lastExamAt && <Chip size="small" label={`📅 ${fmtDate(p.lastExamAt)}`} sx={{ height: 20, fontSize: 10, bgcolor: '#f0f9f7', color: '#0f3d3a' }} />}
-                            {p.examsCount > 0 && <Chip size="small" label={`📋 ${p.examsCount}`} sx={{ height: 20, fontSize: 10, bgcolor: '#f0f9f7', color: '#0f3d3a' }} />}
-                            <Chip size="small" label={p.convenio || 'Particular'} sx={{ height: 20, fontSize: 10, bgcolor: '#e0f2f1', color: TEAL, fontWeight: 600 }} />
+                            {p.latestWeight && <Chip size="small" label={`⚖️ ${p.latestWeight.value}kg`} sx={{ height: 20, fontSize: 10, bgcolor: 'rgba(32,178,170,0.12)', color: 'text.primary' }} />}
+                            {p.lastExamAt && <Chip size="small" label={`📅 ${fmtDate(p.lastExamAt)}`} sx={{ height: 20, fontSize: 10, bgcolor: 'rgba(32,178,170,0.12)', color: 'text.primary' }} />}
+                            {p.examsCount > 0 && <Chip size="small" label={`📋 ${p.examsCount}`} sx={{ height: 20, fontSize: 10, bgcolor: 'rgba(32,178,170,0.12)', color: 'text.primary' }} />}
+                            <Chip size="small" label={p.convenio || 'Particular'} sx={{ height: 20, fontSize: 10, bgcolor: 'rgba(32,178,170,0.15)', color: TEAL, fontWeight: 600 }} />
                           </Box>
                         </Box>
                         <Typography sx={{ color: TEAL, fontWeight: 800, fontSize: 20 }}>›</Typography>
@@ -451,16 +451,16 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                   if (g.items.length === 1) return card(g.items[0], g.items[0].shareId);
                   const famAlerts = g.items.filter((p) => p.hasAlerts).length;
                   return (
-                    <Accordion key={g.ownerId} defaultExpanded={false} disableGutters elevation={0} sx={{ '&:before': { display: 'none' }, border: '1px solid #e2efec', borderRadius: '12px !important', overflow: 'hidden' }}>
-                      <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: '#f0f9f7', minHeight: '48px !important', '& .MuiAccordionSummary-content': { my: 0.5 } }}>
+                    <Accordion key={g.ownerId} defaultExpanded={false} disableGutters elevation={0} sx={{ '&:before': { display: 'none' }, border: '1px solid', borderColor: 'divider', borderRadius: '12px !important', overflow: 'hidden' }}>
+                      <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: 'rgba(32,178,170,0.08)', minHeight: '48px !important', '& .MuiAccordionSummary-content': { my: 0.5 } }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
                           <Box sx={{ fontSize: 18 }}>👨‍👩‍👧</Box>
-                          <Typography sx={{ fontWeight: 800, color: '#0f3d3a', flex: 1, minWidth: 0 }}>Família {g.ownerName}</Typography>
-                          <Chip size="small" label={`${g.items.length}`} sx={{ height: 20, fontSize: 10, bgcolor: '#e0f2f1', color: TEAL, fontWeight: 700 }} />
+                          <Typography sx={{ fontWeight: 800, color: 'text.primary', flex: 1, minWidth: 0 }}>Família {g.ownerName}</Typography>
+                          <Chip size="small" label={`${g.items.length}`} sx={{ height: 20, fontSize: 10, bgcolor: 'rgba(32,178,170,0.15)', color: TEAL, fontWeight: 700 }} />
                           {famAlerts > 0 && <Chip size="small" color="error" label={`${famAlerts} alerta`} sx={{ height: 20, fontSize: 10, fontWeight: 700 }} />}
                         </Box>
                       </AccordionSummary>
-                      <AccordionDetails sx={{ p: 1.25, bgcolor: '#fbfdfc' }}><Stack spacing={1.25}>{g.items.map((p) => card(p, p.shareId))}</Stack></AccordionDetails>
+                      <AccordionDetails sx={{ p: 1.25, bgcolor: 'background.paper' }}><Stack spacing={1.25}>{g.items.map((p) => card(p, p.shareId))}</Stack></AccordionDetails>
                     </Accordion>
                   );
                 });
@@ -477,15 +477,15 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               <Avatar src={selected.patient?.id ? `${API_URL}/patients/${selected.patient.id}/photo` : undefined} sx={{ bgcolor: TEAL, width: 36, height: 36, fontSize: 16 }}>{selected.patient?.fullName?.charAt(0)}</Avatar>
               <Box>
                 <Stack direction="row" alignItems="center" spacing={0.75}>
-                  <Typography sx={{ fontWeight: 800, color: '#0f3d3a', lineHeight: 1.1 }}>{selected.patient?.fullName}</Typography>
+                  <Typography sx={{ fontWeight: 800, color: 'text.primary', lineHeight: 1.1 }}>{selected.patient?.fullName}</Typography>
                   {selected.code && <Chip size="small" label={selected.code} sx={{ height: 18, fontSize: 10, bgcolor: '#0f3d3a', color: '#fff', fontWeight: 700, fontFamily: 'monospace' }} />}
                 </Stack>
-                <Typography variant="caption" sx={{ color: '#757575' }}>{[selected.age != null ? `${selected.age} anos` : null, selected.sex === 'female' ? 'Feminino' : selected.sex === 'male' ? 'Masculino' : null, selected.patient?.relationship, selected.convenio || 'Particular', selected.latestWeight ? `${selected.latestWeight.value} kg` : null].filter(Boolean).join(' • ')}</Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>{[selected.age != null ? `${selected.age} anos` : null, selected.sex === 'female' ? 'Feminino' : selected.sex === 'male' ? 'Masculino' : null, selected.patient?.relationship, selected.convenio || 'Particular', selected.latestWeight ? `${selected.latestWeight.value} kg` : null].filter(Boolean).join(' • ')}</Typography>
               </Box>
             </Stack>
 
             {selected.patient?.clinicalProfile && (
-              <Card sx={{ mb: 2, borderRadius: 3, bgcolor: '#f0f9f7', border: '1px solid #d6ece8' }}><CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
+              <Card sx={{ mb: 2, borderRadius: 3, bgcolor: 'rgba(32,178,170,0.08)', border: '1px solid', borderColor: 'divider' }}><CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
                 <Typography variant="caption" sx={{ fontWeight: 800, color: TEAL }}>PERFIL CLÍNICO</Typography>
                 <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', mt: 0.25 }}>{selected.patient.clinicalProfile}</Typography>
               </CardContent></Card>
@@ -523,7 +523,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                     const on = tab === s;
                     const meta = SCOPE_META[s] || { icon: '📄', label: s };
                     return (
-                      <Chip key={s} onClick={() => setTab(s)} label={`${meta.icon} ${meta.label}`} sx={{ height: 32, borderRadius: 99, fontSize: 12.5, fontWeight: on ? 800 : 600, cursor: 'pointer', bgcolor: on ? TEAL : 'transparent', color: on ? '#fff' : TEAL, border: `1px solid ${on ? TEAL : '#bfe0dc'}`, '&:hover': { bgcolor: on ? '#0f7670' : 'rgba(32,178,170,.08)' } }} />
+                      <Chip key={s} onClick={() => setTab(s)} label={`${meta.icon} ${meta.label}`} sx={{ height: 32, borderRadius: 99, fontSize: 12.5, fontWeight: on ? 800 : 600, cursor: 'pointer', bgcolor: on ? TEAL : 'transparent', color: on ? '#fff' : TEAL, border: `1px solid ${on ? TEAL : 'divider'}`, '&:hover': { bgcolor: on ? '#0f7670' : 'rgba(32,178,170,.08)' } }} />
                     );
                   })}
                 </Stack>
@@ -535,19 +535,19 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                   <Stack spacing={1.5}>
                     {exams.length === 0 && <Empty label="Sem exames extraídos." />}
                     {examsByYear.map((g) => (
-                      <Accordion key={g.year} defaultExpanded={g.year === examsByYear[0]?.year} disableGutters elevation={0} sx={{ '&:before': { display: 'none' }, border: '1px solid #e2efec', borderRadius: '12px !important', overflow: 'hidden' }}>
-                        <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: '#f0f9f7', minHeight: '48px !important', '& .MuiAccordionSummary-content': { my: 0.75 } }}>
-                          <Typography sx={{ fontWeight: 800, color: '#0f3d3a' }}>{g.year === 0 ? 'Sem data' : g.year}</Typography>
-                          <Chip size="small" label={g.items.length} sx={{ ml: 1, bgcolor: '#e0f2f1', color: TEAL, fontWeight: 700, height: 20 }} />
+                      <Accordion key={g.year} defaultExpanded={g.year === examsByYear[0]?.year} disableGutters elevation={0} sx={{ '&:before': { display: 'none' }, border: '1px solid', borderColor: 'divider', borderRadius: '12px !important', overflow: 'hidden' }}>
+                        <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: 'rgba(32,178,170,0.08)', minHeight: '48px !important', '& .MuiAccordionSummary-content': { my: 0.75 } }}>
+                          <Typography sx={{ fontWeight: 800, color: 'text.primary' }}>{g.year === 0 ? 'Sem data' : g.year}</Typography>
+                          <Chip size="small" label={g.items.length} sx={{ ml: 1, bgcolor: 'rgba(32,178,170,0.15)', color: TEAL, fontWeight: 700, height: 20 }} />
                         </AccordionSummary>
                         <AccordionDetails sx={{ p: 1.25 }}>
                           <Stack spacing={1}>
                             {g.items.map((ex) => (
-                              <Card key={ex.id} variant="outlined" onClick={() => openExam(ex)} sx={{ borderRadius: 2.5, borderColor: '#e2efec', cursor: 'pointer', transition: 'all .15s', '&:hover': { borderColor: TEAL, boxShadow: '0 4px 12px rgba(32,178,170,.1)' } }}><CardContent sx={{ py: 1.25, '&:last-child': { pb: 1.25 } }}>
+                              <Card key={ex.id} variant="outlined" onClick={() => openExam(ex)} sx={{ borderRadius: 2.5, borderColor: 'divider', cursor: 'pointer', transition: 'all .15s', '&:hover': { borderColor: TEAL, boxShadow: '0 4px 12px rgba(32,178,170,.1)' } }}><CardContent sx={{ py: 1.25, '&:last-child': { pb: 1.25 } }}>
                                 <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1.5}>
                                   <Box sx={{ flex: '1 1 auto', minWidth: 0 }}>
-                                    <Typography sx={{ fontWeight: 700, color: '#0f3d3a' }}>{ex.title}</Typography>
-                                    <Typography variant="caption" sx={{ color: '#757575' }}>{fmtDate(ex.performedAt)}{ex.sourceLab ? ` • ${ex.sourceLab}` : ''} • {ex._count?.items ?? 0} itens{ex.requestingDoctor ? ` • Dr. ${ex.requestingDoctor}` : ''}</Typography>
+                                    <Typography sx={{ fontWeight: 700, color: 'text.primary' }}>{ex.title}</Typography>
+                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>{fmtDate(ex.performedAt)}{ex.sourceLab ? ` • ${ex.sourceLab}` : ''} • {ex._count?.items ?? 0} itens{ex.requestingDoctor ? ` • Dr. ${ex.requestingDoctor}` : ''}</Typography>
                                   </Box>
                                   <Box sx={{ flexShrink: 0, pt: 0.25 }}>
                                     {ex.items?.length > 0 ? <Chip size="small" color="error" label={`${ex.items.length} alterado`} sx={{ fontWeight: 700, height: 20, whiteSpace: 'nowrap' }} /> : <Chip size="small" label="normal" sx={{ bgcolor: '#dcfce7', color: '#15803d', fontWeight: 700, height: 20, whiteSpace: 'nowrap' }} />}
@@ -571,7 +571,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                     <Stack spacing={1}>
                       {exWithAlerts.map((ex, idx) => (
                         <Accordion key={ex.id} defaultExpanded={idx === 0} disableGutters elevation={0} sx={{ border: '1px solid #f3dada', borderRadius: '12px', overflow: 'hidden', '&:before': { display: 'none' } }}>
-                          <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: '#fff5f5' }}>
+                          <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: 'rgba(239,68,68,0.08)' }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 1 }}>
                               <Box component="span" sx={{ fontSize: 18 }}>🚨</Box>
                               <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -587,7 +587,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                                 <Box key={i} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1, px: 1, py: 0.75, borderBottom: i < ex.items.length - 1 ? '1px solid #fde8e8' : 'none' }}>
                                   <Box sx={{ minWidth: 0 }}>
                                     <Typography sx={{ fontWeight: 700, fontSize: 13.5, color: '#b91c1c' }}>{it.name}</Typography>
-                                    <Typography variant="caption" sx={{ color: '#94a3b8' }}>{refLabel(it)}</Typography>
+                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>{refLabel(it)}</Typography>
                                   </Box>
                                   <Typography sx={{ fontWeight: 800, color: '#b91c1c', flexShrink: 0 }}>{it.valueText}</Typography>
                                 </Box>
@@ -608,10 +608,10 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                   <Stack spacing={1.5}>
                     {summaries.length === 0 && <Empty label="O paciente ainda não gerou resumos de IA." icon="🤖" />}
                     {summaries.map((s) => (
-                      <Card key={s.id} variant="outlined" sx={{ borderRadius: 3, borderColor: '#e2efec' }}><CardContent>
+                      <Card key={s.id} variant="outlined" sx={{ borderRadius: 3, borderColor: 'divider' }}><CardContent>
                         <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1 }}>
-                          <Typography sx={{ fontWeight: 700, color: '#0f3d3a' }}>🤖 {s.exam?.title || 'Resumo de IA'}</Typography>
-                          <Typography variant="caption" sx={{ color: '#94a3b8' }}>{new Date(s.createdAt).toLocaleDateString('pt-BR')}</Typography>
+                          <Typography sx={{ fontWeight: 700, color: 'text.primary' }}>🤖 {s.exam?.title || 'Resumo de IA'}</Typography>
+                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>{new Date(s.createdAt).toLocaleDateString('pt-BR')}</Typography>
                         </Stack>
                         <Box sx={{ '& p': { margin: '0.3em 0', fontSize: 14 }, '& h3': { fontSize: '0.95rem', fontWeight: 800, color: TEAL }, '& ul,& ol': { margin: '0.3em 0', paddingLeft: '1.2em' }, '& strong': { fontWeight: 700 } }}>
                           <ReactMarkdown>{s.contentMd}</ReactMarkdown>
@@ -641,13 +641,13 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
       )}
 
       {/* MENU RODAPÉ (igual app do paciente) — Pacientes · Perfil · Mais */}
-      <Box component="nav" sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1100, display: { xs: 'flex', sm: 'none' }, justifyContent: 'space-around', bgcolor: 'rgba(238,247,246,.97)', backdropFilter: 'blur(14px)', borderTop: '1px solid #dceaea', pb: 'env(safe-area-inset-bottom)', boxShadow: '0 -6px 24px rgba(32,178,170,.10)' }}>
+      <Box component="nav" sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1100, display: { xs: 'flex', sm: 'none' }, justifyContent: 'space-around', bgcolor: 'background.paper', backdropFilter: 'blur(14px)', borderTop: '1px solid', borderTopColor: 'divider', pb: 'env(safe-area-inset-bottom)', boxShadow: '0 -6px 24px rgba(32,178,170,.10)' }}>
         {([
           { icon: '👥', label: 'Pacientes', on: view === 'patients', onClick: () => { setView('patients'); setSelected(null); setSelExam(null); } },
           { icon: '👤', label: 'Perfil', on: view === 'profile' || view === 'password', onClick: () => setView('profile') },
           { icon: '☰', label: 'Mais', on: menuOpen, onClick: () => setMenuOpen(true) },
         ] as const).map((it) => (
-          <Box key={it.label} onClick={it.onClick} sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 0.9, cursor: 'pointer', color: it.on ? TEAL : '#8a979c', transition: 'color .15s', '&:active': { transform: 'scale(.92)' } }}>
+          <Box key={it.label} onClick={it.onClick} sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 0.9, cursor: 'pointer', color: it.on ? TEAL : 'text.secondary', transition: 'color .15s', '&:active': { transform: 'scale(.92)' } }}>
             <Box sx={{ fontSize: 21, lineHeight: 1 }}>{it.icon}</Box>
             <Typography sx={{ fontSize: 10, fontWeight: it.on ? 800 : 600, mt: 0.25, fontFamily: 'Poppins, sans-serif' }}>{it.label}</Typography>
             <Box sx={{ height: 3, width: it.on ? 22 : 0, borderRadius: 9, bgcolor: '#20b2aa', mt: 0.3, transition: 'width .2s' }} />
@@ -687,17 +687,17 @@ const DoctorProfile = ({ token, doctor, onBack, onSaved, onPhoto, photoVer }: { 
     <Box>
       <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
         <Button size="small" onClick={onBack} sx={{ color: TEAL, textTransform: 'none', fontWeight: 700, minWidth: 0 }}>← Voltar</Button>
-        <Typography sx={{ fontWeight: 800, color: '#0f3d3a' }}>Meu perfil</Typography>
+        <Typography sx={{ fontWeight: 800, color: 'text.primary' }}>Meu perfil</Typography>
       </Stack>
 
-      <Card sx={{ borderRadius: 4, mb: 2, background: 'linear-gradient(135deg,#e0f2f1,#d6ece8)', border: '1px solid #bfe7e3' }}>
+      <Card sx={{ borderRadius: 4, mb: 2, background: 'rgba(32,178,170,0.08)', border: '1px solid', borderColor: 'divider' }}>
         <CardContent>
           <Stack direction="row" spacing={2} alignItems="center">
             <PhotoUpload endpoint={`${API_URL}/doctor/me/photo`} authToken={token} src={doctor?.id ? `${API_URL}/doctor/photo/${doctor.id}?v=${photoVer}` : undefined} onUploaded={onPhoto} size={84} hideLabel />
             <Box>
-              <Typography sx={{ fontWeight: 800, color: '#0f3d3a' }}>{name || 'Médico'}</Typography>
+              <Typography sx={{ fontWeight: 800, color: 'text.primary' }}>{name || 'Médico'}</Typography>
               <Typography variant="caption" color="text.secondary">CRM {doctor?.crm}{spec ? ` • ${spec}` : ''}</Typography>
-              <Typography variant="caption" sx={{ display: 'block', color: '#94a3b8' }}>Toque na câmera pra trocar a foto.</Typography>
+              <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>Toque na câmera pra trocar a foto.</Typography>
             </Box>
           </Stack>
         </CardContent>
@@ -752,8 +752,8 @@ const DoctorExamDetail = ({ exam, detail, patientId, token, onBack }: { exam: an
       <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1.5 }}>
         {/* Voltar só no header (←) do portal — um botão só */}
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography sx={{ fontWeight: 800, color: '#0f3d3a' }}>{detail?.title || exam.title}</Typography>
-          <Typography variant="caption" sx={{ color: '#757575' }}>{detail?.performedAt ? new Date(detail.performedAt).toLocaleDateString('pt-BR') : 's/d'}{detail?.sourceLab ? ` • ${detail.sourceLab}` : ''}{detail ? ` • ${items.length} itens` : ''}</Typography>
+          <Typography sx={{ fontWeight: 800, color: 'text.primary' }}>{detail?.title || exam.title}</Typography>
+          <Typography variant="caption" sx={{ color: 'text.secondary' }}>{detail?.performedAt ? new Date(detail.performedAt).toLocaleDateString('pt-BR') : 's/d'}{detail?.sourceLab ? ` • ${detail.sourceLab}` : ''}{detail ? ` • ${items.length} itens` : ''}</Typography>
         </Box>
         {detail?.filePath && <Button size="small" variant="outlined" startIcon={pdfLoading ? <CircularProgress size={16} color="inherit" /> : <PdfIcon />} onClick={openPdf} sx={{ color: TEAL, borderColor: TEAL, textTransform: 'none', fontWeight: 700, borderRadius: 99, flexShrink: 0 }}>PDF</Button>}
       </Stack>
@@ -763,18 +763,18 @@ const DoctorExamDetail = ({ exam, detail, patientId, token, onBack }: { exam: an
         <Accordion key={g.cat} disableGutters elevation={0} sx={{ '&:before': { display: 'none' }, mb: 1, border: `1px solid ${g.color}26`, borderRadius: '12px !important', overflow: 'hidden' }}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: `${g.color}0a`, minHeight: '46px !important', '& .MuiAccordionSummary-content': { my: 0.5 } }}>
             <Box sx={{ fontSize: 18, mr: 1, display: 'inline-block' }}>{g.emoji}</Box>
-            <Typography sx={{ fontWeight: 800, color: '#0f3d3a', display: 'inline-block' }}>{g.cat}</Typography>
+            <Typography sx={{ fontWeight: 800, color: 'text.primary', display: 'inline-block' }}>{g.cat}</Typography>
             <Chip size="small" label={g.items.length} sx={{ ml: 1, bgcolor: `${g.color}1a`, color: g.color, fontWeight: 700, height: 20 }} />
           </AccordionSummary>
           <AccordionDetails sx={{ p: 0 }}>
             {g.items.map((it, idx) => (
-              <Box key={it.id || idx} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 1.5, py: 1, borderBottom: idx < g.items.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
+              <Box key={it.id || idx} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 1.5, py: 1, borderBottom: idx < g.items.length - 1 ? '1px solid' : 'none', borderBottomColor: idx < g.items.length - 1 ? 'divider' : undefined }}>
                 <Box sx={{ minWidth: 0, pr: 1 }}>
-                  <Typography sx={{ fontSize: 13.5, fontWeight: it.isAbnormal ? 700 : 500, color: it.isAbnormal ? '#b91c1c' : '#0f3d3a' }}>{it.name}</Typography>
-                  <Typography variant="caption" sx={{ color: '#94a3b8' }}>{refLabel(it)}</Typography>
+                  <Typography sx={{ fontSize: 13.5, fontWeight: it.isAbnormal ? 700 : 500, color: it.isAbnormal ? '#b91c1c' : 'text.primary' }}>{it.name}</Typography>
+                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>{refLabel(it)}</Typography>
                 </Box>
                 <Stack direction="row" spacing={1} alignItems="center" sx={{ flexShrink: 0 }}>
-                  <Typography sx={{ fontWeight: 800, fontSize: 14, color: it.isAbnormal ? '#b91c1c' : '#0f3d3a' }}>{it.valueText ?? '—'}</Typography>
+                  <Typography sx={{ fontWeight: 800, fontSize: 14, color: it.isAbnormal ? '#b91c1c' : 'text.primary' }}>{it.valueText ?? '—'}</Typography>
                   {it.flag && <Chip size="small" label={it.flag} sx={{ height: 18, fontSize: 9, bgcolor: it.isAbnormal ? '#fee2e2' : '#dcfce7', color: it.isAbnormal ? '#b91c1c' : '#15803d', fontWeight: 700 }} />}
                 </Stack>
               </Box>
@@ -802,7 +802,7 @@ const DoctorChangePassword = ({ token, onBack }: { token: string; onBack: () => 
     <Box>
       <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
         <Button size="small" onClick={onBack} sx={{ color: TEAL, textTransform: 'none', fontWeight: 700, minWidth: 0 }}>← Voltar</Button>
-        <Typography sx={{ fontWeight: 800, color: '#0f3d3a' }}>🔒 Trocar senha</Typography>
+        <Typography sx={{ fontWeight: 800, color: 'text.primary' }}>🔒 Trocar senha</Typography>
       </Stack>
       <Card sx={{ borderRadius: 4 }}><CardContent>
         <Stack spacing={2}>
@@ -824,7 +824,7 @@ const NotesTab = ({ notes, newNote, setNewNote, onAdd, onDelete, onSave }: { not
   const btnSx = { borderRadius: 2, textTransform: 'none', fontWeight: 800, bgcolor: TEAL, '&:hover': { bgcolor: '#0f7670' } } as const;
   return (
     <Box>
-      <Card sx={{ mb: 2, borderRadius: 4, border: '1px solid #bfe7e3' }}><CardContent>
+      <Card sx={{ mb: 2, borderRadius: 4, border: '1px solid', borderColor: 'divider' }}><CardContent>
         <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 800, color: TEAL }}>📝 Nova anotação</Typography>
         <TextField value={newNote} onChange={(e) => setNewNote(e.target.value)} multiline minRows={2} fullWidth size="small" placeholder="Conduta, observação clínica, retorno solicitado…" />
         <Button variant="contained" onClick={onAdd} disabled={!newNote.trim()} sx={{ mt: 1, ...btnSx }}>Adicionar</Button>
@@ -832,7 +832,7 @@ const NotesTab = ({ notes, newNote, setNewNote, onAdd, onDelete, onSave }: { not
       {notes.length === 0 && <Empty label="Nenhuma anotação ainda. Use o campo acima pra registrar uma conduta." icon="📝" />}
       <Stack spacing={1.25}>
         {notes.map((n) => (
-          <Card key={n.id} variant="outlined" sx={{ borderRadius: 3, borderColor: '#e2efec' }}><CardContent>
+          <Card key={n.id} variant="outlined" sx={{ borderRadius: 3, borderColor: 'divider' }}><CardContent>
             {editingId === n.id ? (
               <>
                 <TextField value={editText} onChange={(e) => setEditText(e.target.value)} multiline minRows={2} fullWidth size="small" autoFocus />
@@ -843,11 +843,11 @@ const NotesTab = ({ notes, newNote, setNewNote, onAdd, onDelete, onSave }: { not
               </>
             ) : (
               <>
-                <Typography sx={{ whiteSpace: 'pre-wrap', fontSize: 14, color: '#0f3d3a' }}>{n.content}</Typography>
+                <Typography sx={{ whiteSpace: 'pre-wrap', fontSize: 14, color: 'text.primary' }}>{n.content}</Typography>
                 <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 1 }}>
                   <Typography variant="caption" color="text.secondary">{new Date(n.createdAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })}</Typography>
                   <Stack direction="row" spacing={0.5}>
-                    <Button size="small" sx={{ minWidth: 0, color: '#64748b' }} onClick={() => { setEditingId(n.id); setEditText(n.content); }}>✏️</Button>
+                    <Button size="small" sx={{ minWidth: 0, color: 'text.secondary' }} onClick={() => { setEditingId(n.id); setEditText(n.content); }}>✏️</Button>
                     <Button size="small" sx={{ minWidth: 0, color: 'error.main' }} onClick={() => onDelete(n.id)}>🗑️</Button>
                   </Stack>
                 </Stack>
@@ -862,6 +862,7 @@ const NotesTab = ({ notes, newNote, setNewNote, onAdd, onDelete, onSave }: { not
 
 /** #2 Gráficos de evolução por analito, com zona de referência e filtro de período. */
 const EvolutionCharts = ({ items, filter, setFilter }: { items: any[]; filter: '6m' | '1y' | 'all'; setFilter: (f: '6m' | '1y' | 'all') => void }) => {
+  const muiTheme = useTheme();
   const groups = useMemo(() => {
     const now = Date.now();
     const cutoff = filter === '6m' ? now - 180 * 86400000 : filter === '1y' ? now - 365 * 86400000 : 0;
@@ -903,25 +904,25 @@ const EvolutionCharts = ({ items, filter, setFilter }: { items: any[]; filter: '
             {cg.items.map((g) => {
               const lineColor = g.points.some((p) => p.abnormal) ? '#ef4444' : '#178f89';
               return (
-                <Card key={g.name} variant="outlined" sx={{ borderRadius: 3, borderColor: '#e2efec' }}><CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
+                <Card key={g.name} variant="outlined" sx={{ borderRadius: 3, borderColor: 'divider' }}><CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
                   <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
-                    <Typography sx={{ fontWeight: 700, color: '#0f3d3a', fontSize: 14 }}>{g.name}</Typography>
-                    <Typography variant="caption" sx={{ color: '#94a3b8' }}>{refLabel(g)}</Typography>
+                    <Typography sx={{ fontWeight: 700, color: 'text.primary', fontSize: 14 }}>{g.name}</Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>{refLabel(g)}</Typography>
                   </Stack>
                   <Box sx={{ height: g.points.length >= 2 ? 110 : 'auto', width: '100%' }}>
                     {g.points.length >= 2 ? (
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={g.points} margin={{ top: 4, right: 18, bottom: 4, left: 6 }}>
                           {g.refLow != null && g.refHigh != null && <ReferenceArea y1={g.refLow} y2={g.refHigh} fill="#10b981" fillOpacity={0.14} />}
-                          <XAxis dataKey="date" tick={{ fontSize: 10 }} interval="preserveStartEnd" tickMargin={6} />
-                          <YAxis tick={{ fontSize: 10 }} width={32} domain={['auto', 'auto']} />
-                          <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12 }} />
+                          <XAxis dataKey="date" tick={{ fontSize: 10, fill: muiTheme.palette.text.secondary }} interval="preserveStartEnd" tickMargin={6} stroke={muiTheme.palette.divider} />
+                          <YAxis tick={{ fontSize: 10, fill: muiTheme.palette.text.secondary }} width={32} domain={['auto', 'auto']} stroke={muiTheme.palette.divider} />
+                          <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12, background: muiTheme.palette.background.paper, border: '1px solid ' + muiTheme.palette.divider, color: muiTheme.palette.text.primary }} />
                           <Line type="monotone" dataKey="value" stroke={lineColor} strokeWidth={2.5} dot={{ r: 3, fill: lineColor }} isAnimationActive={false} />
                         </LineChart>
                       </ResponsiveContainer>
                     ) : (
                       <Typography sx={{ fontSize: 13, color: lineColor, fontWeight: 700 }}>
-                        {g.points[0].value} {g.unit || ''} <Typography component="span" variant="caption" sx={{ color: '#94a3b8', ml: 1 }}>{g.points[0].date} · única medição</Typography>
+                        {g.points[0].value} {g.unit || ''} <Typography component="span" variant="caption" sx={{ color: 'text.secondary', ml: 1 }}>{g.points[0].date} · única medição</Typography>
                       </Typography>
                     )}
                   </Box>

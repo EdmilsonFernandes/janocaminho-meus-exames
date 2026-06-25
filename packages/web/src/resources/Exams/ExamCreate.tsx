@@ -213,7 +213,7 @@ export const ExamCreate = () => {
         </Box>
       </Stack>
 
-      <Card sx={{ borderRadius: 4, border: '1px solid #e6f1f0', boxShadow: '0 12px 32px rgba(15,61,58,.07)' }}>
+      <Card sx={{ borderRadius: 4, border: '1px solid', borderColor: 'divider', boxShadow: '0 12px 32px rgba(15,61,58,.07)' }}>
         <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2, textAlign: 'center' }}>Escolha como quer enviar seu exame</Typography>
 
@@ -224,26 +224,26 @@ export const ExamCreate = () => {
               {isNative && (
                 <Box onClick={busy ? undefined : scanDocument} sx={{
                   flex: 1, cursor: busy ? 'wait' : 'pointer', borderRadius: 3, p: { xs: 2, sm: 2.5 }, textAlign: 'center',
-                  border: '2px solid #e2e8f0', bgcolor: '#f8fafb', transition: 'all .15s',
+                  border: '2px solid', borderColor: 'divider', bgcolor: 'background.default', transition: 'all .15s',
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.75,
                   '&:active': { transform: 'scale(.97)' }, '&:hover': { borderColor: '#20b2aa', bgcolor: 'rgba(32,178,170,.05)' },
                 }}>
                   <Box sx={{ fontSize: 36 }}>📷</Box>
-                  <Typography sx={{ fontWeight: 800, fontSize: 15, color: '#0f3d3a' }}>Escanear</Typography>
+                  <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary' }}>Escanear</Typography>
                   <Typography variant="caption" color="text.secondary">Digitalize com a câmera<br />bordas automáticas + nítido</Typography>
                 </Box>
               )}
               {/* Caminho 2: PDF / Imagem */}
               <Box component="label" sx={{
                 flex: 1, cursor: 'pointer', borderRadius: 3, p: { xs: 2, sm: 2.5 }, textAlign: 'center',
-                border: '2px solid', borderColor: files.length ? '#20b2aa' : '#e2e8f0',
+                border: '2px solid', borderColor: files.length ? '#20b2aa' : 'divider',
                 bgcolor: files.length ? 'rgba(32,178,170,.05)' : '#f8fafb', transition: 'all .15s',
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.75,
                 '&:active': { transform: 'scale(.97)' }, '&:hover': { borderColor: '#20b2aa', bgcolor: 'rgba(32,178,170,.05)' },
               }}>
                 <input type="file" hidden multiple accept=".pdf,.jpg,.jpeg,.png,image/*,application/pdf" onChange={(e) => { onPick(e.target.files); if (e.target) e.target.value = ''; }} />
                 <Box sx={{ fontSize: 36 }}>📄</Box>
-                <Typography sx={{ fontWeight: 800, fontSize: 15, color: '#0f3d3a' }}>{files.length ? `${files.length} arquivo(s)` : 'PDF / Imagem'}</Typography>
+                <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary' }}>{files.length ? `${files.length} arquivo(s)` : 'PDF / Imagem'}</Typography>
                 <Typography variant="caption" color="text.secondary">Selecione da galeria<br />vários de uma vez · até 32 MB</Typography>
               </Box>
             </Stack>
@@ -258,15 +258,15 @@ export const ExamCreate = () => {
             <TextField label="Título (opcional)" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Hemograma — junho/2026" size="small" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
 
             {progress && (
-              <Box sx={{ bgcolor: '#f6fbfa', p: 1.5, borderRadius: 2.5 }}>
-                <Typography variant="body2" sx={{ fontWeight: 700, color: '#0f3d3a', mb: 0.5 }}>Enviando {progress.done}/{progress.total}…</Typography>
-                <LinearProgress variant="determinate" value={pct} sx={{ height: 8, borderRadius: 99, bgcolor: '#d6ece8', '& .MuiLinearProgress-bar': { borderRadius: 99 } }} />
+              <Box sx={{ bgcolor: 'background.default', p: 1.5, borderRadius: 2.5 }}>
+                <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.primary', mb: 0.5 }}>Enviando {progress.done}/{progress.total}…</Typography>
+                <LinearProgress variant="determinate" value={pct} sx={{ height: 8, borderRadius: 99, bgcolor: 'action.hover', '& .MuiLinearProgress-bar': { borderRadius: 99 } }} />
                 {progress.errors.map((er, i) => <Typography key={i} variant="caption" color="error" sx={{ display: 'block', mt: 0.5 }}>⚠ {er}</Typography>)}
               </Box>
             )}
 
             {/* ÚNICO botão primário — não compete com os caminhos */}
-            <Button type="submit" variant="contained" size="large" fullWidth disabled={busy || !files.length} sx={{ borderRadius: 99, py: 1.3, textTransform: 'none', fontWeight: 800, fontSize: 15, bgcolor: '#20b2aa', boxShadow: '0 8px 22px rgba(32,178,170,.25)', '&:hover': { bgcolor: '#178f89' }, '&.Mui-disabled': { bgcolor: '#d6ece8' } }}>
+            <Button type="submit" variant="contained" size="large" fullWidth disabled={busy || !files.length} sx={{ borderRadius: 99, py: 1.3, textTransform: 'none', fontWeight: 800, fontSize: 15, bgcolor: '#20b2aa', boxShadow: '0 8px 22px rgba(32,178,170,.25)', '&:hover': { bgcolor: '#178f89' }, '&.Mui-disabled': { bgcolor: 'action.disabledBackground' } }}>
               {busy ? 'Enviando…' : `Enviar ${files.length || ''} e extrair com IA →`}
             </Button>
             <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
@@ -278,7 +278,7 @@ export const ExamCreate = () => {
 
       {/* DUPLICATA — aviso PROEMINENTE "de cara": o documento já existe no histórico. */}
       <Dialog open={!!dupInfo} onClose={() => { setDupInfo(null); redirect('list', 'exams'); }} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 800, color: '#0f3d3a' }}>📄 Documento já enviado</DialogTitle>
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 800, color: 'text.primary' }}>📄 Documento já enviado</DialogTitle>
         <DialogContent>
           <Alert severity="warning" sx={{ mb: 1.5, borderRadius: 2 }}>
             {(dupInfo?.dups.length ?? 0) === 1

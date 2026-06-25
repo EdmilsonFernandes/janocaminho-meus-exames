@@ -68,7 +68,7 @@ export const ValoresAlteradosPage = () => {
         <Stack spacing={1}>
           {groups.map((g, gi) => (
             <Accordion key={g.examId} disableGutters elevation={0} sx={{ border: '1px solid #f3dada', borderRadius: '12px', overflow: 'hidden', '&:before': { display: 'none' } }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: '#fff5f5' }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: 'rgba(239,68,68,0.08)' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 1 }}>
                   <Box component="span" sx={{ fontSize: 18 }}>🚨</Box>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -81,14 +81,14 @@ export const ValoresAlteradosPage = () => {
               <AccordionDetails sx={{ p: 1.25 }}>
                 <Stack spacing={0.75}>
                   {g.items.map((it) => (
-                    <Card key={it.id} variant="outlined" sx={{ borderLeft: '4px solid #ef4444', borderRadius: 2, bgcolor: '#fffafa' }}>
+                    <Card key={it.id} variant="outlined" sx={{ borderLeft: '4px solid #ef4444', borderRadius: 2, bgcolor: 'rgba(239,68,68,0.06)' }}>
                       <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', py: 1.25, '&:last-child': { pb: 1.25 } }}>
                         <Box sx={{ flex: '1 1 55%', minWidth: 0 }}>
                           <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}>
                             <Typography sx={{ fontWeight: 700, wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.2 }}>{it.name}</Typography>
                             <ExplainButton name={it.name} nameCanonical={it.nameCanonical} />
                           </Box>
-                          <Typography variant="caption" sx={{ color: '#6b7b80' }}>{refLabel(it)}</Typography>
+                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>{refLabel(it)}</Typography>
                         </Box>
                         <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
                           <Typography component="span" sx={{ fontSize: '1.35rem', fontWeight: 800, color: 'error.main' }}>{fmtVal(it)}</Typography>

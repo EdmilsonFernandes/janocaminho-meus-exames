@@ -37,7 +37,7 @@ const EditableItemValue = ({ it, color, onSaved }: { it: any; color: string; onS
     <Box component="input" value={v} autoFocus disabled={busy}
       onChange={(e: any) => setV(e.target.value)} onBlur={save}
       onKeyDown={(e: any) => { if (e.key === 'Enter') save(); if (e.key === 'Escape') { setV(it.valueText ?? ''); setEditing(false); } }}
-      sx={{ fontSize: '1.4rem', fontWeight: 800, p: '2px 6px', borderRadius: 1, border: '2px solid #20b2aa', outline: 'none', width: 150, bgcolor: '#fff', color }} />
+      sx={{ fontSize: '1.4rem', fontWeight: 800, p: '2px 6px', borderRadius: 1, border: '2px solid #20b2aa', outline: 'none', width: 150, bgcolor: 'background.paper', color }} />
   );
   return (
     <Typography onClick={() => setEditing(true)} title="Toque para corrigir o valor"
@@ -308,14 +308,14 @@ export const ExamShow = () => {
             const fewPanels = Object.keys(grouped).length <= 2;
             return (
             <Accordion key={panel} disableGutters elevation={0} defaultExpanded={fewPanels}
-              sx={{ mt: 1.5, borderRadius: '12px !important', overflow: 'hidden', border: '1px solid #e6f1f0', '&:before': { display: 'none' } }}>
+              sx={{ mt: 1.5, borderRadius: '12px !important', overflow: 'hidden', border: '1px solid', borderColor: 'divider', '&:before': { display: 'none' } }}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '48px !important', '& .MuiAccordionSummary-content': { my: 0.75, alignItems: 'center' } }}>
                 <Typography sx={{ fontWeight: 700, fontSize: '1rem', flex: '1 1 auto', minWidth: 0, wordBreak: 'break-word', overflowWrap: 'anywhere', pr: 1 }}>{panel}</Typography>
                 {abn > 0 && <Chip size="small" color="error" variant="outlined" label={`${abn} alterado${abn > 1 ? 's' : ''}`} sx={{ ml: 0.5, height: 20, flexShrink: 0 }} />}
                 <Chip size="small" label={`${(list as any[]).length} itens`} sx={{ ml: 0.5, bgcolor: 'rgba(0,0,0,.05)', color: 'text.secondary', height: 20, flexShrink: 0 }} />
               </AccordionSummary>
               <AccordionDetails sx={{ p: 1 }}>
-                <Stack divider={<Divider sx={{ borderColor: '#eef2f7', my: 0.5 }} />}>
+                <Stack divider={<Divider sx={{ borderColor: 'divider', my: 0.5 }} />}>
                   {(list as any[]).map((it) => {
                     const m = fm(it.flag);
                     const out = it.isAbnormal;
@@ -443,7 +443,7 @@ export const ExamShow = () => {
                 Gerar documento
               </Button>
             </Stack>
-            <Typography variant="body2" sx={{ color: '#555', mt: 0.5 }}>
+            <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
               1 página com valores alterados + perfil clínico + comparação. Pronto para levar na consulta.
             </Typography>
           </CardContent>

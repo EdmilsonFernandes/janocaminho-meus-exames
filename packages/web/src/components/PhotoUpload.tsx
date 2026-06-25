@@ -56,7 +56,8 @@ export const PhotoUpload = ({
           width: size, height: size,
           bgcolor: hideLabel ? 'rgba(255,255,255,.25)' : 'primary.main',
           fontSize: size * 0.35, fontWeight: 800,
-          border: hideLabel ? '3px solid rgba(255,255,255,.7)' : '3px solid #e6f1f0',
+          border: hideLabel ? '3px solid rgba(255,255,255,.7)' : '3px solid',
+          borderColor: hideLabel ? undefined : 'divider',
         }}>
           ?
         </Avatar>

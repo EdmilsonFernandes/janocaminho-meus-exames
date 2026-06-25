@@ -22,7 +22,7 @@ export const MfaSetupCard = ({ apiBase, authToken }: { apiBase: string; authToke
   return (
     <Card sx={{ borderRadius: 3 }}><CardContent>
       <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-        <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f3d3a' }}>🔐 Segurança (2FA)</Typography>
+        <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary' }}>🔐 Segurança (2FA)</Typography>
         {enabled && <Chip size="small" color="success" label="ATIVADO" sx={{ fontWeight: 700 }} />}
       </Stack>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2, fontSize: 13.5 }}>
@@ -39,7 +39,7 @@ export const MfaSetupCard = ({ apiBase, authToken }: { apiBase: string; authToke
       {mode === 'setup' && (
         <Stack spacing={1.5}>
           {!setup ? <Box sx={{ textAlign: 'center', py: 2 }}><CircularProgress size={28} sx={{ color: '#20b2aa' }} /></Box> : (<>
-            <Box sx={{ textAlign: 'center' }}><Box component="img" src={setup.qrCodeDataUrl} alt="QR Code" sx={{ width: 200, height: 200, borderRadius: 2, border: '1px solid #e2e8f0' }} /></Box>
+            <Box sx={{ textAlign: 'center' }}><Box component="img" src={setup.qrCodeDataUrl} alt="QR Code" sx={{ width: 200, height: 200, borderRadius: 2, border: '1px solid', borderColor: 'divider' }} /></Box>
             <Typography variant="caption" color="text.secondary">Ou digite manualmente: <Box component="span" sx={{ fontFamily: 'monospace', fontWeight: 700, cursor: 'pointer', userSelect: 'all', color: '#178f89' }} onClick={() => { try { navigator.clipboard?.writeText(setup.secret); } catch {} }}>{setup.secret}</Box></Typography>
             <TextField label="Código de 6 dígitos" value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))} inputMode="numeric" sx={{ '& input': { textAlign: 'center', fontSize: 22, letterSpacing: 6, fontFamily: 'monospace' } }} />
             <Button variant="contained" onClick={confirm} disabled={loading || code.length !== 6} sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 800 }}>{loading ? <CircularProgress size={22} color="inherit" /> : 'Confirmar e ativar'}</Button>

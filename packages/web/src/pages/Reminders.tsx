@@ -119,7 +119,7 @@ export const RemindersPage = () => {
       {/* PRÓXIMOS (futuros) */}
       <Card sx={{ mb: 2 }}>
         <CardContent sx={{ pb: '8px !important' }}>
-          <Typography variant="h6" sx={{ mb: 1 }}>Próximos lembretes {upcoming.length > 0 && <Chip size="small" label={upcoming.length} sx={{ ml: 1, bgcolor: '#e0f2f1', color: '#178f89', fontWeight: 800 }} />}</Typography>
+          <Typography variant="h6" sx={{ mb: 1 }}>Próximos lembretes {upcoming.length > 0 && <Chip size="small" label={upcoming.length} sx={{ ml: 1, bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 800 }} />}</Typography>
           {upcoming.length === 0 ? (
             <Typography color="text.secondary" sx={{ py: 2 }}>Nenhum lembrete agendado. Crie um acima (ex.: "Refazer hemograma em 6 meses").</Typography>
           ) : (
@@ -134,7 +134,7 @@ export const RemindersPage = () => {
           <CardContent sx={{ pb: '8px !important' }}>
             <Accordion elevation={0} sx={{ '&:before': { display: 'none' } }}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ px: 0, minHeight: 40, '& .MuiAccordionSummary-content': { my: 0 } }}>
-                <Typography sx={{ fontWeight: 700, color: '#94a3b8' }}>Histórico <Chip size="small" label={past.length} sx={{ ml: 1, bgcolor: '#f1f5f9', color: '#64748b', fontWeight: 700 }} /></Typography>
+                <Typography sx={{ fontWeight: 700, color: 'text.secondary' }}>Histórico <Chip size="small" label={past.length} sx={{ ml: 1, bgcolor: 'action.hover', color: 'text.secondary', fontWeight: 700 }} /></Typography>
               </AccordionSummary>
               <AccordionDetails sx={{ px: 0, pt: 0 }}>
                 <List>{past.map(renderItem)}</List>

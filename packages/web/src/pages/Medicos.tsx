@@ -26,12 +26,12 @@ const ScopeToggle = ({ scopeKey, active, onToggle, compact }: { scopeKey: string
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: compact ? 1 : 2,
       px: compact ? 0.75 : 1.5, py: compact ? 0.5 : 1, borderRadius: 2, cursor: 'pointer',
       minWidth: compact ? 58 : 72, transition: 'all .15s',
-      bgcolor: active ? 'rgba(32,178,170,.10)' : '#f8fafb',
-      border: active ? `2px solid #20b2aa` : '2px solid #e8eef0',
+      bgcolor: active ? 'rgba(32,178,170,.10)' : 'background.default',
+      border: `2px solid ${active ? '#20b2aa' : 'divider'}`,
       '&:active': { transform: 'scale(.92)' },
     }}>
       <Box sx={{ fontSize: compact ? 15 : 22, filter: active ? 'none' : 'grayscale(1) opacity(.35)', lineHeight: 1 }}>{meta.icon}</Box>
-      <Typography sx={{ fontSize: compact ? 8 : 10, fontWeight: 700, lineHeight: 1, whiteSpace: 'nowrap', color: active ? '#178f89' : '#94a3b8' }}>{compact ? meta.short : meta.label}</Typography>
+      <Typography sx={{ fontSize: compact ? 8 : 10, fontWeight: 700, lineHeight: 1, whiteSpace: 'nowrap', color: active ? '#178f89' : 'text.secondary' }}>{compact ? meta.short : meta.label}</Typography>
       {active && <Box sx={{ width: 4, height: 4, borderRadius: '50%', bgcolor: '#10b981' }} />}
     </Box>
   );
@@ -196,7 +196,7 @@ export const MedicosPage = () => {
               </TextField>
             )}
             <FormControlLabel control={<Switch size="small" checked={activeOnly} onChange={(e) => setActiveOnly(e.target.checked)} />} label={<Typography sx={{ fontSize: 13 }}>Só ativos</Typography>} />
-            <Chip size="small" label={`${myShares.length} médicos • ${activeCount} ativos`} sx={{ bgcolor: '#e0f2f1', color: '#178f89', fontWeight: 700 }} />
+            <Chip size="small" label={`${myShares.length} médicos • ${activeCount} ativos`} sx={{ bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 700 }} />
           </Stack>
         </Stack>
       )}
@@ -206,9 +206,9 @@ export const MedicosPage = () => {
 
       {/* Empty state */}
       {!loading && myShares.length === 0 && (
-        <Card sx={{ borderRadius: 4, background: 'linear-gradient(135deg,#f0f9f7,#e8f5f3)', border: '1px solid #bfe7e3' }}><CardContent sx={{ textAlign: 'center', py: 5 }}>
+        <Card sx={{ borderRadius: 4, background: 'background.default', border: '1px solid', borderColor: 'divider' }}><CardContent sx={{ textAlign: 'center', py: 5 }}>
           <Box sx={{ fontSize: 56, mb: 1 }}>🩺</Box>
-          <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f3d3a', mb: 0.5 }}>Nenhum médico ainda?</Typography>
+          <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', mb: 0.5 }}>Nenhum médico ainda?</Typography>
           <Typography color="text.secondary" sx={{ mb: 2.5, maxWidth: 320, mx: 'auto' }}>Compartilhe seus exames com seu médico em segundos — ele recebe tudo organizado.</Typography>
           <Button variant="contained" size="large" startIcon={<PersonAddIcon />} onClick={() => setShowForm(true)} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 800, px: 4 }}>Compartilhar agora →</Button>
         </CardContent></Card>
@@ -217,24 +217,24 @@ export const MedicosPage = () => {
       {/* Lista agrupada por especialidade */}
       {!loading && grouped.active.map(([specName, items]) => (
         <Box key={specName} sx={{ mb: 2.5 }}>
-          <Typography sx={{ fontWeight: 800, fontSize: 13, color: '#0f3d3a', mb: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            {specName} <Chip size="small" label={items.length} sx={{ height: 18, fontSize: 10, bgcolor: '#e0f2f1', color: '#178f89', fontWeight: 700 }} />
+          <Typography sx={{ fontWeight: 800, fontSize: 13, color: 'text.primary', mb: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            {specName} <Chip size="small" label={items.length} sx={{ height: 18, fontSize: 10, bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 700 }} />
           </Typography>
           <Stack spacing={1}>
             {items.map((s) => (
-              <Card key={s.id} sx={{ borderRadius: 3, position: 'relative', overflow: 'hidden', border: '1px solid #e2efec', '&:hover': { boxShadow: '0 4px 16px rgba(32,178,170,.10)' }, transition: 'all .15s' }}>
+              <Card key={s.id} sx={{ borderRadius: 3, position: 'relative', overflow: 'hidden', border: '1px solid', borderColor: 'divider', '&:hover': { boxShadow: '0 4px 16px rgba(32,178,170,.10)' }, transition: 'all .15s' }}>
                 <Box sx={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, bgcolor: s.active ? '#20b2aa' : '#cbd5e1' }} />
                 <CardContent sx={{ pl: 2.5, py: 1.5, '&:last-child': { pb: 1.5 } }}>
                   <Stack direction="row" alignItems="flex-start" spacing={1.5}>
                     <Box sx={{ position: 'relative', flexShrink: 0 }}>
                       <Avatar src={s.doctor?.id ? `${API_URL}/doctor/photo/${s.doctor.id}` : undefined} sx={{ width: 44, height: 44, fontWeight: 800, fontSize: 18, bgcolor: '#20b2aa' }}>{s.doctor?.name?.charAt(0)?.toUpperCase()}</Avatar>
-                      <Box sx={{ position: 'absolute', bottom: -1, right: -1, width: 13, height: 13, borderRadius: '50%', bgcolor: s.active ? '#10b981' : '#94a3b8', border: '2.5px solid #fff' }} />
+                      <Box sx={{ position: 'absolute', bottom: -1, right: -1, width: 13, height: 13, borderRadius: '50%', bgcolor: s.active ? '#10b981' : 'text.secondary', border: '2.5px solid #fff' }} />
                     </Box>
                     <Box sx={{ flex: 1, minWidth: 0 }}>
                       <Stack direction="row" alignItems="center" spacing={0.5} useFlexGap flexWrap="wrap">
-                        <Typography sx={{ fontWeight: 800, color: '#0f3d3a', fontSize: 15 }}>{s.doctor?.name}</Typography>
+                        <Typography sx={{ fontWeight: 800, color: 'text.primary', fontSize: 15 }}>{s.doctor?.name}</Typography>
                       </Stack>
-                      <Typography variant="caption" sx={{ color: '#64748b', display: 'block' }}>CRM {s.doctor?.crm}{s.convenio ? ` • ${s.convenio}` : ''}</Typography>
+                      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>CRM {s.doctor?.crm}{s.convenio ? ` • ${s.convenio}` : ''}</Typography>
                       {/* Scope toggles */}
                       <Stack direction="row" spacing={0.5} sx={{ mt: 1 }}>
                         {SCOPE_META.map((sm) => (
@@ -256,15 +256,15 @@ export const MedicosPage = () => {
       {/* Revogados (seção colapsada no fim) */}
       {!loading && grouped.revoked.length > 0 && (
         <Box sx={{ mt: 2, opacity: 0.7 }}>
-          <Typography sx={{ fontWeight: 700, fontSize: 12, color: '#94a3b8', mb: 1, textTransform: 'uppercase', letterSpacing: 0.5 }}>💤 Revogados ({grouped.revoked.length})</Typography>
+          <Typography sx={{ fontWeight: 700, fontSize: 12, color: 'text.secondary', mb: 1, textTransform: 'uppercase', letterSpacing: 0.5 }}>💤 Revogados ({grouped.revoked.length})</Typography>
           <Stack spacing={0.75}>
             {grouped.revoked.map((s) => (
-              <Card key={s.id} sx={{ borderRadius: 2, border: '1px solid #f1f5f9', bgcolor: '#fafbfc' }}>
+              <Card key={s.id} sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', bgcolor: 'background.default' }}>
                 <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.25, py: 1, '&:last-child': { pb: 1 } }}>
-                  <Avatar sx={{ width: 32, height: 32, fontSize: 14, bgcolor: '#cbd5e1', flexShrink: 0 }}>{s.doctor?.name?.charAt(0)}</Avatar>
+                  <Avatar sx={{ width: 32, height: 32, fontSize: 14, bgcolor: 'action.hover', flexShrink: 0 }}>{s.doctor?.name?.charAt(0)}</Avatar>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography sx={{ fontWeight: 600, fontSize: 13, color: '#64748b' }}>{s.doctor?.name}</Typography>
-                    <Typography variant="caption" sx={{ color: '#94a3b8' }}>CRM {s.doctor?.crm}</Typography>
+                    <Typography sx={{ fontWeight: 600, fontSize: 13, color: 'text.secondary' }}>{s.doctor?.name}</Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>CRM {s.doctor?.crm}</Typography>
                   </Box>
                   <Button size="small" onClick={() => reactivate(s.id)} sx={{ textTransform: 'none', color: '#178f89', fontSize: 12 }}>Reativar</Button>
                 </CardContent>
@@ -286,7 +286,7 @@ export const MedicosPage = () => {
 
       {/* Dialog de compartilhamento */}
       <Dialog open={showForm} onClose={() => setShowForm(false)} fullWidth maxWidth="sm" PaperProps={{ sx: { borderRadius: 4 } }}>
-        <DialogTitle sx={{ fontWeight: 800, color: '#0f3d3a' }}>🩺 Compartilhar com médico</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 800, color: 'text.primary' }}>🩺 Compartilhar com médico</DialogTitle>
         <DialogContent>
           <Box component="form" onSubmit={add} sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mt: 1 }}>
             {existingDocs.length > 0 && (

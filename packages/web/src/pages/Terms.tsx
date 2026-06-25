@@ -9,8 +9,8 @@ const P = ({ children }: { children: React.ReactNode }) => <Typography variant="
 export const TermsPage = () => {
   const navigate = useNavigate();
   return (
-    <Box sx={{ background: '#eef7f6', minHeight: '100vh', py: { xs: 3, md: 5 } }}>
-      <Container maxWidth="md" sx={{ background: '#fff', borderRadius: 4, p: { xs: 2.5, md: 4 }, boxShadow: 1 }}>
+    <Box sx={{ background: 'background.default', minHeight: '100vh', py: { xs: 3, md: 5 } }}>
+      <Container maxWidth="md" sx={{ background: 'background.paper', borderRadius: 4, p: { xs: 2.5, md: 4 }, boxShadow: 1 }}>
         <Box sx={{ textAlign: 'center', mb: 2 }}>
           <DrExame size={56} sx={{ borderRadius: '18%' }} />
           <Typography variant="h5" sx={{ fontWeight: 800, mt: 1 }}>Termos de Uso e Política de Privacidade</Typography>

@@ -36,7 +36,7 @@ const Variation = ({ anterior, atual, leitura }: { anterior?: string | null; atu
   if (a != null && b != null) {
     const d = b - a;
     const eq = Math.abs(d) < 1e-9;
-    if (eq) return <Chip size="small" label="estável" sx={{ bgcolor: '#f0f0f0', color: '#666' }} />;
+    if (eq) return <Chip size="small" label="estável" sx={{ bgcolor: 'action.hover', color: 'text.secondary' }} />;
     const up = d > 0;
     const cor = leitura?.toLowerCase().includes('aten') ? '#e65100' : up ? '#1565c0' : '#2e7d32';
     return <Chip size="small" sx={{ bgcolor: `${cor}15`, color: cor, fontWeight: 700 }} label={`${up ? '↑' : '↓'} ${d > 0 ? '+' : ''}${Number(d.toFixed(2))}`} />;
@@ -162,8 +162,8 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
         <Stack direction="row" alignItems="center" spacing={2}>
           <DrExame size={48} sx={{ borderRadius: '50%', border: '3px solid #fff', boxShadow: '0 4px 14px rgba(11,92,171,.22)' }} />
           <Box sx={{ flex: 1 }}>
-            <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a' }}>Análise de Saúde</Typography>
-            <Typography sx={{ color: '#64748b', fontSize: 13 }}>Resumo educativo — não substitui consulta médica</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary' }}>Análise de Saúde</Typography>
+            <Typography sx={{ color: 'text.secondary', fontSize: 13 }}>Resumo educativo — não substitui consulta médica</Typography>
           </Box>
         </Stack>
         <Stack direction="row" spacing={1} sx={{ mt: 2, width: '100%', overflowX: 'auto', flexWrap: 'nowrap', '&::-webkit-scrollbar': { display: 'none' }, '& .MuiButton-root': { flexShrink: 0, whiteSpace: 'nowrap' } }} useFlexGap>
@@ -185,7 +185,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
       <CardContent sx={{ p: 3 }}>
         {/* Resumo geral */}
         {structured.resumoGeral && (
-          <Typography sx={{ fontSize: '1.08rem', lineHeight: 1.7, color: '#15233b' }}>{structured.resumoGeral}</Typography>
+          <Typography sx={{ fontSize: '1.08rem', lineHeight: 1.7, color: 'text.primary' }}>{structured.resumoGeral}</Typography>
         )}
 
         {/* Comparativo */}
@@ -247,7 +247,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
           <AccordionSection icon="🚩" title="Pontos que merecem atenção" color="#e65100" count={structured.pontosAtencao.length} defaultExpanded>
             {structured.pontosAtencao.map((p, i) => (
               <Box key={i} sx={{ mb: 1.5, '&:last-child': { mb: 0 } }}>
-                <Typography sx={{ fontWeight: 700, color: '#15233b' }}>{i + 1}. {p.titulo}</Typography>
+                <Typography sx={{ fontWeight: 700, color: 'text.primary' }}>{i + 1}. {p.titulo}</Typography>
                 <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.3 }}>{p.detalhe}</Typography>
               </Box>
             ))}
@@ -284,7 +284,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
         {structured.interacoesMedicamentos && structured.interacoesMedicamentos.length > 0 && (
           <AccordionSection icon="💊" title="Interações medicamento × exame" color="#d32f2f">
             {structured.interacoesMedicamentos.map((m, i) => (
-              <Box key={i} sx={{ mb: 1, p: 1.5, borderRadius: 2, bgcolor: '#fff5f5' }}>
+              <Box key={i} sx={{ mb: 1, p: 1.5, borderRadius: 2, bgcolor: 'rgba(239,68,68,0.08)' }}>
                 <Typography sx={{ fontWeight: 700, fontSize: '0.95rem' }}>{m.medicamento} → {m.analito}</Typography>
                 <Typography variant="body2" sx={{ color: 'text.secondary' }}>{m.observacao}</Typography>
               </Box>

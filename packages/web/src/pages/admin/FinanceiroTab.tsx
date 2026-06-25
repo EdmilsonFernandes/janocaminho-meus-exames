@@ -117,9 +117,9 @@ export const FinanceiroTab = () => {
 
       {error && <Box sx={{ mb: 2 }}><SectionError message="Falha ao atualizar." onRetry={() => void load()} /></Box>}
       <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2 }}>
-        <Table size="small">
+        <Table size="small" sx={{ minWidth: 640 }}>
           <TableHead>
-            <TableRow sx={{ '& th': { fontWeight: 700, bgcolor: '#e6f7f6' } }}>
+            <TableRow sx={{ '& th': { fontWeight: 700, bgcolor: 'action.hover' } }}>
               <TableCell>Data</TableCell><TableCell>Usuário</TableCell><TableCell>Valor</TableCell><TableCell>Tipo</TableCell><TableCell>Status</TableCell><TableCell>MP ID</TableCell>
             </TableRow>
           </TableHead>

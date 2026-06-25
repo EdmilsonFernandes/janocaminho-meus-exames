@@ -25,7 +25,7 @@ export const MfaChallengeDialog = ({ open, challengeToken, account, verifyUrl, o
 
   return (
     <Dialog open={open} onClose={onClose} PaperProps={{ sx: { borderRadius: 3, maxWidth: 380 } }}>
-      <DialogTitle sx={{ fontWeight: 800, color: '#0f3d3a' }}>🔐 Verificação em 2 etapas</DialogTitle>
+      <DialogTitle sx={{ fontWeight: 800, color: 'text.primary' }}>🔐 Verificação em 2 etapas</DialogTitle>
       <DialogContent>
         <Typography sx={{ mb: 2, color: 'text.secondary', fontSize: 14 }}>
           Digite o código de 6 dígitos do seu app autenticador{account ? ` (${account})` : ''}.

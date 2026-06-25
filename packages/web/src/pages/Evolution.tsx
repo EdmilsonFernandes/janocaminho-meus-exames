@@ -109,7 +109,7 @@ export const EvolutionPage = () => {
           </Grid>
 
           {/* Busca fixa (sticky) */}
-          <Paper variant="outlined" sx={{ p: '2px 12px', mb: 2, display: 'flex', alignItems: 'center', gap: 1, borderRadius: 99, position: 'sticky', top: 60, zIndex: 5, bgcolor: 'rgba(255,255,255,.96)', backdropFilter: 'blur(8px)' }}>
+          <Paper variant="outlined" sx={{ p: '2px 12px', mb: 2, display: 'flex', alignItems: 'center', gap: 1, borderRadius: 99, position: 'sticky', top: 60, zIndex: 5, bgcolor: 'background.paper', backdropFilter: 'blur(8px)' }}>
             <SearchIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
             <InputBase value={query} onChange={(e: any) => setQuery(e.target.value)} placeholder="Buscar exame (TSH, glicose, colesterol…)" sx={{ flex: 1, fontSize: 14 }} />
             {query && <Chip size="small" label="limpar" onClick={() => setQuery('')} sx={{ height: 22 }} />}
@@ -145,7 +145,7 @@ const CategoryGroup = ({ group, expandOuts }: { group: { cat: string; emoji: str
     <Card sx={{ borderRadius: 3, border: `1px solid ${group.color}26`, overflow: 'hidden' }}>
       <Box onClick={() => setOpen((o) => !o)} sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 1.25, cursor: 'pointer', bgcolor: `${group.color}0a`, '&:hover': { bgcolor: `${group.color}14` } }}>
         <Box sx={{ fontSize: 19 }}>{group.emoji}</Box>
-        <Typography sx={{ fontWeight: 800, flex: 1, color: '#0f3d3a', fontSize: 15 }}>{group.cat}</Typography>
+        <Typography sx={{ fontWeight: 800, flex: 1, color: 'text.primary', fontSize: 15 }}>{group.cat}</Typography>
         <Box title={STATUS_META[worst].label} sx={{ fontSize: 14 }}>{STATUS_META[worst].emoji}</Box>
         <Chip size="small" label={group.items.length} sx={{ bgcolor: `${group.color}1a`, color: group.color, fontWeight: 700, height: 22, minWidth: 28 }} />
         <ExpandMoreIcon sx={{ transform: open ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform .2s', color: group.color, fontSize: 20 }} />

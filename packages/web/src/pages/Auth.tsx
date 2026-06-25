@@ -24,21 +24,21 @@ const I = {
 
 /** Card centralizado sobre fundo menta (layout loginIdea). */
 const Shell = ({ children }: { children: ReactNode }) => (
-  <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2, background: 'linear-gradient(135deg, #e6f7f5, #d4f0ec)' }}>
-    <Box sx={{ width: '100%', maxWidth: 400, bgcolor: '#fff', borderRadius: '16px', boxShadow: '0 10px 40px rgba(0,80,70,.10)', p: { xs: 3, sm: 4 } }}>
+  <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2, background: 'linear-gradient(135deg, rgba(32,178,170,.12), rgba(32,178,170,.04))' }}>
+    <Box sx={{ width: '100%', maxWidth: 400, bgcolor: 'background.paper', borderRadius: '16px', boxShadow: '0 10px 40px rgba(0,80,70,.10)', p: { xs: 3, sm: 4 } }}>
       <Stack alignItems="center" spacing={1} sx={{ mb: 3 }}>
-        <Box sx={{ width: 78, height: 78, borderRadius: '50%', bgcolor: '#e0f2f1', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'inset 0 0 0 1px rgba(32,178,170,.15)' }}>
+        <Box sx={{ width: 78, height: 78, borderRadius: '50%', bgcolor: 'rgba(32,178,170,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'inset 0 0 0 1px rgba(32,178,170,.15)' }}>
           <DrExame size={56} sx={{ borderRadius: '50%' }} />
         </Box>
         <Box sx={{ textAlign: 'center' }}>
-          <Typography variant="h5" sx={{ fontWeight: 800, color: '#0f3d3a', fontFamily: 'Poppins, sans-serif', lineHeight: 1.2 }}>Meus Exames</Typography>
-          <Typography sx={{ fontSize: 13, color: '#757575' }}>Seu assistente de saúde com IA</Typography>
+          <Typography variant="h5" sx={{ fontWeight: 800, color: 'text.primary', fontFamily: 'Poppins, sans-serif', lineHeight: 1.2 }}>Meus Exames</Typography>
+          <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>Seu assistente de saúde com IA</Typography>
         </Box>
       </Stack>
       {children}
-      <Box sx={{ mt: 3, display: 'flex', gap: 1, alignItems: 'flex-start', p: 1.25, borderRadius: 2, background: '#f0f9f7', border: '1px solid #d6ece8' }}>
+      <Box sx={{ mt: 3, display: 'flex', gap: 1, alignItems: 'flex-start', p: 1.25, borderRadius: 2, bgcolor: 'background.default', border: '1px solid', borderColor: 'divider' }}>
         <Box sx={{ fontSize: 16, lineHeight: 1.3, flexShrink: 0 }}>🩺</Box>
-        <Typography sx={{ fontSize: 11.5, color: '#4a6b66', lineHeight: 1.45 }}>
+        <Typography sx={{ fontSize: 11.5, color: 'text.secondary', lineHeight: 1.45 }}>
           <strong>Conteúdo educativo.</strong> Não substitui consulta, diagnóstico ou tratamento médico. Em urgências, procure um serviço de saúde.
         </Typography>
       </Box>
@@ -48,8 +48,8 @@ const Shell = ({ children }: { children: ReactNode }) => (
 
 const fieldSx = {
   '& .MuiOutlinedInput-root': {
-    borderRadius: '8px', bgcolor: '#fff',
-    '& fieldset': { borderColor: '#dde3e8' },
+    borderRadius: '8px', bgcolor: 'background.paper',
+    '& fieldset': { borderColor: 'divider' },
     '&:hover fieldset': { borderColor: '#7fcfc6' },
     '&.Mui-focused fieldset': { borderColor: '#20b2aa', borderWidth: '1.5px' },
   },
@@ -173,7 +173,7 @@ export const LoginPage = () => {
   return (
     <Shell>
       {/* Toggle Paciente / Médico — segmented control premium */}
-      <Box sx={{ display: 'flex', p: 0.5, mb: 2, gap: 0.5, borderRadius: 99, bgcolor: '#eef7f5', border: '1px solid #d6ece8' }}>
+      <Box sx={{ display: 'flex', p: 0.5, mb: 2, gap: 0.5, borderRadius: 99, bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider' }}>
         <Button onClick={() => { setRole('paciente'); setMode('password'); }} startIcon={<I.User />} fullWidth
           sx={{ py: 1, borderRadius: 99, textTransform: 'none', fontWeight: 800, fontSize: 13.5, minHeight: 40, transition: 'all .2s',
             background: role === 'paciente' ? 'linear-gradient(180deg,#20b2aa,#009688)' : 'transparent',
@@ -218,11 +218,11 @@ export const LoginPage = () => {
             {loading ? <CircularProgress size={22} color="inherit" /> : 'Entrar'}
           </Button>
           {/* "Entrar com token" oculto por ora (OTP segue acessível p/ ativação de conta). */}
-          <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start', mt: 1, color: '#46555a' }}>
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start', mt: 1, color: 'text.secondary' }}>
             <Box sx={{ mt: '1px' }}><I.Shield /></Box>
             <Box>
-              <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: '#0f3d3a' }}>Acesso seguro</Typography>
-              <Typography sx={{ fontSize: 11.5, color: '#6b7b80', lineHeight: 1.4 }}>Seus dados são protegidos com criptografia e armazenados em servidores seguros.</Typography>
+              <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: 'text.primary' }}>Acesso seguro</Typography>
+              <Typography sx={{ fontSize: 11.5, color: 'text.secondary', lineHeight: 1.4 }}>Seus dados são protegidos com criptografia e armazenados em servidores seguros.</Typography>
             </Box>
           </Box>
           <Typography align="center" sx={{ mt: 1, fontSize: 13 }}>
@@ -238,7 +238,7 @@ export const LoginPage = () => {
           </Button>
           <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 0.5 }}>
             <Link component="button" type="button" variant="body2" sx={{ fontSize: 12.5, color: '#00897b' }} onClick={() => sendOtp()}>Reenviar token</Link>
-            <Link component="button" type="button" variant="body2" sx={{ fontSize: 12.5, color: '#757575' }} onClick={() => setMode('password')}>Voltar (senha)</Link>
+            <Link component="button" type="button" variant="body2" sx={{ fontSize: 12.5, color: 'text.secondary' }} onClick={() => setMode('password')}>Voltar (senha)</Link>
           </Stack>
         </Box>
       )}
@@ -305,15 +305,15 @@ export const RegisterPage = () => {
     <Shell>
       {verifyEmail ? (
         <Box component="form" onSubmit={verify} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Typography sx={{ fontSize: 14, color: '#46555a' }}>Enviamos um código de ativação para <strong>{verifyEmail}</strong>. Digite abaixo pra ativar sua conta.</Typography>
+          <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>Enviamos um código de ativação para <strong>{verifyEmail}</strong>. Digite abaixo pra ativar sua conta.</Typography>
           <OtpInput value={verifyCode} onChange={setVerifyCode} />
           <Button type="submit" variant="contained" size="large" fullWidth disabled={loading} endIcon={<I.ArrowRight />} sx={primaryBtnSx}>{loading ? <CircularProgress size={22} color="inherit" /> : 'Ativar conta'}</Button>
-          <Link component="button" type="button" variant="body2" sx={{ fontSize: 12.5, color: '#757575' }} onClick={() => setVerifyEmail(null)}>Voltar ao cadastro</Link>
+          <Link component="button" type="button" variant="body2" sx={{ fontSize: 12.5, color: 'text.secondary' }} onClick={() => setVerifyEmail(null)}>Voltar ao cadastro</Link>
         </Box>
       ) : (
         <>
       <Box component="form" onSubmit={submit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <Typography sx={{ fontSize: 14, color: '#46555a' }}>Crie sua conta gratuita em segundos.</Typography>
+        <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>Crie sua conta gratuita em segundos.</Typography>
         <TextField placeholder="Seu nome" required value={name} onChange={(e) => setName(e.target.value)} sx={fieldSx}
           slotProps={{ input: { startAdornment: <InputAdornment position="start"><I.Person /></InputAdornment> } }} />
         <TextField placeholder="E-mail" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} sx={fieldSx}
@@ -324,7 +324,7 @@ export const RegisterPage = () => {
             endAdornment: <InputAdornment position="end"><IconButton onClick={() => setShowPwd((s) => !s)} edge="end" size="small">{showPwd ? <I.Eye /> : <I.EyeOff />}</IconButton></InputAdornment>,
           } }} />
         {referral ? (
-          <Box sx={{ p: 1, borderRadius: 2, bgcolor: '#f0f9f7', border: '1px solid #d6ece8', display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ p: 1, borderRadius: 2, bgcolor: 'rgba(32,178,170,0.10)', border: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
             <Typography sx={{ fontSize: 12, color: '#178f89', fontWeight: 700 }}>🎁 Indicado por <strong>{referral}</strong> — você ganha +30 créditos!</Typography>
           </Box>
         ) : (
@@ -332,7 +332,7 @@ export const RegisterPage = () => {
         )}
         <FormControlLabel
           control={<Checkbox checked={accepted} onChange={(e) => setAccepted(e.target.checked)} size="small" sx={{ color: '#20b2aa', '&.Mui-checked': { color: '#20b2aa' } }} />}
-          label={<Typography sx={{ fontSize: 12.5, color: '#46555a' }}>Li e aceito os <Link component="a" href="#/termos" target="_blank" rel="noopener" sx={{ color: '#00897b', fontWeight: 700 }}>Termos de Uso e Política de Privacidade</Link>.</Typography>}
+          label={<Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>Li e aceito os <Link component="a" href="#/termos" target="_blank" rel="noopener" sx={{ color: '#00897b', fontWeight: 700 }}>Termos de Uso e Política de Privacidade</Link>.</Typography>}
           sx={{ alignItems: 'flex-start', m: 0, '& .MuiCheckbox-root': { pt: 0.5 } }}
         />
         <Button type="submit" variant="contained" size="large" fullWidth disabled={loading} endIcon={<I.ArrowRight />} sx={primaryBtnSx}>
@@ -407,14 +407,14 @@ export const ResetPage = () => {
         </Box>
       ) : (
         <Box component="form" onSubmit={requestReset} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Typography sx={{ fontSize: 14, color: '#46555a' }}>Informe seu e-mail e enviaremos um link para redefinir a senha.</Typography>
+          <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>Informe seu e-mail e enviaremos um link para redefinir a senha.</Typography>
           <TextField placeholder="Seu e-mail" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} sx={fieldSx}
             slotProps={{ input: { startAdornment: <InputAdornment position="start"><I.Mail /></InputAdornment> } }} />
           <Button type="submit" variant="contained" size="large" fullWidth disabled={loading} endIcon={<I.ArrowRight />} sx={primaryBtnSx}>{loading ? <CircularProgress size={22} color="inherit" /> : 'Enviar link'}</Button>
         </Box>
       )}
       <Typography align="center" sx={{ mt: 2, fontSize: 13 }}>
-        <Link component="button" type="button" sx={{ color: '#757575' }} onClick={() => navigate('/')}>Voltar ao login</Link>
+        <Link component="button" type="button" sx={{ color: 'text.secondary' }} onClick={() => navigate('/')}>Voltar ao login</Link>
       </Typography>
     </Shell>
   );

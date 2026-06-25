@@ -63,7 +63,7 @@ export const ExpensesPage = () => {
           <Typography color="text.secondary">Total gasto em saúde</Typography>
           <Stack direction="row" spacing={1} sx={{ mt: 1 }} useFlexGap flexWrap="wrap">
             {Object.entries(byCategory).map(([cat, val]) => (
-              <Typography key={cat} variant="body2" sx={{ color: '#555' }}>{cat}: <strong>R$ {val.toFixed(2)}</strong></Typography>
+              <Typography key={cat} variant="body2" sx={{ color: 'text.secondary' }}>{cat}: <strong>R$ {val.toFixed(2)}</strong></Typography>
             ))}
           </Stack>
         </CardContent>
@@ -92,7 +92,7 @@ export const ExpensesPage = () => {
           ) : (
             <TableContainer component={Paper} variant="outlined">
               <Table size="small">
-                <TableHead><TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                <TableHead><TableRow sx={{ bgcolor: 'action.hover' }}>
                   <TableCell>Descrição</TableCell><TableCell>Categoria</TableCell><TableCell align="right">Valor</TableCell><TableCell>Data</TableCell><TableCell></TableCell>
                 </TableRow></TableHead>
                 <TableBody>

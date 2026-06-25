@@ -54,8 +54,9 @@ const PatientCards = () => {
     return (
       <Card key={p.id} variant="outlined" onClick={() => navigate(`/patients/${p.id}`)}
         sx={{ cursor: 'pointer', borderRadius: 3, overflow: 'hidden',
-          border: titularStyle ? '1px solid #bfe7e3' : '1px solid #e6f1f0',
-          background: titularStyle ? 'linear-gradient(135deg,#f1fafa,#ffffff)' : '#fff',
+          border: titularStyle ? '1px solid #bfe7e3' : '1px solid',
+          borderColor: titularStyle ? undefined : 'divider',
+          background: titularStyle ? 'linear-gradient(135deg,#f1fafa,#ffffff)' : 'background.paper',
           '&:hover': { boxShadow: '0 8px 22px rgba(32,178,170,.15)', transform: 'translateY(-1px)' },
           transition: 'box-shadow .15s, transform .15s' }}>
         <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, '&:last-child': { pb: 1.5 } }}>
@@ -97,7 +98,7 @@ const PatientCards = () => {
       {dependentes.length > 0 ? (
         <Stack spacing={1.25}>{dependentes.map((p) => renderItem(p))}</Stack>
       ) : (
-        <Card variant="outlined" onClick={() => navigate('/patients/create')} sx={{ cursor: 'pointer', borderRadius: 3, border: '2px dashed #bfe7e3', background: '#f6fbfa', py: 2.5, textAlign: 'center', '&:hover': { background: '#eef7f6' } }}>
+        <Card variant="outlined" onClick={() => navigate('/patients/create')} sx={{ cursor: 'pointer', borderRadius: 3, border: '2px dashed', borderColor: 'divider', background: 'background.default', py: 2.5, textAlign: 'center', '&:hover': { background: 'action.hover' } }}>
           <PersonAddIcon sx={{ color: '#20b2aa', mb: 0.5 }} />
           <Typography sx={{ fontWeight: 700, color: '#178f89' }}>Adicionar um dependente</Typography>
           <Typography variant="caption" color="text.secondary">Filho(a), cônjuge, pai/mãe… cada um com exames e análises próprios.</Typography>

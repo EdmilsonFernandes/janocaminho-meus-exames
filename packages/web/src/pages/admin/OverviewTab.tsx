@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Stack, Box, Card, CardContent, Typography, Table, TableHead, TableRow, TableCell, TableBody } from '@mui/material';
+import { Stack, Box, Card, CardContent, Typography, Table, TableHead, TableRow, TableCell, TableBody, TableContainer } from '@mui/material';
 import { API_URL, token } from '../../config';
 import { TabLoader, SectionError } from './parts';
 
@@ -48,7 +48,7 @@ export const OverviewTab = () => {
         ].map((s) => (
           <Box key={s.l} sx={{ mb: 1.5 }}>
             <Stack direction="row" justifyContent="space-between"><Typography variant="body2">{s.l}</Typography><Typography variant="body2" sx={{ fontWeight: 700 }}>{s.n} ({Math.round(s.pct)}%)</Typography></Stack>
-            <Box sx={{ height: 10, borderRadius: 99, bgcolor: '#eef2f7', mt: 0.5, overflow: 'hidden' }}>
+            <Box sx={{ height: 10, borderRadius: 99, bgcolor: 'action.hover', mt: 0.5, overflow: 'hidden' }}>
               <Box sx={{ height: '100%', width: `${Math.max(2, s.pct)}%`, bgcolor: s.c, borderRadius: 99 }} />
             </Box>
           </Box>
@@ -69,6 +69,7 @@ export const OverviewTab = () => {
 
       <Card sx={{ borderRadius: 3 }}><CardContent>
         <Typography variant="h6" gutterBottom>📅 Cohort — conversão por mês de signup</Typography>
+        <TableContainer sx={{ overflowX: 'auto' }}>
         <Table size="small">
           <TableHead><TableRow><TableCell>Mês</TableCell><TableCell align="right">Signups</TableCell><TableCell align="right">Virou Premium</TableCell><TableCell align="right">Conversão</TableCell></TableRow></TableHead>
           <TableBody>
@@ -78,10 +79,12 @@ export const OverviewTab = () => {
             {(!metrics.cohort || metrics.cohort.length === 0) && <TableRow><TableCell colSpan={4} align="center">Sem dados ainda.</TableCell></TableRow>}
           </TableBody>
         </Table>
+        </TableContainer>
       </CardContent></Card>
 
       <Card sx={{ borderRadius: 3 }}><CardContent>
         <Typography variant="h6" gutterBottom>💰 Receita aprovada por mês</Typography>
+        <TableContainer sx={{ overflowX: 'auto' }}>
         <Table size="small">
           <TableHead><TableRow><TableCell>Mês</TableCell><TableCell align="right">Receita (R$)</TableCell></TableRow></TableHead>
           <TableBody>
@@ -91,6 +94,7 @@ export const OverviewTab = () => {
             {(!metrics.revenueByMonth || metrics.revenueByMonth.length === 0) && <TableRow><TableCell colSpan={2} align="center">Sem receita ainda.</TableCell></TableRow>}
           </TableBody>
         </Table>
+        </TableContainer>
       </CardContent></Card>
     </Stack>
   );

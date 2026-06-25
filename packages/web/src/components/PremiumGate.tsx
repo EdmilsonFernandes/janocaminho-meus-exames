@@ -44,7 +44,7 @@ export const PremiumGate = ({ children }: { children: ReactNode }) => {
       border: '1px dashed rgba(32,178,170,.45)',
     }}>
       <LockIcon sx={{ fontSize: 30, color: '#178f89' }} />
-      <Typography sx={{ fontWeight: 800, fontSize: 15, color: '#0f172a' }}>Previsão exclusiva do Premium</Typography>
+      <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary' }}>Previsão exclusiva do Premium</Typography>
       <Typography variant="caption" color="text.secondary">Assine pra ver quando seu marcador deve sair da faixa de referência.</Typography>
       <Button variant="contained" size="small" onClick={() => navigate('/planos')}
         sx={{ mt: 0.5, borderRadius: 2, textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', boxShadow: 'none', '&:hover': { bgcolor: '#178f89' } }}>

@@ -25,7 +25,7 @@ export const SecurityPage = () => {
           <Box sx={{ p: 2.5 }}>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'flex-start', sm: 'center' }}>
               <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Typography sx={{ fontWeight: 800, color: '#0f3d3a', fontSize: 17 }}>🔐 Biometria (face/digital)</Typography>
+                <Typography sx={{ fontWeight: 800, color: 'text.primary', fontSize: 17 }}>🔐 Biometria (face/digital)</Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ fontSize: 13.5, mt: 0.5 }}>Entre sem digitar senha, usando a biometria do aparelho.</Typography>
               </Box>
               {bioOn
@@ -37,9 +37,9 @@ export const SecurityPage = () => {
       )}
 
       {/* Dica de segurança */}
-      <Card sx={{ mt: 2, borderRadius: 3, background: 'linear-gradient(135deg,#f0f9f7,#e8f5f3)', border: '1px solid #bfe7e3' }}>
+      <Card sx={{ mt: 2, borderRadius: 3, background: 'background.default', border: '1px solid', borderColor: 'divider' }}>
         <Box sx={{ p: 2.5 }}>
-          <Typography variant="body2" sx={{ color: '#4a6b66', fontSize: 13.5, lineHeight: 1.6 }}>
+          <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: 13.5, lineHeight: 1.6 }}>
             💡 <strong>Dica:</strong> Ative ambos pra máxima segurança. A biometria deixa o dia a dia mais rápido (1 toque pra entrar), e o 2FA protege contra acesso não autorizado mesmo se alguém descobrir sua senha.
           </Typography>
         </Box>

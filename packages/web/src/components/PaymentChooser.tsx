@@ -32,7 +32,7 @@ export const PaymentChooser = ({ packId, packLabel, onClose, onPix }: {
 
   const Opt = ({ icon, title, sub, onClick, busyKey, color }: any) => (
     <Button fullWidth variant="outlined" onClick={onClick} disabled={!!busy}
-      sx={{ justifyContent: 'flex-start', py: 1.5, px: 2, borderColor: '#e2e8f0', '&:hover': { borderColor: color, bgcolor: `${color}0a` } }}>
+      sx={{ justifyContent: 'flex-start', py: 1.5, px: 2, borderColor: 'divider', '&:hover': { borderColor: color, bgcolor: `${color}0a` } }}>
       <Box sx={{ mr: 1.5, color }}>{icon}</Box>
       <Box sx={{ textAlign: 'left', flex: 1 }}>
         <Typography sx={{ fontWeight: 700 }}>{title}</Typography>

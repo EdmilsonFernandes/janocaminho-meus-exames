@@ -22,15 +22,15 @@ export const GamificationBadges = ({ examsCount, score }: { examsCount: number; 
     <Card
       onClick={() => navigate('/conquistas')}
       sx={{
-        borderRadius: 4, cursor: 'pointer', background: 'linear-gradient(135deg,#f0f9f7,#e8f5f3)', border: '1px solid #bfe7e3',
+        borderRadius: 4, cursor: 'pointer', background: 'rgba(32,178,170,0.06)', border: '1px solid', borderColor: 'divider',
         transition: 'all .2s', '&:hover': { boxShadow: '0 10px 26px rgba(32,178,170,.14)', transform: 'translateY(-1px)' }, '&:active': { transform: 'scale(.99)' },
       }}
     >
       <CardContent>
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.25 }}>
           <Box>
-            <Typography sx={{ fontWeight: 800, color: '#0f3d3a', fontSize: 16 }}>🏆 Suas conquistas</Typography>
-            <Typography variant="caption" sx={{ color: '#6b7b80' }}>Resgate 1 crédito a cada meta atingida</Typography>
+            <Typography sx={{ fontWeight: 800, color: 'text.primary', fontSize: 16 }}>🏆 Suas conquistas</Typography>
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>Resgate 1 crédito a cada meta atingida</Typography>
           </Box>
           <ChevronRightIcon sx={{ color: '#178f89' }} />
         </Stack>

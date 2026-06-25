@@ -51,7 +51,7 @@ export const EmergencyCardPage = () => {
                 <Typography variant="body2" color="text.secondary">{patient.phone || 'Não informado'}</Typography>
               </Box>
               <Box sx={{ textAlign: 'center', mt: 3 }}>
-                <Box sx={{ display: 'inline-block', p: 2, border: '2px solid #e0e0e0', borderRadius: 2, bgcolor: '#fafafa' }}>
+                <Box sx={{ display: 'inline-block', p: 2, border: '2px solid #e0e0e0', borderRadius: 2, bgcolor: 'background.paper' }}>
                   <Typography sx={{ fontSize: 48, fontWeight: 900, lineHeight: 1, color: '#333', letterSpacing: 2 }}>
                     {patient.fullName?.charAt(0)?.toUpperCase() || '?'}{age ?? ''}
                   </Typography>

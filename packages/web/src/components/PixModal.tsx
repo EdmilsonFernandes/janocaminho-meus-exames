@@ -75,7 +75,7 @@ export const PixModal = ({ packId, onClose, onApproved }: { packId: string | nul
           <Box>
             <Chip color="primary" label={`${pix.credits} créditos • R$ ${Number(pix.price).toFixed(2).replace('.', ',')}`} sx={{ mb: 1.5 }} />
             {pix.qrBase64 ? (
-              <Box component="img" src={pix.qrBase64} alt="QR PIX" sx={{ width: 220, height: 220, borderRadius: 2, border: '1px solid #e2e8f0', display: 'block', mx: 'auto' }} />
+              <Box component="img" src={pix.qrBase64} alt="QR PIX" sx={{ width: 220, height: 220, borderRadius: 2, border: '1px solid', borderColor: 'divider', display: 'block', mx: 'auto' }} />
             ) : <Typography color="error">QR indisponível</Typography>}
             <Typography variant="body2" sx={{ mt: 1.5 }}>Abra o app do banco e escaneie o QR code.</Typography>
             <Stack direction="row" spacing={1} sx={{ mt: 1, justifyContent: 'center', alignItems: 'center' }}>

@@ -69,7 +69,7 @@ export const ConquistasPage = () => {
             )}
           </Stack>
           {claimable.length > 0 && (
-            <Button fullWidth variant="contained" disabled={busy === 'all'} onClick={() => claim()} sx={{ mt: 2, bgcolor: '#fff', color: '#0f3d3a', fontWeight: 800, borderRadius: 99, textTransform: 'none', '&:hover': { bgcolor: '#f0f9f7' }, '&.Mui-disabled': { bgcolor: 'rgba(255,255,255,.6)' } }}>
+            <Button fullWidth variant="contained" disabled={busy === 'all'} onClick={() => claim()} sx={{ mt: 2, bgcolor: 'background.paper', color: 'text.primary', fontWeight: 800, borderRadius: 99, textTransform: 'none', '&:hover': { bgcolor: 'background.default' }, '&.Mui-disabled': { bgcolor: 'rgba(255,255,255,.6)' } }}>
               {busy === 'all' ? 'Resgatando…' : `🎁 Resgatar tudo (${claimable.length} crédito${claimable.length > 1 ? 's' : ''})`}
             </Button>
           )}
@@ -79,10 +79,10 @@ export const ConquistasPage = () => {
       {/* Badges */}
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: '1fr 1fr 1fr' }, gap: 1.5 }}>
         {state.badges.map((b) => (
-          <Card key={b.id} sx={{ borderRadius: 3, p: 1.75, textAlign: 'center', border: b.claimed ? '1.5px solid rgba(32,178,170,.45)' : b.earned ? '1.5px solid rgba(32,178,170,.3)' : '1.5px solid #eef2f7', bgcolor: b.claimed ? 'rgba(32,178,170,.08)' : b.earned ? 'rgba(32,178,170,.05)' : 'background.paper' }}>
+          <Card key={b.id} sx={{ borderRadius: 3, p: 1.75, textAlign: 'center', border: b.claimed ? '1.5px solid rgba(32,178,170,.45)' : b.earned ? '1.5px solid rgba(32,178,170,.3)' : '1.5px solid', borderColor: b.claimed || b.earned ? undefined : 'divider', bgcolor: b.claimed ? 'rgba(32,178,170,.08)' : b.earned ? 'rgba(32,178,170,.05)' : 'background.paper' }}>
             <Box sx={{ fontSize: 34, mb: 0.5, filter: b.earned ? 'none' : 'grayscale(1)', opacity: b.earned ? 1 : 0.5 }}>{b.emoji}</Box>
-            <Typography sx={{ fontSize: 12.5, fontWeight: 800, color: b.earned ? '#0f3d3a' : '#94a3b8', lineHeight: 1.2 }}>{b.title}</Typography>
-            <Typography sx={{ fontSize: 10.5, color: '#94a3b8', lineHeight: 1.25, mt: 0.25, minHeight: 26 }}>{b.desc}</Typography>
+            <Typography sx={{ fontSize: 12.5, fontWeight: 800, color: b.earned ? 'text.primary' : 'text.secondary', lineHeight: 1.2 }}>{b.title}</Typography>
+            <Typography sx={{ fontSize: 10.5, color: 'text.secondary', lineHeight: 1.25, mt: 0.25, minHeight: 26 }}>{b.desc}</Typography>
             <Typography sx={{ fontSize: 11, fontWeight: 700, color: '#b88a54', mt: 0.5 }}>🎁 {b.reward} crédito</Typography>
             {b.claimed ? (
               <Typography sx={{ fontSize: 11, fontWeight: 800, color: '#178f89', mt: 0.75 }}>✓ Resgatado</Typography>
@@ -93,7 +93,7 @@ export const ConquistasPage = () => {
             ) : (
               <>
                 <LinearProgress variant="determinate" value={b.progress * 100} sx={{ mt: 0.75, height: 4, borderRadius: 99, bgcolor: 'rgba(0,0,0,.06)', '& .MuiLinearProgress-bar': { bgcolor: '#20b2aa' } }} />
-                <Typography sx={{ fontSize: 10, color: '#94a3b8', mt: 0.25 }}>{Math.round(b.progress * 100)}%</Typography>
+                <Typography sx={{ fontSize: 10, color: 'text.secondary', mt: 0.25 }}>{Math.round(b.progress * 100)}%</Typography>
               </>
             )}
           </Card>

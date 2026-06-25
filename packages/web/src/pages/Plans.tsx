@@ -125,7 +125,7 @@ export const PlansPage = () => {
       {hist.length > 0 && (
         <Card sx={{ mb: 2, borderRadius: 4 }}><CardContent>
           <Stack direction="row" alignItems="center" justifyContent="space-between" onClick={() => setHistOpen((v) => !v)} sx={{ mb: histOpen ? 1.5 : 0, cursor: 'pointer', userSelect: 'none', '&:hover': { opacity: 0.8 } }}>
-            <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f3d3a', fontSize: 17 }}>Histórico de Uso</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', fontSize: 17 }}>Histórico de Uso</Typography>
             <Typography variant="caption" sx={{ color: '#178f89', fontWeight: 700 }}>{histOpen ? 'Ocultar ▲' : `${histTotal || hist.length} lançamento(s) ▼`}</Typography>
           </Stack>
           {histOpen && (<>
@@ -137,7 +137,7 @@ export const PlansPage = () => {
                 <Chip key={f.k} size="small" label={f.l} onClick={() => { setHistFilter(f.k); setDispPage(1); }}
                   sx={{ fontWeight: 700, fontSize: 12.5, height: 30, px: 1.25, border: 'none',
                     bgcolor: on ? 'rgba(32,178,170,.14)' : 'transparent',
-                    color: on ? '#0f7670' : '#64748b',
+                    color: on ? '#0f7670' : 'text.secondary',
                     '&:hover': { bgcolor: on ? 'rgba(32,178,170,.2)' : 'rgba(15,23,42,.05)' } }} />
               );
             })}
@@ -173,7 +173,7 @@ export const PlansPage = () => {
                           <Typography variant="body2" sx={{ fontWeight: 600 }}>{it.label}</Typography>
                           <Typography variant="caption" color="text.secondary">{new Date(it.createdAt).toLocaleString('pt-BR')}</Typography>
                         </Box>
-                        <Typography sx={{ fontWeight: 800, fontSize: 15, fontVariantNumeric: 'tabular-nums', minWidth: 52, textAlign: 'right', color: m.c ? '#10b981' : '#94a3b8' }}>
+                        <Typography sx={{ fontWeight: 800, fontSize: 15, fontVariantNumeric: 'tabular-nums', minWidth: 52, textAlign: 'right', color: m.c ? '#10b981' : 'text.secondary' }}>
                           {d > 0 ? `+${d}` : d}
                         </Typography>
                       </Stack>
@@ -205,7 +205,7 @@ export const PlansPage = () => {
               O <strong>Plano Premium</strong> (R$ 19,90/mês) e os <strong>créditos</strong> para a IA são adquirados pelo nosso <strong>site</strong>, com PIX instantâneo.
             </Typography>
             <Typography sx={{ mt: 2, fontWeight: 700 }}>Acesse pelo navegador:</Typography>
-            <Typography sx={{ fontFamily: 'monospace', fontSize: 16, bgcolor: '#fff', border: '1px solid #cfe9e5', p: 1, borderRadius: 1, mt: 0.5, userSelect: 'all' }}>
+            <Typography sx={{ fontFamily: 'monospace', fontSize: 16, bgcolor: 'background.paper', border: '1px solid #cfe9e5', p: 1, borderRadius: 1, mt: 0.5, userSelect: 'all' }}>
               janocaminho.com.br/minhasaude
             </Typography>
             <Alert severity="info" sx={{ mt: 2 }} icon={false}>
@@ -219,7 +219,7 @@ export const PlansPage = () => {
       <Typography variant="h6" sx={{ mt: 1, mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}><BoltIcon color="secondary" /> Comprar créditos (PIX instantâneo)</Typography>
       <Stack spacing={2} sx={{ mb: 3, width: '100%' }}>
         {packs.map((p) => (
-          <Card key={p.id} sx={{ borderRadius: 4, border: p.popular ? '2px solid #20b2aa' : '1px solid #e2e8f0', width: '100%' }}>
+          <Card key={p.id} sx={{ borderRadius: 4, border: p.popular ? '2px solid #20b2aa' : '1px solid', borderColor: p.popular ? undefined : 'divider', width: '100%' }}>
             {p.popular && <Box sx={{ textAlign: 'center', pt: 1.5 }}><Chip color="primary" label="MAIS VENDIDO" size="small" /></Box>}
             <CardContent sx={{ textAlign: 'center', pt: p.popular ? 1 : 2 }}>
               <Typography sx={{ fontWeight: 800, fontSize: 28, color: 'primary.main', lineHeight: 1.1 }}>{p.credits}</Typography>

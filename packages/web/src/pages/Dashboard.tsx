@@ -106,7 +106,7 @@ export const Dashboard = () => {
       </Box>
       <Box sx={{ flex: 1, minWidth: 0 }}>
         <Typography sx={{ fontWeight: 800, color: '#178f89', fontSize: 13 }}>✨ Dica personalizada (IA)</Typography>
-        <Typography sx={{ fontSize: 14, color: '#0f3d3a', lineHeight: 1.5, mt: 0.25 }}>{tipMsg}</Typography>
+        <Typography sx={{ fontSize: 14, color: 'text.primary', lineHeight: 1.5, mt: 0.25 }}>{tipMsg}</Typography>
       </Box>
     </Box>
   );
@@ -140,7 +140,7 @@ export const Dashboard = () => {
         </Card>
       )}
       {score !== null && (
-        <Card sx={{ mt: 3, borderRadius: 4, background: 'linear-gradient(135deg,#ffffff,#e6f7f6)' }}>
+        <Card sx={{ mt: 3, borderRadius: 4, background: 'linear-gradient(135deg, rgba(32,178,170,.06), rgba(32,178,170,.02))' }}>
           <CardContent>
             {/* Score (esquerda) + Dica IA (direita) lado a lado */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5, flexWrap: 'wrap' }}>
@@ -153,7 +153,7 @@ export const Dashboard = () => {
             </Box>
             <Box sx={{ flex: '1 1 190px', minWidth: 0 }}>{renderTip()}</Box>
             </Box>
-            <Box sx={{ mt: 1.5, pt: 1.5, borderTop: '1px dashed #bfe7e3' }}>
+            <Box sx={{ mt: 1.5, pt: 1.5, borderTop: '1px dashed', borderColor: 'divider' }}>
               <Typography variant="h6" sx={{ fontWeight: 700 }}>Seu Score de Saúde</Typography>
               <Typography variant="body2" color="text.secondary">
                 {score >= 80 ? 'Tudo bem! A maioria dos seus valores está na faixa.' : score >= 60 ? 'Atenção a alguns valores — converse com seu médico.' : 'Vários valores fora da faixa — procure orientação médica.'}
@@ -166,7 +166,7 @@ export const Dashboard = () => {
 
       {/* Dica da IA — standalone só quando NÃO há score (com score vai dentro do card do score) */}
       {loaded && score === null && (
-        <Card sx={{ mt: 3, borderRadius: 4, background: 'linear-gradient(135deg,#a7f3d0,#d1fae5)', border: '1px solid #6ee7b7' }}>
+        <Card sx={{ mt: 3, borderRadius: 4, background: 'linear-gradient(135deg, rgba(16,185,129,.14), rgba(16,185,129,.05))', border: '1px solid #6ee7b7' }}>
           <CardContent>{renderTip()}</CardContent>
         </Card>
       )}
@@ -180,7 +180,7 @@ export const Dashboard = () => {
 
       {/* Créditos (card premium verde) */}
       {credits != null && (
-        <Card onClick={() => navigate('/planos')} sx={{ mt: 2, mb: 2, cursor: 'pointer', borderRadius: 4, background: 'linear-gradient(135deg,#ecfdf5,#d1fae5)', border: '1px solid #6ee7b7', boxShadow: '0 4px 14px rgba(16,185,129,.12)', '&:hover': { transform: 'translateY(-1px)', boxShadow: '0 8px 20px rgba(16,185,129,.2)' }, transition: 'all .15s' }}>
+        <Card onClick={() => navigate('/planos')} sx={{ mt: 2, mb: 2, cursor: 'pointer', borderRadius: 4, background: 'linear-gradient(135deg, rgba(16,185,129,.10), rgba(16,185,129,.04))', border: '1px solid #6ee7b7', boxShadow: '0 4px 14px rgba(16,185,129,.12)', '&:hover': { transform: 'translateY(-1px)', boxShadow: '0 8px 20px rgba(16,185,129,.2)' }, transition: 'all .15s' }}>
           <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.75, '&:last-child': { pb: 1.75 } }}>
             <Box sx={{ width: 46, height: 46, borderRadius: 2.5, background: 'rgba(16,185,129,.16)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <BoltIcon sx={{ color: '#059669', fontSize: 26 }} />
@@ -290,7 +290,7 @@ export const Dashboard = () => {
       </Box>
       {/* Oferta de biometria (1x — nativo + não ativou) */}
       <Dialog open={bioOffer} onClose={() => setBioOffer(false)} PaperProps={{ sx: { borderRadius: 3 } }}>
-        <DialogTitle sx={{ fontWeight: 800, color: '#0f3d3a' }}>🔐 Entrar com biometria?</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 800, color: 'text.primary' }}>🔐 Entrar com biometria?</DialogTitle>
         <DialogContent><Typography sx={{ color: 'text.secondary' }}>Ative a entrada por face/digital neste aparelho. Na próxima vez, você entra sem digitar senha — mais rápido e seguro.</Typography></DialogContent>
         <DialogActions>
           <Button onClick={() => setBioOffer(false)}>Agora não</Button>

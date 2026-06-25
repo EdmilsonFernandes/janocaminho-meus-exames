@@ -37,17 +37,17 @@ export const ReferralCard = ({ code }: { code?: string }) => {
   };
 
   return (
-    <Card sx={{ mt: 2, borderRadius: 4, overflow: 'hidden', background: 'linear-gradient(135deg,#f0f9f7,#e8f5f3)', border: '1px solid #bfe7e3' }}>
+    <Card sx={{ mt: 2, borderRadius: 4, overflow: 'hidden', background: 'rgba(32,178,170,0.06)', border: '1px solid', borderColor: 'divider' }}>
       <CardContent>
         <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
           <GiftIcon sx={{ color: '#178f89' }} />
-          <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f3d3a' }}>Indique e ganhe créditos</Typography>
+          <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary' }}>Indique e ganhe créditos</Typography>
         </Stack>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Cada amigo que se cadastrar com seu código ganha <strong>+30 créditos</strong>. Você também ganha <strong>+30</strong>!</Typography>
 
         {/* Código */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-          <Box sx={{ flex: 1, p: 1.5, borderRadius: 2, bgcolor: '#fff', border: '2px dashed #20b2aa', textAlign: 'center' }}>
+          <Box sx={{ flex: 1, p: 1.5, borderRadius: 2, bgcolor: 'background.paper', border: '2px dashed #20b2aa', textAlign: 'center' }}>
             <Typography sx={{ fontFamily: 'monospace', fontWeight: 800, fontSize: 18, color: '#178f89', letterSpacing: 1 }}>{code}</Typography>
           </Box>
           <Button variant="outlined" startIcon={<ContentCopyIcon />} onClick={copy} sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 700, borderColor: '#20b2aa', color: '#178f89' }}>
@@ -75,7 +75,7 @@ export const ReferralCard = ({ code }: { code?: string }) => {
               <Box sx={{ flex: '1 1 100%' }}>
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>Indicados:</Typography>
                 <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap">
-                  {stats.friends.slice(0, 8).map((f: any, i: number) => <Chip key={i} size="small" label={f.name} sx={{ bgcolor: '#e0f2f1', color: '#178f89', fontWeight: 600 }} />)}
+                  {stats.friends.slice(0, 8).map((f: any, i: number) => <Chip key={i} size="small" label={f.name} sx={{ bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 600 }} />)}
                 </Stack>
               </Box>
             )}

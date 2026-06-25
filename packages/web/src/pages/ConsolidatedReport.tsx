@@ -195,7 +195,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
 
           <CardContent sx={{ p: { xs: 2, md: 3 }, overflowWrap: 'break-word' }}>
             {sourceExams.length > 0 && (
-              <Box sx={{ mb: 2, p: 1.5, borderRadius: 2, background: '#e6f7f6', borderLeft: '4px solid #20b2aa' }}>
+              <Box sx={{ mb: 2, p: 1.5, borderRadius: 2, background: 'rgba(32,178,170,0.08)', borderLeft: '4px solid #20b2aa' }}>
                 <Typography sx={{ fontWeight: 700, color: '#178f89', fontSize: 14, mb: 1 }}>📊 Relatório baseado em {sourceExams.length} exame(s):</Typography>
                 <Stack spacing={0.5} useFlexGap>
                   {sourceExams.map((e, i) => (
@@ -220,7 +220,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
                         <NameToggle name={c.name} entenda={c.entenda} />
                         <Typography variant="body2" sx={{ mt: 0.25 }}>
                           {c.atual && <><strong>{c.atual}</strong>{' '}</>}
-                          {c.leitura && <span style={{ color: '#666' }}>→ {c.leitura}</span>}
+                          {c.leitura && <span style={{ color: 'inherit', opacity: 0.7 }}>→ {c.leitura}</span>}
                         </Typography>
                       </Box>
                       <ExplainButton name={c.name} />
