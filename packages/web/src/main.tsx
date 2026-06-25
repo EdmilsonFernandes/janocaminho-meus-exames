@@ -1,3 +1,4 @@
+import './utils/fetch-cache'; // OFFLINE-FIRST: instala o cache de fetch ANTES de qualquer request
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import * as Sentry from '@sentry/react';
