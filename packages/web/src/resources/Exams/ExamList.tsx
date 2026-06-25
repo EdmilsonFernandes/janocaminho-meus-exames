@@ -1,5 +1,6 @@
+import { useEffect, useState } from 'react';
 import { List, useListContext, useRefresh, useNotify, CreateButton, TopToolbar } from 'react-admin';
-import { Chip, Box, Card, CardContent, Typography, IconButton, Stack, LinearProgress, Button, Accordion, AccordionSummary, AccordionDetails, Alert } from '@mui/material';
+import { Chip, Box, Card, CardContent, Typography, IconButton, Stack, LinearProgress, Button, Accordion, AccordionSummary, AccordionDetails, Alert, CircularProgress } from '@mui/material';
 import ScienceIcon from '@mui/icons-material/Science';
 import ImageIcon from '@mui/icons-material/Image';
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
@@ -25,6 +26,32 @@ const statusLabel: Record<string, string> = { EXTRACTED: 'Pronto', FAILED: 'Falh
 const kindLabel: Record<string, string> = { LAB_PANEL: 'Laboratorial', IMAGING: 'Imagem', OTHER: 'Outro' };
 const hexFor = (s: string) => { const sc = statusColor[s] ?? 'default'; return sc === 'success' ? '#10b981' : sc === 'error' ? '#ef4444' : sc === 'warning' ? '#f59e0b' : sc === 'info' ? '#0ea5e9' : '#94a3b8'; };
 
+/** Cartão de exame EM PROCESSAMENTO (UPLOADED/EXTRACTING) — fica sempre no TOPO da lista,
+ *  com % animada. Não há progresso real no servidor (a extração é um state machine), então a
+ *  % é simulada — igualzinha à barra do Dr. Exame na tela de detalhe — só pra o usuário sentir
+ *  que "tá indo". Toca no cartão pra abrir o exame e ver o robô com a barra de progresso. */
+const ProcessingCard = ({ r }: { r: any }) => {
+  const navigate = useNavigate();
+  const [pct, setPct] = useState(12);
+  useEffect(() => {
+    const t = setInterval(() => setPct((p) => (p < 82 ? p + 3 : Math.min(p + 0.6, 94))), 800);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <Card onClick={() => navigate(`/exams/${r.id}/show`)} sx={{ cursor: 'pointer', borderRadius: 3, borderLeft: '4px solid #0ea5e9', overflow: 'hidden', maxWidth: '100%' }}>
+      <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, '&:last-child': { pb: 1.5 } }}>
+        <CircularProgress variant="determinate" value={pct} size={34} thickness={5} sx={{ color: '#0ea5e9', flexShrink: 0 }} />
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography sx={{ fontWeight: 700, wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.2 }}>{r.title || 'Novo exame enviado'}</Typography>
+          <Typography variant="caption" color="text.secondary">Dr. Exame está extraindo… <strong>{Math.round(pct)}%</strong></Typography>
+        </Box>
+        <ChevronRightIcon sx={{ color: 'text.disabled', flexShrink: 0 }} />
+      </CardContent>
+      <LinearProgress variant="determinate" value={pct} sx={{ height: 4, '& .MuiLinearProgress-bar': { background: 'linear-gradient(90deg,#0ea5e9,#20b2aa)' } }} />
+    </Card>
+  );
+};
+
 /** Cards agrupados por ano (colapsáveis). Mesmo layout em mobile e desktop. */
 const ExamCards = () => {
   const { data, isLoading, total } = useListContext<any>();
@@ -32,6 +59,16 @@ const ExamCards = () => {
   const refresh = useRefresh();
   const notify = useNotify();
   const premium = usePremium();
+
+  // Re-busca a lista a cada 5s enquanto há exames sendo extraídos. Quando termina (vira EXTRACTED),
+  // o exame sai do topo e cai no grupo do ANO certo (performedAt é preenchido pela extração).
+  const processingCount = (data ?? []).filter((r: any) => r.status === 'UPLOADED' || r.status === 'EXTRACTING').length;
+  useEffect(() => {
+    if (!processingCount) return;
+    const t = setInterval(refresh, 5000);
+    return () => clearInterval(t);
+  }, [processingCount, refresh]);
+
   if (isLoading) return null;
   const del = async (e: any, id: string, title: string) => {
     e.stopPropagation();
@@ -54,8 +91,12 @@ const ExamCards = () => {
     if (r.ok) { notify('Re-extraindo…', { type: 'success' }); refresh(); } else notify('Falha ao re-extrair', { type: 'error' });
   };
 
-  const failed = (data ?? []).filter((r: any) => r.status === 'FAILED');
-  const groups = groupByYear(data ?? [], (r) => r.performedAt);
+  const all = data ?? [];
+  const processing = all.filter((r: any) => r.status === 'UPLOADED' || r.status === 'EXTRACTING');
+  const failed = all.filter((r: any) => r.status === 'FAILED');
+  // "rest" exclui os em-processamento (eles ficam no topo) — isso corrige o bug do novo exame
+  // (performedAt ainda nulo) caír no grupo "Sem data" no fim da lista.
+  const groups = groupByYear(all.filter((r: any) => r.status !== 'UPLOADED' && r.status !== 'EXTRACTING'), (r) => r.performedAt);
   const latestYear = groups[0]?.year ?? null;
   // Falhas de leitura aparecem primeiro no grupo — não escondidas no fim da lista.
   groups.forEach((g) => g.items.sort((a: any, b: any) => (a.status === 'FAILED' ? 0 : 1) - (b.status === 'FAILED' ? 0 : 1)));
@@ -103,6 +144,17 @@ const ExamCards = () => {
         </Box>
         <CreateButton label="＋ Enviar exame" variant="contained" size="small" sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, boxShadow: 'none' }} />
       </Stack>
+      {processing.length > 0 && (
+        <Box>
+          <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.75 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0369a1' }}>⏳ Em processamento</Typography>
+            <Chip size="small" label={processing.length} sx={{ height: 18, bgcolor: '#e0f2fe', color: '#0369a1', fontWeight: 700 }} />
+          </Stack>
+          <Stack spacing={1.5}>
+            {processing.map((r: any) => <ProcessingCard key={r.id} r={r} />)}
+          </Stack>
+        </Box>
+      )}
       {failed.length > 0 && (
         <Alert severity="warning" icon={false} sx={{ borderRadius: 3, alignItems: 'flex-start', '& .MuiAlert-message': { width: '100%' } }}>
           <Typography sx={{ fontWeight: 800, color: '#b45309' }}>⚠️ {failed.length} documento{failed.length !== 1 ? 's' : ''} não consegui{failed.length !== 1 ? 'ram' : 'u'} ser lido{failed.length !== 1 ? 's' : ''} como exame</Typography>
@@ -143,7 +195,7 @@ const ExamCards = () => {
 export const ExamList = () => {
   const [pid] = useSelectedPatient();
   return (
-    <List key={pid} sort={{ field: 'performedAt', order: 'DESC' }} exporter={false} perPage={25} filter={{ patientId: pid || 'none' }} actions={false}>
+    <List key={pid} sort={{ field: 'performedAt', order: 'DESC' }} exporter={false} perPage={1000} pagination={false} filter={{ patientId: pid || 'none' }} actions={false}>
       <ExamCards />
     </List>
   );
