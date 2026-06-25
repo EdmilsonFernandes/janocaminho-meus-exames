@@ -96,6 +96,84 @@ docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --force-rec
 - **Schema do DB**: `public` (tabela `users` NÃO `User` — minúsculas via @@map).
 - **Backup**: `scripts/pg-backup.sh` → S3 bucket `jnc-db-backups-prod`.
 
+## Procedimentos de Emergência / Suporte
+
+### Verificar versão deployada
+```bash
+curl -s https://janocaminho.com.br/minhasaude/api/health | grep -o '"versionLabel":"[^"]*"'
+# → "versionLabel":"v2.2.7.97 (abc1234)" — confirma qual commit tá no ar
+```
+
+### Monitorar deploy (esperar landar)
+```bash
+# Watcher: polla /api/health até aparecer o commit novo
+deadline=$((SECONDS+1200))
+while [ $SECONDS -lt $deadline ]; do
+  body=$(curl -sf -m 10 "https://janocaminho.com.br/minhasaude/api/health" 2>/dev/null || true)
+  if echo "$body" | grep -q '<commit-hash>'; then echo "NO AR"; exit 0; fi
+  sleep 25
+done
+```
+
+### App fora do ar (502 Bad Gateway)
+1. SSH: `docker ps -a --filter name=meus-exames-app` (status: Restarting?)
+2. `docker logs meus-exames-app --tail 30` (erro de migration? crash?)
+3. **Migration P3009**: `UPDATE _prisma_migrations SET finished_at=now() WHERE finished_at IS NULL;` + `docker compose up -d --force-recreate`.
+4. Verificar: `curl http://localhost:4010/api/health`.
+
+### Debug: Push não chega no device
+1. Confirmar token: `SELECT token FROM device_tokens WHERE "userId" IN (SELECT id FROM users WHERE email='X');`
+2. Teste manual FCM (do container):
+```bash
+docker exec -w /app/packages/server meus-exames-app node -e "
+const admin=require('firebase-admin/app'); const msg=require('firebase-admin/messaging');
+admin.initializeApp({credential:admin.cert('/app/keys/firebase-adminsdk.json')});
+msg.getMessaging().send({token:'<TOKEN>',notification:{title:'TESTE',body:'Push OK'},android:{priority:'high'}})
+  .then(r=>console.log('OK:',r)).catch(e=>console.log('ERRO:',e.code,e.message));
+"
+```
+3. Se SEND OK mas device não recebe → **channel_id** custom no android config (remover).
+4. Se SEND ERRO → token inválido (deletar da tabela) ou key errada (conferir project_id).
+
+### Adicionar env var em produção (.env.prod)
+```bash
+ssh ... 'cd ~/meus-exames/janocaminho-meus-exames
+  grep -q "^NOVA_VAR=" .env.prod || printf "\nNOVA_VAR=valor\n" >> .env.prod
+  docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --force-recreate'
+```
+
+### Limpar dados errados (médicos duplicados, shares órfãos, etc.)
+```bash
+DBC=$(grep DATABASE_URL .env.prod | sed 's/?.*//')
+# Deletar shares
+docker exec janocaminho-postgres psql "$DBC" -c "DELETE FROM doctor_shares WHERE ...;"
+# Deletar médicos pending sem shares
+docker exec janocaminho-postgres psql "$DBC" -c "DELETE FROM doctors WHERE id IN (...) AND \"passwordHash\"='pending-invite';"
+```
+
+### Resetar senha de usuário (suporte)
+```bash
+# Gerar hash novo (no container):
+docker exec -w /app/packages/server meus-exames-app node -e "
+const b=require('bcryptjs'); console.log(b.hashSync('NOVA_SENHA',10));"
+# Atualizar no banco:
+docker exec janocaminho-postgres psql "$DBC" -c "UPDATE users SET \"passwordHash\"='<HASH>' WHERE email='X';"
+```
+
+### Conta demo para Google Play Review
+- Email precisa ser **real** (mailbox existe) → senão bounce → não verifica → login bloqueado.
+- Criar a mailbox (ou alias no Zoho) OU usar email real controlado.
+- Verificar a conta (emailVerified=true) + senha conhecida.
+- Subir as credenciais no Play Console → App access.
+
+### Monitorar CI (sem gh CLI)
+```bash
+curl -s "https://api.github.com/repos/EdmilsonFernandes/janocaminho-meus-exames/actions/runs?per_page=3" | \
+  node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{
+    JSON.parse(s).workflow_runs.forEach(r=>console.log(r.head_sha.slice(0,7),r.status,r.conclusion||"—'));
+  });'
+```
+
 ## Gotchas Conhecidos
 | Problema | Sintoma | Solução |
 |---|---|---|
