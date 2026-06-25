@@ -11,16 +11,18 @@ export interface BadgeDef {
   reward: number;
 }
 
-/** Fonte única de verdade das conquistas (server-authoritative). reward em créditos. */
+/** Fonte única de verdade das conquistas (server-authoritative). reward em créditos.
+ *  Recompensas GRADUATIVAS por dificuldade: fácil = 2, médio = 5, difícil = 10, mestre = 20.
+ *  Total máximo: 52 créditos (incentivo real sem inflacionar — plano mensal = 300). */
 export const BADGES: BadgeDef[] = [
-  { id: 'first_exam', emoji: '🎉', title: 'Primeiro exame', desc: 'Envie seu primeiro exame', metric: 'exams', threshold: 1, reward: 1 },
-  { id: 'collector', emoji: '📚', title: 'Colecionador', desc: 'Acumule 5 exames', metric: 'exams', threshold: 5, reward: 1 },
-  { id: 'scholar', emoji: '🎓', title: 'Estudioso', desc: 'Acumule 10 exames', metric: 'exams', threshold: 10, reward: 1 },
-  { id: 'archive', emoji: '🗄️', title: 'Arquivista', desc: 'Acumule 25 exames', metric: 'exams', threshold: 25, reward: 1 },
-  { id: 'healthy', emoji: '💚', title: 'Saudável', desc: 'Score de saúde acima de 80', metric: 'score', threshold: 80, reward: 1 },
-  { id: 'streak3', emoji: '🔥', title: 'Constância', desc: '3 dias seguidos no app', metric: 'streak', threshold: 3, reward: 1 },
-  { id: 'streak7', emoji: '⚡', title: 'Dedicado', desc: '7 dias seguidos no app', metric: 'streak', threshold: 7, reward: 1 },
-  { id: 'streak30', emoji: '👑', title: 'Mestre da saúde', desc: '30 dias seguidos no app', metric: 'streak', threshold: 30, reward: 1 },
+  { id: 'first_exam', emoji: '🎉', title: 'Primeiro exame', desc: 'Envie seu primeiro exame', metric: 'exams', threshold: 1, reward: 2 },
+  { id: 'collector', emoji: '📚', title: 'Colecionador', desc: 'Acumule 5 exames', metric: 'exams', threshold: 5, reward: 3 },
+  { id: 'scholar', emoji: '🎓', title: 'Estudioso', desc: 'Acumule 10 exames', metric: 'exams', threshold: 10, reward: 5 },
+  { id: 'archive', emoji: '🗄️', title: 'Arquivista', desc: 'Acumule 25 exames', metric: 'exams', threshold: 25, reward: 10 },
+  { id: 'healthy', emoji: '💚', title: 'Saudável', desc: 'Score de saúde acima de 80', metric: 'score', threshold: 80, reward: 5 },
+  { id: 'streak3', emoji: '🔥', title: 'Constância', desc: '3 dias seguidos no app', metric: 'streak', threshold: 3, reward: 2 },
+  { id: 'streak7', emoji: '⚡', title: 'Dedicado', desc: '7 dias seguidos no app', metric: 'streak', threshold: 7, reward: 5 },
+  { id: 'streak30', emoji: '👑', title: 'Mestre da saúde', desc: '30 dias seguidos no app', metric: 'streak', threshold: 30, reward: 20 },
 ];
 
 export interface UserMetrics {
