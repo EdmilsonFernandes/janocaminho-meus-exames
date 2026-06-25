@@ -16,31 +16,40 @@ const requireAdmin = async (req: AuthedRequest, res: any, next: any) => {
 };
 router.use(requireAdmin);
 
-// LISTAR usuários
-router.get('/users', async (_req, res, next) => {
+// LISTAR usuários (busca ?q= + paginação ?page=&limit= server-side; sem params mantém o total)
+router.get('/users', async (req, res, next) => {
   try {
-    const users = await prisma.user.findMany({
-      select: { id: true, email: true, name: true, role: true, credits: true, planExpiresAt: true, createdAt: true },
-      orderBy: { createdAt: 'desc' },
-    });
-    const examCount = await prisma.exam.count();
-    const subCount = await prisma.subscription.count();
-    const approvedRevenue = await prisma.subscription.aggregate({ where: { status: 'APPROVED' }, _sum: { amount: true } });
-    res.json({ users, stats: { users: users.length, exams: examCount, subscriptions: subCount, revenue: approvedRevenue._sum.amount ?? 0 } });
+    const q = String(req.query.q ?? '').trim();
+    const page = Math.max(1, Number(req.query.page ?? 1));
+    const limit = Math.min(100, Math.max(1, Number(req.query.limit ?? 20)));
+    const where: any = q ? { OR: [{ email: { contains: q, mode: 'insensitive' } }, { name: { contains: q, mode: 'insensitive' } }] } : {};
+    const [users, total, examCount, subCount, approvedRevenue] = await Promise.all([
+      prisma.user.findMany({ where, select: { id: true, email: true, name: true, role: true, credits: true, planExpiresAt: true, createdAt: true }, orderBy: { createdAt: 'desc' }, skip: (page - 1) * limit, take: limit }),
+      prisma.user.count({ where }),
+      prisma.exam.count(),
+      prisma.subscription.count(),
+      prisma.subscription.aggregate({ where: { status: 'APPROVED' }, _sum: { amount: true } }),
+    ]);
+    res.json({ users, total, page, limit, hasMore: page * limit < total, stats: { users: total, exams: examCount, subscriptions: subCount, revenue: approvedRevenue._sum.amount ?? 0 } });
   } catch (e) { next(e); }
 });
 
-// LISTAR pagamentos (com MP details)
+// LISTAR pagamentos (filtros ?status=&type=&q= + paginação ?page=; sem params = compatível)
 router.get('/payments', async (req, res, next) => {
   try {
     const page = Math.max(1, Number(req.query.page ?? 1));
     const take = 20;
+    const status = String(req.query.status ?? '').trim();
+    const type = String(req.query.type ?? '').trim(); // 'mensal' | 'creditos'
+    const q = String(req.query.q ?? '').trim();
+    const where: any = {};
+    if (status) where.status = status;
+    if (type === 'mensal') where.periodDays = { gt: 0 };
+    else if (type === 'creditos') where.periodDays = 0;
+    if (q) where.user = { OR: [{ email: { contains: q, mode: 'insensitive' } }, { name: { contains: q, mode: 'insensitive' } }] };
     const [subs, total] = await Promise.all([
-      prisma.subscription.findMany({
-        orderBy: { createdAt: 'desc' }, skip: (page - 1) * take, take,
-        include: { user: { select: { email: true, name: true } } },
-      }),
-      prisma.subscription.count(),
+      prisma.subscription.findMany({ where, orderBy: { createdAt: 'desc' }, skip: (page - 1) * take, take, include: { user: { select: { email: true, name: true } } } }),
+      prisma.subscription.count({ where }),
     ]);
     res.json({ payments: subs, total, page, hasMore: page * take < total });
   } catch (e) { next(e); }

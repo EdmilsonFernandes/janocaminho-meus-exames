@@ -59,7 +59,7 @@ import { ValoresAlteradosPage } from './pages/ValoresAlterados';
 import { ProfilePage } from './pages/Profile';
 import { SecurityPage } from './pages/Security';
 import { PrivacyPage } from './pages/Privacy';
-import { AdminPage } from './pages/Admin';
+import { AdminPage } from './pages/admin';
 import { NotFoundPage } from './pages/NotFound';
 import { LoginPage, RegisterPage, ResetPage } from './pages/Auth';
 import { TermsPage } from './pages/Terms';
