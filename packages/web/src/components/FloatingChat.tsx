@@ -60,10 +60,10 @@ export const FloatingChat = () => {
         onClick={() => navigate('/chat')}
         title="Pergunte ao Dr. Exame"
         sx={{
-          position: 'fixed', bottom: { xs: 76, md: 24 }, right: { xs: 14, md: 24 }, zIndex: 1200,
-          width: 52, height: 52, p: 0, bgcolor: 'rgba(255,255,255,.55)', backdropFilter: 'blur(8px)',
-          border: '1px solid rgba(255,255,255,.6)', borderRadius: '50%', cursor: 'pointer',
-          boxShadow: '0 4px 14px rgba(15,61,58,.14)',
+          position: 'fixed', bottom: { xs: 84, md: 24 }, right: { xs: 14, md: 24 }, zIndex: 1200,
+          width: 52, height: 52, p: 0, bgcolor: 'transparent',
+          border: 'none', borderRadius: '50%', cursor: 'pointer',
+          boxShadow: 'none',
           '&:active': { transform: 'scale(.94)' },
         }}
       >
@@ -85,7 +85,7 @@ export const FloatingChat = () => {
           {/* Badge ✨ IA — símbolo universal de inteligência artificial */}
           <Box sx={{
             position: 'absolute', top: -2, right: -2, width: 20, height: 20, borderRadius: '50%',
-            bgcolor: '#fff', border: '1.5px solid #e6f7f6', boxShadow: '0 2px 6px rgba(0,0,0,.16)',
+            bgcolor: '#178f89',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             animation: 'drSpark 2.2s ease-in-out infinite',
           }}>

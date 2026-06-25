@@ -195,42 +195,48 @@ export const ExamCreate = () => {
       </Stack>
 
       <Card sx={{ borderRadius: 4, border: '1px solid #e6f1f0', boxShadow: '0 12px 32px rgba(15,61,58,.07)' }}>
-        <CardContent sx={{ p: { xs: 2.5, sm: 3 } }}>
-          <Box component="form" onSubmit={submit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {/* DROPZONE — borda tracejada, vira teal quando tem arquivo */}
-            <Box component="label" sx={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1, textAlign: 'center',
-              py: { xs: 3, sm: 3.75 }, px: 2, borderRadius: 3, cursor: 'pointer',
-              border: '2px dashed', borderColor: files.length ? '#20b2aa' : '#bfe0dc',
-              bgcolor: files.length ? 'rgba(32,178,170,.05)' : '#f6fbfa',
-              transition: 'all .15s', '&:hover': { borderColor: '#20b2aa', bgcolor: 'rgba(32,178,170,.07)' },
-            }}>
-              <input type="file" hidden multiple accept=".pdf,.jpg,.jpeg,.png,image/*,application/pdf" onChange={(e) => { onPick(e.target.files); if (e.target) e.target.value = ''; }} />
-              <Box sx={{ width: 48, height: 48, borderRadius: '50%', bgcolor: '#e0f2f1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><UploadFileIcon sx={{ color: '#178f89', fontSize: 26 }} /></Box>
-              <Box>
-                <Typography sx={{ fontWeight: 700, color: '#0f3d3a' }}>{files.length ? `${files.length} arquivo(s) selecionado(s)` : 'Toque pra escolher PDF ou foto'}</Typography>
-                <Typography variant="caption" color="text.secondary">Vários arquivos de uma vez · até 32 MB cada</Typography>
-              </Box>
-            </Box>
+        <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2, textAlign: 'center' }}>Escolha como quer enviar seu exame</Typography>
 
+          <Box component="form" onSubmit={submit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {/* 2 CAMINHOS — cards clicáveis (não competem, são MÉTODOS) */}
+            <Stack direction="row" spacing={1.5} sx={{ flexWrap: { xs: 'nowrap', sm: 'nowrap' } }}>
+              {/* Caminho 1: Escanear (só mobile nativo) */}
+              {isNative && (
+                <Box onClick={busy ? undefined : scanDocument} sx={{
+                  flex: 1, cursor: busy ? 'wait' : 'pointer', borderRadius: 3, p: { xs: 2, sm: 2.5 }, textAlign: 'center',
+                  border: '2px solid #e2e8f0', bgcolor: '#f8fafb', transition: 'all .15s',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.75,
+                  '&:active': { transform: 'scale(.97)' }, '&:hover': { borderColor: '#20b2aa', bgcolor: 'rgba(32,178,170,.05)' },
+                }}>
+                  <Box sx={{ fontSize: 36 }}>📷</Box>
+                  <Typography sx={{ fontWeight: 800, fontSize: 15, color: '#0f3d3a' }}>Escanear</Typography>
+                  <Typography variant="caption" color="text.secondary">Digitalize com a câmera<br />bordas automáticas + nítido</Typography>
+                </Box>
+              )}
+              {/* Caminho 2: PDF / Imagem */}
+              <Box component="label" sx={{
+                flex: 1, cursor: 'pointer', borderRadius: 3, p: { xs: 2, sm: 2.5 }, textAlign: 'center',
+                border: '2px solid', borderColor: files.length ? '#20b2aa' : '#e2e8f0',
+                bgcolor: files.length ? 'rgba(32,178,170,.05)' : '#f8fafb', transition: 'all .15s',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.75,
+                '&:active': { transform: 'scale(.97)' }, '&:hover': { borderColor: '#20b2aa', bgcolor: 'rgba(32,178,170,.05)' },
+              }}>
+                <input type="file" hidden multiple accept=".pdf,.jpg,.jpeg,.png,image/*,application/pdf" onChange={(e) => { onPick(e.target.files); if (e.target) e.target.value = ''; }} />
+                <Box sx={{ fontSize: 36 }}>📄</Box>
+                <Typography sx={{ fontWeight: 800, fontSize: 15, color: '#0f3d3a' }}>{files.length ? `${files.length} arquivo(s)` : 'PDF / Imagem'}</Typography>
+                <Typography variant="caption" color="text.secondary">Selecione da galeria<br />vários de uma vez · até 32 MB</Typography>
+              </Box>
+            </Stack>
+
+            {/* Arquivos selecionados */}
             {files.length > 0 && (
               <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
                 {files.map((f, i) => (<Chip key={i} label={f.name} onDelete={() => setFiles(files.filter((_, j) => j !== i))} sx={{ borderRadius: 1.5, maxWidth: '100%' }} />))}
               </Stack>
             )}
 
-            {isNative && (
-              <>
-                <Alert severity="success" icon={<DocumentScannerIcon />} sx={{ borderRadius: 2.5, alignItems: 'flex-start', '& .MuiAlert-message': { fontSize: 13.5 } }}>
-                  <strong>Scanner inteligente</strong>: detecta as bordas do papel, corta o fundo, estica a foto (corrige perspectiva) e deixa o texto nítido — a IA lê tão bem quanto um PDF. Dica: boa iluminação, sem reflexo.
-                </Alert>
-                <Button variant="contained" size="large" startIcon={<DocumentScannerIcon />} onClick={scanDocument} disabled={busy} sx={{ alignSelf: { xs: 'stretch', sm: 'flex-start' }, borderRadius: 99, py: 1.2, textTransform: 'none', fontWeight: 800, bgcolor: '#0f3d3a', '&:hover': { bgcolor: '#0a2e2b' } }}>
-                  📷 Escanear exame (câmera)
-                </Button>
-              </>
-            )}
-
-            <TextField label="Título (opcional)" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Hemograma — junho/2026" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
+            <TextField label="Título (opcional)" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Hemograma — junho/2026" size="small" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
 
             {progress && (
               <Box sx={{ bgcolor: '#f6fbfa', p: 1.5, borderRadius: 2.5 }}>
@@ -240,11 +246,12 @@ export const ExamCreate = () => {
               </Box>
             )}
 
-            <Button type="submit" variant="contained" size="large" disabled={busy || !files.length} sx={{ alignSelf: { xs: 'stretch', sm: 'flex-start' }, borderRadius: 99, py: 1.3, px: 4, textTransform: 'none', fontWeight: 800, fontSize: 15, bgcolor: '#20b2aa', boxShadow: '0 12px 26px rgba(32,178,170,.30)', '&:hover': { bgcolor: '#178f89' }, '&.Mui-disabled': { bgcolor: '#bfe0dc' } }}>
+            {/* ÚNICO botão primário — não compete com os caminhos */}
+            <Button type="submit" variant="contained" size="large" fullWidth disabled={busy || !files.length} sx={{ borderRadius: 99, py: 1.3, textTransform: 'none', fontWeight: 800, fontSize: 15, bgcolor: '#20b2aa', boxShadow: '0 8px 22px rgba(32,178,170,.25)', '&:hover': { bgcolor: '#178f89' }, '&.Mui-disabled': { bgcolor: '#d6ece8' } }}>
               {busy ? 'Enviando…' : `Enviar ${files.length || ''} e extrair com IA →`}
             </Button>
-            <Typography variant="caption" color="text.secondary" sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
-              📤 <strong>1 crédito</strong> por envio (plano grátis) · <strong>Premium</strong>: 6 envios grátis/mês por perfil, depois 5 créditos.
+            <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
+              📤 <strong>1 crédito</strong> por envio (grátis) · <strong>Premium</strong>: 6 envios grátis/mês
             </Typography>
           </Box>
         </CardContent>
