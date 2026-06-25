@@ -41,9 +41,10 @@ export async function getUserMetrics(userId: string): Promise<UserMetrics> {
   return { exams, score: health?.score ?? null, streak: user?.streakDays ?? 0 };
 }
 
-/** Avalia cada badge contra as métricas: earned + progresso (0-1). */
-export function evalBadges(m: UserMetrics): Array<BadgeDef & { earned: boolean; progress: number }> {
-  return BADGES.map((b) => {
+/** Avalia cada badge contra as métricas: earned + progresso (0-1).
+ *  Aceita badges customizadas (do banco via settings) — default = BADGES hardcoded. */
+export function evalBadges(m: UserMetrics, badges: BadgeDef[] = BADGES): Array<BadgeDef & { earned: boolean; progress: number }> {
+  return badges.map((b) => {
     const val = b.metric === 'exams' ? m.exams : b.metric === 'score' ? m.score ?? 0 : m.streak;
     return { ...b, earned: val >= b.threshold, progress: Math.min(val / b.threshold, 1) };
   });

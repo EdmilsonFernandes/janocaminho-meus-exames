@@ -31,6 +31,8 @@ export const PricingTab = () => {
   const notify = useNotify();
   const [config, setConfig] = useState<any>(null);
   const [pricing, setPricing] = useState<any>(null);
+  const [badges, setBadges] = useState<any[]>([]);
+  const [savingBadges, setSavingBadges] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -39,12 +41,26 @@ export const PricingTab = () => {
     setLoading(true); setError(false);
     try {
       const r = await fetch(`${API_URL}/admin/config`, { headers: { Authorization: `Bearer ${token()}` } });
-      if (r.ok) setConfig(await r.json()); else setError(true);
+      if (r.ok) { const c = await r.json(); setConfig(c); setBadges(Array.isArray(c?.badges) ? c.badges : []); } else setError(true);
     } catch { setError(true); }
     setLoading(false);
   };
   useEffect(() => { void load(); /* eslint-disable-next-line */ }, []);
   useEffect(() => { if (config) setPricing(normConfig(config)); /* eslint-disable-next-line */ }, [config]);
+
+  const saveBadges = async () => {
+    if (!badges.length) return;
+    setSavingBadges(true);
+    try {
+      const r = await fetch(`${API_URL}/admin/config/costs`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
+        body: JSON.stringify({ category: 'badges', value: badges }),
+      });
+      if (r.ok) { notify('Conquistas salvas!', { type: 'success' }); await load(); }
+      else notify('Erro ao salvar conquistas.', { type: 'error' });
+    } catch { notify('Erro de rede ao salvar.', { type: 'error' }); }
+    setSavingBadges(false);
+  };
 
   const savePricing = async () => {
     if (!pricing) return;
@@ -67,6 +83,7 @@ export const PricingTab = () => {
   const pricingDirty = !!(pricing && config && JSON.stringify(pricing) !== JSON.stringify(normConfig(config)));
 
   return (
+    <>
     <Card sx={{ borderRadius: 4 }}>
       <CardContent>
         <Stack spacing={4}>
@@ -99,5 +116,41 @@ export const PricingTab = () => {
         </Box>
       </CardContent>
     </Card>
+
+    {/* CONQUISTAS — editável: emoji, título, descrição, threshold, recompensa */}
+    {badges.length > 0 && (
+      <Card sx={{ borderRadius: 4, mt: 3 }}>
+        <CardContent>
+          <Typography variant="h6">🏆 Conquistas (gamificação)</Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+            Edite nomes, valores e dificuldade. Salva tudo de uma vez no banco.
+          </Typography>
+          <Stack spacing={2}>
+            {badges.map((b, i) => (
+              <Stack key={b.id ?? i} direction="row" spacing={1.5} useFlexGap flexWrap="wrap" alignItems="center"
+                sx={{ pb: 1.5, borderBottom: i < badges.length - 1 ? '1px solid #f0f0f0' : 'none' }}>
+                <TextField label="Emoji" size="small" sx={{ width: 70 }} value={b.emoji ?? ''}
+                  onChange={(e) => setBadges(prev => prev.map((x, j) => j === i ? { ...x, emoji: e.target.value } : x))} />
+                <TextField label="Título" size="small" sx={{ flex: '1 1 140px' }} value={b.title ?? ''}
+                  onChange={(e) => setBadges(prev => prev.map((x, j) => j === i ? { ...x, title: e.target.value } : x))} />
+                <TextField label="Descrição" size="small" sx={{ flex: '1 1 200px' }} value={b.desc ?? ''}
+                  onChange={(e) => setBadges(prev => prev.map((x, j) => j === i ? { ...x, desc: e.target.value } : x))} />
+                <TextField label="Meta" type="number" size="small" sx={{ width: 80 }} value={b.threshold ?? 0}
+                  onChange={(e) => setBadges(prev => prev.map((x, j) => j === i ? { ...x, threshold: Number(e.target.value) } : x))} />
+                <TextField label="💎 Recompensa" type="number" size="small" sx={{ width: 90 }} value={b.reward ?? 0}
+                  onChange={(e) => setBadges(prev => prev.map((x, j) => j === i ? { ...x, reward: Number(e.target.value) } : x))} />
+              </Stack>
+            ))}
+          </Stack>
+          <Box sx={{ mt: 2.5 }}>
+            <Button variant="contained" onClick={() => void saveBadges()} disabled={savingBadges}
+              startIcon={savingBadges ? <CircularProgress size={16} color="inherit" /> : undefined}>
+              {savingBadges ? 'Salvando…' : 'Salvar conquistas'}
+            </Button>
+          </Box>
+        </CardContent>
+      </Card>
+    )}
+    </>
   );
 };

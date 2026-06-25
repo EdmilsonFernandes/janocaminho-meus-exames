@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest } from '../middleware/auth';
-import { getUserMetrics, evalBadges, BADGES } from '../utils/achievements';
+import { getUserMetrics, evalBadges, BADGES, type BadgeDef } from '../utils/achievements';
+import { getSettings } from '../utils/settings';
 
 const router = Router();
 router.use(requireAuth);
@@ -39,7 +40,8 @@ router.get('/', async (req: AuthedRequest, res, next) => {
       prisma.user.findUnique({ where: { id: userId }, select: { streakDays: true, achievementAlerts: true, credits: true } }),
     ]);
     const claimedSet = new Set(grants.map((g) => g.badgeId));
-    const badges = evalBadges(metrics).map((b) => ({
+    const liveBadges = (getSettings().badges as BadgeDef[]) ?? BADGES;
+    const badges = evalBadges(metrics, liveBadges).map((b) => ({
       ...b,
       claimed: claimedSet.has(b.id),
       claimable: b.earned && !claimedSet.has(b.id),
@@ -63,7 +65,7 @@ router.get('/', async (req: AuthedRequest, res, next) => {
       badges,
       streak: metrics.streak,
       creditsClaimed: grants.length,
-      creditsAvailable: BADGES.length,
+      creditsAvailable: liveBadges.length,
       balance: user?.credits ?? 0,
       achievementAlerts: user?.achievementAlerts ?? true,
     });
@@ -76,7 +78,8 @@ router.post('/claim', async (req: AuthedRequest, res, next) => {
     const userId = req.userId!;
     const wantId = req.body?.badgeId ? String(req.body.badgeId) : null;
     const metrics = await getUserMetrics(userId);
-    const state = evalBadges(metrics);
+    const liveBadges = (getSettings().badges as BadgeDef[]) ?? BADGES;
+    const state = evalBadges(metrics, liveBadges);
     const existing = await prisma.achievementGrant.findMany({ where: { userId }, select: { badgeId: true } });
     const claimedSet = new Set(existing.map((g) => g.badgeId));
     const targets = state.filter((b) => b.earned && !claimedSet.has(b.id) && (!wantId || b.id === wantId));
