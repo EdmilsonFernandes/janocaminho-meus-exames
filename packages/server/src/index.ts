@@ -9,6 +9,7 @@ import { startHealthNudgeJob } from './jobs/healthNudges';
 import { startPlanExpiryJob } from './jobs/planExpiry';
 import { loadSettings } from './utils/settings';
 import { loadBlockedDomains } from './utils/blockedDomains';
+import { runExtraction } from './extraction/pipeline';
 
 // SENTRY — error tracking em produção.
 Sentry.init({
@@ -31,6 +32,17 @@ const server = app.listen(config.port, () => {
   startReminderEmailJob();
   startHealthNudgeJob();
   startPlanExpiryJob();
+  // Recupera exames presos em EXTRACTING: um deploy/restart mata a extração fire-and-forget
+  // no meio → o exame fica "extraindo pra sempre". No boot, re-extrai qualquer um nesse estado.
+  void (async () => {
+    try {
+      const stuck = await prisma.exam.findMany({ where: { status: 'EXTRACTING' }, select: { id: true } });
+      if (stuck.length) {
+        console.log(`[server] recuperando ${stuck.length} exame(s) preso(s) em EXTRACTING (re-extraindo)…`);
+        for (const s of stuck) runExtraction(s.id).catch((e: any) => console.error(`[server] recuperação ${s.id} falhou:`, e?.message));
+      }
+    } catch (e) { console.error('[server] falha ao recuperar órfãos:', (e as Error).message); }
+  })();
   if (!hasAnthropicKey()) {
     console.warn(
       '[server] AVISO: ANTHROPIC_API_KEY não configurada. Extração e análise de IA ficarão indisponíveis até definir a chave em packages/server/.env',

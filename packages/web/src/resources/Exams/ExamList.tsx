@@ -6,6 +6,7 @@ import ImageIcon from '@mui/icons-material/Image';
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import CloseIcon from '@mui/icons-material/Close';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import LockIcon from '@mui/icons-material/Lock';
 import { useNavigate } from 'react-router-dom';
@@ -30,7 +31,7 @@ const hexFor = (s: string) => { const sc = statusColor[s] ?? 'default'; return s
  *  com spinner/barra INDETERMINADOS. Não há progresso real no servidor (a extração é um
  *  state machine), então antes a % era simulada e travava em ~94% (sensação de pendurado) e
  *  reiniciava a cada visita. Indeterminado é honesto. Toca no cartão pra ver o robô. */
-const ProcessingCard = ({ r }: { r: any }) => {
+const ProcessingCard = ({ r, onCancel }: { r: any; onCancel?: (e: any) => void }) => {
   const navigate = useNavigate();
   return (
     <Card onClick={() => navigate(`/exams/${r.id}/show`)} sx={{ cursor: 'pointer', borderRadius: 3, borderLeft: '4px solid #0ea5e9', overflow: 'hidden', maxWidth: '100%' }}>
@@ -40,6 +41,7 @@ const ProcessingCard = ({ r }: { r: any }) => {
           <Typography sx={{ fontWeight: 700, wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.2 }}>{r.title || 'Novo exame enviado'}</Typography>
           <Typography variant="caption" color="text.secondary">Dr. Exame está extraindo… toque para acompanhar</Typography>
         </Box>
+        {onCancel && <IconButton size="small" onClick={onCancel} title="Cancelar e excluir" sx={{ flexShrink: 0, color: 'text.secondary' }}><CloseIcon fontSize="small" /></IconButton>}
         <ChevronRightIcon sx={{ color: 'text.disabled', flexShrink: 0 }} />
       </CardContent>
       <LinearProgress sx={{ height: 4, '& .MuiLinearProgress-bar': { background: 'linear-gradient(90deg,#0ea5e9,#20b2aa)' } }} />
@@ -155,7 +157,7 @@ const ExamCards = () => {
             <Chip size="small" label={processing.length} sx={{ height: 18, bgcolor: '#e0f2fe', color: '#0369a1', fontWeight: 700 }} />
           </Stack>
           <Stack spacing={1.5}>
-            {processing.map((r: any) => <ProcessingCard key={r.id} r={r} />)}
+            {processing.map((r: any) => <ProcessingCard key={r.id} r={r} onCancel={(e: any) => del(e, r.id, r.title || 'Exame em processamento')} />)}
           </Stack>
         </Box>
       )}
