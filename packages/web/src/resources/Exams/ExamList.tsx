@@ -146,7 +146,7 @@ const ExamCards = () => {
       </Stack>
       {/* FAB flutuante "＋ Enviar exame" — sempre visível, acima do bottom nav */}
       <CreateButton label="＋" variant="contained" sx={{
-        position: 'fixed', bottom: { xs: 'calc(80px + env(safe-area-inset-bottom))', sm: 24 }, right: { xs: 16, sm: 32 }, zIndex: 1100,
+        position: 'fixed', bottom: { xs: 'calc(var(--me-bottom-nav-h, 72px) + 12px)', sm: 24 }, right: { xs: 16, sm: 32 }, zIndex: 1100,
         minWidth: 0, width: 56, height: 56, borderRadius: '50%', fontSize: 28, p: 0, boxShadow: '0 6px 20px rgba(32,178,170,.35)',
         bgcolor: '#20b2aa', '&:hover': { bgcolor: '#178f89' }, '& .RaButton-label': { fontSize: 28 },
       }} />

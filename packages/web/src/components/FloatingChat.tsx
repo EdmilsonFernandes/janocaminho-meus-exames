@@ -44,7 +44,8 @@ export const FloatingChat = () => {
 
   // Esconde onde já existe chat/input/ação (não competir com outra ação na mesma tela):
   // /chat, /exams (lista tem o "+"), /exams/:id/show (chat inline), /exams/create (form de upload).
-  if (pathname.startsWith('/chat') || /^\/exams(\/|$)/.test(pathname)) return null;
+  // Escondido onde já existe IA/menu: dashboard (tem AiCard hero + botão Dr.Exame no rodapé), /chat, /exams.
+  if (pathname === '/' || pathname.startsWith('/chat') || /^\/exams(\/|$)/.test(pathname)) return null;
 
   return (
     <>
@@ -60,8 +61,8 @@ export const FloatingChat = () => {
         onClick={() => navigate('/chat')}
         title="Pergunte ao Dr. Exame"
         sx={{
-          position: 'fixed', bottom: { xs: 84, md: 24 }, right: { xs: 14, md: 24 }, zIndex: 1200,
-          width: 52, height: 52, p: 0, bgcolor: 'transparent',
+          position: 'fixed', bottom: { xs: 80, md: 22 }, right: { xs: 12, md: 22 }, zIndex: 1200,
+          width: 46, height: 46, p: 0, bgcolor: 'transparent',
           border: 'none', borderRadius: '50%', cursor: 'pointer',
           boxShadow: 'none',
           '&:active': { transform: 'scale(.94)' },
@@ -69,7 +70,7 @@ export const FloatingChat = () => {
       >
         {/* AURA teal pulsante (glow borrado — substitui o círculo/borda sólidos) */}
         <Box sx={{
-          position: 'absolute', inset: -12, borderRadius: '50%', pointerEvents: 'none',
+          position: 'absolute', inset: -10, borderRadius: '50%', pointerEvents: 'none',
           background: 'radial-gradient(circle, rgba(32,178,170,.26) 0%, rgba(32,178,170,.10) 45%, transparent 72%)',
           filter: 'blur(6px)', animation: 'drAura 2.6s ease-in-out infinite',
         }} />
@@ -80,16 +81,16 @@ export const FloatingChat = () => {
           transition: 'transform .25s ease-out', willChange: 'transform',
         }}>
           <Box sx={{ animation: 'drBob 3.4s ease-in-out infinite' }}>
-            <DrExame size={44} sx={{ borderRadius: '26%', filter: 'drop-shadow(0 1px 2px rgba(15,61,58,.20))' }} />
+            <DrExame size={34} sx={{ borderRadius: '26%', filter: 'drop-shadow(0 1px 2px rgba(15,61,58,.20))' }} />
           </Box>
           {/* Badge ✨ IA — símbolo universal de inteligência artificial */}
           <Box sx={{
-            position: 'absolute', top: -2, right: -2, width: 20, height: 20, borderRadius: '50%',
+            position: 'absolute', top: -2, right: -2, width: 18, height: 18, borderRadius: '50%',
             bgcolor: '#178f89',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             animation: 'drSpark 2.2s ease-in-out infinite',
           }}>
-            <AutoAwesomeIcon sx={{ fontSize: 12, color: '#fff' }} />
+            <AutoAwesomeIcon sx={{ fontSize: 10, color: '#fff' }} />
           </Box>
         </Box>
       </Box>

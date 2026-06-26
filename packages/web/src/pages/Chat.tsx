@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Box, Typography, Button, CircularProgress, Paper, Stack, IconButton, SwipeableDrawer, Drawer, ListItemButton, ListItemText, ListItemIcon, Menu, MenuItem } from '@mui/material';
+import { Box, Typography, Button, CircularProgress, Paper, Stack, IconButton, SwipeableDrawer, Drawer, ListItemButton, ListItemText, ListItemIcon, Menu, MenuItem, Badge } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import EditIcon from '@mui/icons-material/EditNote';
 import HistoryIcon from '@mui/icons-material/History';
@@ -37,6 +37,15 @@ const QUICK_ACTIONS = [
   { icon: '📅', title: 'Quando repetir os exames', prompt: 'Com base nos meus exames, quais devo repetir e em quanto tempo?' },
   { icon: '💉', title: 'Vacinas em dia', prompt: 'Verifique meu histórico de vacinas e diga quais estão em atraso ou faltando conforme o calendário.' },
   { icon: '🗓️', title: 'Lembretes pendentes', prompt: 'Quais lembretes e compromissos de saúde eu tenho pendentes agora?' },
+  // Extras
+  { icon: '🫀', title: 'Meu risco cardíaco', prompt: 'Avalie meu risco cardiovascular (colesterol, pressão, glicemia) com base nos meus exames e diga como reduzir.' },
+  { icon: '🧾', title: 'Resumo para o médico', prompt: 'Monte um resumo curto e organizado dos meus exames para eu levar na consulta médica.' },
+  { icon: '🧠', title: 'Sinais de alerta', prompt: 'Há sinais nos meus exames ligados a cansaço, sono, estresse ou saúde mental que eu devia observar?' },
+  { icon: '🏋️', title: 'Exercício pra mim', prompt: 'Com base no meu perfil e exames, que tipo e quantidade de exercício você recomenda?' },
+  { icon: '🧬', title: 'Exames que faltam', prompt: 'Quais exames de rotina estão faltando no meu histórico conforme minha idade e perfil?' },
+  { icon: '💊', title: 'Vitamina D e nutrientes', prompt: 'Como estão meus níveis de vitamina D, ferro e outros nutrientes? O que ajustar na dieta?' },
+  { icon: '🩻', title: 'Entender meu exame de imagem', prompt: 'Tenho um exame de imagem (ultrassom, raio-x, tomografia). Pode explicar o laudo de forma simples?' },
+  { icon: '🎯', title: 'Minhas metas do ano', prompt: 'Com base nos meus exames, sugira metas de saúde realistas para os próximos meses.' },
 ];
 
 interface Msg { role: 'user' | 'assistant'; text: string }
@@ -73,7 +82,8 @@ export const ChatPage = () => {
 
   const firstName = (() => { try { return (JSON.parse(localStorage.getItem('user') || '{}')?.name || '').split(' ')[0]; } catch { return ''; } })();
 
-  useEffect(() => { if (pid) { const loaded = loadConvs(pid); setConvs(loaded); setCurId(loaded[0]?.id ?? null); } }, [pid]);
+  // Sempre abre nas OPÇÕES (quick actions), não no histórico. Histórico fica no ícone do relógio.
+  useEffect(() => { if (pid) { setConvs(loadConvs(pid)); setCurId(null); } }, [pid]);
   const cur = convs.find((c) => c.id === curId) ?? null;
   const messages = cur?.messages ?? [];
   // 'auto' (instantâneo): não "rola" visivelmente ao abrir a tela — só posiciona no fim.
@@ -140,7 +150,9 @@ export const ChatPage = () => {
           <Typography sx={{ fontSize: 11, opacity: 0.9 }}>Assistente de saúde</Typography>
         </Box>
         <IconButton size="small" onClick={startNew} title="Nova conversa" sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,.15)', '&:hover': { bgcolor: 'rgba(255,255,255,.25)' } }}><EditIcon fontSize="small" /></IconButton>
-        <IconButton size="small" onClick={() => setHistOpen(true)} title="Histórico" sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,.15)', '&:hover': { bgcolor: 'rgba(255,255,255,.25)' } }}><HistoryIcon fontSize="small" /></IconButton>
+        <IconButton size="small" onClick={() => setHistOpen(true)} title="Histórico de conversas" sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,.15)', '&:hover': { bgcolor: 'rgba(255,255,255,.25)' } }}>
+          <Badge badgeContent={convs.length} color="warning" overlap="circular" sx={{ '& .MuiBadge-badge': { fontSize: 10, height: 16, minWidth: 16, top: 3, right: 3 } }}><HistoryIcon fontSize="small" /></Badge>
+        </IconButton>
       </Paper>
 
       {/* mensagens */}
@@ -151,7 +163,7 @@ export const ChatPage = () => {
             <Typography sx={{ fontWeight: 800, fontSize: 18, color: TEAL }}>{firstName ? `Oi, ${firstName}! 👋` : 'Olá! 👋'}</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2, mt: 0.5 }}>Sou o Dr. Exame. Pergunte sobre seus exames ou toque em <strong>+</strong> pra ver o que posso fazer.</Typography>
             <Stack spacing={0.75} sx={{ maxWidth: 460, mx: 'auto' }}>
-              {QUICK_ACTIONS.slice(0, 6).map((a) => (
+              {QUICK_ACTIONS.slice(0, 8).map((a) => (
                 <Paper key={a.title} elevation={0} onClick={() => send(a.prompt)} sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 1.25, p: 1.25, px: 1.5, borderRadius: 2.5, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', textAlign: 'left', '&:hover': { bgcolor: '#eefaf8', borderColor: TEAL, transform: 'translateY(-1px)' }, transition: 'all .15s' }}>
                   <Box sx={{ fontSize: 20 }}>{a.icon}</Box>
                   <Typography sx={{ fontSize: 14, fontWeight: 600, color: 'text.primary' }}>{a.title}</Typography>

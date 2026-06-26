@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { Box, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAppDrawer } from './drawerState';
@@ -18,6 +19,17 @@ export const MobileBottomNav = () => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { openDrawer } = useAppDrawer();
+  const navRef = useRef<HTMLDivElement>(null);
+  // Publica a altura REAL do rodapé numa CSS var — quem flutua (ex.: FAB "+") usa pra nunca ficar por baixo.
+  useEffect(() => {
+    const el = navRef.current;
+    if (!el) return;
+    const update = () => document.documentElement.style.setProperty('--me-bottom-nav-h', `${el.offsetHeight}px`);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => { ro.disconnect(); document.documentElement.style.removeProperty('--me-bottom-nav-h'); };
+  }, []);
   if (!isMobile) return null;
   const active = (to: string) => (to === '/' ? pathname === '/' : pathname.startsWith(to));
   const maisActive = SECONDARY_ROUTES.some((r) => active(r));
@@ -48,7 +60,7 @@ export const MobileBottomNav = () => {
   );
 
   return (
-    <Box component="nav" sx={{
+    <Box ref={navRef} component="nav" sx={{
       position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1100, display: 'flex', justifyContent: 'space-around',
       bgcolor: 'rgba(238,247,246,.96)', backdropFilter: 'blur(14px)', borderTop: '1px solid #dceaea',
       pb: 'env(safe-area-inset-bottom)', boxShadow: '0 -6px 24px rgba(32,178,170,.10)',
