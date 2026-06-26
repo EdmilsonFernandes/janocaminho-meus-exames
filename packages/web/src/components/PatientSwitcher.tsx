@@ -25,12 +25,16 @@ export const PatientSwitcher = () => {
   const photoFor = (p?: any) => (p?.photoUrl ? photoUrlFor(p.id) : undefined);
 
   const load = async () => {
-    const r = await fetch(`${API_URL}/patients`, { headers: { Authorization: `Bearer ${token()}` } });
-    if (r.ok) {
-      const list = await r.json();
-      setPatients(list);
-      if (list.length && !pid) setSelectedPatient(list[0].id);
-    }
+    try {
+      const r = await fetch(`${API_URL}/patients`, { headers: { Authorization: `Bearer ${token()}` } });
+      if (r.ok) {
+        const list = await r.json();
+        if (Array.isArray(list)) {
+          setPatients(list);
+          if (list.length && !pid) setSelectedPatient(list[0].id);
+        }
+      }
+    } catch { /* offline/falha de rede — mantém lista vazia, não derruba o app */ }
   };
   useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
 
