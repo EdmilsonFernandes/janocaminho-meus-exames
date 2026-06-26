@@ -11,6 +11,7 @@ services:
       UPLOAD_DIR: /app/data/exams
       PHOTOS_DIR: /app/data/photos
       AGENT_DIR: /app/data/agent
+      TZ: America/Sao_Paulo
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:

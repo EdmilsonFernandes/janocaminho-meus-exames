@@ -97,16 +97,17 @@ async function runExtractionOnce(examId: string): Promise<void> {
     const dryRun = config.extractionDryRun;
 
     if (!dryRun || !raw) {
-      // Reusa o OCR do pre-check (text) na chamada da IA — evita rodar tesseract 2x na mesma foto.
-      const imgText = media !== 'application/pdf' ? text : undefined;
+      // Reusa o texto do pre-check (PDF: pdftotext via readPdf; imagem: OCR) na chamada da IA —
+      // evita rodar pdftotext/OCR 2x. readPdf() chama pdfToText() internamente → texto idêntico, reuso seguro.
+      const precomputedText = text;
       if (kind === 'IMAGING') {
-        const ext = await extractImaging(buffer, media, imgText);
+        const ext = await extractImaging(buffer, media, precomputedText);
         raw = ext;
         title = ext.examTitle ?? title;
         performedAt = parseDate(ext.performedAt) ?? performedAt;
         sourceLab = ext.sourceLab ?? sourceLab;
       } else {
-        const lab = (await extractLabPanel(buffer, media, imgText)) as LabExtraction;
+        const lab = (await extractLabPanel(buffer, media, precomputedText)) as LabExtraction;
         raw = lab;
         title = lab.examTitle ?? title;
         performedAt = parseDate(lab.performedAt) ?? performedAt;

@@ -92,8 +92,11 @@ async function createJson(buffer: Buffer, mediaType: string, instruction: string
     // precomputedText: OCR já feito no pre-check do pipeline → reusa (não roda tesseract 2x).
     let content: any[];
     if (mediaType === 'application/pdf') {
-      let text = '';
-      try { text = await pdfToText(buffer); } catch { /* não é PDF válido */ }
+      // Reusa o texto do pre-check (readPdf já rodou pdftotext) — evita 2ª chamada de pdftotext (economiza 60-120s).
+      let text = precomputedText ?? '';
+      if (!text || text.trim().length < 50) {
+        try { text = await pdfToText(buffer); } catch { /* não é PDF válido */ }
+      }
       // Rede de segurança: PDF sem texto (só-imagem, ou imagem mal-rotulada como PDF) → OCR tesseract.
       if (!text || text.trim().length < 50) {
         try { const ocr = await imageToText(buffer); if (ocr && ocr.trim().length > 50) { console.log('[extraction] PDF sem texto → OCR fallback,', ocr.length, 'chars'); text = ocr; } } catch { /* sem tesseract */ }

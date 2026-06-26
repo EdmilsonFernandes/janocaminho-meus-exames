@@ -40,8 +40,9 @@ RUN VITE_BASE=$VITE_BASE VITE_API_URL=$VITE_API_URL VITE_TELEMEDICINE_URL=$VITE_
 # ---- runtime enxuto ----
 FROM node:20-bookworm-slim AS app
 WORKDIR /app
-RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates poppler-utils tesseract-ocr tesseract-ocr-por imagemagick && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates poppler-utils tesseract-ocr tesseract-ocr-por imagemagick tzdata && ln -fs /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime && rm -rf /var/lib/apt/lists/*
 ENV NODE_ENV=production
+ENV TZ=America/Sao_Paulo
 COPY package*.json ./
 COPY packages/server/package.json packages/server/
 COPY packages/shared/package.json packages/shared/

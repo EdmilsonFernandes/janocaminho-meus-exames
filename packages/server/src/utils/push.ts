@@ -64,6 +64,7 @@ export async function sendPushToUser(userId: string, title: string, body: string
     await prisma.notification.create({ data: { userId, type: data?.type || 'push', title, body, data: data ?? undefined } });
   } catch { /* não bloqueia o push se falhar */ }
   const tokens = await prisma.deviceToken.findMany({ where: { userId }, select: { token: true } });
+  if (!tokens.length) console.warn(`[push] sem device token p/ usuário ${userId} — push NÃO enviado (só notificação in-app). O app precisa registrar o token FCM no login.`);
   await sendPush(tokens.map((t) => t.token), title, body, data);
 }
 

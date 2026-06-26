@@ -117,8 +117,8 @@ export const FinanceiroTab = () => {
 
       {error && <Box sx={{ mb: 2 }}><SectionError message="Falha ao atualizar." onRetry={() => void load()} /></Box>}
 
-      {/* MOBILE: cartões (a tabela de 6 colunas não cabe no celular) */}
-      <Stack spacing={1} sx={{ display: { xs: 'flex', sm: 'none' } }}>
+      {/* MOBILE/TABLET: cartões (a tabela de 6 colunas não cabe em tela pequena) */}
+      <Stack spacing={1} sx={{ display: { xs: 'flex', md: 'none' } }}>
         {payments.map((p) => (
           <Paper key={p.id} variant="outlined" sx={{ p: 1.5, borderRadius: 2 }}>
             <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={1}>
@@ -137,8 +137,8 @@ export const FinanceiroTab = () => {
         {payments.length === 0 && <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 3 }}>Nenhum pagamento.</Typography>}
       </Stack>
 
-      {/* DESKTOP: tabela (sm+) */}
-      <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2, display: { xs: 'none', sm: 'block' } }}>
+      {/* DESKTOP: tabela (md+) */}
+      <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2, display: { xs: 'none', md: 'block' } }}>
         <Table size="small" sx={{ minWidth: 640 }}>
           <TableHead>
             <TableRow sx={{ '& th': { fontWeight: 700, bgcolor: 'action.hover' } }}>

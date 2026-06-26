@@ -20,8 +20,8 @@ type TabId = 'overview' | 'users' | 'financeiro' | 'pricing' | 'security';
 const TABS: { id: TabId; label: string; icon: ReactElement }[] = [
   { id: 'overview', label: 'Visão geral', icon: <InsightsOutlinedIcon /> },
   { id: 'users', label: 'Usuários', icon: <PeopleOutlinedIcon /> },
-  { id: 'financeiro', label: 'Financeiro', icon: <PaymentsOutlinedIcon /> },
-  { id: 'pricing', label: 'Precificação', icon: <TuneOutlinedIcon /> },
+  { id: 'financeiro', label: 'Pagamentos', icon: <PaymentsOutlinedIcon /> },
+  { id: 'pricing', label: 'Planos', icon: <TuneOutlinedIcon /> },
   { id: 'security', label: 'Segurança', icon: <ShieldOutlinedIcon /> },
 ];
 
@@ -59,8 +59,11 @@ export const AdminPage = () => {
           <Chip label={`💰 R$ ${(stats.revenue ?? 0).toFixed(2).replace('.', ',')} aprovado`} color="success" size="small" />
         </Stack>
       )}
-      <Tabs value={tab} onChange={onTabChange} variant="scrollable" scrollButtons allowScrollButtonsMobile
-        sx={{ mb: 2, minHeight: 52, borderBottom: 1, borderColor: 'divider', '& .MuiTab-root': { minHeight: 52, textTransform: 'none', fontWeight: 600, fontSize: 14 } }}>
+      <Tabs value={tab} onChange={onTabChange} variant="fullWidth"
+        sx={{ mb: 2, minHeight: { xs: 58, sm: 52 }, borderBottom: 1, borderColor: 'divider',
+          '& .MuiTab-root': { minHeight: { xs: 58, sm: 52 }, maxWidth: 'none', textTransform: 'none', fontWeight: 700, fontSize: { xs: 10.5, sm: 14 }, px: { xs: 0.5, sm: 2 } },
+          '& .MuiTab-iconWrapper, & .MuiSvgIcon-root': { fontSize: { xs: 19, sm: 24 }, mb: 0.25 },
+          '& .MuiTab-wrapped': { fontSize: { xs: 10.5, sm: 14 }, lineHeight: 1.15 } }}>
         {TABS.map(t => <Tab key={t.id} value={t.id} icon={t.icon} iconPosition="top" label={t.label} />)}
       </Tabs>
 

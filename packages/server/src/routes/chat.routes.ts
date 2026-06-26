@@ -50,7 +50,9 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       where: { patientId: pid, status: 'EXTRACTED' },
       orderBy: { performedAt: 'desc' },
       take: 8,
-      include: { items: { where: { isAbnormal: true }, take: 12, orderBy: { name: 'asc' } } },
+      // SEM filtro isAbnormal: a IA precisa ver TODOS os analitos (TGO/TGP normais inclusos),
+      // senão responde "você não tem esse exame". take 30 cobre painéis grandes sem estourar o contexto.
+      include: { items: { take: 30, orderBy: { name: 'asc' } } },
     });
 
     // RAG: memória do agente (análises anteriores do paciente)
@@ -79,7 +81,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     const fmtFlag = (it: any) => (it.flag === 'HIGH' ? 'acima' : it.flag === 'LOW' ? 'abaixo' : it.flag === 'CRITICAL' ? 'crítico' : (it.isAbnormal ? 'alterado' : ''));
     const fmtItem = (it: any) => `${it.name}: ${fmtVal(it)}${it.unit ? ' ' + it.unit : ''}${fmtRef(it) ? ` (ref ${fmtRef(it)})` : ''}${fmtFlag(it) ? ` [${fmtFlag(it)}]` : ''}`;
 
-    // Per-exam: exames recentes com seus itens ALTERADOS (valor + faixa + flag).
+    // Per-exam: exames recentes com TODOS os itens (valor + faixa + flag se alterado).
     const examsBlock = recent.length
       ? recent
           .map((e) => {
@@ -106,7 +108,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       `CONTEXTO DO PACIENTE (use estes dados REAIS pra responder com precisão):\n` +
       `- Paciente: ${patient?.fullName ?? '—'}\n` +
       (patient?.clinicalProfile ? `- Perfil clínico: ${patient.clinicalProfile}\n` : '') +
-      `- Exames recentes (itens ALTERADOS — nome: valor (ref) [flag]):\n${examsBlock}\n` +
+      `- Exames recentes (TODOS os itens — nome: valor (ref) [flag se alterado]):\n${examsBlock}\n` +
       (trendBlock ? `\n- Analitos alterados ao longo do tempo (use pra evolução/comparar/tendência):\n${trendBlock}\n` : '') +
       (memory ? `- Resumo de análises anteriores (mantenha coerência):\n${memory}\n` : '') +
       `\nDIRETIVA: responda DIRETAMENTE à pergunta USANDO os dados acima. Extraia e CRUZE os itens ` +
