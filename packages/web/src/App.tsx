@@ -1,4 +1,4 @@
-import { Admin, Resource, CustomRoutes, Layout, AppBar, TitlePortal, AppBarProps, useLogout, useLocale, useSetLocale, useRefresh, useStore } from 'react-admin';
+import { Admin, Resource, CustomRoutes, Layout, AppBar, TitlePortal, AppBarProps, useLogout, useLocale, useSetLocale, useRefresh, useStore, LoadingIndicator } from 'react-admin';
 import { Route, useNavigate, useLocation } from 'react-router-dom';
 import { useEffect, useState, useRef, lazy, Suspense } from 'react';
 import { Capacitor } from '@capacitor/core';
@@ -103,7 +103,7 @@ const CustomAppBar = (props: AppBarProps) => {
     // O ☰ nativo do react-admin (SidebarToggleButton) é escondido no mobile via CSS no AppLayout
     // (classe .RaAppBar-menuButton → display:none em telas pequenas). No mobile, o ☰ abaixo
     // abre o AppDrawer UNIFICADO (mesmo menu do "Mais" do rodapé). Desktop mantém o toggle nativo.
-    <AppBar {...props} userMenu={false}>
+    <AppBar {...props} userMenu={false} toolbar={<LoadingIndicator />}>
       {!isDesktop && (
         <IconButton color="inherit" onClick={openDrawer} title="Menu" size="small" sx={{ mr: 0.5 }}>
           <MenuIcon fontSize="small" />
