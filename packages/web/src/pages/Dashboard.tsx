@@ -10,6 +10,10 @@ import { DashboardHeader } from '../components/dashboard/DashboardHeader';
 import { AiTip } from '../components/dashboard/AiTip';
 import { HealthScoreCard } from '../components/dashboard/HealthScoreCard';
 import { AiCard } from '../components/dashboard/AiCard';
+import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import Diversity3Icon from '@mui/icons-material/Diversity3';
+import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import { CreditsCard } from '../components/dashboard/CreditsCard';
 import { MetricCard } from '../components/dashboard/MetricCard';
 import { DistributionCard } from '../components/dashboard/DistributionCard';
@@ -106,10 +110,10 @@ export const Dashboard = () => {
 
       {/* Contadores clicáveis */}
       <Grid container spacing={2} sx={{ mt: score === null ? 2 : 1, mb: 2 }}>
-        <MetricCard label="Exames enviados" value={stats.exams} color="primary.main" onClick={() => navigate('/exams')} />
-        <MetricCard label="Valores alterados" value={stats.abnormal} color={stats.abnormal ? 'error.main' : 'success.main'} onClick={() => navigate('/alterados')} />
-        <MetricCard label="Perfis (dependentes)" value={deps} color="#8b5cf6" onClick={() => navigate('/familia')} />
-        <MetricCard label="Última atualização" value={<Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.2, mt: 1 }}>{lastExam ? new Date(lastExam).toLocaleDateString('pt-BR') : '—'}</Typography>} color="#0ea5e9" onClick={() => navigate('/linha-do-tempo')} />
+        <MetricCard label="Exames enviados" value={stats.exams} color="primary.main" icon={<MedicalServicesIcon />} onClick={() => navigate('/exams')} />
+        <MetricCard label="Valores alterados" value={stats.abnormal} color={stats.abnormal ? 'error.main' : 'success.main'} icon={<WarningAmberIcon />} onClick={() => navigate('/alterados')} />
+        <MetricCard label="Dependentes" value={deps} color="#8b5cf6" icon={<Diversity3Icon />} onClick={() => navigate('/familia')} />
+        <MetricCard label="Última atualização" value={lastExam ? new Date(lastExam).toLocaleDateString('pt-BR') : '—'} color="#0ea5e9" icon={<EventAvailableIcon />} onClick={() => navigate('/linha-do-tempo')} />
       </Grid>
 
       {/* Distribuição dos valores + Dica */}

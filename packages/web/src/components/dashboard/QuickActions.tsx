@@ -1,56 +1,40 @@
-import { Button, Card, CardContent, Grid, Typography } from '@mui/material';
+import { Box, Card, CardContent, Grid, Typography } from '@mui/material';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import Diversity3Icon from '@mui/icons-material/Diversity3';
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import DescriptionIcon from '@mui/icons-material/Description';
 import { useNavigate } from 'react-router-dom';
 
-// Grid de ações rápidas (Evolução, Relatório, Enviar, Família, IA). Extração pura dos 2 grids originais.
-// (Consolidação em quick-actions visual = task #15.)
+// Quick Actions — tiles compactos (ícone acima, texto abaixo). IA fica no AiCard (hero), então não duplica aqui.
+const ACTIONS = [
+  { icon: <UploadFileIcon />, label: 'Enviar exame', to: '/exams/create', primary: true },
+  { icon: <ShowChartIcon />, label: 'Evolução', to: '/evolucao', primary: false },
+  { icon: <Diversity3Icon />, label: 'Família', to: '/familia', primary: false },
+  { icon: <DescriptionIcon />, label: 'Relatório', to: '/relatorio', primary: false },
+] as const;
+
 export const QuickActions = () => {
   const navigate = useNavigate();
   return (
-    <>
-      <Grid container spacing={2}>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Card variant="outlined" sx={{ height: '100%', background: 'linear-gradient(135deg, rgba(32,178,170,.08), rgba(212,165,116,.08))', borderColor: 'rgba(32,178,170,.25)' }}><CardContent>
-            <Typography variant="h6">📈 Evolução da minha saúde</Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>O que subiu, o que caiu e a previsão dos próximos meses.</Typography>
-            <Button variant="contained" startIcon={<ShowChartIcon />} onClick={() => navigate('/evolucao')}>Ver evolução</Button>
-          </CardContent></Card>
+    <Grid container spacing={1.5}>
+      {ACTIONS.map((a) => (
+        <Grid size={{ xs: 6, sm: 3 }} key={a.label}>
+          <Card
+            onClick={() => navigate(a.to)}
+            sx={{
+              height: '100%', cursor: 'pointer', borderRadius: 6, textAlign: 'center', transition: 'all .15s',
+              '&:hover': { transform: 'translateY(-2px)', boxShadow: 6 },
+              border: '1px solid', borderColor: a.primary ? 'primary.main' : 'divider',
+              bgcolor: a.primary ? 'rgba(32,178,170,0.08)' : 'background.paper',
+            }}
+          >
+            <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, py: 1.75, '&:last-child': { pb: 1.75 } }}>
+              <Box sx={{ width: 42, height: 42, borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', color: a.primary ? 'primary.main' : 'text.secondary', bgcolor: a.primary ? 'rgba(32,178,170,0.16)' : 'action.hover', '& svg': { fontSize: 22 } }}>{a.icon}</Box>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: a.primary ? 'primary.main' : 'text.primary' }}>{a.label}</Typography>
+            </CardContent>
+          </Card>
         </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Card variant="outlined" sx={{ height: '100%' }}><CardContent>
-            <Typography variant="h6">🧾 Relatório completo</Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>Junte seus exames num documento para o médico.</Typography>
-            <Button variant="outlined" startIcon={<UploadFileIcon />} onClick={() => navigate('/relatorio')}>Gerar relatório</Button>
-          </CardContent></Card>
-        </Grid>
-      </Grid>
-
-      <Grid container spacing={2} sx={{ mt: 0 }}>
-        <Grid size={{ xs: 12, md: 4 }}>
-          <Card variant="outlined" sx={{ height: '100%' }}><CardContent>
-            <Typography variant="h6">Enviar exame</Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>PDF/imagem — a IA extrai por visão.</Typography>
-            <Button variant="contained" startIcon={<UploadFileIcon />} onClick={() => navigate('/exams/create')}>Enviar</Button>
-          </CardContent></Card>
-        </Grid>
-        <Grid size={{ xs: 12, md: 4 }}>
-          <Card variant="outlined" sx={{ height: '100%' }}><CardContent>
-            <Typography variant="h6">Saúde da Família</Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>Compare o score de cada dependente.</Typography>
-            <Button variant="outlined" startIcon={<Diversity3Icon />} onClick={() => navigate('/familia')}>Ver família</Button>
-          </CardContent></Card>
-        </Grid>
-        <Grid size={{ xs: 12, md: 4 }}>
-          <Card variant="outlined" sx={{ height: '100%' }}><CardContent>
-            <Typography variant="h6">Assistente de saúde</Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>Pergunte sobre seus exames.</Typography>
-            <Button variant="outlined" startIcon={<AutoAwesomeIcon />} onClick={() => navigate('/chat')}>Conversar</Button>
-          </CardContent></Card>
-        </Grid>
-      </Grid>
-    </>
+      ))}
+    </Grid>
   );
 };
