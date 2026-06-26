@@ -46,7 +46,7 @@ export const AdminPage = () => {
   }, []);
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 1100, mx: 'auto' }}>
+    <Box sx={{ p: { xs: 1.5, md: 3 }, maxWidth: 1100, width: '100%', mx: 'auto' }}>
       <Title title="Admin" />
       <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5 }}>⚙️ Painel Admin</Typography>
       {statsLoading ? (

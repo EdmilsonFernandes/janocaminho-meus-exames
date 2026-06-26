@@ -166,7 +166,15 @@ export const ChatPage = () => {
             const isLastAssistant = m.role === 'assistant' && i === messages.length - 1 && busy && !m.text;
             return (
               <Box key={i} sx={{ display: 'flex', gap: 0.75, justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start', alignItems: 'flex-end' }}>
-                {m.role === 'assistant' && <DrExame size={28} sx={{ borderRadius: '50%', flexShrink: 0, mb: 0.25 }} />}
+                {m.role === 'assistant' && (
+                  <Box sx={{ position: 'relative', flexShrink: 0, mb: 0.25 }}>
+                    <DrExame size={28} sx={{ borderRadius: '50%' }} />
+                    {/* Estrela ✨ (IA) no avatar do Dr. Exame em cada resposta */}
+                    <Box sx={{ position: 'absolute', top: -3, right: -3, width: 12, height: 12, borderRadius: '50%', bgcolor: '#f59e0b', border: '1.2px solid #fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <AutoAwesomeIcon sx={{ fontSize: 7, color: '#fff' }} />
+                    </Box>
+                  </Box>
+                )}
                 <Paper elevation={0} sx={{
                   maxWidth: '82%', px: 1.5, py: 1, borderRadius: 2,
                   bgcolor: m.role === 'user' ? TEAL : 'background.paper',
@@ -189,24 +197,15 @@ export const ChatPage = () => {
       </Box>
 
       {/* INPUT com botão "+" (bottom sheet de ações) — estilo Mercado Pago */}
-      <Box sx={{ position: 'relative', mt: 1 }}>
-        {/* Robô Dr. Exame com estrela ✨ (IA) — "espiando" por cima do campo de pergunta */}
-        <Box sx={{ position: 'absolute', left: 4, top: -22, zIndex: 2, width: 36, height: 36 }}>
-          <DrExame size={36} sx={{ borderRadius: '24%', border: '2px solid #fff', boxShadow: '0 2px 6px rgba(15,61,58,.25)' }} />
-          <Box sx={{ position: 'absolute', top: -3, right: -3, width: 15, height: 15, borderRadius: '50%', bgcolor: '#f59e0b', border: '1.5px solid #fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <AutoAwesomeIcon sx={{ fontSize: 8.5, color: '#fff' }} />
-          </Box>
-        </Box>
-        <Box component="form" onSubmit={(e: any) => { e.preventDefault(); send(); }} sx={{ display: 'flex', gap: 0.75, alignItems: 'center', p: 0.5, pl: '50px', borderRadius: 99, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', boxShadow: '0 4px 16px rgba(32,178,170,.14)' }}>
-          <IconButton onClick={() => setSheetOpen(true)} title="Ações rápidas" sx={{ color: TEAL, '&:hover': { bgcolor: 'rgba(32,178,170,.08)' } }}><AddIcon /></IconButton>
-          <Box component="input" value={input} disabled={busy} placeholder="Pergunte sobre seus exames…"
-            onChange={(e: any) => setInput(e.target.value)}
-            onKeyDown={(e: any) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
-            style={{ flex: 1, padding: '10px 4px', fontSize: 16, border: 'none', outline: 'none', background: 'transparent', fontFamily: 'inherit' }} />
-          <Button type="submit" variant="contained" disabled={busy || !input.trim()} sx={{ minWidth: 0, borderRadius: 99, px: 1.5, py: 1, bgcolor: TEAL, '&:hover': { bgcolor: '#0f7670' } }}>
-            {busy ? <CircularProgress size={20} color="inherit" /> : <SendIcon />}
-          </Button>
-        </Box>
+      <Box component="form" onSubmit={(e: any) => { e.preventDefault(); send(); }} sx={{ display: 'flex', gap: 0.75, alignItems: 'center', mt: 1, p: 0.5, pl: 1, borderRadius: 99, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', boxShadow: '0 2px 12px rgba(32,178,170,.08)' }}>
+        <IconButton onClick={() => setSheetOpen(true)} title="Ações rápidas" sx={{ color: TEAL, '&:hover': { bgcolor: 'rgba(32,178,170,.08)' } }}><AddIcon /></IconButton>
+        <Box component="input" value={input} disabled={busy} placeholder="Pergunte sobre seus exames…"
+          onChange={(e: any) => setInput(e.target.value)}
+          onKeyDown={(e: any) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
+          style={{ flex: 1, padding: '10px 4px', fontSize: 16, border: 'none', outline: 'none', background: 'transparent', fontFamily: 'inherit' }} />
+        <Button type="submit" variant="contained" disabled={busy || !input.trim()} sx={{ minWidth: 0, borderRadius: 99, px: 1.5, py: 1, bgcolor: TEAL, '&:hover': { bgcolor: '#0f7670' } }}>
+          {busy ? <CircularProgress size={20} color="inherit" /> : <SendIcon />}
+        </Button>
       </Box>
 
       {/* BOTTOM SHEET — ações rápidas (swipe-down p/ fechar) */}

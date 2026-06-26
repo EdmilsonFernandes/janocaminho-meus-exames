@@ -116,7 +116,29 @@ export const FinanceiroTab = () => {
       </Stack>
 
       {error && <Box sx={{ mb: 2 }}><SectionError message="Falha ao atualizar." onRetry={() => void load()} /></Box>}
-      <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2 }}>
+
+      {/* MOBILE: cartões (a tabela de 6 colunas não cabe no celular) */}
+      <Stack spacing={1} sx={{ display: { xs: 'flex', sm: 'none' } }}>
+        {payments.map((p) => (
+          <Paper key={p.id} variant="outlined" sx={{ p: 1.5, borderRadius: 2 }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={1}>
+              <Box sx={{ minWidth: 0, flex: 1 }}>
+                <Typography sx={{ fontWeight: 700, wordBreak: 'break-word', lineHeight: 1.2 }}>{p.user?.email ?? '—'}</Typography>
+                <Typography variant="caption" color="text.secondary">{new Date(p.createdAt).toLocaleDateString('pt-BR')} · {p.periodDays > 0 ? 'Mensal' : 'Créditos'}</Typography>
+              </Box>
+              <Typography sx={{ fontWeight: 800, color: 'success.main', whiteSpace: 'nowrap' }}>R$ {Number(p.amount ?? 0).toFixed(2).replace('.', ',')}</Typography>
+            </Stack>
+            <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" alignItems="center" sx={{ mt: 0.75 }}>
+              <Chip size="small" color={statusColor[p.status] ?? 'default'} label={p.status} />
+              {p.mpPaymentId && <Typography variant="caption" sx={{ fontFamily: 'monospace', color: 'text.disabled' }}>{p.mpPaymentId}</Typography>}
+            </Stack>
+          </Paper>
+        ))}
+        {payments.length === 0 && <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 3 }}>Nenhum pagamento.</Typography>}
+      </Stack>
+
+      {/* DESKTOP: tabela (sm+) */}
+      <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2, display: { xs: 'none', sm: 'block' } }}>
         <Table size="small" sx={{ minWidth: 640 }}>
           <TableHead>
             <TableRow sx={{ '& th': { fontWeight: 700, bgcolor: 'action.hover' } }}>

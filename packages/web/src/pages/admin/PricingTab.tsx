@@ -93,12 +93,14 @@ export const PricingTab = () => {
               {g.hint && <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>{g.hint}</Typography>}
               <Stack spacing={2} sx={{ mt: g.hint ? 0 : 2 }}>
                 {g.fields.map(([key, label]) => (
-                  <Stack key={key} direction="row" spacing={2} alignItems="center" useFlexGap flexWrap="wrap">
-                    <Typography sx={{ flex: 1, minWidth: 200 }}>{label}</Typography>
-                    <TextField type="number" size="small" sx={{ width: 100 }}
-                      value={pricing[g.cat]?.[key] ?? ''}
-                      onChange={(e) => setPricing((prev: any) => prev ? { ...prev, [g.cat]: { ...prev[g.cat], [key]: e.target.value } } : prev)} />
-                    {g.unit && <span style={{ fontSize: 13, color: '#888' }}>{g.unit}</span>}
+                  <Stack key={key} direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ xs: 'stretch', sm: 'center' }} useFlexGap flexWrap="wrap">
+                    <Typography sx={{ flex: { sm: 1 }, minWidth: { sm: 200 }, width: { xs: '100%' } }}>{label}</Typography>
+                    <Stack direction="row" spacing={1} alignItems="center" sx={{ width: { xs: '100%', sm: 'auto' } }}>
+                      <TextField type="number" size="small" sx={{ width: { xs: '100%', sm: 100 } }}
+                        value={pricing[g.cat]?.[key] ?? ''}
+                        onChange={(e) => setPricing((prev: any) => prev ? { ...prev, [g.cat]: { ...prev[g.cat], [key]: e.target.value } } : prev)} />
+                      {g.unit && <span style={{ fontSize: 13, color: '#888', whiteSpace: 'nowrap' }}>{g.unit}</span>}
+                    </Stack>
                   </Stack>
                 ))}
               </Stack>
@@ -127,17 +129,17 @@ export const PricingTab = () => {
           </Typography>
           <Stack spacing={2}>
             {badges.map((b, i) => (
-              <Stack key={b.id ?? i} direction="row" spacing={1.5} useFlexGap flexWrap="wrap" alignItems="center"
+              <Stack key={b.id ?? i} direction={{ xs: 'column', sm: 'row' }} spacing={1.5} useFlexGap flexWrap="wrap" alignItems={{ xs: 'stretch', sm: 'center' }}
                 sx={{ pb: 1.5, borderBottom: i < badges.length - 1 ? '1px solid #f0f0f0' : 'none' }}>
-                <TextField label="Emoji" size="small" sx={{ width: 70 }} value={b.emoji ?? ''}
+                <TextField label="Emoji" size="small" sx={{ width: { xs: '100%', sm: 70 } }} value={b.emoji ?? ''}
                   onChange={(e) => setBadges(prev => prev.map((x, j) => j === i ? { ...x, emoji: e.target.value } : x))} />
-                <TextField label="Título" size="small" sx={{ flex: '1 1 140px' }} value={b.title ?? ''}
+                <TextField label="Título" size="small" sx={{ flex: { sm: '1 1 140px' }, width: { xs: '100%', sm: 'auto' } }} value={b.title ?? ''}
                   onChange={(e) => setBadges(prev => prev.map((x, j) => j === i ? { ...x, title: e.target.value } : x))} />
-                <TextField label="Descrição" size="small" sx={{ flex: '1 1 200px' }} value={b.desc ?? ''}
+                <TextField label="Descrição" size="small" sx={{ flex: { sm: '1 1 200px' }, width: { xs: '100%', sm: 'auto' } }} value={b.desc ?? ''}
                   onChange={(e) => setBadges(prev => prev.map((x, j) => j === i ? { ...x, desc: e.target.value } : x))} />
-                <TextField label="Meta" type="number" size="small" sx={{ width: 80 }} value={b.threshold ?? 0}
+                <TextField label="Meta" type="number" size="small" sx={{ width: { xs: '100%', sm: 80 } }} value={b.threshold ?? 0}
                   onChange={(e) => setBadges(prev => prev.map((x, j) => j === i ? { ...x, threshold: Number(e.target.value) } : x))} />
-                <TextField label="💎 Recompensa" type="number" size="small" sx={{ width: 90 }} value={b.reward ?? 0}
+                <TextField label="💎 Recompensa" type="number" size="small" sx={{ width: { xs: '100%', sm: 90 } }} value={b.reward ?? 0}
                   onChange={(e) => setBadges(prev => prev.map((x, j) => j === i ? { ...x, reward: Number(e.target.value) } : x))} />
               </Stack>
             ))}
