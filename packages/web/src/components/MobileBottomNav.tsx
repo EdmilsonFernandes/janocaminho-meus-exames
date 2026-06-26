@@ -1,14 +1,15 @@
 import { Box, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAppDrawer } from './drawerState';
+import { DrExame } from './DrExame';
 
-/** Menu rodapé fixo (só mobile) — 4 atalhos + "Mais" que abre o MESMO drawer do ☰ (AppDrawer unificado). */
+/** Menu rodapé fixo (só mobile) — 4 atalhos + "Mais". O Dr. Exame tem o ROBÔ em destaque (círculo teal elevado). */
 const NAV = [
   { icon: '🏠', label: 'Início', to: '/' },
   { icon: '📋', label: 'Exames', to: '/exams' },
-  { icon: '🤖', label: 'Dr. Exame', to: '/chat' },
+  { icon: '', label: 'Dr. Exame', to: '/chat', robot: true },
   { icon: '📈', label: 'Evolução', to: '/evolucao' },
-];
+] as const;
 const SECONDARY_ROUTES = ['/alterados', '/tendencias', '/linha-do-tempo', '/medicoes', '/vacinas', '/lembretes', '/emergencia', '/familia', '/patients', '/medicos', '/relatorio', '/despesas', '/perfil', '/planos', '/admin'];
 
 export const MobileBottomNav = () => {
@@ -21,13 +22,26 @@ export const MobileBottomNav = () => {
   const active = (to: string) => (to === '/' ? pathname === '/' : pathname.startsWith(to));
   const maisActive = SECONDARY_ROUTES.some((r) => active(r));
 
-  const item = (it: { icon: string; label: string; to: string }, onClick?: () => void, on?: boolean) => (
+  const item = (it: { icon: string; label: string; to: string; robot?: boolean }, onClick?: () => void, on?: boolean) => (
     <Box key={it.to} onClick={onClick ?? (() => navigate(it.to))} sx={{
       flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-      py: 0.95, cursor: 'pointer', userSelect: 'none', color: on ? '#178f89' : '#8a979c',
+      py: 0.7, cursor: 'pointer', userSelect: 'none', color: on ? '#178f89' : '#8a979c',
       transition: 'color .15s, transform .1s', '&:active': { transform: 'scale(.92)' },
     }}>
-      <Box sx={{ fontSize: 21, lineHeight: 1, transform: on ? 'translateY(-1px)' : 'none', transition: 'transform .15s' }}>{it.icon}</Box>
+      {it.robot ? (
+        // Robô Dr. Exame em destaque: círculo teal + anel branco + halo, levemente elevado
+        <Box sx={{
+          width: 44, height: 44, borderRadius: '50%', bgcolor: '#20b2aa',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          border: '2.5px solid #fff', boxShadow: '0 5px 14px rgba(32,178,170,.40)',
+          transform: on ? 'translateY(-6px) scale(1.04)' : 'translateY(-3px)',
+          transition: 'transform .18s ease',
+        }}>
+          <DrExame size={32} sx={{ borderRadius: '50%' }} />
+        </Box>
+      ) : (
+        <Box sx={{ fontSize: 21, lineHeight: 1, transform: on ? 'translateY(-1px)' : 'none', transition: 'transform .15s' }}>{it.icon}</Box>
+      )}
       <Typography sx={{ fontSize: 10, fontWeight: on ? 800 : 600, mt: 0.25, fontFamily: 'Poppins, sans-serif' }}>{it.label}</Typography>
       <Box sx={{ height: 3, width: on ? 22 : 0, borderRadius: 9, bgcolor: '#20b2aa', mt: 0.3, transition: 'width .2s' }} />
     </Box>
@@ -40,7 +54,6 @@ export const MobileBottomNav = () => {
       pb: 'env(safe-area-inset-bottom)', boxShadow: '0 -6px 24px rgba(32,178,170,.10)',
     }}>
       {NAV.map((it) => item(it, undefined, active(it.to)))}
-      {/* "Mais" abre o MESMO AppDrawer do ☰ — menu idêntico nos dois gatilhos */}
       {item({ icon: '☰', label: 'Mais', to: '#mais' }, () => openDrawer(), maisActive)}
     </Box>
   );
