@@ -84,11 +84,12 @@ const IMAGING_INSTRUCTIONS = `Você está lendo o LAUDO de um exame (tomografia,
 Copie fielmente o texto. Não invente achados nem nomes.`;
 
 /** Chamada base — usa STREAMING (necessário para max_tokens altos + evita timeout de 10min). */
-async function createJson(buffer: Buffer, mediaType: string, instruction: string, maxTokens = 16000): Promise<any> {
+async function createJson(buffer: Buffer, mediaType: string, instruction: string, maxTokens = 16000, precomputedText?: string): Promise<any> {
   const client = getAnthropic();
   const response = await withRateLimitRetry(async () => {
     // PDF: extrai o TEXTO (pdftotext). Imagem/foto: OCR (tesseract). Em ambos manda TEXTO
     // ao GLM (o relay NÃO enxerga imagem/PDF). Visão só como último recurso.
+    // precomputedText: OCR já feito no pre-check do pipeline → reusa (não roda tesseract 2x).
     let content: any[];
     if (mediaType === 'application/pdf') {
       let text = '';
@@ -99,8 +100,9 @@ async function createJson(buffer: Buffer, mediaType: string, instruction: string
       }
       content = [{ type: 'text', text: instruction + '\n\n=== CONTEÚDO EXTRAÍDO DO EXAME (use EXATAMENTE estes dados; NUNCA invente valores/nomes) ===\n' + text + '\n' + JSON_SUFFIX }];
     } else {
-      let ocr = '';
-      try { ocr = await imageToText(buffer); } catch (e) { console.warn('[extraction] OCR falhou:', (e as Error).message); }
+      // Reusa o OCR do pre-check (precomputedText) pra não rodar tesseract 2x na mesma foto.
+      let ocr = precomputedText ?? '';
+      if (!ocr) { try { ocr = await imageToText(buffer); } catch (e) { console.warn('[extraction] OCR falhou:', (e as Error).message); } }
       if (ocr && ocr.trim().length > 50) {
         console.log('[extraction] imagem OCRizada,', ocr.length, 'chars');
         content = [{ type: 'text', text: instruction + '\n\n=== CONTEÚDO EXTRAÍDO DO EXAME via OCR (use EXATAMENTE estes dados; NUNCA invente) ===\n' + ocr + '\n' + JSON_SUFFIX }];
@@ -130,15 +132,15 @@ async function createJson(buffer: Buffer, mediaType: string, instruction: string
   return extractJsonObject(text);
 }
 
-export async function extractLabPanel(buffer: Buffer, mediaType = 'application/pdf'): Promise<LabExtraction> {
-  const json = await createJson(buffer, mediaType, LAB_INSTRUCTIONS, 16000);
+export async function extractLabPanel(buffer: Buffer, mediaType = 'application/pdf', precomputedText?: string): Promise<LabExtraction> {
+  const json = await createJson(buffer, mediaType, LAB_INSTRUCTIONS, 16000, precomputedText);
   const z = LabExtractionSchema.safeParse(json);
   if (!z.success) console.warn('[extraction] Zod estrito falhou, usando JSON bruto:', z.error.issues.slice(0, 3));
   return (z.success ? z.data : json) as LabExtraction;
 }
 
-export async function extractImaging(buffer: Buffer, mediaType = 'application/pdf'): Promise<ImagingExtraction> {
-  const json = await createJson(buffer, mediaType, IMAGING_INSTRUCTIONS, 6000);
+export async function extractImaging(buffer: Buffer, mediaType = 'application/pdf', precomputedText?: string): Promise<ImagingExtraction> {
+  const json = await createJson(buffer, mediaType, IMAGING_INSTRUCTIONS, 6000, precomputedText);
   const z = ImagingExtractionSchema.safeParse(json);
   if (!z.success) console.warn('[extraction/imaging] Zod estrito falhou, usando JSON bruto');
   return (z.success ? z.data : json) as ImagingExtraction;
