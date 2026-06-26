@@ -1,3 +1,9 @@
+> ⚠️ **SUPERSEDED** — Este arquivo está desatualizado. A fonte atual de verdade é o framework `.claude/`:
+> - Papéis dos MCPs → [`.claude/AGENTS.md`](../.claude/AGENTS.md)
+> - Pipeline de tarefa + validação → [`.claude/TASK_RULES.md`](../.claude/TASK_RULES.md)
+>
+> **Correção importante:** a extração de exames é **pdftotext → texto → GLM** (NUNCA visão — o relay Z.ai alucina em PDF/imagem). Este documento afirma o contrário e **está errado** nesta parte. O restante (stack, arquitetura, SSH) ainda serve como referência.
+
 # AGENT RULES — Meus Exames
 
 Você é um agente técnico do projeto **Meus Exames** (gestão de exames médicos com IA).

@@ -1,6 +1,15 @@
 # Meus Exames — Regras do Projeto
 
-> **Guia completo**: `.ai/SKILL.md` (stack, deploy, gotchas, operações, arquitetura).
+> **Guia completo (ops profundo)**: `.ai/SKILL.md` (stack, deploy, gotchas, SSH EC2, emergência, monetização).
+
+## 📂 Framework `.claude/` (ler on-demand conforme a tarefa)
+Documentação modular — **não** carregada toda sessão (contexto leve); ler quando relevante:
+- [`STARTUP.md`](.claude/STARTUP.md) — sequência de inicialização + estado real dos MCPs.
+- [`AGENTS.md`](.claude/AGENTS.md) — papel de cada MCP (Graphify/Serena/GSD/Context7) + fallbacks.
+- [`GRAPH_RULES.md`](.claude/GRAPH_RULES.md) — consultar o grafo antes de alterar (impacto/reuso/duplicação).
+- [`ARCHITECTURE.md`](.claude/ARCHITECTURE.md) — stack, monorepo, topologia, migrations, IA.
+- [`DESIGN_SYSTEM.md`](.claude/DESIGN_SYSTEM.md) — identidade (verde/robô/estrela), filosofia UI, tokens do tema.
+- [`TASK_RULES.md`](.claude/TASK_RULES.md) — pipeline de tarefa + validação + definição de "concluído".
 
 ## Workflow do Agente (SEMPRE seguir)
 1. **Procurar resposta**: Graphify (`graphify query "<pergunta>"`) → se não achar → Context7 (docs de libs) → Serena (análise de código) → AI token (relay Z.ai, se precisar raciocínio extra).
