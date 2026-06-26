@@ -9,6 +9,7 @@ import { syncPushToken } from '../push';
 import { DashboardHeader } from '../components/dashboard/DashboardHeader';
 import { AiTip } from '../components/dashboard/AiTip';
 import { HealthScoreCard } from '../components/dashboard/HealthScoreCard';
+import { AiCard } from '../components/dashboard/AiCard';
 import { CreditsCard } from '../components/dashboard/CreditsCard';
 import { MetricCard } from '../components/dashboard/MetricCard';
 import { DistributionCard } from '../components/dashboard/DistributionCard';
@@ -92,7 +93,10 @@ export const Dashboard = () => {
     <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 1080, mx: 'auto' }}>
       <DashboardHeader firstName={firstName} />
 
-      <HealthScoreCard loaded={loaded} score={score} abnormalCount={stats.abnormal} tip={tipNode} />
+      <HealthScoreCard loaded={loaded} score={score} abnormalCount={stats.abnormal} onDetails={() => navigate('/tendencias')} />
+
+      {/* IA — card hero do Dr. Exame (robô + dica + CTA) */}
+      <AiCard tip={tipNode} onChat={() => navigate('/chat')} />
 
       {/* Aviso de exames que falharam (pra reprocessar) */}
       <FailedExamsAlert count={failed} onClick={() => navigate('/exams')} />
