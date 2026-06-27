@@ -11,10 +11,11 @@ import { ExplainButton } from '../components/ExplainItem';
 import { TelemedicineButton } from '../components/TelemedicineButton';
 import { fmtVal } from '../utils/format';
 import { refLabel, categorize } from '../utils/medicalData';
+import { priorityOf, maxPriority, isStaleExam, PRIORITY_META, PRIORITY_RANK } from '../utils/alertPriority';
 
-interface AbnItem { id: string; examId: string; examTitle: string; performedAt: string | null; requestingDoctor: string | null; name: string; nameCanonical: string; valueText: string; unit: string | null; flag: string | null; refText: string | null; refLow: number | null; refHigh: number | null; }
+interface AbnItem { id: string; examId: string; examTitle: string; performedAt: string | null; requestingDoctor: string | null; name: string; nameCanonical: string; valueText: string; valueNumeric: number | null; unit: string | null; flag: string | null; refText: string | null; refLow: number | null; refHigh: number | null; }
 
-/** Valores fora da faixa, AGRUPADOS POR EXAME (e dentro de cada exame, ordenados por categoria). */
+/** Valores fora da faixa, AGRUPADOS POR EXAME (dentro de cada exame, ordenados por PRIORIDADE). */
 export const ValoresAlteradosPage = () => {
   const [pid] = useSelectedPatient();
   const [items, setItems] = useState<AbnItem[]>([]);
@@ -35,9 +36,17 @@ export const ValoresAlteradosPage = () => {
       if (!map.has(it.examId)) map.set(it.examId, { examId: it.examId, examTitle: it.examTitle, performedAt: it.performedAt, requestingDoctor: it.requestingDoctor, items: [] });
       map.get(it.examId)!.items.push(it);
     }
-    // Dentro de cada exame, ordena por categoria (clusteriza Hemograma, Lipídios, etc.)
-    for (const g of map.values()) g.items.sort((a, b) => categorize(a.nameCanonical).key.localeCompare(categorize(b.nameCanonical).key));
-    return [...map.values()];
+    // Dentro de cada exame: prioridade (mais grave primeiro) e depois categoria (clusteriza).
+    for (const g of map.values()) g.items.sort((a, b) => PRIORITY_RANK[priorityOf(b)] - PRIORITY_RANK[priorityOf(a)] || categorize(a.nameCanonical).key.localeCompare(categorize(b.nameCanonical).key));
+    // Exames ordenados do mais recente.
+    return [...map.values()].sort((a, b) => (b.performedAt ?? '').localeCompare(a.performedAt ?? ''));
+  }, [items]);
+
+  // Resumo por prioridade (contagem total).
+  const counts = useMemo(() => {
+    const c = { importante: 0, moderada: 0, leve: 0 };
+    for (const it of items) c[priorityOf(it)]++;
+    return c;
   }, [items]);
 
   const fmtDate = (d?: string | null) => (d ? new Date(d).toLocaleDateString('pt-BR') : 's/d');
@@ -59,7 +68,7 @@ export const ValoresAlteradosPage = () => {
       <PageHeader
         icon={<WarningAmberIcon />}
         title="Valores fora da faixa"
-        subtitle={<>Agrupado por exame (do mais recente), itens por categoria. Toque num exame pra expandir e em <strong>Agendar</strong> pro especialista.</>}
+        subtitle={<>Ordenados por <strong>prioridade de atenção</strong> (🔴→🟡). Toque num exame pra expandir e em <strong>Agendar</strong> pro especialista.</>}
         accent="error.main"
       />
 
@@ -68,45 +77,74 @@ export const ValoresAlteradosPage = () => {
       ) : items.length === 0 ? (
         <Card><CardContent><Typography color="text.secondary" sx={{ textAlign: 'center', py: 1 }}>Nenhum valor alterado — tudo dentro da faixa. ✅</Typography></CardContent></Card>
       ) : (
-        <Stack spacing={1}>
-          {groups.map((g, gi) => (
-            <Accordion key={g.examId} disableGutters elevation={0} sx={{ border: '1px solid #f3dada', borderRadius: '12px', overflow: 'hidden', '&:before': { display: 'none' } }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: 'rgba(239,68,68,0.08)' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 1 }}>
-                  <Box component="span" sx={{ fontSize: 18 }}>🚨</Box>
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography sx={{ fontWeight: 800, color: '#b91c1c', lineHeight: 1.2 }}>{g.examTitle}</Typography>
-                    <Typography variant="caption" sx={{ color: '#9b3a3a' }}>📅 {fmtDate(g.performedAt)}{g.performedAt ? ` · ${timeAgo(g.performedAt)}` : ''}</Typography>
-                    {g.requestingDoctor && <Typography variant="caption" sx={{ display: 'block', color: '#9b3a3a' }}>🩺 Dr. {g.requestingDoctor}</Typography>}
-                  </Box>
-                  <Chip size="small" color="error" label={`${g.items.length} alterado(s)`} sx={{ fontWeight: 700, height: 20 }} />
-                </Box>
-              </AccordionSummary>
-              <AccordionDetails sx={{ p: 1.25 }}>
-                <Stack spacing={0.75}>
-                  {g.items.map((it) => (
-                    <Card key={it.id} variant="outlined" sx={{ borderLeft: '4px solid #ef4444', borderRadius: 2, bgcolor: 'rgba(239,68,68,0.06)' }}>
-                      <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', py: 1.25, '&:last-child': { pb: 1.25 } }}>
-                        <Box sx={{ flex: '1 1 55%', minWidth: 0 }}>
-                          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}>
-                            <Typography sx={{ fontWeight: 700, wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.2 }}>{it.name}</Typography>
-                            <ExplainButton name={it.name} nameCanonical={it.nameCanonical} />
-                          </Box>
-                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>{refLabel(it)}</Typography>
-                        </Box>
-                        <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
-                          <Typography component="span" sx={{ fontSize: '1.35rem', fontWeight: 800, color: 'error.main' }}>{fmtVal(it)}</Typography>
-                          {it.unit ? <Typography component="span" sx={{ color: 'text.secondary', ml: 0.5, fontSize: '0.8rem' }}>{it.unit}</Typography> : null}
-                        </Box>
-                        <TelemedicineButton marker={it.nameCanonical} compact />
-                      </CardContent>
-                    </Card>
-                  ))}
-                </Stack>
-              </AccordionDetails>
-            </Accordion>
-          ))}
-        </Stack>
+        <>
+          {/* Resumo não-alarmista por prioridade */}
+          <Card variant="outlined" sx={{ mb: 1, borderRadius: 3, borderColor: 'divider', bgcolor: 'rgba(15,61,58,0.03)' }}>
+            <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
+              <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap sx={{ mb: 0.5 }}>
+                <Typography component="span" sx={{ fontWeight: 800, color: PRIORITY_META.importante.color }}>{PRIORITY_META.importante.emoji} {counts.importante} {PRIORITY_META.importante.label}{counts.importante !== 1 ? 's' : ''}</Typography>
+                <Typography component="span" sx={{ fontWeight: 800, color: PRIORITY_META.moderada.color }}>{PRIORITY_META.moderada.emoji} {counts.moderada} {PRIORITY_META.moderada.label}{counts.moderada !== 1 ? 's' : ''}</Typography>
+                <Typography component="span" sx={{ fontWeight: 800, color: PRIORITY_META.leve.color }}>{PRIORITY_META.leve.emoji} {counts.leve} {PRIORITY_META.leve.label}{counts.leve !== 1 ? 's' : ''}</Typography>
+              </Stack>
+              <Typography variant="caption" color="text.secondary">
+                {counts.importante > 0
+                  ? <>Os <strong>{PRIORITY_META.importante.emoji} importantes</strong> merecem prioridade — leve ao médico. {PRIORITY_META.moderada.emoji} moderadas: comente na consulta. {PRIORITY_META.leve.emoji} leves: só acompanhe.</>
+                  : <>Nada crítico — os ajustes são <strong>{PRIORITY_META.moderada.emoji} moderados</strong> ou <strong>{PRIORITY_META.leve.emoji} leves</strong>. Comente com seu médico na próxima consulta.</>}
+              </Typography>
+            </CardContent>
+          </Card>
+
+          <Stack spacing={1}>
+            {groups.map((g) => {
+              const mp = maxPriority(g.items);
+              const meta = PRIORITY_META[mp];
+              const stale = isStaleExam(g.performedAt);
+              return (
+                <Accordion key={g.examId} disableGutters elevation={0} sx={{ border: `1px solid ${meta.color}55`, borderRadius: '12px', overflow: 'hidden', '&:before': { display: 'none' } }}>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: meta.color + '14' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 1 }}>
+                      <Box component="span" sx={{ fontSize: 18 }}>{meta.emoji}</Box>
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Typography sx={{ fontWeight: 800, color: meta.color, lineHeight: 1.2 }}>{g.examTitle}</Typography>
+                        <Typography variant="caption" sx={{ color: meta.color, opacity: 0.85 }}>📅 {fmtDate(g.performedAt)}{g.performedAt ? ` · ${timeAgo(g.performedAt)}` : ''}</Typography>
+                        {stale && <Typography variant="caption" sx={{ display: 'block', color: '#9a6b00' }}>⏳ Exame antigo — considere renovar com seu médico</Typography>}
+                        {g.requestingDoctor && <Typography variant="caption" sx={{ display: 'block', color: meta.color, opacity: 0.85 }}>🩺 Dr. {g.requestingDoctor}</Typography>}
+                      </Box>
+                      <Chip size="small" label={`${g.items.length} alterado(s)`} sx={{ fontWeight: 700, height: 20, bgcolor: meta.color + '22', color: meta.color }} />
+                    </Box>
+                  </AccordionSummary>
+                  <AccordionDetails sx={{ p: 1.25 }}>
+                    <Stack spacing={0.75}>
+                      {g.items.map((it) => {
+                        const p = priorityOf(it);
+                        const pm = PRIORITY_META[p];
+                        return (
+                          <Card key={it.id} variant="outlined" sx={{ borderLeft: `4px solid ${pm.color}`, borderRadius: 2, bgcolor: pm.color + '0a' }}>
+                            <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', py: 1.25, '&:last-child': { pb: 1.25 } }}>
+                              <Box sx={{ flex: '1 1 55%', minWidth: 0 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5, flexWrap: 'wrap' }}>
+                                  <Typography sx={{ fontWeight: 700, wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.2 }}>{it.name}</Typography>
+                                  <Chip size="small" label={`${pm.emoji} ${pm.label}`} title={pm.hint} sx={{ height: 20, fontWeight: 700, bgcolor: pm.color + '22', color: pm.color }} />
+                                  <ExplainButton name={it.name} nameCanonical={it.nameCanonical} />
+                                </Box>
+                                <Typography variant="caption" sx={{ color: 'text.secondary' }}>{refLabel(it)}</Typography>
+                              </Box>
+                              <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
+                                <Typography component="span" sx={{ fontSize: '1.35rem', fontWeight: 800, color: pm.color }}>{fmtVal(it)}</Typography>
+                                {it.unit ? <Typography component="span" sx={{ color: 'text.secondary', ml: 0.5, fontSize: '0.8rem' }}>{it.unit}</Typography> : null}
+                              </Box>
+                              <TelemedicineButton marker={it.nameCanonical} compact />
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </Stack>
+                  </AccordionDetails>
+                </Accordion>
+              );
+            })}
+          </Stack>
+        </>
       )}
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>*Educativo. Sempre confirme com seu médico.</Typography>
     </PageContainer>

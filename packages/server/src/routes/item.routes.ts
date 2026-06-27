@@ -223,7 +223,7 @@ router.get('/abnormal', async (req: AuthedRequest, res, next) => {
       include: { exam: { select: { id: true, title: true, performedAt: true, sourceLab: true, requestingDoctor: true, rawExtraction: true } } },
       take: 300,
     });
-    res.json({ items: rows.map((i) => ({ id: i.id, examId: i.exam.id, name: i.name, nameCanonical: i.nameCanonical, valueText: i.valueText, unit: i.unit, flag: i.flag, refText: i.refText, refLow: i.refLow, refHigh: i.refHigh, examTitle: i.exam.title, performedAt: i.exam.performedAt, requestingDoctor: i.exam.requestingDoctor || (i.exam.rawExtraction as any)?.requestingDoctor || null })) });
+    res.json({ items: rows.map((i) => ({ id: i.id, examId: i.exam.id, name: i.name, nameCanonical: i.nameCanonical, valueText: i.valueText, valueNumeric: i.valueNumeric, unit: i.unit, flag: i.flag, refText: i.refText, refLow: i.refLow, refHigh: i.refHigh, examTitle: i.exam.title, performedAt: i.exam.performedAt, requestingDoctor: i.exam.requestingDoctor || (i.exam.rawExtraction as any)?.requestingDoctor || null })) });
   } catch (e) { next(e); }
 });
 
