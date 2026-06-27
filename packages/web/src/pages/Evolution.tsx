@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Box, Button, Card, CardContent, Typography, CircularProgress, Chip, Stack, Grid, Accordion, AccordionSummary, AccordionDetails, InputBase, Paper } from '@mui/material';
 import { Title } from 'react-admin';
-import { ResponsiveContainer, LineChart, Line, ReferenceArea, YAxis } from 'recharts';
+import { ResponsiveContainer, LineChart, Line, ReferenceArea, YAxis, Tooltip } from 'recharts';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import SearchIcon from '@mui/icons-material/Search';
 import { API_URL, token } from '../config';
@@ -182,12 +182,27 @@ const EvoRow = ({ it, defaultExpanded }: { it: EvoItem; defaultExpanded?: boolea
           {it.firstValue}{it.unit ? ` ${it.unit}` : ''} ({fmtDate(it.firstDate)}) <strong>→</strong> {it.lastValue}{it.unit ? ` ${it.unit}` : ''} ({fmtDate(it.lastDate)})
         </Typography>
         {it.points.length >= 2 && (
-          <Box sx={{ height: 92, width: '100%', mb: 1 }}>
+          <Box sx={{ height: 104, width: '100%', mb: 1 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={it.points.map((p) => ({ v: p.value }))} margin={{ top: 4, right: 6, bottom: 4, left: 6 }}>
+              <LineChart data={it.points.map((p) => ({ v: p.value, date: fmtDate(p.date), flag: p.flag }))} margin={{ top: 6, right: 8, bottom: 4, left: 8 }}>
                 {it.refLow != null && it.refHigh != null && <ReferenceArea y1={it.refLow} y2={it.refHigh} fill="#10b981" fillOpacity={0.14} />}
                 <YAxis hide domain={['auto', 'auto']} />
-                <Line type="monotone" dataKey="v" stroke={lineColor} strokeWidth={2.5} dot={{ r: 3, fill: lineColor }} isAnimationActive={false} />
+                {/* Tooltip mostra valor + data ao TOCAR no ponto (mobile). Antes não havia Tooltip — clicar não fazia nada. */}
+                <Tooltip
+                  cursor={{ stroke: lineColor, strokeWidth: 1, strokeDasharray: '4 3' }}
+                  content={({ active: a, payload }) => {
+                    if (!a || !payload?.length) return null;
+                    const d = payload[0].payload as { v: number; date: string; flag: string };
+                    return (
+                      <Box sx={{ bgcolor: 'background.paper', border: `1px solid ${lineColor}`, borderRadius: 1.5, px: 1.25, py: 0.75, boxShadow: 2 }}>
+                        <Typography sx={{ fontWeight: 800, color: lineColor, lineHeight: 1.1 }}>{d.v}{it.unit ? ` ${it.unit}` : ''}</Typography>
+                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>{d.date}</Typography>
+                        {d.flag && d.flag !== 'NORMAL' && <Typography variant="caption" sx={{ display: 'block', color: '#ef4444', fontWeight: 700 }}>{d.flag}</Typography>}
+                      </Box>
+                    );
+                  }}
+                />
+                <Line type="monotone" dataKey="v" stroke={lineColor} strokeWidth={2.5} dot={{ r: 4, fill: lineColor }} activeDot={{ r: 6, stroke: '#fff', strokeWidth: 2 }} isAnimationActive={false} />
               </LineChart>
             </ResponsiveContainer>
           </Box>

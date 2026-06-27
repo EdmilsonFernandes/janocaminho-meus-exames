@@ -61,7 +61,7 @@ export const FloatingChat = () => {
         onClick={() => navigate('/chat')}
         title="Pergunte ao Dr. Exame"
         sx={{
-          position: 'fixed', bottom: { xs: 80, md: 22 }, right: { xs: 12, md: 22 }, zIndex: 1200,
+          position: 'fixed', bottom: { xs: 'calc(var(--me-bottom-nav-h, 76px) + 14px)', md: 22 }, right: { xs: 12, md: 22 }, zIndex: 1200,
           width: 46, height: 46, p: 0, bgcolor: 'transparent',
           border: 'none', borderRadius: '50%', cursor: 'pointer',
           boxShadow: 'none',

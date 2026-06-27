@@ -70,6 +70,7 @@ import { CreditsChip } from './components/CreditsChip';
 import { FloatingChat } from './components/FloatingChat';
 import { BootSplash } from './components/BootSplash';
 import { MobileBottomNav } from './components/MobileBottomNav';
+import { ExamCreateFab } from './components/ExamCreateFab';
 import { BiometricGate } from './components/BiometricGate';
 import { DrawerProvider, useAppDrawer } from './components/drawerState';
 import { OfflineBanner } from './components/OfflineBanner';
@@ -340,7 +341,10 @@ const PullToRefresh = () => {
     window.addEventListener('touchstart', onStart, { passive: true });
     window.addEventListener('touchmove', onMove, { passive: true });
     window.addEventListener('touchend', onEnd);
-    return () => { window.removeEventListener('touchstart', onStart); window.removeEventListener('touchmove', onMove); window.removeEventListener('touchend', onEnd); };
+    // touchcancel: se o toque é interrompido pelo sistema (scroll/gesto), reseta o
+    // active — senão ele podia ficar true e o spinner pipocar nos toques seguintes.
+    window.addEventListener('touchcancel', onEnd);
+    return () => { window.removeEventListener('touchstart', onStart); window.removeEventListener('touchmove', onMove); window.removeEventListener('touchend', onEnd); window.removeEventListener('touchcancel', onEnd); };
   }, []);
   if (shown <= 5) return null;
   return (
@@ -370,6 +374,7 @@ const AppLayout = (props: any) => {
       {/* Menu lateral UNIFICADO (mobile) — ☰ e "Mais" abem o mesmo drawer */}
       <AppDrawer />
       <FloatingChat />
+      <ExamCreateFab />
       <OfflineBanner />
       <PullToRefresh />
       <MobileBottomNav />

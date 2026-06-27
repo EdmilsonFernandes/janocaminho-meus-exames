@@ -73,7 +73,8 @@ export const ValoresAlteradosPage = () => {
                   <Box component="span" sx={{ fontSize: 18 }}>🚨</Box>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Typography sx={{ fontWeight: 800, color: '#b91c1c', lineHeight: 1.2 }}>{g.examTitle}</Typography>
-                    <Typography variant="caption" sx={{ color: '#9b3a3a' }}>📅 {fmtDate(g.performedAt)}{g.performedAt ? ` · ${timeAgo(g.performedAt)}` : ''}{g.requestingDoctor ? ` · 🩺 Dr. ${g.requestingDoctor}` : ''}</Typography>
+                    <Typography variant="caption" sx={{ color: '#9b3a3a' }}>📅 {fmtDate(g.performedAt)}{g.performedAt ? ` · ${timeAgo(g.performedAt)}` : ''}</Typography>
+                    {g.requestingDoctor && <Typography variant="caption" sx={{ display: 'block', color: '#9b3a3a' }}>🩺 Dr. {g.requestingDoctor}</Typography>}
                   </Box>
                   <Chip size="small" color="error" label={`${g.items.length} alterado(s)`} sx={{ fontWeight: 700, height: 20 }} />
                 </Box>

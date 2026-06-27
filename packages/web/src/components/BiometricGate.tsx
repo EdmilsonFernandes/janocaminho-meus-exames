@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Box, Typography, Button, CircularProgress } from '@mui/material';
 import { Capacitor } from '@capacitor/core';
 import { BiometricService } from './BiometricService';
@@ -17,11 +17,26 @@ export const BiometricGate = ({ children }: { children: React.ReactNode }) => {
   const [locked, setLocked] = useState(false);
   const [busy, setBusy] = useState(false);
 
+  // busyRef evita empilhar 2 prompts biométricos (appStateChange pode disparar
+  // rápido 2x no resume). try/finally garante que NUNCA fique preso em busy=true
+  // — se o verify() rejectar/lançar (sensor falho após ocioso), o botão volta a
+  // ficar disponível e o usuário consegue tentar de novo ou entrar com senha.
+  // Sem isso o overlay verde (z 9999) travava TODOS os toques depois de ocioso.
+  const busyRef = useRef(false);
   const prompt = async () => {
+    if (busyRef.current) return;
+    busyRef.current = true;
     setBusy(true);
-    const ok = await BiometricService.verify();
-    setBusy(false);
-    if (ok) setLocked(false);
+    try {
+      const ok = await BiometricService.verify();
+      if (ok) setLocked(false);
+      // se !ok (cancelou/falhou): mantém travado, mas o botão fica clicável pra retry.
+    } catch {
+      /* verify rejectou — não trava: finally reseta o busy */
+    } finally {
+      busyRef.current = false;
+      setBusy(false);
+    }
   };
 
   // Escape: se a biometria falhar/for removida, o usuário pode voltar pro login com senha.

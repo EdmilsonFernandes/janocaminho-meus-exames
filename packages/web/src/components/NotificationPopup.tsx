@@ -12,15 +12,21 @@ export const NotificationPopup = () => {
   useEffect(() => {
     const t = token();
     if (!t) return;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let dead = false;
     fetch(`${API_URL}/notifications`, { headers: { Authorization: `Bearer ${t}` } })
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
+        if (dead) return;
         if (d && d.unread > 0 && d.items && d.items.length > 0) {
           setNotif({ title: d.items[0].title, body: d.items[0].body });
-          setTimeout(() => setOpen(true), 2500);
+          // Só abre se o app tá visível — evita dialog fantasma pipocando depois
+          // de voltar do background (parecia "app travado" após ocioso).
+          timer = setTimeout(() => { if (!document.hidden) setOpen(true); }, 2500);
         }
       })
       .catch(() => {});
+    return () => { dead = true; if (timer) clearTimeout(timer); };
   }, []);
 
   useEffect(() => {
