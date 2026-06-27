@@ -1,20 +1,27 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Card, CardContent, Typography, Button, CircularProgress, Divider, Stack, Alert, Chip } from '@mui/material';
+import { Box, Typography, Button, CircularProgress, Stack, Alert, Grid, Chip } from '@mui/material';
 import { Title } from 'react-admin';
 import DescriptionIcon from '@mui/icons-material/Description';
-import PrintIcon from '@mui/icons-material/Print';
-import WhatsAppIcon from '@mui/icons-material/Share';
+import ReportProblemIcon from '@mui/icons-material/ReportProblem';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import MedicationIcon from '@mui/icons-material/Medication';
+import RestaurantIcon from '@mui/icons-material/Restaurant';
+import TrackChangesIcon from '@mui/icons-material/TrackChanges';
+import LiveHelpIcon from '@mui/icons-material/LiveHelp';
+import InsightsIcon from '@mui/icons-material/Insights';
 import { API_URL, apiHeaders } from '../config';
 import { speakText, stopSpeakText } from '../utils/nativeDoc';
 import { useSelectedPatient } from '../patient-context';
 import { ShareDialog } from '../components/ShareDialog';
 import { BootSplash } from '../components/BootSplash';
-import { ExplainButton } from '../components/ExplainItem';
 import { CreditBadge, CREDIT_COSTS } from '../components/CreditBadge';
-import { NameToggle } from '../components/HealthSummary';
 import { ConfirmSpend } from '../components/ConfirmSpend';
 import { DocPreview } from '../components/DocPreview';
+import { ReportHero } from '../components/report/ReportHero';
+import { ReportSectionCard } from '../components/report/ReportSectionCard';
+import { DestaqueCard } from '../components/report/DestaqueCard';
+import { MetaCard } from '../components/report/MetaCard';
 
 interface Summary {
   resumoGeral?: string;
@@ -29,13 +36,6 @@ interface Summary {
   disclaimer?: string;
 }
 interface SourceExam { id: string; title: string; performedAt: string | null; sourceLab: string | null; kind: string }
-
-const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <>
-    <Typography variant="subtitle1" sx={{ mt: 2.5, mb: 1, color: '#178f89', fontWeight: 700 }}>{title}</Typography>
-    {children}
-  </>
-);
 
 const fmtDate = (d: string | null) => (d ? new Date(d).toLocaleDateString('pt-BR') : 's/d');
 
@@ -82,7 +82,7 @@ export const ConsolidatedReportPage = () => {
   };
 
   const asArr = (x: any): any[] => (Array.isArray(x) ? x : x == null ? [] : [x]);
-  const txt = (x: any): string => typeof x === 'string' ? x : (x?.texto || x?.titulo || x?.dethe || x?.detalhe || x?.name || (x && typeof x === 'object' ? JSON.stringify(x) : String(x ?? '')));
+  const txt = (x: any): string => typeof x === 'string' ? x : (x?.texto || x?.titulo || x?.detalhe || x?.name || (x && typeof x === 'object' ? JSON.stringify(x) : String(x ?? '')));
   const s: Summary | undefined = analysis?.structured
     ? {
         ...analysis.structured,
@@ -98,7 +98,7 @@ export const ConsolidatedReportPage = () => {
   const sourceExams: SourceExam[] = analysis?.sourceExams ?? [];
 
   /** Imprime/salva PDF premium — mostra num preview DENTRO do app (DocPreview),
-   *  sem window.open (que é bloqueado no PWA mobile). */
+   *  sem window.open (que é bloqueado no PWA mobile). HTML próprio, independente do React. */
   const [docHtml, setDocHtml] = useState('');
   const [docOpen, setDocOpen] = useState(false);
   const speak = () => {
@@ -156,6 +156,8 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
     setDocOpen(true);
   };
 
+  const counts = { itens: s?.comparativo?.length ?? 0, atencao: s?.pontosAtencao?.length ?? 0, positivos: s?.coisasBoas?.length ?? 0 };
+
   return (
     <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 920, mx: 'auto', overflowX: 'hidden' }}>
       <Title title="Relatório completo" />
@@ -176,104 +178,115 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
       {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
 
       {analysis && s && (
-        <Card sx={{ mt: 2, borderRadius: 4, overflow: 'hidden', position: 'relative', boxShadow: '0 4px 20px rgba(32,178,170,.12)' }}>
-          <Box sx={{ background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff', p: { xs: 2, md: 2.5 }, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
-            <Box sx={{ minWidth: 0, flex: '1 1 60%' }}>
-              <Typography variant="h6" sx={{ fontWeight: 800 }}>Relatório consolidado 🩺</Typography>
-              <Typography sx={{ fontSize: 13, opacity: 0.9 }}>Análise educativa — não substitui consulta médica</Typography>
-            </Box>
-            <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" alignItems="center">
-              <Button size="small" variant="outlined" sx={{ color: '#fff', borderColor: 'rgba(255,255,255,.6)' }} onClick={speak} title="Dr. Exame fala o resumo">🔊 {speaking ? 'Parar' : 'Ouvir'}</Button>
-              <Button size="small" variant="outlined" sx={{ color: '#fff', borderColor: 'rgba(255,255,255,.6)', minWidth: 0, px: 1.25 }} onClick={() => setShareOpen(true)} title="Compartilhar"><WhatsAppIcon /></Button>
-              <Button size="small" variant="outlined" sx={{ color: '#fff', borderColor: 'rgba(255,255,255,.6)', minWidth: 0, px: 1.25 }} onClick={printReport} title="Imprimir / PDF"><PrintIcon /></Button>
-              <Button size="small" variant="contained" sx={{ bgcolor: 'rgba(255,255,255,.18)' }} disabled={loading} onClick={() => generate(true)} title="Regenera o relatório com os exames mais recentes" startIcon={loading ? <CircularProgress size={14} color="inherit" /> : undefined}>
-                {loading ? 'Gerando novo…' : '↻ Atualizar'}
-              </Button>
-              <CreditBadge amount={CREDIT_COSTS.consolidated} sx={{ bgcolor: 'rgba(255,255,255,.95) !important', color: '#178f89 !important' }} />
-            </Stack>
-          </Box>
+        <Stack spacing={2} sx={{ mt: 2 }}>
+          <ReportHero
+            resumo={s.resumoGeral}
+            counts={counts}
+            speaking={speaking}
+            loading={loading}
+            onSpeak={speak}
+            onShare={() => setShareOpen(true)}
+            onPrint={printReport}
+            onRegen={() => generate(true)}
+          />
 
-          <CardContent sx={{ p: { xs: 2, md: 3 }, overflowWrap: 'break-word' }}>
-            {sourceExams.length > 0 && (
-              <Box sx={{ mb: 2, p: 1.5, borderRadius: 2, background: 'rgba(32,178,170,0.08)', borderLeft: '4px solid #20b2aa' }}>
-                <Typography sx={{ fontWeight: 700, color: '#178f89', fontSize: 14, mb: 1 }}>📊 Relatório baseado em {sourceExams.length} exame(s):</Typography>
-                <Stack spacing={0.5} useFlexGap>
-                  {sourceExams.map((e, i) => (
-                    <Box key={i} onClick={() => navigate(`/exams/${e.id}/show`)} sx={{ cursor: 'pointer', '&:hover': { opacity: 0.8 } }}>
-                      <Typography variant="body2" sx={{ wordBreak: 'break-word', overflowWrap: 'anywhere', color: 'primary.main', fontWeight: 600, lineHeight: 1.35, cursor: 'pointer' }}>
-                        📄 {e.title}{e.performedAt ? ` — ${fmtDate(e.performedAt)}` : ''}{e.sourceLab ? ` • ${e.sourceLab}` : ''}
-                      </Typography>
-                    </Box>
-                  ))}
-                </Stack>
-              </Box>
-            )}
-
-            {s.resumoGeral && <Typography paragraph sx={{ fontSize: '1.05rem', lineHeight: 1.7, wordBreak: 'break-word' }}>{s.resumoGeral}</Typography>}
-
-            {s.comparativo?.length ? (
-              <Section title="Itens em destaque">
-                <Stack spacing={1}>{s.comparativo.map((c, i) => (
-                  <Box key={i} sx={{ p: 1.25, borderRadius: 2, bgcolor: '#f6faff', border: '1px solid #e0e8f5' }}>
-                    <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={1}>
-                      <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <NameToggle name={c.name} entenda={c.entenda} />
-                        <Typography variant="body2" sx={{ mt: 0.25 }}>
-                          {c.atual && <><strong>{c.atual}</strong>{' '}</>}
-                          {c.leitura && <span style={{ color: 'inherit', opacity: 0.7 }}>→ {c.leitura}</span>}
-                        </Typography>
-                      </Box>
-                      <ExplainButton name={c.name} />
-                    </Stack>
+          {sourceExams.length > 0 && (
+            <Box sx={{ p: 1.5, borderRadius: '12px', background: 'rgba(32,178,170,0.08)', border: '1px solid', borderColor: 'rgba(32,178,170,.20)', borderLeft: '4px solid #20b2aa' }}>
+              <Typography sx={{ fontWeight: 700, color: '#178f89', fontSize: 14, mb: 1 }}>📊 Baseado em {sourceExams.length} exame(s):</Typography>
+              <Stack spacing={0.5} useFlexGap>
+                {sourceExams.map((e, i) => (
+                  <Box key={i} onClick={() => navigate(`/exams/${e.id}/show`)} sx={{ cursor: 'pointer', '&:hover': { opacity: 0.8 } }}>
+                    <Typography variant="body2" sx={{ wordBreak: 'break-word', overflowWrap: 'anywhere', color: 'primary.main', fontWeight: 600, lineHeight: 1.35 }}>
+                      📄 {e.title}{e.performedAt ? ` — ${fmtDate(e.performedAt)}` : ''}{e.sourceLab ? ` • ${e.sourceLab}` : ''}
+                    </Typography>
                   </Box>
-                ))}</Stack>
-              </Section>
-            ) : null}
+                ))}
+              </Stack>
+            </Box>
+          )}
 
-            {s.pontosAtencao?.length ? (
-              <Section title="🚩 Pontos de atenção">
-                <Stack spacing={1}>{s.pontosAtencao.map((p, i) => <Typography key={i} variant="body2" sx={{ wordBreak: 'break-word' }}><strong>{p.titulo}</strong> — {p.detalhe}</Typography>)}</Stack>
-              </Section>
-            ) : null}
+          {s.comparativo?.length ? (
+            <ReportSectionCard icon={<InsightsIcon />} title="Itens em destaque" accent="#0b5cab" count={s.comparativo.length}>
+              <Grid container spacing={1.5}>
+                {s.comparativo.map((c, i) => <Grid key={i} size={{ xs: 12, md: 6 }}><DestaqueCard c={c} /></Grid>)}
+              </Grid>
+            </ReportSectionCard>
+          ) : null}
 
-            {s.coisasBoas?.length ? (
-              <Section title="✅ Pontos positivos">
-                <ul style={{ margin: 0, paddingLeft: 20 }}>{s.coisasBoas.map((b, i) => <li key={i}><Typography variant="body2">{txt(b)}</Typography></li>)}</ul>
-              </Section>
-            ) : null}
+          {s.pontosAtencao?.length ? (
+            <ReportSectionCard icon={<ReportProblemIcon />} title="Pontos de atenção" accent="#ef4444" count={s.pontosAtencao.length}>
+              <Stack spacing={1.25}>
+                {s.pontosAtencao.map((p, i) => (
+                  <Box key={i}>
+                    <Typography sx={{ fontWeight: 700 }}>{i + 1}. {p.titulo}</Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25, wordBreak: 'break-word' }}>{p.detalhe}</Typography>
+                  </Box>
+                ))}
+              </Stack>
+            </ReportSectionCard>
+          ) : null}
 
-            {s.interacoesMedicamentos?.length ? (
-              <Section title="💊 Interações com medicação">
-                <Stack spacing={1}>{s.interacoesMedicamentos.map((m, i) => <Typography key={i} variant="body2"><strong>{m.medicamento}</strong> × {m.analito}: {m.observacao}</Typography>)}</Stack>
-              </Section>
-            ) : null}
+          {s.coisasBoas?.length ? (
+            <ReportSectionCard icon={<CheckCircleIcon />} title="Pontos positivos" accent="#10b981" count={s.coisasBoas.length}>
+              <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+                {s.coisasBoas.map((b, i) => <Chip key={i} sx={{ bgcolor: '#10b98118', color: '#10b981', fontWeight: 600 }} label={txt(b)} />)}
+              </Stack>
+            </ReportSectionCard>
+          ) : null}
 
-            {s.sugestoesNutricao?.length ? (
-              <Section title="🥗 Sugestões de nutrição">
-                <ul style={{ margin: 0, paddingLeft: 20 }}>{s.sugestoesNutricao.map((b, i) => <li key={i}><Typography variant="body2">{txt(b)}</Typography></li>)}</ul>
-              </Section>
-            ) : null}
+          {s.interacoesMedicamentos?.length ? (
+            <ReportSectionCard icon={<MedicationIcon />} title="Interações com medicação" accent="#f59e0b" count={s.interacoesMedicamentos.length}>
+              <Stack spacing={1}>
+                {s.interacoesMedicamentos.map((m, i) => (
+                  <Box key={i} sx={{ p: 1.5, borderRadius: '12px', bgcolor: '#f59e0b0d', border: '1px solid #f59e0b26' }}>
+                    <Typography sx={{ fontWeight: 700, wordBreak: 'break-word' }}>{m.medicamento} <Box component="span" sx={{ color: 'text.secondary', fontWeight: 600 }}>× {m.analito}</Box></Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ wordBreak: 'break-word' }}>{m.observacao}</Typography>
+                  </Box>
+                ))}
+              </Stack>
+            </ReportSectionCard>
+          ) : null}
 
-            {s.metasSaude?.length ? (
-              <Section title="🎯 Metas">
-                <Stack spacing={1}>{s.metasSaude.map((m, i) => <Typography key={i} variant="body2"><strong>{m.analito}</strong>: {m.meta}{m.prazo ? ` (${m.prazo})` : ''}</Typography>)}</Stack>
-              </Section>
-            ) : null}
+          {s.sugestoesNutricao?.length ? (
+            <ReportSectionCard icon={<RestaurantIcon />} title="Sugestões de nutrição" accent="#16a34a" count={s.sugestoesNutricao.length}>
+              <Stack spacing={0.5}>
+                {s.sugestoesNutricao.map((b, i) => <Typography key={i} variant="body2" sx={{ py: 0.25, wordBreak: 'break-word' }}>🥗 {txt(b)}</Typography>)}
+              </Stack>
+            </ReportSectionCard>
+          ) : null}
 
-            {s.leituraFinal && <Section title="Leitura final"><Typography paragraph sx={{ wordBreak: 'break-word' }}>{s.leituraFinal}</Typography></Section>}
+          {s.metasSaude?.length ? (
+            <ReportSectionCard icon={<TrackChangesIcon />} title="Metas de saúde" accent="#0288d1" count={s.metasSaude.length}>
+              <Grid container spacing={1.5}>
+                {s.metasSaude.map((m, i) => <Grid key={i} size={{ xs: 12, md: 6 }}><MetaCard m={m} /></Grid>)}
+              </Grid>
+            </ReportSectionCard>
+          ) : null}
 
-            {s.perguntasParaOMedico?.length ? (
-              <Section title="🩺 Perguntas para levar ao médico">
-                <ol style={{ margin: 0, paddingLeft: 20 }}>{s.perguntasParaOMedico.map((q, i) => <li key={i}><Typography variant="body2">{txt(q)}</Typography></li>)}</ol>
-              </Section>
-            ) : null}
+          {s.perguntasParaOMedico?.length ? (
+            <ReportSectionCard icon={<LiveHelpIcon />} title="Perguntas para levar ao médico" accent="#7b1fa2" count={s.perguntasParaOMedico.length}>
+              <Stack spacing={0.75}>
+                {s.perguntasParaOMedico.map((q, i) => (
+                  <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                    <Box sx={{ width: 18, height: 18, borderRadius: '4px', border: '2px solid #7b1fa2', flexShrink: 0, mt: '2px' }} />
+                    <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>{txt(q)}</Typography>
+                  </Box>
+                ))}
+              </Stack>
+            </ReportSectionCard>
+          ) : null}
 
-            <Divider sx={{ my: 2 }} />
-            <Typography variant="caption" color="text.secondary">
-              {s.disclaimer || 'Análise educativa gerada por IA a partir dos seus exames. A interpretação final deve ser feita por profissional de saúde.'}
-            </Typography>
-          </CardContent>
-        </Card>
+          {s.leituraFinal && (
+            <Box sx={{ p: 2.5, borderRadius: '16px', background: 'linear-gradient(135deg, rgba(11,92,171,.10), rgba(11,92,171,.04))', border: '1px solid', borderColor: 'divider' }}>
+              <Typography sx={{ fontWeight: 800, color: '#0b5cab', mb: 0.5, fontFamily: '"Poppins",sans-serif' }}>📌 Leitura final</Typography>
+              <Typography sx={{ lineHeight: 1.7, wordBreak: 'break-word' }}>{s.leituraFinal}</Typography>
+            </Box>
+          )}
+
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center' }}>
+            {s.disclaimer || 'Análise educativa gerada por IA a partir dos seus exames. A interpretação final deve ser feita por profissional de saúde.'}
+          </Typography>
+        </Stack>
       )}
       <ShareDialog analysisId={analysis?.id} open={shareOpen} onClose={() => setShareOpen(false)} />
       <DocPreview html={docHtml} open={docOpen} onClose={() => setDocOpen(false)} title="Relatório de Saúde" />
