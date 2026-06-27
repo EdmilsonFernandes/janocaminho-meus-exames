@@ -9,8 +9,6 @@ import CloseIcon from '@mui/icons-material/Close';
 import MenuIcon from '@mui/icons-material/Menu';
 import HomeIcon from '@mui/icons-material/Home';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import Brightness4Icon from '@mui/icons-material/Brightness4';
-import Brightness7Icon from '@mui/icons-material/Brightness7';
 import InsightsIcon from '@mui/icons-material/Insights';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import AutoGraphIcon from '@mui/icons-material/AutoGraph';
@@ -119,14 +117,12 @@ const CustomAppBar = (props: AppBarProps) => {
       <Box sx={{ flex: 1 }} />
       <CreditsChip />
       <PatientSwitcher />
-      <IconButton color="inherit" onClick={() => setThemeMode(themeMode === 'dark' ? 'light' : 'dark')} title={themeMode === 'dark' ? 'Modo claro' : 'Modo escuro'} size="small" sx={{ flexShrink: 0 }}>
-        {themeMode === 'dark' ? <Brightness7Icon fontSize="small" /> : <Brightness4Icon fontSize="small" />}
-      </IconButton>
       <NotificationBell />
       <IconButton color="inherit" onClick={(e: any) => setMenuA(e.currentTarget)} title="Mais opções" size="small" sx={{ flexShrink: 0 }}>
         <MoreVertIcon fontSize="small" />
       </IconButton>
       <MuiMenu anchorEl={menuA} open={!!menuA} onClose={() => setMenuA(null)} slotProps={{ paper: { sx: { mt: 1, minWidth: 180, borderRadius: 2 } } }}>
+        <MenuItem onClick={() => { setThemeMode(themeMode === 'dark' ? 'light' : 'dark'); setMenuA(null); }}>{themeMode === 'dark' ? '☀️ Modo claro' : '🌙 Modo escuro'}</MenuItem>
         <MenuItem onClick={toggleLang}>🌐 {locale === 'pt' ? 'Mudar para English' : 'Switch to Português'}</MenuItem>
         <MenuItem onClick={() => { refresh(); setMenuA(null); }}>↻ Atualizar</MenuItem>
         <MenuItem onClick={() => logout('/entrar')} sx={{ color: 'error.main' }}>↩ Sair</MenuItem>
