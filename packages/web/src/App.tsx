@@ -26,6 +26,7 @@ import MedicalInformationIcon from '@mui/icons-material/MedicalInformation';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Diversity3Icon from '@mui/icons-material/Diversity3';
 import SummarizeIcon from '@mui/icons-material/Summarize';
 import { DrExame } from './components/DrExame';
@@ -131,12 +132,28 @@ const CustomAppBar = (props: AppBarProps) => {
   );
 };
 
-// Título de seção do menu (NÃO é clicável — só organiza visualmente)
-const MenuSection = ({ title }: { title: string }) => (
-  <Typography sx={{ px: 3, pt: 1.5, pb: 0.25, fontSize: 10.5, fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.6 }}>
-    {title}
-  </Typography>
-);
+// Rota ativa? ('/' é exato; o resto é startsWith p/ cobrir sub-rotas)
+const routeMatches = (route: string, pathname: string) => (route === '/' ? pathname === '/' : pathname.startsWith(route));
+
+// Seção COLAPSÁVEL do menu (acordeão): header clicável + chevron + MUI Collapse.
+// `routes` habilita o SMART-EXPAND: a seção que contém a rota ativa abre sozinha,
+// então o usuário vê seu contexto sem procurar. Fechamento manual é respeitado
+// enquanto ele permanece numa rota daquela seção (o effect só roda em pathname change).
+const MenuSectionAccordion = ({ title, icon, routes, children }: { title: string; icon: React.ReactNode; routes: string[]; children: React.ReactNode }) => {
+  const { pathname } = useLocation();
+  const [open, setOpen] = useState(() => routes.some((r) => routeMatches(r, pathname)));
+  useEffect(() => { if (routes.some((r) => routeMatches(r, pathname))) setOpen(true); /* eslint-disable-next-line */ }, [pathname]);
+  return (
+    <Box>
+      <ListItemButton onClick={() => setOpen((o) => !o)} sx={{ borderRadius: 1.5, m: '1px 8px', py: 0.4, pl: 2, minHeight: 40, '&:hover': { bgcolor: 'rgba(32,178,170,.06)' } }}>
+        <ListItemIcon sx={{ minWidth: 34, color: 'text.secondary', '& svg': { fontSize: 19 } }}>{icon}</ListItemIcon>
+        <ListItemText primary={title} primaryTypographyProps={{ fontSize: 12.5, fontWeight: 800, color: 'text.primary' }} />
+        <ExpandMoreIcon sx={{ transform: open ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform .2s', color: 'text.secondary', fontSize: 20 }} />
+      </ListItemButton>
+      <Collapse in={open} sx={{ pb: 0.5 }}>{children}</Collapse>
+    </Box>
+  );
+};
 
 // Item de navegação (MUI puro, monocromático, pill teal no ativo).
 // `highlight` destaca as funcionalidades PRINCIPAIS (ícone teal + texto mais forte) — sem rótulo de paywall.
@@ -147,7 +164,7 @@ const NavItem = ({ to, primaryText, icon, highlight }: { to: string; primaryText
   const iconColor = highlight ? '#178f89' : active ? 'text.primary' : 'text.secondary';
   return (
     <ListItemButton onClick={() => navigate(to)} selected={active}
-      sx={{ borderRadius: 1.5, m: '1px 8px', py: 0.7, pl: 2.5,
+      sx={{ borderRadius: 1.5, m: '1px 8px', py: 0.5, pl: 2.5, minHeight: 40, flex: '0 0 auto',
         '&.Mui-selected': { bgcolor: 'rgba(32,178,170,.12)' },
         '&.Mui-selected:hover': { bgcolor: 'rgba(32,178,170,.18)' },
         '&:hover': { bgcolor: 'rgba(32,178,170,.06)' } }}>
@@ -164,42 +181,43 @@ const AppMenu = () => {
   const userStr = typeof localStorage !== 'undefined' ? localStorage.getItem('user') : null;
   const isAdmin = (() => { try { return userStr ? (JSON.parse(userStr)?.role === 'ADMIN') : false; } catch { return false; } })();
   return (
-  <Box component="nav" sx={{ py: 1, display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
-    {/* Acesso rápido (sem header) */}
+  <Box component="nav" sx={{ py: 1, display: 'flex', flexDirection: 'column', minHeight: '100%', '& .MuiListItemButton-root, & .MuiMenuItem-root': { flex: '0 0 auto' } }}>
+    {/* PRINCIPAIS — sempre visíveis (os mais usados), sem precisar expandir nada */}
     <NavItem to="/" primaryText="Início" icon={<HomeIcon />} />
     <NavItem to="/exams" primaryText="Exames" icon={<MedicalInformationIcon />} />
-
-    {/* MINHA SAÚDE */}
-    <MenuSection title="Minha Saúde" />
-    <NavItem to="/alterados" primaryText="Valores alterados" icon={<WarningAmberIcon />} highlight />
-    <NavItem to="/tendencias" primaryText="Tendências" icon={<AutoGraphIcon />} highlight />
-    <NavItem to="/linha-do-tempo" primaryText="Linha do tempo" icon={<HistoryIcon />} highlight />
-    <NavItem to="/medicoes" primaryText="Medições" icon={<MonitorHeartIcon />} />
-    <NavItem to="/vacinas" primaryText="Vacinas" icon={<VaccinesIcon />} />
-    <NavItem to="/lembretes" primaryText="Lembretes" icon={<EventAvailableIcon />} />
-    <NavItem to="/emergencia" primaryText="Cartão de emergência" icon={<HealthAndSafetyIcon />} />
-
-    {/* INTELIGÊNCIA ARTIFICIAL */}
-    <MenuSection title="Inteligência Artificial" />
     <NavItem to="/chat" primaryText="Dr. Exame (IA)" icon={<AutoAwesomeIcon />} highlight />
-    <NavItem to="/evolucao" primaryText="Evolução" icon={<InsightsIcon />} highlight />
-    <NavItem to="/conquistas" primaryText="Minhas conquistas" icon={<EmojiEventsIcon />} />
-
-    {/* GERENCIAMENTO */}
-    <MenuSection title="Gerenciamento" />
-    <NavItem to="/familia" primaryText="Família" icon={<Diversity3Icon />} />
-    <NavItem to="/patients" primaryText="Dependentes" icon={<Diversity3Icon />} />
-    <NavItem to="/medicos" primaryText="Meus Médicos" icon={<MedicalServicesIcon />} />
     <NavItem to="/relatorio" primaryText="Relatório completo" icon={<SummarizeIcon />} highlight />
-    <NavItem to="/despesas" primaryText="Despesas médicas" icon={<AccountBalanceWalletIcon />} />
 
-    {/* CONTA (rodapé) */}
-    <MenuSection title="Conta" />
-    <NavItem to="/perfil" primaryText="Meu perfil" icon={<AccountCircleIcon />} />
-    <NavItem to="/seguranca" primaryText="Segurança" icon={<LockIcon />} />
-    <NavItem to="/privacidade" primaryText="Privacidade e termos" icon={<HealthAndSafetyIcon />} />
-    <NavItem to="/planos" primaryText="Planos e créditos" icon={<WorkspacePremiumIcon />} />
-    {isAdmin && <NavItem to="/admin" primaryText="Painel Admin" icon={<AdminPanelSettingsIcon />} />}
+    {/* Seções colapsáveis — a que contém a rota ativa abre sozinha (smart-expand) */}
+    <MenuSectionAccordion title="Evolução & Conquistas" icon={<InsightsIcon />} routes={['/evolucao', '/conquistas']}>
+      <NavItem to="/evolucao" primaryText="Evolução" icon={<InsightsIcon />} highlight />
+      <NavItem to="/conquistas" primaryText="Minhas conquistas" icon={<EmojiEventsIcon />} />
+    </MenuSectionAccordion>
+
+    <MenuSectionAccordion title="Minha Saúde" icon={<MonitorHeartIcon />} routes={['/alterados', '/tendencias', '/linha-do-tempo', '/medicoes', '/vacinas', '/lembretes', '/emergencia']}>
+      <NavItem to="/alterados" primaryText="Valores alterados" icon={<WarningAmberIcon />} highlight />
+      <NavItem to="/tendencias" primaryText="Tendências" icon={<AutoGraphIcon />} highlight />
+      <NavItem to="/linha-do-tempo" primaryText="Linha do tempo" icon={<HistoryIcon />} highlight />
+      <NavItem to="/medicoes" primaryText="Medições" icon={<MonitorHeartIcon />} />
+      <NavItem to="/vacinas" primaryText="Vacinas" icon={<VaccinesIcon />} />
+      <NavItem to="/lembretes" primaryText="Lembretes" icon={<EventAvailableIcon />} />
+      <NavItem to="/emergencia" primaryText="Cartão de emergência" icon={<HealthAndSafetyIcon />} />
+    </MenuSectionAccordion>
+
+    <MenuSectionAccordion title="Família & Médicos" icon={<Diversity3Icon />} routes={['/familia', '/patients', '/medicos', '/despesas']}>
+      <NavItem to="/familia" primaryText="Família" icon={<Diversity3Icon />} />
+      <NavItem to="/patients" primaryText="Dependentes" icon={<Diversity3Icon />} />
+      <NavItem to="/medicos" primaryText="Meus Médicos" icon={<MedicalServicesIcon />} />
+      <NavItem to="/despesas" primaryText="Despesas médicas" icon={<AccountBalanceWalletIcon />} />
+    </MenuSectionAccordion>
+
+    <MenuSectionAccordion title="Conta" icon={<AccountCircleIcon />} routes={['/perfil', '/seguranca', '/privacidade', '/planos', '/admin']}>
+      <NavItem to="/perfil" primaryText="Meu perfil" icon={<AccountCircleIcon />} />
+      <NavItem to="/seguranca" primaryText="Segurança" icon={<LockIcon />} />
+      <NavItem to="/privacidade" primaryText="Privacidade e termos" icon={<HealthAndSafetyIcon />} />
+      <NavItem to="/planos" primaryText="Planos e créditos" icon={<WorkspacePremiumIcon />} />
+      {isAdmin && <NavItem to="/admin" primaryText="Painel Admin" icon={<AdminPanelSettingsIcon />} />}
+    </MenuSectionAccordion>
 
     <Divider sx={{ my: 1 }} />
 
