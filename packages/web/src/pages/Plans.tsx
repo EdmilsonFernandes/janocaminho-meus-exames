@@ -3,13 +3,16 @@ import { Box, Card, CardContent, Typography, Button, Chip, Alert, Stack, Divider
 import CheckIcon from '@mui/icons-material/CheckCircle';
 import BoltIcon from '@mui/icons-material/Bolt';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import { Title, useNotify } from 'react-admin';
+import DiamondIcon from '@mui/icons-material/Diamond';
+import { useNotify } from 'react-admin';
 import { useSearchParams } from 'react-router-dom';
 import { API_URL, token } from '../config';
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
 import { PixModal } from '../components/PixModal';
 import { PaymentChooser } from '../components/PaymentChooser';
+import { PageContainer } from '../components/layout/PageContainer';
+import { PageHeader } from '../components/layout/PageHeader';
 
 interface Status { active: boolean; planExpiresAt: string | null; examsCount: number; freeExamLimit: number; credits: number; tokensUsed: number; }
 interface Pack { id: string; credits: number; price: number; label: string; popular: boolean; }
@@ -97,12 +100,9 @@ export const PlansPage = () => {
   const isNative = false;
 
   return (
-    <Box sx={{ width: '100%', maxWidth: 860, mx: 'auto', p: { xs: 2, md: 3 }, boxSizing: 'border-box' }}>
-      <Title title="Planos e Créditos" />
-      <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5 }}>💎 Planos e Créditos</Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        Use à vontade: assine o <strong>mensal</strong> (250 créditos de IA por mês) ou compre <strong>créditos avulsos</strong> via PIX.
-      </Typography>
+    <PageContainer width={860}>
+      <PageHeader icon={<DiamondIcon />} title="Planos e Créditos"
+        subtitle={<>Use à vontade: assine o <strong>mensal</strong> (250 créditos de IA por mês) ou compre <strong>créditos avulsos</strong> via PIX.</>} />
 
       {/* HERO — saldo centralizado, gradiente esmeralda + profundidade */}
       <Card sx={{ mb: 2.5, borderRadius: 5, overflow: 'hidden', position: 'relative', color: '#fff',
@@ -198,7 +198,7 @@ export const PlansPage = () => {
         /* Android (Play Store): SEM compra dentro do app — o usuário assina/compra créditos
            pelo SITE. Evita violar a política de pagamentos do Google (Play Billing p/ bens digitais).
            O saldo e o Premium adquirados no site aparecem aqui automaticamente. */
-        <Card sx={{ mt: 1, borderRadius: 4, border: '2px dashed #20b2aa', background: 'linear-gradient(135deg,#f1fafa,#e6f7f5)' }}>
+        <Card sx={{ mt: 1, borderRadius: 4, border: '2px dashed #20b2aa', background: 'rgba(32,178,170,0.08)' }}>
           <CardContent>
             <Typography variant="h6" sx={{ fontWeight: 800, color: '#178f89' }}>💎 Premium e Créditos de IA</Typography>
             <Typography sx={{ mt: 1, fontSize: 15 }}>
@@ -234,7 +234,7 @@ export const PlansPage = () => {
       <Typography align="center" color="text.secondary" sx={{ my: 2, fontWeight: 600 }}>— ou assine —</Typography>
 
       {/* PLANO MENSAL */}
-      <Card sx={{ borderRadius: 4, background: 'linear-gradient(135deg,#ffffff,#f1fafa)', border: '2px solid #20b2aa' }}>
+      <Card sx={{ borderRadius: 4, background: 'rgba(32,178,170,0.06)', border: '2px solid #20b2aa' }}>
         <CardContent>
           <Typography variant="h6" sx={{ fontWeight: 800, color: '#178f89' }}>💎 Premium Mensal</Typography>
           <Typography color="text.secondary" sx={{ fontSize: 14, mt: 0.5 }}>
@@ -268,6 +268,6 @@ export const PlansPage = () => {
       <PixModal packId={pixPack} onClose={() => setPixPack(null)} onApproved={() => { setPixPack(null); notify('Créditos adicionados! 🎉', { type: 'success' }); load(); }} />
         </>
       )}
-    </Box>
+    </PageContainer>
   );
 };

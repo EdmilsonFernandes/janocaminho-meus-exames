@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, Button, TextField, List, ListItem, ListItemText, IconButton, Stack, Chip } from '@mui/material';
+import { Card, CardContent, Typography, Button, TextField, List, ListItem, ListItemText, IconButton, Stack, Chip } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import VaccinesIcon from '@mui/icons-material/Vaccines';
-import { Title } from 'react-admin';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
+import { PageContainer } from '../components/layout/PageContainer';
+import { PageHeader } from '../components/layout/PageHeader';
 
 export const VaccinesPage = () => {
   const [pid] = useSelectedPatient();
@@ -38,8 +39,8 @@ export const VaccinesPage = () => {
   const overdue = (d: string) => new Date(d) < new Date();
 
   return (
-    <Box sx={{ maxWidth: 760, mx: 'auto', p: { xs: 1, md: 2 } }}>
-      <Title title="Carteira de Vacinação" />
+    <PageContainer width="content">
+      <PageHeader icon={<VaccinesIcon />} title="Carteira de Vacinação" />
       <Card sx={{ mb: 2 }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>Registrar vacina</Typography>
@@ -60,7 +61,7 @@ export const VaccinesPage = () => {
           ) : (
             <List>
               {items.map((v) => (
-                <ListItem key={v.id} sx={{ px: 0, borderBottom: '1px solid #eee' }}
+                <ListItem key={v.id} sx={{ px: 0, borderBottom: '1px solid', borderColor: 'divider' }}
                   secondaryAction={<IconButton edge="end" onClick={() => del(v.id)}><DeleteIcon /></IconButton>}>
                   <ListItemText
                     primary={<span style={{ fontWeight: 600 }}><VaccinesIcon fontSize="small" sx={{ verticalAlign: 'middle', mr: 0.5 }} />{v.name}</span>}
@@ -73,6 +74,6 @@ export const VaccinesPage = () => {
           )}
         </CardContent>
       </Card>
-    </Box>
+    </PageContainer>
   );
 };

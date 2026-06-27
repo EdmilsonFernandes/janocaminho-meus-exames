@@ -14,6 +14,9 @@ import { ExplainButton } from '../components/ExplainItem';
 import { usePremium } from '../components/PremiumGate';
 import { refLabel } from '../utils/medicalData';
 import { groupByYear } from '../utils/groupByYear';
+import { PageContainer } from '../components/layout/PageContainer';
+import { PageHeader } from '../components/layout/PageHeader';
+import EventIcon from '@mui/icons-material/Event';
 
 interface Event { id: string; date: string | null; title: string; kind: string; abnormalCount: number; itemCount: number }
 
@@ -98,12 +101,13 @@ export const TimelinePage = () => {
   };
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 760, mx: 'auto' }}>
+    <PageContainer width="content">
       <Title title="Linha do Tempo" />
-      <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5 }}>📅 Sua jornada de saúde</Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        {events.length} exame(s) ao longo do tempo • {totalAbnormal > 0 ? `${totalAbnormal} sinal(is) de atenção no total` : 'sem alterações registradas'}.
-      </Typography>
+      <PageHeader
+        icon={<EventIcon />}
+        title="Sua jornada de saúde"
+        subtitle={`${events.length} exame(s) ao longo do tempo • ${totalAbnormal > 0 ? `${totalAbnormal} sinal(is) de atenção no total` : 'sem alterações registradas'}.`}
+      />
 
       {loading ? (
         <Box sx={{ textAlign: 'center', py: 4 }}><CircularProgress /></Box>
@@ -116,7 +120,7 @@ export const TimelinePage = () => {
             return (
               <Box key={String(g.year)}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-                  <Chip label={`📅 ${g.label}`} sx={{ fontWeight: 800, bgcolor: '#0f172a', color: '#fff' }} />
+                  <Chip label={`📅 ${g.label}`} sx={{ fontWeight: 800, bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(148,163,184,0.18)' : '#0f172a', color: '#fff' }} />
                   <Typography variant="caption" color="text.secondary">{g.items.length} exame(s){locked ? ' • Premium' : ''}</Typography>
                 </Box>
                 {locked ? (
@@ -176,6 +180,6 @@ export const TimelinePage = () => {
           <Button variant="outlined" fullWidth startIcon={<CloseIcon />} onClick={() => setSel(null)} sx={{ mt: 2 }}>Fechar</Button>
         </DialogContent>
       </Dialog>
-    </Box>
+    </PageContainer>
   );
 };

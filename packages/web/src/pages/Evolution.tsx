@@ -9,6 +9,9 @@ import { useSelectedPatient } from '../patient-context';
 import { useNavigate } from 'react-router-dom';
 import { ExplainButton } from '../components/ExplainItem';
 import { CATS, categorize } from '../utils/medicalData';
+import { PageContainer } from '../components/layout/PageContainer';
+import { PageHeader } from '../components/layout/PageHeader';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 
 interface EvoItem {
   nameCanonical: string; unit: string | null; refLow: number | null; refHigh: number | null;
@@ -85,10 +88,13 @@ export const EvolutionPage = () => {
   ];
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 860, mx: 'auto' }}>
+    <PageContainer width="wide">
       <Title title="Evolução da minha saúde" />
-      <Typography variant="h5" sx={{ fontWeight: 800 }}>📈 Evolução ao longo do tempo</Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Como cada exame evoluiu entre as coletas. Toque pra ver o gráfico.</Typography>
+      <PageHeader
+        icon={<TrendingUpIcon />}
+        title="Evolução ao longo do tempo"
+        subtitle="Como cada exame evoluiu entre as coletas. Toque pra ver o gráfico."
+      />
 
       {loading && <CircularProgress />}
 
@@ -132,7 +138,7 @@ export const EvolutionPage = () => {
           {groups.map((g) => <CategoryGroup key={g.cat} group={g} expandOuts={filter === 'out'} />)}
         </Stack>
       )}
-    </Box>
+    </PageContainer>
   );
 };
 

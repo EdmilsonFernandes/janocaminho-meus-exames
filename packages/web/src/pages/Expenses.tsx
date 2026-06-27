@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, Button, TextField, IconButton, Stack, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, CircularProgress } from '@mui/material';
+import { Card, CardContent, Typography, Button, TextField, IconButton, Stack, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, CircularProgress } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { Title, useNotify } from 'react-admin';
+import PaymentsIcon from '@mui/icons-material/Payments';
+import { useNotify } from 'react-admin';
 import { API_URL, apiHeaders, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import { printPage } from '../utils/nativeDoc';
+import { PageContainer } from '../components/layout/PageContainer';
+import { PageHeader } from '../components/layout/PageHeader';
 
 interface Expense { id: string; description: string; category: string; amount: number; spentAt: string; }
 
@@ -55,11 +58,11 @@ export const ExpensesPage = () => {
   const byCategory = items.reduce((acc: Record<string, number>, i) => { acc[i.category] = (acc[i.category] || 0) + i.amount; return acc; }, {});
 
   return (
-    <Box sx={{ maxWidth: 760, mx: 'auto', p: { xs: 1, md: 2 } }}>
-      <Title title="Despesas Médicas" />
-      <Card sx={{ mb: 2, background: 'linear-gradient(135deg,#e3f2fd,#bbdefb)' }}>
+    <PageContainer width="content">
+      <PageHeader icon={<PaymentsIcon />} title="Despesas Médicas" />
+      <Card sx={{ mb: 2, background: (t) => t.palette.mode === 'dark' ? 'rgba(11,92,171,0.10)' : 'linear-gradient(135deg,#e3f2fd,#bbdefb)' }}>
         <CardContent>
-          <Typography variant="h4" sx={{ fontWeight: 800, color: '#1565c0' }}>R$ {total.toFixed(2).replace('.', ',')}</Typography>
+          <Typography variant="h4" sx={{ fontWeight: 800, color: (t) => t.palette.mode === 'dark' ? '#5b9bd5' : '#1565c0' }}>R$ {total.toFixed(2).replace('.', ',')}</Typography>
           <Typography color="text.secondary">Total gasto em saúde</Typography>
           <Stack direction="row" spacing={1} sx={{ mt: 1 }} useFlexGap flexWrap="wrap">
             {Object.entries(byCategory).map(([cat, val]) => (
@@ -114,6 +117,6 @@ export const ExpensesPage = () => {
           )}
         </CardContent>
       </Card>
-    </Box>
+    </PageContainer>
   );
 };

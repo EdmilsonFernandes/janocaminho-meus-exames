@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Box, Card, CardContent, Typography, Button, TextField, CircularProgress, Stack, Chip, Avatar, IconButton, Alert, Divider, Switch, FormControlLabel, MenuItem, Menu as MuiMenu, Dialog, DialogTitle, DialogContent, DialogActions, InputAdornment } from '@mui/material';
-import { Title, useNotify } from 'react-admin';
+import { useNotify } from 'react-admin';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import DeleteIcon from '@mui/icons-material/DeleteOutline';
@@ -8,8 +8,11 @@ import BlockIcon from '@mui/icons-material/Block';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import SearchIcon from '@mui/icons-material/Search';
+import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import { SPECIALTIES, CONVENIOS, UFS } from '../utils/medicalData';
 import type { DoctorLookupResult, DoctorLookupSource } from '../types/doctor';
+import { PageContainer } from '../components/layout/PageContainer';
+import { PageHeader } from '../components/layout/PageHeader';
 
 const SCOPE_META = [
   { key: 'exams', label: 'Exames', short: 'Exames', icon: '📋' },
@@ -172,16 +175,12 @@ export const MedicosPage = () => {
   const activeCount = myShares.filter((s) => s.active).length;
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 760, mx: 'auto' }}>
-      <Title title="Meus Médicos" />
-      {/* Header */}
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
-        <Typography variant="h5" sx={{ fontWeight: 800 }}>🩺 Meus Médicos</Typography>
-        <Button variant="contained" startIcon={<PersonAddIcon />} onClick={() => setShowForm(true)} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700 }}>
+    <PageContainer width={760}>
+      <PageHeader icon={<MedicalServicesIcon />} title="Meus Médicos"
+        subtitle="Controle quem vê seus dados. Escolha o que compartilhar e revogue a qualquer momento."
+        actions={<Button variant="contained" startIcon={<PersonAddIcon />} onClick={() => setShowForm(true)} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700 }}>
           Compartilhar
-        </Button>
-      </Stack>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Controle quem vê seus dados. Escolha o que compartilhar e revogue a qualquer momento.</Typography>
+        </Button>} />
 
       {/* Filtros */}
       {!loading && myShares.length > 0 && (
@@ -345,6 +344,6 @@ export const MedicosPage = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </PageContainer>
   );
 };

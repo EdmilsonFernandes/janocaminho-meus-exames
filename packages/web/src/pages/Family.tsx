@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Box, Card, CardContent, Typography, CircularProgress, Grid, Stack, Chip, Avatar, Alert, AlertTitle } from '@mui/material';
-import { Title } from 'react-admin';
-import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import Diversity3Icon from '@mui/icons-material/Diversity3';
 import { API_URL, token, photoUrlFor } from '../config';
 import { ExplainButton } from '../components/ExplainItem';
+import { PageContainer } from '../components/layout/PageContainer';
+import { PageHeader } from '../components/layout/PageHeader';
 
 interface FamPatient {
   id: string; fullName: string; relationship: string | null; photoUrl: string | null;
@@ -39,15 +40,9 @@ export const FamilyPage = () => {
   const ranked = [...patients].sort((a, b) => (b.score ?? -1) - (a.score ?? -1)); // 1º = maior score
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 980, mx: 'auto' }}>
-      <Title title="Saúde da Família" />
-      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
-        <EmojiEventsIcon sx={{ color: '#d4a574' }} />
-        <Typography variant="h5" sx={{ fontWeight: 800 }}>Saúde da Família</Typography>
-      </Stack>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        Score de cada um e padrões que aparecem em mais de uma pessoa.
-      </Typography>
+    <PageContainer width={980}>
+      <PageHeader icon={<Diversity3Icon />} title="Saúde da Família" accent="#d4a574"
+        subtitle="Score de cada um e padrões que aparecem em mais de uma pessoa." />
 
       {(data?.crossAlerts ?? []).length > 0 && (
         <Alert severity="warning" sx={{ mb: 3, borderRadius: 3 }}>
@@ -133,6 +128,6 @@ export const FamilyPage = () => {
           </Stack>
         </Box>
       )}
-    </Box>
+    </PageContainer>
   );
 };

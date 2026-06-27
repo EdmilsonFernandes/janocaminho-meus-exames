@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, Button, ListItem, ListItemIcon, ListItemText, IconButton, Checkbox, TextField, Stack, Chip, List, Divider, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
+import { Card, CardContent, Typography, Button, ListItem, ListItemIcon, ListItemText, IconButton, Checkbox, TextField, Stack, Chip, List, Divider, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import BellIcon from '@mui/icons-material/NotificationsActive';
-import { Title } from 'react-admin';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
+import { PageContainer } from '../components/layout/PageContainer';
+import { PageHeader } from '../components/layout/PageHeader';
 
 // Antecedências oferecidas (minutos antes) — estilo Agenda do Google. Default: 1 dia + 5h + na hora.
 const OFFSET_PALETTE: { o: number; l: string }[] = [
@@ -68,7 +69,7 @@ export const RemindersPage = () => {
   const past = items.filter((r) => new Date(r.dueDate) < now).sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
 
   const renderItem = (r: any) => (
-    <ListItem key={r.id} sx={{ px: 0, borderBottom: '1px solid #eee', opacity: r.done ? 0.5 : 1, alignItems: 'flex-start' }}>
+    <ListItem key={r.id} sx={{ px: 0, borderBottom: '1px solid', borderColor: 'divider', opacity: r.done ? 0.5 : 1, alignItems: 'flex-start' }}>
       <ListItemIcon sx={{ mt: 0.5 }}><Checkbox checked={r.done} onChange={() => toggle(r)} /></ListItemIcon>
       <ListItemText
         primary={<span style={{ textDecoration: r.done ? 'line-through' : 'none', fontWeight: 600 }}>{r.title}</span>}
@@ -86,8 +87,8 @@ export const RemindersPage = () => {
   );
 
   return (
-    <Box sx={{ maxWidth: 760, mx: 'auto', p: { xs: 1, md: 2 } }}>
-      <Title title="Lembretes" />
+    <PageContainer width="content">
+      <PageHeader icon={<BellIcon />} title="Lembretes" />
       <Card sx={{ mb: 2 }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>Novo lembrete</Typography>
@@ -144,6 +145,6 @@ export const RemindersPage = () => {
         </Card>
       )}
       <Divider sx={{ my: 2 }} />
-    </Box>
+    </PageContainer>
   );
 };

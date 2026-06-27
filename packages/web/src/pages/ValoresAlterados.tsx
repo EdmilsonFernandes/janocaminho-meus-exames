@@ -3,6 +3,8 @@ import { Box, Card, CardContent, Typography, CircularProgress, Stack, Chip, Acco
 import { Title } from 'react-admin';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { PageContainer } from '../components/layout/PageContainer';
+import { PageHeader } from '../components/layout/PageHeader';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import { ExplainButton } from '../components/ExplainItem';
@@ -52,13 +54,14 @@ export const ValoresAlteradosPage = () => {
   };
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 900, mx: 'auto' }}>
+    <PageContainer width="wide">
       <Title title="Valores alterados" />
-      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
-        <WarningAmberIcon sx={{ color: 'error.main' }} />
-        <Typography variant="h5" sx={{ fontWeight: 800 }}>Valores fora da faixa</Typography>
-      </Stack>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Agrupado por exame (do mais recente), itens por categoria. Toque num exame pra expandir e em <strong>Agendar</strong> pro especialista.</Typography>
+      <PageHeader
+        icon={<WarningAmberIcon />}
+        title="Valores fora da faixa"
+        subtitle={<>Agrupado por exame (do mais recente), itens por categoria. Toque num exame pra expandir e em <strong>Agendar</strong> pro especialista.</>}
+        accent="error.main"
+      />
 
       {loading ? (
         <Box sx={{ textAlign: 'center', py: 4 }}><CircularProgress /></Box>
@@ -106,6 +109,6 @@ export const ValoresAlteradosPage = () => {
         </Stack>
       )}
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>*Educativo. Sempre confirme com seu médico.</Typography>
-    </Box>
+    </PageContainer>
   );
 };

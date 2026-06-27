@@ -1,15 +1,18 @@
 import { useEffect, useState } from 'react';
 import { Box, Card, CardContent, Typography, TextField, Button, Stack, Chip, CircularProgress, MenuItem, Switch, FormControlLabel } from '@mui/material';
-import { Title, useNotify } from 'react-admin';
+import { useNotify } from 'react-admin';
 import LockIcon from '@mui/icons-material/Lock';
 import SaveIcon from '@mui/icons-material/Save';
 import BadgeIcon from '@mui/icons-material/WorkspacePremium';
 import DownloadIcon from '@mui/icons-material/Download';
 import UploadIcon from '@mui/icons-material/Upload';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { API_URL, token, apiHeaders } from '../config';
 import { ReferralCard } from '../components/ReferralCard';
 import { useSelectedPatient } from '../patient-context';
 import { PhotoUpload } from '../components/PhotoUpload';
+import { PageContainer } from '../components/layout/PageContainer';
+import { PageHeader } from '../components/layout/PageHeader';
 
 export const ProfilePage = () => {
   const [pid] = useSelectedPatient();
@@ -92,8 +95,8 @@ export const ProfilePage = () => {
   const planActive = user?.planExpiresAt && new Date(user.planExpiresAt) > new Date();
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 780, mx: 'auto' }}>
-      <Title title="Meu perfil" />
+    <PageContainer width={780}>
+      <PageHeader icon={<AccountCircleIcon />} title="Meu perfil" subtitle="Sua conta, dados e preferências" />
 
       {/* Cabeçalho: conta + foto EDITÁVEL (unificado — só uma foto) */}
       <Card sx={{ mb: 2, borderRadius: 4, overflow: 'hidden', background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff' }}>
@@ -183,6 +186,6 @@ export const ProfilePage = () => {
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>A exclusão apaga definitivamente todos os exames, análises e dados. Termos e LGPD em "Privacidade".</Typography>
         </CardContent>
       </Card>
-    </Box>
+    </PageContainer>
   );
 };

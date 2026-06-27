@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Card, CardContent, Typography, Button, CircularProgress, Stack, Chip } from '@mui/material';
-import { Title } from 'react-admin';
+import NotificationsIcon from '@mui/icons-material/Notifications';
 import { API_URL, token } from '../config';
+import { PageContainer } from '../components/layout/PageContainer';
+import { PageHeader } from '../components/layout/PageHeader';
 
 const TYPE_META: Record<string, { emoji: string; color: string }> = {
   alert: { emoji: '🔴', color: '#ef4444' },
@@ -24,12 +26,12 @@ export const NotificationsPage = () => {
   };
   const items = data?.items ?? [];
   return (
-    <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 720, mx: 'auto' }}>
-      <Title title="Notificações" />
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-        <Typography variant="h5" sx={{ fontWeight: 800 }}>🔔 Notificações</Typography>
-        {!!data?.unread && <Button size="small" variant="outlined" onClick={markAll}>Marcar todas como lidas</Button>}
-      </Stack>
+    <PageContainer width="content">
+      <PageHeader
+        icon={<NotificationsIcon />}
+        title="Notificações"
+        actions={!!data?.unread ? <Button size="small" variant="outlined" onClick={markAll}>Marcar todas como lidas</Button> : undefined}
+      />
       {!data && <CircularProgress />}
       {data && items.length === 0 && (
         <Card><CardContent><Typography color="text.secondary" sx={{ textAlign: 'center', py: 3 }}>Sem notificações. O Dr. Exame vai te avisar sobre seus exames por aqui. 🔔</Typography></CardContent></Card>
@@ -59,6 +61,6 @@ export const NotificationsPage = () => {
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', mt: 3 }}>
         Conteúdo educativo — não substitui o médico.
       </Typography>
-    </Box>
+    </PageContainer>
   );
 };

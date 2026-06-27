@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Box, Card, CardContent, Typography, MenuItem, Select, FormControl, InputLabel, CircularProgress, Stack, Chip, useMediaQuery, useTheme } from '@mui/material';
 import { Title } from 'react-admin';
+import { PageContainer } from '../components/layout/PageContainer';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceArea, Legend } from 'recharts';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
@@ -93,7 +94,7 @@ export const TrendsPage = () => {
   }, [multi.length]);
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 980, mx: 'auto' }}>
+    <PageContainer width="wide">
       <Title title="Tendências" />
 
       {/* HEADER PREMIUM */}
@@ -211,6 +212,6 @@ export const TrendsPage = () => {
           <CardContent><Typography color="text.secondary">Sem pontos numéricos para este analito.</Typography></CardContent>
         </Card>
       )}
-    </Box>
+    </PageContainer>
   );
 };

@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, Button, TextField, Select, MenuItem, FormControl, InputLabel, List, ListItem, ListItemText, IconButton, Stack, Collapse } from '@mui/material';
+import { Card, CardContent, Typography, Button, TextField, Select, MenuItem, FormControl, InputLabel, List, ListItem, ListItemText, IconButton, Stack, Collapse } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { Title } from 'react-admin';
+import MonitorWeightIcon from '@mui/icons-material/MonitorWeight';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
+import { PageContainer } from '../components/layout/PageContainer';
+import { PageHeader } from '../components/layout/PageHeader';
 
 const TYPES = [
   { v: 'BLOOD_PRESSURE', l: 'Pressão arterial', u: 'mmHg', dual: true },
@@ -48,8 +50,8 @@ export const MeasurementsPage = () => {
   const fmtVal = (m: any) => m.valueSecondary != null ? `${m.value}/${m.valueSecondary}` : `${m.value}`;
 
   return (
-    <Box sx={{ maxWidth: 760, mx: 'auto', p: { xs: 1, md: 2 } }}>
-      <Title title="Medições" />
+    <PageContainer width="content">
+      <PageHeader icon={<MonitorWeightIcon />} title="Medições" />
       <Card sx={{ mb: 2 }}>
         <CardContent>
           <Stack direction="row" justifyContent="space-between" alignItems="center">
@@ -86,7 +88,7 @@ export const MeasurementsPage = () => {
           ) : (
             <List>
               {items.map((m) => (
-                <ListItem key={m.id} sx={{ px: 0, borderBottom: '1px solid #eee' }}
+                <ListItem key={m.id} sx={{ px: 0, borderBottom: '1px solid', borderColor: 'divider' }}
                   secondaryAction={<IconButton edge="end" onClick={() => del(m.id)}><DeleteIcon /></IconButton>}>
                   <ListItemText primary={`${TYPES.find((t) => t.v === m.type)?.l ?? m.type}: ${fmtVal(m)} ${m.unit}`}
                     secondary={`${fmtDate(m.measuredAt)}${m.note ? ` — ${m.note}` : ''}`} />
@@ -96,6 +98,6 @@ export const MeasurementsPage = () => {
           )}
         </CardContent>
       </Card>
-    </Box>
+    </PageContainer>
   );
 };

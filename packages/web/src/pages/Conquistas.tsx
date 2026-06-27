@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import { API_URL, token } from '../config';
+import { PageContainer } from '../components/layout/PageContainer';
 
 interface Badge {
   id: string; emoji: string; title: string; desc: string;
@@ -49,7 +50,7 @@ export const ConquistasPage = () => {
   const earnedCount = state.badges.filter((b) => b.earned).length;
 
   return (
-    <Box sx={{ maxWidth: 720, mx: 'auto', p: { xs: 1.5, sm: 2 }, pb: { xs: 'calc(84px + env(safe-area-inset-bottom))', sm: 4 } }}>
+    <PageContainer width="narrow" sx={{ p: { xs: 1.5, sm: 2 }, pb: { xs: 'calc(84px + env(safe-area-inset-bottom))', sm: 4 } }}>
       <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
         <IconButton onClick={() => navigate(-1)} aria-label="Voltar"><ArrowBackIcon /></IconButton>
         <EmojiEventsIcon sx={{ color: '#178f89' }} />
@@ -103,6 +104,6 @@ export const ConquistasPage = () => {
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', mt: 2 }}>
         Cada conquista dá 1 crédito de IA (resumo, relatório, chat). O streak conta dias seguidos usando o app.
       </Typography>
-    </Box>
+    </PageContainer>
   );
 };
