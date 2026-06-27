@@ -61,7 +61,7 @@ export const AdminPage = () => {
       )}
       <Tabs value={tab} onChange={onTabChange} variant="fullWidth"
         sx={{ mb: 2, minHeight: { xs: 58, sm: 52 }, borderBottom: 1, borderColor: 'divider',
-          '& .MuiTab-root': { minHeight: { xs: 58, sm: 52 }, maxWidth: 'none', textTransform: 'none', fontWeight: 700, fontSize: { xs: 10.5, sm: 14 }, px: { xs: 0.5, sm: 2 } },
+          '& .MuiTab-root': { minWidth: 0, minHeight: { xs: 58, sm: 52 }, maxWidth: 'none', textTransform: 'none', fontWeight: 700, fontSize: { xs: 10.5, sm: 14 }, px: { xs: 0.5, sm: 2 } },
           '& .MuiTab-iconWrapper, & .MuiSvgIcon-root': { fontSize: { xs: 19, sm: 24 }, mb: 0.25 },
           '& .MuiTab-wrapped': { fontSize: { xs: 10.5, sm: 14 }, lineHeight: 1.15 } }}>
         {TABS.map(t => <Tab key={t.id} value={t.id} icon={t.icon} iconPosition="top" label={t.label} />)}

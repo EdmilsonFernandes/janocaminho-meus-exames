@@ -365,6 +365,12 @@ const AppLayout = (props: any) => {
         sx={{
           // Esconde o ☰ nativo do react-admin no mobile (vamos usar nosso AppDrawer unificado). Desktop mantém.
           '& .RaAppBar-menuButton': { display: { xs: 'none', sm: 'inline-flex' } },
+          // TRAVA o frame na largura do viewport no mobile. O react-admin põe min-width:fit-content no
+          // .layout (pensando na sidebar de desktop) — no mobile isso deixa o frame inflar além do
+          // viewport (ex.: admin com 5 Tabs de 90px = 450px + AppBar) e CLIPA a direita (overflow hidden
+          // corta em vez de caber). min-width:0 mata o fit-content no mobile; sm+ mantém p/ desktop.
+          '&': { minWidth: { xs: '0 !important', sm: 'fit-content' }, maxWidth: '100vw' },
+          '& .RaLayout-appFrame, & .RaLayout-contentWithSidebar': { minWidth: 0, maxWidth: '100%' },
           // Espaço embaixo pra NÃO cobrir conteúdo com o menu rodapé (mobile). Usa a altura REAL medida do
           // MobileBottomNav (var publicada por ResizeObserver) — nunca px fixo (o robô elevado deixou o nav
           // maior que o chute antigo de 72px e cortava o rodapé de TODA tela, inclusive admin). +14px respiro.
