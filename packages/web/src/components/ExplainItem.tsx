@@ -38,7 +38,7 @@ export const ExplainButton = ({ name, nameCanonical, size = 'small' }: { name: s
 
   return (
     <>
-      <IconButton size={size} onClick={open} sx={{ color: 'primary.main', padding: size === 'small' ? 0.5 : 1 }} title="O que é este exame?">
+      <IconButton size={size} onClick={open} sx={{ color: 'primary.main', padding: size === 'small' ? 0.5 : 1 }} title="O que é este exame?" aria-label="O que é este exame?">
         <HelpOutlineIcon fontSize={size} />
       </IconButton>
       <Popover
@@ -50,7 +50,7 @@ export const ExplainButton = ({ name, nameCanonical, size = 'small' }: { name: s
             <Box sx={{ textAlign: 'center', py: 1 }}><CircularProgress size={22} /></Box>
           ) : data ? (
             <>
-              <Typography sx={{ fontWeight: 800, color: '#178f89', fontSize: '1.05rem' }}>{data.titulo}</Typography>
+              <Typography sx={{ fontWeight: 800, color: 'primary.dark', fontSize: '1.05rem' }}>{data.titulo}</Typography>
               <Typography variant="body2" sx={{ mt: 0.5 }}>{data.resumo}</Typography>
               {data.analogia && <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>💡 {data.analogia}</Typography>}
               {data.alterado && (

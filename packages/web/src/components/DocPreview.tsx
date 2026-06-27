@@ -23,7 +23,7 @@ export const DocPreview = ({ html, open, onClose, title = 'Documento' }: { html:
     <Dialog open={open} onClose={onClose} fullScreen={fullScreen} PaperProps={{ sx: { borderRadius: fullScreen ? 0 : 3, height: fullScreen ? '100%' : '90vh', width: '100%', maxWidth: 900 } }}>
       <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
         {title}
-        <IconButton onClick={onClose} size="small"><CloseIcon /></IconButton>
+        <IconButton onClick={onClose} size="small" aria-label="Fechar"><CloseIcon /></IconButton>
       </DialogTitle>
       <DialogContent sx={{ p: 0, overflow: 'hidden' }}>
         <iframe ref={iframeRef} srcDoc={html} title={title} style={{ width: '100%', height: '100%', border: 0, background: '#fff' }} />

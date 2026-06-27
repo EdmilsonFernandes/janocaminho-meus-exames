@@ -17,7 +17,7 @@ export const ValueBar = ({ value, low, high }: { value: number | null; low: numb
   return (
     <Tooltip title={`Referência: ${low} a ${high}`} arrow>
       <Box sx={{ width: '100%', maxWidth: 220, mt: 0.5 }}>
-        <Box sx={{ position: 'relative', height: 16, borderRadius: 8, background: '#eaeef5' }}>
+        <Box sx={{ position: 'relative', height: 16, borderRadius: 8, background: (t) => t.palette.mode === 'dark' ? '#2a3636' : '#eaeef5' }}>
           {/* zona normal (verde) */}
           <Box
             sx={{
@@ -37,7 +37,7 @@ export const ValueBar = ({ value, low, high }: { value: number | null; low: numb
               top: '50%',
               transform: 'translate(-50%,-50%)',
               width: 16, height: 16, borderRadius: '50%',
-              background: out ? '#c62828' : '#2e7d32',
+              bgcolor: out ? 'error.main' : 'success.main',
               border: '3px solid #fff',
               boxShadow: '0 1px 3px rgba(0,0,0,.25)',
             }}
