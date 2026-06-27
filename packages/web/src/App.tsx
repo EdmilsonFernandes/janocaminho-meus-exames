@@ -385,6 +385,11 @@ const AppLayout = (props: any) => {
           // corta em vez de caber). min-width:0 mata o fit-content no mobile; sm+ mantém p/ desktop.
           '&': { minWidth: { xs: '0 !important', sm: 'fit-content' }, maxWidth: '100vw' },
           '& .RaLayout-appFrame, & .RaLayout-contentWithSidebar': { minWidth: 0, maxWidth: '100%' },
+          // CONTEÚDO do <List> (.RaList-main) TAMBÉM é flex-item com min-width:auto → sem min-width:0,
+          // o card de exame infla além do viewport (medido: 627px numa tela de 360px) e o overflow-hidden
+          // do .RaLayout-content CLIPA o canto direito (🗑 e › somem). Vale p/ TODA lista RA (exames,
+          // dependentes…). Mesmo remédio do frame acima: min-width:0 libera p/ encolher.
+          '& .RaList-main, & .RaList-main > .MuiPaper-root': { minWidth: 0, maxWidth: '100%' },
           // Espaço embaixo pra NÃO cobrir conteúdo com o menu rodapé (mobile). Usa a altura REAL medida do
           // MobileBottomNav (var publicada por ResizeObserver) — nunca px fixo (o robô elevado deixou o nav
           // maior que o chute antigo de 72px e cortava o rodapé de TODA tela, inclusive admin). +14px respiro.
