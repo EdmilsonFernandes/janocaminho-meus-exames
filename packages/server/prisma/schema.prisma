@@ -17,6 +17,7 @@ model User {
   passwordHash String
   name         String
   role         Role     @default(OWNER)
+  blocked      Boolean  @default(false) // conta bloqueada pelo admin — login mostra msg amigável p/ contato com suporte (sem revelar o motivo)
   planExpiresAt DateTime?   // ativo enquanto no futuro (null = free/expirado)
   credits      Int      @default(60)   // créditos de IA — custos/grants parametrizados em app_settings. Recarrega com plano.
   emailVerified Boolean @default(false) // valida e-mail no cadastro (previne conta com e-mail fake)

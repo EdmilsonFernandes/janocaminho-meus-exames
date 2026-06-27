@@ -25,7 +25,7 @@ router.get('/users', async (req, res, next) => {
     const limit = Math.min(100, Math.max(1, Number(req.query.limit ?? 20)));
     const where: any = q ? { OR: [{ email: { contains: q, mode: 'insensitive' } }, { name: { contains: q, mode: 'insensitive' } }] } : {};
     const [users, total, examCount, subCount, approvedRevenue] = await Promise.all([
-      prisma.user.findMany({ where, select: { id: true, email: true, name: true, role: true, credits: true, planExpiresAt: true, createdAt: true }, orderBy: { createdAt: 'desc' }, skip: (page - 1) * limit, take: limit }),
+      prisma.user.findMany({ where, select: { id: true, email: true, name: true, role: true, credits: true, planExpiresAt: true, createdAt: true, blocked: true }, orderBy: { createdAt: 'desc' }, skip: (page - 1) * limit, take: limit }),
       prisma.user.count({ where }),
       prisma.exam.count(),
       prisma.subscription.count(),
@@ -216,6 +216,26 @@ router.post('/push/global', async (req: AuthedRequest, res, next) => {
     await sendPush(list, title, body, { type: 'global', ...(route ? { route } : {}) });
     console.log(`[admin] push global enviado por ${req.userId}: "${title}" → ${list.length} dispositivo(s)`);
     res.json({ ok: true, sent: list.length, topic: PUSH_TOPIC });
+  } catch (e) { next(e); }
+});
+
+// BLOQUEAR / DESBLOQUEAR usuário (super admin). Usuário bloqueado, ao logar, recebe
+// mensagem amigável (vaga) p/ contatar o suporte; a sessão ativa dele é derrubada (requireAuth).
+router.post('/users/:id/block', async (req: AuthedRequest, res, next) => {
+  try {
+    const id = String(req.params.id);
+    if (id === req.userId) { res.status(400).json({ error: 'Você não pode bloquear a si mesmo.' }); return; }
+    await prisma.user.update({ where: { id }, data: { blocked: true } });
+    console.log(`[admin] usuário ${id} bloqueado por ${req.userId}`);
+    res.json({ ok: true, blocked: true });
+  } catch (e) { next(e); }
+});
+router.post('/users/:id/unblock', async (req: AuthedRequest, res, next) => {
+  try {
+    const id = String(req.params.id);
+    await prisma.user.update({ where: { id }, data: { blocked: false } });
+    console.log(`[admin] usuário ${id} desbloqueado por ${req.userId}`);
+    res.json({ ok: true, blocked: false });
   } catch (e) { next(e); }
 });
 

@@ -17,6 +17,8 @@ export const authProvider = {
     const data = await r.json().catch(() => ({}));
     // Conta não verificada → sinaliza pra UI redirecionar pra ativação por e-mail
     if (r.status === 403 && data.needsVerification) throw { needsVerification: true, email: username };
+    // Conta bloqueada pelo admin → mostra a mensagem amigável (vaga) do servidor.
+    if (r.status === 403 && data.blocked) throw new Error(data.error || 'Conta com pendência. Entre em contato com o suporte.');
     if (!r.ok) throw new Error('Credenciais inválidas');
     // MFA: senha OK mas 2FA ativo → sinaliza pra UI mostrar o desafio (não grava token)
     if (data.mfaRequired) throw { mfaRequired: true, challengeToken: data.challengeToken, account: data.account };

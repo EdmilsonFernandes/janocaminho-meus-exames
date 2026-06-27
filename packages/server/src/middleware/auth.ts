@@ -21,9 +21,15 @@ export async function requireAuth(req: AuthedRequest, res: Response, next: NextF
       return;
     }
     const userId: string | undefined = payload?.userId;
-    const user = await prisma.user.findUnique({ where: { id: userId }, select: { id: true } });
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { id: true, blocked: true } });
     if (!user) {
       res.status(401).json({ error: 'Usuário inválido' });
+      return;
+    }
+    // Conta bloqueada pelo admin → derruba a sessão ativa (401). O app faz logout e, no
+    // próximo login, o usuário recebe a mensagem amigável de contato com o suporte.
+    if (user.blocked) {
+      res.status(401).json({ error: 'Sua sessão expirou. Faça login novamente.' });
       return;
     }
     req.userId = user.id;

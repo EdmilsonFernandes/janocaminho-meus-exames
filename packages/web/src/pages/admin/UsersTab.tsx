@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { Box, Card, CardContent, Typography, Stack, Chip, TextField, IconButton, Button, Divider, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { useNotify } from 'react-admin';
 import DeleteIcon from '@mui/icons-material/Delete';
+import BlockIcon from '@mui/icons-material/Block';
+import LockOpenIcon from '@mui/icons-material/LockOpen';
 import EditIcon from '@mui/icons-material/Edit';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
@@ -83,6 +85,16 @@ export const UsersTab = () => {
   const rangeStart = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
   const rangeEnd = Math.min(page * PAGE_SIZE, total);
 
+  const toggleBlock = async (u: U) => {
+    const blocking = !u.blocked;
+    if (!window.confirm(blocking ? `Bloquear ${u.email}?\n\nEle não vai conseguir mais entrar — verá uma mensagem amigável pedindo pra contatar o suporte.` : `Desbloquear ${u.email}?`)) return;
+    try {
+      const r = await fetch(`${API_URL}/admin/users/${u.id}/${blocking ? 'block' : 'unblock'}`, { method: 'POST', headers: authH() });
+      if (r.ok) { notify(blocking ? 'Usuário bloqueado.' : 'Usuário desbloqueado.', { type: 'success' }); void load(); }
+      else { const d = await r.json().catch(() => ({})); notify(d.error || 'Falha', { type: 'error' }); }
+    } catch { notify('Falha de conexão.', { type: 'error' }); }
+  };
+
   return (
     <Box>
       <TextField placeholder="Buscar por nome ou e-mail..." value={q} onChange={(e) => setQ(e.target.value)} size="small" fullWidth sx={{ mb: 2 }} />
@@ -92,7 +104,7 @@ export const UsersTab = () => {
           <Card key={u.id} variant="outlined" sx={{ borderRadius: 2 }}>
             <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', py: 1.5 }}>
               <Box sx={{ flex: 1, minWidth: { xs: 120, sm: 180 } }}>
-                <Typography sx={{ fontWeight: 700, wordBreak: 'break-word' }}>{u.name || '—'} {u.role === 'ADMIN' && <Chip size="small" label="ADMIN" color="warning" />}</Typography>
+                <Typography sx={{ fontWeight: 700, wordBreak: 'break-word' }}>{u.name || '—'} {u.role === 'ADMIN' && <Chip size="small" label="ADMIN" color="warning" />} {u.blocked && <Chip size="small" label="Bloqueado" color="error" />}</Typography>
                 <Typography variant="caption" color="text.secondary">{u.email}</Typography>
               </Box>
               <Box sx={{ textAlign: 'center', minWidth: 60 }}>
@@ -101,6 +113,9 @@ export const UsersTab = () => {
               </Box>
               <Box>{u.planExpiresAt && new Date(u.planExpiresAt) > new Date() ? <Chip size="small" label="Premium" color="primary" /> : <Chip size="small" label="Grátis" variant="outlined" />}</Box>
               <IconButton size="small" onClick={() => openEdit(u)} title="Editar"><EditIcon fontSize="small" /></IconButton>
+              <IconButton size="small" onClick={() => { void toggleBlock(u); }} title={u.blocked ? 'Desbloquear' : 'Bloquear'} sx={{ color: u.blocked ? 'success.main' : 'warning.main' }}>
+                {u.blocked ? <LockOpenIcon fontSize="small" /> : <BlockIcon fontSize="small" />}
+              </IconButton>
               {u.role !== 'ADMIN' && <IconButton size="small" color="error" onClick={() => void openDelete(u)} title="Excluir"><DeleteIcon fontSize="small" /></IconButton>}
             </CardContent>
           </Card>

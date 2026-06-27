@@ -5,6 +5,7 @@ import { Box, Card, Typography, Button, CircularProgress, Dialog, DialogTitle, D
 export interface U {
   id: string; email: string; name: string; role: string;
   credits: number; planExpiresAt: string | null; createdAt: string;
+  blocked: boolean;
 }
 
 export const TabLoader = () => <Box sx={{ p: 4, textAlign: 'center' }}><CircularProgress /></Box>;
