@@ -6,7 +6,6 @@ import VolumeUpIcon from '@mui/icons-material/RecordVoiceOver';
 import ShareIcon from '@mui/icons-material/Share';
 import PrintIcon from '@mui/icons-material/Print';
 import { DrExame } from '../DrExame';
-import { CreditBadge, CREDIT_COSTS } from '../CreditBadge';
 
 const StatTile = ({ value, label, accent }: { value: ReactNode; label: string; accent: string }) => (
   <Box sx={{ textAlign: 'center', px: 0.5, py: 1, borderRadius: '12px', bgcolor: alpha(accent, 0.08), border: `1px solid ${alpha(accent, 0.15)}` }}>
@@ -48,8 +47,7 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
         <Button size="small" variant="contained" startIcon={<VolumeUpIcon />} onClick={onSpeak} disabled={!resumo}>{speaking ? 'Parar' : 'Ouvir'}</Button>
         <Button size="small" variant="outlined" onClick={onShare} aria-label="Compartilhar" sx={{ minWidth: 0, px: 1.25 }}><ShareIcon /></Button>
         <Button size="small" variant="outlined" onClick={onPrint} aria-label="Imprimir / PDF" sx={{ minWidth: 0, px: 1.25 }}><PrintIcon /></Button>
-        <Button size="small" variant="outlined" onClick={onRegen} disabled={loading} startIcon={loading ? <CircularProgress size={14} color="inherit" /> : <AutoAwesomeIcon />}>{loading ? 'Gerando…' : '↻ Atualizar'}</Button>
-        <CreditBadge amount={CREDIT_COSTS.consolidated} />
+        <Button size="small" variant="outlined" onClick={onRegen} disabled={loading} startIcon={loading ? <CircularProgress size={14} color="inherit" /> : <AutoAwesomeIcon />}>{loading ? 'Gerando…' : '↻ Atualizar relatório'}</Button>
       </Stack>
 
       {resumo && <Typography sx={{ mt: 2, fontSize: '1.05rem', lineHeight: 1.7, wordBreak: 'break-word' }}>{resumo}</Typography>}

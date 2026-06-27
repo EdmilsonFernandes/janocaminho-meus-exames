@@ -99,6 +99,7 @@ export const ProfilePage = () => {
       <Card sx={{ mb: 2, borderRadius: 4, overflow: 'hidden', background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff' }}>
         <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2.5, flexWrap: 'wrap', py: 3 }}>
           <PhotoUpload patientId={pid} photoUrl={patient?.photoUrl} size={76} hideLabel version={photoVer}
+            fallback={(fullName || user?.name || '').trim().charAt(0).toUpperCase()}
             onUploaded={() => { setPhotoVer((v) => v + 1); void load(); }} />
           <Box sx={{ flex: 1, minWidth: 200 }}>
             <Typography variant="h5" sx={{ fontWeight: 800 }}>{fullName || '—'}</Typography>

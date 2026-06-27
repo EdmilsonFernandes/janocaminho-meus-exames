@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { Box, Card, CardContent, Typography, TextField, Button, CircularProgress, Stack, Chip, Avatar, MenuItem, Alert, Divider, InputAdornment, IconButton, Link, Drawer, List, ListItemButton, ListItemText, ListItemIcon, Accordion, AccordionSummary, AccordionDetails, Badge, InputBase, Paper, useMediaQuery, useTheme } from '@mui/material';
+import { Box, Card, CardContent, Typography, TextField, Button, CircularProgress, Stack, Chip, Grid, Avatar, MenuItem, Alert, Divider, InputAdornment, IconButton, Link, Drawer, List, ListItemButton, ListItemText, ListItemIcon, Accordion, AccordionSummary, AccordionDetails, Badge, InputBase, Paper, useMediaQuery, useTheme } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import LogoutIcon from '@mui/icons-material/Logout';
 import LockIcon from '@mui/icons-material/Lock';
@@ -207,7 +207,6 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const [summaries, setSummaries] = useState<any[]>([]);
   const [notes, setNotes] = useState<any[]>([]);
   const [newNote, setNewNote] = useState('');
-  const [chartFilter, setChartFilter] = useState<'6m' | '1y' | 'all'>('1y');
   const [patQuery, setPatQuery] = useState('');
   const [patAlertOnly, setPatAlertOnly] = useState(false);
   const h = { Authorization: `Bearer ${token}` };
@@ -601,7 +600,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 })()}
 
                 {!detailLoading && tab === 'evolution' && (
-                  <EvolutionCharts items={evolution} filter={chartFilter} setFilter={setChartFilter} />
+                  <EvolutionCharts items={evolution} />
                 )}
 
                 {!detailLoading && tab === 'summary' && (
@@ -860,12 +859,27 @@ const NotesTab = ({ notes, newNote, setNewNote, onAdd, onDelete, onSave }: { not
   );
 };
 
-/** #2 Gráficos de evolução por analito, com zona de referência e filtro de período. */
-const EvolutionCharts = ({ items, filter, setFilter }: { items: any[]; filter: '6m' | '1y' | 'all'; setFilter: (f: '6m' | '1y' | 'all') => void }) => {
+// Status de triagem do analito (mesma semântica da tela de Evolução do paciente).
+const STATUS_META_EVO = {
+  out: { emoji: '🔴', label: 'Fora da faixa', color: '#ef4444' },
+  change: { emoji: '🟠', label: 'Em mudança', color: '#f59e0b' },
+  stable: { emoji: '✅', label: 'Estável', color: '#10b981' },
+} as const;
+type EvoStatus = keyof typeof STATUS_META_EVO;
+
+/** #2 Gráficos de evolução por analito — mesmas alavancas de triagem do app do paciente
+ *  (chips de status Fora da faixa / Em mudança / Estável + busca) + filtro de período
+ *  (6m/1y/Tudo) + zona de referência. Antes era só o gráfico bruto (sem triagem). */
+const EvolutionCharts = ({ items }: { items: any[] }) => {
   const muiTheme = useTheme();
+  const [period, setPeriod] = useState<'6m' | '1y' | 'all'>('1y');
+  const [status, setStatus] = useState<EvoStatus | 'all'>('all');
+  const [query, setQuery] = useState('');
+
+  // Agrupa por analito dentro do período selecionado.
   const groups = useMemo(() => {
     const now = Date.now();
-    const cutoff = filter === '6m' ? now - 180 * 86400000 : filter === '1y' ? now - 365 * 86400000 : 0;
+    const cutoff = period === '6m' ? now - 180 * 86400000 : period === '1y' ? now - 365 * 86400000 : 0;
     const map = new Map<string, { name: string; unit: string | null; refLow: number | null; refHigh: number | null; points: { date: string; ts: number; value: number; abnormal: boolean }[] }>();
     for (const it of items) {
       const ts = it.exam?.performedAt ? new Date(it.exam.performedAt).getTime() : 0;
@@ -875,25 +889,78 @@ const EvolutionCharts = ({ items, filter, setFilter }: { items: any[]; filter: '
       map.get(key)!.points.push({ date: it.exam?.performedAt ? new Date(it.exam.performedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : 's/d', ts, value: it.valueNumeric, abnormal: !!it.isAbnormal });
     }
     return [...map.values()].map((g) => ({ ...g, points: g.points.sort((a, b) => a.ts - b.ts) })).filter((g) => g.points.length >= 1);
-  }, [items, filter]);
-  // Agrupa por categoria médica (igual à tela do paciente) + ordena por qtd de analitos
+  }, [items, period]);
+
+  // Status do analito = último valor fora da faixa (out) / em movimento (change) / estável.
+  // Mesma semântica da tela de Evolução do paciente (statusOf).
+  const statusOf = (g: { points: { value: number; abnormal: boolean }[] }): EvoStatus => {
+    const last = g.points[g.points.length - 1];
+    if (last?.abnormal) return 'out';
+    const nums = g.points.map((p) => p.value).filter((v) => Number.isFinite(v));
+    if (nums.length >= 2 && Math.abs(nums[nums.length - 1] - nums[0]) > 1e-9) return 'change';
+    return 'stable';
+  };
+
+  // Contagem por status (sobre o período selecionado) pros chips de triagem.
+  const counts = useMemo(() => {
+    const c: Record<EvoStatus, number> = { out: 0, change: 0, stable: 0 };
+    for (const g of groups) c[statusOf(g)]++;
+    return c;
+  }, [groups]);
+
+  // Aplica filtro de status + busca antes de agrupar por categoria.
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return groups.filter((g) => (status === 'all' || statusOf(g) === status) && (!q || (g.name || '').toLowerCase().includes(q)));
+  }, [groups, status, query]);
+
+  // Agrupa por categoria médica (igual à tela do paciente) + ordena por qtd de analitos.
   const byCat = useMemo(() => {
-    const catMap = new Map<string, { cat: string; emoji: string; color: string; items: typeof groups }>();
-    for (const g of groups) {
+    const catMap = new Map<string, { cat: string; emoji: string; color: string; items: typeof filtered }>();
+    for (const g of filtered) {
       const c = categorize(g.name);
       if (!catMap.has(c.key)) catMap.set(c.key, { cat: c.cat, emoji: c.emoji, color: c.color, items: [] });
       catMap.get(c.key)!.items.push(g);
     }
     return [...catMap.values()].sort((a, b) => b.items.length - a.items.length);
-  }, [groups]);
+  }, [filtered]);
+
+  const CHIPS: { key: EvoStatus | 'all'; emoji: string; label: string; color: string; count: number }[] = [
+    { key: 'all', emoji: '📋', label: 'Todos', color: '#178f89', count: groups.length },
+    { key: 'out', emoji: STATUS_META_EVO.out.emoji, label: STATUS_META_EVO.out.label, color: STATUS_META_EVO.out.color, count: counts.out },
+    { key: 'change', emoji: STATUS_META_EVO.change.emoji, label: STATUS_META_EVO.change.label, color: STATUS_META_EVO.change.color, count: counts.change },
+    { key: 'stable', emoji: STATUS_META_EVO.stable.emoji, label: STATUS_META_EVO.stable.label, color: STATUS_META_EVO.stable.color, count: counts.stable },
+  ];
+
+  if (items.length === 0) return <Empty label="Sem dados de evolução." icon="📈" />;
+
   return (
     <Box>
-      <Stack direction="row" spacing={0.5} sx={{ mb: 1.5 }}>
+      {/* Chips de status (triagem) — iguais aos da Evolução do paciente */}
+      <Grid container spacing={1} sx={{ mb: 1.5 }}>
+        {CHIPS.map((c) => {
+          const on = status === c.key;
+          return (
+            <Grid key={c.key} size={{ xs: 6, sm: 3 }}>
+              <Chip onClick={() => setStatus(c.key)} label={`${c.emoji} ${c.label} (${c.count})`} sx={{ width: '100%', height: 36, borderRadius: 2, bgcolor: on ? c.color : `${c.color}1a`, color: on ? '#fff' : c.color, fontWeight: 700, border: `1px solid ${c.color}55`, '&:hover': { bgcolor: on ? c.color : `${c.color}2e` } }} />
+            </Grid>
+          );
+        })}
+      </Grid>
+
+      {/* Período + busca (combo numa linha só) */}
+      <Stack direction="row" spacing={1} sx={{ mb: 1.5 }} useFlexGap flexWrap="wrap" alignItems="center">
         {([['6m', '6 meses'], ['1y', '1 ano'], ['all', 'Tudo']] as const).map(([k, l]) => (
-          <Chip key={k} size="small" label={l} onClick={() => setFilter(k)} variant={filter === k ? 'filled' : 'outlined'} color={filter === k ? 'primary' : 'default'} sx={{ fontWeight: 600 }} />
+          <Chip key={k} size="small" label={l} onClick={() => setPeriod(k)} variant={period === k ? 'filled' : 'outlined'} color={period === k ? 'primary' : 'default'} sx={{ fontWeight: 600 }} />
         ))}
+        <Paper variant="outlined" sx={{ p: '2px 12px', flex: 1, minWidth: 160, display: 'flex', alignItems: 'center', gap: 1, borderRadius: 99 }}>
+          <SearchIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
+          <InputBase value={query} onChange={(e: any) => setQuery(e.target.value)} placeholder="Buscar analito (TSH, glicose…)" sx={{ flex: 1, fontSize: 14 }} />
+          {query && <Chip size="small" label="limpar" onClick={() => setQuery('')} sx={{ height: 22 }} />}
+        </Paper>
       </Stack>
-      {groups.length === 0 && <Empty label="Sem dados de evolução no período selecionado." icon="📈" />}
+
+      {filtered.length === 0 && <Empty label="Nenhum analito nesse filtro." icon="📈" />}
       {byCat.map((cg) => (
         <Box key={cg.cat} sx={{ mb: 2 }}>
           <Typography sx={{ fontWeight: 800, fontSize: 14, color: cg.color, mb: 1, display: 'flex', alignItems: 'center', gap: 0.75 }}>
@@ -902,11 +969,11 @@ const EvolutionCharts = ({ items, filter, setFilter }: { items: any[]; filter: '
           </Typography>
           <Stack spacing={1}>
             {cg.items.map((g) => {
-              const lineColor = g.points.some((p) => p.abnormal) ? '#ef4444' : '#178f89';
+              const lineColor = statusOf(g) === 'out' ? '#ef4444' : '#178f89';
               return (
                 <Card key={g.name} variant="outlined" sx={{ borderRadius: 3, borderColor: 'divider' }}><CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
                   <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
-                    <Typography sx={{ fontWeight: 700, color: 'text.primary', fontSize: 14 }}>{g.name}</Typography>
+                    <Typography sx={{ fontWeight: 700, color: 'text.primary', fontSize: 14 }}>{STATUS_META_EVO[statusOf(g)].emoji} {g.name}</Typography>
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>{refLabel(g)}</Typography>
                   </Stack>
                   <Box sx={{ height: g.points.length >= 2 ? 110 : 'auto', width: '100%' }}>

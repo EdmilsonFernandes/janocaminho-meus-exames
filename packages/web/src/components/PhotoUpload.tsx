@@ -9,11 +9,11 @@ import { API_URL, token, photoUrlFor } from '../config';
  * `hideLabel` = só o avatar editável (p/ usar dentro de cabeçalhos).
  */
 export const PhotoUpload = ({
-  patientId, photoUrl, size = 80, hideLabel, version, onUploaded,
+  patientId, photoUrl, size = 80, hideLabel, version, onUploaded, fallback,
   endpoint, src, authToken,
 }: {
   patientId?: string; photoUrl?: string | null; size?: number; hideLabel?: boolean; version?: number; onUploaded?: () => void;
-  endpoint?: string; src?: string; authToken?: string;
+  fallback?: string; endpoint?: string; src?: string; authToken?: string;
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [localVer, setLocalVer] = useState(0);
@@ -59,7 +59,7 @@ export const PhotoUpload = ({
           border: hideLabel ? '3px solid rgba(255,255,255,.7)' : '3px solid',
           borderColor: hideLabel ? undefined : 'divider',
         }}>
-          ?
+          {fallback || '?'}
         </Avatar>
         <IconButton
           size="small"

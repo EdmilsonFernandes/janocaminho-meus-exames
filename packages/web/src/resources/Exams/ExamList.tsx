@@ -111,8 +111,8 @@ const ExamCards = () => {
               <Typography sx={{ fontWeight: 700, wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.2 }}>{r.title}</Typography>
               <Box onClick={(e) => e.stopPropagation()} sx={{ flexShrink: 0, mt: -0.5 }}><ExplainButton name={r.title} /></Box>
             </Box>
-            {r.sourceLab && <Typography variant="caption" sx={{ display: 'block', color: '#5a6b72', fontWeight: 600, lineHeight: 1.3 }}>🏥 {r.sourceLab}</Typography>}
-            {(r as any).rawExtraction?.requestingDoctor && <Typography variant="caption" sx={{ display: 'block', color: '#5a6b72', fontWeight: 600, lineHeight: 1.3 }}>🩺 Dr. {(r as any).rawExtraction.requestingDoctor}</Typography>}
+            {r.sourceLab && <Typography variant="caption" title={r.sourceLab} sx={{ display: 'block', color: '#5a6b72', fontWeight: 600, lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>🏥 {r.sourceLab}</Typography>}
+            {(r as any).rawExtraction?.requestingDoctor && <Typography variant="caption" title={`Dr. ${(r as any).rawExtraction.requestingDoctor}`} sx={{ display: 'block', color: '#5a6b72', fontWeight: 600, lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>🩺 Dr. {(r as any).rawExtraction.requestingDoctor}</Typography>}
             <Typography variant="caption" color="text.secondary">{kindLabel[r.kind] ?? r.kind} • {r.performedAt ? new Date(r.performedAt).toLocaleDateString('pt-BR') : 's/d'}{r._count?.items ? ` • ${r._count.items} itens` : ''}{r.createdAt ? ` • Enviado ${new Date(r.createdAt).toLocaleDateString('pt-BR')}` : ''}</Typography>
             <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.5 }}>
               {isNew && <Chip size="small" label="🆕 Novo" sx={{ bgcolor: '#dcfce7', color: '#15803d', fontWeight: 700, height: 20 }} />}

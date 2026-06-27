@@ -158,6 +158,22 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
 
   const counts = { itens: s?.comparativo?.length ?? 0, atencao: s?.pontosAtencao?.length ?? 0, positivos: s?.coisasBoas?.length ?? 0 };
 
+  // A IA às vezes devolve `interacoesMedicamentos` como string/objeto vazio — o asArr()
+  // transforma num array de 1 elemento e a seção renderizava "× :" sem conteúdo. Só
+  // exibimos interações REAIS (objeto com medicamento ou observação preenchidos).
+  const interacoes = (s?.interacoesMedicamentos ?? []).filter(
+    (m: any) => m && typeof m === 'object' && (String(m.medicamento || '').trim() || String(m.observacao || '').trim())
+  );
+
+  // Nome de laboratório pode vir corrompido da extração (ex.: "VOLPI ara Vol! Jnir...").
+  // Trunca pra não dominar o card; o texto completo fica no tooltip (title). O fix raiz é
+  // na extração (pdftotext), mas aqui evitamos estouro de layout.
+  const trimLab = (lab?: string | null) => {
+    if (!lab) return '';
+    const v = lab.trim();
+    return v.length > 42 ? `${v.slice(0, 42)}…` : v;
+  };
+
   return (
     <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 920, mx: 'auto', overflowX: 'hidden' }}>
       <Title title="Relatório completo" />
@@ -195,8 +211,8 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
               <Stack spacing={0.5} useFlexGap>
                 {sourceExams.map((e, i) => (
                   <Box key={i} onClick={() => navigate(`/exams/${e.id}/show`)} sx={{ cursor: 'pointer', '&:hover': { opacity: 0.8 } }}>
-                    <Typography variant="body2" sx={{ wordBreak: 'break-word', overflowWrap: 'anywhere', color: 'primary.main', fontWeight: 600, lineHeight: 1.35 }}>
-                      📄 {e.title}{e.performedAt ? ` — ${fmtDate(e.performedAt)}` : ''}{e.sourceLab ? ` • ${e.sourceLab}` : ''}
+                    <Typography variant="body2" title={e.sourceLab || undefined} sx={{ wordBreak: 'break-word', overflowWrap: 'anywhere', color: 'primary.main', fontWeight: 600, lineHeight: 1.35 }}>
+                      📄 {e.title}{e.performedAt ? ` — ${fmtDate(e.performedAt)}` : ''}{e.sourceLab ? ` • ${trimLab(e.sourceLab)}` : ''}
                     </Typography>
                   </Box>
                 ))}
@@ -233,10 +249,10 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
             </ReportSectionCard>
           ) : null}
 
-          {s.interacoesMedicamentos?.length ? (
-            <ReportSectionCard icon={<MedicationIcon />} title="Interações com medicação" accent="#f59e0b" count={s.interacoesMedicamentos.length}>
+          {interacoes.length ? (
+            <ReportSectionCard icon={<MedicationIcon />} title="Interações com medicação" accent="#f59e0b" count={interacoes.length}>
               <Stack spacing={1}>
-                {s.interacoesMedicamentos.map((m, i) => (
+                {interacoes.map((m, i) => (
                   <Box key={i} sx={{ p: 1.5, borderRadius: '12px', bgcolor: '#f59e0b0d', border: '1px solid #f59e0b26' }}>
                     <Typography sx={{ fontWeight: 700, wordBreak: 'break-word' }}>{m.medicamento} <Box component="span" sx={{ color: 'text.secondary', fontWeight: 600 }}>× {m.analito}</Box></Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ wordBreak: 'break-word' }}>{m.observacao}</Typography>
