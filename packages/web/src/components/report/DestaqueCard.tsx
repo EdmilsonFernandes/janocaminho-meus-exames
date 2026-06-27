@@ -32,7 +32,7 @@ export const DestaqueCard = ({ c }: { c: { name: string; anterior?: string | nul
         <Stack direction="row" spacing={0.75} alignItems="baseline" sx={{ mt: 0.5 }} flexWrap="wrap" useFlexGap>
           <Typography variant="body2" color="text.secondary">{c.anterior || '—'}</Typography>
           <Typography sx={{ fontWeight: 800, color: 'primary.main' }}>→</Typography>
-          <Typography sx={{ fontWeight: 800, color: '#0b5cab' }}>{c.atual || '—'}</Typography>
+          <Typography sx={(t) => ({ fontWeight: 800, color: t.palette.mode === 'dark' ? '#5b9bd5' : '#0b5cab' })}>{c.atual || '—'}</Typography>
         </Stack>
       </Box>
       <Stack direction="column" alignItems="flex-end" spacing={0.5} sx={{ flexShrink: 0 }}>

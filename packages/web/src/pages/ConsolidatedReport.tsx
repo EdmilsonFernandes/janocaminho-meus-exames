@@ -277,7 +277,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
 
           {s.leituraFinal && (
             <Box sx={{ p: 2.5, borderRadius: '16px', background: 'linear-gradient(135deg, rgba(11,92,171,.10), rgba(11,92,171,.04))', border: '1px solid', borderColor: 'divider' }}>
-              <Typography sx={{ fontWeight: 800, color: '#0b5cab', mb: 0.5, fontFamily: '"Poppins",sans-serif' }}>📌 Leitura final</Typography>
+              <Typography sx={(t) => ({ fontWeight: 800, color: t.palette.mode === 'dark' ? '#5b9bd5' : '#0b5cab', mb: 0.5, fontFamily: '"Poppins",sans-serif' })}>📌 Leitura final</Typography>
               <Typography sx={{ lineHeight: 1.7, wordBreak: 'break-word' }}>{s.leituraFinal}</Typography>
             </Box>
           )}
