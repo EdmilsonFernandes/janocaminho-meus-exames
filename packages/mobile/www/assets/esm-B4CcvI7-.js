@@ -1,2 +1,0 @@
-const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./web-3JLxuvNF.js","./dist-CjyBEm7C.js","./rolldown-runtime-QTnfLwEv.js"])))=>i.map(i=>d[i]);
-import{I as e}from"./vendor-admin-DK39hDnv.js";import{s as t}from"./dist-CjyBEm7C.js";var n;(function(e){e[e.Flush=0]=`Flush`,e[e.Add=1]=`Add`})(n||={});var r=t(`TextToSpeech`,{web:()=>e(()=>import(`./web-3JLxuvNF.js`).then(e=>new e.TextToSpeechWeb),__vite__mapDeps([0,1,2]),import.meta.url)});`speechSynthesis`in window&&window.speechSynthesis;export{r as TextToSpeech};

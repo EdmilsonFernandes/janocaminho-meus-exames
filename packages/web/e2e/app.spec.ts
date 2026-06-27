@@ -13,6 +13,12 @@ async function dismissOverlays(page: Page) {
   }
 }
 
+/** Liga o dark mode via localStorage (RaStore.theme, JSON) — mesmo mecanismo do toggle do app. */
+async function setDarkMode(page: Page) {
+  await page.goto('/');
+  await page.evaluate(() => { try { localStorage.setItem('RaStore.theme', JSON.stringify('dark')); } catch { /* */ } });
+}
+
 // Auth vem do projeto "setup" (storageState e2e/.auth/user.json) — login dev via API, 1x.
 
 test.describe('Telas patient-facing — sem overflow horizontal (M1)', () => {
@@ -32,5 +38,27 @@ test.describe('Telas patient-facing — sem overflow horizontal (M1)', () => {
     await dismissOverlays(page);
     await expectNoHorizontalOverflow(page, 'ExamList');
     await page.screenshot({ path: `e2e/screenshots/examlist-${info.project.name}.png`, fullPage: true });
+  });
+});
+
+test.describe('Dark mode (M2) — renderiza escuro sem overflow', () => {
+  test('Dashboard dark', async ({ page }, info) => {
+    await setDarkMode(page);
+    await page.goto('/#/');
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(800);
+    await dismissOverlays(page);
+    await expectNoHorizontalOverflow(page, 'Dashboard dark');
+    await page.screenshot({ path: `e2e/screenshots/dashboard-dark-${info.project.name}.png`, fullPage: true });
+  });
+
+  test('ExamList dark', async ({ page }, info) => {
+    await setDarkMode(page);
+    await page.goto('/#/exams');
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1000);
+    await dismissOverlays(page);
+    await expectNoHorizontalOverflow(page, 'ExamList dark');
+    await page.screenshot({ path: `e2e/screenshots/examlist-dark-${info.project.name}.png`, fullPage: true });
   });
 });
