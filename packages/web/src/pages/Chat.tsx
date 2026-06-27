@@ -137,9 +137,10 @@ export const ChatPage = () => {
       // Preenche do app bar até encostar no bottom nav — sem gap, sem scroll.
       // dvh = viewport dinâmico (não salta c/ teclado/toolbar no mobile).
       height: { xs: 'calc(100dvh - 116px - env(safe-area-inset-bottom))', sm: 'calc(100dvh - 84px)' },
-      // Cancela o padding-bottom global do content (72px+safe) que, somado à altura cheia,
-      // fazia a área rolar e aparecia um espaço vazio feio entre o input e o rodapé.
-      mb: { xs: 'calc(-72px - env(safe-area-inset-bottom))', sm: -28 },
+      // Cancela o padding-bottom do content do shell (var --me-bottom-nav-h + 14px) p/ o
+      // input encostar no rodapé sem gap. Usa a var (igual o FAB) — nunca px fixo (shell mudou
+      // de 72px p/ var+14 e o -72px tinha ficado stale, ~18px de gap sobrando).
+      mb: { xs: 'calc(-1 * (var(--me-bottom-nav-h, 76px) + 14px))', sm: -28 },
       p: { xs: 1, md: 2 } }}>
       {/* HEADER estilo Mercado Pago: voltar · título · nova conversa · histórico */}
       <Paper elevation={0} sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 1, borderRadius: 3, mb: 1, background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff' }}>

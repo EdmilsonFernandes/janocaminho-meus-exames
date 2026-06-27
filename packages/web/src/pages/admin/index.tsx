@@ -16,6 +16,9 @@ import { FinanceiroTab } from './FinanceiroTab';
 import { PricingTab } from './PricingTab';
 import { SecurityTab } from './SecurityTab';
 import { PushTab } from './PushTab';
+import SettingsIcon from '@mui/icons-material/Settings';
+import { PageContainer } from '../../components/layout/PageContainer';
+import { PageHeader } from '../../components/layout/PageHeader';
 
 type TabId = 'overview' | 'users' | 'financeiro' | 'pricing' | 'security' | 'push';
 
@@ -49,9 +52,9 @@ export const AdminPage = () => {
   }, []);
 
   return (
-    <Box sx={{ p: { xs: 1.5, md: 3 }, maxWidth: 1100, width: '100%', mx: 'auto' }}>
+    <PageContainer width="wide">
       <Title title="Admin" />
-      <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5 }}>⚙️ Painel Admin</Typography>
+      <PageHeader icon={<SettingsIcon />} title="Painel Admin" />
       {statsLoading ? (
         <Box sx={{ mb: 2 }}><CircularProgress size={16} /></Box>
       ) : stats && (
@@ -62,11 +65,11 @@ export const AdminPage = () => {
           <Chip label={`💰 R$ ${(stats.revenue ?? 0).toFixed(2).replace('.', ',')} aprovado`} color="success" size="small" />
         </Stack>
       )}
-      <Tabs value={tab} onChange={onTabChange} variant="fullWidth"
+      <Tabs value={tab} onChange={onTabChange} variant="scrollable" scrollButtons="auto" allowScrollButtonsMobile
         sx={{ mb: 2, minHeight: { xs: 58, sm: 52 }, borderBottom: 1, borderColor: 'divider',
-          '& .MuiTab-root': { minWidth: 0, minHeight: { xs: 58, sm: 52 }, maxWidth: 'none', textTransform: 'none', fontWeight: 700, fontSize: { xs: 10.5, sm: 14 }, px: { xs: 0.5, sm: 2 } },
+          '& .MuiTab-root': { minWidth: 0, minHeight: { xs: 58, sm: 52 }, maxWidth: 'none', textTransform: 'none', fontWeight: 700, fontSize: { xs: 12, sm: 14 }, px: { xs: 0.5, sm: 2 } },
           '& .MuiTab-iconWrapper, & .MuiSvgIcon-root': { fontSize: { xs: 19, sm: 24 }, mb: 0.25 },
-          '& .MuiTab-wrapped': { fontSize: { xs: 10.5, sm: 14 }, lineHeight: 1.15 } }}>
+          '& .MuiTab-wrapped': { fontSize: { xs: 12, sm: 14 }, lineHeight: 1.15 } }}>
         {TABS.map(t => <Tab key={t.id} value={t.id} icon={t.icon} iconPosition="top" label={t.label} />)}
       </Tabs>
 
@@ -76,6 +79,6 @@ export const AdminPage = () => {
       {tab === 'pricing' && <PricingTab />}
       {tab === 'security' && <SecurityTab />}
       {tab === 'push' && <PushTab />}
-    </Box>
+    </PageContainer>
   );
 };
