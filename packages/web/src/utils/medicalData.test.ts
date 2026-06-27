@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { SPECIALTIES, CONVENIOS, CATS, categorize } from './medicalData';
+import { SPECIALTIES, CONVENIOS, CATS, categorize, categorizeExam } from './medicalData';
 
 describe('medicalData — especialidades e convênios', () => {
   it('SPECIALTIES tem entradas essenciais', () => {
@@ -54,5 +54,38 @@ describe('medicalData — categorize (analito → categoria)', () => {
 
   it('CATS sempre expõe a categoria Outros (fallback garantido)', () => {
     expect(CATS.some((c) => c.key === 'other')).toBe(true);
+  });
+
+  it('categoriza título de painel "HEMOGRAMA" (regressão: antes caía em Outros)', () => {
+    expect(categorize('HEMOGRAMA').key).toBe('hemo');
+    expect(categorize('Hemograma Completo').key).toBe('hemo');
+    expect(categorize('Leucograma').key).toBe('hemo');
+  });
+
+  it('categoriza urina (EAS)', () => {
+    expect(categorize('EAS - Urina Tipo I').key).toBe('urina');
+    expect(categorize('Urocultura').key).toBe('urina');
+  });
+});
+
+describe('medicalData — categorizeExam (exame → categoria)', () => {
+  it('usa a categoria dominante dos itens quando há itens', () => {
+    const ex = { title: 'EXAME DE SANGUE', items: [{ name: 'Hemoglobina' }, { name: 'Hematócrito' }, { name: 'Colesterol' }] };
+    expect(categorizeExam(ex).key).toBe('hemo'); // 2 hemo x 1 lipi
+  });
+
+  it('cai no título quando não há itens (HEMOGRAMA → Hemograma)', () => {
+    expect(categorizeExam({ title: 'HEMOGRAMA', items: [] }).key).toBe('hemo');
+    expect(categorizeExam({ title: 'PERFIL LIPÍDICO' }).key).toBe('lipi');
+  });
+
+  it('exame de IMAGING → categoria Imagem', () => {
+    expect(categorizeExam({ title: 'ULTRASSONOGRAFIA', kind: 'IMAGING' }).key).toBe('image');
+  });
+
+  it('não quebra com entrada nula/vazia (fallback Outros)', () => {
+    expect(categorizeExam(null).key).toBe('other');
+    expect(categorizeExam({}).key).toBe('other');
+    expect(categorizeExam({ title: '' }).key).toBe('other');
   });
 });

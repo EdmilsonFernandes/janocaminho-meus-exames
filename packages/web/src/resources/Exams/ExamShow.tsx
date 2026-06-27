@@ -14,6 +14,7 @@ import { ValueBar } from '../../components/ValueBar';
 import { ExplainButton } from '../../components/ExplainItem';
 import { TelemedicineButton } from '../../components/TelemedicineButton';
 import { fmtVal } from '../../utils/format';
+import { categorizeExam } from '../../utils/medicalData';
 import { ExtractionProgress } from '../../components/ExtractionProgress';
 import { AnimatedDoctor } from '../../components/AnimatedDoctor';
 import { CreditBadge, CREDIT_COSTS } from '../../components/CreditBadge';
@@ -217,6 +218,7 @@ export const ExamShow = () => {
   if (!exam) return <Box sx={{ p: 4, textAlign: 'center' }}><CircularProgress /></Box>;
 
   const items: any[] = exam.items ?? [];
+  const cc = categorizeExam(exam); // categoria do exame (dominante pelos itens) — badge no header
   const abnormal = items.filter((i) => i.isAbnormal);
   const grouped = items.reduce((acc: any, it: any) => { (acc[it.panel ?? 'Geral'] ??= []).push(it); return acc; }, {});
   const fm = (f: string) => flagMeta[f] ?? flagMeta.UNKNOWN;
@@ -233,6 +235,7 @@ export const ExamShow = () => {
             <Chip color={statusColor[exam.status] ?? 'default'} label={statusLabel[exam.status] ?? exam.status} />
             {exam.kind === 'IMAGING' && <Chip variant="outlined" label="Imagem" />}
             {exam.kind === 'LAB_PANEL' && <Chip variant="outlined" label="Laboratorial" />}
+            {cc.key !== 'image' && cc.key !== 'other' && <Chip size="small" sx={{ bgcolor: cc.color + '18', color: cc.color, fontWeight: 700 }} label={`${cc.emoji} ${cc.cat}`} />}
             {exam.reviewRequired && <Chip color="warning" label="verificar citações" />}
           </Stack>
           <Typography color="text.secondary">

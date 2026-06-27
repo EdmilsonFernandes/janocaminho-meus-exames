@@ -24,8 +24,8 @@ export const UFS = [
 /** Agrupamento por categoria médica (estilo laudo: Hemograma, Função Hepática, etc.) */
 export const CATS: { key: string; cat: string; emoji: string; color: string; keys: string[] }[] = [
   { key: 'glic', cat: 'Glicemia e Diabetes', emoji: '🍩', color: '#db2777', keys: ['glicose', 'glicemi', 'glicosilada', 'glicosada', 'hba1c', 'insulina', 'homa', 'frutosam'] },
-  { key: 'hemo', cat: 'Hemograma', emoji: '🩸', color: '#e11d48', keys: ['hemoglo', 'hematoc', 'eritroc', 'eritróc', 'leucoc', 'leucóc', 'plaque', 'vcm', 'hcm', 'chcm', 'rdw', 'neutro', 'linfoc', 'linfóc', 'monoc', 'eosinofi', 'basofi', 'hemácia', 'hemacia', 'reticuloc', 'vpm', 'cgm', 'rhc'] },
-  { key: 'lipi', cat: 'Lipídios e Colesterol', emoji: '🧈', color: '#d97706', keys: ['colesterol', 'ldl', 'hdl', 'vldl', 'triglic', 'apolipo', 'castelli', 'nao-hdl', 'não-hdl'] },
+  { key: 'hemo', cat: 'Hemograma', emoji: '🩸', color: '#e11d48', keys: ['hemograma', 'hemogram', 'leucograma', 'eritrograma', 'hemoglo', 'hematoc', 'eritroc', 'eritróc', 'leucoc', 'leucóc', 'plaque', 'vcm', 'hcm', 'chcm', 'rdw', 'neutro', 'linfoc', 'linfóc', 'monoc', 'eosinofi', 'basofi', 'hemácia', 'hemacia', 'reticuloc', 'vpm', 'cgm', 'rhc'] },
+  { key: 'lipi', cat: 'Lipídios e Colesterol', emoji: '🧈', color: '#d97706', keys: ['colesterol', 'perfil lipidico', 'lipidico', 'lipidi', 'ldl', 'hdl', 'vldl', 'triglic', 'apolipo', 'castelli', 'nao-hdl', 'não-hdl'] },
   { key: 'hepa', cat: 'Função Hepática', emoji: '🫀', color: '#16a34a', keys: ['tgo', 'tgp', 'ast', 'alt', 'gama-gt', 'gama gt', 'ggt', 'gamagt', 'fosfatase alcalin', 'bilirrub', 'transamin', 'albumina'] },
   { key: 'renal', cat: 'Função Renal', emoji: '🫘', color: '#7c3aed', keys: ['creatinina', 'ureia', 'uréia', 'acido urico', 'ácido úrico', 'tfg', 'egfr', 'depura', 'clearance', 'cistatina'] },
   { key: 'horm', cat: 'Hormônios', emoji: '⚗️', color: '#0891b2', keys: ['tsh', 't4 livre', 't3 livre', 'tiroxina', 'triiodo', 'tireotropina', 'tireo', 'paratorm', 'testosterona', 'cortisol', 'prolactina', 'estradiol', 'androst', 'dhea', 'progester', 'hormônio', 'hormonio'] },
@@ -34,15 +34,43 @@ export const CATS: { key: string; cat: string; emoji: string; color: string; key
   { key: 'infl', cat: 'Inflamação e Ferro', emoji: '🛡️', color: '#ea580c', keys: ['pcr', 'vhs', 'proteina c reativa', 'proteína c reativa', 'ferritina', 'ferro', 'saturacao', 'saturação', 'transferr', 'tibc', 'uibc'] },
   { key: 'coag', cat: 'Coagulação', emoji: '🩹', color: '#9333ea', keys: ['protrombina', 'inr', 'ttpa', 'fibrinogen', 'fibrinogên', 'tromboplastina', 'tempo de tromb', 'coagul'] },
   { key: 'vita', cat: 'Vitaminas e Ácido Fólico', emoji: '💊', color: '#2563eb', keys: ['vitamina', 'acido folico', 'ácido fólico', 'folato', 'homociste'] },
+  { key: 'urina', cat: 'Urina (EAS)', emoji: '🚽', color: '#0ea5e9', keys: ['urina', 'urocultura', 'elementos anormais', 'fita reativa', 'sumario de urina'] },
+  { key: 'image', cat: 'Imagem', emoji: '🩻', color: '#475569', keys: [] },
   { key: 'other', cat: 'Outros exames', emoji: '📋', color: '#64748b', keys: [] },
 ];
 
+/** Normaliza p/ casar sem acento (convenção do projeto: patterns SEM acento). */
+const normText = (s: string) => (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+
 /** Categoriza um analito pelo nome (canônico). Cai em 'Outros' se não bater nenhuma regra. */
 export const categorize = (name: string) => {
-  const n = (name || '').toLowerCase();
-  for (const c of CATS) if (c.key !== 'other' && c.keys.some((k) => n.includes(k))) return c;
+  const n = normText(name);
+  for (const c of CATS) if (c.key !== 'other' && c.keys.some((k) => n.includes(normText(k)))) return c;
   return CATS.find((c) => c.key === 'other')!;
 };
+
+/** Categoria de um EXAME inteiro (p/ agrupar/filtrar a lista).
+ *  - Imagem (kind=IMAGING) → categoria "Imagem".
+ *  - Se vier com itens, usa a categoria DOMINANTE (mais itens) — mais preciso que o título.
+ *  - Sem itens, cai no título (ex.: "HEMOGRAMA" → Hemograma). Bem melhor que "Outro" sempre. */
+export type ExamLike = { title?: string | null; kind?: string | null; items?: { name?: string | null }[] | null };
+export const categorizeExam = (exam: ExamLike | null | undefined) => {
+  if (!exam) return CATS.find((c) => c.key === 'other')!;
+  if (exam.kind === 'IMAGING') return CATS.find((c) => c.key === 'image')!;
+  const items = Array.isArray(exam.items) ? exam.items : [];
+  if (items.length) {
+    const counts: Record<string, number> = {};
+    for (const it of items) {
+      const c = categorize(it?.name || '');
+      counts[c.key] = (counts[c.key] || 0) + 1;
+    }
+    let bestKey = 'other', bestN = -1;
+    for (const [k, n] of Object.entries(counts)) if (n > bestN || (n === bestN && k !== 'other')) { bestKey = k; bestN = n; }
+    return CATS.find((c) => c.key === bestKey) ?? CATS.find((c) => c.key === 'other')!;
+  }
+  return categorize(exam.title || '');
+};
+
 
 /**
  * Label pronto pra exibir da faixa de referência de um item/exame.

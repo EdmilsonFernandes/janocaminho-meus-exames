@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { List, useListContext, useRefresh, useNotify, CreateButton, TopToolbar } from 'react-admin';
-import { Chip, Box, Card, CardContent, Typography, IconButton, Stack, LinearProgress, Button, Accordion, AccordionSummary, AccordionDetails, Alert, CircularProgress } from '@mui/material';
+import { Chip, Box, Card, CardContent, Typography, IconButton, Stack, LinearProgress, Button, Accordion, AccordionSummary, AccordionDetails, Alert, CircularProgress, TextField, InputAdornment, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import ScienceIcon from '@mui/icons-material/Science';
 import ImageIcon from '@mui/icons-material/Image';
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
@@ -9,12 +9,14 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import CloseIcon from '@mui/icons-material/Close';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import LockIcon from '@mui/icons-material/Lock';
+import SearchIcon from '@mui/icons-material/Search';
 import { useNavigate } from 'react-router-dom';
 import { useSelectedPatient } from '../../patient-context';
 import { API_URL, token } from '../../config';
 import { ExplainButton } from '../../components/ExplainItem';
 import { usePremium } from '../../components/PremiumGate';
 import { groupByYear } from '../../utils/groupByYear';
+import { categorizeExam, CATS } from '../../utils/medicalData';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { PageHeader } from '../../components/layout/PageHeader';
 
@@ -28,6 +30,14 @@ const statusColor: Record<string, 'success' | 'error' | 'warning' | 'info' | 'de
 const statusLabel: Record<string, string> = { EXTRACTED: 'Pronto', FAILED: 'Falhou', UPLOADED: 'Enviado', EXTRACTING: 'Extraindo' };
 const kindLabel: Record<string, string> = { LAB_PANEL: 'Laboratorial', IMAGING: 'Imagem', OTHER: 'Outro' };
 const hexFor = (s: string) => { const sc = statusColor[s] ?? 'default'; return sc === 'success' ? '#10b981' : sc === 'error' ? '#ef4444' : sc === 'warning' ? '#f59e0b' : sc === 'info' ? '#0ea5e9' : '#94a3b8'; };
+
+/** Ano (int) de um exame — performedAt (data do exame) com fallback no envio (createdAt). */
+const yearOf = (r: any): number | null => {
+  const d = r?.performedAt ?? r?.createdAt;
+  if (!d) return null;
+  const y = new Date(d).getFullYear();
+  return Number.isNaN(y) ? null : y;
+};
 
 /** Cartão de exame EM PROCESSAMENTO (UPLOADED/EXTRACTING) — fica sempre no TOPO da lista,
  *  com spinner/barra INDETERMINADOS. Não há progresso real no servidor (a extração é um
@@ -51,13 +61,24 @@ const ProcessingCard = ({ r, onCancel }: { r: any; onCancel?: (e: any) => void }
   );
 };
 
-/** Cards agrupados por ano (colapsáveis). Mesmo layout em mobile e desktop. */
+const Empty = ({ text }: { text: string }) => (
+  <Box sx={{ textAlign: 'center', py: 4, color: 'text.secondary' }}>
+    <Typography>{text}</Typography>
+  </Box>
+);
+
+/** Cards agrupados por ano OU por categoria (alternáveis). Busca + filtro por categoria no topo. */
 const ExamCards = () => {
   const { data, isLoading, total } = useListContext<any>();
   const navigate = useNavigate();
   const refresh = useRefresh();
   const notify = useNotify();
   const premium = usePremium();
+
+  // Modo de agrupamento + filtros locais (a lista carrega tudo com perPage=1000).
+  const [view, setView] = useState<'date' | 'category'>('date');
+  const [cat, setCat] = useState<string>('all'); // 'all' | category key
+  const [q, setQ] = useState('');
 
   // Re-busca a lista a cada 5s enquanto há exames sendo extraídos. Quando termina (vira EXTRACTED),
   // o exame sai do topo e cai no grupo do ANO certo (performedAt é preenchido pela extração).
@@ -93,14 +114,29 @@ const ExamCards = () => {
   const all = data ?? [];
   const processing = all.filter((r: any) => r.status === 'UPLOADED' || r.status === 'EXTRACTING');
   const failed = all.filter((r: any) => r.status === 'FAILED');
-  // Grupos por ano = só os EXTRACTED. dateKey: performedAt (data do exame); se a extração
-  // não achou a data (foto sem cabeçalho legível), cai no ano do ENVIO (createdAt) — não fica
-  // perdido em "Sem data". Em-processamento e FALHAS ficam em seções próprias no TOPO.
-  const groups = groupByYear(all.filter((r: any) => r.status === 'EXTRACTED'), (r) => r.performedAt ?? r.createdAt);
-  const latestYear = groups[0]?.year ?? null;
+  const extracted = all.filter((r: any) => r.status === 'EXTRACTED');
+
+  // latestYear p/ gate Premium (do conjunto COMPLETO, não do filtrado — estável).
+  const years = extracted.map(yearOf).filter((y): y is number => y != null);
+  const latestYear = years.length ? Math.max(...years) : null;
+  const isLocked = (r: any) => !premium && latestYear != null && yearOf(r) != null && (yearOf(r) as number) < latestYear;
+
+  // Filtros: busca (título/lab) + categoria.
+  const norm = (s: any) => (s == null ? '' : String(s)).toLowerCase().trim();
+  const query = norm(q);
+  const matchesSearch = (r: any) => !query || norm(r.title).includes(query) || norm(r.sourceLab).includes(query);
+  const matchesCat = (r: any) => cat === 'all' || categorizeExam(r).key === cat;
+  const visible = extracted.filter((r: any) => matchesSearch(r) && matchesCat(r));
+  const filtering = query !== '' || cat !== 'all';
+
+  // Contagem por categoria (do conjunto COMPLETO de extraídos — não muda com o filtro).
+  const catCounts: Record<string, number> = {};
+  for (const r of extracted) { const k = categorizeExam(r).key; catCounts[k] = (catCounts[k] ?? 0) + 1; }
+  const presentCats = CATS.filter((c) => catCounts[c.key]).sort((a, b) => catCounts[b.key] - catCounts[a.key]);
 
   const renderCard = (r: any) => {
     const c = hexFor(r.status);
+    const cc = categorizeExam(r); // categoria do exame (emoji + cor)
     // "🆕 Novo" nos exames adicionados nas últimas 48h — ajuda o usuário a achar no grupo do ano qual doc acabou de entrar.
     const isNew = !!r.createdAt && Date.now() - new Date(r.createdAt).getTime() < 48 * 3600 * 1000;
     const Icon = r.kind === 'IMAGING' ? ImageIcon : r.kind === 'LAB_PANEL' ? ScienceIcon : DescriptionOutlinedIcon;
@@ -118,6 +154,7 @@ const ExamCards = () => {
             <Typography variant="caption" color="text.secondary">{kindLabel[r.kind] ?? r.kind} • {r.performedAt ? new Date(r.performedAt).toLocaleDateString('pt-BR') : 's/d'}{r._count?.items ? ` • ${r._count.items} itens` : ''}{r.createdAt ? ` • Enviado ${new Date(r.createdAt).toLocaleDateString('pt-BR')}` : ''}</Typography>
             <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.5 }}>
               {isNew && <Chip size="small" label="🆕 Novo" sx={{ bgcolor: '#dcfce7', color: '#15803d', fontWeight: 700, height: 20 }} />}
+              <Chip size="small" label={`${cc.emoji} ${cc.cat}`} sx={{ bgcolor: cc.color + '18', color: cc.color, fontWeight: 700, height: 20 }} />
               <Chip size="small" label={statusLabel[r.status] ?? r.status} sx={{ bgcolor: c + '18', color: c, fontWeight: 700, height: 20 }} />
             </Stack>
           </Box>
@@ -137,9 +174,45 @@ const ExamCards = () => {
     );
   };
 
+  // --- VISÃO POR DATA (padrão) — acordeões por ano, igual ao antes, só que filtrando pela busca/categoria.
+  const dateGroups = groupByYear(visible, (r) => r.performedAt ?? r.createdAt);
+
+  // --- VISÃO POR CATEGORIA — acordeões por categoria. Exames de anos Premium ficam ocultos (nudge no topo).
+  const visibleUnlocked = visible.filter((r: any) => !isLocked(r));
+  const lockedCount = visible.length - visibleUnlocked.length;
+  const catGroups = presentCats
+    .map((c) => ({ cat: c, items: visibleUnlocked.filter((r: any) => categorizeExam(r).key === c.key) }))
+    .filter((g) => g.items.length);
+
   return (
     <PageContainer width="content" sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
       <PageHeader icon={<DescriptionOutlinedIcon />} title="Seus exames" subtitle={`${total ?? 0} exame${(total ?? 0) !== 1 ? 's' : ''} no total • toque pra ver detalhes`} />
+
+      {/* Toolbar: busca + alternador de visão + filtro por categoria */}
+      <Stack spacing={1.25}>
+        <TextField
+          size="small" fullWidth value={q} onChange={(e) => setQ(e.target.value)}
+          placeholder="Buscar exame (TSH, glicose, hemograma…)"
+          InputProps={{ startAdornment: (<InputAdornment position="start"><SearchIcon fontSize="small" sx={{ color: 'text.secondary' }} /></InputAdornment>) }}
+          sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: 'background.paper' } }}
+        />
+        <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
+          <ToggleButtonGroup exclusive size="small" value={view} onChange={(_, v) => { if (v) setView(v); }}>
+            <ToggleButton value="date" sx={{ px: 1.25, py: 0.25, textTransform: 'none', fontWeight: 700 }}>📅 Por data</ToggleButton>
+            <ToggleButton value="category" sx={{ px: 1.25, py: 0.25, textTransform: 'none', fontWeight: 700 }}>🗂️ Por categoria</ToggleButton>
+          </ToggleButtonGroup>
+        </Stack>
+        {/* Chips de categoria — só aparecem se houver +1 categoria nos exames prontos */}
+        {presentCats.length > 1 && (
+          <Stack direction="row" spacing={0.75} sx={{ overflowX: 'auto', flexWrap: 'nowrap', pb: 0.25, mx: -0.25, px: 0.25, '&::-webkit-scrollbar': { display: 'none' } }}>
+            <Chip size="small" label={`Todos (${extracted.length})`} onClick={() => setCat('all')} sx={{ height: 26, flexShrink: 0, fontWeight: 700, whiteSpace: 'nowrap', bgcolor: cat === 'all' ? '#0f3d3a' : '#0f3d3a14', color: cat === 'all' ? '#fff' : '#0f3d3a' }} />
+            {presentCats.map((c) => (
+              <Chip key={c.key} size="small" label={`${c.emoji} ${c.cat} (${catCounts[c.key]})`} onClick={() => setCat(cat === c.key ? 'all' : c.key)} sx={{ height: 26, flexShrink: 0, fontWeight: 700, whiteSpace: 'nowrap', bgcolor: cat === c.key ? c.color : c.color + '1a', color: cat === c.key ? '#fff' : c.color, border: `1px solid ${cat === c.key ? c.color : c.color + '40'}` }} />
+            ))}
+          </Stack>
+        )}
+      </Stack>
+
       {/* FAB "＋ Enviar exame" foi pra o AppLayout (ExamCreateFab) — sempre acima do rodapé. */}
       {processing.length > 0 && (
         <Box>
@@ -166,33 +239,67 @@ const ExamCards = () => {
           </Stack>
         </Box>
       )}
-      {groups.map((g) => {
-        const locked = !premium && g.year !== latestYear && g.year != null;
-        if (locked) {
-          return (
-            <Card key={String(g.year)} variant="outlined" sx={{ borderRadius: 3, p: 1.75, display: 'flex', alignItems: 'center', gap: 1.5, borderColor: 'divider', background: 'linear-gradient(135deg, rgba(32,178,170,.06), transparent)' }}>
-              <LockIcon sx={{ color: '#178f89' }} />
-              <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Typography sx={{ fontWeight: 800 }}>📅 {g.label} • {g.items.length} exame(s)</Typography>
-                <Typography variant="caption" color="text.secondary">Histórico de anos anteriores é Premium.</Typography>
-              </Box>
-              <Button size="small" variant="contained" onClick={() => navigate('/planos')} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', boxShadow: 'none', '&:hover': { bgcolor: '#178f89' } }}>Ver planos</Button>
-            </Card>
-          );
-        }
-        return (
-          <Accordion key={String(g.year)} defaultExpanded={g.year === latestYear || (g.year === null && g.items.some((r: any) => r.status === 'FAILED'))} disableGutters elevation={0}
-            sx={{ borderRadius: '12px !important', overflow: 'hidden', border: '1px solid', borderColor: 'divider', '&:before': { display: 'none' } }}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 30, color: '#178f89', bgcolor: 'rgba(32,178,170,.12)', borderRadius: '50%', p: 0.6, boxShadow: '0 2px 6px rgba(32,178,170,.18)' }} />} sx={{ minHeight: '48px !important', '& .MuiAccordionSummary-content': { my: 0.75, alignItems: 'center' } }}>
-              <Typography sx={{ fontWeight: 800, flex: '1 1 auto', minWidth: 0 }}>📅 {g.label}</Typography>
-              <Chip size="small" label={`${g.items.length}`} sx={{ ml: 1.5, bgcolor: 'rgba(0,0,0,.05)', color: 'text.secondary', height: 20, flexShrink: 0 }} />
-            </AccordionSummary>
-            <AccordionDetails sx={{ p: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-              {g.items.map(renderCard)}
-            </AccordionDetails>
-          </Accordion>
-        );
-      })}
+
+      {/* Nudge Premium (apenas na visão por categoria — anos anteriores ocultos) */}
+      {view === 'category' && lockedCount > 0 && (
+        <Card variant="outlined" sx={{ borderRadius: 3, p: 1.5, display: 'flex', alignItems: 'center', gap: 1.5, borderColor: 'divider', background: 'linear-gradient(135deg, rgba(32,178,170,.06), transparent)' }}>
+          <LockIcon sx={{ color: '#178f89' }} />
+          <Typography variant="body2" sx={{ flex: 1, minWidth: 0 }}>{lockedCount} exame(s) de anos anteriores fazem parte do histórico Premium.</Typography>
+          <Button size="small" variant="contained" onClick={() => navigate('/planos')} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', boxShadow: 'none', '&:hover': { bgcolor: '#178f89' }, flexShrink: 0 }}>Ver planos</Button>
+        </Card>
+      )}
+
+      {/* Grupos (data OU categoria) */}
+      {view === 'date' && (
+        <>
+          {dateGroups.length === 0 && <Empty text={filtering ? 'Nenhum exame encontrado com esse filtro.' : 'Nenhum exame pronto ainda.'} />}
+          {dateGroups.map((g) => {
+            const locked = !premium && g.year !== latestYear && g.year != null;
+            if (locked) {
+              return (
+                <Card key={String(g.year)} variant="outlined" sx={{ borderRadius: 3, p: 1.75, display: 'flex', alignItems: 'center', gap: 1.5, borderColor: 'divider', background: 'linear-gradient(135deg, rgba(32,178,170,.06), transparent)' }}>
+                  <LockIcon sx={{ color: '#178f89' }} />
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography sx={{ fontWeight: 800 }}>📅 {g.label} • {g.items.length} exame(s)</Typography>
+                    <Typography variant="caption" color="text.secondary">Histórico de anos anteriores é Premium.</Typography>
+                  </Box>
+                  <Button size="small" variant="contained" onClick={() => navigate('/planos')} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', boxShadow: 'none', '&:hover': { bgcolor: '#178f89' } }}>Ver planos</Button>
+                </Card>
+              );
+            }
+            return (
+              <Accordion key={String(g.year)} defaultExpanded={g.year === latestYear || (g.year === null && g.items.some((r: any) => r.status === 'FAILED'))} disableGutters elevation={0}
+                sx={{ borderRadius: '12px !important', overflow: 'hidden', border: '1px solid', borderColor: 'divider', '&:before': { display: 'none' } }}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 30, color: '#178f89', bgcolor: 'rgba(32,178,170,.12)', borderRadius: '50%', p: 0.6, boxShadow: '0 2px 6px rgba(32,178,170,.18)' }} />} sx={{ minHeight: '48px !important', '& .MuiAccordionSummary-content': { my: 0.75, alignItems: 'center' } }}>
+                  <Typography sx={{ fontWeight: 800, flex: '1 1 auto', minWidth: 0 }}>📅 {g.label}</Typography>
+                  <Chip size="small" label={`${g.items.length}`} sx={{ ml: 1.5, bgcolor: 'rgba(0,0,0,.05)', color: 'text.secondary', height: 20, flexShrink: 0 }} />
+                </AccordionSummary>
+                <AccordionDetails sx={{ p: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                  {g.items.map(renderCard)}
+                </AccordionDetails>
+              </Accordion>
+            );
+          })}
+        </>
+      )}
+
+      {view === 'category' && (
+        <>
+          {catGroups.length === 0 && <Empty text={filtering ? 'Nenhum exame encontrado com esse filtro.' : 'Nenhum exame pronto ainda.'} />}
+          {catGroups.map(({ cat: c, items }) => (
+            <Accordion key={c.key} defaultExpanded={catGroups.length <= 3} disableGutters elevation={0}
+              sx={{ borderRadius: '12px !important', overflow: 'hidden', border: '1px solid', borderColor: 'divider', '&:before': { display: 'none' } }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 30, color: c.color, bgcolor: c.color + '1f', borderRadius: '50%', p: 0.6 }} />} sx={{ minHeight: '48px !important', '& .MuiAccordionSummary-content': { my: 0.75, alignItems: 'center' } }}>
+                <Typography sx={{ fontWeight: 800, flex: '1 1 auto', minWidth: 0 }}>{c.emoji} {c.cat}</Typography>
+                <Chip size="small" label={`${items.length}`} sx={{ ml: 1.5, bgcolor: c.color + '1a', color: c.color, height: 20, flexShrink: 0 }} />
+              </AccordionSummary>
+              <AccordionDetails sx={{ p: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                {items.map(renderCard)}
+              </AccordionDetails>
+            </Accordion>
+          ))}
+        </>
+      )}
     </PageContainer>
   );
 };
