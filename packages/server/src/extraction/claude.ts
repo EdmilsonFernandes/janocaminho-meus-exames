@@ -41,6 +41,9 @@ LEIA AS TABELAS COM CUIDADO: cada analito tem um valor e colunas de valores de r
 
 Para cada analito: nome, valor (como impresso), valor numérico (vírgula→ponto, sem unidade), unidade, faixas de referência e a PÁGINA onde leu o valor.
 
+FAIXA DE REFERÊNCIA NA MESMA ESCALA DO VALOR (CRÍTICO): lowNumeric/highNumeric DEVEM estar na MESMA unidade e escala decimal do valueNumeric. Ex.: se valueNumeric=15.0 (g/dL), a faixa deve ser ~13.0–17.0 — NUNCA 130–170 (escala ×10 errada) nem 1.3–1.7. Preserve VÍRGULAS decimais: "4,50" vira 4.5 (não 450); "13,5" vira 13.5 (não 135).
+AUTO-VERIFICAÇÃO DE ESCALA: depois de extrair, confira se valueNumeric é compatível em magnitude com lowNumeric/highNumeric. Se valueNumeric estiver ordens de magnitude fora da faixa (ex.: valor 5.8 com faixa 450–550, ou valor 15 com faixa 130–170), você leu a faixa na escala errada — RECORRIJA a faixa para a mesma escala/ordem de grandeza do valor do paciente antes de devolver.
+
 ATENÇÃO À DATA (PRECISÃO): performedAt deve ser a DATA DO ATENDIMENTO/COLETA do exame (ex.: campo "Atendimento: 08/04/2026", "Data da coleta" ou "Data de realização"), no formato dd/mm/aaaa. NUNCA use a data de impressão, emissão, liberação ou entrega do laudo — use SEMPRE a data em que o exame foi feito/coletado.
 
 ATENÇÃO AOS NOMES (PRECISÃO): patientName = o nome do PACIENTE, lido SEMPRE do campo "Nome:" do cabeçalho do documento. NUNCA use o nome de quem assinou o laudo (ex.: "assinado eletronicamente por Dr. Fulano") nem o nome do médico como patientName. requestingDoctor = o nome do campo "Médico:" do cabeçalho.
