@@ -19,6 +19,7 @@ import { MetricCard } from '../components/dashboard/MetricCard';
 import { DistributionCard } from '../components/dashboard/DistributionCard';
 import { QuickActions } from '../components/dashboard/QuickActions';
 import { FailedExamsAlert } from '../components/dashboard/FailedExamsAlert';
+import { PageContainer } from '../components/layout/PageContainer';
 
 const readTotal = (r: Response) => Number(r.headers.get('X-Total-Count') ?? r.headers.get('content-range')?.split('/')?.[1] ?? '0');
 
@@ -94,7 +95,7 @@ export const Dashboard = () => {
   const tipNode = <AiTip firstName={firstName} tipData={tipData} fallbackTip={tip} />;
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 1080, mx: 'auto' }}>
+    <PageContainer width="wide">
       <DashboardHeader firstName={firstName} />
 
       <HealthScoreCard loaded={loaded} score={score} abnormalCount={stats.abnormal} onDetails={() => navigate('/tendencias')} />
@@ -140,6 +141,6 @@ export const Dashboard = () => {
           <Button variant="contained" onClick={() => { BiometricService.enroll(token() || '', false); setBioOffer(false); }} sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 800 }}>Ativar biometria</Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </PageContainer>
   );
 };

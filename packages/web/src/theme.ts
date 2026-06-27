@@ -84,13 +84,12 @@ const TYPOGRAPHY = {
  * (400/480/520/.../1080). ADITIVO — não altera nada existente, só centraliza.
  */
 export const LAYOUT = {
-  content: 720, // páginas de conteúdo/config/listas (Profile, Plans, Medicos, ExamList…)
-  wide: 980,    // data-heavy (Dashboard, Trends, Family, ExamShow)
-  narrow: 480,  // cartão único (EmergencyCard)
-  gutters: { xs: 2, md: 3 } as const, // padding lateral responsivo (unidades de spacing)
-  // Padding inferior no mobile p/ não comer a MobileBottomNav — usa a CSS var
-  // --me-bottom-nav-h publicada por ela (antes era chute fixo "84px").
-  mobileBottomPad: { xs: `calc(var(--me-bottom-nav-h, 76px) + 16px + env(safe-area-inset-bottom))`, sm: 4 } as const,
+  content: 720,  // páginas de conteúdo/config/listas (ExamList, Profile, Plans, Medicos…)
+  wide: 1080,    // data-heavy (Dashboard, Trends, Family, ExamShow) — bate com o Dashboard atual
+  narrow: 480,   // cartão único (EmergencyCard)
+  // OBS: o padding inferior (clearance da MobileBottomNav) é responsabilidade do SHELL
+  // (AppLayout → .RaLayout-content usa calc(var(--me-bottom-nav-h) + 14px)). Páginas NÃO
+  // devem somar o próprio pb p/ o rodapé — dobra o espaço (ex.: ExamList tinha +84px).
 } as const;
 
 /** Raios consolidados (theme já define shape 14 / Card 16 / Button 12 / Chip 8). */

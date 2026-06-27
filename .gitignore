@@ -43,6 +43,10 @@ packages/mobile/android/.idea/
 packages/mobile/ios/App/App/Private/
 android-build.log
 .shot-*.png
+# Web build output syncado pro mobile (gerado por `npm run sync` — artefato, NÃO fonte.
+# Excluído do grafo graphify pra queries não voltarem ruído de .js minificados.)
+packages/mobile/www/
+packages/mobile/android/app/src/main/assets/public/
 
 # Firebase (config do projeto — local; o server usa serviceAccountKey.json separado)
 **/google-services.json
@@ -70,4 +74,5 @@ packages/web/public/build-info.json
 packages/web/playwright-report/
 packages/web/test-results/
 packages/web/e2e/screenshots/
+packages/web/e2e/.auth/
 packages/web/playwright/.cache/

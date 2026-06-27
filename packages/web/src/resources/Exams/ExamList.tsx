@@ -15,6 +15,8 @@ import { API_URL, token } from '../../config';
 import { ExplainButton } from '../../components/ExplainItem';
 import { usePremium } from '../../components/PremiumGate';
 import { groupByYear } from '../../utils/groupByYear';
+import { PageContainer } from '../../components/layout/PageContainer';
+import { PageHeader } from '../../components/layout/PageHeader';
 
 const ExamListActions = () => (
   <TopToolbar>
@@ -136,14 +138,8 @@ const ExamCards = () => {
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, p: { xs: 1.5, sm: 2 }, pb: { xs: 'calc(84px + env(safe-area-inset-bottom))', sm: 4 }, maxWidth: 760, mx: 'auto' }}>
-      {/* Cabeçalho da lista — preenche o espaço do topo (sem área branca) + botão enviar */}
-      <Stack direction="row" alignItems="center" justifyContent="space-between" useFlexGap flexWrap="wrap" gap={1} sx={{ mb: 0.5 }}>
-        <Box>
-          <Typography variant="h6" sx={{ fontWeight: 800 }}>📋 Seus exames</Typography>
-          <Typography variant="caption" color="text.secondary">{total ?? 0} exame{(total ?? 0) !== 1 ? 's' : ''} no total • toque pra ver detalhes</Typography>
-        </Box>
-      </Stack>
+    <PageContainer width="content" sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+      <PageHeader icon={<DescriptionOutlinedIcon />} title="Seus exames" subtitle={`${total ?? 0} exame${(total ?? 0) !== 1 ? 's' : ''} no total • toque pra ver detalhes`} />
       {/* FAB "＋ Enviar exame" foi pra o AppLayout (ExamCreateFab) — sempre acima do rodapé. */}
       {processing.length > 0 && (
         <Box>
@@ -197,7 +193,7 @@ const ExamCards = () => {
           </Accordion>
         );
       })}
-    </Box>
+    </PageContainer>
   );
 };
 

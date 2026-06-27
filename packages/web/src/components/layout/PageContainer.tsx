@@ -11,13 +11,12 @@ export interface PageContainerProps extends Omit<BoxProps, 'children'> {
 }
 
 /**
- * Container de página padronizado: maxWidth token + gutter responsivo + padding
- * inferior que respeita a MobileBottomNav (CSS var --me-bottom-nav-h).
- * Substitui os <Box maxWidth={720|760|780|...}> espalhados pelas telas e os
- * chutes "calc(84px + env(...))" do rodapé móvel.
+ * Container de página padronizado: maxWidth token + mx auto + padding responsivo.
+ * Substitui os <Box maxWidth={720|760|780|...} p={...} mx="auto"> espalhados pelas telas.
  *
- * Idioma visual idêntico ao já usado (Box mx:auto + px responsivo), só que
- * centralizado — nenhuma mudança de aparência por si, consistência no rastro.
+ * NÃO adiciona padding inferior: o clearance da MobileBottomNav é responsabilidade do
+ * shell (AppLayout, via calc(var(--me-bottom-nav-h) + 14px) no .RaLayout-content). Somar
+ * pb aqui dobraria o espaço embaixo. Use `sx` para overrides (ex.: layout flex column).
  */
 export const PageContainer = ({ width = 'content', children, sx, ...rest }: PageContainerProps) => (
   <Box
@@ -25,8 +24,7 @@ export const PageContainer = ({ width = 'content', children, sx, ...rest }: Page
       width: '100%',
       maxWidth: typeof width === 'number' ? width : LAYOUT[width],
       mx: 'auto',
-      px: { xs: LAYOUT.gutters.xs, md: LAYOUT.gutters.md },
-      pb: LAYOUT.mobileBottomPad,
+      p: { xs: 2, md: 3 },
       ...(sx as object),
     }}
     {...rest}
