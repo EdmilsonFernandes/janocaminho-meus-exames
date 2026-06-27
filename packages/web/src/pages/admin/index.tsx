@@ -8,14 +8,16 @@ import PeopleOutlinedIcon from '@mui/icons-material/PeopleOutlined';
 import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined';
 import TuneOutlinedIcon from '@mui/icons-material/TuneOutlined';
 import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined';
+import CampaignOutlinedIcon from '@mui/icons-material/CampaignOutlined';
 import { API_URL, token } from '../../config';
 import { OverviewTab } from './OverviewTab';
 import { UsersTab } from './UsersTab';
 import { FinanceiroTab } from './FinanceiroTab';
 import { PricingTab } from './PricingTab';
 import { SecurityTab } from './SecurityTab';
+import { PushTab } from './PushTab';
 
-type TabId = 'overview' | 'users' | 'financeiro' | 'pricing' | 'security';
+type TabId = 'overview' | 'users' | 'financeiro' | 'pricing' | 'security' | 'push';
 
 const TABS: { id: TabId; label: string; icon: ReactElement }[] = [
   { id: 'overview', label: 'Visão geral', icon: <InsightsOutlinedIcon /> },
@@ -23,6 +25,7 @@ const TABS: { id: TabId; label: string; icon: ReactElement }[] = [
   { id: 'financeiro', label: 'Pagamentos', icon: <PaymentsOutlinedIcon /> },
   { id: 'pricing', label: 'Planos', icon: <TuneOutlinedIcon /> },
   { id: 'security', label: 'Segurança', icon: <ShieldOutlinedIcon /> },
+  { id: 'push', label: 'Push', icon: <CampaignOutlinedIcon /> },
 ];
 
 export const AdminPage = () => {
@@ -72,6 +75,7 @@ export const AdminPage = () => {
       {tab === 'financeiro' && <FinanceiroTab />}
       {tab === 'pricing' && <PricingTab />}
       {tab === 'security' && <SecurityTab />}
+      {tab === 'push' && <PushTab />}
     </Box>
   );
 };

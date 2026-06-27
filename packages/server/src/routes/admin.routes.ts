@@ -4,6 +4,7 @@ import { requireAuth, AuthedRequest } from '../middleware/auth';
 import { getSettings, saveSettings, type SettingCategory } from '../utils/settings';
 import { deleteExamFile } from '../utils/storage';
 import { listBlockedDomains, addBlockedDomain, removeBlockedDomain, syncBlockedDomains } from '../utils/blockedDomains';
+import { sendPush, PUSH_TOPIC } from '../utils/push';
 
 const router = Router();
 router.use(requireAuth);
@@ -198,6 +199,24 @@ router.post('/blocked-domains/sync', async (_req, res) => {
     const r = await syncBlockedDomains();
     res.json({ ok: true, ...r });
   } catch (e: any) { res.status(502).json({ error: e?.message || 'Falha ao sincronizar com a lista pública.' }); }
+});
+
+// PUSH GLOBAL — broadcast de engajamento pra TODOS os dispositivos com token cadastrado.
+// Body: { title, body, route? }. Só dispara o push (NÃO cria Notification por usuário —
+// broadcast leve e genérico; o engajamento personalizado fica no job healthNudges).
+// Firebase Admin precisa estar configurado (service account) — senão conta os tokens mas não entrega.
+router.post('/push/global', async (req: AuthedRequest, res, next) => {
+  try {
+    const title = String(req.body?.title ?? '').trim();
+    const body = String(req.body?.body ?? '').trim();
+    const route = req.body?.route ? String(req.body.route) : undefined;
+    if (!title || !body) { res.status(400).json({ error: 'title e body são obrigatórios' }); return; }
+    const tokens = await prisma.deviceToken.findMany({ select: { token: true } });
+    const list = tokens.map((t) => t.token);
+    await sendPush(list, title, body, { type: 'global', ...(route ? { route } : {}) });
+    console.log(`[admin] push global enviado por ${req.userId}: "${title}" → ${list.length} dispositivo(s)`);
+    res.json({ ok: true, sent: list.length, topic: PUSH_TOPIC });
+  } catch (e) { next(e); }
 });
 
 export default router;
