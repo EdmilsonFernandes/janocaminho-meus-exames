@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Card, CardContent, Box, Stack, Typography, Button, CircularProgress, Grid } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import VolumeUpIcon from '@mui/icons-material/RecordVoiceOver';
 import ShareIcon from '@mui/icons-material/Share';
@@ -8,7 +9,7 @@ import { DrExame } from '../DrExame';
 import { CreditBadge, CREDIT_COSTS } from '../CreditBadge';
 
 const StatTile = ({ value, label, accent }: { value: ReactNode; label: string; accent: string }) => (
-  <Box sx={{ textAlign: 'center', px: 0.5, py: 1, borderRadius: '12px', bgcolor: `${accent}14`, border: `1px solid ${accent}26` }}>
+  <Box sx={{ textAlign: 'center', px: 0.5, py: 1, borderRadius: '12px', bgcolor: alpha(accent, 0.08), border: `1px solid ${alpha(accent, 0.15)}` }}>
     <Typography sx={{ fontWeight: 800, color: accent, fontSize: 22, lineHeight: 1 }}>{value}</Typography>
     <Typography variant="caption" sx={{ color: 'text.secondary' }}>{label}</Typography>
   </Box>
@@ -45,8 +46,8 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
 
       <Stack direction="row" spacing={1} sx={{ mt: 1.5 }} useFlexGap flexWrap="wrap" alignItems="center">
         <Button size="small" variant="contained" startIcon={<VolumeUpIcon />} onClick={onSpeak} disabled={!resumo}>{speaking ? 'Parar' : 'Ouvir'}</Button>
-        <Button size="small" variant="outlined" onClick={onShare} title="Compartilhar" sx={{ minWidth: 0, px: 1.25 }}><ShareIcon /></Button>
-        <Button size="small" variant="outlined" onClick={onPrint} title="Imprimir / PDF" sx={{ minWidth: 0, px: 1.25 }}><PrintIcon /></Button>
+        <Button size="small" variant="outlined" onClick={onShare} aria-label="Compartilhar" sx={{ minWidth: 0, px: 1.25 }}><ShareIcon /></Button>
+        <Button size="small" variant="outlined" onClick={onPrint} aria-label="Imprimir / PDF" sx={{ minWidth: 0, px: 1.25 }}><PrintIcon /></Button>
         <Button size="small" variant="outlined" onClick={onRegen} disabled={loading} startIcon={loading ? <CircularProgress size={14} color="inherit" /> : <AutoAwesomeIcon />}>{loading ? 'Gerando…' : '↻ Atualizar'}</Button>
         <CreditBadge amount={CREDIT_COSTS.consolidated} />
       </Stack>

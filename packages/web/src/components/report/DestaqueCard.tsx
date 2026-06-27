@@ -1,4 +1,5 @@
 import { Box, Stack, Typography, Chip } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { NameToggle } from '../HealthSummary';
 import { ExplainButton } from '../ExplainItem';
 
@@ -16,7 +17,7 @@ const Variation = ({ anterior, atual, leitura }: { anterior?: string | null; atu
     if (Math.abs(d) < 1e-9) return <Chip size="small" label="estável" sx={{ bgcolor: 'action.hover', color: 'text.secondary' }} />;
     const up = d > 0;
     const cor = leitura?.toLowerCase().includes('aten') ? '#e65100' : up ? '#1565c0' : '#2e7d32';
-    return <Chip size="small" sx={{ bgcolor: `${cor}18`, color: cor, fontWeight: 700 }} label={`${up ? '↑' : '↓'} ${d > 0 ? '+' : ''}${Number(d.toFixed(2))}`} />;
+    return <Chip size="small" sx={{ bgcolor: alpha(cor, 0.09), color: cor, fontWeight: 700 }} label={`${up ? '↑' : '↓'} ${d > 0 ? '+' : ''}${Number(d.toFixed(2))}`} />;
   }
   if (leitura) return <Chip size="small" variant="outlined" label={leitura} sx={{ fontSize: 12, maxWidth: 170 }} />;
   return null;
@@ -24,7 +25,7 @@ const Variation = ({ anterior, atual, leitura }: { anterior?: string | null; atu
 
 /** Item em destaque (comparativo): nome (NameToggle) + anterior → atual + variação + explicar. */
 export const DestaqueCard = ({ c }: { c: { name: string; anterior?: string | null; atual?: string | null; leitura?: string | null; entenda?: string | null } }) => (
-  <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
+  <Box sx={{ p: 1.5, height: '100%', borderRadius: '12px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
     <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={1}>
       <Box sx={{ flex: 1, minWidth: 0 }}>
         <NameToggle name={c.name} entenda={c.entenda} />

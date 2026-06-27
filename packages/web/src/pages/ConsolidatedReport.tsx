@@ -191,8 +191,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
           />
 
           {sourceExams.length > 0 && (
-            <Box sx={{ p: 1.5, borderRadius: '12px', background: 'rgba(32,178,170,0.08)', border: '1px solid', borderColor: 'rgba(32,178,170,.20)', borderLeft: '4px solid #20b2aa' }}>
-              <Typography sx={{ fontWeight: 700, color: '#178f89', fontSize: 14, mb: 1 }}>📊 Baseado em {sourceExams.length} exame(s):</Typography>
+            <ReportSectionCard icon={<DescriptionIcon />} title="Baseado nos exames" accent="#20b2aa" count={sourceExams.length}>
               <Stack spacing={0.5} useFlexGap>
                 {sourceExams.map((e, i) => (
                   <Box key={i} onClick={() => navigate(`/exams/${e.id}/show`)} sx={{ cursor: 'pointer', '&:hover': { opacity: 0.8 } }}>
@@ -202,7 +201,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
                   </Box>
                 ))}
               </Stack>
-            </Box>
+            </ReportSectionCard>
           )}
 
           {s.comparativo?.length ? (
