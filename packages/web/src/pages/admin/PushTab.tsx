@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Box, Stack, Typography, TextField, Button, Chip, Alert, CircularProgress } from '@mui/material';
 import { useNotify } from 'react-admin';
 import SendIcon from '@mui/icons-material/Send';
@@ -24,6 +24,8 @@ export const PushTab = () => {
   const [route, setRoute] = useState('');
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState<{ sent: number } | null>(null);
+  const [campaigns, setCampaigns] = useState<any[]>([]);
+  useEffect(() => { fetch(`${API_URL}/admin/push/campaigns`, { headers: { Authorization: `Bearer ${token()}` } }).then((r) => r.ok ? r.json() : { campaigns: [] }).then((d) => setCampaigns(d.campaigns ?? [])).catch(() => {}); }, []);
 
   const pick = (t: { title: string; body: string; route?: string }) => {
     setTitle(t.title); setBody(t.body); setRoute(t.route ?? ''); setResult(null);
@@ -76,6 +78,25 @@ export const PushTab = () => {
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
         * O Firebase Admin precisa estar configurado no servidor. Sem o service account, conta os dispositivos mas não entrega a notificação de fato.
       </Typography>
+
+      {campaigns.length > 0 && (
+        <Box sx={{ mt: 3 }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1 }}>📣 Campanhas recentes ({campaigns.length})</Typography>
+          <Stack spacing={1}>
+            {campaigns.map((c: any) => (
+              <Box key={c.id} sx={{ p: 1.25, borderRadius: 2, bgcolor: 'action.hover' }}>
+                <Stack direction="row" justifyContent="space-between" gap={1} flexWrap="wrap">
+                  <Box sx={{ minWidth: 0, flex: 1 }}>
+                    <Typography sx={{ fontWeight: 700 }}>{c.title}</Typography>
+                    <Typography variant="caption" color="text.secondary">{c.body.slice(0, 60)}{c.body.length > 60 ? '…' : ''}</Typography>
+                  </Box>
+                  <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>📤 {c.sentCount} disp. · {c.sentAt ? new Date(c.sentAt).toLocaleDateString('pt-BR') : '—'}</Typography>
+                </Stack>
+              </Box>
+            ))}
+          </Stack>
+        </Box>
+      )}
     </Box>
   );
 };

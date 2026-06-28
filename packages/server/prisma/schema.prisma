@@ -435,3 +435,130 @@ model DoctorNote {
   @@index([doctorId, createdAt])
   @@map("doctor_notes")
 }
+
+// ===== BACKOFFICE — models de gestão (FKs escalares, append-only/standalone p/ não acoplar) =====
+
+// Auditoria universal (LGPD): quem fez o quê, quando. Append-only.
+// actorType: 'ADMIN' | 'DOCTOR' | 'SYSTEM'; action: 'BLOCK_USER' | 'UNBLOCK_USER' | 'GRANT_CREDITS' | 'DELETE_USER' | 'VIEW_SENSITIVE'...
+model AuditLog {
+  id          String   @id @default(cuid())
+  actorType   String   // ADMIN | DOCTOR | SYSTEM
+  actorId     String?  // id do admin/doctor (null = sistema)
+  action      String
+  targetType  String?  // USER | EXAM | DOCTOR | SUBSCRIPTION...
+  targetId    String?
+  before      Json?
+  after       Json?
+  ip          String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+  @@index([createdAt])
+  @@index([actorType, actorId])
+  @@index([action, createdAt])
+  @@map("audit_logs")
+}
+
+// Uso de IA por requisição (custo/latência/sucesso) — separado do AiAnalysis (output paciente).
+model AiUsageLog {
+  id               String   @id @default(cuid())
+  analysisId       String?  // fk ai_analyses (sem relation p/ não acoplar)
+  userId           String?
+  feature          String   // SUMMARY | CHAT | CONSOLIDATED | EXTRACTION
+  model            String
+  promptTokens     Int      @default(0)
+  completionTokens Int      @default(0)
+  costBrl          Float    @default(0)
+  latencyMs        Int      @default(0)
+  success          Boolean  @default(true)
+  errorCode        String?
+  requestId        String?
+  createdAt        DateTime @default(now())
+  @@index([createdAt])
+  @@index([userId, createdAt])
+  @@index([feature, createdAt])
+  @@map("ai_usage_logs")
+}
+
+// Jobs de processamento (extração/IA) — fila, retries, duração. Decursa do Exam.status.
+model ProcessingJob {
+  id           String    @id @default(cuid())
+  examId       String?
+  type         String    // EXTRACT | AI_SUMMARY | AI_CHAT
+  status       String    // QUEUED | RUNNING | DONE | FAILED
+  attempts     Int       @default(0)
+  maxAttempts  Int       @default(3)
+  queuedAt     DateTime  @default(now())
+  startedAt    DateTime?
+  finishedAt   DateTime?
+  workerId     String?
+  error        String?
+  @@index([status, queuedAt])
+  @@index([examId])
+  @@map("processing_jobs")
+}
+
+// Campanha de push (broadcast segmentado) — fan-out vira Notification por usuário.
+model PushCampaign {
+  id             String   @id @default(cuid())
+  name           String
+  audienceFilter Json?    // { role?, hasExams?, plan? }
+  title          String
+  body           String
+  route          String?
+  scheduledAt    DateTime?
+  sentAt         DateTime?
+  sentCount      Int      @default(0)
+  deliveredCount Int      @default(0)
+  failedCount    Int      @default(0)
+  createdBy      String?
+  createdAt      DateTime @default(now())
+  @@index([createdAt])
+  @@map("push_campaigns")
+}
+
+// Plano (preço/período/créditos/features) — primeira classe (tirar do JSON de settings).
+model Plan {
+  id            String   @id @default(cuid())
+  name          String   @unique
+  priceBrl      Float
+  periodDays    Int      // 30 = mensal, 365 = anual, 0 = avulso
+  creditsGranted Int     @default(0)
+  features      Json?
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  @@map("plans")
+}
+
+// Pagamento (ledger) — desacoplado de Subscription (refunds/retries/webhook raw).
+model Payment {
+  id             String    @id @default(cuid())
+  subscriptionId String?
+  userId         String
+  mpPaymentId    String    @unique
+  status         String    // APPROVED | PENDING | CANCELLED | FAILED | REFUNDED
+  method         String?
+  amountBrl      Float
+  paidAt         DateTime?
+  refundedAt     DateTime?
+  rawWebhook     Json?
+  createdAt      DateTime  @default(now())
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+  @@map("payments")
+}
+
+// Chamado de suporte (backoffice).
+model SupportTicket {
+  id         String    @id @default(cuid())
+  userId     String
+  subject    String
+  status     String    @default("open") // open | pending | closed
+  priority   String    @default("normal") // low | normal | high
+  assigneeId String?   // admin id
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  closedAt   DateTime?
+  @@index([status, updatedAt])
+  @@index([userId, createdAt])
+  @@map("support_tickets")
+}

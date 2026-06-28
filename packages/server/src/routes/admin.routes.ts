@@ -5,6 +5,7 @@ import { getSettings, saveSettings, type SettingCategory } from '../utils/settin
 import { deleteExamFile } from '../utils/storage';
 import { listBlockedDomains, addBlockedDomain, removeBlockedDomain, syncBlockedDomains } from '../utils/blockedDomains';
 import { sendPush, PUSH_TOPIC } from '../utils/push';
+import { audit } from '../utils/audit';
 
 const router = Router();
 router.use(requireAuth);
@@ -214,6 +215,8 @@ router.post('/push/global', async (req: AuthedRequest, res, next) => {
     const tokens = await prisma.deviceToken.findMany({ select: { token: true } });
     const list = tokens.map((t) => t.token);
     await sendPush(list, title, body, { type: 'global', ...(route ? { route } : {}) });
+    // Registra como campanha (histórico no backoffice).
+    await prisma.pushCampaign.create({ data: { name: title.slice(0, 60), title, body, route: route ?? null, sentAt: new Date(), sentCount: list.length, createdBy: req.userId ?? null } }).catch(() => {});
     console.log(`[admin] push global enviado por ${req.userId}: "${title}" → ${list.length} dispositivo(s)`);
     res.json({ ok: true, sent: list.length, topic: PUSH_TOPIC });
   } catch (e) { next(e); }
@@ -226,6 +229,7 @@ router.post('/users/:id/block', async (req: AuthedRequest, res, next) => {
     const id = String(req.params.id);
     if (id === req.userId) { res.status(400).json({ error: 'Você não pode bloquear a si mesmo.' }); return; }
     await prisma.user.update({ where: { id }, data: { blocked: true } });
+    void audit('BLOCK_USER', req, { targetType: 'USER', targetId: id, after: { blocked: true } });
     console.log(`[admin] usuário ${id} bloqueado por ${req.userId}`);
     res.json({ ok: true, blocked: true });
   } catch (e) { next(e); }
@@ -234,6 +238,7 @@ router.post('/users/:id/unblock', async (req: AuthedRequest, res, next) => {
   try {
     const id = String(req.params.id);
     await prisma.user.update({ where: { id }, data: { blocked: false } });
+    void audit('UNBLOCK_USER', req, { targetType: 'USER', targetId: id, after: { blocked: false } });
     console.log(`[admin] usuário ${id} desbloqueado por ${req.userId}`);
     res.json({ ok: true, blocked: false });
   } catch (e) { next(e); }
@@ -266,41 +271,69 @@ router.get('/exams', async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
-// IA & ALERTAS — uso de IA: total, por modelo, tokens, recentes. (Custo futuro: AiUsageLog.)
+// IA & ALERTAS — ai_analyses (volume histórico, tem dados) + AiUsageLog (custo/latência, novo).
 router.get('/ia-usage', async (_req, res, next) => {
   try {
-    const [total, byModel, recent] = await Promise.all([
+    const [recent, analysesCount, byModel, agg] = await Promise.all([
+      prisma.aiAnalysis.findMany({ orderBy: { createdAt: 'desc' }, take: 20, select: { id: true, type: true, modelUsed: true, tokenUsage: true, createdAt: true, exam: { select: { title: true } } } }),
       prisma.aiAnalysis.count(),
       prisma.aiAnalysis.groupBy({ by: ['modelUsed'], _count: true }),
-      prisma.aiAnalysis.findMany({ orderBy: { createdAt: 'desc' }, take: 20, select: { id: true, type: true, modelUsed: true, tokenUsage: true, createdAt: true, exam: { select: { title: true } } } }),
+      prisma.aiUsageLog.aggregate({ _sum: { costBrl: true, promptTokens: true, completionTokens: true }, _avg: { latencyMs: true }, _count: true }),
     ]);
-    res.json({ total, byModel, recent });
+    res.json({ recent, analysesCount, byModel, totalLogs: agg._count, totalCost: agg._sum.costBrl ?? 0, totalTokens: (agg._sum.promptTokens ?? 0) + (agg._sum.completionTokens ?? 0), avgLatency: Math.round(agg._avg.latencyMs ?? 0) });
   } catch (e) { next(e); }
 });
 
 // SAÚDE TÉCNICA — status do sistema: exames por status, jobs presos, falhas 24h, IA, db.
 router.get('/tech', async (_req, res, next) => {
   try {
-    const [examStatus, stuck, failed24h, aiCount, users, devices] = await Promise.all([
+    const [examStatus, stuck, failed24h, aiCount, users, devices, jobs] = await Promise.all([
       prisma.exam.groupBy({ by: ['status'], _count: true }),
       prisma.exam.count({ where: { status: 'EXTRACTING' } }),
       prisma.exam.count({ where: { status: 'FAILED', createdAt: { gte: new Date(Date.now() - 86400000) } } }),
       prisma.aiAnalysis.count(),
       prisma.user.count(),
       prisma.deviceToken.count(),
+      prisma.processingJob.count({ where: { status: { in: ['QUEUED', 'RUNNING'] } } }),
     ]);
-    res.json({ examStatus, stuck, failed24h, aiCount, users, devices, db: 'ok', ts: new Date().toISOString() });
+    res.json({ examStatus, stuck, failed24h, aiCount, users, devices, jobs, db: 'ok', ts: new Date().toISOString() });
   } catch (e) { next(e); }
 });
 
-// AUDITORIA — proxy (enquanto AuditLog dedicado não existe): notificações por tipo + recentes.
+// AUDITORIA — lê o AuditLog dedicado (LGPD): ações admin/doctor/sistema.
 router.get('/audit', async (_req, res, next) => {
   try {
-    const [byType, recent] = await Promise.all([
-      prisma.notification.groupBy({ by: ['type'], _count: true }),
-      prisma.notification.findMany({ orderBy: { createdAt: 'desc' }, take: 30, select: { id: true, type: true, title: true, createdAt: true, user: { select: { email: true } } } }),
+    const [auditLogs, byAction] = await Promise.all([
+      prisma.auditLog.findMany({ orderBy: { createdAt: 'desc' }, take: 50, select: { id: true, actorType: true, actorId: true, action: true, targetType: true, targetId: true, ip: true, createdAt: true } }),
+      prisma.auditLog.groupBy({ by: ['action'], _count: true }),
     ]);
-    res.json({ byType, recent, note: 'AuditLog dedicado ainda não existe — proxy via notificações. Próximo passo: modelar AuditLog.' });
+    res.json({ auditLogs, byAction, count: auditLogs.length });
+  } catch (e) { next(e); }
+});
+
+// PUSH CAMPAIGNS — histórico de campanhas enviadas.
+router.get('/push/campaigns', async (_req, res, next) => {
+  try { res.json({ campaigns: await prisma.pushCampaign.findMany({ orderBy: { createdAt: 'desc' }, take: 30 }) }); } catch (e) { next(e); }
+});
+
+// SUPPORT TICKETS — listar + abrir chamado.
+router.get('/tickets', async (_req, res, next) => {
+  try {
+    const [tickets, openCount] = await Promise.all([
+      prisma.supportTicket.findMany({ orderBy: { createdAt: 'desc' }, take: 50 }),
+      prisma.supportTicket.count({ where: { status: 'open' } }),
+    ]);
+    res.json({ tickets, openCount });
+  } catch (e) { next(e); }
+});
+router.post('/tickets', async (req: AuthedRequest, res, next) => {
+  try {
+    const userId = String(req.body?.userId ?? '');
+    const subject = String(req.body?.subject ?? '').trim();
+    if (!userId || !subject) { res.status(400).json({ error: 'userId e subject são obrigatórios' }); return; }
+    const t = await prisma.supportTicket.create({ data: { userId, subject, priority: String(req.body?.priority ?? 'normal') } });
+    void audit('CREATE_TICKET', req, { targetType: 'TICKET', targetId: t.id });
+    res.json({ ok: true, id: t.id });
   } catch (e) { next(e); }
 });
 

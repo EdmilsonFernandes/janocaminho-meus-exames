@@ -4,7 +4,7 @@ import { API_URL, token } from '../../config';
 import { TabLoader, SectionError } from './parts';
 const H = () => ({ Authorization: `Bearer ${token()}` });
 
-/** IA & Alertas — uso de IA (análises, modelo, tokens). Custo R$/latência: futuro (AiUsageLog). */
+/** IA & Alertas — volume (ai_analyses) + custo/latência (AiUsageLog, quando populado). */
 export const IaTab = () => {
   const [d, setD] = useState<any>(null);
   const [err, setErr] = useState(false);
@@ -14,14 +14,26 @@ export const IaTab = () => {
   if (err) return <SectionError message="Não foi possível carregar o uso de IA." onRetry={load} />;
   return (
     <Box>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: '1fr 1fr 1fr 1fr' }, gap: 1.5, mb: 2 }}>
+        {[
+          { l: 'Análises IA', v: String(d.analysesCount ?? 0) },
+          { l: 'Custo total (R$)', v: (d.totalCost ?? 0).toFixed(2), sub: d.totalLogs ? `${d.totalLogs} logs` : 'sem logs' },
+          { l: 'Tokens', v: String(d.totalTokens ?? 0) },
+          { l: 'Latência média', v: `${d.avgLatency ?? 0}ms` },
+        ].map((k) => (
+          <Card key={k.l} variant="outlined" sx={{ borderRadius: 2 }}><CardContent sx={{ textAlign: 'center', py: 1.5 }}>
+            <Typography sx={{ fontWeight: 800, fontSize: 20, color: '#178f89' }}>{k.v}</Typography>
+            <Typography variant="caption" color="text.secondary">{k.l}{k.sub ? ` (${k.sub})` : ''}</Typography>
+          </CardContent></Card>
+        ))}
+      </Box>
+      {d.totalLogs === 0 && <Alert severity="info" sx={{ mb: 2 }}>Custo/latência exigem logar cada chamada de IA no <strong>AiUsageLog</strong> (próximo passo). Hoje: volume.</Alert>}
       <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: 2 }}>
-        <Chip size="small" color="primary" label={`🤖 ${d.total} análises IA`} />
-        {d.byModel.map((m: any) => <Chip key={m.modelUsed} size="small" variant="outlined" label={`${m.modelUsed ?? '?'}: ${m._count}`} />)}
+        {d.byModel?.map((m: any) => <Chip key={m.modelUsed} size="small" variant="outlined" label={`${m.modelUsed ?? '?'}: ${m._count}`} />)}
       </Stack>
-      <Alert severity="info" sx={{ mb: 2 }}>Custo (R$), latência e taxa de sucesso por requisição exigem um modelo <strong>AiUsageLog</strong> dedicado (próxima fase). Hoje vemos volume + tokens.</Alert>
       <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 800 }}>Análises recentes</Typography>
       <Stack spacing={1}>
-        {d.recent.map((a: any) => (
+        {d.recent?.map((a: any) => (
           <Card key={a.id} variant="outlined" sx={{ borderRadius: 2 }}><CardContent sx={{ py: 1.25, '&:last-child': { pb: 1.25 } }}>
             <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
               <Chip size="small" label={a.type} variant="outlined" />
