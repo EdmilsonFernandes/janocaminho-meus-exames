@@ -1,9 +1,13 @@
 import polyglotI18nProvider from 'ra-i18n-polyglot';
 import englishMessages from 'ra-language-english';
+// Mensagens de app (erros de auth etc.) em JSON — escalável (cresce sem mexer no código).
+import ptApp from './i18n/pt.json';
+import enApp from './i18n/en.json';
 
 // Tradução pt-BR do react-admin. Parte do que não estiver aqui cai no inglês (base).
 const ptMessages = {
   ...englishMessages,
+  ...ptApp,
 
   // menu lateral (chaves usadas no AppMenu via useTranslate)
   'menu.dashboard': 'Painel',
@@ -83,6 +87,7 @@ const ptMessages = {
 // EN (English) — framework + menu. Conteúdo custom das páginas ainda em PT (a traduzir gradualmente).
 const enMessages = {
   ...englishMessages,
+  ...enApp,
   'menu.dashboard': 'Dashboard',
   'menu.profile': 'My profile',
   'menu.evolution': 'Health evolution',

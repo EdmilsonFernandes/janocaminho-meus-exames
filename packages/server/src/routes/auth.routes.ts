@@ -20,10 +20,6 @@ import { logCredit } from '../utils/credits';
 
 const router = Router();
 
-// Mensagem amigável e VAGA p/ conta bloqueada pelo admin (sem revelar "você foi bloqueado").
-// O usuário só sabe que há uma pendência e precisa falar com o suporte.
-const BLOCKED_MSG = 'Encontramos uma pendência na sua conta. Pra continuar usando o app, entre em contato com o nosso suporte: contato@janocaminho.com.br';
-
 async function issueSession(userId: string) {
   const token = signToken({ userId });
   const patientId = await firstPatientId(userId);
@@ -61,11 +57,14 @@ router.post('/login', validate(schemas.login), async (req, res, next) => {
     const { username, email, password } = req.body ?? {};
     const mail = String(email ?? username ?? '').toLowerCase().trim();
     const user = await prisma.user.findUnique({ where: { email: mail } });
+    // BLOQUEADO vem ANTES da checagem de senha: o usuário bloqueado vê a mensagem de
+    // contato com o suporte MESMO se errar a senha (não recebe "credenciais inválidas",
+    // que o faria tentar trocar senha em vão). A mensagem amigável é montada no front (i18n).
+    if (user?.blocked) { res.status(403).json({ blocked: true }); return; }
     if (!user || !(await comparePassword(String(password ?? ''), user.passwordHash))) {
-      res.status(401).json({ error: 'Credenciais inválidas' });
+      res.status(401).json({ error: 'invalid_credentials' });
       return;
     }
-    if (user.blocked) { res.status(403).json({ error: BLOCKED_MSG, blocked: true }); return; }
     if (!user.emailVerified) { res.status(403).json({ error: 'Verifique seu e-mail para ativar a conta.', needsVerification: true }); return; }
     // MFA: se ativado, cria desafio (senha OK mas precisa do código TOTP pra entrar)
     const mfa = await evaluateMfaOnLogin('USER', user.id, { userId: user.id }, user.email);
@@ -85,7 +84,7 @@ router.post('/mfa/verify', async (req, res) => {
     const result = await verifyChallenge(String(req.body?.challengeToken ?? ''), String(req.body?.code ?? ''));
     const { token, patientId } = await issueSession(result.sessionPayload.userId);
     const u = await prisma.user.findUnique({ where: { id: result.sessionPayload.userId }, select: { id: true, email: true, name: true, role: true, planExpiresAt: true, credits: true, blocked: true } });
-    if (u?.blocked) { res.status(403).json({ error: BLOCKED_MSG, blocked: true }); return; }
+    if (u?.blocked) { res.status(403).json({ blocked: true }); return; }
     res.json({ token, user: u, patientId });
   } catch (e: any) { res.status(e.status || 500).json({ error: e.message || 'Erro no MFA' }); }
 });
@@ -298,7 +297,7 @@ router.post('/otp/verify', async (req, res, next) => {
       notifyNewUser(name, email);
     }
     if (!user.emailVerified) { await prisma.user.update({ where: { id: user.id }, data: { emailVerified: true } }); }
-    if (user.blocked) { res.status(403).json({ error: BLOCKED_MSG, blocked: true }); return; }
+    if (user.blocked) { res.status(403).json({ blocked: true }); return; }
     const { token, patientId } = await issueSession(user.id);
     res.json({ token, patientId, user: { id: user.id, email: user.email, name: user.name, role: user.role, planExpiresAt: user.planExpiresAt, credits: user.credits } });
   } catch (e) { next(e); }

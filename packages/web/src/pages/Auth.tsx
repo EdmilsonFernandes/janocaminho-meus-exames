@@ -1,6 +1,6 @@
 import { useState, useEffect, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useLogin, useNotify } from 'react-admin';
+import { useLogin, useNotify, useTranslate } from 'react-admin';
 import { Box, Typography, Button, Link, CircularProgress, Stack, TextField, InputAdornment, IconButton, Checkbox, FormControlLabel } from '@mui/material';
 import { DrExame } from '../components/DrExame';
 import { API_URL } from '../config';
@@ -69,6 +69,7 @@ const tokenBtnSx = {
 export const LoginPage = () => {
   const login = useLogin();
   const notify = useNotify();
+  const translate = useTranslate();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [pwd, setPwd] = useState('');
@@ -122,7 +123,9 @@ export const LoginPage = () => {
       if (e?.mfaRequired) { setMfaChallenge({ token: e.challengeToken, account: e.account, verifyUrl: `${API_URL}/auth/mfa/verify`, isDoctor: false }); return; }
       // Conta não verificada → redireciona pra tela de ativação por e-mail
       if (e?.needsVerification) { notify('Sua conta ainda não foi ativada. Enviamos um código pro seu e-mail.', { type: 'warning' }); setMode('otp'); setLoading(false); return; }
-      notify('E-mail ou senha incorretos.', { type: 'error' });
+      // Conta bloqueada → mensagem amigável (i18n) de contato com suporte (mesmo se errou a senha).
+      if (e?.blocked) { notify(translate('auth.errors.blocked'), { type: 'error' }); setLoading(false); return; }
+      notify(translate('auth.errors.invalidCredentials'), { type: 'error' });
     }
     finally { setLoading(false); }
   };

@@ -1,0 +1,4 @@
+{
+  "auth.errors.blocked": "We've identified an issue with your account. To resolve it and continue using the app, please contact our support: contato@janocaminho.com.br",
+  "auth.errors.invalidCredentials": "Incorrect email or password."
+}
