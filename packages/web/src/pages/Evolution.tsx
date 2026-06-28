@@ -9,6 +9,7 @@ import { useSelectedPatient } from '../patient-context';
 import { useNavigate } from 'react-router-dom';
 import { ExplainButton } from '../components/ExplainItem';
 import { CATS, categorize } from '../utils/medicalData';
+import { summarizeTrends, trendHeadline, VERDICT_META } from '../utils/evolutionSummary';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
@@ -58,6 +59,9 @@ export const EvolutionPage = () => {
     stable: items.filter((i) => statusOf(i) === 'stable').length,
   }), [items]);
 
+  // Resumo "melhorou/piorou/estável" (por distância à faixa, não por direção).
+  const summary = useMemo(() => summarizeTrends(items), [items]);
+
   const filtered = useMemo(() => {
     const order = { out: 0, change: 1, stable: 2 };
     const q = query.trim().toLowerCase();
@@ -100,6 +104,18 @@ export const EvolutionPage = () => {
 
       {!loading && items.length > 0 && (
         <>
+          {/* Resumo da evolução (melhorou/piorou/estável) — leitura amigável e não-alarmista */}
+          <Card variant="outlined" sx={{ mb: 2, borderRadius: 3, borderColor: 'divider', bgcolor: 'rgba(15,61,58,0.03)' }}>
+            <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
+              <Stack direction="row" spacing={1.75} flexWrap="wrap" useFlexGap sx={{ mb: 0.5 }}>
+                <Typography component="span" sx={{ fontWeight: 800, color: VERDICT_META.melhorou.color }}>{VERDICT_META.melhorou.emoji} {summary.counts.melhorou} {VERDICT_META.melhorou.label}</Typography>
+                <Typography component="span" sx={{ fontWeight: 800, color: VERDICT_META.piorou.color }}>{VERDICT_META.piorou.emoji} {summary.counts.piorou} {VERDICT_META.piorou.label}</Typography>
+                <Typography component="span" sx={{ fontWeight: 800, color: VERDICT_META.estavel.color }}>{VERDICT_META.estavel.emoji} {summary.counts.estavel} {VERDICT_META.estavel.label}</Typography>
+              </Stack>
+              <Typography variant="caption" color="text.secondary">{trendHeadline(summary)} <strong>·</strong> Conteúdo educativo — a decisão final é do médico.</Typography>
+            </CardContent>
+          </Card>
+
           {/* Resumo interativo (chips que filtram) */}
           {/* Resumo interativo — Grid 2x2 no mobile, 4 colunas no desktop (mobile-first, nunca estoura) */}
           <Grid container spacing={1} sx={{ mb: 2 }}>
