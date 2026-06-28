@@ -155,7 +155,7 @@ export function priorityOfItem(it: {
   return 'leve';
 }
 
-const PRIORITY_RANK: Record<Priority, number> = { importante: 3, moderada: 2, leve: 1, normal: 0 };
+export const PRIORITY_RANK: Record<Priority, number> = { importante: 3, moderada: 2, leve: 1, normal: 0 };
 
 // ─────────────────────── Layer 1: computação pura ───────────────────────
 

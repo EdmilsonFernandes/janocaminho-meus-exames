@@ -15,6 +15,7 @@ import { saveDoctorPhoto, resolvePatientPhoto, resolveExamFile } from '../utils/
 import { evaluateMfaOnLogin, verifyChallenge, getStatus as mfaStatus, startSetup as mfaStart, confirmSetup as mfaConfirm, disableMfa as mfaDisable } from '../utils/mfa';
 import { requireAuth, AuthedRequest } from '../middleware/auth';
 import { lookupCfm } from '../utils/cfm';
+import { buildCurrentHealthSummary, priorityOfItem, PRIORITY_RANK } from '../analysis/health-state';
 
 // Especialidades base (espelha o front-end). O dropdown real = base ∪ especialidades que já existem no banco.
 const BASE_SPECIALTIES = [
@@ -274,15 +275,25 @@ router.get('/patients', requireDoctor, async (req: any, res, next) => {
     const [weights, examStats, abnormal] = await Promise.all([
       prisma.measurement.findMany({ where: { patientId: { in: pids }, type: 'WEIGHT' }, orderBy: { measuredAt: 'desc' }, select: { patientId: true, value: true, measuredAt: true } }),
       prisma.exam.groupBy({ by: ['patientId'], where: { patientId: { in: pids }, status: 'EXTRACTED' }, _count: { _all: true }, _max: { performedAt: true } }),
-      prisma.examItem.findMany({ where: { isAbnormal: true, exam: { patientId: { in: pids }, status: 'EXTRACTED' } }, select: { exam: { select: { patientId: true } } } }),
+      prisma.examItem.findMany({ where: { isAbnormal: true, exam: { patientId: { in: pids }, status: 'EXTRACTED' } }, select: { valueNumeric: true, refLow: true, refHigh: true, flag: true, exam: { select: { patientId: true } } } }),
     ]);
     const weightByPid = new Map<string, any>();
     for (const w of weights) if (!weightByPid.has(w.patientId)) weightByPid.set(w.patientId, w); // ordenado desc → 1º = mais recente
     const statByPid = new Map(examStats.map((e) => [e.patientId, e]));
     const alertPids = new Set(abnormal.map((a) => a.exam.patientId));
+    // Fila de prioridade: pior prioridade (magnitude) de cada paciente → ordena a lista do médico.
+    const PRIORITY_FROM_RANK = ['normal', 'leve', 'moderada', 'importante'] as const;
+    const maxPriorityByPid = new Map<string, number>();
+    for (const a of abnormal) {
+      const rank = PRIORITY_RANK[priorityOfItem(a)];
+      const pid = a.exam.patientId;
+      if (rank > (maxPriorityByPid.get(pid) ?? -1)) maxPriorityByPid.set(pid, rank);
+    }
 
-    res.json({
-      items: shares.map((s) => {
+    const items = shares
+      .map((s) => ({ s, rank: maxPriorityByPid.get(s.patient.id) ?? 0 }))
+      .sort((a, b) => b.rank - a.rank)
+      .map(({ s, rank }) => {
         const st = statByPid.get(s.patient.id);
         return {
           shareId: s.id, scopes: s.scopes, convenio: s.convenio, createdAt: s.createdAt,
@@ -297,10 +308,11 @@ router.get('/patients', requireDoctor, async (req: any, res, next) => {
           examsCount: st?._count?._all ?? 0,
           lastExamAt: st?._max?.performedAt ?? null,
           hasAlerts: alertPids.has(s.patient.id),
+          maxPriority: rank > 0 ? PRIORITY_FROM_RANK[rank] : null,
         };
-      }),
-      total: shares.length,
-    });
+      });
+
+    res.json({ items, total: shares.length });
   } catch (e) { next(e); }
 });
 
@@ -398,6 +410,17 @@ router.get('/patients/:patientId/summaries', requireDoctor, async (req: any, res
       select: { id: true, contentMd: true, createdAt: true, exam: { select: { title: true, performedAt: true } } },
     });
     res.json({ items });
+  } catch (e) { next(e); }
+});
+
+// SNAPSHOT DE SAÚDE (Layer 2) — visão de 1 min do médico: estado atual + prioridade + "o que mudou".
+// Consome a MESMA camada M1 do app do paciente (acaba a desconexão paciente×médico). Scope 'alerts'.
+router.get('/patients/:patientId/health-summary', requireDoctor, async (req: any, res, next) => {
+    void auditLog(req, 'doctor_viewed_health_summary', String(req.params.patientId));
+  try {
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    if (!share?.scopes.includes('alerts')) { res.status(403).json({ error: 'Sem permissão para ver o estado deste paciente.' }); return; }
+    res.json(await buildCurrentHealthSummary(String(req.params.patientId)));
   } catch (e) { next(e); }
 });
 

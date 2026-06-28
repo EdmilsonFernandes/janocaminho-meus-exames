@@ -242,7 +242,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
           ) : null}
 
           {s.coisasBoas?.length ? (
-            <ReportSectionCard icon={<CheckCircleIcon />} title="Pontos positivos" accent="#10b981" count={s.coisasBoas.length}>
+            <ReportSectionCard icon={<CheckCircleIcon />} title="Pontos positivos" accent="#10b981" count={s.coisasBoas.length} collapsible defaultExpanded={false}>
               <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
                 {s.coisasBoas.map((b, i) => <Chip key={i} sx={{ bgcolor: '#10b98118', color: '#10b981', fontWeight: 600 }} label={txt(b)} />)}
               </Stack>
@@ -250,7 +250,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
           ) : null}
 
           {interacoes.length ? (
-            <ReportSectionCard icon={<MedicationIcon />} title="Interações com medicação" accent="#f59e0b" count={interacoes.length}>
+            <ReportSectionCard icon={<MedicationIcon />} title="Interações com medicação" accent="#f59e0b" count={interacoes.length} collapsible defaultExpanded={false}>
               <Stack spacing={1}>
                 {interacoes.map((m, i) => (
                   <Box key={i} sx={{ p: 1.5, borderRadius: '12px', bgcolor: '#f59e0b0d', border: '1px solid #f59e0b26' }}>
@@ -263,7 +263,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
           ) : null}
 
           {s.sugestoesNutricao?.length ? (
-            <ReportSectionCard icon={<RestaurantIcon />} title="Sugestões de nutrição" accent="#16a34a" count={s.sugestoesNutricao.length}>
+            <ReportSectionCard icon={<RestaurantIcon />} title="Sugestões de nutrição" accent="#16a34a" count={s.sugestoesNutricao.length} collapsible defaultExpanded={false}>
               <Stack spacing={0.5}>
                 {s.sugestoesNutricao.map((b, i) => <Typography key={i} variant="body2" sx={{ py: 0.25, wordBreak: 'break-word' }}>🥗 {txt(b)}</Typography>)}
               </Stack>
@@ -271,7 +271,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
           ) : null}
 
           {s.metasSaude?.length ? (
-            <ReportSectionCard icon={<TrackChangesIcon />} title="Metas de saúde" accent="#0288d1" count={s.metasSaude.length}>
+            <ReportSectionCard icon={<TrackChangesIcon />} title="Metas de saúde" accent="#0288d1" count={s.metasSaude.length} collapsible defaultExpanded={false}>
               <Grid container spacing={1.5}>
                 {s.metasSaude.map((m, i) => <Grid key={i} size={{ xs: 12, md: 6 }}><MetaCard m={m} /></Grid>)}
               </Grid>

@@ -8,7 +8,7 @@ import { patientSlug, memoryDigest, appendPatientMemory, saveFullReport } from '
 import { buildCurrentHealthSummary, formatSnapshotContext } from './health-state';
 
 /** Resumo CONSOLIDADO: junta os últimos exames (sangue/imagem/laudo) num documento único — "segunda opinião documental". */
-export async function generateConsolidatedSummary(patientId: string): Promise<{ summary: HealthSummary; contentMd: string; modelUsed: string; usage: any }> {
+export async function generateConsolidatedSummary(patientId: string, audience: 'patient' | 'doctor' = 'patient'): Promise<{ summary: HealthSummary; contentMd: string; modelUsed: string; usage: any }> {
   const patient = await prisma.patient.findUnique({ where: { id: patientId } });
   if (!patient) {
     const err = new Error('Paciente não encontrado');
@@ -35,7 +35,10 @@ export async function generateConsolidatedSummary(patientId: string): Promise<{ 
     {
       role: 'user',
       content:
-        `Atue como um consultor de SAÚDE de alto nível. O contexto abaixo JÁ está organizado por RECÊNCIA — use cada seção conforme seu papel:\n` +
+        (audience === 'doctor'
+          ? `Atue como um assistente clínico. Produza um resumo OBJETIVO para o MÉDICO (pré-consulta) — tom clínico, direto, SEM acolhimento/parabéns. Foque em alterações relevantes e pontos a investigar na consulta.\n`
+          : `Atue como um consultor de SAÚDE de alto nível. `) +
+        `O contexto abaixo JÁ está organizado por RECÊNCIA — use cada seção conforme seu papel:\n` +
         `- ESTADO ATUAL = valores MAIS RECENTES de cada marcador (verdade presente; BASEIE o resumo aqui).\n` +
         `- TENDÊNCIAS = direção (melhorou/piorou/estável/1º exame) + variação % JÁ calculada (não reinvente o número).\n` +
         `- CONTEXTO HISTÓRICO = marcadores medidos há >1 ano — NÃO é estado atual; cite só se relevante.\n\n` +
@@ -47,7 +50,9 @@ export async function generateConsolidatedSummary(patientId: string): Promise<{ 
         `Score atual: ${snapshot.score ?? '—'}/100 em ${snapshot.markers} marcador(es). Distribuição: ${JSON.stringify(snapshot.byPriority)}.\n` +
         perfilText + '\n' + memoryText +
         `${formatSnapshotContext(snapshot)}\n\n` +
-        `ESTILO: português simples, SEM jargão, SEM diagnóstico, SEM receitar. Cite o NOME do paciente + valores reais (ex: "Edmilson, sua glicose caiu 10%").\n\n` +
+        (audience === 'doctor'
+          ? `ESTILO (médico): tom clínico e objetivo; cite valores e variações reais; liste pontos a investigar na consulta; coisasBoas pode ser vazio. Sem diagnóstico definitivo.\n\n`
+          : `ESTILO: português simples, SEM jargão, SEM diagnóstico, SEM receitar. Cite o NOME do paciente + valores reais (ex: "Edmilson, sua glicose caiu 10%").\n\n`) +
         `Monte o JSON com:\n` +
         `- resumoGeral: visão integrada em 2-3 frases (o que está bem + o que pede atenção)\n` +
         `- comparativo (array de {name, anterior, atual, leitura, entenda}): itens alterados. "leitura" = Melhorou/Piorou/Estável/Atenção/Primeiro exame. "entenda" = UMA frase SIMPLES sobre o que é o exame.\n` +
