@@ -239,4 +239,69 @@ router.post('/users/:id/unblock', async (req: AuthedRequest, res, next) => {
   } catch (e) { next(e); }
 });
 
+// ===== BACKOFFICE — endpoints read-only dos novos módulos (todos atrás de requireAdmin) =====
+
+// MÉDICOS — lista CRM/UF + validação e-mail + pacientes compartilhados ativos.
+router.get('/doctors', async (_req, res, next) => {
+  try {
+    const [doctors, total] = await Promise.all([
+      prisma.doctor.findMany({ orderBy: { createdAt: 'desc' }, take: 200, select: { id: true, name: true, crm: true, crmUf: true, specialty: true, email: true, emailVerified: true, createdAt: true, _count: { select: { shares: { where: { active: true } } } } } }),
+      prisma.doctor.count(),
+    ]);
+    res.json({ doctors, total });
+  } catch (e) { next(e); }
+});
+
+// EXAMES — lista (filtro ?status= opcional) + contagem por status + recentes com falha.
+router.get('/exams', async (req, res, next) => {
+  try {
+    const status = String(req.query.status ?? '');
+    const where: any = status ? { status } : {};
+    const [exams, byStatus, recentFailed] = await Promise.all([
+      prisma.exam.findMany({ where, orderBy: { createdAt: 'desc' }, take: 50, select: { id: true, title: true, kind: true, status: true, performedAt: true, createdAt: true, extractionError: true, _count: { select: { items: true } }, patient: { select: { fullName: true } } } }),
+      prisma.exam.groupBy({ by: ['status'], _count: true }),
+      prisma.exam.findMany({ where: { status: 'FAILED' }, orderBy: { createdAt: 'desc' }, take: 10, select: { id: true, title: true, extractionError: true, createdAt: true } }),
+    ]);
+    res.json({ exams, byStatus, recentFailed });
+  } catch (e) { next(e); }
+});
+
+// IA & ALERTAS — uso de IA: total, por modelo, tokens, recentes. (Custo futuro: AiUsageLog.)
+router.get('/ia-usage', async (_req, res, next) => {
+  try {
+    const [total, byModel, recent] = await Promise.all([
+      prisma.aiAnalysis.count(),
+      prisma.aiAnalysis.groupBy({ by: ['modelUsed'], _count: true }),
+      prisma.aiAnalysis.findMany({ orderBy: { createdAt: 'desc' }, take: 20, select: { id: true, type: true, modelUsed: true, tokenUsage: true, createdAt: true, exam: { select: { title: true } } } }),
+    ]);
+    res.json({ total, byModel, recent });
+  } catch (e) { next(e); }
+});
+
+// SAÚDE TÉCNICA — status do sistema: exames por status, jobs presos, falhas 24h, IA, db.
+router.get('/tech', async (_req, res, next) => {
+  try {
+    const [examStatus, stuck, failed24h, aiCount, users, devices] = await Promise.all([
+      prisma.exam.groupBy({ by: ['status'], _count: true }),
+      prisma.exam.count({ where: { status: 'EXTRACTING' } }),
+      prisma.exam.count({ where: { status: 'FAILED', createdAt: { gte: new Date(Date.now() - 86400000) } } }),
+      prisma.aiAnalysis.count(),
+      prisma.user.count(),
+      prisma.deviceToken.count(),
+    ]);
+    res.json({ examStatus, stuck, failed24h, aiCount, users, devices, db: 'ok', ts: new Date().toISOString() });
+  } catch (e) { next(e); }
+});
+
+// AUDITORIA — proxy (enquanto AuditLog dedicado não existe): notificações por tipo + recentes.
+router.get('/audit', async (_req, res, next) => {
+  try {
+    const [byType, recent] = await Promise.all([
+      prisma.notification.groupBy({ by: ['type'], _count: true }),
+      prisma.notification.findMany({ orderBy: { createdAt: 'desc' }, take: 30, select: { id: true, type: true, title: true, createdAt: true, user: { select: { email: true } } } }),
+    ]);
+    res.json({ byType, recent, note: 'AuditLog dedicado ainda não existe — proxy via notificações. Próximo passo: modelar AuditLog.' });
+  } catch (e) { next(e); }
+});
+
 export default router;

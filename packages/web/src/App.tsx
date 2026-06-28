@@ -535,6 +535,8 @@ export const App = () => {
       <Route path="/registrar" element={<RegisterPage />} />
       <Route path="/recuperar-senha" element={<ResetPage />} />
       <Route path="/doctor" element={<Suspense fallback={<Box sx={{ display:'flex', justifyContent:'center', py: 8 }}><CircularProgress /></Box>}><DoctorPortalPage /></Suspense>} />
+      {/* Backoffice ISOLADO do app do paciente: shell próprio (sem AppLayout/BottomNav/FloatingChat/menu de saúde). */}
+      <Route path="/admin" element={<AdminPage />} />
     </CustomRoutes>
 
     <Resource name="exams" list={ExamList} show={ExamShow} create={ExamCreate} options={{ label: 'Exames' }} icon={MedicalInformationIcon} />
@@ -547,7 +549,6 @@ export const App = () => {
       <Route path="/seguranca" element={<SecurityPage />} />
       <Route path="/privacidade" element={<PrivacyPage />} />
       <Route path="*" element={<NotFoundPage />} />
-      <Route path="/admin" element={<AdminPage />} />
       <Route path="/evolucao" element={<EvolutionPage />} />
       <Route path="/familia" element={<FamilyPage />} />
       <Route path="/tendencias" element={<TrendsPage />} />
