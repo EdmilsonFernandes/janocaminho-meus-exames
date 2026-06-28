@@ -248,9 +248,21 @@ if (config.isProd) {
   ];
   const webDist = candidates.find((p) => fs.existsSync(p));
   if (webDist) {
-    app.use(express.static(webDist));
+    // Cache headers (padrão SPA): assets hasheados (/assets/*) são imutáveis por content-hash → 1 ano;
+    // index.html NUNCA cacheia (no-store) → após cada deploy o browser pega o index fresco com os hashes novos.
+    // ANTES era max-age=0 (default) → browser/CDN podiam servir index stale → entry velho → asset que sumiu → MIME error.
+    app.use(express.static(webDist, {
+      setHeaders: (res, filepath) => {
+        if (filepath.includes(`${path.sep}assets${path.sep}`)) res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        else res.setHeader('Cache-Control', 'no-store');
+      },
+    }));
     // SPA fallback (tudo que não for /api serve o index.html) — app.use evita o wildcard do Express 5
-    app.use((req, res, next) => (req.path.startsWith('/api') ? next() : res.sendFile(path.join(webDist, 'index.html'))));
+    app.use((req, res, next) => {
+      if (req.path.startsWith('/api')) return next();
+      res.setHeader('Cache-Control', 'no-store'); // index.html nunca cacheado
+      res.sendFile(path.join(webDist, 'index.html'));
+    });
   } else {
     app.use(notFound);
   }
