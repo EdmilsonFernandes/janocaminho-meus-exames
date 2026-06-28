@@ -6,7 +6,11 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 // (compacto, sem quebrar — preenche a largura do card, igual à referência).
 const scoreColor = (s: number) => (s >= 80 ? '#10b981' : s >= 60 ? '#f59e0b' : '#ef4444');
 const badgeFor = (s: number) => (s >= 80 ? 'Excelente' : s >= 60 ? 'Bom' : 'Atenção');
-const descFor = (s: number) => (s >= 80 ? 'A maioria dos seus valores está na faixa.' : s >= 60 ? 'Atenção a alguns valores — converse com seu médico.' : 'Vários valores fora da faixa — procure orientação.');
+const descFor = (s: number, n: number) =>
+  s >= 80 ? 'A maioria dos seus valores está dentro da faixa.'
+  : s >= 60 ? 'Alguns valores merecem atenção — comente com seu médico.'
+  : n > 0 ? `${n} valor${n > 1 ? 'es' : ''} fora da faixa de referência — vale revisar com seu médico.`
+  : 'Vale revisar seus exames com seu médico.';
 
 // Gauge semicircular responsivo (viewBox fixo, escala pro container — sem libs).
 const Gauge = ({ value, color }: { value: number; color: string }) => {
@@ -57,7 +61,7 @@ export const HealthScoreCard = ({ loaded, score, abnormalCount, onDetails }: { l
               <Typography variant="overline" sx={{ lineHeight: 1, color: 'text.secondary', fontSize: { xs: 9, sm: 11 } }}>Score de Saúde</Typography>
             </Stack>
             <Chip label={badgeFor(score)} size="small" sx={{ bgcolor: color, color: '#fff', fontWeight: 800, mb: 0.75, height: 22, fontSize: 11 }} />
-            <Typography variant="body2" sx={{ mb: 0.5, color: 'text.primary', fontSize: { xs: 12.5, sm: 14 }, lineHeight: 1.35 }}>{descFor(score)}</Typography>
+            <Typography variant="body2" sx={{ mb: 0.5, color: 'text.primary', fontSize: { xs: 12.5, sm: 14 }, lineHeight: 1.35 }}>{descFor(score, abnormalCount)}</Typography>
             <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: 10, sm: 11 } }}>*Educativo. {abnormalCount > 0 ? `${abnormalCount} alterado(s).` : 'Nenhum alterado.'}</Typography>
             <Box sx={{ mt: 1 }}>
               <Button variant="contained" size="small" onClick={onDetails} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, fontSize: 12, py: 0.4, boxShadow: 'none' }}>Ver detalhes</Button>

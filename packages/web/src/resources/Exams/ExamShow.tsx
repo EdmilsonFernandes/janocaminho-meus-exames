@@ -13,7 +13,7 @@ import { HealthSummary } from '../../components/HealthSummary';
 import { ValueBar } from '../../components/ValueBar';
 import { ExplainButton } from '../../components/ExplainItem';
 import { TelemedicineButton } from '../../components/TelemedicineButton';
-import { fmtVal } from '../../utils/format';
+import { fmtVal, unitSuffix } from '../../utils/format';
 import { categorizeExam } from '../../utils/medicalData';
 import { ExtractionProgress } from '../../components/ExtractionProgress';
 import { AnimatedDoctor } from '../../components/AnimatedDoctor';
@@ -339,7 +339,7 @@ export const ExamShow = () => {
                         {/* Valor grande + cor (vermelho alterado, laranja alerta, verde normal) + unidade + pág */}
                         <Stack direction="row" spacing={1} alignItems="baseline" useFlexGap flexWrap="wrap">
                           <EditableItemValue it={it} color={valColor} onSaved={(u) => setExam((e: any) => e ? { ...e, items: (e.items ?? []).map((i: any) => i.id === u.id ? { ...i, ...u } : i) } : e)} />
-                          {it.unit ? <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem' }}>{it.unit}</Typography> : null}
+                          {unitSuffix(it) ? <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem' }}>{unitSuffix(it)}</Typography> : null}
                           <Button size="small" sx={{ fontSize: '0.75rem', minWidth: 0, p: 0 }} onClick={() => openCitation(it.extractedPage)}>pág. {it.extractedPage}</Button>
                         </Stack>
                         {/* Referência + barra visual */}

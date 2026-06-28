@@ -224,4 +224,14 @@ router.post('/:id/share', async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
+/** Revoga um link compartilhado: limpa token + PIN → a rota pública não acha mais (acesso cortado na hora). */
+router.delete('/:id/share', async (req, res, next) => {
+  try {
+    const a = await prisma.aiAnalysis.findUnique({ where: { id: String(req.params.id) } });
+    if (!a) { res.status(404).json({ error: 'Análise não encontrada' }); return; }
+    await prisma.aiAnalysis.update({ where: { id: a.id }, data: { shareToken: null, sharePin: null } });
+    res.json({ ok: true });
+  } catch (e) { next(e); }
+});
+
 export default router;

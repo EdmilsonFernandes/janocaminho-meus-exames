@@ -8,6 +8,7 @@ import path from 'path';
 import { config } from '../config';
 import { savePatientPhoto, patientSlug, deleteExamFile } from '../utils/storage';
 import { logCredit } from '../utils/credits';
+import { buildCurrentHealthSummary } from '../analysis/health-state';
 
 const router = Router();
 router.use(requireAuth);
@@ -93,6 +94,18 @@ router.get('/:id/health-score', async (req: AuthedRequest, res, next) => {
     const data = { score, total: withRef.length, abnormal, examTitle: latest.title, performedAt: latest.performedAt };
     scoreCache.set(id, { sig, data });
     res.json(data);
+  } catch (e) { next(e); }
+});
+
+// SNAPSHOT DE SAÚDE (Layer 2) — estado atual + tendência + "o que mudou" por marcador.
+// Base do dashboard do paciente, da visão de 1-min do médico e do contexto estrutural da IA.
+// Leitura pura sobre ExamItem (zero migration). Priorização temporal = dado, não prompt.
+router.get('/:id/health-summary', async (req: AuthedRequest, res, next) => {
+  try {
+    const pids = await userPatientIds(req.userId!);
+    const id = String(req.params.id);
+    if (!pids.includes(id)) { res.status(403).json({ error: 'Paciente não pertence ao usuário' }); return; }
+    res.json(await buildCurrentHealthSummary(id));
   } catch (e) { next(e); }
 });
 

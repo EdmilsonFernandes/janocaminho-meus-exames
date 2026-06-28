@@ -9,6 +9,7 @@ import { syncPushToken } from '../push';
 import { DashboardHeader } from '../components/dashboard/DashboardHeader';
 import { AiTip } from '../components/dashboard/AiTip';
 import { HealthScoreCard } from '../components/dashboard/HealthScoreCard';
+import { CurrentStateCard } from '../components/dashboard/CurrentStateCard';
 import { AiCard } from '../components/dashboard/AiCard';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
@@ -99,6 +100,9 @@ export const Dashboard = () => {
       <DashboardHeader firstName={firstName} />
 
       <HealthScoreCard loaded={loaded} score={score} abnormalCount={stats.abnormal} onDetails={() => navigate('/tendencias')} />
+
+      {/* M1 — "Meu estado atual" (estado por marcador + tendência + o que mudou) */}
+      <CurrentStateCard />
 
       {/* IA — card hero do Dr. Exame (robô + dica + CTA) */}
       <AiCard tip={tipNode} onChat={() => navigate('/chat')} />
