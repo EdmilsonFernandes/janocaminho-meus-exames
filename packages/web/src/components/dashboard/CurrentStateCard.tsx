@@ -15,10 +15,11 @@ import { PRIORITY_META } from '../../utils/alertPriority';
  * Não-alarmista, educativo — a decisão é sempre do médico.
  */
 type Priority = 'normal' | 'leve' | 'moderada' | 'importante';
-type Trend = 'melhorando' | 'piorando' | 'estavel' | 'primeiro';
+type Trend = 'melhorou' | 'piorou' | 'estavel' | 'primeiro';
 interface Marker {
   name: string; unit: string | null;
   latest: { valueText: string | null; valueNumeric: number | null; stale: boolean; ageMonths: number | null };
+  prior: { valueText: string | null; valueNumeric: number | null } | null;
   deltaPct: number | null; priority: Priority; trend: Trend;
 }
 interface Summary {
@@ -30,8 +31,8 @@ const PRIO_COLOR: Record<Priority, string> = {
   normal: '#16a34a', leve: PRIORITY_META.leve.color, moderada: PRIORITY_META.moderada.color, importante: PRIORITY_META.importante.color,
 };
 const TREND_META: Record<Trend, { label: string; color: string }> = {
-  melhorando: { label: 'Melhorando', color: '#16a34a' },
-  piorando: { label: 'Atenção — piora', color: '#dc2626' },
+  melhorou: { label: 'Melhorou', color: '#16a34a' },
+  piorou: { label: 'Atenção — piorou', color: '#dc2626' },
   estavel: { label: 'Estável', color: '#64748b' },
   primeiro: { label: '1º exame', color: '#64748b' },
 };
@@ -103,11 +104,15 @@ export const CurrentStateCard = () => {
             {top.map((m, i) => {
               const tm = TREND_META[m.trend];
               const u = unitSuffix({ valueText: m.latest.valueText, unit: m.unit });
+              // "antes {prior}" — deixa claro que o número grande (latest) é o ATUAL e o % é a mudança desde o exame anterior.
+              const priorStr = m.prior && (m.prior.valueText || m.prior.valueNumeric != null)
+                ? fmtVal({ valueText: m.prior.valueText, valueNumeric: m.prior.valueNumeric })
+                : null;
               return (
                 <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.4, borderBottom: i < top.length - 1 ? '1px dashed' : 'none', borderColor: 'divider' }}>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.name}</Typography>
-                    <Typography variant="caption" sx={{ color: tm.color, fontWeight: 700 }}>{tm.label}{m.deltaPct != null ? ` · ${m.deltaPct > 0 ? '+' : ''}${Math.round(m.deltaPct)}%` : ''}</Typography>
+                    <Typography variant="caption" sx={{ color: tm.color, fontWeight: 700 }}>{tm.label}{priorStr ? ` · antes ${priorStr}` : ''}{m.deltaPct != null ? ` · ${m.deltaPct > 0 ? '+' : ''}${Math.round(m.deltaPct)}%` : ''}</Typography>
                   </Box>
                   <Typography sx={{ fontWeight: 800, color: PRIO_COLOR[m.priority], fontSize: '1.05rem', flexShrink: 0 }}>{fmtVal({ valueText: m.latest.valueText, valueNumeric: m.latest.valueNumeric })}{u ? <Typography component="span" sx={{ fontSize: '0.7rem', color: 'text.secondary', ml: 0.3 }}>{u}</Typography> : null}</Typography>
                 </Box>
