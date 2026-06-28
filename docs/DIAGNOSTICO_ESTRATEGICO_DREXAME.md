@@ -373,6 +373,26 @@ Estado atual objetivo → Alterações por prioridade → Tendência por categor
 
 ---
 
+## Status de execução (2026-06-28)
+
+| Milestone | Status | Verificação |
+|---|---|---|
+| **M0 — Confiança** | ✅ commitado (`6582f90`) | units dedup (`unitSuffix`, provado), 1 botão Agendar/exame, msg não-alarmista, prioridade já ligada |
+| **M1 — Camada de estado (keystone)** | ✅ commitado (`6582f90`) | `health-state.ts` + rota `GET /patients/:id/health-summary`; 24 testes; rota 200 + ownership 403 em dado real |
+| **M3 — "Meu estado atual" (paciente)** | ✅ commitado (`6582f90`) | `CurrentStateCard` no dashboard; screenshot `m3-current-state-card-mobile.png` |
+| **M2 — IA estrutural** | ✅ feito (working tree) | `generateConsolidatedSummary` usa snapshot → contexto rotulado (ESTADO ATUAL/TENDÊNCIAS/MELHORAS/PIORAS/CONTEXTO HISTÓRICO) + regras de peso temporal; 7 testes + 24 health-state; server+web tsc ✅ |
+
+**Tese central realizada**: a IA deixou de ser instruída por prompt ("priorize o mais recente") e passou a receber um **contexto rotulado por recência** (peso temporal estrutural). `delta%` é computado server-side (não fica a cargo do LLM).
+
+**Pendências / próximas**:
+- **M2 sem commit em main**: outro dev ativo no mesmo repo — trabalho está no working tree, pronto p/ commit quando ele parar (evita sweep/conflict). Não deployado (sem verificação prod + dev ativo).
+- **Verificação final do M2**: gerar 1 relatório real em `/relatorio` (custa token GLM) p/ checar a qualidade da saída — estrutura do contexto provada via teste.
+- **shared-buildable (V1)**: unificar runtime code (priority/categorize/trend) server+web exige tornar `@meus-exames/shared` buildável (tsc→dist). Tentado; cold rebuild killed 2x em ambiente ativo. Deferido p/ janela de build estável. Hoje: trend canônico no shared (consumido pelo web/vite); server espelha local (drift documentado).
+- **M4 (portal médico)**: bloqueado — dev DB sem doctors/shares p/ validar + `DoctorPortal.tsx` monolito 1005 linhas (UX médica).
+- **M5 (relatório progressivo)**: web, futuro.
+
+---
+
 ## Questão central do produto — resposta direta
 
 > *Como transformar o Dr. Exame numa plataforma onde paciente sempre atualiza, médico consulta antes da consulta, IA ajuda sem substituir, histórico ajuda mas estado atual fica claro, app simples/confiável/útil, sem complexidade desnecessária?*

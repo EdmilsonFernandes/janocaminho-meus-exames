@@ -17,10 +17,13 @@
  *  leva nameCanonical e a web categoriza — sem duplicar CATS. refScaleSuspect fica no front.)
  */
 import { prisma } from '../prisma';
+// NOTA: trendVerdict canônico vive em @meus-exames/shared (consumido pelo web/vite).
+// O server (Node) não dá require em shared em runtime (shared é TS-source, sem build p/ JS),
+// então espelhamos a lógica aqui. Unificar quando shared ganhar build step (V1).
 
 // ───────────────────────────── tipos ─────────────────────────────
 
-export type TrendDirection = 'melhorando' | 'piorando' | 'estavel' | 'primeiro';
+export type TrendDirection = 'melhorou' | 'piorou' | 'estavel' | 'primeiro';
 export type Priority = 'normal' | 'leve' | 'moderada' | 'importante';
 export type Confidence = 'alta' | 'baixa';
 
@@ -90,12 +93,13 @@ export function deltaPct(latest: { valueNumeric: number | null }, prior: { value
   return ((latest.valueNumeric - prior.valueNumeric) / Math.abs(prior.valueNumeric)) * 100;
 }
 
+/** Distância absoluta de um valor ao intervalo [lo, hi] (0 se dentro). Mirror do shared. */
+const distToRange = (v: number, lo: number, hi: number): number => (v < lo ? lo - v : v > hi ? v - hi : 0);
+
 /**
- * Tendência relativa à BANDA de referência (não só direção do número):
- *  - entrou na faixa → melhorando; saiu da faixa → piorando
- *  - os dois fora: compara distância até a banda (aproxima → melhorando, afasta → piorando)
- *  - os dois dentro → estável
- *  - sem prior ou não-numérico → flag-based; sem prior → primeiro
+ * Tendência relativa à BANDA de referência (não à direção bruta do número).
+ * Numérico + banda → distância à faixa (aproximou → melhorou, afastou → piorou).
+ * Sem prior → 'primeiro'; não-numérico → fallback por flag.
  */
 export function trendDirection(
   latest: { valueNumeric: number | null; isAbnormal: boolean },
@@ -104,25 +108,16 @@ export function trendDirection(
   refHigh: number | null,
 ): TrendDirection {
   if (!prior) return 'primeiro';
-  const lv = latest.valueNumeric;
-  const pv = prior.valueNumeric;
-  const hasBand = refLow != null && refHigh != null && refHigh > refLow;
-  if (lv != null && pv != null && hasBand) {
-    const inBand = (v: number) => v >= refLow! && v <= refHigh!;
-    const lin = inBand(lv), pin = inBand(pv);
-    if (lin && pin) return 'estavel';
-    if (lin && !pin) return 'melhorando';
-    if (!lin && pin) return 'piorando';
-    // ambos fora da faixa — distância até a banda
-    const dist = (v: number) => (v > refHigh! ? v - refHigh! : refLow! - v);
-    const dl = dist(lv), dp = dist(pv);
-    if (dl < dp - 1e-9) return 'melhorando';
-    if (dl > dp + 1e-9) return 'piorando';
+  if (latest.valueNumeric != null && prior.valueNumeric != null && refLow != null && refHigh != null) {
+    const df = distToRange(prior.valueNumeric, refLow, refHigh);
+    const dl = distToRange(latest.valueNumeric, refLow, refHigh);
+    if (dl < df) return 'melhorou';
+    if (dl > df) return 'piorou';
     return 'estavel';
   }
-  // fallback não-numérico: anormalidade de antes → agora
-  if (!latest.isAbnormal && prior.isAbnormal) return 'melhorando';
-  if (latest.isAbnormal && !prior.isAbnormal) return 'piorando';
+  // fallback não-numérico: anormalidade antes → agora
+  if (!latest.isAbnormal && prior.isAbnormal) return 'melhorou';
+  if (latest.isAbnormal && !prior.isAbnormal) return 'piorou';
   return 'estavel';
 }
 
@@ -259,8 +254,8 @@ export async function buildCurrentHealthSummary(patientId: string): Promise<Curr
     score,
     byPriority,
     topAttention: abnormal.sort(sortByPriorityThenDelta).slice(0, 6),
-    improving: markers.filter((m) => m.trend === 'melhorando').sort(sortByPriorityThenDelta).slice(0, 6),
-    worsening: markers.filter((m) => m.trend === 'piorando').sort(sortByPriorityThenDelta).slice(0, 6),
+    improving: markers.filter((m) => m.trend === 'melhorou').sort(sortByPriorityThenDelta).slice(0, 6),
+    worsening: markers.filter((m) => m.trend === 'piorou').sort(sortByPriorityThenDelta).slice(0, 6),
     stale: markers.filter((m) => m.latest.stale).slice(0, 12),
     whatChanged: markers
       .filter((m) => m.deltaPct != null)
@@ -268,4 +263,39 @@ export async function buildCurrentHealthSummary(patientId: string): Promise<Curr
       .slice(0, 6)
       .map((m) => ({ nameCanonical: m.nameCanonical, name: m.name, deltaPct: m.deltaPct, trend: m.trend })),
   };
+}
+
+// ───────────────── formatação do snapshot p/ contexto da IA ─────────────────
+
+/** Formata um marcador do snapshot numa linha compacta para o contexto da IA. */
+export function fmtMarker(m: MarkerState): string {
+  const v = m.latest.valueText ?? (m.latest.valueNumeric != null ? String(m.latest.valueNumeric).replace('.', ',') : '—');
+  const ref = m.refText ?? (m.refLow != null && m.refHigh != null ? `${m.refLow}-${m.refHigh}` : 's/ref');
+  const age = m.latest.ageMonths == null ? 's/data' : m.latest.ageMonths < 1 ? 'recente' : `há ${Math.round(m.latest.ageMonths)}m`;
+  const delta = m.deltaPct != null ? ` Δ${m.deltaPct > 0 ? '+' : ''}${Math.round(m.deltaPct)}%` : '';
+  const stale = m.latest.stale ? ' [DESATUALIZADO]' : '';
+  const conf = m.confidence === 'baixa' ? ' [confiança baixa]' : '';
+  return `${m.name}: ${v}${m.unit ? ' ' + m.unit : ''} (ref ${ref}, ${m.flag}, ${m.priority}${delta}, ${age})${stale}${conf}`;
+}
+
+/**
+ * Contexto ROTULADO por recência — peso temporal ESTRUTURAL (não por prompt).
+ * ESTADO ATUAL (mais recente) / TENDÊNCIAS (direção+% já calculados) / CONTEXTO HISTÓRICO (>1 ano).
+ * A IA não precisa inferir o que é recente: o dado já diz. (M2)
+ */
+export function formatSnapshotContext(s: CurrentHealthSummary): string {
+  const estado = s.topAttention.map(fmtMarker);
+  const tend = s.whatChanged.map((w) => `${w.name}: ${w.trend}${w.deltaPct != null ? ` (${w.deltaPct > 0 ? '+' : ''}${Math.round(w.deltaPct)}%)` : ''}`);
+  const hist = s.stale.map((m) => `${m.name} (último há ${Math.round(m.latest.ageMonths ?? 0)}m)`);
+  return [
+    `ESTADO ATUAL (verdade presente — use como quadro atual do paciente):`,
+    estado.length ? estado.map((x) => `  - ${x}`).join('\n') : '  (tudo dentro da faixa de referência)',
+    ``,
+    `TENDÊNCIAS (direção + variação % JÁ calculadas — use só pra direção, não repita os valores):`,
+    tend.length ? tend.map((x) => `  - ${x}`).join('\n') : '  (sem histórico comparável — 1º exame de cada marcador)',
+    ``,
+    `MELHORAS: ${s.improving.length ? s.improving.map((m) => m.name).join(', ') : 'nenhuma registrada'}`,
+    `PIORAS: ${s.worsening.length ? s.worsening.map((m) => m.name).join(', ') : 'nenhuma registrada'}`,
+    hist.length ? `\nCONTEXTO HISTÓRICO (marcadores medidos há >1 ano — NÃO é estado atual; cite só se relevante):\n` + hist.map((x) => `  - ${x}`).join('\n') : '',
+  ].filter(Boolean).join('\n');
 }

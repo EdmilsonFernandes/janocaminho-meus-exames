@@ -21,23 +21,23 @@ describe('trendDirection', () => {
     expect(trendDirection({ valueNumeric: 25, isAbnormal: true }, null, band.refLow, band.refHigh)).toBe('primeiro');
   });
   it('entrou na faixa -> melhorando', () => {
-    expect(trendDirection({ valueNumeric: 15, isAbnormal: false }, { valueNumeric: 25, isAbnormal: true }, band.refLow, band.refHigh)).toBe('melhorando');
+    expect(trendDirection({ valueNumeric: 15, isAbnormal: false }, { valueNumeric: 25, isAbnormal: true }, band.refLow, band.refHigh)).toBe('melhorou');
   });
   it('saiu da faixa -> piorando', () => {
-    expect(trendDirection({ valueNumeric: 25, isAbnormal: true }, { valueNumeric: 15, isAbnormal: false }, band.refLow, band.refHigh)).toBe('piorando');
+    expect(trendDirection({ valueNumeric: 25, isAbnormal: true }, { valueNumeric: 15, isAbnormal: false }, band.refLow, band.refHigh)).toBe('piorou');
   });
   it('ambos dentro -> estavel', () => {
     expect(trendDirection({ valueNumeric: 12, isAbnormal: false }, { valueNumeric: 18, isAbnormal: false }, band.refLow, band.refHigh)).toBe('estavel');
   });
   it('ambos fora, aproxima da banda -> melhorando', () => {
     // banda 10-20 (largura 10); prior 40 (dist 20), latest 24 (dist 4) -> aproxima
-    expect(trendDirection({ valueNumeric: 24, isAbnormal: true }, { valueNumeric: 40, isAbnormal: true }, band.refLow, band.refHigh)).toBe('melhorando');
+    expect(trendDirection({ valueNumeric: 24, isAbnormal: true }, { valueNumeric: 40, isAbnormal: true }, band.refLow, band.refHigh)).toBe('melhorou');
   });
   it('ambos fora, afasta da banda -> piorando', () => {
-    expect(trendDirection({ valueNumeric: 40, isAbnormal: true }, { valueNumeric: 24, isAbnormal: true }, band.refLow, band.refHigh)).toBe('piorando');
+    expect(trendDirection({ valueNumeric: 40, isAbnormal: true }, { valueNumeric: 24, isAbnormal: true }, band.refLow, band.refHigh)).toBe('piorou');
   });
   it('fallback nao-numerico: normalizou -> melhorando', () => {
-    expect(trendDirection({ valueNumeric: null, isAbnormal: false }, { valueNumeric: null, isAbnormal: true }, null, null)).toBe('melhorando');
+    expect(trendDirection({ valueNumeric: null, isAbnormal: false }, { valueNumeric: null, isAbnormal: true }, null, null)).toBe('melhorou');
   });
 });
 
@@ -84,7 +84,7 @@ describe('computeMarkerState', () => {
     expect(glic.latest.valueNumeric).toBe(110);
     expect(glic.prior?.valueNumeric).toBe(95);
     expect(glic.points).toBe(2);
-    expect(glic.trend).toBe('piorando'); // saiu da faixa
+    expect(glic.trend).toBe('piorou'); // saiu da faixa
     expect(glic.deltaPct).toBeCloseTo(((110 - 95) / 95) * 100, 1);
     expect(glic.priority).toBe('moderada'); // (110-99)/29 largura ≈ 0.379 -> moderada
     expect(glic.confidence).toBe('alta'); // 2 pts, latest com 1 mês

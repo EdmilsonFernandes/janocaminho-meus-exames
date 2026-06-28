@@ -5,6 +5,7 @@ import { prisma } from '../prisma';
 import { HEALTH_SYSTEM, diagnosticGuard } from './system';
 import { JSON_SUFFIX, extractJsonObject } from '../utils/json';
 import { patientSlug, memoryDigest, appendPatientMemory, saveFullReport } from './agent-memory';
+import { buildCurrentHealthSummary, formatSnapshotContext } from './health-state';
 
 /** Resumo CONSOLIDADO: junta os últimos exames (sangue/imagem/laudo) num documento único — "segunda opinião documental". */
 export async function generateConsolidatedSummary(patientId: string): Promise<{ summary: HealthSummary; contentMd: string; modelUsed: string; usage: any }> {
@@ -14,15 +15,11 @@ export async function generateConsolidatedSummary(patientId: string): Promise<{ 
     (err as any).status = 404;
     throw err;
   }
-  // Foco no(s) MAIS RECENTE(S): consolidado mostra os 3 últimos (estado atual + tendência),
-  // não "tudo". O 1º da lista é o exame mais recente (orderBy desc).
-  const exams = await prisma.exam.findMany({
-    where: { patientId, status: 'EXTRACTED' },
-    orderBy: { performedAt: 'desc' },
-    take: 3,
-    include: { items: { where: { isAbnormal: true }, orderBy: { name: 'asc' }, take: 10 } },
-  });
-  if (!exams.length) {
+  // M1/M2: snapshot ESTRUTURAL do estado de saúde. Priorização temporal = dado rotulado
+  // (ESTADO ATUAL / TENDÊNCIAS / CONTEXTO HISTÓRICO), não instrução de prompt.
+  // Antes: take 3 exames + "priorize o 1º". Agora: buildCurrentHealthSummary (Layer 2).
+  const snapshot = await buildCurrentHealthSummary(patientId);
+  if (snapshot.markers === 0) {
     const err = new Error('Nenhum exame extraído para consolidar');
     (err as any).status = 400;
     throw err;
@@ -33,41 +30,32 @@ export async function generateConsolidatedSummary(patientId: string): Promise<{ 
   const slug = patientSlug(patient.fullName, patientId);
   const digest = memoryDigest(slug);
   const memoryText = digest ? `\nHISTÓRICO DE ANÁLISES ANTERIORES (use como contexto; não repita):\n${digest}\n` : '';
-  const examContext = exams.map((e) => ({
-    titulo: e.title,
-    tipo: e.kind,
-    data: e.performedAt ? new Date(e.performedAt as Date).toLocaleDateString('pt-BR') : 's/d',
-    laboratorio: e.sourceLab ?? null,
-    alteracoes: e.items.map((i) => ({
-      name: i.name,
-      value: i.valueText,
-      ref: i.refText ?? [i.refLow, i.refHigh].filter((x) => x != null).join('-'),
-      flag: i.flag,
-    })),
-  }));
 
   const messages = [
     {
       role: 'user',
       content:
-        `Atue como um consultor de SAUDE de alto nivel. Analise os exames do paciente (FOCO NO MAIS RECENTE = estado atual) seguindo esta estrutura (Chain-of-Thought):\n\n` +
-        `PASSO 1 - TRIAGEM: Agrupe os itens por categorias medicas (Hormonios, Hemograma, Lipidios, Hepatico, Renal, Glicidico, Outros).\n` +
-        `PASSO 2 - TENDENCIA: Para cada categoria, identifique o que esta alterado + a DIRECAO (melhorando, piorando, estavel, primeiro exame).\n` +
-        `PASSO 3 - SINTER EXECUTIVA: Gere o relatorio final com tom humano, acolhedor e direto.\n\n` +
-        `IMPORTANTE: o 1o exame da lista é o MAIS RECENTE. Priorize o estado ATUAL dele no resumo; use os anteriores só como contexto de tendência (não repita tudo).\n\n` +
+        `Atue como um consultor de SAÚDE de alto nível. O contexto abaixo JÁ está organizado por RECÊNCIA — use cada seção conforme seu papel:\n` +
+        `- ESTADO ATUAL = valores MAIS RECENTES de cada marcador (verdade presente; BASEIE o resumo aqui).\n` +
+        `- TENDÊNCIAS = direção (melhorou/piorou/estável/1º exame) + variação % JÁ calculada (não reinvente o número).\n` +
+        `- CONTEXTO HISTÓRICO = marcadores medidos há >1 ano — NÃO é estado atual; cite só se relevante.\n\n` +
+        `REGRAS DE PESO TEMPORAL (obrigatórias):\n` +
+        `- Baseie o quadro atual no ESTADO ATUAL; use TENDÊNCIAS só pra indicar direção/mudança.\n` +
+        `- NUNCA conclua tendência de marcador marcado [confiança baixa] ou [DESATUALIZADO] sem ≥2 exames recentes.\n` +
+        `- Sem exame recente de um marcador? sugira refazer com o médico — não invente conclusão.\n\n` +
         `PACIENTE: ${patient.fullName}\n` +
-        `Exames incluidos: ${exams.length} (do mais recente ao mais antigo).\n` +
+        `Score atual: ${snapshot.score ?? '—'}/100 em ${snapshot.markers} marcador(es). Distribuição: ${JSON.stringify(snapshot.byPriority)}.\n` +
         perfilText + '\n' + memoryText +
-        `EXAMES (apenas alteracoes relevantes, do mais recente ao mais antigo):\n${JSON.stringify(examContext, null, 2)}\n\n` +
-        `ESTILO: portugues simples, SEM jargao, SEM diagnostico, SEM receitar. Sempre cite o NOME do paciente + valores reais (ex: "Edmilson, sua glicose caiu de 110 pra 98").\n\n` +
+        `${formatSnapshotContext(snapshot)}\n\n` +
+        `ESTILO: português simples, SEM jargão, SEM diagnóstico, SEM receitar. Cite o NOME do paciente + valores reais (ex: "Edmilson, sua glicose caiu 10%").\n\n` +
         `Monte o JSON com:\n` +
-        `- resumoGeral: visao integrada em 2-3 frases (o que esta bem + o que precisa atencao)\n` +
-        `- comparativo (array de {name, anterior, atual, leitura, entenda}): itens alterados. "leitura" = Melhorou/Piorou/Estavel/Atencao/Primeiro exame. "entenda" = UMA frase SIMPLES sobre o que e o exame.\n` +
-        `- pontosAtencao (array de {titulo, detalhe}): o que requer acao AGORA\n` +
-        `- coisasBoas (array de strings): o que melhorou (reforco positivo)\n` +
-        `- leituraFinal: 1 paragrafo direto, amigavel, com TOM HUMANO (ex: "${patient.fullName?.split(' ')[0] || 'Paciente'}, seu colesterol caiu 15% — continue assim!")\n` +
-        `- perguntasParaOMedico (array de 3-5 strings): perguntas OBJETIVAS com valores reais (ex: "Meu TSH subiu de 1.2 pra 3.8. Preciso ajustar a levotiroxina?")\n` +
-        `- metasSaude (array de {analito, meta, prazo}): metas praticas (ex: "Colesterol total abaixo de 200 em 3 meses")\n` +
+        `- resumoGeral: visão integrada em 2-3 frases (o que está bem + o que pede atenção)\n` +
+        `- comparativo (array de {name, anterior, atual, leitura, entenda}): itens alterados. "leitura" = Melhorou/Piorou/Estável/Atenção/Primeiro exame. "entenda" = UMA frase SIMPLES sobre o que é o exame.\n` +
+        `- pontosAtencao (array de {titulo, detalhe}): o que requer ação AGORA\n` +
+        `- coisasBoas (array de strings): o que melhorou (reforço positivo)\n` +
+        `- leituraFinal: 1 parágrafo direto, amigável, com TOM HUMANO\n` +
+        `- perguntasParaOMedico (array de 3-5 strings): perguntas OBJETIVAS com valores reais\n` +
+        `- metasSaude (array de {analito, meta, prazo}): metas práticas\n` +
         `- interacoesMedicamentos, sugestoesNutricao, comparacaoFamiliar, disclaimer.\n` +
         JSON_SUFFIX,
     },
@@ -90,10 +78,10 @@ export async function generateConsolidatedSummary(patientId: string): Promise<{ 
   const summary = (z.success ? z.data : json) as HealthSummary;
   let contentMd = renderSummaryMd(summary);
   contentMd = diagnosticGuard(contentMd).text;
-  appendPatientMemory(slug, `Relatório consolidado (${exams.length} exames)`,
+  appendPatientMemory(slug, `Relatório consolidado (${snapshot.markers} marcadores)`,
     `${summary.resumoGeral ?? ''}\nPontos de atenção: ${(summary.pontosAtencao ?? []).map((p) => p.titulo).join('; ')}\nPerguntas p/ médico: ${(summary.perguntasParaOMedico ?? []).join('; ')}`);
   // Persiste o relatório COMPLETO em .md (não se perde; pode ser relido sem regenerar)
-  saveFullReport(slug, `Relatório consolidado (${exams.length} exames)`, contentMd);
+  saveFullReport(slug, `Relatório consolidado (${snapshot.markers} marcadores)`, contentMd);
   return { summary, contentMd, modelUsed: response.model, usage: response.usage };
 }
 

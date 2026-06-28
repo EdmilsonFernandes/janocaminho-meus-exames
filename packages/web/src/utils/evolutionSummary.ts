@@ -11,7 +11,9 @@
  * RESPONSÁVEL: é um resumo educativo de tendência. A decisão clínica é do médico.
  */
 
-export type Verdict = 'melhorou' | 'piorou' | 'estavel';
+import { trendVerdict as verdictByDistance, type TrendVerdict } from '@meus-exames/shared';
+
+export type Verdict = TrendVerdict;
 
 export interface VerdictMeta { key: Verdict; emoji: string; label: string; color: string }
 
@@ -29,24 +31,16 @@ export interface TrendItem {
   direction?: 'up' | 'down' | 'stable' | string | null;
 }
 
-/** Distância absoluta de um valor ao intervalo [lo, hi] (0 se dentro). */
-const distToRange = (v: number, lo: number, hi: number): number => (v < lo ? lo - v : v > hi ? v - hi : 0);
-
 /**
  * Veredito de evolução de UM marcador entre a primeira e a última medição.
+ * Delega ao `trendVerdict` canônico do @meus-exames/shared (distância à faixa) —
+ * fonte única da lógica de tendência, compartilhada c/ o server (health-state).
  * Sem faixa de referência → 'estavel' (não opinamos sobre bom/ruim).
  */
 export const trendVerdict = (it: TrendItem | null | undefined): Verdict => {
   if (!it) return 'estavel';
-  const f = it.firstValue, l = it.lastValue;
-  if (f == null || l == null || Number.isNaN(f) || Number.isNaN(l)) return 'estavel';
-  const lo = it.refLow, hi = it.refHigh;
-  if (lo == null || hi == null) return 'estavel'; // sem faixa → neutro
-  const df = distToRange(f, lo, hi);
-  const dl = distToRange(l, lo, hi);
-  if (dl < df) return 'melhorou';
-  if (dl > df) return 'piorou';
-  return 'estavel';
+  if (Number.isNaN(it.firstValue) || Number.isNaN(it.lastValue)) return 'estavel';
+  return verdictByDistance(it.firstValue, it.lastValue, it.refLow ?? null, it.refHigh ?? null);
 };
 
 export interface EvolutionSummary { counts: Record<Verdict, number>; total: number }
