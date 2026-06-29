@@ -484,27 +484,34 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
             </Stack>
 
             {selected.patient?.clinicalProfile && (
-              <Card sx={{ mb: 2, borderRadius: 3, bgcolor: 'rgba(32,178,170,0.08)', border: '1px solid', borderColor: 'divider' }}><CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-                <Typography variant="caption" sx={{ fontWeight: 800, color: TEAL }}>PERFIL CLÍNICO</Typography>
+              <Card sx={{ mb: 2, borderRadius: 3, bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider' }}><CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
+                <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>PERFIL CLÍNICO</Typography>
                 <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', mt: 0.25 }}>{selected.patient.clinicalProfile}</Typography>
               </CardContent></Card>
             )}
 
-            {/* HERO "resumo de 10 segundos" — alertas críticos + último exame + copiar resumo */}
+            {/* HERO "resumo de 10 segundos" — neutro + semântica CLÍNICA (vermelho=alerta, verde=ok). Não mais 'tudo verde'. */}
             {!selExam && (
-              <Card sx={{ mb: 2, borderRadius: 4, background: 'linear-gradient(135deg,#0f3d3a,#178f89)', color: '#fff', overflow: 'hidden', boxShadow: '0 8px 28px rgba(15,61,58,.22)' }}>
+              <Card sx={{ mb: 2, borderRadius: 4, border: '1px solid', borderColor: allAlerts.length ? 'rgba(239,68,68,.3)' : 'rgba(16,185,129,.3)', borderLeft: `5px solid ${allAlerts.length ? '#ef4444' : '#10b981'}`, overflow: 'hidden' }}>
                 <CardContent>
                   <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: allAlerts.length ? 1.25 : 0 }}>
                     <Box sx={{ flex: '1 1 200px' }}>
-                      <Typography variant="caption" sx={{ opacity: 0.8, fontWeight: 800, letterSpacing: 0.6 }}>RESUMO RÁPIDO</Typography>
-                      <Typography sx={{ fontWeight: 800, fontSize: 19, fontFamily: 'Poppins, sans-serif', lineHeight: 1.2 }}>{allAlerts.length > 0 ? `🔴 ${allAlerts.length} valor(es) alterado(s)` : '✅ Sem alterações relevantes'}</Typography>
-                      <Typography variant="caption" sx={{ opacity: 0.88, display: 'block', mt: 0.25 }}>{exams[0] ? `${exams[0].title} • ${fmtDate(exams[0].performedAt)}` : 'Sem exames extraídos'}{exams.length > 0 ? ` • ${exams.length} exame(s)` : ''}</Typography>
+                      <Typography variant="caption" sx={{ fontWeight: 800, letterSpacing: 0.6, color: allAlerts.length ? '#ef4444' : '#10b981' }}>RESUMO RÁPIDO</Typography>
+                      <Typography sx={{ fontWeight: 800, fontSize: 19, fontFamily: 'Poppins, sans-serif', lineHeight: 1.2, color: 'text.primary' }}>{allAlerts.length > 0 ? `🔴 ${allAlerts.length} valor(es) alterado(s)` : '✅ Sem alterações relevantes'}</Typography>
+                      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>{exams[0] ? `${exams[0].title} • ${fmtDate(exams[0].performedAt)}` : 'Sem exames extraídos'}{exams.length > 0 ? ` • ${exams.length} exame(s)` : ''}</Typography>
                     </Box>
-                    <Button size="small" variant="outlined" onClick={copySummary} sx={{ color: '#fff', borderColor: 'rgba(255,255,255,.5)', textTransform: 'none', fontWeight: 700, borderRadius: 99, flexShrink: 0, '&:hover': { borderColor: '#fff', bgcolor: 'rgba(255,255,255,.12)' } }}>📋 Copiar resumo</Button>
+                    <Button size="small" variant="outlined" onClick={copySummary} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 99, flexShrink: 0 }}>📋 Copiar resumo</Button>
                   </Stack>
                   {allAlerts.length > 0 && (
                     <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-                      {allAlerts.slice(0, 10).map((a, i) => <Chip key={i} size="small" label={`${a.name}: ${a.valueText}`} sx={{ bgcolor: 'rgba(255,255,255,.18)', color: '#fff', fontWeight: 600, height: 22, fontSize: 11 }} />)}
+                      {allAlerts.slice(0, 10).map((a, i) => <Chip key={i} size="small" label={`${a.name}: ${a.valueText}`} sx={{ bgcolor: '#fee2e2', color: '#b91c1c', fontWeight: 600, height: 22, fontSize: 11 }} />)}
+                    </Box>
+                  )}
+                  {/* Última nota do médico — continuidade de cuidado (o que eu disse na última consulta?) */}
+                  {notes.length > 0 && (
+                    <Box sx={{ mt: 1.5, p: 1.25, borderRadius: 2, bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider' }}>
+                      <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>📝 ÚLTIMA NOTA · {new Date(notes[0].createdAt).toLocaleDateString('pt-BR')}</Typography>
+                      <Typography variant="body2" sx={{ mt: 0.25, color: 'text.primary', lineHeight: 1.5 }}>{(notes[0].content || '').slice(0, 200)}{(notes[0].content || '').length > 200 ? '…' : ''}</Typography>
                     </Box>
                   )}
                 </CardContent>
