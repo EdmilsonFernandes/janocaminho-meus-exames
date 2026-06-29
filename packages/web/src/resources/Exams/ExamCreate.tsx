@@ -218,22 +218,23 @@ export const ExamCreate = () => {
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2, textAlign: 'center' }}>Escolha como quer enviar seu exame</Typography>
 
           <Box component="form" onSubmit={submit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {/* 2 CAMINHOS — cards clicáveis (não competem, são MÉTODOS) */}
+            {/* 2 CAMINHOS — Escanear (recomendado, mobile) + PDF/galeria. Leigo é guiado pro que lê melhor. */}
             <Stack direction="row" spacing={1.5} sx={{ flexWrap: { xs: 'nowrap', sm: 'nowrap' } }}>
-              {/* Caminho 1: Escanear (só mobile nativo) */}
+              {/* Caminho 1: Escanear (ML Kit — ajusta borda/luz/nitido no aparelho → OCR limpo) */}
               {isNative && (
                 <Box onClick={busy ? undefined : scanDocument} sx={{
                   flex: 1, cursor: busy ? 'wait' : 'pointer', borderRadius: 3, p: { xs: 2, sm: 2.5 }, textAlign: 'center',
-                  border: '2px solid', borderColor: 'divider', bgcolor: 'background.default', transition: 'all .15s',
+                  border: '2px solid #20b2aa', bgcolor: 'rgba(32,178,170,.07)', transition: 'all .15s', position: 'relative',
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.75,
-                  '&:active': { transform: 'scale(.97)' }, '&:hover': { borderColor: '#20b2aa', bgcolor: 'rgba(32,178,170,.05)' },
+                  '&:active': { transform: 'scale(.97)' }, '&:hover': { bgcolor: 'rgba(32,178,170,.12)' },
                 }}>
+                  <Box sx={{ position: 'absolute', top: 6, right: 6, fontSize: 9, fontWeight: 800, color: '#fff', bgcolor: '#20b2aa', px: 0.6, py: 0.15, borderRadius: 99 }}>RECOMENDADO</Box>
                   <Box sx={{ fontSize: 36 }}>📷</Box>
                   <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary' }}>Escanear</Typography>
-                  <Typography variant="caption" color="text.secondary">Digitalize com a câmera<br />bordas automáticas + nítido</Typography>
+                  <Typography variant="caption" color="text.secondary">A câmera ajusta borda,<br />luz e nitido pra você ✨</Typography>
                 </Box>
               )}
-              {/* Caminho 2: PDF / Imagem */}
+              {/* Caminho 2: PDF (leitura perfeita) ou foto da galeria */}
               <Box component="label" sx={{
                 flex: 1, cursor: 'pointer', borderRadius: 3, p: { xs: 2, sm: 2.5 }, textAlign: 'center',
                 border: '2px solid', borderColor: files.length ? '#20b2aa' : 'divider',
@@ -243,10 +244,16 @@ export const ExamCreate = () => {
               }}>
                 <input type="file" hidden multiple accept=".pdf,.jpg,.jpeg,.png,image/*,application/pdf" onChange={(e) => { onPick(e.target.files); if (e.target) e.target.value = ''; }} />
                 <Box sx={{ fontSize: 36 }}>📄</Box>
-                <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary' }}>{files.length ? `${files.length} arquivo(s)` : 'PDF / Imagem'}</Typography>
-                <Typography variant="caption" color="text.secondary">Selecione da galeria<br />vários de uma vez · até 32 MB</Typography>
+                <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary' }}>{files.length ? `${files.length} arquivo(s)` : 'PDF ou foto'}</Typography>
+                <Typography variant="caption" color="text.secondary">PDF tem leitura perfeita ·<br />foto da galeria: várias de uma vez</Typography>
               </Box>
             </Stack>
+            {/* Dica amigável pra leigo */}
+            <Box sx={{ px: 1.5, py: 1, borderRadius: 2, bgcolor: 'rgba(32,178,170,.06)', border: '1px solid', borderColor: 'rgba(32,178,170,.18)' }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1.5 }}>
+                💡 <strong>Pro Dr. Exame ler direitinho:</strong> use <strong>Escanear</strong> (ajusta a foto pra você) ou envie um <strong>PDF</strong>. Evite foto escura, torta ou tremida.
+              </Typography>
+            </Box>
 
             {/* Arquivos selecionados */}
             {files.length > 0 && (

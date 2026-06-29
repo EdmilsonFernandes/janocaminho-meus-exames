@@ -131,7 +131,7 @@ async function runExtractionOnce(examId: string): Promise<void> {
     if (kind !== 'IMAGING' && items.length === 0 && !looksLikeMedical(text)) {
       await prisma.exam.update({
         where: { id: examId },
-        data: { status: 'FAILED', extractionError: cls.reason || 'Este documento não parece ser um exame ou laudo médico. Envie um resultado de exame (sangue, imagem ou laudo).' },
+        data: { status: 'FAILED', extractionError: cls.reason || 'Não conseguimos identificar um exame neste documento. Tente o Escanear ou envie um PDF do seu exame.' },
       });
       console.log(`[extraction] exame ${examId} descartado: não parece exame/laudo médico`);
       return;
