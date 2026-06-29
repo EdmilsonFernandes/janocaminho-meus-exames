@@ -212,8 +212,12 @@ router.post('/push/global', async (req: AuthedRequest, res, next) => {
     const body = String(req.body?.body ?? '').trim();
     const route = req.body?.route ? String(req.body.route) : undefined;
     if (!title || !body) { res.status(400).json({ error: 'title e body são obrigatórios' }); return; }
-    const tokens = await prisma.deviceToken.findMany({ select: { token: true } });
+    const tokens = await prisma.deviceToken.findMany({ select: { token: true, userId: true } });
     const list = tokens.map((t) => t.token);
+    // Notificação IN-APP pra cada usuário com dispositivo (aparece na central do app — sininho —
+    // além do push do sistema). Antes só mandava o push do sistema; a in-app não era criada.
+    const userIds = [...new Set(tokens.map((t) => t.userId))];
+    if (userIds.length) await prisma.notification.createMany({ data: userIds.map((uid) => ({ userId: uid, type: 'global', title, body, data: { type: 'global', ...(route ? { route } : {}) } })) }).catch(() => {});
     await sendPush(list, title, body, { type: 'global', ...(route ? { route } : {}) });
     // Registra como campanha (histórico no backoffice).
     await prisma.pushCampaign.create({ data: { name: title.slice(0, 60), title, body, route: route ?? null, sentAt: new Date(), sentCount: list.length, createdBy: req.userId ?? null } }).catch(() => {});

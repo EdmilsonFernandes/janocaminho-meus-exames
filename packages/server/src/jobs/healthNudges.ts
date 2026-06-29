@@ -125,7 +125,8 @@ async function maybeNudge(userId: string, userName: string, email: string, nudge
     body = await getDailyHealthTip();
   }
 
-  await prisma.notification.create({ data: { userId, type, title, body, data: data.examId ? data : undefined } });
+  // sendPushToUser JÁ salva a notificação in-app (central do app) E envia o push —
+  // antes havia um prisma.notification.create duplicado aqui (= 2 notificações por nudge).
   await sendPushToUser(userId, title, body, { type, ...(data.examId ? { examId: data.examId } : {}) });
   // FALLBACK por e-mail: SÓ pra ALERTA e só pra quem NÃO tem push (iPhone no navegador etc.).
   // A dica diária NÃO vai por e-mail (evita spam). Best-effort (sendNudgeEmail loga e não propaga).
