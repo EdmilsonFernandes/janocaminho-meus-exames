@@ -1,31 +1,8 @@
-// Tipos/DTOs compartilhados entre server e web.
+// Contrato + lógica compartilhados entre server e web.
+// Os schemas/tipos de API vivem em ./schemas (Zod = fonte de verdade).
+export * from './schemas/exams';
 
-export type ExamKind = 'LAB_PANEL' | 'IMAGING' | 'OTHER';
-export type ExamStatus = 'UPLOADED' | 'EXTRACTING' | 'EXTRACTED' | 'FAILED';
-export type ItemFlag = 'NORMAL' | 'HIGH' | 'LOW' | 'ABNORMAL' | 'CRITICAL' | 'UNKNOWN';
-
-export interface ExamSummary {
-  id: string;
-  title: string;
-  kind: ExamKind;
-  status: ExamStatus;
-  performedAt: string | null;
-  sourceLab: string | null;
-  pageCount: number;
-  reviewRequired: boolean;
-  extractionError: string | null;
-}
-
-export interface TimeSeriesPoint {
-  examId: string;
-  performedAt: string | null;
-  title: string;
-  valueNumeric: number;
-  unit: string | null;
-  flag: ItemFlag;
-}
-
-// ── Tendência por distância à banda de referência (FONTE CANÔNICA) ──
+// ── Tendência por distância à banda de referência (lógica pura, sem Zod) ──
 // "Subir" não é bom nem ruim por si só (HDL subindo é bom; glicose subindo é ruim).
 // O que importa é se o valor APROXIMOU ou AFASTOU da faixa entre duas coletas.
 // Usada por: server (analysis/health-state.ts) e web (utils/evolutionSummary.ts).
