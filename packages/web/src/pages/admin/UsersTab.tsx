@@ -104,7 +104,7 @@ export const UsersTab = () => {
           <Card key={u.id} variant="outlined" sx={{ borderRadius: 2 }}>
             <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', py: 1.5 }}>
               <Box sx={{ flex: 1, minWidth: { xs: 120, sm: 180 } }}>
-                <Typography sx={{ fontWeight: 700, wordBreak: 'break-word' }}>{u.name || '—'} {u.role === 'ADMIN' && <Chip size="small" label="ADMIN" color="warning" />} {u.blocked && <Chip size="small" label="Bloqueado" color="error" />}</Typography>
+                <Typography component="div" sx={{ fontWeight: 700, wordBreak: 'break-word', display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap' }}>{u.name || '—'} {u.role === 'ADMIN' && <Chip size="small" label="ADMIN" color="warning" />} {u.blocked && <Chip size="small" label="Bloqueado" color="error" />}</Typography>
                 <Typography variant="caption" color="text.secondary">{u.email}</Typography>
               </Box>
               <Box sx={{ textAlign: 'center', minWidth: 60 }}>
