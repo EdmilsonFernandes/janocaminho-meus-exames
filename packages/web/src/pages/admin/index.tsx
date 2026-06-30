@@ -28,7 +28,7 @@ import { IaTab } from './IaTab';
 import { TechTab } from './TechTab';
 import { AuditTab } from './AuditTab';
 import { SupportTab } from './SupportTab';
-import { ConfigTab } from './ConfigTab';
+import { PricingTab } from './PricingTab';
 
 /** Backoffice Dr. Exame — ISOLADO do app do paciente (/admin é noLayout).
  *  Shell próprio (topbar + sidebar) com os 11 módulos de gestão. Sem chrome de paciente
@@ -47,6 +47,15 @@ const MODULES: { id: ModuleId; label: string; icon: ReactElement; group: string 
   { id: 'audit', label: 'Auditoria', icon: <ShieldOutlinedIcon />, group: 'Operação' },
   { id: 'support', label: 'Suporte', icon: <SupportAgentOutlinedIcon />, group: 'Operação' },
   { id: 'config', label: 'Configurações', icon: <SettingsOutlinedIcon />, group: 'Sistema' },
+];
+
+// Rodapé (mobile): atalhos pros módulos mais usados. Desktop usa a sidebar (sempre visível).
+const FOOTER: { id: ModuleId; short: string }[] = [
+  { id: 'overview', short: 'Início' },
+  { id: 'users', short: 'Usuários' },
+  { id: 'financeiro', short: 'Financ.' },
+  { id: 'config', short: 'Config.' },
+  { id: 'support', short: 'Suporte' },
 ];
 
 const authH = () => ({ Authorization: `Bearer ${token()}` });
@@ -140,7 +149,7 @@ export const AdminPage = () => {
           </Toolbar>
         </AppBar>
         {/* Conteúdo do módulo */}
-        <Box sx={{ flex: 1, p: { xs: 1.5, md: 3 }, maxWidth: 1180, width: '100%', mx: 'auto' }}>
+        <Box sx={{ flex: 1, p: { xs: 1.5, md: 3 }, pb: { xs: '72px', md: 3 }, maxWidth: 1180, width: '100%', mx: 'auto' }}>
           {mod === 'overview' && <OverviewTab />}
           {mod === 'users' && <UsersTab />}
           {mod === 'doctors' && <DoctorsTab />}
@@ -151,8 +160,23 @@ export const AdminPage = () => {
           {mod === 'tech' && <TechTab />}
           {mod === 'audit' && <AuditTab />}
           {mod === 'support' && <SupportTab />}
-          {mod === 'config' && <ConfigTab />}
+          {mod === 'config' && <PricingTab />}
         </Box>
+      </Box>
+      {/* Rodapé — atalhos rápidos (mobile; desktop tem a sidebar) */}
+      <Box component="footer" sx={{ display: { xs: 'flex', md: 'none' }, position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1100, bgcolor: 'background.paper', borderTop: 1, borderColor: 'divider', pb: 'env(safe-area-inset-bottom)' }}>
+        {FOOTER.map((f) => {
+          const m = MODULES.find((x) => x.id === f.id);
+          if (!m) return null;
+          const on = mod === f.id;
+          return (
+            <Box key={f.id} onClick={() => select(f.id)} sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 0.6, cursor: 'pointer', color: on ? '#178f89' : 'text.secondary', '& svg': { fontSize: 21 } }}>
+              {m.icon}
+              <Typography sx={{ fontSize: 10, fontWeight: on ? 800 : 600, mt: 0.25, fontFamily: '"Poppins",sans-serif' }}>{f.short}</Typography>
+              <Box sx={{ height: 3, width: on ? 20 : 0, borderRadius: 9, bgcolor: '#178f89', mt: 0.3, transition: 'width .2s' }} />
+            </Box>
+          );
+        })}
       </Box>
     </Box>
   );
