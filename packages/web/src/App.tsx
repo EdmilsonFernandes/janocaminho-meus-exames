@@ -288,6 +288,15 @@ const AppDrawer = () => {
   const userPhoto = patientId ? `${API_URL}/patients/${patientId}/photo` : undefined;
   // auto-close ao navegar (clica num item → rota muda → fecha)
   useEffect(() => { closeDrawer(); /* deps intencional: só pathname */ }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Espelha o estado do drawer pro handler global de voltar (App.tsx backButton): gesto/botão
+  // de voltar fecha o drawer ANTES de navegar/sair. Sem isto, o branch do drawer no handler era
+  // código morto (window.__drawerOpen nunca era setado pelo DrawerProvider, que usa contexto React).
+  useEffect(() => {
+    (window as any).__drawerOpen = open;
+    const onClose = () => closeDrawer();
+    window.addEventListener('app:closeDrawer', onClose);
+    return () => { (window as any).__drawerOpen = false; window.removeEventListener('app:closeDrawer', onClose); };
+  }, [open, closeDrawer]);
   // Saldo de créditos no header do drawer (reativo: recarrega quando muda).
   useEffect(() => {
     const load = () => fetch(`${API_URL}/billing/status`, { headers: { Authorization: `Bearer ${token()}` } })
@@ -479,7 +488,7 @@ export const App = () => {
         .then((d) => { if (!cancelled && d?.user) { localStorage.setItem('user', JSON.stringify(d.user)); if (d.patientId) { localStorage.setItem('patientId', d.patientId); localStorage.setItem('selPatientId', d.patientId); } window.dispatchEvent(new Event('selPatientChanged')); } })
         .catch(() => {});
     }
-    // Botão/gesto de voltar do Android (Capacitor) — volta no histórico IN-APP ou sai do app na raiz.
+    // Botão/gesto de voltar do Android (Capacitor) — volta no histórico IN-APP ou engole o back na raiz (NUNCA sai do app).
     let remove: (() => void) | undefined;
     (async () => {
       try {
@@ -492,9 +501,16 @@ export const App = () => {
             if (ev.defaultPrevented) return;
             // Drawer aberto? → fecha (AppDrawer via drawerState)
             if ((window as any).__drawerOpen) { window.dispatchEvent(new Event('app:closeDrawer')); return; }
-            // Tem histórico pra voltar? Threshold > 1 (igual EdEspeto — > 2 falhava após 1 navegação).
-            // inAppStack (pilha própria, confiável) entra como OR pra robustez no WebView do Capacitor.
-            if (window.history.length > 1 || inAppStack.length > 1) {
+            // Tem histórico IN-APP pra voltar? Sinal confiável: o ÍNDICE REAL do histórico do
+            // react-router (window.history.state.idx), que DIMINUI ao voltar — idx > 0 ⟺ existe
+            // tela anterior. BUG ANTERIOR: usava window.history.length, que NUNCA diminui; após a
+            // 1ª navegação ficava travado em > 1, e history.back() no índice 0 do WebView SAÍA do
+            // app (lançador/Play Store) no gesto de voltar. inAppStack segue como fallback (idx só
+            // é nulo antes da 1ª navegação, na raiz — onde não queremos voltar de qualquer jeito).
+            const hState = window.history.state as { idx?: number } | null;
+            const routerIdx = hState && typeof hState.idx === 'number' ? hState.idx : null;
+            const canGoBack = routerIdx != null ? routerIdx > 0 : inAppStack.length > 1;
+            if (canGoBack) {
               window.history.back();
               return;
             }
