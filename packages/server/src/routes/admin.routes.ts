@@ -388,7 +388,9 @@ router.post('/tickets/:id/messages', upload.array('files', 5), async (req: Authe
     void audit('REPLY_TICKET', req, { targetType: 'TICKET', targetId: ticket.id });
     // notifica o usuário: push (grava Notification + FCM) + e-mail
     const preview = body ? (body.length > 80 ? body.slice(0, 80) + '…' : body) : 'O suporte enviou um anexo.';
-    void sendPushToUser(ticket.userId, `Chamado #${ticket.number}`, preview, { type: 'ticket', ticketId: ticket.id }).catch(() => {});
+    // AWAIT (não void): o registro Notification precisa existir ANTES da resposta — antes era
+    // fire-and-forget e flakeava o teste (e podia perder a notificação in-app se o loop atrasasse).
+    await sendPushToUser(ticket.userId, `Chamado #${ticket.number}`, preview, { type: 'ticket', ticketId: ticket.id }).catch(() => {});
     if (user?.email) {
       void sendEmail({
         to: user.email, subject: `Seu chamado #${ticket.number} teve uma resposta`,
