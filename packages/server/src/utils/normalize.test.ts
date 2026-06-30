@@ -62,6 +62,7 @@ describe('canonicalName — NÃO colapsa analito composto/derivado no analito-ba
     expect(keep('CALCIO IONICO/LIVRE')).toBe(normalizeKey('CALCIO IONICO/LIVRE'));
     expect(keep('CREATININA URINARIA')).toBe(normalizeKey('CREATININA URINARIA'));
     expect(keep('ANTICORPOS ANTI-HBS')).toBe(normalizeKey('ANTICORPOS ANTI-HBS'));
+    expect(keep('PESQUISA DE HEMACIAS FALCIFORMES')).toBe(normalizeKey('PESQUISA DE HEMACIAS FALCIFORMES'));
   });
   it('frações de hemoglobina (HbA/HbA2/HbF) ≠ hemoglobina total', () => {
     expect(keep('HEMOGLOBINA A')).toBe(normalizeKey('HEMOGLOBINA A'));

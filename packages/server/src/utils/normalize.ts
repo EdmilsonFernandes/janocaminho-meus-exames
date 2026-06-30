@@ -80,7 +80,7 @@ function fuzzyMatchCanonical(normalized: string): string | null {
 // colapsar no analito-base (G6PD ≠ glicose; anti-HBs ≠ hemoglobina; relação
 // proteína/creatinina ≠ creatinina; HbA2/HbF ≠ hemoglobina total). Boundary de não
 // alfanumérico p/ não casar substring. Texto já normalizado (sem acento, MAIÚSCULAS).
-const COMPOUND_HINT = /(?:^|[^A-Z0-9])(RELACAO|RAZAO|ESTIMAD[AO]|MEDIA ESTIMADA|URINARI[AO]|URINA|IONIC[AO]|IONIZAD[AO]|DESIDROGENASE|FOSFATO|ANTICORPOS|ANTICORPO|NAO|FETAL)(?:[^A-Z0-9]|$)/;
+const COMPOUND_HINT = /(?:^|[^A-Z0-9])(RELACAO|RAZAO|ESTIMAD[AO]|MEDIA ESTIMADA|URINARI[AO]|URINA|IONIC[AO]|IONIZAD[AO]|DESIDROGENASE|FOSFATO|ANTICORPOS|ANTICORPO|NAO|FETAL|PESQUISA)(?:[^A-Z0-9]|$)/;
 
 // Hemoglobina como FRAÇÃO eletroforética (HbA, HbA2, HbF, HbS, HbC) — distinta da Hb total.
 const HEMOGLOBIN_FRACTION = /^HEMOGLOBINA\s+[A-Z][0-9]?(?:[^A-Z0-9]|$)/;
