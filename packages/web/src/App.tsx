@@ -81,6 +81,7 @@ import { NotificationPopup } from './components/NotificationPopup';
 import { Onboarding } from './components/Onboarding';
 import { NotificationsPage } from './pages/Notifications';
 import { MedicosPage } from './pages/Medicos';
+import { SupportPage } from './pages/Support';
 import { ConquistasPage } from './pages/Conquistas';
 import { initPush } from './push';
 import { syncCreditCosts } from './components/CreditBadge';
@@ -223,10 +224,7 @@ const AppMenu = () => {
     <Divider sx={{ my: 1 }} />
 
     {/* APOIO */}
-    <MenuItem component="a" href="mailto:contato@janocaminho.com.br?subject=Ajuda%20-%20Meus%20Exames" sx={{ mx: 0.5, borderRadius: 1, py: 0.75 }}>
-      <ListItemIcon sx={{ minWidth: 36 }}>❓</ListItemIcon>
-      <ListItemText primaryTypographyProps={{ fontSize: 13, fontWeight: 600 }}>Ajuda & Suporte</ListItemText>
-    </MenuItem>
+    <NavItem to="/suporte" primaryText="Ajuda & Suporte" icon={<span style={{ fontSize: 18 }}>❓</span>} />
     <MenuItem onClick={() => setAboutOpen(true)} sx={{ mx: 0.5, borderRadius: 1, py: 0.75 }}>
       <ListItemIcon sx={{ minWidth: 36 }}>ℹ️</ListItemIcon>
       <ListItemText primaryTypographyProps={{ fontSize: 13, fontWeight: 600 }}>Sobre o app</ListItemText>
@@ -579,6 +577,8 @@ export const App = () => {
       <Route path="/planos" element={<Suspense fallback={<Box sx={{ display:'flex', justifyContent:'center', py: 8 }}><CircularProgress /></Box>}><PlansPage /></Suspense>} />
       <Route path="/medicos" element={<MedicosPage />} />
       <Route path="/conquistas" element={<ConquistasPage />} />
+      <Route path="/suporte" element={<SupportPage />} />
+      <Route path="/suporte/:id" element={<SupportPage />} />
     </CustomRoutes>
   </Admin>
   </>

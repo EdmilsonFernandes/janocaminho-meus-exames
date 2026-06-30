@@ -62,7 +62,7 @@ router.get('/:id', async (req: AuthedRequest, res, next) => {
     const messages = ticket.messages.map((m) => ({
       id: m.id, authorRole: m.authorRole, body: m.body, createdAt: m.createdAt,
       attachments: ((m.attachments as Attachment[] | null) ?? []).map((a, idx) => ({
-        name: a.name, size: a.size, type: a.type, url: `/api/tickets/${ticket.id}/messages/${m.id}/attachments/${idx}`,
+        name: a.name, size: a.size, type: a.type, url: `tickets/${ticket.id}/messages/${m.id}/attachments/${idx}`,
       })),
     }));
     res.json({ ...ticket, unreadByUser: false, messages });
