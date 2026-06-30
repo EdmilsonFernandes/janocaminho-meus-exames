@@ -13,7 +13,7 @@ import { fmtVal, unitSuffix } from '../utils/format';
 import { refLabel, categorize } from '../utils/medicalData';
 import { priorityOf, maxPriority, isStaleExam, refScaleSuspect, PRIORITY_META, PRIORITY_RANK } from '../utils/alertPriority';
 
-interface AbnItem { id: string; examId: string; examTitle: string; performedAt: string | null; requestingDoctor: string | null; name: string; nameCanonical: string; valueText: string; valueNumeric: number | null; unit: string | null; flag: string | null; refText: string | null; refLow: number | null; refHigh: number | null; }
+import type { AbnormalItem as AbnItem } from '@meus-exames/shared';
 
 /** Valores fora da faixa, AGRUPADOS POR EXAME (dentro de cada exame, ordenados por PRIORIDADE). */
 export const ValoresAlteradosPage = () => {

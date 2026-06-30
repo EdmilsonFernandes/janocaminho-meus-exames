@@ -35,7 +35,7 @@ interface Summary {
   metasSaude?: { analito: string; meta: string; prazo?: string | null }[];
   disclaimer?: string;
 }
-interface SourceExam { id: string; title: string; performedAt: string | null; sourceLab: string | null; kind: string }
+import type { SourceExam } from '@meus-exames/shared';
 
 const fmtDate = (d: string | null) => (d ? new Date(d).toLocaleDateString('pt-BR') : 's/d');
 

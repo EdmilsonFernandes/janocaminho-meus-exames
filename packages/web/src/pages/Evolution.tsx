@@ -14,13 +14,7 @@ import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 
-interface EvoItem {
-  nameCanonical: string; unit: string | null; refLow: number | null; refHigh: number | null;
-  firstValue: number; lastValue: number; firstDate: string | null; lastDate: string | null;
-  pctChange: number; direction: 'up' | 'down' | 'stable'; predictMonths: number | null;
-  inRange: boolean; count: number;
-  points: { value: number; date: string | null; flag: string; examId: string; examTitle: string }[];
-}
+import type { EvolutionItem as EvoItem } from '@meus-exames/shared';
 
 const fmtDate = (d: string | null) =>
   d ? new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }) : 's/d';

@@ -9,8 +9,7 @@ import { Flag } from '../components/Flag';
 import { ExplainButton } from '../components/ExplainItem';
 import { PremiumGate } from '../components/PremiumGate';
 
-interface TS { nameCanonical: string; unit: string | null; refLow: number | null; refHigh: number | null;
-  points: { performedAt: string | null; valueNumeric: number; flag: string; title: string }[]; }
+import type { TimeSeriesByName as TS } from '@meus-exames/shared';
 
 /** Title Case pra exibição (ALL CAPS → legível): "CAPACIDADE_LATENTE" → "Capacidade Latente". */
 const prettyName = (n: string) => (n || '').toLowerCase().replace(/_/g, ' ').replace(/(^|\s)\w/g, (m) => m.toUpperCase());
