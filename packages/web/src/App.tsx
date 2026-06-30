@@ -75,6 +75,7 @@ import { DrawerProvider, useAppDrawer } from './components/drawerState';
 import { OfflineBanner } from './components/OfflineBanner';
 import { ForceUpdate } from './components/ForceUpdate';
 import { checkAppUpdate, checkPlayUpdate } from './utils/version';
+import { decideBackAction } from './utils/backNavigation';
 import { NotificationBell } from './components/NotificationBell';
 import { NotificationPopup } from './components/NotificationPopup';
 import { Onboarding } from './components/Onboarding';
@@ -501,24 +502,21 @@ export const App = () => {
             if (ev.defaultPrevented) return;
             // Drawer aberto? → fecha (AppDrawer via drawerState)
             if ((window as any).__drawerOpen) { window.dispatchEvent(new Event('app:closeDrawer')); return; }
-            // Tem histórico IN-APP pra voltar? Sinal confiável: o ÍNDICE REAL do histórico do
-            // react-router (window.history.state.idx), que DIMINUI ao voltar — idx > 0 ⟺ existe
-            // tela anterior. BUG ANTERIOR: usava window.history.length, que NUNCA diminui; após a
-            // 1ª navegação ficava travado em > 1, e history.back() no índice 0 do WebView SAÍA do
-            // app (lançador/Play Store) no gesto de voltar. inAppStack segue como fallback (idx só
-            // é nulo antes da 1ª navegação, na raiz — onde não queremos voltar de qualquer jeito).
-            const hState = window.history.state as { idx?: number } | null;
-            const routerIdx = hState && typeof hState.idx === 'number' ? hState.idx : null;
-            const canGoBack = routerIdx != null ? routerIdx > 0 : inAppStack.length > 1;
-            if (canGoBack) {
-              window.history.back();
-              return;
-            }
-            // Não tá no dashboard? → vai pro dashboard (fica no app, nunca sai).
-            const path = window.location.pathname;
-            if (path !== '/' && path !== '') { window.history.pushState({}, '', '/'); window.dispatchEvent(new PopStateEvent('popstate')); return; }
-            // Já no dashboard (1ª tela) → NÃO sai do app (igual EdEspeto). Engole o back.
-            // O usuário sai pelo botão home do Android.
+            // Decisão (lógica pura, testada em utils/backNavigation.test.ts):
+            //   back     → tem histórico in-app (idx > 0) → volta
+            //   go-home  → sem histórico mas fora da raiz (deep link) → dashboard
+            //   stay     → raiz → engole o back (NUNCA sai do app)
+            // Sinal confiável: window.history.state.idx (índice real do react-router, DIMINUI ao
+            // voltar). BUG ANTERIOR: window.history.length (nunca diminui) → após a 1ª navegação
+            // ficava travado em > 1, e history.back() no índice 0 do WebView SAÍA do app no gesto.
+            const action = decideBackAction({
+              historyState: window.history.state as { idx?: number } | null,
+              pathname: window.location.pathname,
+              inAppStackLength: inAppStack.length,
+            });
+            if (action === 'back') { window.history.back(); return; }
+            if (action === 'go-home') { window.history.pushState({}, '', '/'); window.dispatchEvent(new PopStateEvent('popstate')); return; }
+            // action === 'stay' → já no dashboard: engole o back (sai só pelo botão home do Android).
           });
           remove = () => { h.remove(); };
         }
