@@ -75,22 +75,48 @@ function fuzzyMatchCanonical(normalized: string): string | null {
   return null;
 }
 
+// Indicadores de analito COMPOSTO/DERIVADO: razão, fração, estimativa, espécime
+// urinário, cálcio iônico, anticorpo, enzima (G6PD), "não-HDL"... Esses NÃO podem
+// colapsar no analito-base (G6PD ≠ glicose; anti-HBs ≠ hemoglobina; relação
+// proteína/creatinina ≠ creatinina; HbA2/HbF ≠ hemoglobina total). Boundary de não
+// alfanumérico p/ não casar substring. Texto já normalizado (sem acento, MAIÚSCULAS).
+const COMPOUND_HINT = /(?:^|[^A-Z0-9])(RELACAO|RAZAO|ESTIMAD[AO]|MEDIA ESTIMADA|URINARI[AO]|URINA|IONIC[AO]|IONIZAD[AO]|DESIDROGENASE|FOSFATO|ANTICORPOS|ANTICORPO|NAO|FETAL)(?:[^A-Z0-9]|$)/;
+
+// Hemoglobina como FRAÇÃO eletroforética (HbA, HbA2, HbF, HbS, HbC) — distinta da Hb total.
+const HEMOGLOBIN_FRACTION = /^HEMOGLOBINA\s+[A-Z][0-9]?(?:[^A-Z0-9]|$)/;
+
 /**
  * Devolve a chave canônica de um nome de analito (casa sinônimos entre labs).
- * Dois caminhos:
- *  1) EXATO: o nome inteiro é um sinônimo/canônico conhecido (rápido, sem ambiguidade).
- *  2) FUZZY: o nome real vem com sufixo/qualificador de laboratório — "TGO (AST)",
- *     "TRANSAMINASE OXALACETICA TGO (AST)", "HEMOGLOBINA" dentro de painel etc.
- *     Sem isto, cada laboratório gerava um nameCanonical DIFERENTE pro mesmo analito,
- *     quebrando evolução/tendência (viravam 2 séries) e o roteador do chat (buscava
- *     nameCanonical='TGO' e não achava o item guardado como 'TGO (AST)').
+ * Caminhos (do mais seguro ao mais flexível):
+ *  1) EXATO: o nome inteiro é um sinônimo/canônico conhecido.
+ *  2) SEM PARÊNTESES: "TGO (AST)" -> "TGO", "SEGMENTADOS (ABS)" -> "SEGMENTADOS"
+ *     (sufixo entre parênteses é qualificador do lab, não muda o analito).
+ *  3) FUZZY CONSERVADOR: match por borda/longest-first — mas SÓ se o nome não for um
+ *     analito composto/derivado (guarda acima). Reduz "TRANSAMINASE OXALACETICA TGO"
+ *     -> TGO, "TSH - TIREOESTIMULANTE" -> TSH, "HEMOGLOBINA GLICADA - HBA1C" -> HBA1C.
+ *
+ * Sem isto, cada laboratório gerava um nameCanonical DIFERENTE pro mesmo analito,
+ * quebrando evolução/tendência (viravam 2 séries) e o roteador do chat (buscava
+ * nameCanonical='TGO' e não achava o item guardado como 'TGO (AST)').
  */
 export function canonicalName(raw: string): string {
   const n = normalizeKey(raw);
   if (!n) return n;
+  // 1) exato
   const exact = REVERSE.get(n);
   if (exact) return exact;
-  return fuzzyMatchCanonical(n) ?? n;
+  // 2) descarta sufixo entre parênteses e re-tenta exato
+  const base = n.replace(/\s*\([^)]*\)\s*/g, ' ').replace(/\s+/g, ' ').trim();
+  if (base !== n) {
+    const e2 = REVERSE.get(base);
+    if (e2) return e2;
+  }
+  // 3) fuzzy só p/ nomes que NÃO são analito composto/derivado (evita merge clínico errado)
+  if (!COMPOUND_HINT.test(base) && !HEMOGLOBIN_FRACTION.test(base)) {
+    const f = fuzzyMatchCanonical(base);
+    if (f) return f;
+  }
+  return n;
 }
 
 /** Compara um valor numérico à faixa de referência e devolve a flag. */

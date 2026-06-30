@@ -39,6 +39,35 @@ describe('canonicalName — reduz nomes de lab ao canônico (casa sinônimos ent
     expect(canonicalName('Papanicolaou')).toBe(normalizeKey('Papanicolaou'));
     expect(canonicalName('VHS')).toBe('VHS');
   });
+
+  it('continua reduzindo qualificadores DEscrição do mesmo analito (não-compostos)', () => {
+    expect(canonicalName('TSH - TIREOESTIMULANTE')).toBe('TSH');
+    expect(canonicalName('HEMOGLOBINA GLICADA - HBA1C')).toBe('HEMOGLOBINA_GLICADA');
+    expect(canonicalName('VITAMINA B12')).toBe('VITAMINA_B12');
+    expect(canonicalName('SEGMENTADOS (ABS)')).toBe('NEUTROFILOS');
+    expect(canonicalName('TRANSAMINASE OXALACETICA TGO (AST)')).toBe('TGO');
+  });
+});
+
+describe('canonicalName — NÃO colapsa analito composto/derivado no analito-base', () => {
+  // Casos pegos no dry-run de produção que o fuzzy ingênuo fundiria errado (clinicamente).
+  const keep = (s: string) => canonicalName(s);
+  it('G6PD, não-HDL, razões, eAG, cálcio iônico, urinário, anticorpo', () => {
+    expect(keep('GLICOSE 6 FOSFATO DESIDROGENASE')).toBe(normalizeKey('GLICOSE 6 FOSFATO DESIDROGENASE'));
+    expect(keep('COLESTEROL NAO HDL')).toBe(normalizeKey('COLESTEROL NAO HDL'));
+    expect(keep('RELACAO PROTEINA/CREATININA')).toBe(normalizeKey('RELACAO PROTEINA/CREATININA'));
+    expect(keep('RELACAO ALBUMINA/CREATININA')).toBe(normalizeKey('RELACAO ALBUMINA/CREATININA'));
+    expect(keep('GLICEMIA MEDIA ESTIMADA')).toBe(normalizeKey('GLICEMIA MEDIA ESTIMADA'));
+    expect(keep('CALCIO IONICO')).toBe(normalizeKey('CALCIO IONICO'));
+    expect(keep('CALCIO IONICO/LIVRE')).toBe(normalizeKey('CALCIO IONICO/LIVRE'));
+    expect(keep('CREATININA URINARIA')).toBe(normalizeKey('CREATININA URINARIA'));
+    expect(keep('ANTICORPOS ANTI-HBS')).toBe(normalizeKey('ANTICORPOS ANTI-HBS'));
+  });
+  it('frações de hemoglobina (HbA/HbA2/HbF) ≠ hemoglobina total', () => {
+    expect(keep('HEMOGLOBINA A')).toBe(normalizeKey('HEMOGLOBINA A'));
+    expect(keep('HEMOGLOBINA A2')).toBe(normalizeKey('HEMOGLOBINA A2'));
+    expect(keep('HEMOGLOBINA FETAL')).toBe(normalizeKey('HEMOGLOBINA FETAL'));
+  });
 });
 
 describe('findMarkerInText — acha o analito numa pergunta livre', () => {

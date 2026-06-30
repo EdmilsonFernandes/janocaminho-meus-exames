@@ -36,8 +36,8 @@ async function main() {
     const k = `${c.old}  ->  ${c.neu}`;
     groups.set(k, (groups.get(k) ?? 0) + 1);
   }
-  console.log(`[backfill] ${changes.length} de ${items.length} itens mudariam de nameCanonical. Top alterações:`);
-  [...groups.entries()].sort((a, b) => b[1] - a[1]).slice(0, 40).forEach(([k, n]) => console.log(`   ${String(n).padStart(4)}  ${k}`));
+  console.log(`[backfill] ${changes.length} de ${items.length} itens mudariam de nameCanonical. TODAS as alterações (antigo -> novo):`);
+  [...groups.entries()].sort((a, b) => b[1] - a[1]).forEach(([k, n]) => console.log(`   ${String(n).padStart(4)}  ${k}`));
 
   if (!apply) {
     console.log('[backfill] DRY-RUN: nada persistido.');
