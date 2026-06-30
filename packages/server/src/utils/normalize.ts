@@ -57,10 +57,40 @@ for (const [canon, variants] of Object.entries(SYNONYMS)) {
   for (const v of variants) REVERSE.set(normalizeKey(v), canon);
 }
 
-/** Devolve a chave canônica de um nome de analito (casa sinônimos entre labs). */
+// Pré-computa 1x os padrões de match FUZZY: todas as chaves (canônicas + sinônimos)
+// com >=3 chars alfanuméricos, ordenadas do MAIOR pro menor — assim "HEMOGLOBINA GLICADA"
+// casa antes de "HEMOGLOBINA", e "TRANSAMINASE OXALACETICA TGO" não para no 1o token.
+// Usado por canonicalName (sufixos de lab) e findMarkerInText (perguntas do chat).
+const FUZZY_PATTERNS: { canon: string; re: RegExp }[] = [...REVERSE.keys()]
+  .filter((k) => k.replace(/[^A-Z0-9]/g, '').length >= 3)
+  .sort((a, b) => b.length - a.length)
+  .map((k) => ({
+    canon: REVERSE.get(k)!,
+    re: new RegExp(`(^|[^A-Z0-9])${k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^A-Z0-9]|$)`),
+  }));
+
+/** Procura o analito canônico cujo nome/sinônimo aparece no texto (borda + longest-first). */
+function fuzzyMatchCanonical(normalized: string): string | null {
+  for (const p of FUZZY_PATTERNS) if (p.re.test(normalized)) return p.canon;
+  return null;
+}
+
+/**
+ * Devolve a chave canônica de um nome de analito (casa sinônimos entre labs).
+ * Dois caminhos:
+ *  1) EXATO: o nome inteiro é um sinônimo/canônico conhecido (rápido, sem ambiguidade).
+ *  2) FUZZY: o nome real vem com sufixo/qualificador de laboratório — "TGO (AST)",
+ *     "TRANSAMINASE OXALACETICA TGO (AST)", "HEMOGLOBINA" dentro de painel etc.
+ *     Sem isto, cada laboratório gerava um nameCanonical DIFERENTE pro mesmo analito,
+ *     quebrando evolução/tendência (viravam 2 séries) e o roteador do chat (buscava
+ *     nameCanonical='TGO' e não achava o item guardado como 'TGO (AST)').
+ */
 export function canonicalName(raw: string): string {
   const n = normalizeKey(raw);
-  return REVERSE.get(n) ?? n;
+  if (!n) return n;
+  const exact = REVERSE.get(n);
+  if (exact) return exact;
+  return fuzzyMatchCanonical(n) ?? n;
 }
 
 /** Compara um valor numérico à faixa de referência e devolve a flag. */
@@ -89,17 +119,7 @@ export function parseNumeric(valueText?: string | null): number | null {
 export function findMarkerInText(text: string): string | null {
   const n = normalizeKey(text);
   if (!n) return null;
-  // testa do token mais longo pro mais curto (prioriza "HEMOGLOBINA GLICADA" > "HEMOGLOBINA").
-  // ignora sinônimos < 3 chars alfanuméricos (K, CA, NA, MG...) — colidem com palavras comuns do PT.
-  const candidates = [...REVERSE.keys()]
-    .filter((k) => k.replace(/[^A-Z0-9]/g, '').length >= 3)
-    .sort((a, b) => b.length - a.length);
-  for (const k of candidates) {
-    const needle = k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    // borda de não-alfanumérico p/ não casar substring ("LDL" não casa dentro de "LDLC")
-    if (new RegExp(`(^|[^A-Z0-9])${needle}([^A-Z0-9]|$)`).test(n)) {
-      return REVERSE.get(k) ?? null;
-    }
-  }
-  return null;
+  // delega pro mesmo fuzzy match de canonicalName (boundary-aware, longest-first,
+  // ignora sinônimos < 3 chars alfanuméricos p/ não colidir com palavras comuns do PT).
+  return fuzzyMatchCanonical(n);
 }

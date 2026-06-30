@@ -91,15 +91,21 @@ router.post('/', async (req: AuthedRequest, res, next) => {
           .join('\n')
       : '(nenhum exame extraído ainda)';
 
-    // CRUZAMENTO: mesmos analitos alterados ao longo do tempo → a IA usa pra evolução/comparação/tendência.
+    // CRUZAMENTO: mesmos analitos ao longo do tempo → a IA usa pra evolução/comparação/tendência.
+    // DEDUP por (analito + dia): 2 exames no mesmo dia (reenvio / painel sobreposto) não viram
+    // 2 pontos — recent[] vem em performedAt desc, então o 1º a aparecer é o mais recente.
     const byAnalyte = new Map<string, { name: string; pts: string[] }>();
+    const trendSeen = new Set<string>();
     for (const e of recent) {
       const dt = fmtDate(e.performedAt as Date | null);
       for (const it of (e.items as any[])) {
         const k = it.nameCanonical || it.name;
-        const entry = byAnalyte.get(k) ?? { name: it.name, pts: [] as string[] };
-        entry.pts.push(`${fmtVal(it)}${it.unit ? ' ' + it.unit : ''} (${dt})`);
-        byAnalyte.set(k, entry);
+        if (!trendSeen.has(`${k}|${dt}`)) {
+          trendSeen.add(`${k}|${dt}`);
+          const entry = byAnalyte.get(k) ?? { name: it.name, pts: [] as string[] };
+          entry.pts.push(`${fmtVal(it)}${it.unit ? ' ' + it.unit : ''} (${dt})`);
+          byAnalyte.set(k, entry);
+        }
       }
     }
     const trendBlock = [...byAnalyte.values()].map((v) => `   • ${v.name}: ${v.pts.join('  →  ')}`).join('\n');

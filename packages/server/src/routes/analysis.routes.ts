@@ -10,6 +10,24 @@ import { chargeCredits, CREDIT_COSTS } from '../utils/credits';
 const router = Router();
 router.use(requireAuth);
 
+// DEDUP por (data + título normalizado): exame reenviado (arquivo diferente, mesmo conteúdo)
+// ou painel duplicado não vira 2 linhas no relatório — keep o mais recente. Antes o take:5
+// listava ~4 entradas repetidas do mesmo dia quando o paciente re-enviava o exame.
+type SourceExam = { id: string; title: string; performedAt: Date | null; sourceLab: string | null; kind: string };
+function dedupSourceExams(exams: SourceExam[]): SourceExam[] {
+  const norm = (s: string) => (s ?? '').toUpperCase().normalize('NFD').replace(/\p{Diacritic}/gu, '').replace(/[^A-Z0-9]/g, ' ').replace(/\s+/g, ' ').trim();
+  const seen = new Set<string>();
+  const out: SourceExam[] = [];
+  for (const e of exams) {
+    const day = e.performedAt ? new Date(e.performedAt).toISOString().slice(0, 10) : 's/d';
+    const key = `${day}|${norm(e.title)}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(e);
+  }
+  return out;
+}
+
 // CRIAR resumo de um exame (SUMMARY)
 router.post('/', async (req: AuthedRequest, res, next) => {
   try {
@@ -62,12 +80,12 @@ router.post('/consolidated', async (req: AuthedRequest, res, next) => {
       return;
     }
     // exames que serviram de base (mostrados no relatório + na impressão)
-    const sourceExams = await prisma.exam.findMany({
+    const sourceExams = dedupSourceExams(await prisma.exam.findMany({
       where: { patientId, status: 'EXTRACTED' },
       orderBy: { performedAt: 'desc' },
-      take: 5,
+      take: 20,
       select: { id: true, title: true, performedAt: true, sourceLab: true, kind: true },
-    });
+    })).slice(0, 5);
     // dedup: se já existe resumo consolidado há menos de 1h, devolve (economiza tokens)
     const recent = await prisma.aiAnalysis.findFirst({
       where: { patientId, type: 'SUMMARY', examId: null, createdAt: { gt: new Date(Date.now() - 3600_000) } },
@@ -108,12 +126,12 @@ router.get('/consolidated/latest', async (req: AuthedRequest, res, next) => {
     const pids = await userPatientIds(req.userId!);
     const patientId = String(req.query.patientId ?? '');
     if (!patientId || !pids.includes(patientId)) { res.json({ analysis: null, sourceExams: [] }); return; }
-    const sourceExams = await prisma.exam.findMany({
+    const sourceExams = dedupSourceExams(await prisma.exam.findMany({
       where: { patientId, status: 'EXTRACTED' },
       orderBy: { performedAt: 'desc' },
-      take: 5,
+      take: 20,
       select: { id: true, title: true, performedAt: true, sourceLab: true, kind: true },
-    });
+    })).slice(0, 5);
     const last = await prisma.aiAnalysis.findFirst({ where: { patientId, type: 'SUMMARY', examId: null }, orderBy: { createdAt: 'desc' } });
     res.json({ analysis: last, sourceExams });
   } catch (e) { next(e); }

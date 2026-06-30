@@ -48,11 +48,23 @@ router.get('/timeseries', async (req: AuthedRequest, res, next) => {
     };
     const rows = await prisma.examItem.findMany({
       where,
-      include: { exam: { select: { id: true, performedAt: true, title: true } } },
+      include: { exam: { select: { id: true, performedAt: true, title: true, createdAt: true } } },
       orderBy: { exam: { performedAt: 'asc' } },
     });
-    const points = rows
-      .filter((r) => r.valueNumeric != null)
+    // DEDUP por dia: 2 exames no mesmo dia com o mesmo analito (reenvio de arquivo, ou
+    // hemograma + painel amplo sobreposto) viram 1 ponto só — keep o do exame cujo
+    // upload/extração é mais recente (createdAt maior). Sem isto a curva mostra duplicados.
+    const byDay = new Map<string, (typeof rows)[number]>();
+    for (const r of rows) {
+      if (r.valueNumeric == null) continue;
+      const day = r.exam.performedAt ? new Date(r.exam.performedAt).toDateString() : 's/d';
+      const prev = byDay.get(day);
+      if (!prev || new Date(r.exam.createdAt).getTime() > new Date(prev.exam.createdAt).getTime()) {
+        byDay.set(day, r);
+      }
+    }
+    const points = [...byDay.values()]
+      .sort((a, b) => new Date(a.exam.performedAt ?? 0).getTime() - new Date(b.exam.performedAt ?? 0).getTime())
       .map((r) => ({
         examId: r.exam.id,
         performedAt: r.exam.performedAt,
