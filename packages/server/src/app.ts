@@ -32,6 +32,7 @@ import adminRoutes from './routes/admin.routes';
 import doctorRoutes from './routes/doctor.routes';
 import doctorShareRoutes from './routes/doctor-share.routes';
 import achievementRoutes from './routes/achievement.routes';
+import ticketRoutes from './routes/ticket.routes';
 
 export const app = express();
 // trust proxy: o container corre atrás de nginx/docker — sem isso o rate-limit
@@ -159,6 +160,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/doctor', doctorRoutes);
 app.use('/api/doctor-shares', doctorShareRoutes);
 app.use('/api/achievements', achievementRoutes);
+app.use('/api/tickets', ticketRoutes); // chamados de suporte do paciente (admin gerencia em /api/admin/tickets)
 
 // ROTA PÚBLICA: médico vê o resumo compartilhado (sem login, expira em 3 dias)
 app.get('/api/public/shared/:token', async (req, res) => {

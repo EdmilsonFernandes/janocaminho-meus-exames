@@ -547,18 +547,39 @@ model Payment {
   @@map("payments")
 }
 
-// Chamado de suporte (backoffice).
+// Chamado de suporte (paciente abre, admin responde — estilo Zendesk).
 model SupportTicket {
-  id         String    @id @default(cuid())
-  userId     String
-  subject    String
-  status     String    @default("open") // open | pending | closed
-  priority   String    @default("normal") // low | normal | high
-  assigneeId String?   // admin id
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  closedAt   DateTime?
+  id            String          @id @default(cuid())
+  number        Int             @unique @default(autoincrement()) // "#1234" (Postgres SERIAL)
+  userId        String
+  category      String?         // assunto pré-definido (ex.: "Erro no app")
+  subject       String
+  status        String          @default("open") // open | pending | closed
+  priority      String          @default("normal") // low | normal | high
+  assigneeId    String?         // admin id
+  lastMessageBy String?         // 'user' | 'admin' (quem mandou a última msg)
+  lastMessageAt DateTime?
+  unreadByAdmin Boolean         @default(false) // usuário respondeu, admin não leu
+  unreadByUser  Boolean         @default(false) // admin respondeu, usuário não leu
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  closedAt      DateTime?
+  messages      TicketMessage[]
   @@index([status, updatedAt])
   @@index([userId, createdAt])
   @@map("support_tickets")
+}
+
+// Mensagem de uma thread de suporte (autor = user ou admin).
+model TicketMessage {
+  id          String         @id @default(cuid())
+  ticketId    String
+  authorRole  String         // 'user' | 'admin'
+  authorId    String?        // userId (autor) ou id do admin
+  body        String
+  attachments Json?          // [{ref,name,size,type}] — refs resolvidos via storage (S3/disk)
+  createdAt   DateTime       @default(now())
+  ticket      SupportTicket  @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  @@index([ticketId, createdAt])
+  @@map("ticket_messages")
 }
