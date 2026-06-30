@@ -1,10 +1,14 @@
 import { Router } from 'express';
+import fs from 'fs';
+import path from 'path';
 import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest } from '../middleware/auth';
 import { getSettings, saveSettings, type SettingCategory } from '../utils/settings';
-import { deleteExamFile } from '../utils/storage';
+import { deleteExamFile, saveExamFile, resolveExamFile } from '../utils/storage';
 import { listBlockedDomains, addBlockedDomain, removeBlockedDomain, syncBlockedDomains } from '../utils/blockedDomains';
-import { sendPush, PUSH_TOPIC } from '../utils/push';
+import { sendPush, sendPushToUser, PUSH_TOPIC } from '../utils/push';
+import { sendEmail } from '../utils/mailer';
+import { upload } from '../middleware/upload';
 import { audit } from '../utils/audit';
 
 const router = Router();
@@ -320,24 +324,106 @@ router.get('/push/campaigns', async (_req, res, next) => {
   try { res.json({ campaigns: await prisma.pushCampaign.findMany({ orderBy: { createdAt: 'desc' }, take: 30 }) }); } catch (e) { next(e); }
 });
 
-// SUPPORT TICKETS — listar + abrir chamado.
-router.get('/tickets', async (_req, res, next) => {
+// SUPPORT TICKETS — fila do backoffice: lista (user + não-lidos), thread, responder (notifica usuário), status.
+router.get('/tickets', async (req, res, next) => {
   try {
-    const [tickets, openCount] = await Promise.all([
-      prisma.supportTicket.findMany({ orderBy: { createdAt: 'desc' }, take: 50 }),
+    const status = req.query.status as string | undefined;
+    const where: any = {};
+    if (status && ['open', 'pending', 'closed'].includes(status)) where.status = status;
+    const [tickets, openCount, unreadByAdmin] = await Promise.all([
+      prisma.supportTicket.findMany({ where, orderBy: { updatedAt: 'desc' }, take: 100 }),
       prisma.supportTicket.count({ where: { status: 'open' } }),
+      prisma.supportTicket.count({ where: { unreadByAdmin: true } }),
     ]);
-    res.json({ tickets, openCount });
+    const userIds = [...new Set(tickets.map((t) => t.userId))];
+    const users = userIds.length ? await prisma.user.findMany({ where: { id: { in: userIds } }, select: { id: true, name: true, email: true } }) : [];
+    const userMap = new Map(users.map((u) => [u.id, u]));
+    res.json({ tickets: tickets.map((t) => ({ ...t, user: userMap.get(t.userId) ?? null })), openCount, unreadByAdmin });
   } catch (e) { next(e); }
 });
+// admin cria chamado manualmente (mantém compat; o paciente cria via /api/tickets)
 router.post('/tickets', async (req: AuthedRequest, res, next) => {
   try {
     const userId = String(req.body?.userId ?? '');
     const subject = String(req.body?.subject ?? '').trim();
     if (!userId || !subject) { res.status(400).json({ error: 'userId e subject são obrigatórios' }); return; }
-    const t = await prisma.supportTicket.create({ data: { userId, subject, priority: String(req.body?.priority ?? 'normal') } });
+    const t = await prisma.supportTicket.create({ data: { userId, subject, priority: String(req.body?.priority ?? 'normal'), unreadByAdmin: false } });
     void audit('CREATE_TICKET', req, { targetType: 'TICKET', targetId: t.id });
     res.json({ ok: true, id: t.id });
+  } catch (e) { next(e); }
+});
+// ver thread completa + dados do usuário (URL do anexo aponta pro endpoint admin)
+router.get('/tickets/:id', async (req, res, next) => {
+  try {
+    const ticket = await prisma.supportTicket.findUnique({
+      where: { id: String(req.params.id) },
+      include: { messages: { orderBy: { createdAt: 'asc' } } },
+    });
+    if (!ticket) { res.status(404).json({ error: 'Chamado não encontrado' }); return; }
+    if (ticket.unreadByAdmin) await prisma.supportTicket.update({ where: { id: ticket.id }, data: { unreadByAdmin: false } });
+    const user = await prisma.user.findUnique({ where: { id: ticket.userId }, select: { id: true, name: true, email: true } });
+    const messages = ticket.messages.map((m) => ({
+      id: m.id, authorRole: m.authorRole, body: m.body, createdAt: m.createdAt,
+      attachments: ((m.attachments as any[] | null) ?? []).map((a, idx) => ({ name: a.name, size: a.size, type: a.type, url: `admin/tickets/${ticket.id}/messages/${m.id}/attachments/${idx}` })),
+    }));
+    res.json({ ...ticket, user, unreadByAdmin: false, messages });
+  } catch (e) { next(e); }
+});
+// admin responde (multipart: message + files[]) → notifica usuário (push + email + in-app) + status 'pending'
+router.post('/tickets/:id/messages', upload.array('files', 5), async (req: AuthedRequest, res, next) => {
+  try {
+    const ticket = await prisma.supportTicket.findUnique({ where: { id: String(req.params.id) }, select: { id: true, number: true, userId: true } });
+    if (!ticket) { res.status(404).json({ error: 'Chamado não encontrado' }); return; }
+    const user = await prisma.user.findUnique({ where: { id: ticket.userId }, select: { email: true, name: true } });
+    const body = String(req.body.message ?? '').trim();
+    const files = req.files as Express.Multer.File[] | undefined;
+    if (!body && !files?.length) { res.status(400).json({ error: 'Mensagem ou anexo obrigatório.' }); return; }
+    const attachments: any[] = [];
+    if (files?.length) for (const f of files.slice(0, 5)) {
+      const ref = await saveExamFile(f.buffer, `tickets-${ticket.number}`, f.originalname, f.mimetype);
+      attachments.push({ ref, name: f.originalname, size: f.size, type: f.mimetype });
+    }
+    const msg = await prisma.ticketMessage.create({ data: { ticketId: ticket.id, authorRole: 'admin', authorId: req.userId, body: body || '(anexo)', attachments: attachments.length ? attachments : undefined } });
+    await prisma.supportTicket.update({ where: { id: ticket.id }, data: { status: 'pending', lastMessageBy: 'admin', lastMessageAt: new Date(), unreadByUser: true, closedAt: null } });
+    void audit('REPLY_TICKET', req, { targetType: 'TICKET', targetId: ticket.id });
+    // notifica o usuário: push (grava Notification + FCM) + e-mail
+    const preview = body ? (body.length > 80 ? body.slice(0, 80) + '…' : body) : 'O suporte enviou um anexo.';
+    void sendPushToUser(ticket.userId, `Chamado #${ticket.number}`, preview, { type: 'ticket', ticketId: ticket.id }).catch(() => {});
+    if (user?.email) {
+      void sendEmail({
+        to: user.email, subject: `Seu chamado #${ticket.number} teve uma resposta`,
+        html: `<p>Olá${user.name ? ', ' + user.name : ''}!</p><p>O suporte respondeu seu chamado <strong>#${ticket.number}</strong>:</p><blockquote>${(body || '(anexo)').replace(/</g, '&lt;')}</blockquote><p>Abra o app → Ajuda & Suporte para ver e responder.</p>`,
+        text: `O suporte respondeu seu chamado #${ticket.number}: ${body || '(anexo)'}`,
+      }).catch(() => {});
+    }
+    res.status(201).json({ id: msg.id, createdAt: msg.createdAt });
+  } catch (e) { next(e); }
+});
+// mudar status / assignee / priority
+router.patch('/tickets/:id', async (req: AuthedRequest, res, next) => {
+  try {
+    const data: any = {};
+    const status = String(req.body.status ?? '');
+    if (['open', 'pending', 'closed'].includes(status)) { data.status = status; data.closedAt = status === 'closed' ? new Date() : null; }
+    if (req.body.assigneeId !== undefined) data.assigneeId = req.body.assigneeId ? String(req.body.assigneeId) : null;
+    if (['low', 'normal', 'high'].includes(req.body.priority)) data.priority = String(req.body.priority);
+    if (!Object.keys(data).length) { res.status(400).json({ error: 'Nada para atualizar (status | assigneeId | priority).' }); return; }
+    const t = await prisma.supportTicket.update({ where: { id: String(req.params.id) }, data });
+    void audit('UPDATE_TICKET', req, { targetType: 'TICKET', targetId: t.id });
+    res.json({ ok: true });
+  } catch (e) { next(e); }
+});
+// download de anexo (admin vê anexos do usuário)
+router.get('/tickets/:id/messages/:messageId/attachments/:idx', async (req, res, next) => {
+  try {
+    const msg = await prisma.ticketMessage.findUnique({ where: { id: String(req.params.messageId) }, select: { ticketId: true, attachments: true } });
+    if (!msg || msg.ticketId !== String(req.params.id)) { res.status(404).json({ error: 'Não encontrado' }); return; }
+    const att = ((msg.attachments as any[] | null) ?? [])[Number(req.params.idx)];
+    if (!att) { res.status(404).json({ error: 'Anexo não encontrado' }); return; }
+    const r = await resolveExamFile(att.ref);
+    if (r.kind === 'url') { res.redirect(302, r.url as string); return; }
+    if (r.file && fs.existsSync(r.file)) { res.sendFile(path.resolve(r.file)); return; }
+    res.status(404).json({ error: 'Arquivo não disponível' });
   } catch (e) { next(e); }
 });
 

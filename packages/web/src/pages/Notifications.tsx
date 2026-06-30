@@ -11,6 +11,7 @@ const TYPE_META: Record<string, { emoji: string; color: string }> = {
   trend: { emoji: '📈', color: '#f59e0b' },
   reminder: { emoji: '📅', color: '#0ea5e9' },
   info: { emoji: '✨', color: '#20b2aa' },
+  ticket: { emoji: '💬', color: '#178f89' },
 };
 const fmtDt = (d: string) => new Date(d).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 
@@ -41,7 +42,7 @@ export const NotificationsPage = () => {
           {items.map((n) => {
             const m = TYPE_META[n.type] ?? TYPE_META.info;
             return (
-              <Card key={n.id} variant="outlined" onClick={() => { if (n.data?.examId) navigate(`/exams/${n.data.examId}/show`); }} sx={{ cursor: n.data?.examId ? 'pointer' : 'default', borderColor: n.read ? 'divider' : `${m.color}55`, borderLeft: `4px solid ${m.color}`, opacity: n.read ? 0.7 : 1 }}>
+              <Card key={n.id} variant="outlined" onClick={() => { if (n.data?.examId) navigate(`/exams/${n.data.examId}/show`); else if (n.data?.ticketId) navigate(`/suporte/${n.data.ticketId}`); }} sx={{ cursor: (n.data?.examId || n.data?.ticketId) ? 'pointer' : 'default', borderColor: n.read ? 'divider' : `${m.color}55`, borderLeft: `4px solid ${m.color}`, opacity: n.read ? 0.7 : 1 }}>
                 <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
                   <Stack direction="row" alignItems="flex-start" spacing={1}>
                     <Box sx={{ fontSize: 18 }}>{m.emoji}</Box>
