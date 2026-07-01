@@ -49,27 +49,31 @@ vi.mock('../src/extraction/pipeline', () => ({
 }));
 
 // IA de saúde: respostas canned.
-vi.mock('../src/analysis/health-summary', () => ({
-  generateHealthSummary: vi.fn().mockResolvedValue({
-    summary: { overall: 'ok' },
-    contentMd: '# Resumo de teste',
-    modelUsed: 'glm-4.6',
-    usage: { input_tokens: 10, output_tokens: 20 },
-  }),
-  generateConsolidatedSummary: vi.fn().mockResolvedValue({
-    summary: { overall: 'ok' },
-    contentMd: '# Relatório consolidado de teste',
-    modelUsed: 'glm-4.6',
-    usage: { input_tokens: 30, output_tokens: 40 },
-  }),
-  loadExamContext: vi.fn().mockResolvedValue({
-    title: 'Hemograma',
-    kind: 'LAB_PANEL',
-    items: [],
-    patient: { clinicalProfile: '' },
-  }),
-  renderSummaryMd: vi.fn().mockReturnValue('# md'),
-}));
+vi.mock('../src/analysis/health-summary', async (importOriginal) => {
+  const actual: any = await importOriginal();
+  return {
+    ...actual, // preserva exports reais (ex.: coerceComparativo) — só sobrescreve o que segue
+    generateHealthSummary: vi.fn().mockResolvedValue({
+      summary: { overall: 'ok' },
+      contentMd: '# Resumo de teste',
+      modelUsed: 'glm-4.6',
+      usage: { input_tokens: 10, output_tokens: 20 },
+    }),
+    generateConsolidatedSummary: vi.fn().mockResolvedValue({
+      summary: { overall: 'ok' },
+      contentMd: '# Relatório consolidado de teste',
+      modelUsed: 'glm-4.6',
+      usage: { input_tokens: 30, output_tokens: 40 },
+    }),
+    loadExamContext: vi.fn().mockResolvedValue({
+      title: 'Hemograma',
+      kind: 'LAB_PANEL',
+      items: [],
+      patient: { clinicalProfile: '' },
+    }),
+    renderSummaryMd: vi.fn().mockReturnValue('# md'),
+  };
+});
 
 // Chat SSE: encerra a resposta e devolve texto canned.
 vi.mock('../src/analysis/chat', () => ({

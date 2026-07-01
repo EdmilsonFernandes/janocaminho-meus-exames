@@ -5,7 +5,31 @@ import { prisma } from '../prisma';
 import { HEALTH_SYSTEM, diagnosticGuard } from './system';
 import { JSON_SUFFIX, extractJsonObject } from '../utils/json';
 import { patientSlug, memoryDigest, appendPatientMemory, saveFullReport } from './agent-memory';
-import { buildCurrentHealthSummary, formatSnapshotContext } from './health-state';
+import { buildCurrentHealthSummary, formatSnapshotContext, type MarkerState } from './health-state';
+import { normalizeKey } from '../utils/normalize';
+
+/**
+ * PÓS-COERÇÃO (anti-alucinação): substitui os valores que a IA escreveu no comparativo pelos
+ * REAIS do banco (MarkerState do snapshot). A IA só interpreta; os números vêm do DB. Previne
+ * "TSH 3" quando o real é "2,75". Casa comparativo.name com marker por name/nameCanonical
+ * (includes bidirecional após normalizeKey). Função PURA — testável isoladamente.
+ */
+export function coerceComparativo(summary: HealthSummary, markers: MarkerState[]): HealthSummary {
+  if (!Array.isArray(summary.comparativo) || !summary.comparativo.length || !markers.length) return summary;
+  return {
+    ...summary,
+    comparativo: summary.comparativo.map((c) => {
+      const cn = normalizeKey(c.name ?? '');
+      if (!cn) return c;
+      const m = markers.find((mm) => {
+        const a = normalizeKey(mm.name), b = normalizeKey(mm.nameCanonical);
+        return cn === a || cn === b || (a && (a.includes(cn) || cn.includes(a))) || (b && (b.includes(cn) || cn.includes(b)));
+      });
+      if (m) return { ...c, atual: m.latest.valueText ?? c.atual ?? null, anterior: m.prior?.valueText ?? c.anterior ?? null };
+      return c;
+    }),
+  };
+}
 
 /** Resumo CONSOLIDADO: junta os últimos exames (sangue/imagem/laudo) num documento único — "segunda opinião documental". */
 export async function generateConsolidatedSummary(patientId: string, audience: 'patient' | 'doctor' = 'patient'): Promise<{ summary: HealthSummary; contentMd: string; modelUsed: string; usage: any }> {
@@ -45,7 +69,8 @@ export async function generateConsolidatedSummary(patientId: string, audience: '
         `REGRAS DE PESO TEMPORAL (obrigatórias):\n` +
         `- Baseie o quadro atual no ESTADO ATUAL; use TENDÊNCIAS só pra indicar direção/mudança.\n` +
         `- NUNCA conclua tendência de marcador marcado [confiança baixa] ou [DESATUALIZADO] sem ≥2 exames recentes.\n` +
-        `- Sem exame recente de um marcador? sugira refazer com o médico — não invente conclusão.\n\n` +
+        `- Sem exame recente de um marcador? sugira refazer com o médico — não invente conclusão.\n` +
+        `- VALORES NUMÉRICOS (OBRIGATÓRIO): cite APENAS os números do ESTADO ATUAL/TENDÊNCIAS abaixo. NUNCA arredonde (2,75 NÃO vira "3" nem "2,8"), NUNCA estime, NUNCA invente. Se não há valor, escreva "sem dado".\n\n` +
         `PACIENTE: ${patient.fullName}\n` +
         `Score atual: ${snapshot.score ?? '—'}/100 em ${snapshot.markers} marcador(es). Distribuição: ${JSON.stringify(snapshot.byPriority)}.\n` +
         perfilText + '\n' + memoryText +
@@ -80,7 +105,10 @@ export async function generateConsolidatedSummary(patientId: string, audience: '
   const text = (response.content as any[]).filter((b) => b.type === 'text').map((b) => b.text).join('');
   const json = extractJsonObject(text);
   const z = HealthSummarySchema.safeParse(json);
-  const summary = (z.success ? z.data : json) as HealthSummary;
+  let summary = (z.success ? z.data : json) as HealthSummary;
+  // PÓS-COERÇÃO (anti-alucinação): substitui os valores da IA pelos REAIS do banco (snapshot).
+  // Função pura coerceComparativo — testada em health-summary.test.ts.
+  summary = coerceComparativo(summary, [...snapshot.topAttention, ...snapshot.improving, ...snapshot.worsening, ...snapshot.stale]);
   let contentMd = renderSummaryMd(summary);
   contentMd = diagnosticGuard(contentMd).text;
   appendPatientMemory(slug, `Relatório consolidado (${snapshot.markers} marcadores)`,
