@@ -12,15 +12,15 @@ Documentação modular — **não** carregada toda sessão (contexto leve); ler 
 - [`TASK_RULES.md`](.claude/TASK_RULES.md) — pipeline de tarefa + validação + definição de "concluído".
 
 ## Workflow do Agente (SEMPRE seguir)
-1. **Procurar resposta**: Graphify (`graphify query "<pergunta>"`) → se não achar → Context7 (docs de libs) → Serena (análise de código) → AI token (relay Z.ai, se precisar raciocínio extra).
+1. **Procurar resposta**: Graphify CLI/skill (`graphify query "<pergunta>"`, `graphify explain "<nó>"`, `graphify path "<A>" "<B>"`) → se não achar → Context7 (docs de libs) → Serena (análise de código) → AI token (relay Z.ai, se precisar raciocínio extra).
 2. **Planejar trabalho complexo**: usar GSD (`gsd` no terminal) pra milestones/slices/tasks → depois implementar aqui.
 3. **No início de cada sessão**: ler CLAUDE.md (auto) + `.ai/SKILL.md` + memories (auto).
 4. **Antes de commitar**: typecheck + testes (ver tabela abaixo) + confirmar deploy.
 5. **Ferramentas disponíveis**:
-   - **Graphify**: knowledge graph do projeto → `graphify query` pra achar código/relações.
-   - **Serena**: análise semântica de código → `.serena/project.yml`.
-   - **Context7**: documentação atualizada de qualquer lib/framework (npm, MUI, React, etc.).
-   - **GSD**: agente de planejamento + workflow autônomo → `gsd` no terminal.
+   - **Graphify**: CLI/skill com knowledge graph em `graphify-out/` → `query`/`explain`/`path` para código/relações. Não está declarado como MCP em `.mcp.json`.
+   - **Serena**: MCP do projeto para análise semântica de código → `.mcp.json` + `.serena/project.yml`.
+   - **Context7**: MCP global para documentação atualizada de libs/frameworks.
+   - **GSD**: MCP/CLI global para planejamento quando autenticado; fallback = plano nativo do agente.
 
 ## Stack (NÃO MUDAR)
 - **Node 20** + Prisma 6 (não 7) + Capacitor 7 (não 8) + react-admin 5.14 + MUI ^7 (não 9)
