@@ -319,7 +319,7 @@ const AppDrawer = () => {
             <Typography sx={{ fontWeight: 800, fontSize: 16, color: 'text.primary', lineHeight: 1.15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{userName || 'Olá!'}</Typography>
             <Typography sx={{ fontSize: 12.5, color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{isPremium ? '👑 Premium' : 'Plano grátis'}{userObj?.credits != null ? ` • 💎 ${userObj.credits}` : ''}</Typography>
             {credits != null && (
-              <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 0.25 }}>
+              <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 0.25, flexWrap: 'wrap', rowGap: 0.5 }}>
                 <Typography sx={{ fontSize: 11.5, color: 'text.secondary', fontWeight: 600, whiteSpace: 'nowrap' }}>⚡ {credits} créditos</Typography>
                 <Box component="button" onClick={() => { closeDrawer(); navigate('/planos'); }} sx={{ fontSize: 11.5, color: '#059669', fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer', p: 0, whiteSpace: 'nowrap' }}>(+ Recarregar)</Box>
               </Stack>
