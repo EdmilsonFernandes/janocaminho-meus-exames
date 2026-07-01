@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { api, authHeader, createUser, resetDb } from './helpers';
+import { prisma } from '../src/prisma';
 
 describe('Tickets — suporte do paciente (/api/tickets)', () => {
   beforeEach(resetDb);
@@ -44,6 +45,20 @@ describe('Tickets — suporte do paciente (/api/tickets)', () => {
     const thread = await api().get(`/api/tickets/${created.body.id}`).set(ha);
     expect(thread.body.messages).toHaveLength(2);
     expect(thread.body.messages[1].authorRole).toBe('user');
+  });
+
+  it('usuário responde um chamado "aguardando" (pending) → volta a "Em andamento" (open)', async () => {
+    const u = await createUser();
+    const h = authHeader(u.token);
+    const created = await api().post('/api/tickets').set(h).send({ subject: 'Dúvida', message: 'oi' });
+    // simula o admin já ter respondido → status "Aguardando você" (pending)
+    await prisma.supportTicket.update({ where: { id: created.body.id }, data: { status: 'pending' } });
+    // usuário responde → deve voltar a "Em andamento" (open). Antes ficava preso em pending e o
+    // admin nem via o retorno na fila.
+    const reply = await api().post(`/api/tickets/${created.body.id}/messages`).set(h).send({ message: 'obrigado, resolveu!' });
+    expect(reply.status).toBe(201);
+    const t = await prisma.supportTicket.findUnique({ where: { id: created.body.id } });
+    expect(t?.status).toBe('open');
   });
 
   it('impede mais de 3 chamados abertos', async () => {

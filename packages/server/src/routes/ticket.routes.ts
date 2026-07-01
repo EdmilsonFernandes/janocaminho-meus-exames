@@ -102,10 +102,12 @@ router.post('/:id/messages', upload.array('files', 5), async (req: AuthedRequest
     const msg = await prisma.ticketMessage.create({
       data: { ticketId: ticket.id, authorRole: 'user', authorId: req.userId!, body: body || '(anexo)', attachments: attachments.length ? attachments : undefined },
     });
-    const reopened = ticket.status === 'closed';
+    // Usuário sempre devolve o chamado ao atendimento do admin (status 'open'), inclusive se estava
+    // 'pending' (antes ficava preso em "Aguardando você" e o admin não via o retorno) ou 'closed'
+    // (reabre). closedAt some em qualquer caso (chamado volta a estar ativo).
     await prisma.supportTicket.update({
       where: { id: ticket.id },
-      data: { status: reopened ? 'open' : ticket.status, lastMessageBy: 'user', lastMessageAt: new Date(), unreadByAdmin: true, closedAt: reopened ? null : ticket.closedAt },
+      data: { status: 'open', lastMessageBy: 'user', lastMessageAt: new Date(), unreadByAdmin: true, closedAt: null },
     });
     res.status(201).json({ id: msg.id, createdAt: msg.createdAt });
   } catch (e) { next(e); }

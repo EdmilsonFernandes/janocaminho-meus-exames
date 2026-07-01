@@ -113,23 +113,33 @@ const Conversation = ({ ticketId, onClose, onNotify }: { ticketId: string; onClo
   useEffect(() => { void load(); /* eslint-disable-next-line */ }, [ticketId]);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [data?.messages?.length]);
 
-  const send = async () => {
-    if (!reply.trim() && !files.length) return;
+  const send = async (silent = false) => {
+    if (!reply.trim() && !files.length) return false;
     setSending(true);
+    let ok = false;
     try {
       const fd = new FormData();
       fd.append('message', reply.trim() || '(anexo)');
       for (const f of files.slice(0, 5)) fd.append('files', f, f.name);
       const r = await fetch(`${API_URL}/admin/tickets/${ticketId}/messages`, { method: 'POST', headers: H(), body: fd });
-      if (r.ok) { setReply(''); setFiles([]); onNotify('Resposta enviada — usuário notificado.', { type: 'success' }); void load(); }
+      if (r.ok) { ok = true; setReply(''); setFiles([]); if (!silent) onNotify('Resposta enviada — usuário notificado.', { type: 'success' }); void load(); }
       else onNotify('Erro ao enviar.', { type: 'error' });
     } catch { onNotify('Falha de rede.', { type: 'error' }); }
     setSending(false);
+    return ok;
   };
 
-  const setStatus = async (status: string) => {
-    const r = await fetch(`${API_URL}/admin/tickets/${ticketId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...H() }, body: JSON.stringify({ status }) });
-    if (r.ok) { onNotify(status === 'closed' ? 'Chamado resolvido.' : 'Status atualizado.', { type: 'success' }); void load(); }
+  // Resolver envia a resposta final (se houver texto/anexo na caixa) e SÓ DEPOIS fecha o chamado —
+  // evita o ciclo "resolver → depois responder desfaz o resolvido".
+  const resolve = async () => {
+    const hadMessage = !!reply.trim() || files.length > 0;
+    if (hadMessage) {
+      const sent = await send(true); // envia a resposta final sem notificar "Resposta enviada"
+      if (!sent) return; // falha no envio — send já notificou o erro; não resolve
+    }
+    const r = await fetch(`${API_URL}/admin/tickets/${ticketId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...H() }, body: JSON.stringify({ status: 'closed' }) });
+    if (r.ok) onNotify(hadMessage ? 'Chamado resolvido com resposta final enviada.' : 'Chamado resolvido.', { type: 'success' });
+    void load();
   };
 
   if (!data) return <Dialog open onClose={onClose} fullWidth><DialogContent><CircularProgress size={24} /></DialogContent></Dialog>;
@@ -176,7 +186,7 @@ const Conversation = ({ ticketId, onClose, onNotify }: { ticketId: string; onClo
           <Button size="small" startIcon={<AttachFileIcon />} onClick={() => fileRef.current?.click()}>Anexar ({files.length}/5)</Button>
           {files.map((f, i) => <Chip key={i} size="small" label={f.name} onDelete={() => setFiles(files.filter((_, j) => j !== i))} />)}
           <Box sx={{ flex: 1 }} />
-          {data.status !== 'closed' && <Button size="small" color="success" startIcon={<MarkEmailReadIcon />} onClick={() => void setStatus('closed')}>Resolver</Button>}
+          {data.status !== 'closed' && <Button size="small" color="success" startIcon={<MarkEmailReadIcon />} onClick={() => void resolve()}>Resolver</Button>}
           <Button variant="contained" endIcon={<SendIcon />} disabled={sending || (!reply.trim() && !files.length)} onClick={() => void send()}>{sending ? 'Enviando…' : 'Responder'}</Button>
         </Stack>
       </DialogActions>

@@ -194,7 +194,7 @@ const TicketThread = ({ id }: { id: string }) => {
           return (
             <Box key={m.id} sx={{ display: 'flex', justifyContent: mine ? 'flex-end' : 'flex-start' }}>
               <Box sx={{ maxWidth: { xs: '85%', sm: '70%' }, bgcolor: mine ? '#178f89' : 'action.hover', color: mine ? '#fff' : 'text.primary', px: 1.5, py: 1, borderRadius: 2, borderBottomRightRadius: mine ? 4 : 2, borderBottomLeftRadius: mine ? 2 : 4 }}>
-                {!mine && <Typography sx={{ fontSize: 11, fontWeight: 800, opacity: 0.8 }}>Suporte</Typography>}
+                {!mine && <Typography sx={{ fontSize: 11, fontWeight: 800, opacity: 0.8 }}>Dr. Suporte</Typography>}
                 <Typography sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{m.body}</Typography>
                 {atts.length > 0 && (
                   <Stack spacing={0.5} sx={{ mt: 0.5 }}>

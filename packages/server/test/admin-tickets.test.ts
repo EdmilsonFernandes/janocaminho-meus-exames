@@ -63,4 +63,21 @@ describe('Admin tickets — responder + notificar + status', () => {
     const t2 = await prisma.supportTicket.findUnique({ where: { id: created.body.id } });
     expect(t2?.status).toBe('open');
   });
+
+  it('admin responde um chamado já resolvido (closed) → permanece resolvido (não reabre)', async () => {
+    const u = await createUser();
+    const admin = await createAdmin();
+    const created = await api().post('/api/tickets').set(authHeader(u.token)).send({ subject: 's', message: 'm' });
+
+    // admin resolve
+    await api().patch(`/api/admin/tickets/${created.body.id}`).set(authHeader(admin.token)).send({ status: 'closed' });
+
+    // admin manda uma msg depois → NÃO deve reabrir (permanece closed). Antes, "responder" sempre
+    // jogava pra 'pending' e desfazia o resolvido silenciosamente.
+    const reply = await api().post(`/api/admin/tickets/${created.body.id}/messages`).set(authHeader(admin.token)).send({ message: 'Encerrado. Qualquer coisa, abra outro chamado.' });
+    expect(reply.status).toBe(201);
+    const t = await prisma.supportTicket.findUnique({ where: { id: created.body.id } });
+    expect(t?.status).toBe('closed');
+    expect(t?.closedAt).toBeTruthy();
+  });
 });

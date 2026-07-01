@@ -372,7 +372,7 @@ router.get('/tickets/:id', async (req, res, next) => {
 // admin responde (multipart: message + files[]) → notifica usuário (push + email + in-app) + status 'pending'
 router.post('/tickets/:id/messages', upload.array('files', 5), async (req: AuthedRequest, res, next) => {
   try {
-    const ticket = await prisma.supportTicket.findUnique({ where: { id: String(req.params.id) }, select: { id: true, number: true, userId: true } });
+    const ticket = await prisma.supportTicket.findUnique({ where: { id: String(req.params.id) }, select: { id: true, number: true, userId: true, status: true, closedAt: true } });
     if (!ticket) { res.status(404).json({ error: 'Chamado não encontrado' }); return; }
     const user = await prisma.user.findUnique({ where: { id: ticket.userId }, select: { email: true, name: true } });
     const body = String(req.body.message ?? '').trim();
@@ -384,7 +384,12 @@ router.post('/tickets/:id/messages', upload.array('files', 5), async (req: Authe
       attachments.push({ ref, name: f.originalname, size: f.size, type: f.mimetype });
     }
     const msg = await prisma.ticketMessage.create({ data: { ticketId: ticket.id, authorRole: 'admin', authorId: req.userId, body: body || '(anexo)', attachments: attachments.length ? attachments : undefined } });
-    await prisma.supportTicket.update({ where: { id: ticket.id }, data: { status: 'pending', lastMessageBy: 'admin', lastMessageAt: new Date(), unreadByUser: true, closedAt: null } });
+    // Não desfaz um chamado já resolvido: se estava 'closed', permanece 'closed' (admin respondendo
+    // uma msg extra pós-resolução não reabre silenciosamente). Caso contrário, vai pra 'pending'
+    // (aguardando resposta do usuário).
+    const nextStatus = ticket.status === 'closed' ? 'closed' : 'pending';
+    const nextClosedAt = ticket.status === 'closed' ? ticket.closedAt : null;
+    await prisma.supportTicket.update({ where: { id: ticket.id }, data: { status: nextStatus, lastMessageBy: 'admin', lastMessageAt: new Date(), unreadByUser: true, closedAt: nextClosedAt } });
     void audit('REPLY_TICKET', req, { targetType: 'TICKET', targetId: ticket.id });
     // notifica o usuário: push (grava Notification + FCM) + e-mail
     const preview = body ? (body.length > 80 ? body.slice(0, 80) + '…' : body) : 'O suporte enviou um anexo.';
