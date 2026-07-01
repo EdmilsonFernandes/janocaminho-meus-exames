@@ -25,6 +25,27 @@ const RULE_KEYS = new Set(RISK_RULES.markers.map((m) => m.key));
 /** Janela de cache: se há avaliação há menos de N horas e !force, devolve a existente. */
 const CACHE_HOURS = 24;
 
+// Tendência de risco entre duas leituras (melhorou/piorou/estável) — ALAVANCA DE RETENÇÃO.
+export type RiskTrend = 'melhorou' | 'piorou' | 'estavel' | 'primeiro';
+const RISK_RANK: Record<string, number> = { low: 0, moderate: 1, high: 2 };
+export interface RiskPrior { riskLevel: string; conditionKey: string; conditionLabel: string; createdAt: Date }
+
+function trendBetween(cur: string, prior: RiskPrior | null): { trend: RiskTrend; prior: RiskPrior | null } {
+  if (!prior) return { trend: 'primeiro', prior: null };
+  const c = RISK_RANK[cur] ?? 0;
+  const p = RISK_RANK[prior.riskLevel] ?? 0;
+  return { trend: c < p ? 'melhorou' : c > p ? 'piorou' : 'estavel', prior };
+}
+
+/** Penúltima leitura (exclui a atual) — vira o "antes" da tendência. */
+async function loadPriorExcept(patientId: string, currentId: string): Promise<RiskPrior | null> {
+  const row = await prisma.riskAssessment.findFirst({
+    where: { patientId, NOT: { id: currentId } },
+    orderBy: { createdAt: 'desc' },
+  });
+  return row ? { riskLevel: row.riskLevel, conditionKey: row.conditionKey, conditionLabel: row.conditionLabel, createdAt: row.createdAt } : null;
+}
+
 /** Carrega os marcadores de entrada (lab de MarkerState + PA de Measurement). */
 async function loadRiskMarkers(patientId: string): Promise<RiskMarker[]> {
   const [markerStates, bp] = await Promise.all([
@@ -75,6 +96,7 @@ export interface BuildOptions { force?: boolean; examId?: string | null; }
 /** Computa a avaliação de risco de um paciente e persiste (com cache de CACHE_HOURS). */
 export async function buildRiskAssessment(patientId: string, opts: BuildOptions = {}): Promise<{
   result: RiskResult; saved: { id: string; createdAt: Date }; fromCache: boolean;
+  trend: RiskTrend; prior: RiskPrior | null;
 }> {
   // cache: devolve a avaliação recente se !force
   if (!opts.force) {
@@ -83,7 +105,9 @@ export async function buildRiskAssessment(patientId: string, opts: BuildOptions 
       orderBy: { createdAt: 'desc' },
     });
     if (recent) {
-      return { result: deserialize(recent), saved: { id: recent.id, createdAt: recent.createdAt }, fromCache: true };
+      const prior = await loadPriorExcept(patientId, recent.id);
+      const { trend } = trendBetween(recent.riskLevel, prior);
+      return { result: deserialize(recent), saved: { id: recent.id, createdAt: recent.createdAt }, fromCache: true, trend, prior };
     }
   }
 
@@ -110,7 +134,9 @@ export async function buildRiskAssessment(patientId: string, opts: BuildOptions 
     },
     select: { id: true, createdAt: true },
   });
-  return { result, saved: created, fromCache: false };
+  const prior = await loadPriorExcept(patientId, created.id);
+  const { trend } = trendBetween(result.riskLevel, prior);
+  return { result, saved: created, fromCache: false, trend, prior };
 }
 
 /** Reconstrói um RiskResult a partir do registro persistido (p/ GET /latest). */
@@ -138,11 +164,19 @@ function deserialize(r: {
   } as RiskResult;
 }
 
-/** Devolve o último RiskAssessment persistido (não computa — só leitura). */
+/** Devolve o último RiskAssessment persistido + tendência vs o anterior (não computa — só leitura). */
 export async function latestRiskAssessment(patientId: string) {
-  const r = await prisma.riskAssessment.findFirst({
+  const rows = await prisma.riskAssessment.findMany({
     where: { patientId },
     orderBy: { createdAt: 'desc' },
+    take: 2,
   });
-  return r ? { id: r.id, createdAt: r.createdAt, result: deserialize(r) } : null;
+  if (!rows.length) return null;
+  const current = rows[0];
+  const priorRow = rows[1] ?? null;
+  const prior: RiskPrior | null = priorRow
+    ? { riskLevel: priorRow.riskLevel, conditionKey: priorRow.conditionKey, conditionLabel: priorRow.conditionLabel, createdAt: priorRow.createdAt }
+    : null;
+  const { trend } = trendBetween(current.riskLevel, prior);
+  return { id: current.id, createdAt: current.createdAt, result: deserialize(current), trend, prior };
 }

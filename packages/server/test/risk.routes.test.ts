@@ -25,6 +25,7 @@ describe('POST /api/risk/assess', () => {
     expect(r.body.riskLevel).toBe('high');
     expect(r.body.detectedFindings.length).toBe(2);
     expect(r.body.medicalDisclaimer).toContain('não substitui');
+    expect(r.body.trend).toBe('primeiro'); // 1ª leitura: sem anterior
     expect(r.body.doctorQuestions.length).toBeGreaterThan(0);
 
     // persistiu?
@@ -166,5 +167,41 @@ describe('POST /api/risk/action-plan', () => {
     const b = await createUser({ credits: 100 });
     const r = await api().post('/api/risk/action-plan').set(authHeader(b.token)).send({ patientId: a.patient.id });
     expect(r.status).toBe(403);
+  });
+});
+
+// Tendência de risco (último vs anterior).
+describe('GET /api/risk/latest — tendência', () => {
+  beforeEach(async () => { await resetDb(); });
+
+  it('sem leituras -> assessment null', async () => {
+    const { patient, token } = await createUser();
+    const r = await api().get('/api/risk/latest').set(authHeader(token)).query({ patientId: patient.id });
+    expect(r.body.assessment).toBeNull();
+  });
+
+  it('1 leitura -> trend "primeiro", sem prior', async () => {
+    const { patient, token } = await createUser();
+    await prisma.riskAssessment.create({ data: { patientId: patient.id, conditionKey: 'high_cholesterol', conditionLabel: 'Possível risco de colesterol alto', riskLevel: 'high', confidence: 0.7, ruleConfidence: 'alta', findings: [], snapshot: [] } });
+    const r = await api().get('/api/risk/latest').set(authHeader(token)).query({ patientId: patient.id });
+    expect(r.body.assessment.trend).toBe('primeiro');
+    expect(r.body.assessment.prior).toBeNull();
+  });
+
+  it('risco caiu de high -> low: trend "melhorou"', async () => {
+    const { patient, token } = await createUser();
+    await prisma.riskAssessment.create({ data: { patientId: patient.id, conditionKey: 'diabetes', conditionLabel: 'Diabetes', riskLevel: 'high', confidence: 0.8, ruleConfidence: 'alta', findings: [], snapshot: [], createdAt: new Date(Date.now() - 86_400_000) } });
+    await prisma.riskAssessment.create({ data: { patientId: patient.id, conditionKey: 'none', conditionLabel: 'Sem alterações', riskLevel: 'low', confidence: 0.9, ruleConfidence: 'alta', findings: [], snapshot: [] } });
+    const r = await api().get('/api/risk/latest').set(authHeader(token)).query({ patientId: patient.id });
+    expect(r.body.assessment.trend).toBe('melhorou');
+    expect(r.body.assessment.prior.riskLevel).toBe('high');
+  });
+
+  it('risco subiu de low -> moderate: trend "piorou"', async () => {
+    const { patient, token } = await createUser();
+    await prisma.riskAssessment.create({ data: { patientId: patient.id, conditionKey: 'none', conditionLabel: 'Sem alterações', riskLevel: 'low', confidence: 0.9, ruleConfidence: 'alta', findings: [], snapshot: [], createdAt: new Date(Date.now() - 86_400_000) } });
+    await prisma.riskAssessment.create({ data: { patientId: patient.id, conditionKey: 'hypertension', conditionLabel: 'HAS', riskLevel: 'moderate', confidence: 0.7, ruleConfidence: 'alta', findings: [], snapshot: [] } });
+    const r = await api().get('/api/risk/latest').set(authHeader(token)).query({ patientId: patient.id });
+    expect(r.body.assessment.trend).toBe('piorou');
   });
 });

@@ -31,8 +31,8 @@ router.post('/assess', async (req: AuthedRequest, res, next) => {
     }
     const force = !!(req.body as any)?.force;
     const examId = (req.body as any)?.examId ? String((req.body as any).examId) : null;
-    const { result, saved, fromCache } = await buildRiskAssessment(patientId, { force, examId });
-    res.status(fromCache ? 200 : 201).json({ id: saved.id, createdAt: saved.createdAt, fromCache, ...result });
+    const { result, saved, fromCache, trend, prior } = await buildRiskAssessment(patientId, { force, examId });
+    res.status(fromCache ? 200 : 201).json({ id: saved.id, createdAt: saved.createdAt, fromCache, trend, prior, ...result });
   } catch (e) { next(e); }
 });
 

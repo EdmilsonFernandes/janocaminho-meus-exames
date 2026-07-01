@@ -52,11 +52,17 @@ const RISK_META: Record<RiskLevel, { emoji: string; color: string; label: string
 };
 // severidade do finding -> PRIORITY_META (chips coloridos consistentes)
 const SEV_TO_PRIO = { low: 'leve', moderate: 'moderada', high: 'importante' } as const;
+// tendência vs leitura anterior (motivo de retornar ao app — alavanca de retenção)
+const TREND_CHIP: Record<string, { emoji: string; color: string; label: string }> = {
+  melhorou: { emoji: '↓', color: '#16a34a', label: 'Risco caiu' },
+  piorou: { emoji: '↑', color: '#dc2626', label: 'Risco subiu' },
+  estavel: { emoji: '→', color: '#64748b', label: 'Risco estável' },
+};
 
 export const RiskCard = () => {
   const navigate = useNavigate();
   const [pid] = useSelectedPatient();
-  const [r, setR] = useState<RiskResult | null>(null);
+  const [r, setR] = useState<(RiskResult & { trend?: string; prior?: { riskLevel: string; createdAt: string } | null }) | null>(null);
   const [loading, setLoading] = useState(true);
   const [showQuestions, setShowQuestions] = useState(false);
   const [plan, setPlan] = useState<string | null>(null);
@@ -139,6 +145,11 @@ export const RiskCard = () => {
           <HealthAndSafetyIcon sx={{ color: none ? '#16a34a' : meta.color }} />
           <Typography sx={{ fontWeight: 800, flex: 1 }}>Leitura de risco</Typography>
           <Chip size="small" label={`${meta.emoji} ${meta.label}`} sx={{ fontWeight: 800, height: 22, bgcolor: meta.color + '22', color: meta.color }} />
+          {r.trend && r.trend !== 'primeiro' && TREND_CHIP[r.trend] && (() => {
+            const t = TREND_CHIP[r.trend];
+            const d = r.prior?.createdAt ? new Date(r.prior.createdAt).toLocaleDateString('pt-BR') : '';
+            return <Chip size="small" label={`${t.emoji} ${t.label}${d ? ` desde ${d}` : ''}`} sx={{ fontWeight: 700, height: 22, bgcolor: t.color + '22', color: t.color }} />;
+          })()}
           <IconButton size="small" aria-label="Refazer análise" onClick={() => load(true)} sx={{ p: 0.5 }}>
             <RefreshIcon fontSize="small" sx={{ color: 'text.secondary' }} />
           </IconButton>
