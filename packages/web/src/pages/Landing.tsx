@@ -19,9 +19,6 @@ import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import AccessibilityNewIcon from '@mui/icons-material/AccessibilityNew';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import DonutLargeIcon from '@mui/icons-material/DonutLarge';
-import TrendingDownIcon from '@mui/icons-material/TrendingDown';
-import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 
 // ---- Tokens (espelham theme.ts) ----
 const TEAL = '#20b2aa';
@@ -53,72 +50,50 @@ const planData = [
   { name: 'Créditos', price: 'a partir de R$ 9,90', period: 'avulso', features: ['PIX, cartão ou débito', 'Pacotes flexíveis', 'Cada análise consome créditos', 'Sem mensalidade', 'Use quando precisar'], highlight: false, cta: 'Ver pacotes' },
 ];
 
-// Moldura de celular premium (bezel escuro + cantos arredondados + sombra teal).
-// Usa as screenshots REAIS do app — autêntico vende mais que mockup recriado.
-const PhoneFrame = ({ src, alt, label, Icon, caption }: {
-  src: string; alt: string; label: string; Icon: any; caption: string;
-}) => (
-  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-    <Box sx={{
-      width: '100%', maxWidth: 288, mx: 'auto',
-      borderRadius: '38px', p: '8px',
-      background: 'linear-gradient(160deg,#16302e,#0c2422)',
-      boxShadow: '0 30px 60px rgba(32,178,170,.22), 0 12px 26px rgba(0,0,0,.12)',
-      border: '1px solid rgba(255,255,255,.05)',
-      transition: 'transform .3s ease, box-shadow .3s ease',
-      '&:hover': { transform: 'translateY(-6px)', boxShadow: '0 38px 70px rgba(32,178,170,.28), 0 14px 30px rgba(0,0,0,.14)' },
-    }}>
-      <Box sx={{ borderRadius: '30px', overflow: 'hidden', bgcolor: 'background.paper' }}>
-        <Box component="img" src={`${import.meta.env.BASE_URL}${src}`} alt={alt} sx={{ width: '100%', height: 'auto', display: 'block' }} />
-      </Box>
-    </Box>
-    <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 2.5, mb: 0.5 }}>
-      <Icon sx={{ fontSize: 19, color: TEAL }} />
-      <Typography variant="h6" sx={{ fontWeight: 800, fontSize: 16.5, color: 'text.primary' }}>{label}</Typography>
-    </Stack>
-    <Typography sx={{ fontSize: 13.5, color: 'text.secondary', lineHeight: 1.55, maxWidth: 272 }}>{caption}</Typography>
-  </Box>
-);
+// Carrossel "Veja na prática" — 15 slides da apresentação (Meus_Exames_AI_Platform) em WebP
+// (~0,5 MB total — 60× mais leve que o vídeo de 37 MB). Cross-fade suave, auto-rotação,
+// pausa no hover, dots clicáveis, clique no slide avança.
+const SHOWCASE_SLIDE_COUNT = 15;
 
-// Slides do carrossel "Veja na prática" — telas REAIS do app (prints mobile). Auto-rotativo,
-// pausa no hover, dots clicáveis. Substitui um vídeo de 37 MB por ~1,2 MB de imagens (30× mais leve).
-const SHOWCASE_SLIDES = [
-  { Icon: DonutLargeIcon, label: 'Seu painel', caption: 'Score de Saúde, dica do Dr. Exame e tudo num só lugar.', src: 'showcase/dashboard.png' },
-  { Icon: DescriptionIcon, label: 'Seus exames', caption: 'Organizados por categoria, fáceis de achar.', src: 'showcase/exames.png' },
-  { Icon: AssignmentIndIcon, label: 'Detalhe do exame', caption: 'Valores com faixa de referência explicados.', src: 'showcase/detalhe.png' },
-  { Icon: WarningAmberIcon, label: 'Alertas', caption: 'O que merece atenção, por ordem de prioridade.', src: 'showcase/alertas.png' },
-  { Icon: TrendingUpIcon, label: 'Evolução', caption: 'Acompanhe cada valor ao longo do tempo.', src: 'showcase/evolucao.png' },
-  { Icon: AutoAwesomeIcon, label: 'Relatório com IA', caption: 'O Dr. Exame explica tudo em português simples.', src: 'showcase/ia.png' },
-  { Icon: ShareIcon, label: 'Compartilhar', caption: 'Envie pro seu médico, com segurança.', src: 'showcase/compartilhar.png' },
-];
-
-const PhoneCarousel = () => {
+const SlideCarousel = () => {
   const [i, setI] = useState(0);
   const [paused, setPaused] = useState(false);
   useEffect(() => {
     if (paused) return;
-    const t = setInterval(() => setI((p) => (p + 1) % SHOWCASE_SLIDES.length), 2600);
+    const t = setInterval(() => setI((p) => (p + 1) % SHOWCASE_SLIDE_COUNT), 3200);
     return () => clearInterval(t);
   }, [paused]);
-  const s = SHOWCASE_SLIDES[i];
   return (
-    <Box
-      onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}
-      sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', maxWidth: 320, mx: 'auto', width: '100%' }}
-    >
-      <Fade in key={i} timeout={650}>
-        <Box>
-          <PhoneFrame Icon={s.Icon} label={s.label} caption={s.caption} src={s.src} alt={s.label} />
-        </Box>
-      </Fade>
-      <Stack direction="row" spacing={0.8} sx={{ mt: 3, justifyContent: 'center' }}>
-        {SHOWCASE_SLIDES.map((_, idx) => (
+    <Box onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} sx={{ maxWidth: 880, mx: 'auto', width: '100%' }}>
+      <Box sx={{
+        position: 'relative', width: '100%', aspectRatio: '16 / 9',
+        borderRadius: 3, overflow: 'hidden', bgcolor: '#0c2422',
+        boxShadow: '0 30px 60px rgba(32,178,170,.20), 0 12px 26px rgba(0,0,0,.10)',
+        border: '1px solid rgba(255,255,255,.06)',
+      }}>
+        {Array.from({ length: SHOWCASE_SLIDE_COUNT }).map((_, idx) => (
+          <Box
+            key={idx}
+            component="img"
+            src={`${import.meta.env.BASE_URL}showcase/slide-${idx + 1}.webp`}
+            alt={`Meus Exames — slide ${idx + 1}`}
+            loading={idx === 0 ? 'eager' : 'lazy'}
+            onClick={() => setI((idx + 1) % SHOWCASE_SLIDE_COUNT)}
+            sx={{
+              position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain',
+              opacity: idx === i ? 1 : 0, transition: 'opacity .6s ease', cursor: 'pointer',
+            }}
+          />
+        ))}
+      </Box>
+      <Stack direction="row" spacing={0.7} useFlexGap sx={{ mt: 2.5, justifyContent: 'center', flexWrap: 'wrap' }}>
+        {Array.from({ length: SHOWCASE_SLIDE_COUNT }).map((_, idx) => (
           <Box
             key={idx}
             onClick={() => setI(idx)}
             sx={{
-              width: idx === i ? 24 : 8, height: 8, borderRadius: 99,
-              bgcolor: idx === i ? TEAL : 'rgba(15,61,58,.20)',
+              width: idx === i ? 22 : 7, height: 7, borderRadius: 99,
+              bgcolor: idx === i ? TEAL : 'rgba(15,61,58,.22)',
               cursor: 'pointer', transition: 'width .3s ease, background-color .3s ease',
             }}
           />
@@ -282,9 +257,9 @@ export const LandingPage = () => {
             Veja na prática
           </Typography>
           <Typography align="center" sx={{ color: 'text.secondary', fontSize: 17, mb: 6, maxWidth: 600, mx: 'auto' }}>
-            Telas reais do app — do painel ao detalhe, tudo pensado pra você entender sua saúde de verdade.
+            Um passeio pela plataforma — do upload do exame ao relatório com IA. Passe o mouse pra pausar.
           </Typography>
-          <PhoneCarousel />
+          <SlideCarousel />
 
         </Container>
       </Box>
