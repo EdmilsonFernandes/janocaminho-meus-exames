@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Box, Card, CardContent, Typography, TextField, Button, Stack, Chip, CircularProgress, MenuItem, Switch, FormControlLabel } from '@mui/material';
-import { useNotify } from 'react-admin';
+import { useNotify, useRefresh } from 'react-admin';
+import { useNavigate } from 'react-router-dom';
 import LockIcon from '@mui/icons-material/Lock';
 import SaveIcon from '@mui/icons-material/Save';
 import BadgeIcon from '@mui/icons-material/WorkspacePremium';
@@ -17,6 +18,8 @@ import { PageHeader } from '../components/layout/PageHeader';
 export const ProfilePage = () => {
   const [pid] = useSelectedPatient();
   const notify = useNotify();
+  const refresh = useRefresh();
+  const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [patient, setPatient] = useState<any>(null);
   const [fullName, setFullName] = useState('');
@@ -66,7 +69,7 @@ export const ProfilePage = () => {
     if (!window.confirm('ATENÇÃO: excluir a conta apaga TODOS os seus dados (exames, análises, perfil, fotos) definitivamente. NÃO dá pra desfazer. Continuar?')) return;
     if (!window.confirm('Tem certeza ABSOLUTA? Todos os exames e análises serão perdidos para sempre.')) return;
     const r = await fetch(`${API_URL}/auth/account`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });
-    if (r.ok) { localStorage.clear(); window.location.hash = '/landing'; window.location.reload(); }
+    if (r.ok) { localStorage.clear(); navigate('/landing', { replace: true }); }
     else notify('Falha ao excluir conta. Tente novamente.', { type: 'error' });
   };
   const exportData = async () => {
@@ -84,7 +87,12 @@ export const ProfilePage = () => {
     try {
       const r = await fetch(`${API_URL}/data/import`, { method: 'POST', headers: apiHeaders(true), body: await f.text() });
       const d = await r.json();
-      if (r.ok) { notify(`Importado! ${d.counts?.patients || 0} perfil(is), ${d.counts?.exams || 0} exame(s).`, { type: 'success' }); setTimeout(() => window.location.reload(), 1500); }
+      if (r.ok) {
+        notify(`Importado! ${d.counts?.patients || 0} perfil(is), ${d.counts?.exams || 0} exame(s).`, { type: 'success' });
+        window.dispatchEvent(new Event('selPatientChanged'));
+        refresh();
+        await load();
+      }
       else notify(d.error || 'Falha ao importar', { type: 'error' });
     } catch { notify('Arquivo inválido', { type: 'error' }); }
     e.target.value = '';

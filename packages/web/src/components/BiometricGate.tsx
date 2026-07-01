@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Box, Typography, Button, CircularProgress } from '@mui/material';
 import { Capacitor } from '@capacitor/core';
+import { useNavigate } from 'react-router-dom';
 import { BiometricService } from './BiometricService';
 
 /**
@@ -11,6 +12,7 @@ import { BiometricService } from './BiometricService';
  * a biometria — agora pede sempre que o app abre ou volta do background).
  */
 export const BiometricGate = ({ children }: { children: React.ReactNode }) => {
+  const navigate = useNavigate();
   // Só trava se a biometria está ativada E disponível. Sem o "disponível" o usuário
   // que removeu todas as digitais ficava preso (hasEnrollment=true, mas sem sensor).
   const active = BiometricService.isSupported() && BiometricService.hasEnrollment();
@@ -42,7 +44,7 @@ export const BiometricGate = ({ children }: { children: React.ReactNode }) => {
   // Escape: se a biometria falhar/for removida, o usuário pode voltar pro login com senha.
   const logoutEscape = () => {
     try { BiometricService.forget(); localStorage.removeItem('token'); localStorage.removeItem('patientId'); localStorage.removeItem('selPatientId'); } catch {}
-    window.location.href = import.meta.env.BASE_URL;
+    navigate('/entrar', { replace: true });
   };
 
   useEffect(() => {

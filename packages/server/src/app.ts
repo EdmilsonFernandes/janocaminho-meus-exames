@@ -39,10 +39,29 @@ export const app = express();
 // não identifica IPs corretamente (todos aparecem como 127.0.0.1).
 app.set('trust proxy', 1);
 
+const normalizeOrigin = (value?: string) => {
+  if (!value) return '';
+  try { return new URL(value).origin; } catch { return value.replace(/\/$/, ''); }
+};
+const allowedOrigins = new Set([
+  normalizeOrigin(config.webOrigin),
+  'https://janocaminho.com.br',
+  'http://localhost:5173',
+  'http://localhost:4011',
+  'https://localhost',
+  'capacitor://localhost',
+  ...((process.env.CORS_ORIGINS ?? '').split(',').map((v) => normalizeOrigin(v.trim())).filter(Boolean)),
+].filter(Boolean));
+const isAllowedCorsOrigin = (origin?: string) => {
+  if (!origin) return true; // curl, health checks, native clients.
+  if (!config.isProd) return true;
+  return allowedOrigins.has(origin);
+};
+
 app.use(cors({
-  // API usa token (Authorization), sem cookie/session → refletir qualquer origin é seguro
-  // e resolve o "failed to fetch" no APK (origin do Capacitor = https://localhost).
-  origin: true,
+  // API usa Authorization Bearer, sem sessão por cookie. Em prod, ainda assim
+  // limitamos browsers às origens conhecidas e mantemos APK/health checks funcionando.
+  origin: (origin, cb) => cb(null, isAllowedCorsOrigin(origin) ? origin || true : false),
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Patient-Id', 'Range'],
   exposedHeaders: ['Content-Range', 'X-Total-Count'],

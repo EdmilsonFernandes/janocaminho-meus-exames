@@ -59,7 +59,6 @@ const FOOTER: { id: ModuleId; short: string }[] = [
 ];
 
 const authH = () => ({ Authorization: `Bearer ${token()}` });
-const logout = () => { try { localStorage.removeItem('token'); localStorage.removeItem('user'); localStorage.removeItem('patientId'); localStorage.removeItem('selPatientId'); } catch {} window.location.href = import.meta.env.BASE_URL; };
 
 export const AdminPage = () => {
   const navigate = useNavigate();
@@ -69,6 +68,10 @@ export const AdminPage = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const urlMod = searchParams.get('tab') as ModuleId | null;
   const [mod, setMod] = useState<ModuleId>(MODULES.some(m => m.id === urlMod) ? (urlMod as ModuleId) : 'overview');
+  const logout = () => {
+    try { localStorage.removeItem('token'); localStorage.removeItem('user'); localStorage.removeItem('patientId'); localStorage.removeItem('selPatientId'); } catch {}
+    navigate('/entrar', { replace: true });
+  };
 
   // Guard client: só ADMIN. (O server já bloqueia via requireAdmin; isto evita renderizar o shell.)
   useEffect(() => {

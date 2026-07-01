@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   Box, Card, CardContent, Typography, Chip, Button, CircularProgress, Alert, Divider, Stack,
   Accordion, AccordionSummary, AccordionDetails,
@@ -77,6 +77,7 @@ function fmtRef(it: any): string {
 
 export const ExamShow = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const notify = useNotify();
   const [exam, setExam] = useState<any>(null);
   const [genLoading, setGenLoading] = useState(false);
@@ -126,9 +127,10 @@ export const ExamShow = () => {
     if (!window.confirm('Este exame NÃO é deste paciente? Ele será excluído definitivamente.')) return;
     setAttesting(true);
     try {
-      await fetch(`${API_URL}/exams/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });
+      const r = await fetch(`${API_URL}/exams/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });
+      if (!r.ok) throw new Error('Falha ao excluir');
       notify('Exame excluído (não era deste paciente).', { type: 'success' });
-      setTimeout(() => { window.location.hash = '#/exams'; window.location.reload(); }, 600);
+      navigate('/exams', { replace: true });
     } catch { notify('Falha ao excluir', { type: 'error' }); setAttesting(false); }
   };
 

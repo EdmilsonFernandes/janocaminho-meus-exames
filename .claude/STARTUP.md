@@ -7,7 +7,7 @@
 - Garantir que o grafo existe: `graphify-out/graph.json` (já versionado no repo).
 - Se faltar, reconstruir: `graphify` (skill) ou o comando de build do grafo.
 - Usar para enxergar: pastas, componentes, hooks, providers, services, rotas, contextos, stores, tema, assets, navegação.
-- **Nota de realidade:** o CLI do Graphify **não tem `query`**. Comandos reais: `graphify path "A" "B"`, `graphify explain "X"`, `graphify diagnose multigraph`. Ver `.claude/GRAPH_RULES.md`.
+- **Nota de realidade:** Graphify funciona aqui como CLI/skill, não como MCP declarado no projeto. Comandos úteis: `graphify query "<pergunta>"`, `graphify path "A" "B"`, `graphify explain "X"`, `graphify diagnose multigraph`. Ver `.claude/GRAPH_RULES.md`.
 
 ## PASSO 2 — Serena (indexar o que importa)
 - Projeto "Meus Exames" já ativado. `initial_instructions` já lido.
@@ -31,9 +31,9 @@ Antes de executar alterações, resumir:
 ## ⚠️ Estado atual das ferramentas (realidade)
 | MCP | Status | Observação |
 |---|---|---|
-| **Graphify** | ✅ Funciona | Grafo já existe. CLI: `path`/`explain`/`diagnose` (sem `query`). |
-| **Serena** | ✅ Funciona | Projeto ativado, ferramentas semânticas disponíveis. |
-| **GSD** | ⚠️ Precisa `/login` | CLI presente, mas sem API key → erro "No API key found". Rodar `gsd` interativo no terminal do user. Até lá, fallback = tasks nativas (TaskCreate/TaskUpdate). |
-| **Context7** | ✅ Funciona | Docs de libs (MUI, React, etc.) sob demanda. |
+| **Graphify** | ✅ Funciona | Grafo em `graphify-out/`; CLI/skill com `query`, `path`, `explain`, `diagnose`. Não está em `.mcp.json`. |
+| **Serena** | ✅ Funciona | MCP do projeto em `.mcp.json`; ferramentas semânticas disponíveis. |
+| **GSD** | ⚠️ Global | Config global detectada; pode exigir login/provider para planejamento. Fallback = plano nativo do agente. |
+| **Context7** | ✅ Global | MCP global para docs de libs (MUI, React, Prisma, etc.) sob demanda. |
 
 > **Regra:** não executar nenhuma alteração de código antes de concluir o relatório (Passo 4).

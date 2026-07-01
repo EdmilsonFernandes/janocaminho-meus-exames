@@ -7,6 +7,7 @@ import { vi } from 'vitest';
 // --- ENV (antes de qualquer import que leia env: config.ts, prisma.ts) ---
 process.env.NODE_ENV = 'test';
 process.env.DATABASE_URL =
+  process.env.TEST_DATABASE_URL ||
   'postgresql://meus_exames:meus_exames_dev@localhost:5433/meus_exames_test?schema=public';
 process.env.JWT_SECRET = 'test-secret';
 process.env.MP_ACCESS_TOKEN = 'test-token'; // hasMercadoPago() = true → webhook/checkout testáveis

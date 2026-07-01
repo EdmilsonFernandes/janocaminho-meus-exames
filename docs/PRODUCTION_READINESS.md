@@ -9,15 +9,15 @@
 | F2 | localStorage JSON.parse com try/catch | 🔨 |
 | F3 | localStorage safe wrapper (private browsing) | 🔨 |
 | F4 | Race condition cleanup no boot useEffect | TODO |
-| F5 | Polling timeout no ExamShow (EXTRACTING > 60s) | TODO |
+| F5 | Polling timeout no ExamShow (EXTRACTING > 60s) | DONE |
 
 ### Backend
 | # | Item | Status |
 |---|------|--------|
 | B1 | Rate limiting (auth/AI/upload) | 🔨 |
-| B2 | Transação no débito de créditos ($transaction) | TODO |
-| B3 | CORS whitelist (não origin: true) | TODO |
-| B4 | Error handler global (sem leak interno) | TODO |
+| B2 | Transação no débito de créditos ($transaction) | DONE |
+| B3 | CORS whitelist (não origin: true) | DONE |
+| B4 | Error handler global (sem leak interno) | DONE |
 | B5 | Zod validation nos endpoints críticos | TODO |
 
 ## Phase 2: HIGH (Days 4-6) — Reliability + UX

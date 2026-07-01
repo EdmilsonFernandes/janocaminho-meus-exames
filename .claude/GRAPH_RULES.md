@@ -1,6 +1,6 @@
 # Graphify Rules
 
-> **Graphify é o MCP principal. Toda alteração começa por ele.**
+> **Graphify é o mapa principal. Toda alteração começa por ele.**
 > Nunca alterar código sem antes consultar o grafo — saber o impacto ANTES de editar.
 
 ## O que descobrir antes de criar/alterar um componente
@@ -15,16 +15,17 @@
 - **Sem duplicação.** Se duas peças fazem o mesmo, consolidar.
 - **Atualizar o grafo** após grandes alterações (muito depois de adicionar/remover componentes relevantes), para a próxima sessão já ter o mapa certo.
 
-## CLI real do Graphify (NÃO tem `query`)
+## CLI real do Graphify
 | Comando | Uso |
 |---|---|
+| `graphify query "<pergunta>"` | busca orientada no grafo para perguntas amplas |
 | `graphify path "A" "B"` | caminho mais curto entre dois nós no grafo (relações de dependência) |
 | `graphify explain "X"` | explicação em linguagem natural de um nó e seus vizinhos |
 | `graphify diagnose multigraph` | detecta risco de colapso de arestas same-endpoint |
 | `graphify install/uninstall` | instala/desinstala a skill nas plataformas |
 
 - O grafo vive em `graphify-out/graph.json` (versionado no repo). Se faltar, reconstruir antes de usar.
-- Quando o `CLAUDE.md` menciona `graphify query "<pergunta>"`, refere-se ao uso via a **skill instalada** do Graphify (não a um subcomando do CLI).
+- Graphify não está declarado em `.mcp.json` neste projeto; o uso padrão aqui é CLI/skill. Se quiser expor como MCP, rodar/configurar o modo `graphify --mcp`.
 
 ## No dia-a-dia deste projeto
 - Para localização precisa de código, combinamos: **Graphify** (relações/impacto amplo) → **Serena** (símbolo exato, body, referências). Os dois se complementam.

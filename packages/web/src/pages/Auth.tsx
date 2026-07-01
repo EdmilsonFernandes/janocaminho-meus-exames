@@ -99,7 +99,7 @@ export const LoginPage = () => {
           window.dispatchEvent(new Event('selPatientChanged'));
         }
       } catch { /* segue mesmo se /me falhar (token já está) */ }
-      window.location.href = import.meta.env.BASE_URL;
+      navigate('/', { replace: true });
     }
   };
 
@@ -137,7 +137,7 @@ export const LoginPage = () => {
     if (d.patientId) { localStorage.setItem('patientId', d.patientId); localStorage.setItem('selPatientId', d.patientId); }
     localStorage.setItem('user', JSON.stringify(d.user));
     window.dispatchEvent(new Event('selPatientChanged'));
-    window.location.href = import.meta.env.BASE_URL;
+    navigate('/', { replace: true });
   };
 
   const sendOtp = async (e?: React.FormEvent) => {
@@ -168,7 +168,7 @@ export const LoginPage = () => {
       if (d.patientId) localStorage.setItem('patientId', d.patientId);
       localStorage.setItem('user', JSON.stringify(d.user));
       notify('Bem-vindo! 🎉', { type: 'success' });
-      window.location.href = import.meta.env.BASE_URL;
+      navigate('/', { replace: true });
     } catch (err: any) { notify(err.message, { type: 'error' }); }
     finally { setLoading(false); }
   };
@@ -280,7 +280,7 @@ export const RegisterPage = () => {
       if (d.patientId) { localStorage.setItem('patientId', d.patientId); localStorage.setItem('selPatientId', d.patientId); }
       localStorage.setItem('user', JSON.stringify(d.user));
       notify('Conta criada! Bem-vindo! 🎉', { type: 'success' });
-      window.location.href = import.meta.env.BASE_URL;
+      navigate('/', { replace: true });
     } catch (err: any) { notify(err.message, { type: 'error' }); }
     finally { setLoading(false); }
   };
@@ -299,7 +299,7 @@ export const RegisterPage = () => {
       if (d.patientId) { localStorage.setItem('patientId', d.patientId); localStorage.setItem('selPatientId', d.patientId); }
       localStorage.setItem('user', JSON.stringify(d.user));
       notify('Conta ativada! Bem-vindo! 🎉', { type: 'success' });
-      window.location.href = import.meta.env.BASE_URL;
+      navigate('/', { replace: true });
     } catch (err: any) { notify(err.message, { type: 'error' }); }
     finally { setLoading(false); }
   };

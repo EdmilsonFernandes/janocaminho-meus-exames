@@ -19,7 +19,7 @@ Monorepo npm workspaces: `packages/{web,server,mobile,shared}` + `data/` + `docs
 - **SSH EC2:** `ssh -i projeto-pessoal/EdEspetoHub/medtrack-temp.pem ec2-user@janocaminho.com.br` (ec2-user; id_ed25519 não serve; fail2ban ativo — retry se resetar).
 - **Repo no EC2:** `/home/ec2-user/meus-exames/janocaminho-meus-exames/`.
 - **Container:** `meus-exames-app` (porta interna 4001 → nginx 4010). Compartilha EC2 com o **EdEspeto** (`janocaminho-*`) — **NÃO MEXER no EdEspeto**.
-- **`.env.prod`** (no repo do EC2): `DATABASE_URL`, `SUBPATH=minhasaude`, `FIREBASE_SERVICE_ACCOUNT_PATH=./keys/firebase-adminsdk.json`, chaves MP, ANTHROPIC_API_KEY, etc.
+- **`.env.prod`** (no repo do EC2): `DATABASE_URL`, `SUBPATH=minhasaude`, `FIREBASE_SERVICE_ACCOUNT_PATH=./keys/firebase-adminsdk.json`, chaves MP, `ANTHROPIC_AUTH_TOKEN` + `ANTHROPIC_BASE_URL` do relay Z.ai, etc. Não usar `ANTHROPIC_API_KEY` real.
 - **Volumes do compose:** `data/{exams,photos,agent}` + **`./keys:/app/keys:ro`** (Firebase Admin key).
 
 ## 3. Push / Notificações (Firebase) ⭐

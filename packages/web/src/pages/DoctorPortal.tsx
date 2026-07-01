@@ -250,8 +250,11 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
       `Paciente: ${selected.patient?.fullName ?? ''}`,
       selected.convenio ? `Convênio: ${selected.convenio}` : '',
       exams[0] ? `Último exame: ${exams[0].title} (${fmtDate(exams[0].performedAt)})${exams[0].sourceLab ? ` — ${exams[0].sourceLab}` : ''}` : 'Sem exames extraídos.',
+      selected.patient?.clinicalProfile ? `Perfil clínico: ${selected.patient.clinicalProfile}` : '',
       allAlerts.length ? `Valores alterados (${allAlerts.length}):` : 'Sem valores alterados.',
       ...allAlerts.map((a) => `- ${a.name}: ${a.valueText} (${a.examTitle}, ${fmtDate(a.examDate)})`),
+      comparison.length ? 'Variação vs exame anterior:' : '',
+      ...comparison.map((d) => `- ${d.name}: ${d.pct > 0 ? '+' : ''}${d.pct.toFixed(0)}% (${d.prev} → ${d.last}${d.unit ? ' ' + d.unit : ''})`),
       '',
       'Resumo gerado pelo app Meus Exames — conteúdo educativo, não substitui avaliação clínica.',
     ].filter((x) => x !== '');
@@ -294,6 +297,28 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     for (const ex of exams) { const y = ex.performedAt ? new Date(ex.performedAt).getFullYear() : 0; if (!map.has(y)) map.set(y, []); map.get(y)!.push(ex); }
     return [...map.entries()].sort((a, b) => b[0] - a[0]).map(([year, items]) => ({ year, items }));
   }, [exams]);
+
+  // Comparativo "melhorou/piorou" (#2): delta % de cada analito entre o exame mais recente e o
+  // anterior. Computado a partir do `evolution` (valueNumeric por analito × performedAt). Top 5
+  // maiores variações. Leitura instantânea da tendência sem abrir a tab Evolução.
+  const comparison = useMemo(() => {
+    const byKey = new Map<string, { name: string; unit?: string; points: { t: number; v: number }[] }>();
+    for (const it of evolution) {
+      if (it.valueNumeric == null || !it.nameCanonical) continue;
+      const k = it.nameCanonical as string;
+      if (!byKey.has(k)) byKey.set(k, { name: it.name, unit: it.unit, points: [] });
+      byKey.get(k)!.points.push({ t: new Date(it.exam?.performedAt || 0).getTime(), v: it.valueNumeric });
+    }
+    const deltas: { name: string; unit?: string; pct: number; last: number; prev: number }[] = [];
+    for (const { name, unit, points } of byKey.values()) {
+      if (points.length < 2) continue;
+      points.sort((a, b) => a.t - b.t);
+      const last = points[points.length - 1], prev = points[points.length - 2];
+      if (!prev.v) continue; // evita divisão por zero
+      deltas.push({ name, unit, pct: ((last.v - prev.v) / prev.v) * 100, last: last.v, prev: prev.v });
+    }
+    return deltas.sort((a, b) => Math.abs(b.pct) - Math.abs(a.pct)).slice(0, 5);
+  }, [evolution]);
 
   const fmtDate = (d?: string) => d ? new Date(d).toLocaleDateString('pt-BR') : 's/d';
 
@@ -483,12 +508,12 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               </Box>
             </Stack>
 
-            {selected.patient?.clinicalProfile && (
-              <Card sx={{ mb: 2, borderRadius: 3, bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider' }}><CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-                <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>PERFIL CLÍNICO</Typography>
-                <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', mt: 0.25 }}>{selected.patient.clinicalProfile}</Typography>
-              </CardContent></Card>
-            )}
+            <Card sx={{ mb: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider', borderLeft: '4px solid #20b2aa' }}><CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
+              <Typography variant="caption" sx={{ fontWeight: 800, color: '#178f89' }}>🩺 PERFIL CLÍNICO{selected.patient?.clinicalProfile ? '' : ' — não cadastrado'}</Typography>
+              {selected.patient?.clinicalProfile
+                ? <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', mt: 0.25 }}>{selected.patient.clinicalProfile}</Typography>
+                : <Typography variant="body2" sx={{ mt: 0.25, color: 'text.secondary', fontStyle: 'italic' }}>Paciente ainda não informou condições, medicações ou alergias.</Typography>}
+            </CardContent></Card>
 
             {/* HERO "resumo de 10 segundos" — neutro + semântica CLÍNICA (vermelho=alerta, verde=ok). Não mais 'tudo verde'. */}
             {!selExam && (
@@ -505,6 +530,18 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                   {allAlerts.length > 0 && (
                     <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
                       {allAlerts.slice(0, 10).map((a, i) => <Chip key={i} size="small" label={`${a.name}: ${a.valueText}`} sx={{ bgcolor: '#fee2e2', color: '#b91c1c', fontWeight: 600, height: 22, fontSize: 11 }} />)}
+                    </Box>
+                  )}
+                  {/* Comparativo vs exame anterior (#2): delta % dos analitos — leitura instantânea da tendência */}
+                  {comparison.length > 0 && (
+                    <Box sx={{ mt: 1.25 }}>
+                      <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>📈 VARIAÇÃO VS EXAME ANTERIOR</Typography>
+                      <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>
+                        {comparison.map((d, i) => {
+                          const up = d.pct > 0;
+                          return <Chip key={i} size="small" label={`${d.name} ${up ? '↑' : '↓'} ${Math.abs(d.pct).toFixed(0)}%`} title={`${d.prev} → ${d.last}${d.unit ? ' ' + d.unit : ''}`} sx={{ bgcolor: up ? '#fef3c7' : '#dbeafe', color: up ? '#92400e' : '#1e40af', fontWeight: 600, height: 22, fontSize: 11 }} />;
+                        })}
+                      </Box>
                     </Box>
                   )}
                   {/* Última nota do médico — continuidade de cuidado (o que eu disse na última consulta?) */}
