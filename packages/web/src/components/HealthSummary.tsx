@@ -201,9 +201,9 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
                       <Variation anterior={c.anterior} atual={c.atual} leitura={c.leitura} />
                     </Stack>
                     <Stack direction="row" spacing={0.75} alignItems="baseline" sx={{ mt: 0.5 }} flexWrap="wrap">
-                      <Typography variant="body2" color="text.secondary">{c.anterior || '—'}</Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ wordBreak: 'break-word' }}>{c.anterior || '—'}</Typography>
                       <Typography variant="body2" color="primary.main" sx={{ fontWeight: 800 }}>→</Typography>
-                      <Typography sx={{ fontWeight: 800, color: (t) => t.palette.mode === 'dark' ? '#5b9bd5' : '#0b5cab' }}>{c.atual || '—'}</Typography>
+                      <Typography sx={{ fontWeight: 800, wordBreak: 'break-word', color: (t) => t.palette.mode === 'dark' ? '#5b9bd5' : '#0b5cab' }}>{c.atual || '—'}</Typography>
                     </Stack>
                   </Box>
                 ))}

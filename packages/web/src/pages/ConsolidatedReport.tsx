@@ -233,7 +233,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
               <Stack spacing={1.25}>
                 {s.pontosAtencao.map((p, i) => (
                   <Box key={i}>
-                    <Typography sx={{ fontWeight: 700 }}>{i + 1}. {p.titulo}</Typography>
+                    <Typography sx={{ fontWeight: 700, wordBreak: 'break-word' }}>{i + 1}. {p.titulo}</Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25, wordBreak: 'break-word' }}>{p.detalhe}</Typography>
                   </Box>
                 ))}
@@ -244,7 +244,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
           {s.coisasBoas?.length ? (
             <ReportSectionCard icon={<CheckCircleIcon />} title="Pontos positivos" accent="#10b981" count={s.coisasBoas.length} collapsible defaultExpanded={false}>
               <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-                {s.coisasBoas.map((b, i) => <Chip key={i} sx={{ bgcolor: '#10b98118', color: '#10b981', fontWeight: 600 }} label={txt(b)} />)}
+                {s.coisasBoas.map((b, i) => <Chip key={i} sx={{ bgcolor: '#10b98118', color: '#10b981', fontWeight: 600, maxWidth: '100%', whiteSpace: 'normal', height: 'auto', py: 0.5, lineHeight: 1.3 }} label={txt(b)} />)}
               </Stack>
             </ReportSectionCard>
           ) : null}
