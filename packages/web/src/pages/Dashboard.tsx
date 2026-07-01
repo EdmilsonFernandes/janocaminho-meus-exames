@@ -10,6 +10,7 @@ import { DashboardHeader } from '../components/dashboard/DashboardHeader';
 import { AiTip } from '../components/dashboard/AiTip';
 import { HealthScoreCard } from '../components/dashboard/HealthScoreCard';
 import { CurrentStateCard } from '../components/dashboard/CurrentStateCard';
+import { RiskCard } from '../components/dashboard/RiskCard';
 import { AiCard } from '../components/dashboard/AiCard';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
@@ -103,6 +104,9 @@ export const Dashboard = () => {
 
       {/* M1 — "Meu estado atual" (estado por marcador + tendência + o que mudou) */}
       <CurrentStateCard />
+
+      {/* Layer 3 — "Leitura de risco" (condição suspeita por regras clínicas — educativa, não diagnóstico) */}
+      <RiskCard />
 
       {/* IA — card hero do Dr. Exame (robô + dica + CTA) */}
       <AiCard tip={tipNode} onChat={() => navigate('/chat')} />
