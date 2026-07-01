@@ -1,12 +1,18 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Box, Card, CardContent, Typography, Stack, Chip, CircularProgress, Button, IconButton, Collapse } from '@mui/material';
+import { Box, Card, CardContent, Typography, Stack, Chip, CircularProgress, Button, IconButton, Collapse, Divider } from '@mui/material';
 import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
+import AutoStoriesIcon from '@mui/icons-material/AutoStories';
+import { useNavigate } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
 import { API_URL, token } from '../../config';
 import { useSelectedPatient } from '../../patient-context';
 import { PRIORITY_META } from '../../utils/alertPriority';
+
+// Custo em créditos do plano de ação — manter sincronizado com CREDIT_COSTS.actionPlan (server).
+const ACTION_PLAN_COST = 8;
 
 /**
  * "Leitura de risco" — payoff visível da camada de risco (risk-engine, server).
@@ -48,10 +54,14 @@ const RISK_META: Record<RiskLevel, { emoji: string; color: string; label: string
 const SEV_TO_PRIO = { low: 'leve', moderate: 'moderada', high: 'importante' } as const;
 
 export const RiskCard = () => {
+  const navigate = useNavigate();
   const [pid] = useSelectedPatient();
   const [r, setR] = useState<RiskResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [showQuestions, setShowQuestions] = useState(false);
+  const [plan, setPlan] = useState<string | null>(null);
+  const [planLoading, setPlanLoading] = useState(false);
+  const [planErr, setPlanErr] = useState<null | 'credits' | 'error'>(null);
 
   const load = useCallback((force = false) => {
     if (!pid) { setLoading(false); setR(null); return; }
@@ -66,6 +76,24 @@ export const RiskCard = () => {
       .catch(() => setR(null))
       .finally(() => setLoading(false));
   }, [pid]);
+
+  const loadPlan = useCallback(() => {
+    if (!pid || planLoading) return;
+    setPlanLoading(true); setPlanErr(null);
+    fetch(`${API_URL}/risk/action-plan`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
+      body: JSON.stringify({ patientId: pid }),
+    })
+      .then(async (res) => {
+        if (res.status === 402) { setPlanErr('credits'); return null; }
+        if (!res.ok) { setPlanErr('error'); return null; }
+        return res.json();
+      })
+      .then((d) => { if (d?.contentMd) setPlan(d.contentMd); })
+      .catch(() => setPlanErr('error'))
+      .finally(() => setPlanLoading(false));
+  }, [pid, planLoading]);
 
   useEffect(() => { load(false); }, [load]);
 
@@ -161,6 +189,40 @@ export const RiskCard = () => {
               </Box>
             </Collapse>
           </>
+        )}
+
+        {/* PLANO DE AÇÃO (IA — alavanca de créditos: a leitura de risco é grátis, o plano é o upsell) */}
+        <Divider sx={{ my: 1.25 }} />
+        {!plan && !planLoading && (
+          <Button fullWidth variant="contained" size="small" startIcon={<AutoStoriesIcon />} onClick={loadPlan}
+            sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700 }}>
+            Plano de ação do Dr. Exame · {ACTION_PLAN_COST} créditos
+          </Button>
+        )}
+        {planLoading && (
+          <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" sx={{ py: 0.5 }}>
+            <CircularProgress size={16} sx={{ color: 'primary.main' }} />
+            <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary' }}>Montando seu plano de ação…</Typography>
+          </Stack>
+        )}
+        {planErr === 'credits' && (
+          <Box sx={{ textAlign: 'center' }}>
+            <Typography variant="caption" sx={{ color: '#9a6b00', display: 'block', mb: 0.5 }}>Créditos insuficientes pra gerar o plano agora.</Typography>
+            <Button size="small" onClick={() => navigate('/planos')} sx={{ textTransform: 'none', fontWeight: 700 }}>Comprar créditos</Button>
+          </Box>
+        )}
+        {planErr === 'error' && (
+          <Typography variant="caption" sx={{ color: 'error.main', display: 'block', textAlign: 'center' }}>Não foi possível gerar agora. Tente novamente em instantes.</Typography>
+        )}
+        {plan && (
+          <Box sx={{ mt: 1, p: 1.25, borderRadius: 2, bgcolor: 'action.hover' }}>
+            <Typography sx={{ fontWeight: 800, mb: 0.5, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <AutoStoriesIcon fontSize="small" /> Plano de ação do Dr. Exame
+            </Typography>
+            <Box className="risk-plan-md" sx={{ '& p': { my: 0.5, lineHeight: 1.45 }, '& ul': { pl: 2.5, my: 0.5 }, '& li': { my: 0.25 }, fontSize: '0.9rem' }}>
+              <ReactMarkdown>{plan}</ReactMarkdown>
+            </Box>
+          </Box>
         )}
 
         {/* rodapé: confiança + disclaimer */}

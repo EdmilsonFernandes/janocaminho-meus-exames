@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { prisma } from '../src/prisma';
-import { api, authHeader, createUser, createExam, createItem, resetDb } from './helpers';
+import { CREDIT_COSTS } from '../src/utils/credits';
+import { api, authHeader, createUser, createExam, createItem, getUserCredits, resetDb } from './helpers';
 
 // Teste de INTEGRAÇÃO ponta-a-ponta da rota /api/risk:
 // ExamItem -> MarkerState (real) -> risk-engine -> RiskAssessment (persistido) -> JSON.
@@ -131,6 +132,39 @@ describe('POST /api/risk/assess', () => {
   it('patientId inválido -> 403', async () => {
     const { token } = await createUser();
     const r = await api().post('/api/risk/assess').set(authHeader(token)).send({ patientId: 'nao-existe' });
+    expect(r.status).toBe(403);
+  });
+});
+
+// Plano de ação (IA — cobra créditos). generateActionPlan é mockado em setup.ts.
+describe('POST /api/risk/action-plan', () => {
+  beforeEach(async () => { await resetDb(); });
+
+  it('402 quando não há créditos suficientes (antes de gastar IA)', async () => {
+    const { patient, token, user } = await createUser({ credits: CREDIT_COSTS.actionPlan - 1 });
+    const r = await api().post('/api/risk/action-plan').set(authHeader(token)).send({ patientId: patient.id });
+    expect(r.status).toBe(402);
+    expect(r.body.error).toBe('insufficient_credits');
+    // não debitou
+    expect(await getUserCredits(user.id)).toBe(CREDIT_COSTS.actionPlan - 1);
+  });
+
+  it('201 + débita actionPlan créditos + devolve contentMd', async () => {
+    const { patient, token, user } = await createUser({ credits: 100 });
+    // generateActionPlan (mock) independe do assessment; criamos mesmo assim p/ realismo
+    await prisma.riskAssessment.create({ data: { patientId: patient.id, conditionKey: 'diabetes', conditionLabel: 'Possível risco de diabetes', riskLevel: 'high', confidence: 0.8, ruleConfidence: 'alta', findings: [], snapshot: [] } });
+    const before = await getUserCredits(user.id);
+    const r = await api().post('/api/risk/action-plan').set(authHeader(token)).send({ patientId: patient.id });
+    expect(r.status).toBe(201);
+    expect(r.body.contentMd).toBeTruthy();
+    expect(r.body.basedOn.conditionKey).toBe('diabetes');
+    expect(before - (await getUserCredits(user.id))).toBe(CREDIT_COSTS.actionPlan);
+  });
+
+  it('recusa paciente de outro usuário (403)', async () => {
+    const a = await createUser({ credits: 100 });
+    const b = await createUser({ credits: 100 });
+    const r = await api().post('/api/risk/action-plan').set(authHeader(b.token)).send({ patientId: a.patient.id });
     expect(r.status).toBe(403);
   });
 });

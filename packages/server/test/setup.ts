@@ -85,6 +85,16 @@ vi.mock('../src/analysis/chat', () => ({
   }),
 }));
 
+// Plano de ação de risco (GLM): canned — não chama a IA nos testes.
+vi.mock('../src/analysis/risk-action-plan', () => ({
+  generateActionPlan: vi.fn().mockResolvedValue({
+    contentMd: '# Plano de ação de teste\n\n- Beba mais água\n- Refazer exame em 3 meses',
+    modelUsed: 'glm-4.6',
+    usage: { input_tokens: 50, output_tokens: 80 },
+    basedOn: { conditionKey: 'diabetes', riskLevel: 'high', findingsCount: 2, assessmentId: 'test' },
+  }),
+}));
+
 // Memória do agente (ler/gravar .md) — no-op; patientSlug repassado.
 vi.mock('../src/analysis/agent-memory', () => ({
   readPatientMemory: vi.fn().mockReturnValue(''),
