@@ -62,12 +62,14 @@ const TREND_CHIP: Record<string, { emoji: string; color: string; label: string }
 export const RiskCard = () => {
   const navigate = useNavigate();
   const [pid] = useSelectedPatient();
-  const [r, setR] = useState<(RiskResult & { trend?: string; prior?: { riskLevel: string; createdAt: string } | null }) | null>(null);
+  const [r, setR] = useState<(RiskResult & { id?: string; trend?: string; prior?: { riskLevel: string; createdAt: string } | null }) | null>(null);
   const [loading, setLoading] = useState(true);
   const [showQuestions, setShowQuestions] = useState(false);
   const [plan, setPlan] = useState<string | null>(null);
   const [planLoading, setPlanLoading] = useState(false);
   const [planErr, setPlanErr] = useState<null | 'credits' | 'error'>(null);
+  const [feedback, setFeedback] = useState<null | 1 | 0>(null);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
 
   const load = useCallback((force = false) => {
     if (!pid) { setLoading(false); setR(null); return; }
@@ -100,6 +102,20 @@ export const RiskCard = () => {
       .catch(() => setPlanErr('error'))
       .finally(() => setPlanLoading(false));
   }, [pid, planLoading]);
+
+  // Feedback do plano (loop de melhoria da IA) — 👍 ajudou / 👎 não
+  const sendFeedback = useCallback((rating: 1 | 0) => {
+    if (!r?.id || feedbackLoading || feedback != null) return;
+    setFeedbackLoading(true);
+    fetch(`${API_URL}/risk/feedback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
+      body: JSON.stringify({ riskAssessmentId: r.id, rating }),
+    })
+      .then((res) => { if (res.ok) setFeedback(rating); })
+      .catch(() => {})
+      .finally(() => setFeedbackLoading(false));
+  }, [r?.id, feedbackLoading, feedback]);
 
   useEffect(() => { load(false); }, [load]);
 
@@ -234,6 +250,21 @@ export const RiskCard = () => {
               <ReactMarkdown>{plan}</ReactMarkdown>
             </Box>
           </Box>
+        )}
+
+        {/* FEEDBACK: isso ajudou? (loop de melhoria da IA — grátis) */}
+        {plan && (
+          feedback == null ? (
+            <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" sx={{ mt: 1 }}>
+              <Typography variant="body2" sx={{ color: 'text.secondary' }}>Isso ajudou?</Typography>
+              <Button size="small" disabled={feedbackLoading} onClick={() => sendFeedback(1)} sx={{ minWidth: 0, px: 1.5, fontSize: '1.15rem', lineHeight: 1 }}>👍</Button>
+              <Button size="small" disabled={feedbackLoading} onClick={() => sendFeedback(0)} sx={{ minWidth: 0, px: 1.5, fontSize: '1.15rem', lineHeight: 1 }}>👎</Button>
+            </Stack>
+          ) : (
+            <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 1, color: 'text.secondary' }}>
+              {feedback === 1 ? '👍 Obrigado! Seu retorno deixa a IA melhor a cada uso.' : 'Obrigado — vamos revisar e melhorar.'}
+            </Typography>
+          )
         )}
 
         {/* rodapé: confiança + disclaimer */}

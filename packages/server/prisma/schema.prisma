@@ -277,10 +277,25 @@ model RiskAssessment {
   snapshot        Json     // input canônico (valores por marcador — p/ reprodutibilidade/auditoria)
 
   createdAt       DateTime @default(now())
+  feedbacks       RiskFeedback[]
 
   @@index([patientId, createdAt])
   @@index([examId])
   @@map("risk_assessments")
+}
+
+// Feedback do paciente sobre o plano de ação (👍 ajudou / 👎 não) — loop de melhoria da IA.
+// Agregamos por condição p/ refinar os cards .md e os prompts.
+model RiskFeedback {
+  id               String   @id @default(cuid())
+  riskAssessmentId String
+  riskAssessment   RiskAssessment @relation(fields: [riskAssessmentId], references: [id], onDelete: Cascade)
+  rating           Int      // 1 = ajudou, 0 = não ajudou
+  comment          String?  // texto livre (opcional)
+  createdAt        DateTime @default(now())
+
+  @@index([riskAssessmentId])
+  @@map("risk_feedbacks")
 }
 
 model Subscription {

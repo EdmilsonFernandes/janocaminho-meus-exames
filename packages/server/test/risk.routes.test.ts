@@ -205,3 +205,32 @@ describe('GET /api/risk/latest — tendência', () => {
     expect(r.body.assessment.trend).toBe('piorou');
   });
 });
+
+// Feedback do plano de ação (loop de melhoria da IA).
+describe('POST /api/risk/feedback', () => {
+  beforeEach(async () => { await resetDb(); });
+
+  it('cria feedback válido (rating 1)', async () => {
+    const { patient, token } = await createUser();
+    const a = await prisma.riskAssessment.create({ data: { patientId: patient.id, conditionKey: 'diabetes', conditionLabel: 'Diabetes', riskLevel: 'high', confidence: 0.8, ruleConfidence: 'alta', findings: [], snapshot: [] } });
+    const r = await api().post('/api/risk/feedback').set(authHeader(token)).send({ riskAssessmentId: a.id, rating: 1 });
+    expect(r.status).toBe(201);
+    expect(r.body.rating).toBe(1);
+    expect(await prisma.riskFeedback.count()).toBe(1);
+  });
+
+  it('rating inválido -> 400', async () => {
+    const { patient, token } = await createUser();
+    const a = await prisma.riskAssessment.create({ data: { patientId: patient.id, conditionKey: 'none', conditionLabel: 'X', riskLevel: 'low', confidence: 0.9, ruleConfidence: 'alta', findings: [], snapshot: [] } });
+    const r = await api().post('/api/risk/feedback').set(authHeader(token)).send({ riskAssessmentId: a.id, rating: 5 });
+    expect(r.status).toBe(400);
+  });
+
+  it('assessment de outro usuário -> 403', async () => {
+    const a = await createUser();
+    const b = await createUser();
+    const ra = await prisma.riskAssessment.create({ data: { patientId: a.patient.id, conditionKey: 'none', conditionLabel: 'X', riskLevel: 'low', confidence: 0.9, ruleConfidence: 'alta', findings: [], snapshot: [] } });
+    const r = await api().post('/api/risk/feedback').set(authHeader(b.token)).send({ riskAssessmentId: ra.id, rating: 1 });
+    expect(r.status).toBe(403);
+  });
+});

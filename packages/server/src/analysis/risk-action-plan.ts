@@ -15,6 +15,7 @@ import { prisma } from '../prisma';
 import { getAnthropic, MODEL } from '../claude/client';
 import { HEALTH_SYSTEM, diagnosticGuard } from './system';
 import { MEDICAL_DISCLAIMER } from './risk-rules';
+import { knowledgeFor } from './knowledge';
 
 const PLAN_SYSTEM =
   HEALTH_SYSTEM +
@@ -26,7 +27,7 @@ export interface ActionResult {
   contentMd: string;
   modelUsed: string;
   usage: any;
-  basedOn: { conditionKey: string; riskLevel: string; findingsCount: number; assessmentId: string };
+  basedOn: { conditionKey: string; riskLevel: string; findingsCount: number; assessmentId: string; knowledgeUsed: boolean };
 }
 
 /** Gera o plano de ação baseado no último RiskAssessment do paciente. */
@@ -46,11 +47,15 @@ export async function generateActionPlan(patientId: string): Promise<ActionResul
     ? findings.map((f) => `- ${f.name_pt}: ${f.value} ${f.unit} → ${f.finding}`).join('\n')
     : '- (sem alterações relevantes nos marcadores analisados)';
 
+  // RAG: injeta o card de conhecimento clínico curado da condição (deixa a IA mais rica/consistente).
+  const kb = knowledgeFor(last.conditionKey);
+
   const userContent =
     `Escreva um PLANO DE AÇÃO em português, para o paciente, baseado APENAS nestes achados de risco já calculados pelo sistema.\n\n` +
     `CONDIÇÃO: ${last.conditionLabel}\n` +
     `NÍVEL DE RISCO: ${last.riskLevel}\n` +
     `ACHADOS (use só estes como fato — não invente outros):\n${facts}\n\n` +
+    (kb ? `BASE DE CONHECIMENTO CLÍNICO (use como referência factual; NÃO invente além do que está aqui):\n${kb}\n\n` : '') +
     `Monte o plano em Markdown com:\n` +
     `- 1 parágrafo curto de contexto (o que os achados podem indicar, em linguagem de risco/possível)\n` +
     `- "O que você pode fazer" (3 a 4 ações práticas de hábito/prevenção, educativas — sem prescrever)\n` +
@@ -82,6 +87,6 @@ export async function generateActionPlan(patientId: string): Promise<ActionResul
     contentMd,
     modelUsed: response.model,
     usage: response.usage,
-    basedOn: { conditionKey: last.conditionKey, riskLevel: last.riskLevel, findingsCount: findings.length, assessmentId: last.id },
+    basedOn: { conditionKey: last.conditionKey, riskLevel: last.riskLevel, findingsCount: findings.length, assessmentId: last.id, knowledgeUsed: !!kb },
   };
 }

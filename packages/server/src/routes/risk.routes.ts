@@ -50,6 +50,23 @@ router.get('/latest', async (req: AuthedRequest, res, next) => {
   } catch (e) { next(e); }
 });
 
+// FEEDBACK do paciente sobre o plano de ação (loop de melhoria da IA) — grátis
+router.post('/feedback', async (req: AuthedRequest, res, next) => {
+  try {
+    const pids = await userPatientIds(req.userId!);
+    const { riskAssessmentId, rating, comment } = req.body ?? {};
+    if (!riskAssessmentId || (rating !== 0 && rating !== 1)) {
+      res.status(400).json({ error: 'riskAssessmentId e rating (0 ou 1) obrigatórios' });
+      return;
+    }
+    // valida posse: assessment precisa ser de um paciente do usuário
+    const ass = await prisma.riskAssessment.findUnique({ where: { id: String(riskAssessmentId) }, select: { patientId: true } });
+    if (!ass || !pids.includes(ass.patientId)) { res.status(403).json({ error: 'Sem permissão' }); return; }
+    const fb = await prisma.riskFeedback.create({ data: { riskAssessmentId: String(riskAssessmentId), rating: Number(rating), comment: comment ? String(comment) : null } });
+    res.status(201).json({ id: fb.id, rating: fb.rating });
+  } catch (e) { next(e); }
+});
+
 // PLANO DE AÇÃO (IA — cobra créditos; o RiskCard/leitura de risco seguem grátis)
 router.post('/action-plan', async (req: AuthedRequest, res, next) => {
   try {
