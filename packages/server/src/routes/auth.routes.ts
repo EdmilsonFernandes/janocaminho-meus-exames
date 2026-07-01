@@ -320,7 +320,9 @@ router.get('/me', requireAuth, async (req: AuthedRequest, res, next) => {
         if (!clash) { await prisma.user.update({ where: { id: user.id }, data: { referralCode: candidate } }); user.referralCode = candidate; break; }
       }
     }
-    res.json({ user, patientId });
+    // Sliding session: devolve um token FRESCO (renova os 7d) a cada /me. Assim a biometria
+    // e o app se renovam a cada uso — não expira pra usuários ativos (fix do bug da biometria).
+    res.json({ user, patientId, token: user ? signToken({ userId: user.id }) : undefined });
   } catch (e) { next(e); }
 });
 

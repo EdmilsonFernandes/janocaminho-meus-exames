@@ -90,16 +90,30 @@ export const LoginPage = () => {
     else {
       localStorage.setItem('token', r.token);
       // Bio login só guardava o token → drawer ficava "Olá" e admin sumia. Popula user/paciente.
+      // BUG: se o token da biometria EXPIROU (JWT 7d), /auth/me dá 401 e antes o app entrava
+      // SEM dados (não populava user/paciente mas navegava pra '/'). Agora: só entra se /me
+      // for OK; se expirou, limpa o token stale do Keystore e pede re-login por senha.
       try {
         const me = await fetch(`${API_URL}/auth/me`, { headers: { Authorization: `Bearer ${r.token}` } });
         if (me.ok) {
           const d = await me.json();
+          // Sliding session: /me devolve um token FRESCO → renova localStorage + Keystore da
+          // biometria. Assim a biometria não expira pra quem usa o app (só pra quem fica 7d sem abrir).
+          if (d.token) { localStorage.setItem('token', d.token); BiometricService.enroll(d.token, false); }
           if (d.patientId) { localStorage.setItem('patientId', d.patientId); localStorage.setItem('selPatientId', d.patientId); }
           if (d.user) localStorage.setItem('user', JSON.stringify(d.user));
           window.dispatchEvent(new Event('selPatientChanged'));
+          navigate('/', { replace: true });
+        } else {
+          // 401 = token do Keystore expirado. Limpa pra não reusar; usuário re-loga por senha.
+          localStorage.removeItem('token');
+          BiometricService.forget();
+          notify('Sua biometria expirou por segurança. Entre com e-mail e senha para reativá-la.', { type: 'warning' });
         }
-      } catch { /* segue mesmo se /me falhar (token já está) */ }
-      navigate('/', { replace: true });
+      } catch {
+        localStorage.removeItem('token');
+        notify('Não foi possível confirmar a biometria. Entre com e-mail e senha.', { type: 'error' });
+      }
     }
   };
 
