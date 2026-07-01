@@ -25,14 +25,14 @@ const Variation = ({ anterior, atual, leitura }: { anterior?: string | null; atu
 
 /** Item em destaque (comparativo): nome (NameToggle) + anterior → atual + variação + explicar. */
 export const DestaqueCard = ({ c }: { c: { name: string; anterior?: string | null; atual?: string | null; leitura?: string | null; entenda?: string | null } }) => (
-  <Box sx={{ p: 1.5, height: '100%', borderRadius: '12px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
+  <Box sx={{ p: 1.5, height: '100%', borderRadius: '12px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
     <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={1}>
       <Box sx={{ flex: 1, minWidth: 0 }}>
         <NameToggle name={c.name} entenda={c.entenda} />
         <Stack direction="row" spacing={0.75} alignItems="baseline" sx={{ mt: 0.5 }} flexWrap="wrap" useFlexGap>
-          <Typography variant="body2" color="text.secondary">{c.anterior || '—'}</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{c.anterior || '—'}</Typography>
           <Typography sx={{ fontWeight: 800, color: 'primary.main' }}>→</Typography>
-          <Typography sx={(t) => ({ fontWeight: 800, color: t.palette.mode === 'dark' ? '#5b9bd5' : '#0b5cab' })}>{c.atual || '—'}</Typography>
+          <Typography sx={(t) => ({ fontWeight: 800, color: t.palette.mode === 'dark' ? '#5b9bd5' : '#0b5cab', wordBreak: 'break-word', overflowWrap: 'anywhere' })}>{c.atual || '—'}</Typography>
         </Stack>
       </Box>
       <Stack direction="column" alignItems="flex-end" spacing={0.5} sx={{ flexShrink: 0 }}>

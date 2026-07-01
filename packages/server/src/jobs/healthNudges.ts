@@ -69,14 +69,17 @@ export function startHealthNudgeJob(): void {
   const run = async () => {
     try {
       console.log(`[nudges] tick diário 08h BRT @ ${new Date().toISOString()}`);
-      const users = await prisma.user.findMany({
-        where: { patients: { some: { exams: { some: { status: 'EXTRACTED' } } } } }, // tem ≥1 exame extraído
-        select: { id: true, name: true, email: true, nudgeEmails: true, emailVerified: true },
-        take: 200,
+      // Por-PATIENT (não por user): cada dependente recebe SEU nudge com SEU nome + SEUS dados.
+      // Antes era por-user (user.name = titular) → notificação dizia "Edmilson" com dado da Heloisa e
+      // misturava amostras de todos os dependentes da família.
+      const patients = await prisma.patient.findMany({
+        where: { exams: { some: { status: 'EXTRACTED' } } },
+        include: { owner: { select: { id: true, email: true, nudgeEmails: true, emailVerified: true } } },
+        take: 500,
       });
-      console.log(`[nudges] ${users.length} usuário(s) com exames (cada um recebe alerta ou dica da IA)`);
-      for (const u of users) {
-        await maybeNudge(u.id, u.name, u.email, u.nudgeEmails, u.emailVerified).catch((e) => console.error('[nudges] erro usuário', u.id, (e as Error).message));
+      console.log(`[nudges] ${patients.length} paciente(s) com exames (1 nudge por dependente, nome/dados dele)`);
+      for (const p of patients) {
+        await maybeNudgeForPatient(p).catch((e) => console.error('[nudges] erro paciente', p.id, (e as Error).message));
       }
       console.log('[nudges] tick concluído');
     } catch (e) {
@@ -93,18 +96,20 @@ export function startHealthNudgeJob(): void {
   scheduleNext();
 }
 
-async function maybeNudge(userId: string, userName: string, email: string, nudgeEmails: boolean, emailVerified: boolean): Promise<void> {
-  const first = (userName || '').split(' ')[0];
+async function maybeNudgeForPatient(patient: { id: string; fullName: string; owner: { id: string; email: string; nudgeEmails: boolean; emailVerified: boolean } }): Promise<void> {
+  const owner = patient.owner;
+  const first = (patient.fullName || '').split(' ')[0]; // nome do PACIENTE (dependente), não do titular
   const cutoff = new Date(Date.now() - COOLDOWN_MS);
   const since = new Date(Date.now() - RECENT_MS);
-  let type = '', title = '', body = '', data: Record<string, string> = {};
+  let type = '', title = '', body = '';
+  const data: Record<string, string> = { patientId: patient.id };
 
-  // 1) ALERTA: valor alterado em exame recente E sem alerta nos últimos 3 dias (anti-spam de alerta).
-  //    Pega um alterado ALEATÓRIO entre os recentes pra variar a mensagem a cada dia.
-  const recentAlert = await prisma.notification.findFirst({ where: { userId, type: 'alert', createdAt: { gte: cutoff } }, select: { id: true } });
+  // 1) ALERTA: valor alterado em exame recente DESTE paciente, sem alerta nos últimos 3 dias
+  //    para este paciente (anti-spam por dependente — antes era por user e misturava).
+  const recentAlert = await prisma.notification.findFirst({ where: { userId: owner.id, type: 'alert', createdAt: { gte: cutoff }, data: { path: ['patientId'], equals: patient.id } }, select: { id: true } });
   if (!recentAlert) {
     const abnormals = await prisma.examItem.findMany({
-      where: { isAbnormal: true, exam: { patient: { ownerId: userId }, OR: [{ performedAt: { gte: since } }, { performedAt: null, createdAt: { gte: since } }] } },
+      where: { isAbnormal: true, exam: { patientId: patient.id, OR: [{ performedAt: { gte: since } }, { performedAt: null, createdAt: { gte: since } }] } },
       orderBy: { exam: { performedAt: 'desc' } },
       take: 15,
       select: { name: true, nameCanonical: true, exam: { select: { id: true } } },
@@ -114,7 +119,8 @@ async function maybeNudge(userId: string, userName: string, email: string, nudge
       type = 'alert';
       title = `${first}, um valor precisa de atenção`;
       body = `Seu ${a.name} está fora da faixa em exame recente. Vale conversar com seu médico pra avaliar.`;
-      data = { examId: a.exam?.id ?? '', nameCanonical: a.nameCanonical ?? a.name };
+      data.examId = a.exam?.id ?? '';
+      data.nameCanonical = a.nameCanonical ?? a.name;
     }
   }
 
@@ -125,17 +131,15 @@ async function maybeNudge(userId: string, userName: string, email: string, nudge
     body = await getDailyHealthTip();
   }
 
-  // sendPushToUser JÁ salva a notificação in-app (central do app) E envia o push —
-  // antes havia um prisma.notification.create duplicado aqui (= 2 notificações por nudge).
-  await sendPushToUser(userId, title, body, { type, ...(data.examId ? { examId: data.examId } : {}) });
+  // sendPushToUser salva a notificação in-app (central) E envia o push pro OWNER (donho da conta).
+  await sendPushToUser(owner.id, title, body, { type, ...data });
   // FALLBACK por e-mail: SÓ pra ALERTA e só pra quem NÃO tem push (iPhone no navegador etc.).
-  // A dica diária NÃO vai por e-mail (evita spam). Best-effort (sendNudgeEmail loga e não propaga).
   if (type === 'alert') {
-    const tokenCount = await prisma.deviceToken.count({ where: { userId } }).catch(() => 1); // em erro, assume "tem push"
-    if (!tokenCount && nudgeEmails && emailVerified) {
-      await sendNudgeEmail({ to: email, userId, firstName: first, title, body, examId: data.examId || undefined });
-      console.log(`[nudges] e-mail (sem push) p/ ${userName}: ${title}`);
+    const tokenCount = await prisma.deviceToken.count({ where: { userId: owner.id } }).catch(() => 1);
+    if (!tokenCount && owner.nudgeEmails && owner.emailVerified) {
+      await sendNudgeEmail({ to: owner.email, userId: owner.id, firstName: first, title, body, examId: data.examId || undefined });
+      console.log(`[nudges] e-mail (sem push) p/ ${patient.fullName}: ${title}`);
     }
   }
-  console.log(`[nudges] enviado p/ ${userName} [${type}]: ${title}`);
+  console.log(`[nudges] enviado p/ ${patient.fullName} (owner ${owner.id}) [${type}]: ${title}`);
 }
