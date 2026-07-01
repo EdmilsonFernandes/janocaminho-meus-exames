@@ -80,10 +80,20 @@ export const ChatPage = () => {
   const [sheetOpen, setSheetOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const firstName = (() => { try { return (JSON.parse(localStorage.getItem('user') || '{}')?.name || '').split(' ')[0]; } catch { return ''; } })();
+  const [patientName, setPatientName] = useState('');
 
   // Sempre abre nas OPÇÕES (quick actions), não no histórico. Histórico fica no ícone do relógio.
-  useEffect(() => { if (pid) { setConvs(loadConvs(pid)); setCurId(null); } }, [pid]);
+  // + busca o nome do PACIENTE SELECIONADO (não do titular) pra saudar/titular pelo nome certo
+  //   (antes usava localStorage.user.name = dono da conta → "Oi, Edmilson" no perfil da Heloisa).
+  useEffect(() => {
+    if (!pid) { setPatientName(''); return; }
+    setConvs(loadConvs(pid)); setCurId(null);
+    fetch(`${API_URL}/patients`, { headers: apiHeaders() })
+      .then((r) => (r.ok ? r.json() : []))
+      .then((ps: any[]) => setPatientName(ps.find((x) => x.id === pid)?.fullName ?? ''))
+      .catch(() => setPatientName(''));
+  }, [pid]);
+  const firstName = patientName.trim().split(/\s+/)[0];
   const cur = convs.find((c) => c.id === curId) ?? null;
   const messages = cur?.messages ?? [];
   // 'auto' (instantâneo): não "rola" visivelmente ao abrir a tela — só posiciona no fim.
@@ -148,7 +158,7 @@ export const ChatPage = () => {
         <DrExame size={30} sx={{ borderRadius: '50%' }} />
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography sx={{ fontWeight: 800, lineHeight: 1.1, fontFamily: 'Poppins, sans-serif' }}>Dr. Exame</Typography>
-          <Typography sx={{ fontSize: 11, opacity: 0.9 }}>Assistente de saúde</Typography>
+          <Typography sx={{ fontSize: 11, opacity: 0.9 }}>Assistente de saúde{firstName ? ` · ${firstName}` : ''}</Typography>
         </Box>
         <IconButton size="small" onClick={startNew} title="Nova conversa" sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,.15)', '&:hover': { bgcolor: 'rgba(255,255,255,.25)' } }}><EditIcon fontSize="small" /></IconButton>
         <IconButton size="small" onClick={() => setHistOpen(true)} title="Histórico de conversas" sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,.15)', '&:hover': { bgcolor: 'rgba(255,255,255,.25)' } }}>
