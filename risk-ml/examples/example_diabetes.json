@@ -1,0 +1,61 @@
+{
+  "predictedCondition": "Possível risco de diabetes",
+  "predictedConditionKey": "diabetes",
+  "confidence": 0.87,
+  "confidenceNote": "Confiança da análise combinada (regras + modelo), não do modelo isolado.",
+  "riskLevel": "high",
+  "basis": "rules",
+  "mlAgreesWithRules": true,
+  "detectedFindings": [
+    "Glicemia de jejum elevada (≥126 mg/dL) — faixa associada a risco metabólico aumentado",
+    "HbA1c elevada (≥6,5%) — associada a risco metabólico aumentado"
+  ],
+  "findings": [
+    {
+      "name_pt": "Glicemia de jejum",
+      "marker": "blood_glucose",
+      "value": 168.0,
+      "unit": "mg/dL",
+      "severity": "high",
+      "condition": "diabetes",
+      "finding": "Glicemia de jejum elevada (≥126 mg/dL) — faixa associada a risco metabólico aumentado"
+    },
+    {
+      "name_pt": "Hemoglobina glicada (HbA1c)",
+      "marker": "hba1c",
+      "value": 8.1,
+      "unit": "%",
+      "severity": "high",
+      "condition": "diabetes",
+      "finding": "HbA1c elevada (≥6,5%) — associada a risco metabólico aumentado"
+    }
+  ],
+  "userExplanation": "Atenção de intensidade importante: há alterações em glicose e/ou HbA1c que podem indicar risco metabólico aumentado. Os exames que mais influenciaram esta análise foram: Glicemia de jejum, Hemoglobina glicada (HbA1c). Recomendamos levar estes resultados ao seu médico para confirmação e conduta. Esta análise não substitui uma consulta médica.",
+  "doctorQuestions": [
+    "Esses valores indicam risco de diabetes?",
+    "Preciso repetir o exame em jejum?",
+    "Devo investigar resistência à insulina?"
+  ],
+  "medicalDisclaimer": "Esta análise é apenas educativa e não substitui avaliação médica. Nenhum resultado aqui constitui diagnóstico.",
+  "meta": {
+    "markersEvaluated": 9,
+    "markersUnmapped": [],
+    "ruleConfidence": "alta",
+    "mlSuspect": false,
+    "ml": {
+      "predictedCondition": "diabetes",
+      "confidence": 1.0,
+      "margin": 1.0,
+      "reliable": true,
+      "probabilities": {
+        "diabetes": 1.0,
+        "anemia": 0.0,
+        "none": 0.0,
+        "high_cholesterol": 0.0,
+        "hypertension": 0.0
+      },
+      "conditions_present": 9,
+      "ml_note": "Modelo treinado em dados sintéticos (2ª opinião; não diagnóstico)."
+    }
+  }
+}

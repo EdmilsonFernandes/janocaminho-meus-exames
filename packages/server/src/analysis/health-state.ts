@@ -77,7 +77,7 @@ export interface CurrentHealthSummary {
 
 // ───────────────────────── helpers puros ─────────────────────────
 
-const STALE_MONTHS = 12;
+export const STALE_MONTHS = 12;
 
 export function ageMonths(d: Date | null): number | null {
   if (!d) return null;

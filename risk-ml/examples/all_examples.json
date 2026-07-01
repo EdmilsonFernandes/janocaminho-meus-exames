@@ -1,0 +1,379 @@
+{
+  "diabetes": {
+    "predictedCondition": "Possível risco de diabetes",
+    "predictedConditionKey": "diabetes",
+    "confidence": 0.87,
+    "confidenceNote": "Confiança da análise combinada (regras + modelo), não do modelo isolado.",
+    "riskLevel": "high",
+    "basis": "rules",
+    "mlAgreesWithRules": true,
+    "detectedFindings": [
+      "Glicemia de jejum elevada (≥126 mg/dL) — faixa associada a risco metabólico aumentado",
+      "HbA1c elevada (≥6,5%) — associada a risco metabólico aumentado"
+    ],
+    "findings": [
+      {
+        "name_pt": "Glicemia de jejum",
+        "marker": "blood_glucose",
+        "value": 168.0,
+        "unit": "mg/dL",
+        "severity": "high",
+        "condition": "diabetes",
+        "finding": "Glicemia de jejum elevada (≥126 mg/dL) — faixa associada a risco metabólico aumentado"
+      },
+      {
+        "name_pt": "Hemoglobina glicada (HbA1c)",
+        "marker": "hba1c",
+        "value": 8.1,
+        "unit": "%",
+        "severity": "high",
+        "condition": "diabetes",
+        "finding": "HbA1c elevada (≥6,5%) — associada a risco metabólico aumentado"
+      }
+    ],
+    "userExplanation": "Atenção de intensidade importante: há alterações em glicose e/ou HbA1c que podem indicar risco metabólico aumentado. Os exames que mais influenciaram esta análise foram: Glicemia de jejum, Hemoglobina glicada (HbA1c). Recomendamos levar estes resultados ao seu médico para confirmação e conduta. Esta análise não substitui uma consulta médica.",
+    "doctorQuestions": [
+      "Esses valores indicam risco de diabetes?",
+      "Preciso repetir o exame em jejum?",
+      "Devo investigar resistência à insulina?"
+    ],
+    "medicalDisclaimer": "Esta análise é apenas educativa e não substitui avaliação médica. Nenhum resultado aqui constitui diagnóstico.",
+    "meta": {
+      "markersEvaluated": 9,
+      "markersUnmapped": [],
+      "ruleConfidence": "alta",
+      "mlSuspect": false,
+      "ml": {
+        "predictedCondition": "diabetes",
+        "confidence": 1.0,
+        "margin": 1.0,
+        "reliable": true,
+        "probabilities": {
+          "diabetes": 1.0,
+          "anemia": 0.0,
+          "none": 0.0,
+          "high_cholesterol": 0.0,
+          "hypertension": 0.0
+        },
+        "conditions_present": 9,
+        "ml_note": "Modelo treinado em dados sintéticos (2ª opinião; não diagnóstico)."
+      }
+    }
+  },
+  "anemia": {
+    "predictedCondition": "Possível anemia",
+    "predictedConditionKey": "anemia",
+    "confidence": 0.87,
+    "confidenceNote": "Confiança da análise combinada (regras + modelo), não do modelo isolado.",
+    "riskLevel": "moderate",
+    "basis": "rules",
+    "mlAgreesWithRules": true,
+    "detectedFindings": [
+      "Hemoglobina baixa (8,0–10,9) — possível anemia moderada",
+      "VCV muito baixo (<70, microcitose acentuada) — pode indicar anemia microcítica"
+    ],
+    "findings": [
+      {
+        "name_pt": "Hemoglobina",
+        "marker": "haemoglobin",
+        "value": 9.5,
+        "unit": "g/dL",
+        "severity": "moderate",
+        "condition": "anemia",
+        "finding": "Hemoglobina baixa (8,0–10,9) — possível anemia moderada"
+      },
+      {
+        "name_pt": "Volume Corpuscular Médio (VCM/MCV)",
+        "marker": "mcv",
+        "value": 68.0,
+        "unit": "fL",
+        "severity": "moderate",
+        "condition": "anemia",
+        "finding": "VCV muito baixo (<70, microcitose acentuada) — pode indicar anemia microcítica"
+      }
+    ],
+    "userExplanation": "Atenção de intensidade moderada: hemoglobina e/ou VCM estão alterados, o que pode sugerir anemia — o tipo precisa ser definido por um médico. Os exames que mais influenciaram esta análise foram: Hemoglobina, Volume Corpuscular Médio (VCM/MCV). Recomendamos levar estes resultados ao seu médico para confirmação e conduta. Esta análise não substitui uma consulta médica.",
+    "doctorQuestions": [
+      "Esses valores sugerem anemia? De que tipo?",
+      "Devo investigar causa (ferro, B12, ferro, sangramento oculto)?",
+      "É seguro esperar ou preciso tratar agora?"
+    ],
+    "medicalDisclaimer": "Esta análise é apenas educativa e não substitui avaliação médica. Nenhum resultado aqui constitui diagnóstico.",
+    "meta": {
+      "markersEvaluated": 9,
+      "markersUnmapped": [],
+      "ruleConfidence": "alta",
+      "mlSuspect": false,
+      "ml": {
+        "predictedCondition": "anemia",
+        "confidence": 1.0,
+        "margin": 1.0,
+        "reliable": true,
+        "probabilities": {
+          "anemia": 1.0,
+          "diabetes": 0.0,
+          "none": 0.0,
+          "high_cholesterol": 0.0,
+          "hypertension": 0.0
+        },
+        "conditions_present": 9,
+        "ml_note": "Modelo treinado em dados sintéticos (2ª opinião; não diagnóstico)."
+      }
+    }
+  },
+  "hypertension": {
+    "predictedCondition": "Possível risco de hipertensão",
+    "predictedConditionKey": "hypertension",
+    "confidence": 0.87,
+    "confidenceNote": "Confiança da análise combinada (regras + modelo), não do modelo isolado.",
+    "riskLevel": "high",
+    "basis": "rules",
+    "mlAgreesWithRules": true,
+    "detectedFindings": [
+      "Pressão sistólica elevada (≥140) — faixa de hipertensão estágio 2",
+      "Pressão diastólica elevada (≥90) — faixa de hipertensão"
+    ],
+    "findings": [
+      {
+        "name_pt": "Pressão sistólica (PAS)",
+        "marker": "systolic_bp",
+        "value": 152.0,
+        "unit": "mmHg",
+        "severity": "high",
+        "condition": "hypertension",
+        "finding": "Pressão sistólica elevada (≥140) — faixa de hipertensão estágio 2"
+      },
+      {
+        "name_pt": "Pressão diastólica (PAD)",
+        "marker": "diastolic_bp",
+        "value": 98.0,
+        "unit": "mmHg",
+        "severity": "high",
+        "condition": "hypertension",
+        "finding": "Pressão diastólica elevada (≥90) — faixa de hipertensão"
+      }
+    ],
+    "userExplanation": "Atenção de intensidade importante: a pressão arterial está elevada, o que pode indicar risco de hipertensão. Os exames que mais influenciaram esta análise foram: Pressão sistólica (PAS), Pressão diastólica (PAD). Recomendamos levar estes resultados ao seu médico para confirmação e conduta. Esta análise não substitui uma consulta médica.",
+    "doctorQuestions": [
+      "Esses valores de pressão indicam hipertensão?",
+      "Devo medir a pressão em casa por uma semana antes de decidir?",
+      "Há risco para coração ou rins que precise investigar agora?"
+    ],
+    "medicalDisclaimer": "Esta análise é apenas educativa e não substitui avaliação médica. Nenhum resultado aqui constitui diagnóstico.",
+    "meta": {
+      "markersEvaluated": 9,
+      "markersUnmapped": [],
+      "ruleConfidence": "alta",
+      "mlSuspect": false,
+      "ml": {
+        "predictedCondition": "hypertension",
+        "confidence": 1.0,
+        "margin": 1.0,
+        "reliable": true,
+        "probabilities": {
+          "hypertension": 1.0,
+          "anemia": 0.0,
+          "diabetes": 0.0,
+          "none": 0.0,
+          "high_cholesterol": 0.0
+        },
+        "conditions_present": 9,
+        "ml_note": "Modelo treinado em dados sintéticos (2ª opinião; não diagnóstico)."
+      }
+    }
+  },
+  "high_cholesterol": {
+    "predictedCondition": "Possível risco de colesterol alto",
+    "predictedConditionKey": "high_cholesterol",
+    "confidence": 0.87,
+    "confidenceNote": "Confiança da análise combinada (regras + modelo), não do modelo isolado.",
+    "riskLevel": "high",
+    "basis": "rules",
+    "mlAgreesWithRules": true,
+    "detectedFindings": [
+      "Pressão sistólica elevada (120–129) — faixa de pré-hipertensão",
+      "LDL elevado (≥160) — associado a risco cardiovascular aumentado",
+      "HDL baixo (<40) — fator de risco cardiovascular",
+      "Triglicerídeos elevado (200–499) — associado a risco metabólico"
+    ],
+    "findings": [
+      {
+        "name_pt": "Pressão sistólica (PAS)",
+        "marker": "systolic_bp",
+        "value": 120.0,
+        "unit": "mmHg",
+        "severity": "low",
+        "condition": "hypertension",
+        "finding": "Pressão sistólica elevada (120–129) — faixa de pré-hipertensão"
+      },
+      {
+        "name_pt": "Colesterol LDL",
+        "marker": "ldl",
+        "value": 190.0,
+        "unit": "mg/dL",
+        "severity": "moderate",
+        "condition": "high_cholesterol",
+        "finding": "LDL elevado (≥160) — associado a risco cardiovascular aumentado"
+      },
+      {
+        "name_pt": "Colesterol HDL",
+        "marker": "hdl",
+        "value": 35.0,
+        "unit": "mg/dL",
+        "severity": "moderate",
+        "condition": "cardiovascular_risk",
+        "finding": "HDL baixo (<40) — fator de risco cardiovascular"
+      },
+      {
+        "name_pt": "Triglicerídeos",
+        "marker": "triglycerides",
+        "value": 260.0,
+        "unit": "mg/dL",
+        "severity": "moderate",
+        "condition": "high_cholesterol",
+        "finding": "Triglicerídeos elevado (200–499) — associado a risco metabólico"
+      }
+    ],
+    "userExplanation": "Atenção de intensidade importante: há sinais (como HDL baixo) que podem indicar risco cardiovascular; o perfil lipídico (LDL e/ou triglicerídeos) está alterado, o que pode indicar risco cardiovascular; a pressão arterial está elevada, o que pode indicar risco de hipertensão. Os exames que mais influenciaram esta análise foram: Pressão sistólica (PAS), Colesterol LDL, Colesterol HDL, Triglicerídeos. Recomendamos levar estes resultados ao seu médico para confirmação e conduta. Esta análise não substitui uma consulta médica.",
+    "doctorQuestions": [
+      "Meu perfil lipídico indica risco cardiovascular aumentado?",
+      "Qual o papel de dieta e exercício antes de medicação?",
+      "Preciso de outros exames (como PCR/Lp(a)) para estratificar risco?",
+      "HDL baixo altera meu risco cardiovascular? Como aumentar?",
+      "Esses valores de pressão indicam hipertensão?",
+      "Devo medir a pressão em casa por uma semana antes de decidir?"
+    ],
+    "medicalDisclaimer": "Esta análise é apenas educativa e não substitui avaliação médica. Nenhum resultado aqui constitui diagnóstico.",
+    "meta": {
+      "markersEvaluated": 9,
+      "markersUnmapped": [],
+      "ruleConfidence": "alta",
+      "mlSuspect": false,
+      "ml": {
+        "predictedCondition": "high_cholesterol",
+        "confidence": 1.0,
+        "margin": 1.0,
+        "reliable": true,
+        "probabilities": {
+          "high_cholesterol": 1.0,
+          "anemia": 0.0,
+          "diabetes": 0.0,
+          "none": 0.0,
+          "hypertension": 0.0
+        },
+        "conditions_present": 9,
+        "ml_note": "Modelo treinado em dados sintéticos (2ª opinião; não diagnóstico)."
+      }
+    }
+  },
+  "fit": {
+    "predictedCondition": "Sem alterações relevantes",
+    "predictedConditionKey": "none",
+    "confidence": 0.87,
+    "confidenceNote": "Confiança da análise combinada (regras + modelo), não do modelo isolado.",
+    "riskLevel": "low",
+    "basis": "rules",
+    "mlAgreesWithRules": true,
+    "detectedFindings": [],
+    "findings": [],
+    "userExplanation": "Nos parâmetros analisados, não foram identificadas alterações relevantes. Isso não descarta a necessidade de acompanhamento médico de rotina. Esta análise não substitui uma consulta médica.",
+    "doctorQuestions": [
+      "Estes resultados estão alinhados com o esperado para meu perfil?"
+    ],
+    "medicalDisclaimer": "Esta análise é apenas educativa e não substitui avaliação médica. Nenhum resultado aqui constitui diagnóstico.",
+    "meta": {
+      "markersEvaluated": 9,
+      "markersUnmapped": [],
+      "ruleConfidence": "alta",
+      "mlSuspect": false,
+      "ml": {
+        "predictedCondition": "none",
+        "confidence": 1.0,
+        "margin": 1.0,
+        "reliable": true,
+        "probabilities": {
+          "none": 1.0,
+          "anemia": 0.0,
+          "diabetes": 0.0,
+          "high_cholesterol": 0.0,
+          "hypertension": 0.0
+        },
+        "conditions_present": 9,
+        "ml_note": "Modelo treinado em dados sintéticos (2ª opinião; não diagnóstico)."
+      }
+    }
+  },
+  "prediabetes_mmol": {
+    "predictedCondition": "Possível pré-diabetes",
+    "predictedConditionKey": "prediabetes",
+    "confidence": 0.75,
+    "confidenceNote": "Confiança da análise combinada (regras + modelo), não do modelo isolado.",
+    "riskLevel": "low",
+    "basis": "rules",
+    "mlAgreesWithRules": false,
+    "detectedFindings": [
+      "Glicemia de jejum na faixa de pré-diabetes (100–125 mg/dL) — pode indicar alteração glicêmica inicial",
+      "HbA1c na faixa de pré-diabetes (5,7–6,4%) — controle glicêmico no limite",
+      "Pressão sistólica elevada (120–129) — faixa de pré-hipertensão"
+    ],
+    "findings": [
+      {
+        "name_pt": "Glicemia de jejum",
+        "marker": "blood_glucose",
+        "value": 113.51465999999999,
+        "unit": "mg/dL",
+        "severity": "low",
+        "condition": "prediabetes",
+        "finding": "Glicemia de jejum na faixa de pré-diabetes (100–125 mg/dL) — pode indicar alteração glicêmica inicial"
+      },
+      {
+        "name_pt": "Hemoglobina glicada (HbA1c)",
+        "marker": "hba1c",
+        "value": 5.9,
+        "unit": "%",
+        "severity": "low",
+        "condition": "prediabetes",
+        "finding": "HbA1c na faixa de pré-diabetes (5,7–6,4%) — controle glicêmico no limite"
+      },
+      {
+        "name_pt": "Pressão sistólica (PAS)",
+        "marker": "systolic_bp",
+        "value": 122.0,
+        "unit": "mmHg",
+        "severity": "low",
+        "condition": "hypertension",
+        "finding": "Pressão sistólica elevada (120–129) — faixa de pré-hipertensão"
+      }
+    ],
+    "userExplanation": "Atenção de intensidade leve a moderada: a pressão arterial está elevada, o que pode indicar risco de hipertensão; alguns marcadores glicêmicos estão na faixa de pré-diabetes. Isso costuma ser reversível com mudanças de hábito, mas merece atenção. Os exames que mais influenciaram esta análise foram: Glicemia de jejum, Hemoglobina glicada (HbA1c), Pressão sistólica (PAS). Recomendamos levar estes resultados ao seu médico para confirmação e conduta. Esta análise não substitui uma consulta médica.",
+    "doctorQuestions": [
+      "Esses valores indicam pré-diabetes? O que posso fazer para reverter?",
+      "Devo repetir glicemia/HbA1c e investigar resistência à insulina?",
+      "Esses valores de pressão indicam hipertensão?",
+      "Devo medir a pressão em casa por uma semana antes de decidir?",
+      "Há risco para coração ou rins que precise investigar agora?"
+    ],
+    "medicalDisclaimer": "Esta análise é apenas educativa e não substitui avaliação médica. Nenhum resultado aqui constitui diagnóstico.",
+    "meta": {
+      "markersEvaluated": 9,
+      "markersUnmapped": [],
+      "ruleConfidence": "alta",
+      "mlSuspect": false,
+      "ml": {
+        "predictedCondition": "none",
+        "confidence": 1.0,
+        "margin": 1.0,
+        "reliable": true,
+        "probabilities": {
+          "none": 1.0,
+          "anemia": 0.0,
+          "diabetes": 0.0,
+          "high_cholesterol": 0.0,
+          "hypertension": 0.0
+        },
+        "conditions_present": 9,
+        "ml_note": "Modelo treinado em dados sintéticos (2ª opinião; não diagnóstico)."
+      }
+    }
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "_comment": "Mapeia nomes de exames de diferentes laboratorios/idiomas para a chave canonica (snake) usada pelas regras em clinical_rules.yaml. 'ts_canonical' espelha a chave do packages/server/src/utils/normalize.ts (canonicalName) para o adapter TS->Python casar sem re-normalizar.",
+  "_conversion_note": "unit_alternatives: fator multiplicativo para levar a unidade alternativa -> unit_default. HbA1c IFCC (mmol/mol) eh nao-linear e tratada em codigo (nao aqui).",
+
+  "markers": {
+    "blood_glucose": {
+      "ts_canonical": "GLICEMIA",
+      "unit_default": "mg/dL",
+      "unit_alternatives": { "mmol/l": 18.0182, "mmol": 18.0182, "g/l": 100.0 },
+      "aliases": ["glicose", "glicemia", "glicemia de jejum", "glicemia jejum", "glucose", "blood glucose", "fasting glucose", "fbs", "glic"]
+    },
+    "hba1c": {
+      "ts_canonical": "HEMOGLOBINA_GLICADA",
+      "unit_default": "%",
+      "unit_alternatives": {},
+      "aliases": ["hemoglobina glicada", "hemoglobina glicosilada", "hba1c", "hb1ac", "a1c", "glicada", "hba1", "ifcc"]
+    },
+    "systolic_bp": {
+      "ts_canonical": "PRESSAO_SISTOLICA",
+      "unit_default": "mmHg",
+      "unit_alternatives": { "kpa": 7.5006 },
+      "aliases": ["pressao sistolica", "sistolica", "pas", "systolic bp", "systolic", "systolic blood pressure"]
+    },
+    "diastolic_bp": {
+      "ts_canonical": "PRESSAO_DIASTOLICA",
+      "unit_default": "mmHg",
+      "unit_alternatives": { "kpa": 7.5006 },
+      "aliases": ["pressao diastolica", "diastolica", "pad", "diastolic bp", "diastolic", "diastolic blood pressure"]
+    },
+    "ldl": {
+      "ts_canonical": "LDL",
+      "unit_default": "mg/dL",
+      "unit_alternatives": { "mmol/l": 38.67 },
+      "aliases": ["colesterol ldl", "ldl colesterol", "ldl c", "ldl", "low density lipoprotein", "c-ldl"]
+    },
+    "hdl": {
+      "ts_canonical": "HDL",
+      "unit_default": "mg/dL",
+      "unit_alternatives": { "mmol/l": 38.67 },
+      "aliases": ["colesterol hdl", "hdl colesterol", "hdl c", "hdl", "high density lipoprotein", "c-hdl"]
+    },
+    "triglycerides": {
+      "ts_canonical": "TRIGLICERIDES",
+      "unit_default": "mg/dL",
+      "unit_alternatives": { "mmol/l": 88.57 },
+      "aliases": ["triglicerides", "trigliceridios", "triglicerideos", "triglycerides", "tg", "trig"]
+    },
+    "haemoglobin": {
+      "ts_canonical": "HEMOGLOBINA",
+      "unit_default": "g/dL",
+      "unit_alternatives": { "g/l": 0.1, "mmol/l": 1.6114 },
+      "aliases": ["hemoglobina", "hemoglobin", "haemoglobin", "hgb", "hb", "hbs"]
+    },
+    "mcv": {
+      "ts_canonical": "VCM",
+      "unit_default": "fL",
+      "unit_alternatives": { "fl": 1.0 },
+      "aliases": ["volume globular medio", "volume corpuscular medio", "vcm", "vcv", "mcv", "mean corpuscular volume"]
+    }
+  }
+}

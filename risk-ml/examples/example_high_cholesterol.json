@@ -1,0 +1,84 @@
+{
+  "predictedCondition": "Possível risco de colesterol alto",
+  "predictedConditionKey": "high_cholesterol",
+  "confidence": 0.87,
+  "confidenceNote": "Confiança da análise combinada (regras + modelo), não do modelo isolado.",
+  "riskLevel": "high",
+  "basis": "rules",
+  "mlAgreesWithRules": true,
+  "detectedFindings": [
+    "Pressão sistólica elevada (120–129) — faixa de pré-hipertensão",
+    "LDL elevado (≥160) — associado a risco cardiovascular aumentado",
+    "HDL baixo (<40) — fator de risco cardiovascular",
+    "Triglicerídeos elevado (200–499) — associado a risco metabólico"
+  ],
+  "findings": [
+    {
+      "name_pt": "Pressão sistólica (PAS)",
+      "marker": "systolic_bp",
+      "value": 120.0,
+      "unit": "mmHg",
+      "severity": "low",
+      "condition": "hypertension",
+      "finding": "Pressão sistólica elevada (120–129) — faixa de pré-hipertensão"
+    },
+    {
+      "name_pt": "Colesterol LDL",
+      "marker": "ldl",
+      "value": 190.0,
+      "unit": "mg/dL",
+      "severity": "moderate",
+      "condition": "high_cholesterol",
+      "finding": "LDL elevado (≥160) — associado a risco cardiovascular aumentado"
+    },
+    {
+      "name_pt": "Colesterol HDL",
+      "marker": "hdl",
+      "value": 35.0,
+      "unit": "mg/dL",
+      "severity": "moderate",
+      "condition": "cardiovascular_risk",
+      "finding": "HDL baixo (<40) — fator de risco cardiovascular"
+    },
+    {
+      "name_pt": "Triglicerídeos",
+      "marker": "triglycerides",
+      "value": 260.0,
+      "unit": "mg/dL",
+      "severity": "moderate",
+      "condition": "high_cholesterol",
+      "finding": "Triglicerídeos elevado (200–499) — associado a risco metabólico"
+    }
+  ],
+  "userExplanation": "Atenção de intensidade importante: há sinais (como HDL baixo) que podem indicar risco cardiovascular; o perfil lipídico (LDL e/ou triglicerídeos) está alterado, o que pode indicar risco cardiovascular; a pressão arterial está elevada, o que pode indicar risco de hipertensão. Os exames que mais influenciaram esta análise foram: Pressão sistólica (PAS), Colesterol LDL, Colesterol HDL, Triglicerídeos. Recomendamos levar estes resultados ao seu médico para confirmação e conduta. Esta análise não substitui uma consulta médica.",
+  "doctorQuestions": [
+    "Meu perfil lipídico indica risco cardiovascular aumentado?",
+    "Qual o papel de dieta e exercício antes de medicação?",
+    "Preciso de outros exames (como PCR/Lp(a)) para estratificar risco?",
+    "HDL baixo altera meu risco cardiovascular? Como aumentar?",
+    "Esses valores de pressão indicam hipertensão?",
+    "Devo medir a pressão em casa por uma semana antes de decidir?"
+  ],
+  "medicalDisclaimer": "Esta análise é apenas educativa e não substitui avaliação médica. Nenhum resultado aqui constitui diagnóstico.",
+  "meta": {
+    "markersEvaluated": 9,
+    "markersUnmapped": [],
+    "ruleConfidence": "alta",
+    "mlSuspect": false,
+    "ml": {
+      "predictedCondition": "high_cholesterol",
+      "confidence": 1.0,
+      "margin": 1.0,
+      "reliable": true,
+      "probabilities": {
+        "high_cholesterol": 1.0,
+        "anemia": 0.0,
+        "diabetes": 0.0,
+        "none": 0.0,
+        "hypertension": 0.0
+      },
+      "conditions_present": 9,
+      "ml_note": "Modelo treinado em dados sintéticos (2ª opinião; não diagnóstico)."
+    }
+  }
+}

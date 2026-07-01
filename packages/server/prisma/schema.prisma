@@ -124,6 +124,7 @@ model Patient {
   vaccines     Vaccine[]
   expenses     Expense[]
   doctorShares DoctorShare[]
+  riskAssessments RiskAssessment[]
 
   @@index([ownerId])
   @@map("patients")
@@ -156,6 +157,7 @@ model Exam {
 
   items            ExamItem[]
   analyses         AiAnalysis[]
+  riskAssessments  RiskAssessment[]
   createdAt        DateTime   @default(now())
   updatedAt        DateTime   @updatedAt
 
@@ -249,6 +251,36 @@ model AiAnalysis {
 enum AnalysisType {
   SUMMARY
   CHAT
+}
+
+// Avaliação de RISCO por condição (camada de regras clínicas — educativa, NÃO diagnóstica).
+// Gerada por packages/server/src/analysis/risk-service.ts a partir do MarkerState + última PA.
+// ML fica OFF por enquanto (dataset sintético); quando ligar, mlSuspect/basis passam a valer.
+model RiskAssessment {
+  id              String   @id @default(cuid())
+  patientId       String
+  patient         Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  examId          String?  // exame que disparou (opcional — pode ser roll-up do paciente)
+  exam            Exam?    @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  conditionKey    String   // none | prediabetes | diabetes | hypertension | high_cholesterol | cardiovascular_risk | anemia
+  conditionLabel  String   // "Possível risco de diabetes" (PT, pronto p/ UI)
+  riskLevel       String   // low | moderate | high
+  confidence      Float    // confiança da análise combinada (não do modelo isolado)
+  ruleConfidence  String   // alta | baixa
+  basis           String   @default("rules") // rules (hoje) | ml_only (futuro)
+  mlSuspect       Boolean  @default(false)   // ML disparou c/ painel cheio e regras limpas — só auditoria
+
+  findings        Json     // findings[] auditáveis (cada um: key, value, unit, severity, condition, finding)
+  doctorQuestions Json?    // perguntas sugeridas p/ o médico
+  userExplanation String?  // explicação em linguagem simples (template; GLM pode refinar)
+  snapshot        Json     // input canônico (valores por marcador — p/ reprodutibilidade/auditoria)
+
+  createdAt       DateTime @default(now())
+
+  @@index([patientId, createdAt])
+  @@index([examId])
+  @@map("risk_assessments")
 }
 
 model Subscription {

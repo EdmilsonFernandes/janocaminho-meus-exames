@@ -1,0 +1,37 @@
+{
+  "predictedCondition": "Sem alterações relevantes",
+  "predictedConditionKey": "none",
+  "confidence": 0.87,
+  "confidenceNote": "Confiança da análise combinada (regras + modelo), não do modelo isolado.",
+  "riskLevel": "low",
+  "basis": "rules",
+  "mlAgreesWithRules": true,
+  "detectedFindings": [],
+  "findings": [],
+  "userExplanation": "Nos parâmetros analisados, não foram identificadas alterações relevantes. Isso não descarta a necessidade de acompanhamento médico de rotina. Esta análise não substitui uma consulta médica.",
+  "doctorQuestions": [
+    "Estes resultados estão alinhados com o esperado para meu perfil?"
+  ],
+  "medicalDisclaimer": "Esta análise é apenas educativa e não substitui avaliação médica. Nenhum resultado aqui constitui diagnóstico.",
+  "meta": {
+    "markersEvaluated": 9,
+    "markersUnmapped": [],
+    "ruleConfidence": "alta",
+    "mlSuspect": false,
+    "ml": {
+      "predictedCondition": "none",
+      "confidence": 1.0,
+      "margin": 1.0,
+      "reliable": true,
+      "probabilities": {
+        "none": 1.0,
+        "anemia": 0.0,
+        "diabetes": 0.0,
+        "high_cholesterol": 0.0,
+        "hypertension": 0.0
+      },
+      "conditions_present": 9,
+      "ml_note": "Modelo treinado em dados sintéticos (2ª opinião; não diagnóstico)."
+    }
+  }
+}

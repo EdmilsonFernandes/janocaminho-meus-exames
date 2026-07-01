@@ -1,0 +1,61 @@
+{
+  "predictedCondition": "Possível anemia",
+  "predictedConditionKey": "anemia",
+  "confidence": 0.87,
+  "confidenceNote": "Confiança da análise combinada (regras + modelo), não do modelo isolado.",
+  "riskLevel": "moderate",
+  "basis": "rules",
+  "mlAgreesWithRules": true,
+  "detectedFindings": [
+    "Hemoglobina baixa (8,0–10,9) — possível anemia moderada",
+    "VCV muito baixo (<70, microcitose acentuada) — pode indicar anemia microcítica"
+  ],
+  "findings": [
+    {
+      "name_pt": "Hemoglobina",
+      "marker": "haemoglobin",
+      "value": 9.5,
+      "unit": "g/dL",
+      "severity": "moderate",
+      "condition": "anemia",
+      "finding": "Hemoglobina baixa (8,0–10,9) — possível anemia moderada"
+    },
+    {
+      "name_pt": "Volume Corpuscular Médio (VCM/MCV)",
+      "marker": "mcv",
+      "value": 68.0,
+      "unit": "fL",
+      "severity": "moderate",
+      "condition": "anemia",
+      "finding": "VCV muito baixo (<70, microcitose acentuada) — pode indicar anemia microcítica"
+    }
+  ],
+  "userExplanation": "Atenção de intensidade moderada: hemoglobina e/ou VCM estão alterados, o que pode sugerir anemia — o tipo precisa ser definido por um médico. Os exames que mais influenciaram esta análise foram: Hemoglobina, Volume Corpuscular Médio (VCM/MCV). Recomendamos levar estes resultados ao seu médico para confirmação e conduta. Esta análise não substitui uma consulta médica.",
+  "doctorQuestions": [
+    "Esses valores sugerem anemia? De que tipo?",
+    "Devo investigar causa (ferro, B12, ferro, sangramento oculto)?",
+    "É seguro esperar ou preciso tratar agora?"
+  ],
+  "medicalDisclaimer": "Esta análise é apenas educativa e não substitui avaliação médica. Nenhum resultado aqui constitui diagnóstico.",
+  "meta": {
+    "markersEvaluated": 9,
+    "markersUnmapped": [],
+    "ruleConfidence": "alta",
+    "mlSuspect": false,
+    "ml": {
+      "predictedCondition": "anemia",
+      "confidence": 1.0,
+      "margin": 1.0,
+      "reliable": true,
+      "probabilities": {
+        "anemia": 1.0,
+        "diabetes": 0.0,
+        "none": 0.0,
+        "high_cholesterol": 0.0,
+        "hypertension": 0.0
+      },
+      "conditions_present": 9,
+      "ml_note": "Modelo treinado em dados sintéticos (2ª opinião; não diagnóstico)."
+    }
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "predictedCondition": "Possível risco de hipertensão",
+  "predictedConditionKey": "hypertension",
+  "confidence": 0.87,
+  "confidenceNote": "Confiança da análise combinada (regras + modelo), não do modelo isolado.",
+  "riskLevel": "high",
+  "basis": "rules",
+  "mlAgreesWithRules": true,
+  "detectedFindings": [
+    "Pressão sistólica elevada (≥140) — faixa de hipertensão estágio 2",
+    "Pressão diastólica elevada (≥90) — faixa de hipertensão"
+  ],
+  "findings": [
+    {
+      "name_pt": "Pressão sistólica (PAS)",
+      "marker": "systolic_bp",
+      "value": 152.0,
+      "unit": "mmHg",
+      "severity": "high",
+      "condition": "hypertension",
+      "finding": "Pressão sistólica elevada (≥140) — faixa de hipertensão estágio 2"
+    },
+    {
+      "name_pt": "Pressão diastólica (PAD)",
+      "marker": "diastolic_bp",
+      "value": 98.0,
+      "unit": "mmHg",
+      "severity": "high",
+      "condition": "hypertension",
+      "finding": "Pressão diastólica elevada (≥90) — faixa de hipertensão"
+    }
+  ],
+  "userExplanation": "Atenção de intensidade importante: a pressão arterial está elevada, o que pode indicar risco de hipertensão. Os exames que mais influenciaram esta análise foram: Pressão sistólica (PAS), Pressão diastólica (PAD). Recomendamos levar estes resultados ao seu médico para confirmação e conduta. Esta análise não substitui uma consulta médica.",
+  "doctorQuestions": [
+    "Esses valores de pressão indicam hipertensão?",
+    "Devo medir a pressão em casa por uma semana antes de decidir?",
+    "Há risco para coração ou rins que precise investigar agora?"
+  ],
+  "medicalDisclaimer": "Esta análise é apenas educativa e não substitui avaliação médica. Nenhum resultado aqui constitui diagnóstico.",
+  "meta": {
+    "markersEvaluated": 9,
+    "markersUnmapped": [],
+    "ruleConfidence": "alta",
+    "mlSuspect": false,
+    "ml": {
+      "predictedCondition": "hypertension",
+      "confidence": 1.0,
+      "margin": 1.0,
+      "reliable": true,
+      "probabilities": {
+        "hypertension": 1.0,
+        "anemia": 0.0,
+        "diabetes": 0.0,
+        "none": 0.0,
+        "high_cholesterol": 0.0
+      },
+      "conditions_present": 9,
+      "ml_note": "Modelo treinado em dados sintéticos (2ª opinião; não diagnóstico)."
+    }
+  }
+}

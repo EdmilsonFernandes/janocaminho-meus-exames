@@ -1,0 +1,73 @@
+{
+  "predictedCondition": "Possível pré-diabetes",
+  "predictedConditionKey": "prediabetes",
+  "confidence": 0.75,
+  "confidenceNote": "Confiança da análise combinada (regras + modelo), não do modelo isolado.",
+  "riskLevel": "low",
+  "basis": "rules",
+  "mlAgreesWithRules": false,
+  "detectedFindings": [
+    "Glicemia de jejum na faixa de pré-diabetes (100–125 mg/dL) — pode indicar alteração glicêmica inicial",
+    "HbA1c na faixa de pré-diabetes (5,7–6,4%) — controle glicêmico no limite",
+    "Pressão sistólica elevada (120–129) — faixa de pré-hipertensão"
+  ],
+  "findings": [
+    {
+      "name_pt": "Glicemia de jejum",
+      "marker": "blood_glucose",
+      "value": 113.51465999999999,
+      "unit": "mg/dL",
+      "severity": "low",
+      "condition": "prediabetes",
+      "finding": "Glicemia de jejum na faixa de pré-diabetes (100–125 mg/dL) — pode indicar alteração glicêmica inicial"
+    },
+    {
+      "name_pt": "Hemoglobina glicada (HbA1c)",
+      "marker": "hba1c",
+      "value": 5.9,
+      "unit": "%",
+      "severity": "low",
+      "condition": "prediabetes",
+      "finding": "HbA1c na faixa de pré-diabetes (5,7–6,4%) — controle glicêmico no limite"
+    },
+    {
+      "name_pt": "Pressão sistólica (PAS)",
+      "marker": "systolic_bp",
+      "value": 122.0,
+      "unit": "mmHg",
+      "severity": "low",
+      "condition": "hypertension",
+      "finding": "Pressão sistólica elevada (120–129) — faixa de pré-hipertensão"
+    }
+  ],
+  "userExplanation": "Atenção de intensidade leve a moderada: a pressão arterial está elevada, o que pode indicar risco de hipertensão; alguns marcadores glicêmicos estão na faixa de pré-diabetes. Isso costuma ser reversível com mudanças de hábito, mas merece atenção. Os exames que mais influenciaram esta análise foram: Glicemia de jejum, Hemoglobina glicada (HbA1c), Pressão sistólica (PAS). Recomendamos levar estes resultados ao seu médico para confirmação e conduta. Esta análise não substitui uma consulta médica.",
+  "doctorQuestions": [
+    "Esses valores indicam pré-diabetes? O que posso fazer para reverter?",
+    "Devo repetir glicemia/HbA1c e investigar resistência à insulina?",
+    "Esses valores de pressão indicam hipertensão?",
+    "Devo medir a pressão em casa por uma semana antes de decidir?",
+    "Há risco para coração ou rins que precise investigar agora?"
+  ],
+  "medicalDisclaimer": "Esta análise é apenas educativa e não substitui avaliação médica. Nenhum resultado aqui constitui diagnóstico.",
+  "meta": {
+    "markersEvaluated": 9,
+    "markersUnmapped": [],
+    "ruleConfidence": "alta",
+    "mlSuspect": false,
+    "ml": {
+      "predictedCondition": "none",
+      "confidence": 1.0,
+      "margin": 1.0,
+      "reliable": true,
+      "probabilities": {
+        "none": 1.0,
+        "anemia": 0.0,
+        "diabetes": 0.0,
+        "high_cholesterol": 0.0,
+        "hypertension": 0.0
+      },
+      "conditions_present": 9,
+      "ml_note": "Modelo treinado em dados sintéticos (2ª opinião; não diagnóstico)."
+    }
+  }
+}

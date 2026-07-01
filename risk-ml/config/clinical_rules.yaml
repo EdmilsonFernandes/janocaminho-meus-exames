@@ -1,0 +1,167 @@
+# =============================================================================
+# clinical_rules.yaml  —  Motor de regras clínicas (MVP explicável) do Dr.Exame
+# -----------------------------------------------------------------------------
+# Estas regras sao a camada PRIMARIA e AUDITAVEL de classificacao de risco.
+# O modelo ML (src/infer.py) funciona como SEGUNDA OPINIAO, nunca como diagnostico.
+#
+# IMPORTANTE (seguranca):
+#   - Faixas EDUCATIVAS, baseadas em diretrizes publicas (ADA, SBC, SBI, OMS).
+#   - NAO sao diagnostico. Mensagens sempre em linguagem de risco/possivel.
+#   - Thresholds SINTETICOS do dataset (ex.: diabetes=120/6.5) FORAM CORRIGIDOS
+#     para limiares clinicos reais (ADA: >=126 / >=6.5) e a faixa de PRE-DIABETES
+#     foi adicionada (o dataset a rotulava erroneamente como "Fit").
+#   - Sexo-biased (hemoglobina): sem sexo informado, usa faixa conservadora; se o
+#     upstream souber sexo do paciente, sobrescrever ref_low/ref_high do marcador.
+#
+# Edicao: um clinico pode ajustar bandas aqui sem tocar em codigo. Versao abaixo.
+# =============================================================================
+version: "1.0.0"
+source_guidelines:
+  - "ADA (American Diabetes Association) — glicemia/HbA1c"
+  - "SBC/SBI (Soc. Bras. Cardiologia) — perfil lipidico"
+  - "SBC (Diretriz HAS) — pressao arterial"
+  - "OMS / Ministério da Saúde — anemia (Hb/VCV)"
+
+# ---- como um conjunto de findings vira riskLevel global ----
+risk_policy:
+  # riskLevel = severidade maxima entre os findings, ESCALADO se >1 sistema envolvido.
+  severity_rank: { info: 0, low: 1, moderate: 2, high: 3 }
+  multi_system_escalation:
+    # se 2+ sistemas diferentes (condicoes) com severidade >= moderate => high
+    when_distinct_conditions_gte: 2
+    at_severity_gte: moderate
+    becomes: high
+  # confianca da camada de regras: baixa se poucos marcadores presentes
+  min_markers_for_confidence: 5
+
+# ---- bandas por marcador ----
+# Cada banda: { min?, max?, severity, condition, finding, question? }
+#   - min/max inclusivos; ausente => -inf/+inf.
+#   - condition em { none, prediabetes, diabetes, hypertension, high_cholesterol,
+#                    anemia, cardiovascular_risk }.
+#   - finding: texto (PT) mostrado ao usuario no campo detectedFindings.
+#   - question: pergunta sugerida para levar ao medico (merge por condicao).
+markers:
+
+  # ---- GLICEMIA (jejum) ----
+  blood_glucose:
+    unit: mg/dL
+    name_pt: Glicemia de jejum
+    bands:
+      - { max: 99, severity: info, condition: none, finding: null }
+      - { min: 100, max: 125, severity: low, condition: prediabetes,
+          finding: "Glicemia de jejum na faixa de pré-diabetes (100–125 mg/dL) — pode indicar alteração glicêmica inicial" }
+      - { min: 126, severity: high, condition: diabetes,
+          finding: "Glicemia de jejum elevada (≥126 mg/dL) — faixa associada a risco metabólico aumentado" }
+
+  # ---- HbA1c (hemoglobina glicada) ----
+  hba1c:
+    unit: "%"
+    name_pt: Hemoglobina glicada (HbA1c)
+    bands:
+      - { max: 5.6, severity: info, condition: none, finding: null }
+      - { min: 5.7, max: 6.4, severity: low, condition: prediabetes,
+          finding: "HbA1c na faixa de pré-diabetes (5,7–6,4%) — controle glicêmico no limite" }
+      - { min: 6.5, severity: high, condition: diabetes,
+          finding: "HbA1c elevada (≥6,5%) — associada a risco metabólico aumentado" }
+
+  # ---- PRESSAO ARTERIAL ----
+  systolic_bp:
+    unit: mmHg
+    name_pt: Pressão sistólica (PAS)
+    bands:
+      - { max: 119, severity: info, condition: none, finding: null }
+      - { min: 120, max: 129, severity: low, condition: hypertension,
+          finding: "Pressão sistólica elevada (120–129) — faixa de pré-hipertensão" }
+      - { min: 130, max: 139, severity: moderate, condition: hypertension,
+          finding: "Pressão sistólica na faixa de hipertensão estágio 1 (130–139)" }
+      - { min: 140, severity: high, condition: hypertension,
+          finding: "Pressão sistólica elevada (≥140) — faixa de hipertensão estágio 2" }
+  diastolic_bp:
+    unit: mmHg
+    name_pt: Pressão diastólica (PAD)
+    bands:
+      - { max: 79, severity: info, condition: none, finding: null }
+      - { min: 80, max: 89, severity: moderate, condition: hypertension,
+          finding: "Pressão diastólica na faixa de hipertensão estágio 1 (80–89)" }
+      - { min: 90, severity: high, condition: hypertension,
+          finding: "Pressão diastólica elevada (≥90) — faixa de hipertensão" }
+
+  # ---- PERFIL LIPIDICO ----
+  ldl:
+    unit: mg/dL
+    name_pt: Colesterol LDL
+    bands:
+      - { max: 129, severity: info, condition: none, finding: null }
+      - { min: 130, max: 159, severity: low, condition: high_cholesterol,
+          finding: "LDL limítrofe alto (130–159) — pode indicar risco cardiovascular" }
+      - { min: 160, severity: moderate, condition: high_cholesterol,
+          finding: "LDL elevado (≥160) — associado a risco cardiovascular aumentado" }
+  hdl:
+    unit: mg/dL
+    name_pt: Colesterol HDL
+    bands:
+      - { min: 60, severity: info, condition: none, finding: null }
+      - { min: 40, max: 59, severity: info, condition: none, finding: null }
+      - { max: 39, severity: moderate, condition: cardiovascular_risk,
+          finding: "HDL baixo (<40) — fator de risco cardiovascular" }
+  triglycerides:
+    unit: mg/dL
+    name_pt: Triglicerídeos
+    bands:
+      - { max: 149, severity: info, condition: none, finding: null }
+      - { min: 150, max: 199, severity: low, condition: high_cholesterol,
+          finding: "Triglicerídeos limítrofe alto (150–199) — pode indicar risco metabólico" }
+      - { min: 200, max: 499, severity: moderate, condition: high_cholesterol,
+          finding: "Triglicerídeos elevado (200–499) — associado a risco metabólico" }
+      - { min: 500, severity: high, condition: high_cholesterol,
+          finding: "Triglicerídeos muito elevado (≥500) — atenção, risco de pancreatite — procure médico com urgência" }
+
+  # ---- HEMOGRAMA (anemia) ----
+  # Sem sexo: faixa conservadora. Com sexo, sobrescrever via API.
+  haemoglobin:
+    unit: g/dL
+    name_pt: Hemoglobina
+    bands:
+      - { min: 13.0, severity: info, condition: none, finding: null }
+      - { min: 11.0, max: 12.9, severity: low, condition: anemia,
+          finding: "Hemoglobina abaixo do esperado (11,0–12,9) — possível alteração sugestiva de anemia leve" }
+      - { min: 8.0, max: 10.9, severity: moderate, condition: anemia,
+          finding: "Hemoglobina baixa (8,0–10,9) — possível anemia moderada" }
+      - { max: 7.9, severity: high, condition: anemia,
+          finding: "Hemoglobina muito baixa (<8,0) — procure avaliação médica" }
+  mcv:
+    unit: fL
+    name_pt: Volume Corpuscular Médio (VCM/MCV)
+    bands:
+      - { min: 80, max: 100, severity: info, condition: none, finding: null }
+      - { min: 70, max: 79, severity: low, condition: anemia,
+          finding: "VCV baixo (microcitose, 70–79) — associado a alguns tipos de anemia" }
+      - { max: 69, severity: moderate, condition: anemia,
+          finding: "VCV muito baixo (<70, microcitose acentuada) — pode indicar anemia microcítica" }
+      - { min: 101, severity: low, condition: anemia,
+          finding: "VCV alto (>100, macrocitose) — pode indicar anemia macrocítica" }
+
+# ---- perguntas por condicao (usadas no campo doctorQuestions) ----
+doctor_questions:
+  prediabetes:
+    - "Esses valores indicam pré-diabetes? O que posso fazer para reverter?"
+    - "Devo repetir glicemia/HbA1c e investigar resistência à insulina?"
+  diabetes:
+    - "Esses valores indicam risco de diabetes?"
+    - "Preciso repetir o exame em jejum?"
+    - "Devo investigar resistência à insulina?"
+  hypertension:
+    - "Esses valores de pressão indicam hipertensão?"
+    - "Devo medir a pressão em casa por uma semana antes de decidir?"
+    - "Há risco para coração ou rins que precise investigar agora?"
+  high_cholesterol:
+    - "Meu perfil lipídico indica risco cardiovascular aumentado?"
+    - "Qual o papel de dieta e exercício antes de medicação?"
+    - "Preciso de outros exames (como PCR/Lp(a)) para estratificar risco?"
+  cardiovascular_risk:
+    - "HDL baixo altera meu risco cardiovascular? Como aumentar?"
+  anemia:
+    - "Esses valores sugerem anemia? De que tipo?"
+    - "Devo investigar causa (ferro, B12, ferro, sangramento oculto)?"
+    - "É seguro esperar ou preciso tratar agora?"
