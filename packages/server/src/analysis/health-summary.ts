@@ -31,6 +31,38 @@ export function coerceComparativo(summary: HealthSummary, markers: MarkerState[]
   };
 }
 
+/**
+ * Pós-coerção ANTI-ALUCINAÇÃO DE PRAZO. A IA às vezes afirma "exame não medido há X meses"
+ * olhando o histórico antigo e ignorando a medição RECENTE (pior em marcadores NORMAIS, que
+ * não aparecem no ESTADO ATUAL do contexto). Se NENHUM marcador está realmente desatualizado
+ * (>12m), toda afirmação de "há X meses/anos" é falsa → removemos a frase (determinístico).
+ */
+const STALENESS_RE = /(?:n[ãa]o\s+)?(?:foi\s+|foi\s+)?(?:medid[oa]|atualizad[oa]|desatualizad[oa]|coletad[oa]|feito|realizado|est[áa]|estava|est[áa]o)\s+h[áa]\s+(?:mais\s+de\s+)?\d+\s*(?:meses|anos|m[êe]s|ano)|h[áa]\s+(?:mais\s+de\s+)?\d+\s*(?:meses|anos|m[êe]s|ano)\s+(?:sem|que\s+n[ãa]o)/i;
+
+export function coerceStaleness(summary: HealthSummary, staleMarkers: MarkerState[]): HealthSummary {
+  if (staleMarkers.length > 0) return summary; // há marcadores realmente desatualizados: não mexe.
+  const strip = (t: string | null | undefined): string => {
+    if (!t) return '';
+    return t
+      .split(/(?<=[.!\n])\s+/)
+      .filter((s) => !STALENESS_RE.test(s))
+      .join(' ')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+  };
+  return {
+    ...summary,
+    resumoGeral: strip(summary.resumoGeral),
+    leituraFinal: strip(summary.leituraFinal),
+    pontosAtencao: (summary.pontosAtencao ?? [])
+      .map((p) => ({ ...p, detalhe: strip(p.detalhe) }))
+      .filter((p) => p.titulo?.trim() && p.detalhe?.trim()),
+    perguntasParaOMedico: (summary.perguntasParaOMedico ?? [])
+      .map((q) => strip(typeof q === 'string' ? q : ''))
+      .filter((q) => q.trim()),
+  };
+}
+
 /** Resumo CONSOLIDADO: junta os últimos exames (sangue/imagem/laudo) num documento único — "segunda opinião documental". */
 export async function generateConsolidatedSummary(patientId: string, audience: 'patient' | 'doctor' = 'patient'): Promise<{ summary: HealthSummary; contentMd: string; modelUsed: string; usage: any }> {
   const patient = await prisma.patient.findUnique({ where: { id: patientId } });
@@ -109,6 +141,7 @@ export async function generateConsolidatedSummary(patientId: string, audience: '
   // PÓS-COERÇÃO (anti-alucinação): substitui os valores da IA pelos REAIS do banco (snapshot).
   // Função pura coerceComparativo — testada em health-summary.test.ts.
   summary = coerceComparativo(summary, [...snapshot.topAttention, ...snapshot.improving, ...snapshot.worsening, ...snapshot.stale]);
+  summary = coerceStaleness(summary, snapshot.stale); // remove prazos inventados se nada está desatualizado
   let contentMd = renderSummaryMd(summary);
   contentMd = diagnosticGuard(contentMd).text;
   appendPatientMemory(slug, `Relatório consolidado (${snapshot.markers} marcadores)`,

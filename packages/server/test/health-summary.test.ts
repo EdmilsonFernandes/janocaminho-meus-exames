@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { coerceComparativo } from '../src/analysis/health-summary';
+import { coerceComparativo, coerceStaleness } from '../src/analysis/health-summary';
 import type { MarkerState } from '../src/analysis/health-state';
 
 /** Marca o bug de credibilidade: relatório mostra TSH=3, mas o valor real no DB é 2,75. */
@@ -51,5 +51,32 @@ describe('coerceComparativo — anti-alucinação do relatório consolidado', ()
   it('não quebra com comparativo vazio ou markers vazios', () => {
     expect(coerceComparativo({ comparativo: [] } as any, [mkMarker({})]).comparativo).toEqual([]);
     expect(coerceComparativo({ comparativo: [{ name: 'TSH', atual: '3' }] } as any, []).comparativo[0].atual).toBe('3');
+  });
+});
+
+describe('coerceStaleness — remove prazos inventados (anti-alucinação)', () => {
+  it('corta "há X meses" quando NENHUM marcador está desatualizado', () => {
+    const s: any = {
+      resumoGeral: 'Tudo bem no geral. TGO não medido há 14 meses.',
+      pontosAtencao: [{ titulo: 'Fígado', detalhe: 'TGP desatualizado há 14 meses. Cuidado.' }],
+      perguntasParaOMedico: ['Refazer TGO que está há 12 meses?'],
+    };
+    const out = coerceStaleness(s, []); // staleMarkers vazio
+    expect(out.resumoGeral).not.toContain('14 meses');
+    expect(out.resumoGeral).toContain('Tudo bem');
+    expect((out.pontosAtencao ?? []).some((p: any) => (p.detalhe || '').includes('14 meses'))).toBe(false);
+    expect((out.perguntasParaOMedico ?? []).some((q: string) => q.includes('12 meses'))).toBe(false);
+  });
+
+  it('NÃO mexe quando há marcadores realmente desatualizados (>12m)', () => {
+    const s: any = { resumoGeral: 'TGO não medido há 14 meses.' };
+    const stale = [{ nameCanonical: 'TGO' }] as any;
+    expect(coerceStaleness(s, stale).resumoGeral).toContain('14 meses');
+  });
+
+  it('descarta ponto de atenção que ficou vazio após a remoção', () => {
+    const s: any = { pontosAtencao: [{ titulo: 'Fígado', detalhe: 'TGP desatualizado há 14 meses.' }] };
+    const out = coerceStaleness(s, []);
+    expect(out.pontosAtencao.length).toBe(0);
   });
 });

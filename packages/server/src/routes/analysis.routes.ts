@@ -99,9 +99,11 @@ router.post('/consolidated', async (req: AuthedRequest, res, next) => {
     }
     try {
       const { summary, contentMd, modelUsed, usage } = await generateConsolidatedSummary(patientId);
-      const analysis = await prisma.aiAnalysis.create({
-        data: { patientId, examId: null, type: 'SUMMARY', contentMd, structured: summary as any, modelUsed, tokenUsage: usage as any },
-      });
+      // UPSERT: 1 resumo consolidado por paciente (atualiza o existente em vez de acumular duplicatas).
+      const existing = await prisma.aiAnalysis.findFirst({ where: { patientId, type: 'SUMMARY', examId: null }, orderBy: { createdAt: 'desc' } });
+      const analysis = existing
+        ? await prisma.aiAnalysis.update({ where: { id: existing.id }, data: { contentMd, structured: summary as any, modelUsed, tokenUsage: usage as any, createdAt: new Date() } })
+        : await prisma.aiAnalysis.create({ data: { patientId, examId: null, type: 'SUMMARY', contentMd, structured: summary as any, modelUsed, tokenUsage: usage as any } });
       await chargeCredits(req.userId!, CREDIT_COSTS.consolidated, 'ai_consolidated', 'Relatório consolidado', analysis.id);
       res.status(201).json({ ...analysis, sourceExams });
     } catch (genErr: any) {
