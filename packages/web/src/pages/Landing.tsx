@@ -19,6 +19,9 @@ import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import AccessibilityNewIcon from '@mui/icons-material/AccessibilityNew';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
+import AutoStoriesIcon from '@mui/icons-material/AutoStories';
+import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
 
 // ---- Tokens (espelham theme.ts) ----
 const TEAL = '#20b2aa';
@@ -27,6 +30,8 @@ const INK = '#0f3d3a'; // teal-escuro premium p/ textos de destaque / footer
 const GREEN = '#10b981';
 
 const benefits = [
+  { Icon: HealthAndSafetyIcon, title: 'Leitura de risco', desc: 'Veja possíveis riscos (diabetes, pré-diabetes, anemia, hipertensão, colesterol, cardiovascular) a partir dos seus exames — sem alarme, sempre como "possível".' },
+  { Icon: AutoStoriesIcon, title: 'Plano de ação do Dr. Exame', desc: 'A IA monta um plano personalizado: o que fazer, quando refazer os exames e perguntas pra levar ao médico. Educativo, nunca diagnóstico.' },
   { Icon: AutoAwesomeIcon, title: 'IA que lê seus exames', desc: 'Envie o PDF ou foto. O Dr. Exame extrai todos os valores e explica em português simples — sem jargão.' },
   { Icon: ChatIcon, title: 'Chat inteligente (economiza)', desc: 'Perguntas simples ("qual meu último TSH?") são respondidas na hora e de graça. Só as complexas vão pra IA.' },
   { Icon: CompareArrowsIcon, title: 'Comparativo visual', desc: 'Veja o que mudou entre exames. Hemoglobina subiu? Colesterol caiu? Gráficos claros com faixa de referência.' },
@@ -166,8 +171,8 @@ export const LandingPage = () => {
               <Typography variant="h1" sx={{ fontSize: { xs: '2.3rem', md: '3.4rem' }, fontWeight: 800, lineHeight: 1.08, mb: 2.5, letterSpacing: '-0.03em', color: 'text.primary' }}>
                 Entenda seus exames<br />como <Box component="span" sx={{ color: TEAL }}>nunca antes.</Box>
               </Typography>
-              <Typography sx={{ fontSize: { xs: 16.5, md: 19 }, color: 'text.secondary', mb: 4, lineHeight: 1.6, maxWidth: 480 }}>
-                Envie o exame de sangue, imagem ou laudo. O <b style={{ color: 'text.primary' }}>Dr. Exame</b> lê tudo com IA, explica em português simples e acompanha sua evolução.
+              <Typography sx={{ fontSize: { xs: 16.5, md: 19 }, color: 'text.secondary', mb: 4, lineHeight: 1.6, maxWidth: 500 }}>
+                Envie o exame. O <b style={{ color: 'text.primary' }}>Dr. Exame</b> lê com IA, explica em português simples, mostra sua <b style={{ color: 'text.primary' }}>leitura de risco</b> e monta um <b style={{ color: 'text.primary' }}>plano de ação</b> pra levar ao médico.
               </Typography>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap sx={{ mb: 3 }}>
                 <Button variant="contained" color="primary" size="large" onClick={() => navigate('/registrar')} sx={{ borderRadius: 99, px: 4, py: 1.5, fontSize: 16.5, textTransform: 'none', fontWeight: 800 }}>
@@ -178,7 +183,7 @@ export const LandingPage = () => {
                 </Button>
               </Stack>
               <Stack direction="row" spacing={2.5} useFlexGap sx={{ flexWrap: 'wrap', rowGap: 1 }}>
-                {['Sem cartão', '60 créditos grátis', 'LGPD'].map((t) => (
+                {['Sem cartão', '60 créditos grátis', 'Leitura de risco', 'LGPD'].map((t) => (
                   <Stack key={t} direction="row" spacing={0.5} alignItems="center">
                     <CheckCircleIcon sx={{ fontSize: 17, color: GREEN }} />
                     <Typography sx={{ color: 'text.secondary', fontSize: 13.5, fontWeight: 600 }}>{t}</Typography>
@@ -261,6 +266,65 @@ export const LandingPage = () => {
           </Typography>
           <SlideCarousel />
 
+        </Container>
+      </Box>
+
+      {/* SEÇÃO — Descubra seu risco + plano de ação (NOVO) */}
+      <Box sx={{ bgcolor: 'background.default', py: { xs: 8, md: 11 } }}>
+        <Container maxWidth="lg">
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: { xs: 5, md: 7 }, alignItems: 'center' }}>
+            {/* mockup do RiskCard (esquerda) */}
+            <Box sx={{ display: 'flex', justifyContent: 'center', order: { xs: 2, md: 1 } }}>
+              <Box sx={{ width: '100%', maxWidth: 380, borderRadius: 4, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', boxShadow: '0 20px 44px rgba(15,61,58,.10)', p: 2.5, background: 'linear-gradient(135deg, rgba(234,88,12,.06), rgba(234,88,12,.02))' }}>
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
+                  <HealthAndSafetyIcon sx={{ color: '#ea580c' }} />
+                  <Typography sx={{ fontWeight: 800, flex: 1 }}>Leitura de risco</Typography>
+                  <Chip size="small" label="🟠 Moderado" sx={{ fontWeight: 800, height: 22, bgcolor: 'rgba(234,88,12,.16)', color: '#ea580c' }} />
+                </Stack>
+                <Stack direction="row" spacing={1} useFlexGap sx={{ mb: 1.5, flexWrap: 'wrap' }}>
+                  <Chip size="small" label="↓ Risco caiu desde 11/06" sx={{ fontWeight: 700, height: 22, bgcolor: 'rgba(22,163,74,.14)', color: '#16a34a' }} />
+                </Stack>
+                <Typography sx={{ fontWeight: 800, color: '#ea580c', mb: 1.25 }}>Possível risco de colesterol alto</Typography>
+                <Stack spacing={0.6} sx={{ mb: 1.5 }}>
+                  {[{ n: 'LDL', v: '190 mg/dL' }, { n: 'Triglicerídeos', v: '260 mg/dL' }, { n: 'HDL', v: '35 mg/dL' }].map((f) => (
+                    <Box key={f.n} sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.3, borderBottom: '1px dashed', borderColor: 'divider' }}>
+                      <Chip size="small" label={`🟠 ${f.v}`} sx={{ fontWeight: 700, height: 20, bgcolor: 'rgba(234,88,12,.14)', color: '#ea580c' }} />
+                      <Typography sx={{ fontWeight: 700, fontSize: '0.85rem' }}>{f.n}</Typography>
+                    </Box>
+                  ))}
+                </Stack>
+                <Box sx={{ borderRadius: 2, bgcolor: 'action.hover', p: 1.25 }}>
+                  <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', mb: 0.25, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <AutoStoriesIcon sx={{ fontSize: 16 }} /> Plano de ação do Dr. Exame
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.78rem', color: 'text.secondary', lineHeight: 1.4 }}>
+                    Reduza carnes vermelhas e frituras; mais aveia e azeite. Refazer perfil lipídico em 3 meses.
+                  </Typography>
+                </Box>
+                <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 1, color: 'text.secondary' }}>*Educativo. Não substitui consulta médica.</Typography>
+              </Box>
+            </Box>
+            {/* texto (direita) */}
+            <Box sx={{ order: { xs: 1, md: 2 } }}>
+              <Chip icon={<MonitorHeartIcon sx={{ fontSize: 17 }} />} label="Leitura de risco + plano de ação" sx={{ bgcolor: 'rgba(234,88,12,.12)', color: '#c2410c', fontWeight: 700, mb: 3, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: '#ea580c' } }} />
+              <Typography variant="h2" sx={{ fontSize: { xs: '1.8rem', md: '2.4rem' }, fontWeight: 800, color: 'text.primary', mb: 2, letterSpacing: '-0.02em' }}>Descubra seu risco — e o que fazer</Typography>
+              <Typography sx={{ fontSize: 17, color: 'text.secondary', mb: 3.5, lineHeight: 1.6 }}>
+                A IA cruza seus exames e aponta <b style={{ color: 'text.primary' }}>possíveis riscos</b> (diabetes, pré-diabetes, anemia, hipertensão, colesterol e cardiovascular) — e monta um <b style={{ color: 'text.primary' }}>plano de ação</b> personalizado: hábitos, quando refazer e perguntas pra levar ao médico.
+              </Typography>
+              {[
+                'Detecta pré-diabetes — faixa que a maioria ignora e que é reversível.',
+                'Plano de ação gerado por IA: o que fazer, quando refazer, o que perguntar.',
+                'Tendência de risco: veja se seu risco caiu ou subiu ao longo do tempo.',
+                'Sempre educativo: nunca diagnóstico. A decisão é do seu médico.',
+              ].map((t) => (
+                <Stack key={t} direction="row" spacing={1.25} alignItems="flex-start" sx={{ mb: 1.75 }}>
+                  <CheckCircleIcon sx={{ fontSize: 20, color: GREEN, mt: 0.1, flexShrink: 0 }} />
+                  <Typography sx={{ fontSize: 15, color: 'text.secondary', lineHeight: 1.5 }}>{t}</Typography>
+                </Stack>
+              ))}
+              <Button variant="contained" color="primary" onClick={() => navigate('/registrar')} sx={{ mt: 1.5, borderRadius: 99, px: 4, py: 1.3, textTransform: 'none', fontWeight: 800 }}>Ver minha leitura de risco</Button>
+            </Box>
+          </Box>
         </Container>
       </Box>
 
