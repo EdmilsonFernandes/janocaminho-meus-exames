@@ -67,6 +67,29 @@ router.post('/feedback', async (req: AuthedRequest, res, next) => {
   } catch (e) { next(e); }
 });
 
+// CONSENTIMENTO do flywheel (opt-in LGPD: doar dados ANONIMIZADOS pra treinar a IA)
+router.get('/consent', async (req: AuthedRequest, res, next) => {
+  try {
+    const pids = await userPatientIds(req.userId!);
+    const patientId = String(req.query.patientId ?? '');
+    if (!patientId || !pids.includes(patientId)) { res.json({ consent: false }); return; }
+    const p = await prisma.patient.findUnique({ where: { id: patientId }, select: { dataContributionConsent: true } });
+    res.json({ consent: !!p?.dataContributionConsent });
+  } catch (e) { next(e); }
+});
+router.post('/consent', async (req: AuthedRequest, res, next) => {
+  try {
+    const pids = await userPatientIds(req.userId!);
+    const { patientId, consent } = req.body ?? {};
+    if (!patientId || !pids.includes(patientId) || typeof consent !== 'boolean') {
+      res.status(400).json({ error: 'patientId e consent (boolean) obrigatórios' });
+      return;
+    }
+    await prisma.patient.update({ where: { id: patientId }, data: { dataContributionConsent: consent, consentedAt: consent ? new Date() : null } });
+    res.json({ ok: true, consent });
+  } catch (e) { next(e); }
+});
+
 // PLANO DE AÇÃO (IA — cobra créditos; o RiskCard/leitura de risco seguem grátis)
 router.post('/action-plan', async (req: AuthedRequest, res, next) => {
   try {

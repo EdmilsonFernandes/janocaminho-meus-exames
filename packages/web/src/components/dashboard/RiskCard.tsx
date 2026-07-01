@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Box, Card, CardContent, Typography, Stack, Chip, CircularProgress, Button, IconButton, Collapse, Divider } from '@mui/material';
+import { Box, Card, CardContent, Typography, Stack, Chip, CircularProgress, Button, IconButton, Collapse, Divider, Switch } from '@mui/material';
 import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -116,6 +116,29 @@ export const RiskCard = () => {
       .catch(() => {})
       .finally(() => setFeedbackLoading(false));
   }, [r?.id, feedbackLoading, feedback]);
+
+  // FLYWHEEL: opt-in do paciente pra doar dados ANONIMIZADOS (sem PHI) e treinar a IA.
+  const [consent, setConsent] = useState<boolean | null>(null);
+  useEffect(() => {
+    if (!pid) { setConsent(null); return; }
+    fetch(`${API_URL}/risk/consent?patientId=${encodeURIComponent(pid)}`, { headers: { Authorization: `Bearer ${token()}` } })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((d) => setConsent(!!d?.consent))
+      .catch(() => setConsent(null));
+  }, [pid]);
+  const toggleConsent = useCallback(() => {
+    if (!pid || consent == null) return;
+    const next = !consent;
+    setConsent(next); // otimista
+    fetch(`${API_URL}/risk/consent`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
+      body: JSON.stringify({ patientId: pid, consent: next }),
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((d) => setConsent(!!d?.consent))
+      .catch(() => setConsent(!next)); // reverte em falha
+  }, [pid, consent]);
 
   useEffect(() => { load(false); }, [load]);
 
@@ -274,6 +297,12 @@ export const RiskCard = () => {
         <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', color: 'text.secondary' }}>
           *Educativo. {r.medicalDisclaimer}
         </Typography>
+        {consent != null && (
+          <Stack direction="row" spacing={0.75} alignItems="center" justifyContent="center" sx={{ mt: 1 }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>🧪 Ajudar a IA a melhorar (dados anônimos)</Typography>
+            <Switch size="small" checked={consent} onChange={toggleConsent} color="success" />
+          </Stack>
+        )}
       </CardContent>
     </Card>
   );

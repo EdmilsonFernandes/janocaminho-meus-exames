@@ -91,6 +91,15 @@ function computeConfidence(result: RiskResult): number {
   return Math.min(0.9, base + Math.min(0.2, result.findings.length * 0.05));
 }
 
+/** Faixa etária ANONIMIZADA ("30-39") a partir da data de nascimento (ou null). */
+function ageRangeFrom(dob: Date | null): string | null {
+  if (!dob) return null;
+  const age = Math.floor((Date.now() - new Date(dob).getTime()) / (365.25 * 86400000));
+  if (!Number.isFinite(age) || age < 0 || age > 120) return null;
+  const lo = Math.floor(age / 10) * 10;
+  return `${lo}-${lo + 9}`;
+}
+
 export interface BuildOptions { force?: boolean; examId?: string | null; }
 
 /** Computa a avaliação de risco de um paciente e persiste (com cache de CACHE_HOURS). */
@@ -136,6 +145,21 @@ export async function buildRiskAssessment(patientId: string, opts: BuildOptions 
   });
   const prior = await loadPriorExcept(patientId, created.id);
   const { trend } = trendBetween(result.riskLevel, prior);
+
+  // FLYWHEEL: se o paciente deu opt-in, grava registro ANONIMIZADO (sem PHI) p/ treinar o modelo.
+  // Best-effort (fire-and-forget): nunca bloqueia/quebra a leitura de risco do paciente.
+  prisma.patient.findUnique({ where: { id: patientId }, select: { dataContributionConsent: true, gender: true, dateOfBirth: true } })
+    .then((pat) => pat?.dataContributionConsent
+      ? prisma.dataContributionRecord.create({ data: {
+          conditionKey: result.predictedConditionKey,
+          riskLevel: result.riskLevel,
+          markers: Object.fromEntries(markers.map((m) => [m.key, m.value])) as any,
+          sex: pat.gender ?? null,
+          ageRange: ageRangeFrom(pat.dateOfBirth),
+        } })
+      : null)
+    .catch((e) => console.error('[risk] flywheel: falha ao gravar contribuição anonimizada:', (e as Error)?.message));
+
   return { result, saved: created, fromCache: false, trend, prior };
 }
 

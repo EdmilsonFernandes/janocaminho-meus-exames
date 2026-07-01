@@ -234,3 +234,46 @@ describe('POST /api/risk/feedback', () => {
     expect(r.status).toBe(403);
   });
 });
+
+// Consentimento do flywheel (opt-in LGPD) + coleta anonimizada.
+describe('/api/risk/consent + flywheel', () => {
+  beforeEach(async () => { await resetDb(); });
+
+  it('ativa e lê o consentimento', async () => {
+    const { patient, token } = await createUser();
+    const r0 = await api().get('/api/risk/consent').set(authHeader(token)).query({ patientId: patient.id });
+    expect(r0.body.consent).toBe(false);
+    const r1 = await api().post('/api/risk/consent').set(authHeader(token)).send({ patientId: patient.id, consent: true });
+    expect(r1.body.consent).toBe(true);
+    const r2 = await api().get('/api/risk/consent').set(authHeader(token)).query({ patientId: patient.id });
+    expect(r2.body.consent).toBe(true);
+  });
+
+  it('consent sem boolean -> 400', async () => {
+    const { patient, token } = await createUser();
+    const r = await api().post('/api/risk/consent').set(authHeader(token)).send({ patientId: patient.id });
+    expect(r.status).toBe(400);
+  });
+
+  it('consent=true + assess -> grava registro ANONIMIZADO (sem PHI)', async () => {
+    const { patient, token } = await createUser();
+    await api().post('/api/risk/consent').set(authHeader(token)).send({ patientId: patient.id, consent: true });
+    await createItem((await createExam(patient.id)).id, { nameCanonical: 'GLICEMIA', valueNumeric: 168, unit: 'mg/dL' });
+    await api().post('/api/risk/assess').set(authHeader(token)).send({ patientId: patient.id });
+    // coleta é fire-and-forget: poll até aparecer (máx ~1.5s)
+    let n = 0;
+    for (let i = 0; i < 10 && n === 0; i++) { await new Promise((r) => setTimeout(r, 150)); n = await prisma.dataContributionRecord.count(); }
+    expect(n).toBe(1);
+    const rec = await prisma.dataContributionRecord.findFirst();
+    expect(rec?.conditionKey).toBe('diabetes');
+    expect(rec?.markers).toBeTruthy();
+  });
+
+  it('sem consent -> NÃO coleta', async () => {
+    const { patient, token } = await createUser();
+    await createItem((await createExam(patient.id)).id, { nameCanonical: 'GLICEMIA', valueNumeric: 168, unit: 'mg/dL' });
+    await api().post('/api/risk/assess').set(authHeader(token)).send({ patientId: patient.id });
+    await new Promise((r) => setTimeout(r, 400));
+    expect(await prisma.dataContributionRecord.count()).toBe(0);
+  });
+});

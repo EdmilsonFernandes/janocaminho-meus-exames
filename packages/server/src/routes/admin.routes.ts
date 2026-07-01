@@ -319,6 +319,41 @@ router.get('/audit', async (_req, res, next) => {
   } catch (e) { next(e); }
 });
 
+// RISK QUALITY — taxa de aprovação do plano de ação por condição (loop de melhoria da IA).
+// Agrega RiskFeedback × RiskAssessment pra mostrar onde refinar os cards .md e os prompts.
+router.get('/risk-quality', async (_req, res, next) => {
+  try {
+    const byCondition = await prisma.$queryRaw<{ conditionKey: string; total: number; up: number; down: number }[]>`
+      SELECT ra."conditionKey" AS "conditionKey",
+             COUNT(*)::int AS total,
+             COUNT(*) FILTER (WHERE rf.rating = 1)::int AS up,
+             COUNT(*) FILTER (WHERE rf.rating = 0)::int AS down
+      FROM risk_feedbacks rf
+      JOIN risk_assessments ra ON ra.id = rf."riskAssessmentId"
+      GROUP BY ra."conditionKey"
+      ORDER BY total DESC`;
+    const totalFeedbacks = await prisma.riskFeedback.count();
+    const negativeComments = await prisma.riskFeedback.findMany({
+      where: { rating: 0, NOT: { comment: null } },
+      orderBy: { createdAt: 'desc' }, take: 20,
+      include: { riskAssessment: { select: { conditionKey: true } } },
+    });
+    res.json({ byCondition, totalFeedbacks, negativeComments });
+  } catch (e) { next(e); }
+});
+
+// RISK DATASET (FLYWHEEL) — registros ANONIMIZADOS (sem PHI) doados por opt-in, p/ retreinar o ML.
+router.get('/risk-dataset', async (_req, res, next) => {
+  try {
+    const [records, byCondition, total] = await Promise.all([
+      prisma.dataContributionRecord.findMany({ orderBy: { createdAt: 'desc' }, take: 5000 }),
+      prisma.dataContributionRecord.groupBy({ by: ['conditionKey'], _count: true }),
+      prisma.dataContributionRecord.count(),
+    ]);
+    res.json({ total, count: records.length, byCondition, records });
+  } catch (e) { next(e); }
+});
+
 // PUSH CAMPAIGNS — histórico de campanhas enviadas.
 router.get('/push/campaigns', async (_req, res, next) => {
   try { res.json({ campaigns: await prisma.pushCampaign.findMany({ orderBy: { createdAt: 'desc' }, take: 30 }) }); } catch (e) { next(e); }

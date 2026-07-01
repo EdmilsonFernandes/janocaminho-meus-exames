@@ -25,6 +25,7 @@ import { PushTab } from './PushTab';
 import { DoctorsTab } from './DoctorsTab';
 import { ExamsTab } from './ExamsTab';
 import { IaTab } from './IaTab';
+import { RiskTab } from './RiskTab';
 import { TechTab } from './TechTab';
 import { AuditTab } from './AuditTab';
 import { SupportTab } from './SupportTab';
@@ -33,7 +34,7 @@ import { PricingTab } from './PricingTab';
 /** Backoffice Dr. Exame — ISOLADO do app do paciente (/admin é noLayout).
  *  Shell próprio (topbar + sidebar) com os 11 módulos de gestão. Sem chrome de paciente
  *  (sem MobileBottomNav, FloatingChat, menu de saúde). Guard: só ADMIN. */
-type ModuleId = 'overview' | 'users' | 'doctors' | 'exams' | 'ia' | 'financeiro' | 'push' | 'tech' | 'audit' | 'support' | 'config';
+type ModuleId = 'overview' | 'users' | 'doctors' | 'exams' | 'ia' | 'risk' | 'financeiro' | 'push' | 'tech' | 'audit' | 'support' | 'config';
 
 const MODULES: { id: ModuleId; label: string; icon: ReactElement; group: string }[] = [
   { id: 'overview', label: 'Dashboard', icon: <DashboardOutlinedIcon />, group: 'Visão geral' },
@@ -41,6 +42,7 @@ const MODULES: { id: ModuleId; label: string; icon: ReactElement; group: string 
   { id: 'doctors', label: 'Médicos', icon: <MedicalServicesOutlinedIcon />, group: 'Gestão' },
   { id: 'exams', label: 'Exames', icon: <DescriptionOutlinedIcon />, group: 'Gestão' },
   { id: 'ia', label: 'IA & Alertas', icon: <AutoAwesomeOutlinedIcon />, group: 'Gestão' },
+  { id: 'risk', label: 'Risco & Qualidade', icon: <AutoAwesomeOutlinedIcon />, group: 'Gestão' },
   { id: 'financeiro', label: 'Planos & Financ.', icon: <PaymentsOutlinedIcon />, group: 'Negócio' },
   { id: 'push', label: 'Push & Comunic.', icon: <CampaignOutlinedIcon />, group: 'Negócio' },
   { id: 'tech', label: 'Saúde técnica', icon: <MonitorHeartOutlinedIcon />, group: 'Operação' },
@@ -158,6 +160,7 @@ export const AdminPage = () => {
           {mod === 'doctors' && <DoctorsTab />}
           {mod === 'exams' && <ExamsTab />}
           {mod === 'ia' && <IaTab />}
+          {mod === 'risk' && <RiskTab />}
           {mod === 'financeiro' && <FinanceiroTab />}
           {mod === 'push' && <PushTab />}
           {mod === 'tech' && <TechTab />}

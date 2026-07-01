@@ -117,6 +117,9 @@ model Patient {
   photoUrl     String?
   uploadMonth        String?   // YYYY-MM do contador mensal de envios (cota grátis do premium)
   monthlyUploadCount Int       @default(0)  // envios neste mês — NÃO devolve ao deletar exame
+  // FLYWHEEL: opt-in LGPD pra contribuir com dados ANONIMIZADOS (sem PHI) pro treino do modelo.
+  dataContributionConsent Boolean @default(false)
+  consentedAt         DateTime?
   createdAt    DateTime  @default(now())
   exams        Exam[]
   reminders    Reminder[]
@@ -296,6 +299,22 @@ model RiskFeedback {
 
   @@index([riskAssessmentId])
   @@map("risk_feedbacks")
+}
+
+// FLYWHEEL de dados: registro ANONIMIZADO (sem patientId/nome/CPF/contato) usado só pra treinar
+// o modelo de risco. Só é criado quando o paciente dá opt-in (dataContributionConsent=true).
+// markers = valores canônicos por marcador; sex/ageRange são faixas (não identificam).
+model DataContributionRecord {
+  id           String   @id @default(cuid())
+  conditionKey String   // rótulo do risco (diabetes, none, ...) — alvo do treino
+  riskLevel    String   // low | moderate | high
+  markers      Json     // { GLICEMIA: 168, HEMOGLOBINA_GLICADA: 8.1, ... } canônico
+  sex          String?  // male | female | null (faixa demográfica)
+  ageRange     String?  // "30-39" | "40-49" ... (faixa, NÃO a data de nascimento)
+  createdAt    DateTime @default(now())
+
+  @@index([conditionKey])
+  @@map("data_contributions")
 }
 
 model Subscription {
