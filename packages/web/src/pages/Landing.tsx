@@ -80,6 +80,54 @@ const PhoneFrame = ({ src, alt, label, Icon, caption }: {
   </Box>
 );
 
+// Slides do carrossel "Veja na prática" — telas REAIS do app (prints mobile). Auto-rotativo,
+// pausa no hover, dots clicáveis. Substitui um vídeo de 37 MB por ~1,2 MB de imagens (30× mais leve).
+const SHOWCASE_SLIDES = [
+  { Icon: DonutLargeIcon, label: 'Seu painel', caption: 'Score de Saúde, dica do Dr. Exame e tudo num só lugar.', src: 'showcase/dashboard.png' },
+  { Icon: DescriptionIcon, label: 'Seus exames', caption: 'Organizados por categoria, fáceis de achar.', src: 'showcase/exames.png' },
+  { Icon: AssignmentIndIcon, label: 'Detalhe do exame', caption: 'Valores com faixa de referência explicados.', src: 'showcase/detalhe.png' },
+  { Icon: WarningAmberIcon, label: 'Alertas', caption: 'O que merece atenção, por ordem de prioridade.', src: 'showcase/alertas.png' },
+  { Icon: TrendingUpIcon, label: 'Evolução', caption: 'Acompanhe cada valor ao longo do tempo.', src: 'showcase/evolucao.png' },
+  { Icon: AutoAwesomeIcon, label: 'Relatório com IA', caption: 'O Dr. Exame explica tudo em português simples.', src: 'showcase/ia.png' },
+  { Icon: ShareIcon, label: 'Compartilhar', caption: 'Envie pro seu médico, com segurança.', src: 'showcase/compartilhar.png' },
+];
+
+const PhoneCarousel = () => {
+  const [i, setI] = useState(0);
+  const [paused, setPaused] = useState(false);
+  useEffect(() => {
+    if (paused) return;
+    const t = setInterval(() => setI((p) => (p + 1) % SHOWCASE_SLIDES.length), 2600);
+    return () => clearInterval(t);
+  }, [paused]);
+  const s = SHOWCASE_SLIDES[i];
+  return (
+    <Box
+      onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}
+      sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', maxWidth: 320, mx: 'auto', width: '100%' }}
+    >
+      <Fade in key={i} timeout={650}>
+        <Box>
+          <PhoneFrame Icon={s.Icon} label={s.label} caption={s.caption} src={s.src} alt={s.label} />
+        </Box>
+      </Fade>
+      <Stack direction="row" spacing={0.8} sx={{ mt: 3, justifyContent: 'center' }}>
+        {SHOWCASE_SLIDES.map((_, idx) => (
+          <Box
+            key={idx}
+            onClick={() => setI(idx)}
+            sx={{
+              width: idx === i ? 24 : 8, height: 8, borderRadius: 99,
+              bgcolor: idx === i ? TEAL : 'rgba(15,61,58,.20)',
+              cursor: 'pointer', transition: 'width .3s ease, background-color .3s ease',
+            }}
+          />
+        ))}
+      </Stack>
+    </Box>
+  );
+};
+
 export const LandingPage = () => {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
@@ -236,29 +284,8 @@ export const LandingPage = () => {
           <Typography align="center" sx={{ color: 'text.secondary', fontSize: 17, mb: 6, maxWidth: 600, mx: 'auto' }}>
             Telas reais do app — do painel ao detalhe, tudo pensado pra você entender sua saúde de verdade.
           </Typography>
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' }, gap: { xs: 5, md: 4 }, alignItems: 'start', justifyContent: 'center' }}>
-            <PhoneFrame
-              Icon={DonutLargeIcon}
-              label="Seu painel"
-              caption="Score de Saúde, dica do Dr. Exame e relatório num só lugar."
-              src="app-dashboard.jpg"
-              alt="Painel com score de saúde e dica do Dr. Exame"
-            />
-            <PhoneFrame
-              Icon={TrendingDownIcon}
-              label="Evolução das taxas"
-              caption="Veja cada valor evoluir — colesterol caindo mês a mês, com tendência."
-              src="app-evolucao.jpg"
-              alt="Evolução do colesterol ao longo do tempo"
-            />
-            <PhoneFrame
-              Icon={EventAvailableIcon}
-              label="Detalhe + Médico"
-              caption="Valores com badge verde/vermelho e agende direto com o especialista."
-              src="app-detalhe.jpg"
-              alt="Detalhe do exame com agendamento médico"
-            />
-          </Box>
+          <PhoneCarousel />
+
         </Container>
       </Box>
 
