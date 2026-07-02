@@ -328,6 +328,57 @@ export const LandingPage = () => {
         </Container>
       </Box>
 
+      {/* SEÇÃO — Pré-Consulta Dr. Exame (médico) */}
+      <Box sx={{ bgcolor: 'background.default', py: { xs: 8, md: 11 } }}>
+        <Container maxWidth="lg">
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: { xs: 5, md: 7 }, alignItems: 'center' }}>
+            {/* texto */}
+            <Box>
+              <Chip icon={<MedicalServicesIcon sx={{ fontSize: 17 }} />} label="Dr. Exame Pro (médico)" sx={{ bgcolor: 'rgba(212,165,116,.16)', color: '#b88a54', fontWeight: 700, mb: 3, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: '#b88a54' } }} />
+              <Typography variant="h2" sx={{ fontSize: { xs: '1.8rem', md: '2.4rem' }, fontWeight: 800, color: 'text.primary', mb: 2, letterSpacing: '-0.02em' }}>O médico abre o paciente e vê tudo em 1 minuto</Typography>
+              <Typography sx={{ fontSize: 17, color: 'text.secondary', mb: 3.5, lineHeight: 1.6 }}>
+                Quando o paciente compartilha, o médico recebe um <b style={{ color: 'text.primary' }}>brief automático</b>: top 3 mudanças, risco, o que investigar, e até as perguntas que o paciente fez no app. Economiza 3–5h/dia de revisão de prontuário.
+              </Typography>
+              {[
+                '🩺 Top 3 mudanças desde a última visita — sem revisar prontuário inteiro.',
+                '🛡️ Risco + tendência + marcadores a investigar — num relance.',
+                '📝 SOAP rascunho gerado por IA (S/O/A/P) — o médico só revisa e edita.',
+                '💬 Perguntas que o paciente fez no app — leve direto pra consulta.',
+              ].map((t) => (
+                <Stack key={t} direction="row" spacing={1.25} alignItems="flex-start" sx={{ mb: 1.75 }}>
+                  <CheckCircleIcon sx={{ fontSize: 20, color: GREEN, mt: 0.1, flexShrink: 0 }} />
+                  <Typography sx={{ fontSize: 15, color: 'text.secondary', lineHeight: 1.5 }}>{t}</Typography>
+                </Stack>
+              ))}
+              <Button variant="contained" color="primary" onClick={() => navigate('/doctor')} sx={{ mt: 1.5, borderRadius: 99, px: 4, py: 1.3, textTransform: 'none', fontWeight: 800 }}>Conhecer o Portal do Médico →</Button>
+            </Box>
+            {/* mockup do brief */}
+            <Box sx={{ display: 'flex', justifyContent: 'center', order: { xs: 2, md: 1 } }}>
+              <Box sx={{ width: '100%', maxWidth: 380, borderRadius: 4, bgcolor: 'background.paper', border: `2px solid ${TEAL}`, boxShadow: '0 20px 44px rgba(15,61,58,.10)', p: 2.5 }}>
+                <Typography sx={{ fontWeight: 800, color: TEAL_DARK, mb: 1.5, fontSize: 16 }}>🩺 PRÉ-CONSULTA · desde 15/05</Typography>
+                <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>⚠️ TOP 3 PRA HOJE</Typography>
+                <Stack spacing={0.5} sx={{ mt: 0.5, mb: 1.5 }}>
+                  {[{ n: 'Creatinina', d: '↑ 22%' }, { n: 'HDL', d: '↓ 15%' }, { n: 'Testosterona', d: '↑ elevada' }].map((x, i) => (
+                    <Stack key={i} direction="row" spacing={0.75} alignItems="center">
+                      <Chip size="small" label={i + 1} sx={{ height: 20, width: 20, bgcolor: i === 0 ? '#dc262622' : '#ea580c22', color: i === 0 ? '#dc2626' : '#ea580c', fontWeight: 800, fontSize: 11 }} />
+                      <Typography sx={{ fontWeight: 600, fontSize: '0.85rem' }}>{x.n}</Typography>
+                      <Chip size="small" label={x.d} sx={{ height: 20, fontSize: 11, bgcolor: x.d.includes('↓') ? '#dbeafe' : '#fef3c7', color: x.d.includes('↓') ? '#1e40af' : '#92400e', fontWeight: 700 }} />
+                    </Stack>
+                  ))}
+                </Stack>
+                <Typography variant="body2" sx={{ mb: 1 }}><b>Risco:</b> 🟠 Moderado (cardiovascular) · ↓ caiu</Typography>
+                <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>🔬 INVESTIGAR</Typography>
+                <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>• TGO/TGP · Microalbuminúria</Typography>
+                <Box sx={{ borderRadius: 2, bgcolor: 'action.hover', p: 1.25, mt: 1 }}>
+                  <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', mb: 0.25 }}>📝 SOAP (rascunho IA)</Typography>
+                  <Typography sx={{ fontSize: '0.78rem', color: 'text.secondary', lineHeight: 1.4 }}>S: Uso de Masteron... O: Creatinina 1,4 (↑22%)... A: Risco cardiovascular... P: Solicitar TGO/TGP...</Typography>
+                </Box>
+              </Box>
+            </Box>
+          </Box>
+        </Container>
+      </Box>
+
       {/* SEÇÃO — Compartilhe com seu médico (paciente) */}
       <Box sx={{ bgcolor: 'background.paper', borderTop: '1px solid', borderBottom: '1px solid', borderColor: 'divider', py: { xs: 8, md: 11 } }}>
         <Container maxWidth="lg">
