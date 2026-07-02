@@ -635,11 +635,18 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               </AccordionDetails>
             </Accordion>
 
-            {/* PRÉ-CONSULTA — Accordion colapsável (acima das tabs, não dentro de nenhuma aba) */}
+            {/* PRÉ-CONSULTA — Accordion colapsável (acima das tabs, não dentro de nenhuma aba).
+                Colapsada por padrão: resumo inline (risco + score + top issue) no título,
+                o médico vê o essencial sem expandir e sem rolar até as abas. */}
             {preVisit && (
-              <Accordion defaultExpanded sx={{ mb: 2, borderRadius: '12px !important', border: `2px solid ${TEAL}`, '&:before': { display: 'none' }, overflow: 'hidden' }}>
+              <Accordion sx={{ mb: 2, borderRadius: '12px !important', border: `2px solid ${TEAL}`, '&:before': { display: 'none' }, overflow: 'hidden' }}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '44px !important', '& .MuiAccordionSummary-content': { my: 0.5 } }}>
-                  <Typography sx={{ fontWeight: 800, color: TEAL, fontSize: 14 }}>🩺 PRÉ-CONSULTA{preVisit.lastVisit ? ` · desde ${new Date(preVisit.lastVisit).toLocaleDateString('pt-BR')}` : ''}</Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap', width: '100%' }}>
+                    <Typography sx={{ fontWeight: 800, color: TEAL, fontSize: 14 }}>🩺 PRÉ-CONSULTA{preVisit.lastVisit ? ` · desde ${new Date(preVisit.lastVisit).toLocaleDateString('pt-BR')}` : ''}</Typography>
+                    {preVisit.risk && <Chip size="small" label={`${preVisit.risk.riskLevel === 'high' ? '🔴' : preVisit.risk.riskLevel === 'moderate' ? '🟠' : '🟢'} ${preVisit.risk.conditionLabel}`} sx={{ height: 20, fontSize: 10, bgcolor: 'action.hover', color: 'text.primary', fontWeight: 700 }} />}
+                    {preVisit.score != null && <Chip size="small" label={`Score ${preVisit.score}/100`} sx={{ height: 20, fontSize: 10, bgcolor: 'action.hover', color: 'text.primary', fontWeight: 700 }} />}
+                    {preVisit.topIssues?.[0] && <Chip size="small" label={`⚠️ ${preVisit.topIssues[0].name}`} sx={{ height: 20, fontSize: 10, bgcolor: 'action.hover', color: 'text.primary', fontWeight: 700 }} />}
+                  </Box>
                 </AccordionSummary>
                 <AccordionDetails sx={{ pt: 0.5 }}>
                   {preVisit.topIssues?.length > 0 && (

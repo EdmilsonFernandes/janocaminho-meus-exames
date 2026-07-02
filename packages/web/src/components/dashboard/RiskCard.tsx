@@ -59,12 +59,21 @@ const TREND_CHIP: Record<string, { emoji: string; color: string; label: string }
   estavel: { emoji: '→', color: '#64748b', label: 'Risco estável' },
 };
 
+// Abrevia o nome do marcador pra caber num chip horizontal compacto (ex.: "Colesterol total" -> "Cole").
+const shortName = (name: string) => {
+  const first = name.trim().split(/\s+/)[0] ?? name;
+  return first.length > 4 ? first.slice(0, 4) : first;
+};
+
 export const RiskCard = () => {
   const navigate = useNavigate();
   const [pid] = useSelectedPatient();
   const [r, setR] = useState<(RiskResult & { id?: string; trend?: string; prior?: { riskLevel: string; createdAt: string } | null }) | null>(null);
   const [loading, setLoading] = useState(true);
   const [showQuestions, setShowQuestions] = useState(false);
+  // Compactação mobile: explicação truncada + detalhes dos findings sob demanda.
+  const [showFull, setShowFull] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
   const [plan, setPlan] = useState<string | null>(null);
   const [planLoading, setPlanLoading] = useState(false);
   const [planErr, setPlanErr] = useState<null | 'credits' | 'error'>(null);
@@ -73,7 +82,7 @@ export const RiskCard = () => {
 
   // Reset estados derivados do paciente anterior ao trocar de perfil — não vazar
   // plano/feedback de um dependente (ex: Edmilson) pra outro (ex: Heloisa).
-  useEffect(() => { setPlan(null); setPlanErr(null); setFeedback(null); setShowQuestions(false); }, [pid]);
+  useEffect(() => { setPlan(null); setPlanErr(null); setFeedback(null); setShowQuestions(false); setShowFull(false); setShowDetails(false); }, [pid]);
 
   const load = useCallback((force = false) => {
     if (!pid) { setLoading(false); setR(null); return; }
@@ -202,12 +211,49 @@ export const RiskCard = () => {
         <Typography sx={{ fontWeight: 800, fontSize: '1.05rem', mb: 0.5, color: none ? 'text.primary' : meta.color }}>
           {r.predictedCondition}
         </Typography>
-        <Typography variant="body2" sx={{ mb: 1.25, color: 'text.primary', lineHeight: 1.45 }}>
+
+        {/* explicação truncada com "Ver mais" — mobile não precisa rolar o parágrafo todo */}
+        <Typography
+          variant="body2"
+          sx={{
+            mb: r.userExplanation.length > 140 ? 0.5 : 1.25,
+            color: 'text.primary', lineHeight: 1.45,
+            display: showFull ? 'block' : '-webkit-box',
+            WebkitLineClamp: showFull ? 'none' : 3,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+          }}
+        >
           {r.userExplanation}
         </Typography>
+        {r.userExplanation.length > 140 && (
+          <Button size="small" onClick={() => setShowFull((v) => !v)}
+            sx={{ p: 0, mb: 1.25, textTransform: 'none', fontWeight: 700, color: 'primary.main', minWidth: 0, fontSize: '0.8rem' }}>
+            {showFull ? 'Ver menos' : 'Ver mais'}
+          </Button>
+        )}
 
-        {/* o que chamou atenção (findings com severidade) */}
+        {/* o que chamou atenção — chips horizontais compactos (cabe em 1-2 linhas em vez de N) */}
         {r.findings.length > 0 && (
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, mb: showDetails ? 1 : 1.25 }}>
+            {r.findings.map((f, i) => {
+              const pm = PRIORITY_META[SEV_TO_PRIO[f.severity]];
+              return (
+                <Box key={i} component="span" title={`${f.name_pt} · ${f.value} ${f.unit} · ${f.finding}`} sx={{ display: 'inline-flex' }}>
+                  <Chip size="small" label={`${pm.emoji} ${f.value} ${shortName(f.name_pt)}`}
+                    sx={{ fontWeight: 700, height: 24, bgcolor: pm.color + '22', color: pm.color }} />
+                </Box>
+              );
+            })}
+            <Button size="small" onClick={() => setShowDetails((v) => !v)}
+              endIcon={<ExpandMoreIcon sx={{ transform: showDetails ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }} />}
+              sx={{ p: 0, textTransform: 'none', fontWeight: 700, color: 'text.secondary', minWidth: 0, fontSize: '0.8rem', height: 24 }}>
+              {showDetails ? 'Ocultar' : 'Detalhes'}
+            </Button>
+          </Box>
+        )}
+        {/* detalhes completos dos findings (sob demanda) — nome + descrição como antes */}
+        {showDetails && r.findings.length > 0 && (
           <Stack spacing={0.75} sx={{ mb: 1.25 }}>
             {r.findings.map((f, i) => {
               const pm = PRIORITY_META[SEV_TO_PRIO[f.severity]];
