@@ -1,4 +1,4 @@
-import { getAnthropic, MODEL } from '../claude/client';
+import { getLlm, MODEL } from '../llm';
 import { withRateLimitRetry } from '../utils/retry';
 import { HealthSummarySchema, type HealthSummary } from '../extraction/schemas';
 import { prisma } from '../prisma';
@@ -128,16 +128,15 @@ export async function generateConsolidatedSummary(patientId: string, audience: '
   let response: any;
   try {
     response = await withRateLimitRetry(async () => {
-      const client = getAnthropic();
-      const stream = client.messages.stream({ model: MODEL, max_tokens: 6000, system: HEALTH_SYSTEM, messages } as any);
-      return await stream.finalMessage();
+      const s = await getLlm().stream({ model: MODEL, maxTokens: 6000, system: HEALTH_SYSTEM, messages: messages as any });
+      return s.final();
     });
   } catch (e: any) {
     console.error('[IA] erro ao gerar consolidado (status/msg):', e?.status, e?.message);
     throw new Error('Não foi possível gerar agora (serviço de IA indisponível). Tente novamente em instantes.');
   }
 
-  const text = (response.content as any[]).filter((b) => b.type === 'text').map((b) => b.text).join('');
+  const text = response.text;
   const json = extractJsonObject(text);
   const z = HealthSummarySchema.safeParse(json);
   let summary = (z.success ? z.data : json) as HealthSummary;
@@ -209,10 +208,9 @@ export async function generateHealthSummary(examId: string): Promise<{ summary: 
     ? `\nPERFIL CLÍNICO DO PACIENTE (use para contextualizar, nunca para diagnosticar):\n${profile}\n`
     : '';
 
-  const client = getAnthropic();
-  const stream = client.messages.stream({
+  const s = await getLlm().stream({
     model: MODEL,
-    max_tokens: 6000,
+    maxTokens: 6000,
     system: HEALTH_SYSTEM,
     messages: [
       {
@@ -243,16 +241,16 @@ export async function generateHealthSummary(examId: string): Promise<{ summary: 
           JSON_SUFFIX,
       },
     ],
-  } as any);
+  });
   let response: any;
   try {
-    response = await stream.finalMessage();
+    response = await s.final();
   } catch (e: any) {
     console.error('[IA] erro ao gerar (status/msg):', e?.status, e?.message);
     throw new Error('Não foi possível gerar agora (serviço de IA indisponível). Tente novamente em instantes.');
   }
 
-  const text = (response.content as any[]).filter((b) => b.type === 'text').map((b) => b.text).join('');
+  const text = response.text;
   const json = extractJsonObject(text);
   const z = HealthSummarySchema.safeParse(json);
   const summary = (z.success ? z.data : json) as HealthSummary;

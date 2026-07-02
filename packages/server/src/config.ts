@@ -49,6 +49,15 @@ export const config = {
   anthropicApiKey: process.env.ANTHROPIC_API_KEY ?? '',
   // Relay Z.ai aceita modelos GLM (ANTHROPIC_MODEL); NÃO use "claude-opus-4-8" (o relay rejeita).
   extractionModel: process.env.ANTHROPIC_MODEL || process.env.EXTRACTION_MODEL || 'glm-4.6',
+
+  // Provedor de IA ativo (anthropic = Z.ai/GLM [padrão] | openai | gemini). Trocar = só aqui + chave.
+  // Camada de abstração em packages/server/src/llm/. Default anthropic => prod não muda.
+  aiProvider: (process.env.AI_PROVIDER ?? 'anthropic').toLowerCase(),
+  openaiApiKey: process.env.OPENAI_API_KEY ?? '',
+  openaiBaseURL: process.env.OPENAI_BASE_URL ?? 'https://api.openai.com/v1',
+  openaiModel: process.env.OPENAI_MODEL ?? 'gpt-4o-mini',
+  geminiApiKey: process.env.GEMINI_API_KEY ?? '',
+  geminiModel: process.env.GEMINI_MODEL ?? 'gemini-2.0-flash',
   extractionDryRun: process.env.EXTRACTION_DRY_RUN === 'true',
 
   uploadDir: process.env.UPLOAD_DIR ?? './data/exams',

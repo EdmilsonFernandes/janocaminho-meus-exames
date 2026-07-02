@@ -1,7 +1,7 @@
 import { prisma } from '../prisma';
 import { sendPushToUser } from '../utils/push';
 import { sendNudgeEmail } from '../utils/nudgeMail';
-import { getAnthropic, MODEL } from '../claude/client';
+import { getLlm, MODEL } from '../llm';
 
 /** Scheduler de NUDGES de saúde (engajamento DIÁRIO garantido às 08h BRT).
  *  - Dispara 1x/dia às 08h BRT (= 11h UTC — Brasil sem DST desde 2019, UTC-3 fixo o ano todo).
@@ -48,14 +48,13 @@ async function getDailyHealthTip(): Promise<string> {
   const day = new Date().toISOString().slice(0, 10);
   if (cachedTip && cachedTip.day === day) return cachedTip.text;
   try {
-    const client = getAnthropic();
-    const r = await client.messages.create({
+    const r = await getLlm().complete({
       model: MODEL,
-      max_tokens: 200,
+      maxTokens: 200,
       system: 'Você é o Dr. Exame, assistente de saúde empático e prático do app Meus Exames. Gere UMA dica de saúde curta (máx 2 frases, ~180 caracteres), acionável e variada (hidratação, sono, movimento, alimentação, prevenção, exames de rotina, saúde mental, pressão/glicose). Sem jargão médico, sem diagnóstico. Responda APENAS com a dica, sem aspas nem prefixo.',
       messages: [{ role: 'user', content: 'Dê a dica de saúde de hoje para o usuário.' }],
-    } as any);
-    const text = ((r as any).content as any[]).filter((b) => b.type === 'text').map((b) => b.text).join('').trim();
+    });
+    const text = (r.text || '').trim();
     if (text) { cachedTip = { day, text }; return text; }
   } catch (e) {
     console.warn('[nudges] GLM tip falhou, usando dica curada:', (e as Error).message);

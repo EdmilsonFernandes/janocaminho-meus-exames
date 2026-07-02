@@ -1,4 +1,4 @@
-import { getAnthropic, MODEL } from '../claude/client';
+import { getLlm, MODEL } from '../llm';
 import {
   LabExtractionSchema,
   ImagingExtractionSchema,
@@ -88,54 +88,33 @@ Copie fielmente o texto. Não invente achados nem nomes.`;
 
 /** Chamada base — usa STREAMING (necessário para max_tokens altos + evita timeout de 10min). */
 async function createJson(buffer: Buffer, mediaType: string, instruction: string, maxTokens = 16000, precomputedText?: string): Promise<any> {
-  const client = getAnthropic();
   const response = await withRateLimitRetry(async () => {
-    // PDF: extrai o TEXTO (pdftotext). Imagem/foto: OCR (tesseract). Em ambos manda TEXTO
-    // ao GLM (o relay NÃO enxerga imagem/PDF). Visão só como último recurso.
+    // PDF: pdftotext. Imagem/foto: OCR (tesseract). Em ambos manda TEXTO ao modelo (o relay GLM
+    // NÃO enxerga imagem/PDF; e content como TEXTO funciona em QUALQUER provider da abstração llm/).
     // precomputedText: OCR já feito no pre-check do pipeline → reusa (não roda tesseract 2x).
-    let content: any[];
-    if (mediaType === 'application/pdf') {
-      // Reusa o texto do pre-check (readPdf já rodou pdftotext) — evita 2ª chamada de pdftotext (economiza 60-120s).
-      let text = precomputedText ?? '';
-      if (!text || text.trim().length < 50) {
-        try { text = await pdfToText(buffer); } catch { /* não é PDF válido */ }
-      }
-      // Rede de segurança: PDF sem texto (só-imagem, ou imagem mal-rotulada como PDF) → OCR tesseract.
-      if (!text || text.trim().length < 50) {
-        try { const ocr = await imageToText(buffer); if (ocr && ocr.trim().length > 50) { console.log('[extraction] PDF sem texto → OCR fallback,', ocr.length, 'chars'); text = ocr; } } catch { /* sem tesseract */ }
-      }
-      content = [{ type: 'text', text: instruction + '\n\n=== CONTEÚDO EXTRAÍDO DO EXAME (use EXATAMENTE estes dados; NUNCA invente valores/nomes) ===\n' + text + '\n' + JSON_SUFFIX }];
+    const isPdf = mediaType === 'application/pdf';
+    let text = precomputedText ?? '';
+    if (isPdf) {
+      if (!text || text.trim().length < 50) { try { text = await pdfToText(buffer); } catch { /* não é PDF válido */ } }
+      if (!text || text.trim().length < 50) { try { const ocr = await imageToText(buffer); if (ocr && ocr.trim().length > 50) { console.log('[extraction] PDF sem texto → OCR fallback,', ocr.length, 'chars'); text = ocr; } } catch { /* sem tesseract */ } }
     } else {
-      // Reusa o OCR do pre-check (precomputedText) pra não rodar tesseract 2x na mesma foto.
-      let ocr = precomputedText ?? '';
-      if (!ocr) { try { ocr = await imageToText(buffer); } catch (e) { console.warn('[extraction] OCR falhou:', (e as Error).message); } }
-      if (ocr && ocr.trim().length > 50) {
-        console.log('[extraction] imagem OCRizada,', ocr.length, 'chars');
-        content = [{ type: 'text', text: instruction + '\n\n=== CONTEÚDO EXTRAÍDO DO EXAME via OCR (use EXATAMENTE estes dados; NUNCA invente) ===\n' + ocr + '\n' + JSON_SUFFIX }];
-      } else {
-        content = [...(await contentBlocksFromBuffer(buffer, mediaType)), { type: 'text', text: instruction + JSON_SUFFIX }];
-      }
+      if (!text) { try { text = await imageToText(buffer); } catch (e) { console.warn('[extraction] OCR falhou:', (e as Error).message); } }
+      if (text && text.trim().length > 50) console.log('[extraction] imagem OCRizada,', text.length, 'chars');
     }
-    const stream = client.messages.stream({
-      model: MODEL,
-      max_tokens: maxTokens,
-      messages: [{ role: 'user', content }],
-    } as any);
-    return stream.finalMessage();
+    const label = isPdf ? 'CONTEÚDO EXTRAÍDO DO EXAME' : 'CONTEÚDO EXTRAÍDO DO EXAME via OCR';
+    const content = instruction + `\n\n=== ${label} (use EXATAMENTE estes dados; NUNCA invente valores/nomes) ===\n` + (text && text.trim().length > 0 ? text : '(não foi possível extrair texto legível)') + '\n' + JSON_SUFFIX;
+    const s = await getLlm().stream({ model: MODEL, maxTokens, messages: [{ role: 'user', content }] });
+    return s.final();
   });
 
-  if (response.stop_reason === 'max_tokens') {
+  if (response.stopReason === 'max_tokens') {
     const err = new Error('Exame grande demais para extrair em uma chamada (limite de saída).');
     (err as any).status = 413;
     throw err;
   }
   // diagnóstico: input_tokens pequeno => o PDF/documento não chegou ao modelo (relay dropou)
   console.log('[extraction] model:', MODEL, '| usage:', JSON.stringify(response.usage));
-  const text = (response.content as any[])
-    .filter((b) => b.type === 'text')
-    .map((b) => b.text)
-    .join('');
-  return extractJsonObject(text);
+  return extractJsonObject(response.text);
 }
 
 export async function extractLabPanel(buffer: Buffer, mediaType = 'application/pdf', precomputedText?: string): Promise<LabExtraction> {

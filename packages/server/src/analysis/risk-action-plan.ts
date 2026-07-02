@@ -12,7 +12,7 @@
  * Porta o build_glm_prompt do risk-ml (Python) pra TS.
  */
 import { prisma } from '../prisma';
-import { getAnthropic, MODEL } from '../claude/client';
+import { getLlm, MODEL } from '../llm';
 import { HEALTH_SYSTEM, diagnosticGuard } from './system';
 import { MEDICAL_DISCLAIMER } from './risk-rules';
 import { knowledgeFor } from './knowledge';
@@ -74,23 +74,21 @@ export async function generateActionPlan(patientId: string, audience: 'patient' 
         `- Feche sempre reforçando que é educativo e não substitui consulta.\n` +
         `Máx. ~250 palavras. Tom calmo e respeitoso.`);
 
-  const client = getAnthropic();
-  const stream = client.messages.stream({
-    model: MODEL,
-    max_tokens: 2000,
-    system: PLAN_SYSTEM,
-    messages: [{ role: 'user', content: userContent }],
-  } as any);
-
   let response: any;
   try {
-    response = await stream.finalMessage();
+    const s = await getLlm().stream({
+      model: MODEL,
+      maxTokens: 2000,
+      system: PLAN_SYSTEM,
+      messages: [{ role: 'user', content: userContent }],
+    });
+    response = await s.final();
   } catch (e: any) {
     console.error('[risk-action-plan] erro GLM:', e?.status, e?.message);
     throw new Error('Não foi possível gerar o plano agora (serviço de IA). Tente novamente em instantes.');
   }
 
-  const raw = (response.content as any[]).filter((b) => b.type === 'text').map((b) => b.text).join('');
+  const raw = response.text;
   const contentMd = diagnosticGuard(raw).text + `\n\n*${MEDICAL_DISCLAIMER}*`;
 
   return {
