@@ -20,6 +20,7 @@ import { latestRiskAssessment, buildRiskAssessment } from '../analysis/risk-serv
 import { generateActionPlan } from '../analysis/risk-action-plan';
 import { generateConsolidatedSummary } from '../analysis/health-summary';
 import { generateSoap } from '../analysis/doctor-soap';
+import { suggestCid10 } from '../analysis/cid10';
 
 // Especialidades base (espelha o front-end). O dropdown real = base ∪ especialidades que já existem no banco.
 const BASE_SPECIALTIES = [
@@ -616,6 +617,47 @@ router.post('/patients/:patientId/soap', requireDoctor, checkPremiumFeature, asy
     if (e?.status === 400) { res.status(400).json({ error: 'Sem exames extraídos pra gerar SOAP.' }); return; }
     if (!res.headersSent) res.status(500).json({ error: 'Não foi possível gerar o SOAP agora.' });
   }
+});
+
+// EXPORT PES — resumo clínico estruturado com CID-10 sugerido (prontuário eletrônico).
+router.get('/patients/:patientId/export-pes', requireDoctor, async (req: any, res, next) => {
+  try {
+    if (!(await requireShare(req.doctorId, req.params.patientId))) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+    const pid = String(req.params.patientId);
+    const [snapshot, risk, patient, lastNote] = await Promise.all([
+      buildCurrentHealthSummary(pid),
+      latestRiskAssessment(pid),
+      prisma.patient.findUnique({ where: { id: pid }, select: { fullName: true, dateOfBirth: true, gender: true, clinicalProfile: true } }),
+      prisma.doctorNote.findFirst({ where: { doctorId: req.doctorId, patientId: pid }, orderBy: { createdAt: 'desc' }, select: { createdAt: true } }),
+    ]);
+    const conditions = risk?.result?.conditions ?? (risk?.result?.predictedConditionKey && risk.result.predictedConditionKey !== 'none' ? [risk.result.predictedConditionKey] : []);
+    const cid10 = suggestCid10(conditions as string[]);
+    const abnormal = snapshot.topAttention.slice(0, 10).map((m: any) => `${m.name}: ${m.latest.valueText ?? m.latest.valueNumeric} ${m.unit ?? ''} (ref ${m.refText ?? `${m.refLow ?? '?'}-${m.refHigh ?? '?'}`})`).join('; ');
+    const age = patient?.dateOfBirth ? Math.floor((Date.now() - new Date(patient.dateOfBirth).getTime()) / (365.25 * 86400000)) : null;
+    // Texto estruturado pronto pra copiar no PES
+    const text = [
+      `PACIENTE: ${patient?.fullName ?? '—'}`,
+      `${age ? age + ' anos' : ''} ${patient?.gender === 'female' ? 'Feminino' : patient?.gender === 'male' ? 'Masculino' : ''}`.trim(),
+      ``,
+      `CID-10 SUGERIDO (confirmar):`,
+      ...cid10.map((c) => `  ${c.code} — ${c.label}`),
+      ``,
+      `MOTIVO DA CONSULTA: Avaliação de exames laboratoriais.`,
+      ``,
+      `ACHADOS RELEVANTES:`,
+      `  ${abnormal || 'Sem alterações relevantes.'}`,
+      ``,
+      `RISCO: ${risk?.result?.predictedCondition ?? 'Sem leitura de risco.'} (${risk?.result?.riskLevel ?? '—'})`,
+      ``,
+      `PERFIL CLÍNICO: ${patient?.clinicalProfile ?? 'Não informado.'}`,
+      ``,
+      `Score de saúde: ${snapshot.score ?? '—'}/100 em ${snapshot.markers} marcador(es).`,
+      lastNote ? `Última visita: ${new Date(lastNote.createdAt).toLocaleDateString('pt-BR')}` : '',
+      ``,
+      `Gerado pelo app Dr. Exame — conteúdo educativo, não substitui avaliação médica.`,
+    ].filter(Boolean).join('\n');
+    res.json({ cid10, text, patient: { name: patient?.fullName, age, gender: patient?.gender }, risk: { condition: risk?.result?.predictedCondition, level: risk?.result?.riskLevel }, score: snapshot.score });
+  } catch (e) { next(e); }
 });
 
 export default router;

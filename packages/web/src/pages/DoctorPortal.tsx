@@ -254,6 +254,18 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     if (r.ok) setNotes((n) => n.map((x) => x.id === id ? d.note : x));
   };
 
+  // --- Export PES (CID-10 + resumo estruturado) ---
+  const exportPES = async () => {
+    if (!selected) return;
+    try {
+      const r = await fetch(`${API_URL}/doctor/patients/${selected.patient.id}/export-pes`, { headers: h });
+      const d = await r.json();
+      if (r.ok && d.text) {
+        await navigator.clipboard.writeText(d.text);
+        window.alert('Resumo estruturado (com CID-10) copiado! Cole no prontuário do paciente.');
+      }
+    } catch { window.alert('Não foi possível exportar agora.'); }
+  };
   // --- Copiar resumo pro prontuário (#4) ---
   const copySummary = async () => {
     if (!selected) return;
@@ -589,7 +601,10 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                       <Typography sx={{ fontWeight: 800, fontSize: 19, fontFamily: 'Poppins, sans-serif', lineHeight: 1.2, color: 'text.primary' }}>{allAlerts.length > 0 ? `🔴 ${allAlerts.length} valor(es) alterado(s)` : '✅ Sem alterações relevantes'}</Typography>
                       <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>{exams[0] ? `${exams[0].title} • ${fmtDate(exams[0].performedAt)}` : 'Sem exames extraídos'}{exams.length > 0 ? ` • ${exams.length} exame(s)` : ''}</Typography>
                     </Box>
-                    <Button size="small" variant="outlined" onClick={copySummary} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 99, flexShrink: 0 }}>📋 Copiar resumo</Button>
+                    <Stack direction="row" spacing={0.75}>
+                      <Button size="small" variant="outlined" onClick={copySummary} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 99, flexShrink: 0 }}>📋 Copiar</Button>
+                      <Button size="small" variant="outlined" onClick={exportPES} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 99, flexShrink: 0, borderColor: '#6366f1', color: '#6366f1' }}>🏥 Exportar PES</Button>
+                    </Stack>
                   </Stack>
                   {allAlerts.length > 0 && (
                     <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
