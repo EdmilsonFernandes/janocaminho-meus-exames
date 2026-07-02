@@ -34,6 +34,18 @@ const fieldSx = {
   '& .MuiOutlinedInput-root': { borderRadius: '8px', bgcolor: 'background.paper', '& fieldset': { borderColor: 'divider' }, '&:hover fieldset': { borderColor: '#7fcfc6' }, '&.Mui-focused fieldset': { borderColor: '#20b2aa', borderWidth: '1.5px' } },
 } as const;
 
+// Countdown timer pro dialog de PIX (10 min, fecha sozinho ao expirar)
+const PayCountdown = ({ expiresAt, onExpire }: { expiresAt: string; onExpire: () => void }) => {
+  const [secs, setSecs] = useState(Math.max(0, Math.floor((new Date(expiresAt).getTime() - Date.now()) / 1000)));
+  useEffect(() => {
+    if (secs <= 0) { onExpire(); return; }
+    const iv = setInterval(() => setSecs((s) => { if (s <= 1) { clearInterval(iv); onExpire(); return 0; } return s - 1; }), 1000);
+    return () => clearInterval(iv);
+  }, []);
+  const mm = Math.floor(secs / 60), ss = secs % 60;
+  return <Typography component="span" sx={{ fontWeight: 800, color: secs < 60 ? '#dc2626' : '#6366f1', fontFamily: 'monospace', fontSize: 18 }}>{String(mm).padStart(2, '0')}:{String(ss).padStart(2, '0')}</Typography>;
+};
+
 const SCOPE_META: Record<string, { label: string; icon: string }> = {
   risk: { label: 'Risco', icon: '🛡️' },
   exams: { label: 'Exames', icon: '📋' },
@@ -357,7 +369,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
       try {
         const r = await fetch(`${API_URL}/doctor/subscription/payment-status/${paymentId}`, { headers: h });
         const d = await r.json();
-        if (d.approved) { clearInterval(iv); setPayOpen(false); setPayData(null); window.location.reload(); }
+        if (d.approved) { clearInterval(iv); setPayOpen(false); setPayData(null); fetch(`${API_URL}/doctor/me/plan`, { headers: h }).then((r) => r.json()).then(setPlanInfo).catch(() => {}); window.alert('💎 Dr. Exame Pro ativado! SOAP e planos agora são ilimitados.'); }
       } catch {}
     }, 5000);
   };
@@ -438,10 +450,11 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         </Stack>
       </Box>
       <Divider />
-      <Box sx={{ mx: '10px', mt: 1.5, p: 1.25, borderRadius: 2, background: 'rgba(32,178,170,0.08)', border: '1px solid', borderColor: 'divider' }}>
-        <Typography variant="caption" sx={{ fontWeight: 800, color: TEAL, display: 'block' }}>PLANO</Typography>
-        <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary' }}>✅ Grátis (médico)</Typography>
-        <Typography variant="caption" sx={{ color: 'text.secondary' }}>O portal do médico é gratuito por ora. Em breve: Premium do Médico.</Typography>
+      <Box sx={{ mx: '10px', mt: 1.5, p: 1.25, borderRadius: 2, background: planInfo?.isPremium ? 'rgba(99,102,241,.08)' : 'rgba(32,178,170,0.08)', border: '1px solid', borderColor: planInfo?.isPremium ? 'rgba(99,102,241,.2)' : 'divider' }}>
+        <Typography variant="caption" sx={{ fontWeight: 800, color: planInfo?.isPremium ? '#6366f1' : TEAL, display: 'block' }}>PLANO</Typography>
+        {planInfo?.isPremium
+          ? <><Typography sx={{ fontSize: 13, fontWeight: 700, color: '#6366f1' }}>💎 Dr. Exame Pro</Typography><Typography variant="caption" sx={{ color: 'text.secondary' }}>SOAP e planos ilimitados.{planInfo.planExpiresAt ? ` Até ${new Date(planInfo.planExpiresAt).toLocaleDateString('pt-BR')}.` : ''}</Typography></>
+          : <><Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary' }}>Grátis ({planInfo?.freeUsed ?? 0}/{planInfo?.freeLimit ?? 5} usados)</Typography><Typography variant="caption" sx={{ color: 'text.secondary' }}>5 pré-consultas/SOAP grátis por mês.</Typography></>}
       </Box>
       <List sx={{ pt: 1, '& .MuiListItemButton-root': { borderRadius: 2, m: '2px 10px' } }}>
         <ListItemButton selected={view === 'patients'} onClick={() => { setView('patients'); setSelected(null); setSelExam(null); onNav(); }}><ListItemIcon sx={{ minWidth: 38 }}><GroupsIcon sx={{ color: TEAL }} /></ListItemIcon><ListItemText primary="Pacientes" primaryTypographyProps={{ fontWeight: 600 }} /></ListItemButton>
@@ -669,8 +682,8 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                       <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>{exams[0] ? `${exams[0].title} • ${fmtDate(exams[0].performedAt)}` : 'Sem exames extraídos'}{exams.length > 0 ? ` • ${exams.length} exame(s)` : ''}</Typography>
                     </Box>
                     <Stack direction="row" spacing={0.75}>
-                      <Button size="small" variant="outlined" onClick={copySummary} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 99, flexShrink: 0 }}>📋 Copiar</Button>
-                      <Button size="small" variant="outlined" onClick={exportPES} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 99, flexShrink: 0, borderColor: '#6366f1', color: '#6366f1' }}>🏥 Exportar PES</Button>
+                      <Button size="small" variant="outlined" onClick={copySummary} title="Copia um resumo rápido em texto (valores alterados + perfil)" sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 99, flexShrink: 0 }}>📋 Copiar resumo</Button>
+                      <Button size="small" variant="outlined" onClick={exportPES} title="Gera texto estruturado com CID-10 sugerido para colar no prontuário eletrônico" sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 99, flexShrink: 0, borderColor: '#6366f1', color: '#6366f1' }}>🏥 PES + CID-10</Button>
                     </Stack>
                   </Stack>
                   {allAlerts.length > 0 && (
@@ -763,18 +776,18 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                     {/* Plano de ação clínico (C2) — versão médico, grátis */}
                     <Card variant="outlined" sx={{ borderRadius: 3, borderColor: 'divider' }}><CardContent>
                       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-                        <Typography sx={{ fontWeight: 800 }}>📋 Plano de ação clínico <Box component="span" sx={{ fontSize: 11, fontWeight: 600, color: 'text.secondary' }}>(versão médico)</Box></Typography>
+                        <Typography sx={{ fontWeight: 800 }}>📋 Plano de conduta <Box component="span" sx={{ fontSize: 11, fontWeight: 600, color: 'text.secondary' }}>(investigação + follow-up + diferenciais)</Box></Typography>
                         <Button size="small" variant="outlined" onClick={genActionPlan} disabled={planLoading} sx={{ textTransform: 'none', borderRadius: 99, fontWeight: 700, flexShrink: 0 }}>{clinicalPlan ? '🔄 Regenerar' : 'Gerar plano'}</Button>
                       </Stack>
                       {planLoading && <Box sx={{ textAlign: 'center', py: 2 }}><CircularProgress size={22} sx={{ color: TEAL }} /></Box>}
-                      {clinicalPlan && <Box sx={{ '& p': { margin: '0.3em 0', fontSize: 14 }, '& h3': { fontSize: '0.95rem', fontWeight: 800, color: TEAL }, '& ul,& ol': { margin: '0.3em 0', paddingLeft: '1.2em' }, '& strong': { fontWeight: 700 } }}><ReactMarkdown>{clinicalPlan}</ReactMarkdown></Box>}
-                      {!clinicalPlan && !planLoading && <Typography variant="body2" sx={{ color: 'text.secondary' }}>Gera um plano de conduta clínica (tom técnico) a partir da leitura de risco do paciente.</Typography>}
+                      {clinicalPlan && <Box sx={{ '& p': { margin: '0.3em 0', fontSize: 14, lineHeight: 1.5 }, '& h2,& h3': { fontSize: '0.9rem', fontWeight: 800, color: TEAL, mt: 1, mb: 0.5 }, '& ul,& ol': { margin: '0.3em 0', paddingLeft: '1.2em' }, '& li': { mb: 0.3 }, '& strong': { fontWeight: 700 }, '& br': { display: 'block', content: '""' } }}><ReactMarkdown>{clinicalPlan}</ReactMarkdown></Box>}
+                      {!clinicalPlan && !planLoading && <Typography variant="body2" sx={{ color: 'text.secondary' }}>Sugestão de conduta clínica com base na leitura de risco: o que investigar, quando reavaliar, diferenciais.</Typography>}
                     </CardContent></Card>
 
                     {/* SOAP rascunho (IA preenche, médico edita) */}
                     <Card variant="outlined" sx={{ borderRadius: 3, borderColor: 'divider' }}><CardContent>
                       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-                        <Typography sx={{ fontWeight: 800 }}>📝 SOAP <Box component="span" sx={{ fontSize: 11, fontWeight: 600, color: 'text.secondary' }}>(rascunho IA — você edita)</Box></Typography>
+                        <Typography sx={{ fontWeight: 800 }}>📝 SOAP <Box component="span" sx={{ fontSize: 11, fontWeight: 600, color: 'text.secondary' }}>(nota clínica: Subjetivo/Objetivo/Avaliação/Plano)</Box></Typography>
                         <Button size="small" variant="outlined" onClick={genSoap} disabled={soapLoading} sx={{ textTransform: 'none', borderRadius: 99, fontWeight: 700, flexShrink: 0 }}>{soap ? '🔄 Regenerar' : 'Gerar SOAP'}</Button>
                       </Stack>
                       {soapLoading && <Box sx={{ textAlign: 'center', py: 2 }}><CircularProgress size={22} sx={{ color: TEAL }} /></Box>}
@@ -895,7 +908,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         </Drawer>
       )}
 
-      {/* DIALOG DE PAGAMENTO — PIX QR inline + opção cartão */}
+      {/* DIALOG DE PAGAMENTO — PIX QR inline + timer + opção cartão */}
       <Dialog open={payOpen} onClose={() => { setPayOpen(false); setPayData(null); }} PaperProps={{ sx: { borderRadius: 3, maxWidth: 380 } }}>
         <DialogTitle sx={{ fontWeight: 800, textAlign: 'center', pb: 1 }}>💎 Dr. Exame Pro — R$29,90/mês</DialogTitle>
         <DialogContent>
@@ -903,12 +916,14 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
             <Box sx={{ textAlign: 'center' }}>
               <Typography variant="body2" sx={{ mb: 1.5, color: 'text.secondary' }}>Escaneie o QR Code com o app do seu banco:</Typography>
               <Box component="img" src={payData.qrBase64} alt="PIX QR Code" sx={{ width: 220, height: 220, borderRadius: 2, border: '1px solid', borderColor: 'divider' }} />
-              <Typography variant="caption" sx={{ display: 'block', mt: 1.5, color: 'text.secondary' }}>⏳ Aguardando pagamento... Esta janela fecha sozinha ao confirmar.</Typography>
-              <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: 'text.secondary', wordBreak: 'break-all', fontSize: 10 }}>PIX Copia e Cola: {payData.qrCode?.slice(0, 40)}...</Typography>
+              <Box sx={{ mt: 1.5, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 0.5 }}>
+                <Typography component="span" sx={{ fontSize: 20 }}>⏳</Typography>
+                <PayCountdown expiresAt={payData.expiresAt} onExpire={() => { setPayOpen(false); setPayData(null); }} />
+              </Box>
+              <Typography variant="caption" sx={{ display: 'block', mt: 1, color: '#16a34a', fontWeight: 700 }}>✅ Detecta pagamento automaticamente</Typography>
               <Button fullWidth size="small" onClick={() => { if (payData.qrCode) navigator.clipboard.writeText(payData.qrCode); }} sx={{ mt: 1, textTransform: 'none', borderRadius: 99 }}>📋 Copiar código PIX</Button>
-              <Divider sx={{ my: 1.5 }} />
-              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 1 }}>Prefere pagar com cartão?</Typography>
-              <Button fullWidth size="small" variant="outlined" onClick={() => startCheckout('card')} sx={{ textTransform: 'none', borderRadius: 99, fontWeight: 700 }}>💳 Cartão / Débito</Button>
+              <Divider sx={{ my: 1.5 }}><Typography variant="caption" sx={{ color: 'text.secondary' }}>ou pague com</Typography></Divider>
+              <Button fullWidth size="small" variant="outlined" onClick={() => startCheckout('card')} sx={{ textTransform: 'none', borderRadius: 99, fontWeight: 700 }}>💳 Cartão de crédito / débito</Button>
             </Box>
           ) : (
             <Box sx={{ textAlign: 'center', py: 3 }}>
