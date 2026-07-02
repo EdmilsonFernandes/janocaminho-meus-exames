@@ -58,6 +58,44 @@ const requireDoctor = async (req: any, res: any, next: any) => {
   next();
 };
 
+// Dr. Exame Pro (premium) — free tier: 5 features premium/mês. Depois: paywall (402).
+const FREE_TIER_LIMIT = 5;
+const checkPremiumFeature = async (req: any, res: any, next: any): Promise<void> => {
+  try {
+    const doc = await prisma.doctor.findUnique({ where: { id: req.doctorId }, select: { plan: true, planExpiresAt: true, freeUsageMonth: true, freeUsageCount: true } });
+    if (!doc) { res.status(401).json({ error: 'auth' }); return; }
+    if (doc.plan === 'premium' && doc.planExpiresAt && doc.planExpiresAt > new Date()) return next();
+    const month = new Date().toISOString().slice(0, 7);
+    if (doc.freeUsageMonth !== month) { await prisma.doctor.update({ where: { id: req.doctorId }, data: { freeUsageMonth: month, freeUsageCount: 1 } }); return next(); }
+    if (doc.freeUsageCount < FREE_TIER_LIMIT) { await prisma.doctor.update({ where: { id: req.doctorId }, data: { freeUsageCount: { increment: 1 } } }); return next(); }
+    res.status(402).json({ error: 'premium_required', message: 'Você usou suas 5 pré-consultas grátis deste mês. Assine o Dr. Exame Pro para uso ilimitado.' });
+  } catch (e) { next(e); }
+};
+
+// Plano do médico (status premium/free + uso do mês)
+router.get('/me/plan', requireDoctor, async (req: any, res) => {
+  const doc = await prisma.doctor.findUnique({ where: { id: req.doctorId }, select: { plan: true, planExpiresAt: true, freeUsageMonth: true, freeUsageCount: true } });
+  const month = new Date().toISOString().slice(0, 7);
+  const isPremium = doc?.plan === 'premium' && doc?.planExpiresAt && doc.planExpiresAt > new Date();
+  const freeUsed = doc?.freeUsageMonth === month ? (doc?.freeUsageCount ?? 0) : 0;
+  res.json({ isPremium: !!isPremium, plan: doc?.plan ?? 'free', planExpiresAt: doc?.planExpiresAt, freeUsed, freeLimit: FREE_TIER_LIMIT });
+});
+
+// Checkout MP (R$29,90/mês)
+router.post('/subscription/checkout', requireDoctor, async (req: any, res) => {
+  try {
+    const preference = {
+      items: [{ title: 'Dr. Exame Pro — Mensal', unit_price: 29.90, quantity: 1, currency_id: 'BRL' }],
+      back_urls: { success: `${config.webOrigin}${config.webBasePath}/doctor?paid=1`, failure: `${config.webOrigin}${config.webBasePath}/doctor`, pending: `${config.webOrigin}${config.webBasePath}/doctor` },
+      auto_return: 'approved' as const, external_reference: `doctor_sub_${req.doctorId}`,
+    };
+    const r = await fetch('https://api.mercadopago.com/checkout/preferences', { method: 'POST', headers: { Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`, 'Content-Type': 'application/json' }, body: JSON.stringify(preference) });
+    const data: any = await r.json();
+    if (data.init_point) res.json({ url: data.init_point });
+    else res.status(500).json({ error: 'Falha ao criar checkout.', detail: data.message });
+  } catch { res.status(500).json({ error: 'Falha ao criar checkout.' }); }
+});
+
 // === BUSCA de médico por CRM+UF (auth PACIENTE) ===
 // Ordem: conta real reclamada (mais fidedigno) → CFM → cadastro pendente local → manual.
 router.get('/lookup', requireAuth, async (req: AuthedRequest, res, next) => {
@@ -509,7 +547,7 @@ router.get('/patients/:patientId/risk/history', requireDoctor, async (req: any, 
 });
 
 // PLANO DE AÇÃO CLÍNICO (C2) — versão MÉDICO (audience='doctor', tom técnico), GRÁTIS.
-router.post('/patients/:patientId/action-plan', requireDoctor, async (req: any, res, next) => {
+router.post('/patients/:patientId/action-plan', requireDoctor, checkPremiumFeature, async (req: any, res, next) => {
   try {
     if (!(await requireShare(req.doctorId, req.params.patientId))) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     void auditLog(req, 'doctor_generated_action_plan', String(req.params.patientId));
@@ -538,7 +576,7 @@ router.post('/patients/:patientId/summary/generate', requireDoctor, async (req: 
 });
 
 // PRÉ-CONSULTA (brief automático de 1 página) — top mudanças + risco + investigar + perguntas. Grátis, determinístico.
-router.get('/patients/:patientId/pre-visit', requireDoctor, async (req: any, res, next) => {
+router.get('/patients/:patientId/pre-visit', requireDoctor, checkPremiumFeature, async (req: any, res, next) => {
   try {
     if (!(await requireShare(req.doctorId, req.params.patientId))) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     void auditLog(req, 'doctor_pre_visit', String(req.params.patientId));
@@ -567,7 +605,7 @@ router.get('/patients/:patientId/pre-visit', requireDoctor, async (req: any, res
 });
 
 // SOAP RASCUNHO (IA preenche, médico edita) — grátis pro médico.
-router.post('/patients/:patientId/soap', requireDoctor, async (req: any, res, next) => {
+router.post('/patients/:patientId/soap', requireDoctor, checkPremiumFeature, async (req: any, res, next) => {
   try {
     if (!(await requireShare(req.doctorId, req.params.patientId))) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     void auditLog(req, 'doctor_generated_soap', String(req.params.patientId));

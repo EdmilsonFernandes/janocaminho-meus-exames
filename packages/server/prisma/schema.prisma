@@ -448,6 +448,11 @@ model Doctor {
   mfaSecretIv         String?
   mfaSecretAuthTag    String?
   mfaConfirmedAt      DateTime?
+  // Dr. Exame Pro (premium) — paywall: pré-consulta, SOAP, export.
+  plan              String   @default("free") // free | premium
+  planExpiresAt     DateTime?
+  freeUsageMonth    String?  // "2026-07" — mês corrente do contador free
+  freeUsageCount    Int      @default(0)      // usos de features premium no mês (free tier: 5)
 
   @@map("doctors")
 }

@@ -215,6 +215,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const [preVisit, setPreVisit] = useState<any>(null);
   const [soap, setSoap] = useState<string | null>(null);
   const [soapLoading, setSoapLoading] = useState(false);
+  const [planInfo, setPlanInfo] = useState<any>(null);
   const [patQuery, setPatQuery] = useState('');
   const [patAlertOnly, setPatAlertOnly] = useState(false);
   const h = { Authorization: `Bearer ${token}` };
@@ -226,6 +227,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   useEffect(() => {
     fetch(`${API_URL}/doctor/me`, { headers: h }).then((r) => r.json()).then((d) => setDoctor(d.doctor)).catch(() => {});
     fetch(`${API_URL}/doctor/patients`, { headers: h }).then((r) => r.json()).then((d) => { setPatients(d.items ?? []); setLoading(false); }).catch(() => setLoading(false));
+    fetch(`${API_URL}/doctor/me/plan`, { headers: h }).then((r) => r.json()).then(setPlanInfo).catch(() => {});
   }, []);
 
   // Abas disponíveis = escopos que o paciente autorizou (e que suportamos visualmente)
@@ -315,9 +317,14 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const genSoap = async () => {
     if (!selected || soapLoading) return;
     setSoapLoading(true);
-    try { const r = await fetch(`${API_URL}/doctor/patients/${selected.patient.id}/soap`, { method: 'POST', headers: h }); const d = await r.json(); if (r.ok) setSoap(d.contentMd); }
+    try { const r = await fetch(`${API_URL}/doctor/patients/${selected.patient.id}/soap`, { method: 'POST', headers: h }); const d = await r.json(); if (r.ok) setSoap(d.contentMd); else if (r.status === 402) alert(d.message || 'Limite de pré-consultas grátis atingido. Assine o Dr. Exame Pro.'); }
     catch {}
     finally { setSoapLoading(false); }
+  };
+  // Checkout MP (Dr. Exame Pro R$29,90/mês)
+  const checkout = async () => {
+    try { const r = await fetch(`${API_URL}/doctor/subscription/checkout`, { method: 'POST', headers: h }); const d = await r.json(); if (d.url) window.location.href = d.url; }
+    catch {}
   };
 
   // Abre o detalhe de um exame (todos os itens) — busca via endpoint scoped
@@ -440,6 +447,20 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         {view === 'profile' && <DoctorProfile token={token} doctor={doctor} onBack={() => setView('patients')} onSaved={(d) => setDoctor(d)} onPhoto={() => setPhotoVer((v) => v + 1)} photoVer={photoVer} />}
         {view === 'password' && <DoctorChangePassword token={token} onBack={() => setView('patients')} />}
         {view === 'patients' && loading && <Box sx={{ textAlign: 'center', py: 6 }}><CircularProgress sx={{ color: TEAL }} /></Box>}
+
+        {/* DR. EXAME PRO — banner premium (free tier + CTA) */}
+        {planInfo && !planInfo.isPremium && view === 'patients' && (
+          <Box sx={{ mb: 2, p: 2, borderRadius: 3, background: 'linear-gradient(135deg,rgba(99,102,241,.08),rgba(99,102,241,.02))', border: '1px solid', borderColor: 'rgba(99,102,241,.2)' }}>
+            <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" useFlexGap>
+              <Typography sx={{ fontWeight: 800, color: '#6366f1', fontSize: 16 }}>💎 Dr. Exame Pro</Typography>
+              <Typography variant="body2" sx={{ color: 'text.secondary', flex: 1, minWidth: 180 }}>{planInfo.freeUsed >= planInfo.freeLimit ? '🔒 Pré-consultas grátis esgotadas este mês.' : `💡 ${planInfo.freeUsed} de ${planInfo.freeLimit} pré-consultas grátis usadas.`}</Typography>
+              <Button size="small" variant="contained" onClick={checkout} sx={{ bgcolor: '#6366f1', textTransform: 'none', borderRadius: 99, fontWeight: 700, '&:hover': { bgcolor: '#4f46e5' } }}>Assinar R$29,90/mês</Button>
+            </Stack>
+          </Box>
+        )}
+        {planInfo?.isPremium && view === 'patients' && (
+          <Chip size="small" label="💎 Dr. Exame Pro ativo" sx={{ mb: 1.5, bgcolor: 'rgba(99,102,241,.12)', color: '#6366f1', fontWeight: 700 }} />
+        )}
 
         {/* LISTA DE PACIENTES */}
         {view === 'patients' && !loading && !selected && (
