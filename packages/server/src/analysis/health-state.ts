@@ -270,12 +270,17 @@ export async function buildCurrentHealthSummary(patientId: string): Promise<Curr
 /** Formata um marcador do snapshot numa linha compacta para o contexto da IA. */
 export function fmtMarker(m: MarkerState): string {
   const v = m.latest.valueText ?? (m.latest.valueNumeric != null ? String(m.latest.valueNumeric).replace('.', ',') : '—');
+  const hasRef = !!m.refText || (m.refLow != null && m.refHigh != null);
   const ref = m.refText ?? (m.refLow != null && m.refHigh != null ? `${m.refLow}-${m.refHigh}` : 's/ref');
   const age = m.latest.ageMonths == null ? 's/data' : m.latest.ageMonths < 1 ? 'recente' : `há ${Math.round(m.latest.ageMonths)}m`;
   const delta = m.deltaPct != null ? ` Δ${m.deltaPct > 0 ? '+' : ''}${Math.round(m.deltaPct)}%` : '';
   const stale = m.latest.stale ? ' [DESATUALIZADO]' : '';
   const conf = m.confidence === 'baixa' ? ' [confiança baixa]' : '';
-  return `${m.name}: ${v}${m.unit ? ' ' + m.unit : ''} (ref ${ref}, ${m.flag}, ${m.priority}${delta}, ${age})${stale}${conf}`;
+  // Marca marcadores sem faixa de referência no laudo: a IA NÃO deve afirmar normal/alterado/
+  // melhorou/piorou sem base — usar "depende do contexto clínico" (LDL/não-HDL) ou "referência
+  // não informada pelo laboratório" (demais). Tendência, se houver histórico, é só numérica.
+  const noRef = !hasRef ? ' [SEM REFERÊNCIA — não há faixa no laudo; NÃO afirmar normal/alterado/melhorou/piorou]' : '';
+  return `${m.name}: ${v}${m.unit ? ' ' + m.unit : ''} (ref ${ref}, ${m.flag}, ${m.priority}${delta}, ${age})${stale}${conf}${noRef}`;
 }
 
 /**
