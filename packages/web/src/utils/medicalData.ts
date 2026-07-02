@@ -1,3 +1,5 @@
+import { refInfo } from './examStatus';
+
 /** Especialidades médicas comuns no Brasil + convênios. */
 export const SPECIALTIES = [
   'Clinico Geral', 'Cardiologista', 'Endocrinologista', 'Gastroenterologista',
@@ -73,16 +75,9 @@ export const categorizeExam = (exam: ExamLike | null | undefined) => {
 
 
 /**
- * Label pronto pra exibir da faixa de referência de um item/exame.
+ * Label pronto pra exibir da faixa de referência de um item/exame. Delega pra refInfo (examStatus):
  * - Com faixa (refText ou refLow/refHigh): "Ref: 3,5 - 5,0 mUI/L".
- * - Sem faixa nenhuma: "sem faixa de referência" (em vez do confuso "Ref: —").
+ * - Sem faixa + LDL/não-HDL: "Interpretação depende do contexto clínico".
+ * - Sem faixa + demais: "Referência não informada pelo laboratório" (nunca "Ref: —").
  */
-export const refLabel = (it: any): string => {
-  if (it?.refText) return `Ref: ${it.refText}`;
-  const lo = it?.refLow, hi = it?.refHigh;
-  if (lo != null || hi != null) {
-    const range = (lo != null && hi != null) ? `${lo} - ${hi}` : `${lo ?? hi}`;
-    return it?.unit ? `Ref: ${range} ${it.unit}` : `Ref: ${range}`;
-  }
-  return 'sem faixa de referência';
-};
+export const refLabel = (it: any): string => refInfo(it?.name, it?.refText, it?.refLow, it?.refHigh, it?.unit);

@@ -6,6 +6,7 @@ import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tool
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import { Flag } from '../components/Flag';
+import { displayStatus } from '../utils/examStatus';
 import { ExplainButton } from '../components/ExplainItem';
 import { PremiumGate } from '../components/PremiumGate';
 
@@ -50,12 +51,11 @@ export const TrendsPage = () => {
         <Box sx={{ fontWeight: 700, fontSize: 11, opacity: 0.8 }}>{d.name}</Box>
         <Box sx={{ fontSize: 19, fontWeight: 800 }}>{d.valor}{ts?.unit ? ` ${ts.unit}` : ''}</Box>
         {(() => {
-          const f = d.flag as string;
-          if (f === 'HIGH') return <Box sx={{ color: '#fca5a5', fontSize: 12, fontWeight: 700 }}>↑ Acima da referência</Box>;
-          if (f === 'LOW') return <Box sx={{ color: '#fca5a5', fontSize: 12, fontWeight: 700 }}>↓ Abaixo da referência</Box>;
-          if (f === 'ABNORMAL' || f === 'CRITICAL') return <Box sx={{ color: '#fca5a5', fontSize: 12, fontWeight: 700 }}>⚠ Alterado</Box>;
-          if (f === 'UNKNOWN') return <Box sx={{ color: 'rgba(255,255,255,.65)', fontSize: 12, fontWeight: 600 }}>sem faixa de referência</Box>;
-          return null;
+          const s = displayStatus(d.flag as string, d.name, ts?.refLow, ts?.refHigh);
+          if (s.tone === 'normal') return null;
+          const color = s.tone === 'atencao' || s.tone === 'critico' ? '#fca5a5' : 'rgba(255,255,255,.7)';
+          const arrow = d.flag === 'HIGH' ? '↑ ' : d.flag === 'LOW' ? '↓ ' : s.tone === 'critico' ? '⚠ ' : '';
+          return <Box sx={{ color, fontSize: 12, fontWeight: 700 }}>{arrow}{s.label}</Box>;
         })()}
       </Box>
     );
@@ -199,7 +199,7 @@ export const TrendsPage = () => {
               {[...data].reverse().map((d, i) => (
                 <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                   <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>{d.name} — <strong>{d.valor}</strong>{ts?.unit ? ` ${ts.unit}` : ''} <Box component="span" sx={{ color: 'text.secondary' }}>({d.title})</Box></Typography>
-                  <Flag flag={d.flag} />
+                  <Flag flag={d.flag} name={d.name} refLow={ts?.refLow} refHigh={ts?.refHigh} />
                 </Box>
               ))}
             </Stack>

@@ -14,6 +14,7 @@ import { MfaSetupCard } from '../components/mfa/MfaSetupCard';
 import { SPECIALTIES, UFS } from '../utils/medicalData';
 import { PhotoUpload } from '../components/PhotoUpload';
 import { CATS, categorize, refLabel } from '../utils/medicalData';
+import { displayStatus } from '../utils/examStatus';
 import ReactMarkdown from 'react-markdown';
 import { ResponsiveContainer, LineChart, Line, ReferenceArea, XAxis, YAxis, Tooltip } from 'recharts';
 
@@ -988,7 +989,12 @@ const DoctorExamDetail = ({ exam, detail, patientId, token, onBack }: { exam: an
                 </Box>
                 <Stack direction="row" spacing={1} alignItems="center" sx={{ flexShrink: 0 }}>
                   <Typography sx={{ fontWeight: 800, fontSize: 14, color: it.isAbnormal ? '#b91c1c' : 'text.primary' }}>{it.valueText ?? '—'}</Typography>
-                  {it.flag && <Chip size="small" label={it.flag} sx={{ height: 18, fontSize: 9, bgcolor: it.isAbnormal ? '#fee2e2' : '#dcfce7', color: it.isAbnormal ? '#b91c1c' : '#15803d', fontWeight: 700 }} />}
+                  {it.flag && (() => {
+                    const s = displayStatus(it.flag, it.name, it.refLow, it.refHigh);
+                    const bg = s.tone === 'atencao' || s.tone === 'critico' ? '#fee2e2' : s.tone === 'contexto' ? '#fef3c7' : s.tone === 'normal' ? '#dcfce7' : '#f1f5f9';
+                    const fg = s.tone === 'atencao' || s.tone === 'critico' ? '#b91c1c' : s.tone === 'contexto' ? '#92400e' : s.tone === 'normal' ? '#15803d' : '#475569';
+                    return <Chip size="small" label={s.short} title={s.label} sx={{ height: 18, fontSize: 9, bgcolor: bg, color: fg, fontWeight: 700 }} />;
+                  })()}
                 </Stack>
               </Box>
             ))}

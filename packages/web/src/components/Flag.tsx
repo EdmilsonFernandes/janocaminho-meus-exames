@@ -1,28 +1,26 @@
 import { Chip } from '@mui/material';
+import { displayStatus, type StatusTone } from '../utils/examStatus';
 
-const COLORS: Record<string, any> = {
-  NORMAL: 'success',
-  HIGH: 'warning',
-  LOW: 'warning',
-  ABNORMAL: 'error',
-  CRITICAL: 'error',
-  UNKNOWN: 'default',
+// Badge de status do item de exame. Usa displayStatus (helper central) — UNKNOWN nunca aparece cru:
+// vira "S/ referência", "Contexto" (LDL/não-HDL) etc. Caller passa name/refLow/refHigh pra permitir
+// a distinção (quando disponível).
+const TONE_COLOR: Record<StatusTone, any> = {
+  normal: 'success',
+  atencao: 'warning',
+  critico: 'error',
+  neutro: 'default',
+  contexto: 'info',
 };
 
-const LABELS: Record<string, string> = {
-  NORMAL: 'Normal',
-  HIGH: 'Acima',
-  LOW: 'Abaixo',
-  ABNORMAL: 'Alterado',
-  CRITICAL: 'Crítico',
-  UNKNOWN: '—',
+export const Flag = ({ flag, name, refLow, refHigh }: { flag: string; name?: string | null; refLow?: number | null; refHigh?: number | null }) => {
+  const s = displayStatus(flag, name, refLow, refHigh);
+  return (
+    <Chip
+      size="small"
+      color={TONE_COLOR[s.tone] ?? 'default'}
+      label={s.short}
+      variant={s.tone === 'normal' ? 'outlined' : 'filled'}
+      title={s.label}
+    />
+  );
 };
-
-export const Flag = ({ flag }: { flag: string }) => (
-  <Chip
-    size="small"
-    color={COLORS[flag] ?? 'default'}
-    label={LABELS[flag] ?? flag}
-    variant={flag === 'NORMAL' ? 'outlined' : 'filled'}
-  />
-);

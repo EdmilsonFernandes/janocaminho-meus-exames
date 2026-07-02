@@ -10,6 +10,7 @@ import { API_URL, token } from '../../config';
 import { Capacitor } from '@capacitor/core';
 import { openBlobFile } from '../../utils/nativeDoc';
 import { HealthSummary } from '../../components/HealthSummary';
+import { displayStatus } from '../../utils/examStatus';
 import { ValueBar } from '../../components/ValueBar';
 import { ExplainButton } from '../../components/ExplainItem';
 import { TelemedicineButton } from '../../components/TelemedicineButton';
@@ -223,7 +224,17 @@ export const ExamShow = () => {
   const cc = categorizeExam(exam); // categoria do exame (dominante pelos itens) — badge no header
   const abnormal = items.filter((i) => i.isAbnormal);
   const grouped = items.reduce((acc: any, it: any) => { (acc[it.panel ?? 'Geral'] ??= []).push(it); return acc; }, {});
-  const fm = (f: string) => flagMeta[f] ?? flagMeta.UNKNOWN;
+  // Híbrido: NORMAL/HIGH/LOW/ABNORMAL/CRITICAL usam flagMeta (cores atuais preservadas).
+  // UNKNOWN (sem referência ou sem valor) usa displayStatus — distingue "Interpretação depende do
+  // contexto clínico" (LDL/não-HDL) de "Referência não informada". Nunca exibe '—'/UNKNOWN cru.
+  const fm = (it: any) => {
+    const f = (it?.flag ?? '').toUpperCase();
+    if (f === 'UNKNOWN' || !flagMeta[f]) {
+      const s = displayStatus(it?.flag, it?.name, it?.refLow, it?.refHigh);
+      return { color: 'default' as const, label: s.short, title: s.label };
+    }
+    return flagMeta[f];
+  };
 
   return (
     <Box sx={{ maxWidth: 1080, mx: 'auto', p: { xs: 1, md: 2 } }}>
@@ -322,7 +333,7 @@ export const ExamShow = () => {
               <AccordionDetails sx={{ p: 1 }}>
                 <Stack divider={<Divider sx={{ borderColor: 'divider', my: 0.5 }} />}>
                   {(list as any[]).map((it) => {
-                    const m = fm(it.flag);
+                    const m = fm(it);
                     const out = it.isAbnormal;
                     const valColor = out ? (m.color === 'error' ? 'error.main' : 'warning.main') : 'success.main';
                     return (
