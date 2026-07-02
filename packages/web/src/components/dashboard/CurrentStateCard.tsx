@@ -15,7 +15,7 @@ import { PRIORITY_META } from '../../utils/alertPriority';
  * Não-alarmista, educativo — a decisão é sempre do médico.
  */
 type Priority = 'normal' | 'leve' | 'moderada' | 'importante';
-type Trend = 'melhorou' | 'piorou' | 'estavel' | 'primeiro';
+type Trend = 'melhorou' | 'piorou' | 'estavel' | 'primeiro' | 'aumentando' | 'reduzindo';
 interface Marker {
   name: string; unit: string | null;
   latest: { valueText: string | null; valueNumeric: number | null; stale: boolean; ageMonths: number | null };
@@ -35,6 +35,8 @@ const TREND_META: Record<Trend, { label: string; color: string }> = {
   piorou: { label: 'Atenção — piorou', color: '#dc2626' },
   estavel: { label: 'Estável', color: '#64748b' },
   primeiro: { label: '1º exame', color: '#64748b' },
+  aumentando: { label: 'Em aumento', color: '#d97706' },
+  reduzindo: { label: 'Em queda', color: '#0284c7' },
 };
 
 export const CurrentStateCard = () => {

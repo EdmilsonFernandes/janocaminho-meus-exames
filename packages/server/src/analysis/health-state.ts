@@ -23,7 +23,7 @@ import { prisma } from '../prisma';
 
 // ───────────────────────────── tipos ─────────────────────────────
 
-export type TrendDirection = 'melhorou' | 'piorou' | 'estavel' | 'primeiro';
+export type TrendDirection = 'melhorou' | 'piorou' | 'estavel' | 'primeiro' | 'aumentando' | 'reduzindo';
 export type Priority = 'normal' | 'leve' | 'moderada' | 'importante';
 export type Confidence = 'alta' | 'baixa';
 
@@ -113,6 +113,13 @@ export function trendDirection(
     const dl = distToRange(latest.valueNumeric, refLow, refHigh);
     if (dl < df) return 'melhorou';
     if (dl > df) return 'piorou';
+    return 'estavel';
+  }
+  // Sem faixa de referência: tendência PURAMENTE NUMÉRICA — não há como afirmar "melhorou/piorou"
+  // (clinicamente) sem faixa. Compara só os valores: aumentou/reduziu/estável.
+  if (latest.valueNumeric != null && prior.valueNumeric != null) {
+    if (latest.valueNumeric > prior.valueNumeric) return 'aumentando';
+    if (latest.valueNumeric < prior.valueNumeric) return 'reduzindo';
     return 'estavel';
   }
   // fallback não-numérico: anormalidade antes → agora
