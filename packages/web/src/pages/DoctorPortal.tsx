@@ -8,6 +8,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PdfIcon from '@mui/icons-material/PictureAsPdf';
 import SearchIcon from '@mui/icons-material/Search';
 import GroupsIcon from '@mui/icons-material/Groups';
+import MenuIcon from '@mui/icons-material/Menu';
 import { API_URL } from '../config';
 import { DrExame } from '../components/DrExame';
 import { MfaSetupCard } from '../components/mfa/MfaSetupCard';
@@ -481,14 +482,22 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         {(selected || selExam) && (
           <IconButton onClick={goBack} size="small" title="Voltar" sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,.15)', '&:hover': { bgcolor: 'rgba(255,255,255,.25)' }, flexShrink: 0, width: 34, height: 34 }}>←</IconButton>
         )}
-        <Avatar src={doctor?.id ? `${API_URL}/doctor/photo/${doctor.id}?v=${photoVer}` : undefined} sx={{ bgcolor: 'rgba(255,255,255,.2)', fontWeight: 800, border: '2px solid rgba(255,255,255,.5)' }}>{doctor?.name?.charAt(0)}</Avatar>
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>🩺 {doctor?.name || 'Médico'}</Typography>
-            <Chip size="small" label="Profissional" sx={{ bgcolor: 'rgba(255,255,255,.2)', color: '#fff', fontWeight: 700, height: 20, fontSize: 10 }} />
-          </Stack>
-          <Typography variant="caption" sx={{ opacity: 0.9 }}>{[doctor?.specialty, doctor?.crm && `CRM ${doctor.crm}`].filter(Boolean).join(' • ') || 'Portal do Médico'}</Typography>
-        </Box>
+        {/* Desktop: só título da view (identidade está no sidebar). Mobile: identidade + menu. */}
+        {isDesktop ? (
+          <Box sx={{ flex: 1 }}>
+            <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 18 }}>{view === 'patients' ? (selected ? selected.patient?.fullName : 'Pacientes') : view === 'profile' ? 'Meu Perfil' : 'Trocar Senha'}</Typography>
+            {planInfo?.isPremium && <Chip size="small" label="💎 Dr. Exame Pro" sx={{ bgcolor: 'rgba(255,255,255,.2)', color: '#fff', fontWeight: 700, height: 20, fontSize: 10 }} />}
+          </Box>
+        ) : (
+          <>
+            <Avatar src={doctor?.id ? `${API_URL}/doctor/photo/${doctor.id}?v=${photoVer}` : undefined} sx={{ bgcolor: 'rgba(255,255,255,.2)', fontWeight: 800, border: '2px solid rgba(255,255,255,.5)' }}>{doctor?.name?.charAt(0)}</Avatar>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>🩺 {doctor?.name || 'Médico'}</Typography>
+              <Typography variant="caption" sx={{ opacity: 0.9 }}>{[doctor?.specialty, doctor?.crm && `CRM ${doctor.crm}`].filter(Boolean).join(' • ') || 'Portal do Médico'}</Typography>
+            </Box>
+            <IconButton onClick={() => setMenuOpen(true)} sx={{ color: '#fff' }}><MenuIcon /></IconButton>
+          </>
+        )}
       </Box>
 
       <Box sx={{ maxWidth: 920, mx: 'auto', p: { xs: 2, md: 3 }, pb: { xs: 11, md: 4 } }}>
