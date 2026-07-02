@@ -344,6 +344,7 @@ export const LandingPage = () => {
                 '🛡️ Risco + tendência + marcadores a investigar — num relance.',
                 '📝 SOAP rascunho gerado por IA (S/O/A/P) — o médico só revisa e edita.',
                 '💬 Perguntas que o paciente fez no app — leve direto pra consulta.',
+                '🏥 Exportar PES com CID-10 sugerido — copie direto pro prontuário.',
               ].map((t) => (
                 <Stack key={t} direction="row" spacing={1.25} alignItems="flex-start" sx={{ mb: 1.75 }}>
                   <CheckCircleIcon sx={{ fontSize: 20, color: GREEN, mt: 0.1, flexShrink: 0 }} />
