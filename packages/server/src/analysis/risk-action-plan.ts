@@ -30,8 +30,9 @@ export interface ActionResult {
   basedOn: { conditionKey: string; riskLevel: string; findingsCount: number; assessmentId: string; knowledgeUsed: boolean };
 }
 
-/** Gera o plano de ação baseado no último RiskAssessment do paciente. */
-export async function generateActionPlan(patientId: string): Promise<ActionResult> {
+/** Gera o plano de ação baseado no último RiskAssessment do paciente.
+ *  audience='doctor' → plano de CONDUTA CLÍNICA (tom técnico pro médico); 'patient' → educativo leigo. */
+export async function generateActionPlan(patientId: string, audience: 'patient' | 'doctor' = 'patient'): Promise<ActionResult> {
   const last = await prisma.riskAssessment.findFirst({
     where: { patientId },
     orderBy: { createdAt: 'desc' },
@@ -50,19 +51,28 @@ export async function generateActionPlan(patientId: string): Promise<ActionResul
   // RAG: injeta o card de conhecimento clínico curado da condição (deixa a IA mais rica/consistente).
   const kb = knowledgeFor(last.conditionKey);
 
+  const isDoctor = audience === 'doctor';
   const userContent =
-    `Escreva um PLANO DE AÇÃO em português, para o paciente, baseado APENAS nestes achados de risco já calculados pelo sistema.\n\n` +
+    (isDoctor
+      ? `Escreva um PLANO DE CONDUTA CLÍNICA em português, para o MÉDICO (pré-consulta), baseado APENAS nestes achados de risco já calculados pelo sistema. Tom clínico, técnico e objetivo — foque em conduta: investigação complementar, diferenciais, follow-up.\n\n`
+      : `Escreva um PLANO DE AÇÃO em português, para o paciente, baseado APENAS nestes achados de risco já calculados pelo sistema.\n\n`) +
     `CONDIÇÃO: ${last.conditionLabel}\n` +
     `NÍVEL DE RISCO: ${last.riskLevel}\n` +
     `ACHADOS (use só estes como fato — não invente outros):\n${facts}\n\n` +
     (kb ? `BASE DE CONHECIMENTO CLÍNICO (use como referência factual; NÃO invente além do que está aqui):\n${kb}\n\n` : '') +
-    `Monte o plano em Markdown com:\n` +
-    `- 1 parágrafo curto de contexto (o que os achados podem indicar, em linguagem de risco/possível)\n` +
-    `- "O que você pode fazer" (3 a 4 ações práticas de hábito/prevenção, educativas — sem prescrever)\n` +
-    `- "Quando refazer os exames" (sugestão de periodicidade, se aplicável)\n` +
-    `- "Perguntas para levar ao médico" (2 a 4 perguntas objetivas)\n` +
-    `- Feche sempre reforçando que é educativo e não substitui consulta.\n` +
-    `Máx. ~250 palavras. Tom calmo e respeitoso.`;
+    (isDoctor
+      ? `Monte em Markdown CLÍNICO (sem prescrever, sem diagnóstico fechado, máx ~250 palavras):\n` +
+        `- Contexto objetivo (achados + possível significado clínico)\n` +
+        `- Investigação complementar sugerida (exames/diferenciais a considerar)\n` +
+        `- Follow-up (quando reavaliar, sinais de alerta)\n` +
+        `- Observações pra consulta\n`
+      : `Monte o plano em Markdown com:\n` +
+        `- 1 parágrafo curto de contexto (o que os achados podem indicar, em linguagem de risco/possível)\n` +
+        `- "O que você pode fazer" (3 a 4 ações práticas de hábito/prevenção, educativas — sem prescrever)\n` +
+        `- "Quando refazer os exames" (sugestão de periodicidade, se aplicável)\n` +
+        `- "Perguntas para levar ao médico" (2 a 4 perguntas objetivas)\n` +
+        `- Feche sempre reforçando que é educativo e não substitui consulta.\n` +
+        `Máx. ~250 palavras. Tom calmo e respeitoso.`);
 
   const client = getAnthropic();
   const stream = client.messages.stream({

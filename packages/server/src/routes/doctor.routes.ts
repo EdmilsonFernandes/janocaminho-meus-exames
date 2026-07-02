@@ -16,6 +16,9 @@ import { evaluateMfaOnLogin, verifyChallenge, getStatus as mfaStatus, startSetup
 import { requireAuth, AuthedRequest } from '../middleware/auth';
 import { lookupCfm } from '../utils/cfm';
 import { buildCurrentHealthSummary, priorityOfItem, PRIORITY_RANK } from '../analysis/health-state';
+import { latestRiskAssessment, buildRiskAssessment } from '../analysis/risk-service';
+import { generateActionPlan } from '../analysis/risk-action-plan';
+import { generateConsolidatedSummary } from '../analysis/health-summary';
 
 // Especialidades base (espelha o front-end). O dropdown real = base ∪ especialidades que já existem no banco.
 const BASE_SPECIALTIES = [
@@ -404,10 +407,10 @@ router.get('/patients/:patientId/summaries', requireDoctor, async (req: any, res
     const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
     if (!share?.scopes.includes('summary')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     const items = await prisma.aiAnalysis.findMany({
-      where: { patientId: req.params.patientId, type: 'SUMMARY' },
+      where: { patientId: req.params.patientId, type: 'SUMMARY', examId: null }, // só consolidado (ignora por-exame)
       orderBy: { createdAt: 'desc' },
-      take: 10,
-      select: { id: true, contentMd: true, createdAt: true, exam: { select: { title: true, performedAt: true } } },
+      take: 1, // só o + recente (antes take 10 → confundia o médico com vários)
+      select: { id: true, contentMd: true, structured: true, createdAt: true, userMessage: true },
     });
     res.json({ items });
   } catch (e) { next(e); }
@@ -474,6 +477,63 @@ router.delete('/notes/:id', requireDoctor, async (req: any, res, next) => {
     await prisma.doctorNote.delete({ where: { id: note.id } });
     res.json({ ok: true });
   } catch (e) { next(e); }
+});
+
+// === RISCO + PLANO DE AÇÃO + MUDANÇAS (FASE C) + resumo clínico doctor (B3) ===
+// Todas GRÁTIS pro médico (engajamento — não chamam chargeCredits). Reusa a camada de risco do app.
+
+// LEITURA DE RISCO do paciente (C1) — reusa latestRiskAssessment (ou computa se não há).
+router.get('/patients/:patientId/risk', requireDoctor, async (req: any, res, next) => {
+  try {
+    if (!(await requireShare(req.doctorId, req.params.patientId))) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+    void auditLog(req, 'doctor_viewed_risk', String(req.params.patientId));
+    const latest = await latestRiskAssessment(String(req.params.patientId));
+    if (latest) { res.json(latest); return; }
+    const { result, trend, prior } = await buildRiskAssessment(String(req.params.patientId));
+    res.json({ id: null, createdAt: null, result, trend, prior });
+  } catch (e) { next(e); }
+});
+
+// HISTÓRICO DE RISCO (C3) — "Mudanças desde a última visita": série de leituras + condição ao longo do tempo.
+router.get('/patients/:patientId/risk/history', requireDoctor, async (req: any, res, next) => {
+  try {
+    if (!(await requireShare(req.doctorId, req.params.patientId))) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+    const history = await prisma.riskAssessment.findMany({
+      where: { patientId: req.params.patientId },
+      orderBy: { createdAt: 'desc' }, take: 12,
+      select: { id: true, conditionKey: true, conditionLabel: true, riskLevel: true, createdAt: true },
+    });
+    res.json({ history });
+  } catch (e) { next(e); }
+});
+
+// PLANO DE AÇÃO CLÍNICO (C2) — versão MÉDICO (audience='doctor', tom técnico), GRÁTIS.
+router.post('/patients/:patientId/action-plan', requireDoctor, async (req: any, res, next) => {
+  try {
+    if (!(await requireShare(req.doctorId, req.params.patientId))) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+    void auditLog(req, 'doctor_generated_action_plan', String(req.params.patientId));
+    const { contentMd, basedOn } = await generateActionPlan(String(req.params.patientId), 'doctor');
+    res.json({ contentMd, basedOn });
+  } catch (e: any) {
+    if (e?.status === 409) { res.status(409).json({ error: 'no_risk_assessment', message: e.message }); return; }
+    if (!res.headersSent) res.status(500).json({ error: 'Não foi possível gerar o plano agora.' });
+  }
+});
+
+// RESUMO CLÍNICO (B3) — gera versão MÉDICO (audience='doctor', tom técnico), GRÁTIS.
+// Marca com userMessage='audience:doctor' pra diferenciar do resumo leigo do paciente (mesma tabela).
+router.post('/patients/:patientId/summary/generate', requireDoctor, async (req: any, res, next) => {
+  try {
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    if (!share?.scopes.includes('summary')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+    void auditLog(req, 'doctor_generated_summary', String(req.params.patientId));
+    const { summary, contentMd, modelUsed, usage } = await generateConsolidatedSummary(String(req.params.patientId), 'doctor');
+    const existing = await prisma.aiAnalysis.findFirst({ where: { patientId: req.params.patientId, type: 'SUMMARY', examId: null, userMessage: 'audience:doctor' }, orderBy: { createdAt: 'desc' } });
+    const analysis = existing
+      ? await prisma.aiAnalysis.update({ where: { id: existing.id }, data: { contentMd, structured: summary as any, modelUsed, tokenUsage: usage as any, createdAt: new Date() }, select: { id: true, createdAt: true } })
+      : await prisma.aiAnalysis.create({ data: { patientId: req.params.patientId, type: 'SUMMARY', examId: null, userMessage: 'audience:doctor', contentMd, structured: summary as any, modelUsed, tokenUsage: usage as any }, select: { id: true, createdAt: true } });
+    res.status(201).json({ id: analysis.id, createdAt: analysis.createdAt, contentMd });
+  } catch (e: any) { if (!res.headersSent) res.status(500).json({ error: 'Não foi possível gerar o resumo agora.' }); }
 });
 
 export default router;

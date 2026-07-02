@@ -508,12 +508,16 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               </Box>
             </Stack>
 
-            <Card sx={{ mb: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider', borderLeft: '4px solid #20b2aa' }}><CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#178f89' }}>🩺 PERFIL CLÍNICO{selected.patient?.clinicalProfile ? '' : ' — não cadastrado'}</Typography>
-              {selected.patient?.clinicalProfile
-                ? <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', mt: 0.25 }}>{selected.patient.clinicalProfile}</Typography>
-                : <Typography variant="body2" sx={{ mt: 0.25, color: 'text.secondary', fontStyle: 'italic' }}>Paciente ainda não informou condições, medicações ou alergias.</Typography>}
-            </CardContent></Card>
+            <Accordion defaultExpanded={false} sx={{ mb: 2, borderRadius: '12px !important', border: '1px solid', borderColor: 'divider', borderLeft: '4px solid #20b2aa', '&:before': { display: 'none' }, overflow: 'hidden' }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '44px !important', '& .MuiAccordionSummary-content': { my: 0.5 } }}>
+                <Typography variant="caption" sx={{ fontWeight: 800, color: '#178f89' }}>🩺 PERFIL CLÍNICO{selected.patient?.clinicalProfile ? '' : ' — não cadastrado'} <Box component="span" sx={{ color: 'text.secondary', fontWeight: 500 }}>(toque p/ expandir)</Box></Typography>
+              </AccordionSummary>
+              <AccordionDetails sx={{ pt: 0.5 }}>
+                {selected.patient?.clinicalProfile
+                  ? <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{selected.patient.clinicalProfile}</Typography>
+                  : <Typography variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>Paciente ainda não informou condições, medicações ou alergias.</Typography>}
+              </AccordionDetails>
+            </Accordion>
 
             {/* HERO "resumo de 10 segundos" — neutro + semântica CLÍNICA (vermelho=alerta, verde=ok). Não mais 'tudo verde'. */}
             {!selExam && (
@@ -649,18 +653,18 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
 
                 {!detailLoading && tab === 'summary' && (
                   <Stack spacing={1.5}>
-                    {summaries.length === 0 && <Empty label="O paciente ainda não gerou resumos de IA." icon="🤖" />}
-                    {summaries.map((s) => (
-                      <Card key={s.id} variant="outlined" sx={{ borderRadius: 3, borderColor: 'divider' }}><CardContent>
+                    {summaries.length === 0 && <Empty label="Sem resumo clínico gerado ainda." icon="🤖" />}
+                    {summaries[0] && (
+                      <Card key={summaries[0].id} variant="outlined" sx={{ borderRadius: 3, borderColor: 'divider' }}><CardContent>
                         <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1 }}>
-                          <Typography sx={{ fontWeight: 700, color: 'text.primary' }}>🤖 {s.exam?.title || 'Resumo de IA'}</Typography>
-                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>{new Date(s.createdAt).toLocaleDateString('pt-BR')}</Typography>
+                          <Typography sx={{ fontWeight: 700, color: 'text.primary' }}>🤖 Resumo clínico (mais recente){summaries[0].userMessage === 'audience:doctor' ? ' · versão médico' : ''}</Typography>
+                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>{new Date(summaries[0].createdAt).toLocaleDateString('pt-BR')}</Typography>
                         </Stack>
                         <Box sx={{ '& p': { margin: '0.3em 0', fontSize: 14 }, '& h3': { fontSize: '0.95rem', fontWeight: 800, color: TEAL }, '& ul,& ol': { margin: '0.3em 0', paddingLeft: '1.2em' }, '& strong': { fontWeight: 700 } }}>
-                          <ReactMarkdown>{s.contentMd}</ReactMarkdown>
+                          <ReactMarkdown>{summaries[0].contentMd}</ReactMarkdown>
                         </Box>
                       </CardContent></Card>
-                    ))}
+                    )}
                   </Stack>
                 )}
 

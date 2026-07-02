@@ -71,6 +71,10 @@ export const RiskCard = () => {
   const [feedback, setFeedback] = useState<null | 1 | 0>(null);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
 
+  // Reset estados derivados do paciente anterior ao trocar de perfil — não vazar
+  // plano/feedback de um dependente (ex: Edmilson) pra outro (ex: Heloisa).
+  useEffect(() => { setPlan(null); setPlanErr(null); setFeedback(null); setShowQuestions(false); }, [pid]);
+
   const load = useCallback((force = false) => {
     if (!pid) { setLoading(false); setR(null); return; }
     setLoading(true);
