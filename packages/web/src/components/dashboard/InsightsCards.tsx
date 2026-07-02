@@ -12,6 +12,16 @@ const LEVEL_META: Record<string, { emoji: string; color: string; label: string }
   bronze: { emoji: '🥉', color: '#b45309', label: 'Bronze' },
 };
 
+// Tradução das chaves do breakdown (vêm do servidor em inglês) pra exibição pt-BR.
+const BREAKDOWN_LABEL: Record<string, string> = {
+  exams: 'Exames',
+  measurements: 'Medições',
+  feedback: 'Avaliações',
+  consent: 'Consentimento',
+  engagement: 'Engajamento',
+  freshness: 'Atualização',
+};
+
 /** Score de Adesão + Alertas Preditivos — gamificação + projeção de tendência (determinístico, grátis). */
 export const InsightsCards = () => {
   const [pid] = useSelectedPatient();
@@ -55,7 +65,7 @@ export const InsightsCards = () => {
             <Box sx={{ flex: 1 }}>
               {Object.entries(a.breakdown).map(([k, v]: [string, any]) => (
                 <Stack key={k} direction="row" spacing={1} alignItems="center" sx={{ mb: 0.3 }}>
-                  <Typography variant="caption" sx={{ width: 80, color: 'text.secondary', textTransform: 'capitalize' }}>{k}</Typography>
+                  <Typography variant="caption" sx={{ width: 92, color: 'text.secondary' }}>{BREAKDOWN_LABEL[k] ?? k}</Typography>
                   <Box sx={{ flex: 1, maxWidth: 80 }}><LinearProgress variant="determinate" value={(v / (k === 'exams' ? 30 : k === 'measurements' ? 20 : k === 'feedback' || k === 'engagement' ? 15 : 10)) * 100} sx={{ height: 6, borderRadius: 3, bgcolor: 'action.hover', '& .MuiLinearProgress-bar': { bgcolor: meta.color } }} /></Box>
                   <Typography variant="caption" sx={{ fontWeight: 700, minWidth: 20 }}>{v}</Typography>
                 </Stack>

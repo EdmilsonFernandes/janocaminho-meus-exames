@@ -27,7 +27,7 @@ const ACTION_PLAN_COST = 8;
  */
 type RiskLevel = 'low' | 'moderate' | 'high';
 interface Finding {
-  key: string; name_pt: string; value: number; unit: string;
+  key: string; namePt: string; value: number; unit: string;
   severity: 'low' | 'moderate' | 'high'; condition: string; finding: string;
 }
 interface RiskResult {
@@ -60,8 +60,9 @@ const TREND_CHIP: Record<string, { emoji: string; color: string; label: string }
 };
 
 // Abrevia o nome do marcador pra caber num chip horizontal compacto (ex.: "Colesterol total" -> "Cole").
-const shortName = (name: string) => {
-  const first = name.trim().split(/\s+/)[0] ?? name;
+// Defensivo: o servidor pode enviar finding sem namePt — nunca crashar o card por isso.
+const shortName = (name?: string) => {
+  const first = ((name ?? '').trim().split(/\s+/)[0]) ?? '';
   return first.length > 4 ? first.slice(0, 4) : first;
 };
 
@@ -237,10 +238,10 @@ export const RiskCard = () => {
         {r.findings.length > 0 && (
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, mb: showDetails ? 1 : 1.25 }}>
             {r.findings.map((f, i) => {
-              const pm = PRIORITY_META[SEV_TO_PRIO[f.severity]];
+              const pm = PRIORITY_META[SEV_TO_PRIO[f.severity]] ?? PRIORITY_META.leve;
               return (
-                <Box key={i} component="span" title={`${f.name_pt} · ${f.value} ${f.unit} · ${f.finding}`} sx={{ display: 'inline-flex' }}>
-                  <Chip size="small" label={`${pm.emoji} ${f.value} ${shortName(f.name_pt)}`}
+                <Box key={i} component="span" title={`${f.namePt ?? '—'} · ${f.value} ${f.unit ?? ''} · ${f.finding ?? ''}`} sx={{ display: 'inline-flex' }}>
+                  <Chip size="small" label={`${pm.emoji} ${f.value} ${shortName(f.namePt)}`}
                     sx={{ fontWeight: 700, height: 24, bgcolor: pm.color + '22', color: pm.color }} />
                 </Box>
               );
@@ -256,12 +257,12 @@ export const RiskCard = () => {
         {showDetails && r.findings.length > 0 && (
           <Stack spacing={0.75} sx={{ mb: 1.25 }}>
             {r.findings.map((f, i) => {
-              const pm = PRIORITY_META[SEV_TO_PRIO[f.severity]];
+              const pm = PRIORITY_META[SEV_TO_PRIO[f.severity]] ?? PRIORITY_META.leve;
               return (
                 <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, py: 0.4, borderBottom: i < r.findings.length - 1 ? '1px dashed' : 'none', borderColor: 'divider' }}>
-                  <Chip size="small" label={`${pm.emoji} ${f.value} ${f.unit}`} sx={{ fontWeight: 700, height: 20, flexShrink: 0, bgcolor: pm.color + '22', color: pm.color }} />
+                  <Chip size="small" label={`${pm.emoji} ${f.value} ${f.unit ?? ''}`} sx={{ fontWeight: 700, height: 20, flexShrink: 0, bgcolor: pm.color + '22', color: pm.color }} />
                   <Box sx={{ minWidth: 0 }}>
-                    <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', lineHeight: 1.2 }}>{f.name_pt}</Typography>
+                    <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', lineHeight: 1.2 }}>{f.namePt ?? f.finding}</Typography>
                     <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1.3, display: 'block' }}>{f.finding}</Typography>
                   </Box>
                 </Box>
