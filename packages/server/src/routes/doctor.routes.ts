@@ -82,20 +82,67 @@ router.get('/me/plan', requireDoctor, async (req: any, res) => {
   res.json({ isPremium: !!isPremium, plan: doc?.plan ?? 'free', planExpiresAt: doc?.planExpiresAt, freeUsed, freeLimit: FREE_TIER_LIMIT });
 });
 
-// Checkout MP (R$29,90/mês)
+// Checkout MP (R$29,90/mês) — PIX QR inline OU cartão/débito (popup no app, não redirect).
 router.post('/subscription/checkout', requireDoctor, async (req: any, res) => {
   try {
-    const preference = {
-      items: [{ title: 'Dr. Exame Pro — Mensal', unit_price: 29.90, quantity: 1, currency_id: 'BRL' }],
-      back_urls: { success: `${config.webOrigin}${config.webBasePath}/doctor?paid=1`, failure: `${config.webOrigin}${config.webBasePath}/doctor`, pending: `${config.webOrigin}${config.webBasePath}/doctor` },
-      auto_return: 'approved' as const, external_reference: `doctor_sub_${req.doctorId}`,
-      notification_url: `${config.webOrigin}${config.webBasePath}/api/billing/webhook`,
-    };
-    const r = await fetch('https://api.mercadopago.com/checkout/preferences', { method: 'POST', headers: { Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`, 'Content-Type': 'application/json' }, body: JSON.stringify(preference) });
-    const data: any = await r.json();
-    if (data.init_point) res.json({ url: data.init_point });
-    else res.status(500).json({ error: 'Falha ao criar checkout.', detail: data.message });
+    const mpToken = config.mpAccessToken;
+    if (!mpToken) { res.status(503).json({ error: 'Pagamentos não configurados.' }); return; }
+    const method = String(req.body?.method ?? 'pix').toLowerCase(); // pix | card | debit
+    const externalRef = `doctor_sub_${req.doctorId}`;
+    const origin = config.webOrigin || '';
+    const base = (config.webBasePath ?? '').replace(/\/$/, '');
+
+    if (method === 'pix') {
+      // PIX — QR code inline (igual buy-credits do paciente)
+      const r = await fetch(`${config.mpApiBaseUrl}/v1/payments`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${mpToken}`, 'Content-Type': 'application/json', 'X-Idempotency-Key': crypto.randomUUID() },
+        body: JSON.stringify({
+          transaction_amount: 29.90, description: 'Dr. Exame Pro — Mensal', payment_method_id: 'pix',
+          payer: { email: 'doctor@dreamexame.app' },
+          external_reference: externalRef,
+          date_of_expiration: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+          notification_url: `${origin}${base}/api/billing/webhook`,
+          statement_descriptor: 'DR EXAME PRO',
+        }),
+      });
+      const pay: any = await r.json();
+      if (!r.ok) { res.status(502).json({ error: 'Falha ao gerar PIX.', detail: pay.message }); return; }
+      const td = pay?.point_of_interaction?.transaction_data;
+      const rawB64 = td?.qr_code_base64 ?? '';
+      res.json({
+        method: 'pix', paymentId: String(pay.id),
+        qrCode: td?.qr_code ?? '', qrBase64: rawB64 ? (rawB64.startsWith('data:') ? rawB64 : `data:image/png;base64,${rawB64}`) : '',
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+      });
+    } else {
+      // CARTÃO / DÉBITO — Checkout Pro (popup redirect)
+      const r = await fetch(`${config.mpApiBaseUrl}/checkout/preferences`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${mpToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: [{ title: 'Dr. Exame Pro — Mensal', unit_price: 29.90, quantity: 1, currency_id: 'BRL' }],
+          back_urls: { success: `${origin}${base}/doctor?paid=1`, failure: `${origin}${base}/doctor`, pending: `${origin}${base}/doctor` },
+          auto_return: 'approved' as const, external_reference: externalRef,
+          notification_url: `${origin}${base}/api/billing/webhook`,
+          statement_descriptor: 'DR EXAME PRO',
+        }),
+      });
+      const pref: any = await r.json();
+      if (pref.init_point) res.json({ method: 'card', url: pref.init_point });
+      else res.status(500).json({ error: 'Falha ao criar checkout.' });
+    }
   } catch { res.status(500).json({ error: 'Falha ao criar checkout.' }); }
+});
+
+// Status de um pagamento PIX doctor (polling do frontend enquanto mostra o QR)
+router.get('/subscription/payment-status/:id', requireDoctor, async (req: any, res) => {
+  try {
+    const r = await fetch(`${config.mpApiBaseUrl}/v1/payments/${req.params.id}`, { headers: { Authorization: `Bearer ${config.mpAccessToken}` } });
+    if (!r.ok) { res.status(502).json({ error: 'falha' }); return; }
+    const pay: any = await r.json();
+    res.json({ status: pay.status, approved: pay.status === 'approved' });
+  } catch { res.status(500).json({ error: 'falha' }); }
 });
 
 // === BUSCA de médico por CRM+UF (auth PACIENTE) ===
@@ -578,7 +625,7 @@ router.post('/patients/:patientId/summary/generate', requireDoctor, async (req: 
 });
 
 // PRÉ-CONSULTA (brief automático de 1 página) — top mudanças + risco + investigar + perguntas. Grátis, determinístico.
-router.get('/patients/:patientId/pre-visit', requireDoctor, checkPremiumFeature, async (req: any, res, next) => {
+router.get('/patients/:patientId/pre-visit', requireDoctor, async (req: any, res, next) => {
   try {
     if (!(await requireShare(req.doctorId, req.params.patientId))) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     void auditLog(req, 'doctor_pre_visit', String(req.params.patientId));

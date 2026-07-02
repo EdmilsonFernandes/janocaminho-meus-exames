@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { Box, Card, CardContent, Typography, TextField, Button, CircularProgress, Stack, Chip, Grid, Avatar, MenuItem, Alert, Divider, InputAdornment, IconButton, Link, Drawer, List, ListItemButton, ListItemText, ListItemIcon, Accordion, AccordionSummary, AccordionDetails, Badge, InputBase, Paper, useMediaQuery, useTheme } from '@mui/material';
+import { Box, Card, CardContent, Typography, TextField, Button, CircularProgress, Stack, Chip, Grid, Avatar, MenuItem, Alert, Divider, InputAdornment, IconButton, Link, Drawer, List, ListItemButton, ListItemText, ListItemIcon, Accordion, AccordionSummary, AccordionDetails, Badge, InputBase, Paper, useMediaQuery, useTheme, Dialog, DialogTitle, DialogContent } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import LogoutIcon from '@mui/icons-material/Logout';
 import LockIcon from '@mui/icons-material/Lock';
@@ -217,6 +217,10 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const [soap, setSoap] = useState<string | null>(null);
   const [soapLoading, setSoapLoading] = useState(false);
   const [planInfo, setPlanInfo] = useState<any>(null);
+  const [payOpen, setPayOpen] = useState(false);
+  const [payData, setPayData] = useState<any>(null);
+  const [payLoading, setPayLoading] = useState(false);
+  const [payMethod, setPayMethod] = useState<'pix' | 'card'>('pix');
   const [patQuery, setPatQuery] = useState('');
   const [patAlertOnly, setPatAlertOnly] = useState(false);
   const h = { Authorization: `Bearer ${token}` };
@@ -334,10 +338,28 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     catch {}
     finally { setSoapLoading(false); }
   };
-  // Checkout MP (Dr. Exame Pro R$29,90/mês)
-  const checkout = async () => {
-    try { const r = await fetch(`${API_URL}/doctor/subscription/checkout`, { method: 'POST', headers: h }); const d = await r.json(); if (d.url) window.location.href = d.url; }
-    catch {}
+  // Checkout MP (Dr. Exame Pro R$29,90/mês) — PIX QR inline OU cartão redirect
+  const startCheckout = async (method: 'pix' | 'card') => {
+    setPayLoading(true);
+    setPayMethod(method);
+    try {
+      const r = await fetch(`${API_URL}/doctor/subscription/checkout`, { method: 'POST', headers: { ...h, 'Content-Type': 'application/json' }, body: JSON.stringify({ method }) });
+      const d = await r.json();
+      if (method === 'card' && d.url) { window.location.href = d.url; return; }
+      if (method === 'pix' && d.qrCode) { setPayData(d); setPayOpen(true); pollPayment(d.paymentId); return; }
+    } catch {}
+    setPayLoading(false);
+  };
+  const pollPayment = (paymentId: string) => {
+    let tries = 0;
+    const iv = setInterval(async () => {
+      if (++tries > 60 || !payOpen) { clearInterval(iv); return; }
+      try {
+        const r = await fetch(`${API_URL}/doctor/subscription/payment-status/${paymentId}`, { headers: h });
+        const d = await r.json();
+        if (d.approved) { clearInterval(iv); setPayOpen(false); setPayData(null); window.location.reload(); }
+      } catch {}
+    }, 5000);
   };
 
   // Abre o detalhe de um exame (todos os itens) — busca via endpoint scoped
@@ -467,7 +489,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
             <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" useFlexGap>
               <Typography sx={{ fontWeight: 800, color: '#6366f1', fontSize: 16 }}>💎 Dr. Exame Pro</Typography>
               <Typography variant="body2" sx={{ color: 'text.secondary', flex: 1, minWidth: 180 }}>{planInfo.freeUsed >= planInfo.freeLimit ? '🔒 Pré-consultas grátis esgotadas este mês.' : `💡 ${planInfo.freeUsed} de ${planInfo.freeLimit} pré-consultas grátis usadas.`}</Typography>
-              <Button size="small" variant="contained" onClick={checkout} sx={{ bgcolor: '#6366f1', textTransform: 'none', borderRadius: 99, fontWeight: 700, '&:hover': { bgcolor: '#4f46e5' } }}>Assinar R$29,90/mês</Button>
+              <Button size="small" variant="contained" onClick={() => startCheckout('pix')} disabled={payLoading} sx={{ bgcolor: '#6366f1', textTransform: 'none', borderRadius: 99, fontWeight: 700, '&:hover': { bgcolor: '#4f46e5' } }}>{payLoading ? 'Gerando...' : 'Assinar R$29,90/mês'}</Button>
             </Stack>
           </Box>
         )}
@@ -591,6 +613,51 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               </AccordionDetails>
             </Accordion>
 
+            {/* PRÉ-CONSULTA — Accordion colapsável (acima das tabs, não dentro de nenhuma aba) */}
+            {preVisit && (
+              <Accordion defaultExpanded sx={{ mb: 2, borderRadius: '12px !important', border: `2px solid ${TEAL}`, '&:before': { display: 'none' }, overflow: 'hidden' }}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '44px !important', '& .MuiAccordionSummary-content': { my: 0.5 } }}>
+                  <Typography sx={{ fontWeight: 800, color: TEAL, fontSize: 14 }}>🩺 PRÉ-CONSULTA{preVisit.lastVisit ? ` · desde ${new Date(preVisit.lastVisit).toLocaleDateString('pt-BR')}` : ''}</Typography>
+                </AccordionSummary>
+                <AccordionDetails sx={{ pt: 0.5 }}>
+                  {preVisit.topIssues?.length > 0 && (
+                    <Box sx={{ mb: 1.5 }}>
+                      <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>⚠️ TOP 3 PRA HOJE</Typography>
+                      <Stack spacing={0.5} sx={{ mt: 0.5 }}>
+                        {preVisit.topIssues.map((issue: any, i: number) => (
+                          <Stack key={i} direction="row" spacing={0.75} alignItems="center" sx={{ flexWrap: 'wrap', rowGap: 0.5 }}>
+                            <Chip size="small" label={i + 1} sx={{ height: 20, width: 20, bgcolor: issue.priority === 'importante' ? '#dc262622' : issue.priority === 'moderada' ? '#ea580c22' : '#ca8a0422', color: issue.priority === 'importante' ? '#dc2626' : issue.priority === 'moderada' ? '#ea580c' : '#ca8a04', fontWeight: 800, fontSize: 11 }} />
+                            <Typography variant="body2" sx={{ fontWeight: 600 }}>{issue.name}</Typography>
+                            {issue.delta != null && <Chip size="small" label={`${issue.delta > 0 ? '↑' : '↓'} ${Math.abs(Math.round(issue.delta))}%`} sx={{ height: 20, fontSize: 11, bgcolor: issue.delta > 0 ? '#fef3c7' : '#dbeafe', color: issue.delta > 0 ? '#92400e' : '#1e40af', fontWeight: 700 }} />}
+                          </Stack>
+                        ))}
+                      </Stack>
+                    </Box>
+                  )}
+                  <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap" sx={{ mb: 1 }}>
+                    {preVisit.risk && <Typography variant="body2"><b>Risco:</b> {preVisit.risk.conditionLabel} ({preVisit.risk.riskLevel}){preVisit.risk.trend && preVisit.risk.trend !== 'primeiro' ? ` · ${preVisit.risk.trend === 'melhorou' ? '↓ caiu' : preVisit.risk.trend === 'piorou' ? '↑ subiu' : '→ estável'}` : ''}</Typography>}
+                    <Typography variant="body2"><b>Score:</b> {preVisit.score ?? '—'}/100 ({preVisit.markers ?? 0} marc.)</Typography>
+                  </Stack>
+                  {preVisit.investigate?.length > 0 && (
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>🔬 INVESTIGAR</Typography>
+                      <Stack spacing={0.25} sx={{ mt: 0.25 }}>
+                        {preVisit.investigate.map((inv: any, i: number) => <Typography key={i} variant="body2" sx={{ color: 'text.secondary' }}>• {inv.name} {inv.lastMeasured ? `(último: ${new Date(inv.lastMeasured).toLocaleDateString('pt-BR')})` : ''}</Typography>)}
+                      </Stack>
+                    </Box>
+                  )}
+                  {preVisit.patientQuestions?.length > 0 && (
+                    <Box>
+                      <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>💬 PACIENTE PERGUNTOU</Typography>
+                      <Stack spacing={0.25} sx={{ mt: 0.25 }}>
+                        {preVisit.patientQuestions.slice(0, 3).map((q: string, i: number) => <Typography key={i} variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>"{q}"</Typography>)}
+                      </Stack>
+                    </Box>
+                  )}
+                </AccordionDetails>
+              </Accordion>
+            )}
+
             {/* HERO "resumo de 10 segundos" — neutro + semântica CLÍNICA (vermelho=alerta, verde=ok). Não mais 'tudo verde'. */}
             {!selExam && (
               <Card sx={{ mb: 2, borderRadius: 4, border: '1px solid', borderColor: allAlerts.length ? 'rgba(239,68,68,.3)' : 'rgba(16,185,129,.3)', borderLeft: `5px solid ${allAlerts.length ? '#ef4444' : '#10b981'}`, overflow: 'hidden' }}>
@@ -651,47 +718,6 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 </Stack>
 
                 {detailLoading && <Box sx={{ textAlign: 'center', py: 4 }}><CircularProgress size={28} sx={{ color: TEAL }} /></Box>}
-
-                {/* PRÉ-CONSULTA (brief automático de 1 página) — top 3 + risco + investigar + perguntas + score */}
-                {preVisit && (
-                  <Card variant="outlined" sx={{ borderRadius: 3, border: `2px solid ${TEAL}`, mb: 0.5 }}><CardContent>
-                    <Typography sx={{ fontWeight: 800, color: TEAL, mb: 1.5, fontSize: 16 }}>🩺 PRÉ-CONSULTA {preVisit.lastVisit ? `· desde ${new Date(preVisit.lastVisit).toLocaleDateString('pt-BR')}` : ''}</Typography>
-                    {preVisit.topIssues?.length > 0 && (
-                      <Box sx={{ mb: 1.5 }}>
-                        <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>⚠️ TOP 3 PRA HOJE</Typography>
-                        <Stack spacing={0.5} sx={{ mt: 0.5 }}>
-                          {preVisit.topIssues.map((issue: any, i: number) => (
-                            <Stack key={i} direction="row" spacing={0.75} alignItems="center" sx={{ flexWrap: 'wrap', rowGap: 0.5 }}>
-                              <Chip size="small" label={i + 1} sx={{ height: 20, width: 20, bgcolor: issue.priority === 'importante' ? '#dc262622' : issue.priority === 'moderada' ? '#ea580c22' : '#ca8a0422', color: issue.priority === 'importante' ? '#dc2626' : issue.priority === 'moderada' ? '#ea580c' : '#ca8a04', fontWeight: 800, fontSize: 11 }} />
-                              <Typography variant="body2" sx={{ fontWeight: 600 }}>{issue.name}</Typography>
-                              {issue.delta != null && <Chip size="small" label={`${issue.delta > 0 ? '↑' : '↓'} ${Math.abs(Math.round(issue.delta))}%`} sx={{ height: 20, fontSize: 11, bgcolor: issue.delta > 0 ? '#fef3c7' : '#dbeafe', color: issue.delta > 0 ? '#92400e' : '#1e40af', fontWeight: 700 }} />}
-                            </Stack>
-                          ))}
-                        </Stack>
-                      </Box>
-                    )}
-                    <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap" sx={{ mb: 1 }}>
-                      {preVisit.risk && <Typography variant="body2"><b>Risco:</b> {preVisit.risk.conditionLabel} ({preVisit.risk.riskLevel}){preVisit.risk.trend && preVisit.risk.trend !== 'primeiro' ? ` · ${preVisit.risk.trend === 'melhorou' ? '↓ caiu' : preVisit.risk.trend === 'piorou' ? '↑ subiu' : '→ estável'}` : ''}</Typography>}
-                      <Typography variant="body2"><b>Score:</b> {preVisit.score ?? '—'}/100 ({preVisit.markers ?? 0} marc.)</Typography>
-                    </Stack>
-                    {preVisit.investigate?.length > 0 && (
-                      <Box sx={{ mb: 1 }}>
-                        <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>🔬 INVESTIGAR</Typography>
-                        <Stack spacing={0.25} sx={{ mt: 0.25 }}>
-                          {preVisit.investigate.map((inv: any, i: number) => <Typography key={i} variant="body2" sx={{ color: 'text.secondary' }}>• {inv.name} {inv.lastMeasured ? `(último: ${new Date(inv.lastMeasured).toLocaleDateString('pt-BR')})` : ''}</Typography>)}
-                        </Stack>
-                      </Box>
-                    )}
-                    {preVisit.patientQuestions?.length > 0 && (
-                      <Box>
-                        <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>💬 PACIENTE PERGUNTOU</Typography>
-                        <Stack spacing={0.25} sx={{ mt: 0.25 }}>
-                          {preVisit.patientQuestions.slice(0, 3).map((q: string, i: number) => <Typography key={i} variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>"{q}"</Typography>)}
-                        </Stack>
-                      </Box>
-                    )}
-                  </CardContent></Card>
-                )}
 
                 {/* RISCO (C1+C2+C3) — leitura de risco + mudanças ao longo do tempo + plano de ação clínico (versão médico, grátis) */}
                 {!detailLoading && tab === 'risk' && (
@@ -868,6 +894,30 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           {renderSideMenu(() => setMenuOpen(false))}
         </Drawer>
       )}
+
+      {/* DIALOG DE PAGAMENTO — PIX QR inline + opção cartão */}
+      <Dialog open={payOpen} onClose={() => { setPayOpen(false); setPayData(null); }} PaperProps={{ sx: { borderRadius: 3, maxWidth: 380 } }}>
+        <DialogTitle sx={{ fontWeight: 800, textAlign: 'center', pb: 1 }}>💎 Dr. Exame Pro — R$29,90/mês</DialogTitle>
+        <DialogContent>
+          {payData?.qrBase64 ? (
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography variant="body2" sx={{ mb: 1.5, color: 'text.secondary' }}>Escaneie o QR Code com o app do seu banco:</Typography>
+              <Box component="img" src={payData.qrBase64} alt="PIX QR Code" sx={{ width: 220, height: 220, borderRadius: 2, border: '1px solid', borderColor: 'divider' }} />
+              <Typography variant="caption" sx={{ display: 'block', mt: 1.5, color: 'text.secondary' }}>⏳ Aguardando pagamento... Esta janela fecha sozinha ao confirmar.</Typography>
+              <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: 'text.secondary', wordBreak: 'break-all', fontSize: 10 }}>PIX Copia e Cola: {payData.qrCode?.slice(0, 40)}...</Typography>
+              <Button fullWidth size="small" onClick={() => { if (payData.qrCode) navigator.clipboard.writeText(payData.qrCode); }} sx={{ mt: 1, textTransform: 'none', borderRadius: 99 }}>📋 Copiar código PIX</Button>
+              <Divider sx={{ my: 1.5 }} />
+              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 1 }}>Prefere pagar com cartão?</Typography>
+              <Button fullWidth size="small" variant="outlined" onClick={() => startCheckout('card')} sx={{ textTransform: 'none', borderRadius: 99, fontWeight: 700 }}>💳 Cartão / Débito</Button>
+            </Box>
+          ) : (
+            <Box sx={{ textAlign: 'center', py: 3 }}>
+              <CircularProgress size={28} sx={{ color: '#6366f1' }} />
+              <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>Gerando pagamento...</Typography>
+            </Box>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* MENU RODAPÉ (igual app do paciente) — Pacientes · Perfil · Mais */}
       <Box component="nav" sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1100, display: { xs: 'flex', sm: 'none' }, justifyContent: 'space-around', bgcolor: 'background.paper', backdropFilter: 'blur(14px)', borderTop: '1px solid', borderTopColor: 'divider', pb: 'env(safe-area-inset-bottom)', boxShadow: '0 -6px 24px rgba(32,178,170,.10)' }}>
