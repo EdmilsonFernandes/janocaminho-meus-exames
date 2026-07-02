@@ -16,6 +16,7 @@ import { prisma } from '../prisma';
 import { chargeCredits, CREDIT_COSTS } from '../utils/credits';
 import { buildRiskAssessment, latestRiskAssessment } from '../analysis/risk-service';
 import { generateActionPlan } from '../analysis/risk-action-plan';
+import { computeAdherenceScore, computePredictions } from '../analysis/insights';
 
 const router = Router();
 router.use(requireAuth);
@@ -47,6 +48,26 @@ router.get('/latest', async (req: AuthedRequest, res, next) => {
     }
     const assessment = await latestRiskAssessment(patientId);
     res.json({ assessment });
+  } catch (e) { next(e); }
+});
+
+// SCORE DE ADESÃO (gamificação) — determinístico, grátis
+router.get('/adherence', async (req: AuthedRequest, res, next) => {
+  try {
+    const pids = await userPatientIds(req.userId!);
+    const patientId = String(req.query.patientId ?? '');
+    if (!patientId || !pids.includes(patientId)) { res.status(403).json({ error: 'Paciente inválido' }); return; }
+    res.json(await computeAdherenceScore(patientId));
+  } catch (e) { next(e); }
+});
+
+// ALERTA PREDITIVO (projeção de tendência) — determinístico, grátis
+router.get('/predictions', async (req: AuthedRequest, res, next) => {
+  try {
+    const pids = await userPatientIds(req.userId!);
+    const patientId = String(req.query.patientId ?? '');
+    if (!patientId || !pids.includes(patientId)) { res.status(403).json({ error: 'Paciente inválido' }); return; }
+    res.json({ predictions: await computePredictions(patientId) });
   } catch (e) { next(e); }
 });
 
