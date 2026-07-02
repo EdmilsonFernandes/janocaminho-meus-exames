@@ -230,6 +230,14 @@ router.post('/webhook', async (req, res) => {
       if (r.ok) {
         const pay: any = await r.json();
         if (pay.status === 'approved' && pay.external_reference) {
+          // DR. EXAME PRO (médico premium) — external_reference: doctor_sub_<doctorId>
+          if (String(pay.external_reference).startsWith('doctor_sub_')) {
+            const doctorId = String(pay.external_reference).replace('doctor_sub_', '');
+            const expires = new Date(Date.now() + 30 * 86400000);
+            await prisma.doctor.update({ where: { id: doctorId }, data: { plan: 'premium', planExpiresAt: expires } }).catch(() => {});
+            console.log(`[billing] Dr. Exame Pro ativado — doctor ${doctorId}, +30d`);
+            res.status(200).json({ ok: true }); return;
+          }
           const [subId, creditsStr] = String(pay.external_reference).split('|');
           const sub = await prisma.subscription.findUnique({ where: { id: subId } });
           if (sub && sub.status !== 'APPROVED') {

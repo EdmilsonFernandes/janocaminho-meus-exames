@@ -88,6 +88,7 @@ router.post('/subscription/checkout', requireDoctor, async (req: any, res) => {
       items: [{ title: 'Dr. Exame Pro — Mensal', unit_price: 29.90, quantity: 1, currency_id: 'BRL' }],
       back_urls: { success: `${config.webOrigin}${config.webBasePath}/doctor?paid=1`, failure: `${config.webOrigin}${config.webBasePath}/doctor`, pending: `${config.webOrigin}${config.webBasePath}/doctor` },
       auto_return: 'approved' as const, external_reference: `doctor_sub_${req.doctorId}`,
+      notification_url: `${config.webOrigin}${config.webBasePath}/api/billing/webhook`,
     };
     const r = await fetch('https://api.mercadopago.com/checkout/preferences', { method: 'POST', headers: { Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`, 'Content-Type': 'application/json' }, body: JSON.stringify(preference) });
     const data: any = await r.json();
