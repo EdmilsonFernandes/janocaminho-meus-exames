@@ -95,6 +95,14 @@ vi.mock('../src/analysis/risk-action-plan', () => ({
   }),
 }));
 
+// SOAP médico (GLM): canned.
+vi.mock('../src/analysis/doctor-soap', () => ({
+  generateSoap: vi.fn().mockResolvedValue({
+    contentMd: '## S (Subjetivo)\nPaciente de teste.\n## O (Objetivo)\nGlicemia 168 mg/dL.\n## A (Avaliacao)\nRisco metabolico.\n## P (Plano)\nRepetir exame.',
+    modelUsed: 'glm-4.6',
+  }),
+}));
+
 // Memória do agente (ler/gravar .md) — no-op; patientSlug repassado.
 vi.mock('../src/analysis/agent-memory', () => ({
   readPatientMemory: vi.fn().mockReturnValue(''),
