@@ -212,6 +212,9 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const [riskHistory, setRiskHistory] = useState<any[]>([]);
   const [clinicalPlan, setClinicalPlan] = useState<string | null>(null);
   const [planLoading, setPlanLoading] = useState(false);
+  const [preVisit, setPreVisit] = useState<any>(null);
+  const [soap, setSoap] = useState<string | null>(null);
+  const [soapLoading, setSoapLoading] = useState(false);
   const [patQuery, setPatQuery] = useState('');
   const [patAlertOnly, setPatAlertOnly] = useState(false);
   const h = { Authorization: `Bearer ${token}` };
@@ -277,11 +280,13 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     const wantEvol = pScopes.includes('evolution');
     const wantSummary = pScopes.includes('summary');
     setTab('risk'); // abre na Visão de risco (1-min do médico)
-    setDetailLoading(true); setExams([]); setEvolution([]); setSummaries([]); setNotes([]); setRisk(null); setRiskHistory([]); setClinicalPlan(null);
+    setDetailLoading(true); setExams([]); setEvolution([]); setSummaries([]); setNotes([]); setRisk(null); setRiskHistory([]); setClinicalPlan(null); setPreVisit(null); setSoap(null);
     try {
       // Risco + histórico sempre (derivado dos exames — não depende de escopo)
       { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/risk`, { headers: h }); const d = await r.json(); if (r.ok) setRisk(d); }
       { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/risk/history`, { headers: h }); const d = await r.json(); if (r.ok) setRiskHistory(d.history ?? []); }
+      // Pré-Consulta (brief automático)
+      { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/pre-visit`, { headers: h }); const d = await r.json(); if (r.ok) setPreVisit(d); }
       if (wantExams) { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/exams`, { headers: h }); const d = await r.json(); if (r.ok) setExams(d.items ?? []); }
       if (wantEvol) { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/evolution`, { headers: h }); const d = await r.json(); if (r.ok) setEvolution(d.items ?? []); }
       if (wantSummary) { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/summaries`, { headers: h }); const d = await r.json(); if (r.ok) setSummaries(d.items ?? []); }
@@ -305,6 +310,14 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     try { const r = await fetch(`${API_URL}/doctor/patients/${selected.patient.id}/summary/generate`, { method: 'POST', headers: h }); const d = await r.json(); if (r.ok) setSummaries([{ id: d.id, createdAt: d.createdAt, contentMd: d.contentMd, userMessage: 'audience:doctor' }]); }
     catch {}
     finally { setDetailLoading(false); }
+  };
+  // SOAP rascunho (IA preenche, médico edita) — grátis pro médico.
+  const genSoap = async () => {
+    if (!selected || soapLoading) return;
+    setSoapLoading(true);
+    try { const r = await fetch(`${API_URL}/doctor/patients/${selected.patient.id}/soap`, { method: 'POST', headers: h }); const d = await r.json(); if (r.ok) setSoap(d.contentMd); }
+    catch {}
+    finally { setSoapLoading(false); }
   };
 
   // Abre o detalhe de um exame (todos os itens) — busca via endpoint scoped
@@ -602,6 +615,47 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
 
                 {detailLoading && <Box sx={{ textAlign: 'center', py: 4 }}><CircularProgress size={28} sx={{ color: TEAL }} /></Box>}
 
+                {/* PRÉ-CONSULTA (brief automático de 1 página) — top 3 + risco + investigar + perguntas + score */}
+                {preVisit && (
+                  <Card variant="outlined" sx={{ borderRadius: 3, border: `2px solid ${TEAL}`, mb: 0.5 }}><CardContent>
+                    <Typography sx={{ fontWeight: 800, color: TEAL, mb: 1.5, fontSize: 16 }}>🩺 PRÉ-CONSULTA {preVisit.lastVisit ? `· desde ${new Date(preVisit.lastVisit).toLocaleDateString('pt-BR')}` : ''}</Typography>
+                    {preVisit.topIssues?.length > 0 && (
+                      <Box sx={{ mb: 1.5 }}>
+                        <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>⚠️ TOP 3 PRA HOJE</Typography>
+                        <Stack spacing={0.5} sx={{ mt: 0.5 }}>
+                          {preVisit.topIssues.map((issue: any, i: number) => (
+                            <Stack key={i} direction="row" spacing={0.75} alignItems="center" sx={{ flexWrap: 'wrap', rowGap: 0.5 }}>
+                              <Chip size="small" label={i + 1} sx={{ height: 20, width: 20, bgcolor: issue.priority === 'importante' ? '#dc262622' : issue.priority === 'moderada' ? '#ea580c22' : '#ca8a0422', color: issue.priority === 'importante' ? '#dc2626' : issue.priority === 'moderada' ? '#ea580c' : '#ca8a04', fontWeight: 800, fontSize: 11 }} />
+                              <Typography variant="body2" sx={{ fontWeight: 600 }}>{issue.name}</Typography>
+                              {issue.delta != null && <Chip size="small" label={`${issue.delta > 0 ? '↑' : '↓'} ${Math.abs(Math.round(issue.delta))}%`} sx={{ height: 20, fontSize: 11, bgcolor: issue.delta > 0 ? '#fef3c7' : '#dbeafe', color: issue.delta > 0 ? '#92400e' : '#1e40af', fontWeight: 700 }} />}
+                            </Stack>
+                          ))}
+                        </Stack>
+                      </Box>
+                    )}
+                    <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap" sx={{ mb: 1 }}>
+                      {preVisit.risk && <Typography variant="body2"><b>Risco:</b> {preVisit.risk.conditionLabel} ({preVisit.risk.riskLevel}){preVisit.risk.trend && preVisit.risk.trend !== 'primeiro' ? ` · ${preVisit.risk.trend === 'melhorou' ? '↓ caiu' : preVisit.risk.trend === 'piorou' ? '↑ subiu' : '→ estável'}` : ''}</Typography>}
+                      <Typography variant="body2"><b>Score:</b> {preVisit.score ?? '—'}/100 ({preVisit.markers ?? 0} marc.)</Typography>
+                    </Stack>
+                    {preVisit.investigate?.length > 0 && (
+                      <Box sx={{ mb: 1 }}>
+                        <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>🔬 INVESTIGAR</Typography>
+                        <Stack spacing={0.25} sx={{ mt: 0.25 }}>
+                          {preVisit.investigate.map((inv: any, i: number) => <Typography key={i} variant="body2" sx={{ color: 'text.secondary' }}>• {inv.name} {inv.lastMeasured ? `(último: ${new Date(inv.lastMeasured).toLocaleDateString('pt-BR')})` : ''}</Typography>)}
+                        </Stack>
+                      </Box>
+                    )}
+                    {preVisit.patientQuestions?.length > 0 && (
+                      <Box>
+                        <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>💬 PACIENTE PERGUNTOU</Typography>
+                        <Stack spacing={0.25} sx={{ mt: 0.25 }}>
+                          {preVisit.patientQuestions.slice(0, 3).map((q: string, i: number) => <Typography key={i} variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>"{q}"</Typography>)}
+                        </Stack>
+                      </Box>
+                    )}
+                  </CardContent></Card>
+                )}
+
                 {/* RISCO (C1+C2+C3) — leitura de risco + mudanças ao longo do tempo + plano de ação clínico (versão médico, grátis) */}
                 {!detailLoading && tab === 'risk' && (
                   <Stack spacing={1.5}>
@@ -652,6 +706,17 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                       {planLoading && <Box sx={{ textAlign: 'center', py: 2 }}><CircularProgress size={22} sx={{ color: TEAL }} /></Box>}
                       {clinicalPlan && <Box sx={{ '& p': { margin: '0.3em 0', fontSize: 14 }, '& h3': { fontSize: '0.95rem', fontWeight: 800, color: TEAL }, '& ul,& ol': { margin: '0.3em 0', paddingLeft: '1.2em' }, '& strong': { fontWeight: 700 } }}><ReactMarkdown>{clinicalPlan}</ReactMarkdown></Box>}
                       {!clinicalPlan && !planLoading && <Typography variant="body2" sx={{ color: 'text.secondary' }}>Gera um plano de conduta clínica (tom técnico) a partir da leitura de risco do paciente.</Typography>}
+                    </CardContent></Card>
+
+                    {/* SOAP rascunho (IA preenche, médico edita) */}
+                    <Card variant="outlined" sx={{ borderRadius: 3, borderColor: 'divider' }}><CardContent>
+                      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+                        <Typography sx={{ fontWeight: 800 }}>📝 SOAP <Box component="span" sx={{ fontSize: 11, fontWeight: 600, color: 'text.secondary' }}>(rascunho IA — você edita)</Box></Typography>
+                        <Button size="small" variant="outlined" onClick={genSoap} disabled={soapLoading} sx={{ textTransform: 'none', borderRadius: 99, fontWeight: 700, flexShrink: 0 }}>{soap ? '🔄 Regenerar' : 'Gerar SOAP'}</Button>
+                      </Stack>
+                      {soapLoading && <Box sx={{ textAlign: 'center', py: 2 }}><CircularProgress size={22} sx={{ color: TEAL }} /></Box>}
+                      {soap && <Box sx={{ '& p': { margin: '0.3em 0', fontSize: 14 }, '& h2': { fontSize: '0.95rem', fontWeight: 800, color: TEAL, mt: 1 }, '& ul,& ol': { margin: '0.3em 0', paddingLeft: '1.2em' } }}><ReactMarkdown>{soap}</ReactMarkdown></Box>}
+                      {!soap && !soapLoading && <Typography variant="body2" sx={{ color: 'text.secondary' }}>Gera um SOAP estruturado (S/O/A/P) com IA a partir dos dados do paciente.</Typography>}
                     </CardContent></Card>
                   </Stack>
                 )}
