@@ -14,7 +14,7 @@ description: Regras, convenções, gotchas e procedimentos do projeto Meus Exame
 | react-admin | 5.14 | Bundles MUI próprio |
 | @mui/material | ^7 (não 9) | Duplicate copy + type errors em 9 |
 | Vite | 8 (rolldown) | `codeSplitting` (não `manualChunks`) |
-| IA | GLM-4.6 via relay Z.ai | `ANTHROPIC_AUTH_TOKEN` + `ANTHROPIC_BASE_URL=https://api.z.ai/api/anthropic`. NUNCA `ANTHROPIC_API_KEY` real. Relay NÃO suporta `output_config`, `thinking`, `effort`. |
+| IA | GLM-4.6 via relay Z.ai (padrão); trocável p/ OpenAI/Gemini | Camada `llm/` (anti-dependência): `AI_PROVIDER=anthropic\|openai\|gemini` + chave do provider escolhido. Padrão: `ANTHROPIC_AUTH_TOKEN` + `ANTHROPIC_BASE_URL=https://api.z.ai/api/anthropic` (model `glm-4.6`). NUNCA `ANTHROPIC_API_KEY` real; relay NÃO suporta `output_config`, `thinking`, `effort`. Ver `docs/AI_PROVIDERS.md`. |
 | Postgres | porta 5433 | janocaminho ocupa 5432 |
 | Backend | porta 4001 | janocaminho ocupa 4000 |
 | Extracao | pdftotext → texto → GLM | NUNCA visão (relay alucina em PDF/imagem) |
