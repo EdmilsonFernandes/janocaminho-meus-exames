@@ -68,10 +68,16 @@ describe('coerceStaleness — remove prazos inventados (anti-alucinação)', () 
     expect((out.perguntasParaOMedico ?? []).some((q: string) => q.includes('12 meses'))).toBe(false);
   });
 
-  it('NÃO mexe quando há marcadores realmente desatualizados (>12m)', () => {
+  it('remove prazo inventado MESMO quando há outros marcadores stale (>12m)', () => {
+    // A IA alucina prazo pra marcadores RECENTES mesmo quando há outros realmente stale no contexto.
     const s: any = { resumoGeral: 'TGO não medido há 14 meses.' };
-    const stale = [{ nameCanonical: 'TGO' }] as any;
-    expect(coerceStaleness(s, stale).resumoGeral).toContain('14 meses');
+    const stale = [{ nameCanonical: 'URINA' }] as any; // outro marcador stale (não o TGO)
+    expect(coerceStaleness(s, stale).resumoGeral).not.toContain('14 meses');
+  });
+
+  it('preserva "desatualizado" sem prazo (não corta aviso legítimo sem número inventado)', () => {
+    const s: any = { resumoGeral: 'Seu TSH está desatualizado, considere refazer.' };
+    expect(coerceStaleness(s, []).resumoGeral).toContain('desatualizado');
   });
 
   it('descarta ponto de atenção que ficou vazio após a remoção', () => {

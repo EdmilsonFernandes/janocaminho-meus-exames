@@ -32,15 +32,17 @@ export function coerceComparativo(summary: HealthSummary, markers: MarkerState[]
 }
 
 /**
- * Pós-coerção ANTI-ALUCINAÇÃO DE PRAZO. A IA às vezes afirma "exame não medido há X meses"
- * olhando o histórico antigo e ignorando a medição RECENTE (pior em marcadores NORMAIS, que
- * não aparecem no ESTADO ATUAL do contexto). Se NENHUM marcador está realmente desatualizado
- * (>12m), toda afirmação de "há X meses/anos" é falsa → removemos a frase (determinístico).
+ * Pós-coerÇÃO ANTI-ALUCINAÇÃO DE PRAZO. A IA às vezes afirma "exame não medido há X meses"
+ * olhando o histórico antigo e ignorando a medição RECENTE — mesmo quando o paciente TEM
+ * outros marcadores realmente desatualizados (>12m), ela estende o prazo pra marcadores
+ * recentes (ex: TGO/TGP de 12/06 viram "não medidos há 14 meses"). Por isso SEMPRE removemos
+ * afirmações de PRAZO inventado ("há N meses/anos") do texto livre. A info de desatualização
+ * REAL fica no comparativo estruturado (datas do DB) e na tag [DESATUALIZADO] do contexto —
+ * a IA pode dizer "desatualizado" (sem prazo) mas NÃO inventar "há X meses".
  */
 const STALENESS_RE = /(?:n[ãa]o\s+)?(?:foi\s+|foi\s+)?(?:medid[oa]|atualizad[oa]|desatualizad[oa]|coletad[oa]|feito|realizado|est[áa]|estava|est[áa]o)\s+h[áa]\s+(?:mais\s+de\s+)?\d+\s*(?:meses|anos|m[êe]s|ano)|h[áa]\s+(?:mais\s+de\s+)?\d+\s*(?:meses|anos|m[êe]s|ano)\s+(?:sem|que\s+n[ãa]o)/i;
 
-export function coerceStaleness(summary: HealthSummary, staleMarkers: MarkerState[]): HealthSummary {
-  if (staleMarkers.length > 0) return summary; // há marcadores realmente desatualizados: não mexe.
+export function coerceStaleness(summary: HealthSummary, _staleMarkers?: MarkerState[]): HealthSummary {
   const strip = (t: string | null | undefined): string => {
     if (!t) return '';
     return t
@@ -102,6 +104,7 @@ export async function generateConsolidatedSummary(patientId: string, audience: '
         `- Baseie o quadro atual no ESTADO ATUAL; use TENDÊNCIAS só pra indicar direção/mudança.\n` +
         `- NUNCA conclua tendência de marcador marcado [confiança baixa] ou [DESATUALIZADO] sem ≥2 exames recentes.\n` +
         `- Sem exame recente de um marcador? sugira refazer com o médico — não invente conclusão.\n` +
+        `- PRAZOS (OBRIGATÓRIO): NUNCA escreva "não medido há X meses/anos" inventando prazo. Só diga "desatualizado" (SEM número) de um marcador se ele estiver EXPLICITAMENTE rotulado [DESATUALIZADO] no ESTADO ATUAL; pra qualquer outro, ele foi medido recentemente — não comente prazo.\n` +
         `- VALORES NUMÉRICOS (OBRIGATÓRIO): cite APENAS os números do ESTADO ATUAL/TENDÊNCIAS abaixo. NUNCA arredonde (2,75 NÃO vira "3" nem "2,8"), NUNCA estime, NUNCA invente. Se não há valor, escreva "sem dado".\n\n` +
         `PACIENTE: ${patient.fullName}\n` +
         `Score atual: ${snapshot.score ?? '—'}/100 em ${snapshot.markers} marcador(es). Distribuição: ${JSON.stringify(snapshot.byPriority)}.\n` +
