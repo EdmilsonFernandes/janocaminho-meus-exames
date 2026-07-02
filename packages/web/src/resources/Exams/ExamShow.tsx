@@ -223,6 +223,8 @@ export const ExamShow = () => {
   const items: any[] = exam.items ?? [];
   const cc = categorizeExam(exam); // categoria do exame (dominante pelos itens) — badge no header
   const abnormal = items.filter((i) => i.isAbnormal);
+  // UNKNOWN = sem faixa de referência (ou sem valor). NÃO é "dentro da faixa" — o header distingue.
+  const noRef = items.filter((i) => (i.flag ?? '').toUpperCase() === 'UNKNOWN');
   const grouped = items.reduce((acc: any, it: any) => { (acc[it.panel ?? 'Geral'] ??= []).push(it); return acc; }, {});
   // Híbrido: NORMAL/HIGH/LOW/ABNORMAL/CRITICAL usam flagMeta (cores atuais preservadas).
   // UNKNOWN (sem referência ou sem valor) usa displayStatus — distingue "Interpretação depende do
@@ -310,6 +312,10 @@ export const ExamShow = () => {
                     ))}
                   </Stack>
                 </>
+              ) : noRef.length > 0 ? (
+                <Typography sx={{ fontWeight: 700, color: 'text.secondary' }}>
+                  {noRef.length} de {items.length} valor(es) sem referência informada pelo laboratório — não foi possível classificar automaticamente.
+                </Typography>
               ) : (
                 <Typography sx={{ fontWeight: 700, color: 'success.main' }}>
                   ✅ Todos os {items.length} valores estão dentro da faixa de referência.
