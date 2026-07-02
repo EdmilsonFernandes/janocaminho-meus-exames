@@ -34,6 +34,7 @@ const fieldSx = {
 } as const;
 
 const SCOPE_META: Record<string, { label: string; icon: string }> = {
+  risk: { label: 'Risco', icon: '🛡️' },
   exams: { label: 'Exames', icon: '📋' },
   evolution: { label: 'Evolução', icon: '📈' },
   alerts: { label: 'Alertas', icon: '🚨' },
@@ -207,6 +208,10 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const [summaries, setSummaries] = useState<any[]>([]);
   const [notes, setNotes] = useState<any[]>([]);
   const [newNote, setNewNote] = useState('');
+  const [risk, setRisk] = useState<any>(null);
+  const [riskHistory, setRiskHistory] = useState<any[]>([]);
+  const [clinicalPlan, setClinicalPlan] = useState<string | null>(null);
+  const [planLoading, setPlanLoading] = useState(false);
   const [patQuery, setPatQuery] = useState('');
   const [patAlertOnly, setPatAlertOnly] = useState(false);
   const h = { Authorization: `Bearer ${token}` };
@@ -222,7 +227,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
 
   // Abas disponíveis = escopos que o paciente autorizou (e que suportamos visualmente)
   const scopes: string[] = selected?.scopes ?? [];
-  const supportedTabs = [...['exams', 'alerts', 'evolution', 'summary'].filter((s) => scopes.includes(s)), 'notes'];
+  const supportedTabs = ['risk', ...['exams', 'alerts', 'evolution', 'summary'].filter((s) => scopes.includes(s)), 'notes'];
 
   // --- Anotações ---
   const addNote = async () => {
@@ -267,19 +272,39 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const openPatient = async (p: any) => {
     setSelected(p);
     const pScopes: string[] = p.scopes ?? [];
-    const pTabs = ['exams', 'alerts', 'evolution', 'summary'].filter((s) => pScopes.includes(s));
+    const pTabs = ['risk', ...['exams', 'alerts', 'evolution', 'summary'].filter((s) => pScopes.includes(s)), 'notes'];
     const wantExams = pScopes.includes('exams') || pScopes.includes('alerts');
     const wantEvol = pScopes.includes('evolution');
     const wantSummary = pScopes.includes('summary');
-    setTab(pTabs[0] || 'exams');
-    setDetailLoading(true); setExams([]); setEvolution([]); setSummaries([]); setNotes([]);
+    setTab('risk'); // abre na Visão de risco (1-min do médico)
+    setDetailLoading(true); setExams([]); setEvolution([]); setSummaries([]); setNotes([]); setRisk(null); setRiskHistory([]); setClinicalPlan(null);
     try {
+      // Risco + histórico sempre (derivado dos exames — não depende de escopo)
+      { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/risk`, { headers: h }); const d = await r.json(); if (r.ok) setRisk(d); }
+      { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/risk/history`, { headers: h }); const d = await r.json(); if (r.ok) setRiskHistory(d.history ?? []); }
       if (wantExams) { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/exams`, { headers: h }); const d = await r.json(); if (r.ok) setExams(d.items ?? []); }
       if (wantEvol) { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/evolution`, { headers: h }); const d = await r.json(); if (r.ok) setEvolution(d.items ?? []); }
       if (wantSummary) { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/summaries`, { headers: h }); const d = await r.json(); if (r.ok) setSummaries(d.items ?? []); }
       // Anotações sempre (são do próprio médico, não dependem de escopo)
       { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/notes`, { headers: h }); const d = await r.json(); if (r.ok) setNotes(d.items ?? []); }
     } catch {} finally { setDetailLoading(false); }
+  };
+
+  // PLANO DE AÇÃO CLÍNICO (C2) — versão médico, grátis. Gera via GLM com tom técnico.
+  const genActionPlan = async () => {
+    if (!selected || planLoading) return;
+    setPlanLoading(true);
+    try { const r = await fetch(`${API_URL}/doctor/patients/${selected.patient.id}/action-plan`, { method: 'POST', headers: h }); const d = await r.json(); if (r.ok) setClinicalPlan(d.contentMd); }
+    catch {}
+    finally { setPlanLoading(false); }
+  };
+  // RESUMO CLÍNICO (B3) — gera versão médico (audience=doctor, tom técnico), grátis.
+  const genSummary = async () => {
+    if (!selected) return;
+    setDetailLoading(true);
+    try { const r = await fetch(`${API_URL}/doctor/patients/${selected.patient.id}/summary/generate`, { method: 'POST', headers: h }); const d = await r.json(); if (r.ok) setSummaries([{ id: d.id, createdAt: d.createdAt, contentMd: d.contentMd, userMessage: 'audience:doctor' }]); }
+    catch {}
+    finally { setDetailLoading(false); }
   };
 
   // Abre o detalhe de um exame (todos os itens) — busca via endpoint scoped
@@ -577,6 +602,60 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
 
                 {detailLoading && <Box sx={{ textAlign: 'center', py: 4 }}><CircularProgress size={28} sx={{ color: TEAL }} /></Box>}
 
+                {/* RISCO (C1+C2+C3) — leitura de risco + mudanças ao longo do tempo + plano de ação clínico (versão médico, grátis) */}
+                {!detailLoading && tab === 'risk' && (
+                  <Stack spacing={1.5}>
+                    {risk?.result ? (() => {
+                      const rl = risk.result.riskLevel;
+                      const color = rl === 'high' ? '#dc2626' : rl === 'moderate' ? '#ea580c' : '#16a34a';
+                      return (
+                        <Card variant="outlined" sx={{ borderRadius: 3, borderColor: 'divider', borderLeft: `4px solid ${color}` }}><CardContent>
+                          <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1 }}>
+                            <Typography sx={{ fontWeight: 800 }}>🛡️ Leitura de risco <Box component="span" sx={{ fontSize: 12, fontWeight: 600, color: color }}>{rl === 'high' ? '🔴 Alta' : rl === 'moderate' ? '🟠 Moderada' : '🟢 Baixa'}</Box></Typography>
+                            <Chip size="small" label={risk.result.predictedCondition} sx={{ fontWeight: 700, bgcolor: 'action.hover', height: 22 }} />
+                          </Stack>
+                          {risk.trend && risk.trend !== 'primeiro' && <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 1 }}>{risk.trend === 'melhorou' ? '↓ Risco caiu' : risk.trend === 'piorou' ? '↑ Risco subiu' : '→ Estável'}{risk.prior ? ` desde ${new Date(risk.prior.createdAt).toLocaleDateString('pt-BR')}` : ''}</Typography>}
+                          {risk.result.detectedFindings?.length > 0 && (
+                            <Stack spacing={0.5} sx={{ mb: 1 }}>
+                              {risk.result.detectedFindings.map((f: string, i: number) => <Typography key={i} variant="body2" sx={{ color: 'text.secondary' }}>• {f}</Typography>)}
+                            </Stack>
+                          )}
+                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>*Educativo. Não substitui avaliação médica.</Typography>
+                        </CardContent></Card>
+                      );
+                    })() : <Empty label="Sem leitura de risco ainda." icon="🛡️" />}
+
+                    {/* Mudanças ao longo do tempo (C3) */}
+                    {riskHistory.length > 1 && (
+                      <Card variant="outlined" sx={{ borderRadius: 3, borderColor: 'divider' }}><CardContent>
+                        <Typography sx={{ fontWeight: 800, mb: 1 }}>📊 Mudanças ao longo do tempo</Typography>
+                        <Stack spacing={0.5}>
+                          {riskHistory.slice(0, 6).map((hh: any, i: number) => {
+                            const c = hh.riskLevel === 'high' ? '#dc2626' : hh.riskLevel === 'moderate' ? '#ea580c' : '#16a34a';
+                            return (
+                              <Box key={hh.id ?? i} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
+                                <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>{hh.conditionLabel} <Box component="span" sx={{ color: 'text.secondary' }}>· {new Date(hh.createdAt).toLocaleDateString('pt-BR')}</Box></Typography>
+                                <Chip size="small" label={hh.riskLevel} sx={{ height: 20, flexShrink: 0, bgcolor: c + '22', color: c }} />
+                              </Box>
+                            );
+                          })}
+                        </Stack>
+                      </CardContent></Card>
+                    )}
+
+                    {/* Plano de ação clínico (C2) — versão médico, grátis */}
+                    <Card variant="outlined" sx={{ borderRadius: 3, borderColor: 'divider' }}><CardContent>
+                      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+                        <Typography sx={{ fontWeight: 800 }}>📋 Plano de ação clínico <Box component="span" sx={{ fontSize: 11, fontWeight: 600, color: 'text.secondary' }}>(versão médico)</Box></Typography>
+                        <Button size="small" variant="outlined" onClick={genActionPlan} disabled={planLoading} sx={{ textTransform: 'none', borderRadius: 99, fontWeight: 700, flexShrink: 0 }}>{clinicalPlan ? '🔄 Regenerar' : 'Gerar plano'}</Button>
+                      </Stack>
+                      {planLoading && <Box sx={{ textAlign: 'center', py: 2 }}><CircularProgress size={22} sx={{ color: TEAL }} /></Box>}
+                      {clinicalPlan && <Box sx={{ '& p': { margin: '0.3em 0', fontSize: 14 }, '& h3': { fontSize: '0.95rem', fontWeight: 800, color: TEAL }, '& ul,& ol': { margin: '0.3em 0', paddingLeft: '1.2em' }, '& strong': { fontWeight: 700 } }}><ReactMarkdown>{clinicalPlan}</ReactMarkdown></Box>}
+                      {!clinicalPlan && !planLoading && <Typography variant="body2" sx={{ color: 'text.secondary' }}>Gera um plano de conduta clínica (tom técnico) a partir da leitura de risco do paciente.</Typography>}
+                    </CardContent></Card>
+                  </Stack>
+                )}
+
                 {/* EXAMES — agrupados por ano (igual à lista do paciente), clicáveis p/ ver detalhe */}
                 {!detailLoading && tab === 'exams' && (
                   <Stack spacing={1.5}>
@@ -653,7 +732,8 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
 
                 {!detailLoading && tab === 'summary' && (
                   <Stack spacing={1.5}>
-                    {summaries.length === 0 && <Empty label="Sem resumo clínico gerado ainda." icon="🤖" />}
+                    <Button size="small" variant="contained" onClick={genSummary} disabled={detailLoading} sx={{ alignSelf: 'flex-start', textTransform: 'none', borderRadius: 99, fontWeight: 700 }}>{summaries[0] ? '🔄 Regenerar resumo clínico' : '🤖 Gerar resumo clínico'}</Button>
+                    {summaries.length === 0 && !detailLoading && <Empty label="Sem resumo clínico ainda — toque em ‘Gerar resumo clínico’ acima." icon="🤖" />}
                     {summaries[0] && (
                       <Card key={summaries[0].id} variant="outlined" sx={{ borderRadius: 3, borderColor: 'divider' }}><CardContent>
                         <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1 }}>
