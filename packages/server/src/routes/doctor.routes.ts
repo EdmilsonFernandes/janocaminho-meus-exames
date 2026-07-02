@@ -19,6 +19,7 @@ import { buildCurrentHealthSummary, priorityOfItem, PRIORITY_RANK } from '../ana
 import { latestRiskAssessment, buildRiskAssessment } from '../analysis/risk-service';
 import { generateActionPlan } from '../analysis/risk-action-plan';
 import { generateConsolidatedSummary } from '../analysis/health-summary';
+import { generateSoap } from '../analysis/doctor-soap';
 
 // Especialidades base (espelha o front-end). O dropdown real = base ∪ especialidades que já existem no banco.
 const BASE_SPECIALTIES = [
@@ -534,6 +535,48 @@ router.post('/patients/:patientId/summary/generate', requireDoctor, async (req: 
       : await prisma.aiAnalysis.create({ data: { patientId: req.params.patientId, type: 'SUMMARY', examId: null, userMessage: 'audience:doctor', contentMd, structured: summary as any, modelUsed, tokenUsage: usage as any }, select: { id: true, createdAt: true } });
     res.status(201).json({ id: analysis.id, createdAt: analysis.createdAt, contentMd });
   } catch (e: any) { if (!res.headersSent) res.status(500).json({ error: 'Não foi possível gerar o resumo agora.' }); }
+});
+
+// PRÉ-CONSULTA (brief automático de 1 página) — top mudanças + risco + investigar + perguntas. Grátis, determinístico.
+router.get('/patients/:patientId/pre-visit', requireDoctor, async (req: any, res, next) => {
+  try {
+    if (!(await requireShare(req.doctorId, req.params.patientId))) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+    void auditLog(req, 'doctor_pre_visit', String(req.params.patientId));
+    const pid = String(req.params.patientId);
+    const [snapshot, risk, chatTurns, lastNote] = await Promise.all([
+      buildCurrentHealthSummary(pid),
+      latestRiskAssessment(pid),
+      prisma.aiAnalysis.findMany({ where: { patientId: pid, type: 'CHAT' }, orderBy: { createdAt: 'desc' }, take: 5, select: { userMessage: true } }),
+      prisma.doctorNote.findFirst({ where: { doctorId: req.doctorId, patientId: pid }, orderBy: { createdAt: 'desc' }, select: { createdAt: true } }),
+    ]);
+    // Top 3: worsening primeiro (piorou), depois topAttention por prioridade
+    const candidates = [
+      ...snapshot.worsening.map((m: any) => ({ name: m.name, delta: m.deltaPct, direction: m.trend, priority: m.priority })),
+      ...snapshot.topAttention.filter((m: any) => m.trend !== 'piorou').map((m: any) => ({ name: m.name, delta: m.deltaPct, direction: m.trend, priority: m.priority })),
+    ].sort((a: any, b: any) => (PRIORITY_RANK[b.priority as keyof typeof PRIORITY_RANK] ?? 0) - (PRIORITY_RANK[a.priority as keyof typeof PRIORITY_RANK] ?? 0) || Math.abs(b.delta ?? 0) - Math.abs(a.delta ?? 0));
+    res.json({
+      topIssues: candidates.slice(0, 3),
+      risk: risk?.result ? { conditionLabel: risk.result.predictedCondition, riskLevel: risk.result.riskLevel, trend: risk.trend } : null,
+      investigate: snapshot.stale.slice(0, 5).map((m: any) => ({ name: m.name, lastMeasured: m.latest.performedAt })),
+      patientQuestions: chatTurns.map((t: any) => t.userMessage).filter(Boolean),
+      lastVisit: lastNote?.createdAt ?? null,
+      score: snapshot.score,
+      markers: snapshot.markers,
+    });
+  } catch (e) { next(e); }
+});
+
+// SOAP RASCUNHO (IA preenche, médico edita) — grátis pro médico.
+router.post('/patients/:patientId/soap', requireDoctor, async (req: any, res, next) => {
+  try {
+    if (!(await requireShare(req.doctorId, req.params.patientId))) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+    void auditLog(req, 'doctor_generated_soap', String(req.params.patientId));
+    const { contentMd, modelUsed } = await generateSoap(String(req.params.patientId));
+    res.status(201).json({ contentMd, modelUsed });
+  } catch (e: any) {
+    if (e?.status === 400) { res.status(400).json({ error: 'Sem exames extraídos pra gerar SOAP.' }); return; }
+    if (!res.headersSent) res.status(500).json({ error: 'Não foi possível gerar o SOAP agora.' });
+  }
 });
 
 export default router;
