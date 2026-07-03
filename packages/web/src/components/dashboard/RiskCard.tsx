@@ -196,19 +196,27 @@ export const RiskCard = () => {
         : `linear-gradient(135deg, ${meta.color}14, ${meta.color}05)`,
     }}>
       <CardContent>
-        {/* cabeçalho — flexWrap: chips/trend caem pra 2ª linha em telas estreitas em vez de se espremer (fix mobile css-7mx36) */}
-        <Stack direction="row" spacing={1.2} alignItems="center" useFlexGap flexWrap="wrap" sx={{ mb: 1.25, rowGap: 0.75 }}>
-          <HealthAndSafetyIcon sx={{ color: none ? '#16a34a' : meta.color, flexShrink: 0 }} />
-          <Typography sx={{ fontWeight: 800, flex: 1, minWidth: 0 }}>Leitura de risco</Typography>
-          <Chip size="small" label={`${meta.emoji} ${meta.label}`} sx={{ fontWeight: 800, height: 22, flexShrink: 0, bgcolor: meta.color + '22', color: meta.color }} />
-          {r.trend && r.trend !== 'primeiro' && TREND_CHIP[r.trend] && (() => {
-            const t = TREND_CHIP[r.trend];
-            const d = r.prior?.createdAt ? new Date(r.prior.createdAt).toLocaleDateString('pt-BR') : '';
-            return <Chip size="small" label={`${t.emoji} ${t.label}${d ? ` desde ${d}` : ''}`} sx={{ fontWeight: 700, height: 22, flexShrink: 0, bgcolor: t.color + '22', color: t.color }} />;
-          })()}
-          <IconButton size="small" aria-label="Refazer análise" onClick={() => load(true)} sx={{ p: 0.5, flexShrink: 0 }}>
-            <RefreshIcon fontSize="small" sx={{ color: 'text.secondary' }} />
-          </IconButton>
+        {/* cabeçalho — 2 LINHAS determinísticas (robusto em qualquer viewport/fonte/zoom do Android):
+            linha 1 = ícone + título (truncável c/ ellipsis) + refresh; linha 2 = chips (nível + tendência).
+            Antes era tudo numa linha só com flexWrap + flex:1 no título — frágil: em fonte/zoom específicos
+            do Android o título não encolhia e os chips transbordavam ("quebra na vertical"). Cada linha agora
+            é simples e independente; o título sempre cabe (trunca) e os chips nunca empurram o refresh. */}
+        <Stack sx={{ mb: 1.25 }}>
+          <Stack direction="row" spacing={1.2} alignItems="center">
+            <HealthAndSafetyIcon sx={{ color: none ? '#16a34a' : meta.color, flexShrink: 0 }} />
+            <Typography sx={{ fontWeight: 800, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Leitura de risco</Typography>
+            <IconButton size="small" aria-label="Refazer análise" onClick={() => load(true)} sx={{ p: 0.5, flexShrink: 0 }}>
+              <RefreshIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+            </IconButton>
+          </Stack>
+          <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mt: 0.75, rowGap: 0.5 }}>
+            <Chip size="small" label={`${meta.emoji} ${meta.label}`} sx={{ fontWeight: 800, height: 22, flexShrink: 0, bgcolor: meta.color + '22', color: meta.color }} />
+            {r.trend && r.trend !== 'primeiro' && TREND_CHIP[r.trend] && (() => {
+              const t = TREND_CHIP[r.trend];
+              const d = r.prior?.createdAt ? new Date(r.prior.createdAt).toLocaleDateString('pt-BR') : '';
+              return <Chip size="small" label={`${t.emoji} ${t.label}${d ? ` desde ${d}` : ''}`} sx={{ fontWeight: 700, height: 22, flexShrink: 0, bgcolor: t.color + '22', color: t.color }} />;
+            })()}
+          </Stack>
         </Stack>
 
         {/* condição suspeita (destaque) */}
