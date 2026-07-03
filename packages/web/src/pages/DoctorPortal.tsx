@@ -11,6 +11,7 @@ import GroupsIcon from '@mui/icons-material/Groups';
 import MenuIcon from '@mui/icons-material/Menu';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { API_URL } from '../config';
+import { confirmDialog, snackbar } from '../components/ConfirmDialog';
 import { DrExame } from '../components/DrExame';
 import { MfaSetupCard } from '../components/mfa/MfaSetupCard';
 import { SPECIALTIES, UFS } from '../utils/medicalData';
@@ -266,7 +267,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     if (r.ok) { setNotes((n) => [{ ...d.note }, ...n]); setNewNote(''); }
   };
   const delNote = async (id: string) => {
-    if (!window.confirm('Excluir esta anotação?')) return;
+    if (!(await confirmDialog({ title: 'Excluir anotação', message: 'Excluir esta anotação?', confirmLabel: 'Excluir' }))) return;
     await fetch(`${API_URL}/doctor/notes/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
     setNotes((n) => n.filter((x) => x.id !== id));
   };
@@ -284,9 +285,9 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
       const d = await r.json();
       if (r.ok && d.text) {
         await navigator.clipboard.writeText(d.text);
-        window.alert('Resumo estruturado (com CID-10) copiado! Cole no prontuário do paciente.');
+        snackbar({ message: 'Resumo estruturado (com CID-10) copiado! Cole no prontuário.', severity: 'success' });
       }
-    } catch { window.alert('Não foi possível exportar agora.'); }
+    } catch { snackbar({ message: 'Não foi possível exportar agora.', severity: 'error' }); }
   };
   // --- Copiar resumo pro prontuário (#4) ---
   const copySummary = async () => {
@@ -305,8 +306,8 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     ].filter((x) => x !== '');
     try {
       await navigator.clipboard.writeText(lines.join('\n'));
-      window.alert('Resumo copiado! Cole no prontuário do paciente.');
-    } catch { window.alert('Não foi possível copiar. Selecione e copie manualmente.'); }
+      snackbar({ message: 'Resumo copiado! Cole no prontuário do paciente.', severity: 'success' });
+    } catch { snackbar({ message: 'Não foi possível copiar. Selecione e copie manualmente.', severity: 'error' }); }
   };
 
   const openPatient = async (p: any) => {
@@ -352,7 +353,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const genSoap = async () => {
     if (!selected || soapLoading) return;
     setSoapLoading(true);
-    try { const r = await fetch(`${API_URL}/doctor/patients/${selected.patient.id}/soap`, { method: 'POST', headers: h }); const d = await r.json(); if (r.ok) setSoap(d.contentMd); else if (r.status === 402) alert(d.message || 'Limite de pré-consultas grátis atingido. Assine o Dr. Exame Pro.'); }
+    try { const r = await fetch(`${API_URL}/doctor/patients/${selected.patient.id}/soap`, { method: 'POST', headers: h }); const d = await r.json(); if (r.ok) setSoap(d.contentMd); else if (r.status === 402) snackbar({ message: d.message || 'Limite de pré-consultas grátis atingido. Assine o Dr. Exame Pro.', severity: 'warning' }); }
     catch {}
     finally { setSoapLoading(false); }
   };
@@ -375,7 +376,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
       try {
         const r = await fetch(`${API_URL}/doctor/subscription/payment-status/${paymentId}`, { headers: h });
         const d = await r.json();
-        if (d.approved) { clearInterval(iv); setPayOpen(false); setPayData(null); fetch(`${API_URL}/doctor/me/plan`, { headers: h }).then((r) => r.json()).then(setPlanInfo).catch(() => {}); window.alert('💎 Dr. Exame Pro ativado! SOAP e planos agora são ilimitados.'); }
+        if (d.approved) { clearInterval(iv); setPayOpen(false); setPayData(null); fetch(`${API_URL}/doctor/me/plan`, { headers: h }).then((r) => r.json()).then(setPlanInfo).catch(() => {}); snackbar({ message: '💎 Dr. Exame Pro ativado! SOAP e planos agora são ilimitados.', severity: 'success' }); }
       } catch {}
     }, 5000);
   };
@@ -1118,7 +1119,7 @@ const DoctorExamDetail = ({ exam, detail, patientId, token, onBack }: { exam: an
         if (Capacitor.isNativePlatform()) { const { Browser } = await import('@capacitor/browser'); await Browser.open({ url }); return; }
       } catch { /* web: cai pra window.open */ }
       window.open(url, '_blank');
-    } catch { window.alert('Não foi possível abrir o PDF.'); } finally { setPdfLoading(false); }
+    } catch { snackbar({ message: 'Não foi possível abrir o PDF.', severity: 'error' }); } finally { setPdfLoading(false); }
   };
   return (
     <Box>

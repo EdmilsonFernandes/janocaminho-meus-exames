@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, IconButton, Box, TextField } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, IconButton, Box, TextField, Snackbar, Alert as MuiAlert } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
@@ -105,14 +105,21 @@ export const confirmDialog = (opts: ConfirmOptions): Promise<boolean> =>
 export const promptDialog = (opts: PromptOptions): Promise<string | null> =>
   _prompt ? _prompt(opts) : Promise.resolve(window.prompt(opts.title, opts.defaultValue ?? ''));
 
+export interface SnackbarOptions { message: React.ReactNode; severity?: 'success' | 'error' | 'warning' | 'info' }
+let _snackbar: ((o: SnackbarOptions) => void) | null = null;
+/** Snackbar (toast) premium imperativo: `snackbar({ message: 'Copiado!', severity: 'success' })`. */
+export const snackbar = (opts: SnackbarOptions): void => { _snackbar?.(opts); };
+
 /** Provider que renderiza os Dialogs premium e registra as fns globais. Envolver o App 1x. */
 export const ConfirmDialogProvider = ({ children }: { children: React.ReactNode }) => {
   const [confirm, setConfirm] = React.useState<{ opts: ConfirmOptions; resolve: (b: boolean) => void } | null>(null);
   const [prompt, setPrompt] = React.useState<{ opts: PromptOptions; resolve: (v: string | null) => void } | null>(null);
+  const [snack, setSnack] = React.useState<SnackbarOptions | null>(null);
   React.useEffect(() => {
     _open = (opts) => new Promise<boolean>((resolve) => setConfirm({ opts, resolve }));
     _prompt = (opts) => new Promise<string | null>((resolve) => setPrompt({ opts, resolve }));
-    return () => { _open = null; _prompt = null; };
+    _snackbar = (o) => setSnack(o);
+    return () => { _open = null; _prompt = null; _snackbar = null; };
   }, []);
   const closeConfirm = (v: boolean) => { confirm?.resolve(v); setConfirm(null); };
   const closePrompt = (v: string | null) => { prompt?.resolve(v); setPrompt(null); };
@@ -136,6 +143,9 @@ export const ConfirmDialogProvider = ({ children }: { children: React.ReactNode 
         onClose={() => closePrompt(null)}
         onSubmit={(v) => closePrompt(v)}
       />
+      <Snackbar open={!!snack} autoHideDuration={3500} onClose={() => setSnack(null)} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
+        <MuiAlert elevation={3} severity={snack?.severity ?? 'info'} onClose={() => setSnack(null)} sx={{ borderRadius: 2, fontWeight: 600, alignItems: 'center' }}>{snack?.message}</MuiAlert>
+      </Snackbar>
     </React.Fragment>
   );
 };
