@@ -6,7 +6,7 @@ import { DrExame } from './DrExame';
 
 export const NotificationPopup = () => {
   const [open, setOpen] = useState(false);
-  const [notif, setNotif] = useState<{ title: string; body: string } | null>(null);
+  const [notif, setNotif] = useState<{ id?: string; title: string; body: string } | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -19,7 +19,13 @@ export const NotificationPopup = () => {
       .then((d) => {
         if (dead) return;
         if (d && d.unread > 0 && d.items && d.items.length > 0) {
-          setNotif({ title: d.items[0].title, body: d.items[0].body });
+          const item = d.items[0];
+          // Não reabre notificação já dispensada: o "Depois" persiste o id. Sem isto, todo boot
+          // com unread>0 reinterpõe o modal (irritante — sempre há não-lidas no app de saúde).
+          let dismissedId: string | null = null;
+          try { dismissedId = localStorage.getItem('meDismissedNotif'); } catch { /* ignore */ }
+          if (dismissedId != null && String(item.id) === String(dismissedId)) return;
+          setNotif({ id: item.id, title: item.title, body: item.body });
           // Só abre se o app tá visível — evita dialog fantasma pipocando depois
           // de voltar do background (parecia "app travado" após ocioso).
           timer = setTimeout(() => { if (!document.hidden) setOpen(true); }, 2500);
@@ -57,7 +63,7 @@ export const NotificationPopup = () => {
         <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>{notif.body}</Typography>
       </DialogContent>
       <DialogActions sx={{ justifyContent: 'center', pb: 3, gap: 1 }}>
-        <Button variant="outlined" onClick={() => setOpen(false)} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700 }}>Depois</Button>
+        <Button variant="outlined" onClick={() => { try { if (notif?.id != null) localStorage.setItem('meDismissedNotif', String(notif.id)); } catch { /* ignore */ } setOpen(false); }} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700 }}>Depois</Button>
         <Button variant="contained" onClick={() => { setOpen(false); navigate('/notificacoes'); }} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa' }}>Ver notificacoes</Button>
       </DialogActions>
     </Dialog>
