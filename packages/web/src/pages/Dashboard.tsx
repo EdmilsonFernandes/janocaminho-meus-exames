@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Stack, Typography, Grid, Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
+import { Stack, Typography, Grid, Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
 import { GamificationBadges } from '../components/GamificationBadges';
 import { BiometricService } from '../components/BiometricService';
 import { useNavigate } from 'react-router-dom';
@@ -17,11 +17,17 @@ import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import Diversity3Icon from '@mui/icons-material/Diversity3';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
+import InsightsIcon from '@mui/icons-material/Insights';
+import SmartToyIcon from '@mui/icons-material/SmartToy';
+import AnalyticsIcon from '@mui/icons-material/Analytics';
+import BoltIcon from '@mui/icons-material/Bolt';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import { CreditsCard } from '../components/dashboard/CreditsCard';
 import { MetricCard } from '../components/dashboard/MetricCard';
 import { DistributionCard } from '../components/dashboard/DistributionCard';
 import { QuickActions } from '../components/dashboard/QuickActions';
 import { FailedExamsAlert } from '../components/dashboard/FailedExamsAlert';
+import { Section } from '../components/dashboard/Section';
 import { PageContainer } from '../components/layout/PageContainer';
 
 const readTotal = (r: Response) => Number(r.headers.get('X-Total-Count') ?? r.headers.get('content-range')?.split('/')?.[1] ?? '0');
@@ -101,48 +107,49 @@ export const Dashboard = () => {
     <PageContainer width="wide">
       <DashboardHeader firstName={firstName} />
 
+      {/* 1 · HERO — Score de Saúde */}
       <HealthScoreCard loaded={loaded} score={score} abnormalCount={stats.abnormal} onDetails={() => navigate('/tendencias')} />
 
-      {/* M1 — "Meu estado atual" (estado por marcador + tendência + o que mudou) */}
-      <CurrentStateCard />
+      {/* 2 · SUAS LEITURAS — M1-M5: risco, estado atual, adesão + alerta preditivo */}
+      <Section label="Suas leituras" icon={<InsightsIcon />}>
+        <Grid container spacing={2}>
+          <Grid size={{ xs: 12, md: 6 }}><RiskCard /></Grid>
+          <Grid size={{ xs: 12, md: 6 }}><CurrentStateCard /></Grid>
+          <Grid size={{ xs: 12 }}><InsightsCards /></Grid>
+        </Grid>
+      </Section>
 
-      {/* Layer 3 — "Leitura de risco" (condição suspeita por regras clínicas — educativa, não diagnóstico) */}
-      <RiskCard />
+      {/* 3 · Dr. EXAME — IA (dica + CTA chat) */}
+      <Section label="Dr. Exame" icon={<SmartToyIcon />}>
+        <AiCard tip={tipNode} onChat={() => navigate('/chat')} />
+      </Section>
 
-      {/* Score de Adesão + Alerta Preditivo (gamificação + projeção de tendência) */}
-      <InsightsCards />
+      {/* 4 · SEUS NÚMEROS — métricas clicáveis + distribuição (donut) */}
+      <Section label="Seus números" icon={<AnalyticsIcon />}>
+        <Stack spacing={2}>
+          <Grid container spacing={2}>
+            <MetricCard label="Exames enviados" value={stats.exams} color="primary.main" icon={<MedicalServicesIcon />} onClick={() => navigate('/exams')} />
+            <MetricCard label="Valores alterados" value={stats.abnormal} color={stats.abnormal ? 'error.main' : 'success.main'} icon={<WarningAmberIcon />} onClick={() => navigate('/alterados')} />
+            <MetricCard label="Dependentes" value={deps} color="#8b5cf6" icon={<Diversity3Icon />} onClick={() => navigate('/familia')} />
+            <MetricCard label="Última atualização" value={lastExam ? new Date(lastExam).toLocaleDateString('pt-BR') : '—'} color="#0ea5e9" icon={<EventAvailableIcon />} onClick={() => navigate('/linha-do-tempo')} />
+          </Grid>
+          <DistributionCard buckets={buckets} />
+        </Stack>
+      </Section>
 
-      {/* IA — card hero do Dr. Exame (robô + dica + CTA) */}
-      <AiCard tip={tipNode} onChat={() => navigate('/chat')} />
+      {/* 5 · AÇÕES RÁPIDAS — primária "Enviar exame" + exames falhados + créditos */}
+      <Section label="Ações rápidas" icon={<BoltIcon />}>
+        <Stack spacing={2}>
+          <FailedExamsAlert count={failed} onClick={() => navigate('/exams')} />
+          <QuickActions />
+          <CreditsCard credits={credits} onClick={() => navigate('/planos')} />
+        </Stack>
+      </Section>
 
-      {/* Aviso de exames que falharam (pra reprocessar) */}
-      <FailedExamsAlert count={failed} onClick={() => navigate('/exams')} />
-
-      {/* Créditos (card premium verde) */}
-      <CreditsCard credits={credits} onClick={() => navigate('/planos')} />
-
-      {/* Contadores clicáveis */}
-      <Grid container spacing={2} sx={{ mt: score === null ? 2 : 1, mb: 2 }}>
-        <MetricCard label="Exames enviados" value={stats.exams} color="primary.main" icon={<MedicalServicesIcon />} onClick={() => navigate('/exams')} />
-        <MetricCard label="Valores alterados" value={stats.abnormal} color={stats.abnormal ? 'error.main' : 'success.main'} icon={<WarningAmberIcon />} onClick={() => navigate('/alterados')} />
-        <MetricCard label="Dependentes" value={deps} color="#8b5cf6" icon={<Diversity3Icon />} onClick={() => navigate('/familia')} />
-        <MetricCard label="Última atualização" value={lastExam ? new Date(lastExam).toLocaleDateString('pt-BR') : '—'} color="#0ea5e9" icon={<EventAvailableIcon />} onClick={() => navigate('/linha-do-tempo')} />
-      </Grid>
-
-      {/* Distribuição dos valores + Dica */}
-      <DistributionCard buckets={buckets} />
-
-      {/* Ações rápidas */}
-      <QuickActions />
-
-      <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 3 }}>
-        <Typography variant="caption" color="text.secondary" sx={{ mr: 1 }}>Toque nos cards de contador para navegar.</Typography>
-      </Stack>
-
-      {/* GAMIFICAÇÃO — badges + streak */}
-      <Box sx={{ mt: 2 }}>
+      {/* 6 · CONQUISTAS — gamificação (badges + streak) */}
+      <Section label="Conquistas" icon={<EmojiEventsIcon />}>
         <GamificationBadges examsCount={stats.exams} score={score} />
-      </Box>
+      </Section>
 
       {/* Oferta de biometria (1x — nativo + não ativou) */}
       <Dialog open={bioOffer} onClose={() => setBioOffer(false)} PaperProps={{ sx: { borderRadius: 3 } }}>

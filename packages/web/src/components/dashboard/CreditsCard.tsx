@@ -5,7 +5,7 @@ import BoltIcon from '@mui/icons-material/Bolt';
 export const CreditsCard = ({ credits, onClick }: { credits: number | null; onClick: () => void }) => {
   if (credits == null) return null;
   return (
-    <Card sx={{ mt: 2, mb: 2, borderRadius: 6, position: 'relative', overflow: 'hidden', background: 'linear-gradient(135deg, rgba(16,185,129,.10), rgba(16,185,129,.03))', border: '1px solid rgba(16,185,129,.25)' }}>
+    <Card sx={{ mt: 2, mb: 2, position: 'relative', overflow: 'hidden', background: 'linear-gradient(135deg, rgba(16,185,129,.10), rgba(16,185,129,.03))', border: '1px solid rgba(16,185,129,.25)' }}>
       <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.75, py: 2, '&:last-child': { pb: 2 } }}>
         <Box sx={{ width: 48, height: 48, borderRadius: 2.5, background: 'rgba(16,185,129,.16)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <BoltIcon sx={{ color: '#059669', fontSize: 26 }} />
