@@ -19,6 +19,7 @@ import { groupByYear } from '../../utils/groupByYear';
 import { categorizeExam, CATS } from '../../utils/medicalData';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { PageHeader } from '../../components/layout/PageHeader';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
 
 const ExamListActions = () => (
   <TopToolbar>
@@ -79,6 +80,7 @@ const ExamCards = () => {
   const [view, setView] = useState<'date' | 'category'>('date');
   const [cat, setCat] = useState<string>('all'); // 'all' | category key
   const [q, setQ] = useState('');
+  const [delTarget, setDelTarget] = useState<{ id: string; title: string } | null>(null);
 
   // Re-busca a lista a cada 5s enquanto há exames sendo extraídos. Quando termina (vira EXTRACTED),
   // o exame sai do topo e cai no grupo do ANO certo (performedAt é preenchido pela extração).
@@ -90,20 +92,19 @@ const ExamCards = () => {
   }, [processingCount, refresh]);
 
   if (isLoading) return null;
-  const del = async (e: any, id: string, title: string) => {
+  const del = (e: any, id: string, title: string) => {
     e.stopPropagation();
-    if (!window.confirm(`Excluir "${title}"? Esta ação não desfaz.`)) return;
+    setDelTarget({ id, title });   // abre o Dialog premium (não window.confirm nativo)
+  };
+  const confirmDel = async () => {
+    const t = delTarget; if (!t) return;
     try {
-      const r = await fetch(`${API_URL}/exams/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });
-      if (r.ok) {
-        notify('Exame excluído', { type: 'success' });
-        // refresh() atualiza a lista via dataProvider (mesmo do reextract).
-        // NÃO usar navigate(0)/reload — recarrega o WebView inteiro e crasha o app nativo.
-        refresh();
-      } else notify('Falha ao excluir', { type: 'error' });
-    } catch {
-      notify('Falha de conexão ao excluir.', { type: 'error' });
-    }
+      const r = await fetch(`${API_URL}/exams/${t.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });
+      // refresh() atualiza a lista via dataProvider. NÃO usar navigate(0)/reload — crasha o app nativo.
+      if (r.ok) { notify('Exame excluído', { type: 'success' }); refresh(); }
+      else notify('Falha ao excluir', { type: 'error' });
+    } catch { notify('Falha de conexão ao excluir.', { type: 'error' }); }
+    finally { setDelTarget(null); }
   };
   const reextract = async (e: any, id: string) => {
     e.stopPropagation();
@@ -187,6 +188,16 @@ const ExamCards = () => {
   return (
     <PageContainer width="content" sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
       <PageHeader icon={<DescriptionOutlinedIcon />} title="Seus exames" subtitle={`${total ?? 0} exame${(total ?? 0) !== 1 ? 's' : ''} no total • toque pra ver detalhes`} />
+
+      {/* Dialog premium de excluir exame (substitui o window.confirm nativo) */}
+      <ConfirmDialog
+        open={!!delTarget}
+        onClose={() => setDelTarget(null)}
+        onConfirm={confirmDel}
+        title="Excluir exame"
+        message={delTarget ? (<>Excluir <b>"{delTarget.title}"</b>? Esta ação não pode ser desfeita.</>) : ''}
+        confirmLabel="Excluir"
+      />
 
       {/* Toolbar: busca + alternador de visão + filtro por categoria */}
       <Stack spacing={1.25}>
