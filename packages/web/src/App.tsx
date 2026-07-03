@@ -108,15 +108,18 @@ const CustomAppBar = (props: AppBarProps) => {
     // (classe .RaAppBar-menuButton → display:none em telas pequenas). No mobile, o ☰ abaixo
     // abre o AppDrawer UNIFICADO (mesmo menu do "Mais" do rodapé). Desktop mantém o toggle nativo.
     <AppBar {...props} userMenu={false} toolbar={<LoadingIndicator />}>
+      {/* Mobile: ☰ e Voltar são MUTUAMENTE EXCLUSIVOS pra não lotar a AppBar. Em sub-rota → Voltar;
+          na raiz → ☰ (que abre o MESMO drawer do "Mais" do rodapé). Drawer sempre acessível pelo rodapé. */}
       {!isDesktop && (
-        <IconButton color="inherit" onClick={openDrawer} title="Menu" size="small" sx={{ mr: 0.5 }}>
-          <MenuIcon fontSize="small" />
-        </IconButton>
-      )}
-      {canBack && (
-        <IconButton color="inherit" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))} title="Voltar" size="small" sx={{ mr: 0.5 }}>
-          <ArrowBackIcon fontSize="small" />
-        </IconButton>
+        canBack ? (
+          <IconButton color="inherit" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))} title="Voltar" size="small" sx={{ mr: 0.5 }}>
+            <ArrowBackIcon fontSize="small" />
+          </IconButton>
+        ) : (
+          <IconButton color="inherit" onClick={openDrawer} title="Menu" size="small" sx={{ mr: 0.5 }}>
+            <MenuIcon fontSize="small" />
+          </IconButton>
+        )
       )}
       {isDesktop && <TitlePortal />}
       <Box sx={{ flex: 1 }} />
