@@ -62,7 +62,7 @@ export const HealthScoreCard = ({ loaded, score, abnormalCount, onDetails }: { l
             </Stack>
             <Chip label={badgeFor(score)} size="small" sx={{ bgcolor: color, color: '#fff', fontWeight: 800, mb: 0.75, height: 22, fontSize: 11 }} />
             <Typography variant="body2" sx={{ mb: 0.5, color: 'text.primary', fontSize: { xs: 12.5, sm: 14 }, lineHeight: 1.35 }}>{descFor(score, abnormalCount)}</Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: 10, sm: 11 } }}>{abnormalCount > 0 ? `${abnormalCount} alterado(s).` : 'Nenhum alterado.'}</Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: 10, sm: 11 } }}>{abnormalCount > 0 ? `${abnormalCount} valor(es) fora da faixa.` : 'Nenhum fora da faixa.'}</Typography>
             <Box sx={{ mt: 1 }}>
               <Button variant="contained" size="small" onClick={onDetails} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, fontSize: 12, py: 1.1, boxShadow: 'none' }}>Ver detalhes</Button>
             </Box>

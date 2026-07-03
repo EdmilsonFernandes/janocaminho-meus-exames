@@ -3,9 +3,9 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
 // Donut de distribuição dos valores (bons/alerta/alterados). Extração pura do JSX original.
 const DONUT = [
-  { key: 'bons', name: 'Bons (na faixa)', color: '#10b981' },
-  { key: 'alerta', name: 'Alerta (abaixo)', color: '#f59e0b' },
-  { key: 'alterados', name: 'Alterados', color: '#ef4444' },
+  { key: 'bons', name: 'Na faixa ou sem referência', color: '#10b981' },
+  { key: 'alerta', name: 'Abaixo da faixa', color: '#f59e0b' },
+  { key: 'alterados', name: 'Acima da faixa', color: '#ef4444' },
 ] as const;
 
 export const DistributionCard = ({ buckets }: { buckets: { bons: number; alerta: number; alterados: number } }) => {
