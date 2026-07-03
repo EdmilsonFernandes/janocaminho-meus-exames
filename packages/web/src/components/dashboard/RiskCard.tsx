@@ -220,9 +220,12 @@ export const RiskCard = () => {
           </Stack>
         </Stack>
 
-        {/* condição suspeita (destaque) */}
+        {/* condição suspeita (destaque). Quando nenhum padrão, o texto do server ("Sem alterações
+            relevantes") confunde com "nenhum marcador fora da faixa" — sobrescrevemos pra deixar
+            claro que é sobre PADRÕES de risco (compostos), não sobre valores individuais (esses
+            ficam no card "Meu estado atual" ao lado). */}
         <Typography sx={{ fontWeight: 800, fontSize: '1.05rem', mb: 0.5, color: none ? 'text.primary' : meta.color }}>
-          {r.predictedCondition}
+          {none ? 'Nenhum padrão de risco detectado' : r.predictedCondition}
         </Typography>
 
         {/* explicação truncada com "Ver mais" — só aparece se o texto transborda de fato (medido, não por contagem de chars) */}

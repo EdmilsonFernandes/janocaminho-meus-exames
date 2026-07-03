@@ -83,7 +83,6 @@ export const CurrentStateCard = () => {
         <Stack direction="row" spacing={1.2} alignItems="center" sx={{ mb: 1.25 }}>
           <MonitorHeartIcon sx={{ color: 'primary.main' }} />
           <Typography sx={{ fontWeight: 800, flex: 1 }}>Meu estado atual</Typography>
-          {s.score != null && <Chip size="small" label={`${s.score}/100`} sx={{ fontWeight: 800, bgcolor: 'primary.main', color: '#fff', height: 22 }} />}
         </Stack>
 
         <Typography variant="body2" sx={{ mb: 1.25, color: 'text.primary', lineHeight: 1.4 }}>
