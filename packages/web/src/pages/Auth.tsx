@@ -288,7 +288,8 @@ export const RegisterPage = () => {
       });
       const d = await r.json();
       if (r.status === 409) { notify('Este e-mail já tem conta. Use sua senha, "entrar com token" ou "esqueci a senha".', { type: 'warning' }); navigate('/'); return; }
-      if (!r.ok) throw new Error(d.error || 'Falha no cadastro');
+      if (r.status === 429) { notify('Muitas tentativas de cadastro deste dispositivo. Aguarde alguns minutos e tente novamente.', { type: 'warning' }); return; }
+      if (!r.ok) throw new Error(d.message || d.error || 'Falha no cadastro');
       if (d.needsVerification) { setVerifyEmail(d.email); notify('Enviamos um código de ativação no seu e-mail (cheque o spam).', { type: 'success' }); return; }
       localStorage.setItem('token', d.token);
       if (d.patientId) { localStorage.setItem('patientId', d.patientId); localStorage.setItem('selPatientId', d.patientId); }

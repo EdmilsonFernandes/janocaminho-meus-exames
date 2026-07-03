@@ -46,6 +46,8 @@ export const ConsolidatedReportPage = () => {
   const [speaking, setSpeaking] = useState(false);
   const [analysis, setAnalysis] = useState<any>(null);
   const [error, setError] = useState('');
+  const [noCredits, setNoCredits] = useState(false);
+  const [noExams, setNoExams] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
 
   // Carrega o ÚLTIMO relatório salvo ao entrar (não repensa a cada visita — economiza créditos)
@@ -68,15 +70,18 @@ export const ConsolidatedReportPage = () => {
   };
   const doGenerate = (force: boolean) => {
     setLoading(true);
-    setError('');
+    setError(''); setNoCredits(false); setNoExams(false);
     fetch(`${API_URL}/analyses/consolidated`, {
       method: 'POST', headers: apiHeaders(true), body: JSON.stringify({ patientId: pid, force }),
     })
       .then(async (r) => {
-        if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || 'Falha ao gerar relatório');
-        return r.json();
+        if (r.ok) return r.json();
+        const body = await r.json().catch(() => ({}));
+        if (r.status === 402) { setNoCredits(true); return null; }   // sem créditos → card premium (não "insufficient_credits" cru)
+        if (r.status === 400) { setNoExams(true); return null; }     // sem exame → CTA enviar exame (não erro)
+        throw new Error(body.message || body.error || 'Falha ao gerar relatório');
       })
-      .then((a) => setAnalysis(a))
+      .then((a) => { if (a) setAnalysis(a); })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   };
@@ -192,6 +197,29 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
       )}
       {!pid && <Typography color="text.secondary" sx={{ mt: 1 }}>Selecione um perfil no topo para gerar o relatório.</Typography>}
       {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
+
+      {/* Sem créditos — card premium (converter: recarregar/assinar) em vez de "insufficient_credits" cru */}
+      {noCredits && (
+        <Box sx={{ mt: 2, p: 2.5, borderRadius: 3, textAlign: 'center', background: 'linear-gradient(135deg,rgba(99,102,241,.08),rgba(99,102,241,.02))', border: '1px solid', borderColor: 'rgba(99,102,241,.2)' }}>
+          <Box sx={{ fontSize: 40 }}>💎</Box>
+          <Typography sx={{ fontWeight: 800, mt: 1 }}>Seus créditos acabaram</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 2, maxWidth: 420, mx: 'auto' }}>Recarregue créditos avulsos ou assine o mensal pra gerar relatórios completos e usar a IA sem travar.</Typography>
+          <Stack direction="row" spacing={1.5} justifyContent="center" flexWrap="wrap" useFlexGap>
+            <Button variant="contained" onClick={() => navigate('/planos')} sx={{ bgcolor: '#6366f1', textTransform: 'none', fontWeight: 700, borderRadius: 99, '&:hover': { bgcolor: '#4f46e5' } }}>Assinar R$19,90/mês</Button>
+            <Button variant="outlined" onClick={() => navigate('/planos')} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 99 }}>Comprar créditos</Button>
+          </Stack>
+        </Box>
+      )}
+
+      {/* Sem exames — direcionar pra enviar (não erro) */}
+      {noExams && (
+        <Box sx={{ mt: 2, p: 2.5, borderRadius: 3, textAlign: 'center', bgcolor: 'action.hover' }}>
+          <Box sx={{ fontSize: 40 }}>📄</Box>
+          <Typography sx={{ fontWeight: 800, mt: 1 }}>Você ainda não tem exames</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 2, maxWidth: 420, mx: 'auto' }}>Envie seu primeiro exame (PDF ou foto) pra a IA gerar um relatório completo da sua saúde.</Typography>
+          <Button variant="contained" onClick={() => navigate('/exams/create')} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 99 }}>Enviar exame</Button>
+        </Box>
+      )}
 
       {analysis && s && (
         <Stack spacing={2} sx={{ mt: 2 }}>

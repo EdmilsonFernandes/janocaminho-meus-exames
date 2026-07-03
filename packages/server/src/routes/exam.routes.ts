@@ -230,8 +230,13 @@ router.delete('/:id', async (req, res, next) => {
       res.status(404).json({ error: 'Exame não encontrado' });
       return;
     }
+    const patientId = exam.patientId;
     await deleteExamFile(exam.filePath);
     await prisma.exam.delete({ where: { id: exam.id } });
+    // Invalida o relatório consolidado (aiAnalysis SUMMARY do paciente) — pode ter sido gerado
+    // com dados deste exame. Sem isto, o relatório ficava ÓRFÃO: paciente removia o exame
+    // ("não é meu") e o relatório continuava mostrando os dados do exame removido (divergência).
+    await prisma.aiAnalysis.deleteMany({ where: { patientId, type: 'SUMMARY', examId: null } }).catch(() => {});
     res.json({ id: exam.id });
   } catch (e) {
     next(e);
