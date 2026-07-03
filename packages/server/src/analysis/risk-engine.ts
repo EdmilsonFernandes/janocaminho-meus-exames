@@ -36,6 +36,7 @@ export interface RiskFinding {
   severity: Exclude<Severity, 'info'>;
   condition: Exclude<RiskCondition, 'none'>;
   finding: string;
+  source?: string | null; // citação/diretriz da regra (M4 — "por quê?" no card)
   band: { min?: number; max?: number; severity: Exclude<Severity, 'info'>; condition: Exclude<RiskCondition, 'none'> };
 }
 
@@ -110,6 +111,7 @@ export function assessRisk(markers: RiskMarker[], gender?: 'male' | 'female'): R
           severity: band.severity,
           condition: band.condition,
           finding: band.finding,
+          source: rule.source ?? null,
           band: { min: band.min, max: band.max, severity: band.severity, condition: band.condition },
         });
         break; // 1 finding por marcador (bandas excludentes)

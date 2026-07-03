@@ -66,6 +66,7 @@ export const RISK_RULES: RiskRules = {
   markers: [
     {
       key: 'GLICEMIA', namePt: 'Glicemia de jejum', unit: 'mg/dL',
+      source: 'ADA 2024 — Standards of Medical Care in Diabetes (glicemia de jejum)',
       bands: [
         { min: 100, max: 125, severity: 'low', condition: 'prediabetes',
           finding: 'Glicemia de jejum na faixa de pré-diabetes (100–125 mg/dL) — pode indicar alteração glicêmica inicial' },
@@ -75,6 +76,7 @@ export const RISK_RULES: RiskRules = {
     },
     {
       key: 'HEMOGLOBINA_GLICADA', namePt: 'Hemoglobina glicada (HbA1c)', unit: '%',
+      source: 'ADA 2024 — Standards of Medical Care (HbA1c)',
       bands: [
         { min: 5.7, max: 6.4, severity: 'low', condition: 'prediabetes',
           finding: 'HbA1c na faixa de pré-diabetes (5,7–6,4%) — controle glicêmico no limite' },
@@ -84,6 +86,7 @@ export const RISK_RULES: RiskRules = {
     },
     {
       key: 'PRESSAO_SISTOLICA', namePt: 'Pressão sistólica (PAS)', unit: 'mmHg',
+      source: 'SBC 2020 — Diretriz de Hipertensão Arterial / ACC-AHA 2017',
       bands: [
         { min: 120, max: 129, severity: 'low', condition: 'hypertension',
           finding: 'Pressão sistólica elevada (120–129) — faixa de pré-hipertensão' },
@@ -95,6 +98,7 @@ export const RISK_RULES: RiskRules = {
     },
     {
       key: 'PRESSAO_DIASTOLICA', namePt: 'Pressão diastólica (PAD)', unit: 'mmHg',
+      source: 'SBC 2020 — Diretriz de Hipertensão Arterial / ACC-AHA 2017',
       bands: [
         { min: 80, max: 89, severity: 'moderate', condition: 'hypertension',
           finding: 'Pressão diastólica na faixa de hipertensão estágio 1 (80–89)' },
@@ -104,6 +108,7 @@ export const RISK_RULES: RiskRules = {
     },
     {
       key: 'LDL', namePt: 'Colesterol LDL', unit: 'mg/dL',
+      source: 'SBC/SBI 2021 — Atualização da Diretriz de Dislipidemias',
       bands: [
         { min: 130, max: 159, severity: 'low', condition: 'high_cholesterol',
           finding: 'LDL limítrofe alto (130–159) — pode indicar risco cardiovascular' },
@@ -113,6 +118,7 @@ export const RISK_RULES: RiskRules = {
     },
     {
       key: 'HDL', namePt: 'Colesterol HDL', unit: 'mg/dL',
+      source: 'SBC/SBI 2021 — Diretriz de Dislipidemias (HDL como fator de risco)',
       bands: [
         { max: 39, severity: 'moderate', condition: 'cardiovascular_risk',
           finding: 'HDL baixo (<40) — fator de risco cardiovascular' },
@@ -120,6 +126,7 @@ export const RISK_RULES: RiskRules = {
     },
     {
       key: 'TRIGLICERIDES', namePt: 'Triglicerídeos', unit: 'mg/dL',
+      source: 'SBC/SBI 2021 — Diretriz de Dislipidemias',
       bands: [
         { min: 150, max: 199, severity: 'low', condition: 'high_cholesterol',
           finding: 'Triglicerídeos limítrofe alto (150–199) — pode indicar risco metabólico' },
@@ -153,6 +160,7 @@ export const RISK_RULES: RiskRules = {
     },
     {
       key: 'VCM', namePt: 'Volume Corpuscular Médio (VCM)', unit: 'fL',
+      source: 'OMS/WHO — classificação de anemias (microcitose/macrocitose)',
       bands: [
         { min: 70, max: 79, severity: 'low', condition: 'anemia',
           finding: 'VCM baixo (microcitose, 70–79) — associado a alguns tipos de anemia' },

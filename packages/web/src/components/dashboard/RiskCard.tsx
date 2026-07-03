@@ -29,6 +29,7 @@ type RiskLevel = 'low' | 'moderate' | 'high';
 interface Finding {
   key: string; namePt: string; value: number; unit: string;
   severity: 'low' | 'moderate' | 'high'; condition: string; finding: string;
+  source?: string | null;
 }
 interface RiskResult {
   predictedConditionKey: string;
@@ -262,6 +263,14 @@ export const RiskCard = () => {
                         <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1.35, display: 'block', mt: 0.15 }}>
                           {f.finding}
                         </Typography>
+                      )}
+                      {f.source && (
+                        <Box sx={{ mt: 0.5 }}>
+                          <details>
+                            <summary style={{ cursor: 'pointer', color: '#178f89', fontSize: '0.72rem', fontWeight: 700, display: 'inline-block', listStyle: 'none' }}>📖 Por quê? (fonte da faixa)</summary>
+                            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', pl: 1.5, mt: 0.25, lineHeight: 1.3 }}>{f.source}</Typography>
+                          </details>
+                        </Box>
                       )}
                     </Box>
                   </Box>
