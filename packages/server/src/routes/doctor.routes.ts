@@ -633,7 +633,7 @@ router.get('/patients/:patientId/pre-visit', requireDoctor, async (req: any, res
     const [snapshot, risk, chatTurns, lastNote] = await Promise.all([
       buildCurrentHealthSummary(pid),
       latestRiskAssessment(pid),
-      prisma.aiAnalysis.findMany({ where: { patientId: pid, type: 'CHAT' }, orderBy: { createdAt: 'desc' }, take: 5, select: { userMessage: true } }),
+      prisma.aiAnalysis.findMany({ where: { patientId: pid, type: 'CHAT', createdAt: { gt: new Date(Date.now() - 90 * 86400000) } }, orderBy: { createdAt: 'desc' }, take: 5, select: { userMessage: true, createdAt: true } }),
       prisma.doctorNote.findFirst({ where: { doctorId: req.doctorId, patientId: pid }, orderBy: { createdAt: 'desc' }, select: { createdAt: true } }),
     ]);
     // Top 3: worsening primeiro (piorou), depois topAttention por prioridade.
@@ -652,7 +652,7 @@ router.get('/patients/:patientId/pre-visit', requireDoctor, async (req: any, res
       topIssues: candidates.slice(0, 3),
       risk: risk?.result ? { conditionLabel: risk.result.predictedCondition, riskLevel: risk.result.riskLevel, trend: risk.trend } : null,
       investigate: snapshot.stale.slice(0, 5).map((m: any) => ({ name: m.name, lastMeasured: m.latest.performedAt, ageMonths: m.latest.ageMonths })),
-      patientQuestions: chatTurns.map((t: any) => t.userMessage).filter(Boolean),
+      patientQuestions: chatTurns.map((t: any) => ({ q: t.userMessage, at: t.createdAt })).filter((t: any) => t.q),
       lastVisit: lastNote?.createdAt ?? null,
       score: snapshot.score,
       markers: snapshot.markers,

@@ -9,6 +9,7 @@ import PdfIcon from '@mui/icons-material/PictureAsPdf';
 import SearchIcon from '@mui/icons-material/Search';
 import GroupsIcon from '@mui/icons-material/Groups';
 import MenuIcon from '@mui/icons-material/Menu';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { API_URL } from '../config';
 import { DrExame } from '../components/DrExame';
 import { MfaSetupCard } from '../components/mfa/MfaSetupCard';
@@ -498,7 +499,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
       {/* Header — mesma identidade teal do app do paciente */}
       <Box sx={{ background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff', px: { xs: 2, md: 3 }, pt: 'calc(env(safe-area-inset-top) + 12px)', pb: 2, display: 'flex', alignItems: 'center', gap: 2, boxShadow: '0 4px 20px rgba(32,178,170,.25)' }}>
         {(selected || selExam) && (
-          <IconButton onClick={goBack} size="small" title="Voltar" sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,.15)', '&:hover': { bgcolor: 'rgba(255,255,255,.25)' }, flexShrink: 0, width: 34, height: 34 }}>←</IconButton>
+          <IconButton onClick={goBack} size="small" aria-label="Voltar" sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,.15)', '&:hover': { bgcolor: 'rgba(255,255,255,.25)' }, flexShrink: 0, width: 34, height: 34 }}><ArrowBackIcon fontSize="small" /></IconButton>
         )}
         {/* Desktop: só título da view (identidade está no sidebar). Mobile: identidade + menu. */}
         {isDesktop ? (
@@ -715,9 +716,13 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                   )}
                   {preVisit.patientQuestions?.length > 0 && (
                     <Box>
-                      <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>💬 PACIENTE PERGUNTOU</Typography>
+                      <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>💬 PERGUNTAS RECENTES NO APP</Typography>
                       <Stack spacing={0.25} sx={{ mt: 0.25 }}>
-                        {preVisit.patientQuestions.slice(0, 3).map((q: string, i: number) => <Typography key={i} variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>"{q}"</Typography>)}
+                        {preVisit.patientQuestions.slice(0, 3).map((qa: any, i: number) => {
+                          const days = qa.at ? Math.max(0, Math.round((Date.now() - new Date(qa.at).getTime()) / 86400000)) : null;
+                          const ago = days == null ? '' : days === 0 ? 'hoje' : days === 1 ? 'há 1 dia' : `há ${days} dias`;
+                          return <Typography key={i} variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>"{qa.q}"{ago && <Box component="span" sx={{ fontStyle: 'normal', fontSize: 11 }}> · {ago}</Box>}</Typography>;
+                        })}
                       </Stack>
                     </Box>
                   )}

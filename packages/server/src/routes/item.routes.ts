@@ -117,19 +117,21 @@ router.get('/evolution', async (req: AuthedRequest, res, next) => {
       include: { exam: { select: { id: true, performedAt: true, title: true } } },
       orderBy: { exam: { performedAt: 'asc' } },
     });
-    const byName = new Map<string, any[]>();
-    const seen = new Set<string>(); // dedup por (analito + data + valor) — exames duplicados viram 1 ponto só
+    // Dedup por (analito + DIA): várias medições do mesmo analito no MESMO dia viram 1 ponto só.
+    // Mantém a mais recente do dia (rows vêm orderBy performedAt asc, então o último set do dia vence).
+    // Antes o dedup exigia valor IDÊNTICO — 2 medições no mesmo dia com valores ligeiramente diferentes
+    // (2 extrações do mesmo PDF, 2 laboratórios, arredondamento) não colapsavam: geravam 2 pontos no
+    // mesmo dia, a linha do gráfico "caía" entre eles e o tooltip repetia a data. (#9)
+    const byName = new Map<string, Map<string, any>>();
     for (const r of rows) {
       const day = r.exam.performedAt ? new Date(r.exam.performedAt).toDateString() : 's/d';
-      const dedupKey = `${r.nameCanonical}|${day}|${r.valueNumeric}`;
-      if (seen.has(dedupKey)) continue;
-      seen.add(dedupKey);
-      const arr = byName.get(r.nameCanonical) ?? [];
-      arr.push(r);
-      byName.set(r.nameCanonical, arr);
+      let dayMap = byName.get(r.nameCanonical);
+      if (!dayMap) { dayMap = new Map(); byName.set(r.nameCanonical, dayMap); }
+      dayMap.set(day, r); // sobrescreve: a última medição daquele dia vence (mais recente)
     }
     const out: any[] = [];
-    for (const [name, items] of byName) {
+    for (const [name, dayMap] of byName) {
+      const items = [...dayMap.values()]; // 1 ponto por dia, em ordem asc (Map preserva inserção = orderBy performedAt asc)
       // Mostra TODOS os analitos medidos (mesmo com 1 exame só = "primeiro exame"); antes exigia >=2.
       const first = items[0];
       const last = items[items.length - 1];
