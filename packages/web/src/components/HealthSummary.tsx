@@ -9,6 +9,7 @@ import VolumeUpIcon from '@mui/icons-material/RecordVoiceOver';
 import ReactMarkdown from 'react-markdown';
 import { API_URL, token } from '../config';
 import { ShareDialog } from './ShareDialog';
+import { findIdealRange, isAboveIdeal } from '@meus-exames/shared';
 
 interface ComparativoRow { name: string; anterior?: string | null; atual?: string | null; leitura?: string | null; entenda?: string | null }
 interface Summary {
@@ -43,6 +44,18 @@ const Variation = ({ anterior, atual, leitura }: { anterior?: string | null; atu
   }
   if (leitura) return <Chip size="small" variant="outlined" label={leitura} sx={{ fontSize: 12 }} />;
   return null;
+};
+
+/** "🎯 ideal <X" — alvo ótimo (não só de referência) quando há faixa ideal pro marcador. */
+const IdealBadge = ({ name, atual }: { name: string; atual?: string | null }) => {
+  const ideal = findIdealRange(name);
+  if (!ideal) return null;
+  const acima = isAboveIdeal(num(atual), ideal);
+  return (
+    <Chip size="small" variant="outlined"
+      sx={{ fontSize: 10, height: 18, mt: 0.3, borderColor: acima ? '#e6510055' : 'divider', color: acima ? '#e65100' : 'text.secondary' }}
+      label={`🎯 ${ideal.label}`} />
+  );
 };
 
 const asArr = (x: any): any[] => (Array.isArray(x) ? x : x == null ? [] : [x]);
@@ -204,6 +217,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
                       <Typography variant="body2" color="text.secondary" sx={{ wordBreak: 'break-word' }}>{c.anterior || '—'}</Typography>
                       <Typography variant="body2" color="primary.main" sx={{ fontWeight: 800 }}>→</Typography>
                       <Typography sx={{ fontWeight: 800, wordBreak: 'break-word', color: (t) => t.palette.mode === 'dark' ? '#5b9bd5' : '#0b5cab' }}>{c.atual || '—'}</Typography>
+                      <IdealBadge name={c.name} atual={c.atual} />
                     </Stack>
                   </Box>
                 ))}
@@ -222,7 +236,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
                   <TableBody>
                     {structured.comparativo.map((c, i) => (
                       <TableRow key={i} sx={{ '&:hover': { bgcolor: 'rgba(11,92,171,0.05)' }, '& td': { py: 1.2, fontSize: '0.95rem' } }}>
-                        <TableCell sx={{ fontWeight: 600, maxWidth: 240 }}><NameToggle name={c.name} entenda={c.entenda} /></TableCell>
+                        <TableCell sx={{ fontWeight: 600, maxWidth: 240 }}><NameToggle name={c.name} entenda={c.entenda} /><IdealBadge name={c.name} atual={c.atual} /></TableCell>
                         <TableCell align="center" sx={{ color: 'text.secondary' }}>{c.anterior || '—'}</TableCell>
                         <TableCell align="center" sx={{ fontWeight: 800, fontSize: '1.1rem !important' }}>{c.atual || '—'}</TableCell>
                         <TableCell align="center"><Variation anterior={c.anterior} atual={c.atual} leitura={c.leitura} /></TableCell>

@@ -19,6 +19,7 @@ import { prisma } from '../prisma';
 import { buildMarkerState, ageMonths, STALE_MONTHS } from './health-state';
 import { assessRisk, type RiskMarker, type RiskResult } from './risk-engine';
 import { RISK_RULES, MEDICAL_DISCLAIMER } from './risk-rules';
+import { bmi, egfr, homaIr, type BioSex } from './derived-markers';
 
 const RULE_KEYS = new Set(RISK_RULES.markers.map((m) => m.key));
 
@@ -47,13 +48,15 @@ async function loadPriorExcept(patientId: string, currentId: string): Promise<Ri
 }
 
 /** Carrega os marcadores de entrada (lab de MarkerState + PA de Measurement). */
-async function loadRiskMarkers(patientId: string): Promise<RiskMarker[]> {
-  const [markerStates, bp] = await Promise.all([
+async function loadRiskMarkers(patientId: string): Promise<{ markers: RiskMarker[]; gender: BioSex | undefined }> {
+  const [markerStates, bp, patient, weight] = await Promise.all([
     buildMarkerState(patientId),
     prisma.measurement.findFirst({
       where: { patientId, type: 'BLOOD_PRESSURE' },
       orderBy: { measuredAt: 'desc' },
     }),
+    prisma.patient.findUnique({ where: { id: patientId }, select: { gender: true, dateOfBirth: true, heightCm: true } }),
+    prisma.measurement.findFirst({ where: { patientId, type: 'WEIGHT' }, orderBy: { measuredAt: 'desc' } }),
   ]);
 
   const riskMarkers: RiskMarker[] = [];
@@ -81,7 +84,23 @@ async function loadRiskMarkers(patientId: string): Promise<RiskMarker[]> {
         namePt: 'Pressão diastólica (PAD)', performedAt: bp.measuredAt, stale: bpStale });
     }
   }
-  return riskMarkers;
+
+  // ÍNDICES DERIVADOS (M2) — calculados a partir do perfil + exames (NÃO vêm do laudo):
+  // IMC precisa de peso+altura; eGFR de creatinina+idade+sexo; HOMA-IR de glicemia+insulina.
+  const latestVal = (key: string) =>
+    markerStates.find((m) => m.nameCanonical === key && m.latest.valueNumeric != null)?.latest.valueNumeric ?? null;
+  const ageYears = patient?.dateOfBirth
+    ? Math.floor((Date.now() - new Date(patient.dateOfBirth).getTime()) / (365.25 * 86400000))
+    : null;
+  const sex: BioSex | undefined = patient?.gender === 'male' || patient?.gender === 'female' ? patient.gender : undefined;
+  const imc = bmi(weight?.value ?? null, patient?.heightCm ?? null);
+  const egfrVal = egfr(latestVal('CREATININA'), ageYears, sex);
+  const homa = homaIr(latestVal('GLICEMIA'), latestVal('INSULINA'));
+  if (imc != null) riskMarkers.push({ key: 'IMC', value: imc, unit: 'kg/m²', namePt: 'IMC (Índice de Massa Corporal)' });
+  if (egfrVal != null) riskMarkers.push({ key: 'EGFR', value: egfrVal, unit: 'mL/min/1.73m²', namePt: 'TFG estimada (eGFR)' });
+  if (homa != null) riskMarkers.push({ key: 'HOMA_IR', value: homa, unit: '', namePt: 'HOMA-IR (resistência insulínica)' });
+
+  return { markers: riskMarkers, gender: sex };
 }
 
 /** Confiança da análise (sem ML por enquanto): baseada em quantidade de dados + achados. */
@@ -120,9 +139,7 @@ export async function buildRiskAssessment(patientId: string, opts: BuildOptions 
     }
   }
 
-  const markers = await loadRiskMarkers(patientId);
-  const pat = await prisma.patient.findUnique({ where: { id: patientId }, select: { gender: true } }).catch(() => null);
-  const gender = pat?.gender === 'male' || pat?.gender === 'female' ? pat.gender : undefined;
+  const { markers, gender } = await loadRiskMarkers(patientId);
   const result = assessRisk(markers, gender);
   const confidence = computeConfidence(result);
   const snapshot = markers.map((m) => ({ key: m.key, value: m.value, unit: m.unit ?? null, stale: m.stale ?? false }));

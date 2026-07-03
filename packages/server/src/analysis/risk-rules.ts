@@ -24,7 +24,8 @@
 export type Severity = 'info' | 'low' | 'moderate' | 'high';
 export type RiskCondition =
   | 'none' | 'prediabetes' | 'diabetes' | 'hypertension'
-  | 'high_cholesterol' | 'cardiovascular_risk' | 'anemia';
+  | 'high_cholesterol' | 'cardiovascular_risk' | 'anemia'
+  | 'renal' | 'obesidade' | 'insulinica';
 
 export interface RiskBand {
   min?: number;        // inclusivo
@@ -161,6 +162,41 @@ export const RISK_RULES: RiskRules = {
           finding: 'VCM alto (>100, macrocitose) — pode indicar anemia macrocítica' },
       ],
     },
+    // ---- ÍNDICES DERIVADOS (M2) — calculados, não extraídos do laudo ----
+    {
+      key: 'IMC', namePt: 'IMC (Índice de Massa Corporal)', unit: 'kg/m²',
+      source: 'OMS/WHO — Índice de Massa Corporal',
+      bands: [
+        { max: 18.4, severity: 'low', condition: 'obesidade',
+          finding: 'IMC abaixo de 18,5 (baixo peso) — pode indicar desnutrição ou perda recente; avaliar contexto clínico.' },
+        { min: 25, max: 29.9, severity: 'low', condition: 'obesidade',
+          finding: 'IMC na faixa de sobrepeso (25–29,9) — associado a aumento do risco cardiovascular e metabólico.' },
+        { min: 30, max: 34.9, severity: 'moderate', condition: 'obesidade',
+          finding: 'IMC na faixa de obesidade grau I (30–34,9) — associado a risco aumentado de diabetes e hipertensão.' },
+        { min: 35, severity: 'high', condition: 'obesidade',
+          finding: 'IMC na faixa de obesidade grau II ou mais (≥35) — risco aumentado; vale acompanhamento médico.' },
+      ],
+    },
+    {
+      key: 'EGFR', namePt: 'TFG estimada (eGFR)', unit: 'mL/min/1.73m²',
+      source: 'CKD-EPI 2021 (race-free) — Inker et al., NEJM 2021',
+      bands: [
+        { min: 30, max: 59, severity: 'moderate', condition: 'renal',
+          finding: 'Função renal reduzida (eGFR 30–59) — possível comprometimento renal; investigar causa e hidratação.' },
+        { max: 29, severity: 'high', condition: 'renal',
+          finding: 'Função renal muito reduzida (eGFR <30) — procure avaliação médica.' },
+      ],
+    },
+    {
+      key: 'HOMA_IR', namePt: 'HOMA-IR (resistência insulínica)', unit: '',
+      source: 'HOMA-IR — Matthews et al., Diabetologia 1985',
+      bands: [
+        { min: 2.5, max: 4.99, severity: 'moderate', condition: 'insulinica',
+          finding: 'HOMA-IR elevado (≥2,5) — sugere resistência insulínica, frequentemente associada a pré-diabetes/diabetes.' },
+        { min: 5, severity: 'high', condition: 'insulinica',
+          finding: 'HOMA-IR muito elevado (≥5) — resistência insulínica acentuada; vale avaliação médica.' },
+      ],
+    },
   ],
 
   riskPolicy: {
@@ -195,6 +231,18 @@ export const RISK_RULES: RiskRules = {
       'Devo investigar causa (ferro, B12, sangramento oculto)?',
       'É seguro esperar ou preciso tratar agora?',
     ],
+    renal: [
+      'Minha função renal (eGFR/creatinina) está preocupante?',
+      'Devo repetir com proteína na urina (albuminúria) e hidratar antes?',
+    ],
+    obesidade: [
+      'Meu IMC pede mudança de hábito ou acompanhamento específico?',
+      'Vale investigar causas (tireoide, resistência insulínica)?',
+    ],
+    insulinica: [
+      'O HOMA-IR alto indica pré-diabetes? Como reduzir?',
+      'Devo repetir insulina/glicemia e ajustar dieta/exercício?',
+    ],
   },
 
   narratives: {
@@ -204,6 +252,9 @@ export const RISK_RULES: RiskRules = {
     high_cholesterol: 'o perfil lipídico (LDL e/ou triglicerídeos) está alterado, o que pode indicar risco cardiovascular',
     cardiovascular_risk: 'há sinais (como HDL baixo) que podem indicar risco cardiovascular',
     anemia: 'hemoglobina e/ou VCM estão alterados, o que pode sugerir anemia — o tipo precisa ser definido por um médico',
+    renal: 'a função renal estimada (eGFR) está reduzida, o que pode indicar comprometimento renal',
+    obesidade: 'o IMC está acima do recomendado, o que aumenta o risco cardiovascular e metabólico',
+    insulinica: 'o HOMA-IR está elevado, sugerindo resistência insulínica (frequentemente associada a pré-diabetes)',
   },
 
   conditionLabel: {
@@ -214,6 +265,9 @@ export const RISK_RULES: RiskRules = {
     high_cholesterol: 'Possível risco de colesterol alto',
     cardiovascular_risk: 'Possível risco cardiovascular',
     anemia: 'Possível anemia',
+    renal: 'Possível comprometimento renal',
+    obesidade: 'Possível sobrepeso/obesidade',
+    insulinica: 'Possível resistência insulínica',
   },
 };
 

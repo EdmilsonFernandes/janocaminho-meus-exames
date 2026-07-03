@@ -2,6 +2,7 @@
 // Os schemas/tipos de API vivem em ./schemas (Zod = fonte de verdade).
 export * from './schemas/exams';
 export * from './schemas/items';
+export * from './idealRanges';
 
 // ── Tendência por distância à banda de referência (lógica pura, sem Zod) ──
 // "Subir" não é bom nem ruim por si só (HDL subindo é bom; glicose subindo é ruim).

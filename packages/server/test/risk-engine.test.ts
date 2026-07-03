@@ -56,6 +56,31 @@ describe('risk-engine.assessRisk', () => {
     expect(assessRisk([mk('HEMOGLOBINA', 9.5, 'g/dL')], 'female').findings.length).toBe(1);
   });
 
+  it('M2 IMC derivado: 32 -> obesidade grau I (moderate)', () => {
+    const r = assessRisk([mk('IMC', 32, 'kg/m²')]);
+    expect(r.predictedConditionKey).toBe('obesidade');
+    expect(r.findings.length).toBe(1);
+    expect(['moderate', 'high']).toContain(r.riskLevel);
+  });
+
+  it('M2 eGFR derivado: 40 -> função renal reduzida (renal)', () => {
+    const r = assessRisk([mk('EGFR', 40, 'mL/min/1.73m²')]);
+    expect(r.predictedConditionKey).toBe('renal');
+    expect(r.findings.length).toBe(1);
+  });
+
+  it('M2 HOMA-IR derivado: 4 -> resistência insulínica (insulinica)', () => {
+    const r = assessRisk([mk('HOMA_IR', 4, '')]);
+    expect(r.predictedConditionKey).toBe('insulinica');
+    expect(r.findings.length).toBe(1);
+  });
+
+  it('M2 índices normais (IMC 22, eGFR 90) -> sem finding', () => {
+    const r = assessRisk([mk('IMC', 22, 'kg/m²'), mk('EGFR', 90, 'mL/min/1.73m²')]);
+    expect(r.findings.length).toBe(0);
+    expect(r.predictedConditionKey).toBe('none');
+  });
+
   it('escalonamento multi-sistema: HAS moderada + colesterol moderado -> high', () => {
     const r = assessRisk([
       mk('PRESSAO_SISTOLICA', 135, 'mmHg'), mk('PRESSAO_DIASTOLICA', 85, 'mmHg'),
