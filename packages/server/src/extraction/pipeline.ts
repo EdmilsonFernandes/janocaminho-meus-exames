@@ -5,7 +5,7 @@ import { readPdf, classifyKind, looksLikeMedical } from './pdfutil';
 import { classifyDoc } from './docPatterns';
 import { extractLabPanel, extractImaging } from './claude';
 import { imageToText } from './imageToText';
-import { canonicalName, reconcileScaleFlag, parseNumeric } from '../utils/normalize';
+import { canonicalName, reconcileScaleFlag, parseNumeric, normalizeUnit, sanitizeUnitInText } from '../utils/normalize';
 import { readExamFile, mediaTypeFromRef } from '../utils/storage';
 import type { LabExtraction, ExtractionItem } from './schemas';
 import { chargeCredits, CREDIT_COSTS } from '../utils/credits';
@@ -182,8 +182,8 @@ function flattenLabItems(lab: LabExtraction, prefers: string): ItemRow[] {
         name: it.name,
         nameCanonical: canonicalName(it.name),
         valueNumeric: valueNumeric ?? null,
-        valueText: it.valueText ?? null,
-        unit: it.unit ?? ref?.unit ?? null,
+        valueText: sanitizeUnitInText(it.valueText) ?? null,
+        unit: normalizeUnit(it.unit ?? ref?.unit ?? null),
         refLow: ref?.lowNumeric ?? null,
         refHigh: ref?.highNumeric ?? null,
         refText,

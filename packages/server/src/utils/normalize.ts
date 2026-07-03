@@ -134,6 +134,47 @@ export function computeFlag(
 }
 
 /**
+ * Normaliza o campo UNIDADE devolvido pela extração. O pdftotext/poppler corrompe glifos de
+ * superescrito (³ → '*' ou '3') em PDFs com fonte/matriz não-padrão, então Plaquetas vem como
+ * '/mm*' em vez de '/mm³'. Padroniza também notação exponencial (10^3 → ×10³) e o case de
+ * unidades comuns (g/dl → g/dL). Conservadora: só reescreve padrões reconhecíveis.
+ */
+const UNIT_FIX: Array<[RegExp, string]> = [
+  // Volume/células: mm*, mm3, mm³, /mm* → /mm³ (Plaquetas, leucócitos)
+  [/\/?\s*mm\s*[\*3³]/gi, '/mm³'],
+  // Notação exponencial corrompida: x10^3 / 10**3 / 10^3 → ×10³ (e 10^6, 10^9)
+  [/(?:x|\*)\s*10\s*[\^\*]?\s*(3|³)\b/gi, '×10³'],
+  [/\b10\s*[\^\*]\s*3\b/gi, '×10³'],
+  [/\b10\s*[\^\*]\s*6\b/gi, '×10⁶'],
+  [/\b10\s*[\^\*]\s*9\b/gi, '×10⁹'],
+  // Case padrão de unidades comuns
+  [/\bg\/dl\b/gi, 'g/dL'],
+  [/\bmg\/dl\b/gi, 'mg/dL'],
+  [/\bu\.?i\.?\/?\s*l\b/gi, 'UI/L'],
+  [/\bfl\b/gi, 'fL'],
+  [/\bmmol\/l\b/gi, 'mmol/L'],
+];
+export function normalizeUnit(u?: string | null): string | null {
+  if (!u) return null;
+  let s = String(u).trim().replace(/\s+/g, ' ');
+  for (const [re, rep] of UNIT_FIX) s = s.replace(re, rep);
+  return s || null;
+}
+
+/**
+ * Aplica só a correção de superescrito (mm* → /mm³) num texto livre — usado no `valueText`
+ * quando a unidade vem colada ao valor (ex.: "116.000/mm*"). Não toca no resto p/ não alterar
+ * valores numéricos. Subset seguro do normalizeUnit.
+ */
+export function sanitizeUnitInText(t?: string | null): string | null {
+  if (!t) return null;
+  return String(t)
+    .replace(/\/?\s*mm\s*[\*3³]/gi, '/mm³')
+    .replace(/(?:x|\*)\s*10\s*[\^\*]?\s*(3|³)\b/gi, '×10³')
+    .replace(/\b10\s*[\^\*]\s*([369])\b/gi, '×10$1') || null;
+}
+
+/**
  * Refina o flag do computeFlag quando há CONFLITO DE ESCALA entre o valor e a referência —
  * causa #1 de LOW/HIGH falso no hemograma e maior inimigo da confiança do paciente.
  *
