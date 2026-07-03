@@ -11,6 +11,7 @@ import DeleteIcon from '@mui/icons-material/DeleteOutline';
 import { useNavigate } from 'react-router-dom';
 import { useNotify } from 'react-admin';
 import { API_URL, apiHeaders } from '../config';
+import { confirmDialog } from '../components/ConfirmDialog';
 import { useSelectedPatient } from '../patient-context';
 import { CreditBadge, CREDIT_COSTS } from '../components/CreditBadge';
 import { DrExame } from '../components/DrExame';
@@ -283,7 +284,7 @@ const HistoryRow = ({ conv, active, onOpen, onRename, onDelete }: { conv: Conv; 
       <IconButton size="small" edge="end" onClick={(e) => { e.stopPropagation(); setMenu(e.currentTarget); }}><MoreVertIcon fontSize="small" sx={{ color: 'text.secondary' }} /></IconButton>
       <Menu anchorEl={menu} open={!!menu} onClose={() => setMenu(null)} slotProps={{ paper: { sx: { borderRadius: 2 } } }}>
         <MenuItem onClick={() => { setMenu(null); const t = window.prompt('Título da conversa:', conv.title); if (t != null) onRename(t.trim() || conv.title); }}>✏️ Renomear</MenuItem>
-        <MenuItem onClick={() => { setMenu(null); if (window.confirm('Excluir esta conversa?')) onDelete(); }} sx={{ color: 'error.main' }}><DeleteIcon fontSize="small" sx={{ mr: 1 }} /> Excluir</MenuItem>
+        <MenuItem onClick={async () => { setMenu(null); if (await confirmDialog({ title: 'Excluir conversa', message: 'Excluir esta conversa?', confirmLabel: 'Excluir' })) onDelete(); }} sx={{ color: 'error.main' }}><DeleteIcon fontSize="small" sx={{ mr: 1 }} /> Excluir</MenuItem>
       </Menu>
     </ListItemButton>
   );

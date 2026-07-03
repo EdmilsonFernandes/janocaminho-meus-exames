@@ -7,6 +7,7 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Title, useNotify } from 'react-admin';
 import { API_URL, token } from '../../config';
+import { confirmDialog } from '../../components/ConfirmDialog';
 import { Capacitor } from '@capacitor/core';
 import { openBlobFile } from '../../utils/nativeDoc';
 import { HealthSummary } from '../../components/HealthSummary';
@@ -125,7 +126,7 @@ export const ExamShow = () => {
     finally { setAttesting(false); }
   };
   const rejectExam = async () => {
-    if (!window.confirm('Este exame NÃO é deste paciente? Ele será excluído definitivamente.')) return;
+    if (!(await confirmDialog({ title: 'Excluir exame', message: 'Este exame NÃO é deste paciente? Ele será excluído definitivamente.', confirmLabel: 'Excluir' }))) return;
     setAttesting(true);
     try {
       const r = await fetch(`${API_URL}/exams/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });

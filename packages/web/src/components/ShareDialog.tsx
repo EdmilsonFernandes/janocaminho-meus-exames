@@ -9,6 +9,7 @@ import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import QrCode2Icon from '@mui/icons-material/QrCode2';
 import LockIcon from '@mui/icons-material/Lock';
 import { API_URL, token } from '../config';
+import { confirmDialog } from './ConfirmDialog';
 
 /**
  * Gera e mostra um link seguro (12h) + PIN + QR p/ compartilhar com o médico.
@@ -53,7 +54,7 @@ export const ShareDialog = ({ analysisId, open, onClose }: { analysisId?: string
 
   const revoke = async () => {
     if (!analysisId || revoked) return;
-    if (!window.confirm('Revogar este link de acesso? O médico perde o acesso na mesma hora.')) return;
+    if (!(await confirmDialog({ title: 'Revogar link', message: 'O médico perde o acesso na mesma hora.', confirmLabel: 'Revogar' }))) return;
     setRevoking(true);
     try {
       const r = await fetch(`${API_URL}/analyses/${analysisId}/share`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });

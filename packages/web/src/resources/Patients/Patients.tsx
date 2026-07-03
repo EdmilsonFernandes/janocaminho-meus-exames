@@ -5,6 +5,7 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import { PhotoUpload } from '../../components/PhotoUpload';
 import { photoUrlFor, API_URL, token } from '../../config';
+import { confirmDialog } from '../../components/ConfirmDialog';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 
@@ -30,7 +31,7 @@ const PatientCards = () => {
   const [deleting, setDeleting] = useState<string | null>(null);
 
   const handleDelete = async (id: string, name: string) => {
-    if (!window.confirm(`Excluir "${name}" e TODOS os exames/análises deste perfil? Não dá pra desfazer.`)) return;
+    if (!(await confirmDialog({ title: 'Excluir perfil', message: `Excluir "${name}" e TODOS os exames/análises deste perfil? Não dá pra desfazer.`, confirmLabel: 'Excluir' }))) return;
     setDeleting(id);
     try {
       const r = await fetch(`${API_URL}/patients/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });

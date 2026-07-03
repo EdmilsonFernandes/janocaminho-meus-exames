@@ -5,6 +5,7 @@ import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import DocumentScannerIcon from '@mui/icons-material/DocumentScanner';
 import { Title, useNotify, useRedirect, useRefresh } from 'react-admin';
 import { API_URL, token } from '../../config';
+import { confirmDialog } from '../../components/ConfirmDialog';
 import { useSelectedPatient } from '../../patient-context';
 import { CREDIT_COSTS } from '../../components/CreditBadge';
 import { Capacitor } from '@capacitor/core';
@@ -160,7 +161,7 @@ export const ExamCreate = () => {
         const n = norm(f.name);
         return n.length > 3 && titles.some((t) => t === n || (t.length > 3 && (t.includes(n) || n.includes(t))));
       });
-      if (suspicious && !window.confirm('Parece que você já enviou um exame com nome parecido pra este perfil. Quer enviar mesmo assim?')) return;
+      if (suspicious && !(await confirmDialog({ title: 'Exame duplicado?', message: 'Parece que você já enviou um exame com nome parecido pra este perfil. Quer enviar mesmo assim?', confirmLabel: 'Enviar', tone: 'warning' }))) return;
     } catch { /* falhou a checagem — segue o upload (sha256 continua protegendo) */ }
     setBusy(true);
     setProgress({ done: 0, total: files.length, errors: [] });

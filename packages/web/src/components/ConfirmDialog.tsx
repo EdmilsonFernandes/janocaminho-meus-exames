@@ -4,27 +4,40 @@ import CloseIcon from '@mui/icons-material/Close';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 
-export interface ConfirmDialogProps {
-  open: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
+export type ConfirmTone = 'danger' | 'warning' | 'primary';
+export interface ConfirmOptions {
   title: string;
   message?: React.ReactNode;
   confirmLabel?: string;
   cancelLabel?: string;
   /** danger = vermelho (excluir); warning = laranja; primary = verde/teal. */
-  tone?: 'danger' | 'warning' | 'primary';
+  tone?: ConfirmTone;
+}
+export interface ConfirmDialogProps extends ConfirmOptions {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
   loading?: boolean;
 }
+
+const ICON_BY_TONE: Record<ConfirmTone, React.ComponentType<{ fontSize?: 'small' | 'inherit' | 'large' | 'medium' }>> = {
+  danger: DeleteOutlineIcon, warning: WarningAmberIcon, primary: WarningAmberIcon,
+};
+const COLOR_BY_TONE: Record<ConfirmTone, 'error' | 'warning' | 'primary'> = { danger: 'error', warning: 'warning', primary: 'primary' };
 
 /**
  * Dialog de confirmação PREMIUM — substitui o window.confirm nativo (feio, parece gambiarra).
  * Padrão "app top premium": título com ícone circular colorido, mensagem, botões pill cheios
- * (Cancelar outlined / Confirmar contained). Dialog portaliza — pode ficar em qualquer ponto do JSX.
+ * (Cancelar outlined / Confirmar contained).
+ *
+ * 2 formas de usar:
+ *  - IMPERATIVA (recomendada, 1 linha no handler): `if (!(await confirmDialog({ title, message }))) return;`
+ *    (requer <ConfirmDialogProvider> no root do App).
+ *  - CONTROLADA (state): <ConfirmDialog open onClose onConfirm ... />
  */
 export const ConfirmDialog = ({ open, onClose, onConfirm, title, message, confirmLabel = 'Confirmar', cancelLabel = 'Cancelar', tone = 'danger', loading }: ConfirmDialogProps) => {
-  const color = tone === 'danger' ? 'error' : tone === 'warning' ? 'warning' : 'primary';
-  const Icon = tone === 'danger' ? DeleteOutlineIcon : WarningAmberIcon;
+  const color = COLOR_BY_TONE[tone];
+  const Icon = ICON_BY_TONE[tone];
   return (
     <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.25, fontWeight: 800, pr: 6 }}>
@@ -42,5 +55,41 @@ export const ConfirmDialog = ({ open, onClose, onConfirm, title, message, confir
         <Button onClick={onConfirm} color={color} variant="contained" fullWidth disabled={loading} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 800, py: 0.85, boxShadow: 2 }}>{confirmLabel}</Button>
       </DialogActions>
     </Dialog>
+  );
+};
+
+// ───────────────── API IMPERATIVA (Promise<boolean>) ─────────────────
+// Provider registra a fn global; handlers chamam confirmDialog() e awaitam.
+let _open: ((o: ConfirmOptions) => Promise<boolean>) | null = null;
+
+/** Confirmação premium imperativa. Troca 1:1 o window.confirm:
+ *    if (!(await confirmDialog({ title: 'Excluir', message: '...' }))) return;
+ *  Requer <ConfirmDialogProvider> no root (App). Sem provider, cai no window.confirm (dev/SSR). */
+export const confirmDialog = (opts: ConfirmOptions): Promise<boolean> =>
+  _open ? _open(opts) : Promise.resolve(window.confirm(typeof opts.message === 'string' ? opts.message : opts.title));
+
+/** Renderiza o Dialog premium e registra a fn global. Envolver o App 1x (logo abaixo do tema/router). */
+export const ConfirmDialogProvider = ({ children }: { children: React.ReactNode }) => {
+  const [state, setState] = React.useState<{ opts: ConfirmOptions; resolve: (b: boolean) => void } | null>(null);
+  React.useEffect(() => {
+    _open = (opts) => new Promise<boolean>((resolve) => setState({ opts, resolve }));
+    return () => { _open = null; };
+  }, []);
+  const close = (v: boolean) => { state?.resolve(v); setState(null); };
+  const opts = state?.opts ?? { title: '' };
+  return (
+    <React.Fragment>
+      {children}
+      <ConfirmDialog
+        open={!!state}
+        onClose={() => close(false)}
+        onConfirm={() => close(true)}
+        title={opts.title}
+        message={opts.message}
+        confirmLabel={opts.confirmLabel}
+        cancelLabel={opts.cancelLabel}
+        tone={opts.tone}
+      />
+    </React.Fragment>
   );
 };

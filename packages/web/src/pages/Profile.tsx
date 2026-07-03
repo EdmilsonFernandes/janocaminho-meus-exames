@@ -9,6 +9,7 @@ import DownloadIcon from '@mui/icons-material/Download';
 import UploadIcon from '@mui/icons-material/Upload';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { API_URL, token, apiHeaders } from '../config';
+import { confirmDialog } from '../components/ConfirmDialog';
 import { ReferralCard } from '../components/ReferralCard';
 import { useSelectedPatient } from '../patient-context';
 import { PhotoUpload } from '../components/PhotoUpload';
@@ -68,8 +69,7 @@ export const ProfilePage = () => {
     else { const e = await r.json().catch(() => ({})); notify(e.error || 'Erro ao trocar senha', { type: 'error' }); }
   };
   const delAccount = async () => {
-    if (!window.confirm('ATENÇÃO: excluir a conta apaga TODOS os seus dados (exames, análises, perfil, fotos) definitivamente. NÃO dá pra desfazer. Continuar?')) return;
-    if (!window.confirm('Tem certeza ABSOLUTA? Todos os exames e análises serão perdidos para sempre.')) return;
+    if (!(await confirmDialog({ title: 'Excluir minha conta', message: 'ATENÇÃO: isso apaga TODOS os seus dados (exames, análises, perfil, fotos) definitivamente. NÃO dá pra desfazer.', confirmLabel: 'Excluir conta' }))) return;
     const r = await fetch(`${API_URL}/auth/account`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });
     if (r.ok) { localStorage.clear(); navigate('/landing', { replace: true }); }
     else notify('Falha ao excluir conta. Tente novamente.', { type: 'error' });
@@ -85,7 +85,7 @@ export const ProfilePage = () => {
   };
   const importData = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0]; if (!f) return;
-    if (!window.confirm('Importar cria NOVOS perfis/exames (não sobrescreve os atuais). Continuar?')) { e.target.value = ''; return; }
+    if (!(await confirmDialog({ title: 'Importar dados', message: 'Importar cria NOVOS perfis/exames (não sobrescreve os atuais).', confirmLabel: 'Importar', tone: 'primary' }))) { e.target.value = ''; return; }
     try {
       const r = await fetch(`${API_URL}/data/import`, { method: 'POST', headers: apiHeaders(true), body: await f.text() });
       const d = await r.json();

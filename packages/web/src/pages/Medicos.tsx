@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { Box, Card, CardContent, Typography, Button, TextField, CircularProgress, Stack, Chip, Avatar, IconButton, Alert, Divider, Switch, FormControlLabel, MenuItem, Menu as MuiMenu, Dialog, DialogTitle, DialogContent, DialogActions, InputAdornment } from '@mui/material';
 import { useNotify } from 'react-admin';
 import { API_URL, token } from '../config';
+import { confirmDialog } from '../components/ConfirmDialog';
 import { useSelectedPatient } from '../patient-context';
 import DeleteIcon from '@mui/icons-material/DeleteOutline';
 import BlockIcon from '@mui/icons-material/Block';
@@ -130,7 +131,7 @@ export const MedicosPage = () => {
   };
   const revoke = async (id: string) => {
     setMenuEl(null);
-    if (!confirm('Revogar compartilhamento? O médico perderá acesso aos seus dados.')) return;
+    if (!(await confirmDialog({ title: 'Revogar compartilhamento', message: 'O médico perderá acesso aos seus dados na mesma hora.', confirmLabel: 'Revogar' }))) return;
     await fetch(`${API_URL}/doctor-shares/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` }, body: JSON.stringify({ active: false }) });
     notify('Acesso revogado.', { type: 'success' }); load();
   };
@@ -143,7 +144,7 @@ export const MedicosPage = () => {
   // cadastro de compartilhamento (sem conta ativa nem outros shares), o cadastro dele também sai.
   const deleteShare = async (id: string) => {
     setMenuEl(null);
-    if (!confirm('EXCLUIR este compartilhamento? Diferente de revogar, isto APAGA o registro (some da lista). Se o médico não tiver conta ativa nem outros compartilhamentos, o cadastro dele também é removido. Continuar?')) return;
+    if (!(await confirmDialog({ title: 'Excluir compartilhamento', message: 'Isto APAGA o registro (some da lista). Se o médico não tiver conta ativa nem outros compartilhamentos, o cadastro dele também será removido.', confirmLabel: 'Excluir' }))) return;
     const r = await fetch(`${API_URL}/doctor-shares/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });
     if (r.ok) { notify('Compartilhamento excluído.', { type: 'success' }); load(); }
     else notify('Falha ao excluir.', { type: 'error' });

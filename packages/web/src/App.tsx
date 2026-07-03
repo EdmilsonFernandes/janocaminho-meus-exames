@@ -1,4 +1,5 @@
 import { Admin, Resource, CustomRoutes, Layout, AppBar, TitlePortal, AppBarProps, useLogout, useLocale, useSetLocale, useRefresh, useStore, LoadingIndicator } from 'react-admin';
+import { ConfirmDialogProvider } from './components/ConfirmDialog';
 import { Route, useNavigate, useLocation } from 'react-router-dom';
 import { useEffect, useState, useRef, lazy, Suspense } from 'react';
 import { Capacitor } from '@capacitor/core';
@@ -381,6 +382,7 @@ const AppLayout = (props: any) => {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('sm'));
   return (
+    <ConfirmDialogProvider>
     <DrawerProvider>
       <BiometricGate>
       {/* gap reduzido + espaço pra não cobrir conteúdo com o menu rodapé (mobile) */}
@@ -417,6 +419,7 @@ const AppLayout = (props: any) => {
       <CompleteProfileModal />
       </BiometricGate>
     </DrawerProvider>
+    </ConfirmDialogProvider>
   );
 };
 
