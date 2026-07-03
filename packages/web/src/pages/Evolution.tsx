@@ -9,6 +9,7 @@ import { useSelectedPatient } from '../patient-context';
 import { useNavigate } from 'react-router-dom';
 import { ExplainButton } from '../components/ExplainItem';
 import { CATS, categorize } from '../utils/medicalData';
+import { displayStatus } from '../utils/examStatus';
 import { summarizeTrends, trendHeadline, VERDICT_META } from '../utils/evolutionSummary';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
@@ -213,7 +214,12 @@ const EvoRow = ({ it, defaultExpanded }: { it: EvoItem; defaultExpanded?: boolea
                       <Box sx={{ bgcolor: 'background.paper', border: `1px solid ${lineColor}`, borderRadius: 1.5, px: 1.25, py: 0.75, boxShadow: 2 }}>
                         <Typography sx={{ fontWeight: 800, color: lineColor, lineHeight: 1.1 }}>{d.v}{it.unit ? ` ${it.unit}` : ''}</Typography>
                         <Typography variant="caption" sx={{ color: 'text.secondary' }}>{d.date}</Typography>
-                        {d.flag && d.flag !== 'NORMAL' && <Typography variant="caption" sx={{ display: 'block', color: '#ef4444', fontWeight: 700 }}>{d.flag}</Typography>}
+                        {(() => {
+                          // Status TRADUZIDO (nunca 'UNKNOWN' cru — antes aparecia "unknown" no tooltip).
+                          const s = displayStatus(d.flag, it.nameCanonical, it.refLow, it.refHigh);
+                          if (s.tone === 'normal' || s.short === '—') return null;
+                          return <Typography variant="caption" sx={{ display: 'block', color: '#ef4444', fontWeight: 700 }}>{s.label}</Typography>;
+                        })()}
                       </Box>
                     );
                   }}

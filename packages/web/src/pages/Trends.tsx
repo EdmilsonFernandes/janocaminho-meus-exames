@@ -84,6 +84,13 @@ export const TrendsPage = () => {
     }
   }
 
+  // Valor atual + variação % + range de datas (cabeçalho igual apps de referência: valor grande + %change + range)
+  const pts2 = ts?.points ?? [];
+  const firstPt = pts2[0];
+  const lastPt = pts2[pts2.length - 1];
+  const pctChange = firstPt && lastPt && firstPt.valueNumeric ? Math.round(((lastPt.valueNumeric - firstPt.valueNumeric) / Math.abs(firstPt.valueNumeric)) * 100) : null;
+  const fmt2 = (d?: string | null) => (d ? new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }) : 's/d');
+
   // Tendência precisa de ≥2 pontos p/ comparar — esconde analitos com só 1 resultado do dropdown.
   const multi = names.filter((n) => n.count >= 2);
 
@@ -154,14 +161,28 @@ export const TrendsPage = () => {
             <ExplainButton name={ts.nameCanonical} nameCanonical={ts.nameCanonical} />
           </Stack>
 
-          {/* Chips: último valor + tendência + faixa */}
-          <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mb: 1.5 }}>
-            <Chip size="small" color="primary" label={`Último: ${data[data.length - 1].valor}${ts.unit ? ' ' + ts.unit : ''}`} />
-            {predict?.dir === 'up' && <Chip size="small" color="warning" label="↑ Subindo" />}
-            {predict?.dir === 'down' && <Chip size="small" color="info" label="↓ Caindo" />}
-            {predict?.dir === 'stable' && <Chip size="small" color="success" label="→ Estável" />}
-            {(ts.refLow != null && ts.refHigh != null) && <Chip size="small" variant="outlined" label={`Faixa ${ts.refLow}–${ts.refHigh}`} />}
-          </Stack>
+          {/* Cabeçalho (igual apps de referência): valor atual grande + variação % + range de datas + resumo da tendência */}
+          <Box sx={{ mb: 1.5 }}>
+            <Stack direction="row" alignItems="baseline" spacing={1.25} flexWrap="wrap">
+              <Typography sx={{ fontSize: 30, fontWeight: 800, lineHeight: 1, color: predict?.dir === 'up' ? '#e65100' : predict?.dir === 'down' ? '#0b5cab' : '#178f89' }}>
+                {lastPt?.valueNumeric ?? '—'}{ts?.unit ? ` ${ts.unit}` : ''}
+              </Typography>
+              {pctChange != null && pctChange !== 0 && (
+                <Typography sx={{ fontWeight: 700, color: pctChange > 0 ? '#e65100' : '#0b5cab' }}>
+                  {pctChange > 0 ? '↑' : '↓'} {Math.abs(pctChange)}%
+                </Typography>
+              )}
+            </Stack>
+            {firstPt && lastPt && (
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                {firstPt.valueNumeric}{ts?.unit ? ` ${ts.unit}` : ''} ({fmt2(firstPt.performedAt)}) → {lastPt.valueNumeric}{ts?.unit ? ` ${ts.unit}` : ''} ({fmt2(lastPt.performedAt)})
+              </Typography>
+            )}
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+              {predict?.dir === 'up' ? 'Subindo' : predict?.dir === 'down' ? 'Caindo' : 'Estável'} em {data.length} {data.length === 1 ? 'medição' : 'medições'}.
+              {(ts?.refLow != null && ts?.refHigh != null) ? ` Faixa de referência: ${ts.refLow}–${ts.refHigh}${ts?.unit ? ` ${ts.unit}` : ''}.` : ''}
+            </Typography>
+          </Box>
 
           {/* Gráfico */}
           <ResponsiveContainer width="100%" height={isMobile ? 240 : 340}>
