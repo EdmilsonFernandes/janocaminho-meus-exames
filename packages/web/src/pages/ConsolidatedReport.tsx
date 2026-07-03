@@ -11,6 +11,7 @@ import TrackChangesIcon from '@mui/icons-material/TrackChanges';
 import LiveHelpIcon from '@mui/icons-material/LiveHelp';
 import InsightsIcon from '@mui/icons-material/Insights';
 import { API_URL, apiHeaders } from '../config';
+import { bumpCredits } from '../utils/credits-events';
 import { speakText, stopSpeakText } from '../utils/nativeDoc';
 import { useSelectedPatient } from '../patient-context';
 import { ShareDialog } from '../components/ShareDialog';
@@ -81,7 +82,7 @@ export const ConsolidatedReportPage = () => {
         if (r.status === 400) { setNoExams(true); return null; }     // sem exame → CTA enviar exame (não erro)
         throw new Error(body.message || body.error || 'Falha ao gerar relatório');
       })
-      .then((a) => { if (a) setAnalysis(a); })
+      .then((a) => { if (a) { setAnalysis(a); bumpCredits(); } })   // atualiza o saldo do header (consolidated consome)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   };

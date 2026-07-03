@@ -10,6 +10,7 @@ import ReactMarkdown from 'react-markdown';
 import { API_URL, token } from '../../config';
 import { useSelectedPatient } from '../../patient-context';
 import { PRIORITY_META } from '../../utils/alertPriority';
+import { bumpCredits } from '../../utils/credits-events';
 
 // Custo em créditos do plano de ação — manter sincronizado com CREDIT_COSTS.actionPlan (server).
 const ACTION_PLAN_COST = 8;
@@ -107,7 +108,7 @@ export const RiskCard = () => {
         if (!res.ok) { setPlanErr('error'); return null; }
         return res.json();
       })
-      .then((d) => { if (d?.contentMd) setPlan(d.contentMd); })
+      .then((d) => { if (d?.contentMd) { setPlan(d.contentMd); bumpCredits(); } })   // atualiza o saldo do header (plano consome)
       .catch(() => setPlanErr('error'))
       .finally(() => setPlanLoading(false));
   }, [pid, planLoading]);

@@ -17,7 +17,14 @@ export const CreditsChip = () => {
     const h = () => load();
     window.addEventListener('selPatientChanged', h);
     window.addEventListener('creditsChanged', h);
-    return () => { window.removeEventListener('selPatientChanged', h); window.removeEventListener('creditsChanged', h); };
+    document.addEventListener('visibilitychange', h);   // rede de segurança: ao voltar pra aba/app refaz o saldo
+    window.addEventListener('focus', h);
+    return () => {
+      window.removeEventListener('selPatientChanged', h);
+      window.removeEventListener('creditsChanged', h);
+      document.removeEventListener('visibilitychange', h);
+      window.removeEventListener('focus', h);
+    };
   }, []);
   if (credits == null) return null;
   return (
