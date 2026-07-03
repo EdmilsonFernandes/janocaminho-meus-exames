@@ -50,6 +50,7 @@ export const EvolutionItemSchema = z.object({
   direction: z.enum(['up', 'down', 'stable']),
   predictMonths: z.number().nullable(),
   inRange: z.boolean(),
+  abnormal: z.boolean(),
   count: z.number(),
   points: z.array(EvoPointSchema),
 });

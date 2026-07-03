@@ -22,7 +22,10 @@ const fmtDate = (d: string | null) =>
 
 // "painel de controle": cada exame ganha um status visual
 type Status = 'out' | 'change' | 'stable';
-const statusOf = (it: EvoItem): Status => (!it.inRange ? 'out' : it.direction !== 'stable' ? 'change' : 'stable');
+// statusOf usa 'abnormal' (isAbnormal stored c/ reconcileScaleFlag) — alinhado com o Dashboard.
+// Antes usava '!inRange' (recompute do valor vs faixa), que ignorava a reconciliação de escala
+// e inflava o 'fora da faixa' com marcadores incertos (Dashboard=2 vs Evolução=10).
+const statusOf = (it: EvoItem): Status => (it.abnormal ? 'out' : it.direction !== 'stable' ? 'change' : 'stable');
 const STATUS_META: Record<Status, { emoji: string; label: string; color: string }> = {
   out: { emoji: '🔴', label: 'Fora da faixa', color: '#ef4444' },
   change: { emoji: '🟠', label: 'Em mudança', color: '#f59e0b' },

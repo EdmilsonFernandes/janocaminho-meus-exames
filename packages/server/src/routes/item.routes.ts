@@ -165,6 +165,11 @@ router.get('/evolution', async (req: AuthedRequest, res, next) => {
         firstDate: first.exam.performedAt, lastDate: last.exam.performedAt,
         pctChange: pct, direction: dir, predictMonths,
         inRange: (refLow == null || v1 >= refLow) && (refHigh == null || v1 <= refHigh),
+        // 'abnormal' = isAbnormal STORED do último item (já passa pelo reconcileScaleFlag, que
+        // rebaixa conflitos de escala a UNKNOWN). Alinha o 'fora da faixa' da Evolução com o
+        // Dashboard/CurrentStateCard — antes o recompute (inRange) ignorava a reconciliação e
+        // contava marcadores incertos (conflito de escala) como 'fora', inflando o número.
+        abnormal: !!last.isAbnormal,
         count: items.length,
         points: items.map((i) => ({ value: i.valueNumeric, date: i.exam.performedAt, flag: i.flag, examId: i.exam.id, examTitle: i.exam.title })),
       });
