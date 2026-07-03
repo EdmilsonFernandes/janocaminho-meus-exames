@@ -38,7 +38,9 @@ export interface MarkerRule {
   key: string;         // chave canônica do server (ex.: 'GLICEMIA')
   namePt: string;
   unit: string;        // unidade padrão esperada
-  bands: RiskBand[];   // avaliadas em ordem; 1ª que casa => finding (bandas excludentes)
+  bands: RiskBand[];   // default (feminina ou neutra). 1ª que casa => finding (excludentes).
+  bandsMale?: RiskBand[]; // masculinas quando Patient.gender === 'male'. Sem ele => usa `bands`.
+  source?: string;     // citação/diretriz (M4: "por quê?" no card). Ex.: 'OMS/WHO anemia'.
 }
 
 export interface RiskRules {
@@ -127,11 +129,21 @@ export const RISK_RULES: RiskRules = {
       ],
     },
     {
-      // Faixa feminina (mais sensível). Sexo-aware = V1.1 (Patient.gender).
+      // Sexo-aware (M1/V1.1): bands = feminina (OMS: anemia Hb<12); bandsMale = masculina (OMS: Hb<13).
+      // Sem sexo => usa `bands` (feminina, mais sensível: não perde anemia em homens).
       key: 'HEMOGLOBINA', namePt: 'Hemoglobina', unit: 'g/dL',
+      source: 'OMS/WHO — anemia (Hb g/dL): homem <13; mulher <12; gravidez <11',
       bands: [
         { min: 11, max: 11.9, severity: 'low', condition: 'anemia',
           finding: 'Hemoglobina abaixo do esperado (11,0–11,9) — possível alteração sugestiva de anemia leve' },
+        { min: 8, max: 10.9, severity: 'moderate', condition: 'anemia',
+          finding: 'Hemoglobina baixa (8,0–10,9) — possível anemia moderada' },
+        { max: 7.9, severity: 'high', condition: 'anemia',
+          finding: 'Hemoglobina muito baixa (<8,0) — procure avaliação médica' },
+      ],
+      bandsMale: [
+        { min: 11, max: 12.9, severity: 'low', condition: 'anemia',
+          finding: 'Hemoglobina abaixo do esperado para homem (11,0–12,9) — possível alteração sugestiva de anemia leve' },
         { min: 8, max: 10.9, severity: 'moderate', condition: 'anemia',
           finding: 'Hemoglobina baixa (8,0–10,9) — possível anemia moderada' },
         { max: 7.9, severity: 'high', condition: 'anemia',

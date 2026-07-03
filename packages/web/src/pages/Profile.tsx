@@ -26,6 +26,8 @@ export const ProfilePage = () => {
   const [phone, setPhone] = useState('');
   const [clinical, setClinical] = useState('');
   const [gender, setGender] = useState('');
+  const [heightCm, setHeightCm] = useState('');
+  const [ethnicity, setEthnicity] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [saving, setSaving] = useState(false);
   const [photoVer, setPhotoVer] = useState(0); // cache-bust sincronizado entre header
@@ -39,7 +41,7 @@ export const ProfilePage = () => {
     if (me.ok) { const mu = (await me.json())?.user; setUser(mu); setAchAlerts(mu?.achievementAlerts ?? true); }
     if (pid) {
       const pr = await fetch(`${API_URL}/patients/${pid}`, { headers: h });
-      if (pr.ok) { const p = await pr.json(); setPatient(p); setFullName(p.fullName ?? ''); setPhone(p.phone ?? ''); setClinical(p.clinicalProfile ?? ''); setGender(p.gender ?? ''); setBirthDate(p.dateOfBirth ? p.dateOfBirth.split('T')[0] : ''); }
+      if (pr.ok) { const p = await pr.json(); setPatient(p); setFullName(p.fullName ?? ''); setPhone(p.phone ?? ''); setClinical(p.clinicalProfile ?? ''); setGender(p.gender ?? ''); setHeightCm(p.heightCm != null ? String(p.heightCm) : ''); setEthnicity(p.ethnicity ?? ''); setBirthDate(p.dateOfBirth ? p.dateOfBirth.split('T')[0] : ''); }
     }
   };
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [pid]);
@@ -47,7 +49,7 @@ export const ProfilePage = () => {
   const saveProfile = async () => {
     if (!pid) return;
     setSaving(true);
-    const r = await fetch(`${API_URL}/patients/${pid}`, { method: 'PUT', headers: apiHeaders(true), body: JSON.stringify({ fullName, phone, clinicalProfile: clinical, gender, dateOfBirth: birthDate || null }) });
+    const r = await fetch(`${API_URL}/patients/${pid}`, { method: 'PUT', headers: apiHeaders(true), body: JSON.stringify({ fullName, phone, clinicalProfile: clinical, gender, heightCm: heightCm ? Number(heightCm) : null, ethnicity, dateOfBirth: birthDate || null }) });
     setSaving(false);
     notify(r.ok ? 'Perfil atualizado!' : 'Erro ao salvar', { type: r.ok ? 'success' : 'error' });
   };
@@ -137,6 +139,15 @@ export const ProfilePage = () => {
               <MenuItem value="">Prefiro não informar (usa Homens)</MenuItem>
               <MenuItem value="female">Feminino</MenuItem>
               <MenuItem value="male">Masculino</MenuItem>
+            </TextField>
+            <TextField type="number" label="Altura (cm)" value={heightCm} onChange={(e) => setHeightCm(e.target.value)} fullWidth size="small" helperText="Usada pra calcular o IMC e contextualizar exames." />
+            <TextField select label="Etnia (opcional)" value={ethnicity} onChange={(e) => setEthnicity(e.target.value)} fullWidth size="small" helperText="Dados demográficos ajudam a refinar futuras análises.">
+              <MenuItem value="">Prefiro não informar</MenuItem>
+              <MenuItem value="branca">Branca</MenuItem>
+              <MenuItem value="preta">Preta</MenuItem>
+              <MenuItem value="parda">Parda</MenuItem>
+              <MenuItem value="amarela">Amarela</MenuItem>
+              <MenuItem value="indigena">Indígena</MenuItem>
             </TextField>
             <TextField type="date" label="Data de nascimento" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} fullWidth size="small" InputLabelProps={{ shrink: true }} helperText="Usado pra calcular idade e ajustar faixas de referência." />
             <TextField

@@ -1,4 +1,13 @@
 {
   "auth.errors.blocked": "We've identified an issue with your account. To resolve it and continue using the app, please contact our support: contato@janocaminho.com.br",
-  "auth.errors.invalidCredentials": "Incorrect email or password."
+  "auth.errors.invalidCredentials": "Incorrect email or password.",
+  "profile.complete.title": "Complete your profile",
+  "profile.complete.subtitle": "These details personalize your exam reading (e.g., anemia by sex, BMI). Takes 10 seconds.",
+  "profile.complete.gender": "Sex",
+  "profile.complete.height": "Height (cm)",
+  "profile.complete.ethnicity": "Ethnicity (optional)",
+  "profile.complete.ethnicityPreferNot": "Prefer not to say",
+  "profile.complete.dob": "Date of birth",
+  "profile.complete.skip": "Not now",
+  "profile.complete.save": "Save"
 }

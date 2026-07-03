@@ -37,6 +37,25 @@ describe('risk-engine.assessRisk', () => {
     expect(['moderate', 'high']).toContain(r.riskLevel);
   });
 
+  it('hemoglobina gender-aware: Hb 12.5 é anemia leve no homem, normal na mulher', () => {
+    // homem (OMS: anemia Hb<13) => 12.5 cai na banda masculina 11–12.9 (low)
+    const m = assessRisk([mk('HEMOGLOBINA', 12.5, 'g/dL')], 'male');
+    expect(m.predictedConditionKey).toBe('anemia');
+    expect(m.findings.length).toBe(1);
+    expect(m.findings[0].severity).toBe('low');
+    // mulher (OMS: anemia Hb<12) => 12.5 fora das bandas femininas => sem finding
+    const f = assessRisk([mk('HEMOGLOBINA', 12.5, 'g/dL')], 'female');
+    expect(f.predictedConditionKey).toBe('none');
+    expect(f.findings.length).toBe(0);
+    // sem sexo => default feminina (mais sensível) => sem finding em 12.5
+    expect(assessRisk([mk('HEMOGLOBINA', 12.5, 'g/dL')]).findings.length).toBe(0);
+  });
+
+  it('hemoglobina gender-aware: Hb 9.5 -> moderate em ambos os sexos', () => {
+    expect(assessRisk([mk('HEMOGLOBINA', 9.5, 'g/dL')], 'male').findings.length).toBe(1);
+    expect(assessRisk([mk('HEMOGLOBINA', 9.5, 'g/dL')], 'female').findings.length).toBe(1);
+  });
+
   it('escalonamento multi-sistema: HAS moderada + colesterol moderado -> high', () => {
     const r = assessRisk([
       mk('PRESSAO_SISTOLICA', 135, 'mmHg'), mk('PRESSAO_DIASTOLICA', 85, 'mmHg'),

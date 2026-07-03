@@ -118,7 +118,10 @@ markers:
           finding: "Triglicerídeos muito elevado (≥500) — atenção, risco de pancreatite — procure médico com urgência" }
 
   # ---- HEMOGRAMA (anemia) ----
-  # Sem sexo: faixa conservadora. Com sexo, sobrescrever via API.
+  # DRIFT C/ TS (M1): o motor TS (risk-rules.ts) agora é gender-aware — bands=feminina
+  # (OMS Hb<12), bandsMale=masculina (OMS Hb<13). Aqui no YAML (Python risk-ml, 2ª opinião
+  # NÃO-primary/futura) mantemos UMA faixa (masculina/conservadora: não perde anemia em ninguém).
+  # Paridade gender-aware no Python = trabalho futuro quando o risk-ml for revivido.
   haemoglobin:
     unit: g/dL
     name_pt: Hemoglobina

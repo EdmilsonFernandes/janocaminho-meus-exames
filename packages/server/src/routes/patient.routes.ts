@@ -16,7 +16,7 @@ router.use(requireAuth);
 // CRIAR paciente/dependente
 router.post('/', async (req: AuthedRequest, res, next) => {
   try {
-    const { fullName, relationship, dateOfBirth, clinicalProfile } = req.body ?? {};
+    const { fullName, relationship, dateOfBirth, clinicalProfile, heightCm, ethnicity } = req.body ?? {};
     if (!fullName || !String(fullName).trim()) {
       res.status(400).json({ error: 'Informe o nome.' });
       return;
@@ -45,6 +45,8 @@ router.post('/', async (req: AuthedRequest, res, next) => {
         relationship: relationship ? String(relationship) : null,
         dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
         clinicalProfile: clinicalProfile ? String(clinicalProfile) : null,
+        heightCm: heightCm != null && heightCm !== '' && Number.isFinite(Number(heightCm)) ? Math.round(Number(heightCm)) : null,
+        ethnicity: ethnicity ? String(ethnicity) : null,
       },
     });
     res.status(201).json(p);
@@ -225,10 +227,12 @@ router.put('/:id', async (req: AuthedRequest, res, next) => {
       res.status(403).json({ error: 'Paciente não pertence ao usuário' });
       return;
     }
-    const { fullName, relationship, dateOfBirth, clinicalProfile, phone, photoUrl, gender } = req.body ?? {};
+    const { fullName, relationship, dateOfBirth, clinicalProfile, phone, photoUrl, gender, heightCm, ethnicity } = req.body ?? {};
     const data: any = {};
     if (fullName != null) data.fullName = String(fullName);
     if (gender !== undefined) data.gender = gender ? String(gender) : null;
+    if (heightCm !== undefined) data.heightCm = heightCm != null && heightCm !== '' && Number.isFinite(Number(heightCm)) ? Math.round(Number(heightCm)) : null;
+    if (ethnicity !== undefined) data.ethnicity = ethnicity ? String(ethnicity) : null;
     if (relationship !== undefined) data.relationship = relationship ? String(relationship) : null;
     if (dateOfBirth !== undefined) data.dateOfBirth = dateOfBirth ? new Date(dateOfBirth) : null;
     if (clinicalProfile != null) data.clinicalProfile = String(clinicalProfile);

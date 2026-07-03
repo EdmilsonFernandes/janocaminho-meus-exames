@@ -85,7 +85,7 @@ function buildExplanation(conditions: Exclude<RiskCondition, 'none'>[],
 }
 
 /** Núcleo puro: avalia marcadores contra as regras. */
-export function assessRisk(markers: RiskMarker[]): RiskResult {
+export function assessRisk(markers: RiskMarker[], gender?: 'male' | 'female'): RiskResult {
   const { markers: markerRules, riskPolicy } = RISK_RULES;
   const rank = riskPolicy.severityRank;
   const ruleByKey = new Map(markerRules.map((m) => [m.key, m]));
@@ -98,7 +98,9 @@ export function assessRisk(markers: RiskMarker[]): RiskResult {
     if (!rule) continue; // marcador desconhecido das regras (ignora — não é do escopo)
     if (!Number.isFinite(m.value)) continue;
     evaluated++;
-    for (const band of rule.bands) {
+    // Sexo-aware (M1): homem usa bandsMale quando houver; demais => bands (feminina/neutra).
+    const bands = gender === 'male' && rule.bandsMale ? rule.bandsMale : rule.bands;
+    for (const band of bands) {
       if (bandMatches(m.value, band)) {
         findings.push({
           key: m.key,

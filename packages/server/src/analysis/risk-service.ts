@@ -121,7 +121,9 @@ export async function buildRiskAssessment(patientId: string, opts: BuildOptions 
   }
 
   const markers = await loadRiskMarkers(patientId);
-  const result = assessRisk(markers);
+  const pat = await prisma.patient.findUnique({ where: { id: patientId }, select: { gender: true } }).catch(() => null);
+  const gender = pat?.gender === 'male' || pat?.gender === 'female' ? pat.gender : undefined;
+  const result = assessRisk(markers, gender);
   const confidence = computeConfidence(result);
   const snapshot = markers.map((m) => ({ key: m.key, value: m.value, unit: m.unit ?? null, stale: m.stale ?? false }));
 

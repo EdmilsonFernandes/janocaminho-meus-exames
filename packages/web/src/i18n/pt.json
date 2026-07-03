@@ -1,4 +1,13 @@
 {
   "auth.errors.blocked": "Identificamos um problema com a sua conta. Para resolver e continuar usando o app, entre em contato com o nosso suporte: contato@janocaminho.com.br",
-  "auth.errors.invalidCredentials": "E-mail ou senha incorretos."
+  "auth.errors.invalidCredentials": "E-mail ou senha incorretos.",
+  "profile.complete.title": "Complete seu perfil",
+  "profile.complete.subtitle": "Esses dados personalizam a leitura dos seus exames (ex.: anemia por sexo, IMC). Leva 10 segundos.",
+  "profile.complete.gender": "Sexo",
+  "profile.complete.height": "Altura (cm)",
+  "profile.complete.ethnicity": "Etnia (opcional)",
+  "profile.complete.ethnicityPreferNot": "Prefiro não informar",
+  "profile.complete.dob": "Data de nascimento",
+  "profile.complete.skip": "Agora não",
+  "profile.complete.save": "Salvar"
 }
