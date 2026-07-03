@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { Box, Card, CardContent, Typography, Stack, Chip, CircularProgress, Button, IconButton, Collapse, Divider, Switch } from '@mui/material';
 import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
 import RefreshIcon from '@mui/icons-material/Refresh';
@@ -59,22 +59,16 @@ const TREND_CHIP: Record<string, { emoji: string; color: string; label: string }
   estavel: { emoji: '→', color: '#64748b', label: 'Risco estável' },
 };
 
-// Abrevia o nome do marcador pra caber num chip horizontal compacto (ex.: "Colesterol total" -> "Cole").
-// Defensivo: o servidor pode enviar finding sem namePt — nunca crashar o card por isso.
-const shortName = (name?: string) => {
-  const first = ((name ?? '').trim().split(/\s+/)[0]) ?? '';
-  return first.length > 4 ? first.slice(0, 4) : first;
-};
-
 export const RiskCard = () => {
   const navigate = useNavigate();
   const [pid] = useSelectedPatient();
   const [r, setR] = useState<(RiskResult & { id?: string; trend?: string; prior?: { riskLevel: string; createdAt: string } | null }) | null>(null);
   const [loading, setLoading] = useState(true);
   const [showQuestions, setShowQuestions] = useState(false);
-  // Compactação mobile: explicação truncada + detalhes dos findings sob demanda.
+  // Compactação mobile: explicação truncada. "Ver mais" só aparece se o texto transborda de fato (medido).
   const [showFull, setShowFull] = useState(false);
-  const [showDetails, setShowDetails] = useState(false);
+  const explanationRef = useRef<HTMLParagraphElement>(null);
+  const [hasMoreExplanation, setHasMoreExplanation] = useState(false);
   const [plan, setPlan] = useState<string | null>(null);
   const [planLoading, setPlanLoading] = useState(false);
   const [planErr, setPlanErr] = useState<null | 'credits' | 'error'>(null);
@@ -83,7 +77,7 @@ export const RiskCard = () => {
 
   // Reset estados derivados do paciente anterior ao trocar de perfil — não vazar
   // plano/feedback de um dependente (ex: Edmilson) pra outro (ex: Heloisa).
-  useEffect(() => { setPlan(null); setPlanErr(null); setFeedback(null); setShowQuestions(false); setShowFull(false); setShowDetails(false); }, [pid]);
+  useEffect(() => { setPlan(null); setPlanErr(null); setFeedback(null); setShowQuestions(false); setShowFull(false); setHasMoreExplanation(false); }, [pid]);
 
   const load = useCallback((force = false) => {
     if (!pid) { setLoading(false); setR(null); return; }
@@ -156,6 +150,14 @@ export const RiskCard = () => {
 
   useEffect(() => { load(false); }, [load]);
 
+  // "Ver mais" da explicação só aparece se o texto REALMENTE transborda o clamp de 3 linhas
+  // (scrollHeight > clientHeight) — não por contagem de chars, que mostrava o botão até sem texto extra.
+  useEffect(() => {
+    const el = explanationRef.current;
+    if (showFull || !el) { setHasMoreExplanation(false); return; }
+    setHasMoreExplanation(el.scrollHeight - el.clientHeight > 2);
+  }, [r, showFull]);
+
   if (loading) {
     return (
       <Card sx={{ mt: 2, borderRadius: 4, minHeight: 96, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5 }}>
@@ -213,11 +215,12 @@ export const RiskCard = () => {
           {r.predictedCondition}
         </Typography>
 
-        {/* explicação truncada com "Ver mais" — mobile não precisa rolar o parágrafo todo */}
+        {/* explicação truncada com "Ver mais" — só aparece se o texto transborda de fato (medido, não por contagem de chars) */}
         <Typography
+          ref={explanationRef}
           variant="body2"
           sx={{
-            mb: r.userExplanation.length > 140 ? 0.5 : 1.25,
+            mb: (hasMoreExplanation || showFull) ? 0.5 : 1.25,
             color: 'text.primary', lineHeight: 1.45,
             display: showFull ? 'block' : '-webkit-box',
             WebkitLineClamp: showFull ? 'none' : 3,
@@ -227,48 +230,45 @@ export const RiskCard = () => {
         >
           {r.userExplanation}
         </Typography>
-        {r.userExplanation.length > 140 && (
+        {(hasMoreExplanation || showFull) && (
           <Button size="small" onClick={() => setShowFull((v) => !v)}
             sx={{ p: 0, mb: 1.25, textTransform: 'none', fontWeight: 700, color: 'primary.main', minWidth: 0, fontSize: '0.8rem' }}>
             {showFull ? 'Ver menos' : 'Ver mais'}
           </Button>
         )}
 
-        {/* o que chamou atenção — chips horizontais compactos (cabe em 1-2 linhas em vez de N) */}
+        {/* O que chamou atenção — 1 linha clara por finding (emoji + nome + valor/unidade + descrição).
+            Antes havia chips compactos ("38 Cole") E detalhes ("38 mg/dL · COLESTEROL HDL") duplicando a info;
+            agora cada finding aparece uma vez só, legível. */}
         {r.findings.length > 0 && (
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, mb: showDetails ? 1 : 1.25 }}>
-            {r.findings.map((f, i) => {
-              const pm = PRIORITY_META[SEV_TO_PRIO[f.severity]] ?? PRIORITY_META.leve;
-              return (
-                <Box key={i} component="span" title={`${f.namePt ?? '—'} · ${f.value} ${f.unit ?? ''} · ${f.finding ?? ''}`} sx={{ display: 'inline-flex' }}>
-                  <Chip size="small" label={`${pm.emoji} ${f.value} ${shortName(f.namePt)}`}
-                    sx={{ fontWeight: 700, height: 24, bgcolor: pm.color + '22', color: pm.color }} />
-                </Box>
-              );
-            })}
-            <Button size="small" onClick={() => setShowDetails((v) => !v)}
-              endIcon={<ExpandMoreIcon sx={{ transform: showDetails ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }} />}
-              sx={{ p: 0, textTransform: 'none', fontWeight: 700, color: 'text.secondary', minWidth: 0, fontSize: '0.8rem', height: 24 }}>
-              {showDetails ? 'Ocultar' : 'Detalhes'}
-            </Button>
-          </Box>
-        )}
-        {/* detalhes completos dos findings (sob demanda) — nome + descrição como antes */}
-        {showDetails && r.findings.length > 0 && (
-          <Stack spacing={0.75} sx={{ mb: 1.25 }}>
-            {r.findings.map((f, i) => {
-              const pm = PRIORITY_META[SEV_TO_PRIO[f.severity]] ?? PRIORITY_META.leve;
-              return (
-                <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, py: 0.4, borderBottom: i < r.findings.length - 1 ? '1px dashed' : 'none', borderColor: 'divider' }}>
-                  <Chip size="small" label={`${pm.emoji} ${f.value} ${f.unit ?? ''}`} sx={{ fontWeight: 700, height: 20, flexShrink: 0, bgcolor: pm.color + '22', color: pm.color }} />
-                  <Box sx={{ minWidth: 0 }}>
-                    <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', lineHeight: 1.2 }}>{f.namePt ?? f.finding}</Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1.3, display: 'block' }}>{f.finding}</Typography>
+          <Box sx={{ mb: 1.25 }}>
+            <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', display: 'block', mb: 0.5, fontSize: '0.72rem', letterSpacing: '0.03em' }}>
+              ⚠️ O QUE CHAMOU ATENÇÃO
+            </Typography>
+            <Stack divider={<Divider flexItem sx={{ borderColor: 'divider', borderStyle: 'dashed' }} />}>
+              {r.findings.map((f, i) => {
+                const pm = PRIORITY_META[SEV_TO_PRIO[f.severity]] ?? PRIORITY_META.leve;
+                return (
+                  <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, py: 0.6 }}>
+                    <Box sx={{ fontSize: '0.95rem', lineHeight: 1.3, flexShrink: 0, mt: 0.1 }}>{pm.emoji}</Box>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Stack direction="row" justifyContent="space-between" alignItems="baseline" gap={1} flexWrap="wrap" useFlexGap>
+                        <Typography sx={{ fontWeight: 700, fontSize: '0.88rem', lineHeight: 1.2 }}>{f.namePt ?? f.finding ?? '—'}</Typography>
+                        <Typography component="span" sx={{ fontWeight: 800, fontSize: '0.82rem', color: pm.color, whiteSpace: 'nowrap' }}>
+                          {f.value}{f.unit ? ` ${f.unit}` : ''}
+                        </Typography>
+                      </Stack>
+                      {f.finding && f.finding !== f.namePt && (
+                        <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1.35, display: 'block', mt: 0.15 }}>
+                          {f.finding}
+                        </Typography>
+                      )}
+                    </Box>
                   </Box>
-                </Box>
-              );
-            })}
-          </Stack>
+                );
+              })}
+            </Stack>
+          </Box>
         )}
 
         {/* perguntas pro médico (colapsável) */}
