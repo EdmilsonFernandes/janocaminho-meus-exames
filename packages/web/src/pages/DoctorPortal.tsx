@@ -714,6 +714,26 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                       </Stack>
                     </Box>
                   )}
+                  {preVisit.patterns?.length > 0 && (
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>🧬 PADRÕES (sistemas com alteração)</Typography>
+                      <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.25 }}>
+                        {preVisit.patterns.map((p: any, i: number) => (
+                          <Chip key={i} size="small" label={`${p.emoji} ${p.title} (${p.markers.length})`} sx={{ height: 20, fontSize: 10, bgcolor: 'action.hover', color: 'text.primary', fontWeight: 600 }} />
+                        ))}
+                      </Stack>
+                    </Box>
+                  )}
+                  {preVisit.followUpTests?.length > 0 && (
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>🧪 EXAMES DE SEGUIMENTO SUGERIDOS</Typography>
+                      <Stack spacing={0.25} sx={{ mt: 0.25 }}>
+                        {preVisit.followUpTests.map((t: string, i: number) => (
+                          <Typography key={i} variant="body2" sx={{ color: 'text.secondary' }}>• {t}</Typography>
+                        ))}
+                      </Stack>
+                    </Box>
+                  )}
                   {preVisit.patientQuestions?.length > 0 && (
                     <Box>
                       <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>💬 PERGUNTAS RECENTES NO APP</Typography>

@@ -59,6 +59,7 @@ export interface RiskRules {
   doctorQuestions: Partial<Record<Exclude<RiskCondition, 'none'>, string[]>>;
   narratives: Partial<Record<Exclude<RiskCondition, 'none'>, string>>;
   conditionLabel: Record<RiskCondition, string>;
+  followUpTests: Partial<Record<Exclude<RiskCondition, 'none'>, string[]>>;
 }
 
 export const RISK_RULES: RiskRules = {
@@ -276,6 +277,19 @@ export const RISK_RULES: RiskRules = {
     renal: 'Possível comprometimento renal',
     obesidade: 'Possível sobrepeso/obesidade',
     insulinica: 'Possível resistência insulínica',
+  },
+
+  // M5 — exames de SEGUIMENTO sugeridos por condição (determinístico; estilo BloodGPT).
+  followUpTests: {
+    prediabetes: ['Glicemia de jejum', 'Hemoglobina glicada (HbA1c)', 'Insulina + HOMA-IR'],
+    diabetes: ['Glicemia de jejum', 'HbA1c', 'Curva glicêmica (TOTG)', 'Microalbuminúria'],
+    hypertension: ['Mapa de pressão 24h', 'Creatinina + eGFR', 'Eletrocardiograma'],
+    high_cholesterol: ['Perfil lipídico completo', 'LDL direto', 'Lp(a)'],
+    cardiovascular_risk: ['Perfil lipídico', 'PCR ultrassensível', 'Eletrocardiograma'],
+    anemia: ['Hemograma completo', 'Ferritina + saturação de transferrina', 'Vitamina B12 + ácido fólico'],
+    renal: ['Creatinina + eGFR', 'Relação albumina/creatinina urinária', 'Sódio e potássio'],
+    obesidade: ['IMC + circunferência abdominal', 'Glicemia + HbA1c', 'Perfil lipídico'],
+    insulinica: ['Insulina + HOMA-IR', 'Glicemia + HbA1c', 'Curva glicêmica (TOTG)'],
   },
 };
 

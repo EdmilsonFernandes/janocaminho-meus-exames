@@ -17,6 +17,8 @@ import { requireAuth, AuthedRequest } from '../middleware/auth';
 import { lookupCfm } from '../utils/cfm';
 import { buildCurrentHealthSummary, priorityOfItem, PRIORITY_RANK } from '../analysis/health-state';
 import { latestRiskAssessment, buildRiskAssessment } from '../analysis/risk-service';
+import { summarizePatterns } from '../analysis/health-patterns';
+import { RISK_RULES } from '../analysis/risk-rules';
 import { generateActionPlan } from '../analysis/risk-action-plan';
 import { generateConsolidatedSummary } from '../analysis/health-summary';
 import { generateSoap } from '../analysis/doctor-soap';
@@ -656,6 +658,8 @@ router.get('/patients/:patientId/pre-visit', requireDoctor, async (req: any, res
       lastVisit: lastNote?.createdAt ?? null,
       score: snapshot.score,
       markers: snapshot.markers,
+      patterns: summarizePatterns(snapshot.topAttention),
+      followUpTests: [...new Set((risk?.result?.conditions ?? []).flatMap((c: any) => (RISK_RULES.followUpTests as any)[c] ?? []))].slice(0, 8),
     });
   } catch (e) { next(e); }
 });
