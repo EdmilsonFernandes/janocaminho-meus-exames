@@ -10,7 +10,7 @@ import { sendPush, sendPushToUser, PUSH_TOPIC } from '../utils/push';
 import { sendEmail } from '../utils/mailer';
 import { upload } from '../middleware/upload';
 import { audit } from '../utils/audit';
-import { getConfigRows, getActiveProvider, AI_PROVIDERS, type AiProviderName } from '../llm/ai-config';
+import { getConfigRows, getActiveProvider, AI_PROVIDERS, resolveProviderConfig, type AiProviderName } from '../llm/ai-config';
 import { refreshLlm, testLlmConnection } from '../llm';
 import { encryptPII } from '../utils/crypto';
 
@@ -91,13 +91,21 @@ router.patch('/config/costs', async (req, res, next) => {
 });
 
 // ===== IA — config do provedor (banco, editável aqui na aba IA) =====
+// Resposta EFETIVA (banco → .env → default): mostra o que TÁ RODANDO (baseURL/modelo/chave mascarada),
+// mesmo quando NÃO há linha no banco (cai no .env). A chave nunca vem completa — só •••• + últimos 4.
+function aiConfigResponse() {
+  const active = getActiveProvider();
+  const providers = AI_PROVIDERS.map((p) => {
+    const eff = resolveProviderConfig(p);
+    const keyMasked = eff.apiKey ? (eff.apiKey.length <= 4 ? '••••' : '••••' + eff.apiKey.slice(-4)) : null;
+    return { provider: p, active: p === active, baseURL: eff.baseURL ?? null, model: eff.model, keyMasked };
+  });
+  return { activeProvider: active, providers };
+}
+
 // GET: os 3 providers com a chave MASCARADA (••••1234) — nunca expõe a chave cheia.
 router.get('/ai-config', (_req, res) => {
-  const rows = getConfigRows();
-  const providers = AI_PROVIDERS.map((p) =>
-    rows.find((r) => r.provider === p) ?? { provider: p, active: false, baseURL: null, model: null, keyMasked: null },
-  );
-  res.json({ activeProvider: getActiveProvider(), providers });
+  res.json(aiConfigResponse());
 });
 
 // PATCH: define o provider ativo + (opcional) chave/baseURL/modelo.
@@ -134,8 +142,7 @@ router.patch('/ai-config', async (req, res, next) => {
     await refreshLlm();
     await audit('UPDATE_AI_CONFIG', req, { targetType: 'AI_CONFIG', before, after: { activeProvider: getActiveProvider(), providers: getConfigRows() } });
     console.log('[admin] config de IA atualizada (banco):', p);
-    const rows = getConfigRows();
-    res.json({ activeProvider: getActiveProvider(), providers: AI_PROVIDERS.map((pp) => rows.find((r) => r.provider === pp) ?? { provider: pp, active: false, baseURL: null, model: null, keyMasked: null }) });
+    res.json(aiConfigResponse());
   } catch (e) { next(e); }
 });
 

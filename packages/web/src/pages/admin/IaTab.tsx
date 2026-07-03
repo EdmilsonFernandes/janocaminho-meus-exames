@@ -73,7 +73,7 @@ const AiProviderCard = () => {
           <Typography sx={{ fontWeight: 800, flex: 1 }}>🤖 Provedor de IA (Dr. Exame)</Typography>
           {cfg && <Chip size="small" color="success" variant="outlined" label={`Ativo: ${PROVIDER_LABEL[cfg.activeProvider] ?? cfg.activeProvider}`} />}
         </Stack>
-        <Alert severity="info" sx={{ mb: 1.5, fontSize: 13 }}>Troca em <strong>tempo real</strong> (sem restart/deploy). Campos vazios = usa o <strong>.env</strong>. A chave é <strong>cifrada</strong> no banco e nunca volta completa.</Alert>
+        <Alert severity="info" sx={{ mb: 1.5, fontSize: 13 }}>Troca em <strong>tempo real</strong> (sem restart/deploy). Os valores abaixo são o que <strong>tá rodando</strong> (banco ou <strong>.env</strong>). A chave é <strong>cifrada</strong> no banco e nunca volta completa — deixe vazia pra manter a atual.</Alert>
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1.5, mb: 1.5 }}>
           <FormControl size="small" fullWidth>
             <InputLabel>Provedor</InputLabel>
@@ -83,9 +83,9 @@ const AiProviderCard = () => {
               <MenuItem value="gemini">Google Gemini</MenuItem>
             </Select>
           </FormControl>
-          <TextField size="small" label="Modelo" value={model} onChange={(e) => setModel(e.target.value)} placeholder={phModel} />
-          <TextField size="small" label="Base URL" value={baseURL} onChange={(e) => setBaseURL(e.target.value)} placeholder={phBase} disabled={provider === 'gemini'} />
-          <OutlinedInput size="small" type="password" placeholder={activeRow?.keyMasked ? `${activeRow.keyMasked} · deixar vazio mantém` : 'Cole a chave (API key)'} value={apiKey} onChange={(e) => setApiKey(e.target.value)} />
+          <TextField size="small" label="Modelo" name="ai-model" autoComplete="off" value={model} onChange={(e) => setModel(e.target.value)} placeholder={phModel} />
+          <TextField size="small" label="Base URL" name="ai-base-url" autoComplete="off" value={baseURL} onChange={(e) => setBaseURL(e.target.value)} placeholder={phBase} disabled={provider === 'gemini'} />
+          <OutlinedInput size="small" type="password" label="Chave (API key)" name="ai-api-key" autoComplete="new-password" placeholder={activeRow?.keyMasked ? `${activeRow.keyMasked} · deixar vazio mantém` : 'Cole a chave (API key)'} value={apiKey} onChange={(e) => setApiKey(e.target.value)} />
         </Box>
         <Stack direction="row" gap={1} flexWrap="wrap" alignItems="center">
           <Button size="small" variant="outlined" onClick={test} disabled={testing} startIcon={<BoltOutlinedIcon />}>{testing ? 'Testando…' : 'Testar conexão'}</Button>
