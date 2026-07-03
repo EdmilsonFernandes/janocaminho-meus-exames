@@ -193,17 +193,17 @@ export const RiskCard = () => {
         : `linear-gradient(135deg, ${meta.color}14, ${meta.color}05)`,
     }}>
       <CardContent>
-        {/* cabeçalho */}
-        <Stack direction="row" spacing={1.2} alignItems="center" sx={{ mb: 1.25 }}>
-          <HealthAndSafetyIcon sx={{ color: none ? '#16a34a' : meta.color }} />
-          <Typography sx={{ fontWeight: 800, flex: 1 }}>Leitura de risco</Typography>
-          <Chip size="small" label={`${meta.emoji} ${meta.label}`} sx={{ fontWeight: 800, height: 22, bgcolor: meta.color + '22', color: meta.color }} />
+        {/* cabeçalho — flexWrap: chips/trend caem pra 2ª linha em telas estreitas em vez de se espremer (fix mobile css-7mx36) */}
+        <Stack direction="row" spacing={1.2} alignItems="center" useFlexGap flexWrap="wrap" sx={{ mb: 1.25, rowGap: 0.75 }}>
+          <HealthAndSafetyIcon sx={{ color: none ? '#16a34a' : meta.color, flexShrink: 0 }} />
+          <Typography sx={{ fontWeight: 800, flex: 1, minWidth: 0 }}>Leitura de risco</Typography>
+          <Chip size="small" label={`${meta.emoji} ${meta.label}`} sx={{ fontWeight: 800, height: 22, flexShrink: 0, bgcolor: meta.color + '22', color: meta.color }} />
           {r.trend && r.trend !== 'primeiro' && TREND_CHIP[r.trend] && (() => {
             const t = TREND_CHIP[r.trend];
             const d = r.prior?.createdAt ? new Date(r.prior.createdAt).toLocaleDateString('pt-BR') : '';
-            return <Chip size="small" label={`${t.emoji} ${t.label}${d ? ` desde ${d}` : ''}`} sx={{ fontWeight: 700, height: 22, bgcolor: t.color + '22', color: t.color }} />;
+            return <Chip size="small" label={`${t.emoji} ${t.label}${d ? ` desde ${d}` : ''}`} sx={{ fontWeight: 700, height: 22, flexShrink: 0, bgcolor: t.color + '22', color: t.color }} />;
           })()}
-          <IconButton size="small" aria-label="Refazer análise" onClick={() => load(true)} sx={{ p: 0.5 }}>
+          <IconButton size="small" aria-label="Refazer análise" onClick={() => load(true)} sx={{ p: 0.5, flexShrink: 0 }}>
             <RefreshIcon fontSize="small" sx={{ color: 'text.secondary' }} />
           </IconButton>
         </Stack>

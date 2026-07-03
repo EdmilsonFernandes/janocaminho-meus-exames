@@ -56,6 +56,10 @@ const SCOPE_META: Record<string, { label: string; icon: string }> = {
   notes: { label: 'Anotações', icon: '📝' },
 };
 
+// riskLevel (server, em inglês) -> pt-BR. Usar em TODO lugar que mostra o nível (timeline, pré-consulta).
+const RISK_LABEL: Record<string, string> = { low: 'Baixa', moderate: 'Moderada', high: 'Alta' };
+const riskLabel = (lvl?: string) => (lvl && RISK_LABEL[lvl] ? RISK_LABEL[lvl] : lvl ?? '');
+
 export const DoctorPortalPage = () => {
   const navigate = useNavigate();
   const [token, setToken] = useState<string | null>(localStorage.getItem(docKey));
@@ -413,6 +417,20 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     return deltas.sort((a, b) => Math.abs(b.pct) - Math.abs(a.pct)).slice(0, 5);
   }, [evolution]);
 
+  // Histórico de risco deduplicado por DIA. O /risk/assess pode rodar 2x no mesmo dia (cache 24h
+  // expira, ou médico/paciente clica em "refazer") e cria 2 RiskAssessment no mesmo dia — o paciente
+  // não ganha nada vendo "· 02/07/2026" repetido. Mantém só o mais recente de cada dia
+  // (riskHistory já vem orderBy createdAt desc, então o 1º de cada dia é o mais recente).
+  const riskHistoryDedup = useMemo(() => {
+    const seen = new Set<string>();
+    return riskHistory.filter((hh: any) => {
+      const day = new Date(hh.createdAt).toDateString();
+      if (seen.has(day)) return false;
+      seen.add(day);
+      return true;
+    });
+  }, [riskHistory]);
+
   const fmtDate = (d?: string) => d ? new Date(d).toLocaleDateString('pt-BR') : 's/d';
 
   // Gesto de voltar do Android (Capacitor): fecha detalhe do exame → fecha paciente → volta à lista → sai.
@@ -653,25 +671,45 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                     <Box sx={{ mb: 1.5 }}>
                       <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>⚠️ TOP 3 PRA HOJE</Typography>
                       <Stack spacing={0.5} sx={{ mt: 0.5 }}>
-                        {preVisit.topIssues.map((issue: any, i: number) => (
-                          <Stack key={i} direction="row" spacing={0.75} alignItems="center" sx={{ flexWrap: 'wrap', rowGap: 0.5 }}>
-                            <Chip size="small" label={i + 1} sx={{ height: 20, width: 20, bgcolor: issue.priority === 'importante' ? '#dc262622' : issue.priority === 'moderada' ? '#ea580c22' : '#ca8a0422', color: issue.priority === 'importante' ? '#dc2626' : issue.priority === 'moderada' ? '#ea580c' : '#ca8a04', fontWeight: 800, fontSize: 11 }} />
-                            <Typography variant="body2" sx={{ fontWeight: 600 }}>{issue.name}</Typography>
-                            {issue.delta != null && <Chip size="small" label={`${issue.delta > 0 ? '↑' : '↓'} ${Math.abs(Math.round(issue.delta))}%`} sx={{ height: 20, fontSize: 11, bgcolor: issue.delta > 0 ? '#fef3c7' : '#dbeafe', color: issue.delta > 0 ? '#92400e' : '#1e40af', fontWeight: 700 }} />}
-                          </Stack>
-                        ))}
+                        {preVisit.topIssues.map((issue: any, i: number) => {
+                          // antes → agora p/ o médico VALIDAR a % (ex.: ↑279% só é real se antes→agora for plausível)
+                          const lv = issue.last != null ? issue.last : (issue.lastText ?? null);
+                          const pv = issue.prev != null ? issue.prev : (issue.prevText ?? null);
+                          const u = issue.unit ? ` ${issue.unit}` : '';
+                          const vals = (lv != null || pv != null) ? `${pv ?? '—'} → ${lv ?? '—'}${u}` : '';
+                          return (
+                            <Stack key={i} direction="row" spacing={0.75} alignItems="center" sx={{ flexWrap: 'wrap', rowGap: 0.5 }}>
+                              <Chip size="small" label={i + 1} sx={{ height: 20, width: 20, bgcolor: issue.priority === 'importante' ? '#dc262622' : issue.priority === 'moderada' ? '#ea580c22' : '#ca8a0422', color: issue.priority === 'importante' ? '#dc2626' : issue.priority === 'moderada' ? '#ea580c' : '#ca8a04', fontWeight: 800, fontSize: 11 }} />
+                              <Typography variant="body2" sx={{ fontWeight: 600 }}>{issue.name}</Typography>
+                              {issue.delta != null && <Chip size="small" label={`${issue.delta > 0 ? '↑' : '↓'} ${Math.abs(Math.round(issue.delta))}%`} sx={{ height: 20, fontSize: 11, bgcolor: issue.delta > 0 ? '#fef3c7' : '#dbeafe', color: issue.delta > 0 ? '#92400e' : '#1e40af', fontWeight: 700 }} />}
+                              {vals && <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>{vals}</Typography>}
+                            </Stack>
+                          );
+                        })}
                       </Stack>
                     </Box>
                   )}
-                  <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap" sx={{ mb: 1 }}>
-                    {preVisit.risk && <Typography variant="body2"><b>Risco:</b> {preVisit.risk.conditionLabel} ({preVisit.risk.riskLevel}){preVisit.risk.trend && preVisit.risk.trend !== 'primeiro' ? ` · ${preVisit.risk.trend === 'melhorou' ? '↓ caiu' : preVisit.risk.trend === 'piorou' ? '↑ subiu' : '→ estável'}` : ''}</Typography>}
-                    <Typography variant="body2"><b>Score:</b> {preVisit.score ?? '—'}/100 ({preVisit.markers ?? 0} marc.)</Typography>
+                  <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap" sx={{ mb: 0.5 }} alignItems="center">
+                    {preVisit.risk && <Typography variant="body2"><b>Risco:</b> {preVisit.risk.conditionLabel} ({riskLabel(preVisit.risk.riskLevel)}){preVisit.risk.trend && preVisit.risk.trend !== 'primeiro' ? ` · ${preVisit.risk.trend === 'melhorou' ? '↓ caiu' : preVisit.risk.trend === 'piorou' ? '↑ subiu' : '→ estável'}` : ''}</Typography>}
+                    {(() => {
+                      const s = preVisit.score;
+                      const meta = s == null ? { label: 'sem dados suficientes', color: 'text.secondary' }
+                        : s >= 80 ? { label: 'maioria em dia', color: '#16a34a' }
+                        : s >= 60 ? { label: 'pontos de atenção', color: '#ea580c' }
+                        : { label: 'vários alterados — revisar', color: '#dc2626' };
+                      return <Typography variant="body2"><b>Score:</b> {s ?? '—'}/100 ({preVisit.markers ?? 0} marc.) <Box component="span" sx={{ color: meta.color, fontWeight: 700 }}>· {meta.label}</Box></Typography>;
+                    })()}
                   </Stack>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 1 }}>{'Score = % de exames com valor normal (≥80 bom · 60–79 atenção · <60 revisar).'}</Typography>
                   {preVisit.investigate?.length > 0 && (
                     <Box sx={{ mb: 1 }}>
                       <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>🔬 INVESTIGAR</Typography>
                       <Stack spacing={0.25} sx={{ mt: 0.25 }}>
-                        {preVisit.investigate.map((inv: any, i: number) => <Typography key={i} variant="body2" sx={{ color: 'text.secondary' }}>• {inv.name} {inv.lastMeasured ? `(último: ${new Date(inv.lastMeasured).toLocaleDateString('pt-BR')})` : ''}</Typography>)}
+                        {preVisit.investigate.map((inv: any, i: number) => {
+                          const months = inv.ageMonths != null ? Math.round(inv.ageMonths) : null;
+                          const ago = months != null ? (months < 1 ? 'recente' : months === 1 ? 'há 1 mês' : `há ${months} meses`) : (inv.lastMeasured ? new Date(inv.lastMeasured).toLocaleDateString('pt-BR') : '');
+                          return <Typography key={i} variant="body2" sx={{ color: 'text.secondary' }}>• {inv.name} {ago ? `${ago} · refazer` : '(refazer)'}</Typography>;
+                        })}
                       </Stack>
                     </Box>
                   )}
@@ -771,17 +809,17 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                       );
                     })() : <Empty label="Sem leitura de risco ainda." icon="🛡️" />}
 
-                    {/* Mudanças ao longo do tempo (C3) */}
-                    {riskHistory.length > 1 && (
+                    {/* Mudanças ao longo do tempo (C3) — deduplicado por dia (não repetir a mesma data) */}
+                    {riskHistoryDedup.length > 1 && (
                       <Card variant="outlined" sx={{ borderRadius: 3, borderColor: 'divider' }}><CardContent>
                         <Typography sx={{ fontWeight: 800, mb: 1 }}>📊 Mudanças ao longo do tempo</Typography>
                         <Stack spacing={0.5}>
-                          {riskHistory.slice(0, 6).map((hh: any, i: number) => {
+                          {riskHistoryDedup.slice(0, 6).map((hh: any, i: number) => {
                             const c = hh.riskLevel === 'high' ? '#dc2626' : hh.riskLevel === 'moderate' ? '#ea580c' : '#16a34a';
                             return (
                               <Box key={hh.id ?? i} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
                                 <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>{hh.conditionLabel} <Box component="span" sx={{ color: 'text.secondary' }}>· {new Date(hh.createdAt).toLocaleDateString('pt-BR')}</Box></Typography>
-                                <Chip size="small" label={hh.riskLevel} sx={{ height: 20, flexShrink: 0, bgcolor: c + '22', color: c }} />
+                                <Chip size="small" label={riskLabel(hh.riskLevel)} sx={{ height: 20, flexShrink: 0, bgcolor: c + '22', color: c }} />
                               </Box>
                             );
                           })}

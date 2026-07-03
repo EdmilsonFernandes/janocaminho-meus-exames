@@ -636,15 +636,22 @@ router.get('/patients/:patientId/pre-visit', requireDoctor, async (req: any, res
       prisma.aiAnalysis.findMany({ where: { patientId: pid, type: 'CHAT' }, orderBy: { createdAt: 'desc' }, take: 5, select: { userMessage: true } }),
       prisma.doctorNote.findFirst({ where: { doctorId: req.doctorId, patientId: pid }, orderBy: { createdAt: 'desc' }, select: { createdAt: true } }),
     ]);
-    // Top 3: worsening primeiro (piorou), depois topAttention por prioridade
+    // Top 3: worsening primeiro (piorou), depois topAttention por prioridade.
+    // Inclui valor anterior/atual + unidade p/ o médico VALIDAR que a % faz sentido (ex.: ↑279%
+    // só é real se antes→agora for plausível — flag de lab com escala errada inflaria o delta).
+    const fmtIssue = (m: any) => ({
+      name: m.name, delta: m.deltaPct, direction: m.trend, priority: m.priority,
+      last: m.latest?.valueNumeric ?? null, lastText: m.latest?.valueText ?? null,
+      prev: m.prior?.valueNumeric ?? null, prevText: m.prior?.valueText ?? null, unit: m.unit ?? null,
+    });
     const candidates = [
-      ...snapshot.worsening.map((m: any) => ({ name: m.name, delta: m.deltaPct, direction: m.trend, priority: m.priority })),
-      ...snapshot.topAttention.filter((m: any) => m.trend !== 'piorou').map((m: any) => ({ name: m.name, delta: m.deltaPct, direction: m.trend, priority: m.priority })),
+      ...snapshot.worsening.map(fmtIssue),
+      ...snapshot.topAttention.filter((m: any) => m.trend !== 'piorou').map(fmtIssue),
     ].sort((a: any, b: any) => (PRIORITY_RANK[b.priority as keyof typeof PRIORITY_RANK] ?? 0) - (PRIORITY_RANK[a.priority as keyof typeof PRIORITY_RANK] ?? 0) || Math.abs(b.delta ?? 0) - Math.abs(a.delta ?? 0));
     res.json({
       topIssues: candidates.slice(0, 3),
       risk: risk?.result ? { conditionLabel: risk.result.predictedCondition, riskLevel: risk.result.riskLevel, trend: risk.trend } : null,
-      investigate: snapshot.stale.slice(0, 5).map((m: any) => ({ name: m.name, lastMeasured: m.latest.performedAt })),
+      investigate: snapshot.stale.slice(0, 5).map((m: any) => ({ name: m.name, lastMeasured: m.latest.performedAt, ageMonths: m.latest.ageMonths })),
       patientQuestions: chatTurns.map((t: any) => t.userMessage).filter(Boolean),
       lastVisit: lastNote?.createdAt ?? null,
       score: snapshot.score,
