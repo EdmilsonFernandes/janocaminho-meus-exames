@@ -5,7 +5,7 @@ import { readPdf, classifyKind, looksLikeMedical } from './pdfutil';
 import { classifyDoc } from './docPatterns';
 import { extractLabPanel, extractImaging } from './claude';
 import { imageToText } from './imageToText';
-import { canonicalName, computeFlag, parseNumeric } from '../utils/normalize';
+import { canonicalName, reconcileScaleFlag, parseNumeric } from '../utils/normalize';
 import { readExamFile, mediaTypeFromRef } from '../utils/storage';
 import type { LabExtraction, ExtractionItem } from './schemas';
 import { chargeCredits, CREDIT_COSTS } from '../utils/credits';
@@ -176,7 +176,7 @@ function flattenLabItems(lab: LabExtraction, prefers: string): ItemRow[] {
       const refText = ref
         ? [ref.lowText, ref.highText].filter(Boolean).join(' a ') || null
         : null;
-      const { flag, isAbnormal } = computeFlag(valueNumeric, ref?.lowNumeric ?? null, ref?.highNumeric ?? null);
+      const { flag, isAbnormal } = reconcileScaleFlag(valueNumeric, ref?.lowNumeric ?? null, ref?.highNumeric ?? null, it.unit ?? ref?.unit ?? null);
       rows.push({
         panel: panel.name ?? null,
         name: it.name,

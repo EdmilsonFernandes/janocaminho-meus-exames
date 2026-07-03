@@ -132,6 +132,39 @@ export function computeFlag(
   return { flag: 'UNKNOWN' as ItemFlag, isAbnormal: false };
 }
 
+/**
+ * Refina o flag do computeFlag quando há CONFLITO DE ESCALA entre o valor e a referência —
+ * causa #1 de LOW/HIGH falso no hemograma e maior inimigo da confiança do paciente.
+ *
+ * Padrão do erro: a IA extrai valor e referência em escalas diferentes, e computeFlag (que só
+ * compara números) marca errado. O paciente vê um exame normal "todo baixo".
+ *   - Hemoglobina 15 g/dL  c/ ref 130–170 (g/L)        → LOW falso (escala ×10)
+ *   - Linfócitos  28,5 %   c/ ref 1200–5200 (absoluto) → LOW falso (% vs /mm³)
+ *   - Hemácias    5,78 mi  c/ ref 450–550 (milhares)   → LOW falso (×1000)
+ *   - HCM         26 pg    c/ ref 270–320              → LOW falso (×10)
+ *
+ * CONSERVADOR (não mascara LOW/HIGH real): só neutraliza pra UNKNOWN quando a UNIDADE confirma
+ * escala incompatível. NÃO usa ratio puro — neutropenia severa (200 vs 1800 = 0,11) e plaquetas
+ * baixas (20k vs 150k = 0,13) têm ratio ~0,1 e são LOWs reais que não podem ser mascarados.
+ */
+export function reconcileScaleFlag(
+  value: number | null | undefined,
+  low: number | null | undefined,
+  high: number | null | undefined,
+  unit: string | null | undefined,
+): { flag: ItemFlag; isAbnormal: boolean; scaleConflict: boolean } {
+  const base = computeFlag(value, low, high);
+  if (!base.isAbnormal) return { ...base, scaleConflict: false };
+  const u = (unit ?? '').toLowerCase();
+  const refMax = Math.max(low ?? 0, high ?? 0);
+  let conflict = false;
+  if (u.includes('%') && refMax > 100) conflict = true;                         // % vs absoluto
+  if ((/g\/d[lit]/.test(u) || /g\/dt/.test(u)) && refMax > 50) conflict = true;  // g/dL vs g/L (×10)
+  if (/\bpg\b/.test(u) && refMax > 50) conflict = true;                          // HCM/CHCM pg vs ×10
+  if (/milh/.test(u) && refMax > 50 && refMax < 100000) conflict = true;         // milhões vs milhares
+  return conflict ? { flag: 'UNKNOWN' as ItemFlag, isAbnormal: false, scaleConflict: true } : { ...base, scaleConflict: false };
+}
+
 /** Tenta extrair um número de um valor textual (lida com decimal brasileiro e milhares). */
 export function parseNumeric(valueText?: string | null): number | null {
   if (!valueText) return null;
