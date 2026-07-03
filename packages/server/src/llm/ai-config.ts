@@ -116,3 +116,36 @@ export function maskKey(enc: string | null, iv: string | null): string | null {
   if (!plain) return null;
   return plain.length <= 4 ? '••••' : '••••' + plain.slice(-4);
 }
+
+// Catálogo de modelos por provedor (seed inicial — editável pelo admin depois).
+// Z.ai/GLM aceita só modelos glm-* (relay rejeita claude-*). OpenAI/Gemini: modelos atuais.
+export const AI_MODEL_SEEDS: { provider: AiProviderName; model: string; label: string }[] = [
+  { provider: 'anthropic', model: 'glm-4.6', label: 'GLM-4.6 (Z.ai)' },
+  { provider: 'anthropic', model: 'glm-4.5-air', label: 'GLM-4.5 Air' },
+  { provider: 'anthropic', model: 'glm-4-plus', label: 'GLM-4 Plus' },
+  { provider: 'anthropic', model: 'glm-4-flash', label: 'GLM-4 Flash' },
+  { provider: 'openai', model: 'gpt-4o-mini', label: 'GPT-4o mini' },
+  { provider: 'openai', model: 'gpt-4o', label: 'GPT-4o' },
+  { provider: 'openai', model: 'gpt-4.1-mini', label: 'GPT-4.1 mini' },
+  { provider: 'openai', model: 'gpt-4.1', label: 'GPT-4.1' },
+  { provider: 'openai', model: 'gpt-5-mini', label: 'GPT-5 mini' },
+  { provider: 'openai', model: 'gpt-5', label: 'GPT-5' },
+  { provider: 'openai', model: 'o4-mini', label: 'o4-mini' },
+  { provider: 'gemini', model: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
+  { provider: 'gemini', model: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro' },
+  { provider: 'gemini', model: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash' },
+  { provider: 'gemini', model: 'gemini-2.0-flash-lite', label: 'Gemini 2.0 Flash Lite' },
+  { provider: 'gemini', model: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro' },
+];
+
+/** Semeia o catálogo de modelos só se a tabela estiver VAZIA (1ª vez). Depois o admin é dono. */
+export async function seedAiModelsIfEmpty(): Promise<void> {
+  try {
+    const n = await prisma.aiModel.count();
+    if (n > 0) return;
+    await prisma.aiModel.createMany({ data: AI_MODEL_SEEDS.map((s, i) => ({ ...s, sort: i })), skipDuplicates: true });
+    console.log(`[llm] catálogo de modelos semeado: ${AI_MODEL_SEEDS.length} modelos`);
+  } catch (e) {
+    console.warn('[llm] seedAiModels falhou:', (e as Error).message);
+  }
+}

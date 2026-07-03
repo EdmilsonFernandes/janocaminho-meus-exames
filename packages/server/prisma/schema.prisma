@@ -109,6 +109,21 @@ model AiProviderConfig {
   @@map("ai_provider_configs")
 }
 
+// Catálogo de modelos por provedor (editável pelo admin — NÃO fica hardcoded).
+// Popula o dropdown "Modelo" do card de provedor. Seed só na 1ª vez (tabela vazia);
+// depois o admin add/remove livremente (modelos novos vão direto pra cá).
+model AiModel {
+  id        String   @id @default(cuid())
+  provider  String   // anthropic | openai | gemini
+  model     String   // "gpt-4o-mini" — valor enviado pra API
+  label     String   // "GPT-4o mini" — display no dropdown
+  sort      Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@unique([provider, model])
+  @@map("ai_models")
+}
+
 enum Role {
   OWNER
   ADMIN
@@ -123,6 +138,8 @@ model Patient {
   relationship String?   // parentesco: "Titular", "Filha", "Mãe", "Cônjuge"...
   gender       String?   // "male" | "female" — define a coluna de referência (Homens/Mulheres)
   dateOfBirth  DateTime?
+  heightCm     Int?      // altura (cm) — base do BMI no M2 (analysis/derived-markers.ts)
+  ethnicity    String?   // etnia IBGE sem acento (branca|preta|parda|amarela|indigena|nao-informado)
   // PII criptografada (AES-256-GCM, chave APP_ENCRYPTION_KEY)
   cpfEncrypted String?
   cpfIv        String?

@@ -11,8 +11,8 @@ const PROVIDER_LABEL: Record<string, string> = {
   gemini: 'Google Gemini',
 };
 
-/** Card "Provedor de IA" — troca provider/chave em runtime (banco), com teste de conexão.
- *  A chave é cifrada e nunca volta completa (só ••••1234). Campos vazios = usa .env. */
+/** Card "Provedor de IA" — troca provider/chave/modelo em runtime (banco), com teste de conexão.
+ *  Modelo = catálogo (ai_models), editável no painel "Gerenciar modelos". Chave cifrada. */
 const AiProviderCard = () => {
   const [cfg, setCfg] = useState<any>(null);
   const [provider, setProvider] = useState('anthropic');
@@ -23,7 +23,14 @@ const AiProviderCard = () => {
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<any>(null);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  // catálogo de modelos (dropdown editável por provedor)
+  const [models, setModels] = useState<any[]>([]);
+  const [mgmtOpen, setMgmtOpen] = useState(false);
+  const [newM, setNewM] = useState('');
+  const [newL, setNewL] = useState('');
+  const [addBusy, setAddBusy] = useState(false);
 
+  const fetchModels = async () => { try { const r = await fetch(`${API_URL}/admin/ai-models`, { headers: H() }); if (r.ok) setModels(await r.json()); } catch {} };
   const apply = (j: any) => {
     setCfg(j);
     setProvider(j.activeProvider);
@@ -32,14 +39,36 @@ const AiProviderCard = () => {
     setModel(row?.model ?? '');
     setApiKey('');
   };
-  const load = async () => { try { const r = await fetch(`${API_URL}/admin/ai-config`, { headers: H() }); if (!r.ok) throw 0; apply(await r.json()); } catch {} };
+  const load = async () => {
+    try { const r = await fetch(`${API_URL}/admin/ai-config`, { headers: H() }); if (!r.ok) throw 0; apply(await r.json()); } catch {}
+    fetchModels();
+  };
   useEffect(() => { load(); }, []);
+
+  const modelsFor = models.filter((m) => m.provider === provider);
+  const modelInList = modelsFor.some((m) => m.model === model);
 
   const onProviderChange = (p: string) => {
     setProvider(p);
     const row = (cfg?.providers as any[])?.find((x) => x.provider === p);
-    setBaseURL(row?.baseURL ?? ''); setModel(row?.model ?? ''); setApiKey(''); setTestResult(null); setMsg(null);
+    setBaseURL(row?.baseURL ?? ''); setModel(row?.model ?? ''); setApiKey(''); setTestResult(null); setMsg(null); setMgmtOpen(false);
   };
+  const onModelChange = (v: string) => {
+    if (v === '__new__') { setMgmtOpen(true); return; }
+    setModel(v); setTestResult(null); setMsg(null);
+  };
+  const addModel = async () => {
+    const m = newM.trim(); if (!m) return;
+    setAddBusy(true);
+    try {
+      const r = await fetch(`${API_URL}/admin/ai-models`, { method: 'POST', headers: { ...H(), 'Content-Type': 'application/json' }, body: JSON.stringify({ provider, model: m, label: newL.trim() || m }) });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || 'Erro ao adicionar');
+      await fetchModels(); setModel(m); setNewM(''); setNewL('');
+    } catch (e: any) { setMsg({ ok: false, text: e?.message || 'Erro ao adicionar modelo' }); }
+    setAddBusy(false);
+  };
+  const removeModel = async (id: string) => { try { await fetch(`${API_URL}/admin/ai-models/${id}`, { method: 'DELETE', headers: H() }); await fetchModels(); } catch {} };
 
   const test = async () => {
     setTesting(true); setTestResult(null); setMsg(null);
@@ -49,7 +78,6 @@ const AiProviderCard = () => {
     } catch { setTestResult({ ok: false, error: 'Falha de rede.' }); }
     setTesting(false);
   };
-
   const save = async () => {
     setSaving(true); setMsg(null);
     try {
@@ -63,7 +91,6 @@ const AiProviderCard = () => {
   };
 
   const activeRow = (cfg?.providers as any[])?.find((p) => p.provider === cfg?.activeProvider);
-  const phModel = provider === 'anthropic' ? 'glm-4.6' : provider === 'openai' ? 'gpt-4o-mini' : 'gemini-2.0-flash';
   const phBase = provider === 'anthropic' ? 'https://api.z.ai/api/anthropic' : provider === 'openai' ? 'https://api.openai.com/v1' : '(endpoint fixo)';
 
   return (
@@ -83,10 +110,36 @@ const AiProviderCard = () => {
               <MenuItem value="gemini">Google Gemini</MenuItem>
             </Select>
           </FormControl>
-          <TextField size="small" label="Modelo" name="ai-model" autoComplete="off" value={model} onChange={(e) => setModel(e.target.value)} placeholder={phModel} />
+          <FormControl size="small" fullWidth>
+            <InputLabel>Modelo</InputLabel>
+            <Select value={model} label="Modelo" onChange={(e) => onModelChange(String(e.target.value))}>
+              {!modelInList && model ? <MenuItem value={model}>{model} (atual)</MenuItem> : null}
+              {modelsFor.map((m) => <MenuItem key={m.id} value={m.model}>{m.label}</MenuItem>)}
+              <MenuItem value="__new__" sx={{ color: 'primary.main' }}>＋ Adicionar novo modelo…</MenuItem>
+            </Select>
+          </FormControl>
           <TextField size="small" label="Base URL" name="ai-base-url" autoComplete="off" value={baseURL} onChange={(e) => setBaseURL(e.target.value)} placeholder={phBase} disabled={provider === 'gemini'} />
           <OutlinedInput size="small" type="password" label="Chave (API key)" name="ai-api-key" autoComplete="new-password" placeholder={activeRow?.keyMasked ? `${activeRow.keyMasked} · deixar vazio mantém` : 'Cole a chave (API key)'} value={apiKey} onChange={(e) => setApiKey(e.target.value)} />
         </Box>
+        <Box sx={{ mb: 1 }}>
+          <Button size="small" color="inherit" onClick={() => setMgmtOpen((v) => !v)} sx={{ textTransform: 'none' }}>
+            {mgmtOpen ? '▾' : '▸'} Gerenciar modelos ({modelsFor.length})
+          </Button>
+        </Box>
+        {mgmtOpen && (
+          <Box sx={{ mb: 1.5, p: 1.5, border: 1, borderColor: 'divider', borderRadius: 1 }}>
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1, flexWrap: 'wrap', gap: 1 }}>
+              <TextField size="small" label="ID do modelo" name="ai-new-model" autoComplete="off" placeholder="ex: gpt-5" value={newM} onChange={(e) => setNewM(e.target.value)} sx={{ flex: 1, minWidth: 120 }} />
+              <TextField size="small" label="Rótulo (opcional)" name="ai-new-label" autoComplete="off" placeholder="ex: GPT-5" value={newL} onChange={(e) => setNewL(e.target.value)} sx={{ flex: 1, minWidth: 120 }} />
+              <Button size="small" variant="contained" onClick={addModel} disabled={addBusy || !newM.trim()}>＋ Adicionar</Button>
+            </Stack>
+            {modelsFor.length === 0
+              ? <Typography variant="caption" color="text.secondary">Nenhum modelo cadastrado pra este provedor ainda.</Typography>
+              : <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap">
+                  {modelsFor.map((m) => <Chip key={m.id} size="small" variant="outlined" label={m.label} onDelete={() => removeModel(m.id)} />)}
+                </Stack>}
+          </Box>
+        )}
         <Stack direction="row" gap={1} flexWrap="wrap" alignItems="center">
           <Button size="small" variant="outlined" onClick={test} disabled={testing} startIcon={<BoltOutlinedIcon />}>{testing ? 'Testando…' : 'Testar conexão'}</Button>
           <Button size="small" variant="contained" onClick={save} disabled={saving}>{saving ? 'Salvando…' : 'Salvar'}</Button>

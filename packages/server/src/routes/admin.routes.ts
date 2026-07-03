@@ -162,6 +162,55 @@ router.post('/ai-config/test', async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
+// ===== IA — catálogo de MODELOS por provedor (dropdown editável, não hardcoded) =====
+// GET: lista (opcional ?provider=anthropic|openai|gemini).
+router.get('/ai-models', async (req, res, next) => {
+  try {
+    const provider = String(req.query.provider ?? '');
+    const rows = await prisma.aiModel.findMany({
+      where: provider ? { provider } : {},
+      orderBy: [{ provider: 'asc' }, { sort: 'asc' }, { label: 'asc' }],
+    });
+    res.json(rows);
+  } catch (e) { next(e); }
+});
+
+// POST: adiciona um modelo. body: { provider, model, label? }. Unique (provider+model) → 409 se já existe.
+router.post('/ai-models', async (req, res, next) => {
+  try {
+    const provider = String(req.body?.provider ?? '').toLowerCase();
+    const model = String(req.body?.model ?? '').trim();
+    const label = String(req.body?.label ?? '').trim() || model;
+    if (!AI_PROVIDERS.includes(provider as AiProviderName) || !model) {
+      res.status(400).json({ error: 'Envie { provider, model, label? }. provider ∈ anthropic|openai|gemini.' }); return;
+    }
+    const p = provider as AiProviderName;
+    let created;
+    try {
+      created = await prisma.aiModel.create({ data: { provider: p, model, label } });
+    } catch (e: any) {
+      if (e?.code === 'P2002') { res.status(409).json({ error: 'Esse modelo já existe pra esse provedor.' }); return; }
+      throw e;
+    }
+    await audit('CREATE_AI_MODEL', req, { targetType: 'AI_MODEL', after: { provider: p, model, label } });
+    console.log('[admin] modelo de IA adicionado:', p, model);
+    res.status(201).json(created);
+  } catch (e) { next(e); }
+});
+
+// DELETE: remove um modelo do catálogo (id).
+router.delete('/ai-models/:id', async (req, res, next) => {
+  try {
+    const id = String(req.params.id);
+    const row = await prisma.aiModel.findUnique({ where: { id } });
+    if (!row) { res.status(404).json({ error: 'Modelo não encontrado.' }); return; }
+    await prisma.aiModel.delete({ where: { id } });
+    await audit('DELETE_AI_MODEL', req, { targetType: 'AI_MODEL', before: { provider: row.provider, model: row.model, label: row.label } });
+    console.log('[admin] modelo de IA removido:', row.provider, row.model);
+    res.json({ ok: true });
+  } catch (e) { next(e); }
+});
+
 // MÉTRICAS/FUNIL (analytics) — signups → free → pago, receita (MRR/total), churn/retensão no
 // vencimento e cohort por mês de signup. Pra o admin decidir com dado (ajustar preço/grants/custo).
 router.get('/metrics', async (_req, res, next) => {

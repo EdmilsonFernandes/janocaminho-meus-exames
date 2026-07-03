@@ -6,7 +6,7 @@
 import { AnthropicAdapter } from './anthropic';
 import { OpenAIAdapter } from './openai';
 import { GeminiAdapter } from './gemini';
-import { getActiveConfig, loadAiConfig, resolveProviderConfig, type AiProviderName } from './ai-config';
+import { getActiveConfig, loadAiConfig, resolveProviderConfig, seedAiModelsIfEmpty, type AiProviderName } from './ai-config';
 import type { LlmProvider } from './types';
 
 /** Modelo do provedor ativo (banco → env → default). Substitui o antigo `const MODEL`. */
@@ -31,9 +31,11 @@ export function getLlm(): LlmProvider {
   return _llm;
 }
 
-/** Boot: carrega a config do banco (sobrepõe o .env). Tolerante a DB indisponível (cai no .env). */
+/** Boot: carrega a config do banco (sobrepõe o .env) + semeia o catálogo de modelos (1ª vez).
+ *  Tolerante a DB indisponível (cai no .env). */
 export async function initLlm(): Promise<void> {
   await loadAiConfig();
+  await seedAiModelsIfEmpty();
   _llm = null; // reconstrói com a config do banco no próximo getLlm()
   getLlm();
 }
