@@ -476,6 +476,20 @@ export const App = () => {
         window.history.replaceState({}, '', '/landing');
       }
     } catch { /* ignore */ }
+    // COLD-START FIX (web): o react-admin roteia por HASH (HashRouter). Quem cai direto numa
+    // rota real — deep-link de push, reload F5 em /alterados — viaja pro Dashboard default porque
+    // o router não casa (o caminho está em location.pathname, não em location.hash). Redireciona
+    // path→hash ANTES do boot; no reload o hash casa a rota certa e o ida-e-volta some. APK abre
+    // em '/' e navega por SPA (hash nativo), então o shim é só web.
+    try {
+      if (!isNativeApp) {
+        const { pathname, hash, search } = window.location;
+        if (pathname && pathname !== '/' && !hash) {
+          window.location.replace(`${window.location.origin}/#${pathname}${search}`);
+          return; // a página recarrega no replace — ignora o resto (remonta limpo)
+        }
+      }
+    } catch { /* ignore */ }
     const bootTimer = setTimeout(() => { if (!cancelled) setBooted(true); }, 1100); // splash visível na abertura
     void initPush();
     void checkAppUpdate().then((r) => { if (!cancelled && r.required) setForceUpdate(r.latest); }); // força-update se versão instalada < mínima
