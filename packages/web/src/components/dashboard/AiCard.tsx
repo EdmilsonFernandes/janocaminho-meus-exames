@@ -11,7 +11,7 @@ export const AiCard = ({ tip, onChat }: { tip: ReactNode; onChat: () => void }) 
       <Stack spacing={1.5}>
         {tip}
         <Box>
-          <Button variant="contained" size="small" startIcon={<AutoAwesomeIcon />} onClick={onChat} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, background: 'linear-gradient(135deg,#20b2aa,#178f89)', boxShadow: '0 4px 12px rgba(32,178,170,.30)' }}>Conversar com a IA</Button>
+          <Button variant="contained" size="small" startIcon={<AutoAwesomeIcon />} onClick={onChat} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, py: 1.1, background: 'linear-gradient(135deg,#20b2aa,#178f89)', boxShadow: '0 4px 12px rgba(32,178,170,.30)' }}>Conversar com a IA</Button>
         </Box>
       </Stack>
     </CardContent>

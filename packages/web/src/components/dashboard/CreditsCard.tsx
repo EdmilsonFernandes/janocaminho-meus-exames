@@ -14,7 +14,7 @@ export const CreditsCard = ({ credits, onClick }: { credits: number | null; onCl
           <Typography sx={{ fontWeight: 800, fontSize: 26, color: '#065f46', lineHeight: 1 }}>{credits.toLocaleString('pt-BR')}</Typography>
           <Typography variant="caption" sx={{ color: '#047857' }}>créditos disponíveis</Typography>
         </Box>
-        <Button variant="contained" size="small" onClick={onClick} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#059669', '&:hover': { bgcolor: '#047857' }, boxShadow: 'none', flexShrink: 0 }}>Comprar</Button>
+        <Button variant="contained" size="small" onClick={onClick} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, py: 1.1, bgcolor: '#059669', '&:hover': { bgcolor: '#047857' }, boxShadow: 'none', flexShrink: 0 }}>Comprar</Button>
       </CardContent>
     </Card>
   );

@@ -158,13 +158,16 @@ const CategoryGroup = ({ group, expandOuts }: { group: { cat: string; emoji: str
   // Recolhido por padrão. Exceção: no filtro "Fora da faixa", abre só os grupos que têm alerta.
   const [open, setOpen] = useState(!!expandOuts && group.items.some((i) => statusOf(i) === 'out'));
   const worst: Status = group.items.some((i) => statusOf(i) === 'out') ? 'out' : group.items.some((i) => statusOf(i) === 'change') ? 'change' : 'stable';
+  // Conta só os analitos FORA da faixa (não o total) — antes o chip mostrava o total da
+  // categoria (ex.: "Hemograma 🔴15"), parecendo que havia 15 alertas quando eram 15 analitos.
+  const outs = group.items.filter((i) => statusOf(i) === 'out').length;
   return (
     <Card sx={{ borderRadius: 3, border: `1px solid ${group.color}26`, overflow: 'hidden' }}>
       <Box onClick={() => setOpen((o) => !o)} sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 1.25, cursor: 'pointer', bgcolor: `${group.color}0a`, '&:hover': { bgcolor: `${group.color}14` } }}>
         <Box sx={{ fontSize: 19 }}>{group.emoji}</Box>
         <Typography sx={{ fontWeight: 800, flex: 1, color: 'text.primary', fontSize: 15 }}>{group.cat}</Typography>
         <Box title={STATUS_META[worst].label} sx={{ fontSize: 14 }}>{STATUS_META[worst].emoji}</Box>
-        <Chip size="small" label={group.items.length} sx={{ bgcolor: `${group.color}1a`, color: group.color, fontWeight: 700, height: 22, minWidth: 28 }} />
+        {outs > 0 && <Chip size="small" label={`${outs} alterado${outs > 1 ? 's' : ''}`} sx={{ bgcolor: `${group.color}1a`, color: group.color, fontWeight: 700, height: 22 }} />}
         <ExpandMoreIcon sx={{ transform: open ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform .2s', color: group.color, fontSize: 20 }} />
       </Box>
       {open && (

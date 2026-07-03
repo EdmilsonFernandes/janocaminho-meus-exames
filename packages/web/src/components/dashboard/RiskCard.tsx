@@ -206,7 +206,7 @@ export const RiskCard = () => {
           <Stack direction="row" spacing={1.2} alignItems="center">
             <HealthAndSafetyIcon sx={{ color: none ? '#16a34a' : meta.color, flexShrink: 0 }} />
             <Typography sx={{ fontWeight: 800, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Leitura de risco</Typography>
-            <IconButton size="small" aria-label="Refazer análise" onClick={() => load(true)} sx={{ p: 0.5, flexShrink: 0 }}>
+            <IconButton size="small" aria-label="Refazer análise" onClick={() => load(true)} sx={{ p: 1.1, flexShrink: 0 }}>
               <RefreshIcon fontSize="small" sx={{ color: 'text.secondary' }} />
             </IconButton>
           </Stack>
@@ -242,7 +242,7 @@ export const RiskCard = () => {
         </Typography>
         {(hasMoreExplanation || showFull) && (
           <Button size="small" onClick={() => setShowFull((v) => !v)}
-            sx={{ p: 0, mb: 1.25, textTransform: 'none', fontWeight: 700, color: 'primary.main', minWidth: 0, fontSize: '0.8rem' }}>
+            sx={{ py: 0.75, px: 0, mb: 1.25, textTransform: 'none', fontWeight: 700, color: 'primary.main', minWidth: 0, fontSize: '0.8rem' }}>
             {showFull ? 'Ver menos' : 'Ver mais'}
           </Button>
         )}
@@ -296,7 +296,7 @@ export const RiskCard = () => {
               size="small" onClick={() => setShowQuestions((v) => !v)}
               startIcon={<QuestionAnswerIcon />}
               endIcon={<ExpandMoreIcon sx={{ transform: showQuestions ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }} />}
-              sx={{ p: 0, textTransform: 'none', fontWeight: 700, color: 'primary.main', mb: showQuestions ? 0.5 : 0 }}
+              sx={{ py: 0.75, px: 0, textTransform: 'none', fontWeight: 700, color: 'primary.main', mb: showQuestions ? 0.5 : 0 }}
             >
               Perguntas pra levar ao médico ({r.doctorQuestions.length})
             </Button>
@@ -314,7 +314,7 @@ export const RiskCard = () => {
         <Divider sx={{ my: 1.25 }} />
         {!plan && !planLoading && (
           <Button fullWidth variant="contained" size="small" startIcon={<AutoStoriesIcon />} onClick={loadPlan}
-            sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700 }}>
+            sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, py: 1.1 }}>
             Plano de ação do Dr. Exame · {ACTION_PLAN_COST} créditos
           </Button>
         )}
@@ -364,7 +364,7 @@ export const RiskCard = () => {
           Baseada em {r.markersEvaluated} marcador{r.markersEvaluated > 1 ? 'es' : ''}{r.ruleConfidence === 'baixa' ? ' (poucos dados — leitura parcial)' : ''}.
         </Typography>
         <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', color: 'text.secondary' }}>
-          *Educativo. {r.medicalDisclaimer}
+          {r.medicalDisclaimer}
         </Typography>
         {consent != null && (
           <Stack direction="row" spacing={0.75} alignItems="center" justifyContent="center" sx={{ mt: 1 }}>

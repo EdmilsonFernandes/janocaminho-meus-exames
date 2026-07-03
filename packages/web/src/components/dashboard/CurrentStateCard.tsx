@@ -128,8 +128,7 @@ export const CurrentStateCard = () => {
           <Typography variant="caption" sx={{ display: 'block', color: '#9a6b00', mb: 1.25 }}>⏳ {s.stale.length} marcador(es) não mede(m) há mais de 1 ano — considere refazer com seu médico.</Typography>
         )}
 
-        <Button fullWidth variant="outlined" size="small" endIcon={<ChevronRightIcon />} onClick={() => navigate('/alterados')} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700 }}>Ver valores alterados</Button>
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', mt: 0.75 }}>*Educativo. Sempre confirme com seu médico.</Typography>
+        <Button fullWidth variant="outlined" size="small" endIcon={<ChevronRightIcon />} onClick={() => navigate('/alterados')} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, py: 1.1 }}>Ver valores alterados</Button>
       </CardContent>
     </Card>
   );

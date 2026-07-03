@@ -104,7 +104,6 @@ export const InsightsCards = () => {
                 );
               })}
             </Stack>
-            <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 1, color: 'text.secondary' }}>*Projeção baseada em tendência — não é diagnóstico. Sempre confirme com seu médico.</Typography>
           </CardContent>
         </Card>
       )}
