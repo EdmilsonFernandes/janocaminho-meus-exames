@@ -23,6 +23,7 @@ import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
 import TuneIcon from '@mui/icons-material/Tune';
+import CalculateIcon from '@mui/icons-material/Calculate';
 
 // ---- Tokens (espelham theme.ts) ----
 const TEAL = '#20b2aa';
@@ -31,8 +32,9 @@ const INK = '#0f3d3a'; // teal-escuro premium p/ textos de destaque / footer
 const GREEN = '#10b981';
 
 const benefits = [
-  { Icon: HealthAndSafetyIcon, title: 'Leitura de risco', desc: 'Veja possíveis riscos (diabetes, pré-diabetes, anemia, hipertensão, colesterol, cardiovascular) a partir dos seus exames — sem alarme, sempre como "possível".' },
+  { Icon: HealthAndSafetyIcon, title: 'Leitura de risco', desc: 'Veja possíveis riscos (diabetes, anemia, hipertensão, colesterol, cardiovascular, renal, obesidade) a partir dos seus exames — sempre como "possível", e cada faixa cita a diretriz (ADA/SBC/OMS).' },
   { Icon: TuneIcon, title: 'Leitura personalizada', desc: 'Complete seu perfil (sexo, altura, etnia) e a interpretação se ajusta a você — ex.: as faixas de anemia passam a usar o limiar certo pra homem ou mulher. Sem perfil, usa faixa conservadora.' },
+  { Icon: CalculateIcon, title: 'Índices que o laudo não dá', desc: 'Calcula IMC, função renal (eGFR) e resistência insulínica (HOMA-IR) automaticamente. E mostra o valor IDEAL — não só o de referência (ex.: LDL ideal <100, não só <130).' },
   { Icon: AutoStoriesIcon, title: 'Plano de ação do Dr. Exame', desc: 'A IA monta um plano personalizado: o que fazer, quando refazer os exames e perguntas pra levar ao médico. Educativo, nunca diagnóstico.' },
   { Icon: MonitorHeartIcon, title: 'Score de Adesão', desc: 'Gamificação: pontue por enviar exames no prazo, medir pressão e dar feedback. Suba de Bronze a Diamante e mantenha sua saúde em dia.' },
   { Icon: TrendingUpIcon, title: 'Alerta preditivo', desc: 'A IA projeta a tendência dos seus marcadores e alerta ANTES que saiam da faixa — "seu LDL pode ultrapassar 100 em ~3 meses".' },
@@ -40,7 +42,7 @@ const benefits = [
   { Icon: ChatIcon, title: 'Chat inteligente (economiza)', desc: 'Perguntas simples ("qual meu último TSH?") são respondidas na hora e de graça. Só as complexas vão pra IA.' },
   { Icon: CompareArrowsIcon, title: 'Comparativo visual', desc: 'Veja o que mudou entre exames. Hemoglobina subiu? Colesterol caiu? Gráficos claros com faixa de referência.' },
   { Icon: TrendingUpIcon, title: 'Evolução + Previsão', desc: 'Acompanhe tendências e saiba quando um valor pode sair da faixa (previsão exclusiva do Premium).' },
-  { Icon: MedicalServicesIcon, title: 'Portal do seu médico', desc: 'Indique pelo CRM e seu médico ganha um portal próprio — vê apenas o que você autorizar: exames, alertas e evolução.' },
+  { Icon: MedicalServicesIcon, title: 'Portal do seu médico', desc: 'Indique pelo CRM e seu médico ganha um brief de pré-consulta: top 3 mudanças do dia, padrões por sistema (glicêmico, renal, lipídico) e exames de seguimento sugeridos — só o que você autorizar.' },
   { Icon: Diversity3Icon, title: 'Toda a família', desc: 'Gerencie exames de cada dependente. Score familiar + comparativo entre membros.' },
   { Icon: DescriptionIcon, title: 'Pronto para o médico', desc: 'Relatório de 1 página com valores alterados + perfil clínico. Compartilhe por link seguro com PIN.' },
   { Icon: LockIcon, title: 'Dados protegidos + Libras', desc: 'Seus valores vêm do laudo — a IA não inventa números (extração determinística). Criptografia, PIN de compartilhamento, exclusão a qualquer momento. LGPD completa e VLibras.' },
