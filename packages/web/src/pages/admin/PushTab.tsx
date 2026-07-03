@@ -3,6 +3,7 @@ import { Box, Stack, Typography, TextField, Button, Chip, Alert, CircularProgres
 import { useNotify } from 'react-admin';
 import SendIcon from '@mui/icons-material/Send';
 import { API_URL, token } from '../../config';
+import { confirmDialog } from '../../components/ConfirmDialog';
 
 /** Templates prontos de push global — voz do Dr. Exame, foco em engajamento (saúde)
  *  e aquisição (indicação/Premium). `route` = tela ao tocar (deep-link opcional). */
@@ -33,7 +34,7 @@ export const PushTab = () => {
 
   const send = async () => {
     if (!title.trim() || !body.trim()) { notify('Preencha título e corpo.', { type: 'warning' }); return; }
-    if (!window.confirm(`Enviar push GLOBAL pra TODOS os dispositivos?\n\n"${title.trim()}"\n${body.trim()}`)) return;
+    if (!(await confirmDialog({ title: 'Enviar push global', message: <>Enviar pra <b>todos</b> os dispositivos?<br /><br /><b>"{title.trim()}"</b><br />{body.trim()}</>, confirmLabel: 'Enviar', tone: 'warning' }))) return;
     setSending(true);
     try {
       const r = await fetch(`${API_URL}/admin/push/global`, {

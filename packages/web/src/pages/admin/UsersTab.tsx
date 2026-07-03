@@ -8,6 +8,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { API_URL, token } from '../../config';
+import { confirmDialog } from '../../components/ConfirmDialog';
 import { U, TabLoader, SectionError, ConfirmDialog } from './parts';
 
 const PAGE_SIZE = 15;
@@ -87,7 +88,10 @@ export const UsersTab = () => {
 
   const toggleBlock = async (u: U) => {
     const blocking = !u.blocked;
-    if (!window.confirm(blocking ? `Bloquear ${u.email}?\n\nEle não vai conseguir mais entrar — verá uma mensagem amigável pedindo pra contatar o suporte.` : `Desbloquear ${u.email}?`)) return;
+    if (!(await confirmDialog(blocking
+      ? { title: `Bloquear ${u.email}`, message: 'Ele não vai conseguir mais entrar — verá uma mensagem pedindo pra contatar o suporte.', confirmLabel: 'Bloquear' }
+      : { title: `Desbloquear ${u.email}`, message: 'Ele voltará a conseguir entrar normalmente.', confirmLabel: 'Desbloquear', tone: 'primary' }
+    ))) return;
     try {
       const r = await fetch(`${API_URL}/admin/users/${u.id}/${blocking ? 'block' : 'unblock'}`, { method: 'POST', headers: authH() });
       if (r.ok) { notify(blocking ? 'Usuário bloqueado.' : 'Usuário desbloqueado.', { type: 'success' }); void load(); }

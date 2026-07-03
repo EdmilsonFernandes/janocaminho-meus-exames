@@ -11,7 +11,7 @@ import DeleteIcon from '@mui/icons-material/DeleteOutline';
 import { useNavigate } from 'react-router-dom';
 import { useNotify } from 'react-admin';
 import { API_URL, apiHeaders } from '../config';
-import { confirmDialog } from '../components/ConfirmDialog';
+import { confirmDialog, promptDialog } from '../components/ConfirmDialog';
 import { useSelectedPatient } from '../patient-context';
 import { CreditBadge, CREDIT_COSTS } from '../components/CreditBadge';
 import { DrExame } from '../components/DrExame';
@@ -283,7 +283,7 @@ const HistoryRow = ({ conv, active, onOpen, onRename, onDelete }: { conv: Conv; 
       <ListItemText primary={conv.title || 'Sem título'} primaryTypographyProps={{ fontSize: 13.5, fontWeight: active ? 700 : 500, color: 'text.primary', noWrap: true }} secondary={new Date(conv.updatedAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} secondaryTypographyProps={{ fontSize: 11 }} />
       <IconButton size="small" edge="end" onClick={(e) => { e.stopPropagation(); setMenu(e.currentTarget); }}><MoreVertIcon fontSize="small" sx={{ color: 'text.secondary' }} /></IconButton>
       <Menu anchorEl={menu} open={!!menu} onClose={() => setMenu(null)} slotProps={{ paper: { sx: { borderRadius: 2 } } }}>
-        <MenuItem onClick={() => { setMenu(null); const t = window.prompt('Título da conversa:', conv.title); if (t != null) onRename(t.trim() || conv.title); }}>✏️ Renomear</MenuItem>
+        <MenuItem onClick={async () => { setMenu(null); const t = await promptDialog({ title: 'Renomear conversa', label: 'Título', defaultValue: conv.title, confirmLabel: 'Salvar' }); if (t != null) onRename(t.trim() || conv.title); }}>✏️ Renomear</MenuItem>
         <MenuItem onClick={async () => { setMenu(null); if (await confirmDialog({ title: 'Excluir conversa', message: 'Excluir esta conversa?', confirmLabel: 'Excluir' })) onDelete(); }} sx={{ color: 'error.main' }}><DeleteIcon fontSize="small" sx={{ mr: 1 }} /> Excluir</MenuItem>
       </Menu>
     </ListItemButton>
