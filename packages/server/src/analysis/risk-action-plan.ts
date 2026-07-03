@@ -12,7 +12,7 @@
  * Porta o build_glm_prompt do risk-ml (Python) pra TS.
  */
 import { prisma } from '../prisma';
-import { getLlm, MODEL } from '../llm';
+import { getLlm, getModel } from '../llm';
 import { HEALTH_SYSTEM, diagnosticGuard } from './system';
 import { MEDICAL_DISCLAIMER } from './risk-rules';
 import { knowledgeFor } from './knowledge';
@@ -77,7 +77,7 @@ export async function generateActionPlan(patientId: string, audience: 'patient' 
   let response: any;
   try {
     const s = await getLlm().stream({
-      model: MODEL,
+      model: getModel(),
       maxTokens: 2000,
       system: PLAN_SYSTEM,
       messages: [{ role: 'user', content: userContent }],

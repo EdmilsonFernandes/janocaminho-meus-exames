@@ -93,6 +93,22 @@ model AppSetting {
   @@map("app_settings")
 }
 
+// Provedor de IA ativo + credenciais (parametrizado no banco — editável pelo painel admin).
+// A chave é cifrada AES-256-GCM (apiKeyEnc="hex:tag" + apiKeyIv) — nunca exposta pela API.
+// Exatamente UMA linha com active=true (garantido em transação no PATCH /admin/ai-config).
+// Fallback: se a linha do provider não tiver chave/modelo, cai pro .env (getActiveConfig em llm/ai-config.ts).
+model AiProviderConfig {
+  id        String   @id @default(cuid())
+  provider  String   @unique              // anthropic | openai | gemini
+  active    Boolean  @default(false)
+  apiKeyEnc String?                        // "<hex>:<tag>"  (AES-256-GCM, APP_ENCRYPTION_KEY)
+  apiKeyIv  String?                        // iv em hex
+  baseURL   String?                        // relay Z.ai / OpenAI base. Gemini usa endpoint fixo.
+  model     String?                        // glm-4.6 / gpt-4o-mini / gemini-2.0-flash
+  updatedAt DateTime @updatedAt
+  @@map("ai_provider_configs")
+}
+
 enum Role {
   OWNER
   ADMIN

@@ -1,7 +1,7 @@
 import { prisma } from '../prisma';
 import { sendPushToUser } from '../utils/push';
 import { sendNudgeEmail } from '../utils/nudgeMail';
-import { getLlm, MODEL } from '../llm';
+import { getLlm, getModel } from '../llm';
 
 /** Scheduler de NUDGES de saúde (engajamento DIÁRIO garantido às 08h BRT).
  *  - Dispara 1x/dia às 08h BRT (= 11h UTC — Brasil sem DST desde 2019, UTC-3 fixo o ano todo).
@@ -49,7 +49,7 @@ async function getDailyHealthTip(): Promise<string> {
   if (cachedTip && cachedTip.day === day) return cachedTip.text;
   try {
     const r = await getLlm().complete({
-      model: MODEL,
+      model: getModel(),
       maxTokens: 200,
       system: 'Você é o Dr. Exame, assistente de saúde empático e prático do app Meus Exames. Gere UMA dica de saúde curta (máx 2 frases, ~180 caracteres), acionável e variada (hidratação, sono, movimento, alimentação, prevenção, exames de rotina, saúde mental, pressão/glicose). Sem jargão médico, sem diagnóstico. Responda APENAS com a dica, sem aspas nem prefixo.',
       messages: [{ role: 'user', content: 'Dê a dica de saúde de hoje para o usuário.' }],

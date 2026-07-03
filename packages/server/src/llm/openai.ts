@@ -1,5 +1,5 @@
-import { config } from '../config';
 import type { LlmProvider, LlmRequest, LlmStream, LlmResult } from './types';
+import { getActiveConfig, type AiProviderRuntime } from './ai-config';
 
 const sysText = (s?: string | string[]): string | undefined =>
   s ? (Array.isArray(s) ? s.filter(Boolean).join('\n\n') : s) : undefined;
@@ -7,13 +7,25 @@ const sysText = (s?: string | string[]): string | undefined =>
 /**
  * Adapter OpenAI (compatível com qualquer endpoint /chat/completions: OpenAI, Azure, OpenRouter,
  * Together, etc.). Sem SDK — fetch direto (stream SSE). system vira message role:'system'.
+ * Credenciais do banco (getActiveConfig) ou explícitas (teste).
  */
 export class OpenAIAdapter implements LlmProvider {
   name = 'openai';
+  private cfg: AiProviderRuntime;
+
+  constructor(opts?: Partial<AiProviderRuntime>) {
+    const active = getActiveConfig();
+    this.cfg = {
+      provider: 'openai',
+      apiKey: opts?.apiKey ?? active.apiKey,
+      baseURL: opts?.baseURL ?? active.baseURL ?? 'https://api.openai.com/v1',
+      model: opts?.model ?? active.model,
+    };
+  }
 
   private check() {
-    if (!config.openaiApiKey) {
-      const err = new Error('OPENAI_API_KEY não configurada. Defina OPENAI_API_KEY (e OPENAI_BASE_URL/OPENAI_MODEL se preciso) no .env.');
+    if (!this.cfg.apiKey) {
+      const err = new Error('Chave da IA não configurada (OpenAI). Defina no painel admin (IA) ou no .env.');
       (err as any).status = 503;
       throw err;
     }
@@ -26,10 +38,10 @@ export class OpenAIAdapter implements LlmProvider {
       ...(system ? [{ role: 'system', content: system }] : []),
       ...req.messages.map((m) => ({ role: m.role, content: m.content })),
     ];
-    const model = req.model ?? config.openaiModel;
-    const r = await fetch(`${config.openaiBaseURL.replace(/\/$/, '')}/chat/completions`, {
+    const model = req.model ?? this.cfg.model;
+    const r = await fetch(`${this.cfg.baseURL!.replace(/\/$/, '')}/chat/completions`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${config.openaiApiKey}` },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${this.cfg.apiKey}` },
       body: JSON.stringify({ model, max_tokens: req.maxTokens, messages, stream: true, stream_options: { include_usage: true } }),
     });
     if (!r.ok || !r.body) {

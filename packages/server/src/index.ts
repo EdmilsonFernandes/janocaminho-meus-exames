@@ -9,6 +9,7 @@ import { startHealthNudgeJob } from './jobs/healthNudges';
 import { startPlanExpiryJob } from './jobs/planExpiry';
 import { loadSettings } from './utils/settings';
 import { loadBlockedDomains } from './utils/blockedDomains';
+import { initLlm } from './llm';
 import { runExtraction } from './extraction/pipeline';
 
 // SENTRY — error tracking em produção.
@@ -24,6 +25,9 @@ console.log('[server] Sentry ativo');
 void loadSettings();
 // Carrega lista de domínios de e-mail bloqueados (descartáveis/temporários) do banco.
 void loadBlockedDomains();
+// Carrega config do provedor de IA do banco (admin editable) — sobrepõe o .env. Sem isso, getLlm()
+// usa o .env (fallback). initLlm é tolerante a DB indisponível.
+void initLlm();
 
 const server = app.listen(config.port, () => {
   console.log(`[server] rodando em http://localhost:${config.port} (env=${config.nodeEnv})`);

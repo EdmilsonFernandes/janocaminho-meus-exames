@@ -10,6 +10,9 @@ import { sendPush, sendPushToUser, PUSH_TOPIC } from '../utils/push';
 import { sendEmail } from '../utils/mailer';
 import { upload } from '../middleware/upload';
 import { audit } from '../utils/audit';
+import { getConfigRows, getActiveProvider, AI_PROVIDERS, type AiProviderName } from '../llm/ai-config';
+import { refreshLlm, testLlmConnection } from '../llm';
+import { encryptPII } from '../utils/crypto';
 
 const router = Router();
 router.use(requireAuth);
@@ -84,6 +87,71 @@ router.patch('/config/costs', async (req, res, next) => {
     const s = await saveSettings(category as SettingCategory, patch);
     console.log('[admin] config atualizada (persistida no banco):', category, patch);
     res.json({ ...s, plans: { monthly: { price: 19.90, credits: s.grants.monthly } } });
+  } catch (e) { next(e); }
+});
+
+// ===== IA — config do provedor (banco, editável aqui na aba IA) =====
+// GET: os 3 providers com a chave MASCARADA (••••1234) — nunca expõe a chave cheia.
+router.get('/ai-config', (_req, res) => {
+  const rows = getConfigRows();
+  const providers = AI_PROVIDERS.map((p) =>
+    rows.find((r) => r.provider === p) ?? { provider: p, active: false, baseURL: null, model: null, keyMasked: null },
+  );
+  res.json({ activeProvider: getActiveProvider(), providers });
+});
+
+// PATCH: define o provider ativo + (opcional) chave/baseURL/modelo.
+//   Transação garante exatamente 1 linha active=true. apiKey vazio = mantém a chave existente.
+//   Chave cifrada AES-256-GCM (encryptPII). refreshLlm() reconstrói o adapter em runtime.
+router.patch('/ai-config', async (req, res, next) => {
+  try {
+    const provider = String(req.body?.provider ?? '').toLowerCase();
+    if (!AI_PROVIDERS.includes(provider as AiProviderName)) {
+      res.status(400).json({ error: 'provider inválido. Use anthropic | openai | gemini.' }); return;
+    }
+    const p = provider as AiProviderName;
+    const apiKey = typeof req.body?.apiKey === 'string' ? req.body.apiKey.trim() : '';
+    const baseURL = typeof req.body?.baseURL === 'string' ? req.body.baseURL.trim() : undefined;
+    const model = typeof req.body?.model === 'string' ? req.body.model.trim() : undefined;
+
+    const before = { activeProvider: getActiveProvider(), providers: getConfigRows() };
+
+    const existing = await prisma.aiProviderConfig.findUnique({ where: { provider: p } });
+    let apiKeyEnc = existing?.apiKeyEnc ?? null;
+    let apiKeyIv = existing?.apiKeyIv ?? null;
+    if (apiKey) { const enc = encryptPII(apiKey); if (enc) { apiKeyEnc = enc.enc; apiKeyIv = enc.iv; } }
+
+    // Atômico: desativa todos + ativa o escolhido na mesma transação (garante exatamente 1 ativo).
+    await prisma.$transaction([
+      prisma.aiProviderConfig.updateMany({ where: { active: true }, data: { active: false } }),
+      prisma.aiProviderConfig.upsert({
+        where: { provider: p },
+        update: { active: true, apiKeyEnc, apiKeyIv, ...(baseURL !== undefined ? { baseURL: baseURL || null } : {}), ...(model !== undefined ? { model: model || null } : {}) },
+        create: { provider: p, active: true, apiKeyEnc, apiKeyIv, baseURL: baseURL || null, model: model || null },
+      }),
+    ]);
+
+    await refreshLlm();
+    await audit('UPDATE_AI_CONFIG', req, { targetType: 'AI_CONFIG', before, after: { activeProvider: getActiveProvider(), providers: getConfigRows() } });
+    console.log('[admin] config de IA atualizada (banco):', p);
+    const rows = getConfigRows();
+    res.json({ activeProvider: getActiveProvider(), providers: AI_PROVIDERS.map((pp) => rows.find((r) => r.provider === pp) ?? { provider: pp, active: false, baseURL: null, model: null, keyMasked: null }) });
+  } catch (e) { next(e); }
+});
+
+// POST /test: testa a conexão (override do body → config salva → env). NÃO persiste.
+router.post('/ai-config/test', async (req, res, next) => {
+  try {
+    const provider = String(req.body?.provider ?? '').toLowerCase();
+    if (!AI_PROVIDERS.includes(provider as AiProviderName)) {
+      res.status(400).json({ error: 'provider inválido. Use anthropic | openai | gemini.' }); return;
+    }
+    const override: { apiKey?: string; baseURL?: string; model?: string } = {};
+    if (typeof req.body?.apiKey === 'string' && req.body.apiKey.trim()) override.apiKey = req.body.apiKey.trim();
+    if (typeof req.body?.baseURL === 'string' && req.body.baseURL.trim()) override.baseURL = req.body.baseURL.trim();
+    if (typeof req.body?.model === 'string' && req.body.model.trim()) override.model = req.body.model.trim();
+    const result = await testLlmConnection(provider as AiProviderName, override);
+    res.json(result);
   } catch (e) { next(e); }
 });
 

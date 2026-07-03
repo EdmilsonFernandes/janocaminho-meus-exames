@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
 import { parseListParams, setListHeaders } from '../utils/list';
-import { getLlm, MODEL } from '../llm';
+import { getLlm, getModel } from '../llm';
 import { JSON_SUFFIX, extractJsonObject } from '../utils/json';
 import { getCachedExplanation, setCachedExplanation } from '../utils/explanationsCache';
 
@@ -208,7 +208,7 @@ router.post('/explain', async (req: AuthedRequest, res) => {
     const cached = getCachedExplanation(name);
     if (cached) { res.json(cached); return; }
     const s = await getLlm().stream({
-      model: MODEL, maxTokens: 700,
+      model: getModel(), maxTokens: 700,
       messages: [{ role: 'user', content: `Explique de forma SIMPLES e CURTA (português, leigo) o exame/analito "${name}". Devolva APENAS JSON: {"titulo":"nome amigável","resumo":"1 frase: o que mede","analogia":"analogia do dia a dia","alterado":"o que pode significar se alto/baixo (sem diagnosticar)"}${JSON_SUFFIX}` }],
     });
     const resp = await s.final();

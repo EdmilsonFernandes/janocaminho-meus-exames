@@ -1,4 +1,4 @@
-import { getLlm, MODEL } from '../llm';
+import { getLlm, getModel } from '../llm';
 import {
   LabExtractionSchema,
   ImagingExtractionSchema,
@@ -103,7 +103,7 @@ async function createJson(buffer: Buffer, mediaType: string, instruction: string
     }
     const label = isPdf ? 'CONTEÚDO EXTRAÍDO DO EXAME' : 'CONTEÚDO EXTRAÍDO DO EXAME via OCR';
     const content = instruction + `\n\n=== ${label} (use EXATAMENTE estes dados; NUNCA invente valores/nomes) ===\n` + (text && text.trim().length > 0 ? text : '(não foi possível extrair texto legível)') + '\n' + JSON_SUFFIX;
-    const s = await getLlm().stream({ model: MODEL, maxTokens, messages: [{ role: 'user', content }] });
+    const s = await getLlm().stream({ model: getModel(), maxTokens, messages: [{ role: 'user', content }] });
     return s.final();
   });
 
@@ -113,7 +113,7 @@ async function createJson(buffer: Buffer, mediaType: string, instruction: string
     throw err;
   }
   // diagnóstico: input_tokens pequeno => o PDF/documento não chegou ao modelo (relay dropou)
-  console.log('[extraction] model:', MODEL, '| usage:', JSON.stringify(response.usage));
+  console.log('[extraction] model:', getModel(), '| usage:', JSON.stringify(response.usage));
   return extractJsonObject(response.text);
 }
 

@@ -1,4 +1,4 @@
-import { getLlm, MODEL } from '../llm';
+import { getLlm, getModel } from '../llm';
 import { withRateLimitRetry } from '../utils/retry';
 import { HealthSummarySchema, type HealthSummary } from '../extraction/schemas';
 import { prisma } from '../prisma';
@@ -129,7 +129,7 @@ export async function generateConsolidatedSummary(patientId: string, audience: '
   let response: any;
   try {
     response = await withRateLimitRetry(async () => {
-      const s = await getLlm().stream({ model: MODEL, maxTokens: 6000, system: HEALTH_SYSTEM, messages: messages as any });
+      const s = await getLlm().stream({ model: getModel(), maxTokens: 6000, system: HEALTH_SYSTEM, messages: messages as any });
       return s.final();
     });
   } catch (e: any) {
@@ -210,7 +210,7 @@ export async function generateHealthSummary(examId: string): Promise<{ summary: 
     : '';
 
   const s = await getLlm().stream({
-    model: MODEL,
+    model: getModel(),
     maxTokens: 6000,
     system: HEALTH_SYSTEM,
     messages: [

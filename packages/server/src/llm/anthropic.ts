@@ -1,19 +1,31 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { config, hasAnthropicKey } from '../config';
 import type { LlmProvider, LlmRequest, LlmStream, LlmResult } from './types';
+import { getActiveConfig, type AiProviderRuntime } from './ai-config';
 
-/** Adapter Anthropic/Z.ai — encapsula o @anthropic-ai/sdk EXISTENTE (lê ANTHROPIC_* do env). */
+/** Adapter Anthropic/Z.ai — credenciais do banco (getActiveConfig) ou explícitas (teste de conexão).
+ *  Passa apiKey/baseURL explícitos pro SDK (não depende de ler ANTHROPIC_AUTH_TOKEN do env). */
 export class AnthropicAdapter implements LlmProvider {
   name = 'anthropic';
   private client: Anthropic;
+  private cfg: AiProviderRuntime;
 
-  constructor() {
-    if (!hasAnthropicKey()) {
-      const err = new Error('ANTHROPIC_API_KEY/AUTH_TOKEN não configurada. Defina em packages/server/.env (ou troque AI_PROVIDER).');
+  constructor(opts?: Partial<AiProviderRuntime>) {
+    const active = getActiveConfig();
+    this.cfg = {
+      provider: 'anthropic',
+      apiKey: opts?.apiKey ?? active.apiKey,
+      baseURL: opts?.baseURL ?? active.baseURL,
+      model: opts?.model ?? active.model,
+    };
+    if (!this.cfg.apiKey) {
+      const err = new Error('Chave da IA não configurada (Anthropic/Z.ai). Defina no painel admin (IA) ou no .env.');
       (err as any).status = 503;
       throw err;
     }
-    this.client = new Anthropic();
+    this.client = new Anthropic({
+      apiKey: this.cfg.apiKey,
+      ...(this.cfg.baseURL ? { baseURL: this.cfg.baseURL } : {}),
+    });
   }
 
   private toSystem(s?: string | string[]): string | undefined {
@@ -24,7 +36,7 @@ export class AnthropicAdapter implements LlmProvider {
   async stream(req: LlmRequest): Promise<LlmStream> {
     const system = this.toSystem(req.system);
     const stream = this.client.messages.stream({
-      model: req.model ?? config.extractionModel,
+      model: req.model ?? this.cfg.model,
       max_tokens: req.maxTokens,
       ...(system ? { system } : {}),
       messages: req.messages as any,

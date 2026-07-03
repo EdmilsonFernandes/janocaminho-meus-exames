@@ -1,5 +1,5 @@
 import type { Response } from 'express';
-import { getLlm, MODEL } from '../llm';
+import { getLlm, getModel } from '../llm';
 import { HEALTH_SYSTEM, diagnosticGuard } from './system';
 
 export interface ChatTurn {
@@ -33,7 +33,7 @@ export async function streamChat(opts: {
 
   let full = '';
   const s = await getLlm().stream({
-    model: MODEL,
+    model: getModel(),
     maxTokens: 900,
     system: [
       HEALTH_SYSTEM,
@@ -56,5 +56,5 @@ export async function streamChat(opts: {
   }
   res.write(`data: ${JSON.stringify({ type: 'done', usage, model })}\n\n`);
   res.end();
-  return { text: guarded.text, model: model ?? MODEL ?? 'glm-4.6' };
+  return { text: guarded.text, model: model ?? getModel() ?? 'glm-4.6' };
 }

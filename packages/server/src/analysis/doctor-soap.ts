@@ -6,7 +6,7 @@
  * Grátis (engajamento médico). Reusa getLlm + buildCurrentHealthSummary + latestRiskAssessment.
  */
 import { prisma } from '../prisma';
-import { getLlm, MODEL } from '../llm';
+import { getLlm, getModel } from '../llm';
 import { HEALTH_SYSTEM, diagnosticGuard } from './system';
 import { buildCurrentHealthSummary, formatSnapshotContext } from './health-state';
 import { latestRiskAssessment } from './risk-service';
@@ -45,7 +45,7 @@ export async function generateSoap(patientId: string): Promise<{ contentMd: stri
     `Máx ~300 palavras. Sem prescrever medicamentos.`;
 
   const s = await getLlm().stream({
-    model: MODEL, maxTokens: 2000,
+    model: getModel(), maxTokens: 2000,
     system: HEALTH_SYSTEM + '\n\nVocê gera SOAP clnico para prontuário médico. Tom técnico, conciso, SEM diagnóstico definitivo.',
     messages: [{ role: 'user', content: userContent }] as any,
   });
@@ -53,5 +53,5 @@ export async function generateSoap(patientId: string): Promise<{ contentMd: stri
   if (!response) throw new Error('SOAP: resposta vazia');
 
   const contentMd = diagnosticGuard(response.text || '').text;
-  return { contentMd, modelUsed: response.model || MODEL };
+  return { contentMd, modelUsed: response.model || getModel() };
 }

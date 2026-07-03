@@ -1,16 +1,28 @@
-import { config } from '../config';
 import type { LlmProvider, LlmRequest, LlmStream, LlmResult } from './types';
+import { getActiveConfig, type AiProviderRuntime } from './ai-config';
 
 const sysText = (s?: string | string[]): string | undefined =>
   s ? (Array.isArray(s) ? s.filter(Boolean).join('\n\n') : s) : undefined;
 
-/** Adapter Google Gemini (generativelanguage API). Sem SDK — fetch direto (stream SSE). */
+/** Adapter Google Gemini (generativelanguage API). Sem SDK — fetch direto (stream SSE).
+ *  Credenciais do banco (getActiveConfig) ou explícitas (teste). */
 export class GeminiAdapter implements LlmProvider {
   name = 'gemini';
+  private cfg: AiProviderRuntime;
+
+  constructor(opts?: Partial<AiProviderRuntime>) {
+    const active = getActiveConfig();
+    this.cfg = {
+      provider: 'gemini',
+      apiKey: opts?.apiKey ?? active.apiKey,
+      baseURL: '', // Gemini usa endpoint fixo (key na query)
+      model: opts?.model ?? active.model,
+    };
+  }
 
   private check() {
-    if (!config.geminiApiKey) {
-      const err = new Error('GEMINI_API_KEY não configurada. Defina GEMINI_API_KEY (e GEMINI_MODEL se preciso) no .env.');
+    if (!this.cfg.apiKey) {
+      const err = new Error('Chave da IA não configurada (Gemini). Defina no painel admin (IA) ou no .env.');
       (err as any).status = 503;
       throw err;
     }
@@ -19,7 +31,7 @@ export class GeminiAdapter implements LlmProvider {
   async stream(req: LlmRequest): Promise<LlmStream> {
     this.check();
     const system = sysText(req.system);
-    const model = req.model ?? config.geminiModel;
+    const model = req.model ?? this.cfg.model;
     // Gemini usa role 'model' (não 'assistant')
     const contents = req.messages.map((m) => ({
       role: m.role === 'assistant' ? 'model' : 'user',
@@ -30,7 +42,7 @@ export class GeminiAdapter implements LlmProvider {
       contents,
       generationConfig: { maxOutputTokens: req.maxTokens },
     };
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${encodeURIComponent(config.geminiApiKey)}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${encodeURIComponent(this.cfg.apiKey)}`;
     const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     if (!r.ok || !r.body) {
       const detail = await r.text().catch(() => '');
