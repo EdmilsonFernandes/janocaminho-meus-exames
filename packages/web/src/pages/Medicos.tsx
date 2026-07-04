@@ -64,6 +64,8 @@ export const MedicosPage = () => {
   const [activeOnly, setActiveOnly] = useState(false);
   // Menu ⋯
   const [menuEl, setMenuEl] = useState<{ id: string; el: HTMLElement } | null>(null);
+  // Detalhes do médico (perfil público — clicável no nome do card)
+  const [detail, setDetail] = useState<any | null>(null);
 
   const load = () => {
     fetch(`${API_URL}/doctor-shares`, { headers: { Authorization: `Bearer ${token()}` } })
@@ -232,7 +234,7 @@ export const MedicosPage = () => {
                     </Box>
                     <Box sx={{ flex: 1, minWidth: 0 }}>
                       <Stack direction="row" alignItems="center" spacing={0.5} useFlexGap flexWrap="wrap">
-                        <Typography sx={{ fontWeight: 800, color: 'text.primary', fontSize: 15 }}>{s.doctor?.name}</Typography>
+                        <Typography onClick={() => setDetail(s.doctor)} sx={{ fontWeight: 800, color: 'text.primary', fontSize: 15, cursor: 'pointer', '&:hover': { textDecoration: 'underline', color: '#178f89' } }}>{s.doctor?.name}</Typography>
                       </Stack>
                       <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>CRM {s.doctor?.crm}{s.convenio ? ` • ${s.convenio}` : ''}</Typography>
                       {/* Scope toggles */}
@@ -283,6 +285,27 @@ export const MedicosPage = () => {
           <DeleteIcon sx={{ fontSize: 18, mr: 1 }} /> Excluir compartilhamento
         </MenuItem>
       </MuiMenu>
+
+      {/* Detalhes do médico (perfil público — clicável no nome do card) */}
+      <Dialog open={!!detail} onClose={() => setDetail(null)} fullWidth maxWidth="xs" PaperProps={{ sx: { borderRadius: 4 } }}>
+        {detail && (
+          <>
+            <DialogTitle sx={{ textAlign: 'center', pb: 0 }}>
+              <Avatar src={detail.id ? `${API_URL}/doctor/photo/${detail.id}` : undefined} sx={{ width: 72, height: 72, mx: 'auto', mb: 1, fontSize: 28, fontWeight: 800, bgcolor: '#20b2aa' }}>{detail.name?.charAt(0)?.toUpperCase()}</Avatar>
+              {detail.name}
+            </DialogTitle>
+            <DialogContent sx={{ textAlign: 'center' }}>
+              {detail.specialty && <Chip size="small" label={detail.specialty} sx={{ mb: 1.5, bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 700 }} />}
+              <Typography variant="body2" sx={{ mb: 0.5 }}>CRM {detail.crm}{detail.uf ? `-${detail.uf}` : ''}</Typography>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>Convidado por você para acompanhar seus exames.</Typography>
+              {detail.email && !detail.email.includes('@invite.com') && (
+                <Button size="small" startIcon={<MedicalServicesIcon />} href={`mailto:${detail.email}?subject=Agendamento%20de%20consulta`} sx={{ mt: 0.5, borderRadius: 99, textTransform: 'none', fontWeight: 700, py: 1.1, bgcolor: '#059669', color: '#fff', '&:hover': { bgcolor: '#047857' } }}>Agendar por e-mail</Button>
+              )}
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2, fontSize: 10 }}>📞 Consultório e telefone em breve — o médico preencherá no perfil.</Typography>
+            </DialogContent>
+          </>
+        )}
+      </Dialog>
 
       {/* Dialog de compartilhamento */}
       <Dialog open={showForm} onClose={() => setShowForm(false)} fullWidth maxWidth="sm" PaperProps={{ sx: { borderRadius: 4 } }}>
