@@ -286,7 +286,9 @@ export function renderSummaryMd(s: HealthSummary): string {
   out.push('', '### Leitura final', s.leituraFinal);
 
   if (s.perguntasParaOMedico?.length) {
-    out.push('', '### 🩺 Perguntas para levar ao médico');
+    // Label neutro: no app do paciente funciona como "pontos pra levar à consulta"; no portal do
+    // médico não faz sentido "levar ao médico" (ele É o médico) — "pontos para a consulta" serve aos dois.
+    out.push('', '### 🩺 Pontos de atenção para a consulta');
     s.perguntasParaOMedico.forEach((q, i) => out.push(`${i + 1}. ${q}`));
   }
   out.push('', '---', `*${s.disclaimer || 'Análise educativa. Leve ao seu médico para interpretação clínica.'}*`);
