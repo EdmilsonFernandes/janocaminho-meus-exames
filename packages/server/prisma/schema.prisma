@@ -469,6 +469,11 @@ model Doctor {
   crmUf        String?
   specialty    String?
   photoUrl     String?
+  // Perfil público (visto pelo paciente ao abrir o médico na lista) — opcional, médico preenche no portal.
+  phone        String?   // telefone/WhatsApp p/ agendamento
+  clinicName   String?   // nome do consultório/clínica
+  clinicCity   String?   // cidade (ex.: "São Paulo - SP")
+  bio          String?   // apresentação curta / referências
   email        String   @unique
   emailVerified Boolean @default(false) // valida e-mail no cadastro (igual o paciente) — antes logava direto
   passwordHash String

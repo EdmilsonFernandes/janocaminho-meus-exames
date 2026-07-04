@@ -800,8 +800,9 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               <DoctorExamDetail exam={selExam} detail={examDetail} patientId={selected.patient.id} token={token} onBack={() => { setSelExam(null); setExamDetail(null); }} />
             ) : supportedTabs.length > 0 ? (
               <>
-                {/* Abas como controle segmentado (wrap) — todas visíveis, sem rolagem escondida */}
-                <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mb: 2 }}>
+                {/* Abas como controle segmentado (wrap) — STICKY no topo: o médico sempre enxerga as
+                    abas ao rolar o conteúdo (antes rolava e 'perdia' as abas — fluxo confuso). */}
+                <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mb: 2, position: 'sticky', top: 0, zIndex: 10, bgcolor: 'background.paper', py: 1, px: 0.5, mx: -0.5, borderRadius: 2 }}>
                   {supportedTabs.map((s) => {
                     const on = tab === s;
                     const meta = SCOPE_META[s] || { icon: '📄', label: s };
@@ -1045,6 +1046,11 @@ const DoctorProfile = ({ token, doctor, onBack, onSaved, onPhoto, photoVer }: { 
   const [name, setName] = useState(doctor?.name ?? '');
   const [spec, setSpec] = useState(doctor?.specialty ?? '');
   const [email, setEmail] = useState(doctor?.email ?? '');
+  // Perfil público (visto pelo paciente ao abrir o médico na lista dele)
+  const [phone, setPhone] = useState(doctor?.phone ?? '');
+  const [clinicName, setClinicName] = useState(doctor?.clinicName ?? '');
+  const [clinicCity, setClinicCity] = useState(doctor?.clinicCity ?? '');
+  const [bio, setBio] = useState(doctor?.bio ?? '');
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
@@ -1054,7 +1060,11 @@ const DoctorProfile = ({ token, doctor, onBack, onSaved, onPhoto, photoVer }: { 
       const r = await fetch(`${API_URL}/doctor/me`, { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ name, specialty: spec, email }) });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Falha ao salvar');
-      onSaved(d.doctor); setMsg({ type: 'ok', text: 'Perfil atualizado!' });
+      // Perfil público (telefone/consultório/cidade/bio) — endpoint dedicado, visto pelo paciente.
+      const r2 = await fetch(`${API_URL}/doctor/profile`, { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ phone, clinicName, clinicCity, bio }) });
+      const d2 = await r2.json();
+      if (!r2.ok) throw new Error(d2.error || 'Falha ao salvar perfil público');
+      onSaved(d2.doctor); setMsg({ type: 'ok', text: 'Perfil atualizado!' });
     } catch (e: any) { setMsg({ type: 'err', text: e.message }); } finally { setSaving(false); }
   };
 
@@ -1093,6 +1103,11 @@ const DoctorProfile = ({ token, doctor, onBack, onSaved, onPhoto, photoVer }: { 
               {SPECIALTIES.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
             </TextField>
             <TextField label="E-mail" type="email" value={email} onChange={(e) => setEmail(e.target.value)} size="small" fullWidth />
+            <Divider sx={{ my: 0.5 }}><Typography variant="caption" color="text.secondary">PERFIL PÚBLICO (visto pelo paciente)</Typography></Divider>
+            <TextField label="Telefone / WhatsApp" value={phone} onChange={(e) => setPhone(e.target.value)} size="small" fullWidth helperText="Vira o botão 'Agendar no WhatsApp' para o paciente." inputProps={{ inputMode: 'tel' }} />
+            <TextField label="Consultório / Clínica" value={clinicName} onChange={(e) => setClinicName(e.target.value)} size="small" fullWidth />
+            <TextField label="Cidade - UF" value={clinicCity} onChange={(e) => setClinicCity(e.target.value)} size="small" fullWidth placeholder="Ex.: São Paulo - SP" />
+            <TextField label="Apresentação / referências" value={bio} onChange={(e) => setBio(e.target.value)} size="small" fullWidth multiline minRows={2} inputProps={{ maxLength: 500 }} />
           </Stack>
           {msg && <Alert severity={msg.type === 'ok' ? 'success' : 'error'} sx={{ mt: 1.5, py: 0.5, borderRadius: 2 }}>{msg.text}</Alert>}
           <Button variant="contained" onClick={save} disabled={saving} startIcon={saving ? <CircularProgress size={18} color="inherit" /> : undefined} sx={{ mt: 2, borderRadius: 2, textTransform: 'none', fontWeight: 800, background: 'linear-gradient(180deg,#20b2aa,#009688)', '&:hover': { background: 'linear-gradient(180deg,#1ca39e,#00897b)' } }}>{saving ? 'Salvando…' : 'Salvar perfil'}</Button>

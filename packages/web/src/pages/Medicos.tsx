@@ -297,11 +297,16 @@ export const MedicosPage = () => {
             <DialogContent sx={{ textAlign: 'center' }}>
               {detail.specialty && <Chip size="small" label={detail.specialty} sx={{ mb: 1.5, bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 700 }} />}
               <Typography variant="body2" sx={{ mb: 0.5 }}>CRM {detail.crm}{detail.uf ? `-${detail.uf}` : ''}</Typography>
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>Convidado por você para acompanhar seus exames.</Typography>
-              {detail.email && !detail.email.includes('@invite.com') && (
-                <Button size="small" startIcon={<MedicalServicesIcon />} href={`mailto:${detail.email}?subject=Agendamento%20de%20consulta`} sx={{ mt: 0.5, borderRadius: 99, textTransform: 'none', fontWeight: 700, py: 1.1, bgcolor: '#059669', color: '#fff', '&:hover': { bgcolor: '#047857' } }}>Agendar por e-mail</Button>
-              )}
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2, fontSize: 10 }}>📞 Consultório e telefone em breve — o médico preencherá no perfil.</Typography>
+              {detail.clinicName && <Typography sx={{ fontWeight: 700, mt: 1, color: 'text.primary' }}>{detail.clinicName}</Typography>}
+              {detail.clinicCity && <Typography variant="body2" color="text.secondary">📍 {detail.clinicCity}</Typography>}
+              {detail.bio && <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic', color: 'text.secondary', lineHeight: 1.4 }}>{detail.bio}</Typography>}
+              {!detail.bio && !detail.clinicName && <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>Convidado por você para acompanhar seus exames.</Typography>}
+              {/* Agendar: WhatsApp se o médico preencheu telefone, senão e-mail */}
+              {detail.phone ? (
+                <Button component="a" target="_blank" rel="noopener" size="small" href={`https://wa.me/${detail.phone.replace(/\D/g, '')}?text=${encodeURIComponent('Olá, doutor(a)! Gostaria de agendar uma consulta.')}`} sx={{ mt: 1.5, borderRadius: 99, textTransform: 'none', fontWeight: 700, py: 1.1, bgcolor: '#25D366', color: '#fff', '&:hover': { bgcolor: '#1da851' } }}>💬 Agendar no WhatsApp</Button>
+              ) : detail.email && !detail.email.includes('@invite.com') ? (
+                <Button size="small" startIcon={<MedicalServicesIcon />} href={`mailto:${detail.email}?subject=Agendamento%20de%20consulta`} sx={{ mt: 1.5, borderRadius: 99, textTransform: 'none', fontWeight: 700, py: 1.1, bgcolor: '#059669', color: '#fff', '&:hover': { bgcolor: '#047857' } }}>Agendar por e-mail</Button>
+              ) : null}
             </DialogContent>
           </>
         )}

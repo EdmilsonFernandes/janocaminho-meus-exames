@@ -158,7 +158,7 @@ router.get('/lookup', requireAuth, async (req: AuthedRequest, res, next) => {
 
     // 1) conta real (médico registrou/claimou) — dados mais fidedignos
     const doc = await prisma.doctor.findUnique({ where: { crm: crmKey } });
-    const docDto = (d: any) => ({ name: d.name, specialty: d.specialty, crm: d.crm, uf: d.crmUf || uf, email: d.email?.includes('@invite.com') ? null : d.email });
+    const docDto = (d: any) => ({ name: d.name, specialty: d.specialty, crm: d.crm, uf: d.crmUf || uf, email: d.email?.includes('@invite.com') ? null : d.email, phone: d.phone ?? null, clinicName: d.clinicName ?? null, clinicCity: d.clinicCity ?? null, bio: d.bio ?? null });
     if (doc && doc.passwordHash !== 'pending-invite') { res.json({ source: 'base', doctor: docDto(doc) }); return; }
 
     // 2) fallback CFM (fonte oficial) — persiste pra virar diretório + alimentar dropdown de especialidade
@@ -289,6 +289,31 @@ router.post('/mfa/verify', async (req, res) => {
 });
 
 router.get('/mfa/status', requireDoctor, async (req: any, res) => { res.json(await mfaStatus('DOCTOR', req.doctorId)); });
+
+// Perfil público do médico (telefone/consultório/cidade/bio) — o médico edita no portal; o
+// paciente vê ao abrir o médico na lista. Campos opcionais (string|null).
+router.put('/profile', requireDoctor, async (req: any, res, next) => {
+  try {
+    const pick = (v: any, max = 200) => (typeof v === 'string' ? v.trim().slice(0, max) || null : null);
+    const updated = await prisma.doctor.update({
+      where: { id: req.doctorId },
+      data: {
+        phone: pick(req.body?.phone, 40),
+        clinicName: pick(req.body?.clinicName, 120),
+        clinicCity: pick(req.body?.clinicCity, 80),
+        bio: pick(req.body?.bio, 500),
+      },
+      select: { id: true, name: true, crm: true, crmUf: true, specialty: true, email: true, photoUrl: true, phone: true, clinicName: true, clinicCity: true, bio: true },
+    });
+    res.json({ doctor: updated });
+  } catch (e) { next(e); }
+});
+
+// Dados completos do médico logado (portal carrega pra edição do perfil público).
+router.get('/me', requireDoctor, async (req: any, res) => {
+  const d = await prisma.doctor.findUnique({ where: { id: req.doctorId }, select: { id: true, name: true, crm: true, crmUf: true, specialty: true, email: true, photoUrl: true, phone: true, clinicName: true, clinicCity: true, bio: true } });
+  res.json({ doctor: d });
+});
 router.post('/mfa/setup/start', requireDoctor, async (req: any, res) => { try { res.json(await mfaStart('DOCTOR', req.doctorId)); } catch (e: any) { res.status(e.status || 500).json({ error: e.message || 'Erro' }); } });
 router.post('/mfa/setup/confirm', requireDoctor, async (req: any, res) => { try { res.json(await mfaConfirm('DOCTOR', req.doctorId, String(req.body?.code ?? ''))); } catch (e: any) { res.status(e.status || 500).json({ error: e.message || 'Erro' }); } });
 router.post('/mfa/disable', requireDoctor, async (req: any, res) => { try { res.json(await mfaDisable('DOCTOR', req.doctorId, String(req.body?.code ?? ''))); } catch (e: any) { res.status(e.status || 500).json({ error: e.message || 'Erro' }); } });
