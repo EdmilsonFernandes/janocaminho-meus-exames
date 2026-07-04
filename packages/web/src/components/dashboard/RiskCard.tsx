@@ -31,6 +31,7 @@ interface Finding {
   key: string; namePt: string; value: number; unit: string;
   severity: 'low' | 'moderate' | 'high'; condition: string; finding: string;
   source?: string | null;
+  priorValue?: number | null; deltaPct?: number | null;
 }
 interface RiskResult {
   predictedConditionKey: string;
@@ -269,6 +270,11 @@ export const RiskCard = () => {
                         <Typography sx={{ fontWeight: 700, fontSize: '0.88rem', lineHeight: 1.2 }}>{f.namePt ?? f.finding ?? '—'}</Typography>
                         <Typography component="span" sx={{ fontWeight: 800, fontSize: '0.82rem', color: pm.color, whiteSpace: 'nowrap' }}>
                           {f.value}{f.unit ? ` ${f.unit}` : ''}
+                          {f.priorValue != null && (
+                            <Typography component="span" sx={{ fontSize: '0.7rem', color: 'text.secondary', ml: 0.5, fontWeight: 600 }}>
+                              (antes {f.priorValue}{f.deltaPct != null ? `, ${f.deltaPct > 0 ? '+' : ''}${Math.round(f.deltaPct)}%` : ''})
+                            </Typography>
+                          )}
                         </Typography>
                       </Stack>
                       {f.finding && f.finding !== f.namePt && (

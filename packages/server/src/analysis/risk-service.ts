@@ -70,6 +70,10 @@ async function loadRiskMarkers(patientId: string): Promise<{ markers: RiskMarker
       namePt: m.name,
       performedAt: m.latest.performedAt,
       stale: m.latest.stale,
+      // Contexto temporal (do MarkerState) — antes era descartado, deixando os findings sem
+      // "antes X → agora Y" (o resumo parecia ter contexto mas os destaques não).
+      priorValue: m.prior?.valueNumeric ?? null,
+      deltaPct: m.deltaPct ?? null,
     });
   }
 

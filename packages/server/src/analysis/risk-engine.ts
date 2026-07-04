@@ -26,6 +26,8 @@ export interface RiskMarker {
   namePt?: string | null; // nome de exibição (fallback p/ o da regra)
   performedAt?: Date | null;
   stale?: boolean;        // medido há >12m (não invalida, mas anota confiança)
+  priorValue?: number | null; // valor do exame anterior (p/ contexto "antes X → agora Y")
+  deltaPct?: number | null;   // variação % desde o exame anterior (do MarkerState)
 }
 
 export interface RiskFinding {
@@ -37,6 +39,8 @@ export interface RiskFinding {
   condition: Exclude<RiskCondition, 'none'>;
   finding: string;
   source?: string | null; // citação/diretriz da regra (M4 — "por quê?" no card)
+  priorValue?: number | null; // valor anterior — dá contexto ao finding (antes X → agora Y)
+  deltaPct?: number | null;   // variação % desde o exame anterior
   band: { min?: number; max?: number; severity: Exclude<Severity, 'info'>; condition: Exclude<RiskCondition, 'none'> };
 }
 
@@ -112,6 +116,8 @@ export function assessRisk(markers: RiskMarker[], gender?: 'male' | 'female'): R
           condition: band.condition,
           finding: band.finding,
           source: rule.source ?? null,
+          priorValue: m.priorValue ?? null,
+          deltaPct: m.deltaPct ?? null,
           band: { min: band.min, max: band.max, severity: band.severity, condition: band.condition },
         });
         break; // 1 finding por marcador (bandas excludentes)

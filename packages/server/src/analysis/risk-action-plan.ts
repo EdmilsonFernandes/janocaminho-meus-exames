@@ -45,7 +45,7 @@ export async function generateActionPlan(patientId: string, audience: 'patient' 
 
   const findings = (last.findings as any[]) ?? [];
   const facts = findings.length
-    ? findings.map((f) => `- ${f.name_pt}: ${f.value} ${f.unit} → ${f.finding}`).join('\n')
+    ? findings.map((f) => `- ${f.namePt ?? f.name_pt}: ${f.value} ${f.unit ?? ''} → ${f.finding}`).join('\n')
     : '- (sem alterações relevantes nos marcadores analisados)';
 
   // RAG: injeta o card de conhecimento clínico curado da condição (deixa a IA mais rica/consistente).

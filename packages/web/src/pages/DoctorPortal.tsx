@@ -419,16 +419,17 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     return deltas.sort((a, b) => Math.abs(b.pct) - Math.abs(a.pct)).slice(0, 5);
   }, [evolution]);
 
-  // Histórico de risco deduplicado por DIA. O /risk/assess pode rodar 2x no mesmo dia (cache 24h
-  // expira, ou médico/paciente clica em "refazer") e cria 2 RiskAssessment no mesmo dia — o paciente
-  // não ganha nada vendo "· 02/07/2026" repetido. Mantém só o mais recente de cada dia
-  // (riskHistory já vem orderBy createdAt desc, então o 1º de cada dia é o mais recente).
+  // Histórico de risco deduplicado por CONTEÚDO (conditionKey+riskLevel), não por dia. O /risk/assess
+  // cria 1 RiskAssessment a cada 24h (cache) mesmo quando nada mudou — motor determinístico + dados
+  // iguais ⇒ rows idênticos só com createdAt diferente. Mostrar "01/07, 02/07, 03/07" idênticos polui
+  // e parece bug ("a cada dia gera o mesmo resumo"). Mantém só a 1ª (mais recente) de cada combinação
+  // conditionKey+riskLevel — só aparece linha quando MUDOU algo de verdade.
   const riskHistoryDedup = useMemo(() => {
     const seen = new Set<string>();
     return riskHistory.filter((hh: any) => {
-      const day = new Date(hh.createdAt).toDateString();
-      if (seen.has(day)) return false;
-      seen.add(day);
+      const key = `${hh.conditionKey ?? 'none'}|${hh.riskLevel ?? ''}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
       return true;
     });
   }, [riskHistory]);

@@ -50,6 +50,12 @@ const SYNONYMS: Record<string, string[]> = {
   POTASSIO: ['K', 'POTASSIO'],
   CALCIO: ['CA', 'CALCIO'],
   MAGNESIO: ['MG', 'MAGNESIO'],
+  // Testosterona: separar TOTAL (ng/dL, ~240-950) de LIVRE (pg/mL, ~9-50) — são analitos
+  // DIFERENTES em escalas diferentes. Se caíssem no mesmo canonical, a evolução cruzava os
+  // valores (0,44 pg/mL livre vs 591 ng/dL total pareciam série do mesmo marcador). O DEFAULT
+  // ("Testosterona" sozinho) é TOTAL (mais comum nos labs); "Livre" explícito → LIVRE.
+  TESTOSTERONA_TOTAL: ['TESTOSTERONA TOTAL', 'TESTOSTERONA', 'TESTOSTERONA SERICA', 'TESTOTERONA'],
+  TESTOSTERONA_LIVRE: ['TESTOSTERONA LIVRE', 'TESTOSTERONA LIVRE CALCULADA', 'TESTOSTERONA LIVRE E FRACAO LIVRE', 'TEST LIVRE'],
 };
 
 const REVERSE: Map<string, string> = new Map();
@@ -204,6 +210,7 @@ export function reconcileScaleFlag(
   if ((/g\/d[lit]/.test(u) || /g\/dt/.test(u)) && refMax > 50) conflict = true;  // g/dL vs g/L (×10)
   if (/\bpg\b/.test(u) && refMax > 50) conflict = true;                          // HCM/CHCM pg vs ×10
   if (/milh/.test(u) && refMax > 50 && refMax < 100000) conflict = true;         // milhões vs milhares
+  if (/pg\/?\s*ml/i.test(u) && refMax > 100) conflict = true;                    // pg/mL (livre) vs ref em ng/dL (testosterona)
   return conflict ? { flag: 'UNKNOWN' as ItemFlag, isAbnormal: false, scaleConflict: true } : { ...base, scaleConflict: false };
 }
 
