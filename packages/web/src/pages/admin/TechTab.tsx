@@ -3,7 +3,7 @@ import { Box, Typography, Card, CardContent, Stack, Chip, Alert } from '@mui/mat
 import { API_URL, token } from '../../config';
 import { TabLoader, SectionError } from './parts';
 const H = () => ({ Authorization: `Bearer ${token()}` });
-const ok = (v: boolean) => (v ? '#10b981' : '#ef4444');
+const ok = (v: boolean) => (v ? '#059669' : '#ef4444');
 
 /** Saúde técnica — status do sistema: DB, extração (jobs presos/falhas), IA, devices. */
 export const TechTab = () => {

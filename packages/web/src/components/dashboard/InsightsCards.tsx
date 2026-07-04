@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, Stack, Chip, CircularProgress, LinearProgress } from '@mui/material';
+import { Box, Card, CardContent, Typography, Stack, Chip, CircularProgress, LinearProgress, Button } from '@mui/material';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { API_URL, token } from '../../config';
@@ -27,6 +27,8 @@ export const InsightsCards = () => {
   const [pid] = useSelectedPatient();
   const [data, setData] = useState<{ adherence: any; predictions: any[] } | null>(null);
   const [loading, setLoading] = useState(true);
+  // Previsões: mostra as 3 mais acionáveis por padrão (lista longa cansa no mobile). Restante expansível.
+  const [showAllPred, setShowAllPred] = useState(false);
 
   useEffect(() => {
     if (!pid) { setLoading(false); setData(null); return; }
@@ -91,7 +93,7 @@ export const InsightsCards = () => {
               <Chip size="small" label="Premium" sx={{ fontWeight: 700, height: 20, bgcolor: 'rgba(123,31,162,.12)', color: '#7b1fa2', fontSize: 10 }} />
             </Stack>
             <Stack spacing={0.75}>
-              {data.predictions.map((p: any, i: number) => {
+              {(showAllPred ? data.predictions : data.predictions.slice(0, 3)).map((p: any, i: number) => {
                 const color = p.risk === 'alert' ? '#dc2626' : '#ea580c';
                 return (
                   <Box key={i} sx={{ p: 1, borderRadius: 2, bgcolor: color + '0d', border: `1px solid ${color}22` }}>
@@ -103,6 +105,11 @@ export const InsightsCards = () => {
                   </Box>
                 );
               })}
+              {data.predictions.length > 3 && (
+                <Button size="small" onClick={() => setShowAllPred((v) => !v)} sx={{ textTransform: 'none', fontWeight: 700, color: '#7b1fa2', py: 0.5 }}>
+                  {showAllPred ? 'Ver menos' : `Ver todas (${data.predictions.length})`}
+                </Button>
+              )}
             </Stack>
           </CardContent>
         </Card>

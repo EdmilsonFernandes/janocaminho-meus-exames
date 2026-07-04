@@ -66,7 +66,7 @@ export const TimelinePage = () => {
   const renderEvent = (e: Event, i: number) => {
     const isImaging = e.kind === 'IMAGING';
     const hasIssues = e.abnormalCount > 0;
-    const dotColor = isImaging ? '#0ea5e9' : hasIssues ? '#ef4444' : '#10b981';
+    const dotColor = isImaging ? '#0ea5e9' : hasIssues ? '#ef4444' : '#059669';
     return (
       <Box key={i} sx={{ position: 'relative' }}>
         <Box sx={{ position: 'absolute', left: -3.5, top: 14, width: 22, height: 22, borderRadius: '50%', bgcolor: dotColor, border: '3px solid #fff', boxShadow: '0 2px 6px rgba(0,0,0,.2)', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

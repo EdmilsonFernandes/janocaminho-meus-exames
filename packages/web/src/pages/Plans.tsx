@@ -173,7 +173,7 @@ export const PlansPage = () => {
                           <Typography variant="body2" sx={{ fontWeight: 600 }}>{it.label}</Typography>
                           <Typography variant="caption" color="text.secondary">{new Date(it.createdAt).toLocaleString('pt-BR')}</Typography>
                         </Box>
-                        <Typography sx={{ fontWeight: 800, fontSize: 15, fontVariantNumeric: 'tabular-nums', minWidth: 52, textAlign: 'right', color: m.c ? '#10b981' : 'text.secondary' }}>
+                        <Typography sx={{ fontWeight: 800, fontSize: 15, fontVariantNumeric: 'tabular-nums', minWidth: 52, textAlign: 'right', color: m.c ? '#059669' : 'text.secondary' }}>
                           {d > 0 ? `+${d}` : d}
                         </Typography>
                       </Stack>

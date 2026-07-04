@@ -4,7 +4,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 
 // Componente mais importante do app. Gauge SEMICIRCULAR (meio-arco) em SVG + info LADO A LADO
 // (compacto, sem quebrar — preenche a largura do card, igual à referência).
-const scoreColor = (s: number) => (s >= 80 ? '#10b981' : s >= 60 ? '#f59e0b' : '#ef4444');
+const scoreColor = (s: number) => (s >= 80 ? '#059669' : s >= 60 ? '#f59e0b' : '#ef4444');
 const badgeFor = (s: number) => (s >= 80 ? 'Excelente' : s >= 60 ? 'Bom' : 'Atenção');
 const descFor = (s: number, n: number) =>
   s >= 80 ? 'A maioria dos seus valores está dentro da faixa.'

@@ -29,7 +29,7 @@ import CalculateIcon from '@mui/icons-material/Calculate';
 const TEAL = '#20b2aa';
 const TEAL_DARK = '#178f89';
 const INK = '#0f3d3a'; // teal-escuro premium p/ textos de destaque / footer
-const GREEN = '#10b981';
+const GREEN = '#059669';
 
 const benefits = [
   { Icon: HealthAndSafetyIcon, title: 'Leitura de risco', desc: 'Veja possíveis riscos (diabetes, anemia, hipertensão, colesterol, cardiovascular, renal, obesidade) a partir dos seus exames — sempre como "possível", e cada faixa cita a diretriz (ADA/SBC/OMS).' },

@@ -28,7 +28,7 @@ export const ExtractionProgress = () => {
       <Typography variant="h6" sx={{ mt: 1.5, color: '#178f89', fontWeight: 800 }}>Dr. Exame está analisando…</Typography>
       <Typography color="text.secondary" sx={{ mb: 2.5, minHeight: 22 }}>{STEPS[step]}</Typography>
       <Box sx={{ maxWidth: 380, mx: 'auto' }}>
-        <LinearProgress sx={{ height: 12, borderRadius: 6, bgcolor: '#d6efed', '& .MuiLinearProgress-bar': { borderRadius: 6, background: 'linear-gradient(90deg,#20b2aa,#10b981)' } }} />
+        <LinearProgress sx={{ height: 12, borderRadius: 6, bgcolor: '#d6efed', '& .MuiLinearProgress-bar': { borderRadius: 6, background: 'linear-gradient(90deg,#20b2aa,#059669)' } }} />
         <Typography variant="caption" color="text.secondary" sx={{ mt: 0.75, display: 'block' }}>Leva menos de 1 minuto. Pode sair e voltar que ele continua.</Typography>
       </Box>
       <style>{`@keyframes drBob{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-8px) rotate(-3deg)}}`}</style>

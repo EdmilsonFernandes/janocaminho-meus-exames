@@ -29,7 +29,7 @@ const statusOf = (it: EvoItem): Status => (it.abnormal ? 'out' : it.direction !=
 const STATUS_META: Record<Status, { emoji: string; label: string; color: string }> = {
   out: { emoji: '🔴', label: 'Fora da faixa', color: '#ef4444' },
   change: { emoji: '🟠', label: 'Em mudança', color: '#f59e0b' },
-  stable: { emoji: '✅', label: 'Estável', color: '#10b981' },
+  stable: { emoji: '✅', label: 'Estável', color: '#059669' },
 };
 
 // Agrupamento por categoria médica (reaproveitado de utils/medicalData — fonte única + testável)
@@ -208,7 +208,7 @@ const EvoRow = ({ it, defaultExpanded }: { it: EvoItem; defaultExpanded?: boolea
           <Box sx={{ height: 104, width: '100%', mb: 1 }}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={it.points.map((p) => ({ v: p.value, date: fmtDate(p.date), flag: p.flag }))} margin={{ top: 6, right: 8, bottom: 4, left: 8 }}>
-                {it.refLow != null && it.refHigh != null && <ReferenceArea y1={it.refLow} y2={it.refHigh} fill="#10b981" fillOpacity={0.14} />}
+                {it.refLow != null && it.refHigh != null && <ReferenceArea y1={it.refLow} y2={it.refHigh} fill="#059669" fillOpacity={0.14} />}
                 <YAxis hide domain={['auto', 'auto']} />
                 {/* Tooltip mostra valor + data ao TOCAR no ponto (mobile). Antes não havia Tooltip — clicar não fazia nada. */}
                 <Tooltip

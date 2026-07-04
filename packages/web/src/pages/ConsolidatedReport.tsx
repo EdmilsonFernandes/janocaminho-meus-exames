@@ -271,9 +271,9 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
           ) : null}
 
           {s.coisasBoas?.length ? (
-            <ReportSectionCard icon={<CheckCircleIcon />} title="Pontos positivos" accent="#10b981" count={s.coisasBoas.length} collapsible defaultExpanded={false}>
+            <ReportSectionCard icon={<CheckCircleIcon />} title="Pontos positivos" accent="#059669" count={s.coisasBoas.length} collapsible defaultExpanded={false}>
               <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-                {s.coisasBoas.map((b, i) => <Chip key={i} sx={{ bgcolor: '#10b98118', color: '#10b981', fontWeight: 600, maxWidth: '100%', whiteSpace: 'normal', height: 'auto', py: 0.5, lineHeight: 1.3 }} label={txt(b)} />)}
+                {s.coisasBoas.map((b, i) => <Chip key={i} sx={{ bgcolor: '#05966918', color: '#059669', fontWeight: 600, maxWidth: '100%', whiteSpace: 'normal', height: 'auto', py: 0.5, lineHeight: 1.3 }} label={txt(b)} />)}
               </Stack>
             </ReportSectionCard>
           ) : null}

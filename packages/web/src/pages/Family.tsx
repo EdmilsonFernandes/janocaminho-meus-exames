@@ -13,7 +13,7 @@ interface FamPatient {
 }
 interface CrossAlert { analyte: string; patients: string[]; }
 
-const scoreColor = (s: number | null) => (s == null ? '#9e9e9e' : s >= 80 ? '#10b981' : s >= 60 ? '#f59e0b' : '#ef4444');
+const scoreColor = (s: number | null) => (s == null ? '#9e9e9e' : s >= 80 ? '#059669' : s >= 60 ? '#f59e0b' : '#ef4444');
 const fmtDate = (d: string | null) => (d ? new Date(d).toLocaleDateString('pt-BR') : null);
 
 export const FamilyPage = () => {

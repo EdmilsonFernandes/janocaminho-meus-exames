@@ -36,7 +36,7 @@ const ScopeToggle = ({ scopeKey, active, onToggle, compact }: { scopeKey: string
     }}>
       <Box sx={{ fontSize: compact ? 15 : 22, filter: active ? 'none' : 'grayscale(1) opacity(.35)', lineHeight: 1 }}>{meta.icon}</Box>
       <Typography sx={{ fontSize: compact ? 8 : 10, fontWeight: 700, lineHeight: 1, whiteSpace: 'nowrap', color: active ? '#178f89' : 'text.secondary' }}>{compact ? meta.short : meta.label}</Typography>
-      {active && <Box sx={{ width: 4, height: 4, borderRadius: '50%', bgcolor: '#10b981' }} />}
+      {active && <Box sx={{ width: 4, height: 4, borderRadius: '50%', bgcolor: '#059669' }} />}
     </Box>
   );
 };
@@ -228,7 +228,7 @@ export const MedicosPage = () => {
                   <Stack direction="row" alignItems="flex-start" spacing={1.5}>
                     <Box sx={{ position: 'relative', flexShrink: 0 }}>
                       <Avatar src={s.doctor?.id ? `${API_URL}/doctor/photo/${s.doctor.id}` : undefined} sx={{ width: 44, height: 44, fontWeight: 800, fontSize: 18, bgcolor: '#20b2aa' }}>{s.doctor?.name?.charAt(0)?.toUpperCase()}</Avatar>
-                      <Box sx={{ position: 'absolute', bottom: -1, right: -1, width: 13, height: 13, borderRadius: '50%', bgcolor: s.active ? '#10b981' : 'text.secondary', border: '2.5px solid #fff' }} />
+                      <Box sx={{ position: 'absolute', bottom: -1, right: -1, width: 13, height: 13, borderRadius: '50%', bgcolor: s.active ? '#059669' : 'text.secondary', border: '2.5px solid #fff' }} />
                     </Box>
                     <Box sx={{ flex: 1, minWidth: 0 }}>
                       <Stack direction="row" alignItems="center" spacing={0.5} useFlexGap flexWrap="wrap">

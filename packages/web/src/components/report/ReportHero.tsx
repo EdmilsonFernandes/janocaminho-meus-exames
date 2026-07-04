@@ -40,7 +40,7 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
       <Grid container spacing={1} sx={{ mt: 1.5 }}>
         <Grid size={{ xs: 4 }}><StatTile value={counts.itens} label="Itens" accent="#0b5cab" /></Grid>
         <Grid size={{ xs: 4 }}><StatTile value={counts.atencao} label="Atenção" accent="#ef4444" /></Grid>
-        <Grid size={{ xs: 4 }}><StatTile value={counts.positivos} label="Positivos" accent="#10b981" /></Grid>
+        <Grid size={{ xs: 4 }}><StatTile value={counts.positivos} label="Positivos" accent="#059669" /></Grid>
       </Grid>
 
       <Stack direction="row" spacing={1} sx={{ mt: 1.5 }} useFlexGap flexWrap="wrap" alignItems="center">

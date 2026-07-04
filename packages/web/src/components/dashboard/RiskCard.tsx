@@ -315,6 +315,14 @@ export const RiskCard = () => {
                   <li key={i}><Typography variant="body2" sx={{ lineHeight: 1.4, mb: 0.3 }}>{q}</Typography></li>
                 ))}
               </Box>
+              {/* Compartilhar as perguntas — antes só texto, agora vira ação (WhatsApp / share sheet). */}
+              <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1 }}>
+                <Button size="small" onClick={() => {
+                  const text = `Olá, doutor(a)! Surgiram algumas dúvidas sobre meus exames que gostaria de levar à consulta:\n\n${r.doctorQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n')}\n\n_(Enviado via Meus Exames)_`;
+                  if (navigator.share) navigator.share({ title: 'Perguntas da consulta', text }).catch(() => { /* cancelado */ });
+                  else window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+                }} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, py: 1.1, bgcolor: '#25D366', color: '#fff', '&:hover': { bgcolor: '#1da851' }, boxShadow: 'none' }}>💬 Enviar ao médico</Button>
+              </Box>
             </Collapse>
           </>
         )}

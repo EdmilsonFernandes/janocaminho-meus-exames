@@ -30,7 +30,7 @@ const ExamListActions = () => (
 const statusColor: Record<string, 'success' | 'error' | 'warning' | 'info' | 'default'> = { EXTRACTED: 'success', FAILED: 'error', UPLOADED: 'warning', EXTRACTING: 'info' };
 const statusLabel: Record<string, string> = { EXTRACTED: 'Pronto', FAILED: 'Falhou', UPLOADED: 'Enviado', EXTRACTING: 'Extraindo' };
 const kindLabel: Record<string, string> = { LAB_PANEL: 'Laboratorial', IMAGING: 'Imagem', OTHER: 'Outro' };
-const hexFor = (s: string) => { const sc = statusColor[s] ?? 'default'; return sc === 'success' ? '#10b981' : sc === 'error' ? '#ef4444' : sc === 'warning' ? '#f59e0b' : sc === 'info' ? '#0ea5e9' : '#94a3b8'; };
+const hexFor = (s: string) => { const sc = statusColor[s] ?? 'default'; return sc === 'success' ? '#059669' : sc === 'error' ? '#ef4444' : sc === 'warning' ? '#f59e0b' : sc === 'info' ? '#0ea5e9' : '#94a3b8'; };
 
 /** Ano (int) de um exame — performedAt (data do exame) com fallback no envio (createdAt). */
 const yearOf = (r: any): number | null => {

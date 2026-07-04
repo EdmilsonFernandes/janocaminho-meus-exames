@@ -29,7 +29,7 @@ const DARK_PALETTE = {
 const BRAND = {
   primary: { main: '#20b2aa', dark: '#178f89', light: '#5fc9c3', contrastText: '#fff' },
   secondary: { main: '#d4a574', dark: '#b88a54', light: '#e0bc97', contrastText: '#fff' },
-  success: { main: '#10b981', contrastText: '#fff' },
+  success: { main: '#059669', contrastText: '#fff' },
   warning: { main: '#f59e0b', contrastText: '#fff' },
   error: { main: '#ef4444', contrastText: '#fff' },
   info: { main: '#0ea5e9' },

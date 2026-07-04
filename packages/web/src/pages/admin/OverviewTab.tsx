@@ -28,7 +28,7 @@ export const OverviewTab = () => {
           { l: 'Signups', v: metrics.funnel.signups, c: '#0ea5e9' },
           { l: 'Premium ativos', v: metrics.funnel.premiumActive, c: '#20b2aa' },
           { l: 'Conversão free→pago', v: `${metrics.funnel.conversionPct}%`, c: '#8b5cf6' },
-          { l: 'MRR (recorrente/mês)', v: `R$ ${(metrics.revenue.mrr ?? 0).toFixed(2).replace('.', ',')}`, c: '#10b981' },
+          { l: 'MRR (recorrente/mês)', v: `R$ ${(metrics.revenue.mrr ?? 0).toFixed(2).replace('.', ',')}`, c: '#059669' },
           { l: 'Receita total aprovada', v: `R$ ${(metrics.revenue.total ?? 0).toFixed(2).replace('.', ',')}`, c: '#059669' },
           { l: 'Retenção no vencimento', v: `${metrics.churn.retentionPct}%`, c: '#f59e0b' },
         ].map((k) => (
@@ -60,7 +60,7 @@ export const OverviewTab = () => {
         <Typography variant="h6" gutterBottom>🔁 Retenção no vencimento</Typography>
         <Stack direction="row" spacing={3} flexWrap="wrap" useFlexGap>
           <Box><Typography variant="caption" color="text.secondary">Já assinaram</Typography><Typography variant="h6" sx={{ fontWeight: 800 }}>{metrics.churn.everPremium}</Typography></Box>
-          <Box><Typography variant="caption" color="text.secondary">Ainda ativos</Typography><Typography variant="h6" sx={{ fontWeight: 800, color: '#10b981' }}>{metrics.churn.stillActive}</Typography></Box>
+          <Box><Typography variant="caption" color="text.secondary">Ainda ativos</Typography><Typography variant="h6" sx={{ fontWeight: 800, color: '#059669' }}>{metrics.churn.stillActive}</Typography></Box>
           <Box><Typography variant="caption" color="text.secondary">Churn (venceu sem renovar)</Typography><Typography variant="h6" sx={{ fontWeight: 800, color: '#ef4444' }}>{metrics.churn.churned}</Typography></Box>
           <Box><Typography variant="caption" color="text.secondary">Renovações (2+ pagamentos)</Typography><Typography variant="h6" sx={{ fontWeight: 800 }}>{metrics.churn.renewals}</Typography></Box>
         </Stack>

@@ -754,11 +754,11 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
 
             {/* HERO "resumo de 10 segundos" — neutro + semântica CLÍNICA (vermelho=alerta, verde=ok). Não mais 'tudo verde'. */}
             {!selExam && (
-              <Card sx={{ mb: 2, borderRadius: 4, border: '1px solid', borderColor: allAlerts.length ? 'rgba(239,68,68,.3)' : 'rgba(16,185,129,.3)', borderLeft: `5px solid ${allAlerts.length ? '#ef4444' : '#10b981'}`, overflow: 'hidden' }}>
+              <Card sx={{ mb: 2, borderRadius: 4, border: '1px solid', borderColor: allAlerts.length ? 'rgba(239,68,68,.3)' : 'rgba(16,185,129,.3)', borderLeft: `5px solid ${allAlerts.length ? '#ef4444' : '#059669'}`, overflow: 'hidden' }}>
                 <CardContent>
                   <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: allAlerts.length ? 1.25 : 0 }}>
                     <Box sx={{ flex: '1 1 200px' }}>
-                      <Typography variant="caption" sx={{ fontWeight: 800, letterSpacing: 0.6, color: allAlerts.length ? '#ef4444' : '#10b981' }}>RESUMO RÁPIDO</Typography>
+                      <Typography variant="caption" sx={{ fontWeight: 800, letterSpacing: 0.6, color: allAlerts.length ? '#ef4444' : '#059669' }}>RESUMO RÁPIDO</Typography>
                       <Typography sx={{ fontWeight: 800, fontSize: 19, fontFamily: 'Poppins, sans-serif', lineHeight: 1.2, color: 'text.primary' }}>{allAlerts.length > 0 ? `🔴 ${allAlerts.length} valor(es) alterado(s)` : '✅ Sem alterações relevantes'}</Typography>
                       <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>{exams[0] ? `${exams[0].title} • ${fmtDate(exams[0].performedAt)}` : 'Sem exames extraídos'}{exams.length > 0 ? ` • ${exams.length} exame(s)` : ''}</Typography>
                     </Box>
@@ -1244,7 +1244,7 @@ const NotesTab = ({ notes, newNote, setNewNote, onAdd, onDelete, onSave }: { not
 const STATUS_META_EVO = {
   out: { emoji: '🔴', label: 'Fora da faixa', color: '#ef4444' },
   change: { emoji: '🟠', label: 'Em mudança', color: '#f59e0b' },
-  stable: { emoji: '✅', label: 'Estável', color: '#10b981' },
+  stable: { emoji: '✅', label: 'Estável', color: '#059669' },
 } as const;
 type EvoStatus = keyof typeof STATUS_META_EVO;
 
@@ -1361,7 +1361,7 @@ const EvolutionCharts = ({ items }: { items: any[] }) => {
                     {g.points.length >= 2 ? (
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={g.points} margin={{ top: 4, right: 18, bottom: 4, left: 6 }}>
-                          {g.refLow != null && g.refHigh != null && <ReferenceArea y1={g.refLow} y2={g.refHigh} fill="#10b981" fillOpacity={0.14} />}
+                          {g.refLow != null && g.refHigh != null && <ReferenceArea y1={g.refLow} y2={g.refHigh} fill="#059669" fillOpacity={0.14} />}
                           <XAxis dataKey="date" tick={{ fontSize: 10, fill: muiTheme.palette.text.secondary }} interval="preserveStartEnd" tickMargin={6} stroke={muiTheme.palette.divider} />
                           <YAxis tick={{ fontSize: 10, fill: muiTheme.palette.text.secondary }} width={32} domain={['auto', 'auto']} stroke={muiTheme.palette.divider} />
                           <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12, background: muiTheme.palette.background.paper, border: '1px solid ' + muiTheme.palette.divider, color: muiTheme.palette.text.primary }} />
