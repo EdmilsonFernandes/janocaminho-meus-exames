@@ -227,6 +227,21 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const [examDetail, setExamDetail] = useState<any | null>(null);
   const [summaries, setSummaries] = useState<any[]>([]);
   const [notes, setNotes] = useState<any[]>([]);
+  const [questions, setQuestions] = useState<any[]>([]);
+  const [qText, setQText] = useState<Record<string, string>>({});
+  const [qSending, setQSending] = useState<string | null>(null);
+  const responderQ = async (id: string) => {
+    const body = (qText[id] ?? '').trim(); if (!body) return;
+    setQSending(id);
+    try {
+      const r = await fetch(`${API_URL}/doctor/questions/${id}/messages`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ body }) });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Falha');
+      setQuestions((qs) => qs.map((q) => q.id === id ? d.item : q));
+      setQText((t) => ({ ...t, [id]: '' }));
+      snackbar({ message: 'Resposta enviada — o paciente será avisado.', severity: 'success' });
+    } catch (e: any) { snackbar({ message: e.message || 'Falha ao responder.', severity: 'error' }); } finally { setQSending(null); }
+  };
   const [newNote, setNewNote] = useState('');
   const [risk, setRisk] = useState<any>(null);
   const [riskHistory, setRiskHistory] = useState<any[]>([]);
@@ -318,7 +333,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     const wantEvol = pScopes.includes('evolution');
     const wantSummary = pScopes.includes('summary');
     setTab('risk'); // abre na Visão de risco (1-min do médico)
-    setDetailLoading(true); setExams([]); setEvolution([]); setSummaries([]); setNotes([]); setRisk(null); setRiskHistory([]); setClinicalPlan(null); setPreVisit(null); setSoap(null);
+    setDetailLoading(true); setExams([]); setEvolution([]); setSummaries([]); setNotes([]); setQuestions([]); setRisk(null); setRiskHistory([]); setClinicalPlan(null); setPreVisit(null); setSoap(null);
     try {
       // Risco + histórico sempre (derivado dos exames — não depende de escopo)
       { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/risk`, { headers: h }); const d = await r.json(); if (r.ok) setRisk(d); }
@@ -328,6 +343,8 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
       if (wantExams) { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/exams`, { headers: h }); const d = await r.json(); if (r.ok) setExams(d.items ?? []); }
       if (wantEvol) { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/evolution`, { headers: h }); const d = await r.json(); if (r.ok) setEvolution(d.items ?? []); }
       if (wantSummary) { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/summaries`, { headers: h }); const d = await r.json(); if (r.ok) setSummaries(d.items ?? []); }
+      // Perguntas do paciente (pergunta-paga) — sempre carrega (não depende de escopo)
+      { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/questions`, { headers: h }); const d = await r.json(); if (r.ok) setQuestions(d.items ?? []); }
       // Anotações sempre (são do próprio médico, não dependem de escopo)
       { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/notes`, { headers: h }); const d = await r.json(); if (r.ok) setNotes(d.items ?? []); }
     } catch {} finally { setDetailLoading(false); }
@@ -811,6 +828,28 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                     );
                   })}
                 </Stack>
+
+                {/* Perguntas do paciente ao médico (feature pergunta-paga) */}
+                {questions.length > 0 && (
+                  <Card sx={{ mb: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider', borderLeft: '4px solid #178f89' }}>
+                    <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
+                      <Typography sx={{ fontWeight: 800, mb: 1, color: 'text.primary' }}>❓ Perguntas do paciente ({questions.length})</Typography>
+                      <Stack spacing={1.5}>
+                        {questions.map((q: any) => (
+                          <Box key={q.id} sx={{ p: 1.25, borderRadius: 2, bgcolor: 'action.hover' }}>
+                            <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.primary', mb: 0.25 }}>💬 {q.subject}</Typography>
+                            <Typography variant="caption" sx={{ color: q.status === 'answered' ? '#059669' : 'text.secondary', fontWeight: 700 }}>{q.status === 'answered' ? '✓ Respondida' : '⏳ Aguardando resposta'} · {new Date(q.createdAt).toLocaleDateString('pt-BR')}</Typography>
+                            {(q.messages ?? []).filter((m: any) => m.authorRole === 'doctor').slice(-1).map((m: any, i: number) => (
+                              <Typography key={i} variant="body2" sx={{ mt: 0.5, color: 'text.secondary', lineHeight: 1.4 }}>👨‍⚕️ {m.body}</Typography>
+                            ))}
+                            <TextField multiline minRows={1} size="small" fullWidth placeholder="Escrever resposta…" value={qText[q.id] ?? ''} onChange={(e) => setQText((t) => ({ ...t, [q.id]: e.target.value }))} sx={{ mt: 1 }} />
+                            <Button size="small" disabled={qSending === q.id || !(qText[q.id]?.trim())} onClick={() => responderQ(q.id)} startIcon={qSending === q.id ? <CircularProgress size={14} color="inherit" /> : undefined} sx={{ mt: 0.5, textTransform: 'none', fontWeight: 700, color: TEAL }}>{qSending === q.id ? 'Enviando…' : 'Responder'}</Button>
+                          </Box>
+                        ))}
+                      </Stack>
+                    </CardContent>
+                  </Card>
+                )}
 
                 {detailLoading && <Box sx={{ textAlign: 'center', py: 4 }}><CircularProgress size={28} sx={{ color: TEAL }} /></Box>}
 
