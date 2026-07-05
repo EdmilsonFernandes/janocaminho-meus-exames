@@ -145,10 +145,14 @@ router.get('/evolution', async (req: AuthedRequest, res, next) => {
       const slope = n * sxx - sx * sx !== 0 ? (n * sxy - sx * sy) / (n * sxx - sx * sx) : 0;
       const span = Math.max(...ys) - Math.min(...ys) || 1;
       let dir: 'up' | 'down' | 'stable' = 'stable';
-      if (Math.abs(slope) > 0.0001 && (Math.abs(slope) * 365) / span > 0.02) dir = slope > 0 ? 'up' : 'down';
+      // GUARD anti-cruzamento de escala: se a série mistura unidades (ex.: pg/mL + nmol/L no mesmo
+      // nameCanonical), NÃO calcular tendência/previsão — a regressão cruzaria escalas ("+182/mês").
+      const distinctUnits = new Set(items.map((i) => (i.unit ?? '').trim()).filter(Boolean));
+      const mixedUnits = distinctUnits.size > 1;
+      if (!mixedUnits && Math.abs(slope) > 0.0001 && (Math.abs(slope) * 365) / span > 0.02) dir = slope > 0 ? 'up' : 'down';
       let predictMonths: number | null = null;
       const refLow = items[0].refLow, refHigh = items[0].refHigh;
-      if (dir !== 'stable' && (refLow != null || refHigh != null)) {
+      if (!mixedUnits && dir !== 'stable' && (refLow != null || refHigh != null)) {
         const intercept = (sy - slope * sx) / n;
         const ref = dir === 'up' ? refHigh : refLow;
         if (ref != null && slope !== 0) {

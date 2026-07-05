@@ -48,7 +48,7 @@ export interface MarkerState {
   name: string; // nome de exibição (do item mais recente)
   unit: string | null;
   latest: { valueNumeric: number | null; valueText: string | null; performedAt: Date | null; ageMonths: number | null; stale: boolean };
-  prior: { valueNumeric: number | null; valueText: string | null; performedAt: Date | null } | null;
+  prior: { valueNumeric: number | null; valueText: string | null; performedAt: Date | null; unit: string | null } | null;
   deltaPct: number | null; // latest vs prior (null se não-numérico/prior=0)
   refLow: number | null;
   refHigh: number | null;
@@ -190,16 +190,22 @@ export function computeMarkerState(rows: ItemRow[]): MarkerState[] {
     });
     const latest = sorted[0];
     const prior = sorted[1] ?? null;
+    // GUARD anti-cruzamento de escala: se latest e prior têm unidades DIFERENTES (ex.: pg/mL vs
+    // nmol/L no mesmo nameCanonical — Testosterona Livre do Edmilson), NÃO calcular delta/tendência
+    // — cruzaria escalas e geraria absurdos (regressão "+182/mês"). Raiz = converter/normalizar
+    // (Frente 1B/1C); aqui só estancamos o sintoma. prior original é mantido (UI mostra "antes X").
+    const unitsCompatible = !prior || !latest.unit || !prior.unit || latest.unit === prior.unit;
+    const priorForTrend = unitsCompatible ? prior : null;
     const age = ageMonths(latest.performedAt);
     const stale = age != null && age > STALE_MONTHS;
-    const tr = trendDirection(latest, prior, latest.refLow, latest.refHigh);
+    const tr = trendDirection(latest, priorForTrend, latest.refLow, latest.refHigh);
     out.push({
       nameCanonical: canonical,
       name: latest.name,
       unit: latest.unit,
       latest: { valueNumeric: latest.valueNumeric, valueText: latest.valueText, performedAt: latest.performedAt, ageMonths: age, stale },
-      prior: prior ? { valueNumeric: prior.valueNumeric, valueText: prior.valueText, performedAt: prior.performedAt } : null,
-      deltaPct: deltaPct(latest, prior),
+      prior: prior ? { valueNumeric: prior.valueNumeric, valueText: prior.valueText, performedAt: prior.performedAt, unit: prior.unit } : null,
+      deltaPct: deltaPct(latest, priorForTrend),
       refLow: latest.refLow,
       refHigh: latest.refHigh,
       refText: latest.refText,

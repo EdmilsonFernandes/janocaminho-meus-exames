@@ -80,6 +80,9 @@ export async function computePredictions(patientId: string): Promise<Prediction[
     if (m.latest.valueNumeric == null) continue;
     if (m.points < 2 || !m.prior || m.prior.valueNumeric == null) continue;
     if (m.refLow == null && m.refHigh == null) continue;
+    // GUARD anti-cruzamento de escala: não projetar se latest e prior estão em unidades diferentes
+    // (ex.: pg/mL vs nmol/L). Regressão cruzaria escalas e geraria "+182/mês". Raiz = 1B/1C.
+    if (m.unit && m.prior.unit && m.unit !== m.prior.unit) continue;
 
     const latest = m.latest.valueNumeric;
     const prior = m.prior.valueNumeric;
