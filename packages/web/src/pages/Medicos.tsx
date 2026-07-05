@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { Box, Card, CardContent, Typography, Button, TextField, CircularProgress, Stack, Chip, Avatar, IconButton, Alert, Divider, Switch, FormControlLabel, MenuItem, Menu as MuiMenu, Dialog, DialogTitle, DialogContent, DialogActions, InputAdornment } from '@mui/material';
 import { useNotify } from 'react-admin';
 import { API_URL, token } from '../config';
+import { bumpCredits } from '../utils/credits-events';
 import { confirmDialog } from '../components/ConfirmDialog';
 import { useSelectedPatient } from '../patient-context';
 import DeleteIcon from '@mui/icons-material/DeleteOutline';
@@ -66,6 +67,24 @@ export const MedicosPage = () => {
   const [menuEl, setMenuEl] = useState<{ id: string; el: HTMLElement } | null>(null);
   // Detalhes do médico (perfil público — clicável no nome do card)
   const [detail, setDetail] = useState<any | null>(null);
+  // Pergunta paga ao médico (2 créditos) — vira thread no portal do médico
+  const [perg, setPerg] = useState('');
+  const [enviando, setEnviando] = useState(false);
+  const [pergMsg, setPergMsg] = useState<string | null>(null);
+  const enviarPergunta = async () => {
+    const txt = perg.trim(); if (!txt || !detail) return;
+    setEnviando(true); setPergMsg(null);
+    try {
+      const r = await fetch(`${API_URL}/doctor-questions`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
+        body: JSON.stringify({ doctorId: detail.id, patientId: pid, subject: txt }),
+      });
+      const d = await r.json();
+      if (r.status === 402) { setPergMsg('Créditos insuficientes.'); return; }
+      if (!r.ok) throw new Error(d.error || 'Falha ao enviar');
+      bumpCredits(); setPerg(''); setPergMsg(`✓ Pergunta enviada ao Dr. ${detail.name?.split(' ')[0] ?? ''}. Ele verá no próximo acesso.`);
+    } catch (e: any) { setPergMsg(e.message || 'Falha ao enviar.'); } finally { setEnviando(false); }
+  };
 
   const load = () => {
     fetch(`${API_URL}/doctor-shares`, { headers: { Authorization: `Bearer ${token()}` } })
@@ -307,6 +326,13 @@ export const MedicosPage = () => {
               ) : detail.email && !detail.email.includes('@invite.com') ? (
                 <Button size="small" startIcon={<MedicalServicesIcon />} href={`mailto:${detail.email}?subject=Agendamento%20de%20consulta`} sx={{ mt: 1.5, borderRadius: 99, textTransform: 'none', fontWeight: 700, py: 1.1, bgcolor: '#059669', color: '#fff', '&:hover': { bgcolor: '#047857' } }}>Agendar por e-mail</Button>
               ) : null}
+              {/* Pergunta paga ao médico (2 créditos) — vira thread no portal do médico */}
+              <Box sx={{ mt: 2, textAlign: 'left' }}>
+                <Typography variant="caption" sx={{ fontWeight: 800, color: '#178f89', display: 'block', mb: 0.5 }}>❓ Perguntar ao médico · 2 créditos</Typography>
+                <TextField multiline minRows={2} size="small" fullWidth placeholder="Ex.: Meu HDL baixo altera meu risco cardiovascular? Como aumentar?" value={perg} onChange={(e) => setPerg(e.target.value)} />
+                {pergMsg && <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: pergMsg.startsWith('✓') ? '#059669' : 'error.main', fontWeight: 700, lineHeight: 1.3 }}>{pergMsg}</Typography>}
+                <Button size="small" disabled={enviando || !perg.trim()} onClick={enviarPergunta} startIcon={enviando ? <CircularProgress size={14} color="inherit" /> : undefined} sx={{ mt: 1, borderRadius: 99, textTransform: 'none', fontWeight: 700, py: 1, bgcolor: '#178f89', color: '#fff', '&:hover': { bgcolor: '#0f7670' }, boxShadow: 'none' }}>{enviando ? 'Enviando…' : 'Enviar pergunta'}</Button>
+              </Box>
             </DialogContent>
           </>
         )}
