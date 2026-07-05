@@ -65,16 +65,24 @@ export const BiometricGate = ({ children }: { children: React.ReactNode }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (!locked) return <>{children}</>;
+  // Children ficam SEMPRE montados — o overlay de biometria é renderizado POR CIMA quando locked.
+  // Antes, `if (!locked) return children; else return <overlay/>` DESMONTAVA os children ao travar;
+  // ao voltar da câmera/seletor de foto (intent nativa → resume → lock), o ExamCreate remontava
+  // ZERADO e a foto selecionada (useState local) se perdia. Manter children montados preserva o estado.
   return (
-    <Box sx={{ position: 'fixed', inset: 0, zIndex: 9999, bgcolor: 'rgba(15,61,58,.98)', color: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1.5, p: 3, textAlign: 'center' }}>
-      <Box sx={{ fontSize: 60, mb: 1, animation: 'drBob 1.6s ease-in-out infinite' }}>🔐</Box>
-      <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 21 }}>Meus Exames está bloqueado</Typography>
-      <Typography sx={{ opacity: 0.85, fontSize: 14, mb: 1.5, maxWidth: 300 }}>Confirme sua biometria (digital ou rosto) para continuar.</Typography>
-      {busy
-        ? <CircularProgress sx={{ color: '#20b2aa' }} />
-        : <Button variant="contained" onClick={() => void prompt()} sx={{ borderRadius: 99, px: 4, py: 1.1, textTransform: 'none', fontWeight: 800, fontSize: 15, bgcolor: '#20b2aa', '&:hover': { bgcolor: '#0f7670' } }}>Usar biometria</Button>}
-      <Button variant="text" onClick={logoutEscape} sx={{ mt: 1, color: 'rgba(255,255,255,.7)', textTransform: 'none', fontSize: 13, '&:hover': { color: '#fff', bgcolor: 'transparent' } }}>Entrar com senha</Button>
-    </Box>
+    <>
+      {children}
+      {locked && (
+        <Box sx={{ position: 'fixed', inset: 0, zIndex: 9999, bgcolor: 'rgba(15,61,58,.98)', color: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1.5, p: 3, textAlign: 'center' }}>
+          <Box sx={{ fontSize: 60, mb: 1, animation: 'drBob 1.6s ease-in-out infinite' }}>🔐</Box>
+          <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 21 }}>Meus Exames está bloqueado</Typography>
+          <Typography sx={{ opacity: 0.85, fontSize: 14, mb: 1.5, maxWidth: 300 }}>Confirme sua biometria (digital ou rosto) para continuar.</Typography>
+          {busy
+            ? <CircularProgress sx={{ color: '#20b2aa' }} />
+            : <Button variant="contained" onClick={() => void prompt()} sx={{ borderRadius: 99, px: 4, py: 1.1, textTransform: 'none', fontWeight: 800, fontSize: 15, bgcolor: '#20b2aa', '&:hover': { bgcolor: '#0f7670' } }}>Usar biometria</Button>}
+          <Button variant="text" onClick={logoutEscape} sx={{ mt: 1, color: 'rgba(255,255,255,.7)', textTransform: 'none', fontSize: 13, '&:hover': { color: '#fff', bgcolor: 'transparent' } }}>Entrar com senha</Button>
+        </Box>
+      )}
+    </>
   );
 };
