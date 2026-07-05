@@ -6,6 +6,7 @@ import { classifyDoc } from './docPatterns';
 import { extractLabPanel, extractImaging } from './claude';
 import { imageToText } from './imageToText';
 import { canonicalName, reconcileScaleFlag, parseNumeric, normalizeUnit, sanitizeUnitInText } from '../utils/normalize';
+import { toCanonicalUnit } from '../utils/units';
 import { readExamFile, mediaTypeFromRef } from '../utils/storage';
 import type { LabExtraction, ExtractionItem } from './schemas';
 import { chargeCredits, CREDIT_COSTS } from '../utils/credits';
@@ -176,16 +177,26 @@ function flattenLabItems(lab: LabExtraction, prefers: string): ItemRow[] {
       const refText = ref
         ? [ref.lowText, ref.highText].filter(Boolean).join(' a ') || null
         : null;
-      const { flag, isAbnormal } = reconcileScaleFlag(valueNumeric, ref?.lowNumeric ?? null, ref?.highNumeric ?? null, it.unit ?? ref?.unit ?? null);
+      const canonical = canonicalName(it.name);
+      // 1B: normaliza à unidade-padrão do analito (Testosterona Livre nmol/L→pg/mL, etc.) — valor E ref
+      // (mesma escala do laudo). Alinha séries que vinham em escalas diferentes e cruzavam na evolução.
+      const rawUnit = normalizeUnit(it.unit ?? ref?.unit ?? null);
+      const conv = valueNumeric != null ? toCanonicalUnit(canonical, valueNumeric, rawUnit) : null;
+      const factor = conv && valueNumeric ? conv.value / valueNumeric : 1; // mesmo fator p/ ref
+      const finalValue = conv?.value ?? valueNumeric ?? null;
+      const finalUnit = conv?.unit ?? rawUnit;
+      const finalLow = conv && ref?.lowNumeric != null ? Number((ref.lowNumeric * factor).toFixed(4)) : ref?.lowNumeric ?? null;
+      const finalHigh = conv && ref?.highNumeric != null ? Number((ref.highNumeric * factor).toFixed(4)) : ref?.highNumeric ?? null;
+      const { flag, isAbnormal } = reconcileScaleFlag(finalValue, finalLow, finalHigh, finalUnit);
       rows.push({
         panel: panel.name ?? null,
         name: it.name,
-        nameCanonical: canonicalName(it.name),
-        valueNumeric: valueNumeric ?? null,
+        nameCanonical: canonical,
+        valueNumeric: finalValue,
         valueText: sanitizeUnitInText(it.valueText) ?? null,
-        unit: normalizeUnit(it.unit ?? ref?.unit ?? null),
-        refLow: ref?.lowNumeric ?? null,
-        refHigh: ref?.highNumeric ?? null,
+        unit: finalUnit,
+        refLow: finalLow,
+        refHigh: finalHigh,
         refText,
         refAppliesTo: ref?.appliesTo ?? null,
         flag,
