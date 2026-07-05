@@ -743,4 +743,54 @@ router.get('/patients/:patientId/export-pes', requireDoctor, async (req: any, re
   } catch (e) { next(e); }
 });
 
+// PERGUNTAS do paciente ao médico (feature pergunta-paga). Médico vê + responde.
+// Lista perguntas abertas/ respondidas de um paciente compartilhado.
+router.get('/patients/:patientId/questions', requireDoctor, async (req: any, res, next) => {
+  try {
+    if (!(await requireShare(req.doctorId, req.params.patientId))) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+    const items = await prisma.doctorQuestion.findMany({
+      where: { patientId: String(req.params.patientId), doctorId: req.doctorId },
+      include: { messages: { orderBy: { createdAt: 'asc' } } },
+      orderBy: { createdAt: 'desc' },
+    });
+    // marca como lidas pelo médico ao abrir
+    await prisma.doctorQuestion.updateMany({ where: { patientId: String(req.params.patientId), doctorId: req.doctorId, unreadByDoctor: true }, data: { unreadByDoctor: false } }).catch(() => {});
+    res.json({ items });
+  } catch (e) { next(e); }
+});
+
+// Contagem de perguntas NÃO lidas (pro badge do portal)
+router.get('/questions/unread', requireDoctor, async (req: any, res, next) => {
+  try {
+    const count = await prisma.doctorQuestion.count({ where: { doctorId: req.doctorId, unreadByDoctor: true } });
+    res.json({ count });
+  } catch (e) { next(e); }
+});
+
+// Médico RESPONDE uma pergunta (status→answered; paciente é notificado)
+router.post('/questions/:id/messages', requireDoctor, async (req: any, res, next) => {
+  try {
+    const body = String(req.body?.body ?? '').trim();
+    if (!body) { res.status(400).json({ error: 'Resposta vazia.' }); return; }
+    const q = await prisma.doctorQuestion.findUnique({ where: { id: String(req.params.id) }, include: { patient: { select: { ownerId: true, fullName: true } } } });
+    if (!q || q.doctorId !== req.doctorId) { res.status(404).json({ error: 'Pergunta não encontrada.' }); return; }
+    const updated = await prisma.doctorQuestion.update({
+      where: { id: q.id },
+      data: {
+        status: 'answered',
+        answeredAt: new Date(),
+        unreadByPatient: true,
+        messages: { create: { authorRole: 'doctor', authorId: req.doctorId, body } },
+      },
+      include: { messages: { orderBy: { createdAt: 'asc' } } },
+    });
+    // Avisa o paciente (push + notificação in-app) — best-effort
+    try {
+      const { sendPushToUser } = await import('../utils/push');
+      await sendPushToUser(q.patient.ownerId, 'Seu médico respondeu', `Resposta à sua pergunta: ${q.subject.slice(0, 50)}`, { type: 'doctor_question', url: '/notificacoes' });
+    } catch { /* best-effort */ }
+    res.json({ item: updated });
+  } catch (e) { next(e); }
+});
+
 export default router;

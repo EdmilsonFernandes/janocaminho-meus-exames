@@ -160,6 +160,7 @@ model Patient {
   vaccines     Vaccine[]
   expenses     Expense[]
   doctorShares DoctorShare[]
+  doctorQuestions DoctorQuestion[]
   riskAssessments RiskAssessment[]
 
   @@index([ownerId])
@@ -480,6 +481,7 @@ model Doctor {
   createdAt    DateTime @default(now())
   shares       DoctorShare[]
   notes        DoctorNote[]
+  questions    DoctorQuestion[]
   // MFA (TOTP 2FA) — mesmo esquema do User
   mfaEnabled          Boolean   @default(false)
   mfaSecretEncrypted  String?
@@ -543,6 +545,43 @@ model DoctorNote {
   @@index([patientId, createdAt])
   @@index([doctorId, createdAt])
   @@map("doctor_notes")
+}
+
+// Pergunta do paciente ao médico (paga créditos). Aparece no resumo IA do médico; paciente vê status.
+// Espelha SupportTicket mas com doctorId/doctorShareId (ator médico ≠ admin) + creditsCharged + aiDraft.
+model DoctorQuestion {
+  id             String   @id @default(cuid())
+  patientId      String
+  patient        Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctorId       String
+  doctor         Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  doctorShareId  String?  // DoctorShare ativo que autoriza a pergunta
+  subject        String   // a pergunta (resumo curto / primeira linha)
+  status         String   @default("open") // open | answered | closed
+  creditsCharged Int      @default(0)
+  aiDraft        String?  // rascunho de resposta (IA) pro médico revisar — não é resposta final
+  unreadByDoctor Boolean  @default(true)
+  unreadByPatient Boolean @default(false)
+  createdAt      DateTime @default(now())
+  answeredAt     DateTime?
+  messages       DoctorQuestionMessage[]
+
+  @@index([doctorId, status, createdAt])
+  @@index([patientId, createdAt])
+  @@map("doctor_questions")
+}
+
+model DoctorQuestionMessage {
+  id         String   @id @default(cuid())
+  questionId String
+  question   DoctorQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  authorRole String   // patient | doctor | ai
+  authorId   String?  // patientId ou doctorId (conforme authorRole)
+  body       String
+  createdAt  DateTime @default(now())
+
+  @@index([questionId, createdAt])
+  @@map("doctor_question_messages")
 }
 
 // ===== BACKOFFICE — models de gestão (FKs escalares, append-only/standalone p/ não acoplar) =====

@@ -4,7 +4,7 @@ import { config } from '../config';
 // Custos em créditos por ação de IA (extração por visão conta!).
 // extração (upload) é GRÁTIS (Modelo A: o gancho é subir exames; a IA interpretação é que custa).
 // NÃO usar `as const` — o admin edita esses valores em runtime.
-export const CREDIT_COSTS: { extraction: number; summary: number; consolidated: number; chat: number; actionPlan: number } = { extraction: 0, summary: 10, consolidated: 20, chat: 2, actionPlan: 8 };
+export const CREDIT_COSTS: { extraction: number; summary: number; consolidated: number; chat: number; actionPlan: number; question: number } = { extraction: 0, summary: 10, consolidated: 20, chat: 2, actionPlan: 8, question: 2 };
 
 // Regras de cobrança de UPLOAD de exame (mutável em runtime via painel admin;
 // inicializado dos defaults do config/env). *Volta ao padrão se reiniciar o container.

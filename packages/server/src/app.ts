@@ -32,6 +32,7 @@ import dataRoutes from './routes/data.routes';
 import adminRoutes from './routes/admin.routes';
 import doctorRoutes from './routes/doctor.routes';
 import doctorShareRoutes from './routes/doctor-share.routes';
+import doctorQuestionRoutes from './routes/doctor-question.routes';
 import achievementRoutes from './routes/achievement.routes';
 import ticketRoutes from './routes/ticket.routes';
 
@@ -180,6 +181,7 @@ app.use('/api/data', dataRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/doctor', doctorRoutes);
 app.use('/api/doctor-shares', doctorShareRoutes);
+app.use('/api/doctor-questions', doctorQuestionRoutes);
 app.use('/api/achievements', achievementRoutes);
 app.use('/api/tickets', ticketRoutes); // chamados de suporte do paciente (admin gerencia em /api/admin/tickets)
 
