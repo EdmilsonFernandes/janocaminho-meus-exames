@@ -27,7 +27,7 @@ const SCOPE_META = [
 const ScopeToggle = ({ scopeKey, active, onToggle, compact }: { scopeKey: string; active: boolean; onToggle: (k: string) => void; compact?: boolean }) => {
   const meta = SCOPE_META.find((s) => s.key === scopeKey)!;
   return (
-    <Box onClick={() => onToggle(scopeKey)} sx={{
+    <Box onClick={(e) => { e.stopPropagation(); onToggle(scopeKey); }} sx={{
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: compact ? 1 : 2,
       px: compact ? 0.75 : 1.5, py: compact ? 0.5 : 1, borderRadius: 2, cursor: 'pointer',
       minWidth: compact ? 58 : 72, transition: 'all .15s',
@@ -243,7 +243,7 @@ export const MedicosPage = () => {
           </Typography>
           <Stack spacing={1}>
             {items.map((s) => (
-              <Card key={s.id} sx={{ borderRadius: 3, position: 'relative', overflow: 'hidden', border: '1px solid', borderColor: 'divider', '&:hover': { boxShadow: '0 4px 16px rgba(32,178,170,.10)' }, transition: 'all .15s' }}>
+              <Card key={s.id} onClick={() => setDetail(s.doctor)} sx={{ borderRadius: 3, position: 'relative', overflow: 'hidden', border: '1px solid', borderColor: 'divider', cursor: 'pointer', '&:hover': { boxShadow: '0 4px 16px rgba(32,178,170,.15)' }, '&:active': { transform: 'scale(.99)' }, transition: 'all .15s' }}>
                 <Box sx={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, bgcolor: s.active ? '#20b2aa' : '#cbd5e1' }} />
                 <CardContent sx={{ pl: 2.5, py: 1.5, '&:last-child': { pb: 1.5 } }}>
                   <Stack direction="row" alignItems="flex-start" spacing={1.5}>
@@ -253,7 +253,7 @@ export const MedicosPage = () => {
                     </Box>
                     <Box sx={{ flex: 1, minWidth: 0 }}>
                       <Stack direction="row" alignItems="center" spacing={0.5} useFlexGap flexWrap="wrap">
-                        <Typography onClick={() => setDetail(s.doctor)} sx={{ fontWeight: 800, color: 'text.primary', fontSize: 15, cursor: 'pointer', '&:hover': { textDecoration: 'underline', color: '#178f89' } }}>{s.doctor?.name}</Typography>
+                        <Typography sx={{ fontWeight: 800, color: 'text.primary', fontSize: 15 }}>{s.doctor?.name}</Typography>
                       </Stack>
                       <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>CRM {s.doctor?.crm}{s.convenio ? ` • ${s.convenio}` : ''}</Typography>
                       {/* Scope toggles */}
@@ -265,7 +265,7 @@ export const MedicosPage = () => {
                       </Stack>
                     </Box>
                     {/* Menu ⋯ */}
-                    <IconButton size="small" onClick={(e) => setMenuEl({ id: s.id, el: e.currentTarget })} sx={{ flexShrink: 0, mt: -0.5 }}><MoreVertIcon fontSize="small" /></IconButton>
+                    <IconButton size="small" onClick={(e) => { e.stopPropagation(); setMenuEl({ id: s.id, el: e.currentTarget }); }} sx={{ flexShrink: 0, mt: -0.5 }}><MoreVertIcon fontSize="small" /></IconButton>
                   </Stack>
                 </CardContent>
               </Card>
@@ -310,7 +310,7 @@ export const MedicosPage = () => {
         {detail && (
           <>
             <DialogTitle sx={{ textAlign: 'center', pb: 0 }}>
-              <Avatar src={detail.id ? `${API_URL}/doctor/photo/${detail.id}` : undefined} sx={{ width: 72, height: 72, mx: 'auto', mb: 1, fontSize: 28, fontWeight: 800, bgcolor: '#20b2aa' }}>{detail.name?.charAt(0)?.toUpperCase()}</Avatar>
+              <Avatar src={detail.id ? `${API_URL}/doctor/photo/${detail.id}` : undefined} sx={{ width: 96, height: 96, mx: 'auto', mb: 1.5, fontSize: 36, fontWeight: 800, bgcolor: '#20b2aa', border: '3px solid rgba(32,178,170,0.2)' }}>{detail.name?.charAt(0)?.toUpperCase()}</Avatar>
               {detail.name}
             </DialogTitle>
             <DialogContent sx={{ textAlign: 'center' }}>
@@ -326,12 +326,13 @@ export const MedicosPage = () => {
               ) : detail.email && !detail.email.includes('@invite.com') ? (
                 <Button size="small" startIcon={<MedicalServicesIcon />} href={`mailto:${detail.email}?subject=Agendamento%20de%20consulta`} sx={{ mt: 1.5, borderRadius: 99, textTransform: 'none', fontWeight: 700, py: 1.1, bgcolor: '#059669', color: '#fff', '&:hover': { bgcolor: '#047857' } }}>Agendar por e-mail</Button>
               ) : null}
+              <Divider sx={{ my: 0.5 }}><Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', letterSpacing: 0.5 }}>TIRAR UMA DÚVIDA</Typography></Divider>
               {/* Pergunta paga ao médico (2 créditos) — vira thread no portal do médico */}
-              <Box sx={{ mt: 2, textAlign: 'left' }}>
+              <Box sx={{ mt: 1.5, textAlign: 'left' }}>
                 <Typography variant="caption" sx={{ fontWeight: 800, color: '#178f89', display: 'block', mb: 0.5 }}>❓ Perguntar ao médico · 2 créditos</Typography>
                 <TextField multiline minRows={2} size="small" fullWidth placeholder="Ex.: Meu HDL baixo altera meu risco cardiovascular? Como aumentar?" value={perg} onChange={(e) => setPerg(e.target.value)} />
                 {pergMsg && <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: pergMsg.startsWith('✓') ? '#059669' : 'error.main', fontWeight: 700, lineHeight: 1.3 }}>{pergMsg}</Typography>}
-                <Button size="small" disabled={enviando || !perg.trim()} onClick={enviarPergunta} startIcon={enviando ? <CircularProgress size={14} color="inherit" /> : undefined} sx={{ mt: 1, borderRadius: 99, textTransform: 'none', fontWeight: 700, py: 1, bgcolor: '#178f89', color: '#fff', '&:hover': { bgcolor: '#0f7670' }, boxShadow: 'none' }}>{enviando ? 'Enviando…' : 'Enviar pergunta'}</Button>
+                <Button size="small" disabled={enviando || !perg.trim()} onClick={enviarPergunta} startIcon={enviando ? <CircularProgress size={14} color="inherit" /> : undefined} sx={{ mt: 1, borderRadius: 99, textTransform: 'none', fontWeight: 700, py: 1, px: 2.5, bgcolor: '#178f89', color: '#fff', '&:hover': { bgcolor: '#0f7670' }, boxShadow: 'none' }}>{enviando ? 'Enviando…' : 'Enviar pergunta · 2 💎'}</Button>
               </Box>
             </DialogContent>
           </>
