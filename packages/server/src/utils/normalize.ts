@@ -56,6 +56,9 @@ const SYNONYMS: Record<string, string[]> = {
   // ("Testosterona" sozinho) é TOTAL (mais comum nos labs); "Livre" explícito → LIVRE.
   TESTOSTERONA_TOTAL: ['TESTOSTERONA TOTAL', 'TESTOSTERONA', 'TESTOSTERONA SERICA', 'TESTOTERONA'],
   TESTOSTERONA_LIVRE: ['TESTOSTERONA LIVRE', 'TESTOSTERONA LIVRE CALCULADA', 'TESTOSTERONA LIVRE E FRACAO LIVRE', 'TEST LIVRE'],
+  // DHT (Dihidrotestosterona) é analito DISTINTO de Testosterona (é o metabólito ativo 5α-redutase).
+  // Se caísse em TESTOSTERONA_TOTAL (por substring/fuzzy), cruzaria séries diferentes. Chave própria.
+  DIHIDROTESTOSTERONA: ['DHT', 'DIHIDROTESTOSTERONA', '5 ALFA DIHIDROTESTOSTERONA', 'ALFA DIHIDROTESTOSTERONA'],
 };
 
 const REVERSE: Map<string, string> = new Map();
