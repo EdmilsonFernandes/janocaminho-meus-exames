@@ -662,6 +662,21 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               </Box>
             </Stack>
 
+            {/* TABS NO TOPO (premium UX) — médico vê as opções imediatamente ao abrir o paciente,
+                sem rolar pasto cards de preamble. Sticky pra acompanhar o scroll. */}
+            {supportedTabs.length > 0 && (
+              <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mb: 2, position: 'sticky', top: 0, zIndex: 10, bgcolor: 'background.paper', py: 1, px: 0.5, mx: -0.5, borderRadius: 2 }}>
+                {supportedTabs.map((s) => {
+                  const on = tab === s;
+                  const meta = SCOPE_META[s] || { icon: '📄', label: s };
+                  return <Chip key={s} onClick={() => setTab(s)} label={`${meta.icon} ${meta.label}`} sx={{ height: 32, borderRadius: 99, fontSize: 12.5, fontWeight: on ? 800 : 600, cursor: 'pointer', bgcolor: on ? TEAL : 'transparent', color: on ? '#fff' : TEAL, border: `1px solid ${on ? TEAL : 'divider'}`, '&:hover': { bgcolor: on ? '#0f7670' : 'rgba(32,178,170,.08)' } }} />;
+                })}
+              </Stack>
+            )}
+
+            {/* PERFIL CLÍNICO + RESUMO RÁPIDO + PERGUNTAS — só na tab Risco (não polui Exames/Evolução/etc) */}
+            {tab === 'risk' && !selExam && (
+            <>
             <Accordion defaultExpanded={false} sx={{ mb: 2, borderRadius: '12px !important', border: '1px solid', borderColor: 'divider', borderLeft: '4px solid #20b2aa', '&:before': { display: 'none' }, overflow: 'hidden' }}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '44px !important', '& .MuiAccordionSummary-content': { my: 0.5 } }}>
                 <Typography variant="caption" sx={{ fontWeight: 800, color: '#178f89' }}>🩺 PERFIL CLÍNICO{selected.patient?.clinicalProfile ? '' : ' — não cadastrado'} <Box component="span" sx={{ color: 'text.secondary', fontWeight: 500 }}>(toque p/ expandir)</Box></Typography>
@@ -769,8 +784,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               </Accordion>
             )}
 
-            {/* HERO "resumo de 10 segundos" — neutro + semântica CLÍNICA (vermelho=alerta, verde=ok). Não mais 'tudo verde'. */}
-            {!selExam && (
+            {/* HERO "resumo de 10 segundos" (dentro de tab==='risk' && !selExam — sem condição extra) */}
               <Card sx={{ mb: 2, borderRadius: 4, border: '1px solid', borderColor: allAlerts.length ? 'rgba(239,68,68,.3)' : 'rgba(16,185,129,.3)', borderLeft: `5px solid ${allAlerts.length ? '#ef4444' : '#059669'}`, overflow: 'hidden' }}>
                 <CardContent>
                   <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: allAlerts.length ? 1.25 : 0 }}>
@@ -810,27 +824,16 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                   )}
                 </CardContent>
               </Card>
+            </>
             )}
 
-            {/* Detalhe de um exame (todos os itens + PDF) OU tabs por escopo */}
+            {/* Detalhe de um exame (todos os itens + PDF) OU conteúdo das tabs */}
             {selExam ? (
               <DoctorExamDetail exam={selExam} detail={examDetail} patientId={selected.patient.id} token={token} onBack={() => { setSelExam(null); setExamDetail(null); }} />
             ) : supportedTabs.length > 0 ? (
               <>
-                {/* Abas como controle segmentado (wrap) — STICKY no topo: o médico sempre enxerga as
-                    abas ao rolar o conteúdo (antes rolava e 'perdia' as abas — fluxo confuso). */}
-                <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mb: 2, position: 'sticky', top: 0, zIndex: 10, bgcolor: 'background.paper', py: 1, px: 0.5, mx: -0.5, borderRadius: 2 }}>
-                  {supportedTabs.map((s) => {
-                    const on = tab === s;
-                    const meta = SCOPE_META[s] || { icon: '📄', label: s };
-                    return (
-                      <Chip key={s} onClick={() => setTab(s)} label={`${meta.icon} ${meta.label}`} sx={{ height: 32, borderRadius: 99, fontSize: 12.5, fontWeight: on ? 800 : 600, cursor: 'pointer', bgcolor: on ? TEAL : 'transparent', color: on ? '#fff' : TEAL, border: `1px solid ${on ? TEAL : 'divider'}`, '&:hover': { bgcolor: on ? '#0f7670' : 'rgba(32,178,170,.08)' } }} />
-                    );
-                  })}
-                </Stack>
-
-                {/* Perguntas do paciente ao médico (feature pergunta-paga) */}
-                {questions.length > 0 && (
+                {/* Perguntas do paciente — só na tab Risco (não polui Exames/Evolução) */}
+                {tab === 'risk' && questions.length > 0 && (
                   <Card sx={{ mb: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider', borderLeft: '4px solid #178f89' }}>
                     <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
                       <Typography sx={{ fontWeight: 800, mb: 1, color: 'text.primary' }}>❓ Perguntas do paciente ({questions.length})</Typography>
