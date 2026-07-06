@@ -47,11 +47,12 @@ async function main() {
   const BATCH = 200;
   for (let i = 0; i < changes.length; i += BATCH) {
     const slice = changes.slice(i, i + BATCH);
-    await prisma.$transaction(
-      slice.map(async (c) => {
-        const orig = items.find((it) => it.id === c.id)!;
+    await prisma.$transaction(async (tx) => {
+      for (const c of slice) {
+        const orig = items.find((it) => it.id === c.id);
+        if (!orig) continue;
         const factor = c.newV && orig.valueNumeric ? c.newV / orig.valueNumeric : 1;
-        return prisma.examItem.update({
+        await tx.examItem.update({
           where: { id: c.id },
           data: {
             valueNumeric: c.newV,
@@ -60,8 +61,8 @@ async function main() {
             refHigh: orig.refHigh != null ? Number((orig.refHigh * factor).toFixed(4)) : orig.refHigh,
           },
         });
-      }),
-    );
+      }
+    });
     done += slice.length;
     console.log(`[backfill-units] ${done}/${changes.length} atualizados...`);
   }

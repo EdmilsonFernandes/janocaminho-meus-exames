@@ -87,6 +87,13 @@ export async function computePredictions(patientId: string): Promise<Prediction[
     const latest = m.latest.valueNumeric;
     const prior = m.prior.valueNumeric;
 
+    // Se o valor JÁ está fora da faixa (acima do refHigh ou abaixo do refLow), NÃO prevê "pode
+    // ultrapassar/ficar abaixo" — já passou. Antes gerava "pode passar 178,53 em ~-2m" pra um
+    // valor de 591 (já acima há muito tempo) — absurdo e repetitivo. Previsão só faz sentido pra
+    // quem está DENTRO da faixa e pode SAIR. "Já fora" aparece no card de estado atual/alterados.
+    if (m.refHigh != null && latest > m.refHigh) continue;
+    if (m.refLow != null && latest < m.refLow) continue;
+
     // Meses entre as 2 medições
     const latestTime = m.latest.performedAt ? m.latest.performedAt.getTime() : Date.now();
     const priorTime = m.prior.performedAt ? m.prior.performedAt.getTime() : Date.now();
