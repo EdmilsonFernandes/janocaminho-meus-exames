@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Stack, Typography, Grid, Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
+import { Stack, Typography, Grid, Dialog, DialogTitle, DialogContent, DialogActions, Button, Box } from '@mui/material';
 import { GamificationBadges } from '../components/GamificationBadges';
 import { BiometricService } from '../components/BiometricService';
 import { useNavigate } from 'react-router-dom';
@@ -25,6 +25,8 @@ import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import { CreditsCard } from '../components/dashboard/CreditsCard';
 import { BiologicalAgeCard } from '../components/dashboard/BiologicalAgeCard';
 import { CardiometabolicRiskCard } from '../components/dashboard/CardiometabolicRiskCard';
+import { ShareHealthButton } from '../components/ShareHealthCard';
+import { ReviewPrompt } from '../components/ReviewPrompt';
 import { MetricCard } from '../components/dashboard/MetricCard';
 import { DistributionCard } from '../components/dashboard/DistributionCard';
 import { QuickActions } from '../components/dashboard/QuickActions';
@@ -108,6 +110,10 @@ export const Dashboard = () => {
   return (
     <PageContainer width="wide">
       <DashboardHeader firstName={firstName} />
+      {/* Compartilhar (loop viral) — botão WhatsApp discreto ao lado da saudação */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: -1, mb: 0.5 }}>
+        <ShareHealthButton score={score} />
+      </Box>
 
       {/* 1 · HERO — Score de Saúde */}
       <HealthScoreCard loaded={loaded} score={score} abnormalCount={stats.abnormal} onDetails={() => navigate('/tendencias')} />
@@ -155,6 +161,9 @@ export const Dashboard = () => {
       </Section>
 
       {/* Conquistas removido do dashboard — link compacto acima (tela própria /conquistas) */}
+
+      {/* Review prompt — aparece 1x no APK após score carregado + exame extraído */}
+      <ReviewPrompt trigger={loaded && stats.exams > 0} />
 
       {/* Oferta de biometria (1x — nativo + não ativou) */}
       <Dialog open={bioOffer} onClose={() => setBioOffer(false)} PaperProps={{ sx: { borderRadius: 3 } }}>

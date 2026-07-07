@@ -341,9 +341,9 @@ export const LandingPage = () => {
             {/* texto */}
             <Box>
               <Chip icon={<MedicalServicesIcon sx={{ fontSize: 17 }} />} label="Dr. Exame Pro (médico)" sx={{ bgcolor: 'rgba(212,165,116,.16)', color: '#b88a54', fontWeight: 700, mb: 3, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: '#b88a54' } }} />
-              <Typography variant="h2" sx={{ fontSize: { xs: '1.8rem', md: '2.4rem' }, fontWeight: 800, color: 'text.primary', mb: 2, letterSpacing: '-0.02em' }}>O médico abre o paciente e vê tudo em 1 minuto</Typography>
+              <Typography variant="h2" sx={{ fontSize: { xs: '1.8rem', md: '2.4rem' }, fontWeight: 800, color: 'text.primary', mb: 2, letterSpacing: '-0.02em' }}>O médico acessa o prontuário e tem tudo pronto em 1 minuto</Typography>
               <Typography sx={{ fontSize: 17, color: 'text.secondary', mb: 3.5, lineHeight: 1.6 }}>
-                Quando o paciente compartilha, o médico recebe um <b style={{ color: 'text.primary' }}>brief automático</b>: top 3 mudanças, risco, o que investigar, e até as perguntas que o paciente fez no app. Economiza 3–5h/dia de revisão de prontuário.
+                Quando o paciente compartilha, o médico recebe um <b style={{ color: 'text.primary' }}>resumo clínico automático</b>: principais mudanças, risco, o que investigar, e até as perguntas que o paciente fez no app. Economiza tempo de revisão de cada prontuário.
               </Typography>
               {[
                 '🩺 Top 3 mudanças desde a última visita — sem revisar prontuário inteiro.',
