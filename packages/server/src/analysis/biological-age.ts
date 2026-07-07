@@ -28,6 +28,10 @@ const AGE_MARKERS: { canonical: string; direction: 1 | -1; weight: number }[] = 
   { canonical: 'HEMOGLOBINA', direction: -1, weight: 0.8 },   // anemia envelhece
   { canonical: 'ALBUMINA', direction: -1, weight: 0.9 },      // nutrição/fígado
   { canonical: 'VCM', direction: 1, weight: 0.4 },
+  { canonical: 'TESTOSTERONA_TOTAL', direction: -1, weight: 0.6 }, // baixa = envelhece (homem)
+  { canonical: 'TESTOSTERONA_LIVRE', direction: -1, weight: 0.5 },
+  { canonical: 'TGO', direction: 1, weight: 0.5 },             // AST — fígado
+  { canonical: 'TGP', direction: 1, weight: 0.5 },             // ALT — fígado
 ];
 
 /** Faixas de referência "saudável" por sexo (valores médios de adultos 20-40a).
@@ -44,6 +48,10 @@ const HEALTHY_RANGES: Record<string, { male: [number, number]; female: [number, 
   HEMOGLOBINA: { male: [13.5, 17.5], female: [12.0, 15.5] },
   ALBUMINA: { male: [3.5, 5.0], female: [3.5, 5.0] },
   VCM: { male: [80, 100], female: [80, 100] },
+  TESTOSTERONA_TOTAL: { male: [300, 1000], female: [15, 70] },
+  TESTOSTERONA_LIVRE: { male: [50, 180], female: [0.3, 9] },
+  TGO: { male: [10, 40], female: [7, 35] },
+  TGP: { male: [10, 40], female: [7, 35] },
 };
 
 /**
