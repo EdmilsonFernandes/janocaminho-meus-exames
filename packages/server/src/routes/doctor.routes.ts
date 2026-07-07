@@ -538,7 +538,15 @@ router.get('/patients/:patientId/health-summary', requireDoctor, async (req: any
   try {
     const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
     if (!share?.scopes.includes('alerts')) { res.status(403).json({ error: 'Sem permissão para ver o estado deste paciente.' }); return; }
-    res.json(await buildCurrentHealthSummary(String(req.params.patientId)));
+    const summary = await buildCurrentHealthSummary(String(req.params.patientId));
+    // Resumo clínico 1-parágrafo (determinístico, instantâneo)
+    try {
+      const { generateClinicalSummary } = await import('../analysis/clinical-summary');
+      const patient = await prisma.patient.findUnique({ where: { id: String(req.params.patientId) }, select: { gender: true, dateOfBirth: true, clinicalProfile: true } });
+      const age = patient?.dateOfBirth ? Math.floor((Date.now() - new Date(patient.dateOfBirth).getTime()) / (365.25 * 86400000)) : null;
+      summary.clinicalSummary = generateClinicalSummary(summary, { age, sex: patient?.gender, clinicalProfile: patient?.clinicalProfile });
+    } catch { /* best-effort */ }
+    res.json(summary);
   } catch (e) { next(e); }
 });
 

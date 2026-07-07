@@ -1,6 +1,7 @@
 import { Box, Button, Card, CardContent, Chip, CircularProgress, Stack, Typography } from '@mui/material';
 import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
 import FavoriteIcon from '@mui/icons-material/Favorite';
+import { useEffect, useState } from 'react';
 
 // Componente mais importante do app. Gauge SEMICIRCULAR (meio-arco) em SVG + info LADO A LADO
 // (compacto, sem quebrar — preenche a largura do card, igual à referência).
@@ -32,6 +33,18 @@ const Gauge = ({ value, color }: { value: number; color: string }) => {
 };
 
 export const HealthScoreCard = ({ loaded, score, abnormalCount, onDetails }: { loaded: boolean; score: number | null; abnormalCount: number; onDetails: () => void }) => {
+  // Score counter animation (0→score no mount) — sensação premium
+  const [displayScore, setDisplayScore] = useState(0);
+  useEffect(() => {
+    if (score == null || score === 0) return;
+    setDisplayScore(0);
+    const duration = 800;
+    const steps = 30;
+    const inc = score / steps;
+    let i = 0;
+    const iv = setInterval(() => { i++; setDisplayScore(Math.round(Math.min(inc * i, score))); if (i >= steps) clearInterval(iv); }, duration / steps);
+    return () => clearInterval(iv);
+  }, [score]);
   if (!loaded && score === null) {
     return (
       <Card sx={{ mt: 3, minHeight: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5 }}>
@@ -51,7 +64,7 @@ export const HealthScoreCard = ({ loaded, score, abnormalCount, onDetails }: { l
           <Box sx={{ position: 'relative', width: { xs: 116, sm: 150 }, height: { xs: 70, sm: 90 }, flexShrink: 0 }}>
             <Gauge value={score} color={color} />
             <Box sx={{ position: 'absolute', left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <Typography sx={{ fontWeight: 800, fontSize: { xs: 30, sm: 38 }, lineHeight: 1, color: 'text.primary' }}>{score}</Typography>
+              <Typography sx={{ fontWeight: 800, fontSize: { xs: 30, sm: 38 }, lineHeight: 1, color: 'text.primary' }}>{displayScore}</Typography>
               <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1, fontSize: { xs: 9, sm: 11 } }}>de 100</Typography>
             </Box>
           </Box>

@@ -14,6 +14,7 @@ import { HealthSummary } from '../../components/HealthSummary';
 import { displayStatus } from '../../utils/examStatus';
 import { ValueBar } from '../../components/ValueBar';
 import { RefBar } from '../../components/RefBar';
+import { Sparkline } from '../../components/Sparkline';
 import { ExplainButton } from '../../components/ExplainItem';
 import { TelemedicineButton } from '../../components/TelemedicineButton';
 import { fmtVal, unitSuffix } from '../../utils/format';
@@ -369,6 +370,13 @@ export const ExamShow = () => {
                         </Typography>
                         <ValueBar value={it.valueNumeric} low={it.refLow} high={it.refHigh} />
                         <RefBar value={it.valueNumeric} refLow={it.refLow} refHigh={it.refHigh} unit={it.unit} />
+                        {/* Sparkline mini-gráfico (linha temporal + faixa verde) — se há histórico */}
+                        {it.history && it.history.length >= 2 && (
+                          <Box sx={{ mt: 0.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Sparkline points={it.history.map((h: any) => ({ value: h.valueNumeric ?? h.value, date: h.date }))} refLow={it.refLow} refHigh={it.refHigh} />
+                            <Typography variant="caption" sx={{ fontSize: 10, color: 'text.secondary' }}>{it.history.length} medições</Typography>
+                          </Box>
+                        )}
                         {out && it.valueNumeric != null && it.refLow != null && it.refHigh != null && (
                           <Typography variant="caption" sx={{ color: m.color === 'error' ? 'error.main' : 'warning.main', fontWeight: 700, mt: 0.25, display: 'block' }}>
                             {it.valueNumeric > it.refHigh

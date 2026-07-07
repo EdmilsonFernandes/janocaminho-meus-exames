@@ -75,6 +75,7 @@ export interface CurrentHealthSummary {
   whatChanged: { nameCanonical: string; name: string; deltaPct: number | null; trend: TrendDirection }[];
   biologicalAge?: { age: number; confidence: 'alta' | 'baixa'; markersUsed: number } | null;
   cardiometabolicRisk?: { level: string; score: number; factors: { label: string; risk: boolean }[] } | null;
+  clinicalSummary?: string;
 }
 
 // ───────────────────────── helpers puros ─────────────────────────
