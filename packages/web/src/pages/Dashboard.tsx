@@ -110,13 +110,17 @@ export const Dashboard = () => {
       {/* 1 · HERO — Score de Saúde */}
       <HealthScoreCard loaded={loaded} score={score} abnormalCount={stats.abnormal} onDetails={() => navigate('/tendencias')} />
 
-      {/* 2 · SUAS LEITURAS — M1-M5: risco, estado atual, adesão + alerta preditivo */}
+      {/* 2 · SUAS LEITURAS — risco + estado atual (InsightsCards/Previsões movidos pra /tendencias) */}
       <Section label="Suas leituras" icon={<InsightsIcon />}>
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, md: 6 }}><RiskCard /></Grid>
           <Grid size={{ xs: 12, md: 6 }}><CurrentStateCard /></Grid>
-          <Grid size={{ xs: 12 }}><InsightsCards /></Grid>
         </Grid>
+        {/* Link compacto pras telas dedicadas (antes eram cards pesados no dashboard) */}
+        <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 1.5 }}>
+          <Button size="small" onClick={() => navigate('/tendencias')} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 99, color: '#178f89', border: '1px solid', borderColor: 'divider' }}>📊 Tendências & Previsões →</Button>
+          <Button size="small" onClick={() => navigate('/conquistas')} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 99, color: '#178f89', border: '1px solid', borderColor: 'divider' }}>🏆 Conquistas →</Button>
+        </Stack>
       </Section>
 
       {/* 3 · Dr. EXAME — IA (dica + CTA chat) */}
@@ -146,10 +150,7 @@ export const Dashboard = () => {
         </Stack>
       </Section>
 
-      {/* 6 · CONQUISTAS — gamificação (badges + streak) */}
-      <Section label="Conquistas" icon={<EmojiEventsIcon />}>
-        <GamificationBadges examsCount={stats.exams} score={score} />
-      </Section>
+      {/* Conquistas removido do dashboard — link compacto acima (tela própria /conquistas) */}
 
       {/* Oferta de biometria (1x — nativo + não ativou) */}
       <Dialog open={bioOffer} onClose={() => setBioOffer(false)} PaperProps={{ sx: { borderRadius: 3 } }}>

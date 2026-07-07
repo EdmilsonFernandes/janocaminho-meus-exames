@@ -367,6 +367,13 @@ export const ExamShow = () => {
                           <strong>Referência:</strong> {fmtRef(it)}
                         </Typography>
                         <ValueBar value={it.valueNumeric} low={it.refLow} high={it.refHigh} />
+                        {out && it.valueNumeric != null && it.refLow != null && it.refHigh != null && (
+                          <Typography variant="caption" sx={{ color: m.color === 'error' ? 'error.main' : 'warning.main', fontWeight: 700, mt: 0.25, display: 'block' }}>
+                            {it.valueNumeric > it.refHigh
+                              ? `↑ ${Math.round((it.valueNumeric - it.refHigh) / Math.abs(it.refHigh) * 100)}% acima do limite`
+                              : `↓ ${Math.round((it.refLow - it.valueNumeric) / Math.abs(it.refLow || 1) * 100)}% abaixo do limite`}
+                          </Typography>
+                        )}
                         {out && (<Box sx={{ mt: 1 }}><TelemedicineButton marker={it.nameCanonical} compact /></Box>)}
                       </Box>
                     );

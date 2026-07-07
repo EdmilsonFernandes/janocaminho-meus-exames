@@ -88,7 +88,7 @@ export const CurrentStateCard = () => {
         <Typography variant="body2" sx={{ mb: 1.25, color: 'text.primary', lineHeight: 1.4 }}>
           {abnormal === 0
             ? `Tudo dentro da faixa nos seus ${s.markers} marcador${s.markers > 1 ? 'es' : ''} mais recentes. Continue assim!`
-            : `${abnormal} de ${s.markers} marcador${s.markers > 1 ? 'es' : ''} fora da faixa — vale revisar com seu médico.`}
+            : `${abnormal} de ${s.markers} marcador${s.markers > 1 ? 'es' : ''} merecem atenção — vale revisar com seu médico.`}
         </Typography>
 
         {/* Contagem por prioridade (não-alarmista) */}

@@ -140,7 +140,17 @@ export function priorityOfItem(it: {
   refHigh?: number | null;
 }): Priority {
   const flag = (it.flag || '').toUpperCase();
-  if (!it.isAbnormal && flag !== 'HIGH' && flag !== 'LOW' && flag !== 'ABNORMAL' && flag !== 'CRITICAL') return 'normal';
+  if (!it.isAbnormal && flag !== 'HIGH' && flag !== 'LOW' && flag !== 'ABNORMAL' && flag !== 'CRITICAL') {
+    // BORDERLINE (amber zone): valor dentro da faixa mas perto do limite (±10% da largura).
+    // Não é "fora da faixa" — é "vale acompanhar". Retorna 'leve' em vez de 'normal' pra mostrar
+    // chip amber (🟡) e diferenciar de valores claramente normais (verde). Skill ui-ux: cor trinária.
+    const v = it.valueNumeric, lo = it.refLow, hi = it.refHigh;
+    if (v != null && lo != null && hi != null && hi > lo) {
+      const margin = (hi - lo) * 0.1;
+      if (v >= hi - margin || v <= lo + margin) return 'leve';
+    }
+    return 'normal';
+  }
   if (flag === 'CRITICAL') return 'importante';
   const v = it.valueNumeric, lo = it.refLow, hi = it.refHigh;
   if (v != null && lo != null && hi != null && hi > lo) {
