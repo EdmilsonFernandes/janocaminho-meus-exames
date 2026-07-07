@@ -43,7 +43,7 @@ export const HealthScoreCard = ({ loaded, score, abnormalCount, onDetails }: { l
   if (score === null) return null;
   const color = scoreColor(score);
   return (
-    <Card sx={{ mt: 3, position: 'relative', overflow: 'hidden', background: 'linear-gradient(135deg, rgba(32,178,170,.10), rgba(32,178,170,.03))', border: '1px solid', borderColor: 'divider' }}>
+    <Card sx={{ mt: 3, position: 'relative', overflow: 'hidden', borderRadius: 4, background: 'linear-gradient(135deg, rgba(32,178,170,.10), rgba(32,178,170,.03))', border: '1px solid', borderColor: 'divider' }}>
       <FavoriteIcon sx={{ position: 'absolute', right: -18, top: -14, fontSize: 150, color: 'primary.main', opacity: 0.05, pointerEvents: 'none', transform: 'rotate(-12deg)' }} />
       <CardContent sx={{ position: 'relative' }}>
         {/* gauge + info LADO A LADO (sem wrap — preenche a largura) */}

@@ -24,6 +24,7 @@ import BoltIcon from '@mui/icons-material/Bolt';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import { CreditsCard } from '../components/dashboard/CreditsCard';
 import { BiologicalAgeCard } from '../components/dashboard/BiologicalAgeCard';
+import { CardiometabolicRiskCard } from '../components/dashboard/CardiometabolicRiskCard';
 import { MetricCard } from '../components/dashboard/MetricCard';
 import { DistributionCard } from '../components/dashboard/DistributionCard';
 import { QuickActions } from '../components/dashboard/QuickActions';
@@ -128,6 +129,7 @@ export const Dashboard = () => {
       <Section label="Dr. Exame" icon={<SmartToyIcon />}>
         <AiCard tip={tipNode} onChat={() => navigate('/chat')} />
         <BiologicalAgeCard />
+        <CardiometabolicRiskCard />
       </Section>
 
       {/* 4 · SEUS NÚMEROS — métricas clicáveis + distribuição (donut) */}

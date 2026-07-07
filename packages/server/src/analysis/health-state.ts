@@ -74,6 +74,7 @@ export interface CurrentHealthSummary {
   stale: MarkerState[];
   whatChanged: { nameCanonical: string; name: string; deltaPct: number | null; trend: TrendDirection }[];
   biologicalAge?: { age: number; confidence: 'alta' | 'baixa'; markersUsed: number } | null;
+  cardiometabolicRisk?: { level: string; score: number; factors: { label: string; risk: boolean }[] } | null;
 }
 
 // ───────────────────────── helpers puros ─────────────────────────
@@ -280,6 +281,25 @@ export async function buildCurrentHealthSummary(patientId: string): Promise<Curr
       }
     }
   } catch { /* best-effort */ }
+  // R3b — Risco cardiometabólico (LDL + HbA1c + PA + eGFR + HOMA-IR + IMC)
+  let cardiometabolicRisk: CurrentHealthSummary['cardiometabolicRisk'] = null;
+  try {
+    const { assessCardiometabolicRisk } = await import('./cardiometabolic-risk');
+    const { bmi, egfr, homaIr } = await import('./derived-markers').then(m => {
+      // Tenta calcular índices derivados (precisa de perfil + marcadores)
+      return { bmi: m.bmi, egfr: m.egfr, homaIr: m.homaIr };
+    }).catch(() => ({ bmi: undefined, egfr: undefined, homaIr: undefined }));
+    const markerVal = (key: string) => markers.find((m) => m.nameCanonical === key)?.latest.valueNumeric ?? null;
+    const riskResult = assessCardiometabolicRisk({
+      ldl: markerVal('LDL'),
+      hba1c: markerVal('HEMOGLOBINA_GLICADA'),
+      systolicBP: markerVal('PRESSAO_SISTOLICA'),
+      egfr: egfr as any,
+      homaIr: homaIr as any,
+      bmi: bmi as any,
+    });
+    if (riskResult) cardiometabolicRisk = { level: riskResult.level, score: riskResult.score, factors: riskResult.factors };
+  } catch { /* best-effort */ }
   const byPriority: Record<Priority, number> = { normal: 0, leve: 0, moderada: 0, importante: 0 };
   for (const m of markers) byPriority[m.priority]++;
   const total = markers.length;
@@ -305,6 +325,7 @@ export async function buildCurrentHealthSummary(patientId: string): Promise<Curr
       .slice(0, 6)
       .map((m) => ({ nameCanonical: m.nameCanonical, name: m.name, deltaPct: m.deltaPct, trend: m.trend })),
     biologicalAge,
+    cardiometabolicRisk,
   };
 }
 
