@@ -13,6 +13,7 @@ import { openBlobFile } from '../../utils/nativeDoc';
 import { HealthSummary } from '../../components/HealthSummary';
 import { displayStatus } from '../../utils/examStatus';
 import { ValueBar } from '../../components/ValueBar';
+import { RefBar } from '../../components/RefBar';
 import { ExplainButton } from '../../components/ExplainItem';
 import { TelemedicineButton } from '../../components/TelemedicineButton';
 import { fmtVal, unitSuffix } from '../../utils/format';
@@ -367,6 +368,7 @@ export const ExamShow = () => {
                           <strong>Referência:</strong> {fmtRef(it)}
                         </Typography>
                         <ValueBar value={it.valueNumeric} low={it.refLow} high={it.refHigh} />
+                        <RefBar value={it.valueNumeric} refLow={it.refLow} refHigh={it.refHigh} unit={it.unit} />
                         {out && it.valueNumeric != null && it.refLow != null && it.refHigh != null && (
                           <Typography variant="caption" sx={{ color: m.color === 'error' ? 'error.main' : 'warning.main', fontWeight: 700, mt: 0.25, display: 'block' }}>
                             {it.valueNumeric > it.refHigh
