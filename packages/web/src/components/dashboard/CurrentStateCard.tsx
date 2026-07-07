@@ -74,7 +74,9 @@ export const CurrentStateCard = () => {
     );
   }
 
-  const abnormal = s.markers - s.byPriority.normal;
+  // Conta só REALMENTE alterados (importante + moderada), NÃO borderline (leve inclui amber zone)
+  const trulyAltered = s.byPriority.importante + s.byPriority.moderada;
+  const borderline = s.byPriority.leve;
   const top = s.topAttention.slice(0, 3);
 
   return (
@@ -86,9 +88,11 @@ export const CurrentStateCard = () => {
         </Stack>
 
         <Typography variant="body2" sx={{ mb: 1.25, color: 'text.primary', lineHeight: 1.4 }}>
-          {abnormal === 0
+          {trulyAltered === 0 && borderline === 0
             ? `Tudo dentro da faixa nos seus ${s.markers} marcador${s.markers > 1 ? 'es' : ''} mais recentes. Continue assim!`
-            : `${abnormal} de ${s.markers} marcador${s.markers > 1 ? 'es' : ''} merecem atenção — vale revisar com seu médico.`}
+            : trulyAltered === 0
+            ? `${borderline} de ${s.markers} marcador${s.markers > 1 ? 'es' : ''} estão perto do limite — acompanhe.`
+            : `${trulyAltered} de ${s.markers} marcador${s.markers > 1 ? 'es' : ''} fora da faixa${borderline > 0 ? ` (+${borderline} perto do limite)` : ''} — vale revisar com seu médico.`}
         </Typography>
 
         {/* Contagem por prioridade (não-alarmista) */}
