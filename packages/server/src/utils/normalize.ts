@@ -211,7 +211,7 @@ export function reconcileScaleFlag(
   let conflict = false;
   if (u.includes('%') && refMax > 100) conflict = true;                         // % vs absoluto
   if ((/g\/d[lit]/.test(u) || /g\/dt/.test(u)) && refMax > 50) conflict = true;  // g/dL vs g/L (×10)
-  if (/\bpg\b/.test(u) && refMax > 50) conflict = true;                          // HCM/CHCM pg vs ×10
+  if (/\bpg\b/.test(u) && !/pg\/?[ml]/i.test(u) && refMax > 50) conflict = true;                          // HCM/CHCM pg vs ×10 (NÃO pg/mL de testosterona)
   if (/milh/.test(u) && refMax > 50 && refMax < 100000) conflict = true;         // milhões vs milhares
   if (/pg\/?\s*ml/i.test(u) && refMax > 100) conflict = true;                    // pg/mL (livre) vs ref em ng/dL (testosterona)
   return conflict ? { flag: 'UNKNOWN' as ItemFlag, isAbnormal: false, scaleConflict: true } : { ...base, scaleConflict: false };
