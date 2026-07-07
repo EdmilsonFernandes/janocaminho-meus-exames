@@ -66,13 +66,14 @@ export interface CurrentHealthSummary {
   patientId: string;
   generatedAt: Date;
   markers: number;
-  score: number | null; // % de marcadores normais (consistente com o donut do dashboard)
+  score: number | null;
   byPriority: Record<Priority, number>;
-  topAttention: MarkerState[]; // anormais, por prioridade → delta
-  improving: MarkerState[]; // trend melhorando
-  worsening: MarkerState[]; // trend piorando
-  stale: MarkerState[]; // marcadores não medidos há >12m
+  topAttention: MarkerState[];
+  improving: MarkerState[];
+  worsening: MarkerState[];
+  stale: MarkerState[];
   whatChanged: { nameCanonical: string; name: string; deltaPct: number | null; trend: TrendDirection }[];
+  biologicalAge?: { age: number; confidence: 'alta' | 'baixa'; markersUsed: number } | null;
 }
 
 // ───────────────────────── helpers puros ─────────────────────────
@@ -261,6 +262,24 @@ export async function buildMarkerState(patientId: string): Promise<MarkerState[]
 /** Layer 2 — snapshot do estado atual do paciente (roll-up do Layer 1). */
 export async function buildCurrentHealthSummary(patientId: string): Promise<CurrentHealthSummary> {
   const markers = await buildMarkerState(patientId);
+  // Idade biológica (estimativa educativa) — busca perfil do paciente pra idade/sexo
+  let biologicalAge: CurrentHealthSummary['biologicalAge'] = null;
+  try {
+    const { prisma } = await import('../prisma');
+    const patient = await prisma.patient.findUnique({ where: { id: patientId }, select: { gender: true, dateOfBirth: true } });
+    if (patient?.dateOfBirth) {
+      const chronoAge = Math.floor((Date.now() - new Date(patient.dateOfBirth).getTime()) / (365.25 * 86400000));
+      if (chronoAge >= 18) {
+        const { estimateBiologicalAge } = await import('./biological-age');
+        const result = estimateBiologicalAge(
+          markers.map((m) => ({ nameCanonical: m.nameCanonical, value: m.latest.valueNumeric ?? 0 })).filter((m) => m.value > 0),
+          chronoAge,
+          (patient.gender as any) === 'female' ? 'female' : (patient.gender as any) === 'male' ? 'male' : undefined,
+        );
+        if (result.markersUsed > 0) biologicalAge = { age: result.biologicalAge, confidence: result.confidence, markersUsed: result.markersUsed };
+      }
+    }
+  } catch { /* best-effort */ }
   const byPriority: Record<Priority, number> = { normal: 0, leve: 0, moderada: 0, importante: 0 };
   for (const m of markers) byPriority[m.priority]++;
   const total = markers.length;
@@ -285,6 +304,7 @@ export async function buildCurrentHealthSummary(patientId: string): Promise<Curr
       .sort((a, b) => Math.abs(b.deltaPct ?? 0) - Math.abs(a.deltaPct ?? 0))
       .slice(0, 6)
       .map((m) => ({ nameCanonical: m.nameCanonical, name: m.name, deltaPct: m.deltaPct, trend: m.trend })),
+    biologicalAge,
   };
 }
 

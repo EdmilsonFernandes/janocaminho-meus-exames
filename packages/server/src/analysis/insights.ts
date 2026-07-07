@@ -94,6 +94,20 @@ export async function computePredictions(patientId: string): Promise<Prediction[
     if (m.refHigh != null && latest > m.refHigh) continue;
     if (m.refLow != null && latest < m.refLow) continue;
 
+    // UNUSUAL TREND: mudou >20% entre exames MESMO dentro da faixa normal → alerta "vale acompanhar".
+    // Diferente da projeção (que olha se vai SAIR da faixa), esta detecta variação anormal DENTRO.
+    if (prior != null && prior !== 0) {
+      const pctChange = Math.abs(((latest - prior) / Math.abs(prior)) * 100);
+      if (pctChange >= 20) {
+        const direction = latest > prior ? 'subiu' : 'caiu';
+        predictions.push({
+          marker: m.name, current: latest, refHigh: m.refHigh, refLow: m.refLow,
+          monthlyRate: 0, projected3m: latest, risk: 'watch',
+          message: `${m.name} ${direction} ${pctChange.toFixed(0)}% desde o exame anterior — ainda dentro da faixa, mas vale acompanhar.`,
+        });
+      }
+    }
+
     // Meses entre as 2 medições
     const latestTime = m.latest.performedAt ? m.latest.performedAt.getTime() : Date.now();
     const priorTime = m.prior.performedAt ? m.prior.performedAt.getTime() : Date.now();
