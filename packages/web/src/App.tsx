@@ -189,15 +189,17 @@ const AppMenu = () => {
   const isAdmin = (() => { try { return userStr ? (JSON.parse(userStr)?.role === 'ADMIN') : false; } catch { return false; } })();
   return (
   <Box component="nav" sx={{ py: 1, display: 'flex', flexDirection: 'column', minHeight: '100%', '& .MuiListItemButton-root, & .MuiMenuItem-root': { flex: '0 0 auto' } }}>
-    {/* PRINCIPAIS — sempre visíveis (os mais usados), sem precisar expandir nada */}
+    {/* PRINCIPAIS — 6 atalhos diretos (premium: o que o paciente mais usa, sem acordeão) */}
     <NavItem to="/" primaryText="Início" icon={<HomeIcon />} />
     <NavItem to="/exams" primaryText="Exames" icon={<MedicalInformationIcon />} />
-    <NavItem to="/chat" primaryText="Dr. Exame (IA)" icon={<AutoAwesomeIcon />} highlight />
+    <NavItem to="/evolucao" primaryText="Evolução" icon={<InsightsIcon />} highlight />
+    <NavItem to="/familia" primaryText="Família" icon={<Diversity3Icon />} />
+    <NavItem to="/perfil" primaryText="Meu perfil" icon={<AccountCircleIcon />} />
     <NavItem to="/relatorio" primaryText="Relatório completo" icon={<SummarizeIcon />} highlight />
 
     {/* Seções colapsáveis — a que contém a rota ativa abre sozinha (smart-expand) */}
-    <MenuSectionAccordion title="Evolução & Conquistas" icon={<InsightsIcon />} routes={['/evolucao', '/conquistas']}>
-      <NavItem to="/evolucao" primaryText="Evolução" icon={<InsightsIcon />} highlight />
+    {/* Dr. Exame IA voltou pra PRINCIPAIS. Acordeão de Evolução fica em "Mais". */}
+    <MenuSectionAccordion title="Evolução & Conquistas" icon={<EmojiEventsIcon />} routes={['/evolucao', '/conquistas']}>
       <NavItem to="/conquistas" primaryText="Minhas conquistas" icon={<EmojiEventsIcon />} />
     </MenuSectionAccordion>
 

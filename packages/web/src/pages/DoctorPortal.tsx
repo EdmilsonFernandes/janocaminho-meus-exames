@@ -587,7 +587,15 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               {(() => {
                 const q = patQuery.trim().toLowerCase();
                 const filtered = patients.filter((p) => (!q || (p.patient?.fullName || '').toLowerCase().includes(q) || (p.code || '').toLowerCase().includes(q)) && (!patAlertOnly || p.hasAlerts));
-                filtered.sort((a, b) => { const oa = a.ownerId || '', ob = b.ownerId || ''; if (oa !== ob) return (a.ownerName || '').localeCompare(b.ownerName || ''); return (Number(!!b.hasAlerts) - Number(!!a.hasAlerts)) || ((b.lastExamAt ? new Date(b.lastExamAt).getTime() : 0) - (a.lastExamAt ? new Date(a.lastExamAt).getTime() : 0)); });
+                filtered.sort((a, b) => {
+                  const oa = a.ownerId || '', ob = b.ownerId || '';
+                  if (oa !== ob) return (a.ownerName || '').localeCompare(b.ownerName || '');
+                  // R4a: priorizar por severidade — alertas primeiro, depois exames mais recentes
+                  const aScore = (Number(!!a.hasAlerts) * 1000) + (a.examsCount || 0);
+                  const bScore = (Number(!!b.hasAlerts) * 1000) + (b.examsCount || 0);
+                  if (bScore !== aScore) return bScore - aScore;
+                  return (b.lastExamAt ? new Date(b.lastExamAt).getTime() : 0) - (a.lastExamAt ? new Date(a.lastExamAt).getTime() : 0);
+                });
                 // Agrupa por titular (ownerId). 1 membro = card solto; 2+ = accordion COLAPSADO (não inunda com 100 famílias).
                 const groups: { ownerId: string; ownerName: string; items: any[] }[] = [];
                 for (const p of filtered) {
