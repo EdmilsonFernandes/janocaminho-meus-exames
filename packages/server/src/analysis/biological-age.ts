@@ -16,7 +16,7 @@ interface MarkerInput { nameCanonical: string; value: number; }
 
 /** Marcadores usados e seus pesos (quanto maior o peso, mais impacto na idade).
  *  'direction': +1 = valor ALTO envelhece; -1 = valor BAIXO envelhece. */
-const AGE_MARKERS: { canonical: string; direction: 1 | -1; weight: number }[] = [
+const AGE_MARKERS: { canonical: string; direction: 1 | -1 | 0; weight: number }[] = [
   { canonical: 'GLICEMIA', direction: 1, weight: 1.2 },      // glicose alta = envelhece
   { canonical: 'HEMOGLOBINA_GLICADA', direction: 1, weight: 1.5 },
   { canonical: 'CREATININA', direction: 1, weight: 1.0 },     // função renal
@@ -28,8 +28,8 @@ const AGE_MARKERS: { canonical: string; direction: 1 | -1; weight: number }[] = 
   { canonical: 'HEMOGLOBINA', direction: -1, weight: 0.8 },   // anemia envelhece
   { canonical: 'ALBUMINA', direction: -1, weight: 0.9 },      // nutrição/fígado
   { canonical: 'VCM', direction: 1, weight: 0.4 },
-  { canonical: 'TESTOSTERONA_TOTAL', direction: -1, weight: 0.6 }, // baixa = envelhece (homem)
-  { canonical: 'TESTOSTERONA_LIVRE', direction: -1, weight: 0.5 },
+  { canonical: 'TESTOSTERONA_TOTAL', direction: 0, weight: 0.6 }, // U-shape: muito alto OU muito baixo envelhece
+  { canonical: 'TESTOSTERONA_LIVRE', direction: 0, weight: 0.5 },
   { canonical: 'TGO', direction: 1, weight: 0.5 },             // AST — fígado
   { canonical: 'TGP', direction: 1, weight: 0.5 },             // ALT — fígado
 ];
@@ -90,9 +90,8 @@ export function estimateBiologicalAge(
     // 0 = perfeitamente no meio da faixa. >1 = fora da faixa.
     const zScore = (m.value - midpoint) / (halfRange || 1);
 
-    // Se direction = +1 (alto envelhece): zScore positivo = envelhece.
-    // Se direction = -1 (baixo envelhece): zScore negativo = envelhece (inverte).
-    const ageDelta = cfg.direction * zScore;
+    // direction = +1 (alto envelhece), -1 (baixo envelhece), 0 (U-shape: qualquer extremo envelhece)
+    const ageDelta = cfg.direction === 0 ? Math.abs(zScore) : cfg.direction * zScore;
 
     // Clamp: cada marcador contribui no máximo ±3 anos (evita outlier dominar).
     const clampedDelta = Math.max(-3, Math.min(3, ageDelta * cfg.weight));

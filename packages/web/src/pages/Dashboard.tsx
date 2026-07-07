@@ -110,10 +110,6 @@ export const Dashboard = () => {
   return (
     <PageContainer width="wide">
       <DashboardHeader firstName={firstName} />
-      {/* Compartilhar (loop viral) — botão WhatsApp discreto ao lado da saudação */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: -1, mb: 0.5 }}>
-        <ShareHealthButton score={score} />
-      </Box>
 
       {/* 1 · HERO — Score de Saúde */}
       <HealthScoreCard loaded={loaded} score={score} abnormalCount={stats.abnormal} onDetails={() => navigate('/tendencias')} />
@@ -161,6 +157,11 @@ export const Dashboard = () => {
       </Section>
 
       {/* Conquistas removido do dashboard — link compacto acima (tela própria /conquistas) */}
+
+      {/* Compartilhar (loop viral) — botão discreto no rodapé do dashboard */}
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
+        <ShareHealthButton score={score} />
+      </Box>
 
       {/* Review prompt — aparece 1x no APK após score carregado + exame extraído */}
       <ReviewPrompt trigger={loaded && stats.exams > 0} />
