@@ -538,7 +538,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         )}
       </Box>
 
-      <Box sx={{ maxWidth: 920, mx: 'auto', p: { xs: 2, md: 3 }, pb: { xs: 11, md: 4 } }}>
+      <Box sx={{ maxWidth: 920, mx: 'auto', p: { xs: 2, md: 3 }, pb: { xs: 11, md: 4 }, bgcolor: '#FAFBFC', minHeight: '100vh' }}>
         {view === 'profile' && <DoctorProfile token={token} doctor={doctor} onBack={() => setView('patients')} onSaved={(d) => setDoctor(d)} onPhoto={() => setPhotoVer((v) => v + 1)} photoVer={photoVer} />}
         {view === 'password' && <DoctorChangePassword token={token} onBack={() => setView('patients')} />}
         {view === 'patients' && loading && <Box sx={{ textAlign: 'center', py: 6 }}><CircularProgress sx={{ color: TEAL }} /></Box>}
@@ -577,10 +577,11 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               </Stack>
             )}
             {patients.length === 0 && (
-              <Card sx={{ borderRadius: 4 }}><CardContent><Box sx={{ textAlign: 'center', py: 4 }}>
-                <Box sx={{ fontSize: 48, mb: 1 }}>📭</Box>
-                <Typography color="text.secondary">Nenhum paciente compartilhou dados com você ainda.</Typography>
-                <Typography variant="caption" color="text.secondary">O compartilhamento é feito pelo paciente no app dele.</Typography>
+              <Card sx={{ borderRadius: 3, boxShadow: '0 1px 3px rgba(0,0,0,.04)', border: 'none' }}><CardContent><Box sx={{ textAlign: 'center', py: 6 }}>
+                <Box sx={{ fontSize: 64, mb: 2, opacity: 0.4 }}>🩺</Box>
+                <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 18, color: 'text.primary', mb: 1 }}>Nenhum paciente ainda</Typography>
+                <Typography color="text.secondary" sx={{ mb: 0.5 }}>Quando um paciente compartilhar os exames com você, ele aparece aqui automaticamente.</Typography>
+                <Typography variant="caption" color="text.secondary">💡 O paciente faz isso no app dele em "Meus Médicos → Compartilhar"</Typography>
               </Box></CardContent></Card>
             )}
             <Stack spacing={1.5}>
@@ -806,43 +807,33 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               </Accordion>
             )}
 
-            {/* HERO "resumo de 10 segundos" (dentro de tab==='risk' && !selExam — sem condição extra) */}
-              <Card sx={{ mb: 2, borderRadius: 4, border: '1px solid', borderColor: allAlerts.length ? 'rgba(239,68,68,.3)' : 'rgba(16,185,129,.3)', borderLeft: `5px solid ${allAlerts.length ? '#ef4444' : '#059669'}`, overflow: 'hidden' }}>
-                <CardContent>
-                  <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: allAlerts.length ? 1.25 : 0 }}>
-                    <Box sx={{ flex: '1 1 200px' }}>
-                      <Typography variant="caption" sx={{ fontWeight: 800, letterSpacing: 0.6, color: allAlerts.length ? '#ef4444' : '#059669' }}>RESUMO RÁPIDO</Typography>
-                      <Typography sx={{ fontWeight: 800, fontSize: 19, fontFamily: 'Poppins, sans-serif', lineHeight: 1.2, color: 'text.primary' }}>{allAlerts.length > 0 ? `🔴 ${allAlerts.length} valor(es) alterado(s)` : '✅ Sem alterações relevantes'}</Typography>
-                      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>{exams[0] ? `${exams[0].title} • ${fmtDate(exams[0].performedAt)}` : 'Sem exames extraídos'}{exams.length > 0 ? ` • ${exams.length} exame(s)` : ''}</Typography>
-                    </Box>
-                    <Stack direction="row" spacing={0.75}>
-                      <Button size="small" variant="outlined" onClick={copySummary} title="Copia um resumo rápido em texto (valores alterados + perfil)" sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 99, flexShrink: 0 }}>📋 Copiar resumo</Button>
-                      <Button size="small" variant="outlined" onClick={exportPES} title="Gera texto estruturado com CID-10 sugerido para colar no prontuário eletrônico" sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 99, flexShrink: 0, borderColor: '#6366f1', color: '#6366f1' }}>🏥 PES + CID-10</Button>
+            {/* CLINICAL BRIEF — card compacto (3 linhas) expansível. Substitui o hero gigante. */}
+              <Card sx={{ mb: 2, borderRadius: 3, boxShadow: '0 1px 3px rgba(0,0,0,.04)', border: 'none', overflow: 'hidden' }}>
+                <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
+                  {/* Linha 1: status principal + ações inline */}
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" useFlexGap flexWrap="wrap" gap={1}>
+                    <Typography sx={{ fontWeight: 800, fontSize: 16, fontFamily: 'Poppins, sans-serif', color: allAlerts.length ? '#dc2626' : '#059669' }}>
+                      {allAlerts.length > 0 ? `🔴 ${allAlerts.length} valor(es) alterado(s)` : '✅ Sem alterações'}
+                    </Typography>
+                    <Stack direction="row" spacing={0.5}>
+                      <Button size="small" onClick={copySummary} sx={{ textTransform: 'none', fontWeight: 600, fontSize: 12, color: 'text.secondary', minWidth: 0, py: 0.25 }}>📋 Copiar</Button>
+                      <Button size="small" onClick={exportPES} sx={{ textTransform: 'none', fontWeight: 600, fontSize: 12, color: '#6366f1', minWidth: 0, py: 0.25 }}>🏥 PES</Button>
                     </Stack>
                   </Stack>
+                  {/* Linha 2: top 3 alterados (não 10 chips) */}
                   {allAlerts.length > 0 && (
-                    <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-                      {allAlerts.slice(0, 10).map((a, i) => <Chip key={i} size="small" label={`${a.name}: ${a.valueText}`} sx={{ bgcolor: '#fee2e2', color: '#b91c1c', fontWeight: 600, height: 22, fontSize: 11 }} />)}
-                    </Box>
+                    <Typography variant="body2" sx={{ mt: 0.5, color: 'text.secondary', fontSize: 13 }}>
+                      {allAlerts.slice(0, 3).map((a) => a.name).join(', ')}{allAlerts.length > 3 ? ` +${allAlerts.length - 3}` : ''}
+                      {exams[0] && ` · ${exams[0].title} · ${fmtDate(exams[0].performedAt)}`}
+                    </Typography>
                   )}
-                  {/* Comparativo vs exame anterior (#2): delta % dos analitos — leitura instantânea da tendência */}
-                  {comparison.length > 0 && (
-                    <Box sx={{ mt: 1.25 }}>
-                      <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>📈 VARIAÇÃO VS EXAME ANTERIOR</Typography>
-                      <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>
-                        {comparison.map((d, i) => {
-                          const up = d.pct > 0;
-                          return <Chip key={i} size="small" label={`${d.name} ${up ? '↑' : '↓'} ${Math.abs(d.pct).toFixed(0)}%`} title={`${d.prev} → ${d.last}${d.unit ? ' ' + d.unit : ''}`} sx={{ bgcolor: up ? '#fef3c7' : '#dbeafe', color: up ? '#92400e' : '#1e40af', fontWeight: 600, height: 22, fontSize: 11 }} />;
-                        })}
-                      </Box>
-                    </Box>
-                  )}
-                  {/* Última nota do médico — continuidade de cuidado (o que eu disse na última consulta?) */}
-                  {notes.length > 0 && (
-                    <Box sx={{ mt: 1.5, p: 1.25, borderRadius: 2, bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider' }}>
-                      <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>📝 ÚLTIMA NOTA · {new Date(notes[0].createdAt).toLocaleDateString('pt-BR')}</Typography>
-                      <Typography variant="body2" sx={{ mt: 0.25, color: 'text.primary', lineHeight: 1.5 }}>{(notes[0].content || '').slice(0, 200)}{(notes[0].content || '').length > 200 ? '…' : ''}</Typography>
-                    </Box>
+                  {/* Linha 3: comparação + nota (compacto, inline) */}
+                  {(comparison.length > 0 || notes.length > 0) && (
+                    <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: 'text.secondary', fontSize: 11.5 }}>
+                      {comparison.length > 0 && `${comparison.slice(0, 3).map((d) => `${d.name} ${d.pct > 0 ? '↑' : '↓'}${Math.abs(d.pct).toFixed(0)}%`).join(' · ')}`}
+                      {comparison.length > 0 && notes.length > 0 && ' · '}
+                      {notes.length > 0 && `📝 ${notes[0].content?.slice(0, 60)}${(notes[0]?.content?.length ?? 0) > 60 ? '…' : ''}`}
+                    </Typography>
                   )}
                 </CardContent>
               </Card>
