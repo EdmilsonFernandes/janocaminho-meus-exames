@@ -3,13 +3,20 @@ import { Box, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAppDrawer } from './drawerState';
 import { DrExame } from './DrExame';
+import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
+import HomeIcon from '@mui/icons-material/Home';
+import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
+import DescriptionIcon from '@mui/icons-material/Description';
+import TrendingUpOutlinedIcon from '@mui/icons-material/TrendingUpOutlined';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import MenuIcon from '@mui/icons-material/Menu';
 
-/** Menu rodapé fixo (só mobile) — 4 atalhos + "Mais". O Dr. Exame tem o ROBÔ em destaque (círculo teal elevado). */
+/** Menu rodapé premium — ícones MUI (filled quando ativo, outlined quando não). Sem emojis. */
 const NAV = [
-  { icon: '🏠', label: 'Início', to: '/' },
-  { icon: '📋', label: 'Exames', to: '/exams' },
+  { icon: 'home', label: 'Início', to: '/' },
+  { icon: 'exam', label: 'Exames', to: '/exams' },
   { icon: '', label: 'Dr. Exame', to: '/chat', robot: true },
-  { icon: '📈', label: 'Evolução', to: '/evolucao' },
+  { icon: 'trend', label: 'Evolução', to: '/evolucao' },
 ] as const;
 const SECONDARY_ROUTES = ['/alterados', '/tendencias', '/linha-do-tempo', '/medicoes', '/vacinas', '/lembretes', '/emergencia', '/familia', '/patients', '/medicos', '/relatorio', '/despesas', '/perfil', '/planos', '/admin'];
 
@@ -41,7 +48,6 @@ export const MobileBottomNav = () => {
       transition: 'color .15s, transform .1s', '&:active': { transform: 'scale(.92)' },
     }}>
       {it.robot ? (
-        // Robô Dr. Exame em destaque: círculo teal + anel branco + halo, levemente elevado
         <Box sx={{
           width: 44, height: 44, borderRadius: '50%', bgcolor: '#20b2aa',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -52,9 +58,29 @@ export const MobileBottomNav = () => {
           <DrExame size={32} sx={{ borderRadius: '50%' }} />
         </Box>
       ) : (
-        <Box sx={{ fontSize: 21, lineHeight: 1, transform: on ? 'translateY(-1px)' : 'none', transition: 'transform .15s' }}>{it.icon}</Box>
+        // Ícones MUI premium (filled quando ativo, outlined quando não) — sem emojis
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 24, '& svg': { fontSize: 22 } }}>
+          {it.icon === 'home' && (on ? <HomeIcon /> : <HomeOutlinedIcon />)}
+          {it.icon === 'exam' && (on ? <DescriptionIcon /> : <DescriptionOutlinedIcon />)}
+          {it.icon === 'trend' && (on ? <TrendingUpIcon /> : <TrendingUpOutlinedIcon />)}
+        </Box>
       )}
       <Typography sx={{ fontSize: 10, fontWeight: on ? 800 : 600, mt: 0.25, fontFamily: 'Poppins, sans-serif', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', px: 0.5 }}>{it.label}</Typography>
+      <Box sx={{ height: 3, width: on ? 22 : 0, borderRadius: 9, bgcolor: '#20b2aa', mt: 0.3, transition: 'width .2s' }} />
+    </Box>
+  );
+
+  // Botão "Mais" usa ícone MUI (não emoji ☰)
+  const maisItem = (on: boolean, onClick?: () => void) => (
+    <Box onClick={onClick} sx={{
+      flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      py: 0.7, cursor: 'pointer', userSelect: 'none', color: on ? '#178f89' : '#8a979c',
+      transition: 'color .15s, transform .1s', '&:active': { transform: 'scale(.92)' },
+    }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 24, '& svg': { fontSize: 22 } }}>
+        {on ? <MenuIcon /> : <MenuIcon sx={{ opacity: 0.5 }} />}
+      </Box>
+      <Typography sx={{ fontSize: 10, fontWeight: on ? 800 : 600, mt: 0.25, fontFamily: 'Poppins, sans-serif' }}>Mais</Typography>
       <Box sx={{ height: 3, width: on ? 22 : 0, borderRadius: 9, bgcolor: '#20b2aa', mt: 0.3, transition: 'width .2s' }} />
     </Box>
   );
@@ -62,11 +88,11 @@ export const MobileBottomNav = () => {
   return (
     <Box ref={navRef} component="nav" sx={{
       position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1100, display: 'flex', justifyContent: 'space-around',
-      bgcolor: 'rgba(238,247,246,.96)', backdropFilter: 'blur(14px)', borderTop: '1px solid #dceaea',
-      pb: 'env(safe-area-inset-bottom)', boxShadow: '0 -6px 24px rgba(32,178,170,.10)',
+      bgcolor: 'rgba(255,255,255,.97)', backdropFilter: 'blur(16px)', borderTop: '1px solid rgba(0,0,0,.06)',
+      pb: 'env(safe-area-inset-bottom)', boxShadow: '0 -2px 12px rgba(0,0,0,.04)',
     }}>
       {NAV.map((it) => item(it, undefined, active(it.to)))}
-      {item({ icon: '☰', label: 'Mais', to: '#mais' }, () => openDrawer(), maisActive)}
+      {maisItem(maisActive, () => openDrawer())}
     </Box>
   );
 };

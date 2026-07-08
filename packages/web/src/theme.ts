@@ -14,11 +14,9 @@ const FONT_HEAD = '"Poppins", "Inter", "Segoe UI", Roboto, system-ui, sans-serif
 
 // Paletas por modo. primary/secondary (marca) e semânticas iguais; só superfícies mudam.
 const LIGHT_PALETTE = {
-  background: { default: '#eef7f6', paper: '#ffffff' },
-  // secondary escurecido de #718096 (≈4.07:1, reprovava WCAG AA) p/ #5a6675 (≈5.4:1 no
-  // branco / ≈5.8:1 no bg teal) — passa AA p/ texto pequeno sem perder a hierarquia.
-  text: { primary: '#2d3748', secondary: '#5a6675' },
-  divider: '#dceaea',
+  background: { default: '#FAFBFC', paper: '#ffffff' },
+  text: { primary: '#1a202c', secondary: '#64748b' },
+  divider: 'rgba(0,0,0,.06)',
 };
 const DARK_PALETTE = {
   background: { default: '#0f1818', paper: '#1a2424' },
