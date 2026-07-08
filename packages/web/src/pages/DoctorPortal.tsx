@@ -10,6 +10,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import GroupsIcon from '@mui/icons-material/Groups';
 import MenuIcon from '@mui/icons-material/Menu';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { API_URL } from '../config';
 import { confirmDialog, snackbar } from '../components/ConfirmDialog';
 import { DrExame } from '../components/DrExame';
@@ -515,25 +516,24 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         </Box>
       )}
       <Box sx={{ flex: 1, minWidth: 0 }}>
-      {/* Header — mesma identidade teal do app do paciente */}
-      <Box sx={{ background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff', px: { xs: 2, md: 3 }, pt: 'calc(env(safe-area-inset-top) + 12px)', pb: 2, display: 'flex', alignItems: 'center', gap: 2, boxShadow: '0 4px 20px rgba(32,178,170,.25)' }}>
+      {/* Header profissional — limpo, sem gradiente (inspirado em Linear/Stripe) */}
+      <Box sx={{ bgcolor: 'background.paper', px: { xs: 2, md: 3 }, pt: 'calc(env(safe-area-inset-top) + 10px)', pb: 1.5, display: 'flex', alignItems: 'center', gap: 1.5, borderBottom: '1px solid', borderColor: 'rgba(0,0,0,.06)', boxShadow: '0 1px 3px rgba(0,0,0,.03)' }}>
         {(selected || selExam) && (
-          <IconButton onClick={goBack} size="small" aria-label="Voltar" sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,.15)', '&:hover': { bgcolor: 'rgba(255,255,255,.25)' }, flexShrink: 0, width: 34, height: 34 }}><ArrowBackIcon fontSize="small" /></IconButton>
+          <IconButton onClick={goBack} size="small" aria-label="Voltar" sx={{ color: 'text.secondary', '&:hover': { bgcolor: 'rgba(32,178,170,.06)' }, flexShrink: 0 }}><ArrowBackIcon fontSize="small" /></IconButton>
         )}
-        {/* Desktop: só título da view (identidade está no sidebar). Mobile: identidade + menu. */}
         {isDesktop ? (
           <Box sx={{ flex: 1 }}>
-            <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 18 }}>{view === 'patients' ? (selected ? selected.patient?.fullName : 'Pacientes') : view === 'profile' ? 'Meu Perfil' : 'Trocar Senha'}</Typography>
-            {planInfo?.isPremium && <Chip size="small" label="💎 Dr. Exame Pro" sx={{ bgcolor: 'rgba(255,255,255,.2)', color: '#fff', fontWeight: 700, height: 20, fontSize: 10 }} />}
+            <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 17, color: 'text.primary' }}>{view === 'patients' ? (selected ? selected.patient?.fullName : 'Pacientes') : view === 'profile' ? 'Meu Perfil' : 'Trocar Senha'}</Typography>
+            {planInfo?.isPremium && <Chip size="small" label="💎 Pro" sx={{ bgcolor: 'rgba(99,102,241,.10)', color: '#6366f1', fontWeight: 700, height: 18, fontSize: 10 }} />}
           </Box>
         ) : (
           <>
-            <Avatar src={doctor?.id ? `${API_URL}/doctor/photo/${doctor.id}?v=${photoVer}` : undefined} sx={{ bgcolor: 'rgba(255,255,255,.2)', fontWeight: 800, border: '2px solid rgba(255,255,255,.5)' }}>{doctor?.name?.charAt(0)}</Avatar>
+            <Avatar src={doctor?.id ? `${API_URL}/doctor/photo/${doctor.id}?v=${photoVer}` : undefined} sx={{ bgcolor: 'rgba(32,178,170,.10)', color: '#178f89', fontWeight: 800, border: '2px solid rgba(32,178,170,.15)', width: 36, height: 36, fontSize: 15 }}>{doctor?.name?.charAt(0)}</Avatar>
             <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>🩺 {doctor?.name || 'Médico'}</Typography>
-              <Typography variant="caption" sx={{ opacity: 0.9 }}>{[doctor?.specialty, doctor?.crm && `CRM ${doctor.crm}`].filter(Boolean).join(' • ') || 'Portal do Médico'}</Typography>
+              <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 15, color: 'text.primary', lineHeight: 1.2 }}>{doctor?.name || 'Médico'}</Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>{[doctor?.specialty, doctor?.crm && `CRM ${doctor.crm}`].filter(Boolean).join(' • ') || 'Portal do Médico'}</Typography>
             </Box>
-            <IconButton onClick={() => setMenuOpen(true)} sx={{ color: '#fff' }}><MenuIcon /></IconButton>
+            <IconButton onClick={() => setMenuOpen(true)} sx={{ color: 'text.secondary' }}><MenuIcon /></IconButton>
           </>
         )}
       </Box>
@@ -606,29 +606,27 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 }
                 const card = (p: any, key: string) => {
                   const sex = p.sex === 'female' ? 'F' : p.sex === 'male' ? 'M' : null;
+                  const statusLine = [
+                    p.hasAlerts ? `🔴 alerta` : null,
+                    p.examsCount > 0 ? `📋 ${p.examsCount} exame${p.examsCount > 1 ? 's' : ''}` : null,
+                    p.lastExamAt ? `📅 ${fmtDate(p.lastExamAt)}` : null,
+                    p.convenio || 'Particular',
+                  ].filter(Boolean).join(' · ');
                   return (
-                    <Card key={key} sx={{ borderRadius: 4, cursor: 'pointer', transition: 'all .15s', border: '1px solid', borderColor: 'divider', borderLeft: p.hasAlerts ? '5px solid #ef4444' : '5px solid transparent', '&:hover': { boxShadow: '0 8px 24px rgba(32,178,170,.15)', transform: 'translateY(-1px)' } }} onClick={() => openPatient(p)}>
-                      <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.75, py: 1.5 }}>
-                        <Badge color="error" variant="dot" invisible={!p.hasAlerts} overlap="circular" anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
-                          <Avatar src={p.patient?.id ? `${API_URL}/patients/${p.patient.id}/photo` : undefined} sx={{ bgcolor: TEAL, fontWeight: 800, width: 48, height: 48 }}>{p.patient?.fullName?.charAt(0)}</Avatar>
-                        </Badge>
-                        <Box sx={{ flex: 1, minWidth: 0 }}>
-                          <Stack direction="row" alignItems="center" spacing={0.75} useFlexGap flexWrap="wrap">
-                            <Typography sx={{ fontWeight: 800, color: 'text.primary' }}>{p.patient?.fullName}</Typography>
-                            {p.code && <Chip size="small" label={p.code} sx={{ height: 18, fontSize: 10, bgcolor: '#0f3d3a', color: '#fff', fontWeight: 700, fontFamily: 'monospace' }} />}
-                            {p.relationship && <Chip size="small" label={p.relationship} sx={{ height: 18, fontSize: 10, bgcolor: 'action.hover', color: 'text.secondary', fontWeight: 600 }} />}
-                            {p.age != null && <Chip size="small" label={`${p.age}a`} sx={{ height: 18, fontSize: 10, bgcolor: 'action.hover', color: 'text.secondary', fontWeight: 700 }} />}
-                            {sex && <Chip size="small" label={sex} sx={{ height: 18, fontSize: 10, bgcolor: sex === 'F' ? '#fce7f3' : '#dbeafe', color: sex === 'F' ? '#be185d' : '#1d4ed8', fontWeight: 700 }} />}
-                            {p.hasAlerts && <Chip size="small" label="alerta" sx={{ height: 18, fontSize: 10, bgcolor: '#fee2e2', color: '#b91c1c', fontWeight: 700 }} />}
-                          </Stack>
-                          <Box sx={{ mt: 0.5, display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-                            {p.latestWeight && <Chip size="small" label={`⚖️ ${p.latestWeight.value}kg`} sx={{ height: 20, fontSize: 10, bgcolor: 'rgba(32,178,170,0.12)', color: 'text.primary' }} />}
-                            {p.lastExamAt && <Chip size="small" label={`📅 ${fmtDate(p.lastExamAt)}`} sx={{ height: 20, fontSize: 10, bgcolor: 'rgba(32,178,170,0.12)', color: 'text.primary' }} />}
-                            {p.examsCount > 0 && <Chip size="small" label={`📋 ${p.examsCount}`} sx={{ height: 20, fontSize: 10, bgcolor: 'rgba(32,178,170,0.12)', color: 'text.primary' }} />}
-                            <Chip size="small" label={p.convenio || 'Particular'} sx={{ height: 20, fontSize: 10, bgcolor: 'rgba(32,178,170,0.15)', color: TEAL, fontWeight: 600 }} />
-                          </Box>
+                    <Card key={key} sx={{ borderRadius: 3, cursor: 'pointer', transition: 'all .15s', border: 'none', boxShadow: '0 1px 3px rgba(0,0,0,.04)', '&:hover': { boxShadow: '0 4px 16px rgba(0,0,0,.08)', transform: 'translateY(-1px)' } }} onClick={() => openPatient(p)}>
+                      <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5 }}>
+                        <Box sx={{ position: 'relative', flexShrink: 0 }}>
+                          <Avatar src={p.patient?.id ? `${API_URL}/patients/${p.patient.id}/photo` : undefined} sx={{ bgcolor: 'rgba(32,178,170,.08)', color: '#178f89', fontWeight: 800, width: 44, height: 44, border: '2px solid', borderColor: p.hasAlerts ? '#ef4444' : 'rgba(32,178,170,.15)' }}>{p.patient?.fullName?.charAt(0)}</Avatar>
+                          {p.hasAlerts && <Box sx={{ position: 'absolute', top: -2, right: -2, width: 12, height: 12, borderRadius: '50%', bgcolor: '#ef4444', border: '2px solid #fff' }} />}
                         </Box>
-                        <Typography sx={{ color: TEAL, fontWeight: 800, fontSize: 20 }}>›</Typography>
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 15, color: 'text.primary', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.patient?.fullName}</Typography>
+                          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>
+                            {[p.age != null ? `${p.age}a` : null, sex, p.relationship].filter(Boolean).join(' · ')} {p.code && <Box component="span" sx={{ fontFamily: 'monospace', color: 'text.disabled' }}>· {p.code}</Box>}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25, fontSize: 11 }}>{statusLine}</Typography>
+                        </Box>
+                        <ChevronRightIcon sx={{ color: 'text.disabled', fontSize: 20, flexShrink: 0 }} />
                       </CardContent>
                     </Card>
                   );
@@ -670,16 +668,32 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               </Box>
             </Stack>
 
-            {/* TABS NO TOPO (premium UX) — médico vê as opções imediatamente ao abrir o paciente,
-                sem rolar pasto cards de preamble. Sticky pra acompanhar o scroll. */}
+            {/* COMMAND BAR — segmented control premium (iOS style) com contagens. Sticky. */}
             {supportedTabs.length > 0 && (
-              <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mb: 2, position: 'sticky', top: 0, zIndex: 10, bgcolor: 'background.paper', py: 1, px: 0.5, mx: -0.5, borderRadius: 2 }}>
-                {supportedTabs.map((s) => {
-                  const on = tab === s;
-                  const meta = SCOPE_META[s] || { icon: '📄', label: s };
-                  return <Chip key={s} onClick={() => setTab(s)} label={`${meta.icon} ${meta.label}`} sx={{ height: 32, borderRadius: 99, fontSize: 12.5, fontWeight: on ? 800 : 600, cursor: 'pointer', bgcolor: on ? TEAL : 'transparent', color: on ? '#fff' : TEAL, border: `1px solid ${on ? TEAL : 'divider'}`, '&:hover': { bgcolor: on ? '#0f7670' : 'rgba(32,178,170,.08)' } }} />;
-                })}
-              </Stack>
+              <Box sx={{ mb: 2, position: 'sticky', top: 0, zIndex: 10, bgcolor: '#FAFBFC', py: 1, mx: -2, px: 2, borderBottom: '1px solid', borderColor: 'rgba(0,0,0,.04)' }}>
+                <Stack direction="row" spacing={0.5} sx={{ overflowX: 'auto', '&::-webkit-scrollbar': { display: 'none' } }}>
+                  {supportedTabs.map((s) => {
+                    const on = tab === s;
+                    const meta = SCOPE_META[s] || { icon: '📄', label: s };
+                    const count = s === 'risk' ? (risk?.result ? 1 : 0) : s === 'exams' ? (exams?.length || 0) : s === 'alerts' ? (allAlerts?.length || 0) : s === 'notes' ? (notes?.length || 0) : s === 'summary' ? (summaries?.length || 0) : 0;
+                    return (
+                      <Box key={s} onClick={() => setTab(s)} sx={{
+                        flexShrink: 0, display: 'flex', alignItems: 'center', gap: 0.5, px: 1.5, py: 0.75, borderRadius: 1.5, cursor: 'pointer',
+                        transition: 'all .15s', whiteSpace: 'nowrap',
+                        bgcolor: on ? '#178f89' : 'transparent',
+                        color: on ? '#fff' : 'text.secondary',
+                        boxShadow: on ? '0 2px 6px rgba(23,143,137,.25)' : 'none',
+                        '&:hover': { bgcolor: on ? '#0f7670' : 'rgba(0,0,0,.04)' },
+                        '&:active': { transform: 'scale(.97)' },
+                      }}>
+                        <Box sx={{ fontSize: 14, lineHeight: 1 }}>{meta.icon}</Box>
+                        <Typography sx={{ fontSize: 12.5, fontWeight: on ? 800 : 600 }}>{meta.label}</Typography>
+                        {count > 0 && <Box sx={{ fontSize: 10, fontWeight: 800, bgcolor: on ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.06)', borderRadius: 99, px: 0.5, minWidth: 16, textAlign: 'center' }}>{count}</Box>}
+                      </Box>
+                    );
+                  })}
+                </Stack>
+              </Box>
             )}
 
             {/* PERFIL CLÍNICO + RESUMO RÁPIDO + PERGUNTAS — só na tab Risco (não polui Exames/Evolução/etc) */}
