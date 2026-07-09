@@ -54,11 +54,12 @@ export const ShareHealthButton = ({ score, biologicalAge }: { score?: number | n
         onClick={share}
         sx={{
           borderRadius: 99, textTransform: 'none', fontWeight: 700, py: 1, px: 2.5,
-          bgcolor: '#25D366', color: '#fff', '&:hover': { bgcolor: '#1da851' },
-          boxShadow: '0 2px 8px rgba(37,211,102,.25)',
+          bgcolor: 'rgba(32,178,170,.08)', color: '#178f89',
+          border: '1px solid', borderColor: 'rgba(32,178,170,.3)',
+          '&:hover': { bgcolor: 'rgba(32,178,170,.14)', borderColor: '#20b2aa' },
         }}
       >
-        📤 Compartilhar
+        📤 Compartilhar minha saúde
       </Button>
       <Snackbar open={shared} autoHideDuration={3000} onClose={() => setShared(false)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
         <Alert severity="success" sx={{ borderRadius: 99 }}>Obrigado por compartilhar! 🎉</Alert>

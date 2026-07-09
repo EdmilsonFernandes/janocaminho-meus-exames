@@ -151,6 +151,8 @@ export const Dashboard = () => {
   const [deps, setDeps] = useState(0);
   const [lastExam, setLastExam] = useState<string | null>(null);
   const [buckets, setBuckets] = useState<{ bons: number; alerta: number; alterados: number }>({ bons: 0, alerta: 0, alterados: 0 });
+  const [hsScore, setHsScore] = useState<number | null>(null);
+  const [hsAltered, setHsAltered] = useState<number>(0);
   const [credits, setCredits] = useState<number | null>(null);
   const [me, setMe] = useState<any>(null);
   const [loaded, setLoaded] = useState(false);
@@ -164,6 +166,8 @@ export const Dashboard = () => {
     try {
       const c = pid ? localStorage.getItem(`dashScore:${pid}`) : null;
       if (c) setBuckets(JSON.parse(c));
+      const cn = pid ? localStorage.getItem(`dashScoreNum:${pid}`) : null;
+      if (cn) setHsScore(Number(cn));
     } catch { /* ignore */ }
     (async () => {
       const h = { Authorization: `Bearer ${token()}` };
@@ -186,8 +190,32 @@ export const Dashboard = () => {
           setBuckets(b);
           try { if (pid) localStorage.setItem(`dashScore:${pid}`, JSON.stringify(b)); } catch { /* ignore */ }
         }
-        const it = await fetch(`${API_URL}/items?_start=0&_end=20${pidQ}`, { headers: h });
-        if (it.ok) { const items = await it.json(); setTipData({ abnormal: items.find((x: any) => x.isAbnormal) ?? null, good: items.find((x: any) => !x.isAbnormal && x.value != null) ?? null }); }
+        // Camada canonical (Layer 2): score correto (dedup por marcador + só últimos 12 meses +
+        // exclui borderline — alinhado ao Portal do Médico) e dica da IA a partir do marcador de
+        // MAIOR atenção (sem staleness — antes vinha de /items cru, que pegava um item de exame
+        // ANTIGO e dizia "ácido úrico alto" à toa, quando o atual já estava normal).
+        if (pid) {
+          const hs = await fetch(`${API_URL}/patients/${pid}/health-summary`, { headers: h });
+          if (hs.ok) {
+            const hd = await hs.json();
+            if (typeof hd.score === 'number') {
+              setHsScore(hd.score);
+              try { localStorage.setItem(`dashScoreNum:${pid}`, String(hd.score)); } catch { /* ignore */ }
+            }
+            setHsAltered((hd.byPriority?.importante ?? 0) + (hd.byPriority?.moderada ?? 0));
+            const markerToTip = (m: any) => m ? {
+              name: m.name,
+              value: m.latest?.valueNumeric ?? null,
+              unit: m.unit,
+              flag: (m.latest?.valueNumeric != null && m.refHigh != null && m.latest.valueNumeric > m.refHigh) ? 'HIGH'
+                  : (m.latest?.valueNumeric != null && m.refLow != null && m.latest.valueNumeric < m.refLow) ? 'LOW'
+                  : (m.flag || ''),
+            } : null;
+            const top = Array.isArray(hd.topAttention) ? hd.topAttention[0] : null;
+            const imp = Array.isArray(hd.improving) ? hd.improving[0] : null;
+            if (top || imp) setTipData({ abnormal: markerToTip(top), good: markerToTip(imp) });
+          }
+        }
         const st = await fetch(`${API_URL}/billing/status`, { headers: h });
         if (st.ok) { const sd = await st.json(); setCredits(typeof sd.credits === 'number' ? sd.credits : null); }
         // Streak server-side das conquistas — fire-and-forget (1x/dia, idempotente).
@@ -201,7 +229,11 @@ export const Dashboard = () => {
 
   const firstName = (me?.fullName || '').split(' ')[0];
   const totalVals = buckets.bons + buckets.alerta + buckets.alterados;
-  const score = totalVals ? Math.round((buckets.bons / totalVals) * 100) : null; // consistente com o donut
+  // Score da camada canonical (Layer 2): dedup por marcador + últimos 12 meses + exclui borderline
+  // — alinhado ao Portal do Médico (antes derivava do flag-summary, que inflava contando itens
+  // sem referência como "bom" e duplicatas). buckets continuam só pro donut (DistributionCard).
+  const bucketsScore = totalVals ? Math.round((buckets.bons / totalVals) * 100) : null;
+  const score = hsScore ?? bucketsScore;
   const tipNode = <AiTip firstName={firstName} tipData={tipData} fallbackTip={tip} />;
 
   return (
@@ -209,7 +241,7 @@ export const Dashboard = () => {
       <DashboardHeader firstName={firstName} />
 
       {/* 1 · HERO — Score de Saúde */}
-      <HealthScoreCard loaded={loaded} score={score} abnormalCount={stats.abnormal} onDetails={() => navigate('/tendencias')} />
+      <HealthScoreCard loaded={loaded} score={score} abnormalCount={hsAltered || stats.abnormal} onDetails={() => navigate('/tendencias')} />
       <NextBestActionCard
         loaded={loaded}
         exams={stats.exams}
