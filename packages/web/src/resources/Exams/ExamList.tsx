@@ -20,6 +20,8 @@ import { categorizeExam, CATS } from '../../utils/medicalData';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { ListSkeleton } from '../../components/Skeleton';
+import { EmptyState } from '../../components/EmptyState';
 
 const ExamListActions = () => (
   <TopToolbar>
@@ -54,19 +56,13 @@ const ProcessingCard = ({ r, onCancel }: { r: any; onCancel?: (e: any) => void }
           <Typography sx={{ fontWeight: 700, wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.2 }}>{r.title || 'Novo exame enviado'}</Typography>
           <Typography variant="caption" color="text.secondary">Dr. Exame está extraindo… toque para acompanhar</Typography>
         </Box>
-        {onCancel && <IconButton size="small" onClick={onCancel} title="Cancelar e excluir" sx={{ flexShrink: 0, color: 'text.secondary' }}><CloseIcon fontSize="small" /></IconButton>}
+        {onCancel && <IconButton size="small" onClick={onCancel} title="Cancelar e excluir" aria-label="Cancelar e excluir exame" sx={{ flexShrink: 0, color: 'text.secondary' }}><CloseIcon fontSize="small" /></IconButton>}
         <ChevronRightIcon sx={{ color: 'text.disabled', flexShrink: 0 }} />
       </CardContent>
       <LinearProgress sx={{ height: 4, '& .MuiLinearProgress-bar': { background: 'linear-gradient(90deg,#0ea5e9,#20b2aa)' } }} />
     </Card>
   );
 };
-
-const Empty = ({ text }: { text: string }) => (
-  <Box sx={{ textAlign: 'center', py: 4, color: 'text.secondary' }}>
-    <Typography>{text}</Typography>
-  </Box>
-);
 
 /** Cards agrupados por ano OU por categoria (alternáveis). Busca + filtro por categoria no topo. */
 const ExamCards = () => {
@@ -91,7 +87,7 @@ const ExamCards = () => {
     return () => clearInterval(t);
   }, [processingCount, refresh]);
 
-  if (isLoading) return null;
+  if (isLoading) return <ListSkeleton count={4} />;
   const del = (e: any, id: string, title: string) => {
     e.stopPropagation();
     setDelTarget({ id, title });   // abre o Dialog premium (não window.confirm nativo)
@@ -159,7 +155,7 @@ const ExamCards = () => {
               <Chip size="small" label={statusLabel[r.status] ?? r.status} sx={{ bgcolor: c + '18', color: c, fontWeight: 700, height: 20 }} />
             </Stack>
           </Box>
-          <IconButton size="small" onClick={(e) => del(e, r.id, r.title)} title="Excluir" sx={{ flexShrink: 0 }}><DeleteOutlineIcon fontSize="small" /></IconButton>
+          <IconButton size="small" onClick={(e) => del(e, r.id, r.title)} title="Excluir" aria-label={`Excluir exame ${r.title}`} sx={{ flexShrink: 0 }}><DeleteOutlineIcon fontSize="small" /></IconButton>
           <ChevronRightIcon sx={{ color: 'text.disabled', flexShrink: 0 }} />
         </CardContent>
         {(r.status === 'EXTRACTING' || r.status === 'UPLOADED') && <LinearProgress sx={{ height: 3 }} />}
@@ -263,7 +259,11 @@ const ExamCards = () => {
       {/* Grupos (data OU categoria) */}
       {view === 'date' && (
         <>
-          {dateGroups.length === 0 && <Empty text={filtering ? 'Nenhum exame encontrado com esse filtro.' : 'Nenhum exame pronto ainda.'} />}
+          {dateGroups.length === 0 && (
+            filtering
+              ? <EmptyState emoji="🔍" title="Nenhum exame encontrado" desc="Tente outro termo de busca ou troque a categoria." />
+              : <EmptyState emoji="📄" title="Nenhum exame enviado ainda" desc="Envie seu primeiro exame (PDF ou foto) e o Dr. Exame extrai os resultados automaticamente." cta="Enviar exame" onCta={() => navigate('/exams/create')} />
+          )}
           {dateGroups.map((g) => {
             const locked = !premium && g.year !== latestYear && g.year != null;
             if (locked) {
@@ -296,7 +296,11 @@ const ExamCards = () => {
 
       {view === 'category' && (
         <>
-          {catGroups.length === 0 && <Empty text={filtering ? 'Nenhum exame encontrado com esse filtro.' : 'Nenhum exame pronto ainda.'} />}
+          {catGroups.length === 0 && (
+            filtering
+              ? <EmptyState emoji="🔍" title="Nenhum exame encontrado" desc="Tente outro termo de busca ou troque a categoria." />
+              : <EmptyState emoji="📄" title="Nenhum exame enviado ainda" desc="Envie seu primeiro exame (PDF ou foto) e o Dr. Exame extrai os resultados automaticamente." cta="Enviar exame" onCta={() => navigate('/exams/create')} />
+          )}
           {catGroups.map(({ cat: c, items }) => (
             <Accordion key={c.key} defaultExpanded={catGroups.length <= 3} disableGutters elevation={0}
               sx={{ borderRadius: '12px !important', overflow: 'hidden', border: '1px solid', borderColor: 'divider', '&:before': { display: 'none' } }}>

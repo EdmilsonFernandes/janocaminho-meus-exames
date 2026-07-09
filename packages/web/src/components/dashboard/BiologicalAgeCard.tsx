@@ -1,4 +1,5 @@
-import { Box, Card, CardContent, Typography, Chip } from '@mui/material';
+import { Box, Button, Card, CardContent, Typography, Chip, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { API_URL, token } from '../../config';
 import { useSelectedPatient } from '../../patient-context';
 import { useEffect, useState } from 'react';
@@ -10,6 +11,7 @@ import { useEffect, useState } from 'react';
 export const BiologicalAgeCard = () => {
   const [pid] = useSelectedPatient();
   const [data, setData] = useState<{ age: number; confidence: string; markersUsed: number } | null>(null);
+  const [explain, setExplain] = useState(false);
 
   useEffect(() => {
     if (!pid) return;
@@ -30,6 +32,7 @@ export const BiologicalAgeCard = () => {
   const older = diff !== null && diff > 0;
 
   return (
+    <>
     <Card sx={{ mt: 2, borderRadius: 4, background: 'linear-gradient(135deg, rgba(99,102,241,.08), rgba(99,102,241,.02))', border: '1px solid', borderColor: 'rgba(99,102,241,.2)' }}>
       <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -49,19 +52,34 @@ export const BiologicalAgeCard = () => {
           </Box>
           {data.confidence === 'baixa' && <Chip size="small" label="estimativa" sx={{ bgcolor: 'rgba(99,102,241,.12)', color: '#6366f1', fontWeight: 700, fontSize: 10, height: 18 }} />}
         </Box>
-        {/* Explicação simples — o paciente precisa entender o que isso significa */}
-        <Box sx={{ mt: 1.25, p: 1.25, borderRadius: 2, bgcolor: 'rgba(99,102,241,.04)', border: '1px solid', borderColor: 'rgba(99,102,241,.10)' }}>
-          <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1.5, display: 'block', fontSize: 11.5 }}>
-            <b style={{ color: '#6366f1' }}>O que é?</b> É a idade estimada do seu <b>corpo</b> baseada nos seus exames de sangue (glicose, colesterol, rim, fígado, hormônios). Pode ser diferente da sua idade real no RG.
-          </Typography>
-          <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1.5, display: 'block', fontSize: 11.5, mt: 0.5 }}>
-            <b style={{ color: '#059669' }}>Mais jovem</b> = seus exames estão melhores que o esperado pra sua idade. <b style={{ color: '#dc2626' }}>Mais velho</b> = alguns marcadores precisam de atenção. Boa alimentação, exercício e sono ajudam a rejuvenescer. 🔄
-          </Typography>
-          <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 10, display: 'block', mt: 0.5, fontStyle: 'italic' }}>
-            Baseado em {data.markersUsed} marcadores. Estimativa educativa — não substitui avaliação médica.
-          </Typography>
+        {/* Caminho pra explicação completa (Dialog) — mantém o card compacto no Dashboard. */}
+        <Box sx={{ mt: 1 }}>
+          <Button size="small" startIcon={<HelpOutlineIcon />} onClick={() => setExplain(true)} sx={{ color: '#6366f1', textTransform: 'none', fontWeight: 700 }}>Saiba o que isso significa</Button>
         </Box>
       </CardContent>
     </Card>
+
+      {/* Dialog: explicação leiga e profunda da idade biológica (pt 4 do pedido). */}
+      <Dialog open={explain} onClose={() => setExplain(false)} maxWidth="sm" fullWidth slotProps={{ paper: { sx: { borderRadius: 3 } } }}>
+        <DialogTitle sx={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 1 }}>🧬 O que é a idade biológica?</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" sx={{ lineHeight: 1.6, display: 'block' }}>
+            <b style={{ color: '#6366f1' }}>O que é?</b> É a idade estimada do seu <b>corpo</b> com base nos seus exames de sangue — glicose, colesterol, função do rim e do fígado, hormônios e outros marcadores. Pode ser diferente da sua idade de carteira (cronológica).
+          </Typography>
+          <Typography variant="body2" sx={{ lineHeight: 1.6, display: 'block', mt: 1.5 }}>
+            <b style={{ color: '#059669' }}>Mais jovem</b> significa que seus exames estão melhores do que o esperado pra sua idade. <b style={{ color: '#dc2626' }}>Mais velho</b> indica que alguns marcadores merecem atenção.
+          </Typography>
+          <Typography variant="body2" sx={{ lineHeight: 1.6, display: 'block', mt: 1.5 }}>
+            A boa notícia: alimentação equilibrada, exercício regular e sono de qualidade ajudam seu corpo a “rejuvenescer” nos próximos exames. 🔄
+          </Typography>
+          <Typography variant="caption" sx={{ display: 'block', mt: 2, color: 'text.secondary', fontStyle: 'italic' }}>
+            Cálculo baseado em {data.markersUsed} marcadores. Estimativa educativa — não substitui a avaliação de um profissional de saúde.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setExplain(false)} variant="contained" sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 800 }}>Entendi</Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 };

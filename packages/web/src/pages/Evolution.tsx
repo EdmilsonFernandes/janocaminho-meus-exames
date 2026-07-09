@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Box, Button, Card, CardContent, Typography, CircularProgress, Chip, Stack, Grid, Accordion, AccordionSummary, AccordionDetails, InputBase, Paper } from '@mui/material';
+import { Box, Button, Card, CardContent, Typography, Chip, Stack, Grid, Accordion, AccordionSummary, AccordionDetails, InputBase, Paper } from '@mui/material';
 import { Title } from 'react-admin';
 import { ResponsiveContainer, LineChart, Line, ReferenceArea, YAxis, Tooltip } from 'recharts';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -13,6 +13,8 @@ import { displayStatus } from '../utils/examStatus';
 import { summarizeTrends, trendHeadline, VERDICT_META } from '../utils/evolutionSummary';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
+import { ListSkeleton } from '../components/Skeleton';
+import { EmptyState } from '../components/EmptyState';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 
 import type { EvolutionItem as EvoItem } from '@meus-exames/shared';
@@ -37,6 +39,7 @@ const CAT_ORDER = CATS.map((c) => c.key);
 
 export const EvolutionPage = () => {
   const [pid] = useSelectedPatient();
+  const navigate = useNavigate();
   const [items, setItems] = useState<EvoItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<Status | 'all'>('all');
@@ -98,7 +101,7 @@ export const EvolutionPage = () => {
         subtitle="Como cada exame evoluiu entre as coletas. Toque pra ver o gráfico."
       />
 
-      {loading && <CircularProgress />}
+      {loading && <ListSkeleton count={4} />}
 
       {!loading && items.length > 0 && (
         <>
@@ -138,9 +141,13 @@ export const EvolutionPage = () => {
       )}
 
       {!loading && items.length === 0 && (
-        <Card><CardContent>
-          <Typography color="text.secondary">Envie ao menos 2 exames laboratoriais de datas diferentes pra acompanhar sua evolução.</Typography>
-        </CardContent></Card>
+        <EmptyState
+          emoji="📈"
+          title="Sem histórico pra comparar ainda"
+          desc="Envie ao menos 2 exames laboratoriais de datas diferentes pra acompanhar como cada exame evoluiu entre as coletas."
+          cta="Enviar exame"
+          onCta={() => navigate('/exams/create')}
+        />
       )}
 
       {!loading && items.length > 0 && filtered.length === 0 && (

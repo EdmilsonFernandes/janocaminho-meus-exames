@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Box, Card, CardContent, Typography, CircularProgress, Stack, Chip, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
+import { Box, Card, CardContent, Typography, Stack, Chip, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
 import { Title } from 'react-admin';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -8,6 +8,9 @@ import { PageHeader } from '../components/layout/PageHeader';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import { ExplainButton } from '../components/ExplainItem';
+import { ValueBar } from '../components/ValueBar';
+import { ListSkeleton } from '../components/Skeleton';
+import { EmptyState } from '../components/EmptyState';
 import { TelemedicineButton } from '../components/TelemedicineButton';
 import { fmtVal, unitSuffix } from '../utils/format';
 import { refLabel, categorize } from '../utils/medicalData';
@@ -75,9 +78,13 @@ export const ValoresAlteradosPage = () => {
       />
 
       {loading ? (
-        <Box sx={{ textAlign: 'center', py: 4 }}><CircularProgress /></Box>
+        <ListSkeleton count={3} />
       ) : items.length === 0 ? (
-        <Card><CardContent><Typography color="text.secondary" sx={{ textAlign: 'center', py: 1 }}>Nenhum valor alterado — tudo dentro da faixa. ✅</Typography></CardContent></Card>
+        <EmptyState
+          emoji="✅"
+          title="Tudo dentro da faixa!"
+          desc="Não encontramos valores fora da referência nos seus exames. Continue acompanhando e leve seus exames às consultas médicas."
+        />
       ) : (
         <>
           {/* Resumo não-alarmista por prioridade */}
@@ -144,6 +151,14 @@ export const ValoresAlteradosPage = () => {
                                 <Typography component="span" sx={{ fontSize: '1.35rem', fontWeight: 800, color: col }}>{fmtVal(it)}</Typography>
                                 {unitSuffix(it) ? <Typography component="span" sx={{ color: 'text.secondary', ml: 0.5, fontSize: '0.8rem' }}>{unitSuffix(it)}</Typography> : null}
                               </Box>
+                              {/* Barra visual de posição (bolinha na faixa verde) — só pra itens com
+                                  faixa CONFIÁVEL. Suspeitos (escala incerta) não ganham barra: o
+                                  desenho seria enganoso. */}
+                              {!suspect && it.valueNumeric != null && it.refLow != null && it.refHigh != null && (
+                                <Box sx={{ flexBasis: '100%' }}>
+                                  <ValueBar value={it.valueNumeric} low={it.refLow} high={it.refHigh} />
+                                </Box>
+                              )}
                             </CardContent>
                           </Card>
                         );

@@ -14,9 +14,13 @@ export const ValueBar = ({ value, low, high }: { value: number | null; low: numb
   const span = Math.max(max - min, range * 0.001);
   const pct = (v: number) => `${Math.max(0, Math.min(100, ((v - min) / span) * 100))}%`;
 
+  // Acessibilidade: a barra é puramente visual (cor/posição). role="img" + aria-label
+  // descreve a posição do valor em texto, pra leitores de tela não dependerem da cor.
+  const a11y = `Valor ${value}: faixa de referência de ${low} a ${high}, ${out ? 'fora da faixa' : 'dentro da faixa'}.`;
+
   return (
     <Tooltip title={`Referência: ${low} a ${high}`} arrow>
-      <Box sx={{ width: '100%', maxWidth: 220, mt: 0.5 }}>
+      <Box role="img" aria-label={a11y} sx={{ width: '100%', maxWidth: 220, mt: 0.5 }}>
         <Box sx={{ position: 'relative', height: 16, borderRadius: 8, background: (t) => t.palette.mode === 'dark' ? '#2a3636' : '#eaeef5' }}>
           {/* zona normal (verde) */}
           <Box
