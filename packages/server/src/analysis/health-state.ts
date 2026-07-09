@@ -73,7 +73,7 @@ export interface CurrentHealthSummary {
   worsening: MarkerState[];
   stale: MarkerState[];
   whatChanged: { nameCanonical: string; name: string; deltaPct: number | null; trend: TrendDirection }[];
-  biologicalAge?: { age: number; confidence: 'alta' | 'baixa'; markersUsed: number } | null;
+  biologicalAge?: { age: number; confidence: 'alta' | 'baixa'; markersUsed: number; method?: 'phenoage' | 'simplified'; missing?: string[] } | null;
   cardiometabolicRisk?: { level: string; score: number; factors: { label: string; risk: boolean }[] } | null;
   clinicalSummary?: string;
   staleWarning?: string | null;
@@ -269,21 +269,63 @@ export async function buildCurrentHealthSummary(patientId: string): Promise<Curr
   // Exames de 2018/2021/2023 NÃO refletem a saúde atual — não devem contaminar o score.
   const markers = allMarkers.filter((m) => !m.latest.stale);
   const staleCount = allMarkers.length - markers.length;
-  // Idade biológica (estimativa educativa) — busca perfil do paciente pra idade/sexo
+  // Idade biológica: PhenoAge (quando completa) ou z-score simplificado (fallback)
   let biologicalAge: CurrentHealthSummary['biologicalAge'] = null;
+  let bioMethod: 'phenoage' | 'simplified' = 'simplified';
+  let bioMissing: string[] = [];
   try {
     const { prisma } = await import('../prisma');
     const patient = await prisma.patient.findUnique({ where: { id: patientId }, select: { gender: true, dateOfBirth: true } });
     if (patient?.dateOfBirth) {
       const chronoAge = Math.floor((Date.now() - new Date(patient.dateOfBirth).getTime()) / (365.25 * 86400000));
       if (chronoAge >= 18) {
-        const { estimateBiologicalAge } = await import('./biological-age');
-        const result = estimateBiologicalAge(
-          markers.filter((m) => !m.latest.stale).map((m) => ({ nameCanonical: m.nameCanonical, value: m.latest.valueNumeric ?? 0 })).filter((m) => m.value > 0),
-          chronoAge,
-          (patient.gender as any) === 'female' ? 'female' : (patient.gender as any) === 'male' ? 'male' : undefined,
-        );
-        if (result.markersUsed > 0) biologicalAge = { age: result.biologicalAge, confidence: result.confidence, markersUsed: result.markersUsed };
+        // TENTAR PHENOAGE PRIMEIRO (fórmula científica Liu et al. 2018)
+        const freshMarkers = markers.filter((m) => !m.latest.stale);
+        const mv = (canon: string) => freshMarkers.find((m) => m.nameCanonical === canon)?.latest.valueNumeric ?? null;
+        const { calculatePhenoAge, albuminGdLToGL, creatinineMgDLToUmolL, glucoseMgDLToMmolL, crpMgLToMgDl, wbcPerULTo1000 } = await import('./phenoage');
+        const alb = mv('ALBUMINA'); const cre = mv('CREATININA'); const gli = mv('GLICEMIA');
+        const crp = mv('PCR'); const lin = mv('LINFOCITOS'); const vcm = mv('VCM'); const rdw = mv('RDW');
+        const alp = mv('FOSFATASE'); // fosfatase alcalina — pode não ter canonical próprio
+        const wbc = mv('LEUCOCITOS');
+        const missing = [
+          alb == null ? 'Albumina' : null, cre == null ? 'Creatinina' : null, gli == null ? 'Glicose' : null,
+          crp == null ? 'PCR' : null, lin == null ? 'Linfócitos %' : null, vcm == null ? 'VCM' : null,
+          rdw == null ? 'RDW' : null, alp == null ? 'Fosfatase Alcalina' : null, wbc == null ? 'Leucócitos' : null,
+        ].filter(Boolean) as string[];
+
+        if (missing.length === 0 && alb != null && cre != null && gli != null && crp != null && lin != null && vcm != null && rdw != null && alp != null && wbc != null) {
+          // Todos os 9 marcadores disponíveis — PhenoAge completo
+          const phenoResult = calculatePhenoAge({
+            age: chronoAge,
+            albumin: albuminGdLToGL(alb),       // g/dL → g/L
+            creatinine: creatinineMgDLToUmolL(cre), // mg/dL → µmol/L
+            glucose: glucoseMgDLToMmolL(gli),   // mg/dL → mmol/L
+            crp: crp > 1 ? crp : crpMgLToMgDl(crp), // mg/dL ou mg/L → mg/dL (heurística: >1 provável mg/L)
+            lymphocytePct: lin,                 // % (já na unidade certa)
+            mcv: vcm,                           // fL
+            rdw,                                // %
+            alkalinePhosphatase: alp,           // U/L
+            wbc: wbc > 100 ? wbcPerULTo1000(wbc) : wbc, // >100 = cél/µL → ÷1000; senão já é 1000/µL
+          });
+          if (phenoResult) {
+            biologicalAge = { age: phenoResult.biologicalAge, confidence: 'alta', markersUsed: 9, method: 'phenoage' };
+            bioMethod = 'phenoage';
+          }
+        }
+
+        // FALLBACK: z-score simplificado (quando PhenoAge não dá)
+        if (!biologicalAge) {
+          const { estimateBiologicalAge } = await import('./biological-age');
+          const result = estimateBiologicalAge(
+            freshMarkers.map((m) => ({ nameCanonical: m.nameCanonical, value: m.latest.valueNumeric ?? 0 })).filter((m) => m.value > 0),
+            chronoAge,
+            (patient.gender as any) === 'female' ? 'female' : (patient.gender as any) === 'male' ? 'male' : undefined,
+          );
+          if (result.markersUsed > 0) {
+            biologicalAge = { age: result.biologicalAge, confidence: result.confidence, markersUsed: result.markersUsed, method: 'simplified', missing: bioMissing };
+            bioMissing = missing;
+          }
+        }
       }
     }
   } catch { /* best-effort */ }
