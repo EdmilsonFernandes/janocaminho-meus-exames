@@ -27,9 +27,9 @@ function msUntilNextUtcHour(targetHour: number): number {
   return next.getTime() - now.getTime();
 }
 
-// Dicas curadas (fallback se o GLM falhar ou a chave não estiver configurada). Voz do Dr. Exame.
+// Dicas curadas ROTATIVAS (20 variedades) — a cada dia pega uma DIFERENTE. Sempre variada,
+// nunca repetitiva. A "beba água" foi removida do topo (era a única que o usuário via).
 const FALLBACK_TIPS = [
-  'Beba um copo d’água agora — boa hidratação ajuda rins, pele e disposição.',
   'Caminhe 10 minutos hoje. Pequenas caminhadas melhoram pressão, açúcar e humor.',
   'Durma 7 a 8 horas: o sono regula hormônios, imunidade e memória. Evite telas 1h antes.',
   'Capriche no prato colorido — frutas, verduras e fibras ajudam intestino e coração.',
@@ -39,6 +39,17 @@ const FALLBACK_TIPS = [
   '15 min de sol de manhã ajudam na vitamina D e no ritmo do sono.',
   'Reduza ultraprocessados e açúcar: glicose e colesterol agradecem.',
   'Pese-se sempre no mesmo dia e horário — a tendência vale mais que o número isolado.',
+  'Beba água ao acordar: depois de horas dormindo, seu corpo pede hidratação.',
+  'Alongue-se: 5 min de alongamento pela manhã solta a tensão acumulada.',
+  'Faça uma refeição sem celular: comer com atenção melhora digestão e saciedade.',
+  'Suba escadas em vez de elevador: pequenos esforços somam ao longo da semana.',
+  'Anote seus medicamentos e doses no perfil clínico — a IA usa isso pra contextualizar.',
+  'Corte cafeína após 14h: seu sono agradece (a cafeína fica 6h no corpo).',
+  'Troque o refrigerante por água com gás e limão: menos açúcar, mesma refrescância.',
+  'Verifique a validade dos medicamentos em casa — remédios vencidos perdem efeito.',
+  'Faça exames em jejum pela manhã: menos desconforto e resultados mais precisos.',
+  'Mantenha o mesmo horário de dormir — o corpo ama rotina pra regular o relógio biológico.',
+  'Leia seu último exame: comparar valores anteriores mostra sua evolução real.',
 ];
 // Cache da dica do dia (1 chamada GLM/dia, reusada pra todos os usuários daquela manhã).
 let cachedTip: { day: string; text: string } | null = null;
@@ -59,7 +70,10 @@ async function getDailyHealthTip(): Promise<string> {
   } catch (e) {
     console.warn('[nudges] GLM tip falhou, usando dica curada:', (e as Error).message);
   }
-  const fb = FALLBACK_TIPS[Math.floor(Math.random() * FALLBACK_TIPS.length)];
+  // ROTATIVA: dia do ano % tamanho = sempre uma dica DIFERENTE por dia (não random — previsível
+  // e sem repetir). Nunca mais a mesma "beba água" todo dia.
+  const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
+  const fb = FALLBACK_TIPS[dayOfYear % FALLBACK_TIPS.length];
   cachedTip = { day, text: fb };
   return fb;
 }

@@ -25,6 +25,7 @@ interface Marker {
 interface Summary {
   markers: number; score: number | null; byPriority: Record<Priority, number>;
   topAttention: Marker[]; improving: Marker[]; worsening: Marker[]; stale: Marker[];
+  staleWarning?: string | null;
 }
 
 const PRIO_COLOR: Record<Priority, string> = {
@@ -95,13 +96,19 @@ export const CurrentStateCard = () => {
             : `${trulyAltered} de ${s.markers} marcador${s.markers > 1 ? 'es' : ''} fora da faixa${borderline > 0 ? ` (+${borderline} perto do limite)` : ''} — vale revisar com seu médico.`}
         </Typography>
 
-        {/* Contagem por prioridade (não-alarmista) */}
-        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: top.length ? 1.25 : 0 }}>
-          {s.byPriority.importante > 0 && <Chip size="small" label={`${PRIORITY_META.importante.emoji} ${s.byPriority.importante} importante${s.byPriority.importante > 1 ? 's' : ''}`} sx={{ fontWeight: 700, height: 22, bgcolor: PRIO_COLOR.importante + '22', color: PRIO_COLOR.importante }} />}
-          {s.byPriority.moderada > 0 && <Chip size="small" label={`${PRIORITY_META.moderada.emoji} ${s.byPriority.moderada} moderada${s.byPriority.moderada > 1 ? 's' : ''}`} sx={{ fontWeight: 700, height: 22, bgcolor: PRIO_COLOR.moderada + '22', color: PRIO_COLOR.moderada }} />}
-          {s.byPriority.leve > 0 && <Chip size="small" label={`${PRIORITY_META.leve.emoji} ${s.byPriority.leve} leve${s.byPriority.leve > 1 ? 's' : ''}`} sx={{ fontWeight: 700, height: 22, bgcolor: PRIO_COLOR.leve + '22', color: PRIO_COLOR.leve }} />}
-          {s.byPriority.normal > 0 && <Chip size="small" label={`✅ ${s.byPriority.normal} ${s.byPriority.normal > 1 ? 'normais' : 'normal'}`} sx={{ fontWeight: 700, height: 22, bgcolor: PRIO_COLOR.normal + '22', color: PRIO_COLOR.normal }} />}
+        {/* Contagem por prioridade — alterados numa linha, normais embaixo (layout limpo) */}
+        <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mb: 0.5 }}>
+          {s.byPriority.importante > 0 && <Chip size="small" label={`${PRIORITY_META.importante.emoji} ${s.byPriority.importante} importante${s.byPriority.importante > 1 ? 's' : ''}`} sx={{ fontWeight: 700, height: 24, bgcolor: PRIO_COLOR.importante + '22', color: PRIO_COLOR.importante }} />}
+          {s.byPriority.moderada > 0 && <Chip size="small" label={`${PRIORITY_META.moderada.emoji} ${s.byPriority.moderada} moderada${s.byPriority.moderada > 1 ? 's' : ''}`} sx={{ fontWeight: 700, height: 24, bgcolor: PRIO_COLOR.moderada + '22', color: PRIO_COLOR.moderada }} />}
+          {s.byPriority.leve > 0 && <Chip size="small" label={`${PRIORITY_META.leve.emoji} ${s.byPriority.leve} borderline${s.byPriority.leve > 1 ? 's' : ''}`} sx={{ fontWeight: 700, height: 24, bgcolor: PRIO_COLOR.leve + '22', color: PRIO_COLOR.leve }} />}
         </Stack>
+        {s.byPriority.normal > 0 && (
+          <Chip size="small" label={`✅ ${s.byPriority.normal} ${s.byPriority.normal > 1 ? 'normais' : 'normal'}`} sx={{ fontWeight: 700, height: 24, bgcolor: PRIO_COLOR.normal + '15', color: PRIO_COLOR.normal, mb: top.length ? 1.25 : 0 }} />
+        )}
+        {/* Aviso de exames desatualizados — não reflete realidade atual */}
+        {s.staleWarning && (
+          <Typography variant="caption" sx={{ display: 'block', color: '#9a6b00', mt: 1, mb: 1.25, fontSize: 11, lineHeight: 1.4 }}>⏳ {s.staleWarning}</Typography>
+        )}
 
         {/* Principais marcações de atenção (com tendência) */}
         {top.length > 0 && (

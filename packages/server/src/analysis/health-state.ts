@@ -76,6 +76,7 @@ export interface CurrentHealthSummary {
   biologicalAge?: { age: number; confidence: 'alta' | 'baixa'; markersUsed: number } | null;
   cardiometabolicRisk?: { level: string; score: number; factors: { label: string; risk: boolean }[] } | null;
   clinicalSummary?: string;
+  staleWarning?: string | null;
 }
 
 // ───────────────────────── helpers puros ─────────────────────────
@@ -263,7 +264,11 @@ export async function buildMarkerState(patientId: string): Promise<MarkerState[]
 
 /** Layer 2 — snapshot do estado atual do paciente (roll-up do Layer 1). */
 export async function buildCurrentHealthSummary(patientId: string): Promise<CurrentHealthSummary> {
-  const markers = await buildMarkerState(patientId);
+  const allMarkers = await buildMarkerState(patientId);
+  // FILTRO TEMPORAL: score/idade bio só com marcadores NÃO desatualizados (medidos <12m).
+  // Exames de 2018/2021/2023 NÃO refletem a saúde atual — não devem contaminar o score.
+  const markers = allMarkers.filter((m) => !m.latest.stale);
+  const staleCount = allMarkers.length - markers.length;
   // Idade biológica (estimativa educativa) — busca perfil do paciente pra idade/sexo
   let biologicalAge: CurrentHealthSummary['biologicalAge'] = null;
   try {
@@ -274,7 +279,7 @@ export async function buildCurrentHealthSummary(patientId: string): Promise<Curr
       if (chronoAge >= 18) {
         const { estimateBiologicalAge } = await import('./biological-age');
         const result = estimateBiologicalAge(
-          markers.map((m) => ({ nameCanonical: m.nameCanonical, value: m.latest.valueNumeric ?? 0 })).filter((m) => m.value > 0),
+          markers.filter((m) => !m.latest.stale).map((m) => ({ nameCanonical: m.nameCanonical, value: m.latest.valueNumeric ?? 0 })).filter((m) => m.value > 0),
           chronoAge,
           (patient.gender as any) === 'female' ? 'female' : (patient.gender as any) === 'male' ? 'male' : undefined,
         );
@@ -315,6 +320,9 @@ export async function buildCurrentHealthSummary(patientId: string): Promise<Curr
     generatedAt: new Date(),
     markers: total,
     score,
+    staleWarning: staleCount > 0 && total > 0
+      ? `${staleCount} marcador(es) não ${staleCount > 1 ? 'foram medidos' : 'foi medido'} há mais de 12 meses e não ${staleCount > 1 ? 'entram' : 'entra'} no score. Envie um exame recente pra uma leitura atualizada.`
+      : null,
     byPriority,
     topAttention: abnormal.sort(sortByPriorityThenDelta).slice(0, 6),
     improving: markers.filter((m) => m.trend === 'melhorou').sort(sortByPriorityThenDelta).slice(0, 6),
