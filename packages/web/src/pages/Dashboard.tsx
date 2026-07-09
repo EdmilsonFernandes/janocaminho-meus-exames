@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Stack, Typography, Grid, Dialog, DialogTitle, DialogContent, DialogActions, Button, Box } from '@mui/material';
+import { Stack, Typography, Grid, Dialog, DialogTitle, DialogContent, DialogActions, Button, Box, Card, CardContent, Chip } from '@mui/material';
 import { GamificationBadges } from '../components/GamificationBadges';
 import { BiometricService } from '../components/BiometricService';
 import { useNavigate } from 'react-router-dom';
@@ -21,7 +21,7 @@ import InsightsIcon from '@mui/icons-material/Insights';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 import AnalyticsIcon from '@mui/icons-material/Analytics';
 import BoltIcon from '@mui/icons-material/Bolt';
-import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { CreditsCard } from '../components/dashboard/CreditsCard';
 import { BiologicalAgeCard } from '../components/dashboard/BiologicalAgeCard';
 import { CardiometabolicRiskCard } from '../components/dashboard/CardiometabolicRiskCard';
@@ -45,6 +45,103 @@ const TIPS = [
   'Exames de imagem (ultrassom, tomografia) peça sempre o laudo + as imagens em CD.',
   'Repita exames laboratoriais no mesmo laboratório quando possível — facilita comparar a evolução.',
 ];
+
+const NextBestActionCard = ({
+  loaded,
+  exams,
+  abnormal,
+  failed,
+  lastExam,
+  credits,
+  onNavigate,
+}: {
+  loaded: boolean;
+  exams: number;
+  abnormal: number;
+  failed: number;
+  lastExam: string | null;
+  credits: number | null;
+  onNavigate: (to: string) => void;
+}) => {
+  const lastExamLabel = lastExam ? new Date(lastExam).toLocaleDateString('pt-BR') : null;
+  const action = !loaded
+    ? {
+        tone: '#178f89',
+        chip: 'Organizando seus dados',
+        title: 'Montando sua prioridade de hoje',
+        body: 'Estamos cruzando exames, alertas e créditos para sugerir o melhor próximo passo.',
+        cta: 'Ver exames',
+        to: '/exams',
+      }
+    : failed > 0
+      ? {
+          tone: '#dc2626',
+          chip: `${failed} leitura${failed > 1 ? 's' : ''} pendente${failed > 1 ? 's' : ''}`,
+          title: 'Revise os exames que não foram lidos',
+          body: 'Documento ilegível ou fora do padrão impede resumo, relatório e alertas confiáveis.',
+          cta: 'Revisar agora',
+          to: '/exams',
+        }
+      : exams === 0
+        ? {
+            tone: '#178f89',
+            chip: 'Primeiro passo',
+            title: 'Envie seu primeiro exame',
+            body: 'Com um PDF ou foto, o Dr. Exame já extrai resultados e monta seus próximos insights.',
+            cta: 'Enviar exame',
+            to: '/exams/create',
+          }
+        : abnormal > 0
+          ? {
+              tone: '#f59e0b',
+              chip: `${abnormal} valor${abnormal > 1 ? 'es' : ''} de atenção`,
+              title: 'Veja o que merece atenção antes da consulta',
+              body: 'Priorize os valores alterados e gere perguntas objetivas para conversar com seu médico.',
+              cta: 'Ver valores alterados',
+              to: '/alterados',
+            }
+          : credits != null && credits < 20
+            ? {
+                tone: '#6366f1',
+                chip: `${credits} crédito${credits === 1 ? '' : 's'}`,
+                title: 'Recarregue para manter a IA disponível',
+                body: 'Relatórios completos e perguntas ao Dr. Exame usam créditos. Evite ficar travado quando precisar.',
+                cta: 'Ver planos',
+                to: '/planos',
+              }
+            : {
+                tone: '#178f89',
+                chip: lastExamLabel ? `Último exame em ${lastExamLabel}` : `${exams} exame${exams > 1 ? 's' : ''}`,
+                title: 'Gere um relatório pronto para levar ao médico',
+                body: 'A IA consolida seus exames, pontos de atenção, evolução e perguntas em um documento único.',
+                cta: 'Gerar relatório',
+                to: '/relatorio',
+              };
+
+  return (
+    <Card variant="outlined" sx={{ mt: 2, borderRadius: 3, overflow: 'hidden', borderColor: `${action.tone}33`, background: `linear-gradient(135deg, ${action.tone}14, #fff)` }}>
+      <CardContent sx={{ p: { xs: 2, md: 2.25 }, '&:last-child': { pb: { xs: 2, md: 2.25 } } }}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ xs: 'stretch', sm: 'center' }}>
+          <Box sx={{ width: 42, height: 42, borderRadius: 2.5, bgcolor: `${action.tone}18`, color: action.tone, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+            <AutoAwesomeIcon />
+          </Box>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Chip size="small" label={action.chip} sx={{ height: 22, mb: 0.75, bgcolor: `${action.tone}18`, color: action.tone, fontWeight: 800 }} />
+            <Typography sx={{ fontWeight: 900, fontSize: { xs: 18, sm: 20 }, lineHeight: 1.18, color: '#12312f', fontFamily: 'Poppins, sans-serif' }}>
+              {action.title}
+            </Typography>
+            <Typography variant="body2" sx={{ mt: 0.5, color: '#516362', lineHeight: 1.45 }}>
+              {action.body}
+            </Typography>
+          </Box>
+          <Button variant="contained" onClick={() => onNavigate(action.to)} sx={{ alignSelf: { xs: 'stretch', sm: 'center' }, borderRadius: 99, textTransform: 'none', fontWeight: 900, bgcolor: action.tone, boxShadow: 'none', px: 2.25, '&:hover': { bgcolor: action.tone, filter: 'brightness(.92)', boxShadow: 'none' } }}>
+            {action.cta} →
+          </Button>
+        </Stack>
+      </CardContent>
+    </Card>
+  );
+};
 
 export const Dashboard = () => {
   const navigate = useNavigate();
@@ -113,6 +210,15 @@ export const Dashboard = () => {
 
       {/* 1 · HERO — Score de Saúde */}
       <HealthScoreCard loaded={loaded} score={score} abnormalCount={stats.abnormal} onDetails={() => navigate('/tendencias')} />
+      <NextBestActionCard
+        loaded={loaded}
+        exams={stats.exams}
+        abnormal={stats.abnormal}
+        failed={failed}
+        lastExam={lastExam}
+        credits={credits}
+        onNavigate={navigate}
+      />
 
       {/* 2 · SUAS LEITURAS — risco + estado atual (InsightsCards/Previsões movidos pra /tendencias) */}
       <Section label="Suas leituras" icon={<InsightsIcon />}>

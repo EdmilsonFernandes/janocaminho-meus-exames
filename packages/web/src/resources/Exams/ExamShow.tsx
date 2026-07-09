@@ -24,6 +24,7 @@ import { AnimatedDoctor } from '../../components/AnimatedDoctor';
 import { CreditBadge, CREDIT_COSTS } from '../../components/CreditBadge';
 import { ConfirmSpend } from '../../components/ConfirmSpend';
 import { DocPreview } from '../../components/DocPreview';
+import { cleanExtractedLabel } from '../../utils/examDisplay';
 
 /** Valor do item editável inline (corrigir erro de OCR). Salva via PATCH /items/:id. */
 const EditableItemValue = ({ it, color, onSaved }: { it: any; color: string; onSaved: (u: any) => void }) => {
@@ -225,6 +226,13 @@ export const ExamShow = () => {
 
   const items: any[] = exam.items ?? [];
   const cc = categorizeExam(exam); // categoria do exame (dominante pelos itens) — badge no header
+  const titleInfo = cleanExtractedLabel(exam.title, kindLabel[exam.kind] ?? 'Exame', 72);
+  const labInfo = cleanExtractedLabel(exam.sourceLab, '', 56);
+  const patientInfo = cleanExtractedLabel(exam.rawExtraction?.patientName, '', 56);
+  const doctorInfo = cleanExtractedLabel(exam.rawExtraction?.requestingDoctor, '', 56);
+  const docNameInfo = cleanExtractedLabel(nm?.docName, 'nome detectado no documento', 64);
+  const profileNameInfo = cleanExtractedLabel(nm?.profileName, 'perfil selecionado', 64);
+  const headerNeedsReview = !!exam.reviewRequired || titleInfo.suspicious || labInfo.suspicious || patientInfo.suspicious || doctorInfo.suspicious || !exam.performedAt;
   const abnormal = items.filter((i) => i.isAbnormal);
   // UNKNOWN = sem faixa de referência (ou sem valor). NÃO é "dentro da faixa" — o header distingue.
   const noRef = items.filter((i) => (i.flag ?? '').toUpperCase() === 'UNKNOWN');
@@ -243,29 +251,34 @@ export const ExamShow = () => {
 
   return (
     <Box sx={{ maxWidth: 1080, mx: 'auto', p: { xs: 1, md: 2 } }}>
-      <Title title={exam.title} />
+      <Title title={titleInfo.text || exam.title} />
 
       {/* Cabeçalho */}
       <Card>
         <CardContent>
           <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mb: 0.5 }}>
-            <Typography variant="h5" component="h1" title={exam.title} sx={{ fontSize: { xs: '1.15rem', md: '1.5rem' }, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', minWidth: 0 }}>{exam.title}</Typography>
+            <Typography variant="h5" component="h1" title={titleInfo.original || exam.title} sx={{ fontSize: { xs: '1.15rem', md: '1.5rem' }, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', minWidth: 0 }}>{titleInfo.text || 'Exame'}</Typography>
             <Chip color={statusColor[exam.status] ?? 'default'} label={statusLabel[exam.status] ?? exam.status} />
             {exam.kind === 'IMAGING' && <Chip variant="outlined" label="Imagem" />}
             {exam.kind === 'LAB_PANEL' && <Chip variant="outlined" label="Laboratorial" />}
             {cc.key !== 'image' && cc.key !== 'other' && <Chip size="small" sx={{ bgcolor: cc.color + '18', color: cc.color, fontWeight: 700 }} label={`${cc.emoji} ${cc.cat}`} />}
-            {exam.reviewRequired && <Chip color="warning" label="verificar citações" />}
+            {headerNeedsReview && <Chip color="warning" label="conferir dados" />}
           </Stack>
           <Typography color="text.secondary">
             {exam.performedAt ? new Date(exam.performedAt).toLocaleDateString('pt-BR') : 'Data não identificada'}
-            {exam.sourceLab ? ` • ${exam.sourceLab}` : ''}
+            {labInfo.text ? ` • ${labInfo.text}` : labInfo.suspicious ? ' • laboratório em revisão' : ''}
             {exam.pageCount ? ` • ${exam.pageCount} pág.` : ''}
           </Typography>
-          {(exam.rawExtraction?.patientName || exam.rawExtraction?.requestingDoctor) && (
+          {(patientInfo.text || patientInfo.suspicious || doctorInfo.text || doctorInfo.suspicious) && (
             <Typography color="text.secondary" sx={{ fontSize: '0.85rem', mt: 0.5 }}>
-              {exam.rawExtraction?.patientName ? `👤 ${exam.rawExtraction.patientName}` : ''}
-              {exam.rawExtraction?.requestingDoctor ? ` • 🩺 ${exam.rawExtraction.requestingDoctor}` : ''}
+              {patientInfo.text ? `👤 ${patientInfo.text}` : patientInfo.suspicious ? '👤 Titular detectado em revisão' : ''}
+              {doctorInfo.text ? ` • 🩺 ${doctorInfo.text}` : doctorInfo.suspicious ? ' • 🩺 Médico solicitante em revisão' : ''}
             </Typography>
+          )}
+          {headerNeedsReview && (
+            <Alert severity="info" icon={false} sx={{ mt: 1.5, borderRadius: 2, py: 0.75, '& .MuiAlert-message': { fontSize: 13 } }}>
+              Alguns dados do cabeçalho vieram da leitura automática e precisam conferência. Os valores abaixo continuam editáveis.
+            </Alert>
           )}
 
           {exam.status === 'FAILED' && (
@@ -282,13 +295,17 @@ export const ExamShow = () => {
 
       {/* BLOQUEIO SUAVE: nome do documento ≠ perfil */}
       {nameBlock && (
-        <Card sx={{ mt: 2, borderLeft: '6px solid', borderColor: 'error.main' }}>
+        <Card sx={{ mt: 2, borderLeft: '6px solid', borderColor: 'warning.main', background: 'linear-gradient(135deg, rgba(245,158,11,.08), #fff)' }}>
           <CardContent>
-            <Typography sx={{ fontWeight: 700, color: 'error.main' }}>⚠️ Possível divergência de titularidade</Typography>
+            <Typography sx={{ fontWeight: 800, color: '#b45309' }}>⚠️ Confirme o titular antes da análise</Typography>
             <Typography variant="body2" sx={{ mt: 0.5 }}>
-              O nome no documento (<strong>{nm.docName}</strong>) difere do perfil (<strong>{nm.profileName}</strong> — similaridade {Math.round((nm.score || 0) * 100)}%).
+              O nome detectado no documento (<strong>{docNameInfo.text}</strong>) parece diferente do perfil selecionado (<strong>{profileNameInfo.text}</strong>).
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>Se o exame é realmente deste paciente, confirme para liberar a análise. Se não for, exclua — não use dados de outra pessoa.</Typography>
+            <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mt: 1 }}>
+              <Chip size="small" label={`Similaridade ${Math.round((nm.score || 0) * 100)}%`} sx={{ bgcolor: '#f59e0b18', color: '#b45309', fontWeight: 800 }} />
+              <Chip size="small" label="Proteção de privacidade" sx={{ bgcolor: '#0ea5e918', color: '#0369a1', fontWeight: 800 }} />
+            </Stack>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>Se o exame é realmente deste paciente, confirme para liberar a análise. Se não for, exclua para evitar misturar dados de outra pessoa.</Typography>
             <Box sx={{ mt: 1.5, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
               <Button size="small" variant="contained" onClick={attest} disabled={attesting}>✓ Confirmo que é deste paciente</Button>
               <Button size="small" variant="outlined" color="error" onClick={rejectExam} disabled={attesting}>✕ Não é deste paciente (excluir)</Button>

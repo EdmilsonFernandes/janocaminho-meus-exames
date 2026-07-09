@@ -22,6 +22,7 @@ import { PageHeader } from '../../components/layout/PageHeader';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ListSkeleton } from '../../components/Skeleton';
 import { EmptyState } from '../../components/EmptyState';
+import { cleanExtractedLabel } from '../../utils/examDisplay';
 
 const ExamListActions = () => (
   <TopToolbar>
@@ -134,6 +135,10 @@ const ExamCards = () => {
   const renderCard = (r: any) => {
     const c = hexFor(r.status);
     const cc = categorizeExam(r); // categoria do exame (emoji + cor)
+    const titleInfo = cleanExtractedLabel(r.title, `Exame ${kindLabel[r.kind] ?? ''}`.trim(), 58);
+    const labInfo = cleanExtractedLabel(r.sourceLab, '', 46);
+    const doctorInfo = cleanExtractedLabel((r as any).rawExtraction?.requestingDoctor, '', 46);
+    const needsReview = !!r.reviewRequired || titleInfo.suspicious || labInfo.suspicious || doctorInfo.suspicious || !r.performedAt;
     // "🆕 Novo" nos exames adicionados nas últimas 48h — ajuda o usuário a achar no grupo do ano qual doc acabou de entrar.
     const isNew = !!r.createdAt && Date.now() - new Date(r.createdAt).getTime() < 48 * 3600 * 1000;
     const Icon = r.kind === 'IMAGING' ? ImageIcon : r.kind === 'LAB_PANEL' ? ScienceIcon : DescriptionOutlinedIcon;
@@ -143,16 +148,18 @@ const ExamCards = () => {
           <Icon sx={{ color: c, flexShrink: 0 }} />
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}>
-              <Typography sx={{ fontWeight: 700, wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.2 }}>{r.title}</Typography>
+              <Typography title={titleInfo.original || r.title} sx={{ fontWeight: 700, wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.2 }}>{titleInfo.text || 'Exame'}</Typography>
               <Box onClick={(e) => e.stopPropagation()} sx={{ flexShrink: 0, mt: -0.5 }}><ExplainButton name={r.title} /></Box>
             </Box>
-            {r.sourceLab && <Typography variant="caption" title={r.sourceLab} sx={{ display: 'block', color: '#5a6b72', fontWeight: 600, lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>🏥 {r.sourceLab}</Typography>}
-            {(r as any).rawExtraction?.requestingDoctor && <Typography variant="caption" title={`Dr. ${(r as any).rawExtraction.requestingDoctor}`} sx={{ display: 'block', color: '#5a6b72', fontWeight: 600, lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>🩺 Dr. {(r as any).rawExtraction.requestingDoctor}</Typography>}
+            {labInfo.text && <Typography variant="caption" title={labInfo.original} sx={{ display: 'block', color: '#5a6b72', fontWeight: 600, lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>🏥 {labInfo.text}</Typography>}
+            {!labInfo.text && labInfo.suspicious && <Typography variant="caption" sx={{ display: 'block', color: '#8a6d1d', fontWeight: 700, lineHeight: 1.3 }}>🏥 Laboratório em revisão</Typography>}
+            {doctorInfo.text && <Typography variant="caption" title={`Dr. ${doctorInfo.original}`} sx={{ display: 'block', color: '#5a6b72', fontWeight: 600, lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>🩺 Dr. {doctorInfo.text}</Typography>}
             <Typography variant="caption" color="text.secondary">{cc.cat} • {r.performedAt ? new Date(r.performedAt).toLocaleDateString('pt-BR') : 's/d'}{r._count?.items ? ` • ${r._count.items} itens` : ''}{r.createdAt ? ` • Enviado ${new Date(r.createdAt).toLocaleDateString('pt-BR')}` : ''}</Typography>
             <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.5 }}>
               {isNew && <Chip size="small" label="🆕 Novo" sx={{ bgcolor: '#dcfce7', color: '#15803d', fontWeight: 700, height: 20 }} />}
               <Chip size="small" label={`${cc.emoji} ${cc.cat}`} sx={{ bgcolor: cc.color + '18', color: cc.color, fontWeight: 700, height: 20 }} />
               <Chip size="small" label={statusLabel[r.status] ?? r.status} sx={{ bgcolor: c + '18', color: c, fontWeight: 700, height: 20 }} />
+              {needsReview && <Chip size="small" label="Conferir dados" sx={{ bgcolor: '#f59e0b18', color: '#b45309', fontWeight: 800, height: 20 }} />}
             </Stack>
           </Box>
           <IconButton size="small" onClick={(e) => del(e, r.id, r.title)} title="Excluir" aria-label={`Excluir exame ${r.title}`} sx={{ flexShrink: 0 }}><DeleteOutlineIcon fontSize="small" /></IconButton>

@@ -40,6 +40,72 @@ import type { SourceExam } from '@meus-exames/shared';
 
 const fmtDate = (d: string | null) => (d ? new Date(d).toLocaleDateString('pt-BR') : 's/d');
 
+const ReportPreviewCard = ({
+  loading,
+  disabled,
+  onGenerate,
+  onExams,
+}: {
+  loading: boolean;
+  disabled: boolean;
+  onGenerate: () => void;
+  onExams: () => void;
+}) => {
+  const items = [
+    { icon: <ReportProblemIcon />, title: 'Prioridades clínicas', desc: 'Valores alterados e pontos que merecem atenção.', accent: '#ef4444' },
+    { icon: <InsightsIcon />, title: 'Evolução dos exames', desc: 'Comparação entre resultados anteriores e atuais.', accent: '#0b5cab' },
+    { icon: <LiveHelpIcon />, title: 'Perguntas para o médico', desc: 'Uma lista objetiva para levar na consulta.', accent: '#7b1fa2' },
+    { icon: <CheckCircleIcon />, title: 'Pontos positivos', desc: 'O que está estável ou dentro da referência.', accent: '#059669' },
+  ];
+
+  return (
+    <Box sx={{ mt: 2, p: { xs: 2, md: 2.5 }, borderRadius: 4, border: '1px solid', borderColor: 'rgba(32,178,170,.22)', background: 'linear-gradient(135deg, rgba(32,178,170,.12), rgba(255,255,255,.96))' }}>
+      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ xs: 'stretch', md: 'center' }}>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Chip size="small" label="Preview do relatório" sx={{ height: 22, mb: 1, bgcolor: '#20b2aa18', color: '#178f89', fontWeight: 900 }} />
+          <Typography sx={{ fontWeight: 900, fontSize: { xs: 22, md: 26 }, lineHeight: 1.12, color: '#12312f', fontFamily: 'Poppins, sans-serif' }}>
+            Um resumo pronto para consulta, antes de abrir exame por exame
+          </Typography>
+          <Typography variant="body2" sx={{ mt: 0.75, color: '#516362', maxWidth: 620, lineHeight: 1.55 }}>
+            O Dr. Exame consolida seu histórico em linguagem simples, com prioridades, contexto e perguntas para discutir com o profissional de saúde.
+          </Typography>
+        </Box>
+        <Stack spacing={1} alignItems={{ xs: 'stretch', md: 'flex-end' }} sx={{ flexShrink: 0 }}>
+          <Button variant="contained" size="large" startIcon={loading ? <CircularProgress size={18} color="inherit" /> : <DescriptionIcon />} onClick={onGenerate} disabled={disabled} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 900, bgcolor: '#178f89', boxShadow: 'none', '&:hover': { bgcolor: '#0f766e', boxShadow: 'none' } }}>
+            {loading ? 'Gerando...' : 'Gerar relatório completo'}
+          </Button>
+          <Box sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
+            <CreditBadge amount={CREDIT_COSTS.consolidated} />
+          </Box>
+        </Stack>
+      </Stack>
+
+      <Grid container spacing={1.25} sx={{ mt: 2 }}>
+        {items.map((item) => (
+          <Grid key={item.title} size={{ xs: 12, sm: 6 }}>
+            <Box sx={{ height: '100%', p: 1.5, borderRadius: 3, bgcolor: '#fff', border: '1px solid', borderColor: `${item.accent}26` }}>
+              <Box sx={{ width: 34, height: 34, borderRadius: 2, display: 'grid', placeItems: 'center', color: item.accent, bgcolor: `${item.accent}14`, mb: 1 }}>
+                {item.icon}
+              </Box>
+              <Typography sx={{ fontWeight: 800, color: '#12312f' }}>{item.title}</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25, lineHeight: 1.45 }}>{item.desc}</Typography>
+            </Box>
+          </Grid>
+        ))}
+      </Grid>
+
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ xs: 'stretch', sm: 'center' }} justifyContent="space-between" sx={{ mt: 1.5, p: 1.25, borderRadius: 3, bgcolor: 'rgba(255,255,255,.72)' }}>
+        <Typography variant="caption" sx={{ color: '#516362', fontWeight: 700 }}>
+          Consome créditos somente ao gerar. Use quando quiser levar uma visão consolidada para consulta.
+        </Typography>
+        <Button size="small" onClick={onExams} sx={{ alignSelf: { xs: 'flex-start', sm: 'center' }, textTransform: 'none', fontWeight: 800, borderRadius: 99, color: '#178f89' }}>
+          Ver exames usados →
+        </Button>
+      </Stack>
+    </Box>
+  );
+};
+
 export const ConsolidatedReportPage = () => {
   const navigate = useNavigate();
   const [pid] = useSelectedPatient();
@@ -189,12 +255,12 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
       </Typography>
 
       {!analysis && (
-        <>
-          <Button variant="contained" size="large" startIcon={loading ? <CircularProgress size={18} color="inherit" /> : <DescriptionIcon />} onClick={() => generate(false)} disabled={loading || !pid}>
-            {loading ? 'Gerando...' : 'Gerar relatório completo'}
-          </Button>{' '}
-          <CreditBadge amount={CREDIT_COSTS.consolidated} />
-        </>
+        <ReportPreviewCard
+          loading={loading}
+          disabled={loading || !pid}
+          onGenerate={() => generate(false)}
+          onExams={() => navigate('/exams')}
+        />
       )}
       {!pid && <Typography color="text.secondary" sx={{ mt: 1 }}>Selecione um perfil no topo para gerar o relatório.</Typography>}
       {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
