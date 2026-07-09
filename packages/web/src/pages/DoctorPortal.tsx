@@ -20,6 +20,7 @@ import { PhotoUpload } from '../components/PhotoUpload';
 import { CATS, categorize, refLabel } from '../utils/medicalData';
 import { displayStatus } from '../utils/examStatus';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { ResponsiveContainer, LineChart, Line, ReferenceArea, XAxis, YAxis, Tooltip } from 'recharts';
 
 const docKey = 'doctorToken';
@@ -36,6 +37,18 @@ const I = {
 
 const fieldSx = {
   '& .MuiOutlinedInput-root': { borderRadius: '8px', bgcolor: 'background.paper', '& fieldset': { borderColor: 'divider' }, '&:hover fieldset': { borderColor: '#7fcfc6' }, '&.Mui-focused fieldset': { borderColor: '#20b2aa', borderWidth: '1.5px' } },
+} as const;
+
+// Estilos pra Markdown (SOAP + plano de conduta). Antes cada card tinha o seu (e faltava
+// remark-gfm, então quebras de linha sumiam — texto "sem formato" no mobile). Centralizado.
+const mdSx = {
+  '& p': { margin: '0.4em 0', fontSize: 14, lineHeight: 1.55 },
+  '& h2': { fontSize: '0.95rem', fontWeight: 800, color: '#178f89', mt: 1.5, mb: 0.5 },
+  '& h3': { fontSize: '0.9rem', fontWeight: 700, color: '#0f7670', mt: 1, mb: 0.25 },
+  '& ul, & ol': { margin: '0.4em 0', paddingLeft: '1.4em' },
+  '& li': { mb: 0.4, fontSize: 14, lineHeight: 1.5 },
+  '& strong': { fontWeight: 700 },
+  '& hr': { border: 0, borderTop: '1px solid', borderColor: 'divider', my: 1 },
 } as const;
 
 // Countdown timer pro dialog de PIX (10 min, fecha sozinho ao expirar)
@@ -56,6 +69,7 @@ const SCOPE_META: Record<string, { label: string; icon: string }> = {
   evolution: { label: 'Evolução', icon: '📈' },
   alerts: { label: 'Alertas', icon: '🚨' },
   summary: { label: 'Resumos IA', icon: '🤖' },
+  questions: { label: 'Perguntas', icon: '❓' },
   notes: { label: 'Anotações', icon: '📝' },
 };
 
@@ -272,7 +286,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
 
   // Abas disponíveis = escopos que o paciente autorizou (e que suportamos visualmente)
   const scopes: string[] = selected?.scopes ?? [];
-  const supportedTabs = ['risk', ...['exams', 'alerts', 'evolution', 'summary'].filter((s) => scopes.includes(s)), 'notes'];
+  const supportedTabs = ['risk', 'questions', ...['exams', 'alerts', 'evolution', 'summary'].filter((s) => scopes.includes(s)), 'notes'];
 
   // --- Anotações ---
   const addNote = async () => {
@@ -329,7 +343,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const openPatient = async (p: any) => {
     setSelected(p);
     const pScopes: string[] = p.scopes ?? [];
-    const pTabs = ['risk', ...['exams', 'alerts', 'evolution', 'summary'].filter((s) => pScopes.includes(s)), 'notes'];
+    const pTabs = ['risk', 'questions', ...['exams', 'alerts', 'evolution', 'summary'].filter((s) => pScopes.includes(s)), 'notes'];
     const wantExams = pScopes.includes('exams') || pScopes.includes('alerts');
     const wantEvol = pScopes.includes('evolution');
     const wantSummary = pScopes.includes('summary');
@@ -845,28 +859,6 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               <DoctorExamDetail exam={selExam} detail={examDetail} patientId={selected.patient.id} token={token} onBack={() => { setSelExam(null); setExamDetail(null); }} />
             ) : supportedTabs.length > 0 ? (
               <>
-                {/* Perguntas do paciente — só na tab Risco (não polui Exames/Evolução) */}
-                {tab === 'risk' && questions.length > 0 && (
-                  <Card sx={{ mb: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider', borderLeft: '4px solid #178f89' }}>
-                    <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-                      <Typography sx={{ fontWeight: 800, mb: 1, color: 'text.primary' }}>❓ Perguntas do paciente ({questions.length})</Typography>
-                      <Stack spacing={1.5}>
-                        {questions.map((q: any) => (
-                          <Box key={q.id} sx={{ p: 1.25, borderRadius: 2, bgcolor: 'action.hover' }}>
-                            <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.primary', mb: 0.25 }}>💬 {q.subject}</Typography>
-                            <Typography variant="caption" sx={{ color: q.status === 'answered' ? '#059669' : 'text.secondary', fontWeight: 700 }}>{q.status === 'answered' ? '✓ Respondida' : '⏳ Aguardando resposta'} · {new Date(q.createdAt).toLocaleDateString('pt-BR')}</Typography>
-                            {(q.messages ?? []).filter((m: any) => m.authorRole === 'doctor').slice(-1).map((m: any, i: number) => (
-                              <Typography key={i} variant="body2" sx={{ mt: 0.5, color: 'text.secondary', lineHeight: 1.4 }}>👨‍⚕️ {m.body}</Typography>
-                            ))}
-                            <TextField multiline minRows={1} size="small" fullWidth placeholder="Escrever resposta…" value={qText[q.id] ?? ''} onChange={(e) => setQText((t) => ({ ...t, [q.id]: e.target.value }))} sx={{ mt: 1 }} />
-                            <Button size="small" disabled={qSending === q.id || !(qText[q.id]?.trim())} onClick={() => responderQ(q.id)} startIcon={qSending === q.id ? <CircularProgress size={14} color="inherit" /> : undefined} sx={{ mt: 0.5, textTransform: 'none', fontWeight: 700, color: TEAL }}>{qSending === q.id ? 'Enviando…' : 'Responder'}</Button>
-                          </Box>
-                        ))}
-                      </Stack>
-                    </CardContent>
-                  </Card>
-                )}
-
                 {detailLoading && <Box sx={{ textAlign: 'center', py: 4 }}><CircularProgress size={28} sx={{ color: TEAL }} /></Box>}
 
                 {/* RISCO (C1+C2+C3) — leitura de risco + mudanças ao longo do tempo + plano de ação clínico (versão médico, grátis) */}
@@ -917,7 +909,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                         <Button size="small" variant="outlined" onClick={genActionPlan} disabled={planLoading} sx={{ textTransform: 'none', borderRadius: 99, fontWeight: 700, flexShrink: 0 }}>{clinicalPlan ? '🔄 Regenerar' : 'Gerar plano'}</Button>
                       </Stack>
                       {planLoading && <Box sx={{ textAlign: 'center', py: 2 }}><CircularProgress size={22} sx={{ color: TEAL }} /></Box>}
-                      {clinicalPlan && <Box sx={{ '& p': { margin: '0.3em 0', fontSize: 14, lineHeight: 1.5 }, '& h2,& h3': { fontSize: '0.9rem', fontWeight: 800, color: TEAL, mt: 1, mb: 0.5 }, '& ul,& ol': { margin: '0.3em 0', paddingLeft: '1.2em' }, '& li': { mb: 0.3 }, '& strong': { fontWeight: 700 }, '& br': { display: 'block', content: '""' } }}><ReactMarkdown>{clinicalPlan}</ReactMarkdown></Box>}
+                      {clinicalPlan && <Box sx={mdSx}><ReactMarkdown remarkPlugins={[remarkGfm]}>{clinicalPlan}</ReactMarkdown></Box>}
                       {!clinicalPlan && !planLoading && <Typography variant="body2" sx={{ color: 'text.secondary' }}>Sugestão de conduta clínica com base na leitura de risco: o que investigar, quando reavaliar, diferenciais.</Typography>}
                     </CardContent></Card>
 
@@ -928,9 +920,50 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                         <Button size="small" variant="outlined" onClick={genSoap} disabled={soapLoading} sx={{ textTransform: 'none', borderRadius: 99, fontWeight: 700, flexShrink: 0 }}>{soap ? '🔄 Regenerar' : 'Gerar SOAP'}</Button>
                       </Stack>
                       {soapLoading && <Box sx={{ textAlign: 'center', py: 2 }}><CircularProgress size={22} sx={{ color: TEAL }} /></Box>}
-                      {soap && <Box sx={{ '& p': { margin: '0.3em 0', fontSize: 14 }, '& h2': { fontSize: '0.95rem', fontWeight: 800, color: TEAL, mt: 1 }, '& ul,& ol': { margin: '0.3em 0', paddingLeft: '1.2em' } }}><ReactMarkdown>{soap}</ReactMarkdown></Box>}
+                      {soap && <Box sx={mdSx}><ReactMarkdown remarkPlugins={[remarkGfm]}>{soap}</ReactMarkdown></Box>}
                       {!soap && !soapLoading && <Typography variant="body2" sx={{ color: 'text.secondary' }}>Gera um SOAP estruturado (S/O/A/P) com IA a partir dos dados do paciente.</Typography>}
                     </CardContent></Card>
+                  </Stack>
+                )}
+
+                {/* PERGUNTAS — thread completa (paciente + médico + IA) em bolhas. Antes ficava
+                    misturada na tab Risco e só mostrava a última resposta do médico (perdia o
+                    histórico). Agora tem aba própria e itera q.messages. */}
+                {!detailLoading && tab === 'questions' && (
+                  <Stack spacing={1.5}>
+                    {questions.length === 0 && <Empty label="Nenhuma pergunta deste paciente ainda." icon="❓" />}
+                    {questions.map((q: any) => {
+                      const msgs = q.messages ?? [];
+                      return (
+                        <Card key={q.id} variant="outlined" sx={{ borderRadius: 3, borderColor: 'divider' }}>
+                          <CardContent>
+                            <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1} sx={{ mb: 1 }}>
+                              <Typography sx={{ fontWeight: 800, wordBreak: 'break-word' }}>💬 {q.subject}</Typography>
+                              <Chip size="small" label={q.status === 'answered' ? '✓ Respondida' : '⏳ Aguardando'} sx={{ height: 22, flexShrink: 0, bgcolor: q.status === 'answered' ? '#dcfce7' : '#fef3c7', color: q.status === 'answered' ? '#15803d' : '#9a6b00', fontWeight: 700 }} />
+                            </Stack>
+                            {msgs.length > 0 && (
+                              <Stack spacing={0.75} sx={{ mb: 1 }}>
+                                {msgs.map((m: any, i: number) => {
+                                  const isDoc = m.authorRole === 'doctor';
+                                  const isAi = m.authorRole === 'ai';
+                                  const role = isDoc ? '👨‍⚕️ Médico' : isAi ? '🤖 IA' : '🙂 Paciente';
+                                  return (
+                                    <Box key={i} sx={{ display: 'flex', justifyContent: isDoc ? 'flex-end' : 'flex-start' }}>
+                                      <Box sx={{ maxWidth: '82%', p: 1, px: 1.25, borderRadius: 2, bgcolor: isDoc ? '#e0f2f1' : isAi ? '#f3e8ff' : '#f1f5f9', border: '1px solid', borderColor: isDoc ? 'rgba(32,178,170,.25)' : 'transparent' }}>
+                                        <Typography variant="caption" sx={{ display: 'block', fontWeight: 700, color: isDoc ? TEAL : isAi ? '#7c3aed' : 'text.secondary', mb: 0.25, fontSize: 10.5 }}>{role} · {new Date(m.createdAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</Typography>
+                                        <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.45, wordBreak: 'break-word' }}>{m.body}</Typography>
+                                      </Box>
+                                    </Box>
+                                  );
+                                })}
+                              </Stack>
+                            )}
+                            <TextField multiline minRows={1} size="small" fullWidth placeholder="Escrever resposta…" value={qText[q.id] ?? ''} onChange={(e) => setQText((t) => ({ ...t, [q.id]: e.target.value }))} />
+                            <Button size="small" disabled={qSending === q.id || !(qText[q.id]?.trim())} onClick={() => responderQ(q.id)} startIcon={qSending === q.id ? <CircularProgress size={14} color="inherit" /> : undefined} sx={{ mt: 0.5, textTransform: 'none', fontWeight: 700, color: TEAL }}>{qSending === q.id ? 'Enviando…' : 'Responder'}</Button>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
                   </Stack>
                 )}
 

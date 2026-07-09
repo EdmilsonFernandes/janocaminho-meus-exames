@@ -20,7 +20,8 @@
     "test:extract": "npm run test:extract --workspace packages/server"
   },
   "devDependencies": {
-    "concurrently": "^9.1.0"
+    "concurrently": "^9.1.0",
+    "shadcn": "^4.13.0"
   },
   "engines": {
     "node": ">=20"
