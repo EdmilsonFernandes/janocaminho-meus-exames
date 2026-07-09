@@ -281,12 +281,36 @@ export async function buildCurrentHealthSummary(patientId: string): Promise<Curr
       if (chronoAge >= 18) {
         // TENTAR PHENOAGE PRIMEIRO (fórmula científica Liu et al. 2018)
         const freshMarkers = markers.filter((m) => !m.latest.stale);
-        const mv = (canon: string) => freshMarkers.find((m) => m.nameCanonical === canon)?.latest.valueNumeric ?? null;
+        // Mapa de aliases: laboratórios reportam o mesmo analito com nomes variados (ex.: PCR vem
+        // como "PCR - PROTEINA C REATIVA" ou "PROTEINA C REATIVA ULTRASSENSIVEL"). Sem isso,
+        // mv('PCR') não casa e o PhenoAge nunca roda — todos caem no z-score simplificado.
+        const PHENO_ALIASES: Record<string, string[]> = {
+          ALBUMINA: ['ALBUMINA'],
+          CREATININA: ['CREATININA'],
+          GLICEMIA: ['GLICEMIA'],
+          PCR: ['PCR', 'PCR - PROTEINA C REATIVA', 'PROTEINA C REATIVA', 'PROTEINA C REATIVA ULTRASSENSIVEL', 'PCR ULTRASSENSIVEL'],
+          LINFOCITOS: ['LINFOCITOS'],
+          VCM: ['VCM'],
+          RDW: ['RDW'],
+          FOSFATASE: ['FOSFATASE', 'FOSFATASE ALCALINA'],
+          LEUCOCITOS: ['LEUCOCITOS'],
+        };
+        const findM = (canon: string) => freshMarkers.find((m) => (PHENO_ALIASES[canon] ?? [canon]).includes(m.nameCanonical));
+        const mv = (canon: string) => findM(canon)?.latest.valueNumeric ?? null;
+        const mu = (canon: string) => findM(canon)?.unit ?? '';
         const { calculatePhenoAge, albuminGdLToGL, creatinineMgDLToUmolL, glucoseMgDLToMmolL, crpMgLToMgDl, wbcPerULTo1000 } = await import('./phenoage');
         const alb = mv('ALBUMINA'); const cre = mv('CREATININA'); const gli = mv('GLICEMIA');
-        const crp = mv('PCR'); const lin = mv('LINFOCITOS'); const vcm = mv('VCM'); const rdw = mv('RDW');
-        const alp = mv('FOSFATASE'); // fosfatase alcalina — pode não ter canonical próprio
-        const wbc = mv('LEUCOCITOS');
+        const lin = mv('LINFOCITOS'); const vcm = mv('VCM'); const rdw = mv('RDW');
+        const alp = mv('FOSFATASE'); const wbc = mv('LEUCOCITOS');
+        // PCR: PhenoAge quer mg/dL. Laboratórios BR reportam PCR ultrasensível em mg/L (faixa 0–5).
+        // Usa a unidade REAL do item; sem unidade, assume mg/L se valor <= 5 (heurística
+        // conservadora). ANTES era `crp > 1 ? crp : crp/10` — invertida: tratava 2 mg/L como 2 mg/dL
+        // (10× maior), inflando ln(crp) e saltando a idade biológica.
+        const crpRaw = mv('PCR'); const crpUnit = mu('PCR').toLowerCase();
+        const crp = crpRaw == null ? null
+          : crpUnit.includes('/dl') ? crpRaw
+          : (crpUnit.includes('/l') || crpRaw <= 5) ? crpMgLToMgDl(crpRaw)
+          : crpRaw;
         const missing = [
           alb == null ? 'Albumina' : null, cre == null ? 'Creatinina' : null, gli == null ? 'Glicose' : null,
           crp == null ? 'PCR' : null, lin == null ? 'Linfócitos %' : null, vcm == null ? 'VCM' : null,
@@ -300,7 +324,7 @@ export async function buildCurrentHealthSummary(patientId: string): Promise<Curr
             albumin: albuminGdLToGL(alb),       // g/dL → g/L
             creatinine: creatinineMgDLToUmolL(cre), // mg/dL → µmol/L
             glucose: glucoseMgDLToMmolL(gli),   // mg/dL → mmol/L
-            crp: crp > 1 ? crp : crpMgLToMgDl(crp), // mg/dL ou mg/L → mg/dL (heurística: >1 provável mg/L)
+            crp,                                // mg/dL (convertido acima pela unit real)
             lymphocytePct: lin,                 // % (já na unidade certa)
             mcv: vcm,                           // fL
             rdw,                                // %
