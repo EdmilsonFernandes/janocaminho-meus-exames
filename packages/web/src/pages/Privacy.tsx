@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Box, Card, Typography, Button, Stack, Divider, Dialog, DialogTitle, DialogContent } from '@mui/material';
+import { Box, Card, Typography, Button, Stack, Divider, Dialog, DialogTitle, DialogContent, Alert } from '@mui/material';
 import { Title } from 'react-admin';
 import { useNavigate } from 'react-router-dom';
 import { TermsPage } from './Terms';
@@ -26,16 +26,38 @@ export const PrivacyPage = () => {
         </Box>
       </Card>
 
+      <Card sx={{ mb: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+        <Box sx={{ p: 2.5 }}>
+          <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', mb: 1 }}>🧾 Antes de enviar um exame</Typography>
+          <Alert severity="info" sx={{ mb: 1.5, borderRadius: 2 }}>
+            Ao enviar PDF, foto ou usar a câmera, o arquivo e os dados de saúde são enviados ao Meus Exames para extração e análise educativa com IA.
+          </Alert>
+          <Stack spacing={1.25}>
+            {[
+              'A IA ajuda a organizar e explicar seus exames, mas não diagnostica, não prescreve e não substitui consulta médica.',
+              'O processamento pode usar operadores necessários, como Z.ai/GLM para IA, Firebase para notificações, Sentry para erros e Mercado Pago para pagamentos.',
+              'Você controla o compartilhamento com médicos; links usam PIN, expiram em 12 horas e podem ser revogados.',
+              'Você pode apagar exames, exportar seus dados ou excluir a conta pelo Perfil.',
+            ].map((t, i) => (
+              <Stack key={i} direction="row" spacing={1.5} alignItems="flex-start">
+                <Box sx={{ width: 20, height: 20, borderRadius: '50%', bgcolor: 'rgba(51,104,134,.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: '#336886', flexShrink: 0, mt: 0.2 }}>{i + 1}</Box>
+                <Typography variant="body2" sx={{ color: 'text.primary', fontSize: 13.5, lineHeight: 1.5 }}>{t}</Typography>
+              </Stack>
+            ))}
+          </Stack>
+        </Box>
+      </Card>
+
       <Card sx={{ mb: 2, borderRadius: 3 }}>
         <Box sx={{ p: 2.5 }}>
           <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', mb: 1 }}>🔐 LGPD (Lei Geral de Proteção de Dados)</Typography>
           <Stack spacing={1.5}>
             {[
-              'Seus dados de saúde são criptografados e armazenados em servidores seguros.',
+              'Seus dados de saúde são tratados em ambiente controlado, com autenticação, HTTPS em produção e acesso restrito.',
               'Você controla quem acessa seus dados (compartilhamento com médicos é opcional e revogável).',
               'Você pode exportar todos os seus dados a qualquer momento (no Perfil).',
               'Você pode excluir sua conta e todos os dados permanentemente (no Perfil).',
-              'Não vendemos nem compartilhamos seus dados com terceiros.',
+              'Não vendemos seus dados; compartilhamos apenas com operadores necessários para IA, notificações, pagamentos, suporte e infraestrutura.',
             ].map((t, i) => (
               <Stack key={i} direction="row" spacing={1.5} alignItems="flex-start">
                 <Box sx={{ width: 20, height: 20, borderRadius: '50%', bgcolor: 'rgba(32,178,170,.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: '#178f89', flexShrink: 0, mt: 0.2 }}>{i + 1}</Box>

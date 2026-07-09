@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Box, Card, CardContent, Button, TextField, Typography, Alert, Chip, Stack, LinearProgress, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { Box, Card, CardContent, Button, TextField, Typography, Alert, Chip, Stack, LinearProgress, Dialog, DialogTitle, DialogContent, DialogActions, Checkbox, FormControlLabel, Link as MuiLink } from '@mui/material';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import DocumentScannerIcon from '@mui/icons-material/DocumentScanner';
@@ -13,6 +13,7 @@ import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 
 const MAX_BYTES = 32 * 1024 * 1024; // 32 MB por arquivo (limite do Claude)
 const isNative = typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform();
+const UPLOAD_CONSENT_KEY = 'meus_exames_upload_disclosure_v1';
 
 async function uploadOne(file: File | Blob, filename: string, pid: string | null, title?: string) {
   if (file.size > MAX_BYTES) throw Object.assign(new Error(`${filename} excede 32MB`), { tooBig: true });
@@ -77,11 +78,30 @@ export const ExamCreate = () => {
   const [title, setTitle] = useState('');
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number; errors: string[] } | null>(null);
+  const [uploadConsentAccepted, setUploadConsentAccepted] = useState(() => {
+    try { return localStorage.getItem(UPLOAD_CONSENT_KEY) === 'accepted'; } catch { return false; }
+  });
+  const [consentOpen, setConsentOpen] = useState(() => {
+    try { return localStorage.getItem(UPLOAD_CONSENT_KEY) !== 'accepted'; } catch { return true; }
+  });
+  const [consentChecked, setConsentChecked] = useState(false);
   // Duplicata detectada → dialog PROEMINENTE (não um toast fraco) pra o usuário entender que o doc já existe.
   const [dupInfo, setDupInfo] = useState<{ dups: string[]; elsewhere: string[]; sent: number } | null>(null);
   const notify = useNotify();
   const redirect = useRedirect();
   const refresh = useRefresh();
+
+  const ensureUploadConsent = () => {
+    if (uploadConsentAccepted) return true;
+    setConsentOpen(true);
+    return false;
+  };
+
+  const acceptUploadConsent = () => {
+    try { localStorage.setItem(UPLOAD_CONSENT_KEY, 'accepted'); } catch { /* localStorage indisponível */ }
+    setUploadConsentAccepted(true);
+    setConsentOpen(false);
+  };
 
   const onPick = (list: FileList | null) => {
     if (!list) return;
@@ -93,6 +113,7 @@ export const ExamCreate = () => {
   };
 
   const takePhoto = async () => {
+    if (!ensureUploadConsent()) return;
     try {
       const photo = await Camera.getPhoto({ quality: 92, resultType: CameraResultType.DataUrl, source: CameraSource.Camera, correctOrientation: true, saveToGallery: false });
       const blob = await (await fetch(photo.dataUrl!)).blob();
@@ -110,6 +131,7 @@ export const ExamCreate = () => {
   // perspectiva e filtro documento — a imagem chega LIMPA pro tesseract (OCR) → GLM.
   // Resulta em foto tão legível quanto PDF. Fallback pra câmera normal se indisponível.
   const scanDocument = async () => {
+    if (!ensureUploadConsent()) return;
     try {
       const { DocumentScanner } = await import('@capacitor-mlkit/document-scanner');
       const result = await DocumentScanner.scanDocument({ galleryImportAllowed: true, pageLimit: 5, resultFormats: 'JPEG', scannerMode: 'FULL' });
@@ -149,6 +171,7 @@ export const ExamCreate = () => {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!files.length) { notify('Selecione ao menos um arquivo.', { type: 'error' }); return; }
+    if (!ensureUploadConsent()) return;
     // Trava mole de duplicata por NOME: se o nome do arquivo (sem extensão) bate com
     // o título de um exame já enviado deste paciente, pergunta antes. (O bloqueio forte
     // por arquivo idêntico é por sha256, no backend.)
@@ -242,7 +265,7 @@ export const ExamCreate = () => {
                 bgcolor: files.length ? 'rgba(32,178,170,.05)' : '#f8fafb', transition: 'all .15s',
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.75,
                 '&:active': { transform: 'scale(.97)' }, '&:hover': { borderColor: '#20b2aa', bgcolor: 'rgba(32,178,170,.05)' },
-              }}>
+              }} onClick={(e) => { if (!ensureUploadConsent()) e.preventDefault(); }}>
                 <input type="file" hidden multiple accept=".pdf,.jpg,.jpeg,.png,image/*,application/pdf" onChange={(e) => { onPick(e.target.files); if (e.target) e.target.value = ''; }} />
                 <Box sx={{ fontSize: 36 }}>📄</Box>
                 <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary' }}>{files.length ? `${files.length} arquivo(s)` : 'PDF ou foto'}</Typography>
@@ -283,6 +306,42 @@ export const ExamCreate = () => {
           </Box>
         </CardContent>
       </Card>
+
+      <Dialog open={consentOpen} onClose={() => setConsentOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ fontWeight: 800, color: 'text.primary' }}>Antes de enviar seu exame</DialogTitle>
+        <DialogContent>
+          <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }}>
+            O Meus Exames usa PDF, foto ou câmera para extrair dados de saúde e gerar uma análise educativa com IA.
+          </Alert>
+          <Stack spacing={1.25} sx={{ mb: 2 }}>
+            {[
+              'O arquivo enviado e os valores extraídos ficam na sua conta e podem ser processados no servidor do Meus Exames.',
+              'A IA pode receber o conteúdo necessário para extrair e explicar seus exames. Não usamos seus exames para treinar modelos.',
+              'A análise é educativa: não diagnostica, não prescreve e não substitui consulta médica.',
+              'Você pode apagar exames, exportar seus dados e excluir sua conta pelo Perfil.',
+            ].map((text, i) => (
+              <Stack key={i} direction="row" spacing={1.25} alignItems="flex-start">
+                <Box sx={{ width: 20, height: 20, borderRadius: '50%', bgcolor: 'rgba(32,178,170,.12)', color: '#178f89', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, flexShrink: 0, mt: 0.15 }}>{i + 1}</Box>
+                <Typography variant="body2" sx={{ lineHeight: 1.55 }}>{text}</Typography>
+              </Stack>
+            ))}
+          </Stack>
+          <FormControlLabel
+            control={<Checkbox checked={consentChecked} onChange={(e) => setConsentChecked(e.target.checked)} color="primary" />}
+            label={<Typography variant="body2">Li e entendi este aviso. Concordo em enviar meus exames para processamento.</Typography>}
+            sx={{ alignItems: 'flex-start', m: 0 }}
+          />
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+            Detalhes completos em <MuiLink href="#/termos" target="_blank" rel="noopener">Termos e Política de Privacidade</MuiLink>.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5 }}>
+          <Button onClick={() => setConsentOpen(false)} sx={{ textTransform: 'none', fontWeight: 700 }}>Agora não</Button>
+          <Button onClick={acceptUploadConsent} disabled={!consentChecked} variant="contained" sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 800, bgcolor: '#20b2aa', '&:hover': { bgcolor: '#178f89' } }}>
+            Entendi e aceito
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* DUPLICATA — aviso PROEMINENTE "de cara": o documento já existe no histórico. */}
       <Dialog open={!!dupInfo} onClose={() => { setDupInfo(null); redirect('list', 'exams'); }} maxWidth="xs" fullWidth>

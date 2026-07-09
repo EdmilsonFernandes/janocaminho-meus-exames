@@ -185,7 +185,7 @@ app.use('/api/doctor-questions', doctorQuestionRoutes);
 app.use('/api/achievements', achievementRoutes);
 app.use('/api/tickets', ticketRoutes); // chamados de suporte do paciente (admin gerencia em /api/admin/tickets)
 
-// ROTA PÚBLICA: médico vê o resumo compartilhado (sem login, expira em 3 dias)
+// ROTA PÚBLICA: médico vê o resumo compartilhado (sem login, expira em 12 horas)
 app.get('/api/public/shared/:token', async (req, res) => {
   const token = String(req.params.token);
   const parts = token.split('.');
@@ -194,7 +194,7 @@ app.get('/api/public/shared/:token', async (req, res) => {
     if (Date.now() > expires) {
       res.status(410).type('html').send(emailTemplate({
         title: 'Link expirado',
-        content: '<p style="text-align:center;font-size:16px;color:#64748b;margin-top:20px">⏰ Este link expirou (válido por 3 dias).\nPeça ao paciente para gerar um novo.</p>',
+        content: '<p style="text-align:center;font-size:16px;color:#64748b;margin-top:20px">⏰ Este link expirou (válido por 12 horas).\nPeça ao paciente para gerar um novo.</p>',
       }));
       return;
     }
@@ -241,7 +241,7 @@ app.get('/api/public/shared/:token', async (req, res) => {
     ul{padding-left:20px;margin:8px 0}</style></head><body>
     <div class="doc"><div class="header"><h1>Resumo de Saúde</h1><div class="sub">Análise educativa — não substitui consulta médica</div></div>
     <div class="body"><div class="info-bar"><b>Paciente:</b> ${patientName}<br><b>Exame:</b> ${a.exam?.title ?? ''} — ${date}${lab ? ' • ' + lab : ''}</div>${html}</div>
-    <div class="footer">Meus Exames • Análise educativa • Link expira em 3 dias</div></div></body></html>`;
+    <div class="footer">Meus Exames • Análise educativa • Link expira em 12 horas</div></div></body></html>`;
   res.type('html').send(docHtml);
 });
 

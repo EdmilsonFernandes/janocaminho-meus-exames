@@ -9,7 +9,7 @@ Roda como **app web (react-admin)** e gera **APK/AAB Android** via Capacitor.
 ## ✨ Funcionalidades
 
 - **Extração por IA** — envia PDF/imagem → `pdftotext` (Poppler) extrai o texto → **GLM** (relay Z.ai) estrutura os valores com faixa de referência e página de origem. *(Não usamos visão — o relay lê texto; evita alucinação.)*
-- **Resumo + Relatório consolidado** — análise comparativa (anterior × atual), pontos de atenção, perguntas pro médico. Relatório multi-exame de 1 página, compartilhável por **link com PIN** (3 dias).
+- **Resumo + Relatório consolidado** — análise comparativa (anterior × atual), pontos de atenção, perguntas pro médico. Relatório multi-exame de 1 página, compartilhável por **link com PIN** (12 horas).
 - **Chat inteligente (economiza tokens)** — perguntas **fáticas** ("qual meu último TSH?", "quantos exames tenho?") são respondidas **do banco, na hora e de graça** (sem chamar a IA). Só perguntas interpretativas vão à IA. Log: `[chat] router_hit` vs `router_miss → IA`.
 - **Evolução + Previsão** — gráfico de tendência com regressão linear; **previsão de quando um marcador sai da faixa** (recurso **Premium** — borrado p/ plano grátis).
 - **Valores alterados + Telemedicina por marcador** — lista os fora-da-faixa e, em cada um, um botão **"Agendar com {especialista}"** leva ao **Doctoralia** na especialidade certa (TSH→endócrino, hemograma→hemato, lipídios→cardio, creatinina→nefro, TGO/TGP→gastro, ácido úrico→reumato).
