@@ -26,6 +26,9 @@ import TuneIcon from '@mui/icons-material/Tune';
 import CalculateIcon from '@mui/icons-material/Calculate';
 
 import { ExamDemo } from '../components/ExamDemo';
+import { FaqSection } from '../components/FaqSection';
+import { BmiCalculator } from '../components/BmiCalculator';
+import { Reveal } from '../components/Reveal';
 
 // ---- Tokens (espelham theme.ts) ----
 const TEAL = '#20b2aa';
@@ -49,6 +52,15 @@ const benefits = [
   { Icon: DescriptionIcon, title: 'Pronto para o médico', desc: 'Relatório de 1 página com valores alterados + perfil clínico. Compartilhe por link seguro com PIN.' },
   { Icon: LockIcon, title: 'Dados protegidos + Libras', desc: 'Seus valores vêm do laudo — a IA não inventa números (extração determinística). Criptografia, PIN de compartilhamento, exclusão a qualquer momento. LGPD completa e VLibras.' },
 ];
+
+// F2 — categorias pra filtrar o mural de benefícios (mata o "wall of text" sem deletar conteúdo)
+const CATS = ['Todos', 'IA & Análise', 'Acompanhamento', 'Médico & Família', 'Segurança'] as const;
+const catOf = (t: string): string => {
+  if (/Dados protegidos/.test(t)) return 'Segurança';
+  if (/Portal do seu médico|Toda a família|Pronto para o médico/.test(t)) return 'Médico & Família';
+  if (/Score de Adesão|Alerta preditivo|Comparativo visual|Evolução/.test(t)) return 'Acompanhamento';
+  return 'IA & Análise';
+};
 
 const steps = [
   { n: 1, Icon: UploadFileIcon, title: 'Envie o exame', desc: 'PDF ou foto do exame de sangue, imagem ou laudo. A IA extrai todos os valores automaticamente.' },
@@ -119,6 +131,7 @@ const SlideCarousel = () => {
 export const LandingPage = () => {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
+  const [cat, setCat] = useState<(typeof CATS)[number]>('Todos');
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 40);
     window.addEventListener('scroll', h, { passive: true });
@@ -269,15 +282,35 @@ export const LandingPage = () => {
 
       {/* BENEFÍCIOS */}
       <Container maxWidth="lg" id="beneficios" sx={{ py: { xs: 8, md: 11 }, scrollMarginTop: 80 }}>
-        <Typography align="center" variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>
-          Tudo que você precisa pra dominar sua saúde
-        </Typography>
-        <Typography align="center" sx={{ color: 'text.secondary', fontSize: 17, mb: 6, maxWidth: 620, mx: 'auto' }}>
-          Não é só um leitor de PDF. É um assistente completo que entende, compara e prevê.
-        </Typography>
+        <Reveal>
+          <Typography align="center" variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>
+            Tudo que você precisa pra dominar sua saúde
+          </Typography>
+          <Typography align="center" sx={{ color: 'text.secondary', fontSize: 17, mb: 3, maxWidth: 620, mx: 'auto' }}>
+            Não é só um leitor de PDF. É um assistente completo que entende, compara e prevê.
+          </Typography>
+        </Reveal>
+        {/* F2 — filtro por categoria (mata o "wall of text" sem deletar conteúdo) */}
+        <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', justifyContent: 'center', mb: 4, rowGap: 1 }}>
+          {CATS.map((c) => (
+            <Box
+              key={c}
+              component="button"
+              onClick={() => setCat(c)}
+              sx={{
+                px: 2, py: 0.85, borderRadius: 99, cursor: 'pointer', fontSize: 13.5, fontWeight: 700, textTransform: 'none',
+                border: '1px solid', borderColor: cat === c ? TEAL : 'divider',
+                bgcolor: cat === c ? TEAL : 'background.paper',
+                color: cat === c ? '#fff' : 'text.secondary',
+                transition: 'all .15s ease',
+                '&:hover': { borderColor: TEAL, color: cat === c ? '#fff' : TEAL_DARK },
+              }}
+            >{c}</Box>
+          ))}
+        </Stack>
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr 1fr' }, gap: 2.5 }}>
-          {benefits.map((b, i) => (
-            <Fade key={i} in timeout={300 + i * 80}>
+          {benefits.filter((b) => cat === 'Todos' || catOf(b.title) === cat).map((b, i) => (
+            <Fade key={b.title} in timeout={300 + i * 60}>
               <Box sx={{
                 p: 3, borderRadius: 4, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', height: '100%',
                 transition: 'all .2s ease',
@@ -570,6 +603,9 @@ export const LandingPage = () => {
         </Container>
       </Box>
 
+      {/* F4 — calculadora de IMC (ferramenta didática ao vivo, sem cadastro) */}
+      <BmiCalculator />
+
       {/* DEPOIMENTOS — prova social (trocar por reais com permissão quando tiver) */}
       <Box sx={{ bgcolor: 'background.default', py: { xs: 8, md: 11 } }}>
         <Container maxWidth="lg">
@@ -682,6 +718,9 @@ export const LandingPage = () => {
           </Stack>
         </Container>
       </Box>
+
+      {/* F4 — FAQ (mata objeções críticas de IA em saúde) */}
+      <FaqSection />
 
       {/* CTA FINAL — painel gradiente */}
       <Box sx={{ py: { xs: 8, md: 11 } }}>
