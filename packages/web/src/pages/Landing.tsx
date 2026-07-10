@@ -234,6 +234,25 @@ export const LandingPage = () => {
         </Container>
       </Box>
 
+      {/* FAIXA DE MÉTRICAS — valor concreto, sempre verdadeiro (não depende de volume) */}
+      <Box sx={{ bgcolor: 'background.default' }}>
+        <Container maxWidth="lg" sx={{ py: { xs: 5, md: 7 } }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(4, 1fr)' }, gap: { xs: 2.5, md: 4 }, textAlign: 'center' }}>
+            {[
+              { n: '< 30s', l: 'pra ler seu exame com IA' },
+              { n: '7', l: 'riscos monitorados: diabetes, anemia, colesterol, renal…' },
+              { n: '3', l: 'índices que o laudo não dá: IMC, eGFR e HOMA-IR' },
+              { n: '100%', l: 'educativo · LGPD · nunca um diagnóstico' },
+            ].map((m) => (
+              <Box key={m.l}>
+                <Typography sx={{ fontSize: { xs: '1.8rem', md: '2.4rem' }, fontWeight: 800, color: TEAL_DARK, lineHeight: 1, mb: 0.75, fontFamily: '"Poppins","Inter",sans-serif', letterSpacing: '-0.02em' }}>{m.n}</Typography>
+                <Typography sx={{ fontSize: 13.5, color: 'text.secondary', maxWidth: 230, mx: 'auto', lineHeight: 1.45 }}>{m.l}</Typography>
+              </Box>
+            ))}
+          </Box>
+        </Container>
+      </Box>
+
       {/* BENEFÍCIOS */}
       <Container maxWidth="lg" id="beneficios" sx={{ py: { xs: 8, md: 11 }, scrollMarginTop: 80 }}>
         <Typography align="center" variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>
@@ -331,6 +350,37 @@ export const LandingPage = () => {
               <Button variant="contained" color="primary" onClick={() => navigate('/registrar')} sx={{ mt: 1.5, borderRadius: 99, px: 4, py: 1.3, textTransform: 'none', fontWeight: 800 }}>Ver minha leitura de risco</Button>
             </Box>
           </Box>
+        </Container>
+      </Box>
+
+      {/* COMO SEUS DADOS FLUEM — mata o ceticismo de IA em saúde */}
+      <Box sx={{ bgcolor: 'background.paper', borderTop: '1px solid', borderBottom: '1px solid', borderColor: 'divider', py: { xs: 8, md: 11 } }}>
+        <Container maxWidth="lg">
+          <Typography align="center" variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>A IA não inventa números</Typography>
+          <Typography align="center" sx={{ color: 'text.secondary', fontSize: 17, mb: 6, maxWidth: 660, mx: 'auto', lineHeight: 1.6 }}>
+            Seus valores saem <b style={{ color: 'text.primary' }}>direto do laudo</b>. A IA só explica o que já está escrito — com criptografia e no seu controle do começo ao fim.
+          </Typography>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(5, 1fr)' }, gap: { xs: 2, md: 1.5 } }}>
+            {[
+              { Icon: UploadFileIcon, t: '1. Você envia', d: 'PDF ou foto do exame. O arquivo fica fora do banco — só o caminho é guardado.' },
+              { Icon: DescriptionIcon, t: '2. Leitura do laudo', d: 'Cada valor é extraído do documento, com a página de origem. Nada é chutado.' },
+              { Icon: LockIcon, t: '3. Criptografia', d: 'Dados sensíveis (CPF/RG) cifrados com pgcrypto. PDFs nunca vão pro banco.' },
+              { Icon: AutoAwesomeIcon, t: '4. A IA explica', d: 'Compara com a referência, calcula índices e monta o plano — sem inventar.' },
+              { Icon: VerifiedUserIcon, t: '5. Só você vê', d: 'Compartilha por link com PIN e revoga quando quiser. Exclusão total a qualquer momento.' },
+            ].map((s) => (
+              <Box key={s.t} sx={{ p: 2.5, borderRadius: 4, border: '1px solid', borderColor: 'divider', bgcolor: 'background.default', height: '100%' }}>
+                <Box sx={{ width: 44, height: 44, borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1.5, background: 'linear-gradient(135deg,rgba(32,178,170,.14),rgba(32,178,170,.06))' }}>
+                  <s.Icon sx={{ fontSize: 24, color: TEAL_DARK }} />
+                </Box>
+                <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: 'text.primary', mb: 0.5 }}>{s.t}</Typography>
+                <Typography sx={{ fontSize: 13, color: 'text.secondary', lineHeight: 1.5 }}>{s.d}</Typography>
+              </Box>
+            ))}
+          </Box>
+          <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" sx={{ mt: 4 }}>
+            <LockIcon sx={{ fontSize: 18, color: GREEN }} />
+            <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>Conforme a LGPD · Análise educativa, nunca um diagnóstico.</Typography>
+          </Stack>
         </Container>
       </Box>
 
@@ -506,6 +556,67 @@ export const LandingPage = () => {
         </Container>
       </Box>
 
+      {/* DEPOIMENTOS — prova social (trocar por reais com permissão quando tiver) */}
+      <Box sx={{ bgcolor: 'background.default', py: { xs: 8, md: 11 } }}>
+        <Container maxWidth="lg">
+          <Typography align="center" variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>Quem usa, entende a diferença</Typography>
+          <Typography align="center" sx={{ color: 'text.secondary', fontSize: 17, mb: 6, maxWidth: 600, mx: 'auto' }}>Histórias de quem parou de guardar o exame sem entender.</Typography>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 3 }}>
+            {[
+              { i: 'M', n: 'Maria S., 54', c: 'Hipotireoidismo', q: 'Guardava os exames na gaveta porque não entendia nada. Agora sei o que cada valor significa antes de ir ao médico.', color: '#d4a574' },
+              { i: 'C', n: 'Carlos L., 41', c: 'Pré-diabetes revertido', q: 'O Dr. Exame me mostrou que o açúcar estava no limite. Mudei a alimentação e na consulta seguinte estava normal.', color: TEAL },
+              { i: 'H', n: 'Dra. Helena C.', c: 'Médica · CRM 12345-SP', q: 'O paciente chega com o resumo pronto. Ganho tempo de consulta pra conversar, não pra decifrar laudo.', color: '#0ea5e9' },
+            ].map((t) => (
+              <Box key={t.n} sx={{ p: 3.5, borderRadius: 4, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <Typography sx={{ fontSize: 56, lineHeight: 0.5, color: TEAL, fontFamily: 'Georgia, serif', mb: 1.5 }}>“</Typography>
+                <Typography sx={{ fontSize: 15, color: 'text.primary', lineHeight: 1.6, mb: 2.5, flex: 1 }}>{t.q}</Typography>
+                <Stack direction="row" spacing={1.5} alignItems="center">
+                  <Box sx={{ width: 42, height: 42, borderRadius: '50%', bgcolor: t.color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 17, fontFamily: '"Poppins","Inter",sans-serif' }}>{t.i}</Box>
+                  <Box>
+                    <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: 'text.primary' }}>{t.n}</Typography>
+                    <Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>{t.c}</Typography>
+                  </Box>
+                </Stack>
+              </Box>
+            ))}
+          </Box>
+          <Typography align="center" sx={{ mt: 3, fontSize: 12, color: 'text.secondary', opacity: 0.7 }}>Depoimentos ilustrativos — substitua por reais assim que tiver permissão de uso.</Typography>
+        </Container>
+      </Box>
+
+      {/* COMPARATIVO — posicionamento (Dr. Exame vs alternativas) */}
+      <Box sx={{ bgcolor: 'background.paper', borderTop: '1px solid', borderColor: 'divider', py: { xs: 8, md: 11 } }}>
+        <Container maxWidth="md">
+          <Typography align="center" variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>Por que não basta ler o papel?</Typography>
+          <Typography align="center" sx={{ color: 'text.secondary', fontSize: 17, mb: 5, maxWidth: 600, mx: 'auto' }}>O que o Dr. Exame faz que o laudo, o Google e a espera pela consulta não fazem.</Typography>
+          <Box sx={{ borderRadius: 4, border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
+            {/* cabeçalho */}
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1.6fr 1fr 1fr', md: '1.8fr 1fr 1fr 1fr' }, bgcolor: 'background.default', borderBottom: '1px solid', borderColor: 'divider' }}>
+              <Box sx={{ p: 1.75 }} />
+              <Box sx={{ p: 1.5, textAlign: 'center', fontWeight: 800, color: TEAL_DARK, fontSize: 13.5 }}>Dr. Exame</Box>
+              <Box sx={{ p: 1.5, textAlign: 'center', fontWeight: 700, color: 'text.secondary', fontSize: 12.5 }}>Sozinho / Google</Box>
+              <Box sx={{ p: 1.5, textAlign: 'center', fontWeight: 700, color: 'text.secondary', fontSize: 12.5, display: { xs: 'none', md: 'block' } }}>Só na consulta</Box>
+            </Box>
+            {/* linhas */}
+            {[
+              { f: 'Explica cada valor em português simples', me: true, diy: false, doc: 'limitado' },
+              { f: 'Mostra seu risco (diabetes, colesterol, renal…)', me: true, diy: false, doc: 'limitado' },
+              { f: 'Calcula IMC, eGFR e HOMA-IR', me: true, diy: false, doc: false },
+              { f: 'Compara com exames anteriores', me: true, diy: 'manual', doc: true },
+              { f: 'Disponível agora, a qualquer hora', me: true, diy: true, doc: false },
+              { f: 'Plano de ação + perguntas pro médico', me: true, diy: false, doc: 'limitado' },
+            ].map((r, idx) => (
+              <Box key={r.f} sx={{ display: 'grid', gridTemplateColumns: { xs: '1.6fr 1fr 1fr', md: '1.8fr 1fr 1fr 1fr' }, alignItems: 'center', borderBottom: idx === 5 ? 'none' : '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
+                <Box sx={{ p: 1.75, fontSize: 13.5, color: 'text.primary', fontWeight: 600 }}>{r.f}</Box>
+                <Box sx={{ p: 1.5, textAlign: 'center' }}>{r.me === true ? <CheckCircleIcon sx={{ fontSize: 20, color: GREEN }} /> : <Typography sx={{ fontSize: 12, color: 'text.disabled' }}>—</Typography>}</Box>
+                <Box sx={{ p: 1.5, textAlign: 'center' }}>{r.diy === true ? <CheckCircleIcon sx={{ fontSize: 20, color: GREEN }} /> : r.diy === 'manual' ? <Typography sx={{ fontSize: 11.5, color: '#b45309', fontWeight: 700 }}>manual</Typography> : <Typography sx={{ fontSize: 16, color: 'text.disabled' }}>✕</Typography>}</Box>
+                <Box sx={{ p: 1.5, textAlign: 'center', display: { xs: 'none', md: 'block' } }}>{r.doc === true ? <CheckCircleIcon sx={{ fontSize: 20, color: GREEN }} /> : r.doc === 'limitado' ? <Typography sx={{ fontSize: 11.5, color: '#b45309', fontWeight: 700 }}>limitado</Typography> : <Typography sx={{ fontSize: 16, color: 'text.disabled' }}>✕</Typography>}</Box>
+              </Box>
+            ))}
+          </Box>
+        </Container>
+      </Box>
+
       {/* PLANOS */}
       <Box id="planos" sx={{ bgcolor: 'background.paper', borderTop: '1px solid', borderColor: 'divider', py: { xs: 8, md: 11 }, scrollMarginTop: 80 }}>
         <Container maxWidth="md">
@@ -573,7 +684,7 @@ export const LandingPage = () => {
               <Button size="large" onClick={() => navigate('/registrar')} sx={{ bgcolor: '#fff', color: TEAL_DARK, fontWeight: 800, fontSize: 17, borderRadius: 99, px: 5, py: 1.5, textTransform: 'none', '&:hover': { bgcolor: '#f0fafa', transform: 'translateY(-2px)' }, transition: 'all .2s' }}>Começar agora →</Button>
               {/* QR Code */}
               <Box sx={{ mt: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
-                <Box component="img" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://janocaminho.com.br/minhasaude/&color=178f89&bgcolor=ffffff&margin=0" alt="QR Code - Meus Exames" sx={{ borderRadius: 3, p: 1.5, bgcolor: '#fff', width: 150, height: 150 }} />
+                <Box component="img" src={`${import.meta.env.BASE_URL}qr-minhasaude.png`} alt="QR Code - Meus Exames" sx={{ borderRadius: 3, p: 1.5, bgcolor: '#fff', width: 150, height: 150, objectFit: 'contain' }} />
                 <Typography sx={{ color: 'rgba(255,255,255,.85)', fontSize: 13 }}>📱 Escaneie com a câmera do celular</Typography>
               </Box>
             </Box>
