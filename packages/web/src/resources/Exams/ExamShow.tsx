@@ -104,7 +104,7 @@ export const ExamShow = () => {
     let attempts = 0;
     const load = async () => {
       attempts++;
-      if (attempts > 20) { notify('A extração está demorando mais que o normal. Volte em instantes.', { type: 'warning' }); return; }
+      if (attempts > 60) { notify('A extração está demorando mais que o normal. Pode continuar usando o app — avisamos quando terminar.', { type: 'warning' }); return; }
       const r = await fetch(`${API_URL}/exams/${id}`, { headers: { Authorization: `Bearer ${token()}` } });
       if (!active || !r.ok) return;
       const d = await r.json();
@@ -117,8 +117,10 @@ export const ExamShow = () => {
   }, [id]);
 
   const summary = exam?.analyses?.[0] ?? null;
+  const identity = exam?.rawExtraction?.identityMatch as any;
   const nm = exam?.rawExtraction?.nameMatch as any;
-  const nameBlock = !!nm?.mismatch && !exam?.rawExtraction?.nameAttested;
+  const cpfBlock = identity?.method === 'cpf' && !!identity?.mismatch;
+  const nameBlock = !cpfBlock && !!nm?.mismatch && !exam?.rawExtraction?.nameAttested;
   const attest = async () => {
     setAttesting(true);
     try {
@@ -140,6 +142,7 @@ export const ExamShow = () => {
   };
 
   const generateSummary = async (force = false) => {
+    if (cpfBlock) { notify('CPF do exame diverge do CPF cadastrado. Exclua o exame ou acione o suporte.', { type: 'error' }); return; }
     if (nameBlock) { notify('Confirme a titularidade deste exame antes de gerar a análise.', { type: 'warning' }); return; }
     if (force) {
       setConfirmSpend({ open: true, credits: CREDIT_COSTS.summary, title: 'Regenerar resumo', desc: 'Vamos gerar uma nova análise deste exame com a IA.', onYes: () => { setConfirmSpend(s => ({ ...s, open: false })); doGenerateSummary(true); } });
@@ -292,6 +295,22 @@ export const ExamShow = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* BLOQUEIO FORTE: CPF do documento ≠ perfil */}
+      {cpfBlock && (
+        <Card sx={{ mt: 2, borderLeft: '6px solid', borderColor: 'error.main', background: 'linear-gradient(135deg, rgba(220,38,38,.08), #fff)' }}>
+          <CardContent>
+            <Typography sx={{ fontWeight: 800, color: 'error.main' }}>CPF do exame não confere</Typography>
+            <Typography variant="body2" sx={{ mt: 0.5 }}>
+              O CPF detectado no documento ({identity?.docCpfMasked ?? 'não exibido'}) diverge do CPF cadastrado neste perfil ({identity?.profileCpfMasked ?? 'não exibido'}).
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>Por segurança, este exame não pode gerar análise neste perfil. Exclua o exame ou acione o suporte para investigar.</Typography>
+            <Box sx={{ mt: 1.5, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+              <Button size="small" variant="outlined" color="error" onClick={rejectExam} disabled={attesting}>Excluir exame</Button>
+            </Box>
+          </CardContent>
+        </Card>
+      )}
 
       {/* BLOQUEIO SUAVE: nome do documento ≠ perfil */}
       {nameBlock && (

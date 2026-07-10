@@ -10,7 +10,7 @@ import RestaurantIcon from '@mui/icons-material/Restaurant';
 import TrackChangesIcon from '@mui/icons-material/TrackChanges';
 import LiveHelpIcon from '@mui/icons-material/LiveHelp';
 import InsightsIcon from '@mui/icons-material/Insights';
-import { API_URL, apiHeaders } from '../config';
+import { API_URL, apiHeaders, token } from '../config';
 import { bumpCredits } from '../utils/credits-events';
 import { speakText, stopSpeakText } from '../utils/nativeDoc';
 import { useSelectedPatient } from '../patient-context';
@@ -112,6 +112,15 @@ export const ConsolidatedReportPage = () => {
   const [loading, setLoading] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [analysis, setAnalysis] = useState<any>(null);
+  const [examCount, setExamCount] = useState<number | null>(null);
+
+  // Conta exames do paciente — esconde o botão "Gerar" se não tem nenhum
+  useEffect(() => {
+    if (!pid) return;
+    fetch(`${API_URL}/exams?_start=0&_end=1&patientId=${pid}`, { headers: { Authorization: `Bearer ${token()}` } })
+      .then((r) => { setExamCount(Number(r.headers.get('X-Total-Count') ?? r.headers.get('content-range')?.split('/')?.[1] ?? '0')); })
+      .catch(() => setExamCount(0));
+  }, [pid]);
   const [error, setError] = useState('');
   const [noCredits, setNoCredits] = useState(false);
   const [noExams, setNoExams] = useState(false);
@@ -254,7 +263,15 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
         A IA junta seus últimos exames (sangue, imagem e laudo) num documento único — ótimo para levar ao médico ou pedir segunda opinião documental.
       </Typography>
 
-      {!analysis && (
+      {!analysis && examCount === 0 && pid && (
+        <Box sx={{ mt: 2, p: 4, borderRadius: 3, textAlign: 'center', bgcolor: 'background.paper', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}>
+          <Box sx={{ fontSize: 56, mb: 1.5, opacity: 0.4 }}>📄</Box>
+          <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 18, mb: 1 }}>Você ainda não tem exames</Typography>
+          <Typography color="text.secondary" sx={{ mb: 2.5 }}>Envie seu primeiro exame de sangue, imagem ou laudo para gerar um relatório completo da sua saúde.</Typography>
+          <Button variant="contained" onClick={() => navigate('/exams')} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 800, px: 4, bgcolor: '#178f89' }}>Enviar meu primeiro exame →</Button>
+        </Box>
+      )}
+      {!analysis && examCount !== 0 && (
         <ReportPreviewCard
           loading={loading}
           disabled={loading || !pid}
