@@ -253,6 +253,10 @@ router.post('/:id/attest', async (req: AuthedRequest, res, next) => {
       return;
     }
     const raw: any = exam.rawExtraction ?? {};
+    if (raw.identityMatch?.method === 'cpf' && raw.identityMatch?.mismatch) {
+      res.status(409).json({ error: 'cpf_mismatch', message: 'CPF do exame diverge do CPF cadastrado. Não é permitido confirmar manualmente.' });
+      return;
+    }
     await prisma.exam.update({
       where: { id: exam.id },
       data: { rawExtraction: { ...raw, nameAttested: true, nameAttestedAt: new Date().toISOString() } },

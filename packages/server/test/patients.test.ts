@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { api, authHeader, resetDb, createUser, createPatient, getUserCredits } from './helpers';
+import { api, authHeader, resetDb, createUser, createPatient, getUserCredits, testCpf } from './helpers';
 import { prisma } from '../src/prisma';
 
 const EXTRA_COST = 50;
@@ -16,7 +16,7 @@ describe('pacientes: CRUD + limite de dependentes', () => {
   it('POST /patients cria dependente e GET /patients lista do usuário', async () => {
     const { user, token } = await createUser();
     const r = await api().post('/api/patients').set(authHeader(token))
-      .send({ fullName: 'Maria da Silva', relationship: 'Mãe' });
+      .send({ fullName: 'Maria da Silva', cpf: testCpf(), relationship: 'Mãe' });
     expect(r.status).toBe(201);
     expect(r.body.fullName).toBe('Maria da Silva');
 
@@ -30,7 +30,7 @@ describe('pacientes: CRUD + limite de dependentes', () => {
     await fillToLimit(user.id);
     expect(await prisma.patient.count({ where: { ownerId: user.id } })).toBe(FREE_LIMIT);
 
-    const r = await api().post('/api/patients').set(authHeader(token)).send({ fullName: 'Quinto' });
+    const r = await api().post('/api/patients').set(authHeader(token)).send({ fullName: 'Quinto', cpf: testCpf() });
     expect(r.status).toBe(201);
     expect(await getUserCredits(user.id)).toBe(100 - EXTRA_COST);
   });
@@ -38,7 +38,7 @@ describe('pacientes: CRUD + limite de dependentes', () => {
   it('5º dependente SEM créditos suficientes → 402 dependent_limit', async () => {
     const { user, token } = await createUser({ credits: 30 });
     await fillToLimit(user.id);
-    const r = await api().post('/api/patients').set(authHeader(token)).send({ fullName: 'Quinto' });
+    const r = await api().post('/api/patients').set(authHeader(token)).send({ fullName: 'Quinto', cpf: testCpf() });
     expect(r.status).toBe(402);
     expect(r.body.error).toBe('dependent_limit');
   });
@@ -46,7 +46,7 @@ describe('pacientes: CRUD + limite de dependentes', () => {
   it('premium adiciona 5º dependente SEM custar créditos', async () => {
     const { user, token } = await createUser({ credits: 100, premium: true });
     await fillToLimit(user.id);
-    const r = await api().post('/api/patients').set(authHeader(token)).send({ fullName: 'Quinto Premium' });
+    const r = await api().post('/api/patients').set(authHeader(token)).send({ fullName: 'Quinto Premium', cpf: testCpf() });
     expect(r.status).toBe(201);
     expect(await getUserCredits(user.id)).toBe(100); // intocado
   });
@@ -57,10 +57,24 @@ describe('pacientes: CRUD + limite de dependentes', () => {
       .send({ clinicalProfile: 'Hipotireoidismo; usa levotiroxina.' });
     expect(upd.status).toBe(200);
     expect(upd.body.clinicalProfile).toContain('levotiroxina');
+    expect(upd.body.cpfEncrypted).toBeFalsy();
+    expect(upd.body.cpfLast4).toBeUndefined();
+    expect(upd.body.cpfMasked).toBeTruthy();
 
     // titular é o único paciente → não pode excluir
     const del = await api().delete(`/api/patients/${patient.id}`).set(authHeader(token));
     expect(del.status).toBe(400);
+  });
+
+  it('bloqueia troca de nome/CPF quando identidade esta travada', async () => {
+    const { patient, token } = await createUser();
+    const nameChange = await api().put(`/api/patients/${patient.id}`).set(authHeader(token))
+      .send({ fullName: 'Outro Nome' });
+    expect(nameChange.status).toBe(409);
+
+    const cpfChange = await api().put(`/api/patients/${patient.id}`).set(authHeader(token))
+      .send({ cpf: testCpf() });
+    expect(cpfChange.status).toBe(409);
   });
 
   it('DELETE remove dependente (quando há titular)', async () => {

@@ -143,6 +143,9 @@ model Patient {
   // PII criptografada (AES-256-GCM, chave APP_ENCRYPTION_KEY)
   cpfEncrypted String?
   cpfIv        String?
+  cpfHash      String?   @unique // HMAC-SHA256 do CPF normalizado para busca/duplicidade sem expor CPF
+  cpfLast4     String?   // apenas para máscara de UI/suporte; CPF completo fica cifrado
+  identityLockedAt DateTime? // após e-mail + CPF verificados, nome/CPF não mudam por self-service
   // Perfil clínico livre (condições, medicações, histórico) — alimenta a IA de saúde.
   // Ex.: "Sem tireoide; usa levotiroxina (Levoid); usa testosterona; usa tirzepatida (Mounjaro)."
   clinicalProfile String?
@@ -478,6 +481,12 @@ model Doctor {
   email        String   @unique
   emailVerified Boolean @default(false) // valida e-mail no cadastro (igual o paciente) — antes logava direto
   passwordHash String
+  // PII criptografada (AES-256-GCM, chave APP_ENCRYPTION_KEY)
+  cpfEncrypted String?
+  cpfIv        String?
+  cpfHash      String?   @unique // HMAC-SHA256 do CPF normalizado para busca/duplicidade sem expor CPF
+  cpfLast4     String?
+  identityLockedAt DateTime? // após e-mail + CPF verificados, identidade não muda por self-service
   createdAt    DateTime @default(now())
   shares       DoctorShare[]
   notes        DoctorNote[]

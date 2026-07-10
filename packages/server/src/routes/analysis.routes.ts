@@ -36,8 +36,14 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       res.status(400).json({ error: 'examId obrigatório' });
       return;
     }
-    // bloqueio suave anti-fraude: nome no documento ≠ perfil exige atesto de titularidade
+    // bloqueio forte anti-fraude: CPF no documento ≠ CPF cadastrado não permite atesto manual.
     const examRow = await prisma.exam.findUnique({ where: { id: examId }, select: { rawExtraction: true } });
+    const identity = (examRow?.rawExtraction as any)?.identityMatch;
+    if (identity?.method === 'cpf' && identity?.mismatch) {
+      res.status(403).json({ error: 'cpf_mismatch', message: 'O CPF detectado no exame diverge do CPF cadastrado neste perfil. Exclua o exame ou acione o suporte.' });
+      return;
+    }
+    // bloqueio suave anti-fraude: nome no documento ≠ perfil exige atesto de titularidade
     const nm = (examRow?.rawExtraction as any)?.nameMatch;
     if (nm?.mismatch && !(examRow?.rawExtraction as any)?.nameAttested) {
       res.status(403).json({ error: 'name_mismatch', message: `O nome no documento (${nm.docName}) difere do perfil (${nm.profileName}). Confirme a titularidade deste exame antes de gerar a análise.` });

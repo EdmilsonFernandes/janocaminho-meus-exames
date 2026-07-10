@@ -27,6 +27,7 @@ export const PanelSchema = z.object({
 
 export const LabExtractionSchema = z.object({
   patientName: z.string().nullable().optional(),
+  patientCpf: z.string().nullable().optional(),
   examTitle: z.string().nullable().optional(),
   performedAt: z.string().nullable().optional(), // ISO date (coleta)
   sourceLab: z.string().nullable().optional(),
@@ -41,6 +42,7 @@ export type Panel = z.infer<typeof PanelSchema>;
 // ===== Exame de imagem (laudo narrativo) =====
 export const ImagingExtractionSchema = z.object({
   patientName: z.string().nullable().optional(),
+  patientCpf: z.string().nullable().optional(),
   examTitle: z.string().nullable().optional(),
   performedAt: z.string().nullable().optional(),
   sourceLab: z.string().nullable().optional(),

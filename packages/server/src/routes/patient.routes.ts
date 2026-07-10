@@ -9,18 +9,34 @@ import { config } from '../config';
 import { savePatientPhoto, patientSlug, deleteExamFile } from '../utils/storage';
 import { logCredit } from '../utils/credits';
 import { buildCurrentHealthSummary } from '../analysis/health-state';
+import { encryptedCpfData, maskStoredCpf } from '../utils/cpf';
 
 const router = Router();
 router.use(requireAuth);
 
+function serializePatient<T extends Record<string, any>>(patient: T | null): any {
+  if (!patient) return patient;
+  const { cpfEncrypted, cpfIv, cpfHash, cpfLast4, ...rest } = patient;
+  return {
+    ...rest,
+    cpfMasked: maskStoredCpf({ cpfLast4: patient.cpfLast4, cpfEncrypted, cpfIv }),
+    hasCpf: !!(cpfHash || cpfEncrypted),
+    identityLocked: !!patient.identityLockedAt,
+  };
+}
+
 // CRIAR paciente/dependente
 router.post('/', async (req: AuthedRequest, res, next) => {
   try {
-    const { fullName, relationship, dateOfBirth, clinicalProfile, heightCm, ethnicity } = req.body ?? {};
+    const { fullName, relationship, dateOfBirth, clinicalProfile, heightCm, ethnicity, cpf } = req.body ?? {};
     if (!fullName || !String(fullName).trim()) {
       res.status(400).json({ error: 'Informe o nome.' });
       return;
     }
+    const cpfData = encryptedCpfData(cpf);
+    if (!cpfData) { res.status(400).json({ error: 'CPF inválido.' }); return; }
+    const existingCpf = await prisma.patient.findUnique({ where: { cpfHash: cpfData.cpfHash }, select: { id: true } });
+    if (existingCpf) { res.status(409).json({ error: 'CPF já cadastrado em outro paciente.' }); return; }
     // LIMITE DE DEPENDENTES: titular + 3 grátis. Além disso, 50 créditos por extra.
     const FREE_LIMIT = 4; // titular + 3
     const EXTRA_COST = 50;
@@ -47,9 +63,11 @@ router.post('/', async (req: AuthedRequest, res, next) => {
         clinicalProfile: clinicalProfile ? String(clinicalProfile) : null,
         heightCm: heightCm != null && heightCm !== '' && Number.isFinite(Number(heightCm)) ? Math.round(Number(heightCm)) : null,
         ethnicity: ethnicity ? String(ethnicity) : null,
+        ...cpfData,
+        identityLockedAt: new Date(),
       },
     });
-    res.status(201).json(p);
+    res.status(201).json(serializePatient(p));
   } catch (e) { next(e); }
 });
 
@@ -62,7 +80,7 @@ router.get('/', async (req: AuthedRequest, res, next) => {
       prisma.patient.findMany({ where, skip: start, take, orderBy: { createdAt: 'asc' } }),
     ]);
     setListHeaders(res, start, start + take, total);
-    res.json(rows);
+    res.json(rows.map(serializePatient));
   } catch (e) {
     next(e);
   }
@@ -184,7 +202,7 @@ router.get('/:id', async (req: AuthedRequest, res, next) => {
       res.status(404).json({ error: 'Paciente não encontrado' });
       return;
     }
-    res.json(p);
+    res.json(serializePatient(p));
   } catch (e) {
     next(e);
   }
@@ -227,9 +245,31 @@ router.put('/:id', async (req: AuthedRequest, res, next) => {
       res.status(403).json({ error: 'Paciente não pertence ao usuário' });
       return;
     }
-    const { fullName, relationship, dateOfBirth, clinicalProfile, phone, photoUrl, gender, heightCm, ethnicity } = req.body ?? {};
+    const existing = await prisma.patient.findUnique({ where: { id }, select: { fullName: true, cpfHash: true, identityLockedAt: true } });
+    if (!existing) { res.status(404).json({ error: 'Paciente não encontrado' }); return; }
+    const { fullName, relationship, dateOfBirth, clinicalProfile, phone, photoUrl, gender, heightCm, ethnicity, cpf } = req.body ?? {};
     const data: any = {};
-    if (fullName != null) data.fullName = String(fullName);
+    if (fullName != null) {
+      const nextName = String(fullName).trim();
+      if (existing.identityLockedAt && nextName !== existing.fullName) {
+        res.status(409).json({ error: 'Nome bloqueado após verificação de CPF e e-mail. Solicite correção ao suporte.' });
+        return;
+      }
+      data.fullName = nextName;
+    }
+    if (cpf !== undefined) {
+      const cpfData = encryptedCpfData(cpf);
+      if (!cpfData) { res.status(400).json({ error: 'CPF inválido.' }); return; }
+      if (existing.cpfHash && existing.cpfHash !== cpfData.cpfHash) {
+        res.status(409).json({ error: 'CPF bloqueado após cadastro. Solicite correção ao suporte.' });
+        return;
+      }
+      if (!existing.cpfHash) {
+        const dup = await prisma.patient.findFirst({ where: { cpfHash: cpfData.cpfHash, NOT: { id } }, select: { id: true } });
+        if (dup) { res.status(409).json({ error: 'CPF já cadastrado em outro paciente.' }); return; }
+        Object.assign(data, cpfData, { identityLockedAt: existing.identityLockedAt ?? new Date() });
+      }
+    }
     if (gender !== undefined) data.gender = gender ? String(gender) : null;
     if (heightCm !== undefined) data.heightCm = heightCm != null && heightCm !== '' && Number.isFinite(Number(heightCm)) ? Math.round(Number(heightCm)) : null;
     if (ethnicity !== undefined) data.ethnicity = ethnicity ? String(ethnicity) : null;
@@ -239,7 +279,7 @@ router.put('/:id', async (req: AuthedRequest, res, next) => {
     if (phone !== undefined) data.phone = phone ? String(phone) : null;
     if (photoUrl !== undefined) data.photoUrl = photoUrl ? String(photoUrl) : null;
     const updated = await prisma.patient.update({ where: { id }, data });
-    res.json(updated);
+    res.json(serializePatient(updated));
   } catch (e) {
     next(e);
   }

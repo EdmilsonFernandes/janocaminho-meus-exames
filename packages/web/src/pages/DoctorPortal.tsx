@@ -19,6 +19,7 @@ import { SPECIALTIES, UFS } from '../utils/medicalData';
 import { PhotoUpload } from '../components/PhotoUpload';
 import { CATS, categorize, refLabel } from '../utils/medicalData';
 import { displayStatus } from '../utils/examStatus';
+import { formatCpf, isValidCpf } from '../utils/cpf';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { ResponsiveContainer, LineChart, Line, ReferenceArea, XAxis, YAxis, Tooltip } from 'recharts';
@@ -84,8 +85,13 @@ export const DoctorPortalPage = () => {
   const [email, setEmail] = useState('');
   const [pwd, setPwd] = useState('');
   const [showPwd, setShowPwd] = useState(false);
-  const [mode, setMode] = useState<'login' | 'register'>(() => { const q = window.location.hash.split('?')[1] || ''; return new URLSearchParams(q).get('mode') === 'register' ? 'register' : 'login'; });
-  const [regName, setRegName] = useState(''); const [regCrm, setRegCrm] = useState(''); const [regUf, setRegUf] = useState(''); const [regSpec, setRegSpec] = useState('');
+  const [mode, setMode] = useState<'login' | 'register'>(() => {
+    const hashQuery = window.location.hash.split('?')[1] || '';
+    const searchQuery = window.location.search.replace(/^\?/, '');
+    const q = hashQuery || searchQuery;
+    return new URLSearchParams(q).get('mode') === 'register' ? 'register' : 'login';
+  });
+  const [regName, setRegName] = useState(''); const [regCpf, setRegCpf] = useState(''); const [regCrm, setRegCrm] = useState(''); const [regUf, setRegUf] = useState(''); const [regSpec, setRegSpec] = useState('');
   const [regLooking, setRegLooking] = useState(false);
   const [regHint, setRegHint] = useState<{ type: 'success' | 'warning'; msg: string } | null>(null);
   const [regSpecOther, setRegSpecOther] = useState('');
@@ -98,7 +104,8 @@ export const DoctorPortalPage = () => {
     e.preventDefault(); setLoading(true); setErr('');
     try {
       const finalSpec = regSpec === 'Outro' ? regSpecOther.trim() : regSpec;
-      const body = mode === 'login' ? { email: email.trim().toLowerCase(), password: pwd } : { name: regName.trim(), crm: regCrm.trim(), crmUf: regUf, specialty: finalSpec, email: email.trim().toLowerCase(), password: pwd };
+      if (mode === 'register' && !isValidCpf(regCpf)) { throw new Error('Informe um CPF válido.'); }
+      const body = mode === 'login' ? { email: email.trim().toLowerCase(), password: pwd } : { name: regName.trim(), cpf: regCpf, crm: regCrm.trim(), crmUf: regUf, specialty: finalSpec, email: email.trim().toLowerCase(), password: pwd };
       const r = await fetch(`${API_URL}/doctor/${mode}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Falha');
@@ -179,6 +186,8 @@ export const DoctorPortalPage = () => {
             </Box>
             <TextField placeholder="Nome completo" required value={regName} onChange={(e) => setRegName(e.target.value)} sx={fieldSx}
               slotProps={{ input: { startAdornment: <InputAdornment position="start"><I.Person /></InputAdornment> } }} />
+            <TextField placeholder="CPF" required value={regCpf} onChange={(e) => setRegCpf(formatCpf(e.target.value))} sx={fieldSx} error={!!regCpf && regCpf.length === 14 && !isValidCpf(regCpf)} helperText={!!regCpf && regCpf.length === 14 && !isValidCpf(regCpf) ? 'CPF inválido.' : 'Usado para proteger sua identidade profissional.'}
+              slotProps={{ input: { inputMode: 'numeric', startAdornment: <InputAdornment position="start"><I.Badge /></InputAdornment> } }} />
             <Box sx={{ display: 'flex', gap: 1 }}>
               <TextField placeholder="CRM (número)" required value={regCrm} onChange={(e) => setRegCrm(e.target.value.replace(/[^\d]/g, ''))} sx={{ ...fieldSx, flex: 1 }} helperText="Mesmo CRM do convite."
                 slotProps={{ input: { startAdornment: <InputAdornment position="start"><I.Badge /></InputAdornment> } }} />
@@ -1185,6 +1194,7 @@ const DoctorProfile = ({ token, doctor, onBack, onSaved, onPhoto, photoVer }: { 
           <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 800, color: TEAL }}>DADOS PROFISSIONAIS</Typography>
           <Stack spacing={2}>
             <TextField label="Nome completo" value={name} onChange={(e) => setName(e.target.value)} size="small" fullWidth />
+            <TextField label="CPF" value={doctor?.cpfMasked ?? 'Não cadastrado'} disabled size="small" fullWidth helperText="CPF fica bloqueado após verificação. Correção somente via suporte auditado." />
             <TextField label="CRM" value={doctor?.crm ?? ''} disabled size="small" fullWidth helperText="O CRM não pode ser alterado (identidade profissional)." />
             <TextField select label="Especialidade" value={spec} onChange={(e) => setSpec(e.target.value)} size="small" fullWidth>
               <MenuItem value=""><em>Selecione…</em></MenuItem>

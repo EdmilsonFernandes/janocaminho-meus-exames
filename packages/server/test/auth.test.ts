@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { api, authHeader, resetDb, createUser, mintToken } from './helpers';
+import { api, authHeader, resetDb, createUser, mintToken, testCpf } from './helpers';
 import { prisma } from '../src/prisma';
 import { sendEmail } from '../src/utils/mailer';
 
@@ -20,7 +20,7 @@ describe('auth + requireAuth', () => {
 
   it('register cria user INATIVO + pede verificação; verify-email ativa e loga', async () => {
     sendEmail.mockClear();
-    const r = await api().post('/api/auth/register').send({ name: 'Fulana da Silva', email: 'fulana@exemplo.com', password: 'senha123' });
+    const r = await api().post('/api/auth/register').send({ name: 'Fulana da Silva', cpf: testCpf(), email: 'fulana@exemplo.com', password: 'senha123' });
     expect(r.status).toBe(201);
     expect(r.body.needsVerification).toBe(true);
     expect(r.body.token).toBeFalsy(); // sem token — conta inativa até validar e-mail
@@ -46,13 +46,28 @@ describe('auth + requireAuth', () => {
 
   it('register rejeita senha curta (400) e e-mail duplicado (409)', async () => {
     const shortPwd = await api().post('/api/auth/register')
-      .send({ name: 'X', email: 'a@b.com', password: '123' });
+      .send({ name: 'X', cpf: testCpf(), email: 'a@b.com', password: '123' });
     expect(shortPwd.status).toBe(400);
 
     await createUser({ email: 'dup@exemplo.com' });
     const dup = await api().post('/api/auth/register')
-      .send({ name: 'Dup User', email: 'dup@exemplo.com', password: 'senha123' });
+      .send({ name: 'Dup User', cpf: testCpf(), email: 'dup@exemplo.com', password: 'senha123' });
     expect(dup.status).toBe(409);
+  });
+
+  it('register rejeita CPF invalido e CPF duplicado', async () => {
+    const invalid = await api().post('/api/auth/register')
+      .send({ name: 'CPF Ruim', cpf: '000.000.000-00', email: 'ruim@exemplo.com', password: 'senha123' });
+    expect(invalid.status).toBe(400);
+
+    const cpf = testCpf();
+    const first = await api().post('/api/auth/register')
+      .send({ name: 'Primeiro CPF', cpf, email: 'cpf1@exemplo.com', password: 'senha123' });
+    expect(first.status).toBe(201);
+    const second = await api().post('/api/auth/register')
+      .send({ name: 'Segundo CPF', cpf, email: 'cpf2@exemplo.com', password: 'senha123' });
+    expect(second.status).toBe(409);
+    expect(second.body.error).toMatch(/CPF/);
   });
 
   it('login aceita {email,password} e {username,password}; rejeita senha errada', async () => {

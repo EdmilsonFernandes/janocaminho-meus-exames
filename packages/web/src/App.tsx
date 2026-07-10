@@ -477,7 +477,8 @@ export const App = () => {
     // replaceState muda a URL em SILÊNCIO, sem reload — seguro no APK (reload recarrega o WebView e crasha o app nativo).
     try {
       const p = window.location.pathname || '/';
-      if (!isNativeApp && (p === '/' || p === '') && !localStorage.getItem('token')) {
+      const hasHashRoute = window.location.hash.startsWith('#/');
+      if (!isNativeApp && !hasHashRoute && (p === '/' || p === '') && !localStorage.getItem('token')) {
         window.history.replaceState({}, '', '/landing');
       }
     } catch { /* ignore */ }

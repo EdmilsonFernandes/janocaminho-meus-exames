@@ -15,6 +15,7 @@ import { useSelectedPatient } from '../patient-context';
 import { PhotoUpload } from '../components/PhotoUpload';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
+import { formatCpf, isValidCpf } from '../utils/cpf';
 
 export const ProfilePage = () => {
   const [pid] = useSelectedPatient();
@@ -24,6 +25,7 @@ export const ProfilePage = () => {
   const [user, setUser] = useState<any>(null);
   const [patient, setPatient] = useState<any>(null);
   const [fullName, setFullName] = useState('');
+  const [cpf, setCpf] = useState('');
   const [phone, setPhone] = useState('');
   const [clinical, setClinical] = useState('');
   const [gender, setGender] = useState('');
@@ -42,15 +44,18 @@ export const ProfilePage = () => {
     if (me.ok) { const mu = (await me.json())?.user; setUser(mu); setAchAlerts(mu?.achievementAlerts ?? true); }
     if (pid) {
       const pr = await fetch(`${API_URL}/patients/${pid}`, { headers: h });
-      if (pr.ok) { const p = await pr.json(); setPatient(p); setFullName(p.fullName ?? ''); setPhone(p.phone ?? ''); setClinical(p.clinicalProfile ?? ''); setGender(p.gender ?? ''); setHeightCm(p.heightCm != null ? String(p.heightCm) : ''); setEthnicity(p.ethnicity ?? ''); setBirthDate(p.dateOfBirth ? p.dateOfBirth.split('T')[0] : ''); }
+      if (pr.ok) { const p = await pr.json(); setPatient(p); setFullName(p.fullName ?? ''); setCpf(p.cpfMasked ?? ''); setPhone(p.phone ?? ''); setClinical(p.clinicalProfile ?? ''); setGender(p.gender ?? ''); setHeightCm(p.heightCm != null ? String(p.heightCm) : ''); setEthnicity(p.ethnicity ?? ''); setBirthDate(p.dateOfBirth ? p.dateOfBirth.split('T')[0] : ''); }
     }
   };
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [pid]);
 
   const saveProfile = async () => {
     if (!pid) return;
+    if (!patient?.hasCpf && cpf && !isValidCpf(cpf)) { notify('Informe um CPF válido.', { type: 'error' }); return; }
     setSaving(true);
-    const r = await fetch(`${API_URL}/patients/${pid}`, { method: 'PUT', headers: apiHeaders(true), body: JSON.stringify({ fullName, phone, clinicalProfile: clinical, gender, heightCm: heightCm ? Number(heightCm) : null, ethnicity, dateOfBirth: birthDate || null }) });
+    const body: any = { fullName, phone, clinicalProfile: clinical, gender, heightCm: heightCm ? Number(heightCm) : null, ethnicity, dateOfBirth: birthDate || null };
+    if (!patient?.hasCpf && cpf) body.cpf = cpf;
+    const r = await fetch(`${API_URL}/patients/${pid}`, { method: 'PUT', headers: apiHeaders(true), body: JSON.stringify(body) });
     setSaving(false);
     notify(r.ok ? 'Perfil atualizado!' : 'Erro ao salvar', { type: r.ok ? 'success' : 'error' });
   };
@@ -133,7 +138,8 @@ export const ProfilePage = () => {
         <CardContent>
           <Typography variant="h6" gutterBottom>Dados e perfil clínico</Typography>
           <Stack spacing={2}>
-            <TextField label="Nome completo" value={fullName} onChange={(e) => setFullName(e.target.value)} fullWidth size="small" />
+            <TextField label="Nome completo" value={fullName} onChange={(e) => setFullName(e.target.value)} fullWidth size="small" disabled={!!patient?.identityLocked} helperText={patient?.identityLocked ? 'Nome bloqueado após verificação de CPF e e-mail. Correção somente via suporte.' : undefined} />
+            <TextField label="CPF" value={cpf} onChange={(e) => setCpf(formatCpf(e.target.value))} fullWidth size="small" disabled={!!patient?.hasCpf} inputProps={{ inputMode: 'numeric' }} error={!patient?.hasCpf && !!cpf && cpf.length === 14 && !isValidCpf(cpf)} helperText={patient?.hasCpf ? 'CPF verificado e mascarado. Correção somente via suporte auditado.' : 'Usado para confirmar que os exames pertencem a este perfil.'} />
             <TextField label="Telefone / WhatsApp" value={phone} onChange={(e) => setPhone(e.target.value)} fullWidth size="small" />
             <TextField select label="Sexo (define a faixa de referência dos exames)" value={gender} onChange={(e) => setGender(e.target.value)} fullWidth size="small" helperText="Mulher usa a coluna 'Mulheres', homem a 'Homens' do laudo.">
               <MenuItem value="">Prefiro não informar (usa Homens)</MenuItem>

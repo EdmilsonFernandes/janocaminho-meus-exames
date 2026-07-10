@@ -10,6 +10,7 @@ import { toCanonicalUnit } from '../utils/units';
 import { readExamFile, mediaTypeFromRef } from '../utils/storage';
 import type { LabExtraction, ExtractionItem } from './schemas';
 import { chargeCredits, CREDIT_COSTS } from '../utils/credits';
+import { cpfFingerprint, maskCpf, maskStoredCpf, normalizeCpf } from '../utils/cpf';
 
 interface ItemRow {
   panel: string | null;
@@ -57,7 +58,7 @@ export async function runExtraction(examId: string): Promise<void> {
 async function runExtractionOnce(examId: string): Promise<void> {
   const exam = await prisma.exam.findUnique({ where: { id: examId } });
   if (!exam) return;
-  const patient = await prisma.patient.findUnique({ where: { id: exam.patientId }, select: { fullName: true, ownerId: true, gender: true } });
+  const patient = await prisma.patient.findUnique({ where: { id: exam.patientId }, select: { fullName: true, ownerId: true, gender: true, cpfHash: true, cpfLast4: true, cpfEncrypted: true, cpfIv: true } });
   const demo = patient?.gender === 'female' ? 'Mulheres' : 'Homens';
 
   await prisma.exam.update({
@@ -122,6 +123,11 @@ async function runExtractionOnce(examId: string): Promise<void> {
 
     // trava anti-alucinação (apenas painel lab): compara itens extraídos vs. densidade de valores no texto
     const reviewRequired = kind !== 'IMAGING' ? sanityCheckItems(text, items) : false;
+
+    // identidade: CPF do documento é sinal forte; sem CPF confiável, cai no match por nome.
+    if (raw && patient?.cpfHash) {
+      raw.identityMatch = computeIdentityMatch(raw, patient);
+    }
 
     // bloqueio suave anti-fraude: compara o nome do paciente no documento vs. perfil
     if (raw && patient?.fullName && raw.patientName) {
@@ -251,4 +257,31 @@ function computeNameMatch(docName: string, profileName: string) {
   const uni = new Set([...a, ...b]).size || 1;
   const score = Math.round((inter / uni) * 100) / 100;
   return { score, docName, profileName, mismatch: score < 0.34 };
+}
+
+function computeIdentityMatch(raw: any, patient: { cpfHash?: string | null; cpfLast4?: string | null; cpfEncrypted?: string | null; cpfIv?: string | null }) {
+  const docCpfRaw = raw?.patientCpf ?? raw?.cpf ?? raw?.patientCPF ?? '';
+  const docHash = cpfFingerprint(docCpfRaw);
+  const profileCpfMasked = maskStoredCpf(patient);
+  if (docHash && patient.cpfHash) {
+    const cpfMatch = docHash === patient.cpfHash;
+    return {
+      method: 'cpf',
+      cpfPresent: true,
+      cpfMatch,
+      mismatch: !cpfMatch,
+      severity: cpfMatch ? 'ok' : 'hard_block',
+      docCpfMasked: maskCpf(docCpfRaw),
+      profileCpfMasked,
+    };
+  }
+  return {
+    method: 'name_fallback',
+    cpfPresent: normalizeCpf(docCpfRaw).length > 0,
+    cpfMatch: null,
+    mismatch: false,
+    severity: 'fallback',
+    docCpfMasked: maskCpf(docCpfRaw),
+    profileCpfMasked,
+  };
 }

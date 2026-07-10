@@ -23,6 +23,7 @@ import { generateActionPlan } from '../analysis/risk-action-plan';
 import { generateConsolidatedSummary } from '../analysis/health-summary';
 import { generateSoap } from '../analysis/doctor-soap';
 import { suggestCid10 } from '../analysis/cid10';
+import { encryptedCpfData, maskStoredCpf } from '../utils/cpf';
 
 // Especialidades base (espelha o front-end). O dropdown real = base ∪ especialidades que já existem no banco.
 const BASE_SPECIALTIES = [
@@ -47,6 +48,17 @@ export function normalizeCrmKey(crm?: string, uf?: string): { crm: string; uf: s
 }
 
 const router = Router();
+
+function serializeDoctor<T extends Record<string, any>>(doctor: T | null): any {
+  if (!doctor) return doctor;
+  const { cpfEncrypted, cpfIv, cpfHash, cpfLast4, ...rest } = doctor;
+  return {
+    ...rest,
+    cpfMasked: maskStoredCpf({ cpfLast4: doctor.cpfLast4, cpfEncrypted, cpfIv }),
+    hasCpf: !!(cpfHash || cpfEncrypted),
+    identityLocked: !!doctor.identityLockedAt,
+  };
+}
 
 // === AUTH MÉDICO (separada do paciente) ===
 const signDoctorToken = (doctorId: string) => jwt.sign({ doctorId, type: 'doctor' }, config.jwtSecret, { expiresIn: '7d' });
@@ -208,10 +220,12 @@ router.get('/crm', async (req, res, next) => {
 // CADASTRO do médico
 router.post('/register', validate(schemas.doctorRegister), async (req, res, next) => {
   try {
-    const { name, crm, crmUf, specialty, email, password } = req.body ?? {};
+    const { name, crm, crmUf, specialty, email, password, cpf } = req.body ?? {};
     if (!name || !crm || !email || !password || String(password).length < 6) {
       res.status(400).json({ error: 'Nome, CRM, e-mail e senha (mín. 6) obrigatórios.' }); return;
     }
+    const cpfData = encryptedCpfData(cpf);
+    if (!cpfData) { res.status(400).json({ error: 'CPF inválido.' }); return; }
     // Normaliza pra chave canônica "numero-UF" — COERENTE com o compartilhamento do paciente.
     // Assim o médico reclaima o Doctor pendente criado no share (herda os compartilhamentos),
     // independente de digitar "116739", "116739-SP" ou "116739" + UF.
@@ -220,20 +234,25 @@ router.post('/register', validate(schemas.doctorRegister), async (req, res, next
     const uf = norm?.uf ?? null;
     const mail = String(email).toLowerCase().trim();
     const existing = await prisma.doctor.findFirst({ where: { OR: [{ email: mail }, { crm: crmKey }] } });
+    const duplicateCpf = await prisma.doctor.findFirst({
+      where: { cpfHash: cpfData.cpfHash, ...(existing ? { NOT: { id: existing.id } } : {}) },
+      select: { id: true },
+    });
+    if (duplicateCpf) { res.status(409).json({ error: 'CPF já cadastrado em outro médico.' }); return; }
     if (existing) {
       if (existing.passwordHash === 'pending-invite') {
         // CLAIM: paciente pré-cadastrou → médico completa dados + senha (mesmo id → herda shares).
         // Mas NÃO loga ainda: valida o e-mail (OTP), igual o paciente.
         await prisma.doctor.update({
           where: { id: existing.id },
-          data: { name, specialty: specialty || existing.specialty, email: mail, passwordHash: await hashPassword(String(password)), crmUf: uf ?? existing.crmUf, emailVerified: false },
+          data: { name, specialty: specialty || existing.specialty, email: mail, passwordHash: await hashPassword(String(password)), crmUf: uf ?? existing.crmUf, emailVerified: false, ...cpfData, identityLockedAt: null },
         });
       } else {
         res.status(409).json({ error: 'CRM ou e-mail já cadastrado. Faça login.' }); return;
       }
     } else {
       // NOVO cadastro — fica INATIVO até verificar o e-mail (evita e-mail falso + CRM alheio acessar dados).
-      await prisma.doctor.create({ data: { name, crm: crmKey, crmUf: uf, specialty, email: mail, passwordHash: await hashPassword(String(password)), emailVerified: false } });
+      await prisma.doctor.create({ data: { name, crm: crmKey, crmUf: uf, specialty, email: mail, passwordHash: await hashPassword(String(password)), emailVerified: false, ...cpfData } });
     }
     // Envia código de verificação pro e-mail — NÃO emite token antes de confirmar.
     const code = issueOtp(mail);
@@ -251,10 +270,13 @@ router.post('/verify-email', async (req, res) => {
     const doctor = await prisma.doctor.findFirst({ where: { email: mail } });
     if (!doctor || doctor.passwordHash === 'pending-invite') { res.status(404).json({ error: 'Conta não encontrada. Cadastre-se novamente.' }); return; }
     if (!verifyOtp(mail, code)) { res.status(401).json({ error: 'Código inválido ou expirado.' }); return; }
-    const verified = await prisma.doctor.update({ where: { id: doctor.id }, data: { emailVerified: true } });
+    const verified = await prisma.doctor.update({
+      where: { id: doctor.id },
+      data: { emailVerified: true, ...(doctor.cpfHash && !doctor.identityLockedAt ? { identityLockedAt: new Date() } : {}) },
+    });
     const mfa = await evaluateMfaOnLogin('DOCTOR', doctor.id, { doctorId: doctor.id }, doctor.email);
     if (mfa) { res.json(mfa); return; }
-    res.json({ token: signDoctorToken(verified.id), doctor: { id: verified.id, name: verified.name, crm: verified.crm, specialty: verified.specialty, email: verified.email, photoUrl: verified.photoUrl } });
+    res.json({ token: signDoctorToken(verified.id), doctor: serializeDoctor({ id: verified.id, name: verified.name, crm: verified.crm, specialty: verified.specialty, email: verified.email, photoUrl: verified.photoUrl, cpfLast4: verified.cpfLast4, identityLockedAt: verified.identityLockedAt }) });
   } catch (e: any) { res.status(500).json({ error: e.message || 'Erro na verificação.' }); }
 });
 
@@ -274,7 +296,7 @@ router.post('/login', async (req, res, next) => {
     // MFA: se ativado, cria desafio
     const mfa = await evaluateMfaOnLogin('DOCTOR', doctor.id, { doctorId: doctor.id }, doctor.email);
     if (mfa) { res.json(mfa); return; }
-    res.json({ token: signDoctorToken(doctor.id), doctor: { id: doctor.id, name: doctor.name, crm: doctor.crm, specialty: doctor.specialty, email: doctor.email, photoUrl: doctor.photoUrl } });
+    res.json({ token: signDoctorToken(doctor.id), doctor: serializeDoctor({ id: doctor.id, name: doctor.name, crm: doctor.crm, specialty: doctor.specialty, email: doctor.email, photoUrl: doctor.photoUrl, cpfLast4: doctor.cpfLast4, identityLockedAt: doctor.identityLockedAt }) });
   } catch (e) { next(e); }
 });
 
@@ -283,8 +305,8 @@ router.post('/mfa/verify', async (req, res) => {
   try {
     const result = await verifyChallenge(String(req.body?.challengeToken ?? ''), String(req.body?.code ?? ''));
     const doctorId = result.sessionPayload.doctorId;
-    const d = await prisma.doctor.findUnique({ where: { id: doctorId }, select: { id: true, name: true, crm: true, specialty: true, email: true, photoUrl: true } });
-    res.json({ token: signDoctorToken(doctorId), doctor: d });
+    const d = await prisma.doctor.findUnique({ where: { id: doctorId }, select: { id: true, name: true, crm: true, specialty: true, email: true, photoUrl: true, cpfLast4: true, identityLockedAt: true } });
+    res.json({ token: signDoctorToken(doctorId), doctor: serializeDoctor(d) });
   } catch (e: any) { res.status(e.status || 500).json({ error: e.message || 'Erro no MFA' }); }
 });
 
@@ -303,16 +325,16 @@ router.put('/profile', requireDoctor, async (req: any, res, next) => {
         clinicCity: pick(req.body?.clinicCity, 80),
         bio: pick(req.body?.bio, 500),
       },
-      select: { id: true, name: true, crm: true, crmUf: true, specialty: true, email: true, photoUrl: true, phone: true, clinicName: true, clinicCity: true, bio: true },
+      select: { id: true, name: true, crm: true, crmUf: true, specialty: true, email: true, photoUrl: true, phone: true, clinicName: true, clinicCity: true, bio: true, cpfLast4: true, identityLockedAt: true },
     });
-    res.json({ doctor: updated });
+    res.json({ doctor: serializeDoctor(updated) });
   } catch (e) { next(e); }
 });
 
 // Dados completos do médico logado (portal carrega pra edição do perfil público).
 router.get('/me', requireDoctor, async (req: any, res) => {
-  const d = await prisma.doctor.findUnique({ where: { id: req.doctorId }, select: { id: true, name: true, crm: true, crmUf: true, specialty: true, email: true, photoUrl: true, phone: true, clinicName: true, clinicCity: true, bio: true } });
-  res.json({ doctor: d });
+  const d = await prisma.doctor.findUnique({ where: { id: req.doctorId }, select: { id: true, name: true, crm: true, crmUf: true, specialty: true, email: true, photoUrl: true, phone: true, clinicName: true, clinicCity: true, bio: true, cpfLast4: true, identityLockedAt: true } });
+  res.json({ doctor: serializeDoctor(d) });
 });
 router.post('/mfa/setup/start', requireDoctor, async (req: any, res) => { try { res.json(await mfaStart('DOCTOR', req.doctorId)); } catch (e: any) { res.status(e.status || 500).json({ error: e.message || 'Erro' }); } });
 router.post('/mfa/setup/confirm', requireDoctor, async (req: any, res) => { try { res.json(await mfaConfirm('DOCTOR', req.doctorId, String(req.body?.code ?? ''))); } catch (e: any) { res.status(e.status || 500).json({ error: e.message || 'Erro' }); } });
@@ -320,9 +342,9 @@ router.post('/mfa/disable', requireDoctor, async (req: any, res) => { try { res.
 
 // PERFIL do médico
 router.get('/me', requireDoctor, async (req: any, res) => {
-  const doctor = await prisma.doctor.findUnique({ where: { id: req.doctorId }, select: { id: true, name: true, crm: true, specialty: true, email: true, photoUrl: true } });
+  const doctor = await prisma.doctor.findUnique({ where: { id: req.doctorId }, select: { id: true, name: true, crm: true, specialty: true, email: true, photoUrl: true, cpfLast4: true, identityLockedAt: true } });
   if (!doctor) { res.status(404).json({ error: 'Médico não encontrado.' }); return; }
-  res.json({ doctor });
+  res.json({ doctor: serializeDoctor(doctor) });
 });
 
 // ATUALIZAR PERFIL do médico (nome, especialidade, e-mail). CRM não é editável (identidade profissional).
@@ -330,16 +352,27 @@ router.put('/me', requireDoctor, async (req: any, res, next) => {
   try {
     const { name, specialty, email } = req.body ?? {};
     const data: any = {};
-    if (name != null && String(name).trim()) data.name = String(name).trim();
+    const current = await prisma.doctor.findUnique({ where: { id: req.doctorId }, select: { name: true, email: true, identityLockedAt: true } });
+    if (!current) { res.status(404).json({ error: 'Médico não encontrado.' }); return; }
+    if (name != null && String(name).trim()) {
+      const nextName = String(name).trim();
+      if (current.identityLockedAt && nextName !== current.name) {
+        res.status(409).json({ error: 'Nome bloqueado após verificação de CPF e e-mail. Solicite correção ao suporte.' }); return;
+      }
+      data.name = nextName;
+    }
     if (specialty != null) data.specialty = String(specialty).trim() || null;
     if (email != null) {
       const e = String(email).toLowerCase().trim();
+      if (current.identityLockedAt && e !== current.email) {
+        res.status(409).json({ error: 'E-mail bloqueado após verificação de CPF. Solicite correção ao suporte.' }); return;
+      }
       const dup = await prisma.doctor.findFirst({ where: { email: e, NOT: { id: req.doctorId } } });
       if (dup) { res.status(409).json({ error: 'E-mail já usado por outro médico.' }); return; }
       data.email = e;
     }
-    const updated = await prisma.doctor.update({ where: { id: req.doctorId }, data, select: { id: true, name: true, crm: true, specialty: true, email: true, photoUrl: true } });
-    res.json({ doctor: updated });
+    const updated = await prisma.doctor.update({ where: { id: req.doctorId }, data, select: { id: true, name: true, crm: true, specialty: true, email: true, photoUrl: true, cpfLast4: true, identityLockedAt: true } });
+    res.json({ doctor: serializeDoctor(updated) });
   } catch (e) { next(e); }
 });
 

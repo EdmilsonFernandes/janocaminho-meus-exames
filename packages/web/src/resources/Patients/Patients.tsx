@@ -1,5 +1,5 @@
-import { List, useListContext, Edit, SimpleForm, TextInput, DateInput, useRecordContext, useNotify, useRefresh, CreateButton, TopToolbar } from 'react-admin';
-import { Box, Avatar, Typography, Chip, IconButton, Stack, Card, CardContent } from '@mui/material';
+import { List, useListContext, Edit, SimpleForm, TextInput, DateInput, useRecordContext, useNotify, useRefresh, CreateButton, TopToolbar, useInput } from 'react-admin';
+import { Box, Avatar, Typography, Chip, IconButton, Stack, Card, CardContent, TextField as MuiTextField } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
@@ -8,6 +8,7 @@ import { photoUrlFor, API_URL, token } from '../../config';
 import { confirmDialog } from '../../components/ConfirmDialog';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import { formatCpf, isValidCpf } from '../../utils/cpf';
 
 const ageFrom = (dob?: string | null) => {
   if (!dob) return null;
@@ -115,6 +116,31 @@ const PhotoField = () => {
   return <PhotoUpload patientId={String(record.id)} photoUrl={record.photoUrl} size={90} />;
 };
 
+const PatientNameInput = () => {
+  const record = useRecordContext();
+  return <TextInput source="fullName" label="Nome completo" fullWidth disabled={!!record?.identityLocked} helperText={record?.identityLocked ? 'Nome bloqueado após verificação de CPF e e-mail.' : undefined} />;
+};
+
+const PatientCpfInput = () => {
+  const record = useRecordContext();
+  const { field } = useInput({ source: 'cpf' });
+  if (record?.hasCpf) {
+    return <MuiTextField label="CPF" value={record.cpfMasked ?? ''} disabled fullWidth size="small" helperText="CPF verificado e mascarado. Correção somente via suporte auditado." />;
+  }
+  return (
+    <MuiTextField
+      label="CPF"
+      value={field.value ?? ''}
+      onChange={(e) => field.onChange(formatCpf(e.target.value))}
+      fullWidth
+      size="small"
+      inputProps={{ inputMode: 'numeric' }}
+      error={!!field.value && String(field.value).length === 14 && !isValidCpf(field.value)}
+      helperText={!!field.value && String(field.value).length === 14 && !isValidCpf(field.value) ? 'CPF inválido.' : 'Obrigatório para confirmar titularidade dos exames.'}
+    />
+  );
+};
+
 export const PatientList = () => (
   <List exporter={false} pagination={false} actions={<PatientListActions />} perPage={50}>
     <PatientCards />
@@ -127,7 +153,8 @@ export const PatientEdit = () => (
       <Box sx={{ pt: 2, pb: 1 }}>
         <PhotoField />
       </Box>
-      <TextInput source="fullName" label="Nome completo" fullWidth />
+      <PatientNameInput />
+      <PatientCpfInput />
       <TextInput source="relationship" label="Parentesco (Titular, Filha, Mãe...)" fullWidth />
       <TextInput source="phone" label="Telefone / WhatsApp" fullWidth />
       <DateInput source="dateOfBirth" label="Data de nascimento" fullWidth />

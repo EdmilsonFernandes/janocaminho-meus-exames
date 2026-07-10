@@ -7,6 +7,7 @@ import { API_URL } from '../config';
 import { OtpInput } from '../components/OtpInput';
 import { MfaChallengeDialog } from '../components/mfa/MfaChallengeDialog';
 import { BiometricService, getDeviceId } from '../components/BiometricService';
+import { formatCpf, isValidCpf } from '../utils/cpf';
 
 /* ---------- ícones inline (sem dependência de @mui/icons-material) ---------- */
 const I = {
@@ -268,6 +269,7 @@ export const RegisterPage = () => {
   const navigate = useNavigate();
   const notify = useNotify();
   const [name, setName] = useState('');
+  const [cpf, setCpf] = useState('');
   const [email, setEmail] = useState('');
   const [pwd, setPwd] = useState('');
   const [referral, setReferral] = useState(() => new URLSearchParams(window.location.hash.split('?')[1] || '').get('ref') || '');
@@ -280,11 +282,12 @@ export const RegisterPage = () => {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!accepted) { notify('Você precisa aceitar os Termos de Uso e a Política de Privacidade.', { type: 'error' }); return; }
+    if (!isValidCpf(cpf)) { notify('Informe um CPF válido.', { type: 'error' }); return; }
     setLoading(true);
     try {
       const r = await fetch(`${API_URL}/auth/register`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name.trim(), email: email.trim(), password: pwd, referral: referral.trim() || undefined, deviceId: getDeviceId() }),
+        body: JSON.stringify({ name: name.trim(), cpf, email: email.trim(), password: pwd, referral: referral.trim() || undefined, deviceId: getDeviceId() }),
       });
       const d = await r.json();
       if (r.status === 409) { notify('Este e-mail já tem conta. Use sua senha, "entrar com token" ou "esqueci a senha".', { type: 'warning' }); navigate('/'); return; }
@@ -334,6 +337,8 @@ export const RegisterPage = () => {
         <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>Crie sua conta gratuita em segundos.</Typography>
         <TextField placeholder="Seu nome" required value={name} onChange={(e) => setName(e.target.value)} sx={fieldSx}
           slotProps={{ input: { startAdornment: <InputAdornment position="start"><I.Person /></InputAdornment> } }} />
+        <TextField placeholder="CPF" required value={cpf} onChange={(e) => setCpf(formatCpf(e.target.value))} sx={fieldSx} error={!!cpf && cpf.length === 14 && !isValidCpf(cpf)} helperText={!!cpf && cpf.length === 14 && !isValidCpf(cpf) ? 'CPF inválido.' : 'Usado para confirmar que o exame pertence ao perfil.'}
+          slotProps={{ input: { inputMode: 'numeric', startAdornment: <InputAdornment position="start"><I.Shield /></InputAdornment> } }} />
         <TextField placeholder="E-mail" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} sx={fieldSx}
           slotProps={{ input: { startAdornment: <InputAdornment position="start"><I.Mail /></InputAdornment> } }} />
         <TextField placeholder="Senha (mín. 6 caracteres)" type={showPwd ? 'text' : 'password'} required value={pwd} onChange={(e) => setPwd(e.target.value)} sx={fieldSx}

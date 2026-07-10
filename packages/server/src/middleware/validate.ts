@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { Request, Response, NextFunction } from 'express';
+import { isValidCpf } from '../utils/cpf';
 
 /** Middleware de validação Zod — valida req.body contra um schema.
  *  Se inválido → 400 com a mensagem do primeiro erro. */
@@ -20,6 +21,7 @@ export function validate(schema: z.ZodObject<any, any>) {
 export const schemas = {
   register: z.object({
     name: z.string().min(2, 'Nome muito curto.').max(100),
+    cpf: z.string().refine(isValidCpf, 'CPF inválido.'),
     email: z.string().email('E-mail inválido.'),
     password: z.string().min(6, 'Senha mín. 6 caracteres.'),
     referral: z.string().optional(),
@@ -34,6 +36,7 @@ export const schemas = {
 
   doctorRegister: z.object({
     name: z.string().min(2, 'Nome obrigatório.'),
+    cpf: z.string().refine(isValidCpf, 'CPF inválido.'),
     crm: z.string().min(3, 'CRM obrigatório.'),
     crmUf: z.string().optional(),
     specialty: z.string().optional(),

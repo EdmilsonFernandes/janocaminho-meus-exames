@@ -77,4 +77,17 @@ describe('exames: upload, escopo, delete, duplicatas', () => {
     const r = await api().get('/api/exams/duplicates/list').set(authHeader(token));
     expect(r.body.total).toBe(0);
   });
+
+  it('POST /analyses bloqueia exame com CPF divergente', async () => {
+    const { patient, token } = await createUser({ credits: 100 });
+    const exam = await createExam(patient.id);
+    await prisma.exam.update({
+      where: { id: exam.id },
+      data: { rawExtraction: { identityMatch: { method: 'cpf', mismatch: true, severity: 'hard_block' } } },
+    });
+
+    const r = await api().post('/api/analyses').set(authHeader(token)).send({ examId: exam.id });
+    expect(r.status).toBe(403);
+    expect(r.body.error).toBe('cpf_mismatch');
+  });
 });

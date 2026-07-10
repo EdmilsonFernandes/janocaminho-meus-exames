@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import crypto from 'crypto';
 import { prisma } from '../prisma';
 import {
   signToken, signResetToken, verifyToken, verifyResetToken, hashPassword, comparePassword,
@@ -17,6 +16,7 @@ import { deleteExamFile, patientSlug } from '../utils/storage';
 import { validate, schemas } from '../middleware/validate';
 import { isBlockedDomain } from '../utils/blockedDomains';
 import { logCredit } from '../utils/credits';
+import { encryptedCpfData } from '../utils/cpf';
 
 const router = Router();
 
@@ -112,16 +112,20 @@ router.post('/mfa/disable', requireAuth, async (req: AuthedRequest, res) => {
 // REGISTRO (auto-atendimento — Play Store)
 router.post('/register', validate(schemas.register), async (req, res, next) => {
   try {
-    const { name, email, password, referral } = req.body ?? {};
+    const { name, email, password, referral, cpf } = req.body ?? {};
     const mail = String(email ?? '').toLowerCase().trim();
     const pwd = String(password ?? '');
+    const cpfData = encryptedCpfData(cpf);
     if (!name || !mail || pwd.length < 6) {
       res.status(400).json({ error: 'Informe nome, e-mail e senha (mín. 6 caracteres).' });
       return;
     }
+    if (!cpfData) { res.status(400).json({ error: 'CPF inválido.' }); return; }
     if (isBlockedDomain(mail)) { res.status(400).json({ error: 'Não aceitamos e-mails temporários. Use um e-mail válido (Gmail, Outlook, etc.).' }); return; }
     const existing = await prisma.user.findUnique({ where: { email: mail } });
     if (existing) { res.status(409).json({ error: 'Já existe conta com este e-mail.' }); return; }
+    const existingCpf = await prisma.patient.findUnique({ where: { cpfHash: cpfData.cpfHash } });
+    if (existingCpf) { res.status(409).json({ error: 'CPF já cadastrado.' }); return; }
 
     // === REFERRAL: valida código de indicação (se veio) ===
     const REFERRAL_BONUS = 30; // créditos pra cada lado (configurável depois via settings)
@@ -146,10 +150,13 @@ router.post('/register', validate(schemas.register), async (req, res, next) => {
     // (verify-email). Conta recém-criada fica com 0 créditos (e não consegue logar sem verificar).
     // Evita farm: pra pegar o bônus precisa acessar a caixa de entrada de cada e-mail.
     const deviceId = String(req.body?.deviceId ?? '').trim();
-    const user = await prisma.user.create({
-      data: { email: mail, name: String(name), passwordHash, credits: 0, referralCode, referredBy: referrer?.referralCode ?? null, deviceId: deviceId || null },
+    const user = await prisma.$transaction(async (tx) => {
+      const created = await tx.user.create({
+        data: { email: mail, name: String(name), passwordHash, credits: 0, referralCode, referredBy: referrer?.referralCode ?? null, deviceId: deviceId || null },
+      });
+      await tx.patient.create({ data: { ownerId: created.id, fullName: String(name), relationship: 'Titular', ...cpfData } });
+      return created;
     });
-    await prisma.patient.create({ data: { ownerId: user.id, fullName: String(name), relationship: 'Titular' } });
 
     notifyNewUser(String(name), mail);
     const code = issueOtp(mail);
@@ -202,7 +209,13 @@ router.post('/verify-email', async (req, res, next) => {
       }
     }
 
-    await prisma.user.update({ where: { id: user.id }, data: { emailVerified: true, credits: { increment: bonusCredits } } });
+    await prisma.$transaction([
+      prisma.user.update({ where: { id: user.id }, data: { emailVerified: true, credits: { increment: bonusCredits } } }),
+      prisma.patient.updateMany({
+        where: { ownerId: user.id, relationship: 'Titular', cpfHash: { not: null }, identityLockedAt: null },
+        data: { identityLockedAt: new Date() },
+      }),
+    ]);
     if (bonusCredits > 0) await logCredit(user.id, bonusCredits, 'signup', 'Bônus de boas-vindas');
     const freshUser = await prisma.user.findUnique({ where: { id: user.id }, select: { id: true, email: true, name: true, role: true, planExpiresAt: true, credits: true, referralCode: true, referredBy: true } });
     const { token, patientId } = await issueSession(user.id);
@@ -289,12 +302,8 @@ router.post('/otp/verify', async (req, res, next) => {
     if (!verifyOtp(email, code)) { res.status(401).json({ error: 'Código inválido ou expirado.' }); return; }
     let user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      const name = email.split('@')[0];
-      const deviceId = String(req.body?.deviceId ?? '').trim();
-      const canClaim = await claimDeviceBonus(deviceId); // OTP também respeita 1 bônus por aparelho
-      user = await prisma.user.create({ data: { email, name, passwordHash: await hashPassword(crypto.randomUUID()), credits: canClaim ? getSettings().grants.freeSignup : 0, deviceId: deviceId || null } });
-      await prisma.patient.create({ data: { ownerId: user.id, fullName: name, relationship: 'Titular' } });
-      notifyNewUser(name, email);
+      res.status(400).json({ error: 'Crie sua conta informando nome, CPF, e-mail e senha antes de usar o token.' });
+      return;
     }
     if (!user.emailVerified) { await prisma.user.update({ where: { id: user.id }, data: { emailVerified: true } }); }
     if (user.blocked) { res.status(403).json({ blocked: true }); return; }
@@ -331,7 +340,16 @@ router.patch('/me', requireAuth, async (req: AuthedRequest, res, next) => {
   try {
     const data: any = {};
     if (typeof req.body?.achievementAlerts === 'boolean') data.achievementAlerts = req.body.achievementAlerts;
-    if (typeof req.body?.name === 'string' && req.body.name.trim()) data.name = req.body.name.trim();
+    if (typeof req.body?.name === 'string' && req.body.name.trim()) {
+      const nextName = req.body.name.trim();
+      const current = await prisma.user.findUnique({ where: { id: req.userId! }, select: { name: true } });
+      const locked = await prisma.patient.findFirst({ where: { ownerId: req.userId!, relationship: 'Titular', identityLockedAt: { not: null } }, select: { id: true } });
+      if (locked && current?.name && nextName !== current.name) {
+        res.status(409).json({ error: 'Nome bloqueado após verificação de CPF e e-mail. Solicite correção ao suporte.' });
+        return;
+      }
+      data.name = nextName;
+    }
     if (!Object.keys(data).length) { res.status(400).json({ error: 'Nada para atualizar' }); return; }
     await prisma.user.update({ where: { id: req.userId! }, data });
     res.json({ ok: true });

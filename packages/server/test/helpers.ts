@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '../src/prisma';
 import { signToken } from '../src/auth/jwt';
 import { app } from '../src/app';
+import { encryptedCpfData } from '../src/utils/cpf';
 
 /**
  * Truncate todas as tabelas públicas entre testes (CASCADE). Descobre os nomes
@@ -46,6 +47,19 @@ export const api = () => request(app);
 let counter = 0;
 const uniq = (p: string) => `${p}-${Date.now().toString(36)}-${counter++}`;
 
+export function testCpf(seed = counter++): string {
+  const base = String(100000000 + seed).slice(-9);
+  const digit = (digits: string) => {
+    let sum = 0;
+    for (let i = 0; i < digits.length; i++) sum += Number(digits[i]) * (digits.length + 1 - i);
+    const mod = (sum * 10) % 11;
+    return mod === 10 ? 0 : mod;
+  };
+  const d1 = digit(base);
+  const d2 = digit(`${base}${d1}`);
+  return `${base}${d1}${d2}`;
+}
+
 export interface TestUser {
   user: { id: string; email: string; name: string };
   patient: { id: string; fullName: string };
@@ -59,6 +73,7 @@ export async function createUser(opts: {
   name?: string;
   credits?: number;
   premium?: boolean;
+  cpf?: string;
 } = {}): Promise<TestUser> {
   const email = opts.email ?? uniq('user@exemplo.com');
   const passwordHash = await bcrypt.hash(opts.password ?? 'senha123', 10);
@@ -75,19 +90,21 @@ export async function createUser(opts: {
     select: { id: true, email: true, name: true },
   });
   const patient = await prisma.patient.create({
-    data: { ownerId: user.id, fullName: user.name, relationship: 'Titular' },
+    data: { ownerId: user.id, fullName: user.name, relationship: 'Titular', ...encryptedCpfData(opts.cpf ?? testCpf())!, identityLockedAt: new Date() },
     select: { id: true, fullName: true },
   });
   return { user, patient, token: mintToken(user.id) };
 }
 
 /** Cria um paciente extra (dependente) vinculado ao user. */
-export async function createPatient(ownerId: string, opts: { fullName?: string; relationship?: string } = {}) {
+export async function createPatient(ownerId: string, opts: { fullName?: string; relationship?: string; cpf?: string } = {}) {
   return prisma.patient.create({
     data: {
       ownerId,
       fullName: opts.fullName ?? uniq('Dependente'),
       relationship: opts.relationship ?? 'Filha',
+      ...encryptedCpfData(opts.cpf ?? testCpf())!,
+      identityLockedAt: new Date(),
     },
     select: { id: true, fullName: true, ownerId: true },
   });
@@ -166,9 +183,9 @@ export function mpResponse(body: unknown, { ok = true, status = 200 }: { ok?: bo
 /** Cria um médico ATIVO (registra → ativa e-mail → loga) e devolve token + doctor.
  *  Espelha o fluxo real: no cadastro o médico não loga direto (valida e-mail). No teste,
  *  pulamos o OTP ativando direto no banco, depois logamos. */
-export async function createDoctor(opts: { name?: string; crm: string; crmUf?: string; specialty?: string; email?: string; password?: string } = { crm: '12345-SP' }): Promise<{ doctor: any; token: string }> {
+export async function createDoctor(opts: { name?: string; crm: string; crmUf?: string; specialty?: string; email?: string; password?: string; cpf?: string } = { crm: '12345-SP' }): Promise<{ doctor: any; token: string }> {
   const email = opts.email ?? uniq('doc@exemplo.com');
-  const r = await api().post('/api/doctor/register').send({ name: opts.name ?? 'Dr Teste', crm: opts.crm, crmUf: opts.crmUf, specialty: opts.specialty ?? 'Clinico Geral', email, password: opts.password ?? 'senha123' });
+  const r = await api().post('/api/doctor/register').send({ name: opts.name ?? 'Dr Teste', cpf: opts.cpf ?? testCpf(), crm: opts.crm, crmUf: opts.crmUf, specialty: opts.specialty ?? 'Clinico Geral', email, password: opts.password ?? 'senha123' });
   if (r.status !== 201) throw new Error(`createDoctor: register falhou ${r.status} ${JSON.stringify(r.body)}`);
   // ativa o e-mail direto (no teste, pula o OTP) + loga
   await prisma.doctor.updateMany({ where: { email }, data: { emailVerified: true } });

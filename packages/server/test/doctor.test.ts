@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { api, resetDb, authHeader, createUser, createDoctor } from './helpers';
+import { api, resetDb, authHeader, createUser, createDoctor, testCpf } from './helpers';
 import { prisma } from '../src/prisma';
 
 const docH = (t: string) => ({ Authorization: `Bearer ${t}` });
@@ -9,7 +9,7 @@ describe('Doctor Portal - auth + shares + scoped', () => {
 
   it('doctor register NÃO loga direto (valida e-mail); após ativar, loga + me', async () => {
     const reg = await api().post('/api/doctor/register').send({
-      name: 'Dr House', crm: '12345-SP', specialty: 'Diagnostics', email: 'house@test.com', password: 'senha123',
+      name: 'Dr House', cpf: testCpf(), crm: '12345-SP', specialty: 'Diagnostics', email: 'house@test.com', password: 'senha123',
     });
     expect(reg.status).toBe(201);
     expect(reg.body.needsVerification).toBe(true); // NÃO vem token antes de verificar o e-mail
@@ -26,16 +26,18 @@ describe('Doctor Portal - auth + shares + scoped', () => {
     const me = await api().get('/api/doctor/me').set(docH(login.body.token));
     expect(me.status).toBe(200);
     expect(me.body.doctor.name).toBe('Dr House');
+    expect(me.body.doctor.cpfMasked).toBeTruthy();
+    expect(me.body.doctor.cpfLast4).toBeUndefined();
 
     const bad = await api().post('/api/doctor/login').send({ email: 'house@test.com', password: 'wrong' });
     expect(bad.status).toBe(401);
   });
 
   it('doctor register rejects dup CRM + short pw', async () => {
-    await api().post('/api/doctor/register').send({ name: 'Alice Dup', crm: 'DUP-SP', specialty: 'X', email: 'a@t.com', password: 'senha123' });
-    const dup = await api().post('/api/doctor/register').send({ name: 'Bob Dup', crm: 'DUP-SP', specialty: 'Y', email: 'b@t.com', password: 'senha123' });
+    await api().post('/api/doctor/register').send({ name: 'Alice Dup', cpf: testCpf(), crm: 'DUP-SP', specialty: 'X', email: 'a@t.com', password: 'senha123' });
+    const dup = await api().post('/api/doctor/register').send({ name: 'Bob Dup', cpf: testCpf(), crm: 'DUP-SP', specialty: 'Y', email: 'b@t.com', password: 'senha123' });
     expect(dup.status).toBe(409);
-    const short = await api().post('/api/doctor/register').send({ name: 'Charlie Short', crm: 'C-SP', specialty: 'Z', email: 'c@t.com', password: '123' });
+    const short = await api().post('/api/doctor/register').send({ name: 'Charlie Short', cpf: testCpf(), crm: 'C-SP', specialty: 'Z', email: 'c@t.com', password: '123' });
     expect(short.status).toBe(400);
   });
 
@@ -114,7 +116,7 @@ describe('Doctor Portal - auth + shares + scoped', () => {
   });
 
   it('patient reactivates revoked share (upsert)', async () => {
-    const doc = await api().post('/api/doctor/register').send({ name: 'Dr D', crm: 'D-SP', specialty: 'X', email: 'd@t.com', password: 'senha123' });
+    await api().post('/api/doctor/register').send({ name: 'Dr D', cpf: testCpf(), crm: 'D-SP', specialty: 'X', email: 'd@t.com', password: 'senha123' });
     const { token } = await createUser({ email: 'pac5@t.com' });
 
     const s1 = await api().post('/api/doctor-shares').set(authHeader(token)).send({ doctorCrm: 'D-SP', scopes: ['exams'] });

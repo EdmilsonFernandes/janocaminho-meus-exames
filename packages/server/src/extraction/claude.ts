@@ -51,15 +51,16 @@ NÃO PULE PAINÉIS CLÍNICOS (CRÍTICO): em PDFs grandes com vários painéis, N
 
 ATENÇÃO À DATA (PRECISÃO): performedAt deve ser a DATA DO ATENDIMENTO/COLETA do exame (ex.: campo "Atendimento: 08/04/2026", "Data da coleta" ou "Data de realização"), no formato dd/mm/aaaa. NUNCA use a data de impressão, emissão, liberação ou entrega do laudo — use SEMPRE a data em que o exame foi feito/coletado.
 
-ATENÇÃO AOS NOMES (PRECISÃO): patientName = o nome do PACIENTE, lido SEMPRE do campo "Nome:" do cabeçalho do documento. NUNCA use o nome de quem assinou o laudo (ex.: "assinado eletronicamente por Dr. Fulano") nem o nome do médico como patientName. requestingDoctor = o nome do campo "Médico:" do cabeçalho.
+ATENÇÃO AOS NOMES E CPF (PRECISÃO): patientName = o nome do PACIENTE, lido SEMPRE do campo "Nome:" do cabeçalho do documento. patientCpf = CPF do PACIENTE quando aparecer no cabeçalho/documento, com ou sem pontuação. Se o CPF não aparecer ou estiver ilegível, devolva string vazia. NUNCA use o CPF de médico/convênio/responsável/assinante. NUNCA use o nome de quem assinou o laudo (ex.: "assinado eletronicamente por Dr. Fulano") nem o nome do médico como patientName. requestingDoctor = o nome do campo "Médico:" do cabeçalho.
 
 NUNCA invente valor. Se não conseguir ler com confiança, omita o analito. Agrupe em "panels" pelo título da seção.
 
-CRÍTICO — ANTI-ALUCINAÇÃO: leia SEMPRE do documento real. Os valores/nomes do exemplo acima são SÓ exemplos — nunca os copie. Se o documento estiver ilegível/vazio ou você não conseguir ler os dados do paciente, devolva { patientName: "", requestingDoctor: "", panels: [] } — NUNCA invente um nome (ex.: "TESTE LABORATORIAL", "MÉDICO SOLICITANTE") nem valores. Para o VALOR de cada analito, leia a coluna RESULTADO/RESULTADO DO PACIENTE (não a coluna de referência/valor de referência).
+CRÍTICO — ANTI-ALUCINAÇÃO: leia SEMPRE do documento real. Os valores/nomes/CPF do exemplo acima são SÓ exemplos — nunca os copie. Se o documento estiver ilegível/vazio ou você não conseguir ler os dados do paciente, devolva { patientName: "", patientCpf: "", requestingDoctor: "", panels: [] } — NUNCA invente um nome, CPF (ex.: "000.000.000-00") ou valores. Para o VALOR de cada analito, leia a coluna RESULTADO/RESULTADO DO PACIENTE (não a coluna de referência/valor de referência).
 
 Devolva EXATAMENTE este formato JSON:
 {
   "patientName": "NOME COMPLETO do PACIENTE (campo 'Nome:' no cabeçalho — nunca o assinante/médico)",
+  "patientCpf": "CPF do PACIENTE se constar no documento; vazio se não constar",
   "examTitle": "HEMOGRAMA COMPLETO",
   "performedAt": "12/06/2026",
   "sourceLab": "nome do laboratório/unidade",
@@ -83,6 +84,8 @@ Devolva EXATAMENTE este formato JSON:
 
 const IMAGING_INSTRUCTIONS = `Você está lendo o LAUDO de um exame (tomografia, ECG, ultrassom, etc.). Devolva JSON:
 {
+  "patientName": "nome do paciente se constar no laudo",
+  "patientCpf": "CPF do paciente se constar no laudo; vazio se não constar",
   "examTitle": "TC ABDOME SUPERIOR",
   "performedAt": "24/10/2025",
   "sourceLab": "...",

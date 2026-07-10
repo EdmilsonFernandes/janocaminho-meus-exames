@@ -30,11 +30,12 @@ import { TechTab } from './TechTab';
 import { AuditTab } from './AuditTab';
 import { SupportTab } from './SupportTab';
 import { PricingTab } from './PricingTab';
+import { PiiTab } from './PiiTab';
 
 /** Backoffice Dr. Exame — ISOLADO do app do paciente (/admin é noLayout).
  *  Shell próprio (topbar + sidebar) com os 11 módulos de gestão. Sem chrome de paciente
  *  (sem MobileBottomNav, FloatingChat, menu de saúde). Guard: só ADMIN. */
-type ModuleId = 'overview' | 'users' | 'doctors' | 'exams' | 'ia' | 'risk' | 'financeiro' | 'push' | 'tech' | 'audit' | 'support' | 'config';
+type ModuleId = 'overview' | 'users' | 'doctors' | 'exams' | 'ia' | 'risk' | 'financeiro' | 'push' | 'tech' | 'audit' | 'pii' | 'support' | 'config';
 
 const MODULES: { id: ModuleId; label: string; icon: ReactElement; group: string }[] = [
   { id: 'overview', label: 'Dashboard', icon: <DashboardOutlinedIcon />, group: 'Visão geral' },
@@ -47,6 +48,7 @@ const MODULES: { id: ModuleId; label: string; icon: ReactElement; group: string 
   { id: 'push', label: 'Push & Comunic.', icon: <CampaignOutlinedIcon />, group: 'Negócio' },
   { id: 'tech', label: 'Saúde técnica', icon: <MonitorHeartOutlinedIcon />, group: 'Operação' },
   { id: 'audit', label: 'Auditoria', icon: <ShieldOutlinedIcon />, group: 'Operação' },
+  { id: 'pii', label: 'CPF / PII', icon: <ShieldOutlinedIcon />, group: 'Operação' },
   { id: 'support', label: 'Suporte', icon: <SupportAgentOutlinedIcon />, group: 'Operação' },
   { id: 'config', label: 'Configurações', icon: <SettingsOutlinedIcon />, group: 'Sistema' },
 ];
@@ -165,6 +167,7 @@ export const AdminPage = () => {
           {mod === 'push' && <PushTab />}
           {mod === 'tech' && <TechTab />}
           {mod === 'audit' && <AuditTab />}
+          {mod === 'pii' && <PiiTab />}
           {mod === 'support' && <SupportTab />}
           {mod === 'config' && <PricingTab />}
         </Box>

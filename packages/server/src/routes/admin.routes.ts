@@ -13,6 +13,7 @@ import { audit } from '../utils/audit';
 import { getConfigRows, getActiveProvider, AI_PROVIDERS, resolveProviderConfig, type AiProviderName } from '../llm/ai-config';
 import { refreshLlm, testLlmConnection } from '../llm';
 import { encryptPII } from '../utils/crypto';
+import { cpfFingerprint, maskStoredCpf, revealStoredCpf } from '../utils/cpf';
 
 const router = Router();
 router.use(requireAuth);
@@ -24,6 +25,89 @@ const requireAdmin = async (req: AuthedRequest, res: any, next: any) => {
   next();
 };
 router.use(requireAdmin);
+
+const maskEmail = (value: string) => {
+  const [name, domain] = String(value).split('@');
+  if (!name || !domain) return '***';
+  return `${name.slice(0, 1)}***@${domain}`;
+};
+
+// SUPORTE PII — busca por CPF sem expor CPF completo, ou por e-mail quando o suporte
+// já tem o identificador da conta. Revelação do CPF completo fica em endpoint separado.
+router.get('/pii/lookup', async (req: AuthedRequest, res, next) => {
+  try {
+    const cpfInput = String(req.query.cpf ?? '').trim();
+    const emailInput = String(req.query.email ?? '').toLowerCase().trim();
+    const byEmail = !cpfInput && !!emailInput;
+    const hash = cpfInput ? cpfFingerprint(cpfInput) : null;
+    if (cpfInput && !hash) { res.status(400).json({ error: 'CPF inválido.' }); return; }
+    if (byEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput)) { res.status(400).json({ error: 'E-mail inválido.' }); return; }
+    if (!hash && !byEmail) { res.status(400).json({ error: 'Informe CPF ou e-mail.' }); return; }
+
+    const [patients, doctors] = await Promise.all([
+      prisma.patient.findMany({
+        where: hash ? { cpfHash: hash } : { owner: { email: { equals: emailInput, mode: 'insensitive' } } },
+        take: 10,
+        select: { id: true, fullName: true, relationship: true, owner: { select: { id: true, name: true, email: true } }, cpfLast4: true, cpfEncrypted: true, cpfIv: true, identityLockedAt: true },
+      }),
+      prisma.doctor.findMany({
+        where: hash ? { cpfHash: hash } : { email: { equals: emailInput, mode: 'insensitive' } },
+        take: 10,
+        select: { id: true, name: true, crm: true, crmUf: true, specialty: true, email: true, cpfLast4: true, cpfEncrypted: true, cpfIv: true, identityLockedAt: true },
+      }),
+    ]);
+    await audit(byEmail ? 'LOOKUP_PII_EMAIL' : 'LOOKUP_CPF', req, {
+      targetType: 'PII',
+      after: { field: byEmail ? 'email' : 'cpf', emailMasked: byEmail ? maskEmail(emailInput) : undefined, matches: patients.length + doctors.length },
+    });
+    res.json({
+      patients: patients.map((p) => ({
+        id: p.id,
+        fullName: p.fullName,
+        relationship: p.relationship,
+        owner: p.owner,
+        cpfMasked: maskStoredCpf(p),
+        identityLocked: !!p.identityLockedAt,
+      })),
+      doctors: doctors.map((d) => ({
+        id: d.id,
+        name: d.name,
+        crm: d.crm,
+        crmUf: d.crmUf,
+        specialty: d.specialty,
+        email: d.email,
+        cpfMasked: maskStoredCpf(d),
+        identityLocked: !!d.identityLockedAt,
+      })),
+    });
+  } catch (e) { next(e); }
+});
+
+// SUPORTE PII — revelação explícita e auditada. Não usar em telas comuns.
+router.post('/pii/reveal', async (req: AuthedRequest, res, next) => {
+  try {
+    const targetType = String(req.body?.targetType ?? '').toUpperCase();
+    const targetId = String(req.body?.targetId ?? '');
+    const reason = String(req.body?.reason ?? '').trim();
+    const ticketId = req.body?.ticketId ? String(req.body.ticketId) : undefined;
+    if (!['PATIENT', 'DOCTOR'].includes(targetType) || !targetId) { res.status(400).json({ error: 'targetType e targetId obrigatórios.' }); return; }
+    if (reason.length < 5) { res.status(400).json({ error: 'Informe o motivo/ticket para revelar CPF.' }); return; }
+
+    const row = targetType === 'PATIENT'
+      ? await prisma.patient.findUnique({ where: { id: targetId }, select: { cpfEncrypted: true, cpfIv: true, cpfLast4: true } })
+      : await prisma.doctor.findUnique({ where: { id: targetId }, select: { cpfEncrypted: true, cpfIv: true, cpfLast4: true } });
+    if (!row) { res.status(404).json({ error: 'Registro não encontrado.' }); return; }
+    const cpf = revealStoredCpf(row);
+    if (!cpf) { res.status(404).json({ error: 'CPF não cadastrado ou indisponível.' }); return; }
+
+    await audit('REVEAL_CPF', req, {
+      targetType,
+      targetId,
+      after: { field: 'cpf', reason, ticketId, cpfMasked: maskStoredCpf(row) },
+    });
+    res.json({ cpf, cpfMasked: maskStoredCpf(row), expiresAt: new Date(Date.now() + 60_000).toISOString() });
+  } catch (e) { next(e); }
+});
 
 // LISTAR usuários (busca ?q= + paginação ?page=&limit= server-side; sem params mantém o total)
 router.get('/users', async (req, res, next) => {
