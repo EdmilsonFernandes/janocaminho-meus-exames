@@ -43,14 +43,33 @@ const fieldSx = {
 // Estilos pra Markdown (SOAP + plano de conduta). Antes cada card tinha o seu (e faltava
 // remark-gfm, então quebras de linha sumiam — texto "sem formato" no mobile). Centralizado.
 const mdSx = {
-  '& p': { margin: '0.4em 0', fontSize: 14, lineHeight: 1.55 },
+  // Premium + mobile-first: quebra palavras/linhas longas (sem scroll horizontal), tabelas e
+  // blocos de código com scroll INTERNO (não estouram o card). Resolve o "txt porco" com
+  // tabelas largas/tokens longos que forçavam scroll lateral no mobile.
+  minWidth: 0, maxWidth: '100%',
+  '& p': { margin: '0.4em 0', fontSize: 14, lineHeight: 1.55, overflowWrap: 'anywhere' },
   '& h2': { fontSize: '0.95rem', fontWeight: 800, color: '#178f89', mt: 1.5, mb: 0.5 },
   '& h3': { fontSize: '0.9rem', fontWeight: 700, color: '#0f7670', mt: 1, mb: 0.25 },
   '& ul, & ol': { margin: '0.4em 0', paddingLeft: '1.4em' },
-  '& li': { mb: 0.4, fontSize: 14, lineHeight: 1.5 },
+  '& li': { mb: 0.4, fontSize: 14, lineHeight: 1.5, overflowWrap: 'anywhere' },
   '& strong': { fontWeight: 700 },
+  '& em': { fontStyle: 'italic' },
   '& hr': { border: 0, borderTop: '1px solid', borderColor: 'divider', my: 1 },
+  '& blockquote': { borderLeft: '3px solid', borderColor: 'divider', pl: 1.25, ml: 0, color: 'text.secondary', my: 0.75 },
+  '& code': { fontFamily: 'monospace', fontSize: 12.5, bgcolor: 'action.hover', px: 0.4, borderRadius: 0.5 },
+  '& pre': { overflowX: 'auto', maxWidth: '100%', bgcolor: 'action.hover', p: 1, borderRadius: 1, my: 0.75, '& code': { bgcolor: 'transparent', px: 0 } },
+  '& table': { display: 'block', overflowX: 'auto', maxWidth: '100%', borderCollapse: 'collapse', my: 0.75 },
+  '& th, & td': { border: '1px solid', borderColor: 'divider', padding: '4px 8px', fontSize: 13, textAlign: 'left', verticalAlign: 'top' },
+  '& th': { bgcolor: 'rgba(32,178,170,.06)', fontWeight: 700, color: '#178f89' },
 } as const;
+
+// A IA (GLM) às vezes envolve o markdown em code fences (```markdown ... ```); aí o
+// ReactMarkdown mostra cru num <pre> (### visível + scroll horizontal de 2000px+ no mobile).
+// Remove TODAS as fences — em SOAP/plano clínico NÃO há code blocks legítimos, então seguro.
+const stripMdFences = (md: string | null | undefined): string => {
+  if (!md) return '';
+  return md.replace(/```[a-zA-Z]*[ \t]*\r?\n?/g, '').trim();
+};
 
 // Countdown timer pro dialog de PIX (10 min, fecha sozinho ao expirar)
 const PayCountdown = ({ expiresAt, onExpire }: { expiresAt: string; onExpire: () => void }) => {
@@ -918,7 +937,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                         <Button size="small" variant="outlined" onClick={genActionPlan} disabled={planLoading} sx={{ textTransform: 'none', borderRadius: 99, fontWeight: 700, flexShrink: 0 }}>{clinicalPlan ? '🔄 Regenerar' : 'Gerar plano'}</Button>
                       </Stack>
                       {planLoading && <Box sx={{ textAlign: 'center', py: 2 }}><CircularProgress size={22} sx={{ color: TEAL }} /></Box>}
-                      {clinicalPlan && <Box sx={mdSx}><ReactMarkdown remarkPlugins={[remarkGfm]}>{clinicalPlan}</ReactMarkdown></Box>}
+                      {clinicalPlan && <Box sx={mdSx}><ReactMarkdown remarkPlugins={[remarkGfm]}>{stripMdFences(clinicalPlan)}</ReactMarkdown></Box>}
                       {!clinicalPlan && !planLoading && <Typography variant="body2" sx={{ color: 'text.secondary' }}>Sugestão de conduta clínica com base na leitura de risco: o que investigar, quando reavaliar, diferenciais.</Typography>}
                     </CardContent></Card>
 
@@ -929,7 +948,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                         <Button size="small" variant="outlined" onClick={genSoap} disabled={soapLoading} sx={{ textTransform: 'none', borderRadius: 99, fontWeight: 700, flexShrink: 0 }}>{soap ? '🔄 Regenerar' : 'Gerar SOAP'}</Button>
                       </Stack>
                       {soapLoading && <Box sx={{ textAlign: 'center', py: 2 }}><CircularProgress size={22} sx={{ color: TEAL }} /></Box>}
-                      {soap && <Box sx={mdSx}><ReactMarkdown remarkPlugins={[remarkGfm]}>{soap}</ReactMarkdown></Box>}
+                      {soap && <Box sx={mdSx}><ReactMarkdown remarkPlugins={[remarkGfm]}>{stripMdFences(soap)}</ReactMarkdown></Box>}
                       {!soap && !soapLoading && <Typography variant="body2" sx={{ color: 'text.secondary' }}>Gera um SOAP estruturado (S/O/A/P) com IA a partir dos dados do paciente.</Typography>}
                     </CardContent></Card>
                   </Stack>
@@ -1060,8 +1079,8 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                           <Typography sx={{ fontWeight: 700, color: 'text.primary' }}>🤖 Resumo clínico (mais recente){summaries[0].userMessage === 'audience:doctor' ? ' · versão médico' : ''}</Typography>
                           <Typography variant="caption" sx={{ color: 'text.secondary' }}>{new Date(summaries[0].createdAt).toLocaleDateString('pt-BR')}</Typography>
                         </Stack>
-                        <Box sx={{ '& p': { margin: '0.3em 0', fontSize: 14 }, '& h3': { fontSize: '0.95rem', fontWeight: 800, color: TEAL }, '& ul,& ol': { margin: '0.3em 0', paddingLeft: '1.2em' }, '& strong': { fontWeight: 700 } }}>
-                          <ReactMarkdown>{summaries[0].contentMd}</ReactMarkdown>
+                        <Box sx={mdSx}>
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{stripMdFences(summaries[0].contentMd)}</ReactMarkdown>
                         </Box>
                       </CardContent></Card>
                     )}
