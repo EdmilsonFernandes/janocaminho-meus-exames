@@ -7,6 +7,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import { useTranslate } from 'react-admin';
 import { API_URL, apiHeaders } from '../config';
 import { useSelectedPatient } from '../patient-context';
+import { DateFieldBR } from './DateFieldBR';
 
 const ETH = [
   { value: 'branca', label: 'Branca' },
@@ -104,7 +105,7 @@ export const CompleteProfileModal = () => {
             <MenuItem value="">{translate('profile.complete.ethnicityPreferNot')}</MenuItem>
             {ETH.map((e) => <MenuItem key={e.value} value={e.value}>{e.label}</MenuItem>)}
           </TextField>
-          <TextField type="date" label={translate('profile.complete.dob')} value={dob} onChange={(e) => setDob(e.target.value)} fullWidth size="small" InputLabelProps={{ shrink: true }} />
+          <DateFieldBR label={translate('profile.complete.dob')} value={dob} onChange={setDob} fullWidth size="small" />
         </Stack>
       </DialogContent>
       <DialogActions sx={{ justifyContent: 'center', gap: 1, pb: 2 }}>

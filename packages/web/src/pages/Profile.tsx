@@ -16,6 +16,7 @@ import { PhotoUpload } from '../components/PhotoUpload';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
 import { formatCpf, isValidCpf } from '../utils/cpf';
+import { DateFieldBR } from '../components/DateFieldBR';
 
 export const ProfilePage = () => {
   const [pid] = useSelectedPatient();
@@ -155,7 +156,7 @@ export const ProfilePage = () => {
               <MenuItem value="amarela">Amarela</MenuItem>
               <MenuItem value="indigena">Indígena</MenuItem>
             </TextField>
-            <TextField type="date" label="Data de nascimento" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} fullWidth size="small" InputLabelProps={{ shrink: true }} helperText="Usado pra calcular idade e ajustar faixas de referência." />
+            <DateFieldBR label="Data de nascimento" value={birthDate} onChange={setBirthDate} fullWidth size="small" helperText="Usado pra calcular idade e ajustar faixas de referência." />
             <TextField
               label="Perfil clínico (condições, medicações, histórico)"
               value={clinical} onChange={(e) => setClinical(e.target.value)} multiline minRows={4} fullWidth
