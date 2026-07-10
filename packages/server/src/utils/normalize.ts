@@ -40,6 +40,14 @@ const SYNONYMS: Record<string, string[]> = {
   TGO: ['AST', 'ASPARTATO AMINOTRANSFERASE', 'GOT'],
   TGP: ['ALT', 'ALANINA AMINOTRANSFERASE', 'GPT'],
   GAMA_GT: ['GAMA GT', 'GGT', 'GAMAGLUTAMILTRANSFERASE'],
+  // Fosfatase Alcalina (marcador do PhenoAge / função hepática). 'FA' NÃO entra (substring
+  // perigosa no fuzzy — casa em muita coisa). Guard ACIDA no COMPOUND_HINT impede
+  // 'FOSFATASE ACIDA' (próstata, analito distinto) colapsar aqui.
+  FOSFATASE: ['FOSFATASE ALCALINA', 'FOSFATASE ALCALINA TOTAL', 'ALP', 'ALKALINE PHOSPHATASE'],
+  // PCR (Proteína C Reativa) — marcador do PhenoAge. Labs BR reportam ultrasensível em mg/L
+  // com nomes variados; sem isto o nameCanonical ficava cru ('PROTEINA C REATIVA ULTRASSENSIVEL')
+  // e não casava mv('PCR') no health-state → PhenoAge nunca rodava.
+  PCR: ['PROTEINA C REATIVA', 'PROTEINA C REATIVA ULTRASSENSIVEL', 'PCR - PROTEINA C REATIVA', 'PCR ULTRASSENSIVEL', 'HS-CRP', 'PROTEINA C REATIVA US'],
   FERRITINA: ['FERRITINA'],
   VITAMINA_D: ['25 OH VITAMINA D', '25-OH-D', 'VITAMINA D'],
   VITAMINA_B12: ['B12', 'COBALAMINA'],
@@ -90,7 +98,7 @@ function fuzzyMatchCanonical(normalized: string): string | null {
 // colapsar no analito-base (G6PD ≠ glicose; anti-HBs ≠ hemoglobina; relação
 // proteína/creatinina ≠ creatinina; HbA2/HbF ≠ hemoglobina total). Boundary de não
 // alfanumérico p/ não casar substring. Texto já normalizado (sem acento, MAIÚSCULAS).
-const COMPOUND_HINT = /(?:^|[^A-Z0-9])(RELACAO|RAZAO|ESTIMAD[AO]|MEDIA ESTIMADA|URINARI[AO]|URINA|IONIC[AO]|IONIZAD[AO]|DESIDROGENASE|FOSFATO|ANTICORPOS|ANTICORPO|NAO|FETAL|PESQUISA)(?:[^A-Z0-9]|$)/;
+const COMPOUND_HINT = /(?:^|[^A-Z0-9])(RELACAO|RAZAO|ESTIMAD[AO]|MEDIA ESTIMADA|URINARI[AO]|URINA|IONIC[AO]|IONIZAD[AO]|DESIDROGENASE|FOSFATO|ACIDA|ANTICORPOS|ANTICORPO|NAO|FETAL|PESQUISA)(?:[^A-Z0-9]|$)/;
 
 // Hemoglobina como FRAÇÃO eletroforética (HbA, HbA2, HbF, HbS, HbC) — distinta da Hb total.
 const HEMOGLOBIN_FRACTION = /^HEMOGLOBINA\s+[A-Z][0-9]?(?:[^A-Z0-9]|$)/;

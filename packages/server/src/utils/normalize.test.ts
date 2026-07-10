@@ -47,6 +47,17 @@ describe('canonicalName — reduz nomes de lab ao canônico (casa sinônimos ent
     expect(canonicalName('SEGMENTADOS (ABS)')).toBe('NEUTROFILOS');
     expect(canonicalName('TRANSAMINASE OXALACETICA TGO (AST)')).toBe('TGO');
   });
+
+  it('Fosfatase Alcalina e PCR → canônico do PhenoAge (PhenoAge exige mv("FOSFATASE")/mv("PCR"))', () => {
+    expect(canonicalName('Fosfatase Alcalina')).toBe('FOSFATASE');
+    expect(canonicalName('Fosfatase alcalina total')).toBe('FOSFATASE');
+    expect(canonicalName('ALP')).toBe('FOSFATASE');
+    expect(canonicalName('Alkaline Phosphatase')).toBe('FOSFATASE');
+    expect(canonicalName('Proteína C Reativa')).toBe('PCR');
+    expect(canonicalName('Proteína C Reativa Ultrasensível')).toBe('PCR');
+    expect(canonicalName('PCR - Proteína C Reativa')).toBe('PCR');
+    expect(canonicalName('hs-CRP')).toBe('PCR');
+  });
 });
 
 describe('canonicalName — NÃO colapsa analito composto/derivado no analito-base', () => {
@@ -68,6 +79,11 @@ describe('canonicalName — NÃO colapsa analito composto/derivado no analito-ba
     expect(keep('HEMOGLOBINA A')).toBe(normalizeKey('HEMOGLOBINA A'));
     expect(keep('HEMOGLOBINA A2')).toBe(normalizeKey('HEMOGLOBINA A2'));
     expect(keep('HEMOGLOBINA FETAL')).toBe(normalizeKey('HEMOGLOBINA FETAL'));
+  });
+  it('Fosfatase Ácida (próstata) ≠ Fosfatase Alcalina', () => {
+    // Analoto distinto — guard ACIDA no COMPOUND_HINT impede colapsar em FOSFATASE.
+    expect(keep('Fosfatase Ácida')).toBe(normalizeKey('Fosfatase Ácida'));
+    expect(keep('FOSFATASE ACIDA TOTAL')).toBe(normalizeKey('FOSFATASE ACIDA TOTAL'));
   });
 });
 

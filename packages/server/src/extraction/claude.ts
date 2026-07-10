@@ -47,6 +47,8 @@ AUTO-VERIFICAÇÃO DE ESCALA: depois de extrair, confira se valueNumeric é comp
 UM VALOR POR ANALITO: se o laudo traz o MESMO analito em duas unidades equivalentes (ex.: "Testosterona Livre 2,05 nmol/L = 591 pg/mL"), reporte APENAS UMA linha — a que corresponde à faixa de referência do paciente (sexo/idade). NÃO crie dois itens pro mesmo valor (cruzaria escalas na evolução do paciente).
 ANALITOS DISTINTOS: "DHT" / "Dihidrotestosterona" NÃO é Testosterona — é um analito SEPARADO (metabólito ativo da 5α-redutase). Reporte com o nome exato impresso ("DHT" ou "DIHIDROTESTOSTERONA"), nunca o renomeie para "Testosterona".
 
+NÃO PULE PAINÉIS CLÍNICOS (CRÍTICO): em PDFs grandes com vários painéis, NÃO pule a BIOQUÍMICA/FUNÇÃO HEPÁTICA. Marcadores importantes que costumam vir juntos e DEVEM ser extraídos SE o laudo os traz: Albumina, Creatinina, Glicose, Fosfatase Alcalina (ALP), TGO (AST), TGP (ALT), GAMA-GT, PCR / Proteína C Reativa (ultrasensível), Leucócitos totais, Linfócitos %, VCM, RDW. Se há painel hepático/bioquímico, extraia TODOS os analitos dele — eles alimentam o cálculo da idade biológica.
+
 ATENÇÃO À DATA (PRECISÃO): performedAt deve ser a DATA DO ATENDIMENTO/COLETA do exame (ex.: campo "Atendimento: 08/04/2026", "Data da coleta" ou "Data de realização"), no formato dd/mm/aaaa. NUNCA use a data de impressão, emissão, liberação ou entrega do laudo — use SEMPRE a data em que o exame foi feito/coletado.
 
 ATENÇÃO AOS NOMES (PRECISÃO): patientName = o nome do PACIENTE, lido SEMPRE do campo "Nome:" do cabeçalho do documento. NUNCA use o nome de quem assinou o laudo (ex.: "assinado eletronicamente por Dr. Fulano") nem o nome do médico como patientName. requestingDoctor = o nome do campo "Médico:" do cabeçalho.
