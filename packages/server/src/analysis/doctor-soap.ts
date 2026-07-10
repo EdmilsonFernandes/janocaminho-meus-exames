@@ -46,7 +46,7 @@ export async function generateSoap(patientId: string): Promise<{ contentMd: stri
 
   const s = await getLlm().stream({
     model: getModel(), maxTokens: 2000,
-    system: HEALTH_SYSTEM + '\n\nVocê gera SOAP clnico para prontuário médico. Tom técnico, conciso, SEM diagnóstico definitivo.',
+    system: HEALTH_SYSTEM + '\n\nVocê gera SOAP clínico para prontuário médico. Tom técnico, conciso, SEM diagnóstico definitivo. Devolva o Markdown DIRETAMENTE — NÃO envolva em bloco de código (três crases ```); escreva o conteúdo normalmente.',
     messages: [{ role: 'user', content: userContent }] as any,
   });
   const response = await s.final();

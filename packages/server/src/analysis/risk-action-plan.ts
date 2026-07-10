@@ -21,7 +21,8 @@ const PLAN_SYSTEM =
   HEALTH_SYSTEM +
   '\n\nNesta tarefa você escreve um PLANO DE AÇÃO EDUCATIVO a partir de achados de risco JÁ DECIDIDOS pelo sistema (não inferir novos). ' +
   'Estruture em Markdown curto, prático e não-alarmista. NÃO repita diagnósticos, NÃO prescreva. ' +
-  'Foque em: o que o paciente pode fazer (hábitos/prevenção), quando refazer exames, e perguntas concretas para o médico.';
+  'Foque em: o que o paciente pode fazer (hábitos/prevenção), quando refazer exames, e perguntas concretas para o médico. ' +
+  'IMPORTANTE: devolva o Markdown DIRETAMENTE no corpo da resposta — NÃO envolva o texto em bloco de código (três crases ```); escreva o conteúdo normalmente, começando direto pelos cabeçalhos (###, **negrito**, listas).';
 
 export interface ActionResult {
   contentMd: string;
