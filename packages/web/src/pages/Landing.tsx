@@ -25,6 +25,8 @@ import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
 import TuneIcon from '@mui/icons-material/Tune';
 import CalculateIcon from '@mui/icons-material/Calculate';
 
+import { ExamDemo } from '../components/ExamDemo';
+
 // ---- Tokens (espelham theme.ts) ----
 const TEAL = '#20b2aa';
 const TEAL_DARK = '#178f89';
@@ -212,6 +214,18 @@ export const LandingPage = () => {
               </Box>
             </Box>
           </Box>
+        </Container>
+      </Box>
+
+      {/* MOMENTO MÁGICO — demo interativo "Decifre seu exame" (F1) */}
+      <Box sx={{ bgcolor: 'background.default', py: { xs: 6, md: 9 } }}>
+        <Container maxWidth="lg">
+          <Box sx={{ textAlign: 'center', mb: { xs: 3.5, md: 5 } }}>
+            <Typography sx={{ fontSize: 13, fontWeight: 800, color: TEAL_DARK, letterSpacing: '0.06em', textTransform: 'uppercase', mb: 1 }}>Veja acontecer</Typography>
+            <Typography variant="h2" sx={{ fontSize: { xs: '1.7rem', md: '2.3rem' }, fontWeight: 800, color: 'text.primary', mb: 1, letterSpacing: '-0.02em' }}>Decifre um exame em 5 segundos</Typography>
+            <Typography sx={{ color: 'text.secondary', fontSize: 16.5, maxWidth: 560, mx: 'auto' }}>Toque e veja o Dr. Exame ler o laudo, explicar cada valor e montar sua leitura de risco — sem cadastro.</Typography>
+          </Box>
+          <ExamDemo />
         </Container>
       </Box>
 
