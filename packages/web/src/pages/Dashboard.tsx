@@ -37,7 +37,7 @@ import { PageContainer } from '../components/layout/PageContainer';
 const readTotal = (r: Response) => Number(r.headers.get('X-Total-Count') ?? r.headers.get('content-range')?.split('/')?.[1] ?? '0');
 
 const TIPS = [
-  'Beba pelo menos 2 litros de água por dia — a hidratação melhora exames de rim e urina.',
+  'Leve sempre seus exames anteriores à consulta — a comparação entre valores vale mais que um número isolado.',
   'Jejum de 8–12h antes de exames de sangue garante resultados mais precisos.',
   'Leve sempre seus exames anteriores à consulta — a comparação vale mais que um valor isolado.',
   'Atividade física regular ajuda a reduzir colesterol, glicemia e pressão.',
@@ -158,7 +158,8 @@ export const Dashboard = () => {
   const [loaded, setLoaded] = useState(false);
   const [bioOffer, setBioOffer] = useState(false);
   const [tipData, setTipData] = useState<{ abnormal: any; good: any }>({ abnormal: null, good: null });
-  const tip = TIPS[new Date().getDate() % TIPS.length];
+  const [tipFallback, setTipFallback] = useState('');
+  const tip = tipFallback || TIPS[new Date().getDate() % TIPS.length];
 
   useEffect(() => {
     // Score cacheado no localStorage por paciente → mostra INSTANTÂNEO (sem "Calculando…")
@@ -203,6 +204,13 @@ export const Dashboard = () => {
               try { localStorage.setItem(`dashScoreNum:${pid}`, String(hd.score)); } catch { /* ignore */ }
             }
             setHsAltered((hd.byPriority?.importante ?? 0) + (hd.byPriority?.moderada ?? 0));
+            // Fallback da dica: sempre RELEVANTE (sobre os exames do paciente), nunca genérico
+            // "beba água". Quando não há marcador de atenção (topAttention vazio — ex.: alterados
+            // são antigos/stale), prioriza o aviso de exames desatualizados ou o score.
+            let fb = '';
+            if (hd.staleWarning) fb = `⏳ ${hd.staleWarning}`;
+            else if (typeof hd.score === 'number') fb = `Seu score de saúde está em ${hd.score}/100 — continue enviando exames e levando-os às consultas médicas.`;
+            if (fb) setTipFallback(fb);
             const markerToTip = (m: any) => m ? {
               name: m.name,
               value: m.latest?.valueNumeric ?? null,
