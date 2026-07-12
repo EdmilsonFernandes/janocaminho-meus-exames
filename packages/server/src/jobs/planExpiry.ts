@@ -2,6 +2,7 @@ import { prisma } from '../prisma';
 import { sendEmail } from '../utils/mailer';
 import { sendPushToUser } from '../utils/push';
 import { config } from '../config';
+import { planExpiryEmail } from '../utils/emailTemplate';
 
 /** Scheduler de NUDGE de vencimento do plano Premium.
  *  - Roda a cada 1h; só ENVIA na janela 8-11h (não incomoda de madrugada).
@@ -56,13 +57,7 @@ async function nudge(userId: string, name: string, email: string, expiresAt: Dat
     await sendEmail({
       to: email,
       subject: `${title} — Meus Exames`,
-      html: `<div style="font-family:Segoe UI,Arial,sans-serif;color:#15233b;max-width:480px;margin:auto">
-        <h2 style="color:#178f89">⏰ Seu Premium vence em ${days} ${days === 1 ? 'dia' : 'dias'}</h2>
-        <p>Oi ${first}, seu plano Premium do Meus Exames termina em <strong>${expiresAt.toLocaleDateString('pt-BR')}</strong>.</p>
-        <p>Renove pra não perder: relatórios completos, score de saúde, comparação de exames e o assistente Dr. Exame.</p>
-        <p style="text-align:center;margin:28px 0"><a href="${renewUrl}" style="background:#20b2aa;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700">Renovar Premium</a></p>
-        <p style="font-size:12px;color:#999">Sem renovação automática — você decide quando renovar. Seus exames e dados continuam acessíveis mesmo sem Premium.</p>
-      </div>`,
+      html: planExpiryEmail({ name, days, expiresAt, renewUrl }),
     });
   } catch (e: any) { console.error('[planExpiry] falha email:', e?.message); }
   console.log(`[planExpiry] nudge p/ ${email}: vence em ${days}d`);

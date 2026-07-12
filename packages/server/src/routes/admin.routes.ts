@@ -8,6 +8,7 @@ import { deleteExamFile, saveExamFile, resolveExamFile } from '../utils/storage'
 import { listBlockedDomains, addBlockedDomain, removeBlockedDomain, syncBlockedDomains } from '../utils/blockedDomains';
 import { sendPush, sendPushToUser, PUSH_TOPIC } from '../utils/push';
 import { sendEmail } from '../utils/mailer';
+import { ticketReplyEmail, webUrl } from '../utils/emailTemplate';
 import { upload } from '../middleware/upload';
 import { audit } from '../utils/audit';
 import { getConfigRows, getActiveProvider, AI_PROVIDERS, resolveProviderConfig, type AiProviderName } from '../llm/ai-config';
@@ -743,7 +744,7 @@ router.post('/tickets/:id/messages', upload.array('files', 5), async (req: Authe
     if (user?.email) {
       void sendEmail({
         to: user.email, subject: `Seu chamado #${ticket.number} teve uma resposta`,
-        html: `<p>Olá${user.name ? ', ' + user.name : ''}!</p><p>O suporte respondeu seu chamado <strong>#${ticket.number}</strong>:</p><blockquote>${(body || '(anexo)').replace(/</g, '&lt;')}</blockquote><p>Abra o app → Ajuda & Suporte para ver e responder.</p>`,
+        html: ticketReplyEmail({ name: user.name, ticketNumber: ticket.number, body, appUrl: webUrl('/#/suporte') }),
         text: `O suporte respondeu seu chamado #${ticket.number}: ${body || '(anexo)'}`,
       }).catch(() => {});
     }

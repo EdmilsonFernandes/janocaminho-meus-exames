@@ -101,3 +101,69 @@ export function nudgeEmail(opts: { name: string; title: string; body: string; ct
       <p style="font-size:13px;margin:0"><a href="${opts.unsubUrl}" style="color:#8b9bb4;text-decoration:underline">Não quero receber estes avisos por e-mail</a></p>`,
   });
 }
+
+/** Monta uma URL absoluta do app (WEB_ORIGIN + WEB_BASE_PATH + path). Ex.: webUrl('/#/suporte'). */
+export function webUrl(path: string): string {
+  return `${_origin}${_base ? '/' + _base : ''}${path}`;
+}
+
+/** E-mail: suporte respondeu um chamado (Zendesk-like). */
+export function ticketReplyEmail(opts: { name?: string; ticketNumber: number; body: string; appUrl: string }): string {
+  const safe = (opts.body || '(anexo)').replace(/</g, '&lt;').replace(/\n/g, '<br>');
+  return emailTemplate({
+    title: `Seu chamado #${opts.ticketNumber} — Meus Exames`,
+    preheader: `O suporte respondeu seu chamado #${opts.ticketNumber}.`,
+    content: `
+      <p style="font-size:16px;color:#15233b;margin:0 0 8px">Olá${opts.name ? `, <strong>${opts.name}</strong>` : ''}!</p>
+      <p style="font-size:15px;color:#51607a;margin:0 0 20px">O suporte respondeu seu chamado <strong>#${opts.ticketNumber}</strong>:</p>
+      <div style="background:#f3f6fb;border-left:4px solid #20b2aa;border-radius:8px;padding:16px 18px;margin:0 0 24px">
+        <p style="font-size:15px;color:#15233b;line-height:1.6;margin:0">${safe}</p>
+      </div>
+      <div style="text-align:center;margin:0 0 16px">
+        <a href="${opts.appUrl}" style="display:inline-block;background:#20b2aa;color:#fff;font-size:16px;font-weight:700;padding:14px 36px;border-radius:99px;text-decoration:none">Ver e responder no app</a>
+      </div>
+      <p style="font-size:14px;color:#8b9bb4;margin:0">Abra o app → Ajuda &amp; Suporte para continuar a conversa.</p>`,
+  });
+}
+
+/** E-mail: paciente compartilhou dados com o médico (convite ao Portal do Médico). */
+export function doctorInviteEmail(opts: { doctorName?: string; patientName: string; scopes: string[]; convenio?: string | null; portalUrl: string }): string {
+  const scopeLabels: Record<string, string> = { exams: 'Exames', evolution: 'Evolução', alerts: 'Alertas', summary: 'Resumos IA' };
+  const labels = (opts.scopes.length ? opts.scopes : ['exams']).map((s) => scopeLabels[s] || s);
+  return emailTemplate({
+    title: `${opts.patientName} compartilhou dados — Meus Exames`,
+    preheader: `${opts.patientName} compartilhou dados de saúde com você.`,
+    content: `
+      <p style="font-size:16px;color:#15233b;margin:0 0 8px">Olá${opts.doctorName ? `, <strong>${opts.doctorName}</strong>` : ''}!</p>
+      <p style="font-size:15px;color:#51607a;margin:0 0 20px">O paciente <strong>${opts.patientName}</strong> compartilhou dados de saúde com você no Meus Exames.</p>
+      <div style="background:#f3f6fb;border-radius:10px;padding:16px 18px;margin:0 0 24px">
+        <p style="font-size:13px;color:#8b9bb4;margin:0 0 6px;text-transform:uppercase;letter-spacing:.5px">O que foi compartilhado</p>
+        <p style="font-size:16px;color:#15233b;font-weight:700;margin:0">${labels.join(' · ')}</p>
+        ${opts.convenio ? `<p style="font-size:14px;color:#51607a;margin:8px 0 0">Convênio: ${opts.convenio}</p>` : ''}
+      </div>
+      <div style="text-align:center;margin:0 0 16px">
+        <a href="${opts.portalUrl}" style="display:inline-block;background:#20b2aa;color:#fff;font-size:16px;font-weight:700;padding:14px 36px;border-radius:99px;text-decoration:none">Acessar o Portal do Médico</a>
+      </div>
+      <p style="font-size:14px;color:#8b9bb4;margin:0">Pré-cadastro automático pelo CRM. Você vê apenas o que o paciente autorizou.</p>`,
+  });
+}
+
+/** E-mail: plano Premium vence em N dias. */
+export function planExpiryEmail(opts: { name: string; days: number; expiresAt: Date; renewUrl: string }): string {
+  const first = (opts.name || '').split(' ')[0];
+  const dia = opts.days === 1 ? 'dia' : 'dias';
+  return emailTemplate({
+    title: `${first}, seu Premium vence em ${opts.days} ${dia} — Meus Exames`,
+    preheader: 'Renove pra continuar com relatórios, score e o Dr. Exame.',
+    content: `
+      <p style="font-size:16px;color:#15233b;margin:0 0 8px">Oi <strong>${first}</strong>,</p>
+      <p style="font-size:15px;color:#51607a;margin:0 0 20px">Seu plano Premium do Meus Exames termina em <strong>${opts.expiresAt.toLocaleDateString('pt-BR')}</strong> (${opts.days} ${dia}).</p>
+      <div style="background:#fff3e0;border-left:4px solid #ff9800;border-radius:8px;padding:14px 18px;margin:0 0 24px">
+        <p style="font-size:14px;color:#51607a;margin:0">Renove pra não perder: <strong style="color:#15233b">relatórios completos, score de saúde, comparação de exames e o assistente Dr. Exame</strong>.</p>
+      </div>
+      <div style="text-align:center;margin:0 0 16px">
+        <a href="${opts.renewUrl}" style="display:inline-block;background:#20b2aa;color:#fff;font-size:16px;font-weight:700;padding:14px 36px;border-radius:99px;text-decoration:none">Renovar Premium</a>
+      </div>
+      <p style="font-size:13px;color:#8b9bb4;margin:0">Sem renovação automática — você decide. Seus exames e dados continuam acessíveis mesmo sem Premium.</p>`,
+  });
+}

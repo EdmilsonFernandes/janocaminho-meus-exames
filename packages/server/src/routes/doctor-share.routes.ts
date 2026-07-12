@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
 import { sendEmail } from '../utils/mailer';
+import { doctorInviteEmail, webUrl } from '../utils/emailTemplate';
 import { getSettings } from '../utils/settings';
 import { chargeCredits } from '../utils/credits';
 import { normalizeCrmKey } from './doctor.routes';
@@ -68,12 +69,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
         await sendEmail({
           to: doctor.email,
           subject: `${patient?.fullName ?? 'Paciente'} compartilhou dados com você — Meus Exames`,
-          html: `<div style="font-family:Segoe UI,Arial,sans-serif;color:#15233b;max-width:480px;margin:auto">
-            <h2 style="color:#178f89">🩺 Novo compartilhamento</h2>
-            <p>O paciente <strong>${patient?.fullName}</strong> compartilhou dados de saúde com você.</p>
-            <p>Escopo: <strong>${(scopes || ['exams']).join(', ')}</strong>${convenio ? `<br>Convênio: ${convenio}` : ''}</p>
-            <p>Acesse o <a href="https://janocaminho.com.br/minhasaude/#/doctor" style="color:#20b2aa;font-weight:700">Portal do Médico</a> para visualizar.</p>
-            <p style="font-size:12px;color:#999;margin-top:20px">Meus Exames — Análise educativa, não substitui o médico.</p></div>`,
+          html: doctorInviteEmail({ doctorName: doctor.name, patientName: patient?.fullName ?? 'Paciente', scopes: scopes || ['exams'], convenio: convenio != null ? String(convenio) : null, portalUrl: webUrl('/#/doctor') }),
         });
       } catch (e: any) { console.error('[doctor-share] falha email:', e?.message); }
     }
