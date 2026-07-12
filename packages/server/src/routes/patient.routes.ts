@@ -129,7 +129,10 @@ router.get('/:id/health-summary', async (req: AuthedRequest, res, next) => {
   } catch (e) { next(e); }
 });
 
-// VISÃO DA FAMÍLIA: score + alterações de cada dependente + alertas cruzados (>=2 com mesmo analito alterado)
+// VISÃO DA FAMÍLIA: score + alterações de cada dependente + alertas cruzados (>=2 com mesmo analito alterado).
+// Score = MESMA fórmula do Dashboard e do Portal do Médico (buildCurrentHealthSummary / Layer 2):
+// dedup por marcador + só últimos 12 meses + exclui borderline. ANTES a família tinha fórmula
+// própria (só o último exame, sem dedup) que divergia do painel e do médico ("score não bate").
 router.get('/family-overview', async (req: AuthedRequest, res, next) => {
   try {
     const patients = await prisma.patient.findMany({
@@ -140,27 +143,33 @@ router.get('/family-overview', async (req: AuthedRequest, res, next) => {
     const result: any[] = [];
     const abnormalByAnalyte = new Map<string, string[]>();
     for (const p of patients) {
+      const snap = await buildCurrentHealthSummary(p.id); // Layer 2 (canônico) — igual ao painel/médico
+      // Último exame só para título/data (NÃO entra no score — evita voltar a divergir).
       const exam = await prisma.exam.findFirst({
         where: { patientId: p.id, status: 'EXTRACTED' },
         orderBy: { performedAt: 'desc' },
-        include: { items: true },
+        select: { title: true, performedAt: true },
       });
-      let score: number | null = null;
-      let abnormalCount = 0;
-      const topAbnormal: any[] = [];
-      if (exam) {
-        const withRef = exam.items.filter((i) => i.refLow != null || i.refHigh != null);
-        const abn = withRef.filter((i) => i.isAbnormal);
-        score = withRef.length ? Math.round((100 * (withRef.length - abn.length)) / withRef.length) : null;
-        abnormalCount = abn.length;
-        for (const i of abn.slice(0, 6)) {
-          topAbnormal.push({ name: i.name, value: i.valueText, flag: i.flag });
-          const arr = abnormalByAnalyte.get(i.nameCanonical) ?? [];
-          arr.push(p.fullName);
-          abnormalByAnalyte.set(i.nameCanonical, arr);
-        }
+      const topAbnormal = snap.topAttention.slice(0, 6).map((m: any) => ({
+        name: m.name,
+        value: m.latest?.valueText ?? (m.latest?.valueNumeric != null ? String(m.latest.valueNumeric) : null),
+        flag: m.flag ?? '',
+      }));
+      // Padrão familiar: TODOS os analitos anormais do membro (não só o top 6).
+      for (const canon of snap.abnormalAnalytes ?? []) {
+        const arr = abnormalByAnalyte.get(canon) ?? [];
+        arr.push(p.fullName);
+        abnormalByAnalyte.set(canon, arr);
       }
-      result.push({ ...p, score, abnormalCount, topAbnormal, examTitle: exam?.title ?? null, performedAt: exam?.performedAt ?? null });
+      result.push({
+        ...p,
+        score: snap.score,
+        markers: snap.markers,
+        abnormalCount: (snap.byPriority?.moderada ?? 0) + (snap.byPriority?.importante ?? 0),
+        topAbnormal,
+        examTitle: exam?.title ?? null,
+        performedAt: exam?.performedAt ?? null,
+      });
     }
     const crossAlerts = [...abnormalByAnalyte.entries()]
       .filter(([, names]) => new Set(names).size >= 2)

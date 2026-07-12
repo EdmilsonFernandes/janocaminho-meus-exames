@@ -68,6 +68,9 @@ export interface CurrentHealthSummary {
   markers: number;
   score: number | null;
   byPriority: Record<Priority, number>;
+  /** nameCanonical de TODOS os marcadores anormais (não-normal) — para detecção de
+   *  padrão familiar (crossAlerts) sem se limitar ao top 6 do topAttention. */
+  abnormalAnalytes: string[];
   topAttention: MarkerState[];
   improving: MarkerState[];
   worsening: MarkerState[];
@@ -386,6 +389,7 @@ export async function buildCurrentHealthSummary(patientId: string): Promise<Curr
     generatedAt: new Date(),
     markers: total,
     score,
+    abnormalAnalytes: abnormal.map((m) => m.nameCanonical),
     staleWarning: staleCount > 0 && total > 0
       ? `${staleCount} marcador(es) não ${staleCount > 1 ? 'foram medidos' : 'foi medido'} há mais de 12 meses e não ${staleCount > 1 ? 'entram' : 'entra'} no score. Envie um exame recente pra uma leitura atualizada.`
       : null,

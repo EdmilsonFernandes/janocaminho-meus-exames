@@ -99,7 +99,7 @@ export const FamilyPage = () => {
       </Grid>
 
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 3 }}>
-        *Scores do último exame de cada um. Análise educativa, não substitui o médico.
+        *Score de cada um (últimos 12 meses) — o mesmo do seu painel e do portal do médico. Análise educativa, não substitui o médico.
       </Typography>
 
       {/* COMPARATIVO por analito (último valor de cada membro) */}
