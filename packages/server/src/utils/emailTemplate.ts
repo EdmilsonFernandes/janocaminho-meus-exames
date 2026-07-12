@@ -167,3 +167,42 @@ export function planExpiryEmail(opts: { name: string; days: number; expiresAt: D
       <p style="font-size:13px;color:#8b9bb4;margin:0">Sem renovação automática — você decide. Seus exames e dados continuam acessíveis mesmo sem Premium.</p>`,
   });
 }
+
+/** E-mail: paciente fez uma PERGUNTA ao médico (avisa o médico pra abrir o portal). */
+export function doctorQuestionEmail(opts: { doctorName?: string; patientName: string; subject: string; portalUrl: string }): string {
+  const subj = (opts.subject || '').replace(/</g, '&lt;').slice(0, 280);
+  return emailTemplate({
+    title: `${opts.patientName} fez uma pergunta — Meus Exames`,
+    preheader: `${opts.patientName} tem uma dúvida pra você.`,
+    content: `
+      <p style="font-size:16px;color:#15233b;margin:0 0 8px">Olá${opts.doctorName ? `, <strong>${opts.doctorName}</strong>` : ''}!</p>
+      <p style="font-size:15px;color:#51607a;margin:0 0 20px">O paciente <strong>${opts.patientName}</strong> fez uma pergunta pra você:</p>
+      <div style="background:#f3f6fb;border-left:4px solid #20b2aa;border-radius:8px;padding:16px 18px;margin:0 0 24px">
+        <p style="font-size:15px;color:#15233b;line-height:1.6;margin:0">${subj}</p>
+      </div>
+      <div style="text-align:center;margin:0 0 16px">
+        <a href="${opts.portalUrl}" style="display:inline-block;background:#20b2aa;color:#fff;font-size:16px;font-weight:700;padding:14px 36px;border-radius:99px;text-decoration:none">Responder no Portal do Médico</a>
+      </div>
+      <p style="font-size:14px;color:#8b9bb4;margin:0">Você só recebe perguntas de pacientes que compartilharam dados com você.</p>`,
+  });
+}
+
+/** E-mail: o médico RESPONDEU uma pergunta (avisa o paciente). */
+export function doctorAnswerEmail(opts: { patientName?: string; doctorName: string; subject: string; answer: string; appUrl: string }): string {
+  const safeAns = (opts.answer || '').replace(/</g, '&lt;').replace(/\n/g, '<br>').slice(0, 600);
+  const safeSub = (opts.subject || '').replace(/</g, '&lt;').slice(0, 200);
+  return emailTemplate({
+    title: `${opts.doctorName} respondeu sua pergunta — Meus Exames`,
+    preheader: `Resposta à sua pergunta${safeSub ? ` sobre ${safeSub}` : ''}.`,
+    content: `
+      <p style="font-size:16px;color:#15233b;margin:0 0 8px">Olá${opts.patientName ? `, <strong>${opts.patientName}</strong>` : ''}!</p>
+      <p style="font-size:15px;color:#51607a;margin:0 0 8px"><strong>${opts.doctorName}</strong> respondeu sua pergunta${safeSub ? ` sobre <em>${safeSub}</em>` : ''}:</p>
+      <div style="background:#f3f6fb;border-left:4px solid #20b2aa;border-radius:8px;padding:16px 18px;margin:0 0 24px">
+        <p style="font-size:15px;color:#15233b;line-height:1.6;margin:0">${safeAns}</p>
+      </div>
+      <div style="text-align:center;margin:0 0 16px">
+        <a href="${opts.appUrl}" style="display:inline-block;background:#20b2aa;color:#fff;font-size:16px;font-weight:700;padding:14px 36px;border-radius:99px;text-decoration:none">Ver no app</a>
+      </div>
+      <p style="font-size:14px;color:#8b9bb4;margin:0">A resposta do médico é orientação profissional — não substitui uma consulta presencial quando ele julgar necessária.</p>`,
+  });
+}

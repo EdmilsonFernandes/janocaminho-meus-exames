@@ -1,5 +1,6 @@
 import { auditLog } from '../middleware/auditLog';
 import { audit } from '../utils/audit';
+import { doctorAnswerEmail, webUrl } from '../utils/emailTemplate';
 import { validate, schemas } from '../middleware/validate';
 import { Router } from 'express';
 import jwt from 'jsonwebtoken';
@@ -833,6 +834,16 @@ router.post('/questions/:id/messages', requireDoctor, async (req: any, res, next
     try {
       const { sendPushToUser } = await import('../utils/push');
       await sendPushToUser(q.patient.ownerId, 'Seu médico respondeu', `Resposta à sua pergunta: ${q.subject.slice(0, 50)}`, { type: 'doctor_question', url: '/notificacoes' });
+    } catch { /* best-effort */ }
+    // E-mail ao paciente (best-effort) — quem não tem push (iPhone web) também fica sabendo.
+    try {
+      const [owner, doc] = await Promise.all([
+        prisma.user.findUnique({ where: { id: q.patient.ownerId }, select: { email: true, name: true } }),
+        prisma.doctor.findUnique({ where: { id: String(req.doctorId) }, select: { name: true } }),
+      ]);
+      if (owner?.email) {
+        void sendEmail({ to: owner.email, subject: `${doc?.name ?? 'Seu médico'} respondeu sua pergunta — Meus Exames`, html: doctorAnswerEmail({ patientName: q.patient.fullName, doctorName: doc?.name ?? 'Seu médico', subject: q.subject, answer: body, appUrl: webUrl('/#/notificacoes') }) }).catch(() => {});
+      }
     } catch { /* best-effort */ }
     res.json({ item: updated });
   } catch (e) { next(e); }

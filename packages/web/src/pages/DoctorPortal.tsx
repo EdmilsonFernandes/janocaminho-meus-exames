@@ -14,6 +14,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { API_URL } from '../config';
 import { confirmDialog, snackbar } from '../components/ConfirmDialog';
 import { DrExame } from '../components/DrExame';
+import { OtpInput } from '../components/OtpInput';
 import { MfaSetupCard } from '../components/mfa/MfaSetupCard';
 import { SPECIALTIES, UFS } from '../utils/medicalData';
 import { PhotoUpload } from '../components/PhotoUpload';
@@ -171,7 +172,9 @@ export const DoctorPortalPage = () => {
           <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', mb: 0.5 }}>✉️ Confirme seu e-mail</Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>Enviamos um código de 6 dígitos para <strong>{pendingEmail}</strong>. Digite abaixo pra ativar sua conta de médico.</Typography>
           <Box component="form" onSubmit={verifyEmail} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <TextField autoFocus value={verifyCode} onChange={(e) => setVerifyCode(e.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="Código (6 dígitos)" inputMode="numeric" required sx={fieldSx} />
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 0.5 }}>
+              <OtpInput value={verifyCode} onChange={setVerifyCode} />
+            </Box>
             {err && <Alert severity="error" sx={{ py: 0.5, borderRadius: 2 }}>{err}</Alert>}
             <Button type="submit" variant="contained" size="large" fullWidth disabled={loading} sx={{ borderRadius: '8px', py: 1.35, fontWeight: 800, textTransform: 'none', fontSize: 16, background: 'linear-gradient(180deg,#20b2aa,#009688)' }}>{loading ? <CircularProgress size={22} color="inherit" /> : 'Ativar conta'}</Button>
           </Box>

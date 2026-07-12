@@ -4,6 +4,8 @@ import { Router } from 'express';
 import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
 import { chargeCredits, CREDIT_COSTS } from '../utils/credits';
+import { sendEmail } from '../utils/mailer';
+import { doctorQuestionEmail, webUrl } from '../utils/emailTemplate';
 
 const router = Router();
 router.use(requireAuth);
@@ -71,6 +73,14 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       },
       include: { doctor: { select: { id: true, name: true } } },
     });
+    // Avisa o MÉDICO por e-mail (best-effort) — sem isso, ele só descobre da pergunta abrindo o portal.
+    const [doc, pat] = await Promise.all([
+      prisma.doctor.findUnique({ where: { id: String(doctorId) }, select: { name: true, email: true, emailVerified: true } }),
+      prisma.patient.findUnique({ where: { id: pid }, select: { fullName: true } }),
+    ]);
+    if (doc?.email && doc.emailVerified && !doc.email.includes('@invite.com')) {
+      void sendEmail({ to: doc.email, subject: `${pat?.fullName ?? 'Paciente'} fez uma pergunta — Meus Exames`, html: doctorQuestionEmail({ doctorName: doc.name, patientName: pat?.fullName ?? 'Paciente', subject: body, portalUrl: webUrl('/#/doctor') }) }).catch(() => {});
+    }
     res.status(201).json({ item: q, enviado: true });
   } catch (e) { next(e); }
 });
