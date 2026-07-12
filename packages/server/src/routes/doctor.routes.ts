@@ -1,4 +1,5 @@
 import { auditLog } from '../middleware/auditLog';
+import { audit } from '../utils/audit';
 import { validate, schemas } from '../middleware/validate';
 import { Router } from 'express';
 import jwt from 'jsonwebtoken';
@@ -290,12 +291,14 @@ router.post('/login', async (req, res, next) => {
     if (digits && !id.includes('@') && !id.includes('-')) orClauses.push({ crm: { startsWith: digits + '-' } });
     const doctor = await prisma.doctor.findFirst({ where: { OR: orClauses } });
     if (!doctor || doctor.passwordHash === 'pending-invite' || !(await comparePassword(String(req.body?.password ?? ''), doctor.passwordHash))) {
+      void audit('LOGIN_FAILED', req, { actorType: 'DOCTOR', targetType: 'DOCTOR', after: { login: id } });
       res.status(401).json({ error: 'Credenciais inválidas.' }); return;
     }
     if (!doctor.emailVerified) { res.status(403).json({ error: 'Verifique seu e-mail para ativar a conta.', needsVerification: true, email: doctor.email }); return; }
     // MFA: se ativado, cria desafio
     const mfa = await evaluateMfaOnLogin('DOCTOR', doctor.id, { doctorId: doctor.id }, doctor.email);
     if (mfa) { res.json(mfa); return; }
+    void audit('LOGIN_SUCCESS', req, { actorType: 'DOCTOR', actorId: doctor.id, targetType: 'DOCTOR', targetId: doctor.id, after: { email: doctor.email, crm: doctor.crm } });
     res.json({ token: signDoctorToken(doctor.id), doctor: serializeDoctor({ id: doctor.id, name: doctor.name, crm: doctor.crm, specialty: doctor.specialty, email: doctor.email, photoUrl: doctor.photoUrl, cpfLast4: doctor.cpfLast4, identityLockedAt: doctor.identityLockedAt }) });
   } catch (e) { next(e); }
 });
@@ -306,6 +309,7 @@ router.post('/mfa/verify', async (req, res) => {
     const result = await verifyChallenge(String(req.body?.challengeToken ?? ''), String(req.body?.code ?? ''));
     const doctorId = result.sessionPayload.doctorId;
     const d = await prisma.doctor.findUnique({ where: { id: doctorId }, select: { id: true, name: true, crm: true, specialty: true, email: true, photoUrl: true, cpfLast4: true, identityLockedAt: true } });
+    void audit('LOGIN_SUCCESS', req, { actorType: 'DOCTOR', actorId: doctorId, targetType: 'DOCTOR', targetId: doctorId, after: { via: 'mfa', email: d?.email, crm: d?.crm } });
     res.json({ token: signDoctorToken(doctorId), doctor: serializeDoctor(d) });
   } catch (e: any) { res.status(e.status || 500).json({ error: e.message || 'Erro no MFA' }); }
 });

@@ -516,14 +516,39 @@ router.get('/tech', async (_req, res, next) => {
   } catch (e) { next(e); }
 });
 
-// AUDITORIA — lê o AuditLog dedicado (LGPD): ações admin/doctor/sistema.
-router.get('/audit', async (_req, res, next) => {
+// AUDITORIA — lê o AuditLog dedicado (LGPD): login/acesso do usuário + ações admin/doctor/sistema.
+// Filtros (query, todos opcionais): kind (logins|access|admin|all), action, actorType,
+//   userId (=actorId), from, to (datas ISO). Paginação: take (1-200, default 50), skip.
+router.get('/audit', async (req: AuthedRequest, res, next) => {
   try {
-    const [auditLogs, byAction] = await Promise.all([
-      prisma.auditLog.findMany({ orderBy: { createdAt: 'desc' }, take: 50, select: { id: true, actorType: true, actorId: true, action: true, targetType: true, targetId: true, ip: true, createdAt: true } }),
-      prisma.auditLog.groupBy({ by: ['action'], _count: true }),
+    const q = (req.query || {}) as Record<string, string>;
+    const take = Math.min(Math.max(Number(q.take ?? 50) || 50, 1), 200);
+    const skip = Math.max(Number(q.skip ?? 0) || 0, 0);
+    const kind = q.kind ?? '';
+    const conds: any[] = [];
+    if (q.action) conds.push({ action: q.action });
+    if (q.actorType) conds.push({ actorType: q.actorType });
+    if (q.userId) conds.push({ actorId: q.userId });
+    if (kind === 'logins') conds.push({ action: { startsWith: 'LOGIN' } });
+    else if (kind === 'access') conds.push({ action: 'ACCESS' });
+    else if (kind === 'admin') { conds.push({ action: { not: { startsWith: 'LOGIN' } } }, { action: { not: 'ACCESS' } }); }
+    if (q.from || q.to) {
+      const createdAt: any = {};
+      if (q.from) createdAt.gte = new Date(q.from);
+      if (q.to) createdAt.lte = new Date(q.to);
+      conds.push({ createdAt });
+    }
+    const where = conds.length ? { AND: conds } : {};
+    const [auditLogs, count, byAction, byActorType] = await Promise.all([
+      prisma.auditLog.findMany({
+        where, orderBy: { createdAt: 'desc' }, take, skip,
+        select: { id: true, actorType: true, actorId: true, action: true, targetType: true, targetId: true, ip: true, after: true, createdAt: true },
+      }),
+      prisma.auditLog.count({ where }),
+      prisma.auditLog.groupBy({ by: ['action'], _count: true, where }),
+      prisma.auditLog.groupBy({ by: ['actorType'], _count: true, where }),
     ]);
-    res.json({ auditLogs, byAction, count: auditLogs.length });
+    res.json({ auditLogs, count, byAction, byActorType, take, skip });
   } catch (e) { next(e); }
 });
 

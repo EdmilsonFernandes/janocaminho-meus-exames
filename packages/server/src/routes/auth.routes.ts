@@ -16,6 +16,7 @@ import { deleteExamFile, patientSlug } from '../utils/storage';
 import { validate, schemas } from '../middleware/validate';
 import { isBlockedDomain } from '../utils/blockedDomains';
 import { logCredit } from '../utils/credits';
+import { audit } from '../utils/audit';
 import { encryptedCpfData } from '../utils/cpf';
 
 const router = Router();
@@ -62,6 +63,7 @@ router.post('/login', validate(schemas.login), async (req, res, next) => {
     // que o faria tentar trocar senha em vão). A mensagem amigável é montada no front (i18n).
     if (user?.blocked) { res.status(403).json({ blocked: true }); return; }
     if (!user || !(await comparePassword(String(password ?? ''), user.passwordHash))) {
+      void audit('LOGIN_FAILED', req, { actorType: 'USER', targetType: 'USER', after: { email: mail } });
       res.status(401).json({ error: 'invalid_credentials' });
       return;
     }
@@ -70,6 +72,7 @@ router.post('/login', validate(schemas.login), async (req, res, next) => {
     const mfa = await evaluateMfaOnLogin('USER', user.id, { userId: user.id }, user.email);
     if (mfa) { res.json(mfa); return; }
     const { token, patientId } = await issueSession(user.id);
+    void audit('LOGIN_SUCCESS', req, { actorType: 'USER', actorId: user.id, targetType: 'USER', targetId: user.id, after: { email: user.email, role: user.role } });
     res.json({
       token,
       user: { id: user.id, email: user.email, name: user.name, role: user.role, planExpiresAt: user.planExpiresAt, credits: user.credits },
@@ -84,7 +87,9 @@ router.post('/mfa/verify', async (req, res) => {
     const result = await verifyChallenge(String(req.body?.challengeToken ?? ''), String(req.body?.code ?? ''));
     const { token, patientId } = await issueSession(result.sessionPayload.userId);
     const u = await prisma.user.findUnique({ where: { id: result.sessionPayload.userId }, select: { id: true, email: true, name: true, role: true, planExpiresAt: true, credits: true, blocked: true } });
-    if (u?.blocked) { res.status(403).json({ blocked: true }); return; }
+    if (!u) { res.status(401).json({ error: 'auth' }); return; }
+    if (u.blocked) { res.status(403).json({ blocked: true }); return; }
+    void audit('LOGIN_SUCCESS', req, { actorType: 'USER', actorId: u.id, targetType: 'USER', targetId: u.id, after: { via: 'mfa', email: u.email, role: u.role } });
     res.json({ token, user: u, patientId });
   } catch (e: any) { res.status(e.status || 500).json({ error: e.message || 'Erro no MFA' }); }
 });
@@ -219,6 +224,7 @@ router.post('/verify-email', async (req, res, next) => {
     if (bonusCredits > 0) await logCredit(user.id, bonusCredits, 'signup', 'Bônus de boas-vindas');
     const freshUser = await prisma.user.findUnique({ where: { id: user.id }, select: { id: true, email: true, name: true, role: true, planExpiresAt: true, credits: true, referralCode: true, referredBy: true } });
     const { token, patientId } = await issueSession(user.id);
+    void audit('REGISTER', req, { actorType: 'USER', actorId: user.id, targetType: 'USER', targetId: user.id, after: { email: mail } });
     res.json({ token, patientId, user: freshUser });
   } catch (e) { next(e); }
 });

@@ -11,6 +11,7 @@ import { config } from './config';
 import { APP_BUILD_INFO } from './generated/buildInfo';
 import { prisma } from './prisma';
 import { errorHandler, notFound } from './middleware/errorHandler';
+import { accessAudit } from './middleware/accessAudit';
 import { emailTemplate } from './utils/emailTemplate';
 import { verifyUnsubToken } from './utils/unsubscribeToken';
 import authRoutes from './routes/auth.routes';
@@ -70,6 +71,8 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
+// Auditoria de acesso a áreas (LGPD) — grava AuditLog('ACCESS') p/ rotas autenticadas na allowlist.
+app.use(accessAudit);
 
 // Rate limiting — protege contra brute force, DoS e dreno de créditos. Skip em dev/test.
 const skipDev = () => process.env.NODE_ENV !== 'production';

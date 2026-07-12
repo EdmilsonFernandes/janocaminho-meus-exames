@@ -42,6 +42,14 @@ export const config = {
   nodeEnv: process.env.NODE_ENV ?? 'development',
   isProd: (process.env.NODE_ENV ?? 'development') === 'production',
 
+  // Logger técnico (utils/logger.ts). false desliga TODO o log de console (debug/erro).
+  // Auditoria de LOGIN/ACESSO (LGPD, no banco) NÃO respeita estas chaves — sempre grava.
+  logEnabled: (process.env.LOG_ENABLED ?? 'true') !== 'false',
+  logLevel: (() => {
+    const l = String(process.env.LOG_LEVEL ?? 'info').toLowerCase();
+    return ['trace', 'debug', 'info', 'warn', 'error'].includes(l) ? (l as 'trace' | 'debug' | 'info' | 'warn' | 'error') : 'info';
+  })(),
+
   databaseUrl: required('DATABASE_URL', 'postgresql://meus_exames:meus_exames_dev@localhost:5433/meus_exames?schema=public'),
   jwtSecret: required('JWT_SECRET', 'dev-secret-change-me'),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? '7d',
