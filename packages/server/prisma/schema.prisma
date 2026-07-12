@@ -124,6 +124,29 @@ model AiModel {
   @@map("ai_models")
 }
 
+// Cache em BANCO das explicações (leigo) de exames/analitos geradas pela IA.
+// Substitui o antigo arquivo exam-explanations.json (read/rewrite integrais + race condition).
+// Lookup por (nameKey, locale) filtra promptVersion — bump de versão invalida e regenera.
+// Admin edita/cura/regenera pelo painel (aba IA); source='curated' quando o admin mexe.
+model ExamKnowledge {
+  id            String   @id @default(cuid())
+  nameKey       String   // chave canônica (HEMOGLOBINA) — nameKey()
+  locale        String   @default("pt-BR")
+  promptVersion String   // EXPLAIN_PROMPT_VERSION na geração (invalidação)
+  source        String   @default("ai") // 'ai' | 'curated' (curated = admin editou)
+  nameDisplay   String   // nome original passado (contexto p/ regenerar)
+  titulo        String?
+  resumo        String?
+  analogia      String?
+  alterado      String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([nameKey, locale])
+  @@index([locale, promptVersion])
+  @@map("exam_knowledge")
+}
+
 enum Role {
   OWNER
   ADMIN

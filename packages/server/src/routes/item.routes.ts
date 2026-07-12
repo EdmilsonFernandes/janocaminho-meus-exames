@@ -2,9 +2,7 @@ import { Router } from 'express';
 import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
 import { parseListParams, setListHeaders } from '../utils/list';
-import { getLlm, getModel } from '../llm';
-import { JSON_SUFFIX, extractJsonObject } from '../utils/json';
-import { getCachedExplanation, setCachedExplanation } from '../utils/explanationsCache';
+import { getOrCreateExplanation } from '../analysis/explain';
 
 const router = Router();
 router.use(requireAuth);
@@ -210,23 +208,15 @@ router.get('/flag-summary', async (req: AuthedRequest, res, next) => {
   }
 });
 
-// EXPLICA um exame/analito em linguagem simples. RAG: cache em arquivo primeiro (sem IA);
-// só chama a IA se ainda não tiver a explicação — e então grava pra reaproveitar.
+// EXPLICA um exame/analito em linguagem simples. Cache em banco (exam_knowledge) primeiro;
+// só chama a IA se não tiver (ou se a versão do prompt mudou) — e então grava pra reaproveitar.
+// Próximos usuários que clicarem pegam do banco, sem chamar a IA. Ver analysis/explain.ts.
 router.post('/explain', async (req: AuthedRequest, res) => {
   try {
     const name = String((req.body as any)?.name ?? '').trim();
     if (!name) { res.status(400).json({ error: 'name obrigatório' }); return; }
-    const cached = getCachedExplanation(name);
-    if (cached) { res.json(cached); return; }
-    const s = await getLlm().stream({
-      model: getModel(), maxTokens: 700,
-      messages: [{ role: 'user', content: `Explique de forma SIMPLES e CURTA (português, leigo) o exame/analito "${name}". Devolva APENAS JSON: {"titulo":"nome amigável","resumo":"1 frase: o que mede","analogia":"analogia do dia a dia","alterado":"o que pode significar se alto/baixo (sem diagnosticar)"}${JSON_SUFFIX}` }],
-    });
-    const resp = await s.final();
-    const text = resp.text;
-    const parsed = extractJsonObject(text);
-    if (parsed?.resumo) setCachedExplanation(name, parsed);
-    res.json(parsed);
+    const data = await getOrCreateExplanation(name);
+    res.json(data);
   } catch (e: any) {
     console.error('[explain] erro:', e?.message);
     res.status(502).json({ error: 'Não consegui explicar agora. Tente novamente.' });

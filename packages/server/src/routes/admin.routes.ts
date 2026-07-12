@@ -12,6 +12,7 @@ import { upload } from '../middleware/upload';
 import { audit } from '../utils/audit';
 import { getConfigRows, getActiveProvider, AI_PROVIDERS, resolveProviderConfig, type AiProviderName } from '../llm/ai-config';
 import { refreshLlm, testLlmConnection } from '../llm';
+import { generateExplanation } from '../analysis/explain';
 import { encryptPII } from '../utils/crypto';
 import { cpfFingerprint, maskStoredCpf, revealStoredCpf } from '../utils/cpf';
 
@@ -291,6 +292,67 @@ router.delete('/ai-models/:id', async (req, res, next) => {
     await prisma.aiModel.delete({ where: { id } });
     await audit('DELETE_AI_MODEL', req, { targetType: 'AI_MODEL', before: { provider: row.provider, model: row.model, label: row.label } });
     console.log('[admin] modelo de IA removido:', row.provider, row.model);
+    res.json({ ok: true });
+  } catch (e) { next(e); }
+});
+
+// ===== IA — CACHE DE EXPLICAÇÕES (exam_knowledge) =====
+// Explicações leigas de exames/analitos (geradas por IA, reaproveitadas no /items/explain).
+// Admin pode buscar/editar (vira source='curated')/regenerar/deletar.
+// GET: lista (opcional ?q=busca &source=ai|curated), ordenada pelo mais recente.
+router.get('/exam-knowledge', async (req, res, next) => {
+  try {
+    const q = String(req.query.q ?? '').trim();
+    const source = String(req.query.source ?? '').trim();
+    const where: any = {};
+    if (source) where.source = source;
+    if (q) where.OR = [
+      { nameKey: { contains: q, mode: 'insensitive' } },
+      { nameDisplay: { contains: q, mode: 'insensitive' } },
+      { titulo: { contains: q, mode: 'insensitive' } },
+    ];
+    const rows = await prisma.examKnowledge.findMany({ where, orderBy: { updatedAt: 'desc' }, take: 500 });
+    res.json(rows);
+  } catch (e) { next(e); }
+});
+
+// POST /:id/regenerate — recria a explicação via IA (reaproveita o nameDisplay salvo).
+router.post('/exam-knowledge/:id/regenerate', async (req, res, next) => {
+  try {
+    const row = await prisma.examKnowledge.findUnique({ where: { id: String(req.params.id) } });
+    if (!row) { res.status(404).json({ error: 'Explicação não encontrada.' }); return; }
+    await generateExplanation(row.nameDisplay, row.locale);
+    const fresh = await prisma.examKnowledge.findUnique({ where: { nameKey_locale: { nameKey: row.nameKey, locale: row.locale } } });
+    await audit('REGENERATE_EXAM_KNOWLEDGE', req, { targetType: 'EXAM_KNOWLEDGE', targetId: row.id, after: fresh });
+    res.json(fresh);
+  } catch (e) { next(e); }
+});
+
+// PATCH /:id — edita campos (admin curou). Marca source='curated'.
+router.patch('/exam-knowledge/:id', async (req, res, next) => {
+  try {
+    const id = String(req.params.id);
+    const existing = await prisma.examKnowledge.findUnique({ where: { id } });
+    if (!existing) { res.status(404).json({ error: 'Explicação não encontrada.' }); return; }
+    const b = req.body ?? {};
+    const data: any = { source: 'curated' };
+    for (const f of ['titulo', 'resumo', 'analogia', 'alterado'] as const) {
+      if (b[f] != null) data[f] = String(b[f]).trim() || null;
+    }
+    const updated = await prisma.examKnowledge.update({ where: { id }, data });
+    await audit('UPDATE_EXAM_KNOWLEDGE', req, { targetType: 'EXAM_KNOWLEDGE', targetId: id, before: existing, after: updated });
+    res.json(updated);
+  } catch (e) { next(e); }
+});
+
+// DELETE /:id — remove do cache (próximo clique do /explain regenera).
+router.delete('/exam-knowledge/:id', async (req, res, next) => {
+  try {
+    const id = String(req.params.id);
+    const row = await prisma.examKnowledge.findUnique({ where: { id } });
+    if (!row) { res.status(404).json({ error: 'Explicação não encontrada.' }); return; }
+    await prisma.examKnowledge.delete({ where: { id } });
+    await audit('DELETE_EXAM_KNOWLEDGE', req, { targetType: 'EXAM_KNOWLEDGE', targetId: id, before: { nameKey: row.nameKey, source: row.source } });
     res.json({ ok: true });
   } catch (e) { next(e); }
 });

@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Box, Typography, Card, CardContent, Stack, Chip, Alert, FormControl, InputLabel, Select, MenuItem, TextField, OutlinedInput, Button } from '@mui/material';
+import { Box, Typography, Card, CardContent, Stack, Chip, Alert, FormControl, InputLabel, Select, MenuItem, TextField, OutlinedInput, Button, IconButton, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import BoltOutlinedIcon from '@mui/icons-material/BoltOutlined';
+import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import { API_URL, token } from '../../config';
 import { TabLoader, SectionError } from './parts';
 const H = () => ({ Authorization: `Bearer ${token()}` });
@@ -153,6 +156,119 @@ const AiProviderCard = () => {
   );
 };
 
+/** Card "Cache de explicações" — gerencia o exam_knowledge (explicações leigas reaproveitadas
+ *  no /items/explain). Buscar, editar (vira 'curated'), regenerar via IA, deletar. */
+const ExamKnowledgeCard = () => {
+  const [rows, setRows] = useState<any[]>([]);
+  const [q, setQ] = useState('');
+  const [source, setSource] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [editing, setEditing] = useState<any | null>(null);
+  const [draft, setDraft] = useState({ titulo: '', resumo: '', analogia: '', alterado: '' });
+  const [saving, setSaving] = useState(false);
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (q.trim()) params.set('q', q.trim());
+      if (source) params.set('source', source);
+      const r = await fetch(`${API_URL}/admin/exam-knowledge?${params.toString()}`, { headers: H() });
+      if (r.ok) setRows(await r.json()); else setRows([]);
+    } catch { setRows([]); }
+    setLoading(false);
+  };
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
+
+  const openEdit = (row: any) => {
+    setEditing(row);
+    setDraft({ titulo: row.titulo ?? '', resumo: row.resumo ?? '', analogia: row.analogia ?? '', alterado: row.alterado ?? '' });
+  };
+  const saveEdit = async () => {
+    if (!editing) return;
+    setSaving(true);
+    try {
+      const r = await fetch(`${API_URL}/admin/exam-knowledge/${editing.id}`, {
+        method: 'PATCH', headers: { ...H(), 'Content-Type': 'application/json' }, body: JSON.stringify(draft),
+      });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || 'Erro ao salvar');
+      setEditing(null); load();
+    } catch { /* best-effort */ }
+    setSaving(false);
+  };
+  const regenerate = async (id: string) => {
+    setBusyId(id);
+    try { await fetch(`${API_URL}/admin/exam-knowledge/${id}/regenerate`, { method: 'POST', headers: H() }); await load(); } catch {}
+    setBusyId(null);
+  };
+  const remove = async (id: string) => {
+    if (!window.confirm('Remover esta explicação? O próximo clique no "?" vai regenerá-la via IA.')) return;
+    try { await fetch(`${API_URL}/admin/exam-knowledge/${id}`, { method: 'DELETE', headers: H() }); await load(); } catch {}
+  };
+
+  return (
+    <Card variant="outlined" sx={{ borderRadius: 2, mb: 2 }}>
+      <CardContent>
+        <Typography sx={{ fontWeight: 800, mb: 0.5 }}>📚 Cache de explicações ({rows.length})</Typography>
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>
+          Explicações leigas reaproveitadas no app (1ª geração via IA; próximas saem daqui). Editar marca como <strong>curada</strong>.
+        </Typography>
+        <Stack direction="row" spacing={1} sx={{ mb: 1.5, flexWrap: 'wrap', gap: 1 }}>
+          <TextField size="small" label="Buscar (nome/título)" value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') load(); }} sx={{ flex: 1, minWidth: 180 }} />
+          <FormControl size="small" sx={{ minWidth: 130 }}>
+            <InputLabel>Origem</InputLabel>
+            <Select value={source} label="Origem" onChange={(e) => { setSource(e.target.value); }}>
+              <MenuItem value="">Todas</MenuItem>
+              <MenuItem value="ai">IA</MenuItem>
+              <MenuItem value="curated">Curada</MenuItem>
+            </Select>
+          </FormControl>
+          <Button size="small" variant="outlined" onClick={load} disabled={loading}>{loading ? '...' : 'Buscar'}</Button>
+        </Stack>
+
+        {rows.length === 0 ? (
+          <Typography variant="caption" color="text.secondary">Nenhuma explicação {source ? 'curada' : 'cacheada'} ainda.</Typography>
+        ) : (
+          <Stack spacing={1}>
+            {rows.map((row) => (
+              <Box key={row.id} sx={{ p: 1.25, border: 1, borderColor: 'divider', borderRadius: 1 }}>
+                <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
+                  <Typography sx={{ flex: 1, minWidth: 0, fontWeight: 700 }}>{row.titulo || row.nameDisplay || row.nameKey}</Typography>
+                  <Chip size="small" label={row.source === 'curated' ? 'Curada' : 'IA'} color={row.source === 'curated' ? 'warning' : 'default'} variant="outlined" />
+                  <Typography variant="caption" color="text.secondary">{new Date(row.updatedAt).toLocaleDateString('pt-BR')}</Typography>
+                  <IconButton size="small" title="Editar" onClick={() => openEdit(row)}><EditOutlinedIcon fontSize="small" /></IconButton>
+                  <IconButton size="small" title="Regenerar via IA" onClick={() => regenerate(row.id)} disabled={busyId === row.id}><RefreshOutlinedIcon fontSize="small" /></IconButton>
+                  <IconButton size="small" title="Remover" onClick={() => remove(row.id)}><DeleteOutlinedIcon fontSize="small" /></IconButton>
+                </Stack>
+                {row.resumo && <Typography variant="body2" sx={{ mt: 0.5 }}>{row.resumo}</Typography>}
+                {row.analogia && <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>💡 {row.analogia}</Typography>}
+              </Box>
+            ))}
+          </Stack>
+        )}
+
+        <Dialog open={!!editing} onClose={() => setEditing(null)} fullWidth maxWidth="sm">
+          <DialogTitle>Editar explicação{editing ? ` · ${editing.nameKey}` : ''}</DialogTitle>
+          <DialogContent>
+            <Stack spacing={1.5} sx={{ mt: 1 }}>
+              <TextField size="small" label="Título (nome amigável)" value={draft.titulo} onChange={(e) => setDraft({ ...draft, titulo: e.target.value })} fullWidth />
+              <TextField size="small" label="Resumo (o que mede)" value={draft.resumo} onChange={(e) => setDraft({ ...draft, resumo: e.target.value })} fullWidth multiline minRows={2} />
+              <TextField size="small" label="Analogia" value={draft.analogia} onChange={(e) => setDraft({ ...draft, analogia: e.target.value })} fullWidth multiline minRows={2} />
+              <TextField size="small" label="Se alterado (alto/baixo)" value={draft.alterado} onChange={(e) => setDraft({ ...draft, alterado: e.target.value })} fullWidth multiline minRows={2} />
+            </Stack>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setEditing(null)}>Cancelar</Button>
+            <Button variant="contained" onClick={saveEdit} disabled={saving}>{saving ? 'Salvando…' : 'Salvar (cura)'}</Button>
+          </DialogActions>
+        </Dialog>
+      </CardContent>
+    </Card>
+  );
+};
+
 /** IA & Alertas — config do provedor (topo) + volume (ai_analyses) + custo/latência (AiUsageLog). */
 export const IaTab = () => {
   const [d, setD] = useState<any>(null);
@@ -164,6 +280,7 @@ export const IaTab = () => {
   return (
     <Box>
       <AiProviderCard />
+      <ExamKnowledgeCard />
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: '1fr 1fr 1fr 1fr' }, gap: 1.5, mb: 2 }}>
         {[
           { l: 'Análises IA', v: String(d.analysesCount ?? 0) },
