@@ -92,7 +92,9 @@ export const AuditTab = () => {
             <Card key={l.id} variant="outlined" sx={{ borderRadius: 2 }}><CardContent sx={{ py: 1.25, '&:last-child': { pb: 1.25 } }}>
               <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
                 <Chip size="small" color={color(l.action)} label={l.action} />
-                <Typography variant="body2" sx={{ flex: 1, minWidth: 0 }}><strong>{l.actorType}</strong>{l.targetType ? ` → ${l.targetType}:${(l.targetId || '').slice(-6)}` : ''}</Typography>
+                <Typography variant="body2" sx={{ flex: 1, minWidth: 0 }}>
+                  <strong>{d.actors?.[l.actorId]?.name ?? l.actorType}</strong>{d.actors?.[l.actorId]?.email ? ` · ${d.actors[l.actorId].email}` : (l.targetType && l.targetType !== 'USER' && l.targetType !== 'DOCTOR' ? ` → ${l.targetType}` : '')}
+                </Typography>
                 <Typography variant="caption" color="text.secondary">{new Date(l.createdAt).toLocaleString('pt-BR')}{l.ip ? ` · ${l.ip}` : ''}</Typography>
               </Stack>
               {info && <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5, fontFamily: 'monospace' }}>{info}</Typography>}

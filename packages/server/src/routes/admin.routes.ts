@@ -610,7 +610,21 @@ router.get('/audit', async (req: AuthedRequest, res, next) => {
       prisma.auditLog.groupBy({ by: ['action'], _count: true, where }),
       prisma.auditLog.groupBy({ by: ['actorType'], _count: true, where }),
     ]);
-    res.json({ auditLogs, count, byAction, byActorType, take, skip });
+    // Lookup de nome/email dos actors (actorId/targetId são cuid — a tela precisa identificar a
+    // PESSOA, não um hash). Busca só os IDs que aparecem nesta página.
+    const ids = new Set<string>();
+    for (const l of auditLogs) {
+      if (l.actorId) ids.add(l.actorId);
+      if ((l.targetType === 'USER' || l.targetType === 'DOCTOR') && l.targetId) ids.add(l.targetId);
+    }
+    const [uRows, dRows] = await Promise.all([
+      prisma.user.findMany({ where: { id: { in: [...ids] } }, select: { id: true, name: true, email: true } }),
+      prisma.doctor.findMany({ where: { id: { in: [...ids] } }, select: { id: true, name: true, email: true } }),
+    ]);
+    const actors: Record<string, { name: string; email: string; type: string }> = {};
+    for (const u of uRows) actors[u.id] = { name: u.name, email: u.email, type: 'USER' };
+    for (const dd of dRows) actors[dd.id] = { name: dd.name, email: dd.email, type: 'DOCTOR' };
+    res.json({ auditLogs, count, byAction, byActorType, take, skip, actors });
   } catch (e) { next(e); }
 });
 
