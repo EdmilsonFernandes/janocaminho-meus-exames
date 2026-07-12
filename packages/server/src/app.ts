@@ -66,7 +66,7 @@ app.use(cors({
   origin: (origin, cb) => cb(null, isAllowedCorsOrigin(origin) ? origin || true : false),
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Patient-Id', 'Range'],
-  exposedHeaders: ['Content-Range', 'X-Total-Count'],
+  exposedHeaders: ['Content-Range', 'X-Total-Count', 'X-Renewed-Token'],
 }));
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));

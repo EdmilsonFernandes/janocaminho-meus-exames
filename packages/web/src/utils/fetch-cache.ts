@@ -48,6 +48,17 @@ window.fetch = (async function (input: RequestInfo | URL, init?: RequestInit): P
   try {
     const res = await originalFetch(input as any, init);
 
+    // SLIDING SESSION: o server (requireAuth) renova o token quando ele está perto de
+    // expirar, devolvendo o novo em X-Renewed-Token. Lemos aqui — no ponto central de
+    // fetch — e trocamos no localStorage. Assim TODO request autenticado (upload, listas,
+    // dataProvider, profile…) renova transparente; o usuário ativo nunca perde a sessão.
+    if (urlStr.includes('/api/')) {
+      try {
+        const renewed = res.headers.get('X-Renewed-Token');
+        if (renewed) localStorage.setItem('token', renewed);
+      } catch { /* localStorage/headers indisponíveis — ignora */ }
+    }
+
     // Cacheia respostas GET /api/ bem-sucedidas (2xx).
     if (isCacheable && res.ok) {
       res.clone().json().then((body) => {

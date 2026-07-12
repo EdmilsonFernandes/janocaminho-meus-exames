@@ -503,13 +503,21 @@ export const App = () => {
     // RE-CHECA atualização a cada 10 min enquanto o app tá aberto (Play Store publica versão nova → aparece sem precisar reiniciar)
     const updateInterval = setInterval(() => { if (!cancelled) void checkPlayUpdate(); }, 10 * 60 * 1000);
     void syncCreditCosts();
-    // SELF-HEAL: sessão com token mas SEM user (ex.: login antigo por biometria que só guardou o token)
-    // → busca /auth/me e popula user/paciente. Assim o drawer (nome+plano+admin) funciona sem re-login.
+    // SLIDING SESSION no boot: sempre que há token, busca /auth/me para (a) renovar o token
+    // fresco que o server devolve (previne expiração pra quem volta após dias sem usar),
+    // (b) popular user/paciente se faltar (login antigo por biometria só guardava o token) e
+    // (c) SE o token já expirou (401), limpar a sessão stale — sem isso o usuário fica
+    // "logado" com token morto e toda request falha (ex.: upload "Token inválido ou expirado").
     const __tk = localStorage.getItem('token');
-    if (__tk && !localStorage.getItem('user')) {
+    if (__tk) {
       fetch(`${API_URL}/auth/me`, { headers: { Authorization: `Bearer ${__tk}` } })
-        .then((r) => (r.ok ? r.json() : null))
-        .then((d) => { if (!cancelled && d?.user) { localStorage.setItem('user', JSON.stringify(d.user)); if (d.patientId) { localStorage.setItem('patientId', d.patientId); localStorage.setItem('selPatientId', d.patientId); } window.dispatchEvent(new Event('selPatientChanged')); } })
+        .then(async (r) => {
+          if (r && r.ok) return r.json();
+          // 401 = token expirado/inválido → limpa sessão stale (não limpa em 5xx: pode ser blip do server)
+          if (r && r.status === 401) { try { localStorage.removeItem('token'); localStorage.removeItem('user'); } catch {} }
+          return null;
+        })
+        .then((d) => { if (!cancelled && d?.user) { localStorage.setItem('user', JSON.stringify(d.user)); if (d.token) { try { localStorage.setItem('token', d.token); } catch {} } if (d.patientId) { localStorage.setItem('patientId', d.patientId); localStorage.setItem('selPatientId', d.patientId); } window.dispatchEvent(new Event('selPatientChanged')); } })
         .catch(() => {});
     }
     // Botão/gesto de voltar do Android (Capacitor) — volta no histórico IN-APP ou engole o back na raiz (NUNCA sai do app).

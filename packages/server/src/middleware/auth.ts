@@ -1,10 +1,15 @@
 import type { Request, Response, NextFunction } from 'express';
-import { verifyToken } from '../auth/jwt';
+import { verifyToken, signToken } from '../auth/jwt';
 import { prisma } from '../prisma';
 
 export interface AuthedRequest extends Request {
   userId?: string;
 }
+
+/** Janela da SLIDING SESSION: se faltar menos que isto para o token expirar, o middleware
+ *  emite um token fresco no header X-Renewed-Token. Usuários ativos nunca perdem a sessão.
+ *  Default 2 dias (token dura 7d → renova a partir do 5º dia de uso). */
+const RENEW_WINDOW_MS = 2 * 24 * 60 * 60 * 1000;
 
 /** Middleware que exige JWT válido e injeta req.userId. */
 export async function requireAuth(req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
@@ -33,6 +38,14 @@ export async function requireAuth(req: AuthedRequest, res: Response, next: NextF
       return;
     }
     req.userId = user.id;
+    // SLIDING SESSION transparente: token válido mas perto de expirar → emite um novo no
+    // header de resposta. O frontend (utils/fetch-cache.ts) lê e troca no localStorage em
+    // TODA resposta (upload, dataProvider, profile…), sem cada página tratar. Assim um
+    // usuário ativo nunca toma 401 por token expirado. jwt.verify inclui `exp` (segundos).
+    const exp = Number(payload?.exp);
+    if (exp && exp * 1000 - Date.now() <= RENEW_WINDOW_MS) {
+      try { res.setHeader('X-Renewed-Token', signToken({ userId: user.id })); } catch { /* best-effort */ }
+    }
     next();
   } catch {
     res.status(401).json({ error: 'Token inválido ou expirado' });

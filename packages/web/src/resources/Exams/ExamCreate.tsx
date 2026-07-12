@@ -3,7 +3,7 @@ import { Box, Card, CardContent, Button, TextField, Typography, Alert, Chip, Sta
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import DocumentScannerIcon from '@mui/icons-material/DocumentScanner';
-import { Title, useNotify, useRedirect, useRefresh } from 'react-admin';
+import { Title, useNotify, useRedirect, useRefresh, useLogout } from 'react-admin';
 import { API_URL, token } from '../../config';
 import { confirmDialog } from '../../components/ConfirmDialog';
 import { useSelectedPatient } from '../../patient-context';
@@ -17,6 +17,9 @@ const UPLOAD_CONSENT_KEY = 'meus_exames_upload_disclosure_v1';
 
 async function uploadOne(file: File | Blob, filename: string, pid: string | null, title?: string) {
   if (file.size > MAX_BYTES) throw Object.assign(new Error(`${filename} excede 32MB`), { tooBig: true });
+  // SEM token = sessão já expirou (limpa no boot/401 anterior). Não tenta enviar (seria 401
+  // de novo): sinaliza authExpired pra UI deslogar e pedir re-login, em vez de "Falha no envio".
+  if (!token()) throw Object.assign(new Error('Sua sessão expirou. Faça login novamente.'), { authExpired: true });
   // Chrome mobile: FormData + File do <input> pode dar "failed to fetch". Lendo como
   // ArrayBuffer → criando um Blob NOVO (desacoplado do input) → Chrome lida corretamente.
   const buf = await file.arrayBuffer();
@@ -30,6 +33,13 @@ async function uploadOne(file: File | Blob, filename: string, pid: string | null
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
       const r = await fetch(`${API_URL}/exams`, { method: 'POST', headers: { Authorization: `Bearer ${token()}` }, body: fd });
+      // 401 = sessão expirada. Token JWT expirado NÃO se cura com retry → para imediatamente e
+      // sinaliza authExpired (UI desloga + mensagem clara). Antes ficava preso em 3 retries
+      // inúteis mostrando "Token inválido ou expirado" enterrado no erro do upload.
+      if (r.status === 401) {
+        const e = await r.json().catch(() => ({}));
+        throw Object.assign(new Error(e.message || e.error || 'Sua sessão expirou. Faça login novamente.'), { authExpired: true });
+      }
       if (!r.ok) {
         const e = await r.json().catch(() => ({}));
         const err: any = new Error(e.message || e.error || 'Falha no envio');
@@ -39,7 +49,7 @@ async function uploadOne(file: File | Blob, filename: string, pid: string | null
       return r.json();
     } catch (e: any) {
       lastErr = e;
-      if (e?.tooBig || e?.code === 'free_limit') throw e;
+      if (e?.tooBig || e?.code === 'free_limit' || e?.authExpired) throw e;
       if (attempt < 3) {
         await new Promise((res) => setTimeout(res, 1500 * attempt));
       }
@@ -90,6 +100,7 @@ export const ExamCreate = () => {
   const notify = useNotify();
   const redirect = useRedirect();
   const refresh = useRefresh();
+  const logout = useLogout();
 
   const ensureUploadConsent = () => {
     if (uploadConsentAccepted) return true;
@@ -122,6 +133,7 @@ export const ExamCreate = () => {
       notify('Foto enviada! Extraindo…', { type: 'success' });
       redirect('list', 'exams');
     } catch (e: any) {
+      if (e?.authExpired) { notify(e.message || 'Sua sessão expirou. Faça login novamente.', { type: 'warning' }); logout(); return; }
       if (e?.code === 'free_limit' || e?.code === 'no_credits_upload') { notify(e.message || 'Sem créditos para enviar. Assine ou recarregue.', { type: 'warning' }); redirect('/planos'); return; }
       if (e?.message !== 'User cancelled photos app') notify(e.message || 'Falha na foto', { type: 'error' });
     }
@@ -149,6 +161,7 @@ export const ExamCreate = () => {
           if (res?.duplicate) dups.push(name);
           setProgress({ done: i + 1, total: imgs.length, errors });
         } catch (err: any) {
+          if (err?.authExpired) { notify(err.message || 'Sua sessão expirou. Faça login novamente.', { type: 'warning' }); logout(); setBusy(false); return; }
           if (err?.code === 'free_limit' || err?.code === 'no_credits_upload') { notify(err.message || 'Sem créditos para enviar.', { type: 'warning' }); redirect('/planos'); setBusy(false); return; }
           errors.push(`Página ${i + 1}: ${err.message}`);
           setProgress({ done: i + 1, total: imgs.length, errors });
@@ -198,6 +211,12 @@ export const ExamCreate = () => {
         else if (res?.duplicateElsewhere) elsewhere.push(files[i].name);
         setProgress({ done: i + 1, total: files.length, errors });
       } catch (err: any) {
+        if (err?.authExpired) {
+          notify(err.message || 'Sua sessão expirou. Faça login novamente.', { type: 'warning' });
+          logout();
+          setBusy(false);
+          return;
+        }
         if (err?.code === 'free_limit' || err?.code === 'no_credits_upload') {
           notify(err.message || 'Sem créditos para enviar exame. Assine o mensal ou recarregue créditos.', { type: 'warning' });
           redirect('/planos');
