@@ -3,21 +3,21 @@ import { sendPushToUser } from '../utils/push';
 import { sendNudgeEmail } from '../utils/nudgeMail';
 import { getLlm, getModel } from '../llm';
 
-/** Scheduler de NUDGES de saúde (engajamento DIÁRIO garantido às 08h BRT).
- *  - Dispara 1x/dia às 08h BRT (= 11h UTC — Brasil sem DST desde 2019, UTC-3 fixo o ano todo).
- *    Agendamento por setTimeout ao próximo 11h UTC: preciso e independente do TZ do container
- *    (antes usava setInterval 1h + janela 8-11h em hora LOCAL → no container UTC virava 5-8h BRT).
- *  - TODO usuário com ≥1 exame extraído recebe UM nudge/dia:
- *    🔴 valor alterado em exame recente (30d) e sem alerta nos últimos 3 dias → ALERTA
- *       (pega um alterado ALEATÓRIO entre os recentes, pra variar a mensagem);
- *    caso contrário → 💡 DICA de saúde gerada pela IA (Dr. Exame): 1 dica/dia cacheada e
- *       reusada pra todos os usuários daquela manhã (1 chamada GLM/dia, fallback curado se falhar).
- *  - Anti-spam: alerta no máx. 1x a cada 3 dias por usuário (a dica pode virar todo dia).
- *  - Cria Notification (central) + envia push (Firebase Admin). E-mail só cai pra ALERTA (não spamma dica diária). */
+/** Scheduler de NUDGES de saúde (08h BRT).
+ *  - ALERTA: valor alterado em exame recente (30d) DESTE paciente, sem alerta nos últimos 3 dias.
+ *    Pode vir qualquer dia — é informação relevante. Anti-spam: máx 1x/3d por paciente.
+ *  - DICA: PERSONALIZADA ao perfil/exames do paciente (por segmento), SÓ 2x/semana (terça e sexta).
+ *    Nunca mais dica genérica "beba água" todo dia — a dica agora fala do foco real do paciente
+ *    (colesterol, glicemia, pressão, anemia, tireoide, renal) ou prevenção de rotina.
+ *  - Cria Notification (central) + push (Firebase). E-mail só cai pro ALERTA e só pra quem não tem push.
+ *
+ *  Histórico: a "dica genérica às 08h" vinha daqui (FALLBACK rotativo c/ "beba água" + IA global).
+ *  dfa91a7 corrigiu a dica do DASHBOARD (web), não a do push — por isso o "beba água" voltava. */
 const COOLDOWN_MS = 3 * 24 * 60 * 60 * 1000; // 3 dias (só p/ alerta)
 const RECENT_MS = 30 * 24 * 60 * 60 * 1000;  // 30 dias
-// 08h BRT = 11h UTC (Brasil sem horário de verão desde 2019 → UTC-3 o ano inteiro).
-const NUDGE_UTC_HOUR = 11;
+const NUDGE_UTC_HOUR = 11; // 08h BRT = 11h UTC (Brasil sem DST desde 2019 → UTC-3 o ano todo)
+// Dias de DICA (sem alerta): terça(2) e sexta(5). Alerta pode vir qualquer dia.
+const TIP_DAYS = new Set([2, 5]);
 
 /** Milissegundos até o próximo instante em que a hora UTC == targetHour (00h00min). */
 function msUntilNextUtcHour(targetHour: number): number {
@@ -27,54 +27,57 @@ function msUntilNextUtcHour(targetHour: number): number {
   return next.getTime() - now.getTime();
 }
 
-// Dicas curadas ROTATIVAS (20 variedades) — a cada dia pega uma DIFERENTE. Sempre variada,
-// nunca repetitiva. A "beba água" foi removida do topo (era a única que o usuário via).
-const FALLBACK_TIPS = [
-  'Caminhe 10 minutos hoje. Pequenas caminhadas melhoram pressão, açúcar e humor.',
-  'Durma 7 a 8 horas: o sono regula hormônios, imunidade e memória. Evite telas 1h antes.',
-  'Capriche no prato colorido — frutas, verduras e fibras ajudam intestino e coração.',
-  'Mediu sua pressão últimamente? Anote os valores pra acompanhar a tendência.',
-  'Reserve 2 minutos pra respirar fundo — reduz estresse e pressão arterial.',
-  'Exames de rotina em dia? Previnir é mais fácil que remediar.',
-  '15 min de sol de manhã ajudam na vitamina D e no ritmo do sono.',
-  'Reduza ultraprocessados e açúcar: glicose e colesterol agradecem.',
-  'Pese-se sempre no mesmo dia e horário — a tendência vale mais que o número isolado.',
-  'Beba água ao acordar: depois de horas dormindo, seu corpo pede hidratação.',
-  'Alongue-se: 5 min de alongamento pela manhã solta a tensão acumulada.',
-  'Faça uma refeição sem celular: comer com atenção melhora digestão e saciedade.',
-  'Suba escadas em vez de elevador: pequenos esforços somam ao longo da semana.',
-  'Anote seus medicamentos e doses no perfil clínico — a IA usa isso pra contextualizar.',
-  'Corte cafeína após 14h: seu sono agradece (a cafeína fica 6h no corpo).',
-  'Troque o refrigerante por água com gás e limão: menos açúcar, mesma refrescância.',
-  'Verifique a validade dos medicamentos em casa — remédios vencidos perdem efeito.',
-  'Faça exames em jejum pela manhã: menos desconforto e resultados mais precisos.',
-  'Mantenha o mesmo horário de dormir — o corpo ama rotina pra regular o relógio biológico.',
-  'Leia seu último exame: comparar valores anteriores mostra sua evolução real.',
+// Segmento de saúde do paciente — chaveia a dica personalizada (1 segmento por paciente/dia).
+type Segment = 'colesterol' | 'glicemia' | 'pressao' | 'anemia' | 'tireoide' | 'renal' | 'rotina';
+const SEGMENT_RULES: { seg: Segment; test: RegExp }[] = [
+  { seg: 'colesterol', test: /(ldl|colesterol|triglicer|hdl|lipid)/i },
+  { seg: 'glicemia', test: /(glicemia|glicose|hemoglobina glic|hba1c|insulina|homair|glicada)/i },
+  { seg: 'pressao', test: /(pressao|pa\b|arterial|sistol|diastol|has\b)/i },
+  { seg: 'tireoide', test: /(tsh|t4\b|t4livre|tiro|levotiroxina)/i },
+  { seg: 'anemia', test: /(hemoglobin|hematocrito|ferro|ferritina|eritro|vcm|hcm)/i },
+  { seg: 'renal', test: /(creatinina|ureia|egfr|renal|microalbumin|tfg)/i },
 ];
-// Cache da dica do dia (1 chamada GLM/dia, reusada pra todos os usuários daquela manhã).
-let cachedTip: { day: string; text: string } | null = null;
 
-/** Dica de saúde do dia: gerada pela IA (Dr. Exame), cacheada por dia. Fallback curado se o GLM falhar. */
-async function getDailyHealthTip(): Promise<string> {
+/** Classifica o segmento do paciente a partir do histórico (itens alterados + perfil clínico livre). */
+function classifySegment(text: string): Segment {
+  for (const r of SEGMENT_RULES) if (r.test.test(text)) return r.seg;
+  return 'rotina';
+}
+
+// Fallback curado POR SEGMENTO — relevante ao foco do paciente, SEM "beba água"/genéricas chatas.
+const FALLBACK_BY_SEGMENT: Record<Segment, string> = {
+  colesterol: 'Seu colesterol já esteve alterado: corte gordura saturada (carnes vermelhas, frituras) e capriche na fibra — aveia e feijão ajudam o LDL a cair.',
+  glicemia: 'Sua glicose merece atenção: evite açúcar em jejum, prefira integrais e caminhe 15 min após as refeições — o músculo consome a glicose.',
+  pressao: 'Já teve pressão alta? Reduza o sal e embutidos, e meça a PA sempre no mesmo braço e horário. Anote pra ver a tendência.',
+  anemia: 'Seus hematimetos já variaram: capriche em ferro (carne, feijão, folhas escuras) com vitamina C (laranja) pra absorver melhor.',
+  tireoide: 'Você tem medicação de tireoide: tome em jejum, longe de cálcio/ferro, e revise a TSH na frequência que o médico pediu.',
+  renal: 'Sua função renal pede cuidado: hidrate-se bem, evite excesso de anti-inflamatórios e de proteína animal.',
+  rotina: 'Previnir é mais fácil que remediar: mantenha os exames de rotina em dia e leve cada dúvida ao seu médico.',
+};
+
+// Cache de dica por dia+segmento (no máx ~7 chamadas GLM/dia, uma por segmento — não uma por paciente).
+const tipCache = new Map<string, string>();
+
+/** Dica personalizada ao segmento, gerada pela IA (cacheada por dia+segmento). Fallback curado se o GLM falhar. */
+async function getTipForSegment(seg: Segment): Promise<string> {
   const day = new Date().toISOString().slice(0, 10);
-  if (cachedTip && cachedTip.day === day) return cachedTip.text;
+  const key = `${day}:${seg}`;
+  const cached = tipCache.get(key);
+  if (cached) return cached;
   try {
     const r = await getLlm().complete({
       model: getModel(),
       maxTokens: 200,
-      system: 'Você é o Dr. Exame, assistente de saúde empático e prático do app Meus Exames. Gere UMA dica de saúde curta (máx 2 frases, ~180 caracteres), acionável e variada (hidratação, sono, movimento, alimentação, prevenção, exames de rotina, saúde mental, pressão/glicose). Sem jargão médico, sem diagnóstico. Responda APENAS com a dica, sem aspas nem prefixo.',
-      messages: [{ role: 'user', content: 'Dê a dica de saúde de hoje para o usuário.' }],
+      system: 'Você é o Dr. Exame, assistente de saúde empático e prático do app Meus Exames. Gere UMA dica de saúde curta (máx 2 frases, ~180 caracteres), acionável e ESPECÍFICA para o foco informado. Sem jargão médico, sem diagnóstico. PROIBIDO gerar dicas genéricas/óbvias como "beba água", "coma frutas", "durma bem" — seja específico do foco. Responda APENAS com a dica, sem aspas nem prefixo.',
+      messages: [{ role: 'user', content: `Foco de saúde do usuário: ${seg}. Dê uma dica prática e específica para este foco.` }],
     });
     const text = (r.text || '').trim();
-    if (text) { cachedTip = { day, text }; return text; }
+    if (text) { tipCache.set(key, text); return text; }
   } catch (e) {
-    console.warn('[nudges] GLM tip falhou, usando dica curada:', (e as Error).message);
+    console.warn('[nudges] GLM tip falhou, usando fallback de segmento:', (e as Error).message);
   }
-  // ROTATIVA: dia do ano % tamanho = sempre uma dica DIFERENTE por dia (não random — previsível
-  // e sem repetir). Nunca mais a mesma "beba água" todo dia.
-  const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
-  const fb = FALLBACK_TIPS[dayOfYear % FALLBACK_TIPS.length];
-  cachedTip = { day, text: fb };
+  const fb = FALLBACK_BY_SEGMENT[seg];
+  tipCache.set(key, fb);
   return fb;
 }
 
@@ -82,9 +85,7 @@ export function startHealthNudgeJob(): void {
   const run = async () => {
     try {
       console.log(`[nudges] tick diário 08h BRT @ ${new Date().toISOString()}`);
-      // Por-PATIENT (não por user): cada dependente recebe SEU nudge com SEU nome + SEUS dados.
-      // Antes era por-user (user.name = titular) → notificação dizia "Edmilson" com dado da Heloisa e
-      // misturava amostras de todos os dependentes da família.
+      // Por-PACIENTE (não por user): cada dependente recebe SEU nudge com SEU nome + SEUS dados.
       const patients = await prisma.patient.findMany({
         where: { exams: { some: { status: 'EXTRACTED' } } },
         include: { owner: { select: { id: true, email: true, nudgeEmails: true, emailVerified: true } } },
@@ -105,7 +106,7 @@ export function startHealthNudgeJob(): void {
     console.log(`[nudges] próximo disparo 08h BRT em ${Math.round(ms / 60000)} min (@ ${new Date(Date.now() + ms).toISOString()})`);
     setTimeout(run, ms);
   };
-  console.log('[nudges] job de nudges iniciado (diário 08h BRT = 11h UTC; alerta aleatório ou dica da IA)');
+  console.log('[nudges] job de nudges iniciado (diário 08h BRT; alerta real qualquer dia + dica personalizada ter/sex)');
   scheduleNext();
 }
 
@@ -118,7 +119,7 @@ async function maybeNudgeForPatient(patient: { id: string; fullName: string; own
   const data: Record<string, string> = { patientId: patient.id };
 
   // 1) ALERTA: valor alterado em exame recente DESTE paciente, sem alerta nos últimos 3 dias
-  //    para este paciente (anti-spam por dependente — antes era por user e misturava).
+  //    para este paciente (anti-spam por dependente).
   const recentAlert = await prisma.notification.findFirst({ where: { userId: owner.id, type: 'alert', createdAt: { gte: cutoff }, data: { path: ['patientId'], equals: patient.id } }, select: { id: true } });
   if (!recentAlert) {
     const abnormals = await prisma.examItem.findMany({
@@ -137,14 +138,24 @@ async function maybeNudgeForPatient(patient: { id: string; fullName: string; own
     }
   }
 
-  // 2) Sem alerta hoje → DICA de saúde da IA (engajamento diário garantido).
+  // 2) Sem alerta hoje → DICA personalizada ao perfil/exames, SÓ 2x/semana (ter/sex).
+  //    Nos outros dias, não incomoda (sem dica genérica diária).
   if (!type) {
+    const dow = new Date().getUTCDay();
+    if (!TIP_DAYS.has(dow)) return; // hoje não é dia de dica → silencioso
+    // Classifica o segmento pelo histórico do paciente (último alterado + perfil clínico livre).
+    const [lastAbn, prof] = await Promise.all([
+      prisma.examItem.findFirst({ where: { isAbnormal: true, exam: { patientId: patient.id } }, orderBy: { exam: { performedAt: 'desc' } }, select: { name: true, nameCanonical: true } }),
+      prisma.patient.findUnique({ where: { id: patient.id }, select: { clinicalProfile: true } }),
+    ]);
+    const segText = `${lastAbn?.nameCanonical ?? ''} ${lastAbn?.name ?? ''} ${prof?.clinicalProfile ?? ''}`;
+    const seg = classifySegment(segText);
     type = 'tip';
     title = `💡 Dica do Dr. Exame pra ${first}`;
-    body = await getDailyHealthTip();
+    body = await getTipForSegment(seg);
   }
 
-  // sendPushToUser salva a notificação in-app (central) E envia o push pro OWNER (donho da conta).
+  // sendPushToUser salva a notificação in-app (central) E envia o push pro OWNER (dono da conta).
   await sendPushToUser(owner.id, title, body, { type, ...data });
   // FALLBACK por e-mail: SÓ pra ALERTA e só pra quem NÃO tem push (iPhone no navegador etc.).
   if (type === 'alert') {
