@@ -527,7 +527,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     <>
       <Box sx={{ p: 2, pb: 1.5, background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff' }}>
         <Stack direction="row" alignItems="center" spacing={1.5}>
-          <Avatar src={doctor?.id ? `${API_URL}/doctor/photo/${doctor.id}?v=${photoVer}` : undefined} sx={{ bgcolor: 'rgba(255,255,255,.2)', fontWeight: 800, border: '2px solid rgba(255,255,255,.5)' }}>{doctor?.name?.charAt(0)}</Avatar>
+          <Avatar src={doctor?.photoUrl ? `${API_URL}/doctor/photo/${doctor.id}?v=${photoVer}` : undefined} sx={{ bgcolor: 'rgba(255,255,255,.2)', fontWeight: 800, border: '2px solid rgba(255,255,255,.5)' }}>{doctor?.name?.charAt(0)}</Avatar>
           <Box sx={{ minWidth: 0 }}>
             <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>🩺 {doctor?.name || 'Médico'}</Typography>
             <Typography variant="caption" sx={{ opacity: 0.9, display: 'block' }}>{[doctor?.specialty, doctor?.crm && `CRM ${doctor.crm}`].filter(Boolean).join(' • ')}</Typography>
@@ -573,7 +573,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           </Box>
         ) : (
           <>
-            <Avatar src={doctor?.id ? `${API_URL}/doctor/photo/${doctor.id}?v=${photoVer}` : undefined} sx={{ bgcolor: 'rgba(32,178,170,.10)', color: '#178f89', fontWeight: 800, border: '2px solid rgba(32,178,170,.15)', width: 36, height: 36, fontSize: 15 }}>{doctor?.name?.charAt(0)}</Avatar>
+            <Avatar src={doctor?.photoUrl ? `${API_URL}/doctor/photo/${doctor.id}?v=${photoVer}` : undefined} sx={{ bgcolor: 'rgba(32,178,170,.10)', color: '#178f89', fontWeight: 800, border: '2px solid rgba(32,178,170,.15)', width: 36, height: 36, fontSize: 15 }}>{doctor?.name?.charAt(0)}</Avatar>
             <Box sx={{ flex: 1, minWidth: 0 }}>
               <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 15, color: 'text.primary', lineHeight: 1.2 }}>{doctor?.name || 'Médico'}</Typography>
               <Typography variant="caption" sx={{ color: 'text.secondary' }}>{[doctor?.specialty, doctor?.crm && `CRM ${doctor.crm}`].filter(Boolean).join(' • ') || 'Portal do Médico'}</Typography>
@@ -1197,7 +1197,7 @@ const DoctorProfile = ({ token, doctor, onBack, onSaved, onPhoto, photoVer }: { 
       <Card sx={{ borderRadius: 4, mb: 2, background: 'rgba(32,178,170,0.08)', border: '1px solid', borderColor: 'divider' }}>
         <CardContent>
           <Stack direction="row" spacing={2} alignItems="center">
-            <PhotoUpload endpoint={`${API_URL}/doctor/me/photo`} authToken={token} src={doctor?.id ? `${API_URL}/doctor/photo/${doctor.id}?v=${photoVer}` : undefined} onUploaded={onPhoto} size={84} hideLabel />
+            <PhotoUpload endpoint={`${API_URL}/doctor/me/photo`} authToken={token} fallback={doctor?.name?.charAt(0)} src={doctor?.photoUrl ? `${API_URL}/doctor/photo/${doctor.id}?v=${photoVer}` : undefined} onUploaded={onPhoto} size={84} hideLabel />
             <Box>
               <Typography sx={{ fontWeight: 800, color: 'text.primary' }}>{name || 'Médico'}</Typography>
               <Typography variant="caption" color="text.secondary">CRM {doctor?.crm}{spec ? ` • ${spec}` : ''}</Typography>
