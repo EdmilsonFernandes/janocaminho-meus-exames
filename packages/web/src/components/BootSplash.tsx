@@ -38,6 +38,9 @@ export const BootSplash = ({
     }}>
       <Box sx={{ position: 'relative', animation: 'bootBreathe 2.2s ease-in-out infinite' }}>
         <Box sx={{ position: 'absolute', inset: -24, borderRadius: '50%', background: 'radial-gradient(circle, rgba(32,178,170,.5), transparent 70%)', filter: 'blur(10px)' }} />
+        {/* Anéis pulsantes (efeito radar/scanner — toque premium) */}
+        <Box sx={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '2px solid rgba(32,178,170,.55)', animation: 'bootRing 2.2s ease-out infinite' }} />
+        <Box sx={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '2px solid rgba(32,178,170,.4)', animation: 'bootRing 2.2s 0.7s ease-out infinite' }} />
         <DrExame size={108} sx={{ borderRadius: '50%', border: '3px solid rgba(255,255,255,.22)', boxShadow: '0 0 34px rgba(32,178,170,.55)' }} />
       </Box>
       <Typography variant="h4" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', letterSpacing: '-0.02em', mt: 1.5 }}>{title}</Typography>
@@ -56,6 +59,7 @@ export const BootSplash = ({
         @keyframes bootBreathe{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-8px) scale(1.05)}}
         @keyframes bootDot{0%,80%,100%{opacity:.3;transform:scale(.7)}40%{opacity:1;transform:scale(1.15)}}
         @keyframes bootBeat{0%{stroke-dashoffset:260}45%{stroke-dashoffset:0}55%{stroke-dashoffset:0}100%{stroke-dashoffset:-260}}
+        @keyframes bootRing{0%{transform:scale(1);opacity:.55}80%{opacity:0}100%{transform:scale(1.85);opacity:0}}
       `}</style>
     </Box>
   );
