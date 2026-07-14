@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Card, CardContent, Typography, Button, ListItem, ListItemIcon, ListItemText, IconButton, Checkbox, TextField, Stack, Chip, List, Divider, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
+import { Card, CardContent, Typography, Button, ListItem, ListItemIcon, ListItemText, IconButton, Checkbox, TextField, Stack, Chip, List, Divider, Accordion, AccordionSummary, AccordionDetails, Alert } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -28,6 +28,7 @@ export const RemindersPage = () => {
   const [date, setDate] = useState('');
   const [time, setTime] = useState('09:00');
   const [offsets, setOffsets] = useState<number[]>(DEFAULT_OFFSETS);
+  const [err, setErr] = useState<string | null>(null);
 
   const load = async () => {
     if (!pid) return;
@@ -40,13 +41,24 @@ export const RemindersPage = () => {
 
   const add = async () => {
     if (!title.trim() || !date) return;
+    setErr(null);
     // Combina data + hora no fuso do usuário -> instante absoluto (ISO) p/ o job calcular certo.
     const iso = new Date(`${date}T${time || '09:00'}`).toISOString();
-    await fetch(`${API_URL}/reminders`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
-      body: JSON.stringify({ patientId: pid, title: title.trim(), dueDate: iso, notifyOffsetsMin: offsets }),
-    });
-    setTitle(''); setDate(''); setTime('09:00'); setOffsets(DEFAULT_OFFSETS); load();
+    try {
+      const r = await fetch(`${API_URL}/reminders`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
+        body: JSON.stringify({ patientId: pid, title: title.trim(), dueDate: iso, notifyOffsetsMin: offsets }),
+      });
+      if (!r.ok) {
+        // Antes falhava silencioso (limpava o form e o lembrete sumia sem mensagem) — agora mostra o erro.
+        const d = await r.json().catch(() => ({}));
+        setErr(d?.message || d?.error || 'Não foi possível salvar o lembrete. Tente novamente.');
+        return; // mantém o form preenchido pra não perder o que digitou
+      }
+      setTitle(''); setDate(''); setTime('09:00'); setOffsets(DEFAULT_OFFSETS); await load();
+    } catch {
+      setErr('Sem conexão — o lembrete não foi salvo. Reconecte e tente novamente.');
+    }
   };
   const toggle = async (r: any) => {
     await fetch(`${API_URL}/reminders/${r.id}`, {
@@ -113,6 +125,7 @@ export const RemindersPage = () => {
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
             Avisamos por <strong>notificação no app</strong>, <strong>push</strong> e <strong>e-mail</strong> em cada antecedência escolhida.
           </Typography>
+          {err && <Alert severity="error" sx={{ mt: 1.5, py: 0.5, borderRadius: 2 }} onClose={() => setErr(null)}>{err}</Alert>}
           <Button variant="contained" onClick={add} disabled={!title.trim() || !date || offsets.length === 0} sx={{ mt: 1.5 }}>Adicionar</Button>
         </CardContent>
       </Card>
