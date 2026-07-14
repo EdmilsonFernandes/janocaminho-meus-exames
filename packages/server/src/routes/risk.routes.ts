@@ -16,6 +16,7 @@ import { prisma } from '../prisma';
 import { chargeCredits, CREDIT_COSTS } from '../utils/credits';
 import { buildRiskAssessment, latestRiskAssessment } from '../analysis/risk-service';
 import { generateActionPlan } from '../analysis/risk-action-plan';
+import { saveAnalysisDoc, getLatestAnalysisDoc, DOC_KIND } from '../utils/analysisDoc';
 import { computeAdherenceScore, computePredictions } from '../analysis/insights';
 
 const router = Router();
@@ -129,15 +130,27 @@ router.post('/action-plan', async (req: AuthedRequest, res, next) => {
     const { contentMd, modelUsed, basedOn } = await generateActionPlan(patientId);
     const ok = await chargeCredits(req.userId!, CREDIT_COSTS.actionPlan, 'risk_action_plan', 'Plano de ação (Dr. Exame)');
     if (!ok) {
-      // race: saldo mudou entre a checagem e o débito — não cobra, mas já gastamos IA.
-      // Best-effort: devolve o conteúdo (caso raro).
       console.warn('[risk/action-plan] débito falhou pós-geração (saldo mudou) — conteúdo devolvido sem cobrança.');
     }
+    // PERSISTE: 1 plano por paciente (upsert). Ao reabrir, o front lê /latest (grátis) — só cobra de novo no "Gerar novo".
+    await saveAnalysisDoc({ patientId, kind: DOC_KIND.ACTION_PLAN_PATIENT, contentMd, structured: { basedOn }, modelUsed });
     res.status(201).json({ contentMd, modelUsed, basedOn });
   } catch (e: any) {
     if (e?.status === 409) { res.status(409).json({ error: 'no_risk_assessment', message: e.message }); return; }
     if (!res.headersSent) res.status(500).json({ error: 'Não foi possível gerar o plano agora (serviço de IA). Tente novamente.' });
   }
+});
+
+// ÚLTIMO plano de ação salvo (GRÁTIS — não regenera, não cobra). O front busca ao abrir a tela;
+// só cobra de novo no botão "Gerar novo" (POST /action-plan com force).
+router.get('/action-plan/latest', async (req: AuthedRequest, res, next) => {
+  try {
+    const pids = await userPatientIds(req.userId!);
+    const patientId = String(req.query.patientId ?? '');
+    if (!patientId || !pids.includes(patientId)) { res.json({ contentMd: null }); return; }
+    const doc = await getLatestAnalysisDoc(patientId, DOC_KIND.ACTION_PLAN_PATIENT);
+    res.json({ contentMd: doc?.contentMd ?? null, basedOn: (doc?.structured as any)?.basedOn ?? null, updatedAt: doc?.createdAt ?? null });
+  } catch (e) { next(e); }
 });
 
 export default router;

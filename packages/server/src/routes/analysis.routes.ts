@@ -94,7 +94,7 @@ router.post('/consolidated', async (req: AuthedRequest, res, next) => {
     })).slice(0, 5);
     // dedup: se já existe resumo consolidado há menos de 1h, devolve (economiza tokens)
     const recent = await prisma.aiAnalysis.findFirst({
-      where: { patientId, type: 'SUMMARY', examId: null, createdAt: { gt: new Date(Date.now() - 3600_000) } },
+      where: { patientId, type: 'SUMMARY', examId: null, userMessage: null, createdAt: { gt: new Date(Date.now() - 3600_000) } },
       orderBy: { createdAt: 'desc' },
     });
     if (recent && !req.body?.force) { res.json({ ...recent, sourceExams }); return; }
@@ -106,7 +106,7 @@ router.post('/consolidated', async (req: AuthedRequest, res, next) => {
     try {
       const { summary, contentMd, modelUsed, usage } = await generateConsolidatedSummary(patientId);
       // UPSERT: 1 resumo consolidado por paciente (atualiza o existente em vez de acumular duplicatas).
-      const existing = await prisma.aiAnalysis.findFirst({ where: { patientId, type: 'SUMMARY', examId: null }, orderBy: { createdAt: 'desc' } });
+      const existing = await prisma.aiAnalysis.findFirst({ where: { patientId, type: 'SUMMARY', examId: null, userMessage: null }, orderBy: { createdAt: 'desc' } });
       const analysis = existing
         ? await prisma.aiAnalysis.update({ where: { id: existing.id }, data: { contentMd, structured: summary as any, modelUsed, tokenUsage: usage as any, createdAt: new Date() } })
         : await prisma.aiAnalysis.create({ data: { patientId, examId: null, type: 'SUMMARY', contentMd, structured: summary as any, modelUsed, tokenUsage: usage as any } });
@@ -114,7 +114,7 @@ router.post('/consolidated', async (req: AuthedRequest, res, next) => {
       res.status(201).json({ ...analysis, sourceExams });
     } catch (genErr: any) {
       // RAG: se a (re)geração falhou, devolve o ÚLTIMO relatório salvo em vez de erro
-      const last = await prisma.aiAnalysis.findFirst({ where: { patientId, type: 'SUMMARY', examId: null }, orderBy: { createdAt: 'desc' } });
+      const last = await prisma.aiAnalysis.findFirst({ where: { patientId, type: 'SUMMARY', examId: null, userMessage: null }, orderBy: { createdAt: 'desc' } });
       if (last) {
         console.warn('[consolidated] geração falhou — devolvendo último salvo:', genErr?.message);
         res.status(200).json({ ...last, sourceExams, fromCache: true, warning: 'Mostrando seu último relatório salvo (a regeração falhou: ' + (genErr?.message ?? 'erro de IA') + ').' });
@@ -140,7 +140,7 @@ router.get('/consolidated/latest', async (req: AuthedRequest, res, next) => {
       take: 20,
       select: { id: true, title: true, performedAt: true, sourceLab: true, kind: true },
     })).slice(0, 5);
-    const last = await prisma.aiAnalysis.findFirst({ where: { patientId, type: 'SUMMARY', examId: null }, orderBy: { createdAt: 'desc' } });
+    const last = await prisma.aiAnalysis.findFirst({ where: { patientId, type: 'SUMMARY', examId: null, userMessage: null }, orderBy: { createdAt: 'desc' } });
     res.json({ analysis: last, sourceExams });
   } catch (e) { next(e); }
 });

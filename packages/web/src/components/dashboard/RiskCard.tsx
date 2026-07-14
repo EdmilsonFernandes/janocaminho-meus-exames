@@ -82,6 +82,17 @@ export const RiskCard = () => {
   // plano/feedback de um dependente (ex: Edmilson) pra outro (ex: Heloisa).
   useEffect(() => { setPlan(null); setPlanErr(null); setFeedback(null); setShowQuestions(false); setShowFull(false); setHasMoreExplanation(false); }, [pid]);
 
+  // Ao abrir: busca o ÚLTIMO plano salvo (GRÁTIS — /latest). Só cobra de novo no botão "Gerar novo".
+  useEffect(() => {
+    if (!pid) return;
+    let cancelled = false;
+    fetch(`${API_URL}/risk/action-plan/latest?patientId=${pid}`, { headers: { Authorization: `Bearer ${token()}` } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (!cancelled && d?.contentMd) setPlan(d.contentMd); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [pid]);
+
   const load = useCallback((force = false) => {
     if (!pid) { setLoading(false); setR(null); return; }
     setLoading(true);
@@ -329,10 +340,10 @@ export const RiskCard = () => {
 
         {/* PLANO DE AÇÃO (IA — alavanca de créditos: a leitura de risco é grátis, o plano é o upsell) */}
         <Divider sx={{ my: 1.25 }} />
-        {!plan && !planLoading && (
-          <Button fullWidth variant="contained" size="small" startIcon={<AutoStoriesIcon />} onClick={loadPlan}
+        {!planLoading && (
+          <Button fullWidth variant={plan ? 'outlined' : 'contained'} size="small" color={plan ? 'inherit' : 'primary'} startIcon={<AutoStoriesIcon />} onClick={loadPlan}
             sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, py: 1.1 }}>
-            Plano de ação do Dr. Exame · {ACTION_PLAN_COST} créditos
+            {plan ? 'Gerar novo plano' : `Plano de ação do Dr. Exame · ${ACTION_PLAN_COST} créditos`}
           </Button>
         )}
         {planLoading && (
