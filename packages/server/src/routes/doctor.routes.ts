@@ -1,6 +1,7 @@
 import { auditLog } from '../middleware/auditLog';
 import { audit } from '../utils/audit';
 import { doctorAnswerEmail, webUrl } from '../utils/emailTemplate';
+import { saveAnalysisDoc, getLatestAnalysisDoc, DOC_KIND } from '../utils/analysisDoc';
 import { validate, schemas } from '../middleware/validate';
 import { Router } from 'express';
 import jwt from 'jsonwebtoken';
@@ -674,6 +675,7 @@ router.post('/patients/:patientId/action-plan', requireDoctor, checkPremiumFeatu
     if (!(await requireShare(req.doctorId, req.params.patientId))) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     void auditLog(req, 'doctor_generated_action_plan', String(req.params.patientId));
     const { contentMd, basedOn } = await generateActionPlan(String(req.params.patientId), 'doctor');
+    await saveAnalysisDoc({ patientId: String(req.params.patientId), kind: DOC_KIND.ACTION_PLAN_DOCTOR, contentMd, structured: { basedOn } });
     res.json({ contentMd, basedOn });
   } catch (e: any) {
     if (e?.status === 409) { res.status(409).json({ error: 'no_risk_assessment', message: e.message }); return; }
@@ -741,11 +743,29 @@ router.post('/patients/:patientId/soap', requireDoctor, checkPremiumFeature, asy
     if (!(await requireShare(req.doctorId, req.params.patientId))) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     void auditLog(req, 'doctor_generated_soap', String(req.params.patientId));
     const { contentMd, modelUsed } = await generateSoap(String(req.params.patientId));
+    await saveAnalysisDoc({ patientId: String(req.params.patientId), kind: DOC_KIND.SOAP, contentMd, modelUsed });
     res.status(201).json({ contentMd, modelUsed });
   } catch (e: any) {
     if (e?.status === 400) { res.status(400).json({ error: 'Sem exames extraídos pra gerar SOAP.' }); return; }
     if (!res.headersSent) res.status(500).json({ error: 'Não foi possível gerar o SOAP agora.' });
   }
+});
+
+// Último plano de ação do médico salvo (GRÁTIS — não regenera/premium-quota a cada abertura).
+router.get('/patients/:patientId/action-plan/latest', requireDoctor, async (req: any, res, next) => {
+  try {
+    if (!(await requireShare(req.doctorId, req.params.patientId))) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+    const doc = await getLatestAnalysisDoc(String(req.params.patientId), DOC_KIND.ACTION_PLAN_DOCTOR);
+    res.json({ contentMd: doc?.contentMd ?? null, basedOn: (doc?.structured as any)?.basedOn ?? null });
+  } catch (e) { next(e); }
+});
+// Último SOAP salvo (GRÁTIS — não regenera a cada abertura).
+router.get('/patients/:patientId/soap/latest', requireDoctor, async (req: any, res, next) => {
+  try {
+    if (!(await requireShare(req.doctorId, req.params.patientId))) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+    const doc = await getLatestAnalysisDoc(String(req.params.patientId), DOC_KIND.SOAP);
+    res.json({ contentMd: doc?.contentMd ?? null });
+  } catch (e) { next(e); }
 });
 
 // EXPORT PES — resumo clínico estruturado com CID-10 sugerido (prontuário eletrônico).

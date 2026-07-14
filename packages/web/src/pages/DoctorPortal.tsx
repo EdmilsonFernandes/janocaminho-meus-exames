@@ -393,6 +393,9 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
       { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/questions`, { headers: h }); const d = await r.json(); if (r.ok) setQuestions(d.items ?? []); }
       // Anotações sempre (são do próprio médico, não dependem de escopo)
       { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/notes`, { headers: h }); const d = await r.json(); if (r.ok) setNotes(d.items ?? []); }
+      // Plano de ação + SOAP salvos (grátis — /latest): não regenera/premium-quota a cada abertura.
+      { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/action-plan/latest`, { headers: h }); const d = await r.json(); setClinicalPlan(r.ok && d?.contentMd ? d.contentMd : null); }
+      { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/soap/latest`, { headers: h }); const d = await r.json(); setSoap(r.ok && d?.contentMd ? d.contentMd : null); }
     } catch {} finally { setDetailLoading(false); }
   };
 
