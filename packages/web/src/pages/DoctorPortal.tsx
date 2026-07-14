@@ -276,6 +276,15 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const [questions, setQuestions] = useState<any[]>([]);
   const [qText, setQText] = useState<Record<string, string>>({});
   const [qSending, setQSending] = useState<string | null>(null);
+  const [unreadQ, setUnreadQ] = useState(0);
+  // Badge de perguntas não lidas no portal (poll 60s). O e-mail (doctorQuestionEmail) também avisa.
+  useEffect(() => {
+    const tick = () => fetch(`${API_URL}/doctor/questions/unread`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => (r.ok ? r.json() : null)).then((d) => setUnreadQ(d?.count ?? 0)).catch(() => {});
+    tick();
+    const t = setInterval(tick, 60000);
+    return () => clearInterval(t);
+  }, []);
   const responderQ = async (id: string) => {
     const body = (qText[id] ?? '').trim(); if (!body) return;
     setQSending(id);
@@ -533,6 +542,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           <Avatar src={doctor?.photoUrl ? `${API_URL}/doctor/photo/${doctor.id}?v=${photoVer}` : undefined} sx={{ bgcolor: 'rgba(255,255,255,.2)', fontWeight: 800, border: '2px solid rgba(255,255,255,.5)' }}>{doctor?.name?.charAt(0)}</Avatar>
           <Box sx={{ minWidth: 0 }}>
             <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>🩺 {doctor?.name || 'Médico'}</Typography>
+            {unreadQ > 0 && <Chip size="small" label={`❓ ${unreadQ} ${unreadQ === 1 ? 'pergunta nova' : 'perguntas novas'}`} sx={{ mt: 0.5, height: 20, fontSize: 11, bgcolor: 'rgba(255,255,255,.28)', color: '#fff', fontWeight: 700 }} />}
             <Typography variant="caption" sx={{ opacity: 0.9, display: 'block' }}>{[doctor?.specialty, doctor?.crm && `CRM ${doctor.crm}`].filter(Boolean).join(' • ')}</Typography>
           </Box>
         </Stack>
