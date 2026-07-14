@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, Button, CircularProgress, Stack, Alert, Grid, Chip } from '@mui/material';
+import { Box, Typography, Button, CircularProgress, Stack, Alert, Grid, Chip, Checkbox } from '@mui/material';
 import { Title } from 'react-admin';
 import DescriptionIcon from '@mui/icons-material/Description';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
@@ -125,6 +125,35 @@ export const ConsolidatedReportPage = () => {
   const [noCredits, setNoCredits] = useState(false);
   const [noExams, setNoExams] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  // Frente C: tick das perguntas do relatório pra levar ao médico + envio (cria DoctorQuestion + email).
+  const [tickQ, setTickQ] = useState<Record<number, boolean>>({});
+  const [send, setSend] = useState<{ status: 'idle' | 'sending' | 'done' | 'error'; msg?: string }>({ status: 'idle' });
+  const sendQuestionsToDoctor = async () => {
+    const qs: string[] = (analysis?.structured?.perguntasParaOMedico ?? []) as string[];
+    const picked = qs.map((q, i) => ({ q, i })).filter((x) => tickQ[x.i]);
+    if (!picked.length || !pid) return;
+    setSend({ status: 'sending' });
+    try {
+      const sr = await fetch(`${API_URL}/doctor-shares`, { headers: apiHeaders() });
+      const sd = sr.ok ? await sr.json() : { items: [] };
+      const shares: any[] = sd.items ?? sd ?? [];
+      const active = shares.filter((x: any) => x.active !== false);
+      if (!active.length) { setSend({ status: 'error', msg: 'Você ainda não compartilhou dados com nenhum médico. Vá em “Meus Médicos” e compartilhe antes.' }); return; }
+      const doc = active[0];
+      const doctorId = doc.doctorId ?? doc.doctor?.id;
+      const doctorName = doc.doctor?.name ?? doc.name ?? 'seu médico';
+      const body = picked.map((x) => `• ${x.q}`).join('\n');
+      const r = await fetch(`${API_URL}/doctor-questions`, {
+        method: 'POST', headers: { ...apiHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ patientId: pid, doctorId, subject: 'Perguntas do meu relatório consolidado', body }),
+      });
+      if (r.status === 402) { const d = await r.json().catch(() => ({})); setSend({ status: 'error', msg: d.message || 'Créditos insuficientes pra enviar agora.' }); return; }
+      if (!r.ok) { setSend({ status: 'error', msg: 'Não foi possível enviar agora. Tente novamente.' }); return; }
+      bumpCredits();
+      setSend({ status: 'done', msg: `Perguntas enviadas ao Dr(a). ${doctorName}. Ele(a) recebeu por e-mail e no portal.` });
+      setTickQ({});
+    } catch { setSend({ status: 'error', msg: 'Sem conexão. Tente novamente.' }); }
+  };
 
   // Carrega o ÚLTIMO relatório salvo ao entrar (não repensa a cada visita — economiza créditos)
   useEffect(() => {
@@ -394,11 +423,18 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
             <ReportSectionCard icon={<LiveHelpIcon />} title="Perguntas para levar ao médico" accent="#7b1fa2" count={s.perguntasParaOMedico.length}>
               <Stack spacing={0.75}>
                 {s.perguntasParaOMedico.map((q, i) => (
-                  <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-                    <Box sx={{ width: 18, height: 18, borderRadius: '4px', border: '2px solid #7b1fa2', flexShrink: 0, mt: '2px' }} />
-                    <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>{txt(q)}</Typography>
+                  <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}>
+                    <Checkbox checked={!!tickQ[i]} onChange={() => setTickQ((c) => ({ ...c, [i]: !c[i] }))} size="small" sx={{ color: '#7b1fa2', p: 0.5 }} />
+                    <Typography variant="body2" sx={{ wordBreak: 'break-word', flex: 1, pt: '2px' }}>{txt(q)}</Typography>
                   </Box>
                 ))}
+                {send.status === 'error' && <Alert severity="error" sx={{ py: 0.5, borderRadius: 2 }}>{send.msg}</Alert>}
+                {send.status === 'done' && <Alert severity="success" sx={{ py: 0.5, borderRadius: 2 }}>{send.msg}</Alert>}
+                <Button variant="contained" disabled={send.status === 'sending' || !Object.values(tickQ).some(Boolean)} onClick={sendQuestionsToDoctor}
+                  sx={{ alignSelf: 'flex-start', borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#7b1fa2', '&:hover': { bgcolor: '#6a1b63' } }}>
+                  {send.status === 'sending' ? 'Enviando…' : 'Enviar ao médico'}
+                </Button>
+                <Typography variant="caption" color="text.secondary">Marque as perguntas que quiser levar e toque em enviar. Seu médico recebe por e-mail e no portal.</Typography>
               </Stack>
             </ReportSectionCard>
           ) : null}
