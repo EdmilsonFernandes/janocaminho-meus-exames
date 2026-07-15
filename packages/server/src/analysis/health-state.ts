@@ -266,12 +266,16 @@ export async function buildMarkerState(patientId: string): Promise<MarkerState[]
 }
 
 /** Layer 2 — snapshot do estado atual do paciente (roll-up do Layer 1). */
-export async function buildCurrentHealthSummary(patientId: string): Promise<CurrentHealthSummary> {
+export async function buildCurrentHealthSummary(patientId: string, opts?: { includeStale?: boolean }): Promise<CurrentHealthSummary> {
   const allMarkers = await buildMarkerState(patientId);
   // FILTRO TEMPORAL: score/idade bio só com marcadores NÃO desatualizados (medidos <12m).
   // Exames de 2018/2021/2023 NÃO refletem a saúde atual — não devem contaminar o score.
-  const markers = allMarkers.filter((m) => !m.latest.stale);
-  const staleCount = allMarkers.length - markers.length;
+  const freshOnly = allMarkers.filter((m) => !m.latest.stale);
+  // FALLBACK (relatório): se não há marcadores recentes mas existem exames extraídos (antigos),
+  // usa os antigos como base — melhor gerar um relatório com caveat de desatualização do que
+  // travar com 500. Score/dashboard/idade bio NÃO passam includeStale (continuam só com recentes).
+  const markers = freshOnly.length > 0 || !opts?.includeStale ? freshOnly : allMarkers;
+  const staleCount = allMarkers.length - freshOnly.length;
   // Idade biológica: PhenoAge (quando completa) ou z-score simplificado (fallback)
   let biologicalAge: CurrentHealthSummary['biologicalAge'] = null;
   let bioMethod: 'phenoage' | 'simplified' = 'simplified';

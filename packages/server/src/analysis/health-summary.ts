@@ -76,9 +76,11 @@ export async function generateConsolidatedSummary(patientId: string, audience: '
   // M1/M2: snapshot ESTRUTURAL do estado de saúde. Priorização temporal = dado rotulado
   // (ESTADO ATUAL / TENDÊNCIAS / CONTEXTO HISTÓRICO), não instrução de prompt.
   // Antes: take 3 exames + "priorize o 1º". Agora: buildCurrentHealthSummary (Layer 2).
-  const snapshot = await buildCurrentHealthSummary(patientId);
+  // includeStale: se o paciente só tem exames antigos (>12m), gera mesmo assim (com caveat de
+  // desatualização) em vez de travar. markers===0 agora só acontece se NÃO há NENHUM exame extraído.
+  const snapshot = await buildCurrentHealthSummary(patientId, { includeStale: true });
   if (snapshot.markers === 0) {
-    const err = new Error('Nenhum exame extraído para consolidar');
+    const err = new Error('Você ainda não tem exames lidos pelo Dr. Exame. Envie um exame (PDF ou foto) para gerar o relatório.');
     (err as any).status = 400;
     throw err;
   }

@@ -701,7 +701,12 @@ router.post('/patients/:patientId/summary/generate', requireDoctor, async (req: 
       ? await prisma.aiAnalysis.update({ where: { id: existing.id }, data: { contentMd, structured: summary as any, modelUsed, tokenUsage: usage as any, createdAt: new Date() }, select: { id: true, createdAt: true } })
       : await prisma.aiAnalysis.create({ data: { patientId: req.params.patientId, type: 'SUMMARY', examId: null, userMessage: 'audience:doctor', contentMd, structured: summary as any, modelUsed, tokenUsage: usage as any }, select: { id: true, createdAt: true } });
     res.status(201).json({ id: analysis.id, createdAt: analysis.createdAt, contentMd });
-  } catch (e: any) { if (!res.headersSent) res.status(500).json({ error: 'Não foi possível gerar o resumo agora.' }); }
+  } catch (e: any) {
+    if (!res.headersSent) {
+      if (e?.status === 400) res.status(400).json({ error: e?.message || 'Paciente sem exames extraídos.' });
+      else res.status(500).json({ error: 'Não foi possível gerar o resumo agora.' });
+    }
+  }
 });
 
 // PRÉ-CONSULTA (brief automático de 1 página) — top mudanças + risco + investigar + perguntas. Grátis, determinístico.

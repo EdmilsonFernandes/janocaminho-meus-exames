@@ -145,7 +145,11 @@ router.post('/consolidated', async (req: AuthedRequest, res, next) => {
     }
   } catch (e: any) {
     console.error('[consolidated] erro ao gerar:', e?.status, e?.message);
-    if (!res.headersSent) res.status(500).json({ error: 'Não foi possível gerar o relatório agora (serviço de IA). Tente novamente em instantes.' });
+    if (!res.headersSent) {
+      // 400 = problema de dados (sem exames extraídos), NÃO de IA — mensagem honesta.
+      if (e?.status === 400) res.status(400).json({ error: e?.message || 'Sem exames extraídos para consolidar.' });
+      else res.status(500).json({ error: 'Não foi possível gerar o relatório agora (serviço de IA). Tente novamente em instantes.' });
+    }
   }
 });
 
