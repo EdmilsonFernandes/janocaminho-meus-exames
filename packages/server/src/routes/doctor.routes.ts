@@ -261,6 +261,11 @@ router.post('/register', validate(schemas.doctorRegister), async (req, res, next
     const code = issueOtp(mail);
     sendEmail({ to: mail, subject: 'Ative sua conta — Portal do Médico (Meus Exames)', html: otpEmail(String(name), code) })
       .catch((e: any) => console.error('[doctor/register] falha SMTP verificação:', e?.message));
+    // AUDITORIA anti-fraude: TODO cadastro de médico fica registrado (CRM/email/IP) pra revisão
+    // do admin. Hoje o CRM não é validado contra o CFM — um fraudador pode usar CRM alheio e
+    // roubar shares de pacientes. Esta trilha permite identificar/reverter. (Validação CFM + aprovação
+    // manual = próxima fase — ver relatório.)
+    try { await audit('DOCTOR_REGISTERED', req, { actorType: 'SYSTEM', targetType: 'DOCTOR', after: { crm: crmKey, email: mail, name, claim: !!existing } }); } catch { /* best-effort */ }
     res.status(201).json({ needsVerification: true, email: mail });
   } catch (e) { next(e); }
 });
