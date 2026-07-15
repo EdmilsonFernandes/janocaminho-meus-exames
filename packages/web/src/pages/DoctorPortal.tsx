@@ -990,13 +990,18 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                                 {msgs.map((m: any, i: number) => {
                                   const isDoc = m.authorRole === 'doctor';
                                   const isAi = m.authorRole === 'ai';
-                                  const role = isDoc ? '👨‍⚕️ Médico' : isAi ? '🤖 IA' : '🙂 Paciente';
+                                  const av = isAi ? null : isDoc
+                                    ? <Avatar src={doctor?.photoUrl ? `${API_URL}/doctor/photo/${doctor.id}?v=${photoVer}` : undefined} sx={{ width: 28, height: 28, bgcolor: TEAL, fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{(doctor?.name || 'M').charAt(0)}</Avatar>
+                                    : <Avatar src={selected?.patient?.photoUrl ? `${API_URL}/patients/${selected.patient.id}/photo?v=0` : undefined} sx={{ width: 28, height: 28, bgcolor: '#94a3b8', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{(selected?.patient?.fullName || 'P').charAt(0)}</Avatar>;
+                                  const role = isDoc ? 'Médico' : isAi ? '🤖 IA' : 'Paciente';
                                   return (
-                                    <Box key={i} sx={{ display: 'flex', justifyContent: isDoc ? 'flex-end' : 'flex-start' }}>
-                                      <Box sx={{ maxWidth: '82%', p: 1, px: 1.25, borderRadius: 2, bgcolor: isDoc ? '#e0f2f1' : isAi ? '#f3e8ff' : '#f1f5f9', border: '1px solid', borderColor: isDoc ? 'rgba(32,178,170,.25)' : 'transparent' }}>
+                                    <Box key={i} sx={{ display: 'flex', justifyContent: isDoc ? 'flex-end' : 'flex-start', gap: 0.75, alignItems: 'flex-end' }}>
+                                      {!isDoc && av}
+                                      <Box sx={{ maxWidth: '78%', p: 1, px: 1.25, borderRadius: 2, bgcolor: isDoc ? '#e0f2f1' : isAi ? '#f3e8ff' : '#f1f5f9', border: '1px solid', borderColor: isDoc ? 'rgba(32,178,170,.25)' : 'transparent' }}>
                                         <Typography variant="caption" sx={{ display: 'block', fontWeight: 700, color: isDoc ? TEAL : isAi ? '#7c3aed' : 'text.secondary', mb: 0.25, fontSize: 10.5 }}>{role} · {new Date(m.createdAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</Typography>
                                         <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.45, wordBreak: 'break-word' }}>{m.body}</Typography>
                                       </Box>
+                                      {isDoc && av}
                                     </Box>
                                   );
                                 })}
