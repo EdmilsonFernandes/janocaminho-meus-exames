@@ -476,7 +476,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
                     {picker.shares.map((s: any) => {
                       const id = s.doctorId ?? s.doctor?.id; const nm = s.doctor?.name ?? s.name; const sp = s.doctor?.specialty;
                       return <MenuItem key={id} value={id} sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.75 }}>
-                        <Avatar src={s.doctor?.photoUrl ? `${API_URL}/doctor/photo/${id}?v=0` : undefined} sx={{ width: 30, height: 30, bgcolor: '#20b2aa', fontSize: 13, fontWeight: 700, flexShrink: 0 }}>{(nm || '?').charAt(0)}</Avatar>
+                        <Avatar src={s.doctor?.photoUrl ? `${API_URL}/doctor/photo/${id}?v=0` : undefined} sx={{ width: 36, height: 36, bgcolor: '#20b2aa', fontSize: 14, fontWeight: 700, flexShrink: 0 }}>{(nm || '?').charAt(0)}</Avatar>
                         <Box sx={{ minWidth: 0 }}><Typography variant="inherit" sx={{ fontWeight: 700 }}>{nm}</Typography>{sp ? <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', fontSize: 11, lineHeight: 1.2 }}>{sp}</Typography> : null}</Box>
                       </MenuItem>;
                     })}

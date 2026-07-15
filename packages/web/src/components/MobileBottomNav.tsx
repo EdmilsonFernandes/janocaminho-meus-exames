@@ -24,6 +24,7 @@ const SECONDARY_ROUTES = ['/alterados', '/tendencias', '/linha-do-tempo', '/medi
 export const MobileBottomNav = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isDark = theme.palette.mode === 'dark';
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { openDrawer } = useAppDrawer();
@@ -45,7 +46,7 @@ export const MobileBottomNav = () => {
   const item = (it: { icon: string; label: string; to: string; robot?: boolean }, onClick?: () => void, on?: boolean) => (
     <Box key={it.to} onClick={() => { hapticLight(); (onClick ?? (() => navigate(it.to)))(); }} sx={{
       flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-      py: 0.7, cursor: 'pointer', userSelect: 'none', color: on ? '#178f89' : '#8a979c',
+      py: 0.7, cursor: 'pointer', userSelect: 'none', color: on ? '#178f89' : 'text.secondary',
       borderRadius: 2, bgcolor: on ? 'rgba(32,178,170,.10)' : 'transparent',
       transition: 'background-color .2s, color .15s, transform .1s', '&:active': { transform: 'scale(.90)' },
     }}>
@@ -76,7 +77,7 @@ export const MobileBottomNav = () => {
   const maisItem = (on: boolean, onClick?: () => void) => (
     <Box onClick={() => { hapticLight(); onClick?.(); }} sx={{
       flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-      py: 0.7, cursor: 'pointer', userSelect: 'none', color: on ? '#178f89' : '#8a979c',
+      py: 0.7, cursor: 'pointer', userSelect: 'none', color: on ? '#178f89' : 'text.secondary',
       borderRadius: 2, bgcolor: on ? 'rgba(32,178,170,.10)' : 'transparent',
       transition: 'background-color .2s, color .15s, transform .1s', '&:active': { transform: 'scale(.90)' },
     }}>
@@ -91,8 +92,8 @@ export const MobileBottomNav = () => {
   return (
     <Box ref={navRef} component="nav" sx={{
       position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1100, display: 'flex', justifyContent: 'space-around',
-      bgcolor: 'rgba(255,255,255,.97)', backdropFilter: 'blur(16px)', borderTop: '1px solid rgba(0,0,0,.06)',
-      pb: 'env(safe-area-inset-bottom)', boxShadow: '0 -2px 12px rgba(0,0,0,.04)',
+      bgcolor: isDark ? 'rgba(26,36,36,.97)' : 'rgba(255,255,255,.97)', backdropFilter: 'blur(16px)', borderTop: '1px solid', borderColor: 'divider',
+      pb: 'env(safe-area-inset-bottom)', boxShadow: isDark ? '0 -2px 16px rgba(0,0,0,.5)' : '0 -2px 12px rgba(0,0,0,.04)',
     }}>
       {NAV.map((it) => item(it, undefined, active(it.to)))}
       {maisItem(maisActive, () => openDrawer())}

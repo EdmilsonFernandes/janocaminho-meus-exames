@@ -58,7 +58,7 @@ export const QuestionsPage = () => {
   });
 
   const userName = (() => { try { return JSON.parse(localStorage.getItem('user') || '{}')?.name || 'Paciente'; } catch { return 'Paciente'; } })();
-  const patientAvatar = <Avatar sx={{ width: 28, height: 28, bgcolor: '#94a3b8', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{(userName || 'P').charAt(0)}</Avatar>;
+  const patientAvatar = <Avatar sx={{ width: 36, height: 36, bgcolor: '#94a3b8', fontSize: 14, fontWeight: 700, flexShrink: 0 }}>{(userName || 'P').charAt(0)}</Avatar>;
 
   return (
     <PageContainer width="content">
@@ -109,7 +109,7 @@ export const QuestionsPage = () => {
                 '&:hover': { boxShadow: '0 4px 12px rgba(0,0,0,.06)' },
               }}>
                 <CardContent sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start', '&:last-child': { pb: 1.5 } }}>
-                  <Avatar src={doc?.photoUrl ? `${API_URL}/doctor/photo/${doc.id}?v=0` : undefined} sx={{ width: 40, height: 40, bgcolor: TEAL, fontWeight: 700, flexShrink: 0 }}>{(doc?.name || 'M').charAt(0)}</Avatar>
+                  <Avatar src={doc?.photoUrl ? `${API_URL}/doctor/photo/${doc.id}?v=0` : undefined} sx={{ width: 44, height: 44, bgcolor: TEAL, fontSize: 16, fontWeight: 700, flexShrink: 0 }}>{(doc?.name || 'M').charAt(0)}</Avatar>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1} sx={{ mb: 0.25 }}>
                       <Typography sx={{ fontWeight: 800, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc?.name || 'Médico'}{doc?.specialty ? ` · ${doc.specialty}` : ''}</Typography>
@@ -134,7 +134,7 @@ export const QuestionsPage = () => {
         sx={{ '& .MuiDialog-paper': { bgcolor: 'background.default' } }}>
         <Box sx={{ position: 'sticky', top: 0, zIndex: 10, display: 'flex', alignItems: 'center', gap: 1, p: 1.5, pt: 'env(safe-area-inset-top)', bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider' }}>
           <IconButton onClick={() => setOpen(null)} size="small"><CloseIcon /></IconButton>
-          <Avatar src={open?.doctor?.photoUrl ? `${API_URL}/doctor/photo/${open?.doctor?.id}?v=0` : undefined} sx={{ width: 32, height: 32, bgcolor: TEAL, fontSize: 13, fontWeight: 700 }}>{(open?.doctor?.name || 'M').charAt(0)}</Avatar>
+          <Avatar src={open?.doctor?.photoUrl ? `${API_URL}/doctor/photo/${open?.doctor?.id}?v=0` : undefined} sx={{ width: 40, height: 40, bgcolor: TEAL, fontSize: 15, fontWeight: 700 }}>{(open?.doctor?.name || 'M').charAt(0)}</Avatar>
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography sx={{ fontWeight: 800, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{open?.doctor?.name || 'Médico'}</Typography>
             <Typography variant="caption" color="text.secondary">{open?.doctor?.specialty}{open?.status === 'answered' ? ' · ✓ Respondida' : ' · ⏳ Aguardando'}</Typography>
@@ -148,7 +148,7 @@ export const QuestionsPage = () => {
               {thread.map((m: any, i: number) => {
                 const isDoc = m.authorRole === 'doctor';
                 const av = isDoc
-                  ? <Avatar src={open?.doctor?.photoUrl ? `${API_URL}/doctor/photo/${open?.doctor?.id}?v=0` : undefined} sx={{ width: 28, height: 28, bgcolor: TEAL, fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{(open?.doctor?.name || 'M').charAt(0)}</Avatar>
+                  ? <Avatar src={open?.doctor?.photoUrl ? `${API_URL}/doctor/photo/${open?.doctor?.id}?v=0` : undefined} sx={{ width: 36, height: 36, bgcolor: TEAL, fontSize: 14, fontWeight: 700, flexShrink: 0 }}>{(open?.doctor?.name || 'M').charAt(0)}</Avatar>
                   : patientAvatar;
                 return (
                   <Box key={i} sx={{ display: 'flex', justifyContent: isDoc ? 'flex-end' : 'flex-start', gap: 0.75, alignItems: 'flex-end' }}>

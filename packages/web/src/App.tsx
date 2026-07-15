@@ -126,7 +126,9 @@ const CustomAppBar = (props: AppBarProps) => {
       )}
       {isDesktop && <TitlePortal />}
       <Box sx={{ flex: 1 }} />
-      <CreditsChip />
+      {/* Créditos: no mobile já aparecem no header do drawer (☰/Mais). Esconder da AppBar
+          reduz a densidade (5→4 controles) sem perder informação. Desktop mantém o chip. */}
+      {isDesktop && <CreditsChip />}
       <PatientSwitcher />
       <NotificationBell />
       <IconButton color="inherit" onClick={(e: any) => setMenuA(e.currentTarget)} title="Mais opções" size="small" sx={{ flexShrink: 0 }}>
@@ -337,7 +339,7 @@ const AppDrawer = () => {
       <Box sx={{ position: 'relative', px: 2, pt: 'calc(env(safe-area-inset-top) + 16px)', pb: 2 }}>
         <IconButton onClick={closeDrawer} size="small" title="Fechar" sx={{ position: 'absolute', top: 'calc(env(safe-area-inset-top) + 10px)', right: 8, color: 'text.secondary', '&:hover': { color: 'text.primary', bgcolor: 'transparent' } }}><CloseIcon fontSize="small" /></IconButton>
         <Stack direction="row" alignItems="center" spacing={1.5}>
-          <Avatar src={userPhoto} sx={{ width: 48, height: 48, bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 800, border: '2px solid rgba(32,178,170,0.3)' }}>{userName?.charAt(0)?.toUpperCase() || '👤'}</Avatar>
+          <Avatar src={userPhoto} sx={{ width: 56, height: 56, fontSize: 22, bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 800, border: '2px solid rgba(32,178,170,0.3)' }}>{userName?.charAt(0)?.toUpperCase() || '👤'}</Avatar>
           <Box sx={{ minWidth: 0, flex: 1 }}>
             <Typography sx={{ fontWeight: 800, fontSize: 16, color: 'text.primary', lineHeight: 1.15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{userName || 'Olá!'}</Typography>
             <Typography sx={{ fontSize: 12.5, color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{isPremium ? '👑 Premium' : 'Plano grátis'}{userObj?.credits != null ? ` • 💎 ${userObj.credits}` : ''}</Typography>

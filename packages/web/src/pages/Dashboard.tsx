@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Stack, Typography, Grid, Dialog, DialogTitle, DialogContent, DialogActions, Button, Box, Card, CardContent, Chip } from '@mui/material';
+import { Stack, Typography, Grid, Dialog, DialogTitle, DialogContent, DialogActions, Button, Box, Card, CardContent, Chip, useTheme } from '@mui/material';
 import { GamificationBadges } from '../components/GamificationBadges';
 import { BiometricService } from '../components/BiometricService';
 import { useNavigate } from 'react-router-dom';
@@ -39,7 +39,6 @@ const readTotal = (r: Response) => Number(r.headers.get('X-Total-Count') ?? r.he
 const TIPS = [
   'Leve sempre seus exames anteriores à consulta — a comparação entre valores vale mais que um número isolado.',
   'Jejum de 8–12h antes de exames de sangue garante resultados mais precisos.',
-  'Leve sempre seus exames anteriores à consulta — a comparação vale mais que um valor isolado.',
   'Atividade física regular ajuda a reduzir colesterol, glicemia e pressão.',
   'Anote medicamentos e doses no seu perfil clínico — a IA usa isso para contextualizar a análise.',
   'Exames de imagem (ultrassom, tomografia) peça sempre o laudo + as imagens em CD.',
@@ -63,6 +62,7 @@ const NextBestActionCard = ({
   credits: number | null;
   onNavigate: (to: string) => void;
 }) => {
+  const isDark = useTheme().palette.mode === 'dark';
   const lastExamLabel = lastExam ? new Date(lastExam).toLocaleDateString('pt-BR') : null;
   const action = !loaded
     ? {
@@ -119,7 +119,7 @@ const NextBestActionCard = ({
               };
 
   return (
-    <Card variant="outlined" sx={{ mt: 2, borderRadius: 3, overflow: 'hidden', borderColor: `${action.tone}33`, background: `linear-gradient(135deg, ${action.tone}14, #fff)` }}>
+    <Card variant="outlined" sx={{ mt: 2, borderRadius: 3, overflow: 'hidden', borderColor: `${action.tone}33`, background: `linear-gradient(135deg, ${action.tone}14, ${isDark ? '#1a2424' : '#fff'})` }}>
       <CardContent sx={{ p: { xs: 2, md: 2.25 }, '&:last-child': { pb: { xs: 2, md: 2.25 } } }}>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ xs: 'stretch', sm: 'center' }}>
           <Box sx={{ width: 42, height: 42, borderRadius: 2.5, bgcolor: `${action.tone}18`, color: action.tone, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
@@ -127,10 +127,10 @@ const NextBestActionCard = ({
           </Box>
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Chip size="small" label={action.chip} sx={{ height: 22, mb: 0.75, bgcolor: `${action.tone}18`, color: action.tone, fontWeight: 800 }} />
-            <Typography sx={{ fontWeight: 900, fontSize: { xs: 18, sm: 20 }, lineHeight: 1.18, color: '#12312f', fontFamily: 'Poppins, sans-serif' }}>
+            <Typography sx={{ fontWeight: 900, fontSize: { xs: 18, sm: 20 }, lineHeight: 1.18, color: 'text.primary', fontFamily: 'Poppins, sans-serif' }}>
               {action.title}
             </Typography>
-            <Typography variant="body2" sx={{ mt: 0.5, color: '#516362', lineHeight: 1.45 }}>
+            <Typography variant="body2" sx={{ mt: 0.5, color: 'text.secondary', lineHeight: 1.45 }}>
               {action.body}
             </Typography>
           </Box>

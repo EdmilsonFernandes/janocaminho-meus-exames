@@ -248,7 +248,7 @@ export const MedicosPage = () => {
                 <CardContent sx={{ pl: 2.5, py: 1.5, '&:last-child': { pb: 1.5 } }}>
                   <Stack direction="row" alignItems="flex-start" spacing={1.5}>
                     <Box sx={{ position: 'relative', flexShrink: 0 }}>
-                      <Avatar src={s.doctor?.id ? `${API_URL}/doctor/photo/${s.doctor.id}` : undefined} sx={{ width: 44, height: 44, fontWeight: 800, fontSize: 18, bgcolor: '#20b2aa' }}>{s.doctor?.name?.charAt(0)?.toUpperCase()}</Avatar>
+                      <Avatar src={s.doctor?.id ? `${API_URL}/doctor/photo/${s.doctor.id}` : undefined} sx={{ width: 48, height: 48, fontWeight: 800, fontSize: 20, bgcolor: '#20b2aa' }}>{s.doctor?.name?.charAt(0)?.toUpperCase()}</Avatar>
                       <Box sx={{ position: 'absolute', bottom: -1, right: -1, width: 13, height: 13, borderRadius: '50%', bgcolor: s.active ? '#059669' : 'text.secondary', border: '2.5px solid #fff' }} />
                     </Box>
                     <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -282,7 +282,7 @@ export const MedicosPage = () => {
             {grouped.revoked.map((s) => (
               <Card key={s.id} sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', bgcolor: 'background.default' }}>
                 <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.25, py: 1, '&:last-child': { pb: 1 } }}>
-                  <Avatar sx={{ width: 32, height: 32, fontSize: 14, bgcolor: 'action.hover', flexShrink: 0 }}>{s.doctor?.name?.charAt(0)}</Avatar>
+                  <Avatar sx={{ width: 40, height: 40, fontSize: 16, bgcolor: 'action.hover', flexShrink: 0 }}>{s.doctor?.name?.charAt(0)}</Avatar>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Typography sx={{ fontWeight: 600, fontSize: 13, color: 'text.secondary' }}>{s.doctor?.name}</Typography>
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>CRM {s.doctor?.crm}</Typography>
