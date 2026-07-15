@@ -200,7 +200,7 @@ const AppMenu = () => {
 
     {/* Seções colapsáveis — a que contém a rota ativa abre sozinha (smart-expand) */}
     {/* Dr. Exame IA voltou pra PRINCIPAIS. Acordeão de Evolução fica em "Mais". */}
-    <MenuSectionAccordion title="Evolução & Conquistas" icon={<EmojiEventsIcon />} routes={['/evolucao', '/conquistas']}>
+    <MenuSectionAccordion title="Conquistas" icon={<EmojiEventsIcon />} routes={['/conquistas']}>
       <NavItem to="/conquistas" primaryText="Minhas conquistas" icon={<EmojiEventsIcon />} />
     </MenuSectionAccordion>
 
@@ -214,15 +214,13 @@ const AppMenu = () => {
       <NavItem to="/emergencia" primaryText="Cartão de emergência" icon={<HealthAndSafetyIcon />} />
     </MenuSectionAccordion>
 
-    <MenuSectionAccordion title="Família & Médicos" icon={<Diversity3Icon />} routes={['/familia', '/patients', '/medicos', '/despesas']}>
-      <NavItem to="/familia" primaryText="Família" icon={<Diversity3Icon />} />
+    <MenuSectionAccordion title="Família & Médicos" icon={<Diversity3Icon />} routes={['/patients', '/medicos', '/despesas']}>
       <NavItem to="/patients" primaryText="Dependentes" icon={<Diversity3Icon />} />
       <NavItem to="/medicos" primaryText="Meus Médicos" icon={<MedicalServicesIcon />} />
       <NavItem to="/despesas" primaryText="Despesas médicas" icon={<AccountBalanceWalletIcon />} />
     </MenuSectionAccordion>
 
-    <MenuSectionAccordion title="Conta" icon={<AccountCircleIcon />} routes={['/perfil', '/seguranca', '/privacidade', '/planos', '/admin']}>
-      <NavItem to="/perfil" primaryText="Meu perfil" icon={<AccountCircleIcon />} />
+    <MenuSectionAccordion title="Conta" icon={<AccountCircleIcon />} routes={['/seguranca', '/privacidade', '/planos', '/admin']}>
       <NavItem to="/seguranca" primaryText="Segurança" icon={<LockIcon />} />
       <NavItem to="/privacidade" primaryText="Privacidade e termos" icon={<HealthAndSafetyIcon />} />
       <NavItem to="/planos" primaryText="Planos e créditos" icon={<WorkspacePremiumIcon />} />
