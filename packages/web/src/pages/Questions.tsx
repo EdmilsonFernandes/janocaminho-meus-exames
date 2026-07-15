@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Typography, Card, CardContent, Stack, Chip, Avatar, CircularProgress, Dialog, IconButton } from '@mui/material';
+import { Box, Typography, Card, CardContent, Stack, Chip, Avatar, CircularProgress, Dialog, IconButton, Select, MenuItem, TextField, FormControl } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import { API_URL, token } from '../config';
@@ -22,6 +22,10 @@ export const QuestionsPage = () => {
   const [open, setOpen] = useState<any | null>(null);
   const [thread, setThread] = useState<any[]>([]);
   const [threadLoading, setThreadLoading] = useState(false);
+  const [qFilter, setQFilter] = useState<'all' | 'pending' | 'answered'>('all');
+  const [doctorFilter, setDoctorFilter] = useState<string>('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   const load = async () => {
     setLoading(true);
@@ -42,6 +46,17 @@ export const QuestionsPage = () => {
 
   if (loading) return <PageSkeleton />;
 
+  const doctors = Array.from(new Map(items.map((q: any) => [q.doctor?.id, q.doctor])).values());
+  const filtered = items.filter((q: any) => {
+    if (qFilter === 'pending' && q.status === 'answered') return false;
+    if (qFilter === 'answered' && q.status !== 'answered') return false;
+    if (doctorFilter && q.doctor?.id !== doctorFilter) return false;
+    const d = new Date(q.createdAt).getTime();
+    if (dateFrom && d < new Date(dateFrom + 'T00:00:00').getTime()) return false;
+    if (dateTo && d > new Date(dateTo + 'T23:59:59').getTime()) return false;
+    return true;
+  });
+
   const userName = (() => { try { return JSON.parse(localStorage.getItem('user') || '{}')?.name || 'Paciente'; } catch { return 'Paciente'; } })();
   const patientAvatar = <Avatar sx={{ width: 28, height: 28, bgcolor: '#94a3b8', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{(userName || 'P').charAt(0)}</Avatar>;
 
@@ -52,7 +67,28 @@ export const QuestionsPage = () => {
         Suas perguntas enviadas aos médicos e as respostas — num só lugar.
       </Typography>
 
-      {items.length === 0 ? (
+      {/* Filtros */}
+      {items.length > 0 && (
+        <Stack spacing={1} sx={{ mb: 2 }}>
+          <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap">
+            {([['all', 'Todas'], ['pending', 'Aguardando'], ['answered', 'Respondidas']] as const).map(([k, l]) => (
+              <Chip key={k} size="small" label={l} color={qFilter === k ? 'primary' : 'default'} variant={qFilter === k ? 'filled' : 'outlined'} onClick={() => setQFilter(k)} sx={{ fontWeight: 700, borderRadius: 99 }} />
+            ))}
+          </Stack>
+          <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" alignItems="center">
+            <FormControl size="small" sx={{ minWidth: 150, flex: 1 }}>
+              <Select value={doctorFilter} displayEmpty onChange={(e) => setDoctorFilter(String(e.target.value))}>
+                <MenuItem value="">Todos os médicos</MenuItem>
+                {doctors.map((d: any) => <MenuItem key={d?.id} value={d?.id}>{d?.name}</MenuItem>)}
+              </Select>
+            </FormControl>
+            <TextField type="date" size="small" label="De" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} InputLabelProps={{ shrink: true }} sx={{ width: 120 }} />
+            <TextField type="date" size="small" label="Até" value={dateTo} onChange={(e) => setDateTo(e.target.value)} InputLabelProps={{ shrink: true }} sx={{ width: 120 }} />
+          </Stack>
+        </Stack>
+      )}
+
+      {filtered.length === 0 ? (
         <Card variant="outlined" sx={{ borderRadius: 3, textAlign: 'center', py: 6, px: 3 }}>
           <Box sx={{ fontSize: 48, mb: 1 }}>💬</Box>
           <Typography sx={{ fontWeight: 800, mb: 0.5 }}>Nenhuma pergunta ainda</Typography>
@@ -62,7 +98,7 @@ export const QuestionsPage = () => {
         </Card>
       ) : (
         <Stack spacing={1.5}>
-          {items.map((q: any) => {
+          {filtered.map((q: any) => {
             const doc = q.doctor;
             const lastMsg = q.messages?.[0];
             const answered = q.status === 'answered';
