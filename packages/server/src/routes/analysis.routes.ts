@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import type { Response } from 'express';
 import crypto from 'crypto';
 import { prisma } from '../prisma';
 import { requireAuth, requirePlan, AuthedRequest, userPatientIds } from '../middleware/auth';
@@ -9,6 +10,20 @@ import { chargeCredits, CREDIT_COSTS } from '../utils/credits';
 
 const router = Router();
 router.use(requireAuth);
+
+/** Carrega uma análise SÓ se pertencer ao usuário (via patientId direto ou exam.patientId).
+ *  Sem isto, qualquer user autenticado lia/gerava-via-chat/compartilhava análise IA de exame
+ *  alheio (IDOR — vazamento de resumo de saúde). */
+async function loadOwnedAnalysis(req: AuthedRequest, res: Response, id: string | string[]): Promise<any | null> {
+  const aid = Array.isArray(id) ? id[0] : id;
+  const a = await prisma.aiAnalysis.findUnique({ where: { id: aid } });
+  if (!a) { res.status(404).json({ error: 'Análise não encontrada' }); return null; }
+  const pid = a.patientId
+    ?? (a.examId ? (await prisma.exam.findUnique({ where: { id: a.examId }, select: { patientId: true } }))?.patientId : null);
+  const pids = await userPatientIds(req.userId!);
+  if (!pid || !pids.includes(pid)) { res.status(404).json({ error: 'Análise não encontrada' }); return null; }
+  return a;
+}
 
 // DEDUP por (data + título normalizado): exame reenviado (arquivo diferente, mesmo conteúdo)
 // ou painel duplicado não vira 2 linhas no relatório — keep o mais recente. Antes o take:5
@@ -36,8 +51,14 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       res.status(400).json({ error: 'examId obrigatório' });
       return;
     }
+    // IDOR guard: o exame precisa pertencer ao usuário (senão gera resumo IA de exame alheio).
+    const pids = await userPatientIds(req.userId!);
+    const examRow = await prisma.exam.findUnique({ where: { id: examId }, select: { rawExtraction: true, patientId: true } });
+    if (!examRow || !pids.includes(examRow.patientId)) {
+      res.status(404).json({ error: 'Exame não encontrado' });
+      return;
+    }
     // bloqueio forte anti-fraude: CPF no documento ≠ CPF cadastrado não permite atesto manual.
-    const examRow = await prisma.exam.findUnique({ where: { id: examId }, select: { rawExtraction: true } });
     const identity = (examRow?.rawExtraction as any)?.identityMatch;
     if (identity?.method === 'cpf' && identity?.mismatch) {
       res.status(403).json({ error: 'cpf_mismatch', message: 'O CPF detectado no exame diverge do CPF cadastrado neste perfil. Exclua o exame ou acione o suporte.' });
@@ -150,8 +171,15 @@ router.get('/', async (req: AuthedRequest, res, next) => {
   try {
     const { start, take } = parseListParams(req);
     const q = req.query as Record<string, string | undefined>;
+    // IDOR guard: escopa por exames do usuário (senão lista análises de qualquer um).
+    const pids = await userPatientIds(req.userId!);
+    const userExamIds = (await prisma.exam.findMany({ where: { patientId: { in: pids } }, select: { id: true } })).map((e) => e.id);
     const where: any = {};
-    if (q.examId) where.examId = q.examId;
+    if (q.examId) {
+      where.examId = userExamIds.includes(q.examId) ? q.examId : '__none__'; // só se for do user
+    } else {
+      where.examId = { in: userExamIds };
+    }
     if (q.type) where.type = q.type;
     const [total, rows] = await prisma.$transaction([
       prisma.aiAnalysis.count({ where }),
@@ -165,13 +193,10 @@ router.get('/', async (req: AuthedRequest, res, next) => {
 });
 
 // GET ONE
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', async (req: AuthedRequest, res, next) => {
   try {
-    const a = await prisma.aiAnalysis.findUnique({ where: { id: req.params.id } });
-    if (!a) {
-      res.status(404).json({ error: 'Análise não encontrada' });
-      return;
-    }
+    const a = await loadOwnedAnalysis(req, res, req.params.id);
+    if (!a) return;
     res.json(a);
   } catch (e) {
     next(e);
@@ -181,8 +206,9 @@ router.get('/:id', async (req, res, next) => {
 // CHAT num resumo (thread) — streaming SSE
 router.post('/:id/chat', async (req: AuthedRequest, res, next) => {
   try {
-    const parent = await prisma.aiAnalysis.findUnique({ where: { id: String(req.params.id) } });
-    if (!parent || !parent.examId) {
+    const parent = await loadOwnedAnalysis(req, res, String(req.params.id));
+    if (!parent) return;
+    if (!parent.examId) {
       res.status(404).json({ error: 'Análise não encontrada' });
       return;
     }
@@ -226,10 +252,10 @@ router.post('/:id/chat', async (req: AuthedRequest, res, next) => {
 });
 
 // COMPARTILHAR com médico — link temporário (12h) + PIN de 6 dígitos (enviado separadamente)
-router.post('/:id/share', async (req, res, next) => {
+router.post('/:id/share', async (req: AuthedRequest, res, next) => {
   try {
-    const a = await prisma.aiAnalysis.findUnique({ where: { id: String(req.params.id) } });
-    if (!a) { res.status(404).json({ error: 'Análise não encontrada' }); return; }
+    const a = await loadOwnedAnalysis(req, res, String(req.params.id));
+    if (!a) return;
     const expires = Date.now() + 12 * 60 * 60 * 1000; // 12 horas
     const token = `${crypto.randomUUID()}.${expires}`;
     const pin = String(Math.floor(100000 + Math.random() * 900000));
@@ -251,10 +277,10 @@ router.post('/:id/share', async (req, res, next) => {
 });
 
 /** Revoga um link compartilhado: limpa token + PIN → a rota pública não acha mais (acesso cortado na hora). */
-router.delete('/:id/share', async (req, res, next) => {
+router.delete('/:id/share', async (req: AuthedRequest, res, next) => {
   try {
-    const a = await prisma.aiAnalysis.findUnique({ where: { id: String(req.params.id) } });
-    if (!a) { res.status(404).json({ error: 'Análise não encontrada' }); return; }
+    const a = await loadOwnedAnalysis(req, res, String(req.params.id));
+    if (!a) return;
     await prisma.aiAnalysis.update({ where: { id: a.id }, data: { shareToken: null, sharePin: null } });
     res.json({ ok: true });
   } catch (e) { next(e); }

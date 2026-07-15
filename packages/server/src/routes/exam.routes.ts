@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import type { Response } from 'express';
 import fs from 'fs';
 import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest, userPatientIds, firstPatientId } from '../middleware/auth';
@@ -13,6 +14,22 @@ import { chargeCredits, computeUploadCost, UPLOAD_RULES } from '../utils/credits
 
 const router = Router();
 router.use(requireAuth);
+
+/** Carrega um exame SÓ se pertencer ao usuário (escopo LGPD: ID/Aquivo/DELETE/reextract).
+ *  Sem isto, qualquer user autenticado lia/baixava/deletava/re-extraía exame alheio (IDOR —
+ *  vazamento de PDF de laboratório com nome/CPF/valores). Mesmo guard que já existia em /attest. */
+async function loadOwnedExam(req: AuthedRequest, res: Response, id: string | string[], include?: any): Promise<any | null> {
+  const examId = Array.isArray(id) ? id[0] : id;
+  const pids = await userPatientIds(req.userId!);
+  const exam = include
+    ? await prisma.exam.findUnique({ where: { id: examId }, include })
+    : await prisma.exam.findUnique({ where: { id: examId } });
+  if (!exam || !pids.includes(exam.patientId)) {
+    res.status(404).json({ error: 'Exame não encontrado' });
+    return null;
+  }
+  return exam;
+}
 
 // LIST (compatível com react-admin simple-rest)
 router.get('/', async (req: AuthedRequest, res, next) => {
@@ -50,20 +67,14 @@ router.get('/', async (req: AuthedRequest, res, next) => {
 });
 
 // GET ONE (com itens agrupados + último resumo)
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', async (req: AuthedRequest, res, next) => {
   try {
-    const exam = await prisma.exam.findUnique({
-      where: { id: req.params.id },
-      include: {
-        items: { orderBy: [{ panel: 'asc' }, { name: 'asc' }] },
-        analyses: { where: { type: 'SUMMARY' }, orderBy: { createdAt: 'desc' }, take: 1 },
-        patient: { select: { fullName: true, relationship: true } },
-      },
+    const exam = await loadOwnedExam(req, res, req.params.id, {
+      items: { orderBy: [{ panel: 'asc' }, { name: 'asc' }] },
+      analyses: { where: { type: 'SUMMARY' }, orderBy: { createdAt: 'desc' }, take: 1 },
+      patient: { select: { fullName: true, relationship: true } },
     });
-    if (!exam) {
-      res.status(404).json({ error: 'Exame não encontrado' });
-      return;
-    }
+    if (!exam) return;
     res.json(serializeExam(exam));
   } catch (e) {
     next(e);
@@ -188,13 +199,10 @@ router.get('/duplicates/list', async (req: AuthedRequest, res, next) => {
 });
 
 // REEXTRACT
-router.post('/:id/reextract', async (req, res, next) => {
+router.post('/:id/reextract', async (req: AuthedRequest, res, next) => {
   try {
-    const exam = await prisma.exam.findUnique({ where: { id: req.params.id } });
-    if (!exam) {
-      res.status(404).json({ error: 'Exame não encontrado' });
-      return;
-    }
+    const exam = await loadOwnedExam(req, res, req.params.id);
+    if (!exam) return;
     runExtraction(exam.id).catch((e) => console.error('[reextract] falhou:', e?.message));
     res.json({ ok: true, id: exam.id, status: 'EXTRACTING' });
   } catch (e) {
@@ -202,10 +210,10 @@ router.post('/:id/reextract', async (req, res, next) => {
   }
 });
 
-// SERVE o arquivo (URL pré-assinada do S3 em prod, ou stream local em dev) — atrás de auth
-router.get('/:id/file', async (req, res, next) => {
+// SERVE o arquivo (URL pré-assinada do S3 em prod, ou stream local em dev) — atrás de auth + posse
+router.get('/:id/file', async (req: AuthedRequest, res, next) => {
   try {
-    const exam = await prisma.exam.findUnique({ where: { id: req.params.id } });
+    const exam = await loadOwnedExam(req, res, req.params.id);
     if (!exam || !exam.filePath) {
       res.status(404).json({ error: 'Arquivo não encontrado' });
       return;
@@ -223,13 +231,10 @@ router.get('/:id/file', async (req, res, next) => {
 });
 
 // DELETE
-router.delete('/:id', async (req, res, next) => {
+router.delete('/:id', async (req: AuthedRequest, res, next) => {
   try {
-    const exam = await prisma.exam.findUnique({ where: { id: req.params.id } });
-    if (!exam) {
-      res.status(404).json({ error: 'Exame não encontrado' });
-      return;
-    }
+    const exam = await loadOwnedExam(req, res, req.params.id);
+    if (!exam) return;
     const patientId = exam.patientId;
     await deleteExamFile(exam.filePath);
     await prisma.exam.delete({ where: { id: exam.id } });

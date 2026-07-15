@@ -119,6 +119,19 @@ export const config = {
   agentDir: process.env.AGENT_DIR ?? './data/agent',
 } as const;
 
+// SEGURANÇA (boot): em produção, falha se segredos críticos não estão definidos. Sem isto, se a
+// env faltar: o JWT é assinado com 'dev-secret-change-me' (público → atacante forja token de
+// qualquer userId/admin) e o CPF é criptografado com a constante pública sha256('meus-exames-dev-key')
+// (dump do BD = todos os CPFs legíveis). Em dev/test (isProd=false) não bloqueia.
+if (config.isProd) {
+  if (!config.jwtSecret || config.jwtSecret === 'dev-secret-change-me') {
+    throw new Error('[boot] JWT_SECRET obrigatório em produção (defina no .env — não use o default de dev).');
+  }
+  if (!config.appEncryptionKey) {
+    throw new Error('[boot] APP_ENCRYPTION_KEY obrigatório em produção (criptografia de PII/CPF).');
+  }
+}
+
 export const hasMercadoPago = () => config.mpAccessToken.trim().length > 0;
 
 export const useS3 = () => config.s3Bucket.trim().length > 0;
