@@ -258,7 +258,7 @@ router.post('/:id/share', async (req: AuthedRequest, res, next) => {
     if (!a) return;
     const expires = Date.now() + 12 * 60 * 60 * 1000; // 12 horas
     const token = `${crypto.randomUUID()}.${expires}`;
-    const pin = String(Math.floor(100000 + Math.random() * 900000));
+    const pin = String(crypto.randomInt(100000, 1000000)); // CSPRNG (não Math.random — adivinhável)
     const pinHash = crypto.createHash('sha256').update(`${pin}:${token}`).digest('hex');
     await prisma.aiAnalysis.update({ where: { id: a.id }, data: { shareToken: token, sharePin: pinHash } });
     // base do sub-caminho (/minhasaude). WEB_BASE_PATH é a fonte; se vier vazio no container,

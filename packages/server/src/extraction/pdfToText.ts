@@ -16,7 +16,10 @@ export async function pdfToText(buffer: Buffer): Promise<string> {
   const pdfPath = path.join(tmp, 'doc.pdf');
   fs.writeFileSync(pdfPath, buffer);
   try {
-    const { stdout } = await execFileP('pdftotext', ['-layout', pdfPath, '-'], { maxBuffer: 30 * 1024 * 1024, timeout: 120000 });
+    // -l 30: limite de páginas — PDFs de laboratório raramente passam de ~20; sem isto, um PDF
+    // bomb (páginas com decompressão recursiva) prende o poppler por até 120s × retries ×
+    // extrações paralelas = CPU exhaustion no t2.micro.
+    const { stdout } = await execFileP('pdftotext', ['-layout', '-l', '30', pdfPath, '-'], { maxBuffer: 30 * 1024 * 1024, timeout: 120000 });
     return stdout;
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });
