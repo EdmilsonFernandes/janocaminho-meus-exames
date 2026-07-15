@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography, Button, CircularProgress, Stack, Alert, Grid, Chip, Checkbox, Dialog, DialogTitle, DialogContent, DialogActions, Select, MenuItem, FormControl, Avatar } from '@mui/material';
 import { Title } from 'react-admin';
@@ -130,8 +130,9 @@ export const ConsolidatedReportPage = () => {
   const [tickQ, setTickQ] = useState<Record<number, boolean>>({});
   const [send, setSend] = useState<{ status: 'idle' | 'sending' | 'done' | 'error'; msg?: string }>({ status: 'idle' });
   const [sent, setSent] = useState(false);
-  // As perguntas deste relatório já foram enviadas? (1 envio por relatório; novo relatório = novas perguntas)
-  useEffect(() => setSent(!!localStorage.getItem('reportQ_sent_' + (analysis?.id ?? ''))), [analysis?.id]);
+  // Chave = CONTEÚDO das perguntas (não o id do relatório): regenerou com perguntas diferentes → pode reenviar.
+  const sentKey = useMemo(() => 'reportQ_' + (analysis?.structured?.perguntasParaOMedico ?? []).map((q: any) => String(q)).join('|').slice(0, 80), [analysis]);
+  useEffect(() => setSent(!!localStorage.getItem(sentKey)), [sentKey]);
   const [picker, setPicker] = useState<{ shares: any[]; picked: string; qs: { q: string }[] } | null>(null);
   const doSendToDoctor = async (doctorId: string, doctorName: string, picked: { q: string }[]) => {
     if (!pid) return;
@@ -145,7 +146,7 @@ export const ConsolidatedReportPage = () => {
       if (r.status === 402) { const d = await r.json().catch(() => ({})); hapticError(); setSend({ status: 'error', msg: d.message || 'Créditos insuficientes pra enviar agora.' }); return; }
       if (!r.ok) { hapticError(); setSend({ status: 'error', msg: 'Não foi possível enviar agora. Tente novamente.' }); return; }
       bumpCredits(); hapticSuccess();
-      try { localStorage.setItem('reportQ_sent_' + (analysis?.id ?? ''), '1'); } catch {}
+      try { localStorage.setItem(sentKey, '1'); } catch {}
       setSent(true);
       setSend({ status: 'done', msg: `Perguntas enviadas! O Dr(a). ${doctorName} recebeu na área de perguntas dele (no portal do médico) e por e-mail.` });
       setTickQ({}); setPicker(null);

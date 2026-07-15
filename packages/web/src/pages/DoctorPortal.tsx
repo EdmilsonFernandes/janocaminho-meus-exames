@@ -274,6 +274,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const [summaries, setSummaries] = useState<any[]>([]);
   const [notes, setNotes] = useState<any[]>([]);
   const [questions, setQuestions] = useState<any[]>([]);
+  const [qFilter, setQFilter] = useState<'all' | 'pending' | 'answered'>('all');
   const [qText, setQText] = useState<Record<string, string>>({});
   const [qSending, setQSending] = useState<string | null>(null);
   const [unreadQ, setUnreadQ] = useState(0);
@@ -976,7 +977,14 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 {!detailLoading && tab === 'questions' && (
                   <Stack spacing={1.5}>
                     {questions.length === 0 && <Empty label="Nenhuma pergunta deste paciente ainda." icon="❓" />}
-                    {[...questions].sort((a: any, b: any) => (a.status === 'answered' ? 1 : 0) - (b.status === 'answered' ? 1 : 0)).map((q: any) => {
+                    {questions.length > 0 && (
+                      <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap">
+                        {([['all', 'Todas'], ['pending', 'Aguardando'], ['answered', 'Respondidas']] as const).map(([k, l]) => (
+                          <Chip key={k} size="small" label={l} color={qFilter === k ? 'primary' : 'default'} variant={qFilter === k ? 'filled' : 'outlined'} onClick={() => setQFilter(k)} sx={{ fontWeight: 700, borderRadius: 99 }} />
+                        ))}
+                      </Stack>
+                    )}
+                    {[...questions].filter((q: any) => qFilter === 'all' || (qFilter === 'pending' ? q.status !== 'answered' : q.status === 'answered')).sort((a: any, b: any) => (a.status === 'answered' ? 1 : 0) - (b.status === 'answered' ? 1 : 0)).map((q: any) => {
                       const msgs = q.messages ?? [];
                       return (
                         <Card key={q.id} variant="outlined" sx={{ borderRadius: 3, borderColor: 'divider' }}>
@@ -993,7 +1001,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                                   const av = isAi ? null : isDoc
                                     ? <Avatar src={doctor?.photoUrl ? `${API_URL}/doctor/photo/${doctor.id}?v=${photoVer}` : undefined} sx={{ width: 28, height: 28, bgcolor: TEAL, fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{(doctor?.name || 'M').charAt(0)}</Avatar>
                                     : <Avatar src={selected?.patient?.photoUrl ? `${API_URL}/patients/${selected.patient.id}/photo?v=0` : undefined} sx={{ width: 28, height: 28, bgcolor: '#94a3b8', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{(selected?.patient?.fullName || 'P').charAt(0)}</Avatar>;
-                                  const role = isDoc ? 'Médico' : isAi ? '🤖 IA' : 'Paciente';
+                                  const role = isDoc ? `Dr. ${doctor?.name || 'Médico'}` : isAi ? '🤖 IA' : selected?.patient?.fullName || 'Paciente';
                                   return (
                                     <Box key={i} sx={{ display: 'flex', justifyContent: isDoc ? 'flex-end' : 'flex-start', gap: 0.75, alignItems: 'flex-end' }}>
                                       {!isDoc && av}
