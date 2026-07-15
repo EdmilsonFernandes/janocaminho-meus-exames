@@ -647,25 +647,20 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               {(() => {
                 const q = patQuery.trim().toLowerCase();
                 const filtered = patients.filter((p) => (!q || (p.patient?.fullName || '').toLowerCase().includes(q) || (p.code || '').toLowerCase().includes(q)) && (!patAlertOnly || p.hasAlerts));
+                // ORDENAÇÃO CLÍNICA (lista flat): alertas primeiro -> exame mais recente -> nome.
+                // Médico pensa em PACIENTES (não famílias): nada escondido em acordeão colapsado.
                 filtered.sort((a, b) => {
-                  const oa = a.ownerId || '', ob = b.ownerId || '';
-                  if (oa !== ob) return (a.ownerName || '').localeCompare(b.ownerName || '');
-                  // R4a: priorizar por severidade — alertas primeiro, depois exames mais recentes
-                  const aScore = (Number(!!a.hasAlerts) * 1000) + (a.examsCount || 0);
-                  const bScore = (Number(!!b.hasAlerts) * 1000) + (b.examsCount || 0);
-                  if (bScore !== aScore) return bScore - aScore;
-                  return (b.lastExamAt ? new Date(b.lastExamAt).getTime() : 0) - (a.lastExamAt ? new Date(a.lastExamAt).getTime() : 0);
+                  if (!!a.hasAlerts !== !!b.hasAlerts) return a.hasAlerts ? -1 : 1;
+                  const ad = a.lastExamAt ? new Date(a.lastExamAt).getTime() : 0;
+                  const bd = b.lastExamAt ? new Date(b.lastExamAt).getTime() : 0;
+                  if (bd !== ad) return bd - ad;
+                  return (a.patient?.fullName || '').localeCompare(b.patient?.fullName || '');
                 });
-                // Agrupa por titular (ownerId). 1 membro = card solto; 2+ = accordion COLAPSADO (não inunda com 100 famílias).
-                const groups: { ownerId: string; ownerName: string; items: any[] }[] = [];
-                for (const p of filtered) {
-                  const oid = p.ownerId || p.shareId;
-                  let g = groups.find((x) => x.ownerId === oid);
-                  if (!g) { g = { ownerId: oid, ownerName: p.ownerName || 'Sem titular', items: [] }; groups.push(g); }
-                  g.items.push(p);
-                }
                 const card = (p: any, key: string) => {
                   const sex = p.sex === 'female' ? 'F' : p.sex === 'male' ? 'M' : null;
+                  // Vínculo familiar como DETALHE sutil (não eixo principal): dependente mostra o titular.
+                  const isDependente = !!p.relationship && !/titular|respons/i.test(p.relationship);
+                  const titularHint = isDependente && p.ownerName ? ` · titular: ${p.ownerName}` : '';
                   const statusLine = [
                     p.hasAlerts ? `🔴 alerta` : null,
                     p.examsCount > 0 ? `📋 ${p.examsCount} exame${p.examsCount > 1 ? 's' : ''}` : null,
@@ -682,7 +677,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                         <Box sx={{ flex: 1, minWidth: 0 }}>
                           <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 15, color: 'text.primary', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.patient?.fullName}</Typography>
                           <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>
-                            {[p.age != null ? `${p.age}a` : null, sex, p.relationship].filter(Boolean).join(' · ')} {p.code && <Box component="span" sx={{ fontFamily: 'monospace', color: 'text.disabled' }}>· {p.code}</Box>}
+                            {[p.age != null ? `${p.age}a` : null, sex, p.relationship].filter(Boolean).join(' · ')}{titularHint} {p.code && <Box component="span" sx={{ fontFamily: 'monospace', color: 'text.disabled' }}>· {p.code}</Box>}
                           </Typography>
                           <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25, fontSize: 11 }}>{statusLine}</Typography>
                         </Box>
@@ -691,23 +686,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                     </Card>
                   );
                 };
-                return groups.map((g) => {
-                  if (g.items.length === 1) return card(g.items[0], g.items[0].shareId);
-                  const famAlerts = g.items.filter((p) => p.hasAlerts).length;
-                  return (
-                    <Accordion key={g.ownerId} defaultExpanded={false} disableGutters elevation={0} sx={{ '&:before': { display: 'none' }, border: '1px solid', borderColor: 'divider', borderRadius: '12px !important', overflow: 'hidden' }}>
-                      <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: 'rgba(32,178,170,0.08)', minHeight: '48px !important', '& .MuiAccordionSummary-content': { my: 0.5 } }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
-                          <Box sx={{ fontSize: 18 }}>👨‍👩‍👧</Box>
-                          <Typography sx={{ fontWeight: 800, color: 'text.primary', flex: 1, minWidth: 0 }}>Família {g.ownerName}</Typography>
-                          <Chip size="small" label={`${g.items.length}`} sx={{ height: 20, fontSize: 10, bgcolor: 'rgba(32,178,170,0.15)', color: TEAL, fontWeight: 700 }} />
-                          {famAlerts > 0 && <Chip size="small" color="error" label={`${famAlerts} alerta`} sx={{ height: 20, fontSize: 10, fontWeight: 700 }} />}
-                        </Box>
-                      </AccordionSummary>
-                      <AccordionDetails sx={{ p: 1.25, bgcolor: 'background.paper' }}><Stack spacing={1.25}>{g.items.map((p) => card(p, p.shareId))}</Stack></AccordionDetails>
-                    </Accordion>
-                  );
-                });
+                return filtered.map((p) => card(p, p.shareId));
               })()}
             </Stack>
           </>
