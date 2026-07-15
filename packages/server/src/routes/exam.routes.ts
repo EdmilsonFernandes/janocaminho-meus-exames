@@ -5,6 +5,7 @@ import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest, userPatientIds, firstPatientId } from '../middleware/auth';
 import { upload } from '../middleware/upload';
 import { sha256Buffer } from '../utils/crypto';
+import { isAllowedUpload } from '../utils/fileMagic';
 import { saveExamFile, resolveExamFile, deleteExamFile, patientSlug } from '../utils/storage';
 import { parseListParams, setListHeaders } from '../utils/list';
 import { serializeExam } from '../utils/serialize';
@@ -118,6 +119,12 @@ router.post('/', upload.single('file'), async (req: AuthedRequest, res, next) =>
     const uploadCountAfter = countSoFar + 1;
 
     const buffer = req.file.buffer;
+    // Validação por CONTEÚDO (magic bytes), não pelo Content-Type do cliente (falsificável).
+    // Rejeita executável/HTML/SVG/zip-bomb fingindo ser PDF/JPG/PNG antes de salvar/servir.
+    if (!isAllowedUpload(buffer)) {
+      res.status(400).json({ error: 'Arquivo inválido ou corrompido. Envie um PDF, JPG ou PNG válido.' });
+      return;
+    }
     const fileSha256 = sha256Buffer(buffer);
 
     // idempotência: mesmo arquivo+paciente → devolve o exame existente

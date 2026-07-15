@@ -22,7 +22,8 @@ import { encryptedCpfData } from '../utils/cpf';
 const router = Router();
 
 async function issueSession(userId: string) {
-  const token = signToken({ userId });
+  const u = await prisma.user.findUnique({ where: { id: userId }, select: { tokenVersion: true } });
+  const token = signToken({ userId, ver: u?.tokenVersion ?? 0 });
   const patientId = await firstPatientId(userId);
   return { token, patientId };
 }
@@ -237,7 +238,7 @@ router.post('/forgot', async (req, res, next) => {
     const user = await prisma.user.findUnique({ where: { email: mail } });
     // não revela se o e-mail existe (segurança)
     if (user) {
-      const token = signResetToken(user.id);
+      const token = signResetToken(user.id, user.tokenVersion ?? 0);
       const base = (process.env.WEB_BASE_PATH ?? '').replace(/\/$/, '');
       // Token na QUERY REAL (email clients rastreiam normal) + rota no HASH (HashRouter).
       // Antes vinha "#/recuperar-senha?token=" (token no fragmento) — alguns clientes não clicavam.
@@ -256,7 +257,7 @@ router.post('/forgot', async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
-// REDEFINIR SENHA — com token
+// REDEFINIR SENHA — com token (single-use + invalida sessões antigas via tokenVersion)
 router.post('/reset', async (req, res, next) => {
   try {
     const { token, password } = req.body ?? {};
@@ -265,9 +266,18 @@ router.post('/reset', async (req, res, next) => {
       res.status(400).json({ error: 'Token inválido ou senha muito curta (mín. 6).' });
       return;
     }
-    const { userId } = verifyResetToken(String(token));
+    const decoded = verifyResetToken(String(token));
+    const user = await prisma.user.findUnique({ where: { id: decoded.userId }, select: { tokenVersion: true } });
+    // SINGLE-USE: se o ver do token não casa o tokenVersion atual, o reset JÁ FOI usado
+    // (ou a senha já foi trocada depois). Tolerante a tokens legados (sem ver) na transição.
+    if (!user || (decoded.ver != null && decoded.ver !== user.tokenVersion)) {
+      res.status(400).json({ error: 'Token inválido ou expirado.' });
+      return;
+    }
     const passwordHash = await hashPassword(pwd);
-    await prisma.user.update({ where: { id: userId }, data: { passwordHash } });
+    // tokenVersion++ invalida TODAS as sessões JWT antigas (senha vazada → reset → token antigo
+    // morre) E o próprio reset token (single-use: reuso não casa mais o ver).
+    await prisma.user.update({ where: { id: decoded.userId }, data: { passwordHash, tokenVersion: { increment: 1 } } });
     res.json({ ok: true });
   } catch (e) {
     res.status(400).json({ error: 'Token inválido ou expirado.' });
@@ -376,6 +386,10 @@ router.post('/change-password', requireAuth, async (req: AuthedRequest, res, nex
       res.status(401).json({ error: 'Senha atual incorreta.' });
       return;
     }
+    // Nota: NÃO incrementamos tokenVersion aqui (evita deslogar o próprio user que trocou a
+    // senha — sem o front ler um token novo, seria regressão de UX). A invalidação de sessões
+    // antigas fica no fluxo de RESET (credencial vazada → "esqueci a senha"). Futuro: com AAB
+    // (front lê token novo retornado), ative tokenVersion++ aqui p/ invalidar outros devices.
     await prisma.user.update({ where: { id: user.id }, data: { passwordHash: await hashPassword(pwd) } });
     res.json({ ok: true });
   } catch (e) { next(e); }

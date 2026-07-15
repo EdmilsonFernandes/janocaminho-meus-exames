@@ -26,7 +26,7 @@ export async function requireAuth(req: AuthedRequest, res: Response, next: NextF
       return;
     }
     const userId: string | undefined = payload?.userId;
-    const user = await prisma.user.findUnique({ where: { id: userId }, select: { id: true, blocked: true } });
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { id: true, blocked: true, tokenVersion: true } });
     if (!user) {
       res.status(401).json({ error: 'Usuário inválido' });
       return;
@@ -34,6 +34,12 @@ export async function requireAuth(req: AuthedRequest, res: Response, next: NextF
     // Conta bloqueada pelo admin → derruba a sessão ativa (401). O app faz logout e, no
     // próximo login, o usuário recebe a mensagem amigável de contato com o suporte.
     if (user.blocked) {
+      res.status(401).json({ error: 'Sua sessão expirou. Faça login novamente.' });
+      return;
+    }
+    // Invalida sessões JWT após reset/troca de senha (tokenVersion no DB > ver do token).
+    // TOLERANTE a tokens legados (sem ver) — não desloga ninguém no deploy da feature.
+    if (payload.ver != null && user.tokenVersion !== payload.ver) {
       res.status(401).json({ error: 'Sua sessão expirou. Faça login novamente.' });
       return;
     }
