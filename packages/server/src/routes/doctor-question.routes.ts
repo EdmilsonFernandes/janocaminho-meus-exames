@@ -45,8 +45,10 @@ router.get('/:id', async (req: AuthedRequest, res, next) => {
 router.post('/', async (req: AuthedRequest, res, next) => {
   try {
     const { patientId, doctorId, subject } = req.body ?? {};
-    const body = String(subject ?? '').trim();
-    if (!doctorId || !body) { res.status(400).json({ error: 'Médico e pergunta são obrigatórios.' }); return; }
+    const subjectStr = String(subject ?? '').trim();
+    // body opcional: o fluxo do RELATÓRIO envia a lista de perguntas aqui (subject = título).
+    const msgBody = String((req.body ?? {}).body ?? '').trim() || subjectStr;
+    if (!doctorId || !msgBody) { res.status(400).json({ error: 'Médico e pergunta são obrigatórios.' }); return; }
     const pids = await userPatientIds(req.userId!);
     const pid = patientId && pids.includes(patientId) ? patientId : pids[0];
     if (!pid) { res.status(400).json({ error: 'Nenhum paciente vinculado.' }); return; }
@@ -57,7 +59,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
 
     // Cobra créditos ANTES de criar (padrão chargeCredits atômico; 402 se saldo insuficiente)
     const cost = CREDIT_COSTS.question;
-    const ok = await chargeCredits(req.userId!, cost, 'doctor_question', `Pergunta ao médico: ${body.slice(0, 40)}`);
+    const ok = await chargeCredits(req.userId!, cost, 'doctor_question', `Pergunta ao médico: ${msgBody.slice(0, 40)}`);
     if (!ok) { res.status(402).json({ error: 'insufficient_credits', message: 'Créditos insuficientes para enviar a pergunta.' }); return; }
 
     const q = await prisma.doctorQuestion.create({
@@ -65,11 +67,11 @@ router.post('/', async (req: AuthedRequest, res, next) => {
         patientId: pid,
         doctorId: String(doctorId),
         doctorShareId: share.id,
-        subject: body.slice(0, 300),
+        subject: (subjectStr || msgBody).slice(0, 300),
         creditsCharged: cost,
         status: 'open',
         unreadByDoctor: true,
-        messages: { create: { authorRole: 'patient', authorId: pid, body } },
+        messages: { create: { authorRole: 'patient', authorId: pid, body: msgBody } },
       },
       include: { doctor: { select: { id: true, name: true } } },
     });
@@ -79,7 +81,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       prisma.patient.findUnique({ where: { id: pid }, select: { fullName: true } }),
     ]);
     if (doc?.email && doc.emailVerified && !doc.email.includes('@invite.com')) {
-      void sendEmail({ to: doc.email, subject: `${pat?.fullName ?? 'Paciente'} fez uma pergunta — Meus Exames`, html: doctorQuestionEmail({ doctorName: doc.name, patientName: pat?.fullName ?? 'Paciente', subject: body, portalUrl: webUrl('/#/doctor') }) }).catch(() => {});
+      void sendEmail({ to: doc.email, subject: `${pat?.fullName ?? 'Paciente'} fez uma pergunta — Meus Exames`, html: doctorQuestionEmail({ doctorName: doc.name, patientName: pat?.fullName ?? 'Paciente', subject: msgBody, portalUrl: webUrl('/#/doctor') }) }).catch(() => {});
     }
     res.status(201).json({ item: q, enviado: true });
   } catch (e) { next(e); }

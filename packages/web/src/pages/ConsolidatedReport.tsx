@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, Button, CircularProgress, Stack, Alert, Grid, Chip, Checkbox, Dialog, DialogTitle, DialogContent, DialogActions, Select, MenuItem, FormControl } from '@mui/material';
+import { Box, Typography, Button, CircularProgress, Stack, Alert, Grid, Chip, Checkbox, Dialog, DialogTitle, DialogContent, DialogActions, Select, MenuItem, FormControl, Avatar } from '@mui/material';
 import { Title } from 'react-admin';
 import DescriptionIcon from '@mui/icons-material/Description';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
@@ -140,7 +140,7 @@ export const ConsolidatedReportPage = () => {
       const body = picked.map((x) => `• ${x.q}`).join('\n');
       const r = await fetch(`${API_URL}/doctor-questions`, {
         method: 'POST', headers: { ...apiHeaders(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({ patientId: pid, doctorId, subject: 'Perguntas do meu relatório consolidado', body }),
+        body: JSON.stringify({ patientId: pid, doctorId, subject: picked.length === 1 ? picked[0].q.slice(0, 90) : `${picked.length} perguntas do relatório`, body }),
       });
       if (r.status === 402) { const d = await r.json().catch(() => ({})); hapticError(); setSend({ status: 'error', msg: d.message || 'Créditos insuficientes pra enviar agora.' }); return; }
       if (!r.ok) { hapticError(); setSend({ status: 'error', msg: 'Não foi possível enviar agora. Tente novamente.' }); return; }
@@ -158,7 +158,10 @@ export const ConsolidatedReportPage = () => {
     try {
       const sr = await fetch(`${API_URL}/doctor-shares`, { headers: apiHeaders() });
       const sd = sr.ok ? await sr.json() : { items: [] };
-      const shares: any[] = (sd.items ?? sd ?? []).filter((x: any) => x.active !== false);
+      const rawShares: any[] = (sd.items ?? sd ?? []).filter((x: any) => x.active !== false);
+      // Dedup por médico (shares reativados podiam duplicar o mesmo médico no combo).
+      const seenIds = new Set<string>(); const shares: any[] = [];
+      for (const s of rawShares) { const did = s.doctorId ?? s.doctor?.id; if (did && !seenIds.has(did)) { seenIds.add(did); shares.push(s); } }
       if (!shares.length) { hapticError(); setSend({ status: 'error', msg: 'Você ainda não compartilhou dados com nenhum médico. Vá em “Meus Médicos” e compartilhe antes.' }); return; }
       const first = shares[0];
       const firstId = first.doctorId ?? first.doctor?.id;
@@ -471,7 +474,10 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
                   <Select value={picker.picked} onChange={(e) => setPicker((p) => p ? { ...p, picked: String(e.target.value) } : p)}>
                     {picker.shares.map((s: any) => {
                       const id = s.doctorId ?? s.doctor?.id; const nm = s.doctor?.name ?? s.name; const sp = s.doctor?.specialty;
-                      return <MenuItem key={id} value={id}>{nm}{sp ? ` — ${sp}` : ''}</MenuItem>;
+                      return <MenuItem key={id} value={id} sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.75 }}>
+                        <Avatar src={s.doctor?.photoUrl ? `${API_URL}/doctor/photo/${id}?v=0` : undefined} sx={{ width: 30, height: 30, bgcolor: '#20b2aa', fontSize: 13, fontWeight: 700, flexShrink: 0 }}>{(nm || '?').charAt(0)}</Avatar>
+                        <Box sx={{ minWidth: 0 }}><Typography variant="inherit" sx={{ fontWeight: 700 }}>{nm}</Typography>{sp ? <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', fontSize: 11, lineHeight: 1.2 }}>{sp}</Typography> : null}</Box>
+                      </MenuItem>;
                     })}
                   </Select>
                 </FormControl>

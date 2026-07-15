@@ -976,7 +976,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 {!detailLoading && tab === 'questions' && (
                   <Stack spacing={1.5}>
                     {questions.length === 0 && <Empty label="Nenhuma pergunta deste paciente ainda." icon="❓" />}
-                    {questions.map((q: any) => {
+                    {[...questions].sort((a: any, b: any) => (a.status === 'answered' ? 1 : 0) - (b.status === 'answered' ? 1 : 0)).map((q: any) => {
                       const msgs = q.messages ?? [];
                       return (
                         <Card key={q.id} variant="outlined" sx={{ borderRadius: 3, borderColor: 'divider' }}>
