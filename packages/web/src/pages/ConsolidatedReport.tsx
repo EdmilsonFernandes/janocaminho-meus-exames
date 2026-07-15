@@ -11,6 +11,7 @@ import TrackChangesIcon from '@mui/icons-material/TrackChanges';
 import LiveHelpIcon from '@mui/icons-material/LiveHelp';
 import InsightsIcon from '@mui/icons-material/Insights';
 import { API_URL, apiHeaders, token } from '../config';
+import { hapticSuccess, hapticError } from '../utils/haptic';
 import { bumpCredits } from '../utils/credits-events';
 import { speakText, stopSpeakText } from '../utils/nativeDoc';
 import { useSelectedPatient } from '../patient-context';
@@ -138,7 +139,7 @@ export const ConsolidatedReportPage = () => {
       const sd = sr.ok ? await sr.json() : { items: [] };
       const shares: any[] = sd.items ?? sd ?? [];
       const active = shares.filter((x: any) => x.active !== false);
-      if (!active.length) { setSend({ status: 'error', msg: 'Você ainda não compartilhou dados com nenhum médico. Vá em “Meus Médicos” e compartilhe antes.' }); return; }
+      if (!active.length) { hapticError(); setSend({ status: 'error', msg: 'Você ainda não compartilhou dados com nenhum médico. Vá em “Meus Médicos” e compartilhe antes.' }); return; }
       const doc = active[0];
       const doctorId = doc.doctorId ?? doc.doctor?.id;
       const doctorName = doc.doctor?.name ?? doc.name ?? 'seu médico';
@@ -147,12 +148,13 @@ export const ConsolidatedReportPage = () => {
         method: 'POST', headers: { ...apiHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ patientId: pid, doctorId, subject: 'Perguntas do meu relatório consolidado', body }),
       });
-      if (r.status === 402) { const d = await r.json().catch(() => ({})); setSend({ status: 'error', msg: d.message || 'Créditos insuficientes pra enviar agora.' }); return; }
-      if (!r.ok) { setSend({ status: 'error', msg: 'Não foi possível enviar agora. Tente novamente.' }); return; }
+      if (r.status === 402) { const d = await r.json().catch(() => ({})); hapticError(); setSend({ status: 'error', msg: d.message || 'Créditos insuficientes pra enviar agora.' }); return; }
+      if (!r.ok) { hapticError(); setSend({ status: 'error', msg: 'Não foi possível enviar agora. Tente novamente.' }); return; }
       bumpCredits();
+      hapticSuccess();
       setSend({ status: 'done', msg: `Perguntas enviadas ao Dr(a). ${doctorName}. Ele(a) recebeu por e-mail e no portal.` });
       setTickQ({});
-    } catch { setSend({ status: 'error', msg: 'Sem conexão. Tente novamente.' }); }
+    } catch { hapticError(); setSend({ status: 'error', msg: 'Sem conexão. Tente novamente.' }); }
   };
 
   // Carrega o ÚLTIMO relatório salvo ao entrar (não repensa a cada visita — economiza créditos)

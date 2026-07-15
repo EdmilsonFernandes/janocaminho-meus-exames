@@ -5,6 +5,7 @@ import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import BellIcon from '@mui/icons-material/NotificationsActive';
 import { API_URL, token } from '../config';
+import { hapticSuccess, hapticError } from '../utils/haptic';
 import { useSelectedPatient } from '../patient-context';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
@@ -52,11 +53,14 @@ export const RemindersPage = () => {
       if (!r.ok) {
         // Antes falhava silencioso (limpava o form e o lembrete sumia sem mensagem) — agora mostra o erro.
         const d = await r.json().catch(() => ({}));
+        hapticError();
         setErr(d?.message || d?.error || 'Não foi possível salvar o lembrete. Tente novamente.');
         return; // mantém o form preenchido pra não perder o que digitou
       }
       setTitle(''); setDate(''); setTime('09:00'); setOffsets(DEFAULT_OFFSETS); await load();
+      hapticSuccess();
     } catch {
+      hapticError();
       setErr('Sem conexão — o lembrete não foi salvo. Reconecte e tente novamente.');
     }
   };

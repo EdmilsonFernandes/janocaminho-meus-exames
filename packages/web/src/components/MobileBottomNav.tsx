@@ -10,6 +10,7 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import TrendingUpOutlinedIcon from '@mui/icons-material/TrendingUpOutlined';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import MenuIcon from '@mui/icons-material/Menu';
+import { hapticLight } from '../utils/haptic';
 
 /** Menu rodapé premium — ícones MUI (filled quando ativo, outlined quando não). Sem emojis. */
 const NAV = [
@@ -42,10 +43,11 @@ export const MobileBottomNav = () => {
   const maisActive = SECONDARY_ROUTES.some((r) => active(r));
 
   const item = (it: { icon: string; label: string; to: string; robot?: boolean }, onClick?: () => void, on?: boolean) => (
-    <Box key={it.to} onClick={onClick ?? (() => navigate(it.to))} sx={{
+    <Box key={it.to} onClick={() => { hapticLight(); (onClick ?? (() => navigate(it.to)))(); }} sx={{
       flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       py: 0.7, cursor: 'pointer', userSelect: 'none', color: on ? '#178f89' : '#8a979c',
-      transition: 'color .15s, transform .1s', '&:active': { transform: 'scale(.92)' },
+      borderRadius: 2, bgcolor: on ? 'rgba(32,178,170,.10)' : 'transparent',
+      transition: 'background-color .2s, color .15s, transform .1s', '&:active': { transform: 'scale(.90)' },
     }}>
       {it.robot ? (
         <Box sx={{
@@ -59,7 +61,7 @@ export const MobileBottomNav = () => {
         </Box>
       ) : (
         // Ícones MUI premium (filled quando ativo, outlined quando não) — sem emojis
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 24, '& svg': { fontSize: 22 } }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 24, transform: on ? 'scale(1.12)' : 'scale(1)', transition: 'transform .18s ease', '& svg': { fontSize: 22 } }}>
           {it.icon === 'home' && (on ? <HomeIcon /> : <HomeOutlinedIcon />)}
           {it.icon === 'exam' && (on ? <DescriptionIcon /> : <DescriptionOutlinedIcon />)}
           {it.icon === 'trend' && (on ? <TrendingUpIcon /> : <TrendingUpOutlinedIcon />)}
@@ -72,12 +74,13 @@ export const MobileBottomNav = () => {
 
   // Botão "Mais" usa ícone MUI (não emoji ☰)
   const maisItem = (on: boolean, onClick?: () => void) => (
-    <Box onClick={onClick} sx={{
+    <Box onClick={() => { hapticLight(); onClick?.(); }} sx={{
       flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       py: 0.7, cursor: 'pointer', userSelect: 'none', color: on ? '#178f89' : '#8a979c',
-      transition: 'color .15s, transform .1s', '&:active': { transform: 'scale(.92)' },
+      borderRadius: 2, bgcolor: on ? 'rgba(32,178,170,.10)' : 'transparent',
+      transition: 'background-color .2s, color .15s, transform .1s', '&:active': { transform: 'scale(.90)' },
     }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 24, '& svg': { fontSize: 22 } }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 24, transform: on ? 'scale(1.12)' : 'scale(1)', transition: 'transform .18s ease', '& svg': { fontSize: 22 } }}>
         {on ? <MenuIcon /> : <MenuIcon sx={{ opacity: 0.5 }} />}
       </Box>
       <Typography sx={{ fontSize: 10, fontWeight: on ? 800 : 600, mt: 0.25, fontFamily: 'Poppins, sans-serif' }}>Mais</Typography>
