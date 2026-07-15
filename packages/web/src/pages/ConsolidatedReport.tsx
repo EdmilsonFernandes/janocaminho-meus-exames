@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, Button, CircularProgress, Stack, Alert, Grid, Chip, Checkbox } from '@mui/material';
+import { Box, Typography, Button, CircularProgress, Stack, Alert, Grid, Chip, Checkbox, Dialog, DialogTitle, DialogContent, DialogActions, Select, MenuItem, FormControl } from '@mui/material';
 import { Title } from 'react-admin';
 import DescriptionIcon from '@mui/icons-material/Description';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
@@ -129,20 +129,14 @@ export const ConsolidatedReportPage = () => {
   // Frente C: tick das perguntas do relatório pra levar ao médico + envio (cria DoctorQuestion + email).
   const [tickQ, setTickQ] = useState<Record<number, boolean>>({});
   const [send, setSend] = useState<{ status: 'idle' | 'sending' | 'done' | 'error'; msg?: string }>({ status: 'idle' });
-  const sendQuestionsToDoctor = async () => {
-    const qs: string[] = (analysis?.structured?.perguntasParaOMedico ?? []) as string[];
-    const picked = qs.map((q, i) => ({ q, i })).filter((x) => tickQ[x.i]);
-    if (!picked.length || !pid) return;
+  const [sent, setSent] = useState(false);
+  // As perguntas deste relatório já foram enviadas? (1 envio por relatório; novo relatório = novas perguntas)
+  useEffect(() => setSent(!!localStorage.getItem('reportQ_sent_' + (analysis?.id ?? ''))), [analysis?.id]);
+  const [picker, setPicker] = useState<{ shares: any[]; picked: string; qs: { q: string }[] } | null>(null);
+  const doSendToDoctor = async (doctorId: string, doctorName: string, picked: { q: string }[]) => {
+    if (!pid) return;
     setSend({ status: 'sending' });
     try {
-      const sr = await fetch(`${API_URL}/doctor-shares`, { headers: apiHeaders() });
-      const sd = sr.ok ? await sr.json() : { items: [] };
-      const shares: any[] = sd.items ?? sd ?? [];
-      const active = shares.filter((x: any) => x.active !== false);
-      if (!active.length) { hapticError(); setSend({ status: 'error', msg: 'Você ainda não compartilhou dados com nenhum médico. Vá em “Meus Médicos” e compartilhe antes.' }); return; }
-      const doc = active[0];
-      const doctorId = doc.doctorId ?? doc.doctor?.id;
-      const doctorName = doc.doctor?.name ?? doc.name ?? 'seu médico';
       const body = picked.map((x) => `• ${x.q}`).join('\n');
       const r = await fetch(`${API_URL}/doctor-questions`, {
         method: 'POST', headers: { ...apiHeaders(), 'Content-Type': 'application/json' },
@@ -150,10 +144,27 @@ export const ConsolidatedReportPage = () => {
       });
       if (r.status === 402) { const d = await r.json().catch(() => ({})); hapticError(); setSend({ status: 'error', msg: d.message || 'Créditos insuficientes pra enviar agora.' }); return; }
       if (!r.ok) { hapticError(); setSend({ status: 'error', msg: 'Não foi possível enviar agora. Tente novamente.' }); return; }
-      bumpCredits();
-      hapticSuccess();
-      setSend({ status: 'done', msg: `Perguntas enviadas ao Dr(a). ${doctorName}. Ele(a) recebeu por e-mail e no portal.` });
-      setTickQ({});
+      bumpCredits(); hapticSuccess();
+      try { localStorage.setItem('reportQ_sent_' + (analysis?.id ?? ''), '1'); } catch {}
+      setSent(true);
+      setSend({ status: 'done', msg: `Perguntas enviadas! O Dr(a). ${doctorName} recebeu na área de perguntas dele (no portal do médico) e por e-mail.` });
+      setTickQ({}); setPicker(null);
+    } catch { hapticError(); setSend({ status: 'error', msg: 'Sem conexão. Tente novamente.' }); }
+  };
+  const sendQuestionsToDoctor = async () => {
+    const qs: string[] = (analysis?.structured?.perguntasParaOMedico ?? []) as string[];
+    const picked = qs.map((q) => ({ q })).filter((_, i) => tickQ[i]);
+    if (!picked.length || !pid) return;
+    try {
+      const sr = await fetch(`${API_URL}/doctor-shares`, { headers: apiHeaders() });
+      const sd = sr.ok ? await sr.json() : { items: [] };
+      const shares: any[] = (sd.items ?? sd ?? []).filter((x: any) => x.active !== false);
+      if (!shares.length) { hapticError(); setSend({ status: 'error', msg: 'Você ainda não compartilhou dados com nenhum médico. Vá em “Meus Médicos” e compartilhe antes.' }); return; }
+      const first = shares[0];
+      const firstId = first.doctorId ?? first.doctor?.id;
+      // 1 médico → envia direto. +1 → abre o seletor pra escolher.
+      if (shares.length === 1) { await doSendToDoctor(firstId, first.doctor?.name ?? first.name ?? 'seu médico', picked); return; }
+      setPicker({ shares, picked: firstId, qs: picked });
     } catch { hapticError(); setSend({ status: 'error', msg: 'Sem conexão. Tente novamente.' }); }
   };
 
@@ -425,21 +436,55 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
             <ReportSectionCard icon={<LiveHelpIcon />} title="Perguntas para levar ao médico" accent="#7b1fa2" count={s.perguntasParaOMedico.length}>
               <Stack spacing={0.75}>
                 {s.perguntasParaOMedico.map((q, i) => (
-                  <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}>
-                    <Checkbox checked={!!tickQ[i]} onChange={() => setTickQ((c) => ({ ...c, [i]: !c[i] }))} size="small" sx={{ color: '#7b1fa2', p: 0.5 }} />
+                  <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5, opacity: sent ? 0.7 : 1 }}>
+                    {sent ? (
+                      <CheckCircleIcon sx={{ color: '#059669', fontSize: 20, mt: '2px', flexShrink: 0 }} />
+                    ) : (
+                      <Checkbox checked={!!tickQ[i]} onChange={() => setTickQ((c) => ({ ...c, [i]: !c[i] }))} size="small" sx={{ color: '#7b1fa2', p: 0.5 }} />
+                    )}
                     <Typography variant="body2" sx={{ wordBreak: 'break-word', flex: 1, pt: '2px' }}>{txt(q)}</Typography>
                   </Box>
                 ))}
                 {send.status === 'error' && <Alert severity="error" sx={{ py: 0.5, borderRadius: 2 }}>{send.msg}</Alert>}
                 {send.status === 'done' && <Alert severity="success" sx={{ py: 0.5, borderRadius: 2 }}>{send.msg}</Alert>}
-                <Button variant="contained" disabled={send.status === 'sending' || !Object.values(tickQ).some(Boolean)} onClick={sendQuestionsToDoctor}
-                  sx={{ alignSelf: 'flex-start', borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#7b1fa2', '&:hover': { bgcolor: '#6a1b63' } }}>
-                  {send.status === 'sending' ? 'Enviando…' : 'Enviar ao médico'}
-                </Button>
-                <Typography variant="caption" color="text.secondary">Marque as perguntas que quiser levar e toque em enviar. Seu médico recebe por e-mail e no portal.</Typography>
+                {sent ? (
+                  <Alert severity="info" icon={<CheckCircleIcon />} sx={{ py: 0.5, borderRadius: 2, bgcolor: 'rgba(5,150,105,.08)', color: '#059669' }}>Você já enviou estas perguntas ao seu médico. Gere um novo relatório quando quiser perguntas diferentes.</Alert>
+                ) : (
+                  <>
+                    <Button variant="contained" disabled={send.status === 'sending' || !Object.values(tickQ).some(Boolean)} onClick={sendQuestionsToDoctor}
+                      sx={{ alignSelf: 'flex-start', borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#7b1fa2', '&:hover': { bgcolor: '#6a1b63' } }}>
+                      {send.status === 'sending' ? 'Enviando…' : 'Enviar ao médico'}
+                    </Button>
+                    <Typography variant="caption" color="text.secondary">Marque as perguntas que quiser levar e toque em enviar. Seu médico recebe na área de perguntas dele no app e por e-mail.</Typography>
+                  </>
+                )}
               </Stack>
             </ReportSectionCard>
           ) : null}
+
+          {/* Seletor de médico quando o paciente tem +1 médico compartilhado */}
+          {picker && (
+            <Dialog open onClose={() => setPicker(null)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
+              <DialogTitle sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif' }}>Enviar perguntas a qual médico?</DialogTitle>
+              <DialogContent>
+                <FormControl fullWidth size="small" sx={{ mt: 1 }}>
+                  <Select value={picker.picked} onChange={(e) => setPicker((p) => p ? { ...p, picked: String(e.target.value) } : p)}>
+                    {picker.shares.map((s: any) => {
+                      const id = s.doctorId ?? s.doctor?.id; const nm = s.doctor?.name ?? s.name; const sp = s.doctor?.specialty;
+                      return <MenuItem key={id} value={id}>{nm}{sp ? ` — ${sp}` : ''}</MenuItem>;
+                    })}
+                  </Select>
+                </FormControl>
+              </DialogContent>
+              <DialogActions sx={{ justifyContent: 'center', pb: 2, gap: 1 }}>
+                <Button onClick={() => setPicker(null)} sx={{ textTransform: 'none' }}>Cancelar</Button>
+                <Button variant="contained" disabled={send.status === 'sending'} onClick={() => {
+                  const s = picker.shares.find((x: any) => (x.doctorId ?? x.doctor?.id) === picker.picked);
+                  doSendToDoctor(picker.picked, s?.doctor?.name ?? s?.name ?? 'seu médico', picker.qs);
+                }} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700 }}>{send.status === 'sending' ? 'Enviando…' : 'Enviar'}</Button>
+              </DialogActions>
+            </Dialog>
+          )}
 
           {s.leituraFinal && (
             <Box sx={{ p: 2.5, borderRadius: '16px', background: 'linear-gradient(135deg, rgba(11,92,171,.10), rgba(11,92,171,.04))', border: '1px solid', borderColor: 'divider' }}>

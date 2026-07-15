@@ -138,6 +138,9 @@ export const buildTheme = (mode: ThemeMode): Theme => {
               ? '0 2px 8px rgba(0,0,0,0.4)'
               : '0 2px 6px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)',
             border: `1px solid ${isDark ? '#2a3636' : '#e6f1f0'}`,
+            // Press state (feel nativo): card 'respira' leve ao toque. Sutil p/ não estranhar em cards estáticos.
+            transition: 'transform .12s ease, box-shadow .2s ease',
+            '&:active': { transform: 'scale(0.985)' },
           },
         },
       },
@@ -177,7 +180,9 @@ export const buildTheme = (mode: ThemeMode): Theme => {
           root: {
             borderRadius: 12,
             margin: '3px 10px',
+            transition: 'transform .1s ease, background-color .15s ease',
             '&:hover': { background: hoverAlpha },
+            '&:active': { transform: 'scale(0.97)' },
             '&.RaMenuItem-activeMenuItem, &[class*="active"]': {
               background: activeAlpha,
               color: activeColor,

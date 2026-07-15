@@ -11,6 +11,13 @@
     <link rel="icon" type="image/png" href="app-icon.png" />
     <link rel="apple-touch-icon" href="app-icon.png" />
     <title>Meus Exames</title>
+    <style>
+      /* Feel nativo: remove o highlight azul do tap no webview/mobile. */
+      html, body, * { -webkit-tap-highlight-color: transparent; }
+      /* Fade-in suave pras páginas (classe .me-fade-in) — microinteração premium. */
+      @keyframes meFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+      .me-fade-in { animation: meFadeIn .28s ease both; }
+    </style>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet" />

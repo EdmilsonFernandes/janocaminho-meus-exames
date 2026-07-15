@@ -80,6 +80,7 @@ import { decideBackAction } from './utils/backNavigation';
 import { NotificationBell } from './components/NotificationBell';
 import { NotificationPopup } from './components/NotificationPopup';
 import { Onboarding } from './components/Onboarding';
+import { PageSkeleton } from './components/PageSkeleton';
 import { CompleteProfileModal } from './components/CompleteProfileModal';
 import { NotificationsPage } from './pages/Notifications';
 import { MedicosPage } from './pages/Medicos';
@@ -575,11 +576,11 @@ export const App = () => {
   >
     <CustomRoutes noLayout>
       <Route path="/entrar" element={<LoginPage />} />
-      <Route path="/landing" element={<Suspense fallback={<Box sx={{ display:'flex', justifyContent:'center', py: 8 }}><CircularProgress /></Box>}><LandingPage /></Suspense>} />
+      <Route path="/landing" element={<Suspense fallback={<PageSkeleton />}><LandingPage /></Suspense>} />
       <Route path="/termos" element={<TermsPage />} />
       <Route path="/registrar" element={<RegisterPage />} />
       <Route path="/recuperar-senha" element={<ResetPage />} />
-      <Route path="/doctor" element={<Suspense fallback={<Box sx={{ display:'flex', justifyContent:'center', py: 8 }}><CircularProgress /></Box>}><DoctorPortalPage /></Suspense>} />
+      <Route path="/doctor" element={<Suspense fallback={<PageSkeleton />}><DoctorPortalPage /></Suspense>} />
       {/* Backoffice ISOLADO do app do paciente: shell próprio (sem AppLayout/BottomNav/FloatingChat/menu de saúde). */}
       <Route path="/admin" element={<AdminPage />} />
     </CustomRoutes>
@@ -600,14 +601,14 @@ export const App = () => {
       <Route path="/linha-do-tempo" element={<TimelinePage />} />
       <Route path="/relatorio" element={<ConsolidatedReportPage />} />
       <Route path="/alterados" element={<ValoresAlteradosPage />} />
-      <Route path="/lembretes" element={<Suspense fallback={<Box sx={{ display:'flex', justifyContent:'center', py: 8 }}><CircularProgress /></Box>}><RemindersPage /></Suspense>} />
+      <Route path="/lembretes" element={<Suspense fallback={<PageSkeleton />}><RemindersPage /></Suspense>} />
       <Route path="/medicoes" element={<MeasurementsPage />} />
       <Route path="/vacinas" element={<VaccinesPage />} />
       <Route path="/despesas" element={<ExpensesPage />} />
       <Route path="/emergencia" element={<EmergencyCardPage />} />
-      <Route path="/chat" element={<Suspense fallback={<Box sx={{ display:'flex', justifyContent:'center', py: 8 }}><CircularProgress /></Box>}><ChatPage /></Suspense>} />
+      <Route path="/chat" element={<Suspense fallback={<PageSkeleton />}><ChatPage /></Suspense>} />
       <Route path="/notificacoes" element={<NotificationsPage />} />
-      <Route path="/planos" element={<Suspense fallback={<Box sx={{ display:'flex', justifyContent:'center', py: 8 }}><CircularProgress /></Box>}><PlansPage /></Suspense>} />
+      <Route path="/planos" element={<Suspense fallback={<PageSkeleton />}><PlansPage /></Suspense>} />
       <Route path="/medicos" element={<MedicosPage />} />
       <Route path="/conquistas" element={<ConquistasPage />} />
       <Route path="/suporte" element={<SupportPage />} />
