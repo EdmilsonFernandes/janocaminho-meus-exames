@@ -735,7 +735,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                   {supportedTabs.map((s) => {
                     const on = tab === s;
                     const meta = SCOPE_META[s] || { icon: '📄', label: s };
-                    const count = s === 'risk' ? (risk?.result ? 1 : 0) : s === 'exams' ? (exams?.length || 0) : s === 'alerts' ? (allAlerts?.length || 0) : s === 'notes' ? (notes?.length || 0) : s === 'summary' ? (summaries?.length || 0) : 0;
+                    const count = s === 'risk' ? (risk?.result ? 1 : 0) : s === 'exams' ? (exams?.length || 0) : s === 'alerts' ? (allAlerts?.length || 0) : s === 'notes' ? (notes?.length || 0) : s === 'summary' ? (summaries?.length || 0) : s === 'questions' ? (questions?.filter((q: any) => q.status !== 'answered').length || 0) : 0;
                     return (
                       <Box key={s} onClick={() => setTab(s)} sx={{
                         flexShrink: 0, display: 'flex', alignItems: 'center', gap: 0.5, px: 1.5, py: 0.75, borderRadius: 1.5, cursor: 'pointer',

@@ -30,6 +30,7 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Diversity3Icon from '@mui/icons-material/Diversity3';
 import SummarizeIcon from '@mui/icons-material/Summarize';
+import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import { DrExame } from './components/DrExame';
 import { dataProvider } from './dataProvider';
 import { API_URL, token } from './config';
@@ -49,6 +50,7 @@ const DoctorPortalPage = lazy(() => import('./pages/DoctorPortal').then(m => ({ 
 const LandingPage = lazy(() => import('./pages/Landing').then(m => ({ default: m.LandingPage })));
 const PlansPage = lazy(() => import('./pages/Plans').then(m => ({ default: m.PlansPage })));
 const RemindersPage = lazy(() => import('./pages/Reminders').then(m => ({ default: m.RemindersPage })));
+const QuestionsPage = lazy(() => import('./pages/Questions').then(m => ({ default: m.QuestionsPage })));
 import { MeasurementsPage } from './pages/Measurements';
 import { VaccinesPage } from './pages/Vaccines';
 import { EmergencyCardPage } from './pages/EmergencyCard';
@@ -214,9 +216,10 @@ const AppMenu = () => {
       <NavItem to="/emergencia" primaryText="Cartão de emergência" icon={<HealthAndSafetyIcon />} />
     </MenuSectionAccordion>
 
-    <MenuSectionAccordion title="Família & Médicos" icon={<Diversity3Icon />} routes={['/patients', '/medicos', '/despesas']}>
+    <MenuSectionAccordion title="Família & Médicos" icon={<Diversity3Icon />} routes={['/patients', '/medicos', '/perguntas', '/despesas']}>
       <NavItem to="/patients" primaryText="Dependentes" icon={<Diversity3Icon />} />
       <NavItem to="/medicos" primaryText="Meus Médicos" icon={<MedicalServicesIcon />} />
+      <NavItem to="/perguntas" primaryText="Minhas perguntas" icon={<QuestionAnswerIcon />} highlight />
       <NavItem to="/despesas" primaryText="Despesas médicas" icon={<AccountBalanceWalletIcon />} />
     </MenuSectionAccordion>
 
@@ -590,6 +593,7 @@ export const App = () => {
 
     <CustomRoutes>
       <Route path="/perfil" element={<ProfilePage />} />
+      <Route path="/perguntas" element={<Suspense fallback={<PageSkeleton />}><QuestionsPage /></Suspense>} />
       <Route path="/seguranca" element={<SecurityPage />} />
       <Route path="/privacidade" element={<PrivacyPage />} />
       <Route path="*" element={<NotFoundPage />} />
