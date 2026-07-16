@@ -137,6 +137,15 @@ export const ConsolidatedReportPage = () => {
   const sentKey = useMemo(() => 'reportQ_' + (analysis?.id ?? 'none'), [analysis]);
   useEffect(() => { try { setSentQs(new Set<string>(JSON.parse(localStorage.getItem(sentKey) || '[]'))); } catch { setSentQs(new Set()); } }, [sentKey]);
   const [picker, setPicker] = useState<{ shares: any[]; picked: string; qs: { q: string }[] } | null>(null);
+  // Cota de perguntas (openQuestions/questionLimit do /doctor-shares). Usada pra DESABILITAR os
+  // checkboxes quando o paciente não pode mais enviar — antes dava pra tickar tudo e só falhava
+  // no envio (inconsistente: "habilita pra tickar mas não envia"). Atualiza também após cada envio.
+  const [qShares, setQShares] = useState<any[]>([]);
+  const refreshQShares = () => fetch(`${API_URL}/doctor-shares`, { headers: apiHeaders() }).then((r) => r.json()).then((d) => setQShares((d.items ?? d ?? []).filter((x: any) => x.active !== false))).catch(() => {});
+  useEffect(() => { if (pid) refreshQShares(); /* eslint-disable-next-line */ }, [pid]);
+  const doctorsAvailable = qShares.filter((s: any) => Number(s.openQuestions ?? 0) < Number(s.questionLimit ?? 5));
+  const questionLocked = qShares.length > 0 && doctorsAvailable.length === 0; // todos os médicos no limite
+  const hasNoDoctor = qShares.length === 0;
   const doSendToDoctor = async (doctorId: string, doctorName: string, picked: { q: string }[]) => {
     if (!pid) return;
     setSend({ status: 'sending' });
@@ -147,9 +156,22 @@ export const ConsolidatedReportPage = () => {
         body: JSON.stringify({ patientId: pid, doctorId, subject: picked.length === 1 ? picked[0].q.slice(0, 90) : `${picked.length} perguntas do relatório`, body }),
       });
       if (r.status === 402) { const d = await r.json().catch(() => ({})); hapticError(); setSend({ status: 'error', msg: d.message || 'Créditos insuficientes pra enviar agora.' }); return; }
-      if (r.status === 409) { const d = await r.json().catch(() => ({})); hapticError(); setSend({ status: 'error', msg: d.message || 'Você tem perguntas em aberto com este médico. Aguarde a resposta.' }); return; }
+      if (r.status === 409) {
+        const d = await r.json().catch(() => ({}));
+        if (d.error === 'question_duplicate') {
+          // Já estão em aberto (dedup server). Marca como enviadas p/ os checkboxes virarem ✓
+          // (consistência: antes ficavam tickáveis mas o envio travava).
+          setSentQs((prev) => { const ns = new Set(prev); picked.forEach((p) => ns.add(p.q)); try { localStorage.setItem(sentKey, JSON.stringify([...ns])); } catch {} return ns; });
+          setTickQ({}); setPicker(null); hapticSuccess();
+          setSend({ status: 'done', msg: 'Essas perguntas já estão aguardando resposta do médico.' });
+        } else {
+          hapticError(); setSend({ status: 'error', msg: d.message || 'Você tem perguntas em aberto com este médico. Aguarde a resposta.' });
+        }
+        return;
+      }
       if (!r.ok) { hapticError(); setSend({ status: 'error', msg: 'Não foi possível enviar agora. Tente novamente.' }); return; }
       bumpCredits(); hapticSuccess();
+      refreshQShares(); // atualiza a cota (mais uma pergunta em aberto agora)
       // Marca SÓ as enviadas (por conteúdo). As não-tickadas continuam disponíveis pra enviar depois.
       setSentQs((prev) => { const ns = new Set(prev); picked.forEach((p) => ns.add(p.q)); try { localStorage.setItem(sentKey, JSON.stringify([...ns])); } catch {} return ns; });
       setSend({ status: 'done', msg: `Perguntas enviadas! O Dr(a). ${doctorName} recebeu na área de perguntas dele (no portal do médico) e por e-mail.` });
@@ -448,6 +470,11 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
           {s.perguntasParaOMedico?.length ? (
             <ReportSectionCard icon={<LiveHelpIcon />} title="Perguntas para levar ao médico" accent="#7b1fa2" count={s.perguntasParaOMedico.length}>
               <Stack spacing={0.75}>
+                {hasNoDoctor ? (
+                  <Alert severity="info" icon={<LiveHelpIcon />} sx={{ py: 0.5, borderRadius: 2 }}>Para enviar perguntas, compartilhe antes seus exames com um médico em <b>“Meus Médicos”</b>.</Alert>
+                ) : questionLocked ? (
+                  <Alert severity="warning" sx={{ py: 0.5, borderRadius: 2 }}>Você atingiu o limite de perguntas em aberto com {qShares.length === 1 ? `${qShares[0]?.doctor?.name ?? qShares[0]?.name ?? 'seu médico'}` : 'seus médicos'}. Aguarde a resposta para enviar novas perguntas.</Alert>
+                ) : (<>
                 {s.perguntasParaOMedico.map((q, i) => {
                   const isSent = sentQs.has(String(q));
                   return (
@@ -474,6 +501,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
                     <Typography variant="caption" color="text.secondary">Marque as perguntas que quiser levar e toque em enviar. Seu médico recebe na área de perguntas dele no app e por e-mail.</Typography>
                   </>
                 )}
+                </>)}
               </Stack>
             </ReportSectionCard>
           ) : null}

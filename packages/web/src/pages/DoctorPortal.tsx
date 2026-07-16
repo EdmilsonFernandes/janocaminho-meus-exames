@@ -9,6 +9,7 @@ import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import PdfIcon from '@mui/icons-material/PictureAsPdf';
 import SearchIcon from '@mui/icons-material/Search';
 import GroupsIcon from '@mui/icons-material/Groups';
@@ -370,6 +371,13 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
       setQText((t) => ({ ...t, [id]: '' })); setReplyOpen(null);
       snackbar({ message: 'Resposta enviada — o paciente será avisado.', severity: 'success' });
     } catch (e: any) { snackbar({ message: e.message || 'Falha ao responder.', severity: 'error' }); } finally { setQSending(null); }
+  };
+  // Clicar no cabeçalho do card (avatar/nome) leva à área do paciente em questão (tab Perguntas).
+  // O "Responder" continua inline no card; este é o atalho pra ver o histórico completo do paciente.
+  const goToPatient = async (patientId: string) => {
+    const p = patients.find((x) => x.patient?.id === patientId);
+    if (!p) { snackbar({ message: 'Paciente não encontrado na sua lista.', severity: 'warning' }); return; }
+    setView('patients'); await openPatient(p); setTab('questions');
   };
   const createInvite = async () => {
     if (!inv.name.trim() || (!inv.phone.trim() && !inv.email.trim())) return;
@@ -797,13 +805,15 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
             return (
               <Card key={q.id} sx={{ borderRadius: 3, mb: 1.5, boxShadow: '0 1px 3px rgba(0,0,0,.04)', border: '1px solid', borderColor: answered ? 'divider' : 'transparent' }}><CardContent>
                 <Stack direction="row" alignItems="center" spacing={1.25}>
-                  <Avatar src={q.patient?.id ? `${API_URL}/patients/${q.patient.id}/photo` : undefined} sx={{ bgcolor: TEAL, fontWeight: 800, width: 44, height: 44 }}>{q.patient?.fullName?.charAt(0)}</Avatar>
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Stack direction="row" spacing={0.75} alignItems="center" sx={{ flexWrap: 'wrap', rowGap: 0.5 }}>
-                      <Typography sx={{ fontWeight: 800 }}>{q.patient?.fullName}</Typography>
-                      <Chip size="small" label={answered ? '✓ respondida' : 'em aberto'} sx={{ height: 18, fontSize: 10, bgcolor: answered ? 'rgba(22,163,74,.12)' : 'rgba(234,88,12,.12)', color: answered ? '#16a34a' : '#ea580c', fontWeight: 700 }} />
-                    </Stack>
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>{q.subject} · {relDate(q.createdAt)}</Typography>
+                  <Box onClick={() => goToPatient(q.patientId)} title="Abrir o paciente" sx={{ display: 'flex', alignItems: 'center', gap: 1.25, flex: 1, minWidth: 0, cursor: 'pointer', borderRadius: 2, mx: -0.5, px: 0.5, py: 0.25, transition: 'background .15s', '&:hover': { bgcolor: 'rgba(32,178,170,.06)' } }}>
+                    <Avatar src={q.patient?.id ? `${API_URL}/patients/${q.patient.id}/photo` : undefined} sx={{ bgcolor: TEAL, fontWeight: 800, width: 44, height: 44, flexShrink: 0 }}>{q.patient?.fullName?.charAt(0)}</Avatar>
+                    <Box sx={{ minWidth: 0 }}>
+                      <Stack direction="row" spacing={0.75} alignItems="center" sx={{ flexWrap: 'wrap', rowGap: 0.5 }}>
+                        <Typography sx={{ fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>{q.patient?.fullName}<OpenInNewIcon sx={{ fontSize: 13, color: 'text.disabled' }} /></Typography>
+                        <Chip size="small" label={answered ? '✓ respondida' : 'em aberto'} sx={{ height: 18, fontSize: 10, bgcolor: answered ? 'rgba(22,163,74,.12)' : 'rgba(234,88,12,.12)', color: answered ? '#16a34a' : '#ea580c', fontWeight: 700 }} />
+                      </Stack>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>{q.subject} · {relDate(q.createdAt)}</Typography>
+                    </Box>
                   </Box>
                   {!answered && <Button size="small" variant={isOpen ? 'outlined' : 'contained'} onClick={() => setReplyOpen(isOpen ? null : q.id)} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: isOpen ? undefined : '#20b2aa', color: isOpen ? '#178f89' : '#fff', boxShadow: 'none', '&:hover': { bgcolor: isOpen ? undefined : '#178f89' }, flexShrink: 0 }}>{isOpen ? 'Fechar' : 'Responder'}</Button>}
                 </Stack>
@@ -813,7 +823,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                   <Box sx={{ mt: 1.5 }}>
                     <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary' }}>⚡ Resposta rápida:</Typography>
                     <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.5, mb: 1 }}>
-                      {QUICK_REPLIES.map((t) => <Chip key={t} size="small" variant="outlined" label={t.length > 42 ? t.slice(0, 42) + '…' : t} onClick={() => setQText((prev) => ({ ...prev, [q.id]: t }))} sx={{ fontWeight: 600, borderRadius: 99, borderColor: 'rgba(32,178,170,.4)', color: '#178f89', '&:hover': { bgcolor: 'rgba(32,178,170,.06)' } }} />)}
+                      {QUICK_REPLIES.map((t) => <Chip key={t} size="small" variant="outlined" label={t} onClick={() => setQText((prev) => ({ ...prev, [q.id]: t }))} sx={{ fontWeight: 600, height: 'auto', maxWidth: '100%', borderRadius: 2, py: 0.5, borderColor: 'rgba(32,178,170,.4)', color: '#178f89', '& .MuiChip-label': { whiteSpace: 'normal', lineHeight: 1.3 }, '&:hover': { bgcolor: 'rgba(32,178,170,.06)' } }} />)}
                     </Stack>
                     <TextField multiline minRows={2} size="small" fullWidth placeholder="Escrever resposta…" value={qText[q.id] ?? ''} onChange={(e) => setQText((t) => ({ ...t, [q.id]: e.target.value }))} />
                     <Stack direction="row" spacing={1} sx={{ mt: 1 }} justifyContent="flex-end">
@@ -986,7 +996,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 <Typography variant="caption" sx={{ color: 'text.secondary' }}>{[selected.age != null ? `${selected.age} anos` : null, selected.sex === 'female' ? 'Feminino' : selected.sex === 'male' ? 'Masculino' : null, selected.patient?.relationship, selected.convenio || 'Particular', selected.latestWeight ? `${selected.latestWeight.value} kg` : null].filter(Boolean).join(' • ')}</Typography>
               </Box>
               <Box sx={{ flex: 1 }} />
-              <Button size="small" variant={consultedJustNow ? 'contained' : 'outlined'} onClick={markConsulted} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, borderColor: '#20b2aa', bgcolor: consultedJustNow ? '#16a34a' : undefined, color: consultedJustNow ? '#fff' : '#178f89', '&:hover': { bgcolor: consultedJustNow ? '#15803d' : undefined }, flexShrink: 0 }}>{consultedJustNow ? '✓ Atendido' : `🩺 Atendi · ${selected.openQuestions ?? 0}/${selected.openQuestionLimit ?? 5}`}</Button>
+              <Button size="small" variant={consultedJustNow ? 'contained' : 'outlined'} onClick={markConsulted} title="Marca que você atendeu este paciente e libera +1 pergunta em aberto pra ele" sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, borderColor: '#20b2aa', bgcolor: consultedJustNow ? '#16a34a' : undefined, color: consultedJustNow ? '#fff' : '#178f89', '&:hover': { bgcolor: consultedJustNow ? '#15803d' : undefined }, flexShrink: 0 }}>{consultedJustNow ? '✓ Consulta registrada' : '🩺 Registrar consulta'}</Button>
             </Stack>
 
             {/* COMMAND BAR — segmented control premium (iOS style) com contagens. Sticky. */}
@@ -1237,6 +1247,12 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                     histórico). Agora tem aba própria e itera q.messages. */}
                 {!detailLoading && tab === 'questions' && (
                   <Stack spacing={1.5}>
+                    {/* Cota de perguntas (contextual: a info que estava confusa no botão Atendi). */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap', p: 1, px: 1.25, borderRadius: 2, bgcolor: 'rgba(32,178,170,.06)', border: '1px solid rgba(32,178,170,.15)' }}>
+                      <Typography variant="caption" sx={{ fontWeight: 700, color: TEAL }}>📝 Perguntas em aberto:</Typography>
+                      <Typography variant="caption" sx={{ fontWeight: 800 }}>{selected.openQuestions ?? 0} de {selected.openQuestionLimit ?? 5}</Typography>
+                      <Typography variant="caption" color="text.secondary">· cada consulta registrada libera +1 pergunta pra ele.</Typography>
+                    </Box>
                     {questions.length === 0 && <Empty label="Nenhuma pergunta deste paciente ainda." icon="❓" />}
                     {questions.length > 0 && (
                       <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap">
@@ -1285,7 +1301,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                               <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', fontStyle: 'italic', mt: 0.5 }}>Pergunta respondida ✓ — sem ação pendente.</Typography>
                             ) : (<>
                               <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mb: 0.75 }}>
-                                {QUICK_REPLIES.slice(0, 4).map((t) => <Chip key={t} size="small" variant="outlined" label={t.length > 38 ? t.slice(0, 38) + '…' : t} onClick={() => setQText((prev) => ({ ...prev, [q.id]: t }))} sx={{ fontWeight: 600, borderRadius: 99, borderColor: 'rgba(32,178,170,.4)', color: '#178f89', '&:hover': { bgcolor: 'rgba(32,178,170,.06)' } }} />)}
+                                {QUICK_REPLIES.slice(0, 4).map((t) => <Chip key={t} size="small" variant="outlined" label={t} onClick={() => setQText((prev) => ({ ...prev, [q.id]: t }))} sx={{ fontWeight: 600, height: 'auto', maxWidth: '100%', borderRadius: 2, py: 0.5, borderColor: 'rgba(32,178,170,.4)', color: '#178f89', '& .MuiChip-label': { whiteSpace: 'normal', lineHeight: 1.3 }, '&:hover': { bgcolor: 'rgba(32,178,170,.06)' } }} />)}
                               </Stack>
                               <TextField multiline minRows={1} size="small" fullWidth placeholder="Escrever resposta…" value={qText[q.id] ?? ''} onChange={(e) => setQText((t) => ({ ...t, [q.id]: e.target.value }))} />
                               <Button size="small" disabled={qSending === q.id || !(qText[q.id]?.trim())} onClick={() => responderQ(q.id)} startIcon={qSending === q.id ? <CircularProgress size={14} color="inherit" /> : undefined} sx={{ mt: 0.5, textTransform: 'none', fontWeight: 700, color: TEAL }}>{qSending === q.id ? 'Enviando…' : 'Responder'}</Button>
