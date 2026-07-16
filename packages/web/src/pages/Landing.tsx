@@ -14,6 +14,8 @@ import LockIcon from '@mui/icons-material/Lock';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import ShareIcon from '@mui/icons-material/Share';
 import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
+import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
+import SmartphoneIcon from '@mui/icons-material/Smartphone';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import AccessibilityNewIcon from '@mui/icons-material/AccessibilityNew';
@@ -600,6 +602,57 @@ export const LandingPage = () => {
               </Box>
             ))}
           </Box>
+        </Container>
+      </Box>
+
+      {/* NOVO — Seu médico te chama (funil de aquisição via médico) */}
+      <Box sx={{ py: { xs: 8, md: 11 }, background: 'linear-gradient(180deg, rgba(32,178,170,.06), transparent 45%)' }}>
+        <Container maxWidth="lg">
+          <Reveal>
+            <Stack alignItems="center" spacing={1.5} sx={{ textAlign: 'center', mb: 6 }}>
+              <Chip label="✨ NOVIDADE" sx={{ bgcolor: 'rgba(32,178,170,.12)', color: TEAL_DARK, fontWeight: 800, letterSpacing: 1.5, fontSize: 12 }} />
+              <Typography variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: INK, letterSpacing: '-0.02em', maxWidth: 760 }}>
+                Seu médico te chama pro Dr. Exame
+              </Typography>
+              <Typography sx={{ color: 'text.secondary', fontSize: 17, maxWidth: 640, lineHeight: 1.6 }}>
+                Sem papel, sem app do consultório. Seu médico te manda um link no WhatsApp, você instala e ele <b>já fica conectado</b> aos seus exames — na hora, sem configurar nada.
+              </Typography>
+            </Stack>
+          </Reveal>
+
+          <Reveal>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: { xs: 2.5, md: 3.5 }, maxWidth: 940, mx: 'auto' }}>
+              {[
+                { Icon: PersonAddAlt1Icon, t: 'Seu médico envia o convite', d: 'No consultório ou no WhatsApp, ele te chama com um link. Você não procura o app — é ele quem te encontra.', color: TEAL },
+                { Icon: SmartphoneIcon, t: 'Você instala em 1 toque', d: 'Abre o link, cria sua conta e sobe o exame que ele pediu. Leva menos de um minuto.', color: '#d4a574' },
+                { Icon: VerifiedUserIcon, t: 'Conexão automática', d: 'O compartilhamento com seu médico já vem ativado. Ele chega à consulta com um resumo do que importa — antes mesmo de você.', color: GREEN },
+              ].map((s, i) => (
+                <Box key={i} sx={{ textAlign: 'center', bgcolor: 'background.paper', borderRadius: 4, border: '1px solid', borderColor: 'divider', p: { xs: 2.5, md: 3 }, boxShadow: '0 14px 32px rgba(15,61,58,.07)', position: 'relative', height: '100%' }}>
+                  <Box sx={{ width: 64, height: 64, mx: 'auto', mb: 2, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: `linear-gradient(135deg, ${s.color}, ${s.color}cc)`, boxShadow: `0 10px 22px ${s.color}40` }}>
+                    <s.Icon sx={{ fontSize: 30, color: '#fff' }} />
+                  </Box>
+                  <Typography variant="h6" sx={{ fontWeight: 800, fontSize: 17, color: 'text.primary', mb: 0.75 }}>{s.t}</Typography>
+                  <Typography sx={{ color: 'text.secondary', fontSize: 14.5, lineHeight: 1.6 }}>{s.d}</Typography>
+                  {i === 2 && <Chip size="small" label="já vem ativo ✓" sx={{ position: 'absolute', top: 12, right: 12, bgcolor: 'rgba(5,150,105,.12)', color: GREEN, fontWeight: 800, fontSize: 11 }} />}
+                </Box>
+              ))}
+            </Box>
+          </Reveal>
+
+          <Reveal>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center" alignItems="stretch" sx={{ mt: 6, maxWidth: 780, mx: 'auto' }}>
+              <Box sx={{ flex: 1, borderRadius: 4, p: 3, background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff' }}>
+                <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}><MedicalServicesIcon /><Typography sx={{ fontWeight: 800, fontSize: 18 }}>Pra você, paciente</Typography></Stack>
+                <Typography sx={{ fontSize: 14.5, lineHeight: 1.55, opacity: 0.92, mb: 2 }}>Seu médico ainda não te chamou? Crie sua conta e indique-o pelo CRM em segundos.</Typography>
+                <Button variant="contained" onClick={() => navigate('/registrar')} sx={{ bgcolor: '#fff', color: TEAL_DARK, borderRadius: 99, textTransform: 'none', fontWeight: 800, boxShadow: 'none', '&:hover': { bgcolor: '#eefaf9' } }}>Criar conta grátis</Button>
+              </Box>
+              <Box sx={{ flex: 1, borderRadius: 4, p: 3, bgcolor: 'background.paper', border: `2px solid ${TEAL}` }}>
+                <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}><AssignmentIndIcon sx={{ color: TEAL_DARK }} /><Typography sx={{ fontWeight: 800, fontSize: 18, color: INK }}>Pra você, médico</Typography></Stack>
+                <Typography sx={{ fontSize: 14.5, lineHeight: 1.55, color: 'text.secondary', mb: 2 }}>Convide seus pacientes pelo portal e receba um brief de pré-consulta de cada um. Conheça o Dr. Exame Pro.</Typography>
+                <Button variant="outlined" onClick={() => navigate('/doctor')} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 800, borderColor: TEAL, color: TEAL_DARK, '&:hover': { borderColor: TEAL_DARK, bgcolor: 'rgba(32,178,170,.06)' } }}>Portal do médico →</Button>
+              </Box>
+            </Stack>
+          </Reveal>
         </Container>
       </Box>
 
