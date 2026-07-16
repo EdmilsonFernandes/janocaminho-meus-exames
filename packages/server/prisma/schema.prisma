@@ -44,6 +44,7 @@ model User {
   deviceClaims DeviceClaim[] @relation("DeviceClaims")
   achievementGrants AchievementGrant[]
   creditTransactions CreditTransaction[]
+  acceptedInvites PatientInvite[]
 
   @@map("users")
 }
@@ -189,6 +190,7 @@ model Patient {
   doctorShares DoctorShare[]
   doctorQuestions DoctorQuestion[]
   riskAssessments RiskAssessment[]
+  consultations Consultation[]
 
   @@index([ownerId])
   @@map("patients")
@@ -515,6 +517,8 @@ model Doctor {
   shares       DoctorShare[]
   notes        DoctorNote[]
   questions    DoctorQuestion[]
+  invites      PatientInvite[]
+  consultations Consultation[]
   // MFA (TOTP 2FA) — mesmo esquema do User
   mfaEnabled          Boolean   @default(false)
   mfaSecretEncrypted  String?
@@ -526,6 +530,7 @@ model Doctor {
   planExpiresAt     DateTime?
   freeUsageMonth    String?  // "2026-07" — mês corrente do contador free
   freeUsageCount    Int      @default(0)      // usos de features premium no mês (free tier: 5)
+  defaultQuestionLimit Int   @default(2)      // limite padrão de perguntas em aberto pra novos shares (Pro)
 
   @@map("doctors")
 }
@@ -558,10 +563,49 @@ model DoctorShare {
   createdAt  DateTime  @default(now())
   revokedAt  DateTime?
   creditsCharged Int @default(0) // créditos debitados do paciente ao criar o share (pro extrato)
+  openQuestionLimit Int @default(2) // máx. perguntas EM ABERTO simultâneas (anti-flood, configurável no Pro)
 
   @@unique([patientId, doctorId])
   @@index([doctorId, active])
   @@map("doctor_shares")
+}
+
+// Convite de paciente feito pelo médico (pré-cadastro no agendamento) com share PRÉ-autorizado.
+// Paciente aceita via /convite/:token (landing) → cria User+Patient e ativa o DoctorShare.
+model PatientInvite {
+  id              String    @id @default(cuid())
+  doctorId        String
+  doctor          Doctor    @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  patientName     String
+  phone           String?   // WhatsApp (preferencial)
+  email           String?
+  token           String    @unique            // magic link
+  scopes          String[]  @default([])       // pré-autorizados: exams, evolution, alerts, summary
+  status          String    @default("pending") // pending | accepted | expired
+  expiresAt       DateTime?
+  acceptedAt      DateTime?
+  acceptedUserId  String?   // User que aceitou → vira dono do Patient criado
+  acceptedUser    User?     @relation(fields: [acceptedUserId], references: [id], onDelete: SetNull)
+  createdAt       DateTime  @default(now())
+
+  @@index([doctorId, status])
+  @@map("patient_invites")
+}
+
+// Consulta registrada pelo médico (botão "Atendi") — libera +1 pergunta em aberto pro paciente.
+model Consultation {
+  id         String   @id @default(cuid())
+  doctorId   String
+  doctor     Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  patientId  String
+  patient    Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  happenedAt DateTime @default(now())
+  note       String?
+  createdAt  DateTime @default(now())
+
+  @@index([doctorId, happenedAt])
+  @@index([patientId, happenedAt])
+  @@map("consultations")
 }
 
 // Anotações clínicas do médico sobre um paciente compartilhado (histórico de atendimento)

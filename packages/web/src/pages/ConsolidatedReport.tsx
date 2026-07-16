@@ -145,6 +145,7 @@ export const ConsolidatedReportPage = () => {
         body: JSON.stringify({ patientId: pid, doctorId, subject: picked.length === 1 ? picked[0].q.slice(0, 90) : `${picked.length} perguntas do relatório`, body }),
       });
       if (r.status === 402) { const d = await r.json().catch(() => ({})); hapticError(); setSend({ status: 'error', msg: d.message || 'Créditos insuficientes pra enviar agora.' }); return; }
+      if (r.status === 409) { const d = await r.json().catch(() => ({})); hapticError(); setSend({ status: 'error', msg: d.message || 'Você tem perguntas em aberto com este médico. Aguarde a resposta.' }); return; }
       if (!r.ok) { hapticError(); setSend({ status: 'error', msg: 'Não foi possível enviar agora. Tente novamente.' }); return; }
       bumpCredits(); hapticSuccess();
       // Marca SÓ as enviadas (por conteúdo). As não-tickadas continuam disponíveis pra enviar depois.
