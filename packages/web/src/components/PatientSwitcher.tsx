@@ -74,14 +74,17 @@ export const PatientSwitcher = () => {
         onClick={(e) => setAnchor(e.currentTarget)}
         disableElevation
         sx={{
-          borderRadius: 99, pl: 0.5, pr: 1, py: 0.3, color: 'inherit', textTransform: 'none',
-          // "Frosted": translúcido branco pra ler sobre o AppBar teal (antes teal-sobre-teal sumia).
-          bgcolor: 'rgba(255,255,255,0.14)',
-          '&:hover': { bgcolor: 'rgba(255,255,255,0.24)' },
-          maxWidth: { xs: 190, sm: 280 },
+          borderRadius: 99, pl: 0.5, pr: { xs: 0.5, sm: 1 }, py: 0.25, color: 'inherit', textTransform: 'none',
+          // Sem pill 'frosted' (lavava a foto). Avatar GRANDE c/ anel nítido + sombra = a foto
+          // salta visível (antes era pequena/difícil de ver = sem credibilidade).
+          bgcolor: 'transparent',
+          '&:hover': { bgcolor: 'rgba(255,255,255,0.12)' },
+          maxWidth: { sm: 280 },
+          // No mobile (só o avatar, nome oculto) remove o gap do startIcon.
+          '& .MuiButton-startIcon': { mr: { xs: 0, sm: 0.5 } },
         }}
         startIcon={
-          <Avatar src={photoFor(current)} sx={{ width: 36, height: 36, bgcolor: 'primary.main', fontSize: 15, border: '2px solid #fff', boxShadow: '0 2px 6px rgba(0,0,0,.15)' }}>
+          <Avatar src={photoFor(current)} sx={{ width: 40, height: 40, bgcolor: 'primary.main', fontSize: 16, fontWeight: 700, boxShadow: '0 0 0 2px rgba(255,255,255,.95), 0 3px 8px rgba(0,0,0,.28)' }}>
             {current?.fullName?.charAt(0)?.toUpperCase()}
           </Avatar>
         }

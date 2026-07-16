@@ -119,7 +119,7 @@ const CustomAppBar = (props: AppBarProps) => {
           não "colada". Preenche a esquerda → acabou o gap branco. Desktop mantém o TitlePortal. */}
       {!isDesktop && (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-          <DrExame size={28} sx={{ borderRadius: '26%', boxShadow: '0 2px 8px rgba(0,0,0,.18)', border: '1.5px solid rgba(255,255,255,.3)' }} />
+          <DrExame size={30} sx={{ borderRadius: '28%', boxShadow: '0 0 0 1.5px rgba(255,255,255,.9), 0 3px 10px rgba(0,0,0,.24)' }} />
           <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins", sans-serif', fontSize: 15, letterSpacing: '-0.01em', whiteSpace: 'nowrap' }}>Dr. Exame</Typography>
         </Box>
       )}
