@@ -24,4 +24,13 @@ router.patch('/read-all', async (req: AuthedRequest, res, next) => {
   } catch (e) { next(e); }
 });
 
+// MARCAR UMA como lida (ao clicar nela). Antes só existia "marcar todas" — clicar numa notificação
+// não mudava o estado, ela continuava "nova" e o badge não baixava.
+router.patch('/:id/read', async (req: AuthedRequest, res, next) => {
+  try {
+    await prisma.notification.updateMany({ where: { id: String(req.params.id), userId: req.userId! }, data: { read: true } });
+    res.json({ ok: true });
+  } catch (e) { next(e); }
+});
+
 export default router;

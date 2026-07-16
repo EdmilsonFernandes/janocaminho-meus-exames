@@ -66,7 +66,7 @@ export const NotificationPopup = () => {
       </DialogContent>
       <DialogActions sx={{ justifyContent: 'center', pb: 3, gap: 1 }}>
         <Button variant="outlined" onClick={() => { try { if (notif?.id != null) localStorage.setItem('meDismissedNotif', String(notif.id)); } catch { /* ignore */ } setOpen(false); }} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700 }}>Depois</Button>
-        <Button variant="contained" onClick={() => { setOpen(false); navigate(notifRoute(notif) || '/notificacoes'); }} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa' }}>{notifRoute(notif) ? 'Ver agora' : 'Ver notificações'}</Button>
+        <Button variant="contained" onClick={() => { if (notif?.id) { fetch(`${API_URL}/notifications/${notif.id}/read`, { method: 'PATCH', headers: { Authorization: `Bearer ${token()}` } }).catch(() => {}); window.dispatchEvent(new Event('notificationsRead')); } setOpen(false); navigate(notifRoute(notif) || '/notificacoes'); }} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa' }}>{notifRoute(notif) ? 'Ver agora' : 'Ver notificações'}</Button>
       </DialogActions>
     </Dialog>
   );

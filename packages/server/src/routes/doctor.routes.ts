@@ -435,15 +435,17 @@ router.get('/patients', requireDoctor, async (req: any, res, next) => {
     });
     const pids = shares.map((s) => s.patient.id);
     // Agregados em lote (1 query cada) — idade calculada do dateOfBirth
-    const [weights, examStats, abnormal] = await Promise.all([
+    const [weights, examStats, abnormal, openQ] = await Promise.all([
       prisma.measurement.findMany({ where: { patientId: { in: pids }, type: 'WEIGHT' }, orderBy: { measuredAt: 'desc' }, select: { patientId: true, value: true, measuredAt: true } }),
       prisma.exam.groupBy({ by: ['patientId'], where: { patientId: { in: pids }, status: 'EXTRACTED' }, _count: { _all: true }, _max: { performedAt: true } }),
       prisma.examItem.findMany({ where: { isAbnormal: true, exam: { patientId: { in: pids }, status: 'EXTRACTED' } }, select: { valueNumeric: true, refLow: true, refHigh: true, flag: true, exam: { select: { patientId: true } } } }),
+      prisma.doctorQuestion.groupBy({ by: ['patientId'], where: { doctorId: req.doctorId, status: 'open' }, _count: { _all: true } }),
     ]);
     const weightByPid = new Map<string, any>();
     for (const w of weights) if (!weightByPid.has(w.patientId)) weightByPid.set(w.patientId, w); // ordenado desc → 1º = mais recente
     const statByPid = new Map(examStats.map((e) => [e.patientId, e]));
     const alertPids = new Set(abnormal.map((a) => a.exam.patientId));
+    const openQByPid = new Map(openQ.map((q) => [q.patientId, q._count._all]));
     // Fila de prioridade: pior prioridade (magnitude) de cada paciente → ordena a lista do médico.
     const PRIORITY_FROM_RANK = ['normal', 'leve', 'moderada', 'importante'] as const;
     const maxPriorityByPid = new Map<string, number>();
@@ -460,6 +462,7 @@ router.get('/patients', requireDoctor, async (req: any, res, next) => {
         const st = statByPid.get(s.patient.id);
         return {
           shareId: s.id, scopes: s.scopes, convenio: s.convenio, createdAt: s.createdAt,
+          openQuestionLimit: s.openQuestionLimit ?? 5, openQuestions: openQByPid.get(s.patient.id) ?? 0,
           patient: s.patient,
           code: '#' + s.patient.id.slice(-4).toUpperCase(),
           ownerId: s.patient.owner?.id ?? null,
@@ -946,7 +949,7 @@ router.get('/invites/by-token/:token', async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
-// "Atendi" — registra consulta + libera +1 pergunta em aberto pro paciente (cap 10).
+// "Atendi" — registra consulta + libera +1 pergunta em aberto pro paciente (cap 10). Retorna o novo limite.
 router.post('/patients/:patientId/consultation', requireDoctor, async (req: any, res, next) => {
   try {
     if (!(await requireShare(req.doctorId, req.params.patientId))) { res.status(403).json({ error: 'Sem permissão.' }); return; }
@@ -954,7 +957,8 @@ router.post('/patients/:patientId/consultation', requireDoctor, async (req: any,
       prisma.consultation.create({ data: { doctorId: req.doctorId, patientId: String(req.params.patientId), note: String(req.body?.note ?? '').slice(0, 500) || undefined } }),
       prisma.doctorShare.updateMany({ where: { patientId: String(req.params.patientId), doctorId: req.doctorId, openQuestionLimit: { lt: 10 } }, data: { openQuestionLimit: { increment: 1 } } }),
     ]);
-    res.status(201).json({ ok: true });
+    const share = await prisma.doctorShare.findUnique({ where: { patientId_doctorId: { patientId: String(req.params.patientId), doctorId: req.doctorId } }, select: { openQuestionLimit: true } });
+    res.status(201).json({ ok: true, openQuestionLimit: share?.openQuestionLimit ?? 5 });
   } catch (e) { next(e); }
 });
 

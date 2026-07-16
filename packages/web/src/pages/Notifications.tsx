@@ -28,6 +28,13 @@ export const NotificationsPage = () => {
     window.dispatchEvent(new Event('notificationsRead'));
     load();
   };
+  // Marca UMA notificação como lida ao clicar nela (antes só "marcar todas" fazia isso — clicar
+  // deixava ela "nova" e o badge não baixava). Atualiza o estado local + avisa o badge do header.
+  const markOne = (id: string) => {
+    fetch(`${API_URL}/notifications/${id}/read`, { method: 'PATCH', headers: { Authorization: `Bearer ${token()}` } }).catch(() => {});
+    setData((d) => d ? { ...d, items: d.items.map((n) => (n.id === id ? { ...n, read: true } : n)), unread: Math.max(0, d.unread - 1) } : d);
+    window.dispatchEvent(new Event('notificationsRead'));
+  };
   const items = data?.items ?? [];
   return (
     <PageContainer width="content">
@@ -45,7 +52,7 @@ export const NotificationsPage = () => {
           {items.map((n) => {
             const m = TYPE_META[n.type] ?? TYPE_META.info;
             return (
-              <Card key={n.id} variant="outlined" onClick={() => { const r = notifRoute(n); if (r) navigate(r); else setView(n); }} sx={{ cursor: 'pointer', borderColor: n.read ? 'divider' : `${m.color}55`, borderLeft: `4px solid ${m.color}`, opacity: n.read ? 0.7 : 1 }}>
+              <Card key={n.id} variant="outlined" onClick={() => { if (!n.read) markOne(n.id); const r = notifRoute(n); if (r) navigate(r); else setView(n); }} sx={{ cursor: 'pointer', borderColor: n.read ? 'divider' : `${m.color}55`, borderLeft: `4px solid ${m.color}`, opacity: n.read ? 0.7 : 1 }}>
                 <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
                   <Stack direction="row" alignItems="flex-start" spacing={1}>
                     <Box sx={{ fontSize: 18 }}>{m.emoji}</Box>

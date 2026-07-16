@@ -113,6 +113,10 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     if (doc?.email && doc.emailVerified && !doc.email.includes('@invite.com')) {
       void sendEmail({ to: doc.email, subject: `${pat?.fullName ?? 'Paciente'} fez uma pergunta — Meus Exames`, html: doctorQuestionEmail({ doctorName: doc.name, patientName: pat?.fullName ?? 'Paciente', subject: msgBody, portalUrl: webUrl('/#/doctor') }) }).catch(() => {});
     }
+    // AUTO-RECEBIMENTO: mensagem automática no thread confirmando ao paciente que a pergunta
+    // chegou e será analisada pelo médico (com o nome dele). authorRole='system' é string livre
+    // (não enum) — não exige migration. Renderizada diferenciada (centralizada/muted) nos 2 lados.
+    await prisma.doctorQuestionMessage.create({ data: { questionId: q.id, authorRole: 'system', body: `✅ Recebido! ${doc?.name || 'Seu médico'} vai analisar e responder em breve.` } }).catch(() => {});
     res.status(201).json({ item: q, enviado: true });
   } catch (e) { next(e); }
 });

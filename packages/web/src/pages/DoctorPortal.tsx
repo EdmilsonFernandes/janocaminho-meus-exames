@@ -261,9 +261,21 @@ export const DoctorPortalPage = () => {
 
 const TEAL = '#178f89';
 
+// Respostas prontas pro médico (chips de 1 clique que preenchem a caixa). Frases de triagem
+// neutras/não-diagnósticas — economizam tempo e padronizam o tom. O médico edita antes de enviar.
+const QUICK_REPLIES = [
+  'Recebido! Vou analisar seus exames com atenção e já te respondo.',
+  'Vamos conversar sobre isso na sua próxima consulta.',
+  'Por favor, marque uma consulta para avaliarmos juntos.',
+  'Preciso do exame completo/atual para concluir a análise.',
+  'Seus resultados estão dentro da normalidade — mantenha o acompanhamento de rotina.',
+  'Está tudo estável, sem alterações relevantes. Continue assim!',
+];
+
 const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => void }) => {
   const [patients, setPatients] = useState<any[]>([]);
   const [selected, setSelected] = useState<any | null>(null);
+  const [consultedJustNow, setConsultedJustNow] = useState(false);
   const [tab, setTab] = useState('exams');
   const [exams, setExams] = useState<any[]>([]);
   const [evolution, setEvolution] = useState<any[]>([]);
@@ -291,6 +303,8 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   // Inbox global de perguntas (todas as pacientes) — carregado on-demand ao abrir a aba "Perguntas".
   const [allQ, setAllQ] = useState<any[]>([]);
   const [allQLoading, setAllQLoading] = useState(false);
+  // Reply INLINE no inbox (qual pergunta está com a caixa aberta) — não navega mais pro paciente.
+  const [replyOpen, setReplyOpen] = useState<string | null>(null);
   // Badge de perguntas não lidas no portal (poll 60s). O e-mail (doctorQuestionEmail) também avisa.
   useEffect(() => {
     const tick = () => fetch(`${API_URL}/doctor/questions/unread`, { headers: { Authorization: `Bearer ${token}` } })
@@ -343,6 +357,20 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const loadInvites = () => fetch(`${API_URL}/doctor/invites`, { headers: h }).then((r) => r.json()).then((d) => setInvites(d.items ?? [])).catch(() => {});
   // --- Inbox global de perguntas (todas as pacientes, em aberto primeiro) ---
   const loadAllQ = () => { setAllQLoading(true); fetch(`${API_URL}/doctor/questions`, { headers: h }).then((r) => r.json()).then((d) => setAllQ(d.items ?? [])).catch(() => {}).finally(() => setAllQLoading(false)); };
+  // Responder DIRETO do inbox (inline) — sem navegar pro paciente/tab (era lento: abria Risco 1º).
+  // Atualiza allQ p/ refletir status='answered' + colapsa a caixa. Preserva patient (não vem no retorno).
+  const answerInbox = async (id: string) => {
+    const body = (qText[id] ?? '').trim(); if (!body) return;
+    setQSending(id);
+    try {
+      const r = await fetch(`${API_URL}/doctor/questions/${id}/messages`, { method: 'POST', headers: { ...h, 'Content-Type': 'application/json' }, body: JSON.stringify({ body }) });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Falha');
+      setAllQ((qs) => qs.map((q) => (q.id === id ? { ...q, ...d.item, patient: q.patient } : q)));
+      setQText((t) => ({ ...t, [id]: '' })); setReplyOpen(null);
+      snackbar({ message: 'Resposta enviada — o paciente será avisado.', severity: 'success' });
+    } catch (e: any) { snackbar({ message: e.message || 'Falha ao responder.', severity: 'error' }); } finally { setQSending(null); }
+  };
   const createInvite = async () => {
     if (!inv.name.trim() || (!inv.phone.trim() && !inv.email.trim())) return;
     setInvBusy(true);
@@ -360,13 +388,23 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     finally { setInvBusy(false); }
   };
   const cancelInvite = async (id: string) => { await fetch(`${API_URL}/doctor/invites/${id}`, { method: 'DELETE', headers: h }); void loadInvites(); };
-  // "Atendi" — registra a consulta e libera +1 pergunta em aberto pro paciente.
+  // "Atendi" — registra a consulta e libera +1 pergunta em aberto. Confirm diálogo (anti-clique-sem-sentido),
+  // reflete o limite atual no botão e dá feedback (snackbar + "✓ Atendido"). Aceita re-clique entre atendimentos
+  // diferentes, mas cada um é deliberado (não dá pra martelar sem confirmar).
   const markConsulted = async () => {
     if (!selected?.patient?.id) return;
+    const name = selected.patient.fullName ?? 'o paciente';
+    const limit = selected.openQuestionLimit ?? 5;
+    if (!(await confirmDialog({ title: 'Registrar atendimento?', message: `Confirma que atendeu ${name}? Ele ganha +1 pergunta em aberto com você (limite atual: ${limit}).`, confirmLabel: 'Sim, atendi' }))) return;
     try {
       const r = await fetch(`${API_URL}/doctor/patients/${selected.patient.id}/consultation`, { method: 'POST', headers: { ...h, 'Content-Type': 'application/json' }, body: '{}' });
-      window.alert(r.ok ? '✅ Consulta registrada! O paciente ganhou +1 pergunta em aberto com você.' : 'Falha ao registrar consulta.');
-    } catch { window.alert('Falha de conexão.'); }
+      const d = r.ok ? await r.json() : null;
+      if (r.ok) {
+        setSelected((s: any) => (s ? { ...s, openQuestionLimit: d?.openQuestionLimit ?? limit + 1 } : s));
+        setConsultedJustNow(true); setTimeout(() => setConsultedJustNow(false), 4000);
+        snackbar({ message: `✅ Atendimento registrado! Limite de perguntas agora: ${d?.openQuestionLimit ?? '?'}.`, severity: 'success' });
+      } else { snackbar({ message: 'Falha ao registrar consulta.', severity: 'error' }); }
+    } catch { snackbar({ message: 'Falha de conexão.', severity: 'error' }); }
   };
 
   // Abas disponíveis = escopos que o paciente autorizou (e que suportamos visualmente)
@@ -752,21 +790,44 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           const answeredQ = allQ.filter((q: any) => q.status === 'answered');
           const relDate = (d?: string) => { if (!d) return ''; const days = Math.max(0, Math.round((Date.now() - new Date(d).getTime()) / 86400000)); return days === 0 ? 'hoje' : days === 1 ? 'há 1 dia' : `há ${days} dias`; };
           const card = (q: any) => {
+            const answered = q.status === 'answered';
             const lastPatient = (q.messages ?? []).filter((m: any) => m.authorRole === 'patient').slice(-1)[0];
+            const lastDoctor = (q.messages ?? []).filter((m: any) => m.authorRole === 'doctor').slice(-1)[0];
+            const isOpen = replyOpen === q.id;
             return (
-              <Card key={q.id} sx={{ borderRadius: 3, mb: 1.5, boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}><CardContent>
+              <Card key={q.id} sx={{ borderRadius: 3, mb: 1.5, boxShadow: '0 1px 3px rgba(0,0,0,.04)', border: '1px solid', borderColor: answered ? 'divider' : 'transparent' }}><CardContent>
                 <Stack direction="row" alignItems="center" spacing={1.25}>
                   <Avatar src={q.patient?.id ? `${API_URL}/patients/${q.patient.id}/photo` : undefined} sx={{ bgcolor: TEAL, fontWeight: 800, width: 44, height: 44 }}>{q.patient?.fullName?.charAt(0)}</Avatar>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Stack direction="row" spacing={0.75} alignItems="center" sx={{ flexWrap: 'wrap', rowGap: 0.5 }}>
                       <Typography sx={{ fontWeight: 800 }}>{q.patient?.fullName}</Typography>
-                      {q.status !== 'answered' && <Chip size="small" label="em aberto" sx={{ height: 18, fontSize: 10, bgcolor: 'rgba(234,88,12,.12)', color: '#ea580c', fontWeight: 700 }} />}
+                      <Chip size="small" label={answered ? '✓ respondida' : 'em aberto'} sx={{ height: 18, fontSize: 10, bgcolor: answered ? 'rgba(22,163,74,.12)' : 'rgba(234,88,12,.12)', color: answered ? '#16a34a' : '#ea580c', fontWeight: 700 }} />
                     </Stack>
                     <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>{q.subject} · {relDate(q.createdAt)}</Typography>
                   </Box>
-                  <Button size="small" variant="outlined" onClick={async () => { setView('patients'); const p = patients.find((x) => x.patient?.id === q.patientId); if (p) { await openPatient(p); setTab('questions'); } }} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, borderColor: '#20b2aa', color: '#178f89', flexShrink: 0 }}>Responder</Button>
+                  {!answered && <Button size="small" variant={isOpen ? 'outlined' : 'contained'} onClick={() => setReplyOpen(isOpen ? null : q.id)} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: isOpen ? undefined : '#20b2aa', color: isOpen ? '#178f89' : '#fff', boxShadow: 'none', '&:hover': { bgcolor: isOpen ? undefined : '#178f89' }, flexShrink: 0 }}>{isOpen ? 'Fechar' : 'Responder'}</Button>}
                 </Stack>
                 {lastPatient && <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary', fontStyle: 'italic', pl: 0.5 }}>"{String(lastPatient.body).slice(0, 160)}{(String(lastPatient.body).length ?? 0) > 160 ? '…' : ''}"</Typography>}
+                {/* Resposta INLINE + respostas prontas (sem navegar pro paciente — era lento). */}
+                {isOpen && !answered && (
+                  <Box sx={{ mt: 1.5 }}>
+                    <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary' }}>⚡ Resposta rápida:</Typography>
+                    <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.5, mb: 1 }}>
+                      {QUICK_REPLIES.map((t) => <Chip key={t} size="small" variant="outlined" label={t.length > 42 ? t.slice(0, 42) + '…' : t} onClick={() => setQText((prev) => ({ ...prev, [q.id]: t }))} sx={{ fontWeight: 600, borderRadius: 99, borderColor: 'rgba(32,178,170,.4)', color: '#178f89', '&:hover': { bgcolor: 'rgba(32,178,170,.06)' } }} />)}
+                    </Stack>
+                    <TextField multiline minRows={2} size="small" fullWidth placeholder="Escrever resposta…" value={qText[q.id] ?? ''} onChange={(e) => setQText((t) => ({ ...t, [q.id]: e.target.value }))} />
+                    <Stack direction="row" spacing={1} sx={{ mt: 1 }} justifyContent="flex-end">
+                      <Button size="small" onClick={() => { setQText((t) => ({ ...t, [q.id]: '' })); setReplyOpen(null); }} sx={{ textTransform: 'none', fontWeight: 700, color: 'text.secondary' }}>Cancelar</Button>
+                      <Button size="small" variant="contained" disabled={qSending === q.id || !(qText[q.id]?.trim())} onClick={() => answerInbox(q.id)} startIcon={qSending === q.id ? <CircularProgress size={14} color="inherit" /> : undefined} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', boxShadow: 'none', '&:hover': { bgcolor: '#178f89' } }}>{qSending === q.id ? 'Enviando…' : 'Enviar resposta'}</Button>
+                    </Stack>
+                  </Box>
+                )}
+                {answered && lastDoctor && (
+                  <Box sx={{ mt: 1.25, p: 1, px: 1.25, borderRadius: 2, bgcolor: '#e0f2f1', border: '1px solid rgba(32,178,170,.25)' }}>
+                    <Typography variant="caption" sx={{ fontWeight: 700, color: TEAL }}>Sua resposta</Typography>
+                    <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>{String(lastDoctor.body)}</Typography>
+                  </Box>
+                )}
               </CardContent></Card>
             );
           };
@@ -840,10 +901,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           <>
             <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ mb: 1.5 }}>
               <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary' }}>Pacientes ({patients.length})</Typography>
-              <Stack direction="row" alignItems="center" spacing={1}>
-                {patients.some((p) => p.hasAlerts) && <Chip size="small" color="error" label={`🔴 ${patients.filter((p) => p.hasAlerts).length} com alerta`} sx={{ fontWeight: 700 }} />}
-                <Button size="small" variant="contained" startIcon={<PersonAddAlt1Icon />} onClick={() => { setInvResult(null); setInviteOpen(true); }} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', boxShadow: 'none', '&:hover': { bgcolor: '#178f89' } }}>Convidar</Button>
-              </Stack>
+              {patients.some((p) => p.hasAlerts) && <Chip size="small" color="error" label={`🔴 ${patients.filter((p) => p.hasAlerts).length} com alerta`} sx={{ fontWeight: 700 }} />}
             </Stack>
             {patients.length > 0 && (
               <Stack spacing={1} sx={{ mb: 1.5 }}>
@@ -928,7 +986,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 <Typography variant="caption" sx={{ color: 'text.secondary' }}>{[selected.age != null ? `${selected.age} anos` : null, selected.sex === 'female' ? 'Feminino' : selected.sex === 'male' ? 'Masculino' : null, selected.patient?.relationship, selected.convenio || 'Particular', selected.latestWeight ? `${selected.latestWeight.value} kg` : null].filter(Boolean).join(' • ')}</Typography>
               </Box>
               <Box sx={{ flex: 1 }} />
-              <Button size="small" variant="outlined" onClick={markConsulted} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, borderColor: '#20b2aa', color: '#178f89', flexShrink: 0 }}>🩺 Atendi</Button>
+              <Button size="small" variant={consultedJustNow ? 'contained' : 'outlined'} onClick={markConsulted} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, borderColor: '#20b2aa', bgcolor: consultedJustNow ? '#16a34a' : undefined, color: consultedJustNow ? '#fff' : '#178f89', '&:hover': { bgcolor: consultedJustNow ? '#15803d' : undefined }, flexShrink: 0 }}>{consultedJustNow ? '✓ Atendido' : `🩺 Atendi · ${selected.openQuestions ?? 0}/${selected.openQuestionLimit ?? 5}`}</Button>
             </Stack>
 
             {/* COMMAND BAR — segmented control premium (iOS style) com contagens. Sticky. */}
@@ -1201,6 +1259,11 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                                 {msgs.map((m: any, i: number) => {
                                   const isDoc = m.authorRole === 'doctor';
                                   const isAi = m.authorRole === 'ai';
+                                  const isSys = m.authorRole === 'system';
+                                  if (isSys) {
+                                    // Auto-recebimento (ex.: "✅ Recebido! Dr. X vai analisar em breve") — centralizado, muted.
+                                    return <Box key={i} sx={{ textAlign: 'center', my: 0.5 }}><Box sx={{ display: 'inline-block', px: 1.5, py: 0.5, borderRadius: 99, bgcolor: 'rgba(32,178,170,.08)', color: 'text.secondary', fontSize: 12, fontWeight: 600 }}>{m.body}</Box></Box>;
+                                  }
                                   const av = isAi ? null : isDoc
                                     ? <Avatar src={doctor?.photoUrl ? `${API_URL}/doctor/photo/${doctor.id}?v=${photoVer}` : undefined} sx={{ width: 36, height: 36, bgcolor: TEAL, fontSize: 14, fontWeight: 700, flexShrink: 0 }}>{(doctor?.name || 'M').charAt(0)}</Avatar>
                                     : <Avatar src={selected?.patient?.photoUrl ? `${API_URL}/patients/${selected.patient.id}/photo?v=0` : undefined} sx={{ width: 36, height: 36, bgcolor: '#94a3b8', fontSize: 14, fontWeight: 700, flexShrink: 0 }}>{(selected?.patient?.fullName || 'P').charAt(0)}</Avatar>;
@@ -1218,8 +1281,15 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                                 })}
                               </Stack>
                             )}
-                            <TextField multiline minRows={1} size="small" fullWidth placeholder="Escrever resposta…" value={qText[q.id] ?? ''} onChange={(e) => setQText((t) => ({ ...t, [q.id]: e.target.value }))} />
-                            <Button size="small" disabled={qSending === q.id || !(qText[q.id]?.trim())} onClick={() => responderQ(q.id)} startIcon={qSending === q.id ? <CircularProgress size={14} color="inherit" /> : undefined} sx={{ mt: 0.5, textTransform: 'none', fontWeight: 700, color: TEAL }}>{qSending === q.id ? 'Enviando…' : 'Responder'}</Button>
+                            {q.status === 'answered' ? (
+                              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', fontStyle: 'italic', mt: 0.5 }}>Pergunta respondida ✓ — sem ação pendente.</Typography>
+                            ) : (<>
+                              <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mb: 0.75 }}>
+                                {QUICK_REPLIES.slice(0, 4).map((t) => <Chip key={t} size="small" variant="outlined" label={t.length > 38 ? t.slice(0, 38) + '…' : t} onClick={() => setQText((prev) => ({ ...prev, [q.id]: t }))} sx={{ fontWeight: 600, borderRadius: 99, borderColor: 'rgba(32,178,170,.4)', color: '#178f89', '&:hover': { bgcolor: 'rgba(32,178,170,.06)' } }} />)}
+                              </Stack>
+                              <TextField multiline minRows={1} size="small" fullWidth placeholder="Escrever resposta…" value={qText[q.id] ?? ''} onChange={(e) => setQText((t) => ({ ...t, [q.id]: e.target.value }))} />
+                              <Button size="small" disabled={qSending === q.id || !(qText[q.id]?.trim())} onClick={() => responderQ(q.id)} startIcon={qSending === q.id ? <CircularProgress size={14} color="inherit" /> : undefined} sx={{ mt: 0.5, textTransform: 'none', fontWeight: 700, color: TEAL }}>{qSending === q.id ? 'Enviando…' : 'Responder'}</Button>
+                            </>)}
                           </CardContent>
                         </Card>
                       );

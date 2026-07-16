@@ -101,7 +101,8 @@ export const QuestionsPage = () => {
         <Stack spacing={1.5}>
           {filtered.map((q: any) => {
             const doc = q.doctor;
-            const lastMsg = q.messages?.[0];
+            // Última mensagem REAL (pula o auto-recebimento 'system' — senão o preview mostrava "Você: ✅ Recebido...").
+            const lastMsg = q.messages?.find((m: any) => m.authorRole !== 'system');
             const answered = q.status === 'answered';
             return (
               <Card key={q.id} variant="outlined" onClick={() => openThread(q)} sx={{
@@ -148,6 +149,11 @@ export const QuestionsPage = () => {
             <Stack spacing={1}>
               {thread.map((m: any, i: number) => {
                 const isDoc = m.authorRole === 'doctor';
+                const isSys = m.authorRole === 'system';
+                if (isSys) {
+                  // Auto-recebimento (ex.: "✅ Recebido! Dr. X vai analisar em breve") — centralizado, muted.
+                  return <Box key={i} sx={{ textAlign: 'center', my: 0.5 }}><Box sx={{ display: 'inline-block', px: 1.5, py: 0.5, borderRadius: 99, bgcolor: 'rgba(32,178,170,.08)', color: 'text.secondary', fontSize: 12, fontWeight: 600 }}>{m.body}</Box></Box>;
+                }
                 const av = isDoc
                   ? <Avatar src={open?.doctor?.photoUrl ? `${API_URL}/doctor/photo/${open?.doctor?.id}?v=0` : undefined} sx={{ width: 36, height: 36, bgcolor: TEAL, fontSize: 14, fontWeight: 700, flexShrink: 0 }}>{(open?.doctor?.name || 'M').charAt(0)}</Avatar>
                   : <Avatar src={open?.patientId ? `${API_URL}/patients/${open.patientId}/photo?v=0` : undefined} sx={{ width: 36, height: 36, bgcolor: '#94a3b8', fontSize: 14, fontWeight: 700, flexShrink: 0 }}>{(userName || 'P').charAt(0)}</Avatar>;
