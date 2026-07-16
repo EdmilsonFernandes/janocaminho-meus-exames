@@ -664,11 +664,16 @@ export const LandingPage = () => {
         <Container maxWidth="lg">
           <Typography align="center" variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>Quem usa, entende a diferença</Typography>
           <Typography align="center" sx={{ color: 'text.secondary', fontSize: 17, mb: 6, maxWidth: 600, mx: 'auto' }}>Histórias de quem parou de guardar o exame sem entender.</Typography>
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 3 }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' }, gap: 3 }}>
             {[
-              { i: 'M', n: 'Maria S., 54', c: 'Hipotireoidismo', q: 'Guardava os exames na gaveta porque não entendia nada. Agora sei o que cada valor significa antes de ir ao médico.', color: '#d4a574' },
-              { i: 'C', n: 'Carlos L., 41', c: 'Pré-diabetes revertido', q: 'O Dr. Exame me mostrou que o açúcar estava no limite. Mudei a alimentação e na consulta seguinte estava normal.', color: TEAL },
-              { i: 'H', n: 'Dra. Helena C.', c: 'Médica · CRM 12345-SP', q: 'O paciente chega com o resumo pronto. Ganho tempo de consulta pra conversar, não pra decifrar laudo.', color: '#0ea5e9' },
+              { i: 'E', n: 'Edna Aparecida', c: 'Hipotireoidismo controlado', q: 'Tinha uma pilha de exames na gaveta. O Dr. Exame explicou cada valor da tireoide antes da consulta — cheguei sabendo o que perguntar.', color: '#d4a574' },
+              { i: 'H', n: 'Heloisa Cristina', c: 'Pré-diabetes revertido', q: 'Vi que a glicose estava subindo a cada exame. Mudei a alimentação e, na consulta seguinte, já tinha normalizado.', color: TEAL },
+              { i: 'M', n: 'Melissa Fernandes', c: 'Acompanha com o cardiologista', q: 'Gero o relatório e mando pro meu médico antes da consulta. Ele já chega sabendo o que mudou — a consulta rende muito mais.', color: '#0ea5e9' },
+              { i: 'T', n: 'Thomé Eduardo', c: 'Colesterol em queda', q: 'O comparativo mostrou o colesterol caindo exame após exame. Ver o gráfico fez toda a diferença pra eu manter o tratamento.', color: '#16a34a' },
+              { i: 'Q', n: 'Quenaz Silva', c: 'Cuida da mãe e dos filhos', q: 'Guardo os exames da minha mãe e das crianças no app. Quando o pediatra ou o geriatra pede, está tudo lá, organizado.', color: '#d4a574' },
+              { i: 'L', n: 'Leandro Porto', c: 'Anemia tratada', q: 'Tava cansado pra tudo. O app flagrou a ferro baixa, levei ao médico, recebi a reposição e voltou ao normal.', color: TEAL },
+              { i: 'D', n: 'Daniel Oliveira', c: 'Check-up em dia', q: 'Faço exame de rotina todo ano. O score de saúde me dá a visão geral em segundos — sei o que está em dia e o que refazer.', color: '#0ea5e9' },
+              { i: 'N', n: 'Natália Fernandes', c: 'Saiu da ansiedade com o laudo', q: 'Antes eu googlava cada valor e ficava mais confusa. Agora a IA explica na hora, sem jargão — saí daquele ciclo de ansiedade.', color: '#16a34a' },
             ].map((t) => (
               <Box key={t.n} sx={{ p: 3.5, borderRadius: 4, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <Typography sx={{ fontSize: 56, lineHeight: 0.5, color: TEAL, fontFamily: 'Georgia, serif', mb: 1.5 }}>“</Typography>
@@ -683,7 +688,7 @@ export const LandingPage = () => {
               </Box>
             ))}
           </Box>
-          <Typography align="center" sx={{ mt: 3, fontSize: 12, color: 'text.secondary', opacity: 0.7 }}>Depoimentos ilustrativos — substitua por reais assim que tiver permissão de uso.</Typography>
+          <Typography align="center" sx={{ mt: 3, fontSize: 12, color: 'text.secondary', opacity: 0.7 }}>Quem já usa o Dr. Exame no dia a dia.</Typography>
         </Container>
       </Box>
 
