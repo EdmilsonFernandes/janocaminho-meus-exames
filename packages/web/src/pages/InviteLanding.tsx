@@ -32,12 +32,29 @@ export const InviteLandingPage = () => {
 
   if (loading) return <Box sx={{ display: 'grid', placeItems: 'center', minHeight: '100vh', bgcolor: '#eef7f6' }}><CircularProgress sx={{ color: '#20b2aa' }} /></Box>;
 
-  if (inv?.notFound || inv?.expired) {
+  if (inv?.notFound) {
     return (
       <Shell>
         <DrExame size={72} />
-        <Typography sx={{ fontWeight: 800, fontSize: 22, mt: 2, fontFamily: 'Poppins, sans-serif' }}>Convite inválido ou expirado</Typography>
-        <Typography color="text.secondary" sx={{ mt: 1, textAlign: 'center' }}>Peça ao seu médico um novo link de convite.</Typography>
+        <Typography sx={{ fontWeight: 800, fontSize: 22, mt: 2, fontFamily: 'Poppins, sans-serif' }}>Convite não encontrado</Typography>
+        <Typography color="text.secondary" sx={{ mt: 1, textAlign: 'center' }}>Este link não existe ou foi digitado errado. Peça ao seu médico um novo convite.</Typography>
+      </Shell>
+    );
+  }
+  if (inv?.expired) {
+    // Cada convite é pessoal e usado UMA vez. status='accepted' = alguém já criou conta com ele
+    // (antes mostrava "expirado" — confuso). Distinguimos pra orientar certo.
+    const used = inv?.status === 'accepted';
+    return (
+      <Shell>
+        <DrExame size={72} />
+        <Typography sx={{ fontWeight: 800, fontSize: 22, mt: 2, fontFamily: 'Poppins, sans-serif' }}>{used ? 'Convite já utilizado ✅' : 'Convite expirado ⏰'}</Typography>
+        <Typography color="text.secondary" sx={{ mt: 1, textAlign: 'center', maxWidth: 360, lineHeight: 1.6 }}>
+          {used ? 'Este link já foi usado para criar uma conta. Se foi você, entre com seu e-mail e senha pra continuar.' : 'Este convite venceu (válido por 14 dias). Peça ao seu médico um novo link.'}
+        </Typography>
+        {used && (
+          <Button variant="contained" onClick={() => navigate('/entrar')} sx={{ mt: 2.5, borderRadius: 99, textTransform: 'none', fontWeight: 800, py: 1.2, px: 3, bgcolor: '#20b2aa' }}>Fazer login</Button>
+        )}
       </Shell>
     );
   }

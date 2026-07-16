@@ -844,6 +844,18 @@ router.get('/questions/unread', requireDoctor, async (req: any, res, next) => {
   } catch (e) { next(e); }
 });
 
+// INBOX global de perguntas (todas, de todos os pacientes) — em aberto primeiro. Pro painel "Perguntas".
+router.get('/questions', requireDoctor, async (req: any, res, next) => {
+  try {
+    const items = await prisma.doctorQuestion.findMany({
+      where: { doctorId: req.doctorId },
+      include: { patient: { select: { id: true, fullName: true } }, messages: { orderBy: { createdAt: 'asc' } } },
+      orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
+    });
+    res.json({ items });
+  } catch (e) { next(e); }
+});
+
 // Médico RESPONDE uma pergunta (status→answered; paciente é notificado)
 router.post('/questions/:id/messages', requireDoctor, async (req: any, res, next) => {
   try {
@@ -891,7 +903,7 @@ router.get('/invites', requireDoctor, async (req: any, res, next) => {
     const items = await prisma.patientInvite.findMany({
       where: { doctorId: req.doctorId },
       orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
-      select: { id: true, patientName: true, phone: true, email: true, status: true, scopes: true, createdAt: true, acceptedAt: true },
+      select: { id: true, patientName: true, phone: true, email: true, status: true, scopes: true, createdAt: true, acceptedAt: true, token: true },
     });
     res.json({ items });
   } catch (e) { next(e); }

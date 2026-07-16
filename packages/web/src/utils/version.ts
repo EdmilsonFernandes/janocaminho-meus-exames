@@ -46,8 +46,12 @@ export async function checkAppUpdate(): Promise<{ required: boolean; latest: str
     const r = await fetch(`${API_URL}/app/version`);
     if (!r.ok) return { required: false, latest: APP_VERSION, min: '0.0.0' };
     const d = await r.json();
-    // Força quando a versão instalada < última disponível (sempre usa a mais nova).
-    return { required: compareVersions(APP_VERSION, d.latest) < 0, latest: d.latest, min: d.minRequired };
+    // SÓ bloqueia quando a versão instalada está ABAIXO do PISO CRÍTICO (min/APP_MIN_VERSION),
+    // que só sobe pra um update obrigatório (segurança/quebra grave). Comparar contra `latest`
+    // travava TODO APK mais antigo a cada release (latest auto-deriva do versionName, que bumpamos
+    // sempre) e mandava o usuário pra PWA web ("versão de outro teste"). Updates comuns = Play
+    // Store (checkPlayUpdate) ou o próprio usuário; aqui só o hard-stop de emergência.
+    return { required: compareVersions(APP_VERSION, d.minRequired) < 0, latest: d.latest, min: d.minRequired };
   } catch {
     return { required: false, latest: APP_VERSION, min: '0.0.0' }; // offline/network: não bloqueia
   }

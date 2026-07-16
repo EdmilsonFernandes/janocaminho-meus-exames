@@ -7,6 +7,8 @@ import PersonIcon from '@mui/icons-material/Person';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
+import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import PdfIcon from '@mui/icons-material/PictureAsPdf';
 import SearchIcon from '@mui/icons-material/Search';
 import GroupsIcon from '@mui/icons-material/Groups';
@@ -268,7 +270,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
   const [doctor, setDoctor] = useState<any>(null);
-  const [view, setView] = useState<'patients' | 'profile' | 'password'>('patients');
+  const [view, setView] = useState<'patients' | 'invites' | 'questions' | 'profile' | 'password'>('patients');
   const [photoVer, setPhotoVer] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const [selExam, setSelExam] = useState<any | null>(null);
@@ -286,6 +288,9 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const [qText, setQText] = useState<Record<string, string>>({});
   const [qSending, setQSending] = useState<string | null>(null);
   const [unreadQ, setUnreadQ] = useState(0);
+  // Inbox global de perguntas (todas as pacientes) — carregado on-demand ao abrir a aba "Perguntas".
+  const [allQ, setAllQ] = useState<any[]>([]);
+  const [allQLoading, setAllQLoading] = useState(false);
   // Badge de perguntas não lidas no portal (poll 60s). O e-mail (doctorQuestionEmail) também avisa.
   useEffect(() => {
     const tick = () => fetch(`${API_URL}/doctor/questions/unread`, { headers: { Authorization: `Bearer ${token}` } })
@@ -336,6 +341,8 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
 
   // --- Convite de paciente (funil de aquisição: pré-cadastro no agendamento) ---
   const loadInvites = () => fetch(`${API_URL}/doctor/invites`, { headers: h }).then((r) => r.json()).then((d) => setInvites(d.items ?? [])).catch(() => {});
+  // --- Inbox global de perguntas (todas as pacientes, em aberto primeiro) ---
+  const loadAllQ = () => { setAllQLoading(true); fetch(`${API_URL}/doctor/questions`, { headers: h }).then((r) => r.json()).then((d) => setAllQ(d.items ?? [])).catch(() => {}).finally(() => setAllQLoading(false)); };
   const createInvite = async () => {
     if (!inv.name.trim() || (!inv.phone.trim() && !inv.email.trim())) return;
     setInvBusy(true);
@@ -594,6 +601,14 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
       </Box>
       <List sx={{ pt: 1, '& .MuiListItemButton-root': { borderRadius: 2, m: '2px 10px' } }}>
         <ListItemButton selected={view === 'patients'} onClick={() => { setView('patients'); setSelected(null); setSelExam(null); onNav(); }}><ListItemIcon sx={{ minWidth: 38 }}><GroupsIcon sx={{ color: TEAL }} /></ListItemIcon><ListItemText primary="Pacientes" primaryTypographyProps={{ fontWeight: 600 }} /></ListItemButton>
+        <ListItemButton selected={view === 'invites'} onClick={() => { setView('invites'); onNav(); }}>
+          <ListItemIcon sx={{ minWidth: 38 }}><Badge color="error" variant="dot" invisible={invites.filter((i) => i.status === 'pending').length === 0}><PersonAddAlt1Icon sx={{ color: TEAL }} /></Badge></ListItemIcon>
+          <ListItemText primary={`Convites${invites.filter((i) => i.status === 'pending').length ? ` · ${invites.filter((i) => i.status === 'pending').length}` : ''}`} primaryTypographyProps={{ fontWeight: 600 }} />
+        </ListItemButton>
+        <ListItemButton selected={view === 'questions'} onClick={() => { setView('questions'); loadAllQ(); onNav(); }}>
+          <ListItemIcon sx={{ minWidth: 38 }}><Badge color="error" variant="dot" invisible={unreadQ === 0}><QuestionAnswerIcon sx={{ color: TEAL }} /></Badge></ListItemIcon>
+          <ListItemText primary={`Perguntas${unreadQ ? ` · ${unreadQ}` : ''}`} primaryTypographyProps={{ fontWeight: 600 }} />
+        </ListItemButton>
         <ListItemButton selected={view === 'profile'} onClick={() => { setView('profile'); onNav(); }}><ListItemIcon sx={{ minWidth: 38 }}><PersonIcon sx={{ color: TEAL }} /></ListItemIcon><ListItemText primary="Meu perfil" primaryTypographyProps={{ fontWeight: 600 }} /></ListItemButton>
         <ListItemButton selected={view === 'password'} onClick={() => { setView('password'); onNav(); }}><ListItemIcon sx={{ minWidth: 38 }}><LockIcon sx={{ color: TEAL }} /></ListItemIcon><ListItemText primary="Trocar senha" primaryTypographyProps={{ fontWeight: 600 }} /></ListItemButton>
         <Divider sx={{ my: 1 }} />
@@ -619,7 +634,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         )}
         {isDesktop ? (
           <Box sx={{ flex: 1 }}>
-            <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 17, color: 'text.primary' }}>{view === 'patients' ? (selected ? selected.patient?.fullName : 'Pacientes') : view === 'profile' ? 'Meu Perfil' : 'Trocar Senha'}</Typography>
+            <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 17, color: 'text.primary' }}>{view === 'patients' ? (selected ? selected.patient?.fullName : 'Pacientes') : view === 'invites' ? 'Convites' : view === 'questions' ? 'Perguntas' : view === 'profile' ? 'Meu Perfil' : 'Trocar Senha'}</Typography>
             {planInfo?.isPremium && <Chip size="small" label="💎 Pro" sx={{ bgcolor: 'rgba(99,102,241,.10)', color: '#6366f1', fontWeight: 700, height: 18, fontSize: 10 }} />}
           </Box>
         ) : (
@@ -637,6 +652,173 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
       <Box sx={{ maxWidth: 920, mx: 'auto', p: { xs: 2, md: 3 }, pb: { xs: 11, md: 4 }, bgcolor: '#FAFBFC', minHeight: '100vh' }}>
         {view === 'profile' && <DoctorProfile token={token} doctor={doctor} onBack={() => setView('patients')} onSaved={(d) => setDoctor(d)} onPhoto={() => setPhotoVer((v) => v + 1)} photoVer={photoVer} />}
         {view === 'password' && <DoctorChangePassword token={token} onBack={() => setView('patients')} />}
+
+        {/* CONVITES — gestão dedicada (criar, copiar link, reenviar WhatsApp, cancelar). Tira o
+            convite de dentro da lista de pacientes (poluía a tela principal do médico). */}
+        {view === 'invites' && (() => {
+          const pending = invites.filter((i) => i.status === 'pending');
+          const accepted = invites.filter((i) => i.status === 'accepted');
+          const expired = invites.filter((i) => i.status === 'expired');
+          const linkFor = (tok: string) => `${window.location.href.split('#')[0]}#/convite/${tok}`;
+          const relDate = (d?: string) => (d ? new Date(d).toLocaleDateString('pt-BR') : '');
+          return (
+            <>
+              <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ mb: 2 }}>
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>Convites</Typography>
+                  <Typography variant="caption" color="text.secondary">Convide pacientes — eles instalam o app e o compartilhamento já fica ativo.</Typography>
+                </Box>
+                <Button variant="contained" startIcon={<PersonAddAlt1Icon />} onClick={() => { setInvResult(null); setInviteOpen(true); }} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', boxShadow: 'none', '&:hover': { bgcolor: '#178f89' } }}>Convidar</Button>
+              </Stack>
+              <Stack direction="row" spacing={1.5} sx={{ mb: 2.5 }} useFlexGap flexWrap="wrap">
+                {[['Pendentes', pending.length, '#ea580c'], ['Aceitos', accepted.length, '#16a34a'], ['Expirados', expired.length, '#9aa7ad']].map(([l, n, c]) => (
+                  <Box key={l as string} sx={{ flex: 1, minWidth: 100, p: 1.5, borderRadius: 3, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
+                    <Typography sx={{ fontWeight: 800, fontSize: 22, color: c as string, lineHeight: 1.1 }}>{n as number}</Typography>
+                    <Typography variant="caption" color="text.secondary">{l as string}</Typography>
+                  </Box>
+                ))}
+              </Stack>
+
+              {pending.length > 0 && (<Box sx={{ mb: 3 }}>
+                <Typography sx={{ fontWeight: 800, mb: 1 }}>📨 Aguardando aceite ({pending.length})</Typography>
+                <Stack spacing={1.5}>
+                  {pending.map((it) => {
+                    const waBase = it.phone ? `https://wa.me/${it.phone.startsWith('55') ? '' : '55'}${it.phone}` : '';
+                    const waMsg = waBase ? `${waBase}?text=${encodeURIComponent(`Olá! Aqui é ${doctor?.name || 'seu médico'}. Cadastre-se no app Meus Exames pra eu acompanhar seus exames: ${linkFor(it.token)}`)}` : '';
+                    return (
+                      <Card key={it.id} sx={{ borderRadius: 3, boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}><CardContent>
+                        <Stack direction="row" alignItems="center" spacing={1.5}>
+                          <Avatar sx={{ bgcolor: 'rgba(234,88,12,.12)', color: '#ea580c', fontWeight: 800, width: 44, height: 44 }}>{it.patientName?.charAt(0)}</Avatar>
+                          <Box sx={{ flex: 1, minWidth: 0 }}>
+                            <Typography sx={{ fontWeight: 800 }}>{it.patientName}</Typography>
+                            <Typography variant="caption" color="text.secondary">{[it.phone, it.email, `enviado ${relDate(it.createdAt)}`].filter(Boolean).join(' · ')}</Typography>
+                          </Box>
+                          <Chip size="small" label="pendente" sx={{ height: 20, bgcolor: 'rgba(234,88,12,.12)', color: '#ea580c', fontWeight: 700 }} />
+                        </Stack>
+                        <Stack direction="row" spacing={1} sx={{ mt: 1.5 }} useFlexGap flexWrap="wrap">
+                          <Button size="small" variant="contained" startIcon={<WhatsAppIcon />} disabled={!waMsg} onClick={() => waMsg && window.open(waMsg, '_blank')} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#25D366', color: '#fff', boxShadow: 'none', '&:hover': { bgcolor: '#1da851' } }}>WhatsApp</Button>
+                          <Button size="small" variant="outlined" onClick={() => { try { navigator.clipboard?.writeText(linkFor(it.token)); } catch {} snackbar({ message: 'Link copiado!', severity: 'success' }); }} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700 }}>Copiar link</Button>
+                          <Button size="small" onClick={() => cancelInvite(it.id)} sx={{ borderRadius: 99, textTransform: 'none', color: 'error.main', fontWeight: 700 }}>Cancelar</Button>
+                        </Stack>
+                      </CardContent></Card>
+                    );
+                  })}
+                </Stack>
+              </Box>)}
+
+              {accepted.length > 0 && (<Box sx={{ mb: 3 }}>
+                <Typography sx={{ fontWeight: 800, mb: 1 }}>✅ Aceitos ({accepted.length})</Typography>
+                <Stack spacing={1}>
+                  {accepted.map((it) => (
+                    <Card key={it.id} sx={{ borderRadius: 3, boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}><CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.25 }}>
+                      <Avatar sx={{ bgcolor: 'rgba(22,163,74,.12)', color: '#16a34a', fontWeight: 800, width: 44, height: 44 }}>{it.patientName?.charAt(0)}</Avatar>
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Typography sx={{ fontWeight: 800 }}>{it.patientName}</Typography>
+                        <Typography variant="caption" color="text.secondary">Conta criada em {relDate(it.acceptedAt)} · já nos seus pacientes</Typography>
+                      </Box>
+                      <Chip size="small" label="ativo" sx={{ height: 20, bgcolor: 'rgba(22,163,74,.12)', color: '#16a34a', fontWeight: 700 }} />
+                    </CardContent></Card>
+                  ))}
+                </Stack>
+              </Box>)}
+
+              {expired.length > 0 && (<Box>
+                <Typography sx={{ fontWeight: 800, mb: 1, color: 'text.secondary' }}>⏰ Expirados / cancelados ({expired.length})</Typography>
+                <Stack spacing={1}>
+                  {expired.map((it) => (
+                    <Card key={it.id} sx={{ borderRadius: 3, opacity: 0.75 }}><CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.25 }}>
+                      <Avatar sx={{ bgcolor: 'action.hover', color: 'text.secondary', fontWeight: 800, width: 44, height: 44 }}>{it.patientName?.charAt(0)}</Avatar>
+                      <Box sx={{ flex: 1, minWidth: 0 }}><Typography sx={{ fontWeight: 700 }}>{it.patientName}</Typography></Box>
+                      <Button size="small" variant="outlined" startIcon={<PersonAddAlt1Icon />} onClick={() => { setInv({ name: it.patientName, phone: it.phone || '', email: it.email || '' }); setInvResult(null); setInviteOpen(true); }} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, borderColor: '#20b2aa', color: '#178f89' }}>Reenviar</Button>
+                    </CardContent></Card>
+                  ))}
+                </Stack>
+              </Box>)}
+
+              {invites.length === 0 && (
+                <Card sx={{ borderRadius: 3, boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}><CardContent><Box sx={{ textAlign: 'center', py: 5 }}>
+                  <Box sx={{ fontSize: 56, mb: 1.5, opacity: 0.4 }}>📨</Box>
+                  <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 17, mb: 0.5 }}>Nenhum convite ainda</Typography>
+                  <Typography color="text.secondary">Toque em “Convidar” pra enviar o app a um paciente — ele instala e vocês já ficam conectados.</Typography>
+                </Box></CardContent></Card>
+              )}
+            </>
+          );
+        })()}
+
+        {/* PERGUNTAS — inbox global (todas as pacientes). Em aberto primeiro. Responder abre o paciente. */}
+        {view === 'questions' && (() => {
+          const openQ = allQ.filter((q: any) => q.status !== 'answered');
+          const answeredQ = allQ.filter((q: any) => q.status === 'answered');
+          const relDate = (d?: string) => { if (!d) return ''; const days = Math.max(0, Math.round((Date.now() - new Date(d).getTime()) / 86400000)); return days === 0 ? 'hoje' : days === 1 ? 'há 1 dia' : `há ${days} dias`; };
+          const card = (q: any) => {
+            const lastPatient = (q.messages ?? []).filter((m: any) => m.authorRole === 'patient').slice(-1)[0];
+            return (
+              <Card key={q.id} sx={{ borderRadius: 3, mb: 1.5, boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}><CardContent>
+                <Stack direction="row" alignItems="center" spacing={1.25}>
+                  <Avatar src={q.patient?.id ? `${API_URL}/patients/${q.patient.id}/photo` : undefined} sx={{ bgcolor: TEAL, fontWeight: 800, width: 44, height: 44 }}>{q.patient?.fullName?.charAt(0)}</Avatar>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Stack direction="row" spacing={0.75} alignItems="center" sx={{ flexWrap: 'wrap', rowGap: 0.5 }}>
+                      <Typography sx={{ fontWeight: 800 }}>{q.patient?.fullName}</Typography>
+                      {q.status !== 'answered' && <Chip size="small" label="em aberto" sx={{ height: 18, fontSize: 10, bgcolor: 'rgba(234,88,12,.12)', color: '#ea580c', fontWeight: 700 }} />}
+                    </Stack>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>{q.subject} · {relDate(q.createdAt)}</Typography>
+                  </Box>
+                  <Button size="small" variant="outlined" onClick={async () => { setView('patients'); const p = patients.find((x) => x.patient?.id === q.patientId); if (p) { await openPatient(p); setTab('questions'); } }} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, borderColor: '#20b2aa', color: '#178f89', flexShrink: 0 }}>Responder</Button>
+                </Stack>
+                {lastPatient && <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary', fontStyle: 'italic', pl: 0.5 }}>"{String(lastPatient.body).slice(0, 160)}{(String(lastPatient.body).length ?? 0) > 160 ? '…' : ''}"</Typography>}
+              </CardContent></Card>
+            );
+          };
+          return (
+            <>
+              <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ mb: 2 }}>
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>Perguntas</Typography>
+                  <Typography variant="caption" color="text.secondary">{openQ.length} em aberto · {answeredQ.length} respondidas</Typography>
+                </Box>
+                <IconButton onClick={loadAllQ} disabled={allQLoading} sx={{ color: TEAL }}><RefreshIcon /></IconButton>
+              </Stack>
+              {allQLoading && <Box sx={{ textAlign: 'center', py: 4 }}><CircularProgress sx={{ color: TEAL }} /></Box>}
+              {!allQLoading && allQ.length === 0 && (
+                <Card sx={{ borderRadius: 3, boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}><CardContent><Box sx={{ textAlign: 'center', py: 5 }}>
+                  <Box sx={{ fontSize: 56, mb: 1.5, opacity: 0.4 }}>💬</Box>
+                  <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 17 }}>Nenhuma pergunta ainda</Typography>
+                  <Typography color="text.secondary">Quando um paciente enviar uma pergunta pelo app, ela aparece aqui.</Typography>
+                </Box></CardContent></Card>
+              )}
+              {!allQLoading && openQ.length > 0 && (<Box sx={{ mb: 3 }}><Typography sx={{ fontWeight: 800, mb: 1 }}>⏳ Em aberto ({openQ.length})</Typography>{openQ.map(card)}</Box>)}
+              {!allQLoading && answeredQ.length > 0 && (<Box><Typography sx={{ fontWeight: 800, mb: 1, color: 'text.secondary' }}>✅ Respondidas ({answeredQ.length})</Typography>{answeredQ.map(card)}</Box>)}
+            </>
+          );
+        })()}
+
+        {/* Dialog de convite — sempre montado (aberto pela lista de pacientes E pela tela de Convites). */}
+        <Dialog open={inviteOpen} onClose={() => setInviteOpen(false)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
+          <DialogTitle sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif' }}>Convidar paciente</DialogTitle>
+          <DialogContent>
+            {invResult ? (
+              <Box sx={{ textAlign: 'center', py: 1 }}>
+                <Typography sx={{ fontWeight: 800, mb: 1 }}>Convite pronto pra {invResult.name}! 🎉</Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Toque pra enviar no WhatsApp — o paciente instala o app e você já fica conectado aos exames dele.</Typography>
+                {invResult.wa && <Button href={invResult.wa} target="_blank" fullWidth variant="contained" startIcon={<WhatsAppIcon />} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#25D366', mb: 1, color: '#fff', '&:hover': { bgcolor: '#1da851' } }}>Enviar no WhatsApp</Button>}
+                <Button fullWidth variant="outlined" onClick={() => { try { navigator.clipboard?.writeText(invResult.link); } catch {} snackbar({ message: 'Link copiado!', severity: 'success' }); }} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700 }}>Copiar link</Button>
+              </Box>
+            ) : (
+              <Stack spacing={1.5} sx={{ mt: 1 }}>
+                <TextField label="Nome do paciente" value={inv.name} onChange={(e) => setInv({ ...inv, name: e.target.value })} size="small" fullWidth />
+                <TextField label="WhatsApp (com DDD)" value={inv.phone} onChange={(e) => setInv({ ...inv, phone: e.target.value })} size="small" fullWidth placeholder="11 98888-7777" />
+                <TextField label="Ou e-mail" value={inv.email} onChange={(e) => setInv({ ...inv, email: e.target.value })} size="small" fullWidth />
+                <Typography variant="caption" color="text.secondary">O paciente recebe o link, instala o app e o compartilhamento dos exames com você já fica ativo — ele não configura nada.</Typography>
+              </Stack>
+            )}
+          </DialogContent>
+          <DialogActions sx={{ justifyContent: 'center', pb: 2, gap: 1 }}>
+            <Button onClick={() => setInviteOpen(false)} sx={{ textTransform: 'none' }}>{invResult ? 'Fechar' : 'Cancelar'}</Button>
+            {!invResult && <Button variant="contained" disabled={invBusy || !inv.name.trim() || (!inv.phone.trim() && !inv.email.trim())} onClick={createInvite} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa' }}>{invBusy ? 'Gerando…' : 'Gerar convite'}</Button>}
+            {invResult && <Button onClick={() => setInvResult(null)} sx={{ textTransform: 'none', color: '#178f89' }}>Novo convite</Button>}
+          </DialogActions>
+        </Dialog>
         {view === 'patients' && loading && <Box sx={{ textAlign: 'center', py: 6 }}><CircularProgress sx={{ color: TEAL }} /></Box>}
 
         {/* DR. EXAME PRO — banner premium (free tier + CTA) */}
@@ -663,38 +845,6 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 <Button size="small" variant="contained" startIcon={<PersonAddAlt1Icon />} onClick={() => { setInvResult(null); setInviteOpen(true); }} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', boxShadow: 'none', '&:hover': { bgcolor: '#178f89' } }}>Convidar</Button>
               </Stack>
             </Stack>
-            {invites.filter((i) => i.status === 'pending').length > 0 && (
-              <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mb: 1.5 }}>
-                {invites.filter((i) => i.status === 'pending').map((it) => (
-                  <Chip key={it.id} size="small" variant="outlined" label={`📨 ${it.patientName} (convite enviado)`} onDelete={() => cancelInvite(it.id)} sx={{ fontWeight: 600 }} />
-                ))}
-              </Stack>
-            )}
-            <Dialog open={inviteOpen} onClose={() => setInviteOpen(false)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
-              <DialogTitle sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif' }}>Convidar paciente</DialogTitle>
-              <DialogContent>
-                {invResult ? (
-                  <Box sx={{ textAlign: 'center', py: 1 }}>
-                    <Typography sx={{ fontWeight: 800, mb: 1 }}>Convite pronto pra {invResult.name}! 🎉</Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Toque pra enviar no WhatsApp — o paciente instala o app e você já fica conectado aos exames dele.</Typography>
-                    {invResult.wa && <Button href={invResult.wa} target="_blank" fullWidth variant="contained" startIcon={<WhatsAppIcon />} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#25D366', mb: 1, color: '#fff', '&:hover': { bgcolor: '#1da851' } }}>Enviar no WhatsApp</Button>}
-                    <Button fullWidth variant="outlined" onClick={() => { try { navigator.clipboard?.writeText(invResult.link); } catch {} window.alert('Link copiado! Cole onde quiser.'); }} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700 }}>Copiar link</Button>
-                  </Box>
-                ) : (
-                  <Stack spacing={1.5} sx={{ mt: 1 }}>
-                    <TextField label="Nome do paciente" value={inv.name} onChange={(e) => setInv({ ...inv, name: e.target.value })} size="small" fullWidth />
-                    <TextField label="WhatsApp (com DDD)" value={inv.phone} onChange={(e) => setInv({ ...inv, phone: e.target.value })} size="small" fullWidth placeholder="11 98888-7777" />
-                    <TextField label="Ou e-mail" value={inv.email} onChange={(e) => setInv({ ...inv, email: e.target.value })} size="small" fullWidth />
-                    <Typography variant="caption" color="text.secondary">O paciente recebe o link, instala o app e o compartilhamento dos exames com você já fica ativo — ele não configura nada.</Typography>
-                  </Stack>
-                )}
-              </DialogContent>
-              <DialogActions sx={{ justifyContent: 'center', pb: 2, gap: 1 }}>
-                <Button onClick={() => setInviteOpen(false)} sx={{ textTransform: 'none' }}>{invResult ? 'Fechar' : 'Cancelar'}</Button>
-                {!invResult && <Button variant="contained" disabled={invBusy || !inv.name.trim() || (!inv.phone.trim() && !inv.email.trim())} onClick={createInvite} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa' }}>{invBusy ? 'Gerando…' : 'Gerar convite'}</Button>}
-                {invResult && <Button onClick={() => setInvResult(null)} sx={{ textTransform: 'none', color: '#178f89' }}>Novo convite</Button>}
-              </DialogActions>
-            </Dialog>
             {patients.length > 0 && (
               <Stack spacing={1} sx={{ mb: 1.5 }}>
                 <Paper variant="outlined" sx={{ p: '2px 12px', display: 'flex', alignItems: 'center', gap: 1, borderRadius: 99 }}>

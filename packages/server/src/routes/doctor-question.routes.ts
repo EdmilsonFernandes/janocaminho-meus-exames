@@ -61,6 +61,23 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     const share = await prisma.doctorShare.findFirst({ where: { patientId: pid, doctorId: String(doctorId), active: true } });
     if (!share) { res.status(403).json({ error: 'Compartilhe seus exames com este médico antes de enviar perguntas.' }); return; }
 
+    // DEDUP: se já existe uma pergunta EM ABERTO com o MESMO conteúdo (subject ou 1ª mensagem)
+    // pra este médico, bloqueia. Impede o "regenera relatório → reenvia as mesmas perguntas".
+    // Conteúdo NORMALIZADO (lowercase, espaços colapsados, 200 chars) — tolera diferenças de formatação.
+    const norm = (s: string) => s.toLowerCase().replace(/\s+/g, ' ').trim().slice(0, 200);
+    const incoming = norm(msgBody);
+    if (incoming) {
+      const open = await prisma.doctorQuestion.findMany({
+        where: { patientId: pid, doctorId: String(doctorId), status: 'open' },
+        include: { messages: { where: { authorRole: 'patient' }, orderBy: { createdAt: 'asc' }, take: 1 } },
+      });
+      const isDup = (q: any) => norm(q.subject || '') === incoming || (q.messages?.[0] && norm(q.messages[0].body || '') === incoming);
+      if (open.some(isDup)) {
+        res.status(409).json({ error: 'question_duplicate', message: 'Você já enviou essa pergunta e ela está aguardando resposta do médico. Quando ele responder, você pode enviar outras.' });
+        return;
+      }
+    }
+
     // GATE anti-flood: limita perguntas EM ABERTO por vínculo (protege o médico de inundação).
     // Responder/fechar uma pergunta libera espaço. O médico (Pro) pode levantar o limite via consulta.
     const openCount = await prisma.doctorQuestion.count({ where: { patientId: pid, doctorId: String(doctorId), status: 'open' } });

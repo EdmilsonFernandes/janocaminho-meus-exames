@@ -10,7 +10,7 @@ import { normalizeCrmKey } from './doctor.routes';
 const router = Router();
 router.use(requireAuth);
 
-// LISTAR compartilhamentos do paciente
+// LISTAR compartilhamentos do paciente (com cota de perguntas: openQuestions/questionLimit)
 router.get('/', async (req: AuthedRequest, res, next) => {
   try {
     const pids = await userPatientIds(req.userId!);
@@ -19,7 +19,21 @@ router.get('/', async (req: AuthedRequest, res, next) => {
       include: { doctor: { select: { id: true, name: true, crm: true, specialty: true, photoUrl: true, email: true } } },
       orderBy: { createdAt: 'desc' },
     });
-    res.json({ items: shares });
+    // Conta perguntas EM ABERTO por vínculo (patientId+doctorId) pra mostrar a cota no app.
+    // O gate (doctor-question.routes) usa openQuestionLimit ?? 5 — espelhamos aqui pro front desabilitar
+    // o envio antes de o usuário tentar (evita a surpresa do "enviou de novo").
+    const openByLink = await prisma.doctorQuestion.groupBy({
+      by: ['patientId', 'doctorId'],
+      where: { patientId: { in: pids }, status: 'open' },
+      _count: { _all: true },
+    });
+    const openMap = new Map(openByLink.map((r) => [`${r.patientId}|${r.doctorId}`, r._count._all]));
+    const items = shares.map((s) => ({
+      ...s,
+      openQuestions: openMap.get(`${s.patientId}|${s.doctorId}`) ?? 0,
+      questionLimit: s.openQuestionLimit ?? 5,
+    }));
+    res.json({ items });
   } catch (e) { next(e); }
 });
 

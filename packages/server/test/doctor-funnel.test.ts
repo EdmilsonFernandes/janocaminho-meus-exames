@@ -91,4 +91,30 @@ describe('funil do médico: convite + aceite + gate + Atendi', () => {
     expect(share?.openQuestionLimit).toBe(6);
     expect(await prisma.consultation.count({ where: { patientId: patient.id, doctorId: doctor.id } })).toBe(1);
   });
+
+  it('dedup: bloqueia reenviar pergunta idêntica em aberto (409 question_duplicate); pergunta diferente passa', async () => {
+    const { doctor } = await createDoctor({ crm: '77777-SP', email: dmail() });
+    const { patient, token } = await createUser({ credits: 100 });
+    await prisma.doctorShare.create({ data: { patientId: patient.id, doctorId: doctor.id, scopes: SCOPES, active: true, openQuestionLimit: 5 } });
+    const body = { patientId: patient.id, doctorId: doctor.id, subject: 'Mesma pergunta', body: 'Conteúdo idêntico da pergunta ao médico' };
+    expect((await api().post('/api/doctor-questions').set(authHeader(token)).send(body)).status).toBe(201);
+    const dup = await api().post('/api/doctor-questions').set(authHeader(token)).send(body);
+    expect(dup.status).toBe(409);
+    expect(dup.body.error).toBe('question_duplicate');
+    // Conteúdo DIFERENTE não é dup; gate (1 em aberto < 5) libera.
+    const other = await api().post('/api/doctor-questions').set(authHeader(token)).send({ ...body, subject: 'Outra pergunta', body: 'Conteúdo diferente' });
+    expect(other.status).toBe(201);
+  });
+
+  it('doctor-shares expõe a cota (openQuestions + questionLimit) pra o app desabilitar o envio no limite', async () => {
+    const { doctor } = await createDoctor({ crm: '88888-SP', email: dmail() });
+    const { patient, token } = await createUser({ credits: 100 });
+    await prisma.doctorShare.create({ data: { patientId: patient.id, doctorId: doctor.id, scopes: SCOPES, active: true, openQuestionLimit: 5 } });
+    for (let i = 0; i < 2; i++) await api().post('/api/doctor-questions').set(authHeader(token)).send({ patientId: patient.id, doctorId: doctor.id, subject: `P${i}`, body: `Pergunta diferente ${i}` });
+    const r = await api().get('/api/doctor-shares').set(authHeader(token));
+    expect(r.status).toBe(200);
+    const sh = r.body.items.find((x: any) => x.doctorId === doctor.id);
+    expect(sh.openQuestions).toBe(2);
+    expect(sh.questionLimit).toBe(5);
+  });
 });

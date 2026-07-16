@@ -129,10 +129,12 @@ export const ConsolidatedReportPage = () => {
   // Frente C: tick das perguntas do relatório pra levar ao médico + envio (cria DoctorQuestion + email).
   const [tickQ, setTickQ] = useState<Record<number, boolean>>({});
   const [send, setSend] = useState<{ status: 'idle' | 'sending' | 'done' | 'error'; msg?: string }>({ status: 'idle' });
-  // Quais perguntas (por CONTEÚDO) já foram enviadas — envia SÓ as tickadas; as outras continuam disponíveis.
+  // Quais perguntas deste relatório já foram enviadas — envia SÓ as tickadas; as outras continuam disponíveis.
   const [sentQs, setSentQs] = useState<Set<string>>(new Set());
-  // Chave = CONTEÚDO das perguntas (não o id do relatório): regenerou com perguntas diferentes → pode reenviar.
-  const sentKey = useMemo(() => 'reportQ_' + (analysis?.structured?.perguntasParaOMedico ?? []).map((q: any) => String(q)).join('|').slice(0, 80), [analysis]);
+  // Chave = ID do relatório (analysisId). Antes era por CONTEÚDO → regenerar mudava as perguntas,
+  // mudava a chave, e ZERAVA o "já enviou" → podia reenviar tudo. Por analysisId: dentro de um
+  // relatório o estado é estável; relatório novo = lote novo (limitado pelo gate/limite do servidor).
+  const sentKey = useMemo(() => 'reportQ_' + (analysis?.id ?? 'none'), [analysis]);
   useEffect(() => { try { setSentQs(new Set<string>(JSON.parse(localStorage.getItem(sentKey) || '[]'))); } catch { setSentQs(new Set()); } }, [sentKey]);
   const [picker, setPicker] = useState<{ shares: any[]; picked: string; qs: { q: string }[] } | null>(null);
   const doSendToDoctor = async (doctorId: string, doctorName: string, picked: { q: string }[]) => {
@@ -168,8 +170,12 @@ export const ConsolidatedReportPage = () => {
       if (!shares.length) { hapticError(); setSend({ status: 'error', msg: 'Você ainda não compartilhou dados com nenhum médico. Vá em “Meus Médicos” e compartilhe antes.' }); return; }
       const first = shares[0];
       const firstId = first.doctorId ?? first.doctor?.id;
-      // 1 médico → envia direto. +1 → abre o seletor pra escolher.
-      if (shares.length === 1) { await doSendToDoctor(firstId, first.doctor?.name ?? first.name ?? 'seu médico', picked); return; }
+      // 1 médico → envia direto (respeitando o limite de perguntas em aberto). +1 → abre o seletor.
+      if (shares.length === 1) {
+        const open = Number(first.openQuestions ?? 0); const max = Number(first.questionLimit ?? 5);
+        if (open >= max) { hapticError(); setSend({ status: 'error', msg: `Você tem ${open} pergunta(s) em aberto com ${first.doctor?.name ?? first.name ?? 'seu médico'} (limite ${max}). Aguarde a resposta pra enviar mais.` }); return; }
+        await doSendToDoctor(firstId, first.doctor?.name ?? first.name ?? 'seu médico', picked); return;
+      }
       // NÃO pré-seleciona o 1º médico (induz o usuário a enviar ao errado sem perceber). Exige escolha.
       setPicker({ shares, picked: '', qs: picked });
     } catch { hapticError(); setSend({ status: 'error', msg: 'Sem conexão. Tente novamente.' }); }
@@ -473,7 +479,12 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
           ) : null}
 
           {/* Seletor de médico quando o paciente tem +1 médico compartilhado */}
-          {picker && (
+          {picker && (() => {
+            const atLimit = (s: any) => Number(s.openQuestions ?? 0) >= Number(s.questionLimit ?? 5);
+            const pickedShare = picker.shares.find((x: any) => (x.doctorId ?? x.doctor?.id) === picker.picked);
+            const pickedAtLimit = pickedShare ? atLimit(pickedShare) : false;
+            const allAtLimit = picker.shares.every(atLimit);
+            return (
             <Dialog open onClose={() => setPicker(null)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
               <DialogTitle sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif' }}>Enviar perguntas a qual médico?</DialogTitle>
               <DialogContent>
@@ -482,23 +493,30 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
                     <MenuItem value="" disabled><em>Selecione o médico</em></MenuItem>
                     {picker.shares.map((s: any) => {
                       const id = s.doctorId ?? s.doctor?.id; const nm = s.doctor?.name ?? s.name; const sp = s.doctor?.specialty;
-                      return <MenuItem key={id} value={id} sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.75 }}>
+                      const lim = atLimit(s);
+                      const open = Number(s.openQuestions ?? 0); const max = Number(s.questionLimit ?? 5);
+                      return <MenuItem key={id} value={id} disabled={lim} sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.75, opacity: lim ? 0.5 : 1 }}>
                         <Avatar src={s.doctor?.photoUrl ? `${API_URL}/doctor/photo/${id}?v=0` : undefined} sx={{ width: 36, height: 36, bgcolor: '#20b2aa', fontSize: 14, fontWeight: 700, flexShrink: 0 }}>{(nm || '?').charAt(0)}</Avatar>
-                        <Box sx={{ minWidth: 0 }}><Typography variant="inherit" sx={{ fontWeight: 700 }}>{nm}</Typography>{sp ? <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', fontSize: 11, lineHeight: 1.2 }}>{sp}</Typography> : null}</Box>
+                        <Box sx={{ minWidth: 0, flex: 1 }}><Typography variant="inherit" sx={{ fontWeight: 700 }}>{nm}</Typography>
+                          <Typography variant="caption" sx={{ display: 'block', color: lim ? '#dc2626' : 'text.secondary', fontSize: 11, lineHeight: 1.2 }}>{sp ? sp + ' · ' : ''}{lim ? `limite atingido (${open}/${max})` : `${open}/${max} em aberto`}</Typography>
+                        </Box>
                       </MenuItem>;
                     })}
                   </Select>
                 </FormControl>
+                {pickedAtLimit && <Alert severity="warning" sx={{ mt: 1.5, py: 0.5, borderRadius: 2, fontSize: 12.5 }}>Esse médico tem o limite de perguntas em aberto com você. Aguarde a resposta (ou agende uma consulta) pra enviar mais.</Alert>}
+                {allAtLimit && <Alert severity="info" sx={{ mt: 1.5, py: 0.5, borderRadius: 2, fontSize: 12.5 }}>Todos os seus médicos têm perguntas em aberto aguardando resposta. Quando algum responder, você poderá enviar novas.</Alert>}
               </DialogContent>
               <DialogActions sx={{ justifyContent: 'center', pb: 2, gap: 1 }}>
                 <Button onClick={() => setPicker(null)} sx={{ textTransform: 'none' }}>Cancelar</Button>
-                <Button variant="contained" disabled={send.status === 'sending' || !picker.picked} onClick={() => {
+                <Button variant="contained" disabled={send.status === 'sending' || !picker.picked || pickedAtLimit} onClick={() => {
                   const s = picker.shares.find((x: any) => (x.doctorId ?? x.doctor?.id) === picker.picked);
                   doSendToDoctor(picker.picked, s?.doctor?.name ?? s?.name ?? 'seu médico', picker.qs);
                 }} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700 }}>{send.status === 'sending' ? 'Enviando…' : 'Enviar'}</Button>
               </DialogActions>
             </Dialog>
-          )}
+            );
+          })()}
 
           {s.leituraFinal && (
             <Box sx={{ p: 2.5, borderRadius: '16px', background: 'linear-gradient(135deg, rgba(11,92,171,.10), rgba(11,92,171,.04))', border: '1px solid', borderColor: 'divider' }}>
