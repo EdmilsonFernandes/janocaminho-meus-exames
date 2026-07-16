@@ -80,6 +80,7 @@ export const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [role, setRole] = useState<'paciente' | 'medico'>(() => (new URLSearchParams(window.location.hash.split('?')[1] || '').get('role') === 'medico' ? 'medico' : 'paciente'));
   const [mfaChallenge, setMfaChallenge] = useState<{ token: string; account?: string; verifyUrl: string; isDoctor: boolean } | null>(null);
+  const [invite] = useState(() => new URLSearchParams(window.location.hash.split('?')[1] || '').get('invite') || '');
   // Quick-login só aparece se a aba atual bate com o role matriculado (paciente ≠ médico)
   const enrolledRole = BiometricService.getEnrolledRole();
   const bioReady = BiometricService.isSupported() && BiometricService.hasEnrollment() && enrolledRole === (role === 'medico' ? 'doctor' : 'patient');
@@ -133,7 +134,7 @@ export const LoginPage = () => {
       } catch (err: any) { notify(err.message, { type: 'error' }); } finally { setLoading(false); }
       return;
     }
-    try { await login({ username: email.trim(), password: pwd }); }
+    try { await login({ username: email.trim(), password: pwd, inviteToken: invite || undefined }); }
     catch (e: any) {
       if (e?.mfaRequired) { setMfaChallenge({ token: e.challengeToken, account: e.account, verifyUrl: `${API_URL}/auth/mfa/verify`, isDoctor: false }); return; }
       // Conta não verificada → redireciona pra tela de ativação por e-mail
@@ -273,6 +274,7 @@ export const RegisterPage = () => {
   const [email, setEmail] = useState('');
   const [pwd, setPwd] = useState('');
   const [referral, setReferral] = useState(() => new URLSearchParams(window.location.hash.split('?')[1] || '').get('ref') || '');
+  const [invite] = useState(() => new URLSearchParams(window.location.hash.split('?')[1] || '').get('invite') || '');
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
   const [verifyEmail, setVerifyEmail] = useState<string | null>(null);
@@ -287,7 +289,7 @@ export const RegisterPage = () => {
     try {
       const r = await fetch(`${API_URL}/auth/register`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name.trim(), cpf, email: email.trim(), password: pwd, referral: referral.trim() || undefined, deviceId: getDeviceId() }),
+        body: JSON.stringify({ name: name.trim(), cpf, email: email.trim(), password: pwd, referral: referral.trim() || undefined, inviteToken: invite || undefined, deviceId: getDeviceId() }),
       });
       const d = await r.json();
       if (r.status === 409) { notify('Este e-mail já tem conta. Use sua senha, "entrar com token" ou "esqueci a senha".', { type: 'warning' }); navigate('/'); return; }

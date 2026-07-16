@@ -8,11 +8,11 @@ interface User {
 }
 
 export const authProvider = {
-  async login({ username, password }: { username: string; password: string }) {
+  async login({ username, password, inviteToken }: { username: string; password: string; inviteToken?: string }) {
     const r = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ username, password, inviteToken: inviteToken || undefined }),
     });
     const data = await r.json().catch(() => ({}));
     // Conta não verificada → sinaliza pra UI redirecionar pra ativação por e-mail

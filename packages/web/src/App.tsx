@@ -66,6 +66,7 @@ import { PrivacyPage } from './pages/Privacy';
 import { AdminPage } from './pages/admin';
 import { NotFoundPage } from './pages/NotFound';
 import { LoginPage, RegisterPage, ResetPage } from './pages/Auth';
+import { InviteLandingPage } from './pages/InviteLanding';
 import { TermsPage } from './pages/Terms';
 import { PatientSwitcher } from './components/PatientSwitcher';
 import { CreditsChip } from './components/CreditsChip';
@@ -594,6 +595,7 @@ export const App = () => {
     <CustomRoutes noLayout>
       <Route path="/entrar" element={<LoginPage />} />
       <Route path="/landing" element={<Suspense fallback={<PageSkeleton />}><LandingPage /></Suspense>} />
+      <Route path="/convite/:token" element={<InviteLandingPage />} />
       <Route path="/termos" element={<TermsPage />} />
       <Route path="/registrar" element={<RegisterPage />} />
       <Route path="/recuperar-senha" element={<ResetPage />} />
