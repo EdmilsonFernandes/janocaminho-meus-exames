@@ -3,6 +3,7 @@ import { Box, Typography, Card, CardContent, Stack, Chip, Avatar, CircularProgre
 import CloseIcon from '@mui/icons-material/Close';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import { API_URL, token } from '../config';
+import { useSelectedPatient } from '../patient-context';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
 import { PageSkeleton } from '../components/PageSkeleton';
@@ -17,6 +18,7 @@ const TEAL = '#178f89';
  * Fecha o loop: o paciente via a resposta só na notificação — agora tem um lugar fixo.
  */
 export const QuestionsPage = () => {
+  const [pid] = useSelectedPatient();
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState<any | null>(null);
@@ -30,11 +32,11 @@ export const QuestionsPage = () => {
   const load = async () => {
     setLoading(true);
     try {
-      const r = await fetch(`${API_URL}/doctor-questions`, { headers: H() });
+      const r = await fetch(`${API_URL}/doctor-questions${pid ? `?patientId=${pid}` : ''}`, { headers: H() });
       if (r.ok) { const d = await r.json(); setItems(d.items ?? []); }
     } catch {} finally { setLoading(false); }
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [pid]);
 
   const openThread = async (q: any) => {
     setOpen(q); setThreadLoading(true); setThread([]);
@@ -58,7 +60,6 @@ export const QuestionsPage = () => {
   });
 
   const userName = (() => { try { return JSON.parse(localStorage.getItem('user') || '{}')?.name || 'Paciente'; } catch { return 'Paciente'; } })();
-  const patientAvatar = <Avatar sx={{ width: 36, height: 36, bgcolor: '#94a3b8', fontSize: 14, fontWeight: 700, flexShrink: 0 }}>{(userName || 'P').charAt(0)}</Avatar>;
 
   return (
     <PageContainer width="content">
@@ -149,7 +150,7 @@ export const QuestionsPage = () => {
                 const isDoc = m.authorRole === 'doctor';
                 const av = isDoc
                   ? <Avatar src={open?.doctor?.photoUrl ? `${API_URL}/doctor/photo/${open?.doctor?.id}?v=0` : undefined} sx={{ width: 36, height: 36, bgcolor: TEAL, fontSize: 14, fontWeight: 700, flexShrink: 0 }}>{(open?.doctor?.name || 'M').charAt(0)}</Avatar>
-                  : patientAvatar;
+                  : <Avatar src={open?.patientId ? `${API_URL}/patients/${open.patientId}/photo?v=0` : undefined} sx={{ width: 36, height: 36, bgcolor: '#94a3b8', fontSize: 14, fontWeight: 700, flexShrink: 0 }}>{(userName || 'P').charAt(0)}</Avatar>;
                 return (
                   <Box key={i} sx={{ display: 'flex', justifyContent: isDoc ? 'flex-end' : 'flex-start', gap: 0.75, alignItems: 'flex-end' }}>
                     {!isDoc && av}

@@ -14,8 +14,12 @@ router.use(requireAuth);
 router.get('/', async (req: AuthedRequest, res, next) => {
   try {
     const pids = await userPatientIds(req.userId!);
+    // ISOLAMENTO (plano família): ?patientId= filtra SÓ o dependente selecionado. Antes listava
+    // perguntas de TODOS os pacientes do titular — uma dependente via as perguntas do titular.
+    const selPid = typeof req.query.patientId === 'string' && pids.includes(req.query.patientId) ? req.query.patientId : null;
+    const patientFilter: any = selPid ?? { in: pids };
     const questions = await prisma.doctorQuestion.findMany({
-      where: { patientId: { in: pids } },
+      where: { patientId: patientFilter },
       include: {
         doctor: { select: { id: true, name: true, specialty: true, photoUrl: true } },
         messages: { orderBy: { createdAt: 'desc' }, take: 1 },
@@ -23,7 +27,7 @@ router.get('/', async (req: AuthedRequest, res, next) => {
       orderBy: { createdAt: 'desc' },
     });
     // marca "lida" pelo paciente ao listar (resposta do médico que ele ainda não viu)
-    await prisma.doctorQuestion.updateMany({ where: { patientId: { in: pids }, unreadByPatient: true }, data: { unreadByPatient: false } }).catch(() => {});
+    await prisma.doctorQuestion.updateMany({ where: { patientId: patientFilter, unreadByPatient: true }, data: { unreadByPatient: false } }).catch(() => {});
     res.json({ items: questions });
   } catch (e) { next(e); }
 });

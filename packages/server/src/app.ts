@@ -119,24 +119,26 @@ app.get('/api/patients/:id/photo', async (req, res) => {
   try {
     const id = String(req.params.id);
     const p = await prisma.patient.findUnique({ where: { id }, select: { photoUrl: true } });
-    // Cache HTTP: revalida por ETag (muda quando troca a foto) — 5min de cache + 304 barato.
+    // Cache HTTP: avatares raramente mudam e o front busta com ?v=. Cache de 1 dia no ARQUIVO
+    // local elimina o round-trip ao EC2 a cada render (era o "demora pra carregar a foto").
+    // ETag permanece; redirect S3 (URL pré-assinada que expira) usa cache curto; 404 não cacheia.
     const etag = `"${id}:${p?.photoUrl ?? 'none'}"`;
-    res.setHeader('Cache-Control', 'public, max-age=300, must-revalidate');
     res.setHeader('ETag', etag);
     if (req.headers['if-none-match'] === etag) { res.status(304).end(); return; }
     const { resolvePatientPhoto } = await import('./utils/storage');
     // 1) se photoUrl é um ref de storage (chave S3 ou caminho de disco), resolve
     if (p?.photoUrl && !p.photoUrl.startsWith('/api/')) {
       const r = await resolvePatientPhoto(p.photoUrl);
-      if (r.kind === 'url') { res.redirect(r.url); return; }       // S3: redireciona p/ pré-assinada
-      if (fs.existsSync(r.file)) { res.sendFile(path.resolve(r.file)); return; }
+      if (r.kind === 'url') { res.setHeader('Cache-Control', 'public, max-age=120'); res.redirect(r.url); return; }       // S3: redireciona p/ pré-assinada
+      if (fs.existsSync(r.file)) { res.setHeader('Cache-Control', 'public, max-age=86400'); res.sendFile(path.resolve(r.file)); return; }
     }
     // 2) fallback: procura patient-<id>.* no disco (convenção antiga + dev)
     const dir = path.resolve(config.photosDir);
     if (fs.existsSync(dir)) {
       const files = fs.readdirSync(dir).filter((f) => f.startsWith(`patient-${id}.`));
-      if (files.length) { res.sendFile(path.join(dir, files[0])); return; }
+      if (files.length) { res.setHeader('Cache-Control', 'public, max-age=86400'); res.sendFile(path.join(dir, files[0])); return; }
     }
+    res.setHeader('Cache-Control', 'no-store');
     res.status(404).type('html').send('sem foto');
   } catch { res.status(404).type('html').send('sem foto'); }
 });

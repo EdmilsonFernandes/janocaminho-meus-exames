@@ -3,10 +3,11 @@ import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, 
 import { useNavigate } from 'react-router-dom';
 import { API_URL, token } from '../config';
 import { DrExame } from './DrExame';
+import { notifRoute } from '../utils/notifRoute';
 
 export const NotificationPopup = () => {
   const [open, setOpen] = useState(false);
-  const [notif, setNotif] = useState<{ id?: string; title: string; body: string } | null>(null);
+  const [notif, setNotif] = useState<{ id?: string; title: string; body: string; data?: any } | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -37,10 +38,11 @@ export const NotificationPopup = () => {
 
   useEffect(() => {
     const onReceived = (e: any) => {
-      setNotif({ title: (e.detail && e.detail.title) || 'Nova notificacao', body: (e.detail && e.detail.body) || '' });
+      setNotif({ title: (e.detail && e.detail.title) || 'Nova notificacao', body: (e.detail && e.detail.body) || '', data: (e.detail && e.detail.data) || {} });
       setOpen(true);
     };
-    const onTapped = () => navigate('/notificacoes');
+    // Toque na notificação (tray): leva direto à tela certa (perguntas/exames/...) — não deixa "morta".
+    const onTapped = (e: any) => navigate(notifRoute({ data: e?.detail?.data }) || '/notificacoes');
     window.addEventListener('pushReceived', onReceived);
     window.addEventListener('pushTapped', onTapped);
     return () => {
@@ -52,19 +54,19 @@ export const NotificationPopup = () => {
   if (!notif) return null;
 
   return (
-    <Dialog open={open} onClose={() => setOpen(false)} PaperProps={{ sx: { borderRadius: 4, maxWidth: 380 } }}>
+    <Dialog open={open} onClose={() => setOpen(false)} PaperProps={{ sx: { borderRadius: 4, maxWidth: 420 } }}>
       <DialogTitle sx={{ textAlign: 'center', pb: 0 }}>
         <Stack alignItems="center" spacing={1}>
-          <DrExame size={44} sx={{ borderRadius: '50%' }} />
-          <Typography sx={{ fontWeight: 800, fontSize: 17 }}>{notif.title}</Typography>
+          <DrExame size={48} sx={{ borderRadius: '50%' }} />
+          <Typography sx={{ fontWeight: 800, fontSize: 18 }}>{notif.title}</Typography>
         </Stack>
       </DialogTitle>
       <DialogContent>
-        <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>{notif.body}</Typography>
+        <Typography sx={{ textAlign: 'center', lineHeight: 1.6, fontSize: 16, whiteSpace: 'pre-wrap' }}>{notif.body}</Typography>
       </DialogContent>
       <DialogActions sx={{ justifyContent: 'center', pb: 3, gap: 1 }}>
         <Button variant="outlined" onClick={() => { try { if (notif?.id != null) localStorage.setItem('meDismissedNotif', String(notif.id)); } catch { /* ignore */ } setOpen(false); }} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700 }}>Depois</Button>
-        <Button variant="contained" onClick={() => { setOpen(false); navigate('/notificacoes'); }} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa' }}>Ver notificacoes</Button>
+        <Button variant="contained" onClick={() => { setOpen(false); navigate(notifRoute(notif) || '/notificacoes'); }} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa' }}>{notifRoute(notif) ? 'Ver agora' : 'Ver notificações'}</Button>
       </DialogActions>
     </Dialog>
   );

@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Card, CardContent, Typography, Button, CircularProgress, Stack, Chip } from '@mui/material';
+import { Box, Card, CardContent, Typography, Button, CircularProgress, Stack, Chip, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import { API_URL, token } from '../config';
+import { notifRoute } from '../utils/notifRoute';
+import { DrExame } from '../components/DrExame';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
 
@@ -17,6 +19,7 @@ const fmtDt = (d: string) => new Date(d).toLocaleString('pt-BR', { day: '2-digit
 
 export const NotificationsPage = () => {
   const navigate = useNavigate();
+  const [view, setView] = useState<any | null>(null);
   const [data, setData] = useState<{ items: any[]; unread: number } | null>(null);
   const load = () => fetch(`${API_URL}/notifications`, { headers: { Authorization: `Bearer ${token()}` } }).then((r) => r.json()).then(setData).catch(() => {});
   useEffect(() => { load(); }, []);
@@ -42,7 +45,7 @@ export const NotificationsPage = () => {
           {items.map((n) => {
             const m = TYPE_META[n.type] ?? TYPE_META.info;
             return (
-              <Card key={n.id} variant="outlined" onClick={() => { if (n.data?.examId) navigate(`/exams/${n.data.examId}/show`); else if (n.data?.ticketId) navigate(`/suporte/${n.data.ticketId}`); }} sx={{ cursor: (n.data?.examId || n.data?.ticketId) ? 'pointer' : 'default', borderColor: n.read ? 'divider' : `${m.color}55`, borderLeft: `4px solid ${m.color}`, opacity: n.read ? 0.7 : 1 }}>
+              <Card key={n.id} variant="outlined" onClick={() => { const r = notifRoute(n); if (r) navigate(r); else setView(n); }} sx={{ cursor: 'pointer', borderColor: n.read ? 'divider' : `${m.color}55`, borderLeft: `4px solid ${m.color}`, opacity: n.read ? 0.7 : 1 }}>
                 <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
                   <Stack direction="row" alignItems="flex-start" spacing={1}>
                     <Box sx={{ fontSize: 18 }}>{m.emoji}</Box>
@@ -62,6 +65,23 @@ export const NotificationsPage = () => {
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', mt: 3 }}>
         Conteúdo educativo — não substitui o médico.
       </Typography>
+
+      {/* Popup p/ notificações PURAMENTE informativas (sem tela pra levar): mostra o texto maior/fácil de ler. */}
+      <Dialog open={!!view} onClose={() => setView(null)} PaperProps={{ sx: { borderRadius: 4, maxWidth: 400 } }}>
+        <DialogTitle sx={{ textAlign: 'center', pb: 0 }}>
+          <Stack alignItems="center" spacing={1}>
+            <DrExame size={48} sx={{ borderRadius: '50%' }} />
+            <Typography sx={{ fontWeight: 800, fontSize: 17, fontFamily: '"Poppins",sans-serif' }}>{view?.title}</Typography>
+          </Stack>
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{view?.body}</Typography>
+          {view?.createdAt && <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', mt: 1.5 }}>{fmtDt(view.createdAt)}</Typography>}
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
+          <Button variant="contained" onClick={() => setView(null)} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa' }}>Fechar</Button>
+        </DialogActions>
+      </Dialog>
     </PageContainer>
   );
 };

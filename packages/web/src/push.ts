@@ -37,11 +37,12 @@ export async function initPush(): Promise<void> {
     });
     // Push recebido com app aberto (foreground) -> dispara evento pro app mostrar popup
     await PushNotifications.addListener('pushNotificationReceived', (notification) => {
-      window.dispatchEvent(new CustomEvent('pushReceived', { detail: { title: (notification as any).title || 'Notificacao', body: (notification as any).body || '' } }));
+      window.dispatchEvent(new CustomEvent('pushReceived', { detail: { title: (notification as any).title || 'Notificacao', body: (notification as any).body || '', data: (notification as any).data || {} } }));
     });
-    // Usuario tocou na notificacao (tray) -> abre a central
-    await PushNotifications.addListener('pushNotificationActionPerformed', () => {
-      window.dispatchEvent(new Event('pushTapped'));
+    // Usuario tocou na notificacao (tray) -> repassa o data pra rotear com inteligencia (perguntas/exames/...)
+    await PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
+      const data = (action as any)?.notification?.data ?? {};
+      window.dispatchEvent(new CustomEvent('pushTapped', { detail: { data } }));
     });
     await PushNotifications.register();
   } catch (e) {

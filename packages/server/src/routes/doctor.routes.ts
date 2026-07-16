@@ -415,11 +415,12 @@ router.post('/me/photo', requireDoctor, upload.single('photo'), async (req: any,
 router.get('/photo/:id', async (req, res) => {
   try {
     const doctor = await prisma.doctor.findUnique({ where: { id: String(req.params.id) }, select: { photoUrl: true } });
-    if (!doctor?.photoUrl) { res.status(404).send('sem foto'); return; }
+    if (!doctor?.photoUrl) { res.setHeader('Cache-Control', 'no-store'); res.status(404).send('sem foto'); return; }
     const r = await resolvePatientPhoto(doctor.photoUrl);
-    if (r.kind === 'url') return res.redirect(r.url);
+    if (r.kind === 'url') { res.setHeader('Cache-Control', 'public, max-age=120'); return res.redirect(r.url); }
+    res.setHeader('Cache-Control', 'public, max-age=86400');
     return res.sendFile(path.resolve(r.file));
-  } catch { res.status(404).send('sem foto'); }
+  } catch { res.setHeader('Cache-Control', 'no-store'); res.status(404).send('sem foto'); }
 });
 
 // === DADOS SCOPED (médico vê SÓ o que o paciente autorizou) ===
@@ -863,7 +864,7 @@ router.post('/questions/:id/messages', requireDoctor, async (req: any, res, next
     // Avisa o paciente (push + notificação in-app) — best-effort
     try {
       const { sendPushToUser } = await import('../utils/push');
-      await sendPushToUser(q.patient.ownerId, 'Seu médico respondeu', `Resposta à sua pergunta: ${q.subject.slice(0, 50)}`, { type: 'doctor_question', url: '/notificacoes' });
+      await sendPushToUser(q.patient.ownerId, 'Seu médico respondeu', `Resposta à sua pergunta: ${q.subject.slice(0, 50)}`, { type: 'doctor_question', url: '/perguntas' });
     } catch { /* best-effort */ }
     // E-mail ao paciente (best-effort) — quem não tem push (iPhone web) também fica sabendo.
     try {
