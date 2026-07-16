@@ -76,7 +76,7 @@ router.post('/login', validate(schemas.login), async (req, res, next) => {
     const { token, patientId } = await issueSession(user.id);
     // FUNIL DO MÉDICO: se veio de um convite, ativa o share (paciente que já tinha conta).
     const inviteToken = String(req.body?.inviteToken ?? '').trim();
-    if (inviteToken && patientId) void consumePatientInvite(inviteToken, user.id, patientId).catch(() => {});
+    if (inviteToken && patientId) await consumePatientInvite(inviteToken, user.id, patientId).catch(() => {});
     void audit('LOGIN_SUCCESS', req, { actorType: 'USER', actorId: user.id, targetType: 'USER', targetId: user.id, after: { email: user.email, role: user.role } });
     res.json({
       token,
@@ -173,7 +173,7 @@ router.post('/register', validate(schemas.register), async (req, res, next) => {
     const inviteToken = String(req.body?.inviteToken ?? '').trim();
     if (inviteToken) {
       const pat = await prisma.patient.findFirst({ where: { ownerId: user.id, relationship: 'Titular' } });
-      if (pat) void consumePatientInvite(inviteToken, user.id, pat.id).catch(() => {});
+      if (pat) await consumePatientInvite(inviteToken, user.id, pat.id).catch(() => {});
     }
 
     notifyNewUser(String(name), mail);

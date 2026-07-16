@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { api, authHeader, resetDb, createUser, createDoctor } from './helpers';
+import { api, authHeader, resetDb, createUser, createDoctor, testCpf } from './helpers';
 import { prisma } from '../src/prisma';
 import { consumePatientInvite } from '../src/utils/patient-invite';
 
@@ -66,6 +66,19 @@ describe('funil do médico: convite + aceite + gate + Atendi', () => {
     const sixth = await post(6);
     expect(sixth.status).toBe(409);
     expect(sixth.body.error).toBe('question_limit');
+  });
+
+  it('register com inviteToken ativa o share pelo endpoint real (validate não stripa o token)', async () => {
+    const { doctor } = await createDoctor({ crm: '66666-SP', email: dmail() });
+    await prisma.patientInvite.create({ data: { doctorId: doctor.id, patientName: 'Via Register', phone: '119', token: 'tok-reg', scopes: SCOPES, expiresAt: new Date(Date.now() + 86400_000) } });
+    const r = await api().post('/api/auth/register')
+      .send({ name: 'Via Register', cpf: testCpf(7001), email: `vr${Date.now()}@test.com`, password: 'senha123', inviteToken: 'tok-reg' });
+    expect(r.status).toBe(201);
+    // O share é ativado JÁ no registro (mesmo antes de verificar o e-mail) — prova que o
+    // inviteToken sobreviveu ao validate (Zod) e chegou ao consumePatientInvite.
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: doctor.id }, include: { patient: { select: { ownerId: true } } } });
+    expect(share?.active).toBe(true);
+    expect(await prisma.patientInvite.findUnique({ where: { token: 'tok-reg' } })).toMatchObject({ status: 'accepted' });
   });
 
   it('Atendi: registra consulta e soma +1 ao limite de perguntas em aberto', async () => {

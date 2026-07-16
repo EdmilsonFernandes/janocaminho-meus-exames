@@ -26,12 +26,14 @@ export const schemas = {
     password: z.string().min(6, 'Senha mín. 6 caracteres.'),
     referral: z.string().optional(),
     deviceId: z.string().optional(),
+    inviteToken: z.string().optional(),
   }),
 
   login: z.object({
     username: z.string().optional(),
     email: z.string().optional(),
     password: z.string().min(1, 'Senha obrigatória.'),
+    inviteToken: z.string().optional(),
   }),
 
   doctorRegister: z.object({
