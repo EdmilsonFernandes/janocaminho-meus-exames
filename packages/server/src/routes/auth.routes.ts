@@ -18,6 +18,7 @@ import { isBlockedDomain } from '../utils/blockedDomains';
 import { logCredit } from '../utils/credits';
 import { audit } from '../utils/audit';
 import { encryptedCpfData } from '../utils/cpf';
+import { consumePatientInvite } from '../utils/patient-invite';
 
 const router = Router();
 
@@ -73,6 +74,9 @@ router.post('/login', validate(schemas.login), async (req, res, next) => {
     const mfa = await evaluateMfaOnLogin('USER', user.id, { userId: user.id }, user.email);
     if (mfa) { res.json(mfa); return; }
     const { token, patientId } = await issueSession(user.id);
+    // FUNIL DO MÉDICO: se veio de um convite, ativa o share (paciente que já tinha conta).
+    const inviteToken = String(req.body?.inviteToken ?? '').trim();
+    if (inviteToken && patientId) void consumePatientInvite(inviteToken, user.id, patientId).catch(() => {});
     void audit('LOGIN_SUCCESS', req, { actorType: 'USER', actorId: user.id, targetType: 'USER', targetId: user.id, after: { email: user.email, role: user.role } });
     res.json({
       token,
@@ -163,6 +167,14 @@ router.post('/register', validate(schemas.register), async (req, res, next) => {
       await tx.patient.create({ data: { ownerId: created.id, fullName: String(name), relationship: 'Titular', ...cpfData } });
       return created;
     });
+
+    // FUNIL DO MÉDICO: se veio de um convite (/convite/:token), ativa o share médico↔paciente
+    // já com os escopos pré-autorizados pelo médico — paciente não precisa configurar nada.
+    const inviteToken = String(req.body?.inviteToken ?? '').trim();
+    if (inviteToken) {
+      const pat = await prisma.patient.findFirst({ where: { ownerId: user.id, relationship: 'Titular' } });
+      if (pat) void consumePatientInvite(inviteToken, user.id, pat.id).catch(() => {});
+    }
 
     notifyNewUser(String(name), mail);
     const code = issueOtp(mail);

@@ -530,7 +530,7 @@ model Doctor {
   planExpiresAt     DateTime?
   freeUsageMonth    String?  // "2026-07" — mês corrente do contador free
   freeUsageCount    Int      @default(0)      // usos de features premium no mês (free tier: 5)
-  defaultQuestionLimit Int   @default(2)      // limite padrão de perguntas em aberto pra novos shares (Pro)
+  defaultQuestionLimit Int   @default(5)      // limite padrão de perguntas em aberto pra novos shares (Pro)
 
   @@map("doctors")
 }
@@ -563,7 +563,7 @@ model DoctorShare {
   createdAt  DateTime  @default(now())
   revokedAt  DateTime?
   creditsCharged Int @default(0) // créditos debitados do paciente ao criar o share (pro extrato)
-  openQuestionLimit Int @default(2) // máx. perguntas EM ABERTO simultâneas (anti-flood, configurável no Pro)
+  openQuestionLimit Int @default(5) // máx. perguntas EM ABERTO simultâneas (= lote de sugestões do relatório)
 
   @@unique([patientId, doctorId])
   @@index([doctorId, active])

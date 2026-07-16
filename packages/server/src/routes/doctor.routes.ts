@@ -880,4 +880,70 @@ router.post('/questions/:id/messages', requireDoctor, async (req: any, res, next
   } catch (e) { next(e); }
 });
 
+// === CONVITE DE PACIENTE (funil de aquisição via médico) ===
+// Médico pré-cadastra no agendamento → manda link (WhatsApp/email) → paciente aceita em
+// /convite/:token (landing) → cria conta com o share JÁ aceito (utils/patient-invite.ts).
+const INVITE_SCOPES_DEFAULT = ['exams', 'evolution', 'alerts', 'summary'];
+
+// Listar convites do médico (pendentes primeiro)
+router.get('/invites', requireDoctor, async (req: any, res, next) => {
+  try {
+    const items = await prisma.patientInvite.findMany({
+      where: { doctorId: req.doctorId },
+      orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
+      select: { id: true, patientName: true, phone: true, email: true, status: true, scopes: true, createdAt: true, acceptedAt: true },
+    });
+    res.json({ items });
+  } catch (e) { next(e); }
+});
+
+// Criar convite (pré-cadastro). Retorna o link público p/ mandar ao paciente.
+router.post('/invites', requireDoctor, async (req: any, res, next) => {
+  try {
+    const patientName = String(req.body?.patientName ?? '').trim();
+    const phone = String(req.body?.phone ?? '').replace(/\D/g, '');
+    const email = String(req.body?.email ?? '').toLowerCase().trim();
+    if (!patientName) { res.status(400).json({ error: 'Nome do paciente é obrigatório.' }); return; }
+    if (!phone && !email) { res.status(400).json({ error: 'Informe o WhatsApp ou o e-mail do paciente.' }); return; }
+    const scopes = Array.isArray(req.body?.scopes) && req.body.scopes.length ? req.body.scopes : INVITE_SCOPES_DEFAULT;
+    const token = crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '').slice(0, 8);
+    await prisma.patientInvite.create({ data: { doctorId: req.doctorId, patientName, phone: phone || null, email: email || null, token, scopes, expiresAt: new Date(Date.now() + 14 * 86400_000) } });
+    const base = (config.webBasePath ?? '').replace(/\/$/, '');
+    const link = `${config.webOrigin || ''}${base}/#/convite/${token}`;
+    const doc = await prisma.doctor.findUnique({ where: { id: req.doctorId }, select: { name: true } });
+    res.status(201).json({ token, link, doctorName: doc?.name, scopes });
+  } catch (e) { next(e); }
+});
+
+// Cancelar convite (marca expirado)
+router.delete('/invites/:id', requireDoctor, async (req: any, res, next) => {
+  try {
+    await prisma.patientInvite.updateMany({ where: { id: String(req.params.id), doctorId: req.doctorId, status: 'pending' }, data: { status: 'expired' } });
+    res.json({ ok: true });
+  } catch (e) { next(e); }
+});
+
+// PÚBLICO (sem auth): dados do convite pra a landing /convite/:token mostrar "Dr. X te convidou".
+router.get('/invites/by-token/:token', async (req, res, next) => {
+  try {
+    const inv = await prisma.patientInvite.findUnique({ where: { token: String(req.params.token) }, select: { patientName: true, status: true, expiresAt: true, doctorId: true } });
+    if (!inv) { res.status(404).json({ error: 'Convite não encontrado.' }); return; }
+    const expired = inv.status !== 'pending' || (!!inv.expiresAt && inv.expiresAt < new Date());
+    const doc = await prisma.doctor.findUnique({ where: { id: inv.doctorId }, select: { name: true, specialty: true, clinicName: true, clinicCity: true } });
+    res.json({ patientName: inv.patientName, doctorName: doc?.name ?? 'seu médico', specialty: doc?.specialty ?? null, clinicName: doc?.clinicName ?? null, clinicCity: doc?.clinicCity ?? null, expired, status: inv.status });
+  } catch (e) { next(e); }
+});
+
+// "Atendi" — registra consulta + libera +1 pergunta em aberto pro paciente (cap 10).
+router.post('/patients/:patientId/consultation', requireDoctor, async (req: any, res, next) => {
+  try {
+    if (!(await requireShare(req.doctorId, req.params.patientId))) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+    await prisma.$transaction([
+      prisma.consultation.create({ data: { doctorId: req.doctorId, patientId: String(req.params.patientId), note: String(req.body?.note ?? '').slice(0, 500) || undefined } }),
+      prisma.doctorShare.updateMany({ where: { patientId: String(req.params.patientId), doctorId: req.doctorId, openQuestionLimit: { lt: 10 } }, data: { openQuestionLimit: { increment: 1 } } }),
+    ]);
+    res.status(201).json({ ok: true });
+  } catch (e) { next(e); }
+});
+
 export default router;

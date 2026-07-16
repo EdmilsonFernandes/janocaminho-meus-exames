@@ -64,7 +64,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     // GATE anti-flood: limita perguntas EM ABERTO por vínculo (protege o médico de inundação).
     // Responder/fechar uma pergunta libera espaço. O médico (Pro) pode levantar o limite via consulta.
     const openCount = await prisma.doctorQuestion.count({ where: { patientId: pid, doctorId: String(doctorId), status: 'open' } });
-    const limit = share.openQuestionLimit ?? 2;
+    const limit = share.openQuestionLimit ?? 5;
     if (openCount >= limit) {
       res.status(409).json({ error: 'question_limit', message: `Você tem ${openCount} pergunta(s) em aberto com este médico. Aguarde a resposta (ou agende uma consulta para liberar mais perguntas).` });
       return;
