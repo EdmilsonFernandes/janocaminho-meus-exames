@@ -20,6 +20,7 @@ const TEAL = '#178f89';
 export const QuestionsPage = () => {
   const [pid] = useSelectedPatient();
   const [items, setItems] = useState<any[]>([]);
+  const [shares, setShares] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState<any | null>(null);
   const [thread, setThread] = useState<any[]>([]);
@@ -32,8 +33,12 @@ export const QuestionsPage = () => {
   const load = async () => {
     setLoading(true);
     try {
-      const r = await fetch(`${API_URL}/doctor-questions${pid ? `?patientId=${pid}` : ''}`, { headers: H() });
-      if (r.ok) { const d = await r.json(); setItems(d.items ?? []); }
+      const [qr, sr] = await Promise.all([
+        fetch(`${API_URL}/doctor-questions${pid ? `?patientId=${pid}` : ''}`, { headers: H() }),
+        fetch(`${API_URL}/doctor-shares`, { headers: H() }),
+      ]);
+      if (qr.ok) { const d = await qr.json(); setItems(d.items ?? []); }
+      if (sr.ok) { const d = await sr.json(); setShares((d.items ?? []).filter((x: any) => x.active !== false)); }
     } catch {} finally { setLoading(false); }
   };
   useEffect(() => { load(); }, [pid]);
@@ -67,6 +72,19 @@ export const QuestionsPage = () => {
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
         Suas perguntas enviadas aos médicos e as respostas — num só lugar.
       </Typography>
+
+      {/* Direito de perguntas: X em aberto de Y por médico. Tangível (antes o +1 do 'Atendi' não
+          aparecia em lugar nenhum). Ao receber resposta, o espaço libera. */}
+      {shares.length > 0 && (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap', p: 1, px: 1.25, borderRadius: 2, bgcolor: 'rgba(32,178,170,.06)', border: '1px solid rgba(32,178,170,.15)', mb: 2 }}>
+          <Typography variant="caption" sx={{ fontWeight: 700, color: TEAL }}>💬 Perguntas em aberto:</Typography>
+          {shares.map((s: any) => {
+            const open = Number(s.openQuestions ?? 0); const max = Number(s.questionLimit ?? 5);
+            return <Chip key={s.doctorId ?? s.doctor?.id} size="small" label={`${s.doctor?.name ?? s.name}: ${open}/${max}`} sx={{ fontWeight: 600, bgcolor: open >= max ? '#fee2e2' : 'rgba(32,178,170,.1)', color: open >= max ? '#b91c1c' : TEAL }} />;
+          })}
+          <Typography variant="caption" color="text.secondary">· ao receber resposta, o espaço libera.</Typography>
+        </Box>
+      )}
 
       {/* Filtros */}
       {items.length > 0 && (

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useLogout, useLocale, useSetLocale, useStore } from 'react-admin';
 import {
   Box, Avatar, Button, Menu, MenuItem, ListItemIcon, ListItemText, Dialog,
   DialogTitle, DialogContent, DialogActions, TextField, FormControl, InputLabel, Select, Divider, Typography,
@@ -7,20 +8,32 @@ import {
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import CheckIcon from '@mui/icons-material/Check';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
+import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
+import LanguageIcon from '@mui/icons-material/Language';
+import LogoutIcon from '@mui/icons-material/Logout';
 import { API_URL, token, photoUrlFor } from '../config';
 import { useSelectedPatient, setSelectedPatient } from '../patient-context';
 
 const RELACOES = ['Titular', 'Cônjuge', 'Filho(a)', 'Mãe', 'Pai', 'Irmão(ã)', 'Avó/Avô', 'Outro'];
 
-/** Seletor de paciente em "pill" premium (avatar + nome + seta) com menu dropdown. */
+/** Avatar = MENU ÚNICO do AppBar: trocar dependente + tema + idioma + sair. Pill "frosted"
+ *  premium que lê bem sobre o AppBar teal (antes era teal-sobre-teal, sumia). */
 export const PatientSwitcher = () => {
   const navigate = useNavigate();
+  const logout = useLogout();
+  const locale = useLocale();
+  const setLocale = useSetLocale();
+  const [themeMode, setThemeMode] = useStore<'light' | 'dark'>('theme', 'light');
   const [pid, setSel] = useSelectedPatient();
   const [patients, setPatients] = useState<any[]>([]);
   const [anchor, setAnchor] = useState<null | HTMLElement>(null);
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [rel, setRel] = useState('Filho(a)');
+  const close = () => setAnchor(null);
+  const toggleLang = () => { const l = locale === 'pt' ? 'en' : 'pt'; setLocale(l); try { localStorage.setItem('lang', l); } catch {} close(); };
+  const toggleTheme = () => { setThemeMode(themeMode === 'dark' ? 'light' : 'dark'); close(); };
 
   const photoFor = (p?: any) => (p?.photoUrl ? photoUrlFor(p.id) : undefined);
 
@@ -62,8 +75,9 @@ export const PatientSwitcher = () => {
         disableElevation
         sx={{
           borderRadius: 99, pl: 0.5, pr: 1, py: 0.3, color: 'inherit', textTransform: 'none',
-          bgcolor: 'rgba(32,178,170,0.08)',
-          '&:hover': { bgcolor: 'rgba(32,178,170,0.16)' },
+          // "Frosted": translúcido branco pra ler sobre o AppBar teal (antes teal-sobre-teal sumia).
+          bgcolor: 'rgba(255,255,255,0.14)',
+          '&:hover': { bgcolor: 'rgba(255,255,255,0.24)' },
           maxWidth: { xs: 190, sm: 280 },
         }}
         startIcon={
@@ -95,6 +109,20 @@ export const PatientSwitcher = () => {
         <MenuItem sx={{ py: 1, borderRadius: 1, m: 0.5, color: 'primary.main' }} onClick={() => { setAnchor(null); setOpen(true); }}>
           <ListItemIcon sx={{ color: 'primary.main' }}><PersonAddIcon fontSize="small" /></ListItemIcon>
           <ListItemText primaryTypographyProps={{ fontWeight: 600, fontSize: 14 }}>Adicionar dependente</ListItemText>
+        </MenuItem>
+        <Divider sx={{ my: 0.5 }} />
+        {/* Configurações da conta (antes num menu ⋮ separado — agora unified no avatar). */}
+        <MenuItem sx={{ py: 1, borderRadius: 1, m: 0.5 }} onClick={toggleTheme}>
+          <ListItemIcon>{themeMode === 'dark' ? <LightModeOutlinedIcon fontSize="small" /> : <DarkModeOutlinedIcon fontSize="small" />}</ListItemIcon>
+          <ListItemText primaryTypographyProps={{ fontSize: 14 }}>{themeMode === 'dark' ? 'Modo claro' : 'Modo escuro'}</ListItemText>
+        </MenuItem>
+        <MenuItem sx={{ py: 1, borderRadius: 1, m: 0.5 }} onClick={toggleLang}>
+          <ListItemIcon><LanguageIcon fontSize="small" /></ListItemIcon>
+          <ListItemText primaryTypographyProps={{ fontSize: 14 }}>{locale === 'pt' ? 'Mudar para English' : 'Switch to Português'}</ListItemText>
+        </MenuItem>
+        <MenuItem sx={{ py: 1, borderRadius: 1, m: 0.5, color: 'error.main' }} onClick={() => { setAnchor(null); logout('/entrar'); }}>
+          <ListItemIcon sx={{ color: 'error.main' }}><LogoutIcon fontSize="small" /></ListItemIcon>
+          <ListItemText primaryTypographyProps={{ fontSize: 14, fontWeight: 600 }}>Sair</ListItemText>
         </MenuItem>
       </Menu>
 

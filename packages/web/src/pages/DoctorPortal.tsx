@@ -276,7 +276,6 @@ const QUICK_REPLIES = [
 const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => void }) => {
   const [patients, setPatients] = useState<any[]>([]);
   const [selected, setSelected] = useState<any | null>(null);
-  const [consultedJustNow, setConsultedJustNow] = useState(false);
   const [tab, setTab] = useState('exams');
   const [exams, setExams] = useState<any[]>([]);
   const [evolution, setEvolution] = useState<any[]>([]);
@@ -396,24 +395,6 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     finally { setInvBusy(false); }
   };
   const cancelInvite = async (id: string) => { await fetch(`${API_URL}/doctor/invites/${id}`, { method: 'DELETE', headers: h }); void loadInvites(); };
-  // "Atendi" — registra a consulta e libera +1 pergunta em aberto. Confirm diálogo (anti-clique-sem-sentido),
-  // reflete o limite atual no botão e dá feedback (snackbar + "✓ Atendido"). Aceita re-clique entre atendimentos
-  // diferentes, mas cada um é deliberado (não dá pra martelar sem confirmar).
-  const markConsulted = async () => {
-    if (!selected?.patient?.id) return;
-    const name = selected.patient.fullName ?? 'o paciente';
-    const limit = selected.openQuestionLimit ?? 5;
-    if (!(await confirmDialog({ title: 'Registrar atendimento?', message: `Confirma que atendeu ${name}? Ele ganha +1 pergunta em aberto com você (limite atual: ${limit}).`, confirmLabel: 'Sim, atendi' }))) return;
-    try {
-      const r = await fetch(`${API_URL}/doctor/patients/${selected.patient.id}/consultation`, { method: 'POST', headers: { ...h, 'Content-Type': 'application/json' }, body: '{}' });
-      const d = r.ok ? await r.json() : null;
-      if (r.ok) {
-        setSelected((s: any) => (s ? { ...s, openQuestionLimit: d?.openQuestionLimit ?? limit + 1 } : s));
-        setConsultedJustNow(true); setTimeout(() => setConsultedJustNow(false), 4000);
-        snackbar({ message: `✅ Atendimento registrado! Limite de perguntas agora: ${d?.openQuestionLimit ?? '?'}.`, severity: 'success' });
-      } else { snackbar({ message: 'Falha ao registrar consulta.', severity: 'error' }); }
-    } catch { snackbar({ message: 'Falha de conexão.', severity: 'error' }); }
-  };
 
   // Abas disponíveis = escopos que o paciente autorizou (e que suportamos visualmente)
   const scopes: string[] = selected?.scopes ?? [];
@@ -996,7 +977,6 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 <Typography variant="caption" sx={{ color: 'text.secondary' }}>{[selected.age != null ? `${selected.age} anos` : null, selected.sex === 'female' ? 'Feminino' : selected.sex === 'male' ? 'Masculino' : null, selected.patient?.relationship, selected.convenio || 'Particular', selected.latestWeight ? `${selected.latestWeight.value} kg` : null].filter(Boolean).join(' • ')}</Typography>
               </Box>
               <Box sx={{ flex: 1 }} />
-              <Button size="small" variant={consultedJustNow ? 'contained' : 'outlined'} onClick={markConsulted} title="Marca que você atendeu este paciente e libera +1 pergunta em aberto pra ele" sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, borderColor: '#20b2aa', bgcolor: consultedJustNow ? '#16a34a' : undefined, color: consultedJustNow ? '#fff' : '#178f89', '&:hover': { bgcolor: consultedJustNow ? '#15803d' : undefined }, flexShrink: 0 }}>{consultedJustNow ? '✓ Consulta registrada' : '🩺 Registrar consulta'}</Button>
             </Stack>
 
             {/* COMMAND BAR — segmented control premium (iOS style) com contagens. Sticky. */}
@@ -1251,7 +1231,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap', p: 1, px: 1.25, borderRadius: 2, bgcolor: 'rgba(32,178,170,.06)', border: '1px solid rgba(32,178,170,.15)' }}>
                       <Typography variant="caption" sx={{ fontWeight: 700, color: TEAL }}>📝 Perguntas em aberto:</Typography>
                       <Typography variant="caption" sx={{ fontWeight: 800 }}>{selected.openQuestions ?? 0} de {selected.openQuestionLimit ?? 5}</Typography>
-                      <Typography variant="caption" color="text.secondary">· cada consulta registrada libera +1 pergunta pra ele.</Typography>
+                      <Typography variant="caption" color="text.secondary">· ao responder, o espaço libera e ele pode enviar novas.</Typography>
                     </Box>
                     {questions.length === 0 && <Empty label="Nenhuma pergunta deste paciente ainda." icon="❓" />}
                     {questions.length > 0 && (

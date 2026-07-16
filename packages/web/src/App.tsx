@@ -1,15 +1,14 @@
-import { Admin, Resource, CustomRoutes, Layout, AppBar, TitlePortal, AppBarProps, useLogout, useLocale, useSetLocale, useRefresh, useStore, LoadingIndicator } from 'react-admin';
+import { Admin, Resource, CustomRoutes, Layout, AppBar, TitlePortal, AppBarProps, useLogout, useLocale, useSetLocale, useRefresh, LoadingIndicator } from 'react-admin';
 import { ConfirmDialogProvider } from './components/ConfirmDialog';
 import { Route, useNavigate, useLocation } from 'react-router-dom';
 import { useEffect, useState, useRef, lazy, Suspense } from 'react';
 import { Capacitor } from '@capacitor/core';
-import { Box, Typography, IconButton, Button, useMediaQuery, useTheme, CircularProgress, Menu as MuiMenu, MenuItem, Divider, ListItemIcon, ListItemText, Collapse, ListItemButton, Dialog, DialogTitle, DialogContent, DialogActions, Chip, Drawer, Avatar, Stack } from '@mui/material';
+import { Box, Typography, IconButton, Button, useMediaQuery, useTheme, CircularProgress, MenuItem, Divider, ListItemIcon, ListItemText, Collapse, ListItemButton, Dialog, DialogTitle, DialogContent, DialogActions, Chip, Drawer, Avatar, Stack } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CloseIcon from '@mui/icons-material/Close';
 import MenuIcon from '@mui/icons-material/Menu';
 import HomeIcon from '@mui/icons-material/Home';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
 import InsightsIcon from '@mui/icons-material/Insights';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import AutoGraphIcon from '@mui/icons-material/AutoGraph';
@@ -92,55 +91,43 @@ import { ConquistasPage } from './pages/Conquistas';
 import { initPush } from './push';
 import { syncCreditCosts } from './components/CreditBadge';
 
-// AppBar: só o seletor de paciente (titular = quem loga) + botão Sair (sem conflito de avatares)
+// AppBar premium: esquerda = ☰/Voltar + MARCA OFICIAL (robô Dr.Exame integrado, preenche o gap que
+// ficava vazio); direita = 🔔 + avatar (menu ÚNICO: dependentes, tema, idioma, sair). Sem ⋮ separado
+// e sem refresh duplicado (atualizar = arrastar a tela / pull-to-refresh).
 const CustomAppBar = (props: AppBarProps) => {
-  const logout = useLogout();
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('sm'));
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const canBack = !isDesktop && pathname !== '/';
-  const refresh = useRefresh();
-  const locale = useLocale();
-  const setLocale = useSetLocale();
   const { openDrawer } = useAppDrawer();
-  const [themeMode, setThemeMode] = useStore<'light' | 'dark'>('theme', 'light');
-  const [menuA, setMenuA] = useState<HTMLElement | null>(null);
-  const toggleLang = () => { const l = locale === 'pt' ? 'en' : 'pt'; setLocale(l); try { localStorage.setItem('lang', l); } catch {} setMenuA(null); };
   return (
-    // O ☰ nativo do react-admin (SidebarToggleButton) é escondido no mobile via CSS no AppLayout
-    // (classe .RaAppBar-menuButton → display:none em telas pequenas). No mobile, o ☰ abaixo
-    // abre o AppDrawer UNIFICADO (mesmo menu do "Mais" do rodapé). Desktop mantém o toggle nativo.
     <AppBar {...props} userMenu={false} toolbar={<LoadingIndicator />}>
-      {/* Mobile: ☰ e Voltar são MUTUAMENTE EXCLUSIVOS pra não lotar a AppBar. Em sub-rota → Voltar;
-          na raiz → ☰ (que abre o MESMO drawer do "Mais" do rodapé). Drawer sempre acessível pelo rodapé. */}
+      {/* Mobile: ☰ e Voltar são MUTUAMENTE EXCLUSIVOS. Em sub-rota → Voltar; na raiz → ☰ (drawer unificado). */}
       {!isDesktop && (
         canBack ? (
-          <IconButton color="inherit" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))} title="Voltar" size="small" sx={{ mr: 0.5 }}>
+          <IconButton color="inherit" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))} title="Voltar" size="small" sx={{ mr: 0.25 }}>
             <ArrowBackIcon fontSize="small" />
           </IconButton>
         ) : (
-          <IconButton color="inherit" onClick={openDrawer} title="Menu" size="small" sx={{ mr: 0.5 }}>
+          <IconButton color="inherit" onClick={openDrawer} title="Menu" size="small" sx={{ mr: 0.25 }}>
             <MenuIcon fontSize="small" />
           </IconButton>
         )
       )}
+      {/* Marca OFICIAL (app-icon.png via DrExame) + wordmark Poppins. Borda/sombra suave = integrada,
+          não "colada". Preenche a esquerda → acabou o gap branco. Desktop mantém o TitlePortal. */}
+      {!isDesktop && (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+          <DrExame size={28} sx={{ borderRadius: '26%', boxShadow: '0 2px 8px rgba(0,0,0,.18)', border: '1.5px solid rgba(255,255,255,.3)' }} />
+          <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins", sans-serif', fontSize: 15, letterSpacing: '-0.01em', whiteSpace: 'nowrap' }}>Dr. Exame</Typography>
+        </Box>
+      )}
       {isDesktop && <TitlePortal />}
       <Box sx={{ flex: 1 }} />
-      {/* Créditos: no mobile já aparecem no header do drawer (☰/Mais). Esconder da AppBar
-          reduz a densidade (5→4 controles) sem perder informação. Desktop mantém o chip. */}
       {isDesktop && <CreditsChip />}
-      <PatientSwitcher />
       <NotificationBell />
-      <IconButton color="inherit" onClick={(e: any) => setMenuA(e.currentTarget)} title="Mais opções" size="small" sx={{ flexShrink: 0 }}>
-        <MoreVertIcon fontSize="small" />
-      </IconButton>
-      <MuiMenu anchorEl={menuA} open={!!menuA} onClose={() => setMenuA(null)} slotProps={{ paper: { sx: { mt: 1, minWidth: 180, borderRadius: 2 } } }}>
-        <MenuItem onClick={() => { setThemeMode(themeMode === 'dark' ? 'light' : 'dark'); setMenuA(null); }}>{themeMode === 'dark' ? '☀️ Modo claro' : '🌙 Modo escuro'}</MenuItem>
-        <MenuItem onClick={toggleLang}>🌐 {locale === 'pt' ? 'Mudar para English' : 'Switch to Português'}</MenuItem>
-        <MenuItem onClick={() => { refresh(); setMenuA(null); }}>↻ Atualizar</MenuItem>
-        <MenuItem onClick={() => logout('/entrar')} sx={{ color: 'error.main' }}>↩ Sair</MenuItem>
-      </MuiMenu>
+      <PatientSwitcher />
     </AppBar>
   );
 };
