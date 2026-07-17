@@ -99,6 +99,22 @@ export const ptMessages = {
   'exams.history_premium': 'Histórico de anos anteriores é Premium.',
   'exams.extracting': 'Dr. Exame está extraindo… toque para acompanhar',
   'common.view_plans': 'Ver planos',
+
+  // tela de login / auth
+  'auth.email': 'E-mail',
+  'auth.email_or_crm': 'E-mail ou CRM',
+  'auth.password': 'Senha',
+  'auth.show_password': 'Mostrar senha',
+  'auth.forgot': 'Esqueci minha senha',
+  'auth.biometry': '🔐 Entrar com biometria',
+  'auth.signin': 'Entrar',
+  'auth.secure': 'Acesso seguro',
+  'auth.secure_desc': 'Seus dados são protegidos com criptografia e armazenados em servidores seguros.',
+  'auth.disclaimer_strong': 'Conteúdo educativo.',
+  'auth.disclaimer': 'Não substitui consulta, diagnóstico ou tratamento médico. Em urgências, procure um serviço de saúde.',
+  'auth.create_account': 'Criar conta',
+  'auth.have_account': 'Já tem conta?',
+  'auth.no_account': 'Não tem conta?',
   'altered.title': 'Valores fora da faixa',
   'altered.all_good': 'Tudo dentro da faixa!',
   'evo.title': 'Evolução ao longo do tempo',
@@ -275,9 +291,34 @@ export const enMessages = {
   'report.health_doc': 'Health Report',
   'report.generate_new': 'Generate new report',
   'report.generating': 'Generating your report',
+  'auth.email': 'Email',
+  'auth.email_or_crm': 'Email or CRM',
+  'auth.password': 'Password',
+  'auth.show_password': 'Show password',
+  'auth.forgot': 'Forgot my password',
+  'auth.biometry': '🔐 Sign in with biometrics',
+  'auth.signin': 'Sign in',
+  'auth.secure': 'Secure access',
+  'auth.secure_desc': 'Your data is protected with encryption and stored on secure servers.',
+  'auth.disclaimer_strong': 'Educational content.',
+  'auth.disclaimer': 'Does not replace consultation, diagnosis, or medical treatment. In emergencies, seek a health service.',
+  'auth.create_account': 'Create account',
+  'auth.have_account': 'Already have an account?',
+  'auth.no_account': "Don't have an account?",
 };
 
-const initialLocale = typeof localStorage !== 'undefined' && localStorage.getItem('lang') === 'en' ? 'en' : 'pt';
+// Idioma inicial: 1) escolha explícita do usuário (menu) prevalece; 2) senão, detecta pelo
+// idioma do navegador/dispositivo — visitante de fora (en/es/...) vê inglês, pt-* vê português.
+// Assim o login já abre no idioma certo sem o usuário precisar tocar em nada.
+const detectLocale = (): 'pt' | 'en' => {
+  try {
+    const saved = localStorage.getItem('lang');
+    if (saved === 'en' || saved === 'pt') return saved;
+    const nav = (navigator.language || (navigator as any).languages?.[0] || 'pt').toLowerCase();
+    return nav.startsWith('pt') ? 'pt' : 'en';
+  } catch { return 'pt'; }
+};
+const initialLocale = detectLocale();
 
 export const i18nProvider = polyglotI18nProvider(
   (locale: string) => (locale === 'en' ? enMessages : ptMessages),

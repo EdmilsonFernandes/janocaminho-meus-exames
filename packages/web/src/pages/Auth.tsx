@@ -24,7 +24,9 @@ const I = {
 };
 
 /** Card centralizado sobre fundo menta (layout loginIdea). */
-const Shell = ({ children }: { children: ReactNode }) => (
+const Shell = ({ children }: { children: ReactNode }) => {
+  const translate = useTranslate();
+  return (
   <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2, background: 'linear-gradient(135deg, rgba(32,178,170,.12), rgba(32,178,170,.04))' }}>
     <Box sx={{ width: '100%', maxWidth: 400, bgcolor: 'background.paper', borderRadius: '16px', boxShadow: '0 10px 40px rgba(0,80,70,.10)', p: { xs: 3, sm: 4 } }}>
       <Stack alignItems="center" spacing={1} sx={{ mb: 3 }}>
@@ -40,12 +42,13 @@ const Shell = ({ children }: { children: ReactNode }) => (
       <Box sx={{ mt: 3, display: 'flex', gap: 1, alignItems: 'flex-start', p: 1.25, borderRadius: 2, bgcolor: 'background.default', border: '1px solid', borderColor: 'divider' }}>
         <Box sx={{ fontSize: 16, lineHeight: 1.3, flexShrink: 0 }}>🩺</Box>
         <Typography sx={{ fontSize: 11.5, color: 'text.secondary', lineHeight: 1.45 }}>
-          <strong>Conteúdo educativo.</strong> Não substitui consulta, diagnóstico ou tratamento médico. Em urgências, procure um serviço de saúde.
+          <strong>{translate('auth.disclaimer_strong')}</strong> {translate('auth.disclaimer')}
         </Typography>
       </Box>
     </Box>
   </Box>
-);
+  );
+};
 
 const fieldSx = {
   '& .MuiOutlinedInput-root': {
@@ -213,39 +216,39 @@ export const LoginPage = () => {
       {mode === 'password' ? (
         <Box component="form" onSubmit={submit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <TextField
-            placeholder={role === 'medico' ? 'E-mail ou CRM' : 'E-mail'} type={role === 'medico' ? 'text' : 'email'} required autoComplete="username" value={email}
+            placeholder={role === 'medico' ? translate('auth.email_or_crm') : translate('auth.email')} type={role === 'medico' ? 'text' : 'email'} required autoComplete="username" value={email}
             onChange={(e) => setEmail(e.target.value)} sx={fieldSx}
             slotProps={{ input: { startAdornment: <InputAdornment position="start"><I.Mail /></InputAdornment> } }}
           />
           <TextField
-            placeholder="Senha" type={showPwd ? 'text' : 'password'} required autoComplete="current-password" value={pwd}
+            placeholder={translate('auth.password')} type={showPwd ? 'text' : 'password'} required autoComplete="current-password" value={pwd}
             onChange={(e) => setPwd(e.target.value)} sx={fieldSx}
             slotProps={{ input: {
               startAdornment: <InputAdornment position="start"><I.Lock /></InputAdornment>,
-              endAdornment: <InputAdornment position="end"><IconButton onClick={() => setShowPwd((s) => !s)} edge="end" size="small" aria-label="Mostrar senha">{showPwd ? <I.Eye /> : <I.EyeOff />}</IconButton></InputAdornment>,
+              endAdornment: <InputAdornment position="end"><IconButton onClick={() => setShowPwd((s) => !s)} edge="end" size="small" aria-label={translate('auth.show_password')}>{showPwd ? <I.Eye /> : <I.EyeOff />}</IconButton></InputAdornment>,
             } }}
           />
           <Box sx={{ textAlign: 'right', mt: -0.5 }}>
-            <Link component="button" type="button" variant="body2" sx={{ fontSize: 12.5, color: '#00897b', fontWeight: 600 }} onClick={() => navigate('/recuperar-senha')}>Esqueci minha senha</Link>
+            <Link component="button" type="button" variant="body2" sx={{ fontSize: 12.5, color: '#00897b', fontWeight: 600 }} onClick={() => navigate('/recuperar-senha')}>{translate('auth.forgot')}</Link>
           </Box>
           {bioReady && (
             <Button type="button" fullWidth variant="outlined" startIcon={<I.Shield />} onClick={bioLogin} sx={{ ...tokenBtnSx, borderColor: '#20b2aa', color: '#178f89', mb: 1, py: 1.2 }}>
-              🔐 Entrar com biometria
+              {translate('auth.biometry')}
             </Button>
           )}
           <Button type="submit" variant="contained" size="large" fullWidth disabled={loading} endIcon={<I.ArrowRight />} sx={primaryBtnSx}>
-            {loading ? <CircularProgress size={22} color="inherit" /> : 'Entrar'}
+            {loading ? <CircularProgress size={22} color="inherit" /> : translate('auth.signin')}
           </Button>
           {/* "Entrar com token" oculto por ora (OTP segue acessível p/ ativação de conta). */}
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start', mt: 1, color: 'text.secondary' }}>
             <Box sx={{ mt: '1px' }}><I.Shield /></Box>
             <Box>
-              <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: 'text.primary' }}>Acesso seguro</Typography>
-              <Typography sx={{ fontSize: 11.5, color: 'text.secondary', lineHeight: 1.4 }}>Seus dados são protegidos com criptografia e armazenados em servidores seguros.</Typography>
+              <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: 'text.primary' }}>{translate('auth.secure')}</Typography>
+              <Typography sx={{ fontSize: 11.5, color: 'text.secondary', lineHeight: 1.4 }}>{translate('auth.secure_desc')}</Typography>
             </Box>
           </Box>
           <Typography align="center" sx={{ mt: 1, fontSize: 13 }}>
-            {role === 'medico' ? 'Ainda não tem conta médica?' : 'Não tem conta?'} <Link component="button" type="button" sx={{ fontWeight: 700, color: '#00897b' }} onClick={() => navigate(role === 'medico' ? '/doctor?mode=register' : '/registrar')}>{role === 'medico' ? 'Cadastrar' : 'Criar agora'}</Link>
+            {translate('auth.no_account')} <Link component="button" type="button" sx={{ fontWeight: 700, color: '#00897b' }} onClick={() => navigate(role === 'medico' ? '/doctor?mode=register' : '/registrar')}>{translate('auth.create_account')}</Link>
           </Typography>
         </Box>
       ) : (
@@ -268,6 +271,7 @@ export const LoginPage = () => {
 
 export const RegisterPage = () => {
   const navigate = useNavigate();
+  const translate = useTranslate();
   const notify = useNotify();
   const [name, setName] = useState('');
   const [cpf, setCpf] = useState('');
@@ -365,7 +369,7 @@ export const RegisterPage = () => {
         </Button>
       </Box>
       <Typography align="center" sx={{ mt: 2, fontSize: 13 }}>
-        Já tem conta? <Link component="button" type="button" sx={{ fontWeight: 700, color: '#00897b' }} onClick={() => navigate('/')}>Entrar</Link>
+        {translate('auth.have_account')} <Link component="button" type="button" sx={{ fontWeight: 700, color: '#00897b' }} onClick={() => navigate('/')}>{translate('auth.signin')}</Link>
       </Typography>
         </>
       )}
