@@ -115,12 +115,15 @@ const CustomAppBar = (props: AppBarProps) => {
           </IconButton>
         )
       )}
-      {/* Marca OFICIAL (app-icon.png via DrExame) + wordmark Poppins. Borda/sombra suave = integrada,
-          não "colada". Preenche a esquerda → acabou o gap branco. Desktop mantém o TitlePortal. */}
+      {/* LOGO "chip" teal (estilo iFood): robô oficial DENTRO de um container arredondado com
+          gradiente da marca. Substitui a borda branca dura (parecia adesivo, sem identidade) por
+          um frame teal — integrado e com presença de marca. Preenche a esquerda (acabou o gap). */}
       {!isDesktop && (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-          <DrExame size={30} sx={{ borderRadius: '28%', boxShadow: '0 0 0 1.5px rgba(255,255,255,.9), 0 3px 10px rgba(0,0,0,.24)' }} />
-          <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins", sans-serif', fontSize: 15, letterSpacing: '-0.01em', whiteSpace: 'nowrap' }}>Dr. Exame</Typography>
+          <Box sx={{ width: 36, height: 36, borderRadius: '32%', flexShrink: 0, display: 'grid', placeItems: 'center', background: 'linear-gradient(145deg,#20b2aa 0%,#178f89 55%,#0f5f5a 100%)', boxShadow: '0 3px 10px rgba(15,95,90,.45)', overflow: 'hidden' }}>
+            <DrExame size={28} sx={{ borderRadius: '22%' }} />
+          </Box>
+          <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins", sans-serif', fontSize: 16, letterSpacing: '-0.01em', whiteSpace: 'nowrap' }}>Dr. Exame</Typography>
         </Box>
       )}
       {isDesktop && <TitlePortal />}
