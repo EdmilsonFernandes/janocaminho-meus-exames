@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Box, Card, CardContent, Typography, TextField, Button, Stack, Chip, CircularProgress, MenuItem, Switch, FormControlLabel } from '@mui/material';
-import { useNotify, useRefresh } from 'react-admin';
+import { useNotify, useRefresh, useTranslate } from 'react-admin';
 import { useNavigate } from 'react-router-dom';
 import LockIcon from '@mui/icons-material/Lock';
 import SaveIcon from '@mui/icons-material/Save';
@@ -19,6 +19,7 @@ import { formatCpf, isValidCpf } from '../utils/cpf';
 import { DateFieldBR } from '../components/DateFieldBR';
 
 export const ProfilePage = () => {
+  const translate = useTranslate();
   const [pid] = useSelectedPatient();
   const notify = useNotify();
   const refresh = useRefresh();
@@ -112,7 +113,7 @@ export const ProfilePage = () => {
 
   return (
     <PageContainer width={780}>
-      <PageHeader icon={<AccountCircleIcon />} title="Meu perfil" subtitle="Sua conta, dados e preferências" />
+      <PageHeader icon={<AccountCircleIcon />} title={translate('page.profile')} subtitle={translate('page.profile_sub')} />
 
       {/* Cabeçalho: conta + foto EDITÁVEL (unificado — só uma foto) */}
       <Card sx={{ mb: 2, borderRadius: 4, overflow: 'hidden', background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff' }}>

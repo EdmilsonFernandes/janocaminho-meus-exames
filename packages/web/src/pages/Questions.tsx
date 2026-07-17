@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslate } from 'react-admin';
 import { Box, Typography, Card, CardContent, Stack, Chip, Avatar, CircularProgress, Dialog, IconButton, Select, MenuItem, TextField, FormControl } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
@@ -18,6 +19,7 @@ const TEAL = '#178f89';
  * Fecha o loop: o paciente via a resposta só na notificação — agora tem um lugar fixo.
  */
 export const QuestionsPage = () => {
+  const translate = useTranslate();
   const [pid] = useSelectedPatient();
   const [items, setItems] = useState<any[]>([]);
   const [shares, setShares] = useState<any[]>([]);
@@ -68,7 +70,7 @@ export const QuestionsPage = () => {
 
   return (
     <PageContainer width="content">
-      <PageHeader icon={<QuestionAnswerIcon />} title="Minhas perguntas" />
+      <PageHeader icon={<QuestionAnswerIcon />} title={translate('page.questions')} />
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
         Suas perguntas enviadas aos médicos e as respostas — num só lugar.
       </Typography>

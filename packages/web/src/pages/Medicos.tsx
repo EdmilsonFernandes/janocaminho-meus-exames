@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Box, Card, CardContent, Typography, Button, TextField, CircularProgress, Stack, Chip, Avatar, IconButton, Alert, Divider, Switch, FormControlLabel, MenuItem, Menu as MuiMenu, Dialog, DialogTitle, DialogContent, DialogActions, InputAdornment } from '@mui/material';
-import { useNotify } from 'react-admin';
+import { useNotify, useTranslate } from 'react-admin';
 import { API_URL, token } from '../config';
 import { bumpCredits } from '../utils/credits-events';
 import { confirmDialog } from '../components/ConfirmDialog';
@@ -43,6 +43,7 @@ const ScopeToggle = ({ scopeKey, active, onToggle, compact }: { scopeKey: string
 };
 
 export const MedicosPage = () => {
+  const translate = useTranslate();
   const notify = useNotify();
   const [pid] = useSelectedPatient();
   const [shares, setShares] = useState<any[]>([]);
@@ -198,8 +199,8 @@ export const MedicosPage = () => {
 
   return (
     <PageContainer width={760}>
-      <PageHeader icon={<MedicalServicesIcon />} title="Meus Médicos"
-        subtitle="Controle quem vê seus dados. Escolha o que compartilhar e revogue a qualquer momento."
+      <PageHeader icon={<MedicalServicesIcon />} title={translate('page.doctors')}
+        subtitle={translate('page.doctors_sub')}
         actions={<Button variant="contained" startIcon={<PersonAddIcon />} onClick={() => setShowForm(true)} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700 }}>
           Compartilhar
         </Button>} />

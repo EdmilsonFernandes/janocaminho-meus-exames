@@ -4,7 +4,7 @@ import CheckIcon from '@mui/icons-material/CheckCircle';
 import BoltIcon from '@mui/icons-material/Bolt';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import DiamondIcon from '@mui/icons-material/Diamond';
-import { useNotify } from 'react-admin';
+import { useNotify, useTranslate } from 'react-admin';
 import { useSearchParams } from 'react-router-dom';
 import { API_URL, token } from '../config';
 import { Capacitor } from '@capacitor/core';
@@ -19,6 +19,7 @@ interface Pack { id: string; credits: number; price: number; label: string; popu
 interface PlanInfo { plans: { id: string; label: string; price: number; periodDays: number }[]; creditPacks: Pack[]; freeExamLimit: number; mercadoPagoEnabled: boolean; }
 
 export const PlansPage = () => {
+  const translate = useTranslate();
   const notify = useNotify();
   const [params] = useSearchParams();
   const [status, setStatus] = useState<Status | null>(null);
@@ -101,7 +102,7 @@ export const PlansPage = () => {
 
   return (
     <PageContainer width={860}>
-      <PageHeader icon={<DiamondIcon />} title="Planos e Créditos"
+      <PageHeader icon={<DiamondIcon />} title={translate('page.plans')}
         subtitle={<>Use à vontade: assine o <strong>mensal</strong> (250 créditos de IA por mês) ou compre <strong>créditos avulsos</strong> via PIX.</>} />
 
       {/* HERO — saldo centralizado, gradiente esmeralda + profundidade */}

@@ -5,7 +5,7 @@ import ptApp from './i18n/pt.json';
 import enApp from './i18n/en.json';
 
 // Tradução pt-BR do react-admin. Parte do que não estiver aqui cai no inglês (base).
-const ptMessages = {
+export const ptMessages = {
   ...englishMessages,
   ...ptApp,
 
@@ -56,6 +56,24 @@ const ptMessages = {
   'dash.advanced_sub': 'Estado atual, idade biológica, risco cardiometabólico e distribuição',
   'dash.trends_link': 'Tendências & Previsões',
   'dash.achievements_link': 'Conquistas',
+
+  // títulos + subtítulos das páginas (PageHeader)
+  'page.questions': 'Minhas perguntas',
+  'page.doctors': 'Meus Médicos',
+  'page.doctors_sub': 'Controle quem vê seus dados. Escolha o que compartilhar e revogue a qualquer momento.',
+  'page.profile': 'Meu perfil',
+  'page.profile_sub': 'Sua conta, dados e preferências',
+  'page.plans': 'Planos e Créditos',
+  'page.notifications': 'Notificações',
+  'page.family': 'Saúde da Família',
+  'page.family_sub': 'Score de cada um e padrões que aparecem em mais de uma pessoa.',
+  'page.support': 'Ajuda & Suporte',
+  'page.support_sub': 'Abra um chamado, acompanhe o status e converse com o suporte.',
+  'page.expenses': 'Despesas Médicas',
+  'page.measurements': 'Medições',
+  'page.evolution': 'Evolução da minha saúde',
+  'page.alterados': 'Valores alterados',
+  'page.report': 'Relatório completo',
 
   // ações / botões
   'ra.action.delete': 'Excluir',
@@ -114,9 +132,10 @@ const ptMessages = {
 };
 
 // EN (English) — framework + menu. Conteúdo custom das páginas ainda em PT (a traduzir gradualmente).
-const enMessages = {
+export const enMessages = {
   ...englishMessages,
   ...enApp,
+  'ra.action.close': 'Close',
   'menu.dashboard': 'Dashboard',
   'menu.profile': 'My profile',
   'menu.evolution': 'Health evolution',
@@ -159,6 +178,22 @@ const enMessages = {
   'dash.advanced_sub': 'Current state, biological age, cardiometabolic risk and distribution',
   'dash.trends_link': 'Trends & Forecasts',
   'dash.achievements_link': 'Achievements',
+  'page.questions': 'My questions',
+  'page.doctors': 'My Doctors',
+  'page.doctors_sub': 'Control who sees your data. Choose what to share and revoke anytime.',
+  'page.profile': 'My profile',
+  'page.profile_sub': 'Your account, data and preferences',
+  'page.plans': 'Plans & Credits',
+  'page.notifications': 'Notifications',
+  'page.family': 'Family Health',
+  'page.family_sub': "Each person's score and patterns appearing in more than one person.",
+  'page.support': 'Help & Support',
+  'page.support_sub': 'Open a ticket, track its status and chat with support.',
+  'page.expenses': 'Medical Expenses',
+  'page.measurements': 'Measurements',
+  'page.evolution': 'My health evolution',
+  'page.alterados': 'Altered values',
+  'page.report': 'Full report',
 };
 
 const initialLocale = typeof localStorage !== 'undefined' && localStorage.getItem('lang') === 'en' ? 'en' : 'pt';

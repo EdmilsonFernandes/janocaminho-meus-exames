@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslate } from 'react-admin';
 import { useNavigate } from 'react-router-dom';
 import { Box, Card, CardContent, Typography, Button, CircularProgress, Stack, Chip, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -19,6 +20,7 @@ const fmtDt = (d: string) => new Date(d).toLocaleString('pt-BR', { day: '2-digit
 
 export const NotificationsPage = () => {
   const navigate = useNavigate();
+  const translate = useTranslate();
   const [view, setView] = useState<any | null>(null);
   const [data, setData] = useState<{ items: any[]; unread: number } | null>(null);
   const load = () => fetch(`${API_URL}/notifications`, { headers: { Authorization: `Bearer ${token()}` } }).then((r) => r.json()).then(setData).catch(() => {});
@@ -40,7 +42,7 @@ export const NotificationsPage = () => {
     <PageContainer width="content">
       <PageHeader
         icon={<NotificationsIcon />}
-        title="Notificações"
+        title={translate('page.notifications')}
         actions={!!data?.unread ? <Button size="small" variant="outlined" onClick={markAll}>Marcar todas como lidas</Button> : undefined}
       />
       {!data && <CircularProgress />}
