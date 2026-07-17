@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { List, useListContext, useRefresh, useNotify, CreateButton, TopToolbar } from 'react-admin';
+import { List, useListContext, useRefresh, useNotify, useTranslate, CreateButton, TopToolbar } from 'react-admin';
 import { Chip, Box, Card, CardContent, Typography, IconButton, Stack, LinearProgress, Button, Accordion, AccordionSummary, AccordionDetails, Alert, CircularProgress, TextField, InputAdornment, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import ScienceIcon from '@mui/icons-material/Science';
 import ImageIcon from '@mui/icons-material/Image';
@@ -69,6 +69,7 @@ const ProcessingCard = ({ r, onCancel }: { r: any; onCancel?: (e: any) => void }
 const ExamCards = () => {
   const { data, isLoading, total } = useListContext<any>();
   const navigate = useNavigate();
+  const translate = useTranslate();
   const refresh = useRefresh();
   const notify = useNotify();
   const premium = usePremium();
@@ -158,7 +159,7 @@ const ExamCards = () => {
             <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.5 }}>
               {isNew && <Chip size="small" label="🆕 Novo" sx={{ bgcolor: '#dcfce7', color: '#15803d', fontWeight: 700, height: 20 }} />}
               <Chip size="small" label={statusLabel[r.status] ?? r.status} sx={{ bgcolor: c + '18', color: c, fontWeight: 700, height: 20 }} />
-              {needsReview && <Chip size="small" label="Conferir dados" sx={{ bgcolor: '#f59e0b18', color: '#b45309', fontWeight: 800, height: 20 }} />}
+              {needsReview && <Chip size="small" label={translate('exams.review')} sx={{ bgcolor: '#f59e0b18', color: '#b45309', fontWeight: 800, height: 20 }} />}
             </Stack>
           </Box>
           <IconButton size="small" onClick={(e) => del(e, r.id, r.title)} title="Excluir" aria-label={`Excluir exame ${r.title}`} sx={{ flexShrink: 0 }}><DeleteOutlineIcon fontSize="small" /></IconButton>
@@ -189,36 +190,36 @@ const ExamCards = () => {
 
   return (
     <PageContainer width="content" sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-      <PageHeader icon={<DescriptionOutlinedIcon />} title="Seus exames" subtitle={`${total ?? 0} exame${(total ?? 0) !== 1 ? 's' : ''} no total • toque pra ver detalhes`} />
+      <PageHeader icon={<DescriptionOutlinedIcon />} title={translate('exams.title')} subtitle={translate('exams.subtitle', { count: total ?? 0 })} />
 
       {/* Dialog premium de excluir exame (substitui o window.confirm nativo) */}
       <ConfirmDialog
         open={!!delTarget}
         onClose={() => setDelTarget(null)}
         onConfirm={confirmDel}
-        title="Excluir exame"
-        message={delTarget ? (<>Excluir <b>"{delTarget.title}"</b>? Esta ação não pode ser desfeita.</>) : ''}
-        confirmLabel="Excluir"
+        title={translate('exams.delete_title')}
+        message={delTarget ? translate('exams.delete_msg', { title: delTarget.title }) : ''}
+        confirmLabel={translate('ra.action.delete')}
       />
 
       {/* Toolbar: busca + alternador de visão + filtro por categoria */}
       <Stack spacing={1.25}>
         <TextField
           size="small" fullWidth value={q} onChange={(e) => setQ(e.target.value)}
-          placeholder="Buscar exame (TSH, glicose, hemograma…)"
+          placeholder={translate('exams.search_ph')}
           InputProps={{ startAdornment: (<InputAdornment position="start"><SearchIcon fontSize="small" sx={{ color: 'text.secondary' }} /></InputAdornment>) }}
           sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: 'background.paper' } }}
         />
         <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
           <ToggleButtonGroup exclusive size="small" value={view} onChange={(_, v) => { if (v) setView(v); }}>
-            <ToggleButton value="date" sx={{ px: 1.25, py: 0.25, textTransform: 'none', fontWeight: 700 }}>📅 Por data</ToggleButton>
-            <ToggleButton value="category" sx={{ px: 1.25, py: 0.25, textTransform: 'none', fontWeight: 700 }}>🗂️ Por categoria</ToggleButton>
+            <ToggleButton value="date" sx={{ px: 1.25, py: 0.25, textTransform: 'none', fontWeight: 700 }}>{translate('exams.by_date')}</ToggleButton>
+            <ToggleButton value="category" sx={{ px: 1.25, py: 0.25, textTransform: 'none', fontWeight: 700 }}>{translate('exams.by_category')}</ToggleButton>
           </ToggleButtonGroup>
         </Stack>
         {/* Chips de categoria — só aparecem se houver +1 categoria nos exames prontos */}
         {presentCats.length > 1 && (
           <Stack direction="row" spacing={0.75} sx={{ overflowX: 'auto', flexWrap: 'nowrap', pb: 0.25, mx: -0.25, px: 0.25, '&::-webkit-scrollbar': { display: 'none' } }}>
-            <Chip size="small" label={`Todos (${extracted.length})`} onClick={() => setCat('all')} sx={{ height: 26, flexShrink: 0, fontWeight: 700, whiteSpace: 'nowrap', bgcolor: cat === 'all' ? '#0f3d3a' : '#0f3d3a14', color: cat === 'all' ? '#fff' : '#0f3d3a' }} />
+            <Chip size="small" label={translate('exams.all', { count: extracted.length })} onClick={() => setCat('all')} sx={{ height: 26, flexShrink: 0, fontWeight: 700, whiteSpace: 'nowrap', bgcolor: cat === 'all' ? '#0f3d3a' : '#0f3d3a14', color: cat === 'all' ? '#fff' : '#0f3d3a' }} />
             {presentCats.map((c) => (
               <Chip key={c.key} size="small" label={`${c.emoji} ${c.cat} (${catCounts[c.key]})`} onClick={() => setCat(cat === c.key ? 'all' : c.key)} sx={{ height: 26, flexShrink: 0, fontWeight: 700, whiteSpace: 'nowrap', bgcolor: cat === c.key ? c.color : c.color + '1a', color: cat === c.key ? '#fff' : c.color, border: `1px solid ${cat === c.key ? c.color : c.color + '40'}` }} />
             ))}
@@ -230,7 +231,7 @@ const ExamCards = () => {
       {processing.length > 0 && (
         <Box>
           <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.75 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0369a1' }}>⏳ Em processamento</Typography>
+            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0369a1' }}>{translate('exams.processing')}</Typography>
             <Chip size="small" label={processing.length} sx={{ height: 18, bgcolor: '#e0f2fe', color: '#0369a1', fontWeight: 700 }} />
           </Stack>
           <Stack spacing={1.5}>
@@ -241,11 +242,11 @@ const ExamCards = () => {
       {failed.length > 0 && (
         <Box>
           <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.75 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#b91c1c' }}>⚠️ Não foi possível ler</Typography>
+            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#b91c1c' }}>{translate('exams.failed_title')}</Typography>
             <Chip size="small" label={failed.length} sx={{ height: 18, bgcolor: '#fee2e2', color: '#b91c1c', fontWeight: 700 }} />
           </Stack>
           <Alert severity="warning" icon={false} sx={{ mb: 1.25, borderRadius: 2, py: 0.75, '& .MuiAlert-message': { fontSize: 12.5 } }}>
-            {failed.length === 1 ? 'Este documento não parece ser um exame (receita, nota ou ilegível).' : `${failed.length} documentos não parecem ser exames (receita, nota ou ilegíveis).`} Revise ou exclua abaixo — se for um exame de verdade, toque em <strong>Re-extrair</strong>.
+            {failed.length === 1 ? translate('exams.failed_msg_one') : translate('exams.failed_msg_many', { count: failed.length })} {translate('exams.failed_action')} <strong>{translate('exams.reextract')}</strong>.
           </Alert>
           <Stack spacing={1.5}>
             {failed.map((r: any) => renderCard(r))}
@@ -258,7 +259,7 @@ const ExamCards = () => {
         <Card variant="outlined" sx={{ borderRadius: 3, p: 1.5, display: 'flex', alignItems: 'center', gap: 1.5, borderColor: 'divider', background: 'linear-gradient(135deg, rgba(32,178,170,.06), transparent)' }}>
           <LockIcon sx={{ color: '#178f89' }} />
           <Typography variant="body2" sx={{ flex: 1, minWidth: 0 }}>{lockedCount} exame(s) de anos anteriores fazem parte do histórico Premium.</Typography>
-          <Button size="small" variant="contained" onClick={() => navigate('/planos')} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', boxShadow: 'none', '&:hover': { bgcolor: '#178f89' }, flexShrink: 0 }}>Ver planos</Button>
+          <Button size="small" variant="contained" onClick={() => navigate('/planos')} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', boxShadow: 'none', '&:hover': { bgcolor: '#178f89' }, flexShrink: 0 }}>{translate('common.view_plans')}</Button>
         </Card>
       )}
 
@@ -267,8 +268,8 @@ const ExamCards = () => {
         <>
           {dateGroups.length === 0 && (
             filtering
-              ? <EmptyState emoji="🔍" title="Nenhum exame encontrado" desc="Tente outro termo de busca ou troque a categoria." />
-              : <EmptyState emoji="📄" title="Nenhum exame enviado ainda" desc="Envie seu primeiro exame (PDF ou foto) e o Dr. Exame extrai os resultados automaticamente." cta="Enviar exame" onCta={() => navigate('/exams/create')} />
+              ? <EmptyState emoji="🔍" title={translate('exams.empty_search_title')} desc={translate('exams.empty_search_desc')} />
+              : <EmptyState emoji="📄" title={translate('exams.empty_title')} desc={translate('exams.empty_desc')} cta={translate('exams.send')} onCta={() => navigate('/exams/create')} />
           )}
           {dateGroups.map((g) => {
             const locked = !premium && g.year !== latestYear && g.year != null;
@@ -278,9 +279,9 @@ const ExamCards = () => {
                   <LockIcon sx={{ color: '#178f89' }} />
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Typography sx={{ fontWeight: 800 }}>📅 {g.label} • {g.items.length} exame(s)</Typography>
-                    <Typography variant="caption" color="text.secondary">Histórico de anos anteriores é Premium.</Typography>
+                    <Typography variant="caption" color="text.secondary">{translate('exams.history_premium')}</Typography>
                   </Box>
-                  <Button size="small" variant="contained" onClick={() => navigate('/planos')} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', boxShadow: 'none', '&:hover': { bgcolor: '#178f89' } }}>Ver planos</Button>
+                  <Button size="small" variant="contained" onClick={() => navigate('/planos')} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', boxShadow: 'none', '&:hover': { bgcolor: '#178f89' } }}>{translate('common.view_plans')}</Button>
                 </Card>
               );
             }
@@ -304,8 +305,8 @@ const ExamCards = () => {
         <>
           {catGroups.length === 0 && (
             filtering
-              ? <EmptyState emoji="🔍" title="Nenhum exame encontrado" desc="Tente outro termo de busca ou troque a categoria." />
-              : <EmptyState emoji="📄" title="Nenhum exame enviado ainda" desc="Envie seu primeiro exame (PDF ou foto) e o Dr. Exame extrai os resultados automaticamente." cta="Enviar exame" onCta={() => navigate('/exams/create')} />
+              ? <EmptyState emoji="🔍" title={translate('exams.empty_search_title')} desc={translate('exams.empty_search_desc')} />
+              : <EmptyState emoji="📄" title={translate('exams.empty_title')} desc={translate('exams.empty_desc')} cta={translate('exams.send')} onCta={() => navigate('/exams/create')} />
           )}
           {catGroups.map(({ cat: c, items }) => (
             <Accordion key={c.key} defaultExpanded={catGroups.length <= 3} disableGutters elevation={0}
