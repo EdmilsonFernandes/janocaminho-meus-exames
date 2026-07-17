@@ -208,12 +208,12 @@ export const MedicosPage = () => {
       {/* Filtros */}
       {!loading && myShares.length > 0 && (
         <Stack spacing={1} sx={{ mb: 2 }}>
-          <TextField placeholder="Buscar por nome ou CRM…" value={search} onChange={(e) => setSearch(e.target.value)} size="small" fullWidth
+          <TextField placeholder={translate('docs.search_ph')} value={search} onChange={(e) => setSearch(e.target.value)} size="small" fullWidth
             slotProps={{ input: { startAdornment: <InputAdornment position="start"><SearchIcon sx={{ fontSize: 18, color: 'text.secondary' }} /></InputAdornment> } }} />
           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" alignItems="center">
             {specialties.length > 1 && (
               <TextField select size="small" value={specFilter} onChange={(e) => setSpecFilter(e.target.value)} sx={{ minWidth: 160 }} label="Especialidade">
-                <MenuItem value="">Todas</MenuItem>
+                <MenuItem value="">{translate('docs.all')}</MenuItem>
                 {specialties.map((sp: string) => <MenuItem key={sp} value={sp}>{sp}</MenuItem>)}
               </TextField>
             )}
@@ -230,9 +230,9 @@ export const MedicosPage = () => {
       {!loading && myShares.length === 0 && (
         <Card sx={{ borderRadius: 4, background: 'background.default', border: '1px solid', borderColor: 'divider' }}><CardContent sx={{ textAlign: 'center', py: 5 }}>
           <Box sx={{ fontSize: 56, mb: 1 }}>🩺</Box>
-          <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', mb: 0.5 }}>Nenhum médico ainda?</Typography>
-          <Typography color="text.secondary" sx={{ mb: 2.5, maxWidth: 320, mx: 'auto' }}>Compartilhe seus exames com seu médico em segundos — ele recebe tudo organizado.</Typography>
-          <Button variant="contained" size="large" startIcon={<PersonAddIcon />} onClick={() => setShowForm(true)} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 800, px: 4 }}>Compartilhar agora →</Button>
+          <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', mb: 0.5 }}>{translate('docs.empty_title')}</Typography>
+          <Typography color="text.secondary" sx={{ mb: 2.5, maxWidth: 320, mx: 'auto' }}>{translate('docs.empty_desc')}</Typography>
+          <Button variant="contained" size="large" startIcon={<PersonAddIcon />} onClick={() => setShowForm(true)} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 800, px: 4 }}>{translate('docs.share_now')}</Button>
         </CardContent></Card>
       )}
 
@@ -288,7 +288,7 @@ export const MedicosPage = () => {
                     <Typography sx={{ fontWeight: 600, fontSize: 13, color: 'text.secondary' }}>{s.doctor?.name}</Typography>
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>CRM {s.doctor?.crm}</Typography>
                   </Box>
-                  <Button size="small" onClick={() => reactivate(s.id)} sx={{ textTransform: 'none', color: '#178f89', fontSize: 12 }}>Reativar</Button>
+                  <Button size="small" onClick={() => reactivate(s.id)} sx={{ textTransform: 'none', color: '#178f89', fontSize: 12 }}>{translate('docs.reactivate')}</Button>
                 </CardContent>
               </Card>
             ))}
@@ -320,18 +320,18 @@ export const MedicosPage = () => {
               {detail.clinicName && <Typography sx={{ fontWeight: 700, mt: 1, color: 'text.primary' }}>{detail.clinicName}</Typography>}
               {detail.clinicCity && <Typography variant="body2" color="text.secondary">📍 {detail.clinicCity}</Typography>}
               {detail.bio && <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic', color: 'text.secondary', lineHeight: 1.4 }}>{detail.bio}</Typography>}
-              {!detail.bio && !detail.clinicName && <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>Convidado por você para acompanhar seus exames.</Typography>}
+              {!detail.bio && !detail.clinicName && <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>{translate('docs.invited_by_you')}</Typography>}
               {/* Agendar: WhatsApp se o médico preencheu telefone, senão e-mail */}
               {detail.phone ? (
                 <Button component="a" target="_blank" rel="noopener" size="small" href={`https://wa.me/${detail.phone.replace(/\D/g, '')}?text=${encodeURIComponent('Olá, doutor(a)! Gostaria de agendar uma consulta.')}`} sx={{ mt: 1.5, borderRadius: 99, textTransform: 'none', fontWeight: 700, py: 1.1, bgcolor: '#25D366', color: '#fff', '&:hover': { bgcolor: '#1da851' } }}>💬 Agendar no WhatsApp</Button>
               ) : detail.email && !detail.email.includes('@invite.com') ? (
-                <Button size="small" startIcon={<MedicalServicesIcon />} href={`mailto:${detail.email}?subject=Agendamento%20de%20consulta`} sx={{ mt: 1.5, borderRadius: 99, textTransform: 'none', fontWeight: 700, py: 1.1, bgcolor: '#059669', color: '#fff', '&:hover': { bgcolor: '#047857' } }}>Agendar por e-mail</Button>
+                <Button size="small" startIcon={<MedicalServicesIcon />} href={`mailto:${detail.email}?subject=Agendamento%20de%20consulta`} sx={{ mt: 1.5, borderRadius: 99, textTransform: 'none', fontWeight: 700, py: 1.1, bgcolor: '#059669', color: '#fff', '&:hover': { bgcolor: '#047857' } }}>{translate('docs.schedule_email')}</Button>
               ) : null}
               <Divider sx={{ my: 0.5 }}><Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', letterSpacing: 0.5 }}>TIRAR UMA DÚVIDA</Typography></Divider>
               {/* Pergunta paga ao médico (2 créditos) — vira thread no portal do médico */}
               <Box sx={{ mt: 1.5, textAlign: 'left' }}>
                 <Typography variant="caption" sx={{ fontWeight: 800, color: '#178f89', display: 'block', mb: 0.5 }}>❓ Perguntar ao médico · 2 créditos</Typography>
-                <TextField multiline minRows={2} size="small" fullWidth placeholder="Ex.: Meu HDL baixo altera meu risco cardiovascular? Como aumentar?" value={perg} onChange={(e) => setPerg(e.target.value)} />
+                <TextField multiline minRows={2} size="small" fullWidth placeholder={translate('docs.ask_ph')} value={perg} onChange={(e) => setPerg(e.target.value)} />
                 {pergMsg && <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: pergMsg.startsWith('✓') ? '#059669' : 'error.main', fontWeight: 700, lineHeight: 1.3 }}>{pergMsg}</Typography>}
                 <Button size="small" disabled={enviando || !perg.trim()} onClick={enviarPergunta} startIcon={enviando ? <CircularProgress size={14} color="inherit" /> : undefined} sx={{ mt: 1, borderRadius: 99, textTransform: 'none', fontWeight: 700, py: 1, px: 2.5, bgcolor: '#178f89', color: '#fff', '&:hover': { bgcolor: '#0f7670' }, boxShadow: 'none' }}>{enviando ? 'Enviando…' : 'Enviar pergunta · 2 💎'}</Button>
               </Box>

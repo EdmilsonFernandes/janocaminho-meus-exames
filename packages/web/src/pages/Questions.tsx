@@ -79,12 +79,12 @@ export const QuestionsPage = () => {
           aparecia em lugar nenhum). Ao receber resposta, o espaço libera. */}
       {shares.length > 0 && (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap', p: 1, px: 1.25, borderRadius: 2, bgcolor: 'rgba(32,178,170,.06)', border: '1px solid rgba(32,178,170,.15)', mb: 2 }}>
-          <Typography variant="caption" sx={{ fontWeight: 700, color: TEAL }}>💬 Perguntas em aberto:</Typography>
+          <Typography variant="caption" sx={{ fontWeight: 700, color: TEAL }}>{translate('q.open_label')}</Typography>
           {shares.map((s: any) => {
             const open = Number(s.openQuestions ?? 0); const max = Number(s.questionLimit ?? 5);
             return <Chip key={s.doctorId ?? s.doctor?.id} size="small" label={`${s.doctor?.name ?? s.name}: ${open}/${max}`} sx={{ fontWeight: 600, bgcolor: open >= max ? '#fee2e2' : 'rgba(32,178,170,.1)', color: open >= max ? '#b91c1c' : TEAL }} />;
           })}
-          <Typography variant="caption" color="text.secondary">· ao receber resposta, o espaço libera.</Typography>
+          <Typography variant="caption" color="text.secondary">{translate('q.open_hint')}</Typography>
         </Box>
       )}
 
@@ -99,12 +99,12 @@ export const QuestionsPage = () => {
           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" alignItems="center">
             <FormControl size="small" sx={{ minWidth: 150, flex: 1 }}>
               <Select value={doctorFilter} displayEmpty onChange={(e) => setDoctorFilter(String(e.target.value))}>
-                <MenuItem value="">Todos os médicos</MenuItem>
+                <MenuItem value="">{translate('q.all_doctors')}</MenuItem>
                 {doctors.map((d: any) => <MenuItem key={d?.id} value={d?.id}>{d?.name}</MenuItem>)}
               </Select>
             </FormControl>
-            <TextField type="date" size="small" label="De" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} InputLabelProps={{ shrink: true }} sx={{ width: 120 }} />
-            <TextField type="date" size="small" label="Até" value={dateTo} onChange={(e) => setDateTo(e.target.value)} InputLabelProps={{ shrink: true }} sx={{ width: 120 }} />
+            <TextField type="date" size="small" label={translate('q.from')} value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} InputLabelProps={{ shrink: true }} sx={{ width: 120 }} />
+            <TextField type="date" size="small" label={translate('q.to')} value={dateTo} onChange={(e) => setDateTo(e.target.value)} InputLabelProps={{ shrink: true }} sx={{ width: 120 }} />
           </Stack>
         </Stack>
       )}
@@ -112,7 +112,7 @@ export const QuestionsPage = () => {
       {filtered.length === 0 ? (
         <Card variant="outlined" sx={{ borderRadius: 3, textAlign: 'center', py: 6, px: 3 }}>
           <Box sx={{ fontSize: 48, mb: 1 }}>💬</Box>
-          <Typography sx={{ fontWeight: 800, mb: 0.5 }}>Nenhuma pergunta ainda</Typography>
+          <Typography sx={{ fontWeight: 800, mb: 0.5 }}>{translate('q.empty')}</Typography>
           <Typography variant="body2" color="text.secondary">
             Gere seu relatório consolidado e envie as perguntas ao médico, ou pergunte direto em "Meus Médicos".
           </Typography>
@@ -159,7 +159,7 @@ export const QuestionsPage = () => {
           <Avatar src={open?.doctor?.photoUrl ? `${API_URL}/doctor/photo/${open?.doctor?.id}?v=0` : undefined} sx={{ width: 40, height: 40, bgcolor: TEAL, fontSize: 15, fontWeight: 700 }}>{(open?.doctor?.name || 'M').charAt(0)}</Avatar>
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography sx={{ fontWeight: 800, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{open?.doctor?.name || 'Médico'}</Typography>
-            <Typography variant="caption" color="text.secondary">{open?.doctor?.specialty}{open?.status === 'answered' ? ' · ✓ Respondida' : ' · ⏳ Aguardando'}</Typography>
+            <Typography variant="caption" color="text.secondary">{open?.doctor?.specialty}{open?.status === 'answered' ? ` · ${translate('q.answered')}` : ` · ${translate('q.waiting')}`}</Typography>
           </Box>
         </Box>
         <Box sx={{ p: 2, pb: 'env(safe-area-inset-bottom)' }}>
@@ -181,7 +181,7 @@ export const QuestionsPage = () => {
                   <Box key={i} sx={{ display: 'flex', justifyContent: isDoc ? 'flex-end' : 'flex-start', gap: 0.75, alignItems: 'flex-end' }}>
                     {!isDoc && av}
                     <Box sx={{ maxWidth: '80%', p: 1, px: 1.25, borderRadius: 2, bgcolor: isDoc ? '#e0f2f1' : '#f1f5f9', border: '1px solid', borderColor: isDoc ? 'rgba(32,178,170,.25)' : 'transparent' }}>
-                      <Typography variant="caption" sx={{ display: 'block', fontWeight: 700, color: isDoc ? TEAL : 'text.secondary', mb: 0.25, fontSize: 10.5 }}>{isDoc ? `Dr. ${open?.doctor?.name || 'Médico'}` : 'Você'} · {new Date(m.createdAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</Typography>
+                      <Typography variant="caption" sx={{ display: 'block', fontWeight: 700, color: isDoc ? TEAL : 'text.secondary', mb: 0.25, fontSize: 10.5 }}>{isDoc ? `Dr. ${open?.doctor?.name || 'Médico'}` : translate('q.you')} · {new Date(m.createdAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</Typography>
                       <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.45, wordBreak: 'break-word' }}>{m.body}</Typography>
                     </Box>
                     {isDoc && av}
