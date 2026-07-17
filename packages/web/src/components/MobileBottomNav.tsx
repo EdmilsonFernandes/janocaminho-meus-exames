@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Box, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useTranslate } from 'react-admin';
 import { useAppDrawer } from './drawerState';
 import { DrExame } from './DrExame';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
@@ -14,10 +15,10 @@ import { hapticLight } from '../utils/haptic';
 
 /** Menu rodapé premium — ícones MUI (filled quando ativo, outlined quando não). Sem emojis. */
 const NAV = [
-  { icon: 'home', label: 'Início', to: '/' },
-  { icon: 'exam', label: 'Exames', to: '/exams' },
+  { icon: 'home', label: 'nav.home', to: '/' },
+  { icon: 'exam', label: 'nav.exams', to: '/exams' },
   { icon: '', label: 'Dr. Exame', to: '/chat', robot: true },
-  { icon: 'trend', label: 'Evolução', to: '/evolucao' },
+  { icon: 'trend', label: 'nav.evolution', to: '/evolucao' },
 ] as const;
 const SECONDARY_ROUTES = ['/alterados', '/tendencias', '/linha-do-tempo', '/medicoes', '/vacinas', '/lembretes', '/emergencia', '/familia', '/patients', '/medicos', '/relatorio', '/despesas', '/perfil', '/planos', '/admin'];
 
@@ -28,6 +29,7 @@ export const MobileBottomNav = () => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { openDrawer } = useAppDrawer();
+  const translate = useTranslate();
   const navRef = useRef<HTMLDivElement>(null);
   // Publica a altura REAL do rodapé numa CSS var — quem flutua (ex.: FAB "+") usa pra nunca ficar por baixo.
   useEffect(() => {
@@ -68,7 +70,7 @@ export const MobileBottomNav = () => {
           {it.icon === 'trend' && (on ? <TrendingUpIcon /> : <TrendingUpOutlinedIcon />)}
         </Box>
       )}
-      <Typography sx={{ fontSize: 10, fontWeight: on ? 800 : 600, mt: 0.25, fontFamily: 'Poppins, sans-serif', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', px: 0.5 }}>{it.label}</Typography>
+      <Typography sx={{ fontSize: 10, fontWeight: on ? 800 : 600, mt: 0.25, fontFamily: 'Poppins, sans-serif', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', px: 0.5 }}>{it.robot ? 'Dr. Exame' : translate(it.label)}</Typography>
       <Box sx={{ height: 3, width: on ? 22 : 0, borderRadius: 9, bgcolor: '#20b2aa', mt: 0.3, transition: 'width .2s' }} />
     </Box>
   );
@@ -84,7 +86,7 @@ export const MobileBottomNav = () => {
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 24, transform: on ? 'scale(1.12)' : 'scale(1)', transition: 'transform .18s ease', '& svg': { fontSize: 22 } }}>
         {on ? <MenuIcon /> : <MenuIcon sx={{ opacity: 0.5 }} />}
       </Box>
-      <Typography sx={{ fontSize: 10, fontWeight: on ? 800 : 600, mt: 0.25, fontFamily: 'Poppins, sans-serif' }}>Mais</Typography>
+      <Typography sx={{ fontSize: 10, fontWeight: on ? 800 : 600, mt: 0.25, fontFamily: 'Poppins, sans-serif' }}>{translate('nav.more')}</Typography>
       <Box sx={{ height: 3, width: on ? 22 : 0, borderRadius: 9, bgcolor: '#20b2aa', mt: 0.3, transition: 'width .2s' }} />
     </Box>
   );

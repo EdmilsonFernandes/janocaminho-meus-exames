@@ -1,4 +1,4 @@
-import { Admin, Resource, CustomRoutes, Layout, AppBar, TitlePortal, AppBarProps, useLogout, useLocale, useSetLocale, useRefresh, LoadingIndicator } from 'react-admin';
+import { Admin, Resource, CustomRoutes, Layout, AppBar, TitlePortal, AppBarProps, useLogout, useLocale, useSetLocale, useRefresh, useTranslate, LoadingIndicator } from 'react-admin';
 import { ConfirmDialogProvider } from './components/ConfirmDialog';
 import { Route, useNavigate, useLocation } from 'react-router-dom';
 import { useEffect, useState, useRef, lazy, Suspense } from 'react';
@@ -181,6 +181,7 @@ const NavItem = ({ to, primaryText, icon, highlight }: { to: string; primaryText
 const AppMenu = () => {
   const logout = useLogout();
   const navigate = useNavigate();
+  const translate = useTranslate();
   const { pathname } = useLocation();
   const [aboutOpen, setAboutOpen] = useState(false);
   const userStr = typeof localStorage !== 'undefined' ? localStorage.getItem('user') : null;
@@ -190,12 +191,12 @@ const AppMenu = () => {
     {/* GRID de atalhos — estilo app nativo (reconhecimento visual rápido, 3×2) */}
     <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 0.5, p: 1, pb: 0.5 }}>
       {([
-        { to: '/', icon: <HomeIcon />, label: 'Início' },
-        { to: '/exams', icon: <MedicalInformationIcon />, label: 'Exames' },
-        { to: '/evolucao', icon: <InsightsIcon />, label: 'Evolução' },
-        { to: '/perguntas', icon: <QuestionAnswerIcon />, label: 'Perguntas' },
-        { to: '/familia', icon: <Diversity3Icon />, label: 'Família' },
-        { to: '/relatorio', icon: <SummarizeIcon />, label: 'Relatório' },
+        { to: '/', icon: <HomeIcon />, label: 'nav.home' },
+        { to: '/exams', icon: <MedicalInformationIcon />, label: 'menu.exams' },
+        { to: '/evolucao', icon: <InsightsIcon />, label: 'menu.evolution' },
+        { to: '/perguntas', icon: <QuestionAnswerIcon />, label: 'menu.questions' },
+        { to: '/familia', icon: <Diversity3Icon />, label: 'menu.family' },
+        { to: '/relatorio', icon: <SummarizeIcon />, label: 'menu.report' },
       ]).map((it) => {
         const on = it.to === '/' ? pathname === '/' : pathname.startsWith(it.to);
         return (
@@ -205,49 +206,49 @@ const AppMenu = () => {
             transition: 'all .15s', '&:active': { transform: 'scale(.93)' }, '& svg': { fontSize: 24 },
           }}>
             {it.icon}
-            <Typography sx={{ fontSize: 10.5, fontWeight: on ? 800 : 600 }}>{it.label}</Typography>
+            <Typography sx={{ fontSize: 10.5, fontWeight: on ? 800 : 600 }}>{translate(it.label)}</Typography>
           </Box>
         );
       })}
     </Box>
 
     {/* 3 categorias por acordeão (smart-expand: abre a que contém a rota ativa) */}
-    <MenuSectionAccordion title="Minha saúde" icon={<MonitorHeartIcon />} routes={['/alterados', '/tendencias', '/linha-do-tempo', '/medicoes', '/vacinas', '/lembretes', '/emergencia', '/conquistas']}>
-      <NavItem to="/alterados" primaryText="Valores alterados" icon={<WarningAmberIcon />} highlight />
-      <NavItem to="/tendencias" primaryText="Tendências" icon={<AutoGraphIcon />} highlight />
-      <NavItem to="/linha-do-tempo" primaryText="Linha do tempo" icon={<HistoryIcon />} highlight />
-      <NavItem to="/medicoes" primaryText="Medições" icon={<MonitorHeartIcon />} />
-      <NavItem to="/vacinas" primaryText="Vacinas" icon={<VaccinesIcon />} />
-      <NavItem to="/lembretes" primaryText="Lembretes" icon={<EventAvailableIcon />} />
-      <NavItem to="/emergencia" primaryText="Cartão de emergência" icon={<HealthAndSafetyIcon />} />
-      <NavItem to="/conquistas" primaryText="Conquistas" icon={<EmojiEventsIcon />} />
+    <MenuSectionAccordion title={translate('menu.section.health')} icon={<MonitorHeartIcon />} routes={['/alterados', '/tendencias', '/linha-do-tempo', '/medicoes', '/vacinas', '/lembretes', '/emergencia', '/conquistas']}>
+      <NavItem to="/alterados" primaryText={translate('menu.alterados')} icon={<WarningAmberIcon />} highlight />
+      <NavItem to="/tendencias" primaryText={translate('menu.trends')} icon={<AutoGraphIcon />} highlight />
+      <NavItem to="/linha-do-tempo" primaryText={translate('menu.timeline')} icon={<HistoryIcon />} highlight />
+      <NavItem to="/medicoes" primaryText={translate('menu.measurements')} icon={<MonitorHeartIcon />} />
+      <NavItem to="/vacinas" primaryText={translate('menu.vaccines')} icon={<VaccinesIcon />} />
+      <NavItem to="/lembretes" primaryText={translate('menu.reminders')} icon={<EventAvailableIcon />} />
+      <NavItem to="/emergencia" primaryText={translate('menu.emergency')} icon={<HealthAndSafetyIcon />} />
+      <NavItem to="/conquistas" primaryText={translate('menu.achievements')} icon={<EmojiEventsIcon />} />
     </MenuSectionAccordion>
 
-    <MenuSectionAccordion title="Família & médicos" icon={<Diversity3Icon />} routes={['/patients', '/medicos', '/despesas']}>
-      <NavItem to="/patients" primaryText="Dependentes" icon={<Diversity3Icon />} />
-      <NavItem to="/medicos" primaryText="Meus Médicos" icon={<MedicalServicesIcon />} />
-      <NavItem to="/despesas" primaryText="Despesas médicas" icon={<AccountBalanceWalletIcon />} />
+    <MenuSectionAccordion title={translate('menu.section.familydocs')} icon={<Diversity3Icon />} routes={['/patients', '/medicos', '/despesas']}>
+      <NavItem to="/patients" primaryText={translate('menu.dependents')} icon={<Diversity3Icon />} />
+      <NavItem to="/medicos" primaryText={translate('menu.doctors')} icon={<MedicalServicesIcon />} />
+      <NavItem to="/despesas" primaryText={translate('menu.expenses')} icon={<AccountBalanceWalletIcon />} />
     </MenuSectionAccordion>
 
-    <MenuSectionAccordion title="Conta" icon={<AccountCircleIcon />} routes={['/perfil', '/seguranca', '/privacidade', '/planos', '/admin']}>
-      <NavItem to="/perfil" primaryText="Meu perfil" icon={<AccountCircleIcon />} />
-      <NavItem to="/seguranca" primaryText="Segurança" icon={<LockIcon />} />
-      <NavItem to="/privacidade" primaryText="Privacidade e termos" icon={<HealthAndSafetyIcon />} />
-      <NavItem to="/planos" primaryText="Planos e créditos" icon={<WorkspacePremiumIcon />} />
-      {isAdmin && <NavItem to="/admin" primaryText="Painel Admin" icon={<AdminPanelSettingsIcon />} />}
+    <MenuSectionAccordion title={translate('menu.section.account')} icon={<AccountCircleIcon />} routes={['/perfil', '/seguranca', '/privacidade', '/planos', '/admin']}>
+      <NavItem to="/perfil" primaryText={translate('menu.profile')} icon={<AccountCircleIcon />} />
+      <NavItem to="/seguranca" primaryText={translate('menu.security')} icon={<LockIcon />} />
+      <NavItem to="/privacidade" primaryText={translate('menu.privacy')} icon={<HealthAndSafetyIcon />} />
+      <NavItem to="/planos" primaryText={translate('menu.plans')} icon={<WorkspacePremiumIcon />} />
+      {isAdmin && <NavItem to="/admin" primaryText={translate('menu.admin')} icon={<AdminPanelSettingsIcon />} />}
     </MenuSectionAccordion>
 
     <Divider sx={{ my: 1 }} />
 
     {/* APOIO */}
-    <NavItem to="/suporte" primaryText="Ajuda & Suporte" icon={<span style={{ fontSize: 18 }}>❓</span>} />
+    <NavItem to="/suporte" primaryText={translate('menu.support')} icon={<span style={{ fontSize: 18 }}>❓</span>} />
     <MenuItem onClick={() => setAboutOpen(true)} sx={{ mx: 0.5, borderRadius: 1, py: 0.75 }}>
       <ListItemIcon sx={{ minWidth: 36 }}>ℹ️</ListItemIcon>
-      <ListItemText primaryTypographyProps={{ fontSize: 13, fontWeight: 600 }}>Sobre o app</ListItemText>
+      <ListItemText primaryTypographyProps={{ fontSize: 13, fontWeight: 600 }}>{translate('menu.about')}</ListItemText>
     </MenuItem>
     <MenuItem onClick={() => logout('/entrar')} sx={{ mx: 0.5, my: 0.25, borderRadius: 1, py: 0.75, color: 'error.main', '&:hover': { bgcolor: 'rgba(239,68,68,.08)' } }}>
       <ListItemIcon sx={{ color: 'error.main', minWidth: 36 }}><LogoutIcon fontSize="small" /></ListItemIcon>
-      <ListItemText primaryTypographyProps={{ fontSize: 13, fontWeight: 600 }}>Sair da conta</ListItemText>
+      <ListItemText primaryTypographyProps={{ fontSize: 13, fontWeight: 600 }}>{translate('menu.logout')}</ListItemText>
     </MenuItem>
 
     <Box sx={{ mt: 'auto', px: 2, py: 1.5, fontSize: 11, color: 'text.secondary', borderTop: '1px solid', borderColor: 'divider' }}>
@@ -265,7 +266,7 @@ const AppMenu = () => {
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2, fontFamily: 'monospace', fontSize: 11 }}>
           branch {APP_BUILD_INFO.branch} · build {new Date(APP_BUILD_INFO.builtAt).toLocaleString('pt-BR')}
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Seu assistente de saúde com inteligência artificial.</Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>{translate('about.tagline')}</Typography>
         <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', flexWrap: 'wrap', mb: 2 }}>
           <Chip size="small" label="IA GLM-4.6" sx={{ bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 700 }} />
           <Chip size="small" label="Scanner ML Kit" sx={{ bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 700 }} />
@@ -276,11 +277,11 @@ const AppMenu = () => {
           🌐 janocaminho.com.br/minhasaude
         </Typography>
         <Typography variant="caption" sx={{ color: 'text.secondary', mt: 1, display: 'block' }}>
-          Conteúdo educativo. Não substitui consulta, diagnóstico ou tratamento médico.
+          {translate('about.disclaimer')}
         </Typography>
       </DialogContent>
       <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
-        <Button onClick={() => setAboutOpen(false)} variant="contained" sx={{ borderRadius: 99, px: 4, textTransform: 'none', fontWeight: 700, bgcolor: '#178f89' }}>Fechar</Button>
+        <Button onClick={() => setAboutOpen(false)} variant="contained" sx={{ borderRadius: 99, px: 4, textTransform: 'none', fontWeight: 700, bgcolor: '#178f89' }}>{translate('ra.action.close')}</Button>
       </DialogActions>
     </Dialog>
   </Box>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslate } from 'react-admin';
 import { Stack, Typography, Grid, Dialog, DialogTitle, DialogContent, DialogActions, Button, Box, Card, CardContent, Chip, Accordion, AccordionSummary, AccordionDetails, useTheme } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ScienceIcon from '@mui/icons-material/Science';
@@ -147,6 +148,7 @@ const NextBestActionCard = ({
 
 export const Dashboard = () => {
   const navigate = useNavigate();
+  const translate = useTranslate();
   const [pid] = useSelectedPatient();
   const [stats, setStats] = useState({ exams: 0, abnormal: 0 });
   const [failed, setFailed] = useState(0);
@@ -264,11 +266,11 @@ export const Dashboard = () => {
 
       {/* 2 · SUA SAÚDE AGORA — 1 leitura de risco (resumo) + atalhos pras telas de detalhe.
           Antes havia 5 cards de saúde competindo (poluído). Agora: Score no hero + 1 risco aqui. */}
-      <Section label="Sua saúde agora" icon={<InsightsIcon />}>
+      <Section label={translate('dash.health_now')} icon={<InsightsIcon />}>
         <RiskCard />
         <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 1.5 }}>
-          <Button size="small" onClick={() => navigate('/tendencias')} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 99, color: '#178f89', border: '1px solid', borderColor: 'divider' }}>📊 Tendências & Previsões →</Button>
-          <Button size="small" onClick={() => navigate('/conquistas')} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 99, color: '#178f89', border: '1px solid', borderColor: 'divider' }}>🏆 Conquistas →</Button>
+          <Button size="small" onClick={() => navigate('/tendencias')} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 99, color: '#178f89', border: '1px solid', borderColor: 'divider' }}>📊 {translate('dash.trends_link')} →</Button>
+          <Button size="small" onClick={() => navigate('/conquistas')} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 99, color: '#178f89', border: '1px solid', borderColor: 'divider' }}>🏆 {translate('dash.achievements_link')} →</Button>
         </Stack>
       </Section>
 
@@ -286,8 +288,8 @@ export const Dashboard = () => {
           <Stack direction="row" spacing={1} alignItems="center">
             <ScienceIcon sx={{ color: '#178f89', fontSize: 20 }} />
             <Box>
-              <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 14, lineHeight: 1.2 }}>Análises detalhadas da sua saúde</Typography>
-              <Typography variant="caption" color="text.secondary">Estado atual, idade biológica, risco cardiometabólico e distribuição</Typography>
+              <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 14, lineHeight: 1.2 }}>{translate('dash.advanced')}</Typography>
+              <Typography variant="caption" color="text.secondary">{translate('dash.advanced_sub')}</Typography>
             </Box>
           </Stack>
         </AccordionSummary>
@@ -304,7 +306,7 @@ export const Dashboard = () => {
       </Accordion>
 
       {/* 5 · SEUS NÚMEROS — métricas clicáveis (donut foi pra 'Análises detalhadas') */}
-      <Section label="Seus números" icon={<AnalyticsIcon />}>
+      <Section label={translate('dash.your_numbers')} icon={<AnalyticsIcon />}>
         <Grid container spacing={2}>
           <MetricCard label="Exames enviados" value={stats.exams} color="primary.main" icon={<MedicalServicesIcon />} onClick={() => navigate('/exams')} />
           <MetricCard label="Valores alterados" value={stats.abnormal} color={stats.abnormal ? 'error.main' : 'success.main'} icon={<WarningAmberIcon />} onClick={() => navigate('/alterados')} />
@@ -314,7 +316,7 @@ export const Dashboard = () => {
       </Section>
 
       {/* 6 · AÇÕES RÁPIDAS — primária "Enviar exame" + exames falhados + créditos */}
-      <Section label="Ações rápidas" icon={<BoltIcon />}>
+      <Section label={translate('dash.quick_actions')} icon={<BoltIcon />}>
         <Stack spacing={2}>
           <FailedExamsAlert count={failed} onClick={() => navigate('/exams')} />
           <QuickActions />
