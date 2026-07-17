@@ -137,6 +137,8 @@ export const ptMessages = {
   'docs.invited_by_you': 'Convidado por você para acompanhar seus exames.',
   'docs.schedule_email': 'Agendar por e-mail',
   'docs.ask_ph': 'Ex.: Meu HDL baixo altera meu risco cardiovascular? Como aumentar?',
+  'notif.mark_all': 'Marcar todas como lidas',
+  'notif.empty': 'Sem notificações. O Dr. Exame vai te avisar sobre seus exames por aqui. 🔔',
   'altered.title': 'Valores fora da faixa',
   'altered.all_good': 'Tudo dentro da faixa!',
   'evo.title': 'Evolução ao longo do tempo',
@@ -345,6 +347,8 @@ export const enMessages = {
   'docs.invited_by_you': 'Invited by you to follow your exams.',
   'docs.schedule_email': 'Schedule by email',
   'docs.ask_ph': 'E.g.: Does my low HDL change my cardiovascular risk? How to increase it?',
+  'notif.mark_all': 'Mark all as read',
+  'notif.empty': 'No notifications. Dr. Exame will notify you about your exams here. 🔔',
 };
 
 // Idioma inicial: 1) escolha explícita do usuário (menu) prevalece; 2) senão, detecta pelo

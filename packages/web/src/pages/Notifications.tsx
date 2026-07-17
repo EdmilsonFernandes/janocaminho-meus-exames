@@ -43,11 +43,11 @@ export const NotificationsPage = () => {
       <PageHeader
         icon={<NotificationsIcon />}
         title={translate('page.notifications')}
-        actions={!!data?.unread ? <Button size="small" variant="outlined" onClick={markAll}>Marcar todas como lidas</Button> : undefined}
+        actions={!!data?.unread ? <Button size="small" variant="outlined" onClick={markAll}>{translate('notif.mark_all')}</Button> : undefined}
       />
       {!data && <CircularProgress />}
       {data && items.length === 0 && (
-        <Card><CardContent><Typography color="text.secondary" sx={{ textAlign: 'center', py: 3 }}>Sem notificações. O Dr. Exame vai te avisar sobre seus exames por aqui. 🔔</Typography></CardContent></Card>
+        <Card><CardContent><Typography color="text.secondary" sx={{ textAlign: 'center', py: 3 }}>{translate('notif.empty')}</Typography></CardContent></Card>
       )}
       {data && items.length > 0 && (
         <Stack spacing={1.25}>
