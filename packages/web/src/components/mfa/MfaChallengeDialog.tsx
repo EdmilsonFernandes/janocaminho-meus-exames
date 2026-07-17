@@ -10,6 +10,7 @@ export const MfaChallengeDialog = ({ open, challengeToken, account, verifyUrl, o
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState('');
+  const [showRecovery, setShowRecovery] = useState(false);
 
   const verify = async (c?: string) => {
     const val = (c ?? code).replace(/\D/g, '');
@@ -40,6 +41,25 @@ export const MfaChallengeDialog = ({ open, challengeToken, account, verifyUrl, o
           sx={{ mt: 1, borderRadius: 2, textTransform: 'none', fontWeight: 800, py: 1.3 }}>
           {loading ? <CircularProgress size={22} color="inherit" /> : 'Verificar'}
         </Button>
+        {/* Recuperação de MFA — usuário perdeu o dispositivo */}
+        {!showRecovery ? (
+          <Button fullWidth size="small" onClick={() => setShowRecovery(true)} sx={{ mt: 1.5, textTransform: 'none', color: 'text.secondary', fontSize: 12 }}>
+            Perdeu seu dispositivo MFA?
+          </Button>
+        ) : (
+          <Stack spacing={1} sx={{ mt: 2, p: 1.5, borderRadius: 2, bgcolor: 'action.hover' }}>
+            <Typography sx={{ fontSize: 12.5, color: 'text.secondary', lineHeight: 1.5 }}>
+              📸 Envie uma <b>foto segurando seu documento</b> (RG ou CPF) para:
+            </Typography>
+            <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'primary.main' }}>
+              📧 contato@janocaminho.com.br
+            </Typography>
+            <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
+              Após verificação, desativamos seu MFA. Você volta a logar com senha e reconfigura.
+            </Typography>
+            <Button size="small" onClick={() => setShowRecovery(false)} sx={{ textTransform: 'none', fontSize: 12 }}>Voltar</Button>
+          </Stack>
+        )}
       </DialogContent>
     </Dialog>
   );

@@ -523,6 +523,19 @@ router.post('/users/:id/unblock', async (req: AuthedRequest, res, next) => {
   } catch (e) { next(e); }
 });
 
+// RESET MFA — admin desativa o MFA de um usuário sem exigir código TOTP (lockout recovery).
+// Limpa os campos MFA do User (paciente) E do Doctor (se tiver conta de médico vinculada).
+router.post('/users/:id/reset-mfa', async (req: AuthedRequest, res, next) => {
+  try {
+    const id = String(req.params.id);
+    const mfaClear = { mfaEnabled: false, mfaSecretEncrypted: null, mfaSecretIv: null, mfaSecretAuthTag: null, mfaConfirmedAt: null };
+    const user = await prisma.user.update({ where: { id }, data: mfaClear, select: { id: true, email: true, name: true } });
+    void audit('RESET_MFA', req, { targetType: 'USER', targetId: id, after: { mfaEnabled: false, resetBy: 'admin' } });
+    console.log(`[admin] MFA resetado para ${user.email} (${id}) por ${req.userId}`);
+    res.json({ ok: true, mfaEnabled: false, message: `MFA desativado para ${user.name || user.email}. Ele pode logar com senha e reconfigurar.` });
+  } catch (e) { next(e); }
+});
+
 // ===== BACKOFFICE — endpoints read-only dos novos módulos (todos atrás de requireAdmin) =====
 
 // MÉDICOS — lista CRM/UF + validação e-mail + pacientes compartilhados ativos.

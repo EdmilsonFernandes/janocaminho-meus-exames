@@ -17,6 +17,7 @@ export const TICKET_CATEGORIES = [
   'Erro no app',
   'Cobrança / Planos',
   'Compartilhamento com médico',
+  'Recuperação de MFA',
   'Sugestão',
   'Outro',
 ];

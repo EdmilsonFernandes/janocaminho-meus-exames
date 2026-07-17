@@ -4,6 +4,7 @@ import { useNotify } from 'react-admin';
 import DeleteIcon from '@mui/icons-material/Delete';
 import BlockIcon from '@mui/icons-material/Block';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
+import LockResetIcon from '@mui/icons-material/LockReset';
 import EditIcon from '@mui/icons-material/Edit';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
@@ -99,6 +100,16 @@ export const UsersTab = () => {
     } catch { notify('Falha de conexão.', { type: 'error' }); }
   };
 
+  // Reset MFA — admin desativa o 2FA de um usuário (lockout recovery, sem código TOTP).
+  const resetMfa = async (u: U) => {
+    if (!(await confirmDialog({ title: `Resetar MFA de ${u.name || u.email}?`, message: 'Desativa a autenticação de 2 fatores. Ele poderá logar só com senha e reconfigurar o MFA.', confirmLabel: 'Resetar MFA', tone: 'primary' }))) return;
+    try {
+      const r = await fetch(`${API_URL}/admin/users/${u.id}/reset-mfa`, { method: 'POST', headers: authH() });
+      if (r.ok) { const d = await r.json(); notify(d.message || 'MFA resetado.', { type: 'success' }); void load(); }
+      else { const d = await r.json().catch(() => ({})); notify(d.error || 'Falha', { type: 'error' }); }
+    } catch { notify('Falha de conexão.', { type: 'error' }); }
+  };
+
   return (
     <Box>
       <TextField placeholder="Buscar por nome ou e-mail..." value={q} onChange={(e) => setQ(e.target.value)} size="small" fullWidth sx={{ mb: 2 }} />
@@ -119,6 +130,9 @@ export const UsersTab = () => {
               <IconButton size="small" onClick={() => openEdit(u)} title="Editar"><EditIcon fontSize="small" /></IconButton>
               <IconButton size="small" onClick={() => { void toggleBlock(u); }} title={u.blocked ? 'Desbloquear' : 'Bloquear'} sx={{ color: u.blocked ? 'success.main' : 'warning.main' }}>
                 {u.blocked ? <LockOpenIcon fontSize="small" /> : <BlockIcon fontSize="small" />}
+              </IconButton>
+              <IconButton size="small" onClick={() => { void resetMfa(u); }} title="Resetar MFA" sx={{ color: 'info.main' }}>
+                <LockResetIcon fontSize="small" />
               </IconButton>
               {u.role !== 'ADMIN' && <IconButton size="small" color="error" onClick={() => void openDelete(u)} title="Excluir"><DeleteIcon fontSize="small" /></IconButton>}
             </CardContent>
