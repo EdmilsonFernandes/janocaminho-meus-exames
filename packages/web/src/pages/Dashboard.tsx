@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Stack, Typography, Grid, Dialog, DialogTitle, DialogContent, DialogActions, Button, Box, Card, CardContent, Chip, useTheme } from '@mui/material';
+import { Stack, Typography, Grid, Dialog, DialogTitle, DialogContent, DialogActions, Button, Box, Card, CardContent, Chip, Accordion, AccordionSummary, AccordionDetails, useTheme } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ScienceIcon from '@mui/icons-material/Science';
 import { GamificationBadges } from '../components/GamificationBadges';
 import { BiometricService } from '../components/BiometricService';
 import { useNavigate } from 'react-router-dom';
@@ -260,40 +262,58 @@ export const Dashboard = () => {
         onNavigate={navigate}
       />
 
-      {/* 2 · SUAS LEITURAS — risco + estado atual (InsightsCards/Previsões movidos pra /tendencias) */}
-      <Section label="Suas leituras" icon={<InsightsIcon />}>
-        <Grid container spacing={2}>
-          <Grid size={{ xs: 12, md: 6 }}><RiskCard /></Grid>
-          <Grid size={{ xs: 12, md: 6 }}><CurrentStateCard /></Grid>
-        </Grid>
-        {/* Link compacto pras telas dedicadas (antes eram cards pesados no dashboard) */}
+      {/* 2 · SUA SAÚDE AGORA — 1 leitura de risco (resumo) + atalhos pras telas de detalhe.
+          Antes havia 5 cards de saúde competindo (poluído). Agora: Score no hero + 1 risco aqui. */}
+      <Section label="Sua saúde agora" icon={<InsightsIcon />}>
+        <RiskCard />
         <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 1.5 }}>
           <Button size="small" onClick={() => navigate('/tendencias')} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 99, color: '#178f89', border: '1px solid', borderColor: 'divider' }}>📊 Tendências & Previsões →</Button>
           <Button size="small" onClick={() => navigate('/conquistas')} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 99, color: '#178f89', border: '1px solid', borderColor: 'divider' }}>🏆 Conquistas →</Button>
         </Stack>
       </Section>
 
-      {/* 3 · Dr. EXAME — IA (dica + CTA chat) + Idade Biológica (wow factor premium) */}
+      {/* 3 · Dr. EXAME — dica de IA (✨) + CTA chat. Limpo, sem cards avançados misturados. */}
       <Section label="Dr. Exame" icon={<SmartToyIcon />}>
         <AiCard tip={tipNode} onChat={() => navigate('/chat')} />
-        <BiologicalAgeCard />
-        <CardiometabolicRiskCard />
       </Section>
 
-      {/* 4 · SEUS NÚMEROS — métricas clicáveis + distribuição (donut) */}
+      {/* 4 · ANÁLISES DETALHADAS — cards avançados (estado atual, idade biológica,
+          cardiometabólico, distribuição) num acordeão COLAPSADO por padrão. Antes ficavam
+          soltos e competiam (dashboard "poluído"). Agora: quem quer aprofundar, expande.
+          NENHUMA funcionalidade perdida — tudo continua aqui, só organizado. */}
+      <Accordion disableGutters elevation={0} defaultExpanded={false} sx={{ mt: 1, '&:before': { display: 'none' }, border: '1px solid', borderColor: 'divider', borderRadius: '16px !important', overflow: 'hidden' }}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '52px !important', '& .MuiAccordionSummary-content': { my: 0.75 } }}>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <ScienceIcon sx={{ color: '#178f89', fontSize: 20 }} />
+            <Box>
+              <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 14, lineHeight: 1.2 }}>Análises detalhadas da sua saúde</Typography>
+              <Typography variant="caption" color="text.secondary">Estado atual, idade biológica, risco cardiometabólico e distribuição</Typography>
+            </Box>
+          </Stack>
+        </AccordionSummary>
+        <AccordionDetails sx={{ p: 1.5, pt: 0.5 }}>
+          <Stack spacing={2}>
+            <CurrentStateCard />
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12, md: 6 }}><BiologicalAgeCard /></Grid>
+              <Grid size={{ xs: 12, md: 6 }}><CardiometabolicRiskCard /></Grid>
+            </Grid>
+            <DistributionCard buckets={buckets} />
+          </Stack>
+        </AccordionDetails>
+      </Accordion>
+
+      {/* 5 · SEUS NÚMEROS — métricas clicáveis (donut foi pra 'Análises detalhadas') */}
       <Section label="Seus números" icon={<AnalyticsIcon />}>
-        <Stack spacing={2}>
-          <Grid container spacing={2}>
-            <MetricCard label="Exames enviados" value={stats.exams} color="primary.main" icon={<MedicalServicesIcon />} onClick={() => navigate('/exams')} />
-            <MetricCard label="Valores alterados" value={stats.abnormal} color={stats.abnormal ? 'error.main' : 'success.main'} icon={<WarningAmberIcon />} onClick={() => navigate('/alterados')} />
-            <MetricCard label="Dependentes" value={deps} color="#8b5cf6" icon={<Diversity3Icon />} onClick={() => navigate('/familia')} />
-            <MetricCard label="Última atualização" value={lastExam ? new Date(lastExam).toLocaleDateString('pt-BR') : '—'} color="#0ea5e9" icon={<EventAvailableIcon />} onClick={() => navigate('/linha-do-tempo')} />
-          </Grid>
-          <DistributionCard buckets={buckets} />
-        </Stack>
+        <Grid container spacing={2}>
+          <MetricCard label="Exames enviados" value={stats.exams} color="primary.main" icon={<MedicalServicesIcon />} onClick={() => navigate('/exams')} />
+          <MetricCard label="Valores alterados" value={stats.abnormal} color={stats.abnormal ? 'error.main' : 'success.main'} icon={<WarningAmberIcon />} onClick={() => navigate('/alterados')} />
+          <MetricCard label="Dependentes" value={deps} color="#8b5cf6" icon={<Diversity3Icon />} onClick={() => navigate('/familia')} />
+          <MetricCard label="Última atualização" value={lastExam ? new Date(lastExam).toLocaleDateString('pt-BR') : '—'} color="#0ea5e9" icon={<EventAvailableIcon />} onClick={() => navigate('/linha-do-tempo')} />
+        </Grid>
       </Section>
 
-      {/* 5 · AÇÕES RÁPIDAS — primária "Enviar exame" + exames falhados + créditos */}
+      {/* 6 · AÇÕES RÁPIDAS — primária "Enviar exame" + exames falhados + créditos */}
       <Section label="Ações rápidas" icon={<BoltIcon />}>
         <Stack spacing={2}>
           <FailedExamsAlert count={failed} onClick={() => navigate('/exams')} />

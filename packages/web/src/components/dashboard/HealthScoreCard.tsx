@@ -13,21 +13,25 @@ const descFor = (s: number, n: number) =>
   : n > 0 ? `${n} valor${n > 1 ? 'es' : ''} fora da faixa de referência — vale revisar com seu médico.`
   : 'Vale revisar seus exames com seu médico.';
 
-// Gauge semicircular responsivo (viewBox fixo, escala pro container — sem libs).
+// Gauge ANEL COMPLETO (premium) — gradiente teal→cor-do-status, progresso do topo (horário).
+// Antes era semicircular; anel fechado dá mais "wow" e centraliza o número.
 const Gauge = ({ value, color }: { value: number; color: string }) => {
-  const W = 168, H = 100, stroke = 14;
-  const r = (W - stroke) / 2;
-  const cx = W / 2, cy = H - 8;
-  const track = `M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`;
+  const size = 150, stroke = 13;
+  const r = (size - stroke) / 2;
+  const c = size / 2;
+  const circ = 2 * Math.PI * r;
   const p = Math.max(0, Math.min(100, value)) / 100;
-  const angle = Math.PI * (1 - p);
-  const ex = cx + r * Math.cos(angle);
-  const ey = cy - r * Math.sin(angle);
-  const prog = `M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${ex} ${ey}`;
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" preserveAspectRatio="xMidYMid meet" style={{ display: 'block', overflow: 'visible' }}>
-      <path d={track} fill="none" stroke="rgba(148,163,184,0.22)" strokeWidth={stroke} strokeLinecap="round" />
-      <path d={prog} fill="none" stroke={color} strokeWidth={stroke} strokeLinecap="round" />
+    <svg viewBox={`0 0 ${size} ${size}`} width="100%" height="100%" preserveAspectRatio="xMidYMid meet" style={{ display: 'block', overflow: 'visible' }}>
+      <defs>
+        <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#20b2aa" />
+          <stop offset="100%" stopColor={color} />
+        </linearGradient>
+      </defs>
+      <circle cx={c} cy={c} r={r} fill="none" stroke="rgba(148,163,184,0.18)" strokeWidth={stroke} />
+      <circle cx={c} cy={c} r={r} fill="none" stroke="url(#scoreGrad)" strokeWidth={stroke} strokeLinecap="round"
+        strokeDasharray={circ} strokeDashoffset={circ * (1 - p)} transform={`rotate(-90 ${c} ${c})`} style={{ transition: 'stroke-dashoffset .8s ease' }} />
     </svg>
   );
 };
@@ -61,10 +65,10 @@ export const HealthScoreCard = ({ loaded, score, abnormalCount, onDetails }: { l
       <CardContent sx={{ position: 'relative' }}>
         {/* gauge + info LADO A LADO (sem wrap — preenche a largura) */}
         <Stack direction="row" alignItems="center" gap={{ xs: 1.5, sm: 2.5 }} sx={{ flexWrap: 'nowrap' }}>
-          <Box sx={{ position: 'relative', width: { xs: 116, sm: 150 }, height: { xs: 70, sm: 90 }, flexShrink: 0 }}>
+          <Box sx={{ position: 'relative', width: { xs: 130, sm: 150 }, height: { xs: 130, sm: 150 }, flexShrink: 0 }}>
             <Gauge value={score} color={color} />
-            <Box sx={{ position: 'absolute', left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <Typography sx={{ fontWeight: 800, fontSize: { xs: 30, sm: 38 }, lineHeight: 1, color: 'text.primary' }}>{displayScore}</Typography>
+            <Box sx={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <Typography sx={{ fontWeight: 800, fontSize: { xs: 34, sm: 42 }, lineHeight: 1, color: 'text.primary' }}>{displayScore}</Typography>
               <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1, fontSize: { xs: 9, sm: 11 } }}>de 100</Typography>
             </Box>
           </Box>
