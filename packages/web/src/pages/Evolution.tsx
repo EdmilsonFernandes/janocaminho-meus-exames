@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Box, Button, Card, CardContent, Typography, Chip, Stack, Grid, Accordion, AccordionSummary, AccordionDetails, InputBase, Paper } from '@mui/material';
-import { Title } from 'react-admin';
+import { Title, useTranslate } from 'react-admin';
 import { ResponsiveContainer, LineChart, Line, ReferenceArea, YAxis, Tooltip } from 'recharts';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import SearchIcon from '@mui/icons-material/Search';
@@ -38,6 +38,7 @@ const STATUS_META: Record<Status, { emoji: string; label: string; color: string 
 const CAT_ORDER = CATS.map((c) => c.key);
 
 export const EvolutionPage = () => {
+  const translate = useTranslate();
   const [pid] = useSelectedPatient();
   const navigate = useNavigate();
   const [items, setItems] = useState<EvoItem[]>([]);
@@ -94,11 +95,11 @@ export const EvolutionPage = () => {
 
   return (
     <PageContainer width="wide">
-      <Title title="Evolução da minha saúde" />
+      <Title title={translate('page.evolution')} />
       <PageHeader
         icon={<TrendingUpIcon />}
-        title="Evolução ao longo do tempo"
-        subtitle="Como cada exame evoluiu entre as coletas. Toque pra ver o gráfico."
+        title={translate('evo.title')}
+        subtitle={translate('evo.subtitle')}
       />
 
       {loading && <ListSkeleton count={4} />}
@@ -143,7 +144,7 @@ export const EvolutionPage = () => {
       {!loading && items.length === 0 && (
         <EmptyState
           emoji="📈"
-          title="Sem histórico pra comparar ainda"
+          title={translate('evo.empty_title')}
           desc="Envie ao menos 2 exames laboratoriais de datas diferentes pra acompanhar como cada exame evoluiu entre as coletas."
           cta="Enviar exame"
           onCta={() => navigate('/exams/create')}

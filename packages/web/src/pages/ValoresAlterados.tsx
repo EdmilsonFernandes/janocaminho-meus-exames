@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Box, Card, CardContent, Typography, Stack, Chip, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
-import { Title } from 'react-admin';
+import { Title, useTranslate } from 'react-admin';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { PageContainer } from '../components/layout/PageContainer';
@@ -20,6 +20,7 @@ import type { AbnormalItem as AbnItem } from '@meus-exames/shared';
 
 /** Valores fora da faixa, AGRUPADOS POR EXAME (dentro de cada exame, ordenados por PRIORIDADE). */
 export const ValoresAlteradosPage = () => {
+  const translate = useTranslate();
   const [pid] = useSelectedPatient();
   const [items, setItems] = useState<AbnItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,10 +70,10 @@ export const ValoresAlteradosPage = () => {
 
   return (
     <PageContainer width="wide">
-      <Title title="Valores alterados" />
+      <Title title={translate('page.alterados')} />
       <PageHeader
         icon={<WarningAmberIcon />}
-        title="Valores fora da faixa"
+        title={translate('altered.title')}
         subtitle={<>Ordenados por <strong>prioridade de atenção</strong> (🔴→🟡). Toque num exame pra expandir e em <strong>Agendar</strong> pro especialista.</>}
         accent="error.main"
       />
@@ -82,7 +83,7 @@ export const ValoresAlteradosPage = () => {
       ) : items.length === 0 ? (
         <EmptyState
           emoji="✅"
-          title="Tudo dentro da faixa!"
+          title={translate('altered.all_good')}
           desc="Não encontramos valores fora da referência nos seus exames. Continue acompanhando e leve seus exames às consultas médicas."
         />
       ) : (

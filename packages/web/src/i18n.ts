@@ -99,6 +99,11 @@ export const ptMessages = {
   'exams.history_premium': 'Histórico de anos anteriores é Premium.',
   'exams.extracting': 'Dr. Exame está extraindo… toque para acompanhar',
   'common.view_plans': 'Ver planos',
+  'altered.title': 'Valores fora da faixa',
+  'altered.all_good': 'Tudo dentro da faixa!',
+  'evo.title': 'Evolução ao longo do tempo',
+  'evo.subtitle': 'Como cada exame evoluiu entre as coletas. Toque para ver o gráfico.',
+  'evo.empty_title': 'Sem histórico para comparar ainda',
 
   // ações / botões
   'ra.action.delete': 'Excluir',
@@ -243,6 +248,11 @@ export const enMessages = {
   'exams.history_premium': 'Previous years history is Premium.',
   'exams.extracting': 'Dr. Exame is extracting… tap to follow',
   'common.view_plans': 'View plans',
+  'altered.title': 'Out-of-range values',
+  'altered.all_good': 'All within range!',
+  'evo.title': 'Evolution over time',
+  'evo.subtitle': 'How each exam evolved between collections. Tap to see the chart.',
+  'evo.empty_title': 'No history to compare yet',
 };
 
 const initialLocale = typeof localStorage !== 'undefined' && localStorage.getItem('lang') === 'en' ? 'en' : 'pt';
