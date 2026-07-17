@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslate } from 'react-admin';
 import { Card, CardContent, Typography, Button, TextField, Select, MenuItem, FormControl, InputLabel, List, ListItem, ListItemText, IconButton, Stack, Collapse } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -17,6 +18,7 @@ const TYPES = [
 ];
 
 export const MeasurementsPage = () => {
+  const translate = useTranslate();
   const [pid] = useSelectedPatient();
   const [items, setItems] = useState<any[]>([]);
   const [type, setType] = useState('WEIGHT');
@@ -51,7 +53,7 @@ export const MeasurementsPage = () => {
 
   return (
     <PageContainer width="content">
-      <PageHeader icon={<MonitorWeightIcon />} title="Medições" />
+      <PageHeader icon={<MonitorWeightIcon />} title={translate('page.measurements')} />
       <Card sx={{ mb: 2 }}>
         <CardContent>
           <Stack direction="row" justifyContent="space-between" alignItems="center">

@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Box, Button, Card, CardContent, Typography, Stack, Chip, TextField, InputLabel, FormControl, Select, MenuItem, CircularProgress, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Link } from '@mui/material';
-import { Title } from 'react-admin';
+import { Title, useTranslate } from 'react-admin';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
 import { API_URL, token } from '../config';
@@ -97,6 +97,7 @@ const CreateTicketDialog = ({ open, onClose, onCreated }: { open: boolean; onClo
 
 const TicketList = () => {
   const navigate = useNavigate();
+  const translate = useTranslate();
   const [tickets, setTickets] = useState<any[] | null>(null);
   const [err, setErr] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
@@ -105,9 +106,9 @@ const TicketList = () => {
 
   return (
     <PageContainer>
-      <Title title="Ajuda & Suporte" />
-      <PageHeader icon={<SupportAgentIcon />} title="Ajuda & Suporte" accent="#178f89"
-        subtitle="Abra um chamado, acompanhe o status e converse com o suporte." />
+      <Title title={translate('page.support')} />
+      <PageHeader icon={<SupportAgentIcon />} title={translate('page.support')} accent="#178f89"
+        subtitle={translate('page.support_sub')} />
       <Button variant="contained" startIcon={<AddIcon />} sx={{ mb: 2, borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#178f89' }} onClick={() => setCreateOpen(true)}>Novo chamado</Button>
 
       {tickets == null ? <CircularProgress size={24} /> :

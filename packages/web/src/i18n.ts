@@ -104,6 +104,17 @@ export const ptMessages = {
   'evo.title': 'Evolução ao longo do tempo',
   'evo.subtitle': 'Como cada exame evoluiu entre as coletas. Toque para ver o gráfico.',
   'evo.empty_title': 'Sem histórico para comparar ainda',
+  'report.based': 'Baseado nos exames',
+  'report.highlights': 'Itens em destaque',
+  'report.attention': 'Pontos de atenção',
+  'report.positives': 'Pontos positivos',
+  'report.interactions': 'Interações com medicação',
+  'report.nutrition': 'Sugestões de nutrição',
+  'report.goals': 'Metas de saúde',
+  'report.questions_section': 'Perguntas para levar ao médico',
+  'report.health_doc': 'Relatório de Saúde',
+  'report.generate_new': 'Gerar novo relatório',
+  'report.generating': 'Gerando seu relatório',
 
   // ações / botões
   'ra.action.delete': 'Excluir',
@@ -253,6 +264,17 @@ export const enMessages = {
   'evo.title': 'Evolution over time',
   'evo.subtitle': 'How each exam evolved between collections. Tap to see the chart.',
   'evo.empty_title': 'No history to compare yet',
+  'report.based': 'Based on your exams',
+  'report.highlights': 'Highlighted items',
+  'report.attention': 'Points of attention',
+  'report.positives': 'Positive points',
+  'report.interactions': 'Medication interactions',
+  'report.nutrition': 'Nutrition suggestions',
+  'report.goals': 'Health goals',
+  'report.questions_section': 'Questions to ask your doctor',
+  'report.health_doc': 'Health Report',
+  'report.generate_new': 'Generate new report',
+  'report.generating': 'Generating your report',
 };
 
 const initialLocale = typeof localStorage !== 'undefined' && localStorage.getItem('lang') === 'en' ? 'en' : 'pt';

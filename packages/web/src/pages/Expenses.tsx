@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, Typography, Button, TextField, IconButton, Stack, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, CircularProgress } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import PaymentsIcon from '@mui/icons-material/Payments';
-import { useNotify } from 'react-admin';
+import { useNotify, useTranslate } from 'react-admin';
 import { API_URL, apiHeaders, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import { printPage } from '../utils/nativeDoc';
@@ -12,6 +12,7 @@ import { PageHeader } from '../components/layout/PageHeader';
 interface Expense { id: string; description: string; category: string; amount: number; spentAt: string; }
 
 export const ExpensesPage = () => {
+  const translate = useTranslate();
   const [pid] = useSelectedPatient();
   const notify = useNotify();
   const [items, setItems] = useState<Expense[]>([]);
@@ -59,7 +60,7 @@ export const ExpensesPage = () => {
 
   return (
     <PageContainer width="content">
-      <PageHeader icon={<PaymentsIcon />} title="Despesas Médicas" />
+      <PageHeader icon={<PaymentsIcon />} title={translate('page.expenses')} />
       <Card sx={{ mb: 2, background: (t) => t.palette.mode === 'dark' ? 'rgba(11,92,171,0.10)' : 'linear-gradient(135deg,#e3f2fd,#bbdefb)' }}>
         <CardContent>
           <Typography variant="h4" sx={{ fontWeight: 800, color: (t) => t.palette.mode === 'dark' ? '#5b9bd5' : '#1565c0' }}>R$ {total.toFixed(2).replace('.', ',')}</Typography>

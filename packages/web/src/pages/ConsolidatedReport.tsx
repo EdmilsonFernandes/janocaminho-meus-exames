@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography, Button, CircularProgress, Stack, Alert, Grid, Chip, Checkbox, Dialog, DialogTitle, DialogContent, DialogActions, Select, MenuItem, FormControl, Avatar } from '@mui/material';
-import { Title } from 'react-admin';
+import { Title, useTranslate } from 'react-admin';
 import DescriptionIcon from '@mui/icons-material/Description';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -109,6 +109,7 @@ const ReportPreviewCard = ({
 
 export const ConsolidatedReportPage = () => {
   const navigate = useNavigate();
+  const translate = useTranslate();
   const [pid] = useSelectedPatient();
   const [loading, setLoading] = useState(false);
   const [speaking, setSpeaking] = useState(false);
@@ -334,7 +335,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
 
   return (
     <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 920, mx: 'auto', overflowX: 'hidden' }}>
-      <Title title="Relatório completo" />
+      <Title title={translate('page.report')} />
       <Typography variant="h5" gutterBottom sx={{ fontWeight: 800 }}>🧾 Relatório completo de saúde</Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
         A IA junta seus últimos exames (sangue, imagem e laudo) num documento único — ótimo para levar ao médico ou pedir segunda opinião documental.
@@ -396,7 +397,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
           />
 
           {sourceExams.length > 0 && (
-            <ReportSectionCard icon={<DescriptionIcon />} title="Baseado nos exames" accent="#20b2aa" count={sourceExams.length}>
+            <ReportSectionCard icon={<DescriptionIcon />} title={translate('report.based')} accent="#20b2aa" count={sourceExams.length}>
               <Stack spacing={0.5} useFlexGap>
                 {sourceExams.map((e, i) => (
                   <Box key={i} onClick={() => navigate(`/exams/${e.id}/show`)} sx={{ cursor: 'pointer', '&:hover': { opacity: 0.8 } }}>
@@ -410,7 +411,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
           )}
 
           {s.comparativo?.length ? (
-            <ReportSectionCard icon={<InsightsIcon />} title="Itens em destaque" accent="#0b5cab" count={s.comparativo.length}>
+            <ReportSectionCard icon={<InsightsIcon />} title={translate('report.highlights')} accent="#0b5cab" count={s.comparativo.length}>
               <Grid container spacing={1.5}>
                 {s.comparativo.map((c, i) => <Grid key={i} size={{ xs: 12, md: 6 }}><DestaqueCard c={c} /></Grid>)}
               </Grid>
@@ -418,7 +419,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
           ) : null}
 
           {s.pontosAtencao?.length ? (
-            <ReportSectionCard icon={<ReportProblemIcon />} title="Pontos de atenção" accent="#ef4444" count={s.pontosAtencao.length}>
+            <ReportSectionCard icon={<ReportProblemIcon />} title={translate('report.attention')} accent="#ef4444" count={s.pontosAtencao.length}>
               <Stack spacing={1.25}>
                 {s.pontosAtencao.map((p, i) => (
                   <Box key={i}>
@@ -431,7 +432,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
           ) : null}
 
           {s.coisasBoas?.length ? (
-            <ReportSectionCard icon={<CheckCircleIcon />} title="Pontos positivos" accent="#059669" count={s.coisasBoas.length} collapsible defaultExpanded={false}>
+            <ReportSectionCard icon={<CheckCircleIcon />} title={translate('report.positives')} accent="#059669" count={s.coisasBoas.length} collapsible defaultExpanded={false}>
               <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
                 {s.coisasBoas.map((b, i) => <Chip key={i} sx={{ bgcolor: '#05966918', color: '#059669', fontWeight: 600, maxWidth: '100%', whiteSpace: 'normal', height: 'auto', py: 0.5, lineHeight: 1.3 }} label={txt(b)} />)}
               </Stack>
@@ -439,7 +440,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
           ) : null}
 
           {interacoes.length ? (
-            <ReportSectionCard icon={<MedicationIcon />} title="Interações com medicação" accent="#f59e0b" count={interacoes.length} collapsible defaultExpanded={false}>
+            <ReportSectionCard icon={<MedicationIcon />} title={translate('report.interactions')} accent="#f59e0b" count={interacoes.length} collapsible defaultExpanded={false}>
               <Stack spacing={1}>
                 {interacoes.map((m, i) => (
                   <Box key={i} sx={{ p: 1.5, borderRadius: '12px', bgcolor: '#f59e0b0d', border: '1px solid #f59e0b26' }}>
@@ -452,7 +453,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
           ) : null}
 
           {s.sugestoesNutricao?.length ? (
-            <ReportSectionCard icon={<RestaurantIcon />} title="Sugestões de nutrição" accent="#16a34a" count={s.sugestoesNutricao.length} collapsible defaultExpanded={false}>
+            <ReportSectionCard icon={<RestaurantIcon />} title={translate('report.nutrition')} accent="#16a34a" count={s.sugestoesNutricao.length} collapsible defaultExpanded={false}>
               <Stack spacing={0.5}>
                 {s.sugestoesNutricao.map((b, i) => <Typography key={i} variant="body2" sx={{ py: 0.25, wordBreak: 'break-word' }}>🥗 {txt(b)}</Typography>)}
               </Stack>
@@ -460,7 +461,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
           ) : null}
 
           {s.metasSaude?.length ? (
-            <ReportSectionCard icon={<TrackChangesIcon />} title="Metas de saúde" accent="#0288d1" count={s.metasSaude.length} collapsible defaultExpanded={false}>
+            <ReportSectionCard icon={<TrackChangesIcon />} title={translate('report.goals')} accent="#0288d1" count={s.metasSaude.length} collapsible defaultExpanded={false}>
               <Grid container spacing={1.5}>
                 {s.metasSaude.map((m, i) => <Grid key={i} size={{ xs: 12, md: 6 }}><MetaCard m={m} /></Grid>)}
               </Grid>
@@ -468,7 +469,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
           ) : null}
 
           {s.perguntasParaOMedico?.length ? (
-            <ReportSectionCard icon={<LiveHelpIcon />} title="Perguntas para levar ao médico" accent="#7b1fa2" count={s.perguntasParaOMedico.length}>
+            <ReportSectionCard icon={<LiveHelpIcon />} title={translate('report.questions_section')} accent="#7b1fa2" count={s.perguntasParaOMedico.length}>
               <Stack spacing={0.75}>
                 {hasNoDoctor ? (
                   <Alert severity="info" icon={<LiveHelpIcon />} sx={{ py: 0.5, borderRadius: 2 }}>Para enviar perguntas, compartilhe antes seus exames com um médico em <b>“Meus Médicos”</b>.</Alert>
@@ -559,11 +560,11 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
         </Stack>
       )}
       <ShareDialog analysisId={analysis?.id} open={shareOpen} onClose={() => setShareOpen(false)} />
-      <DocPreview html={docHtml} open={docOpen} onClose={() => setDocOpen(false)} title="Relatório de Saúde" />
-      <ConfirmSpend open={confirmSpend.open} credits={CREDIT_COSTS.consolidated} title="Gerar novo relatório"
+      <DocPreview html={docHtml} open={docOpen} onClose={() => setDocOpen(false)} title={translate('report.health_doc')} />
+      <ConfirmSpend open={confirmSpend.open} credits={CREDIT_COSTS.consolidated} title={translate('report.generate_new')}
         desc="Vamos analisar seus exames mais recentes com a IA e gerar um relatório completo."
         onClose={() => setConfirmSpend(s => ({ ...s, open: false }))} onConfirm={confirmSpend.onYes} />
-      {loading && <BootSplash title="Gerando seu relatório" messages={['Analisando seu histórico de exames…', 'Cruzando dados laboratoriais…', 'Identificando tendências…', 'Preparando insights…']} />}
+      {loading && <BootSplash title={translate('report.generating')} messages={['Analisando seu histórico de exames…', 'Cruzando dados laboratoriais…', 'Identificando tendências…', 'Preparando insights…']} />}
     </Box>
   );
 };

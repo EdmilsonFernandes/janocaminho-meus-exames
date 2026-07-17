@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslate } from 'react-admin';
 import { Box, Card, CardContent, Typography, CircularProgress, Grid, Stack, Chip, Avatar, Alert, AlertTitle } from '@mui/material';
 import Diversity3Icon from '@mui/icons-material/Diversity3';
 import { API_URL, token, photoUrlFor } from '../config';
@@ -17,6 +18,7 @@ const scoreColor = (s: number | null) => (s == null ? '#9e9e9e' : s >= 80 ? '#05
 const fmtDate = (d: string | null) => (d ? new Date(d).toLocaleDateString('pt-BR') : null);
 
 export const FamilyPage = () => {
+  const translate = useTranslate();
   const [data, setData] = useState<{ patients: FamPatient[]; crossAlerts: CrossAlert[] } | null>(null);
   const [loading, setLoading] = useState(true);
   const [cmp, setCmp] = useState<any[]>([]);
@@ -41,8 +43,8 @@ export const FamilyPage = () => {
 
   return (
     <PageContainer width={980}>
-      <PageHeader icon={<Diversity3Icon />} title="Saúde da Família" accent="#d4a574"
-        subtitle="Score de cada um e padrões que aparecem em mais de uma pessoa." />
+      <PageHeader icon={<Diversity3Icon />} title={translate('page.family')} accent="#d4a574"
+        subtitle={translate('page.family_sub')} />
 
       {(data?.crossAlerts ?? []).length > 0 && (
         <Alert severity="warning" sx={{ mb: 3, borderRadius: 3 }}>
