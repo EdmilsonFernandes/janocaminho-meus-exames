@@ -247,7 +247,7 @@ export const Dashboard = () => {
   const tipNode = <AiTip firstName={firstName} tipData={tipData} fallbackTip={tip} />;
 
   return (
-    <PageContainer width="wide" sx={{ bgcolor: '#FAFBFC', minHeight: '100vh' }}>
+    <PageContainer width="wide" sx={{ bgcolor: (t) => (t.palette.mode === 'dark' ? 'background.default' : '#FAFBFC'), minHeight: '100vh' }}>
       <DashboardHeader firstName={firstName} />
 
       {/* 1 · HERO — Score de Saúde */}
