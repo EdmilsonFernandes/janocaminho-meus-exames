@@ -156,10 +156,12 @@ export const ChatPage = () => {
       {/* HEADER estilo Mercado Pago: voltar · título · nova conversa · histórico */}
       <Paper elevation={0} sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 1, borderRadius: 3, mb: 1, background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff' }}>
         <IconButton size="small" onClick={() => navigate('/')} sx={{ color: '#fff' }}>←</IconButton>
-        <DrExame size={30} sx={{ borderRadius: '50%' }} />
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography sx={{ fontWeight: 800, lineHeight: 1.1, fontFamily: 'Poppins, sans-serif' }}>Dr. Exame</Typography>
-          <Typography sx={{ fontSize: 11, opacity: 0.9 }}>Assistente de saúde{firstName ? ` · ${firstName}` : ''}</Typography>
+          <Typography sx={{ fontWeight: 800, lineHeight: 1.1, fontFamily: 'Poppins, sans-serif', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            Dr. Exame
+            <Box component="span" sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#4ade80', display: 'inline-block', boxShadow: '0 0 6px #4ade80' }} />
+          </Typography>
+          <Typography sx={{ fontSize: 11, opacity: 0.9 }}>Assistente de saúde com IA{firstName ? ` · ${firstName}` : ''}</Typography>
         </Box>
         <IconButton size="small" onClick={startNew} title="Nova conversa" sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,.15)', '&:hover': { bgcolor: 'rgba(255,255,255,.25)' } }}><EditIcon fontSize="small" /></IconButton>
         <IconButton size="small" onClick={() => setHistOpen(true)} title="Histórico de conversas" sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,.15)', '&:hover': { bgcolor: 'rgba(255,255,255,.25)' } }}>
@@ -170,10 +172,9 @@ export const ChatPage = () => {
       {/* mensagens */}
       <Box ref={scrollRef} sx={{ flex: 1, minHeight: 0, overflowY: 'auto', p: 1, background: 'background.default', borderRadius: 3 }}>
         {messages.length === 0 && (
-          <Box sx={{ textAlign: 'center', py: { xs: 2, md: 4 } }}>
-            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1.5 }}><DrExame size={64} sx={{ borderRadius: '22%' }} /></Box>
-            <Typography sx={{ fontWeight: 800, fontSize: 18, color: TEAL }}>{firstName ? `Oi, ${firstName}! 👋` : 'Olá! 👋'}</Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2, mt: 0.5 }}>Sou o Dr. Exame. Pergunte sobre seus exames ou toque em <strong>+</strong> pra ver o que posso fazer.</Typography>
+          <Box sx={{ textAlign: 'center', py: { xs: 3, md: 6 } }}>
+            <Typography sx={{ fontWeight: 800, fontSize: { xs: 20, md: 24 }, color: 'text.primary', fontFamily: 'Poppins, sans-serif' }}>{firstName ? `Oi, ${firstName}! 👋` : 'Olá! 👋'}</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3, mt: 0.5 }}>Pergunte sobre seus exames ou toque numa sugestão abaixo.</Typography>
             <Stack spacing={0.75} sx={{ maxWidth: 460, mx: 'auto' }}>
               {QUICK_ACTIONS.slice(0, 8).map((a) => (
                 <Paper key={a.title} elevation={0} onClick={() => send(a.prompt)} sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 1.25, p: 1.25, px: 1.5, borderRadius: 2.5, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', textAlign: 'left', '&:hover': { bgcolor: '#eefaf8', borderColor: TEAL, transform: 'translateY(-1px)' }, transition: 'all .15s' }}>
@@ -189,30 +190,23 @@ export const ChatPage = () => {
           {messages.map((m, i) => {
             const isLastAssistant = m.role === 'assistant' && i === messages.length - 1 && busy && !m.text;
             return (
-              <Box key={i} sx={{ display: 'flex', gap: 0.75, justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start', alignItems: 'flex-end' }}>
-                {m.role === 'assistant' && (
-                  <Box sx={{ position: 'relative', flexShrink: 0, mb: 0.25 }}>
-                    <DrExame size={28} sx={{ borderRadius: '50%' }} />
-                    {/* Estrela ✨ (IA) no avatar do Dr. Exame em cada resposta */}
-                    <Box sx={{ position: 'absolute', top: -3, right: -3, width: 12, height: 12, borderRadius: '50%', bgcolor: '#f59e0b', border: '1.2px solid #fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <AutoAwesomeIcon sx={{ fontSize: 7, color: '#fff' }} />
-                    </Box>
-                  </Box>
-                )}
+              <Box key={i} sx={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
                 <Paper elevation={0} sx={{
-                  maxWidth: '82%', px: 1.5, py: 1, borderRadius: 2,
+                  maxWidth: '85%', px: 1.75, py: 1.25,
+                  borderRadius: m.role === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
                   bgcolor: m.role === 'user' ? TEAL : 'background.paper',
                   color: m.role === 'user' ? '#fff' : 'text.primary',
                   border: m.role === 'user' ? 'none' : '1px solid',
-                  borderColor: m.role === 'user' ? 'none' : 'divider',
+                  borderColor: 'divider',
                   wordBreak: 'break-word',
-                  '& p': { margin: '0.3em 0' }, '& h3': { fontSize: '0.95rem', fontWeight: 800, margin: '0.6em 0 0.2em', color: TEAL },
+                  boxShadow: m.role === 'user' ? '0 2px 10px rgba(32,178,170,.22)' : '0 1px 4px rgba(0,0,0,.05)',
+                  '& p': { margin: '0.3em 0', fontSize: 14.5, lineHeight: 1.55 }, '& h3': { fontSize: '0.95rem', fontWeight: 800, margin: '0.6em 0 0.2em', color: TEAL },
                   '& ul, & ol': { margin: '0.3em 0', paddingLeft: '1.2em' }, '& li': { margin: '0.15em 0' },
                   '& strong': { fontWeight: 700 }, '& code': { bgcolor: 'rgba(0,0,0,.06)', px: 0.4, borderRadius: 0.5, fontSize: '0.9em' },
                 }}>
                   {m.text
                     ? (m.role === 'assistant' ? <ReactMarkdown>{m.text}</ReactMarkdown> : <Box sx={{ whiteSpace: 'pre-wrap' }}>{m.text}</Box>)
-                    : (isLastAssistant ? <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center', color: 'text.secondary' }}><CircularProgress size={14} /> Dr. Exame está escrevendo…</Box> : '')}
+                    : (isLastAssistant ? <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center', color: 'text.secondary' }}><CircularProgress size={14} /> escrevendo…</Box> : '')}
                 </Paper>
               </Box>
             );
