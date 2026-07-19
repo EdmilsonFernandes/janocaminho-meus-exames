@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- @capgo/capacitor-social-login traz a permissão AD_ID via dependência do login do Facebook
+         (que não usamos — só Google). Removida p/ a declaração "não usa ID de publicidade" do
+         Play Console ficar consistente com o app (sem anúncios). -->
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
