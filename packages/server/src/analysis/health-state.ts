@@ -57,8 +57,10 @@ export interface MarkerState {
   isAbnormal: boolean;
   priority: Priority;
   trend: TrendDirection;
-  points: number; // qtd de medições
-  confidence: Confidence; // baixa se <2 pts OU stale
+  points: number; // qtd de medições (pós-dedup)
+  confidence: Confidence; // baixa se <2 pts OU stale OU antigo
+  temporalClass: TemporalClass; // atual/recente/historico/antigo/desatualizado
+  outdated: boolean; // true = estava alterado no passado + sem medição recente
 }
 
 /** Layer 2 — snapshot roll-up do paciente. */
@@ -85,6 +87,21 @@ export interface CurrentHealthSummary {
 // ───────────────────────── helpers puros ─────────────────────────
 
 export const STALE_MONTHS = 12;
+
+// Classificação temporal — prioriza recência pra estado atual.
+export const FRESH_MONTHS = 6;
+export const RECENT_MONTHS = 12;
+export const OLD_MONTHS = 36;
+
+export type TemporalClass = 'atual' | 'recente' | 'historico' | 'antigo' | 'desatualizado';
+
+export function classifyTemporal(ageMonths: number | null, hadPriorAbnormal: boolean): TemporalClass {
+  if (ageMonths == null) return 'recente';
+  if (ageMonths <= FRESH_MONTHS) return 'atual';
+  if (ageMonths <= RECENT_MONTHS) return 'recente';
+  if (ageMonths <= OLD_MONTHS) return 'historico';
+  return hadPriorAbnormal ? 'desatualizado' : 'antigo';
+}
 
 export function ageMonths(d: Date | null): number | null {
   if (!d) return null;
@@ -205,8 +222,19 @@ export function computeMarkerState(rows: ItemRow[]): MarkerState[] {
       const tb = b.performedAt ? b.performedAt.getTime() : -Infinity;
       return tb - ta;
     });
-    const latest = sorted[0];
-    const prior = sorted[1] ?? null;
+    // DEDUP por dia — mantém só a 1ª (mais recente) medição de cada dia.
+    // Causa raiz: exames duplicados (mesmo PDF re-enviado, cross-patient, re-scan) criam
+    // 2+ items do mesmo marcador no mesmo dia → infla points + gera deltaPct=0 falso "estável".
+    const seenDays = new Set<string>();
+    const deduped = sorted.filter((r) => {
+      if (!r.performedAt) return true;
+      const day = new Date(r.performedAt).toISOString().slice(0, 10);
+      if (seenDays.has(day)) return false;
+      seenDays.add(day);
+      return true;
+    });
+    const latest = deduped[0];
+    const prior = deduped[1] ?? null;
     // GUARD anti-cruzamento de escala: se latest e prior têm unidades DIFERENTES (ex.: pg/mL vs
     // nmol/L no mesmo nameCanonical — Testosterona Livre do Edmilson), NÃO calcular delta/tendência
     // — cruzaria escalas e geraria absurdos (regressão "+182/mês"). Raiz = converter/normalizar
@@ -215,6 +243,9 @@ export function computeMarkerState(rows: ItemRow[]): MarkerState[] {
     const priorForTrend = unitsCompatible ? prior : null;
     const age = ageMonths(latest.performedAt);
     const stale = age != null && age > STALE_MONTHS;
+    const hadPriorAbnormal = deduped.slice(1).some((r) => r.isAbnormal);
+    const temporalClass = classifyTemporal(age, hadPriorAbnormal);
+    const outdated = temporalClass === 'desatualizado';
     const tr = trendDirection(latest, priorForTrend, latest.refLow, latest.refHigh);
     out.push({
       nameCanonical: canonical,
@@ -230,8 +261,10 @@ export function computeMarkerState(rows: ItemRow[]): MarkerState[] {
       isAbnormal: latest.isAbnormal,
       priority: priorityOfItem(latest),
       trend: tr,
-      points: sorted.length,
-      confidence: sorted.length >= 2 && !stale ? 'alta' : 'baixa',
+      points: deduped.length,
+      confidence: deduped.length >= 2 && !stale && temporalClass !== 'historico' && temporalClass !== 'antigo' && !outdated ? 'alta' : 'baixa',
+      temporalClass,
+      outdated,
     });
   }
   return out;

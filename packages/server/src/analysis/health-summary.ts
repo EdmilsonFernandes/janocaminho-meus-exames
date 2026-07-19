@@ -102,6 +102,12 @@ export async function generateConsolidatedSummary(patientId: string, audience: '
         `- ESTADO ATUAL = valores MAIS RECENTES de cada marcador (verdade presente; BASEIE o resumo aqui).\n` +
         `- TENDÊNCIAS = direção (melhorou/piorou/estável/1º exame) + variação % JÁ calculada (não reinvente o número).\n` +
         `- CONTEXTO HISTÓRICO = marcadores medidos há >1 ano — NÃO é estado atual; cite só se relevante.\n\n` +
+        `REGRAS TEMPORAIS OBRIGATÓRIAS (NÃO VIOLAR):\n` +
+        `- ESTADO ATUAL = SOMENTE marcadores classificados como [ATUAL] (≤6 meses) ou [RECENTE] (≤12 meses).\n` +
+        `- Marcadores [HISTÓRICO] (>1 ano) ou [ANTIGO] (>3 anos): NUNCA apresentar como condição atual. Só em "Evolução" ou "Histórico relevante".\n` +
+        `- Marcadores [DESATUALIZADO]: estava alterado no passado + sem medição recente. Diga "pode estar desatualizado, converse com seu médico sobre refazer" — NUNCA afirme que está alterado hoje.\n` +
+        `- Se um marcador estava alterado em 2018 mas normal em 2026: o resultado ATUAL é NORMAL. Diga "houve melhora" (não "está alterado").\n` +
+        `- COMECE o resumo com: "Esta análise considera principalmente os exames de [mês/ano mais recente]. Exames anteriores foram usados apenas para avaliar a evolução."\n\n` +
         `REGRAS DE PESO TEMPORAL (obrigatórias):\n` +
         `- Baseie o quadro atual no ESTADO ATUAL; use TENDÊNCIAS só pra indicar direção/mudança.\n` +
         `- NUNCA conclua tendência de marcador marcado [confiança baixa] ou [DESATUALIZADO] sem ≥2 exames recentes.\n` +

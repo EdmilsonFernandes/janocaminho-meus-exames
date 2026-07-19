@@ -136,6 +136,17 @@ router.post('/', upload.single('file'), async (req: AuthedRequest, res, next) =>
       return;
     }
 
+    // Fingerprint semântico: mesmo paciente + mesmo título + upload há <2h = provável re-envio
+    // (re-export do PDF, re-scan, etc — sha diferente mas conteúdo igual).
+    const recentDup = await prisma.exam.findFirst({
+      where: { patientId, title: String(req.body.title || 'Exame'), status: 'EXTRACTED', createdAt: { gte: new Date(Date.now() - 2 * 3600_000) } },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (recentDup) {
+      res.json({ ...serializeExam(recentDup), duplicate: true });
+      return;
+    }
+
     // sobe o arquivo (S3 em prod / disco em dev) — pasta por paciente
     const patient = await prisma.patient.findUnique({ where: { id: patientId }, select: { fullName: true } });
     const slug = patientSlug(patient?.fullName ?? 'paciente', patientId);

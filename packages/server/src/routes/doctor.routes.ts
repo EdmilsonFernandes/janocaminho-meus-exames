@@ -550,11 +550,13 @@ router.get('/patients/:patientId/evolution', requireDoctor, async (req: any, res
       select: { name: true, nameCanonical: true, valueNumeric: true, unit: true, flag: true, isAbnormal: true, refLow: true, refHigh: true, exam: { select: { performedAt: true } } },
       orderBy: { exam: { performedAt: 'desc' } }, take: 300,
     });
-    // Dedup por (analito + data + valor) — exames duplicados viram 1 ponto só no gráfico
+    // Dedup por (analito + DIA) — mantém só a última do dia (igual patient-side item.routes L123).
+    // Antes exigia valor IDÊNTICO (valueNumeric) → 2 pontos com leve diferença de arredondamento
+    ///lab ficavam como 2 → zig-zag no gráfico. Agora colapsa por dia independente do valor.
     const seen = new Set<string>();
     const items = raw.filter((r) => {
       const day = r.exam?.performedAt ? new Date(r.exam.performedAt).toDateString() : 's/d';
-      const k = `${r.nameCanonical}|${day}|${r.valueNumeric}`;
+      const k = `${r.nameCanonical}|${day}`;
       if (seen.has(k)) return false;
       seen.add(k);
       return true;
