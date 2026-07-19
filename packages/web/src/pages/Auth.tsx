@@ -5,6 +5,8 @@ import { GoogleLogin } from '@react-oauth/google';
 import { Box, Typography, Button, Link, CircularProgress, Stack, TextField, InputAdornment, IconButton, Checkbox, FormControlLabel } from '@mui/material';
 import { DrExame } from '../components/DrExame';
 import { API_URL } from '../config';
+import { Capacitor } from '@capacitor/core';
+import { nativeGoogleLogin } from '../utils/nativeGoogleAuth';
 import { OtpInput } from '../components/OtpInput';
 import { MfaChallengeDialog } from '../components/mfa/MfaChallengeDialog';
 import { BiometricService, getDeviceId } from '../components/BiometricService';
@@ -22,6 +24,7 @@ const I = {
   Shield: (p?: any) => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#178f89" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3Z" /><path d="m9 12 2 2 4-4" /></svg>),
   Doctor: (p?: any) => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M5 3v5a4 4 0 0 0 8 0V3" /><path d="M9 12v2.5A5.5 5.5 0 0 0 20 14.5V13" /><circle cx="20" cy="11" r="2" /></svg>),
   User: (p?: any) => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><circle cx="12" cy="8" r="4" /><path d="M4 20c0-3.3 3.6-5 8-5s8 1.7 8 5" /></svg>),
+  GoogleG: (p?: any) => (<svg width="20" height="20" viewBox="0 0 48 48" {...p}><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.5 2.6 30.1 0 24 0 14.6 0 6.4 5.4 2.6 13.3l7.8 6.1C12.2 13.7 17.6 9.5 24 9.5z" /><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.5 3-2.2 5.5-4.7 7.2l7.3 5.7C43.9 38 46.5 31.8 46.5 24.5z" /><path fill="#FBBC05" d="M10.4 28.6c-.5-1.4-.7-2.9-.7-4.6s.3-3.2.7-4.6l-7.8-6.1C1.6 16.5 0 20 0 24s1.6 7.5 2.6 8.7l7.8-6.1z" /><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.3-5.7c-2 1.4-4.6 2.2-8.6 2.2-6.4 0-11.8-4.2-13.6-9.9l-7.8 6.1C6.4 42.6 14.6 48 24 48z" /></svg>),
 };
 
 /** Card centralizado sobre fundo menta (layout loginIdea). */
@@ -193,6 +196,28 @@ export const LoginPage = () => {
     finally { setLoading(false); }
   };
 
+  // Google Sign-in — troca o idToken (web GIS ou nativo Capgo) pela sessão do app.
+  // Mesmo /auth/google p/ ambas as plataformas; o server valida o JWT id_token igual.
+  const exchangeGoogleCredential = async (idToken: string) => {
+    try {
+      setLoading(true);
+      const r = await fetch(`${API_URL}/auth/google`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: idToken }),
+      });
+      const d = await r.json();
+      if (d.token) { localStorage.setItem('token', d.token); navigate('/', { replace: true }); }
+      else { window.alert(d.error || 'Falha no login do Google.'); }
+    } catch { window.alert('Falha de conexão.'); }
+    finally { setLoading(false); }
+  };
+
+  const handleNativeGoogle = async () => {
+    const tok = await nativeGoogleLogin();
+    if (!tok) { window.alert('Falha no login do Google.'); return; }
+    await exchangeGoogleCredential(tok);
+  };
+
   return (
     <Shell>
       {/* Toggle Paciente / Médico — segmented control premium */}
@@ -243,6 +268,8 @@ export const LoginPage = () => {
           {/* "Entrar com token" oculto por ora (OTP segue acessível p/ ativação de conta). */}
           {/* Google Sign-in — só aparece se VITE_GOOGLE_CLIENT_ID estiver configurado */}
           {/* Google Sign-in — SÓ pra paciente (médico precisa de CRM, Google não valida) */}
+          {/* No APK (WebView) o botão GIS do Google não renderiza (origem https://localhost não
+              autorizada) → usamos o plugin nativo Capgo. No browser mantemos o <GoogleLogin> web. */}
           {import.meta.env.VITE_GOOGLE_CLIENT_ID && role !== 'medico' && (
             <>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, my: 0.5 }}>
@@ -251,19 +278,21 @@ export const LoginPage = () => {
                 <Box sx={{ flex: 1, height: 1, bgcolor: 'divider' }} />
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                <GoogleLogin
-                  onSuccess={async (cred) => {
-                    try {
-                      setLoading(true);
-                      const r = await fetch(`${API_URL}/auth/google`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ credential: cred.credential }) });
-                      const d = await r.json();
-                      if (d.token) { localStorage.setItem('token', d.token); navigate('/'); }
-                      else { window.alert(d.error || 'Falha no login do Google.'); }
-                    } catch { window.alert('Falha de conexão.'); } finally { setLoading(false); }
-                  }}
-                  onError={() => window.alert('Falha no login do Google.')}
-                  text="continue_with" shape="pill" size="large" width="320"
-                />
+                {Capacitor.isNativePlatform() ? (
+                  <Button
+                    type="button" variant="outlined" size="large"
+                    startIcon={<I.GoogleG />} onClick={handleNativeGoogle} disabled={loading}
+                    sx={{ borderRadius: 999, borderColor: 'divider', color: 'text.primary', textTransform: 'none', fontWeight: 600, py: 1.2, width: 320 }}
+                  >
+                    Entrar com Google
+                  </Button>
+                ) : (
+                  <GoogleLogin
+                    onSuccess={async (cred) => { if (cred.credential) await exchangeGoogleCredential(cred.credential); }}
+                    onError={() => window.alert('Falha no login do Google.')}
+                    text="continue_with" shape="pill" size="large" width="320"
+                  />
+                )}
               </Box>
             </>
           )}

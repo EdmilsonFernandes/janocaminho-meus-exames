@@ -18,10 +18,18 @@ import androidx.security.crypto.EncryptedSharedPreferences;
 import androidx.security.crypto.MasterKeys;
 
 import com.getcapacitor.BridgeActivity;
+import com.getcapacitor.Plugin;
+import com.getcapacitor.PluginHandle;
 
 import org.json.JSONObject;
 
-public class MainActivity extends BridgeActivity {
+// Google Sign-in nativo (Capgo social-login)
+import android.content.Intent;
+import ee.forgr.capacitor.social.login.GoogleProvider;
+import ee.forgr.capacitor.social.login.ModifiedMainActivityForSocialLoginPlugin;
+import ee.forgr.capacitor.social.login.SocialLoginPlugin;
+
+public class MainActivity extends BridgeActivity implements ModifiedMainActivityForSocialLoginPlugin {
 
     private static final String SECURE_PREFS = "dx_secure_bio";
     private static final String BIO_EVENT = "dx:biometric-result";
@@ -46,6 +54,26 @@ public class MainActivity extends BridgeActivity {
         super.onStart();
         injectBiometricBridge(); // re-injeta se o WebView foi recriado
     }
+
+    // --- Google Sign-in nativo (Capgo social-login): repassa o resultado do seletor de conta ao plugin. ---
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode >= GoogleProvider.REQUEST_AUTHORIZE_GOOGLE_MIN
+            && requestCode < GoogleProvider.REQUEST_AUTHORIZE_GOOGLE_MAX) {
+            if (bridge == null) return;
+            PluginHandle handle = bridge.getPlugin("SocialLogin");
+            if (handle == null) { Log.w("DX_SOCIAL", "SocialLogin plugin handle null"); return; }
+            Plugin plugin = handle.getInstance();
+            if (plugin instanceof SocialLoginPlugin) {
+                ((SocialLoginPlugin) plugin).handleGoogleLoginIntent(requestCode, data);
+            }
+        }
+    }
+
+    // Exigido pela interface ModifiedMainActivityForSocialLoginPlugin (no-op — nunca chamado).
+    @Override
+    public void IHaveModifiedTheMainActivityForTheUseWithSocialLoginPlugin() { }
 
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
