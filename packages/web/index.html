@@ -7,10 +7,16 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <meta name="theme-color" content="#20b2aa" />
+    <meta name="description" content="Dr. Exame — seu assistente de saúde com IA. Envie seus exames (PDF ou foto) e entenda cada valor em português simples, com leitura de risco, plano de ação e perguntas para o médico." />
+    <meta name="author" content="Dr. Exame" />
+    <meta property="og:title" content="Dr. Exame — Seus exames com IA" />
+    <meta property="og:description" content="Assistente de saúde com IA que lê seus exames, explica em português simples e mostra sua leitura de risco." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="app-icon.png" />
     <link rel="manifest" href="manifest.json" />
     <link rel="icon" type="image/png" href="app-icon.png" />
     <link rel="apple-touch-icon" href="app-icon.png" />
-    <title>Meus Exames</title>
+    <title>Dr. Exame — Seus exames com IA</title>
     <style>
       /* Feel nativo: remove o highlight azul do tap no webview/mobile. */
       html, body, * { -webkit-tap-highlight-color: transparent; }
@@ -72,6 +78,11 @@
     </style>
   </head>
   <body>
+    <noscript>
+      <h1>Dr. Exame</h1>
+      <p>Seu assistente de saúde com IA. Envie seus exames (PDF ou foto) e entenda cada valor em português simples, com leitura de risco, plano de ação e perguntas para levar ao médico. Conteúdo educativo — não substitui consulta médica.</p>
+      <p>Acesse: <a href="https://janocaminho.com.br/minhasaude">janocaminho.com.br/minhasaude</a></p>
+    </noscript>
     <div id="root"></div>
     <script>
       // LIMPA Service Workers de OUTROS apps (ex.: EdEspeto) que interceptam /minhasaude
