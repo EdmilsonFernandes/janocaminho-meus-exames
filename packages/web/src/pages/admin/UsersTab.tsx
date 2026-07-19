@@ -131,9 +131,9 @@ export const UsersTab = () => {
               <IconButton size="small" onClick={() => { void toggleBlock(u); }} title={u.blocked ? 'Desbloquear' : 'Bloquear'} sx={{ color: u.blocked ? 'success.main' : 'warning.main' }}>
                 {u.blocked ? <LockOpenIcon fontSize="small" /> : <BlockIcon fontSize="small" />}
               </IconButton>
-              <IconButton size="small" onClick={() => { void resetMfa(u); }} title="Resetar MFA" sx={{ color: 'info.main' }}>
+              {(u as any).mfaEnabled && <IconButton size="small" onClick={() => { void resetMfa(u); }} title="Resetar MFA (ativo)" sx={{ color: 'info.main' }}>
                 <LockResetIcon fontSize="small" />
-              </IconButton>
+              </IconButton>}
               {u.role !== 'ADMIN' && <IconButton size="small" color="error" onClick={() => void openDelete(u)} title="Excluir"><DeleteIcon fontSize="small" /></IconButton>}
             </CardContent>
           </Card>

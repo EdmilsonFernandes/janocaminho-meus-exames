@@ -137,10 +137,11 @@ router.post('/google', async (req, res, next) => {
     const name = payload.name || payload.email.split('@')[0];
     const picture = payload.picture || null;
 
-    // Usuário já existe? → loga direto
+    // Usuário já existe? → loga direto + atualiza foto do Google se o Patient não tiver
     const existing = await prisma.user.findUnique({ where: { email: mail } });
     if (existing) {
       if (existing.blocked) { res.status(403).json({ error: 'Identificamos um problema com a sua conta. Para resolver, entre em contato: contato@janocaminho.com.br' }); return; }
+      if (picture) await prisma.patient.updateMany({ where: { ownerId: existing.id, photoUrl: null }, data: { photoUrl: picture } }).catch(() => {});
       res.json({ token: signToken({ userId: existing.id, ver: existing.tokenVersion ?? 0 }) });
       return;
     }

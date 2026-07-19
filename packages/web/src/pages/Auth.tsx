@@ -242,7 +242,8 @@ export const LoginPage = () => {
           </Button>
           {/* "Entrar com token" oculto por ora (OTP segue acessível p/ ativação de conta). */}
           {/* Google Sign-in — só aparece se VITE_GOOGLE_CLIENT_ID estiver configurado */}
-          {import.meta.env.VITE_GOOGLE_CLIENT_ID && (
+          {/* Google Sign-in — SÓ pra paciente (médico precisa de CRM, Google não valida) */}
+          {import.meta.env.VITE_GOOGLE_CLIENT_ID && role !== 'medico' && (
             <>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, my: 0.5 }}>
                 <Box sx={{ flex: 1, height: 1, bgcolor: 'divider' }} />
