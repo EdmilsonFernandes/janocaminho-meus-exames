@@ -27,6 +27,7 @@
     "@meus-exames/shared": "*",
     "@mui/icons-material": "^7.0.0",
     "@mui/material": "^7.0.0",
+    "@react-oauth/google": "^0.13.5",
     "@sentry/react": "^10.59.0",
     "qrcode": "^1.5.4",
     "ra-data-simple-rest": "^5.14.7",

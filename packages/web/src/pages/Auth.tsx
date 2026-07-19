@@ -1,6 +1,7 @@
 import { useState, useEffect, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLogin, useNotify, useTranslate } from 'react-admin';
+import { GoogleLogin } from '@react-oauth/google';
 import { Box, Typography, Button, Link, CircularProgress, Stack, TextField, InputAdornment, IconButton, Checkbox, FormControlLabel } from '@mui/material';
 import { DrExame } from '../components/DrExame';
 import { API_URL } from '../config';
@@ -240,6 +241,31 @@ export const LoginPage = () => {
             {loading ? <CircularProgress size={22} color="inherit" /> : translate('auth.signin')}
           </Button>
           {/* "Entrar com token" oculto por ora (OTP segue acessível p/ ativação de conta). */}
+          {/* Google Sign-in — só aparece se VITE_GOOGLE_CLIENT_ID estiver configurado */}
+          {import.meta.env.VITE_GOOGLE_CLIENT_ID && (
+            <>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, my: 0.5 }}>
+                <Box sx={{ flex: 1, height: 1, bgcolor: 'divider' }} />
+                <Typography variant="caption" color="text.secondary">ou</Typography>
+                <Box sx={{ flex: 1, height: 1, bgcolor: 'divider' }} />
+              </Box>
+              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                <GoogleLogin
+                  onSuccess={async (cred) => {
+                    try {
+                      setLoading(true);
+                      const r = await fetch(`${API_URL}/auth/google`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ credential: cred.credential }) });
+                      const d = await r.json();
+                      if (d.token) { localStorage.setItem('token', d.token); navigate('/'); }
+                      else { window.alert(d.error || 'Falha no login do Google.'); }
+                    } catch { window.alert('Falha de conexão.'); } finally { setLoading(false); }
+                  }}
+                  onError={() => window.alert('Falha no login do Google.')}
+                  text="continue_with" shape="pill" size="large" width="320"
+                />
+              </Box>
+            </>
+          )}
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start', mt: 1, color: 'text.secondary' }}>
             <Box sx={{ mt: '1px' }}><I.Shield /></Box>
             <Box>

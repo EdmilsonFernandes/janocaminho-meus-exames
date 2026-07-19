@@ -120,6 +120,51 @@ router.post('/mfa/disable', requireAuth, async (req: AuthedRequest, res) => {
 });
 
 // REGISTRO (auto-atendimento — Play Store)
+// POST /api/auth/google — login/cadastro via Google ID token (One Tap / botão "Entrar com Google")
+// Fluxo: credential (ID token) do Google → verifica → cria usuário se novo (sem CPF — pede depois).
+router.post('/google', async (req, res, next) => {
+  try {
+    const { credential } = req.body ?? {};
+    if (!credential) { res.status(400).json({ error: 'Token do Google ausente.' }); return; }
+    const clientId = process.env.GOOGLE_CLIENT_ID || '';
+    if (!clientId) { res.status(500).json({ error: 'Google Sign-in não configurado no servidor.' }); return; }
+    const { OAuth2Client } = await import('google-auth-library');
+    const client = new OAuth2Client(clientId);
+    const ticket = await client.verifyIdToken({ idToken: credential, audience: clientId });
+    const payload = ticket.getPayload();
+    if (!payload?.email) { res.status(400).json({ error: 'Não foi possível obter seu e-mail do Google.' }); return; }
+    const mail = payload.email.toLowerCase().trim();
+    const name = payload.name || payload.email.split('@')[0];
+    const picture = payload.picture || null;
+
+    // Usuário já existe? → loga direto
+    const existing = await prisma.user.findUnique({ where: { email: mail } });
+    if (existing) {
+      if (existing.blocked) { res.status(403).json({ error: 'Identificamos um problema com a sua conta. Para resolver, entre em contato: contato@janocaminho.com.br' }); return; }
+      res.json({ token: signToken({ userId: existing.id, ver: existing.tokenVersion ?? 0 }) });
+      return;
+    }
+    // Novo usuário — Google já verificou o e-mail. Cria sem CPF (pede depois no profile.complete).
+    const firstName = String(name).split(' ')[0].toUpperCase().replace(/[^A-Z]/g, '').slice(0, 10) || 'USER';
+    let referralCode = '';
+    for (let i = 0; i < 10; i++) {
+      const candidate = `${firstName}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+      if (!(await prisma.user.findFirst({ where: { referralCode: candidate } }))) { referralCode = candidate; break; }
+    }
+    const user = await prisma.$transaction(async (tx) => {
+      const created = await tx.user.create({
+        data: { email: mail, name: String(name), passwordHash: 'google-oauth', credits: 0, emailVerified: true, referralCode, photoUrl: picture },
+      });
+      await tx.patient.create({ data: { ownerId: created.id, fullName: String(name), relationship: 'Titular' } });
+      return created;
+    });
+    // Bônus de boas-vindas (Google já verificou o e-mail → dá na hora, sem OTP)
+    const bonus = getSettings().grants?.freeSignup ?? 60;
+    await prisma.user.update({ where: { id: user.id }, data: { credits: { increment: bonus } } }).catch(() => {});
+    res.status(201).json({ token: signToken({ userId: user.id, ver: user.tokenVersion ?? 0 }), isNew: true });
+  } catch (e) { next(e); }
+});
+
 router.post('/register', validate(schemas.register), async (req, res, next) => {
   try {
     const { name, email, password, referral, cpf } = req.body ?? {};
