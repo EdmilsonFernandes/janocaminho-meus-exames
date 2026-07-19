@@ -177,7 +177,7 @@ export const ChatPage = () => {
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3, mt: 0.5 }}>Pergunte sobre seus exames ou toque numa sugestão abaixo.</Typography>
             <Stack spacing={0.75} sx={{ maxWidth: 460, mx: 'auto' }}>
               {QUICK_ACTIONS.slice(0, 8).map((a) => (
-                <Paper key={a.title} elevation={0} onClick={() => send(a.prompt)} sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 1.25, p: 1.25, px: 1.5, borderRadius: 2.5, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', textAlign: 'left', '&:hover': { bgcolor: '#eefaf8', borderColor: TEAL, transform: 'translateY(-1px)' }, transition: 'all .15s' }}>
+                <Paper key={a.title} elevation={0} onClick={() => send(a.prompt)} sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 1.25, p: 1.25, px: 1.5, borderRadius: 2.5, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', textAlign: 'left', '&:hover': { bgcolor: 'rgba(32,178,170,.08)', borderColor: TEAL, transform: 'translateY(-1px)' }, transition: 'all .15s' }}>
                   <Box sx={{ fontSize: 20 }}>{a.icon}</Box>
                   <Typography sx={{ fontSize: 14, fontWeight: 600, color: 'text.primary' }}>{a.title}</Typography>
                 </Paper>
@@ -202,7 +202,7 @@ export const ChatPage = () => {
                   boxShadow: m.role === 'user' ? '0 2px 10px rgba(32,178,170,.22)' : '0 1px 4px rgba(0,0,0,.05)',
                   '& p': { margin: '0.3em 0', fontSize: 14.5, lineHeight: 1.55 }, '& h3': { fontSize: '0.95rem', fontWeight: 800, margin: '0.6em 0 0.2em', color: TEAL },
                   '& ul, & ol': { margin: '0.3em 0', paddingLeft: '1.2em' }, '& li': { margin: '0.15em 0' },
-                  '& strong': { fontWeight: 700 }, '& code': { bgcolor: 'rgba(0,0,0,.06)', px: 0.4, borderRadius: 0.5, fontSize: '0.9em' },
+                  '& strong': { fontWeight: 700 }, '& code': { bgcolor: 'rgba(128,128,128,.15)', px: 0.4, borderRadius: 0.5, fontSize: '0.9em' },
                 }}>
                   {m.text
                     ? (m.role === 'assistant' ? <ReactMarkdown>{m.text}</ReactMarkdown> : <Box sx={{ whiteSpace: 'pre-wrap' }}>{m.text}</Box>)

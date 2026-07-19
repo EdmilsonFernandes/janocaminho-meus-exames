@@ -676,7 +676,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         )}
       </Box>
 
-      <Box sx={{ maxWidth: 920, mx: 'auto', p: { xs: 2, md: 3 }, pb: { xs: 11, md: 4 }, bgcolor: '#FAFBFC', minHeight: '100vh' }}>
+      <Box sx={{ maxWidth: 920, mx: 'auto', p: { xs: 2, md: 3 }, pb: { xs: 11, md: 4 }, bgcolor: 'background.default', minHeight: '100vh' }}>
         {view === 'profile' && <DoctorProfile token={token} doctor={doctor} onBack={() => setView('patients')} onSaved={(d) => setDoctor(d)} onPhoto={() => setPhotoVer((v) => v + 1)} photoVer={photoVer} />}
         {view === 'password' && <DoctorChangePassword token={token} onBack={() => setView('patients')} />}
 
@@ -981,7 +981,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
 
             {/* COMMAND BAR — segmented control premium (iOS style) com contagens. Sticky. */}
             {supportedTabs.length > 0 && (
-              <Box sx={{ mb: 2, position: 'sticky', top: 0, zIndex: 10, bgcolor: '#FAFBFC', py: 1, mx: -2, px: 2, borderBottom: '1px solid', borderColor: 'rgba(0,0,0,.04)' }}>
+              <Box sx={{ mb: 2, position: 'sticky', top: 0, zIndex: 10, bgcolor: 'transparent', py: 1, mx: -2, px: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
                 <Stack direction="row" spacing={0.5} sx={{ overflowX: 'auto', '&::-webkit-scrollbar': { display: 'none' } }}>
                   {supportedTabs.map((s) => {
                     const on = tab === s;

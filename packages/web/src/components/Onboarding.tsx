@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { Dialog, Box, Typography, Button, MobileStepper } from '@mui/material';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import { useNavigate } from 'react-router-dom';
 
 const SLIDES = [
-  { emoji: '📋', title: 'Sua saúde centralizada', desc: 'Todos os seus exames em um só lugar, organizados por data. Nunca mais perca um resultado.' },
-  { emoji: '🤖', title: 'IA que lê seus resultados', desc: 'O Dr. Exame explica cada valor em português simples, compara com exames anteriores e destaca o que precisa de atenção.' },
-  { emoji: '🩺', title: 'Pronto pro médico', desc: 'Relatório de 1 página + perguntas prontas para sua consulta. Compartilhe por link seguro.' },
+  { emoji: '📄', title: 'Envie seu exame', desc: 'Mande o PDF ou foto do exame. O Dr. Exame extrai todos os valores automaticamente — em segundos.' },
+  { emoji: '🤖', title: 'Entenda cada valor', desc: 'A IA explica em português simples, mostra sua leitura de risco e compara com exames anteriores.' },
+  { emoji: '🩺', title: 'Pronto pro médico', desc: 'Relatório completo + perguntas prontas pra consulta. Compartilhe com seu médico com 1 toque.' },
 ];
 
 /**
@@ -18,12 +19,14 @@ export const Onboarding = () => {
   const [show, setShow] = useState(false);
   const [step, setStep] = useState(0);
   const touchX = useRef<number | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => { if (!localStorage.getItem('onboarded')) setShow(true); }, []);
   if (!show) return null;
 
   const last = step === SLIDES.length - 1;
   const finish = () => { localStorage.setItem('onboarded', '1'); setShow(false); };
+  const finishAndGo = () => { finish(); navigate('/exams'); };
   const next = () => { if (last) { finish(); return; } setStep((s) => Math.min(s + 1, SLIDES.length - 1)); };
   const back = () => { setStep((s) => Math.max(s - 1, 0)); };
 
@@ -70,7 +73,7 @@ export const Onboarding = () => {
               '& .MuiMobileStepper-dot': { bgcolor: 'rgba(255,255,255,.32)', width: 8, height: 8, mx: 0.5, transition: 'all .2s' },
               '& .MuiMobileStepper-dotActive': { bgcolor: '#fff', width: 22, borderRadius: 99 } }}
             nextButton={<Box />} backButton={<Box />} />
-          <Button fullWidth onClick={next} endIcon={!last ? <ArrowForwardIcon /> : null}
+          <Button fullWidth onClick={last ? finishAndGo : next} endIcon={!last ? <ArrowForwardIcon /> : null}
             sx={{ bgcolor: '#fff', color: '#178f89', fontWeight: 800, textTransform: 'none', fontSize: 17, borderRadius: 99, py: 1.5,
               animation: 'onbPulse 2.4s ease-in-out infinite', '&:hover': { bgcolor: '#f0f9f8' } }}>
             {last ? 'Começar 🚀' : 'Próximo'}

@@ -82,6 +82,7 @@ import { decideBackAction } from './utils/backNavigation';
 import { NotificationBell } from './components/NotificationBell';
 import { NotificationPopup } from './components/NotificationPopup';
 import { Onboarding } from './components/Onboarding';
+import { WhatsNew } from './components/WhatsNew';
 import { PageSkeleton } from './components/PageSkeleton';
 import { CompleteProfileModal } from './components/CompleteProfileModal';
 import { NotificationsPage } from './pages/Notifications';
@@ -431,6 +432,7 @@ const AppLayout = (props: any) => {
       <MobileBottomNav />
       <NotificationPopup />
       <Onboarding />
+      <WhatsNew />
       <CompleteProfileModal />
       </BiometricGate>
     </DrawerProvider>
