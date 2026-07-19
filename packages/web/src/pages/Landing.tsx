@@ -24,12 +24,13 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
+import MonitorWeightIcon from '@mui/icons-material/MonitorWeight';
 import TuneIcon from '@mui/icons-material/Tune';
 import CalculateIcon from '@mui/icons-material/Calculate';
 
 import { ExamDemo } from '../components/ExamDemo';
 import { FaqSection } from '../components/FaqSection';
-import { BmiCalculator } from '../components/BmiCalculator';
+import { BmiCalculator, BmiCard } from '../components/BmiCalculator';
 import { Reveal } from '../components/Reveal';
 
 // ---- Tokens (espelham theme.ts) ----
@@ -64,12 +65,8 @@ const catOf = (t: string): string => {
   return 'IA & Análise';
 };
 
-const steps = [
-  { n: 1, Icon: UploadFileIcon, title: 'Envie o exame', desc: 'PDF ou foto do exame de sangue, imagem ou laudo. A IA extrai todos os valores automaticamente.' },
-  { n: 2, Icon: AutoAwesomeIcon, title: 'A IA lê e explica', desc: 'O Dr. Exame explica cada valor em linguagem simples, compara com exames anteriores e destaca o que precisa de atenção.' },
-  { n: 3, Icon: AssignmentIndIcon, title: 'Indique seu médico', desc: 'Informe o CRM. Seu médico é pré-cadastrado sozinho e recebe um aviso pra ativar o acesso.' },
-  { n: 4, Icon: MedicalServicesIcon, title: 'O médico vê tudo', desc: 'Ele finaliza o cadastro com o mesmo CRM e você aparece no portal dele — só o que você autorizou.' },
-];
+// 6 benefícios em destaque por padrão (1 por pilar) — o resto fica sob "Ver todos os 15".
+const DEFAULT_BENEFITS = new Set(['IA que lê seus exames', 'Leitura de risco', 'Plano de ação do Dr. Exame', 'Índices que o laudo não dá', 'Portal do seu médico', 'Dados protegidos + Libras']);
 
 const planData = [
   { name: 'Grátis', price: 'R$ 0', period: '', features: ['60 créditos pra testar', 'Envie exames (PDF/foto)', 'Valores + referência', 'Score de Saúde', 'Pergunte ao Dr. Exame'], highlight: false, cta: 'Começar grátis' },
@@ -134,6 +131,8 @@ export const LandingPage = () => {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [cat, setCat] = useState<(typeof CATS)[number]>('Todos');
+  const [showAllBenefits, setShowAllBenefits] = useState(false);
+  const [medTab, setMedTab] = useState<'medico' | 'paciente' | 'convite'>('medico');
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 40);
     window.addEventListener('scroll', h, { passive: true });
@@ -152,6 +151,8 @@ export const LandingPage = () => {
         @keyframes heroFloat { 0%,100%{transform:translateY(0) rotate(-1.5deg)} 50%{transform:translateY(-12px) rotate(-1.5deg)} }
         @keyframes chipFloatA { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-9px)} }
         @keyframes chipFloatB { 0%,100%{transform:translateY(0)} 50%{transform:translateY(9px)} }
+        .hero-float { animation: heroFloat 6s ease-in-out infinite; }
+        @media (prefers-reduced-motion: reduce){ .hero-float{ animation: none !important; } }
       `}</style>
 
       {/* NAVBAR flutuante (claro/glassy) */}
@@ -171,7 +172,6 @@ export const LandingPage = () => {
           <Stack direction="row" spacing={1.5} alignItems="center">
             <Box component="button" onClick={() => goTo('beneficios')} sx={{ ...navBtn(scrolled), display: { xs: 'none', sm: 'inline' } }}>Recursos</Box>
             <Box component="button" onClick={() => goTo('planos')} sx={{ ...navBtn(scrolled), display: { xs: 'none', md: 'inline' } }}>Planos</Box>
-            <Box component="button" onClick={() => goTo('portal-medico')} sx={{ ...navBtn(scrolled), color: TEAL_DARK, fontWeight: 700, display: { xs: 'none', md: 'inline' } }}>🩺 Sou médico</Box>
             <Button onClick={() => navigate('/entrar')} sx={{ color: TEAL_DARK, fontWeight: 700, textTransform: 'none' }}>Entrar</Button>
             <Button variant="contained" color="primary" size="small" onClick={() => navigate('/registrar')} sx={{ borderRadius: 99, px: 2.5, textTransform: 'none', fontWeight: 700 }}>Criar conta</Button>
           </Stack>
@@ -181,22 +181,27 @@ export const LandingPage = () => {
       {/* HERO — claro premium */}
       <Box sx={{
         position: 'relative', overflow: 'hidden',
-        background: 'linear-gradient(180deg, rgba(32,178,170,.08) 0%, transparent 70%)',
+        background: 'linear-gradient(180deg, rgba(32,178,170,.12) 0%, rgba(212,165,116,.04) 35%, transparent 75%)',
         pt: { xs: 11, md: 14 }, pb: { xs: 7, md: 10 },
       }}>
         <Box sx={{ position: 'absolute', top: '-10%', right: '-5%', width: 520, height: 520, borderRadius: '50%', background: 'radial-gradient(circle,rgba(32,178,170,.18),transparent 65%)', pointerEvents: 'none' }} />
         <Box sx={{ position: 'absolute', bottom: '-15%', left: '-8%', width: 420, height: 420, borderRadius: '50%', background: 'radial-gradient(circle,rgba(212,165,116,.12),transparent 65%)', pointerEvents: 'none' }} />
+        <Box sx={{ position: 'absolute', top: '-5%', left: '-3%', width: 340, height: 340, borderRadius: '50%', background: 'radial-gradient(circle,rgba(212,165,116,.18),transparent 65%)', pointerEvents: 'none' }} />
         <Container maxWidth="lg" sx={{ position: 'relative' }}>
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.05fr .95fr' }, gap: { xs: 5, md: 6 }, alignItems: 'center' }}>
             {/* Coluna texto */}
             <Box>
               <Chip icon={<AutoAwesomeIcon sx={{ fontSize: 17 }} />} label="IA de Saúde no seu bolso" sx={{ bgcolor: 'rgba(32,178,170,.12)', color: TEAL_DARK, fontWeight: 700, mb: 3, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: TEAL } }} />
               <Typography variant="h1" sx={{ fontSize: { xs: '2.3rem', md: '3.4rem' }, fontWeight: 800, lineHeight: 1.08, mb: 2.5, letterSpacing: '-0.03em', color: 'text.primary' }}>
-                Entenda seus exames<br />como <Box component="span" sx={{ color: TEAL }}>nunca antes.</Box>
+                <Box component="span" sx={{ display: 'block' }}>Entenda seus exames</Box>como <Box component="span" sx={{ color: TEAL }}>nunca antes.</Box>
               </Typography>
-              <Typography sx={{ fontSize: { xs: 16.5, md: 19 }, color: 'text.secondary', mb: 4, lineHeight: 1.6, maxWidth: 500 }}>
+              <Typography sx={{ fontSize: { xs: 16.5, md: 19 }, color: 'text.secondary', mb: 3, lineHeight: 1.6, maxWidth: 500 }}>
                 Envie o exame. O <b style={{ color: 'text.primary' }}>Dr. Exame</b> lê com IA, explica em português simples, mostra sua <b style={{ color: 'text.primary' }}>leitura de risco</b> e monta um <b style={{ color: 'text.primary' }}>plano de ação</b> pra levar ao médico.
               </Typography>
+              <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', mb: 3, rowGap: 1 }}>
+                <Chip icon={<LockIcon sx={{ fontSize: 17 }} />} label="A IA não inventa números — vêm do seu laudo" sx={{ bgcolor: 'rgba(5,150,105,.10)', color: '#047857', fontWeight: 700, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: GREEN } }} />
+                <Chip icon={<VerifiedUserIcon sx={{ fontSize: 17 }} />} label="Conforme a LGPD" sx={{ bgcolor: 'rgba(32,178,170,.10)', color: TEAL_DARK, fontWeight: 700, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: TEAL } }} />
+              </Stack>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap sx={{ mb: 3 }}>
                 <Button variant="contained" color="primary" size="large" onClick={() => navigate('/registrar')} sx={{ borderRadius: 99, px: 4, py: 1.5, fontSize: 16.5, textTransform: 'none', fontWeight: 800 }}>
                   Começar grátis →
@@ -205,19 +210,11 @@ export const LandingPage = () => {
                   Já tenho conta
                 </Button>
               </Stack>
-              <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, px: 1.5, py: 0.75, borderRadius: 99, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}>
-                  <Box component="svg" sx={{ width: 16, height: 16 }} viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-                  </Box>
-                  <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.secondary' }}>Entre com Google — 1 toque, sem senha</Typography>
-                </Box>
-              </Stack>
-              <Stack direction="row" spacing={2.5} useFlexGap sx={{ flexWrap: 'wrap', rowGap: 1 }}>
-                {['Sem cartão', '60 créditos grátis', 'Leitura de risco', 'LGPD'].map((t) => (
+              <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mt: 1.5 }}>
+                ou entre com <b style={{ color: TEAL_DARK }}>Google</b> — 1 toque, sem senha
+              </Typography>
+              <Stack direction="row" spacing={2.5} useFlexGap sx={{ flexWrap: 'wrap', rowGap: 1, mt: 2 }}>
+                {['60 créditos grátis', 'Leitura de risco'].map((t) => (
                   <Stack key={t} direction="row" spacing={0.5} alignItems="center">
                     <CheckCircleIcon sx={{ fontSize: 17, color: GREEN }} />
                     <Typography sx={{ color: 'text.secondary', fontSize: 13.5, fontWeight: 600 }}>{t}</Typography>
@@ -231,12 +228,14 @@ export const LandingPage = () => {
 
             {/* Coluna visual — capaIA de ponta a ponta, sem matte e sem cards flutuantes => preenche tudo, sem espaço branco. */}
             <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-              <Box sx={{
+              <Box className="hero-float" sx={{
                 position: 'relative', width: '100%', maxWidth: 560,
-                borderRadius: 5, overflow: 'hidden',
+                borderRadius: 5, overflow: 'hidden', p: '6px',
+                background: 'linear-gradient(135deg,rgba(32,178,170,.12),rgba(212,165,116,.08))',
+                border: '1px solid rgba(32,178,170,.25)',
                 boxShadow: '0 30px 60px rgba(32,178,170,.20), 0 10px 24px rgba(0,0,0,.07)',
               }}>
-                <Box component="img" src={`${import.meta.env.BASE_URL}capa-ia.png`} alt="Dr. Exame — seus exames com IA" sx={{ width: '100%', height: 'auto', display: 'block' }} />
+                <Box component="img" src={`${import.meta.env.BASE_URL}capa-ia.png`} alt="Dr. Exame — seus exames com IA" sx={{ width: '100%', height: 'auto', display: 'block', borderRadius: 4 }} />
               </Box>
             </Box>
           </Box>
@@ -321,13 +320,13 @@ export const LandingPage = () => {
             >{c}</Box>
           ))}
         </Stack>
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr 1fr' }, gap: 2.5 }}>
-          {benefits.filter((b) => cat === 'Todos' || catOf(b.title) === cat).map((b, i) => (
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' }, gap: 2.5 }}>
+          {benefits.filter((b) => (cat !== 'Todos' ? catOf(b.title) === cat : showAllBenefits || DEFAULT_BENEFITS.has(b.title))).map((b, i) => (
             <Fade key={b.title} in timeout={300 + i * 60}>
               <Box sx={{
                 p: 3, borderRadius: 4, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', height: '100%',
-                transition: 'all .2s ease',
-                '&:hover': { boxShadow: '0 16px 36px rgba(32,178,170,.12)', transform: 'translateY(-5px)', borderColor: TEAL },
+                transition: 'transform .2s ease, box-shadow .2s ease, border-color .2s ease',
+                '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 20px 44px rgba(15,61,58,.10)', borderColor: TEAL },
               }}>
                 <Box sx={{ width: 48, height: 48, borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2, background: 'linear-gradient(135deg,rgba(32,178,170,.14),rgba(32,178,170,.06))' }}>
                   <b.Icon sx={{ fontSize: 26, color: TEAL_DARK }} />
@@ -338,6 +337,13 @@ export const LandingPage = () => {
             </Fade>
           ))}
         </Box>
+        {cat === 'Todos' && (
+          <Box sx={{ textAlign: 'center', mt: 4 }}>
+            <Button variant="outlined" onClick={() => setShowAllBenefits((v) => !v)} sx={{ borderRadius: 99, px: 3.5, py: 1, textTransform: 'none', fontWeight: 700, borderColor: '#bfe7e3', color: TEAL_DARK, '&:hover': { borderColor: TEAL, bgcolor: 'rgba(32,178,170,.06)' } }}>
+              {showAllBenefits ? 'Ver menos' : `Ver todos os ${benefits.length} recursos`}
+            </Button>
+          </Box>
+        )}
       </Container>
 
       {/* SHOWCASE — Veja na prática (mockups reais) */}
@@ -354,13 +360,15 @@ export const LandingPage = () => {
         </Container>
       </Box>
 
-      {/* SEÇÃO — Descubra seu risco + plano de ação (NOVO) */}
-      <Box sx={{ bgcolor: 'background.default', py: { xs: 8, md: 11 } }}>
-        <Container maxWidth="lg">
+      {/* SEÇÃO — Descubra seu risco + plano de ação (NOVO) — momento premium escuro (dark-teal) */}
+      <Box sx={{ position: 'relative', overflow: 'hidden', py: { xs: 8, md: 11 }, background: 'linear-gradient(135deg,#0f3d3a 0%,#137a72 55%,#1f9d95 100%)', color: '#fff' }}>
+        <Box sx={{ position: 'absolute', top: '-15%', right: '-5%', width: 460, height: 460, borderRadius: '50%', background: 'radial-gradient(circle,rgba(234,88,12,.18),transparent 65%)', pointerEvents: 'none' }} />
+        <Box sx={{ position: 'absolute', bottom: '-20%', left: '-8%', width: 380, height: 380, borderRadius: '50%', background: 'radial-gradient(circle,rgba(32,178,170,.30),transparent 65%)', pointerEvents: 'none' }} />
+        <Container maxWidth="lg" sx={{ position: 'relative' }}>
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: { xs: 5, md: 7 }, alignItems: 'center' }}>
             {/* mockup do RiskCard (esquerda) */}
             <Box sx={{ display: 'flex', justifyContent: 'center', order: { xs: 2, md: 1 } }}>
-              <Box sx={{ width: '100%', maxWidth: 380, borderRadius: 4, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', boxShadow: '0 20px 44px rgba(15,61,58,.10)', p: 2.5, background: 'linear-gradient(135deg, rgba(234,88,12,.06), rgba(234,88,12,.02))' }}>
+              <Box sx={{ width: '100%', maxWidth: 380, borderRadius: 4, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', boxShadow: '0 30px 60px rgba(0,0,0,.28), 0 10px 24px rgba(0,0,0,.18)', p: 2.5, background: 'linear-gradient(135deg, rgba(234,88,12,.06), rgba(234,88,12,.02))' }}>
                 <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
                   <HealthAndSafetyIcon sx={{ color: '#ea580c' }} />
                   <Typography sx={{ fontWeight: 800, flex: 1 }}>Leitura de risco</Typography>
@@ -391,10 +399,10 @@ export const LandingPage = () => {
             </Box>
             {/* texto (direita) */}
             <Box sx={{ order: { xs: 1, md: 2 } }}>
-              <Chip icon={<MonitorHeartIcon sx={{ fontSize: 17 }} />} label="Leitura de risco + plano de ação" sx={{ bgcolor: 'rgba(234,88,12,.12)', color: '#c2410c', fontWeight: 700, mb: 3, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: '#ea580c' } }} />
-              <Typography variant="h2" sx={{ fontSize: { xs: '1.8rem', md: '2.4rem' }, fontWeight: 800, color: 'text.primary', mb: 2, letterSpacing: '-0.02em' }}>Descubra seu risco — e o que fazer</Typography>
-              <Typography sx={{ fontSize: 17, color: 'text.secondary', mb: 3.5, lineHeight: 1.6 }}>
-                A IA cruza seus exames e aponta <b style={{ color: 'text.primary' }}>possíveis riscos</b> (diabetes, pré-diabetes, anemia, hipertensão, colesterol e cardiovascular) — e monta um <b style={{ color: 'text.primary' }}>plano de ação</b> personalizado: hábitos, quando refazer e perguntas pra levar ao médico.
+              <Chip icon={<MonitorHeartIcon sx={{ fontSize: 17 }} />} label="Leitura de risco + plano de ação" sx={{ bgcolor: 'rgba(255,255,255,.16)', color: '#ffd9b3', fontWeight: 700, mb: 3, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: '#fb923c' } }} />
+              <Typography variant="h2" sx={{ fontSize: { xs: '1.8rem', md: '2.4rem' }, fontWeight: 800, color: '#fff', mb: 2, letterSpacing: '-0.02em' }}>Descubra seu risco — e o que fazer</Typography>
+              <Typography sx={{ fontSize: 17, color: 'rgba(255,255,255,.82)', mb: 3.5, lineHeight: 1.6 }}>
+                A IA cruza seus exames e aponta <b style={{ color: '#fff' }}>possíveis riscos</b> (diabetes, pré-diabetes, anemia, hipertensão, colesterol e cardiovascular) — e monta um <b style={{ color: '#fff' }}>plano de ação</b> personalizado: hábitos, quando refazer e perguntas pra levar ao médico.
               </Typography>
               {[
                 'Detecta pré-diabetes — faixa que a maioria ignora e que é reversível.',
@@ -403,18 +411,18 @@ export const LandingPage = () => {
                 'Sempre educativo: nunca diagnóstico. A decisão é do seu médico.',
               ].map((t) => (
                 <Stack key={t} direction="row" spacing={1.25} alignItems="flex-start" sx={{ mb: 1.75 }}>
-                  <CheckCircleIcon sx={{ fontSize: 20, color: GREEN, mt: 0.1, flexShrink: 0 }} />
-                  <Typography sx={{ fontSize: 15, color: 'text.secondary', lineHeight: 1.5 }}>{t}</Typography>
+                  <CheckCircleIcon sx={{ fontSize: 20, color: '#5fc9c3', mt: 0.1, flexShrink: 0 }} />
+                  <Typography sx={{ fontSize: 15, color: 'rgba(255,255,255,.82)', lineHeight: 1.5 }}>{t}</Typography>
                 </Stack>
               ))}
-              <Button variant="contained" color="primary" onClick={() => navigate('/registrar')} sx={{ mt: 1.5, borderRadius: 99, px: 4, py: 1.3, textTransform: 'none', fontWeight: 800 }}>Ver minha leitura de risco</Button>
+              <Button onClick={() => navigate('/registrar')} sx={{ mt: 1.5, borderRadius: 99, px: 4, py: 1.3, textTransform: 'none', fontWeight: 800, bgcolor: '#fff', color: TEAL_DARK, '&:hover': { bgcolor: '#f0fafa', transform: 'translateY(-2px)' }, boxShadow: '0 10px 24px rgba(0,0,0,.18)', transition: 'all .2s ease' }}>Ver minha leitura de risco</Button>
             </Box>
           </Box>
         </Container>
       </Box>
 
-      {/* COMO SEUS DADOS FLUEM — mata o ceticismo de IA em saúde */}
-      <Box sx={{ bgcolor: 'background.paper', borderTop: '1px solid', borderBottom: '1px solid', borderColor: 'divider', py: { xs: 8, md: 11 } }}>
+      {/* COMO SEUS DADOS FLUEM — mata o ceticismo de IA em saúde (absorve anchor #como-funciona) */}
+      <Box id="como-funciona" sx={{ bgcolor: 'background.paper', borderTop: '1px solid', borderBottom: '1px solid', borderColor: 'divider', py: { xs: 8, md: 11 }, scrollMarginTop: 80 }}>
         <Container maxWidth="lg">
           <Typography align="center" variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>A IA não inventa números</Typography>
           <Typography align="center" sx={{ color: 'text.secondary', fontSize: 17, mb: 6, maxWidth: 660, mx: 'auto', lineHeight: 1.6 }}>
@@ -444,212 +452,145 @@ export const LandingPage = () => {
         </Container>
       </Box>
 
-      {/* SEÇÃO — Pré-Consulta Dr. Exame (médico) */}
-      <Box sx={{ bgcolor: 'background.default', py: { xs: 8, md: 11 } }}>
-        <Container maxWidth="lg">
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: { xs: 5, md: 7 }, alignItems: 'center' }}>
-            {/* texto */}
-            <Box>
-              <Chip icon={<MedicalServicesIcon sx={{ fontSize: 17 }} />} label="Dr. Exame Pro (médico)" sx={{ bgcolor: 'rgba(212,165,116,.16)', color: '#b88a54', fontWeight: 700, mb: 3, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: '#b88a54' } }} />
-              <Typography variant="h2" sx={{ fontSize: { xs: '1.8rem', md: '2.4rem' }, fontWeight: 800, color: 'text.primary', mb: 2, letterSpacing: '-0.02em' }}>O médico acessa o prontuário e tem tudo pronto em 1 minuto</Typography>
-              <Typography sx={{ fontSize: 17, color: 'text.secondary', mb: 3.5, lineHeight: 1.6 }}>
-                Quando o paciente compartilha, o médico recebe um <b style={{ color: 'text.primary' }}>resumo clínico automático</b>: principais mudanças, risco, o que investigar, e até as perguntas que o paciente fez no app. Economiza tempo de revisão de cada prontuário.
-              </Typography>
-              {[
-                '🩺 Top 3 mudanças desde a última visita — sem revisar prontuário inteiro.',
-                '🛡️ Risco + tendência + marcadores a investigar — num relance.',
-                '📝 SOAP rascunho gerado por IA (S/O/A/P) — o médico só revisa e edita.',
-                '💬 Perguntas que o paciente fez no app — leve direto pra consulta.',
-                '🏥 Exportar PES com CID-10 sugerido — copie direto pro prontuário.',
-              ].map((t) => (
-                <Stack key={t} direction="row" spacing={1.25} alignItems="flex-start" sx={{ mb: 1.75 }}>
-                  <CheckCircleIcon sx={{ fontSize: 20, color: GREEN, mt: 0.1, flexShrink: 0 }} />
-                  <Typography sx={{ fontSize: 15, color: 'text.secondary', lineHeight: 1.5 }}>{t}</Typography>
-                </Stack>
-              ))}
-              <Button variant="contained" color="primary" onClick={() => navigate('/doctor')} sx={{ mt: 1.5, borderRadius: 99, px: 4, py: 1.3, textTransform: 'none', fontWeight: 800 }}>Conhecer o Portal do Médico →</Button>
-            </Box>
-            {/* mockup do brief */}
-            <Box sx={{ display: 'flex', justifyContent: 'center', order: { xs: 2, md: 1 } }}>
-              <Box sx={{ width: '100%', maxWidth: 380, borderRadius: 4, bgcolor: 'background.paper', border: `2px solid ${TEAL}`, boxShadow: '0 20px 44px rgba(15,61,58,.10)', p: 2.5 }}>
-                <Typography sx={{ fontWeight: 800, color: TEAL_DARK, mb: 1.5, fontSize: 16 }}>🩺 PRÉ-CONSULTA · desde 15/05</Typography>
-                <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>⚠️ TOP 3 PRA HOJE</Typography>
-                <Stack spacing={0.5} sx={{ mt: 0.5, mb: 1.5 }}>
-                  {[{ n: 'Creatinina', d: '↑ 22%' }, { n: 'HDL', d: '↓ 15%' }, { n: 'Testosterona', d: '↑ elevada' }].map((x, i) => (
-                    <Stack key={i} direction="row" spacing={0.75} alignItems="center">
-                      <Chip size="small" label={i + 1} sx={{ height: 20, width: 20, bgcolor: i === 0 ? '#dc262622' : '#ea580c22', color: i === 0 ? '#dc2626' : '#ea580c', fontWeight: 800, fontSize: 11 }} />
-                      <Typography sx={{ fontWeight: 600, fontSize: '0.85rem' }}>{x.n}</Typography>
-                      <Chip size="small" label={x.d} sx={{ height: 20, fontSize: 11, bgcolor: x.d.includes('↓') ? '#dbeafe' : '#fef3c7', color: x.d.includes('↓') ? '#1e40af' : '#92400e', fontWeight: 700 }} />
-                    </Stack>
-                  ))}
-                </Stack>
-                <Typography variant="body2" sx={{ mb: 1 }}><b>Risco:</b> 🟠 Moderado (cardiovascular) · ↓ caiu</Typography>
-                <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>🔬 INVESTIGAR</Typography>
-                <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>• TGO/TGP · Microalbuminúria</Typography>
-                <Box sx={{ borderRadius: 2, bgcolor: 'action.hover', p: 1.25, mt: 1 }}>
-                  <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', mb: 0.25 }}>📝 SOAP (rascunho IA)</Typography>
-                  <Typography sx={{ fontSize: '0.78rem', color: 'text.secondary', lineHeight: 1.4 }}>S: Uso de Masteron... O: Creatinina 1,4 (↑22%)... A: Risco cardiovascular... P: Solicitar TGO/TGP...</Typography>
-                </Box>
-              </Box>
-            </Box>
-          </Box>
-        </Container>
-      </Box>
-
-      {/* SEÇÃO — Compartilhe com seu médico (paciente) */}
-      <Box sx={{ bgcolor: 'background.paper', borderTop: '1px solid', borderBottom: '1px solid', borderColor: 'divider', py: { xs: 8, md: 11 } }}>
-        <Container maxWidth="lg">
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: { xs: 5, md: 7 }, alignItems: 'center' }}>
-            {/* texto */}
-            <Box>
-              <Chip icon={<ShareIcon sx={{ fontSize: 17 }} />} label="Compartilhamento" sx={{ bgcolor: 'rgba(32,178,170,.12)', color: TEAL_DARK, fontWeight: 700, mb: 3, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: TEAL } }} />
-              <Typography variant="h2" sx={{ fontSize: { xs: '1.8rem', md: '2.4rem' }, fontWeight: 800, color: 'text.primary', mb: 2, letterSpacing: '-0.02em' }}>Compartilhe com seu médico — você no controle</Typography>
-              <Typography sx={{ fontSize: 17, color: 'text.secondary', mb: 3.5, lineHeight: 1.6 }}>
-                Escolha o que enviar, indique pelo CRM e seu médico é cadastrado sozinho. Revoga quando quiser — ele perde o acesso na hora.
-              </Typography>
-              {[
-                { Icon: DescriptionIcon, t: 'Você escolhe os escopos: Exames, Evolução, Alertas e Resumos IA.' },
-                { Icon: AssignmentIndIcon, t: 'Indica o médico pelo CRM — ele recebe um aviso por e-mail.' },
-                { Icon: LockIcon, t: 'Revoga o acesso a qualquer momento, com 1 toque.' },
-              ].map(({ Icon, t }) => (
-                <Stack key={t} direction="row" spacing={1.5} alignItems="flex-start" sx={{ mb: 2 }}>
-                  <Box sx={{ width: 34, height: 34, borderRadius: 2, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(32,178,170,.10)' }}><Icon sx={{ fontSize: 19, color: TEAL_DARK }} /></Box>
-                  <Typography sx={{ fontSize: 15, color: 'text.secondary', lineHeight: 1.5, pt: 0.4 }}>{t}</Typography>
-                </Stack>
-              ))}
-              <Button variant="contained" color="primary" onClick={() => navigate('/registrar')} sx={{ mt: 1.5, borderRadius: 99, px: 4, py: 1.3, textTransform: 'none', fontWeight: 800 }}>Começar grátis</Button>
-            </Box>
-            {/* mockup */}
-            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-              <Box sx={{ width: '100%', maxWidth: 400, borderRadius: 5, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', boxShadow: '0 20px 44px rgba(15,61,58,.10)', p: 3 }}>
-                <Typography sx={{ fontSize: 13, color: 'text.secondary', mb: 1 }}>O que compartilhar:</Typography>
-                <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', rowGap: 1, mb: 2.5 }}>
-                  {([{ Icon: DescriptionIcon, l: 'Exames', on: true }, { Icon: TrendingUpIcon, l: 'Evolução', on: true }, { Icon: WarningAmberIcon, l: 'Alertas', on: true }, { Icon: AutoAwesomeIcon, l: 'Resumos IA', on: false }] as const).map(({ Icon, l, on }) => (
-                    <Chip key={l} icon={<Icon sx={{ fontSize: 16 }} />} label={l} size="small" sx={{ bgcolor: on ? 'rgba(16,185,129,.12)' : 'action.hover', color: on ? '#047857' : 'text.secondary', fontWeight: 700, border: on ? '1px solid #6ee7b7' : '1px solid', borderColor: on ? '#6ee7b7' : 'divider', '& .MuiChip-icon': { color: on ? GREEN : 'text.secondary' } }} />
-                  ))}
-                </Stack>
-                <Box sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', bgcolor: 'background.default', px: 1.5, py: 1.25, mb: 2.5 }}>
-                  <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>CRM do médico</Typography>
-                  <Typography sx={{ fontSize: 15, fontWeight: 700, color: 'text.primary' }}>12345-SP • Dra. Helena Costa</Typography>
-                </Box>
-                <Button fullWidth variant="contained" color="primary" sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700 }}>Compartilhar dados</Button>
-                <Typography sx={{ fontSize: 11.5, color: 'text.secondary', mt: 1.5, textAlign: 'center' }}>🔒 Você pode revogar a qualquer momento.</Typography>
-              </Box>
-            </Box>
-          </Box>
-        </Container>
-      </Box>
-
-      {/* SEÇÃO — Portal do Médico */}
+      {/* Dr. EXAME PRO — B2B mega (4 seções médicas fundidas em tabs: médico / compartilhar / convite) */}
       <Box id="portal-medico" sx={{ bgcolor: 'background.default', py: { xs: 8, md: 11 }, scrollMarginTop: 80 }}>
         <Container maxWidth="lg">
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: { xs: 5, md: 7 }, alignItems: 'center' }}>
-            {/* mockup (esquerda) */}
-            <Box sx={{ display: 'flex', justifyContent: 'center', order: { xs: 2, md: 1 } }}>
-              <Box sx={{ width: '100%', maxWidth: 400, borderRadius: 5, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', boxShadow: '0 20px 44px rgba(15,61,58,.10)', p: 3 }}>
-                <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mb: 2 }}>
-                  <Box sx={{ width: 44, height: 44, borderRadius: '50%', background: 'linear-gradient(135deg,#20b2aa,#178f89)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><MedicalServicesIcon sx={{ color: '#fff', fontSize: 22 }} /></Box>
-                  <Box><Typography sx={{ fontSize: 12, color: 'text.secondary' }}>Portal do Médico</Typography><Typography sx={{ fontSize: 15, fontWeight: 800, color: 'text.primary' }}>Pacientes que compartilharam (3)</Typography></Box>
-                </Stack>
-                <Box sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', p: 2, mb: 1.5 }}>
-                  <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mb: 1.25 }}>
-                    <Box sx={{ width: 38, height: 38, borderRadius: '50%', bgcolor: '#d4a574' }} />
-                    <Box sx={{ flex: 1 }}><Typography sx={{ fontSize: 14, fontWeight: 800, color: 'text.primary' }}>Heloísa Santos</Typography><Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>Particular • desde jan/2026</Typography></Box>
-                    <Chip label="2 alterados" size="small" sx={{ bgcolor: 'rgba(239,68,68,.12)', color: '#ef4444', fontWeight: 700, fontSize: 11 }} />
+          <Reveal>
+            <Box sx={{ textAlign: 'center', mb: 4 }}>
+              <Chip icon={<MedicalServicesIcon sx={{ fontSize: 17 }} />} label="Dr. Exame Pro" sx={{ bgcolor: 'rgba(212,165,116,.16)', color: '#b88a54', fontWeight: 700, mb: 2, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: '#b88a54' } }} />
+              <Typography variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>Médico e paciente, conectados num clique</Typography>
+              <Typography sx={{ color: 'text.secondary', fontSize: 17, maxWidth: 640, mx: 'auto' }}>O paciente chega pronto na consulta. O médico recebe um brief de pré-consulta com tudo que importa — gerado por IA, sob controle total de quem compartilha.</Typography>
+            </Box>
+          </Reveal>
+
+          {/* Tabs custom (mesmo padrão visual do filtro de categorias) */}
+          <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', justifyContent: 'center', mb: 5, rowGap: 1 }}>
+            {([
+              { k: 'medico', l: '🩺 Para o médico' },
+              { k: 'paciente', l: '💬 Compartilhar' },
+              { k: 'convite', l: '✨ Convite pelo médico' },
+            ] as const).map((t) => (
+              <Box key={t.k} component="button" onClick={() => setMedTab(t.k)} sx={{
+                px: 2.5, py: 1, borderRadius: 99, cursor: 'pointer', fontSize: 14, fontWeight: 700, textTransform: 'none',
+                border: '1px solid', borderColor: medTab === t.k ? TEAL : 'divider',
+                bgcolor: medTab === t.k ? TEAL : 'background.paper',
+                color: medTab === t.k ? '#fff' : 'text.secondary',
+                transition: 'all .15s ease',
+                '&:hover': { borderColor: TEAL, color: medTab === t.k ? '#fff' : TEAL_DARK },
+              }}>{t.l}</Box>
+            ))}
+          </Stack>
+
+          {/* Tab: médico (brief de pré-consulta) */}
+          {medTab === 'medico' && (
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: { xs: 4, md: 6 }, alignItems: 'center' }}>
+              <Box>
+                <Typography variant="h3" sx={{ fontSize: { xs: '1.4rem', md: '1.8rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>Resumo clínico automático em 1 minuto</Typography>
+                <Typography sx={{ fontSize: 16, color: 'text.secondary', mb: 2.5, lineHeight: 1.6 }}>Use o mesmo CRM do convite e receba um brief de pré-consulta: principais mudanças, risco, o que investigar e as perguntas que o paciente fez no app.</Typography>
+                {['🩺 Top 3 mudanças desde a última visita — sem revisar prontuário inteiro.', '🛡️ Risco + tendência + marcadores a investigar — num relance.', '📝 SOAP rascunho gerado por IA (S/O/A/P) — só revisa e edita.', '🏥 Exportar PES com CID-10 sugerido — copie direto pro prontuário.'].map((t) => (
+                  <Stack key={t} direction="row" spacing={1.25} alignItems="flex-start" sx={{ mb: 1.5 }}>
+                    <CheckCircleIcon sx={{ fontSize: 20, color: GREEN, mt: 0.1, flexShrink: 0 }} />
+                    <Typography sx={{ fontSize: 15, color: 'text.secondary', lineHeight: 1.5 }}>{t}</Typography>
                   </Stack>
-                  <Stack direction="row" spacing={0.75} useFlexGap sx={{ flexWrap: 'wrap', rowGap: 0.75 }}>
-                    {([{ Icon: DescriptionIcon, l: 'Exames' }, { Icon: TrendingUpIcon, l: 'Evolução' }, { Icon: WarningAmberIcon, l: 'Alertas' }] as const).map(({ Icon, l }) => (
-                      <Chip key={l} icon={<Icon sx={{ fontSize: 15 }} />} label={l} size="small" sx={{ bgcolor: 'rgba(32,178,170,.10)', color: TEAL_DARK, fontWeight: 600, fontSize: 11, '& .MuiChip-icon': { color: TEAL } }} />
+                ))}
+                <Button variant="contained" color="primary" onClick={() => navigate('/doctor')} sx={{ mt: 1.5, borderRadius: 99, px: 4, py: 1.3, textTransform: 'none', fontWeight: 800 }}>Conhecer o Portal do Médico →</Button>
+              </Box>
+              {/* mockup do brief */}
+              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                <Box sx={{ width: '100%', maxWidth: 380, borderRadius: 4, bgcolor: 'background.paper', border: '2px solid ' + TEAL, boxShadow: '0 30px 60px rgba(32,178,170,.20), 0 10px 24px rgba(0,0,0,.07)', p: 2.5 }}>
+                  <Typography sx={{ fontWeight: 800, color: TEAL_DARK, mb: 1.5, fontSize: 16 }}>🩺 PRÉ-CONSULTA · desde 15/05</Typography>
+                  <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>⚠️ TOP 3 PRA HOJE</Typography>
+                  <Stack spacing={0.5} sx={{ mt: 0.5, mb: 1.5 }}>
+                    {[{ n: 'Creatinina', d: '↑ 22%' }, { n: 'HDL', d: '↓ 15%' }, { n: 'Testosterona', d: '↑ elevada' }].map((x, i) => (
+                      <Stack key={i} direction="row" spacing={0.75} alignItems="center">
+                        <Chip size="small" label={i + 1} sx={{ height: 20, width: 20, bgcolor: i === 0 ? '#dc262622' : '#ea580c22', color: i === 0 ? '#dc2626' : '#ea580c', fontWeight: 800, fontSize: 11 }} />
+                        <Typography sx={{ fontWeight: 600, fontSize: '0.85rem' }}>{x.n}</Typography>
+                        <Chip size="small" label={x.d} sx={{ height: 20, fontSize: 11, bgcolor: x.d.includes('↓') ? '#dbeafe' : '#fef3c7', color: x.d.includes('↓') ? '#1e40af' : '#92400e', fontWeight: 700 }} />
+                      </Stack>
                     ))}
                   </Stack>
-                </Box>
-                <Box sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', p: 2, opacity: .6 }}>
-                  <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary' }}>José Lima</Typography>
-                  <Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>Unimed • 📋 Exames, 🤖 Resumos IA</Typography>
+                  <Typography variant="body2" sx={{ mb: 1 }}><b>Risco:</b> 🟠 Moderado (cardiovascular) · ↓ caiu</Typography>
+                  <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>🔬 INVESTIGAR</Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>• TGO/TGP · Microalbuminúria</Typography>
+                  <Box sx={{ borderRadius: 2, bgcolor: 'action.hover', p: 1.25, mt: 1 }}>
+                    <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', mb: 0.25 }}>📝 SOAP (rascunho IA)</Typography>
+                    <Typography sx={{ fontSize: '0.78rem', color: 'text.secondary', lineHeight: 1.4 }}>S: Uso de Masteron... O: Creatinina 1,4 (↑22%)... A: Risco cardiovascular... P: Solicitar TGO/TGP...</Typography>
+                  </Box>
                 </Box>
               </Box>
             </Box>
-            {/* texto (direita) */}
-            <Box sx={{ order: { xs: 1, md: 2 } }}>
-              <Chip icon={<MedicalServicesIcon sx={{ fontSize: 17 }} />} label="Para profissionais de saúde" sx={{ bgcolor: 'rgba(212,165,116,.16)', color: '#b88a54', fontWeight: 700, mb: 3, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: '#b88a54' } }} />
-              <Typography variant="h2" sx={{ fontSize: { xs: '1.8rem', md: '2.4rem' }, fontWeight: 800, color: 'text.primary', mb: 2, letterSpacing: '-0.02em' }}>O paciente chega pronto no seu consultório</Typography>
-              <Typography sx={{ fontSize: 17, color: 'text.secondary', mb: 3.5, lineHeight: 1.6 }}>
-                Use o <Box component="span" sx={{ color: 'text.primary', fontWeight: 800 }}>mesmo CRM</Box> que seu paciente informou no convite. Ele aparece automaticamente no seu painel — com exames, valores alterados, evolução e o PDF original.
-              </Typography>
-              {[
-                'Pré-cadastro automático quando o paciente indica pelo CRM.',
-                'Exames, Alertas, Evolução e Resumos IA — só o que o paciente autorizou.',
-                'Valores alterados em destaque + PDF original do laboratório.',
-              ].map((t) => (
-                <Stack key={t} direction="row" spacing={1.25} alignItems="flex-start" sx={{ mb: 1.75 }}>
-                  <CheckCircleIcon sx={{ fontSize: 20, color: GREEN, mt: 0.1, flexShrink: 0 }} />
-                  <Typography sx={{ fontSize: 15, color: 'text.secondary', lineHeight: 1.5 }}>{t}</Typography>
+          )}
+
+          {/* Tab: paciente (compartilhar) */}
+          {medTab === 'paciente' && (
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: { xs: 4, md: 6 }, alignItems: 'center' }}>
+              <Box>
+                <Typography variant="h3" sx={{ fontSize: { xs: '1.4rem', md: '1.8rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>Você no controle do que o médico vê</Typography>
+                <Typography sx={{ fontSize: 16, color: 'text.secondary', mb: 2.5, lineHeight: 1.6 }}>Escolha o que enviar, indique pelo CRM e seu médico é cadastrado sozinho. Revoga quando quiser — ele perde o acesso na hora.</Typography>
+                {[
+                  { Icon: DescriptionIcon, t: 'Você escolhe os escopos: Exames, Evolução, Alertas e Resumos IA.' },
+                  { Icon: AssignmentIndIcon, t: 'Indica o médico pelo CRM — ele recebe um aviso por e-mail.' },
+                  { Icon: LockIcon, t: 'Revoga o acesso a qualquer momento, com 1 toque.' },
+                ].map(({ Icon, t }) => (
+                  <Stack key={t} direction="row" spacing={1.5} alignItems="flex-start" sx={{ mb: 2 }}>
+                    <Box sx={{ width: 34, height: 34, borderRadius: 2, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(32,178,170,.10)' }}><Icon sx={{ fontSize: 19, color: TEAL_DARK }} /></Box>
+                    <Typography sx={{ fontSize: 15, color: 'text.secondary', lineHeight: 1.5, pt: 0.4 }}>{t}</Typography>
+                  </Stack>
+                ))}
+                <Button variant="contained" color="primary" onClick={() => navigate('/registrar')} sx={{ mt: 1.5, borderRadius: 99, px: 4, py: 1.3, textTransform: 'none', fontWeight: 800 }}>Começar grátis</Button>
+              </Box>
+              {/* mockup compartilhar */}
+              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                <Box sx={{ width: '100%', maxWidth: 400, borderRadius: 5, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', boxShadow: '0 30px 60px rgba(32,178,170,.20), 0 10px 24px rgba(0,0,0,.07)', p: 3 }}>
+                  <Typography sx={{ fontSize: 13, color: 'text.secondary', mb: 1 }}>O que compartilhar:</Typography>
+                  <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', rowGap: 1, mb: 2.5 }}>
+                    {([{ Icon: DescriptionIcon, l: 'Exames', on: true }, { Icon: TrendingUpIcon, l: 'Evolução', on: true }, { Icon: WarningAmberIcon, l: 'Alertas', on: true }, { Icon: AutoAwesomeIcon, l: 'Resumos IA', on: false }] as const).map(({ Icon, l, on }) => (
+                      <Chip key={l} icon={<Icon sx={{ fontSize: 16 }} />} label={l} size="small" sx={{ bgcolor: on ? 'rgba(16,185,129,.12)' : 'action.hover', color: on ? '#047857' : 'text.secondary', fontWeight: 700, border: on ? '1px solid #6ee7b7' : '1px solid', borderColor: on ? '#6ee7b7' : 'divider', '& .MuiChip-icon': { color: on ? GREEN : 'text.secondary' } }} />
+                    ))}
+                  </Stack>
+                  <Box sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', bgcolor: 'background.default', px: 1.5, py: 1.25, mb: 2.5 }}>
+                    <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>CRM do médico</Typography>
+                    <Typography sx={{ fontSize: 15, fontWeight: 700, color: 'text.primary' }}>12345-SP • Dra. Helena Costa</Typography>
+                  </Box>
+                  <Button fullWidth variant="contained" color="primary" sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700 }}>Compartilhar dados</Button>
+                  <Typography sx={{ fontSize: 11.5, color: 'text.secondary', mt: 1.5, textAlign: 'center' }}>🔒 Você pode revogar a qualquer momento.</Typography>
+                </Box>
+              </Box>
+            </Box>
+          )}
+
+          {/* Tab: convite (seu médico te chama) */}
+          {medTab === 'convite' && (
+            <Box>
+              <Reveal>
+                <Stack alignItems="center" spacing={1.5} sx={{ textAlign: 'center', mb: 5 }}>
+                  <Chip label="✨ NOVIDADE" sx={{ bgcolor: 'rgba(32,178,170,.12)', color: TEAL_DARK, fontWeight: 800, letterSpacing: 1.5, fontSize: 12 }} />
+                  <Typography sx={{ fontSize: { xs: '1.5rem', md: '2rem' }, fontWeight: 800, color: INK, letterSpacing: '-0.02em', maxWidth: 680 }}>Seu médico te chama — sem papel, sem app do consultório</Typography>
+                  <Typography sx={{ color: 'text.secondary', fontSize: 16.5, maxWidth: 600, lineHeight: 1.6 }}>Seu médico te manda um link no WhatsApp, você instala e ele <b>já fica conectado</b> aos seus exames — na hora, sem configurar nada.</Typography>
                 </Stack>
-              ))}
-              <Button variant="contained" color="primary" onClick={() => navigate('/doctor')} sx={{ mt: 1.5, borderRadius: 99, px: 4, py: 1.3, textTransform: 'none', fontWeight: 800 }}>Acessar o Portal do Médico →</Button>
-            </Box>
-          </Box>
-        </Container>
-      </Box>
-
-      {/* COMO FUNCIONA */}
-      <Box id="como-funciona" sx={{ bgcolor: 'background.default', py: { xs: 8, md: 11 }, scrollMarginTop: 80 }}>
-        <Container maxWidth="lg">
-          <Typography align="center" variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>
-            Como funciona
-          </Typography>
-          <Typography align="center" sx={{ color: 'text.secondary', fontSize: 17, mb: 6 }}>4 passos. Do exame ao médico.</Typography>
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr 1fr' }, gap: 4 }}>
-            {steps.map((s) => (
-              <Box key={s.n} sx={{ textAlign: 'center' }}>
-                <Box sx={{ position: 'relative', width: 76, height: 76, mx: 'auto', mb: 2.5 }}>
-                  <Box sx={{ width: 76, height: 76, borderRadius: '50%', background: 'linear-gradient(135deg,#20b2aa,#178f89)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 12px 26px rgba(32,178,170,.35)' }}>
-                    <s.Icon sx={{ fontSize: 34, color: '#fff' }} />
-                  </Box>
-                  <Box sx={{ position: 'absolute', top: -6, right: -6, width: 26, height: 26, borderRadius: '50%', bgcolor: 'background.paper', border: '2px solid #20b2aa', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, color: TEAL_DARK }}>{s.n}</Box>
-                </Box>
-                <Typography variant="h6" sx={{ fontWeight: 800, fontSize: 18, color: 'text.primary', mb: 1 }}>{s.title}</Typography>
-                <Typography sx={{ color: 'text.secondary', fontSize: 15, lineHeight: 1.6, maxWidth: 290, mx: 'auto' }}>{s.desc}</Typography>
+              </Reveal>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: { xs: 2.5, md: 3.5 }, maxWidth: 940, mx: 'auto' }}>
+                {[
+                  { Icon: PersonAddAlt1Icon, t: 'Seu médico envia o convite', d: 'No consultório ou no WhatsApp, ele te chama com um link. Você não procura o app — é ele quem te encontra.', color: TEAL },
+                  { Icon: SmartphoneIcon, t: 'Você instala em 1 toque', d: 'Abre o link, cria sua conta e sobe o exame que ele pediu. Leva menos de um minuto.', color: '#d4a574' },
+                  { Icon: VerifiedUserIcon, t: 'Conexão automática', d: 'O compartilhamento com seu médico já vem ativado. Ele chega à consulta com um resumo do que importa — antes mesmo de você.', color: GREEN },
+                ].map((s, i) => (
+                  <Reveal key={i} delay={Math.min(i * 60, 240)}>
+                    <Box sx={{ textAlign: 'center', bgcolor: 'background.paper', borderRadius: 4, border: '1px solid', borderColor: 'divider', p: { xs: 2.5, md: 3 }, boxShadow: '0 14px 32px rgba(15,61,58,.07)', position: 'relative', height: '100%', transition: 'all .2s ease', '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 20px 44px rgba(15,61,58,.10)', borderColor: TEAL } }}>
+                      <Box sx={{ width: 64, height: 64, mx: 'auto', mb: 2, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, ' + s.color + ',' + s.color + 'cc)', boxShadow: '0 10px 22px ' + s.color + '40' }}>
+                        <s.Icon sx={{ fontSize: 30, color: '#fff' }} />
+                      </Box>
+                      <Typography variant="h6" sx={{ fontWeight: 800, fontSize: 17, color: 'text.primary', mb: 0.75 }}>{s.t}</Typography>
+                      <Typography sx={{ color: 'text.secondary', fontSize: 14.5, lineHeight: 1.6 }}>{s.d}</Typography>
+                      {i === 2 && <Chip size="small" label="já vem ativo ✓" sx={{ position: 'absolute', top: 12, right: 12, bgcolor: 'rgba(5,150,105,.12)', color: GREEN, fontWeight: 800, fontSize: 11 }} />}
+                    </Box>
+                  </Reveal>
+                ))}
               </Box>
-            ))}
-          </Box>
-        </Container>
-      </Box>
-
-      {/* NOVO — Seu médico te chama (funil de aquisição via médico) */}
-      <Box sx={{ py: { xs: 8, md: 11 }, background: 'linear-gradient(180deg, rgba(32,178,170,.06), transparent 45%)' }}>
-        <Container maxWidth="lg">
-          <Reveal>
-            <Stack alignItems="center" spacing={1.5} sx={{ textAlign: 'center', mb: 6 }}>
-              <Chip label="✨ NOVIDADE" sx={{ bgcolor: 'rgba(32,178,170,.12)', color: TEAL_DARK, fontWeight: 800, letterSpacing: 1.5, fontSize: 12 }} />
-              <Typography variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: INK, letterSpacing: '-0.02em', maxWidth: 760 }}>
-                Seu médico te chama pro Dr. Exame
-              </Typography>
-              <Typography sx={{ color: 'text.secondary', fontSize: 17, maxWidth: 640, lineHeight: 1.6 }}>
-                Sem papel, sem app do consultório. Seu médico te manda um link no WhatsApp, você instala e ele <b>já fica conectado</b> aos seus exames — na hora, sem configurar nada.
-              </Typography>
-            </Stack>
-          </Reveal>
-
-          <Reveal>
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: { xs: 2.5, md: 3.5 }, maxWidth: 940, mx: 'auto' }}>
-              {[
-                { Icon: PersonAddAlt1Icon, t: 'Seu médico envia o convite', d: 'No consultório ou no WhatsApp, ele te chama com um link. Você não procura o app — é ele quem te encontra.', color: TEAL },
-                { Icon: SmartphoneIcon, t: 'Você instala em 1 toque', d: 'Abre o link, cria sua conta e sobe o exame que ele pediu. Leva menos de um minuto.', color: '#d4a574' },
-                { Icon: VerifiedUserIcon, t: 'Conexão automática', d: 'O compartilhamento com seu médico já vem ativado. Ele chega à consulta com um resumo do que importa — antes mesmo de você.', color: GREEN },
-              ].map((s, i) => (
-                <Box key={i} sx={{ textAlign: 'center', bgcolor: 'background.paper', borderRadius: 4, border: '1px solid', borderColor: 'divider', p: { xs: 2.5, md: 3 }, boxShadow: '0 14px 32px rgba(15,61,58,.07)', position: 'relative', height: '100%' }}>
-                  <Box sx={{ width: 64, height: 64, mx: 'auto', mb: 2, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: `linear-gradient(135deg, ${s.color}, ${s.color}cc)`, boxShadow: `0 10px 22px ${s.color}40` }}>
-                    <s.Icon sx={{ fontSize: 30, color: '#fff' }} />
-                  </Box>
-                  <Typography variant="h6" sx={{ fontWeight: 800, fontSize: 17, color: 'text.primary', mb: 0.75 }}>{s.t}</Typography>
-                  <Typography sx={{ color: 'text.secondary', fontSize: 14.5, lineHeight: 1.6 }}>{s.d}</Typography>
-                  {i === 2 && <Chip size="small" label="já vem ativo ✓" sx={{ position: 'absolute', top: 12, right: 12, bgcolor: 'rgba(5,150,105,.12)', color: GREEN, fontWeight: 800, fontSize: 11 }} />}
-                </Box>
-              ))}
             </Box>
-          </Reveal>
+          )}
 
+          {/* Dual-CTA transversal (paciente + médico) */}
           <Reveal>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center" alignItems="stretch" sx={{ mt: 6, maxWidth: 780, mx: 'auto' }}>
               <Box sx={{ flex: 1, borderRadius: 4, p: 3, background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff' }}>
@@ -657,7 +598,7 @@ export const LandingPage = () => {
                 <Typography sx={{ fontSize: 14.5, lineHeight: 1.55, opacity: 0.92, mb: 2 }}>Seu médico ainda não te chamou? Crie sua conta e indique-o pelo CRM em segundos.</Typography>
                 <Button variant="contained" onClick={() => navigate('/registrar')} sx={{ bgcolor: '#fff', color: TEAL_DARK, borderRadius: 99, textTransform: 'none', fontWeight: 800, boxShadow: 'none', '&:hover': { bgcolor: '#eefaf9' } }}>Criar conta grátis</Button>
               </Box>
-              <Box sx={{ flex: 1, borderRadius: 4, p: 3, bgcolor: 'background.paper', border: `2px solid ${TEAL}` }}>
+              <Box sx={{ flex: 1, borderRadius: 4, p: 3, bgcolor: 'background.paper', border: '2px solid ' + TEAL }}>
                 <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}><AssignmentIndIcon sx={{ color: TEAL_DARK }} /><Typography sx={{ fontWeight: 800, fontSize: 18, color: INK }}>Pra você, médico</Typography></Stack>
                 <Typography sx={{ fontSize: 14.5, lineHeight: 1.55, color: 'text.secondary', mb: 2 }}>Convide seus pacientes pelo portal e receba um brief de pré-consulta de cada um. Conheça o Dr. Exame Pro.</Typography>
                 <Button variant="outlined" onClick={() => navigate('/doctor')} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 800, borderColor: TEAL, color: TEAL_DARK, '&:hover': { borderColor: TEAL_DARK, bgcolor: 'rgba(32,178,170,.06)' } }}>Portal do médico →</Button>
@@ -667,8 +608,49 @@ export const LandingPage = () => {
         </Container>
       </Box>
 
-      {/* F4 — calculadora de IMC (ferramenta didática ao vivo, sem cadastro) */}
-      <BmiCalculator />
+      {/* ÍNDICES — USP#3 (IMC/eGFR/HOMA-IR) + calculadora interativa (F4) */}
+      <Box sx={{ bgcolor: 'background.default', py: { xs: 8, md: 11 } }}>
+        <Container maxWidth="lg">
+          <Reveal>
+            <Box sx={{ textAlign: 'center', mb: { xs: 4, md: 6 } }}>
+              <Chip icon={<CalculateIcon sx={{ fontSize: 17 }} />} label="Índices que o laudo não dá" sx={{ bgcolor: 'rgba(32,178,170,.12)', color: TEAL_DARK, fontWeight: 700, mb: 2, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: TEAL } }} />
+              <Typography variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>O laboratório mediu. Nós interpretamos.</Typography>
+              <Typography sx={{ color: 'text.secondary', fontSize: 17, maxWidth: 600, mx: 'auto' }}>Seu laudo traz os valores brutos. O Dr. Exame calcula os índices que importam — e mostra o valor <b style={{ color: 'text.primary' }}>ideal</b>, não só o de referência.</Typography>
+            </Box>
+          </Reveal>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.1fr .9fr' }, gap: { xs: 4, md: 6 }, alignItems: 'center' }}>
+            {/* Tiles IMC/eGFR/HOMA-IR */}
+            <Box>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2.5 }}>
+                {[
+                  { Icon: MonitorWeightIcon, n: 'IMC', v: '18,5 – 24,9', ideal: 'peso adequado', d: 'Relação peso/altura. Calculamos e dizemos sua faixa (OMS).' },
+                  { Icon: MedicalServicesIcon, n: 'eGFR', v: '> 90', ideal: 'função renal ideal', d: 'Filtração renal — a partir de creatinina, idade e sexo.' },
+                  { Icon: MonitorHeartIcon, n: 'HOMA-IR', v: '< 2,5', ideal: 'baixa resistência', d: 'Resistência insulínica — sinal precoce de pré-diabetes.' },
+                ].map((t, i) => (
+                  <Reveal key={t.n} delay={Math.min(i * 60, 240)}>
+                    <Box sx={{ p: 2.5, borderRadius: 4, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', height: '100%', transition: 'all .2s ease', '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 20px 44px rgba(15,61,58,.10)', borderColor: TEAL } }}>
+                      <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+                        <Box sx={{ width: 36, height: 36, borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg,rgba(32,178,170,.14),rgba(32,178,170,.06))' }}><t.Icon sx={{ fontSize: 20, color: TEAL_DARK }} /></Box>
+                        <Typography sx={{ fontWeight: 800, fontSize: 17, color: 'text.primary' }}>{t.n}</Typography>
+                      </Stack>
+                      <Typography sx={{ fontSize: 22, fontWeight: 800, color: TEAL_DARK, lineHeight: 1, mb: 0.25 }}>{t.v}</Typography>
+                      <Typography sx={{ fontSize: 11.5, fontWeight: 700, color: GREEN, mb: 1 }}>{t.ideal}</Typography>
+                      <Typography sx={{ fontSize: 13, color: 'text.secondary', lineHeight: 1.5 }}>{t.d}</Typography>
+                    </Box>
+                  </Reveal>
+                ))}
+              </Box>
+              <Reveal delay={120}>
+                <Typography sx={{ mt: 2, fontSize: 13, color: 'text.secondary' }}>+ Score de Saúde, tendência por marcador e valor ideal de cada item (ex.: LDL ideal &lt; 100, não só &lt; 130).</Typography>
+              </Reveal>
+            </Box>
+            {/* Calculadora IMC ao vivo */}
+            <Reveal delay={80}>
+              <BmiCard />
+            </Reveal>
+          </Box>
+        </Container>
+      </Box>
 
       {/* DEPOIMENTOS — prova social (trocar por reais com permissão quando tiver) */}
       <Box sx={{ bgcolor: 'background.default', py: { xs: 8, md: 11 } }}>
@@ -747,8 +729,10 @@ export const LandingPage = () => {
                 p: 3, borderRadius: 5, bgcolor: 'background.paper',
                 border: p.highlight ? `2px solid ${TEAL}` : '1px solid',
                 borderColor: p.highlight ? TEAL : 'divider',
-                boxShadow: p.highlight ? '0 18px 44px rgba(32,178,170,.16)' : '0 2px 8px rgba(0,0,0,.04)',
+                boxShadow: p.highlight ? '0 24px 56px rgba(32,178,170,.22)' : '0 2px 8px rgba(0,0,0,.04)',
                 position: 'relative', transform: p.highlight ? { xs: 'none', sm: 'scale(1.04)' } : 'none',
+                ...(p.highlight ? { bgcolor: 'transparent', background: 'linear-gradient(135deg,rgba(32,178,170,.14),rgba(212,165,116,.10))' } : {}),
+                transition: 'transform .2s ease, box-shadow .2s ease',
               }}>
                 {p.highlight && <Chip label="RECOMENDADO" size="small" sx={{ position: 'absolute', top: -13, left: '50%', transform: 'translateX(-50%)', bgcolor: TEAL, color: '#fff', fontWeight: 800, fontSize: 11 }} />}
                 <Typography variant="h6" sx={{ fontWeight: 800, fontSize: 18, color: 'text.primary', mb: 1 }}>{p.name}</Typography>
@@ -795,8 +779,8 @@ export const LandingPage = () => {
       <Box sx={{ py: { xs: 8, md: 11 } }}>
         <Container maxWidth="lg">
           <Box sx={{
-            borderRadius: 6, p: { xs: 4, md: 7 }, textAlign: 'center', color: '#fff', position: 'relative', overflow: 'hidden',
-            background: 'linear-gradient(135deg,#20b2aa,#178f89)',
+            borderRadius: { xs: 4, md: 6 }, p: { xs: 4, md: 7 }, textAlign: 'center', color: '#fff', position: 'relative', overflow: 'hidden',
+            background: 'linear-gradient(135deg,#20b2aa 0%,#178f89 55%,#0f3d3a 100%)',
             boxShadow: '0 24px 60px rgba(32,178,170,.32)',
           }}>
             <Box sx={{ position: 'absolute', top: '-30%', right: '-10%', width: 360, height: 360, borderRadius: '50%', background: 'rgba(255,255,255,.08)' }} />
