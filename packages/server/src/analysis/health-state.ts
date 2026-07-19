@@ -244,7 +244,7 @@ export function computeMarkerState(rows: ItemRow[]): MarkerState[] {
     const age = ageMonths(latest.performedAt);
     const stale = age != null && age > STALE_MONTHS;
     const hadPriorAbnormal = deduped.slice(1).some((r) => r.isAbnormal);
-    const temporalClass = classifyTemporal(age, hadPriorAbnormal);
+    const temporalClass = classifyTemporal(age, latest.isAbnormal || hadPriorAbnormal);
     const outdated = temporalClass === 'desatualizado';
     const tr = trendDirection(latest, priorForTrend, latest.refLow, latest.refHigh);
     out.push({

@@ -244,6 +244,7 @@ enum ExamStatus {
   EXTRACTING
   EXTRACTED
   FAILED
+  DUPLICATE
 }
 
 model ExamItem {
