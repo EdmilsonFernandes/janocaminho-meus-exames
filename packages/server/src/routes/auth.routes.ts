@@ -153,9 +153,9 @@ router.post('/google', async (req, res, next) => {
     }
     const user = await prisma.$transaction(async (tx) => {
       const created = await tx.user.create({
-        data: { email: mail, name: String(name), passwordHash: 'google-oauth', credits: 0, emailVerified: true, referralCode, photoUrl: picture },
+        data: { email: mail, name: String(name), passwordHash: 'google-oauth', credits: 0, emailVerified: true, referralCode },
       });
-      await tx.patient.create({ data: { ownerId: created.id, fullName: String(name), relationship: 'Titular' } });
+      await tx.patient.create({ data: { ownerId: created.id, fullName: String(name), relationship: 'Titular', photoUrl: picture } });
       return created;
     });
     // Bônus de boas-vindas (Google já verificou o e-mail → dá na hora, sem OTP)
