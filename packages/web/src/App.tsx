@@ -151,7 +151,7 @@ const MenuSectionAccordion = ({ title, icon, routes, children }: { title: string
   useEffect(() => { if (routes.some((r) => routeMatches(r, pathname))) setOpen(true); /* eslint-disable-next-line */ }, [pathname]);
   return (
     <Box>
-      <ListItemButton onClick={() => setOpen((o) => !o)} sx={{ borderRadius: 1.5, m: '1px 8px', py: 0.4, pl: 2, minHeight: 40, '&:hover': { bgcolor: 'rgba(32,178,170,.06)' } }}>
+      <ListItemButton onClick={() => setOpen((o) => !o)} sx={{ borderRadius: 1.5, m: '1px 8px', py: 0.4, pl: 2, minHeight: 44, '&:hover': { bgcolor: 'rgba(32,178,170,.06)' } }}>
         <ListItemIcon sx={{ minWidth: 34, color: 'text.secondary', '& svg': { fontSize: 19 } }}>{icon}</ListItemIcon>
         <ListItemText primary={title} primaryTypographyProps={{ fontSize: 12.5, fontWeight: 800, color: 'text.primary' }} />
         <ExpandMoreIcon sx={{ transform: open ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform .2s', color: 'text.secondary', fontSize: 20 }} />
@@ -170,7 +170,7 @@ const NavItem = ({ to, primaryText, icon, highlight }: { to: string; primaryText
   const iconColor = highlight ? '#178f89' : active ? 'text.primary' : 'text.secondary';
   return (
     <ListItemButton onClick={() => navigate(to)} selected={active}
-      sx={{ borderRadius: 1.5, m: '1px 8px', py: 0.5, pl: 2.5, minHeight: 40, flex: '0 0 auto',
+      sx={{ borderRadius: 1.5, m: '1px 8px', py: 0.5, pl: 2.5, minHeight: 44, flex: '0 0 auto',
         '&.Mui-selected': { bgcolor: 'rgba(32,178,170,.12)' },
         '&.Mui-selected:hover': { bgcolor: 'rgba(32,178,170,.18)' },
         '&:hover': { bgcolor: 'rgba(32,178,170,.06)' } }}>
