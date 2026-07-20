@@ -269,7 +269,7 @@ const ExamCards = () => {
           {dateGroups.length === 0 && (
             filtering
               ? <EmptyState emoji="🔍" title={translate('exams.empty_search_title')} desc={translate('exams.empty_search_desc')} />
-              : <EmptyState emoji="📄" title={translate('exams.empty_title')} desc={translate('exams.empty_desc')} cta={translate('exams.send')} onCta={() => navigate('/exams/create')} />
+              : <EmptyState title={translate('exams.empty_title')} desc={translate('exams.empty_desc')} cta={translate('exams.send')} onCta={() => navigate('/exams/create')} />
           )}
           {dateGroups.map((g) => {
             const locked = !premium && g.year !== latestYear && g.year != null;
@@ -306,7 +306,7 @@ const ExamCards = () => {
           {catGroups.length === 0 && (
             filtering
               ? <EmptyState emoji="🔍" title={translate('exams.empty_search_title')} desc={translate('exams.empty_search_desc')} />
-              : <EmptyState emoji="📄" title={translate('exams.empty_title')} desc={translate('exams.empty_desc')} cta={translate('exams.send')} onCta={() => navigate('/exams/create')} />
+              : <EmptyState title={translate('exams.empty_title')} desc={translate('exams.empty_desc')} cta={translate('exams.send')} onCta={() => navigate('/exams/create')} />
           )}
           {catGroups.map(({ cat: c, items }) => (
             <Accordion key={c.key} defaultExpanded={catGroups.length <= 3} disableGutters elevation={0}

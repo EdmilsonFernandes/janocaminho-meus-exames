@@ -15,13 +15,20 @@ const descFor = (s: number, n: number) =>
   : 'Vale revisar seus exames com seu médico.';
 
 // Gauge ANEL COMPLETO (premium) — gradiente teal→cor-do-status, progresso do topo (horário).
-// Antes era semicircular; anel fechado dá mais "wow" e centraliza o número.
+// ZONAS coloridas de fundo (0-60 vermelho / 60-80 amber / 80-100 verde, bem sutures) dão glance
+// instantâneo de ONDE o paciente está no espectro (padrão Fitbit/Apple Health readiness score).
 const Gauge = ({ value, color }: { value: number; color: string }) => {
   const size = 150, stroke = 13;
   const r = (size - stroke) / 2;
   const c = size / 2;
   const circ = 2 * Math.PI * r;
   const p = Math.max(0, Math.min(100, value)) / 100;
+  // Segmento de zona: fração inicial (0-1) e fração do comprimento, cor.
+  const Zone = ({ from, len, fill }: { from: number; len: number; fill: string }) => (
+    <circle cx={c} cy={c} r={r} fill="none" stroke={fill} strokeWidth={stroke} strokeLinecap="butt"
+      strokeDasharray={`${circ * len} ${circ}`} strokeDashoffset={-circ * from} opacity={0.14}
+      transform={`rotate(-90 ${c} ${c})`} />
+  );
   return (
     <svg viewBox={`0 0 ${size} ${size}`} width="100%" height="100%" preserveAspectRatio="xMidYMid meet" style={{ display: 'block', overflow: 'visible' }}>
       <defs>
@@ -30,7 +37,11 @@ const Gauge = ({ value, color }: { value: number; color: string }) => {
           <stop offset="100%" stopColor={color} />
         </linearGradient>
       </defs>
-      <circle cx={c} cy={c} r={r} fill="none" stroke="rgba(148,163,184,0.18)" strokeWidth={stroke} />
+      {/* ZONAS de fundo (sutures): vermelho 0-60, amber 60-80, verde 80-100 */}
+      <Zone from={0} len={0.6} fill="#ef4444" />
+      <Zone from={0.6} len={0.2} fill="#f59e0b" />
+      <Zone from={0.8} len={0.2} fill="#059669" />
+      {/* PROGRESSO (gradiente teal→status) por cima das zonas */}
       <circle cx={c} cy={c} r={r} fill="none" stroke="url(#scoreGrad)" strokeWidth={stroke} strokeLinecap="round"
         strokeDasharray={circ} strokeDashoffset={circ * (1 - p)} transform={`rotate(-90 ${c} ${c})`} style={{ transition: 'stroke-dashoffset .8s ease' }} />
     </svg>

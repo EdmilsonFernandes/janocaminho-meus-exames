@@ -30,6 +30,8 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Diversity3Icon from '@mui/icons-material/Diversity3';
 import SummarizeIcon from '@mui/icons-material/Summarize';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import InfoIcon from '@mui/icons-material/Info';
 import { DrExame } from './components/DrExame';
 import { dataProvider } from './dataProvider';
 import { API_URL, token } from './config';
@@ -253,9 +255,9 @@ const AppMenu = () => {
     <Divider sx={{ my: 1 }} />
 
     {/* APOIO */}
-    <NavItem to="/suporte" primaryText={translate('menu.support')} icon={<span style={{ fontSize: 18 }}>❓</span>} />
+    <NavItem to="/suporte" primaryText={translate('menu.support')} icon={<HelpOutlineIcon />} />
     <MenuItem onClick={() => setAboutOpen(true)} sx={{ mx: 0.5, borderRadius: 1, py: 0.75 }}>
-      <ListItemIcon sx={{ minWidth: 36 }}>ℹ️</ListItemIcon>
+      <ListItemIcon sx={{ minWidth: 36 }}><InfoIcon fontSize="small" /></ListItemIcon>
       <ListItemText primaryTypographyProps={{ fontSize: 13, fontWeight: 600 }}>{translate('menu.about')}</ListItemText>
     </MenuItem>
     <MenuItem onClick={() => logout('/entrar')} sx={{ mx: 0.5, my: 0.25, borderRadius: 1, py: 0.75, color: 'error.main', '&:hover': { bgcolor: 'rgba(239,68,68,.08)' } }}>
