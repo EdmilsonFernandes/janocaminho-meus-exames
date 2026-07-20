@@ -25,6 +25,8 @@ interface Summary {
   metasSaude?: { analito: string; meta: string; prazo?: string | null }[];
   // Marcadores sem medição recente (populado pelo backend a partir do snapshot — datas reais).
   desatualizados?: { marcador: string; ultimoResultado?: string | null; data?: string | null; haMeses?: number | null; situacao?: string | null }[];
+  // Evolução por marcador (direção + Δ% do DB).
+  evolucao?: { name: string; direcao: string; detalhe?: string | null }[];
   disclaimer?: string;
 }
 
@@ -337,6 +339,28 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
                   <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.5, wordBreak: 'break-word' }}>{m.meta}</Typography>
                 </Box>
               ))}
+            </Stack>
+          </AccordionSection>
+        )}
+
+        {/* 📈 Evolução desde os exames anteriores (direção + Δ% do DB) */}
+        {structured.evolucao && structured.evolucao.length > 0 && (
+          <AccordionSection icon="📈" title="Evolução desde os exames anteriores" color="#2e7d32" count={structured.evolucao.length}>
+            <Stack spacing={0.5}>
+              {structured.evolucao.map((e, i) => {
+                const dir = (e.direcao || '').toLowerCase();
+                const up = dir === 'piorou' || dir === 'aumentando';
+                const down = dir === 'melhorou' || dir === 'reduzindo';
+                const cor = up ? '#e65100' : down ? '#2e7d32' : '#1976d2';
+                const seta = up ? '↑' : down ? '↓' : '→';
+                const label = { melhorou: 'melhorou', piorou: 'piorou', estavel: 'estável', primeiro: '1ª medição', aumentando: 'subindo', reduzindo: 'caindo' }[dir] || e.direcao;
+                return (
+                  <Stack key={i} direction="row" justifyContent="space-between" alignItems="center" gap={1} sx={{ py: 0.4, borderBottom: i < structured.evolucao!.length - 1 ? '1px dashed' : 'none', borderColor: 'divider' }}>
+                    <Typography sx={{ fontWeight: 600, wordBreak: 'break-word' }}>{e.name}</Typography>
+                    <Chip size="small" sx={{ bgcolor: `${cor}15`, color: cor, fontWeight: 700 }} label={`${seta} ${label}${e.detalhe ? ` ${e.detalhe}` : ''}`} />
+                  </Stack>
+                );
+              })}
             </Stack>
           </AccordionSection>
         )}

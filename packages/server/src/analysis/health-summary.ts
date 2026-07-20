@@ -140,6 +140,21 @@ export function attachDesatualizados(summary: HealthSummary, snapshot: CurrentHe
   return { ...summary, desatualizados };
 }
 
+/**
+ * Preenche `evolucao[]` a partir do snapshot.whatChanged (DB — deltas já calculados server-side).
+ * Cada marcador com histórico vira {name, direcao (melhorou/piorou/estável/...), detalhe (Δ%)}.
+ * Mais confiável que pedir à IA (que poderia inventar a direção/o número). Função PURA.
+ */
+export function attachEvolucao(summary: HealthSummary, snapshot: CurrentHealthSummary): HealthSummary {
+  if (!snapshot.whatChanged?.length) return summary;
+  const evolucao = snapshot.whatChanged.map((w) => ({
+    name: w.name,
+    direcao: w.trend,
+    detalhe: w.deltaPct != null ? `${w.deltaPct > 0 ? '+' : ''}${Math.round(w.deltaPct)}%` : null,
+  }));
+  return { ...summary, evolucao };
+}
+
 /** Resumo CONSOLIDADO: junta os últimos exames (sangue/imagem/laudo) num documento único — "segunda opinião documental". */
 export async function generateConsolidatedSummary(patientId: string, audience: 'patient' | 'doctor' = 'patient'): Promise<{ summary: HealthSummary; contentMd: string; modelUsed: string; usage: any }> {
   const patient = await prisma.patient.findUnique({ where: { id: patientId } });
@@ -230,6 +245,7 @@ export async function generateConsolidatedSummary(patientId: string, audience: '
   summary = coerceStaleness(summary, snapshot.stale); // remove prazos inventados se nada está desatualizado
   summary = guardHistoricalAsCurrent(summary, snapshot); // IA não pode listar marcador só histórico como atenção ATUAL
   summary = attachDesatualizados(summary, snapshot); // seção estruturada de desatualizados (fonte: DB, confiável)
+  summary = attachEvolucao(summary, snapshot); // seção de evolução (direção + Δ% do DB)
   let contentMd = renderSummaryMd(summary);
   contentMd = diagnosticGuard(contentMd).text;
   appendPatientMemory(slug, `Relatório consolidado (${snapshot.markers} marcadores)`,
@@ -375,6 +391,12 @@ export function renderSummaryMd(s: HealthSummary): string {
     // médico não faz sentido "levar ao médico" (ele É o médico) — "pontos para a consulta" serve aos dois.
     out.push('', '### 🩺 Pontos de atenção para a consulta');
     s.perguntasParaOMedico.forEach((q, i) => out.push(`${i + 1}. ${q}`));
+  }
+  if (s.evolucao?.length) {
+    out.push('', '### 📈 Evolução desde os exames anteriores');
+    for (const e of s.evolucao) {
+      out.push(`- **${e.name}** — ${e.direcao}${e.detalhe ? ` (${e.detalhe})` : ''}`);
+    }
   }
   if (s.desatualizados?.length) {
     out.push('', '### 📅 Acompanhamentos que podem estar desatualizados',

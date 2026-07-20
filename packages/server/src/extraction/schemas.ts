@@ -104,6 +104,13 @@ export const HealthSummarySchema = z.object({
     haMeses: z.number().nullable().optional(),
     situacao: z.string().nullable().optional(),
   })).default([]),
+  // EVOLUÇÃO estruturada (pedido #5): direção + variação % de cada marcador com histórico.
+  // Populado do snapshot.whatChanged (DB — deltas já calculados server-side). Mais confiável que a IA.
+  evolucao: z.array(z.object({
+    name: z.string(),
+    direcao: z.string(),
+    detalhe: z.string().nullable().optional(),
+  })).default([]),
   disclaimer: z.string().default(''),
 });
 
