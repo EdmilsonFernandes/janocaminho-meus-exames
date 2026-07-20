@@ -63,6 +63,7 @@ export interface MarkerState {
   confidence: Confidence; // baixa se <2 pts OU stale OU antigo
   temporalClass: TemporalClass; // atual/recente/historico/antigo/desatualizado
   outdated: boolean; // true = estava alterado no passado + sem medição recente
+  priorAbnormal: boolean; // true = alguma medição anterior estava alterada (usado p/ "normalizado")
 }
 
 /** Layer 2 — snapshot roll-up do paciente. */
@@ -84,6 +85,8 @@ export interface CurrentHealthSummary {
   cardiometabolicRisk?: { level: string; score: number; factors: { label: string; risk: boolean }[] } | null;
   clinicalSummary?: string;
   staleWarning?: string | null;
+  /** Marcadores NORMALIZADOS (eram anormais no passado, estão normais agora) — seção do relatório. */
+  normalized: MarkerState[];
 }
 
 // ───────────────────────── helpers puros ─────────────────────────
@@ -296,6 +299,7 @@ export function computeMarkerState(rows: ItemRow[]): MarkerState[] {
       confidence: deduped.length >= 2 && !stale && temporalClass !== 'historico' && temporalClass !== 'antigo' && !outdated ? 'alta' : 'baixa',
       temporalClass,
       outdated,
+      priorAbnormal: hadPriorAbnormal,
     });
   }
   return out;
@@ -466,6 +470,7 @@ export async function buildCurrentHealthSummary(patientId: string, opts?: { incl
     improving: markers.filter((m) => m.trend === 'melhorou').sort(sortByPriorityThenDelta).slice(0, 6),
     worsening: markers.filter((m) => m.trend === 'piorou').sort(sortByPriorityThenDelta).slice(0, 6),
     stale: markers.filter((m) => m.latest.stale).slice(0, 12),
+    normalized: markers.filter((m) => !m.isAbnormal && m.priorAbnormal).sort(sortByPriorityThenDelta).slice(0, 12),
     whatChanged: markers
       .filter((m) => m.deltaPct != null)
       .sort((a, b) => Math.abs(b.deltaPct ?? 0) - Math.abs(a.deltaPct ?? 0))

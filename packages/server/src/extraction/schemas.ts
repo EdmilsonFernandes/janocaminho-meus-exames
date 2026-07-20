@@ -111,6 +111,13 @@ export const HealthSummarySchema = z.object({
     direcao: z.string(),
     detalhe: z.string().nullable().optional(),
   })).default([]),
+  // ALTERAÇÕES ANTIGAS JÁ NORMALIZADAS (pedido #11): marcadores que eram anormais e ficaram normais.
+  // Populado do snapshot.normalized (DB — priorAbnormal && !latest.isAbnormal). Confiável.
+  antigosNormalizados: z.array(z.object({
+    name: z.string(),
+    quando: z.string().nullable().optional(),
+    detalhe: z.string().nullable().optional(),
+  })).default([]),
   disclaimer: z.string().default(''),
 });
 

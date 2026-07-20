@@ -155,6 +155,22 @@ export function attachEvolucao(summary: HealthSummary, snapshot: CurrentHealthSu
   return { ...summary, evolucao };
 }
 
+/**
+ * Preenche `antigosNormalizados[]` a partir do snapshot.normalized (DB): marcadores que eram
+ * anormais no passado (priorAbnormal) e estão normais agora (!isAbnormal). Atende ao pedido de
+ * seção "Alterações antigas já normalizadas" — reforço positivo + clareza de que NÃO é condição atual.
+ */
+export function attachAntigosNormalizados(summary: HealthSummary, snapshot: CurrentHealthSummary): HealthSummary {
+  if (!snapshot.normalized?.length) return summary;
+  const fmtDate = (d: Date | null) => (d ? new Date(d).toLocaleDateString('pt-BR', { month: '2-digit', year: 'numeric' }) : null);
+  const antigosNormalizados = snapshot.normalized.map((m) => ({
+    name: m.name,
+    quando: fmtDate(m.latest.performedAt),
+    detalhe: `estava alterado antes e voltou ao normal na última medição (${m.latest.valueText ?? 'valor na faixa'})`,
+  }));
+  return { ...summary, antigosNormalizados };
+}
+
 /** Resumo CONSOLIDADO: junta os últimos exames (sangue/imagem/laudo) num documento único — "segunda opinião documental". */
 export async function generateConsolidatedSummary(patientId: string, audience: 'patient' | 'doctor' = 'patient'): Promise<{ summary: HealthSummary; contentMd: string; modelUsed: string; usage: any }> {
   const patient = await prisma.patient.findUnique({ where: { id: patientId } });
@@ -246,6 +262,7 @@ export async function generateConsolidatedSummary(patientId: string, audience: '
   summary = guardHistoricalAsCurrent(summary, snapshot); // IA não pode listar marcador só histórico como atenção ATUAL
   summary = attachDesatualizados(summary, snapshot); // seção estruturada de desatualizados (fonte: DB, confiável)
   summary = attachEvolucao(summary, snapshot); // seção de evolução (direção + Δ% do DB)
+  summary = attachAntigosNormalizados(summary, snapshot); // seção de alterações antigas normalizadas
   let contentMd = renderSummaryMd(summary);
   contentMd = diagnosticGuard(contentMd).text;
   appendPatientMemory(slug, `Relatório consolidado (${snapshot.markers} marcadores)`,
@@ -396,6 +413,13 @@ export function renderSummaryMd(s: HealthSummary): string {
     out.push('', '### 📈 Evolução desde os exames anteriores');
     for (const e of s.evolucao) {
       out.push(`- **${e.name}** — ${e.direcao}${e.detalhe ? ` (${e.detalhe})` : ''}`);
+    }
+  }
+  if (s.antigosNormalizados?.length) {
+    out.push('', '### ✅ Alterações antigas já normalizadas',
+      '*Eram alteradas antes e voltaram ao normal — NÃO representam condição atual.*');
+    for (const a of s.antigosNormalizados) {
+      out.push(`- **${a.name}**${a.quando ? ` (${a.quando})` : ''} — ${a.detalhe ?? ''}`);
     }
   }
   if (s.desatualizados?.length) {

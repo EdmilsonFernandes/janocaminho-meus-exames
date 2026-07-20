@@ -27,6 +27,8 @@ interface Summary {
   desatualizados?: { marcador: string; ultimoResultado?: string | null; data?: string | null; haMeses?: number | null; situacao?: string | null }[];
   // Evolução por marcador (direção + Δ% do DB).
   evolucao?: { name: string; direcao: string; detalhe?: string | null }[];
+  // Alterações antigas já normalizadas (eram anormais, voltaram ao normal).
+  antigosNormalizados?: { name: string; quando?: string | null; detalhe?: string | null }[];
   disclaimer?: string;
 }
 
@@ -361,6 +363,24 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
                   </Stack>
                 );
               })}
+            </Stack>
+          </AccordionSection>
+        )}
+
+        {/* ✅ Alterações antigas já normalizadas (eram anormais, voltaram ao normal — NÃO é condição atual) */}
+        {structured.antigosNormalizados && structured.antigosNormalizados.length > 0 && (
+          <AccordionSection icon="✅" title="Alterações antigas já normalizadas" color="#2e7d32" count={structured.antigosNormalizados.length}>
+            <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>Eram alteradas antes e voltaram ao normal — não representam condição atual.</Typography>
+            <Stack spacing={0.5}>
+              {structured.antigosNormalizados.map((a, i) => (
+                <Stack key={i} direction="row" justifyContent="space-between" alignItems="flex-start" gap={1} sx={{ py: 0.4, borderBottom: i < structured.antigosNormalizados!.length - 1 ? '1px dashed' : 'none', borderColor: 'divider' }}>
+                  <Box>
+                    <Typography component="span" sx={{ fontWeight: 700 }}>{a.name}</Typography>
+                    {a.quando && <Typography component="span" variant="body2" sx={{ color: 'text.secondary', ml: 1 }}>({a.quando})</Typography>}
+                    {a.detalhe && <Typography variant="body2" sx={{ color: 'text.secondary', display: 'block' }}>{a.detalhe}</Typography>}
+                  </Box>
+                </Stack>
+              ))}
             </Stack>
           </AccordionSection>
         )}
