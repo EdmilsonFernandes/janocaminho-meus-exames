@@ -23,6 +23,8 @@ interface Summary {
   sugestoesNutricao?: string[];
   comparacaoFamiliar?: string | null;
   metasSaude?: { analito: string; meta: string; prazo?: string | null }[];
+  // Marcadores sem medição recente (populado pelo backend a partir do snapshot — datas reais).
+  desatualizados?: { marcador: string; ultimoResultado?: string | null; data?: string | null; haMeses?: number | null; situacao?: string | null }[];
   disclaimer?: string;
 }
 
@@ -333,6 +335,26 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
                     {m.prazo && <Chip size="small" label={m.prazo} sx={{ bgcolor: '#0288d115', color: '#0288d1', fontWeight: 700 }} />}
                   </Stack>
                   <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.5, wordBreak: 'break-word' }}>{m.meta}</Typography>
+                </Box>
+              ))}
+            </Stack>
+          </AccordionSection>
+        )}
+
+        {/* 📅 Acompanhamentos desatualizados — marcadores sem medição recente (fonte: backend/datas reais) */}
+        {structured.desatualizados && structured.desatualizados.length > 0 && (
+          <AccordionSection icon="📅" title="Acompanhamentos que podem estar desatualizados" color="#ed6c02" count={structured.desatualizados.length}>
+            <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>Marcadores sem medição recente — converse com seu médico sobre a necessidade de refazer.</Typography>
+            <Stack spacing={0.75}>
+              {structured.desatualizados.map((d, i) => (
+                <Box key={i} sx={{ p: 1.25, borderRadius: 2, bgcolor: 'rgba(237,108,2,0.08)', border: '1px solid', borderColor: 'divider' }}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={1} flexWrap="wrap">
+                    <Typography sx={{ fontWeight: 700 }}>{d.marcador}</Typography>
+                    {d.haMeses != null && <Chip size="small" label={`há ~${d.haMeses}m`} sx={{ bgcolor: '#ed6c0218', color: '#ed6c02', height: 20, fontWeight: 700 }} />}
+                  </Stack>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.25 }}>
+                    Último: <strong>{d.ultimoResultado || '—'}</strong>{d.data ? ` em ${d.data}` : ''}{d.situacao ? ` · ${d.situacao}` : ''}
+                  </Typography>
                 </Box>
               ))}
             </Stack>
