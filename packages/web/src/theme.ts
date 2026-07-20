@@ -83,7 +83,7 @@ const TYPOGRAPHY = {
  */
 export const LAYOUT = {
   content: 720,  // páginas de conteúdo/config/listas (ExamList, Profile, Plans, Medicos…)
-  wide: 1080,    // data-heavy (Dashboard, Trends, Family, ExamShow) — bate com o Dashboard atual
+  wide: 1440,    // data-heavy (Dashboard, Trends, ValoresAlterados, ExamShow) — preenche a área de conteúdo no desktop (shell centrado em 1728 → área ~1488px). Mobile continua 100%.
   narrow: 480,   // cartão único (EmergencyCard)
   // OBS: o padding inferior (clearance da MobileBottomNav) é responsabilidade do SHELL
   // (AppLayout → .RaLayout-content usa calc(var(--me-bottom-nav-h) + 14px)). Páginas NÃO

@@ -412,6 +412,11 @@ const AppLayout = (props: any) => {
           // viewport (ex.: admin com 5 Tabs de 90px = 450px + AppBar) e CLIPA a direita (overflow hidden
           // corta em vez de caber). min-width:0 mata o fit-content no mobile; sm+ mantém p/ desktop.
           '&': { minWidth: { xs: '0 !important', sm: 'fit-content' }, maxWidth: '100vw' },
+          // SHELL CENTRADO em telas largas (premium): app inteiro (topo+menu+content) num bloco de
+          // até 1728px centrado → gutters simétricos nas BORDAS (intencional, estilo Linear/GitHub),
+          // NÃO espaço morto entre menu e dashboard. Em laptop (≤1728) preenche tudo; em ultrawide
+          // (≥1920) centraliza c/ margens premium. Mobile (xs) continua 100% (intocado).
+          '& .RaLayout-appFrame': { maxWidth: { xs: '100%', sm: 1728 }, mx: { sm: 'auto' } },
           '& .RaLayout-appFrame, & .RaLayout-contentWithSidebar': { minWidth: 0, maxWidth: '100%' },
           // CONTEÚDO do <List> (.RaList-main) TAMBÉM é flex-item com min-width:auto → sem min-width:0,
           // o card de exame infla além do viewport (medido: 627px numa tela de 360px) e o overflow-hidden
