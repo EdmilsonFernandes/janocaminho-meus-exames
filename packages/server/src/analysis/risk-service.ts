@@ -16,7 +16,7 @@
  * SEM IA/créditos: a camada de regras é determinística e grátis (diferente de /analyses).
  */
 import { prisma } from '../prisma';
-import { buildMarkerState, ageMonths, STALE_MONTHS } from './health-state';
+import { buildMarkerState, ageMonths, getTemporalThresholds } from './health-state';
 import { assessRisk, type RiskMarker, type RiskResult } from './risk-engine';
 import { RISK_RULES, MEDICAL_DISCLAIMER } from './risk-rules';
 import { bmi, egfr, homaIr, type BioSex } from './derived-markers';
@@ -78,7 +78,7 @@ async function loadRiskMarkers(patientId: string): Promise<{ markers: RiskMarker
   }
 
   if (bp) {
-    const bpStale = (() => { const a = ageMonths(bp.measuredAt); return a != null && a > STALE_MONTHS; })();
+    const bpStale = (() => { const a = ageMonths(bp.measuredAt); return a != null && a > getTemporalThresholds().staleMonths; })();
     if (bp.value != null) {
       riskMarkers.push({ key: 'PRESSAO_SISTOLICA', value: bp.value, unit: 'mmHg',
         namePt: 'Pressão sistólica (PAS)', performedAt: bp.measuredAt, stale: bpStale });

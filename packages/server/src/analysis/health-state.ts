@@ -18,6 +18,7 @@
  */
 import { prisma } from '../prisma';
 import { collapseAdjacentNearDupes } from './dedup';
+import { getSettings } from '../utils/settings';
 // NOTA: trendVerdict canônico vive em @meus-exames/shared (consumido pelo web/vite).
 // O server (Node) não dá require em shared em runtime (shared é TS-source, sem build p/ JS),
 // então espelhamos a lógica aqui. Unificar quando shared ganhar build step (V1).
@@ -96,11 +97,28 @@ export const OLD_MONTHS = 36;
 
 export type TemporalClass = 'atual' | 'recente' | 'historico' | 'antigo' | 'desatualizado';
 
+/** Faixas temporais configuráveis (admin · app_settings · temporalThresholds). Defaults = spec clínica.
+ *  Lidas via getSettings() (cache em memória) — admin edita live sem redeploy. */
+export function getTemporalThresholds() {
+  const t = (getSettings() as any)?.temporalThresholds ?? {};
+  const num = (v: any, d: number) => {
+    const n = Number(v);
+    return Number.isFinite(n) && n > 0 ? n : d;
+  };
+  return {
+    freshMonths: num(t.freshMonths, FRESH_MONTHS),
+    recentMonths: num(t.recentMonths, RECENT_MONTHS),
+    staleMonths: num(t.staleMonths, STALE_MONTHS),
+    oldMonths: num(t.oldMonths, OLD_MONTHS),
+  };
+}
+
 export function classifyTemporal(ageMonths: number | null, hadPriorAbnormal: boolean): TemporalClass {
+  const t = getTemporalThresholds();
   if (ageMonths == null) return 'recente';
-  if (ageMonths <= FRESH_MONTHS) return 'atual';
-  if (ageMonths <= RECENT_MONTHS) return 'recente';
-  if (ageMonths <= OLD_MONTHS) return 'historico';
+  if (ageMonths <= t.freshMonths) return 'atual';
+  if (ageMonths <= t.recentMonths) return 'recente';
+  if (ageMonths <= t.oldMonths) return 'historico';
   return hadPriorAbnormal ? 'desatualizado' : 'antigo';
 }
 
@@ -216,6 +234,7 @@ export function computeMarkerState(rows: ItemRow[]): MarkerState[] {
   }
 
   const out: MarkerState[] = [];
+  const tt = getTemporalThresholds(); // faixas configuráveis (admin) — lê 1x por computação
   for (const [canonical, items] of groups) {
     // ordenar por performedAt desc; sem data vai pro fim (não vira "latest")
     const sorted = [...items].sort((a, b) => {
@@ -254,7 +273,7 @@ export function computeMarkerState(rows: ItemRow[]): MarkerState[] {
     const unitsCompatible = !prior || !latest.unit || !prior.unit || latest.unit === prior.unit;
     const priorForTrend = unitsCompatible ? prior : null;
     const age = ageMonths(latest.performedAt);
-    const stale = age != null && age > STALE_MONTHS;
+    const stale = age != null && age > tt.staleMonths;
     const hadPriorAbnormal = deduped.slice(1).some((r) => r.isAbnormal);
     const temporalClass = classifyTemporal(age, latest.isAbnormal || hadPriorAbnormal);
     const outdated = temporalClass === 'desatualizado';

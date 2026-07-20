@@ -10,6 +10,9 @@ export const DEFAULT_SETTINGS = {
   uploadRules: { freeCost: 1, premiumFreeQuota: 6, premiumCost: 5 },
   grants: { freeSignup: 60, monthly: 250, freeExamLimit: 2 },
   shares: { exams: 5, evolution: 5, alerts: 3, summary: 5 }, // custo por escopo ao compartilhar c/ médico
+  // Faixas temporais (meses) da análise de exames — classificação atual/recente/histórico/antigo
+  // e marcação de "desatualizado" (>staleMonths). Defaults = spec clínica. Admin edita live.
+  temporalThresholds: { freshMonths: 6, recentMonths: 12, staleMonths: 12, oldMonths: 36 },
   badges: DEFAULT_BADGES.map((b) => ({ id: b.id, emoji: b.emoji, title: b.title, desc: b.desc, metric: b.metric, threshold: b.threshold, reward: b.reward })),
 };
 
