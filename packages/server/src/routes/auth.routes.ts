@@ -142,7 +142,11 @@ router.post('/google', async (req, res, next) => {
     if (existing) {
       if (existing.blocked) { res.status(403).json({ error: 'Identificamos um problema com a sua conta. Para resolver, entre em contato: contato@janocaminho.com.br' }); return; }
       if (picture) await prisma.patient.updateMany({ where: { ownerId: existing.id, photoUrl: null }, data: { photoUrl: picture } }).catch(() => {});
-      res.json({ token: signToken({ userId: existing.id, ver: existing.tokenVersion ?? 0 }) });
+      void audit('LOGIN_SUCCESS', req, { actorType: 'USER', actorId: existing.id, targetType: 'USER', targetId: existing.id, after: { via: 'google', email: existing.email, role: existing.role } });
+      // Mesma shape do /login (token + user + patientId). Sem user, o front não popula
+      // localStorage.user → perde a role (ex.: ADMIN) e o drawer fica "Olá" sem nome.
+      const { token, patientId } = await issueSession(existing.id);
+      res.json({ token, user: { id: existing.id, email: existing.email, name: existing.name, role: existing.role, planExpiresAt: existing.planExpiresAt, credits: existing.credits }, patientId });
       return;
     }
     // Novo usuário — Google já verificou o e-mail. Cria sem CPF (pede depois no profile.complete).
@@ -159,10 +163,12 @@ router.post('/google', async (req, res, next) => {
       await tx.patient.create({ data: { ownerId: created.id, fullName: String(name), relationship: 'Titular', photoUrl: picture } });
       return created;
     });
-    // Bônus de boas-vindas (Google já verificou o e-mail → dá na hora, sem OTP)
+    // Bônus de boas-vindas (Google já verificou o e-mail → dá na hora, sem OTP). Re-busca p/ refletir credits.
     const bonus = getSettings().grants?.freeSignup ?? 60;
-    await prisma.user.update({ where: { id: user.id }, data: { credits: { increment: bonus } } }).catch(() => {});
-    res.status(201).json({ token: signToken({ userId: user.id, ver: user.tokenVersion ?? 0 }), isNew: true });
+    const refreshed = await prisma.user.update({ where: { id: user.id }, data: { credits: { increment: bonus } } }).catch(() => user);
+    void audit('REGISTER', req, { actorType: 'USER', actorId: user.id, targetType: 'USER', targetId: user.id, after: { via: 'google', email: user.email } });
+    const { token, patientId } = await issueSession(refreshed.id);
+    res.status(201).json({ token, user: { id: refreshed.id, email: refreshed.email, name: refreshed.name, role: refreshed.role, planExpiresAt: refreshed.planExpiresAt, credits: refreshed.credits }, patientId, isNew: true });
   } catch (e) { next(e); }
 });
 

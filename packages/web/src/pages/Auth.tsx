@@ -206,7 +206,15 @@ export const LoginPage = () => {
         body: JSON.stringify({ credential: idToken }),
       });
       const d = await r.json();
-      if (d.token) { localStorage.setItem('token', d.token); navigate('/', { replace: true }); }
+      if (d.token) {
+        localStorage.setItem('token', d.token);
+        // Popula user + patientId (igual login por senha/MFA) — sem isso o drawer fica sem nome
+        // e o gate de admin (App.tsx lê localStorage.user.role) não enxerga a role ADMIN.
+        if (d.user) localStorage.setItem('user', JSON.stringify(d.user));
+        if (d.patientId) { localStorage.setItem('patientId', d.patientId); localStorage.setItem('selPatientId', d.patientId); }
+        window.dispatchEvent(new Event('selPatientChanged'));
+        navigate('/', { replace: true });
+      }
       else { window.alert(d.error || 'Falha no login do Google.'); }
     } catch { window.alert('Falha de conexão.'); }
     finally { setLoading(false); }
