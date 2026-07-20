@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { coerceComparativo, coerceStaleness, guardHistoricalAsCurrent } from '../src/analysis/health-summary';
+import { coerceComparativo, coerceStaleness, guardHistoricalAsCurrent, attachDesatualizados } from '../src/analysis/health-summary';
 import type { MarkerState, CurrentHealthSummary } from '../src/analysis/health-state';
 
 /** Marca o bug de credibilidade: relatório mostra TSH=3, mas o valor real no DB é 2,75. */
@@ -138,5 +138,34 @@ describe('guardHistoricalAsCurrent — IA não lista marcador só histórico com
     // Título genérico que não casa com "TGP" → mantém (não arriscar remover atenção legítima)
     const summary: any = { pontosAtencao: [{ titulo: 'Função hepática', detalhe: 'algo' }], leituraFinal: 'Ok.' };
     expect(guardHistoricalAsCurrent(summary, snap).pontosAtencao.length).toBe(1);
+  });
+});
+
+describe('attachDesatualizados — seção estruturada de acompanhamentos desatualizados', () => {
+  const mkSnapshot = (over: Partial<CurrentHealthSummary>): CurrentHealthSummary => ({
+    patientId: 'p1', generatedAt: new Date(), markers: 1, score: 80,
+    byPriority: { normal: 1, leve: 0, moderada: 0, importante: 0 },
+    abnormalAnalytes: [], topAttention: [], improving: [], worsening: [], stale: [], whatChanged: [],
+    ...over,
+  });
+
+  it('preenche desatualizados[] a partir do snapshot.stale (dados do DB, confiável)', () => {
+    const tgpStale = mkMarker({
+      nameCanonical: 'TGP', name: 'TGP', flag: 'HIGH',
+      latest: { valueNumeric: 82, valueText: '82', performedAt: new Date('2018-03-15'), ageMonths: 90, stale: true },
+    });
+    const snap = mkSnapshot({ stale: [tgpStale] });
+    const out = attachDesatualizados({ resumoGeral: 'x', leituraFinal: 'y' } as any, snap);
+    expect(out.desatualizados).toHaveLength(1);
+    expect(out.desatualizados[0]).toMatchObject({ marcador: 'TGP', ultimoResultado: '82', haMeses: 90 });
+    expect(out.desatualizados[0].data).toMatch(/2018/); // data formatada
+    expect(out.desatualizados[0].situacao).toContain('alterado');
+  });
+
+  it('NÃO adiciona desatualizados quando o snapshot não tem marcadores stale', () => {
+    const snap = mkSnapshot({});
+    const out = attachDesatualizados({ resumoGeral: 'x', leituraFinal: 'y' } as any, snap);
+    // Sem stale → early return sem modificar (relatórios reais trazem desatualizados=[] do schema default).
+    expect(out.desatualizados || []).toEqual([]);
   });
 });

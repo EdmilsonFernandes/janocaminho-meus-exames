@@ -121,6 +121,25 @@ export function guardHistoricalAsCurrent(summary: HealthSummary, snapshot: Curre
   };
 }
 
+/**
+ * Preenche a seção estruturada `desatualizados[]` a partir do snapshot (fonte: DB). Cada marcador
+ * stale (medido há >staleMonths) vira {marcador, ultimoResultado, data, haMeses, situacao}. Mais
+ * confiável que pedir à IA (que não tem as datas reais) e atende ao pedido de seção nomeada
+ * "Acompanhamentos desatualizados". Função PURA — testável isoladamente.
+ */
+export function attachDesatualizados(summary: HealthSummary, snapshot: CurrentHealthSummary): HealthSummary {
+  if (!snapshot.stale?.length) return summary;
+  const fmtDate = (d: Date | null) => (d ? new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : null);
+  const desatualizados = snapshot.stale.map((m) => ({
+    marcador: m.name,
+    ultimoResultado: m.latest.valueText ?? (m.latest.valueNumeric != null ? String(m.latest.valueNumeric).replace('.', ',') : null),
+    data: fmtDate(m.latest.performedAt),
+    haMeses: m.latest.ageMonths != null ? Math.round(m.latest.ageMonths) : null,
+    situacao: m.flag && m.flag !== 'NORMAL' ? `alterado (${m.flag.toLowerCase()}) na última medição` : 'sem classificação de alteração no laudo',
+  }));
+  return { ...summary, desatualizados };
+}
+
 /** Resumo CONSOLIDADO: junta os últimos exames (sangue/imagem/laudo) num documento único — "segunda opinião documental". */
 export async function generateConsolidatedSummary(patientId: string, audience: 'patient' | 'doctor' = 'patient'): Promise<{ summary: HealthSummary; contentMd: string; modelUsed: string; usage: any }> {
   const patient = await prisma.patient.findUnique({ where: { id: patientId } });
@@ -210,6 +229,7 @@ export async function generateConsolidatedSummary(patientId: string, audience: '
   summary = coerceComparativo(summary, [...snapshot.topAttention, ...snapshot.improving, ...snapshot.worsening, ...snapshot.stale]);
   summary = coerceStaleness(summary, snapshot.stale); // remove prazos inventados se nada está desatualizado
   summary = guardHistoricalAsCurrent(summary, snapshot); // IA não pode listar marcador só histórico como atenção ATUAL
+  summary = attachDesatualizados(summary, snapshot); // seção estruturada de desatualizados (fonte: DB, confiável)
   let contentMd = renderSummaryMd(summary);
   contentMd = diagnosticGuard(contentMd).text;
   appendPatientMemory(slug, `Relatório consolidado (${snapshot.markers} marcadores)`,
@@ -355,6 +375,14 @@ export function renderSummaryMd(s: HealthSummary): string {
     // médico não faz sentido "levar ao médico" (ele É o médico) — "pontos para a consulta" serve aos dois.
     out.push('', '### 🩺 Pontos de atenção para a consulta');
     s.perguntasParaOMedico.forEach((q, i) => out.push(`${i + 1}. ${q}`));
+  }
+  if (s.desatualizados?.length) {
+    out.push('', '### 📅 Acompanhamentos que podem estar desatualizados',
+      '*Marcadores sem medição recente — converse com seu médico sobre a necessidade de refazer.*');
+    for (const d of s.desatualizados) {
+      const ha = d.haMeses != null ? ` há ~${d.haMeses} meses` : '';
+      out.push(`- **${d.marcador}** — último: ${d.ultimoResultado ?? '—'}${d.data ? ` (${d.data}${ha})` : ''}. ${d.situacao ?? ''}`);
+    }
   }
   out.push('', '---', `*${s.disclaimer || 'Análise educativa. Leve ao seu médico para interpretação clínica.'}*`);
   return out.join('\n');

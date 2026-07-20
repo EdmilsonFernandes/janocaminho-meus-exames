@@ -93,6 +93,17 @@ export const HealthSummarySchema = z.object({
     meta: z.string(),
     prazo: z.string().nullable().optional(),
   })).default([]),
+  // SEÇÃO ESTRUTURADA de acompanhamentos desatualizados (pedido #6): marcadores que estavam
+  // alterados no passado e não têm medição recente. Preenchido pelo BACKEND (attachDesatualizados)
+  // a partir do snapshot — mais confiável que a IA, que não tem os dados de data. Opcional p/ não
+  // quebrar relatórios antigos (sem o campo → front antigo ignora).
+  desatualizados: z.array(z.object({
+    marcador: z.string(),
+    ultimoResultado: z.string().nullable().optional(),
+    data: z.string().nullable().optional(),
+    haMeses: z.number().nullable().optional(),
+    situacao: z.string().nullable().optional(),
+  })).default([]),
   disclaimer: z.string().default(''),
 });
 
