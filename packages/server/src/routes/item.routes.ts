@@ -91,21 +91,47 @@ router.get('/timeseries', async (req: AuthedRequest, res, next) => {
   }
 });
 
-// NOMES DISTINTOS de analitos com valor numérico (alimenta o seletor de tendência)
+// NOMES DISTINTOS de analitos com valor numérico (alimenta o seletor de tendência).
+// Conta pontos PÓS-DEDUP — mesmo pipeline do /timeseries (dedup por dia [maior createdAt]
+// + collapseAdjacentNearDupes cross-day). Antes usávamos groupBy _count _all, que inflava
+// o count com duplicatas (mesmo PDF re-enviado, cross-day, intra-doc) e ficava divergente
+// do gráfico (ex.: "TSH (9)" mas só 7 pontos plotados).
 router.get('/distinct-names', async (req: AuthedRequest, res, next) => {
   try {
     const pids = await userPatientIds(req.userId!);
     const patientId = req.query.patientId ? String(req.query.patientId) : undefined;
-    const rows = await prisma.examItem.groupBy({
-      by: ['nameCanonical'],
-      where: {
-        valueNumeric: { not: null },
-        exam: { patientId: patientId && pids.includes(patientId) ? patientId : { in: pids } },
-      },
-      _count: { _all: true },
-      orderBy: { nameCanonical: 'asc' },
+    const pidFilter = patientId && pids.includes(patientId) ? patientId : { in: pids };
+    const rows = await prisma.examItem.findMany({
+      where: { valueNumeric: { not: null }, exam: { patientId: pidFilter } },
+      include: { exam: { select: { performedAt: true, createdAt: true } } },
     });
-    res.json(rows.map((r) => ({ nameCanonical: r.nameCanonical, count: r._count._all })));
+    // Agrupa por analito e aplica o MESMO dedup do timeseries → count == nº de pontos do gráfico.
+    type P = { performedAt: string | null; createdAt: string; valueNumeric: number };
+    const byName = new Map<string, P[]>();
+    for (const r of rows) {
+      const arr = byName.get(r.nameCanonical) ?? [];
+      arr.push({ performedAt: r.exam.performedAt, createdAt: r.exam.createdAt, valueNumeric: r.valueNumeric! });
+      byName.set(r.nameCanonical, arr);
+    }
+    const out: { nameCanonical: string; count: number }[] = [];
+    for (const [nameCanonical, items] of byName) {
+      // dedup por dia: mantém o item de maior createdAt de cada dia (igual timeseries).
+      const byDay = new Map<string, P>();
+      for (const it of items) {
+        const day = it.performedAt ? new Date(it.performedAt).toDateString() : 's/d';
+        const prev = byDay.get(day);
+        if (!prev || new Date(it.createdAt).getTime() > new Date(prev.createdAt).getTime()) byDay.set(day, it);
+      }
+      // dedup cross-day: mesma medição em datas adjacentes (janela 3d, tol 1%) vira 1 ponto.
+      const deduped = collapseAdjacentNearDupes(
+        [...byDay.values()],
+        (p) => new Date(p.performedAt ?? 0).getTime(),
+        (p) => p.valueNumeric,
+      );
+      out.push({ nameCanonical, count: deduped.length });
+    }
+    out.sort((a, b) => a.nameCanonical.localeCompare(b.nameCanonical));
+    res.json(out);
   } catch (e) {
     next(e);
   }

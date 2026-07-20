@@ -52,6 +52,33 @@ describe('itens: flags, alterados, série temporal, evolução', () => {
     expect(r.status).toBe(400);
   });
 
+  it('GET /items/distinct-names conta pontos PÓS-DEDUP (mesmo dia + cross-day) — não infla com duplicatas', async () => {
+    // Bug: contador do Trends mostrava "TSH (N)" com N inflado por duplicatas, enquanto o
+    // gráfico (timeseries) plotava menos pontos. distinct-names deve aplicar o MESMO dedup.
+    const { patient, token } = await createUser();
+    const dMar5 = new Date('2026-03-05T00:00:00Z');
+    const dMar6 = new Date('2026-03-06T00:00:00Z');
+    const dApr = new Date('2026-04-10T00:00:00Z');
+    const e1 = await createExam(patient.id, { title: 'TSH 05/03a', performedAt: dMar5 });
+    const e2 = await createExam(patient.id, { title: 'TSH 05/03b', performedAt: dMar5 }); // mesmo dia (reenvio)
+    const e3 = await createExam(patient.id, { title: 'Bundle 06/03', performedAt: dMar6 }); // cross-day, mesmo valor
+    const e4 = await createExam(patient.id, { title: 'TSH 10/04', performedAt: dApr });    // evolução real
+    await createItem(e1.id, { name: 'TSH', nameCanonical: 'TSH', valueNumeric: 2.5 });
+    await createItem(e2.id, { name: 'TSH', nameCanonical: 'TSH', valueNumeric: 2.5 });
+    await createItem(e3.id, { name: 'TSH', nameCanonical: 'TSH', valueNumeric: 2.5 });
+    await createItem(e4.id, { name: 'TSH', nameCanonical: 'TSH', valueNumeric: 3.2 });
+
+    const r = await api().get('/api/items/distinct-names').set(authHeader(token));
+    expect(r.status).toBe(200);
+    const tsh = r.body.find((n: any) => n.nameCanonical === 'TSH');
+    expect(tsh).toBeTruthy();
+    // 4 itens crus → dedup por dia (05/03 2x → 1) + cross-day (05/03+06/03 mesmo valor → 1) + 10/04 (valor diferente) = 2.
+    expect(tsh.count).toBe(2);
+    // Consistência: o gráfico (timeseries) tem o MESMO nº de pontos que o contador.
+    const ts = await api().get('/api/items/timeseries').set(authHeader(token)).query({ nameCanonical: 'TSH' });
+    expect(ts.body.points).toHaveLength(tsh.count);
+  });
+
   it('GET /items/evolution inclui analito com ≥2 pontos e calcula variação', async () => {
     const { patient, token } = await createUser();
     const e1 = await createExam(patient.id, { title: 'Jan', performedAt: D1 });
