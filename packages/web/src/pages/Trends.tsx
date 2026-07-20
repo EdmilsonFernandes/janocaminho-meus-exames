@@ -192,7 +192,7 @@ export const TrendsPage = () => {
           <ResponsiveContainer width="100%" height={isMobile ? 240 : 340}>
             <LineChart data={data} margin={{ top: 10, right: isMobile ? 8 : 20, bottom: 10, left: isMobile ? -10 : 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
-              <XAxis dataKey="name" tick={{ fontSize: isMobile ? 10 : 12, fill: theme.palette.text.secondary }} axisLine={{ stroke: theme.palette.divider }} />
+              <XAxis dataKey="name" interval="preserveStartEnd" minTickGap={8} tickFormatter={(v: string) => (isMobile ? String(v).slice(0, 5) : v)} tick={{ fontSize: isMobile ? 10 : 12, fill: theme.palette.text.secondary }} axisLine={{ stroke: theme.palette.divider }} />
               <YAxis tick={{ fontSize: isMobile ? 10 : 12, fill: theme.palette.text.secondary }} axisLine={{ stroke: theme.palette.divider }} />
               <Tooltip content={<TooltipBox />} />
               {ts.refLow != null && ts.refHigh != null && (
@@ -217,14 +217,22 @@ export const TrendsPage = () => {
             </Box>
           )}
 
-          {/* Pontos (histórico) */}
+          {/* Pontos (histórico) — card compacto por ponto: data | título truncado | valor+flag */}
           <Box sx={{ mt: 2 }}>
             <Typography variant="subtitle2" sx={{ mb: 0.5 }}>Histórico (do mais recente)</Typography>
             <Stack spacing={0.5}>
               {[...data].reverse().map((d, i) => (
-                <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                  <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>{d.name} — <strong>{d.valor}</strong>{ts?.unit ? ` ${ts.unit}` : ''} <Box component="span" sx={{ color: 'text.secondary' }}>({d.title})</Box></Typography>
-                  <Flag flag={d.flag} name={d.name} refLow={ts?.refLow} refHigh={ts?.refHigh} />
+                <Box key={i} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, p: 0.75, borderRadius: 1.5, bgcolor: 'action.hover' }}>
+                  <Box sx={{ minWidth: 0, flex: 1 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{d.name}</Typography>
+                    {d.title && (
+                      <Typography variant="caption" title={d.title} sx={{ color: 'text.secondary', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{d.title}</Typography>
+                    )}
+                  </Box>
+                  <Stack direction="row" alignItems="center" spacing={0.75} sx={{ flexShrink: 0 }}>
+                    <Typography sx={{ fontWeight: 800 }}>{d.valor}{ts?.unit ? ` ${ts.unit}` : ''}</Typography>
+                    <Flag flag={d.flag} name={d.name} refLow={ts?.refLow} refHigh={ts?.refHigh} />
+                  </Stack>
                 </Box>
               ))}
             </Stack>
