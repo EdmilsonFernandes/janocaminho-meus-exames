@@ -3,6 +3,7 @@ import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
 import { parseListParams, setListHeaders } from '../utils/list';
 import { getOrCreateExplanation } from '../analysis/explain';
+import { collapseAdjacentNearDupes } from '../analysis/dedup';
 
 const router = Router();
 router.use(requireAuth);
@@ -61,7 +62,7 @@ router.get('/timeseries', async (req: AuthedRequest, res, next) => {
         byDay.set(day, r);
       }
     }
-    const points = [...byDay.values()]
+    const rawPoints = [...byDay.values()]
       .sort((a, b) => new Date(a.exam.performedAt ?? 0).getTime() - new Date(b.exam.performedAt ?? 0).getTime())
       .map((r) => ({
         examId: r.exam.id,
@@ -71,6 +72,13 @@ router.get('/timeseries', async (req: AuthedRequest, res, next) => {
         unit: r.unit,
         flag: r.flag,
       }));
+    // DEDUP cross-day: mesma medição em 2 PDFs/datas adjacentes (ex.: TSH 05/03 + 06/03, ambos 25.7)
+    // vira 1 ponto — mantém a data de coleta (mais antiga). Centralizado em analysis/dedup.
+    const points = collapseAdjacentNearDupes(
+      rawPoints,
+      (p) => new Date(p.performedAt ?? 0).getTime(),
+      (p) => p.valueNumeric ?? 0,
+    );
     res.json({
       nameCanonical,
       unit: rows[0]?.unit ?? null,
@@ -129,7 +137,12 @@ router.get('/evolution', async (req: AuthedRequest, res, next) => {
     }
     const out: any[] = [];
     for (const [name, dayMap] of byName) {
-      const items = [...dayMap.values()]; // 1 ponto por dia, em ordem asc (Map preserva inserção = orderBy performedAt asc)
+      // DEDUP cross-day: mesma medição em datas adjacentes (ex.: TSH 05/03 + 06/03 = 25.7) vira 1 ponto.
+      const items = collapseAdjacentNearDupes(
+        [...dayMap.values()],
+        (i) => new Date(i.exam.performedAt ?? 0).getTime(),
+        (i) => i.valueNumeric!,
+      ); // 1 ponto por dia (pós cross-day), ordem asc
       // Mostra TODOS os analitos medidos (mesmo com 1 exame só = "primeiro exame"); antes exigia >=2.
       const first = items[0];
       const last = items[items.length - 1];

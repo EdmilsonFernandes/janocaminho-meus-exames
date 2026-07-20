@@ -1,4 +1,5 @@
 import { auditLog } from '../middleware/auditLog';
+import { collapseAdjacentNearDupes } from '../analysis/dedup';
 import { audit } from '../utils/audit';
 import { doctorAnswerEmail, webUrl } from '../utils/emailTemplate';
 import { saveAnalysisDoc, getLatestAnalysisDoc, DOC_KIND } from '../utils/analysisDoc';
@@ -554,13 +555,29 @@ router.get('/patients/:patientId/evolution', requireDoctor, async (req: any, res
     // Antes exigia valor IDÊNTICO (valueNumeric) → 2 pontos com leve diferença de arredondamento
     ///lab ficavam como 2 → zig-zag no gráfico. Agora colapsa por dia independente do valor.
     const seen = new Set<string>();
-    const items = raw.filter((r) => {
+    const dayDedup = raw.filter((r) => {
       const day = r.exam?.performedAt ? new Date(r.exam.performedAt).toDateString() : 's/d';
       const k = `${r.nameCanonical}|${day}`;
       if (seen.has(k)) return false;
       seen.add(k);
       return true;
     });
+    // DEDUP cross-day agrupado por analito: mesma medição em datas adjacentes (ex.: TSH 05/03 +
+    // 06/03 = 25.7) vira 1 ponto. Mantém o portal do médico alinhado com o lado do paciente.
+    const byName = new Map<string, typeof dayDedup>();
+    for (const r of dayDedup) {
+      let g = byName.get(r.nameCanonical);
+      if (!g) { g = []; byName.set(r.nameCanonical, g); }
+      g.push(r);
+    }
+    const items: typeof dayDedup = [];
+    for (const g of byName.values()) {
+      items.push(...collapseAdjacentNearDupes(
+        g,
+        (r) => (r.exam?.performedAt ? new Date(r.exam.performedAt).getTime() : 0),
+        (r) => r.valueNumeric ?? 0,
+      ));
+    }
     res.json({ items });
   } catch (e) { next(e); }
 });

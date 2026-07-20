@@ -17,6 +17,7 @@
  *  leva nameCanonical e a web categoriza — sem duplicar CATS. refScaleSuspect fica no front.)
  */
 import { prisma } from '../prisma';
+import { collapseAdjacentNearDupes } from './dedup';
 // NOTA: trendVerdict canônico vive em @meus-exames/shared (consumido pelo web/vite).
 // O server (Node) não dá require em shared em runtime (shared é TS-source, sem build p/ JS),
 // então espelhamos a lógica aqui. Unificar quando shared ganhar build step (V1).
@@ -226,12 +227,23 @@ export function computeMarkerState(rows: ItemRow[]): MarkerState[] {
     // Causa raiz: exames duplicados (mesmo PDF re-enviado, cross-patient, re-scan) criam
     // 2+ items do mesmo marcador no mesmo dia → infla points + gera deltaPct=0 falso "estável".
     const seenDays = new Set<string>();
-    const deduped = sorted.filter((r) => {
+    const byDayDedup = sorted.filter((r) => {
       if (!r.performedAt) return true;
       const day = new Date(r.performedAt).toISOString().slice(0, 10);
       if (seenDays.has(day)) return false;
       seenDays.add(day);
       return true;
+    });
+    // DEDUP cross-day: mesma medição em datas adjacentes (ex.: TSH 05/03 + 06/03 = 25.7) vira 1
+    // ponto, mantendo a data de coleta (mais antiga). Re-ordena desc p/ preservar [0]=latest.
+    const deduped = collapseAdjacentNearDupes(
+      byDayDedup,
+      (r) => (r.performedAt ? r.performedAt.getTime() : 0),
+      (r) => r.valueNumeric ?? 0,
+    ).sort((a, b) => {
+      const ta = a.performedAt ? a.performedAt.getTime() : -Infinity;
+      const tb = b.performedAt ? b.performedAt.getTime() : -Infinity;
+      return tb - ta;
     });
     const latest = deduped[0];
     const prior = deduped[1] ?? null;

@@ -66,6 +66,20 @@ describe('dedup de exames + análise temporal', () => {
     expect(markers[0].trend).toBe('piorou'); // normal → alterado
   });
 
+  it('TSH 05/03 + 06/03 mesmo valor (reenvio cross-day) → colapsa no estado do marcador', () => {
+    // Caso real do Edmilson: painel tireoidiano 05/03 + bundle "HEMOGRAMA COMPLETO" 06/03,
+    // ambos TSH=25.7. Antes do dedup cross-day ficavam 2 pontos no mesmo valor.
+    const rows = [
+      mk('TSH', 'TSH', 25.7, new Date('2026-03-06'), true),
+      mk('TSH', 'TSH', 25.7, new Date('2026-03-05'), true),
+      mk('TSH', 'TSH', 2.6, new Date('2025-05-05'), false),
+    ];
+    const markers = computeMarkerState(rows);
+    expect(markers[0].points).toBe(2); // 05/03/26 + 05/25 (o 06/03 colapsou no 05/03)
+    expect(markers[0].latest.valueNumeric).toBe(25.7);
+    expect(markers[0].latest.performedAt).toEqual(new Date('2026-03-05')); // mantém data de coleta
+  });
+
   it('classifyTemporal: buckets corretos', () => {
     expect(classifyTemporal(3, false)).toBe('atual');
     expect(classifyTemporal(8, false)).toBe('recente');
