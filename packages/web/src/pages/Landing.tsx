@@ -1,4 +1,5 @@
-import { Box, Container, Typography, Button, Stack, Chip, Fade } from '@mui/material';
+import { Box, Container, Typography, Button, Stack, Chip, Fade, Dialog, IconButton } from '@mui/material';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
@@ -79,6 +80,10 @@ const planData = [
 // pausa no hover, dots clicáveis, clique no slide avança.
 const SHOWCASE_SLIDE_COUNT = 15;
 
+// Tour em vídeo (YouTube) — embedado no hero (botão play → modal) e na seção "Veja na prática".
+const TOUR_VIDEO_ID = 'jyHezElJyjA';
+const TOUR_VIDEO_SRC = `https://www.youtube-nocookie.com/embed/${TOUR_VIDEO_ID}?rel=0`;
+
 const SlideCarousel = () => {
   const [i, setI] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -133,6 +138,7 @@ export const LandingPage = () => {
   const [cat, setCat] = useState<(typeof CATS)[number]>('Todos');
   const [showAllBenefits, setShowAllBenefits] = useState(false);
   const [medTab, setMedTab] = useState<'medico' | 'paciente' | 'convite'>('medico');
+  const [tourOpen, setTourOpen] = useState(false);
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 40);
     window.addEventListener('scroll', h, { passive: true });
@@ -235,7 +241,23 @@ export const LandingPage = () => {
                 border: '1px solid rgba(32,178,170,.25)',
                 boxShadow: '0 30px 60px rgba(32,178,170,.20), 0 10px 24px rgba(0,0,0,.07)',
               }}>
-                <Box component="img" src={`${import.meta.env.BASE_URL}capa-ia.png`} alt="Dr. Exame — seus exames com IA" sx={{ width: '100%', height: 'auto', display: 'block', borderRadius: 4 }} />
+                <Box sx={{ position: 'relative' }}>
+                  <Box component="img" src={`${import.meta.env.BASE_URL}capa-ia.png`} alt="Dr. Exame — seus exames com IA" sx={{ width: '100%', height: 'auto', display: 'block', borderRadius: 4 }} />
+                  <IconButton
+                    onClick={() => setTourOpen(true)}
+                    aria-label="Assistir tour do Dr. Exame"
+                    sx={{
+                      position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
+                      bgcolor: 'rgba(32,178,170,.92)', color: '#fff',
+                      width: { xs: 64, md: 78 }, height: { xs: 64, md: 78 },
+                      boxShadow: '0 12px 30px rgba(32,178,170,.45)',
+                      transition: 'transform .2s ease, background-color .2s ease',
+                      '&:hover': { bgcolor: '#20b2aa', transform: 'translate(-50%,-50%) scale(1.07)' },
+                    }}
+                  >
+                    <PlayArrowIcon sx={{ fontSize: { xs: 38, md: 46 } }} />
+                  </IconButton>
+                </Box>
               </Box>
             </Box>
           </Box>
@@ -355,6 +377,26 @@ export const LandingPage = () => {
           <Typography align="center" sx={{ color: 'text.secondary', fontSize: 17, mb: 6, maxWidth: 600, mx: 'auto' }}>
             Um passeio pela plataforma — do upload do exame ao relatório com IA. Passe o mouse pra pausar.
           </Typography>
+
+          {/* Tour em vídeo (YouTube embed) — leitura completa da plataforma */}
+          <Box sx={{ maxWidth: 880, mx: 'auto', width: '100%', mb: 6 }}>
+            <Box sx={{
+              position: 'relative', width: '100%', aspectRatio: '16 / 9',
+              borderRadius: 3, overflow: 'hidden',
+              border: '1px solid rgba(32,178,170,.25)',
+              boxShadow: '0 30px 60px rgba(32,178,170,.20), 0 12px 26px rgba(0,0,0,.10)',
+            }}>
+              <Box
+                component="iframe"
+                src={TOUR_VIDEO_SRC}
+                title="Dr. Exame — tour pela plataforma"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                loading="lazy"
+                sx={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }}
+              />
+            </Box>
+          </Box>
           <SlideCarousel />
 
         </Container>
@@ -815,6 +857,28 @@ export const LandingPage = () => {
           </Stack>
         </Container>
       </Box>
+
+      {/* MODAL — tour em vídeo (aberto pelo botão ▶ do hero). Iframe só monta ao abrir (não pesa o load). */}
+      <Dialog
+        open={tourOpen}
+        onClose={() => setTourOpen(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{ sx: { bgcolor: '#000', m: { xs: 1, sm: 2 }, overflow: 'hidden' } }}
+      >
+        <Box sx={{ position: 'relative', width: '100%', aspectRatio: '16 / 9' }}>
+          {tourOpen && (
+            <Box
+              component="iframe"
+              src={`https://www.youtube-nocookie.com/embed/${TOUR_VIDEO_ID}?autoplay=1&rel=0`}
+              title="Dr. Exame — tour pela plataforma"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+              sx={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }}
+            />
+          )}
+        </Box>
+      </Dialog>
     </Box>
   );
 };
