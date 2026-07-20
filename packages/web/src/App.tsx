@@ -188,9 +188,12 @@ const AppMenu = () => {
   const userStr = typeof localStorage !== 'undefined' ? localStorage.getItem('user') : null;
   const isAdmin = (() => { try { return userStr ? (JSON.parse(userStr)?.role === 'ADMIN') : false; } catch { return false; } })();
   return (
-  <Box component="nav" sx={{ py: 1, display: 'flex', flexDirection: 'column', minHeight: '100%', overflowY: 'auto', maxHeight: '100vh', '& .MuiListItemButton-root, & .MuiMenuItem-root': { flex: '0 0 auto' } }}>
-    {/* GRID de atalhos — estilo app nativo (tile premium c/ gradiente teal; 3×3) */}
-    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 0.75, p: 1, pb: 0.5 }}>
+  <Box component="nav" sx={{ py: 1, display: 'flex', flexDirection: 'column', minHeight: '100%', width: '100%', minWidth: 0, maxWidth: '100%', containerType: 'inline-size', overflowX: 'hidden', overflowY: 'auto', maxHeight: '100vh', '& .MuiListItemButton-root, & .MuiMenuItem-root': { flex: '0 0 auto' } }}>
+    {/* GRID de atalhos — estilo app nativo (tile premium c/ gradiente teal).
+       Container query: 2 colunas quando estreito (sidebar desktop ~240px → tiles maiores, premium),
+       3 colunas quando largo (drawer mobile ~336px). minmax(0,1fr) garante encolher sem transbordar.
+       Antes era repeat(3,1fr) fixo → estourava 66px sobre o conteúdo no sidebar desktop. */}
+    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 0.75, p: 1, pb: 0.5, minWidth: 0, '@container (max-width: 300px)': { gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' } }}>
       {([
         { to: '/', icon: <HomeIcon />, label: 'nav.home' },
         { to: '/exams', icon: <MedicalInformationIcon />, label: 'menu.exams' },
@@ -417,6 +420,9 @@ const AppLayout = (props: any) => {
           // NÃO espaço morto entre menu e dashboard. Em laptop (≤1728) preenche tudo; em ultrawide
           // (≥1920) centraliza c/ margens premium. Mobile (xs) continua 100% (intocado).
           '& .RaLayout-appFrame': { maxWidth: { xs: '100%', sm: 1728 }, mx: { sm: 'auto' } },
+          // Menu lateral: constraine o conteúdo ao sidebar (min-width:0 + clip) — sem isto o grid
+          // de atalhos (e itens largos) escapa da largura do sidebar e transborda sobre a página.
+          '& .RaLayout-menu': { minWidth: 0, maxWidth: '100%', overflowX: 'hidden' },
           '& .RaLayout-appFrame, & .RaLayout-contentWithSidebar': { minWidth: 0, maxWidth: '100%' },
           // CONTEÚDO do <List> (.RaList-main) TAMBÉM é flex-item com min-width:auto → sem min-width:0,
           // o card de exame infla além do viewport (medido: 627px numa tela de 360px) e o overflow-hidden
