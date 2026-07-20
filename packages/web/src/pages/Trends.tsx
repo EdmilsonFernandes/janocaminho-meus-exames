@@ -180,7 +180,11 @@ export const TrendsPage = () => {
             )}
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
               {predict?.dir === 'up' ? 'Subindo' : predict?.dir === 'down' ? 'Caindo' : 'Estável'} em {data.length} {data.length === 1 ? 'medição' : 'medições'}.
-              {(ts?.refLow != null && ts?.refHigh != null) ? ` Faixa de referência: ${ts.refLow}–${ts.refHigh}${ts?.unit ? ` ${ts.unit}` : ''}.` : ''}
+              {(ts?.refLow != null && ts?.refHigh != null)
+                ? ` Faixa de referência: ${ts.refLow}–${ts.refHigh}${ts?.unit ? ` ${ts.unit}` : ''}.`
+                : (ts?.refLow != null || ts?.refHigh != null)
+                  ? ` Faixa de referência: ${ts.refLow ?? ts.refHigh}${ts?.unit ? ` ${ts.unit}` : ''}.`
+                  : ' Sem faixa de referência informada pelo laboratório.'}
             </Typography>
           </Box>
 

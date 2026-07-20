@@ -189,25 +189,33 @@ const AppMenu = () => {
   const isAdmin = (() => { try { return userStr ? (JSON.parse(userStr)?.role === 'ADMIN') : false; } catch { return false; } })();
   return (
   <Box component="nav" sx={{ py: 1, display: 'flex', flexDirection: 'column', minHeight: '100%', overflowY: 'auto', maxHeight: '100vh', '& .MuiListItemButton-root, & .MuiMenuItem-root': { flex: '0 0 auto' } }}>
-    {/* GRID de atalhos — estilo app nativo (reconhecimento visual rápido, 3×2) */}
-    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 0.5, p: 1, pb: 0.5 }}>
+    {/* GRID de atalhos — estilo app nativo (tile premium c/ gradiente teal; 3×3) */}
+    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 0.75, p: 1, pb: 0.5 }}>
       {([
         { to: '/', icon: <HomeIcon />, label: 'nav.home' },
         { to: '/exams', icon: <MedicalInformationIcon />, label: 'menu.exams' },
+        { to: '/alterados', icon: <WarningAmberIcon />, label: 'menu.alterados' },
         { to: '/evolucao', icon: <InsightsIcon />, label: 'menu.evolution' },
+        { to: '/tendencias', icon: <AutoGraphIcon />, label: 'menu.trends' },
+        { to: '/linha-do-tempo', icon: <HistoryIcon />, label: 'menu.timeline' },
+        { to: '/relatorio', icon: <SummarizeIcon />, label: 'menu.report' },
         { to: '/perguntas', icon: <QuestionAnswerIcon />, label: 'menu.questions' },
         { to: '/familia', icon: <Diversity3Icon />, label: 'menu.family' },
-        { to: '/relatorio', icon: <SummarizeIcon />, label: 'menu.report' },
       ]).map((it) => {
         const on = it.to === '/' ? pathname === '/' : pathname.startsWith(it.to);
         return (
           <Box key={it.to} onClick={() => navigate(it.to)} sx={{
-            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5, py: 1.5, borderRadius: 2, cursor: 'pointer',
-            bgcolor: on ? 'rgba(32,178,170,.12)' : 'transparent', color: on ? '#178f89' : 'text.secondary',
-            transition: 'all .15s', '&:active': { transform: 'scale(.93)' }, '& svg': { fontSize: 24 },
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.75, py: 1.25, borderRadius: 2.5, cursor: 'pointer',
+            transition: 'all .18s cubic-bezier(.4,0,.2,1)', '&:active': { transform: 'scale(.92)' },
           }}>
-            {it.icon}
-            <Typography sx={{ fontSize: 10.5, fontWeight: on ? 800 : 600 }}>{translate(it.label)}</Typography>
+            <Box sx={{
+              width: 42, height: 42, display: 'grid', placeItems: 'center', borderRadius: 2.5,
+              background: on ? 'linear-gradient(135deg,#20b2aa,#178f89)' : 'linear-gradient(135deg, rgba(32,178,170,.14), rgba(212,165,116,.12))',
+              color: on ? '#fff' : '#178f89',
+              boxShadow: on ? '0 6px 16px -6px rgba(32,178,170,.6)' : 'none',
+              transition: 'all .18s', '& svg': { fontSize: 22 },
+            }}>{it.icon}</Box>
+            <Typography sx={{ fontSize: 10.5, fontWeight: on ? 800 : 600, color: on ? '#178f89' : 'text.secondary', textAlign: 'center', lineHeight: 1.15 }}>{translate(it.label)}</Typography>
           </Box>
         );
       })}
@@ -252,10 +260,6 @@ const AppMenu = () => {
       <ListItemText primaryTypographyProps={{ fontSize: 13, fontWeight: 600 }}>{translate('menu.logout')}</ListItemText>
     </MenuItem>
 
-    <Box sx={{ mt: 'auto', px: 2, py: 1.5, fontSize: 11, color: 'text.secondary', borderTop: '1px solid', borderColor: 'divider' }}>
-      Meus Exames · {APP_BUILD_INFO.versionLabel}
-    </Box>
-
     {/* POPUP "Sobre o App" */}
     <Dialog open={aboutOpen} onClose={() => setAboutOpen(false)} maxWidth="xs" fullWidth>
       <DialogTitle sx={{ textAlign: 'center', pb: 0 }}>
@@ -263,10 +267,7 @@ const AppMenu = () => {
         Meus Exames
       </DialogTitle>
       <DialogContent sx={{ textAlign: 'center' }}>
-        <Typography sx={{ fontWeight: 800, fontSize: 18, color: 'text.primary', mb: 0.5 }}>{APP_BUILD_INFO.versionLabel}</Typography>
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2, fontFamily: 'monospace', fontSize: 11 }}>
-          branch {APP_BUILD_INFO.branch} · build {new Date(APP_BUILD_INFO.builtAt).toLocaleString('pt-BR')}
-        </Typography>
+        <Typography sx={{ fontWeight: 800, fontSize: 20, color: '#178f89', mb: 2 }}>v{APP_BUILD_INFO.version}</Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>{translate('about.tagline')}</Typography>
         <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', flexWrap: 'wrap', mb: 2 }}>
           <Chip size="small" label="IA GLM-4.6" sx={{ bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 700 }} />
