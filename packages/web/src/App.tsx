@@ -516,8 +516,15 @@ export const App = () => {
     try {
       if (!isNativeApp) {
         const { pathname, hash, search } = window.location;
-        if (pathname && pathname !== '/' && !hash) {
-          window.location.replace(`${window.location.origin}/#${pathname}${search}`);
+        // Em produção o app é servido em /minhasaude (basename); em dev/localhost, na raiz.
+        // Stripa o basename do pathname pra achar a ROTA e redireciona MANTENDO o basename.
+        // BUG ANTERIOR: mandava pra `origin/#${pathname}` = `origin/#/minhasaude/rota` = RAIZ
+        // (app do EdEspeto) com hash — perdia o basename e o usuário caía no app errado (sem
+        // labels, layout quebrado) ao acessar janocaminho.com.br/minhasaude/.
+        const base = pathname.startsWith('/minhasaude') ? '/minhasaude' : '';
+        const rota = base ? (pathname.slice(base.length) || '/') : pathname;
+        if (rota && rota !== '/' && !hash) {
+          window.location.replace(`${window.location.origin}${base}/#${rota}${search}`);
           return; // a página recarrega no replace — ignora o resto (remonta limpo)
         }
       }
