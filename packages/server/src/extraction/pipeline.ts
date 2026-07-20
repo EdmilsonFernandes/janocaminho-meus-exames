@@ -174,6 +174,23 @@ async function runExtractionOnce(examId: string): Promise<void> {
   }
 }
 
+/** Colapsa itens DUPLICADOS dentro do MESMO documento (mesmo nameCanonical + valor + unidade).
+ *  A IA às vezes extrai o mesmo analito 2x no mesmo PDF (tabela-resumo + tabela-detalhe, ou
+ *  duplicação do OCR/reprocessamento). Diferente do collapseAdjacentNearDupes (cross-exame, série
+ *  temporal), este é INTRA-documento — roda no parse, antes de persistir ExamItem. Conservador:
+ *  só colapsa itens idênticos (canônico + valor + unidade); medições realmente distintas ficam. */
+export function dedupeIntraDoc<T extends { nameCanonical: string | null; name: string; valueNumeric: number | null; valueText: string | null; unit: string | null }>(rows: T[]): T[] {
+  const seen = new Set<string>();
+  const out: T[] = [];
+  for (const r of rows) {
+    const key = `${r.nameCanonical ?? ''}|${r.valueNumeric ?? ''}|${r.valueText ?? ''}|${r.unit ?? ''}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(r);
+  }
+  return out;
+}
+
 function flattenLabItems(lab: LabExtraction, prefers: string): ItemRow[] {
   const rows: ItemRow[] = [];
   for (const panel of lab.panels ?? []) {
@@ -212,7 +229,7 @@ function flattenLabItems(lab: LabExtraction, prefers: string): ItemRow[] {
       });
     }
   }
-  return rows;
+  return dedupeIntraDoc(rows);
 }
 
 function pickReference(refs: NonNullable<ExtractionItem['references']>, prefers: string) {

@@ -46,10 +46,12 @@ vi.mock('../src/utils/storage', async (importOriginal) => {
   };
 });
 
-// Extração assíncrona (fire-and-forget no upload) — no-op.
-vi.mock('../src/extraction/pipeline', () => ({
-  runExtraction: vi.fn().mockResolvedValue(undefined),
-}));
+// Extração assíncrona (fire-and-forget no upload) — no-op. Preserva o resto do módulo
+// (dedupeIntraDoc etc.) via importOriginal — assim testes de funções puras do pipeline funcionam.
+vi.mock('../src/extraction/pipeline', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../src/extraction/pipeline')>();
+  return { ...actual, runExtraction: vi.fn().mockResolvedValue(undefined) };
+});
 
 // IA de saúde: respostas canned.
 vi.mock('../src/analysis/health-summary', async (importOriginal) => {

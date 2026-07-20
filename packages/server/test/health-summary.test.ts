@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { coerceComparativo, coerceStaleness } from '../src/analysis/health-summary';
-import type { MarkerState } from '../src/analysis/health-state';
+import { coerceComparativo, coerceStaleness, guardHistoricalAsCurrent } from '../src/analysis/health-summary';
+import type { MarkerState, CurrentHealthSummary } from '../src/analysis/health-state';
 
 /** Marca o bug de credibilidade: relatório mostra TSH=3, mas o valor real no DB é 2,75. */
 const mkMarker = (over: Partial<MarkerState>): MarkerState => ({
@@ -84,5 +84,59 @@ describe('coerceStaleness — remove prazos inventados (anti-alucinação)', () 
     const s: any = { pontosAtencao: [{ titulo: 'Fígado', detalhe: 'TGP desatualizado há 14 meses.' }] };
     const out = coerceStaleness(s, []);
     expect(out.pontosAtencao.length).toBe(0);
+  });
+});
+
+describe('guardHistoricalAsCurrent — IA não lista marcador só histórico como atenção ATUAL', () => {
+  const mkSnapshot = (over: Partial<CurrentHealthSummary>): CurrentHealthSummary => ({
+    patientId: 'p1', generatedAt: new Date(), markers: 2, score: 80,
+    byPriority: { normal: 1, leve: 0, moderada: 1, importante: 0 },
+    abnormalAnalytes: [], topAttention: [], improving: [], worsening: [], stale: [], whatChanged: [],
+    ...over,
+  });
+
+  // Cenário pedido no spec: TGP alterado em 2018, sem medição recente (stale/desatualizado).
+  it('REMOVE de pontosAtencao o marcador stale (2018) sem versão fresca e anota em leituraFinal', () => {
+    const tgpStale = mkMarker({
+      nameCanonical: 'TGP', name: 'TGP', flag: 'HIGH', isAbnormal: true,
+      temporalClass: 'desatualizado', outdated: true,
+      latest: { valueNumeric: 82, valueText: '82', performedAt: null, ageMonths: 90, stale: true },
+    });
+    const snap = mkSnapshot({ stale: [tgpStale] });
+    const summary: any = { pontosAtencao: [{ titulo: 'TGP elevada', detalhe: 'Sua TGP está muito alta.' }], leituraFinal: 'Resumo.' };
+    const out = guardHistoricalAsCurrent(summary, snap);
+    expect(out.pontosAtencao.length).toBe(0); // removido das atenções atuais
+    expect(out.leituraFinal).toContain('TGP');
+    expect(out.leituraFinal).toContain('medição recente'); // vira orientação, não alarme
+  });
+
+  it('MANTÉM pontosAtencao que casa com marcador FRESCO (atenção legítima)', () => {
+    const glicFresca = mkMarker({
+      nameCanonical: 'GLICEMIA', name: 'Glicemia', flag: 'HIGH', isAbnormal: true, temporalClass: 'atual',
+      latest: { valueNumeric: 168, valueText: '168', performedAt: null, ageMonths: 2, stale: false },
+    });
+    const snap = mkSnapshot({ topAttention: [glicFresca] });
+    const summary: any = { pontosAtencao: [{ titulo: 'Glicemia alta', detalhe: '168 mg/dL.' }], leituraFinal: 'Ok.' };
+    const out = guardHistoricalAsCurrent(summary, snap);
+    expect(out.pontosAtencao.length).toBe(1);
+    expect(out.leituraFinal).toBe('Ok.');
+  });
+
+  it('NÃO mexe quando não há marcadores stale no snapshot', () => {
+    const fresca = mkMarker({ nameCanonical: 'GLICEMIA', name: 'Glicemia', temporalClass: 'atual' });
+    const snap = mkSnapshot({ topAttention: [fresca] });
+    const summary: any = { pontosAtencao: [{ titulo: 'Glicemia alta', detalhe: 'x' }], leituraFinal: 'Ok.' };
+    expect(guardHistoricalAsCurrent(summary, snap).pontosAtencao.length).toBe(1);
+  });
+
+  it('conservador: NÃO remove quando o título não casa com marcador conhecido', () => {
+    const tgpStale = mkMarker({
+      nameCanonical: 'TGP', name: 'TGP', temporalClass: 'desatualizado', outdated: true,
+      latest: { valueNumeric: 82, valueText: '82', performedAt: null, ageMonths: 90, stale: true },
+    });
+    const snap = mkSnapshot({ stale: [tgpStale] });
+    // Título genérico que não casa com "TGP" → mantém (não arriscar remover atenção legítima)
+    const summary: any = { pontosAtencao: [{ titulo: 'Função hepática', detalhe: 'algo' }], leituraFinal: 'Ok.' };
+    expect(guardHistoricalAsCurrent(summary, snap).pontosAtencao.length).toBe(1);
   });
 });

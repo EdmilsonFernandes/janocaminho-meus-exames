@@ -5,7 +5,7 @@ import { prisma } from '../prisma';
 import { HEALTH_SYSTEM, diagnosticGuard } from './system';
 import { JSON_SUFFIX, extractJsonObject } from '../utils/json';
 import { patientSlug, memoryDigest, appendPatientMemory, saveFullReport } from './agent-memory';
-import { buildCurrentHealthSummary, formatSnapshotContext, type MarkerState } from './health-state';
+import { buildCurrentHealthSummary, formatSnapshotContext, type MarkerState, type CurrentHealthSummary } from './health-state';
 import { normalizeKey } from '../utils/normalize';
 
 /**
@@ -62,6 +62,62 @@ export function coerceStaleness(summary: HealthSummary, _staleMarkers?: MarkerSt
     perguntasParaOMedico: (summary.perguntasParaOMedico ?? [])
       .map((q) => strip(typeof q === 'string' ? q : ''))
       .filter((q) => q.trim()),
+  };
+}
+
+/**
+ * GUARD PÓS-IA: impede que a IA apresente um marcador HISTÓRICO/DESATUALIZADO como atenção ATUAL.
+ * Mesmo com o contexto rotulado ([HISTÓRICO]/[DESATUALIZADO]) e as regras de prompt, a IA às vezes
+ * puxa do CONTEXTO HISTÓRICO e lista em `pontosAtencao` um marcador cuja única medição é antiga —
+ * gerando o bug "TGP muito elevada" quando o único alterado é de 2018 (e há resultado normal em 2026).
+ *
+ * Validação ESTRUTURAL (não textual): cada `pontosAtencao.titulo` que casa (normalizeKey) com um
+ * marcador do snapshot que é stale/outdated/histórico E sem versão fresca é REMOVIDO das atenções
+ * atuais e reescrito como orientação de "sem medição recente" (anexado em `leituraFinal`).
+ *
+ * Conservador: casa só pelo `titulo`; se não casa com marcador conhecido, NÃO mexe (evita remover
+ * atenções legítimas descritas com palavras próprias da IA). Função PURA — testável isoladamente.
+ */
+export function guardHistoricalAsCurrent(summary: HealthSummary, snapshot: CurrentHealthSummary): HealthSummary {
+  const all = [...snapshot.topAttention, ...snapshot.improving, ...snapshot.worsening, ...snapshot.stale];
+  if (!all.length || !Array.isArray(summary.pontosAtencao) || !summary.pontosAtencao.length) return summary;
+
+  const keyOf = (m: MarkerState) => normalizeKey(m.nameCanonical) || normalizeKey(m.name);
+  const isStale = (m: MarkerState) =>
+    m.latest.stale || m.outdated || m.temporalClass === 'historico' || m.temporalClass === 'antigo' || m.temporalClass === 'desatualizado';
+
+  const staleNames = new Set(all.filter(isStale).map(keyOf).filter(Boolean) as string[]);
+  const freshNames = new Set(all.filter((m) => !isStale(m)).map(keyOf).filter(Boolean) as string[]);
+  if (!staleNames.size) return summary; // nada stale → nada a corrigir
+
+  const matches = (cn: string, set: Set<string>) =>
+    !!cn && [...set].some((s) => s === cn || s.includes(cn) || cn.includes(s));
+
+  const kept: HealthSummary['pontosAtencao'] = [];
+  const cited: MarkerState[] = [];
+  for (const p of summary.pontosAtencao) {
+    const cn = normalizeKey(p.titulo ?? '');
+    if (cn && matches(cn, staleNames) && !matches(cn, freshNames)) {
+      const m = all.find((mm) => isStale(mm) && (keyOf(mm) === cn || (keyOf(mm) && (keyOf(mm).includes(cn) || cn.includes(keyOf(mm))))));
+      if (m) cited.push(m);
+      else kept.push(p); // não casou estruturalmente — mantém (conservador)
+    } else {
+      kept.push(p);
+    }
+  }
+  if (!cited.length) return summary;
+
+  // Reescreve os marcadores stale citados como atenção ATUAL → orientação "sem medição recente".
+  const notas = cited.map((m) => {
+    const ha = m.latest.ageMonths != null && m.latest.ageMonths >= 1 ? ` há cerca de ${Math.round(m.latest.ageMonths)} meses` : '';
+    const val = m.latest.valueText ?? (m.latest.valueNumeric != null ? String(m.latest.valueNumeric).replace('.', ',') : '—');
+    return `${m.name} (${val}${m.unit ? ' ' + m.unit : ''}, última medição${ha}) não tem medição recente, então não é possível afirmar o estado atual. Pode ser útil conversar com seu médico sobre refazer esse exame.`;
+  });
+  const append = `\n\nℹ️ Aviso de histórico: ${notas.join(' ')}`;
+  return {
+    ...summary,
+    pontosAtencao: kept,
+    leituraFinal: (summary.leituraFinal ?? '') + append,
   };
 }
 
@@ -153,6 +209,7 @@ export async function generateConsolidatedSummary(patientId: string, audience: '
   // Função pura coerceComparativo — testada em health-summary.test.ts.
   summary = coerceComparativo(summary, [...snapshot.topAttention, ...snapshot.improving, ...snapshot.worsening, ...snapshot.stale]);
   summary = coerceStaleness(summary, snapshot.stale); // remove prazos inventados se nada está desatualizado
+  summary = guardHistoricalAsCurrent(summary, snapshot); // IA não pode listar marcador só histórico como atenção ATUAL
   let contentMd = renderSummaryMd(summary);
   contentMd = diagnosticGuard(contentMd).text;
   appendPatientMemory(slug, `Relatório consolidado (${snapshot.markers} marcadores)`,
