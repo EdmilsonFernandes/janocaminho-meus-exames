@@ -106,7 +106,7 @@ router.get('/distinct-names', async (req: AuthedRequest, res, next) => {
       include: { exam: { select: { performedAt: true, createdAt: true } } },
     });
     // Agrupa por analito e aplica o MESMO dedup do timeseries → count == nº de pontos do gráfico.
-    type P = { performedAt: string | null; createdAt: string; valueNumeric: number };
+    type P = { performedAt: Date | null; createdAt: Date; valueNumeric: number };
     const byName = new Map<string, P[]>();
     for (const r of rows) {
       const arr = byName.get(r.nameCanonical) ?? [];
