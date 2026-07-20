@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { Box, Card, CardContent, Typography, Stack, Chip, CircularProgress, Button, IconButton, Collapse, Divider, Switch } from '@mui/material';
+import { Box, Card, CardContent, Typography, Stack, Chip, CircularProgress, Skeleton, Button, IconButton, Collapse, Divider, Switch } from '@mui/material';
 import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -174,9 +174,16 @@ export const RiskCard = () => {
 
   if (loading) {
     return (
-      <Card sx={{ mt: 2, borderRadius: 4, minHeight: 96, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5 }}>
-        <CircularProgress size={22} sx={{ color: 'primary.main' }} />
-        <Typography sx={{ fontWeight: 600, color: 'text.secondary' }}>Montando sua leitura de risco…</Typography>
+      <Card sx={{ mt: 2, borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
+        <CardContent>
+          <Stack direction="row" spacing={1.2} alignItems="center" sx={{ mb: 1.5 }}>
+            <Skeleton variant="circular" width={24} height={24} />
+            <Skeleton variant="text" width={120} />
+          </Stack>
+          <Skeleton variant="rectangular" height={70} sx={{ borderRadius: 2, mb: 1 }} />
+          <Skeleton variant="text" width="80%" />
+          <Skeleton variant="text" width="55%" />
+        </CardContent>
       </Card>
     );
   }

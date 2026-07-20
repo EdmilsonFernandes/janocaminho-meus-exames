@@ -61,9 +61,9 @@ const SHADOWS_DARK = [
 
 const TYPOGRAPHY = {
   fontFamily: FONT_BODY,
-  h1: { fontFamily: FONT_HEAD, fontWeight: 800 },
-  h2: { fontFamily: FONT_HEAD, fontWeight: 800 },
-  h3: { fontFamily: FONT_HEAD, fontWeight: 800 },
+  h1: { fontFamily: FONT_HEAD, fontWeight: 800, fontSize: 'clamp(2rem, 5vw, 3rem)', letterSpacing: '-0.03em' },
+  h2: { fontFamily: FONT_HEAD, fontWeight: 800, fontSize: 'clamp(1.6rem, 4vw, 2.25rem)', letterSpacing: '-0.02em' },
+  h3: { fontFamily: FONT_HEAD, fontWeight: 800, fontSize: 'clamp(1.3rem, 3vw, 1.75rem)', letterSpacing: '-0.01em' },
   h4: { fontFamily: FONT_HEAD, fontSize: '1.75rem', fontWeight: 800, letterSpacing: '-0.02em' },
   h5: { fontFamily: FONT_HEAD, fontSize: '1.35rem', fontWeight: 700, letterSpacing: '-0.01em' },
   h6: { fontFamily: FONT_HEAD, fontSize: '1.1rem', fontWeight: 700 },
