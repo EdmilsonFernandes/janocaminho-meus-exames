@@ -250,12 +250,12 @@ export const LoginPage = () => {
       {mode === 'password' ? (
         <Box component="form" onSubmit={submit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <TextField
-            placeholder={role === 'medico' ? translate('auth.email_or_crm') : translate('auth.email')} type={role === 'medico' ? 'text' : 'email'} required autoComplete="username" value={email}
+            label={role === 'medico' ? translate('auth.email_or_crm') : translate('auth.email')} type={role === 'medico' ? 'text' : 'email'} required autoComplete="username" value={email}
             onChange={(e) => setEmail(e.target.value)} sx={fieldSx}
             slotProps={{ input: { startAdornment: <InputAdornment position="start"><I.Mail /></InputAdornment> } }}
           />
           <TextField
-            placeholder={translate('auth.password')} type={showPwd ? 'text' : 'password'} required autoComplete="current-password" value={pwd}
+            label={translate('auth.password')} type={showPwd ? 'text' : 'password'} required autoComplete="current-password" value={pwd}
             onChange={(e) => setPwd(e.target.value)} sx={fieldSx}
             slotProps={{ input: {
               startAdornment: <InputAdornment position="start"><I.Lock /></InputAdornment>,
