@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, Stack, Chip, CircularProgress, LinearProgress, Button } from '@mui/material';
+import { Box, Card, CardContent, Typography, Stack, Chip, Skeleton, LinearProgress, Button } from '@mui/material';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { API_URL, token } from '../../config';
@@ -42,7 +42,17 @@ export const InsightsCards = () => {
       .finally(() => setLoading(false));
   }, [pid]);
 
-  if (loading) return <Card sx={{ mt: 2, borderRadius: 4, minHeight: 80, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><CircularProgress size={20} sx={{ color: 'primary.main' }} /></Card>;
+  if (loading) return (
+    <Card sx={{ mt: 2, borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
+      <CardContent>
+        <Stack direction="row" spacing={1.2} alignItems="center" sx={{ mb: 1.5 }}>
+          <Skeleton variant="circular" width={24} height={24} />
+          <Skeleton variant="text" width={120} />
+        </Stack>
+        <Skeleton variant="rectangular" height={48} sx={{ borderRadius: 2 }} />
+      </CardContent>
+    </Card>
+  );
   if (!data?.adherence) return null;
 
   const a = data.adherence;

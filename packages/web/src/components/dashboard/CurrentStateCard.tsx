@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, Stack, Chip, CircularProgress, Button } from '@mui/material';
+import { Box, Card, CardContent, Typography, Stack, Chip, Skeleton, Button } from '@mui/material';
 import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { useNavigate } from 'react-router-dom';
@@ -57,7 +57,17 @@ export const CurrentStateCard = () => {
   }, [pid]);
 
   if (loading) {
-    return <Card sx={{ mt: 2, borderRadius: 4, minHeight: 96, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5 }}><CircularProgress size={22} sx={{ color: 'primary.main' }} /><Typography sx={{ fontWeight: 600, color: 'text.secondary' }}>Montando seu estado atual…</Typography></Card>;
+    return (
+      <Card sx={{ mt: 2, borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
+        <CardContent>
+          <Stack direction="row" spacing={1.2} alignItems="center" sx={{ mb: 1.5 }}>
+            <Skeleton variant="circular" width={24} height={24} />
+            <Skeleton variant="text" width={140} />
+          </Stack>
+          <Skeleton variant="rectangular" height={56} sx={{ borderRadius: 2 }} />
+        </CardContent>
+      </Card>
+    );
   }
   if (!s || s.markers === 0) {
     return (
