@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Dialog, Box, Typography, Button, MobileStepper } from '@mui/material';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { useNavigate } from 'react-router-dom';
+import { DrExame } from './DrExame';
 
 const SLIDES = [
   { emoji: '📄', title: 'Envie seu exame', desc: 'Mande o PDF ou foto do exame. O Dr. Exame extrai todos os valores automaticamente — em segundos.' },
@@ -61,7 +62,11 @@ export const Onboarding = () => {
 
         {/* Conteúdo central — fade por step (não "some" abrupto) */}
         <Box key={step} sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', animation: 'onbIn .35s ease both' }}>
-          <Box sx={{ fontSize: 80, mb: 3, animation: 'onbFloat 2.6s ease-in-out infinite' }}>{s.emoji}</Box>
+          {/* Mascote Dr. Exame em card circular translúcido (antes: emoji genérico → identidade perdida
+              no momento mais quente da jornada). Pulse suave + float premium. */}
+          <Box sx={{ width: 132, height: 132, mb: 3, borderRadius: '50%', bgcolor: 'rgba(255,255,255,.18)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid rgba(255,255,255,.35)', boxShadow: '0 10px 30px rgba(0,0,0,.18)', animation: 'onbFloat 2.6s ease-in-out infinite' }}>
+            <DrExame size={88} sx={{ borderRadius: '50%' }} />
+          </Box>
           <Typography variant="h4" sx={{ fontWeight: 900, mb: 2, fontFamily: 'Poppins, sans-serif' }}>{s.title}</Typography>
           <Typography sx={{ fontSize: 17, opacity: 0.92, maxWidth: 340, lineHeight: 1.6 }}>{s.desc}</Typography>
         </Box>

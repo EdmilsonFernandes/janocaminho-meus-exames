@@ -117,6 +117,9 @@ export const buildTheme = (mode: ThemeMode): Theme => {
         styleOverrides: {
           // Transição suave ao trocar de modo (apenas cores — sem afetar layout/scroll).
           '*': { transition: 'background-color 180ms ease, border-color 180ms ease, color 120ms ease' },
+          // Focus ring teal global (a11y WCAG 2.4.7) — antes: zero focus rings visíveis (MUI default é azul).
+          '*:focus-visible': { outline: `2px solid ${isDark ? '#5fc9c3' : '#178f89'}`, outlineOffset: 2 },
+          'button:focus-visible, a:focus-visible, [role="button"]:focus-visible': { outlineOffset: 3 },
         },
       },
       MuiDrawer: {

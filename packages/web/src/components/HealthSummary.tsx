@@ -45,7 +45,7 @@ const Variation = ({ anterior, atual, leitura }: { anterior?: string | null; atu
     const eq = Math.abs(d) < 1e-9;
     if (eq) return <Chip size="small" label="estável" sx={{ bgcolor: 'action.hover', color: 'text.secondary' }} />;
     const up = d > 0;
-    const cor = leitura?.toLowerCase().includes('aten') ? '#e65100' : up ? '#1565c0' : '#2e7d32';
+    const cor = leitura?.toLowerCase().includes('aten') ? '#e65100' : up ? '#178f89' : '#2e7d32';
     return <Chip size="small" sx={{ bgcolor: `${cor}15`, color: cor, fontWeight: 700 }} label={`${up ? '↑' : '↓'} ${d > 0 ? '+' : ''}${Number(d.toFixed(2))}`} />;
   }
   if (leitura) return <Chip size="small" variant="outlined" label={leitura} sx={{ fontSize: 12 }} />;
@@ -143,13 +143,13 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
     const atencao = (structured?.pontosAtencao ?? []).map((p) => `<li><b>${esc(p.titulo)}</b> — ${esc(p.detalhe)}</li>`).join('');
     const boas = (structured?.coisasBoas ?? []).map((b) => `<li>${esc(b)}</li>`).join('');
     const perg = (structured?.perguntasParaOMedico ?? []).map((q) => `<li>${esc(q)}</li>`).join('');
-    const __docHtml = (`<!doctype html><html><head><meta charset="utf-8"><title>Resumo de Saúde</title><style>body{font-family:Segoe UI,Arial,sans-serif;padding:34px;line-height:1.6;color:#15233b;max-width:760px;margin:auto}h1{font-size:22px}h2{font-size:16px;margin-top:22px;color:#0b5cab}table{border-collapse:collapse;width:100%;font-size:13px}td,th{border:1px solid #ddd;padding:6px 8px}th{background:#eef3fb}</style></head><body><h1>Resumo de Saúde</h1>${structured?.resumoGeral ? `<p>${esc(structured.resumoGeral)}</p>` : ''}${rows ? `<h2>Comparativo</h2><table><tr><th>Exame</th><th>Anterior</th><th>Atual</th><th>Variação</th><th>O que significa</th></tr>${rows}</table>` : ''}${atencao ? `<h2>Pontos de atenção</h2><ul>${atencao}</ul>` : ''}${boas ? `<h2>Coisas boas</h2><ul>${boas}</ul>` : ''}${structured?.leituraFinal ? `<h2>Leitura final</h2><p>${esc(structured.leituraFinal)}</p>` : ''}${perg ? `<h2>Perguntas para o médico</h2><ol>${perg}</ol>` : ''}<p style="color:#888;font-size:12px">${esc(structured?.disclaimer || 'Análise educativa. Não substitui avaliação médica.')}</p></body></html>`);
+    const __docHtml = (`<!doctype html><html><head><meta charset="utf-8"><title>Resumo de Saúde</title><style>body{font-family:Segoe UI,Arial,sans-serif;padding:34px;line-height:1.6;color:#15233b;max-width:760px;margin:auto}h1{font-size:22px}h2{font-size:16px;margin-top:22px;color:#0f6f6a}table{border-collapse:collapse;width:100%;font-size:13px}td,th{border:1px solid #ddd;padding:6px 8px}th{background:#eef3fb}</style></head><body><h1>Resumo de Saúde</h1>${structured?.resumoGeral ? `<p>${esc(structured.resumoGeral)}</p>` : ''}${rows ? `<h2>Comparativo</h2><table><tr><th>Exame</th><th>Anterior</th><th>Atual</th><th>Variação</th><th>O que significa</th></tr>${rows}</table>` : ''}${atencao ? `<h2>Pontos de atenção</h2><ul>${atencao}</ul>` : ''}${boas ? `<h2>Coisas boas</h2><ul>${boas}</ul>` : ''}${structured?.leituraFinal ? `<h2>Leitura final</h2><p>${esc(structured.leituraFinal)}</p>` : ''}${perg ? `<h2>Perguntas para o médico</h2><ol>${perg}</ol>` : ''}<p style="color:#888;font-size:12px">${esc(structured?.disclaimer || 'Análise educativa. Não substitui avaliação médica.')}</p></body></html>`);
     void printDocument('Resumo de Saúde', __docHtml);
   };
 
   if (!structured) {
     return (
-      <Card sx={{ mt: 3, background: 'linear-gradient(135deg, rgba(11,92,171,0.10), rgba(11,92,171,0.03))' }}>
+      <Card sx={{ mt: 3, background: 'linear-gradient(135deg, rgba(32,178,170,0.10), rgba(32,178,170,0.03))' }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>🤖 Resumo de saúde</Typography>
           <ReactMarkdown>{contentMd || ''}</ReactMarkdown>
@@ -175,11 +175,11 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
   );
 
   return (
-    <Card sx={{ mt: 3, borderRadius: 4, overflow: 'hidden', boxShadow: '0 4px 20px rgba(11,92,171,.08)' }}>
+    <Card sx={{ mt: 3, borderRadius: 4, overflow: 'hidden', boxShadow: '0 4px 20px rgba(32,178,170,.08)' }}>
       {/* Header */}
-      <Box sx={{ background: 'linear-gradient(135deg, rgba(11,92,171,0.12), rgba(11,92,171,0.05))', p: 2.5, borderBottom: '2px solid #336886' }}>
+      <Box sx={{ background: 'linear-gradient(135deg, rgba(32,178,170,0.12), rgba(32,178,170,0.05))', p: 2.5, borderBottom: '2px solid #178f89' }}>
         <Stack direction="row" alignItems="center" spacing={2}>
-          <DrExame size={48} sx={{ borderRadius: '50%', border: '3px solid #fff', boxShadow: '0 4px 14px rgba(11,92,171,.22)' }} />
+          <DrExame size={48} sx={{ borderRadius: '50%', border: '3px solid #fff', boxShadow: '0 4px 14px rgba(32,178,170,.22)' }} />
           <Box sx={{ flex: 1 }}>
             <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary' }}>Análise de Saúde</Typography>
             <Typography sx={{ color: 'text.secondary', fontSize: 13 }}>Resumo educativo — não substitui consulta médica</Typography>
@@ -209,12 +209,12 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
 
         {/* Comparativo */}
         {structured.comparativo && structured.comparativo.length > 0 && (
-          <AccordionSection icon="📊" title="Comparativo (anterior × atual)" color="#1565c0" count={structured.comparativo.length} defaultExpanded>
+          <AccordionSection icon="📊" title="Comparativo (anterior × atual)" color="#178f89" count={structured.comparativo.length} defaultExpanded>
             {isMobile ? (
               // Mobile: cards (não quebra labels como a tabela)
               <Stack spacing={1}>
                 {structured.comparativo.map((c, i) => (
-                  <Box key={i} sx={{ p: 1.25, borderRadius: 2, bgcolor: 'rgba(11,92,171,0.07)', border: '1px solid', borderColor: 'divider' }}>
+                  <Box key={i} sx={{ p: 1.25, borderRadius: 2, bgcolor: 'rgba(32,178,170,0.07)', border: '1px solid', borderColor: 'divider' }}>
                     <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={1}>
                       <NameToggle name={c.name} entenda={c.entenda} />
                       <Variation anterior={c.anterior} atual={c.atual} leitura={c.leitura} />
@@ -222,7 +222,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
                     <Stack direction="row" spacing={0.75} alignItems="baseline" sx={{ mt: 0.5 }} flexWrap="wrap">
                       <Typography variant="body2" color="text.secondary" sx={{ wordBreak: 'break-word' }}>{c.anterior || '—'}</Typography>
                       <Typography variant="body2" color="primary.main" sx={{ fontWeight: 800 }}>→</Typography>
-                      <Typography sx={{ fontWeight: 800, wordBreak: 'break-word', color: (t) => t.palette.mode === 'dark' ? '#5b9bd5' : '#0b5cab' }}>{c.atual || '—'}</Typography>
+                      <Typography sx={{ fontWeight: 800, wordBreak: 'break-word', color: (t) => t.palette.mode === 'dark' ? '#5fc9c3' : '#0f6f6a' }}>{c.atual || '—'}</Typography>
                       <IdealBadge name={c.name} atual={c.atual} />
                     </Stack>
                   </Box>
@@ -232,7 +232,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
               <TableContainer component={Paper} variant="outlined" sx={{ border: 'none' }}>
                 <Table size="small">
                   <TableHead>
-                    <TableRow sx={{ '& th': { fontWeight: 700, bgcolor: 'rgba(11,92,171,0.12)', borderBottom: '2px solid #1565c0' } }}>
+                    <TableRow sx={{ '& th': { fontWeight: 700, bgcolor: 'rgba(32,178,170,0.12)', borderBottom: '2px solid #178f89' } }}>
                       <TableCell>Exame</TableCell>
                       <TableCell align="center">Anterior</TableCell>
                       <TableCell align="center">Atual</TableCell>
@@ -241,7 +241,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
                   </TableHead>
                   <TableBody>
                     {structured.comparativo.map((c, i) => (
-                      <TableRow key={i} sx={{ '&:hover': { bgcolor: 'rgba(11,92,171,0.05)' }, '& td': { py: 1.2, fontSize: '0.95rem' } }}>
+                      <TableRow key={i} sx={{ '&:hover': { bgcolor: 'rgba(32,178,170,0.05)' }, '& td': { py: 1.2, fontSize: '0.95rem' } }}>
                         <TableCell sx={{ fontWeight: 600, maxWidth: 240 }}><NameToggle name={c.name} entenda={c.entenda} /><IdealBadge name={c.name} atual={c.atual} /></TableCell>
                         <TableCell align="center" sx={{ color: 'text.secondary' }}>{c.anterior || '—'}</TableCell>
                         <TableCell align="center" sx={{ fontWeight: 800, fontSize: '1.1rem !important' }}>{c.atual || '—'}</TableCell>
@@ -285,8 +285,8 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
 
         {/* Leitura final */}
         {structured.leituraFinal && (
-          <Box sx={{ mt: 2, p: 2.5, borderRadius: 3, background: 'linear-gradient(135deg, rgba(11,92,171,0.10), rgba(11,92,171,0.04))', border: '1px solid', borderColor: 'divider' }}>
-            <Typography sx={{ fontWeight: 800, color: (t) => t.palette.mode === 'dark' ? '#5b9bd5' : '#0b5cab', mb: 0.5, fontSize: '1.05rem' }}>📌 Leitura final</Typography>
+          <Box sx={{ mt: 2, p: 2.5, borderRadius: 3, background: 'linear-gradient(135deg, rgba(32,178,170,0.10), rgba(32,178,170,0.04))', border: '1px solid', borderColor: 'divider' }}>
+            <Typography sx={{ fontWeight: 800, color: (t) => t.palette.mode === 'dark' ? '#5fc9c3' : '#0f6f6a', mb: 0.5, fontSize: '1.05rem' }}>📌 Leitura final</Typography>
             <Typography sx={{ lineHeight: 1.7 }}>{structured.leituraFinal}</Typography>
           </Box>
         )}

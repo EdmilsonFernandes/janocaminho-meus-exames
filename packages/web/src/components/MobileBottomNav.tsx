@@ -56,7 +56,7 @@ export const MobileBottomNav = () => {
         <Box sx={{
           width: 44, height: 44, borderRadius: '50%', bgcolor: '#20b2aa',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          border: '2.5px solid #fff', boxShadow: '0 5px 14px rgba(32,178,170,.40)',
+          border: '2.5px solid', borderColor: 'background.paper', boxShadow: '0 5px 14px rgba(32,178,170,.40)',
           transform: on ? 'translateY(-6px) scale(1.04)' : 'translateY(-3px)',
           transition: 'transform .18s ease',
         }}>

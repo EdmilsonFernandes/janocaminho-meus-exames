@@ -1,9 +1,14 @@
 import { Box, Typography, Button } from '@mui/material';
+import { DrExame } from './DrExame';
 
-/** Empty state premium — ilustração (emoji grande) + título + descrição + CTA opcional. */
-export const EmptyState = ({ emoji, title, desc, cta, onCta }: { emoji: string; title: string; desc?: string; cta?: string; onCta?: () => void }) => (
+/** Empty state premium — mascote Dr. Exame em aura teal (padrão = assinatura da marca em todas as
+ *  telas vazias) + título + descrição + CTA opcional. `emoji` opcional pra casos que precisem de
+ *  ícone específico (default = mascote, nunca mais "emoji solto" = identidade consistente). */
+export const EmptyState = ({ emoji, title, desc, cta, onCta }: { emoji?: string; title: string; desc?: string; cta?: string; onCta?: () => void }) => (
   <Box sx={{ textAlign: 'center', py: { xs: 5, md: 7 }, px: 3 }}>
-    <Box sx={{ fontSize: { xs: 56, md: 72 }, mb: 2, animation: 'esFloat 2.5s ease-in-out infinite' }}>{emoji}</Box>
+    <Box sx={{ width: 96, height: 96, mx: 'auto', mb: 2, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle at 50% 40%, rgba(32,178,170,.22), rgba(32,178,170,.05) 70%)', animation: 'esFloat 2.5s ease-in-out infinite' }}>
+      {emoji ? <Box sx={{ fontSize: { xs: 44, md: 56 } }}>{emoji}</Box> : <DrExame size={60} sx={{ borderRadius: '50%' }} />}
+    </Box>
     <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', mb: 0.75, fontFamily: 'Poppins, sans-serif' }}>{title}</Typography>
     {desc && <Typography sx={{ color: 'text.secondary', maxWidth: 360, mx: 'auto', lineHeight: 1.6, mb: 2.5, fontSize: 14 }}>{desc}</Typography>}
     {cta && onCta && (

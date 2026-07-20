@@ -1,7 +1,8 @@
-import { Box, Button, Card, CardContent, Chip, CircularProgress, Stack, Typography } from '@mui/material';
+import { Box, Button, Card, CardContent, Chip, Skeleton, Stack, Typography } from '@mui/material';
 import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import { useEffect, useState } from 'react';
+import { DrExame } from '../DrExame';
 
 // Componente mais importante do app. Gauge SEMICIRCULAR (meio-arco) em SVG + info LADO A LADO
 // (compacto, sem quebrar — preenche a largura do card, igual à referência).
@@ -50,14 +51,40 @@ export const HealthScoreCard = ({ loaded, score, abnormalCount, onDetails }: { l
     return () => clearInterval(iv);
   }, [score]);
   if (!loaded && score === null) {
+    // Skeleton (perceived speed 2-3× maior que spinner solto — padrão apps premium).
     return (
-      <Card sx={{ mt: 3, minHeight: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5 }}>
-        <CircularProgress size={28} sx={{ color: 'primary.main' }} />
-        <Typography sx={{ fontWeight: 600, color: 'text.secondary' }}>Calculando seu score…</Typography>
+      <Card sx={{ mt: 3, borderRadius: 4, overflow: 'hidden' }}>
+        <CardContent>
+          <Stack direction="row" alignItems="center" gap={2.5}>
+            <Skeleton variant="circular" sx={{ width: { xs: 130, sm: 150 }, height: { xs: 130, sm: 150 } }} />
+            <Box sx={{ flex: 1 }}>
+              <Skeleton variant="text" width={90} height={20} />
+              <Skeleton variant="rectangular" width={70} height={22} sx={{ borderRadius: 99, my: 0.75 }} />
+              <Skeleton variant="text" width="90%" />
+              <Skeleton variant="text" width="60%" />
+              <Skeleton variant="rectangular" width={120} height={32} sx={{ borderRadius: 99, mt: 1 }} />
+            </Box>
+          </Stack>
+        </CardContent>
       </Card>
     );
   }
-  if (score === null) return null;
+  if (score === null) {
+    // Usuário novo sem exames: NÃO some (antes `return null` deixava BURACO no hero). Onboarding
+    // acolhedor com o mascote Dr. Exame + CTA pro 1º exame.
+    return (
+      <Card sx={{ mt: 3, borderRadius: 4, overflow: 'hidden', background: 'linear-gradient(135deg, rgba(32,178,170,.10), rgba(32,178,170,.03))', border: '1px solid', borderColor: 'divider' }}>
+        <CardContent sx={{ textAlign: 'center', py: 4 }}>
+          <Box sx={{ width: 88, height: 88, mx: 'auto', mb: 1.5, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle at 50% 40%, rgba(32,178,170,.22), rgba(32,178,170,.05) 70%)' }}>
+            <DrExame size={54} sx={{ borderRadius: '50%' }} />
+          </Box>
+          <Typography variant="h6" sx={{ fontWeight: 800, mb: 0.5 }}>Seu Score de Saúde aparece aqui</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2, maxWidth: 320, mx: 'auto' }}>Envie seu primeiro exame (PDF ou foto) e o Dr. Exame calcula um score personalizado a partir dos seus resultados.</Typography>
+          <Button variant="contained" onClick={onDetails} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 800, px: 3 }}>Enviar meu primeiro exame</Button>
+        </CardContent>
+      </Card>
+    );
+  }
   const color = scoreColor(score);
   return (
     <Card sx={{ mt: 3, position: 'relative', overflow: 'hidden', borderRadius: 4, background: 'linear-gradient(135deg, rgba(32,178,170,.10), rgba(32,178,170,.03))', border: '1px solid', borderColor: 'divider' }}>
