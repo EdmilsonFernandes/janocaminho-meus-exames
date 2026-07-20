@@ -12,6 +12,9 @@ process.env.DATABASE_URL =
 process.env.JWT_SECRET = 'test-secret';
 process.env.MP_ACCESS_TOKEN = 'test-token'; // hasMercadoPago() = true → webhook/checkout testáveis
 process.env.WEB_ORIGIN = 'http://localhost:5173';
+// Google Sign-in: /auth/google retorna 500 "não configurado" sem esta var. No CI não há .env,
+// então setamos um valor de teste (mantém o real se já estiver no ambiente — ex.: dev local).
+process.env.GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || 'test-google-client-id.apps.googleusercontent.com';
 // externais DESLIGADOS (vazios) — mesmo se .env tiver creds reais, dotenv não sobrescreve.
 process.env.ANTHROPIC_API_KEY = '';
 process.env.S3_BUCKET = '';
