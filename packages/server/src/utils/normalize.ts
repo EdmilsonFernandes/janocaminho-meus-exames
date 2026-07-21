@@ -224,7 +224,10 @@ export function reconcileScaleFlag(
   if ((/(?<![a-z])g\/d[lit]/.test(u) || /(?<![a-z])g\/dt/.test(u)) && refMax > 50) conflict = true;
   if (/\bpg\b/.test(u) && !/pg\/?[ml]/i.test(u) && refMax > 50) conflict = true;                          // HCM/CHCM pg vs ×10 (NÃO pg/mL de testosterona)
   if (/milh/.test(u) && refMax > 50 && refMax < 100000) conflict = true;         // milhões vs milhares
-  if (/pg\/?\s*ml/i.test(u) && refMax > 100) conflict = true;                    // pg/mL (livre) vs ref em ng/dL (testosterona)
+  // pg/mL vs ref em ng/dL (testosterona livre) — só dispara se o VALOR for baixo (<10) com refMax
+  // alto (>100), sinal de escalas claramente diferentes. Sem o gate `value<10`, marcava Testosterona
+  // Livre 485 pg/mL (ref 57-178 pg/mL, escala LEGÍTIMA) como UNKNOWN — perdendo um HIGH real.
+  if (/pg\/?\s*ml/i.test(u) && refMax > 100 && (value ?? 0) < 10) conflict = true;
   return conflict ? { flag: 'UNKNOWN' as ItemFlag, isAbnormal: false, scaleConflict: true } : { ...base, scaleConflict: false };
 }
 
