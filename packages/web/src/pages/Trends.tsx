@@ -15,6 +15,9 @@ import type { TimeSeriesByName as TS } from '@meus-exames/shared';
 /** Title Case pra exibição (ALL CAPS → legível): "CAPACIDADE_LATENTE" → "Capacidade Latente". */
 const prettyName = (n: string) => (n || '').toLowerCase().replace(/_/g, ' ').replace(/(^|\s)\w/g, (m) => m.toUpperCase());
 
+/** Valor numérico p/ exibição (4 casas, vírgula decimal) — evita floats longos da conversão (91.33627999...). */
+const fmtNum = (n: number | null | undefined) => n == null ? '—' : String(Number(n.toFixed(4))).replace('.', ',');
+
 export const TrendsPage = () => {
   const [pid] = useSelectedPatient();
   const [names, setNames] = useState<{ nameCanonical: string; count: number }[]>([]);
@@ -49,7 +52,7 @@ export const TrendsPage = () => {
     return (
       <Box sx={{ bgcolor: 'rgba(15,23,42,0.92)', color: '#fff', p: 1.25, borderRadius: 2, boxShadow: 4, minWidth: 120 }}>
         <Box sx={{ fontWeight: 700, fontSize: 11, opacity: 0.8 }}>{d.name}</Box>
-        <Box sx={{ fontSize: 19, fontWeight: 800 }}>{d.valor}{ts?.unit ? ` ${ts.unit}` : ''}</Box>
+        <Box sx={{ fontSize: 19, fontWeight: 800 }}>{fmtNum(d.valor)}{ts?.unit ? ` ${ts.unit}` : ''}</Box>
         {(() => {
           const s = displayStatus(d.flag as string, d.name, ts?.refLow, ts?.refHigh);
           if (s.tone === 'normal') return null;
@@ -165,7 +168,7 @@ export const TrendsPage = () => {
           <Box sx={{ mb: 1.5 }}>
             <Stack direction="row" alignItems="baseline" spacing={1.25} flexWrap="wrap">
               <Typography sx={{ fontSize: 30, fontWeight: 800, lineHeight: 1, color: predict?.dir === 'up' ? '#e65100' : predict?.dir === 'down' ? '#0b5cab' : '#178f89' }}>
-                {lastPt?.valueNumeric ?? '—'}{ts?.unit ? ` ${ts.unit}` : ''}
+                {fmtNum(lastPt?.valueNumeric)}{ts?.unit ? ` ${ts.unit}` : ''}
               </Typography>
               {pctChange != null && pctChange !== 0 && (
                 <Typography sx={{ fontWeight: 700, color: pctChange > 0 ? '#e65100' : '#0b5cab' }}>
@@ -230,7 +233,7 @@ export const TrendsPage = () => {
                     )}
                   </Box>
                   <Stack direction="row" alignItems="center" spacing={0.75} sx={{ flexShrink: 0 }}>
-                    <Typography sx={{ fontWeight: 800 }}>{d.valor}{ts?.unit ? ` ${ts.unit}` : ''}</Typography>
+                    <Typography sx={{ fontWeight: 800 }}>{fmtNum(d.valor)}{ts?.unit ? ` ${ts.unit}` : ''}</Typography>
                     <Flag flag={d.flag} name={d.name} refLow={ts?.refLow} refHigh={ts?.refHigh} />
                   </Stack>
                 </Box>

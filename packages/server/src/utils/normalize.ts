@@ -218,7 +218,10 @@ export function reconcileScaleFlag(
   const refMax = Math.max(low ?? 0, high ?? 0);
   let conflict = false;
   if (u.includes('%') && refMax > 100) conflict = true;                         // % vs absoluto
-  if ((/g\/d[lit]/.test(u) || /g\/dt/.test(u)) && refMax > 50) conflict = true;  // g/dL vs g/L (×10)
+  // g/dL vs g/L (×10) — lookbehind nega letra antes do 'g' p/ NÃO casar 'ng/dl' (testosterona)
+  // nem 'mg/dl' (glicemia/colesterol). Antes a regex /g\/d[lit]/ casava 'ng/dl' por substring e
+  // marcava TestosteronaTotal 558 ng/dL como UNKNOWN falso. Só 'g/dL' (hemoglobina) e 'g/dt' (OCR) disparam.
+  if ((/(?<![a-z])g\/d[lit]/.test(u) || /(?<![a-z])g\/dt/.test(u)) && refMax > 50) conflict = true;
   if (/\bpg\b/.test(u) && !/pg\/?[ml]/i.test(u) && refMax > 50) conflict = true;                          // HCM/CHCM pg vs ×10 (NÃO pg/mL de testosterona)
   if (/milh/.test(u) && refMax > 50 && refMax < 100000) conflict = true;         // milhões vs milhares
   if (/pg\/?\s*ml/i.test(u) && refMax > 100) conflict = true;                    // pg/mL (livre) vs ref em ng/dL (testosterona)

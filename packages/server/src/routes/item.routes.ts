@@ -71,6 +71,8 @@ router.get('/timeseries', async (req: AuthedRequest, res, next) => {
         valueNumeric: r.valueNumeric,
         unit: r.unit,
         flag: r.flag,
+        refLow: r.refLow,
+        refHigh: r.refHigh,
       }));
     // DEDUP cross-day: mesma medição em 2 PDFs/datas adjacentes (ex.: TSH 05/03 + 06/03, ambos 25.7)
     // vira 1 ponto — mantém a data de coleta (mais antiga). Centralizado em analysis/dedup.
@@ -79,11 +81,15 @@ router.get('/timeseries', async (req: AuthedRequest, res, next) => {
       (p) => new Date(p.performedAt ?? 0).getTime(),
       (p) => p.valueNumeric ?? 0,
     );
+    // Faixa de referência do item MAIS RECENTE (o "atual") — antes pegava rows[0] (mais antigo),
+    // o que mostrava a faixa de um exame antigo (ex.: Testosterona Total: faixa 8.4-48 do
+    // hemograma antigo em vez da faixa real 249-836 do exame atual) e gerava classificação aparente errada.
+    const latest = points[points.length - 1];
     res.json({
       nameCanonical,
-      unit: rows[0]?.unit ?? null,
-      refLow: rows[0]?.refLow ?? null,
-      refHigh: rows[0]?.refHigh ?? null,
+      unit: latest?.unit ?? null,
+      refLow: latest?.refLow ?? null,
+      refHigh: latest?.refHigh ?? null,
       points,
     });
   } catch (e) {

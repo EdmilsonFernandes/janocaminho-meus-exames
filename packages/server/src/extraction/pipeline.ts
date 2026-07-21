@@ -206,7 +206,10 @@ function flattenLabItems(lab: LabExtraction, prefers: string): ItemRow[] {
       const rawUnit = normalizeUnit(it.unit ?? ref?.unit ?? null);
       const conv = valueNumeric != null ? toCanonicalUnit(canonical, valueNumeric, rawUnit) : null;
       const factor = conv && valueNumeric ? conv.value / valueNumeric : 1; // mesmo fator p/ ref
-      const finalValue = conv?.value ?? valueNumeric ?? null;
+      // Arredonda 4 casas — a conversão de unidade (e às vezes a IA) gera floats longos tipo
+      // 91.33627999999999 (Testosterona Livre). Sem isto, o DB e a UI mostram o número feio.
+      const rawValue = conv?.value ?? valueNumeric ?? null;
+      const finalValue = rawValue != null ? Number(rawValue.toFixed(4)) : null;
       const finalUnit = conv?.unit ?? rawUnit;
       const finalLow = conv && ref?.lowNumeric != null ? Number((ref.lowNumeric * factor).toFixed(4)) : ref?.lowNumeric ?? null;
       const finalHigh = conv && ref?.highNumeric != null ? Number((ref.highNumeric * factor).toFixed(4)) : ref?.highNumeric ?? null;
