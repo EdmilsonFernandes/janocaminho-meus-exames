@@ -5,6 +5,7 @@ import { streamChat } from '../analysis/chat';
 import { memoryDigest, patientSlug, appendConversation } from '../analysis/agent-memory';
 import { chargeCredits, CREDIT_COSTS } from '../utils/credits';
 import { tryLocalAnswer, streamLocalAnswer } from '../analysis/chat-router';
+import { describeStaleness } from '../analysis/health-state';
 
 const router = Router();
 router.use(requireAuth);
@@ -51,8 +52,10 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       orderBy: { performedAt: 'desc' },
       take: 8,
       // SEM filtro isAbnormal: a IA precisa ver TODOS os analitos (TGO/TGP normais inclusos),
-      // senão responde "você não tem esse exame". take 30 cobre painéis grandes sem estourar o contexto.
-      include: { items: { take: 30, orderBy: { name: 'asc' } } },
+      // senão responde "você não tem esse exame".
+      // SEM take + orderBy por painel: antes era `take:30, orderBy name asc` — TSH (começa com T)
+      // era CORTADO do exame mais recente em painéis grandes → a IA citava o valor ANTIGO (bug do TSH 11 vs 7).
+      include: { items: { orderBy: [{ panel: 'asc' }, { name: 'asc' }] } },
     });
 
     // RAG: memória do agente (análises anteriores do paciente)
@@ -110,18 +113,39 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     }
     const trendBlock = [...byAnalyte.values()].map((v) => `   • ${v.name}: ${v.pts.join('  →  ')}`).join('\n');
 
+    // VALORES ATUAIS — o MAIS RECENTE por analito (anti-alucinação). Antes a IA citava o valor ANTIGO
+    // como "atual" (bug TSH 11 vs 7) porque o take:30 cortava o item do exame recente. Agora recent[]
+    // vem em performedAt desc → o 1º a aparecer de cada analito É o mais recente. Reforçado pela DIRETIVA.
+    const currentSeen = new Set<string>();
+    const currentBlock: string[] = [];
+    for (const e of recent) {
+      const dt = fmtDate(e.performedAt as Date | null);
+      const st = describeStaleness(e.performedAt as Date | null);
+      // Rótulo temporal no "quando": exame velho fica marcado p/ a IA não tratar como estado atual.
+      const when = `exame de ${dt}${st.isOld && st.label ? ` (${st.label}, valor histórico)` : st.isStale && st.label ? ` (${st.label}, pode estar desatualizado)` : ''}`;
+      for (const it of (e.items as any[])) {
+        const k = it.nameCanonical || it.name;
+        if (currentSeen.has(k)) continue;
+        currentSeen.add(k);
+        currentBlock.push(`   • ${it.name}: ${fmtVal(it)}${it.unit ? ' ' + it.unit : ''}${fmtRef(it) ? ` (ref ${fmtRef(it)})` : ''}${fmtFlag(it) ? ` [${fmtFlag(it)}]` : ''} — ${when}`);
+      }
+    }
+
     const contextText =
       `CONTEXTO DO PACIENTE (use estes dados REAIS pra responder com precisão):\n` +
       `- Paciente: ${patient?.fullName ?? '—'}\n` +
       (patient?.clinicalProfile ? `- Perfil clínico: ${patient.clinicalProfile}\n` : '') +
+      (currentBlock.length ? `- VALORES ATUAIS (exame MAIS RECENTE por analito — use ESTES ao citar "atual/último resultado"):\n${currentBlock.join('\n')}\n` : '') +
       `- Exames recentes (TODOS os itens — nome: valor (ref) [flag se alterado]):\n${examsBlock}\n` +
-      (trendBlock ? `\n- Analitos alterados ao longo do tempo (use pra evolução/comparar/tendência):\n${trendBlock}\n` : '') +
+      (trendBlock ? `\n- Analitos ao longo do tempo (use pra evolução/comparar/tendência; o 1º valor de cada linha é o MAIS RECENTE):\n${trendBlock}\n` : '') +
       (memory ? `- Resumo de análises anteriores (mantenha coerência):\n${memory}\n` : '') +
-      `\nDIRETIVA: responda DIRETAMENTE à pergunta USANDO os dados acima. Extraia e CRUZE os itens ` +
+      `\nDIRETIVA: responda DIRETAMENTE à pergunta USANDO os dados acima. Ao citar um valor como "atual/último", ` +
+      `use SEMPRE o do exame MAIS RECENTE (maior data) daquele analito — está em "VALORES ATUAIS". Extraia e CRUZE os itens ` +
       `específicos pedidos — "valores fora da faixa" → liste cada um com valor+ref+flag; "evolução/comparar/ ` +
       `tendência" → use a linha do tempo por analito; "atenção/urgência" → aponte os alterados relevantes. ` +
       `NÃO despeje a lista inteira de exames se a pergunta for específica — responda ao que foi perguntado com ` +
-      `os dados certos. Conteúdo educativo; oriente sempre o médico.`;
+      `os dados certos. Valores de exames ANTIGOS (rotulados "histórico"/"desatualizado") NÃO representam o estado ` +
+      `atual — diga que pode estar desatualizado e oriente a refazer o exame. Conteúdo educativo; oriente sempre o médico.`;
 
     // gate de créditos (antes de iniciar o stream — não dá p/ abortar no meio do SSE)
     const me = await prisma.user.findUnique({ where: { id: req.userId! }, select: { credits: true } });

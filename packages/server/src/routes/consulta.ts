@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest } from '../middleware/auth';
+import { describeStaleness } from '../analysis/health-state';
 
 const router = Router();
 router.use(requireAuth);
@@ -37,7 +38,24 @@ router.post('/exams/:examId', async (req: AuthedRequest, res, next) => {
       `<tr><td style="padding:8px 10px;border-bottom:1px solid #e8e8e8"><b>${i.name}</b></td><td style="padding:8px 10px;border-bottom:1px solid #e8e8e8">${i.valueText ?? '—'}</td><td style="padding:8px 10px;border-bottom:1px solid #e8e8e8;color:#888">${i.refText ?? [i.refLow, i.refHigh].filter(x=>x!=null).join('-') ?? '—'}</td><td style="padding:8px 10px;border-bottom:1px solid #e8e8e8;font-weight:700;color:${i.flag==='HIGH'?'#d32f2f':i.flag==='LOW'?'#e65100':'#666'}">${i.flag === 'HIGH' ? '↑ Acima' : i.flag === 'LOW' ? '↓ Abaixo' : i.flag}</td></tr>`
     ).join('');
 
-    const priorHtml = prior ? `<p style="font-size:12px;color:#888;margin:6px 0">Comparado com: ${prior.title} (${prior.performedAt ? new Date(prior.performedAt).toLocaleDateString('pt-BR') : 's/d'}) — ${prior.items.length} valor(es) alterado(s) no exame anterior</p>` : '';
+    // Guarda temporal: exame ANTIGO → não compara com outro antigo (em 2026, "evolução" 2018 vs 2017 é enganosa).
+    const examStale = describeStaleness(exam.performedAt);
+    const priorDate = prior?.performedAt ? new Date(prior.performedAt).toLocaleDateString('pt-BR') : 's/d';
+    let priorHtml = '';
+    if (prior) {
+      if (examStale.isStale) {
+        priorHtml = ''; // exame antigo: omite "comparado com" (outro antigo não é evolução válida)
+      } else {
+        const priorStale = describeStaleness(prior.performedAt);
+        const gapMo = Math.abs((examStale.ageMo ?? 0) - (priorStale.ageMo ?? 0));
+        priorHtml = (priorStale.isStale || gapMo > 18)
+          ? `<p style="font-size:12px;color:#888;margin:6px 0">Exame anterior (${prior.title}, ${priorDate}) é antigo — comparação limitada; leve também exames recentes.</p>`
+          : `<p style="font-size:12px;color:#888;margin:6px 0">Comparado com: ${prior.title} (${priorDate}) — ${prior.items.length} valor(es) alterado(s) no exame anterior</p>`;
+      }
+    }
+    const bannerHtml = (examStale.isStale && examStale.label)
+      ? `<div style="background:#fff3e0;border-left:4px solid #f59e0b;border-radius:8px;padding:12px;margin:8px 0 14px;font-size:13px">⏳ <b>Exame de ${date} (${examStale.label}).</b> Apresente ao médico como <b>histórico</b> — pode não refletir seu estado de saúde atual. Considere refazer os exames.</div>`
+      : '';
 
     const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Preparo de Consulta — ${name}</title>
       <style>
@@ -70,6 +88,7 @@ router.post('/exams/:examId', async (req: AuthedRequest, res, next) => {
             <p><b>🧪 Exame:</b> ${exam.title} — ${date}${lab ? ` • Laboratório: ${lab}` : ''}${doctor ? ` • Solicitante: Dr. ${doctor}` : ''}</p>
             ${profile ? `<p><b>💊 Perfil clínico:</b> ${profile}</p>` : ''}
           </div>
+          ${bannerHtml}
           ${priorHtml}
           <div class="section-title">🚩 Valores fora da faixa (${exam.items.length})</div>
           <div class="table-wrap">

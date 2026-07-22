@@ -132,6 +132,21 @@ export function ageMonths(d: Date | null): number | null {
   return ms / (30 * 86400000);
 }
 
+/** Rótulo de idade de um exame p/ contexto (chat, documento pro médico, análise por exame).
+ *  Fonte ÚNICA de "isto é velho" — reusa as faixas configuráveis (admin · temporalThresholds).
+ *  isStale = >staleMonths (12); isOld = >oldMonths (36). */
+export function describeStaleness(performedAt: Date | string | null): {
+  ageMo: number | null; isStale: boolean; isOld: boolean; label: string | null;
+} {
+  const mo = ageMonths(performedAt instanceof Date ? performedAt : performedAt ? new Date(performedAt) : null);
+  if (mo == null) return { ageMo: null, isStale: false, isOld: false, label: null };
+  const t = getTemporalThresholds();
+  const yrs = mo / 12;
+  const rY = Math.round(yrs);
+  const label = yrs >= 1 ? `há ~${rY} ano${rY >= 2 ? 's' : ''}` : `há ~${Math.round(mo)} ${Math.round(mo) >= 2 ? 'meses' : 'mês'}`;
+  return { ageMo: mo, isStale: mo > t.staleMonths, isOld: mo > t.oldMonths, label };
+}
+
 /** Delta % de latest vs prior. Null se não-numérico ou prior=0 (divisão instável). */
 export function deltaPct(latest: { valueNumeric: number | null }, prior: { valueNumeric: number | null } | null): number | null {
   if (!prior || latest.valueNumeric == null || prior.valueNumeric == null) return null;

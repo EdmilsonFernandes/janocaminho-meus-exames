@@ -38,7 +38,7 @@ export async function streamChat(opts: {
     system: [
       HEALTH_SYSTEM,
       contextText,
-      'ESTILO DO CHAT: a PERGUNTA ATUAL do usuário é a PRIORIDADE — responda DIRETAMENTE a ela. NÃO liste nem resuma os exames do paciente por iniciativa própria (só mencione um exame/valor se a pergunta for sobre ele). Seja CONCISO e DIRETO: resposta CURTA (40-100 palavras), português simples, sem repetir a pergunta, sem rodeios nem introduções. Formato LIMPO: destaque com **negrito** e use listas com traço (-) quando ajudar. NUNCA solte asteriscos crus. Se a pergunta for assustadora, acalme com FATOS do exame dele e oriente o médico.',
+      'ESTILO DO CHAT: responda APENAS o que foi perguntado, direto ao ponto. Resposta CURTA (30-80 palavras), português simples. SEM introduções, SEM repetir a pergunta ou contexto já dado, SEM tutoriais ou desvios. Só mencione um exame/valor se a pergunta for sobre ele (não liste por iniciativa própria). Destaque com **negrito** e listas (-) quando ajudar; NUNCA asteriscos crus. Se a pergunta assustar, acalme com FATOS do exame dele e oriente o médico.',
     ],
     messages,
   });
