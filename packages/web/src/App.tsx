@@ -431,7 +431,7 @@ const AppLayout = (props: any) => {
           '& .RaLayout-menu': { minWidth: 0, maxWidth: '100%', overflowX: 'hidden' },
           // SIDEBAR DESKTOP (5x): o react-admin deixava .RaSidebar-fixed c/ width 0 mesmo "aberta" → menu sumia no web.
           // Força 240 no desktop (mobile usa AppDrawer) + desloca o conteúdo (regra main abaixo) pra não sobrepor.
-          '& .RaSidebar-fixed': { width: { xs: 0, sm: 240 }, minWidth: { xs: 0, sm: 240 } },
+          '& .RaSidebar-fixed': { width: { xs: '0px !important', sm: '240px !important' }, minWidth: { xs: '0px !important', sm: '240px !important' } },
           '& .RaLayout-appFrame, & .RaLayout-contentWithSidebar': { minWidth: 0, maxWidth: '100%' },
           // CONTEÚDO do <List> (.RaList-main) TAMBÉM é flex-item com min-width:auto → sem min-width:0,
           // o card de exame infla além do viewport (medido: 627px numa tela de 360px) e o overflow-hidden
