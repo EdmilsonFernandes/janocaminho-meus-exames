@@ -16,8 +16,22 @@ import { useSelectedPatient } from '../patient-context';
 import { CreditBadge, CREDIT_COSTS } from '../components/CreditBadge';
 import { DrExame } from '../components/DrExame';
 import ReactMarkdown from 'react-markdown';
+import { keyframes } from '@mui/material';
 
 const TEAL = '#178f89';
+
+// 3 pontinhos pulsantes (estilo WhatsApp) — substitui o "escrevendo…" com spinner.
+const dotPulse = keyframes`
+  0%, 60%, 100% { opacity: 0.25; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-3px); }
+`;
+const TypingDots = () => (
+  <Box sx={{ display: 'inline-flex', gap: 0.5, alignItems: 'center', py: 0.5 }} aria-label="digitando">
+    {[0, 1, 2].map((i) => (
+      <Box key={i} sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: 'text.secondary', animation: `${dotPulse} 1.2s ${i * 0.18}s infinite ease-in-out` }} />
+    ))}
+  </Box>
+);
 
 const QUICK_ACTIONS = [
   // Visão geral
@@ -49,7 +63,8 @@ const QUICK_ACTIONS = [
   { icon: '🎯', title: 'Minhas metas do ano', prompt: 'Com base nos meus exames, sugira metas de saúde realistas para os próximos meses.' },
 ];
 
-interface Msg { role: 'user' | 'assistant'; text: string }
+interface Msg { role: 'user' | 'assistant'; text: string; ts?: string }
+const fmtTime = (iso?: string) => (iso ? new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '');
 interface Conv { id: string; title: string; createdAt: string; updatedAt: string; messages: Msg[] }
 
 const newId = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -97,8 +112,12 @@ export const ChatPage = () => {
   const firstName = patientName.trim().split(/\s+/)[0];
   const cur = convs.find((c) => c.id === curId) ?? null;
   const messages = cur?.messages ?? [];
-  // 'auto' (instantâneo): não "rola" visivelmente ao abrir a tela — só posiciona no fim.
-  useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'auto' }); }, [messages, busy]);
+  // Autoscroll: rola SÓ o container de mensagens (não a página) pro fim a cada delta do streaming.
+  // rAF garante que o novo texto já pintou antes de medir o scrollHeight (antes pulava o último).
+  useEffect(() => {
+    const id = requestAnimationFrame(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'auto' }); });
+    return () => cancelAnimationFrame(id);
+  }, [messages, busy]);
 
   const startNew = () => { setCurId(null); setInput(''); setHistOpen(false); };
 
@@ -113,7 +132,8 @@ export const ChatPage = () => {
       cid = newId();
       work = [{ id: cid, title: message.slice(0, 48), createdAt: isoNow(), updatedAt: isoNow(), messages: [] }, ...convs];
     }
-    const baseMsgs: Msg[] = [...(work.find((c) => c.id === cid)!.messages), { role: 'user', text: message }, { role: 'assistant', text: '' }];
+    const now = isoNow();
+    const baseMsgs: Msg[] = [...(work.find((c) => c.id === cid)!.messages), { role: 'user', text: message, ts: now }, { role: 'assistant', text: '', ts: now }];
     work = work.map((c) => c.id === cid ? { ...c, updatedAt: isoNow(), title: c.messages.length === 0 ? message.slice(0, 48) : c.title, messages: baseMsgs } : c);
     setConvs(work); setCurId(cid);
     const assistantIdx = baseMsgs.length - 1;
@@ -152,10 +172,14 @@ export const ChatPage = () => {
       // input encostar no rodapé sem gap. Usa a var (igual o FAB) — nunca px fixo (shell mudou
       // de 72px p/ var+14 e o -72px tinha ficado stale, ~18px de gap sobrando).
       mb: { xs: 'calc(-1 * (var(--me-bottom-nav-h, 76px) + 14px))', sm: -28 },
-      p: { xs: 1, md: 2 } }}>
+      p: { xs: 1, md: 2 },
+      // INPUT acima do menu rodapé (mobile): o container preenche até o fim do viewport (negative mb)
+      // e antes o input ficava POR TRÁS do MobileBottomNav fixo → usuário rolava pra achar onde digitar.
+      pb: { xs: 'calc(var(--me-bottom-nav-h, 76px) + 6px)', md: 2 } }}>
       {/* HEADER estilo Mercado Pago: voltar · título · nova conversa · histórico */}
       <Paper elevation={0} sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 1, borderRadius: 3, mb: 1, background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff' }}>
         <IconButton size="small" onClick={() => navigate('/')} sx={{ color: '#fff' }}>←</IconButton>
+        <DrExame size={36} sx={{ borderRadius: '50%', flexShrink: 0, bgcolor: '#fff', p: '3px', boxShadow: '0 0 0 2px rgba(255,255,255,.45)' }} />
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography sx={{ fontWeight: 800, lineHeight: 1.1, fontFamily: 'Poppins, sans-serif', display: 'flex', alignItems: 'center', gap: 0.5 }}>
             Dr. Exame
@@ -206,7 +230,8 @@ export const ChatPage = () => {
                 }}>
                   {m.text
                     ? (m.role === 'assistant' ? <ReactMarkdown>{m.text}</ReactMarkdown> : <Box sx={{ whiteSpace: 'pre-wrap' }}>{m.text}</Box>)
-                    : (isLastAssistant ? <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center', color: 'text.secondary' }}><CircularProgress size={14} /> escrevendo…</Box> : '')}
+                    : (isLastAssistant ? <TypingDots /> : null)}
+                  {m.ts && <Typography sx={{ display: 'block', fontSize: 10, mt: 0.4, opacity: 0.6, textAlign: m.role === 'user' ? 'right' : 'left' }}>{fmtTime(m.ts)}</Typography>}
                 </Paper>
               </Box>
             );
