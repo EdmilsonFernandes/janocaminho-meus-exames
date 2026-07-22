@@ -351,15 +351,14 @@ export const enMessages = {
   'notif.empty': 'No notifications. Dr. Exame will notify you about your exams here. 🔔',
 };
 
-// Idioma inicial: 1) escolha explícita do usuário (menu) prevalece; 2) senão, detecta pelo
-// idioma do navegador/dispositivo — visitante de fora (en/es/...) vê inglês, pt-* vê português.
-// Assim o login já abre no idioma certo sem o usuário precisar tocar em nada.
+// Idioma inicial: 1) escolha explícita do usuário (menu 🌐) prevalece; 2) senão, PT (app brasileiro).
+// NÃO detectar pelo browser: antes, browser EN deixava a app em inglês enquanto o onboarding
+// (hardcoded PT) ficava em português → incoerência. PT é o default; EN só se o usuário escolher.
 const detectLocale = (): 'pt' | 'en' => {
   try {
     const saved = localStorage.getItem('lang');
     if (saved === 'en' || saved === 'pt') return saved;
-    const nav = (navigator.language || (navigator as any).languages?.[0] || 'pt').toLowerCase();
-    return nav.startsWith('pt') ? 'pt' : 'en';
+    return 'pt';
   } catch { return 'pt'; }
 };
 const initialLocale = detectLocale();
