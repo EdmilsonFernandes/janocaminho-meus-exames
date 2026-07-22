@@ -283,7 +283,7 @@ export const Dashboard = () => {
           cardiometabólico, distribuição) num acordeão COLAPSADO por padrão. Antes ficavam
           soltos e competiam (dashboard "poluído"). Agora: quem quer aprofundar, expande.
           NENHUMA funcionalidade perdida — tudo continua aqui, só organizado. */}
-      <Accordion disableGutters elevation={0} defaultExpanded={false} sx={{ mt: 1, '&:before': { display: 'none' }, border: '1px solid', borderColor: 'divider', borderRadius: '16px !important', overflow: 'hidden' }}>
+      <Accordion disableGutters elevation={0} defaultExpanded sx={{ mt: 1, '&:before': { display: 'none' }, border: '1px solid', borderColor: 'divider', borderRadius: '16px !important', overflow: 'hidden' }}>
         <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '52px !important', '& .MuiAccordionSummary-content': { my: 0.75 } }}>
           <Stack direction="row" spacing={1} alignItems="center">
             <ScienceIcon sx={{ color: '#178f89', fontSize: 20 }} />
