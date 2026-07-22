@@ -1,4 +1,4 @@
-import { Admin, Resource, CustomRoutes, Layout, AppBar, TitlePortal, AppBarProps, useLogout, useLocale, useSetLocale, useRefresh, useTranslate, LoadingIndicator } from 'react-admin';
+import { Admin, Resource, CustomRoutes, Layout, AppBar, TitlePortal, AppBarProps, useLogout, useLocale, useSetLocale, useRefresh, useTranslate, useSidebarState, LoadingIndicator } from 'react-admin';
 import { ConfirmDialogProvider } from './components/ConfirmDialog';
 import { Route, useNavigate, useLocation } from 'react-router-dom';
 import { useEffect, useState, useRef, lazy, Suspense } from 'react';
@@ -403,6 +403,10 @@ const PullToRefresh = () => {
 const AppLayout = (props: any) => {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('sm'));
+  // WEB/DESKTOP: a Sidebar nativa do react-admin vinha FECHADA por default → o AppMenu ficava c/ width 0
+  // e o menu lateral sumia (5ª vez). Força aberta no desktop; no mobile o menu é o AppDrawer (☰), não esta Sidebar.
+  const [sidebarOpen, setSidebarOpen] = useSidebarState();
+  useEffect(() => { if (isDesktop && !sidebarOpen) setSidebarOpen(true); }, [isDesktop]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <ConfirmDialogProvider>
     <DrawerProvider>
