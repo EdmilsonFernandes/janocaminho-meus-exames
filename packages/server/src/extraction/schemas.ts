@@ -35,6 +35,13 @@ export const LabExtractionSchema = z.object({
   panels: z.array(PanelSchema).default([]),
 });
 
+// PDF com VÁRIOS exames (datas de coleta distintas — ex.: 2026 + 2025 num só arquivo).
+// Cada elemento do array vira um Exam separado no pipeline. Default [] (PDF de 1 exame → [1 elemento]).
+export const LabMultiExtractionSchema = z.object({
+  exams: z.array(LabExtractionSchema).default([]),
+});
+export type LabMultiExtraction = z.infer<typeof LabMultiExtractionSchema>;
+
 export type LabExtraction = z.infer<typeof LabExtractionSchema>;
 export type ExtractionItem = z.infer<typeof ExtractionItemSchema>;
 export type Panel = z.infer<typeof PanelSchema>;

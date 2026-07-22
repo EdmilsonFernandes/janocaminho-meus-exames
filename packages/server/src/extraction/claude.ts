@@ -1,6 +1,7 @@
 import { getLlm, getModel } from '../llm';
 import {
   LabExtractionSchema,
+  LabMultiExtractionSchema,
   ImagingExtractionSchema,
   type LabExtraction,
   type ImagingExtraction,
@@ -130,6 +131,56 @@ export async function extractLabPanel(buffer: Buffer, mediaType = 'application/p
   const z = LabExtractionSchema.safeParse(json);
   if (!z.success) console.warn('[extraction] Zod estrito falhou, usando JSON bruto:', z.error.issues.slice(0, 3));
   return (z.success ? z.data : json) as LabExtraction;
+}
+
+const LAB_MULTI_INSTRUCTIONS = `Você é um especialista em ler resultados de EXAMES LABORATORIAIS brasileiros a partir de um documento.
+
+MÚLTIPLOS EXAMES NUM ÚNICO PDF (CRÍTICO): o documento pode conter VÁRIOS exames de DATAS DE COLETA DIFERENTES (ex.: hemograma coletado em 15/03/2026 e outro em 20/01/2025, exportados juntos pelo laboratório). SEPARE-OS: cada exame = um elemento do array "exams", agrupado pela DATA DE COLETA. Se todos os analitos pertencem à MESMA data de coleta, devolva o array com 1 único elemento. NUNCA misture itens de datas de coleta diferentes num mesmo exame.
+
+Para CADA exame: leia TODAS as páginas e extraia TODOS os analitos de TODOS os painéis/seções (hemograma, urina, bioquímica, hormônios, coagulação...). NÃO pule painel. NÃO pare antes de extrair tudo.
+
+LEIA AS TABELAS COM CUIDADO: cada analito tem um valor e colunas de referência (Homens, Mulheres...). NÃO confunda o valor do paciente com a faixa de referência. Para cada analito: nome, valor (como impresso), valor numérico (vírgula→ponto), unidade, faixas de referência e a PÁGINA onde leu.
+
+FAIXA DE REFERÊNCIA NA MESMA ESCALA DO VALOR (CRÍTICO): lowNumeric/highNumeric DEVEM estar na MESMA unidade/escala decimal do valueNumeric. "4,50"→4.5 (não 450); "13,5"→13.5 (não 135). AUTO-VERIFIQUE magnitude: se o valor está ordens de magnitude fora da faixa, você leu a faixa na escala errada — RECORRIJA.
+
+UM VALOR POR ANALITO: mesmo analito em duas unidades equivalentes → reporte UMA linha (a da faixa do paciente).
+
+DATA (PRECISÃO): performedAt = DATA DA COLETA/ATENDIMENTO do exame (dd/mm/aaaa), NUNCA a data de impressão/emissão/liberação do laudo.
+
+NOMES/CPF (PRECISÃO): patientName = nome do PACIENTE (campo "Nome:" do cabeçalho); patientCpf = CPF do paciente se constar (senão vazio); requestingDoctor = médico SOLICITANTE. NUNCA use nome/CPF de médico, assinante ou convênio.
+
+NUNCA invente valor. Se não conseguir ler com confiança, omita o analito. Agrupe em "panels" pelo título da seção.
+
+ANTI-ALUCINAÇÃO: leia SEMPRE do documento real. Se o documento estiver ilegível/vazio, devolva { "exams": [] }.
+
+Devolva EXATAMENTE este formato JSON:
+{
+  "exams": [
+    {
+      "patientName": "NOME COMPLETO do PACIENTE",
+      "patientCpf": "CPF do paciente se constar; senão vazio",
+      "examTitle": "HEMOGRAMA COMPLETO",
+      "performedAt": "15/03/2026",
+      "sourceLab": "nome do laboratório",
+      "requestingDoctor": "médico solicitante",
+      "panels": [ { "name": "HEMOGRAMA", "items": [ { "name": "HEMOGLOBINA", "valueText": "17,1 g/dL", "valueNumeric": 17.1, "unit": "g/dL", "references": [ { "appliesTo": "Homens", "lowNumeric": 13.0, "highNumeric": 16.5 } ], "page": 1 } ] } ]
+    },
+    { "patientName": "...", "examTitle": "HEMOGRAMA COMPLETO", "performedAt": "20/01/2025", "panels": [ ... ] }
+  ]
+}`;
+
+/** Extração MULTI-EXAME: devolve array (1 elemento por data de coleta distinta no PDF).
+ *  Aceita AMBOS os formatos: { exams: [...] } (multi) ou { panels: [...] } direto (single legado → wrap em [json]).
+ *  Assim 1 chamada só basta — nunca dispara extração dupla. Devolve [] só se a IA não devolver nada usável. */
+export async function extractLabPanels(buffer: Buffer, mediaType = 'application/pdf', precomputedText?: string): Promise<LabExtraction[]> {
+  const json = await createJson(buffer, mediaType, LAB_MULTI_INSTRUCTIONS, 16000, precomputedText);
+  const parsed = LabMultiExtractionSchema.safeParse(json);
+  let exams = parsed.success ? parsed.data.exams : (Array.isArray((json as any)?.exams) ? (json as any).exams : []);
+  // IA devolveu formato SINGLE legado ({panels,...} direto, sem wrapper exams) → trata como 1 exame
+  if (!exams.length && (json as any)?.panels) exams = [json as LabExtraction];
+  if (!parsed.success && !exams.length) console.warn('[extraction] multi Zod falhou:', parsed.error.issues.slice(0, 3));
+  // descarta exames sem nenhum item (ruído) — só vira registro quem tem analito de verdade
+  return (exams as LabExtraction[]).filter((e) => (e.panels ?? []).some((p) => (p.items ?? []).length > 0));
 }
 
 export async function extractImaging(buffer: Buffer, mediaType = 'application/pdf', precomputedText?: string): Promise<ImagingExtraction> {

@@ -3,7 +3,7 @@ import { config } from '../config';
 import { ExamKind, type ItemFlag } from '@prisma/client';
 import { readPdf, classifyKind, looksLikeMedical } from './pdfutil';
 import { classifyDoc } from './docPatterns';
-import { extractLabPanel, extractImaging } from './claude';
+import { extractLabPanel, extractLabPanels, extractImaging } from './claude';
 import { imageToText } from './imageToText';
 import { canonicalName, reconcileScaleFlag, parseNumeric, normalizeUnit, sanitizeUnitInText } from '../utils/normalize';
 import { toCanonicalUnit } from '../utils/units';
@@ -95,6 +95,7 @@ async function runExtractionOnce(examId: string): Promise<void> {
     let sourceLab = exam.sourceLab;
     let items: ItemRow[] = [];
     let raw: any = exam.rawExtraction;
+    let splitLabs: LabExtraction[] = []; // PDF c/ vários exames (datas distintas) → exames 2..N viram registros próprios
 
     const dryRun = config.extractionDryRun;
 
@@ -109,12 +110,18 @@ async function runExtractionOnce(examId: string): Promise<void> {
         performedAt = parseDate(ext.performedAt) ?? performedAt;
         sourceLab = ext.sourceLab ?? sourceLab;
       } else {
-        const lab = (await extractLabPanel(buffer, media, precomputedText)) as LabExtraction;
+        // MULTI-EXAME: pede array { exams: [...] } agrupado por data de coleta distinta.
+        // Se falhar ou voltar vazio → cai pra extração single (atual, zero regressão).
+        let labs: LabExtraction[] = [];
+        try { labs = await extractLabPanels(buffer, media, precomputedText); }
+        catch (e) { console.warn('[extraction] multi-exame falhou, caindo p/ single:', (e as Error).message); }
+        const lab = (labs[0] ?? (await extractLabPanel(buffer, media, precomputedText))) as LabExtraction;
         raw = lab;
         title = lab.examTitle ?? title;
         performedAt = parseDate(lab.performedAt) ?? performedAt;
         sourceLab = lab.sourceLab ?? sourceLab;
         items = flattenLabItems(lab, demo);
+        splitLabs = labs.slice(1); // exames além do primeiro → registros separados (bloco split abaixo)
       }
     } else if (dryRun && raw && Array.isArray(raw.panels)) {
       // replay: apenas re-normaliza a partir do JSON guardado
@@ -168,6 +175,40 @@ async function runExtractionOnce(examId: string): Promise<void> {
     console.log(`[extraction] exame ${examId} extraído: ${items.length} itens (kind=${kind}, review=${reviewRequired})`);
     // Extração por visão consome créditos (não bloqueia a ingestão mesmo sem saldo)
     if (patient?.ownerId) { try { await chargeCredits(patient.ownerId, CREDIT_COSTS.extraction); } catch { /* não bloqueia */ } }
+
+    // SPLIT: PDF c/ vários exames (datas de coleta distintas) → cria registros Exam separados p/ 2..N.
+    // fileSha256 c/ sufixo "#split-N" dribla o @@unique (sem migration). Idempotente (remove splits
+    // antigos antes — re-extract) + falha isolada (nunca derruba o exame principal já extraído).
+    if (splitLabs.length) {
+      try {
+        const baseSha = exam.fileSha256;
+        const oldSplits = await prisma.exam.findMany({ where: { patientId: exam.patientId, fileSha256: { startsWith: `${baseSha}#split-` } }, select: { id: true } });
+        if (oldSplits.length) await prisma.exam.deleteMany({ where: { id: { in: oldSplits.map((o) => o.id) } } });
+        for (let i = 0; i < splitLabs.length; i++) {
+          const slab = splitLabs[i];
+          const sitems = flattenLabItems(slab, demo);
+          if (!sitems.length) continue;
+          const screated = await prisma.exam.create({
+            data: {
+              patientId: exam.patientId,
+              title: slab.examTitle ?? exam.title,
+              kind,
+              filePath: exam.filePath,
+              fileSha256: `${baseSha}#split-${i + 2}`,
+              fileSizeBytes: exam.fileSizeBytes,
+              pageCount: pageCount || exam.pageCount,
+              performedAt: parseDate(slab.performedAt),
+              sourceLab: slab.sourceLab ?? exam.sourceLab,
+              rawExtraction: slab,
+              status: 'EXTRACTED',
+              extractedAt: new Date(),
+            },
+          });
+          await prisma.examItem.createMany({ data: sitems.map((r) => ({ ...r, examId: screated.id })) });
+          console.log(`[extraction] split ${i + 2}/${splitLabs.length + 1}: exame ${screated.id} criado (${sitems.length} itens, coleta ${slab.performedAt ?? '?'})`);
+        }
+      } catch (e: any) { console.error('[extraction] split falhou (exame principal OK):', e?.message); }
+    }
   } catch (e: any) {
     console.error(`[extraction] exame ${examId} falhou (tentativa):`, e?.message);
     throw e; // runExtraction cuida do retry + do FAILED amigável
