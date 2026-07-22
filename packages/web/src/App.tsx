@@ -425,7 +425,10 @@ const AppLayout = (props: any) => {
           // até 1728px centrado → gutters simétricos nas BORDAS (intencional, estilo Linear/GitHub),
           // NÃO espaço morto entre menu e dashboard. Em laptop (≤1728) preenche tudo; em ultrawide
           // (≥1920) centraliza c/ margens premium. Mobile (xs) continua 100% (intocado).
-          '& .RaLayout-appFrame': { maxWidth: { xs: '100%', sm: 1728 }, mx: { sm: 'auto' } },
+          // APPFRAME preenche (width 100%!) no desktop — antes era flex-item c/ mx:auto → shrink-to-fit ao conteúdo
+          // (dashboard largo=1115, listas estreitas=648 → "página encolhe ao clicar"). Agora preenche até o cap 1728
+          // e centraliza além. !important bate o maxWidth:100% que o react-admin põe no appFrame.
+          '& .RaLayout-appFrame': { width: { sm: '100% !important' }, maxWidth: { xs: '100%', sm: '1728px !important' }, mx: { sm: 'auto' } },
           // Menu lateral: constraine o conteúdo ao sidebar (min-width:0 + clip) — sem isto o grid
           // de atalhos (e itens largos) escapa da largura do sidebar e transborda sobre a página.
           '& .RaLayout-menu': { minWidth: 0, maxWidth: '100%', overflowX: 'hidden' },
