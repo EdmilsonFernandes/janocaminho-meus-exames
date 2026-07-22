@@ -429,6 +429,9 @@ const AppLayout = (props: any) => {
           // Menu lateral: constraine o conteúdo ao sidebar (min-width:0 + clip) — sem isto o grid
           // de atalhos (e itens largos) escapa da largura do sidebar e transborda sobre a página.
           '& .RaLayout-menu': { minWidth: 0, maxWidth: '100%', overflowX: 'hidden' },
+          // SIDEBAR DESKTOP (5x): o react-admin deixava .RaSidebar-fixed c/ width 0 mesmo "aberta" → menu sumia no web.
+          // Força 240 no desktop (mobile usa AppDrawer) + desloca o conteúdo (regra main abaixo) pra não sobrepor.
+          '& .RaSidebar-fixed': { width: { xs: 0, sm: 240 }, minWidth: { xs: 0, sm: 240 } },
           '& .RaLayout-appFrame, & .RaLayout-contentWithSidebar': { minWidth: 0, maxWidth: '100%' },
           // CONTEÚDO do <List> (.RaList-main) TAMBÉM é flex-item com min-width:auto → sem min-width:0,
           // o card de exame infla além do viewport (medido: 627px numa tela de 360px) e o overflow-hidden
@@ -438,7 +441,9 @@ const AppLayout = (props: any) => {
           // Espaço embaixo pra NÃO cobrir conteúdo com o menu rodapé (mobile). Usa a altura REAL medida do
           // MobileBottomNav (var publicada por ResizeObserver) — nunca px fixo (o robô elevado deixou o nav
           // maior que o chute antigo de 72px e cortava o rodapé de TODA tela, inclusive admin). +14px respiro.
-          '& .RaLayout-content, & main': { padding: { xs: '2px 0 calc(var(--me-bottom-nav-h, 76px) + 14px)', sm: '6px 0 28px' } },
+          '& .RaLayout-content': { padding: { xs: '2px 0 calc(var(--me-bottom-nav-h, 76px) + 14px)', sm: '6px 0 28px' } },
+          // padding-left 240 no desktop: abre espaço pro sidebar fixo (RaSidebar-fixed) sem sobrepor o conteúdo.
+          '& main': { padding: { xs: '2px 0 calc(var(--me-bottom-nav-h, 76px) + 14px)', sm: '6px 0 28px 240px' } },
           '& .RaList-toolbar, [class*="List-toolbar"]': { minHeight: '40px !important', paddingBottom: '4px !important' },
         }} />
       {/* Menu lateral UNIFICADO (mobile) — ☰ e "Mais" abem o mesmo drawer */}
