@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Box, Card, CardContent, Typography, Stack, Chip, Skeleton, Button } from '@mui/material';
 import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import { useNavigate } from 'react-router-dom';
 import { API_URL, token } from '../../config';
 import { useSelectedPatient } from '../../patient-context';
@@ -45,16 +46,18 @@ export const CurrentStateCard = () => {
   const [pid] = useSelectedPatient();
   const [s, setS] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     if (!pid) { setLoading(false); setS(null); return; }
-    setLoading(true);
+    setLoading(true); setErr(false);
     fetch(`${API_URL}/patients/${pid}/health-summary`, { headers: { Authorization: `Bearer ${token()}` } })
-      .then((r) => (r.ok ? r.json() : null))
+      .then((r) => { if (!r.ok) throw new Error('http'); return r.json(); })
       .then((d) => setS(d ?? null))
-      .catch(() => setS(null))
+      .catch(() => { setS(null); setErr(true); })
       .finally(() => setLoading(false));
-  }, [pid]);
+  }, [pid, reloadKey]);
 
   if (loading) {
     return (
@@ -65,6 +68,23 @@ export const CurrentStateCard = () => {
             <Skeleton variant="text" width={140} />
           </Stack>
           <Skeleton variant="rectangular" height={56} sx={{ borderRadius: 2 }} />
+        </CardContent>
+      </Card>
+    );
+  }
+  // Erro de rede/servidor — distinto de "sem dados".
+  if (err && !s) {
+    return (
+      <Card sx={{ mt: 2, border: '1px solid', borderColor: 'divider' }}>
+        <CardContent>
+          <Stack direction="row" spacing={1.2} alignItems="center">
+            <MonitorHeartIcon sx={{ color: 'error.main' }} />
+            <Box sx={{ flex: 1 }}>
+              <Typography sx={{ fontWeight: 800 }}>Meu estado atual</Typography>
+              <Typography variant="body2" color="text.secondary">Não carregamos seu estado atual. Verifique sua conexão.</Typography>
+            </Box>
+            <Button size="small" variant="outlined" startIcon={<RefreshIcon />} onClick={() => setReloadKey((k) => k + 1)}>Tentar de novo</Button>
+          </Stack>
         </CardContent>
       </Card>
     );

@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useTranslate } from 'react-admin';
-import { Box, Card, CardContent, Typography, CircularProgress, Grid, Stack, Chip, Avatar, Alert, AlertTitle } from '@mui/material';
+import { Box, Card, CardContent, Typography, CircularProgress, Grid, Stack, Chip, Avatar, Alert, AlertTitle, Skeleton, Button } from '@mui/material';
 import Diversity3Icon from '@mui/icons-material/Diversity3';
 import { API_URL, token, photoUrlFor } from '../config';
 import { ExplainButton } from '../components/ExplainItem';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
+import { DrExame } from '../components/DrExame';
 
 interface FamPatient {
   id: string; fullName: string; relationship: string | null; photoUrl: string | null;
@@ -22,21 +23,37 @@ export const FamilyPage = () => {
   const [data, setData] = useState<{ patients: FamPatient[]; crossAlerts: CrossAlert[] } | null>(null);
   const [loading, setLoading] = useState(true);
   const [cmp, setCmp] = useState<any[]>([]);
+  const [err, setErr] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
-    setLoading(true);
+    setLoading(true); setErr(false);
     fetch(`${API_URL}/patients/family-overview`, { headers: { Authorization: `Bearer ${token()}` } })
-      .then((r) => r.json())
+      .then((r) => { if (!r.ok) throw new Error('http'); return r.json(); })
       .then((d) => setData(d))
-      .catch(() => setData(null))
+      .catch(() => { setData(null); setErr(true); })
       .finally(() => setLoading(false));
     fetch(`${API_URL}/patients/family-compare`, { headers: { Authorization: `Bearer ${token()}` } })
       .then((r) => r.json())
       .then((d) => setCmp(d.rows ?? []))
       .catch(() => {});
-  }, []);
+  }, [reloadKey]);
 
-  if (loading) return <Box sx={{ p: 4, textAlign: 'center' }}><CircularProgress /></Box>;
+  if (loading) return (
+    <PageContainer width={980}>
+      <Skeleton variant="rectangular" height={48} sx={{ borderRadius: 2, mb: 3 }} />
+      {[0, 1, 2].map((i) => <Skeleton key={i} variant="rounded" height={118} sx={{ mb: 2 }} />)}
+    </PageContainer>
+  );
+
+  if (err && !data) return (
+    <PageContainer width={980}>
+      <PageHeader icon={<Diversity3Icon />} title={translate('page.family')} accent="#d4a574" subtitle={translate('page.family_sub')} />
+      <Alert severity="error" sx={{ mt: 2 }} action={<Button color="inherit" size="small" onClick={() => setReloadKey((k) => k + 1)}>Tentar de novo</Button>}>
+        Não carregamos a visão familiar. Verifique sua conexão e tente novamente.
+      </Alert>
+    </PageContainer>
+  );
 
   const patients = data?.patients ?? [];
   const ranked = [...patients].sort((a, b) => (b.score ?? -1) - (a.score ?? -1)); // 1º = maior score
@@ -57,7 +74,17 @@ export const FamilyPage = () => {
         </Alert>
       )}
 
-      {patients.length === 0 && <Typography color="text.secondary">Nenhum perfil cadastrado.</Typography>}
+      {patients.length === 0 && (
+        <Card variant="outlined" sx={{ mt: 2, p: 3, textAlign: 'center', borderColor: 'divider' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1.5 }}>
+            <DrExame size={72} />
+          </Box>
+          <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 18, mb: 0.5 }}>Cuide de quem você ama</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 360, mx: 'auto' }}>
+            Adicione dependentes (cônjuge, filhos, pais) tocando no seu avatar no topo da tela e acompanhe a saúde de cada um.
+          </Typography>
+        </Card>
+      )}
 
       {/* Cards dos membros (sem pódio redundante — 🥇 no 1º lugar) */}
       <Grid container spacing={2}>

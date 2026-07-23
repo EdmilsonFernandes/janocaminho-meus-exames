@@ -67,6 +67,7 @@ export const RiskCard = () => {
   const [pid] = useSelectedPatient();
   const [r, setR] = useState<(RiskResult & { id?: string; trend?: string; prior?: { riskLevel: string; createdAt: string } | null }) | null>(null);
   const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState(false);
   const [showQuestions, setShowQuestions] = useState(false);
   // Compactação mobile: explicação truncada. "Ver mais" só aparece se o texto transborda de fato (medido).
   const [showFull, setShowFull] = useState(false);
@@ -96,15 +97,15 @@ export const RiskCard = () => {
 
   const load = useCallback((force = false) => {
     if (!pid) { setLoading(false); setR(null); return; }
-    setLoading(true);
+    setLoading(true); setErr(false);
     fetch(`${API_URL}/risk/assess`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
       body: JSON.stringify({ patientId: pid, force }),
     })
-      .then((res) => (res.ok ? res.json() : null))
+      .then((res) => { if (!res.ok) throw new Error('http'); return res.json(); })
       .then((d) => setR(d ?? null))
-      .catch(() => setR(null))
+      .catch(() => { setR(null); setErr(true); })
       .finally(() => setLoading(false));
   }, [pid]);
 
@@ -184,6 +185,24 @@ export const RiskCard = () => {
           <Skeleton variant="rectangular" height={70} sx={{ borderRadius: 2, mb: 1 }} />
           <Skeleton variant="text" width="80%" />
           <Skeleton variant="text" width="55%" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Erro de rede/servidor — distinto de "sem dados" (antes ambos caiam no empty e pareciam bug).
+  if (err && !r) {
+    return (
+      <Card sx={{ mt: 2, border: '1px solid', borderColor: 'divider' }}>
+        <CardContent>
+          <Stack direction="row" spacing={1.2} alignItems="center">
+            <HealthAndSafetyIcon sx={{ color: 'error.main' }} />
+            <Box sx={{ flex: 1 }}>
+              <Typography sx={{ fontWeight: 800 }}>Leitura de risco</Typography>
+              <Typography variant="body2" color="text.secondary">Não carregamos sua leitura de risco. Verifique sua conexão.</Typography>
+            </Box>
+            <Button size="small" variant="outlined" startIcon={<RefreshIcon />} onClick={() => load(true)}>Tentar de novo</Button>
+          </Stack>
         </CardContent>
       </Card>
     );
