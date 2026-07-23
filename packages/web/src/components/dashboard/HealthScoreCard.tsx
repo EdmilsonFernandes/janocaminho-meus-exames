@@ -34,7 +34,7 @@ const Gauge = ({ value, color }: { value: number; color: string }) => {
       <defs>
         <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#20b2aa" />
-          <stop offset="100%" stopColor={color} />
+          <stop offset="100%" stopColor={color} style={{ transition: 'stop-color .6s ease' }} />
         </linearGradient>
       </defs>
       {/* ZONAS de fundo (sutures): vermelho 0-60, amber 60-80, verde 80-100 */}
@@ -98,7 +98,7 @@ export const HealthScoreCard = ({ loaded, score, abnormalCount, onDetails }: { l
   }
   const color = scoreColor(score);
   return (
-    <Card sx={{ mt: 3, position: 'relative', overflow: 'hidden', background: 'linear-gradient(135deg, rgba(32,178,170,.10), rgba(32,178,170,.03))', border: '1px solid', borderColor: 'divider' }}>
+    <Card sx={{ mt: 3, position: 'relative', overflow: 'hidden', background: 'linear-gradient(135deg, rgba(32,178,170,.10), rgba(32,178,170,.03))', border: '1px solid', borderColor: 'divider', boxShadow: `0 10px 30px ${color}1a`, transition: 'box-shadow .5s ease' }}>
       <FavoriteIcon sx={{ position: 'absolute', right: -18, top: -14, fontSize: 150, color: 'primary.main', opacity: 0.05, pointerEvents: 'none', transform: 'rotate(-12deg)' }} />
       <CardContent sx={{ position: 'relative' }}>
         {/* gauge + info LADO A LADO (sem wrap — preenche a largura) */}

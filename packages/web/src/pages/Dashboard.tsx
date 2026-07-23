@@ -251,6 +251,9 @@ export const Dashboard = () => {
     <PageContainer width="wide" sx={{ bgcolor: (t) => (t.palette.mode === 'dark' ? 'background.default' : '#FAFBFC'), minHeight: '100vh' }}>
       <DashboardHeader firstName={firstName} />
 
+      {/* Exames que falharam na leitura — banner prioritário no topo (só renderiza se count>0) */}
+      <FailedExamsAlert count={failed} onClick={() => navigate('/exams')} />
+
       {/* 1 · HERO — Score de Saúde */}
       <HealthScoreCard loaded={loaded} score={score} abnormalCount={hsAltered || stats.abnormal} onDetails={() => navigate('/tendencias')} />
       <NextBestActionCard
@@ -317,7 +320,6 @@ export const Dashboard = () => {
       {/* 6 · AÇÕES RÁPIDAS — primária "Enviar exame" + exames falhados + créditos */}
       <Section label={translate('dash.quick_actions')} icon={<BoltIcon />}>
         <Stack spacing={2}>
-          <FailedExamsAlert count={failed} onClick={() => navigate('/exams')} />
           <QuickActions />
           <CreditsCard credits={credits} onClick={() => navigate('/planos')} />
         </Stack>
