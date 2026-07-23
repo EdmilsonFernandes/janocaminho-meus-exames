@@ -782,6 +782,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
             const answered = q.status === 'answered';
             const lastPatient = (q.messages ?? []).filter((m: any) => m.authorRole === 'patient').slice(-1)[0];
             const lastDoctor = (q.messages ?? []).filter((m: any) => m.authorRole === 'doctor').slice(-1)[0];
+            const qp = patients.find((pp: any) => pp.patient?.id === q.patientId);
             const isOpen = replyOpen === q.id;
             return (
               <Card key={q.id} sx={{ borderRadius: 3, mb: 1.5, boxShadow: '0 1px 3px rgba(0,0,0,.04)', border: '1px solid', borderColor: answered ? 'divider' : 'transparent' }}><CardContent>
@@ -793,7 +794,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                         <Typography sx={{ fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>{q.patient?.fullName}<OpenInNewIcon sx={{ fontSize: 13, color: 'text.disabled' }} /></Typography>
                         <Chip size="small" label={answered ? '✓ respondida' : 'em aberto'} sx={{ height: 18, fontSize: 10, bgcolor: answered ? 'rgba(22,163,74,.12)' : 'rgba(234,88,12,.12)', color: answered ? '#16a34a' : '#ea580c', fontWeight: 700 }} />
                       </Stack>
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>{q.subject} · {relDate(q.createdAt)}</Typography>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>{q.subject} · {relDate(q.createdAt)}{qp?.age != null ? ` · ${qp.age}a${qp.sex === 'female' ? ' · F' : qp.sex === 'male' ? ' · M' : ''}` : ''}</Typography>
                     </Box>
                   </Box>
                   {!answered && <Button size="small" variant={isOpen ? 'outlined' : 'contained'} onClick={() => setReplyOpen(isOpen ? null : q.id)} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: isOpen ? undefined : '#20b2aa', color: isOpen ? '#178f89' : '#fff', boxShadow: 'none', '&:hover': { bgcolor: isOpen ? undefined : '#178f89' }, flexShrink: 0 }}>{isOpen ? 'Fechar' : 'Responder'}</Button>}
@@ -973,6 +974,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 <Stack direction="row" alignItems="center" spacing={0.75}>
                   <Typography sx={{ fontWeight: 800, color: 'text.primary', lineHeight: 1.1 }}>{selected.patient?.fullName}</Typography>
                   {selected.code && <Chip size="small" label={selected.code} sx={{ height: 18, fontSize: 10, bgcolor: '#0f3d3a', color: '#fff', fontWeight: 700, fontFamily: 'monospace' }} />}
+                  {risk?.result && (() => { const rl = risk.result.riskLevel; const rc = rl === 'high' ? '#dc2626' : rl === 'moderate' ? '#ea580c' : '#16a34a'; return <Chip size="small" label={`Risco: ${riskLabel(rl)}`} sx={{ height: 18, fontSize: 10, bgcolor: rc, color: '#fff', fontWeight: 700 }} />; })()}
                 </Stack>
                 <Typography variant="caption" sx={{ color: 'text.secondary' }}>{[selected.age != null ? `${selected.age} anos` : null, selected.sex === 'female' ? 'Feminino' : selected.sex === 'male' ? 'Masculino' : null, selected.patient?.relationship, selected.convenio || 'Particular', selected.latestWeight ? `${selected.latestWeight.value} kg` : null].filter(Boolean).join(' • ')}</Typography>
               </Box>
@@ -1137,13 +1139,17 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                       {exams[0] && ` · ${exams[0].title} · ${fmtDate(exams[0].performedAt)}`}
                     </Typography>
                   )}
-                  {/* Linha 3: comparação + nota (compacto, inline) */}
-                  {(comparison.length > 0 || notes.length > 0) && (
-                    <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: 'text.secondary', fontSize: 11.5 }}>
-                      {comparison.length > 0 && `${comparison.slice(0, 3).map((d) => `${d.name} ${d.pct > 0 ? '↑' : '↓'}${Math.abs(d.pct).toFixed(0)}%`).join(' · ')}`}
-                      {comparison.length > 0 && notes.length > 0 && ' · '}
-                      {notes.length > 0 && `📝 ${notes[0].content?.slice(0, 60)}${(notes[0]?.content?.length ?? 0) > 60 ? '…' : ''}`}
-                    </Typography>
+                  {/* Linha 3: comparação PROMOVIDA a chips (escaneável) + nota. Cores neutras
+                      (teal) — não assumir ↑=ruim/↓=bom (HDL↑ é bom, glicose↑ é ruim). */}
+                  {comparison.length > 0 && (
+                    <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.75 }}>
+                      {comparison.slice(0, 4).map((d: any, i: number) => (
+                        <Chip key={i} size="small" label={`${d.name} ${d.pct > 0 ? '↑' : '↓'}${Math.abs(d.pct).toFixed(0)}%`} sx={{ height: 20, fontSize: 10.5, fontWeight: 700, bgcolor: 'rgba(32,178,170,.10)', color: 'primary.dark' }} />
+                      ))}
+                    </Stack>
+                  )}
+                  {notes.length > 0 && (
+                    <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: 'text.secondary', fontSize: 11.5 }}>📝 {notes[0].content?.slice(0, 60)}{(notes[0]?.content?.length ?? 0) > 60 ? '…' : ''}</Typography>
                   )}
                 </CardContent>
               </Card>
