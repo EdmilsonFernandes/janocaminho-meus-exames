@@ -54,7 +54,7 @@ export const CardiometabolicRiskCard = ({ risk: riskProp }: { risk?: CardioRisk 
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography variant="caption" sx={{ fontWeight: 800, color: meta.color, display: 'block', mb: 0.25 }}>❤️ RISCO CARDIOMETABÓLICO</Typography>
             <Typography sx={{ fontWeight: 800, fontSize: { xs: 17, sm: 19 }, fontFamily: 'Poppins, sans-serif', lineHeight: 1.15, color: meta.color }}>{cardioVerdict}</Typography>
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>Score de risco {risk.score}/100 — <b>menor = melhor</b></Typography>
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>Quanto menos fatores acima, melhor — acompanhe com seu médico.</Typography>
           </Box>
         </Stack>
         {risk.factors.filter((f) => f.risk).length > 0 && (

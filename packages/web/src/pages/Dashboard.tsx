@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslate } from 'react-admin';
-import { Stack, Typography, Grid, Dialog, DialogTitle, DialogContent, DialogActions, Button, Box, Card, CardContent, Chip, Accordion, AccordionSummary, AccordionDetails, useTheme } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { Stack, Typography, Grid, Dialog, DialogTitle, DialogContent, DialogActions, Button, Box, Card, CardContent, Chip, useTheme } from '@mui/material';
 import ScienceIcon from '@mui/icons-material/Science';
 import { GamificationBadges } from '../components/GamificationBadges';
 import { BiometricService } from '../components/BiometricService';
@@ -243,7 +242,6 @@ export const Dashboard = () => {
   }, [pid]);
 
   const firstName = (me?.fullName || '').split(' ')[0];
-  const cardioMeta = cardioRisk ? ({ baixo: '🟢', moderado: '🟠', alto: '🔴' } as Record<string, string>)[cardioRisk.level] ?? '⚪' : null;
   const totalVals = buckets.bons + buckets.alerta + buckets.alterados;
   // Score da camada canonical (Layer 2): dedup por marcador + últimos 12 meses + exclui borderline
   // — alinhado ao Portal do Médico (antes derivava do flag-summary, que inflava contando itens
@@ -290,28 +288,15 @@ export const Dashboard = () => {
           usuário não descobria). O Dashboard já busca o health-summary → passamos o dado (1 fetch). */}
       <CardiometabolicRiskCard risk={cardioRisk} />
 
-      {/* 4 · ANÁLISES DETALHADAS — estado atual, idade biológica, distribuição num acordeão
-          COLAPSADO por padrão. O cardiometabólico ficou visível acima; o teaser no título mostra
-          o nível mesmo com o acordeão fechado, convidando a expandir o resto. */}
-      <Accordion disableGutters elevation={0} defaultExpanded={false} sx={{ mt: 1, '&:before': { display: 'none' }, border: '1px solid', borderColor: 'divider', borderRadius: '16px !important', overflow: 'hidden' }}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '52px !important', '& .MuiAccordionSummary-content': { my: 0.75 } }}>
-          <Stack direction="row" spacing={1} alignItems="center">
-            <ScienceIcon sx={{ color: '#178f89', fontSize: 20 }} />
-            <Box>
-              <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 14, lineHeight: 1.2 }}>{translate('dash.advanced')}</Typography>
-              <Typography variant="caption" color="text.secondary">{translate('dash.advanced_sub')}</Typography>
-            </Box>
-            {cardioRisk && <Chip size="small" label={`${cardioMeta} ${cardioRisk.level} · ${cardioRisk.score}/100`} sx={{ ml: 'auto', bgcolor: 'rgba(32,178,170,.10)', color: '#178f89', fontWeight: 700, height: 22, fontSize: 11 }} />}
-          </Stack>
-        </AccordionSummary>
-        <AccordionDetails sx={{ p: 1.5, pt: 0.5 }}>
-          <Stack spacing={2}>
-            <CurrentStateCard />
-            <BiologicalAgeCard />
-            <DistributionCard buckets={buckets} />
-          </Stack>
-        </AccordionDetails>
-      </Accordion>
+      {/* 4 · ANÁLISES DETALHADAS — tudo visível na vertical (sem acordeão). Antes ficava escondido
+          atrás de "expandir" e o teaser "0/100" era feio (score invertido: 0 = ótimo). Agora direto. */}
+      <Section label={translate('dash.advanced')} icon={<ScienceIcon />}>
+        <Stack spacing={2}>
+          <CurrentStateCard />
+          <BiologicalAgeCard />
+          <DistributionCard buckets={buckets} />
+        </Stack>
+      </Section>
 
       {/* 5 · SEUS NÚMEROS — métricas clicáveis (donut foi pra 'Análises detalhadas') */}
       <Section label={translate('dash.your_numbers')} icon={<AnalyticsIcon />}>
