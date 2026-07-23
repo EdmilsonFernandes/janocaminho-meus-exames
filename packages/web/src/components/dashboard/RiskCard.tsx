@@ -11,6 +11,7 @@ import { API_URL, token } from '../../config';
 import { useSelectedPatient } from '../../patient-context';
 import { PRIORITY_META } from '../../utils/alertPriority';
 import { bumpCredits } from '../../utils/credits-events';
+import { RiskGauge } from './RiskGauge';
 
 // Custo em créditos do plano de ação — manter sincronizado com CREDIT_COSTS.actionPlan (server).
 const ACTION_PLAN_COST = 8;
@@ -258,6 +259,9 @@ export const RiskCard = () => {
             })()}
           </Stack>
         </Stack>
+
+        {/* GAUGE animado — tchan visual: arco semicircular colorido sobe até o nível de risco */}
+        <RiskGauge level={r.riskLevel} none={none} />
 
         {/* condição suspeita (destaque). Quando nenhum padrão, o texto do server ("Sem alterações
             relevantes") confunde com "nenhum marcador fora da faixa" — sobrescrevemos pra deixar
