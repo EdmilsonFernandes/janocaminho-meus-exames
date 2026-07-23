@@ -447,8 +447,10 @@ export async function buildCurrentHealthSummary(patientId: string, opts?: { incl
             (patient.gender as any) === 'female' ? 'female' : (patient.gender as any) === 'male' ? 'male' : undefined,
           );
           if (result.markersUsed > 0) {
-            biologicalAge = { age: result.biologicalAge, confidence: result.confidence, markersUsed: result.markersUsed, method: 'simplified', missing: bioMissing };
+            // 'missing' = marcadores do PhenoAge que faltaram (ex.: Glicose, PCR). Antes bioMissing
+            // era atribuído DEPOIS de ser lido → chegava vazio no card (o usuário não sabia o que faltava).
             bioMissing = missing;
+            biologicalAge = { age: result.biologicalAge, confidence: result.confidence, markersUsed: result.markersUsed, method: 'simplified', missing: bioMissing };
           }
         }
       }

@@ -90,6 +90,11 @@ export function estimateBiologicalAge(
     // 0 = perfeitamente no meio da faixa. >1 = fora da faixa.
     const zScore = (m.value - midpoint) / (halfRange || 1);
 
+    // Filtro de plausibilidade (revisão 2026-07): descarta valores absurdos (erro de extração —
+    // ex.: hemoglobina 0,03 g/dL) que inflam/distorcem a idade biológica. |zScore|>4 = >4 meias-
+    // faixas do centro, claramente fora do esperado. Legítimos levemente alterados (ex.: Hb 9) seguem.
+    if (!Number.isFinite(zScore) || Math.abs(zScore) > 4) continue;
+
     // direction = +1 (alto envelhece), -1 (baixo envelhece), 0 (U-shape: qualquer extremo envelhece)
     const ageDelta = cfg.direction === 0 ? Math.abs(zScore) : cfg.direction * zScore;
 

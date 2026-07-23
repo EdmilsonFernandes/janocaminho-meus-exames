@@ -31,6 +31,14 @@ export const CardiometabolicRiskCard = ({ risk: riskProp }: { risk?: CardioRisk 
   const risk = riskProp !== undefined ? riskProp : riskState;
   if (!risk) return null;
   const meta = RISK_META[risk.level as keyof typeof RISK_META] || RISK_META.baixo;
+  const riskN = risk.factors.filter((f) => f.risk).length;
+  // Veredito em linguagem simples (herói) — "0/100" assusta; "Nenhum fator de risco" acalma.
+  // Atenção à polaridade: cardiometabólico é INVERSO ao score de saúde — aqui MENOR = melhor.
+  const cardioVerdict =
+    risk.level === 'alto' ? `Risco alto${riskN ? ` · ${riskN} fator(es)` : ''}`
+    : risk.level === 'moderado' ? `Risco moderado${riskN ? ` · ${riskN} fator(es)` : ''}`
+    : riskN === 0 ? 'Nenhum fator de risco'
+    : `${riskN} fator(es) de risco (leve)`;
   // Fatores só incluem insumos presentes; ausência de "IMC"/"PAS" = peso/pressão não cadastrados.
   const hasImc = risk.factors.some((f) => /^IMC/i.test(f.label));
   const hasPa = risk.factors.some((f) => /^PAS/i.test(f.label));
@@ -45,9 +53,8 @@ export const CardiometabolicRiskCard = ({ risk: riskProp }: { risk?: CardioRisk 
           <Box sx={{ fontSize: 36, lineHeight: 1 }}>{meta.emoji}</Box>
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography variant="caption" sx={{ fontWeight: 800, color: meta.color, display: 'block', mb: 0.25 }}>❤️ RISCO CARDIOMETABÓLICO</Typography>
-            <Typography sx={{ fontWeight: 800, fontSize: 20, fontFamily: 'Poppins, sans-serif', lineHeight: 1.2, color: 'text.primary' }}>
-              {meta.label} <Typography component="span" sx={{ fontSize: 13, fontWeight: 600, color: 'text.secondary' }}>({risk.score}/100)</Typography>
-            </Typography>
+            <Typography sx={{ fontWeight: 800, fontSize: { xs: 17, sm: 19 }, fontFamily: 'Poppins, sans-serif', lineHeight: 1.15, color: meta.color }}>{cardioVerdict}</Typography>
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>Score de risco {risk.score}/100 — <b>menor = melhor</b></Typography>
           </Box>
         </Stack>
         {risk.factors.filter((f) => f.risk).length > 0 && (
@@ -57,8 +64,8 @@ export const CardiometabolicRiskCard = ({ risk: riskProp }: { risk?: CardioRisk 
             ))}
           </Box>
         )}
-        {risk.factors.filter((f) => f.risk).length === 0 && (
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>✅ Nenhum fator de risco identificado nos marcadores disponíveis.</Typography>
+        {riskN === 0 && (
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>Marcadores cardiometabólicos disponíveis dentro do esperado. 👍</Typography>
         )}
         {missing.length > 0 && (
           <Box sx={{ mt: 1.5, p: 1, borderRadius: 2, bgcolor: 'rgba(32,178,170,.07)' }}>

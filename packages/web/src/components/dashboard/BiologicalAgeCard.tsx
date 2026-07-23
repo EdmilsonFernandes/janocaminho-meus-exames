@@ -10,7 +10,7 @@ import { useEffect, useState } from 'react';
  */
 export const BiologicalAgeCard = () => {
   const [pid] = useSelectedPatient();
-  const [data, setData] = useState<{ age: number; confidence: string; markersUsed: number } | null>(null);
+  const [data, setData] = useState<{ age: number; confidence: string; markersUsed: number; missing?: string[] | null; method?: string } | null>(null);
   const [explain, setExplain] = useState(false);
 
   useEffect(() => {
@@ -56,6 +56,13 @@ export const BiologicalAgeCard = () => {
         <Box sx={{ mt: 1 }}>
           <Button size="small" startIcon={<HelpOutlineIcon />} onClick={() => setExplain(true)} sx={{ color: '#6366f1', textTransform: 'none', fontWeight: 700 }}>Saiba o que isso significa</Button>
         </Box>
+        {/* Quando faltam marcadores do PhenoAge (cálculo parcial/simplificado), diz QUAIS faltam —
+            o usuário sabe o que enviar pra refinar a estimativa. */}
+        {data.missing && data.missing.length > 0 && (
+          <Typography variant="caption" sx={{ display: 'block', mt: 1, color: 'text.secondary' }}>
+            📊 Estimativa parcial — pra ficar mais precisa, ajudaria ter: <b>{data.missing.join(', ')}</b> num próximo exame.
+          </Typography>
+        )}
       </CardContent>
     </Card>
 
