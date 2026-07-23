@@ -8,6 +8,7 @@ import { PageHeader } from '../components/layout/PageHeader';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import { ExplainButton } from '../components/ExplainItem';
+import { UnitLabel } from '../components/UnitLabel';
 import { ValueBar } from '../components/ValueBar';
 import { ListSkeleton } from '../components/Skeleton';
 import { EmptyState } from '../components/EmptyState';
@@ -150,7 +151,7 @@ export const ValoresAlteradosPage = () => {
                               </Box>
                               <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
                                 <Typography component="span" sx={{ fontSize: '1.35rem', fontWeight: 800, color: col }}>{fmtVal(it)}</Typography>
-                                {unitSuffix(it) ? <Typography component="span" sx={{ color: 'text.secondary', ml: 0.5, fontSize: '0.8rem' }}>{unitSuffix(it)}</Typography> : null}
+                                {unitSuffix(it) ? <Typography component="span" sx={{ ml: 0.5 }}><UnitLabel unit={unitSuffix(it)} fontSize="0.8rem" /></Typography> : null}
                               </Box>
                               {/* Barra visual de posição (bolinha na faixa verde) — só pra itens com
                                   faixa CONFIÁVEL. Suspeitos (escala incerta) não ganham barra: o

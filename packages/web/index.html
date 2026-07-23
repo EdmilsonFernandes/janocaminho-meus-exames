@@ -99,8 +99,21 @@
     <script type="module" src="/src/main.tsx"></script>
     <!-- VLibras: tradução automática de texto para Libras (acessibilidade — pacientes surdos) -->
     <style>
-      /* VLibras um pouco menor pra não tomar muito espaço na tela */
-      .vw-access-button { transform: scale(0.82) !important; transform-origin: bottom right !important; }
+      /* VLibras no canto INFERIOR ESQUERDO, MENOR e ACIMA do rodapé mobile.
+         Antes: bottom-right default → colidia com os FABs (Dr. Exame + Enviar exame, ambos
+         fixed bottom-right) e cobria o rodapé. Bottom-left é a zona livre (menu = topo-esq). */
+      .vw-access-button {
+        position: fixed !important;
+        transform: scale(0.72) !important;
+        transform-origin: bottom left !important;
+        right: auto !important;
+        left: 10px !important;
+        bottom: calc(var(--me-bottom-nav-h, 76px) + 12px) !important; /* acima da MobileBottomNav no mobile */
+      }
+      @media (min-width: 600px) {
+        /* Desktop: sem rodapé fixo — canto inferior esquerdo discreto. */
+        .vw-access-button { left: 18px !important; bottom: 20px !important; }
+      }
       /* VLibras ACIMA de tudo (FAB do chat z1200, AppBar/nav z1100): sem isso, o popup de
          consentimento "aceitar sim/não" (1ª vez) fica coberto pelos elementos fixos do app
          e não dá pra clicar em Sim/Não nem fechar. */

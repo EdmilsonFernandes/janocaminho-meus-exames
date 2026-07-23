@@ -8,6 +8,7 @@ import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import { useNavigate } from 'react-router-dom';
 import { ExplainButton } from '../components/ExplainItem';
+import { UnitLabel } from '../components/UnitLabel';
 import { CATS, categorize } from '../utils/medicalData';
 import { displayStatus } from '../utils/examStatus';
 import { summarizeTrends, trendHeadline, VERDICT_META } from '../utils/evolutionSummary';
@@ -204,7 +205,7 @@ const EvoRow = ({ it, defaultExpanded }: { it: EvoItem; defaultExpanded?: boolea
         <Stack direction="row" alignItems="center" spacing={1} useFlexGap sx={{ flex: 1, minWidth: 0, pr: 1, flexWrap: 'wrap', gap: 0.5 }}>
           <Box sx={{ fontSize: 15 }}>{meta.emoji}</Box>
           <Typography sx={{ fontWeight: 700, flex: '1 1 60%', minWidth: 120 }}>{it.nameCanonical}</Typography>
-          <Typography sx={{ fontWeight: 800, color: meta.color }}>{it.lastValue}{it.unit ? ` ${it.unit}` : ''}</Typography>
+          <Typography sx={{ fontWeight: 800, color: meta.color }}>{it.lastValue} {it.unit ? <UnitLabel unit={it.unit} /> : null}</Typography>
           {st !== 'stable' && it.pctChange !== 0 && <Chip size="small" sx={{ bgcolor: `${lineColor}14`, color: lineColor, fontWeight: 700, height: 20 }} label={`${it.pctChange > 0 ? '+' : ''}${it.pctChange}%`} />}
         </Stack>
       </AccordionSummary>
@@ -226,7 +227,7 @@ const EvoRow = ({ it, defaultExpanded }: { it: EvoItem; defaultExpanded?: boolea
                     const d = payload[0].payload as { v: number; date: string; flag: string };
                     return (
                       <Box sx={{ bgcolor: 'background.paper', border: `1px solid ${lineColor}`, borderRadius: 1.5, px: 1.25, py: 0.75, boxShadow: 2 }}>
-                        <Typography sx={{ fontWeight: 800, color: lineColor, lineHeight: 1.1 }}>{d.v}{it.unit ? ` ${it.unit}` : ''}</Typography>
+                        <Typography sx={{ fontWeight: 800, color: lineColor, lineHeight: 1.1 }}>{d.v} {it.unit ? <UnitLabel unit={it.unit} /> : null}</Typography>
                         <Typography variant="caption" sx={{ color: 'text.secondary' }}>{d.date}</Typography>
                         {(() => {
                           // Status TRADUZIDO (nunca 'UNKNOWN' cru — antes aparecia "unknown" no tooltip).
