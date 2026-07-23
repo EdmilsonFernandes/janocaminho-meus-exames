@@ -1,13 +1,18 @@
-import { Box, Button, Card, CardContent, Chip, Skeleton, Stack, Typography } from '@mui/material';
+import { Box, Button, Card, CardContent, IconButton, Popover, Skeleton, Stack, Typography } from '@mui/material';
 import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
 import FavoriteIcon from '@mui/icons-material/Favorite';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { useEffect, useState } from 'react';
 import { DrExame } from '../DrExame';
 
 // Componente mais importante do app. Gauge SEMICIRCULAR (meio-arco) em SVG + info LADO A LADO
 // (compacto, sem quebrar — preenche a largura do card, igual à referência).
 const scoreColor = (s: number) => (s >= 80 ? '#059669' : s >= 60 ? '#f59e0b' : '#ef4444');
-const badgeFor = (s: number) => (s >= 80 ? 'Excelente' : s >= 60 ? 'Bom' : 'Atenção');
+// Veredito em linguagem simples — o HERÓI do card. Leigo entende "Em boa forma", não "76".
+const verdictFor = (s: number) =>
+  s >= 80 ? { emoji: '🌟', text: 'Excepcional', color: '#059669' }
+  : s >= 60 ? { emoji: '👍', text: 'Em boa forma', color: '#f59e0b' }
+  : { emoji: '⚠️', text: 'Precisa de atenção', color: '#ef4444' };
 const descFor = (s: number, n: number) =>
   s >= 80 ? 'A maioria dos seus valores está dentro da faixa.'
   : s >= 60 ? 'Alguns valores merecem atenção — comente com seu médico.'
@@ -48,9 +53,10 @@ const Gauge = ({ value, color }: { value: number; color: string }) => {
   );
 };
 
-export const HealthScoreCard = ({ loaded, score, abnormalCount, onDetails }: { loaded: boolean; score: number | null; abnormalCount: number; onDetails: () => void }) => {
+export const HealthScoreCard = ({ loaded, score, abnormalCount, markerCount, onDetails }: { loaded: boolean; score: number | null; abnormalCount: number; markerCount?: number; onDetails: () => void }) => {
   // Score counter animation (0→score no mount) — sensação premium
   const [displayScore, setDisplayScore] = useState(0);
+  const [help, setHelp] = useState<HTMLElement | null>(null); // balão "o que é o score?"
   useEffect(() => {
     if (score == null || score === 0) return;
     setDisplayScore(0);
@@ -97,33 +103,48 @@ export const HealthScoreCard = ({ loaded, score, abnormalCount, onDetails }: { l
     );
   }
   const color = scoreColor(score);
+  const verdict = verdictFor(score);
   return (
     <Card sx={{ mt: 3, position: 'relative', overflow: 'hidden', background: 'linear-gradient(135deg, rgba(32,178,170,.10), rgba(32,178,170,.03))', border: '1px solid', borderColor: 'divider', boxShadow: `0 10px 30px ${color}1a`, transition: 'box-shadow .5s ease' }}>
       <FavoriteIcon sx={{ position: 'absolute', right: -18, top: -14, fontSize: 150, color: 'primary.main', opacity: 0.05, pointerEvents: 'none', transform: 'rotate(-12deg)' }} />
       <CardContent sx={{ position: 'relative' }}>
-        {/* gauge + info LADO A LADO (sem wrap — preenche a largura) */}
+        {/* Cabeçalho: "Score de Saúde" + (?) ajuda — explica o que é esse número pro leigo */}
+        <Stack direction="row" alignItems="center" sx={{ mb: 1.25 }}>
+          <MonitorHeartIcon sx={{ color: 'primary.main', fontSize: 18, mr: 0.75 }} />
+          <Typography variant="overline" sx={{ lineHeight: 1, color: 'text.secondary', fontSize: { xs: 10, sm: 11 } }}>Score de Saúde</Typography>
+          <IconButton size="small" onClick={(e) => setHelp(e.currentTarget)} sx={{ ml: 'auto', p: 0.25, color: 'primary.main' }} aria-label="O que é o Score de Saúde?" title="O que é o Score de Saúde?"><HelpOutlineIcon sx={{ fontSize: 16 }} /></IconButton>
+        </Stack>
+        {/* gauge + VEREDITO (herói) lado a lado. O número 76 apoia; a frase é o que se entende "batendo o olho". */}
         <Stack direction="row" alignItems="center" gap={{ xs: 1.5, sm: 2.5 }} sx={{ flexWrap: 'nowrap' }}>
-          <Box sx={{ position: 'relative', width: { xs: 130, sm: 150 }, height: { xs: 130, sm: 150 }, flexShrink: 0 }}>
+          <Box sx={{ position: 'relative', width: { xs: 118, sm: 138 }, height: { xs: 118, sm: 138 }, flexShrink: 0 }}>
             <Gauge value={score} color={color} />
             <Box sx={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-              <Typography sx={{ fontWeight: 800, fontSize: { xs: 34, sm: 42 }, lineHeight: 1, color: 'text.primary' }}>{displayScore}</Typography>
+              <Typography sx={{ fontWeight: 800, fontSize: { xs: 28, sm: 36 }, lineHeight: 1, color: 'text.primary' }}>{displayScore}</Typography>
               <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1, fontSize: { xs: 9, sm: 11 } }}>de 100</Typography>
             </Box>
           </Box>
           <Box sx={{ flex: '1 1 0', minWidth: 0 }}>
-            <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 0.5 }}>
-              <MonitorHeartIcon sx={{ color: 'primary.main', fontSize: 18 }} />
-              <Typography variant="overline" sx={{ lineHeight: 1, color: 'text.secondary', fontSize: { xs: 9, sm: 11 } }}>Score de Saúde</Typography>
-            </Stack>
-            <Chip label={badgeFor(score)} size="small" sx={{ bgcolor: color, color: '#fff', fontWeight: 800, mb: 0.75, height: 22, fontSize: 11 }} />
-            <Typography variant="body2" sx={{ mb: 0.5, color: 'text.primary', fontSize: { xs: 12.5, sm: 14 }, lineHeight: 1.35 }}>{descFor(score, abnormalCount)}</Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: 10, sm: 11 } }}>{abnormalCount > 0 ? `${abnormalCount} valor(es) fora da faixa.` : 'Nenhum fora da faixa.'}</Typography>
-            <Box sx={{ mt: 1 }}>
-              <Button variant="contained" size="small" onClick={onDetails} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, fontSize: 12, py: 1.1, boxShadow: 'none' }}>Ver detalhes</Button>
-            </Box>
+            <Typography sx={{ fontWeight: 800, fontSize: { xs: 17, sm: 20 }, lineHeight: 1.15, color: verdict.color, fontFamily: '"Poppins",sans-serif' }}>{verdict.emoji} {verdict.text}</Typography>
+            <Typography variant="body2" sx={{ mt: 0.5, color: 'text.primary', fontSize: { xs: 12.5, sm: 13.5 }, lineHeight: 1.4 }}>{descFor(score, abnormalCount)}</Typography>
           </Box>
         </Stack>
+        {/* TRANSPARÊNCIA: baseado em quê? + disclaimer — constrói confiança (sem isso, 76 parece inventado). */}
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5, fontSize: { xs: 10.5, sm: 11.5 }, lineHeight: 1.45 }}>
+          Baseado em {markerCount ? `${markerCount} ` : ''}marcadores dos seus exames mais recentes. *Educativo — não substitui avaliação médica.
+        </Typography>
+        <Box sx={{ mt: 1.25 }}>
+          <Button variant="contained" size="small" onClick={onDetails} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, fontSize: 12, py: 1.1, px: 2.5, boxShadow: 'none' }}>Ver detalhes →</Button>
+        </Box>
       </CardContent>
+      {/* Balão de ajuda: o que é o Score de Saúde (pra quem não faz ideia do que seja o "76"). */}
+      <Popover open={!!help} anchorEl={help} onClose={() => setHelp(null)} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} transformOrigin={{ vertical: 'top', horizontal: 'right' }} slotProps={{ paper: { sx: { maxWidth: 340, borderRadius: 3, mt: 0.5 } } }}>
+        <Box sx={{ p: 2, maxWidth: 340 }}>
+          <Typography sx={{ fontWeight: 800, color: 'primary.dark', fontSize: '1.05rem' }}>O que é o Score de Saúde?</Typography>
+          <Typography variant="body2" sx={{ mt: 0.5, lineHeight: 1.5 }}>É um termômetro educativo calculado a partir dos seus exames: a proporção de marcadores <b>dentro da faixa de referência</b>. Quanto mais perto de 100, mais resultados dentro do esperado.</Typography>
+          <Typography variant="body2" sx={{ mt: 1, lineHeight: 1.5 }}>Não é diagnóstico nem mede "saúde em geral" — só reflete os exames enviados nos últimos 12 meses.</Typography>
+          <Typography variant="caption" sx={{ display: 'block', mt: 1.5, color: 'text.secondary' }}>*Sempre confirme com seu médico.</Typography>
+        </Box>
+      </Popover>
     </Card>
   );
 };

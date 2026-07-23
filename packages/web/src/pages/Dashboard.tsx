@@ -156,6 +156,7 @@ export const Dashboard = () => {
   const [buckets, setBuckets] = useState<{ bons: number; alerta: number; alterados: number }>({ bons: 0, alerta: 0, alterados: 0 });
   const [hsScore, setHsScore] = useState<number | null>(null);
   const [hsAltered, setHsAltered] = useState<number>(0);
+  const [markerCount, setMarkerCount] = useState<number>(0);
   const [cardioRisk, setCardioRisk] = useState<{ level: string; score: number; factors: { label: string; risk: boolean }[] } | null>(null);
   const [credits, setCredits] = useState<number | null>(null);
   const [me, setMe] = useState<any>(null);
@@ -209,6 +210,7 @@ export const Dashboard = () => {
             }
             setHsAltered((hd.byPriority?.importante ?? 0) + (hd.byPriority?.moderada ?? 0));
             setCardioRisk(hd.cardiometabolicRisk ?? null);
+            setMarkerCount(typeof hd.markers === 'number' ? hd.markers : 0);
             // Fallback da dica: sempre RELEVANTE (sobre os exames do paciente), nunca genérico
             // "beba água". Quando não há marcador de atenção (topAttention vazio — ex.: alterados
             // são antigos/stale), prioriza o aviso de exames desatualizados ou o score.
@@ -258,7 +260,7 @@ export const Dashboard = () => {
       <FailedExamsAlert count={failed} onClick={() => navigate('/exams')} />
 
       {/* 1 · HERO — Score de Saúde */}
-      <HealthScoreCard loaded={loaded} score={score} abnormalCount={hsAltered || stats.abnormal} onDetails={() => navigate('/tendencias')} />
+      <HealthScoreCard loaded={loaded} score={score} abnormalCount={hsAltered || stats.abnormal} markerCount={markerCount} onDetails={() => navigate('/tendencias')} />
       <NextBestActionCard
         loaded={loaded}
         exams={stats.exams}
