@@ -82,7 +82,7 @@ const TYPOGRAPHY = {
  * (400/480/520/.../1080). ADITIVO — não altera nada existente, só centraliza.
  */
 export const LAYOUT = {
-  content: 720,  // páginas de conteúdo/config/listas (ExamList, Profile, Plans, Medicos…)
+  content: 1280, // páginas de conteúdo/config/listas — preenche a área no desktop (mobile continua 100%). Antes 720 = "fininho" vs dashboard wide.
   wide: 1440,    // data-heavy (Dashboard, Trends, ValoresAlterados, ExamShow) — preenche a área de conteúdo no desktop (shell centrado em 1728 → área ~1488px). Mobile continua 100%.
   narrow: 480,   // cartão único (EmergencyCard)
   // OBS: o padding inferior (clearance da MobileBottomNav) é responsabilidade do SHELL

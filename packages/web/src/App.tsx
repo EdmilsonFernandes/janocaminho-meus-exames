@@ -414,8 +414,10 @@ const AppLayout = (props: any) => {
       {/* gap reduzido + espaço pra não cobrir conteúdo com o menu rodapé (mobile) */}
       <Layout {...props} menu={AppMenu} appBar={CustomAppBar}
         sx={{
-          // Esconde o ☰ nativo do react-admin no mobile (vamos usar nosso AppDrawer unificado). Desktop mantém.
-          '& .RaAppBar-menuButton': { display: { xs: 'none', sm: 'inline-flex' } },
+          // Esconde o ☰ nativo do react-admin (menuButton). Mobile usa o AppDrawer (☰ do CustomAppBar);
+          // Desktop NÃO tem toggle — a Sidebar fica sempre aberta (useSidebarState força). Antes o ☰ no desktop
+          // colapsava a Sidebar p/ um rail estreito e o AppMenu (c/ texto) era "esmagado" mostrando parte dos itens.
+          '& .RaAppBar-menuButton': { display: 'none' },
           // TRAVA o frame na largura do viewport no mobile. O react-admin põe min-width:fit-content no
           // .layout (pensando na sidebar de desktop) — no mobile isso deixa o frame inflar além do
           // viewport (ex.: admin com 5 Tabs de 90px = 450px + AppBar) e CLIPA a direita (overflow hidden
