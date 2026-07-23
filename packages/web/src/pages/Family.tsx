@@ -2,11 +2,17 @@ import { useEffect, useState } from 'react';
 import { useTranslate } from 'react-admin';
 import { Box, Card, CardContent, Typography, CircularProgress, Grid, Stack, Chip, Avatar, Alert, AlertTitle, Skeleton, Button } from '@mui/material';
 import Diversity3Icon from '@mui/icons-material/Diversity3';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import { useNavigate } from 'react-router-dom';
 import { API_URL, token, photoUrlFor } from '../config';
 import { ExplainButton } from '../components/ExplainItem';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
 import { DrExame } from '../components/DrExame';
+import { setSelectedPatient } from '../patient-context';
 
 interface FamPatient {
   id: string; fullName: string; relationship: string | null; photoUrl: string | null;
@@ -20,6 +26,7 @@ const fmtDate = (d: string | null) => (d ? new Date(d).toLocaleDateString('pt-BR
 
 export const FamilyPage = () => {
   const translate = useTranslate();
+  const navigate = useNavigate();
   const [data, setData] = useState<{ patients: FamPatient[]; crossAlerts: CrossAlert[] } | null>(null);
   const [loading, setLoading] = useState(true);
   const [cmp, setCmp] = useState<any[]>([]);
@@ -90,7 +97,9 @@ export const FamilyPage = () => {
       <Grid container spacing={2}>
         {ranked.map((p, idx) => (
           <Grid key={p.id} size={{ xs: 12, md: 6 }}>
-            <Card variant="outlined" sx={{ borderRadius: 4, height: '100%', ...(idx === 0 && p.score != null ? { borderColor: '#d4a574', borderWidth: 2 } : {}) }}>
+            <Card variant="outlined" onClick={() => { setSelectedPatient(p.id); navigate('/'); }} role="button" tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedPatient(p.id); navigate('/'); } }}
+              sx={{ height: '100%', cursor: 'pointer', transition: 'border-color .15s ease, box-shadow .2s ease', '&:hover': { borderColor: 'primary.main', boxShadow: '0 6px 18px rgba(32,178,170,.14)' }, ...(idx === 0 && p.score != null ? { borderColor: '#d4a574', borderWidth: 2 } : {}) }}>
               <CardContent>
                 {idx === 0 && p.score != null && (
                   <Chip size="small" label="🥇 Melhor score da família" sx={{ mb: 1, bgcolor: 'rgba(212,165,116,.2)', color: '#b88a54', fontWeight: 700 }} />
@@ -102,7 +111,13 @@ export const FamilyPage = () => {
                     {p.relationship && <Chip size="small" label={p.relationship} variant="outlined" />}
                   </Box>
                   <Box sx={{ textAlign: 'center', ml: 'auto' }}>
-                    <Typography variant="h4" sx={{ fontWeight: 800, color: scoreColor(p.score), lineHeight: 1 }}>{p.score ?? '—'}</Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
+                      {p.score != null && (() => {
+                        const Icon = p.score >= 80 ? CheckCircleIcon : p.score >= 60 ? WarningAmberIcon : ErrorOutlineIcon;
+                        return <Icon sx={{ color: scoreColor(p.score), fontSize: 20 }} />;
+                      })()}
+                      <Typography variant="h4" sx={{ fontWeight: 800, color: scoreColor(p.score), lineHeight: 1 }}>{p.score ?? '—'}</Typography>
+                    </Box>
                     <Typography variant="caption" color="text.secondary">/100</Typography>
                   </Box>
                 </Stack>
@@ -121,6 +136,10 @@ export const FamilyPage = () => {
                     {p.topAbnormal.map((a, i) => <Chip key={i} size="small" color="error" variant="outlined" label={a.name} />)}
                   </Stack>
                 )}
+                <Stack direction="row" alignItems="center" justifyContent="flex-end" spacing={0.5} sx={{ mt: 1.5, color: 'primary.main' }}>
+                  <Typography variant="caption" sx={{ fontWeight: 700 }}>Ver painel</Typography>
+                  <ChevronRightIcon fontSize="small" />
+                </Stack>
               </CardContent>
             </Card>
           </Grid>

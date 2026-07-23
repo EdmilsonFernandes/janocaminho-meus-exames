@@ -84,11 +84,11 @@ export const PatientSwitcher = () => {
           '& .MuiButton-startIcon': { mr: { xs: 0, sm: 0.5 } },
         }}
         startIcon={
-          <Avatar src={photoFor(current)} sx={{ width: 40, height: 40, bgcolor: 'primary.main', fontSize: 16, fontWeight: 700, boxShadow: '0 0 0 2px rgba(255,255,255,.95), 0 3px 8px rgba(0,0,0,.28)' }}>
+          <Avatar src={photoFor(current)} sx={{ width: 44, height: 44, bgcolor: 'primary.main', fontSize: 16, fontWeight: 700, boxShadow: '0 0 0 2px rgba(255,255,255,.95), 0 3px 8px rgba(0,0,0,.28)' }}>
             {current?.fullName?.charAt(0)?.toUpperCase()}
           </Avatar>
         }
-        endIcon={<KeyboardArrowDownIcon sx={{ opacity: 0.6, display: { xs: 'none', sm: 'block' } }} />}
+        endIcon={<KeyboardArrowDownIcon sx={{ opacity: 0.6 }} />}
       >
         <Box sx={{ display: { xs: 'none', sm: 'flex' }, flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.15, overflow: 'hidden' }}>
           <Typography component="span" sx={{ fontSize: 13, fontWeight: 700, maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
