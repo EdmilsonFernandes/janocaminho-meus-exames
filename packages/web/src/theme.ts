@@ -31,6 +31,9 @@ const BRAND = {
   warning: { main: '#f59e0b', contrastText: '#fff' },
   error: { main: '#ef4444', contrastText: '#fff' },
   info: { main: '#0ea5e9' },
+  // Premium (Dr. Exame Pro / acentos "especiais") — indigo. Antes espalhado como #6366f1/#4f46e5
+  // em vários componentes (BiologicalAge, DoctorPortal, NextBestAction). Centralizado p/ consistência.
+  premium: { main: '#6366f1', dark: '#4f46e5', light: '#818cf8', contrastText: '#fff' },
 };
 
 // Sombras com tom teal. No dark, sombras mais profundas/escuras ficam melhor.

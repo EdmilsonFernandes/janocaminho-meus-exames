@@ -26,7 +26,7 @@ export const CardiometabolicRiskCard = () => {
   const meta = RISK_META[risk.level as keyof typeof RISK_META] || RISK_META.baixo;
 
   return (
-    <Card sx={{ mt: 2, borderRadius: 4, background: `linear-gradient(135deg, ${meta.bg}, transparent)`, border: '1px solid', borderColor: meta.color + '30' }}>
+    <Card sx={{ mt: 2, background: `linear-gradient(135deg, ${meta.bg}, transparent)`, border: '1px solid', borderColor: meta.color + '30' }}>
       <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
         <Stack direction="row" alignItems="center" spacing={2}>
           <Box sx={{ fontSize: 36, lineHeight: 1 }}>{meta.emoji}</Box>

@@ -9,5 +9,7 @@
   "profile.complete.ethnicityPreferNot": "Prefer not to say",
   "profile.complete.dob": "Date of birth",
   "profile.complete.skip": "Not now",
-  "profile.complete.save": "Save"
+  "profile.complete.save": "Save",
+  "page.family": "Family",
+  "page.family_sub": "Each dependent's health and shared patterns — care for those you love."
 }

@@ -58,7 +58,7 @@ export const CurrentStateCard = () => {
 
   if (loading) {
     return (
-      <Card sx={{ mt: 2, borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
+      <Card sx={{ mt: 2, border: '1px solid', borderColor: 'divider' }}>
         <CardContent>
           <Stack direction="row" spacing={1.2} alignItems="center" sx={{ mb: 1.5 }}>
             <Skeleton variant="circular" width={24} height={24} />
@@ -71,7 +71,7 @@ export const CurrentStateCard = () => {
   }
   if (!s || s.markers === 0) {
     return (
-      <Card sx={{ mt: 2, borderRadius: 4, border: '1px solid', borderColor: 'divider', background: 'linear-gradient(135deg, rgba(32,178,170,.08), rgba(32,178,170,.02))' }}>
+      <Card sx={{ mt: 2, border: '1px solid', borderColor: 'divider', background: 'linear-gradient(135deg, rgba(32,178,170,.08), rgba(32,178,170,.02))' }}>
         <CardContent>
           <Stack direction="row" spacing={1.2} alignItems="center">
             <MonitorHeartIcon sx={{ color: 'primary.main' }} />
@@ -91,7 +91,7 @@ export const CurrentStateCard = () => {
   const top = s.topAttention.slice(0, 3);
 
   return (
-    <Card sx={{ mt: 2, borderRadius: 4, border: '1px solid', borderColor: 'divider', background: 'linear-gradient(135deg, rgba(32,178,170,.08), rgba(32,178,170,.02))' }}>
+    <Card sx={{ mt: 2, border: '1px solid', borderColor: 'divider', background: 'linear-gradient(135deg, rgba(32,178,170,.08), rgba(32,178,170,.02))' }}>
       <CardContent>
         <Stack direction="row" spacing={1.2} alignItems="center" sx={{ mb: 1.25 }}>
           <MonitorHeartIcon sx={{ color: 'primary.main' }} />

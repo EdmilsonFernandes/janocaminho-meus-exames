@@ -14,7 +14,7 @@ export const DistributionCard = ({ buckets }: { buckets: { bons: number; alerta:
   return (
     <Grid container spacing={2} sx={{ mb: 2 }}>
       <Grid size={{ xs: 12 }}>
-        <Card sx={{ height: '100%', borderRadius: 4 }}><CardContent>
+        <Card sx={{ height: '100%' }}><CardContent>
           <Typography variant="h6" sx={{ fontWeight: 700 }}>Distribuição dos valores</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>Últimos exames extraídos deste perfil.</Typography>
           {totalVals === 0 ? (

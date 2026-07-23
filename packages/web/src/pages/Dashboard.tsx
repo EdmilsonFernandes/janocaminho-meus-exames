@@ -14,7 +14,6 @@ import { AiTip } from '../components/dashboard/AiTip';
 import { HealthScoreCard } from '../components/dashboard/HealthScoreCard';
 import { CurrentStateCard } from '../components/dashboard/CurrentStateCard';
 import { RiskCard } from '../components/dashboard/RiskCard';
-import { InsightsCards } from '../components/dashboard/InsightsCards';
 import { AiCard } from '../components/dashboard/AiCard';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
@@ -283,7 +282,7 @@ export const Dashboard = () => {
           cardiometabólico, distribuição) num acordeão COLAPSADO por padrão. Antes ficavam
           soltos e competiam (dashboard "poluído"). Agora: quem quer aprofundar, expande.
           NENHUMA funcionalidade perdida — tudo continua aqui, só organizado. */}
-      <Accordion disableGutters elevation={0} defaultExpanded sx={{ mt: 1, '&:before': { display: 'none' }, border: '1px solid', borderColor: 'divider', borderRadius: '16px !important', overflow: 'hidden' }}>
+      <Accordion disableGutters elevation={0} defaultExpanded={false} sx={{ mt: 1, '&:before': { display: 'none' }, border: '1px solid', borderColor: 'divider', borderRadius: '16px !important', overflow: 'hidden' }}>
         <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '52px !important', '& .MuiAccordionSummary-content': { my: 0.75 } }}>
           <Stack direction="row" spacing={1} alignItems="center">
             <ScienceIcon sx={{ color: '#178f89', fontSize: 20 }} />
@@ -310,8 +309,8 @@ export const Dashboard = () => {
         <Grid container spacing={2}>
           <MetricCard label="Exames enviados" value={stats.exams} color="primary.main" icon={<MedicalServicesIcon />} onClick={() => navigate('/exams')} />
           <MetricCard label="Valores alterados" value={stats.abnormal} color={stats.abnormal ? 'error.main' : 'success.main'} icon={<WarningAmberIcon />} onClick={() => navigate('/alterados')} />
-          <MetricCard label="Dependentes" value={deps} color="#8b5cf6" icon={<Diversity3Icon />} onClick={() => navigate('/familia')} />
-          <MetricCard label="Última atualização" value={lastExam ? new Date(lastExam).toLocaleDateString('pt-BR') : '—'} color="#0ea5e9" icon={<EventAvailableIcon />} onClick={() => navigate('/linha-do-tempo')} />
+          <MetricCard label="Dependentes" value={deps} color="secondary.main" icon={<Diversity3Icon />} onClick={() => navigate('/familia')} />
+          <MetricCard label="Última atualização" value={lastExam ? new Date(lastExam).toLocaleDateString('pt-BR') : '—'} color="info.main" icon={<EventAvailableIcon />} onClick={() => navigate('/linha-do-tempo')} />
         </Grid>
       </Section>
 

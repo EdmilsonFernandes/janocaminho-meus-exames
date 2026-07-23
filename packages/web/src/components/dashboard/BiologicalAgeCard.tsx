@@ -33,7 +33,7 @@ export const BiologicalAgeCard = () => {
 
   return (
     <>
-    <Card sx={{ mt: 2, borderRadius: 4, background: 'linear-gradient(135deg, rgba(99,102,241,.08), rgba(99,102,241,.02))', border: '1px solid', borderColor: 'rgba(99,102,241,.2)' }}>
+    <Card sx={{ mt: 2, background: 'linear-gradient(135deg, rgba(99,102,241,.08), rgba(99,102,241,.02))', border: '1px solid', borderColor: 'rgba(99,102,241,.2)' }}>
       <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Box sx={{ fontSize: 40, lineHeight: 1 }}>🧬</Box>

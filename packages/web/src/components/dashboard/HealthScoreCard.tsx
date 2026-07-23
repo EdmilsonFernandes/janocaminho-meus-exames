@@ -64,7 +64,7 @@ export const HealthScoreCard = ({ loaded, score, abnormalCount, onDetails }: { l
   if (!loaded && score === null) {
     // Skeleton (perceived speed 2-3× maior que spinner solto — padrão apps premium).
     return (
-      <Card sx={{ mt: 3, borderRadius: 4, overflow: 'hidden' }}>
+      <Card sx={{ mt: 3, overflow: 'hidden' }}>
         <CardContent>
           <Stack direction="row" alignItems="center" gap={2.5}>
             <Skeleton variant="circular" sx={{ width: { xs: 130, sm: 150 }, height: { xs: 130, sm: 150 } }} />
@@ -84,7 +84,7 @@ export const HealthScoreCard = ({ loaded, score, abnormalCount, onDetails }: { l
     // Usuário novo sem exames: NÃO some (antes `return null` deixava BURACO no hero). Onboarding
     // acolhedor com o mascote Dr. Exame + CTA pro 1º exame.
     return (
-      <Card sx={{ mt: 3, borderRadius: 4, overflow: 'hidden', background: 'linear-gradient(135deg, rgba(32,178,170,.10), rgba(32,178,170,.03))', border: '1px solid', borderColor: 'divider' }}>
+      <Card sx={{ mt: 3, overflow: 'hidden', background: 'linear-gradient(135deg, rgba(32,178,170,.10), rgba(32,178,170,.03))', border: '1px solid', borderColor: 'divider' }}>
         <CardContent sx={{ textAlign: 'center', py: 4 }}>
           <Box sx={{ width: 88, height: 88, mx: 'auto', mb: 1.5, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle at 50% 40%, rgba(32,178,170,.22), rgba(32,178,170,.05) 70%)' }}>
             <DrExame size={54} sx={{ borderRadius: '50%' }} />
@@ -98,7 +98,7 @@ export const HealthScoreCard = ({ loaded, score, abnormalCount, onDetails }: { l
   }
   const color = scoreColor(score);
   return (
-    <Card sx={{ mt: 3, position: 'relative', overflow: 'hidden', borderRadius: 4, background: 'linear-gradient(135deg, rgba(32,178,170,.10), rgba(32,178,170,.03))', border: '1px solid', borderColor: 'divider' }}>
+    <Card sx={{ mt: 3, position: 'relative', overflow: 'hidden', background: 'linear-gradient(135deg, rgba(32,178,170,.10), rgba(32,178,170,.03))', border: '1px solid', borderColor: 'divider' }}>
       <FavoriteIcon sx={{ position: 'absolute', right: -18, top: -14, fontSize: 150, color: 'primary.main', opacity: 0.05, pointerEvents: 'none', transform: 'rotate(-12deg)' }} />
       <CardContent sx={{ position: 'relative' }}>
         {/* gauge + info LADO A LADO (sem wrap — preenche a largura) */}

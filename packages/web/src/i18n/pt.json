@@ -37,5 +37,7 @@
   "menu.admin": "Administração",
   "menu.support": "Ajuda & Suporte",
   "menu.about": "Sobre o app",
-  "menu.logout": "Sair da conta"
+  "menu.logout": "Sair da conta",
+  "page.family": "Família",
+  "page.family_sub": "A saúde de cada dependente e padrões em comum — cuide de quem você ama."
 }

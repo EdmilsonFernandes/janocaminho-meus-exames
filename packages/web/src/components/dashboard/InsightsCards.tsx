@@ -43,7 +43,7 @@ export const InsightsCards = () => {
   }, [pid]);
 
   if (loading) return (
-    <Card sx={{ mt: 2, borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
+    <Card sx={{ mt: 2, border: '1px solid', borderColor: 'divider' }}>
       <CardContent>
         <Stack direction="row" spacing={1.2} alignItems="center" sx={{ mb: 1.5 }}>
           <Skeleton variant="circular" width={24} height={24} />
@@ -61,7 +61,7 @@ export const InsightsCards = () => {
   return (
     <>
       {/* SCORE DE ADESÃO */}
-      <Card sx={{ mt: 2, borderRadius: 4, border: '1px solid', borderColor: 'divider', background: `linear-gradient(135deg, ${meta.color}0d, ${meta.color}03)` }}>
+      <Card sx={{ mt: 2, border: '1px solid', borderColor: 'divider', background: `linear-gradient(135deg, ${meta.color}0d, ${meta.color}03)` }}>
         <CardContent>
           <Stack direction="row" spacing={1.2} alignItems="center" sx={{ mb: 1.5 }}>
             <EmojiEventsIcon sx={{ color: meta.color }} />
@@ -95,7 +95,7 @@ export const InsightsCards = () => {
 
       {/* ALERTA PREDITIVO */}
       {data.predictions.length > 0 && (
-        <Card sx={{ mt: 2, borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
+        <Card sx={{ mt: 2, border: '1px solid', borderColor: 'divider' }}>
           <CardContent>
             <Stack direction="row" spacing={1.2} alignItems="center" sx={{ mb: 1 }}>
               <TrendingUpIcon sx={{ color: '#7b1fa2' }} />

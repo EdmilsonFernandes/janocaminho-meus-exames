@@ -73,6 +73,7 @@ export const RiskCard = () => {
   const explanationRef = useRef<HTMLParagraphElement>(null);
   const [hasMoreExplanation, setHasMoreExplanation] = useState(false);
   const [plan, setPlan] = useState<string | null>(null);
+  const [showPlan, setShowPlan] = useState(false); // plano JÁ gerado fica MINIMIZADO; expande ao clicar. Recém-gerado expande sozinho.
   const [planLoading, setPlanLoading] = useState(false);
   const [planErr, setPlanErr] = useState<null | 'credits' | 'error'>(null);
   const [feedback, setFeedback] = useState<null | 1 | 0>(null);
@@ -80,7 +81,7 @@ export const RiskCard = () => {
 
   // Reset estados derivados do paciente anterior ao trocar de perfil — não vazar
   // plano/feedback de um dependente (ex: Edmilson) pra outro (ex: Heloisa).
-  useEffect(() => { setPlan(null); setPlanErr(null); setFeedback(null); setShowQuestions(false); setShowFull(false); setHasMoreExplanation(false); }, [pid]);
+  useEffect(() => { setPlan(null); setPlanErr(null); setFeedback(null); setShowQuestions(false); setShowFull(false); setHasMoreExplanation(false); setShowPlan(false); }, [pid]);
 
   // Ao abrir: busca o ÚLTIMO plano salvo (GRÁTIS — /latest). Só cobra de novo no botão "Gerar novo".
   useEffect(() => {
@@ -120,7 +121,7 @@ export const RiskCard = () => {
         if (!res.ok) { setPlanErr('error'); return null; }
         return res.json();
       })
-      .then((d) => { if (d?.contentMd) { setPlan(d.contentMd); bumpCredits(); } })   // atualiza o saldo do header (plano consome)
+      .then((d) => { if (d?.contentMd) { setPlan(d.contentMd); setShowPlan(true); bumpCredits(); } })   // recém-gerado: EXPANDE p/ o user ver (o já-existente do /latest fica minimizado)
       .catch(() => setPlanErr('error'))
       .finally(() => setPlanLoading(false));
   }, [pid, planLoading]);
@@ -174,7 +175,7 @@ export const RiskCard = () => {
 
   if (loading) {
     return (
-      <Card sx={{ mt: 2, borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
+      <Card sx={{ mt: 2, border: '1px solid', borderColor: 'divider' }}>
         <CardContent>
           <Stack direction="row" spacing={1.2} alignItems="center" sx={{ mb: 1.5 }}>
             <Skeleton variant="circular" width={24} height={24} />
@@ -191,7 +192,7 @@ export const RiskCard = () => {
   // Sem dados (paciente sem exames extraídos com os marcadores do escopo)
   if (!r || r.markersEvaluated === 0) {
     return (
-      <Card sx={{ mt: 2, borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
+      <Card sx={{ mt: 2, border: '1px solid', borderColor: 'divider' }}>
         <CardContent>
           <Stack direction="row" spacing={1.2} alignItems="center">
             <HealthAndSafetyIcon sx={{ color: 'primary.main' }} />
@@ -210,7 +211,7 @@ export const RiskCard = () => {
 
   return (
     <Card sx={{
-      mt: 2, borderRadius: 4, border: '1px solid', borderColor: 'divider',
+      mt: 2, border: '1px solid', borderColor: 'divider',
       background: none
         ? 'linear-gradient(135deg, rgba(22,163,74,.08), rgba(22,163,74,.02))'
         : `linear-gradient(135deg, ${meta.color}14, ${meta.color}05)`,
@@ -368,30 +369,36 @@ export const RiskCard = () => {
         {planErr === 'error' && (
           <Typography variant="caption" sx={{ color: 'error.main', display: 'block', textAlign: 'center' }}>Não foi possível gerar agora. Tente novamente em instantes.</Typography>
         )}
+        {/* PLANO JÁ GERADO: MINIMIZADO por padrão (não incha o card), expande ao clicar — igual às perguntas ao médico.
+            Recém-gerado (loadPlan) expande sozinho p/ o user ver na hora. */}
         {plan && (
-          <Box sx={{ mt: 1, p: 1.25, borderRadius: 2, bgcolor: 'action.hover' }}>
-            <Typography sx={{ fontWeight: 800, mb: 0.5, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <AutoStoriesIcon fontSize="small" /> Plano de ação do Dr. Exame
-            </Typography>
-            <Box className="risk-plan-md" sx={{ '& p': { my: 0.5, lineHeight: 1.45 }, '& ul': { pl: 2.5, my: 0.5 }, '& li': { my: 0.25 }, fontSize: '0.9rem' }}>
-              <ReactMarkdown>{plan}</ReactMarkdown>
-            </Box>
+          <Box sx={{ mt: 1 }}>
+            <Button fullWidth size="small" onClick={() => setShowPlan((v) => !v)}
+              startIcon={<AutoStoriesIcon fontSize="small" />}
+              endIcon={<ExpandMoreIcon sx={{ transform: showPlan ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }} />}
+              sx={{ justifyContent: 'space-between', py: 0.9, px: 1.25, textTransform: 'none', fontWeight: 800, color: 'primary.main', borderRadius: 2, bgcolor: 'action.hover' }}>
+              Plano de ação do Dr. Exame
+            </Button>
+            <Collapse in={showPlan}>
+              <Box sx={{ p: 1.25, borderRadius: 2, bgcolor: 'action.hover' }}>
+                <Box className="risk-plan-md" sx={{ '& p': { my: 0.5, lineHeight: 1.45 }, '& ul': { pl: 2.5, my: 0.5 }, '& li': { my: 0.25 }, fontSize: '0.9rem' }}>
+                  <ReactMarkdown>{plan}</ReactMarkdown>
+                </Box>
+              </Box>
+              {/* FEEDBACK: isso ajudou? (loop de melhoria da IA — grátis) */}
+              {feedback == null ? (
+                <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" sx={{ mt: 1 }}>
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>Isso ajudou?</Typography>
+                  <Button size="small" disabled={feedbackLoading} onClick={() => sendFeedback(1)} sx={{ minWidth: 0, px: 1.5, fontSize: '1.15rem', lineHeight: 1 }}>👍</Button>
+                  <Button size="small" disabled={feedbackLoading} onClick={() => sendFeedback(0)} sx={{ minWidth: 0, px: 1.5, fontSize: '1.15rem', lineHeight: 1 }}>👎</Button>
+                </Stack>
+              ) : (
+                <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 1, color: 'text.secondary' }}>
+                  {feedback === 1 ? '👍 Obrigado! Seu retorno deixa a IA melhor a cada uso.' : 'Obrigado — vamos revisar e melhorar.'}
+                </Typography>
+              )}
+            </Collapse>
           </Box>
-        )}
-
-        {/* FEEDBACK: isso ajudou? (loop de melhoria da IA — grátis) */}
-        {plan && (
-          feedback == null ? (
-            <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" sx={{ mt: 1 }}>
-              <Typography variant="body2" sx={{ color: 'text.secondary' }}>Isso ajudou?</Typography>
-              <Button size="small" disabled={feedbackLoading} onClick={() => sendFeedback(1)} sx={{ minWidth: 0, px: 1.5, fontSize: '1.15rem', lineHeight: 1 }}>👍</Button>
-              <Button size="small" disabled={feedbackLoading} onClick={() => sendFeedback(0)} sx={{ minWidth: 0, px: 1.5, fontSize: '1.15rem', lineHeight: 1 }}>👎</Button>
-            </Stack>
-          ) : (
-            <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 1, color: 'text.secondary' }}>
-              {feedback === 1 ? '👍 Obrigado! Seu retorno deixa a IA melhor a cada uso.' : 'Obrigado — vamos revisar e melhorar.'}
-            </Typography>
-          )
         )}
 
         {/* rodapé: confiança + disclaimer */}
