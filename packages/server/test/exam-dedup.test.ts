@@ -86,6 +86,8 @@ describe('dedup de exames + análise temporal', () => {
     expect(classifyTemporal(20, false)).toBe('historico');
     expect(classifyTemporal(50, false)).toBe('antigo');
     expect(classifyTemporal(50, true)).toBe('desatualizado'); // antigo + era anormal
-    expect(classifyTemporal(null, false)).toBe('recente'); // sem data = recente (não trava)
+    // Revisão 2026-07: data de coleta ausente NÃO é 'recente' (estado atual) — antes um exame
+    // antigo sem data virava "fresco". Agora é 'historico' (conservador: não representa o agora).
+    expect(classifyTemporal(null, false)).toBe('historico');
   });
 });

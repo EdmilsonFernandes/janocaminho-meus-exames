@@ -125,3 +125,44 @@ describe('risk-engine.assessRisk', () => {
     expect(r.doctorQuestions.some((q) => q.includes('diabetes'))).toBe(true);
   });
 });
+
+// ───────── Revisão clínica 2026-07 (BioMCP: ATP-III/SBC-SBI; SBD 2025 PMID 40038723; SBC HAS PMID 38695411) ─────────
+describe('risk-rules v1.1.0 — sexo-aware HDL, LDL≥190 (FH), wording "requer confirmação"', () => {
+  it('HDL sexo-aware: mulher HDL 45 -> finding; homem HDL 45 -> sem finding', () => {
+    // ATP-III/SBC: HDL protetor mulher <50, homem <40.
+    const f = assessRisk([mk('HDL', 45, 'mg/dL')], 'female');
+    expect(f.findings.some((x) => x.condition === 'cardiovascular_risk')).toBe(true);
+    const m = assessRisk([mk('HDL', 45, 'mg/dL')], 'male');
+    expect(m.findings.some((x) => x.condition === 'cardiovascular_risk')).toBe(false);
+  });
+
+  it('HDL 55 -> sem finding em ambos os sexos', () => {
+    expect(assessRisk([mk('HDL', 55, 'mg/dL')], 'female').findings.length).toBe(0);
+    expect(assessRisk([mk('HDL', 55, 'mg/dL')], 'male').findings.length).toBe(0);
+  });
+
+  it('LDL ≥190 -> high (possível hipercolesterolemia familiar)', () => {
+    const f = assessRisk([mk('LDL', 195, 'mg/dL')]).findings.find((x) => x.condition === 'high_cholesterol');
+    expect(f).toBeTruthy();
+    expect(f!.severity).toBe('high');
+    expect(f!.finding).toContain('familiar');
+  });
+
+  it('LDL 170 continua moderate (banda 160–189)', () => {
+    const f = assessRisk([mk('LDL', 170, 'mg/dL')]).findings.find((x) => x.condition === 'high_cholesterol');
+    expect(f).toBeTruthy();
+    expect(f!.severity).toBe('moderate');
+  });
+
+  it('diabetes por glicemia isolada menciona confirmar (leitura única não diagnóstica)', () => {
+    const d = assessRisk([mk('GLICEMIA', 168, 'mg/dL')]).findings.find((x) => x.condition === 'diabetes');
+    expect(d).toBeTruthy();
+    expect(d!.finding.toLowerCase()).toContain('confirm');
+  });
+
+  it('hipertensão por PAS menciona MAPA/várias medidas (leitura única não diagnóstica)', () => {
+    const h = assessRisk([mk('PRESSAO_SISTOLICA', 150, 'mmHg')]).findings.find((x) => x.condition === 'hypertension');
+    expect(h).toBeTruthy();
+    expect(h!.finding).toMatch(/MAPA|várias medidas|aferição/i);
+  });
+});

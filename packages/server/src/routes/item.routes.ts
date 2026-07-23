@@ -4,6 +4,7 @@ import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
 import { parseListParams, setListHeaders } from '../utils/list';
 import { getOrCreateExplanation } from '../analysis/explain';
 import { collapseAdjacentNearDupes } from '../analysis/dedup';
+import { reconcileScaleFlag } from '../utils/normalize';
 
 const router = Router();
 router.use(requireAuth);
@@ -23,8 +24,12 @@ router.patch('/:id', async (req: AuthedRequest, res, next) => {
     const refHigh = b.refHigh != null ? (b.refHigh === '' || b.refHigh == null ? null : Number(b.refHigh)) : existing.refHigh;
     let flag = existing.flag; let isAbnormal = existing.isAbnormal;
     if (valueNumeric != null && refLow != null && refHigh != null) {
-      isAbnormal = valueNumeric < refLow || valueNumeric > refHigh;
-      flag = isAbnormal ? (valueNumeric > refHigh ? 'HIGH' : 'LOW') : 'NORMAL';
+      // Mesmo reconcile de escala da extração (revisão 2026-07): antes a edição manual usava só
+      // computeFlag (< / >) e divergia da extração — valor em escala conflitante (ex.: cálcio em
+      // mg% vs ref em outra escala) ficava com flag errado persistente. reconcileScaleFlag rebaixa
+      // conflitos claros a UNKNOWN (igual pipeline.ts).
+      const rec = reconcileScaleFlag(valueNumeric, refLow, refHigh, unit);
+      flag = rec.flag; isAbnormal = rec.isAbnormal;
     }
     const updated = await prisma.examItem.update({ where: { id: String(req.params.id) }, data: { valueText, valueNumeric, unit, refLow, refHigh, flag, isAbnormal } });
     res.json(updated);
@@ -194,7 +199,10 @@ router.get('/evolution', async (req: AuthedRequest, res, next) => {
       const mixedUnits = distinctUnits.size > 1;
       if (!mixedUnits && Math.abs(slope) > 0.0001 && (Math.abs(slope) * 365) / span > 0.02) dir = slope > 0 ? 'up' : 'down';
       let predictMonths: number | null = null;
-      const refLow = items[0].refLow, refHigh = items[0].refHigh;
+      // CORREÇÃO (revisão 2026-07): faixa do ÚLTIMO item (estado atual), não do primeiro. Se o
+      // laboratório mudou de método/faixa entre os exames, prever "quando sai da faixa" com a faixa
+      // antiga dá previsão errada. Antes usava items[0] — contradizia o fix de isAbnormal (linha ~219).
+      const refLow = last.refLow, refHigh = last.refHigh;
       if (!mixedUnits && dir !== 'stable' && (refLow != null || refHigh != null)) {
         const intercept = (sy - slope * sx) / n;
         const ref = dir === 'up' ? refHigh : refLow;
@@ -242,7 +250,10 @@ router.get('/flag-summary', async (req: AuthedRequest, res, next) => {
     for (const g of grouped) c[g.flag] = g._count._all;
     res.json({
       buckets: {
-        bons: (c.NORMAL ?? 0) + (c.UNKNOWN ?? 0),
+        // CORREÇÃO (revisão 2026-07): UNKNOWN (sem classificação — extração falhou/sem faixa) NÃO
+        // é "bom". Antes somava em `bons`, mascarando dado faltante como normalidade.
+        bons: c.NORMAL ?? 0,
+        semClassificacao: c.UNKNOWN ?? 0,
         alerta: c.LOW ?? 0,
         alterados: (c.HIGH ?? 0) + (c.ABNORMAL ?? 0) + (c.CRITICAL ?? 0),
       },

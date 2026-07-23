@@ -13,7 +13,9 @@ export function normalizeKey(s: string): string {
 // Mapa de sinônimos: chave canônica -> variantes comuns entre laboratórios.
 // Permite casar o mesmo analito entre exames de labs/datas diferentes (necessário p/ evolução).
 const SYNONYMS: Record<string, string[]> = {
-  HEMOGLOBINA: ['HGB', 'HB', 'HBS'],
+  // HBS = hemoglobina S (falciforme), uma FRAÇÃO (%), NÃO hemoglobina total. Era sinônimo de
+  // HEMOGLOBINA e colapsava "HbS 40%" em Hb total = 40 g/dL (série falsa). Removido (revisão 2026-07).
+  HEMOGLOBINA: ['HGB', 'HB'],
   HEMATOCRITO: ['HCT', 'HT', 'HTO'],
   HEMACIAS: ['RBC', 'ERITROCITOS', 'HEMACIAS'],
   VCM: ['VOLUME GLOBULAR MEDIO', 'MCV'],

@@ -15,9 +15,10 @@
 import { getLlm, getModel } from '../llm';
 import { JSON_SUFFIX, extractJsonObject } from '../utils/json';
 import { prisma } from '../prisma';
+import { HEALTH_SYSTEM, diagnosticGuard } from './system';
 
 /** Versão do prompt de explicação. Bump = invalida o cache (força regenerar). */
-export const EXPLAIN_PROMPT_VERSION = 'v1';
+export const EXPLAIN_PROMPT_VERSION = 'v2';
 
 export const DEFAULT_LOCALE = 'pt-BR';
 
@@ -52,6 +53,10 @@ export async function generateExplanation(name: string, locale: string = DEFAULT
   const s = await getLlm().stream({
     model: getModel(),
     maxTokens: 700,
+    // SEGURANÇA (revisão clínica 2026-07): esta saída é cacheada e exibida a TODOS os pacientes.
+    // Antes a explicação era gerada SEM system prompt e SEM diagnosticGuard — único caminho de IA
+    // → paciente sem defesa. Agora usa o mesmo HEALTH_SYSTEM das demais saídas.
+    system: HEALTH_SYSTEM,
     messages: [
       {
         role: 'user',
@@ -60,7 +65,11 @@ export async function generateExplanation(name: string, locale: string = DEFAULT
     ],
   });
   const resp = await s.final();
-  const parsed = extractJsonObject(resp.text) as Explanation | null;
+  const raw = extractJsonObject(resp.text) as Explanation | null;
+  // Defense-in-depth sobre o campo 'alterado' — onde o modelo naturalmente tenta concluir doença.
+  // HEALTH_SYSTEM já proíbe no prompt; diagnosticGuard reforça pós-geração (mesma defesa do chat).
+  const parsed: Explanation | null =
+    raw && raw.alterado ? { ...raw, alterado: diagnosticGuard(raw.alterado).text } : raw;
   // Só persiste se veio resumo (sinal de JSON válido). Sem resumo, não cacheia — próxima chamada regenera.
   if (parsed?.resumo) {
     const k = nameKey(name);

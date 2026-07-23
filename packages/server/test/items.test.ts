@@ -17,7 +17,23 @@ describe('itens: flags, alterados, série temporal, evolução', () => {
 
     const r = await api().get('/api/items/flag-summary').set(authHeader(token));
     expect(r.status).toBe(200);
-    expect(r.body.buckets).toEqual({ bons: 2, alerta: 1, alterados: 1 });
+    expect(r.body.buckets).toEqual({ bons: 2, semClassificacao: 0, alerta: 1, alterados: 1 });
+  });
+
+  it('GET /items/flag-summary NÃO conta UNKNOWN como "bom" (revisão 2026-07)', async () => {
+    // UNKNOWN = sem classificação (extração falhou / sem faixa). Antes somava em `bons`,
+    // mascarando dado faltante como normalidade. Agora vai para `semClassificacao`.
+    const { patient, token } = await createUser();
+    const exam = await createExam(patient.id);
+    await createItem(exam.id, { name: 'OK', nameCanonical: 'A', valueNumeric: 14, refLow: 12, refHigh: 16, flag: 'NORMAL', isAbnormal: false });
+    await createItem(exam.id, { name: 'SEM', nameCanonical: 'B', valueNumeric: null, flag: 'UNKNOWN', isAbnormal: false });
+    await createItem(exam.id, { name: 'ALTO', nameCanonical: 'C', valueNumeric: 20, refLow: 12, refHigh: 16, flag: 'HIGH', isAbnormal: true });
+
+    const r = await api().get('/api/items/flag-summary').set(authHeader(token));
+    expect(r.status).toBe(200);
+    expect(r.body.buckets.bons).toBe(1);
+    expect(r.body.buckets.semClassificacao).toBe(1);
+    expect(r.body.buckets.alterados).toBe(1);
   });
 
   it('GET /items/abnormal lista só os fora-da-faixa', async () => {

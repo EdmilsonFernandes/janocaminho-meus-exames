@@ -63,7 +63,11 @@ export interface RiskRules {
 }
 
 export const RISK_RULES: RiskRules = {
-  version: '1.0.0-ts',
+  // v1.1.0 (revisão clínica 2026-07): HDL sexo-específico (mulher <50 / homem <40 — ATP-III/SBC),
+  // banda LDL ≥190 (possível hipercolesterolemia familiar — alto risco) e wording "requer
+  // confirmação" nos findings de diabetes/hipertensão (leitura isolada não é diagnóstico:
+  // ADA exige 2º teste; SBC exige MAPA). Fontes em cada `source`/PMIDs no relatório de auditoria.
+  version: '1.1.0-ts',
   markers: [
     {
       key: 'GLICEMIA', namePt: 'Glicemia de jejum', unit: 'mg/dL',
@@ -72,7 +76,7 @@ export const RISK_RULES: RiskRules = {
         { min: 100, max: 125, severity: 'low', condition: 'prediabetes',
           finding: 'Glicemia de jejum na faixa de pré-diabetes (100–125 mg/dL) — pode indicar alteração glicêmica inicial' },
         { min: 126, severity: 'high', condition: 'diabetes',
-          finding: 'Glicemia de jejum elevada (≥126 mg/dL) — faixa associada a risco metabólico aumentado' },
+          finding: 'Glicemia de jejum elevada (≥126 mg/dL) — faixa associada a risco metabólico aumentado. Um único resultado não confirma diabetes; deve ser confirmado em novo exame.' },
       ],
     },
     {
@@ -82,7 +86,7 @@ export const RISK_RULES: RiskRules = {
         { min: 5.7, max: 6.4, severity: 'low', condition: 'prediabetes',
           finding: 'HbA1c na faixa de pré-diabetes (5,7–6,4%) — controle glicêmico no limite' },
         { min: 6.5, severity: 'high', condition: 'diabetes',
-          finding: 'HbA1c elevada (≥6,5%) — associada a risco metabólico aumentado' },
+          finding: 'HbA1c elevada (≥6,5%) — associada a risco metabólico aumentado. Convém confirmar com novo exame, pois um resultado isolado não fecha diagnóstico.' },
       ],
     },
     {
@@ -94,7 +98,7 @@ export const RISK_RULES: RiskRules = {
         { min: 130, max: 139, severity: 'moderate', condition: 'hypertension',
           finding: 'Pressão sistólica na faixa de hipertensão estágio 1 (130–139)' },
         { min: 140, severity: 'high', condition: 'hypertension',
-          finding: 'Pressão sistólica elevada (≥140) — faixa de hipertensão estágio 2' },
+          finding: 'Pressão sistólica elevada (≥140) — faixa de hipertensão. A hipertensão não se diagnostica por uma única aferição; confirme com várias medidas ou MAPA (24 h).' },
       ],
     },
     {
@@ -104,7 +108,7 @@ export const RISK_RULES: RiskRules = {
         { min: 80, max: 89, severity: 'moderate', condition: 'hypertension',
           finding: 'Pressão diastólica na faixa de hipertensão estágio 1 (80–89)' },
         { min: 90, severity: 'high', condition: 'hypertension',
-          finding: 'Pressão diastólica elevada (≥90) — faixa de hipertensão' },
+          finding: 'Pressão diastólica elevada (≥90) — faixa de hipertensão. Confirme com várias medidas ou MAPA (24 h); uma aferição isolada não diagnostica.' },
       ],
     },
     {
@@ -113,14 +117,24 @@ export const RISK_RULES: RiskRules = {
       bands: [
         { min: 130, max: 159, severity: 'low', condition: 'high_cholesterol',
           finding: 'LDL limítrofe alto (130–159) — pode indicar risco cardiovascular' },
-        { min: 160, severity: 'moderate', condition: 'high_cholesterol',
-          finding: 'LDL elevado (≥160) — associado a risco cardiovascular aumentado' },
+        { min: 160, max: 189, severity: 'moderate', condition: 'high_cholesterol',
+          finding: 'LDL elevado (160–189) — associado a risco cardiovascular aumentado' },
+        // ≥190 = possível hipercolesterolemia familiar (FH) — alto risco independente de outros
+        // fatores (SBC/SBI 2021; ESC/EAS). Revisão clínica 2026-07.
+        { min: 190, severity: 'high', condition: 'high_cholesterol',
+          finding: 'LDL muito elevado (≥190) — pode sugerir hipercolesterolemia familiar; vale avaliação médica' },
       ],
     },
     {
+      // Sexo-aware (revisão clínica 2026-07): HDL protetor difere por sexo — mulher <50, homem <40
+      // (ATP-III / SBC-SBI 2021). Antes usava <40 para todos e perdia o sinal em mulheres (40–49).
       key: 'HDL', namePt: 'Colesterol HDL', unit: 'mg/dL',
-      source: 'SBC/SBI 2021 — Diretriz de Dislipidemias (HDL como fator de risco)',
+      source: 'SBC/SBI 2021 — Diretriz de Dislipidemias (HDL como fator de risco, sexo-específico)',
       bands: [
+        { max: 49, severity: 'moderate', condition: 'cardiovascular_risk',
+          finding: 'HDL baixo para mulher (<50) — fator de risco cardiovascular' },
+      ],
+      bandsMale: [
         { max: 39, severity: 'moderate', condition: 'cardiovascular_risk',
           finding: 'HDL baixo (<40) — fator de risco cardiovascular' },
       ],

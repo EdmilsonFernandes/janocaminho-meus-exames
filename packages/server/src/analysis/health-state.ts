@@ -19,6 +19,7 @@
 import { prisma } from '../prisma';
 import { collapseAdjacentNearDupes } from './dedup';
 import { getSettings } from '../utils/settings';
+import { normalizeUnit } from '../utils/normalize';
 // NOTA: trendVerdict canônico vive em @meus-exames/shared (consumido pelo web/vite).
 // O server (Node) não dá require em shared em runtime (shared é TS-source, sem build p/ JS),
 // então espelhamos a lógica aqui. Unificar quando shared ganhar build step (V1).
@@ -118,7 +119,10 @@ export function getTemporalThresholds() {
 
 export function classifyTemporal(ageMonths: number | null, hadPriorAbnormal: boolean): TemporalClass {
   const t = getTemporalThresholds();
-  if (ageMonths == null) return 'recente';
+  // CORREÇÃO (revisão 2026-07): data de coleta ausente NÃO deve virar 'recente' (estado atual).
+  // Antes, um exame antigo que perdeu a data era tratado como fresco → entrava no score/dashboard
+  // como condição atual. Sem data => 'historico' (conservador: não representa o agora).
+  if (ageMonths == null) return 'historico';
   if (ageMonths <= t.freshMonths) return 'atual';
   if (ageMonths <= t.recentMonths) return 'recente';
   if (ageMonths <= t.oldMonths) return 'historico';
@@ -288,10 +292,17 @@ export function computeMarkerState(rows: ItemRow[]): MarkerState[] {
     // nmol/L no mesmo nameCanonical — Testosterona Livre do Edmilson), NÃO calcular delta/tendência
     // — cruzaria escalas e geraria absurdos (regressão "+182/mês"). Raiz = converter/normalizar
     // (Frente 1B/1C); aqui só estancamos o sintoma. prior original é mantido (UI mostra "antes X").
-    const unitsCompatible = !prior || !latest.unit || !prior.unit || latest.unit === prior.unit;
+    // CORREÇÃO (revisão 2026-07): comparar unidades APÓS normalização E em minúsculas. Antes
+    // comparava a string crua — 'pg/mL' vs 'pg/ml' (case diferente) bloqueava tendência correta
+    // (ou liberava errada). normalizeUnit só reescreve padrões conhecidos (g/dl→g/dL, mm*→/mm³),
+    // então lowercasing garante equivalência de case para unidades não listadas (pg/mL, UI/L...).
+    const normU = (u: string | null | undefined) => (u ? (normalizeUnit(u) ?? '').toLowerCase() : '');
+    const unitsCompatible = !prior || !latest.unit || !prior.unit || normU(latest.unit) === normU(prior.unit);
     const priorForTrend = unitsCompatible ? prior : null;
     const age = ageMonths(latest.performedAt);
-    const stale = age != null && age > tt.staleMonths;
+    // CORREÇÃO (revisão 2026-07): sem data de coleta (age==null) => stale (não representa o estado
+    // atual). Antes age==null resultava stale=false, fazendo exame sem data contar como "fresco".
+    const stale = age == null || age > tt.staleMonths;
     const hadPriorAbnormal = deduped.slice(1).some((r) => r.isAbnormal);
     const temporalClass = classifyTemporal(age, latest.isAbnormal || hadPriorAbnormal);
     const outdated = temporalClass === 'desatualizado';
@@ -447,18 +458,25 @@ export async function buildCurrentHealthSummary(patientId: string, opts?: { incl
   let cardiometabolicRisk: CurrentHealthSummary['cardiometabolicRisk'] = null;
   try {
     const { assessCardiometabolicRisk } = await import('./cardiometabolic-risk');
-    const { bmi, egfr, homaIr } = await import('./derived-markers').then(m => {
-      // Tenta calcular índices derivados (precisa de perfil + marcadores)
-      return { bmi: m.bmi, egfr: m.egfr, homaIr: m.homaIr };
-    }).catch(() => ({ bmi: undefined, egfr: undefined, homaIr: undefined }));
+    const { bmi, egfr, homaIr } = await import('./derived-markers');
     const markerVal = (key: string) => markers.find((m) => m.nameCanonical === key)?.latest.valueNumeric ?? null;
+    // CORREÇÃO (revisão clínica 2026-07): antes o dynamic import devolvia as FUNÇÕES sem chamar
+    // (bmi/egfr/homaIr chegavam como `undefined`) e o score cardiometabólico considerava SÓ
+    // LDL/HbA1c/PAS — ignorando rim (eGFR), resistência insulínica (HOMA-IR) e obesidade (IMC).
+    // Agora calcula de fato, espelhando risk-service.loadRiskMarkers.
+    const [patient, weight] = await Promise.all([
+      prisma.patient.findUnique({ where: { id: patientId }, select: { gender: true, dateOfBirth: true, heightCm: true } }),
+      prisma.measurement.findFirst({ where: { patientId, type: 'WEIGHT' }, orderBy: { measuredAt: 'desc' } }),
+    ]);
+    const ageYears = patient?.dateOfBirth ? Math.floor((Date.now() - new Date(patient.dateOfBirth).getTime()) / (365.25 * 86400000)) : null;
+    const sex: 'male' | 'female' | undefined = patient?.gender === 'male' || patient?.gender === 'female' ? patient.gender : undefined;
     const riskResult = assessCardiometabolicRisk({
       ldl: markerVal('LDL'),
       hba1c: markerVal('HEMOGLOBINA_GLICADA'),
       systolicBP: markerVal('PRESSAO_SISTOLICA'),
-      egfr: egfr as any,
-      homaIr: homaIr as any,
-      bmi: bmi as any,
+      egfr: egfr(markerVal('CREATININA'), ageYears, sex),
+      homaIr: homaIr(markerVal('GLICEMIA'), markerVal('INSULINA')),
+      bmi: bmi(weight?.value ?? null, patient?.heightCm ?? null),
     });
     if (riskResult) cardiometabolicRisk = { level: riskResult.level, score: riskResult.score, factors: riskResult.factors };
   } catch { /* best-effort */ }

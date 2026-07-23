@@ -118,3 +118,23 @@ describe('computeMarkerState', () => {
     expect(state[0].priority).toBe('normal');
   });
 });
+
+// ───────── Revisão clínica 2026-07 ─────────
+describe('computeMarkerState — temporal/escala (revisão 2026-07)', () => {
+  it('data de coleta ausente -> stale + confidence baixa (NÃO é estado atual)', () => {
+    // Antes performedAt null virava 'recente'/não-stale -> exame sem data entrava como condição atual.
+    const state = computeMarkerState([row({ nameCanonical: 'TSH', valueNumeric: 7, performedAt: null, isAbnormal: true, flag: 'HIGH', refLow: 0.4, refHigh: 4 })]);
+    expect(state[0].latest.stale).toBe(true);
+    expect(state[0].confidence).toBe('baixa');
+  });
+
+  it('tendência calculada com unidades de case diferente (pg/mL vs pg/ml)', () => {
+    // Antes comparava string crua -> 'pg/mL' !== 'pg/ml' -> priorForTrend null -> trend 'primeiro'.
+    // Agora normaliza -> trend calculado (ambos na faixa -> 'estavel').
+    const state = computeMarkerState([
+      row({ nameCanonical: 'TST', valueNumeric: 10, unit: 'pg/mL', performedAt: monthsAgo(2), isAbnormal: false, flag: 'NORMAL', refLow: 8, refHigh: 30 }),
+      row({ nameCanonical: 'TST', valueNumeric: 25, unit: 'pg/ml', performedAt: monthsAgo(1), isAbnormal: false, flag: 'NORMAL', refLow: 8, refHigh: 30 }),
+    ]);
+    expect(state[0].trend).not.toBe('primeiro');
+  });
+});

@@ -99,3 +99,14 @@ describe('findMarkerInText — acha o analito numa pergunta livre', () => {
     expect(findMarkerInText('bom dia')).toBeNull();
   });
 });
+
+describe('canonicalName — HBS (hemoglobina S/falciforme) ≠ HEMOGLOBINA total (revisão 2026-07)', () => {
+  it('HBS NÃO colapsa em HEMOGLOBINA (é uma fração %, não Hb total)', () => {
+    // Antes "HBS 40%" virava HEMOGLOBINA = 40 g/dL (série falsa, valor absurdo).
+    expect(canonicalName('HBS')).not.toBe('HEMOGLOBINA');
+    // HGB e HB continuam sendo hemoglobina total.
+    expect(canonicalName('HGB')).toBe('HEMOGLOBINA');
+    expect(canonicalName('HB')).toBe('HEMOGLOBINA');
+    expect(canonicalName('Hemoglobina')).toBe('HEMOGLOBINA');
+  });
+});
