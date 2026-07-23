@@ -19,7 +19,7 @@
 import { prisma } from '../prisma';
 import { collapseAdjacentNearDupes } from './dedup';
 import { getSettings } from '../utils/settings';
-import { normalizeUnit } from '../utils/normalize';
+import { normalizeUnit, parseNumeric } from '../utils/normalize';
 // NOTA: trendVerdict canônico vive em @meus-exames/shared (consumido pelo web/vite).
 // O server (Node) não dá require em shared em runtime (shared é TS-source, sem build p/ JS),
 // então espelhamos a lógica aqui. Unificar quando shared ganhar build step (V1).
@@ -342,7 +342,10 @@ async function loadPatientRows(patientId: string): Promise<ItemRow[]> {
   return rows.map((r) => ({
     name: r.name,
     nameCanonical: r.nameCanonical,
-    valueNumeric: r.valueNumeric,
+    // Robustez (revisão 2026-07): às vezes a extração grava o valor só em valueText (ex.: "79")
+    // e deixa valueNumeric NULL — aí glicose/HOMA-IR/PhenoAge tratavam como "sem dado" mesmo o
+    // usuário vendo o valor na tela. Cai pro parseNumeric(valueText) quando falta o numérico.
+    valueNumeric: r.valueNumeric ?? parseNumeric(r.valueText),
     valueText: r.valueText,
     unit: r.unit,
     refLow: r.refLow,
