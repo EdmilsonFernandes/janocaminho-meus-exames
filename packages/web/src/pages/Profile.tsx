@@ -18,6 +18,14 @@ import { PageHeader } from '../components/layout/PageHeader';
 import { formatCpf, isValidCpf } from '../utils/cpf';
 import { DateFieldBR } from '../components/DateFieldBR';
 
+/** Altura: aceita "172" (cm) ou "1.72"/"1,72" (m) → devolve cm inteiro; null se inválido.
+ *  <3 entende como metros (1.72 → 172); caso contrário já está em centímetros. */
+const parseHeightCm = (s: string): number | null => {
+  const n = Number(String(s ?? '').trim().replace(',', '.'));
+  if (!Number.isFinite(n) || n <= 0) return null;
+  return Math.round(n < 3 ? n * 100 : n);
+};
+
 export const ProfilePage = () => {
   const translate = useTranslate();
   const [pid] = useSelectedPatient();
@@ -32,6 +40,8 @@ export const ProfilePage = () => {
   const [clinical, setClinical] = useState('');
   const [gender, setGender] = useState('');
   const [heightCm, setHeightCm] = useState('');
+  const [weight, setWeight] = useState('');
+  const [weightSaving, setWeightSaving] = useState(false);
   const [ethnicity, setEthnicity] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [saving, setSaving] = useState(false);
@@ -55,11 +65,22 @@ export const ProfilePage = () => {
     if (!pid) return;
     if (!patient?.hasCpf && cpf && !isValidCpf(cpf)) { notify('Informe um CPF válido.', { type: 'error' }); return; }
     setSaving(true);
-    const body: any = { fullName, phone, clinicalProfile: clinical, gender, heightCm: heightCm ? Number(heightCm) : null, ethnicity, dateOfBirth: birthDate || null };
+    const body: any = { fullName, phone, clinicalProfile: clinical, gender, heightCm: parseHeightCm(heightCm), ethnicity, dateOfBirth: birthDate || null };
     if (!patient?.hasCpf && cpf) body.cpf = cpf;
     const r = await fetch(`${API_URL}/patients/${pid}`, { method: 'PUT', headers: apiHeaders(true), body: JSON.stringify(body) });
     setSaving(false);
     notify(r.ok ? 'Perfil atualizado!' : 'Erro ao salvar', { type: r.ok ? 'success' : 'error' });
+  };
+  // Atalho de peso: registra uma medição WEIGHT (vai pro histórico de Medições e alimenta IMC/cardio).
+  const saveWeight = async () => {
+    if (!pid) return;
+    const w = Number(String(weight).trim().replace(',', '.'));
+    if (!Number.isFinite(w) || w <= 0 || w > 500) { notify('Informe um peso válido em kg.', { type: 'error' }); return; }
+    setWeightSaving(true);
+    const r = await fetch(`${API_URL}/measurements`, { method: 'POST', headers: apiHeaders(true), body: JSON.stringify({ patientId: pid, type: 'WEIGHT', value: w, unit: 'kg', measuredAt: new Date().toISOString().slice(0, 10) }) });
+    setWeightSaving(false);
+    if (r.ok) { notify('Peso registrado em Medições!', { type: 'success' }); setWeight(''); }
+    else { const e = await r.json().catch(() => ({})); notify(e.error || 'Erro ao registrar peso', { type: 'error' }); }
   };
   const toggleAchAlerts = async (on: boolean) => {
     setAchAlerts(on);
@@ -148,7 +169,7 @@ export const ProfilePage = () => {
               <MenuItem value="female">Feminino</MenuItem>
               <MenuItem value="male">Masculino</MenuItem>
             </TextField>
-            <TextField type="number" label="Altura (cm)" value={heightCm} onChange={(e) => setHeightCm(e.target.value)} fullWidth size="small" helperText="Usada pra calcular o IMC e contextualizar exames." />
+            <TextField type="number" label="Altura (cm)" value={heightCm} onChange={(e) => setHeightCm(e.target.value)} fullWidth size="small" helperText="Em centímetros (ex.: 172). Aceita 1,72 m — convertemos pra você. Usada no IMC." />
             <TextField select label="Etnia (opcional)" value={ethnicity} onChange={(e) => setEthnicity(e.target.value)} fullWidth size="small" helperText="Dados demográficos ajudam a refinar futuras análises.">
               <MenuItem value="">Prefiro não informar</MenuItem>
               <MenuItem value="branca">Branca</MenuItem>
@@ -167,6 +188,18 @@ export const ProfilePage = () => {
           <Box sx={{ mt: 2 }}>
             <Button variant="contained" startIcon={<SaveIcon />} onClick={saveProfile} disabled={saving}>{saving ? 'Salvando…' : 'Salvar perfil'}</Button>
           </Box>
+        </CardContent>
+      </Card>
+
+      {/* Peso atual — atalho que registra medição WEIGHT (alimenta IMC + cardiometabólico) */}
+      <Card sx={{ mb: 2, borderRadius: 4 }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>⚖️ Peso atual</Typography>
+          <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+            <TextField label="Peso (kg)" value={weight} onChange={(e) => setWeight(e.target.value)} size="small" inputProps={{ inputMode: 'decimal' }} sx={{ width: 150 }} onKeyDown={(e) => { if (e.key === 'Enter') saveWeight(); }} />
+            <Button variant="contained" onClick={saveWeight} disabled={weightSaving || !weight}>{weightSaving ? 'Salvando…' : 'Registrar peso'}</Button>
+          </Stack>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>Salva como medição — alimenta o IMC e o card de Risco Cardiometabólico. Histórico completo em Medições.</Typography>
         </CardContent>
       </Card>
 

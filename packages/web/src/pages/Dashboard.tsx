@@ -156,6 +156,7 @@ export const Dashboard = () => {
   const [buckets, setBuckets] = useState<{ bons: number; alerta: number; alterados: number }>({ bons: 0, alerta: 0, alterados: 0 });
   const [hsScore, setHsScore] = useState<number | null>(null);
   const [hsAltered, setHsAltered] = useState<number>(0);
+  const [cardioRisk, setCardioRisk] = useState<{ level: string; score: number; factors: { label: string; risk: boolean }[] } | null>(null);
   const [credits, setCredits] = useState<number | null>(null);
   const [me, setMe] = useState<any>(null);
   const [loaded, setLoaded] = useState(false);
@@ -207,6 +208,7 @@ export const Dashboard = () => {
               try { localStorage.setItem(`dashScoreNum:${pid}`, String(hd.score)); } catch { /* ignore */ }
             }
             setHsAltered((hd.byPriority?.importante ?? 0) + (hd.byPriority?.moderada ?? 0));
+            setCardioRisk(hd.cardiometabolicRisk ?? null);
             // Fallback da dica: sempre RELEVANTE (sobre os exames do paciente), nunca genérico
             // "beba água". Quando não há marcador de atenção (topAttention vazio — ex.: alterados
             // são antigos/stale), prioriza o aviso de exames desatualizados ou o score.
@@ -239,6 +241,7 @@ export const Dashboard = () => {
   }, [pid]);
 
   const firstName = (me?.fullName || '').split(' ')[0];
+  const cardioMeta = cardioRisk ? ({ baixo: '🟢', moderado: '🟠', alto: '🔴' } as Record<string, string>)[cardioRisk.level] ?? '⚪' : null;
   const totalVals = buckets.bons + buckets.alerta + buckets.alterados;
   // Score da camada canonical (Layer 2): dedup por marcador + últimos 12 meses + exclui borderline
   // — alinhado ao Portal do Médico (antes derivava do flag-summary, que inflava contando itens
@@ -281,10 +284,13 @@ export const Dashboard = () => {
         <AiCard tip={tipNode} onChat={() => navigate('/chat')} />
       </Section>
 
-      {/* 4 · ANÁLISES DETALHADAS — cards avançados (estado atual, idade biológica,
-          cardiometabólico, distribuição) num acordeão COLAPSADO por padrão. Antes ficavam
-          soltos e competiam (dashboard "poluído"). Agora: quem quer aprofundar, expande.
-          NENHUMA funcionalidade perdida — tudo continua aqui, só organizado. */}
+      {/* Cardiometabólico PROMOVIDO — sempre visível (antes ficava escondido no acordeão e o
+          usuário não descobria). O Dashboard já busca o health-summary → passamos o dado (1 fetch). */}
+      <CardiometabolicRiskCard risk={cardioRisk} />
+
+      {/* 4 · ANÁLISES DETALHADAS — estado atual, idade biológica, distribuição num acordeão
+          COLAPSADO por padrão. O cardiometabólico ficou visível acima; o teaser no título mostra
+          o nível mesmo com o acordeão fechado, convidando a expandir o resto. */}
       <Accordion disableGutters elevation={0} defaultExpanded={false} sx={{ mt: 1, '&:before': { display: 'none' }, border: '1px solid', borderColor: 'divider', borderRadius: '16px !important', overflow: 'hidden' }}>
         <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '52px !important', '& .MuiAccordionSummary-content': { my: 0.75 } }}>
           <Stack direction="row" spacing={1} alignItems="center">
@@ -293,15 +299,13 @@ export const Dashboard = () => {
               <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 14, lineHeight: 1.2 }}>{translate('dash.advanced')}</Typography>
               <Typography variant="caption" color="text.secondary">{translate('dash.advanced_sub')}</Typography>
             </Box>
+            {cardioRisk && <Chip size="small" label={`${cardioMeta} ${cardioRisk.level} · ${cardioRisk.score}/100`} sx={{ ml: 'auto', bgcolor: 'rgba(32,178,170,.10)', color: '#178f89', fontWeight: 700, height: 22, fontSize: 11 }} />}
           </Stack>
         </AccordionSummary>
         <AccordionDetails sx={{ p: 1.5, pt: 0.5 }}>
           <Stack spacing={2}>
             <CurrentStateCard />
-            <Grid container spacing={2}>
-              <Grid size={{ xs: 12, md: 6 }}><BiologicalAgeCard /></Grid>
-              <Grid size={{ xs: 12, md: 6 }}><CardiometabolicRiskCard /></Grid>
-            </Grid>
+            <BiologicalAgeCard />
             <DistributionCard buckets={buckets} />
           </Stack>
         </AccordionDetails>

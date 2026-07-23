@@ -16,6 +16,7 @@ import { ValueBar } from '../../components/ValueBar';
 import { RefBar } from '../../components/RefBar';
 import { Sparkline } from '../../components/Sparkline';
 import { ExplainButton } from '../../components/ExplainItem';
+import { UnitLabel } from '../../components/UnitLabel';
 import { TelemedicineButton } from '../../components/TelemedicineButton';
 import { fmtVal, unitSuffix } from '../../utils/format';
 import { categorizeExam } from '../../utils/medicalData';
@@ -397,7 +398,7 @@ export const ExamShow = () => {
                         {/* Valor grande + cor (vermelho alterado, laranja alerta, verde normal) + unidade + pág */}
                         <Stack direction="row" spacing={1} alignItems="baseline" useFlexGap flexWrap="wrap">
                           <EditableItemValue it={it} color={valColor} onSaved={(u) => setExam((e: any) => e ? { ...e, items: (e.items ?? []).map((i: any) => i.id === u.id ? { ...i, ...u } : i) } : e)} />
-                          {unitSuffix(it) ? <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem' }}>{unitSuffix(it)}</Typography> : null}
+                          {unitSuffix(it) ? <UnitLabel unit={unitSuffix(it)} /> : null}
                           <Button size="small" sx={{ fontSize: '0.75rem', minWidth: 0, p: 0 }} onClick={() => openCitation(it.extractedPage)}>pág. {it.extractedPage}</Button>
                         </Stack>
                         {/* Referência + barra visual */}
