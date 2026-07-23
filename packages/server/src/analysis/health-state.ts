@@ -464,16 +464,19 @@ export async function buildCurrentHealthSummary(patientId: string, opts?: { incl
     // (bmi/egfr/homaIr chegavam como `undefined`) e o score cardiometabólico considerava SÓ
     // LDL/HbA1c/PAS — ignorando rim (eGFR), resistência insulínica (HOMA-IR) e obesidade (IMC).
     // Agora calcula de fato, espelhando risk-service.loadRiskMarkers.
-    const [patient, weight] = await Promise.all([
+    const [patient, weight, bp] = await Promise.all([
       prisma.patient.findUnique({ where: { id: patientId }, select: { gender: true, dateOfBirth: true, heightCm: true } }),
       prisma.measurement.findFirst({ where: { patientId, type: 'WEIGHT' }, orderBy: { measuredAt: 'desc' } }),
+      prisma.measurement.findFirst({ where: { patientId, type: 'BLOOD_PRESSURE' }, orderBy: { measuredAt: 'desc' } }),
     ]);
     const ageYears = patient?.dateOfBirth ? Math.floor((Date.now() - new Date(patient.dateOfBirth).getTime()) / (365.25 * 86400000)) : null;
     const sex: 'male' | 'female' | undefined = patient?.gender === 'male' || patient?.gender === 'female' ? patient.gender : undefined;
     const riskResult = assessCardiometabolicRisk({
       ldl: markerVal('LDL'),
       hba1c: markerVal('HEMOGLOBINA_GLICADA'),
-      systolicBP: markerVal('PRESSAO_SISTOLICA'),
+      // PAS vem da MEDIÇÃO de pressão (tabela measurements), não de exam_items — antes
+      // markerVal('PRESSAO_SISTOLICA') procurava nos markers (sempre null) e a PA nunca entrava.
+      systolicBP: bp?.value ?? markerVal('PRESSAO_SISTOLICA'),
       egfr: egfr(markerVal('CREATININA'), ageYears, sex),
       homaIr: homaIr(markerVal('GLICEMIA'), markerVal('INSULINA')),
       bmi: bmi(weight?.value ?? null, patient?.heightCm ?? null),
