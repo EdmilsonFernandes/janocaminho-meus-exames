@@ -5,6 +5,7 @@ import {
   Accordion, AccordionSummary, AccordionDetails,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import { Title, useNotify } from 'react-admin';
 import { API_URL, token } from '../../config';
 import { confirmDialog } from '../../components/ConfirmDialog';
@@ -18,7 +19,7 @@ import { Sparkline } from '../../components/Sparkline';
 import { ExplainButton } from '../../components/ExplainItem';
 import { UnitLabel } from '../../components/UnitLabel';
 import { TelemedicineButton } from '../../components/TelemedicineButton';
-import { fmtVal, unitSuffix } from '../../utils/format';
+import { fmtVal, unitSuffix, fmtDateShort } from '../../utils/format';
 import { categorizeExam } from '../../utils/medicalData';
 import { ExtractionProgress } from '../../components/ExtractionProgress';
 import { AnimatedDoctor } from '../../components/AnimatedDoctor';
@@ -268,11 +269,21 @@ export const ExamShow = () => {
             {cc.key !== 'image' && cc.key !== 'other' && <Chip size="small" sx={{ bgcolor: cc.color + '18', color: cc.color, fontWeight: 700 }} label={`${cc.emoji} ${cc.cat}`} />}
             {headerNeedsReview && <Chip color="warning" label="conferir dados" />}
           </Stack>
-          <Typography color="text.secondary">
-            {exam.performedAt ? new Date(exam.performedAt).toLocaleDateString('pt-BR') : 'Data não identificada'}
-            {labInfo.text ? ` • ${labInfo.text}` : labInfo.suspicious ? ' • laboratório em revisão' : ''}
-            {exam.pageCount ? ` • ${exam.pageCount} pág.` : ''}
-          </Typography>
+          <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mt: 0.5 }}>
+            {exam.performedAt ? (
+              <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, px: 1, py: 0.3, borderRadius: 99, bgcolor: 'rgba(32,178,170,.10)' }}>
+                <CalendarMonthIcon sx={{ fontSize: 16, color: 'primary.main' }} />
+                <Typography component="span" sx={{ fontWeight: 700, color: 'primary.dark', fontSize: '0.9rem', lineHeight: 1 }}>{fmtDateShort(exam.performedAt)}</Typography>
+              </Box>
+            ) : (
+              <Typography component="span" sx={{ fontWeight: 700, color: 'warning.main', fontSize: '0.85rem' }}>Data não identificada</Typography>
+            )}
+            {(labInfo.text || labInfo.suspicious || exam.pageCount) && (
+              <Typography component="span" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
+                {labInfo.text ? labInfo.text : labInfo.suspicious ? 'laboratório em revisão' : ''}{labInfo.text && exam.pageCount ? ' · ' : ''}{exam.pageCount ? `${exam.pageCount} pág.` : ''}
+              </Typography>
+            )}
+          </Stack>
           {(patientInfo.text || patientInfo.suspicious || doctorInfo.text || doctorInfo.suspicious) && (
             <Typography color="text.secondary" sx={{ fontSize: '0.85rem', mt: 0.5 }}>
               {patientInfo.text ? `👤 ${patientInfo.text}` : patientInfo.suspicious ? '👤 Titular detectado em revisão' : ''}

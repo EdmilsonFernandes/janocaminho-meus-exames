@@ -24,3 +24,15 @@ export function unitSuffix(it: { valueText?: string | null; unit?: string | null
   if (t && u && t.includes(u)) return '';
   return it.unit;
 }
+
+const ME_MONTHS_SHORT = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+/**
+ * Data de exame pra exibição compacta/premium: "15 mar 2026" (dia + mês abreviado + ano).
+ * Mais legível "batendo o olho" que "15/03/2026". Manual (sem depender de locale do browser).
+ */
+export function fmtDateShort(d: string | Date | null | undefined): string {
+  if (!d) return '';
+  const dt = new Date(d);
+  if (isNaN(dt.getTime())) return '';
+  return `${String(dt.getDate()).padStart(2, '0')} ${ME_MONTHS_SHORT[dt.getMonth()]} ${dt.getFullYear()}`;
+}
