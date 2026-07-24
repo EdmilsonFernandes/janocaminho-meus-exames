@@ -149,6 +149,7 @@ export const TrendsPage = () => {
                 ? 'Envie ao menos um exame laboratorial para começar a acompanhar suas tendências.'
                 : 'Você já tem exames, mas precisa de um 2º resultado do mesmo tipo para comparar a evolução.'}
             </Typography>
+            <Button variant="contained" onClick={() => navigate('/exams/create')} sx={{ mt: 2, borderRadius: 99, textTransform: 'none', fontWeight: 800 }}>{names.length === 0 ? 'Enviar exame' : 'Enviar outro exame'}</Button>
           </CardContent>
         </Card>
       )}

@@ -310,7 +310,7 @@ export const ExamShow = () => {
 
       {/* BLOQUEIO FORTE: CPF do documento ≠ perfil */}
       {cpfBlock && (
-        <Card sx={{ mt: 2, borderLeft: '6px solid', borderColor: 'error.main', background: 'linear-gradient(135deg, rgba(220,38,38,.08), #fff)' }}>
+        <Card sx={{ mt: 2, borderLeft: '6px solid', borderColor: 'error.main', background: 'linear-gradient(135deg, rgba(220,38,38,.10), transparent)' }}>
           <CardContent>
             <Typography sx={{ fontWeight: 800, color: 'error.main' }}>CPF do exame não confere</Typography>
             <Typography variant="body2" sx={{ mt: 0.5 }}>
@@ -326,7 +326,7 @@ export const ExamShow = () => {
 
       {/* BLOQUEIO SUAVE: nome do documento ≠ perfil */}
       {nameBlock && (
-        <Card sx={{ mt: 2, borderLeft: '6px solid', borderColor: 'warning.main', background: 'linear-gradient(135deg, rgba(245,158,11,.08), #fff)' }}>
+        <Card sx={{ mt: 2, borderLeft: '6px solid', borderColor: 'warning.main', background: 'linear-gradient(135deg, rgba(245,158,11,.10), transparent)' }}>
           <CardContent>
             <Typography sx={{ fontWeight: 800, color: '#b45309' }}>⚠️ Confirme o titular antes da análise</Typography>
             <Typography variant="body2" sx={{ mt: 0.5 }}>
@@ -494,11 +494,11 @@ export const ExamShow = () => {
           <CardContent>
             <Typography variant="h6" gutterBottom>Pergunte sobre este exame</Typography>
             <Box sx={{ mb: 1 }}><CreditBadge amount={CREDIT_COSTS.chat} label={`${CREDIT_COSTS.chat} por pergunta`} /></Box>
-            <Box sx={{ maxHeight: 320, overflowY: 'auto', mb: 1, p: 1, background: '#f3f6fb', borderRadius: 1 }}>
+            <Box sx={{ maxHeight: 320, overflowY: 'auto', mb: 1, p: 1, bgcolor: 'action.hover', borderRadius: 1 }}>
               {chatMessages.length === 0 && <Typography color="text.secondary">Ex.: "Por que minha hemoglobina subiu?"</Typography>}
               {chatMessages.map((m, i) => (
                 <Box key={i} sx={{ textAlign: m.role === 'user' ? 'right' : 'left', mb: 1 }}>
-                  <Chip color={m.role === 'user' ? 'primary' : 'default'} label={m.text || '…'} sx={{ maxWidth: '85%', whiteSpace: 'pre-wrap', height: 'auto', padding: '8px' }} />
+                  <Box sx={{ display: 'inline-block', maxWidth: '85%', px: 1.25, py: 0.75, borderRadius: 2, whiteSpace: 'pre-wrap', wordBreak: 'break-word', bgcolor: m.role === 'user' ? 'primary.main' : 'background.paper', color: m.role === 'user' ? 'primary.contrastText' : 'text.primary', border: m.role === 'user' ? 'none' : '1px solid', borderColor: 'divider' }}>{m.text || '…'}</Box>
                 </Box>
               ))}
             </Box>
@@ -507,7 +507,7 @@ export const ExamShow = () => {
               <Box component="input" value={chatInput} disabled={chatBusy} placeholder="Pergunte sobre o exame…"
                 onChange={(e: any) => setChatInput(e.target.value)}
                 onKeyDown={(e: any) => { if (e.key === 'Enter' && !chatBusy) sendChat(); }}
-                style={{ flex: 1, padding: '10px 12px', fontSize: 16, borderRadius: 8, border: '1px solid #c4d0e0' }} />
+                sx={{ flex: 1, px: 1.5, py: 1.25, fontSize: 16, borderRadius: 1, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', color: 'text.primary', outline: 'none' }} />
               <Button variant="contained" onClick={sendChat} disabled={chatBusy || !chatInput.trim()}>Enviar</Button>
             </Stack>
           </CardContent>
@@ -516,10 +516,10 @@ export const ExamShow = () => {
 
       {/* PREPARO DE CONSULTA */}
       {exam.status === 'EXTRACTED' && (
-        <Card sx={{ mt: 2, background: 'linear-gradient(135deg,#e8f5e9,#c8e6c9)', border: '1px solid #a5d6a7' }}>
+        <Card sx={{ mt: 2, background: 'linear-gradient(135deg, rgba(22,163,74,.10), rgba(22,163,74,.03))', border: '1px solid', borderColor: 'rgba(22,163,74,.25)' }}>
           <CardContent>
             <Stack direction="row" spacing={2} alignItems="center">
-              <Typography variant="h6" sx={{ color: '#2e7d32', flex: 1 }}>📋 Preparar visita ao médico</Typography>
+              <Typography variant="h6" sx={{ color: 'success.main', flex: 1 }}>📋 Preparar visita ao médico</Typography>
               <Button variant="contained" color="success" size="large"
                 onClick={async () => {
                   const r = await fetch(`${API_URL}/consulta/exams/${id}`, {

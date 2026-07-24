@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslate } from 'react-admin';
-import { Card, CardContent, Typography, Button, TextField, Select, MenuItem, FormControl, InputLabel, List, ListItem, ListItemText, IconButton, Stack, Collapse } from '@mui/material';
+import { Card, CardContent, Typography, Button, TextField, Select, MenuItem, FormControl, InputLabel, List, ListItem, Box, Chip, IconButton, Stack, Collapse } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import MonitorWeightIcon from '@mui/icons-material/MonitorWeight';
@@ -10,11 +10,11 @@ import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
 
 const TYPES = [
-  { v: 'BLOOD_PRESSURE', l: 'Pressão arterial', u: 'mmHg', dual: true },
-  { v: 'WEIGHT', l: 'Peso', u: 'kg' },
-  { v: 'GLUCOSE', l: 'Glicose', u: 'mg/dL' },
-  { v: 'HEART_RATE', l: 'Frequência cardíaca', u: 'bpm' },
-  { v: 'OTHER', l: 'Outro', u: '' },
+  { v: 'BLOOD_PRESSURE', l: 'Pressão arterial', u: 'mmHg', dual: true, color: '#dc2626', emoji: '🩸' },
+  { v: 'WEIGHT', l: 'Peso', u: 'kg', color: '#178f89', emoji: '⚖️' },
+  { v: 'GLUCOSE', l: 'Glicose', u: 'mg/dL', color: '#ea580c', emoji: '🍬' },
+  { v: 'HEART_RATE', l: 'Frequência cardíaca', u: 'bpm', color: '#e11d48', emoji: '❤️' },
+  { v: 'OTHER', l: 'Outro', u: '', color: '#64748b', emoji: '📌' },
 ];
 
 export const MeasurementsPage = () => {
@@ -51,6 +51,13 @@ export const MeasurementsPage = () => {
   const fmtDate = (d: string) => new Date(d).toLocaleDateString('pt-BR');
   const fmtVal = (m: any) => m.valueSecondary != null ? `${m.value}/${m.valueSecondary}` : `${m.value}`;
 
+  // Separa PESO (com tendência) das demais medições vitais — antes tudo numa lista linear misturado.
+  const sorted = [...items].sort((a, b) => new Date(b.measuredAt).getTime() - new Date(a.measuredAt).getTime());
+  const weights = sorted.filter((m) => m.type === 'WEIGHT');
+  const vitals = sorted.filter((m) => m.type !== 'WEIGHT');
+  const latestWeight = weights[0];
+  const prevWeight = weights[1];
+
   return (
     <PageContainer width="content">
       <PageHeader icon={<MonitorWeightIcon />} title={translate('page.measurements')} />
@@ -82,20 +89,64 @@ export const MeasurementsPage = () => {
           </Collapse>
         </CardContent>
       </Card>
+      {/* PESO — bloco em destaque (separado das demais medições; antes tudo misturado numa lista) */}
+      <Card sx={{ mb: 2, border: '1px solid', borderColor: 'rgba(32,178,170,.25)', background: 'linear-gradient(135deg, rgba(32,178,170,.08), transparent)' }}>
+        <CardContent>
+          <Typography variant="h6" sx={{ mb: 1 }}>⚖️ Peso</Typography>
+          {weights.length === 0 ? (
+            <Typography color="text.secondary" sx={{ py: 1 }}>Nenhum peso registrado ainda.</Typography>
+          ) : (
+            <>
+              <Stack direction="row" alignItems="baseline" spacing={1} sx={{ mb: 0.5 }}>
+                <Typography sx={{ fontWeight: 800, fontSize: 32, color: 'primary.dark', lineHeight: 1 }}>{latestWeight.value}<Typography component="span" sx={{ fontSize: 14, color: 'text.secondary', ml: 0.5, fontWeight: 600 }}>kg</Typography></Typography>
+                {prevWeight && Number(latestWeight.value) !== Number(prevWeight.value) && (() => {
+                  const up = Number(latestWeight.value) > Number(prevWeight.value);
+                  const diff = Math.abs(Number(latestWeight.value) - Number(prevWeight.value)).toLocaleString('pt-BR');
+                  return <Chip size="small" label={`${up ? '↑' : '↓'} ${diff} kg`} sx={{ height: 22, fontWeight: 700, bgcolor: up ? 'rgba(234,88,12,.12)' : 'rgba(22,163,74,.12)', color: up ? '#ea580c' : '#16a34a' }} />;
+                })()}
+              </Stack>
+              <Typography variant="caption" color="text.secondary">Última medição em {fmtDate(latestWeight.measuredAt)}</Typography>
+              {weights.length > 1 && (
+                <Stack spacing={0.5} sx={{ mt: 1.5, pt: 1.5, borderTop: '1px dashed', borderColor: 'divider' }}>
+                  {weights.slice(1, 5).map((m) => (
+                    <Stack key={m.id} direction="row" justifyContent="space-between" alignItems="center">
+                      <Typography variant="body2" color="text.secondary">{fmtDate(m.measuredAt)}</Typography>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Typography sx={{ fontWeight: 700 }}>{m.value} kg</Typography>
+                        <IconButton size="small" onClick={() => del(m.id)} sx={{ p: 0.5 }}><DeleteIcon fontSize="small" /></IconButton>
+                      </Stack>
+                    </Stack>
+                  ))}
+                </Stack>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* MEDIÇÕES VITAIS — pressão, glicose, FC... com chip colorido por tipo */}
       <Card>
         <CardContent>
-          <Typography variant="h6" gutterBottom>Histórico de medições</Typography>
-          {items.length === 0 ? (
-            <Typography color="text.secondary" sx={{ py: 2 }}>Nenhuma medição ainda. Registre seu peso, pressão, glicose...</Typography>
+          <Typography variant="h6" gutterBottom>Medições vitais</Typography>
+          {vitals.length === 0 ? (
+            <Typography color="text.secondary" sx={{ py: 2 }}>Nenhuma medição vital ainda. Registre pressão, glicose ou frequência cardíaca acima.</Typography>
           ) : (
             <List>
-              {items.map((m) => (
-                <ListItem key={m.id} sx={{ px: 0, borderBottom: '1px solid', borderColor: 'divider' }}
-                  secondaryAction={<IconButton edge="end" onClick={() => del(m.id)}><DeleteIcon /></IconButton>}>
-                  <ListItemText primary={`${TYPES.find((t) => t.v === m.type)?.l ?? m.type}: ${fmtVal(m)} ${m.unit}`}
-                    secondary={`${fmtDate(m.measuredAt)}${m.note ? ` — ${m.note}` : ''}`} />
-                </ListItem>
-              ))}
+              {vitals.map((m) => {
+                const t = TYPES.find((x) => x.v === m.type) ?? TYPES[TYPES.length - 1];
+                return (
+                  <ListItem key={m.id} sx={{ px: 0, borderBottom: '1px solid', borderColor: 'divider' }}
+                    secondaryAction={<IconButton edge="end" onClick={() => del(m.id)}><DeleteIcon /></IconButton>}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0 }}>
+                      <Box sx={{ width: 36, height: 36, borderRadius: 2, display: 'grid', placeItems: 'center', flexShrink: 0, bgcolor: t.color + '18', color: t.color, fontSize: 18 }}>{t.emoji}</Box>
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography sx={{ fontWeight: 700 }}>{t.l}: <Box component="span" sx={{ color: t.color, fontWeight: 800 }}>{fmtVal(m)} {m.unit}</Box></Typography>
+                        <Typography variant="caption" color="text.secondary">{fmtDate(m.measuredAt)}{m.note ? ` — ${m.note}` : ''}</Typography>
+                      </Box>
+                    </Box>
+                  </ListItem>
+                );
+              })}
             </List>
           )}
         </CardContent>

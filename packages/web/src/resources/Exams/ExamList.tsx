@@ -59,7 +59,7 @@ const ProcessingCard = ({ r, onCancel }: { r: any; onCancel?: (e: any) => void }
           <Typography sx={{ fontWeight: 700, wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.2 }}>{r.title || 'Novo exame enviado'}</Typography>
           <Typography variant="caption" color="text.secondary">Dr. Exame está extraindo… toque para acompanhar</Typography>
         </Box>
-        {onCancel && <IconButton size="small" onClick={onCancel} title="Cancelar e excluir" aria-label="Cancelar e excluir exame" sx={{ flexShrink: 0, color: 'text.secondary' }}><CloseIcon fontSize="small" /></IconButton>}
+        {onCancel && <IconButton size="small" onClick={onCancel} title="Cancelar e excluir" aria-label="Cancelar e excluir exame" sx={{ flexShrink: 0, color: 'text.secondary', p: 1.25 }}><CloseIcon fontSize="small" /></IconButton>}
         <ChevronRightIcon sx={{ color: 'text.disabled', flexShrink: 0 }} />
       </CardContent>
       <LinearProgress sx={{ height: 4, '& .MuiLinearProgress-bar': { background: 'linear-gradient(90deg,#0ea5e9,#20b2aa)' } }} />
@@ -170,7 +170,7 @@ const ExamCards = () => {
               {needsReview && <Chip size="small" label={translate('exams.review')} sx={{ bgcolor: '#f59e0b18', color: '#b45309', fontWeight: 800, height: 20 }} />}
             </Stack>
           </Box>
-          <IconButton size="small" onClick={(e) => del(e, r.id, r.title)} title="Excluir" aria-label={`Excluir exame ${r.title}`} sx={{ flexShrink: 0 }}><DeleteOutlineIcon fontSize="small" /></IconButton>
+          <IconButton size="small" onClick={(e) => del(e, r.id, r.title)} title="Excluir" aria-label={`Excluir exame ${r.title}`} sx={{ flexShrink: 0, p: 1.25 }}><DeleteOutlineIcon fontSize="small" /></IconButton>
           <ChevronRightIcon sx={{ color: 'text.disabled', flexShrink: 0 }} />
         </CardContent>
         {(r.status === 'EXTRACTING' || r.status === 'UPLOADED') && <LinearProgress sx={{ height: 3 }} />}

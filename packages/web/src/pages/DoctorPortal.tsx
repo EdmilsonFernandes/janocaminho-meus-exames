@@ -281,6 +281,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const [evolution, setEvolution] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
+  const openSeq = useRef(0); // guarda de race: só aplica estado do openPatient mais recente
   const [doctor, setDoctor] = useState<any>(null);
   const [view, setView] = useState<'patients' | 'invites' | 'questions' | 'profile' | 'password'>('patients');
   const [photoVer, setPhotoVer] = useState(0);
@@ -461,23 +462,27 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     const wantSummary = pScopes.includes('summary');
     setTab('risk'); // abre na Visão de risco (1-min do médico)
     setDetailLoading(true); setExams([]); setEvolution([]); setSummaries([]); setNotes([]); setQuestions([]); setRisk(null); setRiskHistory([]); setClinicalPlan(null); setPreVisit(null); setSoap(null);
-    try {
-      // Risco + histórico sempre (derivado dos exames — não depende de escopo)
-      { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/risk`, { headers: h }); const d = await r.json(); if (r.ok) setRisk(d); }
-      { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/risk/history`, { headers: h }); const d = await r.json(); if (r.ok) setRiskHistory(d.history ?? []); }
-      // Pré-Consulta (brief automático)
-      { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/pre-visit`, { headers: h }); const d = await r.json(); if (r.ok) setPreVisit(d); }
-      if (wantExams) { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/exams`, { headers: h }); const d = await r.json(); if (r.ok) setExams(d.items ?? []); }
-      if (wantEvol) { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/evolution`, { headers: h }); const d = await r.json(); if (r.ok) setEvolution(d.items ?? []); }
-      if (wantSummary) { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/summaries`, { headers: h }); const d = await r.json(); if (r.ok) setSummaries(d.items ?? []); }
-      // Perguntas do paciente (pergunta-paga) — sempre carrega (não depende de escopo)
-      { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/questions`, { headers: h }); const d = await r.json(); if (r.ok) setQuestions(d.items ?? []); }
-      // Anotações sempre (são do próprio médico, não dependem de escopo)
-      { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/notes`, { headers: h }); const d = await r.json(); if (r.ok) setNotes(d.items ?? []); }
-      // Plano de ação + SOAP salvos (grátis — /latest): não regenera/premium-quota a cada abertura.
-      { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/action-plan/latest`, { headers: h }); const d = await r.json(); setClinicalPlan(r.ok && d?.contentMd ? d.contentMd : null); }
-      { const r = await fetch(`${API_URL}/doctor/patients/${p.patient.id}/soap/latest`, { headers: h }); const d = await r.json(); setSoap(r.ok && d?.contentMd ? d.contentMd : null); }
-    } catch {} finally { setDetailLoading(false); }
+    // Paraleliza TODOS os fetches (antes eram 10 awaits em série = soma de latências, ~3s).
+    // Promise.allSettled: cada um resolve/rejeita independente (um falhar não derruba os outros).
+    // openSeq: só aplica setState se este ainda for o openPatient mais recente (evita race —
+    // paciente A populando estado do paciente B quando o médico troca rápido).
+    const mySeq = ++openSeq.current;
+    const mine = () => mySeq === openSeq.current;
+    const pid = p.patient.id;
+    const get = async (path: string) => { try { const r = await fetch(`${API_URL}/doctor/patients/${pid}${path}`, { headers: h }); return r.ok ? await r.json() : null; } catch { return null; } };
+    await Promise.allSettled([
+      get('/risk').then((d) => { if (d && mine()) setRisk(d); }),
+      get('/risk/history').then((d) => { if (d && mine()) setRiskHistory(d.history ?? []); }),
+      get('/pre-visit').then((d) => { if (d && mine()) setPreVisit(d); }),
+      ...(wantExams ? [get('/exams').then((d) => { if (d && mine()) setExams(d.items ?? []); })] : []),
+      ...(wantEvol ? [get('/evolution').then((d) => { if (d && mine()) setEvolution(d.items ?? []); })] : []),
+      ...(wantSummary ? [get('/summaries').then((d) => { if (d && mine()) setSummaries(d.items ?? []); })] : []),
+      get('/questions').then((d) => { if (d && mine()) setQuestions(d.items ?? []); }),
+      get('/notes').then((d) => { if (d && mine()) setNotes(d.items ?? []); }),
+      get('/action-plan/latest').then((d) => { if (mine()) setClinicalPlan(d?.contentMd ?? null); }),
+      get('/soap/latest').then((d) => { if (mine()) setSoap(d?.contentMd ?? null); }),
+    ]);
+    if (mine()) setDetailLoading(false);
   };
 
   // PLANO DE AÇÃO CLÍNICO (C2) — versão médico, grátis. Gera via GLM com tom técnico.
@@ -1161,10 +1166,8 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               <DoctorExamDetail exam={selExam} detail={examDetail} patientId={selected.patient.id} token={token} onBack={() => { setSelExam(null); setExamDetail(null); }} />
             ) : supportedTabs.length > 0 ? (
               <>
-                {detailLoading && <Box sx={{ textAlign: 'center', py: 4 }}><CircularProgress size={28} sx={{ color: TEAL }} /></Box>}
-
                 {/* RISCO (C1+C2+C3) — leitura de risco + mudanças ao longo do tempo + plano de ação clínico (versão médico, grátis) */}
-                {!detailLoading && tab === 'risk' && (
+                {tab ==='risk' && (
                   <Stack spacing={1.5}>
                     {risk?.result ? (() => {
                       const rl = risk.result.riskLevel;
@@ -1184,7 +1187,9 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                           <Typography variant="caption" sx={{ color: 'text.secondary' }}>*Educativo. Não substitui avaliação médica.</Typography>
                         </CardContent></Card>
                       );
-                    })() : <Empty label="Sem leitura de risco ainda." icon="🛡️" />}
+                    })() : (detailLoading
+                      ? <Box sx={{ textAlign: 'center', py: 4 }}><CircularProgress size={28} sx={{ color: TEAL }} /></Box>
+                      : <Empty label="Sem leitura de risco ainda." icon="🛡️" />)}
 
                     {/* Mudanças ao longo do tempo (C3) — deduplicado por dia (não repetir a mesma data) */}
                     {riskHistoryDedup.length > 1 && (
@@ -1231,7 +1236,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 {/* PERGUNTAS — thread completa (paciente + médico + IA) em bolhas. Antes ficava
                     misturada na tab Risco e só mostrava a última resposta do médico (perdia o
                     histórico). Agora tem aba própria e itera q.messages. */}
-                {!detailLoading && tab === 'questions' && (
+                {tab ==='questions' && (
                   <Stack spacing={1.5}>
                     {/* Cota de perguntas (contextual: a info que estava confusa no botão Atendi). */}
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap', p: 1, px: 1.25, borderRadius: 2, bgcolor: 'rgba(32,178,170,.06)', border: '1px solid rgba(32,178,170,.15)' }}>
@@ -1300,7 +1305,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 )}
 
                 {/* EXAMES — agrupados por ano (igual à lista do paciente), clicáveis p/ ver detalhe */}
-                {!detailLoading && tab === 'exams' && (
+                {tab ==='exams' && (
                   <Stack spacing={1.5}>
                     {exams.length === 0 && <Empty label="Sem exames extraídos." />}
                     {examsByYear.map((g) => (
@@ -1333,7 +1338,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                   </Stack>
                 )}
 
-                {!detailLoading && tab === 'alerts' && (() => {
+                {tab ==='alerts' && (() => {
                   const exWithAlerts = exams.filter((ex: any) => ex.items?.length).map((ex: any) => ({ ...ex, items: [...ex.items].sort((a: any, b: any) => categorize(a.name).key.localeCompare(categorize(b.name).key)) }));
                   if (!exWithAlerts.length) return <Empty label="Nenhum valor alterado nos exames." />;
                   return (
@@ -1369,11 +1374,11 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                   );
                 })()}
 
-                {!detailLoading && tab === 'evolution' && (
+                {tab ==='evolution' && (
                   <EvolutionCharts items={evolution} />
                 )}
 
-                {!detailLoading && tab === 'summary' && (
+                {tab ==='summary' && (
                   <Stack spacing={1.5}>
                     <Button size="small" variant="contained" onClick={genSummary} disabled={detailLoading} sx={{ alignSelf: 'flex-start', textTransform: 'none', borderRadius: 99, fontWeight: 700 }}>{summaries[0] ? '🔄 Regenerar resumo clínico' : '🤖 Gerar resumo clínico'}</Button>
                     {summaries.length === 0 && !detailLoading && <Empty label="Sem resumo clínico ainda — toque em ‘Gerar resumo clínico’ acima." icon="🤖" />}
@@ -1391,7 +1396,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                   </Stack>
                 )}
 
-                {!detailLoading && tab === 'notes' && (
+                {tab ==='notes' && (
                   <NotesTab notes={notes} newNote={newNote} setNewNote={setNewNote} onAdd={addNote} onDelete={delNote} onSave={saveNote} />
                 )}
               </>
