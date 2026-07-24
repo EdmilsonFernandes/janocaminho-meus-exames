@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, MenuItem, Select, FormControl, InputLabel, CircularProgress, Stack, Chip, useMediaQuery, useTheme } from '@mui/material';
+import { Box, Button, Card, CardContent, Typography, MenuItem, Select, FormControl, InputLabel, CircularProgress, Stack, Chip, useMediaQuery, useTheme } from '@mui/material';
 import { Title } from 'react-admin';
 import { PageContainer } from '../components/layout/PageContainer';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceArea, Legend } from 'recharts';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
+import { useNavigate } from 'react-router-dom';
 import { Flag } from '../components/Flag';
 import { displayStatus } from '../utils/examStatus';
 import { ExplainButton } from '../components/ExplainItem';
@@ -21,6 +22,7 @@ const fmtNum = (n: number | null | undefined) => n == null ? '—' : String(Numb
 
 export const TrendsPage = () => {
   const [pid] = useSelectedPatient();
+  const navigate = useNavigate();
   const [names, setNames] = useState<{ nameCanonical: string; count: number }[]>([]);
   const [sel, setSel] = useState('');
   const [ts, setTs] = useState<TS | null>(null);
