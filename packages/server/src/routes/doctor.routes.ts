@@ -236,6 +236,13 @@ router.post('/register', validate(schemas.doctorRegister), async (req, res, next
     const norm = normalizeCrmKey(crm, crmUf) ?? normalizeCrmKey(crm);
     const crmKey = norm?.crm ?? String(crm).trim();
     const uf = norm?.uf ?? null;
+    // Validação CFM (quando CONSULTA_CRM_KEY configurada): bloqueia CRM INATIVO. Se a API do CFM
+    // não estiver disponível (sem chave / falha / limite), NÃO bloqueia (graceful — não trava
+    // cadastro legítimo); o cadastro já fica inativo até verificar e-mail + é auditado pro admin.
+    const cfm = uf ? await lookupCfm(crm, uf).catch(() => null) : null;
+    if (cfm && cfm.situation && !/ativo/i.test(cfm.situation)) {
+      res.status(400).json({ error: `CRM ${crmKey}/${uf} consta como "${cfm.situation}" no CFM. Se for engano, contate o suporte.` }); return;
+    }
     const mail = String(email).toLowerCase().trim();
     const existing = await prisma.doctor.findFirst({ where: { OR: [{ email: mail }, { crm: crmKey }] } });
     const duplicateCpf = await prisma.doctor.findFirst({

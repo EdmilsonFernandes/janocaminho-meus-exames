@@ -141,6 +141,11 @@ async function runExtractionOnce(examId: string): Promise<void> {
       raw.nameMatch = computeNameMatch(String(raw.patientName), patient.fullName);
     }
 
+    // LGPD: o CPF CRU do documento (raw.patientCpf/cpf) só foi preciso pro computeIdentityMatch
+    // acima (que guarda só o mascarado em identityMatch.docCpfMasked). Remove do raw ANTES de
+    // persistir — rawExtraction é JSONB sem pgcrypto; CPF cru ficaria legível num dump do banco.
+    if (raw) { delete raw.patientCpf; delete raw.cpf; delete raw.patientCPF; }
+
     // descarta documento que NÃO parece exame/laudo médico (sem itens e sem sinais médicos) — msg do KB
     if (kind !== 'IMAGING' && items.length === 0 && !looksLikeMedical(text)) {
       await prisma.exam.update({
