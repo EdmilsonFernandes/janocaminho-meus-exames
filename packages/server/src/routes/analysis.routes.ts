@@ -6,7 +6,8 @@ import { requireAuth, requirePlan, AuthedRequest, userPatientIds } from '../midd
 import { generateHealthSummary, generateConsolidatedSummary, loadExamContext } from '../analysis/health-summary';
 import { streamChat } from '../analysis/chat';
 import { parseListParams, setListHeaders } from '../utils/list';
-import { chargeCredits, CREDIT_COSTS } from '../utils/credits';
+import { chargeCredits, refundCredits, CREDIT_COSTS } from '../utils/credits';
+import { hashSharePin } from '../utils/crypto';
 
 const router = Router();
 router.use(requireAuth);
@@ -74,23 +75,25 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     // Se force=true, REGENERA (cobra de novo).
     const existing = await prisma.aiAnalysis.findFirst({ where: { examId, type: 'SUMMARY' }, orderBy: { createdAt: 'desc' } });
     if (existing && !req.body?.force) { res.json(existing); return; }
-    const me = await prisma.user.findUnique({ where: { id: req.userId! }, select: { credits: true } });
-    if ((me?.credits ?? 0) < CREDIT_COSTS.summary) {
+    // DÉBITO ATÔMICO ANTES da IA (anti-race — antes gate-read + charge depois).
+    const charged = await chargeCredits(req.userId!, CREDIT_COSTS.summary, 'ai_summary', 'Resumo do exame');
+    if (!charged) {
       res.status(402).json({ error: 'insufficient_credits', message: 'Sem créditos suficientes. Compre um pacote de créditos para gerar análises com IA.' });
       return;
     }
-    const { summary, contentMd, modelUsed, usage } = await generateHealthSummary(examId);
+    let generated;
+    try { generated = await generateHealthSummary(examId); }
+    catch (e) { await refundCredits(req.userId!, CREDIT_COSTS.summary, 'ai_summary_refund', 'Reembolso: falha na IA (resumo)'); throw e; }
     const analysis = await prisma.aiAnalysis.create({
       data: {
         examId,
         type: 'SUMMARY',
-        contentMd,
-        structured: summary as any,
-        modelUsed,
-        tokenUsage: usage as any,
+        contentMd: generated.contentMd,
+        structured: generated.summary as any,
+        modelUsed: generated.modelUsed,
+        tokenUsage: generated.usage as any,
       },
     });
-    await chargeCredits(req.userId!, CREDIT_COSTS.summary, 'ai_summary', 'Resumo do exame', analysis.id);
     res.status(201).json(analysis);
   } catch (e: any) {
     if (!res.headersSent) next(e);
@@ -119,8 +122,9 @@ router.post('/consolidated', async (req: AuthedRequest, res, next) => {
       orderBy: { createdAt: 'desc' },
     });
     if (recent && !req.body?.force) { res.json({ ...recent, sourceExams }); return; }
-    const me = await prisma.user.findUnique({ where: { id: req.userId! }, select: { credits: true } });
-    if ((me?.credits ?? 0) < CREDIT_COSTS.consolidated) {
+    // DÉBITO ATÔMICO ANTES da IA (anti-race).
+    const charged = await chargeCredits(req.userId!, CREDIT_COSTS.consolidated, 'ai_consolidated', 'Relatório consolidado');
+    if (!charged) {
       res.status(402).json({ error: 'insufficient_credits', message: 'Sem créditos suficientes. Compre um pacote para gerar o relatório completo.' });
       return;
     }
@@ -131,9 +135,10 @@ router.post('/consolidated', async (req: AuthedRequest, res, next) => {
       const analysis = existing
         ? await prisma.aiAnalysis.update({ where: { id: existing.id }, data: { contentMd, structured: summary as any, modelUsed, tokenUsage: usage as any, createdAt: new Date() } })
         : await prisma.aiAnalysis.create({ data: { patientId, examId: null, type: 'SUMMARY', contentMd, structured: summary as any, modelUsed, tokenUsage: usage as any } });
-      await chargeCredits(req.userId!, CREDIT_COSTS.consolidated, 'ai_consolidated', 'Relatório consolidado', analysis.id);
       res.status(201).json({ ...analysis, sourceExams });
     } catch (genErr: any) {
+      // IA falhou após o débito → reembolsa. (Depois tenta devolver o último relatório salvo.)
+      await refundCredits(req.userId!, CREDIT_COSTS.consolidated, 'ai_consolidated_refund', 'Reembolso: falha na IA (consolidado)');
       // RAG: se a (re)geração falhou, devolve o ÚLTIMO relatório salvo em vez de erro
       const last = await prisma.aiAnalysis.findFirst({ where: { patientId, type: 'SUMMARY', examId: null, userMessage: null }, orderBy: { createdAt: 'desc' } });
       if (last) {
@@ -263,7 +268,7 @@ router.post('/:id/share', async (req: AuthedRequest, res, next) => {
     const expires = Date.now() + 12 * 60 * 60 * 1000; // 12 horas
     const token = `${crypto.randomUUID()}.${expires}`;
     const pin = String(crypto.randomInt(100000, 1000000)); // CSPRNG (não Math.random — adivinhável)
-    const pinHash = crypto.createHash('sha256').update(`${pin}:${token}`).digest('hex');
+    const pinHash = hashSharePin(pin, token);
     await prisma.aiAnalysis.update({ where: { id: a.id }, data: { shareToken: token, sharePin: pinHash } });
     // base do sub-caminho (/minhasaude). WEB_BASE_PATH é a fonte; se vier vazio no container,
     // deriva do Referer da página (ela tá em /minhasaude/#/...). Sem isso o link nasce sem o

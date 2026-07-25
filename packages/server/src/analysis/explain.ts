@@ -95,6 +95,10 @@ export async function generateExplanation(name: string, locale: string = DEFAULT
 
 /** Cache-ou-gera: pega do banco; se faltar (ou versão velha), gera via IA e persiste. */
 export async function getOrCreateExplanation(name: string, locale: string = DEFAULT_LOCALE): Promise<Explanation> {
+  // Sanity do nome: evita abuso (POST c/ lixo/garbage) que chamaria IA + poluiria a tabela
+  // exam_knowledge pra sempre. Só gera/cacheia se parecer um analito real (2-50 chars, tem letra).
+  const k = nameKey(name);
+  if (k.length < 2 || k.length > 50 || !/[A-Z]/.test(k)) return {};
   const cached = await getExplanation(name, locale);
   if (cached) return cached;
   return generateExplanation(name, locale);

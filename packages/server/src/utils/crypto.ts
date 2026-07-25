@@ -6,6 +6,14 @@ export function sha256Buffer(buffer: Buffer): string {
   return crypto.createHash('sha256').update(buffer).digest('hex');
 }
 
+/** HMAC do PIN de share (secret = JWT_SECRET). Antes era sha256(pin:token) — brute-forceável
+ *  offline em <1s pq o token é público no link compartilhado. HMAC c/ secret do server torna o
+ *  brute-force inviável sem o secret (que NÃO vai pro client). Mesmo secret em create (analysis)
+ *  e verify (app). */
+export function hashSharePin(pin: string, token: string): string {
+  return crypto.createHmac('sha256', config.jwtSecret).update(`${pin}:${token}`).digest('hex');
+}
+
 const ALGO = 'aes-256-gcm';
 
 function encryptionKey(): Buffer {

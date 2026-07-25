@@ -17,7 +17,7 @@ REGRAS ABSOLUTAS (nunca viole):
 
 /** Pós-filtro de defesa em profundidade: detecta frases de diagnóstico e reforça o disclaimer. */
 export function diagnosticGuard(text: string): { flagged: boolean; text: string } {
-  const FORBIDDEN = /(voc[eê]\s+(tem|est[aá]|sofre|apresenta|est[aá] com)\s+|diagn[oó]stico\s*:\s*\w|sua\s+doen[çc]a|est[aá] com\s+\w+(ite|ose|emia))/i;
+  const FORBIDDEN = /(voc[eê]\s+(tem|est[aá]|sofre|apresenta|est[aá] com)\s+|diagn[oó]stico\s*:\s*\w|sua\s+doen[çc]a|est[aá] com\s+\w+(ite|ose|emia)|(aponta|sugere|sugestivo de|compat[ií]vel com|indicativo de|preenche crit[ée]rios|diagn[oó]stico\s+(prov[áa]vel|diferencial)))/i;
   if (FORBIDDEN.test(text)) {
     return {
       flagged: true,

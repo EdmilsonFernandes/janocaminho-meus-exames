@@ -14,6 +14,7 @@ import { errorHandler, notFound } from './middleware/errorHandler';
 import { accessAudit } from './middleware/accessAudit';
 import { emailTemplate } from './utils/emailTemplate';
 import { verifyUnsubToken } from './utils/unsubscribeToken';
+import { hashSharePin } from './utils/crypto';
 import authRoutes from './routes/auth.routes';
 import patientRoutes from './routes/patient.routes';
 import examRoutes from './routes/exam.routes';
@@ -82,6 +83,8 @@ const generalLimiter = rateLimit({ windowMs: 60 * 1000, max: 120, standardHeader
 // Cadastro tem limite próprio e bem mais apertado (8/hora/IP) — trava farm de contas pra
 // roubar o bônus de créditos. Aplicado ANTES do authLimiter genérico (mais específico primeiro).
 const signupLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 8, standardHeaders: true, legacyHeaders: false, skip: skipDev, message: { error: 'Muitos cadastros deste local. Tente novamente mais tarde.' } });
+// PIN de share (rota pública /api/public/shared/:token) — anti brute-force do PIN de 6 dígitos.
+const shareLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false, skip: skipDev, message: { error: 'Muitas tentativas de PIN. Aguarde 15 minutos.' } });
 app.use('/api/auth/register', signupLimiter);
 app.use('/api/doctor/crm', signupLimiter); // busca pública de CRM (consultaCRM) no cadastro do médico — limita consumo da cota
 app.use('/api/auth', authLimiter);
@@ -191,7 +194,7 @@ app.use('/api/achievements', achievementRoutes);
 app.use('/api/tickets', ticketRoutes); // chamados de suporte do paciente (admin gerencia em /api/admin/tickets)
 
 // ROTA PÚBLICA: médico vê o resumo compartilhado (sem login, expira em 12 horas)
-app.get('/api/public/shared/:token', async (req, res) => {
+app.get('/api/public/shared/:token', shareLimiter, async (req, res) => {
   const token = String(req.params.token);
   const parts = token.split('.');
   if (parts.length === 2) {
@@ -219,7 +222,7 @@ app.get('/api/public/shared/:token', async (req, res) => {
   }
   // Gate por PIN (senha de 6 dígitos) — o paciente envia ao médico separadamente
   const enteredPin = String(req.query.pin ?? '');
-  const pinHash = crypto.createHash('sha256').update(`${enteredPin}:${token}`).digest('hex');
+  const pinHash = hashSharePin(enteredPin, token);
   if (!a.sharePin || pinHash !== a.sharePin) {
     res.type('html').send(pinGateHtml(req.originalUrl.replace(/\?.*$/, ''), !enteredPin));
     return;

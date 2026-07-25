@@ -40,6 +40,20 @@ export async function chargeCredits(userId: string, amount: number, kind?: strin
   return ok;
 }
 
+/** Reembolso: incrementa créditos + grava no extrato (atômico). Usa após chargeCredits quando a
+ *  operação de IA falha (ex.: stream quebrou) — devolve o que foi debitado. */
+export async function refundCredits(userId: string, amount: number, kind: string, label: string): Promise<void> {
+  if (amount <= 0) return;
+  try {
+    await prisma.$transaction([
+      prisma.user.update({ where: { id: userId }, data: { credits: { increment: amount } } }),
+      prisma.creditTransaction.create({ data: { userId, delta: amount, kind, label } }),
+    ]);
+  } catch (e: any) {
+    console.error('[credits] falha no reembolso:', kind, (e as Error)?.message);
+  }
+}
+
 /** Plano premium (mensal) ativo agora? */
 export async function isPremium(userId: string): Promise<boolean> {
   const u = await prisma.user.findUnique({ where: { id: userId }, select: { planExpiresAt: true } });

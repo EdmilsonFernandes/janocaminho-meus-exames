@@ -223,25 +223,28 @@ router.get('/payment-status/:id', requireAuth, async (req, res, next) => {
 router.post('/webhook', async (req, res) => {
   try {
     const { type, action, data } = req.body ?? {};
-    // TELEMETRIA (log-first): o Mercado Pago assina o webhook com HMAC no header x-signature
-    // (secret = MP_WEBHOOK_SECRET). Ainda NÃO bloqueamos — só logamos pra confirmar o formato
-    // real que o MP envia ANTES de endurecer (próx. passo: rejeitar 401 se não bater). Assim
-    // não há risco de quebrar a monetização processando a verificação errada.
+    // ENFORCE assinatura HMAC do Mercado Pago (x-signature; secret = MP_WEBHOOK_SECRET).
+    // Antes só LOGávamos pra confirmar o formato — webhook forjado poderia ativar
+    // premium/créditos falsos. Agora: se o secret tá definido (prod), assinatura
+    // ausente ou inválida → 401 (não processa). Sem secret (DEV) segue liberado.
     const sig = req.get('x-signature') || '';
     const rid = req.get('x-request-id') || '';
     const dataId = data?.id;
     if (config.mpWebhookSecret) {
       const tsMatch = sig.match(/ts=(\d+)/);
       const v1Match = sig.match(/v1=([0-9a-f]+)/i);
-      if (tsMatch && v1Match && dataId != null) {
-        const template = `id:${dataId};request-id:${rid};ts:${tsMatch[1]}`;
+      const sigOk = !!(tsMatch && v1Match && dataId != null && (() => {
+        const template = `id:${dataId};request-id:${rid};ts:${tsMatch![1]}`;
         const expected = crypto.createHmac('sha256', config.mpWebhookSecret).update(template).digest('hex');
-        console.log(`[billing] webhook sig: ${expected === v1Match[1].toLowerCase() ? 'OK ✅' : 'NÃO bate ❌'} (rid=${rid}, dataId=${dataId})`);
-      } else {
-        console.log(`[billing] webhook sem assinatura completa (sig=${sig ? 'presente' : 'ausente'}, rid=${rid ? 'p' : 'a'}, dataId=${dataId})`);
+        return expected === v1Match![1].toLowerCase();
+      })());
+      if (!sigOk) {
+        console.warn(`[billing] webhook REJEITADO — assinatura inválida/ausente (rid=${rid}, dataId=${dataId})`);
+        res.status(401).json({ error: 'assinatura inválida' });
+        return;
       }
     } else {
-      console.warn('[billing] MP_WEBHOOK_SECRET ausente — webhook sem verificação de assinatura.');
+      console.warn('[billing] MP_WEBHOOK_SECRET ausente — webhook sem verificação de assinatura (DEV apenas).');
     }
     const isPayment = type === 'payment' || String(action || '').startsWith('payment');
     if (isPayment && data?.id && hasMercadoPago()) {

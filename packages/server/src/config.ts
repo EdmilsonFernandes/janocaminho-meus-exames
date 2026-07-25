@@ -67,6 +67,10 @@ export const config = {
   geminiApiKey: process.env.GEMINI_API_KEY ?? '',
   geminiModel: process.env.GEMINI_MODEL ?? 'gemini-2.0-flash',
   extractionDryRun: process.env.EXTRACTION_DRY_RUN === 'true',
+  // Prompt caching (Anthropic cache_control ephemeral no system). OPT-IN: o relay Z.ai pode
+  // NÃO suportar cache_control (como não suporta output_config/thinking) → habilitar só após
+  // testar contra o relay. Default OFF = comportamento atual (sem risco de quebrar a IA).
+  llmPromptCache: process.env.LLM_PROMPT_CACHE === 'true',
 
   uploadDir: process.env.UPLOAD_DIR ?? './data/exams',
   photosDir: process.env.PHOTOS_DIR ?? './data/photos',

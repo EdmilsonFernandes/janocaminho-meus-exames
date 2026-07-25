@@ -13,7 +13,7 @@
 import { Router } from 'express';
 import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
 import { prisma } from '../prisma';
-import { chargeCredits, CREDIT_COSTS } from '../utils/credits';
+import { chargeCredits, refundCredits, CREDIT_COSTS } from '../utils/credits';
 import { buildRiskAssessment, latestRiskAssessment } from '../analysis/risk-service';
 import { generateActionPlan } from '../analysis/risk-action-plan';
 import { saveAnalysisDoc, getLatestAnalysisDoc, DOC_KIND } from '../utils/analysisDoc';
@@ -121,16 +121,18 @@ router.post('/action-plan', async (req: AuthedRequest, res, next) => {
       res.status(403).json({ error: 'Paciente inválido' });
       return;
     }
-    // gate de créditos (igual /analyses) — 402 antes de gastar IA
-    const me = await prisma.user.findUnique({ where: { id: req.userId! }, select: { credits: true } });
-    if ((me?.credits ?? 0) < CREDIT_COSTS.actionPlan) {
+    // DÉBITO ATÔMICO ANTES da IA (anti-race — antes gate-read + charge depois, com warn silencioso se falhava).
+    const charged = await chargeCredits(req.userId!, CREDIT_COSTS.actionPlan, 'risk_action_plan', 'Plano de ação (Dr. Exame)');
+    if (!charged) {
       res.status(402).json({ error: 'insufficient_credits', message: 'Sem créditos suficientes. Compre um pacote para gerar o plano de ação.' });
       return;
     }
-    const { contentMd, modelUsed, basedOn } = await generateActionPlan(patientId);
-    const ok = await chargeCredits(req.userId!, CREDIT_COSTS.actionPlan, 'risk_action_plan', 'Plano de ação (Dr. Exame)');
-    if (!ok) {
-      console.warn('[risk/action-plan] débito falhou pós-geração (saldo mudou) — conteúdo devolvido sem cobrança.');
+    let contentMd: string; let modelUsed: string; let basedOn: any;
+    try {
+      ({ contentMd, modelUsed, basedOn } = await generateActionPlan(patientId));
+    } catch (e) {
+      await refundCredits(req.userId!, CREDIT_COSTS.actionPlan, 'risk_action_plan_refund', 'Reembolso: falha na IA (plano de ação)');
+      throw e;
     }
     // PERSISTE: 1 plano por paciente (upsert). Ao reabrir, o front lê /latest (grátis) — só cobra de novo no "Gerar novo".
     await saveAnalysisDoc({ patientId, kind: DOC_KIND.ACTION_PLAN_PATIENT, contentMd, structured: { basedOn }, modelUsed });

@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { LlmProvider, LlmRequest, LlmStream, LlmResult } from './types';
 import { getActiveConfig, type AiProviderRuntime } from './ai-config';
+import { config } from '../config';
 
 /** Adapter Anthropic/Z.ai — credenciais do banco (getActiveConfig) ou explícitas (teste de conexão).
  *  Passa apiKey/baseURL explícitos pro SDK (não depende de ler ANTHROPIC_AUTH_TOKEN do env). */
@@ -35,10 +36,18 @@ export class AnthropicAdapter implements LlmProvider {
 
   async stream(req: LlmRequest): Promise<LlmStream> {
     const system = this.toSystem(req.system);
+    // Prompt caching OPT-IN (LLM_PROMPT_CACHE=true): cacheia o system (estável entre turnos/usuários
+    // da mesma feature) → -70-90% tokens em chat/consolidated. Default OFF — o relay Z.ai pode não
+    // suportar cache_control; habilitar só após testar contra o relay.
+    const systemParam = system
+      ? (config.llmPromptCache
+        ? [{ type: 'text' as const, text: system, cache_control: { type: 'ephemeral' as const } }]
+        : system)
+      : undefined;
     const stream = this.client.messages.stream({
       model: req.model ?? this.cfg.model,
       max_tokens: req.maxTokens,
-      ...(system ? { system } : {}),
+      ...(systemParam ? { system: systemParam } : {}),
       messages: req.messages as any,
     } as any);
     const finalPromise = stream.finalMessage().then((f): LlmResult => {

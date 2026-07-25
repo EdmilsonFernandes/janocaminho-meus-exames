@@ -3,7 +3,7 @@ import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
 import { streamChat } from '../analysis/chat';
 import { memoryDigest, patientSlug, appendConversation } from '../analysis/agent-memory';
-import { chargeCredits, CREDIT_COSTS } from '../utils/credits';
+import { chargeCredits, refundCredits, CREDIT_COSTS } from '../utils/credits';
 import { tryLocalAnswer, streamLocalAnswer } from '../analysis/chat-router';
 import { describeStaleness } from '../analysis/health-state';
 
@@ -147,17 +147,25 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       `os dados certos. Valores de exames ANTIGOS (rotulados "histórico"/"desatualizado") NÃO representam o estado ` +
       `atual — diga que pode estar desatualizado e oriente a refazer o exame. Conteúdo educativo; oriente sempre o médico.`;
 
-    // gate de créditos (antes de iniciar o stream — não dá p/ abortar no meio do SSE)
-    const me = await prisma.user.findUnique({ where: { id: req.userId! }, select: { credits: true } });
-    if ((me?.credits ?? 0) < CREDIT_COSTS.chat) {
+    // DÉBITO ATÔMICO ANTES da chamada de IA (anti-race). Antes era gate-read + charge DEPOIS do
+    // stream: N requisições paralelas passavam no gate com o mesmo saldo → N respostas de IA, 1 débito.
+    // Agora: chargeCredits (atômico, só debita se credits>=cost) ANTES; se falhar → 402 sem chamar IA.
+    // Se a IA falhar depois do débito → reembolso (refundCredits).
+    const charged = await chargeCredits(req.userId!, CREDIT_COSTS.chat, 'ai_chat', 'Chat com a IA');
+    if (!charged) {
       res.status(402).json({ error: 'insufficient_credits', message: 'Sem créditos para conversar. Compre um pacote de créditos.' });
       return;
     }
-    const { text, model } = await streamChat({ res, contextText, history, message });
+    let text: string; let model: string;
+    try {
+      ({ text, model } = await streamChat({ res, contextText, history, message }));
+    } catch (e) {
+      await refundCredits(req.userId!, CREDIT_COSTS.chat, 'ai_chat_refund', 'Reembolso: falha na IA (chat)');
+      throw e;
+    }
     await prisma.aiAnalysis.create({
       data: { type: 'CHAT', patientId: pid, userMessage: message, contentMd: text, modelUsed: model },
     });
-    await chargeCredits(req.userId!, CREDIT_COSTS.chat, 'ai_chat', 'Chat com a IA');
     // Persiste a conversa em .md (não se perde; vira memória durável do paciente)
     appendConversation(slug, message, text);
   } catch (e) {

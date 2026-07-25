@@ -3,7 +3,7 @@ import { prisma } from '../prisma';
 import {
   signToken, signResetToken, verifyToken, verifyResetToken, hashPassword, comparePassword,
 } from '../auth/jwt';
-import { issueOtp, verifyOtp } from '../auth/otp';
+import { issueOtp, verifyOtp, canIssueOtp } from '../auth/otp';
 import { requireAuth, AuthedRequest, firstPatientId } from '../middleware/auth';
 import { sendEmail } from '../utils/mailer';
 import { otpEmail, resetEmail } from '../utils/emailTemplate';
@@ -300,8 +300,9 @@ router.post('/forgot', async (req, res, next) => {
     const { email } = req.body ?? {};
     const mail = String(email ?? '').toLowerCase().trim();
     const user = await prisma.user.findUnique({ where: { email: mail } });
-    // não revela se o e-mail existe (segurança)
-    if (user) {
+    // não revela se o e-mail existe (segurança). Throttle por e-mail: se excedeu, NÃO envia
+    // (anti-spam/DoS de e-mail via botnet) — mas devolve a mesma resposta genérica (sem vazar).
+    if (user && canIssueOtp(mail)) {
       const token = signResetToken(user.id, user.tokenVersion ?? 0);
       const base = (process.env.WEB_BASE_PATH ?? '').replace(/\/$/, '');
       // Token na QUERY REAL (email clients rastreiam normal) + rota no HASH (HashRouter).
@@ -354,6 +355,7 @@ router.post('/otp/request', async (req, res, next) => {
     const email = String(req.body?.email ?? '').toLowerCase().trim();
     if (!email) { res.status(400).json({ error: 'Informe o e-mail.' }); return; }
     if (isBlockedDomain(email)) { res.status(400).json({ error: 'Não aceitamos e-mails temporários. Use um e-mail válido.' }); return; }
+    if (!canIssueOtp(email)) { res.status(429).json({ error: 'Muitos códigos pedidos para este e-mail. Aguarde alguns minutos.' }); return; }
     const code = issueOtp(email);
     const masked = email.replace(/^(.{1,2}).*(@)/, '$1***$2');
     try {

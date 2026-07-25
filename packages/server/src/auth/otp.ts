@@ -47,3 +47,19 @@ export function verifyOtp(email: string, code: string): boolean {
   save();
   return false;
 }
+
+// THROTTLE por destinatário (anti-spam/DoS de e-mail): máx 3 pedidos / 10min por e-mail.
+// authLimiter (por IP) não basta contra botnet/CGNAT — mil IPs podem bombardear 1 alvo e
+// bloquear o remetente Zoho. Em memória (efêmero; reset no restart é ok p/ throttle).
+const OTP_THROTTLE = new Map<string, number[]>();
+const OTP_THROTTLE_WINDOW = 10 * 60_000;
+const OTP_THROTTLE_MAX = 3;
+/** true se pode emitir p/ este e-mail agora (registra a tentativa); false se excedeu (429). */
+export function canIssueOtp(email: string): boolean {
+  const now = Date.now();
+  const arr = (OTP_THROTTLE.get(email) ?? []).filter((t) => now - t < OTP_THROTTLE_WINDOW);
+  if (arr.length >= OTP_THROTTLE_MAX) { OTP_THROTTLE.set(email, arr); return false; }
+  arr.push(now);
+  OTP_THROTTLE.set(email, arr);
+  return true;
+}
