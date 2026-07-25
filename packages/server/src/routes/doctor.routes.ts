@@ -17,7 +17,7 @@ import { config } from '../config';
 import { upload } from '../middleware/upload';
 import { saveDoctorPhoto, resolvePatientPhoto, resolveExamFile } from '../utils/storage';
 import { evaluateMfaOnLogin, verifyChallenge, getStatus as mfaStatus, startSetup as mfaStart, confirmSetup as mfaConfirm, disableMfa as mfaDisable } from '../utils/mfa';
-import { requireAuth, AuthedRequest } from '../middleware/auth';
+import { requireAuth, AuthedRequest, requirePhotoToken } from '../middleware/auth';
 import { lookupCfm } from '../utils/cfm';
 import { buildCurrentHealthSummary, priorityOfItem, PRIORITY_RANK } from '../analysis/health-state';
 import { latestRiskAssessment, buildRiskAssessment } from '../analysis/risk-service';
@@ -419,8 +419,8 @@ router.post('/me/photo', requireDoctor, upload.single('photo'), async (req: any,
   } catch (e) { next(e); }
 });
 
-// SERVE a foto do médico (público — sem auth, pra funcionar em <img src>)
-router.get('/photo/:id', async (req, res) => {
+// SERVE a foto do médico: AUTENTICADA via ?t= (fecha o buraco da foto pública por CUID / LGPD).
+router.get('/photo/:id', requirePhotoToken, async (req, res) => {
   try {
     const doctor = await prisma.doctor.findUnique({ where: { id: String(req.params.id) }, select: { photoUrl: true } });
     if (!doctor?.photoUrl) { res.setHeader('Cache-Control', 'no-store'); res.status(404).send('sem foto'); return; }

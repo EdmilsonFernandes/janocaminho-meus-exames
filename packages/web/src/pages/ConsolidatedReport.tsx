@@ -10,7 +10,7 @@ import RestaurantIcon from '@mui/icons-material/Restaurant';
 import TrackChangesIcon from '@mui/icons-material/TrackChanges';
 import LiveHelpIcon from '@mui/icons-material/LiveHelp';
 import InsightsIcon from '@mui/icons-material/Insights';
-import { API_URL, apiHeaders, token } from '../config';
+import { API_URL, apiHeaders, token, doctorPhotoUrl } from '../config';
 import { hapticSuccess, hapticError } from '../utils/haptic';
 import { bumpCredits } from '../utils/credits-events';
 import { speakText, stopSpeakText } from '../utils/nativeDoc';
@@ -525,7 +525,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
                       const lim = atLimit(s);
                       const open = Number(s.openQuestions ?? 0); const max = Number(s.questionLimit ?? 5);
                       return <MenuItem key={id} value={id} disabled={lim} sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.75, opacity: lim ? 0.5 : 1 }}>
-                        <Avatar src={s.doctor?.photoUrl ? `${API_URL}/doctor/photo/${id}?v=0` : undefined} sx={{ width: 36, height: 36, bgcolor: '#20b2aa', fontSize: 14, fontWeight: 700, flexShrink: 0 }}>{(nm || '?').charAt(0)}</Avatar>
+                        <Avatar src={s.doctor?.photoUrl ? doctorPhotoUrl(id, 0) : undefined} sx={{ width: 36, height: 36, bgcolor: '#20b2aa', fontSize: 14, fontWeight: 700, flexShrink: 0 }}>{(nm || '?').charAt(0)}</Avatar>
                         <Box sx={{ minWidth: 0, flex: 1 }}><Typography variant="inherit" sx={{ fontWeight: 700 }}>{nm}</Typography>
                           <Typography variant="caption" sx={{ display: 'block', color: lim ? '#dc2626' : 'text.secondary', fontSize: 11, lineHeight: 1.2 }}>{sp ? sp + ' · ' : ''}{lim ? `limite atingido (${open}/${max})` : `${open}/${max} em aberto`}</Typography>
                         </Box>

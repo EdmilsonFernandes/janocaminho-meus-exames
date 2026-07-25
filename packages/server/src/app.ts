@@ -11,6 +11,7 @@ import { config } from './config';
 import { APP_BUILD_INFO } from './generated/buildInfo';
 import { prisma } from './prisma';
 import { errorHandler, notFound } from './middleware/errorHandler';
+import { requirePhotoToken } from './middleware/auth';
 import { accessAudit } from './middleware/accessAudit';
 import { emailTemplate } from './utils/emailTemplate';
 import { verifyUnsubToken } from './utils/unsubscribeToken';
@@ -117,8 +118,9 @@ app.get('/api/build-info', (_req, res) => res.json(APP_BUILD_INFO));
 app.get('/api/app/version', (_req, res) => res.json({ latest: config.appLatestVersion, minRequired: config.appMinVersion }));
 
 app.use('/api/auth', authRoutes);
-// ROTA PÚBLICA: foto do paciente (sem auth — precisa funcionar em <img src>)
-app.get('/api/patients/:id/photo', async (req, res) => {
+// Foto do paciente: AUTENTICADA via ?t= (token na query — <img src> não envia header). Antes era
+// pública por CUID (LGPD facial). requirePhotoToken aceita ?t= ou header; leve (sem DB por avatar).
+app.get('/api/patients/:id/photo', requirePhotoToken, async (req, res) => {
   try {
     const id = String(req.params.id);
     const p = await prisma.patient.findUnique({ where: { id }, select: { photoUrl: true } });

@@ -3,7 +3,7 @@ import { useTranslate } from 'react-admin';
 import { Box, Typography, Card, CardContent, Stack, Chip, Avatar, CircularProgress, Dialog, IconButton, Select, MenuItem, TextField, FormControl } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
-import { API_URL, token } from '../config';
+import { API_URL, token, photoUrlFor, doctorPhotoUrl } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
@@ -131,7 +131,7 @@ export const QuestionsPage = () => {
                 '&:hover': { boxShadow: '0 4px 12px rgba(0,0,0,.06)' },
               }}>
                 <CardContent sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start', '&:last-child': { pb: 1.5 } }}>
-                  <Avatar src={doc?.photoUrl ? `${API_URL}/doctor/photo/${doc.id}?v=0` : undefined} sx={{ width: 44, height: 44, bgcolor: TEAL, fontSize: 16, fontWeight: 700, flexShrink: 0 }}>{(doc?.name || 'M').charAt(0)}</Avatar>
+                  <Avatar src={doc?.photoUrl ? doctorPhotoUrl(doc.id, 0) : undefined} sx={{ width: 44, height: 44, bgcolor: TEAL, fontSize: 16, fontWeight: 700, flexShrink: 0 }}>{(doc?.name || 'M').charAt(0)}</Avatar>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1} sx={{ mb: 0.25 }}>
                       <Typography sx={{ fontWeight: 800, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc?.name || 'Médico'}{doc?.specialty ? ` · ${doc.specialty}` : ''}</Typography>
@@ -156,7 +156,7 @@ export const QuestionsPage = () => {
         sx={{ '& .MuiDialog-paper': { bgcolor: 'background.default' } }}>
         <Box sx={{ position: 'sticky', top: 0, zIndex: 10, display: 'flex', alignItems: 'center', gap: 1, p: 1.5, pt: 'env(safe-area-inset-top)', bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider' }}>
           <IconButton onClick={() => setOpen(null)} size="small"><CloseIcon /></IconButton>
-          <Avatar src={open?.doctor?.photoUrl ? `${API_URL}/doctor/photo/${open?.doctor?.id}?v=0` : undefined} sx={{ width: 40, height: 40, bgcolor: TEAL, fontSize: 15, fontWeight: 700 }}>{(open?.doctor?.name || 'M').charAt(0)}</Avatar>
+          <Avatar src={open?.doctor?.photoUrl ? doctorPhotoUrl(open?.doctor?.id, 0) : undefined} sx={{ width: 40, height: 40, bgcolor: TEAL, fontSize: 15, fontWeight: 700 }}>{(open?.doctor?.name || 'M').charAt(0)}</Avatar>
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography sx={{ fontWeight: 800, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{open?.doctor?.name || 'Médico'}</Typography>
             <Typography variant="caption" color="text.secondary">{open?.doctor?.specialty}{open?.status === 'answered' ? ` · ${translate('q.answered')}` : ` · ${translate('q.waiting')}`}</Typography>
@@ -175,8 +175,8 @@ export const QuestionsPage = () => {
                   return <Box key={i} sx={{ textAlign: 'center', my: 0.5 }}><Box sx={{ display: 'inline-block', px: 1.5, py: 0.5, borderRadius: 99, bgcolor: 'rgba(32,178,170,.08)', color: 'text.secondary', fontSize: 12, fontWeight: 600 }}>{m.body}</Box></Box>;
                 }
                 const av = isDoc
-                  ? <Avatar src={open?.doctor?.photoUrl ? `${API_URL}/doctor/photo/${open?.doctor?.id}?v=0` : undefined} sx={{ width: 36, height: 36, bgcolor: TEAL, fontSize: 14, fontWeight: 700, flexShrink: 0 }}>{(open?.doctor?.name || 'M').charAt(0)}</Avatar>
-                  : <Avatar src={open?.patientId ? `${API_URL}/patients/${open.patientId}/photo?v=0` : undefined} sx={{ width: 36, height: 36, bgcolor: '#94a3b8', fontSize: 14, fontWeight: 700, flexShrink: 0 }}>{(userName || 'P').charAt(0)}</Avatar>;
+                  ? <Avatar src={open?.doctor?.photoUrl ? doctorPhotoUrl(open?.doctor?.id, 0) : undefined} sx={{ width: 36, height: 36, bgcolor: TEAL, fontSize: 14, fontWeight: 700, flexShrink: 0 }}>{(open?.doctor?.name || 'M').charAt(0)}</Avatar>
+                  : <Avatar src={open?.patientId ? photoUrlFor(open.patientId, 0) : undefined} sx={{ width: 36, height: 36, bgcolor: '#94a3b8', fontSize: 14, fontWeight: 700, flexShrink: 0 }}>{(userName || 'P').charAt(0)}</Avatar>;
                 return (
                   <Box key={i} sx={{ display: 'flex', justifyContent: isDoc ? 'flex-end' : 'flex-start', gap: 0.75, alignItems: 'flex-end' }}>
                     {!isDoc && av}

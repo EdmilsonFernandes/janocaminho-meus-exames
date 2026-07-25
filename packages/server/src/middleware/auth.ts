@@ -11,6 +11,19 @@ export interface AuthedRequest extends Request {
  *  Default 2 dias (token dura 7d → renova a partir do 5º dia de uso). */
 const RENEW_WINDOW_MS = 2 * 24 * 60 * 60 * 1000;
 
+/** Auth LEVE p/ rotas de FOTO (servidas em <img src>, que não envia header Authorization).
+ *  Aceita o token na query ?t= OU no header. Só verifica assinatura+expiração do JWT (sem
+ *  DB/tokenVersion) — fecha o buraco da "foto pública por CUID" (LGPD facial) sem onerar o
+ *  DB a cada avatar renderizado. Qualquer token válido (paciente OU médico) abre; o CUID
+ *  não-enumerável limita o risco residual de acesso cruzado. */
+export function requirePhotoToken(req: Request, res: Response, next: NextFunction): void {
+  const q = req.query.t;
+  const tok = (typeof q === 'string' ? q : null)
+    || (typeof req.headers.authorization === 'string' && req.headers.authorization.startsWith('Bearer ') ? req.headers.authorization.slice(7) : null);
+  if (!tok) { res.status(401).type('html').send('não autorizado'); return; }
+  try { verifyToken(tok); next(); } catch { res.status(401).type('html').send('não autorizado'); }
+}
+
 /** Middleware que exige JWT válido e injeta req.userId. */
 export async function requireAuth(req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
   const header = req.headers.authorization;

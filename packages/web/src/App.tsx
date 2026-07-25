@@ -34,7 +34,7 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import InfoIcon from '@mui/icons-material/Info';
 import { DrExame } from './components/DrExame';
 import { dataProvider } from './dataProvider';
-import { API_URL, token } from './config';
+import { API_URL, token, photoUrlFor } from './config';
 import { authProvider } from './authProvider';
 import { lightTheme, darkTheme } from './theme';
 import { i18nProvider } from './i18n';
@@ -308,7 +308,7 @@ const AppDrawer = () => {
   const userEmail = (userObj?.email as string) || null;
   const isPremium = !!(userObj?.planExpiresAt && new Date(userObj.planExpiresAt) > new Date());
   const patientId = typeof localStorage !== 'undefined' ? (localStorage.getItem('selPatientId') || localStorage.getItem('patientId')) : null;
-  const userPhoto = patientId ? `${API_URL}/patients/${patientId}/photo` : undefined;
+  const userPhoto = patientId ? photoUrlFor(patientId) : undefined;
   // auto-close ao navegar (clica num item → rota muda → fecha)
   useEffect(() => { closeDrawer(); /* deps intencional: só pathname */ }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
   // Espelha o estado do drawer pro handler global de voltar (App.tsx backButton): gesto/botão

@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Box, Card, CardContent, Typography, Button, TextField, CircularProgress, Stack, Chip, Avatar, IconButton, Alert, Divider, Switch, FormControlLabel, MenuItem, Menu as MuiMenu, Dialog, DialogTitle, DialogContent, DialogActions, InputAdornment } from '@mui/material';
 import { useNotify, useTranslate } from 'react-admin';
-import { API_URL, token } from '../config';
+import { API_URL, token, doctorPhotoUrl } from '../config';
 import { bumpCredits } from '../utils/credits-events';
 import { confirmDialog } from '../components/ConfirmDialog';
 import { useSelectedPatient } from '../patient-context';
@@ -249,7 +249,7 @@ export const MedicosPage = () => {
                 <CardContent sx={{ pl: 2.5, py: 1.5, '&:last-child': { pb: 1.5 } }}>
                   <Stack direction="row" alignItems="flex-start" spacing={1.5}>
                     <Box sx={{ position: 'relative', flexShrink: 0 }}>
-                      <Avatar src={s.doctor?.id ? `${API_URL}/doctor/photo/${s.doctor.id}` : undefined} sx={{ width: 48, height: 48, fontWeight: 800, fontSize: 20, bgcolor: '#20b2aa' }}>{s.doctor?.name?.charAt(0)?.toUpperCase()}</Avatar>
+                      <Avatar src={s.doctor?.id ? doctorPhotoUrl(s.doctor.id) : undefined} sx={{ width: 48, height: 48, fontWeight: 800, fontSize: 20, bgcolor: '#20b2aa' }}>{s.doctor?.name?.charAt(0)?.toUpperCase()}</Avatar>
                       <Box sx={{ position: 'absolute', bottom: -1, right: -1, width: 13, height: 13, borderRadius: '50%', bgcolor: s.active ? '#059669' : 'text.secondary', border: '2.5px solid #fff' }} />
                     </Box>
                     <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -311,7 +311,7 @@ export const MedicosPage = () => {
         {detail && (
           <>
             <DialogTitle sx={{ textAlign: 'center', pb: 0 }}>
-              <Avatar src={detail.id ? `${API_URL}/doctor/photo/${detail.id}` : undefined} sx={{ width: 96, height: 96, mx: 'auto', mb: 1.5, fontSize: 36, fontWeight: 800, bgcolor: '#20b2aa', border: '3px solid rgba(32,178,170,0.2)' }}>{detail.name?.charAt(0)?.toUpperCase()}</Avatar>
+              <Avatar src={detail.id ? doctorPhotoUrl(detail.id) : undefined} sx={{ width: 96, height: 96, mx: 'auto', mb: 1.5, fontSize: 36, fontWeight: 800, bgcolor: '#20b2aa', border: '3px solid rgba(32,178,170,0.2)' }}>{detail.name?.charAt(0)?.toUpperCase()}</Avatar>
               {detail.name}
             </DialogTitle>
             <DialogContent sx={{ textAlign: 'center' }}>

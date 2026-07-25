@@ -16,7 +16,7 @@ import GroupsIcon from '@mui/icons-material/Groups';
 import MenuIcon from '@mui/icons-material/Menu';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import { API_URL } from '../config';
+import { API_URL, photoUrlFor, doctorPhotoUrl } from '../config';
 import { confirmDialog, snackbar } from '../components/ConfirmDialog';
 import { DrExame } from '../components/DrExame';
 import { OtpInput } from '../components/OtpInput';
@@ -616,7 +616,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     <>
       <Box sx={{ p: 2, pb: 1.5, background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff' }}>
         <Stack direction="row" alignItems="center" spacing={1.5}>
-          <Avatar src={doctor?.photoUrl ? `${API_URL}/doctor/photo/${doctor.id}?v=${photoVer}` : undefined} sx={{ width: 52, height: 52, fontSize: 20, bgcolor: 'rgba(255,255,255,.2)', fontWeight: 800, border: '2px solid rgba(255,255,255,.5)' }}>{doctor?.name?.charAt(0)}</Avatar>
+          <Avatar src={doctor?.photoUrl ? doctorPhotoUrl(doctor.id, photoVer) : undefined} sx={{ width: 52, height: 52, fontSize: 20, bgcolor: 'rgba(255,255,255,.2)', fontWeight: 800, border: '2px solid rgba(255,255,255,.5)' }}>{doctor?.name?.charAt(0)}</Avatar>
           <Box sx={{ minWidth: 0 }}>
             <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>🩺 {doctor?.name || 'Médico'}</Typography>
             {unreadQ > 0 && <Chip size="small" label={`❓ ${unreadQ} ${unreadQ === 1 ? 'pergunta nova' : 'perguntas novas'}`} sx={{ mt: 0.5, height: 20, fontSize: 11, bgcolor: 'rgba(255,255,255,.28)', color: '#fff', fontWeight: 700 }} />}
@@ -671,7 +671,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           </Box>
         ) : (
           <>
-            <Avatar src={doctor?.photoUrl ? `${API_URL}/doctor/photo/${doctor.id}?v=${photoVer}` : undefined} sx={{ bgcolor: 'rgba(32,178,170,.10)', color: '#178f89', fontWeight: 800, border: '2px solid rgba(32,178,170,.15)', width: 44, height: 44, fontSize: 17 }}>{doctor?.name?.charAt(0)}</Avatar>
+            <Avatar src={doctor?.photoUrl ? doctorPhotoUrl(doctor.id, photoVer) : undefined} sx={{ bgcolor: 'rgba(32,178,170,.10)', color: '#178f89', fontWeight: 800, border: '2px solid rgba(32,178,170,.15)', width: 44, height: 44, fontSize: 17 }}>{doctor?.name?.charAt(0)}</Avatar>
             <Box sx={{ flex: 1, minWidth: 0 }}>
               <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 15, color: 'text.primary', lineHeight: 1.2 }}>{doctor?.name || 'Médico'}</Typography>
               <Typography variant="caption" sx={{ color: 'text.secondary' }}>{[doctor?.specialty, doctor?.crm && `CRM ${doctor.crm}`].filter(Boolean).join(' • ') || 'Portal do Médico'}</Typography>
@@ -793,7 +793,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               <Card key={q.id} sx={{ borderRadius: 3, mb: 1.5, boxShadow: '0 1px 3px rgba(0,0,0,.04)', border: '1px solid', borderColor: answered ? 'divider' : 'transparent' }}><CardContent>
                 <Stack direction="row" alignItems="center" spacing={1.25}>
                   <Box onClick={() => goToPatient(q.patientId)} title="Abrir o paciente" sx={{ display: 'flex', alignItems: 'center', gap: 1.25, flex: 1, minWidth: 0, cursor: 'pointer', borderRadius: 2, mx: -0.5, px: 0.5, py: 0.25, transition: 'background .15s', '&:hover': { bgcolor: 'rgba(32,178,170,.06)' } }}>
-                    <Avatar src={q.patient?.id ? `${API_URL}/patients/${q.patient.id}/photo` : undefined} sx={{ bgcolor: TEAL, fontWeight: 800, width: 44, height: 44, flexShrink: 0 }}>{q.patient?.fullName?.charAt(0)}</Avatar>
+                    <Avatar src={q.patient?.id ? photoUrlFor(q.patient.id) : undefined} sx={{ bgcolor: TEAL, fontWeight: 800, width: 44, height: 44, flexShrink: 0 }}>{q.patient?.fullName?.charAt(0)}</Avatar>
                     <Box sx={{ minWidth: 0 }}>
                       <Stack direction="row" spacing={0.75} alignItems="center" sx={{ flexWrap: 'wrap', rowGap: 0.5 }}>
                         <Typography sx={{ fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>{q.patient?.fullName}<OpenInNewIcon sx={{ fontSize: 13, color: 'text.disabled' }} /></Typography>
@@ -948,7 +948,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                     <Card key={key} sx={{ borderRadius: 3, cursor: 'pointer', transition: 'all .15s', border: 'none', boxShadow: '0 1px 3px rgba(0,0,0,.04)', '&:hover': { boxShadow: '0 4px 16px rgba(0,0,0,.08)', transform: 'translateY(-1px)' } }} onClick={() => openPatient(p)}>
                       <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5 }}>
                         <Box sx={{ position: 'relative', flexShrink: 0 }}>
-                          <Avatar src={p.patient?.id ? `${API_URL}/patients/${p.patient.id}/photo` : undefined} sx={{ bgcolor: 'rgba(32,178,170,.08)', color: '#178f89', fontWeight: 800, width: 48, height: 48, border: '2px solid', borderColor: p.hasAlerts ? '#ef4444' : 'rgba(32,178,170,.15)' }}>{p.patient?.fullName?.charAt(0)}</Avatar>
+                          <Avatar src={p.patient?.id ? photoUrlFor(p.patient.id) : undefined} sx={{ bgcolor: 'rgba(32,178,170,.08)', color: '#178f89', fontWeight: 800, width: 48, height: 48, border: '2px solid', borderColor: p.hasAlerts ? '#ef4444' : 'rgba(32,178,170,.15)' }}>{p.patient?.fullName?.charAt(0)}</Avatar>
                           {p.hasAlerts && <Box sx={{ position: 'absolute', top: -2, right: -2, width: 12, height: 12, borderRadius: '50%', bgcolor: '#ef4444', border: '2px solid #fff' }} />}
                         </Box>
                         <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -974,7 +974,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           <>
             <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
               {/* Voltar só no header (←) — um botão só, igual app profissional */}
-              <Avatar src={selected.patient?.id ? `${API_URL}/patients/${selected.patient.id}/photo` : undefined} sx={{ bgcolor: TEAL, width: 44, height: 44, fontSize: 17 }}>{selected.patient?.fullName?.charAt(0)}</Avatar>
+              <Avatar src={selected.patient?.id ? photoUrlFor(selected.patient.id) : undefined} sx={{ bgcolor: TEAL, width: 44, height: 44, fontSize: 17 }}>{selected.patient?.fullName?.charAt(0)}</Avatar>
               <Box>
                 <Stack direction="row" alignItems="center" spacing={0.75}>
                   <Typography sx={{ fontWeight: 800, color: 'text.primary', lineHeight: 1.1 }}>{selected.patient?.fullName}</Typography>
@@ -1272,8 +1272,8 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                                     return <Box key={i} sx={{ textAlign: 'center', my: 0.5 }}><Box sx={{ display: 'inline-block', px: 1.5, py: 0.5, borderRadius: 99, bgcolor: 'rgba(32,178,170,.08)', color: 'text.secondary', fontSize: 12, fontWeight: 600 }}>{m.body}</Box></Box>;
                                   }
                                   const av = isAi ? null : isDoc
-                                    ? <Avatar src={doctor?.photoUrl ? `${API_URL}/doctor/photo/${doctor.id}?v=${photoVer}` : undefined} sx={{ width: 36, height: 36, bgcolor: TEAL, fontSize: 14, fontWeight: 700, flexShrink: 0 }}>{(doctor?.name || 'M').charAt(0)}</Avatar>
-                                    : <Avatar src={selected?.patient?.photoUrl ? `${API_URL}/patients/${selected.patient.id}/photo?v=0` : undefined} sx={{ width: 36, height: 36, bgcolor: '#94a3b8', fontSize: 14, fontWeight: 700, flexShrink: 0 }}>{(selected?.patient?.fullName || 'P').charAt(0)}</Avatar>;
+                                    ? <Avatar src={doctor?.photoUrl ? doctorPhotoUrl(doctor.id, photoVer) : undefined} sx={{ width: 36, height: 36, bgcolor: TEAL, fontSize: 14, fontWeight: 700, flexShrink: 0 }}>{(doctor?.name || 'M').charAt(0)}</Avatar>
+                                    : <Avatar src={selected?.patient?.photoUrl ? photoUrlFor(selected.patient.id, 0) : undefined} sx={{ width: 36, height: 36, bgcolor: '#94a3b8', fontSize: 14, fontWeight: 700, flexShrink: 0 }}>{(selected?.patient?.fullName || 'P').charAt(0)}</Avatar>;
                                   const role = isDoc ? `Dr. ${doctor?.name || 'Médico'}` : isAi ? '🤖 IA' : selected?.patient?.fullName || 'Paciente';
                                   return (
                                     <Box key={i} sx={{ display: 'flex', justifyContent: isDoc ? 'flex-end' : 'flex-start', gap: 0.75, alignItems: 'flex-end' }}>
@@ -1503,7 +1503,7 @@ const DoctorProfile = ({ token, doctor, onBack, onSaved, onPhoto, photoVer }: { 
       <Card sx={{ borderRadius: 4, mb: 2, background: 'rgba(32,178,170,0.08)', border: '1px solid', borderColor: 'divider' }}>
         <CardContent>
           <Stack direction="row" spacing={2} alignItems="center">
-            <PhotoUpload endpoint={`${API_URL}/doctor/me/photo`} authToken={token} fallback={doctor?.name?.charAt(0)} src={doctor?.photoUrl ? `${API_URL}/doctor/photo/${doctor.id}?v=${photoVer}` : undefined} onUploaded={onPhoto} size={84} hideLabel />
+            <PhotoUpload endpoint={`${API_URL}/doctor/me/photo`} authToken={token} fallback={doctor?.name?.charAt(0)} src={doctor?.photoUrl ? doctorPhotoUrl(doctor.id, photoVer) : undefined} onUploaded={onPhoto} size={84} hideLabel />
             <Box>
               <Typography sx={{ fontWeight: 800, color: 'text.primary' }}>{name || 'Médico'}</Typography>
               <Typography variant="caption" color="text.secondary">CRM {doctor?.crm}{spec ? ` • ${spec}` : ''}</Typography>

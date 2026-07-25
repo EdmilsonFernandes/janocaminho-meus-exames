@@ -21,8 +21,25 @@ export function apiHeaders(json = false): Record<string, string> {
   return h;
 }
 
-/** URL pública da foto do paciente. `version` busta o cache (ETag) só quando a foto muda. */
+/** URL da foto do paciente. `version` busta o cache (ETag); `?t=` leva o token (a rota exige
+ *  auth agora — fecha o buraco da foto pública por CUID / LGPD facial). */
 export const photoUrlFor = (patientId: string, version?: number | string): string => {
   const base = `${API_URL.replace('/api', '')}/api/patients/${patientId}/photo`;
-  return version ? `${base}?v=${version}` : base;
+  const t = token();
+  const q = new URLSearchParams();
+  if (t) q.set('t', t);
+  if (version != null && version !== '') q.set('v', String(version));
+  const qs = q.toString();
+  return qs ? `${base}?${qs}` : base;
+};
+
+/** URL da foto do MÉDICO (mesmo padrão do photoUrlFor: ?t= token pra auth no server). */
+export const doctorPhotoUrl = (doctorId: string, version?: number | string): string => {
+  const base = `${API_URL.replace('/api', '')}/api/doctor/photo/${doctorId}`;
+  const t = token();
+  const q = new URLSearchParams();
+  if (t) q.set('t', t);
+  if (version != null && version !== '') q.set('v', String(version));
+  const qs = q.toString();
+  return qs ? `${base}?${qs}` : base;
 };
