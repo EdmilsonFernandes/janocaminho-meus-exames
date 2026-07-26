@@ -89,7 +89,7 @@ export const CurrentStateCard = () => {
       </Card>
     );
   }
-  if (!s || s.markers === 0) {
+  if (!s || !s.byPriority || s.markers === 0) {
     return (
       <Card sx={{ mt: 2, border: '1px solid', borderColor: 'divider', background: 'linear-gradient(135deg, rgba(32,178,170,.08), rgba(32,178,170,.02))' }}>
         <CardContent>
