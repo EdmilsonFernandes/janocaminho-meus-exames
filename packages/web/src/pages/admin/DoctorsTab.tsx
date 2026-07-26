@@ -21,7 +21,7 @@ export const DoctorsTab = () => {
             <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', py: 1.5 }}>
               <Box sx={{ flex: '1 1 60%', minWidth: 0 }}>
                 <Typography sx={{ fontWeight: 700 }}>{m.name}</Typography>
-                <Typography variant="caption" color="text.secondary">🩺 CRM {m.crm}{m.crmUf ? `-${m.crmUf}` : ''}{m.specialty ? ` · ${m.specialty}` : ''}</Typography>
+                <Typography variant="caption" color="text.secondary">🩺 CRM {m.crm}{m.crmUf && !String(m.crm).includes('-') ? `-${m.crmUf}` : ''}{m.specialty ? ` · ${m.specialty}` : ''}</Typography>
               </Box>
               <Chip size="small" label={`${m._count?.shares ?? 0} paciente(s)`} />
               {m.emailVerified ? <Chip size="small" label="Verificado" color="success" /> : <Chip size="small" label="E-mail pendente" color="warning" />}

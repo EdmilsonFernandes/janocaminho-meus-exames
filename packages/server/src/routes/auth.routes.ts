@@ -452,11 +452,13 @@ router.post('/change-password', requireAuth, async (req: AuthedRequest, res, nex
       res.status(401).json({ error: 'Senha atual incorreta.' });
       return;
     }
-    // Nota: NÃO incrementamos tokenVersion aqui (evita deslogar o próprio user que trocou a
-    // senha — sem o front ler um token novo, seria regressão de UX). A invalidação de sessões
-    // antigas fica no fluxo de RESET (credencial vazada → "esqueci a senha"). Futuro: com AAB
-    // (front lê token novo retornado), ative tokenVersion++ aqui p/ invalidar outros devices.
-    await prisma.user.update({ where: { id: user.id }, data: { passwordHash: await hashPassword(pwd) } });
+    // Invalida sessões antigas (outro device / token vazado): tokenVersion++ e emite um token
+    // NOVO (com o novo ver) no header X-Renewed-Token. O front (fetch-cache) troca o token
+    // transparente → o user que trocou a senha CONTINUA logado; tokens antigos morrem na próxima
+    // req (requireAuth rejeita ver != atual). Sem AAB — o front JÁ lê X-Renewed-Token.
+    const tokenVersion = (user.tokenVersion ?? 0) + 1;
+    await prisma.user.update({ where: { id: user.id }, data: { passwordHash: await hashPassword(pwd), tokenVersion } });
+    res.setHeader('X-Renewed-Token', signToken({ userId: user.id, ver: tokenVersion }));
     res.json({ ok: true });
   } catch (e) { next(e); }
 });
