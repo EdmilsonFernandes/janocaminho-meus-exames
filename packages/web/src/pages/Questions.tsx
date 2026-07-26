@@ -4,6 +4,7 @@ import { Box, Typography, Card, CardContent, Stack, Chip, Avatar, CircularProgre
 import CloseIcon from '@mui/icons-material/Close';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import { API_URL, token, photoUrlFor, doctorPhotoUrl } from '../config';
+import { QuestionStatusBadge } from '../components/QuestionStatusBadge';
 import { useSelectedPatient } from '../patient-context';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
@@ -135,7 +136,7 @@ export const QuestionsPage = () => {
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1} sx={{ mb: 0.25 }}>
                       <Typography sx={{ fontWeight: 800, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc?.name || 'Médico'}{doc?.specialty ? ` · ${doc.specialty}` : ''}</Typography>
-                      <Chip size="small" label={answered ? '✓ Respondida' : '⏳ Aguardando'} sx={{ height: 20, fontSize: 10, fontWeight: 700, flexShrink: 0, bgcolor: answered ? '#dcfce7' : '#fef3c7', color: answered ? '#15803d' : '#9a6b00' }} />
+                      <QuestionStatusBadge status={answered ? 'answered' : 'open'} />
                     </Stack>
                     {lastMsg && (
                       <Typography variant="body2" color="text.secondary" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.4 }}>

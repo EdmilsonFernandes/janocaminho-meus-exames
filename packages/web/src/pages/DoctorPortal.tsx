@@ -17,6 +17,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { API_URL, photoUrlFor, doctorPhotoUrl } from '../config';
+import { QuestionStatusBadge } from '../components/QuestionStatusBadge';
 import { confirmDialog, snackbar } from '../components/ConfirmDialog';
 import { DrExame } from '../components/DrExame';
 import { OtpInput } from '../components/OtpInput';
@@ -797,7 +798,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                     <Box sx={{ minWidth: 0 }}>
                       <Stack direction="row" spacing={0.75} alignItems="center" sx={{ flexWrap: 'wrap', rowGap: 0.5 }}>
                         <Typography sx={{ fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>{q.patient?.fullName}<OpenInNewIcon sx={{ fontSize: 13, color: 'text.disabled' }} /></Typography>
-                        <Chip size="small" label={answered ? '✓ respondida' : 'em aberto'} sx={{ height: 18, fontSize: 10, bgcolor: answered ? 'rgba(22,163,74,.12)' : 'rgba(234,88,12,.12)', color: answered ? '#16a34a' : '#ea580c', fontWeight: 700 }} />
+                        <QuestionStatusBadge status={answered ? 'answered' : 'open'} />
                       </Stack>
                       <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>{q.subject} · {relDate(q.createdAt)}{qp?.age != null ? ` · ${qp.age}a${qp.sex === 'female' ? ' · F' : qp.sex === 'male' ? ' · M' : ''}` : ''}</Typography>
                     </Box>
@@ -1259,7 +1260,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                           <CardContent>
                             <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1} sx={{ mb: 1 }}>
                               <Typography sx={{ fontWeight: 800, wordBreak: 'break-word' }}>💬 {q.subject}</Typography>
-                              <Chip size="small" label={q.status === 'answered' ? '✓ Respondida' : '⏳ Aguardando'} sx={{ height: 22, flexShrink: 0, bgcolor: q.status === 'answered' ? '#dcfce7' : '#fef3c7', color: q.status === 'answered' ? '#15803d' : '#9a6b00', fontWeight: 700 }} />
+                              <QuestionStatusBadge status={q.status} />
                             </Stack>
                             {msgs.length > 0 && (
                               <Stack spacing={0.75} sx={{ mb: 1 }}>
