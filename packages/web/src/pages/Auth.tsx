@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLogin, useNotify, useTranslate } from 'react-admin';
 import { GoogleLogin } from '@react-oauth/google';
 import { Box, Typography, Button, Link, CircularProgress, Stack, TextField, InputAdornment, IconButton, Checkbox, FormControlLabel } from '@mui/material';
+import { keyframes } from '@mui/material/styles';
 import { DrExame } from '../components/DrExame';
 import { API_URL } from '../config';
 import { Capacitor } from '@capacitor/core';
@@ -27,19 +28,31 @@ const I = {
   GoogleG: (p?: any) => (<svg width="20" height="20" viewBox="0 0 48 48" {...p}><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.5 2.6 30.1 0 24 0 14.6 0 6.4 5.4 2.6 13.3l7.8 6.1C12.2 13.7 17.6 9.5 24 9.5z" /><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.5 3-2.2 5.5-4.7 7.2l7.3 5.7C43.9 38 46.5 31.8 46.5 24.5z" /><path fill="#FBBC05" d="M10.4 28.6c-.5-1.4-.7-2.9-.7-4.6s.3-3.2.7-4.6l-7.8-6.1C1.6 16.5 0 20 0 24s1.6 7.5 2.6 8.7l7.8-6.1z" /><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.3-5.7c-2 1.4-4.6 2.2-8.6 2.2-6.4 0-11.8-4.2-13.6-9.9l-7.8 6.1C6.4 42.6 14.6 48 24 48z" /></svg>),
 };
 
-/** Card centralizado sobre fundo menta (layout loginIdea). */
+// Micro-animações premium: mascote "respira" (vivo, não estático) + card entra suave.
+const breathe = keyframes`0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(32,178,170,0)}50%{transform:scale(1.035);box-shadow:0 0 0 7px rgba(32,178,170,.10)}`;
+const cardIn = keyframes`from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}`;
+
+/** Card centralizado sobre fundo teal com profundidade (radial + linear). Mascote respirando,
+ *  card com fade-in, sombra/glow teal — feel premium clínico (sem poluir com marketing). */
 const Shell = ({ children }: { children: ReactNode }) => {
   const translate = useTranslate();
   return (
-  <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2, background: 'linear-gradient(135deg, rgba(32,178,170,.12), rgba(32,178,170,.04))' }}>
-    <Box sx={{ width: '100%', maxWidth: 400, bgcolor: 'background.paper', borderRadius: '16px', boxShadow: '0 10px 40px rgba(0,80,70,.10)', p: { xs: 3, sm: 4 } }}>
-      <Stack alignItems="center" spacing={1} sx={{ mb: 3 }}>
-        <Box sx={{ width: 78, height: 78, borderRadius: '50%', bgcolor: 'rgba(32,178,170,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'inset 0 0 0 1px rgba(32,178,170,.15)' }}>
-          <DrExame size={56} sx={{ borderRadius: '50%' }} />
+  <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2,
+    background: 'radial-gradient(circle at 50% 18%, rgba(32,178,170,.20), rgba(32,178,170,.05) 55%, transparent 80%), linear-gradient(160deg, rgba(32,178,170,.10), rgba(32,178,170,.02))' }}>
+    <Box sx={{ width: '100%', maxWidth: 410, bgcolor: 'background.paper', borderRadius: '20px',
+      boxShadow: '0 24px 60px rgba(0,80,70,.14), 0 2px 8px rgba(0,80,70,.06)',
+      border: '1px solid', borderColor: 'rgba(32,178,170,.10)',
+      p: { xs: 3, sm: 4.5 }, animation: `${cardIn} .42s cubic-bezier(.16,1,.3,1) both` }}>
+      <Stack alignItems="center" spacing={1.25} sx={{ mb: 3.5 }}>
+        <Box sx={{ width: 86, height: 86, borderRadius: '50%',
+          background: 'radial-gradient(circle at 50% 40%, rgba(32,178,170,.24), rgba(32,178,170,.05) 72%)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          animation: `${breathe} 3.6s ease-in-out infinite` }}>
+          <DrExame size={60} sx={{ borderRadius: '50%' }} />
         </Box>
-        <Box sx={{ textAlign: 'center' }}>
-          <Typography variant="h5" sx={{ fontWeight: 800, color: 'text.primary', fontFamily: 'Poppins, sans-serif', lineHeight: 1.2 }}>Meus Exames</Typography>
-          <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>Seu assistente de saúde com IA</Typography>
+        <Box sx={{ textAlign: 'center', mt: 0.5 }}>
+          <Typography sx={{ fontWeight: 800, color: 'text.primary', fontFamily: '"Poppins",sans-serif', letterSpacing: '-0.02em', lineHeight: 1.15, fontSize: { xs: 24, sm: 26 } }}>Meus Exames</Typography>
+          <Typography sx={{ fontSize: 13, color: 'text.secondary', mt: 0.25 }}>Seu assistente de saúde com IA</Typography>
         </Box>
       </Stack>
       {children}
