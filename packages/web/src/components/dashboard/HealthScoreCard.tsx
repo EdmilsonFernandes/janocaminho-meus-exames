@@ -23,7 +23,7 @@ const descFor = (s: number, n: number) =>
 // ZONAS coloridas de fundo (0-60 vermelho / 60-80 amber / 80-100 verde, bem sutures) dão glance
 // instantâneo de ONDE o paciente está no espectro (padrão Fitbit/Apple Health readiness score).
 const Gauge = ({ value, color }: { value: number; color: string }) => {
-  const size = 150, stroke = 13;
+  const size = 170, stroke = 14;
   const r = (size - stroke) / 2;
   const c = size / 2;
   const circ = 2 * Math.PI * r;
@@ -73,7 +73,7 @@ export const HealthScoreCard = ({ loaded, score, abnormalCount, markerCount, onD
       <Card sx={{ mt: 3, overflow: 'hidden' }}>
         <CardContent>
           <Stack direction="row" alignItems="center" gap={2.5}>
-            <Skeleton variant="circular" sx={{ width: { xs: 130, sm: 150 }, height: { xs: 130, sm: 150 } }} />
+            <Skeleton variant="circular" sx={{ width: { xs: 140, sm: 170 }, height: { xs: 140, sm: 170 } }} />
             <Box sx={{ flex: 1 }}>
               <Skeleton variant="text" width={90} height={20} />
               <Skeleton variant="rectangular" width={70} height={22} sx={{ borderRadius: 99, my: 0.75 }} />

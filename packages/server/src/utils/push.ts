@@ -41,19 +41,24 @@ export async function sendPush(tokens: string[], title: string, body: string, da
   if (!tokens.length) return;
   const m = await getMessaging();
   if (!m) return;
-  await Promise.all(tokens.map(async (token) => {
-    try {
-      // FIX: SEM channel_id 'meus-exames' — o app NÃO cria esse canal → Android 8+ descarta a notificação
-      // silenciosamente. Sem channel_id, o Android usa o canal padrão (criado pelo Capacitor) → exibe.
-      await m.send({ token, notification: { title, body }, data: data ?? {}, android: { priority: 'high' } });
-    } catch (e: any) {
-      if (e?.code === 'messaging/registration-token-not-registered') {
-        await prisma.deviceToken.delete({ where: { token } }).catch(() => {});
-      } else {
-        console.error('[push] erro ao enviar para token:', e?.message);
+  // BATCH: processa em chunks de 100 (antes era Promise.all em TODOS os tokens → port exhaustion
+  // com 1000+ tokens concorrentes). Limita concorrência sem depender de sendEach (versão firebase-admin).
+  for (let i = 0; i < tokens.length; i += 100) {
+    const chunk = tokens.slice(i, i + 100);
+    await Promise.all(chunk.map(async (token) => {
+      try {
+        // SEM channel_id 'meus-exames' — o app NÃO cria esse canal → Android 8+ descarta. Sem channel_id,
+        // o Android usa o canal padrão (criado pelo Capacitor) → exibe.
+        await m.send({ token, notification: { title, body }, data: data ?? {}, android: { priority: 'high' } });
+      } catch (e: any) {
+        if (e?.code === 'messaging/registration-token-not-registered') {
+          await prisma.deviceToken.delete({ where: { token } }).catch(() => {});
+        } else {
+          console.error('[push] erro ao enviar para token:', e?.message);
+        }
       }
-    }
-  }));
+    }));
+  }
 }
 
 /** Dispara push para todos os dispositivos de um usuário + SALVA como notificação in-app. */

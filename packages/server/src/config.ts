@@ -50,7 +50,7 @@ export const config = {
     return ['trace', 'debug', 'info', 'warn', 'error'].includes(l) ? (l as 'trace' | 'debug' | 'info' | 'warn' | 'error') : 'info';
   })(),
 
-  databaseUrl: required('DATABASE_URL', 'postgresql://meus_exames:meus_exames_dev@localhost:5433/meus_exames?schema=public'),
+  databaseUrl: required('DATABASE_URL', 'postgresql://meus_exames:meus_exames_dev@localhost:5433/meus_exames?schema=public&connection_limit=10&pool_timeout=10'),
   jwtSecret: required('JWT_SECRET', 'dev-secret-change-me'),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? '7d',
 
