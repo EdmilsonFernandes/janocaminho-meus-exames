@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useTranslate } from 'react-admin';
 import { Stack, Typography, Grid, Dialog, DialogTitle, DialogContent, DialogActions, Button, Box, Card, CardContent, Chip, useTheme } from '@mui/material';
+import { keyframes } from '@mui/material/styles';
+
+// Premium motion (Oura-style): blocos-herói do dashboard "montam" com fade-up staggered ao carregar.
+const fadeUp = keyframes`from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}`;
+const reveal = (i: number) => ({ animation: `${fadeUp} .55s cubic-bezier(.16,1,.3,1) both`, animationDelay: `${i * 70}ms` });
 import ScienceIcon from '@mui/icons-material/Science';
 import { GamificationBadges } from '../components/GamificationBadges';
 import { BiometricService } from '../components/BiometricService';
@@ -257,17 +262,21 @@ export const Dashboard = () => {
       {/* Exames que falharam na leitura — banner prioritário no topo (só renderiza se count>0) */}
       <FailedExamsAlert count={failed} onClick={() => navigate('/exams')} />
 
-      {/* 1 · HERO — Score de Saúde */}
-      <HealthScoreCard loaded={loaded} score={score} abnormalCount={hsAltered || stats.abnormal} markerCount={markerCount} onDetails={() => navigate('/tendencias')} />
-      <NextBestActionCard
-        loaded={loaded}
-        exams={stats.exams}
-        abnormal={stats.abnormal}
-        failed={failed}
-        lastExam={lastExam}
-        credits={credits}
-        onNavigate={navigate}
-      />
+      {/* 1 · HERO — Score de Saúde (fade-in staggered — premium assemble) */}
+      <Box sx={reveal(0)}>
+        <HealthScoreCard loaded={loaded} score={score} abnormalCount={hsAltered || stats.abnormal} markerCount={markerCount} onDetails={() => navigate('/tendencias')} />
+      </Box>
+      <Box sx={reveal(1)}>
+        <NextBestActionCard
+          loaded={loaded}
+          exams={stats.exams}
+          abnormal={stats.abnormal}
+          failed={failed}
+          lastExam={lastExam}
+          credits={credits}
+          onNavigate={navigate}
+        />
+      </Box>
 
       {/* 2 · SUA SAÚDE AGORA — 1 leitura de risco (resumo) + atalhos pras telas de detalhe.
           Antes havia 5 cards de saúde competindo (poluído). Agora: Score no hero + 1 risco aqui. */}
@@ -286,7 +295,9 @@ export const Dashboard = () => {
 
       {/* Cardiometabólico PROMOVIDO — sempre visível (antes ficava escondido no acordeão e o
           usuário não descobria). O Dashboard já busca o health-summary → passamos o dado (1 fetch). */}
-      <CardiometabolicRiskCard risk={cardioRisk} />
+      <Box sx={reveal(2)}>
+        <CardiometabolicRiskCard risk={cardioRisk} />
+      </Box>
 
       {/* 4 · ANÁLISES DETALHADAS — tudo visível na vertical (sem acordeão). Antes ficava escondido
           atrás de "expandir" e o teaser "0/100" era feio (score invertido: 0 = ótimo). Agora direto. */}
