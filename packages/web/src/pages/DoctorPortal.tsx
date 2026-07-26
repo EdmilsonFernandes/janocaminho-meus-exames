@@ -901,14 +901,14 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               {patients.some((p) => p.hasAlerts) && <Chip size="small" color="error" label={`🔴 ${patients.filter((p) => p.hasAlerts).length} com alerta`} sx={{ fontWeight: 700 }} />}
             </Stack>
             {patients.length > 0 && (
-              <Stack spacing={1} sx={{ mb: 1.5 }}>
-                <Paper variant="outlined" sx={{ p: '2px 12px', display: 'flex', alignItems: 'center', gap: 1, borderRadius: 99 }}>
+              <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
+                <Paper variant="outlined" sx={{ p: '2px 12px', display: 'flex', alignItems: 'center', gap: 1, borderRadius: 99, flex: 1, borderColor: 'divider' }}>
                   <SearchIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
-                  <InputBase value={patQuery} onChange={(e: any) => setPatQuery(e.target.value)} placeholder="Buscar paciente pelo nome…" sx={{ flex: 1, fontSize: 14 }} />
+                  <InputBase inputProps={{ 'aria-label': 'Buscar paciente' }} value={patQuery} onChange={(e: any) => setPatQuery(e.target.value)} placeholder="Buscar paciente pelo nome…" sx={{ flex: 1, fontSize: 14 }} />
                   {patQuery && <Chip size="small" label="limpar" onClick={() => setPatQuery('')} sx={{ height: 22 }} />}
                 </Paper>
                 {patients.some((p) => p.hasAlerts) && (
-                  <Chip size="small" icon={<Box component="span" sx={{ pl: 0.75 }}>🔴</Box>} label="Só com alerta" onClick={() => setPatAlertOnly((v) => !v)} color={patAlertOnly ? 'error' : 'default'} variant={patAlertOnly ? 'filled' : 'outlined'} sx={{ fontWeight: 700, alignSelf: 'flex-start' }} />
+                  <Chip size="small" icon={<Box component="span" sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#ef4444', display: 'inline-block' }} />} label="Só alerta" onClick={() => setPatAlertOnly((v) => !v)} color={patAlertOnly ? 'error' : 'default'} variant={patAlertOnly ? 'filled' : 'outlined'} sx={{ fontWeight: 700, flexShrink: 0 }} />
                 )}
               </Stack>
             )}

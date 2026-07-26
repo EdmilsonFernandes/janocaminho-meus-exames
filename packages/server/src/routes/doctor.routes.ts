@@ -426,7 +426,7 @@ router.get('/photo/:id', requirePhotoToken, async (req, res) => {
     if (!doctor?.photoUrl) { res.setHeader('Cache-Control', 'no-store'); res.status(404).send('sem foto'); return; }
     const r = await resolvePatientPhoto(doctor.photoUrl);
     if (r.kind === 'url') { res.setHeader('Cache-Control', 'public, max-age=120'); return res.redirect(r.url); }
-    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
     return res.sendFile(path.resolve(r.file));
   } catch { res.setHeader('Cache-Control', 'no-store'); res.status(404).send('sem foto'); }
 });

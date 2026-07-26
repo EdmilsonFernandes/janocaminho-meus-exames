@@ -100,18 +100,20 @@ export async function deleteExamFile(ref: string): Promise<void> {
 }
 
 // ===== FOTOS de paciente (mesma abstração S3/disco dos exames) =====
+import { optimizeAvatar } from './imageStorage';
 
-/** Salva a foto do paciente — S3 (produção, organizado por paciente) ou disco (dev). Devolve o ref. */
+/** Salva a foto do paciente — comprime com sharp (512×512 JPEG q80, ~50KB) antes de gravar.
+ *  S3 (produção) ou disco (dev). Sempre .jpg (saida do sharp). Cache immutable (avatar busta com ?v=). */
 export async function savePatientPhoto(patientId: string, slug: string, buffer: Buffer, contentType: string): Promise<string> {
-  const ext = contentType === 'image/png' ? '.png' : '.jpg';
+  const { buffer: optimized } = await optimizeAvatar(buffer);
   if (useS3()) {
-    const key = `${config.s3Prefix}fotos/${slug}/avatar${ext}`;
-    await s3().send(new PutObjectCommand({ Bucket: config.s3Bucket, Key: key, Body: buffer, ContentType: contentType }));
+    const key = `${config.s3Prefix}fotos/${slug}/avatar.jpg`;
+    await s3().send(new PutObjectCommand({ Bucket: config.s3Bucket, Key: key, Body: optimized, ContentType: 'image/jpeg', CacheControl: 'public, max-age=31536000, immutable' }));
     return key;
   }
   fs.mkdirSync(config.photosDir, { recursive: true });
-  const local = path.join(config.photosDir, `patient-${patientId}${ext}`);
-  fs.writeFileSync(local, buffer);
+  const local = path.join(config.photosDir, `patient-${patientId}.jpg`);
+  fs.writeFileSync(local, optimized);
   return local;
 }
 
@@ -124,16 +126,16 @@ export async function resolvePatientPhoto(ref: string): Promise<{ kind: 'url'; u
   return { kind: 'file', file: ref };
 }
 
-/** Salva foto do MÉDICO — espelho do savePatientPhoto, prefixo 'doctor-'. S3 (prod) ou disco (dev). */
+/** Salva foto do MÉDICO — comprime com sharp (igual savePatientPhoto). S3 (prod) ou disco (dev). */
 export async function saveDoctorPhoto(doctorId: string, buffer: Buffer, contentType: string): Promise<string> {
-  const ext = contentType === 'image/png' ? '.png' : '.jpg';
+  const { buffer: optimized } = await optimizeAvatar(buffer);
   if (useS3()) {
-    const key = `${config.s3Prefix}fotos-doctor/${doctorId}/avatar${ext}`;
-    await s3().send(new PutObjectCommand({ Bucket: config.s3Bucket, Key: key, Body: buffer, ContentType: contentType }));
+    const key = `${config.s3Prefix}fotos-doctor/${doctorId}/avatar.jpg`;
+    await s3().send(new PutObjectCommand({ Bucket: config.s3Bucket, Key: key, Body: optimized, ContentType: 'image/jpeg', CacheControl: 'public, max-age=31536000, immutable' }));
     return key;
   }
   fs.mkdirSync(config.photosDir, { recursive: true });
-  const local = path.join(config.photosDir, `doctor-${doctorId}${ext}`);
-  fs.writeFileSync(local, buffer);
+  const local = path.join(config.photosDir, `doctor-${doctorId}.jpg`);
+  fs.writeFileSync(local, optimized);
   return local;
 }

@@ -135,13 +135,13 @@ app.get('/api/patients/:id/photo', requirePhotoToken, async (req, res) => {
     if (p?.photoUrl && !p.photoUrl.startsWith('/api/')) {
       const r = await resolvePatientPhoto(p.photoUrl);
       if (r.kind === 'url') { res.setHeader('Cache-Control', 'public, max-age=120'); res.redirect(r.url); return; }       // S3: redireciona p/ pré-assinada
-      if (fs.existsSync(r.file)) { res.setHeader('Cache-Control', 'public, max-age=86400'); res.sendFile(path.resolve(r.file)); return; }
+      if (fs.existsSync(r.file)) { res.setHeader('Cache-Control', 'public, max-age=31536000, immutable'); res.sendFile(path.resolve(r.file)); return; }
     }
     // 2) fallback: procura patient-<id>.* no disco (convenção antiga + dev)
     const dir = path.resolve(config.photosDir);
     if (fs.existsSync(dir)) {
       const files = fs.readdirSync(dir).filter((f) => f.startsWith(`patient-${id}.`));
-      if (files.length) { res.setHeader('Cache-Control', 'public, max-age=86400'); res.sendFile(path.join(dir, files[0])); return; }
+      if (files.length) { res.setHeader('Cache-Control', 'public, max-age=31536000, immutable'); res.sendFile(path.join(dir, files[0])); return; }
     }
     res.setHeader('Cache-Control', 'no-store');
     res.status(404).type('html').send('sem foto');
