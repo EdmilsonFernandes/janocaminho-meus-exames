@@ -9,7 +9,7 @@ colesterol, açúcar, peso, tabagismo, idade, histórico familiar. O app sinaliz
 marcador importante está fora da faixa (ex.: **HDL baixo**).
 
 ## O que os valores significam
-- **HDL baixo** (<40 homem / <50 mulher): fator de risco (limpa pouco os vasos).
+- **HDL baixo** (<40 homem / <50 mulher): abaixo da faixa de referência. Quando associado a outros fatores (obesidade, hipertensão, diabetes, tabagismo), pode contribuir para o aumento do risco cardiovascular.
 - LDL/triglicerídeos altos, pressão alta ou glicose alta: somam risco.
 O médico monta o "risco global" combinando tudo + idade + tabagismo + histórico.
 

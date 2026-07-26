@@ -30,7 +30,7 @@ const ROWS: { name: string; val: string; unit: string; ref: string; flag: Flag }
   { name: 'Glicemia', val: '92', unit: 'mg/dL', ref: '< 99', flag: 'ok' },
 ];
 const ANALYSIS =
-  'Seu LDL (190) está quase o dobro do ideal (≤100). Os triglicerídeos (260) também estão altos e o HDL — o "bom" — está baixo (35). Esse padrão aponta possível risco cardiovascular pelo perfil lipídico. A boa notícia: com ajuste de dieta e atividade física, esses valores costumam cair rápido.';
+  'Seu LDL (190) está quase o dobro do ideal (≤100). Os triglicerídeos (260) também estão altos e o HDL — o "bom" — está baixo (35). Esse padrão identifica fatores de risco cardiovascular pelo perfil lipídico. A boa notícia: com ajuste de dieta e atividade física, esses valores costumam cair rápido.';
 const WORDS = ANALYSIS.split(' ');
 
 const flagMeta: Record<Flag, { label: string; color: string; bg: string }> = {
@@ -171,7 +171,7 @@ export const ExamDemo = () => {
                     <Typography sx={{ fontWeight: 800, flex: 1, fontSize: 14.5 }}>Leitura de risco</Typography>
                     <Chip size="small" label="🟠 Moderado" sx={{ fontWeight: 800, height: 22, bgcolor: 'rgba(234,88,12,.16)', color: ORANGE }} />
                   </Stack>
-                  <Typography sx={{ fontWeight: 800, color: ORANGE, fontSize: 13.5, mb: 1.25 }}>Possível risco cardiovascular (perfil lipídico)</Typography>
+                  <Typography sx={{ fontWeight: 800, color: ORANGE, fontSize: 13.5, mb: 1.25 }}>Fatores de risco cardiovascular (perfil lipídico)</Typography>
                   <Stack spacing={0.5} sx={{ mb: 1.5 }}>
                     {[
                       { n: 'LDL', v: '190 mg/dL' },
