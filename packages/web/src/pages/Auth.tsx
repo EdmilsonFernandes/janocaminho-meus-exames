@@ -211,32 +211,37 @@ export const LoginPage = () => {
 
   // Google Sign-in — troca o idToken (web GIS ou nativo Capgo) pela sessão do app.
   // Mesmo /auth/google p/ ambas as plataformas; o server valida o JWT id_token igual.
-  const exchangeGoogleCredential = async (idToken: string) => {
+  const exchangeGoogleCredential = async (idToken: string, isDoctor = false) => {
     try {
       setLoading(true);
-      const r = await fetch(`${API_URL}/auth/google`, {
+      const endpoint = isDoctor ? `${API_URL}/doctor/google` : `${API_URL}/auth/google`;
+      const r = await fetch(endpoint, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ credential: idToken }),
       });
       const d = await r.json();
       if (d.token) {
-        localStorage.setItem('token', d.token);
-        // Popula user + patientId (igual login por senha/MFA) — sem isso o drawer fica sem nome
-        // e o gate de admin (App.tsx lê localStorage.user.role) não enxerga a role ADMIN.
-        if (d.user) localStorage.setItem('user', JSON.stringify(d.user));
-        if (d.patientId) { localStorage.setItem('patientId', d.patientId); localStorage.setItem('selPatientId', d.patientId); }
-        window.dispatchEvent(new Event('selPatientChanged'));
-        navigate('/', { replace: true });
+        if (isDoctor) {
+          localStorage.setItem('doctorToken', d.token);
+          notify(`Bem-vindo, Dr. ${(d.doctor?.name || '').split(' ')[0]}!`, { type: 'success' });
+          navigate('/doctor');
+        } else {
+          localStorage.setItem('token', d.token);
+          if (d.user) localStorage.setItem('user', JSON.stringify(d.user));
+          if (d.patientId) { localStorage.setItem('patientId', d.patientId); localStorage.setItem('selPatientId', d.patientId); }
+          window.dispatchEvent(new Event('selPatientChanged'));
+          navigate('/', { replace: true });
+        }
       }
       else { window.alert(d.error || 'Falha no login do Google.'); }
     } catch { window.alert('Falha de conexão.'); }
     finally { setLoading(false); }
   };
 
-  const handleNativeGoogle = async () => {
+  const handleNativeGoogle = async (isDoctor = false) => {
     const tok = await nativeGoogleLogin();
     if (!tok) { window.alert('Falha no login do Google.'); return; }
-    await exchangeGoogleCredential(tok);
+    await exchangeGoogleCredential(tok, isDoctor);
   };
 
   return (
@@ -291,7 +296,7 @@ export const LoginPage = () => {
           {/* Google Sign-in — SÓ pra paciente (médico precisa de CRM, Google não valida) */}
           {/* No APK (WebView) o botão GIS do Google não renderiza (origem https://localhost não
               autorizada) → usamos o plugin nativo Capgo. No browser mantemos o <GoogleLogin> web. */}
-          {import.meta.env.VITE_GOOGLE_CLIENT_ID && role !== 'medico' && (
+          {import.meta.env.VITE_GOOGLE_CLIENT_ID && (
             <>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, my: 0.5 }}>
                 <Box sx={{ flex: 1, height: 1, bgcolor: 'divider' }} />
@@ -302,14 +307,14 @@ export const LoginPage = () => {
                 {Capacitor.isNativePlatform() ? (
                   <Button
                     type="button" variant="outlined" size="large"
-                    startIcon={<I.GoogleG />} onClick={handleNativeGoogle} disabled={loading}
+                    startIcon={<I.GoogleG />} onClick={() => handleNativeGoogle(role === 'medico')} disabled={loading}
                     sx={{ borderRadius: 999, borderColor: 'divider', color: 'text.primary', textTransform: 'none', fontWeight: 600, py: 1.2, width: 320 }}
                   >
                     Entrar com Google
                   </Button>
                 ) : (
                   <GoogleLogin
-                    onSuccess={async (cred) => { if (cred.credential) await exchangeGoogleCredential(cred.credential); }}
+                    onSuccess={async (cred) => { if (cred.credential) await exchangeGoogleCredential(cred.credential, role === 'medico'); }}
                     onError={() => window.alert('Falha no login do Google.')}
                     text="continue_with" shape="pill" size="large" width="320"
                   />

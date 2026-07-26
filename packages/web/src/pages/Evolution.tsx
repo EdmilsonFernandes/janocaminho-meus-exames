@@ -239,7 +239,13 @@ const EvoRow = ({ it, defaultExpanded }: { it: EvoItem; defaultExpanded?: boolea
                     );
                   }}
                 />
-                <Line type="monotone" dataKey="v" stroke={lineColor} strokeWidth={2.5} dot={{ r: 4, fill: lineColor }} activeDot={{ r: 6, stroke: '#fff', strokeWidth: 2 }} isAnimationActive={false} />
+                <defs>
+                  <linearGradient id="evolutionGrad" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="#20b2aa" />
+                    <stop offset="100%" stopColor={lineColor} />
+                  </linearGradient>
+                </defs>
+                <Line type="monotone" dataKey="v" stroke="url(#evolutionGrad)" strokeWidth={2.5} dot={{ r: 4, fill: lineColor }} activeDot={{ r: 6, stroke: '#fff', strokeWidth: 2 }} isAnimationActive={false} />
               </LineChart>
             </ResponsiveContainer>
           </Box>

@@ -279,6 +279,27 @@ router.post('/register', validate(schemas.doctorRegister), async (req, res, next
 });
 
 // VERIFICAR E-MAIL do médico (ativa a conta após o cadastro) — código por e-mail (OTP), igual o paciente.
+router.post('/google', async (req: any, res: any, next: any) => {
+  try {
+    const credential = String(req.body?.credential ?? '');
+    if (!credential) { res.status(400).json({ error: 'credential obrigatório' }); return; }
+    const clientId = process.env.VITE_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID || '';
+    if (!clientId) { res.status(503).json({ error: 'Google sign-in não configurado' }); return; }
+    const { OAuth2Client } = await import('google-auth-library');
+    const client = new OAuth2Client(clientId);
+    const ticket = await client.verifyIdToken({ idToken: credential, audience: clientId });
+    const email = String(ticket.getPayload()?.email ?? '').toLowerCase().trim();
+    if (!email) { res.status(400).json({ error: 'E-mail não encontrado no token do Google' }); return; }
+    const doctor = await prisma.doctor.findFirst({ where: { email } });
+    if (!doctor) { res.status(404).json({ error: 'Nenhuma conta de médico com este e-mail. Cadastre-se com seu CRM.' }); return; }
+    if (!doctor.emailVerified || doctor.passwordHash === 'pending-invite') { res.status(403).json({ error: 'Complete seu cadastro com CRM primeiro.' }); return; }
+    const mfa = await evaluateMfaOnLogin('DOCTOR', doctor.id, { doctorId: doctor.id }, doctor.email);
+    if (mfa) { res.json(mfa); return; }
+    res.json({ token: signDoctorToken(doctor.id), doctor: serializeDoctor({ id: doctor.id, name: doctor.name, crm: doctor.crm, specialty: doctor.specialty, email: doctor.email, photoUrl: doctor.photoUrl, cpfLast4: doctor.cpfLast4, identityLockedAt: doctor.identityLockedAt }) });
+    try { await audit('LOGIN_SUCCESS', req, { actorType: 'DOCTOR', actorId: doctor.id, targetType: 'DOCTOR', targetId: doctor.id, after: { via: 'google', email } }); } catch {}
+  } catch (e: any) { res.status(401).json({ error: 'Token do Google inválido.' }); }
+});
+
 router.post('/verify-email', async (req, res) => {
   try {
     const mail = String(req.body?.email ?? '').toLowerCase().trim();
