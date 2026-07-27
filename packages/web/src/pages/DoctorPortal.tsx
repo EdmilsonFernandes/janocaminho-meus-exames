@@ -848,38 +848,52 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               )}
               {!allQLoading && openQ.length > 0 && (<Box sx={{ mb: 3 }}>
                 <Typography sx={{ fontWeight: 800, mb: 1.5 }}>⏳ Em aberto ({openQ.length})</Typography>
-                <Stack spacing={2}>
+                <Stack spacing={1.5}>
                   {(() => {
                     const map = new Map<string, { p: any; qs: any[]; last: number }>();
                     for (const q of openQ) { const pid = q.patientId; const g = map.get(pid) ?? { p: q.patient, qs: [], last: 0 }; g.qs.push(q); g.last = Math.max(g.last, new Date(q.createdAt).getTime()); map.set(pid, g); }
                     return [...map.values()].sort((a, b) => b.last - a.last).map((g) => (
-                      <Box key={g.p?.id}>
-                        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-                          <Avatar src={g.p?.id ? photoUrlFor(g.p.id) : undefined} sx={{ width: 32, height: 32, bgcolor: TEAL, fontSize: 13, fontWeight: 700 }}>{(g.p?.fullName || 'P').charAt(0)}</Avatar>
-                          <Typography sx={{ fontWeight: 800, fontSize: 14 }}>{g.p?.fullName || 'Paciente'}</Typography>
-                          <Chip size="small" label={`${g.qs.length}`} sx={{ height: 20, fontSize: 10, bgcolor: 'rgba(245,158,11,.12)', color: '#b45309', fontWeight: 700 }} />
-                        </Stack>
-                        {g.qs.map(card)}
-                      </Box>
+                      <Accordion key={g.p?.id} defaultExpanded elevation={0} sx={{ '&:before': { display: 'none' }, border: '1px solid', borderColor: 'divider', borderRadius: '12px !important', overflow: 'hidden' }}>
+                        <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '52px !important', '& .MuiAccordionSummary-content': { my: 0.75 } }}>
+                          <Stack direction="row" alignItems="center" spacing={1.5} sx={{ flex: 1, minWidth: 0 }}>
+                            <Avatar src={g.p?.id ? photoUrlFor(g.p.id) : undefined} sx={{ width: 40, height: 40, bgcolor: TEAL, fontSize: 15, fontWeight: 700, flexShrink: 0 }}>{(g.p?.fullName || 'P').charAt(0)}</Avatar>
+                            <Box sx={{ flex: 1, minWidth: 0 }}>
+                              <Typography sx={{ fontWeight: 800, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.p?.fullName || 'Paciente'}</Typography>
+                              <Typography variant="caption" color="text.secondary">{g.qs.length} pergunta(s) · última {new Date(g.last).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</Typography>
+                            </Box>
+                            <Chip size="small" label="aberto" sx={{ height: 22, fontWeight: 700, bgcolor: 'rgba(245,158,11,.12)', color: '#b45309', flexShrink: 0 }} />
+                          </Stack>
+                        </AccordionSummary>
+                        <AccordionDetails sx={{ p: 1.5, pt: 0.5 }}>
+                          <Stack spacing={1}>{g.qs.map(card)}</Stack>
+                        </AccordionDetails>
+                      </Accordion>
                     ));
                   })()}
                 </Stack>
               </Box>)}
               {!allQLoading && answeredQ.length > 0 && (<Box>
                 <Typography sx={{ fontWeight: 800, mb: 1.5, color: 'text.secondary' }}>✅ Respondidas ({answeredQ.length})</Typography>
-                <Stack spacing={2}>
+                <Stack spacing={1.5}>
                   {(() => {
                     const map = new Map<string, { p: any; qs: any[]; last: number }>();
                     for (const q of answeredQ) { const pid = q.patientId; const g = map.get(pid) ?? { p: q.patient, qs: [], last: 0 }; g.qs.push(q); g.last = Math.max(g.last, new Date(q.createdAt).getTime()); map.set(pid, g); }
                     return [...map.values()].sort((a, b) => b.last - a.last).map((g) => (
-                      <Box key={g.p?.id}>
-                        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-                          <Avatar src={g.p?.id ? photoUrlFor(g.p.id) : undefined} sx={{ width: 32, height: 32, bgcolor: 'rgba(32,178,170,.08)', color: '#178f89', fontSize: 13, fontWeight: 700 }}>{(g.p?.fullName || 'P').charAt(0)}</Avatar>
-                          <Typography sx={{ fontWeight: 800, fontSize: 14, color: 'text.secondary' }}>{g.p?.fullName || 'Paciente'}</Typography>
-                          <Chip size="small" label={`${g.qs.length}`} sx={{ height: 20, fontSize: 10, bgcolor: 'rgba(32,178,170,.10)', color: '#178f89', fontWeight: 700 }} />
-                        </Stack>
-                        {g.qs.map(card)}
-                      </Box>
+                      <Accordion key={g.p?.id} elevation={0} sx={{ '&:before': { display: 'none' }, border: '1px solid', borderColor: 'divider', borderRadius: '12px !important', overflow: 'hidden' }}>
+                        <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '52px !important', '& .MuiAccordionSummary-content': { my: 0.75 } }}>
+                          <Stack direction="row" alignItems="center" spacing={1.5} sx={{ flex: 1, minWidth: 0 }}>
+                            <Avatar src={g.p?.id ? photoUrlFor(g.p.id) : undefined} sx={{ width: 40, height: 40, bgcolor: 'rgba(32,178,170,.08)', color: '#178f89', fontSize: 15, fontWeight: 700, flexShrink: 0 }}>{(g.p?.fullName || 'P').charAt(0)}</Avatar>
+                            <Box sx={{ flex: 1, minWidth: 0 }}>
+                              <Typography sx={{ fontWeight: 800, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'text.secondary' }}>{g.p?.fullName || 'Paciente'}</Typography>
+                              <Typography variant="caption" color="text.secondary">{g.qs.length} respondida(s) · última {new Date(g.last).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</Typography>
+                            </Box>
+                            <Chip size="small" label="✓" sx={{ height: 22, fontWeight: 700, bgcolor: 'rgba(32,178,170,.12)', color: '#178f89', flexShrink: 0 }} />
+                          </Stack>
+                        </AccordionSummary>
+                        <AccordionDetails sx={{ p: 1.5, pt: 0.5 }}>
+                          <Stack spacing={1}>{g.qs.map(card)}</Stack>
+                        </AccordionDetails>
+                      </Accordion>
                     ));
                   })()}
                 </Stack>
