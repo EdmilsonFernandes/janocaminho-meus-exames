@@ -5,10 +5,10 @@
 -- closedReason: "timeout" | "answered" | "revoked"
 -- Idempotente (IF NOT EXISTS) — seguro pra re-run.
 
-ALTER TABLE "DoctorQuestion" ADD COLUMN IF NOT EXISTS "sentKey" TEXT;
-ALTER TABLE "DoctorQuestion" ADD COLUMN IF NOT EXISTS "expiresAt" TIMESTAMP(3);
-ALTER TABLE "DoctorQuestion" ADD COLUMN IF NOT EXISTS "analysisId" TEXT;
-ALTER TABLE "DoctorQuestion" ADD COLUMN IF NOT EXISTS "closedReason" TEXT;
+ALTER TABLE "doctor_questions" ADD COLUMN IF NOT EXISTS "sentKey" TEXT;
+ALTER TABLE "doctor_questions" ADD COLUMN IF NOT EXISTS "expiresAt" TIMESTAMP(3);
+ALTER TABLE "doctor_questions" ADD COLUMN IF NOT EXISTS "analysisId" TEXT;
+ALTER TABLE "doctor_questions" ADD COLUMN IF NOT EXISTS "closedReason" TEXT;
 
-CREATE INDEX IF NOT EXISTS "DoctorQuestion_sentKey_idx" ON "DoctorQuestion"("sentKey");
-CREATE INDEX IF NOT EXISTS "DoctorQuestion_expiresAt_idx" ON "DoctorQuestion"("expiresAt");
+CREATE INDEX IF NOT EXISTS "DoctorQuestion_sentKey_idx" ON "doctor_questions"("sentKey");
+CREATE INDEX IF NOT EXISTS "DoctorQuestion_expiresAt_idx" ON "doctor_questions"("expiresAt");
