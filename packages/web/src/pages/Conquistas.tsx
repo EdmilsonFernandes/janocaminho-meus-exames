@@ -93,7 +93,7 @@ export const ConquistasPage = () => {
               </Button>
             ) : (
               <>
-                <LinearProgress variant="determinate" value={b.progress * 100} sx={{ mt: 0.75, height: 4, borderRadius: 99, bgcolor: 'rgba(0,0,0,.06)', '& .MuiLinearProgress-bar': { bgcolor: '#20b2aa' } }} />
+                <LinearProgress variant="determinate" value={b.progress * 100} sx={{ mt: 0.75, height: 4, borderRadius: 99, bgcolor: 'action.hover', '& .MuiLinearProgress-bar': { bgcolor: '#20b2aa' } }} />
                 <Typography sx={{ fontSize: 10, color: 'text.secondary', mt: 0.25 }}>{Math.round(b.progress * 100)}%</Typography>
               </>
             )}

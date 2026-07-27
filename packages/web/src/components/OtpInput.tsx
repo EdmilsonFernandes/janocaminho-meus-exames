@@ -1,8 +1,9 @@
 import { useRef } from 'react';
-import { Box } from '@mui/material';
+import { Box, useTheme } from '@mui/material';
 
 /** Input de código OTP com N quadradinhos premium (auto-avança + cola). */
 export const OtpInput = ({ value, onChange, length = 6 }: { value: string; onChange: (v: string) => void; length?: number }) => {
+  const theme = useTheme();
   const refs = useRef<(HTMLInputElement | null)[]>([]);
   const focus = (i: number) => { const el = refs.current[Math.max(0, Math.min(i, length - 1))]; el?.focus(); el?.select(); };
   return (
@@ -31,8 +32,11 @@ export const OtpInput = ({ value, onChange, length = 6 }: { value: string; onCha
           onFocus={(e: any) => e.target.select()}
           style={{
             width: 44, height: 52, textAlign: 'center', fontSize: 22, fontWeight: 800,
-            borderRadius: 12, border: `2px solid ${value[i] ? '#20b2aa' : '#cfd8dc'}`,
-            outline: 'none', background: '#fff', color: '#0f3d3a',
+            borderRadius: 12,
+            border: `2px solid ${value[i] ? theme.palette.primary.main : theme.palette.divider}`,
+            outline: 'none',
+            background: theme.palette.background.paper,
+            color: theme.palette.text.primary,
             fontFamily: 'Poppins, Inter, sans-serif', transition: 'border-color .15s',
           }}
         />

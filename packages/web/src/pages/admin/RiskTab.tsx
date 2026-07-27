@@ -61,7 +61,7 @@ export const RiskTab = () => {
                   <TableCell align="right">{c.total}</TableCell>
                   <TableCell>
                     <Stack direction="row" spacing={1} alignItems="center">
-                      <Box sx={{ width: 60 }}><LinearProgress variant="determinate" value={pct} sx={{ height: 8, borderRadius: 5, bgcolor: '#eee', '& .MuiLinearProgress-bar': { bgcolor: color } }} /></Box>
+                      <Box sx={{ width: 60 }}><LinearProgress variant="determinate" value={pct} sx={{ height: 8, borderRadius: 5, bgcolor: 'action.hover', '& .MuiLinearProgress-bar': { bgcolor: color } }} /></Box>
                       <Typography variant="caption" sx={{ fontWeight: 700 }}>{pct}%</Typography>
                     </Stack>
                   </TableCell>
