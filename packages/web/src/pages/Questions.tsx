@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslate } from 'react-admin';
-import { Box, Typography, Card, CardContent, Stack, Chip, Avatar, CircularProgress, Dialog, IconButton, Select, MenuItem, TextField, FormControl } from '@mui/material';
+import { Box, Typography, Card, CardContent, Stack, Chip, Avatar, CircularProgress, Dialog, IconButton, Select, MenuItem, TextField, FormControl, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CloseIcon from '@mui/icons-material/Close';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import { API_URL, token, photoUrlFor, doctorPhotoUrl } from '../config';
@@ -67,6 +68,19 @@ export const QuestionsPage = () => {
     return true;
   });
 
+  // Agrupa por médico (estilo Outlook — cada médico é uma "pasta" com suas perguntas).
+  const grouped = (() => {
+    const map = new Map<string, { doctor: any; items: any[]; lastDate: number }>();
+    for (const q of filtered) {
+      const did = q.doctor?.id ?? '_unknown';
+      const g = map.get(did) ?? { doctor: q.doctor, items: [], lastDate: 0 };
+      g.items.push(q);
+      g.lastDate = Math.max(g.lastDate, new Date(q.createdAt).getTime());
+      map.set(did, g);
+    }
+    return [...map.values()].sort((a, b) => b.lastDate - a.lastDate);
+  })();
+
   const userName = (() => { try { return JSON.parse(localStorage.getItem('user') || '{}')?.name || 'Paciente'; } catch { return 'Paciente'; } })();
 
   return (
@@ -119,34 +133,52 @@ export const QuestionsPage = () => {
           </Typography>
         </Card>
       ) : (
-        <Stack spacing={1.5}>
-          {filtered.map((q: any) => {
-            const doc = q.doctor;
-            // Última mensagem REAL (pula o auto-recebimento 'system' — senão o preview mostrava "Você: ✅ Recebido...").
-            const lastMsg = q.messages?.find((m: any) => m.authorRole !== 'system');
-            const answered = q.status === 'answered';
+        <Stack spacing={2}>
+          {grouped.map((g: any) => {
+            const doc = g.doctor;
+            const share = shares.find((s: any) => s.doctorId === doc?.id || s.doctor?.id === doc?.id);
+            const openQ = Number(share?.openQuestions ?? 0); const maxQ = Number(share?.questionLimit ?? 5);
             return (
-              <Card key={q.id} variant="outlined" onClick={() => openThread(q)} sx={{
-                borderRadius: 3, cursor: 'pointer', borderColor: 'divider',
-                transition: 'transform .12s ease, box-shadow .2s ease', '&:active': { transform: 'scale(0.985)' },
-                '&:hover': { boxShadow: '0 4px 12px rgba(0,0,0,.06)' },
-              }}>
-                <CardContent sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start', '&:last-child': { pb: 1.5 } }}>
-                  <Avatar src={doc?.photoUrl ? doctorPhotoUrl(doc.id, 0) : undefined} sx={{ width: 44, height: 44, bgcolor: TEAL, fontSize: 16, fontWeight: 700, flexShrink: 0 }}>{(doc?.name || 'M').charAt(0)}</Avatar>
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1} sx={{ mb: 0.25 }}>
-                      <Typography sx={{ fontWeight: 800, fontSize: 14, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc?.name || 'Médico'}{doc?.specialty ? ` · ${doc.specialty}` : ''}</Typography>
-                      <QuestionStatusBadge status={answered ? 'answered' : 'open'} />
-                    </Stack>
-                    {lastMsg && (
-                      <Typography variant="body2" color="text.secondary" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.4 }}>
-                        <strong style={{ color: lastMsg.authorRole === 'doctor' ? TEAL : 'inherit' }}>{lastMsg.authorRole === 'doctor' ? 'Médico' : 'Você'}:</strong> {lastMsg.body}
-                      </Typography>
-                    )}
-                    <Typography variant="caption" color="text.secondary">{new Date(q.createdAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</Typography>
-                  </Box>
-                </CardContent>
-              </Card>
+              <Accordion key={doc?.id ?? '_'} defaultExpanded elevation={0} sx={{ '&:before': { display: 'none' }, border: '1px solid', borderColor: 'divider', borderRadius: '12px !important', overflow: 'hidden' }}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '52px !important', '& .MuiAccordionSummary-content': { my: 0.75 } }}>
+                  <Stack direction="row" alignItems="center" spacing={1.5} sx={{ flex: 1, minWidth: 0 }}>
+                    <Avatar src={doc?.photoUrl ? doctorPhotoUrl(doc.id, 0) : undefined} sx={{ width: 40, height: 40, bgcolor: TEAL, fontSize: 15, fontWeight: 700, flexShrink: 0 }}>{(doc?.name || 'M').charAt(0)}</Avatar>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography sx={{ fontWeight: 800, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc?.name || 'Médico'}{doc?.specialty ? ` · ${doc.specialty}` : ''}</Typography>
+                      <Typography variant="caption" color="text.secondary">{g.items.length} pergunta(s) · última {new Date(g.lastDate).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</Typography>
+                    </Box>
+                    <Chip size="small" label={`${openQ}/${maxQ}`} sx={{ height: 22, fontWeight: 700, bgcolor: openQ >= maxQ ? 'rgba(239,68,68,.12)' : 'rgba(32,178,170,.10)', color: openQ >= maxQ ? '#ef4444' : TEAL, flexShrink: 0 }} />
+                  </Stack>
+                </AccordionSummary>
+                <AccordionDetails sx={{ p: 1.5, pt: 0.5 }}>
+                  <Stack spacing={1}>
+                    {g.items.map((q: any) => {
+                      const lastMsg = q.messages?.find((m: any) => m.authorRole !== 'system');
+                      const answered = q.status === 'answered';
+                      return (
+                        <Card key={q.id} variant="outlined" onClick={() => openThread(q)} sx={{
+                          borderRadius: 2, cursor: 'pointer', borderColor: 'divider',
+                          transition: 'transform .12s ease', '&:active': { transform: 'scale(0.985)' },
+                        }}>
+                          <CardContent sx={{ display: 'flex', gap: 1.25, alignItems: 'flex-start', '&:last-child': { pb: 1.25 }, py: 1.25 }}>
+                            <Box sx={{ flex: 1, minWidth: 0 }}>
+                              <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1} sx={{ mb: 0.25 }}>
+                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>{new Date(q.createdAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</Typography>
+                                <QuestionStatusBadge status={answered ? 'answered' : 'open'} />
+                              </Stack>
+                              {lastMsg && (
+                                <Typography variant="body2" color="text.secondary" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.4 }}>
+                                  <strong style={{ color: lastMsg.authorRole === 'doctor' ? TEAL : 'inherit' }}>{lastMsg.authorRole === 'doctor' ? 'Médico' : 'Você'}:</strong> {lastMsg.body}
+                                </Typography>
+                              )}
+                            </Box>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </Stack>
+                </AccordionDetails>
+              </Accordion>
             );
           })}
         </Stack>
