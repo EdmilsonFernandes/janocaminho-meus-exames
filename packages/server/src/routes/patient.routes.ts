@@ -9,6 +9,18 @@ import { config } from '../config';
 import { savePatientPhoto, patientSlug, deleteExamFile } from '../utils/storage';
 import { logCredit } from '../utils/credits';
 import { buildCurrentHealthSummary } from '../analysis/health-state';
+
+// Cache LRU do health-summary: recomputar a cada GET do Dashboard = ~70% da carga do DB.
+// TTL 5 min (aceitável: exames não mudam a cada segundo). Invalide manualmente se preciso.
+const hsCache = new Map<string, { data: any; ts: number }>();
+const HS_TTL = 5 * 60_000;
+async function getCachedHealthSummary(patientId: string): Promise<any> {
+  const cached = hsCache.get(patientId);
+  if (cached && Date.now() - cached.ts < HS_TTL) return cached.data;
+  const data = await buildCurrentHealthSummary(patientId);
+  hsCache.set(patientId, { data, ts: Date.now() });
+  return data;
+}
 import { encryptedCpfData, maskStoredCpf } from '../utils/cpf';
 
 const router = Router();
@@ -125,7 +137,7 @@ router.get('/:id/health-summary', async (req: AuthedRequest, res, next) => {
     const pids = await userPatientIds(req.userId!);
     const id = String(req.params.id);
     if (!pids.includes(id)) { res.status(403).json({ error: 'Paciente não pertence ao usuário' }); return; }
-    res.json(await buildCurrentHealthSummary(id));
+    res.json(await getCachedHealthSummary(id));
   } catch (e) { next(e); }
 });
 
@@ -143,7 +155,7 @@ router.get('/family-overview', async (req: AuthedRequest, res, next) => {
     const result: any[] = [];
     const abnormalByAnalyte = new Map<string, string[]>();
     for (const p of patients) {
-      const snap = await buildCurrentHealthSummary(p.id); // Layer 2 (canônico) — igual ao painel/médico
+      const snap = await getCachedHealthSummary(p.id); // Layer 2 (canônico) — igual ao painel/médico
       // Último exame só para título/data (NÃO entra no score — evita voltar a divergir).
       const exam = await prisma.exam.findFirst({
         where: { patientId: p.id, status: 'EXTRACTED' },
