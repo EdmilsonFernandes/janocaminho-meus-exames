@@ -642,10 +642,20 @@ model DoctorQuestion {
   unreadByPatient Boolean @default(false)
   createdAt      DateTime @default(now())
   answeredAt     DateTime?
+  // ===== Fatia 1: dedup estável + expiração automática (campos aditivos opcionais) =====
+  // sentKey: hash analysisId+index (dedup robusto entre regenerações do relatório). NULL = texto livre.
+  // expiresAt: now+7d; scheduler preguiçoso (POST futuro expira) → status='closed', closedReason='timeout'.
+  // analysisId: provenance (qual relatório motivou). closedReason: 'timeout' | 'answered' | 'revoked'.
+  sentKey        String?
+  expiresAt      DateTime?
+  analysisId     String?
+  closedReason   String?
   messages       DoctorQuestionMessage[]
 
   @@index([doctorId, status, createdAt])
   @@index([patientId, createdAt])
+  @@index([sentKey])
+  @@index([expiresAt])
   @@map("doctor_questions")
 }
 

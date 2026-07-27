@@ -918,6 +918,7 @@ router.post('/questions/:id/messages', requireDoctor, async (req: any, res, next
       data: {
         status: 'answered',
         answeredAt: new Date(),
+        closedReason: 'answered', // Fatia 1: registra motivo do fechamento (cron / answer / revoke)
         unreadByPatient: true,
         messages: { create: { authorRole: 'doctor', authorId: req.doctorId, body } },
       },

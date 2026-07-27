@@ -492,7 +492,7 @@ export const ExamShow = () => {
       {exam.status === 'EXTRACTED' && summary && (
         <Card sx={{ mt: 2 }}>
           <CardContent>
-            <Typography variant="h6" gutterBottom>Pergunte sobre este exame</Typography>
+            <Typography variant="h6" gutterBottom>Conversar com Dr. Exame</Typography>
             <Box sx={{ mb: 1 }}><CreditBadge amount={CREDIT_COSTS.chat} label={`${CREDIT_COSTS.chat} por pergunta`} /></Box>
             <Box sx={{ maxHeight: 320, overflowY: 'auto', mb: 1, p: 1, bgcolor: 'action.hover', borderRadius: 1 }}>
               {chatMessages.length === 0 && <Typography color="text.secondary">Ex.: "Por que minha hemoglobina subiu?"</Typography>}
@@ -504,7 +504,7 @@ export const ExamShow = () => {
             </Box>
             <Divider sx={{ my: 1 }} />
             <Stack direction="row" spacing={1}>
-              <Box component="input" value={chatInput} disabled={chatBusy} placeholder="Pergunte sobre o exame…"
+              <Box component="input" value={chatInput} disabled={chatBusy} placeholder="Converse com o Dr. Exame…"
                 onChange={(e: any) => setChatInput(e.target.value)}
                 onKeyDown={(e: any) => { if (e.key === 'Enter' && !chatBusy) sendChat(); }}
                 sx={{ flex: 1, px: 1.5, py: 1.25, fontSize: 16, borderRadius: 1, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', color: 'text.primary', outline: 'none' }} />

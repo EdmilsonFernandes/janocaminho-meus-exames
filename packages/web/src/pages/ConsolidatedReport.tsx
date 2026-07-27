@@ -137,7 +137,7 @@ export const ConsolidatedReportPage = () => {
   // relatório o estado é estável; relatório novo = lote novo (limitado pelo gate/limite do servidor).
   const sentKey = useMemo(() => 'reportQ_' + (analysis?.id ?? 'none'), [analysis]);
   useEffect(() => { try { setSentQs(new Set<string>(JSON.parse(localStorage.getItem(sentKey) || '[]'))); } catch { setSentQs(new Set()); } }, [sentKey]);
-  const [picker, setPicker] = useState<{ shares: any[]; picked: string; qs: { q: string }[] } | null>(null);
+  const [picker, setPicker] = useState<{ shares: any[]; picked: string; qs: { q: string; i: number }[] } | null>(null);
   // Cota de perguntas (openQuestions/questionLimit do /doctor-shares). Usada pra DESABILITAR os
   // checkboxes quando o paciente não pode mais enviar — antes dava pra tickar tudo e só falhava
   // no envio (inconsistente: "habilita pra tickar mas não envia"). Atualiza também após cada envio.
@@ -147,41 +147,73 @@ export const ConsolidatedReportPage = () => {
   const doctorsAvailable = qShares.filter((s: any) => Number(s.openQuestions ?? 0) < Number(s.questionLimit ?? 5));
   const questionLocked = qShares.length > 0 && doctorsAvailable.length === 0; // todos os médicos no limite
   const hasNoDoctor = qShares.length === 0;
-  const doSendToDoctor = async (doctorId: string, doctorName: string, picked: { q: string }[]) => {
-    if (!pid) return;
+  const doSendToDoctor = async (doctorId: string, doctorName: string, picked: { q: string; i: number }[]) => {
+    if (!pid || !analysis?.id) return;
+    const analysisId = analysis.id;
     setSend({ status: 'sending' });
     try {
-      const body = picked.map((x) => `• ${x.q}`).join('\n');
-      const r = await fetch(`${API_URL}/doctor-questions`, {
-        method: 'POST', headers: { ...apiHeaders(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({ patientId: pid, doctorId, subject: picked.length === 1 ? picked[0].q.slice(0, 90) : `${picked.length} perguntas do relatório`, body }),
-      });
-      if (r.status === 402) { const d = await r.json().catch(() => ({})); hapticError(); setSend({ status: 'error', msg: d.message || 'Créditos insuficientes pra enviar agora.' }); return; }
-      if (r.status === 409) {
-        const d = await r.json().catch(() => ({}));
-        if (d.error === 'question_duplicate') {
-          // Já estão em aberto (dedup server). Marca como enviadas p/ os checkboxes virarem ✓
-          // (consistência: antes ficavam tickáveis mas o envio travava).
-          setSentQs((prev) => { const ns = new Set(prev); picked.forEach((p) => ns.add(p.q)); try { localStorage.setItem(sentKey, JSON.stringify([...ns])); } catch {} return ns; });
-          setTickQ({}); setPicker(null); hapticSuccess();
-          setSend({ status: 'done', msg: 'Essas perguntas já estão aguardando resposta do médico.' });
-        } else {
-          hapticError(); setSend({ status: 'error', msg: d.message || 'Você tem perguntas em aberto com este médico. Aguarde a resposta.' });
+      // Fatia 1: UMA DoctorQuestion POR pergunta (era 1 thread p/ o lote todo).
+      // Motivo: dedup estável por sentKey = `report:${analysisId}:${i}` — sobrevive a regenerar
+      // o relatório (mesmo analysisId + mesmo índice = mesmo sentKey = 409 question_duplicate no server).
+      // Antes: batch virava 1 thread só → regenerar mudava conteúdo → dedup por conteúdo falhava.
+      const okSet = new Set<string>();
+      let dupCount = 0;
+      let stopped: { msg: string } | null = null;
+      for (const item of picked) {
+        const sentKey = `report:${analysisId}:${item.i}`;
+        const r = await fetch(`${API_URL}/doctor-questions`, {
+          method: 'POST', headers: { ...apiHeaders(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            patientId: pid, doctorId,
+            subject: item.q.slice(0, 90),
+            body: item.q,
+            sentKey,
+            analysisId,
+          }),
+        });
+        if (r.status === 201) { okSet.add(item.q); bumpCredits(); continue; }
+        if (r.status === 409) {
+          const d = await r.json().catch(() => ({}));
+          if (d.error === 'question_duplicate') { dupCount++; okSet.add(item.q); continue; }
+          // question_limit: médico saturado. Para o lote; mantém o que já foi.
+          stopped = { msg: d.message || 'Você tem perguntas em aberto com este médico. Aguarde a resposta.' };
+          break;
         }
+        if (r.status === 402) {
+          const d = await r.json().catch(() => ({}));
+          stopped = { msg: d.message || 'Créditos insuficientes pra enviar agora.' };
+          break;
+        }
+        stopped = { msg: 'Não foi possível enviar agora. Tente novamente.' };
+        break;
+      }
+
+      // Persiste localmente as enviadas (SÓ sucesso + dup) p/ checkboxes virarem ✓.
+      if (okSet.size) {
+        setSentQs((prev) => { const ns = new Set(prev); okSet.forEach((q) => ns.add(q)); try { localStorage.setItem(sentKey, JSON.stringify([...ns])); } catch {} return ns; });
+        refreshQShares();
+      }
+
+      if (stopped && !okSet.size) {
+        hapticError();
+        setSend({ status: 'error', msg: stopped.msg });
         return;
       }
-      if (!r.ok) { hapticError(); setSend({ status: 'error', msg: 'Não foi possível enviar agora. Tente novamente.' }); return; }
-      bumpCredits(); hapticSuccess();
-      refreshQShares(); // atualiza a cota (mais uma pergunta em aberto agora)
-      // Marca SÓ as enviadas (por conteúdo). As não-tickadas continuam disponíveis pra enviar depois.
-      setSentQs((prev) => { const ns = new Set(prev); picked.forEach((p) => ns.add(p.q)); try { localStorage.setItem(sentKey, JSON.stringify([...ns])); } catch {} return ns; });
-      setSend({ status: 'done', msg: `Perguntas enviadas! O Dr(a). ${doctorName} recebeu na área de perguntas dele (no portal do médico) e por e-mail.` });
+      hapticSuccess();
       setTickQ({}); setPicker(null);
+      if (stopped && okSet.size) {
+        // Lote parcial — algumas foram, outras não.
+        setSend({ status: 'done', msg: `${okSet.size} pergunta(s) enviada(s) a ${doctorName}. ${dupCount ? `${dupCount} já estava(m) em aberto. ` : ''}Restantes não foram: ${stopped.msg}` });
+      } else if (okSet.size === 0 && dupCount) {
+        setSend({ status: 'done', msg: 'Essas perguntas já estão aguardando resposta do médico.' });
+      } else {
+        setSend({ status: 'done', msg: `Perguntas enviadas! O Dr(a). ${doctorName} recebeu na área de perguntas dele (no portal do médico) e por e-mail.` });
+      }
     } catch { hapticError(); setSend({ status: 'error', msg: 'Sem conexão. Tente novamente.' }); }
   };
   const sendQuestionsToDoctor = async () => {
     const qs: string[] = (analysis?.structured?.perguntasParaOMedico ?? []) as string[];
-    const picked = qs.map((q) => ({ q })).filter((_, i) => tickQ[i]);
+    const picked = qs.map((q, i) => ({ q, i })).filter((x) => tickQ[x.i]);
     if (!picked.length || !pid) return;
     try {
       const sr = await fetch(`${API_URL}/doctor-shares`, { headers: apiHeaders() });

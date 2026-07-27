@@ -61,25 +61,52 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     const share = await prisma.doctorShare.findFirst({ where: { patientId: pid, doctorId: String(doctorId), active: true } });
     if (!share) { res.status(403).json({ error: 'Compartilhe seus exames com este médico antes de enviar perguntas.' }); return; }
 
-    // DEDUP: se já existe uma pergunta EM ABERTO com o MESMO conteúdo (subject ou 1ª mensagem)
-    // pra este médico, bloqueia. Impede o "regenera relatório → reenvia as mesmas perguntas".
-    // Conteúdo NORMALIZADO (lowercase, espaços colapsados, 200 chars) — tolera diferenças de formatação.
-    const norm = (s: string) => s.toLowerCase().replace(/\s+/g, ' ').trim().slice(0, 200);
-    const incoming = norm(msgBody);
-    if (incoming) {
-      const open = await prisma.doctorQuestion.findMany({
-        where: { patientId: pid, doctorId: String(doctorId), status: 'open' },
-        include: { messages: { where: { authorRole: 'patient' }, orderBy: { createdAt: 'asc' }, take: 1 } },
+    // ===== Fatia 1: dedup estável por sentKey + expiração automática =====
+    // sentKey (opcional): hash analysisId+index vindo do relatório. Estável entre regenerações
+    // (mesmo analysisId = mesmo sentKey) → bloqueia reenvio pós-regenerar. NULL = texto livre
+    // (Medicos.tsx) → cai no dedup por conteúdo (fallback fraco, mas mantém compat).
+    const sentKey = req.body?.sentKey ? String(req.body.sentKey).slice(0, 120) : null;
+    const analysisId = req.body?.analysisId ? String(req.body.analysisId).slice(0, 120) : null;
+
+    // AUTO-EXPIRAÇÃO preguiçosa: qualquer pergunta EM ABERTO com expiresAt < now() vira closed/timeout.
+    // Roda no próximo POST (esse) — não precisa de cron. Libera espaço no gate anti-flood.
+    const now = new Date();
+    await prisma.doctorQuestion.updateMany({
+      where: { patientId: pid, doctorId: String(doctorId), status: 'open', expiresAt: { lt: now } },
+      data: { status: 'closed', closedReason: 'timeout' },
+    }).catch(() => {});
+
+    // DEDUP por sentKey (preferencial) ou conteúdo (fallback). sentKey é robusto porque é estável
+    // entre regenerações; conteúdo quebra pós-regenerar (texto pode mudar levemente).
+    if (sentKey) {
+      const dupByKey = await prisma.doctorQuestion.findFirst({
+        where: { patientId: pid, doctorId: String(doctorId), sentKey, status: 'open' },
+        select: { id: true },
       });
-      const isDup = (q: any) => norm(q.subject || '') === incoming || (q.messages?.[0] && norm(q.messages[0].body || '') === incoming);
-      if (open.some(isDup)) {
+      if (dupByKey) {
         res.status(409).json({ error: 'question_duplicate', message: 'Você já enviou essa pergunta e ela está aguardando resposta do médico. Quando ele responder, você pode enviar outras.' });
         return;
+      }
+    } else {
+      // Fallback texto livre (Medicos.tsx): dedup por conteúdo normalizado.
+      const norm = (s: string) => s.toLowerCase().replace(/\s+/g, ' ').trim().slice(0, 200);
+      const incoming = norm(msgBody);
+      if (incoming) {
+        const open = await prisma.doctorQuestion.findMany({
+          where: { patientId: pid, doctorId: String(doctorId), status: 'open' },
+          include: { messages: { where: { authorRole: 'patient' }, orderBy: { createdAt: 'asc' }, take: 1 } },
+        });
+        const isDup = (q: any) => norm(q.subject || '') === incoming || (q.messages?.[0] && norm(q.messages[0].body || '') === incoming);
+        if (open.some(isDup)) {
+          res.status(409).json({ error: 'question_duplicate', message: 'Você já enviou essa pergunta e ela está aguardando resposta do médico. Quando ele responder, você pode enviar outras.' });
+          return;
+        }
       }
     }
 
     // GATE anti-flood: limita perguntas EM ABERTO por vínculo (protege o médico de inundação).
     // Responder/fechar uma pergunta libera espaço. O médico (Pro) pode levantar o limite via consulta.
+    // NOTA: auto-expiração acima já rodou → openCount reflete apenas as vigentes.
     const openCount = await prisma.doctorQuestion.count({ where: { patientId: pid, doctorId: String(doctorId), status: 'open' } });
     const limit = share.openQuestionLimit ?? 5;
     if (openCount >= limit) {
@@ -101,6 +128,10 @@ router.post('/', async (req: AuthedRequest, res, next) => {
         creditsCharged: cost,
         status: 'open',
         unreadByDoctor: true,
+        // Fatia 1: dedup estável + auto-expira em 7d se médico não responder.
+        sentKey: sentKey ?? null,
+        analysisId: analysisId ?? null,
+        expiresAt: new Date(Date.now() + 7 * 86400000),
         messages: { create: { authorRole: 'patient', authorId: pid, body: msgBody } },
       },
       include: { doctor: { select: { id: true, name: true } } },
