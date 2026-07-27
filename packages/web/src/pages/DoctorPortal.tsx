@@ -846,8 +846,44 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                   <Typography color="text.secondary">Quando um paciente enviar uma pergunta pelo app, ela aparece aqui.</Typography>
                 </Box></CardContent></Card>
               )}
-              {!allQLoading && openQ.length > 0 && (<Box sx={{ mb: 3 }}><Typography sx={{ fontWeight: 800, mb: 1 }}>⏳ Em aberto ({openQ.length})</Typography>{openQ.map(card)}</Box>)}
-              {!allQLoading && answeredQ.length > 0 && (<Box><Typography sx={{ fontWeight: 800, mb: 1, color: 'text.secondary' }}>✅ Respondidas ({answeredQ.length})</Typography>{answeredQ.map(card)}</Box>)}
+              {!allQLoading && openQ.length > 0 && (<Box sx={{ mb: 3 }}>
+                <Typography sx={{ fontWeight: 800, mb: 1.5 }}>⏳ Em aberto ({openQ.length})</Typography>
+                <Stack spacing={2}>
+                  {(() => {
+                    const map = new Map<string, { p: any; qs: any[]; last: number }>();
+                    for (const q of openQ) { const pid = q.patientId; const g = map.get(pid) ?? { p: q.patient, qs: [], last: 0 }; g.qs.push(q); g.last = Math.max(g.last, new Date(q.createdAt).getTime()); map.set(pid, g); }
+                    return [...map.values()].sort((a, b) => b.last - a.last).map((g) => (
+                      <Box key={g.p?.id}>
+                        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+                          <Avatar src={g.p?.id ? photoUrlFor(g.p.id) : undefined} sx={{ width: 32, height: 32, bgcolor: TEAL, fontSize: 13, fontWeight: 700 }}>{(g.p?.fullName || 'P').charAt(0)}</Avatar>
+                          <Typography sx={{ fontWeight: 800, fontSize: 14 }}>{g.p?.fullName || 'Paciente'}</Typography>
+                          <Chip size="small" label={`${g.qs.length}`} sx={{ height: 20, fontSize: 10, bgcolor: 'rgba(245,158,11,.12)', color: '#b45309', fontWeight: 700 }} />
+                        </Stack>
+                        {g.qs.map(card)}
+                      </Box>
+                    ));
+                  })()}
+                </Stack>
+              </Box>)}
+              {!allQLoading && answeredQ.length > 0 && (<Box>
+                <Typography sx={{ fontWeight: 800, mb: 1.5, color: 'text.secondary' }}>✅ Respondidas ({answeredQ.length})</Typography>
+                <Stack spacing={2}>
+                  {(() => {
+                    const map = new Map<string, { p: any; qs: any[]; last: number }>();
+                    for (const q of answeredQ) { const pid = q.patientId; const g = map.get(pid) ?? { p: q.patient, qs: [], last: 0 }; g.qs.push(q); g.last = Math.max(g.last, new Date(q.createdAt).getTime()); map.set(pid, g); }
+                    return [...map.values()].sort((a, b) => b.last - a.last).map((g) => (
+                      <Box key={g.p?.id}>
+                        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+                          <Avatar src={g.p?.id ? photoUrlFor(g.p.id) : undefined} sx={{ width: 32, height: 32, bgcolor: 'rgba(32,178,170,.08)', color: '#178f89', fontSize: 13, fontWeight: 700 }}>{(g.p?.fullName || 'P').charAt(0)}</Avatar>
+                          <Typography sx={{ fontWeight: 800, fontSize: 14, color: 'text.secondary' }}>{g.p?.fullName || 'Paciente'}</Typography>
+                          <Chip size="small" label={`${g.qs.length}`} sx={{ height: 20, fontSize: 10, bgcolor: 'rgba(32,178,170,.10)', color: '#178f89', fontWeight: 700 }} />
+                        </Stack>
+                        {g.qs.map(card)}
+                      </Box>
+                    ));
+                  })()}
+                </Stack>
+              </Box>)}
             </>
           );
         })()}
