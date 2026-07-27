@@ -135,7 +135,7 @@ export const QuestionsPage = () => {
                   <Avatar src={doc?.photoUrl ? doctorPhotoUrl(doc.id, 0) : undefined} sx={{ width: 44, height: 44, bgcolor: TEAL, fontSize: 16, fontWeight: 700, flexShrink: 0 }}>{(doc?.name || 'M').charAt(0)}</Avatar>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1} sx={{ mb: 0.25 }}>
-                      <Typography sx={{ fontWeight: 800, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc?.name || 'Médico'}{doc?.specialty ? ` · ${doc.specialty}` : ''}</Typography>
+                      <Typography sx={{ fontWeight: 800, fontSize: 14, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc?.name || 'Médico'}{doc?.specialty ? ` · ${doc.specialty}` : ''}</Typography>
                       <QuestionStatusBadge status={answered ? 'answered' : 'open'} />
                     </Stack>
                     {lastMsg && (

@@ -16,9 +16,11 @@ export const QuestionStatusBadge = ({ status, size = 'small' as const }: { statu
         height: size === 'small' ? 22 : 26,
         fontSize: size === 'small' ? 10 : 12,
         fontWeight: 700,
+        flexShrink: 0,
         bgcolor: isOpen ? 'rgba(245,158,11,.12)' : 'rgba(32,178,170,.12)',
         color: isOpen ? '#b45309' : '#178f89',
         '& .MuiChip-icon': { color: isOpen ? '#b45309' : '#178f89' },
+        '& .MuiChip-label': { whiteSpace: 'nowrap' },
       }}
     />
   );
