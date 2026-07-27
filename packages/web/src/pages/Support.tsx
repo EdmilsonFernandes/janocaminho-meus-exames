@@ -4,6 +4,7 @@ import { Box, Button, Card, CardContent, Typography, Stack, Chip, TextField, Inp
 import { Title, useTranslate } from 'react-admin';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
+import { ListSkeleton } from '../components/Skeleton';
 import { API_URL, token } from '../config';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import AddIcon from '@mui/icons-material/Add';
@@ -111,7 +112,7 @@ const TicketList = () => {
         subtitle={translate('page.support_sub')} />
       <Button variant="contained" startIcon={<AddIcon />} sx={{ mb: 2, borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#178f89' }} onClick={() => setCreateOpen(true)}>Novo chamado</Button>
 
-      {tickets == null ? <CircularProgress size={24} /> :
+      {tickets == null ? <ListSkeleton count={4} /> :
         err ? <Typography color="error">Não foi possível carregar seus chamados.</Typography> :
         tickets.length === 0 ? (
           <Card variant="outlined" sx={{ borderRadius: 3 }}><CardContent><Typography color="text.secondary">Você ainda não abriu chamados. Precisa de ajuda? Toque em “Novo chamado”.</Typography></CardContent></Card>
@@ -171,7 +172,7 @@ const TicketThread = ({ id }: { id: string }) => {
     setSending(false);
   };
 
-  if (!data) return <PageContainer><CircularProgress size={24} /></PageContainer>;
+  if (!data) return <PageContainer><ListSkeleton count={6} /></PageContainer>;
   const st = STATUS_META[data.status] ?? STATUS_META.open;
 
   return (

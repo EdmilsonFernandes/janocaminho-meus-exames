@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, Button, Divider } from '@mui/material';
+import { Box, Card, CardContent, Typography, Button, Divider, Skeleton, Stack } from '@mui/material';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
@@ -63,7 +63,20 @@ export const EmergencyCardPage = () => {
               </Button>
             </>
           ) : (
-            <Typography color="text.secondary" sx={{ textAlign: 'center', py: 3 }}>Carregando...</Typography>
+            <Stack spacing={1.5} sx={{ py: 1 }}>
+              <Box sx={{ textAlign: 'center', mb: 1 }}>
+                <Skeleton variant="circular" width={56} height={56} sx={{ mx: 'auto' }} />
+                <Skeleton variant="text" sx={{ fontSize: '1.25rem', width: '60%', mx: 'auto' }} />
+                <Skeleton variant="text" sx={{ fontSize: '0.875rem', width: '40%', mx: 'auto' }} />
+              </Box>
+              <Divider sx={{ my: 1 }} />
+              <Skeleton variant="text" sx={{ fontSize: '0.95rem', width: '40%' }} />
+              <Skeleton variant="text" sx={{ fontSize: '0.875rem', width: '80%' }} />
+              <Skeleton variant="text" sx={{ fontSize: '0.95rem', width: '40%' }} />
+              <Skeleton variant="text" sx={{ fontSize: '0.875rem', width: '80%' }} />
+              <Skeleton variant="text" sx={{ fontSize: '0.95rem', width: '40%' }} />
+              <Skeleton variant="text" sx={{ fontSize: '0.875rem', width: '80%' }} />
+            </Stack>
           )}
         </CardContent>
       </Card>

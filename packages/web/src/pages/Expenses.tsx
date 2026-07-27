@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Card, CardContent, Typography, Button, TextField, IconButton, Stack, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, CircularProgress } from '@mui/material';
+import { Card, CardContent, Typography, Button, TextField, IconButton, Stack, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import PaymentsIcon from '@mui/icons-material/Payments';
 import { useNotify, useTranslate } from 'react-admin';
@@ -8,6 +8,7 @@ import { useSelectedPatient } from '../patient-context';
 import { printPage } from '../utils/nativeDoc';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
+import { ListSkeleton } from '../components/Skeleton';
 
 interface Expense { id: string; description: string; category: string; amount: number; spentAt: string; }
 
@@ -90,7 +91,7 @@ export const ExpensesPage = () => {
         <CardContent>
           <Typography variant="h6" gutterBottom>Histórico de despesas</Typography>
           {loading ? (
-            <CircularProgress size={20} />
+            <ListSkeleton count={3} />
           ) : items.length === 0 ? (
             <Typography color="text.secondary" sx={{ py: 2 }}>Nenhuma despesa registrada.</Typography>
           ) : (

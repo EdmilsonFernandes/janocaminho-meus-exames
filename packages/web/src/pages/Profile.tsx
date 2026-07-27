@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, TextField, Button, Stack, Chip, CircularProgress, MenuItem, Switch, FormControlLabel } from '@mui/material';
+import { Box, Card, CardContent, Typography, TextField, Button, Stack, Chip, MenuItem, Switch, FormControlLabel } from '@mui/material';
 import { useNotify, useRefresh, useTranslate } from 'react-admin';
 import { useNavigate } from 'react-router-dom';
 import LockIcon from '@mui/icons-material/Lock';
@@ -15,6 +15,7 @@ import { useSelectedPatient } from '../patient-context';
 import { PhotoUpload } from '../components/PhotoUpload';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
+import { PageSkeleton } from '../components/PageSkeleton';
 import { formatCpf, isValidCpf } from '../utils/cpf';
 import { DateFieldBR } from '../components/DateFieldBR';
 
@@ -128,7 +129,7 @@ export const ProfilePage = () => {
     e.target.value = '';
   };
 
-  if (!pid) return <Box sx={{ p: 4, textAlign: 'center' }}><CircularProgress /></Box>;
+  if (!pid) return <PageSkeleton cards={4} />;
 
   const planActive = user?.planExpiresAt && new Date(user.planExpiresAt) > new Date();
 

@@ -15,6 +15,7 @@ import { SPECIALTIES, CONVENIOS, UFS } from '../utils/medicalData';
 import type { DoctorLookupResult, DoctorLookupSource } from '../types/doctor';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
+import { ListSkeleton } from '../components/Skeleton';
 
 const SCOPE_META = [
   { key: 'exams', label: 'Exames', short: 'Exames', icon: '📋' },
@@ -224,7 +225,7 @@ export const MedicosPage = () => {
       )}
 
       {/* Loading */}
-      {loading && <Box sx={{ textAlign: 'center', py: 4 }}><CircularProgress sx={{ color: '#20b2aa' }} /></Box>}
+      {loading && <ListSkeleton count={4} />}
 
       {/* Empty state */}
       {!loading && myShares.length === 0 && (

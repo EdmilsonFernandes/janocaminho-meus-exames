@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useTranslate } from 'react-admin';
 import { useNavigate } from 'react-router-dom';
-import { Box, Card, CardContent, Typography, Button, CircularProgress, Stack, Chip, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { Box, Card, CardContent, Typography, Button, Stack, Chip, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import { API_URL, token } from '../config';
 import { notifRoute } from '../utils/notifRoute';
 import { DrExame } from '../components/DrExame';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
+import { ListSkeleton } from '../components/Skeleton';
 
 const TYPE_META: Record<string, { emoji: string; color: string }> = {
   alert: { emoji: '🔴', color: '#ef4444' },
@@ -45,7 +46,7 @@ export const NotificationsPage = () => {
         title={translate('page.notifications')}
         actions={!!data?.unread ? <Button size="small" variant="outlined" onClick={markAll}>{translate('notif.mark_all')}</Button> : undefined}
       />
-      {!data && <CircularProgress />}
+      {!data && <ListSkeleton count={4} />}
       {data && items.length === 0 && (
         <Card><CardContent><Typography color="text.secondary" sx={{ textAlign: 'center', py: 3 }}>{translate('notif.empty')}</Typography></CardContent></Card>
       )}

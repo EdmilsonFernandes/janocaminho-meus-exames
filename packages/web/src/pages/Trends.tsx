@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Box, Button, Card, CardContent, Typography, MenuItem, Select, FormControl, InputLabel, CircularProgress, Stack, Chip, useMediaQuery, useTheme } from '@mui/material';
+import { Box, Button, Card, CardContent, Typography, MenuItem, Select, FormControl, InputLabel, Stack, Chip, useMediaQuery, useTheme } from '@mui/material';
 import { Title } from 'react-admin';
 import { PageContainer } from '../components/layout/PageContainer';
+import { ListSkeleton } from '../components/Skeleton';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceArea, Legend } from 'recharts';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
@@ -157,7 +158,7 @@ export const TrendsPage = () => {
       )}
 
       {/* LOADING */}
-      {loading && <Card sx={{ borderRadius: 3, textAlign: 'center', py: 6 }}><CardContent><CircularProgress sx={{ color: '#20b2aa' }} /></CardContent></Card>}
+      {loading && <Card sx={{ borderRadius: 3 }}><CardContent><ListSkeleton count={4} /></CardContent></Card>}
 
       {/* GRÁFICO + DETALHES */}
       {!loading && ts && ts.points.length > 0 && (

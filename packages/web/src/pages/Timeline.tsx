@@ -16,6 +16,7 @@ import { refLabel } from '../utils/medicalData';
 import { groupByYear } from '../utils/groupByYear';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
+import { PageSkeleton } from '../components/PageSkeleton';
 import EventIcon from '@mui/icons-material/Event';
 
 interface Event { id: string; date: string | null; title: string; kind: string; abnormalCount: number; itemCount: number }
@@ -110,7 +111,7 @@ export const TimelinePage = () => {
       />
 
       {loading ? (
-        <Box sx={{ textAlign: 'center', py: 4 }}><CircularProgress /></Box>
+        <PageSkeleton cards={4} />
       ) : sorted.length === 0 ? (
         <Card sx={{ borderRadius: 4 }}><CardContent><Typography color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>Nenhum exame extraído ainda. Envie um exame para começar sua linha do tempo.</Typography></CardContent></Card>
       ) : (
