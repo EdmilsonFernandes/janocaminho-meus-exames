@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Box, Card, CardContent, Typography, Button, TextField, CircularProgress, Stack, Chip, Avatar, IconButton, Alert, Divider, Switch, FormControlLabel, MenuItem, Menu as MuiMenu, Dialog, DialogTitle, DialogContent, DialogActions, InputAdornment } from '@mui/material';
+import { Box, Card, CardContent, Typography, Button, TextField, CircularProgress, Stack, Chip, Avatar, IconButton, Alert, Divider, Switch, Checkbox, FormControlLabel, MenuItem, Menu as MuiMenu, Dialog, DialogTitle, DialogContent, DialogActions, InputAdornment } from '@mui/material';
 import { useNotify, useTranslate } from 'react-admin';
 import { API_URL, token, doctorPhotoUrl } from '../config';
 import { bumpCredits } from '../utils/credits-events';
@@ -53,6 +53,8 @@ export const MedicosPage = () => {
   // Form state
   const [name, setName] = useState(''); const [crm, setCrm] = useState(''); const [uf, setUf] = useState(''); const [spec, setSpec] = useState(''); const [specOther, setSpecOther] = useState(''); const [email, setEmail] = useState('');
   const [scopes, setScopes] = useState<string[]>([]);
+  const [examIds, setExamIds] = useState<string[]>([]);
+  const [examOptions, setExamOptions] = useState<{ id: string; title: string; performedAt: string | null }[]>([]);
   const [convenio, setConvenio] = useState('Particular');
   const [saving, setSaving] = useState(false);
   // Busca de CRM: base → CFM → manual
@@ -87,6 +89,15 @@ export const MedicosPage = () => {
       bumpCredits(); setPerg(''); setPergMsg(`✓ Pergunta enviada ao Dr. ${detail.name?.split(' ')[0] ?? ''}. Ele verá no próximo acesso.`);
     } catch (e: any) { setPergMsg(e.message || 'Falha ao enviar.'); } finally { setEnviando(false); }
   };
+
+  // Exames do paciente (pro seletor "compartilhar exame específico"). Vazio no seletor = TODOS.
+  useEffect(() => {
+    if (!pid) return;
+    fetch(`${API_URL}/exams?_start=0&_end=30&patientId=${pid}&status=EXTRACTED`, { headers: { Authorization: `Bearer ${token()}` } })
+      .then((r) => r.json())
+      .then((d) => { if (Array.isArray(d)) setExamOptions(d.map((e: any) => ({ id: e.id, title: e.title, performedAt: e.performedAt }))); })
+      .catch(() => {});
+  }, [pid]);
 
   const load = () => {
     fetch(`${API_URL}/doctor-shares`, { headers: { Authorization: `Bearer ${token()}` } })
@@ -144,11 +155,11 @@ export const MedicosPage = () => {
     if (scopes.length === 0) { notify('Selecione ao menos um tipo de dado para compartilhar.', { type: 'error' }); return; }
     setSaving(true);
     try {
-      const r = await fetch(`${API_URL}/doctor-shares`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` }, body: JSON.stringify({ doctorName: name, doctorCrm: crm.replace(/\D/g, ''), doctorUf: uf, doctorSpecialty: spec === 'Outro' ? specOther.trim() : spec, doctorEmail: email, scopes, convenio, patientId: pid }) });
+      const r = await fetch(`${API_URL}/doctor-shares`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` }, body: JSON.stringify({ doctorName: name, doctorCrm: crm.replace(/\D/g, ''), doctorUf: uf, doctorSpecialty: spec === 'Outro' ? specOther.trim() : spec, doctorEmail: email, scopes, convenio, patientId: pid, examIds: scopes.includes('exams') ? examIds : [] }) });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Falha');
       notify('Compartilhamento criado! O médico foi avisado por e-mail.', { type: 'success' });
-      setShowForm(false); setName(''); setCrm(''); setUf(''); setSpec(''); setEmail(''); setScopes([]); setConvenio('Particular'); setLookup(null);
+      setShowForm(false); setName(''); setCrm(''); setUf(''); setSpec(''); setEmail(''); setScopes([]); setConvenio('Particular'); setLookup(null); setExamIds([]);
       load();
     } catch (e: any) { notify(e.message, { type: 'error' }); } finally { setSaving(false); }
   };
@@ -387,6 +398,26 @@ export const MedicosPage = () => {
                   <ScopeToggle key={sm.key} scopeKey={sm.key} active={scopes.includes(sm.key)} onToggle={toggleScope} />
                 ))}
               </Stack>
+              {/* Compartilhar exame específico: só aparece quando "Exames" tá marcado.
+                  Vazio = TODOS (mantém o behavior de hoje). Pra evolução, marca vários. */}
+              {scopes.includes('exams') && (
+                <Box sx={{ mt: 1.5 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 800, color: '#178f89' }}>Quais exames? (vazio = todos)</Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75 }}>Cada médico pode avaliar um conjunto. Pra ver evolução, marque vários.</Typography>
+                  {examOptions.length === 0 ? (
+                    <Typography variant="caption" color="text.secondary">Nenhum exame enviado ainda — o médico verá todos quando você enviar o primeiro.</Typography>
+                  ) : (
+                    <Box sx={{ maxHeight: 168, overflowY: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 0.5 }}>
+                      {examOptions.map((ex) => (
+                        <FormControlLabel key={ex.id} sx={{ display: 'flex', m: 0, px: 0.5, borderRadius: 1, '&:hover': { bgcolor: 'action.hover' } }}
+                          control={<Checkbox size="small" sx={{ p: 0.5 }} checked={examIds.includes(ex.id)} onChange={() => setExamIds((p) => p.includes(ex.id) ? p.filter((x) => x !== ex.id) : [...p, ex.id])} />}
+                          label={<Typography variant="caption" sx={{ wordBreak: 'break-word' }}>📄 {ex.title}{ex.performedAt ? ` — ${new Date(ex.performedAt).toLocaleDateString('pt-BR')}` : ''}</Typography>} />
+                      ))}
+                    </Box>
+                  )}
+                  {examIds.length > 0 && <Chip size="small" sx={{ mt: 0.5 }} label={`${examIds.length} selecionado(s) — vazio mostra todos`} onDelete={() => setExamIds([])} />}
+                </Box>
+              )}
             </Box>
             {shareCost > 0 && (
               <Alert severity={insufficient ? 'error' : 'info'} sx={{ borderRadius: 2, py: 0.75 }}>

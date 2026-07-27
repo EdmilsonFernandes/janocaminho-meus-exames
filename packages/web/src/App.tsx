@@ -1,4 +1,4 @@
-import { Admin, Resource, CustomRoutes, Layout, AppBar, TitlePortal, AppBarProps, useLogout, useLocale, useSetLocale, useRefresh, useTranslate, useSidebarState, LoadingIndicator } from 'react-admin';
+import { Admin, Resource, CustomRoutes, Layout, AppBar, TitlePortal, AppBarProps, useLogout, useLocale, useSetLocale, useRefresh, useNotify, useTranslate, useSidebarState, LoadingIndicator } from 'react-admin';
 import { ConfirmDialogProvider } from './components/ConfirmDialog';
 import { Route, useNavigate, useLocation } from 'react-router-dom';
 import { useEffect, useState, useRef, lazy, Suspense } from 'react';
@@ -400,6 +400,19 @@ const PullToRefresh = () => {
   );
 };
 
+/** Notificação persistente "relatório pronto" — sobrevive a trocar de tela (listener global).
+ *  As páginas de geração despacham 'me:reportReady' quando a IA termina. Se o usuário saiu da
+ *  tela, ele ainda fica sabendo (o resultado já tá salvo no servidor; é só voltar pra ver). */
+const ReportReadyToast = () => {
+  const notify = useNotify();
+  useEffect(() => {
+    const h = (e: any) => notify(e?.detail?.message || '✅ Seu relatório está pronto.', { type: 'success' });
+    window.addEventListener('me:reportReady', h);
+    return () => window.removeEventListener('me:reportReady', h);
+  }, [notify]);
+  return null;
+};
+
 const AppLayout = (props: any) => {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('sm'));
@@ -450,6 +463,8 @@ const AppLayout = (props: any) => {
           '& .RaLayout-content, & main': { padding: { xs: '2px 0 calc(var(--me-bottom-nav-h, 76px) + 14px)', sm: '6px 0 28px' } },
           '& .RaList-toolbar, [class*="List-toolbar"]': { minHeight: '40px !important', paddingBottom: '4px !important' },
         }} />
+      {/* Notificação "relatório pronto" (sobrevive a trocar de tela durante a geração). */}
+      <ReportReadyToast />
       {/* Menu lateral UNIFICADO (mobile) — ☰ e "Mais" abem o mesmo drawer */}
       <AppDrawer />
       <FloatingChat />

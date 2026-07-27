@@ -169,6 +169,7 @@ export const ExamShow = () => {
       const analysis = await r.json();
       setExam({ ...exam, analyses: [analysis, ...(exam.analyses ?? [])] });
       window.dispatchEvent(new Event('creditsChanged'));
+      try { window.dispatchEvent(new CustomEvent('me:reportReady', { detail: { message: '✅ Resumo do exame pronto.' } })); } catch { /* best-effort */ }
     } catch (e: any) { notify(e.message, { type: 'error' }); }
     finally { setGenLoading(false); }
   };

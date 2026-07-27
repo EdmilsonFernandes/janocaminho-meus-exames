@@ -565,6 +565,7 @@ model DoctorShare {
   revokedAt  DateTime?
   creditsCharged Int @default(0) // créditos debitados do paciente ao criar o share (pro extrato)
   openQuestionLimit Int @default(5) // máx. perguntas EM ABERTO simultâneas (= lote de sugestões do relatório)
+  examIds    String[] @default([]) // exames compartilhados. VAZIO = TODOS (backward-compat); não-vazio = só esses
 
   @@unique([patientId, doctorId])
   @@index([doctorId, active])

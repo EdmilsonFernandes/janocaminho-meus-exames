@@ -527,7 +527,7 @@ router.get('/patients/:patientId/exams', requireDoctor, async (req: any, res, ne
     const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
     if (!share?.scopes.includes('exams')) { res.status(403).json({ error: 'Sem permissão para ver exames deste paciente.' }); return; }
     const exams = await prisma.exam.findMany({
-      where: { patientId: req.params.patientId, status: 'EXTRACTED' },
+      where: { patientId: req.params.patientId, status: 'EXTRACTED', ...(share.examIds?.length ? { id: { in: share.examIds } } : {}) },
       select: { id: true, title: true, kind: true, performedAt: true, sourceLab: true, rawExtraction: true, _count: { select: { items: true } }, items: { where: { isAbnormal: true }, select: { name: true, valueText: true, flag: true, unit: true, refText: true, refLow: true, refHigh: true } } },
       orderBy: { performedAt: 'desc' }, take: 20,
     });
@@ -540,6 +540,8 @@ router.get('/patients/:patientId/exams/:examId', requireDoctor, async (req: any,
   try {
     const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
     if (!share?.scopes.includes('exams')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+    // Per-exam sharing: paciente selecionou exames específicos → médico só vê esses.
+    if (share.examIds?.length && !share.examIds.includes(req.params.examId)) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     const exam = await prisma.exam.findFirst({
       where: { id: req.params.examId, patientId: req.params.patientId, status: 'EXTRACTED' },
       select: { id: true, title: true, kind: true, performedAt: true, sourceLab: true, filePath: true, items: { orderBy: { name: 'asc' }, select: { id: true, name: true, valueText: true, valueNumeric: true, unit: true, flag: true, isAbnormal: true, refLow: true, refHigh: true, refText: true } } },
@@ -561,6 +563,7 @@ router.get('/patients/:patientId/exams/:examId/file', async (req, res, next) => 
     if (!doctorId) { res.status(401).json({ error: 'Sem permissão.' }); return; }
     const share = await prisma.doctorShare.findFirst({ where: { doctorId, patientId: req.params.patientId, active: true } });
     if (!share?.scopes.includes('exams')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+    if (share.examIds?.length && !share.examIds.includes(req.params.examId)) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     const exam = await prisma.exam.findFirst({ where: { id: req.params.examId, patientId: req.params.patientId }, select: { filePath: true } });
     if (!exam?.filePath) { res.status(404).json({ error: 'Arquivo não encontrado.' }); return; }
     const r = await resolveExamFile(exam.filePath);
@@ -575,7 +578,7 @@ router.get('/patients/:patientId/evolution', requireDoctor, async (req: any, res
     const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
     if (!share?.scopes.includes('evolution')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     const raw = await prisma.examItem.findMany({
-      where: { exam: { patientId: req.params.patientId, status: 'EXTRACTED' }, valueNumeric: { not: null } },
+      where: { exam: { patientId: req.params.patientId, status: 'EXTRACTED', ...(share.examIds?.length ? { id: { in: share.examIds } } : {}) }, valueNumeric: { not: null } },
       select: { name: true, nameCanonical: true, valueNumeric: true, unit: true, flag: true, isAbnormal: true, refLow: true, refHigh: true, exam: { select: { performedAt: true } } },
       orderBy: { exam: { performedAt: 'desc' } }, take: 300,
     });

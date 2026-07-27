@@ -267,7 +267,7 @@ export const ConsolidatedReportPage = () => {
         if (r.status === 400) { setNoExams(true); return null; }     // sem exame → CTA enviar exame (não erro)
         throw new Error(body.message || body.error || 'Falha ao gerar relatório');
       })
-      .then((a) => { if (a) { setAnalysis(a); bumpCredits(); } })   // atualiza o saldo do header (consolidated consome)
+      .then((a) => { if (a) { setAnalysis(a); bumpCredits(); try { window.dispatchEvent(new CustomEvent('me:reportReady', { detail: { message: '✅ Seu relatório completo está pronto.' } })); } catch { /* best-effort */ } } })   // atualiza o saldo do header (consolidated consome)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   };

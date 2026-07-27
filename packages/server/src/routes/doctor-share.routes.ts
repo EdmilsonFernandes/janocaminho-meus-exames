@@ -40,7 +40,7 @@ router.get('/', async (req: AuthedRequest, res, next) => {
 // CRIAR compartilhamento (paciente compartilha dados com médico)
 router.post('/', async (req: AuthedRequest, res, next) => {
   try {
-    const { doctorCrm, doctorUf, doctorName, doctorSpecialty, doctorEmail, scopes, convenio, patientId } = req.body ?? {};
+    const { doctorCrm, doctorUf, doctorName, doctorSpecialty, doctorEmail, scopes, convenio, patientId, examIds } = req.body ?? {};
     const pids = await userPatientIds(req.userId!);
     const pid = patientId && pids.includes(patientId) ? patientId : pids[0];
     if (!pid) { res.status(400).json({ error: 'Nenhum paciente vinculado.' }); return; }
@@ -62,7 +62,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     // share (upsert — se já existe, reativa)
     const existing = await prisma.doctorShare.findUnique({ where: { patientId_doctorId: { patientId: pid, doctorId: doctor.id } } });
     if (existing) {
-      const updated = await prisma.doctorShare.update({ where: { id: existing.id }, data: { active: true, scopes: scopes || existing.scopes, convenio: convenio != null ? String(convenio) : existing.convenio, revokedAt: null } });
+      const updated = await prisma.doctorShare.update({ where: { id: existing.id }, data: { active: true, scopes: scopes || existing.scopes, convenio: convenio != null ? String(convenio) : existing.convenio, revokedAt: null, ...(Array.isArray(examIds) ? { examIds } : {}) } });
       res.json({ share: updated, doctor }); return;
     }
     // Custo de compartilhar = soma dos escopos selecionados (parametrizado em app_settings).
@@ -74,7 +74,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       if ((me?.credits ?? 0) < shareCost) { res.status(402).json({ error: 'insufficient_credits', message: `Compartilhar custa ${shareCost} créditos.` }); return; }
       if (!(await chargeCredits(req.userId!, shareCost, 'share', 'Compartilhamento com médico'))) { res.status(402).json({ error: 'insufficient_credits', message: 'Saldo insuficiente.' }); return; }
     }
-    const share = await prisma.doctorShare.create({ data: { patientId: pid, doctorId: doctor.id, scopes: selectedScopes, convenio: convenio ? String(convenio) : null, creditsCharged: shareCost } });
+    const share = await prisma.doctorShare.create({ data: { patientId: pid, doctorId: doctor.id, scopes: selectedScopes, convenio: convenio ? String(convenio) : null, creditsCharged: shareCost, examIds: Array.isArray(examIds) ? examIds : [] } });
 
     // notifica o médico por e-mail
     if (doctor.email && !doctor.email.includes('@invite.com')) {
@@ -97,10 +97,10 @@ router.patch('/:id', async (req: AuthedRequest, res, next) => {
     const pids = await userPatientIds(req.userId!);
     const share = await prisma.doctorShare.findUnique({ where: { id: String(req.params.id) } });
     if (!share || !pids.includes(share.patientId)) { res.status(404).json({ error: 'Compartilhamento não encontrado.' }); return; }
-    const { scopes, active } = req.body ?? {};
+    const { scopes, active, examIds } = req.body ?? {};
     const updated = await prisma.doctorShare.update({
       where: { id: share.id },
-      data: { scopes: scopes ?? undefined, active: active ?? undefined, revokedAt: active === false ? new Date() : undefined },
+      data: { scopes: scopes ?? undefined, active: active ?? undefined, revokedAt: active === false ? new Date() : undefined, ...(Array.isArray(examIds) ? { examIds } : {}) },
     });
     res.json({ share: updated });
   } catch (e) { next(e); }
