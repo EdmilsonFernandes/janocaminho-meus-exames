@@ -245,17 +245,8 @@ router.post('/:id/photo', upload.single('photo'), async (req: AuthedRequest, res
   } catch (e) { next(e); }
 });
 
-// SERVE a foto do paciente (público — sem auth, pra funcionar em <img src>)
-router.get('/:id/photo', async (req, res) => {
-  try {
-    const id = String(req.params.id);
-    const dir = path.resolve(config.photosDir);
-    if (!fs.existsSync(dir)) { res.status(404).send('sem foto'); return; }
-    const files = fs.readdirSync(dir).filter(f => f.startsWith(`patient-${id}.`));
-    if (!files.length) { res.status(404).send('sem foto'); return; }
-    res.sendFile(path.join(dir, files[0]));
-  } catch { res.status(404).send('sem foto'); }
-});
+// (Handler de foto removido — era duplicado e SEM auth, um landmine de segurança/LGPD.
+//  A foto do paciente é servida por app.ts: requirePhotoToken + ETag + Cache-Control.)
 
 // Atualiza perfil clínico (condições/medicações que alimentam a IA) e dados básicos
 router.put('/:id', async (req: AuthedRequest, res, next) => {

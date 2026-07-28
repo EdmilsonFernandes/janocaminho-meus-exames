@@ -127,4 +127,17 @@ describe('Doctor Portal - auth + shares + scoped', () => {
     expect(s2.body.share.active).toBe(true);
     expect(s2.body.share.scopes).toContain('evolution');
   });
+
+  it('doctor login por CRM (várias formas de UF) + e-mail', async () => {
+    await api().post('/api/doctor/register').send({
+      name: 'Dr CRM', cpf: testCpf(), crm: '12345-SP', specialty: 'Pediatria', email: 'crm@test.com', password: 'senha123',
+    });
+    await prisma.doctor.updateMany({ where: { email: 'crm@test.com' }, data: { emailVerified: true } });
+    const pw = 'senha123';
+    expect((await api().post('/api/doctor/login').send({ email: 'crm@test.com', password: pw })).status).toBe(200); // e-mail
+    expect((await api().post('/api/doctor/login').send({ email: '12345-SP', password: pw })).status).toBe(200); // CRM exato
+    expect((await api().post('/api/doctor/login').send({ email: '12345-sp', password: pw })).status).toBe(200); // UF MINÚSCULA (antes falhava)
+    expect((await api().post('/api/doctor/login').send({ email: '12345', password: pw })).status).toBe(200); // só dígitos → acha "12345-SP"
+    expect((await api().post('/api/doctor/login').send({ email: '12345-sp', password: 'errada' })).status).toBe(401); // senha errada
+  });
 });

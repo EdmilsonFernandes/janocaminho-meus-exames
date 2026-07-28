@@ -109,6 +109,7 @@ export async function savePatientPhoto(patientId: string, slug: string, buffer: 
   if (useS3()) {
     const key = `${config.s3Prefix}fotos/${slug}/avatar.jpg`;
     await s3().send(new PutObjectCommand({ Bucket: config.s3Bucket, Key: key, Body: optimized, ContentType: 'image/jpeg', CacheControl: 'public, max-age=31536000, immutable' }));
+    presignedPhotoMemo.delete(key); // invalida memo → não serve foto velha após trocar de avatar
     return key;
   }
   fs.mkdirSync(config.photosDir, { recursive: true });
@@ -117,10 +118,21 @@ export async function savePatientPhoto(patientId: string, slug: string, buffer: 
   return local;
 }
 
-/** Resolve a foto p/ servir: URL pré-assinada (S3, 15 min) ou caminho local (disco). */
+// Memo de URL pré-assinada por ref (S3). Sem isto, cada hit gera uma URL NOVA (signature/date
+// mudam) → o alvo do redirect muda → o navegador baixa a imagem de novo a cada entrada do portal.
+// TTL justo abaixo da validade do presigned (900s) → devolve a MESMA url dentro da janela → o cache
+// do browser funciona. Invalidado em savePatientPhoto/saveDoctorPhoto p/ não servir foto velha.
+const PHOTO_PRESIGN_TTL_MS = 13 * 60 * 1000;
+const presignedPhotoMemo = new Map<string, { url: string; exp: number }>();
+
+/** Resolve a foto p/ servir: URL pré-assinada (S3, 15 min, memoizada) ou caminho local (disco). */
 export async function resolvePatientPhoto(ref: string): Promise<{ kind: 'url'; url: string } | { kind: 'file'; file: string }> {
   if (useS3()) {
+    const now = Date.now();
+    const hit = presignedPhotoMemo.get(ref);
+    if (hit && hit.exp > now) return { kind: 'url', url: hit.url };
     const url = await getSignedUrl(s3(), new GetObjectCommand({ Bucket: config.s3Bucket, Key: ref }), { expiresIn: 900 });
+    presignedPhotoMemo.set(ref, { url, exp: now + PHOTO_PRESIGN_TTL_MS });
     return { kind: 'url', url };
   }
   return { kind: 'file', file: ref };
@@ -132,6 +144,7 @@ export async function saveDoctorPhoto(doctorId: string, buffer: Buffer, contentT
   if (useS3()) {
     const key = `${config.s3Prefix}fotos-doctor/${doctorId}/avatar.jpg`;
     await s3().send(new PutObjectCommand({ Bucket: config.s3Bucket, Key: key, Body: optimized, ContentType: 'image/jpeg', CacheControl: 'public, max-age=31536000, immutable' }));
+    presignedPhotoMemo.delete(key); // invalida memo → não serve foto velha após trocar de avatar
     return key;
   }
   fs.mkdirSync(config.photosDir, { recursive: true });

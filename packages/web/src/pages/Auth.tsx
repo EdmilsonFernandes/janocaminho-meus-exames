@@ -149,7 +149,7 @@ export const LoginPage = () => {
         if (!r.ok) throw new Error(d.error || 'Falha');
         if (d.mfaRequired) { setMfaChallenge({ token: d.challengeToken, account: d.account, verifyUrl: `${API_URL}/doctor/mfa/verify`, isDoctor: true }); return; }
         localStorage.setItem('doctorToken', d.token);
-        notify(`Bem-vindo, Dr. ${(d.doctor.name || '').split(' ')[0]}!`, { type: 'success' });
+        localStorage.setItem('doctorPhotoToken', d.token); // token ESTÁVEL p/ cache de fotos (não rotaciona c/ a sessão)
         navigate('/doctor');
       } catch (err: any) { notify(err.message, { type: 'error' }); } finally { setLoading(false); }
       return;
@@ -168,7 +168,7 @@ export const LoginPage = () => {
 
   const onMfaSuccess = (d: any) => {
     setMfaChallenge(null);
-    if (mfaChallenge?.isDoctor) { localStorage.setItem('doctorToken', d.token); navigate('/doctor'); return; }
+    if (mfaChallenge?.isDoctor) { localStorage.setItem('doctorToken', d.token); localStorage.setItem('doctorPhotoToken', d.token); navigate('/doctor'); return; }
     localStorage.setItem('token', d.token);
     if (d.patientId) { localStorage.setItem('patientId', d.patientId); localStorage.setItem('selPatientId', d.patientId); }
     localStorage.setItem('user', JSON.stringify(d.user));
@@ -223,7 +223,7 @@ export const LoginPage = () => {
       if (d.token) {
         if (isDoctor) {
           localStorage.setItem('doctorToken', d.token);
-          notify(`Bem-vindo, Dr. ${(d.doctor?.name || '').split(' ')[0]}!`, { type: 'success' });
+          localStorage.setItem('doctorPhotoToken', d.token);
           navigate('/doctor');
         } else {
           localStorage.setItem('token', d.token);
@@ -270,6 +270,7 @@ export const LoginPage = () => {
           <TextField
             label={role === 'medico' ? translate('auth.email_or_crm') : translate('auth.email')} type={role === 'medico' ? 'text' : 'email'} required autoComplete="username" value={email}
             onChange={(e) => setEmail(e.target.value)} sx={fieldSx}
+            helperText={role === 'medico' ? 'Ex.: seu@email.com ou CRM (123456-SP ou só 123456)' : undefined}
             slotProps={{ input: { startAdornment: <InputAdornment position="start"><I.Mail /></InputAdornment> } }}
           />
           <TextField

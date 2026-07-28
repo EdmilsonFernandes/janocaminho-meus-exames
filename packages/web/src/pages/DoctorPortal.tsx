@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { Box, Card, CardContent, Typography, TextField, Button, CircularProgress, Stack, Chip, Grid, Avatar, MenuItem, Alert, Divider, InputAdornment, IconButton, Link, Drawer, List, ListItemButton, ListItemText, ListItemIcon, Accordion, AccordionSummary, AccordionDetails, Badge, InputBase, Paper, useMediaQuery, useTheme, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { Box, Card, CardContent, Typography, TextField, Button, CircularProgress, Stack, Chip, Grid, Avatar, Menu, MenuItem, Alert, Divider, InputAdornment, IconButton, Link, Drawer, List, ListItemButton, ListItemText, ListItemIcon, Accordion, AccordionSummary, AccordionDetails, Badge, InputBase, Paper, useMediaQuery, useTheme, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import LogoutIcon from '@mui/icons-material/Logout';
 import LockIcon from '@mui/icons-material/Lock';
@@ -136,7 +136,7 @@ export const DoctorPortalPage = () => {
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Falha');
       if (d.needsVerification) { setPendingEmail(d.email); return; } // médico valida e-mail (OTP) antes de logar
-      localStorage.setItem(docKey, d.token); setToken(d.token); setDoctor(d.doctor);
+      localStorage.setItem(docKey, d.token); localStorage.setItem('doctorPhotoToken', d.token); setToken(d.token); setDoctor(d.doctor);
     } catch (e: any) { setErr(e.message); } finally { setLoading(false); }
   };
 
@@ -147,11 +147,11 @@ export const DoctorPortalPage = () => {
       const r = await fetch(`${API_URL}/doctor/verify-email`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: pendingEmail, code: verifyCode.trim() }) });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Código inválido.');
-      localStorage.setItem(docKey, d.token); setToken(d.token); setDoctor(d.doctor);
+      localStorage.setItem(docKey, d.token); localStorage.setItem('doctorPhotoToken', d.token); setToken(d.token); setDoctor(d.doctor);
     } catch (e: any) { setErr(e.message); } finally { setLoading(false); }
   };
 
-  const logout = () => { localStorage.removeItem(docKey); navigate('/entrar?role=medico'); };
+  const logout = () => { localStorage.removeItem(docKey); localStorage.removeItem('doctorPhotoToken'); navigate('/entrar?role=medico'); };
 
   // Busca CRM no conselho (consultaCRM) pra pré-preencher nome + especialidade no cadastro.
   const buscarCrmReg = async () => {
@@ -287,6 +287,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const [view, setView] = useState<'patients' | 'invites' | 'questions' | 'profile' | 'password'>('patients');
   const [photoVer, setPhotoVer] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [avatarEl, setAvatarEl] = useState<HTMLElement | null>(null); // menu vertical do avatar (perfil/senha/sair)
   const [selExam, setSelExam] = useState<any | null>(null);
   const [examDetail, setExamDetail] = useState<any | null>(null);
   const [summaries, setSummaries] = useState<any[]>([]);
@@ -617,7 +618,9 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     <>
       <Box sx={{ p: 2, pb: 1.5, background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff' }}>
         <Stack direction="row" alignItems="center" spacing={1.5}>
-          <Avatar src={doctor?.photoUrl ? doctorPhotoUrl(doctor.id, photoVer) : undefined} sx={{ width: 52, height: 52, fontSize: 20, bgcolor: 'rgba(255,255,255,.2)', fontWeight: 800, border: '2px solid rgba(255,255,255,.5)' }}>{doctor?.name?.charAt(0)}</Avatar>
+          <IconButton onClick={(e) => setAvatarEl(e.currentTarget)} aria-label="Menu do médico" sx={{ p: 0.5, borderRadius: '50%', '&:hover': { bgcolor: 'rgba(255,255,255,.18)' } }}>
+            <Avatar src={doctor?.photoUrl ? doctorPhotoUrl(doctor.id, photoVer) : undefined} sx={{ width: 52, height: 52, fontSize: 20, bgcolor: 'rgba(255,255,255,.2)', fontWeight: 800, border: '2px solid rgba(255,255,255,.5)' }}>{doctor?.name?.charAt(0)}</Avatar>
+          </IconButton>
           <Box sx={{ minWidth: 0 }}>
             <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>🩺 {doctor?.name || 'Médico'}</Typography>
             {unreadQ > 0 && <Chip size="small" label={`❓ ${unreadQ} ${unreadQ === 1 ? 'pergunta nova' : 'perguntas novas'}`} sx={{ mt: 0.5, height: 20, fontSize: 11, bgcolor: 'rgba(255,255,255,.28)', color: '#fff', fontWeight: 700 }} />}
@@ -653,6 +656,13 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', display: 'flex' }}>
+      {/* Menu vertical do avatar (perfil/senha/sair) — aberto ao clicar no avatar do médico */}
+      <Menu anchorEl={avatarEl} open={!!avatarEl} onClose={() => setAvatarEl(null)} slotProps={{ paper: { sx: { borderRadius: 2, minWidth: 210, mt: 1 } } }}>
+        <MenuItem onClick={() => { setView('profile'); setAvatarEl(null); }}><ListItemIcon><PersonIcon fontSize="small" /></ListItemIcon><ListItemText>Meu perfil</ListItemText></MenuItem>
+        <MenuItem onClick={() => { setView('password'); setAvatarEl(null); }}><ListItemIcon><LockIcon fontSize="small" /></ListItemIcon><ListItemText>Trocar senha</ListItemText></MenuItem>
+        <Divider sx={{ my: 0.5 }} />
+        <MenuItem onClick={() => { setAvatarEl(null); onLogout(); }} sx={{ color: 'error.main' }}><ListItemIcon><LogoutIcon fontSize="small" sx={{ color: 'error.main' }} /></ListItemIcon><ListItemText>Sair</ListItemText></MenuItem>
+      </Menu>
       {/* MENU vertical PERMANENTE (web/desktop) — abre igual ao app do paciente. Mobile usa o Drawer abaixo. */}
       {isDesktop && (
         <Box component="nav" sx={{ width: 290, flexShrink: 0, borderRight: '1px solid', borderRightColor: 'divider', bgcolor: 'background.paper', display: 'flex', flexDirection: 'column', position: 'sticky', top: 0, height: '100vh', overflowY: 'auto' }}>

@@ -24,6 +24,7 @@ export const authProvider = {
     if (data.mfaRequired) throw { mfaRequired: true, challengeToken: data.challengeToken, account: data.account };
     const { token, patientId, user } = data;
     localStorage.setItem('token', token);
+    localStorage.setItem('photoToken', token); // token ESTÁVEL p/ cache de fotos (?t= não rotaciona c/ a sessão)
     // Zera perfil de outra conta (evita vazar paciente de sessão anterior) e fixa o do usuário logado
     localStorage.removeItem('selPatientId');
     if (patientId) { localStorage.setItem('patientId', patientId); localStorage.setItem('selPatientId', patientId); }

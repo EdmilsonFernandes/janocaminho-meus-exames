@@ -13,7 +13,7 @@ export const token = () => localStorage.getItem('token');
 /** Token pra anexar em URLs de IMAGEM (?t=) — aceita paciente ('token') OU médico
  *  ('doctorToken'). O portal do médico guarda o token em 'doctorToken'; sem isto, o avatar
  *  do paciente não carregava pra o médico (photoUrlFor lia só 'token' → vazio → 401 na rota). */
-const photoAuthToken = (): string | null => localStorage.getItem('token') || localStorage.getItem('doctorToken');
+const photoAuthToken = (): string | null => localStorage.getItem('photoToken') || localStorage.getItem('doctorPhotoToken') || localStorage.getItem('token') || localStorage.getItem('doctorToken');
 
 /** Headers padrão com token + paciente selecionado (garante escopo no servidor). */
 export function apiHeaders(json = false): Record<string, string> {

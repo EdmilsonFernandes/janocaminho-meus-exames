@@ -321,10 +321,16 @@ router.post('/verify-email', async (req, res) => {
 router.post('/login', async (req, res, next) => {
   try {
     const id = String(req.body?.email ?? req.body?.login ?? '').trim();
-    // Aceita e-mail OU CRM. CRM casa no formato exato ("116739-SP") ou só dígitos ("116739" → acha "116739-SP").
+    // Aceita e-mail OU CRM. CRM casa: formato exato ("116739-SP"), só dígitos ("116739" → acha "116739-SP"),
+    // ou com UF em qualquer caixa ("116739-sp" → canonical "116739-SP" p/ bater c/ o stored).
     const digits = id.replace(/\D/g, '');
     const orClauses: any[] = [{ email: id.toLowerCase() }, { crm: id }];
     if (digits && !id.includes('@') && !id.includes('-')) orClauses.push({ crm: { startsWith: digits + '-' } });
+    if (digits && !id.includes('@') && id.includes('-')) {
+      const ufTail = id.match(/-([A-Za-z]{2})$/)?.[1];
+      const norm = ufTail ? normalizeCrmKey(digits, ufTail) : null;
+      if (norm) orClauses.push({ crm: norm.crm });
+    }
     const doctor = await prisma.doctor.findFirst({ where: { OR: orClauses } });
     if (!doctor || doctor.passwordHash === 'pending-invite' || !(await comparePassword(String(req.body?.password ?? ''), doctor.passwordHash))) {
       void audit('LOGIN_FAILED', req, { actorType: 'DOCTOR', targetType: 'DOCTOR', after: { login: id } });
