@@ -13,7 +13,7 @@ import { useNotify } from 'react-admin';
 import { API_URL, apiHeaders } from '../config';
 import { confirmDialog, promptDialog } from '../components/ConfirmDialog';
 import { useSelectedPatient } from '../patient-context';
-import { CreditBadge, CREDIT_COSTS } from '../components/CreditBadge';
+import { CREDIT_COSTS } from '../components/CreditBadge';
 import { DrExame } from '../components/DrExame';
 import ReactMarkdown from 'react-markdown';
 import { keyframes } from '@mui/material';
@@ -25,6 +25,10 @@ const dotPulse = keyframes`
   0%, 60%, 100% { opacity: 0.25; transform: translateY(0); }
   30% { opacity: 1; transform: translateY(-3px); }
 `;
+// Aura/badge animados do mascote no hero (mesma identidade do FAB Dr. Exame).
+const drAura = keyframes`0%,100%{opacity:.4;transform:scale(.92)}50%{opacity:.72;transform:scale(1.14)}`;
+const drBob = keyframes`0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}`;
+const drSpark = keyframes`0%,100%{opacity:.65;transform:scale(.82) rotate(0deg)}45%{opacity:1;transform:scale(1.18) rotate(18deg)}70%{opacity:.9;transform:scale(1) rotate(8deg)}`;
 const TypingDots = () => (
   <Box sx={{ display: 'inline-flex', gap: 0.5, alignItems: 'center', py: 0.5 }} aria-label="digitando">
     {[0, 1, 2].map((i) => (
@@ -187,7 +191,6 @@ export const ChatPage = () => {
           </Typography>
           <Typography sx={{ fontSize: 11, opacity: 0.9 }}>Assistente de saúde com IA{firstName ? ` · ${firstName}` : ''}</Typography>
         </Box>
-        <IconButton size="small" onClick={startNew} title="Nova conversa" sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,.15)', '&:hover': { bgcolor: 'rgba(255,255,255,.25)' } }}><EditIcon fontSize="small" /></IconButton>
         <IconButton size="small" onClick={() => setHistOpen(true)} title="Histórico de conversas" sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,.15)', '&:hover': { bgcolor: 'rgba(255,255,255,.25)' } }}>
           <Badge badgeContent={convs.length} color="warning" overlap="circular" sx={{ '& .MuiBadge-badge': { fontSize: 10, height: 16, minWidth: 16, top: 3, right: 3 } }}><HistoryIcon fontSize="small" /></Badge>
         </IconButton>
@@ -196,34 +199,55 @@ export const ChatPage = () => {
       {/* mensagens */}
       <Box ref={scrollRef} sx={{ flex: 1, minHeight: 0, overflowY: 'auto', p: 1, background: 'background.default', borderRadius: 3 }}>
         {messages.length === 0 && (
-          <Box sx={{ textAlign: 'center', py: { xs: 3, md: 6 } }}>
-            <Typography sx={{ fontWeight: 800, fontSize: { xs: 20, md: 24 }, color: 'text.primary', fontFamily: 'Poppins, sans-serif' }}>{firstName ? `Oi, ${firstName}! 👋` : 'Olá! 👋'}</Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3, mt: 0.5 }}>Pergunte sobre seus exames ou toque numa sugestão abaixo.</Typography>
-            <Stack spacing={0.75} sx={{ maxWidth: 460, mx: 'auto' }}>
-              {QUICK_ACTIONS.slice(0, 8).map((a) => (
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', py: { xs: 2, md: 4 }, gap: 1.5 }}>
+            {/* Mascote Dr. Exame com aura teal pulsante + badge ✨ (IA) — convite à conversa, estilo Itaú */}
+            <Box sx={{ position: 'relative', width: 84, height: 84, display: 'grid', placeItems: 'center', animation: `${drBob} 3.4s ease-in-out infinite` }}>
+              <Box sx={{ position: 'absolute', inset: -14, borderRadius: '50%', background: 'radial-gradient(circle, rgba(32,178,170,.30) 0%, rgba(32,178,170,.10) 45%, transparent 72%)', filter: 'blur(4px)', animation: `${drAura} 2.6s ease-in-out infinite` }} />
+              <DrExame size={64} sx={{ position: 'relative', borderRadius: '28%', filter: 'drop-shadow(0 2px 6px rgba(15,61,58,.25))' }} />
+              <Box sx={{ position: 'absolute', top: 2, right: 0, width: 24, height: 24, borderRadius: '50%', bgcolor: '#178f89', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,.22)', animation: `${drSpark} 2.2s ease-in-out infinite` }}>
+                <AutoAwesomeIcon sx={{ fontSize: 13, color: '#fff' }} />
+              </Box>
+            </Box>
+            <Box>
+              <Typography sx={{ fontWeight: 800, fontSize: { xs: 19, md: 22 }, color: 'text.primary', fontFamily: 'Poppins, sans-serif' }}>{firstName ? `Como posso te ajudar, ${firstName}?` : 'Como posso te ajudar?'}</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>Toque numa sugestão ou escreva sua dúvida sobre seus exames.</Typography>
+            </Box>
+            <Stack spacing={0.75} sx={{ width: '100%', maxWidth: 460, mt: 0.5 }}>
+              {QUICK_ACTIONS.slice(0, 6).map((a) => (
                 <Paper key={a.title} elevation={0} onClick={() => send(a.prompt)} sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 1.25, p: 1.25, px: 1.5, borderRadius: 2.5, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', textAlign: 'left', '&:hover': { bgcolor: 'rgba(32,178,170,.08)', borderColor: TEAL, transform: 'translateY(-1px)' }, transition: 'all .15s' }}>
                   <Box sx={{ fontSize: 20 }}>{a.icon}</Box>
-                  <Typography sx={{ fontSize: 14, fontWeight: 600, color: 'text.primary' }}>{a.title}</Typography>
+                  <Typography sx={{ flex: 1, fontSize: 14, fontWeight: 600, color: 'text.primary' }}>{a.title}</Typography>
+                  <Box component="span" sx={{ color: TEAL, fontWeight: 800, fontSize: 18, lineHeight: 1 }}>›</Box>
                 </Paper>
               ))}
             </Stack>
-            <Box sx={{ mt: 2, display: 'inline-block' }}><CreditBadge amount={CREDIT_COSTS.chat} label={`${CREDIT_COSTS.chat} crédito por pergunta`} /></Box>
+            <Typography variant="caption" color="text.secondary" sx={{ opacity: 0.7 }}>{CREDIT_COSTS.chat} crédito por pergunta · a IA não substitui seu médico</Typography>
           </Box>
         )}
         <Stack spacing={1.5}>
           {messages.map((m, i) => {
+            const isUser = m.role === 'user';
             const isLastAssistant = m.role === 'assistant' && i === messages.length - 1 && busy && !m.text;
             return (
-              <Box key={i} sx={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
+              <Box key={i} sx={{ display: 'flex', gap: 0.75, alignItems: 'flex-end', justifyContent: isUser ? 'flex-end' : 'flex-start' }}>
+                {/* Avatar do Dr. Exame + ✨ em CADA resposta da IA (estilo Itaú: você conversa COM o assistente) */}
+                {!isUser && (
+                  <Box sx={{ position: 'relative', width: 30, height: 30, flexShrink: 0, mb: 0.25 }}>
+                    <DrExame size={30} sx={{ borderRadius: '28%' }} />
+                    <Box sx={{ position: 'absolute', top: -3, right: -3, width: 14, height: 14, borderRadius: '50%', bgcolor: '#178f89', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <AutoAwesomeIcon sx={{ fontSize: 8, color: '#fff' }} />
+                    </Box>
+                  </Box>
+                )}
                 <Paper elevation={0} sx={{
-                  maxWidth: '85%', px: 1.75, py: 1.25,
-                  borderRadius: m.role === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-                  bgcolor: m.role === 'user' ? TEAL : 'background.paper',
-                  color: m.role === 'user' ? '#fff' : 'text.primary',
-                  border: m.role === 'user' ? 'none' : '1px solid',
+                  maxWidth: isUser ? '85%' : '78%', px: 1.75, py: 1.25,
+                  borderRadius: isUser ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+                  bgcolor: isUser ? TEAL : 'background.paper',
+                  color: isUser ? '#fff' : 'text.primary',
+                  border: isUser ? 'none' : '1px solid',
                   borderColor: 'divider',
                   wordBreak: 'break-word',
-                  boxShadow: m.role === 'user' ? '0 2px 10px rgba(32,178,170,.22)' : '0 1px 4px rgba(0,0,0,.05)',
+                  boxShadow: isUser ? '0 2px 10px rgba(32,178,170,.22)' : '0 1px 4px rgba(0,0,0,.05)',
                   '& p': { margin: '0.3em 0', fontSize: 14.5, lineHeight: 1.55 }, '& h3': { fontSize: '0.95rem', fontWeight: 800, margin: '0.6em 0 0.2em', color: TEAL },
                   '& ul, & ol': { margin: '0.3em 0', paddingLeft: '1.2em' }, '& li': { margin: '0.15em 0' },
                   '& strong': { fontWeight: 700 }, '& code': { bgcolor: 'rgba(128,128,128,.15)', px: 0.4, borderRadius: 0.5, fontSize: '0.9em' },
@@ -231,7 +255,7 @@ export const ChatPage = () => {
                   {m.text
                     ? (m.role === 'assistant' ? <ReactMarkdown>{m.text}</ReactMarkdown> : <Box sx={{ whiteSpace: 'pre-wrap' }}>{m.text}</Box>)
                     : (isLastAssistant ? <TypingDots /> : null)}
-                  {m.ts && <Typography sx={{ display: 'block', fontSize: 10, mt: 0.4, opacity: 0.6, textAlign: m.role === 'user' ? 'right' : 'left' }}>{fmtTime(m.ts)}</Typography>}
+                  {m.ts && <Typography sx={{ display: 'block', fontSize: 10, mt: 0.4, opacity: 0.6, textAlign: isUser ? 'right' : 'left' }}>{fmtTime(m.ts)}</Typography>}
                 </Paper>
               </Box>
             );
