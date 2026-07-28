@@ -214,27 +214,6 @@ export const LandingPage = () => {
                   Começar grátis →
                 </Button>
               </Stack>
-              {/* App na Play Store — QR code + badge oficial Google Play (aprovado!).
-                  Mobile toca p/ baixar; desktop aponta a câmera no QR. Assets locais (offline/APK). */}
-              <Stack component="a" href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer"
-                direction={{ xs: 'column', sm: 'row' }} spacing={1.5} useFlexGap alignItems="center"
-                sx={{
-                  mt: 2, maxWidth: '100%', width: { xs: '100%', sm: 'fit-content' },
-                  textDecoration: 'none', bgcolor: '#fff', border: '1px solid rgba(32,178,170,.28)',
-                  borderRadius: 3, p: 1.25, pr: { xs: 1.25, sm: 2.25 },
-                  boxShadow: '0 6px 18px rgba(32,178,170,.10)',
-                  transition: 'transform .18s ease, box-shadow .18s ease, border-color .18s ease',
-                  '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 14px 28px rgba(32,178,170,.20)', borderColor: TEAL },
-                }}>
-                <Box component="img" src={`${import.meta.env.BASE_URL}playstore-qr.png`} alt="QR code para baixar o Dr. Exame na Play Store"
-                  sx={{ width: 86, height: 86, borderRadius: 2, bgcolor: '#fff', display: 'block', flexShrink: 0 }} />
-                <Box sx={{ minWidth: 0 }}>
-                  <Typography sx={{ fontWeight: 800, color: 'text.primary', fontSize: 14.5, lineHeight: 1.15 }}>Dr. Exame no seu celular 📱</Typography>
-                  <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mb: 0.75 }}>Aponte a câmera do celular ou toque pra baixar.</Typography>
-                  <Box component="img" src={`${import.meta.env.BASE_URL}playstore-badge.png`} alt="Disponível no Google Play"
-                    sx={{ height: 40, width: 'auto', display: 'block' }} />
-                </Box>
-              </Stack>
               <Button variant="text" size="small" onClick={() => navigate('/entrar')} sx={{ textTransform: 'none', fontWeight: 700, color: TEAL_DARK, fontSize: 13, minWidth: 0, px: 0, justifyContent: { xs: 'center', sm: 'flex-start' }, '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' } }}>
                 Já tem conta? Entrar
               </Button>
@@ -852,11 +831,24 @@ export const LandingPage = () => {
               <Typography variant="h2" sx={{ fontSize: { xs: '1.7rem', md: '2.3rem' }, fontWeight: 800, mb: 2, letterSpacing: '-0.02em' }}>Pronto pra entender sua saúde?</Typography>
               <Typography sx={{ color: 'rgba(255,255,255,.9)', mb: 4, fontSize: 17, maxWidth: 480, mx: 'auto' }}>Crie sua conta grátis e envie seu primeiro exame em menos de 1 minuto.</Typography>
               <Button size="large" onClick={() => navigate('/registrar')} sx={{ bgcolor: '#fff', color: TEAL_DARK, fontWeight: 800, fontSize: 17, borderRadius: 99, px: 5, py: 1.5, textTransform: 'none', '&:hover': { bgcolor: '#f0fafa', transform: 'translateY(-2px)' }, transition: 'all .2s' }}>Começar agora →</Button>
-              {/* QR Code */}
-              <Box sx={{ mt: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
-                <Box component="img" src={`${import.meta.env.BASE_URL}qr-minhasaude.png`} alt="QR Code - Meus Exames" sx={{ borderRadius: 3, p: 1.5, bgcolor: '#fff', width: 150, height: 150, objectFit: 'contain' }} />
-                <Typography sx={{ color: 'rgba(255,255,255,.85)', fontSize: 13 }}>📱 Escaneie com a câmera do celular</Typography>
-              </Box>
+              {/* App na Play Store — QR OFICIAL + badge Google Play no ponto de maior intenção.
+                  Substitui o QR genérico antigo: agora aponta pro app APROVADO na loja (confiança + conversão). */}
+              <Stack component="a" href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer"
+                direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap alignItems="center"
+                sx={{ mt: 4, maxWidth: 430, mx: 'auto', textDecoration: 'none', bgcolor: '#fff',
+                  borderRadius: 3, p: 1.5, pr: { xs: 1.5, sm: 2.5 }, color: 'text.primary',
+                  boxShadow: '0 10px 28px rgba(0,0,0,.18)',
+                  transition: 'transform .18s ease, box-shadow .18s ease',
+                  '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 16px 34px rgba(0,0,0,.24)' } }}>
+                <Box component="img" src={`${import.meta.env.BASE_URL}playstore-qr.png`} alt="QR code para baixar o Dr. Exame na Play Store"
+                  sx={{ width: 116, height: 116, borderRadius: 2, bgcolor: '#fff', display: 'block', flexShrink: 0 }} />
+                <Box sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
+                  <Typography sx={{ fontWeight: 800, fontSize: 15.5, lineHeight: 1.15, color: 'text.primary' }}>Dr. Exame no seu celular 📱</Typography>
+                  <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mb: 1 }}>Aponte a câmera do celular ou toque pra baixar.</Typography>
+                  <Box component="img" src={`${import.meta.env.BASE_URL}playstore-badge.png`} alt="Disponível no Google Play"
+                    sx={{ height: 46, width: 'auto', display: 'block', mx: { xs: 'auto', sm: 0 } }} />
+                </Box>
+              </Stack>
             </Box>
           </Box>
         </Container>
