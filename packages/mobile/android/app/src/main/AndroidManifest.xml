@@ -47,10 +47,13 @@
     <!-- Câmera: foto do exame -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
-    <!-- Ler arquivos/galeria (Android <=12 e >=13) -->
+    <!-- Galeria/fotos: o app usa o SELETOR DE SISTEMA (<input type=file accept=image/*> → Photo Picker
+         no Android 13+), que NÃO exige permissão de mídia. READ_MEDIA_IMAGES foi REMOVIDO por exigência
+         da Política de permissões de acesso a fotos/vídeos do Google Play (apps Android 13+ devem usar
+         o seletor de fotos, não permissão ampla). READ/WRITE_EXTERNAL_STORAGE permanecem limitados a
+         Android <=12 / <=29 (maxSdkVersion) — apenas legado, fora do escopo da política (API 33+). -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" />
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <!-- Push notifications (Android 13+ exige POST_NOTIFICATIONS) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.VIBRATE" />
