@@ -192,17 +192,17 @@ async function runExtractionOnce(examId: string): Promise<void> {
     // Anti-farm: bots criam conta mas não conseguem automatizar envio de PDF de exame → nunca ganham créditos.
     // GATE DE IDENTIDADE: o bônus SÓ é concedido se o CPF do exame bater com o CPF do perfil. Se o
     // exame é alheio (CPF diverge — hard_block), NÃO dá créditos (fraude: pegar PDF de outro e upar p/ farmar).
-    // Sem CPF no doc/perfil (method 'name_fallback') não há como invalidar → concede (gate só bloqueia mismatch explícito).
+    // ANTI RE-FARM: o grant é ÚNICO por usuário (flag firstExamBonusGranted). Mesmo que o user extraia o
+    // 1º exame, DELETE (volta a 0), e envie de novo, NÃO ganha de novo — updateMany atômico no flag garante 1x só.
     if (patient?.ownerId) {
       const userExamCount = await prisma.exam.count({ where: { patient: { ownerId: patient.ownerId }, status: 'EXTRACTED' } });
       const cpfMismatch = raw?.identityMatch?.method === 'cpf' && raw?.identityMatch?.cpfMatch === false;
-      if (userExamCount === 1 && !cpfMismatch) {
+      if (firstExamBonusPreconditions({ examCount: userExamCount, cpfMismatch })) {
         const bonus = (await import('../utils/settings')).getSettings().grants?.freeSignup ?? 45;
-        await prisma.user.update({ where: { id: patient.ownerId }, data: { credits: { increment: bonus } } });
-        try { await prisma.creditTransaction.create({ data: { userId: patient.ownerId, delta: bonus, kind: 'first_exam_bonus', label: `Bônus: 1º exame extraído (+${bonus})` } }); } catch {}
-        try { await prisma.notification.create({ data: { userId: patient.ownerId, type: 'bonus', title: '🎁 Você ganhou ' + bonus + ' créditos!', body: 'Seu primeiro exame foi extraído com sucesso! Use seus créditos pra conversar com o Dr. Exame, gerar relatórios e perguntar ao médico.' } }); } catch {}
-        console.log(`[extraction] BÔNUS de ${bonus} créditos concedido ao user ${patient.ownerId} (1º exame extraído)`);
-      } else if (userExamCount === 1 && cpfMismatch) {
+        const claimed = await grantFirstExamBonus(patient.ownerId, bonus);
+        if (claimed) console.log(`[extraction] BÔNUS de ${bonus} créditos concedido ao user ${patient.ownerId} (1º exame extraído)`);
+        else console.log(`[extraction] BÔNUS já concedido antes p/ user ${patient.ownerId} (anti re-farm) — ignorado`);
+      } else if (cpfMismatch) {
         console.log(`[extraction] BÔNUS BLOQUEADO p/ user ${patient.ownerId}: CPF do exame diverge do perfil (anti-farm)`);
       }
     }
@@ -428,4 +428,29 @@ export function computeIdentityMatch(raw: any, patient: { cpfHash?: string | nul
     docCpfMasked: maskCpf(docCpfRaw),
     profileCpfMasked,
   };
+}
+
+/** Pré-condições p/ o bônus de 1º exame (decisão pura, testável). A atomicidade "1x só por usuário"
+ *  é garantida no DB pela flag firstExamBonusGranted (grantFirstExamBonus). */
+export function firstExamBonusPreconditions(opts: { examCount: number; cpfMismatch: boolean }): boolean {
+  return opts.examCount >= 1 && !opts.cpfMismatch;
+}
+
+/** Grant ATÔMICO do bônus de 1º exame — updateMany condicional no flag firstExamBonusGranted:
+ *  só incrementa créditos + cria ledger/notificação se o flag ainda era false (claim exclusivo).
+ *  Anti re-farm: deletar o exame e re-enviar NÃO re-concede (flag fica true p/ sempre).
+ *  Anti-race: 2 extrações paralelas → só 1 vence o updateMany (row lock). Devolve true se concedeu. */
+export async function grantFirstExamBonus(ownerId: string, bonus: number): Promise<boolean> {
+  try {
+    return await prisma.$transaction(async (tx) => {
+      const r = await tx.user.updateMany({ where: { id: ownerId, firstExamBonusGranted: false }, data: { credits: { increment: bonus }, firstExamBonusGranted: true } });
+      if (r.count !== 1) return false; // já concedido antes (ou user sumiu) → não re-concede
+      await tx.creditTransaction.create({ data: { userId: ownerId, delta: bonus, kind: 'first_exam_bonus', label: `Bônus: 1º exame extraído (+${bonus})` } });
+      await tx.notification.create({ data: { userId: ownerId, type: 'bonus', title: '🎁 Você ganhou ' + bonus + ' créditos!', body: 'Seu primeiro exame foi extraído com sucesso! Use seus créditos pra conversar com o Dr. Exame, gerar relatórios e perguntar ao médico.' } });
+      return true;
+    });
+  } catch (e: any) {
+    console.error('[extraction] grantFirstExamBonus falhou:', e?.message);
+    return false;
+  }
 }

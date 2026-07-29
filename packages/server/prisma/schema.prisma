@@ -27,6 +27,10 @@ model User {
   streakDays        Int     @default(0)
   lastActiveDay     String? // YYYY-MM-DD do último dia ativo (idempotente no dia)
   achievementAlerts Boolean @default(true) // notifica (in-app) quando desbloqueia conquista
+  // Bônus de 1º exame (freeSignup) JÁ concedido — anti re-farm: se o user envia o 1º exame,
+  // ganha o bônus, DELETA (volta a 0 exames) e envia de novo, NÃO ganha de novo. Grant atômico
+  // via updateMany(where: { firstExamBonusGranted: false }) → 1x só por usuário, nunca mais.
+  firstExamBonusGranted Boolean @default(false)
   referralCode String?  @unique  // código de indicação (ex: EDMILSON-A1B2) — vira bônus pra ambos
   referredBy   String?            // código de quem indicou este usuário
   deviceId     String?            // ID estável do aparelho (ANDROID_ID) — 1 bônus de boas-vindas por dispositivo

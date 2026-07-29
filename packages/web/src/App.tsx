@@ -131,7 +131,7 @@ const CustomAppBar = (props: AppBarProps) => {
       )}
       {isDesktop && <TitlePortal />}
       <Box sx={{ flex: 1 }} />
-      {isDesktop && <CreditsChip />}
+      <CreditsChip />
       <NotificationBell />
       <PatientSwitcher />
     </AppBar>

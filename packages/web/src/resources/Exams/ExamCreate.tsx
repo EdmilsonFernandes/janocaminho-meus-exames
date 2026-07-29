@@ -108,11 +108,15 @@ export const ExamCreate = () => {
 
   useEffect(() => {
     fetchPublicConfig().then((c) => setFirstBonus(c.freeSignup)).catch(() => {});
-    // Conta TODOS os exames do usuário (não só do paciente selecionado) — o bônus é do OWNER.
-    fetch(`${API_URL}/exams?_start=0&_end=1`, { headers: { Authorization: `Bearer ${token()}` } })
-      .then((r) => (r.ok ? r.json() : []))
-      .then((rows: any[]) => setIsFirstExam(Array.isArray(rows) && rows.length === 0))
-      .catch(() => setIsFirstExam(null));
+    // Banner só pra quem NUNCA teve 1º exame: examCount===0 E ainda não recebeu o bônus.
+    // Assim o user que extraiu, deletou tudo e volta NÃO vê a msg de novo (bônus já foi, 1x só).
+    Promise.all([
+      fetch(`${API_URL}/exams?_start=0&_end=1`, { headers: { Authorization: `Bearer ${token()}` } }).then((r) => (r.ok ? r.json() : [])).then((rows: any[]) => Array.isArray(rows) ? rows.length : 0).catch(() => -1),
+      fetch(`${API_URL}/auth/me`, { headers: { Authorization: `Bearer ${token()}` } }).then((r) => (r.ok ? r.json() : null)).then((d: any) => d?.user?.firstExamBonusGranted === true).catch(() => false),
+    ]).then(([count, granted]) => {
+      if (count < 0) { setIsFirstExam(null); return; }
+      setIsFirstExam(count === 0 && !granted);
+    });
   }, []);
 
   const ensureUploadConsent = () => {
