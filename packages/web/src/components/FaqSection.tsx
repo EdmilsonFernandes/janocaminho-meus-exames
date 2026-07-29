@@ -1,8 +1,10 @@
+import { useState, useEffect } from 'react';
 import { Box, Container, Typography, Accordion, AccordionSummary, AccordionDetails, Stack } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { useNavigate } from 'react-router-dom';
 import { Reveal } from './Reveal';
+import { fetchPublicConfig } from '../config';
 
 const TEAL = '#20b2aa';
 const TEAL_DARK = '#178f89';
@@ -37,6 +39,8 @@ const FAQ = [
 
 export const FaqSection = () => {
   const navigate = useNavigate();
+  const [credits, setCredits] = useState(60);
+  useEffect(() => { fetchPublicConfig().then((c) => setCredits(c.freeSignup)); }, []);
   return (
     <Box sx={{ bgcolor: 'background.paper', borderTop: '1px solid', borderBottom: '1px solid', borderColor: 'divider', py: { xs: 8, md: 11 } }}>
       <Container maxWidth="md">
@@ -64,7 +68,7 @@ export const FaqSection = () => {
                   <Typography sx={{ fontWeight: 700, fontSize: { xs: 15, md: 16 }, color: 'text.primary' }}>{item.q}</Typography>
                 </AccordionSummary>
                 <AccordionDetails sx={{ px: 2.5, pb: 2.25, pt: 0 }}>
-                  <Typography sx={{ fontSize: 14.5, color: 'text.secondary', lineHeight: 1.65 }}>{item.a}</Typography>
+                  <Typography sx={{ fontSize: 14.5, color: 'text.secondary', lineHeight: 1.65 }}>{item.q === 'Preciso pagar para testar?' ? `Não. Você começa com ${credits} créditos grátis, sem cartão. Só assina (R$ 19,90/mês) ou compra créditos avulsos se precisar de mais análises.` : item.a}</Typography>
                 </AccordionDetails>
               </Accordion>
             ))}

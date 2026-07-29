@@ -3,12 +3,14 @@ import { Card, CardContent, Typography, Box, Button, Stack, Chip, CircularProgre
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import ShareIcon from '@mui/icons-material/Share';
 import GiftIcon from '@mui/icons-material/CardGiftcard';
-import { API_URL, token } from '../config';
+import { API_URL, token, fetchPublicConfig } from '../config';
 
 /** Card de indicação — mostra código, copia, compartilha e estatísticas. */
 export const ReferralCard = ({ code }: { code?: string }) => {
   const [stats, setStats] = useState<{ count: number; creditsEarned: number; friends: any[] } | null>(null);
   const [copied, setCopied] = useState(false);
+  const [refBonus, setRefBonus] = useState(10);
+  useEffect(() => { fetchPublicConfig().then((c) => setRefBonus(c.referralBonus)); }, []);
 
   useEffect(() => {
     if (!code) return;
@@ -21,7 +23,7 @@ export const ReferralCard = ({ code }: { code?: string }) => {
 
   const copy = () => { navigator.clipboard?.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 2000); };
   const share = async () => {
-    const text = `📱 Meus Exames — sua saúde com IA! Cadastre-se com meu código ${code} e ganhe +30 créditos: ${link}`;
+    const text = `📱 Meus Exames — sua saúde com IA! Cadastre-se com meu código ${code} e ganhe +${refBonus} créditos: ${link}`;
     // No celular (Capacitor): usa o plugin nativo @capacitor/share (abre WhatsApp, Instagram, etc)
     try {
       const { Capacitor } = await import('@capacitor/core');
@@ -43,7 +45,7 @@ export const ReferralCard = ({ code }: { code?: string }) => {
           <GiftIcon sx={{ color: '#178f89' }} />
           <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary' }}>Indique e ganhe créditos</Typography>
         </Stack>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Cada amigo que se cadastrar com seu código ganha <strong>+30 créditos</strong>. Você também ganha <strong>+30</strong>!</Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Cada amigo que se cadastrar com seu código ganha <strong>+{refBonus} créditos</strong>. Você também ganha <strong>+{refBonus}</strong>!</Typography>
 
         {/* Código */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>

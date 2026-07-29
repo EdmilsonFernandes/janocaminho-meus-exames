@@ -31,6 +31,7 @@ import CalculateIcon from '@mui/icons-material/Calculate';
 
 import { ExamDemo } from '../components/ExamDemo';
 import { FaqSection } from '../components/FaqSection';
+import { fetchPublicConfig } from '../config';
 import { BmiCalculator, BmiCard } from '../components/BmiCalculator';
 import { Reveal } from '../components/Reveal';
 
@@ -70,8 +71,8 @@ const catOf = (t: string): string => {
 // 6 benefícios em destaque por padrão (1 por pilar) — o resto fica sob "Ver todos os 15".
 const DEFAULT_BENEFITS = new Set(['IA que lê seus exames', 'Leitura de risco', 'Plano de ação do Dr. Exame', 'Índices que o laudo não dá', 'Portal do seu médico', 'Dados protegidos + Libras']);
 
-const planData = [
-  { name: 'Grátis', price: 'R$ 0', period: '', features: ['60 créditos pra testar', 'Envie exames (PDF/foto)', 'Valores + referência', 'Score de Saúde', 'Pergunte ao Dr. Exame'], highlight: false, cta: 'Começar grátis' },
+const planData = (credits: number) => [
+  { name: 'Grátis', price: 'R$ 0', period: '', features: [`${credits} créditos pra testar`, 'Envie exames (PDF/foto)', 'Valores + referência', 'Score de Saúde', 'Pergunte ao Dr. Exame'], highlight: false, cta: 'Começar grátis' },
   { name: 'Mensal', price: 'R$ 19,90', period: '/mês', features: ['250 créditos de IA/mês', 'Exames + dependentes', 'Comparativo + Tendências', 'Relatório completo + PDF', 'Chat com o Dr. Exame'], highlight: true, cta: 'Assinar mensal' },
   { name: 'Créditos', price: 'a partir de R$ 9,90', period: 'avulso', features: ['PIX, cartão ou débito', 'Pacotes flexíveis', 'Cada análise consome créditos', 'Sem mensalidade', 'Use quando precisar'], highlight: false, cta: 'Ver pacotes' },
 ];
@@ -145,6 +146,10 @@ export const LandingPage = () => {
     window.addEventListener('scroll', h, { passive: true });
     return () => window.removeEventListener('scroll', h);
   }, []);
+
+  const [credits, setCredits] = useState(60);
+  const [refBonus, setRefBonus] = useState(10);
+  useEffect(() => { fetchPublicConfig().then((c) => { setCredits(c.freeSignup); setRefBonus(c.referralBonus); }); }, []);
 
   const goTo = (id: string) => {
     const el = document.getElementById(id);
@@ -221,7 +226,7 @@ export const LandingPage = () => {
                 ou entre com <b style={{ color: TEAL_DARK }}>Google</b> — 1 toque, sem senha
               </Typography>
               <Stack direction="row" spacing={2.5} useFlexGap sx={{ flexWrap: 'wrap', rowGap: 1, mt: 2 }}>
-                {['60 créditos grátis', 'Leitura de risco'].map((t) => (
+                {[`${credits} créditos grátis`, 'Leitura de risco'].map((t) => (
                   <Stack key={t} direction="row" spacing={0.5} alignItems="center">
                     <CheckCircleIcon sx={{ fontSize: 17, color: GREEN }} />
                     <Typography sx={{ color: 'text.secondary', fontSize: 13.5, fontWeight: 600 }}>{t}</Typography>
@@ -767,7 +772,7 @@ export const LandingPage = () => {
           <Typography align="center" variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>Planos simples e justos</Typography>
           <Typography align="center" sx={{ color: 'text.secondary', mb: 6, fontSize: 17 }}>Comece grátis. Assine quando precisar — ou pague só pelo que usar.</Typography>
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr' }, gap: 3, alignItems: 'center' }}>
-            {planData.map((p) => (
+            {planData(credits).map((p) => (
               <Box key={p.name} sx={{
                 p: 3, borderRadius: 5, bgcolor: 'background.paper',
                 border: p.highlight ? `2px solid ${TEAL}` : '1px solid',
@@ -801,9 +806,9 @@ export const LandingPage = () => {
             <Box sx={{ fontSize: { xs: 56, md: 72 }, lineHeight: 1, flexShrink: 0 }}>🎁</Box>
             <Box sx={{ flex: 1 }}>
               <Typography variant="h2" sx={{ fontSize: { xs: '1.7rem', md: '2.3rem' }, fontWeight: 800, color: 'text.primary', mb: 1, letterSpacing: '-0.02em' }}>Indique e ganhe créditos</Typography>
-              <Typography sx={{ color: 'text.secondary', fontSize: 17, mb: 2.5 }}>Compartilhe seu código com amigos. Quando alguém cria a conta com ele, <b style={{ color: TEAL_DARK }}>vocês dois ganham +30 créditos</b> — pra usar no Dr. Exame.</Typography>
+              <Typography sx={{ color: 'text.secondary', fontSize: 17, mb: 2.5 }}>Compartilhe seu código com amigos. Quando alguém cria a conta com ele, <b style={{ color: TEAL_DARK }}>vocês dois ganham +{refBonus} créditos</b> — pra usar no Dr. Exame.</Typography>
               <Stack direction="row" spacing={1.5} justifyContent={{ xs: 'center', md: 'flex-start' }} flexWrap="wrap" useFlexGap>
-                {[{ n: '+30', l: 'pra você', c: TEAL }, { n: '+30', l: 'pra seu amigo', c: '#0ea5e9' }, { n: '10/mês', l: 'limite anti-abuso', c: 'text.secondary' }].map((x) => (
+                {[{ n: `+${refBonus}`, l: 'pra você', c: TEAL }, { n: `+${refBonus}`, l: 'pra seu amigo', c: '#0ea5e9' }, { n: '10/mês', l: 'limite anti-abuso', c: 'text.secondary' }].map((x) => (
                   <Box key={x.l} sx={{ px: 2, py: 1, borderRadius: 3, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', textAlign: 'center', minWidth: 92 }}>
                     <Typography sx={{ fontWeight: 800, fontSize: 20, color: x.c, lineHeight: 1.1 }}>{x.n}</Typography>
                     <Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>{x.l}</Typography>

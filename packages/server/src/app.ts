@@ -8,6 +8,7 @@ import fs from 'fs';
 import crypto from 'crypto';
 import rateLimit from 'express-rate-limit';
 import { config } from './config';
+import { getSettings } from './utils/settings';
 import { APP_BUILD_INFO } from './generated/buildInfo';
 import { prisma } from './prisma';
 import { errorHandler, notFound } from './middleware/errorHandler';
@@ -16,7 +17,7 @@ import { accessAudit } from './middleware/accessAudit';
 import { emailTemplate } from './utils/emailTemplate';
 import { verifyUnsubToken } from './utils/unsubscribeToken';
 import { hashSharePin } from './utils/crypto';
-import authRoutes from './routes/auth.routes';
+import authRoutes, { REFERRAL_BONUS } from './routes/auth.routes';
 import patientRoutes from './routes/patient.routes';
 import examRoutes from './routes/exam.routes';
 import itemRoutes from './routes/item.routes';
@@ -114,6 +115,12 @@ app.get('/api/health', async (_req, res) => {
 
 // Build info completo (público) — qual versão/commit está rodando. Útil p/ rastrear deploys.
 app.get('/api/build-info', (_req, res) => res.json(APP_BUILD_INFO));
+// Config PÚBLICA (sem auth) — créditos de cadastro (freeSignup, do banco) + bônus de indicação.
+// A landing/card/link compartilhado leem daqui → valor sempre coerente c/ o que o server entrega.
+app.get('/api/public/config', (_req, res) => {
+  const { grants } = getSettings();
+  res.json({ freeSignup: grants?.freeSignup ?? 60, referralBonus: REFERRAL_BONUS });
+});
 // Força-atualização (público, sem auth): app compara a versão instalada com a mínima exigida.
 app.get('/api/app/version', (_req, res) => res.json({ latest: config.appLatestVersion, minRequired: config.appMinVersion }));
 

@@ -5,7 +5,7 @@ import { GoogleLogin } from '@react-oauth/google';
 import { Box, Typography, Button, Link, CircularProgress, Stack, TextField, InputAdornment, IconButton, Checkbox, FormControlLabel } from '@mui/material';
 import { keyframes } from '@mui/material/styles';
 import { DrExame } from '../components/DrExame';
-import { API_URL } from '../config';
+import { API_URL, fetchPublicConfig } from '../config';
 import { Capacitor } from '@capacitor/core';
 import { nativeGoogleLogin } from '../utils/nativeGoogleAuth';
 import { OtpInput } from '../components/OtpInput';
@@ -367,6 +367,8 @@ export const RegisterPage = () => {
   const [verifyEmail, setVerifyEmail] = useState<string | null>(null);
   const [verifyCode, setVerifyCode] = useState('');
   const [accepted, setAccepted] = useState(false);
+  const [refBonus, setRefBonus] = useState(10);
+  useEffect(() => { fetchPublicConfig().then((c) => setRefBonus(c.referralBonus)); }, []);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -437,7 +439,7 @@ export const RegisterPage = () => {
           } }} />
         {referral ? (
           <Box sx={{ p: 1, borderRadius: 2, bgcolor: 'rgba(32,178,170,0.10)', border: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography sx={{ fontSize: 12, color: '#178f89', fontWeight: 700 }}>🎁 Indicado por <strong>{referral}</strong> — você ganha +30 créditos!</Typography>
+            <Typography sx={{ fontSize: 12, color: '#178f89', fontWeight: 700 }}>🎁 Indicado por <strong>{referral}</strong> — você ganha +{refBonus} créditos!</Typography>
           </Box>
         ) : (
           <TextField placeholder="Código de indicação (opcional)" value={referral} onChange={(e) => setReferral(e.target.value.toUpperCase())} sx={fieldSx} />

@@ -48,3 +48,18 @@ export const doctorPhotoUrl = (doctorId: string, version?: number | string): str
   const qs = q.toString();
   return qs ? `${base}?${qs}` : base;
 };
+
+/** Config PÚBLICA — créditos de cadastro (freeSignup, do banco) + bônus de indicação (REFERRAL_BONUS).
+ *  Lida de GET /api/public/config (sem auth). Cacheada em memória (1 fetch/sessão). Usada pela
+ *  landing, card de indicação e link compartilhado → valor sempre bate c/ o que o server entrega. */
+export interface PublicConfig { freeSignup: number; referralBonus: number }
+let _publicCfgP: Promise<PublicConfig> | null = null;
+export function fetchPublicConfig(): Promise<PublicConfig> {
+  if (!_publicCfgP) {
+    _publicCfgP = fetch(`${API_URL}/public/config`)
+      .then((r) => (r.ok ? r.json() : {}))
+      .then((d: any) => ({ freeSignup: Number(d?.freeSignup ?? 60), referralBonus: Number(d?.referralBonus ?? 10) }))
+      .catch(() => ({ freeSignup: 60, referralBonus: 10 }));
+  }
+  return _publicCfgP;
+}

@@ -7,6 +7,10 @@ import { issueOtp, verifyOtp, canIssueOtp } from '../auth/otp';
 import { requireAuth, AuthedRequest, firstPatientId } from '../middleware/auth';
 import { sendEmail } from '../utils/mailer';
 import { savePatientPhoto } from '../utils/storage';
+
+/** Bônus de indicação — referrer E indicado ganham este valor. Constante (sem config no banco),
+ *  exposta em GET /api/public/config pra a UI (landing, card, link compartilhado) ficar coerente. */
+export const REFERRAL_BONUS = 10;
 import { otpEmail, resetEmail } from '../utils/emailTemplate';
 import { getSettings } from '../utils/settings';
 import { evaluateMfaOnLogin, verifyChallenge, getStatus as mfaStatus, startSetup as mfaStart, confirmSetup as mfaConfirm, disableMfa as mfaDisable } from '../utils/mfa';
@@ -212,7 +216,7 @@ router.post('/register', validate(schemas.register), async (req, res, next) => {
     if (existingCpf) { res.status(409).json({ error: 'CPF já cadastrado.' }); return; }
 
     // === REFERRAL: valida código de indicação (se veio) ===
-    const REFERRAL_BONUS = 30; // créditos pra cada lado (configurável depois via settings)
+    // REFERRAL_BONUS vem do module-level (export const).
     let referrer: any = null;
     const refCode = String(referral ?? '').trim().toUpperCase();
     if (refCode) {
@@ -272,7 +276,6 @@ router.post('/verify-email', async (req, res, next) => {
 
     // REFERRAL BONUS — só aqui (depois de verificar e-mail). Bônus pra AMBOS.
     // LIMITE: máx 10 indicações por mês (anti-abuso).
-    const REFERRAL_BONUS = 30;
     const REFERRAL_MONTHLY_LIMIT = 10;
     const signupCredits = getSettings().grants.freeSignup;
     const canClaim = await claimDeviceBonus(user.deviceId); // 1 bônus por dispositivo (anti-farm)
@@ -527,7 +530,6 @@ router.get('/referrals/stats', requireAuth, async (req: AuthedRequest, res, next
       select: { id: true, name: true, createdAt: true },
       orderBy: { createdAt: 'desc' },
     });
-    const REFERRAL_BONUS = 30;
     res.json({ code: user.referralCode, count: referred.length, creditsEarned: referred.length * REFERRAL_BONUS, friends: referred.map((r) => ({ name: r.name.split(' ')[0], date: r.createdAt })) });
   } catch (e) { next(e); }
 });
