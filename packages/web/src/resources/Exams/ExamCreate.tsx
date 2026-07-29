@@ -1,10 +1,10 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Box, Card, CardContent, Button, TextField, Typography, Alert, Chip, Stack, LinearProgress, Dialog, DialogTitle, DialogContent, DialogActions, Checkbox, FormControlLabel, Link as MuiLink } from '@mui/material';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import DocumentScannerIcon from '@mui/icons-material/DocumentScanner';
 import { Title, useNotify, useRedirect, useRefresh, useLogout } from 'react-admin';
-import { API_URL, token } from '../../config';
+import { API_URL, token, fetchPublicConfig } from '../../config';
 import { confirmDialog } from '../../components/ConfirmDialog';
 import { useSelectedPatient } from '../../patient-context';
 import { CREDIT_COSTS } from '../../components/CreditBadge';
@@ -97,10 +97,23 @@ export const ExamCreate = () => {
   const [consentChecked, setConsentChecked] = useState(false);
   // Duplicata detectada → dialog PROEMINENTE (não um toast fraco) pra o usuário entender que o doc já existe.
   const [dupInfo, setDupInfo] = useState<{ dups: string[]; elsewhere: string[]; sent: number } | null>(null);
+  // Banner de 1º exame: mostra só se o user ainda NÃO tem nenhum exame (incentivo p/ o upload +
+  // o bônus de créditos). bonus vem do /public/config (freeSignup) → sempre bate c/ o server.
+  const [isFirstExam, setIsFirstExam] = useState<boolean | null>(null);
+  const [firstBonus, setFirstBonus] = useState(45);
   const notify = useNotify();
   const redirect = useRedirect();
   const refresh = useRefresh();
   const logout = useLogout();
+
+  useEffect(() => {
+    fetchPublicConfig().then((c) => setFirstBonus(c.freeSignup)).catch(() => {});
+    // Conta TODOS os exames do usuário (não só do paciente selecionado) — o bônus é do OWNER.
+    fetch(`${API_URL}/exams?_start=0&_end=1`, { headers: { Authorization: `Bearer ${token()}` } })
+      .then((r) => (r.ok ? r.json() : []))
+      .then((rows: any[]) => setIsFirstExam(Array.isArray(rows) && rows.length === 0))
+      .catch(() => setIsFirstExam(null));
+  }, []);
 
   const ensureUploadConsent = () => {
     if (uploadConsentAccepted) return true;
@@ -255,6 +268,31 @@ export const ExamCreate = () => {
           <Typography variant="caption" color="text.secondary">PDF ou foto — a IA extrai os valores pra você.</Typography>
         </Box>
       </Stack>
+
+      {/* BÔNUS DE 1º EXAME — só aparece pra quem ainda não tem nenhum exame. Incentivo direto:
+          envia o PDF → ganha créditos pra conversar com a IA / gerar relatório / perguntar ao médico. */}
+      {isFirstExam === true && (
+        <Alert
+          icon={false}
+          sx={{
+            mb: 2.5, borderRadius: 3, p: { xs: 1.5, sm: 2 }, alignItems: 'center',
+            bgcolor: 'rgba(32,178,170,.09)', border: '1px solid rgba(32,178,170,.28)',
+            '& .MuiAlert-message': { width: '100%' },
+          }}
+        >
+          <Stack direction="row" spacing={1.5} alignItems="center">
+            <Box sx={{ fontSize: 30, lineHeight: 1 }}>🎁</Box>
+            <Box sx={{ flex: 1 }}>
+              <Typography sx={{ fontWeight: 800, color: 'text.primary', fontSize: { xs: 15, sm: 16 }, lineHeight: 1.25 }}>
+                Envie seu primeiro exame e ganhe <Box component="span" sx={{ color: '#178f89' }}>{firstBonus} créditos</Box>!
+              </Typography>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.25 }}>
+                Use pra conversar com a IA sobre seu exame, gerar relatório e tirar dúvidas com o médico. É de graça — só enviar o PDF. ✨
+              </Typography>
+            </Box>
+          </Stack>
+        </Alert>
+      )}
 
       <Card sx={{ borderRadius: 4, border: '1px solid', borderColor: 'divider', boxShadow: '0 12px 32px rgba(15,61,58,.07)' }}>
         <CardContent sx={{ p: { xs: 2, sm: 3 } }}>

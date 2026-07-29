@@ -34,7 +34,10 @@ export interface UserMetrics {
 /** Métricas server-side que alimentam as conquistas (não-farmável: vêm do banco). */
 export async function getUserMetrics(userId: string): Promise<UserMetrics> {
   const [exams, health, user] = await Promise.all([
-    prisma.exam.count({ where: { patient: { ownerId: userId } } }),
+    // Conta UPLOADS (PDFs), NÃO registros split. Um PDF c/ histórico de N anos vira N exames
+    // (split pelo #split-N no fileSha256), mas é UMA ação de upload → conta como 1 p/ o engajamento.
+    // Sem isto, 1 PDF desbloqueava "Colecionador"(5)/"Estudioso"(10) de uma vez (inflação).
+    prisma.exam.count({ where: { patient: { ownerId: userId }, NOT: { fileSha256: { contains: '#split-' } } } }),
     latestHealthScore(userId),
     prisma.user.findUnique({ where: { id: userId }, select: { streakDays: true } }),
   ]);

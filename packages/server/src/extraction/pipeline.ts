@@ -115,6 +115,13 @@ async function runExtractionOnce(examId: string): Promise<void> {
         let labs: LabExtraction[] = [];
         try { labs = await extractLabPanels(buffer, media, precomputedText); }
         catch (e) { console.warn('[extraction] multi-exame falhou, caindo p/ single:', (e as Error).message); }
+        // ANTI-SPLIT-FALSO: a IA às vezes devolve N exames p/ um PDF de data ÚNICA (hemograma +
+        // bioquímica coletados no mesmo dia viravam 2 registros, inflando Conquistas e o histórico).
+        // Mescla por data de coleta: só ficam separados os de datas GENUINAMENTE distintas
+        // (histórico de anos do laboratório, ex.: 2021 + 2022 + 2026 num só PDF). flattenLabItems
+        // já deduplica itens idênticos (dedupeIntraDoc) → a mescla não cria duplicatas.
+        labs = mergeLabsByDate(labs);
+        if (labs.length > 1) console.log(`[extraction] ${labs.length} exames de datas de coleta distintas (split)`);
         const lab = (labs[0] ?? (await extractLabPanel(buffer, media, precomputedText))) as LabExtraction;
         raw = lab;
         title = lab.examTitle ?? title;
@@ -183,14 +190,20 @@ async function runExtractionOnce(examId: string): Promise<void> {
 
     // BÔNUS DE 1º EXAME: concede freeSignup créditos quando o usuário extrai seu PRIMEIRO exame com sucesso.
     // Anti-farm: bots criam conta mas não conseguem automatizar envio de PDF de exame → nunca ganham créditos.
+    // GATE DE IDENTIDADE: o bônus SÓ é concedido se o CPF do exame bater com o CPF do perfil. Se o
+    // exame é alheio (CPF diverge — hard_block), NÃO dá créditos (fraude: pegar PDF de outro e upar p/ farmar).
+    // Sem CPF no doc/perfil (method 'name_fallback') não há como invalidar → concede (gate só bloqueia mismatch explícito).
     if (patient?.ownerId) {
       const userExamCount = await prisma.exam.count({ where: { patient: { ownerId: patient.ownerId }, status: 'EXTRACTED' } });
-      if (userExamCount === 1) {
+      const cpfMismatch = raw?.identityMatch?.method === 'cpf' && raw?.identityMatch?.cpfMatch === false;
+      if (userExamCount === 1 && !cpfMismatch) {
         const bonus = (await import('../utils/settings')).getSettings().grants?.freeSignup ?? 45;
         await prisma.user.update({ where: { id: patient.ownerId }, data: { credits: { increment: bonus } } });
         try { await prisma.creditTransaction.create({ data: { userId: patient.ownerId, delta: bonus, kind: 'first_exam_bonus', label: `Bônus: 1º exame extraído (+${bonus})` } }); } catch {}
         try { await prisma.notification.create({ data: { userId: patient.ownerId, type: 'bonus', title: '🎁 Você ganhou ' + bonus + ' créditos!', body: 'Seu primeiro exame foi extraído com sucesso! Use seus créditos pra conversar com o Dr. Exame, gerar relatórios e perguntar ao médico.' } }); } catch {}
         console.log(`[extraction] BÔNUS de ${bonus} créditos concedido ao user ${patient.ownerId} (1º exame extraído)`);
+      } else if (userExamCount === 1 && cpfMismatch) {
+        console.log(`[extraction] BÔNUS BLOQUEADO p/ user ${patient.ownerId}: CPF do exame diverge do perfil (anti-farm)`);
       }
     }
 
@@ -206,6 +219,14 @@ async function runExtractionOnce(examId: string): Promise<void> {
           const slab = splitLabs[i];
           const sitems = flattenLabItems(slab, demo);
           if (!sitems.length) continue;
+          // PROPAGA identidade p/ o split: sem isto, o exame principal marcava CPF divergente
+          // mas os splits ficavam "sem info" (rawExtraction sem identityMatch) → UI não aplicava
+          // o hard_block no split (brecha: via o split como exame válido do usuário). Computa do
+          // mesmo patient (mesmo CPF do perfil) + strip CPF cru (LGPD — rawExtraction é JSONB sem pgcrypto).
+          const sraw: any = { ...slab };
+          if (patient?.cpfHash) sraw.identityMatch = computeIdentityMatch(slab, patient);
+          if (patient?.fullName && slab.patientName) sraw.nameMatch = computeNameMatch(String(slab.patientName), patient.fullName);
+          delete sraw.patientCpf; delete sraw.cpf; delete sraw.patientCPF;
           const screated = await prisma.exam.create({
             data: {
               patientId: exam.patientId,
@@ -217,7 +238,7 @@ async function runExtractionOnce(examId: string): Promise<void> {
               pageCount: pageCount || exam.pageCount,
               performedAt: parseDate(slab.performedAt),
               sourceLab: slab.sourceLab ?? exam.sourceLab,
-              rawExtraction: slab,
+              rawExtraction: sraw,
               status: 'EXTRACTED',
               extractedAt: new Date(),
             },
@@ -321,6 +342,50 @@ function parseDate(s?: string | null): Date | null {
   return null;
 }
 
+/** Mescla LabExtraction's que compartilham a MESMA data de coleta (performedAt) num só.
+ *  Anti-split-falso: a IA devolve hemograma + bioquímica + urina (mesmo dia) como exames
+ *  separados, inflando Conquistas e criando registros duplicados. Aqui agrupamos por data:
+ *  só viram registros próprios os de datas GENUINAMENTE distintas. Labs sem data parseável
+ *  ficam separados (não dá pra mesclar com segurança) — mas isso é raro (todo laudo tem data). */
+export /** Normaliza performedAt → chave YYYY-MM-DD direto da string (imune a timezone do new Date()).
+ *  new Date('2026-03-15') vira UTC midnight → getDate() em horário local (UTC-3) cai no dia 14
+ *  e quebrava o agrupamento. Aqui casamos os padrões BR (dd/mm/yyyy) e ISO (yyyy-mm-dd). */
+function dateKey(s?: string | null): string | null {
+  if (!s) return null;
+  const str = String(s).trim();
+  const br = str.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (br) return `${br[3]}-${br[2].padStart(2, '0')}-${br[1].padStart(2, '0')}`;
+  const iso = str.match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
+  const d = parseDate(str);
+  if (!d) return null;
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
+}
+
+export function mergeLabsByDate(labs: LabExtraction[]): LabExtraction[] {
+  if (labs.length <= 1) return labs;
+  const groups = new Map<string, LabExtraction>();
+  const noDate: LabExtraction[] = [];
+  let mergedCount = 0;
+  for (const lab of labs) {
+    const key = dateKey(lab.performedAt);
+    if (!key) { noDate.push(lab); continue; }
+    const existing = groups.get(key);
+    if (existing) {
+      // acumula os painéis do exame do mesmo dia no registro principal
+      existing.panels = [...(existing.panels ?? []), ...(lab.panels ?? [])];
+      existing.examTitle = existing.examTitle || lab.examTitle;
+      existing.sourceLab = existing.sourceLab || lab.sourceLab;
+      // performedAt/patientName/patientCpf do primeiro (já validado) — mantém.
+      mergedCount++;
+    } else {
+      groups.set(key, { ...lab, panels: [...(lab.panels ?? [])] });
+    }
+  }
+  if (mergedCount > 0) console.log(`[extraction] mesclou ${mergedCount} exame(s) de mesma data de coleta (anti-split-falso)`);
+  return [...groups.values(), ...noDate];
+}
+
 /** Normaliza nome p/ comparar: minúsculas, sem acento, tokens alfanuméricos >1 char. */
 function normNameTokens(s: string): Set<string> {
   return new Set(
@@ -338,7 +403,7 @@ function computeNameMatch(docName: string, profileName: string) {
   return { score, docName, profileName, mismatch: score < 0.34 };
 }
 
-function computeIdentityMatch(raw: any, patient: { cpfHash?: string | null; cpfLast4?: string | null; cpfEncrypted?: string | null; cpfIv?: string | null }) {
+export function computeIdentityMatch(raw: any, patient: { cpfHash?: string | null; cpfLast4?: string | null; cpfEncrypted?: string | null; cpfIv?: string | null }) {
   const docCpfRaw = raw?.patientCpf ?? raw?.cpf ?? raw?.patientCPF ?? '';
   const docHash = cpfFingerprint(docCpfRaw);
   const profileCpfMasked = maskStoredCpf(patient);

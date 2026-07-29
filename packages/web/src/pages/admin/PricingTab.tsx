@@ -23,8 +23,8 @@ const PRICING_GROUPS: { cat: PricingCat; title: string; hint?: string; unit?: st
   { cat: 'shares', title: 'Custo de compartilhar com médico (por escopo)', unit: 'créditos',
     hint: 'Soma dos escopos selecionados ao criar um compartilhamento. Reativar/editar = grátis.',
     fields: [['exams', '📋 Exames'], ['evolution', '📈 Evolução'], ['alerts', '🚨 Alertas'], ['summary', '🤖 Resumos IA']] },
-  { cat: 'grants', title: 'Créditos (cadastro / mensal / limite)',
-    fields: [['freeSignup', '🆕 Créditos no cadastro (free)'], ['monthly', '💎 Créditos do plano mensal'], ['freeExamLimit', '📤 Limite de exames grátis (paywall)']] },
+  { cat: 'grants', title: 'Créditos (1º exame / mensal / limite)',
+    fields: [['freeSignup', '🎁 Bônus do 1º exame extraído'], ['monthly', '💎 Créditos do plano mensal'], ['freeExamLimit', '📤 Limite de exames grátis (paywall)']] },
 ];
 
 export const PricingTab = () => {
