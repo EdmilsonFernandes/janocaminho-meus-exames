@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Box, Typography, LinearProgress, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { DrExame } from './DrExame';
@@ -14,17 +14,22 @@ const STEPS = [
 
 /** Progresso premium da extração: timer decorrido + estágios rotativos + pode sair.
  *  Extração é assíncrona no server (state-machine) — o usuário PODE navegar pra outras
- *  telas e voltar. O timer reduz ansiedade (sabe QUANTO tempo tá passando, não só um spinner). */
-export const ExtractionProgress = () => {
+ *  telas e voltar. O timer reduz ansiedade (sabe QUANTO tempo tá passando, não só um spinner).
+ *  `startedAt` (createdAt do exame) faz o elapsed/step derivarem do TEMPO REAL desde o envio
+ *  → NÃO zera quando o user sai da tela e volta (antes era state local que reiniciava em 0). */
+export const ExtractionProgress = ({ startedAt }: { startedAt?: string }) => {
   const navigate = useNavigate();
-  const [step, setStep] = useState(0);
-  const [elapsed, setElapsed] = useState(0);
-
+  const [now, setNow] = useState(() => Date.now());
+  const mountMs = useRef(Date.now()).current;
   useEffect(() => {
-    const stepTimer = setInterval(() => setStep((s) => Math.min(s + 1, STEPS.length - 1)), 5000);
-    const elapsedTimer = setInterval(() => setElapsed((e) => e + 1), 1000);
-    return () => { clearInterval(stepTimer); clearInterval(elapsedTimer); };
+    const elapsedTimer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(elapsedTimer);
   }, []);
+
+  // startMs = tempo do envio (se tiver startedAt) ou do mount (fallback). elapsed = real, persiste.
+  const startMs = startedAt ? new Date(startedAt).getTime() : mountMs;
+  const elapsed = Math.max(0, Math.floor((now - startMs) / 1000));
+  const step = Math.min(Math.floor(elapsed / 5), STEPS.length - 1);
 
   const mins = Math.floor(elapsed / 60);
   const secs = elapsed % 60;

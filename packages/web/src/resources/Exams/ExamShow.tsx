@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Box, Card, CardContent, Typography, Chip, Button, CircularProgress, Alert, Divider, Stack,
@@ -100,6 +100,7 @@ export const ExamShow = () => {
   const [docTitle, setDocTitle] = useState('Documento');
   const [confirmSpend, setConfirmSpend] = useState<{ open: boolean; credits: number; title: string; desc?: string; onYes: () => void }>({ open: false, credits: 0, title: '', onYes: () => {} });
 
+  const prevStatusRef = useRef<string | undefined>(undefined);
   useEffect(() => {
     let active = true;
     let timer: any;
@@ -112,7 +113,16 @@ export const ExamShow = () => {
       const d = await r.json();
       if (!active) return;
       setExam(d);
-      if (d.status === 'UPLOADED' || d.status === 'EXTRACTING') timer = setTimeout(load, 3000);
+      const prev = prevStatusRef.current;
+      prevStatusRef.current = d.status;
+      if (d.status === 'UPLOADED' || d.status === 'EXTRACTING') {
+        timer = setTimeout(load, 3000);
+      } else if (d.status === 'EXTRACTED' && (prev === 'UPLOADED' || prev === 'EXTRACTING')) {
+        // acabou de extrair AGORA → bônus de 1º exame (se devido) + notificação foram concedidos
+        // server-side. Avisa a wallet e o sino pra refazerem o saldo/notificações em tempo real.
+        window.dispatchEvent(new Event('creditsChanged'));
+        window.dispatchEvent(new Event('notificationsChanged'));
+      }
     };
     load();
     return () => { active = false; clearTimeout(timer); };
@@ -304,7 +314,7 @@ export const ExamShow = () => {
             </Alert>
           )}
           {(exam.status === 'UPLOADED' || exam.status === 'EXTRACTING') && (
-            <ExtractionProgress />
+            <ExtractionProgress startedAt={exam.createdAt} />
           )}
         </CardContent>
       </Card>

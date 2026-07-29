@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { List, useListContext, useRefresh, useNotify, useTranslate, CreateButton, TopToolbar } from 'react-admin';
 import { Chip, Box, Card, CardContent, Typography, IconButton, Stack, LinearProgress, Button, Accordion, AccordionSummary, AccordionDetails, Alert, CircularProgress, TextField, InputAdornment, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import ScienceIcon from '@mui/icons-material/Science';
@@ -85,6 +85,16 @@ const ExamCards = () => {
   // Re-busca a lista a cada 5s enquanto há exames sendo extraídos. Quando termina (vira EXTRACTED),
   // o exame sai do topo e cai no grupo do ANO certo (performedAt é preenchido pela extração).
   const processingCount = (data ?? []).filter((r: any) => r.status === 'UPLOADED' || r.status === 'EXTRACTING').length;
+  // Quando o último exame processado vira EXTRACTED (processing >0 → 0), o bônus de 1º exame
+  // (se devido) + a notificação foram concedidos server-side. Avisa a wallet e o sino pra atualizar.
+  const prevProcessingRef = useRef(processingCount);
+  useEffect(() => {
+    if (prevProcessingRef.current > 0 && processingCount === 0) {
+      window.dispatchEvent(new Event('creditsChanged'));
+      window.dispatchEvent(new Event('notificationsChanged'));
+    }
+    prevProcessingRef.current = processingCount;
+  }, [processingCount]);
   useEffect(() => {
     if (!processingCount) return;
     const t = setInterval(refresh, 5000);
@@ -274,7 +284,9 @@ const ExamCards = () => {
       {/* Grupos (data OU categoria) */}
       {view === 'date' && (
         <>
-          {dateGroups.length === 0 && (
+          {/* Empty state SÓ se truly nada (nenhum extraído E nenhum em processamento).
+              Antes mostrava "você não enviou exame" mesmo c/ 1º doc extraindo no topo — incoerente. */}
+          {dateGroups.length === 0 && processing.length === 0 && (
             filtering
               ? <EmptyState emoji="🔍" title={translate('exams.empty_search_title')} desc={translate('exams.empty_search_desc')} />
               : <EmptyState title={translate('exams.empty_title')} desc={translate('exams.empty_desc')} cta={translate('exams.send')} onCta={() => navigate('/exams/create')} />
@@ -311,7 +323,7 @@ const ExamCards = () => {
 
       {view === 'category' && (
         <>
-          {catGroups.length === 0 && (
+          {catGroups.length === 0 && processing.length === 0 && (
             filtering
               ? <EmptyState emoji="🔍" title={translate('exams.empty_search_title')} desc={translate('exams.empty_search_desc')} />
               : <EmptyState title={translate('exams.empty_title')} desc={translate('exams.empty_desc')} cta={translate('exams.send')} onCta={() => navigate('/exams/create')} />

@@ -18,8 +18,20 @@ export const NotificationBell = () => {
     load();
     const iv = setInterval(load, 60000); // atualiza a cada 60s
     const onRead = () => setUnread(0);
+    // Refresh quando uma notificação pode ter chegado (ex.: bônus de 1º exame ao concluir extração)
+    // ou quando o usuário volta pro app (focus/visibility) — antes só aparecia no re-login.
+    const onChange = () => load();
     window.addEventListener('notificationsRead', onRead);
-    return () => { clearInterval(iv); window.removeEventListener('notificationsRead', onRead); };
+    window.addEventListener('notificationsChanged', onChange);
+    document.addEventListener('visibilitychange', onChange);
+    window.addEventListener('focus', onChange);
+    return () => {
+      clearInterval(iv);
+      window.removeEventListener('notificationsRead', onRead);
+      window.removeEventListener('notificationsChanged', onChange);
+      document.removeEventListener('visibilitychange', onChange);
+      window.removeEventListener('focus', onChange);
+    };
   }, []);
   return (
     <IconButton color="inherit" onClick={() => navigate('/notificacoes')} title="Notificações" aria-label="Notificações"
