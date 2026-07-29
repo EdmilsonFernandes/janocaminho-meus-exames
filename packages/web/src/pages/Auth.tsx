@@ -233,14 +233,14 @@ export const LoginPage = () => {
           navigate('/', { replace: true });
         }
       }
-      else { window.alert(d.error || 'Falha no login do Google.'); }
-    } catch { window.alert('Falha de conexão.'); }
+      else { notify(d.error || 'Falha no login do Google.', { type: 'error' }); }
+    } catch { notify('Falha de conexão.', { type: 'error' }); }
     finally { setLoading(false); }
   };
 
   const handleNativeGoogle = async (isDoctor = false) => {
     const tok = await nativeGoogleLogin();
-    if (!tok) { window.alert('Falha no login do Google.'); return; }
+    if (!tok) { notify('Falha no login do Google.', { type: 'error' }); return; }
     await exchangeGoogleCredential(tok, isDoctor);
   };
 
@@ -316,7 +316,7 @@ export const LoginPage = () => {
                 ) : (
                   <GoogleLogin
                     onSuccess={async (cred) => { if (cred.credential) await exchangeGoogleCredential(cred.credential, role === 'medico'); }}
-                    onError={() => window.alert('Falha no login do Google.')}
+                    onError={() => notify('Falha no login do Google.', { type: 'error' })}
                     text="continue_with" shape="pill" size="large" width="320"
                   />
                 )}

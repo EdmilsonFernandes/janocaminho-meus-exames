@@ -134,7 +134,7 @@ app.get('/api/patients/:id/photo', requirePhotoToken, async (req, res) => {
     // 1) se photoUrl é um ref de storage (chave S3 ou caminho de disco), resolve
     if (p?.photoUrl && !p.photoUrl.startsWith('/api/')) {
       const r = await resolvePatientPhoto(p.photoUrl);
-      if (r.kind === 'url') { res.setHeader('Cache-Control', 'public, max-age=120'); res.redirect(r.url); return; }       // S3: redireciona p/ pré-assinada
+      if (r.kind === 'url') { res.setHeader('Cache-Control', 'public, max-age=600'); res.redirect(r.url); return; }       // S3: redireciona p/ pré-assinada (memo 13min no storage)
       if (fs.existsSync(r.file)) { res.setHeader('Cache-Control', 'public, max-age=31536000, immutable'); res.sendFile(path.resolve(r.file)); return; }
     }
     // 2) fallback: procura patient-<id>.* no disco (convenção antiga + dev)

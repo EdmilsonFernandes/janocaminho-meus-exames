@@ -13,8 +13,8 @@ export async function optimizeAvatar(buffer: Buffer): Promise<{ buffer: Buffer; 
       .jpeg({ quality: 80, progressive: true, mozjpeg: true })
       .toBuffer();
     return { buffer: optimized, contentType: 'image/jpeg' };
-  } catch {
-    // Fallback: buffer original sem compressão (upload não quebra).
+  } catch (e: any) {
+    console.error('[optimizeAvatar] sharp falhou, usando original:', e?.message);
     return { buffer, contentType: 'image/jpeg' };
   }
 }

@@ -13,7 +13,6 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import PdfIcon from '@mui/icons-material/PictureAsPdf';
 import SearchIcon from '@mui/icons-material/Search';
 import GroupsIcon from '@mui/icons-material/Groups';
-import MenuIcon from '@mui/icons-material/Menu';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { API_URL, photoUrlFor, doctorPhotoUrl } from '../config';
@@ -475,16 +474,17 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     await Promise.allSettled([
       get('/risk').then((d) => { if (d && mine()) setRisk(d); }),
       get('/risk/history').then((d) => { if (d && mine()) setRiskHistory(d.history ?? []); }),
-      get('/pre-visit').then((d) => { if (d && mine()) setPreVisit(d); }),
       ...(wantExams ? [get('/exams').then((d) => { if (d && mine()) setExams(d.items ?? []); })] : []),
       ...(wantEvol ? [get('/evolution').then((d) => { if (d && mine()) setEvolution(d.items ?? []); })] : []),
       ...(wantSummary ? [get('/summaries').then((d) => { if (d && mine()) setSummaries(d.items ?? []); })] : []),
       get('/questions').then((d) => { if (d && mine()) setQuestions(d.items ?? []); }),
       get('/notes').then((d) => { if (d && mine()) setNotes(d.items ?? []); }),
-      get('/action-plan/latest').then((d) => { if (mine()) setClinicalPlan(d?.contentMd ?? null); }),
-      get('/soap/latest').then((d) => { if (mine()) setSoap(d?.contentMd ?? null); }),
     ]);
     if (mine()) setDetailLoading(false);
+    // Background (IA/conteúdo armazenado — NÃO bloqueiam a abertura): pré-consulta, plano, SOAP
+    get('/pre-visit').then((d) => { if (d && mine()) setPreVisit(d); });
+    get('/action-plan/latest').then((d) => { if (mine()) setClinicalPlan(d?.contentMd ?? null); });
+    get('/soap/latest').then((d) => { if (mine()) setSoap(d?.contentMd ?? null); });
   };
 
   // PLANO DE AÇÃO CLÍNICO (C2) — versão médico, grátis. Gera via GLM com tom técnico.
@@ -541,8 +541,8 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     try { const r = await fetch(`${API_URL}/doctor/patients/${selected.patient.id}/exams/${ex.id}`, { headers: h }); const d = await r.json(); if (r.ok) setExamDetail(d.exam); } catch {}
   };
 
-  // Alertas = todos os valores alterados agregados dos exames
-  const allAlerts = exams.flatMap((ex: any) => (ex.items ?? []).map((it: any) => ({ ...it, examTitle: ex.title, examDate: ex.performedAt })));
+  // Alertas = todos os valores alterados agregados dos exames (memo — era recompute em todo render)
+  const allAlerts = useMemo(() => exams.flatMap((ex: any) => (ex.items ?? []).map((it: any) => ({ ...it, examTitle: ex.title, examDate: ex.performedAt }))), [exams]);
 
   // Exames agrupados por ano (estilo lista do paciente)
   const examsByYear = useMemo(() => {
@@ -682,12 +682,15 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           </Box>
         ) : (
           <>
-            <Avatar src={doctor?.photoUrl ? doctorPhotoUrl(doctor.id, photoVer) : undefined} sx={{ bgcolor: 'rgba(32,178,170,.10)', color: '#178f89', fontWeight: 800, border: '2px solid rgba(32,178,170,.15)', width: 44, height: 44, fontSize: 17 }}>{doctor?.name?.charAt(0)}</Avatar>
+            {view !== 'profile' && (
+              <IconButton onClick={(e) => setAvatarEl(e.currentTarget)} aria-label="Menu do médico" sx={{ p: 0.5, borderRadius: '50%', flexShrink: 0 }}>
+                <Avatar src={doctor?.photoUrl ? doctorPhotoUrl(doctor.id, photoVer) : undefined} sx={{ bgcolor: 'rgba(32,178,170,.10)', color: '#178f89', fontWeight: 800, border: '2px solid rgba(32,178,170,.15)', width: 44, height: 44, fontSize: 17 }}>{doctor?.name?.charAt(0)}</Avatar>
+              </IconButton>
+            )}
             <Box sx={{ flex: 1, minWidth: 0 }}>
               <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 15, color: 'text.primary', lineHeight: 1.2 }}>{doctor?.name || 'Médico'}</Typography>
               <Typography variant="caption" sx={{ color: 'text.secondary' }}>{[doctor?.specialty, doctor?.crm && `CRM ${doctor.crm}`].filter(Boolean).join(' • ') || 'Portal do Médico'}</Typography>
             </Box>
-            <IconButton onClick={() => setMenuOpen(true)} sx={{ color: 'text.secondary' }}><MenuIcon /></IconButton>
           </>
         )}
       </Box>
@@ -863,7 +866,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                     const map = new Map<string, { p: any; qs: any[]; last: number }>();
                     for (const q of openQ) { const pid = q.patientId; const g = map.get(pid) ?? { p: q.patient, qs: [], last: 0 }; g.qs.push(q); g.last = Math.max(g.last, new Date(q.createdAt).getTime()); map.set(pid, g); }
                     return [...map.values()].sort((a, b) => b.last - a.last).map((g) => (
-                      <Accordion key={g.p?.id} defaultExpanded elevation={0} sx={{ '&:before': { display: 'none' }, border: '1px solid', borderColor: 'divider', borderRadius: '12px !important', overflow: 'hidden' }}>
+                      <Accordion key={g.p?.id} elevation={0} sx={{ '&:before': { display: 'none' }, border: '1px solid', borderColor: 'divider', borderRadius: '12px !important', overflow: 'hidden' }}>
                         <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '52px !important', '& .MuiAccordionSummary-content': { my: 0.75 } }}>
                           <Stack direction="row" alignItems="center" spacing={1.5} sx={{ flex: 1, minWidth: 0 }}>
                             <Avatar src={g.p?.id ? photoUrlFor(g.p.id) : undefined} sx={{ width: 40, height: 40, bgcolor: TEAL, fontSize: 15, fontWeight: 700, flexShrink: 0 }}>{(g.p?.fullName || 'P').charAt(0)}</Avatar>
@@ -1015,7 +1018,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                         <Box sx={{ flex: 1, minWidth: 0 }}>
                           <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 15, color: 'text.primary', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.patient?.fullName}</Typography>
                           <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>
-                            {[p.age != null ? `${p.age}a` : null, sex, p.relationship].filter(Boolean).join(' · ')}{titularHint} {p.code && <Box component="span" sx={{ fontFamily: 'monospace', color: 'text.disabled' }}>· {p.code}</Box>}
+                            {[p.age != null ? `${p.age}a` : null, sex, p.relationship].filter(Boolean).join(' · ')}{titularHint}
                           </Typography>
                           <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25, fontSize: 11 }}>{statusLine}</Typography>
                         </Box>
@@ -1039,7 +1042,6 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               <Box>
                 <Stack direction="row" alignItems="center" spacing={0.75}>
                   <Typography sx={{ fontWeight: 800, color: 'text.primary', lineHeight: 1.1 }}>{selected.patient?.fullName}</Typography>
-                  {selected.code && <Chip size="small" label={selected.code} sx={{ height: 18, fontSize: 10, bgcolor: '#0f3d3a', color: '#fff', fontWeight: 700, fontFamily: 'monospace' }} />}
                   {risk?.result && (() => { const rl = risk.result.riskLevel; const rc = rl === 'high' ? '#dc2626' : rl === 'moderate' ? '#ea580c' : '#16a34a'; return <Chip size="small" label={`Risco: ${riskLabel(rl)}`} sx={{ height: 18, fontSize: 10, bgcolor: rc, color: '#fff', fontWeight: 700 }} />; })()}
                 </Stack>
                 <Typography variant="caption" sx={{ color: 'text.secondary' }}>{[selected.age != null ? `${selected.age} anos` : null, selected.sex === 'female' ? 'Feminino' : selected.sex === 'male' ? 'Masculino' : null, selected.patient?.relationship, selected.convenio || 'Particular', selected.latestWeight ? `${selected.latestWeight.value} kg` : null].filter(Boolean).join(' • ')}</Typography>

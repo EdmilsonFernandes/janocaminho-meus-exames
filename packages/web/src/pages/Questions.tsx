@@ -90,18 +90,8 @@ export const QuestionsPage = () => {
         Suas perguntas enviadas aos médicos e as respostas — num só lugar.
       </Typography>
 
-      {/* Direito de perguntas: X em aberto de Y por médico. Tangível (antes o +1 do 'Atendi' não
-          aparecia em lugar nenhum). Ao receber resposta, o espaço libera. */}
-      {shares.length > 0 && (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap', p: 1, px: 1.25, borderRadius: 2, bgcolor: 'rgba(32,178,170,.06)', border: '1px solid rgba(32,178,170,.15)', mb: 2 }}>
-          <Typography variant="caption" sx={{ fontWeight: 700, color: TEAL }}>{translate('q.open_label')}</Typography>
-          {shares.map((s: any) => {
-            const open = Number(s.openQuestions ?? 0); const max = Number(s.questionLimit ?? 5);
-            return <Chip key={s.doctorId ?? s.doctor?.id} size="small" label={`${s.doctor?.name ?? s.name}: ${open}/${max}`} sx={{ fontWeight: 600, bgcolor: open >= max ? '#fee2e2' : 'rgba(32,178,170,.1)', color: open >= max ? '#b91c1c' : TEAL }} />;
-          })}
-          <Typography variant="caption" color="text.secondary">{translate('q.open_hint')}</Typography>
-        </Box>
-      )}
+      {/* (Box "perguntas em aberto" removido — redundante: os agrupamentos por médico abaixo já
+          trazem o contador open/max por médico.) */}
 
       {/* Filtros */}
       {items.length > 0 && (
@@ -118,8 +108,8 @@ export const QuestionsPage = () => {
                 {doctors.map((d: any) => <MenuItem key={d?.id} value={d?.id}>{d?.name}</MenuItem>)}
               </Select>
             </FormControl>
-            <TextField type="date" size="small" label={translate('q.from')} value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} InputLabelProps={{ shrink: true }} sx={{ width: 120 }} />
-            <TextField type="date" size="small" label={translate('q.to')} value={dateTo} onChange={(e) => setDateTo(e.target.value)} InputLabelProps={{ shrink: true }} sx={{ width: 120 }} />
+            <TextField type="date" size="small" label={translate('q.from')} value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} InputLabelProps={{ shrink: true }} sx={{ minWidth: 150, flex: 1 }} />
+            <TextField type="date" size="small" label={translate('q.to')} value={dateTo} onChange={(e) => setDateTo(e.target.value)} InputLabelProps={{ shrink: true }} sx={{ minWidth: 150, flex: 1 }} />
           </Stack>
         </Stack>
       )}
@@ -139,7 +129,7 @@ export const QuestionsPage = () => {
             const share = shares.find((s: any) => s.doctorId === doc?.id || s.doctor?.id === doc?.id);
             const openQ = Number(share?.openQuestions ?? 0); const maxQ = Number(share?.questionLimit ?? 5);
             return (
-              <Accordion key={doc?.id ?? '_'} defaultExpanded elevation={0} sx={{ '&:before': { display: 'none' }, border: '1px solid', borderColor: 'divider', borderRadius: '12px !important', overflow: 'hidden' }}>
+              <Accordion key={doc?.id ?? '_'} elevation={0} sx={{ '&:before': { display: 'none' }, border: '1px solid', borderColor: 'divider', borderRadius: '12px !important', overflow: 'hidden' }}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '52px !important', '& .MuiAccordionSummary-content': { my: 0.75 } }}>
                   <Stack direction="row" alignItems="center" spacing={1.5} sx={{ flex: 1, minWidth: 0 }}>
                     <Avatar src={doc?.photoUrl ? doctorPhotoUrl(doc.id, 0) : undefined} sx={{ width: 40, height: 40, bgcolor: TEAL, fontSize: 15, fontWeight: 700, flexShrink: 0 }}>{(doc?.name || 'M').charAt(0)}</Avatar>

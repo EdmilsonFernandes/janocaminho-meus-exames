@@ -6,6 +6,7 @@ import {
 import { issueOtp, verifyOtp, canIssueOtp } from '../auth/otp';
 import { requireAuth, AuthedRequest, firstPatientId } from '../middleware/auth';
 import { sendEmail } from '../utils/mailer';
+import { savePatientPhoto } from '../utils/storage';
 import { otpEmail, resetEmail } from '../utils/emailTemplate';
 import { getSettings } from '../utils/settings';
 import { evaluateMfaOnLogin, verifyChallenge, getStatus as mfaStatus, startSetup as mfaStart, confirmSetup as mfaConfirm, disableMfa as mfaDisable } from '../utils/mfa';
@@ -52,6 +53,18 @@ async function notifyNewUser(name: string, email: string) {
       html: `<div style="font-family:Segoe UI,Arial,sans-serif;color:#15233b"><h3 style="color:#178f89">Novo usuário 🎉</h3><p><b>Nome:</b> ${name}</p><p><b>E-mail:</b> ${email}</p><p style="color:#888;font-size:12px;margin-top:16px">Notificação automática — toda conta criada chega aqui.</p></div>`,
     });
   } catch (e: any) { console.error('[notifyNewUser] falhou:', e?.message); }
+}
+
+/** Baixa a foto do Google, comprime (optimizeAvatar) e salva no storage (S3/disco) igual a um
+ *  upload manual. Best-effort: falhou → null (avatar fica vazio, usa a inicial). Evita salvar a
+ *  URL bruta do googleusercontent (multi-MB) que deixava a foto pesada e quebrava o handler de foto. */
+async function persistGoogleAvatar(patientId: string, url: string): Promise<string | null> {
+  try {
+    const resp = await fetch(url);
+    if (!resp.ok) return null;
+    const buf = Buffer.from(await resp.arrayBuffer());
+    return await savePatientPhoto(patientId, patientId, buf, 'image/jpeg');
+  } catch (e: any) { console.error('[persistGoogleAvatar] falhou:', e?.message); return null; }
 }
 
 // LOGIN (react-admin envia {username, password})
@@ -141,7 +154,10 @@ router.post('/google', async (req, res, next) => {
     const existing = await prisma.user.findUnique({ where: { email: mail } });
     if (existing) {
       if (existing.blocked) { res.status(403).json({ error: 'Identificamos um problema com a sua conta. Para resolver, entre em contato: contato@janocaminho.com.br' }); return; }
-      if (picture) await prisma.patient.updateMany({ where: { ownerId: existing.id, photoUrl: null }, data: { photoUrl: picture } }).catch(() => {});
+      if (picture) {
+        const pat = await prisma.patient.findFirst({ where: { ownerId: existing.id, photoUrl: null } });
+        if (pat) { const key = await persistGoogleAvatar(pat.id, picture); if (key) await prisma.patient.update({ where: { id: pat.id }, data: { photoUrl: key } }).catch(() => {}); }
+      }
       void audit('LOGIN_SUCCESS', req, { actorType: 'USER', actorId: existing.id, targetType: 'USER', targetId: existing.id, after: { via: 'google', email: existing.email, role: existing.role } });
       // Mesma shape do /login (token + user + patientId). Sem user, o front não popula
       // localStorage.user → perde a role (ex.: ADMIN) e o drawer fica "Olá" sem nome.
@@ -160,13 +176,19 @@ router.post('/google', async (req, res, next) => {
       const created = await tx.user.create({
         data: { email: mail, name: String(name), passwordHash: 'google-oauth', credits: 0, emailVerified: true, referralCode },
       });
-      await tx.patient.create({ data: { ownerId: created.id, fullName: String(name), relationship: 'Titular', photoUrl: picture } });
+      await tx.patient.create({ data: { ownerId: created.id, fullName: String(name), relationship: 'Titular', photoUrl: null } });
       return created;
     });
     // Bônus de boas-vindas (Google já verificou o e-mail → dá na hora, sem OTP). Re-busca p/ refletir credits.
     const bonus = getSettings().grants?.freeSignup ?? 60;
     const refreshed = await prisma.user.update({ where: { id: user.id }, data: { credits: { increment: bonus } } }).catch(() => user);
     void audit('REGISTER', req, { actorType: 'USER', actorId: user.id, targetType: 'USER', targetId: user.id, after: { via: 'google', email: user.email } });
+    void notifyNewUser(String(name), mail); // avisa o dono (igual /register) — antes só email/senha disparava.
+    // Avatar do Google → baixa + comprime + S3 (não salva URL bruta pesada). Best-effort, não bloqueia cadastro.
+    if (picture) {
+      const pat = await prisma.patient.findFirst({ where: { ownerId: user.id } });
+      if (pat) { const key = await persistGoogleAvatar(pat.id, picture); if (key) await prisma.patient.update({ where: { id: pat.id }, data: { photoUrl: key } }).catch(() => {}); }
+    }
     const { token, patientId } = await issueSession(refreshed.id);
     res.status(201).json({ token, user: { id: refreshed.id, email: refreshed.email, name: refreshed.name, role: refreshed.role, planExpiresAt: refreshed.planExpiresAt, credits: refreshed.credits }, patientId, isNew: true });
   } catch (e) { next(e); }

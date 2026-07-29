@@ -50,7 +50,9 @@ describe('POST /api/auth/google', () => {
     expect(dbUser?.credits).toBeGreaterThan(0); // bônus freeSignup aplicado
     const titular = await prisma.patient.findFirst({ where: { ownerId: dbUser!.id } });
     expect(titular?.relationship).toBe('Titular');
-    expect(titular?.photoUrl).toBe('https://img/x.png');
+    // Avatar do Google agora é baixado+comprimido (persistGoogleAvatar) — NÃO salva mais a URL
+    // bruta do googleusercontent. No teste o fetch da URL fake falha → photoUrl fica null.
+    expect(titular?.photoUrl).not.toBe('https://img/x.png');
   });
 
   it('400 se credential ausente; 403 se user bloqueado', async () => {
