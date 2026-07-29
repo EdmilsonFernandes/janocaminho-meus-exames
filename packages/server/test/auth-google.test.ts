@@ -65,4 +65,19 @@ describe('POST /api/auth/google', () => {
     const blocked = await api().post('/api/auth/google').send({ credential: googleCredential({ email: 'bloq@exemplo.com', name: 'Bloqueado' }) });
     expect(blocked.status).toBe(403);
   });
+
+  it('ANTI-BOT: bloqueia signup Google c/ padrão gerado (nome.NNNNN@gmail.com) → 403', async () => {
+    // Padrao do bot farm: firstnameLastname.5digitos@gmail.com via Google OAuth (auto-verifica email).
+    const bot = await api().post('/api/auth/google').send({ credential: googleCredential({ email: 'philnewman.37517@gmail.com', name: 'Phil Newman' }) });
+    expect(bot.status).toBe(403);
+    // nenhum user criado
+    const exists = await prisma.user.findUnique({ where: { email: 'philnewman.37517@gmail.com' } });
+    expect(exists).toBeNull();
+  });
+
+  it('ANTI-BOT: Gmail normal (sem 5+ dígitos após ponto) passa — não dá falso-positivo', async () => {
+    const ok = await api().post('/api/auth/google').send({ credential: googleCredential({ email: 'joao.silva@gmail.com', name: 'Joao Silva' }) });
+    expect(ok.status).toBe(201);
+    expect(ok.body.isNew).toBe(true);
+  });
 });

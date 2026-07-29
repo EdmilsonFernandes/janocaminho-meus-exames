@@ -169,6 +169,26 @@ router.post('/google', async (req, res, next) => {
       res.json({ token, user: { id: existing.id, email: existing.email, name: existing.name, role: existing.role, planExpiresAt: existing.planExpiresAt, credits: existing.credits }, patientId });
       return;
     }
+    // ANTI-BOT no signup Google (vetor favorito de farm: o Google auto-verifica o e-mail, dispensa
+    // clique de confirmação → criação em massa barata). Bloqueia quando:
+    //  (a) email com padrão gerado "XXXX.NNNNN@gmail.com" (letra + ponto + 5+ dígitos — os bots usam
+    //      firstnameLastname.5digitos; usuário real raramente tem 5+ dígitos após um ponto antes do @); OU
+    //  (b) mesmo User-Agent criando >=3 contas em 24h (onda de bot, mesmo device/emulador).
+    // Usuário real NÃO é afetado (não cadastra de datacenter nem cria dezenas de contas do mesmo aparelho).
+    const ua = String(req.headers['user-agent'] || '');
+    const botEmail = /[a-z]\.[0-9]{5,}@gmail\.com$/i.test(mail);
+    let recentSameUa = 0;
+    try {
+      recentSameUa = await prisma.auditLog.count({
+        where: { action: 'REGISTER', userAgent: ua, createdAt: { gte: new Date(Date.now() - 86_400_000) } },
+      });
+    } catch { /* audit indisponível → só usa o padrão de email */ }
+    if (botEmail || recentSameUa >= 3) {
+      void audit('BOT_BLOCKED', req, { actorType: 'USER', actorId: 'google-signup', targetType: 'USER', targetId: mail, after: { via: 'google', email: mail, ua: ua.slice(0, 80), reason: botEmail ? 'email_pattern' : 'velocity', recentSameUa } });
+      res.status(403).json({ error: 'Não conseguimos concluir este cadastro agora. Se é você mesmo, entre em contato: contato@janocaminho.com.br' });
+      return;
+    }
+
     // Novo usuário — Google já verificou o e-mail. Cria sem CPF (pede depois no profile.complete).
     const firstName = String(name).split(' ')[0].toUpperCase().replace(/[^A-Z]/g, '').slice(0, 10) || 'USER';
     let referralCode = '';
