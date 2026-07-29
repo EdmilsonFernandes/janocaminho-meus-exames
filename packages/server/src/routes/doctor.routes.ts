@@ -585,7 +585,7 @@ router.get('/patients/:patientId/evolution', requireDoctor, async (req: any, res
     if (!share?.scopes.includes('evolution')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     const raw = await prisma.examItem.findMany({
       where: { exam: { patientId: req.params.patientId, status: 'EXTRACTED', ...(share.examIds?.length ? { id: { in: share.examIds } } : {}) }, valueNumeric: { not: null } },
-      select: { name: true, nameCanonical: true, valueNumeric: true, unit: true, flag: true, isAbnormal: true, refLow: true, refHigh: true, exam: { select: { performedAt: true } } },
+      select: { name: true, nameCanonical: true, valueNumeric: true, unit: true, flag: true, isAbnormal: true, refLow: true, refHigh: true, exam: { select: { performedAt: true, sourceLab: true } } },
       orderBy: { exam: { performedAt: 'desc' } }, take: 300,
     });
     // Dedup por (analito + DIA) — mantém só a última do dia (igual patient-side item.routes L123).

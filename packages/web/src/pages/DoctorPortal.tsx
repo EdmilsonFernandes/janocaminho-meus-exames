@@ -548,7 +548,8 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const examsByYear = useMemo(() => {
     const map = new Map<number, any[]>();
     for (const ex of exams) { const y = ex.performedAt ? new Date(ex.performedAt).getFullYear() : 0; if (!map.has(y)) map.set(y, []); map.get(y)!.push(ex); }
-    return [...map.entries()].sort((a, b) => b[0] - a[0]).map(([year, items]) => ({ year, items }));
+    // Dentro de cada ano: mais recente primeiro (raciocínio clínico — médico pensa cronológico).
+    return [...map.entries()].sort((a, b) => b[0] - a[0]).map(([year, items]) => ({ year, items: items.sort((x, y) => new Date(y.performedAt || 0).getTime() - new Date(x.performedAt || 0).getTime()) }));
   }, [exams]);
 
   // Comparativo "melhorou/piorou" (#2): delta % de cada analito entre o exame mais recente e o
@@ -1372,31 +1373,34 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                   <Stack spacing={1.5}>
                     {exams.length === 0 && <Empty label="Sem exames extraídos." />}
                     {examsByYear.map((g) => (
-                      <Accordion key={g.year} defaultExpanded={g.year === examsByYear[0]?.year} disableGutters elevation={0} sx={{ '&:before': { display: 'none' }, border: '1px solid', borderColor: 'divider', borderRadius: '12px !important', overflow: 'hidden' }}>
-                        <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: 'rgba(32,178,170,0.08)', minHeight: '48px !important', '& .MuiAccordionSummary-content': { my: 0.75 } }}>
-                          <Typography sx={{ fontWeight: 800, color: 'text.primary' }}>{g.year === 0 ? 'Sem data' : g.year}</Typography>
-                          <Chip size="small" label={g.items.length} sx={{ ml: 1, bgcolor: 'rgba(32,178,170,0.15)', color: TEAL, fontWeight: 700, height: 20 }} />
-                        </AccordionSummary>
-                        <AccordionDetails sx={{ p: 1.25 }}>
-                          <Stack spacing={1}>
-                            {g.items.map((ex) => (
-                              <Card key={ex.id} variant="outlined" onClick={() => openExam(ex)} sx={{ borderRadius: 2.5, borderColor: 'divider', cursor: 'pointer', transition: 'all .15s', '&:hover': { borderColor: TEAL, boxShadow: '0 4px 12px rgba(32,178,170,.1)' } }}><CardContent sx={{ py: 1.25, '&:last-child': { pb: 1.25 } }}>
-                                <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1.5}>
-                                  <Box sx={{ flex: '1 1 auto', minWidth: 0 }}>
+                      <Box key={g.year} sx={{ mb: 2 }}>
+                        {/* Cabeçalho de ano LEVE (não colapsável) — médico escaneia topo→base, mais recente primeiro. Antes era Accordion (clique extra p/ abrir). */}
+                        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+                          <Typography sx={{ fontWeight: 800, color: 'text.primary', fontSize: 14 }}>{g.year === 0 ? 'Sem data' : g.year}</Typography>
+                          <Chip size="small" label={g.items.length} sx={{ bgcolor: 'rgba(32,178,170,0.15)', color: TEAL, fontWeight: 700, height: 18 }} />
+                        </Stack>
+                        <Stack spacing={1}>
+                          {g.items.map((ex) => (
+                            <Card key={ex.id} variant="outlined" onClick={() => openExam(ex)} sx={{ borderRadius: 2.5, borderColor: 'divider', cursor: 'pointer', transition: 'all .15s', '&:hover': { borderColor: TEAL, boxShadow: '0 4px 12px rgba(32,178,170,.1)' } }}><CardContent sx={{ py: 1.25, '&:last-child': { pb: 1.25 } }}>
+                              <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1.5}>
+                                <Box sx={{ flex: '1 1 auto', minWidth: 0 }}>
+                                  <Stack direction="row" spacing={0.5} alignItems="center" useFlexGap sx={{ flexWrap: 'wrap', rowGap: 0.5, mb: 0.25 }}>
                                     <Typography sx={{ fontWeight: 700, color: 'text.primary' }}>{ex.title}</Typography>
-                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>{fmtDate(ex.performedAt)}{ex.sourceLab ? ` • ${ex.sourceLab}` : ''} • {ex._count?.items ?? 0} itens{ex.requestingDoctor ? ` • Dr. ${ex.requestingDoctor}` : ''}</Typography>
-                                  </Box>
-                                  <Box sx={{ flexShrink: 0, pt: 0.25 }}>
-                                    {ex.items?.length > 0 ? <Chip size="small" color="error" label={`${ex.items.length} alterado`} sx={{ fontWeight: 700, height: 20, whiteSpace: 'nowrap' }} /> : <Chip size="small" label="normal" sx={{ bgcolor: '#dcfce7', color: '#15803d', fontWeight: 700, height: 20, whiteSpace: 'nowrap' }} />}
-                                  </Box>
-                                </Stack>
-                                {ex.items?.length > 0 && <Box sx={{ mt: 0.75, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>{ex.items.slice(0, 6).map((it: any, i: number) => <Chip key={i} size="small" color="error" variant="outlined" label={`${it.name}: ${it.valueText}`} sx={{ height: 20, fontSize: 10 }} />)}</Box>}
-                                <Typography variant="caption" sx={{ display: 'block', mt: 0.75, color: TEAL, fontWeight: 700 }}>Toque para ver todos os itens →</Typography>
-                              </CardContent></Card>
-                            ))}
-                          </Stack>
-                        </AccordionDetails>
-                      </Accordion>
+                                    {/* LAB em destaque (médico: referência varia por lab → tem que saber qual de cara) */}
+                                    {ex.sourceLab && <Chip size="small" label={`🧪 ${ex.sourceLab}`} title="Laboratório (faixa de referência deste exame é a deste lab)" sx={{ height: 18, fontSize: 10, bgcolor: 'rgba(32,178,170,.12)', color: TEAL, fontWeight: 700 }} />}
+                                  </Stack>
+                                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>{fmtDate(ex.performedAt)} • {ex._count?.items ?? 0} itens{ex.requestingDoctor ? ` • Dr. ${ex.requestingDoctor}` : ''}</Typography>
+                                </Box>
+                                <Box sx={{ flexShrink: 0, pt: 0.25 }}>
+                                  {ex.items?.length > 0 ? <Chip size="small" color="error" label={`${ex.items.length} alterado`} sx={{ fontWeight: 700, height: 20, whiteSpace: 'nowrap' }} /> : <Chip size="small" label="normal" sx={{ bgcolor: '#dcfce7', color: '#15803d', fontWeight: 700, height: 20, whiteSpace: 'nowrap' }} />}
+                                </Box>
+                              </Stack>
+                              {ex.items?.length > 0 && <Box sx={{ mt: 0.75, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>{ex.items.slice(0, 6).map((it: any, i: number) => <Chip key={i} size="small" color="error" variant="outlined" label={`${it.name}: ${it.valueText}`} sx={{ height: 20, fontSize: 10 }} />)}</Box>}
+                              <Typography variant="caption" sx={{ display: 'block', mt: 0.75, color: TEAL, fontWeight: 700 }}>Toque para ver todos os itens →</Typography>
+                            </CardContent></Card>
+                          ))}
+                        </Stack>
+                      </Box>
                     ))}
                   </Stack>
                 )}
@@ -1424,7 +1428,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                                 <Box key={i} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1, px: 1, py: 0.75, borderBottom: i < ex.items.length - 1 ? '1px solid #fde8e8' : 'none' }}>
                                   <Box sx={{ minWidth: 0 }}>
                                     <Typography sx={{ fontWeight: 700, fontSize: 13.5, color: '#b91c1c' }}>{it.name}</Typography>
-                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>{refLabel(it)}</Typography>
+                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>Ref.: {refLabel(it)}</Typography>
                                   </Box>
                                   <Typography sx={{ fontWeight: 800, color: '#b91c1c', flexShrink: 0 }}>{it.valueText}</Typography>
                                 </Box>
@@ -1631,8 +1635,11 @@ const DoctorExamDetail = ({ exam, detail, patientId, token, onBack }: { exam: an
       <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1.5 }}>
         {/* Voltar só no header (←) do portal — um botão só */}
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography sx={{ fontWeight: 800, color: 'text.primary' }}>{detail?.title || exam.title}</Typography>
-          <Typography variant="caption" sx={{ color: 'text.secondary' }}>{detail?.performedAt ? new Date(detail.performedAt).toLocaleDateString('pt-BR') : 's/d'}{detail?.sourceLab ? ` • ${detail.sourceLab}` : ''}{detail ? ` • ${items.length} itens` : ''}</Typography>
+          <Stack direction="row" spacing={0.5} alignItems="center" useFlexGap sx={{ flexWrap: 'wrap', rowGap: 0.5 }}>
+            <Typography sx={{ fontWeight: 800, color: 'text.primary' }}>{detail?.title || exam.title}</Typography>
+            {detail?.sourceLab && <Chip size="small" label={`🧪 ${detail.sourceLab}`} title="Laboratório de referência" sx={{ height: 18, fontSize: 10, bgcolor: 'rgba(32,178,170,.12)', color: TEAL, fontWeight: 700 }} />}
+          </Stack>
+          <Typography variant="caption" sx={{ color: 'text.secondary' }}>{detail?.performedAt ? new Date(detail.performedAt).toLocaleDateString('pt-BR') : 's/d'}{detail ? ` • ${items.length} itens` : ''}{detail?.sourceLab ? ' • faixas de referência deste laboratório' : ''}</Typography>
         </Box>
         {detail?.filePath && <Button size="small" variant="outlined" startIcon={pdfLoading ? <CircularProgress size={16} color="inherit" /> : <PdfIcon />} onClick={openPdf} sx={{ color: TEAL, borderColor: TEAL, textTransform: 'none', fontWeight: 700, borderRadius: 99, flexShrink: 0 }}>PDF</Button>}
       </Stack>
@@ -1650,7 +1657,7 @@ const DoctorExamDetail = ({ exam, detail, patientId, token, onBack }: { exam: an
               <Box key={it.id || idx} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 1.5, py: 1, borderBottom: idx < g.items.length - 1 ? '1px solid' : 'none', borderBottomColor: idx < g.items.length - 1 ? 'divider' : undefined }}>
                 <Box sx={{ minWidth: 0, pr: 1 }}>
                   <Typography sx={{ fontSize: 13.5, fontWeight: it.isAbnormal ? 700 : 500, color: it.isAbnormal ? '#b91c1c' : 'text.primary' }}>{it.name}</Typography>
-                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>{refLabel(it)}</Typography>
+                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>Ref.: {refLabel(it)}</Typography>
                 </Box>
                 <Stack direction="row" spacing={1} alignItems="center" sx={{ flexShrink: 0 }}>
                   <Typography sx={{ fontWeight: 800, fontSize: 14, color: it.isAbnormal ? '#b91c1c' : 'text.primary' }}>{it.valueText ?? '—'}</Typography>
@@ -1765,15 +1772,16 @@ const EvolutionCharts = ({ items }: { items: any[] }) => {
   const groups = useMemo(() => {
     const now = Date.now();
     const cutoff = period === '6m' ? now - 180 * 86400000 : period === '1y' ? now - 365 * 86400000 : 0;
-    const map = new Map<string, { name: string; unit: string | null; refLow: number | null; refHigh: number | null; points: { date: string; ts: number; value: number; abnormal: boolean }[] }>();
+    const map = new Map<string, { name: string; unit: string | null; refLow: number | null; refHigh: number | null; labs: Set<string>; points: { date: string; ts: number; value: number; abnormal: boolean }[] }>();
     for (const it of items) {
       const ts = it.exam?.performedAt ? new Date(it.exam.performedAt).getTime() : 0;
       if (ts < cutoff) continue;
       const key = it.nameCanonical || it.name;
-      if (!map.has(key)) map.set(key, { name: it.name, unit: it.unit ?? null, refLow: it.refLow ?? null, refHigh: it.refHigh ?? null, points: [] });
+      if (!map.has(key)) map.set(key, { name: it.name, unit: it.unit ?? null, refLow: it.refLow ?? null, refHigh: it.refHigh ?? null, labs: new Set<string>(), points: [] });
+      if (it.exam?.sourceLab) map.get(key)!.labs.add(it.exam.sourceLab);
       map.get(key)!.points.push({ date: it.exam?.performedAt ? new Date(it.exam.performedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : 's/d', ts, value: it.valueNumeric, abnormal: !!it.isAbnormal });
     }
-    return [...map.values()].map((g) => ({ ...g, points: g.points.sort((a, b) => a.ts - b.ts) })).filter((g) => g.points.length >= 1);
+    return [...map.values()].map((g) => ({ ...g, labs: [...g.labs], multiLab: g.labs.size > 1, points: g.points.sort((a, b) => a.ts - b.ts) })).filter((g) => g.points.length >= 1);
   }, [items, period]);
 
   // Status do analito = último valor fora da faixa (out) / em movimento (change) / estável.
@@ -1861,6 +1869,13 @@ const EvolutionCharts = ({ items }: { items: any[] }) => {
                     <Typography sx={{ fontWeight: 700, color: 'text.primary', fontSize: 14 }}>{STATUS_META_EVO[statusOf(g)].emoji} {g.name}</Typography>
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>{refLabel(g)}</Typography>
                   </Stack>
+                  {/* AVISO MULTI-LAB: referências/métodos variam por laboratório. Se a série do analito
+                      mistura labs, a zona de referência (de UM lab) pode não valer p/ todos os pontos. */}
+                  {g.multiLab && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.75, px: 1, py: 0.4, borderRadius: 1.5, bgcolor: 'rgba(245,158,11,.10)', color: '#92400e', fontSize: 11.5, fontWeight: 600 }}>
+                      <Box component="span">⚠️</Box><Box sx={{ minWidth: 0 }}>Série mistura labs ({(g.labs as string[]).join(', ')}) — referências/métodos podem diferir. Compare com cuidado.</Box>
+                    </Box>
+                  )}
                   <Box sx={{ height: g.points.length >= 2 ? 110 : 'auto', width: '100%' }}>
                     {g.points.length >= 2 ? (
                       <ResponsiveContainer width="100%" height="100%">
