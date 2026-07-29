@@ -47,7 +47,7 @@ describe('POST /api/auth/google', () => {
 
     const dbUser = await prisma.user.findUnique({ where: { email: 'novo@exemplo.com' } });
     expect(dbUser?.emailVerified).toBe(true);
-    expect(dbUser?.credits).toBeGreaterThan(0); // bônus freeSignup aplicado
+    expect(dbUser?.credits).toBe(0); // créditos agora só após 1º exame extraído (anti-farm)
     const titular = await prisma.patient.findFirst({ where: { ownerId: dbUser!.id } });
     expect(titular?.relationship).toBe('Titular');
     // Avatar do Google agora é baixado+comprimido (persistGoogleAvatar) — NÃO salva mais a URL

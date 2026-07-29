@@ -38,7 +38,7 @@ describe('auth + requireAuth', () => {
     expect(login.status).toBe(200);
     // créditos (grant parametrizado = 60 por default) + paciente titular + e-mail verificado
     const dbUser = await prisma.user.findUnique({ where: { email: 'fulana@exemplo.com' } });
-    expect(dbUser?.credits).toBe(60);
+    expect(dbUser?.credits).toBe(0); // créditos agora só após 1º exame extraído (anti-farm)
     expect(dbUser?.emailVerified).toBe(true);
     const titular = await prisma.patient.findFirst({ where: { ownerId: dbUser!.id } });
     expect(titular?.relationship).toBe('Titular');

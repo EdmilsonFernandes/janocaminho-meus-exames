@@ -41,7 +41,7 @@ describe('Sistema de indicação (referral)', () => {
 
     const convDepois = await prisma.user.findUnique({ where: { email: 'conv@t.com' } });
     const indDepois = await prisma.user.findUnique({ where: { email: 'ind@t.com' } });
-    expect(convDepois?.credits).toBe(getSettings().grants.freeSignup + REFERRAL_BONUS); // signup + bônus de indicação
+    expect(convDepois?.credits).toBe(REFERRAL_BONUS); // só bônus de indicação (signup removido — créditos vêm no 1º exame)
     expect(indDepois?.credits).toBe(creditsIndicadorAntes + REFERRAL_BONUS); // indicador ganhou o bônus
   });
 
