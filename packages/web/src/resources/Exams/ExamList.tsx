@@ -13,7 +13,7 @@ import LockIcon from '@mui/icons-material/Lock';
 import SearchIcon from '@mui/icons-material/Search';
 import { useNavigate } from 'react-router-dom';
 import { useSelectedPatient } from '../../patient-context';
-import { API_URL, token } from '../../config';
+import { API_URL, token, fetchPublicConfig } from '../../config';
 import { ExplainButton } from '../../components/ExplainItem';
 import { usePremium } from '../../components/PremiumGate';
 import { groupByYear } from '../../utils/groupByYear';
@@ -71,6 +71,16 @@ const ProcessingCard = ({ r, onCancel }: { r: any; onCancel?: (e: any) => void }
 const ExamCards = () => {
   const { data, isLoading, total } = useListContext<any>();
   const navigate = useNavigate();
+  // Bônus de 1º exame mostrado no empty state — só pra quem ainda NÃO recebeu (firstExamBonusGranted).
+  // freeSignup do /public/config; se já recebeu (flag do /auth/me), esconde (null).
+  const [firstBonus, setFirstBonus] = useState<number | null>(null);
+  useEffect(() => {
+    fetchPublicConfig().then((c) => setFirstBonus(c.freeSignup)).catch(() => setFirstBonus(null));
+    fetch(`${API_URL}/auth/me`, { headers: { Authorization: `Bearer ${token()}` } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d?.user?.firstExamBonusGranted) setFirstBonus(null); })
+      .catch(() => {});
+  }, []);
   const translate = useTranslate();
   const refresh = useRefresh();
   const notify = useNotify();
@@ -289,7 +299,7 @@ const ExamCards = () => {
           {dateGroups.length === 0 && processing.length === 0 && (
             filtering
               ? <EmptyState emoji="🔍" title={translate('exams.empty_search_title')} desc={translate('exams.empty_search_desc')} />
-              : <EmptyState title={translate('exams.empty_title')} desc={translate('exams.empty_desc')} cta={translate('exams.send')} onCta={() => navigate('/exams/create')} />
+              : <EmptyState title={translate('exams.empty_title')} desc={translate('exams.empty_desc')} cta={translate('exams.send')} onCta={() => navigate('/exams/create')} bonus={firstBonus ?? undefined} />
           )}
           {dateGroups.map((g) => {
             const locked = !premium && g.year !== latestYear && g.year != null;
@@ -326,7 +336,7 @@ const ExamCards = () => {
           {catGroups.length === 0 && processing.length === 0 && (
             filtering
               ? <EmptyState emoji="🔍" title={translate('exams.empty_search_title')} desc={translate('exams.empty_search_desc')} />
-              : <EmptyState title={translate('exams.empty_title')} desc={translate('exams.empty_desc')} cta={translate('exams.send')} onCta={() => navigate('/exams/create')} />
+              : <EmptyState title={translate('exams.empty_title')} desc={translate('exams.empty_desc')} cta={translate('exams.send')} onCta={() => navigate('/exams/create')} bonus={firstBonus ?? undefined} />
           )}
           {catGroups.map(({ cat: c, items }) => (
             <Accordion key={c.key} defaultExpanded={catGroups.length <= 3} disableGutters elevation={0}
@@ -349,7 +359,7 @@ const ExamCards = () => {
 export const ExamList = () => {
   const [pid] = useSelectedPatient();
   return (
-    <List key={pid} sort={{ field: 'performedAt', order: 'DESC' }} exporter={false} perPage={1000} pagination={false} filter={{ patientId: pid || 'none' }} actions={false}>
+    <List key={pid} sort={{ field: 'performedAt', order: 'DESC' }} exporter={false} perPage={1000} pagination={false} filter={{ patientId: pid || 'none' }} actions={false} empty={false}>
       <ExamCards />
     </List>
   );
