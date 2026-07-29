@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { api, resetDb, testCpf } from './helpers';
 import { prisma } from '../src/prisma';
+import { REFERRAL_BONUS } from '../src/routes/auth.routes';
+import { getSettings } from '../src/utils/settings';
 
 describe('Sistema de indicação (referral)', () => {
   beforeEach(async () => { await resetDb(); });
@@ -39,8 +41,8 @@ describe('Sistema de indicação (referral)', () => {
 
     const convDepois = await prisma.user.findUnique({ where: { email: 'conv@t.com' } });
     const indDepois = await prisma.user.findUnique({ where: { email: 'ind@t.com' } });
-    expect(convDepois?.credits).toBe(60 + 30); // signup + bônus de indicação
-    expect(indDepois?.credits).toBe(creditsIndicadorAntes + 30); // indicador ganhou 30
+    expect(convDepois?.credits).toBe(getSettings().grants.freeSignup + REFERRAL_BONUS); // signup + bônus de indicação
+    expect(indDepois?.credits).toBe(creditsIndicadorAntes + REFERRAL_BONUS); // indicador ganhou o bônus
   });
 
   it('cadastro com código INVÁLIDO → rejeita', async () => {
