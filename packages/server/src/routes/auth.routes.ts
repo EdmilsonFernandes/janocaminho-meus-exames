@@ -183,9 +183,9 @@ router.post('/google', async (req, res, next) => {
       await tx.patient.create({ data: { ownerId: created.id, fullName: String(name), relationship: 'Titular', photoUrl: null } });
       return created;
     });
-    // Bônus de boas-vindas (Google já verificou o e-mail → dá na hora, sem OTP). Re-busca p/ refletir credits.
-    const bonus = getSettings().grants?.freeSignup ?? 60;
-    const refreshed = await prisma.user.update({ where: { id: user.id }, data: { credits: { increment: bonus } } }).catch(() => user);
+    // BÔNUS REMOVIDO do cadastro — agora só após o 1º exame extraído (anti-farm de bots).
+    // Google já verificou o e-mail → ativa a conta, mas NÃO dá créditos aqui.
+    const refreshed = user;
     void audit('REGISTER', req, { actorType: 'USER', actorId: user.id, targetType: 'USER', targetId: user.id, after: { via: 'google', email: user.email } });
     void notifyNewUser(String(name), mail); // avisa o dono (igual /register) — antes só email/senha disparava.
     // Avatar do Google → baixa + comprime + S3 (não salva URL bruta pesada). Best-effort, não bloqueia cadastro.
@@ -274,12 +274,12 @@ router.post('/verify-email', async (req, res, next) => {
     if (!user) { res.status(404).json({ error: 'Conta não encontrada. Cadastre-se novamente.' }); return; }
     if (!verifyOtp(mail, code)) { res.status(401).json({ error: 'Código inválido ou expirado.' }); return; }
 
-    // REFERRAL BONUS — só aqui (depois de verificar e-mail). Bônus pra AMBOS.
-    // LIMITE: máx 10 indicações por mês (anti-abuso).
+    // REFERRAL BONUS — só aqui (depois de verificar e-mail).
+    // BÔNUS DE CADASTRO REMOVIDO — créditos agora só após o 1º exame extraído (anti-farm).
+    // Indicação continua: indicador ganha REFERRAL_BONUS quando o indicado ativa a conta.
     const REFERRAL_MONTHLY_LIMIT = 10;
-    const signupCredits = getSettings().grants.freeSignup;
-    const canClaim = await claimDeviceBonus(user.deviceId); // 1 bônus por dispositivo (anti-farm)
-    let bonusCredits = canClaim ? signupCredits : 0; // bônus de boas-vindas — só na 1ª vez no aparelho
+    const canClaim = await claimDeviceBonus(user.deviceId); // 1 bônus de INDICAÇÃO por dispositivo
+    let bonusCredits = 0; // NÃO dá créditos de signup — só bônus de indicação (se houver)
     if (canClaim && user.referredBy) {
       const referrer = await prisma.user.findFirst({ where: { referralCode: user.referredBy } });
       if (referrer) {
@@ -297,11 +297,16 @@ router.post('/verify-email', async (req, res, next) => {
           ]);
           try { await prisma.notification.create({ data: { userId: referrer.id, type: 'referral', title: '🎉 Você indicou e ganhou!', body: `${user.name} ativou a conta com seu código. +${REFERRAL_BONUS} créditos pra você!` } }); } catch {}
           console.log(`[referral] ${referrer.email} +${REFERRAL_BONUS} (${monthReferrals + 1}/${REFERRAL_MONTHLY_LIMIT} este mês)`);
-          bonusCredits = signupCredits + REFERRAL_BONUS;
+          bonusCredits = REFERRAL_BONUS; // só bônus de indicação (não + signup)
         } else {
           console.log(`[referral] ${referrer.email} atingiu limite mensal (${REFERRAL_MONTHLY_LIMIT})`);
         }
       }
+    }
+    // Bônus de indicação para o INDICADO (não o de cadastro) — mantém o incentivo de indicar amigos.
+    if (canClaim && user.referredBy && bonusCredits === 0) {
+      // Indicador não tinha espaço (limite mensal) → indicado não ganha bônus de indicação extra.
+      // Mas o bônus de 1º exame (no pipeline) ainda vale.
     }
 
     await prisma.$transaction([

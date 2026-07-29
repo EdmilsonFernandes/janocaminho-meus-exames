@@ -102,13 +102,15 @@ router.post('/', upload.single('file'), async (req: AuthedRequest, res, next) =>
     // COBRANÇA DE UPLOAD (por dependente, cota mensal — não devolve ao deletar exame):
     //   Premium ativo: primeiros premiumFreeQuota envios do mês = grátis; depois premiumCost cada.
     //   Free: freeCost créditos por envio (sempre).
+    //   EXCEÇÃO: 1º exame do usuário é GRÁTIS (sem créditos) — bônus de boas-vindas pós-extração.
     const me = await prisma.user.findUnique({ where: { id: req.userId! }, select: { planExpiresAt: true, credits: true } });
     const active = !!me?.planExpiresAt && me.planExpiresAt > new Date();
+    const isFirstExamEver = (await prisma.exam.count({ where: { patient: { ownerId: req.userId! } } })) === 0;
     const now = new Date();
     const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     const pCounter = await prisma.patient.findUnique({ where: { id: patientId }, select: { uploadMonth: true, monthlyUploadCount: true } });
     const countSoFar = pCounter?.uploadMonth === monthKey ? (pCounter?.monthlyUploadCount ?? 0) : 0;
-    const uploadCost = computeUploadCost(active, countSoFar);
+    const uploadCost = isFirstExamEver ? 0 : computeUploadCost(active, countSoFar); // 1º exame = grátis
     if (uploadCost > 0 && (!me || me.credits < uploadCost)) {
       const msg = active
         ? `Você já usou seus ${UPLOAD_RULES.premiumFreeQuota} envios grátis deste mês neste perfil. Para enviar mais, recarregue créditos (${uploadCost} por envio).`

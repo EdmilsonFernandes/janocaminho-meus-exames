@@ -178,8 +178,21 @@ async function runExtractionOnce(examId: string): Promise<void> {
       },
     });
     console.log(`[extraction] exame ${examId} extraído: ${items.length} itens (kind=${kind}, review=${reviewRequired})`);
-    // Extração por visão consome créditos (não bloqueia a ingestão mesmo sem saldo)
+    // Extração consome créditos (CREDIT_COSTS.extraction = 0 hoje, mas mantém o gate p/ futura cobrança).
     if (patient?.ownerId) { try { await chargeCredits(patient.ownerId, CREDIT_COSTS.extraction); } catch { /* não bloqueia */ } }
+
+    // BÔNUS DE 1º EXAME: concede freeSignup créditos quando o usuário extrai seu PRIMEIRO exame com sucesso.
+    // Anti-farm: bots criam conta mas não conseguem automatizar envio de PDF de exame → nunca ganham créditos.
+    if (patient?.ownerId) {
+      const userExamCount = await prisma.exam.count({ where: { patient: { ownerId: patient.ownerId }, status: 'EXTRACTED' } });
+      if (userExamCount === 1) {
+        const bonus = (await import('../utils/settings')).getSettings().grants?.freeSignup ?? 45;
+        await prisma.user.update({ where: { id: patient.ownerId }, data: { credits: { increment: bonus } } });
+        try { await prisma.creditTransaction.create({ data: { userId: patient.ownerId, delta: bonus, kind: 'first_exam_bonus', label: `Bônus: 1º exame extraído (+${bonus})` } }); } catch {}
+        try { await prisma.notification.create({ data: { userId: patient.ownerId, type: 'bonus', title: '🎁 Você ganhou ' + bonus + ' créditos!', body: 'Seu primeiro exame foi extraído com sucesso! Use seus créditos pra conversar com o Dr. Exame, gerar relatórios e perguntar ao médico.' } }); } catch {}
+        console.log(`[extraction] BÔNUS de ${bonus} créditos concedido ao user ${patient.ownerId} (1º exame extraído)`);
+      }
+    }
 
     // SPLIT: PDF c/ vários exames (datas de coleta distintas) → cria registros Exam separados p/ 2..N.
     // fileSha256 c/ sufixo "#split-N" dribla o @@unique (sem migration). Idempotente (remove splits

@@ -226,7 +226,7 @@ export const LandingPage = () => {
                 ou entre com <b style={{ color: TEAL_DARK }}>Google</b> — 1 toque, sem senha
               </Typography>
               <Stack direction="row" spacing={2.5} useFlexGap sx={{ flexWrap: 'wrap', rowGap: 1, mt: 2 }}>
-                {[`${credits} créditos grátis`, 'Leitura de risco'].map((t) => (
+                {[`${credits} créditos ao enviar seu 1º exame`, 'Leitura de risco'].map((t) => (
                   <Stack key={t} direction="row" spacing={0.5} alignItems="center">
                     <CheckCircleIcon sx={{ fontSize: 17, color: GREEN }} />
                     <Typography sx={{ color: 'text.secondary', fontSize: 13.5, fontWeight: 600 }}>{t}</Typography>

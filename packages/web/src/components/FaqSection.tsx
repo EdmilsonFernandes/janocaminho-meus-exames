@@ -29,7 +29,7 @@ const FAQ = [
   },
   {
     q: 'Preciso pagar para testar?',
-    a: 'Não. Você começa com 60 créditos grátis, sem cartão. Só assina (R$ 19,90/mês) ou compra créditos avulsos se precisar de mais análises.',
+    a: 'Não. Envie seu primeiro exame (PDF ou foto) e ganhe 45 créditos grátis, sem cartão. Use pra conversar com a IA, gerar relatórios e perguntar ao médico. Só assina (R$ 19,90/mês) ou compra créditos avulsos se precisar de mais.',
   },
   {
     q: 'Isso é um diagnóstico?',
@@ -68,7 +68,7 @@ export const FaqSection = () => {
                   <Typography sx={{ fontWeight: 700, fontSize: { xs: 15, md: 16 }, color: 'text.primary' }}>{item.q}</Typography>
                 </AccordionSummary>
                 <AccordionDetails sx={{ px: 2.5, pb: 2.25, pt: 0 }}>
-                  <Typography sx={{ fontSize: 14.5, color: 'text.secondary', lineHeight: 1.65 }}>{item.q === 'Preciso pagar para testar?' ? `Não. Você começa com ${credits} créditos grátis, sem cartão. Só assina (R$ 19,90/mês) ou compra créditos avulsos se precisar de mais análises.` : item.a}</Typography>
+                  <Typography sx={{ fontSize: 14.5, color: 'text.secondary', lineHeight: 1.65 }}>{item.q === 'Preciso pagar para testar?' ? `Não. Envie seu primeiro exame e ganhe ${credits} créditos grátis, sem cartão. Use pra conversar com a IA, gerar relatórios e perguntar ao médico.` : item.a}</Typography>
                 </AccordionDetails>
               </Accordion>
             ))}
