@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Box, Stack, Typography, Button, TextField, MenuItem, TableContainer, Paper, Table, TableHead, TableRow, TableCell, TableBody, Chip, IconButton } from '@mui/material';
+import { Box, Stack, Typography, Button, TextField, MenuItem, TableContainer, Paper, Table, TableHead, TableRow, TableCell, TableBody, Chip, IconButton, Dialog, DialogTitle, DialogContent } from '@mui/material';
 import { useNotify } from 'react-admin';
 import DownloadIcon from '@mui/icons-material/Download';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { API_URL, token } from '../../config';
@@ -49,6 +50,7 @@ export const FinanceiroTab = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [payloadRow, setPayloadRow] = useState<any | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true); setError(false);
@@ -131,6 +133,7 @@ export const FinanceiroTab = () => {
             <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" alignItems="center" sx={{ mt: 0.75 }}>
               <Chip size="small" color={statusColor[p.status] ?? 'default'} label={p.status} />
               {p.mpPaymentId && <Typography variant="caption" sx={{ fontFamily: 'monospace', color: 'text.disabled' }}>{p.mpPaymentId}</Typography>}
+              {p.rawWebhook && <IconButton size="small" onClick={() => setPayloadRow(p)} title="Ver payload do Mercado Pago"><ReceiptLongIcon sx={{ fontSize: 16, color: '#178f89' }} /></IconButton>}
             </Stack>
           </Paper>
         ))}
@@ -153,7 +156,7 @@ export const FinanceiroTab = () => {
                 <TableCell>R$ {Number(p.amount ?? 0).toFixed(2).replace('.', ',')}</TableCell>
                 <TableCell>{p.periodDays > 0 ? 'Mensal' : 'Créditos'}</TableCell>
                 <TableCell><Chip size="small" color={statusColor[p.status] ?? 'default'} label={p.status} /></TableCell>
-                <TableCell sx={{ fontSize: 11, fontFamily: 'monospace' }}>{p.mpPaymentId ?? '—'}</TableCell>
+                <TableCell sx={{ fontSize: 11, fontFamily: 'monospace' }}>{p.mpPaymentId ?? '—'} {p.rawWebhook && <IconButton size="small" onClick={() => setPayloadRow(p)} title="Ver payload do Mercado Pago"><ReceiptLongIcon sx={{ fontSize: 15, color: '#178f89' }} /></IconButton>}</TableCell>
               </TableRow>
             ))}
             {payments.length === 0 && <TableRow><TableCell colSpan={6} align="center">Nenhum pagamento.</TableCell></TableRow>}
@@ -169,6 +172,27 @@ export const FinanceiroTab = () => {
           <IconButton size="small" disabled={!data?.hasMore || loading} onClick={() => setPage((p) => p + 1)}><ChevronRightIcon fontSize="small" /></IconButton>
         </Stack>
       </Stack>
+
+      {/* Payload bruto do Mercado Pago (auditoria — disputa/reclamação de pagamento) */}
+      {payloadRow && (
+        <Dialog open onClose={() => setPayloadRow(null)} maxWidth="md" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
+          <DialogTitle sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', pb: 0.5 }}>
+            Payload do Mercado Pago
+            <Typography variant="caption" sx={{ display: 'block', fontWeight: 600, color: 'text.secondary', fontFamily: 'monospace', mt: 0.25 }}>
+              {payloadRow.user?.email ?? '—'} · MP {payloadRow.mpPaymentId ?? '—'} · {payloadRow.status}
+            </Typography>
+          </DialogTitle>
+          <DialogContent dividers>
+            {payloadRow.rawWebhook ? (
+              <Box component="pre" sx={{ margin: 0, fontSize: 12, lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontFamily: 'monospace', bgcolor: 'action.hover', p: 1.5, borderRadius: 1, maxHeight: '60vh', overflow: 'auto' }}>
+                {JSON.stringify(payloadRow.rawWebhook, null, 2)}
+              </Box>
+            ) : (
+              <Typography variant="body2" color="text.secondary">Sem payload registrado (pagamento anterior à captura, ou sem notificação do MP).</Typography>
+            )}
+          </DialogContent>
+        </Dialog>
+      )}
     </Box>
   );
 };

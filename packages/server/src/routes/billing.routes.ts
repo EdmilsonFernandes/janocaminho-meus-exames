@@ -252,6 +252,13 @@ router.post('/webhook', async (req, res) => {
       const r = await fetch(`${config.mpApiBaseUrl}/v1/payments/${paymentId}`, { headers: { Authorization: `Bearer ${config.mpAccessToken}` } });
       if (r.ok) {
         const pay: any = await r.json();
+        // AUDITORIA: grava o payload bruto do MP no Subscription (admin vê em disputa/reclamação).
+        // Captura TODOS os status (approved/pending/rejected/refunded) — não só approved.
+        const extRef = String(pay.external_reference ?? '');
+        const [subIdRef] = extRef.split('|');
+        if (subIdRef && !extRef.startsWith('doctor_sub_')) {
+          await prisma.subscription.updateMany({ where: { id: subIdRef }, data: { rawWebhook: pay, mpPaymentId: String(paymentId) } }).catch(() => {});
+        }
         if (pay.status === 'approved' && pay.external_reference) {
           // DR. EXAME PRO (médico premium) — external_reference: doctor_sub_<doctorId>
           if (String(pay.external_reference).startsWith('doctor_sub_')) {

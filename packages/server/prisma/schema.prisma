@@ -390,6 +390,7 @@ model Subscription {
   amount         Float
   periodDays     Int
   status         String   @default("PENDING") // PENDING | APPROVED | CANCELLED
+  rawWebhook     Json?    // payload bruto do Mercado Pago (auditoria — admin vê em disputa/"pagou?")
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
