@@ -141,6 +141,23 @@ async function runExtractionOnce(examId: string): Promise<void> {
     // identidade: CPF do documento é sinal forte; sem CPF confiável, cai no match por nome.
     if (raw && patient?.cpfHash) {
       raw.identityMatch = computeIdentityMatch(raw, patient);
+      // DETECÇÃO CROSS-USER (anti-fraude): se o CPF do exame NÃO bate com o paciente selecionado,
+      // checa se ele pertence a um paciente de OUTRA conta. O cpfHash é @unique global → se o hash
+      // do exame existe num paciente de outro owner, o exame é de outra pessoa (tentativa de usar
+      // exame alheio). Marca crossUser pra a UI rejeitar c/ msg clara ("pertence a outro usuário").
+      if (raw.identityMatch.method === 'cpf' && !raw.identityMatch.cpfMatch && patient.ownerId) {
+        const examCpfHash = cpfFingerprint(raw.patientCpf ?? raw.cpf ?? raw.patientCPF ?? '');
+        if (examCpfHash) {
+          const otherOwner = await prisma.patient.findFirst({
+            where: { cpfHash: examCpfHash, ownerId: { not: patient.ownerId } },
+            select: { id: true },
+          }).catch(() => null);
+          if (otherOwner) {
+            raw.identityMatch.crossUser = true;
+            raw.identityMatch.severity = 'cross_user';
+          }
+        }
+      }
     }
 
     // bloqueio suave anti-fraude: compara o nome do paciente no documento vs. perfil

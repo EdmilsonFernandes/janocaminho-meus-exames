@@ -323,9 +323,13 @@ export const ExamShow = () => {
       {cpfBlock && (
         <Card sx={{ mt: 2, borderLeft: '6px solid', borderColor: 'error.main', background: 'linear-gradient(135deg, rgba(220,38,38,.10), transparent)' }}>
           <CardContent>
-            <Typography sx={{ fontWeight: 800, color: 'error.main' }}>CPF do exame não confere</Typography>
+            <Typography sx={{ fontWeight: 800, color: 'error.main' }}>
+              {identity?.crossUser ? 'Este exame pertence a outro usuário' : 'CPF do exame não confere'}
+            </Typography>
             <Typography variant="body2" sx={{ mt: 0.5 }}>
-              O CPF detectado no documento ({identity?.docCpfMasked ?? 'não exibido'}) diverge do CPF cadastrado neste perfil ({identity?.profileCpfMasked ?? 'não exibido'}).
+              {identity?.crossUser
+                ? 'O CPF deste documento já está cadastrado em outra conta. Por segurança, este exame foi rejeitado — você não pode adicioná-lo nem gerar análise com ele.'
+                : <>O CPF detectado no documento ({identity?.docCpfMasked ?? 'não exibido'}) diverge do CPF cadastrado neste perfil ({identity?.profileCpfMasked ?? 'não exibido'}). Se o exame é de um dependente, troque o perfil no topo e envie novamente.</>}
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>Por segurança, este exame não pode gerar análise neste perfil. Exclua o exame ou acione o suporte para investigar.</Typography>
             <Box sx={{ mt: 1.5, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
