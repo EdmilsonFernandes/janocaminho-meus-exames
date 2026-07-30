@@ -10,7 +10,7 @@ export async function optimizeAvatar(buffer: Buffer): Promise<{ buffer: Buffer; 
   try {
     const optimized = await sharp(buffer, { failOn: 'none' })
       .resize({ width: 512, height: 512, fit: 'cover', position: 'centre', withoutEnlargement: true })
-      .jpeg({ quality: 80, progressive: true, mozjpeg: true })
+      .jpeg({ quality: 80, progressive: true })
       .toBuffer();
     return { buffer: optimized, contentType: 'image/jpeg' };
   } catch (e: any) {

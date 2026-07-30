@@ -1113,16 +1113,16 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                   <Box sx={{ textAlign: 'center', py: 6 }}><CircularProgress sx={{ color: TEAL }} /></Box>
                 ) : (
                   <Stack spacing={2}>
-                    {/* HEADER clínico + labs (referência varia por lab → destaque) + navegação ao Detalhe */}
+                    {/* HEADER clínico — paciente + datas (labs FICAM por exame, não agregados no topo) */}
                     <Card sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
                       <CardContent sx={{ py: 1.75, '&:last-child': { pb: 1.75 } }}>
                         <Typography sx={{ fontWeight: 800, fontSize: 18, fontFamily: 'Poppins, sans-serif' }}>{selected.patient?.fullName}</Typography>
                         <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" alignItems="center" sx={{ mt: 0.5, rowGap: 0.5 }}>
-                          {(() => {
-                            const labs = [...new Set((exams ?? []).map((e: any) => e.sourceLab).filter(Boolean))] as string[];
-                            return labs.length ? labs.slice(0, 4).map((l) => <LabBadge key={l} raw={l} />) : <Typography variant="caption" sx={{ color: 'text.secondary' }}>sem exames extraídos</Typography>;
-                          })()}
-                          {exams?.[0]?.performedAt && <Typography variant="caption" sx={{ color: 'text.secondary' }}>· último exame {new Date(exams[0].performedAt).toLocaleDateString('pt-BR')}</Typography>}
+                          {selected.patient?.clinicalProfile
+                            ? <Typography variant="caption" sx={{ color: 'text.secondary' }}>{selected.patient.clinicalProfile.slice(0, 90)}{selected.patient.clinicalProfile.length > 90 ? '…' : ''}</Typography>
+                            : (exams?.[0]?.performedAt
+                                ? <Typography variant="caption" sx={{ color: 'text.secondary' }}>último exame {new Date(exams[0].performedAt).toLocaleDateString('pt-BR')}</Typography>
+                                : <Typography variant="caption" sx={{ color: 'text.secondary' }}>sem exames extraídos</Typography>)}
                           {preVisit?.lastVisit && <Typography variant="caption" sx={{ color: 'text.secondary' }}>· última visita {new Date(preVisit.lastVisit).toLocaleDateString('pt-BR')}</Typography>}
                         </Stack>
                         {/* Navegação rápida ao DETALHE (deep-dive das tabs antigas) */}
