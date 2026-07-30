@@ -90,6 +90,7 @@ const PayCountdown = ({ expiresAt, onExpire }: { expiresAt: string; onExpire: ()
 };
 
 const SCOPE_META: Record<string, { label: string; icon: string }> = {
+  brief: { label: 'Brief', icon: '🩺' },
   risk: { label: 'Risco', icon: '🛡️' },
   exams: { label: 'Exames', icon: '📋' },
   evolution: { label: 'Evolução', icon: '📈' },
@@ -98,6 +99,14 @@ const SCOPE_META: Record<string, { label: string; icon: string }> = {
   questions: { label: 'Perguntas', icon: '❓' },
   notes: { label: 'Anotações', icon: '📝' },
 };
+
+/** Abas disponíveis = 'brief' (default de 1 tela) + 'risk'/'questions'/'notes' sempre + demais por scope.
+ *  Fonte ÚNICA (antes duplicado em render + openPatient → bug futuro garantido). */
+const computeTabs = (scopes: string[]): string[] => [
+  'brief', 'risk', 'questions',
+  ...['exams', 'alerts', 'evolution', 'summary'].filter((s) => scopes.includes(s)),
+  'notes',
+];
 
 // riskLevel (server, em inglês) -> pt-BR. Usar em TODO lugar que mostra o nível (timeline, pré-consulta).
 const RISK_LABEL: Record<string, string> = { low: 'Baixa', moderate: 'Moderada', high: 'Alta' };
@@ -276,7 +285,8 @@ const QUICK_REPLIES = [
 const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => void }) => {
   const [patients, setPatients] = useState<any[]>([]);
   const [selected, setSelected] = useState<any | null>(null);
-  const [tab, setTab] = useState('exams');
+  const [tab, setTab] = useState('brief');
+  const [showFullSummary, setShowFullSummary] = useState(false); // Brief: expandir resumo completo
   const [exams, setExams] = useState<any[]>([]);
   const [evolution, setEvolution] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -400,7 +410,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
 
   // Abas disponíveis = escopos que o paciente autorizou (e que suportamos visualmente)
   const scopes: string[] = selected?.scopes ?? [];
-  const supportedTabs = ['risk', 'questions', ...['exams', 'alerts', 'evolution', 'summary'].filter((s) => scopes.includes(s)), 'notes'];
+  const supportedTabs = computeTabs(scopes);
 
   // --- Anotações ---
   const addNote = async () => {
@@ -457,11 +467,13 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const openPatient = async (p: any) => {
     setSelected(p);
     const pScopes: string[] = p.scopes ?? [];
-    const pTabs = ['risk', 'questions', ...['exams', 'alerts', 'evolution', 'summary'].filter((s) => pScopes.includes(s)), 'notes'];
+    const pTabs = computeTabs(pScopes);
     const wantExams = pScopes.includes('exams') || pScopes.includes('alerts');
     const wantEvol = pScopes.includes('evolution');
     const wantSummary = pScopes.includes('summary');
-    setTab('risk'); // abre na Visão de risco (1-min do médico)
+    setTab('brief'); // abre no BRIEF DE CONSULTA (1 tela priorizada — antes era 'risk')
+    // doctorPrefTab: power-user pode fixar uma tela inicial (localStorage). Default: Brief.
+    try { const pref = localStorage.getItem('doctorPrefTab'); if (pref && pTabs.includes(pref) && pref !== 'brief') setTab(pref); } catch { /* */ }
     setDetailLoading(true); setExams([]); setEvolution([]); setSummaries([]); setNotes([]); setQuestions([]); setRisk(null); setRiskHistory([]); setClinicalPlan(null); setPreVisit(null); setSoap(null);
     // Paraleliza TODOS os fetches (antes eram 10 awaits em série = soma de latências, ~3s).
     // Promise.allSettled: cada um resolve/rejeita independente (um falhar não derruba os outros).
@@ -499,8 +511,17 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const genSummary = async () => {
     if (!selected) return;
     setDetailLoading(true);
-    try { const r = await fetch(`${API_URL}/doctor/patients/${selected.patient.id}/summary/generate`, { method: 'POST', headers: h }); const d = await r.json(); if (r.ok) setSummaries([{ id: d.id, createdAt: d.createdAt, contentMd: d.contentMd, userMessage: 'audience:doctor' }]); }
-    catch {}
+    try {
+      const r = await fetch(`${API_URL}/doctor/patients/${selected.patient.id}/summary/generate`, { method: 'POST', headers: h });
+      const d = await r.json();
+      if (r.ok) {
+        // Re-busca /summaries: o POST só devolve contentMd, mas o Brief de Conduta precisa do STRUCTURED
+        // (pontosAtencao, leituraFinal, perguntasParaOMedico). Re-fetch traz structured + prefere audience:doctor.
+        const fresh = await fetch(`${API_URL}/doctor/patients/${selected.patient.id}/summaries`, { headers: h });
+        if (fresh.ok) setSummaries((await fresh.json()).items ?? []);
+        else setSummaries([{ id: d.id, createdAt: d.createdAt, contentMd: d.contentMd, userMessage: 'audience:doctor' }]);
+      }
+    } catch {}
     finally { setDetailLoading(false); }
   };
   // SOAP rascunho (IA preenche, médico edita) — grátis pro médico.
@@ -1051,10 +1072,12 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
             </Stack>
 
             {/* COMMAND BAR — segmented control premium (iOS style) com contagens. Sticky. */}
-            {supportedTabs.length > 0 && (
+            {/* Barra de tabs só nas telas de DETALHE (no Brief a navegação ao detalhe é pelos chips do header) */}
+            {supportedTabs.length > 0 && tab !== 'brief' && (
               <Box sx={{ mb: 2, position: 'sticky', top: 0, zIndex: 10, bgcolor: 'transparent', py: 1, mx: -2, px: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
-                <Stack direction="row" spacing={0.5} sx={{ overflowX: 'auto', '&::-webkit-scrollbar': { display: 'none' } }}>
-                  {supportedTabs.map((s) => {
+                <Stack direction="row" spacing={0.5} alignItems="center" sx={{ overflowX: 'auto', '&::-webkit-scrollbar': { display: 'none' } }}>
+                  <Chip size="small" label="← Brief" onClick={() => setTab('brief')} sx={{ height: 24, flexShrink: 0, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(32,178,170,.10)', color: TEAL }} />
+                  {supportedTabs.filter((s) => s !== 'brief').map((s) => {
                     const on = tab === s;
                     const meta = SCOPE_META[s] || { icon: '📄', label: s };
                     const count = s === 'risk' ? (risk?.result ? 1 : 0) : s === 'exams' ? (exams?.length || 0) : s === 'alerts' ? (allAlerts?.length || 0) : s === 'notes' ? (notes?.length || 0) : s === 'summary' ? (summaries?.length || 0) : s === 'questions' ? (questions?.filter((q: any) => q.status !== 'answered').length || 0) : 0;
@@ -1074,8 +1097,164 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                       </Box>
                     );
                   })}
+                  {/* doctorPrefTab: fixa esta como tela inicial (power-user) */}
+                  <Chip size="small" variant="outlined" label={(() => { try { return localStorage.getItem('doctorPrefTab') === tab ? '📌 fixada' : '📌 fixar inicial'; } catch { return '📌 fixar inicial'; } })()} onClick={() => { try { if (localStorage.getItem('doctorPrefTab') === tab) localStorage.removeItem('doctorPrefTab'); else localStorage.setItem('doctorPrefTab', tab); } catch { /* */ } setTab(tab); }} sx={{ height: 24, flexShrink: 0, fontSize: 10.5, fontWeight: 600, borderColor: 'divider', color: 'text.secondary', '&:hover': { borderColor: TEAL } }} />
                 </Stack>
               </Box>
+            )}
+
+            {/* ══════ BRIEF DE CONSULTA (default) — 1 tela priorizada ══════
+                Promove o preVisit (antes Accordion colapsado) + conduta objetiva (structured,
+                mata o muro de texto) + top alterações + perguntas + ações. Tabs viram "Detalhe". */}
+            {tab === 'brief' && !selExam && (
+              <>
+                {detailLoading && !preVisit ? (
+                  <Box sx={{ textAlign: 'center', py: 6 }}><CircularProgress sx={{ color: TEAL }} /></Box>
+                ) : (
+                  <Stack spacing={2}>
+                    {/* HEADER clínico + labs (referência varia por lab → destaque) + navegação ao Detalhe */}
+                    <Card sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+                      <CardContent sx={{ py: 1.75, '&:last-child': { pb: 1.75 } }}>
+                        <Typography sx={{ fontWeight: 800, fontSize: 18, fontFamily: 'Poppins, sans-serif' }}>{selected.patient?.fullName}</Typography>
+                        <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" alignItems="center" sx={{ mt: 0.5, rowGap: 0.5 }}>
+                          {(() => {
+                            const labs = [...new Set((exams ?? []).map((e: any) => e.sourceLab).filter(Boolean))] as string[];
+                            return labs.length ? labs.slice(0, 4).map((l) => <Chip key={l} size="small" label={`🧪 ${l}`} title="Laboratório (faixa de referência deste lab)" sx={{ height: 20, fontSize: 10, bgcolor: 'rgba(32,178,170,.12)', color: TEAL, fontWeight: 700 }} />) : <Typography variant="caption" sx={{ color: 'text.secondary' }}>sem exames extraídos</Typography>;
+                          })()}
+                          {exams?.[0]?.performedAt && <Typography variant="caption" sx={{ color: 'text.secondary' }}>· último exame {new Date(exams[0].performedAt).toLocaleDateString('pt-BR')}</Typography>}
+                          {preVisit?.lastVisit && <Typography variant="caption" sx={{ color: 'text.secondary' }}>· última visita {new Date(preVisit.lastVisit).toLocaleDateString('pt-BR')}</Typography>}
+                        </Stack>
+                        {/* Navegação rápida ao DETALHE (deep-dive das tabs antigas) */}
+                        <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 1.25, rowGap: 0.5 }}>
+                          {supportedTabs.filter((t) => t !== 'brief').map((t) => { const m = SCOPE_META[t] || { icon: '📄', label: t }; return <Chip key={t} size="small" variant="outlined" label={`${m.icon} ${m.label}`} onClick={() => setTab(t)} sx={{ height: 24, fontSize: 11, fontWeight: 600, borderColor: 'divider', '&:hover': { borderColor: TEAL, bgcolor: 'rgba(32,178,170,.06)' } }} />; })}
+                        </Stack>
+                      </CardContent>
+                    </Card>
+
+                    {/* HERO risco + score — "este paciente tá OK?" num relance */}
+                    <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'stretch' }}>
+                      <Card sx={{ flex: 1, borderRadius: 3, borderLeft: '5px solid', borderColor: preVisit?.risk ? (preVisit.risk.riskLevel === 'high' ? '#dc2626' : preVisit.risk.riskLevel === 'moderate' ? '#ea580c' : '#16a34a') : 'divider' }}>
+                        <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
+                          <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>🛡️ LEITURA DE RISCO</Typography>
+                          {preVisit?.risk ? (
+                            <>
+                              <Typography sx={{ fontWeight: 800, fontSize: 16, color: preVisit.risk.riskLevel === 'high' ? '#dc2626' : preVisit.risk.riskLevel === 'moderate' ? '#ea580c' : '#16a34a' }}>{riskLabel(preVisit.risk.riskLevel)}</Typography>
+                              <Typography variant="body2">{preVisit.risk.conditionLabel}{preVisit.risk.trend && preVisit.risk.trend !== 'primeiro' ? ` · ${preVisit.risk.trend === 'melhorou' ? '↓ caiu' : preVisit.risk.trend === 'piorou' ? '↑ subiu' : '→ estável'}` : ''}</Typography>
+                            </>
+                          ) : <Typography variant="body2" sx={{ color: 'text.secondary' }}>Sem leitura de risco.</Typography>}
+                        </CardContent>
+                      </Card>
+                      <Card sx={{ width: 118, flexShrink: 0, borderRadius: 3, border: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <CardContent sx={{ textAlign: 'center', py: 1, '&:last-child': { pb: 1 } }}>
+                          <Typography sx={{ fontWeight: 800, fontSize: 28, lineHeight: 1, color: preVisit?.score == null ? 'text.disabled' : (preVisit.score >= 80 ? '#16a34a' : preVisit.score >= 60 ? '#ea580c' : '#dc2626') }}>{preVisit?.score ?? '—'}</Typography>
+                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>score/100</Typography>
+                        </CardContent>
+                      </Card>
+                    </Box>
+
+                    {/* TOP alterações (abnormal-first) com delta% */}
+                    {preVisit?.topIssues?.length > 0 && (
+                      <Card sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+                        <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
+                          <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>⚠️ TOP ALTERAÇÕES PRA HOJE</Typography>
+                          <Stack spacing={0.5} sx={{ mt: 0.5 }}>
+                            {preVisit.topIssues.slice(0, 5).map((issue: any, i: number) => {
+                              const lv = issue.last != null ? issue.last : (issue.lastText ?? null);
+                              const pv = issue.prev != null ? issue.prev : (issue.prevText ?? null);
+                              const u = issue.unit ? ` ${issue.unit}` : '';
+                              const vals = (lv != null || pv != null) ? `${pv ?? '—'} → ${lv ?? '—'}${u}` : '';
+                              return (
+                                <Stack key={i} direction="row" spacing={0.75} alignItems="center" useFlexGap flexWrap="wrap" sx={{ rowGap: 0.5 }}>
+                                  <Chip size="small" label={i + 1} sx={{ height: 20, width: 20, bgcolor: issue.priority === 'importante' ? '#dc262622' : issue.priority === 'moderada' ? '#ea580c22' : '#ca8a0422', color: issue.priority === 'importante' ? '#dc2626' : issue.priority === 'moderada' ? '#ea580c' : '#ca8a04', fontWeight: 800, fontSize: 11 }} />
+                                  <Typography variant="body2" sx={{ fontWeight: 700 }}>{issue.name}</Typography>
+                                  {issue.delta != null && <Chip size="small" label={`${issue.delta > 0 ? '↑' : '↓'} ${Math.abs(Math.round(issue.delta))}%`} sx={{ height: 20, fontSize: 11, bgcolor: issue.delta > 0 ? '#fef3c7' : '#dbeafe', color: issue.delta > 0 ? '#92400e' : '#1e40af', fontWeight: 700 }} />}
+                                  {vals && <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>{vals}</Typography>}
+                                </Stack>
+                              );
+                            })}
+                          </Stack>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* CONDUTA objetiva (structured — mata o muro de texto). Usa HealthSummary do DB. */}
+                    {scopes.includes('summary') && (() => {
+                      const sum = summaries?.[0];
+                      const st: any = sum?.structured;
+                      const has = st && (st.pontosAtencao?.length || st.leituraFinal || st.perguntasParaOMedico?.length);
+                      return (
+                        <Card sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+                          <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
+                            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.75 }}>
+                              <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>📋 CONDUTA SUGERIDA</Typography>
+                              {sum?.contentMd && <Chip size="small" label={showFullSummary ? 'ocultar' : 'ver completo'} variant="outlined" onClick={() => setShowFullSummary((v) => !v)} sx={{ height: 20, fontSize: 10, fontWeight: 700 }} />}
+                            </Stack>
+                            {!sum && <Button size="small" variant="contained" onClick={genSummary} disabled={detailLoading} sx={{ textTransform: 'none', bgcolor: TEAL, borderRadius: 99, fontWeight: 700 }}>Gerar resumo clínico</Button>}
+                            {sum && !has && <Typography variant="body2" sx={{ color: 'text.secondary' }}>Conduta não estruturada — toque em "ver completo".</Typography>}
+                            {has && (
+                              <Stack spacing={1}>
+                                {st.pontosAtencao?.length > 0 && (
+                                  <Box>
+                                    <Typography variant="caption" sx={{ fontWeight: 800, color: '#b45309' }}>Pontos de atenção</Typography>
+                                    <Stack spacing={0.25} sx={{ mt: 0.25 }}>
+                                      {st.pontosAtencao.slice(0, 3).map((p: any, i: number) => <Typography key={i} variant="body2">• <b>{p.titulo}</b>{p.detalhe ? ` — ${p.detalhe}` : ''}</Typography>)}
+                                    </Stack>
+                                  </Box>
+                                )}
+                                {st.leituraFinal && <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>{st.leituraFinal}</Typography>}
+                                {st.perguntasParaOMedico?.length > 0 && (
+                                  <Box>
+                                    <Typography variant="caption" sx={{ fontWeight: 800, color: TEAL }}>Perguntas pra levar à consulta</Typography>
+                                    <Stack spacing={0.25} sx={{ mt: 0.25 }}>
+                                      {st.perguntasParaOMedico.slice(0, 3).map((p: string, i: number) => <Typography key={i} variant="body2" sx={{ color: 'text.secondary' }}>• {p}</Typography>)}
+                                    </Stack>
+                                  </Box>
+                                )}
+                              </Stack>
+                            )}
+                            {showFullSummary && sum?.contentMd && <Box sx={{ mt: 1.5, pt: 1.5, borderTop: '1px solid', borderColor: 'divider' }}><Box sx={mdSx}><ReactMarkdown remarkPlugins={[remarkGfm]}>{stripMdFences(sum.contentMd)}</ReactMarkdown></Box></Box>}
+                          </CardContent>
+                        </Card>
+                      );
+                    })()}
+
+                    {/* Plano de ação (conduta rápida) — se já gerado */}
+                    {clinicalPlan && (
+                      <Card sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+                        <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
+                          <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>🎯 PLANO DE AÇÃO</Typography>
+                          <Box sx={{ ...mdSx, mt: 0.5 }}><ReactMarkdown remarkPlugins={[remarkGfm]}>{stripMdFences(clinicalPlan)}</ReactMarkdown></Box>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* PERGUNTAS em aberto do paciente */}
+                    {preVisit?.patientQuestions?.length > 0 && (
+                      <Card sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+                        <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
+                          <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>💬 PERGUNTAS DO PACIENTE NO APP</Typography>
+                          <Stack spacing={0.25} sx={{ mt: 0.5 }}>
+                            {preVisit.patientQuestions.slice(0, 3).map((qa: any, i: number) => {
+                              const days = qa.at ? Math.max(0, Math.round((Date.now() - new Date(qa.at).getTime()) / 86400000)) : null;
+                              const ago = days == null ? '' : days === 0 ? 'hoje' : days === 1 ? 'há 1 dia' : `há ${days} dias`;
+                              return <Typography key={i} variant="body2" sx={{ fontStyle: 'italic' }}>"{qa.q}"{ago && <Box component="span" sx={{ fontStyle: 'normal', fontSize: 11, color: 'text.secondary' }}> · {ago}</Box>}</Typography>;
+                            })}
+                          </Stack>
+                          <Button size="small" onClick={() => setTab('questions')} sx={{ mt: 1, textTransform: 'none', color: TEAL, fontWeight: 700, minWidth: 0 }}>Responder →</Button>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* AÇÕES rápidas */}
+                    <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ rowGap: 1 }}>
+                      <Button size="small" variant="outlined" startIcon={soapLoading ? <CircularProgress size={14} color="inherit" /> : undefined} onClick={genSoap} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, borderColor: TEAL, color: TEAL }}>SOAP (IA)</Button>
+                      <Button size="small" variant="outlined" startIcon={planLoading ? <CircularProgress size={14} color="inherit" /> : undefined} onClick={genActionPlan} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, borderColor: TEAL, color: TEAL }}>Plano de ação</Button>
+                      <Button size="small" variant="outlined" onClick={() => setTab('exams')} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, borderColor: 'divider', color: 'text.secondary' }}>Ver exames</Button>
+                      <Button size="small" variant="outlined" onClick={() => setTab('notes')} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, borderColor: 'divider', color: 'text.secondary' }}>Anotar</Button>
+                    </Stack>
+                  </Stack>
+                )}
+              </>
             )}
 
             {/* PERFIL CLÍNICO + RESUMO RÁPIDO + PERGUNTAS — só na tab Risco (não polui Exames/Evolução/etc) */}

@@ -625,12 +625,15 @@ router.get('/patients/:patientId/summaries', requireDoctor, async (req: any, res
   try {
     const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
     if (!share?.scopes.includes('summary')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
-    const items = await prisma.aiAnalysis.findMany({
+    const raw = await prisma.aiAnalysis.findMany({
       where: { patientId: req.params.patientId, type: 'SUMMARY', examId: null }, // só consolidado (ignora por-exame)
       orderBy: { createdAt: 'desc' },
-      take: 1, // só o + recente (antes take 10 → confundia o médico com vários)
+      take: 5,
       select: { id: true, contentMd: true, structured: true, createdAt: true, userMessage: true },
     });
+    // PREFERE a versão "audience:doctor" (clínica, tom médico). Antes pegava só a + recente —
+    // podia devolver o resumo LEIGO do paciente pro médico. Fallback: a + recente se só houver leigo.
+    const items = [raw.find((s) => s.userMessage === 'audience:doctor') ?? raw[0]].filter(Boolean);
     res.json({ items });
   } catch (e) { next(e); }
 });
