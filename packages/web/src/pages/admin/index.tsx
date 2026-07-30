@@ -5,6 +5,7 @@ import { Box, Typography, Stack, Chip, Drawer, List, ListItemButton, ListItemIco
 import { Title } from 'react-admin';
 import MenuIcon from '@mui/icons-material/Menu';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
+import ScienceOutlinedIcon from '@mui/icons-material/ScienceOutlined';
 import PeopleOutlinedIcon from '@mui/icons-material/PeopleOutlined';
 import MedicalServicesOutlinedIcon from '@mui/icons-material/MedicalServicesOutlined';
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
@@ -31,17 +32,19 @@ import { AuditTab } from './AuditTab';
 import { SupportTab } from './SupportTab';
 import { PricingTab } from './PricingTab';
 import { PiiTab } from './PiiTab';
+import { LabsTab } from './LabsTab';
 
 /** Backoffice Dr. Exame — ISOLADO do app do paciente (/admin é noLayout).
  *  Shell próprio (topbar + sidebar) com os 11 módulos de gestão. Sem chrome de paciente
  *  (sem MobileBottomNav, FloatingChat, menu de saúde). Guard: só ADMIN. */
-type ModuleId = 'overview' | 'users' | 'doctors' | 'exams' | 'ia' | 'risk' | 'financeiro' | 'push' | 'tech' | 'audit' | 'pii' | 'support' | 'config';
+type ModuleId = 'overview' | 'users' | 'doctors' | 'exams' | 'ia' | 'risk' | 'financeiro' | 'push' | 'tech' | 'audit' | 'pii' | 'support' | 'config' | 'labs';
 
 const MODULES: { id: ModuleId; label: string; icon: ReactElement; group: string }[] = [
   { id: 'overview', label: 'Dashboard', icon: <DashboardOutlinedIcon />, group: 'Visão geral' },
   { id: 'users', label: 'Usuários', icon: <PeopleOutlinedIcon />, group: 'Gestão' },
   { id: 'doctors', label: 'Médicos', icon: <MedicalServicesOutlinedIcon />, group: 'Gestão' },
   { id: 'exams', label: 'Exames', icon: <DescriptionOutlinedIcon />, group: 'Gestão' },
+  { id: 'labs', label: 'Laboratórios', icon: <ScienceOutlinedIcon />, group: 'Gestão' },
   { id: 'ia', label: 'IA & Alertas', icon: <AutoAwesomeOutlinedIcon />, group: 'Gestão' },
   { id: 'risk', label: 'Risco & Qualidade', icon: <AutoAwesomeOutlinedIcon />, group: 'Gestão' },
   { id: 'financeiro', label: 'Planos & Financ.', icon: <PaymentsOutlinedIcon />, group: 'Negócio' },
@@ -161,6 +164,7 @@ export const AdminPage = () => {
           {mod === 'users' && <UsersTab />}
           {mod === 'doctors' && <DoctorsTab />}
           {mod === 'exams' && <ExamsTab />}
+          {mod === 'labs' && <LabsTab />}
           {mod === 'ia' && <IaTab />}
           {mod === 'risk' && <RiskTab />}
           {mod === 'financeiro' && <FinanceiroTab />}

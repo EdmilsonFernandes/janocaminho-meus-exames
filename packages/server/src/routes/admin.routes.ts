@@ -4,7 +4,8 @@ import path from 'path';
 import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest } from '../middleware/auth';
 import { getSettings, saveSettings, type SettingCategory } from '../utils/settings';
-import { deleteExamFile, saveExamFile, resolveExamFile } from '../utils/storage';
+import { deleteExamFile, saveExamFile, resolveExamFile, saveLabLogo } from '../utils/storage';
+import { invalidateLabsCache, slugify } from './labs.routes';
 import { listBlockedDomains, addBlockedDomain, removeBlockedDomain, syncBlockedDomains } from '../utils/blockedDomains';
 import { sendPush, sendPushToUser, PUSH_TOPIC } from '../utils/push';
 import { sendEmail } from '../utils/mailer';
@@ -789,6 +790,50 @@ router.get('/tickets/:id/messages/:messageId/attachments/:idx', async (req, res,
     if (r.kind === 'url') { res.redirect(302, r.url as string); return; }
     if (r.file && fs.existsSync(r.file)) { res.sendFile(path.resolve(r.file)); return; }
     res.status(404).json({ error: 'Arquivo não disponível' });
+  } catch (e) { next(e); }
+});
+
+// ===== LABORATÓRIOS — CRUD + upload de logo (admin). O front casa sourceLab → marca por name/aliases. =====
+router.get('/labs', async (_req, res, next) => {
+  try { const labs = await prisma.lab.findMany({ orderBy: { name: 'asc' } }); res.json({ labs }); }
+  catch (e) { next(e); }
+});
+router.post('/labs', async (req: AuthedRequest, res, next) => {
+  try {
+    const { name, color, aliases, active } = req.body ?? {};
+    if (!name || !String(name).trim()) { res.status(400).json({ error: 'Informe o nome.' }); return; }
+    const lab = await prisma.lab.create({ data: { name: String(name).trim(), slug: slugify(String(name)), color: color || null, aliases: Array.isArray(aliases) ? aliases.map(String) : [], active: active !== false } });
+    invalidateLabsCache();
+    res.status(201).json({ lab });
+  } catch (e: any) { if (e?.code === 'P2002') { res.status(409).json({ error: 'Já existe um laboratório com esse nome.' }); return; } next(e); }
+});
+router.put('/labs/:id', async (req: AuthedRequest, res, next) => {
+  try {
+    const { name, color, aliases, active } = req.body ?? {};
+    const data: any = {};
+    if (name != null) { data.name = String(name).trim(); data.slug = slugify(String(name)); }
+    if (color !== undefined) data.color = color || null;
+    if (Array.isArray(aliases)) data.aliases = aliases.map(String);
+    if (active !== undefined) data.active = !!active;
+    const lab = await prisma.lab.update({ where: { id: String(req.params.id) }, data });
+    invalidateLabsCache();
+    res.json({ lab });
+  } catch (e: any) { if (e?.code === 'P2002') { res.status(409).json({ error: 'Nome em uso.' }); return; } next(e); }
+});
+router.delete('/labs/:id', async (req: AuthedRequest, res, next) => {
+  try { await prisma.lab.delete({ where: { id: String(req.params.id) } }); invalidateLabsCache(); res.json({ ok: true }); }
+  catch (e) { next(e); }
+});
+// Upload do LOGO (multipart, campo 'logo'). Sharp otimiza → S3/disco. Público (immutable).
+router.post('/labs/:id/logo', upload.single('logo'), async (req: AuthedRequest, res, next) => {
+  try {
+    const file = (req as any).file;
+    if (!file?.buffer) { res.status(400).json({ error: 'Envie a imagem no campo "logo".' }); return; }
+    const id = String(req.params.id);
+    const logoUrl = await saveLabLogo(id, file.buffer);
+    const lab = await prisma.lab.update({ where: { id }, data: { logoUrl } });
+    invalidateLabsCache();
+    res.json({ lab });
   } catch (e) { next(e); }
 });
 

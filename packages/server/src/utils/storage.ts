@@ -152,3 +152,19 @@ export async function saveDoctorPhoto(doctorId: string, buffer: Buffer, contentT
   fs.writeFileSync(local, optimized);
   return local;
 }
+
+/** Salva LOGO de laboratório — comprime com sharp (igual avatar). S3 (prod) ou disco (dev).
+ *  Logo é PÚBLICO (CacheControl public/immutable) — qualquer usuário vê (não é dado sensível). */
+export async function saveLabLogo(labId: string, buffer: Buffer): Promise<string> {
+  const { buffer: optimized } = await optimizeAvatar(buffer);
+  if (useS3()) {
+    const key = `${config.s3Prefix}labs/${labId}/logo.jpg`;
+    await s3().send(new PutObjectCommand({ Bucket: config.s3Bucket, Key: key, Body: optimized, ContentType: 'image/jpeg', CacheControl: 'public, max-age=31536000, immutable' }));
+    presignedPhotoMemo.delete(key);
+    return key;
+  }
+  fs.mkdirSync(path.join(config.photosDir, 'labs'), { recursive: true });
+  const local = path.join(config.photosDir, 'labs', `lab-${labId}.jpg`);
+  fs.writeFileSync(local, optimized);
+  return local;
+}

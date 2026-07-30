@@ -64,6 +64,21 @@ model DeviceClaim {
   @@map("device_claims")
 }
 
+// Laboratório (rede) cadastrado — admin gerencia (nome, cor de marca, logo, apelidos de unidade).
+// matchLab(sourceLab cru) casa pelos aliases/name → mostra logo/cor da marca (ex.: "SJC - Bacabal" → Sabin).
+model Lab {
+  id        String   @id @default(cuid())
+  name      String   @unique           // "Sabin" (marca/rede)
+  slug      String   @unique           // "sabin" (chave de match, lowercase sem acento)
+  color     String?                    // cor de marca (hex) — fallback se sem logo
+  logoUrl   String?                    // S3 key do logo (upload admin) — null = usa círculo c/ inicial
+  aliases   String[] @default([])      // ["sabin","sjc","posto sabin"] — variações/códigos de unidade p/ casar
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@map("labs")
+}
+
 // Conquista resgatada (gamificação): 1 crédito por badge, 1x só (anti-farm via unique).
 model AchievementGrant {
   id        String   @id @default(cuid())
