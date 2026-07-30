@@ -23,6 +23,7 @@ import { PageHeader } from '../../components/layout/PageHeader';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ListSkeleton } from '../../components/Skeleton';
 import { EmptyState } from '../../components/EmptyState';
+import { LabBadge } from '../../components/LabBadge';
 import { cleanExtractedLabel } from '../../utils/examDisplay';
 import { fmtDateShort } from '../../utils/format';
 
@@ -180,7 +181,7 @@ const ExamCards = () => {
                 <Typography component="span" sx={{ fontWeight: 700, color: 'primary.dark', fontSize: '0.78rem', lineHeight: 1 }}>{fmtDateShort(r.performedAt)}</Typography>
               </Box>
             )}
-            {labInfo.text && <Typography variant="caption" title={labInfo.original} sx={{ display: 'block', color: 'text.secondary', fontWeight: 600, lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>🏥 {labInfo.text}</Typography>}
+            {r.sourceLab && <Box sx={{ display: 'block', mb: 0.25 }}><LabBadge raw={r.sourceLab} /></Box>}
             {!labInfo.text && labInfo.suspicious && <Typography variant="caption" sx={{ display: 'block', color: 'warning.main', fontWeight: 700, lineHeight: 1.3 }}>🏥 Laboratório em revisão</Typography>}
             {doctorInfo.text && <Typography variant="caption" title={`Dr. ${doctorInfo.original}`} sx={{ display: 'block', color: 'text.secondary', fontWeight: 600, lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>🩺 Dr. {doctorInfo.text}</Typography>}
             <Typography variant="caption" color="text.secondary">{cc.cat}{r._count?.items ? ` • ${r._count.items} itens` : ''}{r.createdAt ? ` • Enviado ${new Date(r.createdAt).toLocaleDateString('pt-BR')}` : ''}</Typography>

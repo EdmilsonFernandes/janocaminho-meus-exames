@@ -66,7 +66,7 @@ Devolva EXATAMENTE este formato JSON:
   "patientCpf": "CPF do PACIENTE se constar no documento; vazio se não constar",
   "examTitle": "HEMOGRAMA COMPLETO",
   "performedAt": "12/06/2026",
-  "sourceLab": "nome do laboratório/unidade",
+  "sourceLab": "REDE/marca do laboratório (ex.: Sabin, Dasa, Fleury) — NÃO a unidade/posto/cidade",
   "requestingDoctor": "nome do médico SOLICITANTE (campo 'Médico:' no cabeçalho)",
   "panels": [
     {
@@ -151,6 +151,8 @@ DATA (PRECISÃO): performedAt = DATA DA COLETA/ATENDIMENTO do exame (dd/mm/aaaa)
 
 NOMES/CPF (PRECISÃO): patientName = nome do PACIENTE (campo "Nome:" do cabeçalho); patientCpf = CPF do paciente se constar (senão vazio); requestingDoctor = médico SOLICITANTE. NUNCA use nome/CPF de médico, assinante ou convênio.
 
+LABORATÓRIO (sourceLab) = a REDE/MARCA do laboratório (ex.: "Sabin", "Dasa", "Fleury", "Hermato", "CedImageagem", "Lavoisier", "Delboni"), procurada no cabeçalho/logotipo/rodapé. NÃO use o código/nome da UNIDADE ou POSTO de coleta nem a cidade (ex.: se vier "SJC - Bacabal", o laboratório é "Sabin"; se vier "Posto Centro", procure a marca no cabeçalho). Se só conseguir identificar a unidade sem a marca, coloque mesmo assim — mas priorize a marca.
+
 NUNCA invente valor. Se não conseguir ler com confiança, omita o analito. Agrupe em "panels" pelo título da seção.
 
 ANTI-ALUCINAÇÃO: leia SEMPRE do documento real. Se o documento estiver ilegível/vazio, devolva { "exams": [] }.
@@ -163,7 +165,7 @@ Devolva EXATAMENTE este formato JSON:
       "patientCpf": "CPF do paciente se constar; senão vazio",
       "examTitle": "HEMOGRAMA COMPLETO",
       "performedAt": "15/03/2026",
-      "sourceLab": "nome do laboratório",
+      "sourceLab": "rede/marca do laboratório (não a unidade)",
       "requestingDoctor": "médico solicitante",
       "panels": [ { "name": "HEMOGRAMA", "items": [ { "name": "HEMOGLOBINA", "valueText": "17,1 g/dL", "valueNumeric": 17.1, "unit": "g/dL", "references": [ { "appliesTo": "Homens", "lowNumeric": 13.0, "highNumeric": 16.5 } ], "page": 1 } ] } ]
     },

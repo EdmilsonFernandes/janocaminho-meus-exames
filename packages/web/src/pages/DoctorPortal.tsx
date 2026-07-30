@@ -16,6 +16,7 @@ import GroupsIcon from '@mui/icons-material/Groups';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { API_URL, photoUrlFor, doctorPhotoUrl } from '../config';
+import { LabBadge } from '../components/LabBadge';
 import { QuestionStatusBadge } from '../components/QuestionStatusBadge';
 import { confirmDialog, snackbar } from '../components/ConfirmDialog';
 import { DrExame } from '../components/DrExame';
@@ -1119,7 +1120,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                         <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" alignItems="center" sx={{ mt: 0.5, rowGap: 0.5 }}>
                           {(() => {
                             const labs = [...new Set((exams ?? []).map((e: any) => e.sourceLab).filter(Boolean))] as string[];
-                            return labs.length ? labs.slice(0, 4).map((l) => <Chip key={l} size="small" label={`🧪 ${l}`} title="Laboratório (faixa de referência deste lab)" sx={{ height: 20, fontSize: 10, bgcolor: 'rgba(32,178,170,.12)', color: TEAL, fontWeight: 700 }} />) : <Typography variant="caption" sx={{ color: 'text.secondary' }}>sem exames extraídos</Typography>;
+                            return labs.length ? labs.slice(0, 4).map((l) => <LabBadge key={l} raw={l} />) : <Typography variant="caption" sx={{ color: 'text.secondary' }}>sem exames extraídos</Typography>;
                           })()}
                           {exams?.[0]?.performedAt && <Typography variant="caption" sx={{ color: 'text.secondary' }}>· último exame {new Date(exams[0].performedAt).toLocaleDateString('pt-BR')}</Typography>}
                           {preVisit?.lastVisit && <Typography variant="caption" sx={{ color: 'text.secondary' }}>· última visita {new Date(preVisit.lastVisit).toLocaleDateString('pt-BR')}</Typography>}
@@ -1566,7 +1567,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                                   <Stack direction="row" spacing={0.5} alignItems="center" useFlexGap sx={{ flexWrap: 'wrap', rowGap: 0.5, mb: 0.25 }}>
                                     <Typography sx={{ fontWeight: 700, color: 'text.primary' }}>{ex.title}</Typography>
                                     {/* LAB em destaque (médico: referência varia por lab → tem que saber qual de cara) */}
-                                    {ex.sourceLab && <Chip size="small" label={`🧪 ${ex.sourceLab}`} title="Laboratório (faixa de referência deste exame é a deste lab)" sx={{ height: 18, fontSize: 10, bgcolor: 'rgba(32,178,170,.12)', color: TEAL, fontWeight: 700 }} />}
+                                    {ex.sourceLab && <LabBadge raw={ex.sourceLab} />}
                                   </Stack>
                                   <Typography variant="caption" sx={{ color: 'text.secondary' }}>{fmtDate(ex.performedAt)} • {ex._count?.items ?? 0} itens{ex.requestingDoctor ? ` • Dr. ${ex.requestingDoctor}` : ''}</Typography>
                                 </Box>
@@ -1816,7 +1817,7 @@ const DoctorExamDetail = ({ exam, detail, patientId, token, onBack }: { exam: an
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Stack direction="row" spacing={0.5} alignItems="center" useFlexGap sx={{ flexWrap: 'wrap', rowGap: 0.5 }}>
             <Typography sx={{ fontWeight: 800, color: 'text.primary' }}>{detail?.title || exam.title}</Typography>
-            {detail?.sourceLab && <Chip size="small" label={`🧪 ${detail.sourceLab}`} title="Laboratório de referência" sx={{ height: 18, fontSize: 10, bgcolor: 'rgba(32,178,170,.12)', color: TEAL, fontWeight: 700 }} />}
+            {detail?.sourceLab && <LabBadge raw={detail?.sourceLab} size="md" showUnit />}
           </Stack>
           <Typography variant="caption" sx={{ color: 'text.secondary' }}>{detail?.performedAt ? new Date(detail.performedAt).toLocaleDateString('pt-BR') : 's/d'}{detail ? ` • ${items.length} itens` : ''}{detail?.sourceLab ? ' • faixas de referência deste laboratório' : ''}</Typography>
         </Box>

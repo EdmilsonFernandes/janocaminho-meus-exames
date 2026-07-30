@@ -9,6 +9,7 @@ import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import { Title, useNotify } from 'react-admin';
 import { API_URL, token } from '../../config';
 import { confirmDialog } from '../../components/ConfirmDialog';
+import { LabBadge } from '../../components/LabBadge';
 import { Capacitor } from '@capacitor/core';
 import { openBlobFile } from '../../utils/nativeDoc';
 import { HealthSummary } from '../../components/HealthSummary';
@@ -289,10 +290,11 @@ export const ExamShow = () => {
             ) : (
               <Typography component="span" sx={{ fontWeight: 700, color: 'warning.main', fontSize: '0.85rem' }}>Data não identificada</Typography>
             )}
-            {(labInfo.text || labInfo.suspicious || exam.pageCount) && (
-              <Typography component="span" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
-                {labInfo.text ? labInfo.text : labInfo.suspicious ? 'laboratório em revisão' : ''}{labInfo.text && exam.pageCount ? ' · ' : ''}{exam.pageCount ? `${exam.pageCount} pág.` : ''}
-              </Typography>
+            {(exam.sourceLab || labInfo.suspicious || exam.pageCount) && (
+              <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75 }}>
+                {exam.sourceLab ? <LabBadge raw={exam.sourceLab} size="md" showUnit /> : (labInfo.suspicious ? <Typography component="span" color="warning.main" sx={{ fontSize: '0.85rem', fontWeight: 600 }}>laboratório em revisão</Typography> : null)}
+                {exam.pageCount ? <Typography component="span" color="text.secondary" sx={{ fontSize: '0.85rem' }}>{exam.pageCount} pág.</Typography> : null}
+              </Box>
             )}
           </Stack>
           {(patientInfo.text || patientInfo.suspicious || doctorInfo.text || doctorInfo.suspicious) && (
