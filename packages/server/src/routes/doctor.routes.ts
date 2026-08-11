@@ -551,7 +551,7 @@ router.get('/patients/:patientId/exams/:examId', requireDoctor, async (req: any,
     if (share.examIds?.length && !share.examIds.includes(req.params.examId)) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     const exam = await prisma.exam.findFirst({
       where: { id: req.params.examId, patientId: req.params.patientId, status: 'EXTRACTED' },
-      select: { id: true, title: true, kind: true, performedAt: true, sourceLab: true, filePath: true, items: { orderBy: { name: 'asc' }, select: { id: true, name: true, valueText: true, valueNumeric: true, unit: true, flag: true, isAbnormal: true, refLow: true, refHigh: true, refText: true } } },
+      select: { id: true, title: true, kind: true, performedAt: true, sourceLab: true, filePath: true, pageCount: true, rawExtraction: true, items: { orderBy: { name: 'asc' }, select: { id: true, name: true, nameCanonical: true, panel: true, valueText: true, valueNumeric: true, unit: true, flag: true, isAbnormal: true, refLow: true, refHigh: true, refText: true, extractedPage: true } } },
     });
     if (!exam) { res.status(404).json({ error: 'Exame não encontrado.' }); return; }
     res.json({ exam });

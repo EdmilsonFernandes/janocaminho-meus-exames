@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
-import { Box, Card, CardContent, Typography, TextField, Button, CircularProgress, Stack, Chip, Grid, Avatar, Menu, MenuItem, Alert, Divider, InputAdornment, IconButton, Link, Drawer, List, ListItemButton, ListItemText, ListItemIcon, Accordion, AccordionSummary, AccordionDetails, Badge, InputBase, Paper, useMediaQuery, useTheme, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { useState, useEffect, useRef } from 'react';
+import { Box, Card, CardContent, Typography, TextField, Button, CircularProgress, Stack, Chip, Avatar, Menu, MenuItem, Alert, Divider, InputAdornment, IconButton, Link, Drawer, List, ListItemButton, ListItemText, ListItemIcon, Accordion, AccordionSummary, AccordionDetails, Badge, InputBase, Paper, useMediaQuery, useTheme, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import LogoutIcon from '@mui/icons-material/Logout';
 import LockIcon from '@mui/icons-material/Lock';
@@ -10,13 +10,11 @@ import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
-import PdfIcon from '@mui/icons-material/PictureAsPdf';
 import SearchIcon from '@mui/icons-material/Search';
 import GroupsIcon from '@mui/icons-material/Groups';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { API_URL, photoUrlFor, doctorPhotoUrl } from '../config';
-import { LabBadge } from '../components/LabBadge';
 import { QuestionStatusBadge } from '../components/QuestionStatusBadge';
 import { confirmDialog, snackbar } from '../components/ConfirmDialog';
 import { DrExame } from '../components/DrExame';
@@ -24,12 +22,12 @@ import { OtpInput } from '../components/OtpInput';
 import { MfaSetupCard } from '../components/mfa/MfaSetupCard';
 import { SPECIALTIES, UFS } from '../utils/medicalData';
 import { PhotoUpload } from '../components/PhotoUpload';
-import { CATS, categorize, refLabel } from '../utils/medicalData';
-import { displayStatus } from '../utils/examStatus';
 import { formatCpf, isValidCpf } from '../utils/cpf';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import { ResponsiveContainer, LineChart, Line, ReferenceArea, XAxis, YAxis, Tooltip } from 'recharts';
+import { DoctorPatientSwitcher } from '../components/doctors/DoctorPatientSwitcher';
+import { DoctorExamList } from '../components/doctors/DoctorExamList';
+import { DoctorExamDetail } from '../components/doctors/DoctorExamDetail';
+import { DoctorValoresAlterados } from '../components/doctors/DoctorValoresAlterados';
+import { DoctorConsolidatedReport } from '../components/doctors/DoctorConsolidatedReport';
 
 const docKey = 'doctorToken';
 
@@ -47,37 +45,6 @@ const fieldSx = {
   '& .MuiOutlinedInput-root': { borderRadius: '8px', bgcolor: 'background.paper', '& fieldset': { borderColor: 'divider' }, '&:hover fieldset': { borderColor: '#7fcfc6' }, '&.Mui-focused fieldset': { borderColor: '#20b2aa', borderWidth: '1.5px' } },
 } as const;
 
-// Estilos pra Markdown (SOAP + plano de conduta). Antes cada card tinha o seu (e faltava
-// remark-gfm, então quebras de linha sumiam — texto "sem formato" no mobile). Centralizado.
-const mdSx = {
-  // Premium + mobile-first: quebra palavras/linhas longas (sem scroll horizontal), tabelas e
-  // blocos de código com scroll INTERNO (não estouram o card). Resolve o "txt porco" com
-  // tabelas largas/tokens longos que forçavam scroll lateral no mobile.
-  minWidth: 0, maxWidth: '100%',
-  '& p': { margin: '0.4em 0', fontSize: 14, lineHeight: 1.55, overflowWrap: 'anywhere' },
-  '& h2': { fontSize: '0.95rem', fontWeight: 800, color: '#178f89', mt: 1.5, mb: 0.5 },
-  '& h3': { fontSize: '0.9rem', fontWeight: 700, color: '#0f7670', mt: 1, mb: 0.25 },
-  '& ul, & ol': { margin: '0.4em 0', paddingLeft: '1.4em' },
-  '& li': { mb: 0.4, fontSize: 14, lineHeight: 1.5, overflowWrap: 'anywhere' },
-  '& strong': { fontWeight: 700 },
-  '& em': { fontStyle: 'italic' },
-  '& hr': { border: 0, borderTop: '1px solid', borderColor: 'divider', my: 1 },
-  '& blockquote': { borderLeft: '3px solid', borderColor: 'divider', pl: 1.25, ml: 0, color: 'text.secondary', my: 0.75 },
-  '& code': { fontFamily: 'monospace', fontSize: 12.5, bgcolor: 'action.hover', px: 0.4, borderRadius: 0.5 },
-  '& pre': { overflowX: 'auto', maxWidth: '100%', bgcolor: 'action.hover', p: 1, borderRadius: 1, my: 0.75, '& code': { bgcolor: 'transparent', px: 0 } },
-  '& table': { display: 'block', overflowX: 'auto', maxWidth: '100%', borderCollapse: 'collapse', my: 0.75 },
-  '& th, & td': { border: '1px solid', borderColor: 'divider', padding: '4px 8px', fontSize: 13, textAlign: 'left', verticalAlign: 'top' },
-  '& th': { bgcolor: 'rgba(32,178,170,.06)', fontWeight: 700, color: '#178f89' },
-} as const;
-
-// A IA (GLM) às vezes envolve o markdown em code fences (```markdown ... ```); aí o
-// ReactMarkdown mostra cru num <pre> (### visível + scroll horizontal de 2000px+ no mobile).
-// Remove TODAS as fences — em SOAP/plano clínico NÃO há code blocks legítimos, então seguro.
-const stripMdFences = (md: string | null | undefined): string => {
-  if (!md) return '';
-  return md.replace(/```[a-zA-Z]*[ \t]*\r?\n?/g, '').trim();
-};
-
 // Countdown timer pro dialog de PIX (10 min, fecha sozinho ao expirar)
 const PayCountdown = ({ expiresAt, onExpire }: { expiresAt: string; onExpire: () => void }) => {
   const [secs, setSecs] = useState(Math.max(0, Math.floor((new Date(expiresAt).getTime() - Date.now()) / 1000)));
@@ -91,27 +58,22 @@ const PayCountdown = ({ expiresAt, onExpire }: { expiresAt: string; onExpire: ()
 };
 
 const SCOPE_META: Record<string, { label: string; icon: string }> = {
-  brief: { label: 'Brief', icon: '🩺' },
-  risk: { label: 'Risco', icon: '🛡️' },
   exams: { label: 'Exames', icon: '📋' },
-  evolution: { label: 'Evolução', icon: '📈' },
-  alerts: { label: 'Alertas', icon: '🚨' },
-  summary: { label: 'Resumos IA', icon: '🤖' },
+  alterados: { label: 'Alterados', icon: '⚠️' },
+  relatorio: { label: 'Relatório', icon: '📑' },
   questions: { label: 'Perguntas', icon: '❓' },
   notes: { label: 'Anotações', icon: '📝' },
 };
 
-/** Abas disponíveis = 'brief' (default de 1 tela) + 'risk'/'questions'/'notes' sempre + demais por scope.
- *  Fonte ÚNICA (antes duplicado em render + openPatient → bug futuro garantido). */
-const computeTabs = (scopes: string[]): string[] => [
-  'brief', 'risk', 'questions',
-  ...['exams', 'alerts', 'evolution', 'summary'].filter((s) => scopes.includes(s)),
-  'notes',
-];
-
-// riskLevel (server, em inglês) -> pt-BR. Usar em TODO lugar que mostra o nível (timeline, pré-consulta).
-const RISK_LABEL: Record<string, string> = { low: 'Baixa', moderate: 'Moderada', high: 'Alta' };
-const riskLabel = (lvl?: string) => (lvl && RISK_LABEL[lvl] ? RISK_LABEL[lvl] : lvl ?? '');
+/** Abas do portal (espelham o app do paciente): Exames + Alterados (scope 'exams'),
+ *  Relatório (scope 'summary'), Perguntas + Anotações sempre (por vínculo, não por scope). */
+const computeTabs = (scopes: string[]): string[] => {
+  const t: string[] = [];
+  if (scopes.includes('exams')) t.push('exams', 'alterados');
+  if (scopes.includes('summary')) t.push('relatorio');
+  t.push('questions', 'notes');
+  return t;
+};
 
 export const DoctorPortalPage = () => {
   const navigate = useNavigate();
@@ -286,10 +248,8 @@ const QUICK_REPLIES = [
 const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => void }) => {
   const [patients, setPatients] = useState<any[]>([]);
   const [selected, setSelected] = useState<any | null>(null);
-  const [tab, setTab] = useState('brief');
-  const [showFullSummary, setShowFullSummary] = useState(false); // Brief: expandir resumo completo
+  const [tab, setTab] = useState('exams');
   const [exams, setExams] = useState<any[]>([]);
-  const [evolution, setEvolution] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
   const openSeq = useRef(0); // guarda de race: só aplica estado do openPatient mais recente
@@ -298,9 +258,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const [photoVer, setPhotoVer] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const [avatarEl, setAvatarEl] = useState<HTMLElement | null>(null); // menu vertical do avatar (perfil/senha/sair)
-  const [selExam, setSelExam] = useState<any | null>(null);
-  const [examDetail, setExamDetail] = useState<any | null>(null);
-  const [summaries, setSummaries] = useState<any[]>([]);
+  const [selExam, setSelExam] = useState<string | null>(null); // examId p/ o DoctorExamDetail import
   // Funil do médico: convidar paciente (pré-cadastro) + lista de convites pendentes.
   const [invites, setInvites] = useState<any[]>([]);
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -339,13 +297,6 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     } catch (e: any) { snackbar({ message: e.message || 'Falha ao responder.', severity: 'error' }); } finally { setQSending(null); }
   };
   const [newNote, setNewNote] = useState('');
-  const [risk, setRisk] = useState<any>(null);
-  const [riskHistory, setRiskHistory] = useState<any[]>([]);
-  const [clinicalPlan, setClinicalPlan] = useState<string | null>(null);
-  const [planLoading, setPlanLoading] = useState(false);
-  const [preVisit, setPreVisit] = useState<any>(null);
-  const [soap, setSoap] = useState<string | null>(null);
-  const [soapLoading, setSoapLoading] = useState(false);
   const [planInfo, setPlanInfo] = useState<any>(null);
   const [payOpen, setPayOpen] = useState(false);
   const [payData, setPayData] = useState<any>(null);
@@ -432,106 +383,25 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     if (r.ok) setNotes((n) => n.map((x) => x.id === id ? d.note : x));
   };
 
-  // --- Export PES (CID-10 + resumo estruturado) ---
-  const exportPES = async () => {
-    if (!selected) return;
-    try {
-      const r = await fetch(`${API_URL}/doctor/patients/${selected.patient.id}/export-pes`, { headers: h });
-      const d = await r.json();
-      if (r.ok && d.text) {
-        await navigator.clipboard.writeText(d.text);
-        snackbar({ message: 'Resumo estruturado (com CID-10) copiado! Cole no prontuário.', severity: 'success' });
-      }
-    } catch { snackbar({ message: 'Não foi possível exportar agora.', severity: 'error' }); }
-  };
-  // --- Copiar resumo pro prontuário (#4) ---
-  const copySummary = async () => {
-    if (!selected) return;
-    const lines = [
-      `Paciente: ${selected.patient?.fullName ?? ''}`,
-      selected.convenio ? `Convênio: ${selected.convenio}` : '',
-      exams[0] ? `Último exame: ${exams[0].title} (${fmtDate(exams[0].performedAt)})${exams[0].sourceLab ? ` — ${exams[0].sourceLab}` : ''}` : 'Sem exames extraídos.',
-      selected.patient?.clinicalProfile ? `Perfil clínico: ${selected.patient.clinicalProfile}` : '',
-      allAlerts.length ? `Valores alterados (${allAlerts.length}):` : 'Sem valores alterados.',
-      ...allAlerts.map((a) => `- ${a.name}: ${a.valueText} (${a.examTitle}, ${fmtDate(a.examDate)})`),
-      comparison.length ? 'Variação vs exame anterior:' : '',
-      ...comparison.map((d) => `- ${d.name}: ${d.pct > 0 ? '+' : ''}${d.pct.toFixed(0)}% (${d.prev} → ${d.last}${d.unit ? ' ' + d.unit : ''})`),
-      '',
-      'Resumo gerado pelo app Meus Exames — conteúdo educativo, não substitui avaliação clínica.',
-    ].filter((x) => x !== '');
-    try {
-      await navigator.clipboard.writeText(lines.join('\n'));
-      snackbar({ message: 'Resumo copiado! Cole no prontuário do paciente.', severity: 'success' });
-    } catch { snackbar({ message: 'Não foi possível copiar. Selecione e copie manualmente.', severity: 'error' }); }
-  };
-
   const openPatient = async (p: any) => {
     setSelected(p);
     const pScopes: string[] = p.scopes ?? [];
     const pTabs = computeTabs(pScopes);
-    const wantExams = pScopes.includes('exams') || pScopes.includes('alerts');
-    const wantEvol = pScopes.includes('evolution');
-    const wantSummary = pScopes.includes('summary');
-    setTab('brief'); // abre no BRIEF DE CONSULTA (1 tela priorizada — antes era 'risk')
-    // doctorPrefTab: power-user pode fixar uma tela inicial (localStorage). Default: Brief.
-    try { const pref = localStorage.getItem('doctorPrefTab'); if (pref && pTabs.includes(pref) && pref !== 'brief') setTab(pref); } catch { /* */ }
-    setDetailLoading(true); setExams([]); setEvolution([]); setSummaries([]); setNotes([]); setQuestions([]); setRisk(null); setRiskHistory([]); setClinicalPlan(null); setPreVisit(null); setSoap(null);
-    // Paraleliza TODOS os fetches (antes eram 10 awaits em série = soma de latências, ~3s).
-    // Promise.allSettled: cada um resolve/rejeita independente (um falhar não derruba os outros).
-    // openSeq: só aplica setState se este ainda for o openPatient mais recente (evita race —
-    // paciente A populando estado do paciente B quando o médico troca rápido).
+    setTab(pTabs[0] ?? 'questions'); // default = 1ª aba disponível (Exames se autorizado)
+    try { const pref = localStorage.getItem('doctorPrefTab'); if (pref && pTabs.includes(pref)) setTab(pref); } catch { /* */ }
+    setSelExam(null);
+    setDetailLoading(true); setExams([]); setNotes([]); setQuestions([]);
     const mySeq = ++openSeq.current;
     const mine = () => mySeq === openSeq.current;
     const pid = p.patient.id;
     const get = async (path: string) => { try { const r = await fetch(`${API_URL}/doctor/patients/${pid}${path}`, { headers: h }); return r.ok ? await r.json() : null; } catch { return null; } };
+    const wantExams = pScopes.includes('exams');
     await Promise.allSettled([
-      get('/risk').then((d) => { if (d && mine()) setRisk(d); }),
-      get('/risk/history').then((d) => { if (d && mine()) setRiskHistory(d.history ?? []); }),
       ...(wantExams ? [get('/exams').then((d) => { if (d && mine()) setExams(d.items ?? []); })] : []),
-      ...(wantEvol ? [get('/evolution').then((d) => { if (d && mine()) setEvolution(d.items ?? []); })] : []),
-      ...(wantSummary ? [get('/summaries').then((d) => { if (d && mine()) setSummaries(d.items ?? []); })] : []),
       get('/questions').then((d) => { if (d && mine()) setQuestions(d.items ?? []); }),
       get('/notes').then((d) => { if (d && mine()) setNotes(d.items ?? []); }),
     ]);
     if (mine()) setDetailLoading(false);
-    // Background (IA/conteúdo armazenado — NÃO bloqueiam a abertura): pré-consulta, plano, SOAP
-    get('/pre-visit').then((d) => { if (d && mine()) setPreVisit(d); });
-    get('/action-plan/latest').then((d) => { if (mine()) setClinicalPlan(d?.contentMd ?? null); });
-    get('/soap/latest').then((d) => { if (mine()) setSoap(d?.contentMd ?? null); });
-  };
-
-  // PLANO DE AÇÃO CLÍNICO (C2) — versão médico, grátis. Gera via GLM com tom técnico.
-  const genActionPlan = async () => {
-    if (!selected || planLoading) return;
-    setPlanLoading(true);
-    try { const r = await fetch(`${API_URL}/doctor/patients/${selected.patient.id}/action-plan`, { method: 'POST', headers: h }); const d = await r.json(); if (r.ok) setClinicalPlan(d.contentMd); }
-    catch {}
-    finally { setPlanLoading(false); }
-  };
-  // RESUMO CLÍNICO (B3) — gera versão médico (audience=doctor, tom técnico), grátis.
-  const genSummary = async () => {
-    if (!selected) return;
-    setDetailLoading(true);
-    try {
-      const r = await fetch(`${API_URL}/doctor/patients/${selected.patient.id}/summary/generate`, { method: 'POST', headers: h });
-      const d = await r.json();
-      if (r.ok) {
-        // Re-busca /summaries: o POST só devolve contentMd, mas o Brief de Conduta precisa do STRUCTURED
-        // (pontosAtencao, leituraFinal, perguntasParaOMedico). Re-fetch traz structured + prefere audience:doctor.
-        const fresh = await fetch(`${API_URL}/doctor/patients/${selected.patient.id}/summaries`, { headers: h });
-        if (fresh.ok) setSummaries((await fresh.json()).items ?? []);
-        else setSummaries([{ id: d.id, createdAt: d.createdAt, contentMd: d.contentMd, userMessage: 'audience:doctor' }]);
-      }
-    } catch {}
-    finally { setDetailLoading(false); }
-  };
-  // SOAP rascunho (IA preenche, médico edita) — grátis pro médico.
-  const genSoap = async () => {
-    if (!selected || soapLoading) return;
-    setSoapLoading(true);
-    try { const r = await fetch(`${API_URL}/doctor/patients/${selected.patient.id}/soap`, { method: 'POST', headers: h }); const d = await r.json(); if (r.ok) setSoap(d.contentMd); else if (r.status === 402) snackbar({ message: d.message || 'Limite de pré-consultas grátis atingido. Assine o Dr. Exame Pro.', severity: 'warning' }); }
-    catch {}
-    finally { setSoapLoading(false); }
   };
   // Checkout MP (Dr. Exame Pro R$29,90/mês) — PIX QR inline OU cartão redirect
   const startCheckout = async (method: 'pix' | 'card') => {
@@ -557,60 +427,6 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     }, 5000);
   };
 
-  // Abre o detalhe de um exame (todos os itens) — busca via endpoint scoped
-  const openExam = async (ex: any) => {
-    setSelExam(ex); setExamDetail(null);
-    try { const r = await fetch(`${API_URL}/doctor/patients/${selected.patient.id}/exams/${ex.id}`, { headers: h }); const d = await r.json(); if (r.ok) setExamDetail(d.exam); } catch {}
-  };
-
-  // Alertas = todos os valores alterados agregados dos exames (memo — era recompute em todo render)
-  const allAlerts = useMemo(() => exams.flatMap((ex: any) => (ex.items ?? []).map((it: any) => ({ ...it, examTitle: ex.title, examDate: ex.performedAt }))), [exams]);
-
-  // Exames agrupados por ano (estilo lista do paciente)
-  const examsByYear = useMemo(() => {
-    const map = new Map<number, any[]>();
-    for (const ex of exams) { const y = ex.performedAt ? new Date(ex.performedAt).getFullYear() : 0; if (!map.has(y)) map.set(y, []); map.get(y)!.push(ex); }
-    // Dentro de cada ano: mais recente primeiro (raciocínio clínico — médico pensa cronológico).
-    return [...map.entries()].sort((a, b) => b[0] - a[0]).map(([year, items]) => ({ year, items: items.sort((x, y) => new Date(y.performedAt || 0).getTime() - new Date(x.performedAt || 0).getTime()) }));
-  }, [exams]);
-
-  // Comparativo "melhorou/piorou" (#2): delta % de cada analito entre o exame mais recente e o
-  // anterior. Computado a partir do `evolution` (valueNumeric por analito × performedAt). Top 5
-  // maiores variações. Leitura instantânea da tendência sem abrir a tab Evolução.
-  const comparison = useMemo(() => {
-    const byKey = new Map<string, { name: string; unit?: string; points: { t: number; v: number }[] }>();
-    for (const it of evolution) {
-      if (it.valueNumeric == null || !it.nameCanonical) continue;
-      const k = it.nameCanonical as string;
-      if (!byKey.has(k)) byKey.set(k, { name: it.name, unit: it.unit, points: [] });
-      byKey.get(k)!.points.push({ t: new Date(it.exam?.performedAt || 0).getTime(), v: it.valueNumeric });
-    }
-    const deltas: { name: string; unit?: string; pct: number; last: number; prev: number }[] = [];
-    for (const { name, unit, points } of byKey.values()) {
-      if (points.length < 2) continue;
-      points.sort((a, b) => a.t - b.t);
-      const last = points[points.length - 1], prev = points[points.length - 2];
-      if (!prev.v) continue; // evita divisão por zero
-      deltas.push({ name, unit, pct: ((last.v - prev.v) / prev.v) * 100, last: last.v, prev: prev.v });
-    }
-    return deltas.sort((a, b) => Math.abs(b.pct) - Math.abs(a.pct)).slice(0, 5);
-  }, [evolution]);
-
-  // Histórico de risco deduplicado por CONTEÚDO (conditionKey+riskLevel), não por dia. O /risk/assess
-  // cria 1 RiskAssessment a cada 24h (cache) mesmo quando nada mudou — motor determinístico + dados
-  // iguais ⇒ rows idênticos só com createdAt diferente. Mostrar "01/07, 02/07, 03/07" idênticos polui
-  // e parece bug ("a cada dia gera o mesmo resumo"). Mantém só a 1ª (mais recente) de cada combinação
-  // conditionKey+riskLevel — só aparece linha quando MUDOU algo de verdade.
-  const riskHistoryDedup = useMemo(() => {
-    const seen = new Set<string>();
-    return riskHistory.filter((hh: any) => {
-      const key = `${hh.conditionKey ?? 'none'}|${hh.riskLevel ?? ''}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-  }, [riskHistory]);
-
   const fmtDate = (d?: string) => d ? new Date(d).toLocaleDateString('pt-BR') : 's/d';
 
   // Gesto de voltar do Android (Capacitor): fecha detalhe do exame → fecha paciente → volta à lista → sai.
@@ -618,7 +434,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const backRef = useRef<() => void>(() => {});
   // Voltar de UI (fecha exame → fecha paciente → lista). Sem sair do app.
   const goBack = () => {
-    if (selExam) { setSelExam(null); setExamDetail(null); return; }
+    if (selExam) { setSelExam(null); return; }
     if (selected) { setSelected(null); return; }
     if (view !== 'patients') setView('patients');
   };
@@ -1059,38 +875,28 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         {/* DETALHE DO PACIENTE */}
         {view === 'patients' && selected && (
           <>
-            <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
-              {/* Voltar só no header (←) — um botão só, igual app profissional */}
-              <Avatar src={selected.patient?.id ? photoUrlFor(selected.patient.id) : undefined} sx={{ bgcolor: TEAL, width: 44, height: 44, fontSize: 17 }}>{selected.patient?.fullName?.charAt(0)}</Avatar>
-              <Box>
-                <Stack direction="row" alignItems="center" spacing={0.75}>
-                  <Typography sx={{ fontWeight: 800, color: 'text.primary', lineHeight: 1.1 }}>{selected.patient?.fullName}</Typography>
-                  {risk?.result && (() => { const rl = risk.result.riskLevel; const rc = rl === 'high' ? '#dc2626' : rl === 'moderate' ? '#ea580c' : '#16a34a'; return <Chip size="small" label={`Risco: ${riskLabel(rl)}`} sx={{ height: 18, fontSize: 10, bgcolor: rc, color: '#fff', fontWeight: 700 }} />; })()}
-                </Stack>
-                <Typography variant="caption" sx={{ color: 'text.secondary' }}>{[selected.age != null ? `${selected.age} anos` : null, selected.sex === 'female' ? 'Feminino' : selected.sex === 'male' ? 'Masculino' : null, selected.patient?.relationship, selected.convenio || 'Particular', selected.latestWeight ? `${selected.latestWeight.value} kg` : null].filter(Boolean).join(' • ')}</Typography>
+            <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'stretch', sm: 'center' }} spacing={1.5} sx={{ mb: 2 }}>
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <DoctorPatientSwitcher patients={patients} value={selected.patient?.id ?? null} onSelect={(pid) => { const np = patients.find((x: any) => (x.patient?.id || x.id) === pid); if (np) openPatient(np); }} />
+                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>{[selected.age != null ? `${selected.age} anos` : null, selected.sex === 'female' ? 'Feminino' : selected.sex === 'male' ? 'Masculino' : null, selected.patient?.relationship, selected.convenio || 'Particular', selected.latestWeight ? `${selected.latestWeight.value} kg` : null].filter(Boolean).join(' • ')}</Typography>
               </Box>
-              <Box sx={{ flex: 1 }} />
             </Stack>
 
-            {/* COMMAND BAR — segmented control premium (iOS style) com contagens. Sticky. */}
-            {/* Barra de tabs só nas telas de DETALHE (no Brief a navegação ao detalhe é pelos chips do header) */}
-            {supportedTabs.length > 0 && tab !== 'brief' && (
+            {supportedTabs.length > 0 && (
               <Box sx={{ mb: 2, position: 'sticky', top: 0, zIndex: 10, bgcolor: 'transparent', py: 1, mx: -2, px: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
                 <Stack direction="row" spacing={0.5} alignItems="center" sx={{ overflowX: 'auto', '&::-webkit-scrollbar': { display: 'none' } }}>
-                  <Chip size="small" label="← Brief" onClick={() => setTab('brief')} sx={{ height: 24, flexShrink: 0, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(32,178,170,.10)', color: TEAL }} />
-                  {supportedTabs.filter((s) => s !== 'brief').map((s) => {
+                  {supportedTabs.map((s) => {
                     const on = tab === s;
                     const meta = SCOPE_META[s] || { icon: '📄', label: s };
-                    const count = s === 'risk' ? (risk?.result ? 1 : 0) : s === 'exams' ? (exams?.length || 0) : s === 'alerts' ? (allAlerts?.length || 0) : s === 'notes' ? (notes?.length || 0) : s === 'summary' ? (summaries?.length || 0) : s === 'questions' ? (questions?.filter((q: any) => q.status !== 'answered').length || 0) : 0;
+                    const abnormalCount = exams.reduce((n: number, e: any) => n + (e.items?.length || 0), 0);
+                    const count = s === 'exams' ? exams.length : s === 'alterados' ? abnormalCount : s === 'questions' ? questions.filter((q: any) => q.status !== 'answered').length : s === 'notes' ? notes.length : 0;
                     return (
-                      <Box key={s} onClick={() => setTab(s)} sx={{
+                      <Box key={s} onClick={() => { setTab(s); setSelExam(null); }} sx={{
                         flexShrink: 0, display: 'flex', alignItems: 'center', gap: 0.5, px: 1.5, py: 0.75, borderRadius: 1.5, cursor: 'pointer',
                         transition: 'all .15s', whiteSpace: 'nowrap',
-                        bgcolor: on ? '#178f89' : 'transparent',
-                        color: on ? '#fff' : 'text.secondary',
+                        bgcolor: on ? '#178f89' : 'transparent', color: on ? '#fff' : 'text.secondary',
                         boxShadow: on ? '0 2px 6px rgba(23,143,137,.25)' : 'none',
-                        '&:hover': { bgcolor: on ? '#0f7670' : 'rgba(0,0,0,.04)' },
-                        '&:active': { transform: 'scale(.97)' },
+                        '&:hover': { bgcolor: on ? '#0f7670' : 'rgba(0,0,0,.04)' }, '&:active': { transform: 'scale(.97)' },
                       }}>
                         <Box sx={{ fontSize: 14, lineHeight: 1 }}>{meta.icon}</Box>
                         <Typography sx={{ fontSize: 12.5, fontWeight: on ? 800 : 600 }}>{meta.label}</Typography>
@@ -1098,389 +904,28 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                       </Box>
                     );
                   })}
-                  {/* doctorPrefTab: fixa esta como tela inicial (power-user) */}
-                  <Chip size="small" variant="outlined" label={(() => { try { return localStorage.getItem('doctorPrefTab') === tab ? '📌 fixada' : '📌 fixar inicial'; } catch { return '📌 fixar inicial'; } })()} onClick={() => { try { if (localStorage.getItem('doctorPrefTab') === tab) localStorage.removeItem('doctorPrefTab'); else localStorage.setItem('doctorPrefTab', tab); } catch { /* */ } setTab(tab); }} sx={{ height: 24, flexShrink: 0, fontSize: 10.5, fontWeight: 600, borderColor: 'divider', color: 'text.secondary', '&:hover': { borderColor: TEAL } }} />
+                  <Chip size="small" variant="outlined" label={(() => { try { return localStorage.getItem('doctorPrefTab') === tab ? '📌 fixada' : '📌 fixar inicial'; } catch { return '📌 fixar inicial'; } })()} onClick={() => { try { if (localStorage.getItem('doctorPrefTab') === tab) localStorage.removeItem('doctorPrefTab'); else localStorage.setItem('doctorPrefTab', tab); } catch { /* */ } }} sx={{ height: 24, flexShrink: 0, fontSize: 10.5, fontWeight: 600, borderColor: 'divider', color: 'text.secondary', '&:hover': { borderColor: TEAL } }} />
                 </Stack>
               </Box>
             )}
 
-            {/* ══════ BRIEF DE CONSULTA (default) — 1 tela priorizada ══════
-                Promove o preVisit (antes Accordion colapsado) + conduta objetiva (structured,
-                mata o muro de texto) + top alterações + perguntas + ações. Tabs viram "Detalhe". */}
-            {tab === 'brief' && !selExam && (
-              <>
-                {detailLoading && !preVisit ? (
-                  <Box sx={{ textAlign: 'center', py: 6 }}><CircularProgress sx={{ color: TEAL }} /></Box>
-                ) : (
-                  <Stack spacing={2}>
-                    {/* HEADER clínico — paciente + datas (labs FICAM por exame, não agregados no topo) */}
-                    <Card sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-                      <CardContent sx={{ py: 1.75, '&:last-child': { pb: 1.75 } }}>
-                        <Typography sx={{ fontWeight: 800, fontSize: 18, fontFamily: 'Poppins, sans-serif' }}>{selected.patient?.fullName}</Typography>
-                        <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" alignItems="center" sx={{ mt: 0.5, rowGap: 0.5 }}>
-                          {selected.patient?.clinicalProfile
-                            ? <Typography variant="caption" sx={{ color: 'text.secondary' }}>{selected.patient.clinicalProfile.slice(0, 90)}{selected.patient.clinicalProfile.length > 90 ? '…' : ''}</Typography>
-                            : (exams?.[0]?.performedAt
-                                ? <Typography variant="caption" sx={{ color: 'text.secondary' }}>último exame {new Date(exams[0].performedAt).toLocaleDateString('pt-BR')}</Typography>
-                                : <Typography variant="caption" sx={{ color: 'text.secondary' }}>sem exames extraídos</Typography>)}
-                          {preVisit?.lastVisit && <Typography variant="caption" sx={{ color: 'text.secondary' }}>· última visita {new Date(preVisit.lastVisit).toLocaleDateString('pt-BR')}</Typography>}
-                        </Stack>
-                        {/* Navegação rápida ao DETALHE (deep-dive das tabs antigas) */}
-                        <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 1.25, rowGap: 0.5 }}>
-                          {supportedTabs.filter((t) => t !== 'brief').map((t) => { const m = SCOPE_META[t] || { icon: '📄', label: t }; return <Chip key={t} size="small" variant="outlined" label={`${m.icon} ${m.label}`} onClick={() => setTab(t)} sx={{ height: 24, fontSize: 11, fontWeight: 600, borderColor: 'divider', '&:hover': { borderColor: TEAL, bgcolor: 'rgba(32,178,170,.06)' } }} />; })}
-                        </Stack>
-                      </CardContent>
-                    </Card>
-
-                    {/* HERO risco + score — "este paciente tá OK?" num relance */}
-                    <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'stretch' }}>
-                      <Card sx={{ flex: 1, borderRadius: 3, borderLeft: '5px solid', borderColor: preVisit?.risk ? (preVisit.risk.riskLevel === 'high' ? '#dc2626' : preVisit.risk.riskLevel === 'moderate' ? '#ea580c' : '#16a34a') : 'divider' }}>
-                        <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-                          <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>🛡️ LEITURA DE RISCO</Typography>
-                          {preVisit?.risk ? (
-                            <>
-                              <Typography sx={{ fontWeight: 800, fontSize: 16, color: preVisit.risk.riskLevel === 'high' ? '#dc2626' : preVisit.risk.riskLevel === 'moderate' ? '#ea580c' : '#16a34a' }}>{riskLabel(preVisit.risk.riskLevel)}</Typography>
-                              <Typography variant="body2">{preVisit.risk.conditionLabel}{preVisit.risk.trend && preVisit.risk.trend !== 'primeiro' ? ` · ${preVisit.risk.trend === 'melhorou' ? '↓ caiu' : preVisit.risk.trend === 'piorou' ? '↑ subiu' : '→ estável'}` : ''}</Typography>
-                            </>
-                          ) : <Typography variant="body2" sx={{ color: 'text.secondary' }}>Sem leitura de risco.</Typography>}
-                        </CardContent>
-                      </Card>
-                      <Card sx={{ width: 118, flexShrink: 0, borderRadius: 3, border: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <CardContent sx={{ textAlign: 'center', py: 1, '&:last-child': { pb: 1 } }}>
-                          <Typography sx={{ fontWeight: 800, fontSize: 28, lineHeight: 1, color: preVisit?.score == null ? 'text.disabled' : (preVisit.score >= 80 ? '#16a34a' : preVisit.score >= 60 ? '#ea580c' : '#dc2626') }}>{preVisit?.score ?? '—'}</Typography>
-                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>score/100</Typography>
-                        </CardContent>
-                      </Card>
-                    </Box>
-
-                    {/* TOP alterações (abnormal-first) com delta% */}
-                    {preVisit?.topIssues?.length > 0 && (
-                      <Card sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-                        <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-                          <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>⚠️ TOP ALTERAÇÕES PRA HOJE</Typography>
-                          <Stack spacing={0.5} sx={{ mt: 0.5 }}>
-                            {preVisit.topIssues.slice(0, 5).map((issue: any, i: number) => {
-                              const lv = issue.last != null ? issue.last : (issue.lastText ?? null);
-                              const pv = issue.prev != null ? issue.prev : (issue.prevText ?? null);
-                              const u = issue.unit ? ` ${issue.unit}` : '';
-                              const vals = (lv != null || pv != null) ? `${pv ?? '—'} → ${lv ?? '—'}${u}` : '';
-                              return (
-                                <Stack key={i} direction="row" spacing={0.75} alignItems="center" useFlexGap flexWrap="wrap" sx={{ rowGap: 0.5 }}>
-                                  <Chip size="small" label={i + 1} sx={{ height: 20, width: 20, bgcolor: issue.priority === 'importante' ? '#dc262622' : issue.priority === 'moderada' ? '#ea580c22' : '#ca8a0422', color: issue.priority === 'importante' ? '#dc2626' : issue.priority === 'moderada' ? '#ea580c' : '#ca8a04', fontWeight: 800, fontSize: 11 }} />
-                                  <Typography variant="body2" sx={{ fontWeight: 700 }}>{issue.name}</Typography>
-                                  {issue.delta != null && <Chip size="small" label={`${issue.delta > 0 ? '↑' : '↓'} ${Math.abs(Math.round(issue.delta))}%`} sx={{ height: 20, fontSize: 11, bgcolor: issue.delta > 0 ? '#fef3c7' : '#dbeafe', color: issue.delta > 0 ? '#92400e' : '#1e40af', fontWeight: 700 }} />}
-                                  {vals && <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>{vals}</Typography>}
-                                </Stack>
-                              );
-                            })}
-                          </Stack>
-                        </CardContent>
-                      </Card>
-                    )}
-
-                    {/* CONDUTA objetiva (structured — mata o muro de texto). Usa HealthSummary do DB. */}
-                    {scopes.includes('summary') && (() => {
-                      const sum = summaries?.[0];
-                      const st: any = sum?.structured;
-                      const has = st && (st.pontosAtencao?.length || st.leituraFinal || st.perguntasParaOMedico?.length);
-                      return (
-                        <Card sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-                          <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-                            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.75 }}>
-                              <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>📋 CONDUTA SUGERIDA</Typography>
-                              {sum?.contentMd && <Chip size="small" label={showFullSummary ? 'ocultar' : 'ver completo'} variant="outlined" onClick={() => setShowFullSummary((v) => !v)} sx={{ height: 20, fontSize: 10, fontWeight: 700 }} />}
-                            </Stack>
-                            {!sum && <Button size="small" variant="contained" onClick={genSummary} disabled={detailLoading} sx={{ textTransform: 'none', bgcolor: TEAL, borderRadius: 99, fontWeight: 700 }}>Gerar resumo clínico</Button>}
-                            {sum && !has && <Typography variant="body2" sx={{ color: 'text.secondary' }}>Conduta não estruturada — toque em "ver completo".</Typography>}
-                            {has && (
-                              <Stack spacing={1}>
-                                {st.pontosAtencao?.length > 0 && (
-                                  <Box>
-                                    <Typography variant="caption" sx={{ fontWeight: 800, color: '#b45309' }}>Pontos de atenção</Typography>
-                                    <Stack spacing={0.25} sx={{ mt: 0.25 }}>
-                                      {st.pontosAtencao.slice(0, 3).map((p: any, i: number) => <Typography key={i} variant="body2">• <b>{p.titulo}</b>{p.detalhe ? ` — ${p.detalhe}` : ''}</Typography>)}
-                                    </Stack>
-                                  </Box>
-                                )}
-                                {st.leituraFinal && <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>{st.leituraFinal}</Typography>}
-                                {st.perguntasParaOMedico?.length > 0 && (
-                                  <Box>
-                                    <Typography variant="caption" sx={{ fontWeight: 800, color: TEAL }}>Perguntas pra levar à consulta</Typography>
-                                    <Stack spacing={0.25} sx={{ mt: 0.25 }}>
-                                      {st.perguntasParaOMedico.slice(0, 3).map((p: string, i: number) => <Typography key={i} variant="body2" sx={{ color: 'text.secondary' }}>• {p}</Typography>)}
-                                    </Stack>
-                                  </Box>
-                                )}
-                              </Stack>
-                            )}
-                            {showFullSummary && sum?.contentMd && <Box sx={{ mt: 1.5, pt: 1.5, borderTop: '1px solid', borderColor: 'divider' }}><Box sx={mdSx}><ReactMarkdown remarkPlugins={[remarkGfm]}>{stripMdFences(sum.contentMd)}</ReactMarkdown></Box></Box>}
-                          </CardContent>
-                        </Card>
-                      );
-                    })()}
-
-                    {/* Plano de ação (conduta rápida) — se já gerado */}
-                    {clinicalPlan && (
-                      <Card sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-                        <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-                          <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>🎯 PLANO DE AÇÃO</Typography>
-                          <Box sx={{ ...mdSx, mt: 0.5 }}><ReactMarkdown remarkPlugins={[remarkGfm]}>{stripMdFences(clinicalPlan)}</ReactMarkdown></Box>
-                        </CardContent>
-                      </Card>
-                    )}
-
-                    {/* PERGUNTAS em aberto do paciente */}
-                    {preVisit?.patientQuestions?.length > 0 && (
-                      <Card sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-                        <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-                          <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>💬 PERGUNTAS DO PACIENTE NO APP</Typography>
-                          <Stack spacing={0.25} sx={{ mt: 0.5 }}>
-                            {preVisit.patientQuestions.slice(0, 3).map((qa: any, i: number) => {
-                              const days = qa.at ? Math.max(0, Math.round((Date.now() - new Date(qa.at).getTime()) / 86400000)) : null;
-                              const ago = days == null ? '' : days === 0 ? 'hoje' : days === 1 ? 'há 1 dia' : `há ${days} dias`;
-                              return <Typography key={i} variant="body2" sx={{ fontStyle: 'italic' }}>"{qa.q}"{ago && <Box component="span" sx={{ fontStyle: 'normal', fontSize: 11, color: 'text.secondary' }}> · {ago}</Box>}</Typography>;
-                            })}
-                          </Stack>
-                          <Button size="small" onClick={() => setTab('questions')} sx={{ mt: 1, textTransform: 'none', color: TEAL, fontWeight: 700, minWidth: 0 }}>Responder →</Button>
-                        </CardContent>
-                      </Card>
-                    )}
-
-                    {/* AÇÕES rápidas */}
-                    <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ rowGap: 1 }}>
-                      <Button size="small" variant="outlined" startIcon={soapLoading ? <CircularProgress size={14} color="inherit" /> : undefined} onClick={genSoap} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, borderColor: TEAL, color: TEAL }}>SOAP (IA)</Button>
-                      <Button size="small" variant="outlined" startIcon={planLoading ? <CircularProgress size={14} color="inherit" /> : undefined} onClick={genActionPlan} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, borderColor: TEAL, color: TEAL }}>Plano de ação</Button>
-                      <Button size="small" variant="outlined" onClick={() => setTab('exams')} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, borderColor: 'divider', color: 'text.secondary' }}>Ver exames</Button>
-                      <Button size="small" variant="outlined" onClick={() => setTab('notes')} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, borderColor: 'divider', color: 'text.secondary' }}>Anotar</Button>
-                    </Stack>
-                  </Stack>
-                )}
-              </>
+            {/* NOVOS BODIES (espelham o app do paciente) — Exames / Alterados / Relatório via
+                componentes dedicados em components/doctors. Perguntas e Anotações seguem inline. */}
+            {tab === 'exams' && !selExam && (
+              <DoctorExamList patientId={selected.patient.id} token={token} onOpen={(id) => setSelExam(id)} />
+            )}
+            {tab === 'alterados' && !selExam && (
+              <DoctorValoresAlterados patientId={selected.patient.id} token={token} />
+            )}
+            {tab === 'relatorio' && !selExam && (
+              <DoctorConsolidatedReport patientId={selected.patient.id} token={token} patientName={selected.patient.fullName} onOpenExam={(id) => setSelExam(id)} />
+            )}
+            {selExam && (
+              <DoctorExamDetail patientId={selected.patient.id} examId={selExam} token={token} onBack={() => setSelExam(null)} />
             )}
 
-            {/* PERFIL CLÍNICO + RESUMO RÁPIDO + PERGUNTAS — só na tab Risco (não polui Exames/Evolução/etc) */}
-            {tab === 'risk' && !selExam && (
-            <>
-            <Accordion defaultExpanded={false} sx={{ mb: 2, borderRadius: '12px !important', border: '1px solid', borderColor: 'divider', borderLeft: '4px solid #20b2aa', '&:before': { display: 'none' }, overflow: 'hidden' }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '44px !important', '& .MuiAccordionSummary-content': { my: 0.5 } }}>
-                <Typography variant="caption" sx={{ fontWeight: 800, color: '#178f89' }}>🩺 PERFIL CLÍNICO{selected.patient?.clinicalProfile ? '' : ' — não cadastrado'} <Box component="span" sx={{ color: 'text.secondary', fontWeight: 500 }}>(toque p/ expandir)</Box></Typography>
-              </AccordionSummary>
-              <AccordionDetails sx={{ pt: 0.5 }}>
-                {selected.patient?.clinicalProfile
-                  ? <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{selected.patient.clinicalProfile}</Typography>
-                  : <Typography variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>Paciente ainda não informou condições, medicações ou alergias.</Typography>}
-              </AccordionDetails>
-            </Accordion>
-
-            {/* PRÉ-CONSULTA — Accordion colapsável (acima das tabs, não dentro de nenhuma aba).
-                Colapsada por padrão: resumo inline (risco + score + top issue) no título,
-                o médico vê o essencial sem expandir e sem rolar até as abas. */}
-            {preVisit && (
-              <Accordion sx={{ mb: 2, borderRadius: '12px !important', border: `2px solid ${TEAL}`, '&:before': { display: 'none' }, overflow: 'hidden' }}>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '44px !important', '& .MuiAccordionSummary-content': { my: 0.5 } }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap', width: '100%' }}>
-                    <Typography sx={{ fontWeight: 800, color: TEAL, fontSize: 14 }}>🩺 PRÉ-CONSULTA{preVisit.lastVisit ? ` · desde ${new Date(preVisit.lastVisit).toLocaleDateString('pt-BR')}` : ''}</Typography>
-                    {preVisit.risk && <Chip size="small" label={`${preVisit.risk.riskLevel === 'high' ? '🔴' : preVisit.risk.riskLevel === 'moderate' ? '🟠' : '🟢'} ${preVisit.risk.conditionLabel}`} sx={{ height: 20, fontSize: 10, bgcolor: 'action.hover', color: 'text.primary', fontWeight: 700 }} />}
-                    {preVisit.score != null && <Chip size="small" label={`Score ${preVisit.score}/100`} sx={{ height: 20, fontSize: 10, bgcolor: 'action.hover', color: 'text.primary', fontWeight: 700 }} />}
-                    {preVisit.topIssues?.[0] && <Chip size="small" label={`⚠️ ${preVisit.topIssues[0].name}`} sx={{ height: 20, fontSize: 10, bgcolor: 'action.hover', color: 'text.primary', fontWeight: 700 }} />}
-                  </Box>
-                </AccordionSummary>
-                <AccordionDetails sx={{ pt: 0.5 }}>
-                  {preVisit.topIssues?.length > 0 && (
-                    <Box sx={{ mb: 1.5 }}>
-                      <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>⚠️ TOP 3 PRA HOJE</Typography>
-                      <Stack spacing={0.5} sx={{ mt: 0.5 }}>
-                        {preVisit.topIssues.map((issue: any, i: number) => {
-                          // antes → agora p/ o médico VALIDAR a % (ex.: ↑279% só é real se antes→agora for plausível)
-                          const lv = issue.last != null ? issue.last : (issue.lastText ?? null);
-                          const pv = issue.prev != null ? issue.prev : (issue.prevText ?? null);
-                          const u = issue.unit ? ` ${issue.unit}` : '';
-                          const vals = (lv != null || pv != null) ? `${pv ?? '—'} → ${lv ?? '—'}${u}` : '';
-                          return (
-                            <Stack key={i} direction="row" spacing={0.75} alignItems="center" sx={{ flexWrap: 'wrap', rowGap: 0.5 }}>
-                              <Chip size="small" label={i + 1} sx={{ height: 20, width: 20, bgcolor: issue.priority === 'importante' ? '#dc262622' : issue.priority === 'moderada' ? '#ea580c22' : '#ca8a0422', color: issue.priority === 'importante' ? '#dc2626' : issue.priority === 'moderada' ? '#ea580c' : '#ca8a04', fontWeight: 800, fontSize: 11 }} />
-                              <Typography variant="body2" sx={{ fontWeight: 600 }}>{issue.name}</Typography>
-                              {issue.delta != null && <Chip size="small" label={`${issue.delta > 0 ? '↑' : '↓'} ${Math.abs(Math.round(issue.delta))}%`} sx={{ height: 20, fontSize: 11, bgcolor: issue.delta > 0 ? '#fef3c7' : '#dbeafe', color: issue.delta > 0 ? '#92400e' : '#1e40af', fontWeight: 700 }} />}
-                              {vals && <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>{vals}</Typography>}
-                            </Stack>
-                          );
-                        })}
-                      </Stack>
-                    </Box>
-                  )}
-                  <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap" sx={{ mb: 0.5 }} alignItems="center">
-                    {preVisit.risk && <Typography variant="body2"><b>Risco:</b> {preVisit.risk.conditionLabel} ({riskLabel(preVisit.risk.riskLevel)}){preVisit.risk.trend && preVisit.risk.trend !== 'primeiro' ? ` · ${preVisit.risk.trend === 'melhorou' ? '↓ caiu' : preVisit.risk.trend === 'piorou' ? '↑ subiu' : '→ estável'}` : ''}</Typography>}
-                    {(() => {
-                      const s = preVisit.score;
-                      const meta = s == null ? { label: 'sem dados suficientes', color: 'text.secondary' }
-                        : s >= 80 ? { label: 'maioria em dia', color: '#16a34a' }
-                        : s >= 60 ? { label: 'pontos de atenção', color: '#ea580c' }
-                        : { label: 'vários alterados — revisar', color: '#dc2626' };
-                      return <Typography variant="body2"><b>Score:</b> {s ?? '—'}/100 ({preVisit.markers ?? 0} marc.) <Box component="span" sx={{ color: meta.color, fontWeight: 700 }}>· {meta.label}</Box></Typography>;
-                    })()}
-                  </Stack>
-                  <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 1 }}>{'Score = % de exames com valor normal (≥80 bom · 60–79 atenção · <60 revisar).'}</Typography>
-                  {preVisit.investigate?.length > 0 && (
-                    <Box sx={{ mb: 1 }}>
-                      <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>🔬 INVESTIGAR</Typography>
-                      <Stack spacing={0.25} sx={{ mt: 0.25 }}>
-                        {preVisit.investigate.map((inv: any, i: number) => {
-                          const months = inv.ageMonths != null ? Math.round(inv.ageMonths) : null;
-                          const ago = months != null ? (months < 1 ? 'recente' : months === 1 ? 'há 1 mês' : `há ${months} meses`) : (inv.lastMeasured ? new Date(inv.lastMeasured).toLocaleDateString('pt-BR') : '');
-                          return <Typography key={i} variant="body2" sx={{ color: 'text.secondary' }}>• {inv.name} {ago ? `${ago} · refazer` : '(refazer)'}</Typography>;
-                        })}
-                      </Stack>
-                    </Box>
-                  )}
-                  {preVisit.patterns?.length > 0 && (
-                    <Box sx={{ mb: 1 }}>
-                      <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>🧬 PADRÕES (sistemas com alteração)</Typography>
-                      <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.25 }}>
-                        {preVisit.patterns.map((p: any, i: number) => (
-                          <Chip key={i} size="small" label={`${p.emoji} ${p.title} (${p.markers.length})`} sx={{ height: 20, fontSize: 10, bgcolor: 'action.hover', color: 'text.primary', fontWeight: 600 }} />
-                        ))}
-                      </Stack>
-                    </Box>
-                  )}
-                  {preVisit.followUpTests?.length > 0 && (
-                    <Box sx={{ mb: 1 }}>
-                      <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>🧪 EXAMES DE SEGUIMENTO SUGERIDOS</Typography>
-                      <Stack spacing={0.25} sx={{ mt: 0.25 }}>
-                        {preVisit.followUpTests.map((t: string, i: number) => (
-                          <Typography key={i} variant="body2" sx={{ color: 'text.secondary' }}>• {t}</Typography>
-                        ))}
-                      </Stack>
-                    </Box>
-                  )}
-                  {preVisit.patientQuestions?.length > 0 && (
-                    <Box>
-                      <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>💬 PERGUNTAS RECENTES NO APP</Typography>
-                      <Stack spacing={0.25} sx={{ mt: 0.25 }}>
-                        {preVisit.patientQuestions.slice(0, 3).map((qa: any, i: number) => {
-                          const days = qa.at ? Math.max(0, Math.round((Date.now() - new Date(qa.at).getTime()) / 86400000)) : null;
-                          const ago = days == null ? '' : days === 0 ? 'hoje' : days === 1 ? 'há 1 dia' : `há ${days} dias`;
-                          return <Typography key={i} variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>"{qa.q}"{ago && <Box component="span" sx={{ fontStyle: 'normal', fontSize: 11 }}> · {ago}</Box>}</Typography>;
-                        })}
-                      </Stack>
-                    </Box>
-                  )}
-                </AccordionDetails>
-              </Accordion>
-            )}
-
-            {/* CLINICAL BRIEF — card compacto (3 linhas) expansível. Substitui o hero gigante. */}
-              <Card sx={{ mb: 2, borderRadius: 3, boxShadow: '0 1px 3px rgba(0,0,0,.04)', border: 'none', overflow: 'hidden' }}>
-                <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-                  {/* Linha 1: status principal + ações inline */}
-                  <Stack direction="row" justifyContent="space-between" alignItems="center" useFlexGap flexWrap="wrap" gap={1}>
-                    <Typography sx={{ fontWeight: 800, fontSize: 16, fontFamily: 'Poppins, sans-serif', color: allAlerts.length ? '#dc2626' : '#059669' }}>
-                      {allAlerts.length > 0 ? `🔴 ${allAlerts.length} valor(es) alterado(s)` : '✅ Sem alterações'}
-                    </Typography>
-                    <Stack direction="row" spacing={0.5}>
-                      <Button size="small" onClick={copySummary} sx={{ textTransform: 'none', fontWeight: 600, fontSize: 12, color: 'text.secondary', minWidth: 0, py: 0.25 }}>📋 Copiar</Button>
-                      <Button size="small" onClick={exportPES} sx={{ textTransform: 'none', fontWeight: 600, fontSize: 12, color: '#6366f1', minWidth: 0, py: 0.25 }}>🏥 PES</Button>
-                    </Stack>
-                  </Stack>
-                  {/* Linha 2: top 3 alterados (não 10 chips) */}
-                  {allAlerts.length > 0 && (
-                    <Typography variant="body2" sx={{ mt: 0.5, color: 'text.secondary', fontSize: 13 }}>
-                      {allAlerts.slice(0, 3).map((a) => a.name).join(', ')}{allAlerts.length > 3 ? ` +${allAlerts.length - 3}` : ''}
-                      {exams[0] && ` · ${exams[0].title} · ${fmtDate(exams[0].performedAt)}`}
-                    </Typography>
-                  )}
-                  {/* Linha 3: comparação PROMOVIDA a chips (escaneável) + nota. Cores neutras
-                      (teal) — não assumir ↑=ruim/↓=bom (HDL↑ é bom, glicose↑ é ruim). */}
-                  {comparison.length > 0 && (
-                    <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.75 }}>
-                      {comparison.slice(0, 4).map((d: any, i: number) => (
-                        <Chip key={i} size="small" label={`${d.name} ${d.pct > 0 ? '↑' : '↓'}${Math.abs(d.pct).toFixed(0)}%`} sx={{ height: 20, fontSize: 10.5, fontWeight: 700, bgcolor: 'rgba(32,178,170,.10)', color: 'primary.dark' }} />
-                      ))}
-                    </Stack>
-                  )}
-                  {notes.length > 0 && (
-                    <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: 'text.secondary', fontSize: 11.5 }}>📝 {notes[0].content?.slice(0, 60)}{(notes[0]?.content?.length ?? 0) > 60 ? '…' : ''}</Typography>
-                  )}
-                </CardContent>
-              </Card>
-            </>
-            )}
-
-            {/* Detalhe de um exame (todos os itens + PDF) OU conteúdo das tabs */}
-            {selExam ? (
-              <DoctorExamDetail exam={selExam} detail={examDetail} patientId={selected.patient.id} token={token} onBack={() => { setSelExam(null); setExamDetail(null); }} />
-            ) : supportedTabs.length > 0 ? (
-              <>
-                {/* RISCO (C1+C2+C3) — leitura de risco + mudanças ao longo do tempo + plano de ação clínico (versão médico, grátis) */}
-                {tab ==='risk' && (
-                  <Stack spacing={1.5}>
-                    {risk?.result ? (() => {
-                      const rl = risk.result.riskLevel;
-                      const color = rl === 'high' ? '#dc2626' : rl === 'moderate' ? '#ea580c' : '#16a34a';
-                      return (
-                        <Card variant="outlined" sx={{ borderRadius: 3, borderColor: 'divider', borderLeft: `4px solid ${color}` }}><CardContent>
-                          <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1 }}>
-                            <Typography sx={{ fontWeight: 800 }}>🛡️ Leitura de risco <Box component="span" sx={{ fontSize: 12, fontWeight: 600, color: color }}>{rl === 'high' ? '🔴 Alta' : rl === 'moderate' ? '🟠 Moderada' : '🟢 Baixa'}</Box></Typography>
-                            <Chip size="small" label={risk.result.predictedCondition} sx={{ fontWeight: 700, bgcolor: 'action.hover', height: 22 }} />
-                          </Stack>
-                          {risk.trend && risk.trend !== 'primeiro' && <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 1 }}>{risk.trend === 'melhorou' ? '↓ Risco caiu' : risk.trend === 'piorou' ? '↑ Risco subiu' : '→ Estável'}{risk.prior ? ` desde ${new Date(risk.prior.createdAt).toLocaleDateString('pt-BR')}` : ''}</Typography>}
-                          {risk.result.detectedFindings?.length > 0 && (
-                            <Stack spacing={0.5} sx={{ mb: 1 }}>
-                              {risk.result.detectedFindings.map((f: string, i: number) => <Typography key={i} variant="body2" sx={{ color: 'text.secondary' }}>• {f}</Typography>)}
-                            </Stack>
-                          )}
-                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>*Educativo. Não substitui avaliação médica.</Typography>
-                        </CardContent></Card>
-                      );
-                    })() : (detailLoading
-                      ? <Box sx={{ textAlign: 'center', py: 4 }}><CircularProgress size={28} sx={{ color: TEAL }} /></Box>
-                      : <Empty label="Sem leitura de risco ainda." icon="🛡️" />)}
-
-                    {/* Mudanças ao longo do tempo (C3) — deduplicado por dia (não repetir a mesma data) */}
-                    {riskHistoryDedup.length > 1 && (
-                      <Card variant="outlined" sx={{ borderRadius: 3, borderColor: 'divider' }}><CardContent>
-                        <Typography sx={{ fontWeight: 800, mb: 1 }}>📊 Mudanças ao longo do tempo</Typography>
-                        <Stack spacing={0.5}>
-                          {riskHistoryDedup.slice(0, 6).map((hh: any, i: number) => {
-                            const c = hh.riskLevel === 'high' ? '#dc2626' : hh.riskLevel === 'moderate' ? '#ea580c' : '#16a34a';
-                            return (
-                              <Box key={hh.id ?? i} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
-                                <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>{hh.conditionLabel} <Box component="span" sx={{ color: 'text.secondary' }}>· {new Date(hh.createdAt).toLocaleDateString('pt-BR')}</Box></Typography>
-                                <Chip size="small" label={riskLabel(hh.riskLevel)} sx={{ height: 20, flexShrink: 0, bgcolor: c + '22', color: c }} />
-                              </Box>
-                            );
-                          })}
-                        </Stack>
-                      </CardContent></Card>
-                    )}
-
-                    {/* Plano de ação clínico (C2) — versão médico, grátis */}
-                    <Card variant="outlined" sx={{ borderRadius: 3, borderColor: 'divider' }}><CardContent>
-                      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-                        <Typography sx={{ fontWeight: 800 }}>📋 Plano de conduta <Box component="span" sx={{ fontSize: 11, fontWeight: 600, color: 'text.secondary' }}>(investigação + follow-up + diferenciais)</Box></Typography>
-                        <Button size="small" variant="outlined" onClick={genActionPlan} disabled={planLoading} sx={{ textTransform: 'none', borderRadius: 99, fontWeight: 700, flexShrink: 0 }}>{clinicalPlan ? '🔄 Regenerar' : 'Gerar plano'}</Button>
-                      </Stack>
-                      {planLoading && <Box sx={{ textAlign: 'center', py: 2 }}><CircularProgress size={22} sx={{ color: TEAL }} /></Box>}
-                      {clinicalPlan && <Box sx={mdSx}><ReactMarkdown remarkPlugins={[remarkGfm]}>{stripMdFences(clinicalPlan)}</ReactMarkdown></Box>}
-                      {!clinicalPlan && !planLoading && <Typography variant="body2" sx={{ color: 'text.secondary' }}>Sugestão de conduta clínica com base na leitura de risco: o que investigar, quando reavaliar, diferenciais.</Typography>}
-                    </CardContent></Card>
-
-                    {/* SOAP rascunho (IA preenche, médico edita) */}
-                    <Card variant="outlined" sx={{ borderRadius: 3, borderColor: 'divider' }}><CardContent>
-                      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-                        <Typography sx={{ fontWeight: 800 }}>📝 SOAP <Box component="span" sx={{ fontSize: 11, fontWeight: 600, color: 'text.secondary' }}>(nota clínica: Subjetivo/Objetivo/Avaliação/Plano)</Box></Typography>
-                        <Button size="small" variant="outlined" onClick={genSoap} disabled={soapLoading} sx={{ textTransform: 'none', borderRadius: 99, fontWeight: 700, flexShrink: 0 }}>{soap ? '🔄 Regenerar' : 'Gerar SOAP'}</Button>
-                      </Stack>
-                      {soapLoading && <Box sx={{ textAlign: 'center', py: 2 }}><CircularProgress size={22} sx={{ color: TEAL }} /></Box>}
-                      {soap && <Box sx={mdSx}><ReactMarkdown remarkPlugins={[remarkGfm]}>{stripMdFences(soap)}</ReactMarkdown></Box>}
-                      {!soap && !soapLoading && <Typography variant="body2" sx={{ color: 'text.secondary' }}>Gera um SOAP estruturado (S/O/A/P) com IA a partir dos dados do paciente.</Typography>}
-                    </CardContent></Card>
-                  </Stack>
-                )}
-
-                {/* PERGUNTAS — thread completa (paciente + médico + IA) em bolhas. Antes ficava
-                    misturada na tab Risco e só mostrava a última resposta do médico (perdia o
-                    histórico). Agora tem aba própria e itera q.messages. */}
-                {tab ==='questions' && (
+            {/* PERGUNTAS — thread completa (paciente + médico + IA) em bolhas. */}
+            {tab === 'questions' && !selExam && (
                   <Stack spacing={1.5}>
                     {/* Cota de perguntas (contextual: a info que estava confusa no botão Atendi). */}
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap', p: 1, px: 1.25, borderRadius: 2, bgcolor: 'rgba(32,178,170,.06)', border: '1px solid rgba(32,178,170,.15)' }}>
@@ -1548,108 +993,9 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                   </Stack>
                 )}
 
-                {/* EXAMES — agrupados por ano (igual à lista do paciente), clicáveis p/ ver detalhe */}
-                {tab ==='exams' && (
-                  <Stack spacing={1.5}>
-                    {exams.length === 0 && <Empty label="Sem exames extraídos." />}
-                    {examsByYear.map((g) => (
-                      <Box key={g.year} sx={{ mb: 2 }}>
-                        {/* Cabeçalho de ano LEVE (não colapsável) — médico escaneia topo→base, mais recente primeiro. Antes era Accordion (clique extra p/ abrir). */}
-                        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-                          <Typography sx={{ fontWeight: 800, color: 'text.primary', fontSize: 14 }}>{g.year === 0 ? 'Sem data' : g.year}</Typography>
-                          <Chip size="small" label={g.items.length} sx={{ bgcolor: 'rgba(32,178,170,0.15)', color: TEAL, fontWeight: 700, height: 18 }} />
-                        </Stack>
-                        <Stack spacing={1}>
-                          {g.items.map((ex) => (
-                            <Card key={ex.id} variant="outlined" onClick={() => openExam(ex)} sx={{ borderRadius: 2.5, borderColor: 'divider', cursor: 'pointer', transition: 'all .15s', '&:hover': { borderColor: TEAL, boxShadow: '0 4px 12px rgba(32,178,170,.1)' } }}><CardContent sx={{ py: 1.25, '&:last-child': { pb: 1.25 } }}>
-                              <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1.5}>
-                                <Box sx={{ flex: '1 1 auto', minWidth: 0 }}>
-                                  <Stack direction="row" spacing={0.5} alignItems="center" useFlexGap sx={{ flexWrap: 'wrap', rowGap: 0.5, mb: 0.25 }}>
-                                    <Typography sx={{ fontWeight: 700, color: 'text.primary' }}>{ex.title}</Typography>
-                                    {/* LAB em destaque (médico: referência varia por lab → tem que saber qual de cara) */}
-                                    {ex.sourceLab && <LabBadge raw={ex.sourceLab} />}
-                                  </Stack>
-                                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>{fmtDate(ex.performedAt)} • {ex._count?.items ?? 0} itens{ex.requestingDoctor ? ` • Dr. ${ex.requestingDoctor}` : ''}</Typography>
-                                </Box>
-                                <Box sx={{ flexShrink: 0, pt: 0.25 }}>
-                                  {ex.items?.length > 0 ? <Chip size="small" color="error" label={`${ex.items.length} alterado`} sx={{ fontWeight: 700, height: 20, whiteSpace: 'nowrap' }} /> : <Chip size="small" label="normal" sx={{ bgcolor: '#dcfce7', color: '#15803d', fontWeight: 700, height: 20, whiteSpace: 'nowrap' }} />}
-                                </Box>
-                              </Stack>
-                              {ex.items?.length > 0 && <Box sx={{ mt: 0.75, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>{ex.items.slice(0, 6).map((it: any, i: number) => <Chip key={i} size="small" color="error" variant="outlined" label={`${it.name}: ${it.valueText}`} sx={{ height: 20, fontSize: 10 }} />)}</Box>}
-                              <Typography variant="caption" sx={{ display: 'block', mt: 0.75, color: TEAL, fontWeight: 700 }}>Toque para ver todos os itens →</Typography>
-                            </CardContent></Card>
-                          ))}
-                        </Stack>
-                      </Box>
-                    ))}
-                  </Stack>
-                )}
-
-                {tab ==='alerts' && (() => {
-                  const exWithAlerts = exams.filter((ex: any) => ex.items?.length).map((ex: any) => ({ ...ex, items: [...ex.items].sort((a: any, b: any) => categorize(a.name).key.localeCompare(categorize(b.name).key)) }));
-                  if (!exWithAlerts.length) return <Empty label="Nenhum valor alterado nos exames." />;
-                  return (
-                    <Stack spacing={1}>
-                      {exWithAlerts.map((ex, idx) => (
-                        <Accordion key={ex.id} defaultExpanded={idx === 0} disableGutters elevation={0} sx={{ border: '1px solid #f3dada', borderRadius: '12px', overflow: 'hidden', '&:before': { display: 'none' } }}>
-                          <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: 'rgba(239,68,68,0.08)' }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 1 }}>
-                              <Box component="span" sx={{ fontSize: 18 }}>🚨</Box>
-                              <Box sx={{ flex: 1, minWidth: 0 }}>
-                                <Typography sx={{ fontWeight: 800, color: '#b91c1c', lineHeight: 1.2 }}>{ex.title}</Typography>
-                                <Typography variant="caption" sx={{ color: '#9b3a3a' }}>{fmtDate(ex.performedAt)}{ex.sourceLab ? ` • ${ex.sourceLab}` : ''}</Typography>
-                              </Box>
-                              <Chip size="small" color="error" label={`${ex.items.length} alterado(s)`} sx={{ fontWeight: 700, height: 20 }} />
-                            </Box>
-                          </AccordionSummary>
-                          <AccordionDetails sx={{ p: 1 }}>
-                            <Stack spacing={0}>
-                              {ex.items.map((it: any, i: number) => (
-                                <Box key={i} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1, px: 1, py: 0.75, borderBottom: i < ex.items.length - 1 ? '1px solid #fde8e8' : 'none' }}>
-                                  <Box sx={{ minWidth: 0 }}>
-                                    <Typography sx={{ fontWeight: 700, fontSize: 13.5, color: '#b91c1c' }}>{it.name}</Typography>
-                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>Ref.: {refLabel(it)}</Typography>
-                                  </Box>
-                                  <Typography sx={{ fontWeight: 800, color: '#b91c1c', flexShrink: 0 }}>{it.valueText}</Typography>
-                                </Box>
-                              ))}
-                            </Stack>
-                          </AccordionDetails>
-                        </Accordion>
-                      ))}
-                    </Stack>
-                  );
-                })()}
-
-                {tab ==='evolution' && (
-                  <EvolutionCharts items={evolution} />
-                )}
-
-                {tab ==='summary' && (
-                  <Stack spacing={1.5}>
-                    <Button size="small" variant="contained" onClick={genSummary} disabled={detailLoading} sx={{ alignSelf: 'flex-start', textTransform: 'none', borderRadius: 99, fontWeight: 700 }}>{summaries[0] ? '🔄 Regenerar resumo clínico' : '🤖 Gerar resumo clínico'}</Button>
-                    {summaries.length === 0 && !detailLoading && <Empty label="Sem resumo clínico ainda — toque em ‘Gerar resumo clínico’ acima." icon="🤖" />}
-                    {summaries[0] && (
-                      <Card key={summaries[0].id} variant="outlined" sx={{ borderRadius: 3, borderColor: 'divider' }}><CardContent>
-                        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1 }}>
-                          <Typography sx={{ fontWeight: 700, color: 'text.primary' }}>🤖 Resumo clínico (mais recente){summaries[0].userMessage === 'audience:doctor' ? ' · versão médico' : ''}</Typography>
-                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>{new Date(summaries[0].createdAt).toLocaleDateString('pt-BR')}</Typography>
-                        </Stack>
-                        <Box sx={mdSx}>
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{stripMdFences(summaries[0].contentMd)}</ReactMarkdown>
-                        </Box>
-                      </CardContent></Card>
-                    )}
-                  </Stack>
-                )}
-
-                {tab ==='notes' && (
+                {tab === 'notes' && !selExam && (
                   <NotesTab notes={notes} newNote={newNote} setNewNote={setNewNote} onAdd={addNote} onDelete={delNote} onSave={saveNote} />
                 )}
-              </>
-            ) : (
-              <Empty label="O paciente não autorizou nenhum escopo de visualização." icon="🔒" />
-            )}
           </>
         )}
       </Box>
@@ -1790,73 +1136,6 @@ const DoctorProfile = ({ token, doctor, onBack, onSaved, onPhoto, photoVer }: { 
   );
 };
 
-/** Detalhe de um exame (TODOS os itens, agrupados por categoria) + botão p/ abrir o PDF original. Igual à página do paciente. */
-const DoctorExamDetail = ({ exam, detail, patientId, token, onBack }: { exam: any; detail: any | null; patientId: string; token: string; onBack: () => void }) => {
-  const [pdfLoading, setPdfLoading] = useState(false);
-  const items = detail?.items ?? [];
-  const groups = useMemo(() => {
-    const map = new Map<string, { cat: string; emoji: string; color: string; items: any[] }>();
-    for (const it of items) { const c = categorize(it.name); if (!map.has(c.key)) map.set(c.key, { cat: c.cat, emoji: c.emoji, color: c.color, items: [] }); map.get(c.key)!.items.push(it); }
-    return [...map.values()];
-  }, [items]);
-  const openPdf = async () => {
-    setPdfLoading(true);
-    try {
-      const url = `${API_URL}/doctor/patients/${patientId}/exams/${exam.id}/file?token=${encodeURIComponent(token)}`;
-      try {
-        const { Capacitor } = await import('@capacitor/core');
-        if (Capacitor.isNativePlatform()) { const { Browser } = await import('@capacitor/browser'); await Browser.open({ url }); return; }
-      } catch { /* web: cai pra window.open */ }
-      window.open(url, '_blank');
-    } catch { snackbar({ message: 'Não foi possível abrir o PDF.', severity: 'error' }); } finally { setPdfLoading(false); }
-  };
-  return (
-    <Box>
-      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1.5 }}>
-        {/* Voltar só no header (←) do portal — um botão só */}
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Stack direction="row" spacing={0.5} alignItems="center" useFlexGap sx={{ flexWrap: 'wrap', rowGap: 0.5 }}>
-            <Typography sx={{ fontWeight: 800, color: 'text.primary' }}>{detail?.title || exam.title}</Typography>
-            {detail?.sourceLab && <LabBadge raw={detail?.sourceLab} size="md" showUnit />}
-          </Stack>
-          <Typography variant="caption" sx={{ color: 'text.secondary' }}>{detail?.performedAt ? new Date(detail.performedAt).toLocaleDateString('pt-BR') : 's/d'}{detail ? ` • ${items.length} itens` : ''}{detail?.sourceLab ? ' • faixas de referência deste laboratório' : ''}</Typography>
-        </Box>
-        {detail?.filePath && <Button size="small" variant="outlined" startIcon={pdfLoading ? <CircularProgress size={16} color="inherit" /> : <PdfIcon />} onClick={openPdf} sx={{ color: TEAL, borderColor: TEAL, textTransform: 'none', fontWeight: 700, borderRadius: 99, flexShrink: 0 }}>PDF</Button>}
-      </Stack>
-      {!detail && <Box sx={{ textAlign: 'center', py: 4 }}><CircularProgress sx={{ color: TEAL }} /></Box>}
-      {detail && groups.length === 0 && <Empty label="Exame sem itens extraídos." />}
-      {detail && groups.map((g) => (
-        <Accordion key={g.cat} disableGutters elevation={0} sx={{ '&:before': { display: 'none' }, mb: 1, border: `1px solid ${g.color}26`, borderRadius: '12px !important', overflow: 'hidden' }}>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: `${g.color}0a`, minHeight: '46px !important', '& .MuiAccordionSummary-content': { my: 0.5 } }}>
-            <Box sx={{ fontSize: 18, mr: 1, display: 'inline-block' }}>{g.emoji}</Box>
-            <Typography sx={{ fontWeight: 800, color: 'text.primary', display: 'inline-block' }}>{g.cat}</Typography>
-            <Chip size="small" label={g.items.length} sx={{ ml: 1, bgcolor: `${g.color}1a`, color: g.color, fontWeight: 700, height: 20 }} />
-          </AccordionSummary>
-          <AccordionDetails sx={{ p: 0 }}>
-            {g.items.map((it, idx) => (
-              <Box key={it.id || idx} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 1.5, py: 1, borderBottom: idx < g.items.length - 1 ? '1px solid' : 'none', borderBottomColor: idx < g.items.length - 1 ? 'divider' : undefined }}>
-                <Box sx={{ minWidth: 0, pr: 1 }}>
-                  <Typography sx={{ fontSize: 13.5, fontWeight: it.isAbnormal ? 700 : 500, color: it.isAbnormal ? '#b91c1c' : 'text.primary' }}>{it.name}</Typography>
-                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>Ref.: {refLabel(it)}</Typography>
-                </Box>
-                <Stack direction="row" spacing={1} alignItems="center" sx={{ flexShrink: 0 }}>
-                  <Typography sx={{ fontWeight: 800, fontSize: 14, color: it.isAbnormal ? '#b91c1c' : 'text.primary' }}>{it.valueText ?? '—'}</Typography>
-                  {it.flag && (() => {
-                    const s = displayStatus(it.flag, it.name, it.refLow, it.refHigh);
-                    const bg = s.tone === 'atencao' || s.tone === 'critico' ? '#fee2e2' : s.tone === 'contexto' ? '#fef3c7' : s.tone === 'normal' ? '#dcfce7' : '#f1f5f9';
-                    const fg = s.tone === 'atencao' || s.tone === 'critico' ? '#b91c1c' : s.tone === 'contexto' ? '#92400e' : s.tone === 'normal' ? '#15803d' : '#475569';
-                    return <Chip size="small" label={s.short} title={s.label} sx={{ height: 18, fontSize: 9, bgcolor: bg, color: fg, fontWeight: 700 }} />;
-                  })()}
-                </Stack>
-              </Box>
-            ))}
-          </AccordionDetails>
-        </Accordion>
-      ))}
-    </Box>
-  );
-};
-
 /** Trocar senha do médico. */
 const DoctorChangePassword = ({ token, onBack }: { token: string; onBack: () => void }) => {
   const [cur, setCur] = useState(''); const [nw, setNw] = useState(''); const [cf, setCf] = useState('');
@@ -1931,154 +1210,5 @@ const NotesTab = ({ notes, newNote, setNewNote, onAdd, onDelete, onSave }: { not
   );
 };
 
-// Status de triagem do analito (mesma semântica da tela de Evolução do paciente).
-const STATUS_META_EVO = {
-  out: { emoji: '🔴', label: 'Fora da faixa', color: '#ef4444' },
-  change: { emoji: '🟠', label: 'Em mudança', color: '#f59e0b' },
-  stable: { emoji: '✅', label: 'Estável', color: '#059669' },
-} as const;
-type EvoStatus = keyof typeof STATUS_META_EVO;
+// Status de triagem do analito removido (EvolutionCharts migrado para components/doctors).
 
-/** #2 Gráficos de evolução por analito — mesmas alavancas de triagem do app do paciente
- *  (chips de status Fora da faixa / Em mudança / Estável + busca) + filtro de período
- *  (6m/1y/Tudo) + zona de referência. Antes era só o gráfico bruto (sem triagem). */
-const EvolutionCharts = ({ items }: { items: any[] }) => {
-  const muiTheme = useTheme();
-  const [period, setPeriod] = useState<'6m' | '1y' | 'all'>('1y');
-  const [status, setStatus] = useState<EvoStatus | 'all'>('all');
-  const [query, setQuery] = useState('');
-
-  // Agrupa por analito dentro do período selecionado.
-  const groups = useMemo(() => {
-    const now = Date.now();
-    const cutoff = period === '6m' ? now - 180 * 86400000 : period === '1y' ? now - 365 * 86400000 : 0;
-    const map = new Map<string, { name: string; unit: string | null; refLow: number | null; refHigh: number | null; labs: Set<string>; points: { date: string; ts: number; value: number; abnormal: boolean }[] }>();
-    for (const it of items) {
-      const ts = it.exam?.performedAt ? new Date(it.exam.performedAt).getTime() : 0;
-      if (ts < cutoff) continue;
-      const key = it.nameCanonical || it.name;
-      if (!map.has(key)) map.set(key, { name: it.name, unit: it.unit ?? null, refLow: it.refLow ?? null, refHigh: it.refHigh ?? null, labs: new Set<string>(), points: [] });
-      if (it.exam?.sourceLab) map.get(key)!.labs.add(it.exam.sourceLab);
-      map.get(key)!.points.push({ date: it.exam?.performedAt ? new Date(it.exam.performedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : 's/d', ts, value: it.valueNumeric, abnormal: !!it.isAbnormal });
-    }
-    return [...map.values()].map((g) => ({ ...g, labs: [...g.labs], multiLab: g.labs.size > 1, points: g.points.sort((a, b) => a.ts - b.ts) })).filter((g) => g.points.length >= 1);
-  }, [items, period]);
-
-  // Status do analito = último valor fora da faixa (out) / em movimento (change) / estável.
-  // Mesma semântica da tela de Evolução do paciente (statusOf).
-  const statusOf = (g: { points: { value: number; abnormal: boolean }[] }): EvoStatus => {
-    const last = g.points[g.points.length - 1];
-    if (last?.abnormal) return 'out';
-    const nums = g.points.map((p) => p.value).filter((v) => Number.isFinite(v));
-    if (nums.length >= 2 && Math.abs(nums[nums.length - 1] - nums[0]) > 1e-9) return 'change';
-    return 'stable';
-  };
-
-  // Contagem por status (sobre o período selecionado) pros chips de triagem.
-  const counts = useMemo(() => {
-    const c: Record<EvoStatus, number> = { out: 0, change: 0, stable: 0 };
-    for (const g of groups) c[statusOf(g)]++;
-    return c;
-  }, [groups]);
-
-  // Aplica filtro de status + busca antes de agrupar por categoria.
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return groups.filter((g) => (status === 'all' || statusOf(g) === status) && (!q || (g.name || '').toLowerCase().includes(q)));
-  }, [groups, status, query]);
-
-  // Agrupa por categoria médica (igual à tela do paciente) + ordena por qtd de analitos.
-  const byCat = useMemo(() => {
-    const catMap = new Map<string, { cat: string; emoji: string; color: string; items: typeof filtered }>();
-    for (const g of filtered) {
-      const c = categorize(g.name);
-      if (!catMap.has(c.key)) catMap.set(c.key, { cat: c.cat, emoji: c.emoji, color: c.color, items: [] });
-      catMap.get(c.key)!.items.push(g);
-    }
-    return [...catMap.values()].sort((a, b) => b.items.length - a.items.length);
-  }, [filtered]);
-
-  const CHIPS: { key: EvoStatus | 'all'; emoji: string; label: string; color: string; count: number }[] = [
-    { key: 'all', emoji: '📋', label: 'Todos', color: '#178f89', count: groups.length },
-    { key: 'out', emoji: STATUS_META_EVO.out.emoji, label: STATUS_META_EVO.out.label, color: STATUS_META_EVO.out.color, count: counts.out },
-    { key: 'change', emoji: STATUS_META_EVO.change.emoji, label: STATUS_META_EVO.change.label, color: STATUS_META_EVO.change.color, count: counts.change },
-    { key: 'stable', emoji: STATUS_META_EVO.stable.emoji, label: STATUS_META_EVO.stable.label, color: STATUS_META_EVO.stable.color, count: counts.stable },
-  ];
-
-  if (items.length === 0) return <Empty label="Sem dados de evolução." icon="📈" />;
-
-  return (
-    <Box>
-      {/* Chips de status (triagem) — iguais aos da Evolução do paciente */}
-      <Grid container spacing={1} sx={{ mb: 1.5 }}>
-        {CHIPS.map((c) => {
-          const on = status === c.key;
-          return (
-            <Grid key={c.key} size={{ xs: 6, sm: 3 }}>
-              <Chip onClick={() => setStatus(c.key)} label={`${c.emoji} ${c.label} (${c.count})`} sx={{ width: '100%', height: 36, borderRadius: 2, bgcolor: on ? c.color : `${c.color}1a`, color: on ? '#fff' : c.color, fontWeight: 700, border: `1px solid ${c.color}55`, '&:hover': { bgcolor: on ? c.color : `${c.color}2e` } }} />
-            </Grid>
-          );
-        })}
-      </Grid>
-
-      {/* Período + busca (combo numa linha só) */}
-      <Stack direction="row" spacing={1} sx={{ mb: 1.5 }} useFlexGap flexWrap="wrap" alignItems="center">
-        {([['6m', '6 meses'], ['1y', '1 ano'], ['all', 'Tudo']] as const).map(([k, l]) => (
-          <Chip key={k} size="small" label={l} onClick={() => setPeriod(k)} variant={period === k ? 'filled' : 'outlined'} color={period === k ? 'primary' : 'default'} sx={{ fontWeight: 600 }} />
-        ))}
-        <Paper variant="outlined" sx={{ p: '2px 12px', flex: 1, minWidth: 160, display: 'flex', alignItems: 'center', gap: 1, borderRadius: 99 }}>
-          <SearchIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
-          <InputBase value={query} onChange={(e: any) => setQuery(e.target.value)} placeholder="Buscar analito (TSH, glicose…)" sx={{ flex: 1, fontSize: 14 }} />
-          {query && <Chip size="small" label="limpar" onClick={() => setQuery('')} sx={{ height: 22 }} />}
-        </Paper>
-      </Stack>
-
-      {filtered.length === 0 && <Empty label="Nenhum analito nesse filtro." icon="📈" />}
-      {byCat.map((cg) => (
-        <Box key={cg.cat} sx={{ mb: 2 }}>
-          <Typography sx={{ fontWeight: 800, fontSize: 14, color: cg.color, mb: 1, display: 'flex', alignItems: 'center', gap: 0.75 }}>
-            <Box component="span" sx={{ fontSize: 18 }}>{cg.emoji}</Box> {cg.cat}
-            <Chip size="small" label={`${cg.items.length}`} sx={{ height: 18, fontSize: 10, bgcolor: `${cg.color}1a`, color: cg.color, fontWeight: 700 }} />
-          </Typography>
-          <Stack spacing={1}>
-            {cg.items.map((g) => {
-              const lineColor = statusOf(g) === 'out' ? '#ef4444' : '#178f89';
-              return (
-                <Card key={g.name} variant="outlined" sx={{ borderRadius: 3, borderColor: 'divider' }}><CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
-                    <Typography sx={{ fontWeight: 700, color: 'text.primary', fontSize: 14 }}>{STATUS_META_EVO[statusOf(g)].emoji} {g.name}</Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>{refLabel(g)}</Typography>
-                  </Stack>
-                  {/* AVISO MULTI-LAB: referências/métodos variam por laboratório. Se a série do analito
-                      mistura labs, a zona de referência (de UM lab) pode não valer p/ todos os pontos. */}
-                  {g.multiLab && (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.75, px: 1, py: 0.4, borderRadius: 1.5, bgcolor: 'rgba(245,158,11,.10)', color: '#92400e', fontSize: 11.5, fontWeight: 600 }}>
-                      <Box component="span">⚠️</Box><Box sx={{ minWidth: 0 }}>Série mistura labs ({(g.labs as string[]).join(', ')}) — referências/métodos podem diferir. Compare com cuidado.</Box>
-                    </Box>
-                  )}
-                  <Box sx={{ height: g.points.length >= 2 ? 110 : 'auto', width: '100%' }}>
-                    {g.points.length >= 2 ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={g.points} margin={{ top: 4, right: 18, bottom: 4, left: 6 }}>
-                          {g.refLow != null && g.refHigh != null && <ReferenceArea y1={g.refLow} y2={g.refHigh} fill="#059669" fillOpacity={0.14} />}
-                          <XAxis dataKey="date" tick={{ fontSize: 10, fill: muiTheme.palette.text.secondary }} interval="preserveStartEnd" tickMargin={6} stroke={muiTheme.palette.divider} />
-                          <YAxis tick={{ fontSize: 10, fill: muiTheme.palette.text.secondary }} width={32} domain={['auto', 'auto']} stroke={muiTheme.palette.divider} />
-                          <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12, background: muiTheme.palette.background.paper, border: '1px solid ' + muiTheme.palette.divider, color: muiTheme.palette.text.primary }} />
-                          <Line type="monotone" dataKey="value" stroke={lineColor} strokeWidth={2.5} dot={{ r: 3, fill: lineColor }} isAnimationActive={false} />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <Typography sx={{ fontSize: 13, color: lineColor, fontWeight: 700 }}>
-                        {g.points[0].value} {g.unit || ''} <Typography component="span" variant="caption" sx={{ color: 'text.secondary', ml: 1 }}>{g.points[0].date} · única medição</Typography>
-                      </Typography>
-                    )}
-                  </Box>
-                </CardContent></Card>
-              );
-            })}
-          </Stack>
-        </Box>
-      ))}
-    </Box>
-  );
-};
