@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Box, Button, Card, CardContent, CircularProgress, Stack, Typography } from '@mui/material';
+import { Alert, Box, Button, Card, CardContent, CircularProgress, Stack, Typography } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { API_URL } from '../../config';
@@ -20,11 +20,11 @@ export const DoctorConsolidatedReport = ({ patientId, token, patientName, onOpen
   const [analysis, setAnalysis] = useState<any>(null);
   const [sourceExams, setSourceExams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [genError, setGenError] = useState('');
 
   const load = useCallback(() => {
-    setRefreshing(true);
     const h: Record<string, string> = { Authorization: `Bearer ${token}` };
     fetch(`${API_URL}/doctor/patients/${patientId}/analyses/consolidated/latest`, { headers: h })
       .then((r) => (r.ok ? r.json() : null))
@@ -34,7 +34,19 @@ export const DoctorConsolidatedReport = ({ patientId, token, patientName, onOpen
         setLoaded(true);
       })
       .catch(() => { setAnalysis(null); setSourceExams([]); setLoaded(true); })
-      .finally(() => { setLoading(false); setRefreshing(false); });
+      .finally(() => { setLoading(false); });
+  }, [patientId, token]);
+
+  // GERA (ou regenera) o relatório no framing do MÉDICO (audience:doctor — "O paciente X
+  // apresenta..."). Grátis pro médico. Sem POST o relatório sai no tom leigo do paciente.
+  const generate = useCallback(() => {
+    setGenerating(true); setGenError('');
+    const h: Record<string, string> = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+    fetch(`${API_URL}/doctor/patients/${patientId}/analyses/consolidated`, { method: 'POST', headers: h })
+      .then(async (r) => { const d = r.ok ? await r.json() : null; if (!r.ok) throw new Error(d?.error || 'Falha ao gerar.'); return d; })
+      .then((d) => { setAnalysis(d?.analysis ?? null); setSourceExams(d?.sourceExams ?? []); setLoaded(true); })
+      .catch((e: any) => setGenError(e?.message || 'Não foi possível gerar agora (IA). Tente novamente.'))
+      .finally(() => { setLoading(false); setGenerating(false); });
   }, [patientId, token]);
 
   // Primeira carga — NUNCA chamar load() durante o render (setRefreshing durante o
@@ -51,24 +63,36 @@ export const DoctorConsolidatedReport = ({ patientId, token, patientName, onOpen
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      {/* Header + atualizar */}
+      {/* Header + atualizar (só quando há relatório — regenera no framing médico) */}
       <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} flexWrap="wrap" useFlexGap>
         <Box>
           <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 18, color: 'text.primary' }}>Relatório completo</Typography>
           {createdAt && <Typography variant="caption" color="text.secondary">Atualizado em {createdAt}</Typography>}
         </Box>
-        <Button size="small" variant="outlined" startIcon={refreshing ? <CircularProgress size={14} color="inherit" /> : <RefreshIcon />} onClick={load} disabled={refreshing}
-          sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 99, color: '#20b2aa', borderColor: '#20b2aa' }}>
-          {refreshing ? 'Atualizando…' : '↻ Atualizar'}
-        </Button>
+        {analysis && (
+          <Button size="small" variant="outlined" startIcon={generating ? <CircularProgress size={14} color="inherit" /> : <RefreshIcon />} onClick={generate} disabled={generating}
+            sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 99, color: '#20b2aa', borderColor: '#20b2aa' }}>
+            {generating ? 'Gerando…' : '↻ Atualizar'}
+          </Button>
+        )}
       </Stack>
 
-      {!analysis ? (
-        <EmptyState
-          emoji="📑"
-          title="Relatório ainda não gerado"
-          desc={`${patientName || 'O paciente'} ainda não gerou o relatório completo no app.`}
-        />
+      {generating ? (
+        <Card sx={{ p: 4, textAlign: 'center', borderRadius: 3 }}>
+          <CircularProgress sx={{ color: '#20b2aa' }} />
+          <Typography sx={{ mt: 1.5, color: 'text.secondary' }}>Lendo os exames e montando a análise clínica…</Typography>
+        </Card>
+      ) : !analysis ? (
+        <>
+          {genError && <Alert severity="warning" sx={{ borderRadius: 2 }}>{genError}</Alert>}
+          <EmptyState
+            emoji="📑"
+            title="Relatório do paciente"
+            desc={`Gere a análise consolidada dos exames de ${patientName || 'do paciente'} no seu tom clínico — educativo, sem diagnóstico.`}
+            cta="✨ Gerar relatório"
+            onCta={generate}
+          />
+        </>
       ) : (
         <>
           {/* Hero read-only — Dr.Exame + resumo (SEM share/speak/print/regen do ReportHero). */}

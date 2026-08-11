@@ -12,8 +12,10 @@ const setupShare = async (crm: string, docEmail: string, pacEmail: string, scope
   return { docToken, patientId: patient!.id };
 };
 
+// Relatório médico vive em userMessage:'audience:doctor' (framing clínico, separado da
+// cópia do paciente userMessage:null). O GET /consolidated/latest lê só esse.
 const makeReport = async (patientId: string, contentMd = '# Relatório') =>
-  prisma.aiAnalysis.create({ data: { patientId, examId: null, type: 'SUMMARY', userMessage: null, contentMd, structured: { resumoGeral: 'ok' } } });
+  prisma.aiAnalysis.create({ data: { patientId, examId: null, type: 'SUMMARY', userMessage: 'audience:doctor', contentMd, structured: { resumoGeral: 'ok' } } });
 
 describe('Doctor Portal — relatório consolidado (GET /doctor/patients/:id/analyses/consolidated/latest)', () => {
   beforeEach(async () => { await resetDb(); });
@@ -62,5 +64,39 @@ describe('Doctor Portal — relatório consolidado (GET /doctor/patients/:id/ana
     await makeReport(patientId);
     const r = await api().get(`/api/doctor/patients/${patientId}/analyses/consolidated/latest`).set(docH(docToken));
     expect(r.body.sourceExams.length).toBeLessThanOrEqual(5);
+  });
+});
+
+describe('Doctor Portal — gerar relatório consolidado (POST /doctor/patients/:id/analyses/consolidated)', () => {
+  beforeEach(async () => { await resetDb(); });
+
+  it('201 + relatório no framing médico (audience:doctor) quando scope summary', async () => {
+    const { docToken, patientId } = await setupShare('G1-SP', 'g1@t.com', 'pg1@t.com', ['summary']);
+    await createExam(patientId, { title: 'Hemograma' });
+    const r = await api().post(`/api/doctor/patients/${patientId}/analyses/consolidated`).set(docH(docToken));
+    expect(r.status).toBe(201);
+    expect(r.body.analysis).toBeTruthy();
+    expect(r.body.analysis.contentMd).toBe('# Relatório consolidado de teste');
+    // gravou no framing médico (userMessage:'audience:doctor')
+    const row = await prisma.aiAnalysis.findFirst({ where: { patientId } });
+    expect(row?.userMessage).toBe('audience:doctor');
+    // GET agora devolve o relatório gerado
+    const g = await api().get(`/api/doctor/patients/${patientId}/analyses/consolidated/latest`).set(docH(docToken));
+    expect(g.body.analysis?.contentMd).toBe('# Relatório consolidado de teste');
+  });
+
+  it('403 quando scope NÃO inclui summary', async () => {
+    const { docToken, patientId } = await setupShare('G2-SP', 'g2@t.com', 'pg2@t.com', ['exams']);
+    const r = await api().post(`/api/doctor/patients/${patientId}/analyses/consolidated`).set(docH(docToken));
+    expect(r.status).toBe(403);
+  });
+
+  it('upsert: 2ª geração atualiza o mesmo registro (não acumula)', async () => {
+    const { docToken, patientId } = await setupShare('G3-SP', 'g3@t.com', 'pg3@t.com', ['summary']);
+    await createExam(patientId);
+    await api().post(`/api/doctor/patients/${patientId}/analyses/consolidated`).set(docH(docToken));
+    await api().post(`/api/doctor/patients/${patientId}/analyses/consolidated`).set(docH(docToken));
+    const count = await prisma.aiAnalysis.count({ where: { patientId, type: 'SUMMARY', userMessage: 'audience:doctor' } });
+    expect(count).toBe(1);
   });
 });

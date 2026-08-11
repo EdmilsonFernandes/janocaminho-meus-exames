@@ -595,9 +595,31 @@ router.get('/patients/:patientId/items/abnormal', requireDoctor, async (req: any
   } catch (e) { next(e); }
 });
 
-// RELATÓRIO CONSOLIDADO do paciente (read-only — espelha /analyses/consolidated/latest).
-// Médico é VIEWER: lê o último relatório que o paciente gerou, sem POST/cobrança/geração.
-// Filtro userMessage:null isola o relatório do paciente (exclui os briefs audience:doctor).
+// RELATÓRIO CONSOLIDADO do paciente (framing do MÉDICO — audience:doctor).
+// O médico LÊ o relatório; ele é gerado no tom clínico ("O paciente X apresenta..."), não no
+// tom leigo do paciente ("Edmilson, seu quadre..."). Grátis pro médico (como /summary/generate).
+// Upsert (1 relatório médico por paciente). Sem charge de créditos.
+router.post('/patients/:patientId/analyses/consolidated', requireDoctor, async (req: any, res, next) => {
+  try {
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    if (!share?.scopes.includes('summary')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+    const pid = String(req.params.patientId);
+    const { summary, contentMd, modelUsed, usage } = await generateConsolidatedSummary(pid, 'doctor');
+    const existing = await prisma.aiAnalysis.findFirst({ where: { patientId: pid, type: 'SUMMARY', examId: null, userMessage: 'audience:doctor' }, orderBy: { createdAt: 'desc' } });
+    const analysis = existing
+      ? await prisma.aiAnalysis.update({ where: { id: existing.id }, data: { contentMd, structured: summary as any, modelUsed, tokenUsage: usage as any, createdAt: new Date() }, select: { id: true, createdAt: true, contentMd: true, structured: true } })
+      : await prisma.aiAnalysis.create({ data: { patientId: pid, examId: null, type: 'SUMMARY', userMessage: 'audience:doctor', contentMd, structured: summary as any, modelUsed, tokenUsage: usage as any }, select: { id: true, createdAt: true, contentMd: true, structured: true } });
+    const sourceExams = dedupSourceExams(await prisma.exam.findMany({ where: { patientId: pid, status: 'EXTRACTED' }, orderBy: { performedAt: 'desc' }, take: 20, select: { id: true, title: true, performedAt: true, sourceLab: true, kind: true } })).slice(0, 5);
+    void auditLog(req, 'doctor_generated_consolidated', pid);
+    res.status(201).json({ analysis, sourceExams });
+  } catch (e: any) {
+    if (e?.status === 400) res.status(400).json({ error: e?.message || 'Sem exames extraídos para consolidar.' });
+    else next(e);
+  }
+});
+
+// Lê o último relatório consolidado no framing do MÉDICO (userMessage:'audience:doctor' —
+// isola da cópia do paciente userMessage:null e dos briefs). analysis pode ser null (ainda não gerou).
 router.get('/patients/:patientId/analyses/consolidated/latest', requireDoctor, async (req: any, res, next) => {
   try {
     const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
@@ -607,7 +629,7 @@ router.get('/patients/:patientId/analyses/consolidated/latest', requireDoctor, a
       orderBy: { performedAt: 'desc' }, take: 20,
       select: { id: true, title: true, performedAt: true, sourceLab: true, kind: true },
     })).slice(0, 5);
-    const last = await prisma.aiAnalysis.findFirst({ where: { patientId: req.params.patientId, type: 'SUMMARY', examId: null, userMessage: null }, orderBy: { createdAt: 'desc' } });
+    const last = await prisma.aiAnalysis.findFirst({ where: { patientId: req.params.patientId, type: 'SUMMARY', examId: null, userMessage: 'audience:doctor' }, orderBy: { createdAt: 'desc' } });
     res.json({ analysis: last, sourceExams });
   } catch (e) { next(e); }
 });
