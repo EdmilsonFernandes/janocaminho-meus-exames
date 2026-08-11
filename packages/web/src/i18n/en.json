@@ -1,4 +1,10 @@
 {
+  "doctor.tabs.exams": "Your patient's exams",
+  "doctor.tabs.alterados": "Altered Values",
+  "doctor.tabs.relatorio": "Full Report",
+  "doctor.report.empty_title": "Report not generated yet",
+  "doctor.report.refreshed": "Updated",
+  "doctor.switcher.placeholder": "Select patient…",
   "auth.errors.blocked": "We've identified an issue with your account. To resolve it and continue using the app, please contact our support: contato@janocaminho.com.br",
   "auth.errors.invalidCredentials": "Incorrect email or password.",
   "profile.complete.title": "Complete your profile",

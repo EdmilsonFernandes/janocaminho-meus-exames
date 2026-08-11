@@ -14,13 +14,16 @@ const readLang = (): string => {
   }
 };
 
-/** Resolve chav dotted aninhada ("doctor.tabs.exams"). Fallback p/ chave original. */
+/** Resolve chave dotted. Flat PRIMEIRO (o projeto usa chaves dotted estilo polyglot:
+ *  "menu.exams" é uma string única no JSON, não um objeto aninhado). Fallback aninhado
+ *  p/ dicts estruturados. Não achou → devolve a chave original (caller trata). */
 const lookup = (dict: Record<string, any>, key: string): string => {
+  if (typeof dict[key] === 'string') return dict[key]; // flat: dict["doctor.tabs.exams"]
   const parts = key.split('.');
   let cur: any = dict;
   for (const p of parts) {
     if (cur && typeof cur === 'object' && p in cur) cur = cur[p];
-    else return key; // não achou → devolve a chave cru (caller trata)
+    else return key;
   }
   return typeof cur === 'string' ? cur : key;
 };
