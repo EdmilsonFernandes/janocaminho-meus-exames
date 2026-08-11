@@ -28,6 +28,7 @@ import { generateConsolidatedSummary } from '../analysis/health-summary';
 import { generateSoap } from '../analysis/doctor-soap';
 import { suggestCid10 } from '../analysis/cid10';
 import { encryptedCpfData, maskStoredCpf } from '../utils/cpf';
+import { dedupSourceExams } from '../utils/dedup-source-exams';
 
 // Especialidades base (espelha o front-end). O dropdown real = base ∪ especialidades que já existem no banco.
 const BASE_SPECIALTIES = [
@@ -575,6 +576,39 @@ router.get('/patients/:patientId/exams/:examId/file', async (req, res, next) => 
     const r = await resolveExamFile(exam.filePath);
     if (r.kind === 'url') res.redirect(302, r.url as string);
     else { res.setHeader('Content-Type', 'application/pdf'); fs.createReadStream(r.file as string).pipe(res); }
+  } catch (e) { next(e); }
+});
+
+// ITENS ALTERADOS do paciente (espelha /items/abnormal do paciente) — só se scope 'exams'.
+// Mesma query + mesmo shape que item.routes.ts:283-294, scoping a 1 paciente + examIds.
+router.get('/patients/:patientId/items/abnormal', requireDoctor, async (req: any, res, next) => {
+  try {
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    if (!share?.scopes.includes('exams')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+    const rows = await prisma.examItem.findMany({
+      where: { isAbnormal: true, exam: { patientId: req.params.patientId, status: 'EXTRACTED', ...(share.examIds?.length ? { id: { in: share.examIds } } : {}) } },
+      orderBy: { exam: { performedAt: 'desc' } },
+      include: { exam: { select: { id: true, title: true, performedAt: true, sourceLab: true, requestingDoctor: true, rawExtraction: true } } },
+      take: 300,
+    });
+    res.json({ items: rows.map((i) => ({ id: i.id, examId: i.exam.id, name: i.name, nameCanonical: i.nameCanonical, valueText: i.valueText, valueNumeric: i.valueNumeric, unit: i.unit, flag: i.flag, refText: i.refText, refLow: i.refLow, refHigh: i.refHigh, examTitle: i.exam.title, performedAt: i.exam.performedAt, requestingDoctor: i.exam.requestingDoctor || (i.exam.rawExtraction as any)?.requestingDoctor || null })) });
+  } catch (e) { next(e); }
+});
+
+// RELATÓRIO CONSOLIDADO do paciente (read-only — espelha /analyses/consolidated/latest).
+// Médico é VIEWER: lê o último relatório que o paciente gerou, sem POST/cobrança/geração.
+// Filtro userMessage:null isola o relatório do paciente (exclui os briefs audience:doctor).
+router.get('/patients/:patientId/analyses/consolidated/latest', requireDoctor, async (req: any, res, next) => {
+  try {
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    if (!share?.scopes.includes('summary')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+    const sourceExams = dedupSourceExams(await prisma.exam.findMany({
+      where: { patientId: req.params.patientId, status: 'EXTRACTED' },
+      orderBy: { performedAt: 'desc' }, take: 20,
+      select: { id: true, title: true, performedAt: true, sourceLab: true, kind: true },
+    })).slice(0, 5);
+    const last = await prisma.aiAnalysis.findFirst({ where: { patientId: req.params.patientId, type: 'SUMMARY', examId: null, userMessage: null }, orderBy: { createdAt: 'desc' } });
+    res.json({ analysis: last, sourceExams });
   } catch (e) { next(e); }
 });
 
