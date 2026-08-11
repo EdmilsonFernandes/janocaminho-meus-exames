@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
-import { Box, Card, CardContent, Typography, TextField, Button, CircularProgress, Stack, Chip, Avatar, Menu, MenuItem, Alert, Divider, InputAdornment, IconButton, Link, Drawer, List, ListItemButton, ListItemText, ListItemIcon, Accordion, AccordionSummary, AccordionDetails, Badge, InputBase, Paper, useMediaQuery, useTheme, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { useState, useEffect, useRef, type ReactElement } from 'react';
+import { Box, Card, CardContent, Typography, TextField, Button, CircularProgress, Stack, Chip, Avatar, Menu, MenuItem, Alert, Divider, InputAdornment, IconButton, Link, Drawer, List, ListItemButton, ListItemText, ListItemIcon, Accordion, AccordionSummary, AccordionDetails, Badge, InputBase, Paper, useMediaQuery, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Tabs, Tab } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import LogoutIcon from '@mui/icons-material/Logout';
 import LockIcon from '@mui/icons-material/Lock';
@@ -14,6 +15,11 @@ import SearchIcon from '@mui/icons-material/Search';
 import GroupsIcon from '@mui/icons-material/Groups';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
+import EditNoteIcon from '@mui/icons-material/EditNote';
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import { API_URL, photoUrlFor, doctorPhotoUrl } from '../config';
 import { QuestionStatusBadge } from '../components/QuestionStatusBadge';
 import { confirmDialog, snackbar } from '../components/ConfirmDialog';
@@ -28,6 +34,7 @@ import { DoctorExamList } from '../components/doctors/DoctorExamList';
 import { DoctorExamDetail } from '../components/doctors/DoctorExamDetail';
 import { DoctorValoresAlterados } from '../components/doctors/DoctorValoresAlterados';
 import { DoctorConsolidatedReport } from '../components/doctors/DoctorConsolidatedReport';
+import { PatientSummary } from '../components/doctors/PatientSummary';
 
 const docKey = 'doctorToken';
 
@@ -57,12 +64,12 @@ const PayCountdown = ({ expiresAt, onExpire }: { expiresAt: string; onExpire: ()
   return <Typography component="span" sx={{ fontWeight: 800, color: secs < 60 ? '#dc2626' : '#6366f1', fontFamily: 'monospace', fontSize: 18 }}>{String(mm).padStart(2, '0')}:{String(ss).padStart(2, '0')}</Typography>;
 };
 
-const SCOPE_META: Record<string, { label: string; icon: string }> = {
-  exams: { label: 'Exames', icon: '📋' },
-  alterados: { label: 'Alterados', icon: '⚠️' },
-  relatorio: { label: 'Relatório', icon: '📑' },
-  questions: { label: 'Perguntas', icon: '❓' },
-  notes: { label: 'Anotações', icon: '📝' },
+const SCOPE_META: Record<string, { label: string; icon: ReactElement }> = {
+  exams: { label: 'Exames', icon: <AssignmentOutlinedIcon /> },
+  alterados: { label: 'Alterados', icon: <WarningAmberIcon /> },
+  relatorio: { label: 'Relatório', icon: <DescriptionOutlinedIcon /> },
+  questions: { label: 'Perguntas', icon: <QuestionAnswerIcon /> },
+  notes: { label: 'Anotações', icon: <EditNoteIcon /> },
 };
 
 /** Abas do portal (espelham o app do paciente): Exames + Alterados (scope 'exams'),
@@ -304,6 +311,8 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const [payMethod, setPayMethod] = useState<'pix' | 'card'>('pix');
   const [patQuery, setPatQuery] = useState('');
   const [patAlertOnly, setPatAlertOnly] = useState(false);
+  // Banner "Dr. Exame Pro" dismissível (persiste no localStorage). Só re-aparece se limparem a flag.
+  const [payDismissed, setPayDismissed] = useState<boolean>(() => { try { return localStorage.getItem('doctorPayDismissed') === '1'; } catch { return false; } });
   const h = { Authorization: `Bearer ${token}` };
   // Web (sm+): menu vertical PERMANENTE à esquerda (igual ao app do paciente) + sem rodapé.
   // Mobile: mantém o Drawer overlay + rodapé (Pacientes · Perfil · Mais).
@@ -387,8 +396,13 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     setSelected(p);
     const pScopes: string[] = p.scopes ?? [];
     const pTabs = computeTabs(pScopes);
-    setTab(pTabs[0] ?? 'questions'); // default = 1ª aba disponível (Exames se autorizado)
-    try { const pref = localStorage.getItem('doctorPrefTab'); if (pref && pTabs.includes(pref)) setTab(pref); } catch { /* */ }
+    // Default tab roteado por sinal clínico: alterados se há alerta → senão preferência salva → senão 1ª aba.
+    let initial: string = pTabs[0] ?? 'questions';
+    if (p.hasAlerts && pTabs.includes('alterados')) initial = 'alterados';
+    else {
+      try { const pref = localStorage.getItem('doctorPrefTab'); if (pref && pTabs.includes(pref)) initial = pref; } catch { /* */ }
+    }
+    setTab(initial);
     setSelExam(null);
     setDetailLoading(true); setExams([]); setNotes([]); setQuestions([]);
     const mySeq = ++openSeq.current;
@@ -782,9 +796,10 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         </Dialog>
         {view === 'patients' && loading && <Box sx={{ textAlign: 'center', py: 6 }}><CircularProgress sx={{ color: TEAL }} /></Box>}
 
-        {/* DR. EXAME PRO — banner premium (free tier + CTA) */}
-        {planInfo && !planInfo.isPremium && view === 'patients' && (
-          <Box sx={{ mb: 2, p: 2, borderRadius: 3, background: 'linear-gradient(135deg,rgba(99,102,241,.08),rgba(99,102,241,.02))', border: '1px solid', borderColor: 'rgba(99,102,241,.2)' }}>
+        {/* DR. EXAME PRO — banner premium (free tier + CTA). Só na LISTA (sem paciente aberto). Dismissível. */}
+        {planInfo && !planInfo.isPremium && view === 'patients' && !selected && !payDismissed && (
+          <Box sx={{ mb: 2, p: 2, pr: 6, borderRadius: 3, position: 'relative', background: 'linear-gradient(135deg,rgba(99,102,241,.08),rgba(99,102,241,.02))', border: '1px solid', borderColor: 'rgba(99,102,241,.2)' }}>
+            <IconButton size="small" aria-label="Fechar banner" onClick={() => { try { localStorage.setItem('doctorPayDismissed', '1'); } catch { /* */ } setPayDismissed(true); }} sx={{ position: 'absolute', top: 6, right: 6, color: 'text.secondary', '&:hover': { bgcolor: 'rgba(99,102,241,.10)' } }}><span aria-hidden style={{ fontSize: 20, lineHeight: 1 }}>×</span></IconButton>
             <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" useFlexGap>
               <Typography sx={{ fontWeight: 800, color: '#6366f1', fontSize: 16 }}>💎 Dr. Exame Pro</Typography>
               <Typography variant="body2" sx={{ color: 'text.secondary', flex: 1, minWidth: 180 }}>{planInfo.freeUsed >= planInfo.freeLimit ? '🔒 Pré-consultas grátis esgotadas este mês.' : `💡 ${planInfo.freeUsed} de ${planInfo.freeLimit} pré-consultas grátis usadas.`}</Typography>
@@ -792,7 +807,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
             </Stack>
           </Box>
         )}
-        {planInfo?.isPremium && view === 'patients' && (
+        {planInfo?.isPremium && view === 'patients' && !selected && (
           <Chip size="small" label="💎 Dr. Exame Pro ativo" sx={{ mb: 1.5, bgcolor: 'rgba(99,102,241,.12)', color: '#6366f1', fontWeight: 700 }} />
         )}
 
@@ -875,37 +890,62 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         {/* DETALHE DO PACIENTE */}
         {view === 'patients' && selected && (
           <>
-            <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'stretch', sm: 'center' }} spacing={1.5} sx={{ mb: 2 }}>
-              <Box sx={{ flex: 1, minWidth: 0 }}>
-                <DoctorPatientSwitcher patients={patients} value={selected.patient?.id ?? null} onSelect={(pid) => { const np = patients.find((x: any) => (x.patient?.id || x.id) === pid); if (np) openPatient(np); }} />
-                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>{[selected.age != null ? `${selected.age} anos` : null, selected.sex === 'female' ? 'Feminino' : selected.sex === 'male' ? 'Masculino' : null, selected.patient?.relationship, selected.convenio || 'Particular', selected.latestWeight ? `${selected.latestWeight.value} kg` : null].filter(Boolean).join(' • ')}</Typography>
-              </Box>
-            </Stack>
+            <PatientSummary
+              patient={selected}
+              exams={exams}
+              questions={questions}
+              notes={notes}
+              patients={patients}
+              onSwitchPatient={(pid) => { const np = patients.find((x: any) => (x.patient?.id || x.id) === pid); if (np) openPatient(np); }}
+              onOpenExam={(id) => setSelExam(id)}
+              onAlterados={() => { if (supportedTabs.includes('alterados')) { setTab('alterados'); setSelExam(null); } }}
+            />
 
             {supportedTabs.length > 0 && (
-              <Box sx={{ mb: 2, position: 'sticky', top: 0, zIndex: 10, bgcolor: 'transparent', py: 1, mx: -2, px: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
-                <Stack direction="row" spacing={0.5} alignItems="center" sx={{ overflowX: 'auto', '&::-webkit-scrollbar': { display: 'none' } }}>
+              <Box sx={{ position: 'sticky', top: 'env(safe-area-inset-top)', zIndex: 10, bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider', mx: -2, px: 2, mt: -0.5, mb: 2 }}>
+                <Tabs
+                  value={tab}
+                  onChange={(_, v) => { setTab(v); setSelExam(null); }}
+                  variant="scrollable"
+                  scrollButtons="auto"
+                  allowScrollButtonsMobile
+                  TabIndicatorProps={{ sx: { display: 'none' } }}
+                  aria-label="Abas do paciente"
+                  sx={{
+                    minHeight: 44,
+                    '& .MuiTabs-scroller': { py: 0.5 },
+                    '& .MuiTab-root': {
+                      minHeight: 44, minWidth: 72, px: 1.5, textTransform: 'none', fontWeight: 700,
+                      color: 'text.secondary', flexDirection: 'row', gap: 0.5,
+                      '&.Mui-selected': { color: 'primary.main' },
+                    },
+                  }}
+                >
                   {supportedTabs.map((s) => {
-                    const on = tab === s;
-                    const meta = SCOPE_META[s] || { icon: '📄', label: s };
+                    const meta = SCOPE_META[s] || { icon: <DescriptionOutlinedIcon />, label: s };
                     const abnormalCount = exams.reduce((n: number, e: any) => n + (e.items?.length || 0), 0);
                     const count = s === 'exams' ? exams.length : s === 'alterados' ? abnormalCount : s === 'questions' ? questions.filter((q: any) => q.status !== 'answered').length : s === 'notes' ? notes.length : 0;
                     return (
-                      <Box key={s} onClick={() => { setTab(s); setSelExam(null); }} sx={{
-                        flexShrink: 0, display: 'flex', alignItems: 'center', gap: 0.5, px: 1.5, py: 0.75, borderRadius: 1.5, cursor: 'pointer',
-                        transition: 'all .15s', whiteSpace: 'nowrap',
-                        bgcolor: on ? '#178f89' : 'transparent', color: on ? '#fff' : 'text.secondary',
-                        boxShadow: on ? '0 2px 6px rgba(23,143,137,.25)' : 'none',
-                        '&:hover': { bgcolor: on ? '#0f7670' : 'rgba(0,0,0,.04)' }, '&:active': { transform: 'scale(.97)' },
-                      }}>
-                        <Box sx={{ fontSize: 14, lineHeight: 1 }}>{meta.icon}</Box>
-                        <Typography sx={{ fontSize: 12.5, fontWeight: on ? 800 : 600 }}>{meta.label}</Typography>
-                        {count > 0 && <Box sx={{ fontSize: 10, fontWeight: 800, bgcolor: on ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.06)', borderRadius: 99, px: 0.5, minWidth: 16, textAlign: 'center' }}>{count}</Box>}
-                      </Box>
+                      <Tab
+                        key={s}
+                        icon={meta.icon}
+                        iconPosition="start"
+                        label={
+                          <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
+                            <Box component="span">{meta.label}</Box>
+                            {count > 0 && (
+                              <Box component="sup" sx={{
+                                fontSize: 11, fontWeight: 800, lineHeight: 1,
+                                color: s === 'alterados' && abnormalCount > 0 ? 'error.main' : 'text.secondary',
+                                ml: 0.25,
+                              }}>{count}</Box>
+                            )}
+                          </Box>
+                        }
+                      />
                     );
                   })}
-                  <Chip size="small" variant="outlined" label={(() => { try { return localStorage.getItem('doctorPrefTab') === tab ? '📌 fixada' : '📌 fixar inicial'; } catch { return '📌 fixar inicial'; } })()} onClick={() => { try { if (localStorage.getItem('doctorPrefTab') === tab) localStorage.removeItem('doctorPrefTab'); else localStorage.setItem('doctorPrefTab', tab); } catch { /* */ } }} sx={{ height: 24, flexShrink: 0, fontSize: 10.5, fontWeight: 600, borderColor: 'divider', color: 'text.secondary', '&:hover': { borderColor: TEAL } }} />
-                </Stack>
+                </Tabs>
               </Box>
             )}
 
@@ -1034,17 +1074,34 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         </DialogContent>
       </Dialog>
 
-      {/* MENU RODAPÉ (igual app do paciente) — Pacientes · Perfil · Mais */}
+      {/* MENU RODAPÉ (mobile) — Pacientes · Perguntas · Perfil · Mais. Botões acessíveis (aria + button nativo). */}
       <Box component="nav" sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1100, display: { xs: 'flex', sm: 'none' }, justifyContent: 'space-around', bgcolor: 'background.paper', backdropFilter: 'blur(14px)', borderTop: '1px solid', borderTopColor: 'divider', pb: 'env(safe-area-inset-bottom)', boxShadow: '0 -6px 24px rgba(32,178,170,.10)' }}>
         {([
-          { icon: '👥', label: 'Pacientes', on: view === 'patients', onClick: () => { setView('patients'); setSelected(null); setSelExam(null); } },
-          { icon: '👤', label: 'Perfil', on: view === 'profile' || view === 'password', onClick: () => setView('profile') },
-          { icon: '☰', label: 'Mais', on: menuOpen, onClick: () => setMenuOpen(true) },
+          { label: 'Pacientes', on: view === 'patients', onClick: () => { setView('patients'); setSelected(null); setSelExam(null); }, icon: <GroupsIcon />, badge: 0 },
+          { label: 'Perguntas', on: view === 'questions', onClick: () => { setView('questions'); loadAllQ(); }, icon: <QuestionAnswerIcon />, badge: unreadQ },
+          { label: 'Perfil', on: view === 'profile' || view === 'password', onClick: () => setView('profile'), icon: <PersonIcon />, badge: 0 },
+          { label: 'Mais', on: menuOpen, onClick: () => setMenuOpen(true), icon: <MoreHorizIcon />, badge: 0 },
         ] as const).map((it) => (
-          <Box key={it.label} onClick={it.onClick} sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 0.9, cursor: 'pointer', color: it.on ? TEAL : 'text.secondary', transition: 'color .15s', '&:active': { transform: 'scale(.92)' } }}>
-            <Box sx={{ fontSize: 21, lineHeight: 1 }}>{it.icon}</Box>
+          <Box
+            key={it.label}
+            component="button"
+            type="button"
+            onClick={it.onClick}
+            aria-label={it.label}
+            aria-current={it.on ? 'page' : undefined}
+            sx={{
+              flex: 1, minHeight: 44, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+              py: 0.9, cursor: 'pointer', color: it.on ? 'primary.main' : 'text.secondary', transition: 'color .15s',
+              bgcolor: 'transparent', border: 'none', outline: 'none', fontFamily: 'inherit',
+              '&:focus-visible': { outline: (t) => `2px solid ${t.palette.primary.main}`, outlineOffset: -2 },
+              '&:active': { transform: 'scale(.92)' },
+            }}
+          >
+            <Badge color="error" variant="dot" invisible={it.badge === 0} overlap="circular" sx={{ '& .MuiBadge-badge': { right: 4, top: 4 } }}>
+              <Box sx={{ fontSize: 21, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', '& .MuiSvgIcon-root': { fontSize: 22 } }}>{it.icon}</Box>
+            </Badge>
             <Typography sx={{ fontSize: 10, fontWeight: it.on ? 800 : 600, mt: 0.25, fontFamily: 'Poppins, sans-serif' }}>{it.label}</Typography>
-            <Box sx={{ height: 3, width: it.on ? 22 : 0, borderRadius: 9, bgcolor: '#20b2aa', mt: 0.3, transition: 'width .2s' }} />
+            <Box sx={{ height: 3, width: it.on ? 22 : 0, borderRadius: 9, bgcolor: 'primary.main', mt: 0.3, transition: 'width .2s' }} />
           </Box>
         ))}
       </Box>
