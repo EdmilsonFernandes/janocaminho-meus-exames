@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Box, Button, Card, CardContent, CircularProgress, Stack, Typography } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
@@ -37,9 +37,12 @@ export const DoctorConsolidatedReport = ({ patientId, token, patientName, onOpen
       .finally(() => { setLoading(false); setRefreshing(false); });
   }, [patientId, token]);
 
-  // Primeira carga
-  if (!loaded && loading) {
-    void load();
+  // Primeira carga — NUNCA chamar load() durante o render (setRefreshing durante o
+  // render = React #301 hooks violation). useEffect é o padrão canônico (igual aos
+  // outros Doctor*). Roda na monta e quando patientId/token mudam.
+  useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [load]);
+
+  if (loading && !loaded) {
     return <Box sx={{ textAlign: 'center', py: 5 }}><CircularProgress sx={{ color: '#20b2aa' }} /></Box>;
   }
 
