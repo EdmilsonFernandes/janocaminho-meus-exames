@@ -16,6 +16,7 @@ import { TelemedicineButton } from '../components/TelemedicineButton';
 import { fmtVal, unitSuffix } from '../utils/format';
 import { refLabel, categorize } from '../utils/medicalData';
 import { priorityOf, maxPriority, isStaleExam, refScaleSuspect, PRIORITY_META, PRIORITY_RANK } from '../utils/alertPriority';
+import { SeverityBadge } from '../components/SeverityBadge';
 
 import type { AbnormalItem as AbnItem } from '@meus-exames/shared';
 
@@ -144,7 +145,7 @@ export const ValoresAlteradosPage = () => {
                               <Box sx={{ flex: '1 1 55%', minWidth: 0 }}>
                                 <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5, flexWrap: 'wrap' }}>
                                   <Typography sx={{ fontWeight: 700, wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.2 }}>{it.name}</Typography>
-                                  <Chip size="small" label={suspect ? '⚠️ Faixa a conferir' : `${pm.emoji} ${pm.label}`} title={suspect ? 'A faixa de referência pode estar com escala errada — confira no documento original.' : pm.hint} sx={{ height: 20, fontWeight: 700, bgcolor: col + '22', color: col }} />
+                                  <SeverityBadge severity={suspect ? undefined : p} state={suspect ? 'check' : undefined} />
                                   <ExplainButton name={it.name} nameCanonical={it.nameCanonical} />
                                 </Box>
                                 <Typography variant="caption" sx={{ color: 'text.secondary' }}>{suspect ? '⚠️ Faixa possivelmente incorreta — confirme no documento. ' : ''}{refLabel(it)}</Typography>
