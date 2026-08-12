@@ -6,7 +6,7 @@ import { API_URL } from '../../config';
 import { ListSkeleton } from '../Skeleton';
 import { EmptyState } from '../EmptyState';
 import { ExplainButton } from '../ExplainItem';
-import { SeverityBadge } from '../SeverityBadge';
+import { ExamMarker } from '../ExamMarker';
 import { UnitLabel } from '../UnitLabel';
 import { ValueBar } from '../ValueBar';
 import { fmtVal, unitSuffix } from '../../utils/format';
@@ -118,51 +118,9 @@ export const DoctorValoresAlterados = ({ patientId, token }: { patientId: string
                   </AccordionSummary>
                   <AccordionDetails sx={{ p: 1.25 }}>
                     <Stack spacing={0.75}>
-                      {g.items.map((it) => {
-                        const suspect = refScaleSuspect(it);
-                        const p = priorityOf(it);
-                        const pm = PRIORITY_META[p];
-                        const col = suspect ? '#64748b' : pm.color;
-                        return (
-                          // FLATTEN: Card aninhado → Box + borderLeft (sem chrome de Card).
-                          <Box
-                            key={it.id}
-                            sx={{
-                              borderLeft: `4px solid ${col}`,
-                              borderRadius: RADIUS.tile,
-                              bgcolor: alpha(col, 0.05),
-                              px: 1.5,
-                              py: 1.25,
-                            }}
-                          >
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
-                              <Box sx={{ flex: '1 1 55%', minWidth: 0 }}>
-                                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5, flexWrap: 'wrap' }}>
-                                  <Typography sx={{ fontWeight: 700, wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.2 }}>{it.name}</Typography>
-                                  <SeverityBadge severity={suspect ? undefined : p} state={suspect ? 'check' : undefined} />
-                                  <ExplainButton name={it.name} nameCanonical={it.nameCanonical} />
-                                </Box>
-                                <Typography variant="caption" sx={{ color: 'text.secondary' }}>{suspect ? '⚠️ Faixa possivelmente incorreta — confirme no documento. ' : ''}{refLabel(it)}</Typography>
-                              </Box>
-                              <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
-                                <Box sx={{ lineHeight: 1.1 }}>
-                                  <Typography component="span" sx={{ fontSize: '1.35rem', fontWeight: 800, color: col }}>{fmtVal(it)}</Typography>
-                                  {unitSuffix(it) ? <Typography component="span" sx={{ ml: 0.5 }}><UnitLabel unit={unitSuffix(it)} fontSize="0.8rem" /></Typography> : null}
-                                </Box>
-                                {/* Status explícito em TEXTO (não só cor) — acessível + claro p/ o médico. */}
-                                <Typography variant="caption" sx={{ display: 'block', fontWeight: 700, color: suspect ? 'text.secondary' : col, lineHeight: 1.2 }}>
-                                  {suspect ? 'Conferir faixa' : it.flag === 'HIGH' ? '↑ Acima da ref.' : it.flag === 'LOW' ? '↓ Abaixo da ref.' : 'Na referência'}
-                                </Typography>
-                              </Box>
-                              {!suspect && it.valueNumeric != null && it.refLow != null && it.refHigh != null && (
-                                <Box sx={{ flexBasis: '100%' }}>
-                                  <ValueBar value={it.valueNumeric} low={it.refLow} high={it.refHigh} />
-                                </Box>
-                              )}
-                            </Box>
-                          </Box>
-                        );
-                      })}
+                      {g.items.map((it) => (
+                        <ExamMarker key={it.id} it={it} suspect={refScaleSuspect(it)} />
+                      ))}
                     </Stack>
                   </AccordionDetails>
                 </Accordion>
