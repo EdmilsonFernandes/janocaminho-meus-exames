@@ -27,7 +27,7 @@ export const OverviewTab = () => {
         {[
           { l: 'Signups', v: metrics.funnel.signups, c: '#0ea5e9' },
           { l: 'Premium ativos', v: metrics.funnel.premiumActive, c: '#20b2aa' },
-          { l: 'Conversão free→pago', v: `${metrics.funnel.conversionPct}%`, c: '#8b5cf6' },
+          { l: 'Conversão free→pago', v: `${metrics.funnel.conversionPct}%`, c: '#6366f1' },
           { l: 'MRR (recorrente/mês)', v: `R$ ${(metrics.revenue.mrr ?? 0).toFixed(2).replace('.', ',')}`, c: '#059669' },
           { l: 'Receita total aprovada', v: `R$ ${(metrics.revenue.total ?? 0).toFixed(2).replace('.', ',')}`, c: '#059669' },
           { l: 'Retenção no vencimento', v: `${metrics.churn.retentionPct}%`, c: '#f59e0b' },

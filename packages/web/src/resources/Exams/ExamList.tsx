@@ -271,8 +271,8 @@ const ExamCards = () => {
       {failed.length > 0 && (
         <Box>
           <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.75 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#b91c1c' }}>{translate('exams.failed_title')}</Typography>
-            <Chip size="small" label={failed.length} sx={{ height: 18, bgcolor: '#fee2e2', color: '#b91c1c', fontWeight: 700 }} />
+            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#ef4444' }}>{translate('exams.failed_title')}</Typography>
+            <Chip size="small" label={failed.length} sx={{ height: 18, bgcolor: '#fee2e2', color: '#ef4444', fontWeight: 700 }} />
           </Stack>
           <Alert severity="warning" icon={false} sx={{ mb: 1.25, borderRadius: '12px', py: 0.75, '& .MuiAlert-message': { fontSize: 12.5 } }}>
             {failed.length === 1 ? translate('exams.failed_msg_one') : translate('exams.failed_msg_many', { count: failed.length })} {translate('exams.failed_action')} <strong>{translate('exams.reextract')}</strong>.

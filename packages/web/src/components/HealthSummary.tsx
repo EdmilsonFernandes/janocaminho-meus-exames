@@ -293,16 +293,16 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
 
         {/* Perguntas */}
         {structured.perguntasParaOMedico && structured.perguntasParaOMedico.length > 0 && (
-          <AccordionSection icon="🩺" title="Perguntas para levar ao médico" color="#7b1fa2" count={structured.perguntasParaOMedico.length}>
+          <AccordionSection icon="🩺" title="Perguntas para levar ao médico" color="#6366f1" count={structured.perguntasParaOMedico.length}>
             {structured.perguntasParaOMedico.map((q, i) => (
-              <Typography key={i} sx={{ py: 0.5, pl: 1, borderLeft: '3px solid #7b1fa233' }}>{i + 1}. {q}</Typography>
+              <Typography key={i} sx={{ py: 0.5, pl: 1, borderLeft: '3px solid #6366f133' }}>{i + 1}. {q}</Typography>
             ))}
           </AccordionSection>
         )}
 
         {/* 💊 Interações medicamento × exame */}
         {structured.interacoesMedicamentos && structured.interacoesMedicamentos.length > 0 && (
-          <AccordionSection icon="💊" title="Interações medicamento × exame" color="#d32f2f">
+          <AccordionSection icon="💊" title="Interações medicamento × exame" color="#ef4444">
             {structured.interacoesMedicamentos.map((m, i) => (
               <Box key={i} sx={{ mb: 1, p: 1.5, borderRadius: '12px', bgcolor: 'rgba(239,68,68,0.08)' }}>
                 <Typography sx={{ fontWeight: 700, fontSize: '0.95rem' }}>{m.medicamento} → {m.analito}</Typography>
@@ -323,7 +323,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
 
         {/* 👨‍👩‍👧 Comparação familiar */}
         {structured.comparacaoFamiliar && (
-          <AccordionSection icon="👨‍👩‍👧" title="Comparação familiar" color="#7b1fa2">
+          <AccordionSection icon="👨‍👩‍👧" title="Comparação familiar" color="#6366f1">
             <Typography sx={{ lineHeight: 1.7 }}>{structured.comparacaoFamiliar}</Typography>
           </AccordionSection>
         )}

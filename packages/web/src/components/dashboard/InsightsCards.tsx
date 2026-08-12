@@ -98,9 +98,9 @@ export const InsightsCards = () => {
         <Card sx={{ mt: 2, border: '1px solid', borderColor: 'divider' }}>
           <CardContent>
             <Stack direction="row" spacing={1.2} alignItems="center" sx={{ mb: 1 }}>
-              <TrendingUpIcon sx={{ color: '#7b1fa2' }} />
+              <TrendingUpIcon sx={{ color: '#6366f1' }} />
               <Typography sx={{ fontWeight: 800, flex: 1 }}>Previsões</Typography>
-              <Chip size="small" label="Premium" sx={{ fontWeight: 700, height: 20, bgcolor: 'rgba(123,31,162,.12)', color: '#7b1fa2', fontSize: 10 }} />
+              <Chip size="small" label="Premium" sx={{ fontWeight: 700, height: 20, bgcolor: 'rgba(123,31,162,.12)', color: '#6366f1', fontSize: 10 }} />
             </Stack>
             <Stack spacing={0.75}>
               {(showAllPred ? data.predictions : data.predictions.slice(0, 3)).map((p: any, i: number) => {
@@ -116,7 +116,7 @@ export const InsightsCards = () => {
                 );
               })}
               {data.predictions.length > 3 && (
-                <Button size="small" onClick={() => setShowAllPred((v) => !v)} sx={{ textTransform: 'none', fontWeight: 700, color: '#7b1fa2', py: 0.5 }}>
+                <Button size="small" onClick={() => setShowAllPred((v) => !v)} sx={{ textTransform: 'none', fontWeight: 700, color: '#6366f1', py: 0.5 }}>
                   {showAllPred ? 'Ver menos' : `Ver todas (${data.predictions.length})`}
                 </Button>
               )}

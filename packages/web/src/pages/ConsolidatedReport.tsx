@@ -55,7 +55,7 @@ const ReportPreviewCard = ({
   const items = [
     { icon: <ReportProblemIcon />, title: 'Prioridades clínicas', desc: 'Valores alterados e pontos que merecem atenção.', accent: '#ef4444' },
     { icon: <InsightsIcon />, title: 'Evolução dos exames', desc: 'Comparação entre resultados anteriores e atuais.', accent: '#0b5cab' },
-    { icon: <LiveHelpIcon />, title: 'Perguntas para o médico', desc: 'Uma lista objetiva para levar na consulta.', accent: '#7b1fa2' },
+    { icon: <LiveHelpIcon />, title: 'Perguntas para o médico', desc: 'Uma lista objetiva para levar na consulta.', accent: '#6366f1' },
     { icon: <CheckCircleIcon />, title: 'Pontos positivos', desc: 'O que está estável ou dentro da referência.', accent: '#059669' },
   ];
 
@@ -501,7 +501,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
           ) : null}
 
           {s.perguntasParaOMedico?.length ? (
-            <ReportSectionCard icon={<LiveHelpIcon />} title={translate('report.questions_section')} accent="#7b1fa2" count={s.perguntasParaOMedico.length}>
+            <ReportSectionCard icon={<LiveHelpIcon />} title={translate('report.questions_section')} accent="#6366f1" count={s.perguntasParaOMedico.length}>
               <Stack spacing={0.75}>
                 {hasNoDoctor ? (
                   <Alert severity="info" icon={<LiveHelpIcon />} sx={{ py: 0.5, borderRadius: '12px' }}>Para enviar perguntas, compartilhe antes seus exames com um médico em <b>“Meus Médicos”</b>.</Alert>
@@ -515,7 +515,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
                     {isSent ? (
                       <CheckCircleIcon sx={{ color: '#059669', fontSize: 20, mt: '2px', flexShrink: 0 }} />
                     ) : (
-                      <Checkbox checked={!!tickQ[i]} onChange={() => setTickQ((c) => ({ ...c, [i]: !c[i] }))} size="small" sx={{ color: '#7b1fa2', p: 0.5 }} />
+                      <Checkbox checked={!!tickQ[i]} onChange={() => setTickQ((c) => ({ ...c, [i]: !c[i] }))} size="small" sx={{ color: '#6366f1', p: 0.5 }} />
                     )}
                     <Typography variant="body2" sx={{ wordBreak: 'break-word', flex: 1, pt: '2px' }}>{txt(q)}</Typography>
                   </Box>
@@ -528,7 +528,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
                 ) : (
                   <>
                     <Button variant="contained" disabled={send.status === 'sending' || !Object.values(tickQ).some(Boolean)} onClick={sendQuestionsToDoctor}
-                      sx={{ alignSelf: 'flex-start', borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: '#7b1fa2', '&:hover': { bgcolor: '#6a1b63' } }}>
+                      sx={{ alignSelf: 'flex-start', borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: '#6366f1', '&:hover': { bgcolor: '#6366f1' } }}>
                       {send.status === 'sending' ? 'Enviando…' : 'Enviar ao médico'}
                     </Button>
                     <Typography variant="caption" color="text.secondary">Marque as perguntas que quiser levar e toque em enviar. Seu médico recebe na área de perguntas dele no app e por e-mail.</Typography>

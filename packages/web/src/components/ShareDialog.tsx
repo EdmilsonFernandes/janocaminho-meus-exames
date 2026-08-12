@@ -113,7 +113,7 @@ export const ShareDialog = ({ analysisId, open, onClose }: { analysisId?: string
             <Button variant="contained" startIcon={<WhatsAppIcon sx={{ color: '#25D366' }} />} onClick={() => window.open(whats, '_blank')} sx={{ bgcolor: '#25D366', '&:hover': { bgcolor: '#1da851' } }}>
               WhatsApp
             </Button>
-            <Button disabled={revoking} startIcon={<LockIcon />} onClick={revoke} sx={{ color: '#b91c1c', textTransform: 'none', fontWeight: 700 }}>
+            <Button disabled={revoking} startIcon={<LockIcon />} onClick={revoke} sx={{ color: '#ef4444', textTransform: 'none', fontWeight: 700 }}>
               {revoking ? 'Revogando…' : 'Revogar acesso'}
             </Button>
           </>

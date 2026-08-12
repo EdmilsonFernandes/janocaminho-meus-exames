@@ -25,7 +25,7 @@ export const EmergencyCardPage = () => {
       {/* Title removido — header vermelho abaixo já cumpre o papel de título visual */}
       <Card sx={{ borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(211,47,47,.15)' }}>
         {/* Header vermelho */}
-        <Box sx={{ background: 'linear-gradient(135deg,#d32f2f,#b71c1c)', p: 3, color: '#fff', textAlign: 'center' }}>
+        <Box sx={{ background: 'linear-gradient(135deg,#ef4444,#ef4444)', p: 3, color: '#fff', textAlign: 'center' }}>
           <LocalHospitalIcon sx={{ fontSize: 48 }} />
           <Typography variant="h5" sx={{ fontWeight: 800, mt: 1 }}>CARTÃO DE EMERGÊNCIA</Typography>
           <Typography sx={{ opacity: .85 }}>Meus Exames</Typography>
@@ -39,15 +39,15 @@ export const EmergencyCardPage = () => {
               </Box>
               <Divider sx={{ my: 2 }} />
               <Box sx={{ mb: 2 }}>
-                <Typography sx={{ fontWeight: 700, mb: 0.5, color: '#d32f2f' }}>🩸 Tipo Sanguíneo</Typography>
+                <Typography sx={{ fontWeight: 700, mb: 0.5, color: '#ef4444' }}>🩸 Tipo Sanguíneo</Typography>
                 <Typography variant="body2" color="text.secondary">{patient.bloodType || 'Não informado — preencha no perfil'}</Typography>
               </Box>
               <Box sx={{ mb: 2 }}>
-                <Typography sx={{ fontWeight: 700, mb: 0.5, color: '#d32f2f' }}>💊 Medicações</Typography>
+                <Typography sx={{ fontWeight: 700, mb: 0.5, color: '#ef4444' }}>💊 Medicações</Typography>
                 <Typography variant="body2" color="text.secondary">{patient.clinicalProfile || 'Não informado'}</Typography>
               </Box>
               <Box sx={{ mb: 2 }}>
-                <Typography sx={{ fontWeight: 700, mb: 0.5, color: '#d32f2f' }}>📞 Contato de emergência</Typography>
+                <Typography sx={{ fontWeight: 700, mb: 0.5, color: '#ef4444' }}>📞 Contato de emergência</Typography>
                 <Typography variant="body2" color="text.secondary">{patient.phone || 'Não informado'}</Typography>
               </Box>
               <Box sx={{ textAlign: 'center', mt: 3 }}>
