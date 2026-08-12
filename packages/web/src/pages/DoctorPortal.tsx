@@ -15,11 +15,11 @@ import SearchIcon from '@mui/icons-material/Search';
 import GroupsIcon from '@mui/icons-material/Groups';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
+import AssignmentIcon from '@mui/icons-material/Assignment';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
-import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
+import DescriptionIcon from '@mui/icons-material/Description';
 import EditNoteIcon from '@mui/icons-material/EditNote';
-import ShowChartIcon from '@mui/icons-material/ShowChart';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined';
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
@@ -82,10 +82,10 @@ const PayCountdown = ({ expiresAt, onExpire }: { expiresAt: string; onExpire: ()
 };
 
 const SCOPE_META: Record<string, { label: string; icon: ReactElement }> = {
-  exams: { label: 'Exames', icon: <AssignmentOutlinedIcon /> },
+  exams: { label: 'Exames', icon: <AssignmentIcon /> },
   alterados: { label: 'Alterados', icon: <WarningAmberIcon /> },
-  tendencias: { label: 'Tendências', icon: <ShowChartIcon /> },
-  relatorio: { label: 'Relatório', icon: <DescriptionOutlinedIcon /> },
+  tendencias: { label: 'Tendências', icon: <TrendingUpIcon /> },
+  relatorio: { label: 'Relatório', icon: <DescriptionIcon /> },
   questions: { label: 'Perguntas', icon: <QuestionAnswerIcon /> },
   notes: { label: 'Anotações', icon: <EditNoteIcon /> },
 };
@@ -905,10 +905,9 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           </>
         )}
 
-        {/* DETALHE DO PACIENTE — grid 2 colunas no lg (PatientSummary sticky à esquerda). Abaixo do lg: coluna única (atual). */}
+        {/* DETALHE DO PACIENTE — coluna única (PatientSummary → tabs → conteúdo). Preenche toda a largura da área de conteúdo no desktop (layout mobile-first, sem grid 2-col que deixava gap vertical enorme em telas largas). */}
         {view === 'patients' && selected && (
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '320px 1fr' }, gap: { xs: 0, lg: 3 }, alignItems: { lg: 'start' } }}>
-            <Box sx={{ position: { lg: 'sticky' }, top: { lg: 'calc(env(safe-area-inset-top) + 80px)' }, minWidth: 0 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <PatientSummary
               patient={selected}
               exams={exams}
@@ -919,8 +918,6 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               onOpenExam={(id) => setSelExam(id)}
               onAlterados={() => { if (supportedTabs.includes('alterados')) { setTab('alterados'); setSelExam(null); } }}
             />
-            </Box>
-            <Box sx={{ minWidth: 0 }}>
 
             {supportedTabs.length > 0 && (
               <Box sx={{ position: 'sticky', top: 'env(safe-area-inset-top)', zIndex: 10, bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider', mx: -2, px: 2, mt: { xs: -0.5, lg: 0 }, mb: 2 }}>
@@ -942,7 +939,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                   }}
                 >
                   {supportedTabs.map((s) => {
-                    const meta = SCOPE_META[s] || { icon: <DescriptionOutlinedIcon />, label: s };
+                    const meta = SCOPE_META[s] || { icon: <DescriptionIcon />, label: s };
                     const abnormalCount = exams.reduce((n: number, e: any) => n + (e.items?.length || 0), 0);
                     const count = s === 'exams' ? exams.length : s === 'alterados' ? abnormalCount : s === 'questions' ? questions.filter((q: any) => q.status !== 'answered').length : s === 'notes' ? notes.length : 0;
                     // Mobile (xs): icon-only p/ 6 abas caberem em ~328px (~54px cada) sem scroll horizontal.
@@ -1059,7 +1056,6 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 {tab === 'notes' && !selExam && (
                   <NotesTab notes={notes} newNote={newNote} setNewNote={setNewNote} onAdd={addNote} onDelete={delNote} onSave={saveNote} />
                 )}
-            </Box>
           </Box>
         )}
       </Box>
