@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Box, Button, Card, CardContent, Chip, CircularProgress, Stack, Typography } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
@@ -10,6 +11,7 @@ import { EmptyState } from '../EmptyState';
 import { cleanExtractedLabel } from '../../utils/examDisplay';
 import { categorizeExam } from '../../utils/medicalData';
 import { fmtDateShort } from '../../utils/format';
+import { RADIUS } from '../../theme';
 
 const kindLabel: Record<string, string> = { LAB_PANEL: 'Laboratorial', IMAGING: 'Imagem', OTHER: 'Outro' };
 
@@ -52,7 +54,7 @@ export const DoctorExamDetail = ({ patientId, examId, token, onBack }: { patient
     } catch { /* ignore */ } finally { setPdfLoading(false); }
   };
 
-  if (loading) return <Box sx={{ textAlign: 'center', py: 5 }}><CircularProgress sx={{ color: '#20b2aa' }} /></Box>;
+  if (loading) return <Box sx={{ textAlign: 'center', py: 5 }}><CircularProgress sx={{ color: 'primary.main' }} /></Box>;
   if (!exam) return <EmptyState emoji="📄" title="Exame indisponível" desc="Não foi possível carregar este exame agora. Tente novamente." />;
 
   const titleInfo = cleanExtractedLabel(exam.title, 'Exame', 80);
@@ -60,25 +62,63 @@ export const DoctorExamDetail = ({ patientId, examId, token, onBack }: { patient
   const cc = categorizeExam(exam);
   const items = exam.items ?? [];
   const findings = exam.kind === 'IMAGING' && exam.rawExtraction?.findings ? exam.rawExtraction.findings : null;
+  // Caption de tipo/categoria sob o título (era 3 chips separados — ruído).
+  const kindStr = exam.kind === 'IMAGING' ? 'Imagem' : exam.kind === 'LAB_PANEL' ? 'Laboratorial' : '';
+  const catStr = cc.key !== 'image' && cc.key !== 'other' ? `${cc.emoji} ${cc.cat}` : '';
+  const subtitle = [kindStr, catStr].filter(Boolean).join(' · ');
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-      <Button onClick={onBack} startIcon={<ArrowBackIcon />} sx={{ alignSelf: 'flex-start', textTransform: 'none', fontWeight: 700, color: 'primary.dark', borderRadius: 99, px: 1.5 }}>
-        Voltar
-      </Button>
+      {/* Header sticky: back + título + PDF sempre acessíveis sem scroll up. */}
+      <Box
+        sx={(t) => ({
+          position: 'sticky',
+          top: 'env(safe-area-inset-top)',
+          zIndex: 1100,
+          bgcolor: alpha(t.palette.background.paper, 0.92),
+          backdropFilter: 'blur(6px)',
+          borderBottom: `1px solid ${t.palette.divider}`,
+          borderRadius: RADIUS.card,
+        })}
+      >
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ p: 1 }}>
+          <Button onClick={onBack} startIcon={<ArrowBackIcon />} sx={{ flexShrink: 0, textTransform: 'none', fontWeight: 700, color: 'primary.dark', borderRadius: RADIUS.pill, minWidth: 'auto', px: 1.5 }}>
+            Voltar
+          </Button>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography variant="h6" component="h1" title={titleInfo.original || exam.title} sx={{ fontWeight: 700, display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden', minWidth: 0, lineHeight: 1.2 }}>
+              {titleInfo.text || 'Exame'}
+            </Typography>
+            {subtitle && <Typography variant="caption" color="text.secondary">{subtitle}</Typography>}
+          </Box>
+          <Chip color="success" label="Concluído" size="small" sx={{ flexShrink: 0 }} />
+          {exam.filePath && (
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={pdfLoading ? <CircularProgress size={16} color="inherit" /> : <PictureAsPdfIcon />}
+              onClick={openPdf}
+              sx={(t) => ({
+                flexShrink: 0,
+                color: t.palette.primary.main,
+                borderColor: t.palette.primary.main,
+                textTransform: 'none',
+                fontWeight: 700,
+                borderRadius: RADIUS.pill,
+                '&:hover': { borderColor: t.palette.primary.dark, bgcolor: alpha(t.palette.primary.main, 0.06) },
+              })}
+            >
+              PDF
+            </Button>
+          )}
+        </Stack>
+      </Box>
 
       <Card>
         <CardContent>
-          <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mb: 0.5 }}>
-            <Typography variant="h5" component="h1" title={titleInfo.original || exam.title} sx={{ fontSize: { xs: '1.15rem', md: '1.5rem' }, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', minWidth: 0 }}>{titleInfo.text || 'Exame'}</Typography>
-            <Chip color="success" label="Concluído" />
-            {exam.kind === 'IMAGING' && <Chip variant="outlined" label="Imagem" />}
-            {exam.kind === 'LAB_PANEL' && <Chip variant="outlined" label="Laboratorial" />}
-            {cc.key !== 'image' && cc.key !== 'other' && <Chip size="small" sx={{ bgcolor: cc.color + '18', color: cc.color, fontWeight: 700 }} label={`${cc.emoji} ${cc.cat}`} />}
-          </Stack>
           <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mt: 0.5 }}>
             {exam.performedAt ? (
-              <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, px: 1, py: 0.3, borderRadius: 99, bgcolor: 'rgba(32,178,170,.10)' }}>
+              <Box sx={(t) => ({ display: 'inline-flex', alignItems: 'center', gap: 0.5, px: 1, py: 0.3, borderRadius: RADIUS.pill, bgcolor: alpha(t.palette.primary.main, 0.1) })}>
                 <CalendarMonthIcon sx={{ fontSize: 16, color: 'primary.main' }} />
                 <Typography component="span" sx={{ fontWeight: 700, color: 'primary.dark', fontSize: '0.9rem', lineHeight: 1 }}>{fmtDateShort(exam.performedAt)}</Typography>
               </Box>
@@ -94,12 +134,6 @@ export const DoctorExamDetail = ({ patientId, examId, token, onBack }: { patient
           </Stack>
           {doctorInfo.text && (
             <Typography color="text.secondary" sx={{ fontSize: '0.85rem', mt: 0.5 }}>🩺 {doctorInfo.text}</Typography>
-          )}
-          {exam.filePath && (
-            <Button size="small" variant="outlined" startIcon={pdfLoading ? <CircularProgress size={16} color="inherit" /> : <PictureAsPdfIcon />} onClick={openPdf}
-              sx={{ mt: 1.5, color: '#20b2aa', borderColor: '#20b2aa', textTransform: 'none', fontWeight: 700, borderRadius: 99 }}>
-              Ver PDF original
-            </Button>
           )}
         </CardContent>
       </Card>

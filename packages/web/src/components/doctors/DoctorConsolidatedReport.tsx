@@ -1,18 +1,18 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Box, Button, Card, CardContent, CircularProgress, Stack, Typography } from '@mui/material';
+import { Alert, Box, Button, Card, CircularProgress, Stack, Typography } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { API_URL } from '../../config';
 import { ConsolidatedReportBody } from '../report/ConsolidatedReportBody';
 import { EmptyState } from '../EmptyState';
 import { DrExame } from '../DrExame';
+import { RADIUS } from '../../theme';
 
 /**
  * DoctorConsolidatedReport — relatório consolidado do paciente (viewer médico READ-ONLY).
  * Busca /api/doctor/patients/:pid/analyses/consolidated/latest (Bearer doctorToken).
  *  - analysis null → EmptyState (📑 Relatório ainda não gerado) + botão [↻ Atualizar] (refetch).
- *  - analysis presente → header "Atualizado em {createdAt}" + [↻ Atualizar] + hero read-only
- *    (Dr.Exame + resumo, SEM ações share/speak/print/regen — o médico só VÊ) +
+ *  - analysis presente → header "Atualizado em {createdAt}" + [↻ Atualizar] + cabeçalho flat
+ *    read-only (Dr.Exame + resumo, SEM ações share/speak/print/regen — o médico só VÊ) +
  *    <ConsolidatedReportBody analysis sourceExams />.
  * Refresh = re-fetch + setState (NUNCA reload/navigate(0) — crasha o APK).
  */
@@ -55,7 +55,7 @@ export const DoctorConsolidatedReport = ({ patientId, token, patientName, onOpen
   useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [load]);
 
   if (loading && !loaded) {
-    return <Box sx={{ textAlign: 'center', py: 5 }}><CircularProgress sx={{ color: '#20b2aa' }} /></Box>;
+    return <Box sx={{ textAlign: 'center', py: 5 }}><CircularProgress /></Box>;
   }
 
   const resumo = analysis?.structured?.resumoGeral;
@@ -66,25 +66,25 @@ export const DoctorConsolidatedReport = ({ patientId, token, patientName, onOpen
       {/* Header + atualizar (só quando há relatório — regenera no framing médico) */}
       <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} flexWrap="wrap" useFlexGap>
         <Box>
-          <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 18, color: 'text.primary' }}>Relatório completo</Typography>
+          <Typography variant="h6" sx={{ fontWeight: 800 }}>Relatório completo</Typography>
           {createdAt && <Typography variant="caption" color="text.secondary">Atualizado em {createdAt}</Typography>}
         </Box>
         {analysis && (
-          <Button size="small" variant="outlined" startIcon={generating ? <CircularProgress size={14} color="inherit" /> : <RefreshIcon />} onClick={generate} disabled={generating}
-            sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 99, color: '#20b2aa', borderColor: '#20b2aa' }}>
+          <Button size="small" variant="outlined" color="primary" startIcon={generating ? <CircularProgress size={14} color="inherit" /> : <RefreshIcon />} onClick={generate} disabled={generating}
+            sx={{ textTransform: 'none', fontWeight: 700, borderRadius: RADIUS.pill }}>
             {generating ? 'Gerando…' : '↻ Atualizar'}
           </Button>
         )}
       </Stack>
 
       {generating ? (
-        <Card sx={{ p: 4, textAlign: 'center', borderRadius: 3 }}>
-          <CircularProgress sx={{ color: '#20b2aa' }} />
+        <Card sx={{ p: 4, textAlign: 'center', borderRadius: RADIUS.card }}>
+          <CircularProgress />
           <Typography sx={{ mt: 1.5, color: 'text.secondary' }}>Lendo os exames e montando a análise clínica…</Typography>
         </Card>
       ) : !analysis ? (
         <>
-          {genError && <Alert severity="warning" sx={{ borderRadius: 2 }}>{genError}</Alert>}
+          {genError && <Alert severity="warning" sx={{ borderRadius: RADIUS.sectionCard }}>{genError}</Alert>}
           <EmptyState
             emoji="📑"
             title="Relatório do paciente"
@@ -95,22 +95,18 @@ export const DoctorConsolidatedReport = ({ patientId, token, patientName, onOpen
         </>
       ) : (
         <>
-          {/* Hero read-only — Dr.Exame + resumo (SEM share/speak/print/regen do ReportHero). */}
-          <Card sx={{ overflow: 'hidden', position: 'relative', background: 'linear-gradient(135deg, rgba(32,178,170,.12), rgba(212,165,116,.08))', border: '1px solid', borderColor: 'rgba(32,178,170,.25)' }}>
-            <AutoAwesomeIcon sx={{ position: 'absolute', right: -14, bottom: -20, fontSize: 150, color: '#d4a574', opacity: 0.12, pointerEvents: 'none' }} />
-            <CardContent sx={{ position: 'relative' }}>
-              <Stack direction="row" alignItems="center" spacing={1.5}>
-                <Box sx={{ width: 52, height: 52, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle, rgba(32,178,170,.22), rgba(32,178,170,.04))' }}>
-                  <DrExame size={40} sx={{ borderRadius: '50%' }} />
-                </Box>
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 800 }}>Relatório consolidado 🩺</Typography>
-                  <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>Análise educativa — não substitui consulta médica</Typography>
-                </Box>
-              </Stack>
-              {resumo && <Typography sx={{ mt: 2, fontSize: '1.05rem', lineHeight: 1.7, wordBreak: 'break-word' }}>{resumo}</Typography>}
-            </CardContent>
-          </Card>
+          {/* Cabeçalho flat read-only — Dr.Exame + título + caption (SEM gradiente/watermark).
+             Background paper (plano), borderBottom como separador sutil (não compete com o conteúdo). */}
+          <Box sx={{ pb: 1.5, borderBottom: 1, borderColor: 'divider' }}>
+            <Stack direction="row" alignItems="center" spacing={1.5}>
+              <DrExame size={36} sx={{ borderRadius: '50%', flexShrink: 0 }} />
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography variant="h6" sx={{ fontWeight: 800 }}>Resumo da análise</Typography>
+                <Typography variant="caption" color="text.secondary">Análise educativa — não substitui consulta médica</Typography>
+              </Box>
+            </Stack>
+            {resumo && <Typography sx={{ mt: 1.5, lineHeight: 1.7, wordBreak: 'break-word' }}>{resumo}</Typography>}
+          </Box>
 
           <ConsolidatedReportBody analysis={analysis} sourceExams={sourceExams} onOpenExam={onOpenExam} />
         </>

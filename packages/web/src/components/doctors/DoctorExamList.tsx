@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Box, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography, Accordion, AccordionSummary, AccordionDetails, Chip } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import SearchIcon from '@mui/icons-material/Search';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { API_URL } from '../../config';
@@ -9,6 +10,7 @@ import { EmptyState } from '../EmptyState';
 import { groupByYear } from '../../utils/groupByYear';
 import { categorizeExam, CATS } from '../../utils/medicalData';
 import { useDoctorT } from '../../utils/i18n-doctor';
+import { RADIUS } from '../../theme';
 
 /**
  * DoctorExamList — lista de exames do paciente compartilhados com o médico (READ-ONLY).
@@ -47,9 +49,23 @@ export const DoctorExamList = ({ patientId, token, onOpen }: { patientId: string
   const dateGroups = useMemo(() => groupByYear(visible, (r: any) => r.performedAt ?? r.createdAt), [visible]);
   const catGroups = presentCats.map((c) => ({ cat: c, items: visible.filter((r: any) => categorizeExam(r).key === c.key) })).filter((g) => g.items.length);
 
+  /** openPdf — abre o PDF original do exame (try Capacitor Browser, fallback window.open). */
+  const openPdf = async (examId: string) => {
+    const url = `${API_URL}/doctor/patients/${patientId}/exams/${examId}/file?token=${encodeURIComponent(token)}`;
+    try {
+      const { Capacitor } = await import('@capacitor/core');
+      if (Capacitor.isNativePlatform()) {
+        const { Browser } = await import('@capacitor/browser');
+        await Browser.open({ url });
+        return;
+      }
+    } catch { /* web fallback */ }
+    window.open(url, '_blank');
+  };
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-      <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 18, color: 'text.primary' }}>
+      <Typography variant="h6" sx={{ color: 'text.primary' }}>
         {t('doctor.tabs.exams')}
       </Typography>
 
@@ -58,7 +74,7 @@ export const DoctorExamList = ({ patientId, token, onOpen }: { patientId: string
           size="small" fullWidth value={q} onChange={(e) => setQ(e.target.value)}
           placeholder="Buscar por título ou laboratório…"
           slotProps={{ input: { startAdornment: (<SearchIcon fontSize="small" sx={{ color: 'text.secondary', mr: 1 }} />) } }}
-          sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: 'background.paper' } }}
+          sx={{ '& .MuiOutlinedInput-root': { borderRadius: RADIUS.tile, bgcolor: 'background.paper' } }}
         />
         <ToggleButtonGroup exclusive size="small" value={view} onChange={(_, v) => { if (v) setView(v); }}>
           <ToggleButton value="date" sx={{ px: 1.25, py: 0.25, textTransform: 'none', fontWeight: 700 }}>Por data</ToggleButton>
@@ -66,9 +82,29 @@ export const DoctorExamList = ({ patientId, token, onOpen }: { patientId: string
         </ToggleButtonGroup>
         {presentCats.length > 1 && (
           <Stack direction="row" spacing={0.75} sx={{ overflowX: 'auto', flexWrap: 'nowrap', pb: 0.25, mx: -0.25, px: 0.25, '&::-webkit-scrollbar': { display: 'none' } }}>
-            <Chip size="small" label={`Todos (${exams.length})`} onClick={() => setCat('all')} sx={{ height: 26, flexShrink: 0, fontWeight: 700, whiteSpace: 'nowrap', bgcolor: cat === 'all' ? '#0f3d3a' : '#0f3d3a14', color: cat === 'all' ? '#fff' : '#0f3d3a' }} />
+            <Chip
+              size="small"
+              label={`Todos (${exams.length})`}
+              onClick={() => setCat('all')}
+              sx={(t) => ({
+                height: 44, flexShrink: 0, fontWeight: 700, whiteSpace: 'nowrap', borderRadius: RADIUS.pill,
+                bgcolor: cat === 'all' ? t.palette.primary.dark : alpha(t.palette.primary.main, 0.1),
+                color: cat === 'all' ? '#fff' : t.palette.primary.dark,
+              })}
+            />
             {presentCats.map((c) => (
-              <Chip key={c.key} size="small" label={`${c.emoji} ${c.cat} (${catCounts[c.key]})`} onClick={() => setCat(cat === c.key ? 'all' : c.key)} sx={{ height: 26, flexShrink: 0, fontWeight: 700, whiteSpace: 'nowrap', bgcolor: cat === c.key ? c.color : c.color + '1a', color: cat === c.key ? '#fff' : c.color, border: `1px solid ${cat === c.key ? c.color : c.color + '40'}` }} />
+              <Chip
+                key={c.key}
+                size="small"
+                label={`${c.emoji} ${c.cat} (${catCounts[c.key]})`}
+                onClick={() => setCat(cat === c.key ? 'all' : c.key)}
+                sx={{
+                  height: 44, flexShrink: 0, fontWeight: 700, whiteSpace: 'nowrap', borderRadius: RADIUS.pill,
+                  bgcolor: cat === c.key ? c.color : alpha(c.color, 0.1),
+                  color: cat === c.key ? '#fff' : c.color,
+                  border: `1px solid ${cat === c.key ? c.color : alpha(c.color, 0.25)}`,
+                }}
+              />
             ))}
           </Stack>
         )}
@@ -81,27 +117,27 @@ export const DoctorExamList = ({ patientId, token, onOpen }: { patientId: string
       ) : (
         <>
           {view === 'date' && dateGroups.map((g) => (
-            <Accordion key={String(g.year ?? 'sdata')} defaultExpanded elevation={0} disableGutters sx={{ borderRadius: '12px !important', overflow: 'hidden', border: '1px solid', borderColor: 'divider', '&:before': { display: 'none' } }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: 'rgba(32,178,170,.04)' }}>
-                <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif' }}>{g.label}</Typography>
-                <Chip size="small" label={g.items.length} sx={{ ml: 1, bgcolor: 'rgba(32,178,170,.12)', color: '#178f89', fontWeight: 700, height: 20 }} />
+            <Accordion key={String(g.year ?? 'sdata')} defaultExpanded elevation={0} disableGutters sx={(t) => ({ borderRadius: `${RADIUS.sectionCard}px !important`, overflow: 'hidden', border: '1px solid', borderColor: 'divider', '&:before': { display: 'none' } })}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={(t) => ({ bgcolor: alpha(t.palette.primary.main, 0.04) })}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>{g.label}</Typography>
+                <Chip size="small" label={g.items.length} sx={(t) => ({ ml: 1, bgcolor: alpha(t.palette.primary.main, 0.12), color: t.palette.primary.dark, fontWeight: 700, height: 22 })} />
               </AccordionSummary>
               <AccordionDetails sx={{ p: 1 }}>
                 <Stack spacing={1}>
-                  {g.items.map((r: any) => <ExamCard key={r.id} exam={r} onOpen={onOpen} />)}
+                  {g.items.map((r: any) => <ExamCard key={r.id} exam={r} onOpen={onOpen} onOpenPdf={r.filePath ? () => openPdf(r.id) : undefined} />)}
                 </Stack>
               </AccordionDetails>
             </Accordion>
           ))}
           {view === 'category' && catGroups.map((g) => (
-            <Accordion key={g.cat.key} defaultExpanded elevation={0} disableGutters sx={{ borderRadius: '12px !important', overflow: 'hidden', border: `1px solid ${g.cat.color}26`, '&:before': { display: 'none' } }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: g.cat.color + '0a' }}>
-                <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', color: g.cat.color }}>{g.cat.emoji} {g.cat.cat}</Typography>
-                <Chip size="small" label={g.items.length} sx={{ ml: 1, bgcolor: g.cat.color + '1a', color: g.cat.color, fontWeight: 700, height: 20 }} />
+            <Accordion key={g.cat.key} defaultExpanded elevation={0} disableGutters sx={{ borderRadius: `${RADIUS.sectionCard}px !important`, overflow: 'hidden', border: `1px solid ${alpha(g.cat.color, 0.15)}`, '&:before': { display: 'none' } }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: alpha(g.cat.color, 0.04) }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary' }}>{g.cat.emoji} {g.cat.cat}</Typography>
+                <Chip size="small" label={g.items.length} sx={{ ml: 1, bgcolor: alpha(g.cat.color, 0.12), color: g.cat.color, fontWeight: 700, height: 22 }} />
               </AccordionSummary>
               <AccordionDetails sx={{ p: 1 }}>
                 <Stack spacing={1}>
-                  {g.items.map((r: any) => <ExamCard key={r.id} exam={r} onOpen={onOpen} />)}
+                  {g.items.map((r: any) => <ExamCard key={r.id} exam={r} onOpen={onOpen} onOpenPdf={r.filePath ? () => openPdf(r.id) : undefined} />)}
                 </Stack>
               </AccordionDetails>
             </Accordion>

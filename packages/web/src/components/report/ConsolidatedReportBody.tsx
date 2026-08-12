@@ -1,4 +1,5 @@
-import { Box, Stack, Typography, Grid, Chip } from '@mui/material';
+import { Box, Stack, Typography, Grid, List, ListItem, ListItemIcon, ListItemText } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import DescriptionIcon from '@mui/icons-material/Description';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -9,6 +10,7 @@ import InsightsIcon from '@mui/icons-material/Insights';
 import { ReportSectionCard } from './ReportSectionCard';
 import { DestaqueCard } from './DestaqueCard';
 import { MetaCard } from './MetaCard';
+import { RADIUS } from '../../theme';
 
 /**
  * Normaliza o campo estruturado em array — a IA às vezes devolve objeto/string único.
@@ -34,13 +36,36 @@ interface StructuredSummary {
 }
 
 /**
+ * Quebra a leitura final em frases curtas (bullets scannáveis) quando o texto é longo.
+ * Divide em ". " ou "\n"; descarta vazios; normaliza pontuação terminal.
+ */
+const splitSentences = (raw: string): string[] => {
+  const seen = new Set<string>();
+  return raw
+    .split(/\.\s+|\n+|;\s+/)
+    .map((s) => s.trim())
+    .filter((s) => {
+      if (!s || seen.has(s.toLowerCase())) return false;
+      seen.add(s.toLowerCase());
+      return true;
+    })
+    .map((s) => (/[.!?:]$/.test(s) ? s : `${s}.`));
+};
+
+/**
  * ConsolidatedReportBody — corpo do relatório consolidado READ-ONLY. Renderiza todas as seções
  * do ConsolidatedReport (exames-base, destaques, atenção, positivos, interações, nutrição,
  * metas, leitura final) EXCETO "Perguntas ao médico" (o paciente envia; o médico só vê).
  *
  * Cada seção é guardada por `asArr(...).length > 0`. Ícone-clicável só se `onOpenExam` for fornecido.
+ *
+ * Apresentação premium:
+ *  - verde = sinal (apenas no ícone), texto neutro (text.primary) — sem "muro de chips";
+ *  - `leituraFinal` longo vira bullets; curto mantém-se como prosa com header small-caps;
+ *  - disclaimer vira footnote (caption text.secondary), não linha centrada flutuante.
  */
 export const ConsolidatedReportBody = ({ analysis, sourceExams, onOpenExam }: { analysis: any; sourceExams: any[]; onOpenExam?: (id: string) => void }) => {
+  const theme = useTheme();
   if (!analysis) return null;
   const s: StructuredSummary | undefined = analysis.structured
     ? {
@@ -65,10 +90,17 @@ export const ConsolidatedReportBody = ({ analysis, sourceExams, onOpenExam }: { 
     return v.length > 42 ? `${v.slice(0, 42)}…` : v;
   };
 
+  const disclaimer = s.disclaimer || 'Análise educativa gerada por IA a partir dos exames do paciente. A interpretação final deve ser feita por profissional de saúde.';
+
+  // leituraFinal: bullets se passa do limite (várias frases); senão prosa.
+  const leituraRaw = s.leituraFinal ? String(s.leituraFinal).trim() : '';
+  const leituraSentences = leituraRaw ? splitSentences(leituraRaw) : [];
+  const leituraAsBullets = leituraRaw.length > 280 && leituraSentences.length > 1;
+
   return (
     <>
       {sourceExams.length > 0 && (
-        <ReportSectionCard icon={<DescriptionIcon />} title="Exames base do relatório" accent="#20b2aa" count={sourceExams.length}>
+        <ReportSectionCard icon={<DescriptionIcon />} title="Exames base do relatório" accent={theme.palette.primary.main} count={sourceExams.length}>
           <Stack spacing={0.5} useFlexGap>
             {sourceExams.map((e: any, i: number) => (
               <Box key={i} onClick={onOpenExam ? () => onOpenExam(e.id) : undefined} sx={{ cursor: onOpenExam ? 'pointer' : 'default', '&:hover': onOpenExam ? { opacity: 0.8 } : {} }}>
@@ -93,9 +125,9 @@ export const ConsolidatedReportBody = ({ analysis, sourceExams, onOpenExam }: { 
         <ReportSectionCard icon={<ReportProblemIcon />} title="Pontos de atenção" accent="#ef4444" count={s.pontosAtencao.length}>
           <Stack spacing={1.25}>
             {s.pontosAtencao.map((p: any, i: number) => (
-              <Box key={i}>
-                <Typography sx={{ fontWeight: 700, wordBreak: 'break-word' }}>{i + 1}. {p.titulo}</Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25, wordBreak: 'break-word' }}>{p.detalhe}</Typography>
+              <Box key={i} sx={{ borderRadius: RADIUS.tile, p: 1.5, bgcolor: 'rgba(239,68,68,0.06)', border: '1px solid', borderColor: 'rgba(239,68,68,0.22)' }}>
+                <Typography sx={{ fontWeight: 700, color: 'error.main', wordBreak: 'break-word' }}>{i + 1}. {p.titulo}</Typography>
+                <Typography variant="body2" sx={{ mt: 0.25, wordBreak: 'break-word', color: 'text.primary' }}>{p.detalhe}</Typography>
               </Box>
             ))}
           </Stack>
@@ -103,10 +135,21 @@ export const ConsolidatedReportBody = ({ analysis, sourceExams, onOpenExam }: { 
       )}
 
       {s.coisasBoas && s.coisasBoas.length > 0 && (
-        <ReportSectionCard icon={<CheckCircleIcon />} title="Pontos positivos" accent="#059669" count={s.coisasBoas.length} collapsible defaultExpanded={false}>
-          <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-            {s.coisasBoas.map((b: any, i: number) => <Chip key={i} sx={{ bgcolor: '#05966918', color: '#059669', fontWeight: 600, maxWidth: '100%', whiteSpace: 'normal', height: 'auto', py: 0.5, lineHeight: 1.3 }} label={txt(b)} />)}
-          </Stack>
+        <ReportSectionCard icon={<CheckCircleIcon />} title="Pontos estáveis / dentro do esperado" accent={theme.palette.primary.main} count={s.coisasBoas.length} collapsible defaultExpanded={false}>
+          {/* Verde = sinal (apenas ícone). Texto neutro (text.primary). Sem muro de chips. */}
+          <List dense disablePadding>
+            {s.coisasBoas.map((b: any, i: number) => (
+              <ListItem key={i} disableGutters alignItems="flex-start" sx={{ py: 0.4 }}>
+                <ListItemIcon sx={{ minWidth: 30, mt: 0.25, color: 'success.main' }}>
+                  <CheckCircleIcon sx={{ fontSize: 20 }} />
+                </ListItemIcon>
+                <ListItemText
+                  primary={txt(b)}
+                  primaryTypographyProps={{ sx: { wordBreak: 'break-word', color: 'text.primary', lineHeight: 1.5 } }}
+                />
+              </ListItem>
+            ))}
+          </List>
         </ReportSectionCard>
       )}
 
@@ -114,7 +157,7 @@ export const ConsolidatedReportBody = ({ analysis, sourceExams, onOpenExam }: { 
         <ReportSectionCard icon={<MedicationIcon />} title="Interações com medicação" accent="#f59e0b" count={interacoes.length} collapsible defaultExpanded={false}>
           <Stack spacing={1}>
             {interacoes.map((m: any, i: number) => (
-              <Box key={i} sx={{ p: 1.5, borderRadius: '12px', bgcolor: '#f59e0b0d', border: '1px solid #f59e0b26' }}>
+              <Box key={i} sx={{ p: 1.5, borderRadius: RADIUS.tile, bgcolor: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.22)' }}>
                 <Typography sx={{ fontWeight: 700, wordBreak: 'break-word' }}>{m.medicamento} <Box component="span" sx={{ color: 'text.secondary', fontWeight: 600 }}>× {m.analito}</Box></Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ wordBreak: 'break-word' }}>{m.observacao}</Typography>
               </Box>
@@ -139,16 +182,51 @@ export const ConsolidatedReportBody = ({ analysis, sourceExams, onOpenExam }: { 
         </ReportSectionCard>
       )}
 
-      {s.leituraFinal && (
-        <Box sx={{ p: 2.5, borderRadius: '16px', background: 'linear-gradient(135deg, rgba(11,92,171,.10), rgba(11,92,171,.04))', border: '1px solid', borderColor: 'divider' }}>
-          <Typography sx={(t) => ({ fontWeight: 800, color: t.palette.mode === 'dark' ? '#5b9bd5' : '#0b5cab', mb: 0.5, fontFamily: '"Poppins",sans-serif' })}>📌 Leitura final</Typography>
-          <Typography sx={{ lineHeight: 1.7, wordBreak: 'break-word' }}>{s.leituraFinal}</Typography>
+      {leituraRaw && (
+        <Box sx={{ p: 2.5, borderRadius: RADIUS.card, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
+          <Typography
+            variant="overline"
+            sx={{
+              display: 'block',
+              mb: 1,
+              color: 'primary.main',
+              fontWeight: 800,
+              letterSpacing: '0.08em',
+              lineHeight: 1.4,
+            }}
+          >
+            Leitura final
+          </Typography>
+          {leituraAsBullets ? (
+            <List dense disablePadding>
+              {leituraSentences.map((sen, i) => (
+                <ListItem key={i} disableGutters alignItems="flex-start" sx={{ py: 0.35 }}>
+                  <ListItemIcon sx={{ minWidth: 22, mt: 0.4, color: 'primary.main', fontWeight: 800, fontSize: 13 }}>
+                    {i + 1}.
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={sen}
+                    primaryTypographyProps={{ sx: { wordBreak: 'break-word', lineHeight: 1.65, color: 'text.primary' } }}
+                  />
+                </ListItem>
+              ))}
+            </List>
+          ) : (
+            <Typography sx={{ lineHeight: 1.7, wordBreak: 'break-word' }}>{leituraRaw}</Typography>
+          )}
+          {/* Disclaimer como footnote dentro da última seção — caption, text.secondary, left-aligned. */}
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2, lineHeight: 1.45 }}>
+            {disclaimer}
+          </Typography>
         </Box>
       )}
 
-      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center' }}>
-        {s.disclaimer || 'Análise educativa gerada por IA a partir dos exames do paciente. A interpretação final deve ser feita por profissional de saúde.'}
-      </Typography>
+      {!leituraRaw && (
+        /* Sem leituraFinal — disclaimer ainda vira footnote (não centrado). */
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.45 }}>
+          {disclaimer}
+        </Typography>
+      )}
     </>
   );
 };
