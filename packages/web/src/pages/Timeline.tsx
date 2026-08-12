@@ -73,7 +73,7 @@ export const TimelinePage = () => {
         <Box sx={{ position: 'absolute', left: -3.5, top: 14, width: 22, height: 22, borderRadius: '50%', bgcolor: dotColor, border: '3px solid #fff', boxShadow: '0 2px 6px rgba(0,0,0,.2)', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {isImaging ? <LocalHospitalIcon sx={{ color: '#fff', fontSize: 12 }} /> : hasIssues ? <TrendingDownIcon sx={{ color: '#fff', fontSize: 12 }} /> : <CheckCircleIcon sx={{ color: '#fff', fontSize: 12 }} />}
         </Box>
-        <Card onClick={() => openExam(e)} sx={{ borderRadius: 3, ml: 1.5, borderLeft: `5px solid ${dotColor}`, transition: 'transform .15s', cursor: 'pointer', '&:hover': { transform: 'translateX(2px)' } }}>
+        <Card onClick={() => openExam(e)} sx={{ borderRadius: '12px', ml: 1.5, borderLeft: `5px solid ${dotColor}`, transition: 'transform .15s', cursor: 'pointer', '&:hover': { transform: 'translateX(2px)' } }}>
           <CardContent sx={{ pb: '12px !important' }}>
             <Stack direction="row" justifyContent="space-between" alignItems="flex-start" flexWrap="wrap" gap={1}>
               <Box>
@@ -113,7 +113,7 @@ export const TimelinePage = () => {
       {loading ? (
         <PageSkeleton cards={4} />
       ) : sorted.length === 0 ? (
-        <Card sx={{ borderRadius: 4 }}><CardContent><Typography color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>Nenhum exame extraído ainda. Envie um exame para começar sua linha do tempo.</Typography></CardContent></Card>
+        <Card sx={{ borderRadius: '12px' }}><CardContent><Typography color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>Nenhum exame extraído ainda. Envie um exame para começar sua linha do tempo.</Typography></CardContent></Card>
       ) : (
         <Stack spacing={3}>
           {groups.map((g) => {
@@ -125,17 +125,17 @@ export const TimelinePage = () => {
                   <Typography variant="caption" color="text.secondary">{g.items.length} exame(s){locked ? ' • Premium' : ''}</Typography>
                 </Box>
                 {locked ? (
-                  <Card sx={{ borderRadius: 3, p: 2, display: 'flex', alignItems: 'center', gap: 1.5, background: 'linear-gradient(135deg, rgba(32,178,170,.06), transparent)' }}>
+                  <Card sx={{ borderRadius: '12px', p: 2, display: 'flex', alignItems: 'center', gap: 1.5, background: 'linear-gradient(135deg, rgba(32,178,170,.06), transparent)' }}>
                     <LockIcon sx={{ color: '#178f89' }} />
                     <Box sx={{ flex: 1, minWidth: 0 }}>
                       <Typography sx={{ fontWeight: 800 }}>Histórico de {g.label}</Typography>
                       <Typography variant="caption" color="text.secondary">Desbloqueie todo o seu histórico de exames (Premium).</Typography>
                     </Box>
-                    <Button size="small" variant="contained" onClick={() => navigate('/planos')} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', boxShadow: 'none', '&:hover': { bgcolor: '#178f89' } }}>Ver planos</Button>
+                    <Button size="small" variant="contained" onClick={() => navigate('/planos')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', boxShadow: 'none', '&:hover': { bgcolor: '#178f89' } }}>Ver planos</Button>
                   </Card>
                 ) : (
                   <Box sx={{ position: 'relative', pl: 3.5 }}>
-                    <Box sx={{ position: 'absolute', left: 15, top: 8, bottom: 8, width: 3, background: 'linear-gradient(#2a93b8,#5FD35A)', borderRadius: 3 }} />
+                    <Box sx={{ position: 'absolute', left: 15, top: 8, bottom: 8, width: 3, background: 'linear-gradient(#2a93b8,#5FD35A)', borderRadius: '12px' }} />
                     <Stack spacing={2}>{g.items.map(renderEvent)}</Stack>
                   </Box>
                 )}
@@ -163,7 +163,7 @@ export const TimelinePage = () => {
             <Stack spacing={1}>
               <Typography variant="body2" sx={{ color: 'error.main', fontWeight: 700 }}>🚩 {abn.length} valor(es) fora da faixa</Typography>
               {abn.map((it) => (
-                <Box key={it.id} sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1, borderRadius: 2, bgcolor: 'rgba(239,68,68,.06)' }}>
+                <Box key={it.id} sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1, borderRadius: '12px', bgcolor: 'rgba(239,68,68,.06)' }}>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}>
                       <Typography sx={{ fontWeight: 700, wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.2 }}>{it.name}</Typography>

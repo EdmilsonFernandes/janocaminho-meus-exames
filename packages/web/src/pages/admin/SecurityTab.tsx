@@ -49,7 +49,7 @@ export const SecurityTab = () => {
   if (error) return <SectionError message="Não foi possível carregar os domínios bloqueados." onRetry={() => void load()} />;
 
   return (
-    <Card sx={{ borderRadius: 3 }}><CardContent>
+    <Card sx={{ borderRadius: '12px' }}><CardContent>
       <Typography variant="h6" gutterBottom>🚫 E-mails temporários bloqueados</Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Domínios descartáveis (mailinator, guerrillamail…) não conseguem se cadastrar — evita farm de contas pra roubar o bônus de créditos. Lista no banco, configurável.</Typography>
       <Box sx={{ mb: 2, display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>

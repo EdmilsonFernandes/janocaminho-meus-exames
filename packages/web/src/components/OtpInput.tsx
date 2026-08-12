@@ -32,7 +32,7 @@ export const OtpInput = ({ value, onChange, length = 6 }: { value: string; onCha
           onFocus={(e: any) => e.target.select()}
           style={{
             width: 44, height: 52, textAlign: 'center', fontSize: 22, fontWeight: 800,
-            borderRadius: 12,
+            borderRadius: '12px',
             border: `2px solid ${value[i] ? theme.palette.primary.main : theme.palette.divider}`,
             outline: 'none',
             background: theme.palette.background.paper,

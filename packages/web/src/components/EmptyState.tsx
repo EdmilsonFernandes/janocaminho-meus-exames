@@ -14,13 +14,13 @@ export const EmptyState = ({ emoji, title, desc, cta, onCta, bonus }: { emoji?: 
     <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', mb: 0.75, fontFamily: 'Poppins, sans-serif' }}>{title}</Typography>
     {desc && <Typography sx={{ color: 'text.secondary', maxWidth: 360, mx: 'auto', lineHeight: 1.6, mb: bonus != null ? 1.5 : 2.5, fontSize: 14 }}>{desc}</Typography>}
     {bonus != null && (
-      <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, mb: 2.5, px: 1.75, py: 0.85, borderRadius: 99, bgcolor: 'rgba(32,178,170,.10)', border: '1px solid rgba(32,178,170,.28)' }}>
+      <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, mb: 2.5, px: 1.75, py: 0.85, borderRadius: '999px', bgcolor: 'rgba(32,178,170,.10)', border: '1px solid rgba(32,178,170,.28)' }}>
         <Box sx={{ fontSize: 18 }}>🎁</Box>
         <Typography sx={{ fontWeight: 700, color: '#178f89', fontSize: 13.5 }}>Ganhe <Box component="span" sx={{ fontWeight: 800 }}>{bonus} créditos</Box> ao enviar seu 1º exame</Typography>
       </Box>
     )}
     {cta && onCta && (
-      <Button variant="contained" onClick={onCta} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 800, px: 3, background: 'linear-gradient(180deg,#20b2aa,#009688)', '&:hover': { background: 'linear-gradient(180deg,#1ca39e,#00897b)' } }}>{cta}</Button>
+      <Button variant="contained" onClick={onCta} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 3, background: 'linear-gradient(180deg,#20b2aa,#009688)', '&:hover': { background: 'linear-gradient(180deg,#1ca39e,#00897b)' } }}>{cta}</Button>
     )}
     <style>{`@keyframes esFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}`}</style>
   </Box>

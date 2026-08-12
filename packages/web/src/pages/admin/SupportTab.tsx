@@ -78,7 +78,7 @@ export const SupportTab = () => {
           {tickets.map((t) => {
             const st = STATUS_META[t.status] ?? STATUS_META.open;
             return (
-              <Card key={t.id} variant="outlined" onClick={() => setSelId(t.id)} sx={{ cursor: 'pointer', borderRadius: 2, '&:hover': { boxShadow: 2 }, borderLeft: t.unreadByAdmin ? '4px solid #ef4444' : undefined }}>
+              <Card key={t.id} variant="outlined" onClick={() => setSelId(t.id)} sx={{ cursor: 'pointer', borderRadius: '12px', '&:hover': { boxShadow: 2 }, borderLeft: t.unreadByAdmin ? '4px solid #ef4444' : undefined }}>
                 <CardContent sx={{ py: 1.25, '&:last-child': { pb: 1.25 } }}>
                   <Stack direction="row" alignItems="center" spacing={1} useFlexGap flexWrap="wrap">
                     <Typography sx={{ fontWeight: 800, color: '#178f89' }}>#{t.number}</Typography>
@@ -163,7 +163,7 @@ const Conversation = ({ ticketId, onClose, onNotify }: { ticketId: string; onClo
             const atts = m.attachments ?? [];
             return (
               <Box key={m.id} sx={{ display: 'flex', justifyContent: mine ? 'flex-end' : 'flex-start' }}>
-                <Box sx={{ maxWidth: { xs: '85%', sm: '70%' }, bgcolor: mine ? '#178f89' : 'action.hover', color: mine ? '#fff' : 'text.primary', px: 1.5, py: 1, borderRadius: 2 }}>
+                <Box sx={{ maxWidth: { xs: '85%', sm: '70%' }, bgcolor: mine ? '#178f89' : 'action.hover', color: mine ? '#fff' : 'text.primary', px: 1.5, py: 1, borderRadius: '12px' }}>
                   {!mine && <Typography sx={{ fontSize: 11, fontWeight: 800, opacity: 0.7 }}>Usuário</Typography>}
                   <Typography sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{m.body}</Typography>
                   {atts.length > 0 && (

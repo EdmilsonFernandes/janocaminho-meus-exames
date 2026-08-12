@@ -58,7 +58,7 @@ export const ConquistasPage = () => {
       </Stack>
 
       {/* Resumo + resgatar tudo */}
-      <Card sx={{ borderRadius: 4, mb: 2, background: 'linear-gradient(135deg,#0f3d3a,#1f9d95)', color: '#fff', boxShadow: '0 12px 30px rgba(15,61,58,.18)' }}>
+      <Card sx={{ borderRadius: '12px', mb: 2, background: 'linear-gradient(135deg,#0f3d3a,#1f9d95)', color: '#fff', boxShadow: '0 12px 30px rgba(15,61,58,.18)' }}>
         <CardContent>
           <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
             <Box>
@@ -70,7 +70,7 @@ export const ConquistasPage = () => {
             )}
           </Stack>
           {claimable.length > 0 && (
-            <Button fullWidth variant="contained" disabled={busy === 'all'} onClick={() => claim()} sx={{ mt: 2, bgcolor: 'background.paper', color: 'text.primary', fontWeight: 800, borderRadius: 99, textTransform: 'none', '&:hover': { bgcolor: 'background.default' }, '&.Mui-disabled': { bgcolor: 'rgba(255,255,255,.6)' } }}>
+            <Button fullWidth variant="contained" disabled={busy === 'all'} onClick={() => claim()} sx={{ mt: 2, bgcolor: 'background.paper', color: 'text.primary', fontWeight: 800, borderRadius: '999px', textTransform: 'none', '&:hover': { bgcolor: 'background.default' }, '&.Mui-disabled': { bgcolor: 'rgba(255,255,255,.6)' } }}>
               {busy === 'all' ? 'Resgatando…' : `🎁 Resgatar tudo (${claimable.length} crédito${claimable.length > 1 ? 's' : ''})`}
             </Button>
           )}
@@ -80,7 +80,7 @@ export const ConquistasPage = () => {
       {/* Badges */}
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: '1fr 1fr 1fr' }, gap: 1.5 }}>
         {state.badges.map((b) => (
-          <Card key={b.id} sx={{ borderRadius: 3, p: 1.75, textAlign: 'center', border: b.claimed ? '1.5px solid rgba(32,178,170,.45)' : b.earned ? '1.5px solid rgba(32,178,170,.3)' : '1.5px solid', borderColor: b.claimed || b.earned ? undefined : 'divider', bgcolor: b.claimed ? 'rgba(32,178,170,.08)' : b.earned ? 'rgba(32,178,170,.05)' : 'background.paper' }}>
+          <Card key={b.id} sx={{ borderRadius: '12px', p: 1.75, textAlign: 'center', border: b.claimed ? '1.5px solid rgba(32,178,170,.45)' : b.earned ? '1.5px solid rgba(32,178,170,.3)' : '1.5px solid', borderColor: b.claimed || b.earned ? undefined : 'divider', bgcolor: b.claimed ? 'rgba(32,178,170,.08)' : b.earned ? 'rgba(32,178,170,.05)' : 'background.paper' }}>
             <Box sx={{ fontSize: 34, mb: 0.5, filter: b.earned ? 'none' : 'grayscale(1)', opacity: b.earned ? 1 : 0.5 }}>{b.emoji}</Box>
             <Typography sx={{ fontSize: 12.5, fontWeight: 800, color: b.earned ? 'text.primary' : 'text.secondary', lineHeight: 1.2 }}>{b.title}</Typography>
             <Typography sx={{ fontSize: 10.5, color: 'text.secondary', lineHeight: 1.25, mt: 0.25, minHeight: 26 }}>{b.desc}</Typography>
@@ -88,12 +88,12 @@ export const ConquistasPage = () => {
             {b.claimed ? (
               <Typography sx={{ fontSize: 11, fontWeight: 800, color: '#178f89', mt: 0.75 }}>✓ Resgatado</Typography>
             ) : b.claimable ? (
-              <Button size="small" fullWidth disabled={busy === b.id} onClick={() => claim(b.id)} sx={{ mt: 0.75, borderRadius: 99, textTransform: 'none', fontWeight: 800, fontSize: 12, bgcolor: '#20b2aa', color: '#fff', boxShadow: 'none', '&:hover': { bgcolor: '#178f89' } }}>
+              <Button size="small" fullWidth disabled={busy === b.id} onClick={() => claim(b.id)} sx={{ mt: 0.75, borderRadius: '999px', textTransform: 'none', fontWeight: 800, fontSize: 12, bgcolor: '#20b2aa', color: '#fff', boxShadow: 'none', '&:hover': { bgcolor: '#178f89' } }}>
                 {busy === b.id ? '…' : 'Resgatar'}
               </Button>
             ) : (
               <>
-                <LinearProgress variant="determinate" value={b.progress * 100} sx={{ mt: 0.75, height: 4, borderRadius: 99, bgcolor: 'action.hover', '& .MuiLinearProgress-bar': { bgcolor: '#20b2aa' } }} />
+                <LinearProgress variant="determinate" value={b.progress * 100} sx={{ mt: 0.75, height: 4, borderRadius: '999px', bgcolor: 'action.hover', '& .MuiLinearProgress-bar': { bgcolor: '#20b2aa' } }} />
                 <Typography sx={{ fontSize: 10, color: 'text.secondary', mt: 0.25 }}>{Math.round(b.progress * 100)}%</Typography>
               </>
             )}

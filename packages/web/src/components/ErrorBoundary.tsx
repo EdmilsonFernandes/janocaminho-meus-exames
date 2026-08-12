@@ -21,7 +21,7 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, { hasError
           <Box sx={{ fontSize: 64, mb: 2 }}>😵‍💫</Box>
           <Typography variant="h5" sx={{ fontWeight: 800, color: 'text.primary', mb: 1, fontFamily: 'Poppins, sans-serif' }}>Algo deu errado</Typography>
           <Typography sx={{ color: 'text.secondary', mb: 3, maxWidth: 340 }}>Ocorreu um erro inesperado. Tente novamente — seus dados estão salvos.</Typography>
-          <Button variant="contained" size="large" onClick={() => this.setState({ hasError: false, error: undefined })} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 800, px: 4, background: 'linear-gradient(180deg,#20b2aa,#009688)', '&:hover': { background: 'linear-gradient(180deg,#1ca39e,#00897b)' } }}>Tentar novamente</Button>
+          <Button variant="contained" size="large" onClick={() => this.setState({ hasError: false, error: undefined })} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 4, background: 'linear-gradient(180deg,#20b2aa,#009688)', '&:hover': { background: 'linear-gradient(180deg,#1ca39e,#00897b)' } }}>Tentar novamente</Button>
         </Box>
       );
     }

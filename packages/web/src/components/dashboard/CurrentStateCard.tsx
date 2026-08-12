@@ -67,7 +67,7 @@ export const CurrentStateCard = () => {
             <Skeleton variant="circular" width={24} height={24} />
             <Skeleton variant="text" width={140} />
           </Stack>
-          <Skeleton variant="rectangular" height={56} sx={{ borderRadius: 2 }} />
+          <Skeleton variant="rectangular" height={56} sx={{ borderRadius: '12px' }} />
         </CardContent>
       </Card>
     );
@@ -168,7 +168,7 @@ export const CurrentStateCard = () => {
           <Typography variant="caption" sx={{ display: 'block', color: '#9a6b00', mb: 1.25 }}>⏳ {s.stale.length} marcador(es) não mede(m) há mais de 1 ano — considere refazer com seu médico.</Typography>
         )}
 
-        <Button fullWidth variant="outlined" size="small" endIcon={<ChevronRightIcon />} onClick={() => navigate('/alterados')} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, py: 1.1 }}>Ver valores alterados</Button>
+        <Button fullWidth variant="outlined" size="small" endIcon={<ChevronRightIcon />} onClick={() => navigate('/alterados')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, py: 1.1 }}>Ver valores alterados</Button>
       </CardContent>
     </Card>
   );

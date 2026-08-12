@@ -70,7 +70,7 @@ export const PushTab = () => {
 
       <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
         <Button variant="contained" startIcon={sending ? <CircularProgress size={18} color="inherit" /> : <SendIcon />} onClick={send} disabled={sending}
-          sx={{ bgcolor: '#20b2aa', '&:hover': { bgcolor: '#178f89' }, textTransform: 'none', fontWeight: 700, borderRadius: 99 }}>
+          sx={{ bgcolor: '#20b2aa', '&:hover': { bgcolor: '#178f89' }, textTransform: 'none', fontWeight: 700, borderRadius: '999px' }}>
           {sending ? 'Enviando…' : 'Enviar push global'}
         </Button>
         {result != null && <Alert severity="success" icon={false} sx={{ py: 0.5, '.MuiAlert-message': { padding: 0 } }}>✅ Enviado pra <strong>{result.sent}</strong> dispositivo(s).</Alert>}
@@ -85,7 +85,7 @@ export const PushTab = () => {
           <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1 }}>📣 Campanhas recentes ({campaigns.length})</Typography>
           <Stack spacing={1}>
             {campaigns.map((c: any) => (
-              <Box key={c.id} sx={{ p: 1.25, borderRadius: 2, bgcolor: 'action.hover' }}>
+              <Box key={c.id} sx={{ p: 1.25, borderRadius: '12px', bgcolor: 'action.hover' }}>
                 <Stack direction="row" justifyContent="space-between" gap={1} flexWrap="wrap">
                   <Box sx={{ minWidth: 0, flex: 1 }}>
                     <Typography sx={{ fontWeight: 700 }}>{c.title}</Typography>

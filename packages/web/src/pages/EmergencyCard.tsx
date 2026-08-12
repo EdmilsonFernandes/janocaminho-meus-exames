@@ -23,7 +23,7 @@ export const EmergencyCardPage = () => {
   return (
     <PageContainer width="narrow">
       {/* Title removido — header vermelho abaixo já cumpre o papel de título visual */}
-      <Card sx={{ borderRadius: 4, overflow: 'hidden', boxShadow: '0 4px 20px rgba(211,47,47,.15)' }}>
+      <Card sx={{ borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(211,47,47,.15)' }}>
         {/* Header vermelho */}
         <Box sx={{ background: 'linear-gradient(135deg,#d32f2f,#b71c1c)', p: 3, color: '#fff', textAlign: 'center' }}>
           <LocalHospitalIcon sx={{ fontSize: 48 }} />
@@ -51,7 +51,7 @@ export const EmergencyCardPage = () => {
                 <Typography variant="body2" color="text.secondary">{patient.phone || 'Não informado'}</Typography>
               </Box>
               <Box sx={{ textAlign: 'center', mt: 3 }}>
-                <Box sx={{ display: 'inline-block', p: 2, border: '2px solid', borderColor: 'divider', borderRadius: 2, bgcolor: 'background.paper' }}>
+                <Box sx={{ display: 'inline-block', p: 2, border: '2px solid', borderColor: 'divider', borderRadius: '12px', bgcolor: 'background.paper' }}>
                   <Typography sx={{ fontSize: 48, fontWeight: 900, lineHeight: 1, color: 'text.primary', letterSpacing: 2 }}>
                     {patient.fullName?.charAt(0)?.toUpperCase() || '?'}{age ?? ''}
                   </Typography>

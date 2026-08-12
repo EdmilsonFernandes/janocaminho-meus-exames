@@ -54,7 +54,7 @@ export const NotificationPopup = () => {
   if (!notif) return null;
 
   return (
-    <Dialog open={open} onClose={() => setOpen(false)} PaperProps={{ sx: { borderRadius: 4, maxWidth: 420 } }}>
+    <Dialog open={open} onClose={() => setOpen(false)} PaperProps={{ sx: { borderRadius: '12px', maxWidth: 420 } }}>
       <DialogTitle sx={{ textAlign: 'center', pb: 0 }}>
         <Stack alignItems="center" spacing={1}>
           <DrExame size={48} sx={{ borderRadius: '50%' }} />
@@ -65,8 +65,8 @@ export const NotificationPopup = () => {
         <Typography sx={{ textAlign: 'center', lineHeight: 1.6, fontSize: 16, whiteSpace: 'pre-wrap' }}>{notif.body}</Typography>
       </DialogContent>
       <DialogActions sx={{ justifyContent: 'center', pb: 3, gap: 1 }}>
-        <Button variant="outlined" onClick={() => { try { if (notif?.id != null) localStorage.setItem('meDismissedNotif', String(notif.id)); } catch { /* ignore */ } setOpen(false); }} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700 }}>Depois</Button>
-        <Button variant="contained" onClick={() => { if (notif?.id) { fetch(`${API_URL}/notifications/${notif.id}/read`, { method: 'PATCH', headers: { Authorization: `Bearer ${token()}` } }).catch(() => {}); window.dispatchEvent(new Event('notificationsRead')); } setOpen(false); navigate(notifRoute(notif) || '/notificacoes'); }} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa' }}>{notifRoute(notif) ? 'Ver agora' : 'Ver notificações'}</Button>
+        <Button variant="outlined" onClick={() => { try { if (notif?.id != null) localStorage.setItem('meDismissedNotif', String(notif.id)); } catch { /* ignore */ } setOpen(false); }} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>Depois</Button>
+        <Button variant="contained" onClick={() => { if (notif?.id) { fetch(`${API_URL}/notifications/${notif.id}/read`, { method: 'PATCH', headers: { Authorization: `Bearer ${token()}` } }).catch(() => {}); window.dispatchEvent(new Event('notificationsRead')); } setOpen(false); navigate(notifRoute(notif) || '/notificacoes'); }} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa' }}>{notifRoute(notif) ? 'Ver agora' : 'Ver notificações'}</Button>
       </DialogActions>
     </Dialog>
   );

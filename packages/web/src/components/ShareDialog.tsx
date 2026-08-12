@@ -79,17 +79,17 @@ export const ShareDialog = ({ analysisId, open, onClose }: { analysisId?: string
         {error && <Alert severity="error">{error}</Alert>}
 
         {revoked && (
-          <Alert severity="info" sx={{ borderRadius: 2 }} icon={<LockIcon />}>Acesso revogado. O link e o QR não funcionam mais. Gere um novo se precisar.</Alert>
+          <Alert severity="info" sx={{ borderRadius: '12px' }} icon={<LockIcon />}>Acesso revogado. O link e o QR não funcionam mais. Gere um novo se precisar.</Alert>
         )}
 
         {data && (
           <Box>
-            <Alert severity="success" sx={{ mb: 2, borderRadius: 2 }}>✅ Link seguro gerado! Válido por <b>12 horas</b>.</Alert>
+            <Alert severity="success" sx={{ mb: 2, borderRadius: '12px' }}>✅ Link seguro gerado! Válido por <b>12 horas</b>.</Alert>
 
             {/* QR — médico escaneia presencialmente (recepcionista, consulta) */}
             {qr && (
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 2 }}>
-                <Box component="img" src={qr} alt="QR de acesso" sx={{ width: 168, height: 168, borderRadius: 3, p: 1, bgcolor: '#fff', border: '1px solid #e2e8f0' }} />
+                <Box component="img" src={qr} alt="QR de acesso" sx={{ width: 168, height: 168, borderRadius: '12px', p: 1, bgcolor: '#fff', border: '1px solid #e2e8f0' }} />
                 <Typography variant="caption" sx={{ mt: 0.5, display: 'inline-flex', alignItems: 'center', gap: 0.5, color: 'text.secondary' }}><QrCode2Icon sx={{ fontSize: 14 }} /> Mostre este QR — o médico escaneia e digita a senha.</Typography>
               </Box>
             )}
@@ -100,7 +100,7 @@ export const ShareDialog = ({ analysisId, open, onClose }: { analysisId?: string
               <IconButton onClick={() => copy(data.link)} color="primary" title="Copiar link"><ContentCopyIcon /></IconButton>
             </Stack>
             <Typography variant="subtitle2" sx={{ color: '#336886' }}>🔑 Senha (envie ao médico separadamente do link)</Typography>
-            <Typography sx={{ fontSize: 30, fontWeight: 800, letterSpacing: 8, color: '#2a93b8', textAlign: 'center', py: 1, my: 0.5, bgcolor: '#f0f8fc', borderRadius: 2, border: '1px dashed #2a93b8' }}>
+            <Typography sx={{ fontSize: 30, fontWeight: 800, letterSpacing: 8, color: '#2a93b8', textAlign: 'center', py: 1, my: 0.5, bgcolor: '#f0f8fc', borderRadius: '12px', border: '1px dashed #2a93b8' }}>
               {data.pin}
             </Typography>
             <Typography variant="caption" color="text.secondary">Dica: mande o link por um canal e a senha por outro (mais seguro).</Typography>

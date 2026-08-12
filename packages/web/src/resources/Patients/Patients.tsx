@@ -55,7 +55,7 @@ const PatientCards = () => {
     const sub = [age != null ? `${age} ano${age === 1 ? '' : 's'}` : null, p.phone].filter(Boolean).join(' • ');
     return (
       <Card key={p.id} variant="outlined" onClick={() => navigate(`/patients/${p.id}`)}
-        sx={{ cursor: 'pointer', borderRadius: 3, overflow: 'hidden',
+        sx={{ cursor: 'pointer', borderRadius: '12px', overflow: 'hidden',
           border: titularStyle ? '1px solid #bfe7e3' : '1px solid',
           borderColor: titularStyle ? undefined : 'divider',
           background: titularStyle ? 'linear-gradient(135deg,#f1fafa,#ffffff)' : 'background.paper',
@@ -103,7 +103,7 @@ const PatientCards = () => {
       {/* Adicionar dependente — sempre logo abaixo da lista (ação agrupada com o conteúdo).
           Antes, quando já havia dependente, o botão ficava só no topo (toolbar) e sobrava espaço
           vazio embaixo. Agora o "+ dependente" aparece sempre, colado na lista. */}
-      <Card variant="outlined" onClick={() => navigate('/patients/create')} sx={{ cursor: 'pointer', borderRadius: 3, border: '2px dashed', borderColor: 'divider', background: 'background.default', py: 2, textAlign: 'center', '&:hover': { background: 'action.hover' } }}>
+      <Card variant="outlined" onClick={() => navigate('/patients/create')} sx={{ cursor: 'pointer', borderRadius: '12px', border: '2px dashed', borderColor: 'divider', background: 'background.default', py: 2, textAlign: 'center', '&:hover': { background: 'action.hover' } }}>
         <PersonAddIcon sx={{ color: '#20b2aa', mb: 0.5 }} />
         <Typography sx={{ fontWeight: 700, color: '#178f89' }}>Adicionar um dependente</Typography>
         <Typography variant="caption" color="text.secondary">Filho(a), cônjuge, pai/mãe… cada um com exames e análises próprios.</Typography>

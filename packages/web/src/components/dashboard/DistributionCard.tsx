@@ -38,7 +38,7 @@ export const DistributionCard = ({ buckets }: { buckets: { bons: number; alerta:
               <Stack spacing={1}>
                 {donutData.map((d) => (
                   <Stack key={d.key} direction="row" alignItems="center" spacing={1}>
-                    <Box sx={{ width: 14, height: 14, borderRadius: 1, bgcolor: d.color }} />
+                    <Box sx={{ width: 14, height: 14, borderRadius: '8px', bgcolor: d.color }} />
                     <Typography variant="body2"><strong>{d.value}</strong> {d.name}{totalVals ? ` (${Math.round((d.value / totalVals) * 100)}%)` : ''}</Typography>
                   </Stack>
                 ))}

@@ -79,7 +79,7 @@ export const ExplainButton = ({ name, nameCanonical, size = 'small' }: { name: s
           <Typography variant="body2" sx={{ mt: 0.5 }}>{data.resumo}</Typography>
           {data.analogia && <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>💡 {data.analogia}</Typography>}
           {data.alterado && (
-            <Typography variant="caption" sx={{ display: 'block', mt: 1, p: 1, bgcolor: 'rgba(245,158,11,.08)', borderRadius: 1, lineHeight: 1.5 }}>⚠️ {data.alterado}</Typography>
+            <Typography variant="caption" sx={{ display: 'block', mt: 1, p: 1, bgcolor: 'rgba(245,158,11,.08)', borderRadius: '8px', lineHeight: 1.5 }}>⚠️ {data.alterado}</Typography>
           )}
         </>
       );
@@ -95,7 +95,7 @@ export const ExplainButton = ({ name, nameCanonical, size = 'small' }: { name: s
             variant="outlined"
             startIcon={<RefreshIcon />}
             onClick={handleRetry}
-            sx={{ mt: 1.5, borderRadius: 99, textTransform: 'none', fontWeight: 700 }}
+            sx={{ mt: 1.5, borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}
           >Tentar novamente</Button>
         </>
       );
@@ -128,7 +128,7 @@ export const ExplainButton = ({ name, nameCanonical, size = 'small' }: { name: s
           paper: {
             'aria-labelledby': titleId,
             role: 'dialog',
-            sx: { maxWidth: 'min(340px, 90vw)', borderRadius: 3, mt: 0.5 },
+            sx: { maxWidth: 'min(340px, 90vw)', borderRadius: '12px', mt: 0.5 },
           },
         }}
       >

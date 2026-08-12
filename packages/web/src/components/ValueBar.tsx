@@ -21,7 +21,7 @@ export const ValueBar = ({ value, low, high }: { value: number | null; low: numb
   return (
     <Tooltip title={`Referência: ${low} a ${high}`} arrow>
       <Box role="img" aria-label={a11y} sx={{ width: '100%', maxWidth: 220, mt: 0.5 }}>
-        <Box sx={{ position: 'relative', height: 16, borderRadius: 8, background: (t) => t.palette.mode === 'dark' ? '#2a3636' : '#eaeef5' }}>
+        <Box sx={{ position: 'relative', height: 16, borderRadius: '12px', background: (t) => t.palette.mode === 'dark' ? '#2a3636' : '#eaeef5' }}>
           {/* zona normal (verde) */}
           <Box
             sx={{
@@ -30,7 +30,7 @@ export const ValueBar = ({ value, low, high }: { value: number | null; low: numb
               width: `calc(${pct(high)} - ${pct(low)})`,
               top: 0, bottom: 0,
               background: 'rgba(46,125,50,.28)',
-              borderRadius: 8,
+              borderRadius: '12px',
             }}
           />
           {/* marcador do valor */}

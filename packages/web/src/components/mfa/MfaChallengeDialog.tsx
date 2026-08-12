@@ -25,7 +25,7 @@ export const MfaChallengeDialog = ({ open, challengeToken, account, verifyUrl, o
   };
 
   return (
-    <Dialog open={open} onClose={onClose} PaperProps={{ sx: { borderRadius: 3, maxWidth: 380 } }}>
+    <Dialog open={open} onClose={onClose} PaperProps={{ sx: { borderRadius: '12px', maxWidth: 380 } }}>
       <DialogTitle sx={{ fontWeight: 800, color: 'text.primary' }}>🔐 Verificação em 2 etapas</DialogTitle>
       <DialogContent>
         <Typography sx={{ mb: 2, color: 'text.secondary', fontSize: 14 }}>
@@ -34,11 +34,11 @@ export const MfaChallengeDialog = ({ open, challengeToken, account, verifyUrl, o
         <TextField autoFocus fullWidth value={code}
           onChange={(e) => { const c = e.target.value.replace(/\D/g, '').slice(0, 6); setCode(c); if (c.length === 6 && !loading) void verify(c); }}
           placeholder="000000" inputMode="numeric"
-          sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 }, '& input': { textAlign: 'center', fontSize: 28, letterSpacing: 8, fontWeight: 800, fontFamily: 'monospace', py: 1.5 } }}
+          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' }, '& input': { textAlign: 'center', fontSize: 28, letterSpacing: 8, fontWeight: 800, fontFamily: 'monospace', py: 1.5 } }}
           error={!!err} helperText={err || ' '}
         />
         <Button fullWidth variant="contained" onClick={() => verify()} disabled={loading || code.length !== 6}
-          sx={{ mt: 1, borderRadius: 2, textTransform: 'none', fontWeight: 800, py: 1.3 }}>
+          sx={{ mt: 1, borderRadius: '12px', textTransform: 'none', fontWeight: 800, py: 1.3 }}>
           {loading ? <CircularProgress size={22} color="inherit" /> : 'Verificar'}
         </Button>
         {/* Recuperação de MFA — usuário perdeu o dispositivo */}
@@ -47,7 +47,7 @@ export const MfaChallengeDialog = ({ open, challengeToken, account, verifyUrl, o
             Perdeu seu dispositivo MFA?
           </Button>
         ) : (
-          <Stack spacing={1} sx={{ mt: 2, p: 1.5, borderRadius: 2, bgcolor: 'action.hover' }}>
+          <Stack spacing={1} sx={{ mt: 2, p: 1.5, borderRadius: '12px', bgcolor: 'action.hover' }}>
             <Typography sx={{ fontSize: 12.5, color: 'text.secondary', lineHeight: 1.5 }}>
               📸 Envie uma <b>foto segurando seu documento</b> (RG ou CPF) para:
             </Typography>

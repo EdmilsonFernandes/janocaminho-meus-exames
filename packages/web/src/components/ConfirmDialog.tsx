@@ -48,7 +48,7 @@ export const ConfirmDialog = ({ open, onClose, onConfirm, title, message, confir
   const color = COLOR_BY_TONE[tone];
   const Icon = ICON_BY_TONE[tone];
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
+    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: '12px' } }}>
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.25, fontWeight: 800, pr: 6 }}>
         <Box sx={{ width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: `${color}.main`, color: '#fff', flexShrink: 0 }}><Icon fontSize="small" /></Box>
         {title}
@@ -60,8 +60,8 @@ export const ConfirmDialog = ({ open, onClose, onConfirm, title, message, confir
         </DialogContent>
       )}
       <DialogActions sx={{ px: 3, pb: 2.5, pt: 1 }}>
-        <Button onClick={onClose} variant="outlined" fullWidth disabled={loading} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, py: 0.85 }}>{cancelLabel}</Button>
-        <Button onClick={onConfirm} color={color} variant="contained" fullWidth disabled={loading} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 800, py: 0.85, boxShadow: 2 }}>{confirmLabel}</Button>
+        <Button onClick={onClose} variant="outlined" fullWidth disabled={loading} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, py: 0.85 }}>{cancelLabel}</Button>
+        <Button onClick={onConfirm} color={color} variant="contained" fullWidth disabled={loading} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, py: 0.85, boxShadow: 2 }}>{confirmLabel}</Button>
       </DialogActions>
     </Dialog>
   );
@@ -72,7 +72,7 @@ const PromptDialogInner = ({ open, opts, onClose, onSubmit }: { open: boolean; o
   const [val, setVal] = React.useState(opts?.defaultValue ?? '');
   React.useEffect(() => { if (open) setVal(opts?.defaultValue ?? ''); }, [open, opts?.defaultValue]);
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
+    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: '12px' } }}>
       <DialogTitle sx={{ fontWeight: 800, pr: 6 }}>
         {opts?.title}
         <IconButton aria-label="Fechar" onClick={onClose} size="small" sx={{ position: 'absolute', right: 10, top: 10, color: 'text.secondary' }}><CloseIcon fontSize="small" /></IconButton>
@@ -82,12 +82,12 @@ const PromptDialogInner = ({ open, opts, onClose, onSubmit }: { open: boolean; o
           autoFocus fullWidth value={val} onChange={(e) => setVal(e.target.value)}
           placeholder={opts?.placeholder} label={opts?.label}
           onKeyDown={(e) => { if (e.key === 'Enter') onSubmit(val); }}
-          sx={{ mt: 0.5, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+          sx={{ mt: 0.5, '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
         />
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2.5, pt: 1 }}>
-        <Button onClick={onClose} variant="outlined" fullWidth sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, py: 0.85 }}>{opts?.cancelLabel ?? 'Cancelar'}</Button>
-        <Button onClick={() => onSubmit(val)} variant="contained" fullWidth sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 800, py: 0.85, boxShadow: 2 }}>{opts?.confirmLabel ?? 'OK'}</Button>
+        <Button onClick={onClose} variant="outlined" fullWidth sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, py: 0.85 }}>{opts?.cancelLabel ?? 'Cancelar'}</Button>
+        <Button onClick={() => onSubmit(val)} variant="contained" fullWidth sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, py: 0.85, boxShadow: 2 }}>{opts?.confirmLabel ?? 'OK'}</Button>
       </DialogActions>
     </Dialog>
   );
@@ -144,7 +144,7 @@ export const ConfirmDialogProvider = ({ children }: { children: React.ReactNode 
         onSubmit={(v) => closePrompt(v)}
       />
       <Snackbar open={!!snack} autoHideDuration={3500} onClose={() => setSnack(null)} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
-        <MuiAlert elevation={3} severity={snack?.severity ?? 'info'} onClose={() => setSnack(null)} sx={{ borderRadius: 2, fontWeight: 600, alignItems: 'center' }}>{snack?.message}</MuiAlert>
+        <MuiAlert elevation={3} severity={snack?.severity ?? 'info'} onClose={() => setSnack(null)} sx={{ borderRadius: '12px', fontWeight: 600, alignItems: 'center' }}>{snack?.message}</MuiAlert>
       </Snackbar>
     </React.Fragment>
   );

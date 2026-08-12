@@ -97,7 +97,7 @@ const AiProviderCard = () => {
   const phBase = provider === 'anthropic' ? 'https://api.z.ai/api/anthropic' : provider === 'openai' ? 'https://api.openai.com/v1' : '(endpoint fixo)';
 
   return (
-    <Card variant="outlined" sx={{ borderRadius: 2, mb: 2 }}>
+    <Card variant="outlined" sx={{ borderRadius: '12px', mb: 2 }}>
       <CardContent>
         <Stack direction="row" alignItems="center" gap={1} sx={{ mb: 1 }}>
           <Typography sx={{ fontWeight: 800, flex: 1 }}>🤖 Provedor de IA (Dr. Exame)</Typography>
@@ -130,7 +130,7 @@ const AiProviderCard = () => {
           </Button>
         </Box>
         {mgmtOpen && (
-          <Box sx={{ mb: 1.5, p: 1.5, border: 1, borderColor: 'divider', borderRadius: 1 }}>
+          <Box sx={{ mb: 1.5, p: 1.5, border: 1, borderColor: 'divider', borderRadius: '8px' }}>
             <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1, flexWrap: 'wrap', gap: 1 }}>
               <TextField size="small" label="ID do modelo" name="ai-new-model" autoComplete="off" placeholder="ex: gpt-5" value={newM} onChange={(e) => setNewM(e.target.value)} sx={{ flex: 1, minWidth: 120 }} />
               <TextField size="small" label="Rótulo (opcional)" name="ai-new-label" autoComplete="off" placeholder="ex: GPT-5" value={newL} onChange={(e) => setNewL(e.target.value)} sx={{ flex: 1, minWidth: 120 }} />
@@ -209,7 +209,7 @@ const ExamKnowledgeCard = () => {
   };
 
   return (
-    <Card variant="outlined" sx={{ borderRadius: 2, mb: 2 }}>
+    <Card variant="outlined" sx={{ borderRadius: '12px', mb: 2 }}>
       <CardContent>
         <Typography sx={{ fontWeight: 800, mb: 0.5 }}>📚 Cache de explicações ({rows.length})</Typography>
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>
@@ -233,7 +233,7 @@ const ExamKnowledgeCard = () => {
         ) : (
           <Stack spacing={1}>
             {rows.map((row) => (
-              <Box key={row.id} sx={{ p: 1.25, border: 1, borderColor: 'divider', borderRadius: 1 }}>
+              <Box key={row.id} sx={{ p: 1.25, border: 1, borderColor: 'divider', borderRadius: '8px' }}>
                 <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
                   <Typography sx={{ flex: 1, minWidth: 0, fontWeight: 700 }}>{row.titulo || row.nameDisplay || row.nameKey}</Typography>
                   <Chip size="small" label={row.source === 'curated' ? 'Curada' : 'IA'} color={row.source === 'curated' ? 'warning' : 'default'} variant="outlined" />
@@ -288,7 +288,7 @@ export const IaTab = () => {
           { l: 'Tokens', v: String(d.totalTokens ?? 0) },
           { l: 'Latência média', v: `${d.avgLatency ?? 0}ms` },
         ].map((k) => (
-          <Card key={k.l} variant="outlined" sx={{ borderRadius: 2 }}><CardContent sx={{ textAlign: 'center', py: 1.5 }}>
+          <Card key={k.l} variant="outlined" sx={{ borderRadius: '12px' }}><CardContent sx={{ textAlign: 'center', py: 1.5 }}>
             <Typography sx={{ fontWeight: 800, fontSize: 20, color: '#178f89' }}>{k.v}</Typography>
             <Typography variant="caption" color="text.secondary">{k.l}{k.sub ? ` (${k.sub})` : ''}</Typography>
           </CardContent></Card>
@@ -301,7 +301,7 @@ export const IaTab = () => {
       <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 800 }}>Análises recentes</Typography>
       <Stack spacing={1}>
         {d.recent?.map((a: any) => (
-          <Card key={a.id} variant="outlined" sx={{ borderRadius: 2 }}><CardContent sx={{ py: 1.25, '&:last-child': { pb: 1.25 } }}>
+          <Card key={a.id} variant="outlined" sx={{ borderRadius: '12px' }}><CardContent sx={{ py: 1.25, '&:last-child': { pb: 1.25 } }}>
             <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
               <Chip size="small" label={a.type} variant="outlined" />
               <Typography sx={{ flex: 1, minWidth: 0, fontWeight: 600 }}>{a.exam?.title ?? 'Chat/relatório'}</Typography>

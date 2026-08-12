@@ -14,22 +14,22 @@ export const PrivacyPage = () => {
       <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5 }}>🛡️ Privacidade e Termos</Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>Como seus dados são tratados e seus direitos (LGPD).</Typography>
 
-      <Card sx={{ mb: 2, borderRadius: 3, background: 'background.default', border: '1px solid', borderColor: 'divider' }}>
+      <Card sx={{ mb: 2, borderRadius: '12px', background: 'background.default', border: '1px solid', borderColor: 'divider' }}>
         <Box sx={{ p: 2.5 }}>
           <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', mb: 1 }}>📋 Termos de Uso</Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: 13.5, lineHeight: 1.6, mb: 1.5 }}>
             O Meus Exames é um app de apoio à gestão de saúde pessoal. A análise gerada pela IA é <strong>educativa</strong> e <strong>não substitui</strong> consulta, diagnóstico ou tratamento médico. Em urgências, procure um serviço de saúde.
           </Typography>
-          <Button variant="outlined" size="small" onClick={() => setTermsOpen(true)} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, borderColor: '#20b2aa', color: '#178f89' }}>
+          <Button variant="outlined" size="small" onClick={() => setTermsOpen(true)} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, borderColor: '#20b2aa', color: '#178f89' }}>
             Ler termos completos →
           </Button>
         </Box>
       </Card>
 
-      <Card sx={{ mb: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+      <Card sx={{ mb: 2, borderRadius: '12px', border: '1px solid', borderColor: 'divider' }}>
         <Box sx={{ p: 2.5 }}>
           <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', mb: 1 }}>🧾 Antes de enviar um exame</Typography>
-          <Alert severity="info" sx={{ mb: 1.5, borderRadius: 2 }}>
+          <Alert severity="info" sx={{ mb: 1.5, borderRadius: '12px' }}>
             Ao enviar PDF, foto ou usar a câmera, o arquivo e os dados de saúde são enviados ao Meus Exames para extração e análise educativa com IA.
           </Alert>
           <Stack spacing={1.25}>
@@ -48,7 +48,7 @@ export const PrivacyPage = () => {
         </Box>
       </Card>
 
-      <Card sx={{ mb: 2, borderRadius: 3 }}>
+      <Card sx={{ mb: 2, borderRadius: '12px' }}>
         <Box sx={{ p: 2.5 }}>
           <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', mb: 1 }}>🔐 LGPD (Lei Geral de Proteção de Dados)</Typography>
           <Stack spacing={1.5}>
@@ -68,16 +68,16 @@ export const PrivacyPage = () => {
         </Box>
       </Card>
 
-      <Card sx={{ borderRadius: 3, borderColor: 'error.main' }}>
+      <Card sx={{ borderRadius: '12px', borderColor: 'error.main' }}>
         <Box sx={{ p: 2.5 }}>
           <Typography variant="h6" sx={{ fontWeight: 800, color: '#ef4444', mb: 0.5 }}>⚙️ Gerenciar seus dados</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ fontSize: 13, mb: 1.5 }}>Exportar ou excluir seus dados está disponível no seu Perfil.</Typography>
-          <Button variant="outlined" color="primary" size="small" onClick={() => navigate('/perfil')} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700 }}>Ir para o Perfil →</Button>
+          <Button variant="outlined" color="primary" size="small" onClick={() => navigate('/perfil')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>Ir para o Perfil →</Button>
         </Box>
       </Card>
 
       {/* Modal com os termos completos (não navega pra fora → voltar não quebra) */}
-      <Dialog open={termsOpen} onClose={() => setTermsOpen(false)} maxWidth="md" fullWidth PaperProps={{ sx: { borderRadius: 4, maxHeight: '85vh' } }}>
+      <Dialog open={termsOpen} onClose={() => setTermsOpen(false)} maxWidth="md" fullWidth PaperProps={{ sx: { borderRadius: '12px', maxHeight: '85vh' } }}>
         <DialogTitle sx={{ fontWeight: 800, color: 'text.primary', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           📋 Termos de Uso
           <Button onClick={() => setTermsOpen(false)} sx={{ minWidth: 0, fontSize: 13 }}>✕ Fechar</Button>

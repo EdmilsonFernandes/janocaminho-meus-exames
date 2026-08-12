@@ -53,7 +53,7 @@ export const InviteLandingPage = () => {
           {used ? 'Este link já foi usado para criar uma conta. Se foi você, entre com seu e-mail e senha pra continuar.' : 'Este convite venceu (válido por 14 dias). Peça ao seu médico um novo link.'}
         </Typography>
         {used && (
-          <Button variant="contained" onClick={() => navigate('/entrar')} sx={{ mt: 2.5, borderRadius: 99, textTransform: 'none', fontWeight: 800, py: 1.2, px: 3, bgcolor: '#20b2aa' }}>Fazer login</Button>
+          <Button variant="contained" onClick={() => navigate('/entrar')} sx={{ mt: 2.5, borderRadius: '999px', textTransform: 'none', fontWeight: 800, py: 1.2, px: 3, bgcolor: '#20b2aa' }}>Fazer login</Button>
         )}
       </Shell>
     );
@@ -75,8 +75,8 @@ export const InviteLandingPage = () => {
         {firstName ? `${firstName}, ` : ''}seu médico quer acompanhar seus exames pelo app. Crie sua conta e o compartilhamento com {docFirst} <b>já fica ativo</b> — você não configura nada.
       </Typography>
       <Stack spacing={1.25} sx={{ mt: 3, width: '100%', maxWidth: 320 }}>
-        <Button variant="contained" size="large" onClick={() => navigate(`/registrar?invite=${token}`)} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 800, py: 1.3 }}>Criar minha conta</Button>
-        <Button variant="outlined" size="large" onClick={() => navigate(`/entrar?invite=${token}`)} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, py: 1.3, borderColor: '#20b2aa', color: '#178f89' }}>Já tenho conta</Button>
+        <Button variant="contained" size="large" onClick={() => navigate(`/registrar?invite=${token}`)} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, py: 1.3 }}>Criar minha conta</Button>
+        <Button variant="outlined" size="large" onClick={() => navigate(`/entrar?invite=${token}`)} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, py: 1.3, borderColor: '#20b2aa', color: '#178f89' }}>Já tenho conta</Button>
         {isAndroid && <Button href={PLAY_STORE} target="_blank" size="small" sx={{ textTransform: 'none', fontWeight: 700, color: '#178f89' }}>📱 Baixar app na Google Play</Button>}
         {isIOS && <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', mt: 1, lineHeight: 1.5 }}>📱 No iPhone: após criar a conta, no Safari toque em <b>Compartilhar → Adicionar à Tela de Início</b> para instalar como app.</Typography>}
       </Stack>

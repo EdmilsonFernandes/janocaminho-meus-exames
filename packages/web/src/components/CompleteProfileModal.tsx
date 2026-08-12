@@ -86,7 +86,7 @@ export const CompleteProfileModal = () => {
   if (loading || !open) return null;
 
   return (
-    <Dialog open onClose={close} PaperProps={{ sx: { borderRadius: 4, maxWidth: 440, width: '100%' } }}>
+    <Dialog open onClose={close} PaperProps={{ sx: { borderRadius: '12px', maxWidth: 440, width: '100%' } }}>
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pr: 1 }}>
         <span>{translate('profile.complete.title')}</span>
         <IconButton size="small" onClick={close} aria-label="Fechar"><CloseIcon /></IconButton>

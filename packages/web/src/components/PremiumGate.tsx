@@ -38,7 +38,7 @@ export const PremiumGate = ({ children }: { children: ReactNode }) => {
   if (premium) return <>{children}</>;
   return (
     <Box sx={{
-      mt: 2, p: 2.5, borderRadius: 2, textAlign: 'center',
+      mt: 2, p: 2.5, borderRadius: '12px', textAlign: 'center',
       display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1,
       background: 'linear-gradient(135deg, rgba(32,178,170,.10), rgba(32,178,170,.02))',
       border: '1px dashed rgba(32,178,170,.45)',
@@ -47,7 +47,7 @@ export const PremiumGate = ({ children }: { children: ReactNode }) => {
       <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary' }}>Previsão exclusiva do Premium</Typography>
       <Typography variant="caption" color="text.secondary">Assine pra ver quando seu marcador deve sair da faixa de referência.</Typography>
       <Button variant="contained" size="small" onClick={() => navigate('/planos')}
-        sx={{ mt: 0.5, borderRadius: 2, textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', boxShadow: 'none', '&:hover': { bgcolor: '#178f89' } }}>
+        sx={{ mt: 0.5, borderRadius: '12px', textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', boxShadow: 'none', '&:hover': { bgcolor: '#178f89' } }}>
         Ver planos
       </Button>
     </Box>

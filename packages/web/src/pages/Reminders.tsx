@@ -129,7 +129,7 @@ export const RemindersPage = () => {
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
             Avisamos por <strong>notificação no app</strong>, <strong>push</strong> e <strong>e-mail</strong> em cada antecedência escolhida.
           </Typography>
-          {err && <Alert severity="error" sx={{ mt: 1.5, py: 0.5, borderRadius: 2 }} onClose={() => setErr(null)}>{err}</Alert>}
+          {err && <Alert severity="error" sx={{ mt: 1.5, py: 0.5, borderRadius: '12px' }} onClose={() => setErr(null)}>{err}</Alert>}
           <Button variant="contained" onClick={add} disabled={!title.trim() || !date || offsets.length === 0} sx={{ mt: 1.5 }}>Adicionar</Button>
         </CardContent>
       </Card>

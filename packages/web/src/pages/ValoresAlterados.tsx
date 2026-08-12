@@ -90,7 +90,7 @@ export const ValoresAlteradosPage = () => {
       ) : (
         <>
           {/* Resumo não-alarmista por prioridade */}
-          <Card variant="outlined" sx={{ mb: 1, borderRadius: 3, borderColor: 'divider', bgcolor: 'rgba(15,61,58,0.03)' }}>
+          <Card variant="outlined" sx={{ mb: 1, borderRadius: '12px', borderColor: 'divider', bgcolor: 'rgba(15,61,58,0.03)' }}>
             <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
               <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap sx={{ mb: 0.5 }}>
                 <Typography component="span" sx={{ fontWeight: 800, color: PRIORITY_META.importante.color }}>{PRIORITY_META.importante.emoji} {counts.importante} {PRIORITY_META.importante.label}{counts.importante !== 1 ? 's' : ''}</Typography>
@@ -139,7 +139,7 @@ export const ValoresAlteradosPage = () => {
                         const pm = PRIORITY_META[p];
                         const col = suspect ? '#64748b' : pm.color; // suspeito: neutro (nunca vermelho 🔴)
                         return (
-                          <Card key={it.id} variant="outlined" sx={{ borderLeft: `4px solid ${col}`, borderRadius: 2, bgcolor: col + '0a' }}>
+                          <Card key={it.id} variant="outlined" sx={{ borderLeft: `4px solid ${col}`, borderRadius: '12px', bgcolor: col + '0a' }}>
                             <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', py: 1.25, '&:last-child': { pb: 1.25 } }}>
                               <Box sx={{ flex: '1 1 55%', minWidth: 0 }}>
                                 <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5, flexWrap: 'wrap' }}>

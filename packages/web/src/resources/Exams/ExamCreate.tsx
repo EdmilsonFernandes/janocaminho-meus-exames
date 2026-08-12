@@ -264,7 +264,7 @@ export const ExamCreate = () => {
       <Title title="Enviar exames" />
       {/* Cabeçalho */}
       <Stack direction="row" alignItems="center" spacing={1.25} sx={{ mb: 2.5 }}>
-        <Box sx={{ width: 46, height: 46, borderRadius: 2.5, background: 'linear-gradient(135deg,#20b2aa,#178f89)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 22px rgba(32,178,170,.30)' }}>
+        <Box sx={{ width: 46, height: 46, borderRadius: '12px', background: 'linear-gradient(135deg,#20b2aa,#178f89)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 22px rgba(32,178,170,.30)' }}>
           <UploadFileIcon sx={{ color: '#fff' }} />
         </Box>
         <Box>
@@ -279,7 +279,7 @@ export const ExamCreate = () => {
         <Alert
           icon={false}
           sx={{
-            mb: 2.5, borderRadius: 3, p: { xs: 1.5, sm: 2 }, alignItems: 'center',
+            mb: 2.5, borderRadius: '12px', p: { xs: 1.5, sm: 2 }, alignItems: 'center',
             bgcolor: 'rgba(32,178,170,.09)', border: '1px solid rgba(32,178,170,.28)',
             '& .MuiAlert-message': { width: '100%' },
           }}
@@ -298,7 +298,7 @@ export const ExamCreate = () => {
         </Alert>
       )}
 
-      <Card sx={{ borderRadius: 4, border: '1px solid', borderColor: 'divider', boxShadow: '0 12px 32px rgba(15,61,58,.07)' }}>
+      <Card sx={{ borderRadius: '12px', border: '1px solid', borderColor: 'divider', boxShadow: '0 12px 32px rgba(15,61,58,.07)' }}>
         <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2, textAlign: 'center' }}>Escolha como quer enviar seu exame</Typography>
 
@@ -308,12 +308,12 @@ export const ExamCreate = () => {
               {/* Caminho 1: Escanear (ML Kit — ajusta borda/luz/nitido no aparelho → OCR limpo) */}
               {isNative && (
                 <Box onClick={busy ? undefined : scanDocument} sx={{
-                  flex: 1, cursor: busy ? 'wait' : 'pointer', borderRadius: 3, p: { xs: 2, sm: 2.5 }, textAlign: 'center',
+                  flex: 1, cursor: busy ? 'wait' : 'pointer', borderRadius: '12px', p: { xs: 2, sm: 2.5 }, textAlign: 'center',
                   border: '2px solid #20b2aa', bgcolor: 'rgba(32,178,170,.07)', transition: 'all .15s', position: 'relative',
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.75,
                   '&:active': { transform: 'scale(.97)' }, '&:hover': { bgcolor: 'rgba(32,178,170,.12)' },
                 }}>
-                  <Box sx={{ position: 'absolute', top: 6, right: 6, fontSize: 9, fontWeight: 800, color: '#fff', bgcolor: '#20b2aa', px: 0.6, py: 0.15, borderRadius: 99 }}>RECOMENDADO</Box>
+                  <Box sx={{ position: 'absolute', top: 6, right: 6, fontSize: 9, fontWeight: 800, color: '#fff', bgcolor: '#20b2aa', px: 0.6, py: 0.15, borderRadius: '999px' }}>RECOMENDADO</Box>
                   <Box sx={{ fontSize: 36 }}>📷</Box>
                   <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary' }}>Escanear</Typography>
                   <Typography variant="caption" color="text.secondary">A câmera ajusta borda,<br />luz e nitido pra você ✨</Typography>
@@ -321,7 +321,7 @@ export const ExamCreate = () => {
               )}
               {/* Caminho 2: PDF (leitura perfeita) ou foto da galeria */}
               <Box component="label" sx={{
-                flex: 1, cursor: 'pointer', borderRadius: 3, p: { xs: 2, sm: 2.5 }, textAlign: 'center',
+                flex: 1, cursor: 'pointer', borderRadius: '12px', p: { xs: 2, sm: 2.5 }, textAlign: 'center',
                 border: '2px solid', borderColor: files.length ? '#20b2aa' : 'divider',
                 bgcolor: files.length ? 'rgba(32,178,170,.05)' : '#f8fafb', transition: 'all .15s',
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.75,
@@ -334,7 +334,7 @@ export const ExamCreate = () => {
               </Box>
             </Stack>
             {/* Dica amigável pra leigo */}
-            <Box sx={{ px: 1.5, py: 1, borderRadius: 2, bgcolor: 'rgba(32,178,170,.06)', border: '1px solid', borderColor: 'rgba(32,178,170,.18)' }}>
+            <Box sx={{ px: 1.5, py: 1, borderRadius: '12px', bgcolor: 'rgba(32,178,170,.06)', border: '1px solid', borderColor: 'rgba(32,178,170,.18)' }}>
               <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1.5 }}>
                 💡 <strong>Pro Dr. Exame ler direitinho:</strong> use <strong>Escanear</strong> (ajusta a foto pra você) ou envie um <strong>PDF</strong>. Evite foto escura, torta ou tremida.
               </Typography>
@@ -343,22 +343,22 @@ export const ExamCreate = () => {
             {/* Arquivos selecionados */}
             {files.length > 0 && (
               <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
-                {files.map((f, i) => (<Chip key={i} label={f.name} onDelete={() => setFiles(files.filter((_, j) => j !== i))} sx={{ borderRadius: 1.5, maxWidth: '100%' }} />))}
+                {files.map((f, i) => (<Chip key={i} label={f.name} onDelete={() => setFiles(files.filter((_, j) => j !== i))} sx={{ borderRadius: '8px', maxWidth: '100%' }} />))}
               </Stack>
             )}
 
-            <TextField label="Título (opcional)" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Hemograma — junho/2026" size="small" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
+            <TextField label="Título (opcional)" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Hemograma — junho/2026" size="small" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />
 
             {progress && (
-              <Box sx={{ bgcolor: 'background.default', p: 1.5, borderRadius: 2.5 }}>
+              <Box sx={{ bgcolor: 'background.default', p: 1.5, borderRadius: '12px' }}>
                 <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.primary', mb: 0.5 }}>Enviando {progress.done}/{progress.total}…</Typography>
-                <LinearProgress variant="determinate" value={pct} sx={{ height: 8, borderRadius: 99, bgcolor: 'action.hover', '& .MuiLinearProgress-bar': { borderRadius: 99 } }} />
+                <LinearProgress variant="determinate" value={pct} sx={{ height: 8, borderRadius: '999px', bgcolor: 'action.hover', '& .MuiLinearProgress-bar': { borderRadius: '999px' } }} />
                 {progress.errors.map((er, i) => <Typography key={i} variant="caption" color="error" sx={{ display: 'block', mt: 0.5 }}>⚠ {er}</Typography>)}
               </Box>
             )}
 
             {/* ÚNICO botão primário — não compete com os caminhos */}
-            <Button type="submit" variant="contained" size="large" fullWidth disabled={busy || !files.length} sx={{ borderRadius: 99, py: 1.3, textTransform: 'none', fontWeight: 800, fontSize: 15, bgcolor: '#20b2aa', boxShadow: '0 8px 22px rgba(32,178,170,.25)', '&:hover': { bgcolor: '#178f89' }, '&.Mui-disabled': { bgcolor: 'action.disabledBackground' } }}>
+            <Button type="submit" variant="contained" size="large" fullWidth disabled={busy || !files.length} sx={{ borderRadius: '999px', py: 1.3, textTransform: 'none', fontWeight: 800, fontSize: 15, bgcolor: '#20b2aa', boxShadow: '0 8px 22px rgba(32,178,170,.25)', '&:hover': { bgcolor: '#178f89' }, '&.Mui-disabled': { bgcolor: 'action.disabledBackground' } }}>
               {busy ? 'Enviando…' : `Enviar ${files.length || ''} e extrair com IA →`}
             </Button>
             <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
@@ -371,7 +371,7 @@ export const ExamCreate = () => {
       <Dialog open={consentOpen} onClose={() => setConsentOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ fontWeight: 800, color: 'text.primary' }}>Antes de enviar seu exame</DialogTitle>
         <DialogContent>
-          <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }}>
+          <Alert severity="info" sx={{ mb: 2, borderRadius: '12px' }}>
             O Meus Exames usa PDF, foto ou câmera para extrair dados de saúde e gerar uma análise educativa com IA.
           </Alert>
           <Stack spacing={1.25} sx={{ mb: 2 }}>
@@ -398,7 +398,7 @@ export const ExamCreate = () => {
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2.5 }}>
           <Button onClick={() => setConsentOpen(false)} sx={{ textTransform: 'none', fontWeight: 700 }}>Agora não</Button>
-          <Button onClick={acceptUploadConsent} disabled={!consentChecked} variant="contained" sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 800, bgcolor: '#20b2aa', '&:hover': { bgcolor: '#178f89' } }}>
+          <Button onClick={acceptUploadConsent} disabled={!consentChecked} variant="contained" sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, bgcolor: '#20b2aa', '&:hover': { bgcolor: '#178f89' } }}>
             Entendi e aceito
           </Button>
         </DialogActions>
@@ -408,20 +408,20 @@ export const ExamCreate = () => {
       <Dialog open={!!dupInfo} onClose={() => { setDupInfo(null); redirect('list', 'exams'); }} maxWidth="xs" fullWidth>
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 800, color: 'text.primary' }}>📄 Documento já enviado</DialogTitle>
         <DialogContent>
-          <Alert severity="warning" sx={{ mb: 1.5, borderRadius: 2 }}>
+          <Alert severity="warning" sx={{ mb: 1.5, borderRadius: '12px' }}>
             {(dupInfo?.dups.length ?? 0) === 1
               ? 'Este arquivo já está no seu histórico (conteúdo idêntico) e não foi adicionado de novo.'
               : `${dupInfo?.dups.length ?? 0} arquivos já estão no seu histórico (conteúdo idêntico) e não foram adicionados de novo.`}
           </Alert>
           {(dupInfo?.dups ?? []).map((n, i) => <Typography key={i} variant="body2" sx={{ wordBreak: 'break-all', pl: 1 }}>• {n}</Typography>)}
-          {dupInfo?.elsewhere.length ? <Alert severity="info" sx={{ mt: 1.5, borderRadius: 2 }}>Esse mesmo arquivo também está em outro perfil seu.</Alert> : null}
+          {dupInfo?.elsewhere.length ? <Alert severity="info" sx={{ mt: 1.5, borderRadius: '12px' }}>Esse mesmo arquivo também está em outro perfil seu.</Alert> : null}
           <Typography variant="body2" sx={{ mt: 1.75, fontWeight: 600 }}>
             {dupInfo && dupInfo.sent > 0 ? `✅ ${dupInfo.sent} exame(s) novo(s) enviado(s) e extraindo.` : 'Nenhum exame novo foi adicionado.'}
           </Typography>
         </DialogContent>
         <DialogActions sx={{ justifyContent: 'center', pb: 2.5, gap: 1 }}>
-          <Button onClick={() => { setDupInfo(null); redirect('list', 'exams'); }} variant="contained" sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#178f89' }}>Ver meus exames</Button>
-          <Button onClick={() => setDupInfo(null)} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700 }}>Enviar outro</Button>
+          <Button onClick={() => { setDupInfo(null); redirect('list', 'exams'); }} variant="contained" sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: '#178f89' }}>Ver meus exames</Button>
+          <Button onClick={() => setDupInfo(null)} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>Enviar outro</Button>
         </DialogActions>
       </Dialog>
     </Box>

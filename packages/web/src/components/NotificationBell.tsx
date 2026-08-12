@@ -36,7 +36,7 @@ export const NotificationBell = () => {
   return (
     <IconButton color="inherit" onClick={() => navigate('/notificacoes')} title="Notificações" aria-label="Notificações"
       sx={{
-        flexShrink: 0, p: 1, ml: 0.5, borderRadius: 2, // respiro — não fica espremido ao lado do switcher
+        flexShrink: 0, p: 1, ml: 0.5, borderRadius: '12px', // respiro — não fica espremido ao lado do switcher
         transition: 'background-color .18s ease',
         '&:hover': { bgcolor: 'action.hover' },
       }}>

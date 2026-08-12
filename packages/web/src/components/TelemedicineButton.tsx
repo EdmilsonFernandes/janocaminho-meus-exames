@@ -37,7 +37,7 @@ export const TelemedicineButton = ({
       onClick={(e) => { if (Capacitor.isNativePlatform()) { e.preventDefault(); Browser.open({ url }); } }}
       sx={{
         mt: 1,
-        borderRadius: 14,
+        borderRadius: '16px',
         textTransform: 'none',
         fontWeight: 800,
         color: '#fff',

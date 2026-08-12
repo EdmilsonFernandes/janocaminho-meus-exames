@@ -45,7 +45,7 @@ export const DoctorPatientSwitcher = ({ patients, value, onSelect }: { patients:
       {...params}
       placeholder={selected ? undefined : 'Selecionar paciente…'}
       size="small"
-      sx={{ '& .MuiOutlinedInput-root': { borderRadius: 99, bgcolor: 'background.paper', pr: 1 } }}
+      sx={{ '& .MuiOutlinedInput-root': { borderRadius: '999px', bgcolor: 'background.paper', pr: 1 } }}
     />
   );
 
@@ -59,7 +59,7 @@ export const DoctorPatientSwitcher = ({ patients, value, onSelect }: { patients:
       renderOption={renderOption}
       renderInput={input}
       fullWidth
-      slotProps={{ paper: { sx: { borderRadius: 3, mt: 0.5 } } }}
+      slotProps={{ paper: { sx: { borderRadius: '12px', mt: 0.5 } } }}
     />
   );
 
@@ -74,17 +74,17 @@ export const DoctorPatientSwitcher = ({ patients, value, onSelect }: { patients:
         variant="outlined"
         startIcon={<Avatar src={selected ? pPhoto(selected) : undefined} sx={{ width: 22, height: 22, bgcolor: 'rgba(32,178,170,.14)', color: '#178f89', fontSize: 11, fontWeight: 800 }}>{selected ? pName(selected).charAt(0) : ''}</Avatar>}
         onClick={() => setMobileOpen(true)}
-        sx={{ justifyContent: 'flex-start', borderRadius: 99, textTransform: 'none', fontWeight: 700, color: 'text.primary', borderColor: 'divider', py: 0.85, px: 1.5, minHeight: 40 }}
+        sx={{ justifyContent: 'flex-start', borderRadius: '999px', textTransform: 'none', fontWeight: 700, color: 'text.primary', borderColor: 'divider', py: 0.85, px: 1.5, minHeight: 40 }}
       >
         <Box sx={{ flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected ? pName(selected) : 'Selecionar paciente…'}</Box>
         <PersonSearchIcon sx={{ color: '#178f89', fontSize: 20 }} />
       </Button>
-      <Dialog open={mobileOpen} onClose={() => setMobileOpen(false)} fullWidth maxWidth="sm" PaperProps={{ sx: { borderRadius: 3 } }}>
+      <Dialog open={mobileOpen} onClose={() => setMobileOpen(false)} fullWidth maxWidth="sm" PaperProps={{ sx: { borderRadius: '12px' } }}>
         <DialogContent sx={{ pt: 3 }}>
           <Stack spacing={1.5}>
             <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif' }}>Selecionar paciente</Typography>
             {autocomplete}
-            <Button onClick={() => setMobileOpen(false)} sx={{ alignSelf: 'flex-end', textTransform: 'none', borderRadius: 99 }}>Fechar</Button>
+            <Button onClick={() => setMobileOpen(false)} sx={{ alignSelf: 'flex-end', textTransform: 'none', borderRadius: '999px' }}>Fechar</Button>
           </Stack>
         </DialogContent>
       </Dialog>

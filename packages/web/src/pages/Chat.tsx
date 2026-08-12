@@ -181,7 +181,7 @@ export const ChatPage = () => {
       // e antes o input ficava POR TRÁS do MobileBottomNav fixo → usuário rolava pra achar onde digitar.
       pb: { xs: 'calc(var(--me-bottom-nav-h, 76px) + 6px)', md: 2 } }}>
       {/* HEADER estilo Mercado Pago: voltar · título · nova conversa · histórico */}
-      <Paper elevation={0} sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 1, borderRadius: 3, mb: 1, background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff' }}>
+      <Paper elevation={0} sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 1, borderRadius: '12px', mb: 1, background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff' }}>
         <IconButton size="small" onClick={() => navigate('/')} sx={{ color: '#fff' }}>←</IconButton>
         <DrExame size={36} sx={{ borderRadius: '50%', flexShrink: 0, bgcolor: '#fff', p: '3px', boxShadow: '0 0 0 2px rgba(255,255,255,.45)' }} />
         <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -197,7 +197,7 @@ export const ChatPage = () => {
       </Paper>
 
       {/* mensagens */}
-      <Box ref={scrollRef} sx={{ flex: 1, minHeight: 0, overflowY: 'auto', p: 1, background: 'background.default', borderRadius: 3 }}>
+      <Box ref={scrollRef} sx={{ flex: 1, minHeight: 0, overflowY: 'auto', p: 1, background: 'background.default', borderRadius: '12px' }}>
         {messages.length === 0 && (
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', py: { xs: 2, md: 4 }, gap: 1.5 }}>
             {/* Mascote Dr. Exame com aura teal pulsante + badge ✨ (IA) — convite à conversa, estilo Itaú */}
@@ -214,7 +214,7 @@ export const ChatPage = () => {
             </Box>
             <Stack spacing={0.75} sx={{ width: '100%', maxWidth: 460, mt: 0.5 }}>
               {QUICK_ACTIONS.slice(0, 6).map((a) => (
-                <Paper key={a.title} elevation={0} onClick={() => send(a.prompt)} sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 1.25, p: 1.25, px: 1.5, borderRadius: 2.5, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', textAlign: 'left', '&:hover': { bgcolor: 'rgba(32,178,170,.08)', borderColor: TEAL, transform: 'translateY(-1px)' }, transition: 'all .15s' }}>
+                <Paper key={a.title} elevation={0} onClick={() => send(a.prompt)} sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 1.25, p: 1.25, px: 1.5, borderRadius: '12px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', textAlign: 'left', '&:hover': { bgcolor: 'rgba(32,178,170,.08)', borderColor: TEAL, transform: 'translateY(-1px)' }, transition: 'all .15s' }}>
                   <Box sx={{ fontSize: 20 }}>{a.icon}</Box>
                   <Typography sx={{ flex: 1, fontSize: 14, fontWeight: 600, color: 'text.primary' }}>{a.title}</Typography>
                   <Box component="span" sx={{ color: TEAL, fontWeight: 800, fontSize: 18, lineHeight: 1 }}>›</Box>
@@ -264,13 +264,13 @@ export const ChatPage = () => {
       </Box>
 
       {/* INPUT com botão "+" (bottom sheet de ações) — estilo Mercado Pago */}
-      <Box component="form" onSubmit={(e: any) => { e.preventDefault(); send(); }} sx={{ display: 'flex', gap: 0.75, alignItems: 'center', mt: 1, p: 0.5, pl: 1, borderRadius: 99, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', boxShadow: '0 2px 12px rgba(32,178,170,.08)' }}>
+      <Box component="form" onSubmit={(e: any) => { e.preventDefault(); send(); }} sx={{ display: 'flex', gap: 0.75, alignItems: 'center', mt: 1, p: 0.5, pl: 1, borderRadius: '999px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', boxShadow: '0 2px 12px rgba(32,178,170,.08)' }}>
         <IconButton onClick={() => setSheetOpen(true)} title="Ações rápidas" sx={{ color: TEAL, '&:hover': { bgcolor: 'rgba(32,178,170,.08)' } }}><AddIcon /></IconButton>
         <Box component="input" value={input} disabled={busy} placeholder="Pergunte sobre seus exames…"
           onChange={(e: any) => setInput(e.target.value)}
           onKeyDown={(e: any) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
           style={{ flex: 1, padding: '10px 4px', fontSize: 16, border: 'none', outline: 'none', background: 'transparent', fontFamily: 'inherit' }} />
-        <Button type="submit" variant="contained" disabled={busy || !input.trim()} sx={{ minWidth: 0, borderRadius: 99, px: 1.5, py: 1, bgcolor: TEAL, '&:hover': { bgcolor: '#0f7670' } }}>
+        <Button type="submit" variant="contained" disabled={busy || !input.trim()} sx={{ minWidth: 0, borderRadius: '999px', px: 1.5, py: 1, bgcolor: TEAL, '&:hover': { bgcolor: '#0f7670' } }}>
           {busy ? <CircularProgress size={20} color="inherit" /> : <SendIcon />}
         </Button>
       </Box>
@@ -278,14 +278,14 @@ export const ChatPage = () => {
       {/* BOTTOM SHEET — ações rápidas (swipe-down p/ fechar) */}
       <SwipeableDrawer anchor="bottom" open={sheetOpen} onClose={() => setSheetOpen(false)} onOpen={() => setSheetOpen(true)}
         PaperProps={{ sx: { borderTopLeftRadius: 20, borderTopRightRadius: 20, p: 2, pb: 3, maxWidth: 520, mx: 'auto' } }}>
-        <Box sx={{ width: 36, height: 4, bgcolor: 'action.selected', borderRadius: 99, mx: 'auto', mb: 2 }} />
+        <Box sx={{ width: 36, height: 4, bgcolor: 'action.selected', borderRadius: '999px', mx: 'auto', mb: 2 }} />
         <Typography sx={{ fontWeight: 800, mb: 0.5, color: 'text.primary', fontFamily: 'Poppins, sans-serif' }}>Como posso te ajudar? 🤖</Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Toque numa opção pra começar.</Typography>
         <Box sx={{ maxHeight: '68vh', overflowY: 'auto' }}>
         <Stack spacing={0.75}>
           {QUICK_ACTIONS.map((a) => (
-            <Paper key={a.title} elevation={0} onClick={() => { setSheetOpen(false); send(a.prompt); }} sx={{ display: 'flex', alignItems: 'center', gap: 1.25, p: 1.1, px: 1.5, borderRadius: 2.5, border: '1px solid', borderColor: 'divider', cursor: 'pointer', '&:hover': { bgcolor: 'action.hover', borderColor: TEAL } }}>
-              <Box sx={{ fontSize: 20, width: 34, height: 34, borderRadius: 1.5, bgcolor: 'rgba(32,178,170,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{a.icon}</Box>
+            <Paper key={a.title} elevation={0} onClick={() => { setSheetOpen(false); send(a.prompt); }} sx={{ display: 'flex', alignItems: 'center', gap: 1.25, p: 1.1, px: 1.5, borderRadius: '12px', border: '1px solid', borderColor: 'divider', cursor: 'pointer', '&:hover': { bgcolor: 'action.hover', borderColor: TEAL } }}>
+              <Box sx={{ fontSize: 20, width: 34, height: 34, borderRadius: '8px', bgcolor: 'rgba(32,178,170,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{a.icon}</Box>
               <Typography sx={{ flex: 1, fontWeight: 700, color: 'text.primary', fontSize: 14.5 }}>{a.title}</Typography>
               <Typography sx={{ color: TEAL, fontWeight: 800 }}>›</Typography>
             </Paper>
@@ -298,7 +298,7 @@ export const ChatPage = () => {
       <Drawer anchor="right" open={histOpen} onClose={() => setHistOpen(false)} PaperProps={{ sx: { width: { xs: '100%', sm: 370 } } }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 2, borderBottom: '1px solid', borderBottomColor: 'divider', background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff' }}>
           <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>🕒 Histórico</Typography>
-          <Button size="small" startIcon={<EditIcon />} onClick={startNew} sx={{ color: '#fff', textTransform: 'none', fontWeight: 700, bgcolor: 'rgba(255,255,255,.15)', borderRadius: 99, '&:hover': { bgcolor: 'rgba(255,255,255,.25)' } }}>Nova</Button>
+          <Button size="small" startIcon={<EditIcon />} onClick={startNew} sx={{ color: '#fff', textTransform: 'none', fontWeight: 700, bgcolor: 'rgba(255,255,255,.15)', borderRadius: '999px', '&:hover': { bgcolor: 'rgba(255,255,255,.25)' } }}>Nova</Button>
         </Box>
         <Box sx={{ overflowY: 'auto', flex: 1 }}>
           {convs.length === 0 && <Typography color="text.secondary" sx={{ p: 3, textAlign: 'center' }}>Nenhuma conversa ainda.<br />Comece a conversar com o Dr. Exame! 💬</Typography>}
@@ -325,7 +325,7 @@ const HistoryRow = ({ conv, active, onOpen, onRename, onDelete }: { conv: Conv; 
       <ListItemIcon sx={{ minWidth: 34 }}><ChatBubbleIcon sx={{ color: active ? TEAL : 'text.secondary', fontSize: 18 }} /></ListItemIcon>
       <ListItemText primary={conv.title || 'Sem título'} primaryTypographyProps={{ fontSize: 13.5, fontWeight: active ? 700 : 500, color: 'text.primary', noWrap: true }} secondary={new Date(conv.updatedAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} secondaryTypographyProps={{ fontSize: 11 }} />
       <IconButton size="small" edge="end" onClick={(e) => { e.stopPropagation(); setMenu(e.currentTarget); }}><MoreVertIcon fontSize="small" sx={{ color: 'text.secondary' }} /></IconButton>
-      <Menu anchorEl={menu} open={!!menu} onClose={() => setMenu(null)} slotProps={{ paper: { sx: { borderRadius: 2 } } }}>
+      <Menu anchorEl={menu} open={!!menu} onClose={() => setMenu(null)} slotProps={{ paper: { sx: { borderRadius: '12px' } } }}>
         <MenuItem onClick={async () => { setMenu(null); const t = await promptDialog({ title: 'Renomear conversa', label: 'Título', defaultValue: conv.title, confirmLabel: 'Salvar' }); if (t != null) onRename(t.trim() || conv.title); }}>✏️ Renomear</MenuItem>
         <MenuItem onClick={async () => { setMenu(null); if (await confirmDialog({ title: 'Excluir conversa', message: 'Excluir esta conversa?', confirmLabel: 'Excluir' })) onDelete(); }} sx={{ color: 'error.main' }}><DeleteIcon fontSize="small" sx={{ mr: 1 }} /> Excluir</MenuItem>
       </Menu>

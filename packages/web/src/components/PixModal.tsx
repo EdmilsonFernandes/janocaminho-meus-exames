@@ -64,7 +64,7 @@ export const PixModal = ({ packId, onClose, onApproved }: { packId: string | nul
   const copy = () => pix?.qrCode && navigator.clipboard?.writeText(pix.qrCode);
 
   return (
-    <Dialog open={!!packId} onClose={onClose} PaperProps={{ sx: { borderRadius: 4, maxWidth: 380, width: '100%', textAlign: 'center' } }}>
+    <Dialog open={!!packId} onClose={onClose} PaperProps={{ sx: { borderRadius: '12px', maxWidth: 380, width: '100%', textAlign: 'center' } }}>
       <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
         Pagamento PIX
         <IconButton onClick={onClose} size="small"><CloseIcon /></IconButton>
@@ -75,7 +75,7 @@ export const PixModal = ({ packId, onClose, onApproved }: { packId: string | nul
           <Box>
             <Chip color="primary" label={`${pix.credits} créditos • R$ ${Number(pix.price).toFixed(2).replace('.', ',')}`} sx={{ mb: 1.5 }} />
             {pix.qrBase64 ? (
-              <Box component="img" src={pix.qrBase64} alt="QR PIX" sx={{ width: 220, height: 220, borderRadius: 2, border: '1px solid', borderColor: 'divider', display: 'block', mx: 'auto' }} />
+              <Box component="img" src={pix.qrBase64} alt="QR PIX" sx={{ width: 220, height: 220, borderRadius: '12px', border: '1px solid', borderColor: 'divider', display: 'block', mx: 'auto' }} />
             ) : <Typography color="error">QR indisponível</Typography>}
             <Typography variant="body2" sx={{ mt: 1.5 }}>Abra o app do banco e escaneie o QR code.</Typography>
             <Stack direction="row" spacing={1} sx={{ mt: 1, justifyContent: 'center', alignItems: 'center' }}>

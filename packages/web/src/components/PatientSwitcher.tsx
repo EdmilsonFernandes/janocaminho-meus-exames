@@ -74,7 +74,7 @@ export const PatientSwitcher = () => {
         onClick={(e) => setAnchor(e.currentTarget)}
         disableElevation
         sx={{
-          borderRadius: 99, pl: 0.5, pr: { xs: 0.5, sm: 1 }, py: 0.25, color: 'inherit', textTransform: 'none',
+          borderRadius: '999px', pl: 0.5, pr: { xs: 0.5, sm: 1 }, py: 0.25, color: 'inherit', textTransform: 'none',
           // Sem pill 'frosted' (lavava a foto). Avatar GRANDE c/ anel nítido + sombra = a foto
           // salta visível (antes era pequena/difícil de ver = sem credibilidade).
           bgcolor: 'transparent',
@@ -100,36 +100,36 @@ export const PatientSwitcher = () => {
         </Box>
       </Button>
 
-      <Menu anchorEl={anchor} open={!!anchor} onClose={() => setAnchor(null)} slotProps={{ paper: { sx: { mt: 1, minWidth: 260, borderRadius: 2, boxShadow: '0 8px 28px rgba(0,0,0,0.14)' } } }}>
+      <Menu anchorEl={anchor} open={!!anchor} onClose={() => setAnchor(null)} slotProps={{ paper: { sx: { mt: 1, minWidth: 260, borderRadius: '12px', boxShadow: '0 8px 28px rgba(0,0,0,0.14)' } } }}>
         {patients.map((p) => (
-          <MenuItem key={p.id} sx={{ py: 1, borderRadius: 1, m: 0.5 }} onClick={() => { setSel(p.id); setAnchor(null); navigate('/'); }}>
+          <MenuItem key={p.id} sx={{ py: 1, borderRadius: '8px', m: 0.5 }} onClick={() => { setSel(p.id); setAnchor(null); navigate('/'); }}>
             <Avatar src={photoFor(p)} sx={{ width: 36, height: 36, mr: 1.5, bgcolor: 'primary.main', fontSize: 14 }}>{p.fullName?.charAt(0)?.toUpperCase()}</Avatar>
             <ListItemText primary={p.fullName} secondary={p.relationship} primaryTypographyProps={{ fontSize: 14, fontWeight: 600 }} secondaryTypographyProps={{ fontSize: 11 }} />
             {p.id === pid && <CheckIcon fontSize="small" color="primary" sx={{ ml: 1 }} />}
           </MenuItem>
         ))}
         <Divider sx={{ my: 0.5 }} />
-        <MenuItem sx={{ py: 1, borderRadius: 1, m: 0.5, color: 'primary.main' }} onClick={() => { setAnchor(null); setOpen(true); }}>
+        <MenuItem sx={{ py: 1, borderRadius: '8px', m: 0.5, color: 'primary.main' }} onClick={() => { setAnchor(null); setOpen(true); }}>
           <ListItemIcon sx={{ color: 'primary.main' }}><PersonAddIcon fontSize="small" /></ListItemIcon>
           <ListItemText primaryTypographyProps={{ fontWeight: 600, fontSize: 14 }}>Adicionar dependente</ListItemText>
         </MenuItem>
         <Divider sx={{ my: 0.5 }} />
         {/* Configurações da conta (antes num menu ⋮ separado — agora unified no avatar). */}
-        <MenuItem sx={{ py: 1, borderRadius: 1, m: 0.5 }} onClick={toggleTheme}>
+        <MenuItem sx={{ py: 1, borderRadius: '8px', m: 0.5 }} onClick={toggleTheme}>
           <ListItemIcon>{themeMode === 'dark' ? <LightModeOutlinedIcon fontSize="small" /> : <DarkModeOutlinedIcon fontSize="small" />}</ListItemIcon>
           <ListItemText primaryTypographyProps={{ fontSize: 14 }}>{themeMode === 'dark' ? 'Modo claro' : 'Modo escuro'}</ListItemText>
         </MenuItem>
-        <MenuItem sx={{ py: 1, borderRadius: 1, m: 0.5 }} onClick={toggleLang}>
+        <MenuItem sx={{ py: 1, borderRadius: '8px', m: 0.5 }} onClick={toggleLang}>
           <ListItemIcon><LanguageIcon fontSize="small" /></ListItemIcon>
           <ListItemText primaryTypographyProps={{ fontSize: 14 }}>{locale === 'pt' ? 'Mudar para English' : 'Switch to Português'}</ListItemText>
         </MenuItem>
-        <MenuItem sx={{ py: 1, borderRadius: 1, m: 0.5, color: 'error.main' }} onClick={() => { setAnchor(null); logout('/entrar'); }}>
+        <MenuItem sx={{ py: 1, borderRadius: '8px', m: 0.5, color: 'error.main' }} onClick={() => { setAnchor(null); logout('/entrar'); }}>
           <ListItemIcon sx={{ color: 'error.main' }}><LogoutIcon fontSize="small" /></ListItemIcon>
           <ListItemText primaryTypographyProps={{ fontSize: 14, fontWeight: 600 }}>Sair</ListItemText>
         </MenuItem>
       </Menu>
 
-      <Dialog open={open} onClose={() => setOpen(false)} PaperProps={{ sx: { borderRadius: 3 } }}>
+      <Dialog open={open} onClose={() => setOpen(false)} PaperProps={{ sx: { borderRadius: '12px' } }}>
         <DialogTitle>Adicionar dependente</DialogTitle>
         <DialogContent>
           <TextField autoFocus fullWidth label="Nome" value={name} onChange={(e) => setName(e.target.value)} sx={{ mt: 1, mb: 2 }} />

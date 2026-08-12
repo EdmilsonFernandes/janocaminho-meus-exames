@@ -60,7 +60,7 @@ const ReportPreviewCard = ({
   ];
 
   return (
-    <Box sx={{ mt: 2, p: { xs: 2, md: 2.5 }, borderRadius: 4, border: '1px solid', borderColor: 'rgba(32,178,170,.22)', background: 'linear-gradient(135deg, rgba(32,178,170,.12), transparent)' }}>
+    <Box sx={{ mt: 2, p: { xs: 2, md: 2.5 }, borderRadius: '12px', border: '1px solid', borderColor: 'rgba(32,178,170,.22)', background: 'linear-gradient(135deg, rgba(32,178,170,.12), transparent)' }}>
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ xs: 'stretch', md: 'center' }}>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Chip size="small" label="Preview do relatório" sx={{ height: 22, mb: 1, bgcolor: '#20b2aa18', color: '#178f89', fontWeight: 900 }} />
@@ -72,7 +72,7 @@ const ReportPreviewCard = ({
           </Typography>
         </Box>
         <Stack spacing={1} alignItems={{ xs: 'stretch', md: 'flex-end' }} sx={{ flexShrink: 0 }}>
-          <Button variant="contained" size="large" startIcon={loading ? <CircularProgress size={18} color="inherit" /> : <DescriptionIcon />} onClick={onGenerate} disabled={disabled} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 900, bgcolor: '#178f89', boxShadow: 'none', '&:hover': { bgcolor: '#0f766e', boxShadow: 'none' } }}>
+          <Button variant="contained" size="large" startIcon={loading ? <CircularProgress size={18} color="inherit" /> : <DescriptionIcon />} onClick={onGenerate} disabled={disabled} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 900, bgcolor: '#178f89', boxShadow: 'none', '&:hover': { bgcolor: '#0f766e', boxShadow: 'none' } }}>
             {loading ? 'Gerando...' : 'Gerar relatório completo'}
           </Button>
           <Box sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
@@ -84,8 +84,8 @@ const ReportPreviewCard = ({
       <Grid container spacing={1.25} sx={{ mt: 2 }}>
         {items.map((item) => (
           <Grid key={item.title} size={{ xs: 12, sm: 6 }}>
-            <Box sx={{ height: '100%', p: 1.5, borderRadius: 3, bgcolor: 'background.paper', border: '1px solid', borderColor: `${item.accent}26` }}>
-              <Box sx={{ width: 34, height: 34, borderRadius: 2, display: 'grid', placeItems: 'center', color: item.accent, bgcolor: `${item.accent}14`, mb: 1 }}>
+            <Box sx={{ height: '100%', p: 1.5, borderRadius: '12px', bgcolor: 'background.paper', border: '1px solid', borderColor: `${item.accent}26` }}>
+              <Box sx={{ width: 34, height: 34, borderRadius: '12px', display: 'grid', placeItems: 'center', color: item.accent, bgcolor: `${item.accent}14`, mb: 1 }}>
                 {item.icon}
               </Box>
               <Typography sx={{ fontWeight: 800, color: 'text.primary' }}>{item.title}</Typography>
@@ -95,11 +95,11 @@ const ReportPreviewCard = ({
         ))}
       </Grid>
 
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ xs: 'stretch', sm: 'center' }} justifyContent="space-between" sx={{ mt: 1.5, p: 1.25, borderRadius: 3, bgcolor: 'action.hover' }}>
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ xs: 'stretch', sm: 'center' }} justifyContent="space-between" sx={{ mt: 1.5, p: 1.25, borderRadius: '12px', bgcolor: 'action.hover' }}>
         <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>
           Consome créditos somente ao gerar. Use quando quiser levar uma visão consolidada para consulta.
         </Typography>
-        <Button size="small" onClick={onExams} sx={{ alignSelf: { xs: 'flex-start', sm: 'center' }, textTransform: 'none', fontWeight: 800, borderRadius: 99, color: '#178f89' }}>
+        <Button size="small" onClick={onExams} sx={{ alignSelf: { xs: 'flex-start', sm: 'center' }, textTransform: 'none', fontWeight: 800, borderRadius: '999px', color: '#178f89' }}>
           Ver exames usados →
         </Button>
       </Stack>
@@ -374,11 +374,11 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
       </Typography>
 
       {!analysis && examCount === 0 && pid && (
-        <Box sx={{ mt: 2, p: 4, borderRadius: 3, textAlign: 'center', bgcolor: 'background.paper', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}>
+        <Box sx={{ mt: 2, p: 4, borderRadius: '12px', textAlign: 'center', bgcolor: 'background.paper', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}>
           <Box sx={{ fontSize: 56, mb: 1.5, opacity: 0.4 }}>📄</Box>
           <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 18, mb: 1 }}>Você ainda não tem exames</Typography>
           <Typography color="text.secondary" sx={{ mb: 2.5 }}>Envie seu primeiro exame de sangue, imagem ou laudo para gerar um relatório completo da sua saúde.</Typography>
-          <Button variant="contained" onClick={() => navigate('/exams')} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 800, px: 4, bgcolor: '#178f89' }}>Enviar meu primeiro exame →</Button>
+          <Button variant="contained" onClick={() => navigate('/exams')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 4, bgcolor: '#178f89' }}>Enviar meu primeiro exame →</Button>
         </Box>
       )}
       {!analysis && examCount !== 0 && (
@@ -394,24 +394,24 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
 
       {/* Sem créditos — card premium (converter: recarregar/assinar) em vez de "insufficient_credits" cru */}
       {noCredits && (
-        <Box sx={{ mt: 2, p: 2.5, borderRadius: 3, textAlign: 'center', background: 'linear-gradient(135deg,rgba(99,102,241,.08),rgba(99,102,241,.02))', border: '1px solid', borderColor: 'rgba(99,102,241,.2)' }}>
+        <Box sx={{ mt: 2, p: 2.5, borderRadius: '12px', textAlign: 'center', background: 'linear-gradient(135deg,rgba(99,102,241,.08),rgba(99,102,241,.02))', border: '1px solid', borderColor: 'rgba(99,102,241,.2)' }}>
           <Box sx={{ fontSize: 40 }}>💎</Box>
           <Typography sx={{ fontWeight: 800, mt: 1 }}>Seus créditos acabaram</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 2, maxWidth: 420, mx: 'auto' }}>Recarregue créditos avulsos ou assine o mensal pra gerar relatórios completos e usar a IA sem travar.</Typography>
           <Stack direction="row" spacing={1.5} justifyContent="center" flexWrap="wrap" useFlexGap>
-            <Button variant="contained" onClick={() => navigate('/planos')} sx={{ bgcolor: '#6366f1', textTransform: 'none', fontWeight: 700, borderRadius: 99, '&:hover': { bgcolor: '#4f46e5' } }}>Assinar R$19,90/mês</Button>
-            <Button variant="outlined" onClick={() => navigate('/planos')} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 99 }}>Comprar créditos</Button>
+            <Button variant="contained" onClick={() => navigate('/planos')} sx={{ bgcolor: '#6366f1', textTransform: 'none', fontWeight: 700, borderRadius: '999px', '&:hover': { bgcolor: '#4f46e5' } }}>Assinar R$19,90/mês</Button>
+            <Button variant="outlined" onClick={() => navigate('/planos')} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '999px' }}>Comprar créditos</Button>
           </Stack>
         </Box>
       )}
 
       {/* Sem exames — direcionar pra enviar (não erro) */}
       {noExams && (
-        <Box sx={{ mt: 2, p: 2.5, borderRadius: 3, textAlign: 'center', bgcolor: 'action.hover' }}>
+        <Box sx={{ mt: 2, p: 2.5, borderRadius: '12px', textAlign: 'center', bgcolor: 'action.hover' }}>
           <Box sx={{ fontSize: 40 }}>📄</Box>
           <Typography sx={{ fontWeight: 800, mt: 1 }}>Você ainda não tem exames</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 2, maxWidth: 420, mx: 'auto' }}>Envie seu primeiro exame (PDF ou foto) pra a IA gerar um relatório completo da sua saúde.</Typography>
-          <Button variant="contained" onClick={() => navigate('/exams/create')} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 99 }}>Enviar exame</Button>
+          <Button variant="contained" onClick={() => navigate('/exams/create')} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '999px' }}>Enviar exame</Button>
         </Box>
       )}
 
@@ -504,9 +504,9 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
             <ReportSectionCard icon={<LiveHelpIcon />} title={translate('report.questions_section')} accent="#7b1fa2" count={s.perguntasParaOMedico.length}>
               <Stack spacing={0.75}>
                 {hasNoDoctor ? (
-                  <Alert severity="info" icon={<LiveHelpIcon />} sx={{ py: 0.5, borderRadius: 2 }}>Para enviar perguntas, compartilhe antes seus exames com um médico em <b>“Meus Médicos”</b>.</Alert>
+                  <Alert severity="info" icon={<LiveHelpIcon />} sx={{ py: 0.5, borderRadius: '12px' }}>Para enviar perguntas, compartilhe antes seus exames com um médico em <b>“Meus Médicos”</b>.</Alert>
                 ) : questionLocked ? (
-                  <Alert severity="warning" sx={{ py: 0.5, borderRadius: 2 }}>Você atingiu o limite de perguntas em aberto com {qShares.length === 1 ? `${qShares[0]?.doctor?.name ?? qShares[0]?.name ?? 'seu médico'}` : 'seus médicos'}. Aguarde a resposta para enviar novas perguntas.</Alert>
+                  <Alert severity="warning" sx={{ py: 0.5, borderRadius: '12px' }}>Você atingiu o limite de perguntas em aberto com {qShares.length === 1 ? `${qShares[0]?.doctor?.name ?? qShares[0]?.name ?? 'seu médico'}` : 'seus médicos'}. Aguarde a resposta para enviar novas perguntas.</Alert>
                 ) : (<>
                 {s.perguntasParaOMedico.map((q, i) => {
                   const isSent = sentQs.has(String(q));
@@ -521,14 +521,14 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
                   </Box>
                   );
                 })}
-                {send.status === 'error' && <Alert severity="error" sx={{ py: 0.5, borderRadius: 2 }}>{send.msg}</Alert>}
-                {send.status === 'done' && <Alert severity="success" sx={{ py: 0.5, borderRadius: 2 }}>{send.msg}</Alert>}
+                {send.status === 'error' && <Alert severity="error" sx={{ py: 0.5, borderRadius: '12px' }}>{send.msg}</Alert>}
+                {send.status === 'done' && <Alert severity="success" sx={{ py: 0.5, borderRadius: '12px' }}>{send.msg}</Alert>}
                 {(sentQs.size >= (s.perguntasParaOMedico?.length ?? 0)) ? (
-                  <Alert severity="info" icon={<CheckCircleIcon />} sx={{ py: 0.5, borderRadius: 2, bgcolor: 'rgba(5,150,105,.08)', color: '#059669' }}>Você já enviou todas as perguntas deste relatório. Gere um novo quando quiser perguntas diferentes.</Alert>
+                  <Alert severity="info" icon={<CheckCircleIcon />} sx={{ py: 0.5, borderRadius: '12px', bgcolor: 'rgba(5,150,105,.08)', color: '#059669' }}>Você já enviou todas as perguntas deste relatório. Gere um novo quando quiser perguntas diferentes.</Alert>
                 ) : (
                   <>
                     <Button variant="contained" disabled={send.status === 'sending' || !Object.values(tickQ).some(Boolean)} onClick={sendQuestionsToDoctor}
-                      sx={{ alignSelf: 'flex-start', borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#7b1fa2', '&:hover': { bgcolor: '#6a1b63' } }}>
+                      sx={{ alignSelf: 'flex-start', borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: '#7b1fa2', '&:hover': { bgcolor: '#6a1b63' } }}>
                       {send.status === 'sending' ? 'Enviando…' : 'Enviar ao médico'}
                     </Button>
                     <Typography variant="caption" color="text.secondary">Marque as perguntas que quiser levar e toque em enviar. Seu médico recebe na área de perguntas dele no app e por e-mail.</Typography>
@@ -546,7 +546,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
             const pickedAtLimit = pickedShare ? atLimit(pickedShare) : false;
             const allAtLimit = picker.shares.every(atLimit);
             return (
-            <Dialog open onClose={() => setPicker(null)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
+            <Dialog open onClose={() => setPicker(null)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: '12px' } }}>
               <DialogTitle sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif' }}>Enviar perguntas a qual médico?</DialogTitle>
               <DialogContent>
                 <FormControl fullWidth size="small" sx={{ mt: 1 }}>
@@ -565,15 +565,15 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
                     })}
                   </Select>
                 </FormControl>
-                {pickedAtLimit && <Alert severity="warning" sx={{ mt: 1.5, py: 0.5, borderRadius: 2, fontSize: 12.5 }}>Esse médico tem o limite de perguntas em aberto com você. Aguarde a resposta (ou agende uma consulta) pra enviar mais.</Alert>}
-                {allAtLimit && <Alert severity="info" sx={{ mt: 1.5, py: 0.5, borderRadius: 2, fontSize: 12.5 }}>Todos os seus médicos têm perguntas em aberto aguardando resposta. Quando algum responder, você poderá enviar novas.</Alert>}
+                {pickedAtLimit && <Alert severity="warning" sx={{ mt: 1.5, py: 0.5, borderRadius: '12px', fontSize: 12.5 }}>Esse médico tem o limite de perguntas em aberto com você. Aguarde a resposta (ou agende uma consulta) pra enviar mais.</Alert>}
+                {allAtLimit && <Alert severity="info" sx={{ mt: 1.5, py: 0.5, borderRadius: '12px', fontSize: 12.5 }}>Todos os seus médicos têm perguntas em aberto aguardando resposta. Quando algum responder, você poderá enviar novas.</Alert>}
               </DialogContent>
               <DialogActions sx={{ justifyContent: 'center', pb: 2, gap: 1 }}>
                 <Button onClick={() => setPicker(null)} sx={{ textTransform: 'none' }}>Cancelar</Button>
                 <Button variant="contained" disabled={send.status === 'sending' || !picker.picked || pickedAtLimit} onClick={() => {
                   const s = picker.shares.find((x: any) => (x.doctorId ?? x.doctor?.id) === picker.picked);
                   doSendToDoctor(picker.picked, s?.doctor?.name ?? s?.name ?? 'seu médico', picker.qs);
-                }} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700 }}>{send.status === 'sending' ? 'Enviando…' : 'Enviar'}</Button>
+                }} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>{send.status === 'sending' ? 'Enviando…' : 'Enviar'}</Button>
               </DialogActions>
             </Dialog>
             );

@@ -48,7 +48,7 @@ export const FamilyPage = () => {
 
   if (loading) return (
     <PageContainer width={980}>
-      <Skeleton variant="rectangular" height={48} sx={{ borderRadius: 2, mb: 3 }} />
+      <Skeleton variant="rectangular" height={48} sx={{ borderRadius: '12px', mb: 3 }} />
       {[0, 1, 2].map((i) => <Skeleton key={i} variant="rounded" height={118} sx={{ mb: 2 }} />)}
     </PageContainer>
   );
@@ -71,7 +71,7 @@ export const FamilyPage = () => {
         subtitle={translate('page.family_sub')} />
 
       {(data?.crossAlerts ?? []).length > 0 && (
-        <Alert severity="warning" sx={{ mb: 3, borderRadius: 3 }}>
+        <Alert severity="warning" sx={{ mb: 3, borderRadius: '12px' }}>
           <AlertTitle>🧬 Padrão familiar detectado</AlertTitle>
           <Stack spacing={0.5}>
             {data!.crossAlerts.map((c) => (
@@ -122,8 +122,8 @@ export const FamilyPage = () => {
                   </Box>
                 </Stack>
                 {p.score != null && (
-                  <Box sx={{ height: 8, borderRadius: 4, bgcolor: 'divider', mt: 1.5, overflow: 'hidden' }}>
-                    <Box sx={{ height: '100%', width: `${p.score}%`, background: scoreColor(p.score), borderRadius: 4 }} />
+                  <Box sx={{ height: 8, borderRadius: '12px', bgcolor: 'divider', mt: 1.5, overflow: 'hidden' }}>
+                    <Box sx={{ height: '100%', width: `${p.score}%`, background: scoreColor(p.score), borderRadius: '12px' }} />
                   </Box>
                 )}
                 <Typography variant="body2" sx={{ mt: 1 }}>
@@ -157,7 +157,7 @@ export const FamilyPage = () => {
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>Último valor de cada membro nos analitos em comum (verde = na faixa, vermelho = alterado).</Typography>
           <Stack spacing={1}>
             {cmp.map((row) => (
-              <Card key={row.analyte} variant="outlined" sx={{ borderRadius: 2 }}>
+              <Card key={row.analyte} variant="outlined" sx={{ borderRadius: '12px' }}>
                 <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5, flexWrap: 'wrap' }}>
                     <Typography component="span" sx={{ fontWeight: 700, wordBreak: 'break-word' }}>{row.analyte}</Typography>

@@ -76,10 +76,10 @@ export const HealthScoreCard = ({ loaded, score, abnormalCount, markerCount, onD
             <Skeleton variant="circular" sx={{ width: { xs: 140, sm: 170 }, height: { xs: 140, sm: 170 } }} />
             <Box sx={{ flex: 1 }}>
               <Skeleton variant="text" width={90} height={20} />
-              <Skeleton variant="rectangular" width={70} height={22} sx={{ borderRadius: 99, my: 0.75 }} />
+              <Skeleton variant="rectangular" width={70} height={22} sx={{ borderRadius: '999px', my: 0.75 }} />
               <Skeleton variant="text" width="90%" />
               <Skeleton variant="text" width="60%" />
-              <Skeleton variant="rectangular" width={120} height={32} sx={{ borderRadius: 99, mt: 1 }} />
+              <Skeleton variant="rectangular" width={120} height={32} sx={{ borderRadius: '999px', mt: 1 }} />
             </Box>
           </Stack>
         </CardContent>
@@ -97,7 +97,7 @@ export const HealthScoreCard = ({ loaded, score, abnormalCount, markerCount, onD
           </Box>
           <Typography variant="h6" sx={{ fontWeight: 800, mb: 0.5 }}>Seu Score de Saúde aparece aqui</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2, maxWidth: 320, mx: 'auto' }}>Envie seu primeiro exame (PDF ou foto) e o Dr. Exame calcula um score personalizado a partir dos seus resultados.</Typography>
-          <Button variant="contained" onClick={onDetails} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 800, px: 3 }}>Enviar meu primeiro exame</Button>
+          <Button variant="contained" onClick={onDetails} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 3 }}>Enviar meu primeiro exame</Button>
         </CardContent>
       </Card>
     );
@@ -133,11 +133,11 @@ export const HealthScoreCard = ({ loaded, score, abnormalCount, markerCount, onD
           Baseado em {markerCount ? `${markerCount} ` : ''}marcadores dos seus exames mais recentes. *Educativo — não substitui avaliação médica.
         </Typography>
         <Box sx={{ mt: 1.25 }}>
-          <Button variant="contained" size="small" onClick={onDetails} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, fontSize: 12, py: 1.1, px: 2.5, boxShadow: 'none' }}>Ver detalhes →</Button>
+          <Button variant="contained" size="small" onClick={onDetails} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, fontSize: 12, py: 1.1, px: 2.5, boxShadow: 'none' }}>Ver detalhes →</Button>
         </Box>
       </CardContent>
       {/* Balão de ajuda: o que é o Score de Saúde (pra quem não faz ideia do que seja o "76"). */}
-      <Popover open={!!help} anchorEl={help} onClose={() => setHelp(null)} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} transformOrigin={{ vertical: 'top', horizontal: 'right' }} slotProps={{ paper: { sx: { maxWidth: 340, borderRadius: 3, mt: 0.5 } } }}>
+      <Popover open={!!help} anchorEl={help} onClose={() => setHelp(null)} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} transformOrigin={{ vertical: 'top', horizontal: 'right' }} slotProps={{ paper: { sx: { maxWidth: 340, borderRadius: '12px', mt: 0.5 } } }}>
         <Box sx={{ p: 2, maxWidth: 340 }}>
           <Typography sx={{ fontWeight: 800, color: 'primary.dark', fontSize: '1.05rem' }}>O que é o Score de Saúde?</Typography>
           <Typography variant="body2" sx={{ mt: 0.5, lineHeight: 1.5 }}>É um termômetro educativo calculado a partir dos seus exames: a proporção de marcadores <b>dentro da faixa de referência</b>. Quanto mais perto de 100, mais resultados dentro do esperado.</Typography>

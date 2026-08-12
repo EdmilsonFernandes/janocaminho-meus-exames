@@ -49,7 +49,7 @@ export const MobileBottomNav = () => {
     <Box key={it.to} onClick={() => { hapticLight(); (onClick ?? (() => navigate(it.to)))(); }} sx={{
       flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       py: 0.7, cursor: 'pointer', userSelect: 'none', color: on ? '#178f89' : 'text.secondary',
-      borderRadius: 2, bgcolor: on ? 'rgba(32,178,170,.10)' : 'transparent',
+      borderRadius: '12px', bgcolor: on ? 'rgba(32,178,170,.10)' : 'transparent',
       transition: 'background-color .2s, color .15s, transform .1s', '&:active': { transform: 'scale(.90)' },
     }}>
       {it.robot ? (
@@ -71,7 +71,7 @@ export const MobileBottomNav = () => {
         </Box>
       )}
       <Typography sx={{ fontSize: 10, fontWeight: on ? 800 : 600, mt: 0.25, fontFamily: 'Poppins, sans-serif', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', px: 0.5 }}>{it.robot ? 'Dr. Exame' : translate(it.label)}</Typography>
-      <Box sx={{ height: 3, width: on ? 22 : 0, borderRadius: 9, bgcolor: '#20b2aa', mt: 0.3, transition: 'width .2s' }} />
+      <Box sx={{ height: 3, width: on ? 22 : 0, borderRadius: '12px', bgcolor: '#20b2aa', mt: 0.3, transition: 'width .2s' }} />
     </Box>
   );
 
@@ -80,14 +80,14 @@ export const MobileBottomNav = () => {
     <Box onClick={() => { hapticLight(); onClick?.(); }} sx={{
       flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       py: 0.7, cursor: 'pointer', userSelect: 'none', color: on ? '#178f89' : 'text.secondary',
-      borderRadius: 2, bgcolor: on ? 'rgba(32,178,170,.10)' : 'transparent',
+      borderRadius: '12px', bgcolor: on ? 'rgba(32,178,170,.10)' : 'transparent',
       transition: 'background-color .2s, color .15s, transform .1s', '&:active': { transform: 'scale(.90)' },
     }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 24, transform: on ? 'scale(1.12)' : 'scale(1)', transition: 'transform .18s ease', '& svg': { fontSize: 22 } }}>
         {on ? <MenuIcon /> : <MenuIcon sx={{ opacity: 0.5 }} />}
       </Box>
       <Typography sx={{ fontSize: 10, fontWeight: on ? 800 : 600, mt: 0.25, fontFamily: 'Poppins, sans-serif' }}>{translate('nav.more')}</Typography>
-      <Box sx={{ height: 3, width: on ? 22 : 0, borderRadius: 9, bgcolor: '#20b2aa', mt: 0.3, transition: 'width .2s' }} />
+      <Box sx={{ height: 3, width: on ? 22 : 0, borderRadius: '12px', bgcolor: '#20b2aa', mt: 0.3, transition: 'width .2s' }} />
     </Box>
   );
 

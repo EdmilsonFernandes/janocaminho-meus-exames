@@ -138,7 +138,7 @@ export const MeasurementsPage = () => {
                   <ListItem key={m.id} sx={{ px: 0, borderBottom: '1px solid', borderColor: 'divider' }}
                     secondaryAction={<IconButton edge="end" onClick={() => del(m.id)}><DeleteIcon /></IconButton>}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0 }}>
-                      <Box sx={{ width: 36, height: 36, borderRadius: 2, display: 'grid', placeItems: 'center', flexShrink: 0, bgcolor: t.color + '18', color: t.color, fontSize: 18 }}>{t.emoji}</Box>
+                      <Box sx={{ width: 36, height: 36, borderRadius: '12px', display: 'grid', placeItems: 'center', flexShrink: 0, bgcolor: t.color + '18', color: t.color, fontSize: 18 }}>{t.emoji}</Box>
                       <Box sx={{ minWidth: 0 }}>
                         <Typography sx={{ fontWeight: 700 }}>{t.l}: <Box component="span" sx={{ color: t.color, fontWeight: 800 }}>{fmtVal(m)} {m.unit}</Box></Typography>
                         <Typography variant="caption" color="text.secondary">{fmtDate(m.measuredAt)}{m.note ? ` — ${m.note}` : ''}</Typography>

@@ -151,7 +151,7 @@ const MenuSectionAccordion = ({ title, icon, routes, children }: { title: string
   useEffect(() => { if (routes.some((r) => routeMatches(r, pathname))) setOpen(true); /* eslint-disable-next-line */ }, [pathname]);
   return (
     <Box>
-      <ListItemButton onClick={() => setOpen((o) => !o)} sx={{ borderRadius: 1.5, m: '1px 8px', py: 0.4, pl: 2, minHeight: 44, '&:hover': { bgcolor: 'rgba(32,178,170,.06)' } }}>
+      <ListItemButton onClick={() => setOpen((o) => !o)} sx={{ borderRadius: '8px', m: '1px 8px', py: 0.4, pl: 2, minHeight: 44, '&:hover': { bgcolor: 'rgba(32,178,170,.06)' } }}>
         <ListItemIcon sx={{ minWidth: 34, color: 'text.secondary', '& svg': { fontSize: 19 } }}>{icon}</ListItemIcon>
         <ListItemText primary={title} primaryTypographyProps={{ fontSize: 12.5, fontWeight: 800, color: 'text.primary' }} />
         <ExpandMoreIcon sx={{ transform: open ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform .2s', color: 'text.secondary', fontSize: 20 }} />
@@ -170,7 +170,7 @@ const NavItem = ({ to, primaryText, icon, highlight }: { to: string; primaryText
   const iconColor = highlight ? '#178f89' : active ? 'text.primary' : 'text.secondary';
   return (
     <ListItemButton onClick={() => navigate(to)} selected={active}
-      sx={{ borderRadius: 1.5, m: '1px 8px', py: 0.5, pl: 2.5, minHeight: 44, flex: '0 0 auto',
+      sx={{ borderRadius: '8px', m: '1px 8px', py: 0.5, pl: 2.5, minHeight: 44, flex: '0 0 auto',
         '&.Mui-selected': { bgcolor: 'rgba(32,178,170,.12)' },
         '&.Mui-selected:hover': { bgcolor: 'rgba(32,178,170,.18)' },
         '&:hover': { bgcolor: 'rgba(32,178,170,.06)' } }}>
@@ -210,11 +210,11 @@ const AppMenu = () => {
         const on = it.to === '/' ? pathname === '/' : pathname.startsWith(it.to);
         return (
           <Box key={it.to} onClick={() => navigate(it.to)} sx={{
-            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.75, py: 1.25, borderRadius: 2.5, cursor: 'pointer',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.75, py: 1.25, borderRadius: '12px', cursor: 'pointer',
             transition: 'all .18s cubic-bezier(.4,0,.2,1)', '&:active': { transform: 'scale(.92)' },
           }}>
             <Box sx={{
-              width: 42, height: 42, display: 'grid', placeItems: 'center', borderRadius: 2.5,
+              width: 42, height: 42, display: 'grid', placeItems: 'center', borderRadius: '12px',
               background: on ? 'linear-gradient(135deg,#20b2aa,#178f89)' : 'linear-gradient(135deg, rgba(32,178,170,.14), rgba(212,165,116,.12))',
               color: on ? '#fff' : '#178f89',
               boxShadow: on ? '0 6px 16px -6px rgba(32,178,170,.6)' : 'none',
@@ -256,11 +256,11 @@ const AppMenu = () => {
 
     {/* APOIO */}
     <NavItem to="/suporte" primaryText={translate('menu.support')} icon={<HelpOutlineIcon />} />
-    <MenuItem onClick={() => setAboutOpen(true)} sx={{ mx: 0.5, borderRadius: 1, py: 0.75 }}>
+    <MenuItem onClick={() => setAboutOpen(true)} sx={{ mx: 0.5, borderRadius: '8px', py: 0.75 }}>
       <ListItemIcon sx={{ minWidth: 36 }}><InfoIcon fontSize="small" /></ListItemIcon>
       <ListItemText primaryTypographyProps={{ fontSize: 13, fontWeight: 600 }}>{translate('menu.about')}</ListItemText>
     </MenuItem>
-    <MenuItem onClick={() => logout('/entrar')} sx={{ mx: 0.5, my: 0.25, borderRadius: 1, py: 0.75, color: 'error.main', '&:hover': { bgcolor: 'rgba(239,68,68,.08)' } }}>
+    <MenuItem onClick={() => logout('/entrar')} sx={{ mx: 0.5, my: 0.25, borderRadius: '8px', py: 0.75, color: 'error.main', '&:hover': { bgcolor: 'rgba(239,68,68,.08)' } }}>
       <ListItemIcon sx={{ color: 'error.main', minWidth: 36 }}><LogoutIcon fontSize="small" /></ListItemIcon>
       <ListItemText primaryTypographyProps={{ fontSize: 13, fontWeight: 600 }}>{translate('menu.logout')}</ListItemText>
     </MenuItem>
@@ -288,7 +288,7 @@ const AppMenu = () => {
         </Typography>
       </DialogContent>
       <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
-        <Button onClick={() => setAboutOpen(false)} variant="contained" sx={{ borderRadius: 99, px: 4, textTransform: 'none', fontWeight: 700, bgcolor: '#178f89' }}>{translate('ra.action.close')}</Button>
+        <Button onClick={() => setAboutOpen(false)} variant="contained" sx={{ borderRadius: '999px', px: 4, textTransform: 'none', fontWeight: 700, bgcolor: '#178f89' }}>{translate('ra.action.close')}</Button>
       </DialogActions>
     </Dialog>
   </Box>

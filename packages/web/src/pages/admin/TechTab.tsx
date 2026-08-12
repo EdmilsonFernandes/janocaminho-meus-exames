@@ -26,7 +26,7 @@ export const TechTab = () => {
           { l: 'Análises IA (total)', v: String(d.aiCount) },
           { l: 'Devices c/ push', v: String(d.devices) },
         ].map((k) => (
-          <Card key={k.l} variant="outlined" sx={{ borderRadius: 2, borderColor: k.alert ? 'error.main' : 'divider' }}><CardContent sx={{ textAlign: 'center', py: 1.5 }}>
+          <Card key={k.l} variant="outlined" sx={{ borderRadius: '12px', borderColor: k.alert ? 'error.main' : 'divider' }}><CardContent sx={{ textAlign: 'center', py: 1.5 }}>
             <Typography sx={{ fontWeight: 800, fontSize: 22, color: k.ok !== undefined ? ok(k.ok) : k.alert ? '#ef4444' : 'text.primary' }}>{String(k.v)}</Typography>
             <Typography variant="caption" color="text.secondary">{k.l}</Typography>
           </CardContent></Card>

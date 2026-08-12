@@ -32,14 +32,14 @@ export const OverviewTab = () => {
           { l: 'Receita total aprovada', v: `R$ ${(metrics.revenue.total ?? 0).toFixed(2).replace('.', ',')}`, c: '#059669' },
           { l: 'Retenção no vencimento', v: `${metrics.churn.retentionPct}%`, c: '#f59e0b' },
         ].map((k) => (
-          <Card key={k.l} sx={{ borderRadius: 3 }}><CardContent>
+          <Card key={k.l} sx={{ borderRadius: '12px' }}><CardContent>
             <Typography variant="caption" color="text.secondary">{k.l}</Typography>
             <Typography variant="h5" sx={{ fontWeight: 800, color: k.c }}>{k.v}</Typography>
           </CardContent></Card>
         ))}
       </Box>
 
-      <Card sx={{ borderRadius: 3 }}><CardContent>
+      <Card sx={{ borderRadius: '12px' }}><CardContent>
         <Typography variant="h6" gutterBottom>🔻 Funil (conversão)</Typography>
         {[
           { l: 'Signups verificados', n: metrics.funnel.verified, pct: 100, c: '#0ea5e9' },
@@ -48,15 +48,15 @@ export const OverviewTab = () => {
         ].map((s) => (
           <Box key={s.l} sx={{ mb: 1.5 }}>
             <Stack direction="row" justifyContent="space-between"><Typography variant="body2">{s.l}</Typography><Typography variant="body2" sx={{ fontWeight: 700 }}>{s.n} ({Math.round(s.pct)}%)</Typography></Stack>
-            <Box sx={{ height: 10, borderRadius: 99, bgcolor: 'action.hover', mt: 0.5, overflow: 'hidden' }}>
-              <Box sx={{ height: '100%', width: `${Math.max(2, s.pct)}%`, bgcolor: s.c, borderRadius: 99 }} />
+            <Box sx={{ height: 10, borderRadius: '999px', bgcolor: 'action.hover', mt: 0.5, overflow: 'hidden' }}>
+              <Box sx={{ height: '100%', width: `${Math.max(2, s.pct)}%`, bgcolor: s.c, borderRadius: '999px' }} />
             </Box>
           </Box>
         ))}
         <Typography variant="caption" color="text.secondary">{metrics.revenue.monthlyPayments} pagamento(s) mensal(is) • {metrics.revenue.creditPurchases} compra(s) de créditos avulsos</Typography>
       </CardContent></Card>
 
-      <Card sx={{ borderRadius: 3 }}><CardContent>
+      <Card sx={{ borderRadius: '12px' }}><CardContent>
         <Typography variant="h6" gutterBottom>🔁 Retenção no vencimento</Typography>
         <Stack direction="row" spacing={3} flexWrap="wrap" useFlexGap>
           <Box><Typography variant="caption" color="text.secondary">Já assinaram</Typography><Typography variant="h6" sx={{ fontWeight: 800 }}>{metrics.churn.everPremium}</Typography></Box>
@@ -67,7 +67,7 @@ export const OverviewTab = () => {
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>Taxa de retenção <strong>{metrics.churn.retentionPct}%</strong> — é o número que o nudge de vencimento ajuda a subir.</Typography>
       </CardContent></Card>
 
-      <Card sx={{ borderRadius: 3 }}><CardContent>
+      <Card sx={{ borderRadius: '12px' }}><CardContent>
         <Typography variant="h6" gutterBottom>📅 Cohort — conversão por mês de signup</Typography>
         <TableContainer sx={{ overflowX: 'auto' }}>
         <Table size="small">
@@ -82,7 +82,7 @@ export const OverviewTab = () => {
         </TableContainer>
       </CardContent></Card>
 
-      <Card sx={{ borderRadius: 3 }}><CardContent>
+      <Card sx={{ borderRadius: '12px' }}><CardContent>
         <Typography variant="h6" gutterBottom>💰 Receita aprovada por mês</Typography>
         <TableContainer sx={{ overflowX: 'auto' }}>
         <Table size="small">

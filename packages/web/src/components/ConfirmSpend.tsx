@@ -9,7 +9,7 @@ import { CreditBadge } from './CreditBadge';
 export const ConfirmSpend = ({ open, onClose, onConfirm, credits, title, desc }: {
   open: boolean; onClose: () => void; onConfirm: () => void; credits: number; title: string; desc?: string;
 }) => (
-  <Dialog open={open} onClose={onClose} PaperProps={{ sx: { borderRadius: 4, maxWidth: 400, width: '100%' } }}>
+  <Dialog open={open} onClose={onClose} PaperProps={{ sx: { borderRadius: '12px', maxWidth: 400, width: '100%' } }}>
     <DialogTitle sx={{ textAlign: 'center', pt: 3, pb: 1 }}>
       <Typography sx={{ fontWeight: 800, fontSize: 20, fontFamily: 'Poppins, sans-serif', color: 'text.primary' }}>{title}</Typography>
     </DialogTitle>
@@ -21,8 +21,8 @@ export const ConfirmSpend = ({ open, onClose, onConfirm, credits, title, desc }:
       <Typography variant="caption" color="text.secondary">serão debitados dos seus créditos</Typography>
     </DialogContent>
     <DialogActions sx={{ px: 3, pb: 3, justifyContent: 'center', gap: 1 }}>
-      <Button onClick={onClose} variant="outlined" sx={{ borderRadius: 99, px: 3, textTransform: 'none', fontWeight: 600, borderColor: 'divider', color: 'text.secondary' }}>Cancelar</Button>
-      <Button onClick={onConfirm} variant="contained" sx={{ borderRadius: 99, px: 4, textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', '&:hover': { bgcolor: '#178f89' } }}>Confirmar</Button>
+      <Button onClick={onClose} variant="outlined" sx={{ borderRadius: '999px', px: 3, textTransform: 'none', fontWeight: 600, borderColor: 'divider', color: 'text.secondary' }}>Cancelar</Button>
+      <Button onClick={onConfirm} variant="contained" sx={{ borderRadius: '999px', px: 4, textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', '&:hover': { bgcolor: '#178f89' } }}>Confirmar</Button>
     </DialogActions>
   </Dialog>
 );

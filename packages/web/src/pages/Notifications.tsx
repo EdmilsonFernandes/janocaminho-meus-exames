@@ -77,7 +77,7 @@ export const NotificationsPage = () => {
       </Typography>
 
       {/* Popup p/ notificações PURAMENTE informativas (sem tela pra levar): mostra o texto maior/fácil de ler. */}
-      <Dialog open={!!view} onClose={() => setView(null)} PaperProps={{ sx: { borderRadius: 4, maxWidth: 400 } }}>
+      <Dialog open={!!view} onClose={() => setView(null)} PaperProps={{ sx: { borderRadius: '12px', maxWidth: 400 } }}>
         <DialogTitle sx={{ textAlign: 'center', pb: 0 }}>
           <Stack alignItems="center" spacing={1}>
             <DrExame size={48} sx={{ borderRadius: '50%' }} />
@@ -89,7 +89,7 @@ export const NotificationsPage = () => {
           {view?.createdAt && <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', mt: 1.5 }}>{fmtDt(view.createdAt)}</Typography>}
         </DialogContent>
         <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
-          <Button variant="contained" onClick={() => setView(null)} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa' }}>Fechar</Button>
+          <Button variant="contained" onClick={() => setView(null)} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa' }}>Fechar</Button>
         </DialogActions>
       </Dialog>
     </PageContainer>

@@ -75,7 +75,7 @@ export const ExamDemo = () => {
   return (
     <Box sx={{
       maxWidth: 720, mx: 'auto', width: '100%',
-      borderRadius: 4, overflow: 'hidden', border: '1px solid', borderColor: 'divider',
+      borderRadius: '12px', overflow: 'hidden', border: '1px solid', borderColor: 'divider',
       bgcolor: 'background.paper',
       boxShadow: '0 24px 60px rgba(32,178,170,.16), 0 8px 20px rgba(0,0,0,.06)',
     }}>
@@ -96,7 +96,7 @@ export const ExamDemo = () => {
       <Box sx={{ p: { xs: 2, sm: 2.75 } }}>
         {/* Laudo cru — some depois de lido (libera espaço pro resultado) */}
         {!started && (
-          <Box sx={{ borderRadius: 2, bgcolor: '#0c2422', p: 2, mb: 2.5, fontFamily: 'ui-monospace,SFMono-Regular,Menlo,monospace', fontSize: 12.5, color: '#9bc4c0', lineHeight: 1.9 }}>
+          <Box sx={{ borderRadius: '12px', bgcolor: '#0c2422', p: 2, mb: 2.5, fontFamily: 'ui-monospace,SFMono-Regular,Menlo,monospace', fontSize: 12.5, color: '#9bc4c0', lineHeight: 1.9 }}>
             <Box sx={{ color: '#5fc9c3', mb: 0.5 }}>LAB CENTRAL · Perfil Lipídico</Box>
             <Box>COL Total ......... 295 mg/dL</Box>
             <Box>LDL ............... 190 mg/dL  <span style={{ color: ORANGE }}>← alterado</span></Box>
@@ -110,7 +110,7 @@ export const ExamDemo = () => {
         {!started && (
           <Box sx={{ textAlign: 'center' }}>
             <Button size="large" onClick={() => setStep(0)} startIcon={<PlayArrowIcon />} sx={{
-              borderRadius: 99, px: 3.5, py: 1.4, fontSize: 16, textTransform: 'none', fontWeight: 800,
+              borderRadius: '999px', px: 3.5, py: 1.4, fontSize: 16, textTransform: 'none', fontWeight: 800,
               bgcolor: TEAL, color: '#fff', boxShadow: '0 12px 28px rgba(32,178,170,.35)',
               animation: 'examPulse 2.2s ease-in-out infinite',
               '&:hover': { bgcolor: TEAL_DARK, transform: 'translateY(-2px)' }, transition: 'all .2s',
@@ -134,7 +134,7 @@ export const ExamDemo = () => {
                   const m = flagMeta[r.flag];
                   return (
                     <Fade key={r.name} in timeout={260}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 0.6, px: 1.25, borderRadius: 2, bgcolor: 'action.hover' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 0.6, px: 1.25, borderRadius: '12px', bgcolor: 'action.hover' }}>
                         <Box sx={{ flex: 1 }}>
                           <Typography sx={{ fontSize: 13.5, fontWeight: 700, color: 'text.primary' }}>{r.name}</Typography>
                           <Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>ref. {r.ref} {r.unit}</Typography>
@@ -150,7 +150,7 @@ export const ExamDemo = () => {
 
             {/* Explicação da IA (streaming) */}
             {(analyzing || done) && (
-              <Box sx={{ mb: done ? 2 : 0, borderRadius: 2, p: 1.75, bgcolor: 'rgba(32,178,170,.06)', border: '1px solid', borderColor: 'rgba(32,178,170,.18)' }}>
+              <Box sx={{ mb: done ? 2 : 0, borderRadius: '12px', p: 1.75, bgcolor: 'rgba(32,178,170,.06)', border: '1px solid', borderColor: 'rgba(32,178,170,.18)' }}>
                 <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 0.75 }}>
                   <AutoAwesomeIcon sx={{ fontSize: 16, color: TEAL_DARK }} />
                   <Typography sx={{ fontSize: 12, fontWeight: 800, color: TEAL_DARK }}>Dr. Exame explica</Typography>
@@ -165,7 +165,7 @@ export const ExamDemo = () => {
             {/* RiskCard + plano — monta ao final */}
             {done && (
               <Fade in timeout={450}>
-                <Box sx={{ borderRadius: 3, p: 2, border: '1px solid', borderColor: 'divider', background: 'linear-gradient(135deg,rgba(234,88,12,.06),rgba(234,88,12,.02))' }}>
+                <Box sx={{ borderRadius: '12px', p: 2, border: '1px solid', borderColor: 'divider', background: 'linear-gradient(135deg,rgba(234,88,12,.06),rgba(234,88,12,.02))' }}>
                   <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.25 }}>
                     <HealthAndSafetyIcon sx={{ fontSize: 20, color: ORANGE }} />
                     <Typography sx={{ fontWeight: 800, flex: 1, fontSize: 14.5 }}>Leitura de risco</Typography>
@@ -184,7 +184,7 @@ export const ExamDemo = () => {
                       </Box>
                     ))}
                   </Stack>
-                  <Box sx={{ borderRadius: 2, bgcolor: 'action.hover', p: 1.25 }}>
+                  <Box sx={{ borderRadius: '12px', bgcolor: 'action.hover', p: 1.25 }}>
                     <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mb: 0.25 }}>
                       <AutoAwesomeIcon sx={{ fontSize: 15, color: TEAL_DARK }} />
                       <Typography sx={{ fontWeight: 800, fontSize: '0.82rem' }}>Plano de ação do Dr. Exame</Typography>
@@ -201,10 +201,10 @@ export const ExamDemo = () => {
             {/* Ações finais */}
             {done && (
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25} sx={{ mt: 2 }} useFlexGap>
-                <Button fullWidth variant="contained" onClick={() => navigate('/registrar')} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 800 }}>
+                <Button fullWidth variant="contained" onClick={() => navigate('/registrar')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800 }}>
                   Ver minha leitura de risco →
                 </Button>
-                <Button fullWidth variant="outlined" onClick={() => setStep(-1)} startIcon={<RefreshIcon />} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, borderColor: '#bfe7e3', color: TEAL_DARK }}>
+                <Button fullWidth variant="outlined" onClick={() => setStep(-1)} startIcon={<RefreshIcon />} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, borderColor: '#bfe7e3', color: TEAL_DARK }}>
                   Ver de novo
                 </Button>
               </Stack>

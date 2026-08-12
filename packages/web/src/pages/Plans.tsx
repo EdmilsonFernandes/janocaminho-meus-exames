@@ -106,7 +106,7 @@ export const PlansPage = () => {
         subtitle={<>Use à vontade: assine o <strong>mensal</strong> (250 créditos de IA por mês) ou compre <strong>créditos avulsos</strong> via PIX.</>} />
 
       {/* HERO — saldo centralizado, gradiente esmeralda + profundidade */}
-      <Card sx={{ mb: 2.5, borderRadius: 5, overflow: 'hidden', position: 'relative', color: '#fff',
+      <Card sx={{ mb: 2.5, borderRadius: '12px', overflow: 'hidden', position: 'relative', color: '#fff',
           background: 'linear-gradient(135deg,#0f3d3a 0%,#137a72 55%,#1f9d95 100%)',
           boxShadow: '0 20px 44px rgba(15,61,58,.28)' }}>
         <Box sx={{ position: 'absolute', top: '-45%', right: '-12%', width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,.16), transparent 70%)', pointerEvents: 'none' }} />
@@ -114,7 +114,7 @@ export const PlansPage = () => {
           <Typography sx={{ fontSize: 12, fontWeight: 700, letterSpacing: 2.4, textTransform: 'uppercase', color: 'rgba(255,255,255,.72)' }}>Seus créditos</Typography>
           <Typography sx={{ fontWeight: 800, fontSize: { xs: 52, md: 62 }, lineHeight: 1, mt: 0.5, letterSpacing: '-0.02em', fontFamily: 'Poppins, sans-serif', fontVariantNumeric: 'tabular-nums' }}>{status?.credits ?? 0}</Typography>
           {status?.active
-            ? <Box sx={{ display: 'inline-flex', mt: 2.5, alignItems: 'center', gap: 0.75, px: 2, py: 0.85, borderRadius: 99, bgcolor: 'rgba(255,255,255,.16)', backdropFilter: 'blur(8px)', boxShadow: '0 6px 18px rgba(0,0,0,.18)', border: '1px solid rgba(255,255,255,.28)' }}>
+            ? <Box sx={{ display: 'inline-flex', mt: 2.5, alignItems: 'center', gap: 0.75, px: 2, py: 0.85, borderRadius: '999px', bgcolor: 'rgba(255,255,255,.16)', backdropFilter: 'blur(8px)', boxShadow: '0 6px 18px rgba(0,0,0,.18)', border: '1px solid rgba(255,255,255,.28)' }}>
                 <Box sx={{ fontSize: 14 }}>👑</Box>
                 <Typography sx={{ fontWeight: 700, fontSize: 13, letterSpacing: 0.2 }}>Premium ativo até {status.planExpiresAt ? fmt(status.planExpiresAt) : '—'}</Typography>
               </Box>
@@ -124,7 +124,7 @@ export const PlansPage = () => {
 
       {/* CONSUMO RECENTE */}
       {( /* Histórico de Uso: sempre visível — load lazy ao expandir */ 
-        <Card sx={{ mb: 2, borderRadius: 4 }}><CardContent>
+        <Card sx={{ mb: 2, borderRadius: '12px' }}><CardContent>
           <Stack direction="row" alignItems="center" justifyContent="space-between" onClick={() => setHistOpen((v) => !v)} sx={{ mb: histOpen ? 1.5 : 0, cursor: 'pointer', userSelect: 'none', '&:hover': { opacity: 0.8 } }}>
             <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', fontSize: 17 }}>Histórico de Uso</Typography>
             <Typography variant="caption" sx={{ color: '#178f89', fontWeight: 700 }}>{histOpen ? 'Ocultar ▲' : histTotal ? `${histTotal} lançamento(s) ▼` : 'Ver histórico ▼'}</Typography>
@@ -199,14 +199,14 @@ export const PlansPage = () => {
         /* Android (Play Store): SEM compra dentro do app — o usuário assina/compra créditos
            pelo SITE. Evita violar a política de pagamentos do Google (Play Billing p/ bens digitais).
            O saldo e o Premium adquirados no site aparecem aqui automaticamente. */
-        <Card sx={{ mt: 1, borderRadius: 4, border: '2px dashed #20b2aa', background: 'rgba(32,178,170,0.08)' }}>
+        <Card sx={{ mt: 1, borderRadius: '12px', border: '2px dashed #20b2aa', background: 'rgba(32,178,170,0.08)' }}>
           <CardContent>
             <Typography variant="h6" sx={{ fontWeight: 800, color: '#178f89' }}>💎 Premium e Créditos de IA</Typography>
             <Typography sx={{ mt: 1, fontSize: 15 }}>
               O <strong>Plano Premium</strong> (R$ 19,90/mês) e os <strong>créditos</strong> para a IA são adquirados pelo nosso <strong>site</strong>, com PIX instantâneo.
             </Typography>
             <Typography sx={{ mt: 2, fontWeight: 700 }}>Acesse pelo navegador:</Typography>
-            <Typography sx={{ fontFamily: 'monospace', fontSize: 16, bgcolor: 'background.paper', border: '1px solid #cfe9e5', p: 1, borderRadius: 1, mt: 0.5, userSelect: 'all' }}>
+            <Typography sx={{ fontFamily: 'monospace', fontSize: 16, bgcolor: 'background.paper', border: '1px solid #cfe9e5', p: 1, borderRadius: '8px', mt: 0.5, userSelect: 'all' }}>
               janocaminho.com.br/minhasaude
             </Typography>
             <Alert severity="info" sx={{ mt: 2 }} icon={false}>
@@ -220,7 +220,7 @@ export const PlansPage = () => {
       <Typography variant="h6" sx={{ mt: 1, mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}><BoltIcon color="secondary" /> Comprar créditos (PIX instantâneo)</Typography>
       <Stack spacing={2} sx={{ mb: 3, width: '100%' }}>
         {packs.map((p) => (
-          <Card key={p.id} sx={{ borderRadius: 4, border: p.popular ? '2px solid #20b2aa' : '1px solid', borderColor: p.popular ? undefined : 'divider', width: '100%' }}>
+          <Card key={p.id} sx={{ borderRadius: '12px', border: p.popular ? '2px solid #20b2aa' : '1px solid', borderColor: p.popular ? undefined : 'divider', width: '100%' }}>
             {p.popular && <Box sx={{ textAlign: 'center', pt: 1.5 }}><Chip color="primary" label="MAIS VENDIDO" size="small" /></Box>}
             <CardContent sx={{ textAlign: 'center', pt: p.popular ? 1 : 2 }}>
               <Typography sx={{ fontWeight: 800, fontSize: 28, color: 'primary.main', lineHeight: 1.1 }}>{p.credits}</Typography>
@@ -235,7 +235,7 @@ export const PlansPage = () => {
       <Typography align="center" color="text.secondary" sx={{ my: 2, fontWeight: 600 }}>— ou assine —</Typography>
 
       {/* PLANO MENSAL */}
-      <Card sx={{ borderRadius: 4, background: 'rgba(32,178,170,0.06)', border: '2px solid #20b2aa' }}>
+      <Card sx={{ borderRadius: '12px', background: 'rgba(32,178,170,0.06)', border: '2px solid #20b2aa' }}>
         <CardContent>
           <Typography variant="h6" sx={{ fontWeight: 800, color: '#178f89' }}>💎 Premium Mensal</Typography>
           <Typography color="text.secondary" sx={{ fontSize: 14, mt: 0.5 }}>

@@ -46,7 +46,7 @@ const EditableItemValue = ({ it, color, onSaved }: { it: any; color: string; onS
     <Box component="input" value={v} autoFocus disabled={busy}
       onChange={(e: any) => setV(e.target.value)} onBlur={save}
       onKeyDown={(e: any) => { if (e.key === 'Enter') save(); if (e.key === 'Escape') { setV(it.valueText ?? ''); setEditing(false); } }}
-      sx={{ fontSize: '1.4rem', fontWeight: 800, p: '2px 6px', borderRadius: 1, border: '2px solid #20b2aa', outline: 'none', width: 150, bgcolor: 'background.paper', color }} />
+      sx={{ fontSize: '1.4rem', fontWeight: 800, p: '2px 6px', borderRadius: '8px', border: '2px solid #20b2aa', outline: 'none', width: 150, bgcolor: 'background.paper', color }} />
   );
   return (
     <Typography onClick={() => setEditing(true)} title="Toque para corrigir o valor"
@@ -283,7 +283,7 @@ export const ExamShow = () => {
           </Stack>
           <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mt: 0.5 }}>
             {exam.performedAt ? (
-              <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, px: 1, py: 0.3, borderRadius: 99, bgcolor: 'rgba(32,178,170,.10)' }}>
+              <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, px: 1, py: 0.3, borderRadius: '999px', bgcolor: 'rgba(32,178,170,.10)' }}>
                 <CalendarMonthIcon sx={{ fontSize: 16, color: 'primary.main' }} />
                 <Typography component="span" sx={{ fontWeight: 700, color: 'primary.dark', fontSize: '0.9rem', lineHeight: 1 }}>{fmtDateShort(exam.performedAt)}</Typography>
               </Box>
@@ -304,7 +304,7 @@ export const ExamShow = () => {
             </Typography>
           )}
           {headerNeedsReview && (
-            <Alert severity="info" icon={false} sx={{ mt: 1.5, borderRadius: 2, py: 0.75, '& .MuiAlert-message': { fontSize: 13 } }}>
+            <Alert severity="info" icon={false} sx={{ mt: 1.5, borderRadius: '12px', py: 0.75, '& .MuiAlert-message': { fontSize: 13 } }}>
               Alguns dados do cabeçalho vieram da leitura automática e precisam conferência. Os valores abaixo continuam editáveis.
             </Alert>
           )}
@@ -412,7 +412,7 @@ export const ExamShow = () => {
                     const valColor = out ? (m.color === 'error' ? 'error.main' : 'warning.main') : 'success.main';
                     return (
                       <Box key={it.id} sx={{
-                        py: 1.25, pl: 1, borderRadius: 1,
+                        py: 1.25, pl: 1, borderRadius: '8px',
                         borderLeft: out ? '5px solid' : '5px solid transparent',
                         borderColor: out ? (m.color === 'error' ? 'error.main' : 'warning.main') : 'transparent',
                         background: out ? (m.color === 'error' ? 'rgba(198,40,40,.06)' : 'rgba(230,81,0,.06)') : 'transparent',
@@ -511,11 +511,11 @@ export const ExamShow = () => {
           <CardContent>
             <Typography variant="h6" gutterBottom>Conversar com Dr. Exame</Typography>
             <Box sx={{ mb: 1 }}><CreditBadge amount={CREDIT_COSTS.chat} label={`${CREDIT_COSTS.chat} por pergunta`} /></Box>
-            <Box sx={{ maxHeight: 320, overflowY: 'auto', mb: 1, p: 1, bgcolor: 'action.hover', borderRadius: 1 }}>
+            <Box sx={{ maxHeight: 320, overflowY: 'auto', mb: 1, p: 1, bgcolor: 'action.hover', borderRadius: '8px' }}>
               {chatMessages.length === 0 && <Typography color="text.secondary">Ex.: "Por que minha hemoglobina subiu?"</Typography>}
               {chatMessages.map((m, i) => (
                 <Box key={i} sx={{ textAlign: m.role === 'user' ? 'right' : 'left', mb: 1 }}>
-                  <Box sx={{ display: 'inline-block', maxWidth: '85%', px: 1.25, py: 0.75, borderRadius: 2, whiteSpace: 'pre-wrap', wordBreak: 'break-word', bgcolor: m.role === 'user' ? 'primary.main' : 'background.paper', color: m.role === 'user' ? 'primary.contrastText' : 'text.primary', border: m.role === 'user' ? 'none' : '1px solid', borderColor: 'divider' }}>{m.text || '…'}</Box>
+                  <Box sx={{ display: 'inline-block', maxWidth: '85%', px: 1.25, py: 0.75, borderRadius: '12px', whiteSpace: 'pre-wrap', wordBreak: 'break-word', bgcolor: m.role === 'user' ? 'primary.main' : 'background.paper', color: m.role === 'user' ? 'primary.contrastText' : 'text.primary', border: m.role === 'user' ? 'none' : '1px solid', borderColor: 'divider' }}>{m.text || '…'}</Box>
                 </Box>
               ))}
             </Box>
@@ -524,7 +524,7 @@ export const ExamShow = () => {
               <Box component="input" value={chatInput} disabled={chatBusy} placeholder="Converse com o Dr. Exame…"
                 onChange={(e: any) => setChatInput(e.target.value)}
                 onKeyDown={(e: any) => { if (e.key === 'Enter' && !chatBusy) sendChat(); }}
-                sx={{ flex: 1, px: 1.5, py: 1.25, fontSize: 16, borderRadius: 1, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', color: 'text.primary', outline: 'none' }} />
+                sx={{ flex: 1, px: 1.5, py: 1.25, fontSize: 16, borderRadius: '8px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', color: 'text.primary', outline: 'none' }} />
               <Button variant="contained" onClick={sendChat} disabled={chatBusy || !chatInput.trim()}>Enviar</Button>
             </Stack>
           </CardContent>

@@ -35,9 +35,9 @@ export const RefBar = ({ value, refLow, refHigh, unit }: { value: number | null;
   return (
     <Box sx={{ mt: 0.5, mb: 0.25 }}>
       {/* Barra */}
-      <Box sx={{ position: 'relative', height: 8, borderRadius: 99, bgcolor: 'rgba(239,68,68,.12)', overflow: 'visible' }}>
+      <Box sx={{ position: 'relative', height: 8, borderRadius: '999px', bgcolor: 'rgba(239,68,68,.12)', overflow: 'visible' }}>
         {/* Zona verde (faixa de referência) */}
-        <Box sx={{ position: 'absolute', left: `${greenStart}%`, width: `${greenWidth}%`, top: 0, bottom: 0, borderRadius: 99, bgcolor: 'rgba(5,150,105,.18)' }} />
+        <Box sx={{ position: 'absolute', left: `${greenStart}%`, width: `${greenWidth}%`, top: 0, bottom: 0, borderRadius: '999px', bgcolor: 'rgba(5,150,105,.18)' }} />
         {/* Zona amber (borderline) — bordas da zona verde */}
         <Box sx={{ position: 'absolute', left: `${greenStart}%`, width: `${Math.min(margin / visRange * 100, 10)}%`, top: 0, bottom: 0, borderRadius: '99px 0 0 99px', bgcolor: 'rgba(245,158,11,.15)' }} />
         <Box sx={{ position: 'absolute', left: `${greenStart + greenWidth - Math.min(margin / visRange * 100, 10)}%`, width: `${Math.min(margin / visRange * 100, 10)}%`, top: 0, bottom: 0, borderRadius: '0 99px 99px 0', bgcolor: 'rgba(245,158,11,.15)' }} />

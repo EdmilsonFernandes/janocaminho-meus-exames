@@ -79,7 +79,7 @@ export const BiometricGate = ({ children }: { children: React.ReactNode }) => {
           <Typography sx={{ opacity: 0.85, fontSize: 14, mb: 1.5, maxWidth: 300 }}>Confirme sua biometria (digital ou rosto) para continuar.</Typography>
           {busy
             ? <CircularProgress sx={{ color: '#20b2aa' }} />
-            : <Button variant="contained" onClick={() => void prompt()} sx={{ borderRadius: 99, px: 4, py: 1.1, textTransform: 'none', fontWeight: 800, fontSize: 15, bgcolor: '#20b2aa', '&:hover': { bgcolor: '#0f7670' } }}>Usar biometria</Button>}
+            : <Button variant="contained" onClick={() => void prompt()} sx={{ borderRadius: '999px', px: 4, py: 1.1, textTransform: 'none', fontWeight: 800, fontSize: 15, bgcolor: '#20b2aa', '&:hover': { bgcolor: '#0f7670' } }}>Usar biometria</Button>}
           <Button variant="text" onClick={logoutEscape} sx={{ mt: 1, color: 'rgba(255,255,255,.7)', textTransform: 'none', fontSize: 13, '&:hover': { color: '#fff', bgcolor: 'transparent' } }}>Entrar com senha</Button>
         </Box>
       )}

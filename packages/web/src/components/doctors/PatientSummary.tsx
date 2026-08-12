@@ -116,7 +116,7 @@ export const PatientSummary = ({ patient, exams, questions, notes, patients, onS
   ];
 
   return (
-    <Card elevation={0} sx={{ p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider', bgcolor: (t) => (t.palette.mode === 'dark' ? alpha(primary, 0.05) : alpha(primary, 0.03)) }}>
+    <Card elevation={0} sx={{ p: 2, borderRadius: '12px', border: '1px solid', borderColor: 'divider', bgcolor: (t) => (t.palette.mode === 'dark' ? alpha(primary, 0.05) : alpha(primary, 0.03)) }}>
       <Stack direction="row" spacing={1.5} alignItems="center" sx={{ minWidth: 0 }}>
         <Box sx={{ position: 'relative', flexShrink: 0 }}>
           <Box sx={{ position: 'absolute', inset: -3, borderRadius: '50%', border: `2px solid ${ringColor}`, opacity: patient?.hasAlerts ? 1 : 0.35 }} />
@@ -125,7 +125,7 @@ export const PatientSummary = ({ patient, exams, questions, notes, patients, onS
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0 }}>
             <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 20, lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'text.primary' }}>{fullName}</Typography>
-            <Button size="small" onClick={() => setSwitcherOpen(true)} startIcon={<SwapHorizIcon />} aria-label="Trocar paciente" sx={{ flexShrink: 0, minWidth: 0, textTransform: 'none', fontWeight: 700, color: primary, borderRadius: 99, py: 0.25, px: 1, '&:hover': { bgcolor: alpha(primary, 0.08) } }}>Trocar</Button>
+            <Button size="small" onClick={() => setSwitcherOpen(true)} startIcon={<SwapHorizIcon />} aria-label="Trocar paciente" sx={{ flexShrink: 0, minWidth: 0, textTransform: 'none', fontWeight: 700, color: primary, borderRadius: '999px', py: 0.25, px: 1, '&:hover': { bgcolor: alpha(primary, 0.08) } }}>Trocar</Button>
           </Stack>
           {caption && <Typography sx={{ color: 'text.primary', opacity: 0.72, display: 'block', mt: 0.5, fontSize: 13, fontWeight: 600, lineHeight: 1.3 }}>{caption}</Typography>}
         </Box>
@@ -139,7 +139,7 @@ export const PatientSummary = ({ patient, exams, questions, notes, patients, onS
             role={t.onClick ? 'button' : undefined}
             tabIndex={t.onClick ? 0 : undefined}
             sx={{
-              p: 1.25, borderRadius: 2, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider',
+              p: 1.25, borderRadius: '12px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider',
               cursor: t.onClick ? 'pointer' : 'default',
               transition: 'border-color .15s',
               '&:hover': t.onClick ? { borderColor: primary } : {},
@@ -155,12 +155,12 @@ export const PatientSummary = ({ patient, exams, questions, notes, patients, onS
         ))}
       </Box>
 
-      <Dialog open={switcherOpen} onClose={() => setSwitcherOpen(false)} fullWidth maxWidth="sm" PaperProps={{ sx: { borderRadius: 3 } }}>
+      <Dialog open={switcherOpen} onClose={() => setSwitcherOpen(false)} fullWidth maxWidth="sm" PaperProps={{ sx: { borderRadius: '12px' } }}>
         <DialogContent sx={{ pt: 3 }}>
           <Stack spacing={1.5}>
             <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif' }}>Selecionar paciente</Typography>
             <DoctorPatientSwitcher patients={patients} value={pid} onSelect={(id) => { onSwitchPatient(id); setSwitcherOpen(false); }} />
-            <Button onClick={() => setSwitcherOpen(false)} sx={{ alignSelf: 'flex-end', textTransform: 'none', borderRadius: 99 }}>Fechar</Button>
+            <Button onClick={() => setSwitcherOpen(false)} sx={{ alignSelf: 'flex-end', textTransform: 'none', borderRadius: '999px' }}>Fechar</Button>
           </Stack>
         </DialogContent>
       </Dialog>

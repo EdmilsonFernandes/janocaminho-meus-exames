@@ -107,7 +107,7 @@ export const AdminPage = () => {
             return (
               <Box key={m.id}>
                 {showGroup && <Typography sx={{ px: 2.5, pt: 1.5, pb: 0.25, fontSize: 10, fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>{m.group}</Typography>}
-                <ListItemButton onClick={() => select(m.id)} selected={on} sx={{ mx: 1, borderRadius: 1.5, py: 0.7, '&.Mui-selected': { bgcolor: 'rgba(32,178,170,.14)' }, '&.Mui-selected .MuiListItemIcon-root': { color: '#178f89' } }}>
+                <ListItemButton onClick={() => select(m.id)} selected={on} sx={{ mx: 1, borderRadius: '8px', py: 0.7, '&.Mui-selected': { bgcolor: 'rgba(32,178,170,.14)' }, '&.Mui-selected .MuiListItemIcon-root': { color: '#178f89' } }}>
                   <ListItemIcon sx={{ minWidth: 36, color: on ? '#178f89' : 'text.secondary', '& svg': { fontSize: 20 } }}>{m.icon}</ListItemIcon>
                   <ListItemText primary={m.label} primaryTypographyProps={{ fontSize: 13.5, fontWeight: on ? 700 : 500, color: on ? 'text.primary' : 'text.secondary' }} />
                 </ListItemButton>
@@ -118,11 +118,11 @@ export const AdminPage = () => {
       </Box>
       <Divider />
       <List disablePadding>
-        <ListItemButton onClick={() => navigate('/')} sx={{ mx: 1, my: 0.5, borderRadius: 1.5 }}>
+        <ListItemButton onClick={() => navigate('/')} sx={{ mx: 1, my: 0.5, borderRadius: '8px' }}>
           <ListItemIcon sx={{ minWidth: 36, color: 'text.secondary' }}><ArrowBackIcon /></ListItemIcon>
           <ListItemText primary="Voltar ao app" primaryTypographyProps={{ fontSize: 13 }} />
         </ListItemButton>
-        <ListItemButton onClick={logout} sx={{ mx: 1, mb: 0.5, borderRadius: 1.5, color: 'error.main' }}>
+        <ListItemButton onClick={logout} sx={{ mx: 1, mb: 0.5, borderRadius: '8px', color: 'error.main' }}>
           <ListItemIcon sx={{ minWidth: 36, color: 'error.main' }}><LogoutIcon /></ListItemIcon>
           <ListItemText primary="Sair" primaryTypographyProps={{ fontSize: 13 }} />
         </ListItemButton>
@@ -186,7 +186,7 @@ export const AdminPage = () => {
             <Box key={f.id} onClick={() => select(f.id)} sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 0.6, cursor: 'pointer', color: on ? '#178f89' : 'text.secondary', '& svg': { fontSize: 21 } }}>
               {m.icon}
               <Typography sx={{ fontSize: 10, fontWeight: on ? 800 : 600, mt: 0.25, fontFamily: '"Poppins",sans-serif' }}>{f.short}</Typography>
-              <Box sx={{ height: 3, width: on ? 20 : 0, borderRadius: 9, bgcolor: '#178f89', mt: 0.3, transition: 'width .2s' }} />
+              <Box sx={{ height: 3, width: on ? 20 : 0, borderRadius: '12px', bgcolor: '#178f89', mt: 0.3, transition: 'width .2s' }} />
             </Box>
           );
         })}

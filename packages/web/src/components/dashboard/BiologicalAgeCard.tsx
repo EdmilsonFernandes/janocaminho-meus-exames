@@ -67,7 +67,7 @@ export const BiologicalAgeCard = () => {
     </Card>
 
       {/* Dialog: explicação leiga e profunda da idade biológica (pt 4 do pedido). */}
-      <Dialog open={explain} onClose={() => setExplain(false)} maxWidth="sm" fullWidth slotProps={{ paper: { sx: { borderRadius: 3 } } }}>
+      <Dialog open={explain} onClose={() => setExplain(false)} maxWidth="sm" fullWidth slotProps={{ paper: { sx: { borderRadius: '12px' } } }}>
         <DialogTitle sx={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 1 }}>🧬 O que é a idade biológica?</DialogTitle>
         <DialogContent>
           <Typography variant="body2" sx={{ lineHeight: 1.6, display: 'block' }}>
@@ -84,7 +84,7 @@ export const BiologicalAgeCard = () => {
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setExplain(false)} variant="contained" sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 800 }}>Entendi</Button>
+          <Button onClick={() => setExplain(false)} variant="contained" sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 800 }}>Entendi</Button>
         </DialogActions>
       </Dialog>
     </>

@@ -98,7 +98,7 @@ export const QuestionsPage = () => {
         <Stack spacing={1} sx={{ mb: 2 }}>
           <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap">
             {([['all', 'Todas'], ['pending', 'Aguardando'], ['answered', 'Respondidas']] as const).map(([k, l]) => (
-              <Chip key={k} size="small" label={l} color={qFilter === k ? 'primary' : 'default'} variant={qFilter === k ? 'filled' : 'outlined'} onClick={() => setQFilter(k)} sx={{ fontWeight: 700, borderRadius: 99 }} />
+              <Chip key={k} size="small" label={l} color={qFilter === k ? 'primary' : 'default'} variant={qFilter === k ? 'filled' : 'outlined'} onClick={() => setQFilter(k)} sx={{ fontWeight: 700, borderRadius: '999px' }} />
             ))}
           </Stack>
           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" alignItems="center">
@@ -115,7 +115,7 @@ export const QuestionsPage = () => {
       )}
 
       {filtered.length === 0 ? (
-        <Card variant="outlined" sx={{ borderRadius: 3, textAlign: 'center', py: 6, px: 3 }}>
+        <Card variant="outlined" sx={{ borderRadius: '12px', textAlign: 'center', py: 6, px: 3 }}>
           <Box sx={{ fontSize: 48, mb: 1 }}>💬</Box>
           <Typography sx={{ fontWeight: 800, mb: 0.5 }}>{translate('q.empty')}</Typography>
           <Typography variant="body2" color="text.secondary">
@@ -147,7 +147,7 @@ export const QuestionsPage = () => {
                       const answered = q.status === 'answered';
                       return (
                         <Card key={q.id} variant="outlined" onClick={() => openThread(q)} sx={{
-                          borderRadius: 2, cursor: 'pointer', borderColor: 'divider',
+                          borderRadius: '12px', cursor: 'pointer', borderColor: 'divider',
                           transition: 'transform .12s ease', '&:active': { transform: 'scale(0.985)' },
                         }}>
                           <CardContent sx={{ display: 'flex', gap: 1.25, alignItems: 'flex-start', '&:last-child': { pb: 1.25 }, py: 1.25 }}>
@@ -195,7 +195,7 @@ export const QuestionsPage = () => {
                 const isSys = m.authorRole === 'system';
                 if (isSys) {
                   // Auto-recebimento (ex.: "✅ Recebido! Dr. X vai analisar em breve") — centralizado, muted.
-                  return <Box key={i} sx={{ textAlign: 'center', my: 0.5 }}><Box sx={{ display: 'inline-block', px: 1.5, py: 0.5, borderRadius: 99, bgcolor: 'rgba(32,178,170,.08)', color: 'text.secondary', fontSize: 12, fontWeight: 600 }}>{m.body}</Box></Box>;
+                  return <Box key={i} sx={{ textAlign: 'center', my: 0.5 }}><Box sx={{ display: 'inline-block', px: 1.5, py: 0.5, borderRadius: '999px', bgcolor: 'rgba(32,178,170,.08)', color: 'text.secondary', fontSize: 12, fontWeight: 600 }}>{m.body}</Box></Box>;
                 }
                 const av = isDoc
                   ? <Avatar src={open?.doctor?.photoUrl ? doctorPhotoUrl(open?.doctor?.id, 0) : undefined} sx={{ width: 36, height: 36, bgcolor: TEAL, fontSize: 14, fontWeight: 700, flexShrink: 0 }}>{(open?.doctor?.name || 'M').charAt(0)}</Avatar>
@@ -203,7 +203,7 @@ export const QuestionsPage = () => {
                 return (
                   <Box key={i} sx={{ display: 'flex', justifyContent: isDoc ? 'flex-end' : 'flex-start', gap: 0.75, alignItems: 'flex-end' }}>
                     {!isDoc && av}
-                    <Box sx={{ maxWidth: '80%', p: 1, px: 1.25, borderRadius: 2, bgcolor: (t) => isDoc ? (t.palette.mode === 'dark' ? '#1e2d2c' : '#e0f2f1') : (t.palette.mode === 'dark' ? '#242f33' : '#f1f5f9'), border: '1px solid', borderColor: isDoc ? 'rgba(32,178,170,.25)' : 'transparent' }}>
+                    <Box sx={{ maxWidth: '80%', p: 1, px: 1.25, borderRadius: '12px', bgcolor: (t) => isDoc ? (t.palette.mode === 'dark' ? '#1e2d2c' : '#e0f2f1') : (t.palette.mode === 'dark' ? '#242f33' : '#f1f5f9'), border: '1px solid', borderColor: isDoc ? 'rgba(32,178,170,.25)' : 'transparent' }}>
                       <Typography variant="caption" sx={{ display: 'block', fontWeight: 700, color: isDoc ? TEAL : 'text.secondary', mb: 0.25, fontSize: 10.5 }}>{isDoc ? `Dr. ${open?.doctor?.name || 'Médico'}` : translate('q.you')} · {new Date(m.createdAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</Typography>
                       <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.45, wordBreak: 'break-word' }}>{m.body}</Typography>
                     </Box>

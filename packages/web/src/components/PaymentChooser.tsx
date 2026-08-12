@@ -43,7 +43,7 @@ export const PaymentChooser = ({ packId, packLabel, onClose, onPix }: {
   );
 
   return (
-    <Dialog open={!!packId} onClose={onClose} PaperProps={{ sx: { borderRadius: 4, maxWidth: 400, width: '100%' } }}>
+    <Dialog open={!!packId} onClose={onClose} PaperProps={{ sx: { borderRadius: '12px', maxWidth: 400, width: '100%' } }}>
       <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
         Forma de pagamento
         <IconButton onClick={onClose} size="small"><CloseIcon /></IconButton>

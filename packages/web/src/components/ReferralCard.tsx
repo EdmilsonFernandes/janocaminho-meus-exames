@@ -39,7 +39,7 @@ export const ReferralCard = ({ code }: { code?: string }) => {
   };
 
   return (
-    <Card sx={{ mt: 2, borderRadius: 4, overflow: 'hidden', background: 'rgba(32,178,170,0.06)', border: '1px solid', borderColor: 'divider' }}>
+    <Card sx={{ mt: 2, borderRadius: '12px', overflow: 'hidden', background: 'rgba(32,178,170,0.06)', border: '1px solid', borderColor: 'divider' }}>
       <CardContent>
         <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
           <GiftIcon sx={{ color: '#178f89' }} />
@@ -49,16 +49,16 @@ export const ReferralCard = ({ code }: { code?: string }) => {
 
         {/* Código */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-          <Box sx={{ flex: 1, p: 1.5, borderRadius: 2, bgcolor: 'background.paper', border: '2px dashed #20b2aa', textAlign: 'center' }}>
+          <Box sx={{ flex: 1, p: 1.5, borderRadius: '12px', bgcolor: 'background.paper', border: '2px dashed #20b2aa', textAlign: 'center' }}>
             <Typography sx={{ fontFamily: 'monospace', fontWeight: 800, fontSize: 18, color: '#178f89', letterSpacing: 1 }}>{code}</Typography>
           </Box>
-          <Button variant="outlined" startIcon={<ContentCopyIcon />} onClick={copy} sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 700, borderColor: '#20b2aa', color: '#178f89' }}>
+          <Button variant="outlined" startIcon={<ContentCopyIcon />} onClick={copy} sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 700, borderColor: '#20b2aa', color: '#178f89' }}>
             {copied ? '✓ Copiado!' : 'Copiar'}
           </Button>
         </Box>
 
         {/* Compartilhar */}
-        <Button variant="contained" fullWidth startIcon={<ShareIcon />} onClick={share} sx={{ mb: 2, borderRadius: 2, textTransform: 'none', fontWeight: 800, background: 'linear-gradient(180deg,#20b2aa,#009688)', '&:hover': { background: 'linear-gradient(180deg,#1ca39e,#00897b)' } }}>
+        <Button variant="contained" fullWidth startIcon={<ShareIcon />} onClick={share} sx={{ mb: 2, borderRadius: '12px', textTransform: 'none', fontWeight: 800, background: 'linear-gradient(180deg,#20b2aa,#009688)', '&:hover': { background: 'linear-gradient(180deg,#1ca39e,#00897b)' } }}>
           Compartilhar link
         </Button>
 

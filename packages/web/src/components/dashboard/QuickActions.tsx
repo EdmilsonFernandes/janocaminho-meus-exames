@@ -34,7 +34,7 @@ export const QuickActions = () => {
             }}
           >
             <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, py: 1.75, '&:last-child': { pb: 1.75 } }}>
-              <Box sx={{ width: 42, height: 42, borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', color: a.primary ? '#fff' : 'text.secondary', bgcolor: a.primary ? 'rgba(255,255,255,0.22)' : 'action.hover', '& svg': { fontSize: 22 } }}>{a.icon}</Box>
+              <Box sx={{ width: 42, height: 42, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: a.primary ? '#fff' : 'text.secondary', bgcolor: a.primary ? 'rgba(255,255,255,0.22)' : 'action.hover', '& svg': { fontSize: 22 } }}>{a.icon}</Box>
               <Typography variant="caption" sx={{ fontWeight: 700, color: a.primary ? '#fff' : 'text.primary' }}>{a.label}</Typography>
             </CardContent>
           </Card>

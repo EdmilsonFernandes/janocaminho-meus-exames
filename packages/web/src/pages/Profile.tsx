@@ -138,7 +138,7 @@ export const ProfilePage = () => {
       <PageHeader icon={<AccountCircleIcon />} title={translate('page.profile')} subtitle={translate('page.profile_sub')} />
 
       {/* Cabeçalho: conta + foto EDITÁVEL (unificado — só uma foto) */}
-      <Card sx={{ mb: 2, borderRadius: 4, overflow: 'hidden', background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff' }}>
+      <Card sx={{ mb: 2, borderRadius: '12px', overflow: 'hidden', background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff' }}>
         <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2.5, flexWrap: 'wrap', py: 3 }}>
           <PhotoUpload patientId={pid} photoUrl={patient?.photoUrl} size={76} hideLabel version={photoVer}
             fallback={(fullName || user?.name || '').trim().charAt(0).toUpperCase()}
@@ -158,7 +158,7 @@ export const ProfilePage = () => {
       </Card>
 
       {/* Dados + perfil clínico */}
-      <Card sx={{ mb: 2, borderRadius: 4 }}>
+      <Card sx={{ mb: 2, borderRadius: '12px' }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>Dados e perfil clínico</Typography>
           <Stack spacing={2}>
@@ -193,7 +193,7 @@ export const ProfilePage = () => {
       </Card>
 
       {/* Peso atual — atalho que registra medição WEIGHT (alimenta IMC + cardiometabólico) */}
-      <Card sx={{ mb: 2, borderRadius: 4 }}>
+      <Card sx={{ mb: 2, borderRadius: '12px' }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>⚖️ Peso atual</Typography>
           <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
@@ -205,7 +205,7 @@ export const ProfilePage = () => {
       </Card>
 
       {/* Notificações de conquista */}
-      <Card sx={{ mb: 2, borderRadius: 4 }}>
+      <Card sx={{ mb: 2, borderRadius: '12px' }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>🔔 Notificações</Typography>
           <FormControlLabel control={<Switch checked={achAlerts} onChange={(e) => toggleAchAlerts(e.target.checked)} />} label="Avisar quando eu desbloquear uma conquista" />
@@ -214,7 +214,7 @@ export const ProfilePage = () => {
       </Card>
 
       {/* Trocar senha */}
-      <Card sx={{ borderRadius: 4 }}>
+      <Card sx={{ borderRadius: '12px' }}>
         <CardContent>
           <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><LockIcon color="action" /> Trocar senha</Typography>
           <Stack spacing={2}>
@@ -234,7 +234,7 @@ export const ProfilePage = () => {
       <ReferralCard code={user?.referralCode} />
 
       {/* Dados e conta (exportar/importar/excluir — termos e LGPD estão em /privacidade) */}
-      <Card sx={{ borderRadius: 4, mt: 2, borderColor: 'error.main' }}>
+      <Card sx={{ borderRadius: '12px', mt: 2, borderColor: 'error.main' }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>Meus dados</Typography>
           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">

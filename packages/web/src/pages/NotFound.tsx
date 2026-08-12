@@ -11,7 +11,7 @@ export const NotFoundPage = () => {
       <Typography color="text.secondary" sx={{ mb: 3, maxWidth: 360 }}>
         O endereço pode estar incorrito ou a página foi movida. Que tal voltar pro painel?
       </Typography>
-      <Button variant="contained" size="large" onClick={() => navigate('/')} sx={{ borderRadius: 99, px: 4, textTransform: 'none', fontWeight: 700 }}>
+      <Button variant="contained" size="large" onClick={() => navigate('/')} sx={{ borderRadius: '999px', px: 4, textTransform: 'none', fontWeight: 700 }}>
         ← Voltar ao início
       </Button>
     </Box>

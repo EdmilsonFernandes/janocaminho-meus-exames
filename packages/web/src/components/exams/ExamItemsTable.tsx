@@ -113,7 +113,7 @@ export const ExamItemsTable = ({ items }: { items: any[] }) => {
                   const valColor = out ? (m.color === 'error' ? 'error.main' : 'warning.main') : 'success.main';
                   return (
                     <Box key={it.id} sx={{
-                      py: 1.25, pl: 1, borderRadius: 1,
+                      py: 1.25, pl: 1, borderRadius: '8px',
                       borderLeft: out ? '5px solid' : '5px solid transparent',
                       borderColor: out ? (m.color === 'error' ? 'error.main' : 'warning.main') : 'transparent',
                       background: out ? (m.color === 'error' ? 'rgba(198,40,40,.06)' : 'rgba(230,81,0,.06)') : 'transparent',

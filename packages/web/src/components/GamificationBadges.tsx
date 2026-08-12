@@ -22,7 +22,7 @@ export const GamificationBadges = ({ examsCount, score }: { examsCount: number; 
     <Card
       onClick={() => navigate('/conquistas')}
       sx={{
-        borderRadius: 4, cursor: 'pointer', background: 'rgba(32,178,170,0.06)', border: '1px solid', borderColor: 'divider',
+        borderRadius: '12px', cursor: 'pointer', background: 'rgba(32,178,170,0.06)', border: '1px solid', borderColor: 'divider',
         transition: 'all .2s', '&:hover': { boxShadow: '0 10px 26px rgba(32,178,170,.14)', transform: 'translateY(-1px)' }, '&:active': { transform: 'scale(.99)' },
       }}
     >

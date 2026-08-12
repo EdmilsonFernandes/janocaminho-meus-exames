@@ -110,18 +110,18 @@ const TicketList = () => {
       <Title title={translate('page.support')} />
       <PageHeader icon={<SupportAgentIcon />} title={translate('page.support')} accent="#178f89"
         subtitle={translate('page.support_sub')} />
-      <Button variant="contained" startIcon={<AddIcon />} sx={{ mb: 2, borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#178f89' }} onClick={() => setCreateOpen(true)}>Novo chamado</Button>
+      <Button variant="contained" startIcon={<AddIcon />} sx={{ mb: 2, borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: '#178f89' }} onClick={() => setCreateOpen(true)}>Novo chamado</Button>
 
       {tickets == null ? <ListSkeleton count={4} /> :
         err ? <Typography color="error">Não foi possível carregar seus chamados.</Typography> :
         tickets.length === 0 ? (
-          <Card variant="outlined" sx={{ borderRadius: 3 }}><CardContent><Typography color="text.secondary">Você ainda não abriu chamados. Precisa de ajuda? Toque em “Novo chamado”.</Typography></CardContent></Card>
+          <Card variant="outlined" sx={{ borderRadius: '12px' }}><CardContent><Typography color="text.secondary">Você ainda não abriu chamados. Precisa de ajuda? Toque em “Novo chamado”.</Typography></CardContent></Card>
         ) : (
           <Stack spacing={1.5}>
             {tickets.map((t) => {
               const st = STATUS_META[t.status] ?? STATUS_META.open;
               return (
-                <Card key={t.id} variant="outlined" onClick={() => navigate(`/suporte/${t.id}`)} sx={{ cursor: 'pointer', borderRadius: 2.5, '&:hover': { boxShadow: 2 } }}>
+                <Card key={t.id} variant="outlined" onClick={() => navigate(`/suporte/${t.id}`)} sx={{ cursor: 'pointer', borderRadius: '12px', '&:hover': { boxShadow: 2 } }}>
                   <CardContent sx={{ '&:last-child': { pb: 1.5 } }}>
                     <Stack direction="row" alignItems="center" spacing={1} useFlexGap flexWrap="wrap">
                       <Typography sx={{ fontWeight: 800, color: '#178f89' }}>#{t.number}</Typography>
@@ -195,7 +195,7 @@ const TicketThread = ({ id }: { id: string }) => {
           const atts = m.attachments ?? [];
           return (
             <Box key={m.id} sx={{ display: 'flex', justifyContent: mine ? 'flex-end' : 'flex-start' }}>
-              <Box sx={{ maxWidth: { xs: '85%', sm: '70%' }, bgcolor: mine ? '#178f89' : 'action.hover', color: mine ? '#fff' : 'text.primary', px: 1.5, py: 1, borderRadius: 2, borderBottomRightRadius: mine ? 4 : 2, borderBottomLeftRadius: mine ? 2 : 4 }}>
+              <Box sx={{ maxWidth: { xs: '85%', sm: '70%' }, bgcolor: mine ? '#178f89' : 'action.hover', color: mine ? '#fff' : 'text.primary', px: 1.5, py: 1, borderRadius: '12px', borderBottomRightRadius: mine ? 4 : 2, borderBottomLeftRadius: mine ? 2 : 4 }}>
                 {!mine && <Typography sx={{ fontSize: 11, fontWeight: 800, opacity: 0.8 }}>Dr. Suporte</Typography>}
                 <Typography sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{m.body}</Typography>
                 {atts.length > 0 && (
@@ -214,7 +214,7 @@ const TicketThread = ({ id }: { id: string }) => {
       </Stack>
 
       {/* Resposta */}
-      <Card variant="outlined" sx={{ borderRadius: 3 }}>
+      <Card variant="outlined" sx={{ borderRadius: '12px' }}>
         <CardContent>
           <Stack spacing={1}>
             <TextField size="small" multiline minRows={2} placeholder="Escreva uma mensagem…" value={reply} onChange={(e) => setReply(e.target.value)} fullWidth

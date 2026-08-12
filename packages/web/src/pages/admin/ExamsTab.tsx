@@ -24,7 +24,7 @@ export const ExamsTab = () => {
       <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 800 }}>Últimos exames ({d.exams.length})</Typography>
       <Stack spacing={1}>
         {d.exams.map((e: any) => (
-          <Card key={e.id} variant="outlined" sx={{ borderRadius: 2 }}>
+          <Card key={e.id} variant="outlined" sx={{ borderRadius: '12px' }}>
             <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
               <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
                 <Chip size="small" color={STATUS_COLOR[e.status] ?? 'default'} label={e.status} />

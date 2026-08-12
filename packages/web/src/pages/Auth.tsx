@@ -56,7 +56,7 @@ const Shell = ({ children }: { children: ReactNode }) => {
         </Box>
       </Stack>
       {children}
-      <Box sx={{ mt: 3, display: 'flex', gap: 1, alignItems: 'flex-start', p: 1.25, borderRadius: 2, bgcolor: 'background.default', border: '1px solid', borderColor: 'divider' }}>
+      <Box sx={{ mt: 3, display: 'flex', gap: 1, alignItems: 'flex-start', p: 1.25, borderRadius: '12px', bgcolor: 'background.default', border: '1px solid', borderColor: 'divider' }}>
         <Box sx={{ fontSize: 16, lineHeight: 1.3, flexShrink: 0 }}>🩺</Box>
         <Typography sx={{ fontSize: 11.5, color: 'text.secondary', lineHeight: 1.45 }}>
           <strong>{translate('auth.disclaimer_strong')}</strong> {translate('auth.disclaimer')}
@@ -247,9 +247,9 @@ export const LoginPage = () => {
   return (
     <Shell>
       {/* Toggle Paciente / Médico — segmented control premium */}
-      <Box sx={{ display: 'flex', p: 0.5, mb: 2, gap: 0.5, borderRadius: 99, bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider' }}>
+      <Box sx={{ display: 'flex', p: 0.5, mb: 2, gap: 0.5, borderRadius: '999px', bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider' }}>
         <Button onClick={() => { setRole('paciente'); setMode('password'); }} startIcon={<I.User />} fullWidth
-          sx={{ py: 1, borderRadius: 99, textTransform: 'none', fontWeight: 800, fontSize: 13.5, minHeight: 40, transition: 'all .2s',
+          sx={{ py: 1, borderRadius: '999px', textTransform: 'none', fontWeight: 800, fontSize: 13.5, minHeight: 40, transition: 'all .2s',
             background: role === 'paciente' ? 'linear-gradient(180deg,#20b2aa,#009688)' : 'transparent',
             color: role === 'paciente' ? '#fff' : '#178f89',
             boxShadow: role === 'paciente' ? '0 4px 12px rgba(0,150,136,.3)' : 'none',
@@ -257,7 +257,7 @@ export const LoginPage = () => {
           Paciente
         </Button>
         <Button onClick={() => { setRole('medico'); setMode('password'); }} startIcon={<I.Doctor />} fullWidth
-          sx={{ py: 1, borderRadius: 99, textTransform: 'none', fontWeight: 800, fontSize: 13.5, minHeight: 40, transition: 'all .2s',
+          sx={{ py: 1, borderRadius: '999px', textTransform: 'none', fontWeight: 800, fontSize: 13.5, minHeight: 40, transition: 'all .2s',
             background: role === 'medico' ? 'linear-gradient(180deg,#20b2aa,#009688)' : 'transparent',
             color: role === 'medico' ? '#fff' : '#178f89',
             boxShadow: role === 'medico' ? '0 4px 12px rgba(0,150,136,.3)' : 'none',
@@ -309,7 +309,7 @@ export const LoginPage = () => {
                   <Button
                     type="button" variant="outlined" size="large"
                     startIcon={<I.GoogleG />} onClick={() => handleNativeGoogle(role === 'medico')} disabled={loading}
-                    sx={{ borderRadius: 999, borderColor: 'divider', color: 'text.primary', textTransform: 'none', fontWeight: 600, py: 1.2, width: 320 }}
+                    sx={{ borderRadius: '999px', borderColor: 'divider', color: 'text.primary', textTransform: 'none', fontWeight: 600, py: 1.2, width: 320 }}
                   >
                     Entrar com Google
                   </Button>
@@ -438,7 +438,7 @@ export const RegisterPage = () => {
             endAdornment: <InputAdornment position="end"><IconButton onClick={() => setShowPwd((s) => !s)} edge="end" size="small">{showPwd ? <I.Eye /> : <I.EyeOff />}</IconButton></InputAdornment>,
           } }} />
         {referral ? (
-          <Box sx={{ p: 1, borderRadius: 2, bgcolor: 'rgba(32,178,170,0.10)', border: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ p: 1, borderRadius: '12px', bgcolor: 'rgba(32,178,170,0.10)', border: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
             <Typography sx={{ fontSize: 12, color: '#178f89', fontWeight: 700 }}>🎁 Indicado por <strong>{referral}</strong> — você ganha +{refBonus} créditos!</Typography>
           </Box>
         ) : (

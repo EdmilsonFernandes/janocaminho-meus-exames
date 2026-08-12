@@ -30,7 +30,7 @@ const ScopeToggle = ({ scopeKey, active, onToggle, compact }: { scopeKey: string
   return (
     <Box onClick={(e) => { e.stopPropagation(); onToggle(scopeKey); }} sx={{
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: compact ? 1 : 2,
-      px: compact ? 0.75 : 1.5, py: compact ? 0.5 : 1, borderRadius: 2, cursor: 'pointer',
+      px: compact ? 0.75 : 1.5, py: compact ? 0.5 : 1, borderRadius: '12px', cursor: 'pointer',
       minWidth: compact ? 58 : 72, transition: 'all .15s',
       bgcolor: active ? 'rgba(32,178,170,.10)' : 'background.default',
       border: `2px solid ${active ? '#20b2aa' : 'divider'}`,
@@ -213,7 +213,7 @@ export const MedicosPage = () => {
     <PageContainer width={760}>
       <PageHeader icon={<MedicalServicesIcon />} title={translate('page.doctors')}
         subtitle={translate('page.doctors_sub')}
-        actions={<Button variant="contained" startIcon={<PersonAddIcon />} onClick={() => setShowForm(true)} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700 }}>
+        actions={<Button variant="contained" startIcon={<PersonAddIcon />} onClick={() => setShowForm(true)} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>
           Compartilhar
         </Button>} />
 
@@ -240,11 +240,11 @@ export const MedicosPage = () => {
 
       {/* Empty state */}
       {!loading && myShares.length === 0 && (
-        <Card sx={{ borderRadius: 4, background: 'background.default', border: '1px solid', borderColor: 'divider' }}><CardContent sx={{ textAlign: 'center', py: 5 }}>
+        <Card sx={{ borderRadius: '12px', background: 'background.default', border: '1px solid', borderColor: 'divider' }}><CardContent sx={{ textAlign: 'center', py: 5 }}>
           <Box sx={{ fontSize: 56, mb: 1 }}>🩺</Box>
           <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', mb: 0.5 }}>{translate('docs.empty_title')}</Typography>
           <Typography color="text.secondary" sx={{ mb: 2.5, maxWidth: 320, mx: 'auto' }}>{translate('docs.empty_desc')}</Typography>
-          <Button variant="contained" size="large" startIcon={<PersonAddIcon />} onClick={() => setShowForm(true)} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 800, px: 4 }}>{translate('docs.share_now')}</Button>
+          <Button variant="contained" size="large" startIcon={<PersonAddIcon />} onClick={() => setShowForm(true)} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 4 }}>{translate('docs.share_now')}</Button>
         </CardContent></Card>
       )}
 
@@ -256,7 +256,7 @@ export const MedicosPage = () => {
           </Typography>
           <Stack spacing={1}>
             {items.map((s) => (
-              <Card key={s.id} onClick={() => setDetail(s.doctor)} sx={{ borderRadius: 3, position: 'relative', overflow: 'hidden', border: '1px solid', borderColor: 'divider', cursor: 'pointer', '&:hover': { boxShadow: '0 4px 16px rgba(32,178,170,.15)' }, '&:active': { transform: 'scale(.99)' }, transition: 'all .15s' }}>
+              <Card key={s.id} onClick={() => setDetail(s.doctor)} sx={{ borderRadius: '12px', position: 'relative', overflow: 'hidden', border: '1px solid', borderColor: 'divider', cursor: 'pointer', '&:hover': { boxShadow: '0 4px 16px rgba(32,178,170,.15)' }, '&:active': { transform: 'scale(.99)' }, transition: 'all .15s' }}>
                 <Box sx={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, bgcolor: s.active ? '#20b2aa' : '#cbd5e1' }} />
                 <CardContent sx={{ pl: 2.5, py: 1.5, '&:last-child': { pb: 1.5 } }}>
                   <Stack direction="row" alignItems="flex-start" spacing={1.5}>
@@ -293,7 +293,7 @@ export const MedicosPage = () => {
           <Typography sx={{ fontWeight: 700, fontSize: 12, color: 'text.secondary', mb: 1, textTransform: 'uppercase', letterSpacing: 0.5 }}>💤 Revogados ({grouped.revoked.length})</Typography>
           <Stack spacing={0.75}>
             {grouped.revoked.map((s) => (
-              <Card key={s.id} sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', bgcolor: 'background.default' }}>
+              <Card key={s.id} sx={{ borderRadius: '12px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.default' }}>
                 <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.25, py: 1, '&:last-child': { pb: 1 } }}>
                   <Avatar sx={{ width: 40, height: 40, fontSize: 16, bgcolor: 'action.hover', flexShrink: 0 }}>{s.doctor?.name?.charAt(0)}</Avatar>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -309,7 +309,7 @@ export const MedicosPage = () => {
       )}
 
       {/* Menu ⋯ */}
-      <MuiMenu anchorEl={menuEl?.el ?? null} open={!!menuEl} onClose={() => setMenuEl(null)} slotProps={{ paper: { sx: { borderRadius: 2, minWidth: 180 } } }}>
+      <MuiMenu anchorEl={menuEl?.el ?? null} open={!!menuEl} onClose={() => setMenuEl(null)} slotProps={{ paper: { sx: { borderRadius: '12px', minWidth: 180 } } }}>
         <MenuItem onClick={() => revoke(menuEl!.id)}>
           <BlockIcon sx={{ fontSize: 18, mr: 1 }} /> Revogar acesso
         </MenuItem>
@@ -319,7 +319,7 @@ export const MedicosPage = () => {
       </MuiMenu>
 
       {/* Detalhes do médico (perfil público — clicável no nome do card) */}
-      <Dialog open={!!detail} onClose={() => setDetail(null)} fullWidth maxWidth="xs" PaperProps={{ sx: { borderRadius: 4 } }}>
+      <Dialog open={!!detail} onClose={() => setDetail(null)} fullWidth maxWidth="xs" PaperProps={{ sx: { borderRadius: '12px' } }}>
         {detail && (
           <>
             <DialogTitle sx={{ textAlign: 'center', pb: 0 }}>
@@ -335,9 +335,9 @@ export const MedicosPage = () => {
               {!detail.bio && !detail.clinicName && <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>{translate('docs.invited_by_you')}</Typography>}
               {/* Agendar: WhatsApp se o médico preencheu telefone, senão e-mail */}
               {detail.phone ? (
-                <Button component="a" target="_blank" rel="noopener" size="small" href={`https://wa.me/${detail.phone.replace(/\D/g, '')}?text=${encodeURIComponent('Olá, doutor(a)! Gostaria de agendar uma consulta.')}`} sx={{ mt: 1.5, borderRadius: 99, textTransform: 'none', fontWeight: 700, py: 1.1, bgcolor: '#25D366', color: '#fff', '&:hover': { bgcolor: '#1da851' } }}>💬 Agendar no WhatsApp</Button>
+                <Button component="a" target="_blank" rel="noopener" size="small" href={`https://wa.me/${detail.phone.replace(/\D/g, '')}?text=${encodeURIComponent('Olá, doutor(a)! Gostaria de agendar uma consulta.')}`} sx={{ mt: 1.5, borderRadius: '999px', textTransform: 'none', fontWeight: 700, py: 1.1, bgcolor: '#25D366', color: '#fff', '&:hover': { bgcolor: '#1da851' } }}>💬 Agendar no WhatsApp</Button>
               ) : detail.email && !detail.email.includes('@invite.com') ? (
-                <Button size="small" startIcon={<MedicalServicesIcon />} href={`mailto:${detail.email}?subject=Agendamento%20de%20consulta`} sx={{ mt: 1.5, borderRadius: 99, textTransform: 'none', fontWeight: 700, py: 1.1, bgcolor: '#059669', color: '#fff', '&:hover': { bgcolor: '#047857' } }}>{translate('docs.schedule_email')}</Button>
+                <Button size="small" startIcon={<MedicalServicesIcon />} href={`mailto:${detail.email}?subject=Agendamento%20de%20consulta`} sx={{ mt: 1.5, borderRadius: '999px', textTransform: 'none', fontWeight: 700, py: 1.1, bgcolor: '#059669', color: '#fff', '&:hover': { bgcolor: '#047857' } }}>{translate('docs.schedule_email')}</Button>
               ) : null}
               <Divider sx={{ my: 0.5 }}><Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', letterSpacing: 0.5 }}>TIRAR UMA DÚVIDA</Typography></Divider>
               {/* Pergunta paga ao médico (2 créditos) — vira thread no portal do médico */}
@@ -345,7 +345,7 @@ export const MedicosPage = () => {
                 <Typography variant="caption" sx={{ fontWeight: 800, color: '#178f89', display: 'block', mb: 0.5 }}>❓ Perguntar ao médico · 2 créditos</Typography>
                 <TextField multiline minRows={2} size="small" fullWidth placeholder={translate('docs.ask_ph')} value={perg} onChange={(e) => setPerg(e.target.value)} />
                 {pergMsg && <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: pergMsg.startsWith('✓') ? '#059669' : 'error.main', fontWeight: 700, lineHeight: 1.3 }}>{pergMsg}</Typography>}
-                <Button size="small" disabled={enviando || !perg.trim()} onClick={enviarPergunta} startIcon={enviando ? <CircularProgress size={14} color="inherit" /> : undefined} sx={{ mt: 1, borderRadius: 99, textTransform: 'none', fontWeight: 700, py: 1, px: 2.5, bgcolor: '#178f89', color: '#fff', '&:hover': { bgcolor: '#0f7670' }, boxShadow: 'none' }}>{enviando ? 'Enviando…' : 'Enviar pergunta · 2 💎'}</Button>
+                <Button size="small" disabled={enviando || !perg.trim()} onClick={enviarPergunta} startIcon={enviando ? <CircularProgress size={14} color="inherit" /> : undefined} sx={{ mt: 1, borderRadius: '999px', textTransform: 'none', fontWeight: 700, py: 1, px: 2.5, bgcolor: '#178f89', color: '#fff', '&:hover': { bgcolor: '#0f7670' }, boxShadow: 'none' }}>{enviando ? 'Enviando…' : 'Enviar pergunta · 2 💎'}</Button>
               </Box>
             </DialogContent>
           </>
@@ -353,7 +353,7 @@ export const MedicosPage = () => {
       </Dialog>
 
       {/* Dialog de compartilhamento */}
-      <Dialog open={showForm} onClose={() => setShowForm(false)} fullWidth maxWidth="sm" PaperProps={{ sx: { borderRadius: 4 } }}>
+      <Dialog open={showForm} onClose={() => setShowForm(false)} fullWidth maxWidth="sm" PaperProps={{ sx: { borderRadius: '12px' } }}>
         <DialogTitle sx={{ fontWeight: 800, color: 'text.primary' }}>🩺 Compartilhar com médico</DialogTitle>
         <DialogContent>
           <Box component="form" onSubmit={add} sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mt: 1 }}>
@@ -370,12 +370,12 @@ export const MedicosPage = () => {
                 <MenuItem value=""><em>—</em></MenuItem>
                 {UFS.map((u) => <MenuItem key={u} value={u}>{u}</MenuItem>)}
               </TextField>
-              <Button variant="outlined" onClick={buscarMedico} disabled={looking || !crm || uf.length !== 2} startIcon={looking ? <CircularProgress size={16} color="inherit" /> : <SearchIcon />} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, height: 40 }}>
+              <Button variant="outlined" onClick={buscarMedico} disabled={looking || !crm || uf.length !== 2} startIcon={looking ? <CircularProgress size={16} color="inherit" /> : <SearchIcon />} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, height: 40 }}>
                 {looking ? 'Buscando…' : 'Buscar médico'}
               </Button>
             </Stack>
             {lookup && (
-              <Alert severity={lookup.source === 'manual' ? 'warning' : 'success'} icon={false} sx={{ borderRadius: 2, py: 0.75, '& .MuiAlert-message': { fontSize: 13 } }}>{lookup.msg}</Alert>
+              <Alert severity={lookup.source === 'manual' ? 'warning' : 'success'} icon={false} sx={{ borderRadius: '12px', py: 0.75, '& .MuiAlert-message': { fontSize: 13 } }}>{lookup.msg}</Alert>
             )}
             <TextField label="Nome do médico" required value={name} onChange={(e) => setName(e.target.value)} size="small" fullWidth placeholder={lookup?.source === 'manual' ? 'Digite o nome…' : 'Use "Buscar" ou preencha'} />
             <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap>
@@ -407,9 +407,9 @@ export const MedicosPage = () => {
                   {examOptions.length === 0 ? (
                     <Typography variant="caption" color="text.secondary">Nenhum exame enviado ainda — o médico verá todos quando você enviar o primeiro.</Typography>
                   ) : (
-                    <Box sx={{ maxHeight: 168, overflowY: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 0.5 }}>
+                    <Box sx={{ maxHeight: 168, overflowY: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: '12px', p: 0.5 }}>
                       {examOptions.map((ex) => (
-                        <FormControlLabel key={ex.id} sx={{ display: 'flex', m: 0, px: 0.5, borderRadius: 1, '&:hover': { bgcolor: 'action.hover' } }}
+                        <FormControlLabel key={ex.id} sx={{ display: 'flex', m: 0, px: 0.5, borderRadius: '8px', '&:hover': { bgcolor: 'action.hover' } }}
                           control={<Checkbox size="small" sx={{ p: 0.5 }} checked={examIds.includes(ex.id)} onChange={() => setExamIds((p) => p.includes(ex.id) ? p.filter((x) => x !== ex.id) : [...p, ex.id])} />}
                           label={<Typography variant="caption" sx={{ wordBreak: 'break-word' }}>📄 {ex.title}{ex.performedAt ? ` — ${new Date(ex.performedAt).toLocaleDateString('pt-BR')}` : ''}</Typography>} />
                       ))}
@@ -420,7 +420,7 @@ export const MedicosPage = () => {
               )}
             </Box>
             {shareCost > 0 && (
-              <Alert severity={insufficient ? 'error' : 'info'} sx={{ borderRadius: 2, py: 0.75 }}>
+              <Alert severity={insufficient ? 'error' : 'info'} sx={{ borderRadius: '12px', py: 0.75 }}>
                 {insufficient ? `Saldo insuficiente — faltam ${shareCost - (credits ?? 0)} créditos.` : `💎 Custo: ${shareCost} créditos (cobrado só na criação). Seu saldo: ${credits}.`}
               </Alert>
             )}
@@ -428,7 +428,7 @@ export const MedicosPage = () => {
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2.5 }}>
           <Button onClick={() => setShowForm(false)} sx={{ textTransform: 'none', fontWeight: 700 }}>Cancelar</Button>
-          <Button variant="contained" onClick={add} disabled={saving || insufficient || scopes.length === 0} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 800, px: 3 }}>
+          <Button variant="contained" onClick={add} disabled={saving || insufficient || scopes.length === 0} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 3 }}>
             {saving ? <CircularProgress size={20} color="inherit" /> : shareCost > 0 ? `Compartilhar (${shareCost} 💎)` : 'Compartilhar →'}
           </Button>
         </DialogActions>

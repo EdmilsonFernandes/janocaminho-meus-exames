@@ -33,7 +33,7 @@ export const BmiCard = () => {
   const cat = categorize(imc);
 
   return (
-    <Box sx={{ p: { xs: 2.5, md: 4 }, borderRadius: 4, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', boxShadow: '0 20px 44px rgba(15,61,58,.08)' }}>
+    <Box sx={{ p: { xs: 2.5, md: 4 }, borderRadius: '12px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', boxShadow: '0 20px 44px rgba(15,61,58,.08)' }}>
       {/* Sliders */}
       <Box sx={{ mb: 3 }}>
         <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
@@ -61,7 +61,7 @@ export const BmiCard = () => {
 
       {/* Barra de categorias OMS com marcador */}
       <Box sx={{ position: 'relative', mt: 4, mb: 1 }}>
-        <Box sx={{ display: 'flex', height: 10, borderRadius: 99, overflow: 'hidden' }}>
+        <Box sx={{ display: 'flex', height: 10, borderRadius: '999px', overflow: 'hidden' }}>
           <Box sx={{ flex: 14, bgcolor: '#0ea5e9' }} />
           <Box sx={{ flex: 26, bgcolor: '#16a34a' }} />
           <Box sx={{ flex: 20, bgcolor: '#ea580c' }} />
@@ -80,7 +80,7 @@ export const BmiCard = () => {
       </Stack>
 
       {/* Nota didática */}
-      <Box sx={{ mt: 3, borderRadius: 2, p: 1.5, bgcolor: 'rgba(32,178,170,.06)', border: '1px solid', borderColor: 'rgba(32,178,170,.18)' }}>
+      <Box sx={{ mt: 3, borderRadius: '12px', p: 1.5, bgcolor: 'rgba(32,178,170,.06)', border: '1px solid', borderColor: 'rgba(32,178,170,.18)' }}>
         <Typography sx={{ fontSize: 13, color: 'text.secondary', lineHeight: 1.55 }}>
           O IMC é só o começo. No app, o Dr. Exame calcula também <b style={{ color: 'text.primary' }}>eGFR (função renal)</b> e <b style={{ color: 'text.primary' }}>HOMA-IR (resistência insulínica)</b> direto dos seus exames — além de mostrar o valor ideal, não só o de referência.
         </Typography>

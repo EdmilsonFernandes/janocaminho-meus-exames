@@ -84,7 +84,7 @@ export const PricingTab = () => {
 
   return (
     <>
-    <Card sx={{ borderRadius: 4 }}>
+    <Card sx={{ borderRadius: '12px' }}>
       <CardContent>
         <Stack spacing={4}>
           {PRICING_GROUPS.map(g => (
@@ -121,7 +121,7 @@ export const PricingTab = () => {
 
     {/* CONQUISTAS — editável: emoji, título, descrição, threshold, recompensa */}
     {badges.length > 0 && (
-      <Card sx={{ borderRadius: 4, mt: 3 }}>
+      <Card sx={{ borderRadius: '12px', mt: 3 }}>
         <CardContent>
           <Typography variant="h6">🏆 Conquistas (gamificação)</Typography>
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>

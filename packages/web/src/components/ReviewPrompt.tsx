@@ -33,7 +33,7 @@ export const ReviewPrompt = ({ trigger }: { trigger: boolean }) => {
   };
 
   return (
-    <Dialog open={open} onClose={() => setOpen(false)} PaperProps={{ sx: { borderRadius: 4, maxWidth: 340 } }}>
+    <Dialog open={open} onClose={() => setOpen(false)} PaperProps={{ sx: { borderRadius: '12px', maxWidth: 340 } }}>
       <DialogTitle sx={{ textAlign: 'center', pb: 0 }}>
         <Stack alignItems="center" spacing={1}>
           <Stack direction="row" spacing={0.5}>{[1,2,3,4,5].map(i => <StarIcon key={i} sx={{ color: '#f59e0b', fontSize: 28 }} />)}</Stack>
@@ -44,7 +44,7 @@ export const ReviewPrompt = ({ trigger }: { trigger: boolean }) => {
         <Typography color="text.secondary">Sua avaliação ajuda mais pessoas a descobrirem o app. Leva 10 segundos! 🙏</Typography>
       </DialogContent>
       <DialogActions sx={{ justifyContent: 'center', pb: 3, flexDirection: 'column', gap: 1 }}>
-        <Button variant="contained" onClick={rate} startIcon={<StarIcon />} sx={{ borderRadius: 99, px: 4, textTransform: 'none', fontWeight: 800, bgcolor: '#f59e0b', '&:hover': { bgcolor: '#d97706' } }}>Avaliar no Google Play</Button>
+        <Button variant="contained" onClick={rate} startIcon={<StarIcon />} sx={{ borderRadius: '999px', px: 4, textTransform: 'none', fontWeight: 800, bgcolor: '#f59e0b', '&:hover': { bgcolor: '#d97706' } }}>Avaliar no Google Play</Button>
         <Button size="small" onClick={() => setOpen(false)} sx={{ textTransform: 'none', color: 'text.secondary' }}>Talvez depois</Button>
       </DialogActions>
     </Dialog>

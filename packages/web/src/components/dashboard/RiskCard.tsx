@@ -183,7 +183,7 @@ export const RiskCard = () => {
             <Skeleton variant="circular" width={24} height={24} />
             <Skeleton variant="text" width={120} />
           </Stack>
-          <Skeleton variant="rectangular" height={70} sx={{ borderRadius: 2, mb: 1 }} />
+          <Skeleton variant="rectangular" height={70} sx={{ borderRadius: '12px', mb: 1 }} />
           <Skeleton variant="text" width="80%" />
           <Skeleton variant="text" width="55%" />
         </CardContent>
@@ -363,7 +363,7 @@ export const RiskCard = () => {
                   const text = `Olá, doutor(a)! Surgiram algumas dúvidas sobre meus exames que gostaria de levar à consulta:\n\n${r.doctorQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n')}\n\n_(Enviado via Meus Exames)_`;
                   if (navigator.share) navigator.share({ title: 'Perguntas da consulta', text }).catch(() => { /* cancelado */ });
                   else window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-                }} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, py: 1.1, bgcolor: '#25D366', color: '#fff', '&:hover': { bgcolor: '#1da851' }, boxShadow: 'none' }}>💬 Enviar ao médico</Button>
+                }} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, py: 1.1, bgcolor: '#25D366', color: '#fff', '&:hover': { bgcolor: '#1da851' }, boxShadow: 'none' }}>💬 Enviar ao médico</Button>
               </Box>
             </Collapse>
           </>
@@ -373,7 +373,7 @@ export const RiskCard = () => {
         <Divider sx={{ my: 1.25 }} />
         {!planLoading && (
           <Button fullWidth variant={plan ? 'outlined' : 'contained'} size="small" color={plan ? 'inherit' : 'primary'} startIcon={<AutoStoriesIcon />} onClick={loadPlan}
-            sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, py: 1.1 }}>
+            sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, py: 1.1 }}>
             {plan ? 'Gerar novo plano' : `Plano de ação do Dr. Exame · ${ACTION_PLAN_COST} créditos`}
           </Button>
         )}
@@ -399,11 +399,11 @@ export const RiskCard = () => {
             <Button fullWidth size="small" onClick={() => setShowPlan((v) => !v)}
               startIcon={<AutoStoriesIcon fontSize="small" />}
               endIcon={<ExpandMoreIcon sx={{ transform: showPlan ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }} />}
-              sx={{ justifyContent: 'space-between', py: 0.9, px: 1.25, textTransform: 'none', fontWeight: 800, color: 'primary.main', borderRadius: 2, bgcolor: 'action.hover' }}>
+              sx={{ justifyContent: 'space-between', py: 0.9, px: 1.25, textTransform: 'none', fontWeight: 800, color: 'primary.main', borderRadius: '12px', bgcolor: 'action.hover' }}>
               Plano de ação do Dr. Exame
             </Button>
             <Collapse in={showPlan}>
-              <Box sx={{ p: 1.25, borderRadius: 2, bgcolor: 'action.hover' }}>
+              <Box sx={{ p: 1.25, borderRadius: '12px', bgcolor: 'action.hover' }}>
                 <Box className="risk-plan-md" sx={{ '& p': { my: 0.5, lineHeight: 1.45 }, '& ul': { pl: 2.5, my: 0.5 }, '& li': { my: 0.25 }, fontSize: '0.9rem' }}>
                   <ReactMarkdown>{plan}</ReactMarkdown>
                 </Box>

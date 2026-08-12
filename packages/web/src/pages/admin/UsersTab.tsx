@@ -116,7 +116,7 @@ export const UsersTab = () => {
       {error && <Box sx={{ mb: 2 }}><SectionError message="Falha ao atualizar a lista." onRetry={() => void load()} /></Box>}
       <Stack spacing={1}>
         {users.map((u) => (
-          <Card key={u.id} variant="outlined" sx={{ borderRadius: 2 }}>
+          <Card key={u.id} variant="outlined" sx={{ borderRadius: '12px' }}>
             <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', py: 1.5 }}>
               <Box sx={{ flex: 1, minWidth: { xs: 120, sm: 180 } }}>
                 <Typography component="div" sx={{ fontWeight: 700, wordBreak: 'break-word', display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap' }}>{u.name || '—'} {u.role === 'ADMIN' && <Chip size="small" label="ADMIN" color="warning" />} {u.blocked && <Chip size="small" label="Bloqueado" color="error" />}</Typography>
@@ -151,7 +151,7 @@ export const UsersTab = () => {
       </Stack>
 
       {/* EDITAR */}
-      <Dialog open={!!editUser} onClose={() => setEditUser(null)} PaperProps={{ sx: { borderRadius: 3 } }}>
+      <Dialog open={!!editUser} onClose={() => setEditUser(null)} PaperProps={{ sx: { borderRadius: '12px' } }}>
         <DialogTitle>Editar: {editUser?.name || editUser?.email}</DialogTitle>
         <DialogContent>
           <Typography variant="subtitle2" sx={{ mt: 1, mb: 0.5 }}>Créditos</Typography>

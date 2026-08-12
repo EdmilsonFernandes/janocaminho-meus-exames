@@ -122,7 +122,7 @@ export const FinanceiroTab = () => {
       {/* MOBILE/TABLET: cartões (a tabela de 6 colunas não cabe em tela pequena) */}
       <Stack spacing={1} sx={{ display: { xs: 'flex', md: 'none' } }}>
         {payments.map((p) => (
-          <Paper key={p.id} variant="outlined" sx={{ p: 1.5, borderRadius: 2 }}>
+          <Paper key={p.id} variant="outlined" sx={{ p: 1.5, borderRadius: '12px' }}>
             <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={1}>
               <Box sx={{ minWidth: 0, flex: 1 }}>
                 <Typography sx={{ fontWeight: 700, wordBreak: 'break-word', lineHeight: 1.2 }}>{p.user?.email ?? '—'}</Typography>
@@ -141,7 +141,7 @@ export const FinanceiroTab = () => {
       </Stack>
 
       {/* DESKTOP: tabela (md+) */}
-      <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2, display: { xs: 'none', md: 'block' } }}>
+      <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: '12px', display: { xs: 'none', md: 'block' } }}>
         <Table size="small" sx={{ minWidth: 640 }}>
           <TableHead>
             <TableRow sx={{ '& th': { fontWeight: 700, bgcolor: 'action.hover' } }}>
@@ -175,7 +175,7 @@ export const FinanceiroTab = () => {
 
       {/* Payload bruto do Mercado Pago (auditoria — disputa/reclamação de pagamento) */}
       {payloadRow && (
-        <Dialog open onClose={() => setPayloadRow(null)} maxWidth="md" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
+        <Dialog open onClose={() => setPayloadRow(null)} maxWidth="md" fullWidth PaperProps={{ sx: { borderRadius: '12px' } }}>
           <DialogTitle sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', pb: 0.5 }}>
             Payload do Mercado Pago
             <Typography variant="caption" sx={{ display: 'block', fontWeight: 600, color: 'text.secondary', fontFamily: 'monospace', mt: 0.25 }}>
@@ -184,7 +184,7 @@ export const FinanceiroTab = () => {
           </DialogTitle>
           <DialogContent dividers>
             {payloadRow.rawWebhook ? (
-              <Box component="pre" sx={{ margin: 0, fontSize: 12, lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontFamily: 'monospace', bgcolor: 'action.hover', p: 1.5, borderRadius: 1, maxHeight: '60vh', overflow: 'auto' }}>
+              <Box component="pre" sx={{ margin: 0, fontSize: 12, lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontFamily: 'monospace', bgcolor: 'action.hover', p: 1.5, borderRadius: '8px', maxHeight: '60vh', overflow: 'auto' }}>
                 {JSON.stringify(payloadRow.rawWebhook, null, 2)}
               </Box>
             ) : (

@@ -54,7 +54,7 @@ export const TrendsPage = () => {
     if (!active || !payload?.length) return null;
     const d = payload[0].payload;
     return (
-      <Box sx={{ bgcolor: 'rgba(15,23,42,0.92)', color: '#fff', p: 1.25, borderRadius: 2, boxShadow: 4, minWidth: 120 }}>
+      <Box sx={{ bgcolor: 'rgba(15,23,42,0.92)', color: '#fff', p: 1.25, borderRadius: '12px', boxShadow: 4, minWidth: 120 }}>
         <Box sx={{ fontWeight: 700, fontSize: 11, opacity: 0.8 }}>{d.name}</Box>
         <Box sx={{ fontSize: 19, fontWeight: 800 }}>{fmtNum(d.valor)} {ts?.unit ? <UnitLabel unit={ts.unit} fontSize="1.19rem" /> : null}</Box>
         {(() => {
@@ -111,7 +111,7 @@ export const TrendsPage = () => {
       <Title title="Tendências" />
 
       {/* HEADER PREMIUM */}
-      <Card sx={{ mb: 2, borderRadius: 4, overflow: 'hidden', background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff' }}>
+      <Card sx={{ mb: 2, borderRadius: '12px', overflow: 'hidden', background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff' }}>
         <CardContent sx={{ py: 2.5 }}>
           <Typography variant="h5" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>📈 Tendências</Typography>
           <Typography sx={{ opacity: 0.9, mt: 0.5, fontSize: 14 }}>Veja como seus resultados evoluíram ao longo do tempo.</Typography>
@@ -120,18 +120,18 @@ export const TrendsPage = () => {
 
       {/* ATALHOS (chips dos principais analitos) + DROPDOWN */}
       {multi.length > 0 && (
-        <Card sx={{ mb: 2, borderRadius: 3 }}><CardContent sx={{ p: { xs: 1.5, md: 2 } }}>
+        <Card sx={{ mb: 2, borderRadius: '12px' }}><CardContent sx={{ p: { xs: 1.5, md: 2 } }}>
           {multi.length > 1 && (
             <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mb: 1.5 }}>
               {multi.slice(0, 10).map((n) => (
                 <Chip key={n.nameCanonical} label={prettyName(n.nameCanonical)} onClick={() => setSel(n.nameCanonical)}
                   color={sel === n.nameCanonical ? 'primary' : 'default'} size="small" title={prettyName(n.nameCanonical)}
-                  sx={{ fontWeight: 700, borderRadius: 99, maxWidth: 165, '& .MuiChip-label': { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }, '&.MuiChip-colorPrimary': { bgcolor: '#20b2aa', color: '#fff' } }} />
+                  sx={{ fontWeight: 700, borderRadius: '999px', maxWidth: 165, '& .MuiChip-label': { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }, '&.MuiChip-colorPrimary': { bgcolor: '#20b2aa', color: '#fff' } }} />
               ))}
             </Stack>
           )}
           <FormControl fullWidth size="small">
-            <Select value={sel} onChange={(e) => setSel(e.target.value as string)} displayEmpty sx={{ borderRadius: 2 }}>
+            <Select value={sel} onChange={(e) => setSel(e.target.value as string)} displayEmpty sx={{ borderRadius: '12px' }}>
               <MenuItem value="" disabled><em>Todos os analitos ({multi.length})</em></MenuItem>
               {multi.map((n) => <MenuItem key={n.nameCanonical} value={n.nameCanonical}>{prettyName(n.nameCanonical)} ({n.count} exames)</MenuItem>)}
             </Select>
@@ -141,7 +141,7 @@ export const TrendsPage = () => {
 
       {/* EMPTY STATE (sem dados) */}
       {!sel && multi.length === 0 && (
-        <Card sx={{ borderRadius: 4, textAlign: 'center', py: 5 }}>
+        <Card sx={{ borderRadius: '12px', textAlign: 'center', py: 5 }}>
           <CardContent>
             <Box sx={{ fontSize: 56, mb: 1 }}>📊</Box>
             <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', mb: 0.5 }}>
@@ -152,17 +152,17 @@ export const TrendsPage = () => {
                 ? 'Envie ao menos um exame laboratorial para começar a acompanhar suas tendências.'
                 : 'Você já tem exames, mas precisa de um 2º resultado do mesmo tipo para comparar a evolução.'}
             </Typography>
-            <Button variant="contained" onClick={() => navigate('/exams/create')} sx={{ mt: 2, borderRadius: 99, textTransform: 'none', fontWeight: 800 }}>{names.length === 0 ? 'Enviar exame' : 'Enviar outro exame'}</Button>
+            <Button variant="contained" onClick={() => navigate('/exams/create')} sx={{ mt: 2, borderRadius: '999px', textTransform: 'none', fontWeight: 800 }}>{names.length === 0 ? 'Enviar exame' : 'Enviar outro exame'}</Button>
           </CardContent>
         </Card>
       )}
 
       {/* LOADING */}
-      {loading && <Card sx={{ borderRadius: 3 }}><CardContent><ListSkeleton count={4} /></CardContent></Card>}
+      {loading && <Card sx={{ borderRadius: '12px' }}><CardContent><ListSkeleton count={4} /></CardContent></Card>}
 
       {/* GRÁFICO + DETALHES */}
       {!loading && ts && ts.points.length > 0 && (
-        <Card sx={{ borderRadius: 3 }}><CardContent sx={{ p: { xs: 1.5, md: 3 } }}>
+        <Card sx={{ borderRadius: '12px' }}><CardContent sx={{ p: { xs: 1.5, md: 3 } }}>
           {/* Título do analito + botão explicar */}
           <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mb: 1 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#178f89' }}>{prettyName(ts.nameCanonical)}</Typography>
@@ -213,14 +213,14 @@ export const TrendsPage = () => {
           {/* Previsão (premium) */}
           {predict && predict.dir !== 'stable' && predict.months && (
             <PremiumGate>
-              <Box sx={{ mt: 2, p: 1.5, borderRadius: 2, background: predict.dir === 'up' ? 'rgba(230,81,0,.08)' : 'rgba(11,92,171,.08)', border: `1px solid ${predict.dir === 'up' ? '#e6510033' : '#0b5cab33'}` }}>
+              <Box sx={{ mt: 2, p: 1.5, borderRadius: '12px', background: predict.dir === 'up' ? 'rgba(230,81,0,.08)' : 'rgba(11,92,171,.08)', border: `1px solid ${predict.dir === 'up' ? '#e6510033' : '#0b5cab33'}` }}>
                 <Typography sx={{ fontWeight: 700, color: predict.dir === 'up' ? '#e65100' : '#0b5cab' }}>📈 Tendência: {predict.dir === 'up' ? 'subindo' : 'caindo'}</Typography>
                 <Typography variant="body2" sx={{ mt: 0.5 }}>Neste ritmo, {ts?.nameCanonical} {predict.dir === 'up' ? 'ultrapassa' : 'fica abaixo de'} a faixa em <strong>~{predict.months} {predict.months === 1 ? 'mês' : 'meses'}</strong>.</Typography>
               </Box>
             </PremiumGate>
           )}
           {predict && predict.dir === 'stable' && (
-            <Box sx={{ mt: 2, p: 1.5, borderRadius: 2, background: 'rgba(46,125,50,.08)' }}>
+            <Box sx={{ mt: 2, p: 1.5, borderRadius: '12px', background: 'rgba(46,125,50,.08)' }}>
               <Typography sx={{ color: '#2e7d32', fontWeight: 600 }}>✅ Tendência estável.</Typography>
             </Box>
           )}
@@ -230,7 +230,7 @@ export const TrendsPage = () => {
             <Typography variant="subtitle2" sx={{ mb: 0.5 }}>Histórico (do mais recente)</Typography>
             <Stack spacing={0.5}>
               {[...data].reverse().map((d, i) => (
-                <Box key={i} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, p: 0.75, borderRadius: 1.5, bgcolor: 'action.hover' }}>
+                <Box key={i} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, p: 0.75, borderRadius: '8px', bgcolor: 'action.hover' }}>
                   <Box sx={{ minWidth: 0, flex: 1 }}>
                     <Typography variant="body2" sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{d.name}</Typography>
                     {d.title && (
@@ -248,7 +248,7 @@ export const TrendsPage = () => {
         </CardContent></Card>
       )}
       {!loading && ts && ts.points.length === 0 && sel && (
-        <Card sx={{ borderRadius: 3, textAlign: 'center', py: 4 }}>
+        <Card sx={{ borderRadius: '12px', textAlign: 'center', py: 4 }}>
           <CardContent><Typography color="text.secondary">Sem pontos numéricos para este analito.</Typography></CardContent>
         </Card>
       )}

@@ -13,7 +13,7 @@ export const ForceUpdate = ({ latest }: { latest: string }) => (
       Liberamos uma versão nova do Meus Exames ({latest}) com melhorias importantes. Atualize pra continuar usando com segurança.
     </Typography>
     <Button variant="contained" size="large" onClick={() => window.open(UPDATE_URL, '_blank')}
-      sx={{ bgcolor: '#fff', color: '#178f89', fontWeight: 800, borderRadius: 3, px: 4, textTransform: 'none', fontSize: 16, '&:hover': { bgcolor: '#f0f9f8' } }}>
+      sx={{ bgcolor: '#fff', color: '#178f89', fontWeight: 800, borderRadius: '12px', px: 4, textTransform: 'none', fontSize: 16, '&:hover': { bgcolor: '#f0f9f8' } }}>
       ⬇ Atualizar agora
     </Button>
     <Typography variant="caption" sx={{ opacity: 0.7, mt: 2 }}>Depois de instalar, abra novamente.</Typography>

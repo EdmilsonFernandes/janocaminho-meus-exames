@@ -118,7 +118,7 @@ export const buildTheme = (mode: ThemeMode): Theme => {
       ...BRAND,
       ...surfaces,
     },
-    shape: { borderRadius: 14 },
+    shape: { borderRadius: 14 }, // base do tema (multiplicador) — DEVE ser número. Não mexer (codemod pegou por engano).
     typography: TYPOGRAPHY,
     shadows: (isDark ? SHADOWS_DARK : SHADOWS_LIGHT) as any,
     components: {
@@ -145,7 +145,7 @@ export const buildTheme = (mode: ThemeMode): Theme => {
       MuiCard: {
         styleOverrides: {
           root: {
-            borderRadius: 16,
+            borderRadius: '16px',
             boxShadow: isDark
               ? '0 2px 8px rgba(0,0,0,0.4)'
               : '0 2px 6px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)',
@@ -158,7 +158,7 @@ export const buildTheme = (mode: ThemeMode): Theme => {
       },
       MuiButton: {
         styleOverrides: {
-          root: { borderRadius: 12, padding: '10px 20px', fontWeight: 700, fontFamily: FONT_HEAD },
+          root: { borderRadius: '12px', padding: '10px 20px', fontWeight: 700, fontFamily: FONT_HEAD },
           containedPrimary: {
             background: 'linear-gradient(135deg, #20b2aa, #178f89)',
             boxShadow: '0 4px 12px rgba(32,178,170,0.30)',
@@ -171,7 +171,7 @@ export const buildTheme = (mode: ThemeMode): Theme => {
           },
         },
       },
-      MuiChip: { styleOverrides: { root: { fontWeight: 600, borderRadius: 8 } } },
+      MuiChip: { styleOverrides: { root: { fontWeight: 600, borderRadius: '12px' } } },
       MuiPaper: { styleOverrides: { root: { backgroundImage: 'none' } } },
       MuiAppBar: {
         styleOverrides: {
@@ -190,7 +190,7 @@ export const buildTheme = (mode: ThemeMode): Theme => {
       MuiListItemButton: {
         styleOverrides: {
           root: {
-            borderRadius: 12,
+            borderRadius: '12px',
             margin: '3px 10px',
             transition: 'transform .1s ease, background-color .15s ease',
             '&:hover': { background: hoverAlpha },
@@ -203,14 +203,14 @@ export const buildTheme = (mode: ThemeMode): Theme => {
           },
         },
       },
-      MuiMenuItem: { styleOverrides: { root: { borderRadius: 10, margin: '2px 8px' } } },
+      MuiMenuItem: { styleOverrides: { root: { borderRadius: '12px', margin: '2px 8px' } } },
       MuiTableCell: {
         styleOverrides: {
           root: { borderBottom: `1px solid ${isDark ? '#243030' : '#eef3f3'}` },
           head: { fontWeight: 700, color: surfaces.text.primary },
         },
       },
-      MuiOutlinedInput: { styleOverrides: { root: { borderRadius: 12, fontSize: 15 } } },
+      MuiOutlinedInput: { styleOverrides: { root: { borderRadius: '12px', fontSize: 15 } } },
       MuiInputLabel: { styleOverrides: { root: { fontSize: 14 } } },
       MuiToolbar: { styleOverrides: { root: { minHeight: '64px !important' } } },
       MuiAvatar: { styleOverrides: { root: { fontFamily: FONT_HEAD, fontWeight: 700 } } },

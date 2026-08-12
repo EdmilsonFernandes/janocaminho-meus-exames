@@ -49,7 +49,7 @@ export const InsightsCards = () => {
           <Skeleton variant="circular" width={24} height={24} />
           <Skeleton variant="text" width={120} />
         </Stack>
-        <Skeleton variant="rectangular" height={48} sx={{ borderRadius: 2 }} />
+        <Skeleton variant="rectangular" height={48} sx={{ borderRadius: '12px' }} />
       </CardContent>
     </Card>
   );
@@ -78,7 +78,7 @@ export const InsightsCards = () => {
               {Object.entries(a.breakdown).map(([k, v]: [string, any]) => (
                 <Stack key={k} direction="row" spacing={1} alignItems="center" sx={{ mb: 0.3 }}>
                   <Typography variant="caption" sx={{ width: 92, color: 'text.secondary' }}>{BREAKDOWN_LABEL[k] ?? k}</Typography>
-                  <Box sx={{ flex: 1, maxWidth: 80 }}><LinearProgress variant="determinate" value={(v / (k === 'exams' ? 30 : k === 'measurements' ? 20 : k === 'feedback' || k === 'engagement' ? 15 : 10)) * 100} sx={{ height: 6, borderRadius: 3, bgcolor: 'action.hover', '& .MuiLinearProgress-bar': { bgcolor: meta.color } }} /></Box>
+                  <Box sx={{ flex: 1, maxWidth: 80 }}><LinearProgress variant="determinate" value={(v / (k === 'exams' ? 30 : k === 'measurements' ? 20 : k === 'feedback' || k === 'engagement' ? 15 : 10)) * 100} sx={{ height: 6, borderRadius: '12px', bgcolor: 'action.hover', '& .MuiLinearProgress-bar': { bgcolor: meta.color } }} /></Box>
                   <Typography variant="caption" sx={{ fontWeight: 700, minWidth: 20 }}>{v}</Typography>
                 </Stack>
               ))}
@@ -106,7 +106,7 @@ export const InsightsCards = () => {
               {(showAllPred ? data.predictions : data.predictions.slice(0, 3)).map((p: any, i: number) => {
                 const color = p.risk === 'alert' ? '#dc2626' : '#ea580c';
                 return (
-                  <Box key={i} sx={{ p: 1, borderRadius: 2, bgcolor: color + '0d', border: `1px solid ${color}22` }}>
+                  <Box key={i} sx={{ p: 1, borderRadius: '12px', bgcolor: color + '0d', border: `1px solid ${color}22` }}>
                     <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mb: 0.25 }}>
                       <Chip size="small" label={p.risk === 'alert' ? '🔴' : '🟠'} sx={{ height: 18, fontSize: 10 }} />
                       <Typography variant="body2" sx={{ fontWeight: 700, fontSize: '0.85rem', color }}>{p.marker}</Typography>

@@ -72,12 +72,12 @@ export const PiiTab = () => {
     <Box>
       <Typography sx={{ fontWeight: 800, mb: 0.5 }}>CPF / PII de suporte</Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Busque por CPF ou e-mail da conta. CPF completo só aparece após motivo e fica registrado na auditoria.</Typography>
-      <Card variant="outlined" sx={{ borderRadius: 2, mb: 2 }}>
+      <Card variant="outlined" sx={{ borderRadius: '12px', mb: 2 }}>
         <CardContent>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
             <TextField label="CPF" value={cpf} onChange={(e) => setCpf(formatCpf(e.target.value))} inputProps={{ inputMode: 'numeric' }} error={!!cpf && cpf.length === 14 && !isValidCpf(cpf)} helperText={!!cpf && cpf.length === 14 && !isValidCpf(cpf) ? 'CPF inválido.' : 'Digite o CPF completo para localizar paciente ou médico.'} fullWidth size="small" />
             <TextField label="E-mail da conta" value={email} onChange={(e) => setEmail(e.target.value)} helperText="Use quando o suporte tiver o e-mail/ticket." fullWidth size="small" />
-            <Button variant="contained" startIcon={<SearchIcon />} onClick={lookup} disabled={loading} sx={{ borderRadius: 2, fontWeight: 800, minWidth: 130 }}>{loading ? 'Buscando...' : 'Buscar'}</Button>
+            <Button variant="contained" startIcon={<SearchIcon />} onClick={lookup} disabled={loading} sx={{ borderRadius: '12px', fontWeight: 800, minWidth: 130 }}>{loading ? 'Buscando...' : 'Buscar'}</Button>
           </Stack>
         </CardContent>
       </Card>
@@ -86,7 +86,7 @@ export const PiiTab = () => {
         <Stack spacing={1}>
           <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>{total} resultado(s)</Typography>
           {data.patients.map((p) => (
-            <Card key={`p-${p.id}`} variant="outlined" sx={{ borderRadius: 2 }}>
+            <Card key={`p-${p.id}`} variant="outlined" sx={{ borderRadius: '12px' }}>
               <CardContent sx={{ py: 1.25, '&:last-child': { pb: 1.25 } }}>
                 <Stack direction="row" alignItems="center" spacing={1} useFlexGap flexWrap="wrap">
                   <Chip size="small" label="Paciente" color="primary" />
@@ -101,7 +101,7 @@ export const PiiTab = () => {
             </Card>
           ))}
           {data.doctors.map((d) => (
-            <Card key={`d-${d.id}`} variant="outlined" sx={{ borderRadius: 2 }}>
+            <Card key={`d-${d.id}`} variant="outlined" sx={{ borderRadius: '12px' }}>
               <CardContent sx={{ py: 1.25, '&:last-child': { pb: 1.25 } }}>
                 <Stack direction="row" alignItems="center" spacing={1} useFlexGap flexWrap="wrap">
                   <Chip size="small" label="Médico" color="secondary" />

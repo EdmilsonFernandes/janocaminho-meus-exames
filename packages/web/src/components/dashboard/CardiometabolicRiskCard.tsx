@@ -68,7 +68,7 @@ export const CardiometabolicRiskCard = ({ risk: riskProp }: { risk?: CardioRisk 
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>Marcadores cardiometabólicos disponíveis dentro do esperado. 👍</Typography>
         )}
         {missing.length > 0 && (
-          <Box sx={{ mt: 1.5, p: 1, borderRadius: 2, bgcolor: 'rgba(32,178,170,.07)' }}>
+          <Box sx={{ mt: 1.5, p: 1, borderRadius: '12px', bgcolor: 'rgba(32,178,170,.07)' }}>
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
               📋 Pra um cálculo completo, cadastre: <b>{missing.join(' e ')}</b> (em Medições).
             </Typography>

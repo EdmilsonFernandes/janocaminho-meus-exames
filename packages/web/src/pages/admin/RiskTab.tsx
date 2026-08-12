@@ -35,7 +35,7 @@ export const RiskTab = () => {
           { l: 'Registros doados', v: String(ds.total ?? 0) },
           { l: 'Cond. no dataset', v: String(ds.byCondition?.length ?? 0) },
         ].map((k) => (
-          <Card key={k.l} variant="outlined" sx={{ borderRadius: 2 }}><CardContent sx={{ textAlign: 'center', py: 1.5 }}>
+          <Card key={k.l} variant="outlined" sx={{ borderRadius: '12px' }}><CardContent sx={{ textAlign: 'center', py: 1.5 }}>
             <Typography sx={{ fontWeight: 800, fontSize: 20, color: '#178f89' }}>{k.v}</Typography>
             <Typography variant="caption" color="text.secondary">{k.l}</Typography>
           </CardContent></Card>
@@ -44,7 +44,7 @@ export const RiskTab = () => {
 
       <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 800 }}>Qualidade do plano por condição (loop de melhoria)</Typography>
       {q.byCondition?.length ? (
-        <Card variant="outlined" sx={{ borderRadius: 2, mb: 2 }}><Table size="small">
+        <Card variant="outlined" sx={{ borderRadius: '12px', mb: 2 }}><Table size="small">
           <TableHead><TableRow>
             <TableCell>Condição</TableCell>
             <TableCell align="right">Avaliações</TableCell>
@@ -61,7 +61,7 @@ export const RiskTab = () => {
                   <TableCell align="right">{c.total}</TableCell>
                   <TableCell>
                     <Stack direction="row" spacing={1} alignItems="center">
-                      <Box sx={{ width: 60 }}><LinearProgress variant="determinate" value={pct} sx={{ height: 8, borderRadius: 5, bgcolor: 'action.hover', '& .MuiLinearProgress-bar': { bgcolor: color } }} /></Box>
+                      <Box sx={{ width: 60 }}><LinearProgress variant="determinate" value={pct} sx={{ height: 8, borderRadius: '12px', bgcolor: 'action.hover', '& .MuiLinearProgress-bar': { bgcolor: color } }} /></Box>
                       <Typography variant="caption" sx={{ fontWeight: 700 }}>{pct}%</Typography>
                     </Stack>
                   </TableCell>
@@ -80,7 +80,7 @@ export const RiskTab = () => {
           <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 800 }}>Comentários 👎 recentes (onde melhorar)</Typography>
           <Stack spacing={1} sx={{ mb: 2 }}>
             {q.negativeComments.map((c: any) => (
-              <Card key={c.id} variant="outlined" sx={{ borderRadius: 2 }}><CardContent sx={{ py: 1.25 }}>
+              <Card key={c.id} variant="outlined" sx={{ borderRadius: '12px' }}><CardContent sx={{ py: 1.25 }}>
                 <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap" sx={{ mb: 0.5 }}>
                   <Chip size="small" label={c.riskAssessment?.conditionKey ?? '?'} variant="outlined" />
                   <Typography variant="caption" color="text.secondary">{new Date(c.createdAt).toLocaleDateString('pt-BR')}</Typography>

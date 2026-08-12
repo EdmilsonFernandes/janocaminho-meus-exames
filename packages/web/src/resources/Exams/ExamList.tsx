@@ -53,7 +53,7 @@ const yearOf = (r: any): number | null => {
 const ProcessingCard = ({ r, onCancel }: { r: any; onCancel?: (e: any) => void }) => {
   const navigate = useNavigate();
   return (
-    <Card onClick={() => navigate(`/exams/${r.id}/show`)} sx={{ cursor: 'pointer', borderRadius: 3, borderLeft: '4px solid #0ea5e9', overflow: 'hidden', maxWidth: '100%' }}>
+    <Card onClick={() => navigate(`/exams/${r.id}/show`)} sx={{ cursor: 'pointer', borderRadius: '12px', borderLeft: '4px solid #0ea5e9', overflow: 'hidden', maxWidth: '100%' }}>
       <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, '&:last-child': { pb: 1.5 } }}>
         <CircularProgress size={34} thickness={5} sx={{ color: '#0ea5e9', flexShrink: 0 }} />
         <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -167,7 +167,7 @@ const ExamCards = () => {
     const isNew = !!r.createdAt && Date.now() - new Date(r.createdAt).getTime() < 48 * 3600 * 1000;
     const Icon = r.kind === 'IMAGING' ? ImageIcon : r.kind === 'LAB_PANEL' ? ScienceIcon : DescriptionOutlinedIcon;
     return (
-      <Card key={r.id} variant="outlined" onClick={() => navigate(`/exams/${r.id}/show`)} sx={{ cursor: 'pointer', borderRadius: 3, borderLeft: `4px solid ${c}`, overflow: 'hidden', maxWidth: '100%' }}>
+      <Card key={r.id} variant="outlined" onClick={() => navigate(`/exams/${r.id}/show`)} sx={{ cursor: 'pointer', borderRadius: '12px', borderLeft: `4px solid ${c}`, overflow: 'hidden', maxWidth: '100%' }}>
         <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, '&:last-child': { pb: 1.5 } }}>
           <Icon sx={{ color: c, flexShrink: 0 }} />
           <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -176,7 +176,7 @@ const ExamCards = () => {
               <Box onClick={(e) => e.stopPropagation()} sx={{ flexShrink: 0, mt: -0.5 }}><ExplainButton name={r.title} /></Box>
             </Box>
             {r.performedAt && (
-              <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, mt: 0.5, mb: 0.25, px: 1, py: 0.3, borderRadius: 99, bgcolor: 'rgba(32,178,170,.10)' }}>
+              <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, mt: 0.5, mb: 0.25, px: 1, py: 0.3, borderRadius: '999px', bgcolor: 'rgba(32,178,170,.10)' }}>
                 <CalendarMonthIcon sx={{ fontSize: 14, color: 'primary.main' }} />
                 <Typography component="span" sx={{ fontWeight: 700, color: 'primary.dark', fontSize: '0.78rem', lineHeight: 1 }}>{fmtDateShort(r.performedAt)}</Typography>
               </Box>
@@ -237,7 +237,7 @@ const ExamCards = () => {
           size="small" fullWidth value={q} onChange={(e) => setQ(e.target.value)}
           placeholder={translate('exams.search_ph')}
           InputProps={{ startAdornment: (<InputAdornment position="start"><SearchIcon fontSize="small" sx={{ color: 'text.secondary' }} /></InputAdornment>) }}
-          sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: 'background.paper' } }}
+          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: 'background.paper' } }}
         />
         <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
           <ToggleButtonGroup exclusive size="small" value={view} onChange={(_, v) => { if (v) setView(v); }}>
@@ -274,7 +274,7 @@ const ExamCards = () => {
             <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#b91c1c' }}>{translate('exams.failed_title')}</Typography>
             <Chip size="small" label={failed.length} sx={{ height: 18, bgcolor: '#fee2e2', color: '#b91c1c', fontWeight: 700 }} />
           </Stack>
-          <Alert severity="warning" icon={false} sx={{ mb: 1.25, borderRadius: 2, py: 0.75, '& .MuiAlert-message': { fontSize: 12.5 } }}>
+          <Alert severity="warning" icon={false} sx={{ mb: 1.25, borderRadius: '12px', py: 0.75, '& .MuiAlert-message': { fontSize: 12.5 } }}>
             {failed.length === 1 ? translate('exams.failed_msg_one') : translate('exams.failed_msg_many', { count: failed.length })} {translate('exams.failed_action')} <strong>{translate('exams.reextract')}</strong>.
           </Alert>
           <Stack spacing={1.5}>
@@ -285,10 +285,10 @@ const ExamCards = () => {
 
       {/* Nudge Premium (apenas na visão por categoria — anos anteriores ocultos) */}
       {view === 'category' && lockedCount > 0 && (
-        <Card variant="outlined" sx={{ borderRadius: 3, p: 1.5, display: 'flex', alignItems: 'center', gap: 1.5, borderColor: 'divider', background: 'linear-gradient(135deg, rgba(32,178,170,.06), transparent)' }}>
+        <Card variant="outlined" sx={{ borderRadius: '12px', p: 1.5, display: 'flex', alignItems: 'center', gap: 1.5, borderColor: 'divider', background: 'linear-gradient(135deg, rgba(32,178,170,.06), transparent)' }}>
           <LockIcon sx={{ color: '#178f89' }} />
           <Typography variant="body2" sx={{ flex: 1, minWidth: 0 }}>{lockedCount} exame(s) de anos anteriores fazem parte do histórico Premium.</Typography>
-          <Button size="small" variant="contained" onClick={() => navigate('/planos')} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', boxShadow: 'none', '&:hover': { bgcolor: '#178f89' }, flexShrink: 0 }}>{translate('common.view_plans')}</Button>
+          <Button size="small" variant="contained" onClick={() => navigate('/planos')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', boxShadow: 'none', '&:hover': { bgcolor: '#178f89' }, flexShrink: 0 }}>{translate('common.view_plans')}</Button>
         </Card>
       )}
 
@@ -306,13 +306,13 @@ const ExamCards = () => {
             const locked = !premium && g.year !== latestYear && g.year != null;
             if (locked) {
               return (
-                <Card key={String(g.year)} variant="outlined" sx={{ borderRadius: 3, p: 1.75, display: 'flex', alignItems: 'center', gap: 1.5, borderColor: 'divider', background: 'linear-gradient(135deg, rgba(32,178,170,.06), transparent)' }}>
+                <Card key={String(g.year)} variant="outlined" sx={{ borderRadius: '12px', p: 1.75, display: 'flex', alignItems: 'center', gap: 1.5, borderColor: 'divider', background: 'linear-gradient(135deg, rgba(32,178,170,.06), transparent)' }}>
                   <LockIcon sx={{ color: '#178f89' }} />
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Typography sx={{ fontWeight: 800 }}>📅 {g.label} • {g.items.length} exame(s)</Typography>
                     <Typography variant="caption" color="text.secondary">{translate('exams.history_premium')}</Typography>
                   </Box>
-                  <Button size="small" variant="contained" onClick={() => navigate('/planos')} sx={{ borderRadius: 99, textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', boxShadow: 'none', '&:hover': { bgcolor: '#178f89' } }}>{translate('common.view_plans')}</Button>
+                  <Button size="small" variant="contained" onClick={() => navigate('/planos')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', boxShadow: 'none', '&:hover': { bgcolor: '#178f89' } }}>{translate('common.view_plans')}</Button>
                 </Card>
               );
             }

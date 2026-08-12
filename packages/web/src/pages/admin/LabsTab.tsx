@@ -75,13 +75,13 @@ export const LabsTab = () => {
         Cadastre as redes de laboratório (nome, cor, apelidos de unidade) e suba o logo. O app casa o que vem no PDF (ex.: "SJC - Bacabal") com a marca pelo nome/apelidos.
       </Typography>
 
-      <Card sx={{ mb: 2, borderRadius: 3 }}><CardContent>
+      <Card sx={{ mb: 2, borderRadius: '12px' }}><CardContent>
         <Typography sx={{ fontWeight: 700, mb: 1.5 }}>➕ Adicionar laboratório</Typography>
         <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ rowGap: 1, alignItems: 'center' }}>
           <TextField label="Nome (marca)" size="small" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Ex.: Sabin" sx={{ minWidth: 200 }} />
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <Typography variant="caption" color="text.secondary">Cor</Typography>
-            <input type="color" value={newColor} onChange={(e) => setNewColor(e.target.value)} style={{ width: 38, height: 38, border: 'none', borderRadius: 8, cursor: 'pointer' }} />
+            <input type="color" value={newColor} onChange={(e) => setNewColor(e.target.value)} style={{ width: 38, height: 38, border: 'none', borderRadius: '12px', cursor: 'pointer' }} />
           </Box>
           <TextField label="Apelidos (vírgula)" size="small" value={newAliases} onChange={(e) => setNewAliases(e.target.value)} placeholder="sjc, posto sabin" sx={{ minWidth: 220 }} />
           <Button variant="contained" startIcon={<AddIcon />} disabled={saving} onClick={create} sx={{ textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa' }}>Adicionar</Button>
@@ -91,7 +91,7 @@ export const LabsTab = () => {
       {loading ? <CircularProgress /> : (
         <Stack spacing={1.5}>
           {labs.map((lab) => (
-            <Card key={lab.id} sx={{ borderRadius: 3, opacity: lab.active ? 1 : 0.55 }}><CardContent>
+            <Card key={lab.id} sx={{ borderRadius: '12px', opacity: lab.active ? 1 : 0.55 }}><CardContent>
               <Stack direction="row" spacing={1.5} useFlexGap flexWrap="wrap" sx={{ rowGap: 1, alignItems: 'center' }}>
                 {/* Logo ou círculo colorido */}
                 {lab.logoUrl
@@ -103,7 +103,7 @@ export const LabsTab = () => {
                 </Box>
                 <Stack spacing={0.75} alignItems="flex-start">
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <input type="color" defaultValue={lab.color || '#20b2aa'} onBlur={(e) => update(lab.id, { color: e.target.value })} title="Cor da marca" style={{ width: 32, height: 32, border: 'none', borderRadius: 6, cursor: 'pointer' }} />
+                    <input type="color" defaultValue={lab.color || '#20b2aa'} onBlur={(e) => update(lab.id, { color: e.target.value })} title="Cor da marca" style={{ width: 32, height: 32, border: 'none', borderRadius: '12px', cursor: 'pointer' }} />
                     <Switch size="small" checked={!!lab.active} onChange={(_, v) => update(lab.id, { active: v })} title="Ativo" />
                     <IconButton size="small" onClick={() => remove(lab.id)} title="Excluir"><DeleteIcon fontSize="small" /></IconButton>
                   </Box>

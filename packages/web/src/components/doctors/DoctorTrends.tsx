@@ -67,7 +67,7 @@ export const DoctorTrends = ({ patientId, token }: Props) => {
     if (!active || !payload?.length) return null;
     const d = payload[0].payload;
     return (
-      <Box sx={{ bgcolor: alpha(theme.palette.background.paper, 0.92), color: theme.palette.text.primary, p: 1.25, borderRadius: 2, boxShadow: theme.shadows[4], minWidth: 120, border: `1px solid ${theme.palette.divider}` }}>
+      <Box sx={{ bgcolor: alpha(theme.palette.background.paper, 0.92), color: theme.palette.text.primary, p: 1.25, borderRadius: '12px', boxShadow: theme.shadows[4], minWidth: 120, border: `1px solid ${theme.palette.divider}` }}>
         <Box sx={{ fontWeight: 700, fontSize: 11, opacity: 0.8 }}>{d.name}</Box>
         <Box sx={{ fontSize: 19, fontWeight: 800 }}>{fmtNum(d.valor)} {ts?.unit ? <UnitLabel unit={ts.unit} fontSize="1.19rem" /> : null}</Box>
         {(() => {
@@ -228,13 +228,13 @@ export const DoctorTrends = ({ patientId, token }: Props) => {
 
           {/* Previsão de sair da faixa (linar) — informativo, médico valida */}
           {predict && predict.dir !== 'stable' && predict.months && (
-            <Box sx={{ mt: 2, p: 1.5, borderRadius: 2, background: predict.dir === 'up' ? alpha(theme.palette.error.dark, 0.08) : alpha(theme.palette.info.dark, 0.08), border: `1px solid ${predict.dir === 'up' ? alpha(theme.palette.error.dark, 0.2) : alpha(theme.palette.info.dark, 0.2)}` }}>
+            <Box sx={{ mt: 2, p: 1.5, borderRadius: '12px', background: predict.dir === 'up' ? alpha(theme.palette.error.dark, 0.08) : alpha(theme.palette.info.dark, 0.08), border: `1px solid ${predict.dir === 'up' ? alpha(theme.palette.error.dark, 0.2) : alpha(theme.palette.info.dark, 0.2)}` }}>
               <Typography sx={{ fontWeight: 700, color: predict.dir === 'up' ? theme.palette.error.dark : theme.palette.info.dark }}>📈 Tendência: {predict.dir === 'up' ? 'subindo' : 'caindo'}</Typography>
               <Typography variant="body2" sx={{ mt: 0.5 }}>Neste ritmo, {ts?.nameCanonical} {predict.dir === 'up' ? 'ultrapassa' : 'fica abaixo de'} a faixa em <strong>~{predict.months} {predict.months === 1 ? 'mês' : 'meses'}</strong>.</Typography>
             </Box>
           )}
           {predict && predict.dir === 'stable' && (
-            <Box sx={{ mt: 2, p: 1.5, borderRadius: 2, background: alpha(theme.palette.success.main, 0.08) }}>
+            <Box sx={{ mt: 2, p: 1.5, borderRadius: '12px', background: alpha(theme.palette.success.main, 0.08) }}>
               <Typography sx={{ color: theme.palette.success.dark, fontWeight: 600 }}>✅ Tendência estável.</Typography>
             </Box>
           )}
@@ -244,7 +244,7 @@ export const DoctorTrends = ({ patientId, token }: Props) => {
             <Typography variant="subtitle2" sx={{ mb: 0.5 }}>Histórico (do mais recente)</Typography>
             <Stack spacing={0.5}>
               {[...data].reverse().map((d, i) => (
-                <Box key={i} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, p: 0.75, borderRadius: 1.5, bgcolor: 'action.hover' }}>
+                <Box key={i} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, p: 0.75, borderRadius: '8px', bgcolor: 'action.hover' }}>
                   <Box sx={{ minWidth: 0, flex: 1 }}>
                     <Typography variant="body2" sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{d.name}</Typography>
                     {d.title && (

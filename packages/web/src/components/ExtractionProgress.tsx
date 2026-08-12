@@ -36,7 +36,7 @@ export const ExtractionProgress = ({ startedAt }: { startedAt?: string }) => {
   const timeStr = `${mins}:${secs.toString().padStart(2, '0')}`;
 
   return (
-    <Box sx={{ textAlign: 'center', py: 5, px: 3, mt: 2, borderRadius: 4, background: 'linear-gradient(135deg, rgba(32,178,170,.06), rgba(99,102,241,.04))', border: '1px solid rgba(0,0,0,.06)' }}>
+    <Box sx={{ textAlign: 'center', py: 5, px: 3, mt: 2, borderRadius: '12px', background: 'linear-gradient(135deg, rgba(32,178,170,.06), rgba(99,102,241,.04))', border: '1px solid rgba(0,0,0,.06)' }}>
       <Box sx={{ display: 'inline-block', animation: 'drBob 1.6s ease-in-out infinite' }}>
         <DrExame size={88} sx={{ borderRadius: '20%', boxShadow: '0 6px 18px rgba(32,178,170,.22)' }} />
       </Box>
@@ -48,14 +48,14 @@ export const ExtractionProgress = ({ startedAt }: { startedAt?: string }) => {
       </Typography>
 
       {/* Timer decorrido — reduz ansiedade (usuário SABE quanto tempo passou) */}
-      <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, mb: 1.5, px: 1.5, py: 0.5, borderRadius: 99, bgcolor: 'rgba(32,178,170,.08)' }}>
+      <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, mb: 1.5, px: 1.5, py: 0.5, borderRadius: '999px', bgcolor: 'rgba(32,178,170,.08)' }}>
         <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#20b2aa', animation: 'pulse 1.5s ease-in-out infinite' }} />
         <Typography variant="caption" sx={{ fontWeight: 700, color: '#178f89', fontFamily: 'monospace' }}>{timeStr}</Typography>
       </Box>
 
       {/* Barra indeterminada (honesto — não há progresso real) */}
       <Box sx={{ maxWidth: 360, mx: 'auto', mb: 1.5 }}>
-        <LinearProgress sx={{ height: 8, borderRadius: 4, bgcolor: 'rgba(0,0,0,.04)', '& .MuiLinearProgress-bar': { borderRadius: 4, background: 'linear-gradient(90deg,#20b2aa,#059669)' } }} />
+        <LinearProgress sx={{ height: 8, borderRadius: '12px', bgcolor: 'rgba(0,0,0,.04)', '& .MuiLinearProgress-bar': { borderRadius: '12px', background: 'linear-gradient(90deg,#20b2aa,#059669)' } }} />
       </Box>
 
       {/* Mensagem contextual baseada no tempo */}
@@ -68,7 +68,7 @@ export const ExtractionProgress = ({ startedAt }: { startedAt?: string }) => {
       </Typography>
 
       {/* Botão: pode sair — extração continua server-side */}
-      <Button size="small" onClick={() => navigate('/exams')} sx={{ textTransform: 'none', fontWeight: 700, color: '#178f89', borderRadius: 99, px: 2.5, py: 0.75, border: '1px solid', borderColor: 'rgba(32,178,170,.3)' }}>
+      <Button size="small" onClick={() => navigate('/exams')} sx={{ textTransform: 'none', fontWeight: 700, color: '#178f89', borderRadius: '999px', px: 2.5, py: 0.75, border: '1px solid', borderColor: 'rgba(32,178,170,.3)' }}>
         Ver meus exames →
       </Button>
 

@@ -108,7 +108,7 @@ export const EvolutionPage = () => {
       {!loading && items.length > 0 && (
         <>
           {/* Resumo da evolução (melhorou/piorou/estável) — leitura amigável e não-alarmista */}
-          <Card variant="outlined" sx={{ mb: 2, borderRadius: 3, borderColor: 'divider', bgcolor: 'rgba(15,61,58,0.03)' }}>
+          <Card variant="outlined" sx={{ mb: 2, borderRadius: '12px', borderColor: 'divider', bgcolor: 'rgba(15,61,58,0.03)' }}>
             <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
               <Stack direction="row" spacing={1.75} flexWrap="wrap" useFlexGap sx={{ mb: 0.5 }}>
                 <Typography component="span" sx={{ fontWeight: 800, color: VERDICT_META.melhorou.color }}>{VERDICT_META.melhorou.emoji} {summary.counts.melhorou} {VERDICT_META.melhorou.label}</Typography>
@@ -127,14 +127,14 @@ export const EvolutionPage = () => {
               return (
                 <Grid key={c.key} size={{ xs: 6, sm: 3 }}>
                   <Chip onClick={() => setFilter(c.key)} label={`${c.emoji} ${c.label} (${c.count})`}
-                    sx={{ width: '100%', height: 38, borderRadius: 2, bgcolor: on ? c.color : `${c.color}1a`, color: on ? '#fff' : c.color, fontWeight: 700, border: `1px solid ${c.color}55`, '&:hover': { bgcolor: on ? c.color : `${c.color}2e` } }} />
+                    sx={{ width: '100%', height: 38, borderRadius: '12px', bgcolor: on ? c.color : `${c.color}1a`, color: on ? '#fff' : c.color, fontWeight: 700, border: `1px solid ${c.color}55`, '&:hover': { bgcolor: on ? c.color : `${c.color}2e` } }} />
                 </Grid>
               );
             })}
           </Grid>
 
           {/* Busca fixa (sticky) */}
-          <Paper variant="outlined" sx={{ p: '2px 12px', mb: 2, display: 'flex', alignItems: 'center', gap: 1, borderRadius: 99, position: 'sticky', top: 60, zIndex: 5, bgcolor: 'background.paper', backdropFilter: 'blur(8px)' }}>
+          <Paper variant="outlined" sx={{ p: '2px 12px', mb: 2, display: 'flex', alignItems: 'center', gap: 1, borderRadius: '999px', position: 'sticky', top: 60, zIndex: 5, bgcolor: 'background.paper', backdropFilter: 'blur(8px)' }}>
             <SearchIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
             <InputBase value={query} onChange={(e: any) => setQuery(e.target.value)} placeholder="Buscar exame (TSH, glicose, colesterol…)" sx={{ flex: 1, fontSize: 14 }} />
             {query && <Chip size="small" label="limpar" onClick={() => setQuery('')} sx={{ height: 22 }} />}
@@ -174,7 +174,7 @@ const CategoryGroup = ({ group, expandOuts }: { group: { cat: string; emoji: str
   // categoria (ex.: "Hemograma 🔴15"), parecendo que havia 15 alertas quando eram 15 analitos.
   const outs = group.items.filter((i) => statusOf(i) === 'out').length;
   return (
-    <Card sx={{ borderRadius: 3, border: `1px solid ${group.color}26`, overflow: 'hidden' }}>
+    <Card sx={{ borderRadius: '12px', border: `1px solid ${group.color}26`, overflow: 'hidden' }}>
       <Box onClick={() => setOpen((o) => !o)} sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 1.25, cursor: 'pointer', bgcolor: `${group.color}0a`, '&:hover': { bgcolor: `${group.color}14` } }}>
         <Box sx={{ fontSize: 19 }}>{group.emoji}</Box>
         <Typography sx={{ fontWeight: 800, flex: 1, color: 'text.primary', fontSize: 15 }}>{group.cat}</Typography>
@@ -226,7 +226,7 @@ const EvoRow = ({ it, defaultExpanded }: { it: EvoItem; defaultExpanded?: boolea
                     if (!a || !payload?.length) return null;
                     const d = payload[0].payload as { v: number; date: string; flag: string };
                     return (
-                      <Box sx={{ bgcolor: 'background.paper', border: `1px solid ${lineColor}`, borderRadius: 1.5, px: 1.25, py: 0.75, boxShadow: 2 }}>
+                      <Box sx={{ bgcolor: 'background.paper', border: `1px solid ${lineColor}`, borderRadius: '8px', px: 1.25, py: 0.75, boxShadow: 2 }}>
                         <Typography sx={{ fontWeight: 800, color: lineColor, lineHeight: 1.1 }}>{d.v} {it.unit ? <UnitLabel unit={it.unit} /> : null}</Typography>
                         <Typography variant="caption" sx={{ color: 'text.secondary' }}>{d.date}</Typography>
                         {(() => {
@@ -255,7 +255,7 @@ const EvoRow = ({ it, defaultExpanded }: { it: EvoItem; defaultExpanded?: boolea
           {(it.refLow != null || it.refHigh != null) && ` Faixa: ${it.refLow ?? '—'} a ${it.refHigh ?? '—'}${it.unit ? ` ${it.unit}` : ''}.`}
         </Typography>
         {it.predictMonths != null && (
-          <Box sx={{ mt: 1, p: 1, borderRadius: 1.5, bgcolor: `${lineColor}0d`, border: `1px solid ${lineColor}33` }}>
+          <Box sx={{ mt: 1, p: 1, borderRadius: '8px', bgcolor: `${lineColor}0d`, border: `1px solid ${lineColor}33` }}>
             <Typography variant="body2" sx={{ color: lineColor, fontWeight: 600 }}>⏱️ Neste ritmo, {it.nameCanonical} {up ? 'ultrapassa' : 'fica abaixo de'} a faixa em ~{it.predictMonths} {it.predictMonths === 1 ? 'mês' : 'meses'}.</Typography>
           </Box>
         )}

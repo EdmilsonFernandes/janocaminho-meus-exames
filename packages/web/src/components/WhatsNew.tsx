@@ -25,7 +25,7 @@ export const WhatsNew = () => {
   const close = () => { try { localStorage.setItem(key, '1'); } catch {} setShow(false); };
 
   return (
-    <Dialog open={show} onClose={close} PaperProps={{ sx: { borderRadius: 4, maxWidth: 420 } }}>
+    <Dialog open={show} onClose={close} PaperProps={{ sx: { borderRadius: '12px', maxWidth: 420 } }}>
       <DialogTitle sx={{ textAlign: 'center', fontWeight: 800, fontFamily: 'Poppins, sans-serif', pb: 0 }}>
         ✨ Novidades do Dr. Exame
       </DialogTitle>
@@ -44,7 +44,7 @@ export const WhatsNew = () => {
         </Stack>
       </DialogContent>
       <DialogActions sx={{ justifyContent: 'center', pb: 2.5 }}>
-        <Button variant="contained" onClick={close} sx={{ borderRadius: 99, px: 4, textTransform: 'none', fontWeight: 800, bgcolor: '#20b2aa' }}>Legal! →</Button>
+        <Button variant="contained" onClick={close} sx={{ borderRadius: '999px', px: 4, textTransform: 'none', fontWeight: 800, bgcolor: '#20b2aa' }}>Legal! →</Button>
       </DialogActions>
     </Dialog>
   );

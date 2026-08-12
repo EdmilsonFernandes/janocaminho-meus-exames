@@ -51,7 +51,7 @@ export const CreditsChip = () => {
       title={`Você tem ${credits} créditos — toque para comprar mais`}
       sx={{
         display: 'flex', alignItems: 'center', gap: 0.4, cursor: 'pointer', userSelect: 'none',
-        pl: 1, pr: 0.25, py: 0.3, mr: 0.5, borderRadius: 99,
+        pl: 1, pr: 0.25, py: 0.3, mr: 0.5, borderRadius: '999px',
         background: 'linear-gradient(135deg,#20b2aa 0%,#178f89 100%)',
         color: '#fff', boxShadow: '0 4px 14px rgba(32,178,170,.32)',
         border: '1px solid rgba(255,255,255,.18)',

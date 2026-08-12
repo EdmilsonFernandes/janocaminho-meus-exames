@@ -17,7 +17,7 @@ export const DoctorsTab = () => {
       <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 800 }}>👥 {d!.total} médico(s) cadastrado(s)</Typography>
       <Stack spacing={1}>
         {d!.doctors.map((m: any) => (
-          <Card key={m.id} variant="outlined" sx={{ borderRadius: 2 }}>
+          <Card key={m.id} variant="outlined" sx={{ borderRadius: '12px' }}>
             <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', py: 1.5 }}>
               <Box sx={{ flex: '1 1 60%', minWidth: 0 }}>
                 <Typography sx={{ fontWeight: 700 }}>{m.name}</Typography>

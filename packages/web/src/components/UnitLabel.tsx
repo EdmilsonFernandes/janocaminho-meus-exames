@@ -35,7 +35,7 @@ export const UnitLabel = ({ unit, fontSize = '0.85rem' }: { unit: string | null 
         onClose={() => setAnchor(null)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         transformOrigin={{ vertical: 'top', horizontal: 'center' }}
-        slotProps={{ paper: { sx: { maxWidth: 330, borderRadius: 3, mt: 0.5 } } }}
+        slotProps={{ paper: { sx: { maxWidth: 330, borderRadius: '12px', mt: 0.5 } } }}
       >
         <Box sx={{ p: 2, maxWidth: 330 }}>
           <Typography sx={{ fontWeight: 800, color: 'primary.dark', fontSize: '1.05rem' }}>{info.nome}</Typography>

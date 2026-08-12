@@ -89,7 +89,7 @@ export const AuditTab = () => {
         {d.auditLogs?.map((l: any) => {
           const info = accessInfo(l);
           return (
-            <Card key={l.id} variant="outlined" sx={{ borderRadius: 2 }}><CardContent sx={{ py: 1.25, '&:last-child': { pb: 1.25 } }}>
+            <Card key={l.id} variant="outlined" sx={{ borderRadius: '12px' }}><CardContent sx={{ py: 1.25, '&:last-child': { pb: 1.25 } }}>
               <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
                 <Chip size="small" color={color(l.action)} label={l.action} />
                 <Typography variant="body2" sx={{ flex: 1, minWidth: 0 }}>

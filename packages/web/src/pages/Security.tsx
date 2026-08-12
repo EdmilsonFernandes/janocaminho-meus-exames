@@ -21,7 +21,7 @@ export const SecurityPage = () => {
 
       {/* Biometria */}
       {BiometricService.isSupported() && (
-        <Card sx={{ mt: 2, borderRadius: 3 }}>
+        <Card sx={{ mt: 2, borderRadius: '12px' }}>
           <Box sx={{ p: 2.5 }}>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'flex-start', sm: 'center' }}>
               <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -37,7 +37,7 @@ export const SecurityPage = () => {
       )}
 
       {/* Dica de segurança */}
-      <Card sx={{ mt: 2, borderRadius: 3, background: 'background.default', border: '1px solid', borderColor: 'divider' }}>
+      <Card sx={{ mt: 2, borderRadius: '12px', background: 'background.default', border: '1px solid', borderColor: 'divider' }}>
         <Box sx={{ p: 2.5 }}>
           <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: 13.5, lineHeight: 1.6 }}>
             💡 <strong>Dica:</strong> Ative ambos pra máxima segurança. A biometria deixa o dia a dia mais rápido (1 toque pra entrar), e o 2FA protege contra acesso não autorizado mesmo se alguém descobrir sua senha.

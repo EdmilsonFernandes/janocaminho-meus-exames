@@ -125,10 +125,10 @@ const NextBestActionCard = ({
               };
 
   return (
-    <Card variant="outlined" sx={{ mt: 2, borderRadius: 3, overflow: 'hidden', borderColor: `${action.tone}33`, background: `linear-gradient(135deg, ${action.tone}14, ${isDark ? '#1a2424' : '#fff'})` }}>
+    <Card variant="outlined" sx={{ mt: 2, borderRadius: '12px', overflow: 'hidden', borderColor: `${action.tone}33`, background: `linear-gradient(135deg, ${action.tone}14, ${isDark ? '#1a2424' : '#fff'})` }}>
       <CardContent sx={{ p: { xs: 2, md: 2.25 }, '&:last-child': { pb: { xs: 2, md: 2.25 } } }}>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ xs: 'stretch', sm: 'center' }}>
-          <Box sx={{ width: 42, height: 42, borderRadius: 2.5, bgcolor: `${action.tone}18`, color: action.tone, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+          <Box sx={{ width: 42, height: 42, borderRadius: '12px', bgcolor: `${action.tone}18`, color: action.tone, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
             <AutoAwesomeIcon />
           </Box>
           <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -140,7 +140,7 @@ const NextBestActionCard = ({
               {action.body}
             </Typography>
           </Box>
-          <Button variant="contained" onClick={() => onNavigate(action.to)} sx={{ alignSelf: { xs: 'stretch', sm: 'center' }, borderRadius: 99, textTransform: 'none', fontWeight: 900, bgcolor: action.tone, boxShadow: 'none', px: 2.25, '&:hover': { bgcolor: action.tone, filter: 'brightness(.92)', boxShadow: 'none' } }}>
+          <Button variant="contained" onClick={() => onNavigate(action.to)} sx={{ alignSelf: { xs: 'stretch', sm: 'center' }, borderRadius: '999px', textTransform: 'none', fontWeight: 900, bgcolor: action.tone, boxShadow: 'none', px: 2.25, '&:hover': { bgcolor: action.tone, filter: 'brightness(.92)', boxShadow: 'none' } }}>
             {action.cta} →
           </Button>
         </Stack>
@@ -283,8 +283,8 @@ export const Dashboard = () => {
       <Section label={translate('dash.health_now')} icon={<InsightsIcon />}>
         <RiskCard />
         <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 1.5 }}>
-          <Button size="small" onClick={() => navigate('/tendencias')} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 99, color: '#178f89', border: '1px solid', borderColor: 'divider' }}>📊 {translate('dash.trends_link')} →</Button>
-          <Button size="small" onClick={() => navigate('/conquistas')} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 99, color: '#178f89', border: '1px solid', borderColor: 'divider' }}>🏆 {translate('dash.achievements_link')} →</Button>
+          <Button size="small" onClick={() => navigate('/tendencias')} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '999px', color: '#178f89', border: '1px solid', borderColor: 'divider' }}>📊 {translate('dash.trends_link')} →</Button>
+          <Button size="small" onClick={() => navigate('/conquistas')} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '999px', color: '#178f89', border: '1px solid', borderColor: 'divider' }}>🏆 {translate('dash.achievements_link')} →</Button>
         </Stack>
       </Section>
 
@@ -338,12 +338,12 @@ export const Dashboard = () => {
       <ReviewPrompt trigger={loaded && stats.exams > 0} />
 
       {/* Oferta de biometria (1x — nativo + não ativou) */}
-      <Dialog open={bioOffer} onClose={() => setBioOffer(false)} PaperProps={{ sx: { borderRadius: 3 } }}>
+      <Dialog open={bioOffer} onClose={() => setBioOffer(false)} PaperProps={{ sx: { borderRadius: '12px' } }}>
         <DialogTitle sx={{ fontWeight: 800, color: 'text.primary' }}>🔐 Entrar com biometria?</DialogTitle>
         <DialogContent><Typography sx={{ color: 'text.secondary' }}>Ative a entrada por face/digital neste aparelho. Na próxima vez, você entra sem digitar senha — mais rápido e seguro.</Typography></DialogContent>
         <DialogActions>
           <Button onClick={() => setBioOffer(false)}>Agora não</Button>
-          <Button variant="contained" onClick={() => { BiometricService.enroll(token() || '', false); setBioOffer(false); }} sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 800 }}>Ativar biometria</Button>
+          <Button variant="contained" onClick={() => { BiometricService.enroll(token() || '', false); setBioOffer(false); }} sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 800 }}>Ativar biometria</Button>
         </DialogActions>
       </Dialog>
     </PageContainer>

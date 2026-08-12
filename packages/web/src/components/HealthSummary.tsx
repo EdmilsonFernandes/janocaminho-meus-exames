@@ -83,7 +83,7 @@ export const NameToggle = ({ name, entenda }: { name: string; entenda?: string |
         {name}{long && <Box component="span" sx={{ color: 'primary.main', fontSize: 12, ml: 0.5 }}>…mais</Box>}
       </Box>
       <Popover open={!!a} anchorEl={a} onClose={() => setA(null)} anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-        slotProps={{ paper: { sx: { maxWidth: 340, borderRadius: 3 } } }}>
+        slotProps={{ paper: { sx: { maxWidth: 340, borderRadius: '12px' } } }}>
         <Box sx={{ p: 2, maxWidth: 340 }}>
           <Typography sx={{ fontWeight: 800, color: '#178f89' }}>{name}</Typography>
           {entenda && <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>💡 {entenda}</Typography>}
@@ -175,7 +175,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
   );
 
   return (
-    <Card sx={{ mt: 3, borderRadius: 4, overflow: 'hidden', boxShadow: '0 4px 20px rgba(32,178,170,.08)' }}>
+    <Card sx={{ mt: 3, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(32,178,170,.08)' }}>
       {/* Header */}
       <Box sx={{ background: 'linear-gradient(135deg, rgba(32,178,170,0.12), rgba(32,178,170,0.05))', p: 2.5, borderBottom: '2px solid #178f89' }}>
         <Stack direction="row" alignItems="center" spacing={2}>
@@ -214,7 +214,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
               // Mobile: cards (não quebra labels como a tabela)
               <Stack spacing={1}>
                 {structured.comparativo.map((c, i) => (
-                  <Box key={i} sx={{ p: 1.25, borderRadius: 2, bgcolor: 'rgba(32,178,170,0.07)', border: '1px solid', borderColor: 'divider' }}>
+                  <Box key={i} sx={{ p: 1.25, borderRadius: '12px', bgcolor: 'rgba(32,178,170,0.07)', border: '1px solid', borderColor: 'divider' }}>
                     <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={1}>
                       <NameToggle name={c.name} entenda={c.entenda} />
                       <Variation anterior={c.anterior} atual={c.atual} leitura={c.leitura} />
@@ -285,7 +285,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
 
         {/* Leitura final */}
         {structured.leituraFinal && (
-          <Box sx={{ mt: 2, p: 2.5, borderRadius: 3, background: 'linear-gradient(135deg, rgba(32,178,170,0.10), rgba(32,178,170,0.04))', border: '1px solid', borderColor: 'divider' }}>
+          <Box sx={{ mt: 2, p: 2.5, borderRadius: '12px', background: 'linear-gradient(135deg, rgba(32,178,170,0.10), rgba(32,178,170,0.04))', border: '1px solid', borderColor: 'divider' }}>
             <Typography sx={{ fontWeight: 800, color: (t) => t.palette.mode === 'dark' ? '#5fc9c3' : '#0f6f6a', mb: 0.5, fontSize: '1.05rem' }}>📌 Leitura final</Typography>
             <Typography sx={{ lineHeight: 1.7 }}>{structured.leituraFinal}</Typography>
           </Box>
@@ -304,7 +304,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
         {structured.interacoesMedicamentos && structured.interacoesMedicamentos.length > 0 && (
           <AccordionSection icon="💊" title="Interações medicamento × exame" color="#d32f2f">
             {structured.interacoesMedicamentos.map((m, i) => (
-              <Box key={i} sx={{ mb: 1, p: 1.5, borderRadius: 2, bgcolor: 'rgba(239,68,68,0.08)' }}>
+              <Box key={i} sx={{ mb: 1, p: 1.5, borderRadius: '12px', bgcolor: 'rgba(239,68,68,0.08)' }}>
                 <Typography sx={{ fontWeight: 700, fontSize: '0.95rem' }}>{m.medicamento} → {m.analito}</Typography>
                 <Typography variant="body2" sx={{ color: 'text.secondary' }}>{m.observacao}</Typography>
               </Box>
@@ -333,7 +333,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
           <AccordionSection icon="🎯" title="Metas de saúde" color="#0288d1" count={structured.metasSaude.length}>
             <Stack spacing={1}>
               {structured.metasSaude.map((m, i) => (
-                <Box key={i} sx={{ p: 1.5, borderRadius: 2, bgcolor: 'rgba(2,136,209,0.08)', border: '1px solid', borderColor: 'divider' }}>
+                <Box key={i} sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'rgba(2,136,209,0.08)', border: '1px solid', borderColor: 'divider' }}>
                   <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1} sx={{ mb: 0.5 }}>
                     <Typography sx={{ fontWeight: 700, color: (t) => t.palette.mode === 'dark' ? '#4d9be0' : '#01579b' }}>🎯 {m.analito}</Typography>
                     {m.prazo && <Chip size="small" label={m.prazo} sx={{ bgcolor: '#0288d115', color: '#0288d1', fontWeight: 700 }} />}
@@ -391,7 +391,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
             <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>Marcadores sem medição recente — converse com seu médico sobre a necessidade de refazer.</Typography>
             <Stack spacing={0.75}>
               {structured.desatualizados.map((d, i) => (
-                <Box key={i} sx={{ p: 1.25, borderRadius: 2, bgcolor: 'rgba(237,108,2,0.08)', border: '1px solid', borderColor: 'divider' }}>
+                <Box key={i} sx={{ p: 1.25, borderRadius: '12px', bgcolor: 'rgba(237,108,2,0.08)', border: '1px solid', borderColor: 'divider' }}>
                   <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={1} flexWrap="wrap">
                     <Typography sx={{ fontWeight: 700 }}>{d.marcador}</Typography>
                     {d.haMeses != null && <Chip size="small" label={`há ~${d.haMeses}m`} sx={{ bgcolor: '#ed6c0218', color: '#ed6c02', height: 20, fontWeight: 700 }} />}
