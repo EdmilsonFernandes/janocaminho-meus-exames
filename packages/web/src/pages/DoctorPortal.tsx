@@ -928,6 +928,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                     return (
                       <Tab
                         key={s}
+                        value={s}
                         icon={meta.icon}
                         iconPosition="start"
                         label={
