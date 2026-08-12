@@ -24,22 +24,28 @@ import { RADIUS } from '../theme';
  *   <AppCard kind="interactive" onClick={...}>Abrir</AppCard>
  */
 export type AppCardKind = 'default' | 'elevated' | 'interactive' | 'tinted' | 'accent' | 'outline';
-export type AppCardTone = 'primary' | 'success' | 'warning' | 'error' | 'info' | 'premium';
+export type AppCardTone = 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'info' | 'premium';
 
 export interface AppCardProps extends Omit<CardProps, 'variant'> {
   kind?: AppCardKind;
   tone?: AppCardTone;
+  /** Tom secundário p/ tinted two-tone (teal+cobre dos hero cards AiCard/ReportHero). */
+  tone2?: AppCardTone;
+  /** Sombra colorida dinâmica (HealthScore: glow={color} ou glow=true p/ tone). */
+  glow?: boolean | string;
   children?: ReactNode;
 }
 
 const resolveTone = (theme: any, t: AppCardTone): string => {
   if (t === 'premium') return theme.palette.premium?.main ?? '#6366f1';
+  if (t === 'secondary') return theme.palette.secondary?.main ?? '#d4a574';
   return theme.palette[t]?.main ?? theme.palette.primary.main;
 };
 
-export const AppCard = ({ kind = 'default', tone = 'primary', sx, children, ...rest }: AppCardProps) => {
+export const AppCard = ({ kind = 'default', tone = 'primary', tone2, glow, sx, children, ...rest }: AppCardProps) => {
   const theme = useTheme();
   const col = resolveTone(theme, tone);
+  const glowColor = typeof glow === 'string' ? glow : col;
 
   const base: Record<string, unknown> = { borderRadius: RADIUS.card, overflow: 'hidden' };
   let extra: Record<string, unknown> = {};
@@ -57,10 +63,9 @@ export const AppCard = ({ kind = 'default', tone = 'primary', sx, children, ...r
       };
       break;
     case 'tinted':
-      extra = {
-        bgcolor: `linear-gradient(135deg, ${alpha(col, 0.10)}, ${alpha(col, 0.02)})`,
-        borderColor: 'divider',
-      };
+      extra = tone2
+        ? { bgcolor: `linear-gradient(135deg, ${alpha(col, 0.12)}, ${alpha(resolveTone(theme, tone2), 0.08)})`, borderColor: 'rgba(32,178,170,.25)' }
+        : { bgcolor: `linear-gradient(135deg, ${alpha(col, 0.10)}, ${alpha(col, 0.02)})`, borderColor: 'divider' };
       break;
     case 'accent':
       extra = { borderLeft: `4px solid ${col}`, borderColor: 'divider' };
@@ -71,6 +76,8 @@ export const AppCard = ({ kind = 'default', tone = 'primary', sx, children, ...r
     default:
       break;
   }
+
+  if (glow) extra = { ...extra, boxShadow: `0 10px 30px ${alpha(glowColor, 0.10)}` };
 
   return (
     <Card

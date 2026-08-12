@@ -1,5 +1,6 @@
-import { Box, Button, Card, CardContent, IconButton, Popover, Skeleton, Stack, Typography } from '@mui/material';
+import { Box, Button, CardContent, IconButton, Popover, Skeleton, Stack, Typography } from '@mui/material';
 import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
+import { AppCard } from '../AppCard';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { useEffect, useState } from 'react';
@@ -70,7 +71,7 @@ export const HealthScoreCard = ({ loaded, score, abnormalCount, markerCount, onD
   if (!loaded && score === null) {
     // Skeleton (perceived speed 2-3× maior que spinner solto — padrão apps premium).
     return (
-      <Card sx={{ mt: 3, overflow: 'hidden' }}>
+      <AppCard sx={{ mt: 3 }}>
         <CardContent>
           <Stack direction="row" alignItems="center" gap={2.5}>
             <Skeleton variant="circular" sx={{ width: { xs: 140, sm: 170 }, height: { xs: 140, sm: 170 } }} />
@@ -83,14 +84,14 @@ export const HealthScoreCard = ({ loaded, score, abnormalCount, markerCount, onD
             </Box>
           </Stack>
         </CardContent>
-      </Card>
+      </AppCard>
     );
   }
   if (score === null) {
     // Usuário novo sem exames: NÃO some (antes `return null` deixava BURACO no hero). Onboarding
     // acolhedor com o mascote Dr. Exame + CTA pro 1º exame.
     return (
-      <Card sx={{ mt: 3, overflow: 'hidden', background: 'linear-gradient(135deg, rgba(32,178,170,.10), rgba(32,178,170,.03))', border: '1px solid', borderColor: 'divider' }}>
+      <AppCard kind="tinted" tone="primary" sx={{ mt: 3 }}>
         <CardContent sx={{ textAlign: 'center', py: 4 }}>
           <Box sx={{ width: 88, height: 88, mx: 'auto', mb: 1.5, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle at 50% 40%, rgba(32,178,170,.22), rgba(32,178,170,.05) 70%)' }}>
             <DrExame size={54} sx={{ borderRadius: '50%' }} />
@@ -99,13 +100,13 @@ export const HealthScoreCard = ({ loaded, score, abnormalCount, markerCount, onD
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2, maxWidth: 320, mx: 'auto' }}>Envie seu primeiro exame (PDF ou foto) e o Dr. Exame calcula um score personalizado a partir dos seus resultados.</Typography>
           <Button variant="contained" onClick={onDetails} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 3 }}>Enviar meu primeiro exame</Button>
         </CardContent>
-      </Card>
+      </AppCard>
     );
   }
   const color = scoreColor(score);
   const verdict = verdictFor(score);
   return (
-    <Card sx={{ mt: 3, position: 'relative', overflow: 'hidden', background: 'linear-gradient(135deg, rgba(32,178,170,.10), rgba(32,178,170,.03))', border: '1px solid', borderColor: 'divider', boxShadow: `0 10px 30px ${color}1a`, transition: 'box-shadow .5s ease' }}>
+    <AppCard kind="tinted" tone="primary" glow={color} sx={{ mt: 3, position: 'relative', transition: 'box-shadow .5s ease' }}>
       <FavoriteIcon sx={{ position: 'absolute', right: -18, top: -14, fontSize: 150, color: 'primary.main', opacity: 0.05, pointerEvents: 'none', transform: 'rotate(-12deg)' }} />
       <CardContent sx={{ position: 'relative' }}>
         {/* Cabeçalho: "Score de Saúde" + (?) ajuda — explica o que é esse número pro leigo */}
@@ -145,6 +146,6 @@ export const HealthScoreCard = ({ loaded, score, abnormalCount, markerCount, onD
           <Typography variant="caption" sx={{ display: 'block', mt: 1.5, color: 'text.secondary' }}>*Sempre confirme com seu médico.</Typography>
         </Box>
       </Popover>
-    </Card>
+    </AppCard>
   );
 };

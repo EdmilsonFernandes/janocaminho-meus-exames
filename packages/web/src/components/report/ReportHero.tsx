@@ -1,11 +1,12 @@
 import type { ReactNode } from 'react';
-import { Card, CardContent, Box, Stack, Typography, Button, CircularProgress, Grid } from '@mui/material';
+import { CardContent, Box, Stack, Typography, Button, CircularProgress, Grid } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import VolumeUpIcon from '@mui/icons-material/RecordVoiceOver';
 import ShareIcon from '@mui/icons-material/Share';
 import PrintIcon from '@mui/icons-material/Print';
 import { DrExame } from '../DrExame';
+import { AppCard } from '../AppCard';
 
 const StatTile = ({ value, label, accent }: { value: ReactNode; label: string; accent: string }) => (
   <Box sx={{ textAlign: 'center', px: 0.5, py: 1, borderRadius: '12px', bgcolor: alpha(accent, 0.08), border: `1px solid ${alpha(accent, 0.15)}` }}>
@@ -24,7 +25,7 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
   resumo?: string; counts: { itens: number; atencao: number; positivos: number };
   speaking: boolean; loading: boolean; onSpeak: () => void; onShare: () => void; onPrint: () => void; onRegen: () => void;
 }) => (
-  <Card sx={{ overflow: 'hidden', position: 'relative', background: 'linear-gradient(135deg, rgba(32,178,170,.12), rgba(212,165,116,.08))', border: '1px solid', borderColor: 'rgba(32,178,170,.25)' }}>
+  <AppCard kind="tinted" tone="primary" tone2="secondary" sx={{ position: 'relative' }}>
     <AutoAwesomeIcon sx={{ position: 'absolute', right: -14, bottom: -20, fontSize: 150, color: '#d4a574', opacity: 0.12, pointerEvents: 'none' }} />
     <CardContent sx={{ position: 'relative' }}>
       <Stack direction="row" alignItems="center" spacing={1.5}>
@@ -52,5 +53,5 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
 
       {resumo && <Typography sx={{ mt: 2, fontSize: '1.05rem', lineHeight: 1.7, wordBreak: 'break-word' }}>{resumo}</Typography>}
     </CardContent>
-  </Card>
+  </AppCard>
 );
