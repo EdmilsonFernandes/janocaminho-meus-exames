@@ -17,7 +17,7 @@ export const PrivacyPage = () => {
       <Card sx={{ mb: 2, borderRadius: '12px', background: 'background.default', border: '1px solid', borderColor: 'divider' }}>
         <Box sx={{ p: 2.5 }}>
           <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', mb: 1 }}>📋 Termos de Uso</Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: 13.5, lineHeight: 1.6, mb: 1.5 }}>
+          <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: 14, lineHeight: 1.6, mb: 1.5 }}>
             O Meus Exames é um app de apoio à gestão de saúde pessoal. A análise gerada pela IA é <strong>educativa</strong> e <strong>não substitui</strong> consulta, diagnóstico ou tratamento médico. Em urgências, procure um serviço de saúde.
           </Typography>
           <Button variant="outlined" size="small" onClick={() => setTermsOpen(true)} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, borderColor: '#20b2aa', color: '#178f89' }}>
@@ -41,7 +41,7 @@ export const PrivacyPage = () => {
             ].map((t, i) => (
               <Stack key={i} direction="row" spacing={1.5} alignItems="flex-start">
                 <Box sx={{ width: 20, height: 20, borderRadius: '50%', bgcolor: 'rgba(51,104,134,.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: '#336886', flexShrink: 0, mt: 0.2 }}>{i + 1}</Box>
-                <Typography variant="body2" sx={{ color: 'text.primary', fontSize: 13.5, lineHeight: 1.5 }}>{t}</Typography>
+                <Typography variant="body2" sx={{ color: 'text.primary', fontSize: 14, lineHeight: 1.5 }}>{t}</Typography>
               </Stack>
             ))}
           </Stack>
@@ -61,7 +61,7 @@ export const PrivacyPage = () => {
             ].map((t, i) => (
               <Stack key={i} direction="row" spacing={1.5} alignItems="flex-start">
                 <Box sx={{ width: 20, height: 20, borderRadius: '50%', bgcolor: 'rgba(32,178,170,.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: '#178f89', flexShrink: 0, mt: 0.2 }}>{i + 1}</Box>
-                <Typography variant="body2" sx={{ color: 'text.primary', fontSize: 13.5, lineHeight: 1.5 }}>{t}</Typography>
+                <Typography variant="body2" sx={{ color: 'text.primary', fontSize: 14, lineHeight: 1.5 }}>{t}</Typography>
               </Stack>
             ))}
           </Stack>
@@ -82,7 +82,7 @@ export const PrivacyPage = () => {
           📋 Termos de Uso
           <Button onClick={() => setTermsOpen(false)} sx={{ minWidth: 0, fontSize: 13 }}>✕ Fechar</Button>
         </DialogTitle>
-        <DialogContent sx={{ '& p, & li': { fontSize: 13.5, lineHeight: 1.6 } }}>
+        <DialogContent sx={{ '& p, & li': { fontSize: 14, lineHeight: 1.6 } }}>
           <TermsPage />
         </DialogContent>
       </Dialog>

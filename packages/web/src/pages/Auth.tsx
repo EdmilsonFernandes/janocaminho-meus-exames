@@ -58,7 +58,7 @@ const Shell = ({ children }: { children: ReactNode }) => {
       {children}
       <Box sx={{ mt: 3, display: 'flex', gap: 1, alignItems: 'flex-start', p: 1.25, borderRadius: '12px', bgcolor: 'background.default', border: '1px solid', borderColor: 'divider' }}>
         <Box sx={{ fontSize: 16, lineHeight: 1.3, flexShrink: 0 }}>🩺</Box>
-        <Typography sx={{ fontSize: 11.5, color: 'text.secondary', lineHeight: 1.45 }}>
+        <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.45 }}>
           <strong>{translate('auth.disclaimer_strong')}</strong> {translate('auth.disclaimer')}
         </Typography>
       </Box>
@@ -249,7 +249,7 @@ export const LoginPage = () => {
       {/* Toggle Paciente / Médico — segmented control premium */}
       <Box sx={{ display: 'flex', p: 0.5, mb: 2, gap: 0.5, borderRadius: '999px', bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider' }}>
         <Button onClick={() => { setRole('paciente'); setMode('password'); }} startIcon={<I.User />} fullWidth
-          sx={{ py: 1, borderRadius: '999px', textTransform: 'none', fontWeight: 800, fontSize: 13.5, minHeight: 40, transition: 'all .2s',
+          sx={{ py: 1, borderRadius: '999px', textTransform: 'none', fontWeight: 800, fontSize: 14, minHeight: 40, transition: 'all .2s',
             background: role === 'paciente' ? 'linear-gradient(180deg,#20b2aa,#009688)' : 'transparent',
             color: role === 'paciente' ? '#fff' : '#178f89',
             boxShadow: role === 'paciente' ? '0 4px 12px rgba(0,150,136,.3)' : 'none',
@@ -257,7 +257,7 @@ export const LoginPage = () => {
           Paciente
         </Button>
         <Button onClick={() => { setRole('medico'); setMode('password'); }} startIcon={<I.Doctor />} fullWidth
-          sx={{ py: 1, borderRadius: '999px', textTransform: 'none', fontWeight: 800, fontSize: 13.5, minHeight: 40, transition: 'all .2s',
+          sx={{ py: 1, borderRadius: '999px', textTransform: 'none', fontWeight: 800, fontSize: 14, minHeight: 40, transition: 'all .2s',
             background: role === 'medico' ? 'linear-gradient(180deg,#20b2aa,#009688)' : 'transparent',
             color: role === 'medico' ? '#fff' : '#178f89',
             boxShadow: role === 'medico' ? '0 4px 12px rgba(0,150,136,.3)' : 'none',
@@ -282,7 +282,7 @@ export const LoginPage = () => {
             } }}
           />
           <Box sx={{ textAlign: 'right', mt: -0.5 }}>
-            <Link component="button" type="button" variant="body2" sx={{ fontSize: 12.5, color: '#00897b', fontWeight: 600 }} onClick={() => navigate('/recuperar-senha')}>{translate('auth.forgot')}</Link>
+            <Link component="button" type="button" variant="body2" sx={{ fontSize: 13, color: '#00897b', fontWeight: 600 }} onClick={() => navigate('/recuperar-senha')}>{translate('auth.forgot')}</Link>
           </Box>
           {bioReady && (
             <Button type="button" fullWidth variant="outlined" startIcon={<I.Shield />} onClick={bioLogin} sx={{ ...tokenBtnSx, borderColor: '#20b2aa', color: '#178f89', mb: 1, py: 1.2 }}>
@@ -326,8 +326,8 @@ export const LoginPage = () => {
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start', mt: 1, color: 'text.secondary' }}>
             <Box sx={{ mt: '1px' }}><I.Shield /></Box>
             <Box>
-              <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: 'text.primary' }}>{translate('auth.secure')}</Typography>
-              <Typography sx={{ fontSize: 11.5, color: 'text.secondary', lineHeight: 1.4 }}>{translate('auth.secure_desc')}</Typography>
+              <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary' }}>{translate('auth.secure')}</Typography>
+              <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.4 }}>{translate('auth.secure_desc')}</Typography>
             </Box>
           </Box>
           <Typography align="center" sx={{ mt: 1, fontSize: 13 }}>
@@ -336,14 +336,14 @@ export const LoginPage = () => {
         </Box>
       ) : (
         <Box component="form" onSubmit={verifyOtp} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Typography color="text.secondary" sx={{ fontSize: 13.5 }}>Enviamos um token para <strong>{email}</strong></Typography>
+          <Typography color="text.secondary" sx={{ fontSize: 14 }}>Enviamos um token para <strong>{email}</strong></Typography>
           <OtpInput value={code} onChange={setCode} />
           <Button type="submit" variant="contained" size="large" fullWidth disabled={loading} endIcon={<I.ArrowRight />} sx={primaryBtnSx}>
             {loading ? <CircularProgress size={22} color="inherit" /> : 'Verificar e entrar'}
           </Button>
           <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 0.5 }}>
-            <Link component="button" type="button" variant="body2" sx={{ fontSize: 12.5, color: '#00897b' }} onClick={() => sendOtp()}>Reenviar token</Link>
-            <Link component="button" type="button" variant="body2" sx={{ fontSize: 12.5, color: 'text.secondary' }} onClick={() => setMode('password')}>Voltar (senha)</Link>
+            <Link component="button" type="button" variant="body2" sx={{ fontSize: 13, color: '#00897b' }} onClick={() => sendOtp()}>Reenviar token</Link>
+            <Link component="button" type="button" variant="body2" sx={{ fontSize: 13, color: 'text.secondary' }} onClick={() => setMode('password')}>Voltar (senha)</Link>
           </Stack>
         </Box>
       )}
@@ -420,7 +420,7 @@ export const RegisterPage = () => {
           <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>Enviamos um código de ativação para <strong>{verifyEmail}</strong>. Digite abaixo pra ativar sua conta.</Typography>
           <OtpInput value={verifyCode} onChange={setVerifyCode} />
           <Button type="submit" variant="contained" size="large" fullWidth disabled={loading} endIcon={<I.ArrowRight />} sx={primaryBtnSx}>{loading ? <CircularProgress size={22} color="inherit" /> : 'Ativar conta'}</Button>
-          <Link component="button" type="button" variant="body2" sx={{ fontSize: 12.5, color: 'text.secondary' }} onClick={() => setVerifyEmail(null)}>Voltar ao cadastro</Link>
+          <Link component="button" type="button" variant="body2" sx={{ fontSize: 13, color: 'text.secondary' }} onClick={() => setVerifyEmail(null)}>Voltar ao cadastro</Link>
         </Box>
       ) : (
         <>
@@ -446,7 +446,7 @@ export const RegisterPage = () => {
         )}
         <FormControlLabel
           control={<Checkbox checked={accepted} onChange={(e) => setAccepted(e.target.checked)} size="small" sx={{ color: '#20b2aa', '&.Mui-checked': { color: '#20b2aa' } }} />}
-          label={<Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>Li e aceito os <Link component="a" href="#/termos" target="_blank" rel="noopener" sx={{ color: '#00897b', fontWeight: 700 }}>Termos de Uso e Política de Privacidade</Link>.</Typography>}
+          label={<Typography sx={{ fontSize: 13, color: 'text.secondary' }}>Li e aceito os <Link component="a" href="#/termos" target="_blank" rel="noopener" sx={{ color: '#00897b', fontWeight: 700 }}>Termos de Uso e Política de Privacidade</Link>.</Typography>}
           sx={{ alignItems: 'flex-start', m: 0, '& .MuiCheckbox-root': { pt: 0.5 } }}
         />
         <Button type="submit" variant="contained" size="large" fullWidth disabled={loading} endIcon={<I.ArrowRight />} sx={primaryBtnSx}>

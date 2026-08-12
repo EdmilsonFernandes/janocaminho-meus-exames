@@ -36,7 +36,7 @@ export const WhatsNew = () => {
             <Box key={f.title} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
               <Box sx={{ fontSize: 24, flexShrink: 0, lineHeight: 1.2 }}>{f.emoji}</Box>
               <Box>
-                <Typography sx={{ fontWeight: 800, fontSize: 14.5 }}>{f.title}</Typography>
+                <Typography sx={{ fontWeight: 800, fontSize: 15 }}>{f.title}</Typography>
                 <Typography variant="caption" color="text.secondary">{f.desc}</Typography>
               </Box>
             </Box>

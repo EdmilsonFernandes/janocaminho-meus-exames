@@ -41,7 +41,7 @@ export const NotificationBell = () => {
         '&:hover': { bgcolor: 'action.hover' },
       }}>
       <Badge badgeContent={unread} color="error" overlap="circular"
-        sx={{ '& .MuiBadge-badge': { fontSize: 10.5, fontWeight: 700, height: 18, minWidth: 18, padding: '0 4px', top: 3, right: 3 } }}>
+        sx={{ '& .MuiBadge-badge': { fontSize: 11, fontWeight: 700, height: 18, minWidth: 18, padding: '0 4px', top: 3, right: 3 } }}>
         <NotificationsNoneIcon sx={{ fontSize: 22 }} />
       </Badge>
     </IconButton>

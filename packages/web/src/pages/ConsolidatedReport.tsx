@@ -565,8 +565,8 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
                     })}
                   </Select>
                 </FormControl>
-                {pickedAtLimit && <Alert severity="warning" sx={{ mt: 1.5, py: 0.5, borderRadius: '12px', fontSize: 12.5 }}>Esse médico tem o limite de perguntas em aberto com você. Aguarde a resposta (ou agende uma consulta) pra enviar mais.</Alert>}
-                {allAtLimit && <Alert severity="info" sx={{ mt: 1.5, py: 0.5, borderRadius: '12px', fontSize: 12.5 }}>Todos os seus médicos têm perguntas em aberto aguardando resposta. Quando algum responder, você poderá enviar novas.</Alert>}
+                {pickedAtLimit && <Alert severity="warning" sx={{ mt: 1.5, py: 0.5, borderRadius: '12px', fontSize: 13 }}>Esse médico tem o limite de perguntas em aberto com você. Aguarde a resposta (ou agende uma consulta) pra enviar mais.</Alert>}
+                {allAtLimit && <Alert severity="info" sx={{ mt: 1.5, py: 0.5, borderRadius: '12px', fontSize: 13 }}>Todos os seus médicos têm perguntas em aberto aguardando resposta. Quando algum responder, você poderá enviar novas.</Alert>}
               </DialogContent>
               <DialogActions sx={{ justifyContent: 'center', pb: 2, gap: 1 }}>
                 <Button onClick={() => setPicker(null)} sx={{ textTransform: 'none' }}>Cancelar</Button>

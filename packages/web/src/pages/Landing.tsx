@@ -215,21 +215,21 @@ export const LandingPage = () => {
                 <Chip icon={<VerifiedUserIcon sx={{ fontSize: 17 }} />} label="Conforme a LGPD" sx={{ bgcolor: 'rgba(32,178,170,.10)', color: TEAL_DARK, fontWeight: 700, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: TEAL } }} />
               </Stack>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap sx={{ mb: 1.5 }}>
-                <Button variant="contained" color="primary" size="large" onClick={() => navigate('/registrar')} sx={{ borderRadius: '999px', px: 4, py: 1.5, fontSize: 16.5, textTransform: 'none', fontWeight: 800 }}>
+                <Button variant="contained" color="primary" size="large" onClick={() => navigate('/registrar')} sx={{ borderRadius: '999px', px: 4, py: 1.5, fontSize: 17, textTransform: 'none', fontWeight: 800 }}>
                   Começar grátis →
                 </Button>
               </Stack>
               <Button variant="text" size="small" onClick={() => navigate('/entrar')} sx={{ textTransform: 'none', fontWeight: 700, color: TEAL_DARK, fontSize: 13, minWidth: 0, px: 0, justifyContent: { xs: 'center', sm: 'flex-start' }, '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' } }}>
                 Já tem conta? Entrar
               </Button>
-              <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mt: 0.5 }}>
+              <Typography sx={{ fontSize: 13, color: 'text.secondary', mt: 0.5 }}>
                 ou entre com <b style={{ color: TEAL_DARK }}>Google</b> — 1 toque, sem senha
               </Typography>
               <Stack direction="row" spacing={2.5} useFlexGap sx={{ flexWrap: 'wrap', rowGap: 1, mt: 2 }}>
                 {[`${credits} créditos ao enviar seu 1º exame`, 'Leitura de risco'].map((t) => (
                   <Stack key={t} direction="row" spacing={0.5} alignItems="center">
                     <CheckCircleIcon sx={{ fontSize: 17, color: GREEN }} />
-                    <Typography sx={{ color: 'text.secondary', fontSize: 13.5, fontWeight: 600 }}>{t}</Typography>
+                    <Typography sx={{ color: 'text.secondary', fontSize: 14, fontWeight: 600 }}>{t}</Typography>
                   </Stack>
                 ))}
               </Stack>
@@ -276,7 +276,7 @@ export const LandingPage = () => {
           <Box sx={{ textAlign: 'center', mb: { xs: 3.5, md: 5 } }}>
             <Typography sx={{ fontSize: 13, fontWeight: 800, color: TEAL_DARK, letterSpacing: '0.06em', textTransform: 'uppercase', mb: 1 }}>Veja acontecer</Typography>
             <Typography variant="h2" sx={{ fontSize: { xs: '1.7rem', md: '2.3rem' }, fontWeight: 800, color: 'text.primary', mb: 1, letterSpacing: '-0.02em' }}>Decifre um exame em 5 segundos</Typography>
-            <Typography sx={{ color: 'text.secondary', fontSize: 16.5, maxWidth: 560, mx: 'auto' }}>Toque e veja o Dr. Exame ler o laudo, explicar cada valor e montar sua leitura de risco — sem cadastro.</Typography>
+            <Typography sx={{ color: 'text.secondary', fontSize: 17, maxWidth: 560, mx: 'auto' }}>Toque e veja o Dr. Exame ler o laudo, explicar cada valor e montar sua leitura de risco — sem cadastro.</Typography>
           </Box>
           <ExamDemo />
         </Container>
@@ -294,7 +294,7 @@ export const LandingPage = () => {
             ].map(({ Icon, t }) => (
               <Stack key={t} direction="row" spacing={1} alignItems="center">
                 <Icon sx={{ fontSize: 20, color: TEAL }} />
-                <Typography sx={{ fontSize: 13.5, fontWeight: 600, color: 'text.primary' }}>{t}</Typography>
+                <Typography sx={{ fontSize: 14, fontWeight: 600, color: 'text.primary' }}>{t}</Typography>
               </Stack>
             ))}
           </Stack>
@@ -313,7 +313,7 @@ export const LandingPage = () => {
             ].map((m) => (
               <Box key={m.l}>
                 <Typography sx={{ fontSize: { xs: '1.8rem', md: '2.4rem' }, fontWeight: 800, color: TEAL_DARK, lineHeight: 1, mb: 0.75, fontFamily: '"Poppins","Inter",sans-serif', letterSpacing: '-0.02em' }}>{m.n}</Typography>
-                <Typography sx={{ fontSize: 13.5, color: 'text.secondary', maxWidth: 230, mx: 'auto', lineHeight: 1.45 }}>{m.l}</Typography>
+                <Typography sx={{ fontSize: 14, color: 'text.secondary', maxWidth: 230, mx: 'auto', lineHeight: 1.45 }}>{m.l}</Typography>
               </Box>
             ))}
           </Box>
@@ -338,7 +338,7 @@ export const LandingPage = () => {
               component="button"
               onClick={() => setCat(c)}
               sx={{
-                px: 2, py: 0.85, borderRadius: '999px', cursor: 'pointer', fontSize: 13.5, fontWeight: 700, textTransform: 'none',
+                px: 2, py: 0.85, borderRadius: '999px', cursor: 'pointer', fontSize: 14, fontWeight: 700, textTransform: 'none',
                 border: '1px solid', borderColor: cat === c ? TEAL : 'divider',
                 bgcolor: cat === c ? TEAL : 'background.paper',
                 color: cat === c ? '#fff' : 'text.secondary',
@@ -359,7 +359,7 @@ export const LandingPage = () => {
                 <Box sx={{ width: 48, height: 48, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2, background: 'linear-gradient(135deg,rgba(32,178,170,.14),rgba(32,178,170,.06))' }}>
                   <b.Icon sx={{ fontSize: 26, color: TEAL_DARK }} />
                 </Box>
-                <Typography variant="h6" sx={{ fontWeight: 800, fontSize: 16.5, color: 'text.primary', mb: 1 }}>{b.title}</Typography>
+                <Typography variant="h6" sx={{ fontWeight: 800, fontSize: 17, color: 'text.primary', mb: 1 }}>{b.title}</Typography>
                 <Typography sx={{ fontSize: 14, color: 'text.secondary', lineHeight: 1.6 }}>{b.desc}</Typography>
               </Box>
             </Fade>
@@ -488,7 +488,7 @@ export const LandingPage = () => {
                 <Box sx={{ width: 44, height: 44, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1.5, background: 'linear-gradient(135deg,rgba(32,178,170,.14),rgba(32,178,170,.06))' }}>
                   <s.Icon sx={{ fontSize: 24, color: TEAL_DARK }} />
                 </Box>
-                <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: 'text.primary', mb: 0.5 }}>{s.t}</Typography>
+                <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary', mb: 0.5 }}>{s.t}</Typography>
                 <Typography sx={{ fontSize: 13, color: 'text.secondary', lineHeight: 1.5 }}>{s.d}</Typography>
               </Box>
             ))}
@@ -601,7 +601,7 @@ export const LandingPage = () => {
                     <Typography sx={{ fontSize: 15, fontWeight: 700, color: 'text.primary' }}>12345-SP • Dra. Helena Costa</Typography>
                   </Box>
                   <Button fullWidth variant="contained" color="primary" sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>Compartilhar dados</Button>
-                  <Typography sx={{ fontSize: 11.5, color: 'text.secondary', mt: 1.5, textAlign: 'center' }}>🔒 Você pode revogar a qualquer momento.</Typography>
+                  <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 1.5, textAlign: 'center' }}>🔒 Você pode revogar a qualquer momento.</Typography>
                 </Box>
               </Box>
             </Box>
@@ -614,7 +614,7 @@ export const LandingPage = () => {
                 <Stack alignItems="center" spacing={1.5} sx={{ textAlign: 'center', mb: 5 }}>
                   <Chip label="✨ NOVIDADE" sx={{ bgcolor: 'rgba(32,178,170,.12)', color: TEAL_DARK, fontWeight: 800, letterSpacing: 1.5, fontSize: 12 }} />
                   <Typography sx={{ fontSize: { xs: '1.5rem', md: '2rem' }, fontWeight: 800, color: INK, letterSpacing: '-0.02em', maxWidth: 680 }}>Seu médico te chama — sem papel, sem app do consultório</Typography>
-                  <Typography sx={{ color: 'text.secondary', fontSize: 16.5, maxWidth: 600, lineHeight: 1.6 }}>Seu médico te manda um link no WhatsApp, você instala e ele <b>já fica conectado</b> aos seus exames — na hora, sem configurar nada.</Typography>
+                  <Typography sx={{ color: 'text.secondary', fontSize: 17, maxWidth: 600, lineHeight: 1.6 }}>Seu médico te manda um link no WhatsApp, você instala e ele <b>já fica conectado</b> aos seus exames — na hora, sem configurar nada.</Typography>
                 </Stack>
               </Reveal>
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: { xs: 2.5, md: 3.5 }, maxWidth: 940, mx: 'auto' }}>
@@ -629,7 +629,7 @@ export const LandingPage = () => {
                         <s.Icon sx={{ fontSize: 30, color: '#fff' }} />
                       </Box>
                       <Typography variant="h6" sx={{ fontWeight: 800, fontSize: 17, color: 'text.primary', mb: 0.75 }}>{s.t}</Typography>
-                      <Typography sx={{ color: 'text.secondary', fontSize: 14.5, lineHeight: 1.6 }}>{s.d}</Typography>
+                      <Typography sx={{ color: 'text.secondary', fontSize: 15, lineHeight: 1.6 }}>{s.d}</Typography>
                       {i === 2 && <Chip size="small" label="já vem ativo ✓" sx={{ position: 'absolute', top: 12, right: 12, bgcolor: 'rgba(5,150,105,.12)', color: GREEN, fontWeight: 800, fontSize: 11 }} />}
                     </Box>
                   </Reveal>
@@ -643,12 +643,12 @@ export const LandingPage = () => {
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center" alignItems="stretch" sx={{ mt: 6, maxWidth: 780, mx: 'auto' }}>
               <Box sx={{ flex: 1, borderRadius: '12px', p: 3, background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff' }}>
                 <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}><MedicalServicesIcon /><Typography sx={{ fontWeight: 800, fontSize: 18 }}>Pra você, paciente</Typography></Stack>
-                <Typography sx={{ fontSize: 14.5, lineHeight: 1.55, opacity: 0.92, mb: 2 }}>Seu médico ainda não te chamou? Crie sua conta e indique-o pelo CRM em segundos.</Typography>
+                <Typography sx={{ fontSize: 15, lineHeight: 1.55, opacity: 0.92, mb: 2 }}>Seu médico ainda não te chamou? Crie sua conta e indique-o pelo CRM em segundos.</Typography>
                 <Button variant="contained" onClick={() => navigate('/registrar')} sx={{ bgcolor: '#fff', color: TEAL_DARK, borderRadius: '999px', textTransform: 'none', fontWeight: 800, boxShadow: 'none', '&:hover': { bgcolor: '#eefaf9' } }}>Criar conta grátis</Button>
               </Box>
               <Box sx={{ flex: 1, borderRadius: '12px', p: 3, bgcolor: 'background.paper', border: '2px solid ' + TEAL }}>
                 <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}><AssignmentIndIcon sx={{ color: TEAL_DARK }} /><Typography sx={{ fontWeight: 800, fontSize: 18, color: INK }}>Pra você, médico</Typography></Stack>
-                <Typography sx={{ fontSize: 14.5, lineHeight: 1.55, color: 'text.secondary', mb: 2 }}>Convide seus pacientes pelo portal e receba um brief de pré-consulta de cada um. Conheça o Dr. Exame Pro.</Typography>
+                <Typography sx={{ fontSize: 15, lineHeight: 1.55, color: 'text.secondary', mb: 2 }}>Convide seus pacientes pelo portal e receba um brief de pré-consulta de cada um. Conheça o Dr. Exame Pro.</Typography>
                 <Button variant="outlined" onClick={() => navigate('/doctor')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, borderColor: TEAL, color: TEAL_DARK, '&:hover': { borderColor: TEAL_DARK, bgcolor: 'rgba(32,178,170,.06)' } }}>Portal do médico →</Button>
               </Box>
             </Stack>
@@ -682,7 +682,7 @@ export const LandingPage = () => {
                         <Typography sx={{ fontWeight: 800, fontSize: 17, color: 'text.primary' }}>{t.n}</Typography>
                       </Stack>
                       <Typography sx={{ fontSize: 22, fontWeight: 800, color: TEAL_DARK, lineHeight: 1, mb: 0.25 }}>{t.v}</Typography>
-                      <Typography sx={{ fontSize: 11.5, fontWeight: 700, color: GREEN, mb: 1 }}>{t.ideal}</Typography>
+                      <Typography sx={{ fontSize: 12, fontWeight: 700, color: GREEN, mb: 1 }}>{t.ideal}</Typography>
                       <Typography sx={{ fontSize: 13, color: 'text.secondary', lineHeight: 1.5 }}>{t.d}</Typography>
                     </Box>
                   </Reveal>
@@ -722,8 +722,8 @@ export const LandingPage = () => {
                 <Stack direction="row" spacing={1.5} alignItems="center">
                   <Box sx={{ width: 42, height: 42, borderRadius: '50%', bgcolor: t.color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 17, fontFamily: '"Poppins","Inter",sans-serif' }}>{t.i}</Box>
                   <Box>
-                    <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: 'text.primary' }}>{t.n}</Typography>
-                    <Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>{t.c}</Typography>
+                    <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary' }}>{t.n}</Typography>
+                    <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>{t.c}</Typography>
                   </Box>
                 </Stack>
               </Box>
@@ -742,9 +742,9 @@ export const LandingPage = () => {
             {/* cabeçalho */}
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1.6fr 1fr 1fr', md: '1.8fr 1fr 1fr 1fr' }, bgcolor: 'background.default', borderBottom: '1px solid', borderColor: 'divider' }}>
               <Box sx={{ p: 1.75 }} />
-              <Box sx={{ p: 1.5, textAlign: 'center', fontWeight: 800, color: TEAL_DARK, fontSize: 13.5 }}>Dr. Exame</Box>
-              <Box sx={{ p: 1.5, textAlign: 'center', fontWeight: 700, color: 'text.secondary', fontSize: 12.5 }}>Sozinho / Google</Box>
-              <Box sx={{ p: 1.5, textAlign: 'center', fontWeight: 700, color: 'text.secondary', fontSize: 12.5, display: { xs: 'none', md: 'block' } }}>Só na consulta</Box>
+              <Box sx={{ p: 1.5, textAlign: 'center', fontWeight: 800, color: TEAL_DARK, fontSize: 14 }}>Dr. Exame</Box>
+              <Box sx={{ p: 1.5, textAlign: 'center', fontWeight: 700, color: 'text.secondary', fontSize: 13 }}>Sozinho / Google</Box>
+              <Box sx={{ p: 1.5, textAlign: 'center', fontWeight: 700, color: 'text.secondary', fontSize: 13, display: { xs: 'none', md: 'block' } }}>Só na consulta</Box>
             </Box>
             {/* linhas */}
             {[
@@ -756,10 +756,10 @@ export const LandingPage = () => {
               { f: 'Plano de ação + perguntas pro médico', me: true, diy: false, doc: 'limitado' },
             ].map((r, idx) => (
               <Box key={r.f} sx={{ display: 'grid', gridTemplateColumns: { xs: '1.6fr 1fr 1fr', md: '1.8fr 1fr 1fr 1fr' }, alignItems: 'center', borderBottom: idx === 5 ? 'none' : '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
-                <Box sx={{ p: 1.75, fontSize: 13.5, color: 'text.primary', fontWeight: 600 }}>{r.f}</Box>
+                <Box sx={{ p: 1.75, fontSize: 14, color: 'text.primary', fontWeight: 600 }}>{r.f}</Box>
                 <Box sx={{ p: 1.5, textAlign: 'center' }}>{r.me === true ? <CheckCircleIcon sx={{ fontSize: 20, color: GREEN }} /> : <Typography sx={{ fontSize: 12, color: 'text.disabled' }}>—</Typography>}</Box>
-                <Box sx={{ p: 1.5, textAlign: 'center' }}>{r.diy === true ? <CheckCircleIcon sx={{ fontSize: 20, color: GREEN }} /> : r.diy === 'manual' ? <Typography sx={{ fontSize: 11.5, color: '#b45309', fontWeight: 700 }}>manual</Typography> : <Typography sx={{ fontSize: 16, color: 'text.disabled' }}>✕</Typography>}</Box>
-                <Box sx={{ p: 1.5, textAlign: 'center', display: { xs: 'none', md: 'block' } }}>{r.doc === true ? <CheckCircleIcon sx={{ fontSize: 20, color: GREEN }} /> : r.doc === 'limitado' ? <Typography sx={{ fontSize: 11.5, color: '#b45309', fontWeight: 700 }}>limitado</Typography> : <Typography sx={{ fontSize: 16, color: 'text.disabled' }}>✕</Typography>}</Box>
+                <Box sx={{ p: 1.5, textAlign: 'center' }}>{r.diy === true ? <CheckCircleIcon sx={{ fontSize: 20, color: GREEN }} /> : r.diy === 'manual' ? <Typography sx={{ fontSize: 12, color: '#b45309', fontWeight: 700 }}>manual</Typography> : <Typography sx={{ fontSize: 16, color: 'text.disabled' }}>✕</Typography>}</Box>
+                <Box sx={{ p: 1.5, textAlign: 'center', display: { xs: 'none', md: 'block' } }}>{r.doc === true ? <CheckCircleIcon sx={{ fontSize: 20, color: GREEN }} /> : r.doc === 'limitado' ? <Typography sx={{ fontSize: 12, color: '#b45309', fontWeight: 700 }}>limitado</Typography> : <Typography sx={{ fontSize: 16, color: 'text.disabled' }}>✕</Typography>}</Box>
               </Box>
             ))}
           </Box>
@@ -811,7 +811,7 @@ export const LandingPage = () => {
                 {[{ n: `+${refBonus}`, l: 'pra você', c: TEAL }, { n: `+${refBonus}`, l: 'pra seu amigo', c: '#0ea5e9' }, { n: '10/mês', l: 'limite anti-abuso', c: 'text.secondary' }].map((x) => (
                   <Box key={x.l} sx={{ px: 2, py: 1, borderRadius: '12px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', textAlign: 'center', minWidth: 92 }}>
                     <Typography sx={{ fontWeight: 800, fontSize: 20, color: x.c, lineHeight: 1.1 }}>{x.n}</Typography>
-                    <Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>{x.l}</Typography>
+                    <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>{x.l}</Typography>
                   </Box>
                 ))}
               </Stack>
@@ -848,8 +848,8 @@ export const LandingPage = () => {
                 <Box component="img" src={`${import.meta.env.BASE_URL}playstore-qr.png`} alt="QR code para baixar o Dr. Exame na Play Store"
                   sx={{ width: 116, height: 116, borderRadius: '12px', bgcolor: '#fff', display: 'block', flexShrink: 0 }} />
                 <Box sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
-                  <Typography sx={{ fontWeight: 800, fontSize: 15.5, lineHeight: 1.15, color: 'text.primary' }}>Dr. Exame no seu celular 📱</Typography>
-                  <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mb: 1 }}>Aponte a câmera do celular ou toque pra baixar.</Typography>
+                  <Typography sx={{ fontWeight: 800, fontSize: 16, lineHeight: 1.15, color: 'text.primary' }}>Dr. Exame no seu celular 📱</Typography>
+                  <Typography sx={{ fontSize: 13, color: 'text.secondary', mb: 1 }}>Aponte a câmera do celular ou toque pra baixar.</Typography>
                   <Box component="img" src={`${import.meta.env.BASE_URL}playstore-badge.png`} alt="Disponível no Google Play"
                     sx={{ height: 46, width: 'auto', display: 'block', mx: { xs: 'auto', sm: 0 } }} />
                 </Box>

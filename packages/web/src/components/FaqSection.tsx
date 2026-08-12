@@ -68,7 +68,7 @@ export const FaqSection = () => {
                   <Typography sx={{ fontWeight: 700, fontSize: { xs: 15, md: 16 }, color: 'text.primary' }}>{item.q}</Typography>
                 </AccordionSummary>
                 <AccordionDetails sx={{ px: 2.5, pb: 2.25, pt: 0 }}>
-                  <Typography sx={{ fontSize: 14.5, color: 'text.secondary', lineHeight: 1.65 }}>{item.q === 'Preciso pagar para testar?' ? `Não. Envie seu primeiro exame e ganhe ${credits} créditos grátis, sem cartão. Use pra conversar com a IA, gerar relatórios e perguntar ao médico.` : item.a}</Typography>
+                  <Typography sx={{ fontSize: 15, color: 'text.secondary', lineHeight: 1.65 }}>{item.q === 'Preciso pagar para testar?' ? `Não. Envie seu primeiro exame e ganhe ${credits} créditos grátis, sem cartão. Use pra conversar com a IA, gerar relatórios e perguntar ao médico.` : item.a}</Typography>
                 </AccordionDetails>
               </Accordion>
             ))}

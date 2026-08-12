@@ -136,7 +136,7 @@ export const PlansPage = () => {
               const on = histFilter === f.k;
               return (
                 <Chip key={f.k} size="small" label={f.l} onClick={() => { setHistFilter(f.k); setDispPage(1); }}
-                  sx={{ fontWeight: 700, fontSize: 12.5, height: 30, px: 1.25, border: 'none',
+                  sx={{ fontWeight: 700, fontSize: 13, height: 30, px: 1.25, border: 'none',
                     bgcolor: on ? 'rgba(32,178,170,.14)' : 'transparent',
                     color: on ? '#0f7670' : 'text.secondary',
                     '&:hover': { bgcolor: on ? 'rgba(32,178,170,.2)' : 'rgba(15,23,42,.05)' } }} />

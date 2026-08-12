@@ -48,7 +48,7 @@ export const MfaChallengeDialog = ({ open, challengeToken, account, verifyUrl, o
           </Button>
         ) : (
           <Stack spacing={1} sx={{ mt: 2, p: 1.5, borderRadius: '12px', bgcolor: 'action.hover' }}>
-            <Typography sx={{ fontSize: 12.5, color: 'text.secondary', lineHeight: 1.5 }}>
+            <Typography sx={{ fontSize: 13, color: 'text.secondary', lineHeight: 1.5 }}>
               📸 Envie uma <b>foto segurando seu documento</b> (RG ou CPF) para:
             </Typography>
             <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'primary.main' }}>

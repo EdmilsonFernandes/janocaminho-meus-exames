@@ -88,7 +88,7 @@ export const ExamDemo = () => {
         {started && (
           <Stack direction="row" spacing={0.75} alignItems="center">
             {!done && <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: TEAL, animation: 'examPulse 1s ease-in-out infinite' }} />}
-            <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: done ? GREEN : TEAL_DARK }}>{statusText}</Typography>
+            <Typography sx={{ fontSize: 13, fontWeight: 700, color: done ? GREEN : TEAL_DARK }}>{statusText}</Typography>
           </Stack>
         )}
       </Box>
@@ -96,7 +96,7 @@ export const ExamDemo = () => {
       <Box sx={{ p: { xs: 2, sm: 2.75 } }}>
         {/* Laudo cru — some depois de lido (libera espaço pro resultado) */}
         {!started && (
-          <Box sx={{ borderRadius: '12px', bgcolor: '#0c2422', p: 2, mb: 2.5, fontFamily: 'ui-monospace,SFMono-Regular,Menlo,monospace', fontSize: 12.5, color: '#9bc4c0', lineHeight: 1.9 }}>
+          <Box sx={{ borderRadius: '12px', bgcolor: '#0c2422', p: 2, mb: 2.5, fontFamily: 'ui-monospace,SFMono-Regular,Menlo,monospace', fontSize: 13, color: '#9bc4c0', lineHeight: 1.9 }}>
             <Box sx={{ color: '#5fc9c3', mb: 0.5 }}>LAB CENTRAL · Perfil Lipídico</Box>
             <Box>COL Total ......... 295 mg/dL</Box>
             <Box>LDL ............... 190 mg/dL  <span style={{ color: ORANGE }}>← alterado</span></Box>
@@ -117,7 +117,7 @@ export const ExamDemo = () => {
             }}>
               Decifrar este exame com IA
             </Button>
-            <Typography sx={{ mt: 1.5, fontSize: 12.5, color: 'text.secondary' }}>Exame fictício · sem cadastro · veja como funciona</Typography>
+            <Typography sx={{ mt: 1.5, fontSize: 13, color: 'text.secondary' }}>Exame fictício · sem cadastro · veja como funciona</Typography>
           </Box>
         )}
 
@@ -126,7 +126,7 @@ export const ExamDemo = () => {
           <Box>
             {/* Valores extraídos (limpos, com flag) */}
             <Box sx={{ mb: 2 }}>
-              <Typography sx={{ fontSize: 11.5, fontWeight: 800, color: 'text.secondary', letterSpacing: '0.04em', mb: 1, textTransform: 'uppercase', opacity: rowsShown ? 1 : 0 }}>
+              <Typography sx={{ fontSize: 12, fontWeight: 800, color: 'text.secondary', letterSpacing: '0.04em', mb: 1, textTransform: 'uppercase', opacity: rowsShown ? 1 : 0 }}>
                 {reading ? 'Extraindo valores do laudo…' : 'Valores extraídos'}
               </Typography>
               <Box sx={{ display: 'grid', gap: 0.75 }}>
@@ -136,8 +136,8 @@ export const ExamDemo = () => {
                     <Fade key={r.name} in timeout={260}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 0.6, px: 1.25, borderRadius: '12px', bgcolor: 'action.hover' }}>
                         <Box sx={{ flex: 1 }}>
-                          <Typography sx={{ fontSize: 13.5, fontWeight: 700, color: 'text.primary' }}>{r.name}</Typography>
-                          <Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>ref. {r.ref} {r.unit}</Typography>
+                          <Typography sx={{ fontSize: 14, fontWeight: 700, color: 'text.primary' }}>{r.name}</Typography>
+                          <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>ref. {r.ref} {r.unit}</Typography>
                         </Box>
                         <Typography sx={{ fontWeight: 800, fontSize: 16, color: r.flag === 'ok' ? GREEN : ORANGE }}>{r.val}<Typography component="span" sx={{ fontSize: 11, color: 'text.secondary', fontWeight: 600 }}> {r.unit}</Typography></Typography>
                         <Chip size="small" label={m.label} sx={{ height: 22, fontWeight: 800, fontSize: 11, bgcolor: m.bg, color: m.color }} />
@@ -168,10 +168,10 @@ export const ExamDemo = () => {
                 <Box sx={{ borderRadius: '12px', p: 2, border: '1px solid', borderColor: 'divider', background: 'linear-gradient(135deg,rgba(234,88,12,.06),rgba(234,88,12,.02))' }}>
                   <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.25 }}>
                     <HealthAndSafetyIcon sx={{ fontSize: 20, color: ORANGE }} />
-                    <Typography sx={{ fontWeight: 800, flex: 1, fontSize: 14.5 }}>Leitura de risco</Typography>
+                    <Typography sx={{ fontWeight: 800, flex: 1, fontSize: 15 }}>Leitura de risco</Typography>
                     <Chip size="small" label="🟠 Moderado" sx={{ fontWeight: 800, height: 22, bgcolor: 'rgba(234,88,12,.16)', color: ORANGE }} />
                   </Stack>
-                  <Typography sx={{ fontWeight: 800, color: ORANGE, fontSize: 13.5, mb: 1.25 }}>Fatores de risco cardiovascular (perfil lipídico)</Typography>
+                  <Typography sx={{ fontWeight: 800, color: ORANGE, fontSize: 14, mb: 1.25 }}>Fatores de risco cardiovascular (perfil lipídico)</Typography>
                   <Stack spacing={0.5} sx={{ mb: 1.5 }}>
                     {[
                       { n: 'LDL', v: '190 mg/dL' },
@@ -222,7 +222,7 @@ export const ExamDemo = () => {
         <Box sx={{ px: 2.5, pb: 1.75, textAlign: 'center' }}>
           <Stack direction="row" spacing={0.5} alignItems="center" justifyContent="center">
             <CheckCircleIcon sx={{ fontSize: 14, color: GREEN }} />
-            <Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>Demonstração com saída real de IA · nenhum dado seu é processado</Typography>
+            <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>Demonstração com saída real de IA · nenhum dado seu é processado</Typography>
           </Stack>
         </Box>
       )}

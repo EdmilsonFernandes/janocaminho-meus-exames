@@ -153,7 +153,7 @@ const MenuSectionAccordion = ({ title, icon, routes, children }: { title: string
     <Box>
       <ListItemButton onClick={() => setOpen((o) => !o)} sx={{ borderRadius: '8px', m: '1px 8px', py: 0.4, pl: 2, minHeight: 44, '&:hover': { bgcolor: 'rgba(32,178,170,.06)' } }}>
         <ListItemIcon sx={{ minWidth: 34, color: 'text.secondary', '& svg': { fontSize: 19 } }}>{icon}</ListItemIcon>
-        <ListItemText primary={title} primaryTypographyProps={{ fontSize: 12.5, fontWeight: 800, color: 'text.primary' }} />
+        <ListItemText primary={title} primaryTypographyProps={{ fontSize: 13, fontWeight: 800, color: 'text.primary' }} />
         <ExpandMoreIcon sx={{ transform: open ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform .2s', color: 'text.secondary', fontSize: 20 }} />
       </ListItemButton>
       <Collapse in={open} sx={{ pb: 0.5 }}>{children}</Collapse>
@@ -220,7 +220,7 @@ const AppMenu = () => {
               boxShadow: on ? '0 6px 16px -6px rgba(32,178,170,.6)' : 'none',
               transition: 'all .18s', '& svg': { fontSize: 22 },
             }}>{it.icon}</Box>
-            <Typography sx={{ fontSize: 10.5, fontWeight: on ? 800 : 600, color: on ? '#178f89' : 'text.secondary', textAlign: 'center', lineHeight: 1.15 }}>{translate(it.label)}</Typography>
+            <Typography sx={{ fontSize: 11, fontWeight: on ? 800 : 600, color: on ? '#178f89' : 'text.secondary', textAlign: 'center', lineHeight: 1.15 }}>{translate(it.label)}</Typography>
           </Box>
         );
       })}
@@ -341,11 +341,11 @@ const AppDrawer = () => {
           <Avatar src={userPhoto} sx={{ width: 56, height: 56, fontSize: 22, bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 800, border: '2px solid rgba(32,178,170,0.3)' }}>{userName?.charAt(0)?.toUpperCase() || '👤'}</Avatar>
           <Box sx={{ minWidth: 0, flex: 1 }}>
             <Typography sx={{ fontWeight: 800, fontSize: 16, color: 'text.primary', lineHeight: 1.15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{userName || 'Olá!'}</Typography>
-            <Typography sx={{ fontSize: 12.5, color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{isPremium ? '👑 Premium' : 'Plano grátis'}{userObj?.credits != null ? ` • 💎 ${userObj.credits}` : ''}</Typography>
+            <Typography sx={{ fontSize: 13, color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{isPremium ? '👑 Premium' : 'Plano grátis'}{userObj?.credits != null ? ` • 💎 ${userObj.credits}` : ''}</Typography>
             {credits != null && (
               <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 0.25, flexWrap: 'wrap', rowGap: 0.5 }}>
-                <Typography sx={{ fontSize: 11.5, color: 'text.secondary', fontWeight: 600, whiteSpace: 'nowrap' }}>⚡ {credits} créditos</Typography>
-                <Box component="button" onClick={() => { closeDrawer(); navigate('/planos'); }} sx={{ fontSize: 11.5, color: '#059669', fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer', p: 0, whiteSpace: 'nowrap' }}>(+ Recarregar)</Box>
+                <Typography sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 600, whiteSpace: 'nowrap' }}>⚡ {credits} créditos</Typography>
+                <Box component="button" onClick={() => { closeDrawer(); navigate('/planos'); }} sx={{ fontSize: 12, color: '#059669', fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer', p: 0, whiteSpace: 'nowrap' }}>(+ Recarregar)</Box>
               </Stack>
             )}
           </Box>

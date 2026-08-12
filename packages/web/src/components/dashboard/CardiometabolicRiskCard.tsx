@@ -75,7 +75,7 @@ export const CardiometabolicRiskCard = ({ risk: riskProp }: { risk?: CardioRisk 
             <Button size="small" onClick={() => navigate('/medicoes')} sx={{ mt: 0.5, px: 0, minWidth: 0, minHeight: 0, fontSize: 12, color: '#20b2aa', fontWeight: 700, textTransform: 'none' }}>Ir para Medições →</Button>
           </Box>
         )}
-        <Typography variant="caption" sx={{ display: 'block', mt: 1.5, color: 'text.secondary', fontSize: 10.5, lineHeight: 1.4, fontStyle: 'italic' }}>
+        <Typography variant="caption" sx={{ display: 'block', mt: 1.5, color: 'text.secondary', fontSize: 11, lineHeight: 1.4, fontStyle: 'italic' }}>
           Esta análise identifica fatores de risco, não calcula a probabilidade individual de infarto ou AVC. A avaliação completa depende do conjunto de exames, histórico clínico e consulta médica.
         </Typography>
       </CardContent>

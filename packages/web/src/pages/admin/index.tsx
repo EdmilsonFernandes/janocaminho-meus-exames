@@ -109,7 +109,7 @@ export const AdminPage = () => {
                 {showGroup && <Typography sx={{ px: 2.5, pt: 1.5, pb: 0.25, fontSize: 10, fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>{m.group}</Typography>}
                 <ListItemButton onClick={() => select(m.id)} selected={on} sx={{ mx: 1, borderRadius: '8px', py: 0.7, '&.Mui-selected': { bgcolor: 'rgba(32,178,170,.14)' }, '&.Mui-selected .MuiListItemIcon-root': { color: '#178f89' } }}>
                   <ListItemIcon sx={{ minWidth: 36, color: on ? '#178f89' : 'text.secondary', '& svg': { fontSize: 20 } }}>{m.icon}</ListItemIcon>
-                  <ListItemText primary={m.label} primaryTypographyProps={{ fontSize: 13.5, fontWeight: on ? 700 : 500, color: on ? 'text.primary' : 'text.secondary' }} />
+                  <ListItemText primary={m.label} primaryTypographyProps={{ fontSize: 14, fontWeight: on ? 700 : 500, color: on ? 'text.primary' : 'text.secondary' }} />
                 </ListItemButton>
               </Box>
             );

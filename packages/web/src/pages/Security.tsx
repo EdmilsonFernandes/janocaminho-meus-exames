@@ -26,7 +26,7 @@ export const SecurityPage = () => {
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'flex-start', sm: 'center' }}>
               <Box sx={{ flex: 1, minWidth: 0 }}>
                 <Typography sx={{ fontWeight: 800, color: 'text.primary', fontSize: 17 }}>🔐 Biometria (face/digital)</Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ fontSize: 13.5, mt: 0.5 }}>Entre sem digitar senha, usando a biometria do aparelho.</Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ fontSize: 14, mt: 0.5 }}>Entre sem digitar senha, usando a biometria do aparelho.</Typography>
               </Box>
               {bioOn
                 ? <Button variant="outlined" color="error" size="small" sx={{ flexShrink: 0, width: { xs: '100%', sm: 'auto' } }} onClick={() => { BiometricService.forget(); setBioOn(false); notify('Biometria desativada neste aparelho.'); }}>Desativar</Button>
@@ -39,7 +39,7 @@ export const SecurityPage = () => {
       {/* Dica de segurança */}
       <Card sx={{ mt: 2, borderRadius: '12px', background: 'background.default', border: '1px solid', borderColor: 'divider' }}>
         <Box sx={{ p: 2.5 }}>
-          <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: 13.5, lineHeight: 1.6 }}>
+          <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: 14, lineHeight: 1.6 }}>
             💡 <strong>Dica:</strong> Ative ambos pra máxima segurança. A biometria deixa o dia a dia mais rápido (1 toque pra entrar), e o 2FA protege contra acesso não autorizado mesmo se alguém descobrir sua senha.
           </Typography>
         </Box>

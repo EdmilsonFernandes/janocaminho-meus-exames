@@ -248,7 +248,7 @@ export const ChatPage = () => {
                   borderColor: 'divider',
                   wordBreak: 'break-word',
                   boxShadow: isUser ? '0 2px 10px rgba(32,178,170,.22)' : '0 1px 4px rgba(0,0,0,.05)',
-                  '& p': { margin: '0.3em 0', fontSize: 14.5, lineHeight: 1.55 }, '& h3': { fontSize: '0.95rem', fontWeight: 800, margin: '0.6em 0 0.2em', color: TEAL },
+                  '& p': { margin: '0.3em 0', fontSize: 15, lineHeight: 1.55 }, '& h3': { fontSize: '0.95rem', fontWeight: 800, margin: '0.6em 0 0.2em', color: TEAL },
                   '& ul, & ol': { margin: '0.3em 0', paddingLeft: '1.2em' }, '& li': { margin: '0.15em 0' },
                   '& strong': { fontWeight: 700 }, '& code': { bgcolor: 'rgba(128,128,128,.15)', px: 0.4, borderRadius: 0.5, fontSize: '0.9em' },
                 }}>
@@ -286,7 +286,7 @@ export const ChatPage = () => {
           {QUICK_ACTIONS.map((a) => (
             <Paper key={a.title} elevation={0} onClick={() => { setSheetOpen(false); send(a.prompt); }} sx={{ display: 'flex', alignItems: 'center', gap: 1.25, p: 1.1, px: 1.5, borderRadius: '12px', border: '1px solid', borderColor: 'divider', cursor: 'pointer', '&:hover': { bgcolor: 'action.hover', borderColor: TEAL } }}>
               <Box sx={{ fontSize: 20, width: 34, height: 34, borderRadius: '8px', bgcolor: 'rgba(32,178,170,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{a.icon}</Box>
-              <Typography sx={{ flex: 1, fontWeight: 700, color: 'text.primary', fontSize: 14.5 }}>{a.title}</Typography>
+              <Typography sx={{ flex: 1, fontWeight: 700, color: 'text.primary', fontSize: 15 }}>{a.title}</Typography>
               <Typography sx={{ color: TEAL, fontWeight: 800 }}>›</Typography>
             </Paper>
           ))}
@@ -323,7 +323,7 @@ const HistoryRow = ({ conv, active, onOpen, onRename, onDelete }: { conv: Conv; 
   return (
     <ListItemButton selected={active} onClick={onOpen} sx={{ py: 1, px: 2, '&.Mui-selected': { bgcolor: 'rgba(32,178,170,.08)' }, '&.Mui-selected:hover': { bgcolor: 'rgba(32,178,170,.12)' } }}>
       <ListItemIcon sx={{ minWidth: 34 }}><ChatBubbleIcon sx={{ color: active ? TEAL : 'text.secondary', fontSize: 18 }} /></ListItemIcon>
-      <ListItemText primary={conv.title || 'Sem título'} primaryTypographyProps={{ fontSize: 13.5, fontWeight: active ? 700 : 500, color: 'text.primary', noWrap: true }} secondary={new Date(conv.updatedAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} secondaryTypographyProps={{ fontSize: 11 }} />
+      <ListItemText primary={conv.title || 'Sem título'} primaryTypographyProps={{ fontSize: 14, fontWeight: active ? 700 : 500, color: 'text.primary', noWrap: true }} secondary={new Date(conv.updatedAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} secondaryTypographyProps={{ fontSize: 11 }} />
       <IconButton size="small" edge="end" onClick={(e) => { e.stopPropagation(); setMenu(e.currentTarget); }}><MoreVertIcon fontSize="small" sx={{ color: 'text.secondary' }} /></IconButton>
       <Menu anchorEl={menu} open={!!menu} onClose={() => setMenu(null)} slotProps={{ paper: { sx: { borderRadius: '12px' } } }}>
         <MenuItem onClick={async () => { setMenu(null); const t = await promptDialog({ title: 'Renomear conversa', label: 'Título', defaultValue: conv.title, confirmLabel: 'Salvar' }); if (t != null) onRename(t.trim() || conv.title); }}>✏️ Renomear</MenuItem>

@@ -274,7 +274,7 @@ const ExamCards = () => {
             <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#ef4444' }}>{translate('exams.failed_title')}</Typography>
             <Chip size="small" label={failed.length} sx={{ height: 18, bgcolor: '#fee2e2', color: '#ef4444', fontWeight: 700 }} />
           </Stack>
-          <Alert severity="warning" icon={false} sx={{ mb: 1.25, borderRadius: '12px', py: 0.75, '& .MuiAlert-message': { fontSize: 12.5 } }}>
+          <Alert severity="warning" icon={false} sx={{ mb: 1.25, borderRadius: '12px', py: 0.75, '& .MuiAlert-message': { fontSize: 13 } }}>
             {failed.length === 1 ? translate('exams.failed_msg_one') : translate('exams.failed_msg_many', { count: failed.length })} {translate('exams.failed_action')} <strong>{translate('exams.reextract')}</strong>.
           </Alert>
           <Stack spacing={1.5}>

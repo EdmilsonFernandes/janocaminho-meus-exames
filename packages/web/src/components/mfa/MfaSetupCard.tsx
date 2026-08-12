@@ -25,7 +25,7 @@ export const MfaSetupCard = ({ apiBase, authToken }: { apiBase: string; authToke
         <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary' }}>🔐 Segurança (2FA)</Typography>
         {enabled && <Chip size="small" color="success" label="ATIVADO" sx={{ fontWeight: 700 }} />}
       </Stack>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2, fontSize: 13.5 }}>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2, fontSize: 14 }}>
         Autenticação em 2 fatores (TOTP). Depois de ativar, todo login pede um código do app autenticador (Google Authenticator, Authy, 1Password).
       </Typography>
       {err && <Alert severity="error" sx={{ mb: 1.5, py: 0.5, borderRadius: '12px' }}>{err}</Alert>}
@@ -48,7 +48,7 @@ export const MfaSetupCard = ({ apiBase, authToken }: { apiBase: string; authToke
       )}
       {mode === 'disable' && (
         <Stack spacing={1.5}>
-          <Typography variant="body2" sx={{ fontSize: 13.5 }}>Digite o código atual do seu app autenticador pra desativar:</Typography>
+          <Typography variant="body2" sx={{ fontSize: 14 }}>Digite o código atual do seu app autenticador pra desativar:</Typography>
           <TextField label="Código" value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))} inputMode="numeric" sx={{ '& input': { textAlign: 'center', fontSize: 22, letterSpacing: 6, fontFamily: 'monospace' } }} />
           <Button variant="outlined" color="error" onClick={disable} disabled={loading || code.length !== 6} sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 800 }}>{loading ? <CircularProgress size={22} color="inherit" /> : 'Desativar'}</Button>
         </Stack>
