@@ -6,6 +6,7 @@ import { ListSkeleton } from '../Skeleton';
 import { Flag } from '../Flag';
 import { displayStatus } from '../../utils/examStatus';
 import { ExplainButton } from '../ExplainItem';
+import { TrendsChart } from '../TrendsChart';
 import { UnitLabel } from '../UnitLabel';
 import { RADIUS } from '../../theme';
 import type { Theme } from '@mui/material/styles';
@@ -175,91 +176,9 @@ export const DoctorTrends = ({ patientId, token }: Props) => {
       {/* LOADING */}
       {loading && <Card sx={{ borderRadius: RADIUS.sectionCard }}><CardContent><ListSkeleton count={4} /></CardContent></Card>}
 
-      {/* GRÁFICO + DETALHES */}
+            {/* GRÁFICO + DETALHES — primitiva compartilhada (dedup paciente↔médico). */}
       {!loading && ts && ts.points.length > 0 && (
-        <Card sx={{ borderRadius: RADIUS.sectionCard }}><CardContent sx={{ p: { xs: 1.5, md: 3 } }}>
-          {/* Título do analito + botão explicar — minWidth:0 + truncation evita cortar o nome no mobile. */}
-          <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mb: 1, minWidth: 0 }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: tealDark, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{prettyName(ts.nameCanonical)}</Typography>
-            <ExplainButton name={ts.nameCanonical} nameCanonical={ts.nameCanonical} />
-          </Stack>
-
-          {/* Cabeçalho empilhado (hierarquia clara, não comprimido): valor → tendência → última data → referência. */}
-          <Box sx={{ mb: 1.5, minWidth: 0 }}>
-            <Stack direction="row" alignItems="baseline" spacing={1.25} flexWrap="wrap" sx={{ minWidth: 0 }}>
-              <Typography sx={{ fontSize: 30, fontWeight: 800, lineHeight: 1, color: predict?.dir === 'up' ? theme.palette.error.dark : predict?.dir === 'down' ? theme.palette.info.dark : tealDark }}>
-                {fmtNum(lastPt?.valueNumeric)} {ts?.unit ? <UnitLabel unit={ts.unit} fontSize="1.875rem" /> : null}
-              </Typography>
-              {pctChange != null && pctChange !== 0 && (
-                <Typography sx={{ fontWeight: 700, color: pctChange > 0 ? theme.palette.error.dark : theme.palette.info.dark }}>
-                  {pctChange > 0 ? '↑' : '↓'} {Math.abs(pctChange)}%
-                </Typography>
-              )}
-            </Stack>
-            {/* Tendência em TEXTO + seta (não depende só de cor). */}
-            <Typography sx={{ fontWeight: 700, mt: 0.25, color: predict?.dir === 'up' ? theme.palette.error.dark : predict?.dir === 'down' ? theme.palette.info.dark : theme.palette.success.dark }}>
-              {predict?.dir === 'up' ? '↑ Tendência de alta' : predict?.dir === 'down' ? '↓ Tendência de queda' : '→ Estável'} · {data.length} {data.length === 1 ? 'medição' : 'medições'}
-            </Typography>
-            {lastPt && (
-              <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.25 }}>Última medição: <strong>{fmt2(lastPt.performedAt)}</strong></Typography>
-            )}
-            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              {(ts?.refLow != null && ts?.refHigh != null)
-                ? `Referência: ${ts.refLow}–${ts.refHigh}${ts?.unit ? ` ${ts.unit}` : ''}`
-                : (ts?.refLow != null || ts?.refHigh != null)
-                  ? `Referência: ${ts.refLow ?? ts.refHigh}${ts?.unit ? ` ${ts.unit}` : ''}`
-                  : 'Sem faixa de referência informada'}
-            </Typography>
-          </Box>
-
-          {/* Gráfico — linha teal + área verde (faixa de referência) */}
-          <ResponsiveContainer width="100%" height={isMobile ? 240 : 340}>
-            <LineChart data={data} margin={{ top: 10, right: isMobile ? 12 : 20, bottom: 10, left: isMobile ? 0 : 4 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
-              <XAxis dataKey="name" interval="preserveStartEnd" minTickGap={8} tickFormatter={(v: string) => (isMobile ? String(v).slice(0, 5) : v)} tick={{ fontSize: isMobile ? 10 : 12, fill: theme.palette.text.secondary }} axisLine={{ stroke: theme.palette.divider }} />
-              <YAxis tick={{ fontSize: isMobile ? 10 : 12, fill: theme.palette.text.secondary }} axisLine={{ stroke: theme.palette.divider }} />
-              <Tooltip content={<TooltipBox />} />
-              {ts.refLow != null && ts.refHigh != null && (
-                <ReferenceArea y1={ts.refLow} y2={ts.refHigh} fill={theme.palette.success.main} fillOpacity={0.08} />
-              )}
-              <Line type="monotone" dataKey="valor" stroke={tealMain} strokeWidth={3} dot={{ r: 5, fill: tealMain, strokeWidth: 0 }} activeDot={{ r: 8, stroke: theme.palette.background.paper, strokeWidth: 2 }} />
-            </LineChart>
-          </ResponsiveContainer>
-
-          {/* Previsão de sair da faixa (linar) — informativo, médico valida */}
-          {predict && predict.dir !== 'stable' && predict.months && (
-            <Box sx={{ mt: 2, p: 1.5, borderRadius: '12px', background: predict.dir === 'up' ? alpha(theme.palette.error.dark, 0.08) : alpha(theme.palette.info.dark, 0.08), border: `1px solid ${predict.dir === 'up' ? alpha(theme.palette.error.dark, 0.2) : alpha(theme.palette.info.dark, 0.2)}` }}>
-              <Typography sx={{ fontWeight: 700, color: predict.dir === 'up' ? theme.palette.error.dark : theme.palette.info.dark }}>📈 Tendência: {predict.dir === 'up' ? 'subindo' : 'caindo'}</Typography>
-              <Typography variant="body2" sx={{ mt: 0.5 }}>Neste ritmo, {ts?.nameCanonical} {predict.dir === 'up' ? 'ultrapassa' : 'fica abaixo de'} a faixa em <strong>~{predict.months} {predict.months === 1 ? 'mês' : 'meses'}</strong>.</Typography>
-            </Box>
-          )}
-          {predict && predict.dir === 'stable' && (
-            <Box sx={{ mt: 2, p: 1.5, borderRadius: '12px', background: alpha(theme.palette.success.main, 0.08) }}>
-              <Typography sx={{ color: theme.palette.success.dark, fontWeight: 600 }}>✅ Tendência estável.</Typography>
-            </Box>
-          )}
-
-          {/* Pontos (histórico) — card compacto por ponto: data | título truncado | valor+flag */}
-          <Box sx={{ mt: 2 }}>
-            <Typography variant="subtitle2" sx={{ mb: 0.5 }}>Histórico (do mais recente)</Typography>
-            <Stack spacing={0.5}>
-              {[...data].reverse().map((d, i) => (
-                <Box key={i} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, p: 0.75, borderRadius: '8px', bgcolor: 'action.hover' }}>
-                  <Box sx={{ minWidth: 0, flex: 1 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{d.name}</Typography>
-                    {d.title && (
-                      <Typography variant="caption" title={d.title} sx={{ color: 'text.secondary', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{d.title}</Typography>
-                    )}
-                  </Box>
-                  <Stack direction="row" alignItems="center" spacing={0.75} sx={{ flexShrink: 0 }}>
-                    <Typography sx={{ fontWeight: 800 }}>{fmtNum(d.valor)} {ts?.unit ? <UnitLabel unit={ts.unit} /> : null}</Typography>
-                    <Flag flag={d.flag} name={d.name} refLow={ts?.refLow} refHigh={ts?.refHigh} />
-                  </Stack>
-                </Box>
-              ))}
-            </Stack>
-          </Box>
-        </CardContent></Card>
+        <TrendsChart ts={ts} />
       )}
       {!loading && ts && ts.points.length === 0 && sel && (
         <Card sx={{ borderRadius: RADIUS.sectionCard, textAlign: 'center', py: 4 }}>
