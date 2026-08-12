@@ -6,6 +6,7 @@ import { API_URL } from '../../config';
 import { ListSkeleton } from '../Skeleton';
 import { EmptyState } from '../EmptyState';
 import { ExplainButton } from '../ExplainItem';
+import { SeverityBadge } from '../SeverityBadge';
 import { UnitLabel } from '../UnitLabel';
 import { ValueBar } from '../ValueBar';
 import { fmtVal, unitSuffix } from '../../utils/format';
@@ -138,7 +139,7 @@ export const DoctorValoresAlterados = ({ patientId, token }: { patientId: string
                               <Box sx={{ flex: '1 1 55%', minWidth: 0 }}>
                                 <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5, flexWrap: 'wrap' }}>
                                   <Typography sx={{ fontWeight: 700, wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.2 }}>{it.name}</Typography>
-                                  <Chip size="small" label={suspect ? '⚠️ Faixa a conferir' : `${pm.emoji} ${pm.label}`} title={suspect ? 'A faixa de referência pode estar com escala errada — confira no documento original.' : pm.hint} sx={{ height: 22, fontWeight: 700, bgcolor: alpha(col, 0.15), color: col }} />
+                                  <SeverityBadge severity={suspect ? undefined : p} state={suspect ? 'check' : undefined} />
                                   <ExplainButton name={it.name} nameCanonical={it.nameCanonical} />
                                 </Box>
                                 <Typography variant="caption" sx={{ color: 'text.secondary' }}>{suspect ? '⚠️ Faixa possivelmente incorreta — confirme no documento. ' : ''}{refLabel(it)}</Typography>
