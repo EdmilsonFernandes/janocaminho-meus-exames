@@ -140,8 +140,8 @@ export const ValoresAlteradosPage = () => {
                         const pm = PRIORITY_META[p];
                         const col = suspect ? '#64748b' : pm.color; // suspeito: neutro (nunca vermelho 🔴)
                         return (
-                          <Card key={it.id} variant="outlined" sx={{ borderLeft: `4px solid ${col}`, borderRadius: '12px', bgcolor: col + '0a' }}>
-                            <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', py: 1.25, '&:last-child': { pb: 1.25 } }}>
+                          <Box key={it.id} sx={{ borderLeft: `4px solid ${col}`, borderRadius: '12px', bgcolor: col + '0a', px: 1.5, py: 1.25 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
                               <Box sx={{ flex: '1 1 55%', minWidth: 0 }}>
                                 <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5, flexWrap: 'wrap' }}>
                                   <Typography sx={{ fontWeight: 700, wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.2 }}>{it.name}</Typography>
@@ -151,8 +151,14 @@ export const ValoresAlteradosPage = () => {
                                 <Typography variant="caption" sx={{ color: 'text.secondary' }}>{suspect ? '⚠️ Faixa possivelmente incorreta — confirme no documento. ' : ''}{refLabel(it)}</Typography>
                               </Box>
                               <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
-                                <Typography component="span" sx={{ fontSize: '1.35rem', fontWeight: 800, color: col }}>{fmtVal(it)}</Typography>
-                                {unitSuffix(it) ? <Typography component="span" sx={{ ml: 0.5 }}><UnitLabel unit={unitSuffix(it)} fontSize="0.8rem" /></Typography> : null}
+                                <Box sx={{ lineHeight: 1.1 }}>
+                                  <Typography component="span" sx={{ fontSize: '1.35rem', fontWeight: 800, color: col }}>{fmtVal(it)}</Typography>
+                                  {unitSuffix(it) ? <Typography component="span" sx={{ ml: 0.5 }}><UnitLabel unit={unitSuffix(it)} fontSize="0.8rem" /></Typography> : null}
+                                </Box>
+                                {/* Status explícito em TEXTO (não só cor) — acessível + paridade c/ médico. */}
+                                <Typography variant="caption" sx={{ display: 'block', fontWeight: 700, color: suspect ? 'text.secondary' : col, lineHeight: 1.2 }}>
+                                  {suspect ? 'Conferir faixa' : it.flag === 'HIGH' ? '↑ Acima da ref.' : it.flag === 'LOW' ? '↓ Abaixo da ref.' : 'Na referência'}
+                                </Typography>
                               </Box>
                               {/* Barra visual de posição (bolinha na faixa verde) — só pra itens com
                                   faixa CONFIÁVEL. Suspeitos (escala incerta) não ganham barra: o
@@ -162,8 +168,8 @@ export const ValoresAlteradosPage = () => {
                                   <ValueBar value={it.valueNumeric} low={it.refLow} high={it.refHigh} />
                                 </Box>
                               )}
-                            </CardContent>
-                          </Card>
+                            </Box>
+                          </Box>
                         );
                       })}
                     </Stack>
