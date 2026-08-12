@@ -93,8 +93,14 @@ export const LAYOUT = {
   // devem somar o próprio pb p/ o rodapé — dobra o espaço (ex.: ExamList tinha +84px).
 } as const;
 
-/** Raios consolidados (theme já define shape 14 / Card 16 / Button 12 / Chip 8). */
-export const RADIUS = { card: 16, sectionCard: 14, button: 12, pill: 99, tile: 12 } as const;
+/**
+ * Raios consolidados (theme já define shape 14 / Card 16 / Button 12 / Chip 8).
+ * ⚠️ DEVEM SER STRING (com px). O `sx` do MUI multiplica borderRadius NUMÉRICO por
+ * `theme.shape.borderRadius` (14) — ex.: `12` vira `168px` (=12×14) → vira "blob/pílula"
+ * em elementos baixos (items do Alterados). String NÃO é multiplicada (probe `12px`→12px).
+ * Já validado via DOM eval (commit anterior usava `${RADIUS.x}px` como escape manual).
+ */
+export const RADIUS = { card: '16px', sectionCard: '14px', button: '12px', pill: '99px', tile: '12px' } as const;
 
 export type ThemeMode = 'light' | 'dark';
 

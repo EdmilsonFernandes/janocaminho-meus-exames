@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, Box, Button, Card, CircularProgress, Stack, Typography } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import RecordVoiceOverIcon from '@mui/icons-material/RecordVoiceOver';
+import StopIcon from '@mui/icons-material/Stop';
 import { API_URL } from '../../config';
 import { ConsolidatedReportBody } from '../report/ConsolidatedReportBody';
 import { EmptyState } from '../EmptyState';
 import { DrExame } from '../DrExame';
 import { RADIUS } from '../../theme';
+import { speakText, stopSpeakText } from '../../utils/nativeDoc';
 
 /**
  * DoctorConsolidatedReport — relatório consolidado do paciente (viewer médico READ-ONLY).
@@ -23,6 +26,7 @@ export const DoctorConsolidatedReport = ({ patientId, token, patientName, onOpen
   const [loaded, setLoaded] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [genError, setGenError] = useState('');
+  const [speaking, setSpeaking] = useState(false);
 
   const load = useCallback(() => {
     const h: Record<string, string> = { Authorization: `Bearer ${token}` };
@@ -54,12 +58,27 @@ export const DoctorConsolidatedReport = ({ patientId, token, patientName, onOpen
   // outros Doctor*). Roda na monta e quando patientId/token mudam.
   useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [load]);
 
+  // Interrompe a narração ao sair da tela (não deixa o áudio sangrar p/ outras abas).
+  useEffect(() => () => { stopSpeakText(); }, []);
+
   if (loading && !loaded) {
     return <Box sx={{ textAlign: 'center', py: 5 }}><CircularProgress /></Box>;
   }
 
   const resumo = analysis?.structured?.resumoGeral;
   const createdAt = analysis?.createdAt ? new Date(analysis.createdAt).toLocaleString('pt-BR', { dateStyle: 'long', timeStyle: 'short' }) : '';
+
+  // Texto narrável = resumo geral + títulos dos pontos de atenção (igual ao app do
+  // paciente, que usa speakText do utils/nativeDoc — TTS nativo pt-BR no APK, speechSynthesis no web).
+  const speakableText = [
+    resumo,
+    ...(analysis?.structured?.pontosAtencao ?? []).map((p: any) => (typeof p === 'string' ? p : p?.titulo || p?.texto || '')),
+  ].filter(Boolean).join('. ');
+  const toggleSpeak = () => {
+    if (!speakableText) return;
+    if (speaking) { stopSpeakText(); setSpeaking(false); }
+    else { speakText(speakableText, { onDone: () => setSpeaking(false), onFail: () => setSpeaking(false) }); setSpeaking(true); }
+  };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -70,10 +89,16 @@ export const DoctorConsolidatedReport = ({ patientId, token, patientName, onOpen
           {createdAt && <Typography variant="caption" color="text.secondary">Atualizado em {createdAt}</Typography>}
         </Box>
         {analysis && (
-          <Button size="small" variant="outlined" color="primary" startIcon={generating ? <CircularProgress size={14} color="inherit" /> : <RefreshIcon />} onClick={generate} disabled={generating}
-            sx={{ textTransform: 'none', fontWeight: 700, borderRadius: RADIUS.pill }}>
-            {generating ? 'Gerando…' : '↻ Atualizar'}
-          </Button>
+          <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" alignItems="center">
+            <Button size="small" variant="outlined" color="primary" startIcon={speaking ? <StopIcon /> : <RecordVoiceOverIcon />} onClick={toggleSpeak} disabled={!speakableText}
+              sx={{ textTransform: 'none', fontWeight: 700, borderRadius: RADIUS.pill }}>
+              {speaking ? 'Parar' : 'Ouvir'}
+            </Button>
+            <Button size="small" variant="outlined" color="primary" startIcon={generating ? <CircularProgress size={14} color="inherit" /> : <RefreshIcon />} onClick={generate} disabled={generating}
+              sx={{ textTransform: 'none', fontWeight: 700, borderRadius: RADIUS.pill }}>
+              {generating ? 'Gerando…' : '↻ Atualizar'}
+            </Button>
+          </Stack>
         )}
       </Stack>
 

@@ -117,7 +117,7 @@ export const DoctorExamList = ({ patientId, token, onOpen }: { patientId: string
       ) : (
         <>
           {view === 'date' && dateGroups.map((g) => (
-            <Accordion key={String(g.year ?? 'sdata')} defaultExpanded elevation={0} disableGutters sx={(t) => ({ borderRadius: `${RADIUS.sectionCard}px !important`, overflow: 'hidden', border: '1px solid', borderColor: 'divider', '&:before': { display: 'none' } })}>
+            <Accordion key={String(g.year ?? 'sdata')} defaultExpanded elevation={0} disableGutters sx={(t) => ({ borderRadius: `${RADIUS.sectionCard} !important`, overflow: 'hidden', border: '1px solid', borderColor: 'divider', '&:before': { display: 'none' } })}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={(t) => ({ bgcolor: alpha(t.palette.primary.main, 0.04) })}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>{g.label}</Typography>
                 <Chip size="small" label={g.items.length} sx={(t) => ({ ml: 1, bgcolor: alpha(t.palette.primary.main, 0.12), color: t.palette.primary.dark, fontWeight: 700, height: 22 })} />
@@ -130,7 +130,7 @@ export const DoctorExamList = ({ patientId, token, onOpen }: { patientId: string
             </Accordion>
           ))}
           {view === 'category' && catGroups.map((g) => (
-            <Accordion key={g.cat.key} defaultExpanded elevation={0} disableGutters sx={{ borderRadius: `${RADIUS.sectionCard}px !important`, overflow: 'hidden', border: `1px solid ${alpha(g.cat.color, 0.15)}`, '&:before': { display: 'none' } }}>
+            <Accordion key={g.cat.key} defaultExpanded elevation={0} disableGutters sx={{ borderRadius: `${RADIUS.sectionCard} !important`, overflow: 'hidden', border: `1px solid ${alpha(g.cat.color, 0.15)}`, '&:before': { display: 'none' } }}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: alpha(g.cat.color, 0.04) }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary' }}>{g.cat.emoji} {g.cat.cat}</Typography>
                 <Chip size="small" label={g.items.length} sx={{ ml: 1, bgcolor: alpha(g.cat.color, 0.12), color: g.cat.color, fontWeight: 700, height: 22 }} />

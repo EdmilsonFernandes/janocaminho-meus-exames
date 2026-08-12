@@ -144,8 +144,14 @@ export const DoctorValoresAlterados = ({ patientId, token }: { patientId: string
                                 <Typography variant="caption" sx={{ color: 'text.secondary' }}>{suspect ? '⚠️ Faixa possivelmente incorreta — confirme no documento. ' : ''}{refLabel(it)}</Typography>
                               </Box>
                               <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
-                                <Typography component="span" sx={{ fontSize: '1.35rem', fontWeight: 800, color: col }}>{fmtVal(it)}</Typography>
-                                {unitSuffix(it) ? <Typography component="span" sx={{ ml: 0.5 }}><UnitLabel unit={unitSuffix(it)} fontSize="0.8rem" /></Typography> : null}
+                                <Box sx={{ lineHeight: 1.1 }}>
+                                  <Typography component="span" sx={{ fontSize: '1.35rem', fontWeight: 800, color: col }}>{fmtVal(it)}</Typography>
+                                  {unitSuffix(it) ? <Typography component="span" sx={{ ml: 0.5 }}><UnitLabel unit={unitSuffix(it)} fontSize="0.8rem" /></Typography> : null}
+                                </Box>
+                                {/* Status explícito em TEXTO (não só cor) — acessível + claro p/ o médico. */}
+                                <Typography variant="caption" sx={{ display: 'block', fontWeight: 700, color: suspect ? 'text.secondary' : col, lineHeight: 1.2 }}>
+                                  {suspect ? 'Conferir faixa' : it.flag === 'HIGH' ? '↑ Acima da ref.' : it.flag === 'LOW' ? '↓ Abaixo da ref.' : 'Na referência'}
+                                </Typography>
                               </Box>
                               {!suspect && it.valueNumeric != null && it.refLow != null && it.refHigh != null && (
                                 <Box sx={{ flexBasis: '100%' }}>

@@ -137,18 +137,20 @@ export const DoctorTrends = ({ patientId, token }: Props) => {
       {/* DROPDOWN + ATALHOS */}
       {multi.length > 0 && (
         <Card sx={{ mb: 2, borderRadius: RADIUS.sectionCard }}><CardContent sx={{ p: { xs: 1.5, md: 2 } }}>
-          {multi.length > 1 && (
+          {/* Desktop: atalhos (máx 6) + dropdown. Mobile: só dropdown (sem parede de chips). */}
+          {!isMobile && multi.length > 1 && (
             <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mb: 1.5 }}>
-              {multi.slice(0, 10).map((n) => (
+              {multi.slice(0, 6).map((n) => (
                 <Chip key={n.nameCanonical} label={prettyName(n.nameCanonical)} onClick={() => setSel(n.nameCanonical)}
                   color={sel === n.nameCanonical ? 'primary' : 'default'} size="small" title={prettyName(n.nameCanonical)}
                   sx={{ fontWeight: 700, borderRadius: RADIUS.pill, maxWidth: 165, '& .MuiChip-label': { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }} />
               ))}
+              {multi.length > 6 && <Chip size="small" variant="outlined" label={`+${multi.length - 6}`} title="Ver todos no seletor abaixo" sx={{ fontWeight: 700, borderRadius: RADIUS.pill }} />}
             </Stack>
           )}
           <FormControl fullWidth size="small">
             <Select value={sel} onChange={(e) => setSel(e.target.value as string)} displayEmpty sx={{ borderRadius: RADIUS.button }}>
-              <MenuItem value="" disabled><em>Todos os analitos ({multi.length})</em></MenuItem>
+              <MenuItem value="" disabled><em>Selecione um marcador ({multi.length})</em></MenuItem>
               {multi.map((n) => <MenuItem key={n.nameCanonical} value={n.nameCanonical}>{prettyName(n.nameCanonical)} ({n.count} exames)</MenuItem>)}
             </Select>
           </FormControl>
@@ -176,15 +178,15 @@ export const DoctorTrends = ({ patientId, token }: Props) => {
       {/* GRÁFICO + DETALHES */}
       {!loading && ts && ts.points.length > 0 && (
         <Card sx={{ borderRadius: RADIUS.sectionCard }}><CardContent sx={{ p: { xs: 1.5, md: 3 } }}>
-          {/* Título do analito + botão explicar */}
-          <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mb: 1 }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: tealDark }}>{prettyName(ts.nameCanonical)}</Typography>
+          {/* Título do analito + botão explicar — minWidth:0 + truncation evita cortar o nome no mobile. */}
+          <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mb: 1, minWidth: 0 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: tealDark, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{prettyName(ts.nameCanonical)}</Typography>
             <ExplainButton name={ts.nameCanonical} nameCanonical={ts.nameCanonical} />
           </Stack>
 
-          {/* Cabeçalho: valor atual grande + variação % + range de datas + resumo da tendência */}
-          <Box sx={{ mb: 1.5 }}>
-            <Stack direction="row" alignItems="baseline" spacing={1.25} flexWrap="wrap">
+          {/* Cabeçalho empilhado (hierarquia clara, não comprimido): valor → tendência → última data → referência. */}
+          <Box sx={{ mb: 1.5, minWidth: 0 }}>
+            <Stack direction="row" alignItems="baseline" spacing={1.25} flexWrap="wrap" sx={{ minWidth: 0 }}>
               <Typography sx={{ fontSize: 30, fontWeight: 800, lineHeight: 1, color: predict?.dir === 'up' ? theme.palette.error.dark : predict?.dir === 'down' ? theme.palette.info.dark : tealDark }}>
                 {fmtNum(lastPt?.valueNumeric)} {ts?.unit ? <UnitLabel unit={ts.unit} fontSize="1.875rem" /> : null}
               </Typography>
@@ -194,24 +196,25 @@ export const DoctorTrends = ({ patientId, token }: Props) => {
                 </Typography>
               )}
             </Stack>
-            {firstPt && lastPt && (
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                {firstPt.valueNumeric}{ts?.unit ? ` ${ts.unit}` : ''} ({fmt2(firstPt.performedAt)}) → {lastPt.valueNumeric}{ts?.unit ? ` ${ts.unit}` : ''} ({fmt2(lastPt.performedAt)})
-              </Typography>
+            {/* Tendência em TEXTO + seta (não depende só de cor). */}
+            <Typography sx={{ fontWeight: 700, mt: 0.25, color: predict?.dir === 'up' ? theme.palette.error.dark : predict?.dir === 'down' ? theme.palette.info.dark : theme.palette.success.dark }}>
+              {predict?.dir === 'up' ? '↑ Tendência de alta' : predict?.dir === 'down' ? '↓ Tendência de queda' : '→ Estável'} · {data.length} {data.length === 1 ? 'medição' : 'medições'}
+            </Typography>
+            {lastPt && (
+              <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.25 }}>Última medição: <strong>{fmt2(lastPt.performedAt)}</strong></Typography>
             )}
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              {predict?.dir === 'up' ? 'Subindo' : predict?.dir === 'down' ? 'Caindo' : 'Estável'} em {data.length} {data.length === 1 ? 'medição' : 'medições'}.
               {(ts?.refLow != null && ts?.refHigh != null)
-                ? ` Faixa de referência: ${ts.refLow}–${ts.refHigh}${ts?.unit ? ` ${ts.unit}` : ''}.`
+                ? `Referência: ${ts.refLow}–${ts.refHigh}${ts?.unit ? ` ${ts.unit}` : ''}`
                 : (ts?.refLow != null || ts?.refHigh != null)
-                  ? ` Faixa de referência: ${ts.refLow ?? ts.refHigh}${ts?.unit ? ` ${ts.unit}` : ''}.`
-                  : ' Sem faixa de referência informada pelo laboratório.'}
+                  ? `Referência: ${ts.refLow ?? ts.refHigh}${ts?.unit ? ` ${ts.unit}` : ''}`
+                  : 'Sem faixa de referência informada'}
             </Typography>
           </Box>
 
           {/* Gráfico — linha teal + área verde (faixa de referência) */}
           <ResponsiveContainer width="100%" height={isMobile ? 240 : 340}>
-            <LineChart data={data} margin={{ top: 10, right: isMobile ? 8 : 20, bottom: 10, left: isMobile ? -10 : 0 }}>
+            <LineChart data={data} margin={{ top: 10, right: isMobile ? 12 : 20, bottom: 10, left: isMobile ? 0 : 4 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
               <XAxis dataKey="name" interval="preserveStartEnd" minTickGap={8} tickFormatter={(v: string) => (isMobile ? String(v).slice(0, 5) : v)} tick={{ fontSize: isMobile ? 10 : 12, fill: theme.palette.text.secondary }} axisLine={{ stroke: theme.palette.divider }} />
               <YAxis tick={{ fontSize: isMobile ? 10 : 12, fill: theme.palette.text.secondary }} axisLine={{ stroke: theme.palette.divider }} />
