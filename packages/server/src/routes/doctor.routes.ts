@@ -595,6 +595,86 @@ router.get('/patients/:patientId/items/abnormal', requireDoctor, async (req: any
   } catch (e) { next(e); }
 });
 
+// NOMES DISTINTOS de analitos com valor numérico (espelha /items/distinct-names do paciente,
+// escopado a 1 paciente compartilhado + respeita examIds allowlist). Conta pontos PÓS-DEDUP
+// (mesmo pipeline do timeseries abaixo) — count == nº de pontos do gráfico. Alimenta o dropdown
+// de tendências do portal do médico.
+router.get('/patients/:patientId/items/distinct-names', requireDoctor, async (req: any, res, next) => {
+  try {
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    if (!share?.scopes.includes('exams')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+    void auditLog(req, 'doctor_viewed_trends_names', String(req.params.patientId));
+    const rows = await prisma.examItem.findMany({
+      where: { valueNumeric: { not: null }, exam: { patientId: req.params.patientId, status: 'EXTRACTED', ...(share.examIds?.length ? { id: { in: share.examIds } } : {}) } },
+      include: { exam: { select: { performedAt: true, createdAt: true } } },
+    });
+    type P = { performedAt: Date | null; createdAt: Date; valueNumeric: number };
+    const byName = new Map<string, P[]>();
+    for (const r of rows) {
+      const arr = byName.get(r.nameCanonical) ?? [];
+      arr.push({ performedAt: r.exam.performedAt, createdAt: r.exam.createdAt, valueNumeric: r.valueNumeric! });
+      byName.set(r.nameCanonical, arr);
+    }
+    const out: { nameCanonical: string; count: number }[] = [];
+    for (const [nameCanonical, items] of byName) {
+      // dedup por dia: mantém o item de maior createdAt de cada dia (igual timeseries + patient /distinct-names).
+      const byDay = new Map<string, P>();
+      for (const it of items) {
+        const day = it.performedAt ? new Date(it.performedAt).toDateString() : 's/d';
+        const prev = byDay.get(day);
+        if (!prev || new Date(it.createdAt).getTime() > new Date(prev.createdAt).getTime()) byDay.set(day, it);
+      }
+      // dedup cross-day: mesma medição em datas adjacentes (janela 3d, tol 1%) vira 1 ponto.
+      const deduped = collapseAdjacentNearDupes(
+        [...byDay.values()],
+        (p) => new Date(p.performedAt ?? 0).getTime(),
+        (p) => p.valueNumeric,
+      );
+      out.push({ nameCanonical, count: deduped.length });
+    }
+    out.sort((a, b) => a.nameCanonical.localeCompare(b.nameCanonical));
+    res.json(out);
+  } catch (e) { next(e); }
+});
+
+// SÉRIE TEMPORAL de um analito (espelha /items/timeseries do paciente, escopado a 1 paciente
+// compartilhado + examIds). Mesmo pipeline de dedup (por dia [maior createdAt] + cross-day collapse)
+// p/ o count bater com /distinct-names acima. Faixa de referência = item MAIS RECENTE (atual).
+router.get('/patients/:patientId/items/timeseries', requireDoctor, async (req: any, res, next) => {
+  try {
+    const nameCanonical = String(req.query.nameCanonical ?? '');
+    if (!nameCanonical) { res.status(400).json({ error: 'nameCanonical obrigatório' }); return; }
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    if (!share?.scopes.includes('exams')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+    void auditLog(req, 'doctor_viewed_trends', String(req.params.patientId));
+    const rows = await prisma.examItem.findMany({
+      where: { nameCanonical, exam: { patientId: req.params.patientId, status: 'EXTRACTED', ...(share.examIds?.length ? { id: { in: share.examIds } } : {}) } },
+      include: { exam: { select: { id: true, performedAt: true, title: true, createdAt: true } } },
+      orderBy: { exam: { performedAt: 'asc' } },
+    });
+    // DEDUP por dia: 2 exames no mesmo dia com o mesmo analito viram 1 ponto — keep o do exame cujo
+    // upload/extração é mais recente (createdAt maior). Sem isto a curva mostra duplicados.
+    const byDay = new Map<string, (typeof rows)[number]>();
+    for (const r of rows) {
+      if (r.valueNumeric == null) continue;
+      const day = r.exam.performedAt ? new Date(r.exam.performedAt).toDateString() : 's/d';
+      const prev = byDay.get(day);
+      if (!prev || new Date(r.exam.createdAt).getTime() > new Date(prev.exam.createdAt).getTime()) byDay.set(day, r);
+    }
+    const rawPoints = [...byDay.values()]
+      .sort((a, b) => new Date(a.exam.performedAt ?? 0).getTime() - new Date(b.exam.performedAt ?? 0).getTime())
+      .map((r) => ({ examId: r.exam.id, performedAt: r.exam.performedAt, title: r.exam.title, valueNumeric: r.valueNumeric, unit: r.unit, flag: r.flag, refLow: r.refLow, refHigh: r.refHigh }));
+    // DEDUP cross-day: mesma medição em datas adjacentes (ex.: TSH 05/03 + 06/03, ambos 25.7) vira 1 ponto.
+    const points = collapseAdjacentNearDupes(
+      rawPoints,
+      (p) => new Date(p.performedAt ?? 0).getTime(),
+      (p) => p.valueNumeric ?? 0,
+    );
+    const latest = points[points.length - 1];
+    res.json({ nameCanonical, unit: latest?.unit ?? null, refLow: latest?.refLow ?? null, refHigh: latest?.refHigh ?? null, points });
+  } catch (e) { next(e); }
+});
+
 // RELATÓRIO CONSOLIDADO do paciente (framing do MÉDICO — audience:doctor).
 // O médico LÊ o relatório; ele é gerado no tom clínico ("O paciente X apresenta..."), não no
 // tom leigo do paciente ("Edmilson, seu quadre..."). Grátis pro médico (como /summary/generate).

@@ -19,6 +19,7 @@ import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
 import EditNoteIcon from '@mui/icons-material/EditNote';
+import ShowChartIcon from '@mui/icons-material/ShowChart';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined';
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
@@ -40,6 +41,7 @@ import { DoctorExamList } from '../components/doctors/DoctorExamList';
 import { DoctorExamDetail } from '../components/doctors/DoctorExamDetail';
 import { DoctorValoresAlterados } from '../components/doctors/DoctorValoresAlterados';
 import { DoctorConsolidatedReport } from '../components/doctors/DoctorConsolidatedReport';
+import { DoctorTrends } from '../components/doctors/DoctorTrends';
 import { PatientSummary } from '../components/doctors/PatientSummary';
 
 const docKey = 'doctorToken';
@@ -82,16 +84,18 @@ const PayCountdown = ({ expiresAt, onExpire }: { expiresAt: string; onExpire: ()
 const SCOPE_META: Record<string, { label: string; icon: ReactElement }> = {
   exams: { label: 'Exames', icon: <AssignmentOutlinedIcon /> },
   alterados: { label: 'Alterados', icon: <WarningAmberIcon /> },
+  tendencias: { label: 'Tendências', icon: <ShowChartIcon /> },
   relatorio: { label: 'Relatório', icon: <DescriptionOutlinedIcon /> },
   questions: { label: 'Perguntas', icon: <QuestionAnswerIcon /> },
   notes: { label: 'Anotações', icon: <EditNoteIcon /> },
 };
 
-/** Abas do portal (espelham o app do paciente): Exames + Alterados (scope 'exams'),
- *  Relatório (scope 'summary'), Perguntas + Anotações sempre (por vínculo, não por scope). */
+/** Abas do portal (espelham o app do paciente): Exames + Alterados + Tendências (scope 'exams'),
+ *  Relatório (scope 'summary'), Perguntas + Anotações sempre (por vínculo, não por scope).
+ *  Ordem final: Exames, Alterados, Tendências, Relatório, Perguntas, Anotações. */
 const computeTabs = (scopes: string[]): string[] => {
   const t: string[] = [];
-  if (scopes.includes('exams')) t.push('exams', 'alterados');
+  if (scopes.includes('exams')) t.push('exams', 'alterados', 'tendencias');
   if (scopes.includes('summary')) t.push('relatorio');
   t.push('questions', 'notes');
   return t;
@@ -331,6 +335,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   // Mobile: mantém o Drawer overlay + rodapé (Pacientes · Perfil · Mais).
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
+  const isSmUp = useMediaQuery(theme.breakpoints.up('sm'));
 
   useEffect(() => {
     fetch(`${API_URL}/doctor/me`, { headers: h }).then((r) => r.json()).then((d) => setDoctor(d.doctor)).catch(() => {});
@@ -922,17 +927,16 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 <Tabs
                   value={tab}
                   onChange={(_, v) => { setTab(v); setSelExam(null); }}
-                  variant="scrollable"
-                  scrollButtons="auto"
-                  allowScrollButtonsMobile
-                  TabIndicatorProps={{ sx: { display: 'none' } }}
+                  variant="fullWidth"
                   aria-label="Abas do paciente"
                   sx={{
-                    minHeight: 44,
+                    minHeight: 48,
                     '& .MuiTabs-scroller': { py: 0.5 },
+                    '& .MuiTabs-flexContainer': { justifyContent: 'space-between' },
                     '& .MuiTab-root': {
-                      minHeight: 44, minWidth: 72, px: 1.5, textTransform: 'none', fontWeight: 700,
-                      color: 'text.secondary', flexDirection: 'row', gap: 0.5,
+                      minHeight: 48, minWidth: { xs: 40, sm: 80 }, px: { xs: 0.5, sm: 1.25 }, py: 0.75,
+                      textTransform: 'none', fontWeight: 700,
+                      color: 'text.secondary', flexDirection: 'column', gap: 0.25,
                       '&.Mui-selected': { color: 'primary.main' },
                     },
                   }}
@@ -941,14 +945,19 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                     const meta = SCOPE_META[s] || { icon: <DescriptionOutlinedIcon />, label: s };
                     const abnormalCount = exams.reduce((n: number, e: any) => n + (e.items?.length || 0), 0);
                     const count = s === 'exams' ? exams.length : s === 'alterados' ? abnormalCount : s === 'questions' ? questions.filter((q: any) => q.status !== 'answered').length : s === 'notes' ? notes.length : 0;
+                    // Mobile (xs): icon-only p/ 6 abas caberem em ~328px (~54px cada) sem scroll horizontal.
+                    // sm+: ícone + label (comportamento padrão). Label do ativo vira caption só no xs.
+                    const showLabel = isSmUp || tab === s;
                     return (
                       <Tab
                         key={s}
                         value={s}
                         icon={meta.icon}
-                        iconPosition="start"
-                        label={
-                          <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
+                        iconPosition="top"
+                        aria-label={meta.label}
+                        title={meta.label}
+                        label={showLabel ? (
+                          <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, fontSize: { xs: 11, sm: 13 } }}>
                             <Box component="span">{meta.label}</Box>
                             {count > 0 && (
                               <Box component="sup" sx={{
@@ -958,7 +967,9 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                               }}>{count}</Box>
                             )}
                           </Box>
-                        }
+                        ) : (count > 0 ? (
+                          <Box component="sup" sx={{ fontSize: 10, fontWeight: 800, lineHeight: 1, color: s === 'alterados' && abnormalCount > 0 ? 'error.main' : 'text.secondary' }}>{count}</Box>
+                        ) : null)}
                       />
                     );
                   })}
@@ -973,6 +984,9 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
             )}
             {tab === 'alterados' && !selExam && (
               <DoctorValoresAlterados patientId={selected.patient.id} token={token} />
+            )}
+            {tab === 'tendencias' && !selExam && (
+              <DoctorTrends patientId={selected.patient.id} token={token} />
             )}
             {tab === 'relatorio' && !selExam && (
               <DoctorConsolidatedReport patientId={selected.patient.id} token={token} patientName={selected.patient.fullName} onOpenExam={(id) => setSelExam(id)} />
