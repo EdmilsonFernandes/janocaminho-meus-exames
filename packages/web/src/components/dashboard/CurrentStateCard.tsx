@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, Stack, Chip, Skeleton, Button } from '@mui/material';
+import { Box, CardContent, Typography, Stack, Chip, Skeleton, Button } from '@mui/material';
 import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import RefreshIcon from '@mui/icons-material/Refresh';
@@ -8,6 +8,7 @@ import { API_URL, token } from '../../config';
 import { useSelectedPatient } from '../../patient-context';
 import { fmtVal, unitSuffix } from '../../utils/format';
 import { PRIORITY_META } from '../../utils/alertPriority';
+import { AppCard } from '../AppCard';
 
 /**
  * "Meu estado atual" — o payoff visível da camada de estado de saúde (M1).
@@ -61,7 +62,7 @@ export const CurrentStateCard = () => {
 
   if (loading) {
     return (
-      <Card sx={{ mt: 2, border: '1px solid', borderColor: 'divider' }}>
+      <AppCard sx={{ mt: 2 }}>
         <CardContent>
           <Stack direction="row" spacing={1.2} alignItems="center" sx={{ mb: 1.5 }}>
             <Skeleton variant="circular" width={24} height={24} />
@@ -69,13 +70,13 @@ export const CurrentStateCard = () => {
           </Stack>
           <Skeleton variant="rectangular" height={56} sx={{ borderRadius: '12px' }} />
         </CardContent>
-      </Card>
+      </AppCard>
     );
   }
   // Erro de rede/servidor — distinto de "sem dados".
   if (err && !s) {
     return (
-      <Card sx={{ mt: 2, border: '1px solid', borderColor: 'divider' }}>
+      <AppCard sx={{ mt: 2 }}>
         <CardContent>
           <Stack direction="row" spacing={1.2} alignItems="center">
             <MonitorHeartIcon sx={{ color: 'error.main' }} />
@@ -86,12 +87,12 @@ export const CurrentStateCard = () => {
             <Button size="small" variant="outlined" startIcon={<RefreshIcon />} onClick={() => setReloadKey((k) => k + 1)}>Tentar de novo</Button>
           </Stack>
         </CardContent>
-      </Card>
+      </AppCard>
     );
   }
   if (!s || !s.byPriority || s.markers === 0) {
     return (
-      <Card sx={{ mt: 2, border: '1px solid', borderColor: 'divider', background: 'linear-gradient(135deg, rgba(32,178,170,.08), rgba(32,178,170,.02))' }}>
+      <AppCard kind="tinted" tone="primary" sx={{ mt: 2 }}>
         <CardContent>
           <Stack direction="row" spacing={1.2} alignItems="center">
             <MonitorHeartIcon sx={{ color: 'primary.main' }} />
@@ -101,7 +102,7 @@ export const CurrentStateCard = () => {
             </Box>
           </Stack>
         </CardContent>
-      </Card>
+      </AppCard>
     );
   }
 
@@ -111,7 +112,7 @@ export const CurrentStateCard = () => {
   const top = s.topAttention.slice(0, 3);
 
   return (
-    <Card sx={{ mt: 2, border: '1px solid', borderColor: 'divider', background: 'linear-gradient(135deg, rgba(32,178,170,.08), rgba(32,178,170,.02))' }}>
+    <AppCard kind="tinted" tone="primary" sx={{ mt: 2 }}>
       <CardContent>
         <Stack direction="row" spacing={1.2} alignItems="center" sx={{ mb: 1.25 }}>
           <MonitorHeartIcon sx={{ color: 'primary.main' }} />
@@ -170,6 +171,6 @@ export const CurrentStateCard = () => {
 
         <Button fullWidth variant="outlined" size="small" endIcon={<ChevronRightIcon />} onClick={() => navigate('/alterados')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, py: 1.1 }}>Ver valores alterados</Button>
       </CardContent>
-    </Card>
+    </AppCard>
   );
 };
