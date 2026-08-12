@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { Card, CardContent, Typography, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Chip, Stack, Divider, Button, IconButton, Accordion, AccordionSummary, AccordionDetails, useMediaQuery, useTheme, Popover } from '@mui/material';
+import { AppCard } from './AppCard';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PrintIcon from '@mui/icons-material/Print';
 import { DrExame } from './DrExame';
@@ -149,12 +150,12 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
 
   if (!structured) {
     return (
-      <Card sx={{ mt: 3, background: 'linear-gradient(135deg, rgba(32,178,170,0.10), rgba(32,178,170,0.03))' }}>
+      <AppCard kind="tinted" tone="primary" sx={{ mt: 3 }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>🤖 Resumo de saúde</Typography>
           <ReactMarkdown>{contentMd || ''}</ReactMarkdown>
         </CardContent>
-      </Card>
+      </AppCard>
     );
   }
 
