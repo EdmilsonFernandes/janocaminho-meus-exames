@@ -221,12 +221,14 @@ export async function generateConsolidatedSummary(patientId: string, audience: '
         `- PRAZOS (OBRIGATÓRIO): NUNCA escreva "não medido há X meses/anos" inventando prazo. Só diga "desatualizado" (SEM número) de um marcador se ele estiver EXPLICITAMENTE rotulado [DESATUALIZADO] no ESTADO ATUAL; pra qualquer outro, ele foi medido recentemente — não comente prazo.\n` +
         `- VALORES NUMÉRICOS (OBRIGATÓRIO): cite APENAS os números do ESTADO ATUAL/TENDÊNCIAS abaixo. NUNCA arredonde (2,75 NÃO vira "3" nem "2,8"), NUNCA estime, NUNCA invente. Se não há valor, escreva "sem dado".\n` +
         `- SEM REFERÊNCIA (OBRIGATÓRIO): marcadores rotulados [SEM REFERÊNCIA] no ESTADO ATUAL não têm faixa no laudo. NUNCA afirme "normal/alterado/melhorou/piorou" — sem faixa não há classificação. Use "depende do contexto clínico" (LDL, colesterol não-HDL — metas variam por risco cardiovascular) ou "referência não informada pelo laboratório" (demais). Tendência (se ≥2 exames comparáveis) só numérica ("aumentou/reduziu X%"), nunca juízo clínico. Sempre oriente a confirmar com o médico.\n\n` +
-        `PACIENTE: ${String(patient.fullName || '').split(' ')[0] || 'paciente'}\n` +
+        (audience === 'doctor'
+          ? `PACIENTE (refira-se SEMPRE em 3ª pessoa — "O paciente ${String(patient.fullName || '').split(' ')[0] || 'o paciente'} apresenta/relata..."; NUNCA em 2ª pessoa "você/seu/sua"): ${String(patient.fullName || '').split(' ')[0] || 'paciente'}\n`
+          : `PACIENTE: ${String(patient.fullName || '').split(' ')[0] || 'paciente'}\n`) +
         `Score atual: ${snapshot.score ?? '—'}/100 em ${snapshot.markers} marcador(es). Distribuição: ${JSON.stringify(snapshot.byPriority)}.\n` +
         perfilText + '\n' + memoryText +
         `${formatSnapshotContext(snapshot)}\n\n` +
         (audience === 'doctor'
-          ? `ESTILO (médico): tom clínico e objetivo; cite valores e variações reais; liste pontos a investigar na consulta; coisasBoas pode ser vazio. Sem diagnóstico definitivo.\n\n`
+          ? `ESTILO (médico): tom clínico e objetivo; cite valores e variações reais; liste pontos a investigar na consulta; coisasBoas pode ser vazio. Sem diagnóstico definitivo. REFIRA-SE AO PACIENTE EM 3ª PESSOA ("o paciente apresenta...", "quadro do paciente"), NUNCA "você/seu/sua".\n\n`
           : `ESTILO: português simples, SEM jargão, SEM diagnóstico, SEM receitar. Cite o NOME do paciente + valores reais (ex: "Edmilson, sua glicose caiu 10%").\n\n`) +
         `Monte o JSON com:\n` +
         `- resumoGeral: visão integrada em 2-3 frases (o que está bem + o que pede atenção)\n` +

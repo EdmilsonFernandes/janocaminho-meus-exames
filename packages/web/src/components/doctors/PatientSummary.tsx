@@ -127,7 +127,7 @@ export const PatientSummary = ({ patient, exams, questions, notes, patients, onS
             <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 20, lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'text.primary' }}>{fullName}</Typography>
             <Button size="small" onClick={() => setSwitcherOpen(true)} startIcon={<SwapHorizIcon />} aria-label="Trocar paciente" sx={{ flexShrink: 0, minWidth: 0, textTransform: 'none', fontWeight: 700, color: primary, borderRadius: 99, py: 0.25, px: 1, '&:hover': { bgcolor: alpha(primary, 0.08) } }}>Trocar</Button>
           </Stack>
-          {caption && <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>{caption}</Typography>}
+          {caption && <Typography sx={{ color: 'text.primary', opacity: 0.72, display: 'block', mt: 0.5, fontSize: 13, fontWeight: 600, lineHeight: 1.3 }}>{caption}</Typography>}
         </Box>
       </Stack>
 
