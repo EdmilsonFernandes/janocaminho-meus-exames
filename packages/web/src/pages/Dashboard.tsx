@@ -39,6 +39,7 @@ import { QuickActions } from '../components/dashboard/QuickActions';
 import { FailedExamsAlert } from '../components/dashboard/FailedExamsAlert';
 import { Section } from '../components/dashboard/Section';
 import { PageContainer } from '../components/layout/PageContainer';
+import { DashboardV2 } from '../components/dashboard/DashboardV2';
 
 const readTotal = (r: Response) => Number(r.headers.get('X-Total-Count') ?? r.headers.get('content-range')?.split('/')?.[1] ?? '0');
 
@@ -149,7 +150,7 @@ const NextBestActionCard = ({
   );
 };
 
-export const Dashboard = () => {
+const DashboardLegacy = () => {
   const navigate = useNavigate();
   const translate = useTranslate();
   const [pid] = useSelectedPatient();
@@ -349,3 +350,9 @@ export const Dashboard = () => {
     </PageContainer>
   );
 };
+
+// V2 (Health Command Center) — default ON. Reverte com localStorage['me:newHome']='0'.
+const NEW_HOME_V2 = (() => {
+  try { return localStorage.getItem('me:newHome') !== '0'; } catch { return true; }
+})();
+export const Dashboard = () => (NEW_HOME_V2 ? <DashboardV2 /> : <DashboardLegacy />);
