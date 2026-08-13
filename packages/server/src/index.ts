@@ -7,6 +7,7 @@ import { prisma } from './prisma';
 import { startReminderEmailJob } from './jobs/reminderEmails';
 import { startHealthNudgeJob } from './jobs/healthNudges';
 import { startPlanExpiryJob } from './jobs/planExpiry';
+import { startFirstExamNudgeJob } from './jobs/firstExamNudge';
 import { startAuditRetentionJob } from './jobs/auditRetention';
 import { loadSettings } from './utils/settings';
 import { loadBlockedDomains } from './utils/blockedDomains';
@@ -37,6 +38,7 @@ const server = app.listen(config.port, () => {
   startReminderEmailJob();
   startHealthNudgeJob();
   startPlanExpiryJob();
+  startFirstExamNudgeJob();
   startAuditRetentionJob(); // limpa ACCESS >90d do audit_logs (mantém login/ações admin — LGPD)
   // Recupera exames presos em EXTRACTING: um deploy/restart mata a extração fire-and-forget
   // no meio → o exame fica "extraindo pra sempre". No boot, re-extrai qualquer um nesse estado.
