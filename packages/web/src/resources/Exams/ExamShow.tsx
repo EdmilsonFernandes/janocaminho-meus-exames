@@ -85,8 +85,9 @@ function fmtRef(it: any): string {
   return 'não informada';
 }
 
-export const ExamShow = () => {
-  const { id } = useParams();
+export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
+  const { id: routeId } = useParams();
+  const id = inlineId ?? routeId;
   const navigate = useNavigate();
   const notify = useNotify();
   const [exam, setExam] = useState<any>(null);
@@ -271,9 +272,10 @@ export const ExamShow = () => {
     return flagMeta[f];
   };
 
+  const inline = inlineId !== undefined;
   return (
-    <Box sx={{ maxWidth: 1080, mx: 'auto', p: { xs: 1, md: 2 } }}>
-      <Title title={titleInfo.text || exam.title} />
+    <Box sx={inline ? { p: { xs: 1.5, md: 2 } } : { maxWidth: 1080, mx: 'auto', p: { xs: 1, md: 2 } }}>
+      {!inline && <Title title={titleInfo.text || exam.title} />}
 
       {/* Cabeçalho */}
       <Card>

@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { List, useListContext, useRefresh, useNotify, useTranslate } from 'react-admin';
-import { Chip, Box, CardContent, Typography, IconButton, Stack, LinearProgress, Button, Accordion, AccordionSummary, AccordionDetails, Alert, CircularProgress, TextField, InputAdornment, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { Chip, Box, CardContent, Typography, IconButton, Stack, LinearProgress, Button, Accordion, AccordionSummary, AccordionDetails, Alert, CircularProgress, TextField, InputAdornment, ToggleButton, ToggleButtonGroup, useTheme, useMediaQuery } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import ScienceIcon from '@mui/icons-material/Science';
 import ImageIcon from '@mui/icons-material/Image';
@@ -30,6 +30,7 @@ import { AppCard } from '../../components/AppCard';
 import { GradientButton } from '../../components/GradientButton';
 import { DateLabel } from '../../components/DateLabel';
 import { ChangesSinceExam, type Marker } from '../../components/dashboard/ChangesSinceExam';
+import { ExamShow } from './ExamShow';
 import { cleanExtractedLabel } from '../../utils/examDisplay';
 import { openExamFile } from '../../utils/examFile';
 import { RADIUS } from '../../theme';
@@ -107,6 +108,9 @@ const ExamCards = () => {
   const notify = useNotify();
   const premium = usePremium();
   const [pid] = useSelectedPatient();
+  const theme = useTheme();
+  const isMd = useMediaQuery(theme.breakpoints.up('md')); // desktop (sidebar visível) → master/detail
+  const [selected, setSelected] = useState<string | null>(null);
 
   // Bônus de 1º exame no empty state — só pra quem ainda NÃO recebeu.
   const [firstBonus, setFirstBonus] = useState<number | null>(null);
@@ -248,7 +252,7 @@ const ExamCards = () => {
     const itemCount: number = r._count?.items ?? 0;
     const Icon = r.kind === 'IMAGING' ? ImageIcon : r.kind === 'LAB_PANEL' ? ScienceIcon : DescriptionOutlinedIcon;
     return (
-      <AppCard key={r.id} kind="interactive" onClick={() => navigate(`/exams/${r.id}/show`)} sx={{ overflow: 'hidden' }}>
+      <AppCard key={r.id} kind="interactive" onClick={() => isMd ? setSelected(r.id) : navigate(`/exams/${r.id}/show`)} sx={{ overflow: 'hidden', ...(isMd && selected === r.id ? { boxShadow: '0 0 0 2px #20b2aa inset' } : {}) }}>
         <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, '&:last-child': { pb: 1.5 } }}>
           <Icon sx={{ color: altered > 0 ? 'warning.main' : 'text.secondary', flexShrink: 0 }} />
           <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -303,6 +307,104 @@ const ExamCards = () => {
       <Button size="small" variant="contained" onClick={() => navigate('/planos')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', boxShadow: 'none', '&:hover': { bgcolor: '#178f89' }, flexShrink: 0 }}>{translate('common.view_plans')}</Button>
     </AppCard>
   );
+
+  // DESKTOP (md+): master/detail — lista à esquerda, detalhe/contexto à direita.
+  // Mobile (<md) cai no `return` abaixo (lista → navega pra /exams/:id/show).
+  const heroMd = isDefaultView && lastExam ? (
+    <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: '1fr', alignItems: 'stretch' }}>
+      <ExamHero r={lastExam} abnCount={abnByExam[lastExam.id] ?? 0} onView={() => setSelected(lastExam.id)} onPdf={() => openPdf(lastExam.id)} />
+      <ChangesSinceExam worsened={worsened} improved={improved} loaded={hsLoaded} onView={() => navigate('/evolucao')} />
+    </Box>
+  ) : null;
+  if (isMd) {
+    return (
+      <Box sx={{ display: 'grid', gridTemplateColumns: 'minmax(0,440px) 1fr', gap: 2, alignItems: 'start', maxWidth: 1500, mx: 'auto' }}>
+        {/* LISTA (esquerda) — sticky, scroll próprio */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, position: 'sticky', top: 8, maxHeight: 'calc(100dvh - 16px)', overflowY: 'auto', pr: 0.5 }}>
+          <PageHeader icon={<DescriptionOutlinedIcon />} title={translate('exams.title')} subtitle={translate('exams.subtitle', { count: total ?? 0 })} />
+          <ConfirmDialog open={!!delTarget} onClose={() => setDelTarget(null)} onConfirm={confirmDel} title={translate('exams.delete_title')} message={delTarget ? translate('exams.delete_msg', { title: delTarget.title }) : ''} confirmLabel={translate('ra.action.delete')} />
+          <Stack spacing={1.25}>
+            <TextField size="small" fullWidth value={q} onChange={(e) => setQ(e.target.value)} placeholder={translate('exams.search_ph')} InputProps={{ startAdornment: (<InputAdornment position="start"><SearchIcon fontSize="small" sx={{ color: 'text.secondary' }} /></InputAdornment>) }} sx={{ '& .MuiOutlinedInput-root': { borderRadius: RADIUS.button, bgcolor: 'background.paper' } }} />
+            <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ flexWrap: 'wrap', rowGap: 1 }}>
+              <ToggleButtonGroup exclusive size="small" value={sfilter} onChange={(_, v) => { if (v) setSfilter(v); }}>
+                <ToggleButton value="all" sx={{ px: 1.25, py: 0.25, textTransform: 'none', fontWeight: 700 }}>Todos</ToggleButton>
+                <ToggleButton value="altered" sx={{ px: 1.25, py: 0.25, textTransform: 'none', fontWeight: 700 }}>Alterados</ToggleButton>
+                <ToggleButton value="recent" sx={{ px: 1.25, py: 0.25, textTransform: 'none', fontWeight: 700 }}>Recentes</ToggleButton>
+              </ToggleButtonGroup>
+              <ToggleButtonGroup exclusive size="small" value={view} onChange={(_, v) => { if (v) setView(v); }}>
+                <ToggleButton value="date" sx={{ px: 1.25, py: 0.25, textTransform: 'none', fontWeight: 700 }}>{translate('exams.by_date')}</ToggleButton>
+                <ToggleButton value="category" sx={{ px: 1.25, py: 0.25, textTransform: 'none', fontWeight: 700 }}>{translate('exams.by_category')}</ToggleButton>
+              </ToggleButtonGroup>
+            </Stack>
+            {presentCats.length > 1 && (
+              <Stack direction="row" spacing={0.75} sx={{ overflowX: 'auto', flexWrap: 'nowrap', pb: 0.25, mx: -0.25, px: 0.25, '&::-webkit-scrollbar': { display: 'none' } }}>
+                <Chip size="small" label={translate('exams.all', { count: extracted.length })} onClick={() => setCat('all')} sx={{ height: 26, flexShrink: 0, fontWeight: 700, whiteSpace: 'nowrap', bgcolor: cat === 'all' ? '#0f3d3a' : '#0f3d3a14', color: cat === 'all' ? '#fff' : '#0f3d3a' }} />
+                {presentCats.map((c) => (<Chip key={c.key} size="small" label={`${c.emoji} ${c.cat} (${catCounts[c.key]})`} onClick={() => setCat(cat === c.key ? 'all' : c.key)} sx={{ height: 26, flexShrink: 0, fontWeight: 700, whiteSpace: 'nowrap', bgcolor: cat === c.key ? c.color : c.color + '1a', color: cat === c.key ? '#fff' : c.color, border: `1px solid ${cat === c.key ? c.color : c.color + '40'}` }} />))}
+              </Stack>
+            )}
+          </Stack>
+          {processing.length > 0 && (
+            <Box>
+              <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.75 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0369a1' }}>{translate('exams.processing')}</Typography>
+                <Chip size="small" label={processing.length} sx={{ height: 18, bgcolor: '#e0f2fe', color: '#0369a1', fontWeight: 700 }} />
+              </Stack>
+              <Stack spacing={1.5}>{processing.map((r: any) => <ProcessingCard key={r.id} r={r} onCancel={(e: any) => del(e, r.id, r.title || 'Exame em processamento')} />)}</Stack>
+            </Box>
+          )}
+          {failed.length > 0 && (
+            <Box>
+              <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.75 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'error.main' }}>{translate('exams.failed_title')}</Typography>
+                <Chip size="small" label={failed.length} sx={{ height: 18, bgcolor: '#fee2e2', color: '#ef4444', fontWeight: 700 }} />
+              </Stack>
+              <Alert severity="warning" icon={false} sx={{ mb: 1.25, borderRadius: RADIUS.sectionCard, py: 0.75, '& .MuiAlert-message': { fontSize: 13 } }}>
+                {failed.length === 1 ? translate('exams.failed_msg_one') : translate('exams.failed_msg_many', { count: failed.length })} {translate('exams.failed_action')} <strong>{translate('exams.reextract')}</strong>.
+              </Alert>
+              <Stack spacing={1.5}>{failed.map((r: any) => renderCard(r))}</Stack>
+            </Box>
+          )}
+          {view === 'category' && lockedCount > 0 && lockCard('cat-lock', `${lockedCount} exame(s) de anos anteriores fazem parte do histórico Premium.`, lockedCount)}
+          {view === 'date' && (
+            <>
+              {dateGroups.length === 0 && processing.length === 0 && (filtering ? <EmptyState emoji="🔍" title={translate('exams.empty_search_title')} desc={translate('exams.empty_search_desc')} /> : <EmptyState title={translate('exams.empty_title')} desc={translate('exams.empty_desc')} cta={translate('exams.send')} onCta={() => navigate('/exams/create')} bonus={firstBonus ?? undefined} />)}
+              {dateGroups.map((g) => {
+                const locked = !premium && g.year !== latestYear && g.year != null;
+                if (locked) return lockCard(String(g.year), `📅 ${g.label} • ${g.items.length} exame(s)`, g.items.length);
+                return (
+                  <Accordion key={String(g.year)} defaultExpanded={g.year === latestYear || (g.year === null && g.items.some((r: any) => r.status === 'FAILED'))} disableGutters elevation={0} sx={{ borderRadius: `${RADIUS.sectionCard} !important`, overflow: 'hidden', border: '1px solid', borderColor: 'divider', '&:before': { display: 'none' } }}>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 30, color: '#178f89', bgcolor: 'rgba(32,178,170,.12)', borderRadius: '50%', p: 0.6, boxShadow: '0 2px 6px rgba(32,178,170,.18)' }} />} sx={{ minHeight: '48px !important', '& .MuiAccordionSummary-content': { my: 0.75, alignItems: 'center' } }}>
+                      <Typography sx={{ fontWeight: 800, flex: '1 1 auto', minWidth: 0 }}>📅 {g.label}</Typography>
+                      <Chip size="small" label={`${g.items.length}`} sx={{ ml: 1.5, bgcolor: 'rgba(0,0,0,.05)', color: 'text.secondary', height: 20, flexShrink: 0 }} />
+                    </AccordionSummary>
+                    <AccordionDetails sx={{ p: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>{g.items.map(renderCard)}</AccordionDetails>
+                  </Accordion>
+                );
+              })}
+            </>
+          )}
+          {view === 'category' && (
+            <>
+              {catGroups.length === 0 && processing.length === 0 && (filtering ? <EmptyState emoji="🔍" title={translate('exams.empty_search_title')} desc={translate('exams.empty_search_desc')} /> : <EmptyState title={translate('exams.empty_title')} desc={translate('exams.empty_desc')} cta={translate('exams.send')} onCta={() => navigate('/exams/create')} bonus={firstBonus ?? undefined} />)}
+              {catGroups.map(({ cat: c, items }) => (
+                <Accordion key={c.key} defaultExpanded={catGroups.length <= 3} disableGutters elevation={0} sx={{ borderRadius: `${RADIUS.sectionCard} !important`, overflow: 'hidden', border: '1px solid', borderColor: 'divider', '&:before': { display: 'none' } }}>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 30, color: c.color, bgcolor: c.color + '1f', borderRadius: '50%', p: 0.6 }} />} sx={{ minHeight: '48px !important', '& .MuiAccordionSummary-content': { my: 0.75, alignItems: 'center' } }}>
+                    <Typography sx={{ fontWeight: 800, flex: '1 1 auto', minWidth: 0 }}>{c.emoji} {c.cat}</Typography>
+                    <Chip size="small" label={`${items.length}`} sx={{ ml: 1.5, bgcolor: c.color + '1a', color: c.color, height: 20, flexShrink: 0 }} />
+                  </AccordionSummary>
+                  <AccordionDetails sx={{ p: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>{items.map(renderCard)}</AccordionDetails>
+                </Accordion>
+              ))}
+            </>
+          )}
+        </Box>
+        {/* DETALHE / CONTEXTO (direita) — selecionado inline, senão hero + "o que mudou" */}
+        <Box sx={{ position: 'sticky', top: 8, maxHeight: 'calc(100dvh - 16px)', overflowY: 'auto', pl: 1 }}>
+          {selected ? <ExamShow inlineId={selected} /> : (heroMd ?? <EmptyState emoji="👈" title="Selecione um exame" desc="Toque num exame à esquerda pra ver o detalhe completo." />)}
+        </Box>
+      </Box>
+    );
+  }
 
   return (
     <PageContainer width="content" sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
