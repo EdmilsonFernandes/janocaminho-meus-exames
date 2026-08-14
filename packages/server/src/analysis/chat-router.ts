@@ -12,11 +12,13 @@ import { normalizeKey, findMarkerInText, computeFlag } from '../utils/normalize'
 const INTERPRETIVE = /O QUE (SIGNIFICA|SIGNIFICACAO|PODE|E|SAO)|POR QUE|PORQUE|E GRAVE|E PERIGOSO|POSSO|TRATAMENTO|CAUSA|DOENC|ANOMAL|PRECISO|PROCURAR|MEDIC|ALERTA|RESUMO|FAIXA|REFEREN|FORA DA|COMPAR|EVOLU|TENDEN|MELHOR|PIOR|REPET|ATENCAO|URGEN|ALTERAD|ALIMENT|DIETA|EXPLICA|MEDID|ONDE ESTOU|DESTAQU|CRUZ|FALT|METAS|META\b|SINAIS|SINAL|RISCO|CARDIAC|VASCU|IMAGEM|VACIN|LEMBRET|COMPROMISS|RECOMEND|SUGIR|SUGEST|ROTINA|EXERCIC|NUTRIENT/;
 // Contagem / lista de exames (sem marcador específico).
 const COUNT_EXAMS = /QUANTOS EXAMES|QUANTIDADE DE EXAMES|NUMERO DE EXAMES|N EXAMES/;
-// Só casa pedido EXPLÍCITO de listar/mostrar os exames ("liste meus exames", "mostre meus exames").
-// Antes incluía MEUS|MINHOS|QUAIS|TODOS — casava "meus exames" usado como CONTEXTO em perguntas
-// interpretativas ("com base nos meus exames, sugira metas") e o router respondia só com a lista
-// de títulos, sem análise. Verbos de listagem explícita + guarda de tamanho (abaixo) resolvem.
-const LIST_EXAMS = /\b(LISTE|LISTAR|LISTA|MOSTRE|MOSTRAR|MOSTR|EXIBA|EXIB|VEJA|VER)\b.{0,10}\bEXAMES\b/;
+// Só casa pedido EXPLÍCITO de listar/mostrar os exames ("liste meus exames", "mostre meus exames")
+// ou interrogativa DIRETA ("quais são meus exames?"). Antes incluía MEUS|MINHOS|TODOS — casava
+// "meus exames" usado como CONTEXTO em perguntas interpretativas ("com base nos meus exames,
+// sugira metas") e o router respondia só com a lista de títulos, sem análise. Verbos explícitos +
+// QUAIS + guarda de tamanho (abaixo) resolvem: INTERPRETIVE e >55 chars rodam ANTES desta regex,
+// então "quais valores estão fora nos meus exames" (FORA DA/FAIXA) segue indo pra IA.
+const LIST_EXAMS = /\b(LISTE|LISTAR|LISTA|MOSTRE|MOSTRAR|MOSTR|EXIBA|EXIB|VEJA|VER|QUAIS)\b.{0,25}\bEXAMES\b/;
 
 export interface LocalAnswer {
   answered: boolean;

@@ -110,14 +110,12 @@ export const LoginPage = ({ fixedRole }: { fixedRole?: 'paciente' | 'medico' }) 
   const [showPwd, setShowPwd] = useState(false);
   const [mode, setMode] = useState<'password' | 'otp'>('password');
   const [loading, setLoading] = useState(false);
-  const [role] = useState<'paciente' | 'medico'>(fixedRole ?? (new URLSearchParams(window.location.hash.split('?')[1] || '').get('role') === 'medico' ? 'medico' : 'paciente'));
+  const [role, setRole] = useState<'paciente' | 'medico'>(fixedRole ?? (new URLSearchParams(window.location.hash.split('?')[1] || '').get('role') === 'medico' ? 'medico' : 'paciente'));
   const [errs, setErrs] = useState<{ email?: string; pwd?: string }>({});
   const [capsOn, setCapsOn] = useState(false);
   const [showForm, setShowForm] = useState(false); // biometria primeiro: form de senha começa recolhido quando há enrolment
   const [mfaChallenge, setMfaChallenge] = useState<{ token: string; account?: string; verifyUrl: string; isDoctor: boolean } | null>(null);
   const [invite] = useState(() => new URLSearchParams(window.location.hash.split('?')[1] || '').get('invite') || '');
-  // Link legado /entrar?role=medico → porta própria do médico
-  useEffect(() => { if (!fixedRole && role === 'medico') navigate('/entrar/medico', { replace: true }); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   // Quick-login só aparece se a aba atual bate com o role matriculado (paciente ≠ médico)
   const enrolledRole = BiometricService.getEnrolledRole();
   const bioReady = BiometricService.isSupported() && BiometricService.hasEnrollment() && enrolledRole === (role === 'medico' ? 'doctor' : 'patient');
@@ -278,7 +276,27 @@ export const LoginPage = ({ fixedRole }: { fixedRole?: 'paciente' | 'medico' }) 
   return (
     <Shell subtitle={role === 'medico' ? translate('auth.doctor_portal') : undefined}>
       {mode === 'password' ? (
-        bioReady && !showForm ? (
+        <>
+        {/* Toggle Paciente / Médico — segmented control. Ativo CHAPADO em #00796b (branco
+            5.3:1 ✓ WCAG, SEM gradiente/shadow) para não disputar o posto de ação primária
+            com o botão Entrar — era o defeito real do toggle antigo. */}
+        <Box sx={{ display: 'flex', p: 0.5, mb: 2, gap: 0.5, borderRadius: '999px', bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider' }}>
+          <Button onClick={() => { setRole('paciente'); setErrs({}); }} startIcon={<I.User />} fullWidth
+            sx={{ py: 1, borderRadius: '999px', textTransform: 'none', fontWeight: 800, fontSize: 14, minHeight: 40, transition: 'all .2s',
+              background: role === 'paciente' ? '#00796b' : 'transparent',
+              color: role === 'paciente' ? '#fff' : '#0e6f68',
+              '&:hover': { background: role === 'paciente' ? '#00695c' : 'rgba(0,121,107,.08)' } }}>
+            Paciente
+          </Button>
+          <Button onClick={() => { setRole('medico'); setErrs({}); }} startIcon={<I.Doctor />} fullWidth
+            sx={{ py: 1, borderRadius: '999px', textTransform: 'none', fontWeight: 800, fontSize: 14, minHeight: 40, transition: 'all .2s',
+              background: role === 'medico' ? '#00796b' : 'transparent',
+              color: role === 'medico' ? '#fff' : '#0e6f68',
+              '&:hover': { background: role === 'medico' ? '#00695c' : 'rgba(0,121,107,.08)' } }}>
+            Médico
+          </Button>
+        </Box>
+        {bioReady && !showForm ? (
           /* Caminho de zero-fricção (padrão app de banco): com biometria matriculada, ela É a
            * ação primária; o form de senha fica a um toque — não na frente do usuário. */
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
@@ -357,12 +375,10 @@ export const LoginPage = ({ fixedRole }: { fixedRole?: 'paciente' | 'medico' }) 
           )}
           <Typography align="center" sx={{ mt: 1, fontSize: 13 }}>
             {translate('auth.no_account')} <Link component="button" type="button" sx={{ fontWeight: 700, color: LINK }} onClick={() => navigate(role === 'medico' ? '/doctor?mode=register' : '/registrar')}>{translate('auth.create_account')}</Link>
-            {role === 'paciente'
-              ? <> · <Link component="button" type="button" sx={{ fontWeight: 700, color: LINK }} onClick={() => navigate('/entrar/medico')}>{translate('auth.are_you_doctor')} {translate('auth.doctor_access')}</Link></>
-              : <> · <Link component="button" type="button" sx={{ fontWeight: 700, color: LINK }} onClick={() => navigate('/entrar')}>{translate('auth.doctor_back')}</Link></>}
           </Typography>
         </Box>
-        )
+        )}
+        </>
       ) : (
         <Box component="form" onSubmit={verifyOtp} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <Typography color="text.secondary" sx={{ fontSize: 14 }}>{translate('auth.otp_sent_to')} <strong>{email}</strong></Typography>
