@@ -1,16 +1,18 @@
 import { useEffect, useState, useRef } from 'react';
-import { List, useListContext, useRefresh, useNotify, useTranslate, CreateButton, TopToolbar } from 'react-admin';
-import { Chip, Box, Card, CardContent, Typography, IconButton, Stack, LinearProgress, Button, Accordion, AccordionSummary, AccordionDetails, Alert, CircularProgress, TextField, InputAdornment, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { List, useListContext, useRefresh, useNotify, useTranslate } from 'react-admin';
+import { Chip, Box, CardContent, Typography, IconButton, Stack, LinearProgress, Button, Accordion, AccordionSummary, AccordionDetails, Alert, CircularProgress, TextField, InputAdornment, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import ScienceIcon from '@mui/icons-material/Science';
 import ImageIcon from '@mui/icons-material/Image';
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import CloseIcon from '@mui/icons-material/Close';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import LockIcon from '@mui/icons-material/Lock';
 import SearchIcon from '@mui/icons-material/Search';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import PictureAsPdfOutlinedIcon from '@mui/icons-material/PictureAsPdfOutlined';
 import { useNavigate } from 'react-router-dom';
 import { useSelectedPatient } from '../../patient-context';
 import { API_URL, token, fetchPublicConfig } from '../../config';
@@ -24,19 +26,23 @@ import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ListSkeleton } from '../../components/Skeleton';
 import { EmptyState } from '../../components/EmptyState';
 import { LabBadge } from '../../components/LabBadge';
+import { AppCard } from '../../components/AppCard';
+import { GradientButton } from '../../components/GradientButton';
+import { DateLabel } from '../../components/DateLabel';
+import { ChangesSinceExam, type Marker } from '../../components/dashboard/ChangesSinceExam';
 import { cleanExtractedLabel } from '../../utils/examDisplay';
-import { fmtDateShort } from '../../utils/format';
+import { openExamFile } from '../../utils/examFile';
+import { RADIUS } from '../../theme';
 
-const ExamListActions = () => (
-  <TopToolbar>
-    <CreateButton label="Enviar exame" variant="contained" />
-  </TopToolbar>
-);
-
+// Status de PROCESSAMENTO (não clínico) → chave de paleta (token, sem hex literal).
 const statusColor: Record<string, 'success' | 'error' | 'warning' | 'info' | 'default'> = { EXTRACTED: 'success', FAILED: 'error', UPLOADED: 'warning', EXTRACTING: 'info' };
 const statusLabel: Record<string, string> = { EXTRACTED: 'Pronto', FAILED: 'Falhou', UPLOADED: 'Enviado', EXTRACTING: 'Extraindo' };
 const kindLabel: Record<string, string> = { LAB_PANEL: 'Laboratorial', IMAGING: 'Imagem', OTHER: 'Outro' };
-const hexFor = (s: string) => { const sc = statusColor[s] ?? 'default'; return sc === 'success' ? '#059669' : sc === 'error' ? '#ef4444' : sc === 'warning' ? '#f59e0b' : sc === 'info' ? '#0ea5e9' : '#94a3b8'; };
+
+/** Cor de paleta resolved (pra alpha em bgcolor) — default cai em text.secondary. */
+const toneMain = (t: any, sc: string) => (sc === 'default' ? t.palette.text.secondary : (t.palette as any)[sc]?.main ?? t.palette.text.secondary);
+
+const RECENT_DAYS = 90; // filtro "Recentes": últimos ~3 meses.
 
 /** Ano (int) de um exame — performedAt (data do exame) com fallback no envio (createdAt). */
 const yearOf = (r: any): number | null => {
@@ -46,34 +52,63 @@ const yearOf = (r: any): number | null => {
   return Number.isNaN(y) ? null : y;
 };
 
-/** Cartão de exame EM PROCESSAMENTO (UPLOADED/EXTRACTING) — fica sempre no TOPO da lista,
- *  com spinner/barra INDETERMINADOS. Não há progresso real no servidor (a extração é um
- *  state machine), então antes a % era simulada e travava em ~94% (sensação de pendurado) e
- *  reiniciava a cada visita. Indeterminado é honesto. Toca no cartão pra ver o robô. */
+/** Cartão de exame EM PROCESSAMENTO (UPLOADED/EXTRACTING) — sempre no TOPO da lista.
+ *  Barra indeterminada (não há % real no servidor). Toca pra acompanhar a extração. */
 const ProcessingCard = ({ r, onCancel }: { r: any; onCancel?: (e: any) => void }) => {
   const navigate = useNavigate();
   return (
-    <Card onClick={() => navigate(`/exams/${r.id}/show`)} sx={{ cursor: 'pointer', borderRadius: '12px', borderLeft: '4px solid #0ea5e9', overflow: 'hidden', maxWidth: '100%' }}>
+    <AppCard kind="interactive" onClick={() => navigate(`/exams/${r.id}/show`)} sx={{ overflow: 'hidden' }}>
       <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, '&:last-child': { pb: 1.5 } }}>
-        <CircularProgress size={34} thickness={5} sx={{ color: '#0ea5e9', flexShrink: 0 }} />
+        <CircularProgress size={32} thickness={5} sx={{ color: 'info.main', flexShrink: 0 }} />
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography sx={{ fontWeight: 700, wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.2 }}>{r.title || 'Novo exame enviado'}</Typography>
           <Typography variant="caption" color="text.secondary">Dr. Exame está extraindo… toque para acompanhar</Typography>
         </Box>
-        {onCancel && <IconButton size="small" onClick={onCancel} title="Cancelar e excluir" aria-label="Cancelar e excluir exame" sx={{ flexShrink: 0, color: 'text.secondary', p: 1.25 }}><CloseIcon fontSize="small" /></IconButton>}
+        {onCancel && <IconButton size="small" onClick={(e) => { e.stopPropagation(); onCancel(e); }} title="Cancelar e excluir" aria-label="Cancelar e excluir exame" sx={{ flexShrink: 0, color: 'text.secondary', p: 1.25 }}><CloseIcon fontSize="small" /></IconButton>}
         <ChevronRightIcon sx={{ color: 'text.disabled', flexShrink: 0 }} />
       </CardContent>
       <LinearProgress sx={{ height: 4, '& .MuiLinearProgress-bar': { background: 'linear-gradient(90deg,#0ea5e9,#20b2aa)' } }} />
-    </Card>
+    </AppCard>
   );
 };
 
-/** Cards agrupados por ano OU por categoria (alternáveis). Busca + filtro por categoria no topo. */
+/** HERO — último exame (mais recente extraído). Âncora de "qual é a situação agora". */
+const ExamHero = ({ r, abnCount, onView, onPdf }: { r: any; abnCount: number; onView: () => void; onPdf: () => void }) => {
+  const titleInfo = cleanExtractedLabel(r.title, kindLabel[r.kind] ?? 'Exame', 60);
+  const itemCount: number = r._count?.items ?? 0;
+  const tone = abnCount > 0 ? 'warning' : 'primary';
+  return (
+    <AppCard kind="tinted" tone={tone} tone2="secondary" glow sx={{ p: { xs: 2, md: 2.5 }, height: '100%' }}>
+      <Typography sx={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'text.secondary' }}>Último exame</Typography>
+      <Typography title={titleInfo.original || r.title} sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 19, md: 22 }, lineHeight: 1.2, mt: 0.25, wordBreak: 'break-word' }}>{titleInfo.text || 'Exame'}</Typography>
+      <Box sx={{ mt: 0.5 }}><DateLabel date={r.performedAt} fallback="Data não identificada" sx={{ fontSize: '0.82rem' }} /></Box>
+      <Stack direction="row" spacing={1.5} sx={{ mt: 1, flexWrap: 'wrap', rowGap: 0.5, alignItems: 'center' }}>
+        <Typography sx={{ fontSize: 13.5, color: 'text.secondary' }}>{itemCount} resultado{itemCount !== 1 ? 's' : ''}</Typography>
+        {abnCount > 0 ? (
+          <Chip size="small" label={`${abnCount} alterado${abnCount === 1 ? '' : 's'}`} sx={{ height: 22, fontWeight: 700, borderRadius: RADIUS.pill, bgcolor: alpha('#ea580c', 0.14), color: '#b45309' }} />
+        ) : (
+          <Chip size="small" label="Nada alterado" sx={{ height: 22, fontWeight: 700, borderRadius: RADIUS.pill, bgcolor: alpha('#16a34a', 0.14), color: '#2e6b32' }} />
+        )}
+      </Stack>
+      <Stack direction="row" spacing={1} sx={{ mt: 2.25 }}>
+        <GradientButton onClick={onView} endIcon={<ArrowForwardIcon />} sx={{ flex: 1 }}>Ver análise</GradientButton>
+        <Button variant="outlined" onClick={onPdf} startIcon={<PictureAsPdfOutlinedIcon />} sx={{ borderRadius: RADIUS.button, textTransform: 'none', fontWeight: 700, borderColor: 'divider', color: 'text.secondary' }}>Abrir laudo</Button>
+      </Stack>
+    </AppCard>
+  );
+};
+
+/** Cards agrupados por ano OU por categoria + busca + filtros (Todos/Alterados/Recentes) + hero. */
 const ExamCards = () => {
   const { data, isLoading, total } = useListContext<any>();
   const navigate = useNavigate();
-  // Bônus de 1º exame mostrado no empty state — só pra quem ainda NÃO recebeu (firstExamBonusGranted).
-  // freeSignup do /public/config; se já recebeu (flag do /auth/me), esconde (null).
+  const translate = useTranslate();
+  const refresh = useRefresh();
+  const notify = useNotify();
+  const premium = usePremium();
+  const [pid] = useSelectedPatient();
+
+  // Bônus de 1º exame no empty state — só pra quem ainda NÃO recebeu.
   const [firstBonus, setFirstBonus] = useState<number | null>(null);
   useEffect(() => {
     fetchPublicConfig().then((c) => setFirstBonus(c.freeSignup)).catch(() => setFirstBonus(null));
@@ -82,27 +117,32 @@ const ExamCards = () => {
       .then((d) => { if (d?.user?.firstExamBonusGranted) setFirstBonus(null); })
       .catch(() => {});
   }, []);
-  const translate = useTranslate();
-  const refresh = useRefresh();
-  const notify = useNotify();
-  const premium = usePremium();
 
-  // Modo de agrupamento + filtros locais (a lista carrega tudo com perPage=1000).
+  // Agrupamento + filtros locais (a lista carrega tudo com perPage=1000).
   const [view, setView] = useState<'date' | 'category'>('date');
-  const [cat, setCat] = useState<string>('all'); // 'all' | category key
+  const [cat, setCat] = useState<string>('all');
+  const [sfilter, setSfilter] = useState<'all' | 'altered' | 'recent'>('all');
   const [q, setQ] = useState('');
   const [delTarget, setDelTarget] = useState<{ id: string; title: string } | null>(null);
 
-  // Re-busca a lista a cada 5s enquanto há exames sendo extraídos. Quando termina (vira EXTRACTED),
-  // o exame sai do topo e cai no grupo do ANO certo (performedAt é preenchido pela extração).
+  // Contagem de alterados por exame (GET /items/abnormal → { items:[{examId,...}] }) +
+  // "o que mudou" (health-summary topAttention/improving). Re-busca quando um processamento
+  // termina (bump) — assim o hero e o filtro Alterados refletem o exame recém-extraído.
+  const [abnByExam, setAbnByExam] = useState<Record<string, number>>({});
+  const [worsened, setWorsened] = useState<Marker[]>([]);
+  const [improved, setImproved] = useState<Marker[]>([]);
+  const [hsLoaded, setHsLoaded] = useState(false);
+  const [bump, setBump] = useState(0);
+
+  // Re-busca a cada 5s enquanto há extrações. Quando a última vira EXTRACTED (processing >0 → 0),
+  // o bônus/notificação foram concedidos server-side: avisa a wallet, o sino, e dá bump no hero.
   const processingCount = (data ?? []).filter((r: any) => r.status === 'UPLOADED' || r.status === 'EXTRACTING').length;
-  // Quando o último exame processado vira EXTRACTED (processing >0 → 0), o bônus de 1º exame
-  // (se devido) + a notificação foram concedidos server-side. Avisa a wallet e o sino pra atualizar.
   const prevProcessingRef = useRef(processingCount);
   useEffect(() => {
     if (prevProcessingRef.current > 0 && processingCount === 0) {
       window.dispatchEvent(new Event('creditsChanged'));
       window.dispatchEvent(new Event('notificationsChanged'));
+      setBump((b) => b + 1);
     }
     prevProcessingRef.current = processingCount;
   }, [processingCount]);
@@ -112,17 +152,44 @@ const ExamCards = () => {
     return () => clearInterval(t);
   }, [processingCount, refresh]);
 
+  useEffect(() => {
+    let cancelled = false;
+    const h = { Authorization: `Bearer ${token()}` };
+    (async () => {
+      try {
+        const a = await fetch(`${API_URL}/items/abnormal?_start=0&_end=1000${pid ? `&patientId=${pid}` : ''}`, { headers: h });
+        if (a.ok) {
+          const arr = (await a.json())?.items ?? [];
+          const m: Record<string, number> = {};
+          for (const it of arr) { const eid = it?.examId; if (eid) m[eid] = (m[eid] ?? 0) + 1; }
+          if (!cancelled) setAbnByExam(m);
+        }
+      } catch { /* ignore */ }
+      if (pid) {
+        try {
+          const hs = await fetch(`${API_URL}/patients/${pid}/health-summary`, { headers: h });
+          if (hs.ok) {
+            const hd = await hs.json();
+            if (!cancelled) {
+              setWorsened(Array.isArray(hd.topAttention) ? hd.topAttention.slice(0, 3) : []);
+              setImproved(Array.isArray(hd.improving) ? hd.improving.slice(0, 3) : []);
+              setHsLoaded(true);
+            }
+          }
+        } catch { /* ignore */ }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [pid, bump]);
+
   if (isLoading) return <ListSkeleton count={4} />;
-  const del = (e: any, id: string, title: string) => {
-    e.stopPropagation();
-    setDelTarget({ id, title });   // abre o Dialog premium (não window.confirm nativo)
-  };
+
+  const del = (e: any, id: string, title: string) => { e.stopPropagation(); setDelTarget({ id, title }); };
   const confirmDel = async () => {
     const t = delTarget; if (!t) return;
     try {
       const r = await fetch(`${API_URL}/exams/${t.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });
-      // refresh() atualiza a lista via dataProvider. NÃO usar navigate(0)/reload — crasha o app nativo.
-      if (r.ok) { notify('Exame excluído', { type: 'success' }); refresh(); }
+      if (r.ok) { notify('Exame excluído', { type: 'success' }); refresh(); setBump((b) => b + 1); }
       else notify('Falha ao excluir', { type: 'error' });
     } catch { notify('Falha de conexão ao excluir.', { type: 'error' }); }
     finally { setDelTarget(null); }
@@ -131,6 +198,10 @@ const ExamCards = () => {
     e.stopPropagation();
     const r = await fetch(`${API_URL}/exams/${id}/reextract`, { method: 'POST', headers: { Authorization: `Bearer ${token()}` } });
     if (r.ok) { notify('Re-extraindo…', { type: 'success' }); refresh(); } else notify('Falha ao re-extrair', { type: 'error' });
+  };
+  const openPdf = async (id: string) => {
+    const ok = await openExamFile(id);
+    if (!ok) notify('Não consegui abrir o laudo.', { type: 'error' });
   };
 
   const all = data ?? [];
@@ -143,13 +214,22 @@ const ExamCards = () => {
   const latestYear = years.length ? Math.max(...years) : null;
   const isLocked = (r: any) => !premium && latestYear != null && yearOf(r) != null && (yearOf(r) as number) < latestYear;
 
-  // Filtros: busca (título/lab) + categoria.
+  // Filtros: busca (título/lab) + categoria + status (Todos/Alterados/Recentes).
   const norm = (s: any) => (s == null ? '' : String(s)).toLowerCase().trim();
   const query = norm(q);
   const matchesSearch = (r: any) => !query || norm(r.title).includes(query) || norm(r.sourceLab).includes(query);
   const matchesCat = (r: any) => cat === 'all' || categorizeExam(r).key === cat;
-  const visible = extracted.filter((r: any) => matchesSearch(r) && matchesCat(r));
-  const filtering = query !== '' || cat !== 'all';
+  const matchesStatus = (r: any) => {
+    if (sfilter === 'altered') return (abnByExam[r.id] ?? 0) > 0;
+    if (sfilter === 'recent') { const d = r.performedAt ?? r.createdAt; return !!d && (Date.now() - new Date(d).getTime()) < RECENT_DAYS * 86400000; }
+    return true;
+  };
+  const visible = extracted.filter((r: any) => matchesSearch(r) && matchesCat(r) && matchesStatus(r));
+  const filtering = query !== '' || cat !== 'all' || sfilter !== 'all';
+
+  // Hero + "o que mudou" só no modo padrão (sem busca/filtro) — resumo de entrada.
+  const isDefaultView = !filtering;
+  const lastExam = extracted[0];
 
   // Contagem por categoria (do conjunto COMPLETO de extraídos — não muda com o filtro).
   const catCounts: Record<string, number> = {};
@@ -157,37 +237,35 @@ const ExamCards = () => {
   const presentCats = CATS.filter((c) => catCounts[c.key]).sort((a, b) => catCounts[b.key] - catCounts[a.key]);
 
   const renderCard = (r: any) => {
-    const c = hexFor(r.status);
-    const cc = categorizeExam(r); // categoria do exame (emoji + cor)
+    const sc = statusColor[r.status] ?? 'default';
+    const cc = categorizeExam(r);
     const titleInfo = cleanExtractedLabel(r.title, `Exame ${kindLabel[r.kind] ?? ''}`.trim(), 58);
     const labInfo = cleanExtractedLabel(r.sourceLab, '', 46);
     const doctorInfo = cleanExtractedLabel((r as any).rawExtraction?.requestingDoctor, '', 46);
     const needsReview = !!r.reviewRequired || titleInfo.suspicious || labInfo.suspicious || doctorInfo.suspicious || !r.performedAt;
-    // "🆕 Novo" nos exames adicionados nas últimas 48h — ajuda o usuário a achar no grupo do ano qual doc acabou de entrar.
     const isNew = !!r.createdAt && Date.now() - new Date(r.createdAt).getTime() < 48 * 3600 * 1000;
+    const altered = abnByExam[r.id] ?? 0;
+    const itemCount: number = r._count?.items ?? 0;
     const Icon = r.kind === 'IMAGING' ? ImageIcon : r.kind === 'LAB_PANEL' ? ScienceIcon : DescriptionOutlinedIcon;
     return (
-      <Card key={r.id} variant="outlined" onClick={() => navigate(`/exams/${r.id}/show`)} sx={{ cursor: 'pointer', borderRadius: '12px', borderLeft: `4px solid ${c}`, overflow: 'hidden', maxWidth: '100%' }}>
+      <AppCard key={r.id} kind="interactive" onClick={() => navigate(`/exams/${r.id}/show`)} sx={{ overflow: 'hidden' }}>
         <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, '&:last-child': { pb: 1.5 } }}>
-          <Icon sx={{ color: c, flexShrink: 0 }} />
+          <Icon sx={{ color: altered > 0 ? 'warning.main' : 'text.secondary', flexShrink: 0 }} />
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}>
               <Typography title={titleInfo.original || r.title} sx={{ fontWeight: 700, wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.2 }}>{titleInfo.text || 'Exame'}</Typography>
               <Box onClick={(e) => e.stopPropagation()} sx={{ flexShrink: 0, mt: -0.5 }}><ExplainButton name={r.title} /></Box>
             </Box>
-            {r.performedAt && (
-              <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, mt: 0.5, mb: 0.25, px: 1, py: 0.3, borderRadius: '999px', bgcolor: 'rgba(32,178,170,.10)' }}>
-                <CalendarMonthIcon sx={{ fontSize: 14, color: 'primary.main' }} />
-                <Typography component="span" sx={{ fontWeight: 700, color: 'primary.dark', fontSize: '0.78rem', lineHeight: 1 }}>{fmtDateShort(r.performedAt)}</Typography>
-              </Box>
-            )}
-            {r.sourceLab && <Box sx={{ display: 'block', mb: 0.25 }}><LabBadge raw={r.sourceLab} /></Box>}
+            <Box sx={{ mt: 0.25 }}><DateLabel date={r.performedAt} fallback="s/ data" /></Box>
+            {r.sourceLab && <Box sx={{ display: 'block', mt: 0.25 }}><LabBadge raw={r.sourceLab} /></Box>}
             {!labInfo.text && labInfo.suspicious && <Typography variant="caption" sx={{ display: 'block', color: 'warning.main', fontWeight: 700, lineHeight: 1.3 }}>🏥 Laboratório em revisão</Typography>}
             {doctorInfo.text && <Typography variant="caption" title={`Dr. ${doctorInfo.original}`} sx={{ display: 'block', color: 'text.secondary', fontWeight: 600, lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>🩺 Dr. {doctorInfo.text}</Typography>}
-            <Typography variant="caption" color="text.secondary">{cc.cat}{r._count?.items ? ` • ${r._count.items} itens` : ''}{r.createdAt ? ` • Enviado ${new Date(r.createdAt).toLocaleDateString('pt-BR')}` : ''}</Typography>
+            <Typography variant="caption" color="text.secondary">
+              {cc.cat}{itemCount ? ` • ${itemCount} ${itemCount === 1 ? 'resultado' : 'resultados'}` : ''}{altered > 0 ? ` • ${altered} alterado${altered === 1 ? '' : 's'}` : ''}
+            </Typography>
             <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.5 }}>
               {isNew && <Chip size="small" label="🆕 Novo" sx={{ bgcolor: '#dcfce7', color: '#15803d', fontWeight: 700, height: 20 }} />}
-              <Chip size="small" label={statusLabel[r.status] ?? r.status} sx={{ bgcolor: c + '18', color: c, fontWeight: 700, height: 20 }} />
+              <Chip size="small" label={statusLabel[r.status] ?? r.status} sx={{ height: 20, fontWeight: 700, bgcolor: (t) => alpha(toneMain(t, sc), 0.12), color: (t) => toneMain(t, sc) }} />
               {needsReview && <Chip size="small" label={translate('exams.review')} sx={{ bgcolor: '#f59e0b18', color: '#b45309', fontWeight: 800, height: 20 }} />}
             </Stack>
           </Box>
@@ -203,25 +281,33 @@ const ExamCards = () => {
             <Button size="small" color="primary" onClick={(e) => reextract(e, r.id)} sx={{ mt: 0.5, textTransform: 'none', fontWeight: 700 }}>↻ Re-extrair</Button>
           </Box>
         )}
-      </Card>
+      </AppCard>
     );
   };
 
-  // --- VISÃO POR DATA (padrão) — acordeões por ano, igual ao antes, só que filtrando pela busca/categoria.
+  // --- VISÃO POR DATA (padrão) e por CATEGORIA, ambas filtrando pela busca/categoria/status.
   const dateGroups = groupByYear(visible, (r) => r.performedAt ?? r.createdAt);
-
-  // --- VISÃO POR CATEGORIA — acordeões por categoria. Exames de anos Premium ficam ocultos (nudge no topo).
   const visibleUnlocked = visible.filter((r: any) => !isLocked(r));
   const lockedCount = visible.length - visibleUnlocked.length;
   const catGroups = presentCats
     .map((c) => ({ cat: c, items: visibleUnlocked.filter((r: any) => categorizeExam(r).key === c.key) }))
     .filter((g) => g.items.length);
 
+  const lockCard = (key: string, label: string, count: number) => (
+    <AppCard key={key} kind="tinted" tone="primary" sx={{ p: 1.75, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+      <LockIcon sx={{ color: '#178f89' }} />
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Typography sx={{ fontWeight: 800 }}>{label}</Typography>
+        <Typography variant="caption" color="text.secondary">{translate('exams.history_premium')}</Typography>
+      </Box>
+      <Button size="small" variant="contained" onClick={() => navigate('/planos')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', boxShadow: 'none', '&:hover': { bgcolor: '#178f89' }, flexShrink: 0 }}>{translate('common.view_plans')}</Button>
+    </AppCard>
+  );
+
   return (
     <PageContainer width="content" sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
       <PageHeader icon={<DescriptionOutlinedIcon />} title={translate('exams.title')} subtitle={translate('exams.subtitle', { count: total ?? 0 })} />
 
-      {/* Dialog premium de excluir exame (substitui o window.confirm nativo) */}
       <ConfirmDialog
         open={!!delTarget}
         onClose={() => setDelTarget(null)}
@@ -231,15 +317,20 @@ const ExamCards = () => {
         confirmLabel={translate('ra.action.delete')}
       />
 
-      {/* Toolbar: busca + alternador de visão + filtro por categoria */}
+      {/* Toolbar: busca + filtros (Todos/Alterados/Recentes) + agrupamento (data/categoria). */}
       <Stack spacing={1.25}>
         <TextField
           size="small" fullWidth value={q} onChange={(e) => setQ(e.target.value)}
           placeholder={translate('exams.search_ph')}
           InputProps={{ startAdornment: (<InputAdornment position="start"><SearchIcon fontSize="small" sx={{ color: 'text.secondary' }} /></InputAdornment>) }}
-          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: 'background.paper' } }}
+          sx={{ '& .MuiOutlinedInput-root': { borderRadius: RADIUS.button, bgcolor: 'background.paper' } }}
         />
-        <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ flexWrap: 'wrap', rowGap: 1 }}>
+          <ToggleButtonGroup exclusive size="small" value={sfilter} onChange={(_, v) => { if (v) setSfilter(v); }}>
+            <ToggleButton value="all" sx={{ px: 1.25, py: 0.25, textTransform: 'none', fontWeight: 700 }}>Todos</ToggleButton>
+            <ToggleButton value="altered" sx={{ px: 1.25, py: 0.25, textTransform: 'none', fontWeight: 700 }}>Alterados</ToggleButton>
+            <ToggleButton value="recent" sx={{ px: 1.25, py: 0.25, textTransform: 'none', fontWeight: 700 }}>Recentes</ToggleButton>
+          </ToggleButtonGroup>
           <ToggleButtonGroup exclusive size="small" value={view} onChange={(_, v) => { if (v) setView(v); }}>
             <ToggleButton value="date" sx={{ px: 1.25, py: 0.25, textTransform: 'none', fontWeight: 700 }}>{translate('exams.by_date')}</ToggleButton>
             <ToggleButton value="category" sx={{ px: 1.25, py: 0.25, textTransform: 'none', fontWeight: 700 }}>{translate('exams.by_category')}</ToggleButton>
@@ -256,7 +347,15 @@ const ExamCards = () => {
         )}
       </Stack>
 
-      {/* FAB "＋ Enviar exame" foi pra o AppLayout (ExamCreateFab) — sempre acima do rodapé. */}
+      {/* HERO + "O que mudou" — só no modo padrão (sem busca/filtro), resumo de entrada. */}
+      {isDefaultView && lastExam && (
+        <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: { xs: '1fr', sm: '1.6fr 1fr' }, alignItems: 'stretch' }}>
+          <ExamHero r={lastExam} abnCount={abnByExam[lastExam.id] ?? 0} onView={() => navigate(`/exams/${lastExam.id}/show`)} onPdf={() => openPdf(lastExam.id)} />
+          <ChangesSinceExam worsened={worsened} improved={improved} loaded={hsLoaded} onView={() => navigate('/evolucao')} />
+        </Box>
+      )}
+
+      {/* FAB "＋ Enviar exame" está no AppLayout (ExamCreateFab) — sempre acima do rodapé. */}
       {processing.length > 0 && (
         <Box>
           <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.75 }}>
@@ -271,10 +370,10 @@ const ExamCards = () => {
       {failed.length > 0 && (
         <Box>
           <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.75 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#ef4444' }}>{translate('exams.failed_title')}</Typography>
+            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'error.main' }}>{translate('exams.failed_title')}</Typography>
             <Chip size="small" label={failed.length} sx={{ height: 18, bgcolor: '#fee2e2', color: '#ef4444', fontWeight: 700 }} />
           </Stack>
-          <Alert severity="warning" icon={false} sx={{ mb: 1.25, borderRadius: '12px', py: 0.75, '& .MuiAlert-message': { fontSize: 13 } }}>
+          <Alert severity="warning" icon={false} sx={{ mb: 1.25, borderRadius: RADIUS.sectionCard, py: 0.75, '& .MuiAlert-message': { fontSize: 13 } }}>
             {failed.length === 1 ? translate('exams.failed_msg_one') : translate('exams.failed_msg_many', { count: failed.length })} {translate('exams.failed_action')} <strong>{translate('exams.reextract')}</strong>.
           </Alert>
           <Stack spacing={1.5}>
@@ -284,19 +383,11 @@ const ExamCards = () => {
       )}
 
       {/* Nudge Premium (apenas na visão por categoria — anos anteriores ocultos) */}
-      {view === 'category' && lockedCount > 0 && (
-        <Card variant="outlined" sx={{ borderRadius: '12px', p: 1.5, display: 'flex', alignItems: 'center', gap: 1.5, borderColor: 'divider', background: 'linear-gradient(135deg, rgba(32,178,170,.06), transparent)' }}>
-          <LockIcon sx={{ color: '#178f89' }} />
-          <Typography variant="body2" sx={{ flex: 1, minWidth: 0 }}>{lockedCount} exame(s) de anos anteriores fazem parte do histórico Premium.</Typography>
-          <Button size="small" variant="contained" onClick={() => navigate('/planos')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', boxShadow: 'none', '&:hover': { bgcolor: '#178f89' }, flexShrink: 0 }}>{translate('common.view_plans')}</Button>
-        </Card>
-      )}
+      {view === 'category' && lockedCount > 0 && lockCard('cat-lock', `${lockedCount} exame(s) de anos anteriores fazem parte do histórico Premium.`, lockedCount)}
 
       {/* Grupos (data OU categoria) */}
       {view === 'date' && (
         <>
-          {/* Empty state SÓ se truly nada (nenhum extraído E nenhum em processamento).
-              Antes mostrava "você não enviou exame" mesmo c/ 1º doc extraindo no topo — incoerente. */}
           {dateGroups.length === 0 && processing.length === 0 && (
             filtering
               ? <EmptyState emoji="🔍" title={translate('exams.empty_search_title')} desc={translate('exams.empty_search_desc')} />
@@ -304,21 +395,10 @@ const ExamCards = () => {
           )}
           {dateGroups.map((g) => {
             const locked = !premium && g.year !== latestYear && g.year != null;
-            if (locked) {
-              return (
-                <Card key={String(g.year)} variant="outlined" sx={{ borderRadius: '12px', p: 1.75, display: 'flex', alignItems: 'center', gap: 1.5, borderColor: 'divider', background: 'linear-gradient(135deg, rgba(32,178,170,.06), transparent)' }}>
-                  <LockIcon sx={{ color: '#178f89' }} />
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography sx={{ fontWeight: 800 }}>📅 {g.label} • {g.items.length} exame(s)</Typography>
-                    <Typography variant="caption" color="text.secondary">{translate('exams.history_premium')}</Typography>
-                  </Box>
-                  <Button size="small" variant="contained" onClick={() => navigate('/planos')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', boxShadow: 'none', '&:hover': { bgcolor: '#178f89' } }}>{translate('common.view_plans')}</Button>
-                </Card>
-              );
-            }
+            if (locked) return lockCard(String(g.year), `📅 ${g.label} • ${g.items.length} exame(s)`, g.items.length);
             return (
               <Accordion key={String(g.year)} defaultExpanded={g.year === latestYear || (g.year === null && g.items.some((r: any) => r.status === 'FAILED'))} disableGutters elevation={0}
-                sx={{ borderRadius: '12px !important', overflow: 'hidden', border: '1px solid', borderColor: 'divider', '&:before': { display: 'none' } }}>
+                sx={{ borderRadius: `${RADIUS.sectionCard} !important`, overflow: 'hidden', border: '1px solid', borderColor: 'divider', '&:before': { display: 'none' } }}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 30, color: '#178f89', bgcolor: 'rgba(32,178,170,.12)', borderRadius: '50%', p: 0.6, boxShadow: '0 2px 6px rgba(32,178,170,.18)' }} />} sx={{ minHeight: '48px !important', '& .MuiAccordionSummary-content': { my: 0.75, alignItems: 'center' } }}>
                   <Typography sx={{ fontWeight: 800, flex: '1 1 auto', minWidth: 0 }}>📅 {g.label}</Typography>
                   <Chip size="small" label={`${g.items.length}`} sx={{ ml: 1.5, bgcolor: 'rgba(0,0,0,.05)', color: 'text.secondary', height: 20, flexShrink: 0 }} />
@@ -341,7 +421,7 @@ const ExamCards = () => {
           )}
           {catGroups.map(({ cat: c, items }) => (
             <Accordion key={c.key} defaultExpanded={catGroups.length <= 3} disableGutters elevation={0}
-              sx={{ borderRadius: '12px !important', overflow: 'hidden', border: '1px solid', borderColor: 'divider', '&:before': { display: 'none' } }}>
+              sx={{ borderRadius: `${RADIUS.sectionCard} !important`, overflow: 'hidden', border: '1px solid', borderColor: 'divider', '&:before': { display: 'none' } }}>
               <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 30, color: c.color, bgcolor: c.color + '1f', borderRadius: '50%', p: 0.6 }} />} sx={{ minHeight: '48px !important', '& .MuiAccordionSummary-content': { my: 0.75, alignItems: 'center' } }}>
                 <Typography sx={{ fontWeight: 800, flex: '1 1 auto', minWidth: 0 }}>{c.emoji} {c.cat}</Typography>
                 <Chip size="small" label={`${items.length}`} sx={{ ml: 1.5, bgcolor: c.color + '1a', color: c.color, height: 20, flexShrink: 0 }} />

@@ -36,3 +36,28 @@ export function fmtDateShort(d: string | Date | null | undefined): string {
   if (isNaN(dt.getTime())) return '';
   return `${String(dt.getDate()).padStart(2, '0')} ${ME_MONTHS_SHORT[dt.getMonth()]} ${dt.getFullYear()}`;
 }
+
+/**
+ * Tempo relativo legível: "agora" / "há 5 min" / "ontem" / "há 9 dias" / "há 3 meses" / "há 1 ano".
+ * Fonte canônica — antes havia 5 cópias (ExamCard, PatientSummary, ValoresAlterados,
+ * DoctorValoresAlterados, DoctorPortal). Imune a clock skew futuro ("em breve").
+ */
+export function timeAgo(d: string | Date | null | undefined): string {
+  if (!d) return '';
+  const dt = new Date(d);
+  if (isNaN(dt.getTime())) return '';
+  const ms = Date.now() - dt.getTime();
+  if (ms < 0) return 'em breve';
+  const mins = Math.floor(ms / 60000);
+  if (mins < 1) return 'agora';
+  if (mins < 60) return `há ${mins} min`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `há ${hrs} h`;
+  const days = Math.floor(hrs / 24);
+  if (days === 1) return 'ontem';
+  if (days < 30) return `há ${days} dias`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `há ${months} ${months === 1 ? 'mês' : 'meses'}`;
+  const years = Math.floor(days / 365);
+  return `há ${years} ${years === 1 ? 'ano' : 'anos'}`;
+}

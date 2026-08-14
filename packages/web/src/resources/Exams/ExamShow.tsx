@@ -6,12 +6,14 @@ import {
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import PictureAsPdfOutlinedIcon from '@mui/icons-material/PictureAsPdfOutlined';
 import { Title, useNotify } from 'react-admin';
 import { API_URL, token } from '../../config';
 import { confirmDialog } from '../../components/ConfirmDialog';
 import { LabBadge } from '../../components/LabBadge';
 import { Capacitor } from '@capacitor/core';
 import { openBlobFile } from '../../utils/nativeDoc';
+import { openExamFile } from '../../utils/examFile';
 import { HealthSummary } from '../../components/HealthSummary';
 import { displayStatus } from '../../utils/examStatus';
 import { ValueBar } from '../../components/ValueBar';
@@ -210,6 +212,9 @@ export const ExamShow = () => {
     } catch { notify('Não consegui abrir o PDF do exame.', { type: 'error' }); }
   };
 
+  /** Abre o laudo/PDF original inteiro (header). Mesmo fluxo robusto web+APK do openCitation. */
+  const openPdf = async () => { if (!id) return; const ok = await openExamFile(id); if (!ok) notify('Não consegui abrir o laudo.', { type: 'error' }); };
+
   const sendChat = async () => {
     if (!summary) return;
     const message = chatInput.trim();
@@ -297,6 +302,9 @@ export const ExamShow = () => {
               </Box>
             )}
           </Stack>
+          <Box sx={{ mt: 1.5 }}>
+            <Button size="small" variant="outlined" onClick={openPdf} startIcon={<PictureAsPdfOutlinedIcon />} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, borderColor: 'divider', color: 'text.secondary' }}>Abrir laudo</Button>
+          </Box>
           {(patientInfo.text || patientInfo.suspicious || doctorInfo.text || doctorInfo.suspicious) && (
             <Typography color="text.secondary" sx={{ fontSize: '0.85rem', mt: 0.5 }}>
               {patientInfo.text ? `👤 ${patientInfo.text}` : patientInfo.suspicious ? '👤 Titular detectado em revisão' : ''}
@@ -323,7 +331,7 @@ export const ExamShow = () => {
 
       {/* BLOQUEIO FORTE: CPF do documento ≠ perfil */}
       {cpfBlock && (
-        <Card sx={{ mt: 2, borderLeft: '6px solid', borderColor: 'error.main', background: 'linear-gradient(135deg, rgba(220,38,38,.10), transparent)' }}>
+        <Card sx={{ mt: 2, border: '1px solid', borderColor: 'error.main', background: 'linear-gradient(135deg, rgba(220,38,38,.10), transparent)' }}>
           <CardContent>
             <Typography sx={{ fontWeight: 800, color: 'error.main' }}>
               {identity?.crossUser ? 'Este exame pertence a outro usuário' : 'CPF do exame não confere'}
@@ -343,7 +351,7 @@ export const ExamShow = () => {
 
       {/* BLOQUEIO SUAVE: nome do documento ≠ perfil */}
       {nameBlock && (
-        <Card sx={{ mt: 2, borderLeft: '6px solid', borderColor: 'warning.main', background: 'linear-gradient(135deg, rgba(245,158,11,.10), transparent)' }}>
+        <Card sx={{ mt: 2, border: '1px solid', borderColor: 'warning.main', background: 'linear-gradient(135deg, rgba(245,158,11,.10), transparent)' }}>
           <CardContent>
             <Typography sx={{ fontWeight: 800, color: '#b45309' }}>⚠️ Confirme o titular antes da análise</Typography>
             <Typography variant="body2" sx={{ mt: 0.5 }}>
@@ -376,7 +384,7 @@ export const ExamShow = () => {
                   <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 1 }}>
                     {abnormal.map((i) => (
                       <Chip key={i.id} color="warning" variant="outlined"
-                        label={`${i.name}: ${i.valueText ?? ''}`} onClick={() => openCitation(i.extractedPage)} />
+                        label={`${i.flag === 'HIGH' ? '↑ ' : i.flag === 'LOW' ? '↓ ' : ''}${i.name}: ${i.valueText ?? ''}`} onClick={() => openCitation(i.extractedPage)} />
                     ))}
                   </Stack>
                 </>

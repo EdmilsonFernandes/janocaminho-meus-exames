@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Stack, Typography, Box, Grid, useTheme, alpha, Skeleton, Chip } from '@mui/material';
+import { Stack, Typography, Box, Grid, useTheme, alpha, Skeleton } from '@mui/material';
 import { API_URL, token } from '../../config';
 import { useSelectedPatient } from '../../patient-context';
 import { syncPushToken } from '../../push';
@@ -16,24 +16,14 @@ import { ShareHealthButton } from '../ShareHealthCard';
 import { ReviewPrompt } from '../ReviewPrompt';
 import { AppCard } from '../AppCard';
 import { GradientButton } from '../GradientButton';
+import { ChangesSinceExam, type Marker } from './ChangesSinceExam';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 
 const readTotal = (r: Response) =>
   Number(r.headers.get('X-Total-Count') ?? r.headers.get('content-range')?.split('/')?.[1] ?? '0');
-
-interface Marker {
-  name: string;
-  unit?: string;
-  latest?: { valueNumeric?: number | null };
-  refHigh?: number | null;
-  refLow?: number | null;
-  flag?: string;
-}
 
 /** Busca os mesmos dados do Dashboard legacy — V2 isolada (não toca no fetch do legacy). */
 function useDashboardData(pid: string | null) {
@@ -118,14 +108,6 @@ const statusFromScore = (s: number | null): { label: string; tone: 'primary' | '
   return { label: 'Precisa de cuidados', tone: 'error' };
 };
 
-const flagDir = (m: Marker) => {
-  const v = m.latest?.valueNumeric;
-  if (v != null && m.refHigh != null && v > m.refHigh) return '↑';
-  if (v != null && m.refLow != null && v < m.refLow) return '↓';
-  return m.flag === 'HIGH' ? '↑' : m.flag === 'LOW' ? '↓' : '•';
-};
-const fmtVal = (m: Marker) => (m.latest?.valueNumeric != null ? `${m.latest.valueNumeric}${m.unit ? ' ' + m.unit : ''}` : '—');
-
 /** HERO — única hierarquia de saúde (score + prioridades + última análise + CTA). */
 const HeroHealthCard = ({ loaded, score, importante, moderada, lastExam, onDetails }: {
   loaded: boolean; score: number | null; importante: number; moderada: number; lastExam: string | null; onDetails: () => void;
@@ -169,38 +151,6 @@ const HeroHealthCard = ({ loaded, score, importante, moderada, lastExam, onDetai
       <GradientButton onClick={onDetails} endIcon={<ArrowForwardIcon />} sx={{ mt: 2.25, width: { xs: '100%', sm: 'auto' }, alignSelf: 'stretch' }}>
         Ver análise completa
       </GradientButton>
-    </AppCard>
-  );
-};
-
-/** DESDE SEU ÚLTIMO EXAME — worsened (topAttention) + improved. */
-const ChangesSinceExam = ({ worsened, improved, onView, loaded }: { worsened: Marker[]; improved: Marker[]; onView: () => void; loaded: boolean }) => {
-  if (loaded && worsened.length === 0 && improved.length === 0) return null;
-  return (
-    <AppCard kind="default" sx={{ p: { xs: 2, md: 2.5 }, height: '100%' }}>
-      <Typography sx={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'text.secondary' }}>Desde seu último exame</Typography>
-      <Stack direction="row" spacing={2} sx={{ mt: 1, mb: 1.5, flexWrap: 'wrap', rowGap: 0.5 }}>
-        {worsened.length > 0 && <Chip size="small" icon={<TrendingUpIcon />} label={`${worsened.length} piorou${worsened.length > 1 ? 'ram' : ''}`} sx={{ bgcolor: alpha('#dc2626', 0.12), color: '#b91c1c', fontWeight: 700 }} />}
-        {improved.length > 0 && <Chip size="small" icon={<TrendingDownIcon />} label={`${improved.length} melhorou${improved.length > 1 ? 'ram' : ''}`} sx={{ bgcolor: alpha('#16a34a', 0.12), color: '#2e6b32', fontWeight: 700 }} />}
-        {worsened.length === 0 && improved.length === 0 && <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>Carregando…</Typography>}
-      </Stack>
-      <Stack spacing={1.1}>
-        {worsened.slice(0, 3).map((m, i) => (
-          <Stack key={`w${i}`} direction="row" justifyContent="space-between" alignItems="baseline">
-            <Typography sx={{ fontSize: 13.5, color: 'text.primary', fontWeight: 600 }}><Box component="span" sx={{ color: '#b91c1c', mr: 0.5 }}>{flagDir(m)}</Box>{m.name}</Typography>
-            <Typography sx={{ fontSize: 13, color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>{fmtVal(m)}</Typography>
-          </Stack>
-        ))}
-        {improved.slice(0, 2).map((m, i) => (
-          <Stack key={`i${i}`} direction="row" justifyContent="space-between" alignItems="baseline">
-            <Typography sx={{ fontSize: 13.5, color: 'text.primary', fontWeight: 600 }}><Box component="span" sx={{ color: '#2e6b32', mr: 0.5 }}>{flagDir(m)}</Box>{m.name}</Typography>
-            <Typography sx={{ fontSize: 13, color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>{fmtVal(m)}</Typography>
-          </Stack>
-        ))}
-      </Stack>
-      <Box sx={{ mt: 1.5 }}>
-        <GradientButton variant="text" onClick={onView} endIcon={<ArrowForwardIcon />} sx={{ p: 0, textTransform: 'none', fontWeight: 700 }}>Ver evolução completa</GradientButton>
-      </Box>
     </AppCard>
   );
 };
