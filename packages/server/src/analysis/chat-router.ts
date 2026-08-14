@@ -9,11 +9,14 @@ import { normalizeKey, findMarkerInText, computeFlag } from '../utils/normalize'
 // normalizeKey stripa acentos → os patterns são SEM acento. Inclui verbos analíticos (resumo,
 // faixa, comparar, evolução, tendência, atenção, repetir, alimentação, explicar…) que ANTES
 // batiam em LIST_EXAMS e voltavam só com a lista de títulos (sem análise nenhuma).
-const INTERPRETIVE = /O QUE (SIGNIFICA|SIGNIFICACAO|PODE|E|SAO|E)|POR QUE|PORQUE|E GRAVE|E PERIGOSO|POSSO|TRATAMENTO|CAUSA|DOENC|ANOMAL|PRECISO|PROCURAR|MEDIC|ALERTA|RESUMO|FAIXA|REFEREN|FORA DA|COMPAR|EVOLU|TENDEN|MELHOR|PIOR|REPET|ATENCAO|URGEN|ALTERAD|ALIMENT|DIETA|EXPLICA|MEDID|ONDE ESTOU|DESTAQU|CRUZ/;
+const INTERPRETIVE = /O QUE (SIGNIFICA|SIGNIFICACAO|PODE|E|SAO)|POR QUE|PORQUE|E GRAVE|E PERIGOSO|POSSO|TRATAMENTO|CAUSA|DOENC|ANOMAL|PRECISO|PROCURAR|MEDIC|ALERTA|RESUMO|FAIXA|REFEREN|FORA DA|COMPAR|EVOLU|TENDEN|MELHOR|PIOR|REPET|ATENCAO|URGEN|ALTERAD|ALIMENT|DIETA|EXPLICA|MEDID|ONDE ESTOU|DESTAQU|CRUZ|FALT|METAS|META\b|SINAIS|SINAL|RISCO|CARDIAC|VASCU|IMAGEM|VACIN|LEMBRET|COMPROMISS|RECOMEND|SUGIR|SUGEST|ROTINA|EXERCIC|NUTRIENT/;
 // Contagem / lista de exames (sem marcador específico).
-// NOTE: o token "QUE" foi removido — era gen demais e capturava "o que são exames?" (deveria ir à IA).
 const COUNT_EXAMS = /QUANTOS EXAMES|QUANTIDADE DE EXAMES|NUMERO DE EXAMES|N EXAMES/;
-const LIST_EXAMS = /\b(QUAIS|QUANTOS|TODOS|MEUS|MINHOS|LISTA|LISTAR|MOSTR|MOSTRE|VEJA|EXIB)\b.{0,12}\bEXAMES\b/;
+// Só casa pedido EXPLÍCITO de listar/mostrar os exames ("liste meus exames", "mostre meus exames").
+// Antes incluía MEUS|MINHOS|QUAIS|TODOS — casava "meus exames" usado como CONTEXTO em perguntas
+// interpretativas ("com base nos meus exames, sugira metas") e o router respondia só com a lista
+// de títulos, sem análise. Verbos de listagem explícita + guarda de tamanho (abaixo) resolvem.
+const LIST_EXAMS = /\b(LISTE|LISTAR|LISTA|MOSTRE|MOSTRAR|MOSTR|EXIBA|EXIB|VEJA|VER)\b.{0,10}\bEXAMES\b/;
 
 export interface LocalAnswer {
   answered: boolean;
@@ -34,6 +37,12 @@ export async function tryLocalAnswer(opts: {
   //    comparar, evolução, atenção…) batiam em LIST_EXAMS e o router respondia só com a lista de
   //    títulos — sem usar os valores. Agora vão pra IA, que tem os valores no contexto (RAG).
   if (INTERPRETIVE.test(norm)) return { answered: false };
+
+  // Mensagens longas são quase sempre interpretativas (ex.: "com base nos meus exames, sugira
+  // metas..."). O roteador local só atende pedidos CURTOS e diretos; longos vão à IA (que tem os
+  // valores no contexto RAG). Antes, "meus exames" como CONTEXTO batia em LIST_EXAMS e voltava só
+  // com a lista de títulos — sem análise nenhuma.
+  if (norm.length > 55) return { answered: false };
 
   // 1) "quantos exames tenho?"
   if (COUNT_EXAMS.test(norm)) {
