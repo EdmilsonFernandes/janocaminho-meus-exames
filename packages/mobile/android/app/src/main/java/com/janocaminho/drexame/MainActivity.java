@@ -39,7 +39,16 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         createNotificationChannel();
+        paintWebViewBrandBg();
         injectBiometricBridge();
+    }
+
+    /** Fundo do WebView na cor do splash nativo (#20B2AA): elimina o flash branco entre o
+     *  SplashScreen do sistema e o primeiro paint do React (login/boot). */
+    private void paintWebViewBrandBg() {
+        if (bridge == null || bridge.getWebView() == null) return;
+        try { bridge.getWebView().setBackgroundColor(android.graphics.Color.parseColor("#20B2AA")); }
+        catch (Exception e) { Log.w("DX_UI", "WebView bg falhou", e); }
     }
 
     private void injectBiometricBridge() {

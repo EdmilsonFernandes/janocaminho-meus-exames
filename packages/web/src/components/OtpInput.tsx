@@ -7,12 +7,15 @@ export const OtpInput = ({ value, onChange, length = 6 }: { value: string; onCha
   const refs = useRef<(HTMLInputElement | null)[]>([]);
   const focus = (i: number) => { const el = refs.current[Math.max(0, Math.min(i, length - 1))]; el?.focus(); el?.select(); };
   return (
-    <Box sx={{ display: 'flex', gap: { xs: 0.75, sm: 1 }, justifyContent: 'center' }}>
+    <Box sx={{ display: 'flex', gap: { xs: 0.75, sm: 1 }, justifyContent: 'center' }} role="group" aria-label="Código de verificação">
       {Array.from({ length }).map((_, i) => (
         <input
           key={i}
           ref={(el: any) => { refs.current[i] = el; }}
           inputMode="numeric"
+          aria-label={`Dígito ${i + 1} de ${length}`}
+          autoComplete={i === 0 ? 'one-time-code' : 'off'}
+          autoFocus={i === 0}
           maxLength={1}
           value={value[i] ?? ''}
           onChange={(e: any) => {

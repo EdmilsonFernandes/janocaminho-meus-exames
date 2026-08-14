@@ -635,7 +635,8 @@ export const App = () => {
     disableTelemetry
   >
     <CustomRoutes noLayout>
-      <Route path="/entrar" element={<LoginPage />} />
+      <Route path="/entrar" element={<LoginPage key="paciente" />} />
+      <Route path="/entrar/medico" element={<LoginPage key="medico" fixedRole="medico" />} />
       <Route path="/landing" element={<Suspense fallback={<PageSkeleton />}><LandingPage /></Suspense>} />
       <Route path="/convite/:token" element={<InviteLandingPage />} />
       <Route path="/termos" element={<TermsPage />} />

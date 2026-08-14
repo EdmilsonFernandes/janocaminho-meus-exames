@@ -32,14 +32,23 @@ const I = {
 const breathe = keyframes`0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(32,178,170,0)}50%{transform:scale(1.035);box-shadow:0 0 0 7px rgba(32,178,170,.10)}`;
 const cardIn = keyframes`from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}`;
 
+/* Contraste WCAG: o teal assinatura #20b2aa fica em aura/mascote/acentos; superfícies que
+ * CARREGAM TEXTO BRANCO usam o intervalo escuro da mesma família (#00796b ≈ 5.3:1, #00695c ≈ 6.6:1).
+ * Links em #00796b (5.3:1) substituem #00897b (4.3:1, reprovava por pouco). */
+const CTA_BG = 'linear-gradient(135deg, #00796b, #00695c)';
+const CTA_BG_HOVER = 'linear-gradient(135deg, #006a5f, #00564e)';
+const LINK = '#00796b';
+
 /** Card centralizado sobre fundo teal com profundidade (radial + linear). Mascote respirando,
- *  card com fade-in, sombra/glow teal — feel premium clínico (sem poluir com marketing). */
-const Shell = ({ children }: { children: ReactNode }) => {
+ *  card com fade-in, sombra/glow teal — feel premium clínico (sem poluir com marketing).
+ *  100dvh + margin:auto (em vez de align-center): quando o card for mais alto que a viewport
+ *  (teclado aberto em tela curta), a página rola sem cortar o topo. */
+const Shell = ({ children, subtitle }: { children: ReactNode; subtitle?: string }) => {
   const translate = useTranslate();
   return (
-  <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2,
+  <Box sx={{ minHeight: '100dvh', display: 'flex', p: 2,
     background: 'radial-gradient(circle at 50% 18%, rgba(32,178,170,.20), rgba(32,178,170,.05) 55%, transparent 80%), linear-gradient(160deg, rgba(32,178,170,.10), rgba(32,178,170,.02))' }}>
-    <Box sx={{ width: '100%', maxWidth: 410, bgcolor: 'background.paper', borderRadius: '20px',
+    <Box sx={{ width: '100%', maxWidth: 410, m: 'auto', bgcolor: 'background.paper', borderRadius: '16px',
       boxShadow: '0 24px 60px rgba(0,80,70,.14), 0 2px 8px rgba(0,80,70,.06)',
       border: '1px solid', borderColor: 'rgba(32,178,170,.10)',
       p: { xs: 3, sm: 4.5 }, animation: `${cardIn} .42s cubic-bezier(.16,1,.3,1) both` }}>
@@ -52,13 +61,16 @@ const Shell = ({ children }: { children: ReactNode }) => {
         </Box>
         <Box sx={{ textAlign: 'center', mt: 0.5 }}>
           <Typography sx={{ fontWeight: 800, color: 'text.primary', fontFamily: '"Poppins",sans-serif', letterSpacing: '-0.02em', lineHeight: 1.15, fontSize: { xs: 24, sm: 26 } }}>Meus Exames</Typography>
-          <Typography sx={{ fontSize: 13, color: 'text.secondary', mt: 0.25 }}>Seu assistente de saúde com IA</Typography>
+          <Typography sx={{ fontSize: 13, color: 'text.secondary', mt: 0.25 }}>{subtitle ?? translate('auth.subtitle')}</Typography>
         </Box>
       </Stack>
       {children}
-      <Box sx={{ mt: 3, display: 'flex', gap: 1, alignItems: 'flex-start', p: 1.25, borderRadius: '12px', bgcolor: 'background.default', border: '1px solid', borderColor: 'divider' }}>
-        <Box sx={{ fontSize: 16, lineHeight: 1.3, flexShrink: 0 }}>🩺</Box>
-        <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.45 }}>
+      <Box sx={{ mt: 3, p: 1.25, borderRadius: '12px', bgcolor: 'background.default', border: '1px solid', borderColor: 'divider' }}>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
+          <Box sx={{ mt: '2px', flexShrink: 0 }}><I.Shield /></Box>
+          <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.primary', lineHeight: 1.45 }}>{translate('auth.lgpd')}</Typography>
+        </Box>
+        <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.45, mt: 0.75 }}>
           <strong>{translate('auth.disclaimer_strong')}</strong> {translate('auth.disclaimer')}
         </Typography>
       </Box>
@@ -69,25 +81,25 @@ const Shell = ({ children }: { children: ReactNode }) => {
 
 const fieldSx = {
   '& .MuiOutlinedInput-root': {
-    borderRadius: '8px', bgcolor: 'background.paper',
+    borderRadius: '12px', bgcolor: 'background.paper',
     '& fieldset': { borderColor: 'divider' },
     '&:hover fieldset': { borderColor: '#7fcfc6' },
-    '&.Mui-focused fieldset': { borderColor: '#20b2aa', borderWidth: '1.5px' },
+    '&.Mui-focused fieldset': { borderColor: '#00897b', borderWidth: '1.5px' },
   },
 } as const;
 
 const primaryBtnSx = {
-  borderRadius: '8px', py: 1.35, fontWeight: 800, textTransform: 'none', fontSize: 16,
-  background: 'linear-gradient(180deg, #20b2aa, #009688)', boxShadow: '0 6px 18px rgba(0,150,136,.3)',
-  '&:hover': { background: 'linear-gradient(180deg, #1ca39e, #00897b)', boxShadow: '0 8px 22px rgba(0,150,136,.38)' },
+  borderRadius: '12px', py: 1.35, fontWeight: 800, textTransform: 'none', fontSize: 16,
+  background: CTA_BG, boxShadow: '0 6px 18px rgba(0,105,92,.32)',
+  '&:hover': { background: CTA_BG_HOVER, boxShadow: '0 8px 22px rgba(0,105,92,.4)' },
 } as const;
 
 const tokenBtnSx = {
-  borderRadius: '8px', py: 1.2, fontWeight: 700, textTransform: 'none', fontSize: 15, color: '#00897b', borderColor: '#20b2aa',
-  '&:hover': { borderColor: '#00897b', bgcolor: 'rgba(32,178,170,.06)' },
+  borderRadius: '12px', py: 1.2, fontWeight: 700, textTransform: 'none', fontSize: 15, color: LINK, borderColor: '#00897b',
+  '&:hover': { borderColor: '#00796b', bgcolor: 'rgba(0,121,107,.06)' },
 } as const;
 
-export const LoginPage = () => {
+export const LoginPage = ({ fixedRole }: { fixedRole?: 'paciente' | 'medico' }) => {
   const login = useLogin();
   const notify = useNotify();
   const translate = useTranslate();
@@ -98,49 +110,66 @@ export const LoginPage = () => {
   const [showPwd, setShowPwd] = useState(false);
   const [mode, setMode] = useState<'password' | 'otp'>('password');
   const [loading, setLoading] = useState(false);
-  const [role, setRole] = useState<'paciente' | 'medico'>(() => (new URLSearchParams(window.location.hash.split('?')[1] || '').get('role') === 'medico' ? 'medico' : 'paciente'));
+  const [role] = useState<'paciente' | 'medico'>(fixedRole ?? (new URLSearchParams(window.location.hash.split('?')[1] || '').get('role') === 'medico' ? 'medico' : 'paciente'));
+  const [errs, setErrs] = useState<{ email?: string; pwd?: string }>({});
+  const [capsOn, setCapsOn] = useState(false);
+  const [showForm, setShowForm] = useState(false); // biometria primeiro: form de senha começa recolhido quando há enrolment
   const [mfaChallenge, setMfaChallenge] = useState<{ token: string; account?: string; verifyUrl: string; isDoctor: boolean } | null>(null);
   const [invite] = useState(() => new URLSearchParams(window.location.hash.split('?')[1] || '').get('invite') || '');
+  // Link legado /entrar?role=medico → porta própria do médico
+  useEffect(() => { if (!fixedRole && role === 'medico') navigate('/entrar/medico', { replace: true }); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   // Quick-login só aparece se a aba atual bate com o role matriculado (paciente ≠ médico)
   const enrolledRole = BiometricService.getEnrolledRole();
   const bioReady = BiometricService.isSupported() && BiometricService.hasEnrollment() && enrolledRole === (role === 'medico' ? 'doctor' : 'patient');
 
+  const trackCaps = (e: React.KeyboardEvent) => { try { setCapsOn(!!e.getModifierState?.('CapsLock')); } catch { /* alguns WebView não expõem */ } };
+
   const bioLogin = async () => {
-    const r = await BiometricService.loginWithBiometric();
-    if (!r) { notify('Biometria cancelada ou falhou.', { type: 'error' }); return; }
-    if (r.isDoctor) { localStorage.setItem('doctorToken', r.token); navigate('/doctor'); }
-    else {
-      localStorage.setItem('token', r.token);
-      // Bio login só guardava o token → drawer ficava "Olá" e admin sumia. Popula user/paciente.
-      // BUG: se o token da biometria EXPIROU (JWT 7d), /auth/me dá 401 e antes o app entrava
-      // SEM dados (não populava user/paciente mas navegava pra '/'). Agora: só entra se /me
-      // for OK; se expirou, limpa o token stale do Keystore e pede re-login por senha.
-      try {
-        const me = await fetch(`${API_URL}/auth/me`, { headers: { Authorization: `Bearer ${r.token}` } });
-        if (me.ok) {
-          const d = await me.json();
-          // Sliding session: /me devolve um token FRESCO → renova localStorage + Keystore da
-          // biometria. Assim a biometria não expira pra quem usa o app (só pra quem fica 7d sem abrir).
-          if (d.token) { localStorage.setItem('token', d.token); BiometricService.enroll(d.token, false); }
-          if (d.patientId) { localStorage.setItem('patientId', d.patientId); localStorage.setItem('selPatientId', d.patientId); }
-          if (d.user) localStorage.setItem('user', JSON.stringify(d.user));
-          window.dispatchEvent(new Event('selPatientChanged'));
-          navigate('/', { replace: true });
-        } else {
-          // 401 = token do Keystore expirado. Limpa pra não reusar; usuário re-loga por senha.
+    setLoading(true);
+    try {
+      const r = await BiometricService.loginWithBiometric();
+      if (!r) { notify(translate('auth.bio_cancel'), { type: 'error' }); return; }
+      if (r.isDoctor) { localStorage.setItem('doctorToken', r.token); navigate('/doctor'); }
+      else {
+        localStorage.setItem('token', r.token);
+        // Bio login só guardava o token → drawer ficava "Olá" e admin sumia. Popula user/paciente.
+        // BUG: se o token da biometria EXPIROU (JWT 7d), /auth/me dá 401 e antes o app entrava
+        // SEM dados (não populava user/paciente mas navegava pra '/'). Agora: só entra se /me
+        // for OK; se expirou, limpa o token stale do Keystore e pede re-login por senha.
+        try {
+          const me = await fetch(`${API_URL}/auth/me`, { headers: { Authorization: `Bearer ${r.token}` } });
+          if (me.ok) {
+            const d = await me.json();
+            // Sliding session: /me devolve um token FRESCO → renova localStorage + Keystore da
+            // biometria. Assim a biometria não expira pra quem usa o app (só pra quem fica 7d sem abrir).
+            if (d.token) { localStorage.setItem('token', d.token); BiometricService.enroll(d.token, false); }
+            if (d.patientId) { localStorage.setItem('patientId', d.patientId); localStorage.setItem('selPatientId', d.patientId); }
+            if (d.user) localStorage.setItem('user', JSON.stringify(d.user));
+            window.dispatchEvent(new Event('selPatientChanged'));
+            navigate('/', { replace: true });
+          } else {
+            // 401 = token do Keystore expirou. Limpa pra não reusar; usuário re-loga por senha.
+            localStorage.removeItem('token');
+            BiometricService.forget();
+            notify(translate('auth.bio_expired'), { type: 'warning' });
+            setShowForm(true); // biometria inutilizável → mostra o caminho de senha
+          }
+        } catch {
           localStorage.removeItem('token');
-          BiometricService.forget();
-          notify('Sua biometria expirou por segurança. Entre com e-mail e senha para reativá-la.', { type: 'warning' });
+          notify(translate('auth.bio_fail'), { type: 'error' });
         }
-      } catch {
-        localStorage.removeItem('token');
-        notify('Não foi possível confirmar a biometria. Entre com e-mail e senha.', { type: 'error' });
       }
-    }
+    } finally { setLoading(false); }
   };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Validação INLINE antes de tudo — erro mora no campo, não num toast que some
+    const nextErrs: { email?: string; pwd?: string } = {};
+    if (!email.trim()) nextErrs.email = translate('auth.err_email');
+    if (!pwd) nextErrs.pwd = translate('auth.err_pwd');
+    if (nextErrs.email || nextErrs.pwd) { setErrs(nextErrs); return; }
+    setErrs({});
     setLoading(true);
     if (role === 'medico') {
       try {
@@ -151,17 +180,18 @@ export const LoginPage = () => {
         localStorage.setItem('doctorToken', d.token);
         localStorage.setItem('doctorPhotoToken', d.token); // token ESTÁVEL p/ cache de fotos (não rotaciona c/ a sessão)
         navigate('/doctor');
-      } catch (err: any) { notify(err.message, { type: 'error' }); } finally { setLoading(false); }
+      } catch (err: any) { setErrs({ pwd: err.message }); }
+      finally { setLoading(false); }
       return;
     }
     try { await login({ username: email.trim(), password: pwd, inviteToken: invite || undefined }); }
     catch (e: any) {
       if (e?.mfaRequired) { setMfaChallenge({ token: e.challengeToken, account: e.account, verifyUrl: `${API_URL}/auth/mfa/verify`, isDoctor: false }); return; }
       // Conta não verificada → redireciona pra tela de ativação por e-mail
-      if (e?.needsVerification) { notify('Sua conta ainda não foi ativada. Enviamos um código pro seu e-mail.', { type: 'warning' }); setMode('otp'); setLoading(false); return; }
+      if (e?.needsVerification) { notify(translate('auth.otp_sent'), { type: 'warning' }); setMode('otp'); setLoading(false); return; }
       // Conta bloqueada → mensagem amigável (i18n) de contato com suporte (mesmo se errou a senha).
       if (e?.blocked) { notify(translate('auth.errors.blocked'), { type: 'error' }); setLoading(false); return; }
-      notify(translate('auth.errors.invalidCredentials'), { type: 'error' });
+      setErrs({ pwd: translate('auth.err_wrong') });
     }
     finally { setLoading(false); }
   };
@@ -178,16 +208,16 @@ export const LoginPage = () => {
 
   const sendOtp = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!email.trim()) { notify('Informe o e-mail para enviarmos o token.', { type: 'error' }); return; }
+    if (!email.trim()) { setErrs({ email: translate('auth.otp_need_email') }); return; }
     setLoading(true);
     try {
       const r = await fetch(`${API_URL}/auth/otp/request`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email.trim() }),
       });
-      if (!r.ok) { const d = await r.json().catch(() => ({})); notify(d.error || 'Não conseguimos enviar o token agora.', { type: 'error' }); return; }
-      notify('Enviamos o token no seu e-mail (cheque também o spam).', { type: 'success' });
+      if (!r.ok) { const d = await r.json().catch(() => ({})); notify(d.error || translate('auth.otp_send_fail'), { type: 'error' }); return; }
+      notify(translate('auth.otp_sent'), { type: 'success' });
       setMode('otp');
-    } catch { notify('Falha ao enviar o token.', { type: 'error' }); }
+    } catch { notify(translate('auth.otp_send_fail2'), { type: 'error' }); }
     finally { setLoading(false); }
   };
 
@@ -203,7 +233,7 @@ export const LoginPage = () => {
       localStorage.setItem('token', d.token);
       if (d.patientId) localStorage.setItem('patientId', d.patientId);
       localStorage.setItem('user', JSON.stringify(d.user));
-      notify('Bem-vindo! 🎉', { type: 'success' });
+      notify(translate('auth.welcome'), { type: 'success' });
       navigate('/', { replace: true });
     } catch (err: any) { notify(err.message, { type: 'error' }); }
     finally { setLoading(false); }
@@ -211,6 +241,7 @@ export const LoginPage = () => {
 
   // Google Sign-in — troca o idToken (web GIS ou nativo Capgo) pela sessão do app.
   // Mesmo /auth/google p/ ambas as plataformas; o server valida o JWT id_token igual.
+  // SÓ para paciente: médico autentica por CRM (o Google não valida CRM).
   const exchangeGoogleCredential = async (idToken: string, isDoctor = false) => {
     try {
       setLoading(true);
@@ -233,71 +264,72 @@ export const LoginPage = () => {
           navigate('/', { replace: true });
         }
       }
-      else { notify(d.error || 'Falha no login do Google.', { type: 'error' }); }
-    } catch { notify('Falha de conexão.', { type: 'error' }); }
+      else { notify(d.error || translate('auth.google_fail'), { type: 'error' }); }
+    } catch { notify(translate('auth.conn_fail'), { type: 'error' }); }
     finally { setLoading(false); }
   };
 
-  const handleNativeGoogle = async (isDoctor = false) => {
+  const handleNativeGoogle = async () => {
     const tok = await nativeGoogleLogin();
-    if (!tok) { notify('Falha no login do Google.', { type: 'error' }); return; }
-    await exchangeGoogleCredential(tok, isDoctor);
+    if (!tok) { notify(translate('auth.google_fail'), { type: 'error' }); return; }
+    await exchangeGoogleCredential(tok);
   };
 
   return (
-    <Shell>
-      {/* Toggle Paciente / Médico — segmented control premium */}
-      <Box sx={{ display: 'flex', p: 0.5, mb: 2, gap: 0.5, borderRadius: '999px', bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider' }}>
-        <Button onClick={() => { setRole('paciente'); setMode('password'); }} startIcon={<I.User />} fullWidth
-          sx={{ py: 1, borderRadius: '999px', textTransform: 'none', fontWeight: 800, fontSize: 14, minHeight: 40, transition: 'all .2s',
-            background: role === 'paciente' ? 'linear-gradient(180deg,#20b2aa,#009688)' : 'transparent',
-            color: role === 'paciente' ? '#fff' : '#178f89',
-            boxShadow: role === 'paciente' ? '0 4px 12px rgba(0,150,136,.3)' : 'none',
-            '&:hover': { background: role === 'paciente' ? 'linear-gradient(180deg,#1ca39e,#00897b)' : 'rgba(32,178,170,.08)' } }}>
-          Paciente
-        </Button>
-        <Button onClick={() => { setRole('medico'); setMode('password'); }} startIcon={<I.Doctor />} fullWidth
-          sx={{ py: 1, borderRadius: '999px', textTransform: 'none', fontWeight: 800, fontSize: 14, minHeight: 40, transition: 'all .2s',
-            background: role === 'medico' ? 'linear-gradient(180deg,#20b2aa,#009688)' : 'transparent',
-            color: role === 'medico' ? '#fff' : '#178f89',
-            boxShadow: role === 'medico' ? '0 4px 12px rgba(0,150,136,.3)' : 'none',
-            '&:hover': { background: role === 'medico' ? 'linear-gradient(180deg,#1ca39e,#00897b)' : 'rgba(32,178,170,.08)' } }}>
-          Médico
-        </Button>
-      </Box>
+    <Shell subtitle={role === 'medico' ? translate('auth.doctor_portal') : undefined}>
       {mode === 'password' ? (
-        <Box component="form" onSubmit={submit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        bioReady && !showForm ? (
+          /* Caminho de zero-fricção (padrão app de banco): com biometria matriculada, ela É a
+           * ação primária; o form de senha fica a um toque — não na frente do usuário. */
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+            <Button variant="contained" size="large" fullWidth startIcon={<I.Shield />} disabled={loading} onClick={bioLogin} sx={primaryBtnSx}>
+              {loading ? <CircularProgress size={22} color="inherit" /> : translate('auth.biometry_cta')}
+            </Button>
+            <Button type="button" variant="outlined" size="large" fullWidth startIcon={<I.Lock />} onClick={() => setShowForm(true)} sx={tokenBtnSx}>
+              {translate('auth.use_password')}
+            </Button>
+          </Box>
+        ) : (
+        <Box component="form" noValidate onSubmit={submit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <TextField
             label={role === 'medico' ? translate('auth.email_or_crm') : translate('auth.email')} type={role === 'medico' ? 'text' : 'email'} required autoComplete="username" value={email}
-            onChange={(e) => setEmail(e.target.value)} sx={fieldSx}
-            helperText={role === 'medico' ? 'Ex.: seu@email.com ou CRM (123456-SP ou só 123456)' : undefined}
+            error={!!errs.email} helperText={errs.email ?? (role === 'medico' ? translate('auth.crm_hint') : undefined)}
+            onChange={(e) => { setEmail(e.target.value); if (errs.email) setErrs({ ...errs, email: undefined }); }} sx={fieldSx}
             slotProps={{ input: { startAdornment: <InputAdornment position="start"><I.Mail /></InputAdornment> } }}
           />
           <TextField
             label={translate('auth.password')} type={showPwd ? 'text' : 'password'} required autoComplete="current-password" value={pwd}
-            onChange={(e) => setPwd(e.target.value)} sx={fieldSx}
+            error={!!errs.pwd}
+            helperText={capsOn ? translate('auth.capslock') : errs.pwd ? (
+              <span style={{ display: 'inline-flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                <span>{errs.pwd}</span>
+                {errs.pwd === translate('auth.err_wrong') && (
+                  <Link component="button" type="button" sx={{ fontSize: 12, fontWeight: 700, color: LINK }} onClick={() => navigate('/recuperar-senha')}>{translate('auth.forgot')}</Link>
+                )}
+              </span>
+            ) : undefined}
+            onChange={(e) => { setPwd(e.target.value); if (errs.pwd) setErrs({ ...errs, pwd: undefined }); }}
+            onKeyDown={trackCaps} onKeyUp={trackCaps} sx={fieldSx}
             slotProps={{ input: {
               startAdornment: <InputAdornment position="start"><I.Lock /></InputAdornment>,
-              endAdornment: <InputAdornment position="end"><IconButton onClick={() => setShowPwd((s) => !s)} edge="end" size="small" aria-label={translate('auth.show_password')}>{showPwd ? <I.Eye /> : <I.EyeOff />}</IconButton></InputAdornment>,
+              endAdornment: <InputAdornment position="end"><IconButton onClick={() => setShowPwd((s) => !s)} edge="end" size="small" aria-label={translate('auth.show_password')}>{showPwd ? <I.EyeOff /> : <I.Eye />}</IconButton></InputAdornment>,
             } }}
           />
           <Box sx={{ textAlign: 'right', mt: -0.5 }}>
-            <Link component="button" type="button" variant="body2" sx={{ fontSize: 13, color: '#00897b', fontWeight: 600 }} onClick={() => navigate('/recuperar-senha')}>{translate('auth.forgot')}</Link>
+            <Link component="button" type="button" variant="body2" sx={{ fontSize: 13, color: LINK, fontWeight: 600 }} onClick={() => navigate('/recuperar-senha')}>{translate('auth.forgot')}</Link>
           </Box>
           {bioReady && (
-            <Button type="button" fullWidth variant="outlined" startIcon={<I.Shield />} onClick={bioLogin} sx={{ ...tokenBtnSx, borderColor: '#20b2aa', color: '#178f89', mb: 1, py: 1.2 }}>
-              {translate('auth.biometry')}
+            <Button type="button" fullWidth variant="outlined" startIcon={<I.Shield />} onClick={bioLogin} disabled={loading} sx={tokenBtnSx}>
+              {translate('auth.biometry_cta')}
             </Button>
           )}
           <Button type="submit" variant="contained" size="large" fullWidth disabled={loading} endIcon={<I.ArrowRight />} sx={primaryBtnSx}>
             {loading ? <CircularProgress size={22} color="inherit" /> : translate('auth.signin')}
           </Button>
-          {/* "Entrar com token" oculto por ora (OTP segue acessível p/ ativação de conta). */}
-          {/* Google Sign-in — só aparece se VITE_GOOGLE_CLIENT_ID estiver configurado */}
-          {/* Google Sign-in — SÓ pra paciente (médico precisa de CRM, Google não valida) */}
-          {/* No APK (WebView) o botão GIS do Google não renderiza (origem https://localhost não
-              autorizada) → usamos o plugin nativo Capgo. No browser mantemos o <GoogleLogin> web. */}
-          {import.meta.env.VITE_GOOGLE_CLIENT_ID && (
+          {/* Google Sign-in — só paciente (médico precisa de CRM, Google não valida) e só se
+              VITE_GOOGLE_CLIENT_ID configurado. No APK (WebView) o botão GIS não renderiza
+              (origem https://localhost não autorizada) → plugin nativo Capgo; no browser, GIS web. */}
+          {role === 'paciente' && import.meta.env.VITE_GOOGLE_CLIENT_ID && (
             <>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, my: 0.5 }}>
                 <Box sx={{ flex: 1, height: 1, bgcolor: 'divider' }} />
@@ -308,42 +340,39 @@ export const LoginPage = () => {
                 {Capacitor.isNativePlatform() ? (
                   <Button
                     type="button" variant="outlined" size="large"
-                    startIcon={<I.GoogleG />} onClick={() => handleNativeGoogle(role === 'medico')} disabled={loading}
-                    sx={{ borderRadius: '999px', borderColor: 'divider', color: 'text.primary', textTransform: 'none', fontWeight: 600, py: 1.2, width: 320 }}
+                    startIcon={<I.GoogleG />} onClick={() => handleNativeGoogle()} disabled={loading}
+                    sx={{ borderRadius: '12px', borderColor: 'divider', color: 'text.primary', textTransform: 'none', fontWeight: 600, py: 1.2, width: '100%', maxWidth: 320 }}
                   >
-                    Entrar com Google
+                    {translate('auth.google')}
                   </Button>
                 ) : (
                   <GoogleLogin
-                    onSuccess={async (cred) => { if (cred.credential) await exchangeGoogleCredential(cred.credential, role === 'medico'); }}
-                    onError={() => notify('Falha no login do Google.', { type: 'error' })}
-                    text="continue_with" shape="pill" size="large" width="320"
+                    onSuccess={async (cred) => { if (cred.credential) await exchangeGoogleCredential(cred.credential); }}
+                    onError={() => notify(translate('auth.google_fail'), { type: 'error' })}
+                    text="continue_with" shape="pill" size="large"
                   />
                 )}
               </Box>
             </>
           )}
-          <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start', mt: 1, color: 'text.secondary' }}>
-            <Box sx={{ mt: '1px' }}><I.Shield /></Box>
-            <Box>
-              <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary' }}>{translate('auth.secure')}</Typography>
-              <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.4 }}>{translate('auth.secure_desc')}</Typography>
-            </Box>
-          </Box>
           <Typography align="center" sx={{ mt: 1, fontSize: 13 }}>
-            {translate('auth.no_account')} <Link component="button" type="button" sx={{ fontWeight: 700, color: '#00897b' }} onClick={() => navigate(role === 'medico' ? '/doctor?mode=register' : '/registrar')}>{translate('auth.create_account')}</Link>
+            {translate('auth.no_account')} <Link component="button" type="button" sx={{ fontWeight: 700, color: LINK }} onClick={() => navigate(role === 'medico' ? '/doctor?mode=register' : '/registrar')}>{translate('auth.create_account')}</Link>
+            {role === 'paciente'
+              ? <> · <Link component="button" type="button" sx={{ fontWeight: 700, color: LINK }} onClick={() => navigate('/entrar/medico')}>{translate('auth.are_you_doctor')} {translate('auth.doctor_access')}</Link></>
+              : <> · <Link component="button" type="button" sx={{ fontWeight: 700, color: LINK }} onClick={() => navigate('/entrar')}>{translate('auth.doctor_back')}</Link></>}
           </Typography>
         </Box>
+        )
       ) : (
         <Box component="form" onSubmit={verifyOtp} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Typography color="text.secondary" sx={{ fontSize: 14 }}>Enviamos um token para <strong>{email}</strong></Typography>
+          <Typography color="text.secondary" sx={{ fontSize: 14 }}>{translate('auth.otp_sent_to')} <strong>{email}</strong></Typography>
           <OtpInput value={code} onChange={setCode} />
           <Button type="submit" variant="contained" size="large" fullWidth disabled={loading} endIcon={<I.ArrowRight />} sx={primaryBtnSx}>
-            {loading ? <CircularProgress size={22} color="inherit" /> : 'Verificar e entrar'}
+            {loading ? <CircularProgress size={22} color="inherit" /> : translate('auth.otp_verify')}
           </Button>
           <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 0.5 }}>
-            <Link component="button" type="button" variant="body2" sx={{ fontSize: 13, color: '#00897b' }} onClick={() => sendOtp()}>Reenviar token</Link>
-            <Link component="button" type="button" variant="body2" sx={{ fontSize: 13, color: 'text.secondary' }} onClick={() => setMode('password')}>Voltar (senha)</Link>
+            <Link component="button" type="button" variant="body2" sx={{ fontSize: 13, color: LINK }} onClick={() => sendOtp()}>{translate('auth.otp_resend')}</Link>
+            <Link component="button" type="button" variant="body2" sx={{ fontSize: 13, color: 'text.secondary' }} onClick={() => setMode('password')}>{translate('auth.otp_back')}</Link>
           </Stack>
         </Box>
       )}
@@ -426,27 +455,27 @@ export const RegisterPage = () => {
         <>
       <Box component="form" onSubmit={submit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>Crie sua conta gratuita em segundos.</Typography>
-        <TextField placeholder="Seu nome" required value={name} onChange={(e) => setName(e.target.value)} sx={fieldSx}
+        <TextField label="Seu nome" required value={name} autoComplete="name" onChange={(e) => setName(e.target.value)} sx={fieldSx}
           slotProps={{ input: { startAdornment: <InputAdornment position="start"><I.Person /></InputAdornment> } }} />
-        <TextField placeholder="CPF" required value={cpf} onChange={(e) => setCpf(formatCpf(e.target.value))} sx={fieldSx} error={!!cpf && cpf.length === 14 && !isValidCpf(cpf)} helperText={!!cpf && cpf.length === 14 && !isValidCpf(cpf) ? 'CPF inválido.' : 'Usado para confirmar que o exame pertence ao perfil.'}
+        <TextField label="CPF" required value={cpf} autoComplete="off" onChange={(e) => setCpf(formatCpf(e.target.value))} sx={fieldSx} error={!!cpf && cpf.length === 14 && !isValidCpf(cpf)} helperText={!!cpf && cpf.length === 14 && !isValidCpf(cpf) ? 'CPF inválido.' : 'Usado para confirmar que o exame pertence ao perfil.'}
           slotProps={{ input: { inputMode: 'numeric', startAdornment: <InputAdornment position="start"><I.Shield /></InputAdornment> } }} />
-        <TextField placeholder="E-mail" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} sx={fieldSx}
+        <TextField label="E-mail" type="email" required value={email} autoComplete="email" onChange={(e) => setEmail(e.target.value)} sx={fieldSx}
           slotProps={{ input: { startAdornment: <InputAdornment position="start"><I.Mail /></InputAdornment> } }} />
-        <TextField placeholder="Senha (mín. 6 caracteres)" type={showPwd ? 'text' : 'password'} required value={pwd} onChange={(e) => setPwd(e.target.value)} sx={fieldSx}
+        <TextField label="Senha (mín. 6 caracteres)" type={showPwd ? 'text' : 'password'} required value={pwd} autoComplete="new-password" onChange={(e) => setPwd(e.target.value)} sx={fieldSx}
           slotProps={{ input: {
             startAdornment: <InputAdornment position="start"><I.Lock /></InputAdornment>,
-            endAdornment: <InputAdornment position="end"><IconButton onClick={() => setShowPwd((s) => !s)} edge="end" size="small">{showPwd ? <I.Eye /> : <I.EyeOff />}</IconButton></InputAdornment>,
+            endAdornment: <InputAdornment position="end"><IconButton onClick={() => setShowPwd((s) => !s)} edge="end" size="small" aria-label={translate('auth.show_password')}>{showPwd ? <I.Eye /> : <I.EyeOff />}</IconButton></InputAdornment>,
           } }} />
         {referral ? (
           <Box sx={{ p: 1, borderRadius: '12px', bgcolor: 'rgba(32,178,170,0.10)', border: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
             <Typography sx={{ fontSize: 12, color: '#178f89', fontWeight: 700 }}>🎁 Indicado por <strong>{referral}</strong> — você ganha +{refBonus} créditos!</Typography>
           </Box>
         ) : (
-          <TextField placeholder="Código de indicação (opcional)" value={referral} onChange={(e) => setReferral(e.target.value.toUpperCase())} sx={fieldSx} />
+          <TextField label="Código de indicação (opcional)" value={referral} onChange={(e) => setReferral(e.target.value.toUpperCase())} sx={fieldSx} />
         )}
         <FormControlLabel
           control={<Checkbox checked={accepted} onChange={(e) => setAccepted(e.target.checked)} size="small" sx={{ color: '#20b2aa', '&.Mui-checked': { color: '#20b2aa' } }} />}
-          label={<Typography sx={{ fontSize: 13, color: 'text.secondary' }}>Li e aceito os <Link component="a" href="#/termos" target="_blank" rel="noopener" sx={{ color: '#00897b', fontWeight: 700 }}>Termos de Uso e Política de Privacidade</Link>.</Typography>}
+          label={<Typography sx={{ fontSize: 13, color: 'text.secondary' }}>Li e aceito os <Link component="a" href="#/termos" target="_blank" rel="noopener" sx={{ color: LINK, fontWeight: 700 }}>Termos de Uso e Política de Privacidade</Link>.</Typography>}
           sx={{ alignItems: 'flex-start', m: 0, '& .MuiCheckbox-root': { pt: 0.5 } }}
         />
         <Button type="submit" variant="contained" size="large" fullWidth disabled={loading} endIcon={<I.ArrowRight />} sx={primaryBtnSx}>
@@ -454,7 +483,7 @@ export const RegisterPage = () => {
         </Button>
       </Box>
       <Typography align="center" sx={{ mt: 2, fontSize: 13 }}>
-        {translate('auth.have_account')} <Link component="button" type="button" sx={{ fontWeight: 700, color: '#00897b' }} onClick={() => navigate('/')}>{translate('auth.signin')}</Link>
+        {translate('auth.have_account')} <Link component="button" type="button" sx={{ fontWeight: 700, color: LINK }} onClick={() => navigate('/')}>{translate('auth.signin')}</Link>
       </Typography>
         </>
       )}
@@ -512,17 +541,17 @@ export const ResetPage = () => {
         </Box>
       ) : stage === 'reset' ? (
         <Box component="form" onSubmit={doReset} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <TextField placeholder="Nova senha (mín. 6)" type={showPwd ? 'text' : 'password'} required value={pwd} onChange={(e) => setPwd(e.target.value)} sx={fieldSx}
+          <TextField label="Nova senha (mín. 6)" type={showPwd ? 'text' : 'password'} required value={pwd} autoComplete="new-password" onChange={(e) => setPwd(e.target.value)} sx={fieldSx}
             slotProps={{ input: {
               startAdornment: <InputAdornment position="start"><I.Lock /></InputAdornment>,
-              endAdornment: <InputAdornment position="end"><IconButton onClick={() => setShowPwd((s) => !s)} edge="end" size="small">{showPwd ? <I.Eye /> : <I.EyeOff />}</IconButton></InputAdornment>,
+              endAdornment: <InputAdornment position="end"><IconButton onClick={() => setShowPwd((s) => !s)} edge="end" size="small" aria-label="Mostrar senha">{showPwd ? <I.Eye /> : <I.EyeOff />}</IconButton></InputAdornment>,
             } }} />
           <Button type="submit" variant="contained" size="large" fullWidth disabled={loading} sx={primaryBtnSx}>{loading ? <CircularProgress size={22} color="inherit" /> : 'Redefinir senha'}</Button>
         </Box>
       ) : (
         <Box component="form" onSubmit={requestReset} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>Informe seu e-mail e enviaremos um link para redefinir a senha.</Typography>
-          <TextField placeholder="Seu e-mail" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} sx={fieldSx}
+          <TextField label="Seu e-mail" type="email" required value={email} autoComplete="email" onChange={(e) => setEmail(e.target.value)} sx={fieldSx}
             slotProps={{ input: { startAdornment: <InputAdornment position="start"><I.Mail /></InputAdornment> } }} />
           <Button type="submit" variant="contained" size="large" fullWidth disabled={loading} endIcon={<I.ArrowRight />} sx={primaryBtnSx}>{loading ? <CircularProgress size={22} color="inherit" /> : 'Enviar link'}</Button>
         </Box>

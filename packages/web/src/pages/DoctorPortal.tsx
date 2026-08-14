@@ -148,7 +148,7 @@ export const DoctorPortalPage = () => {
     } catch (e: any) { setErr(e.message); } finally { setLoading(false); }
   };
 
-  const logout = () => { localStorage.removeItem(docKey); localStorage.removeItem('doctorPhotoToken'); navigate('/entrar?role=medico'); };
+  const logout = () => { localStorage.removeItem(docKey); localStorage.removeItem('doctorPhotoToken'); navigate('/entrar/medico'); };
 
   // Busca CRM no conselho (consultaCRM) pra pré-preencher nome + especialidade no cadastro.
   const buscarCrmReg = async () => {
