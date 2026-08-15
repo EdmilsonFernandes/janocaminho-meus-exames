@@ -78,7 +78,7 @@ export const ValoresAlteradosPage = () => {
       <PageHeader
         icon={<WarningAmberIcon />}
         title={translate('altered.title')}
-        subtitle={<>Ordenados por <strong>prioridade de atenção</strong> (🔴→🟡). Toque num exame pra expandir e em <strong>Agendar</strong> pro especialista.</>}
+        subtitle={<>Ordenados por <strong>prioridade de atenção</strong> (🔴→🟡). Toque num exame pra expandir e ver os valores.</>}
         accent="error.main"
       />
 

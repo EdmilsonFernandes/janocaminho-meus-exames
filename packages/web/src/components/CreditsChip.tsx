@@ -18,10 +18,13 @@ export const CreditsChip = () => {
   const [hidden, setHidden] = useState<boolean>(() => {
     try { return localStorage.getItem(HIDDEN_KEY) === '1'; } catch { return false; }
   });
-  const load = () =>
-    fetch(`${API_URL}/billing/status`, { headers: { Authorization: `Bearer ${token()}` } })
+  const load = () => {
+    // Anônimo na landing: NÃO dispara (boot anônimo pedia billing sem sessão — 401 no console)
+    if (!token()) return Promise.resolve();
+    return fetch(`${API_URL}/billing/status`, { headers: { Authorization: `Bearer ${token()}` } })
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => setCredits(typeof d?.credits === 'number' ? d.credits : null));
+  };
   useEffect(() => {
     load();
     const h = () => load();

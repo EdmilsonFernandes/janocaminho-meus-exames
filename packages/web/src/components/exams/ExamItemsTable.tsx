@@ -97,7 +97,7 @@ export const ExamItemsTable = ({ items }: { items: any[] }) => {
               <Typography sx={{ fontWeight: 700, fontSize: '1rem', flex: '1 1 auto', minWidth: 0, wordBreak: 'break-word', overflowWrap: 'anywhere', pr: 1 }}>{panel}</Typography>
               {/* Caption única: "5 itens · 2 alterados" (cor só no alterados). */}
               <Typography variant="caption" sx={{ flexShrink: 0, color: 'text.secondary', pr: 0.5 }}>
-                {(list as any[]).length} itens{abn > 0 && (
+                {(list as any[]).length} {(list as any[]).length === 1 ? 'item' : 'itens'}{abn > 0 && (
                   <>
                     {' · '}
                     <Box component="span" sx={{ color: 'error.main', fontWeight: 700 }}>{abn} alterado{abn > 1 ? 's' : ''}</Box>

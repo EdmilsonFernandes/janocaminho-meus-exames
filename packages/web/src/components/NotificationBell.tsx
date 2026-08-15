@@ -9,6 +9,8 @@ export const NotificationBell = () => {
   const navigate = useNavigate();
   const [unread, setUnread] = useState(0);
   const load = () => {
+    // Anônimo na landing: NÃO dispara (era 1 dos 21 requests 401 do boot anônimo — auditoria)
+    if (!token()) return;
     fetch(`${API_URL}/notifications`, { headers: { Authorization: `Bearer ${token()}` } })
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => setUnread(d?.unread ?? 0))

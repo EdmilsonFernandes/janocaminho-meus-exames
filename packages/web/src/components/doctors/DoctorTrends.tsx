@@ -13,8 +13,9 @@ import type { Theme } from '@mui/material/styles';
 
 import type { TimeSeriesByName as TS } from '@meus-exames/shared';
 
-/** Title Case pra exibição (ALL CAPS → legível): "CAPACIDADE_LATENTE" → "Capacidade Latente". */
-const prettyName = (n: string) => (n || '').toLowerCase().replace(/_/g, ' ').replace(/(^|\s)\w/g, (m) => m.toUpperCase());
+/** Title Case pra exibição (ALL CAPS → legível), PRESERVANDO siglas: "CHCM" fica "CHCM"
+ *  (não "Chcm"), "TSH_TOTAL_LIVRE" → "TSH Total Livre". */
+const prettyName = (n: string) => (n || '').split('_').map((tok) => (tok.length <= 5 && /^[A-Z0-9]+$/.test(tok) ? tok : tok.toLowerCase().replace(/(^|\s)\w/g, (m) => m.toUpperCase()))).join(' ');
 
 /** Valor numérico p/ exibição (4 casas, vírgula decimal) — evita floats longos da conversão (91.33627999...). */
 const fmtNum = (n: number | null | undefined) => n == null ? '—' : String(Number(n.toFixed(4))).replace('.', ',');

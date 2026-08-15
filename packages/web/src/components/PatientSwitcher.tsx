@@ -39,6 +39,8 @@ export const PatientSwitcher = () => {
 
   const load = async () => {
     try {
+      // Anônimo na landing: não busca (boot anônimo disparava /patients sem sessão — 401)
+      if (!token()) return;
       const r = await fetch(`${API_URL}/patients`, { headers: { Authorization: `Bearer ${token()}` } });
       if (r.ok) {
         const list = await r.json();

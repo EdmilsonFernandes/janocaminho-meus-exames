@@ -412,7 +412,7 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
               <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '48px !important', '& .MuiAccordionSummary-content': { my: 0.75, alignItems: 'center' } }}>
                 <Typography sx={{ fontWeight: 700, fontSize: '1rem', flex: '1 1 auto', minWidth: 0, wordBreak: 'break-word', overflowWrap: 'anywhere', pr: 1 }}>{panel}</Typography>
                 {abn > 0 && <Chip size="small" color="error" variant="outlined" label={`${abn} alterado${abn > 1 ? 's' : ''}`} sx={{ ml: 0.5, height: 20, flexShrink: 0 }} />}
-                <Chip size="small" label={`${(list as any[]).length} itens`} sx={{ ml: 0.5, bgcolor: 'rgba(0,0,0,.05)', color: 'text.secondary', height: 20, flexShrink: 0 }} />
+                <Chip size="small" label={`${(list as any[]).length} ${(list as any[]).length === 1 ? 'item' : 'itens'}`} sx={{ ml: 0.5, bgcolor: 'rgba(0,0,0,.05)', color: 'text.secondary', height: 20, flexShrink: 0 }} />
               </AccordionSummary>
               <AccordionDetails sx={{ p: 1 }}>
                 <Stack divider={<Divider sx={{ borderColor: 'divider', my: 0.5 }} />}>

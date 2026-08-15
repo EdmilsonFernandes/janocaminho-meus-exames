@@ -217,7 +217,13 @@ export const PlansPage = () => {
       ) : (
         <>
       {/* PACOTES DE CRÉDITOS */}
-      <Typography variant="h6" sx={{ mt: 1, mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}><BoltIcon color="secondary" /> Comprar créditos (PIX instantâneo)</Typography>
+      <Typography variant="h6" sx={{ mt: 1, mb: 0.5, display: 'flex', alignItems: 'center', gap: 1 }}><BoltIcon color="secondary" /> Comprar créditos (PIX instantâneo)</Typography>
+      {/* Auditoria: faltava dizer O QUE consome créditos e quanto — transparencia total de custos.
+          Valores padrão do AppSetting creditCosts (admin pode ajustar no painel; upstream envia
+          junto no billing/status quando disponível). */}
+      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5, lineHeight: 1.5 }}>
+        O que consome: 💬 pergunta no chat <b>2</b> · ✨ resumo do exame <b>10</b> · 🧾 relatório completo <b>20</b>. Enviar exame é <b>grátis</b>.
+      </Typography>
       <Stack spacing={2} sx={{ mb: 3, width: '100%' }}>
         {packs.map((p) => (
           <Card key={p.id} sx={{ borderRadius: '12px', border: p.popular ? '2px solid #20b2aa' : '1px solid', borderColor: p.popular ? undefined : 'divider', width: '100%' }}>

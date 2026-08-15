@@ -112,7 +112,7 @@ export const TimelinePage = () => {
       <PageHeader
         icon={<EventIcon />}
         title="Sua jornada de saúde"
-        subtitle={`${events.length} exame(s) ao longo do tempo • ${totalAbnormal > 0 ? `${totalAbnormal} sinal(is) de atenção no total` : 'sem alterações registradas'}.`}
+        subtitle={`${events.length} ${events.length === 1 ? 'exame' : 'exames'} ao longo do tempo • ${totalAbnormal > 0 ? `${totalAbnormal} ${totalAbnormal === 1 ? 'sinal' : 'sinais'} de atenção no total` : 'sem alterações registradas'}. Toque num exame para abri-lo.`}
       />
 
       {loading ? (
@@ -127,7 +127,7 @@ export const TimelinePage = () => {
               <Box key={String(g.year)}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
                   <Chip label={`📅 ${g.label}`} sx={{ fontWeight: 800, bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(148,163,184,0.18)' : '#0f172a', color: '#fff' }} />
-                  <Typography variant="caption" color="text.secondary">{g.items.length} exame(s){locked ? ' • Premium' : ''}</Typography>
+                  <Typography variant="caption" color="text.secondary">{g.items.length} {g.items.length === 1 ? 'exame' : 'exames'}{locked ? ' • Premium' : ''}</Typography>
                 </Box>
                 {locked ? (
                   <Card sx={{ borderRadius: '12px', p: 2, display: 'flex', alignItems: 'center', gap: 1.5, background: 'linear-gradient(135deg, rgba(32,178,170,.06), transparent)' }}>
@@ -183,7 +183,11 @@ export const TimelinePage = () => {
             </Stack>
           )}
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>*Educativo. A interpretação final é do seu médico.</Typography>
-          <Button variant="outlined" fullWidth startIcon={<CloseIcon />} onClick={() => setSel(null)} sx={{ mt: 2 }}>Fechar</Button>
+          {/* Auditoria: o popup mostrava os valores mas não levava ao exame — pulo direto ao completo */}
+          {sel?.id && (
+            <Button variant="contained" fullWidth onClick={() => { setSel(null); navigate(`/exams/${sel.id}/show`); }} sx={{ mt: 2, borderRadius: '12px', textTransform: 'none', fontWeight: 800 }}>Abrir exame completo →</Button>
+          )}
+          <Button variant="outlined" fullWidth startIcon={<CloseIcon />} onClick={() => setSel(null)} sx={{ mt: 1 }}>Fechar</Button>
         </DialogContent>
       </Dialog>
     </PageContainer>

@@ -20,7 +20,7 @@ export const SecurityPage = () => {
       <MfaSetupCard apiBase={`${API_URL}/auth`} authToken={token() || ''} />
 
       {/* Biometria */}
-      {BiometricService.isSupported() && (
+      {BiometricService.isSupported() ? (
         <Card sx={{ mt: 2, borderRadius: '12px' }}>
           <Box sx={{ p: 2.5 }}>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'flex-start', sm: 'center' }}>
@@ -32,6 +32,16 @@ export const SecurityPage = () => {
                 ? <Button variant="outlined" color="error" size="small" sx={{ flexShrink: 0, width: { xs: '100%', sm: 'auto' } }} onClick={() => { BiometricService.forget(); setBioOn(false); notify('Biometria desativada neste aparelho.'); }}>Desativar</Button>
                 : <Button variant="contained" size="small" sx={{ flexShrink: 0, width: { xs: '100%', sm: 'auto' } }} onClick={() => { BiometricService.enroll(token() || '', false); setBioOn(true); notify('Biometria ativada! 🎉', { type: 'success' }); }}>Ativar biometria</Button>}
             </Stack>
+          </Box>
+        </Card>
+      ) : (
+        // No navegador a seção some e a dica citava biometria "fantasma" (auditoria) — explica:
+        <Card sx={{ mt: 2, borderRadius: '12px' }}>
+          <Box sx={{ p: 2.5 }}>
+            <Typography sx={{ fontWeight: 800, color: 'text.primary', fontSize: 17 }}>🔐 Biometria (face/digital)</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: 14, mt: 0.5 }}>
+              Disponível no <strong>app Android</strong> (celular): instale o Dr. Exame pela Play Store e ative o login por digital na tela de entrada.
+            </Typography>
           </Box>
         </Card>
       )}

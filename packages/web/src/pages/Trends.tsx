@@ -17,7 +17,7 @@ import { PremiumGate } from '../components/PremiumGate';
 import type { TimeSeriesByName as TS } from '@meus-exames/shared';
 
 /** Title Case pra exibição (ALL CAPS → legível): "CAPACIDADE_LATENTE" → "Capacidade Latente". */
-const prettyName = (n: string) => (n || '').toLowerCase().replace(/_/g, ' ').replace(/(^|\s)\w/g, (m) => m.toUpperCase());
+const prettyName = (n: string) => (n || '').split('_').map((tok) => (tok.length <= 5 && /^[A-Z0-9]+$/.test(tok) ? tok : tok.toLowerCase().replace(/(^|\s)\w/g, (m) => m.toUpperCase()))).join(' ');
 
 /** Valor numérico p/ exibição (4 casas, vírgula decimal) — evita floats longos da conversão (91.33627999...). */
 const fmtNum = (n: number | null | undefined) => n == null ? '—' : String(Number(n.toFixed(4))).replace('.', ',');
@@ -102,10 +102,21 @@ export const TrendsPage = () => {
   // Tendência precisa de ≥2 pontos p/ comparar — esconde analitos com só 1 resultado do dropdown.
   const multi = names.filter((n) => n.count >= 2);
 
-  // AUTO-SELECT: abre já com o 1º analito selecionado (gráfico visível, sem espaço em branco)
+  // AUTO-SELECT inteligente (auditoria: default alfabético abria em "Basofilos" — irrelevante).
+  // Prioridade: 1º marcador ALTERADO com histórico ≥2 pontos; senão o de mais medições.
+  const [abnNames, setAbnNames] = useState<string[]>([]);
   useEffect(() => {
-    if (!sel && multi.length > 0) setSel(multi[0].nameCanonical);
-  }, [multi.length]);
+    fetch(`${API_URL}/items/abnormal?_start=0&_end=100`, { headers: { Authorization: `Bearer ${token()}` } })
+      .then((r) => (r.ok ? r.json() : { items: [] }))
+      .then((d) => setAbnNames([...new Set((d.items ?? []).map((i: any) => String(i.nameCanonical)).filter(Boolean))] as string[]))
+      .catch(() => setAbnNames([]));
+  }, []);
+  useEffect(() => {
+    if (sel || multi.length === 0) return;
+    const abn = multi.find((n) => abnNames.includes(n.nameCanonical));
+    const best = abn ?? [...multi].sort((a, b) => b.count - a.count)[0];
+    setSel(best.nameCanonical);
+  }, [multi.length, abnNames]);
 
   return (
     <PageContainer width="wide">

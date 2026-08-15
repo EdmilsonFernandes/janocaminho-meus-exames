@@ -61,7 +61,7 @@ export const ExpensesPage = () => {
 
   return (
     <PageContainer width="content">
-      <PageHeader icon={<PaymentsIcon />} title={translate('page.expenses')} />
+      <PageHeader icon={<PaymentsIcon />} title={translate('page.expenses')} subtitle="Consultas, exames, farmácia: registre e veja pra onde vai seu dinheiro em saúde — organizado pro imposto de renda e pra conversar com o médico sobre custos." />
       <Card sx={{ mb: 2, background: (t) => t.palette.mode === 'dark' ? 'rgba(11,92,171,0.10)' : 'linear-gradient(135deg,#e3f2fd,#bbdefb)' }}>
         <CardContent>
           <Typography variant="h4" sx={{ fontWeight: 800, color: (t) => t.palette.mode === 'dark' ? '#5b9bd5' : '#1565c0' }}>R$ {total.toFixed(2).replace('.', ',')}</Typography>

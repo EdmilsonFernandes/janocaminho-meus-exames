@@ -121,7 +121,7 @@ export const EvolutionPage = () => {
 
           {/* Resumo interativo (chips que filtram) */}
           {/* Resumo interativo — Grid 2x2 no mobile, 4 colunas no desktop (mobile-first, nunca estoura) */}
-          <Grid container spacing={1} sx={{ mb: 2 }}>
+          <Grid container spacing={1} sx={{ mb: 0.5 }}>
             {CHIPS.map((c) => {
               const on = filter === c.key;
               return (
@@ -132,6 +132,10 @@ export const EvolutionPage = () => {
               );
             })}
           </Grid>
+          {/* Glossário de 1 linha (auditoria: 🟠 "Em mudança" era mistério p/ o leigo — in-range subindo/descendo) */}
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2, lineHeight: 1.5 }}>
+            🟢 Melhorou · 🔴 Piorou · ✅ Estável · <strong>🟠 Em mudança</strong> = ainda dentro da faixa, mas subindo ou caindo em relação ao exame anterior — vale acompanhar.
+          </Typography>
 
           {/* Busca fixa (sticky) */}
           <Paper variant="outlined" sx={{ p: '2px 12px', mb: 1.5, display: 'flex', alignItems: 'center', gap: 1, borderRadius: '999px', position: 'sticky', top: 60, zIndex: 5, bgcolor: 'background.paper', backdropFilter: 'blur(8px)' }}>
