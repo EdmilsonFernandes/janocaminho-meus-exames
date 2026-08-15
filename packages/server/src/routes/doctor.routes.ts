@@ -1,6 +1,7 @@
 import { auditLog } from '../middleware/auditLog';
 import { collapseAdjacentNearDupes } from '../analysis/dedup';
 import { audit } from '../utils/audit';
+import { synthesizeExamTitle } from '../utils/examIdentity';
 import { doctorAnswerEmail, webUrl } from '../utils/emailTemplate';
 import { saveAnalysisDoc, getLatestAnalysisDoc, DOC_KIND } from '../utils/analysisDoc';
 import { validate, schemas } from '../middleware/validate';
@@ -538,7 +539,11 @@ router.get('/patients/:patientId/exams', requireDoctor, async (req: any, res, ne
       select: { id: true, title: true, kind: true, performedAt: true, sourceLab: true, rawExtraction: true, _count: { select: { items: true } }, items: { where: { isAbnormal: true }, select: { name: true, valueText: true, flag: true, unit: true, refText: true, refLow: true, refHigh: true } } },
       orderBy: { performedAt: 'desc' }, take: 20,
     });
-    res.json({ items: exams.map((e) => ({ id: e.id, title: e.title, kind: e.kind, performedAt: e.performedAt, sourceLab: e.sourceLab, requestingDoctor: (e.rawExtraction as any)?.requestingDoctor ?? null, _count: e._count, items: e.items })) });
+    // Título sintetizado p/ genéricos (auditoria item 18): "EXAMES LABORATORIAIS" → painéis reais
+    const panelRows = exams.length ? await prisma.examItem.findMany({ where: { examId: { in: exams.map((e) => e.id) } }, select: { examId: true, panel: true } }) : [];
+    const panelsByExam = new Map<string, string[]>();
+    for (const p of panelRows) { const arr = panelsByExam.get(p.examId) ?? []; arr.push(p.panel || ''); panelsByExam.set(p.examId, arr); }
+    res.json({ items: exams.map((e) => ({ id: e.id, title: synthesizeExamTitle(e.title, panelsByExam.get(e.id) ?? []), kind: e.kind, performedAt: e.performedAt, sourceLab: e.sourceLab, requestingDoctor: (e.rawExtraction as any)?.requestingDoctor ?? null, _count: e._count, items: e.items })) });
   } catch (e) { next(e); }
 });
 

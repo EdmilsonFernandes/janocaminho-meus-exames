@@ -3,6 +3,7 @@ import type { Response } from 'express';
 import fs from 'fs';
 import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest, userPatientIds, firstPatientId } from '../middleware/auth';
+import { synthesizeExamTitle } from '../utils/examIdentity';
 import { upload } from '../middleware/upload';
 import { sha256Buffer } from '../utils/crypto';
 import { isAllowedUpload } from '../utils/fileMagic';
@@ -61,7 +62,16 @@ router.get('/', async (req: AuthedRequest, res, next) => {
       }),
     ]);
     setListHeaders(res, start, start + take, total);
-    res.json(rows.map(serializeExam));
+    // Título sintetizado p/ os genéricos ("EXAMES LABORATORIAIS" → painéis reais) — display-only
+    const ids = rows.map((r) => r.id);
+    const panelRows = ids.length ? await prisma.examItem.findMany({ where: { examId: { in: ids } }, select: { examId: true, panel: true } }) : [];
+    const panelsByExam = new Map<string, string[]>();
+    for (const p of panelRows) {
+      const arr = panelsByExam.get(p.examId) ?? [];
+      arr.push(p.panel || '');
+      panelsByExam.set(p.examId, arr);
+    }
+    res.json(rows.map((r) => ({ ...serializeExam(r), title: synthesizeExamTitle(r.title, panelsByExam.get(r.id) ?? []) })));
   } catch (e) {
     next(e);
   }
