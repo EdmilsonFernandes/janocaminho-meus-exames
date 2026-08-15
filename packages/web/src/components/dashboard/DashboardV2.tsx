@@ -61,13 +61,15 @@ function useDashboardData(pid: string | null) {
         if (Array.isArray(eData) && eData[0]?.performedAt) setLastExam(eData[0].performedAt);
         const fe = await fetch(`${API_URL}/exams?_start=0&_end=1&status=FAILED${pidQ}`, { headers: h });
         setFailed(readTotal(fe));
-        const a = await fetch(`${API_URL}/items?abnormal=true&_start=0&_end=1${pidQ}`, { headers: h });
-        setStats((s) => ({ ...s, abnormal: readTotal(a) }));
+        // Contagem de alterados VEM DO flag-summary (mesma fonte de /alterados — exclui exames
+        // com CPF divergente). Antes: X-Total-Count de /items?abnormal=true (rota de lista, sem
+        // o filtro) → Home dizia "8 alterados" enquanto /alterados dizia "tudo dentro da faixa".
         const fs = await fetch(`${API_URL}/items/flag-summary${pid ? `?patientId=${pid}` : ''}`, { headers: h });
         if (fs.ok) {
           const fd = await fs.json();
           const b = fd.buckets ?? { bons: 0, alerta: 0, alterados: 0 };
           setBuckets(b);
+          setStats((s) => ({ ...s, abnormal: (b.alerta ?? 0) + (b.alterados ?? 0) }));
           try { if (pid) localStorage.setItem(`dashScore:${pid}`, JSON.stringify(b)); } catch { /* ignore */ }
         }
         if (pid) {
@@ -77,6 +79,11 @@ function useDashboardData(pid: string | null) {
             if (typeof hd.score === 'number') {
               setScore(hd.score);
               try { localStorage.setItem(`dashScoreNum:${pid}`, String(hd.score)); } catch { /* ignore */ }
+            } else {
+              // Sem score canônico agora (ex.: todos os exames eram de terceiro) → NÃO fica
+              // score velho do localStorage (mostrava 93 de dados que não são mais contados).
+              try { localStorage.removeItem(`dashScoreNum:${pid}`); } catch { /* ignore */ }
+              setScore(null);
             }
             setImportante(hd.byPriority?.importante ?? 0);
             setModerada(hd.byPriority?.moderada ?? 0);
