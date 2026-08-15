@@ -224,6 +224,16 @@ async function runExtractionOnce(examId: string): Promise<void> {
       }
     }
 
+    // Nudge de 1º exame cumpriu o papel: marca as notificações 'first_exam' como lidas para não
+    // pipocar o dialog "envie seu primeiro exame" numa conta que JÁ tem exame extraído (visto em
+    // produção: notificação antiga não lida reabrindo no boot, meses depois, em estado mentiroso).
+    if (patient?.ownerId) {
+      await prisma.notification.updateMany({
+        where: { userId: patient.ownerId, type: 'first_exam', read: false },
+        data: { read: true },
+      }).catch(() => { /* best-effort: não bloqueia a extração */ });
+    }
+
     // SPLIT: PDF c/ vários exames (datas de coleta distintas) → cria registros Exam separados p/ 2..N.
     // fileSha256 c/ sufixo "#split-N" dribla o @@unique (sem migration). Idempotente (remove splits
     // antigos antes — re-extract) + falha isolada (nunca derruba o exame principal já extraído).

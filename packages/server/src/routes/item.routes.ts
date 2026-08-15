@@ -5,6 +5,7 @@ import { parseListParams, setListHeaders } from '../utils/list';
 import { getOrCreateExplanation } from '../analysis/explain';
 import { collapseAdjacentNearDupes } from '../analysis/dedup';
 import { reconcileScaleFlag } from '../utils/normalize';
+import { isCpfMismatch } from '../utils/examIdentity';
 
 const router = Router();
 router.use(requireAuth);
@@ -50,11 +51,11 @@ router.get('/timeseries', async (req: AuthedRequest, res, next) => {
       nameCanonical,
       exam: { patientId: patientId && pids.includes(patientId) ? patientId : { in: pids } },
     };
-    const rows = await prisma.examItem.findMany({
+    const rows = (await prisma.examItem.findMany({
       where,
-      include: { exam: { select: { id: true, performedAt: true, title: true, createdAt: true } } },
+      include: { exam: { select: { id: true, performedAt: true, title: true, createdAt: true, rawExtraction: true } } },
       orderBy: { exam: { performedAt: 'asc' } },
-    });
+    })).filter((r) => !isCpfMismatch((r.exam as any).rawExtraction));
     // DEDUP por dia: 2 exames no mesmo dia com o mesmo analito (reenvio de arquivo, ou
     // hemograma + painel amplo sobreposto) viram 1 ponto só — keep o do exame cujo
     // upload/extração é mais recente (createdAt maior). Sem isto a curva mostra duplicados.
@@ -112,10 +113,10 @@ router.get('/distinct-names', async (req: AuthedRequest, res, next) => {
     const pids = await userPatientIds(req.userId!);
     const patientId = req.query.patientId ? String(req.query.patientId) : undefined;
     const pidFilter = patientId && pids.includes(patientId) ? patientId : { in: pids };
-    const rows = await prisma.examItem.findMany({
+    const rows = (await prisma.examItem.findMany({
       where: { valueNumeric: { not: null }, exam: { patientId: pidFilter } },
-      include: { exam: { select: { performedAt: true, createdAt: true } } },
-    });
+      include: { exam: { select: { performedAt: true, createdAt: true, rawExtraction: true } } },
+    })).filter((r) => !isCpfMismatch((r.exam as any).rawExtraction));
     // Agrupa por analito e aplica o MESMO dedup do timeseries → count == nº de pontos do gráfico.
     type P = { performedAt: Date | null; createdAt: Date; valueNumeric: number };
     const byName = new Map<string, P[]>();
@@ -155,11 +156,11 @@ router.get('/evolution', async (req: AuthedRequest, res, next) => {
     const pids = await userPatientIds(req.userId!);
     const patientId = req.query.patientId ? String(req.query.patientId) : undefined;
     const scope = patientId && pids.includes(patientId) ? patientId : { in: pids };
-    const rows = await prisma.examItem.findMany({
+    const rows = (await prisma.examItem.findMany({
       where: { valueNumeric: { not: null }, exam: { patientId: scope, status: 'EXTRACTED' } },
-      include: { exam: { select: { id: true, performedAt: true, title: true } } },
+      include: { exam: { select: { id: true, performedAt: true, title: true, rawExtraction: true } } },
       orderBy: { exam: { performedAt: 'asc' } },
-    });
+    })).filter((r) => !isCpfMismatch((r.exam as any).rawExtraction));
     // Dedup por (analito + DIA): várias medições do mesmo analito no MESMO dia viram 1 ponto só.
     // Mantém a mais recente do dia (rows vêm orderBy performedAt asc, então o último set do dia vence).
     // Antes o dedup exigia valor IDÊNTICO — 2 medições no mesmo dia com valores ligeiramente diferentes
@@ -241,13 +242,17 @@ router.get('/flag-summary', async (req: AuthedRequest, res, next) => {
     const pids = await userPatientIds(req.userId!);
     const patientId = req.query.patientId ? String(req.query.patientId) : undefined;
     const scope = patientId && pids.includes(patientId) ? patientId : { in: pids };
-    const grouped = await prisma.examItem.groupBy({
-      by: ['flag'],
+    // groupBy não permite filtrar JSON (identityMatch) — busca + agrupa em código,
+    // excluindo exames com CPF divergente do perfil (isCpfMismatch).
+    const rows = await prisma.examItem.findMany({
       where: { exam: { patientId: scope, status: 'EXTRACTED' } },
-      _count: { _all: true },
+      select: { flag: true, exam: { select: { rawExtraction: true } } },
     });
     const c: Record<string, number> = {};
-    for (const g of grouped) c[g.flag] = g._count._all;
+    for (const r of rows) {
+      if (isCpfMismatch((r.exam as any).rawExtraction)) continue;
+      c[r.flag] = (c[r.flag] ?? 0) + 1;
+    }
     res.json({
       buckets: {
         // CORREÇÃO (revisão 2026-07): UNKNOWN (sem classificação — extração falhou/sem faixa) NÃO
@@ -285,12 +290,12 @@ router.get('/abnormal', async (req: AuthedRequest, res, next) => {
     const pids = await userPatientIds(req.userId!);
     const patientId = req.query.patientId ? String(req.query.patientId) : undefined;
     const scope = patientId && pids.includes(patientId) ? patientId : { in: pids };
-    const rows = await prisma.examItem.findMany({
+    const rows = (await prisma.examItem.findMany({
       where: { isAbnormal: true, exam: { patientId: scope, status: 'EXTRACTED' } },
       orderBy: { exam: { performedAt: 'desc' } },
       include: { exam: { select: { id: true, title: true, performedAt: true, sourceLab: true, requestingDoctor: true, rawExtraction: true } } },
       take: 300,
-    });
+    })).filter((r) => !isCpfMismatch((r.exam as any).rawExtraction));
     res.json({ items: rows.map((i) => ({ id: i.id, examId: i.exam.id, name: i.name, nameCanonical: i.nameCanonical, valueText: i.valueText, valueNumeric: i.valueNumeric, unit: i.unit, flag: i.flag, refText: i.refText, refLow: i.refLow, refHigh: i.refHigh, examTitle: i.exam.title, performedAt: i.exam.performedAt, requestingDoctor: i.exam.requestingDoctor || (i.exam.rawExtraction as any)?.requestingDoctor || null })) });
   } catch (e) { next(e); }
 });

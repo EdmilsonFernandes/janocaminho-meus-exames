@@ -20,7 +20,12 @@ export const NotificationPopup = () => {
       .then((d) => {
         if (dead) return;
         if (d && d.unread > 0 && d.items && d.items.length > 0) {
-          const item = d.items[0];
+          // Não surfar notificação VELHA: nudges de engajamento antigos (ex.: "envie seu 1º exame"
+          // numa conta que JÁ tem exames) pipocavam como dialog na entrada, meses depois, em estado
+          // mentiroso. Só notificação recente (<7d) e que não seja nudge de 1º exame vira popup.
+          const FRESH_MS = 7 * 24 * 60 * 60 * 1000;
+          const item = d.items.find((n: any) => n.type !== 'first_exam' && Date.now() - new Date(n.createdAt).getTime() < FRESH_MS);
+          if (!item) return;
           // Não reabre notificação já dispensada: o "Depois" persiste o id. Sem isto, todo boot
           // com unread>0 reinterpõe o modal (irritante — sempre há não-lidas no app de saúde).
           let dismissedId: string | null = null;

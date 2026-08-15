@@ -33,7 +33,12 @@ export const TimelinePage = () => {
     setLoading(true);
     const h = { Authorization: `Bearer ${token()}` };
     Promise.all([
-      fetch(`${API_URL}/exams?_start=0&_end=100&patientId=${pid}`, { headers: h }).then((r) => r.json()).catch(() => []),
+      // Exames com CPF divergente do perfil NÃO entram na narrativa (documento de terceiro —
+      // segue visível na lista de exames com aviso, mas não é a "jornada de saúde" do titular).
+      fetch(`${API_URL}/exams?_start=0&_end=100&patientId=${pid}`, { headers: h })
+        .then((r) => r.json())
+        .then((rows: any[]) => (Array.isArray(rows) ? rows.filter((e) => !(e?.rawExtraction?.identityMatch?.method === 'cpf' && e?.rawExtraction?.identityMatch?.cpfMatch === false)) : []))
+        .catch(() => []),
       fetch(`${API_URL}/items/abnormal?patientId=${pid}`, { headers: h }).then((r) => r.json()).catch(() => ({ items: [] })),
     ]).then(([rows, abn]: any[]) => {
       const byExam: Record<string, number> = {};

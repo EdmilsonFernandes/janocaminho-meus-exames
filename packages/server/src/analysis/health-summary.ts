@@ -197,6 +197,14 @@ export async function generateConsolidatedSummary(patientId: string, audience: '
   const digest = memoryDigest(slug);
   const memoryText = digest ? `\nHISTÓRICO DE ANÁLISES ANTERIORES (use como contexto; não repita):\n${digest}\n` : '';
 
+  // Data REAL do exame mais recente interpolada no prompt: antes a instrução dizia "exames de
+  // [mês/ano mais recente]" e a IA copiava o COLCHETE literal pro texto final (visto em produção:
+  // "exames de [data não informada no contexto]").
+  const latestExam = await prisma.exam.findFirst({ where: { patientId, status: 'EXTRACTED' }, orderBy: { performedAt: 'desc' }, select: { performedAt: true } });
+  const latestLabel = latestExam?.performedAt
+    ? latestExam.performedAt.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+    : 'seu exame mais recente';
+
   const messages = [
     {
       role: 'user',
@@ -213,7 +221,8 @@ export async function generateConsolidatedSummary(patientId: string, audience: '
         `- Marcadores [HISTÓRICO] (>1 ano) ou [ANTIGO] (>3 anos): NUNCA apresentar como condição atual. Só em "Evolução" ou "Histórico relevante".\n` +
         `- Marcadores [DESATUALIZADO]: estava alterado no passado + sem medição recente. Diga "pode estar desatualizado, converse com seu médico sobre refazer" — NUNCA afirme que está alterado hoje.\n` +
         `- Se um marcador estava alterado em 2018 mas normal em 2026: o resultado ATUAL é NORMAL. Diga "houve melhora" (não "está alterado").\n` +
-        `- COMECE o resumo com: "Esta análise considera principalmente os exames de [mês/ano mais recente]. Exames anteriores foram usados apenas para avaliar a evolução."\n\n` +
+        `- COMECE o resumo com: "Esta análise considera principalmente os exames de ${latestLabel}. Exames anteriores foram usados apenas para avaliar a evolução."\n` +
+        `- NUNCA escreva colchetes "[...]" no texto final — placeholder entre colchetes é bug, não estilo.\n\n` +
         `REGRAS DE PESO TEMPORAL (obrigatórias):\n` +
         `- Baseie o quadro atual no ESTADO ATUAL; use TENDÊNCIAS só pra indicar direção/mudança.\n` +
         `- NUNCA conclua tendência de marcador marcado [confiança baixa] ou [DESATUALIZADO] sem ≥2 exames recentes.\n` +
@@ -262,6 +271,7 @@ export async function generateConsolidatedSummary(patientId: string, audience: '
   summary = coerceComparativo(summary, [...snapshot.topAttention, ...snapshot.improving, ...snapshot.worsening, ...snapshot.stale]);
   summary = coerceStaleness(summary, snapshot.stale); // remove prazos inventados se nada está desatualizado
   summary = guardHistoricalAsCurrent(summary, snapshot); // IA não pode listar marcador só histórico como atenção ATUAL
+  summary = sanitizePlaceholders(summary) as HealthSummary; // remove "[...não informada...]" que a IA copiou do template
   summary = attachDesatualizados(summary, snapshot); // seção estruturada de desatualizados (fonte: DB, confiável)
   summary = attachEvolucao(summary, snapshot); // seção de evolução (direção + Δ% do DB)
   summary = attachAntigosNormalizados(summary, snapshot); // seção de alterações antigas normalizadas
@@ -272,6 +282,28 @@ export async function generateConsolidatedSummary(patientId: string, audience: '
   // Persiste o relatório COMPLETO em .md (não se perde; pode ser relido sem regenerar)
   saveFullReport(slug, `Relatório consolidado (${snapshot.markers} marcadores)`, contentMd);
   return { summary, contentMd, modelUsed: response.model, usage: response.usage };
+}
+
+/** PÓS-FILTRO anti-placeholder (visto em produção): a IA copiou literalmente o template
+ * "exames de [mês/ano mais recente]" → "[data não informada no contexto]" para o texto final.
+ * O prompt agora interpola a data real, mas este guard varre qualquer colchete com cara de
+ * template dos campos de texto antes de persistir/exibir. */
+const PLACEHOLDER_RX = /\[[^\]\n]{0,80}(?:não informad|mês\s*\/\s*ano|mes\/ano|mais recente|contexto|indefinid|desconhecid|placeholder|todo|xxx)[^\]\n]{0,40}\]/gi;
+
+function scrubString(s: string): string {
+  return s.replace(PLACEHOLDER_RX, '').replace(/[ \t]{2,}/g, ' ').replace(/\s+([.,;!?])/g, '$1').trim();
+}
+
+/** Deep-scrub de placeholders em todos os strings do summary (recursivo em objetos/arrays). */
+export function sanitizePlaceholders<T>(value: T): T {
+  if (typeof value === 'string') return scrubString(value) as unknown as T;
+  if (Array.isArray(value)) return value.map((v) => sanitizePlaceholders(v)) as unknown as T;
+  if (value && typeof value === 'object') {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) out[k] = sanitizePlaceholders(v);
+    return out as T;
+  }
+  return value;
 }
 
 /** Carrega o exame + itens + paciente (para o perfil clínico). */

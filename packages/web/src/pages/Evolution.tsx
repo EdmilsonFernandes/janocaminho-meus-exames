@@ -134,11 +134,15 @@ export const EvolutionPage = () => {
           </Grid>
 
           {/* Busca fixa (sticky) */}
-          <Paper variant="outlined" sx={{ p: '2px 12px', mb: 2, display: 'flex', alignItems: 'center', gap: 1, borderRadius: '999px', position: 'sticky', top: 60, zIndex: 5, bgcolor: 'background.paper', backdropFilter: 'blur(8px)' }}>
+          <Paper variant="outlined" sx={{ p: '2px 12px', mb: 1.5, display: 'flex', alignItems: 'center', gap: 1, borderRadius: '999px', position: 'sticky', top: 60, zIndex: 5, bgcolor: 'background.paper', backdropFilter: 'blur(8px)' }}>
             <SearchIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
             <InputBase value={query} onChange={(e: any) => setQuery(e.target.value)} placeholder="Buscar exame (TSH, glicose, colesterol…)" sx={{ flex: 1, fontSize: 14 }} />
             {query && <Chip size="small" label="limpar" onClick={() => setQuery('')} sx={{ height: 22 }} />}
           </Paper>
+          {/* Merge de conceito do menu ("Evolução & tendências"): gráfico por marcador a 1 toque. */}
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+            <Button size="small" onClick={() => navigate('/tendencias')} sx={{ textTransform: 'none', fontWeight: 700, color: '#178f89' }}>Gráfico por marcador →</Button>
+          </Box>
         </>
       )}
 

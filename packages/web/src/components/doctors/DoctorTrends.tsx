@@ -36,6 +36,15 @@ export const DoctorTrends = ({ patientId, token }: Props) => {
   const [sel, setSel] = useState('');
   const [ts, setTs] = useState<TS | null>(null);
   const [loading, setLoading] = useState(false);
+  // Período clínico (auditoria: histórico de 6 anos inteiro não deixava isolar o recente).
+  const [period, setPeriod] = useState<'all' | '2y' | '1y' | '6m'>('all');
+  const PERIODS: { v: 'all' | '2y' | '1y' | '6m'; label: string }[] = [
+    { v: '6m', label: '6 meses' }, { v: '1y', label: '1 ano' }, { v: '2y', label: '2 anos' }, { v: 'all', label: 'Todo histórico' },
+  ];
+  const periodCutoff = period === 'all' ? 0 : Date.now() - (period === '6m' ? 182 : period === '1y' ? 365 : 730) * 86400000;
+  const visibleTs: TS | null = ts && period !== 'all'
+    ? { ...ts, points: ts.points.filter((p) => new Date(p.performedAt ?? 0).getTime() >= periodCutoff) }
+    : ts;
 
   const authHeaders = { Authorization: `Bearer ${token}` } as const;
 
@@ -84,7 +93,7 @@ export const DoctorTrends = ({ patientId, token }: Props) => {
 
   // Regressão linear simples p/ indicar direção da tendência.
   let predict: { dir: string; months?: number } | null = null;
-  const pts = ts?.points ?? [];
+  const pts = visibleTs?.points ?? [];
   if (pts.length >= 2) {
     const t0 = new Date(pts[0].performedAt ?? Date.now()).getTime();
     const xs = pts.map((p) => (new Date(p.performedAt ?? Date.now()).getTime() - t0) / 86400000);
@@ -108,7 +117,7 @@ export const DoctorTrends = ({ patientId, token }: Props) => {
   }
 
   // Valor atual + variação % + range de datas (cabeçalho igual apps de referência)
-  const pts2 = ts?.points ?? [];
+  const pts2 = visibleTs?.points ?? [];
   const firstPt = pts2[0];
   const lastPt = pts2[pts2.length - 1];
   const pctChange = firstPt && lastPt && firstPt.valueNumeric ? Math.round(((lastPt.valueNumeric - firstPt.valueNumeric) / Math.abs(firstPt.valueNumeric)) * 100) : null;
@@ -149,12 +158,19 @@ export const DoctorTrends = ({ patientId, token }: Props) => {
               {multi.length > 6 && <Chip size="small" variant="outlined" label={`+${multi.length - 6}`} title="Ver todos no seletor abaixo" sx={{ fontWeight: 700, borderRadius: RADIUS.pill }} />}
             </Stack>
           )}
-          <FormControl fullWidth size="small">
-            <Select value={sel} onChange={(e) => setSel(e.target.value as string)} displayEmpty sx={{ borderRadius: RADIUS.button }}>
-              <MenuItem value="" disabled><em>Selecione um marcador ({multi.length})</em></MenuItem>
-              {multi.map((n) => <MenuItem key={n.nameCanonical} value={n.nameCanonical}>{prettyName(n.nameCanonical)} ({n.count} exames)</MenuItem>)}
-            </Select>
-          </FormControl>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ sm: 'center' }}>
+            <FormControl fullWidth size="small">
+              <Select value={sel} onChange={(e) => setSel(e.target.value as string)} displayEmpty sx={{ borderRadius: RADIUS.button }}>
+                <MenuItem value="" disabled><em>Selecione um marcador ({multi.length})</em></MenuItem>
+                {multi.map((n) => <MenuItem key={n.nameCanonical} value={n.nameCanonical}>{prettyName(n.nameCanonical)} ({n.count} exames)</MenuItem>)}
+              </Select>
+            </FormControl>
+            <FormControl size="small" sx={{ minWidth: 150 }}>
+              <Select value={period} onChange={(e) => setPeriod(e.target.value as 'all' | '2y' | '1y' | '6m')} sx={{ borderRadius: RADIUS.button }}>
+                {PERIODS.map((p) => <MenuItem key={p.v} value={p.v}>{p.label}</MenuItem>)}
+              </Select>
+            </FormControl>
+          </Stack>
         </CardContent></Card>
       )}
 
@@ -177,10 +193,10 @@ export const DoctorTrends = ({ patientId, token }: Props) => {
       {loading && <Card sx={{ borderRadius: RADIUS.sectionCard }}><CardContent><ListSkeleton count={4} /></CardContent></Card>}
 
             {/* GRÁFICO + DETALHES — primitiva compartilhada (dedup paciente↔médico). */}
-      {!loading && ts && ts.points.length > 0 && (
-        <TrendsChart ts={ts} />
+      {!loading && visibleTs && visibleTs.points.length > 0 && (
+        <TrendsChart ts={visibleTs} />
       )}
-      {!loading && ts && ts.points.length === 0 && sel && (
+      {!loading && visibleTs && visibleTs.points.length === 0 && sel && (
         <Card sx={{ borderRadius: RADIUS.sectionCard, textAlign: 'center', py: 4 }}>
           <CardContent><Typography color="text.secondary">Sem pontos numéricos para este analito.</Typography></CardContent>
         </Card>

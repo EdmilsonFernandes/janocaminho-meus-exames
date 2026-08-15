@@ -69,6 +69,11 @@ export const FamilyPage = () => {
     <PageContainer width={980}>
       <PageHeader icon={<Diversity3Icon />} title={translate('page.family')} accent="#d4a574"
         subtitle={translate('page.family_sub')} />
+      {/* Merge de conceito do menu ("Família & dependentes"): gestão de membros fica a 1 toque da
+          visão comparativa — antes eram 2 entradas de menu com nomes desconectados. */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: -1 }}>
+        <Button size="small" onClick={() => navigate('/patients')} sx={{ textTransform: 'none', fontWeight: 700, color: '#178f89' }}>Gerenciar dependentes →</Button>
+      </Box>
 
       {(data?.crossAlerts ?? []).length > 0 && (
         <Alert severity="warning" sx={{ mb: 3, borderRadius: '12px' }}>
@@ -127,7 +132,7 @@ export const FamilyPage = () => {
                   </Box>
                 )}
                 <Typography variant="body2" sx={{ mt: 1 }}>
-                  {p.abnormalCount > 0 ? `⚠️ ${p.abnormalCount} valor(es) alterado(s)` : '✅ Tudo dentro da faixa'}
+                  {p.abnormalCount > 0 ? `⚠️ ${p.abnormalCount} relevante(s) agora` : '✅ Nada relevante agora'}
                   {fmtDate(p.performedAt) && ` • ${fmtDate(p.performedAt)}`}
                 </Typography>
                 {p.score == null && <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>Sem exame enviado.</Typography>}

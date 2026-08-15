@@ -232,8 +232,11 @@ const ExamCards = () => {
   const filtering = query !== '' || cat !== 'all' || sfilter !== 'all';
 
   // Hero + "o que mudou" só no modo padrão (sem busca/filtro) — resumo de entrada.
+  // Hero NUNCA é exame com CPF divergente do perfil (documento de terceiro): o exame segue na
+  // lista com seu aviso, mas "seu último exame" precisa ser SEU (auditoria premium 2026-08).
   const isDefaultView = !filtering;
-  const lastExam = extracted[0];
+  const cpfMismatch = (r: any) => r?.rawExtraction?.identityMatch?.method === 'cpf' && r?.rawExtraction?.identityMatch?.cpfMatch === false;
+  const lastExam = extracted.find((r: any) => !cpfMismatch(r)) ?? null;
 
   // Contagem por categoria (do conjunto COMPLETO de extraídos — não muda com o filtro).
   const catCounts: Record<string, number> = {};

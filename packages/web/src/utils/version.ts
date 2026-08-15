@@ -1,5 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { API_URL } from '../config';
+import { APP_BUILD_INFO } from '../generated/buildInfo';
 
 /**
  * In-app update NATIVO do Google Play (o mesmo fluxo dos apps comerciais — baixa e atualiza sozinho).
@@ -20,8 +21,9 @@ export async function checkPlayUpdate(): Promise<void> {
   }
 }
 
-/** Versão atual do app (espelha o versionName do Android build.gradle). Atualizar a cada release. */
-export const APP_VERSION = import.meta.env.VITE_APP_VERSION || '1.4.4';
+/** Versão atual do app — vem do build-info GERADO (versionName do build.gradle + commit), nunca
+ *  hardcoded: o fallback '1.4.4' antigo fazia o WhatsNew exibir versão podre meses depois. */
+export const APP_VERSION = import.meta.env.VITE_APP_VERSION || APP_BUILD_INFO.version;
 
 /** Compara versões semver ("1.3.8" vs "1.4.0"). -1 se a<b, 0 =, 1 se a>b. */
 export function compareVersions(a: string, b: string): number {

@@ -2,17 +2,19 @@ import { useState, useEffect } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Stack, Typography, Box } from '@mui/material';
 import { APP_VERSION } from '../utils/version';
 
+// Novidades da linha atual (2.7). Mantenha honesto e curto — o popup aparece 1× por linha de versão.
 const FEATURES = [
-  { emoji: '🔑', title: 'Login com Google', desc: 'Entre com 1 toque — sem digitar senha.' },
-  { emoji: '🤖', title: 'Chat premium', desc: 'Renovado, mais limpo e rápido.' },
-  { emoji: '🌐', title: 'Bilingue', desc: 'Português + inglês automático.' },
-  { emoji: '📊', title: 'Dashboard premium', desc: 'Anel de score + detalhes em acordeão.' },
-  { emoji: '🔐', title: 'MFA recovery', desc: 'Recupere seu acesso com suporte.' },
+  { emoji: '📱', title: 'Meus Exames V2', desc: 'Lista redesenhada: último exame em destaque, filtros e datas relativas.' },
+  { emoji: '🔐', title: 'Login com biometria', desc: 'Entre com a digital do aparelho — sem digitar senha.' },
+  { emoji: '🩺', title: 'Portal do médico', desc: 'Seu médico vê seus exames, alterados e tendências num só lugar.' },
+  { emoji: '🚑', title: 'Cartão de emergência', desc: 'Dados críticos e contato na hora que importam.' },
 ];
 
 export const WhatsNew = () => {
   const [show, setShow] = useState(false);
-  const key = `whatsnew_${APP_VERSION}`;
+  // Chave por MAJOR.MINOR (não por patch): versionCode sobe a cada release — popup 1× por linha,
+  // não a cada rebuild (antes: whatsnew_1.4.4 congelado ou popup a cada patch).
+  const key = `whatsnew_${APP_VERSION.split('.').slice(0, 2).join('.')}`;
 
   useEffect(() => {
     try {

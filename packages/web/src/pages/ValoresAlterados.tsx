@@ -44,8 +44,10 @@ export const ValoresAlteradosPage = () => {
     }
     // Dentro de cada exame: prioridade (mais grave primeiro) e depois categoria (clusteriza).
     for (const g of map.values()) g.items.sort((a, b) => PRIORITY_RANK[priorityOf(b)] - PRIORITY_RANK[priorityOf(a)] || categorize(a.nameCanonical).key.localeCompare(categorize(b.nameCanonical).key));
-    // Exames ordenados do mais recente.
-    return [...map.values()].sort((a, b) => (b.performedAt ?? '').localeCompare(a.performedAt ?? ''));
+    // Exames: SEVERIDADE máxima primeiro (o subtítulo promete "ordenados por prioridade 🔴→🟡" —
+    // ordenar por data colocava um 🟡 recente acima de um 🔴 antigo), desempate pelo mais recente.
+    // (O portal médico já ordenava assim; o lado paciente divergia.)
+    return [...map.values()].sort((a, b) => PRIORITY_RANK[maxPriority(b.items)] - PRIORITY_RANK[maxPriority(a.items)] || (b.performedAt ?? '').localeCompare(a.performedAt ?? ''));
   }, [items]);
 
   // Resumo por prioridade (contagem total). Itens com faixa suspeita (escala errada) NÃO entram

@@ -535,7 +535,7 @@ export const LandingPage = () => {
               <Box>
                 <Typography variant="h3" sx={{ fontSize: { xs: '1.4rem', md: '1.8rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>Resumo clínico automático em 1 minuto</Typography>
                 <Typography sx={{ fontSize: 16, color: 'text.secondary', mb: 2.5, lineHeight: 1.6 }}>Use o mesmo CRM do convite e receba um brief de pré-consulta: principais mudanças, risco, o que investigar e as perguntas que o paciente fez no app.</Typography>
-                {['🩺 Top 3 mudanças desde a última visita — sem revisar prontuário inteiro.', '🛡️ Risco + tendência + marcadores a investigar — num relance.', '📝 SOAP rascunho gerado por IA (S/O/A/P) — só revisa e edita.', '🏥 Exportar PES com CID-10 sugerido — copie direto pro prontuário.'].map((t) => (
+                {['🩺 Top 3 mudanças desde a última visita — sem revisar prontuário inteiro.', '🛡️ Risco + tendência + marcadores a investigar — num relance.', '📝 SOAP rascunho gerado por IA (S/O/A/P) — só revisa e edita.'].map((t) => (
                   <Stack key={t} direction="row" spacing={1.25} alignItems="flex-start" sx={{ mb: 1.5 }}>
                     <CheckCircleIcon sx={{ fontSize: 20, color: GREEN, mt: 0.1, flexShrink: 0 }} />
                     <Typography sx={{ fontSize: 15, color: 'text.secondary', lineHeight: 1.5 }}>{t}</Typography>
@@ -697,39 +697,6 @@ export const LandingPage = () => {
               <BmiCard />
             </Reveal>
           </Box>
-        </Container>
-      </Box>
-
-      {/* DEPOIMENTOS — prova social (trocar por reais com permissão quando tiver) */}
-      <Box sx={{ bgcolor: 'background.default', py: { xs: 8, md: 11 } }}>
-        <Container maxWidth="lg">
-          <Typography align="center" variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>Quem usa, entende a diferença</Typography>
-          <Typography align="center" sx={{ color: 'text.secondary', fontSize: 17, mb: 6, maxWidth: 600, mx: 'auto' }}>Histórias de quem parou de guardar o exame sem entender.</Typography>
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' }, gap: 3 }}>
-            {[
-              { i: 'E', n: 'Edna Aparecida', c: 'Hipotireoidismo controlado', q: 'Tinha uma pilha de exames na gaveta. O Dr. Exame explicou cada valor da tireoide antes da consulta — cheguei sabendo o que perguntar.', color: '#d4a574' },
-              { i: 'H', n: 'Heloisa Cristina', c: 'Pré-diabetes revertido', q: 'Vi que a glicose estava subindo a cada exame. Mudei a alimentação e, na consulta seguinte, já tinha normalizado.', color: TEAL },
-              { i: 'M', n: 'Melissa Fernandes', c: 'Acompanha com o cardiologista', q: 'Gero o relatório e mando pro meu médico antes da consulta. Ele já chega sabendo o que mudou — a consulta rende muito mais.', color: '#0ea5e9' },
-              { i: 'T', n: 'Thomé Eduardo', c: 'Colesterol em queda', q: 'O comparativo mostrou o colesterol caindo exame após exame. Ver o gráfico fez toda a diferença pra eu manter o tratamento.', color: '#16a34a' },
-              { i: 'Q', n: 'Quenaz Silva', c: 'Cuida da mãe e dos filhos', q: 'Guardo os exames da minha mãe e das crianças no app. Quando o pediatra ou o geriatra pede, está tudo lá, organizado.', color: '#d4a574' },
-              { i: 'L', n: 'Leandro Porto', c: 'Anemia tratada', q: 'Tava cansado pra tudo. O app flagrou a ferro baixa, levei ao médico, recebi a reposição e voltou ao normal.', color: TEAL },
-              { i: 'D', n: 'Daniel Oliveira', c: 'Check-up em dia', q: 'Faço exame de rotina todo ano. O score de saúde me dá a visão geral em segundos — sei o que está em dia e o que refazer.', color: '#0ea5e9' },
-              { i: 'N', n: 'Natália Fernandes', c: 'Saiu da ansiedade com o laudo', q: 'Antes eu googlava cada valor e ficava mais confusa. Agora a IA explica na hora, sem jargão — saí daquele ciclo de ansiedade.', color: '#16a34a' },
-            ].map((t) => (
-              <Box key={t.n} sx={{ p: 3.5, borderRadius: '12px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', height: '100%', display: 'flex', flexDirection: 'column' }}>
-                <Typography sx={{ fontSize: 56, lineHeight: 0.5, color: TEAL, fontFamily: 'Georgia, serif', mb: 1.5 }}>“</Typography>
-                <Typography sx={{ fontSize: 15, color: 'text.primary', lineHeight: 1.6, mb: 2.5, flex: 1 }}>{t.q}</Typography>
-                <Stack direction="row" spacing={1.5} alignItems="center">
-                  <Box sx={{ width: 42, height: 42, borderRadius: '50%', bgcolor: t.color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 17, fontFamily: '"Poppins","Inter",sans-serif' }}>{t.i}</Box>
-                  <Box>
-                    <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary' }}>{t.n}</Typography>
-                    <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>{t.c}</Typography>
-                  </Box>
-                </Stack>
-              </Box>
-            ))}
-          </Box>
-          <Typography align="center" sx={{ mt: 3, fontSize: 12, color: 'text.secondary', opacity: 0.7 }}>Quem já usa o Dr. Exame no dia a dia.</Typography>
         </Container>
       </Box>
 

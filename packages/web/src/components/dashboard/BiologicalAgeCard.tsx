@@ -34,9 +34,9 @@ export const BiologicalAgeCard = () => {
 
   const value = data ? `${data.age}a` : 'Em breve';
   const sub = data
-    ? (diff === null ? 's/ idade cadastrada' : diff === 0 ? 'em equilíbrio' : diff < 0 ? `${Math.abs(diff)}a mais jovem` : `${diff}a mais velho`)
+    ? (diff === null ? 'cadastre seu nascimento' : diff === 0 ? 'em equilíbrio' : diff < 0 ? `${Math.abs(diff)}a mais jovem` : `${diff}a mais velho`)
     : 'estimativa c/ +exames';
-  const subColor = diff !== null && diff < 0 ? '#059669' : diff !== null && diff > 0 ? '#dc2626' : 'text.disabled';
+  const subColor = diff !== null && diff < 0 ? '#059669' : diff !== null && diff > 0 ? '#dc2626' : 'text.secondary';
 
   return (
     <>
@@ -66,6 +66,11 @@ export const BiologicalAgeCard = () => {
               <Typography variant="body2" sx={{ lineHeight: 1.6, display: 'block', mt: 1.5 }}>
                 É a idade estimada do seu <b>corpo</b> a partir de exames de sangue — glicose, colesterol, função do rim e do fígado, hormônios e outros marcadores. Pode diferir da sua idade de carteira (cronológica).
               </Typography>
+              {chronoAge == null && (
+                <Typography variant="body2" sx={{ mt: 1.5, color: PREMIUM, fontWeight: 700 }}>
+                  Cadastre sua data de nascimento no perfil para compararmos com sua idade real.
+                </Typography>
+              )}
               {data.missing && data.missing.length > 0 && (
                 <Typography variant="caption" sx={{ display: 'block', mt: 1.5, color: 'text.secondary' }}>
                   📊 Estimativa parcial — pra ficar mais precisa, ajudaria ter: <b>{data.missing.join(', ')}</b> num próximo exame.

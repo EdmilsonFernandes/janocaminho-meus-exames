@@ -8,10 +8,8 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CloseIcon from '@mui/icons-material/Close';
 import MenuIcon from '@mui/icons-material/Menu';
-import HomeIcon from '@mui/icons-material/Home';
 import InsightsIcon from '@mui/icons-material/Insights';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
-import AutoGraphIcon from '@mui/icons-material/AutoGraph';
 import HistoryIcon from '@mui/icons-material/History';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
@@ -191,64 +189,39 @@ const AppMenu = () => {
   const isAdmin = (() => { try { return userStr ? (JSON.parse(userStr)?.role === 'ADMIN') : false; } catch { return false; } })();
   return (
   <Box component="nav" sx={{ py: 1, display: 'flex', flexDirection: 'column', minHeight: '100%', width: '100%', minWidth: 0, maxWidth: '100%', containerType: 'inline-size', overflowX: 'hidden', overflowY: 'auto', maxHeight: '100vh', '& .MuiListItemButton-root, & .MuiMenuItem-root': { flex: '0 0 auto' } }}>
-    {/* GRID de atalhos — estilo app nativo (tile premium c/ gradiente teal).
-       Container query: 2 colunas quando estreito (sidebar desktop ~240px → tiles maiores, premium),
-       3 colunas quando largo (drawer mobile ~336px). minmax(0,1fr) garante encolher sem transbordar.
-       Antes era repeat(3,1fr) fixo → estourava 66px sobre o conteúdo no sidebar desktop. */}
-    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 0.75, p: 1, pb: 0.5, minWidth: 0, '@container (max-width: 300px)': { gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' } }}>
-      {([
-        { to: '/', icon: <HomeIcon />, label: 'nav.home' },
-        { to: '/exams', icon: <MedicalInformationIcon />, label: 'menu.exams' },
-        { to: '/alterados', icon: <WarningAmberIcon />, label: 'menu.alterados' },
-        { to: '/evolucao', icon: <InsightsIcon />, label: 'menu.evolution' },
-        { to: '/tendencias', icon: <AutoGraphIcon />, label: 'menu.trends' },
-        { to: '/linha-do-tempo', icon: <HistoryIcon />, label: 'menu.timeline' },
-        { to: '/relatorio', icon: <SummarizeIcon />, label: 'menu.report' },
-        { to: '/perguntas', icon: <QuestionAnswerIcon />, label: 'menu.questions' },
-        { to: '/familia', icon: <Diversity3Icon />, label: 'menu.family' },
-      ]).map((it) => {
-        const on = it.to === '/' ? pathname === '/' : pathname.startsWith(it.to);
-        return (
-          <Box key={it.to} onClick={() => navigate(it.to)} sx={{
-            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.75, py: 1.25, borderRadius: '12px', cursor: 'pointer',
-            transition: 'all .18s cubic-bezier(.4,0,.2,1)', '&:active': { transform: 'scale(.92)' },
-          }}>
-            <Box sx={{
-              width: 42, height: 42, display: 'grid', placeItems: 'center', borderRadius: '12px',
-              background: on ? 'linear-gradient(135deg,#20b2aa,#178f89)' : 'linear-gradient(135deg, rgba(32,178,170,.14), rgba(212,165,116,.12))',
-              color: on ? '#fff' : '#178f89',
-              boxShadow: on ? '0 6px 16px -6px rgba(32,178,170,.6)' : 'none',
-              transition: 'all .18s', '& svg': { fontSize: 22 },
-            }}>{it.icon}</Box>
-            <Typography sx={{ fontSize: 11, fontWeight: on ? 800 : 600, color: on ? '#178f89' : 'text.secondary', textAlign: 'center', lineHeight: 1.15 }}>{translate(it.label)}</Typography>
-          </Box>
-        );
-      })}
-    </Box>
-
-    {/* 3 categorias por acordeão (smart-expand: abre a que contém a rota ativa) */}
-    <MenuSectionAccordion title={translate('menu.section.health')} icon={<MonitorHeartIcon />} routes={['/alterados', '/tendencias', '/linha-do-tempo', '/medicoes', '/vacinas', '/lembretes', '/emergencia', '/conquistas']}>
+    {/* 4 seções por INTENÇÃO (auditoria premium 2026-08): antes eram grid de 9 atalhos + 3
+       acordeões com 3 destinos DUPLICADOS (alterados/tendências/linha-do-tempo) e ~24 entradas.
+       Agora 18 entradas, um rótulo por conceito, zero duplicata. Merges de CONCEITO (a rota
+       secundária segue acessível por link na página): "Evolução & tendências" (/evolucao ↔
+       /tendencias) e "Família & dependentes" (/familia ↔ /patients). */}
+    <MenuSectionAccordion title={translate('menu.section.exams')} icon={<MedicalInformationIcon />} routes={['/exams', '/alterados', '/evolucao', '/tendencias', '/linha-do-tempo', '/relatorio']}>
+      <NavItem to="/exams" primaryText={translate('menu.exams')} icon={<MedicalInformationIcon />} />
       <NavItem to="/alterados" primaryText={translate('menu.alterados')} icon={<WarningAmberIcon />} highlight />
-      <NavItem to="/tendencias" primaryText={translate('menu.trends')} icon={<AutoGraphIcon />} highlight />
-      <NavItem to="/linha-do-tempo" primaryText={translate('menu.timeline')} icon={<HistoryIcon />} highlight />
+      <NavItem to="/evolucao" primaryText={translate('menu.evo_trends')} icon={<InsightsIcon />} />
+      <NavItem to="/linha-do-tempo" primaryText={translate('menu.timeline')} icon={<HistoryIcon />} />
+      <NavItem to="/relatorio" primaryText={translate('menu.report')} icon={<SummarizeIcon />} />
+    </MenuSectionAccordion>
+
+    <MenuSectionAccordion title={translate('menu.section.care')} icon={<MonitorHeartIcon />} routes={['/medicoes', '/vacinas', '/lembretes', '/emergencia', '/conquistas']}>
       <NavItem to="/medicoes" primaryText={translate('menu.measurements')} icon={<MonitorHeartIcon />} />
       <NavItem to="/vacinas" primaryText={translate('menu.vaccines')} icon={<VaccinesIcon />} />
       <NavItem to="/lembretes" primaryText={translate('menu.reminders')} icon={<EventAvailableIcon />} />
-      <NavItem to="/emergencia" primaryText={translate('menu.emergency')} icon={<HealthAndSafetyIcon />} />
+      <NavItem to="/emergencia" primaryText={translate('menu.emergency')} icon={<HealthAndSafetyIcon />} highlight />
       <NavItem to="/conquistas" primaryText={translate('menu.achievements')} icon={<EmojiEventsIcon />} />
     </MenuSectionAccordion>
 
-    <MenuSectionAccordion title={translate('menu.section.familydocs')} icon={<Diversity3Icon />} routes={['/patients', '/medicos', '/despesas']}>
-      <NavItem to="/patients" primaryText={translate('menu.dependents')} icon={<Diversity3Icon />} />
+    <MenuSectionAccordion title={translate('menu.section.people')} icon={<Diversity3Icon />} routes={['/familia', '/patients', '/medicos', '/perguntas']}>
+      <NavItem to="/familia" primaryText={translate('menu.family_full')} icon={<Diversity3Icon />} />
       <NavItem to="/medicos" primaryText={translate('menu.doctors')} icon={<MedicalServicesIcon />} />
-      <NavItem to="/despesas" primaryText={translate('menu.expenses')} icon={<AccountBalanceWalletIcon />} />
+      <NavItem to="/perguntas" primaryText={translate('menu.questions')} icon={<QuestionAnswerIcon />} />
     </MenuSectionAccordion>
 
-    <MenuSectionAccordion title={translate('menu.section.account')} icon={<AccountCircleIcon />} routes={['/perfil', '/seguranca', '/privacidade', '/planos', '/admin']}>
+    <MenuSectionAccordion title={translate('menu.section.account')} icon={<AccountCircleIcon />} routes={['/perfil', '/seguranca', '/privacidade', '/planos', '/despesas', '/admin']}>
       <NavItem to="/perfil" primaryText={translate('menu.profile')} icon={<AccountCircleIcon />} />
-      <NavItem to="/seguranca" primaryText={translate('menu.security')} icon={<LockIcon />} />
+      <NavItem to="/seguranca" primaryText={translate('menu.security_pwd')} icon={<LockIcon />} />
       <NavItem to="/privacidade" primaryText={translate('menu.privacy')} icon={<HealthAndSafetyIcon />} />
       <NavItem to="/planos" primaryText={translate('menu.plans')} icon={<WorkspacePremiumIcon />} />
+      <NavItem to="/despesas" primaryText={translate('menu.expenses')} icon={<AccountBalanceWalletIcon />} />
       {isAdmin && <NavItem to="/admin" primaryText={translate('menu.admin')} icon={<AdminPanelSettingsIcon />} />}
     </MenuSectionAccordion>
 
@@ -341,7 +314,7 @@ const AppDrawer = () => {
           <Avatar src={userPhoto} sx={{ width: 56, height: 56, fontSize: 22, bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 800, border: '2px solid rgba(32,178,170,0.3)' }}>{userName?.charAt(0)?.toUpperCase() || '👤'}</Avatar>
           <Box sx={{ minWidth: 0, flex: 1 }}>
             <Typography sx={{ fontWeight: 800, fontSize: 16, color: 'text.primary', lineHeight: 1.15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{userName || 'Olá!'}</Typography>
-            <Typography sx={{ fontSize: 13, color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{isPremium ? '👑 Premium' : 'Plano grátis'}{userObj?.credits != null ? ` • 💎 ${userObj.credits}` : ''}</Typography>
+            <Typography sx={{ fontSize: 13, color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{isPremium ? '👑 Premium' : 'Plano grátis'}</Typography>
             {credits != null && (
               <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 0.25, flexWrap: 'wrap', rowGap: 0.5 }}>
                 <Typography sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 600, whiteSpace: 'nowrap' }}>⚡ {credits} créditos</Typography>
@@ -352,6 +325,16 @@ const AppDrawer = () => {
         </Stack>
       </Box>
       <Divider sx={{ borderColor: 'divider' }} />
+      {/* EMERGÊNCIA a 1 toque do menu (auditoria: antes 3 toques fundo — terceiro não achava).
+          Vermelho clínico discreto: urgente sem gritar. */}
+      <Box sx={{ px: 1.5, pt: 1.25 }}>
+        <Button fullWidth onClick={() => { closeDrawer(); navigate('/emergencia'); }}
+          startIcon={<HealthAndSafetyIcon />}
+          sx={{ justifyContent: 'flex-start', textTransform: 'none', fontWeight: 800, borderRadius: '12px', py: 1, color: 'error.main', borderColor: 'error.main', '&:hover': { bgcolor: 'rgba(239,68,68,.08)', borderColor: 'error.main' } }}
+          variant="outlined" size="small">
+          Cartão de emergência
+        </Button>
+      </Box>
       {/* Corpo rolável — reutiliza o MESMO AppMenu do Sidebar (fonte única de verdade) */}
       <Box sx={{ flex: 1, overflowY: 'auto', pb: 2 }}><AppMenu /></Box>
     </Drawer>

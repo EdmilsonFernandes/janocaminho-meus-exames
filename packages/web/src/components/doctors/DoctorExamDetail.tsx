@@ -108,7 +108,7 @@ export const DoctorExamDetail = ({ patientId, examId, token, onBack }: { patient
                 '&:hover': { borderColor: t.palette.primary.dark, bgcolor: alpha(t.palette.primary.main, 0.06) },
               })}
             >
-              PDF
+              Abrir laudo
             </Button>
           )}
         </Stack>
