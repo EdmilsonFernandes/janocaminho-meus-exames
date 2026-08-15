@@ -28,7 +28,7 @@ export const UFS = [
  *  sistema de ícone era inconsistente com o resto (🍩 p/ glicemia era o pior caso). */
 import type { SvgIconComponent } from '@mui/icons-material';
 import WaterDropIcon from '@mui/icons-material/WaterDrop';
-import BloodTypeIcon from '@mui/icons-material/BloodType';
+import InvertColorsIcon from '@mui/icons-material/InvertColors';
 import GrainIcon from '@mui/icons-material/Grain';
 import HealingIcon from '@mui/icons-material/Healing';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
@@ -44,7 +44,7 @@ import ListAltIcon from '@mui/icons-material/ListAlt';
 
 export const CATS: { key: string; cat: string; emoji: string; icon: SvgIconComponent; color: string; keys: string[] }[] = [
   { key: 'glic', cat: 'Glicemia e Diabetes', emoji: '🍩', icon: WaterDropIcon, color: '#db2777', keys: ['glicose', 'glicemi', 'glicosilada', 'glicosada', 'hba1c', 'insulina', 'homa', 'frutosam'] },
-  { key: 'hemo', cat: 'Hemograma', emoji: '🩸', icon: BloodTypeIcon, color: '#ef4444', keys: ['hemograma', 'hemogram', 'leucograma', 'eritrograma', 'hemoglo', 'hematoc', 'eritroc', 'eritróc', 'leucoc', 'leucóc', 'plaque', 'vcm', 'hcm', 'chcm', 'rdw', 'neutro', 'linfoc', 'linfóc', 'monoc', 'eosinofi', 'basofi', 'hemácia', 'hemacia', 'reticuloc', 'vpm', 'cgm', 'rhc'] },
+  { key: 'hemo', cat: 'Hemograma', emoji: '🩸', icon: InvertColorsIcon, color: '#ef4444', keys: ['hemograma', 'hemogram', 'leucograma', 'eritrograma', 'hemoglo', 'hematoc', 'eritroc', 'eritróc', 'leucoc', 'leucóc', 'plaque', 'vcm', 'hcm', 'chcm', 'rdw', 'neutro', 'linfoc', 'linfóc', 'monoc', 'eosinofi', 'basofi', 'hemácia', 'hemacia', 'reticuloc', 'vpm', 'cgm', 'rhc'] },
   { key: 'lipi', cat: 'Lipídios e Colesterol', emoji: '🧈', icon: GrainIcon, color: '#d97706', keys: ['colesterol', 'perfil lipidico', 'lipidico', 'lipidi', 'ldl', 'hdl', 'vldl', 'triglic', 'apolipo', 'castelli', 'nao-hdl', 'não-hdl'] },
   { key: 'hepa', cat: 'Função Hepática', emoji: '🫀', icon: HealingIcon, color: '#16a34a', keys: ['tgo', 'tgp', 'ast', 'alt', 'gama-gt', 'gama gt', 'ggt', 'gamagt', 'fosfatase alcalin', 'bilirrub', 'transamin', 'albumina'] },
   { key: 'renal', cat: 'Função Renal', emoji: '🫘', icon: FilterAltIcon, color: '#6366f1', keys: ['creatinina', 'ureia', 'uréia', 'acido urico', 'ácido úrico', 'tfg', 'egfr', 'depura', 'clearance', 'cistatina'] },
