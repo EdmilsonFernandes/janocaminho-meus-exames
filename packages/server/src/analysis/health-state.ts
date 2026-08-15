@@ -333,12 +333,17 @@ export function computeMarkerState(rows: ItemRow[]): MarkerState[] {
 
 // ─────────────────────── Layer 1+2: DB ───────────────────────
 
-/** Carrega os ExamItems de um paciente (só exames EXTRACTED) já achatados com performedAt. */
+/** Carrega os ExamItems de um paciente (só exames EXTRACTED) já achatados com performedAt.
+ *  Exames com CPF divergente do perfil (documento de terceiro) NÃO entram — este é o ponto
+ *  único que alimenta score/dashboard/família/relatório/idade bio; sem o filtro, a Home dizia
+ *  "8 alterados" enquanto /alterados (já filtrado) dizia "tudo dentro da faixa" (auditoria
+ *  premium 2026-08). Filtro em código, não em query Prisma (NOT(NULL)=NULL exclui tudo). */
 async function loadPatientRows(patientId: string): Promise<ItemRow[]> {
-  const rows = await prisma.examItem.findMany({
+  const { isCpfMismatch } = await import('../utils/examIdentity');
+  const rows = (await prisma.examItem.findMany({
     where: { exam: { patientId, status: 'EXTRACTED' } },
-    include: { exam: { select: { performedAt: true } } },
-  });
+    include: { exam: { select: { performedAt: true, rawExtraction: true } } },
+  })).filter((r) => !isCpfMismatch((r.exam as any).rawExtraction));
   return rows.map((r) => ({
     name: r.name,
     nameCanonical: r.nameCanonical,

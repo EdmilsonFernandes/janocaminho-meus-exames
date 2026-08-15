@@ -274,7 +274,7 @@ export const ConsolidatedReportPage = () => {
 
   const asArr = (x: any): any[] => (Array.isArray(x) ? x : x == null ? [] : [x]);
   const txt = (x: any): string => typeof x === 'string' ? x : (x?.texto || x?.titulo || x?.detalhe || x?.name || (x && typeof x === 'object' ? JSON.stringify(x) : String(x ?? '')));
-  const s: Summary | undefined = analysis?.structured
+  const sRaw: Summary | undefined = analysis?.structured
     ? {
         ...analysis.structured,
         comparativo: asArr(analysis.structured.comparativo),
@@ -286,6 +286,16 @@ export const ConsolidatedReportPage = () => {
         metasSaude: asArr(analysis.structured.metasSaude),
       }
     : undefined;
+  // RENDER-SANITIZE: relatórios gerados ANTES do fix server-side (2026-08-15) têm o placeholder
+  // "[...não informada no contexto]" ARMAZENADO — limpa no render para não obrigar regeneração
+  // paga. Mesma regra do sanitizePlaceholders do server (analysis/health-summary.ts).
+  const PH_RX = /\[[^\]\n]{0,80}(?:não informad|mês\s*\/\s*ano|mes\/ano|mais recente|contexto|indefinid|desconhecid|placeholder|todo|xxx)[^\]\n]{0,40}\]/gi;
+  const scrub = (v: any): any =>
+    typeof v === 'string' ? v.replace(PH_RX, '').replace(/[ \t]{2,}/g, ' ').replace(/\s+([.,;!?])/g, '$1').trim()
+      : Array.isArray(v) ? v.map(scrub)
+      : v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, scrub(x)]))
+      : v;
+  const s: Summary | undefined = sRaw ? scrub(sRaw) : undefined;
   const sourceExams: SourceExam[] = analysis?.sourceExams ?? [];
 
   /** Imprime/salva PDF premium — mostra num preview DENTRO do app (DocPreview),
