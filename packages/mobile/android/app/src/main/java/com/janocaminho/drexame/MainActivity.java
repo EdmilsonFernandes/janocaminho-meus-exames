@@ -33,7 +33,11 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
 
     private static final String SECURE_PREFS = "dx_secure_bio";
     private static final String BIO_EVENT = "dx:biometric-result";
+    private static final String ACTION_OPEN_EMERGENCY = "com.janocaminho.drexame.OPEN_EMERGENCY";
     private boolean biometricBridgeInjected = false;
+    // Atalho "Cartão de emergência" (long-press no ícone): pending até o WebView estar pronto.
+    private boolean pendingEmergencyOpen = false;
+    private final android.os.Handler uiHandler = new android.os.Handler(android.os.Looper.getMainLooper());
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -41,6 +45,34 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
         createNotificationChannel();
         paintWebViewBrandBg();
         injectBiometricBridge();
+        if (ACTION_OPEN_EMERGENCY.equals(getIntent() != null ? getIntent().getAction() : null)) {
+            pendingEmergencyOpen = true;
+            maybeOpenEmergency();
+        }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        // singleTask: se o app já está aberto, o atalho chega aqui (não no onCreate).
+        if (intent != null && ACTION_OPEN_EMERGENCY.equals(intent.getAction())) {
+            pendingEmergencyOpen = true;
+            maybeOpenEmergency();
+        }
+    }
+
+    /** Navega pro cartão de emergência assim que o bridge/WebView estiver pronto (retry leve). */
+    private void maybeOpenEmergency() {
+        if (!pendingEmergencyOpen) return;
+        if (bridge == null || bridge.getWebView() == null) {
+            uiHandler.postDelayed(this::maybeOpenEmergency, 400);
+            return;
+        }
+        pendingEmergencyOpen = false;
+        final WebView wv = bridge.getWebView();
+        // 1,2s: dá tempo do React montar o router antes do hash change.
+        uiHandler.postDelayed(() -> wv.evaluateJavascript(
+            "if(location.hash.indexOf('#/emergencia')<0) location.hash='#/emergencia';", null), 1200);
     }
 
     /** Fundo do WebView na cor do splash nativo (#20B2AA): elimina o flash branco entre o

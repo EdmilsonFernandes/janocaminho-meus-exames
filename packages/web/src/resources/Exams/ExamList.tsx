@@ -342,7 +342,7 @@ const ExamCards = () => {
             {presentCats.length > 1 && (
               <Stack direction="row" spacing={0.75} sx={{ overflowX: 'auto', flexWrap: 'nowrap', pb: 0.25, mx: -0.25, px: 0.25, '&::-webkit-scrollbar': { display: 'none' } }}>
                 <Chip size="small" label={translate('exams.all', { count: extracted.length })} onClick={() => setCat('all')} sx={{ height: 26, flexShrink: 0, fontWeight: 700, whiteSpace: 'nowrap', bgcolor: cat === 'all' ? '#0f3d3a' : '#0f3d3a14', color: cat === 'all' ? '#fff' : '#0f3d3a' }} />
-                {presentCats.map((c) => (<Chip key={c.key} size="small" label={`${c.emoji} ${c.cat} (${catCounts[c.key]})`} onClick={() => setCat(cat === c.key ? 'all' : c.key)} sx={{ height: 26, flexShrink: 0, fontWeight: 700, whiteSpace: 'nowrap', bgcolor: cat === c.key ? c.color : c.color + '1a', color: cat === c.key ? '#fff' : c.color, border: `1px solid ${cat === c.key ? c.color : c.color + '40'}` }} />))}
+                {presentCats.map((c) => (<Chip key={c.key} size="small" icon={<Box component={c.icon} sx={{ fontSize: 15, color: `${cat === c.key ? '#fff' : c.color} !important`, ml: 0.5, mr: -0.5 }} />} label={`${c.cat} (${catCounts[c.key]})`} onClick={() => setCat(cat === c.key ? 'all' : c.key)} sx={{ height: 26, flexShrink: 0, fontWeight: 700, whiteSpace: 'nowrap', bgcolor: cat === c.key ? c.color : c.color + '1a', color: cat === c.key ? '#fff' : c.color, border: `1px solid ${cat === c.key ? c.color : c.color + '40'}` }} />))}
               </Stack>
             )}
           </Stack>
@@ -392,7 +392,7 @@ const ExamCards = () => {
               {catGroups.map(({ cat: c, items }) => (
                 <Accordion key={c.key} defaultExpanded={catGroups.length <= 3} disableGutters elevation={0} sx={{ borderRadius: `${RADIUS.sectionCard} !important`, overflow: 'hidden', border: '1px solid', borderColor: 'divider', '&:before': { display: 'none' } }}>
                   <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 30, color: c.color, bgcolor: c.color + '1f', borderRadius: '50%', p: 0.6 }} />} sx={{ minHeight: '48px !important', '& .MuiAccordionSummary-content': { my: 0.75, alignItems: 'center' } }}>
-                    <Typography sx={{ fontWeight: 800, flex: '1 1 auto', minWidth: 0 }}>{c.emoji} {c.cat}</Typography>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, fontWeight: 800, flex: "1 1 auto", minWidth: 0 }}><Box component={c.icon} sx={{ fontSize: 18, color: c.color }} />{c.cat}</Box>
                     <Chip size="small" label={`${items.length}`} sx={{ ml: 1.5, bgcolor: c.color + '1a', color: c.color, height: 20, flexShrink: 0 }} />
                   </AccordionSummary>
                   <AccordionDetails sx={{ p: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>{items.map(renderCard)}</AccordionDetails>
@@ -446,7 +446,7 @@ const ExamCards = () => {
           <Stack direction="row" spacing={0.75} sx={{ overflowX: 'auto', flexWrap: 'nowrap', pb: 0.25, mx: -0.25, px: 0.25, '&::-webkit-scrollbar': { display: 'none' } }}>
             <Chip size="small" label={translate('exams.all', { count: extracted.length })} onClick={() => setCat('all')} sx={{ height: 26, flexShrink: 0, fontWeight: 700, whiteSpace: 'nowrap', bgcolor: cat === 'all' ? '#0f3d3a' : '#0f3d3a14', color: cat === 'all' ? '#fff' : '#0f3d3a' }} />
             {presentCats.map((c) => (
-              <Chip key={c.key} size="small" label={`${c.emoji} ${c.cat} (${catCounts[c.key]})`} onClick={() => setCat(cat === c.key ? 'all' : c.key)} sx={{ height: 26, flexShrink: 0, fontWeight: 700, whiteSpace: 'nowrap', bgcolor: cat === c.key ? c.color : c.color + '1a', color: cat === c.key ? '#fff' : c.color, border: `1px solid ${cat === c.key ? c.color : c.color + '40'}` }} />
+              <Chip key={c.key} size="small" icon={<Box component={c.icon} sx={{ fontSize: 15, color: `${cat === c.key ? '#fff' : c.color} !important`, ml: 0.5, mr: -0.5 }} />} label={`${c.cat} (${catCounts[c.key]})`} onClick={() => setCat(cat === c.key ? 'all' : c.key)} sx={{ height: 26, flexShrink: 0, fontWeight: 700, whiteSpace: 'nowrap', bgcolor: cat === c.key ? c.color : c.color + '1a', color: cat === c.key ? '#fff' : c.color, border: `1px solid ${cat === c.key ? c.color : c.color + '40'}` }} />
             ))}
           </Stack>
         )}
@@ -528,7 +528,7 @@ const ExamCards = () => {
             <Accordion key={c.key} defaultExpanded={catGroups.length <= 3} disableGutters elevation={0}
               sx={{ borderRadius: `${RADIUS.sectionCard} !important`, overflow: 'hidden', border: '1px solid', borderColor: 'divider', '&:before': { display: 'none' } }}>
               <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 30, color: c.color, bgcolor: c.color + '1f', borderRadius: '50%', p: 0.6 }} />} sx={{ minHeight: '48px !important', '& .MuiAccordionSummary-content': { my: 0.75, alignItems: 'center' } }}>
-                <Typography sx={{ fontWeight: 800, flex: '1 1 auto', minWidth: 0 }}>{c.emoji} {c.cat}</Typography>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, fontWeight: 800, flex: "1 1 auto", minWidth: 0 }}><Box component={c.icon} sx={{ fontSize: 18, color: c.color }} />{c.cat}</Box>
                 <Chip size="small" label={`${items.length}`} sx={{ ml: 1.5, bgcolor: c.color + '1a', color: c.color, height: 20, flexShrink: 0 }} />
               </AccordionSummary>
               <AccordionDetails sx={{ p: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>

@@ -17,6 +17,7 @@ import { PageHeader } from '../components/layout/PageHeader';
 import { ListSkeleton } from '../components/Skeleton';
 import { EmptyState } from '../components/EmptyState';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import type { SvgIconComponent } from '@mui/icons-material';
 
 import type { EvolutionItem as EvoItem } from '@meus-exames/shared';
 
@@ -77,10 +78,10 @@ export const EvolutionPage = () => {
   // Agrupa os itens filtrados por categoria médica (ordem fixa do laudo)
   const groups = useMemo(() => {
     const order = { out: 0, change: 1, stable: 2 };
-    const map = new Map<string, { cat: string; emoji: string; color: string; items: EvoItem[] }>();
+    const map = new Map<string, { cat: string; icon: SvgIconComponent; color: string; items: EvoItem[] }>();
     for (const it of filtered) {
       const c = categorize(it.nameCanonical);
-      if (!map.has(c.key)) map.set(c.key, { cat: c.cat, emoji: c.emoji, color: c.color, items: [] });
+      if (!map.has(c.key)) map.set(c.key, { cat: c.cat, icon: c.icon, color: c.color, items: [] });
       map.get(c.key)!.items.push(it);
     }
     for (const g of map.values()) g.items.sort((a, b) => order[statusOf(a)] - order[statusOf(b)]);
@@ -174,7 +175,7 @@ export const EvolutionPage = () => {
 };
 
 /** Grupo colapsável por categoria médica — header com emoji, nome, pior status e contagem; dentro ficam os cards de cada analito. */
-const CategoryGroup = ({ group, expandOuts }: { group: { cat: string; emoji: string; color: string; items: EvoItem[] }; expandOuts?: boolean }) => {
+const CategoryGroup = ({ group, expandOuts }: { group: { cat: string; icon: SvgIconComponent; color: string; items: EvoItem[] }; expandOuts?: boolean }) => {
   // Recolhido por padrão. Exceção: no filtro "Fora da faixa", abre só os grupos que têm alerta.
   const [open, setOpen] = useState(!!expandOuts && group.items.some((i) => statusOf(i) === 'out'));
   const worst: Status = group.items.some((i) => statusOf(i) === 'out') ? 'out' : group.items.some((i) => statusOf(i) === 'change') ? 'change' : 'stable';
@@ -184,7 +185,7 @@ const CategoryGroup = ({ group, expandOuts }: { group: { cat: string; emoji: str
   return (
     <Card sx={{ borderRadius: '12px', border: `1px solid ${group.color}26`, overflow: 'hidden' }}>
       <Box onClick={() => setOpen((o) => !o)} sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 1.25, cursor: 'pointer', bgcolor: `${group.color}0a`, '&:hover': { bgcolor: `${group.color}14` } }}>
-        <Box sx={{ fontSize: 19 }}>{group.emoji}</Box>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}><group.icon sx={{ fontSize: 20, color: group.color }} /></Box>
         <Typography sx={{ fontWeight: 800, flex: 1, color: 'text.primary', fontSize: 15 }}>{group.cat}</Typography>
         <Box title={STATUS_META[worst].label} sx={{ fontSize: 14 }}>{STATUS_META[worst].emoji}</Box>
         {outs > 0 && <Chip size="small" label={`${outs} alterado${outs > 1 ? 's' : ''}`} sx={{ bgcolor: `${group.color}1a`, color: group.color, fontWeight: 700, height: 22 }} />}

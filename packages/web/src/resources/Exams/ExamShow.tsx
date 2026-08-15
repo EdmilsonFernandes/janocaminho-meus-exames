@@ -285,7 +285,7 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
             <Chip color={statusColor[exam.status] ?? 'default'} label={statusLabel[exam.status] ?? exam.status} />
             {exam.kind === 'IMAGING' && <Chip variant="outlined" label="Imagem" />}
             {exam.kind === 'LAB_PANEL' && <Chip variant="outlined" label="Laboratorial" />}
-            {cc.key !== 'image' && cc.key !== 'other' && <Chip size="small" sx={{ bgcolor: cc.color + '18', color: cc.color, fontWeight: 700 }} label={`${cc.emoji} ${cc.cat}`} />}
+            {cc.key !== 'image' && cc.key !== 'other' && <Chip size="small" sx={{ bgcolor: cc.color + '18', color: cc.color, fontWeight: 700 }} icon={<Box component={cc.icon} sx={{ fontSize: 16, color: `${cc.color} !important`, ml: 0.5, mr: -0.5 }} />} label={cc.cat} />}
             {headerNeedsReview && <Chip color="warning" label="conferir dados" />}
           </Stack>
           <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mt: 0.5 }}>

@@ -829,9 +829,14 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           <Chip size="small" label="💎 Dr. Exame Pro ativo" sx={{ mb: 1.5, bgcolor: 'rgba(99,102,241,.12)', color: '#6366f1', fontWeight: 700 }} />
         )}
 
+        {/* MASTER/DETAIL LEVE (desktop): rail de pacientes à esquerda MESMO com paciente aberto —
+            troca rápida sem "Voltar" (também mitiga contexto stale do item 20). NÃO ressuscita o
+            grid 2-col de CONTEÚDO (revertido no d56c3c3 por gap vertical) — só pina a lista. */}
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, alignItems: 'flex-start' }}>
+
         {/* LISTA DE PACIENTES */}
-        {view === 'patients' && !loading && !selected && (
-          <>
+        {view === 'patients' && !loading && (!selected || isDesktop) && (
+          <Box sx={{ width: { xs: '100%', md: selected ? 320 : '100%' }, flexShrink: 0, position: 'sticky', top: selected ? 16 : undefined }}>
             <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ mb: 1.5 }}>
               <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary' }}>Pacientes ({patients.length})</Typography>
               {patients.some((p) => p.hasAlerts) && <Chip size="small" color="error" label={`🔴 ${patients.filter((p) => p.hasAlerts).length} com alerta`} sx={{ fontWeight: 700 }} />}
@@ -902,12 +907,12 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 return filtered.map((p) => card(p, p.shareId));
               })()}
             </Stack>
-          </>
+          </Box>
         )}
 
-        {/* DETALHE DO PACIENTE — coluna única (PatientSummary → tabs → conteúdo). Preenche toda a largura da área de conteúdo no desktop (layout mobile-first, sem grid 2-col que deixava gap vertical enorme em telas largas). */}
+        {/* DETALHE DO PACIENTE — coluna única (PatientSummary → tabs → conteúdo). Desktop: flex 1 ao lado do rail de pacientes. */}
         {view === 'patients' && selected && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flex: { md: 1 }, minWidth: 0 }}>
             <PatientSummary
               patient={selected}
               exams={exams}
@@ -1060,6 +1065,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 )}
           </Box>
         )}
+        </Box>{/* fim do master/detail leve (rail + workspace) */}
       </Box>
       </Box>{/* fim da coluna de conteúdo (flex:1) */}
 

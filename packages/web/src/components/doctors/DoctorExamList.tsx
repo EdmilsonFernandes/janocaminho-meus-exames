@@ -96,7 +96,8 @@ export const DoctorExamList = ({ patientId, token, onOpen }: { patientId: string
               <Chip
                 key={c.key}
                 size="small"
-                label={`${c.emoji} ${c.cat} (${catCounts[c.key]})`}
+                icon={<Box component={c.icon} sx={{ fontSize: 17, color: `${cat === c.key ? '#fff' : c.color} !important`, ml: 0.5, mr: -0.5 }} />}
+                label={`${c.cat} (${catCounts[c.key]})`}
                 onClick={() => setCat(cat === c.key ? 'all' : c.key)}
                 sx={{
                   height: 44, flexShrink: 0, fontWeight: 700, whiteSpace: 'nowrap', borderRadius: RADIUS.pill,
@@ -132,7 +133,7 @@ export const DoctorExamList = ({ patientId, token, onOpen }: { patientId: string
           {view === 'category' && catGroups.map((g) => (
             <Accordion key={g.cat.key} defaultExpanded elevation={0} disableGutters sx={{ borderRadius: `${RADIUS.sectionCard} !important`, overflow: 'hidden', border: `1px solid ${alpha(g.cat.color, 0.15)}`, '&:before': { display: 'none' } }}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: alpha(g.cat.color, 0.04) }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary' }}>{g.cat.emoji} {g.cat.cat}</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}><Box component={g.cat.icon} sx={{ fontSize: 18, color: g.cat.color }} /><Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary' }}>{g.cat.cat}</Typography></Box>
                 <Chip size="small" label={g.items.length} sx={{ ml: 1, bgcolor: alpha(g.cat.color, 0.12), color: g.cat.color, fontWeight: 700, height: 22 }} />
               </AccordionSummary>
               <AccordionDetails sx={{ p: 1 }}>

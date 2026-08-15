@@ -23,22 +23,40 @@ export const UFS = [
   'SP', 'SE', 'TO',
 ];
 
-/** Agrupamento por categoria médica (estilo laudo: Hemograma, Função Hepática, etc.) */
-export const CATS: { key: string; cat: string; emoji: string; color: string; keys: string[] }[] = [
-  { key: 'glic', cat: 'Glicemia e Diabetes', emoji: '🍩', color: '#db2777', keys: ['glicose', 'glicemi', 'glicosilada', 'glicosada', 'hba1c', 'insulina', 'homa', 'frutosam'] },
-  { key: 'hemo', cat: 'Hemograma', emoji: '🩸', color: '#ef4444', keys: ['hemograma', 'hemogram', 'leucograma', 'eritrograma', 'hemoglo', 'hematoc', 'eritroc', 'eritróc', 'leucoc', 'leucóc', 'plaque', 'vcm', 'hcm', 'chcm', 'rdw', 'neutro', 'linfoc', 'linfóc', 'monoc', 'eosinofi', 'basofi', 'hemácia', 'hemacia', 'reticuloc', 'vpm', 'cgm', 'rhc'] },
-  { key: 'lipi', cat: 'Lipídios e Colesterol', emoji: '🧈', color: '#d97706', keys: ['colesterol', 'perfil lipidico', 'lipidico', 'lipidi', 'ldl', 'hdl', 'vldl', 'triglic', 'apolipo', 'castelli', 'nao-hdl', 'não-hdl'] },
-  { key: 'hepa', cat: 'Função Hepática', emoji: '🫀', color: '#16a34a', keys: ['tgo', 'tgp', 'ast', 'alt', 'gama-gt', 'gama gt', 'ggt', 'gamagt', 'fosfatase alcalin', 'bilirrub', 'transamin', 'albumina'] },
-  { key: 'renal', cat: 'Função Renal', emoji: '🫘', color: '#6366f1', keys: ['creatinina', 'ureia', 'uréia', 'acido urico', 'ácido úrico', 'tfg', 'egfr', 'depura', 'clearance', 'cistatina'] },
-  { key: 'horm', cat: 'Hormônios', emoji: '⚗️', color: '#0891b2', keys: ['tsh', 't4 livre', 't3 livre', 'tiroxina', 'triiodo', 'tireotropina', 'tireo', 'paratorm', 'testosterona', 'cortisol', 'prolactina', 'estradiol', 'androst', 'dhea', 'progester', 'hormônio', 'hormonio'] },
-  { key: 'card', cat: 'Marcadores Cardíacos', emoji: '❤️', color: '#dc2626', keys: ['troponina', 'creatino quinase', 'ck-mb', 'ck mb', 'ckmb', 'ldh', 'desidrogenase', 'bnp', 'pro-bnp', 'mioglo'] },
-  { key: 'elet', cat: 'Eletrólitos e Minerais', emoji: '⚡', color: '#0d9488', keys: ['sodio', 'sódio', 'potassio', 'potássio', 'calcio', 'cálcio', 'magnesio', 'magnésio', 'cloro', 'cloret', 'fosforo', 'fósforo'] },
-  { key: 'infl', cat: 'Inflamação e Ferro', emoji: '🛡️', color: '#ea580c', keys: ['pcr', 'vhs', 'proteina c reativa', 'proteína c reativa', 'ferritina', 'ferro', 'saturacao', 'saturação', 'transferr', 'tibc', 'uibc'] },
-  { key: 'coag', cat: 'Coagulação', emoji: '🩹', color: '#9333ea', keys: ['protrombina', 'inr', 'ttpa', 'fibrinogen', 'fibrinogên', 'tromboplastina', 'tempo de tromb', 'coagul'] },
-  { key: 'vita', cat: 'Vitaminas e Ácido Fólico', emoji: '💊', color: '#2563eb', keys: ['vitamina', 'acido folico', 'ácido fólico', 'folato', 'homociste'] },
-  { key: 'urina', cat: 'Urina (EAS)', emoji: '🚽', color: '#0ea5e9', keys: ['urina', 'urocultura', 'elementos anormais', 'fita reativa', 'sumario de urina'] },
-  { key: 'image', cat: 'Imagem', emoji: '🩻', color: '#475569', keys: [] },
-  { key: 'other', cat: 'Outros exames', emoji: '📋', color: '#64748b', keys: [] },
+/** Agrupamento por categoria médica (estilo laudo: Hemograma, Função Hepática, etc.)
+ *  Ícones MUI (component refs — renderizar como <Icon sx/>): auditoria item 16 — emoji como
+ *  sistema de ícone era inconsistente com o resto (🍩 p/ glicemia era o pior caso). */
+import type { SvgIconComponent } from '@mui/icons-material';
+import WaterDropIcon from '@mui/icons-material/WaterDrop';
+import BloodTypeIcon from '@mui/icons-material/BloodType';
+import GrainIcon from '@mui/icons-material/Grain';
+import HealingIcon from '@mui/icons-material/Healing';
+import FilterAltIcon from '@mui/icons-material/FilterAlt';
+import ScienceIcon from '@mui/icons-material/Science';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import BoltIcon from '@mui/icons-material/Bolt';
+import ShieldIcon from '@mui/icons-material/Shield';
+import TimerIcon from '@mui/icons-material/Timer';
+import MedicationIcon from '@mui/icons-material/Medication';
+import OpacityIcon from '@mui/icons-material/Opacity';
+import ImageIcon from '@mui/icons-material/Image';
+import ListAltIcon from '@mui/icons-material/ListAlt';
+
+export const CATS: { key: string; cat: string; emoji: string; icon: SvgIconComponent; color: string; keys: string[] }[] = [
+  { key: 'glic', cat: 'Glicemia e Diabetes', emoji: '🍩', icon: WaterDropIcon, color: '#db2777', keys: ['glicose', 'glicemi', 'glicosilada', 'glicosada', 'hba1c', 'insulina', 'homa', 'frutosam'] },
+  { key: 'hemo', cat: 'Hemograma', emoji: '🩸', icon: BloodTypeIcon, color: '#ef4444', keys: ['hemograma', 'hemogram', 'leucograma', 'eritrograma', 'hemoglo', 'hematoc', 'eritroc', 'eritróc', 'leucoc', 'leucóc', 'plaque', 'vcm', 'hcm', 'chcm', 'rdw', 'neutro', 'linfoc', 'linfóc', 'monoc', 'eosinofi', 'basofi', 'hemácia', 'hemacia', 'reticuloc', 'vpm', 'cgm', 'rhc'] },
+  { key: 'lipi', cat: 'Lipídios e Colesterol', emoji: '🧈', icon: GrainIcon, color: '#d97706', keys: ['colesterol', 'perfil lipidico', 'lipidico', 'lipidi', 'ldl', 'hdl', 'vldl', 'triglic', 'apolipo', 'castelli', 'nao-hdl', 'não-hdl'] },
+  { key: 'hepa', cat: 'Função Hepática', emoji: '🫀', icon: HealingIcon, color: '#16a34a', keys: ['tgo', 'tgp', 'ast', 'alt', 'gama-gt', 'gama gt', 'ggt', 'gamagt', 'fosfatase alcalin', 'bilirrub', 'transamin', 'albumina'] },
+  { key: 'renal', cat: 'Função Renal', emoji: '🫘', icon: FilterAltIcon, color: '#6366f1', keys: ['creatinina', 'ureia', 'uréia', 'acido urico', 'ácido úrico', 'tfg', 'egfr', 'depura', 'clearance', 'cistatina'] },
+  { key: 'horm', cat: 'Hormônios', emoji: '⚗️', icon: ScienceIcon, color: '#0891b2', keys: ['tsh', 't4 livre', 't3 livre', 'tiroxina', 'triiodo', 'tireotropina', 'tireo', 'paratorm', 'testosterona', 'cortisol', 'prolactina', 'estradiol', 'androst', 'dhea', 'progester', 'hormônio', 'hormonio'] },
+  { key: 'card', cat: 'Marcadores Cardíacos', emoji: '❤️', icon: FavoriteIcon, color: '#dc2626', keys: ['troponina', 'creatino quinase', 'ck-mb', 'ck mb', 'ckmb', 'ldh', 'desidrogenase', 'bnp', 'pro-bnp', 'mioglo'] },
+  { key: 'elet', cat: 'Eletrólitos e Minerais', emoji: '⚡', icon: BoltIcon, color: '#0d9488', keys: ['sodio', 'sódio', 'potassio', 'potássio', 'calcio', 'cálcio', 'magnesio', 'magnésio', 'cloro', 'cloret', 'fosforo', 'fósforo'] },
+  { key: 'infl', cat: 'Inflamação e Ferro', emoji: '🛡️', icon: ShieldIcon, color: '#ea580c', keys: ['pcr', 'vhs', 'proteina c reativa', 'proteína c reativa', 'ferritina', 'ferro', 'saturacao', 'saturação', 'transferr', 'tibc', 'uibc'] },
+  { key: 'coag', cat: 'Coagulação', emoji: '🩹', icon: TimerIcon, color: '#9333ea', keys: ['protrombina', 'inr', 'ttpa', 'fibrinogen', 'fibrinogên', 'tromboplastina', 'tempo de tromb', 'coagul'] },
+  { key: 'vita', cat: 'Vitaminas e Ácido Fólico', emoji: '💊', icon: MedicationIcon, color: '#2563eb', keys: ['vitamina', 'acido folico', 'ácido fólico', 'folato', 'homociste'] },
+  { key: 'urina', cat: 'Urina (EAS)', emoji: '🚽', icon: OpacityIcon, color: '#0ea5e9', keys: ['urina', 'urocultura', 'elementos anormais', 'fita reativa', 'sumario de urina'] },
+  { key: 'image', cat: 'Imagem', emoji: '🩻', icon: ImageIcon, color: '#475569', keys: [] },
+  { key: 'other', cat: 'Outros exames', emoji: '📋', icon: ListAltIcon, color: '#64748b', keys: [] },
 ];
 
 /** Normaliza p/ casar sem acento (convenção do projeto: patterns SEM acento). */

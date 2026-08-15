@@ -25,4 +25,8 @@
         <!-- Logo no splash (Android 12+ recorta em máscara circular) -->
         <item name="windowSplashScreenAnimatedIcon">@drawable/splash</item>
     </style>
+
+    <!-- Strings dos atalhos estáticos (evita hardcode no XML de shortcuts) -->
+    <string name="shortcut_emergency">Cartão de emergência</string>
+    <string name="shortcut_emergency_long">Abrir cartão de emergência</string>
 </resources>

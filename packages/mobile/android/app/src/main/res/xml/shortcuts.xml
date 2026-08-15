@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Atalhos estáticos do app (long-press no ícone). Auditoria item 19: emergência a 1 toque
+     da tela inicial — o cartão fica a 3 navegações de profundidade dentro do app. -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="emergency_card"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_emergency"
+        android:shortcutLongLabel="@string/shortcut_emergency_long">
+        <intent
+            android:action="com.janocaminho.drexame.OPEN_EMERGENCY"
+            android:targetPackage="com.janocaminho.drexame"
+            android:targetClass="com.janocaminho.drexame.MainActivity" />
+    </shortcut>
+</shortcuts>

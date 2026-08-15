@@ -18,8 +18,11 @@ import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
 import { PageSkeleton } from '../components/PageSkeleton';
 import EventIcon from '@mui/icons-material/Event';
+import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
+import VaccinesIcon from '@mui/icons-material/Vaccines';
 
-interface Event { id: string; date: string | null; title: string; kind: string; abnormalCount: number; itemCount: number }
+type EvType = 'exam' | 'medicao' | 'vacina';
+interface Event { id: string; date: string | null; title: string; kind: string; abnormalCount: number; itemCount: number; type: EvType }
 
 export const TimelinePage = () => {
   const [pid] = useSelectedPatient();
@@ -27,6 +30,7 @@ export const TimelinePage = () => {
   const premium = usePremium();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const [typeFilter, setTypeFilter] = useState<'all' | EvType>('all');
 
   useEffect(() => {
     if (!pid) return;
@@ -40,18 +44,32 @@ export const TimelinePage = () => {
         .then((rows: any[]) => (Array.isArray(rows) ? rows.filter((e) => !(e?.rawExtraction?.identityMatch?.method === 'cpf' && e?.rawExtraction?.identityMatch?.cpfMatch === false)) : []))
         .catch(() => []),
       fetch(`${API_URL}/items/abnormal?patientId=${pid}`, { headers: h }).then((r) => r.json()).catch(() => ({ items: [] })),
-    ]).then(([rows, abn]: any[]) => {
+      // JORNADA COMPLETA (auditoria item 17): medições e vacinas entram na linha do tempo.
+      fetch(`${API_URL}/measurements?_start=0&_end=50&patientId=${pid}`, { headers: h }).then((r) => (r.ok ? r.json() : [])).catch(() => []),
+      fetch(`${API_URL}/vaccines?_start=0&_end=50&patientId=${pid}`, { headers: h }).then((r) => (r.ok ? r.json() : [])).catch(() => []),
+    ]).then(([rows, abn, meas, vax]: any[]) => {
       const byExam: Record<string, number> = {};
       for (const it of abn?.items ?? []) byExam[it.examId] = (byExam[it.examId] ?? 0) + 1;
-      setEvents((rows as any[]).filter((e: any) => e.status === 'EXTRACTED').map((e: any) => ({
+      const examEvents: Event[] = (rows as any[]).filter((e: any) => e.status === 'EXTRACTED').map((e: any) => ({
         id: e.id, date: e.performedAt, title: e.title, kind: e.kind,
         abnormalCount: byExam[e.id] ?? 0,
         itemCount: e._count?.items ?? 0,
-      })));
+        type: 'exam' as const,
+      }));
+      const measEvents: Event[] = (Array.isArray(meas) ? meas : []).map((m: any) => ({
+        id: `m-${m.id}`, date: m.measuredAt, title: `${m.type}: ${m.value}${m.unit ? ` ${m.unit}` : ''}`, kind: 'MEASUREMENT',
+        abnormalCount: 0, itemCount: 1, type: 'medicao' as const,
+      }));
+      const vaxEvents: Event[] = (Array.isArray(vax) ? vax : []).map((v: any) => ({
+        id: `v-${v.id}`, date: v.dateApplied, title: `Vacina: ${v.name}`, kind: 'VACCINE',
+        abnormalCount: 0, itemCount: 1, type: 'vacina' as const,
+      }));
+      setEvents([...examEvents, ...measEvents, ...vaxEvents]);
     }).finally(() => setLoading(false));
   }, [pid]);
 
-  const sorted = [...events].sort((a, b) => new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime());
+  const counts = { exam: events.filter((e) => e.type === 'exam').length, medicao: events.filter((e) => e.type === 'medicao').length, vacina: events.filter((e) => e.type === 'vacina').length };
+  const sorted = [...events].filter((e) => typeFilter === 'all' || e.type === typeFilter).sort((a, b) => new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime());
   const groups = groupByYear(sorted, (e) => e.date);
   const latestYear = groups[0]?.year ?? null;
   const totalAbnormal = events.reduce((s, e) => s + e.abnormalCount, 0);
@@ -71,14 +89,15 @@ export const TimelinePage = () => {
 
   const renderEvent = (e: Event, i: number) => {
     const isImaging = e.kind === 'IMAGING';
-    const hasIssues = e.abnormalCount > 0;
-    const dotColor = isImaging ? '#0ea5e9' : hasIssues ? '#ef4444' : '#059669';
+    const hasIssues = e.type === 'exam' && e.abnormalCount > 0;
+    const dotColor = e.type === 'vacina' ? '#8b5cf6' : e.type === 'medicao' ? '#f59e0b' : isImaging ? '#0ea5e9' : hasIssues ? '#ef4444' : '#059669';
+    const clickable = e.type === 'exam'; // medições/vacinas: informativas (popup é de exame)
     return (
       <Box key={i} sx={{ position: 'relative' }}>
         <Box sx={{ position: 'absolute', left: -3.5, top: 14, width: 22, height: 22, borderRadius: '50%', bgcolor: dotColor, border: '3px solid #fff', boxShadow: '0 2px 6px rgba(0,0,0,.2)', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          {isImaging ? <LocalHospitalIcon sx={{ color: '#fff', fontSize: 12 }} /> : hasIssues ? <TrendingDownIcon sx={{ color: '#fff', fontSize: 12 }} /> : <CheckCircleIcon sx={{ color: '#fff', fontSize: 12 }} />}
+          {e.type === 'vacina' ? <VaccinesIcon sx={{ color: '#fff', fontSize: 12 }} /> : e.type === 'medicao' ? <MonitorHeartIcon sx={{ color: '#fff', fontSize: 12 }} /> : isImaging ? <LocalHospitalIcon sx={{ color: '#fff', fontSize: 12 }} /> : hasIssues ? <TrendingDownIcon sx={{ color: '#fff', fontSize: 12 }} /> : <CheckCircleIcon sx={{ color: '#fff', fontSize: 12 }} />}
         </Box>
-        <Card onClick={() => openExam(e)} sx={{ borderRadius: '12px', ml: 1.5, borderLeft: `5px solid ${dotColor}`, transition: 'transform .15s', cursor: 'pointer', '&:hover': { transform: 'translateX(2px)' } }}>
+        <Card onClick={clickable ? () => openExam(e) : undefined} sx={{ borderRadius: '12px', ml: 1.5, borderLeft: `5px solid ${dotColor}`, transition: 'transform .15s', cursor: clickable ? 'pointer' : 'default', '&:hover': clickable ? { transform: 'translateX(2px)' } : undefined }}>
           <CardContent sx={{ pb: '12px !important' }}>
             <Stack direction="row" justifyContent="space-between" alignItems="flex-start" flexWrap="wrap" gap={1}>
               <Box>
@@ -88,18 +107,24 @@ export const TimelinePage = () => {
                 </Typography>
               </Box>
               <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap">
-                {isImaging
-                  ? <Chip size="small" sx={{ bgcolor: '#0ea5e915', color: '#0ea5e9' }} icon={<ScienceIcon sx={{ fontSize: 14 }} />} label="Imagem" />
-                  : <Chip size="small" sx={{ bgcolor: '#2a93b815', color: '#2a93b8' }} label="Laboratorial" />}
+                {e.type === 'vacina'
+                  ? <Chip size="small" sx={{ bgcolor: '#8b5cf615', color: '#8b5cf6' }} icon={<VaccinesIcon sx={{ fontSize: 14 }} />} label="Vacina" />
+                  : e.type === 'medicao'
+                    ? <Chip size="small" sx={{ bgcolor: '#f59e0b15', color: '#b45309' }} icon={<MonitorHeartIcon sx={{ fontSize: 14 }} />} label="Medição" />
+                    : isImaging
+                      ? <Chip size="small" sx={{ bgcolor: '#0ea5e915', color: '#0ea5e9' }} icon={<ScienceIcon sx={{ fontSize: 14 }} />} label="Imagem" />
+                      : <Chip size="small" sx={{ bgcolor: '#2a93b815', color: '#2a93b8' }} label="Laboratorial" />}
               </Stack>
             </Stack>
-            <Box sx={{ mt: 1 }}>
-              {hasIssues ? (
-                <Chip size="small" color="error" variant="outlined" label={`⚠️ ${e.abnormalCount} valor(es) fora da faixa`} />
-              ) : (
-                <Chip size="small" color="success" variant="outlined" icon={<CheckCircleIcon sx={{ fontSize: 16 }} />} label="Tudo dentro da faixa" />
-              )}
-            </Box>
+            {e.type === 'exam' && (
+              <Box sx={{ mt: 1 }}>
+                {hasIssues ? (
+                  <Chip size="small" color="error" variant="outlined" label={`⚠️ ${e.abnormalCount} valor(es) fora da faixa`} />
+                ) : (
+                  <Chip size="small" color="success" variant="outlined" icon={<CheckCircleIcon sx={{ fontSize: 16 }} />} label="Tudo dentro da faixa" />
+                )}
+              </Box>
+            )}
           </CardContent>
         </Card>
       </Box>
@@ -112,8 +137,15 @@ export const TimelinePage = () => {
       <PageHeader
         icon={<EventIcon />}
         title="Sua jornada de saúde"
-        subtitle={`${events.length} ${events.length === 1 ? 'exame' : 'exames'} ao longo do tempo • ${totalAbnormal > 0 ? `${totalAbnormal} ${totalAbnormal === 1 ? 'sinal' : 'sinais'} de atenção no total` : 'sem alterações registradas'}. Toque num exame para abri-lo.`}
+        subtitle={`${counts.exam} ${counts.exam === 1 ? 'exame' : 'exames'} • ${counts.medicao} ${counts.medicao === 1 ? 'medição' : 'medições'} • ${counts.vacina} ${counts.vacina === 1 ? 'vacina' : 'vacinas'} • ${totalAbnormal > 0 ? `${totalAbnormal} ${totalAbnormal === 1 ? 'sinal' : 'sinais'} de atenção` : 'sem alterações'}. Toque num exame para abri-lo.`}
       />
+
+      {/* Filtro por tipo de evento (auditoria item 17: narrativa com exames + medições + vacinas) */}
+      <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mb: 2 }}>
+        {([['all', 'Tudo'], ['exam', '🧪 Exames'], ['medicao', '💓 Medições'], ['vacina', '💉 Vacinas']] as const).map(([v, l]) => (
+          <Chip key={v} size="small" label={l} onClick={() => setTypeFilter(v)} color={typeFilter === v ? 'primary' : 'default'} variant={typeFilter === v ? 'filled' : 'outlined'} sx={{ fontWeight: 700, borderRadius: '999px' }} />
+        ))}
+      </Stack>
 
       {loading ? (
         <PageSkeleton cards={4} />

@@ -64,7 +64,7 @@ export const DoctorExamDetail = ({ patientId, examId, token, onBack }: { patient
   const findings = exam.kind === 'IMAGING' && exam.rawExtraction?.findings ? exam.rawExtraction.findings : null;
   // Caption de tipo/categoria sob o título (era 3 chips separados — ruído).
   const kindStr = exam.kind === 'IMAGING' ? 'Imagem' : exam.kind === 'LAB_PANEL' ? 'Laboratorial' : '';
-  const catStr = cc.key !== 'image' && cc.key !== 'other' ? `${cc.emoji} ${cc.cat}` : '';
+  const catStr = cc.key !== 'image' && cc.key !== 'other' ? cc.cat : '';
   const subtitle = [kindStr, catStr].filter(Boolean).join(' · ');
 
   return (
