@@ -94,7 +94,12 @@ export const MobileBottomNav = () => {
   return (
     <Box ref={navRef} component="nav" sx={{
       position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1100, display: 'flex', justifyContent: 'space-around',
-      bgcolor: isDark ? 'rgba(26,36,36,.97)' : 'rgba(255,255,255,.97)', backdropFilter: 'blur(16px)', borderTop: '1px solid', borderColor: 'divider',
+      // FROSTED GLASS (mesma linguagem do AppBar): translúcido + blur alto + saturate — o
+      // conteúdo passa POR TRÁS do rodapé, look "app grande" (antes: .97 quase opaco).
+      bgcolor: isDark ? 'rgba(22,31,31,.80)' : 'rgba(255,255,255,.80)',
+      backdropFilter: 'blur(20px) saturate(160%)',
+      '-webkit-backdrop-filter': 'blur(20px) saturate(160%)',
+      borderTop: '1px solid', borderColor: 'divider',
       pb: 'env(safe-area-inset-bottom)', boxShadow: isDark ? '0 -2px 16px rgba(0,0,0,.5)' : '0 -2px 12px rgba(0,0,0,.04)',
     }}>
       {NAV.map((it) => item(it, undefined, active(it.to)))}

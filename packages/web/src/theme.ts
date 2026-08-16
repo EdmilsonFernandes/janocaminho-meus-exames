@@ -129,6 +129,20 @@ export const buildTheme = (mode: ThemeMode): Theme => {
           // Focus ring teal global (a11y WCAG 2.4.7) — antes: zero focus rings visíveis (MUI default é azul).
           '*:focus-visible': { outline: `2px solid ${isDark ? '#5fc9c3' : '#178f89'}`, outlineOffset: 2 },
           'button:focus-visible, a:focus-visible, [role="button"]:focus-visible': { outlineOffset: 3 },
+          // SUPERFÍCIES DO NAVEGADOR (craft-floor): as peças que não desenhamos ainda carregam o
+          // design. Seleção teal, scrollbar fina e discreta, sem flash azul no toque — o sinal
+          // barato de "app grande" (iFood-nível) que quase ninguém tematiza.
+          '::selection': { background: isDark ? 'rgba(32,178,170,.35)' : 'rgba(32,178,170,.22)', color: 'inherit' },
+          '*::-webkit-scrollbar': { width: 10, height: 10 },
+          '*::-webkit-scrollbar-track': { background: 'transparent' },
+          '*::-webkit-scrollbar-thumb': {
+            background: isDark ? 'rgba(148,163,184,.25)' : 'rgba(100,116,139,.22)',
+            borderRadius: 999,
+            border: '2px solid transparent',
+            backgroundClip: 'content-box',
+            '&:hover': { background: isDark ? 'rgba(148,163,184,.4)' : 'rgba(23,143,137,.38)', backgroundClip: 'content-box' },
+          },
+          'html': { '-webkit-tap-highlight-color': 'transparent', scrollBehavior: 'smooth' },
         },
       },
       MuiDrawer: {
@@ -136,7 +150,7 @@ export const buildTheme = (mode: ThemeMode): Theme => {
           paper: {
             background: isDark
               ? 'linear-gradient(180deg,#1a2424 0%, #121818 100%)'
-              : 'linear-gradient(180deg,#ffffff 0%, #f1f9f8 100%)',
+              : '#ffffff',
             borderRight: `1px solid ${surfaces.divider}`,
             width: 264,
           },
@@ -179,8 +193,11 @@ export const buildTheme = (mode: ThemeMode): Theme => {
             position: 'sticky',
             top: 0,
             paddingTop: 'env(safe-area-inset-top)',
-            background: isDark ? 'rgba(18,24,24,0.92)' : 'rgba(255,255,255,0.92)',
-            backdropFilter: 'blur(12px)',
+            background: isDark ? 'rgba(15,22,22,0.68)' : 'rgba(255,255,255,0.72)',
+            // FROSTED GLASS real (direção "vidro clean / app grande"): blur alto + saturate
+            // realça o que passa por trás — era blur(12) opaco .92, parecia só cinza claro.
+            backdropFilter: 'blur(18px) saturate(160%)',
+            '-webkit-backdrop-filter': 'blur(18px) saturate(160%)',
             borderBottom: `1px solid ${surfaces.divider}`,
             boxShadow: 'none',
             color: surfaces.text.primary,
