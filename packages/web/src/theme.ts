@@ -203,6 +203,21 @@ export const buildTheme = (mode: ThemeMode): Theme => {
           },
         },
       },
+      // TOUCH (craft-floor): icon-buttons pequenos (28px) ganham hitbox fantasma de ~44px em
+      // telas touch — ::after invisível estica a área de toque SEM mudar o visual/composição.
+      // Resolve de uma vez os "?" de explicação (alterados/relatório), unfocus etc.
+      MuiIconButton: {
+        styleOverrides: {
+          root: {
+            '@media (hover: none)': {
+              '&.MuiIconButton-sizeSmall': {
+                position: 'relative',
+                '&::after': { content: '""', position: 'absolute', inset: -8, borderRadius: '50%' },
+              },
+            },
+          },
+        },
+      },
       MuiMenuItem: { styleOverrides: { root: { borderRadius: '12px', margin: '2px 8px' } } },
       MuiTableCell: {
         styleOverrides: {

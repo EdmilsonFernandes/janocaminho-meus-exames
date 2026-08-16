@@ -138,7 +138,7 @@ export const TrendsPage = () => {
               {multi.slice(0, 10).map((n) => (
                 <Chip key={n.nameCanonical} label={prettyName(n.nameCanonical)} onClick={() => setSel(n.nameCanonical)}
                   color={sel === n.nameCanonical ? 'primary' : 'default'} size="small" title={prettyName(n.nameCanonical)}
-                  sx={{ fontWeight: 700, borderRadius: '999px', maxWidth: 165, '& .MuiChip-label': { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }, '&.MuiChip-colorPrimary': { bgcolor: '#20b2aa', color: '#fff' } }} />
+                  sx={{ height: 36, fontWeight: 700, borderRadius: '999px', maxWidth: 165, '& .MuiChip-label': { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }, '&.MuiChip-colorPrimary': { bgcolor: '#20b2aa', color: '#fff' } }} />
               ))}
             </Stack>
           )}

@@ -845,21 +845,24 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           const hour = new Date().getHours();
           const greet = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite';
           const today = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
-          const row = (p: any, statusLine: ReactNode, onClick: () => void) => (
+          const row = (p: any, statusLine: ReactNode, onClick: () => void) => {
+            const who = [p.age != null ? `${p.age}a` : null, p.sex === 'female' ? 'F' : p.sex === 'male' ? 'M' : null].filter(Boolean).join(' · ');
+            return (
             <Card key={p.shareId} onClick={onClick} sx={{ borderRadius: '12px', cursor: 'pointer', transition: 'all .15s', boxShadow: '0 1px 3px rgba(0,0,0,.04)', '&:hover': { boxShadow: '0 4px 16px rgba(0,0,0,.08)', transform: 'translateY(-1px)' } }}>
               <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, '&:last-child': { pb: 1.5 } }}>
                 <Avatar src={p.patient?.id ? photoUrlFor(p.patient.id) : undefined} sx={{ bgcolor: 'rgba(32,178,170,.08)', color: 'primary.dark', fontWeight: 800, width: 44, height: 44, flexShrink: 0 }}>{p.patient?.fullName?.charAt(0)}</Avatar>
                 <Box sx={{ flex: 1, minWidth: 0 }}>
                   <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 14, color: 'text.primary', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.patient?.fullName}</Typography>
                   <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {[p.age != null ? `${p.age}a` : null, p.sex === 'female' ? 'F' : p.sex === 'male' ? 'M' : null].filter(Boolean).join(' · ')}
-                    {statusLine ? <> · {statusLine}</> : null}
+                    {who}
+                    {statusLine ? <>{who ? ' · ' : ''}{statusLine}</> : null}
                   </Typography>
                 </Box>
                 <ChevronRightIcon sx={{ color: 'text.disabled', fontSize: 20, flexShrink: 0 }} />
               </CardContent>
             </Card>
-          );
+            );
+          };
           return (
             <Stack spacing={2}>
               {/* HERO: saudação + manchete clínica do dia */}

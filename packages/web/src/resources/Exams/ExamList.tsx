@@ -341,8 +341,8 @@ const ExamCards = () => {
             </Stack>
             {presentCats.length > 1 && (
               <Stack direction="row" spacing={0.75} sx={{ overflowX: 'auto', flexWrap: 'nowrap', pb: 0.25, mx: -0.25, px: 0.25, '&::-webkit-scrollbar': { display: 'none' } }}>
-                <Chip size="small" label={translate('exams.all', { count: extracted.length })} onClick={() => setCat('all')} sx={{ height: 26, flexShrink: 0, fontWeight: 700, whiteSpace: 'nowrap', bgcolor: cat === 'all' ? '#0f3d3a' : '#0f3d3a14', color: cat === 'all' ? '#fff' : '#0f3d3a' }} />
-                {presentCats.map((c) => (<Chip key={c.key} size="small" icon={<Box component={c.icon} sx={{ fontSize: 15, color: `${cat === c.key ? '#fff' : c.color} !important`, ml: 0.5, mr: -0.5 }} />} label={`${c.cat} (${catCounts[c.key]})`} onClick={() => setCat(cat === c.key ? 'all' : c.key)} sx={{ height: 26, flexShrink: 0, fontWeight: 700, whiteSpace: 'nowrap', bgcolor: cat === c.key ? c.color : c.color + '1a', color: cat === c.key ? '#fff' : c.color, border: `1px solid ${cat === c.key ? c.color : c.color + '40'}` }} />))}
+                <Chip size="small" label={translate('exams.all', { count: extracted.length })} onClick={() => setCat('all')} sx={{ height: 32, flexShrink: 0, fontWeight: 700, whiteSpace: 'nowrap', bgcolor: cat === 'all' ? '#0f3d3a' : '#0f3d3a14', color: cat === 'all' ? '#fff' : '#0f3d3a' }} />
+                {presentCats.map((c) => (<Chip key={c.key} size="small" icon={<Box component={c.icon} sx={{ fontSize: 15, color: `${cat === c.key ? '#fff' : c.color} !important`, ml: 0.5, mr: -0.5 }} />} label={`${c.cat} (${catCounts[c.key]})`} onClick={() => setCat(cat === c.key ? 'all' : c.key)} sx={{ height: 32, flexShrink: 0, fontWeight: 700, whiteSpace: 'nowrap', bgcolor: cat === c.key ? c.color : c.color + '1a', color: cat === c.key ? '#fff' : c.color, border: `1px solid ${cat === c.key ? c.color : c.color + '40'}` }} />))}
               </Stack>
             )}
           </Stack>
@@ -432,21 +432,21 @@ const ExamCards = () => {
         />
         <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ flexWrap: 'wrap', rowGap: 1 }}>
           <ToggleButtonGroup exclusive size="small" value={sfilter} onChange={(_, v) => { if (v) setSfilter(v); }}>
-            <ToggleButton value="all" sx={{ px: 1.25, py: 0.25, textTransform: 'none', fontWeight: 700 }}>Todos</ToggleButton>
-            <ToggleButton value="altered" sx={{ px: 1.25, py: 0.25, textTransform: 'none', fontWeight: 700 }}>Alterados</ToggleButton>
-            <ToggleButton value="recent" sx={{ px: 1.25, py: 0.25, textTransform: 'none', fontWeight: 700 }}>Recentes</ToggleButton>
+            <ToggleButton value="all" sx={{ px: 1.5, py: 0.6, textTransform: 'none', fontWeight: 700 }}>Todos</ToggleButton>
+            <ToggleButton value="altered" sx={{ px: 1.5, py: 0.6, textTransform: 'none', fontWeight: 700 }}>Alterados</ToggleButton>
+            <ToggleButton value="recent" sx={{ px: 1.5, py: 0.6, textTransform: 'none', fontWeight: 700 }}>Recentes</ToggleButton>
           </ToggleButtonGroup>
           <ToggleButtonGroup exclusive size="small" value={view} onChange={(_, v) => { if (v) setView(v); }}>
-            <ToggleButton value="date" sx={{ px: 1.25, py: 0.25, textTransform: 'none', fontWeight: 700 }}>{translate('exams.by_date')}</ToggleButton>
-            <ToggleButton value="category" sx={{ px: 1.25, py: 0.25, textTransform: 'none', fontWeight: 700 }}>{translate('exams.by_category')}</ToggleButton>
+            <ToggleButton value="date" sx={{ px: 1.5, py: 0.6, textTransform: 'none', fontWeight: 700 }}>{translate('exams.by_date')}</ToggleButton>
+            <ToggleButton value="category" sx={{ px: 1.5, py: 0.6, textTransform: 'none', fontWeight: 700 }}>{translate('exams.by_category')}</ToggleButton>
           </ToggleButtonGroup>
         </Stack>
         {/* Chips de categoria — só aparecem se houver +1 categoria nos exames prontos */}
         {presentCats.length > 1 && (
           <Stack direction="row" spacing={0.75} sx={{ overflowX: 'auto', flexWrap: 'nowrap', pb: 0.25, mx: -0.25, px: 0.25, '&::-webkit-scrollbar': { display: 'none' } }}>
-            <Chip size="small" label={translate('exams.all', { count: extracted.length })} onClick={() => setCat('all')} sx={{ height: 26, flexShrink: 0, fontWeight: 700, whiteSpace: 'nowrap', bgcolor: cat === 'all' ? '#0f3d3a' : '#0f3d3a14', color: cat === 'all' ? '#fff' : '#0f3d3a' }} />
+            <Chip size="small" label={translate('exams.all', { count: extracted.length })} onClick={() => setCat('all')} sx={{ height: 32, flexShrink: 0, fontWeight: 700, whiteSpace: 'nowrap', bgcolor: cat === 'all' ? '#0f3d3a' : '#0f3d3a14', color: cat === 'all' ? '#fff' : '#0f3d3a' }} />
             {presentCats.map((c) => (
-              <Chip key={c.key} size="small" icon={<Box component={c.icon} sx={{ fontSize: 15, color: `${cat === c.key ? '#fff' : c.color} !important`, ml: 0.5, mr: -0.5 }} />} label={`${c.cat} (${catCounts[c.key]})`} onClick={() => setCat(cat === c.key ? 'all' : c.key)} sx={{ height: 26, flexShrink: 0, fontWeight: 700, whiteSpace: 'nowrap', bgcolor: cat === c.key ? c.color : c.color + '1a', color: cat === c.key ? '#fff' : c.color, border: `1px solid ${cat === c.key ? c.color : c.color + '40'}` }} />
+              <Chip key={c.key} size="small" icon={<Box component={c.icon} sx={{ fontSize: 15, color: `${cat === c.key ? '#fff' : c.color} !important`, ml: 0.5, mr: -0.5 }} />} label={`${c.cat} (${catCounts[c.key]})`} onClick={() => setCat(cat === c.key ? 'all' : c.key)} sx={{ height: 32, flexShrink: 0, fontWeight: 700, whiteSpace: 'nowrap', bgcolor: cat === c.key ? c.color : c.color + '1a', color: cat === c.key ? '#fff' : c.color, border: `1px solid ${cat === c.key ? c.color : c.color + '40'}` }} />
             ))}
           </Stack>
         )}

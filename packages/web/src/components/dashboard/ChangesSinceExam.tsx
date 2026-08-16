@@ -73,7 +73,7 @@ export const ChangesSinceExam = ({
         ))}
       </Stack>
       <Box sx={{ mt: 1.5 }}>
-        <GradientButton variant="text" onClick={onView} endIcon={<ArrowForwardIcon />} sx={{ p: 0, textTransform: 'none', fontWeight: 700 }}>{ctaLabel}</GradientButton>
+        <GradientButton variant="text" onClick={onView} endIcon={<ArrowForwardIcon />} sx={{ p: 0, px: 0.5, minHeight: 40, textTransform: 'none', fontWeight: 700 }}>{ctaLabel}</GradientButton>
       </Box>
     </AppCard>
   );
