@@ -49,7 +49,7 @@ export class AnthropicAdapter implements LlmProvider {
       max_tokens: req.maxTokens,
       ...(systemParam ? { system: systemParam } : {}),
       messages: req.messages as any,
-    } as any);
+    } as any, { signal: req.signal });
     const finalPromise = stream.finalMessage().then((f): LlmResult => {
       const text = (f.content as any[]).filter((b) => b.type === 'text').map((b) => b.text).join('');
       return { text, usage: f.usage, model: f.model, stopReason: f.stop_reason ? String(f.stop_reason) : undefined };

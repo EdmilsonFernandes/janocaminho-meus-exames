@@ -43,7 +43,7 @@ export class GeminiAdapter implements LlmProvider {
       generationConfig: { maxOutputTokens: req.maxTokens },
     };
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${encodeURIComponent(this.cfg.apiKey)}`;
-    const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: req.signal });
     if (!r.ok || !r.body) {
       const detail = await r.text().catch(() => '');
       throw new Error(`Gemini ${r.status}: ${detail.slice(0, 300)}`);

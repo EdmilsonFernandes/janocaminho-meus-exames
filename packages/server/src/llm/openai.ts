@@ -43,6 +43,7 @@ export class OpenAIAdapter implements LlmProvider {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${this.cfg.apiKey}` },
       body: JSON.stringify({ model, max_tokens: req.maxTokens, messages, stream: true, stream_options: { include_usage: true } }),
+      signal: req.signal,
     });
     if (!r.ok || !r.body) {
       const detail = await r.text().catch(() => '');

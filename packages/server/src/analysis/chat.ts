@@ -48,29 +48,56 @@ export async function streamChat(opts: {
   ];
 
   let full = '';
-  const s = await getLlm().stream({
-    model: getModel(),
-    maxTokens: 900,
-    system: [
-      HEALTH_SYSTEM,
-      contextText,
-      'ESTILO DO CHAT: responda APENAS o que foi perguntado, direto ao ponto. Resposta CURTA (30-80 palavras), português simples. SEM introduções, SEM repetir a pergunta ou contexto já dado, SEM tutoriais ou desvios. Só mencione um exame/valor se a pergunta for sobre ele (não liste por iniciativa própria). Destaque com **negrito** e listas (-) quando ajudar; NUNCA asteriscos crus. Se a pergunta assustar, acalme com FATOS do exame dele e oriente o médico.',
-    ],
-    messages,
-  });
+  // TIMEOUT DUPLA-GARANTIA (auditoria 2026-08-16): provider travado (relay engasga/modelo inválido)
+  // deixava o SSE aberto p/ sempre — cliente com dots infinitos, input travado e CRÉDITO debitado
+  // sem reembolso. Agora: 35s sem 1º token OU 120s total → aborta, avisa o cliente via SSE e
+  // lança (a rota reembolsa no catch). Mensagens parciais também reembolsam (pagou por resposta).
+  const ac = new AbortController();
+  let gotFirstToken = false;
+  const firstTokenTimer = setTimeout(() => { if (!gotFirstToken) ac.abort(new Error('llm_first_token_timeout')); }, 35_000);
+  const totalTimer = setTimeout(() => ac.abort(new Error('llm_total_timeout')), 120_000);
+  const failSse = (msg: string) => {
+    try {
+      res.write(`data: ${JSON.stringify({ type: 'error', message: msg })}\n\n`);
+      res.end();
+    } catch { /* cliente já foi embora */ }
+  };
+  try {
+    const s = await getLlm().stream({
+      model: getModel(),
+      maxTokens: 900,
+      signal: ac.signal,
+      system: [
+        HEALTH_SYSTEM,
+        contextText,
+        'ESTILO DO CHAT: responda APENAS o que foi perguntado, direto ao ponto. Resposta CURTA (30-80 palavras), português simples. SEM introduções, SEM repetir a pergunta ou contexto já dado, SEM tutoriais ou desvios. Só mencione um exame/valor se a pergunta for sobre ele (não liste por iniciativa própria). Destaque com **negrito** e listas (-) quando ajudar; NUNCA asteriscos crus. Se a pergunta assustar, acalme com FATOS do exame dele e oriente o médico.',
+      ],
+      messages,
+    });
 
-  s.onText((delta) => {
-    full += delta;
-    res.write(`data: ${JSON.stringify({ type: 'delta', delta })}\n\n`);
-  });
+    s.onText((delta) => {
+      if (!gotFirstToken) { gotFirstToken = true; clearTimeout(firstTokenTimer); }
+      full += delta;
+      res.write(`data: ${JSON.stringify({ type: 'delta', delta })}\n\n`);
+    });
 
-  const { usage, model } = await s.final();
-  const guarded = diagnosticGuard(full);
-  if (guarded.flagged) {
-    // envia o disclaimer extra como um delta final
-    res.write(`data: ${JSON.stringify({ type: 'disclaimer', delta: '\n\n*⚠️ Análise educativa — não substitui avaliação médica.*' })}\n\n`);
+    const { usage, model } = await s.final();
+    const guarded = diagnosticGuard(full);
+    if (guarded.flagged) {
+      // envia o disclaimer extra como um delta final
+      res.write(`data: ${JSON.stringify({ type: 'disclaimer', delta: '\n\n*⚠️ Análise educativa — não substitui avaliação médica.*' })}\n\n`);
+    }
+    res.write(`data: ${JSON.stringify({ type: 'done', usage, model })}\n\n`);
+    res.end();
+    return { text: guarded.text, model: model ?? getModel() ?? 'glm-4.6' };
+  } catch (e: any) {
+    const aborted = ac.signal.aborted || e?.name === 'AbortError';
+    failSse(aborted
+      ? 'A IA demorou demais para responder (tempo esgotado). Seu crédito foi devolvido — tente novamente.'
+      : 'A IA não respondeu agora. Seu crédito foi devolvido — tente novamente em instantes.');
+    throw e; // a ROTA reembolsa no catch em volta de streamChat
+  } finally {
+    clearTimeout(firstTokenTimer);
+    clearTimeout(totalTimer);
   }
-  res.write(`data: ${JSON.stringify({ type: 'done', usage, model })}\n\n`);
-  res.end();
-  return { text: guarded.text, model: model ?? getModel() ?? 'glm-4.6' };
 }

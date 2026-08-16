@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Box, Typography, Button, CircularProgress, Paper, Stack, IconButton, SwipeableDrawer, Drawer, ListItemButton, ListItemText, ListItemIcon, Menu, MenuItem, Badge } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
+import StopCircleIcon from '@mui/icons-material/StopCircle';
 import EditIcon from '@mui/icons-material/EditNote';
 import HistoryIcon from '@mui/icons-material/History';
 import AddIcon from '@mui/icons-material/Add';
@@ -99,8 +100,17 @@ export const ChatPage = () => {
   const [histOpen, setHistOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  // Abort da resposta em andamento (auditoria: provider travado = dots infinitos + input morto).
+  const abortRef = useRef<AbortController | null>(null);
 
   const [patientName, setPatientName] = useState('');
+
+  // Rota do chat marca o body: o widget de Libras (fixo bottom-left) sobe acima da BARRA DE
+  // INPUT (também fixa nesse canto) — sem isso, cobre o botão "+" de ações rápidas.
+  useEffect(() => {
+    document.body.classList.add('on-chat');
+    return () => { document.body.classList.remove('on-chat'); };
+  }, []);
 
   // Sempre abre nas OPÇÕES (quick actions), não no histórico. Histórico fica no ícone do relógio.
   // + busca o nome do PACIENTE SELECIONADO (não do titular) pra saudar/titular pelo nome certo
@@ -112,6 +122,24 @@ export const ChatPage = () => {
       .then((r) => (r.ok ? r.json() : []))
       .then((ps: any[]) => setPatientName(ps.find((x) => x.id === pid)?.fullName ?? ''))
       .catch(() => setPatientName(''));
+    // HIDRATA o histórico do SERVIDOR (aiAnalysis persiste todo turno): antes o histórico vivia
+    // SÓ em localStorage → troca de aparelho/limpeza de cache perdia tudo. Dedupa pela 1ª pergunta.
+    fetch(`${API_URL}/chat?patientId=${pid}`, { headers: apiHeaders() })
+      .then((r) => (r.ok ? r.json() : []))
+      .then((turns: { userMessage?: string; contentMd?: string }[]) => {
+        if (!Array.isArray(turns) || !turns.length) return;
+        const msgs: Msg[] = turns.flatMap((t) => [
+          ...(t.userMessage ? [{ role: 'user' as const, text: t.userMessage }] : []),
+          ...(t.contentMd ? [{ role: 'assistant' as const, text: t.contentMd }] : []),
+        ]);
+        if (!msgs.length) return;
+        setConvs((prev) => {
+          const knownFirst = new Set(prev.map((c) => c.messages[0]?.text));
+          if (knownFirst.has(msgs[0].text)) return prev;
+          return [...prev, { id: `server-${pid}`, title: 'Conversa anterior (outros dispositivos)', createdAt: isoNow(), updatedAt: isoNow(), messages: msgs }];
+        });
+      })
+      .catch(() => {});
   }, [pid]);
   const firstName = patientName.trim().split(/\s+/)[0];
   const cur = convs.find((c) => c.id === curId) ?? null;
@@ -142,11 +170,24 @@ export const ChatPage = () => {
     setConvs(work); setCurId(cid);
     const assistantIdx = baseMsgs.length - 1;
 
-    const rollback = () => { work = work.map((c) => c.id === cid ? { ...c, messages: c.messages.slice(0, -2) } : c); setConvs(work); if (pid) saveConvs(pid, work); };
+    // Rollback remove os 2 turnos da tentativa E a conversa se ela ficou VAZIA (era só dela) —
+    // antes sobrava um fantasma sem mensagens poluindo o histórico.
+    const rollback = () => {
+      work = work.map((c) => c.id === cid ? { ...c, messages: c.messages.slice(0, -2) } : c).filter((c) => c.messages.length > 0 || c.id !== cid);
+      setConvs(work); if (pid) saveConvs(pid, work);
+      if (curId === cid) setCurId(null);
+    };
     const persist = () => { if (pid) saveConvs(pid, work); };
 
     try {
-      const r = await fetch(`${API_URL}/chat`, { method: 'POST', headers: apiHeaders(true), body: JSON.stringify({ message, patientId: pid }) });
+      // Watchdog client (auditoria 2026-08-16): sem NENHUM delta em 45s → aborta o fetch.
+      // O servidor tem timeout próprio (35s/1º token) e reembolsa; aqui garantimos que a UI
+      // nunca fique presa em dots com o input travado, mesmo que o stream vire um limbo.
+      const ac = new AbortController();
+      abortRef.current = ac;
+      let gotDelta = false;
+      const watchdog = setTimeout(() => { if (!gotDelta) ac.abort(); }, 45_000);
+      const r = await fetch(`${API_URL}/chat`, { method: 'POST', headers: apiHeaders(true), body: JSON.stringify({ message, patientId: pid }), signal: ac.signal });
       if (r.status === 402) { const e = await r.json().catch(() => ({})); notify(e.message || 'Sem créditos para conversar.', { type: 'warning' }); rollback(); return; }
       if (!r.ok || !r.body) throw new Error('falha no chat');
       const reader = r.body.getReader(); const dec = new TextDecoder(); let buf = '';
@@ -156,13 +197,33 @@ export const ChatPage = () => {
         const parts = buf.split('\n\n'); buf = parts.pop() ?? '';
         for (const p of parts) {
           const line = p.startsWith('data: ') ? p.slice(6) : p;
-          try { const evt = JSON.parse(line); if (evt.delta) { work = work.map((c) => c.id === cid ? { ...c, messages: c.messages.map((m, i) => i === assistantIdx ? { ...m, text: (m.text ?? '') + evt.delta } : m) } : c); setConvs(work); } } catch { /* pacote parcial */ }
+          try {
+            const evt = JSON.parse(line);
+            if (evt.type === 'error') {
+              // Servidor abortou (timeout de IA) e JÁ reembolsou — remove a tentativa e avisa.
+              clearTimeout(watchdog);
+              rollback(); notify(evt.message || 'A IA não respondeu agora. Tente novamente.', { type: 'warning' });
+              setBusy(false); window.dispatchEvent(new Event('creditsChanged'));
+              return;
+            }
+            if (evt.delta) {
+              gotDelta = true;
+              work = work.map((c) => c.id === cid ? { ...c, messages: c.messages.map((m, i) => i === assistantIdx ? { ...m, text: (m.text ?? '') + evt.delta } : m) } : c); setConvs(work);
+            }
+          } catch { /* pacote parcial */ }
         }
       }
+      clearTimeout(watchdog);
       persist();
-    } catch { rollback(); notify('A IA não respondeu agora. Tente novamente em instantes.', { type: 'error' }); }
-    finally { setBusy(false); window.dispatchEvent(new Event('creditsChanged')); }
+    } catch {
+      rollback(); notify('A IA não respondeu agora. Seu crédito foi devolvido — tente de novo.', { type: 'error' });
+    } finally {
+      abortRef.current = null;
+      setBusy(false); window.dispatchEvent(new Event('creditsChanged'));
+    }
   };
+
+  const stop = () => { abortRef.current?.abort(); };
 
   const renameConv = (id: string, title: string) => { const next = convs.map((c) => c.id === id ? { ...c, title } : c); setConvs(next); if (pid) saveConvs(pid, next); };
   const deleteConv = (id: string) => { const next = convs.filter((c) => c.id !== id); setConvs(next); if (pid) saveConvs(pid, next); if (curId === id) setCurId(next[0]?.id ?? null); };
@@ -192,7 +253,7 @@ export const ChatPage = () => {
           <Typography sx={{ fontSize: 11, opacity: 0.9 }}>Assistente de saúde com IA{firstName ? ` · ${firstName}` : ''}</Typography>
         </Box>
         <IconButton size="small" onClick={() => setHistOpen(true)} title="Histórico de conversas" sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,.15)', '&:hover': { bgcolor: 'rgba(255,255,255,.25)' } }}>
-          <Badge badgeContent={convs.length} color="warning" overlap="circular" sx={{ '& .MuiBadge-badge': { fontSize: 10, height: 16, minWidth: 16, top: 3, right: 3 } }}><HistoryIcon fontSize="small" /></Badge>
+          <Badge badgeContent={convs.length} color="warning" overlap="circular" invisible={convs.length === 0} sx={{ '& .MuiBadge-badge': { fontSize: 10, height: 16, minWidth: 16, top: 3, right: 3 } }}><HistoryIcon fontSize="small" /></Badge>
         </IconButton>
       </Paper>
 
@@ -221,7 +282,7 @@ export const ChatPage = () => {
                 </Paper>
               ))}
             </Stack>
-            <Typography variant="caption" color="text.secondary" sx={{ opacity: 0.7 }}>{CREDIT_COSTS.chat} crédito por pergunta · a IA não substitui seu médico</Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ opacity: 0.7 }}>{CREDIT_COSTS.chat} crédito{CREDIT_COSTS.chat !== 1 ? 's' : ''} por pergunta · a IA não substitui seu médico</Typography>
           </Box>
         )}
         <Stack spacing={1.5}>
@@ -270,8 +331,11 @@ export const ChatPage = () => {
           onChange={(e: any) => setInput(e.target.value)}
           onKeyDown={(e: any) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
           style={{ flex: 1, padding: '10px 4px', fontSize: 16, border: 'none', outline: 'none', background: 'transparent', fontFamily: 'inherit' }} />
-        <Button type="submit" variant="contained" disabled={busy || !input.trim()} sx={{ minWidth: 0, borderRadius: '999px', px: 1.5, py: 1, bgcolor: TEAL, '&:hover': { bgcolor: '#0f7670' } }}>
-          {busy ? <CircularProgress size={20} color="inherit" /> : <SendIcon />}
+        <Button type={busy ? 'button' : 'submit'} variant="contained" disabled={!busy && !input.trim()}
+          onClick={busy ? stop : undefined}
+          aria-label={busy ? 'Parar resposta' : 'Enviar'}
+          sx={{ minWidth: 0, borderRadius: '999px', px: 1.5, py: 1, bgcolor: TEAL, '&:hover': { bgcolor: '#0f7670' } }}>
+          {busy ? <StopCircleIcon titleAccess="Parar resposta" /> : <SendIcon />}
         </Button>
       </Box>
 

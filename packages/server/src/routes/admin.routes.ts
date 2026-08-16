@@ -12,6 +12,7 @@ import { sendEmail } from '../utils/mailer';
 import { ticketReplyEmail, webUrl } from '../utils/emailTemplate';
 import { upload } from '../middleware/upload';
 import { audit } from '../utils/audit';
+import { logCredit } from '../utils/credits';
 import { getConfigRows, getActiveProvider, AI_PROVIDERS, resolveProviderConfig, type AiProviderName } from '../llm/ai-config';
 import { refreshLlm, testLlmConnection } from '../llm';
 import { generateExplanation } from '../analysis/explain';
@@ -407,12 +408,21 @@ router.get('/metrics', async (_req, res, next) => {
   } catch (e) { next(e); }
 });
 
-// AJUSTAR créditos
+// AJUSTAR créditos — grava LEDGER (delta) + auditoria. Antes setava o saldo se rastro nenhum:
+// meses de ajustes admin ficavam invisíveis no extrato e a reconciliação saldo×extrato quebrava
+// (auditoria 2026-08-16: dono com 97.268 créditos × extrato -2.627).
 router.patch('/users/:id/credits', async (req: AuthedRequest, res, next) => {
   try {
     const credits = Number(req.body?.credits);
-    if (isNaN(credits)) { res.status(400).json({ error: 'credits deve ser número' }); return; }
-    const u = await prisma.user.update({ where: { id: String(req.params.id) }, data: { credits }, select: { id: true, email: true, credits: true } });
+    if (isNaN(credits) || credits < 0) { res.status(400).json({ error: 'credits deve ser número >= 0' }); return; }
+    const id = String(req.params.id);
+    const before = await prisma.user.findUnique({ where: { id }, select: { credits: true } });
+    const delta = credits - (before?.credits ?? 0);
+    const u = await prisma.user.update({ where: { id }, data: { credits }, select: { id: true, email: true, credits: true } });
+    if (delta !== 0) {
+      await logCredit(id, delta, 'admin_adjust', `Ajuste admin (${before?.credits ?? 0} → ${credits})`);
+      await audit('ADMIN_CREDITS', req, { actorType: 'ADMIN', actorId: req.userId, targetType: 'USER', targetId: id, before: { credits: before?.credits ?? 0 }, after: { credits } });
+    }
     res.json(u);
   } catch (e) { next(e); }
 });

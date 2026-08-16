@@ -21,6 +21,8 @@ export interface LlmRequest {
   messages: LlmMessage[];
   maxTokens: number;
   model?: string;
+  /** Aborta a chamada (timeout/cancelamento) — adapters repassam ao SDK/fetch quando suportado. */
+  signal?: AbortSignal;
 }
 
 export interface LlmResult {

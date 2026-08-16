@@ -99,25 +99,35 @@
     <script type="module" src="/src/main.tsx"></script>
     <!-- VLibras: tradução automática de texto para Libras (acessibilidade — pacientes surdos) -->
     <style>
-      /* VLibras no canto INFERIOR ESQUERDO, MENOR e ACIMA do rodapé mobile.
-         Antes: bottom-right default → colidia com os FABs (Dr. Exame + Enviar exame, ambos
-         fixed bottom-right) e cobria o rodapé. Bottom-left é a zona livre (menu = topo-esq). */
-      .vw-access-button {
+      /* VLibras no canto INFERIOR ESQUERDO, MENOR e ACIMA do rodapé mobile (zona livre — os FABs
+         Dr. Exame/Enviar exame ficam na DIREITA). Auditoria 2026-08-16: duas lições —
+         (1) o plugin ATUAL renderiza prefixo `vp-*` (vp-access-button), as regras antigas só
+         cobriam `vw-*` e morreram; (2) quem POSICIONA é o WRAPPER [vw] (fixed + animação de
+         flutuação própria = containing block) — mover só o botão não adianta. */
+      [vw].enabled, div[vw] {
         position: fixed !important;
-        transform: scale(0.72) !important;
-        transform-origin: bottom left !important;
+        left: 6px !important;
         right: auto !important;
-        left: 10px !important;
-        bottom: calc(var(--me-bottom-nav-h, 76px) + 12px) !important; /* acima da MobileBottomNav no mobile */
+        top: auto !important;
+        bottom: calc(var(--me-bottom-nav-h, 76px) + 10px) !important; /* acima da MobileBottomNav no mobile */
+        z-index: 2147483647 !important;
       }
       @media (min-width: 600px) {
         /* Desktop: sem rodapé fixo — canto inferior esquerdo discreto. */
-        .vw-access-button { left: 18px !important; bottom: 20px !important; }
+        [vw].enabled, div[vw] { left: 16px !important; bottom: 18px !important; }
       }
-      /* VLibras ACIMA de tudo (FAB do chat z1200, AppBar/nav z1100): sem isso, o popup de
-         consentimento "aceitar sim/não" (1ª vez) fica coberto pelos elementos fixos do app
-         e não dá pra clicar em Sim/Não nem fechar. */
-      [vw], [class^="vpw-"], [class^="vw-"] { z-index: 2147483647 !important; }
+      .vw-access-button, .vp-access-button {
+        transform: scale(0.72) !important;
+        transform-origin: bottom left !important;
+      }
+      /* No CHAT a barra de input (fixa) ocupa o canto inferior esquerdo → Libras sobe acima dela. */
+      body.on-chat div[vw], body.on-chat [vw].enabled { bottom: calc(var(--me-bottom-nav-h, 76px) + 74px) !important; }
+      @media (min-width: 600px) {
+        body.on-chat div[vw], body.on-chat [vw].enabled { bottom: 92px !important; }
+      }
+      /* Popup/conselho do VLibras ACIMA de tudo (FAB do chat z1200, AppBar/nav z1100): sem isso,
+         o consentimento "aceitar sim/não" (1ª vez) fica coberto pelos fixos do app. */
+      [class^="vpw-"], [class^="vw-"], [class^="vp-"] { z-index: 2147483647 !important; }
     </style>
     <div vw class="enabled">
       <div vw-access-button class="active"></div>
