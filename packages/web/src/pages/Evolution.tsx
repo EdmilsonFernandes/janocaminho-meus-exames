@@ -17,6 +17,7 @@ import { PageHeader } from '../components/layout/PageHeader';
 import { ListSkeleton } from '../components/Skeleton';
 import { EmptyState } from '../components/EmptyState';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import type { SvgIconComponent } from '@mui/icons-material';
 
 import type { EvolutionItem as EvoItem } from '@meus-exames/shared';
@@ -144,9 +145,12 @@ export const EvolutionPage = () => {
             <InputBase value={query} onChange={(e: any) => setQuery(e.target.value)} placeholder="Buscar exame (TSH, glicose, colesterol…)" sx={{ flex: 1, fontSize: 14 }} />
             {query && <Chip size="small" label="limpar" onClick={() => setQuery('')} sx={{ height: 22 }} />}
           </Paper>
-          {/* Merge de conceito do menu ("Evolução & tendências"): gráfico por marcador a 1 toque. */}
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-            <Button size="small" onClick={() => navigate('/tendencias')} sx={{ textTransform: 'none', fontWeight: 700, color: '#178f89' }}>Gráfico por marcador →</Button>
+          {/* Tendências tem entrada própria no menu; aqui fica o atalho DESTACADO (feedback:
+              era um link miúdo e o gráfico por marcador parecia removido). */}
+          <Box sx={{ display: 'flex', justifyContent: { xs: 'stretch', sm: 'flex-end' }, mb: 2 }}>
+            <Button variant="outlined" size="small" startIcon={<QueryStatsIcon />} onClick={() => navigate('/tendencias')} sx={{ textTransform: 'none', fontWeight: 800, color: '#178f89', borderColor: 'rgba(32,178,170,.5)', borderRadius: '999px', px: 2, py: 0.75, width: { xs: '100%', sm: 'auto' }, '&:hover': { borderColor: '#178f89', bgcolor: 'rgba(32,178,170,.06)' } }}>
+              Gráfico por marcador (pontos por data) →
+            </Button>
           </Box>
         </>
       )}

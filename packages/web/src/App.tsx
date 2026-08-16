@@ -27,6 +27,7 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Diversity3Icon from '@mui/icons-material/Diversity3';
 import SummarizeIcon from '@mui/icons-material/Summarize';
+import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import InfoIcon from '@mui/icons-material/Info';
@@ -218,13 +219,14 @@ const AppMenu = () => {
   <Box component="nav" sx={{ py: 1, display: 'flex', flexDirection: 'column', minHeight: '100%', width: '100%', minWidth: 0, maxWidth: '100%', containerType: 'inline-size', overflowX: 'hidden', overflowY: 'auto', maxHeight: '100vh', '& .MuiListItemButton-root, & .MuiMenuItem-root': { flex: '0 0 auto' } }}>
     {/* 4 seções por INTENÇÃO (auditoria premium 2026-08): antes eram grid de 9 atalhos + 3
        acordeões com 3 destinos DUPLICADOS (alterados/tendências/linha-do-tempo) e ~24 entradas.
-       Agora 18 entradas, um rótulo por conceito, zero duplicata. Merges de CONCEITO (a rota
-       secundária segue acessível por link na página): "Evolução & tendências" (/evolucao ↔
-       /tendencias) e "Família & dependentes" (/familia ↔ /patients). */}
+       FEEDBACK do dono (rodada 8): "Evolução & tendências" fundido ESCONDIA o gráfico por
+       marcador atrás de um link → desfeito: /tendencias tem entrada própria de novo (ícone
+       QueryStats). "Família & dependentes" segue fundido (/familia ↔ /patients). */}
     <MenuSectionAccordion title={translate('menu.section.exams')} icon={<MedicalInformationIcon />} routes={['/exams', '/alterados', '/evolucao', '/tendencias', '/linha-do-tempo', '/relatorio']}>
       <NavItem to="/exams" primaryText={translate('menu.exams')} icon={<MedicalInformationIcon />} />
       <NavItem to="/alterados" primaryText={translate('menu.alterados')} icon={<WarningAmberIcon />} highlight />
-      <NavItem to="/evolucao" primaryText={translate('menu.evo_trends')} icon={<InsightsIcon />} />
+      <NavItem to="/evolucao" primaryText={translate('menu.evolution')} icon={<InsightsIcon />} />
+      <NavItem to="/tendencias" primaryText={translate('menu.trends')} icon={<QueryStatsIcon />} />
       <NavItem to="/linha-do-tempo" primaryText={translate('menu.timeline')} icon={<HistoryIcon />} />
       <NavItem to="/relatorio" primaryText={translate('menu.report')} icon={<SummarizeIcon />} />
     </MenuSectionAccordion>
