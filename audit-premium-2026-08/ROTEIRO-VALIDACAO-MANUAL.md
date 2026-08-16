@@ -84,3 +84,33 @@
 
 ## 📞 Se algo NÃO bater
 Anote o item (ex.: "C3") e me fala — cada linha deste roteiro mapeia 1:1 a um commit verificável.
+
+---
+
+# RODADA 8 — Feedback manual do dono (E3–E5, C5, conquistas, painel do médico)
+**Commit:** `d4dfae3` · **AAB:** 318 (2.7.77) · referência do menu: `audit-premium-2026-08/refs/`
+
+## G. APP DO PACIENTE (Android/mobile 390)
+
+| # | Passo | O que ver |
+|---|---|---|
+| G1 | Menu (☰) → seções "Exames/Cuidados/Pessoas/Conta" | Header de seção virou **BARRA COLORIDA teal** com ícone dentro de um chip — aberta = chip com gradiente e ícone BRANCO + fundo mais forte; fechada = tudo suave. Impossível confundir header com item (ref. Loteria da Caixa) |
+| G2 | Expandir/colapsar seção | Itens ficam **pendurados numa linha teal** (rail) saindo do header — pertencimento visual claro |
+| G3 | `/alterados` → exame com MUITOS alterados | Mostra **4 + botão "Ver todos os N alterados"** (expande/colapsa inline) — não é mais um muro |
+| G4 | `/conquistas` | Seção nova **"♻️ Desafios do mês (mês atual)"** com 4 desafios (📤 1 exame, 🧪 3 exames, 🔥 10 dias, 🤝 compartilhar c/ médico) — **renovam todo mês**; permanentes separadas embaixo. Quem completou tudo SEMPRE tem o que fazer |
+
+## H. PORTAL DO MÉDICO (mobile e desktop)
+
+| # | Passo | O que ver |
+|---|---|---|
+| H1 | Entrar no portal | **Abre no PAINEL** (não mais na lista): saudação "Bom dia, Dr. X 👋" + manchete do dia ("N pacientes com valores alterados"), 4 tiles (Pacientes / Com alerta / Perguntas / Convites) |
+| H2 | Painel → fila "Precisam de atenção agora" | Pacientes 🔴/🟠 com o **porquê** ("🟠 Alterações moderadas · exame há 12 dias") — **1 toque abre DIRETO na aba Alterados** |
+| H3 | Painel → "Exames para renovar" | Quem está há +1 ano sem exame (ou sem nenhum) — deixa o médico pedir atualização |
+| H4 | Tendências → dropdown de marcador → troque o período p/ **6 meses** | Os contadores **"(N exames)" mudam com o período** (ex.: Hemoglobina 3→2) e marcadores sem 2 pontos na janela saem da lista — coerente |
+| H5 | Aba Exames → abrir exame (mobile) | Título ocupa a linha toda (2 linhas se precisar); **Voltar** é botão redondo; "Abrir laudo" fica na **linha de baixo** — nada cortado |
+| H6 | Ícones das abas | **Exames** = fita de laudo (ReceiptLong) · **Alterados** = bandeira 🚩 · **Relatório** = sumário — visualmente distintos |
+| H7 | Botão **Trocar** paciente | Ícone de **troca ⇄** na frente do campo de seleção (desktop e no dialog mobile) |
+
+## Pendências conhecidas (não-bloqueantes)
+- Dialog aninhado no "Trocar" mobile (dialog abre outro dialog) — UX ok mas pode virar sheet única no futuro.
+- Console dev mostra `RangeError` do trio Sentry×MUI×react-admin ao empilhar modais (drawer+WhatsNew) — pré-existente, instrumentação de dev, página segue funcional.
