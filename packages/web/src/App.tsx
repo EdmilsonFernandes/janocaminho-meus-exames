@@ -35,6 +35,7 @@ import { dataProvider } from './dataProvider';
 import { API_URL, token, photoUrlFor } from './config';
 import { authProvider } from './authProvider';
 import { lightTheme, darkTheme } from './theme';
+import { alpha } from '@mui/material/styles';
 import { i18nProvider } from './i18n';
 import { APP_BUILD_INFO } from './generated/buildInfo';
 import { Dashboard } from './pages/Dashboard';
@@ -143,18 +144,44 @@ const routeMatches = (route: string, pathname: string) => (route === '/' ? pathn
 // `routes` habilita o SMART-EXPAND: a seção que contém a rota ativa abre sozinha,
 // então o usuário vê seu contexto sem procurar. Fechamento manual é respeitado
 // enquanto ele permanece numa rota daquela seção (o effect só roda em pathname change).
+//
+// FEEDBACK C5 (ref. Loteria da Caixa): o header de seção agora é um BLOCO DE COR —
+// barra tinted com chip de ícone preenchido — impossível confundir com um item de menu.
+// A diferença colapsado × expandido é dramática (tint forte + chip gradiente + rail
+// de aninhamento), não só a setinha. Identidade preservada: só teal da marca.
 const MenuSectionAccordion = ({ title, icon, routes, children }: { title: string; icon: React.ReactNode; routes: string[]; children: React.ReactNode }) => {
   const { pathname } = useLocation();
   const [open, setOpen] = useState(() => routes.some((r) => routeMatches(r, pathname)));
   useEffect(() => { if (routes.some((r) => routeMatches(r, pathname))) setOpen(true); /* eslint-disable-next-line */ }, [pathname]);
   return (
-    <Box>
-      <ListItemButton onClick={() => setOpen((o) => !o)} sx={{ borderRadius: '8px', m: '1px 8px', py: 0.4, pl: 2, minHeight: 44, '&:hover': { bgcolor: 'rgba(32,178,170,.06)' } }}>
-        <ListItemIcon sx={{ minWidth: 34, color: 'text.secondary', '& svg': { fontSize: 19 } }}>{icon}</ListItemIcon>
+    <Box sx={{ mb: 0.25 }}>
+      <ListItemButton
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        sx={(t) => ({
+          borderRadius: '12px', m: '2px 10px', pl: 1.25, pr: 1, minHeight: 48,
+          bgcolor: alpha(t.palette.primary.main, open ? 0.16 : 0.07),
+          border: '1px solid', borderColor: alpha(t.palette.primary.main, open ? 0.34 : 0.13),
+          transition: 'background-color .2s, border-color .2s',
+          '&:hover': { bgcolor: alpha(t.palette.primary.main, open ? 0.21 : 0.11) },
+        })}
+      >
+        {/* Chip de ícone: preenchido (gradiente teal, ícone branco) quando ABERTO; tinted leve quando fechado. */}
+        <Box component="span" sx={(t) => ({
+          width: 28, height: 28, borderRadius: '30%', mr: 1.25, flexShrink: 0, display: 'grid', placeItems: 'center',
+          background: open ? 'linear-gradient(135deg, #20b2aa, #178f89)' : alpha(t.palette.primary.main, 0.14),
+          color: open ? '#fff' : t.palette.primary.dark, transition: 'background .2s, color .2s',
+          '& svg': { fontSize: 17 },
+        })}>{icon}</Box>
         <ListItemText primary={title} primaryTypographyProps={{ fontSize: 13, fontWeight: 800, color: 'text.primary' }} />
-        <ExpandMoreIcon sx={{ transform: open ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform .2s', color: 'text.secondary', fontSize: 20 }} />
+        <ExpandMoreIcon sx={{ transform: open ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform .2s', color: open ? 'primary.main' : 'text.secondary', fontSize: 20 }} />
       </ListItemButton>
-      <Collapse in={open} sx={{ pb: 0.5 }}>{children}</Collapse>
+      {/* Rail de aninhamento: linha teal conectando os itens à seção — os filhos "pertencem" ao header. */}
+      <Collapse in={open} sx={{ pb: 0.5 }}>
+        <Box sx={{ ml: '24px', pl: 1, borderLeft: '2px solid', borderColor: (t) => alpha(t.palette.primary.main, 0.22) }}>
+          {children}
+        </Box>
+      </Collapse>
     </Box>
   );
 };
@@ -168,7 +195,7 @@ const NavItem = ({ to, primaryText, icon, highlight }: { to: string; primaryText
   const iconColor = highlight ? '#178f89' : active ? 'text.primary' : 'text.secondary';
   return (
     <ListItemButton onClick={() => navigate(to)} selected={active}
-      sx={{ borderRadius: '8px', m: '1px 8px', py: 0.5, pl: 2.5, minHeight: 44, flex: '0 0 auto',
+      sx={{ borderRadius: '10px', m: '1px 0', py: 0.5, pl: 1.5, minHeight: 42, flex: '0 0 auto',
         '&.Mui-selected': { bgcolor: 'rgba(32,178,170,.12)' },
         '&.Mui-selected:hover': { bgcolor: 'rgba(32,178,170,.18)' },
         '&:hover': { bgcolor: 'rgba(32,178,170,.06)' } }}>

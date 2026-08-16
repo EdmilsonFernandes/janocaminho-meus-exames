@@ -10,10 +10,11 @@ interface Badge {
   id: string; emoji: string; title: string; desc: string;
   metric: string; threshold: number; reward: number;
   earned: boolean; progress: number; claimed: boolean; claimable: boolean;
+  period?: 'monthly';
 }
 interface State {
   badges: Badge[]; streak: number; creditsClaimed: number; creditsAvailable: number;
-  balance: number; achievementAlerts: boolean;
+  balance: number; achievementAlerts: boolean; monthLabel?: string;
 }
 
 /** Página /conquistas — gamificação com recompensa em crédito (1 por conquista, server-side). */
@@ -48,6 +49,34 @@ export const ConquistasPage = () => {
   if (!state) return <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}><CircularProgress /></Box>;
   const claimable = state.badges.filter((b) => b.claimable);
   const earnedCount = state.badges.filter((b) => b.earned).length;
+  // Desafios do mês (renováveis) × conquistas permanentes (feedback: quem completa tudo
+  // ficava sem conteúdo — os mensais recomeçam a cada mês calendário).
+  const monthly = state.badges.filter((b) => b.period === 'monthly');
+  const permanent = state.badges.filter((b) => b.period !== 'monthly');
+
+  const badgeCard = (b: Badge) => (
+    <Card key={b.id} sx={{ borderRadius: '12px', p: 1.75, textAlign: 'center', position: 'relative', border: b.claimed ? '1.5px solid rgba(32,178,170,.45)' : b.earned ? '1.5px solid rgba(32,178,170,.3)' : '1.5px solid', borderColor: b.claimed || b.earned ? undefined : 'divider', bgcolor: b.claimed ? 'rgba(32,178,170,.08)' : b.earned ? 'rgba(32,178,170,.05)' : 'background.paper' }}>
+      {b.period === 'monthly' && (
+        <Chip size="small" label="♻️ mensal" sx={{ position: 'absolute', top: 6, right: 6, height: 18, fontSize: 9, fontWeight: 800, bgcolor: 'rgba(32,178,170,.12)', color: '#178f89' }} />
+      )}
+      <Box sx={{ fontSize: 34, mb: 0.5, filter: b.earned ? 'none' : 'grayscale(1)', opacity: b.earned ? 1 : 0.5 }}>{b.emoji}</Box>
+      <Typography sx={{ fontSize: 13, fontWeight: 800, color: b.earned ? 'text.primary' : 'text.secondary', lineHeight: 1.2 }}>{b.title}</Typography>
+      <Typography sx={{ fontSize: 11, color: 'text.secondary', lineHeight: 1.25, mt: 0.25, minHeight: 26 }}>{b.desc}</Typography>
+      <Typography sx={{ fontSize: 11, fontWeight: 700, color: '#b88a54', mt: 0.5 }}>🎁 {b.reward} crédito{b.reward > 1 ? 's' : ''}</Typography>
+      {b.claimed ? (
+        <Typography sx={{ fontSize: 11, fontWeight: 800, color: '#178f89', mt: 0.75 }}>✓ {b.period === 'monthly' ? 'Resgatado este mês' : 'Resgatado'}</Typography>
+      ) : b.claimable ? (
+        <Button size="small" fullWidth disabled={busy === b.id} onClick={() => claim(b.id)} sx={{ mt: 0.75, borderRadius: '999px', textTransform: 'none', fontWeight: 800, fontSize: 12, bgcolor: '#20b2aa', color: '#fff', boxShadow: 'none', '&:hover': { bgcolor: '#178f89' } }}>
+          {busy === b.id ? '…' : 'Resgatar'}
+        </Button>
+      ) : (
+        <>
+          <LinearProgress variant="determinate" value={b.progress * 100} sx={{ mt: 0.75, height: 4, borderRadius: '999px', bgcolor: 'action.hover', '& .MuiLinearProgress-bar': { bgcolor: '#20b2aa' } }} />
+          <Typography sx={{ fontSize: 10, color: 'text.secondary', mt: 0.25 }}>{Math.round(b.progress * 100)}%</Typography>
+        </>
+      )}
+    </Card>
+  );
 
   return (
     <PageContainer width="narrow" sx={{ p: { xs: 1.5, sm: 2 }, pb: { xs: 'calc(84px + env(safe-area-inset-bottom))', sm: 4 } }}>
@@ -77,32 +106,30 @@ export const ConquistasPage = () => {
         </CardContent>
       </Card>
 
-      {/* Badges */}
+      {/* DESAFIOS DO MÊS — renováveis (recomeçam no 1º dia de cada mês) */}
+      {monthly.length > 0 && (
+        <Box sx={{ mb: 2.5 }}>
+          <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'text.primary' }}>♻️ Desafios do mês</Typography>
+            {state.monthLabel && <Chip size="small" label={state.monthLabel} sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(32,178,170,.10)', color: '#178f89' }} />}
+          </Stack>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.25 }}>
+            Recomeçam todo mês — mantê-los em dia é o hábito que cuida da sua saúde.
+          </Typography>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: '1fr 1fr 1fr' }, gap: 1.5 }}>
+            {monthly.map(badgeCard)}
+          </Box>
+        </Box>
+      )}
+
+      {/* CONQUISTAS PERMANENTES */}
+      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'text.primary', mb: 1 }}>🏆 Conquistas permanentes</Typography>
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: '1fr 1fr 1fr' }, gap: 1.5 }}>
-        {state.badges.map((b) => (
-          <Card key={b.id} sx={{ borderRadius: '12px', p: 1.75, textAlign: 'center', border: b.claimed ? '1.5px solid rgba(32,178,170,.45)' : b.earned ? '1.5px solid rgba(32,178,170,.3)' : '1.5px solid', borderColor: b.claimed || b.earned ? undefined : 'divider', bgcolor: b.claimed ? 'rgba(32,178,170,.08)' : b.earned ? 'rgba(32,178,170,.05)' : 'background.paper' }}>
-            <Box sx={{ fontSize: 34, mb: 0.5, filter: b.earned ? 'none' : 'grayscale(1)', opacity: b.earned ? 1 : 0.5 }}>{b.emoji}</Box>
-            <Typography sx={{ fontSize: 13, fontWeight: 800, color: b.earned ? 'text.primary' : 'text.secondary', lineHeight: 1.2 }}>{b.title}</Typography>
-            <Typography sx={{ fontSize: 11, color: 'text.secondary', lineHeight: 1.25, mt: 0.25, minHeight: 26 }}>{b.desc}</Typography>
-            <Typography sx={{ fontSize: 11, fontWeight: 700, color: '#b88a54', mt: 0.5 }}>🎁 {b.reward} crédito</Typography>
-            {b.claimed ? (
-              <Typography sx={{ fontSize: 11, fontWeight: 800, color: '#178f89', mt: 0.75 }}>✓ Resgatado</Typography>
-            ) : b.claimable ? (
-              <Button size="small" fullWidth disabled={busy === b.id} onClick={() => claim(b.id)} sx={{ mt: 0.75, borderRadius: '999px', textTransform: 'none', fontWeight: 800, fontSize: 12, bgcolor: '#20b2aa', color: '#fff', boxShadow: 'none', '&:hover': { bgcolor: '#178f89' } }}>
-                {busy === b.id ? '…' : 'Resgatar'}
-              </Button>
-            ) : (
-              <>
-                <LinearProgress variant="determinate" value={b.progress * 100} sx={{ mt: 0.75, height: 4, borderRadius: '999px', bgcolor: 'action.hover', '& .MuiLinearProgress-bar': { bgcolor: '#20b2aa' } }} />
-                <Typography sx={{ fontSize: 10, color: 'text.secondary', mt: 0.25 }}>{Math.round(b.progress * 100)}%</Typography>
-              </>
-            )}
-          </Card>
-        ))}
+        {permanent.map(badgeCard)}
       </Box>
 
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', mt: 2 }}>
-        Cada conquista dá 1 crédito de IA (resumo, relatório, chat). O streak conta dias seguidos usando o app.
+        Conquistas dão créditos de IA (resumo, relatório, chat). O streak conta dias seguidos usando o app.
       </Typography>
     </PageContainer>
   );

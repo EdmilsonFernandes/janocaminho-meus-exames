@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest } from '../middleware/auth';
-import { getUserMetrics, evalBadges, BADGES, type BadgeDef } from '../utils/achievements';
+import { getUserMetrics, evalBadges, resolveBadges, claimKeyOf, type BadgeDef } from '../utils/achievements';
 import { getSettings } from '../utils/settings';
 
 const router = Router();
@@ -31,6 +31,7 @@ router.post('/heartbeat', async (req: AuthedRequest, res, next) => {
 });
 
 // GET / — badges com estado (earned/progress/claimed/claimable) + streak + saldo + total resgatado.
+// Mensais: claimed = claim-key `id:YYYY-MM` (renova sozinho a cada mês calendário).
 router.get('/', async (req: AuthedRequest, res, next) => {
   try {
     const userId = req.userId!;
@@ -40,27 +41,29 @@ router.get('/', async (req: AuthedRequest, res, next) => {
       prisma.user.findUnique({ where: { id: userId }, select: { streakDays: true, achievementAlerts: true, credits: true } }),
     ]);
     const claimedSet = new Set(grants.map((g) => g.badgeId));
-    const liveBadges = (getSettings().badges as BadgeDef[]) ?? BADGES;
-    const badges = evalBadges(metrics, liveBadges).map((b) => ({
-      ...b,
-      claimed: claimedSet.has(b.id),
-      claimable: b.earned && !claimedSet.has(b.id),
-    }));
+    const liveBadges = resolveBadges(getSettings().badges as BadgeDef[]);
+    const badges = evalBadges(metrics, liveBadges).map((b) => {
+      const key = claimKeyOf(b);
+      const claimed = claimedSet.has(key);
+      return { ...b, claimed, claimable: b.earned && !claimed };
+    });
 
-    // Aviso in-app de conquista desbloqueada (1x por badge, se o usuário aceita avisos).
+    // Aviso in-app de conquista desbloqueada (1x por claim-key — mensais avisam 1x por mês).
     if (user?.achievementAlerts) {
       const claimable = badges.filter((b) => b.claimable);
       if (claimable.length) {
         const notified = await prisma.notification.findMany({ where: { userId, type: 'achievement' }, select: { data: true } });
         const done = new Set(notified.map((n) => (n.data as any)?.badgeId).filter(Boolean));
         for (const b of claimable) {
-          if (!done.has(b.id)) {
-            await prisma.notification.create({ data: { userId, type: 'achievement', title: `🎉 Conquista: ${b.title}`, body: `${b.desc} — resgate seu crédito!`, data: { badgeId: b.id } } }).catch(() => {});
+          const key = claimKeyOf(b);
+          if (!done.has(key)) {
+            await prisma.notification.create({ data: { userId, type: 'achievement', title: `🎉 Conquista: ${b.title}`, body: `${b.desc} — resgate seu crédito!`, data: { badgeId: key } } }).catch(() => {});
           }
         }
       }
     }
 
+    const monthLabel = new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
     res.json({
       badges,
       streak: metrics.streak,
@@ -68,29 +71,35 @@ router.get('/', async (req: AuthedRequest, res, next) => {
       creditsAvailable: liveBadges.length,
       balance: user?.credits ?? 0,
       achievementAlerts: user?.achievementAlerts ?? true,
+      monthLabel,
     });
   } catch (e) { next(e); }
 });
 
-// POST /claim — resgata 1 crédito por badge earned+!claimed. body { badgeId? } → vazio = todas.
+// POST /claim — resgata o crédito de badges earned+!claimed (mensais: do mês corrente).
+// body { badgeId? } → vazio = todas.
 router.post('/claim', async (req: AuthedRequest, res, next) => {
   try {
     const userId = req.userId!;
     const wantId = req.body?.badgeId ? String(req.body.badgeId) : null;
     const metrics = await getUserMetrics(userId);
-    const liveBadges = (getSettings().badges as BadgeDef[]) ?? BADGES;
+    const liveBadges = resolveBadges(getSettings().badges as BadgeDef[]);
     const state = evalBadges(metrics, liveBadges);
     const existing = await prisma.achievementGrant.findMany({ where: { userId }, select: { badgeId: true } });
     const claimedSet = new Set(existing.map((g) => g.badgeId));
-    const targets = state.filter((b) => b.earned && !claimedSet.has(b.id) && (!wantId || b.id === wantId));
+    const targets = state.filter((b) => {
+      const key = claimKeyOf(b);
+      return b.earned && !claimedSet.has(key) && (!wantId || b.id === wantId);
+    });
 
     const granted: string[] = [];
     for (const b of targets) {
+      const key = claimKeyOf(b);
       try {
         await prisma.$transaction([
-          prisma.achievementGrant.create({ data: { userId, badgeId: b.id } }),
+          prisma.achievementGrant.create({ data: { userId, badgeId: key } }),
           prisma.user.update({ where: { id: userId }, data: { credits: { increment: b.reward } } }),
-          prisma.creditTransaction.create({ data: { userId, delta: b.reward, kind: 'achievement', label: `Conquista: ${b.title}`, refId: b.id } }),
+          prisma.creditTransaction.create({ data: { userId, delta: b.reward, kind: 'achievement', label: `Conquista: ${b.title}`, refId: key } }),
         ]);
         granted.push(b.id);
       } catch (e: any) {

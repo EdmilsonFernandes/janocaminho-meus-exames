@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Autocomplete, Avatar, Box, Button, Dialog, DialogContent, Stack, TextField, Typography, useMediaQuery, useTheme } from '@mui/material';
-import PersonSearchIcon from '@mui/icons-material/PersonSearch';
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import { photoUrlFor } from '../../config';
 
 /** Pega o nome do paciente (shape do /doctor/patients: {patient:{fullName}} ou {fullName}). */
@@ -45,6 +45,12 @@ export const DoctorPatientSwitcher = ({ patients, value, onSelect }: { patients:
       {...params}
       placeholder={selected ? undefined : 'Selecionar paciente…'}
       size="small"
+      // Ícone de TROCA (feedback E5): sinaliza que o campo alterna o paciente em foco.
+      slotProps={{ input: { ...params.InputProps, startAdornment: (
+        <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', pl: 1.25, pr: 0.25, color: '#178f89' }} aria-hidden>
+          <SwapHorizIcon fontSize="small" />
+        </Box>
+      ) } }}
       sx={{ '& .MuiOutlinedInput-root': { borderRadius: '999px', bgcolor: 'background.paper', pr: 1 } }}
     />
   );
@@ -77,7 +83,7 @@ export const DoctorPatientSwitcher = ({ patients, value, onSelect }: { patients:
         sx={{ justifyContent: 'flex-start', borderRadius: '999px', textTransform: 'none', fontWeight: 700, color: 'text.primary', borderColor: 'divider', py: 0.85, px: 1.5, minHeight: 40 }}
       >
         <Box sx={{ flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected ? pName(selected) : 'Selecionar paciente…'}</Box>
-        <PersonSearchIcon sx={{ color: '#178f89', fontSize: 20 }} />
+        <SwapHorizIcon sx={{ color: '#178f89', fontSize: 22 }} />
       </Button>
       <Dialog open={mobileOpen} onClose={() => setMobileOpen(false)} fullWidth maxWidth="sm" PaperProps={{ sx: { borderRadius: '12px' } }}>
         <DialogContent sx={{ pt: 3 }}>

@@ -609,6 +609,9 @@ router.get('/patients/:patientId/items/distinct-names', requireDoctor, async (re
     const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
     if (!share?.scopes.includes('exams')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     void auditLog(req, 'doctor_viewed_trends_names', String(req.params.patientId));
+    // `from` (epoch ms): janela de período das tendências (6m/1a/2a). O count do dropdown
+    // deve refletir o período selecionado — não o histórico inteiro (coerência E3).
+    const fromMs = Number(req.query.from) > 0 ? Number(req.query.from) : 0;
     const rows = await prisma.examItem.findMany({
       where: { valueNumeric: { not: null }, exam: { patientId: req.params.patientId, status: 'EXTRACTED', ...(share.examIds?.length ? { id: { in: share.examIds } } : {}) } },
       include: { exam: { select: { performedAt: true, createdAt: true } } },
@@ -616,6 +619,7 @@ router.get('/patients/:patientId/items/distinct-names', requireDoctor, async (re
     type P = { performedAt: Date | null; createdAt: Date; valueNumeric: number };
     const byName = new Map<string, P[]>();
     for (const r of rows) {
+      if (fromMs && (!r.exam.performedAt || new Date(r.exam.performedAt).getTime() < fromMs)) continue; // fora da janela
       const arr = byName.get(r.nameCanonical) ?? [];
       arr.push({ performedAt: r.exam.performedAt, createdAt: r.exam.createdAt, valueNumeric: r.valueNumeric! });
       byName.set(r.nameCanonical, arr);

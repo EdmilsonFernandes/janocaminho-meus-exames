@@ -6,7 +6,7 @@ import { API_URL } from '../../config';
 import { ListSkeleton } from '../Skeleton';
 import { EmptyState } from '../EmptyState';
 import { ExplainButton } from '../ExplainItem';
-import { ExamMarker } from '../ExamMarker';
+import { CappedExamMarkers } from '../CappedExamMarkers';
 import { UnitLabel } from '../UnitLabel';
 import { ValueBar } from '../ValueBar';
 import { fmtVal, unitSuffix } from '../../utils/format';
@@ -117,11 +117,7 @@ export const DoctorValoresAlterados = ({ patientId, token }: { patientId: string
                     </Box>
                   </AccordionSummary>
                   <AccordionDetails sx={{ p: 1.25 }}>
-                    <Stack spacing={0.75}>
-                      {g.items.map((it) => (
-                        <ExamMarker key={it.id} it={it} suspect={refScaleSuspect(it)} />
-                      ))}
-                    </Stack>
+                    <CappedExamMarkers items={g.items} />
                   </AccordionDetails>
                 </Accordion>
               );

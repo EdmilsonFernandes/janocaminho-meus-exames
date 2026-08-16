@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, type ReactElement } from 'react';
+import { useState, useEffect, useRef, type ReactElement, type ReactNode } from 'react';
 import { Box, Card, CardContent, Typography, TextField, Button, CircularProgress, Stack, Chip, Avatar, Menu, MenuItem, Alert, Divider, InputAdornment, IconButton, Link, Drawer, List, ListItemButton, ListItemText, ListItemIcon, Accordion, AccordionSummary, AccordionDetails, Badge, InputBase, Paper, useMediaQuery, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Tabs, Tab } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
@@ -20,6 +20,11 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import DescriptionIcon from '@mui/icons-material/Description';
 import EditNoteIcon from '@mui/icons-material/EditNote';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+import FlagIcon from '@mui/icons-material/Flag';
+import SummarizeIcon from '@mui/icons-material/Summarize';
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
+import SpaceDashboardIcon from '@mui/icons-material/SpaceDashboard';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined';
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
@@ -81,11 +86,15 @@ const PayCountdown = ({ expiresAt, onExpire }: { expiresAt: string; onExpire: ()
   );
 };
 
+/* Ícones das abas (feedback E4c): mais ILUSTRATIVOS e distintos entre si.
+ * - Exames → ReceiptLong: fita de laudo laboratorial (não um documento genérico).
+ * - Alterados → Flag: bandeira = "valores sinalizados" (mesma linguagem do app 🚩).
+ * - Relatório → Summarize: documento com resumo/linhas (diferente do Exames). */
 const SCOPE_META: Record<string, { label: string; icon: ReactElement }> = {
-  exams: { label: 'Exames', icon: <AssignmentIcon /> },
-  alterados: { label: 'Alterados', icon: <WarningAmberIcon /> },
+  exams: { label: 'Exames', icon: <ReceiptLongIcon /> },
+  alterados: { label: 'Alterados', icon: <FlagIcon /> },
   tendencias: { label: 'Tendências', icon: <TrendingUpIcon /> },
-  relatorio: { label: 'Relatório', icon: <DescriptionIcon /> },
+  relatorio: { label: 'Relatório', icon: <SummarizeIcon /> },
   questions: { label: 'Perguntas', icon: <QuestionAnswerIcon /> },
   notes: { label: 'Anotações', icon: <EditNoteIcon /> },
 };
@@ -278,7 +287,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const [detailLoading, setDetailLoading] = useState(false);
   const openSeq = useRef(0); // guarda de race: só aplica estado do openPatient mais recente
   const [doctor, setDoctor] = useState<any>(null);
-  const [view, setView] = useState<'patients' | 'invites' | 'questions' | 'profile' | 'password'>('patients');
+  const [view, setView] = useState<'overview' | 'patients' | 'invites' | 'questions' | 'profile' | 'password'>('overview');
   const [photoVer, setPhotoVer] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const [avatarEl, setAvatarEl] = useState<HTMLElement | null>(null); // menu vertical do avatar (perfil/senha/sair)
@@ -367,7 +376,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const goToPatient = async (patientId: string) => {
     const p = patients.find((x) => x.patient?.id === patientId);
     if (!p) { snackbar({ message: 'Paciente não encontrado na sua lista.', severity: 'warning' }); return; }
-    setView('patients'); await openPatient(p); setTab('questions');
+    await openPatient(p, 'questions');
   };
   const createInvite = async () => {
     if (!inv.name.trim() || (!inv.phone.trim() && !inv.email.trim())) return;
@@ -410,13 +419,16 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     if (r.ok) setNotes((n) => n.map((x) => x.id === id ? d.note : x));
   };
 
-  const openPatient = async (p: any) => {
+  const openPatient = async (p: any, tabOverride?: string) => {
     setSelected(p);
+    setView('patients');
     const pScopes: string[] = p.scopes ?? [];
     const pTabs = computeTabs(pScopes);
     // Default tab roteado por sinal clínico: alterados se há alerta → senão preferência salva → senão 1ª aba.
+    // Painel pode forçar a tab (ex.: "ver alterados" no card de atenção).
     let initial: string = pTabs[0] ?? 'questions';
-    if (p.hasAlerts && pTabs.includes('alterados')) initial = 'alterados';
+    if (tabOverride && pTabs.includes(tabOverride)) initial = tabOverride;
+    else if (p.hasAlerts && pTabs.includes('alterados')) initial = 'alterados';
     else {
       try { const pref = localStorage.getItem('doctorPrefTab'); if (pref && pTabs.includes(pref)) initial = pref; } catch { /* */ }
     }
@@ -464,14 +476,14 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   // Gesto de voltar do Android (Capacitor): fecha detalhe do exame → fecha paciente → volta à lista → sai.
   // O App.tsx ignora o back na rota /doctor; este listener é o dono da navegação aqui.
   const backRef = useRef<() => void>(() => {});
-  // Voltar de UI (fecha exame → fecha paciente → lista). Sem sair do app.
+  // Voltar de UI (fecha exame → fecha paciente → painel inicial). Sem sair do app.
   const goBack = () => {
     if (selExam) { setSelExam(null); return; }
     if (selected) { setSelected(null); return; }
-    if (view !== 'patients') setView('patients');
+    if (view !== 'overview') setView('overview');
   };
   backRef.current = () => {
-    if (selExam || selected || view !== 'patients') { goBack(); return; }
+    if (selExam || selected || view !== 'overview') { goBack(); return; }
     // Topo do portal: NÃO faz history.back (vai pra blank/exit = "mata o app" no gesto).
     // Fica no portal; o médico sai pela opção Sair do menu.
   };
@@ -507,6 +519,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           : <><Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary' }}>Grátis ({planInfo?.freeUsed ?? 0}/{planInfo?.freeLimit ?? 5} usados)</Typography><Typography variant="caption" sx={{ color: 'text.secondary' }}>5 pré-consultas/SOAP grátis por mês.</Typography></>}
       </Box>
       <List sx={{ pt: 1, '& .MuiListItemButton-root': { borderRadius: '12px', m: '2px 10px' } }}>
+        <ListItemButton selected={view === 'overview'} onClick={() => { setView('overview'); setSelected(null); setSelExam(null); onNav(); }}><ListItemIcon sx={{ minWidth: 38 }}><SpaceDashboardIcon sx={{ color: 'primary.dark' }} /></ListItemIcon><ListItemText primary="Painel" primaryTypographyProps={{ fontWeight: 600 }} /></ListItemButton>
         <ListItemButton selected={view === 'patients'} onClick={() => { setView('patients'); setSelected(null); setSelExam(null); onNav(); }}><ListItemIcon sx={{ minWidth: 38 }}><GroupsIcon sx={{ color: 'primary.dark' }} /></ListItemIcon><ListItemText primary="Pacientes" primaryTypographyProps={{ fontWeight: 600 }} /></ListItemButton>
         <ListItemButton selected={view === 'invites'} onClick={() => { setView('invites'); onNav(); }}>
           <ListItemIcon sx={{ minWidth: 38 }}><Badge color="error" variant="dot" invisible={invites.filter((i) => i.status === 'pending').length === 0}><PersonAddAlt1Icon sx={{ color: 'primary.dark' }} /></Badge></ListItemIcon>
@@ -548,7 +561,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         )}
         {isDesktop ? (
           <Box sx={{ flex: 1 }}>
-            <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 17, color: 'text.primary' }}>{view === 'patients' ? (selected ? selected.patient?.fullName : 'Pacientes') : view === 'invites' ? 'Convites' : view === 'questions' ? 'Perguntas' : view === 'profile' ? 'Meu Perfil' : 'Trocar Senha'}</Typography>
+            <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 17, color: 'text.primary' }}>{view === 'overview' ? 'Painel' : view === 'patients' ? (selected ? selected.patient?.fullName : 'Pacientes') : view === 'invites' ? 'Convites' : view === 'questions' ? 'Perguntas' : view === 'profile' ? 'Meu Perfil' : 'Trocar Senha'}</Typography>
             {planInfo?.isPremium && <Chip size="small" label="💎 Pro" sx={{ bgcolor: 'rgba(99,102,241,.10)', color: '#6366f1', fontWeight: 700, height: 18, fontSize: 10 }} />}
           </Box>
         ) : (
@@ -814,8 +827,135 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         </Dialog>
         {view === 'patients' && loading && <Box sx={{ textAlign: 'center', py: 6 }}><CircularProgress sx={{ color: 'primary.dark' }} /></Box>}
 
-        {/* DR. EXAME PRO — banner premium (free tier + CTA). Só na LISTA (sem paciente aberto). Dismissível. */}
-        {planInfo && !planInfo.isPremium && view === 'patients' && !selected && !payDismissed && (
+        {/* PAINEL INICIAL DO MÉDICO (self-service): o que importa AGORA, em 5 segundos —
+            quem precisa de atenção (risk-sorted), perguntas em aberto, exames a renovar.
+            Princípios de dashboard clínico: priorização por risco + por quê + ação de 1 clique. */}
+        {view === 'overview' && loading && <Box sx={{ textAlign: 'center', py: 6 }}><CircularProgress sx={{ color: 'primary.dark' }} /></Box>}
+        {view === 'overview' && !loading && (() => {
+          const alerts = [...patients].filter((p) => p.hasAlerts).sort((a, b) => new Date(b.lastExamAt ?? 0).getTime() - new Date(a.lastExamAt ?? 0).getTime());
+          const openQP = patients.filter((p) => (p.openQuestions ?? 0) > 0);
+          const pendingInv = invites.filter((i) => i.status === 'pending');
+          const PRIORITY_LABEL: Record<string, string> = { importante: '🔴 Prioridade alta', moderada: '🟠 Alterações moderadas', leve: '🟡 Alterações leves' };
+          const relDays = (d?: string | null) => { if (!d) return null; const n = Math.floor((Date.now() - new Date(d).getTime()) / 86400000); return n < 1 ? 'hoje' : n < 30 ? `há ${n} ${n === 1 ? 'dia' : 'dias'}` : n < 365 ? `há ${Math.floor(n / 30)} ${Math.floor(n / 30) === 1 ? 'mês' : 'meses'}` : `há ${Math.floor(n / 365)} ${Math.floor(n / 365) === 1 ? 'ano' : 'anos'}`; };
+          // Renovação: exame antigo (>1 ano) ou nenhum exame compartilhado — deixa o médico pedir atualização.
+          const stale = patients
+            .filter((p) => !p.hasAlerts && ((p.examsCount ?? 0) === 0 || (p.lastExamAt && Date.now() - new Date(p.lastExamAt).getTime() > 365 * 86400000)))
+            .sort((a, b) => new Date(a.lastExamAt ?? 0).getTime() - new Date(b.lastExamAt ?? 0).getTime());
+          const firstName = (doctor?.name || 'Doutor(a)').replace(/^Dr[aº.]*\s+/i, '').split(' ')[0];
+          const hour = new Date().getHours();
+          const greet = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite';
+          const today = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
+          const row = (p: any, statusLine: ReactNode, onClick: () => void) => (
+            <Card key={p.shareId} onClick={onClick} sx={{ borderRadius: '12px', cursor: 'pointer', transition: 'all .15s', boxShadow: '0 1px 3px rgba(0,0,0,.04)', '&:hover': { boxShadow: '0 4px 16px rgba(0,0,0,.08)', transform: 'translateY(-1px)' } }}>
+              <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, '&:last-child': { pb: 1.5 } }}>
+                <Avatar src={p.patient?.id ? photoUrlFor(p.patient.id) : undefined} sx={{ bgcolor: 'rgba(32,178,170,.08)', color: 'primary.dark', fontWeight: 800, width: 44, height: 44, flexShrink: 0 }}>{p.patient?.fullName?.charAt(0)}</Avatar>
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 14, color: 'text.primary', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.patient?.fullName}</Typography>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {[p.age != null ? `${p.age}a` : null, p.sex === 'female' ? 'F' : p.sex === 'male' ? 'M' : null].filter(Boolean).join(' · ')}
+                    {statusLine ? <> · {statusLine}</> : null}
+                  </Typography>
+                </Box>
+                <ChevronRightIcon sx={{ color: 'text.disabled', fontSize: 20, flexShrink: 0 }} />
+              </CardContent>
+            </Card>
+          );
+          return (
+            <Stack spacing={2}>
+              {/* HERO: saudação + manchete clínica do dia */}
+              <Box sx={(t) => ({ borderRadius: '16px', overflow: 'hidden', background: `linear-gradient(135deg, ${t.palette.primary.main}, ${t.palette.primary.dark})`, color: t.palette.primary.contrastText, p: { xs: 2, md: 2.5 }, boxShadow: '0 10px 28px rgba(15,95,90,.25)' })}>
+                <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: { xs: 19, md: 22 }, lineHeight: 1.2 }}>{greet}, Dr. {firstName} 👋</Typography>
+                <Typography sx={{ opacity: 0.92, fontSize: 14, mt: 0.75 }}>
+                  {alerts.length > 0
+                    ? `${alerts.length} ${alerts.length === 1 ? 'paciente com valores alterados' : 'pacientes com valores alterados'}${openQP.length ? ` · ${openQP.length} ${openQP.length === 1 ? 'pergunta em aberto' : 'perguntas em aberto'}` : ''}`
+                    : openQP.length > 0
+                      ? `${openQP.length} ${openQP.length === 1 ? 'pergunta aguardando resposta' : 'perguntas aguardando resposta'}`
+                      : 'Tudo em ordem — nenhum alerta crítico no momento ✅'}
+                </Typography>
+                <Typography variant="caption" sx={{ opacity: 0.75, display: 'block', mt: 0.5, textTransform: 'capitalize' }}>{today}</Typography>
+              </Box>
+
+              {/* TILES: números do consultório (cada um navega) */}
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(4, 1fr)' }, gap: 1.5 }}>
+                {([
+                  { label: 'Pacientes', value: patients.length, color: '#178f89', onClick: () => setView('patients'), icon: <GroupsIcon /> },
+                  { label: 'Com alerta', value: alerts.length, color: '#ef4444', onClick: () => { setPatAlertOnly(true); setView('patients'); }, icon: <WarningAmberIcon /> },
+                  { label: 'Perguntas abertas', value: patients.reduce((n, p) => n + (p.openQuestions ?? 0), 0), color: '#b45309', onClick: () => { setView('questions'); loadAllQ(); }, icon: <QuestionAnswerIcon /> },
+                  { label: 'Convites pendentes', value: pendingInv.length, color: '#ea580c', onClick: () => setView('invites'), icon: <PersonAddAlt1Icon /> },
+                ] as const).map((tile) => (
+                  <Card key={tile.label} onClick={tile.onClick} sx={{ borderRadius: '12px', cursor: 'pointer', transition: 'all .15s', boxShadow: '0 1px 3px rgba(0,0,0,.04)', '&:hover': { boxShadow: '0 4px 16px rgba(0,0,0,.08)', transform: 'translateY(-1px)' } }}>
+                    <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
+                      <Stack direction="row" alignItems="center" spacing={1}>
+                        <Box component="span" sx={{ display: 'inline-flex', color: tile.color, '& svg': { fontSize: 18 } }}>{tile.icon}</Box>
+                        <Typography sx={{ fontWeight: 800, fontSize: 22, color: tile.color, lineHeight: 1.1 }}>{tile.value}</Typography>
+                      </Stack>
+                      <Typography variant="caption" color="text.secondary">{tile.label}</Typography>
+                    </CardContent>
+                  </Card>
+                ))}
+              </Box>
+
+              {/* FILA DE ATENÇÃO: risk-sorted, com o PORQUÊ e ação de 1 clique */}
+              {alerts.length > 0 && (
+                <Box>
+                  <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
+                    <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 15 }}>🩺 Precisam de atenção agora</Typography>
+                    <Button size="small" onClick={() => setView('patients')} sx={{ textTransform: 'none', fontWeight: 700, color: 'primary.dark', borderRadius: '999px' }}>Ver todos</Button>
+                  </Stack>
+                  <Stack spacing={1.25}>
+                    {alerts.slice(0, 4).map((p) => row(
+                      p,
+                      <>{PRIORITY_LABEL[p.maxPriority] ?? '🔴 Com alerta'}{p.openQuestions ? ` · ❓ ${p.openQuestions}` : ''}{p.lastExamAt ? ` · exame ${relDays(p.lastExamAt)}` : ''}</>,
+                      () => openPatient(p, 'alterados'),
+                    ))}
+                    {alerts.length > 4 && (
+                      <Button size="small" variant="outlined" onClick={() => setView('patients')} sx={{ alignSelf: 'center', borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>
+                        {`+${alerts.length - 4} outro${alerts.length - 4 > 1 ? 's' : ''} com alerta`}
+                      </Button>
+                    )}
+                  </Stack>
+                </Box>
+              )}
+
+              {/* PERGUNTAS EM ABERTO: resposta rápida */}
+              {openQP.length > 0 && (
+                <Box>
+                  <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
+                    <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 15 }}>❓ Perguntas aguardando você</Typography>
+                    <Button size="small" onClick={() => { setView('questions'); loadAllQ(); }} sx={{ textTransform: 'none', fontWeight: 700, color: 'primary.dark', borderRadius: '999px' }}>Inbox</Button>
+                  </Stack>
+                  <Stack spacing={1.25}>
+                    {openQP.slice(0, 3).map((p) => row(p, `❓ ${p.openQuestions} em aberto`, () => openPatient(p, 'questions')))}
+                  </Stack>
+                </Box>
+              )}
+
+              {/* RENOVAÇÃO: exames velhos ou inexistentes — oportunidade de pedido novo */}
+              {stale.length > 0 && (
+                <Box>
+                  <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 15, mb: 1 }}>📅 Exames para renovar</Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>Sem exame novo há mais de 1 ano (ou nenhum compartilhado) — peça uma atualização na próxima consulta.</Typography>
+                  <Stack spacing={1.25}>
+                    {stale.slice(0, 3).map((p) => row(p, (p.examsCount ?? 0) === 0 ? 'sem exames compartilhados' : `último exame ${relDays(p.lastExamAt)}`, () => openPatient(p)))}
+                  </Stack>
+                </Box>
+              )}
+
+              {/* EMPTY: sem pacientes ainda → funil de convite */}
+              {patients.length === 0 && (
+                <Card sx={{ borderRadius: '12px' }}><CardContent><Box sx={{ textAlign: 'center', py: 4 }}>
+                  <Box sx={{ fontSize: 56, mb: 1.5, opacity: 0.4 }}>🩺</Box>
+                  <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 17, mb: 0.5 }}>Seu painel começa com 1 paciente</Typography>
+                  <Typography color="text.secondary" sx={{ mb: 2, maxWidth: 380, mx: 'auto' }}>Convide pelo WhatsApp — ele instala o app, sobe os exames e você acompanha tudo aqui, na hora que ele chegar.</Typography>
+                  <Button variant="contained" startIcon={<PersonAddAlt1Icon />} onClick={() => { setInvResult(null); setInviteOpen(true); }} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>Convidar paciente</Button>
+                </Box></CardContent></Card>
+              )}
+            </Stack>
+          );
+        })()}
+
+        {/* DR. EXAME PRO — banner premium (free tier + CTA). No painel e na LISTA (sem paciente aberto). Dismissível. */}
+        {planInfo && !planInfo.isPremium && (view === 'overview' || view === 'patients') && !selected && !payDismissed && (
           <Box sx={{ mb: 2, p: 2, pr: 6, borderRadius: '12px', position: 'relative', background: 'linear-gradient(135deg,rgba(99,102,241,.08),rgba(99,102,241,.02))', border: '1px solid', borderColor: 'rgba(99,102,241,.2)' }}>
             <IconButton size="small" aria-label="Fechar banner" onClick={() => { try { localStorage.setItem('doctorPayDismissed', '1'); } catch { /* */ } setPayDismissed(true); }} sx={{ position: 'absolute', top: 6, right: 6, color: 'text.secondary', '&:hover': { bgcolor: 'rgba(99,102,241,.10)' } }}><span aria-hidden style={{ fontSize: 20, lineHeight: 1 }}>×</span></IconButton>
             <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" useFlexGap>
@@ -825,7 +965,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
             </Stack>
           </Box>
         )}
-        {planInfo?.isPremium && view === 'patients' && !selected && (
+        {planInfo?.isPremium && (view === 'overview' || view === 'patients') && !selected && (
           <Chip size="small" label="💎 Dr. Exame Pro ativo" sx={{ mb: 1.5, bgcolor: 'rgba(99,102,241,.12)', color: '#6366f1', fontWeight: 700 }} />
         )}
 
@@ -1105,6 +1245,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
       {/* MENU RODAPÉ (mobile) — Pacientes · Perguntas · Perfil · Mais. Botões acessíveis (aria + button nativo). */}
       <Box component="nav" sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1100, display: { xs: 'flex', md: 'none' }, justifyContent: 'space-around', bgcolor: 'background.paper', backdropFilter: 'blur(14px)', borderTop: '1px solid', borderTopColor: 'divider', pb: 'env(safe-area-inset-bottom)', boxShadow: '0 -6px 24px rgba(32,178,170,.10)' }}>
         {([
+          { label: 'Início', on: view === 'overview', onClick: () => { setView('overview'); setSelected(null); setSelExam(null); }, icon: <SpaceDashboardIcon />, badge: 0 },
           { label: 'Pacientes', on: view === 'patients', onClick: () => { setView('patients'); setSelected(null); setSelExam(null); }, icon: <GroupsIcon />, badge: 0 },
           { label: 'Perguntas', on: view === 'questions', onClick: () => { setView('questions'); loadAllQ(); }, icon: <QuestionAnswerIcon />, badge: unreadQ },
           { label: 'Perfil', on: view === 'profile' || view === 'password', onClick: () => setView('profile'), icon: <PersonIcon />, badge: 0 },

@@ -49,13 +49,23 @@ export const DoctorTrends = ({ patientId, token }: Props) => {
 
   const authHeaders = { Authorization: `Bearer ${token}` } as const;
 
+  // Coerência E3: o dropdown (lista + counts "(N exames)") reflete o PERÍODO selecionado —
+  // trocar 6m/1a/2a refaz o fetch com `from` e recalcula tudo, não só o gráfico.
   useEffect(() => {
-    setNames([]); setSel(''); setTs(null);
-    fetch(`${API_URL}/doctor/patients/${patientId}/items/distinct-names`, { headers: authHeaders })
+    setNames([]);
+    const q = new URLSearchParams();
+    if (periodCutoff) q.set('from', String(periodCutoff));
+    const qs = q.toString();
+    fetch(`${API_URL}/doctor/patients/${patientId}/items/distinct-names${qs ? `?${qs}` : ''}`, { headers: authHeaders })
       .then((r) => (r.ok ? r.json() : []))
       .then(setNames)
       .catch(() => setNames([]));
-  }, [patientId, token]);
+  }, [patientId, token, period]);
+
+  // Reset da seleção ao trocar de paciente (período mantém a escolha do médico).
+  useEffect(() => {
+    setSel(''); setTs(null);
+  }, [patientId]);
 
   useEffect(() => {
     if (!sel) { setTs(null); return; }
@@ -127,10 +137,13 @@ export const DoctorTrends = ({ patientId, token }: Props) => {
   // Tendência precisa de ≥2 pontos p/ comparar — esconde analitos com só 1 resultado do dropdown.
   const multi = names.filter((n) => n.count >= 2);
 
-  // AUTO-SELECT: abre já com o 1º analito selecionado (gráfico visível, sem espaço em branco)
+  // AUTO-SELECT: abre já com o 1º analito selecionado (gráfico visível, sem espaço em branco).
+  // Se o período mudou e o marcador selecionado caiu fora (<2 pontos na janela), re-seleciona.
   useEffect(() => {
-    if (!sel && multi.length > 0) setSel(multi[0].nameCanonical);
-  }, [multi.length]);
+    if (multi.length === 0) return;
+    if (!sel) { setSel(multi[0].nameCanonical); return; }
+    if (!multi.some((n) => n.nameCanonical === sel)) setSel(multi[0].nameCanonical);
+  }, [multi]);
 
   const tealMain = theme.palette.primary.main;
   const tealDark = theme.palette.primary.dark;

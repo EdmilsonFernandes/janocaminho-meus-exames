@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Button, Card, CardContent, Chip, CircularProgress, Stack, Typography } from '@mui/material';
+import { Box, Button, Card, CardContent, Chip, CircularProgress, IconButton, Stack, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
@@ -26,6 +26,9 @@ export const DoctorExamDetail = ({ patientId, examId, token, onBack }: { patient
   const [exam, setExam] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [pdfLoading, setPdfLoading] = useState(false);
+  const theme = useTheme();
+  // Hooks ANTES dos early-returns (React #310).
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   useEffect(() => {
     setLoading(true);
@@ -81,35 +84,71 @@ export const DoctorExamDetail = ({ patientId, examId, token, onBack }: { patient
           borderRadius: RADIUS.card,
         })}
       >
-        <Stack direction="row" spacing={1} alignItems="center" sx={{ p: 1 }}>
-          <Button onClick={onBack} startIcon={<ArrowBackIcon />} sx={{ flexShrink: 0, textTransform: 'none', fontWeight: 700, color: 'primary.dark', borderRadius: RADIUS.pill, minWidth: 'auto', px: 1.5 }}>
-            Voltar
-          </Button>
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography variant="h6" component="h1" title={titleInfo.original || exam.title} sx={{ fontWeight: 700, display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden', minWidth: 0, lineHeight: 1.2 }}>
-              {titleInfo.text || 'Exame'}
-            </Typography>
-            {subtitle && <Typography variant="caption" color="text.secondary">{subtitle}</Typography>}
-          </Box>
-          <Chip color="success" label="Concluído" size="small" sx={{ flexShrink: 0 }} />
-          {exam.filePath && (
-            <Button
-              size="small"
-              variant="outlined"
-              startIcon={pdfLoading ? <CircularProgress size={16} color="inherit" /> : <PictureAsPdfIcon />}
-              onClick={openPdf}
-              sx={(t) => ({
-                flexShrink: 0,
-                color: t.palette.primary.main,
-                borderColor: t.palette.primary.main,
-                textTransform: 'none',
-                fontWeight: 700,
-                borderRadius: RADIUS.pill,
-                '&:hover': { borderColor: t.palette.primary.dark, bgcolor: alpha(t.palette.primary.main, 0.06) },
-              })}
-            >
-              Abrir laudo
-            </Button>
+        {/* Mobile: back circular + título full-width (2 linhas); ações em LINHA PRÓPRIA abaixo —
+            antes "Abrir laudo" + chip espremiam o título numa linha quebrada (feedback E4b). */}
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 0.75, sm: 1 }} alignItems={{ sm: 'center' }} sx={{ p: 1 }}>
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0, width: '100%' }}>
+            {isMobile ? (
+              <IconButton onClick={onBack} size="small" aria-label="Voltar" sx={{ flexShrink: 0, color: 'primary.dark', bgcolor: (t) => alpha(t.palette.primary.main, 0.1), '&:hover': { bgcolor: (t) => alpha(t.palette.primary.main, 0.18) } }}>
+                <ArrowBackIcon fontSize="small" />
+              </IconButton>
+            ) : (
+              <Button onClick={onBack} startIcon={<ArrowBackIcon />} sx={{ flexShrink: 0, textTransform: 'none', fontWeight: 700, color: 'primary.dark', borderRadius: RADIUS.pill, minWidth: 'auto', px: 1.5 }}>
+                Voltar
+              </Button>
+            )}
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography variant="h6" component="h1" title={titleInfo.original || exam.title} sx={{ fontWeight: 700, display: '-webkit-box', WebkitLineClamp: isMobile ? 2 : 1, WebkitBoxOrient: 'vertical', overflow: 'hidden', minWidth: 0, lineHeight: 1.2 }}>
+                {titleInfo.text || 'Exame'}
+              </Typography>
+              {subtitle && <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>{subtitle}</Typography>}
+            </Box>
+            {!isMobile && <Chip color="success" label="Concluído" size="small" sx={{ flexShrink: 0 }} />}
+          </Stack>
+          {isMobile ? (
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ width: '100%' }}>
+              <Chip color="success" label="Concluído" size="small" sx={{ flexShrink: 0 }} />
+              <Box sx={{ flex: 1 }} />
+              {exam.filePath && (
+                <Button
+                  size="small"
+                  variant="outlined"
+                  startIcon={pdfLoading ? <CircularProgress size={16} color="inherit" /> : <PictureAsPdfIcon />}
+                  onClick={openPdf}
+                  sx={(t) => ({
+                    flexShrink: 0,
+                    color: t.palette.primary.main,
+                    borderColor: t.palette.primary.main,
+                    textTransform: 'none',
+                    fontWeight: 700,
+                    borderRadius: RADIUS.pill,
+                    '&:hover': { borderColor: t.palette.primary.dark, bgcolor: alpha(t.palette.primary.main, 0.06) },
+                  })}
+                >
+                  Abrir laudo
+                </Button>
+              )}
+            </Stack>
+          ) : (
+            exam.filePath && (
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={pdfLoading ? <CircularProgress size={16} color="inherit" /> : <PictureAsPdfIcon />}
+                onClick={openPdf}
+                sx={(t) => ({
+                  flexShrink: 0,
+                  color: t.palette.primary.main,
+                  borderColor: t.palette.primary.main,
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  borderRadius: RADIUS.pill,
+                  '&:hover': { borderColor: t.palette.primary.dark, bgcolor: alpha(t.palette.primary.main, 0.06) },
+                })}
+              >
+                Abrir laudo
+              </Button>
+            )
           )}
         </Stack>
       </Box>

@@ -16,7 +16,7 @@ import { TelemedicineButton } from '../components/TelemedicineButton';
 import { fmtVal, unitSuffix } from '../utils/format';
 import { refLabel, categorize } from '../utils/medicalData';
 import { priorityOf, maxPriority, isStaleExam, refScaleSuspect, PRIORITY_META, PRIORITY_RANK } from '../utils/alertPriority';
-import { ExamMarker } from '../components/ExamMarker';
+import { CappedExamMarkers } from '../components/CappedExamMarkers';
 
 import type { AbnormalItem as AbnItem } from '@meus-exames/shared';
 
@@ -135,11 +135,7 @@ export const ValoresAlteradosPage = () => {
                     <Box sx={{ mb: 1, display: 'flex', justifyContent: { xs: 'stretch', sm: 'flex-start' } }}>
                       <TelemedicineButton marker={g.items[0]?.nameCanonical} compact />
                     </Box>
-                    <Stack spacing={0.75}>
-                      {g.items.map((it) => (
-                        <ExamMarker key={it.id} it={it} suspect={refScaleSuspect(it)} />
-                      ))}
-                    </Stack>
+                    <CappedExamMarkers items={g.items} />
                   </AccordionDetails>
                 </Accordion>
               );
