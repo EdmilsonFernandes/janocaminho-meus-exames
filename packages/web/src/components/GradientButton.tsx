@@ -12,7 +12,7 @@ import { Button } from '@mui/material';
  * Props: qualquer ButtonProps (size, startIcon, onClick, disabled, fullWidth…).
  * Não use `color`/`variant` (sobrescritos p/ garantir o gradiente).
  */
-export const GradientButton = ({ sx, children, ...rest }: ButtonProps) => (
+export const GradientButton = ({ sx, children, variant: _variantIgnored, color: _colorIgnored, ...rest }: ButtonProps) => (
   <Button
     variant="contained"
     disableElevation

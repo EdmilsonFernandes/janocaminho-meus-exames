@@ -39,11 +39,16 @@ export const ExplainButton = ({ name, nameCanonical, size = 'small' }: { name: s
     const cached = memCache.get(key);
     if (cached) { setData(cached); setState('ok'); setErrorReason(''); return; }
     setData(null); setState('loading'); setErrorReason('');
+    // Explicação é dicionário educativo GLOBAL — o server aceita token de paciente OU de médico.
+    // No PORTAL DO MÉDICO o "?" mandava o token de paciente (inexistente/expirado naquele
+    // dispositivo) → "token inválido". Tenta paciente; se 401, re-tenta com o token do médico.
+    const attempt = (tok: string | null) => fetch(`${API_URL}/items/explain`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tok ?? ''}` },
+      body: JSON.stringify({ name }),
+    });
     try {
-      const r = await fetch(`${API_URL}/items/explain`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
-        body: JSON.stringify({ name }),
-      });
+      let r = await attempt(token());
+      if (r.status === 401) r = await attempt(localStorage.getItem('doctorToken'));
       if (r.ok) { const d = await r.json(); memCache.set(key, d); setData(d); setState('ok'); return; }
       // Erro HTTP com mensagem útil (limite de taxa, off-line, etc.).
       let reason = 'Não consegui obter do servidor agora.';

@@ -6,8 +6,39 @@ import { getOrCreateExplanation } from '../analysis/explain';
 import { collapseAdjacentNearDupes } from '../analysis/dedup';
 import { reconcileScaleFlag } from '../utils/normalize';
 import { isCpfMismatch } from '../utils/examIdentity';
+import { verifyToken } from '../auth/jwt';
 
 const router = Router();
+
+// EXPLICA um exame/analito em linguagem simples. Cache em banco (exam_knowledge) primeiro;
+// só chama a IA se não tiver (ou se a versão do prompt mudou) — e então grava pra reaproveitar.
+// Próximos usuários que clicarem pegam do banco, sem chamar a IA. Ver analysis/explain.ts.
+//
+// ⚠️ DECLARADO ANTES de `router.use(requireAuth)` com auth LEVE DUAL (paciente OU médico,
+// mesmo padrão do requirePhotoToken): o conteúdo é DICIONÁRIO EDUCATIVO GLOBAL por nome —
+// não expõe dado de paciente nenhum. Bug: o "?" do portal do médico mandava o token de
+// PACIENTE (inexistente/expirado no dispositivo do médico) → "token inválido" (o requireAuth
+// rejeita token de médico por isolamento, o que é CORTO nas rotas de dado, mas aqui sobra).
+router.post('/explain', async (req, res) => {
+  try {
+    const auth = req.headers.authorization;
+    if (!auth?.startsWith('Bearer ')) { res.status(401).json({ error: 'Não autenticado' }); return; }
+    try {
+      const payload: any = verifyToken(auth.slice(7));
+      const ok = payload?.userId || payload?.doctorId; // paciente OU médico
+      if (!ok) throw new Error('tipo');
+    } catch { res.status(401).json({ error: 'Token inválido ou expirado.' }); return; }
+
+    const name = String((req.body as any)?.name ?? '').trim();
+    if (!name) { res.status(400).json({ error: 'name obrigatório' }); return; }
+    const data = await getOrCreateExplanation(name);
+    res.json(data);
+  } catch (e: any) {
+    console.error('[explain] erro:', e?.message);
+    res.status(502).json({ error: 'Não consegui explicar agora. Tente novamente.' });
+  }
+});
+
 router.use(requireAuth);
 
 // ATUALIZAR item (corrigir valor extraído — usuário corrige erro de OCR; recalc flag)
@@ -266,21 +297,6 @@ router.get('/flag-summary', async (req: AuthedRequest, res, next) => {
     });
   } catch (e) {
     next(e);
-  }
-});
-
-// EXPLICA um exame/analito em linguagem simples. Cache em banco (exam_knowledge) primeiro;
-// só chama a IA se não tiver (ou se a versão do prompt mudou) — e então grava pra reaproveitar.
-// Próximos usuários que clicarem pegam do banco, sem chamar a IA. Ver analysis/explain.ts.
-router.post('/explain', async (req: AuthedRequest, res) => {
-  try {
-    const name = String((req.body as any)?.name ?? '').trim();
-    if (!name) { res.status(400).json({ error: 'name obrigatório' }); return; }
-    const data = await getOrCreateExplanation(name);
-    res.json(data);
-  } catch (e: any) {
-    console.error('[explain] erro:', e?.message);
-    res.status(502).json({ error: 'Não consegui explicar agora. Tente novamente.' });
   }
 });
 

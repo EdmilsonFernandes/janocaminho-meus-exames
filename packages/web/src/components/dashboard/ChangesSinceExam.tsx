@@ -1,10 +1,9 @@
-import { Stack, Typography, Box, Chip } from '@mui/material';
+import { Stack, Typography, Box, Chip, Button } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { AppCard } from '../AppCard';
-import { GradientButton } from '../GradientButton';
 
 /**
  * Marker — recorte mínimo de um marcador vindo do health-summary (topAttention / improving).
@@ -73,7 +72,11 @@ export const ChangesSinceExam = ({
         ))}
       </Stack>
       <Box sx={{ mt: 1.5 }}>
-        <GradientButton variant="text" onClick={onView} endIcon={<ArrowForwardIcon />} sx={{ p: 0, px: 0.5, minHeight: 40, textTransform: 'none', fontWeight: 700 }}>{ctaLabel}</GradientButton>
+        {/* CTA SECUNDÁRIO do par de cards do hero: a ação primária é o "Ver análise" do
+            ExamHero — aqui é link discreto (teal, sem fundo). Antes: GradientButton com
+            variant="text" (que vencia o contained interno) = gradiente cru em cima de um
+            botão text → bloco verde "cortante" (feedback do dono). */}
+        <Button variant="text" onClick={onView} endIcon={<ArrowForwardIcon />} sx={{ p: 0, px: 0.5, minHeight: 40, alignSelf: 'flex-start', textTransform: 'none', fontWeight: 800, color: 'primary.dark', '&:hover': { bgcolor: 'rgba(32,178,170,.08)' } }}>{ctaLabel}</Button>
       </Box>
     </AppCard>
   );
