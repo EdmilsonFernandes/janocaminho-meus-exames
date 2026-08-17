@@ -175,7 +175,9 @@ const ExamCards = () => {
           if (hs.ok) {
             const hd = await hs.json();
             if (!cancelled) {
-              setWorsened(Array.isArray(hd.topAttention) ? hd.topAttention.slice(0, 3) : []);
+              // Mesma correção do Dashboard: "pioraram" = hd.worsening (tendência real), não
+              // topAttention (alterados) — evita o mesmo marcador nas duas listas (dupliicação).
+              setWorsened(Array.isArray(hd.worsening) ? hd.worsening.slice(0, 3) : []);
               setImproved(Array.isArray(hd.improving) ? hd.improving.slice(0, 3) : []);
               setHsLoaded(true);
             }

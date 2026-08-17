@@ -24,6 +24,8 @@ import type { TimeSeriesByName as TS } from '@meus-exames/shared';
  */
 const prettyName = (n: string) => (n || '').toLowerCase().replace(/_/g, ' ').replace(/(^|\s)\w/g, (m) => m.toUpperCase());
 const fmtNum = (n: number | null | undefined) => n == null ? '—' : String(Number(n.toFixed(4))).replace('.', ',');
+/** Limite de faixa em pt-BR premium: 57.11→"57,11", 15.8→"15,8", 12→"12" (sem zeros à toa). */
+const fmtRef = (n: number | null | undefined) => n == null ? '—' : n.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
 const fmt2 = (d?: string | null) => (d ? new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }) : 's/d');
 
 export const TrendsChart = ({ ts }: { ts: TS }) => {
@@ -32,9 +34,21 @@ export const TrendsChart = ({ ts }: { ts: TS }) => {
   const tealMain = theme.palette.primary.main;
   const tealDark = theme.palette.primary.dark;
 
+  // REFERÊNCIA UNIFICADA do gráfico (feedback do dono): pontos de labs diferentes podem ter
+  // faixas próprias (ex.: hemoglobina 12–15.8 num exame, 13–16.5 noutro). Uma faixa única na
+  // tela = MEDIANA dos limits dos pontos (mediana > média: imune a outlier tipo refHigh=0.03
+  // de extração ruim). Se todos os pontos têm a mesma faixa, mediana == ela mesma (comportamento
+  // antigo preservado). `refMerged=true` → label avisa que é faixa média dos exames.
+  const pointRanges = (ts.points ?? []).filter((p) => p.refLow != null && p.refHigh != null && (p.refHigh as number) > (p.refLow as number));
+  const distinctRanges = new Set(pointRanges.map((p) => `${p.refLow}|${p.refHigh}`));
+  const median = (arr: number[]) => { const s = [...arr].sort((a, b) => a - b); const m = Math.floor(s.length / 2); return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+  const uniLow = pointRanges.length ? median(pointRanges.map((p) => p.refLow as number)) : ts.refLow;
+  const uniHigh = pointRanges.length ? median(pointRanges.map((p) => p.refHigh as number)) : ts.refHigh;
+  const refMerged = distinctRanges.size > 1;
+
   const data = (ts.points ?? []).map((p) => ({
     name: p.performedAt ? new Date(p.performedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }) : 's/d',
-    valor: p.valueNumeric, flag: p.flag, title: p.title,
+    valor: p.valueNumeric, flag: p.flag, title: p.title, refLow: p.refLow ?? null, refHigh: p.refHigh ?? null,
   }));
 
   const TooltipBox = ({ active, payload }: any) => {
@@ -45,7 +59,7 @@ export const TrendsChart = ({ ts }: { ts: TS }) => {
         <Box sx={{ fontWeight: 700, fontSize: 11, opacity: 0.8 }}>{d.name}</Box>
         <Box sx={{ fontSize: 19, fontWeight: 800 }}>{fmtNum(d.valor)} {ts.unit ? <UnitLabel unit={ts.unit} fontSize="1.19rem" /> : null}</Box>
         {(() => {
-          const s = displayStatus(d.flag as string, d.name, ts.refLow, ts.refHigh);
+          const s = displayStatus(d.flag as string, d.name, d.refLow ?? uniLow, d.refHigh ?? uniHigh);
           if (s.tone === 'normal') return null;
           const color = s.tone === 'atencao' || s.tone === 'critico' ? theme.palette.error.light : alpha(theme.palette.text.primary, 0.7);
           const arrow = d.flag === 'HIGH' ? '↑ ' : d.flag === 'LOW' ? '↓ ' : s.tone === 'critico' ? '⚠ ' : '';
@@ -70,7 +84,7 @@ export const TrendsChart = ({ ts }: { ts: TS }) => {
     else {
       const intercept = (sy - slope * sx) / n;
       const dir = slope > 0 ? 'up' : 'down';
-      const ref = dir === 'up' ? ts.refHigh : ts.refLow;
+      const ref = dir === 'up' ? uniHigh : uniLow;
       if (ref != null && slope !== 0) {
         const daysExit = (ref - intercept) / slope;
         const daysFromNow = daysExit - xs[xs.length - 1];
@@ -110,13 +124,26 @@ export const TrendsChart = ({ ts }: { ts: TS }) => {
         {lastPt && (
           <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.25 }}>Última medição: <strong>{fmt2(lastPt.performedAt)}</strong></Typography>
         )}
-        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-          {(ts.refLow != null && ts.refHigh != null)
-            ? `Referência: ${ts.refLow}–${ts.refHigh}${ts.unit ? ` ${ts.unit}` : ''}`
-            : (ts.refLow != null || ts.refHigh != null)
-              ? `Referência: ${ts.refLow ?? ts.refHigh}${ts.unit ? ` ${ts.unit}` : ''}`
-              : 'Sem faixa de referência informada'}
-        </Typography>
+        {/* Faixa de referência em CHIP sutil (feedback: texto cru "57.11–178.53 pg/mL" era
+            feio/nada premium). Formata pt-BR (vírgula, sem zeros à toa) e, quando os exames
+            têm faixas diferentes, usa a MEDIANA e avisa "mediana dos exames". */}
+        {(uniLow != null && uniHigh != null) || uniLow != null || uniHigh != null ? (
+          <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mt: 0.5, flexWrap: 'wrap' }}>
+            <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, px: 1, py: 0.25, borderRadius: '999px', bgcolor: alpha(theme.palette.success.main, 0.10), border: `1px solid ${alpha(theme.palette.success.main, 0.22)}` }}>
+              <Box component="span" sx={{ width: 8, height: 8, borderRadius: '2px', bgcolor: alpha(theme.palette.success.main, 0.55), display: 'inline-block' }} />
+              <Typography component="span" sx={{ fontSize: 12.5, fontWeight: 700, color: 'text.secondary' }}>
+                {(uniLow != null && uniHigh != null)
+                  ? `${fmtRef(uniLow)} – ${fmtRef(uniHigh)}${ts.unit ? ` ${ts.unit}` : ''}`
+                  : `${fmtRef(uniLow ?? uniHigh)}${ts.unit ? ` ${ts.unit}` : ''}`}
+              </Typography>
+            </Box>
+            {refMerged && (
+              <Typography component="span" variant="caption" sx={{ color: 'text.secondary' }}>mediana dos exames (faixas variam entre laboratórios)</Typography>
+            )}
+          </Stack>
+        ) : (
+          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.5 }}>Sem faixa de referência informada</Typography>
+        )}
       </Box>
 
       {/* Gráfico — linha teal + área verde (faixa de referência). Sem margin negativa (não sangra). */}
@@ -126,8 +153,8 @@ export const TrendsChart = ({ ts }: { ts: TS }) => {
           <XAxis dataKey="name" interval="preserveStartEnd" minTickGap={8} tickFormatter={(v: string) => (isMobile ? String(v).slice(0, 5) : v)} tick={{ fontSize: isMobile ? 10 : 12, fill: theme.palette.text.secondary }} axisLine={{ stroke: theme.palette.divider }} />
           <YAxis tick={{ fontSize: isMobile ? 10 : 12, fill: theme.palette.text.secondary }} axisLine={{ stroke: theme.palette.divider }} />
           <Tooltip content={<TooltipBox />} />
-          {ts.refLow != null && ts.refHigh != null && (
-            <ReferenceArea y1={ts.refLow} y2={ts.refHigh} fill={theme.palette.success.main} fillOpacity={0.08} />
+          {uniLow != null && uniHigh != null && (
+            <ReferenceArea y1={uniLow} y2={uniHigh} fill={theme.palette.success.main} fillOpacity={0.08} />
           )}
           <Line type="monotone" dataKey="valor" stroke={tealMain} strokeWidth={3} dot={{ r: 5, fill: tealMain, strokeWidth: 0 }} activeDot={{ r: 8, stroke: theme.palette.background.paper, strokeWidth: 2 }} />
         </LineChart>
@@ -146,24 +173,35 @@ export const TrendsChart = ({ ts }: { ts: TS }) => {
         </Box>
       )}
 
-      {/* Histórico (do mais recente). */}
+      {/* Histórico (do mais recente). Flag de CADA linha contra a faixa do PRÓPRIO exame
+          (d.refLow/refHigh do ponto) — labs diferentes usam faixas diferentes e o flag foi
+          calculado contra a faixa daquele exame; usar a faixa global contradizia ("12.9
+          Abaixo" com faixa 12–15.8 na tela, sendo que aquele exame usava 13–16.5). */}
       <Box sx={{ mt: 2 }}>
         <Typography variant="subtitle2" sx={{ mb: 0.5 }}>Histórico (do mais recente)</Typography>
         <Stack spacing={0.5}>
-          {[...data].reverse().map((d, i) => (
+          {[...data].reverse().map((d, i) => {
+            const ownLow = (d as any).refLow ?? ts.refLow;
+            const ownHigh = (d as any).refHigh ?? ts.refHigh;
+            const ownDiff = (d as any).refLow != null && (ts.refLow != null && (d as any).refLow !== ts.refLow || (ts.refHigh != null && (d as any).refHigh !== ts.refHigh));
+            return (
             <Box key={i} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, p: 0.75, borderRadius: '8px', bgcolor: 'action.hover' }}>
               <Box sx={{ minWidth: 0, flex: 1 }}>
                 <Typography variant="body2" sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{d.name}</Typography>
                 {d.title && (
                   <Typography variant="caption" title={d.title} sx={{ color: 'text.secondary', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{d.title}</Typography>
                 )}
+                {ownDiff && (
+                  <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>faixa deste exame: {String((d as any).refLow).replace('.', ',')}–{String((d as any).refHigh).replace('.', ',')}{ts.unit ? ` ${ts.unit}` : ''}</Typography>
+                )}
               </Box>
               <Stack direction="row" alignItems="center" spacing={0.75} sx={{ flexShrink: 0 }}>
                 <Typography sx={{ fontWeight: 800 }}>{fmtNum(d.valor)} {ts.unit ? <UnitLabel unit={ts.unit} /> : null}</Typography>
-                <Flag flag={d.flag} name={d.name} refLow={ts.refLow} refHigh={ts.refHigh} />
+                <Flag flag={d.flag} name={d.name} refLow={ownLow} refHigh={ownHigh} />
               </Stack>
             </Box>
-          ))}
+            );
+          })}
         </Stack>
       </Box>
     </CardContent></Card>

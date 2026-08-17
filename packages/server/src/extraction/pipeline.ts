@@ -6,6 +6,7 @@ import { classifyDoc } from './docPatterns';
 import { extractLabPanel, extractLabPanels, extractImaging } from './claude';
 import { imageToText } from './imageToText';
 import { canonicalName, reconcileScaleFlag, parseNumeric, normalizeUnit, sanitizeUnitInText } from '../utils/normalize';
+import { invalidateHealthSummary } from '../analysis/hs-cache';
 import { toCanonicalUnit } from '../utils/units';
 import { readExamFile, mediaTypeFromRef } from '../utils/storage';
 import type { LabExtraction, ExtractionItem } from './schemas';
@@ -202,6 +203,9 @@ async function runExtractionOnce(examId: string): Promise<void> {
       },
     });
     console.log(`[extraction] exame ${examId} extraído: ${items.length} itens (kind=${kind}, review=${reviewRequired})`);
+    // Extração mudou os dados do paciente → invalida o cache do health-summary na hora
+    // (antes: até 5min de score/"o que mudou" defasados após subir exame novo).
+    invalidateHealthSummary(exam.patientId);
     // Extração consome créditos (CREDIT_COSTS.extraction = 0 hoje, mas mantém o gate p/ futura cobrança).
     if (patient?.ownerId) { try { await chargeCredits(patient.ownerId, CREDIT_COSTS.extraction); } catch { /* não bloqueia */ } }
 
@@ -274,6 +278,8 @@ async function runExtractionOnce(examId: string): Promise<void> {
           console.log(`[extraction] split ${i + 2}/${splitLabs.length + 1}: exame ${screated.id} criado (${sitems.length} itens, coleta ${slab.performedAt ?? '?'})`);
         }
       } catch (e: any) { console.error('[extraction] split falhou (exame principal OK):', e?.message); }
+      // Splits mudam o histórico do paciente (novos exames/datas) — invalida aqui também.
+      invalidateHealthSummary(exam.patientId);
     }
   } catch (e: any) {
     console.error(`[extraction] exame ${examId} falhou (tentativa):`, e?.message);

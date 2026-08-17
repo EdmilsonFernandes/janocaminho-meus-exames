@@ -54,6 +54,11 @@ const SYNONYMS: Record<string, string[]> = {
   VITAMINA_D: ['25 OH VITAMINA D', '25-OH-D', 'VITAMINA D'],
   VITAMINA_B12: ['B12', 'COBALAMINA'],
   TSH: ['HORMONIO TIREOESTIMULANTE', 'TSH'],
+  // Gonadotrofinas (bug 2026-08-16: "Fsh - Hormonio Foliculo Estimulante" e "FSH" viravam 2
+  // séries separadas na tendência). Sigla + expansão do nome colapsam num canonical só —
+  // mesmo padrão que TSH/TIREOESTIMULANTE já fazia.
+  FSH: ['FSH', 'HORMONIO FOLICULO ESTIMULANTE', 'FOLICULO ESTIMULANTE', 'FSH - HORMONIO FOLICULO ESTIMULANTE', 'HORMONIO FOLICULO-ESTIMULANTE'],
+  LH: ['LH', 'HORMONIO LUTEINIZANTE', 'LH - HORMONIO LUTEINIZANTE', 'HORMONIO LUTEINIZANTE'],
   T4_LIVRE: ['T4 LIVRE', 'FT4'],
   T3: ['T3', 'TRIIODOTIRONINA'],
   SODIO: ['NA', 'SODIO'],

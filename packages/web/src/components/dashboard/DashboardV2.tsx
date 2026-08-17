@@ -90,7 +90,11 @@ function useDashboardData(pid: string | null) {
             setCardioRisk(hd.cardiometabolicRisk ?? null);
             setMarkerCount(typeof hd.markers === 'number' ? hd.markers : 0);
             setStaleWarning(hd.staleWarning ?? '');
-            setWorsened(Array.isArray(hd.topAttention) ? hd.topAttention.slice(0, 3) : []);
+            // "Pioraram" = trend PIOROU mesmo (hd.worsening). Antes alimentava com topAttention
+            // (= alterados, qualquer tendência) — marcador ALTERADO-QUER-MELHORANDO caía nas
+            // DUAS listas (topAttention ∩ improving) e o card mostrava o mesmo valor 2×
+            // (bug da Heloisa: PCR 7.61 "piorou" e "melhorou" ao mesmo tempo).
+            setWorsened(Array.isArray(hd.worsening) ? hd.worsening.slice(0, 3) : []);
             setImproved(Array.isArray(hd.improving) ? hd.improving.slice(0, 3) : []);
           }
         }

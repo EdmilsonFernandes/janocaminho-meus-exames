@@ -11,16 +11,9 @@ import { logCredit } from '../utils/credits';
 import { buildCurrentHealthSummary } from '../analysis/health-state';
 
 // Cache LRU do health-summary: recomputar a cada GET do Dashboard = ~70% da carga do DB.
-// TTL 5 min (aceitável: exames não mudam a cada segundo). Invalide manualmente se preciso.
-const hsCache = new Map<string, { data: any; ts: number }>();
-const HS_TTL = 5 * 60_000;
-async function getCachedHealthSummary(patientId: string): Promise<any> {
-  const cached = hsCache.get(patientId);
-  if (cached && Date.now() - cached.ts < HS_TTL) return cached.data;
-  const data = await buildCurrentHealthSummary(patientId);
-  hsCache.set(patientId, { data, ts: Date.now() });
-  return data;
-}
+// TTL 5 min. Módulo próprio (analysis/hs-cache) p/ outros módulos INVALIDAREM em mutações
+// (delete de exame, extração, edição de item) — antes o painel mostrava dado morto por 5 min.
+import { getCachedHealthSummary } from '../analysis/hs-cache';
 import { encryptedCpfData, maskStoredCpf } from '../utils/cpf';
 
 const router = Router();

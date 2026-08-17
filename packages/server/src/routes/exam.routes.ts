@@ -13,6 +13,7 @@ import { serializeExam } from '../utils/serialize';
 import { runExtraction } from '../extraction/pipeline';
 import { config } from '../config';
 import { chargeCredits, computeUploadCost, UPLOAD_RULES } from '../utils/credits';
+import { invalidateHealthSummary } from '../analysis/hs-cache';
 
 const router = Router();
 router.use(requireAuth);
@@ -272,6 +273,9 @@ router.delete('/:id', async (req: AuthedRequest, res, next) => {
     // com dados deste exame. Sem isto, o relatório ficava ÓRFÃO: paciente removia o exame
     // ("não é meu") e o relatório continuava mostrando os dados do exame removido (divergência).
     await prisma.aiAnalysis.deleteMany({ where: { patientId, type: 'SUMMARY', examId: null } }).catch(() => {});
+    // + invalida o CACHE do health-summary (score/"o que mudou" do painel) — antes o TTL de
+    // 5min fazia o dashboard continuar exibindo o dado do exame deleto (bug 2026-08-16).
+    invalidateHealthSummary(patientId);
     res.json({ id: exam.id });
   } catch (e) {
     next(e);

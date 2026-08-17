@@ -7,6 +7,7 @@ import { collapseAdjacentNearDupes } from '../analysis/dedup';
 import { reconcileScaleFlag } from '../utils/normalize';
 import { isCpfMismatch } from '../utils/examIdentity';
 import { verifyToken } from '../auth/jwt';
+import { invalidateHealthSummary } from '../analysis/hs-cache';
 
 const router = Router();
 
@@ -64,6 +65,7 @@ router.patch('/:id', async (req: AuthedRequest, res, next) => {
       flag = rec.flag; isAbnormal = rec.isAbnormal;
     }
     const updated = await prisma.examItem.update({ where: { id: String(req.params.id) }, data: { valueText, valueNumeric, unit, refLow, refHigh, flag, isAbnormal } });
+    invalidateHealthSummary(existing.exam.patientId); // edição muda score/"o que mudou" do paciente
     res.json(updated);
   } catch (e) { next(e); }
 });

@@ -61,6 +61,12 @@ const TSPointSchema = z.object({
   valueNumeric: z.number(),
   flag: z.string(),
   title: z.string(),
+  // Faixa de referência DO PRÓPRIO ponto (o exame de cada coleta pode ter faixa própria —
+  // ex.: hemoglobina 12–15.8 num lab, 13–16.5 noutro). Sem isto o gráfico mostrava UMA faixa
+  // (a do item mais recente) ao lado de flags calculados contra faixas diferentes →
+  // "12.9 Abaixo?? mas 12.6 Normal??" (bug Heloisa 2026-08-16). Opcional = back-compat.
+  refLow: z.number().nullable().optional(),
+  refHigh: z.number().nullable().optional(),
 });
 
 export const TimeSeriesByNameSchema = z.object({

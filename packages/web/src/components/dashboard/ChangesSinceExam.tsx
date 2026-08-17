@@ -49,12 +49,16 @@ export const ChangesSinceExam = ({
   ctaLabel?: string;
 }) => {
   if (loaded && worsened.length === 0 && improved.length === 0) return null;
+  // GUARDA anti-duplicação: um marcador nunca aparece nas duas listas (piorou × melhorou são
+  // excludentes por tendência, mas blindamos o render — defesa em profundidade p/ qualquer fonte).
+  const worsenedNames = new Set(worsened.map((m) => (m.nameCanonical || m.name).toUpperCase()));
+  const improvedUnique = improved.filter((m) => !worsenedNames.has((m.nameCanonical || m.name).toUpperCase()));
   return (
     <AppCard kind="default" sx={{ p: { xs: 2, md: 2.5 }, height: '100%' }}>
       <Typography sx={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'text.secondary' }}>{title}</Typography>
       <Stack direction="row" spacing={2} sx={{ mt: 1, mb: 1.5, flexWrap: 'wrap', rowGap: 0.5 }}>
         {worsened.length > 0 && <Chip size="small" icon={<TrendingUpIcon />} label={`${worsened.length} ${worsened.length === 1 ? 'piorou' : 'pioraram'}`} sx={{ bgcolor: alpha('#dc2626', 0.12), color: '#b91c1c', fontWeight: 700 }} />}
-        {improved.length > 0 && <Chip size="small" icon={<TrendingDownIcon />} label={`${improved.length} ${improved.length === 1 ? 'melhorou' : 'melhoraram'}`} sx={{ bgcolor: alpha('#16a34a', 0.12), color: '#2e6b32', fontWeight: 700 }} />}
+        {improvedUnique.length > 0 && <Chip size="small" icon={<TrendingDownIcon />} label={`${improvedUnique.length} ${improvedUnique.length === 1 ? 'melhorou' : 'melhoraram'}`} sx={{ bgcolor: alpha('#16a34a', 0.12), color: '#2e6b32', fontWeight: 700 }} />}
         {worsened.length === 0 && improved.length === 0 && <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>Carregando…</Typography>}
       </Stack>
       <Stack spacing={1.1}>
@@ -64,7 +68,7 @@ export const ChangesSinceExam = ({
             <Typography sx={{ fontSize: 13, color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>{fmtMarker(m)}</Typography>
           </Stack>
         ))}
-        {improved.slice(0, 2).map((m, i) => (
+        {improvedUnique.slice(0, 2).map((m, i) => (
           <Stack key={`i${i}`} direction="row" justifyContent="space-between" alignItems="baseline">
             <Typography sx={{ fontSize: 13.5, color: 'text.primary', fontWeight: 600 }}><Box component="span" sx={{ color: '#2e6b32', mr: 0.5 }}>{flagDir(m)}</Box>{m.name}</Typography>
             <Typography sx={{ fontSize: 13, color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>{fmtMarker(m)}</Typography>
