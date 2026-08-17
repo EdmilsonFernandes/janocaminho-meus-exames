@@ -110,7 +110,9 @@ export function specialtyForMarker(canonical?: string | null): Specialty | null 
   return hit ? SPECIALTY_BY_MARKER[hit] : null;
 }
 
-/** URL pública do Doctoralia para a especialidade. */
+/** URL pública do Doctoralia para a especialidade — com UTM (pitch de parceria 2026-08-17):
+ *  todo clique que enviamos fica mensurável por eles e por nós; tráfego qualificado com DADO,
+ *  não promessa. */
 export function doctoraliaUrl(slug: string): string {
-  return `${DOCTORALIA_BASE}/${slug}`;
+  return `${DOCTORALIA_BASE}/${slug}?utm_source=meus-exames&utm_medium=app&utm_campaign=exame-alterado`;
 }
