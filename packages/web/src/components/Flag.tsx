@@ -12,8 +12,10 @@ const TONE_COLOR: Record<StatusTone, any> = {
   contexto: 'info',
 };
 
-export const Flag = ({ flag, name, refLow, refHigh }: { flag: string; name?: string | null; refLow?: number | null; refHigh?: number | null }) => {
-  const s = displayStatus(flag, name, refLow, refHigh);
+export const Flag = ({ flag, name, refLow, refHigh, value }: { flag: string; name?: string | null; refLow?: number | null; refHigh?: number | null; value?: number | null }) => {
+  // `value` habilita derivação NUMÉRICA (valor × faixa exibida) — o chip nunca contradiz a
+  // faixa ao lado, mesmo se o flag armazenado estiver defasado.
+  const s = displayStatus(flag, name, refLow, refHigh, value);
   return (
     <Chip
       size="small"

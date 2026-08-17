@@ -229,7 +229,7 @@ const EvoRow = ({ it, defaultExpanded }: { it: EvoItem; defaultExpanded?: boolea
         {it.points.length >= 2 && (
           <Box sx={{ height: 104, width: '100%', mb: 1 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={it.points.map((p) => ({ v: p.value, date: fmtDate(p.date), flag: p.flag }))} margin={{ top: 6, right: 8, bottom: 4, left: 8 }}>
+              <LineChart data={it.points.map((p) => ({ v: p.value, date: fmtDate(p.date), flag: p.flag, refLow: (p as any).refLow ?? null, refHigh: (p as any).refHigh ?? null }))} margin={{ top: 6, right: 8, bottom: 4, left: 8 }}>
                 {it.refLow != null && it.refHigh != null && <ReferenceArea y1={it.refLow} y2={it.refHigh} fill="#059669" fillOpacity={0.14} />}
                 <YAxis hide domain={['auto', 'auto']} />
                 {/* Tooltip mostra valor + data ao TOCAR no ponto (mobile). Antes não havia Tooltip — clicar não fazia nada. */}
@@ -237,14 +237,15 @@ const EvoRow = ({ it, defaultExpanded }: { it: EvoItem; defaultExpanded?: boolea
                   cursor={{ stroke: lineColor, strokeWidth: 1, strokeDasharray: '4 3' }}
                   content={({ active: a, payload }) => {
                     if (!a || !payload?.length) return null;
-                    const d = payload[0].payload as { v: number; date: string; flag: string };
+                    const d = payload[0].payload as { v: number; date: string; flag: string; refLow?: number | null; refHigh?: number | null };
                     return (
                       <Box sx={{ bgcolor: 'background.paper', border: `1px solid ${lineColor}`, borderRadius: '8px', px: 1.25, py: 0.75, boxShadow: 2 }}>
                         <Typography sx={{ fontWeight: 800, color: lineColor, lineHeight: 1.1 }}>{d.v} {it.unit ? <UnitLabel unit={it.unit} /> : null}</Typography>
                         <Typography variant="caption" sx={{ color: 'text.secondary' }}>{d.date}</Typography>
                         {(() => {
-                          // Status TRADUZIDO (nunca 'UNKNOWN' cru — antes aparecia "unknown" no tooltip).
-                          const s = displayStatus(d.flag, it.nameCanonical, it.refLow, it.refHigh);
+                          // Status NUMÉRICO-PRIMEIRO contra a faixa do PRÓPRIO ponto (labs usam
+                          // faixas diferentes por coleta — faixa global aqui contradizia o flag).
+                          const s = displayStatus(d.flag, it.nameCanonical, d.refLow ?? it.refLow, d.refHigh ?? it.refHigh, d.v);
                           if (s.tone === 'normal' || s.short === '—') return null;
                           return <Typography variant="caption" sx={{ display: 'block', color: '#ef4444', fontWeight: 700 }}>{s.label}</Typography>;
                         })()}

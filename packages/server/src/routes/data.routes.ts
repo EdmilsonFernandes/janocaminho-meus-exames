@@ -2,6 +2,7 @@ import { Router } from 'express';
 import crypto from 'crypto';
 import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
+import { reconcileScaleFlag } from '../utils/normalize';
 
 const router = Router();
 router.use(requireAuth);
@@ -43,7 +44,15 @@ router.post('/import', async (req: AuthedRequest, res, next) => {
       const ne = await prisma.exam.create({ data: { patientId, title: String(e.title ?? 'Exame'), kind: ['LAB_PANEL', 'IMAGING', 'OTHER'].includes(e.kind) ? e.kind : 'OTHER', status: 'EXTRACTED', performedAt: e.performedAt ? d(e.performedAt) : null, sourceLab: e.sourceLab ?? null, pageCount: Number(e.pageCount) || 0, filePath: 'imported', fileSha256: 'import-' + crypto.randomUUID() } });
       counts.exams++;
       for (const it of (e.items ?? [])) {
-        await prisma.examItem.create({ data: { examId: ne.id, panel: it.panel ?? null, name: String(it.name ?? ''), nameCanonical: it.nameCanonical ?? String(it.name ?? ''), valueNumeric: it.valueNumeric ?? null, valueText: it.valueText ?? null, unit: it.unit ?? null, refLow: it.refLow ?? null, refHigh: it.refHigh ?? null, refText: it.refText ?? null, flag: it.flag ?? 'UNKNOWN', isAbnormal: !!it.isAbnormal, extractedPage: Number(it.extractedPage) || 1 } }).catch(() => {});
+        // SANEAMENTO na importação (auditoria 2026-08-17): flags de backups ANTIGOS entravam
+        // verbatim (erradas de bugs passados). Recomputa com o reconcile atual quando há
+        // valor+faixa; senão mantém a flag importada.
+        let impFlag = it.flag ?? 'UNKNOWN'; let impAbn = !!it.isAbnormal;
+        if (it.valueNumeric != null && it.refLow != null && it.refHigh != null) {
+          const rec = reconcileScaleFlag(Number(it.valueNumeric), Number(it.refLow), Number(it.refHigh), it.unit ?? undefined);
+          impFlag = rec.flag; impAbn = rec.isAbnormal;
+        }
+        await prisma.examItem.create({ data: { examId: ne.id, panel: it.panel ?? null, name: String(it.name ?? ''), nameCanonical: it.nameCanonical ?? String(it.name ?? ''), valueNumeric: it.valueNumeric ?? null, valueText: it.valueText ?? null, unit: it.unit ?? null, refLow: it.refLow ?? null, refHigh: it.refHigh ?? null, refText: it.refText ?? null, flag: impFlag, isAbnormal: impAbn, extractedPage: Number(it.extractedPage) || 1 } }).catch(() => {});
         counts.items++;
       }
     }

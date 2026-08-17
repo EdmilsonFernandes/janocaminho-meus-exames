@@ -43,9 +43,15 @@ export const ExamMarker = ({ it, suspect }: { it: any; suspect: boolean }) => {
             <Typography component="span" sx={{ fontSize: '1.35rem', fontWeight: 800, color: col }}>{fmtVal(it)}</Typography>
             {unitSuffix(it) ? <Typography component="span" sx={{ ml: 0.5 }}><UnitLabel unit={unitSuffix(it)} fontSize="0.8rem" /></Typography> : null}
           </Box>
-          {/* Status explícito em TEXTO (não só cor) — acessível + claro. */}
+          {/* Status explícito em TEXTO (não só cor) — acessível + claro.
+              NUMÉRICO PRIMEIRO: rótulo deriva do valor × faixa DESENHADA na barra ao lado
+              (guard de escala via `suspect`); flag armazenado é só fallback. Texto e barra
+              nunca se contradizem (mandato 2026-08-17). */}
           <Typography variant="caption" sx={{ display: 'block', fontWeight: 700, color: suspect ? 'text.secondary' : col, lineHeight: 1.2 }}>
-            {suspect ? 'Conferir faixa' : it.flag === 'HIGH' ? '↑ Acima da ref.' : it.flag === 'LOW' ? '↓ Abaixo da ref.' : 'Na referência'}
+            {suspect ? 'Conferir faixa'
+              : it.valueNumeric != null && it.refLow != null && it.refHigh != null
+                ? (it.valueNumeric > it.refHigh ? '↑ Acima da ref.' : it.valueNumeric < it.refLow ? '↓ Abaixo da ref.' : 'Na referência')
+                : it.flag === 'HIGH' ? '↑ Acima da ref.' : it.flag === 'LOW' ? '↓ Abaixo da ref.' : 'Na referência'}
           </Typography>
         </Box>
         {/* Barra visual só p/ faixa CONFIÁVEL (suspeito não ganha barra — desenho enganoso). */}

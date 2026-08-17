@@ -80,7 +80,7 @@ export const DoctorTrends = ({ patientId, token }: Props) => {
 
   const data = (ts?.points ?? []).map((p) => ({
     name: p.performedAt ? new Date(p.performedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }) : 's/d',
-    valor: p.valueNumeric, flag: p.flag, title: p.title,
+    valor: p.valueNumeric, flag: p.flag, title: p.title, refLow: p.refLow ?? null, refHigh: p.refHigh ?? null,
   }));
 
   // Tooltip premium (mostra data + valor + unidade + flag)
@@ -92,7 +92,7 @@ export const DoctorTrends = ({ patientId, token }: Props) => {
         <Box sx={{ fontWeight: 700, fontSize: 11, opacity: 0.8 }}>{d.name}</Box>
         <Box sx={{ fontSize: 19, fontWeight: 800 }}>{fmtNum(d.valor)} {ts?.unit ? <UnitLabel unit={ts.unit} fontSize="1.19rem" /> : null}</Box>
         {(() => {
-          const s = displayStatus(d.flag as string, d.name, ts?.refLow, ts?.refHigh);
+          const s = displayStatus(d.flag as string, d.name, d.refLow ?? ts?.refLow, d.refHigh ?? ts?.refHigh, d.valor as number | undefined);
           if (s.tone === 'normal') return null;
           const color = s.tone === 'atencao' || s.tone === 'critico' ? theme.palette.error.light : alpha(theme.palette.text.primary, 0.7);
           const arrow = d.flag === 'HIGH' ? '↑ ' : d.flag === 'LOW' ? '↓ ' : s.tone === 'critico' ? '⚠ ' : '';

@@ -35,6 +35,10 @@ const EvoPointSchema = z.object({
   flag: z.string(),
   examId: z.string(),
   examTitle: z.string(),
+  // Faixa do PRÓPRIO exame da coleta (labs usam faixas diferentes) — o tooltip rotula o ponto
+  // contra a faixa dele, não contra a faixa global do gráfico (mandato 2026-08-17).
+  refLow: z.number().nullable().optional(),
+  refHigh: z.number().nullable().optional(),
 });
 
 export const EvolutionItemSchema = z.object({

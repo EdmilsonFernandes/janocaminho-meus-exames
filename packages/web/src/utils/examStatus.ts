@@ -40,17 +40,41 @@ const KNOWN: Record<string, DisplayStatus> = {
 };
 
 /**
+ * Guard de escala p/ derivação numérica: valor >20× fora da faixa = provavelmente escalas
+ * diferentes (ex.: leucograma em % contra faixa de valores absolutos 825–3419) — NÃO derivar
+ * "Abaixo/Acima" (falso-positivo). Espelha o reconcileScaleFlag do server (razões ~10/100×).
+ */
+export function isScaleSuspect(value: number, refLow?: number | null, refHigh?: number | null): boolean {
+  if (refLow == null || refHigh == null || refLow === refHigh) return false;
+  if (value > (refHigh as number) * 20) return true;
+  if (value < (refLow as number) / 20) return true;
+  return false;
+}
+
+/**
  * Traduz flag → {label, short, tone}. UNKNOWN (ou flag vazia) NUNCA retorna cru:
  *  - sem faixa (refLow/refHigh null) + LDL/não-HDL → "Interpretação depende do contexto clínico"
  *  - sem faixa + demais → "Referência não informada pelo laboratório"
  *  - tem faixa mas flag desconhecida → "Não classificado automaticamente"
+ *
+ * NUMÉRICO PRIMEIRO (mandato do dono 2026-08-17: "abaixo da referência tem que falar abaixo,
+ * acima tem que falar acima — crítico"): quando o caller passa `valueNumeric` e a faixa numérica
+ * está completa e NÃO é suspeita de escala, o rótulo deriva do VALOR × FAIXA EXIBIDA — nunca
+ * mais um flag armazenado desatualizado contradizendo a faixa ao lado (padrão que o
+ * ChangesSinceExam já usava). O flag só entra como fallback (sem valor/faixa).
  */
 export function displayStatus(
   flag: string | null | undefined,
   name?: string | null,
   refLow?: number | null,
   refHigh?: number | null,
+  valueNumeric?: number | null,
 ): DisplayStatus {
+  if (valueNumeric != null && refLow != null && refHigh != null && refLow !== refHigh && !isScaleSuspect(valueNumeric, refLow, refHigh)) {
+    if (valueNumeric > refHigh) return KNOWN.HIGH;
+    if (valueNumeric < refLow) return KNOWN.LOW;
+    return KNOWN.NORMAL;
+  }
   const f = (flag ?? '').toUpperCase();
   if (KNOWN[f]) return KNOWN[f];
   const hasRef = refLow != null || refHigh != null;

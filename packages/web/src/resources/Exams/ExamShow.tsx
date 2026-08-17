@@ -260,15 +260,17 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
   // UNKNOWN = sem faixa de referência (ou sem valor). NÃO é "dentro da faixa" — o header distingue.
   const noRef = items.filter((i) => (i.flag ?? '').toUpperCase() === 'UNKNOWN');
   const grouped = items.reduce((acc: any, it: any) => { (acc[it.panel ?? 'Geral'] ??= []).push(it); return acc; }, {});
-  // Híbrido: NORMAL/HIGH/LOW/ABNORMAL/CRITICAL usam flagMeta (cores atuais preservadas).
-  // UNKNOWN (sem referência ou sem valor) usa displayStatus — distingue "Interpretação depende do
-  // contexto clínico" (LDL/não-HDL) de "Referência não informada". Nunca exibe '—'/UNKNOWN cru.
+  // NUMÉRICO-PRIMEIRO (mandato 2026-08-17): valor × faixa exibida decide o chip — o rótulo
+  // nunca contradiz a "Referência:" ao lado nem o caption de % . Flag armazenado = fallback
+  // quando falta valor/faixa (ou escala suspeita); UNKNOWN nunca aparece cru (displayStatus).
   const fm = (it: any) => {
-    const f = (it?.flag ?? '').toUpperCase();
-    if (f === 'UNKNOWN' || !flagMeta[f]) {
-      const s = displayStatus(it?.flag, it?.name, it?.refLow, it?.refHigh);
-      return { color: 'default' as const, label: s.short, title: s.label };
+    const s = displayStatus(it?.flag, it?.name, it?.refLow, it?.refHigh, it?.valueNumeric);
+    const toneToColor: Record<string, 'success' | 'warning' | 'error' | 'default'> = { normal: 'success', atencao: 'warning', critico: 'error', neutro: 'default', contexto: 'default' };
+    if (s.tone === 'normal' || s.tone === 'atencao' || s.tone === 'critico') {
+      return { color: toneToColor[s.tone], label: s.short, title: s.label };
     }
+    const f = (it?.flag ?? '').toUpperCase();
+    if (f === 'UNKNOWN' || !flagMeta[f]) return { color: 'default' as const, label: s.short, title: s.label };
     return flagMeta[f];
   };
 

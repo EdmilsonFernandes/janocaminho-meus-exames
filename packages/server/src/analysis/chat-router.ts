@@ -3,7 +3,7 @@
 // Conservador de propósito: under-answer (escalona pra IA) é melhor que mis-answer.
 import type { Response } from 'express';
 import { prisma } from '../prisma';
-import { normalizeKey, findMarkerInText, computeFlag } from '../utils/normalize';
+import { normalizeKey, findMarkerInText, computeFlag, reconcileScaleFlag } from '../utils/normalize';
 
 // Perguntas ANALÍTICAS/INTERPRETATIVAS → sempre IA (nunca responde local).
 // normalizeKey stripa acentos → os patterns são SEM acento. Inclui verbos analíticos (resumo,
@@ -88,7 +88,9 @@ export async function tryLocalAnswer(opts: {
       (item.refLow != null && item.refHigh != null
         ? `${String(item.refLow).replace('.', ',')}–${String(item.refHigh).replace('.', ',')}`
         : null);
-    const flag = computeFlag(item.valueNumeric, item.refLow, item.refHigh);
+    // Reconcile (não computeFlag cru): escala conflitante vira 'sem classificação' no texto do
+    // chat — igual à UI, sem contradizer o app (auditoria 2026-08-17).
+    const flag = reconcileScaleFlag(item.valueNumeric, item.refLow, item.refHigh, item.unit ?? undefined);
     const status =
       flag.flag === 'NORMAL' ? '✅ na faixa de referência'
       : flag.flag === 'HIGH' ? '⚠️ acima da referência'

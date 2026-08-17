@@ -63,6 +63,10 @@ router.patch('/:id', async (req: AuthedRequest, res, next) => {
       // conflitos claros a UNKNOWN (igual pipeline.ts).
       const rec = reconcileScaleFlag(valueNumeric, refLow, refHigh, unit);
       flag = rec.flag; isAbnormal = rec.isAbnormal;
+    } else if (valueNumeric != null && (refLow != null || refHigh != null)) {
+      // PATCH PARCIAL (auditoria 2026-08-17): só UM dos limites presente → impossível classificar.
+      // Antes a flag ANTIGA sobrevivia intacta contradizendo a faixa editada — agora desclassifica.
+      flag = 'UNKNOWN'; isAbnormal = false;
     }
     const updated = await prisma.examItem.update({ where: { id: String(req.params.id) }, data: { valueText, valueNumeric, unit, refLow, refHigh, flag, isAbnormal } });
     invalidateHealthSummary(existing.exam.patientId); // edição muda score/"o que mudou" do paciente
@@ -260,7 +264,7 @@ router.get('/evolution', async (req: AuthedRequest, res, next) => {
         // contava marcadores incertos (conflito de escala) como 'fora', inflando o número.
         abnormal: !!last.isAbnormal,
         count: items.length,
-        points: items.map((i) => ({ value: i.valueNumeric, date: i.exam.performedAt, flag: i.flag, examId: i.exam.id, examTitle: i.exam.title })),
+        points: items.map((i) => ({ value: i.valueNumeric, date: i.exam.performedAt, flag: i.flag, examId: i.exam.id, examTitle: i.exam.title, refLow: i.refLow, refHigh: i.refHigh })),
       });
     }
     // ordem: do exame mais recente pro mais antigo

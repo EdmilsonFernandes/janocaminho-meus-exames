@@ -59,7 +59,7 @@ export const TrendsChart = ({ ts }: { ts: TS }) => {
         <Box sx={{ fontWeight: 700, fontSize: 11, opacity: 0.8 }}>{d.name}</Box>
         <Box sx={{ fontSize: 19, fontWeight: 800 }}>{fmtNum(d.valor)} {ts.unit ? <UnitLabel unit={ts.unit} fontSize="1.19rem" /> : null}</Box>
         {(() => {
-          const s = displayStatus(d.flag as string, d.name, d.refLow ?? uniLow, d.refHigh ?? uniHigh);
+          const s = displayStatus(d.flag as string, d.name, d.refLow ?? uniLow, d.refHigh ?? uniHigh, d.valor as number | undefined);
           if (s.tone === 'normal') return null;
           const color = s.tone === 'atencao' || s.tone === 'critico' ? theme.palette.error.light : alpha(theme.palette.text.primary, 0.7);
           const arrow = d.flag === 'HIGH' ? '↑ ' : d.flag === 'LOW' ? '↓ ' : s.tone === 'critico' ? '⚠ ' : '';
