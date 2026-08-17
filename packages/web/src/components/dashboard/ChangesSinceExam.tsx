@@ -11,6 +11,7 @@ import { AppCard } from '../AppCard';
  */
 export interface Marker {
   name: string;
+  nameCanonical?: string; // chave de agrupamento (guards de dedupe) — opcional: fontes antigas só trazem name
   unit?: string;
   latest?: { valueNumeric?: number | null };
   refHigh?: number | null;
