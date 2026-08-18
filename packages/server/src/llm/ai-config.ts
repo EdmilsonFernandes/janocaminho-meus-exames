@@ -119,7 +119,12 @@ export function maskKey(enc: string | null, iv: string | null): string | null {
 
 // Catálogo de modelos por provedor (seed inicial — editável pelo admin depois).
 // Z.ai/GLM aceita só modelos glm-* (relay rejeita claude-*). OpenAI/Gemini: modelos atuais.
+// glm-5.3 validado no relay (api.z.ai/api/anthropic) em 2026-08-18: chamada plain funciona
+// igual à 4.6 (sem bloco thinking, mesmo shape); `reasoning_effort` é aceito e `thinking:
+// {type:'enabled', budget_tokens}` produz bloco thinking real (adapter filtra só text ✓).
 export const AI_MODEL_SEEDS: { provider: AiProviderName; model: string; label: string }[] = [
+  { provider: 'anthropic', model: 'glm-5.3', label: 'GLM-5.3 (Z.ai)' },
+  { provider: 'anthropic', model: 'glm-5.2', label: 'GLM-5.2' },
   { provider: 'anthropic', model: 'glm-4.6', label: 'GLM-4.6 (Z.ai)' },
   { provider: 'anthropic', model: 'glm-4.5-air', label: 'GLM-4.5 Air' },
   { provider: 'anthropic', model: 'glm-4-plus', label: 'GLM-4 Plus' },
