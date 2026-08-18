@@ -40,16 +40,12 @@ const KNOWN: Record<string, DisplayStatus> = {
 };
 
 /**
- * Guard de escala p/ derivação numérica: valor >20× fora da faixa = provavelmente escalas
- * diferentes (ex.: leucograma em % contra faixa de valores absolutos 825–3419) — NÃO derivar
- * "Abaixo/Acima" (falso-positivo). Espelha o reconcileScaleFlag do server (razões ~10/100×).
+ * Grau de severidade: distância além do limite mais próximo como FRAÇÃO do próprio limite.
+ * >20% além do limite → "Muito abaixo/Muito acima" (crítico); senão "Abaixo/Acima" (atenção).
+ * Mandato do dono 2026-08-18: o leigo precisa de GRAU (baixo/muito baixo/alto/muito alto),
+ * não só da direção — a cor do chip é o que comunica.
  */
-export function isScaleSuspect(value: number, refLow?: number | null, refHigh?: number | null): boolean {
-  if (refLow == null || refHigh == null || refLow === refHigh) return false;
-  if (value > (refHigh as number) * 20) return true;
-  if (value < (refLow as number) / 20) return true;
-  return false;
-}
+const SEVERE_RATIO = 0.2;
 
 /**
  * Traduz flag → {label, short, tone}. UNKNOWN (ou flag vazia) NUNCA retorna cru:
@@ -58,10 +54,13 @@ export function isScaleSuspect(value: number, refLow?: number | null, refHigh?: 
  *  - tem faixa mas flag desconhecida → "Não classificado automaticamente"
  *
  * NUMÉRICO PRIMEIRO (mandato do dono 2026-08-17: "abaixo da referência tem que falar abaixo,
- * acima tem que falar acima — crítico"): quando o caller passa `valueNumeric` e a faixa numérica
- * está completa e NÃO é suspeita de escala, o rótulo deriva do VALOR × FAIXA EXIBIDA — nunca
- * mais um flag armazenado desatualizado contradizendo a faixa ao lado (padrão que o
- * ChangesSinceExam já usava). O flag só entra como fallback (sem valor/faixa).
+ * acima tem que falar acima"): quando o caller passa `valueNumeric` e a faixa numérica está
+ * completa, o rótulo deriva do VALOR × FAIXA EXIBIDA — nunca um flag armazenado defasado
+ * contradizendo a faixa ao lado. Desde 2026-08-18 o rótulo também é GRAUADO (>20% além do
+ * limite = "Muito abaixo/acima") e o guard antigo de escala (>20× = "—") saiu: valor
+ * destoante (ex.: hemoglobina 0,15 numa série g/dL) agora rotula "Muito abaixo" contra a
+ * faixa exibida — consistência > silêncio (o "—" era lido como bug). O flag só entra como
+ * fallback (sem valor/faixa).
  */
 export function displayStatus(
   flag: string | null | undefined,
@@ -70,9 +69,17 @@ export function displayStatus(
   refHigh?: number | null,
   valueNumeric?: number | null,
 ): DisplayStatus {
-  if (valueNumeric != null && refLow != null && refHigh != null && refLow !== refHigh && !isScaleSuspect(valueNumeric, refLow, refHigh)) {
-    if (valueNumeric > refHigh) return KNOWN.HIGH;
-    if (valueNumeric < refLow) return KNOWN.LOW;
+  if (valueNumeric != null && refLow != null && refHigh != null && refLow !== refHigh) {
+    if (valueNumeric > refHigh) {
+      return valueNumeric > refHigh * (1 + SEVERE_RATIO)
+        ? { label: 'Muito acima da referência', short: 'Muito acima', tone: 'critico' }
+        : KNOWN.HIGH;
+    }
+    if (valueNumeric < refLow) {
+      return valueNumeric < refLow * (1 - SEVERE_RATIO)
+        ? { label: 'Muito abaixo da referência', short: 'Muito abaixo', tone: 'critico' }
+        : KNOWN.LOW;
+    }
     return KNOWN.NORMAL;
   }
   const f = (flag ?? '').toUpperCase();

@@ -1,5 +1,6 @@
 import { auditLog } from '../middleware/auditLog';
 import { collapseAdjacentNearDupes } from '../analysis/dedup';
+import { medianRefRange } from '../utils/range';
 import { audit } from '../utils/audit';
 import { synthesizeExamTitle } from '../utils/examIdentity';
 import { doctorAnswerEmail, webUrl } from '../utils/emailTemplate';
@@ -648,7 +649,8 @@ router.get('/patients/:patientId/items/distinct-names', requireDoctor, async (re
 
 // SÉRIE TEMPORAL de um analito (espelha /items/timeseries do paciente, escopado a 1 paciente
 // compartilhado + examIds). Mesmo pipeline de dedup (por dia [maior createdAt] + cross-day collapse)
-// p/ o count bater com /distinct-names acima. Faixa de referência = item MAIS RECENTE (atual).
+// p/ o count bater com /distinct-names acima. Faixa de referência = MEDIANA das faixas dos
+// pontos (mandato 2026-08-18 — igual ao lado do paciente; fallback: item mais recente).
 router.get('/patients/:patientId/items/timeseries', requireDoctor, async (req: any, res, next) => {
   try {
     const nameCanonical = String(req.query.nameCanonical ?? '');
@@ -680,7 +682,8 @@ router.get('/patients/:patientId/items/timeseries', requireDoctor, async (req: a
       (p) => p.valueNumeric ?? 0,
     );
     const latest = points[points.length - 1];
-    res.json({ nameCanonical, unit: latest?.unit ?? null, refLow: latest?.refLow ?? null, refHigh: latest?.refHigh ?? null, points });
+    const uni = medianRefRange(points);
+    res.json({ nameCanonical, unit: latest?.unit ?? null, refLow: uni.refLow ?? latest?.refLow ?? null, refHigh: uni.refHigh ?? latest?.refHigh ?? null, points });
   } catch (e) { next(e); }
 });
 

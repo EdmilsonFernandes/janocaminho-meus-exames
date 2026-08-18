@@ -48,7 +48,7 @@ export const TrendsChart = ({ ts }: { ts: TS }) => {
 
   const data = (ts.points ?? []).map((p) => ({
     name: p.performedAt ? new Date(p.performedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }) : 's/d',
-    valor: p.valueNumeric, flag: p.flag, title: p.title, refLow: p.refLow ?? null, refHigh: p.refHigh ?? null,
+    valor: p.valueNumeric, flag: p.flag, title: p.title,
   }));
 
   const TooltipBox = ({ active, payload }: any) => {
@@ -59,10 +59,12 @@ export const TrendsChart = ({ ts }: { ts: TS }) => {
         <Box sx={{ fontWeight: 700, fontSize: 11, opacity: 0.8 }}>{d.name}</Box>
         <Box sx={{ fontSize: 19, fontWeight: 800 }}>{fmtNum(d.valor)} {ts.unit ? <UnitLabel unit={ts.unit} fontSize="1.19rem" /> : null}</Box>
         {(() => {
-          const s = displayStatus(d.flag as string, d.name, d.refLow ?? uniLow, d.refHigh ?? uniHigh, d.valor as number | undefined);
+          // Classifica contra a faixa UNIFICADA (a mesma do header) — nunca contra a faixa do
+          // próprio ponto (mandato 2026-08-18: UMA faixa classifica a série inteira).
+          const s = displayStatus(d.flag as string, d.name, uniLow, uniHigh, d.valor as number | undefined);
           if (s.tone === 'normal') return null;
           const color = s.tone === 'atencao' || s.tone === 'critico' ? theme.palette.error.light : alpha(theme.palette.text.primary, 0.7);
-          const arrow = d.flag === 'HIGH' ? '↑ ' : d.flag === 'LOW' ? '↓ ' : s.tone === 'critico' ? '⚠ ' : '';
+          const arrow = (uniHigh != null && (d.valor as number) > uniHigh) || (uniLow != null && (d.valor as number) < uniLow) ? '⚠ ' : '';
           return <Box sx={{ color, fontSize: 12, fontWeight: 700 }}>{arrow}{s.label}</Box>;
         })()}
       </Box>
@@ -173,35 +175,28 @@ export const TrendsChart = ({ ts }: { ts: TS }) => {
         </Box>
       )}
 
-      {/* Histórico (do mais recente). Flag de CADA linha contra a faixa do PRÓPRIO exame
-          (d.refLow/refHigh do ponto) — labs diferentes usam faixas diferentes e o flag foi
-          calculado contra a faixa daquele exame; usar a faixa global contradizia ("12.9
-          Abaixo" com faixa 12–15.8 na tela, sendo que aquele exame usava 13–16.5). */}
+      {/* Histórico (do mais recente). TODAS as linhas classificam contra a faixa UNIFICADA
+          (mediana, a mesma do header) — mandato do dono 2026-08-18: uma faixa só classifica a
+          série inteira; antes cada linha usava a faixa do próprio exame e contradizia o header
+          ("12,9 Abaixo" pela faixa 13–16.5 daquele exame, com 12–15.8 no header). O chip é
+          NUMÉRICO-PRIMEIRO e grauado (Abaixo/Muito abaixo/Acima/Muito acima). */}
       <Box sx={{ mt: 2 }}>
         <Typography variant="subtitle2" sx={{ mb: 0.5 }}>Histórico (do mais recente)</Typography>
         <Stack spacing={0.5}>
-          {[...data].reverse().map((d, i) => {
-            const ownLow = (d as any).refLow ?? ts.refLow;
-            const ownHigh = (d as any).refHigh ?? ts.refHigh;
-            const ownDiff = (d as any).refLow != null && (ts.refLow != null && (d as any).refLow !== ts.refLow || (ts.refHigh != null && (d as any).refHigh !== ts.refHigh));
-            return (
+          {[...data].reverse().map((d, i) => (
             <Box key={i} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, p: 0.75, borderRadius: '8px', bgcolor: 'action.hover' }}>
               <Box sx={{ minWidth: 0, flex: 1 }}>
                 <Typography variant="body2" sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{d.name}</Typography>
                 {d.title && (
                   <Typography variant="caption" title={d.title} sx={{ color: 'text.secondary', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{d.title}</Typography>
                 )}
-                {ownDiff && (
-                  <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>faixa deste exame: {String((d as any).refLow).replace('.', ',')}–{String((d as any).refHigh).replace('.', ',')}{ts.unit ? ` ${ts.unit}` : ''}</Typography>
-                )}
               </Box>
               <Stack direction="row" alignItems="center" spacing={0.75} sx={{ flexShrink: 0 }}>
                 <Typography sx={{ fontWeight: 800 }}>{fmtNum(d.valor)} {ts.unit ? <UnitLabel unit={ts.unit} /> : null}</Typography>
-                <Flag flag={d.flag} name={d.name} refLow={ownLow} refHigh={ownHigh} />
+                <Flag flag={d.flag} name={d.name} refLow={uniLow} refHigh={uniHigh} value={d.valor} />
               </Stack>
             </Box>
-            );
-          })}
+          ))}
         </Stack>
       </Box>
     </CardContent></Card>

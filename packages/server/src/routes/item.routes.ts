@@ -4,6 +4,7 @@ import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
 import { parseListParams, setListHeaders } from '../utils/list';
 import { getOrCreateExplanation } from '../analysis/explain';
 import { collapseAdjacentNearDupes } from '../analysis/dedup';
+import { medianRefRange } from '../utils/range';
 import { reconcileScaleFlag } from '../utils/normalize';
 import { isCpfMismatch } from '../utils/examIdentity';
 import { verifyToken } from '../auth/jwt';
@@ -124,15 +125,18 @@ router.get('/timeseries', async (req: AuthedRequest, res, next) => {
       (p) => new Date(p.performedAt ?? 0).getTime(),
       (p) => p.valueNumeric ?? 0,
     );
-    // Faixa de referência do item MAIS RECENTE (o "atual") — antes pegava rows[0] (mais antigo),
-    // o que mostrava a faixa de um exame antigo (ex.: Testosterona Total: faixa 8.4-48 do
-    // hemograma antigo em vez da faixa real 249-836 do exame atual) e gerava classificação aparente errada.
+    // Faixa de referência UNIFICADA da série (mandato do dono 2026-08-18): MEDIANA das faixas
+    // dos pontos — todo o gráfico e o histórico classificam contra esta UMA faixa (labs usam
+    // faixas diferentes; antes ia a do item mais recente e as linhas do histórico contradiziam
+    // o header "mediana dos exames" — ex.: 12,9 "Abaixo" pela faixa 13–16.5 de um exame antigo).
+    // Fallback: faixa do item mais recente quando nenhum ponto tem faixa válida.
     const latest = points[points.length - 1];
+    const uni = medianRefRange(points);
     res.json({
       nameCanonical,
       unit: latest?.unit ?? null,
-      refLow: latest?.refLow ?? null,
-      refHigh: latest?.refHigh ?? null,
+      refLow: uni.refLow ?? latest?.refLow ?? null,
+      refHigh: uni.refHigh ?? latest?.refHigh ?? null,
       points,
     });
   } catch (e) {
@@ -237,10 +241,12 @@ router.get('/evolution', async (req: AuthedRequest, res, next) => {
       const mixedUnits = distinctUnits.size > 1;
       if (!mixedUnits && Math.abs(slope) > 0.0001 && (Math.abs(slope) * 365) / span > 0.02) dir = slope > 0 ? 'up' : 'down';
       let predictMonths: number | null = null;
-      // CORREÇÃO (revisão 2026-07): faixa do ÚLTIMO item (estado atual), não do primeiro. Se o
-      // laboratório mudou de método/faixa entre os exames, prever "quando sai da faixa" com a faixa
-      // antiga dá previsão errada. Antes usava items[0] — contradizia o fix de isAbnormal (linha ~219).
-      const refLow = last.refLow, refHigh = last.refHigh;
+      // Faixa UNIFICADA da série (mandato do dono 2026-08-18): MEDIANA das faixas dos pontos —
+      // o texto "Faixa:", a área do gráfico e o tooltip classificam contra esta UMA faixa (não
+      // mais a do último item, que contradizia o header "mediana dos exames" das Tendências).
+      // Fallback: faixa do último item quando nenhum ponto tem faixa válida.
+      const uni = medianRefRange(items);
+      const refLow = uni.refLow ?? last.refLow, refHigh = uni.refHigh ?? last.refHigh;
       if (!mixedUnits && dir !== 'stable' && (refLow != null || refHigh != null)) {
         const intercept = (sy - slope * sx) / n;
         const ref = dir === 'up' ? refHigh : refLow;

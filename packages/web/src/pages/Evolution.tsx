@@ -243,11 +243,11 @@ const EvoRow = ({ it, defaultExpanded }: { it: EvoItem; defaultExpanded?: boolea
                         <Typography sx={{ fontWeight: 800, color: lineColor, lineHeight: 1.1 }}>{d.v} {it.unit ? <UnitLabel unit={it.unit} /> : null}</Typography>
                         <Typography variant="caption" sx={{ color: 'text.secondary' }}>{d.date}</Typography>
                         {(() => {
-                          // Status NUMÉRICO-PRIMEIRO contra a faixa do PRÓPRIO ponto (labs usam
-                          // faixas diferentes por coleta — faixa global aqui contradizia o flag).
-                          const s = displayStatus(d.flag, it.nameCanonical, d.refLow ?? it.refLow, d.refHigh ?? it.refHigh, d.v);
+                          // Status NUMÉRICO-PRIMEIRO contra a faixa UNIFICADA da série (mediana
+                          // enviada pelo server) — mandato 2026-08-18: UMA faixa classifica tudo.
+                          const s = displayStatus(d.flag, it.nameCanonical, it.refLow, it.refHigh, d.v);
                           if (s.tone === 'normal' || s.short === '—') return null;
-                          return <Typography variant="caption" sx={{ display: 'block', color: '#ef4444', fontWeight: 700 }}>{s.label}</Typography>;
+                          return <Typography variant="caption" sx={{ display: 'block', color: s.tone === 'critico' ? '#ef4444' : '#b45309', fontWeight: 700 }}>{s.label}</Typography>;
                         })()}
                       </Box>
                     );

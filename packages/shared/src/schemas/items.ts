@@ -35,8 +35,9 @@ const EvoPointSchema = z.object({
   flag: z.string(),
   examId: z.string(),
   examTitle: z.string(),
-  // Faixa do PRÓPRIO exame da coleta (labs usam faixas diferentes) — o tooltip rotula o ponto
-  // contra a faixa dele, não contra a faixa global do gráfico (mandato 2026-08-17).
+  // Faixa do PRÓPRIO exame da coleta (contexto histórico). Desde 2026-08-18 a CLASSIFICAÇÃO
+  // exibida usa a faixa UNIFICADA da série (mediana — item-level refLow/refHigh do EvolutionItem),
+  // não mais a faixa individual do ponto.
   refLow: z.number().nullable().optional(),
   refHigh: z.number().nullable().optional(),
 });
@@ -66,9 +67,9 @@ const TSPointSchema = z.object({
   flag: z.string(),
   title: z.string(),
   // Faixa de referência DO PRÓPRIO ponto (o exame de cada coleta pode ter faixa própria —
-  // ex.: hemoglobina 12–15.8 num lab, 13–16.5 noutro). Sem isto o gráfico mostrava UMA faixa
-  // (a do item mais recente) ao lado de flags calculados contra faixas diferentes →
-  // "12.9 Abaixo?? mas 12.6 Normal??" (bug Heloisa 2026-08-16). Opcional = back-compat.
+  // ex.: hemoglobina 12–15.8 num lab, 13–16.5 noutro). Usada para COMPUTAR a mediana da série
+  // (TimeSeriesByName.refLow/refHigh, mandato 2026-08-18: UMA faixa classifica a série inteira;
+  // o histórico e o tooltip não rotulam mais contra a faixa individual). Opcional = back-compat.
   refLow: z.number().nullable().optional(),
   refHigh: z.number().nullable().optional(),
 });
