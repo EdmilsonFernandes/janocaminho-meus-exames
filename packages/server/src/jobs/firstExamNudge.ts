@@ -3,20 +3,21 @@ import { sendPushToUser } from '../utils/push';
 import { sendNudgeEmail } from '../utils/nudgeMail';
 
 /**
- * Scheduler de ENGAJAMENTO de 1º exame (tick diário 08h BRT; por-usuário a cada 2 dias).
+ * Scheduler de ENGAJAMENTO de 1º exame (tick diário 08h BRT; por-usuário a cada 3 dias).
  *
  * Alvo: quem cadastrou (tem paciente) mas NÃO tem NENHUM exame EXTRAÍDO — ou seja, ainda não
  * usufruiu do produto. Divide em 2 segmentos:
  *  - RETRY : tem exame FAILED (tentou e deu erro) → "tente novamente com PDF/foto nítida".
  *  - FIRST : nenhum exame (só cadastrou)          → "envie seu primeiro exame (PDF/foto)".
  *
- * Anti-spam: máx 1 nudge a cada 2 dias por usuário (cooldown via Notification type 'first_exam').
+ * Anti-spam: máx 1 nudge a cada 3 dias por usuário (cooldown via Notification type 'first_exam')
+ * — 2 dias enchia; 3 dias respeita sem esfriar a ativação (2026-08-18).
  * Teto: MAX_NUDGES (para de insistir). Cessa no 1º exame EXTRAÍDO (o usuário sai do segmento).
  * Não incomoda nas primeiras 24h pós-cadastro. E-mail fallback só p/ quem não tem push.
  */
-const COOLDOWN_MS = 2 * 24 * 60 * 60 * 1000; // 2 dias entre nudges do mesmo usuário
+const COOLDOWN_MS = 3 * 24 * 60 * 60 * 1000; // 3 dias entre nudges do mesmo usuário
 const MIN_AGE_MS = 24 * 60 * 60 * 1000;      // só após 24h do cadastro (não incomodar no dia 0)
-const MAX_NUDGES = 8;                          // teto de nudges p/ não insistir pra sempre
+const MAX_NUDGES = 6;                          // teto: 6×3d ≈ 18 dias de insistência (era 8×2d=16d, mais gritante)
 const NUDGE_UTC_HOUR = 11;                     // 08h BRT = 11h UTC
 const EXAMS_ROUTE = '/exams/create';
 const TYPE = 'first_exam';
@@ -60,7 +61,7 @@ export function startFirstExamNudgeJob(): void {
     console.log(`[firstExamNudge] próximo disparo 08h BRT em ${Math.round(ms / 60000)} min`);
     setTimeout(run, ms);
   };
-  console.log('[firstExamNudge] job iniciado (engajamento de 1º exame; retry p/ falha; a cada 2 dias/usuário)');
+  console.log('[firstExamNudge] job iniciado (engajamento de 1º exame; retry p/ falha; a cada 3 dias/usuário)');
   scheduleNext();
 }
 
@@ -69,7 +70,7 @@ async function maybeNudge(u: {
   patients: { fullName: string }[];
 }): Promise<void> {
   const cutoff = new Date(Date.now() - COOLDOWN_MS);
-  // Cooldown: já recebeu um first_exam nos últimos 2 dias?
+  // Cooldown: já recebeu um first_exam nos últimos 3 dias?
   const recent = await prisma.notification.findFirst({
     where: { userId: u.id, type: TYPE, createdAt: { gte: cutoff } },
     select: { id: true },
