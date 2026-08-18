@@ -86,11 +86,14 @@ export const PatientSwitcher = () => {
           '& .MuiButton-startIcon': { mr: { xs: 0, sm: 0.5 } },
         }}
         startIcon={
-          <Avatar src={photoFor(current)} sx={{ width: 44, height: 44, bgcolor: 'primary.main', fontSize: 16, fontWeight: 700, boxShadow: '0 0 0 2px rgba(255,255,255,.95), 0 3px 8px rgba(0,0,0,.28)' }}>
+          // 40px no mobile (o bloco do botão completa ~44px de alvo; 44px no desktop onde há nome).
+          <Avatar src={photoFor(current)} sx={{ width: { xs: 40, sm: 44 }, height: { xs: 40, sm: 44 }, bgcolor: 'primary.main', fontSize: { xs: 15, sm: 16 }, fontWeight: 700, boxShadow: '0 0 0 2px rgba(255,255,255,.95), 0 3px 8px rgba(0,0,0,.28)' }}>
             {current?.fullName?.charAt(0)?.toUpperCase()}
           </Avatar>
         }
-        endIcon={<KeyboardArrowDownIcon sx={{ opacity: 0.6 }} />}
+        // Seta só no desktop (onde há nome e o menu pede affordance extra) — no mobile o avatar no
+        // canto + convenção Google já comunicam; a seta custava 20px no orçamento da barra.
+        endIcon={<KeyboardArrowDownIcon sx={{ opacity: 0.6, display: { xs: 'none', sm: 'block' } }} />}
       >
         <Box sx={{ display: { xs: 'none', sm: 'flex' }, flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.15, overflow: 'hidden' }}>
           <Typography component="span" sx={{ fontSize: 13, fontWeight: 700, maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

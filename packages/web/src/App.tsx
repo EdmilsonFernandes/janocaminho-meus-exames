@@ -100,33 +100,45 @@ import { syncCreditCosts } from './components/CreditBadge';
 const CustomAppBar = (props: AppBarProps) => {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('sm'));
+  // <360px o orçamento horizontal não cabe wordmark + cluster direito: só o símbolo (o robô
+  // também vive no botão central do bottom-nav — marca segue presente 2× no shell).
+  const showWordmark = useMediaQuery(theme.breakpoints.up(360));
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const canBack = !isDesktop && pathname !== '/';
   const { openDrawer } = useAppDrawer();
   return (
-    <AppBar {...props} userMenu={false} toolbar={<LoadingIndicator />}>
-      {/* Mobile: ☰ e Voltar são MUTUAMENTE EXCLUSIVOS. Em sub-rota → Voltar; na raiz → ☰ (drawer unificado). */}
+    <AppBar
+      {...props}
+      userMenu={false}
+      // Refresh/loading só no DESKTOP: no mobile o PullToRefresh cobre (touch-only) e o botão
+      // do LoadingIndicator já transbordava fora da tela ≤390px (medido: right 399 vs 381).
+      // <span /> em vez de undefined — undefined faria o RA renderizar o default (LoadingIndicator).
+      toolbar={isDesktop ? <LoadingIndicator /> : <span />}
+    >
+      {/* Mobile: ☰ e Voltar são MUTUAMENTE EXCLUSIVOS. Em sub-rota → Voltar; na raiz → ☰ (drawer unificado).
+          Redundância ☰(topo) + "Mais"(rodapé) é intencional: mesmo drawer, dois alcances de dedo. */}
       {!isDesktop && (
         canBack ? (
-          <IconButton color="inherit" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))} title="Voltar" size="small" sx={{ mr: 0.25 }}>
+          <IconButton color="inherit" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))} title="Voltar" sx={{ p: 1.25, mr: 0.25 }}>
             <ArrowBackIcon fontSize="small" />
           </IconButton>
         ) : (
-          <IconButton color="inherit" onClick={openDrawer} title="Menu" size="small" sx={{ mr: 0.25 }}>
+          <IconButton color="inherit" onClick={openDrawer} title="Menu" sx={{ p: 1.25, mr: 0.25 }}>
             <MenuIcon fontSize="small" />
           </IconButton>
         )
       )}
-      {/* LOGO "chip" teal (estilo iFood): robô oficial DENTRO de um container arredondado com
-          gradiente da marca. Substitui a borda branca dura (parecia adesivo, sem identidade) por
-          um frame teal — integrado e com presença de marca. Preenche a esquerda (acabou o gap). */}
+      {/* SÍMBOLO da marca (32px): gradiente teal é assinatura EXCLUSIVA da marca — o chip de créditos
+          é tonal justamente para não competir por este mesmo gradiente na mesma linha. */}
       {!isDesktop && (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-          <Box sx={{ width: 36, height: 36, borderRadius: '32%', flexShrink: 0, display: 'grid', placeItems: 'center', background: 'linear-gradient(145deg,#20b2aa 0%,#178f89 55%,#0f5f5a 100%)', boxShadow: '0 3px 10px rgba(15,95,90,.45)', overflow: 'hidden' }}>
-            <DrExame size={28} sx={{ borderRadius: '22%' }} />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexShrink: 0 }}>
+          <Box sx={{ width: 32, height: 32, borderRadius: '32%', flexShrink: 0, display: 'grid', placeItems: 'center', background: 'linear-gradient(145deg,#20b2aa 0%,#178f89 55%,#0f5f5a 100%)', boxShadow: '0 3px 10px rgba(15,95,90,.45)', overflow: 'hidden' }}>
+            <DrExame size={24} sx={{ borderRadius: '22%' }} />
           </Box>
-          <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins", sans-serif', fontSize: 16, letterSpacing: '-0.01em', whiteSpace: 'nowrap' }}>Dr. Exame</Typography>
+          {showWordmark && (
+            <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins", sans-serif', fontSize: 16, letterSpacing: '-0.01em', whiteSpace: 'nowrap' }}>Dr. Exame</Typography>
+          )}
         </Box>
       )}
       {isDesktop && <TitlePortal />}
