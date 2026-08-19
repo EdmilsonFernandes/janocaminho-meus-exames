@@ -210,7 +210,7 @@ const EvoRow = ({ it, defaultExpanded }: { it: EvoItem; defaultExpanded?: boolea
   const st = statusOf(it);
   const meta = STATUS_META[st];
   const up = it.direction === 'up';
-  const lineColor = st === 'out' ? '#ef4444' : up ? '#e65100' : '#0b5cab';
+  const lineColor = st === 'out' ? '#ef4444' : up ? '#c2410c' : '#0369a1';
   return (
     <Accordion defaultExpanded={defaultExpanded} disableGutters elevation={0}
       sx={{ '&:before': { display: 'none' }, border: `1px solid ${meta.color}33`, borderRadius: '12px !important' }}>

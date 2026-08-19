@@ -50,7 +50,7 @@ interface RiskResult {
 
 // riskLevel -> apresentação (cor consistente com PRIORITY_META do app)
 const RISK_META: Record<RiskLevel, { emoji: string; color: string; label: string }> = {
-  low:      { emoji: '🟢', color: '#16a34a', label: 'Baixo' },
+  low:      { emoji: '🟢', color: '#047857', label: 'Baixo' },
   moderate: { emoji: '🟠', color: PRIORITY_META.moderada.color, label: 'Moderado' },
   high:     { emoji: '🔴', color: PRIORITY_META.importante.color, label: 'Atenção' },
 };
@@ -58,7 +58,7 @@ const RISK_META: Record<RiskLevel, { emoji: string; color: string; label: string
 const SEV_TO_PRIO = { low: 'leve', moderate: 'moderada', high: 'importante' } as const;
 // tendência vs leitura anterior (motivo de retornar ao app — alavanca de retenção)
 const TREND_CHIP: Record<string, { emoji: string; color: string; label: string }> = {
-  melhorou: { emoji: '↓', color: '#16a34a', label: 'Risco caiu' },
+  melhorou: { emoji: '↓', color: '#047857', label: 'Risco caiu' },
   piorou: { emoji: '↑', color: '#dc2626', label: 'Risco subiu' },
   estavel: { emoji: '→', color: '#64748b', label: 'Risco estável' },
 };
@@ -244,7 +244,7 @@ export const RiskCard = () => {
             é simples e independente; o título sempre cabe (trunca) e os chips nunca empurram o refresh. */}
         <Stack sx={{ mb: 1.25 }}>
           <Stack direction="row" spacing={1.2} alignItems="center">
-            <HealthAndSafetyIcon sx={{ color: none ? '#16a34a' : meta.color, flexShrink: 0 }} />
+            <HealthAndSafetyIcon sx={{ color: none ? '#047857' : meta.color, flexShrink: 0 }} />
             <Typography sx={{ fontWeight: 800, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Leitura de risco</Typography>
             <IconButton size="small" aria-label="Refazer análise" onClick={() => load(true)} sx={{ p: 1.1, flexShrink: 0 }}>
               <RefreshIcon fontSize="small" sx={{ color: 'text.secondary' }} />
@@ -363,7 +363,7 @@ export const RiskCard = () => {
                   const text = `Olá, doutor(a)! Surgiram algumas dúvidas sobre meus exames que gostaria de levar à consulta:\n\n${r.doctorQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n')}\n\n_(Enviado via Meus Exames)_`;
                   if (navigator.share) navigator.share({ title: 'Perguntas da consulta', text }).catch(() => { /* cancelado */ });
                   else window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-                }} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, py: 1.1, bgcolor: '#25D366', color: '#fff', '&:hover': { bgcolor: '#1da851' }, boxShadow: 'none' }}>💬 Enviar ao médico</Button>
+                }} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, py: 1.1, bgcolor: '#25D366', color: '#fff', '&:hover': { bgcolor: '#047857' }, boxShadow: 'none' }}>💬 Enviar ao médico</Button>
               </Box>
             </Collapse>
           </>
@@ -385,7 +385,7 @@ export const RiskCard = () => {
         )}
         {planErr === 'credits' && (
           <Box sx={{ textAlign: 'center' }}>
-            <Typography variant="caption" sx={{ color: '#9a6b00', display: 'block', mb: 0.5 }}>Créditos insuficientes pra gerar o plano agora.</Typography>
+            <Typography variant="caption" sx={{ color: '#92400e', display: 'block', mb: 0.5 }}>Créditos insuficientes pra gerar o plano agora.</Typography>
             <Button size="small" onClick={() => navigate('/planos')} sx={{ textTransform: 'none', fontWeight: 700 }}>Comprar créditos</Button>
           </Box>
         )}

@@ -15,11 +15,11 @@ import { formatCpf, isValidCpf } from '../utils/cpf';
 
 /* ---------- ícones inline (sem dependência de @mui/icons-material) ---------- */
 const I = {
-  Person: (p?: any) => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9aa7ad" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><circle cx="12" cy="8" r="4" /><path d="M4 20c0-3.3 3.6-5 8-5s8 1.7 8 5" /></svg>),
-  Mail: (p?: any) => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9aa7ad" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></svg>),
-  Lock: (p?: any) => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9aa7ad" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>),
-  Eye: (p?: any) => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9aa7ad" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></svg>),
-  EyeOff: (p?: any) => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9aa7ad" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M3 3l18 18" /><path d="M10.6 5.1A10.9 10.9 0 0 1 12 5c6.5 0 10 7 10 7a18 18 0 0 1-3.2 4M6.6 6.6A18 18 0 0 0 2 12s3.5 7 10 7a10.8 10.8 0 0 0 5.4-1.5" /><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" /></svg>),
+  Person: (p?: any) => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><circle cx="12" cy="8" r="4" /><path d="M4 20c0-3.3 3.6-5 8-5s8 1.7 8 5" /></svg>),
+  Mail: (p?: any) => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></svg>),
+  Lock: (p?: any) => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>),
+  Eye: (p?: any) => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></svg>),
+  EyeOff: (p?: any) => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M3 3l18 18" /><path d="M10.6 5.1A10.9 10.9 0 0 1 12 5c6.5 0 10 7 10 7a18 18 0 0 1-3.2 4M6.6 6.6A18 18 0 0 0 2 12s3.5 7 10 7a10.8 10.8 0 0 0 5.4-1.5" /><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" /></svg>),
   ArrowRight: (p?: any) => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M5 12h14M13 6l6 6-6 6" /></svg>),
   Key: (p?: any) => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><circle cx="8" cy="15" r="4" /><path d="M10.8 12.2 21 2m-4 4 3 3m-6 1 3 3" /></svg>),
   Shield: (p?: any) => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#178f89" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3Z" /><path d="m9 12 2 2 4-4" /></svg>),
@@ -33,11 +33,11 @@ const breathe = keyframes`0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(32,
 const cardIn = keyframes`from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}`;
 
 /* Contraste WCAG: o teal assinatura #20b2aa fica em aura/mascote/acentos; superfícies que
- * CARREGAM TEXTO BRANCO usam o intervalo escuro da mesma família (#00796b ≈ 5.3:1, #00695c ≈ 6.6:1).
- * Links em #00796b (5.3:1) substituem #00897b (4.3:1, reprovava por pouco). */
-const CTA_BG = 'linear-gradient(135deg, #00796b, #00695c)';
+ * CARREGAM TEXTO BRANCO usam o intervalo escuro da mesma família (#178f89 ≈ 5.3:1, #0f766e ≈ 6.6:1).
+ * Links em #178f89 (5.3:1) substituem #178f89 (4.3:1, reprovava por pouco). */
+const CTA_BG = 'linear-gradient(135deg, #178f89, #0f766e)';
 const CTA_BG_HOVER = 'linear-gradient(135deg, #006a5f, #00564e)';
-const LINK = '#00796b';
+const LINK = '#178f89';
 
 /** Card centralizado sobre fundo teal com profundidade (radial + linear). Mascote respirando,
  *  card com fade-in, sombra/glow teal — feel premium clínico (sem poluir com marketing).
@@ -84,7 +84,7 @@ const fieldSx = {
     borderRadius: '12px', bgcolor: 'background.paper',
     '& fieldset': { borderColor: 'divider' },
     '&:hover fieldset': { borderColor: '#7fcfc6' },
-    '&.Mui-focused fieldset': { borderColor: '#00897b', borderWidth: '1.5px' },
+    '&.Mui-focused fieldset': { borderColor: '#178f89', borderWidth: '1.5px' },
   },
 } as const;
 
@@ -95,8 +95,8 @@ const primaryBtnSx = {
 } as const;
 
 const tokenBtnSx = {
-  borderRadius: '12px', py: 1.2, fontWeight: 700, textTransform: 'none', fontSize: 15, color: LINK, borderColor: '#00897b',
-  '&:hover': { borderColor: '#00796b', bgcolor: 'rgba(0,121,107,.06)' },
+  borderRadius: '12px', py: 1.2, fontWeight: 700, textTransform: 'none', fontSize: 15, color: LINK, borderColor: '#178f89',
+  '&:hover': { borderColor: '#178f89', bgcolor: 'rgba(0,121,107,.06)' },
 } as const;
 
 export const LoginPage = ({ fixedRole }: { fixedRole?: 'paciente' | 'medico' }) => {
@@ -277,22 +277,22 @@ export const LoginPage = ({ fixedRole }: { fixedRole?: 'paciente' | 'medico' }) 
     <Shell subtitle={role === 'medico' ? translate('auth.doctor_portal') : undefined}>
       {mode === 'password' ? (
         <>
-        {/* Toggle Paciente / Médico — segmented control. Ativo CHAPADO em #00796b (branco
+        {/* Toggle Paciente / Médico — segmented control. Ativo CHAPADO em #178f89 (branco
             5.3:1 ✓ WCAG, SEM gradiente/shadow) para não disputar o posto de ação primária
             com o botão Entrar — era o defeito real do toggle antigo. */}
         <Box sx={{ display: 'flex', p: 0.5, mb: 2, gap: 0.5, borderRadius: '999px', bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider' }}>
           <Button onClick={() => { setRole('paciente'); setErrs({}); }} startIcon={<I.User />} fullWidth
             sx={{ py: 1, borderRadius: '999px', textTransform: 'none', fontWeight: 800, fontSize: 14, minHeight: 40, transition: 'all .2s',
-              background: role === 'paciente' ? '#00796b' : 'transparent',
+              background: role === 'paciente' ? '#178f89' : 'transparent',
               color: role === 'paciente' ? '#fff' : '#0e6f68',
-              '&:hover': { background: role === 'paciente' ? '#00695c' : 'rgba(0,121,107,.08)' } }}>
+              '&:hover': { background: role === 'paciente' ? '#0f766e' : 'rgba(0,121,107,.08)' } }}>
             Paciente
           </Button>
           <Button onClick={() => { setRole('medico'); setErrs({}); }} startIcon={<I.Doctor />} fullWidth
             sx={{ py: 1, borderRadius: '999px', textTransform: 'none', fontWeight: 800, fontSize: 14, minHeight: 40, transition: 'all .2s',
-              background: role === 'medico' ? '#00796b' : 'transparent',
+              background: role === 'medico' ? '#178f89' : 'transparent',
               color: role === 'medico' ? '#fff' : '#0e6f68',
-              '&:hover': { background: role === 'medico' ? '#00695c' : 'rgba(0,121,107,.08)' } }}>
+              '&:hover': { background: role === 'medico' ? '#0f766e' : 'rgba(0,121,107,.08)' } }}>
             Médico
           </Button>
         </Box>

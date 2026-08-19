@@ -53,7 +53,7 @@ export const PaymentChooser = ({ packId, packLabel, onClose, onPix }: {
         <Stack spacing={1.5}>
           <Opt icon={<QrCode2Icon />} title="PIX" sub="Instantâneo • QR code" busyKey="pix" color="#20b2aa"
             onClick={() => { onPix(); onClose(); }} />
-          <Opt icon={<CreditCardIcon />} title="Cartão de crédito" sub="Até 12x • via Mercado Pago" busyKey="card" color="#0b5cab"
+          <Opt icon={<CreditCardIcon />} title="Cartão de crédito" sub="Até 12x • via Mercado Pago" busyKey="card" color="#0369a1"
             onClick={() => payRedirect('card')} />
           <Opt icon={<AccountBalanceIcon />} title="Débito" sub="À vista • via Mercado Pago" busyKey="debit" color="#178f89"
             onClick={() => payRedirect('debit')} />

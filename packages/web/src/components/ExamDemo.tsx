@@ -18,7 +18,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 const TEAL = '#20b2aa';
 const TEAL_DARK = '#178f89';
 const GREEN = '#059669';
-const ORANGE = '#ea580c';
+const ORANGE = '#c2410c';
 
 // Exame fictício (mesmo perfil lipídico já usado na seção de risco da landing → coerente)
 type Flag = 'high' | 'low' | 'ok';
@@ -204,7 +204,7 @@ export const ExamDemo = () => {
                 <Button fullWidth variant="contained" onClick={() => navigate('/registrar')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800 }}>
                   Ver minha leitura de risco →
                 </Button>
-                <Button fullWidth variant="outlined" onClick={() => setStep(-1)} startIcon={<RefreshIcon />} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, borderColor: '#bfe7e3', color: TEAL_DARK }}>
+                <Button fullWidth variant="outlined" onClick={() => setStep(-1)} startIcon={<RefreshIcon />} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, borderColor: '#d8f4f2', color: TEAL_DARK }}>
                   Ver de novo
                 </Button>
               </Stack>

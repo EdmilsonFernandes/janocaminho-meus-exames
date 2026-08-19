@@ -13,7 +13,7 @@ import { PageHeader } from '../components/layout/PageHeader';
 const TYPES = [
   { v: 'BLOOD_PRESSURE', l: 'Pressão arterial', u: 'mmHg', dual: true, color: '#dc2626', emoji: '🩸' },
   { v: 'WEIGHT', l: 'Peso', u: 'kg', color: '#178f89', emoji: '⚖️' },
-  { v: 'GLUCOSE', l: 'Glicose', u: 'mg/dL', color: '#ea580c', emoji: '🍬' },
+  { v: 'GLUCOSE', l: 'Glicose', u: 'mg/dL', color: '#c2410c', emoji: '🍬' },
   { v: 'HEART_RATE', l: 'Frequência cardíaca', u: 'bpm', color: '#ef4444', emoji: '❤️' },
   { v: 'OTHER', l: 'Outro', u: '', color: '#64748b', emoji: '📌' },
 ];

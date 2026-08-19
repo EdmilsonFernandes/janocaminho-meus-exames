@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, MenuItem, Select, FormControl, Stack, Chip, useMediaQuery, useTheme, alpha } from '@mui/material';
+import { Box, Card, CardContent, Typography, Autocomplete, TextField, ToggleButton, ToggleButtonGroup, Stack, Chip, useMediaQuery, useTheme, alpha } from '@mui/material';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceArea } from 'recharts';
 import { API_URL } from '../../config';
 import { ListSkeleton } from '../Skeleton';
@@ -8,7 +8,7 @@ import { displayStatus } from '../../utils/examStatus';
 import { ExplainButton } from '../ExplainItem';
 import { TrendsChart } from '../TrendsChart';
 import { UnitLabel } from '../UnitLabel';
-import { RADIUS } from '../../theme';
+import { RADIUS, copperText } from '../../theme';
 import type { Theme } from '@mui/material/styles';
 
 import type { TimeSeriesByName as TS } from '@meus-exames/shared';
@@ -39,8 +39,8 @@ export const DoctorTrends = ({ patientId, token }: Props) => {
   const [loading, setLoading] = useState(false);
   // Período clínico (auditoria: histórico de 6 anos inteiro não deixava isolar o recente).
   const [period, setPeriod] = useState<'all' | '2y' | '1y' | '6m'>('all');
-  const PERIODS: { v: 'all' | '2y' | '1y' | '6m'; label: string }[] = [
-    { v: '6m', label: '6 meses' }, { v: '1y', label: '1 ano' }, { v: '2y', label: '2 anos' }, { v: 'all', label: 'Todo histórico' },
+  const PERIODS: { v: 'all' | '2y' | '1y' | '6m'; label: string; short: string }[] = [
+    { v: '6m', label: '6 meses', short: '6m' }, { v: '1y', label: '1 ano', short: '1a' }, { v: '2y', label: '2 anos', short: '2a' }, { v: 'all', label: 'Todo histórico', short: 'Tudo' },
   ];
   const periodCutoff = period === 'all' ? 0 : Date.now() - (period === '6m' ? 182 : period === '1y' ? 365 : 730) * 86400000;
   const visibleTs: TS | null = ts && period !== 'all'
@@ -145,46 +145,49 @@ export const DoctorTrends = ({ patientId, token }: Props) => {
     if (!multi.some((n) => n.nameCanonical === sel)) setSel(multi[0].nameCanonical);
   }, [multi]);
 
-  const tealMain = theme.palette.primary.main;
-  const tealDark = theme.palette.primary.dark;
-
   return (
     <Box>
-      {/* HEADER PREMIUM (teal via token) */}
-      <Card sx={{ mb: 2, borderRadius: RADIUS.sectionCard, overflow: 'hidden', background: `linear-gradient(135deg, ${tealMain}, ${tealDark})`, color: theme.palette.primary.contrastText }}>
-        <CardContent sx={{ py: 2.5 }}>
-          <Typography variant="h5" sx={{ fontWeight: 800, fontFamily: theme.typography.h5.fontFamily }}>📈 Tendências</Typography>
-          <Typography sx={{ opacity: 0.9, mt: 0.5, fontSize: 14 }}>Evolução dos marcadores laboratoriais do paciente ao longo do tempo.</Typography>
-        </CardContent>
-      </Card>
-
-      {/* DROPDOWN + ATALHOS */}
+      {/* MARCADOR — 1 seletor com BUSCA (a lista pode ter dezenas de analitos; Select cru
+          virava fricção). Sem banner de seção: a aba já diz "Tendências" e o hero da tela
+          é o PatientSummary (One Gradient Rule — o gradiente fica p/ o CTA, não p/ título). */}
       {multi.length > 0 && (
         <Card sx={{ mb: 2, borderRadius: RADIUS.sectionCard }}><CardContent sx={{ p: { xs: 1.5, md: 2 } }}>
-          {/* Desktop: atalhos (máx 6) + dropdown. Mobile: só dropdown (sem parede de chips). */}
+          {/* Desktop: atalhos (máx 6). Mobile: só busca (sem parede de chips). */}
           {!isMobile && multi.length > 1 && (
             <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mb: 1.5 }}>
               {multi.slice(0, 6).map((n) => (
                 <Chip key={n.nameCanonical} label={prettyName(n.nameCanonical)} onClick={() => setSel(n.nameCanonical)}
-                  color={sel === n.nameCanonical ? 'primary' : 'default'} size="small" title={prettyName(n.nameCanonical)}
-                  sx={{ fontWeight: 700, borderRadius: RADIUS.pill, maxWidth: 165, '& .MuiChip-label': { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }} />
+                  size="small" title={prettyName(n.nameCanonical)}
+                  sx={{
+                    fontWeight: 700, borderRadius: RADIUS.pill, maxWidth: 165,
+                    ...(sel === n.nameCanonical ? {
+                      bgcolor: 'rgba(212,165,116,.16)',
+                      color: (t: Theme) => copperText(t.palette.mode),
+                      border: '1px solid rgba(212,165,116,.5)',
+                    } : {}),
+                    '& .MuiChip-label': { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+                  }} />
               ))}
-              {multi.length > 6 && <Chip size="small" variant="outlined" label={`+${multi.length - 6}`} title="Ver todos no seletor abaixo" sx={{ fontWeight: 700, borderRadius: RADIUS.pill }} />}
+              {multi.length > 6 && <Chip size="small" variant="outlined" label={`+${multi.length - 6}`} title="Ver todos na busca abaixo" sx={{ fontWeight: 700, borderRadius: RADIUS.pill }} />}
             </Stack>
           )}
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ sm: 'center' }}>
-            <FormControl fullWidth size="small">
-              <Select value={sel} onChange={(e) => setSel(e.target.value as string)} displayEmpty sx={{ borderRadius: RADIUS.button }}>
-                <MenuItem value="" disabled><em>Selecione um marcador ({multi.length})</em></MenuItem>
-                {multi.map((n) => <MenuItem key={n.nameCanonical} value={n.nameCanonical}>{prettyName(n.nameCanonical)} ({n.count} exames)</MenuItem>)}
-              </Select>
-            </FormControl>
-            <FormControl size="small" sx={{ minWidth: 150 }}>
-              <Select value={period} onChange={(e) => setPeriod(e.target.value as 'all' | '2y' | '1y' | '6m')} sx={{ borderRadius: RADIUS.button }}>
-                {PERIODS.map((p) => <MenuItem key={p.v} value={p.v}>{p.label}</MenuItem>)}
-              </Select>
-            </FormControl>
-          </Stack>
+          <Autocomplete
+            size="small"
+            options={multi}
+            value={multi.find((n) => n.nameCanonical === sel) ?? null}
+            onChange={(_, v) => setSel(v?.nameCanonical ?? '')}
+            isOptionEqualToValue={(o, v) => o.nameCanonical === v.nameCanonical}
+            getOptionLabel={(o) => prettyName(o.nameCanonical)}
+            renderOption={({ key, ...liProps }, o) => (
+              <Box component="li" key={key} {...liProps} sx={{ display: 'flex', justifyContent: 'space-between', gap: 1, minWidth: 0 }}>
+                <Box sx={{ fontWeight: 700, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{prettyName(o.nameCanonical)}</Box>
+                <Box component="span" sx={{ color: 'text.secondary', fontSize: 12, flexShrink: 0 }}>{o.count} exames</Box>
+              </Box>
+            )}
+            renderInput={(params) => (
+              <TextField {...params} label={`Marcador (${multi.length})`} sx={{ '& .MuiInputBase-root': { borderRadius: RADIUS.button, fontWeight: 700, '& input': { fontWeight: 700 } } }} />
+            )}
+          />
         </CardContent></Card>
       )}
 
@@ -206,9 +209,34 @@ export const DoctorTrends = ({ patientId, token }: Props) => {
       {/* LOADING */}
       {loading && <Card sx={{ borderRadius: RADIUS.sectionCard }}><CardContent><ListSkeleton count={4} /></CardContent></Card>}
 
-            {/* GRÁFICO + DETALHES — primitiva compartilhada (dedup paciente↔médico). */}
+            {/* GRÁFICO + DETALHES — primitiva compartilhada (dedup paciente↔médico).
+                Período = segmented no header do card (1 tap, estado sempre visível — o
+                dropdown fechado escondia a janela ativa). Cobre = estado ativo do portal médico. */}
       {!loading && visibleTs && visibleTs.points.length > 0 && (
-        <TrendsChart ts={visibleTs} />
+        <TrendsChart
+          ts={visibleTs}
+          action={(
+            <ToggleButtonGroup
+              exclusive size="small" value={period}
+              onChange={(_, v: 'all' | '2y' | '1y' | '6m') => { if (v) setPeriod(v); }}
+              aria-label="Período do gráfico"
+              sx={{ '& .MuiToggleButton-root': {
+                px: 1.25, py: 0.25, fontSize: 12, fontWeight: 700, lineHeight: 1.5, textTransform: 'none',
+                color: 'text.secondary', borderColor: 'divider',
+                '&.Mui-selected': {
+                  bgcolor: (t: Theme) => (t.palette.mode === 'dark' ? 'rgba(212,165,116,.26)' : 'rgba(212,165,116,.16)'),
+                  color: (t: Theme) => copperText(t.palette.mode),
+                  borderColor: 'rgba(212,165,116,.5)',
+                  '&:hover': { bgcolor: 'rgba(212,165,116,.22)' },
+                },
+              } }}
+            >
+              {PERIODS.map((p) => (
+                <ToggleButton key={p.v} value={p.v} title={p.label}>{p.short}</ToggleButton>
+              ))}
+            </ToggleButtonGroup>
+          )}
+        />
       )}
       {!loading && visibleTs && visibleTs.points.length === 0 && sel && (
         <Card sx={{ borderRadius: RADIUS.sectionCard, textAlign: 'center', py: 4 }}>

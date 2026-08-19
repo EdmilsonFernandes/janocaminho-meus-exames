@@ -22,7 +22,7 @@ export const GradientButton = ({ sx, children, variant: _variantIgnored, color: 
       fontWeight: 700,
       textTransform: 'none',
       minHeight: 44, // CTA primário do sistema: alvo de toque confortável (craft-floor) — 25px antigo
-      '&:hover': { background: 'linear-gradient(135deg, #1ca299, #0f7670)' },
+      '&:hover': { background: 'linear-gradient(135deg, #1ca299, #0f766e)' },
       ...(sx as object),
     }}
     {...rest}

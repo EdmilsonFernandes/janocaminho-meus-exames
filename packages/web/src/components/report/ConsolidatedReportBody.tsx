@@ -114,7 +114,7 @@ export const ConsolidatedReportBody = ({ analysis, sourceExams, onOpenExam }: { 
       )}
 
       {s.comparativo && s.comparativo.length > 0 && (
-        <ReportSectionCard icon={<InsightsIcon />} title="Itens em destaque" accent="#0b5cab" count={s.comparativo.length}>
+        <ReportSectionCard icon={<InsightsIcon />} title="Itens em destaque" accent="#0369a1" count={s.comparativo.length}>
           <Grid container spacing={1.5}>
             {s.comparativo.map((c: any, i: number) => <Grid key={i} size={{ xs: 12, md: 6 }}><DestaqueCard c={c} /></Grid>)}
           </Grid>
@@ -167,7 +167,7 @@ export const ConsolidatedReportBody = ({ analysis, sourceExams, onOpenExam }: { 
       )}
 
       {s.sugestoesNutricao && s.sugestoesNutricao.length > 0 && (
-        <ReportSectionCard icon={<RestaurantIcon />} title="Sugestões de nutrição" accent="#16a34a" count={s.sugestoesNutricao.length} collapsible defaultExpanded={false}>
+        <ReportSectionCard icon={<RestaurantIcon />} title="Sugestões de nutrição" accent="#047857" count={s.sugestoesNutricao.length} collapsible defaultExpanded={false}>
           <Stack spacing={0.5}>
             {s.sugestoesNutricao.map((b: any, i: number) => <Typography key={i} variant="body2" sx={{ py: 0.25, wordBreak: 'break-word' }}>🥗 {txt(b)}</Typography>)}
           </Stack>
@@ -175,7 +175,7 @@ export const ConsolidatedReportBody = ({ analysis, sourceExams, onOpenExam }: { 
       )}
 
       {s.metasSaude && s.metasSaude.length > 0 && (
-        <ReportSectionCard icon={<TrackChangesIcon />} title="Metas de saúde" accent="#0288d1" count={s.metasSaude.length} collapsible defaultExpanded={false}>
+        <ReportSectionCard icon={<TrackChangesIcon />} title="Metas de saúde" accent="#0369a1" count={s.metasSaude.length} collapsible defaultExpanded={false}>
           <Grid container spacing={1.5}>
             {s.metasSaude.map((m: any, i: number) => <Grid key={i} size={{ xs: 12, md: 6 }}><MetaCard m={m} /></Grid>)}
           </Grid>

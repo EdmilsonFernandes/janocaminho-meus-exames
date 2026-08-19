@@ -124,7 +124,7 @@ export const ValoresAlteradosPage = () => {
                       <Box sx={{ flex: 1, minWidth: 0 }}>
                         <Typography sx={{ fontWeight: 800, color: meta.color, lineHeight: 1.2 }}>{g.examTitle}</Typography>
                         <Typography variant="caption" sx={{ color: meta.color, opacity: 0.85 }}>📅 {fmtDate(g.performedAt)}{g.performedAt ? ` · ${timeAgo(g.performedAt)}` : ''}</Typography>
-                        {stale && <Typography variant="caption" sx={{ display: 'block', color: '#9a6b00' }}>⏳ Exame antigo — considere renovar com seu médico</Typography>}
+                        {stale && <Typography variant="caption" sx={{ display: 'block', color: '#92400e' }}>⏳ Exame antigo — considere renovar com seu médico</Typography>}
                         {g.requestingDoctor && <Typography variant="caption" sx={{ display: 'block', color: meta.color, opacity: 0.85 }}>🩺 Dr. {g.requestingDoctor}</Typography>}
                       </Box>
                       <Chip size="small" label={`${g.items.length} alterado(s)`} sx={{ fontWeight: 700, height: 20, bgcolor: meta.color + '22', color: meta.color }} />

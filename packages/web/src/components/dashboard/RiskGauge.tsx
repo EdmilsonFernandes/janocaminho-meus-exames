@@ -7,12 +7,12 @@ import { Box, Typography } from '@mui/material';
  * Cores consistentes c/ RiskCard (green/amber/red). `none` = estado "sem risco" (verde, baixo).
  */
 const LEVEL_POS: Record<string, number> = { low: 30, moderate: 64, high: 93 }; // % do arco
-const LEVEL_COLOR: Record<string, string> = { low: '#16a34a', moderate: '#f59e0b', high: '#dc2626' };
+const LEVEL_COLOR: Record<string, string> = { low: '#047857', moderate: '#f59e0b', high: '#dc2626' };
 const LEVEL_LABEL: Record<string, string> = { low: 'Baixo', moderate: 'Moderado', high: 'Atenção' };
 
 export const RiskGauge = ({ level, none }: { level: 'low' | 'moderate' | 'high'; none?: boolean }) => {
   const target = none ? LEVEL_POS.low : LEVEL_POS[level] ?? LEVEL_POS.low;
-  const color = none ? '#16a34a' : LEVEL_COLOR[level] ?? '#16a34a';
+  const color = none ? '#047857' : LEVEL_COLOR[level] ?? '#047857';
   const label = none ? 'Sem risco' : LEVEL_LABEL[level] ?? 'Baixo';
   const [pct, setPct] = useState(0);
   useEffect(() => { const t = setTimeout(() => setPct(target), 150); return () => clearTimeout(t); }, [target]);

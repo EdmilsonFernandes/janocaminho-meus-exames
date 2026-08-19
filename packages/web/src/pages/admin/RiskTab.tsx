@@ -54,7 +54,7 @@ export const RiskTab = () => {
           <TableBody>
             {q.byCondition.map((c: any) => {
               const pct = c.total ? Math.round((c.up / c.total) * 100) : 0;
-              const color = pct >= 70 ? '#16a34a' : pct >= 40 ? '#ca8a04' : '#dc2626';
+              const color = pct >= 70 ? '#047857' : pct >= 40 ? '#ca8a04' : '#dc2626';
               return (
                 <TableRow key={c.conditionKey}>
                   <TableCell sx={{ fontWeight: 700 }}>{c.conditionKey}</TableCell>

@@ -71,7 +71,7 @@ export function matchLab(raw: string | null | undefined): LabBrand | null {
 }
 
 /** Cor de marca (casada) ou cor estável (hash) pra desconhecido. */
-const FALLBACK_PALETTE = ['#178f89', '#6366f1', '#ea580c', '#0e7490', '#be185d', '#4d7c0f', '#6366f1', '#b45309'];
+const FALLBACK_PALETTE = ['#178f89', '#6366f1', '#c2410c', '#0e7490', '#be185d', '#4d7c0f', '#6366f1', '#b45309'];
 export function labColor(raw: string | null | undefined): string {
   const m = matchLab(raw);
   if (m) return m.color;

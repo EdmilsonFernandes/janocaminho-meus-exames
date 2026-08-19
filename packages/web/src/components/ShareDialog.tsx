@@ -44,7 +44,7 @@ export const ShareDialog = ({ analysisId, open, onClose }: { analysisId?: string
   // QR client-side (não vaza o token p/ terceiros).
   useEffect(() => {
     if (!data?.link) { setQr(null); return; }
-    QRCode.toDataURL(data.link, { margin: 1, width: 240, color: { dark: '#0f3d3a', light: '#ffffff' } })
+    QRCode.toDataURL(data.link, { margin: 1, width: 240, color: { dark: '#0f5f5a', light: '#ffffff' } })
       .then(setQr).catch(() => setQr(null));
   }, [data]);
 
@@ -94,13 +94,13 @@ export const ShareDialog = ({ analysisId, open, onClose }: { analysisId?: string
               </Box>
             )}
 
-            <Typography variant="subtitle2" sx={{ color: '#336886' }}>Link de acesso</Typography>
+            <Typography variant="subtitle2" sx={{ color: '#0369a1' }}>Link de acesso</Typography>
             <Stack direction="row" spacing={1} sx={{ mb: 2, alignItems: 'center' }}>
               <TextField value={data.link} size="small" fullWidth InputProps={{ readOnly: true }} sx={{ '& .MuiInputBase-input': { fontSize: 11 } }} />
               <IconButton onClick={() => copy(data.link)} color="primary" title="Copiar link"><ContentCopyIcon /></IconButton>
             </Stack>
-            <Typography variant="subtitle2" sx={{ color: '#336886' }}>🔑 Senha (envie ao médico separadamente do link)</Typography>
-            <Typography sx={{ fontSize: 30, fontWeight: 800, letterSpacing: 8, color: '#2a93b8', textAlign: 'center', py: 1, my: 0.5, bgcolor: '#f0f8fc', borderRadius: '12px', border: '1px dashed #2a93b8' }}>
+            <Typography variant="subtitle2" sx={{ color: '#0369a1' }}>🔑 Senha (envie ao médico separadamente do link)</Typography>
+            <Typography sx={{ fontSize: 30, fontWeight: 800, letterSpacing: 8, color: '#0369a1', textAlign: 'center', py: 1, my: 0.5, bgcolor: '#f0f8fc', borderRadius: '12px', border: '1px dashed #0369a1' }}>
               {data.pin}
             </Typography>
             <Typography variant="caption" color="text.secondary">Dica: mande o link por um canal e a senha por outro (mais seguro).</Typography>
@@ -110,7 +110,7 @@ export const ShareDialog = ({ analysisId, open, onClose }: { analysisId?: string
       <DialogActions sx={{ px: 3, pb: 2.5 }}>
         {data && (
           <>
-            <Button variant="contained" startIcon={<WhatsAppIcon sx={{ color: '#25D366' }} />} onClick={() => window.open(whats, '_blank')} sx={{ bgcolor: '#25D366', '&:hover': { bgcolor: '#1da851' } }}>
+            <Button variant="contained" startIcon={<WhatsAppIcon sx={{ color: '#25D366' }} />} onClick={() => window.open(whats, '_blank')} sx={{ bgcolor: '#25D366', '&:hover': { bgcolor: '#047857' } }}>
               WhatsApp
             </Button>
             <Button disabled={revoking} startIcon={<LockIcon />} onClick={revoke} sx={{ color: '#ef4444', textTransform: 'none', fontWeight: 700 }}>

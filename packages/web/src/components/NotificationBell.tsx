@@ -44,9 +44,9 @@ export const NotificationBell = () => {
       }}>
       {/* Cap "9+": contador cru ("36") é manchete de e-mail, não sinal clínico — em app de saúde,
           badge gigante dessensibiliza p/ o dia em que a notificação IMPORTA (resultado novo).
-          Vermelho #d32f2f: branco sobre ele = ~5:1 (o #ef4444 padrão dava 3,8:1 — reprovar AA). */}
+          Vermelho #dc2626: branco sobre ele = ~5:1 (o #ef4444 padrão dava 3,8:1 — reprovar AA). */}
       <Badge badgeContent={unread > 9 ? '9+' : unread} color="error" overlap="circular"
-        sx={{ '& .MuiBadge-badge': { fontSize: 11, fontWeight: 700, height: 18, minWidth: 18, padding: '0 4px', top: 3, right: 3, bgcolor: '#d32f2f', color: '#fff' } }}>
+        sx={{ '& .MuiBadge-badge': { fontSize: 11, fontWeight: 700, height: 18, minWidth: 18, padding: '0 4px', top: 3, right: 3, bgcolor: '#dc2626', color: '#fff' } }}>
         <NotificationsNoneIcon sx={{ fontSize: 22 }} />
       </Badge>
     </IconButton>

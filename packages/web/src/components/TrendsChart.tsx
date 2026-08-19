@@ -28,7 +28,7 @@ const fmtNum = (n: number | null | undefined) => n == null ? '—' : String(Numb
 const fmtRef = (n: number | null | undefined) => n == null ? '—' : n.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
 const fmt2 = (d?: string | null) => (d ? new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }) : 's/d');
 
-export const TrendsChart = ({ ts }: { ts: TS }) => {
+export const TrendsChart = ({ ts, action }: { ts: TS; action?: React.ReactNode }) => {
   const theme = useTheme<Theme>();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const tealMain = theme.palette.primary.main;
@@ -98,14 +98,19 @@ export const TrendsChart = ({ ts }: { ts: TS }) => {
 
   const firstPt = pts[0];
   const lastPt = pts[pts.length - 1];
-  const pctChange = firstPt && lastPt && firstPt.valueNumeric ? Math.round(((lastPt.valueNumeric - firstPt.valueNumeric) / Math.abs(firstPt.valueNumeric)) * 100) : null;
+  // MAGNITUDE como delta absoluto (sem seta/% própria): o % primeiro→último exibia seta
+  // OPOSTA à da regressão no mesmo card (↑105% vs ↓queda — bug de confiança clínica
+  // reportado 2026-08-19). Direção é UMA só: o veredito da regressão abaixo.
+  const absDelta = firstPt && lastPt && firstPt.valueNumeric != null && lastPt.valueNumeric != null ? Math.abs(lastPt.valueNumeric - firstPt.valueNumeric) : null;
 
   return (
     <Card sx={{ borderRadius: RADIUS.sectionCard }}><CardContent sx={{ p: { xs: 1.5, md: 3 } }}>
-      {/* Título do analito — minWidth:0 + truncation evita cortar o nome no mobile. */}
+      {/* Título do analito — minWidth:0 + truncation evita cortar o nome no mobile.
+          `action` = slot opcional à direita (ex.: segmented de período do portal médico). */}
       <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mb: 1, minWidth: 0 }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 800, color: tealDark, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{prettyName(ts.nameCanonical)}</Typography>
         <ExplainButton name={ts.nameCanonical} nameCanonical={ts.nameCanonical} />
+        {action && <Box sx={{ ml: 'auto', flexShrink: 0 }}>{action}</Box>}
       </Stack>
 
       {/* Cabeçalho empilhado: valor → tendência → última data → referência. */}
@@ -114,9 +119,9 @@ export const TrendsChart = ({ ts }: { ts: TS }) => {
           <Typography sx={{ fontSize: 30, fontWeight: 800, lineHeight: 1, color: predict?.dir === 'up' ? theme.palette.error.dark : predict?.dir === 'down' ? theme.palette.info.dark : tealDark }}>
             {fmtNum(lastPt?.valueNumeric)} {ts.unit ? <UnitLabel unit={ts.unit} fontSize="1.875rem" /> : null}
           </Typography>
-          {pctChange != null && pctChange !== 0 && (
-            <Typography sx={{ fontWeight: 700, color: pctChange > 0 ? theme.palette.error.dark : theme.palette.info.dark }}>
-              {pctChange > 0 ? '↑' : '↓'} {Math.abs(pctChange)}%
+          {absDelta != null && absDelta > 0 && ts.unit && (
+            <Typography sx={{ fontWeight: 700, color: 'text.secondary' }}>
+              Δ {fmtNum(absDelta)} <UnitLabel unit={ts.unit} />
             </Typography>
           )}
         </Stack>

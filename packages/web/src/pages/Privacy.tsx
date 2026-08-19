@@ -40,7 +40,7 @@ export const PrivacyPage = () => {
               'Você pode apagar exames, exportar seus dados ou excluir a conta pelo Perfil.',
             ].map((t, i) => (
               <Stack key={i} direction="row" spacing={1.5} alignItems="flex-start">
-                <Box sx={{ width: 20, height: 20, borderRadius: '50%', bgcolor: 'rgba(51,104,134,.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: '#336886', flexShrink: 0, mt: 0.2 }}>{i + 1}</Box>
+                <Box sx={{ width: 20, height: 20, borderRadius: '50%', bgcolor: 'rgba(51,104,134,.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: '#0369a1', flexShrink: 0, mt: 0.2 }}>{i + 1}</Box>
                 <Typography variant="body2" sx={{ color: 'text.primary', fontSize: 14, lineHeight: 1.5 }}>{t}</Typography>
               </Stack>
             ))}

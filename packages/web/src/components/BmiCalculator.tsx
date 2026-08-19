@@ -17,8 +17,8 @@ const clampPct = (imc: number) => Math.max(0, Math.min(1, (imc - AX_MIN) / (AX_M
 type Cat = { label: string; color: string };
 const categorize = (imc: number): Cat => {
   if (imc < 18.5) return { label: 'Abaixo do peso', color: '#0ea5e9' };
-  if (imc < 25) return { label: 'Peso adequado', color: '#16a34a' };
-  if (imc < 30) return { label: 'Sobrepeso', color: '#ea580c' };
+  if (imc < 25) return { label: 'Peso adequado', color: '#047857' };
+  if (imc < 30) return { label: 'Sobrepeso', color: '#c2410c' };
   return { label: 'Obesidade', color: '#dc2626' };
 };
 
@@ -63,8 +63,8 @@ export const BmiCard = () => {
       <Box sx={{ position: 'relative', mt: 4, mb: 1 }}>
         <Box sx={{ display: 'flex', height: 10, borderRadius: '999px', overflow: 'hidden' }}>
           <Box sx={{ flex: 14, bgcolor: '#0ea5e9' }} />
-          <Box sx={{ flex: 26, bgcolor: '#16a34a' }} />
-          <Box sx={{ flex: 20, bgcolor: '#ea580c' }} />
+          <Box sx={{ flex: 26, bgcolor: '#047857' }} />
+          <Box sx={{ flex: 20, bgcolor: '#c2410c' }} />
           <Box sx={{ flex: 40, bgcolor: '#dc2626' }} />
         </Box>
         {/* marcador */}

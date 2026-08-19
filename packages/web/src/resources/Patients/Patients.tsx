@@ -56,7 +56,7 @@ const PatientCards = () => {
     return (
       <Card key={p.id} variant="outlined" onClick={() => navigate(`/patients/${p.id}`)}
         sx={{ cursor: 'pointer', borderRadius: '12px', overflow: 'hidden',
-          border: titularStyle ? '1px solid #bfe7e3' : '1px solid',
+          border: titularStyle ? '1px solid #d8f4f2' : '1px solid',
           borderColor: titularStyle ? undefined : 'divider',
           background: titularStyle ? 'linear-gradient(135deg,#f1fafa,#ffffff)' : 'background.paper',
           '&:hover': { boxShadow: '0 8px 22px rgba(32,178,170,.15)', transform: 'translateY(-1px)' },

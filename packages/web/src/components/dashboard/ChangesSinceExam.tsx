@@ -59,7 +59,7 @@ export const ChangesSinceExam = ({
       <Typography sx={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'text.secondary' }}>{title}</Typography>
       <Stack direction="row" spacing={2} sx={{ mt: 1, mb: 1.5, flexWrap: 'wrap', rowGap: 0.5 }}>
         {worsened.length > 0 && <Chip size="small" icon={<TrendingUpIcon />} label={`${worsened.length} ${worsened.length === 1 ? 'piorou' : 'pioraram'}`} sx={{ bgcolor: alpha('#dc2626', 0.12), color: '#b91c1c', fontWeight: 700 }} />}
-        {improvedUnique.length > 0 && <Chip size="small" icon={<TrendingDownIcon />} label={`${improvedUnique.length} ${improvedUnique.length === 1 ? 'melhorou' : 'melhoraram'}`} sx={{ bgcolor: alpha('#16a34a', 0.12), color: '#2e6b32', fontWeight: 700 }} />}
+        {improvedUnique.length > 0 && <Chip size="small" icon={<TrendingDownIcon />} label={`${improvedUnique.length} ${improvedUnique.length === 1 ? 'melhorou' : 'melhoraram'}`} sx={{ bgcolor: alpha('#047857', 0.12), color: '#047857', fontWeight: 700 }} />}
         {worsened.length === 0 && improved.length === 0 && <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>Carregando…</Typography>}
       </Stack>
       <Stack spacing={1.1}>
@@ -71,7 +71,7 @@ export const ChangesSinceExam = ({
         ))}
         {improvedUnique.slice(0, 2).map((m, i) => (
           <Stack key={`i${i}`} direction="row" justifyContent="space-between" alignItems="baseline">
-            <Typography sx={{ fontSize: 13.5, color: 'text.primary', fontWeight: 600 }}><Box component="span" sx={{ color: '#2e6b32', mr: 0.5 }}>{flagDir(m)}</Box>{m.name}</Typography>
+            <Typography sx={{ fontSize: 13.5, color: 'text.primary', fontWeight: 600 }}><Box component="span" sx={{ color: '#047857', mr: 0.5 }}>{flagDir(m)}</Box>{m.name}</Typography>
             <Typography sx={{ fontSize: 13, color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>{fmtMarker(m)}</Typography>
           </Stack>
         ))}

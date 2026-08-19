@@ -107,7 +107,7 @@ export const PlansPage = () => {
 
       {/* HERO — saldo centralizado, gradiente esmeralda + profundidade */}
       <Card sx={{ mb: 2.5, borderRadius: '12px', overflow: 'hidden', position: 'relative', color: '#fff',
-          background: 'linear-gradient(135deg,#0f3d3a 0%,#137a72 55%,#1f9d95 100%)',
+          background: 'linear-gradient(135deg,#0f5f5a 0%,#137a72 55%,#178f89 100%)',
           boxShadow: '0 20px 44px rgba(15,61,58,.28)' }}>
         <Box sx={{ position: 'absolute', top: '-45%', right: '-12%', width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,.16), transparent 70%)', pointerEvents: 'none' }} />
         <CardContent sx={{ position: 'relative', textAlign: 'center', py: { xs: 3.5, md: 4.5 } }}>
@@ -138,7 +138,7 @@ export const PlansPage = () => {
                 <Chip key={f.k} size="small" label={f.l} onClick={() => { setHistFilter(f.k); setDispPage(1); }}
                   sx={{ fontWeight: 700, fontSize: 13, height: 30, px: 1.25, border: 'none',
                     bgcolor: on ? 'rgba(32,178,170,.14)' : 'transparent',
-                    color: on ? '#0f7670' : 'text.secondary',
+                    color: on ? '#0f766e' : 'text.secondary',
                     '&:hover': { bgcolor: on ? 'rgba(32,178,170,.2)' : 'rgba(15,23,42,.05)' } }} />
               );
             })}

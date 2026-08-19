@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef, type ReactElement, type ReactNode } from 'react';
+import { useState, useEffect, useRef, useMemo, type ReactElement, type ReactNode } from 'react';
 import { Box, Card, CardContent, Typography, TextField, Button, CircularProgress, Stack, Chip, Avatar, Menu, MenuItem, Alert, Divider, InputAdornment, IconButton, Link, Drawer, List, ListItemButton, ListItemText, ListItemIcon, Accordion, AccordionSummary, AccordionDetails, Badge, InputBase, Paper, useMediaQuery, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Tabs, Tab } from '@mui/material';
 import { alpha } from '@mui/material/styles';
+import type { Theme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import LogoutIcon from '@mui/icons-material/Logout';
 import LockIcon from '@mui/icons-material/Lock';
@@ -32,7 +33,8 @@ import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import { API_URL, photoUrlFor, doctorPhotoUrl } from '../config';
-import { LAYOUT } from '../theme';
+import { LAYOUT, COPPER, copperText } from '../theme';
+import { priorityOf, refScaleSuspect } from '../utils/alertPriority';
 import { QuestionStatusBadge } from '../components/QuestionStatusBadge';
 import { confirmDialog, snackbar } from '../components/ConfirmDialog';
 import { DrExame } from '../components/DrExame';
@@ -53,12 +55,12 @@ const docKey = 'doctorToken';
 
 /* Ícones inline (sem dependência extra). */
 const I = {
-  Mail: () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9aa7ad" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></svg>),
-  Lock: () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9aa7ad" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>),
-  Person: () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9aa7ad" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-3.3 3.6-5 8-5s8 1.7 8 5" /></svg>),
-  Badge: () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9aa7ad" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 10h18M8 4v4M16 4v4" /></svg>),
-  Eye: () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9aa7ad" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></svg>),
-  EyeOff: () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9aa7ad" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3l18 18" /><path d="M10.6 5.1A10.9 10.9 0 0 1 12 5c6.5 0 10 7 10 7a18 18 0 0 1-3.2 4M6.6 6.6A18 18 0 0 0 2 12s3.5 7 10 7a10.8 10.8 0 0 0 5.4-1.5" /><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" /></svg>),
+  Mail: () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></svg>),
+  Lock: () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>),
+  Person: () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-3.3 3.6-5 8-5s8 1.7 8 5" /></svg>),
+  Badge: () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 10h18M8 4v4M16 4v4" /></svg>),
+  Eye: () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></svg>),
+  EyeOff: () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3l18 18" /><path d="M10.6 5.1A10.9 10.9 0 0 1 12 5c6.5 0 10 7 10 7a18 18 0 0 1-3.2 4M6.6 6.6A18 18 0 0 0 2 12s3.5 7 10 7a10.8 10.8 0 0 0 5.4-1.5" /><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" /></svg>),
 };
 
 const fieldSx = {
@@ -283,6 +285,10 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const [selected, setSelected] = useState<any | null>(null);
   const [tab, setTab] = useState('exams');
   const [exams, setExams] = useState<any[]>([]);
+  // Itens REALMENTE alterados (endpoint dedicado /items/abnormal) — alimenta o hero do
+  // paciente e o badge da aba Alterados. O count antigo somava TODOS os itens (normais
+  // incluídos) e inflava o número.
+  const [abnormalItems, setAbnormalItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
   const openSeq = useRef(0); // guarda de race: só aplica estado do openPatient mais recente
@@ -404,6 +410,16 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const scopes: string[] = selected?.scopes ?? [];
   const supportedTabs = computeTabs(scopes);
 
+  /** Estratificação por prioridade (mesma régua da aba Alterados: suspect de escala fora). */
+  const abnormalStats = useMemo(() => {
+    const c = { total: 0, importante: 0, moderada: 0, leve: 0 };
+    for (const it of abnormalItems) {
+      if (refScaleSuspect(it)) continue;
+      c[priorityOf(it)]++; c.total++;
+    }
+    return c;
+  }, [abnormalItems]);
+
   // --- Anotações ---
   const addNote = async () => {
     const content = newNote.trim();
@@ -438,7 +454,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     }
     setTab(initial);
     setSelExam(null);
-    setDetailLoading(true); setExams([]); setNotes([]); setQuestions([]);
+    setDetailLoading(true); setExams([]); setAbnormalItems([]); setNotes([]); setQuestions([]);
     const mySeq = ++openSeq.current;
     const mine = () => mySeq === openSeq.current;
     const pid = p.patient.id;
@@ -446,6 +462,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     const wantExams = pScopes.includes('exams');
     await Promise.allSettled([
       ...(wantExams ? [get('/exams').then((d) => { if (d && mine()) setExams(d.items ?? []); })] : []),
+      ...(wantExams ? [get('/items/abnormal').then((d) => { if (d && mine()) setAbnormalItems(d.items ?? []); })] : []),
       get('/questions').then((d) => { if (d && mine()) setQuestions(d.items ?? []); }),
       get('/notes').then((d) => { if (d && mine()) setNotes(d.items ?? []); }),
     ]);
@@ -522,19 +539,26 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           ? <><Typography sx={{ fontSize: 13, fontWeight: 700, color: '#6366f1' }}>💎 Dr. Exame Pro</Typography><Typography variant="caption" sx={{ color: 'text.secondary' }}>SOAP e planos ilimitados.{planInfo.planExpiresAt ? ` Até ${new Date(planInfo.planExpiresAt).toLocaleDateString('pt-BR')}.` : ''}</Typography></>
           : <><Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary' }}>Grátis ({planInfo?.freeUsed ?? 0}/{planInfo?.freeLimit ?? 5} usados)</Typography><Typography variant="caption" sx={{ color: 'text.secondary' }}>5 pré-consultas/SOAP grátis por mês.</Typography></>}
       </Box>
-      <List sx={{ pt: 1, '& .MuiListItemButton-root': { borderRadius: '12px', m: '2px 10px' } }}>
-        <ListItemButton selected={view === 'overview'} onClick={() => { setView('overview'); setSelected(null); setSelExam(null); onNav(); }}><ListItemIcon sx={{ minWidth: 38 }}><SpaceDashboardIcon sx={{ color: 'primary.dark' }} /></ListItemIcon><ListItemText primary="Painel" primaryTypographyProps={{ fontWeight: 600 }} /></ListItemButton>
-        <ListItemButton selected={view === 'patients'} onClick={() => { setView('patients'); setSelected(null); setSelExam(null); onNav(); }}><ListItemIcon sx={{ minWidth: 38 }}><GroupsIcon sx={{ color: 'primary.dark' }} /></ListItemIcon><ListItemText primary="Pacientes" primaryTypographyProps={{ fontWeight: 600 }} /></ListItemButton>
+      <List sx={{
+        pt: 1,
+        '& .MuiListItemButton-root': { borderRadius: '12px', m: '2px 10px' },
+        // Assinatura cobre: item ativo do menu do portal (no app do paciente é teal).
+        '& .MuiListItemButton-root.Mui-selected': { bgcolor: (t: Theme) => (t.palette.mode === 'dark' ? 'rgba(212,165,116,.24)' : 'rgba(212,165,116,.16)') },
+        '& .MuiListItemButton-root.Mui-selected:hover': { bgcolor: 'rgba(212,165,116,.20)' },
+        '& .MuiListItemButton-root.Mui-selected .MuiListItemText-primary': { color: (t: Theme) => copperText(t.palette.mode) },
+      }}>
+        <ListItemButton selected={view === 'overview'} onClick={() => { setView('overview'); setSelected(null); setSelExam(null); onNav(); }}><ListItemIcon sx={{ minWidth: 38 }}><SpaceDashboardIcon sx={{ color: 'secondary.dark' }} /></ListItemIcon><ListItemText primary="Painel" primaryTypographyProps={{ fontWeight: 600 }} /></ListItemButton>
+        <ListItemButton selected={view === 'patients'} onClick={() => { setView('patients'); setSelected(null); setSelExam(null); onNav(); }}><ListItemIcon sx={{ minWidth: 38 }}><GroupsIcon sx={{ color: 'secondary.dark' }} /></ListItemIcon><ListItemText primary="Pacientes" primaryTypographyProps={{ fontWeight: 600 }} /></ListItemButton>
         <ListItemButton selected={view === 'invites'} onClick={() => { setView('invites'); onNav(); }}>
-          <ListItemIcon sx={{ minWidth: 38 }}><Badge color="error" variant="dot" invisible={invites.filter((i) => i.status === 'pending').length === 0}><PersonAddAlt1Icon sx={{ color: 'primary.dark' }} /></Badge></ListItemIcon>
+          <ListItemIcon sx={{ minWidth: 38 }}><Badge color="error" variant="dot" invisible={invites.filter((i) => i.status === 'pending').length === 0}><PersonAddAlt1Icon sx={{ color: 'secondary.dark' }} /></Badge></ListItemIcon>
           <ListItemText primary={`Convites${invites.filter((i) => i.status === 'pending').length ? ` · ${invites.filter((i) => i.status === 'pending').length}` : ''}`} primaryTypographyProps={{ fontWeight: 600 }} />
         </ListItemButton>
         <ListItemButton selected={view === 'questions'} onClick={() => { setView('questions'); loadAllQ(); onNav(); }}>
-          <ListItemIcon sx={{ minWidth: 38 }}><Badge color="error" variant="dot" invisible={unreadQ === 0}><QuestionAnswerIcon sx={{ color: 'primary.dark' }} /></Badge></ListItemIcon>
+          <ListItemIcon sx={{ minWidth: 38 }}><Badge color="error" variant="dot" invisible={unreadQ === 0}><QuestionAnswerIcon sx={{ color: 'secondary.dark' }} /></Badge></ListItemIcon>
           <ListItemText primary={`Perguntas${unreadQ ? ` · ${unreadQ}` : ''}`} primaryTypographyProps={{ fontWeight: 600 }} />
         </ListItemButton>
-        <ListItemButton selected={view === 'profile'} onClick={() => { setView('profile'); onNav(); }}><ListItemIcon sx={{ minWidth: 38 }}><PersonIcon sx={{ color: 'primary.dark' }} /></ListItemIcon><ListItemText primary="Meu perfil" primaryTypographyProps={{ fontWeight: 600 }} /></ListItemButton>
-        <ListItemButton selected={view === 'password'} onClick={() => { setView('password'); onNav(); }}><ListItemIcon sx={{ minWidth: 38 }}><LockIcon sx={{ color: 'primary.dark' }} /></ListItemIcon><ListItemText primary="Trocar senha" primaryTypographyProps={{ fontWeight: 600 }} /></ListItemButton>
+        <ListItemButton selected={view === 'profile'} onClick={() => { setView('profile'); onNav(); }}><ListItemIcon sx={{ minWidth: 38 }}><PersonIcon sx={{ color: 'secondary.dark' }} /></ListItemIcon><ListItemText primary="Meu perfil" primaryTypographyProps={{ fontWeight: 600 }} /></ListItemButton>
+        <ListItemButton selected={view === 'password'} onClick={() => { setView('password'); onNav(); }}><ListItemIcon sx={{ minWidth: 38 }}><LockIcon sx={{ color: 'secondary.dark' }} /></ListItemIcon><ListItemText primary="Trocar senha" primaryTypographyProps={{ fontWeight: 600 }} /></ListItemButton>
         <Divider sx={{ my: 1 }} />
         <ListItemButton onClick={() => { onNav(); onLogout(); }} sx={{ color: 'error.main' }}><ListItemIcon sx={{ minWidth: 38 }}><LogoutIcon sx={{ color: 'error.main' }} /></ListItemIcon><ListItemText primary="Sair" primaryTypographyProps={{ fontWeight: 600 }} /></ListItemButton>
       </List>
@@ -565,8 +589,12 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         )}
         {isDesktop ? (
           <Box sx={{ flex: 1 }}>
-            <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 17, color: 'text.primary' }}>{view === 'overview' ? 'Painel' : view === 'patients' ? (selected ? selected.patient?.fullName : 'Pacientes') : view === 'invites' ? 'Convites' : view === 'questions' ? 'Perguntas' : view === 'profile' ? 'Meu Perfil' : 'Trocar Senha'}</Typography>
-            {planInfo?.isPremium && <Chip size="small" label="💎 Pro" sx={{ bgcolor: 'rgba(99,102,241,.10)', color: '#6366f1', fontWeight: 700, height: 18, fontSize: 10 }} />}
+            <Stack direction="row" spacing={0.75} alignItems="center" sx={{ minWidth: 0 }}>
+              <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 17, color: 'text.primary', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{view === 'overview' ? 'Painel' : view === 'patients' ? (selected ? selected.patient?.fullName : 'Pacientes') : view === 'invites' ? 'Convites' : view === 'questions' ? 'Perguntas' : view === 'profile' ? 'Meu Perfil' : 'Trocar Senha'}</Typography>
+              {planInfo?.isPremium && <Chip size="small" label="💎 Pro" sx={{ bgcolor: 'rgba(99,102,241,.10)', color: '#6366f1', fontWeight: 700, height: 18, fontSize: 10, flexShrink: 0 }} />}
+            </Stack>
+            {/* Assinatura do portal: cobre = modo médico (viewer clínico somente leitura). */}
+            <Chip size="small" label="🩺 Acesso médico · leitura" title="Você acessa como médico — vista somente leitura dos dados compartilhados pelo paciente" sx={{ mt: 0.5, height: 20, fontSize: 10.5, fontWeight: 700, bgcolor: COPPER.wash, color: (t: Theme) => copperText(t.palette.mode) }} />
           </Box>
         ) : (
           <>
@@ -578,6 +606,8 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
             <Box sx={{ flex: 1, minWidth: 0 }}>
               <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 15, color: 'text.primary', lineHeight: 1.2 }}>{doctor?.name || 'Médico'}</Typography>
               <Typography variant="caption" sx={{ color: 'text.secondary' }}>{[doctor?.specialty, doctor?.crm && `CRM ${doctor.crm}`].filter(Boolean).join(' • ') || 'Portal do Médico'}</Typography>
+              {/* Assinatura do portal: cobre = modo médico (viewer clínico somente leitura). */}
+              <Chip size="small" label="🩺 Acesso médico · leitura" title="Você acessa como médico — vista somente leitura dos dados compartilhados pelo paciente" sx={{ mt: 0.5, height: 18, fontSize: 10, fontWeight: 700, bgcolor: COPPER.wash, color: (t: Theme) => copperText(t.palette.mode) }} />
             </Box>
           </>
         )}
@@ -605,7 +635,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 <Button variant="contained" startIcon={<PersonAddAlt1Icon />} onClick={() => { setInvResult(null); setInviteOpen(true); }} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: 'primary.main', boxShadow: 'none', '&:hover': { bgcolor: 'primary.dark' } }}>Convidar</Button>
               </Stack>
               <Stack direction="row" spacing={1.5} sx={{ mb: 2.5 }} useFlexGap flexWrap="wrap">
-                {[['Pendentes', pending.length, '#ea580c'], ['Aceitos', accepted.length, '#16a34a'], ['Expirados', expired.length, '#9aa7ad']].map(([l, n, c]) => (
+                {[['Pendentes', pending.length, '#c2410c'], ['Aceitos', accepted.length, '#047857'], ['Expirados', expired.length, '#94a3b8']].map(([l, n, c]) => (
                   <Box key={l as string} sx={{ flex: 1, minWidth: 100, p: 1.5, borderRadius: '12px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
                     <Typography sx={{ fontWeight: 800, fontSize: 22, color: c as string, lineHeight: 1.1 }}>{n as number}</Typography>
                     <Typography variant="caption" color="text.secondary">{l as string}</Typography>
@@ -622,15 +652,15 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                     return (
                       <Card key={it.id} sx={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}><CardContent>
                         <Stack direction="row" alignItems="center" spacing={1.5}>
-                          <Avatar sx={{ bgcolor: 'rgba(234,88,12,.12)', color: '#ea580c', fontWeight: 800, width: 44, height: 44 }}>{it.patientName?.charAt(0)}</Avatar>
+                          <Avatar sx={{ bgcolor: 'rgba(234,88,12,.12)', color: '#c2410c', fontWeight: 800, width: 44, height: 44 }}>{it.patientName?.charAt(0)}</Avatar>
                           <Box sx={{ flex: 1, minWidth: 0 }}>
                             <Typography sx={{ fontWeight: 800 }}>{it.patientName}</Typography>
                             <Typography variant="caption" color="text.secondary">{[it.phone, it.email, `enviado ${relDate(it.createdAt)}`].filter(Boolean).join(' · ')}</Typography>
                           </Box>
-                          <Chip size="small" label="pendente" sx={{ height: 20, bgcolor: 'rgba(234,88,12,.12)', color: '#ea580c', fontWeight: 700 }} />
+                          <Chip size="small" label="pendente" sx={{ height: 20, bgcolor: 'rgba(234,88,12,.12)', color: '#c2410c', fontWeight: 700 }} />
                         </Stack>
                         <Stack direction="row" spacing={1} sx={{ mt: 1.5 }} useFlexGap flexWrap="wrap">
-                          <Button size="small" variant="contained" startIcon={<WhatsAppIcon />} disabled={!waMsg} onClick={() => waMsg && window.open(waMsg, '_blank')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: '#25D366', color: '#fff', boxShadow: 'none', '&:hover': { bgcolor: '#1da851' } }}>WhatsApp</Button>
+                          <Button size="small" variant="contained" startIcon={<WhatsAppIcon />} disabled={!waMsg} onClick={() => waMsg && window.open(waMsg, '_blank')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: '#25D366', color: '#fff', boxShadow: 'none', '&:hover': { bgcolor: '#047857' } }}>WhatsApp</Button>
                           <Button size="small" variant="outlined" onClick={() => { try { navigator.clipboard?.writeText(linkFor(it.token)); } catch {} snackbar({ message: 'Link copiado!', severity: 'success' }); }} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>Copiar link</Button>
                           <Button size="small" onClick={() => cancelInvite(it.id)} sx={{ borderRadius: '999px', textTransform: 'none', color: 'error.main', fontWeight: 700 }}>Cancelar</Button>
                         </Stack>
@@ -645,12 +675,12 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 <Stack spacing={1}>
                   {accepted.map((it) => (
                     <Card key={it.id} sx={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}><CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.25 }}>
-                      <Avatar sx={{ bgcolor: 'rgba(22,163,74,.12)', color: '#16a34a', fontWeight: 800, width: 44, height: 44 }}>{it.patientName?.charAt(0)}</Avatar>
+                      <Avatar sx={{ bgcolor: 'rgba(22,163,74,.12)', color: '#047857', fontWeight: 800, width: 44, height: 44 }}>{it.patientName?.charAt(0)}</Avatar>
                       <Box sx={{ flex: 1, minWidth: 0 }}>
                         <Typography sx={{ fontWeight: 800 }}>{it.patientName}</Typography>
                         <Typography variant="caption" color="text.secondary">Conta criada em {relDate(it.acceptedAt)} · já nos seus pacientes</Typography>
                       </Box>
-                      <Chip size="small" label="ativo" sx={{ height: 20, bgcolor: 'rgba(22,163,74,.12)', color: '#16a34a', fontWeight: 700 }} />
+                      <Chip size="small" label="ativo" sx={{ height: 20, bgcolor: 'rgba(22,163,74,.12)', color: '#047857', fontWeight: 700 }} />
                     </CardContent></Card>
                   ))}
                 </Stack>
@@ -811,7 +841,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               <Box sx={{ textAlign: 'center', py: 1 }}>
                 <Typography sx={{ fontWeight: 800, mb: 1 }}>Convite pronto pra {invResult.name}! 🎉</Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Toque pra enviar no WhatsApp — o paciente instala o app e você já fica conectado aos exames dele.</Typography>
-                {invResult.wa && <Button href={invResult.wa} target="_blank" fullWidth variant="contained" startIcon={<WhatsAppIcon />} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: '#25D366', mb: 1, color: '#fff', '&:hover': { bgcolor: '#1da851' } }}>Enviar no WhatsApp</Button>}
+                {invResult.wa && <Button href={invResult.wa} target="_blank" fullWidth variant="contained" startIcon={<WhatsAppIcon />} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: '#25D366', mb: 1, color: '#fff', '&:hover': { bgcolor: '#047857' } }}>Enviar no WhatsApp</Button>}
                 <Button fullWidth variant="outlined" onClick={() => { try { navigator.clipboard?.writeText(invResult.link); } catch {} snackbar({ message: 'Link copiado!', severity: 'success' }); }} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>Copiar link</Button>
               </Box>
             ) : (
@@ -890,7 +920,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                   { label: 'Pacientes', value: patients.length, color: '#178f89', onClick: () => setView('patients'), icon: <GroupsIcon /> },
                   { label: 'Com alerta', value: alerts.length, color: '#ef4444', onClick: () => { setPatAlertOnly(true); setView('patients'); }, icon: <WarningAmberIcon /> },
                   { label: 'Perguntas abertas', value: patients.reduce((n, p) => n + (p.openQuestions ?? 0), 0), color: '#b45309', onClick: () => { setView('questions'); loadAllQ(); }, icon: <QuestionAnswerIcon /> },
-                  { label: 'Convites pendentes', value: pendingInv.length, color: '#ea580c', onClick: () => setView('invites'), icon: <PersonAddAlt1Icon /> },
+                  { label: 'Convites pendentes', value: pendingInv.length, color: '#c2410c', onClick: () => setView('invites'), icon: <PersonAddAlt1Icon /> },
                 ] as const).map((tile) => (
                   <Card key={tile.label} onClick={tile.onClick} sx={{ borderRadius: '12px', cursor: 'pointer', transition: 'all .15s', boxShadow: '0 1px 3px rgba(0,0,0,.04)', '&:hover': { boxShadow: '0 4px 16px rgba(0,0,0,.08)', transform: 'translateY(-1px)' } }}>
                     <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
@@ -1068,6 +1098,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
             <PatientSummary
               patient={selected}
               exams={exams}
+              abnormal={abnormalStats}
               questions={questions}
               notes={notes}
               patients={patients}
@@ -1090,6 +1121,8 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                   aria-label="Abas do paciente"
                   sx={{
                     minHeight: 58,
+                    // Assinatura do portal médico: aba ativa em COBRE (no app do paciente é teal).
+                    '& .MuiTabs-indicator': { height: 3, borderRadius: '3px', bgcolor: COPPER.deep },
                     '& .MuiTabs-scroller': { py: 0.5 },
                     '& .MuiTabs-flexContainer': { justifyContent: 'space-between' },
                     '& .MuiTab-root': {
@@ -1099,14 +1132,13 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                       textTransform: 'none', fontWeight: 700,
                       color: 'text.secondary', flexDirection: 'column', gap: 0.5,
                       '& .MuiTab-icon': { fontSize: 26 },
-                      '&.Mui-selected': { color: 'primary.main' },
+                      '&.Mui-selected': { color: (t: Theme) => copperText(t.palette.mode) },
                     },
                   }}
                 >
                   {supportedTabs.map((s) => {
                     const meta = SCOPE_META[s] || { icon: <DescriptionIcon />, label: s };
-                    const abnormalCount = exams.reduce((n: number, e: any) => n + (e.items?.length || 0), 0);
-                    const count = s === 'exams' ? exams.length : s === 'alterados' ? abnormalCount : 0;
+                    const count = s === 'exams' ? exams.length : s === 'alterados' ? abnormalStats.total : 0;
                     // 4 abas: rótulo SEMPRE visível (era icon-only no xs p/ caber 6) — ícone em
                     // cima, descrição embaixo, contador como sup discreto.
                     return (
@@ -1123,7 +1155,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                             {count > 0 && (
                               <Box component="sup" sx={{
                                 fontSize: 11, fontWeight: 800, lineHeight: 1,
-                                color: s === 'alterados' && abnormalCount > 0 ? 'error.main' : 'text.secondary',
+                                color: s === 'alterados' && abnormalStats.total > 0 ? 'error.main' : 'text.secondary',
                                 ml: 0.25,
                               }}>{count}</Box>
                             )}
@@ -1246,7 +1278,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 <Typography component="span" sx={{ fontSize: 20 }}>⏳</Typography>
                 <PayCountdown expiresAt={payData.expiresAt} onExpire={() => { setPayOpen(false); setPayData(null); }} />
               </Box>
-              <Typography variant="caption" sx={{ display: 'block', mt: 1, color: '#16a34a', fontWeight: 700 }}>✅ Detecta pagamento automaticamente</Typography>
+              <Typography variant="caption" sx={{ display: 'block', mt: 1, color: '#047857', fontWeight: 700 }}>✅ Detecta pagamento automaticamente</Typography>
               <Button fullWidth size="small" onClick={() => { if (payData.qrCode) navigator.clipboard.writeText(payData.qrCode); }} sx={{ mt: 1, textTransform: 'none', borderRadius: '999px' }}>📋 Copiar código PIX</Button>
               <Divider sx={{ my: 1.5 }}><Typography variant="caption" sx={{ color: 'text.secondary' }}>ou pague com</Typography></Divider>
               <Button fullWidth size="small" variant="outlined" onClick={() => startCheckout('card')} sx={{ textTransform: 'none', borderRadius: '999px', fontWeight: 700 }}>💳 Cartão de crédito / débito</Button>
@@ -1278,7 +1310,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
             aria-current={it.on ? 'page' : undefined}
             sx={{
               flex: 1, minHeight: 44, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              py: 0.9, cursor: 'pointer', color: it.on ? 'primary.main' : 'text.secondary', transition: 'color .15s',
+              py: 0.9, cursor: 'pointer', color: it.on ? (t: Theme) => copperText(t.palette.mode) : 'text.secondary', transition: 'color .15s',
               bgcolor: 'transparent', border: 'none', outline: 'none', fontFamily: 'inherit',
               '&:focus-visible': { outline: (t) => `2px solid ${t.palette.primary.main}`, outlineOffset: -2 },
               '&:active': { transform: 'scale(.92)' },
@@ -1288,7 +1320,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               <Box sx={{ fontSize: 21, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', '& .MuiSvgIcon-root': { fontSize: 22 } }}>{it.icon}</Box>
             </Badge>
             <Typography sx={{ fontSize: 10, fontWeight: it.on ? 800 : 600, mt: 0.25, fontFamily: 'Poppins, sans-serif' }}>{it.label}</Typography>
-            <Box sx={{ height: 3, width: it.on ? 22 : 0, borderRadius: '12px', bgcolor: 'primary.main', mt: 0.3, transition: 'width .2s' }} />
+            <Box sx={{ height: 3, width: it.on ? 22 : 0, borderRadius: '12px', bgcolor: COPPER.main, mt: 0.3, transition: 'width .2s' }} />
           </Box>
         ))}
       </Box>

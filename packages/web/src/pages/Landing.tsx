@@ -38,7 +38,7 @@ import { Reveal } from '../components/Reveal';
 // ---- Tokens (espelham theme.ts) ----
 const TEAL = '#20b2aa';
 const TEAL_DARK = '#178f89';
-const INK = '#0f3d3a'; // teal-escuro premium p/ textos de destaque / footer
+const INK = '#0f5f5a'; // teal-escuro premium p/ textos de destaque / footer
 const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.janocaminho.drexame&hl=pt_BR'; // app aprovado na Play Store
 const GREEN = '#059669';
 
@@ -367,7 +367,7 @@ export const LandingPage = () => {
         </Box>
         {cat === 'Todos' && (
           <Box sx={{ textAlign: 'center', mt: 4 }}>
-            <Button variant="outlined" onClick={() => setShowAllBenefits((v) => !v)} sx={{ borderRadius: '999px', px: 3.5, py: 1, textTransform: 'none', fontWeight: 700, borderColor: '#bfe7e3', color: TEAL_DARK, '&:hover': { borderColor: TEAL, bgcolor: 'rgba(32,178,170,.06)' } }}>
+            <Button variant="outlined" onClick={() => setShowAllBenefits((v) => !v)} sx={{ borderRadius: '999px', px: 3.5, py: 1, textTransform: 'none', fontWeight: 700, borderColor: '#d8f4f2', color: TEAL_DARK, '&:hover': { borderColor: TEAL, bgcolor: 'rgba(32,178,170,.06)' } }}>
               {showAllBenefits ? 'Ver menos' : `Ver todos os ${benefits.length} recursos`}
             </Button>
           </Box>
@@ -409,7 +409,7 @@ export const LandingPage = () => {
       </Box>
 
       {/* SEÇÃO — Descubra seu risco + plano de ação (NOVO) — momento premium escuro (dark-teal) */}
-      <Box sx={{ position: 'relative', overflow: 'hidden', py: { xs: 8, md: 11 }, background: 'linear-gradient(135deg,#0f3d3a 0%,#137a72 55%,#1f9d95 100%)', color: '#fff' }}>
+      <Box sx={{ position: 'relative', overflow: 'hidden', py: { xs: 8, md: 11 }, background: 'linear-gradient(135deg,#0f5f5a 0%,#137a72 55%,#178f89 100%)', color: '#fff' }}>
         <Box sx={{ position: 'absolute', top: '-15%', right: '-5%', width: 460, height: 460, borderRadius: '50%', background: 'radial-gradient(circle,rgba(234,88,12,.18),transparent 65%)', pointerEvents: 'none' }} />
         <Box sx={{ position: 'absolute', bottom: '-20%', left: '-8%', width: 380, height: 380, borderRadius: '50%', background: 'radial-gradient(circle,rgba(32,178,170,.30),transparent 65%)', pointerEvents: 'none' }} />
         <Container maxWidth="lg" sx={{ position: 'relative' }}>
@@ -418,18 +418,18 @@ export const LandingPage = () => {
             <Box sx={{ display: 'flex', justifyContent: 'center', order: { xs: 2, md: 1 } }}>
               <Box sx={{ width: '100%', maxWidth: 380, borderRadius: '12px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', boxShadow: '0 30px 60px rgba(0,0,0,.28), 0 10px 24px rgba(0,0,0,.18)', p: 2.5, background: 'linear-gradient(135deg, rgba(234,88,12,.06), rgba(234,88,12,.02))' }}>
                 <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
-                  <HealthAndSafetyIcon sx={{ color: '#ea580c' }} />
+                  <HealthAndSafetyIcon sx={{ color: '#c2410c' }} />
                   <Typography sx={{ fontWeight: 800, flex: 1 }}>Leitura de risco</Typography>
-                  <Chip size="small" label="🟠 Moderado" sx={{ fontWeight: 800, height: 22, bgcolor: 'rgba(234,88,12,.16)', color: '#ea580c' }} />
+                  <Chip size="small" label="🟠 Moderado" sx={{ fontWeight: 800, height: 22, bgcolor: 'rgba(234,88,12,.16)', color: '#c2410c' }} />
                 </Stack>
                 <Stack direction="row" spacing={1} useFlexGap sx={{ mb: 1.5, flexWrap: 'wrap' }}>
-                  <Chip size="small" label="↓ Risco caiu desde 11/06" sx={{ fontWeight: 700, height: 22, bgcolor: 'rgba(22,163,74,.14)', color: '#16a34a' }} />
+                  <Chip size="small" label="↓ Risco caiu desde 11/06" sx={{ fontWeight: 700, height: 22, bgcolor: 'rgba(22,163,74,.14)', color: '#047857' }} />
                 </Stack>
-                <Typography sx={{ fontWeight: 800, color: '#ea580c', mb: 1.25 }}>Possível risco de colesterol alto</Typography>
+                <Typography sx={{ fontWeight: 800, color: '#c2410c', mb: 1.25 }}>Possível risco de colesterol alto</Typography>
                 <Stack spacing={0.6} sx={{ mb: 1.5 }}>
                   {[{ n: 'LDL', v: '190 mg/dL' }, { n: 'Triglicerídeos', v: '260 mg/dL' }, { n: 'HDL', v: '35 mg/dL' }].map((f) => (
                     <Box key={f.n} sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.3, borderBottom: '1px dashed', borderColor: 'divider' }}>
-                      <Chip size="small" label={`🟠 ${f.v}`} sx={{ fontWeight: 700, height: 20, bgcolor: 'rgba(234,88,12,.14)', color: '#ea580c' }} />
+                      <Chip size="small" label={`🟠 ${f.v}`} sx={{ fontWeight: 700, height: 20, bgcolor: 'rgba(234,88,12,.14)', color: '#c2410c' }} />
                       <Typography sx={{ fontWeight: 700, fontSize: '0.85rem' }}>{f.n}</Typography>
                     </Box>
                   ))}
@@ -551,7 +551,7 @@ export const LandingPage = () => {
                   <Stack spacing={0.5} sx={{ mt: 0.5, mb: 1.5 }}>
                     {[{ n: 'Creatinina', d: '↑ 22%' }, { n: 'HDL', d: '↓ 15%' }, { n: 'Testosterona', d: '↑ elevada' }].map((x, i) => (
                       <Stack key={i} direction="row" spacing={0.75} alignItems="center">
-                        <Chip size="small" label={i + 1} sx={{ height: 20, width: 20, bgcolor: i === 0 ? '#dc262622' : '#ea580c22', color: i === 0 ? '#dc2626' : '#ea580c', fontWeight: 800, fontSize: 11 }} />
+                        <Chip size="small" label={i + 1} sx={{ height: 20, width: 20, bgcolor: i === 0 ? '#dc262622' : '#c2410c22', color: i === 0 ? '#dc2626' : '#c2410c', fontWeight: 800, fontSize: 11 }} />
                         <Typography sx={{ fontWeight: 600, fontSize: '0.85rem' }}>{x.n}</Typography>
                         <Chip size="small" label={x.d} sx={{ height: 20, fontSize: 11, bgcolor: x.d.includes('↓') ? '#dbeafe' : '#fef3c7', color: x.d.includes('↓') ? '#1e40af' : '#92400e', fontWeight: 700 }} />
                       </Stack>
@@ -759,7 +759,7 @@ export const LandingPage = () => {
                     <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>{f}</Typography>
                   </Stack>
                 ))}
-                <Button fullWidth variant={p.highlight ? 'contained' : 'outlined'} color="primary" onClick={() => navigate('/registrar')} sx={{ mt: 2.5, borderRadius: '999px', textTransform: 'none', fontWeight: 700, ...(p.highlight ? {} : { borderColor: '#bfe7e3', color: TEAL_DARK }) }}>{p.cta}</Button>
+                <Button fullWidth variant={p.highlight ? 'contained' : 'outlined'} color="primary" onClick={() => navigate('/registrar')} sx={{ mt: 2.5, borderRadius: '999px', textTransform: 'none', fontWeight: 700, ...(p.highlight ? {} : { borderColor: '#d8f4f2', color: TEAL_DARK }) }}>{p.cta}</Button>
               </Box>
             ))}
           </Box>
@@ -795,7 +795,7 @@ export const LandingPage = () => {
         <Container maxWidth="lg">
           <Box sx={{
             borderRadius: { xs: 4, md: 6 }, p: { xs: 4, md: 7 }, textAlign: 'center', color: '#fff', position: 'relative', overflow: 'hidden',
-            background: 'linear-gradient(135deg,#20b2aa 0%,#178f89 55%,#0f3d3a 100%)',
+            background: 'linear-gradient(135deg,#20b2aa 0%,#178f89 55%,#0f5f5a 100%)',
             boxShadow: '0 24px 60px rgba(32,178,170,.32)',
           }}>
             <Box sx={{ position: 'absolute', top: '-30%', right: '-10%', width: 360, height: 360, borderRadius: '50%', background: 'rgba(255,255,255,.08)' }} />

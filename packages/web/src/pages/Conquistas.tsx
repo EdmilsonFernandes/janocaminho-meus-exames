@@ -87,7 +87,7 @@ export const ConquistasPage = () => {
       </Stack>
 
       {/* Resumo + resgatar tudo */}
-      <Card sx={{ borderRadius: '12px', mb: 2, background: 'linear-gradient(135deg,#0f3d3a,#1f9d95)', color: '#fff', boxShadow: '0 12px 30px rgba(15,61,58,.18)' }}>
+      <Card sx={{ borderRadius: '12px', mb: 2, background: 'linear-gradient(135deg,#0f5f5a,#178f89)', color: '#fff', boxShadow: '0 12px 30px rgba(15,61,58,.18)' }}>
         <CardContent>
           <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
             <Box>

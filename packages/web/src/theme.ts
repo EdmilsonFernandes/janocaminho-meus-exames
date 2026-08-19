@@ -102,6 +102,12 @@ export const LAYOUT = {
  */
 export const RADIUS = { card: '16px', sectionCard: '14px', button: '12px', pill: '99px', tile: '12px' } as const;
 
+/** Cobre premium — assinatura do portal do médico (estados ativos do modo "viewer clínico";
+ *  no app do paciente o ativo continua teal). Espelha palette.secondary (D4A574/B88A54). */
+export const COPPER = { main: '#d4a574', deep: '#b88a54', textAA: '#8a5f2e', wash: 'rgba(212,165,116,.16)' } as const;
+/** Texto cobre AA nos dois modos: tom 800 no light (≥4,5:1 sobre papel), tom claro no dark. */
+export const copperText = (mode: 'light' | 'dark') => (mode === 'dark' ? COPPER.main : COPPER.textAA);
+
 export type ThemeMode = 'light' | 'dark';
 
 export const buildTheme = (mode: ThemeMode): Theme => {

@@ -336,7 +336,7 @@ export const MedicosPage = () => {
               {!detail.bio && !detail.clinicName && <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>{translate('docs.invited_by_you')}</Typography>}
               {/* Agendar: WhatsApp se o médico preencheu telefone, senão e-mail */}
               {detail.phone ? (
-                <Button component="a" target="_blank" rel="noopener" size="small" href={`https://wa.me/${detail.phone.replace(/\D/g, '')}?text=${encodeURIComponent('Olá, doutor(a)! Gostaria de agendar uma consulta.')}`} sx={{ mt: 1.5, borderRadius: '999px', textTransform: 'none', fontWeight: 700, py: 1.1, bgcolor: '#25D366', color: '#fff', '&:hover': { bgcolor: '#1da851' } }}>💬 Agendar no WhatsApp</Button>
+                <Button component="a" target="_blank" rel="noopener" size="small" href={`https://wa.me/${detail.phone.replace(/\D/g, '')}?text=${encodeURIComponent('Olá, doutor(a)! Gostaria de agendar uma consulta.')}`} sx={{ mt: 1.5, borderRadius: '999px', textTransform: 'none', fontWeight: 700, py: 1.1, bgcolor: '#25D366', color: '#fff', '&:hover': { bgcolor: '#047857' } }}>💬 Agendar no WhatsApp</Button>
               ) : detail.email && !detail.email.includes('@invite.com') ? (
                 <Button size="small" startIcon={<MedicalServicesIcon />} href={`mailto:${detail.email}?subject=Agendamento%20de%20consulta`} sx={{ mt: 1.5, borderRadius: '999px', textTransform: 'none', fontWeight: 700, py: 1.1, bgcolor: '#059669', color: '#fff', '&:hover': { bgcolor: '#047857' } }}>{translate('docs.schedule_email')}</Button>
               ) : null}
@@ -346,7 +346,7 @@ export const MedicosPage = () => {
                 <Typography variant="caption" sx={{ fontWeight: 800, color: '#178f89', display: 'block', mb: 0.5 }}>❓ Perguntar ao médico · 2 créditos</Typography>
                 <TextField multiline minRows={2} size="small" fullWidth placeholder={translate('docs.ask_ph')} value={perg} onChange={(e) => setPerg(e.target.value)} />
                 {pergMsg && <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: pergMsg.startsWith('✓') ? '#059669' : 'error.main', fontWeight: 700, lineHeight: 1.3 }}>{pergMsg}</Typography>}
-                <Button size="small" disabled={enviando || !perg.trim()} onClick={enviarPergunta} startIcon={enviando ? <CircularProgress size={14} color="inherit" /> : undefined} sx={{ mt: 1, borderRadius: '999px', textTransform: 'none', fontWeight: 700, py: 1, px: 2.5, bgcolor: '#178f89', color: '#fff', '&:hover': { bgcolor: '#0f7670' }, boxShadow: 'none' }}>{enviando ? 'Enviando…' : 'Enviar pergunta · 2 💎'}</Button>
+                <Button size="small" disabled={enviando || !perg.trim()} onClick={enviarPergunta} startIcon={enviando ? <CircularProgress size={14} color="inherit" /> : undefined} sx={{ mt: 1, borderRadius: '999px', textTransform: 'none', fontWeight: 700, py: 1, px: 2.5, bgcolor: '#178f89', color: '#fff', '&:hover': { bgcolor: '#0f766e' }, boxShadow: 'none' }}>{enviando ? 'Enviando…' : 'Enviar pergunta · 2 💎'}</Button>
               </Box>
             </DialogContent>
           </>

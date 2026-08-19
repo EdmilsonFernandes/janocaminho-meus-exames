@@ -16,7 +16,7 @@ const Variation = ({ anterior, atual, leitura }: { anterior?: string | null; atu
     const d = b - a;
     if (Math.abs(d) < 1e-9) return <Chip size="small" label="estável" sx={{ bgcolor: 'action.hover', color: 'text.secondary' }} />;
     const up = d > 0;
-    const cor = leitura?.toLowerCase().includes('aten') ? '#e65100' : up ? '#1565c0' : '#2e7d32';
+    const cor = leitura?.toLowerCase().includes('aten') ? '#c2410c' : up ? '#0369a1' : '#047857';
     return <Chip size="small" sx={{ bgcolor: alpha(cor, 0.09), color: cor, fontWeight: 700 }} label={`${up ? '↑' : '↓'} ${d > 0 ? '+' : ''}${Number(d.toFixed(2))}`} />;
   }
   if (leitura) return <Chip size="small" variant="outlined" label={leitura} sx={{ fontSize: 12, maxWidth: 170 }} />;
@@ -32,7 +32,7 @@ export const DestaqueCard = ({ c }: { c: { name: string; anterior?: string | nul
         <Stack direction="row" spacing={0.75} alignItems="baseline" sx={{ mt: 0.5 }} flexWrap="wrap" useFlexGap>
           <Typography variant="body2" color="text.secondary" sx={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{c.anterior || '—'}</Typography>
           <Typography sx={{ fontWeight: 800, color: 'primary.main' }}>→</Typography>
-          <Typography sx={(t) => ({ fontWeight: 800, color: t.palette.mode === 'dark' ? '#5b9bd5' : '#0b5cab', wordBreak: 'break-word', overflowWrap: 'anywhere' })}>{c.atual || '—'}</Typography>
+          <Typography sx={(t) => ({ fontWeight: 800, color: t.palette.mode === 'dark' ? '#0369a1' : '#0369a1', wordBreak: 'break-word', overflowWrap: 'anywhere' })}>{c.atual || '—'}</Typography>
         </Stack>
       </Box>
       <Stack direction="column" alignItems="flex-end" spacing={0.5} sx={{ flexShrink: 0 }}>

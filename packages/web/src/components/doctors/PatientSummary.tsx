@@ -34,6 +34,8 @@ const sexLabel = (s?: string): string | null => (s === 'female' ? 'Feminino' : s
 export interface PatientSummaryProps {
   patient: any;
   exams: any[];
+  /** Alterações REAIS estratificadas (endpoint /items/abnormal — mesma régua da aba Alterados). */
+  abnormal: { total: number; importante: number; moderada: number; leve: number };
   questions: any[];
   notes: any[];
   patients: any[];
@@ -64,7 +66,7 @@ interface Tile {
  * botão "Trocar" (Dialog reusando DoctorPatientSwitcher) e 4 teclas clínicas.
  * Cores via theme.palette.primary + alpha (sem hex cru).
  */
-export const PatientSummary = ({ patient, exams, questions, notes, patients, onSwitchPatient, onAlterados, onOpenExams, onOpenQuestions, onOpenNotes }: PatientSummaryProps) => {
+export const PatientSummary = ({ patient, exams, abnormal, questions, notes, patients, onSwitchPatient, onAlterados, onOpenExams, onOpenQuestions, onOpenNotes }: PatientSummaryProps) => {
   const theme = useTheme();
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const primary = theme.palette.primary.main;
@@ -73,7 +75,6 @@ export const PatientSummary = ({ patient, exams, questions, notes, patients, onS
   const fullName: string = patient?.patient?.fullName ?? 'Paciente';
   const photo: string | undefined = pid ? photoUrlFor(pid, 0) : undefined;
 
-  const abnormalCount = exams.reduce((n, e) => n + (e?.items?.length || 0), 0);
   const pendingQs = questions.filter((q) => q?.status !== 'answered').length;
   const examDates = exams.map((e) => e?.performedAt).filter(Boolean).sort() as string[];
   const lastExamAt: string | undefined = patient?.lastExamAt ?? examDates[examDates.length - 1];
@@ -101,9 +102,14 @@ export const PatientSummary = ({ patient, exams, questions, notes, patients, onS
     {
       key: 'alt',
       label: 'Alterações',
-      icon: <WarningAmberIcon sx={{ fontSize: 18, color: abnormalCount > 0 ? theme.palette.error.main : theme.palette.success.main }} />,
-      value: String(abnormalCount),
-      color: abnormalCount > 0 ? 'error.main' : 'success.main',
+      icon: <WarningAmberIcon sx={{ fontSize: 18, color: abnormal.total > 0 ? theme.palette.error.main : theme.palette.success.main }} />,
+      value: String(abnormal.total),
+      // Severidade guiando a triagem: mostra a pior faixa (régua da aba Alterados).
+      sub: abnormal.total === 0 ? undefined
+        : abnormal.importante > 0 ? `${abnormal.importante} ${abnormal.importante === 1 ? 'importante' : 'importantes'}`
+        : abnormal.moderada > 0 ? `${abnormal.moderada} ${abnormal.moderada === 1 ? 'moderada' : 'moderadas'}`
+        : `${abnormal.leve} ${abnormal.leve === 1 ? 'leve' : 'leves'}`,
+      color: abnormal.total > 0 ? 'error.main' : 'success.main',
       onClick: onAlterados,
     },
     {

@@ -20,7 +20,7 @@ export const EmptyState = ({ emoji, title, desc, cta, onCta, bonus }: { emoji?: 
       </Box>
     )}
     {cta && onCta && (
-      <Button variant="contained" onClick={onCta} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 3, background: 'linear-gradient(180deg,#20b2aa,#009688)', '&:hover': { background: 'linear-gradient(180deg,#1ca39e,#00897b)' } }}>{cta}</Button>
+      <Button variant="contained" onClick={onCta} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 3, background: 'linear-gradient(180deg,#20b2aa,#178f89)', '&:hover': { background: 'linear-gradient(180deg,#178f89,#178f89)' } }}>{cta}</Button>
     )}
     <style>{`@keyframes esFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}`}</style>
   </Box>

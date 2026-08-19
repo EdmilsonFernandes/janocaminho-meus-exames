@@ -68,7 +68,9 @@ export const AppCard = ({ kind = 'default', tone = 'primary', tone2, glow, sx, c
         : { bgcolor: `linear-gradient(135deg, ${alpha(col, 0.10)}, ${alpha(col, 0.02)})`, borderColor: 'divider' };
       break;
     case 'accent':
-      extra = { borderLeft: `4px solid ${col}`, borderColor: 'divider' };
+      // SIDE-TAB BANIDO (Onda B / detector: borda lateral grossa = tell nº1 de "UI de IA"):
+      // o tom vira LAVAGEM de fundo + hairline — a cor continua sinalizando, sem a faixa.
+      extra = { bgcolor: alpha(col, 0.06), border: `1px solid ${alpha(col, 0.25)}` };
       break;
     case 'outline':
       // Card variant="outlined" via prop abaixo.

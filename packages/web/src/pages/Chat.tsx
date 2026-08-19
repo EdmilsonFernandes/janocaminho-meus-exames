@@ -253,7 +253,7 @@ export const ChatPage = () => {
           <Typography sx={{ fontSize: 11, opacity: 0.9 }}>Assistente de saúde com IA{firstName ? ` · ${firstName}` : ''}</Typography>
         </Box>
         <IconButton onClick={() => setHistOpen(true)} aria-label={`Histórico de conversas (${convs.length})`} title="Histórico de conversas" sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,.15)', p: { xs: 1.25, sm: 1 }, '&:hover': { bgcolor: 'rgba(255,255,255,.25)' } }}>
-          <Badge badgeContent={convs.length > 9 ? '9+' : convs.length} color="warning" overlap="circular" invisible={convs.length === 0} sx={{ '& .MuiBadge-badge': { fontSize: 11, fontWeight: 700, height: 18, minWidth: 18, top: 3, right: 3, bgcolor: '#d32f2f' } }}><HistoryIcon sx={{ fontSize: 24 }} /></Badge>
+          <Badge badgeContent={convs.length > 9 ? '9+' : convs.length} color="warning" overlap="circular" invisible={convs.length === 0} sx={{ '& .MuiBadge-badge': { fontSize: 11, fontWeight: 700, height: 18, minWidth: 18, top: 3, right: 3, bgcolor: '#dc2626' } }}><HistoryIcon sx={{ fontSize: 24 }} /></Badge>
         </IconButton>
       </Paper>
 
@@ -334,7 +334,7 @@ export const ChatPage = () => {
         <Button type={busy ? 'button' : 'submit'} variant="contained" disabled={!busy && !input.trim()}
           onClick={busy ? stop : undefined}
           aria-label={busy ? 'Parar resposta' : 'Enviar'}
-          sx={{ minWidth: 0, borderRadius: '999px', px: 1.5, py: 1, bgcolor: TEAL, '&:hover': { bgcolor: '#0f7670' } }}>
+          sx={{ minWidth: 0, borderRadius: '999px', px: 1.5, py: 1, bgcolor: TEAL, '&:hover': { bgcolor: '#0f766e' } }}>
           {busy ? <StopCircleIcon titleAccess="Parar resposta" /> : <SendIcon />}
         </Button>
       </Box>

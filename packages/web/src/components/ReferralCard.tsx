@@ -58,7 +58,7 @@ export const ReferralCard = ({ code }: { code?: string }) => {
         </Box>
 
         {/* Compartilhar */}
-        <Button variant="contained" fullWidth startIcon={<ShareIcon />} onClick={share} sx={{ mb: 2, borderRadius: '12px', textTransform: 'none', fontWeight: 800, background: 'linear-gradient(180deg,#20b2aa,#009688)', '&:hover': { background: 'linear-gradient(180deg,#1ca39e,#00897b)' } }}>
+        <Button variant="contained" fullWidth startIcon={<ShareIcon />} onClick={share} sx={{ mb: 2, borderRadius: '12px', textTransform: 'none', fontWeight: 800, background: 'linear-gradient(180deg,#20b2aa,#178f89)', '&:hover': { background: 'linear-gradient(180deg,#178f89,#178f89)' } }}>
           Compartilhar link
         </Button>
 

@@ -28,7 +28,7 @@ export const ExamMarker = ({ it, suspect }: { it: any; suspect: boolean }) => {
   const col = suspect ? theme.palette.text.secondary : PRIORITY_META[p].color;
 
   return (
-    <Box sx={{ borderLeft: `4px solid ${col}`, borderRadius: RADIUS.tile, bgcolor: alpha(col, 0.05), px: 1.5, py: 1.25 }}>
+    <Box sx={{ borderRadius: RADIUS.tile, bgcolor: alpha(col, 0.08), border: `1px solid ${alpha(col, 0.25)}`, px: 1.5, py: 1.25 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
         <Box sx={{ flex: '1 1 55%', minWidth: 0 }}>
           <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5, flexWrap: 'wrap' }}>

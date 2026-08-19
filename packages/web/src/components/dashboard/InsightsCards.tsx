@@ -104,7 +104,7 @@ export const InsightsCards = () => {
             </Stack>
             <Stack spacing={0.75}>
               {(showAllPred ? data.predictions : data.predictions.slice(0, 3)).map((p: any, i: number) => {
-                const color = p.risk === 'alert' ? '#dc2626' : '#ea580c';
+                const color = p.risk === 'alert' ? '#dc2626' : '#c2410c';
                 return (
                   <Box key={i} sx={{ p: 1, borderRadius: '12px', bgcolor: color + '0d', border: `1px solid ${color}22` }}>
                     <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mb: 0.25 }}>

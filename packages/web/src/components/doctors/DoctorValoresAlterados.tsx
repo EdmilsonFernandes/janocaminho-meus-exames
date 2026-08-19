@@ -101,8 +101,9 @@ export const DoctorValoresAlterados = ({ patientId, token }: { patientId: string
               const mp = maxPriority(g.items);
               const meta = PRIORITY_META[mp];
               const stale = isStaleExam(g.performedAt);
+              // Side-tab → lavagem no summary (Onda B): cor segue no emoji/chip/dot.
               return (
-                <Accordion key={g.examId} disableGutters elevation={0} sx={{ border: `1px solid ${alpha(meta.color, 0.3)}`, borderLeft: `4px solid ${meta.color}`, borderRadius: RADIUS.sectionCard, '&:before': { display: 'none' }, '& .MuiAccordionSummary-root': { borderTopLeftRadius: RADIUS.sectionCard, borderTopRightRadius: RADIUS.sectionCard }, '& .MuiAccordionDetails-root': { borderBottomLeftRadius: RADIUS.sectionCard, borderBottomRightRadius: RADIUS.sectionCard } }}>
+                <Accordion key={g.examId} disableGutters elevation={0} sx={{ border: `1px solid ${alpha(meta.color, 0.3)}`, borderRadius: RADIUS.sectionCard, '&:before': { display: 'none' }, '& .MuiAccordionSummary-root': { borderTopLeftRadius: RADIUS.sectionCard, borderTopRightRadius: RADIUS.sectionCard, bgcolor: alpha(meta.color, 0.05) }, '& .MuiAccordionDetails-root': { borderBottomLeftRadius: RADIUS.sectionCard, borderBottomRightRadius: RADIUS.sectionCard } }}>
                   <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: alpha(meta.color, 0.04) }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 1 }}>
                       <Box component="span" sx={{ fontSize: 18, lineHeight: 1 }}>{meta.emoji}</Box>

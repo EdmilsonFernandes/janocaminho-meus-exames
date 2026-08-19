@@ -53,11 +53,10 @@ export const ExamCard = ({ exam, onOpen, onOpenPdf }: { exam: any; onOpen: (id: 
       sx={(t) => ({
         cursor: 'pointer',
         borderRadius: RADIUS.card,
-        borderLeft: `4px solid ${t.palette.primary.main}`,
         overflow: 'hidden',
         maxWidth: '100%',
         transition: 'box-shadow 180ms ease, border-color 180ms ease',
-        '&:hover': { boxShadow: t.shadows[4], borderColor: t.palette.primary.light },
+        '&:hover': { boxShadow: t.shadows[4], borderColor: alpha(t.palette.primary.main, 0.45) },
         '&:focus-visible': { outline: `2px solid ${t.palette.primary.dark}`, outlineOffset: 2 },
       })}
     >

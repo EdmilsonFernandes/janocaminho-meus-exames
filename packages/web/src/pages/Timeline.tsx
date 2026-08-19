@@ -90,14 +90,15 @@ export const TimelinePage = () => {
   const renderEvent = (e: Event, i: number) => {
     const isImaging = e.kind === 'IMAGING';
     const hasIssues = e.type === 'exam' && e.abnormalCount > 0;
-    const dotColor = e.type === 'vacina' ? '#8b5cf6' : e.type === 'medicao' ? '#f59e0b' : isImaging ? '#0ea5e9' : hasIssues ? '#ef4444' : '#059669';
+    const dotColor = e.type === 'vacina' ? '#4f46e5' : e.type === 'medicao' ? '#f59e0b' : isImaging ? '#0ea5e9' : hasIssues ? '#ef4444' : '#059669';
     const clickable = e.type === 'exam'; // medições/vacinas: informativas (popup é de exame)
     return (
       <Box key={i} sx={{ position: 'relative' }}>
         <Box sx={{ position: 'absolute', left: -3.5, top: 14, width: 22, height: 22, borderRadius: '50%', bgcolor: dotColor, border: '3px solid #fff', boxShadow: '0 2px 6px rgba(0,0,0,.2)', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {e.type === 'vacina' ? <VaccinesIcon sx={{ color: '#fff', fontSize: 12 }} /> : e.type === 'medicao' ? <MonitorHeartIcon sx={{ color: '#fff', fontSize: 12 }} /> : isImaging ? <LocalHospitalIcon sx={{ color: '#fff', fontSize: 12 }} /> : hasIssues ? <TrendingDownIcon sx={{ color: '#fff', fontSize: 12 }} /> : <CheckCircleIcon sx={{ color: '#fff', fontSize: 12 }} />}
         </Box>
-        <Card onClick={clickable ? () => openExam(e) : undefined} sx={{ borderRadius: '12px', ml: 1.5, borderLeft: `5px solid ${dotColor}`, transition: 'transform .15s', cursor: clickable ? 'pointer' : 'default', '&:hover': clickable ? { transform: 'translateX(2px)' } : undefined }}>
+        {/* Side-tab → lavagem tonal (Onda B): o DOT que já existe na linha carrega a cor. */}
+        <Card onClick={clickable ? () => openExam(e) : undefined} sx={{ borderRadius: '12px', ml: 1.5, bgcolor: `${dotColor}0D`, border: `1px solid ${dotColor}33`, transition: 'transform .15s', cursor: clickable ? 'pointer' : 'default', '&:hover': clickable ? { transform: 'translateX(2px)' } : undefined }}>
           <CardContent sx={{ pb: '12px !important' }}>
             <Stack direction="row" justifyContent="space-between" alignItems="flex-start" flexWrap="wrap" gap={1}>
               <Box>
@@ -108,12 +109,12 @@ export const TimelinePage = () => {
               </Box>
               <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap">
                 {e.type === 'vacina'
-                  ? <Chip size="small" sx={{ bgcolor: '#8b5cf615', color: '#8b5cf6' }} icon={<VaccinesIcon sx={{ fontSize: 14 }} />} label="Vacina" />
+                  ? <Chip size="small" sx={{ bgcolor: '#4f46e515', color: '#4f46e5' }} icon={<VaccinesIcon sx={{ fontSize: 14 }} />} label="Vacina" />
                   : e.type === 'medicao'
                     ? <Chip size="small" sx={{ bgcolor: '#f59e0b15', color: '#b45309' }} icon={<MonitorHeartIcon sx={{ fontSize: 14 }} />} label="Medição" />
                     : isImaging
                       ? <Chip size="small" sx={{ bgcolor: '#0ea5e915', color: '#0ea5e9' }} icon={<ScienceIcon sx={{ fontSize: 14 }} />} label="Imagem" />
-                      : <Chip size="small" sx={{ bgcolor: '#2a93b815', color: '#2a93b8' }} label="Laboratorial" />}
+                      : <Chip size="small" sx={{ bgcolor: '#0369a115', color: '#0369a1' }} label="Laboratorial" />}
               </Stack>
             </Stack>
             {e.type === 'exam' && (
@@ -173,7 +174,7 @@ export const TimelinePage = () => {
                   </Card>
                 ) : (
                   <Box sx={{ position: 'relative', pl: 3.5 }}>
-                    <Box sx={{ position: 'absolute', left: 15, top: 8, bottom: 8, width: 3, background: 'linear-gradient(#2a93b8,#5FD35A)', borderRadius: '12px' }} />
+                    <Box sx={{ position: 'absolute', left: 15, top: 8, bottom: 8, width: 3, background: 'linear-gradient(#0369a1,#5FD35A)', borderRadius: '12px' }} />
                     <Stack spacing={2}>{g.items.map(renderEvent)}</Stack>
                   </Box>
                 )}

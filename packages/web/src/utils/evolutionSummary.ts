@@ -18,7 +18,7 @@ export type Verdict = TrendVerdict;
 export interface VerdictMeta { key: Verdict; emoji: string; label: string; color: string }
 
 export const VERDICT_META: Record<Verdict, VerdictMeta> = {
-  melhorou: { key: 'melhorou', emoji: '🟢', label: 'Melhoraram', color: '#16a34a' },
+  melhorou: { key: 'melhorou', emoji: '🟢', label: 'Melhoraram', color: '#047857' },
   piorou:   { key: 'piorou',   emoji: '🔴', label: 'Pioraram',   color: '#dc2626' },
   estavel:  { key: 'estavel',  emoji: '✅', label: 'Estáveis',   color: '#64748b' },
 };

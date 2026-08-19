@@ -44,7 +44,7 @@ export const ReviewPrompt = ({ trigger }: { trigger: boolean }) => {
         <Typography color="text.secondary">Sua avaliação ajuda mais pessoas a descobrirem o app. Leva 10 segundos! 🙏</Typography>
       </DialogContent>
       <DialogActions sx={{ justifyContent: 'center', pb: 3, flexDirection: 'column', gap: 1 }}>
-        <Button variant="contained" onClick={rate} startIcon={<StarIcon />} sx={{ borderRadius: '999px', px: 4, textTransform: 'none', fontWeight: 800, bgcolor: '#f59e0b', '&:hover': { bgcolor: '#d97706' } }}>Avaliar no Google Play</Button>
+        <Button variant="contained" onClick={rate} startIcon={<StarIcon />} sx={{ borderRadius: '999px', px: 4, textTransform: 'none', fontWeight: 800, bgcolor: '#f59e0b', '&:hover': { bgcolor: '#b45309' } }}>Avaliar no Google Play</Button>
         <Button size="small" onClick={() => setOpen(false)} sx={{ textTransform: 'none', color: 'text.secondary' }}>Talvez depois</Button>
       </DialogActions>
     </Dialog>

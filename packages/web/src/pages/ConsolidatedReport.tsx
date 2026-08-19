@@ -54,7 +54,7 @@ const ReportPreviewCard = ({
 }) => {
   const items = [
     { icon: <ReportProblemIcon />, title: 'Prioridades clínicas', desc: 'Valores alterados e pontos que merecem atenção.', accent: '#ef4444' },
-    { icon: <InsightsIcon />, title: 'Evolução dos exames', desc: 'Comparação entre resultados anteriores e atuais.', accent: '#0b5cab' },
+    { icon: <InsightsIcon />, title: 'Evolução dos exames', desc: 'Comparação entre resultados anteriores e atuais.', accent: '#0369a1' },
     { icon: <LiveHelpIcon />, title: 'Perguntas para o médico', desc: 'Uma lista objetiva para levar na consulta.', accent: '#6366f1' },
     { icon: <CheckCircleIcon />, title: 'Pontos positivos', desc: 'O que está estável ou dentro da referência.', accent: '#059669' },
   ];
@@ -453,7 +453,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
           )}
 
           {s.comparativo?.length ? (
-            <ReportSectionCard icon={<InsightsIcon />} title={translate('report.highlights')} accent="#0b5cab" count={s.comparativo.length}>
+            <ReportSectionCard icon={<InsightsIcon />} title={translate('report.highlights')} accent="#0369a1" count={s.comparativo.length}>
               <Grid container spacing={1.5}>
                 {s.comparativo.map((c, i) => <Grid key={i} size={{ xs: 12, md: 6 }}><DestaqueCard c={c} /></Grid>)}
               </Grid>
@@ -495,7 +495,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
           ) : null}
 
           {s.sugestoesNutricao?.length ? (
-            <ReportSectionCard icon={<RestaurantIcon />} title={translate('report.nutrition')} accent="#16a34a" count={s.sugestoesNutricao.length} collapsible defaultExpanded={false}>
+            <ReportSectionCard icon={<RestaurantIcon />} title={translate('report.nutrition')} accent="#047857" count={s.sugestoesNutricao.length} collapsible defaultExpanded={false}>
               <Stack spacing={0.5}>
                 {s.sugestoesNutricao.map((b, i) => <Typography key={i} variant="body2" sx={{ py: 0.25, wordBreak: 'break-word' }}>🥗 {txt(b)}</Typography>)}
               </Stack>
@@ -503,7 +503,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
           ) : null}
 
           {s.metasSaude?.length ? (
-            <ReportSectionCard icon={<TrackChangesIcon />} title={translate('report.goals')} accent="#0288d1" count={s.metasSaude.length} collapsible defaultExpanded={false}>
+            <ReportSectionCard icon={<TrackChangesIcon />} title={translate('report.goals')} accent="#0369a1" count={s.metasSaude.length} collapsible defaultExpanded={false}>
               <Grid container spacing={1.5}>
                 {s.metasSaude.map((m, i) => <Grid key={i} size={{ xs: 12, md: 6 }}><MetaCard m={m} /></Grid>)}
               </Grid>
@@ -591,7 +591,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
 
           {s.leituraFinal && (
             <Box sx={{ p: 2.5, borderRadius: '16px', background: 'linear-gradient(135deg, rgba(11,92,171,.10), rgba(11,92,171,.04))', border: '1px solid', borderColor: 'divider' }}>
-              <Typography sx={(t) => ({ fontWeight: 800, color: t.palette.mode === 'dark' ? '#5b9bd5' : '#0b5cab', mb: 0.5, fontFamily: '"Poppins",sans-serif' })}>📌 Leitura final</Typography>
+              <Typography sx={(t) => ({ fontWeight: 800, color: t.palette.mode === 'dark' ? '#0369a1' : '#0369a1', mb: 0.5, fontFamily: '"Poppins",sans-serif' })}>📌 Leitura final</Typography>
               <Typography sx={{ lineHeight: 1.7, wordBreak: 'break-word' }}>{s.leituraFinal}</Typography>
             </Box>
           )}

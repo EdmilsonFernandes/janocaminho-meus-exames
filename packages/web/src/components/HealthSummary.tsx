@@ -46,7 +46,7 @@ const Variation = ({ anterior, atual, leitura }: { anterior?: string | null; atu
     const eq = Math.abs(d) < 1e-9;
     if (eq) return <Chip size="small" label="estável" sx={{ bgcolor: 'action.hover', color: 'text.secondary' }} />;
     const up = d > 0;
-    const cor = leitura?.toLowerCase().includes('aten') ? '#e65100' : up ? '#178f89' : '#2e7d32';
+    const cor = leitura?.toLowerCase().includes('aten') ? '#c2410c' : up ? '#178f89' : '#047857';
     return <Chip size="small" sx={{ bgcolor: `${cor}15`, color: cor, fontWeight: 700 }} label={`${up ? '↑' : '↓'} ${d > 0 ? '+' : ''}${Number(d.toFixed(2))}`} />;
   }
   if (leitura) return <Chip size="small" variant="outlined" label={leitura} sx={{ fontSize: 12 }} />;
@@ -60,7 +60,7 @@ const IdealBadge = ({ name, atual }: { name: string; atual?: string | null }) =>
   const acima = isAboveIdeal(num(atual), ideal);
   return (
     <Chip size="small" variant="outlined"
-      sx={{ fontSize: 10, height: 18, mt: 0.3, borderColor: acima ? '#e6510055' : 'divider', color: acima ? '#e65100' : 'text.secondary' }}
+      sx={{ fontSize: 10, height: 18, mt: 0.3, borderColor: acima ? '#c2410c55' : 'divider', color: acima ? '#c2410c' : 'text.secondary' }}
       label={`🎯 ${ideal.label}`} />
   );
 };
@@ -144,7 +144,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
     const atencao = (structured?.pontosAtencao ?? []).map((p) => `<li><b>${esc(p.titulo)}</b> — ${esc(p.detalhe)}</li>`).join('');
     const boas = (structured?.coisasBoas ?? []).map((b) => `<li>${esc(b)}</li>`).join('');
     const perg = (structured?.perguntasParaOMedico ?? []).map((q) => `<li>${esc(q)}</li>`).join('');
-    const __docHtml = (`<!doctype html><html><head><meta charset="utf-8"><title>Resumo de Saúde</title><style>body{font-family:Segoe UI,Arial,sans-serif;padding:34px;line-height:1.6;color:#15233b;max-width:760px;margin:auto}h1{font-size:22px}h2{font-size:16px;margin-top:22px;color:#0f6f6a}table{border-collapse:collapse;width:100%;font-size:13px}td,th{border:1px solid #ddd;padding:6px 8px}th{background:#eef3fb}</style></head><body><h1>Resumo de Saúde</h1>${structured?.resumoGeral ? `<p>${esc(structured.resumoGeral)}</p>` : ''}${rows ? `<h2>Comparativo</h2><table><tr><th>Exame</th><th>Anterior</th><th>Atual</th><th>Variação</th><th>O que significa</th></tr>${rows}</table>` : ''}${atencao ? `<h2>Pontos de atenção</h2><ul>${atencao}</ul>` : ''}${boas ? `<h2>Coisas boas</h2><ul>${boas}</ul>` : ''}${structured?.leituraFinal ? `<h2>Leitura final</h2><p>${esc(structured.leituraFinal)}</p>` : ''}${perg ? `<h2>Perguntas para o médico</h2><ol>${perg}</ol>` : ''}<p style="color:#888;font-size:12px">${esc(structured?.disclaimer || 'Análise educativa. Não substitui avaliação médica.')}</p></body></html>`);
+    const __docHtml = (`<!doctype html><html><head><meta charset="utf-8"><title>Resumo de Saúde</title><style>body{font-family:Segoe UI,Arial,sans-serif;padding:34px;line-height:1.6;color:#15233b;max-width:760px;margin:auto}h1{font-size:22px}h2{font-size:16px;margin-top:22px;color:#0f766e}table{border-collapse:collapse;width:100%;font-size:13px}td,th{border:1px solid #ddd;padding:6px 8px}th{background:#eef3fb}</style></head><body><h1>Resumo de Saúde</h1>${structured?.resumoGeral ? `<p>${esc(structured.resumoGeral)}</p>` : ''}${rows ? `<h2>Comparativo</h2><table><tr><th>Exame</th><th>Anterior</th><th>Atual</th><th>Variação</th><th>O que significa</th></tr>${rows}</table>` : ''}${atencao ? `<h2>Pontos de atenção</h2><ul>${atencao}</ul>` : ''}${boas ? `<h2>Coisas boas</h2><ul>${boas}</ul>` : ''}${structured?.leituraFinal ? `<h2>Leitura final</h2><p>${esc(structured.leituraFinal)}</p>` : ''}${perg ? `<h2>Perguntas para o médico</h2><ol>${perg}</ol>` : ''}<p style="color:#888;font-size:12px">${esc(structured?.disclaimer || 'Análise educativa. Não substitui avaliação médica.')}</p></body></html>`);
     void printDocument('Resumo de Saúde', __docHtml);
   };
 
@@ -163,7 +163,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
   const AccordionSection = ({ icon, title, color, count, defaultExpanded = false, children }: any) => (
     <Accordion defaultExpanded={defaultExpanded} disableGutters elevation={0} sx={{
       mt: 1.5, borderRadius: '12px !important', overflow: 'hidden',
-      background: `${color}08`, border: `1px solid ${color}22`, borderLeft: `4px solid ${color}`, '&:before': { display: 'none' },
+      background: `${color}0D`, border: `1px solid ${color}33`, '&:before': { display: 'none' },
     }}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '48px !important', '& .MuiAccordionSummary-content': { my: 0.75 } }}>
         <Typography sx={{ fontWeight: 800, color, display: 'flex', alignItems: 'center', gap: 1, fontSize: '1.02rem' }}>
@@ -223,7 +223,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
                     <Stack direction="row" spacing={0.75} alignItems="baseline" sx={{ mt: 0.5 }} flexWrap="wrap">
                       <Typography variant="body2" color="text.secondary" sx={{ wordBreak: 'break-word' }}>{c.anterior || '—'}</Typography>
                       <Typography variant="body2" color="primary.main" sx={{ fontWeight: 800 }}>→</Typography>
-                      <Typography sx={{ fontWeight: 800, wordBreak: 'break-word', color: (t) => t.palette.mode === 'dark' ? '#5fc9c3' : '#0f6f6a' }}>{c.atual || '—'}</Typography>
+                      <Typography sx={{ fontWeight: 800, wordBreak: 'break-word', color: (t) => t.palette.mode === 'dark' ? '#5fc9c3' : '#0f766e' }}>{c.atual || '—'}</Typography>
                       <IdealBadge name={c.name} atual={c.atual} />
                     </Stack>
                   </Box>
@@ -265,7 +265,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
 
         {/* Pontos de atenção */}
         {structured.pontosAtencao && structured.pontosAtencao.length > 0 && (
-          <AccordionSection icon="🚩" title="Pontos que merecem atenção" color="#e65100" count={structured.pontosAtencao.length} defaultExpanded>
+          <AccordionSection icon="🚩" title="Pontos que merecem atenção" color="#c2410c" count={structured.pontosAtencao.length} defaultExpanded>
             {structured.pontosAtencao.map((p, i) => (
               <Box key={i} sx={{ mb: 1.5, '&:last-child': { mb: 0 } }}>
                 <Typography sx={{ fontWeight: 700, color: 'text.primary' }}>{i + 1}. {p.titulo}</Typography>
@@ -277,9 +277,9 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
 
         {/* Coisas boas */}
         {structured.coisasBoas && structured.coisasBoas.length > 0 && (
-          <AccordionSection icon="✅" title="Coisas boas" color="#2e7d32">
+          <AccordionSection icon="✅" title="Coisas boas" color="#047857">
             <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-              {structured.coisasBoas.map((b, i) => <Chip key={i} sx={{ bgcolor: '#2e7d3215', color: '#2e7d32', fontWeight: 600 }} label={b} />)}
+              {structured.coisasBoas.map((b, i) => <Chip key={i} sx={{ bgcolor: '#04785715', color: '#047857', fontWeight: 600 }} label={b} />)}
             </Stack>
           </AccordionSection>
         )}
@@ -287,7 +287,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
         {/* Leitura final */}
         {structured.leituraFinal && (
           <Box sx={{ mt: 2, p: 2.5, borderRadius: '12px', background: 'linear-gradient(135deg, rgba(32,178,170,0.10), rgba(32,178,170,0.04))', border: '1px solid', borderColor: 'divider' }}>
-            <Typography sx={{ fontWeight: 800, color: (t) => t.palette.mode === 'dark' ? '#5fc9c3' : '#0f6f6a', mb: 0.5, fontSize: '1.05rem' }}>📌 Leitura final</Typography>
+            <Typography sx={{ fontWeight: 800, color: (t) => t.palette.mode === 'dark' ? '#5fc9c3' : '#0f766e', mb: 0.5, fontSize: '1.05rem' }}>📌 Leitura final</Typography>
             <Typography sx={{ lineHeight: 1.7 }}>{structured.leituraFinal}</Typography>
           </Box>
         )}
@@ -315,7 +315,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
 
         {/* 🥗 Sugestões de nutrição */}
         {structured.sugestoesNutricao && structured.sugestoesNutricao.length > 0 && (
-          <AccordionSection icon="🥗" title="Sugestões de nutrição" color="#2e7d32">
+          <AccordionSection icon="🥗" title="Sugestões de nutrição" color="#047857">
             {structured.sugestoesNutricao.map((s, i) => (
               <Typography key={i} sx={{ py: 0.3 }}>• {s}</Typography>
             ))}
@@ -331,13 +331,13 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
 
         {/* 🎯 Metas de saúde */}
         {structured.metasSaude && structured.metasSaude.length > 0 && (
-          <AccordionSection icon="🎯" title="Metas de saúde" color="#0288d1" count={structured.metasSaude.length}>
+          <AccordionSection icon="🎯" title="Metas de saúde" color="#0369a1" count={structured.metasSaude.length}>
             <Stack spacing={1}>
               {structured.metasSaude.map((m, i) => (
                 <Box key={i} sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'rgba(2,136,209,0.08)', border: '1px solid', borderColor: 'divider' }}>
                   <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1} sx={{ mb: 0.5 }}>
                     <Typography sx={{ fontWeight: 700, color: (t) => t.palette.mode === 'dark' ? '#4d9be0' : '#01579b' }}>🎯 {m.analito}</Typography>
-                    {m.prazo && <Chip size="small" label={m.prazo} sx={{ bgcolor: '#0288d115', color: '#0288d1', fontWeight: 700 }} />}
+                    {m.prazo && <Chip size="small" label={m.prazo} sx={{ bgcolor: '#0369a115', color: '#0369a1', fontWeight: 700 }} />}
                   </Stack>
                   <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.5, wordBreak: 'break-word' }}>{m.meta}</Typography>
                 </Box>
@@ -348,13 +348,13 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
 
         {/* 📈 Evolução desde os exames anteriores (direção + Δ% do DB) */}
         {structured.evolucao && structured.evolucao.length > 0 && (
-          <AccordionSection icon="📈" title="Evolução desde os exames anteriores" color="#2e7d32" count={structured.evolucao.length}>
+          <AccordionSection icon="📈" title="Evolução desde os exames anteriores" color="#047857" count={structured.evolucao.length}>
             <Stack spacing={0.5}>
               {structured.evolucao.map((e, i) => {
                 const dir = (e.direcao || '').toLowerCase();
                 const up = dir === 'piorou' || dir === 'aumentando';
                 const down = dir === 'melhorou' || dir === 'reduzindo';
-                const cor = up ? '#e65100' : down ? '#2e7d32' : '#1976d2';
+                const cor = up ? '#c2410c' : down ? '#047857' : '#1976d2';
                 const seta = up ? '↑' : down ? '↓' : '→';
                 const label = { melhorou: 'melhorou', piorou: 'piorou', estavel: 'estável', primeiro: '1ª medição', aumentando: 'subindo', reduzindo: 'caindo' }[dir] || e.direcao;
                 return (
@@ -370,7 +370,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
 
         {/* ✅ Alterações antigas já normalizadas (eram anormais, voltaram ao normal — NÃO é condição atual) */}
         {structured.antigosNormalizados && structured.antigosNormalizados.length > 0 && (
-          <AccordionSection icon="✅" title="Alterações antigas já normalizadas" color="#2e7d32" count={structured.antigosNormalizados.length}>
+          <AccordionSection icon="✅" title="Alterações antigas já normalizadas" color="#047857" count={structured.antigosNormalizados.length}>
             <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>Eram alteradas antes e voltaram ao normal — não representam condição atual.</Typography>
             <Stack spacing={0.5}>
               {structured.antigosNormalizados.map((a, i) => (

@@ -31,14 +31,14 @@ interface Summary {
 }
 
 const PRIO_COLOR: Record<Priority, string> = {
-  normal: '#16a34a', leve: PRIORITY_META.leve.color, moderada: PRIORITY_META.moderada.color, importante: PRIORITY_META.importante.color,
+  normal: '#047857', leve: PRIORITY_META.leve.color, moderada: PRIORITY_META.moderada.color, importante: PRIORITY_META.importante.color,
 };
 const TREND_META: Record<Trend, { label: string; color: string }> = {
-  melhorou: { label: 'Melhorou', color: '#16a34a' },
+  melhorou: { label: 'Melhorou', color: '#047857' },
   piorou: { label: 'Atenção — piorou', color: '#dc2626' },
   estavel: { label: 'Estável', color: '#64748b' },
   primeiro: { label: '1º exame', color: '#64748b' },
-  aumentando: { label: 'Em aumento', color: '#d97706' },
+  aumentando: { label: 'Em aumento', color: '#b45309' },
   reduzindo: { label: 'Em queda', color: '#0284c7' },
 };
 
@@ -138,7 +138,7 @@ export const CurrentStateCard = () => {
         )}
         {/* Aviso de exames desatualizados — não reflete realidade atual */}
         {s.staleWarning && (
-          <Typography variant="caption" sx={{ display: 'block', color: '#9a6b00', mt: 1, mb: 1.25, fontSize: 11, lineHeight: 1.4 }}>⏳ {s.staleWarning}</Typography>
+          <Typography variant="caption" sx={{ display: 'block', color: '#92400e', mt: 1, mb: 1.25, fontSize: 11, lineHeight: 1.4 }}>⏳ {s.staleWarning}</Typography>
         )}
 
         {/* Principais marcações de atenção (com tendência) */}
@@ -166,7 +166,7 @@ export const CurrentStateCard = () => {
 
         {/* Marcador desatualizado — nudge pra refazer */}
         {s.stale.length > 0 && (
-          <Typography variant="caption" sx={{ display: 'block', color: '#9a6b00', mb: 1.25 }}>⏳ {s.stale.length} marcador(es) não mede(m) há mais de 1 ano — considere refazer com seu médico.</Typography>
+          <Typography variant="caption" sx={{ display: 'block', color: '#92400e', mb: 1.25 }}>⏳ {s.stale.length} marcador(es) não mede(m) há mais de 1 ano — considere refazer com seu médico.</Typography>
         )}
 
         <Button fullWidth variant="outlined" size="small" endIcon={<ChevronRightIcon />} onClick={() => navigate('/alterados')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, py: 1.1 }}>Ver valores alterados</Button>
