@@ -76,7 +76,7 @@
       /* Mobile: folga no rodapé do conteúdo pra o FAB do Dr. Exame não cobrir paginação/rodapé. */
       @media (max-width: 599px) { #main-content { padding-bottom: 84px !important; } }
     </style>
-    <script type="module" crossorigin src="./assets/index-UYRZvgal.js"></script>
+    <script type="module" crossorigin src="./assets/index-B-nGPw0h.js"></script>
     <link rel="modulepreload" crossorigin href="./assets/rolldown-runtime-QTnfLwEv.js">
     <link rel="modulepreload" crossorigin href="./assets/vendor-ui-B7279Lny.js">
     <link rel="modulepreload" crossorigin href="./assets/vendor-admin-APBOZcRG.js">
@@ -101,7 +101,7 @@
           if ('caches' in window) { caches.keys().then(function(keys) { keys.forEach(function(k) { caches.delete(k); }); }); }
         });
       }
-    </script>
+    </script>
     <!-- VLibras: tradução automática de texto para Libras (acessibilidade — pacientes surdos) -->
     <style>
       /* VLibras no canto INFERIOR ESQUERDO, MENOR e ACIMA do rodapé mobile (zona livre — os FABs
@@ -133,7 +133,14 @@
       /* Popup/conselho do VLibras ACIMA de tudo (FAB do chat z1200, AppBar/nav z1100): sem isso,
          o consentimento "aceitar sim/não" (1ª vez) fica coberto pelos fixos do app. */
       [class^="vpw-"], [class^="vw-"], [class^="vp-"] { z-index: 2147483647 !important; }
+      /* OPT-OUT (2026-08-19): quem NÃO usa Libras ganha a tela de volta — toggle em Perfil →
+         Acessibilidade (default LIGADO: acessibilidade nunca é opt-in p/ quem precisa). */
+      body.libras-off [vw], body.libras-off [vw].enabled, body.libras-off div[vw-access-button] { display: none !important; }
     </style>
+    <script>
+      // Aplica a preferência ANTES do widget montar (não pisca na tela).
+      try { if (localStorage.getItem('meus_exames_libras') === '0') document.body.classList.add('libras-off'); } catch (e) {}
+    </script>
     <div vw class="enabled">
       <div vw-access-button class="active"></div>
       <div vw-plugin-wrapper>
