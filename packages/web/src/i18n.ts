@@ -148,7 +148,7 @@ export const ptMessages = {
   'auth.otp_resend': 'Reenviar token',
   'auth.otp_back': 'Voltar (senha)',
   'auth.welcome': 'Bem-vindo! 🎉',
-  'auth.crm_hint': 'Ex.: seu@email.com ou CRM (123456-SP ou só 123456)',
+  'auth.crm_hint': 'Ex.: seu@email.com ou seu CRM (número-UF)',
 
   // tela Perguntas
   'q.open_label': '💬 Perguntas em aberto:',
@@ -396,7 +396,7 @@ export const enMessages = {
   'auth.otp_resend': 'Resend code',
   'auth.otp_back': 'Back (password)',
   'auth.welcome': 'Welcome! 🎉',
-  'auth.crm_hint': 'E.g. you@email.com or CRM (123456-SP or just 123456)',
+  'auth.crm_hint': 'E.g. you@email.com or your CRM (number-UF)',
   'q.open_label': '💬 Open questions:',
   'q.open_hint': '· when answered, the slot frees up.',
   'q.all_doctors': 'All doctors',

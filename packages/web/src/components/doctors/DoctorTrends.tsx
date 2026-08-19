@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, Autocomplete, TextField, ToggleButton, ToggleButtonGroup, Stack, Chip, useMediaQuery, useTheme, alpha } from '@mui/material';
+import { Box, Card, CardContent, Typography, Autocomplete, TextField, ToggleButton, ToggleButtonGroup, Stack, Chip, MenuItem, Select, FormControl, useMediaQuery, useTheme, alpha } from '@mui/material';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceArea } from 'recharts';
 import { API_URL } from '../../config';
 import { ListSkeleton } from '../Skeleton';
@@ -171,23 +171,34 @@ export const DoctorTrends = ({ patientId, token }: Props) => {
               {multi.length > 6 && <Chip size="small" variant="outlined" label={`+${multi.length - 6}`} title="Ver todos na busca abaixo" sx={{ fontWeight: 700, borderRadius: RADIUS.pill }} />}
             </Stack>
           )}
-          <Autocomplete
-            size="small"
-            options={multi}
-            value={multi.find((n) => n.nameCanonical === sel) ?? null}
-            onChange={(_, v) => setSel(v?.nameCanonical ?? '')}
-            isOptionEqualToValue={(o, v) => o.nameCanonical === v.nameCanonical}
-            getOptionLabel={(o) => prettyName(o.nameCanonical)}
-            renderOption={({ key, ...liProps }, o) => (
-              <Box component="li" key={key} {...liProps} sx={{ display: 'flex', justifyContent: 'space-between', gap: 1, minWidth: 0 }}>
-                <Box sx={{ fontWeight: 700, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{prettyName(o.nameCanonical)}</Box>
-                <Box component="span" sx={{ color: 'text.secondary', fontSize: 12, flexShrink: 0 }}>{o.count} exames</Box>
-              </Box>
-            )}
-            renderInput={(params) => (
-              <TextField {...params} label={`Marcador (${multi.length})`} sx={{ '& .MuiInputBase-root': { borderRadius: RADIUS.button, fontWeight: 700, '& input': { fontWeight: 700 } } }} />
-            )}
-          />
+          {/* Mobile: Select PURO — Autocomplete é input editável → abre o TECLADO do celular e
+              cobre a lista (feedback do dono 2026-08-19). Busca fica no desktop, onde digitar é barato. */}
+          {isMobile ? (
+            <FormControl fullWidth size="small">
+              <Select value={sel} onChange={(e) => setSel(e.target.value as string)} displayEmpty sx={{ borderRadius: RADIUS.button, fontWeight: 700 }}>
+                <MenuItem value="" disabled><em>Marcador ({multi.length})</em></MenuItem>
+                {multi.map((n) => <MenuItem key={n.nameCanonical} value={n.nameCanonical} sx={{ fontWeight: 700 }}>{prettyName(n.nameCanonical)} ({n.count} exames)</MenuItem>)}
+              </Select>
+            </FormControl>
+          ) : (
+            <Autocomplete
+              size="small"
+              options={multi}
+              value={multi.find((n) => n.nameCanonical === sel) ?? null}
+              onChange={(_, v) => setSel(v?.nameCanonical ?? '')}
+              isOptionEqualToValue={(o, v) => o.nameCanonical === v.nameCanonical}
+              getOptionLabel={(o) => prettyName(o.nameCanonical)}
+              renderOption={({ key, ...liProps }, o) => (
+                <Box component="li" key={key} {...liProps} sx={{ display: 'flex', justifyContent: 'space-between', gap: 1, minWidth: 0 }}>
+                  <Box sx={{ fontWeight: 700, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{prettyName(o.nameCanonical)}</Box>
+                  <Box component="span" sx={{ color: 'text.secondary', fontSize: 12, flexShrink: 0 }}>{o.count} exames</Box>
+                </Box>
+              )}
+              renderInput={(params) => (
+                <TextField {...params} label={`Marcador (${multi.length})`} sx={{ '& .MuiInputBase-root': { borderRadius: RADIUS.button, fontWeight: 700, '& input': { fontWeight: 700 } } }} />
+              )}
+            />
+          )}
         </CardContent></Card>
       )}
 

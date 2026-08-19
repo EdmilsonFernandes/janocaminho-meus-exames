@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Stack, Typography, Box, Grid, useTheme, alpha, Skeleton } from '@mui/material';
+import { Stack, Typography, Box, Grid, useTheme, alpha, Skeleton, Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
 import { API_URL, token } from '../../config';
 import { useSelectedPatient } from '../../patient-context';
 import { syncPushToken } from '../../push';
@@ -192,7 +192,9 @@ export const DashboardV2 = () => {
   const firstName = (d.me?.fullName || '').split(' ')[0];
 
   useEffect(() => {
-    if (BiometricService.isSupported() && !BiometricService.hasEnrollment()) {
+    // Offer por PAPEL (paciente): médico matriculado no aparelho não pode calar o offer
+    // do paciente (bug: hasEnrollment "qualquer papel" escondia p/ sempre).
+    if (BiometricService.isSupported() && !BiometricService.hasEnrollmentFor('patient')) {
       const id = setTimeout(() => setBioOffer(true), 1500);
       return () => clearTimeout(id);
     }
@@ -254,17 +256,16 @@ export const DashboardV2 = () => {
       </Box>
       <ReviewPrompt trigger={d.loaded && d.stats.exams > 0} />
 
-      {/* Oferta de biometria (1x) */}
-      {bioOffer && (
-        <Box sx={{ position: 'fixed', bottom: 16, left: '50%', transform: 'translateX(-50%)', zIndex: 1300, maxWidth: 360, width: '90%' }}>
-          <AppCard kind="elevated" tone="primary" sx={{ p: 2 }}>
-            <Stack direction="row" spacing={1.5} alignItems="center">
-              <Typography sx={{ flex: 1, fontSize: 13.5, color: 'text.secondary' }}>🔐 Entrar com biometria? Mais rápido e seguro.</Typography>
-              <GradientButton size="small" onClick={() => { BiometricService.enroll(token() || '', false); setBioOffer(false); }}>Ativar</GradientButton>
-            </Stack>
-          </AppCard>
-        </Box>
-      )}
+      {/* Oferta de biometria — DIALOG (o card flutuante de rodapé se perdia atrás da
+          MobileBottomNav e parecia "sumido"; dialog é o padrão de app de banco). */}
+      <Dialog open={bioOffer} onClose={() => setBioOffer(false)} PaperProps={{ sx: { borderRadius: '12px' } }}>
+        <DialogTitle sx={{ fontWeight: 800, color: 'text.primary' }}>🔐 Entrar com biometria?</DialogTitle>
+        <DialogContent><Typography sx={{ color: 'text.secondary' }}>Ative a entrada por face/digital neste aparelho. Na próxima vez, você entra sem digitar senha — mais rápido e seguro.</Typography></DialogContent>
+        <DialogActions>
+          <Button onClick={() => setBioOffer(false)} sx={{ textTransform: 'none' }}>Agora não</Button>
+          <GradientButton onClick={() => { BiometricService.enroll(token() || '', false); setBioOffer(false); }}>Ativar biometria</GradientButton>
+        </DialogActions>
+      </Dialog>
     </PageContainer>
   );
 };

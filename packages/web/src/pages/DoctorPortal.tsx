@@ -352,6 +352,12 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
 
   useEffect(() => {
+    // Libras NUNCA no portal do médico (widget do paciente; portal clínico limpo). Ao sair,
+    // restaura a preferência do usuário (index.html aplica 'libras-off' só no boot).
+    document.body.classList.add('libras-off');
+    return () => { try { document.body.classList.toggle('libras-off', localStorage.getItem('meus_exames_libras') !== '1'); } catch { /* */ } };
+  }, []);
+  useEffect(() => {
     fetch(`${API_URL}/doctor/me`, { headers: h }).then((r) => r.json()).then((d) => setDoctor(d.doctor)).catch(() => {});
     // Ordem alfabética por nome do paciente (2026-08-19): médico com vários pacientes precisa
     // de lista previsível p/ se organizar — localeCompare pt-BR ignora acento.
@@ -444,14 +450,11 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     setView('patients');
     const pScopes: string[] = p.scopes ?? [];
     const pTabs = computeTabs(pScopes);
-    // Default tab roteado por sinal clínico: alterados se há alerta → senão preferência salva → senão 1ª aba.
-    // Painel pode forçar a tab (ex.: "ver alterados" no card de atenção).
+    // Default = 1ª aba (Exames) SEMPRE — o pulo automático p/ "Alterados" confundia o médico
+    // (feedback 2026-08-19). Deep-link explícito do Painel (ex.: "ver alterados" no card de
+    // atenção) continua funcionando via tabOverride. (doctorPrefTab morreu: só era lido.)
     let initial: string = pTabs[0] ?? 'questions';
     if (tabOverride && pTabs.includes(tabOverride)) initial = tabOverride;
-    else if (p.hasAlerts && pTabs.includes('alterados')) initial = 'alterados';
-    else {
-      try { const pref = localStorage.getItem('doctorPrefTab'); if (pref && pTabs.includes(pref)) initial = pref; } catch { /* */ }
-    }
     setTab(initial);
     setSelExam(null);
     setDetailLoading(true); setExams([]); setAbnormalItems([]); setNotes([]); setQuestions([]);

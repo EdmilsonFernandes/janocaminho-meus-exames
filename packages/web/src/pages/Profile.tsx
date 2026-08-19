@@ -89,7 +89,9 @@ export const ProfilePage = () => {
     if (!r.ok) { setAchAlerts(!on); notify('Erro ao salvar preferência.', { type: 'error' }); }
   };
   // Libras: preferência LOCAL (o widget vive no index.html, fora do React) — body class + localStorage.
-  const [librasOn, setLibrasOn] = useState(() => { try { return localStorage.getItem('meus_exames_libras') !== '0'; } catch { return true; } });
+  // OPT-IN (2026-08-19, a pedido do dono): default DESLIGADO — o widget flutuante atrapalhava
+  // quem não usa; quem precisa ativa aqui (e o index.html só mostra com 'meus_exames_libras' === '1').
+  const [librasOn, setLibrasOn] = useState(() => { try { return localStorage.getItem('meus_exames_libras') === '1'; } catch { return false; } });
   const toggleLibras = (on: boolean) => {
     setLibrasOn(on);
     try { localStorage.setItem('meus_exames_libras', on ? '1' : '0'); } catch { /* localStorage indisponível */ }
@@ -221,7 +223,7 @@ export const ProfilePage = () => {
       </Card>
 
       {/* Acessibilidade — Libras opcional (2026-08-19): o widget flutuante atrapalhava quem não
-          usa; default LIGADO (acessibilidade não é opt-in p/ quem precisa), desligar remove da tela. */}
+          usa; default DESLIGADO (a pedido do dono) — quem precisa ativa aqui. */}
       <Card sx={{ mb: 2, borderRadius: '12px' }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>♿ Acessibilidade</Typography>

@@ -28,6 +28,12 @@ export const BiometricService = {
     return !!(b?.hasToken?.('patient') || b?.hasToken?.('doctor'));
   },
 
+  /** Matrícula POR PAPEL — o offer do paciente deve aparecer mesmo que um MÉDICO já tenha
+   *  matriculado neste aparelho (hasEnrollment() "qualquer papel" escondia o offer p/ sempre). */
+  hasEnrollmentFor: (role: 'patient' | 'doctor'): boolean => {
+    try { return !!bio()?.hasToken?.(role); } catch { return false; }
+  },
+
   getEnrolledRole: (): 'patient' | 'doctor' | null => {
     const b = bio();
     if (!b) return null;

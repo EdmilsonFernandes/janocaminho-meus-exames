@@ -8,6 +8,7 @@ import EditNoteIcon from '@mui/icons-material/EditNote';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { photoUrlFor } from '../../config';
+import { copperText } from '../../theme';
 import { DoctorPatientSwitcher } from './DoctorPatientSwitcher';
 
 /** Formata dd/mm (curto) p/ exibição compacta. */
@@ -139,6 +140,10 @@ export const PatientSummary = ({ patient, exams, abnormal, questions, notes, pat
           <Avatar src={photo} sx={{ width: 56, height: 56, fontWeight: 800, bgcolor: alpha(primary, 0.14), color: primary, fontSize: 20 }}>{fullName?.charAt(0)}</Avatar>
         </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
+          {/* Kicker de papel (aprovado pelo dono 2026-08-19): desambigua MÉDICO (chip cobre
+              no header) × PACIENTE (este hero) sem custo de altura — tipográfico, na voz
+              cobre do modo médico. */}
+          <Typography component="div" sx={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.09em', lineHeight: 1.4, color: (t) => copperText(t.palette.mode) }}>PACIENTE · PRONTUÁRIO COMPARTILHADO</Typography>
           <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0 }}>
             <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 20, lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'text.primary' }}>{fullName}</Typography>
             <Button size="small" onClick={() => setSwitcherOpen(true)} startIcon={<SwapHorizIcon />} aria-label="Trocar paciente" sx={{ flexShrink: 0, minWidth: 0, textTransform: 'none', fontWeight: 700, color: primary, borderRadius: '999px', py: 0.25, px: 1, '&:hover': { bgcolor: alpha(primary, 0.08) } }}>Trocar</Button>
