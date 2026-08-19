@@ -158,10 +158,22 @@ export const TrendsChart = ({ ts, action }: { ts: TS; action?: React.ReactNode }
         <LineChart data={data} margin={{ top: 10, right: isMobile ? 12 : 20, bottom: 10, left: isMobile ? 0 : 4 }}>
           <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
           <XAxis dataKey="name" interval="preserveStartEnd" minTickGap={8} tickFormatter={(v: string) => (isMobile ? String(v).slice(0, 5) : v)} tick={{ fontSize: isMobile ? 10 : 12, fill: theme.palette.text.secondary }} axisLine={{ stroke: theme.palette.divider }} />
-          <YAxis tick={{ fontSize: isMobile ? 10 : 12, fill: theme.palette.text.secondary }} axisLine={{ stroke: theme.palette.divider }} />
+          {/* Domínio EXPLÍCITO inclui a faixa de referência: sem isto o recharts 3.x usa
+              [dataMin,dataMax] e DESCARTA o ReferenceArea que ultrapasse os dados (a banda
+              verde simplesmente não renderizava — ex.: Plaquetas 116–238k vs faixa até 450k). */}
+          <YAxis
+            domain={uniLow != null && uniHigh != null
+              ? [(dataMin: number) => Math.min(dataMin, uniLow), (dataMax: number) => Math.max(dataMax, uniHigh)]
+              : undefined}
+            tick={{ fontSize: isMobile ? 10 : 12, fill: theme.palette.text.secondary }} axisLine={{ stroke: theme.palette.divider }}
+          />
           <Tooltip content={<TooltipBox />} />
           {uniLow != null && uniHigh != null && (
-            <ReferenceArea y1={uniLow} y2={uniHigh} fill={theme.palette.success.main} fillOpacity={0.08} />
+            /* ifOverflow="extendDomain": sem isto o recharts 3.x DESCARTA a faixa quando ela
+               ultrapassa o domínio dos dados (ex.: Plaquetas 116–238k vs faixa até 450k) —
+               a banda simplesmente não renderizava. Extendendo o domínio, o paciente/médico
+               vê o quão longe da faixa o valor está (comportamento Apple Health). */
+            <ReferenceArea y1={uniLow} y2={uniHigh} fill={theme.palette.success.main} fillOpacity={0.08} ifOverflow="extendDomain" />
           )}
           <Line type="monotone" dataKey="valor" stroke={tealMain} strokeWidth={3} dot={{ r: 5, fill: tealMain, strokeWidth: 0 }} activeDot={{ r: 8, stroke: theme.palette.background.paper, strokeWidth: 2 }} />
         </LineChart>

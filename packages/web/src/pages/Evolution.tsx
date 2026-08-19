@@ -230,8 +230,12 @@ const EvoRow = ({ it, defaultExpanded }: { it: EvoItem; defaultExpanded?: boolea
           <Box sx={{ height: 104, width: '100%', mb: 1 }}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={it.points.map((p) => ({ v: p.value, date: fmtDate(p.date), flag: p.flag, refLow: (p as any).refLow ?? null, refHigh: (p as any).refHigh ?? null }))} margin={{ top: 6, right: 8, bottom: 4, left: 8 }}>
-                {it.refLow != null && it.refHigh != null && <ReferenceArea y1={it.refLow} y2={it.refHigh} fill="#059669" fillOpacity={0.14} />}
-                <YAxis hide domain={['auto', 'auto']} />
+                {/* Domínio inclui a faixa (mesma correção do TrendsChart): sem isto o recharts 3.x
+                    descarta o ReferenceArea que ultrapasse os dados — a banda sumia. */}
+                {it.refLow != null && it.refHigh != null && <ReferenceArea y1={it.refLow} y2={it.refHigh} fill="#059669" fillOpacity={0.14} ifOverflow="extendDomain" />}
+                <YAxis hide domain={it.refLow != null && it.refHigh != null
+                  ? [(dataMin: number) => Math.min(dataMin, it.refLow as number), (dataMax: number) => Math.max(dataMax, it.refHigh as number)]
+                  : ['auto', 'auto']} />
                 {/* Tooltip mostra valor + data ao TOCAR no ponto (mobile). Antes não havia Tooltip — clicar não fazia nada. */}
                 <Tooltip
                   cursor={{ stroke: lineColor, strokeWidth: 1, strokeDasharray: '4 3' }}
