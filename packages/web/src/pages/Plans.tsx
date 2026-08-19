@@ -111,7 +111,7 @@ export const PlansPage = () => {
           boxShadow: '0 20px 44px rgba(15,61,58,.28)' }}>
         <Box sx={{ position: 'absolute', top: '-45%', right: '-12%', width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,.16), transparent 70%)', pointerEvents: 'none' }} />
         <CardContent sx={{ position: 'relative', textAlign: 'center', py: { xs: 3.5, md: 4.5 } }}>
-          <Typography sx={{ fontSize: 12, fontWeight: 700, letterSpacing: 2.4, textTransform: 'uppercase', color: 'rgba(255,255,255,.72)' }}>Seus créditos</Typography>
+          <Typography sx={{ fontSize: 12, fontWeight: 700, letterSpacing: 0.4, textTransform: 'uppercase', color: 'rgba(255,255,255,.72)' }}>Seus créditos</Typography>
           <Typography sx={{ fontWeight: 800, fontSize: { xs: 52, md: 62 }, lineHeight: 1, mt: 0.5, letterSpacing: '-0.02em', fontFamily: 'Poppins, sans-serif', fontVariantNumeric: 'tabular-nums' }}>{status?.credits ?? 0}</Typography>
           {status?.active
             ? <Box sx={{ display: 'inline-flex', mt: 2.5, alignItems: 'center', gap: 0.75, px: 2, py: 0.85, borderRadius: '999px', bgcolor: 'rgba(255,255,255,.16)', backdropFilter: 'blur(8px)', boxShadow: '0 6px 18px rgba(0,0,0,.18)', border: '1px solid rgba(255,255,255,.28)' }}>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslate } from 'react-admin';
 import { Card, CardContent, Typography, Button, TextField, Select, MenuItem, FormControl, InputLabel, List, ListItem, Box, Chip, IconButton, Stack, Collapse } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { confirmDialog } from '../components/ConfirmDialog';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import MonitorWeightIcon from '@mui/icons-material/MonitorWeight';
 import { API_URL, token } from '../config';
@@ -43,7 +44,9 @@ export const MeasurementsPage = () => {
     });
     setValue(''); setValue2(''); load();
   };
+  // Dado de saúde (LGPD): exclusão SEMPRE confirmada — 1 toque acidental não apaga histórico.
   const del = async (id: string) => {
+    if (!(await confirmDialog({ title: 'Excluir medição', message: 'Apagar esta medição do histórico?', confirmLabel: 'Excluir' }))) return;
     await fetch(`${API_URL}/measurements/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });
     load();
   };

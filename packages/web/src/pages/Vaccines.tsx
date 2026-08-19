@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, Typography, Button, TextField, List, ListItem, ListItemText, IconButton, Stack, Chip } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { confirmDialog } from '../components/ConfirmDialog';
 import VaccinesIcon from '@mui/icons-material/Vaccines';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
@@ -30,7 +31,9 @@ export const VaccinesPage = () => {
     });
     setName(''); setNextDate(''); setLot(''); load();
   };
+  // Carteira de vacinação: exclusão confirmada (dado de saúde — sem delete de 1 toque).
   const del = async (id: string) => {
+    if (!(await confirmDialog({ title: 'Excluir vacina', message: 'Apagar este registro da carteira de vacinação?', confirmLabel: 'Excluir' }))) return;
     await fetch(`${API_URL}/vaccines/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });
     load();
   };
@@ -62,8 +65,10 @@ export const VaccinesPage = () => {
             <List>
               {items.map((v) => (
                 <ListItem key={v.id} sx={{ px: 0, borderBottom: '1px solid', borderColor: 'divider' }}
-                  secondaryAction={<IconButton edge="end" onClick={() => del(v.id)}><DeleteIcon /></IconButton>}>
+                  secondaryAction={<IconButton edge="end" aria-label={`Excluir vacina ${v.name}`} onClick={() => del(v.id)}><DeleteIcon /></IconButton>}>
+                  {/* secondary vira <div> (não <p>): Chip (div) dentro de <p> = DOM inválido (console). */}
                   <ListItemText
+                    slotProps={{ secondary: { component: 'div' } }}
                     primary={<span style={{ fontWeight: 600 }}><VaccinesIcon fontSize="small" sx={{ verticalAlign: 'middle', mr: 0.5 }} />{v.name}</span>}
                     secondary={<span>Aplicada: {fmt(v.dateApplied)}{v.lot ? ` • Lote: ${v.lot}` : ''}
                       {v.nextDoseDate && <Chip size="small" sx={{ ml: 1 }} color={overdue(v.nextDoseDate) ? 'error' : 'warning'} label={`Próxima: ${fmt(v.nextDoseDate)}${overdue(v.nextDoseDate) ? ' (vencida)' : ''}`} />}</span>}

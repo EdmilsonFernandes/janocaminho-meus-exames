@@ -230,7 +230,7 @@ export const MedicosPage = () => {
               </TextField>
             )}
             <FormControlLabel control={<Switch size="small" checked={activeOnly} onChange={(e) => setActiveOnly(e.target.checked)} />} label={<Typography sx={{ fontSize: 13 }}>Só ativos</Typography>} />
-            <Chip size="small" label={`${myShares.length} médicos • ${activeCount} ativos`} sx={{ bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 700 }} />
+            <Chip size="small" label={`${myShares.length} ${myShares.length === 1 ? 'médico' : 'médicos'} • ${activeCount} ${activeCount === 1 ? 'ativo' : 'ativos'}`} sx={{ bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 700 }} />
           </Stack>
         </Stack>
       )}
@@ -251,8 +251,9 @@ export const MedicosPage = () => {
       {/* Lista agrupada por especialidade */}
       {!loading && grouped.active.map(([specName, items]) => (
         <Box key={specName} sx={{ mb: 2.5 }}>
-          <Typography sx={{ fontWeight: 800, fontSize: 13, color: 'text.primary', mb: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            {specName} <Chip size="small" label={items.length} sx={{ height: 18, fontSize: 10, bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 700 }} />
+          {/* Typography é <p>: Chip (div) dentro é DOM inválido (console error ×2) — component="div". */}
+          <Typography component="div" sx={{ fontWeight: 800, fontSize: 13, color: 'text.primary', mb: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            {specName} <Chip size="small" label={items.length} sx={{ height: 20, fontSize: 11, bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 700 }} />
           </Typography>
           <Stack spacing={1}>
             {items.map((s) => (
@@ -278,7 +279,7 @@ export const MedicosPage = () => {
                       </Stack>
                     </Box>
                     {/* Menu ⋯ */}
-                    <IconButton size="small" onClick={(e) => { e.stopPropagation(); setMenuEl({ id: s.id, el: e.currentTarget }); }} sx={{ flexShrink: 0, mt: -0.5 }}><MoreVertIcon fontSize="small" /></IconButton>
+                    <IconButton size="small" aria-label={`Mais opções de ${s.doctor?.name}`} title="Mais opções" onClick={(e) => { e.stopPropagation(); setMenuEl({ id: s.id, el: e.currentTarget }); }} sx={{ flexShrink: 0, mt: -0.5 }}><MoreVertIcon fontSize="small" /></IconButton>
                   </Stack>
                 </CardContent>
               </Card>

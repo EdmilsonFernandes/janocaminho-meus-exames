@@ -80,9 +80,10 @@ const ExamHero = ({ r, abnCount, onView, onPdf }: { r: any; abnCount: number; on
   const tone = abnCount > 0 ? 'warning' : 'primary';
   return (
     <AppCard kind="tinted" tone={tone} tone2="secondary" glow sx={{ p: { xs: 2, md: 2.5 }, height: '100%' }}>
-      <Typography sx={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'text.secondary' }}>Último exame</Typography>
+      {/* Sem uppercase/ls largo no label (audit: caixa alta = cara de dashboard admin, não app premium). */}
+      <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary' }}>Último exame</Typography>
       <Typography title={titleInfo.original || r.title} sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 19, md: 22 }, lineHeight: 1.2, mt: 0.25, wordBreak: 'break-word' }}>{titleInfo.text || 'Exame'}</Typography>
-      <Box sx={{ mt: 0.5 }}><DateLabel date={r.performedAt} fallback="Data não identificada" sx={{ fontSize: '0.82rem' }} /></Box>
+      <Box sx={{ mt: 0.5 }}><DateLabel date={r.performedAt} fallback="Data não identificada no PDF" sx={{ fontSize: '0.82rem' }} /></Box>
       <Stack direction="row" spacing={1.5} sx={{ mt: 1, flexWrap: 'wrap', rowGap: 0.5, alignItems: 'center' }}>
         <Typography sx={{ fontSize: 13.5, color: 'text.secondary' }}>{itemCount} resultado{itemCount !== 1 ? 's' : ''}</Typography>
         {abnCount > 0 ? (
@@ -332,13 +333,13 @@ const ExamCards = () => {
             <TextField size="small" fullWidth value={q} onChange={(e) => setQ(e.target.value)} placeholder={translate('exams.search_ph')} InputProps={{ startAdornment: (<InputAdornment position="start"><SearchIcon fontSize="small" sx={{ color: 'text.secondary' }} /></InputAdornment>) }} sx={{ '& .MuiOutlinedInput-root': { borderRadius: RADIUS.button, bgcolor: 'background.paper' } }} />
             <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ flexWrap: 'wrap', rowGap: 1 }}>
               <ToggleButtonGroup exclusive size="small" value={sfilter} onChange={(_, v) => { if (v) setSfilter(v); }}>
-                <ToggleButton value="all" sx={{ px: 1.25, py: 0.25, textTransform: 'none', fontWeight: 700 }}>Todos</ToggleButton>
-                <ToggleButton value="altered" sx={{ px: 1.25, py: 0.25, textTransform: 'none', fontWeight: 700 }}>Alterados</ToggleButton>
-                <ToggleButton value="recent" sx={{ px: 1.25, py: 0.25, textTransform: 'none', fontWeight: 700 }}>Recentes</ToggleButton>
+                <ToggleButton value="all" sx={{ px: 1.25, py: { xs: 0.75, sm: 0.35 }, minHeight: { xs: 40, sm: 0 }, textTransform: 'none', fontWeight: 700 }}>Todos</ToggleButton>
+                <ToggleButton value="altered" sx={{ px: 1.25, py: { xs: 0.75, sm: 0.35 }, minHeight: { xs: 40, sm: 0 }, textTransform: 'none', fontWeight: 700 }}>Alterados</ToggleButton>
+                <ToggleButton value="recent" sx={{ px: 1.25, py: { xs: 0.75, sm: 0.35 }, minHeight: { xs: 40, sm: 0 }, textTransform: 'none', fontWeight: 700 }}>Recentes</ToggleButton>
               </ToggleButtonGroup>
               <ToggleButtonGroup exclusive size="small" value={view} onChange={(_, v) => { if (v) setView(v); }}>
-                <ToggleButton value="date" sx={{ px: 1.25, py: 0.25, textTransform: 'none', fontWeight: 700 }}>{translate('exams.by_date')}</ToggleButton>
-                <ToggleButton value="category" sx={{ px: 1.25, py: 0.25, textTransform: 'none', fontWeight: 700 }}>{translate('exams.by_category')}</ToggleButton>
+                <ToggleButton value="date" sx={{ px: 1.25, py: { xs: 0.75, sm: 0.35 }, minHeight: { xs: 40, sm: 0 }, textTransform: 'none', fontWeight: 700 }}>{translate('exams.by_date')}</ToggleButton>
+                <ToggleButton value="category" sx={{ px: 1.25, py: { xs: 0.75, sm: 0.35 }, minHeight: { xs: 40, sm: 0 }, textTransform: 'none', fontWeight: 700 }}>{translate('exams.by_category')}</ToggleButton>
               </ToggleButtonGroup>
             </Stack>
             {presentCats.length > 1 && (
@@ -380,7 +381,7 @@ const ExamCards = () => {
                   <Accordion key={String(g.year)} defaultExpanded={g.year === latestYear || (g.year === null && g.items.some((r: any) => r.status === 'FAILED'))} disableGutters elevation={0} sx={{ borderRadius: `${RADIUS.sectionCard} !important`, overflow: 'hidden', border: '1px solid', borderColor: 'divider', '&:before': { display: 'none' } }}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 30, color: '#178f89', bgcolor: 'rgba(32,178,170,.12)', borderRadius: '50%', p: 0.6, boxShadow: '0 2px 6px rgba(32,178,170,.18)' }} />} sx={{ minHeight: '48px !important', '& .MuiAccordionSummary-content': { my: 0.75, alignItems: 'center' } }}>
                       <Typography sx={{ fontWeight: 800, flex: '1 1 auto', minWidth: 0 }}>📅 {g.label}</Typography>
-                      <Chip size="small" label={`${g.items.length}`} sx={{ ml: 1.5, bgcolor: 'rgba(0,0,0,.05)', color: 'text.secondary', height: 20, flexShrink: 0 }} />
+                      <Chip size="small" label={`${g.items.length} ${g.items.length === 1 ? 'exame' : 'exames'}`} sx={{ ml: 1.5, bgcolor: 'rgba(0,0,0,.05)', color: 'text.secondary', height: 22, fontSize: 12, flexShrink: 0 }} />
                     </AccordionSummary>
                     <AccordionDetails sx={{ p: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>{g.items.map(renderCard)}</AccordionDetails>
                   </Accordion>
@@ -434,13 +435,13 @@ const ExamCards = () => {
         />
         <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ flexWrap: 'wrap', rowGap: 1 }}>
           <ToggleButtonGroup exclusive size="small" value={sfilter} onChange={(_, v) => { if (v) setSfilter(v); }}>
-            <ToggleButton value="all" sx={{ px: 1.5, py: 0.6, textTransform: 'none', fontWeight: 700 }}>Todos</ToggleButton>
-            <ToggleButton value="altered" sx={{ px: 1.5, py: 0.6, textTransform: 'none', fontWeight: 700 }}>Alterados</ToggleButton>
-            <ToggleButton value="recent" sx={{ px: 1.5, py: 0.6, textTransform: 'none', fontWeight: 700 }}>Recentes</ToggleButton>
+            <ToggleButton value="all" sx={{ px: 1.5, py: { xs: 0.85, sm: 0.6 }, minHeight: { xs: 40, sm: 0 }, textTransform: 'none', fontWeight: 700 }}>Todos</ToggleButton>
+            <ToggleButton value="altered" sx={{ px: 1.5, py: { xs: 0.85, sm: 0.6 }, minHeight: { xs: 40, sm: 0 }, textTransform: 'none', fontWeight: 700 }}>Alterados</ToggleButton>
+            <ToggleButton value="recent" sx={{ px: 1.5, py: { xs: 0.85, sm: 0.6 }, minHeight: { xs: 40, sm: 0 }, textTransform: 'none', fontWeight: 700 }}>Recentes</ToggleButton>
           </ToggleButtonGroup>
           <ToggleButtonGroup exclusive size="small" value={view} onChange={(_, v) => { if (v) setView(v); }}>
-            <ToggleButton value="date" sx={{ px: 1.5, py: 0.6, textTransform: 'none', fontWeight: 700 }}>{translate('exams.by_date')}</ToggleButton>
-            <ToggleButton value="category" sx={{ px: 1.5, py: 0.6, textTransform: 'none', fontWeight: 700 }}>{translate('exams.by_category')}</ToggleButton>
+            <ToggleButton value="date" sx={{ px: 1.5, py: { xs: 0.85, sm: 0.6 }, minHeight: { xs: 40, sm: 0 }, textTransform: 'none', fontWeight: 700 }}>{translate('exams.by_date')}</ToggleButton>
+            <ToggleButton value="category" sx={{ px: 1.5, py: { xs: 0.85, sm: 0.6 }, minHeight: { xs: 40, sm: 0 }, textTransform: 'none', fontWeight: 700 }}>{translate('exams.by_category')}</ToggleButton>
           </ToggleButtonGroup>
         </Stack>
         {/* Chips de categoria — só aparecem se houver +1 categoria nos exames prontos */}
@@ -508,7 +509,7 @@ const ExamCards = () => {
                 sx={{ borderRadius: `${RADIUS.sectionCard} !important`, overflow: 'hidden', border: '1px solid', borderColor: 'divider', '&:before': { display: 'none' } }}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 30, color: '#178f89', bgcolor: 'rgba(32,178,170,.12)', borderRadius: '50%', p: 0.6, boxShadow: '0 2px 6px rgba(32,178,170,.18)' }} />} sx={{ minHeight: '48px !important', '& .MuiAccordionSummary-content': { my: 0.75, alignItems: 'center' } }}>
                   <Typography sx={{ fontWeight: 800, flex: '1 1 auto', minWidth: 0 }}>📅 {g.label}</Typography>
-                  <Chip size="small" label={`${g.items.length}`} sx={{ ml: 1.5, bgcolor: 'rgba(0,0,0,.05)', color: 'text.secondary', height: 20, flexShrink: 0 }} />
+                  <Chip size="small" label={`${g.items.length} ${g.items.length === 1 ? 'exame' : 'exames'}`} sx={{ ml: 1.5, bgcolor: 'rgba(0,0,0,.05)', color: 'text.secondary', height: 22, fontSize: 12, flexShrink: 0 }} />
                 </AccordionSummary>
                 <AccordionDetails sx={{ p: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                   {g.items.map(renderCard)}

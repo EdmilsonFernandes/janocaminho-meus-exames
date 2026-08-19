@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Card, CardContent, Typography, Button, ListItem, ListItemIcon, ListItemText, IconButton, Checkbox, TextField, Stack, Chip, List, Divider, Accordion, AccordionSummary, AccordionDetails, Alert } from '@mui/material';
+import { Card, CardContent, Typography, Button, ListItem, ListItemIcon, ListItemText, IconButton, Checkbox, TextField, Stack, Chip, List, Accordion, AccordionSummary, AccordionDetails, Alert } from '@mui/material';
+import { confirmDialog } from '../components/ConfirmDialog';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -87,18 +88,20 @@ export const RemindersPage = () => {
   const renderItem = (r: any) => (
     <ListItem key={r.id} sx={{ px: 0, borderBottom: '1px solid', borderColor: 'divider', opacity: r.done ? 0.5 : 1, alignItems: 'flex-start' }}>
       <ListItemIcon sx={{ mt: 0.5 }}><Checkbox checked={r.done} onChange={() => toggle(r)} /></ListItemIcon>
+      {/* secondary vira <div>: o Stack/Chip (divs) dentro do <p> padrão era DOM inválido. */}
       <ListItemText
+        slotProps={{ secondary: { component: 'div' } }}
         primary={<span style={{ textDecoration: r.done ? 'line-through' : 'none', fontWeight: 600 }}>{r.title}</span>}
         secondary={<>
           <span><EventAvailableIcon fontSize="small" sx={{ verticalAlign: 'middle', mr: 0.5 }} />{fmtDate(r.dueDate)}</span>
           {Array.isArray(r.notifyOffsetsMin) && r.notifyOffsetsMin.length > 0 && (
             <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.75 }}>
-              {r.notifyOffsetsMin.map((o: number) => <Chip key={o} size="small" variant="outlined" label={offsetShort(o)} sx={{ height: 22, fontSize: 11 }} />)}
+              {r.notifyOffsetsMin.map((o: number) => <Chip key={o} size="small" variant="outlined" label={offsetShort(o)} sx={{ height: 24, fontSize: 12 }} />)}
             </Stack>
           )}
         </>}
       />
-      <IconButton edge="end" onClick={() => del(r)}><DeleteIcon /></IconButton>
+      <IconButton edge="end" aria-label={`Excluir lembrete ${r.title}`} onClick={async () => { if (await confirmDialog({ title: 'Excluir lembrete', message: `Apagar "${r.title}"? O aviso programado deixa de ser enviado.`, confirmLabel: 'Excluir' })) del(r); }}><DeleteIcon /></IconButton>
     </ListItem>
   );
 
@@ -120,9 +123,11 @@ export const RemindersPage = () => {
           <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap">
             {OFFSET_PALETTE.map((p) => {
               const on = offsets.includes(p.o);
+              // Seletor PRINCIPAL do recurso: alvo 40px no touch (piso WCAG p/ dedo) +
+              // semântica de toggle (component button + aria-pressed) p/ leitor de tela.
               return (
-                <Chip key={p.o} size="small" label={p.l} color={on ? 'primary' : 'default'} variant={on ? 'filled' : 'outlined'}
-                  onClick={() => toggleOffset(p.o)} sx={{ fontWeight: 700 }} />
+                <Chip key={p.o} component="button" aria-pressed={on} label={p.l} color={on ? 'primary' : 'default'} variant={on ? 'filled' : 'outlined'}
+                  onClick={() => toggleOffset(p.o)} sx={{ fontWeight: 700, height: { xs: 40, sm: 32 }, fontSize: 13 }} />
               );
             })}
           </Stack>
@@ -161,7 +166,6 @@ export const RemindersPage = () => {
           </CardContent>
         </Card>
       )}
-      <Divider sx={{ my: 2 }} />
     </PageContainer>
   );
 };

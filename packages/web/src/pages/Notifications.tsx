@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useTranslate } from 'react-admin';
 import { useNavigate } from 'react-router-dom';
-import { Box, Card, CardContent, Typography, Button, Stack, Chip, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import React from 'react';
+import { Box, Card, CardContent, Typography, Button, Stack, List, ListItemButton, Divider, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import { API_URL, token } from '../config';
 import { notifRoute } from '../utils/notifRoute';
@@ -51,26 +52,31 @@ export const NotificationsPage = () => {
         <Card><CardContent><Typography color="text.secondary" sx={{ textAlign: 'center', py: 3 }}>{translate('notif.empty')}</Typography></CardContent></Card>
       )}
       {data && items.length > 0 && (
-        <Stack spacing={1.25}>
-          {items.map((n) => {
+        /* Lista LEVE (audit Onda A): era 1 Card por notificação (36 cards + 36 sombras +
+           borderLeft 4px = side-tab "tell de UI de IA"). Agora: linha + divisor + ícone tonal.
+           Não-lida = dot colorido + opacidade cheia (não chip). Mesmo clique/comportamento. */
+        <List disablePadding>
+          {items.map((n, i) => {
             const m = TYPE_META[n.type] ?? TYPE_META.info;
             return (
-              <Card key={n.id} variant="outlined" onClick={() => { if (!n.read) markOne(n.id); const r = notifRoute(n); if (r) navigate(r); else setView(n); }} sx={{ cursor: 'pointer', borderColor: n.read ? 'divider' : `${m.color}55`, borderLeft: `4px solid ${m.color}`, opacity: n.read ? 0.7 : 1 }}>
-                <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-                  <Stack direction="row" alignItems="flex-start" spacing={1}>
-                    <Box sx={{ fontSize: 18 }}>{m.emoji}</Box>
-                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Typography sx={{ fontWeight: 800, fontSize: 15 }}>{n.title}</Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25, lineHeight: 1.5 }}>{n.body}</Typography>
-                      <Typography variant="caption" color="text.secondary">{fmtDt(n.createdAt)}</Typography>
-                    </Box>
-                    {!n.read && <Chip size="small" label="nova" sx={{ height: 20, bgcolor: `${m.color}1a`, color: m.color, fontWeight: 700 }} />}
-                  </Stack>
-                </CardContent>
-              </Card>
+              <React.Fragment key={n.id}>
+                <ListItemButton alignItems="flex-start" onClick={() => { if (!n.read) markOne(n.id); const r = notifRoute(n); if (r) navigate(r); else setView(n); }}
+                  sx={{ py: 1.5, px: 1, borderRadius: '12px', opacity: n.read ? 0.66 : 1, '&:hover': { bgcolor: 'action.hover' } }}>
+                  <Box sx={{ width: 38, height: 38, borderRadius: '12px', display: 'grid', placeItems: 'center', fontSize: 18, bgcolor: `${m.color}14`, color: m.color, mr: 1.5, mt: 0.25, flexShrink: 0 }}>{m.emoji}</Box>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Stack direction="row" alignItems="center" spacing={0.75}>
+                      {!n.read && <Box aria-label="não lida" sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: m.color, flexShrink: 0 }} />}
+                      <Typography sx={{ fontWeight: n.read ? 700 : 800, fontSize: 15, flex: 1, minWidth: 0 }}>{n.title}</Typography>
+                    </Stack>
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25, lineHeight: 1.5 }}>{n.body}</Typography>
+                    <Typography variant="caption" color="text.secondary">{fmtDt(n.createdAt)}</Typography>
+                  </Box>
+                </ListItemButton>
+                {i < items.length - 1 && <Divider component="li" />}
+              </React.Fragment>
             );
           })}
-        </Stack>
+        </List>
       )}
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', mt: 3 }}>
         Conteúdo educativo — não substitui o médico.

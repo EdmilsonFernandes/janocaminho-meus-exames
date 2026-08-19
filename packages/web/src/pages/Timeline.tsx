@@ -142,8 +142,9 @@ export const TimelinePage = () => {
 
       {/* Filtro por tipo de evento (auditoria item 17: narrativa com exames + medições + vacinas) */}
       <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mb: 2 }}>
+        {/* Filtro = função primária da tela: alvo 40px no touch + semântica de toggle. */}
         {([['all', 'Tudo'], ['exam', '🧪 Exames'], ['medicao', '💓 Medições'], ['vacina', '💉 Vacinas']] as const).map(([v, l]) => (
-          <Chip key={v} size="small" label={l} onClick={() => setTypeFilter(v)} color={typeFilter === v ? 'primary' : 'default'} variant={typeFilter === v ? 'filled' : 'outlined'} sx={{ fontWeight: 700, borderRadius: '999px' }} />
+          <Chip key={v} component="button" aria-pressed={typeFilter === v} label={l} onClick={() => setTypeFilter(v)} color={typeFilter === v ? 'primary' : 'default'} variant={typeFilter === v ? 'filled' : 'outlined'} sx={{ fontWeight: 700, borderRadius: '999px', height: { xs: 40, sm: 32 }, fontSize: 13 }} />
         ))}
       </Stack>
 

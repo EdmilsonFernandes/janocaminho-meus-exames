@@ -243,7 +243,7 @@ export const ChatPage = () => {
       pb: { xs: 'calc(var(--me-bottom-nav-h, 76px) + 6px)', md: 2 } }}>
       {/* HEADER estilo Mercado Pago: voltar · título · nova conversa · histórico */}
       <Paper elevation={0} sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 1, borderRadius: '12px', mb: 1, background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff' }}>
-        <IconButton size="small" onClick={() => navigate('/')} sx={{ color: '#fff' }}>←</IconButton>
+        <IconButton onClick={() => navigate('/')} aria-label="Voltar ao início" title="Voltar" sx={{ color: '#fff', p: { xs: 1.25, sm: 1 }, fontSize: 20 }}>←</IconButton>
         <DrExame size={36} sx={{ borderRadius: '50%', flexShrink: 0, bgcolor: '#fff', p: '3px', boxShadow: '0 0 0 2px rgba(255,255,255,.45)' }} />
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography sx={{ fontWeight: 800, lineHeight: 1.1, fontFamily: 'Poppins, sans-serif', display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -252,8 +252,8 @@ export const ChatPage = () => {
           </Typography>
           <Typography sx={{ fontSize: 11, opacity: 0.9 }}>Assistente de saúde com IA{firstName ? ` · ${firstName}` : ''}</Typography>
         </Box>
-        <IconButton size="small" onClick={() => setHistOpen(true)} title="Histórico de conversas" sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,.15)', '&:hover': { bgcolor: 'rgba(255,255,255,.25)' } }}>
-          <Badge badgeContent={convs.length} color="warning" overlap="circular" invisible={convs.length === 0} sx={{ '& .MuiBadge-badge': { fontSize: 10, height: 16, minWidth: 16, top: 3, right: 3 } }}><HistoryIcon fontSize="small" /></Badge>
+        <IconButton onClick={() => setHistOpen(true)} aria-label={`Histórico de conversas (${convs.length})`} title="Histórico de conversas" sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,.15)', p: { xs: 1.25, sm: 1 }, '&:hover': { bgcolor: 'rgba(255,255,255,.25)' } }}>
+          <Badge badgeContent={convs.length > 9 ? '9+' : convs.length} color="warning" overlap="circular" invisible={convs.length === 0} sx={{ '& .MuiBadge-badge': { fontSize: 11, fontWeight: 700, height: 18, minWidth: 18, top: 3, right: 3, bgcolor: '#d32f2f' } }}><HistoryIcon sx={{ fontSize: 24 }} /></Badge>
         </IconButton>
       </Paper>
 

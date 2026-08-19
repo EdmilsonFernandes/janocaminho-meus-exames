@@ -143,7 +143,8 @@ const HeroHealthCard = ({ loaded, score, importante, moderada, lastExam, onDetai
           </Box>
         </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography sx={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: st.tone === 'success' ? '#2e6b32' : st.tone === 'warning' ? '#8a5a1f' : st.tone === 'error' ? '#b91c1c' : '#0f6e68' }}>Sua saúde hoje</Typography>
+          {/* Sentence case (audit Onda A): caixa alta + ls largo = cara de painel admin. */}
+          <Typography sx={{ fontSize: 12, fontWeight: 700, color: st.tone === 'success' ? '#2e6b32' : st.tone === 'warning' ? '#8a5a1f' : st.tone === 'error' ? '#b91c1c' : '#0f6e68' }}>Sua saúde hoje</Typography>
           <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 22, lineHeight: 1.15, color: 'text.primary', mt: 0.25 }}>{st.label}</Typography>
           <Stack direction="row" spacing={1.5} sx={{ mt: 1, flexWrap: 'wrap', rowGap: 0.5 }}>
             {totalAtt > 0 ? (

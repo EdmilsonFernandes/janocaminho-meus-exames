@@ -57,12 +57,12 @@ export const ConquistasPage = () => {
   const badgeCard = (b: Badge) => (
     <Card key={b.id} sx={{ borderRadius: '12px', p: 1.75, textAlign: 'center', position: 'relative', border: b.claimed ? '1.5px solid rgba(32,178,170,.45)' : b.earned ? '1.5px solid rgba(32,178,170,.3)' : '1.5px solid', borderColor: b.claimed || b.earned ? undefined : 'divider', bgcolor: b.claimed ? 'rgba(32,178,170,.08)' : b.earned ? 'rgba(32,178,170,.05)' : 'background.paper' }}>
       {b.period === 'monthly' && (
-        <Chip size="small" label="♻️ mensal" sx={{ position: 'absolute', top: 6, right: 6, height: 18, fontSize: 9, fontWeight: 800, bgcolor: 'rgba(32,178,170,.12)', color: '#178f89' }} />
+        <Chip size="small" label="♻️ mensal" sx={{ position: 'absolute', top: 6, right: 6, height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(32,178,170,.12)', color: '#178f89' }} />
       )}
       <Box sx={{ fontSize: 34, mb: 0.5, filter: b.earned ? 'none' : 'grayscale(1)', opacity: b.earned ? 1 : 0.5 }}>{b.emoji}</Box>
       <Typography sx={{ fontSize: 13, fontWeight: 800, color: b.earned ? 'text.primary' : 'text.secondary', lineHeight: 1.2 }}>{b.title}</Typography>
-      <Typography sx={{ fontSize: 11, color: 'text.secondary', lineHeight: 1.25, mt: 0.25, minHeight: 26 }}>{b.desc}</Typography>
-      <Typography sx={{ fontSize: 11, fontWeight: 700, color: '#b88a54', mt: 0.5 }}>🎁 {b.reward} crédito{b.reward > 1 ? 's' : ''}</Typography>
+      <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.3, mt: 0.25, minHeight: 28 }}>{b.desc}</Typography>
+      <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#b88a54', mt: 0.5 }}>🎁 {b.reward} crédito{b.reward > 1 ? 's' : ''}</Typography>
       {b.claimed ? (
         <Typography sx={{ fontSize: 11, fontWeight: 800, color: '#178f89', mt: 0.75 }}>✓ {b.period === 'monthly' ? 'Resgatado este mês' : 'Resgatado'}</Typography>
       ) : b.claimable ? (
@@ -72,7 +72,7 @@ export const ConquistasPage = () => {
       ) : (
         <>
           <LinearProgress variant="determinate" value={b.progress * 100} sx={{ mt: 0.75, height: 4, borderRadius: '999px', bgcolor: 'action.hover', '& .MuiLinearProgress-bar': { bgcolor: '#20b2aa' } }} />
-          <Typography sx={{ fontSize: 10, color: 'text.secondary', mt: 0.25 }}>{Math.round(b.progress * 100)}%</Typography>
+          <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 0.25 }}>{Math.round(b.progress * 100)}%</Typography>
         </>
       )}
     </Card>
@@ -111,7 +111,7 @@ export const ConquistasPage = () => {
         <Box sx={{ mb: 2.5 }}>
           <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
             <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'text.primary' }}>♻️ Desafios do mês</Typography>
-            {state.monthLabel && <Chip size="small" label={state.monthLabel} sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(32,178,170,.10)', color: '#178f89' }} />}
+            {state.monthLabel && <Chip size="small" label={state.monthLabel} sx={{ height: 22, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(32,178,170,.10)', color: '#178f89' }} />}
           </Stack>
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.25 }}>
             Recomeçam todo mês — mantê-los em dia é o hábito que cuida da sua saúde.

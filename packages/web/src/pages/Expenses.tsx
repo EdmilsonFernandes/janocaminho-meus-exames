@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, Typography, Button, TextField, IconButton, Stack, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { confirmDialog } from '../components/ConfirmDialog';
 import PaymentsIcon from '@mui/icons-material/Payments';
 import { useNotify, useTranslate } from 'react-admin';
 import { API_URL, apiHeaders, token } from '../config';
@@ -50,6 +51,7 @@ export const ExpensesPage = () => {
   };
 
   const del = async (id: string) => {
+    if (!(await confirmDialog({ title: 'Excluir lançamento', message: 'Apagar este lançamento? Afeta o total e o relatório de IR.', confirmLabel: 'Excluir' }))) return;
     try {
       await fetch(`${API_URL}/expenses/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });
       await load();
