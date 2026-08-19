@@ -99,14 +99,14 @@ const SCOPE_META: Record<string, { label: string; icon: ReactElement }> = {
   notes: { label: 'Anotações', icon: <EditNoteIcon /> },
 };
 
-/** Abas do portal (espelham o app do paciente): Exames + Alterados + Tendências (scope 'exams'),
- *  Relatório (scope 'summary'), Perguntas + Anotações sempre (por vínculo, não por scope).
- *  Ordem final: Exames, Alterados, Tendências, Relatório, Perguntas, Anotações. */
+/** Abas do portal = 4 destinos CLÍNICOS grandes (feedback 2026-08-19): Exames, Alterados,
+ *  Tendências (scope 'exams') + Relatório (scope 'summary'). Perguntas e Anotações SAEM da barra
+ *  — viram destino dos TILES do resumo do paciente (Pendências→Perguntas, Anotações→notas,
+ *  Último exame→Exames): menos competição na barra, botões maiores com rótulo legível. */
 const computeTabs = (scopes: string[]): string[] => {
   const t: string[] = [];
   if (scopes.includes('exams')) t.push('exams', 'alterados', 'tendencias');
   if (scopes.includes('summary')) t.push('relatorio');
-  t.push('questions', 'notes');
   return t;
 };
 
@@ -344,11 +344,15 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   // Mobile: mantém o Drawer overlay + rodapé (Pacientes · Perfil · Mais).
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
-  const isSmUp = useMediaQuery(theme.breakpoints.up('sm'));
 
   useEffect(() => {
     fetch(`${API_URL}/doctor/me`, { headers: h }).then((r) => r.json()).then((d) => setDoctor(d.doctor)).catch(() => {});
-    fetch(`${API_URL}/doctor/patients`, { headers: h }).then((r) => r.json()).then((d) => { setPatients(d.items ?? []); setLoading(false); }).catch(() => setLoading(false));
+    // Ordem alfabética por nome do paciente (2026-08-19): médico com vários pacientes precisa
+    // de lista previsível p/ se organizar — localeCompare pt-BR ignora acento.
+    fetch(`${API_URL}/doctor/patients`, { headers: h }).then((r) => r.json()).then((d) => {
+      setPatients([...(d.items ?? [])].sort((a: any, b: any) => (a.patient?.fullName ?? '').localeCompare(b.patient?.fullName ?? '', 'pt-BR', { sensitivity: 'base' })));
+      setLoading(false);
+    }).catch(() => setLoading(false));
     fetch(`${API_URL}/doctor/me/plan`, { headers: h }).then((r) => r.json()).then(setPlanInfo).catch(() => {});
     fetch(`${API_URL}/doctor/invites`, { headers: h }).then((r) => r.json()).then((d) => setInvites(d.items ?? [])).catch(() => {});
   }, []);
@@ -697,7 +701,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                         <Typography sx={{ fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>{q.patient?.fullName}<OpenInNewIcon sx={{ fontSize: 13, color: 'text.disabled' }} /></Typography>
                         <QuestionStatusBadge status={answered ? 'answered' : 'open'} />
                       </Stack>
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>{q.subject} · {relDate(q.createdAt)}{qp?.age != null ? ` · ${qp.age}a${qp.sex === 'female' ? ' · F' : qp.sex === 'male' ? ' · M' : ''}` : ''}</Typography>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={q.subject}>{q.subject} · {relDate(q.createdAt)}{qp?.age != null ? ` · ${qp.age}a${qp.sex === 'female' ? ' · F' : qp.sex === 'male' ? ' · M' : ''}` : ''}</Typography>
                     </Box>
                   </Box>
                   {!answered && <Button size="small" variant={isOpen ? 'outlined' : 'contained'} onClick={() => setReplyOpen(isOpen ? null : q.id)} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: isOpen ? undefined : 'primary.main', color: isOpen ? 'primary.dark' : '#fff', boxShadow: 'none', '&:hover': { bgcolor: isOpen ? undefined : 'primary.dark' }, flexShrink: 0 }}>{isOpen ? 'Fechar' : 'Responder'}</Button>}
@@ -832,7 +836,9 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
             Princípios de dashboard clínico: priorização por risco + por quê + ação de 1 clique. */}
         {view === 'overview' && loading && <Box sx={{ textAlign: 'center', py: 6 }}><CircularProgress sx={{ color: 'primary.dark' }} /></Box>}
         {view === 'overview' && !loading && (() => {
-          const alerts = [...patients].filter((p) => p.hasAlerts).sort((a, b) => new Date(b.lastExamAt ?? 0).getTime() - new Date(a.lastExamAt ?? 0).getTime());
+          // Alfabética (2026-08-19): pedido do dono — organização previsível pro médico; a
+          // prioridade clínica segue visível na linha de status (🟠 moderadas · exame há X).
+          const alerts = [...patients].filter((p) => p.hasAlerts).sort((a, b) => (a.patient?.fullName ?? '').localeCompare(b.patient?.fullName ?? '', 'pt-BR', { sensitivity: 'base' }));
           const openQP = patients.filter((p) => (p.openQuestions ?? 0) > 0);
           const pendingInv = invites.filter((i) => i.status === 'pending');
           const PRIORITY_LABEL: Record<string, string> = { importante: '🔴 Prioridade alta', moderada: '🟠 Alterações moderadas', leve: '🟡 Alterações leves' };
@@ -1068,23 +1074,31 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               onSwitchPatient={(pid) => { const np = patients.find((x: any) => (x.patient?.id || x.id) === pid); if (np) openPatient(np); }}
               onOpenExam={(id) => setSelExam(id)}
               onAlterados={() => { if (supportedTabs.includes('alterados')) { setTab('alterados'); setSelExam(null); } }}
+              onOpenExams={() => { setTab('exams'); setSelExam(null); }}
+              onOpenQuestions={() => { setTab('questions'); setSelExam(null); }}
+              onOpenNotes={() => { setTab('notes'); setSelExam(null); }}
             />
 
             {supportedTabs.length > 0 && (
               <Box sx={{ position: 'sticky', top: 'env(safe-area-inset-top)', zIndex: 10, bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider', mx: -2, px: 2, mt: { xs: -0.5, lg: 0 }, mb: 2 }}>
                 <Tabs
-                  value={tab}
+                  /* A aba ativa pode ser um destino de TILE (questions/notes) que não está na
+                     barra — value=false evita warning do MUI e mantém nenhuma aba marcada. */
+                  value={supportedTabs.includes(tab) ? tab : false}
                   onChange={(_, v) => { setTab(v); setSelExam(null); }}
                   variant="fullWidth"
                   aria-label="Abas do paciente"
                   sx={{
-                    minHeight: 48,
+                    minHeight: 58,
                     '& .MuiTabs-scroller': { py: 0.5 },
                     '& .MuiTabs-flexContainer': { justifyContent: 'space-between' },
                     '& .MuiTab-root': {
-                      minHeight: 48, minWidth: { xs: 40, sm: 80 }, px: { xs: 0.5, sm: 1.25 }, py: 0.75,
+                      // 4 abas agora: MAIORES, com rótulo SEMPRE visível (ícone em cima,
+                      // descrição embaixo) — alvo confortável + clareza de destino.
+                      minHeight: 58, px: { xs: 0.5, sm: 1.5 }, py: 1,
                       textTransform: 'none', fontWeight: 700,
-                      color: 'text.secondary', flexDirection: 'column', gap: 0.25,
+                      color: 'text.secondary', flexDirection: 'column', gap: 0.5,
+                      '& .MuiTab-icon': { fontSize: 26 },
                       '&.Mui-selected': { color: 'primary.main' },
                     },
                   }}
@@ -1092,10 +1106,9 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                   {supportedTabs.map((s) => {
                     const meta = SCOPE_META[s] || { icon: <DescriptionIcon />, label: s };
                     const abnormalCount = exams.reduce((n: number, e: any) => n + (e.items?.length || 0), 0);
-                    const count = s === 'exams' ? exams.length : s === 'alterados' ? abnormalCount : s === 'questions' ? questions.filter((q: any) => q.status !== 'answered').length : s === 'notes' ? notes.length : 0;
-                    // Mobile (xs): icon-only p/ 6 abas caberem em ~328px (~54px cada) sem scroll horizontal.
-                    // sm+: ícone + label (comportamento padrão). Label do ativo vira caption só no xs.
-                    const showLabel = isSmUp || tab === s;
+                    const count = s === 'exams' ? exams.length : s === 'alterados' ? abnormalCount : 0;
+                    // 4 abas: rótulo SEMPRE visível (era icon-only no xs p/ caber 6) — ícone em
+                    // cima, descrição embaixo, contador como sup discreto.
                     return (
                       <Tab
                         key={s}
@@ -1104,8 +1117,8 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                         iconPosition="top"
                         aria-label={meta.label}
                         title={meta.label}
-                        label={showLabel ? (
-                          <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, fontSize: { xs: 11, sm: 13 } }}>
+                        label={
+                          <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, fontSize: { xs: 12, sm: 13 }, lineHeight: 1.2 }}>
                             <Box component="span">{meta.label}</Box>
                             {count > 0 && (
                               <Box component="sup" sx={{
@@ -1115,9 +1128,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                               }}>{count}</Box>
                             )}
                           </Box>
-                        ) : (count > 0 ? (
-                          <Box component="sup" sx={{ fontSize: 10, fontWeight: 800, lineHeight: 1, color: s === 'alterados' && abnormalCount > 0 ? 'error.main' : 'text.secondary' }}>{count}</Box>
-                        ) : null)}
+                        }
                       />
                     );
                   })}
@@ -1160,7 +1171,8 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                         <Card key={q.id} variant="outlined" sx={{ borderRadius: '12px', borderColor: 'divider' }}>
                           <CardContent>
                             <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1} sx={{ mb: 1 }}>
-                              <Typography sx={{ fontWeight: 800, wordBreak: 'break-word' }}>💬 {q.subject}</Typography>
+                              {/* Título com clamp 2 linhas (perguntas antigas têm subject longo) + texto completo no title. */}
+                              <Typography sx={{ fontWeight: 800, wordBreak: 'break-word', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }} title={q.subject}>💬 {q.subject}</Typography>
                               <QuestionStatusBadge status={q.status} />
                             </Stack>
                             {msgs.length > 0 && (

@@ -61,52 +61,49 @@ export const MeasurementsPage = () => {
   const latestWeight = weights[0];
   const prevWeight = weights[1];
 
+  // Sparkline do peso (SVG inline, ~120×36): recompensa visual por registrar — a tendência
+  // importa mais que a lista. Cronológica (esquerda→direita = mais antigo→novo).
+  const WeightSpark = ({ data }: { data: number[] }) => {
+    if (data.length < 2) return null;
+    const w = 120, h = 36, pad = 3;
+    const min = Math.min(...data), max = Math.max(...data);
+    const span = max - min || 1;
+    const pts = data.map((v, i) => `${pad + (i * (w - 2 * pad)) / (data.length - 1)},${h - pad - ((v - min) / span) * (h - 2 * pad)}`);
+    return (
+      <Box component="svg" viewBox={`0 0 ${w} ${h}`} sx={{ width: 120, height: 36, flexShrink: 0 }} aria-hidden="true">
+        <polyline points={pts.join(' ')} fill="none" stroke="#178f89" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx={pts[pts.length - 1].split(',')[0]} cy={pts[pts.length - 1].split(',')[1]} r="3" fill="#178f89" />
+      </Box>
+    );
+  };
+
   return (
     <PageContainer width="content">
       <PageHeader icon={<MonitorWeightIcon />} title={translate('page.measurements')} />
-      <Card sx={{ mb: 2 }}>
-        <CardContent>
-          <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Typography variant="h6">Nova medição</Typography>
-            <Button size="small" onClick={() => setOpen((o) => !o)} endIcon={<ExpandMoreIcon sx={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }} />}>{open ? 'Fechar' : 'Registrar'}</Button>
-          </Stack>
-          <Collapse in={open}>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 2 }}>
-              <FormControl size="small" sx={{ minWidth: 180 }}>
-                <InputLabel>Tipo</InputLabel>
-                <Select label="Tipo" value={type} onChange={(e) => setType(e.target.value)}>
-                  {TYPES.map((t) => <MenuItem key={t.v} value={t.v}>{t.l}</MenuItem>)}
-                </Select>
-              </FormControl>
-              {TYPES.find((t) => t.v === type)?.dual ? (
-                <>
-                  <TextField size="small" label="Sistólica" type="number" value={value} onChange={(e) => setValue(e.target.value)} sx={{ width: 110 }} />
-                  <TextField size="small" label="Diastólica" type="number" value={value2} onChange={(e) => setValue2(e.target.value)} sx={{ width: 110 }} />
-                </>
-              ) : (
-                <TextField size="small" label="Valor" type="number" value={value} onChange={(e) => setValue(e.target.value)} sx={{ width: 130 }} />
-              )}
-              <TextField size="small" type="date" label="Data" value={date} onChange={(e) => setDate(e.target.value)} InputLabelProps={{ shrink: true }} />
-              <Button variant="contained" onClick={add} disabled={!value}>Adicionar</Button>
-            </Stack>
-          </Collapse>
-        </CardContent>
-      </Card>
-      {/* PESO — bloco em destaque (separado das demais medições; antes tudo misturado numa lista) */}
+      {/* DADO PRIMEIRO, ferramenta depois (audit: form-first dava cara de planilha). */}
+      {/* PESO — bloco em destaque com tendência + sparkline */}
       <Card sx={{ mb: 2, border: '1px solid', borderColor: 'rgba(32,178,170,.25)', background: 'linear-gradient(135deg, rgba(32,178,170,.08), transparent)' }}>
         <CardContent>
           <Typography variant="h6" sx={{ mb: 1 }}>⚖️ Peso</Typography>
           {weights.length === 0 ? (
-            <Typography color="text.secondary" sx={{ py: 1 }}>Nenhum peso registrado ainda.</Typography>
+            <Box sx={{ textAlign: 'center', py: 2.5 }}>
+              <Box sx={{ fontSize: 40, mb: 1, opacity: 0.5 }}>⚖️</Box>
+              <Typography color="text.secondary" sx={{ mb: 1.5 }}>Registre seu peso e acompanhe a tendência aqui.</Typography>
+              <Button size="small" variant="outlined" onClick={() => { setType('WEIGHT'); setOpen(true); }} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>Registrar peso</Button>
+            </Box>
           ) : (
             <>
-              <Stack direction="row" alignItems="baseline" spacing={1} sx={{ mb: 0.5 }}>
-                <Typography sx={{ fontWeight: 800, fontSize: 32, color: 'primary.dark', lineHeight: 1 }}>{latestWeight.value}<Typography component="span" sx={{ fontSize: 14, color: 'text.secondary', ml: 0.5, fontWeight: 600 }}>kg</Typography></Typography>
+              <Stack direction="row" alignItems="center" spacing={1.5} useFlexGap flexWrap="wrap" sx={{ mb: 0.5 }}>
+                <Stack direction="row" alignItems="baseline" spacing={0.5}>
+                  <Typography sx={{ fontWeight: 800, fontSize: 32, color: 'primary.dark', lineHeight: 1 }}>{latestWeight.value}</Typography>
+                  <Typography component="span" sx={{ fontSize: 14, color: 'text.secondary', fontWeight: 600 }}>kg</Typography>
+                </Stack>
                 {prevWeight && Number(latestWeight.value) !== Number(prevWeight.value) && (() => {
                   const up = Number(latestWeight.value) > Number(prevWeight.value);
                   const diff = Math.abs(Number(latestWeight.value) - Number(prevWeight.value)).toLocaleString('pt-BR');
-                  return <Chip size="small" label={`${up ? '↑' : '↓'} ${diff} kg`} sx={{ height: 22, fontWeight: 700, bgcolor: up ? 'rgba(234,88,12,.12)' : 'rgba(22,163,74,.12)', color: up ? '#ea580c' : '#16a34a' }} />;
+                  return <Chip size="small" label={`${up ? '↑' : '↓'} ${diff} kg`} sx={{ height: 22, fontWeight: 700, bgcolor: up ? 'rgba(234,88,12,.12)' : 'rgba(22,163,74,.12)', color: up ? '#9a3412' : '#166534' }} />;
                 })()}
+                <WeightSpark data={[...weights].reverse().slice(-10).map((m) => Number(m.value))} />
               </Stack>
               <Typography variant="caption" color="text.secondary">Última medição em {fmtDate(latestWeight.measuredAt)}</Typography>
               {weights.length > 1 && (
@@ -132,14 +129,18 @@ export const MeasurementsPage = () => {
         <CardContent>
           <Typography variant="h6" gutterBottom>Medições vitais</Typography>
           {vitals.length === 0 ? (
-            <Typography color="text.secondary" sx={{ py: 2 }}>Nenhuma medição vital ainda. Registre pressão, glicose ou frequência cardíaca acima.</Typography>
+            <Box sx={{ textAlign: 'center', py: 2.5 }}>
+              <Box sx={{ fontSize: 40, mb: 1, opacity: 0.5 }}>🩺</Box>
+              <Typography color="text.secondary" sx={{ mb: 1.5 }}>Pressão, glicose e frequência cardíaca que você medir aparecem aqui.</Typography>
+              <Button size="small" variant="outlined" onClick={() => { setType('BLOOD_PRESSURE'); setOpen(true); }} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>Registrar medição</Button>
+            </Box>
           ) : (
             <List>
               {vitals.map((m) => {
                 const t = TYPES.find((x) => x.v === m.type) ?? TYPES[TYPES.length - 1];
                 return (
                   <ListItem key={m.id} sx={{ px: 0, borderBottom: '1px solid', borderColor: 'divider' }}
-                    secondaryAction={<IconButton edge="end" onClick={() => del(m.id)}><DeleteIcon /></IconButton>}>
+                    secondaryAction={<IconButton edge="end" aria-label={`Excluir medição de ${t.l}`} onClick={() => del(m.id)}><DeleteIcon /></IconButton>}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0 }}>
                       <Box sx={{ width: 36, height: 36, borderRadius: '12px', display: 'grid', placeItems: 'center', flexShrink: 0, bgcolor: t.color + '18', color: t.color, fontSize: 18 }}>{t.emoji}</Box>
                       <Box sx={{ minWidth: 0 }}>
@@ -152,6 +153,36 @@ export const MeasurementsPage = () => {
               })}
             </List>
           )}
+        </CardContent>
+      </Card>
+
+      {/* REGISTRAR — por último (dado em cima, ferramenta embaixo; colapsado por padrão) */}
+      <Card sx={{ mt: 2 }}>
+        <CardContent>
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Typography variant="h6">Nova medição</Typography>
+            <Button size="small" onClick={() => setOpen((o) => !o)} endIcon={<ExpandMoreIcon sx={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }} />}>{open ? 'Fechar' : 'Registrar'}</Button>
+          </Stack>
+          <Collapse in={open}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 2 }} alignItems={{ xs: 'stretch', sm: 'center' }}>
+              <FormControl size="small" sx={{ minWidth: 180 }}>
+                <InputLabel>Tipo</InputLabel>
+                <Select label="Tipo" value={type} onChange={(e) => setType(e.target.value)}>
+                  {TYPES.map((t) => <MenuItem key={t.v} value={t.v}>{t.l}</MenuItem>)}
+                </Select>
+              </FormControl>
+              {TYPES.find((t) => t.v === type)?.dual ? (
+                <>
+                  <TextField size="small" label="Sistólica" type="number" value={value} onChange={(e) => setValue(e.target.value)} sx={{ width: { xs: '100%', sm: 110 } }} />
+                  <TextField size="small" label="Diastólica" type="number" value={value2} onChange={(e) => setValue2(e.target.value)} sx={{ width: { xs: '100%', sm: 110 } }} />
+                </>
+              ) : (
+                <TextField size="small" label="Valor" type="number" value={value} onChange={(e) => setValue(e.target.value)} sx={{ width: { xs: '100%', sm: 130 } }} />
+              )}
+              <TextField size="small" type="date" label="Data" value={date} onChange={(e) => setDate(e.target.value)} InputLabelProps={{ shrink: true }} sx={{ width: { xs: '100%', sm: 160 } }} />
+              <Button variant="contained" onClick={add} disabled={!value} sx={{ alignSelf: { xs: 'stretch', sm: 'center' } }}>Adicionar</Button>
+            </Stack>
+          </Collapse>
         </CardContent>
       </Card>
     </PageContainer>

@@ -88,6 +88,13 @@ export const ProfilePage = () => {
     const r = await fetch(`${API_URL}/auth/me`, { method: 'PATCH', headers: apiHeaders(true), body: JSON.stringify({ achievementAlerts: on }) });
     if (!r.ok) { setAchAlerts(!on); notify('Erro ao salvar preferência.', { type: 'error' }); }
   };
+  // Libras: preferência LOCAL (o widget vive no index.html, fora do React) — body class + localStorage.
+  const [librasOn, setLibrasOn] = useState(() => { try { return localStorage.getItem('meus_exames_libras') !== '0'; } catch { return true; } });
+  const toggleLibras = (on: boolean) => {
+    setLibrasOn(on);
+    try { localStorage.setItem('meus_exames_libras', on ? '1' : '0'); } catch { /* localStorage indisponível */ }
+    document.body.classList.toggle('libras-off', !on);
+  };
   const changePw = async () => {
     if (nw !== cf) { notify('A nova senha e a confirmação não conferem.', { type: 'error' }); return; }
     if (nw.length < 6) { notify('Nova senha mín. 6 caracteres.', { type: 'error' }); return; }
@@ -210,6 +217,16 @@ export const ProfilePage = () => {
           <Typography variant="h6" gutterBottom>🔔 Notificações</Typography>
           <FormControlLabel control={<Switch checked={achAlerts} onChange={(e) => toggleAchAlerts(e.target.checked)} />} label="Avisar quando eu desbloquear uma conquista" />
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>Você continua ganhando os créditos mesmo com isso desligado — só não recebe o aviso no sino.</Typography>
+        </CardContent>
+      </Card>
+
+      {/* Acessibilidade — Libras opcional (2026-08-19): o widget flutuante atrapalhava quem não
+          usa; default LIGADO (acessibilidade não é opt-in p/ quem precisa), desligar remove da tela. */}
+      <Card sx={{ mb: 2, borderRadius: '12px' }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>♿ Acessibilidade</Typography>
+          <FormControlLabel control={<Switch checked={librasOn} onChange={(e) => toggleLibras(e.target.checked)} />} label="Botão de tradução em Libras" />
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>Traduz os textos do app para Língua Brasileira de Sinais. Desligue para remover o botão flutuante da tela.</Typography>
         </CardContent>
       </Card>
 

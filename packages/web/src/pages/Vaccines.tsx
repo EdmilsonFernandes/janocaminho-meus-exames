@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Card, CardContent, Typography, Button, TextField, List, ListItem, ListItemText, IconButton, Stack, Chip } from '@mui/material';
+import { Card, CardContent, Typography, Button, TextField, List, ListItem, ListItemText, IconButton, Stack, Chip, Box, Collapse } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { confirmDialog } from '../components/ConfirmDialog';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import VaccinesIcon from '@mui/icons-material/Vaccines';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
@@ -15,6 +16,7 @@ export const VaccinesPage = () => {
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [nextDate, setNextDate] = useState('');
   const [lot, setLot] = useState('');
+  const [formOpen, setFormOpen] = useState(false); // colapsado: a CARTEIRA é a protagonista
 
   const load = async () => {
     if (!pid) return;
@@ -44,23 +46,16 @@ export const VaccinesPage = () => {
   return (
     <PageContainer width="content">
       <PageHeader icon={<VaccinesIcon />} title="Carteira de Vacinação" />
+      {/* CARTEIRA primeiro (consulta > cadastro — audit: form-first dava cara de planilha). */}
       <Card sx={{ mb: 2 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>Registrar vacina</Typography>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} useFlexGap flexWrap="wrap">
-            <TextField size="small" label="Vacina" placeholder="Influenza, COVID-19..." value={name} onChange={(e) => setName(e.target.value)} sx={{ flex: 1, minWidth: 180 }} />
-            <TextField size="small" type="date" label="Aplicada em" value={date} onChange={(e) => setDate(e.target.value)} InputLabelProps={{ shrink: true }} />
-            <TextField size="small" type="date" label="Próxima dose" value={nextDate} onChange={(e) => setNextDate(e.target.value)} InputLabelProps={{ shrink: true }} />
-            <TextField size="small" label="Lote" value={lot} onChange={(e) => setLot(e.target.value)} sx={{ width: 100 }} />
-            <Button variant="contained" onClick={add} disabled={!name.trim()}>Adicionar</Button>
-          </Stack>
-        </CardContent>
-      </Card>
-      <Card>
         <CardContent>
           <Typography variant="h6" gutterBottom>Histórico de vacinas</Typography>
           {items.length === 0 ? (
-            <Typography color="text.secondary" sx={{ py: 2 }}>Nenhuma vacina registrada. Cadastre suas vacinas aqui.</Typography>
+            <Box sx={{ textAlign: 'center', py: 2.5 }}>
+              <Box sx={{ fontSize: 40, mb: 1, opacity: 0.5 }}>💉</Box>
+              <Typography color="text.secondary" sx={{ mb: 1.5 }}>Sua carteira de vacinas fica aqui — útil na consulta e na viagem.</Typography>
+              <Button size="small" variant="outlined" onClick={() => setFormOpen(true)} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>Registrar primeira vacina</Button>
+            </Box>
           ) : (
             <List>
               {items.map((v) => (
@@ -77,6 +72,25 @@ export const VaccinesPage = () => {
               ))}
             </List>
           )}
+        </CardContent>
+      </Card>
+
+      {/* REGISTRAR — colapsado, embaixo (ferramenta, não protagonista) */}
+      <Card>
+        <CardContent>
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Typography variant="h6">Registrar vacina</Typography>
+            <Button size="small" onClick={() => setFormOpen((o) => !o)} endIcon={<ExpandMoreIcon sx={{ transform: formOpen ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }} />}>{formOpen ? 'Fechar' : 'Registrar'}</Button>
+          </Stack>
+          <Collapse in={formOpen}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 2 }} alignItems={{ xs: 'stretch', sm: 'center' }}>
+              <TextField size="small" label="Vacina" placeholder="Influenza, COVID-19..." value={name} onChange={(e) => setName(e.target.value)} sx={{ flex: 1, minWidth: 180 }} />
+              <TextField size="small" type="date" label="Aplicada em" value={date} onChange={(e) => setDate(e.target.value)} InputLabelProps={{ shrink: true }} sx={{ width: { xs: '100%', sm: 170 } }} />
+              <TextField size="small" type="date" label="Próxima dose" value={nextDate} onChange={(e) => setNextDate(e.target.value)} InputLabelProps={{ shrink: true }} sx={{ width: { xs: '100%', sm: 170 } }} />
+              <TextField size="small" label="Lote" value={lot} onChange={(e) => setLot(e.target.value)} sx={{ width: { xs: '100%', sm: 100 } }} />
+              <Button variant="contained" onClick={add} disabled={!name.trim()} sx={{ alignSelf: { xs: 'stretch', sm: 'center' } }}>Adicionar</Button>
+            </Stack>
+          </Collapse>
         </CardContent>
       </Card>
     </PageContainer>

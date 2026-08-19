@@ -6,6 +6,7 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import EditNoteIcon from '@mui/icons-material/EditNote';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { photoUrlFor } from '../../config';
 import { DoctorPatientSwitcher } from './DoctorPatientSwitcher';
 
@@ -40,6 +41,11 @@ export interface PatientSummaryProps {
   onOpenExam?: (examId: string) => void;
   /** Click nas tecla "Alterações" — opcional (abre a aba Alterados se o pai ligar). */
   onAlterados?: () => void;
+  /** Tiles viram NAVEGAÇÃO (2026-08-19): Perguntas/Anotações saíram da barra de abas —
+   *  o resumo do paciente é quem leva até eles (e Último exame → aba Exames). */
+  onOpenExams?: () => void;
+  onOpenQuestions?: () => void;
+  onOpenNotes?: () => void;
 }
 
 interface Tile {
@@ -58,7 +64,7 @@ interface Tile {
  * botão "Trocar" (Dialog reusando DoctorPatientSwitcher) e 4 teclas clínicas.
  * Cores via theme.palette.primary + alpha (sem hex cru).
  */
-export const PatientSummary = ({ patient, exams, questions, notes, patients, onSwitchPatient, onAlterados }: PatientSummaryProps) => {
+export const PatientSummary = ({ patient, exams, questions, notes, patients, onSwitchPatient, onAlterados, onOpenExams, onOpenQuestions, onOpenNotes }: PatientSummaryProps) => {
   const theme = useTheme();
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const primary = theme.palette.primary.main;
@@ -90,6 +96,7 @@ export const PatientSummary = ({ patient, exams, questions, notes, patients, onS
       value: lastExamAt ? fmtDateShort(lastExamAt) : 'Sem exames',
       sub: lastExamAt ? timeAgo(lastExamAt) : '',
       color: 'text.primary',
+      onClick: onOpenExams,
     },
     {
       key: 'alt',
@@ -101,10 +108,12 @@ export const PatientSummary = ({ patient, exams, questions, notes, patients, onS
     },
     {
       key: 'pend',
-      label: 'Pendências',
+      label: 'Perguntas',
       icon: <QuestionAnswerIcon sx={{ fontSize: 18, color: pendingQs > 0 ? theme.palette.warning.main : primary }} />,
       value: String(pendingQs),
+      sub: pendingQs > 0 ? 'aguardando' : undefined,
       color: pendingQs > 0 ? 'warning.main' : 'text.primary',
+      onClick: onOpenQuestions,
     },
     {
       key: 'notes',
@@ -112,6 +121,7 @@ export const PatientSummary = ({ patient, exams, questions, notes, patients, onS
       icon: <EditNoteIcon sx={{ fontSize: 18, color: primary }} />,
       value: String(notes.length),
       color: 'text.primary',
+      onClick: onOpenNotes,
     },
   ];
 
@@ -136,18 +146,22 @@ export const PatientSummary = ({ patient, exams, questions, notes, patients, onS
           <Box
             key={t.key}
             onClick={t.onClick}
+            onKeyDown={(e) => { if (t.onClick && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); t.onClick(); } }}
             role={t.onClick ? 'button' : undefined}
             tabIndex={t.onClick ? 0 : undefined}
+            aria-label={t.onClick ? `Abrir ${t.label}` : undefined}
             sx={{
               p: 1.25, borderRadius: '12px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider',
               cursor: t.onClick ? 'pointer' : 'default',
-              transition: 'border-color .15s',
-              '&:hover': t.onClick ? { borderColor: primary } : {},
+              transition: 'border-color .15s, box-shadow .15s',
+              '&:hover': t.onClick ? { borderColor: primary, boxShadow: `0 2px 8px ${alpha(primary, 0.15)}` } : {},
+              '&:active': t.onClick ? { transform: 'scale(.98)' } : {},
             }}
           >
             <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 0.25 }}>
               {t.icon}
-              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>{t.label}</Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, flex: 1 }}>{t.label}</Typography>
+              {t.onClick && <ChevronRightIcon sx={{ fontSize: 15, color: 'text.disabled' }} />}
             </Stack>
             <Typography sx={{ fontWeight: 800, color: t.color as never, fontSize: 16, lineHeight: 1.2 }}>{t.value}</Typography>
             {t.sub && <Typography variant="caption" sx={{ color: 'text.secondary' }}>{t.sub}</Typography>}

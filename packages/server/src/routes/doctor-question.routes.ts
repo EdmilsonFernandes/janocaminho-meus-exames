@@ -45,6 +45,17 @@ router.get('/:id', async (req: AuthedRequest, res, next) => {
   } catch (e) { next(e); }
 });
 
+/** Título legível de pergunta: colapsa espaços e corta em FRONTeira DE PALAVRA com reticências.
+ *  Antes o subject era o texto cru picotado (cliente mandava .slice(0,90) no meio da frase e o
+ *  server .slice(0,300)) — o "título" chegava com pedaço da pergunta (bug reportado 2026-08-19). */
+const tidySubject = (raw: string): string => {
+  const t = raw.replace(/\s+/g, ' ').trim();
+  if (t.length <= 80) return t;
+  const cut = t.slice(0, 80);
+  const lastSpace = cut.lastIndexOf(' ');
+  return `${(lastSpace > 40 ? cut.slice(0, lastSpace) : cut).trimEnd()}…`;
+};
+
 // CRIAR pergunta ao médico (cobre créditos; exige DoctorShare ativo)
 router.post('/', async (req: AuthedRequest, res, next) => {
   try {
@@ -124,7 +135,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
         patientId: pid,
         doctorId: String(doctorId),
         doctorShareId: share.id,
-        subject: (subjectStr || msgBody).slice(0, 300),
+        subject: tidySubject(subjectStr || msgBody),
         creditsCharged: cost,
         status: 'open',
         unreadByDoctor: true,

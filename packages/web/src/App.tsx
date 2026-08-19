@@ -366,17 +366,9 @@ const AppDrawer = () => {
         </Stack>
       </Box>
       <Divider sx={{ borderColor: 'divider' }} />
-      {/* EMERGÊNCIA a 1 toque do menu (auditoria: antes 3 toques fundo — terceiro não achava).
-          Vermelho clínico discreto: urgente sem gritar. */}
-      <Box sx={{ px: 1.5, pt: 1.25 }}>
-        <Button fullWidth onClick={() => { closeDrawer(); navigate('/emergencia'); }}
-          startIcon={<HealthAndSafetyIcon />}
-          sx={{ justifyContent: 'flex-start', textTransform: 'none', fontWeight: 800, borderRadius: '12px', py: 1, color: 'error.main', borderColor: 'error.main', '&:hover': { bgcolor: 'rgba(239,68,68,.08)', borderColor: 'error.main' } }}
-          variant="outlined" size="small">
-          Cartão de emergência
-        </Button>
-      </Box>
-      {/* Corpo rolável — reutiliza o MESMO AppMenu do Sidebar (fonte única de verdade) */}
+      {/* Corpo rolável — reutiliza o MESMO AppMenu do Sidebar (fonte única de verdade).
+          EMERGÊNCIA: item destacado DENTRO de "Cuidados" no AppMenu (2026-08-19) — o botão
+          vermelho duplicado aqui em cima ocupava a primeira dobra do drawer p/ todo mundo. */}
       <Box sx={{ flex: 1, overflowY: 'auto', pb: 2 }}><AppMenu /></Box>
     </Drawer>
   );

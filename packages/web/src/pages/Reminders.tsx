@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Card, CardContent, Typography, Button, ListItem, ListItemIcon, ListItemText, IconButton, Checkbox, TextField, Stack, Chip, List, Accordion, AccordionSummary, AccordionDetails, Alert } from '@mui/material';
+import { Card, CardContent, Typography, Button, Box, Collapse, ListItem, ListItemIcon, ListItemText, IconButton, Checkbox, TextField, Stack, Chip, List, Accordion, AccordionSummary, AccordionDetails, Alert } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { confirmDialog } from '../components/ConfirmDialog';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import BellIcon from '@mui/icons-material/NotificationsActive';
 import { API_URL, token } from '../config';
 import { hapticSuccess, hapticError } from '../utils/haptic';
@@ -31,6 +31,7 @@ export const RemindersPage = () => {
   const [time, setTime] = useState('09:00');
   const [offsets, setOffsets] = useState<number[]>(DEFAULT_OFFSETS);
   const [err, setErr] = useState<string | null>(null);
+  const [formOpen, setFormOpen] = useState(false); // colapsado: agendados primeiro
 
   const load = async () => {
     if (!pid) return;
@@ -108,46 +109,61 @@ export const RemindersPage = () => {
   return (
     <PageContainer width="content">
       <PageHeader icon={<BellIcon />} title="Lembretes" />
-      <Card sx={{ mb: 2 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>Novo lembrete</Typography>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ mb: 1.5 }}>
-            <TextField label="O que (ex.: Refazer hemograma)" value={title} onChange={(e) => setTitle(e.target.value)} sx={{ flex: 1 }} />
-            <TextField type="date" label="Data" value={date} onChange={(e) => setDate(e.target.value)} InputLabelProps={{ shrink: true }} />
-            <TextField type="time" label="Hora" value={time} onChange={(e) => setTime(e.target.value)} InputLabelProps={{ shrink: true }} sx={{ width: 130 }} />
-          </Stack>
-          <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" alignItems="center" sx={{ mb: 0.5 }}>
-            <BellIcon fontSize="small" color="action" sx={{ mr: 0.5 }} />
-            <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>Quando avisar?</Typography>
-          </Stack>
-          <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap">
-            {OFFSET_PALETTE.map((p) => {
-              const on = offsets.includes(p.o);
-              // Seletor PRINCIPAL do recurso: alvo 40px no touch (piso WCAG p/ dedo) +
-              // semântica de toggle (component button + aria-pressed) p/ leitor de tela.
-              return (
-                <Chip key={p.o} component="button" aria-pressed={on} label={p.l} color={on ? 'primary' : 'default'} variant={on ? 'filled' : 'outlined'}
-                  onClick={() => toggleOffset(p.o)} sx={{ fontWeight: 700, height: { xs: 40, sm: 32 }, fontSize: 13 }} />
-              );
-            })}
-          </Stack>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-            Avisamos por <strong>notificação no app</strong>, <strong>push</strong> e <strong>e-mail</strong> em cada antecedência escolhida.
-          </Typography>
-          {err && <Alert severity="error" sx={{ mt: 1.5, py: 0.5, borderRadius: '12px' }} onClose={() => setErr(null)}>{err}</Alert>}
-          <Button variant="contained" onClick={add} disabled={!title.trim() || !date || offsets.length === 0} sx={{ mt: 1.5 }}>Adicionar</Button>
-        </CardContent>
-      </Card>
-
-      {/* PRÓXIMOS (futuros) */}
+      {/* PRÓXIMOS primeiro (dado > ferramenta — igual Medições/Vacinas) */}
       <Card sx={{ mb: 2 }}>
         <CardContent sx={{ pb: '8px !important' }}>
           <Typography component="div" variant="h6" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>Próximos lembretes {upcoming.length > 0 && <Chip size="small" label={upcoming.length} sx={{ bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 800 }} />}</Typography>
           {upcoming.length === 0 ? (
-            <Typography color="text.secondary" sx={{ py: 2 }}>Nenhum lembrete agendado. Crie um acima (ex.: "Refazer hemograma em 6 meses").</Typography>
+            <Box sx={{ textAlign: 'center', py: 2.5 }}>
+              <Box sx={{ fontSize: 40, mb: 1, opacity: 0.5 }}>⏰</Box>
+              <Typography color="text.secondary" sx={{ mb: 1.5 }}>Nenhum lembrete agendado — ex.: "Refazer hemograma em 6 meses".</Typography>
+              <Button size="small" variant="outlined" onClick={() => setFormOpen(true)} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>Criar lembrete</Button>
+            </Box>
           ) : (
             <List>{upcoming.map(renderItem)}</List>
           )}
+        </CardContent>
+      </Card>
+
+      {/* NOVO LEMBRETE — colapsado, abaixo dos agendados */}
+      <Card sx={{ mb: 2 }}>
+        <CardContent>
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Typography variant="h6">Novo lembrete</Typography>
+            <Button size="small" onClick={() => setFormOpen((o) => !o)} endIcon={<ExpandMoreIcon sx={{ transform: formOpen ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }} />}>{formOpen ? 'Fechar' : 'Criar'}</Button>
+          </Stack>
+          <Collapse in={formOpen}>
+            <Stack spacing={1.5} sx={{ mt: 2 }}>
+              <TextField label="O que (ex.: Refazer hemograma)" value={title} onChange={(e) => setTitle(e.target.value)} fullWidth />
+              {/* Data + Hora lado a lado com a MESMA largura (alinhamento — antes desalinhavam no mobile) */}
+              <Stack direction={{ xs: 'row', sm: 'row' }} spacing={1}>
+                <TextField type="date" label="Data" value={date} onChange={(e) => setDate(e.target.value)} InputLabelProps={{ shrink: true }} sx={{ flex: 1 }} />
+                <TextField type="time" label="Hora" value={time} onChange={(e) => setTime(e.target.value)} InputLabelProps={{ shrink: true }} sx={{ flex: 1 }} />
+              </Stack>
+              <Box>
+                <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" alignItems="center" sx={{ mb: 0.75 }}>
+                  <BellIcon fontSize="small" color="action" sx={{ mr: 0.5 }} />
+                  <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>Quando avisar?</Typography>
+                </Stack>
+                <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap">
+                  {OFFSET_PALETTE.map((p) => {
+                    const on = offsets.includes(p.o);
+                    // Seletor PRINCIPAL do recurso: alvo 40px no touch (piso WCAG p/ dedo) +
+                    // semântica de toggle (component button + aria-pressed) p/ leitor de tela.
+                    return (
+                      <Chip key={p.o} component="button" aria-pressed={on} label={p.l} color={on ? 'primary' : 'default'} variant={on ? 'filled' : 'outlined'}
+                        onClick={() => toggleOffset(p.o)} sx={{ fontWeight: 700, height: { xs: 40, sm: 32 }, fontSize: 13 }} />
+                    );
+                  })}
+                </Stack>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                  Avisamos por <strong>notificação no app</strong>, <strong>push</strong> e <strong>e-mail</strong> em cada antecedência escolhida.
+                </Typography>
+              </Box>
+              {err && <Alert severity="error" sx={{ py: 0.5, borderRadius: '12px' }} onClose={() => setErr(null)}>{err}</Alert>}
+              <Button variant="contained" onClick={add} disabled={!title.trim() || !date || offsets.length === 0} sx={{ alignSelf: 'flex-start' }}>Adicionar</Button>
+            </Stack>
+          </Collapse>
         </CardContent>
       </Card>
 
