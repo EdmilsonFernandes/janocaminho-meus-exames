@@ -975,7 +975,10 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         {/* MASTER/DETAIL LEVE (desktop): rail de pacientes à esquerda MESMO com paciente aberto —
             troca rápida sem "Voltar" (também mitiga contexto stale do item 20). NÃO ressuscita o
             grid 2-col de CONTEÚDO (revertido no d56c3c3 por gap vertical) — só pina a lista. */}
-        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, alignItems: 'flex-start' }}>
+        {/* alignItems: stretch no MOBILE — flex-start em column faz cada filho virar fit-content
+            (bug: coluna do detalhe crescia p/ ~585px pelo min-content das 6 abas e CORTAVA a
+            direita em 390px). No desktop (row) flex-start continua: colunas alinham ao topo. */}
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, alignItems: { xs: 'stretch', md: 'flex-start' } }}>
 
         {/* LISTA DE PACIENTES */}
         {view === 'patients' && !loading && (!selected || isDesktop) && (

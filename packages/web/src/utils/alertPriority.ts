@@ -10,9 +10,12 @@ export type Priority = 'importante' | 'moderada' | 'leve';
 export interface PriorityMeta { key: Priority; label: string; emoji: string; color: string; hint: string }
 
 export const PRIORITY_META: Record<Priority, PriorityMeta> = {
-  importante: { key: 'importante', label: 'Importante', emoji: '🔴', color: '#dc2626', hint: 'Leve ao médico com prioridade' },
-  moderada:   { key: 'moderada',   label: 'Moderada',  emoji: '🟠', color: '#ea580c', hint: 'Comente na próxima consulta' },
-  leve:       { key: 'leve',       label: 'Leve',      emoji: '🟡', color: '#ca8a04', hint: 'Acompanhe — pouco fora da faixa' },
+  // Cores AA: texto destas cores aparece sobre alpha(color,.15) em chips/badges (SeverityBadge,
+  // resumo de prioridades, borderLeft). Os tons 600 davam 2,9-4,4:1 (reprovam WCAG AA p/ texto
+  // pequeno); os tons 800 garantem ≥4,5:1 mantendo o MESMO matiz (vermelho/laranja/âmbar).
+  importante: { key: 'importante', label: 'Importante', emoji: '🔴', color: '#b91c1c', hint: 'Leve ao médico com prioridade' },
+  moderada:   { key: 'moderada',   label: 'Moderada',  emoji: '🟠', color: '#9a3412', hint: 'Comente na próxima consulta' },
+  leve:       { key: 'leve',       label: 'Leve',      emoji: '🟡', color: '#92400e', hint: 'Acompanhe — pouco fora da faixa' },
 };
 
 /** Ordem de gravidade pra comparar/ordenar (importante > moderada > leve). */
