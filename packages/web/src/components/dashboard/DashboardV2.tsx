@@ -11,6 +11,7 @@ import { FailedExamsAlert } from './FailedExamsAlert';
 import { AiCard } from './AiCard';
 import { QuickActions } from './QuickActions';
 import { ActivityCard } from './ActivityCard';
+import { SinceExamCard } from './SinceExamCard';
 import { CreditsCard } from './CreditsCard';
 import { BiologicalAgeCard } from './BiologicalAgeCard';
 import { ShareHealthButton } from '../ShareHealthCard';
@@ -246,7 +247,13 @@ export const DashboardV2 = () => {
 
       {/* ATIVIDADE FÍSICA (Health Connect) — só existe no APK; no web o card retorna null */}
       <Box sx={{ mt: 2 }}>
-        <ActivityCard />
+        <ActivityCard lastExamAt={d.lastExam} />
+      </Box>
+
+      {/* "DESDE SEU ÚLTIMO EXAME" (assinatura do produto): o que mudou no dia-a-dia
+          entre exames — só existe com atividade sincronizada + exames extraídos */}
+      <Box sx={{ mt: 2 }}>
+        <SinceExamCard lastExamAt={d.lastExam} />
       </Box>
 
       {/* AÇÕES RÁPIDAS + CRÉDITOS */}

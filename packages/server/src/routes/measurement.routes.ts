@@ -50,6 +50,51 @@ router.post('/', async (req: AuthedRequest, res, next) => {
 });
 
 // ============================================================================
+// "DESDE SEU ÚLTIMO EXAME" — compara baseline de atividade antes/depois do exame.
+// Alimenta o card no Dashboard que mostra o que mudou no dia-a-dia entre exames.
+// ============================================================================
+router.get('/since-exam', async (req: AuthedRequest, res, next) => {
+  try {
+    const pids = await userPatientIds(req.userId!);
+    const q = req.query as Record<string, string | undefined>;
+    const pid = q.patientId && pids.includes(q.patientId) ? q.patientId : pids[0];
+    if (!pid) { res.status(400).json({ error: 'Nenhum paciente vinculado.' }); return; }
+
+    // Último exame EXTRAÍDO (a âncora temporal)
+    const lastExam = await prisma.exam.findFirst({
+      where: { patientId: pid, status: 'EXTRACTED' },
+      orderBy: { performedAt: 'desc' },
+      select: { performedAt: true },
+    });
+    if (!lastExam?.performedAt) { res.json({ hasData: false }); return; }
+
+    const { compareBaselines } = await import('../analysis/activity-baseline');
+    const comparison = await compareBaselines(pid, lastExam.performedAt);
+    if (!comparison) { res.json({ hasData: false }); return; }
+
+    // Pega também os exames alterados que mudaram no período (do snapshot Layer 2)
+    const { buildCurrentHealthSummary } = await import('../analysis/health-state');
+    const snapshot = await buildCurrentHealthSummary(pid, { includeStale: true });
+    const examChanges = (snapshot.whatChanged ?? [])
+      .filter((w) => w.deltaPct != null && Math.abs(w.deltaPct) >= 10)
+      .slice(0, 5)
+      .map((w) => ({
+        name: w.name,
+        direction: (w.trend === 'melhorou' || w.trend === 'reduzindo') ? 'improved' : (w.trend === 'piorou' || w.trend === 'aumentando') ? 'worsened' : 'stable',
+        deltaPct: w.deltaPct,
+      }));
+
+    res.json({
+      hasData: true,
+      lastExamDate: lastExam.performedAt.toISOString().slice(0, 10),
+      habitChanges: comparison.changes,
+      examChanges,
+      coverage: comparison.current.coverage,
+    });
+  } catch (e) { next(e); }
+});
+
+// ============================================================================
 // HEALTH CONNECT SYNC (Android) — upsert idempotente de atividade diária.
 // O app (APK) agrega Passos/Calorias/Distância por dia via Health Connect e
 // envia aqui. Persistimos como Measurements comuns → entram em Medições,
