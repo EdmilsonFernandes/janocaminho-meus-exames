@@ -13,6 +13,12 @@ export interface ActivityDay {
   steps: number;
   kcal: number;
   km: number;
+  /** FR média do dia (bpm) — 0 se sem dado */
+  hrAvg?: number;
+  /** FR máxima do dia (bpm) — 0 se sem dado */
+  hrMax?: number;
+  /** Minutos de exercício formal (esteira, corrida, etc) */
+  exerciseMin?: number;
 }
 
 export type ActivityRange = 'today' | '7d' | '30d';
@@ -34,6 +40,12 @@ export interface ActivitySummary {
   steps: number;
   kcal: number;
   km: number;
+  /** FR média (bpm) do período */
+  hrAvg: number;
+  /** FR máxima (bpm) do período */
+  hrMax: number;
+  /** Minutos de exercício formal (média/dia ou total do dia) */
+  exerciseMin: number;
   /** Série p/ o sparkline (mais antigo → mais recente), já recortada ao range. */
   series: { date: string; steps: number }[];
   daysCounted: number;
@@ -43,12 +55,13 @@ export interface ActivitySummary {
 /** Resumo do range a partir da série de dias (esperada em ordem DESC — mais recente primeiro). */
 export const summarize = (days: ActivityDay[], range: ActivityRange): ActivitySummary => {
   if (!days.length) {
-    return { steps: 0, kcal: 0, km: 0, series: [], daysCounted: 0, goalRatio: 0 };
+    return { steps: 0, kcal: 0, km: 0, hrAvg: 0, hrMax: 0, exerciseMin: 0, series: [], daysCounted: 0, goalRatio: 0 };
   }
   if (range === 'today') {
     const d = days[0];
     return {
       steps: d.steps, kcal: d.kcal, km: d.km,
+      hrAvg: d.hrAvg ?? 0, hrMax: d.hrMax ?? 0, exerciseMin: d.exerciseMin ?? 0,
       series: [{ date: d.date, steps: d.steps }],
       daysCounted: 1,
       goalRatio: Math.min(1, d.steps / STEPS_GOAL),
@@ -56,10 +69,14 @@ export const summarize = (days: ActivityDay[], range: ActivityRange): ActivitySu
   }
   const n = range === '7d' ? 7 : 30;
   const slice = days.slice(0, n);
+  const hrDays = slice.filter((d) => (d.hrAvg ?? 0) > 0);
   return {
     steps: Math.round(avg(days, 'steps', n)),
     kcal: Math.round(avg(days, 'kcal', n)),
     km: Math.round(avg(days, 'km', n) * 10) / 10,
+    hrAvg: hrDays.length ? Math.round(hrDays.reduce((t, d) => t + (d.hrAvg ?? 0), 0) / hrDays.length) : 0,
+    hrMax: slice.reduce((m, d) => Math.max(m, d.hrMax ?? 0), 0),
+    exerciseMin: Math.round(slice.reduce((t, d) => t + (d.exerciseMin ?? 0), 0) / slice.length),
     series: [...slice].reverse().map((d) => ({ date: d.date, steps: d.steps })),
     daysCounted: slice.length,
     goalRatio: Math.min(1, avg(days, 'steps', n) / STEPS_GOAL),
@@ -81,6 +98,24 @@ export const fmtKcal = (kcal: number): string => Math.round(kcal).toLocaleString
 export const barHeight = (value: number, max: number): number =>
   max <= 0 ? 0 : Math.max(0.08, Math.min(1, value / max));
 
+/**
+ * Contexto da semana do último exame (Onda 2 — "Dashboard sábio"):
+ * média de atividade na janela [exame-6d, exame]. Só retorna se houver >=3 dias
+ * com dados nessa janela — sem dados suficientes, NADA aparece (nada inventado).
+ */
+export const weekOfExam = (days: ActivityDay[], examDate: string): { avgSteps: number; avgKcal: number; avgKm: number; daysCounted: number } | null => {
+  const end = new Date(`${examDate}T12:00:00`);
+  if (Number.isNaN(end.getTime())) return null;
+  const start = new Date(end.getTime() - 6 * 86400000);
+  const inWindow = days.filter((d) => {
+    const t = new Date(`${d.date}T12:00:00`).getTime();
+    return !Number.isNaN(t) && t >= start.getTime() && t <= end.getTime();
+  });
+  if (inWindow.length < 3) return null;
+  const avg = (k: 'steps' | 'kcal' | 'km') => inWindow.reduce((a, d) => a + d[k], 0) / inWindow.length;
+  return { avgSteps: Math.round(avg('steps')), avgKcal: Math.round(avg('kcal')), avgKm: Math.round(avg('km') * 10) / 10, daysCounted: inWindow.length };
+};
+
 /** Normaliza o payload cru do bridge p/ ActivityDay[] (ORDENA desc + dedup por data). */
 export const normalizeDays = (raw: Array<Partial<ActivityDay>>): ActivityDay[] => {
   const byDate = new Map<string, ActivityDay>();
@@ -90,7 +125,11 @@ export const normalizeDays = (raw: Array<Partial<ActivityDay>>): ActivityDay[] =
       date: r.date,
       steps: Math.max(0, Math.round(Number(r.steps ?? 0))),
       kcal: Math.max(0, Number(r.kcal ?? 0)),
-      km: metersToKm(Math.max(0, Number(r.km ?? 0))),
+      // Bridge já envia KM (não metros) — NÃO converter (bug: metersToKm dividia por 1000)
+      km: Math.max(0, Number(r.km ?? 0)),
+      hrAvg: Math.max(0, Math.round(Number(r.hrAvg ?? 0))),
+      hrMax: Math.max(0, Math.round(Number(r.hrMax ?? 0))),
+      exerciseMin: Math.max(0, Math.round(Number(r.exerciseMin ?? 0))),
     });
   }
   return [...byDate.values()].sort((a, b) => (a.date < b.date ? 1 : -1));

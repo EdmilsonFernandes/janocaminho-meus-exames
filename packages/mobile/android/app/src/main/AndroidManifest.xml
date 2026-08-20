@@ -18,11 +18,15 @@
     <uses-permission android:name="androidx.health.connect.permission.read.Steps" />
     <uses-permission android:name="androidx.health.connect.permission.read.TotalCaloriesBurned" />
     <uses-permission android:name="androidx.health.connect.permission.read.Distance" />
+    <uses-permission android:name="androidx.health.connect.permission.read.HeartRate" />
+    <uses-permission android:name="androidx.health.connect.permission.read.ExerciseSession" />
     <!-- Formato NOVO (Android 14+ / módulo de SISTEMA com.google.android.healthconnect.controller)
          — sem estas, o sistema mostra "Atualização necessária" e NÃO deixa conceder permissões. -->
     <uses-permission android:name="android.permission.health.READ_STEPS" />
     <uses-permission android:name="android.permission.health.READ_TOTAL_CALORIES_BURNED" />
     <uses-permission android:name="android.permission.health.READ_DISTANCE" />
+    <uses-permission android:name="android.permission.health.READ_HEART_RATE" />
+    <uses-permission android:name="android.permission.health.READ_EXERCISE" />
 
     <!-- ANDROID 11+ (API 30): VISIBILIDADE DE PACOTE — sem este bloco o intent da sheet de
          permissão do Health Connect resolve VAZIO em muitos aparelhos: a sheet simplesmente

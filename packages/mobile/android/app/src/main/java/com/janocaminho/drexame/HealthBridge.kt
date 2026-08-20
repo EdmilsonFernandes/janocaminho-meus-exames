@@ -9,6 +9,8 @@ import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.PermissionController
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.DistanceRecord
+import androidx.health.connect.client.records.ExerciseSessionRecord
+import androidx.health.connect.client.records.HeartRateRecord
 import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.request.AggregateRequest
@@ -51,16 +53,25 @@ class HealthBridge(private val activity: MainActivity) {
         fun hcSdkOk(): Boolean = android.os.Build.VERSION.SDK_INT >= 26
 
         /**
-         * Permissões de LEITURA (strings — o contrato 1.1.0 é Set<String>):
-         * androidx.health.connect.permission.read.{Steps,TotalCaloriesBurned,Distance}.
+         * CORE: o mínimo para o widget funcionar (passos + calorias + distância).
+         * EXTENDED: dados extras (FR, exercício) — se o usuário não conceder, o widget
+         * funciona normalmente sem eles (não bloqueia a conexão).
          */
-        val READ_PERMISSIONS: Set<String> by lazy {
+        val CORE_PERMISSIONS: Set<String> by lazy {
             if (!hcSdkOk()) emptySet() else setOf(
                 HealthPermission.getReadPermission(StepsRecord::class),
                 HealthPermission.getReadPermission(TotalCaloriesBurnedRecord::class),
                 HealthPermission.getReadPermission(DistanceRecord::class),
             )
         }
+        val EXTENDED_PERMISSIONS: Set<String> by lazy {
+            if (!hcSdkOk()) emptySet() else setOf(
+                HealthPermission.getReadPermission(HeartRateRecord::class),
+                HealthPermission.getReadPermission(ExerciseSessionRecord::class),
+            )
+        }
+        /** Pedimos todas de uma vez, mas o gate de "conectado" só exige as CORE. */
+        val READ_PERMISSIONS: Set<String> get() = CORE_PERMISSIONS + EXTENDED_PERMISSIONS
     }
 
     private val ui = Handler(Looper.getMainLooper())
@@ -166,24 +177,42 @@ class HealthBridge(private val activity: MainActivity) {
     // ------------------------------------------------------------------ API (JS)
 
     @JavascriptInterface
-    fun isAvailable(): Boolean = hcSdkOk() && hcAvailable()
+    fun isAvailable(): Boolean {
+        val sdkOk = hcSdkOk()
+        val avail = hcAvailable()
+        val result = sdkOk && avail
+        android.util.Log.d("DxHealth", "isAvailable()=$result (sdkOk=$sdkOk hcAvail=$avail)")
+        return result
+    }
 
     @JavascriptInterface
-    fun hasAllPermissions(): Boolean = try {
-        val client = clientOrNull() ?: return false
-        // Checagem síncrona (bloqueante curto): chamado 1x no boot do widget, em thread do bridge.
-        kotlinx.coroutines.runBlocking {
-            client.permissionController.getGrantedPermissions().containsAll(READ_PERMISSIONS)
+    fun hasAllPermissions(): Boolean {
+        return try {
+            val client = clientOrNull()
+            android.util.Log.d("DxHealth", "hasAllPermissions: client=${client != null}")
+            if (client == null) return false
+            val granted = kotlinx.coroutines.runBlocking {
+                client.permissionController.getGrantedPermissions()
+            }
+            android.util.Log.d("DxHealth", "SDK granted (${granted.size}): ${granted.joinToString()}")
+            android.util.Log.d("DxHealth", "Need core (${CORE_PERMISSIONS.size}): ${CORE_PERMISSIONS.joinToString()}")
+            android.util.Log.d("DxHealth", "Need extended (${EXTENDED_PERMISSIONS.size}): ${EXTENDED_PERMISSIONS.joinToString()}")
+            val hasCore = granted.containsAll(CORE_PERMISSIONS)
+            android.util.Log.d("DxHealth", "hasAllPermissions result=$hasCore")
+            hasCore
+        } catch (e: Throwable) {
+            android.util.Log.e("DxHealth", "hasAllPermissions FAILED: ${e.message}", e)
+            false
         }
-    } catch (e: Throwable) {
-        false
     }
 
     @JavascriptInterface
     fun aggregates(requestId: String, daysBack: Int) {
+        android.util.Log.d("DxHealth", "aggregates(requestId=$requestId, days=$daysBack)")
         val id = requestId.ifEmpty { "agg-${requestSeq.incrementAndGet()}" }
         val days = daysBack.coerceIn(1, 31)
         val client = clientOrNull()
+        android.util.Log.d("DxHealth", "aggregates: client=${client != null}")
         if (client == null) { dispatch(errorPayload(id, "unavailable")); return }
         scope.launch {
             try {
@@ -204,17 +233,55 @@ class HealthBridge(private val activity: MainActivity) {
                             timeRangeFilter = TimeRangeFilter.between(start, end),
                         )
                     )
-                    // get<T> explícito: a inferência com `res[...]` não resolve o out-projected
-                    // AggregateMetric<Energy>/AggregateMetric<Length> (Kotlin 2.0).
                     val steps = res.get<Long>(StepsRecord.COUNT_TOTAL) ?: 0L
                     val kcal = res.get<Energy>(TotalCaloriesBurnedRecord.ENERGY_TOTAL)?.inKilocalories ?: 0.0
                     val km = res.get<Length>(DistanceRecord.DISTANCE_TOTAL)?.inKilometers ?: 0.0
+
+                    // FR + exercício: lê RECORDS (não há métrica agregada p/ FR no SDK
+                    // alpha11) e calcula avg/max manualmente — mais confiável cross-device.
+                    var hrAvg = 0L; var hrMax = 0L; var exerciseMin = 0L
+                    try {
+                        android.util.Log.d("DxHealth", "Reading HR records for $day")
+                        val hrResponse = client.readRecords(
+                            androidx.health.connect.client.request.ReadRecordsRequest(
+                                recordType = HeartRateRecord::class,
+                                timeRangeFilter = TimeRangeFilter.between(start, end),
+                            )
+                        )
+                        android.util.Log.d("DxHealth", "HR records: ${hrResponse.records.size}, samples: ${hrResponse.records.sumOf { it.samples.size }}")
+                        val allSamples = hrResponse.records.flatMap { it.samples }
+                        if (allSamples.isNotEmpty()) {
+                            hrAvg = Math.round(allSamples.map { it.beatsPerMinute }.average())
+                            hrMax = allSamples.maxOf { it.beatsPerMinute }
+                            android.util.Log.d("DxHealth", "HR avg=$hrAvg max=$hrMax")
+                        } else {
+                            android.util.Log.w("DxHealth", "HR: no samples for $day")
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.e("DxHealth", "HR read FAILED: ${e.message}", e)
+                    }
+                    try {
+                        val exResponse = client.readRecords(
+                            androidx.health.connect.client.request.ReadRecordsRequest(
+                                recordType = ExerciseSessionRecord::class,
+                                timeRangeFilter = TimeRangeFilter.between(start, end),
+                            )
+                        )
+                        exerciseMin = exResponse.records.sumOf { java.time.Duration.between(it.startTime, it.endTime).toMinutes() }
+                        android.util.Log.d("DxHealth", "Exercise records: ${exResponse.records.size}, total min: $exerciseMin")
+                    } catch (e: Exception) {
+                        android.util.Log.e("DxHealth", "Exercise read FAILED: ${e.message}", e)
+                    }
+
                     arr.put(
                         JSONObject()
-                            .put("date", day.toString()) // ISO yyyy-MM-dd (local do aparelho)
+                            .put("date", day.toString())
                             .put("steps", steps.toDouble())
                             .put("kcal", Math.round(kcal).toDouble())
                             .put("km", Math.round(km * 100.0) / 100.0)
+                            .put("hrAvg", hrAvg.toDouble())
+                            .put("hrMax", hrMax.toDouble())
+                            .put("exerciseMin", exerciseMin.toDouble())
                     )
                 }
                 dispatch(JSONObject().put("type", "aggregates").put("requestId", id).put("days", arr))

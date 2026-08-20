@@ -9,6 +9,8 @@ import SyncIcon from '@mui/icons-material/Sync';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import InsightsIcon from '@mui/icons-material/Insights';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import TimerIcon from '@mui/icons-material/Timer';
 import { GoogleG, LockSecure } from './GoogleG';
 import { AppCard } from '../AppCard';
 import { GradientButton } from '../GradientButton';
@@ -44,7 +46,7 @@ export const ActivityCard = ({ lastExamAt }: { lastExamAt?: string | null }) => 
   const [hidden, setHidden] = useState(activityCardHidden);
   const [phase, setPhase] = useState<'loading' | 'denied' | 'data'>('loading');
   const [days, setDays] = useState<ActivityDay[] | null>(null);
-  const [range, setRange] = useState<ActivityRange>('today');
+  const [range, setRange] = useState<ActivityRange>('30d'); // 30d como default (sempre tem dados)
   const [askOpen, setAskOpen] = useState(false);
   const [asking, setAsking] = useState(false);
   const [connectError, setConnectError] = useState<string | undefined>();
@@ -340,9 +342,15 @@ export const ActivityView = ({
             {s.goalRatio >= 1 ? 'meta de 8 mil passos batida 🎉' : `${goalPct}% da meta de 8 mil`}
           </Typography>
         </Box>
-        <Stack spacing={1.25} sx={{ flex: 1 }}>
-          <MetricMini icon={<LocalFireDepartmentIcon sx={{ fontSize: 16 }} />} tone="#c2410c" label="Calorias" value={fmtKcal(s.kcal)} unit="kcal/dia" range={range} />
-          <MetricMini icon={<RouteIcon sx={{ fontSize: 16 }} />} tone="#0369a1" label="Distância" value={fmtKm(s.km)} unit="km/dia" range={range} />
+        <Stack spacing={1} sx={{ flex: 1 }}>
+          <MetricMini icon={<LocalFireDepartmentIcon sx={{ fontSize: 15 }} />} tone="#c2410c" label="Calorias" value={fmtKcal(s.kcal)} unit="kcal/dia" range={range} />
+          <MetricMini icon={<RouteIcon sx={{ fontSize: 15 }} />} tone="#0369a1" label="Distância" value={fmtKm(s.km)} unit="km/dia" range={range} />
+          {(s.hrAvg ?? 0) > 0 && (
+            <MetricMini icon={<FavoriteIcon sx={{ fontSize: 15 }} />} tone="#ef4444" label="Freq. cardíaca" value={`${Math.round(s.hrAvg ?? 0)}`} unit={range === 'today' ? 'bpm' : 'bpm/dia'} range={range} />
+          )}
+          {(s.exerciseMin ?? 0) > 0 && (
+            <MetricMini icon={<TimerIcon sx={{ fontSize: 15 }} />} tone="#047857" label="Exercício" value={`${Math.round(s.exerciseMin ?? 0)}min`} unit={range === 'today' ? '' : '/dia'} range={range} />
+          )}
         </Stack>
       </Stack>
 
