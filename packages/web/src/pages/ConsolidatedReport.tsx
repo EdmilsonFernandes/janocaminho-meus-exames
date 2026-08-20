@@ -10,6 +10,7 @@ import RestaurantIcon from '@mui/icons-material/Restaurant';
 import TrackChangesIcon from '@mui/icons-material/TrackChanges';
 import LiveHelpIcon from '@mui/icons-material/LiveHelp';
 import InsightsIcon from '@mui/icons-material/Insights';
+import { CorrelationSection } from '../components/report/CorrelationSection';
 import { API_URL, apiHeaders, token, doctorPhotoUrl } from '../config';
 import { hapticSuccess, hapticError } from '../utils/haptic';
 import { bumpCredits } from '../utils/credits-events';
@@ -427,6 +428,8 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
 
       {analysis && s && (
         <Stack spacing={2} sx={{ mt: 2 }}>
+          {/* CORRELAÇÕES hábito×exame (Fase 2): só aparece com dados de atividade */}
+          <CorrelationSection patientId={pid ?? undefined} />
           <ReportHero
             resumo={s.resumoGeral}
             counts={counts}

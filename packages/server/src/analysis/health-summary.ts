@@ -171,6 +171,41 @@ export function attachAntigosNormalizados(summary: HealthSummary, snapshot: Curr
   return { ...summary, antigosNormalizados };
 }
 
+/**
+ * ATIVIDADE FÍSICA (Health Connect) como contexto de estilo de vida pro prompt da IA.
+ * Médias dos últimos 30 dias de STEPS/CALORIES/DISTANCE (medições sincronizadas do
+ * celular). Só retorna texto com ≥10 dias de dados — menos que isso não representa o
+ * estilo de vida e o prompt fica limpo.
+ *
+ * Regra anti-abuso (mesma linha do perfil clínico): contextualiza, NUNCA diagnostica
+ * e JAMAIS afirma causalidade ("melhorou POR CAUSA dos passos") — só correlação educativa.
+ */
+export async function activityContextText(patientId: string): Promise<string> {
+  const since = new Date(Date.now() - 30 * 86400000);
+  const rows = await prisma.measurement.findMany({
+    where: { patientId, type: { in: ['STEPS', 'CALORIES', 'DISTANCE'] }, measuredAt: { gte: since } },
+    select: { type: true, value: true, measuredAt: true },
+  }).catch(() => []);
+  if (!rows.length) return '';
+  const byDay = new Map<string, { s: number; c: number; d: number }>();
+  for (const r of rows) {
+    const key = r.measuredAt.toISOString().slice(0, 10);
+    const acc = byDay.get(key) ?? { s: 0, c: 0, d: 0 };
+    if (r.type === 'STEPS') acc.s = r.value;
+    if (r.type === 'CALORIES') acc.c = r.value;
+    if (r.type === 'DISTANCE') acc.d = r.value;
+    byDay.set(key, acc);
+  }
+  const days = [...byDay.values()].filter((a) => a.s > 0); // dia conta se teve passos
+  if (days.length < 10) return '';
+  const avg = (k: 's' | 'c' | 'd') => days.reduce((t, a) => t + a[k], 0) / days.length;
+  const fmt = (n: number) => Math.round(n).toLocaleString('pt-BR');
+  return `\nATIVIDADE FÍSICA (Health Connect, últimos 30 dias — CONTEXTO de estilo de vida):\n` +
+    `Média de ${fmt(avg('s'))} passos/dia, ${fmt(avg('c'))} kcal/dia e ${avg('d').toFixed(1).replace('.', ',')} km/dia (${days.length} dias registrados).\n` +
+    `Use como contexto ao interpretar glicose, lipídios, pressão e peso — CORRELAÇÃO EDUCATIVA apenas ("coincidiu com período de atividade alta"). ` +
+    `JAMAIS afirme causalidade nem prescreva exercício como tratamento; perguntas sobre isso vão para o médico.\n`;
+}
+
 /** Resumo CONSOLIDADO: junta os últimos exames (sangue/imagem/laudo) num documento único — "segunda opinião documental". */
 export async function generateConsolidatedSummary(patientId: string, audience: 'patient' | 'doctor' = 'patient'): Promise<{ summary: HealthSummary; contentMd: string; modelUsed: string; usage: any }> {
   const patient = await prisma.patient.findUnique({ where: { id: patientId } });
@@ -193,6 +228,10 @@ export async function generateConsolidatedSummary(patientId: string, audience: '
 
   const perfil = patient.clinicalProfile?.trim();
   const perfilText = perfil ? `\nPERFIL CLÍNICO DO PACIENTE (use para contextualizar, nunca para diagnosticar):\n${perfil}\n` : '';
+  // ATIVIDADE FÍSICA (Health Connect, Onda "inteligência"): média 30d de passos/calorias/km
+  // como CONTEXTO de estilo de vida. Só entra no prompt com dados suficientes (≥10 dias) —
+  // e a regra é explícita: correlação educativa, JAMAIS causalidade.
+  const activityText = await activityContextText(patientId);
   const slug = patientSlug(patient.fullName, patientId);
   const digest = memoryDigest(slug);
   const memoryText = digest ? `\nHISTÓRICO DE ANÁLISES ANTERIORES (use como contexto; não repita):\n${digest}\n` : '';
@@ -204,6 +243,17 @@ export async function generateConsolidatedSummary(patientId: string, audience: '
   const latestLabel = latestExam?.performedAt
     ? latestExam.performedAt.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
     : 'seu exame mais recente';
+
+  // CORRELAÇÕES (Fase 2): hábitos × exames detectados pelo CorrelationEngine.
+  // A IA recebe a conclusão ESTRUTURADA e só humaniza — NUNCA inventa correlação.
+  const { detectCorrelations } = await import('./correlation-engine');
+  const correlations = await detectCorrelations(patientId).catch(() => []);
+  const correlationText = correlations.length
+    ? `\nCORRELAÇÕES HÁBITO-EXAME (JÁ CALCULADAS — use como contexto, NUNCA afirme causalidade):\n` +
+      correlations.slice(0, 3).map((c) =>
+        `- ${c.biomarker}: ${c.biomarkerFrom}→${c.biomarkerTo} (${c.biomarkerDelta > 0 ? '+' : ''}${c.biomarkerDelta}%) COINCIDIU com ${c.hcMetricLabel} ${c.hcFrom}→${c.hcTo} (${c.hcDelta > 0 ? '+' : ''}${c.hcDelta}%). Evidência: ${c.evidenceLevel} (${c.evidenceSource}). Diga "coincidiu com" ou "ocorreu no mesmo período" — NUNCA "por causa de".`
+      ).join('\n') + '\n'
+    : '';
 
   const messages = [
     {
@@ -234,7 +284,7 @@ export async function generateConsolidatedSummary(patientId: string, audience: '
           ? `PACIENTE (refira-se SEMPRE em 3ª pessoa — "O paciente ${String(patient.fullName || '').split(' ')[0] || 'o paciente'} apresenta/relata..."; NUNCA em 2ª pessoa "você/seu/sua"): ${String(patient.fullName || '').split(' ')[0] || 'paciente'}\n`
           : `PACIENTE: ${String(patient.fullName || '').split(' ')[0] || 'paciente'}\n`) +
         `Score atual: ${snapshot.score ?? '—'}/100 em ${snapshot.markers} marcador(es). Distribuição: ${JSON.stringify(snapshot.byPriority)}.\n` +
-        perfilText + '\n' + memoryText +
+        perfilText + activityText + correlationText + '\n' + memoryText +
         `${formatSnapshotContext(snapshot)}\n\n` +
         (audience === 'doctor'
           ? `ESTILO (médico): tom clínico e objetivo; cite valores e variações reais; liste pontos a investigar na consulta; coisasBoas pode ser vazio. Sem diagnóstico definitivo. REFIRA-SE AO PACIENTE EM 3ª PESSOA ("o paciente apresenta...", "quadro do paciente"), NUNCA "você/seu/sua".\n\n`

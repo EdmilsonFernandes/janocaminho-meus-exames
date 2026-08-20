@@ -95,6 +95,21 @@ router.get('/since-exam', async (req: AuthedRequest, res, next) => {
 });
 
 // ============================================================================
+// CORRELAÇÕES — hábitos × exames com evidência científica (Fase 2).
+// ============================================================================
+router.get('/correlations', async (req: AuthedRequest, res, next) => {
+  try {
+    const pids = await userPatientIds(req.userId!);
+    const q = req.query as Record<string, string | undefined>;
+    const pid = q.patientId && pids.includes(q.patientId) ? q.patientId : pids[0];
+    if (!pid) { res.status(400).json({ error: 'Nenhum paciente vinculado.' }); return; }
+    const { detectCorrelations } = await import('../analysis/correlation-engine');
+    const findings = await detectCorrelations(pid);
+    res.json({ findings });
+  } catch (e) { next(e); }
+});
+
+// ============================================================================
 // HEALTH CONNECT SYNC (Android) — upsert idempotente de atividade diária.
 // O app (APK) agrega Passos/Calorias/Distância por dia via Health Connect e
 // envia aqui. Persistimos como Measurements comuns → entram em Medições,
