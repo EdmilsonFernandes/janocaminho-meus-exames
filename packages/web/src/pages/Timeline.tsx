@@ -56,8 +56,14 @@ export const TimelinePage = () => {
         itemCount: e._count?.items ?? 0,
         type: 'exam' as const,
       }));
+      // ATIVIDADE (Health Connect): rótulo amigável p/ STEPS/CALORIES/DISTANCE
+      const ACTIVITY_LABELS: Record<string, string> = { STEPS: '👟 Passos', CALORIES: '🔥 Calorias', DISTANCE: '📍 Distância' };
       const measEvents: Event[] = (Array.isArray(meas) ? meas : []).map((m: any) => ({
-        id: `m-${m.id}`, date: m.measuredAt, title: `${m.type}: ${m.value}${m.unit ? ` ${m.unit}` : ''}`, kind: 'MEASUREMENT',
+        id: `m-${m.id}`, date: m.measuredAt,
+        title: m.type in ACTIVITY_LABELS
+          ? `${ACTIVITY_LABELS[m.type]}: ${m.value.toLocaleString('pt-BR')} ${m.unit ?? ''}`
+          : `${m.type}: ${m.value}${m.unit ? ` ${m.unit}` : ''}`,
+        kind: 'MEASUREMENT',
         abnormalCount: 0, itemCount: 1, type: 'medicao' as const,
       }));
       const vaxEvents: Event[] = (Array.isArray(vax) ? vax : []).map((v: any) => ({
