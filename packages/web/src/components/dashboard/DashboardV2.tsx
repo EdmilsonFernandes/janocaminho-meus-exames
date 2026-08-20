@@ -10,6 +10,7 @@ import { DashboardHeader } from './DashboardHeader';
 import { FailedExamsAlert } from './FailedExamsAlert';
 import { AiCard } from './AiCard';
 import { QuickActions } from './QuickActions';
+import { ActivityCard } from './ActivityCard';
 import { CreditsCard } from './CreditsCard';
 import { BiologicalAgeCard } from './BiologicalAgeCard';
 import { ShareHealthButton } from '../ShareHealthCard';
@@ -242,6 +243,11 @@ export const DashboardV2 = () => {
           <IndicatorTile icon={<ShowChartIcon />} tone="info" label="Evolução" value="Tendências" sub={`${totalResults || 0} resultados`} onClick={() => navigate('/evolucao')} />
         </Grid>
       </Grid>
+
+      {/* ATIVIDADE FÍSICA (Health Connect) — só existe no APK; no web o card retorna null */}
+      <Box sx={{ mt: 2 }}>
+        <ActivityCard />
+      </Box>
 
       {/* AÇÕES RÁPIDAS + CRÉDITOS */}
       <Box sx={{ mt: 2.5 }}>

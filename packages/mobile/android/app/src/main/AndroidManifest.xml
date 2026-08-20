@@ -2,10 +2,21 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Health Connect exige minSdk 26; o app suporta 23 (Android 6/7 da base ainda ativa).
+         Seguro porque TODO acesso às classes HC no HealthBridge é guardado por
+         Build.VERSION.SDK_INT >= 26 — em aparelhos <26 o widget simplesmente não aparece. -->
+    <uses-sdk tools:overrideLibrary="androidx.health.connect.client" />
+
     <!-- @capgo/capacitor-social-login traz a permissão AD_ID via dependência do login do Facebook
          (que não usamos — só Google). Removida p/ a declaração "não usa ID de publicidade" do
          Play Console ficar consistente com o app (sem anúncios). -->
     <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove" />
+
+    <!-- Health Connect (Activity Widget — leitura APENAS, nunca escrita): passos, calorias
+         totais e distância. Declaração exigida p/ o popup nativo de permissão funcionar. -->
+    <uses-permission android:name="androidx.health.connect.permission.read.Steps" />
+    <uses-permission android:name="androidx.health.connect.permission.read.TotalCaloriesBurned" />
+    <uses-permission android:name="androidx.health.connect.permission.read.Distance" />
 
     <application
         android:allowBackup="true"
@@ -30,7 +41,31 @@
             </intent-filter>
             <!-- Atalhos estáticos (long-press no ícone): Cartão de emergência -->
             <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
+
+            <!-- Health Connect (Android ≤13): rationale das permissões (o link de política de
+                 privacidade do Health Connect abre o app aqui — cai na rota /privacidade). -->
+            <intent-filter>
+                <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
+            </intent-filter>
         </activity>
+
+        <!-- Health Connect (Android 14+): exigência do Play p/ apps que LEEM dados de saúde.
+             Alias aponta pra MainActivity — a tela de permissões do sistema leva até aqui. -->
+        <activity-alias
+            android:name="ViewPermissionUsageActivity"
+            android:exported="true"
+            android:targetActivity=".MainActivity"
+            android:permission="android.permission.START_VIEW_PERMISSION_USAGE">
+            <intent-filter android:priority="1">
+                <action android:name="android.intent.action.VIEW_PERMISSION_USAGE" />
+                <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
+            </intent-filter>
+        </activity-alias>
+
+        <!-- Política de privacidade exigida pelo Health Connect (tela de permissões do sistema). -->
+        <meta-data
+            android:name="health_connect.privacy_policy_url"
+            android:value="https://janocaminho.com.br/minhasaude/#/privacidade" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

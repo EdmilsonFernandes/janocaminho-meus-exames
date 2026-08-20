@@ -35,6 +35,8 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
     private static final String BIO_EVENT = "dx:biometric-result";
     private static final String ACTION_OPEN_EMERGENCY = "com.janocaminho.drexame.OPEN_EMERGENCY";
     private boolean biometricBridgeInjected = false;
+    // Health Connect (Activity Widget): bridge Kotlin window.DxHealth (mesmo padrão do DxBiometrics).
+    private HealthBridge healthBridge;
     // Atalho "Cartão de emergência" (long-press no ícone): pending até o WebView estar pronto.
     private boolean pendingEmergencyOpen = false;
     private final android.os.Handler uiHandler = new android.os.Handler(android.os.Looper.getMainLooper());
@@ -44,6 +46,11 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
         super.onCreate(savedInstanceState);
         createNotificationChannel();
         paintWebViewBrandBg();
+        // Health Connect: cria o bridge e REGISTRA o launcher de permissões ainda no onCreate
+        // (registerForActivityResult exige registro antes do primeiro onStart).
+        healthBridge = new HealthBridge(this);
+        healthBridge.ensureLauncher();
+        injectHealthBridge();
         injectBiometricBridge();
         if (ACTION_OPEN_EMERGENCY.equals(getIntent() != null ? getIntent().getAction() : null)) {
             pendingEmergencyOpen = true;
@@ -93,7 +100,20 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
     @Override
     public void onStart() {
         super.onStart();
-        injectBiometricBridge(); // re-injeta se o WebView foi recriado
+        injectHealthBridge(); // re-injeta se o WebView foi recriado
+        injectBiometricBridge(); // idem
+    }
+
+    /** Injeta o bridge de Health Connect (window.DxHealth) — passos/calorias/distância do widget. */
+    private void injectHealthBridge() {
+        if (healthBridge == null || bridge == null || bridge.getWebView() == null) return;
+        bridge.getWebView().addJavascriptInterface(healthBridge, "DxHealth");
+    }
+
+    /** Avalia JS no WebView (o HealthBridge despacha CustomEvents por aqui). */
+    public void evalJs(String script) {
+        if (bridge == null || bridge.getWebView() == null) return;
+        bridge.getWebView().evaluateJavascript(script, null);
     }
 
     // --- Google Sign-in nativo (Capgo social-login): repassa o resultado do seletor de conta ao plugin. ---

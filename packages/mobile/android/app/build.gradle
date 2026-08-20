@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'org.jetbrains.kotlin.android'
 
 android {
     namespace "com.janocaminho.drexame"
@@ -7,8 +8,8 @@ android {
         applicationId "com.janocaminho.drexame"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 334
-        versionName "2.7.93"
+        versionCode 335
+        versionName "2.7.94"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -58,6 +59,9 @@ dependencies {
     implementation project(':capacitor-cordova-android-plugins')
     implementation 'androidx.biometric:biometric:1.1.0'
     implementation 'androidx.security:security-crypto:1.0.0'
+    // Health Connect (passos/calorias/distância) — bridge Kotlin window.DxHealth
+    implementation "androidx.health.connect:connect-client:$healthConnectVersion"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesVersion"
 }
 
 apply from: 'capacitor.build.gradle'

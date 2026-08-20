@@ -15,6 +15,10 @@ const TYPES = [
   { v: 'WEIGHT', l: 'Peso', u: 'kg', color: '#178f89', emoji: '⚖️' },
   { v: 'GLUCOSE', l: 'Glicose', u: 'mg/dL', color: '#c2410c', emoji: '🍬' },
   { v: 'HEART_RATE', l: 'Frequência cardíaca', u: 'bpm', color: '#ef4444', emoji: '❤️' },
+  // Atividade (Health Connect): sincronizada do celular — leitura, não entra pelo form manual.
+  { v: 'STEPS', l: 'Passos', u: 'passos', color: '#0369a1', emoji: '👟', synced: true },
+  { v: 'CALORIES', l: 'Calorias', u: 'kcal', color: '#9a3412', emoji: '🔥', synced: true },
+  { v: 'DISTANCE', l: 'Distância', u: 'km', color: '#047857', emoji: '🧭', synced: true },
   { v: 'OTHER', l: 'Outro', u: '', color: '#64748b', emoji: '📌' },
 ];
 
