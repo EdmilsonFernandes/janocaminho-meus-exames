@@ -10,7 +10,9 @@ import { APP_BUILD_INFO } from '../generated/buildInfo';
 export async function checkPlayUpdate(): Promise<void> {
   try {
     const [{ AppUpdate }] = await Promise.all([import('@capawesome/capacitor-app-update')]);
-    if (!Capacitor.isNativePlatform()) return;
+    // Fluxo in-app da PLAY STORE (updateAvailability/immediate são API Android). No iOS,
+    // a App Store não permite auto-update — o check mínimo do backend (checkAppUpdate) cobre.
+    if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== 'android') return;
     const info = await AppUpdate.getAppUpdateInfo();
     if (info.updateAvailability === 2 /* UPDATE_AVAILABLE */) {
       if (info.immediateUpdateAllowed) await AppUpdate.performImmediateUpdate();

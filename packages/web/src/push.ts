@@ -12,13 +12,18 @@ export async function syncPushToken(): Promise<void> {
   await fetch(`${API_URL}/devices/token`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${t}` },
-    body: JSON.stringify({ token: fcm, platform: 'android' }),
+    body: JSON.stringify({ token: fcm, platform: Capacitor.getPlatform() }),
   }).catch(() => {});
 }
 
-/** Registra o app para receber push (Android). No web é no-op. */
+/** Registra o app para receber push (Android). No web é no-op.
+ *
+ * iOS fica FORA por enquanto: o plugin Capacitor devolve o token APNs (não FCM) — o
+ * servidor (firebase-admin) não saberia entregar. Fase 2 do iOS: Firebase iOS SDK no
+ * Xcode (FCM token) OU envio direto APNs no server. Ativar aqui quando isso existir. */
 export async function initPush(): Promise<void> {
   if (!Capacitor.isNativePlatform()) return;
+  if (Capacitor.getPlatform() !== 'android') return;
   // Push exige google-services.json + Firebase configurados. Sem isso, PushNotifications.register()
   // causa um CRASH NATIVO (FirebaseApp não inicializado) que derruba o app — foi o que fez o APK
   // abrir o login e fechar. Só ativar quando o FCM estiver pronto (VITE_PUSH_ENABLED=true no build).

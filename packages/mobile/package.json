@@ -6,8 +6,9 @@
   "scripts": {
     "build:web": "node scripts/build-web.js",
     "add:android": "npm run build:web && cap add android",
-    "sync": "npm run build:web && cap sync android",
+    "sync": "npm run build:web && cap sync android ios",
     "open:android": "cap open android",
+    "open:ios": "cap open ios",
     "apk": "echo 'Dentro de packages/mobile: cd android && gradlew.bat assembleDebug   (app-debug.apk)'",
     "aab": "echo 'Dentro de packages/mobile: cd android && gradlew.bat bundleRelease  (app-release.aab p/ Play Store)'"
   },
@@ -20,6 +21,7 @@
     "@capacitor/camera": "^7.0.5",
     "@capacitor/core": "^7.6.6",
     "@capacitor/filesystem": "^7.1.8",
+    "@capacitor/ios": "^7.6.8",
     "@capacitor/preferences": "^7.0.4",
     "@capacitor/push-notifications": "^7.0.0",
     "@capacitor/share": "^7.0.4",

@@ -13,6 +13,9 @@ import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 
 const MAX_BYTES = 32 * 1024 * 1024; // 32 MB por arquivo (limite do Claude)
 const isNative = typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform();
+// Scanner ML Kit é plugin GOOGLE (Android-only). No iOS o botão "Escanear" não existe —
+// o caminho "PDF ou foto" (input file) cobre e a câmera do sistema faz a foto.
+const isAndroid = isNative && Capacitor.getPlatform() === 'android';
 const UPLOAD_CONSENT_KEY = 'meus_exames_upload_disclosure_v1';
 
 async function uploadOne(file: File | Blob, filename: string, pid: string | null, title?: string) {
@@ -305,8 +308,8 @@ export const ExamCreate = () => {
           <Box component="form" onSubmit={submit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {/* 2 CAMINHOS — Escanear (recomendado, mobile) + PDF/galeria. Leigo é guiado pro que lê melhor. */}
             <Stack direction="row" spacing={1.5} sx={{ flexWrap: { xs: 'nowrap', sm: 'nowrap' } }}>
-              {/* Caminho 1: Escanear (ML Kit — ajusta borda/luz/nitido no aparelho → OCR limpo) */}
-              {isNative && (
+              {/* Caminho 1: Escanear (ML Kit — ajusta borda/luz/nitido no aparelho → OCR limpo). Android only. */}
+              {isAndroid && (
                 <Box onClick={busy ? undefined : scanDocument} sx={{
                   flex: 1, cursor: busy ? 'wait' : 'pointer', borderRadius: '12px', p: { xs: 2, sm: 2.5 }, textAlign: 'center',
                   border: '2px solid #20b2aa', bgcolor: 'rgba(32,178,170,.07)', transition: 'all .15s', position: 'relative',

@@ -15,6 +15,9 @@ import { Capacitor } from '@capacitor/core';
 
 let inited = false;
 const WEB_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+// iOS: o plugin capgo pede o client id do app iOS (GoogleService-Info.plist → CLIENT_ID).
+// Sem ele, initialize no iOS não tem como logar — login Google fica só Android/web.
+const IOS_CLIENT_ID = import.meta.env.VITE_GOOGLE_IOS_CLIENT_ID || '';
 
 /** Devolve o idToken do Google (JWT) ou null em falta/erro. Só roda em plataforma nativa. */
 export async function nativeGoogleLogin(): Promise<string | null> {
@@ -22,7 +25,11 @@ export async function nativeGoogleLogin(): Promise<string | null> {
   try {
     const { SocialLogin } = await import('@capgo/capacitor-social-login');
     if (!inited) {
-      await SocialLogin.initialize({ google: { webClientId: WEB_CLIENT_ID } });
+      await SocialLogin.initialize({
+        google: Capacitor.getPlatform() === 'ios'
+          ? { iOSClientId: IOS_CLIENT_ID, webClientId: WEB_CLIENT_ID }
+          : { webClientId: WEB_CLIENT_ID },
+      });
       inited = true;
     }
     const res = await SocialLogin.login({ provider: 'google', options: {} });
