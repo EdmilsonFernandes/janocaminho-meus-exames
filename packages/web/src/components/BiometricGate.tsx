@@ -56,7 +56,15 @@ export const BiometricGate = ({ children }: { children: React.ReactNode }) => {
       try {
         const { App } = await import('@capacitor/app');
         const h = await App.addListener('appStateChange', ({ isActive }: { isActive: boolean }) => {
-          if (isActive) { setLocked(true); void prompt(); }
+          if (isActive) {
+            // INTENT NATIVO EM CURSO (fix 337): a sheet de permissão do Health Connect PAUSA o
+            // app; travar com biometria no retorno engolia o resultado ("autentica e nada acontece").
+            // A flag é CONSUMÍVEL (um resume só) e o bridge a limpa sozinho — a trava normal
+            // continua valendo em qualquer outro retorno do background.
+            const w = window as any;
+            if (w.__dxNativeIntent) { w.__dxNativeIntent = false; return; }
+            setLocked(true); void prompt();
+          }
         });
         remove = () => { h.remove(); };
       } catch { /* web */ }

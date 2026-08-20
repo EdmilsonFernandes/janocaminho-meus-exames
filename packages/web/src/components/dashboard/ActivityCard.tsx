@@ -11,7 +11,7 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { AppCard } from '../AppCard';
 import { GradientButton } from '../GradientButton';
 import { hapticLight } from '../../utils/haptic';
-import { fetchActivityDays, hasHealthPermissions, healthConnectSupported, requestHealthPermissions, syncActivityToServer } from '../../services/healthConnect';
+import { fetchActivityDays, hasHealthPermissions, healthConnectSupported, permissionOutcomeMessage, requestHealthPermissions, syncActivityToServer } from '../../services/healthConnect';
 import { barHeight, fmtKcal, fmtKm, fmtSteps, summarize, STEPS_GOAL, type ActivityDay, type ActivityRange } from '../../utils/activityStats';
 
 /**
@@ -79,10 +79,11 @@ export const ActivityCard = () => {
 
   const connect = async () => {
     setAsking(true);
-    const granted = await requestHealthPermissions();
+    const outcome = await requestHealthPermissions();
+    console.debug('[DxHealth] connect:', JSON.stringify(outcome)); // visível no adb logcat (debug de campo)
     setAsking(false);
     setAskOpen(false);
-    if (granted) {
+    if (outcome.granted) {
       hapticLight();
       notify('Dados de atividade conectados 🎉', { type: 'success' });
       // Primeira carga + sincronização silenciosa pro histórico entrar no Dr. Exame.
@@ -91,6 +92,8 @@ export const ActivityCard = () => {
       setDays(d); setUpdatedAt(d ? new Date() : null); setPhase('data');
       if (d?.length) void syncActivityToServer(d).catch(() => {});
     } else {
+      // Fix 337: nunca mais falha calado — o motivo vira aviso (provider desatualizado etc).
+      if (outcome.code && outcome.code !== 'denied') notify(permissionOutcomeMessage(outcome.code), { type: 'warning' });
       setPhase('denied');
     }
   };

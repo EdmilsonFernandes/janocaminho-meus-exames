@@ -1,6 +1,5 @@
 package com.janocaminho.drexame
 
-import android.app.Activity
 import android.os.Handler
 import android.os.Looper
 import android.webkit.JavascriptInterface
@@ -41,7 +40,7 @@ import java.util.concurrent.atomic.AtomicInteger
  *   (requestPermissions é lançado pela MainActivity via ActivityResultLauncher registrado lá —
  *    registerForActivityResult precisa acontecer antes de onStart, no ciclo da Activity.)
  */
-class HealthBridge(private val activity: Activity) {
+class HealthBridge(private val activity: MainActivity) {
 
     companion object {
         const val EVENT = "dx:health"
@@ -84,6 +83,8 @@ class HealthBridge(private val activity: Activity) {
             ) { granted ->
                 val ok = granted != null && granted.containsAll(READ_PERMISSIONS)
                 onPermissionsResult(pendingRequestId, ok)
+                // Libera a flag do gate com folga (o resume dispara antes deste callback às vezes).
+                activity.evalJs("try{setTimeout(()=>{window.__dxNativeIntent=false},2500)}catch(e){}")
             }
         }
         return launcher
@@ -93,11 +94,22 @@ class HealthBridge(private val activity: Activity) {
     fun requestPermissions(requestId: String) {
         val id = requestId.ifEmpty { "perm-${requestSeq.incrementAndGet()}" }
         if (!hcSdkOk()) { dispatch(errorPayload(id, "unavailable")); return; }
+        // BUGFIX 336 (usuário real): sheet de permissão PAUSA o app → BiometricGate travava no
+        // retorno e o resultado parecia "não acontecer". Avisamos o gate ANTES de abrir a sheet
+        // (flag consumível — só ignora UM resume) e reportamos POR QUE falhou (provider ausente
+        // precisa de update via Play — antes virava 'false' silencioso).
+        val status = try { HealthConnectClient.getSdkStatus(activity) } catch (e: Throwable) { HealthConnectClient.SDK_UNAVAILABLE }
+        if (status != HealthConnectClient.SDK_AVAILABLE) {
+            dispatch(errorPayload(id, if (status == HealthConnectClient.SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED) "provider_update" else "unavailable"))
+            return
+        }
         pendingRequestId = id
         ui.post {
             try {
+                activity.evalJs("try{window.__dxNativeIntent=true}catch(e){}")
                 ensureLauncher()?.launch(READ_PERMISSIONS)
             } catch (e: Throwable) {
+                activity.evalJs("try{window.__dxNativeIntent=false}catch(e){}")
                 // Health Connect sem app provador instalado → contrato pode falhar ao lançar.
                 dispatch(errorPayload(id, "unavailable"))
             }

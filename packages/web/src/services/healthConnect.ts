@@ -56,11 +56,26 @@ const waitFor = <T>(type: string, requestId: string, invoke: () => void, extract
     invoke();
   });
 
-/** Abre o popup NATIVO de permissão do Health Connect. Resolve true se concedidas. */
-export const requestHealthPermissions = (): Promise<boolean> => {
-  if (!healthConnectSupported()) return Promise.resolve(false);
+export interface PermissionOutcome { granted: boolean; code?: 'provider_update' | 'unavailable' | 'timeout' | 'denied' }
+
+/** Códigos → UX honesta (fix 337: antes falhava em silêncio e o usuário não sabia o porquê). */
+export const permissionOutcomeMessage = (code?: string): string => {
+  switch (code) {
+    case 'provider_update': return 'Seu Health Connect precisa de atualização — abra a Play Store, atualize o "Health Connect" (ou "Saúde Connect") e tente de novo.';
+    case 'unavailable': return 'Health Connect não está disponível neste aparelho — verifique na Play Store se ele aparece como instalado/atualizável.';
+    case 'timeout': return 'O Health Connect não respondeu — tente conectar de novo.';
+    default: return 'Permissão não concedida — você pode tentar outra hora quando quiser.';
+  }
+};
+
+/** Abre o popup NATIVO de permissão do Health Connect. Resolve com o MOTIVO quando falha. */
+export const requestHealthPermissions = (): Promise<PermissionOutcome> => {
+  if (!healthConnectSupported()) return Promise.resolve({ granted: false, code: 'unavailable' });
   const requestId = `perm-${Date.now()}`;
-  return waitFor<boolean>('permissions', requestId, () => window.DxHealth!.requestPermissions(requestId), (e) => !!e.detail?.granted);
+  return waitFor<PermissionOutcome>('permissions', requestId, () => window.DxHealth!.requestPermissions(requestId), (e) => {
+    const granted = !!e.detail?.granted;
+    return granted ? { granted } : { granted: false, code: (e.detail as any)?.code === 'provider_update' || (e.detail as any)?.code === 'unavailable' || (e.detail as any)?.code === 'timeout' ? (e.detail as any).code : 'denied' };
+  });
 };
 
 /**
