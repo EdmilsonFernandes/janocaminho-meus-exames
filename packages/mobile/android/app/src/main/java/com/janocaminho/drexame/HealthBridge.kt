@@ -94,10 +94,6 @@ class HealthBridge(private val activity: MainActivity) {
     fun requestPermissions(requestId: String) {
         val id = requestId.ifEmpty { "perm-${requestSeq.incrementAndGet()}" }
         if (!hcSdkOk()) { dispatch(errorPayload(id, "unavailable")); return; }
-        // BUGFIX 336 (usuário real): sheet de permissão PAUSA o app → BiometricGate travava no
-        // retorno e o resultado parecia "não acontecer". Avisamos o gate ANTES de abrir a sheet
-        // (flag consumível — só ignora UM resume) e reportamos POR QUE falhou (provider ausente
-        // precisa de update via Play — antes virava 'false' silencioso).
         val status = try { HealthConnectClient.getSdkStatus(activity) } catch (e: Throwable) { HealthConnectClient.SDK_UNAVAILABLE }
         if (status != HealthConnectClient.SDK_AVAILABLE) {
             dispatch(errorPayload(id, if (status == HealthConnectClient.SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED) "provider_update" else "unavailable"))
@@ -107,12 +103,52 @@ class HealthBridge(private val activity: MainActivity) {
         ui.post {
             try {
                 activity.evalJs("try{window.__dxNativeIntent=true}catch(e){}")
-                ensureLauncher()?.launch(READ_PERMISSIONS)
+                val launched = ensureLauncher()?.launch(READ_PERMISSIONS)
+                // FALLBACK (Samsung Android 16): o contrato resolve VAZIO em alguns aparelhos
+                // (intent invisível mesmo com <queries>). Se não lançou nada em 1,5s, abre o
+                // Health Connect DIRETO nas settings de permissão do nosso app.
+                ui.postDelayed({
+                    if (pendingRequestId == id) {
+                        openHealthConnectSettings(id)
+                    }
+                }, 1500)
             } catch (e: Throwable) {
                 activity.evalJs("try{window.__dxNativeIntent=false}catch(e){}")
-                // Health Connect sem app provador instalado → contrato pode falhar ao lançar.
-                dispatch(errorPayload(id, "unavailable"))
+                // Contrato falhou → tenta abrir o HC settings diretamente (garantido).
+                openHealthConnectSettings(id)
             }
+        }
+    }
+
+    /**
+     * FALLBACK universal: abre o Health Connect (app ou sistema) nas permissões do NOSSO app.
+     * Usado quando o ActivityResultContract falha silenciosamente (Samsung Android 16).
+     * O usuário concede lá e volta pro app — ao voltar, o web re-checa hasAllPermissions().
+     */
+    private fun openHealthConnectSettings(requestId: String) {
+        try {
+            // Tenta 1: settings do HC com nosso package (abre direto na tela certa)
+            val intent = android.content.Intent("androidx.health.ACTION_MANAGE_HEALTH_PERMISSIONS").apply {
+                putExtra("android.intent.extra.PACKAGE_NAME", "com.janocaminho.drexame")
+                addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            if (intent.resolveActivity(activity.packageManager) != null) {
+                activity.startActivity(intent)
+                dispatch(JSONObject().put("type", "permissions").put("requestId", requestId).put("granted", false).put("openedSettings", true))
+                return
+            }
+            // Tenta 2: abre o app do Health Connect direto (o usuário acha nosso app na lista)
+            val launchIntent = activity.packageManager.getLaunchIntentForPackage("com.google.android.healthconnect.controller")
+                ?: activity.packageManager.getLaunchIntentForPackage("com.google.android.apps.healthdata")
+            if (launchIntent != null) {
+                activity.startActivity(launchIntent)
+                dispatch(JSONObject().put("type", "permissions").put("requestId", requestId).put("granted", false).put("openedSettings", true))
+                return
+            }
+            // Nada resolveu
+            dispatch(errorPayload(requestId, "unavailable"))
+        } catch (e: Throwable) {
+            dispatch(errorPayload(requestId, "unavailable"))
         }
     }
 

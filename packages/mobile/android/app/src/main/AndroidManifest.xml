@@ -14,9 +14,15 @@
 
     <!-- Health Connect (Activity Widget — leitura APENAS, nunca escrita): passos, calorias
          totais e distância. Declaração exigida p/ o popup nativo de permissão funcionar. -->
+    <!-- Formato ANTIGO (Android 13- / app da Play Store com.google.android.apps.healthdata) -->
     <uses-permission android:name="androidx.health.connect.permission.read.Steps" />
     <uses-permission android:name="androidx.health.connect.permission.read.TotalCaloriesBurned" />
     <uses-permission android:name="androidx.health.connect.permission.read.Distance" />
+    <!-- Formato NOVO (Android 14+ / módulo de SISTEMA com.google.android.healthconnect.controller)
+         — sem estas, o sistema mostra "Atualização necessária" e NÃO deixa conceder permissões. -->
+    <uses-permission android:name="android.permission.health.READ_STEPS" />
+    <uses-permission android:name="android.permission.health.READ_TOTAL_CALORIES_BURNED" />
+    <uses-permission android:name="android.permission.health.READ_DISTANCE" />
 
     <!-- ANDROID 11+ (API 30): VISIBILIDADE DE PACOTE — sem este bloco o intent da sheet de
          permissão do Health Connect resolve VAZIO em muitos aparelhos: a sheet simplesmente
@@ -25,8 +31,11 @@
         <intent>
             <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
         </intent>
-        <!-- HC via Play (Android 13-) e HC de sistema (Android 14+) -->
+        <!-- HC via Play (Android 13-) e HC de SISTEMA (Android 14+: o controller é quem
+             expõe PermissionsActivity — sem este pacote no queries, o launch() falha
+             SILENCIOSAMENTE em Samsung/Android 16. Bug real diagnosticado via ADB.) -->
         <package android:name="com.google.android.apps.healthdata" />
+        <package android:name="com.google.android.healthconnect.controller" />
         <provider android:authorities="androidx.health-connect.provider" />
     </queries>
 

@@ -50,6 +50,15 @@ describe('ActivityView — estado permissão negada', () => {
     expect(html).toContain('Conectar atividade');
     expect(html).not.toContain('MuiSkeleton-root');
   });
+  it('BRANDING Google premium: G multicolor + Health Connect + cadeado de segurança', () => {
+    const html = shell(<ActivityView {...baseProps} phase="denied" days={null} />);
+    expect(html).toContain('#EA4335'); // vermelho Google
+    expect(html).toContain('#4285F4'); // azul Google
+    expect(html).toContain('#34A853'); // verde Google
+    expect(html).toContain('Google Health Connect');
+    expect(html).toContain('Dados seguros'); // cadeado + texto
+    expect(html).toContain('#34A853'); // botão verde Google
+  });
   it('quem não quer o card consegue OCULTÁ-LO (botão com aria-label, sem card eterno)', () => {
     const html = shell(<ActivityView {...baseProps} phase="denied" days={null} />);
     expect(html).toContain('aria-label="Ocultar card de atividade"');

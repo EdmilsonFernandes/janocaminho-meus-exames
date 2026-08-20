@@ -8,11 +8,13 @@ import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
 import SyncIcon from '@mui/icons-material/Sync';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import InsightsIcon from '@mui/icons-material/Insights';
+import { GoogleG, LockSecure } from './GoogleG';
 import { AppCard } from '../AppCard';
 import { GradientButton } from '../GradientButton';
 import { hapticLight } from '../../utils/haptic';
 import { fetchActivityDays, hasHealthPermissions, healthConnectSupported, permissionOutcomeMessage, requestHealthPermissions, syncActivityToServer } from '../../services/healthConnect';
-import { barHeight, fmtKcal, fmtKm, fmtSteps, summarize, STEPS_GOAL, type ActivityDay, type ActivityRange } from '../../utils/activityStats';
+import { barHeight, fmtKcal, fmtKm, fmtSteps, summarize, weekOfExam, STEPS_GOAL, type ActivityDay, type ActivityRange } from '../../utils/activityStats';
 
 /**
  * ActivityCard — widget de atividade física (Health Connect) no Dashboard.
@@ -36,7 +38,7 @@ const rangeLabel = (r: ActivityRange) => RANGES.find((x) => x.value === r)?.labe
 export const ACTIVITY_HIDDEN_KEY = 'dx_activity_hidden';
 export const activityCardHidden = (): boolean => { try { return localStorage.getItem(ACTIVITY_HIDDEN_KEY) === '1'; } catch { return false; } };
 
-export const ActivityCard = () => {
+export const ActivityCard = ({ lastExamAt }: { lastExamAt?: string | null }) => {
   const notify = useNotify();
   const supported = useMemo(healthConnectSupported, []);
   const [hidden, setHidden] = useState(activityCardHidden);
@@ -88,16 +90,40 @@ export const ActivityCard = () => {
       setAskOpen(false);
       hapticLight();
       notify('Dados de atividade conectados 🎉', { type: 'success' });
-      // Primeira carga + sincronização silenciosa pro histórico entrar no Dr. Exame.
-      if (!hasHealthPermissions()) return;
-      const d = await fetchActivityDays(30);
-      setDays(d); setUpdatedAt(d ? new Date() : null); setPhase('data');
-      if (d?.length) void syncActivityToServer(d).catch(() => {});
+      await loadAndSync();
       return;
     }
-    // Falha NUNCA mais calada nem só-toast: o motivo aparece DENTRO do dialog (retry a 1 toque).
-    if (outcome.code === 'denied') { setAskOpen(false); return; } // usuário recusou no sheet — sem drama
+    if (outcome.code === 'denied') { setAskOpen(false); return; } // usuário recusou — sem drama
+    if (outcome.code === 'settings_opened') {
+      // FALLBACK abriu o HC settings: o usuário concede lá. Quando VOLTAR pro app,
+      // o listener de visibilitychange abaixo re-checa e conecta sozinho.
+      setConnectError(permissionOutcomeMessage('settings_opened'));
+      return;
+    }
     setConnectError(permissionOutcomeMessage(outcome.code));
+  };
+
+  // FALLBACK: quando o HC settings abriu (Samsung), re-checa ao VOLTAR pro app.
+  useEffect(() => {
+    const onVisible = async () => {
+      if (document.visibilityState !== 'visible') return;
+      if (phase !== 'denied') return;
+      // O usuário voltou do HC settings — deu as permissões?
+      if (hasHealthPermissions()) {
+        hapticLight();
+        notify('Atividade conectada! 🎉', { type: 'success' });
+        await loadAndSync();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [phase]);
+
+  const loadAndSync = async () => {
+    if (!hasHealthPermissions()) return;
+    const d = await fetchActivityDays(30);
+    setDays(d); setUpdatedAt(d ? new Date() : null); setPhase('data');
+    if (d?.length) void syncActivityToServer(d).catch(() => {});
   };
 
   // ── Shell: o widget só existe no APK (web/desktop → null, sem card morto na 1ª dobra).
@@ -114,6 +140,7 @@ export const ActivityCard = () => {
       askOpen={askOpen}
       asking={asking}
       connectError={connectError}
+      lastExamAt={lastExamAt}
       onAskOpen={() => { hapticLight(); setConnectError(undefined); setAskOpen(true); }}
       onAskClose={() => setAskOpen(false)}
       onConfirm={connect}
@@ -129,7 +156,7 @@ export const ActivityCard = () => {
  * Shell (estado/permissões/sync) fica no ActivityCard acima.
  */
 export const ActivityView = ({
-  phase, days, range, onRange, syncing, updatedAt, askOpen, asking, connectError, onAskOpen, onAskClose, onConfirm, onSync, onHide,
+  phase, days, range, onRange, syncing, updatedAt, askOpen, asking, connectError, lastExamAt, onAskOpen, onAskClose, onConfirm, onSync, onHide,
 }: {
   phase: 'loading' | 'denied' | 'data';
   days: ActivityDay[] | null;
@@ -141,6 +168,8 @@ export const ActivityView = ({
   asking: boolean;
   /** Motivo da última falha de conexão (aparece DENTRO do dialog, com retry a 1 toque). */
   connectError?: string;
+  /** Data do último exame (ISO) — ativa o insight "na semana do seu exame" (Onda 2). */
+  lastExamAt?: string | null;
   onAskOpen: () => void;
   onAskClose: () => void;
   onConfirm: () => void;
@@ -177,18 +206,70 @@ export const ActivityView = ({
           sx={{ position: 'absolute', top: 6, right: 6, color: 'text.disabled', '&:hover': { color: 'text.secondary', bgcolor: 'action.hover' } }}>
           <VisibilityOffIcon sx={{ fontSize: 16 }} />
         </IconButton>
-        <Stack spacing={1.5} alignItems={{ xs: 'stretch', sm: 'flex-start' }} direction={{ xs: 'column', sm: 'row' }} sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
-          <Box sx={{ width: 46, height: 46, borderRadius: '14px', display: 'grid', placeItems: 'center', bgcolor: alpha(theme.palette.primary.main, 0.12), color: 'primary.dark', mx: { xs: 'auto', sm: 0 } }}>
+
+        {/* MÓDULO DE INTEGRAÇÃO GOOGLE (premium, ref: ideiaSaudeConnect.jpg):
+            G multicolor + Health Connect + cadeado de segurança — comunicação
+            instantânea de "integração oficial e segura do Google". */}
+        <Stack
+          direction="row"
+          spacing={1.5}
+          alignItems="center"
+          sx={{
+            mb: 1.5, px: 1.5, py: 1.25,
+            borderRadius: '12px',
+            bgcolor: 'rgba(32,178,170,0.04)',
+            border: '1px solid rgba(32,178,170,0.15)',
+          }}
+        >
+          <GoogleG size={28} />
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary', lineHeight: 1.3 }}>
+              Conectado com segurança via
+            </Typography>
+            <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#1a73e8', lineHeight: 1.3 }}>
+              Google Health Connect
+            </Typography>
+          </Box>
+          <Stack direction="row" spacing={0.5} alignItems="center" sx={{ flexShrink: 0 }}>
+            <LockSecure size={13} color="#5f6368" />
+            <Typography sx={{ fontSize: 11, color: 'text.secondary', fontWeight: 600 }}>Dados seguros</Typography>
+          </Stack>
+        </Stack>
+
+        <Stack spacing={1} alignItems={{ xs: 'stretch', sm: 'flex-start' }} direction={{ xs: 'column', sm: 'row' }}>
+          <Box sx={{ position: 'relative', width: 40, height: 40, borderRadius: '12px', display: 'grid', placeItems: 'center', bgcolor: alpha(theme.palette.primary.main, 0.10), color: 'primary.dark', mx: { xs: 'auto', sm: 0 }, flexShrink: 0 }}>
             <DirectionsWalkIcon />
+            <Box component="img" src="hc-icon.png" alt="" onError={(e: any) => { e.currentTarget.style.display = 'none'; }} sx={{ position: 'absolute', width: 30, height: 30, borderRadius: '8px' }} />
           </Box>
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 700, fontSize: 15 }}>Seus passos podem entrar aqui</Typography>
-            <Typography sx={{ fontSize: 12.5, color: 'text.secondary', lineHeight: 1.5, mt: 0.25 }}>
-              Conecte o Health Connect do celular e o Dr. Exame acompanha passos, calorias e distância junto com seus exames.
+            <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 700, fontSize: 15 }}>
+              Seus passos podem entrar aqui
             </Typography>
-            <GradientButton size="small" sx={{ mt: 1.5, mr: 1 }} onClick={onAskOpen}>Conectar atividade</GradientButton>
+            <Typography sx={{ fontSize: 12.5, color: 'text.secondary', lineHeight: 1.5, mt: 0.25 }}>
+              Passos, calorias e distância do seu celular entram junto com seus exames — o Dr. Exame conecta tudo.
+            </Typography>
           </Box>
         </Stack>
+
+        {/* Botão VERDE GOOGLE com G multicolor dentro (ref: imagem premium oficial) */}
+        <Button
+          fullWidth
+          onClick={onAskOpen}
+          startIcon={<GoogleG size={18} />}
+          sx={{
+            mt: 2, py: 1.25, borderRadius: '12px',
+            bgcolor: '#34A853', color: '#fff',
+            fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 14,
+            textTransform: 'none', letterSpacing: 0,
+            boxShadow: '0 4px 12px rgba(52,168,83,0.35)',
+            '&:hover': { bgcolor: '#2d9249', boxShadow: '0 6px 16px rgba(52,168,83,0.45)' },
+            '&:active': { transform: 'scale(0.98)' },
+            '& .MuiButton-startIcon': { mr: 1 },
+          }}
+        >
+          Conectar atividade
+        </Button>
+
         <PermissionRationaleDialog open={askOpen} onClose={onAskClose} onConfirm={onConfirm} asking={asking} error={connectError} />
       </AppCard>
     );
@@ -283,6 +364,24 @@ export const ActivityView = ({
         <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 1.5 }}>Sem dados ainda — use o celular com o contador de passos ativo (Google Fit, Samsung Health, Wear OS…).</Typography>
       )}
 
+      {/* ONDA 2 — "Dashboard sábio": atividade da SEMANA DO ÚLTIMO EXAME (contexto, não
+          casualidade — copy educativa). Só existe com >=3 dias de dados na janela. */}
+      {(() => {
+        if (!lastExamAt || !days?.length) return null;
+        const examDate = lastExamAt.slice(0, 10);
+        const w = weekOfExam(days, examDate);
+        if (!w) return null;
+        const dt = new Date(`${examDate}T12:00:00`).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+        return (
+          <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mt: 1.5, px: 1.25, py: 0.9, borderRadius: '12px', bgcolor: alpha(theme.palette.primary.main, 0.07), border: `1px solid ${alpha(theme.palette.primary.main, 0.18)}` }}>
+            <InsightsIcon sx={{ fontSize: 16, color: 'primary.dark', flexShrink: 0 }} />
+            <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.45 }}>
+              Na semana do seu exame ({dt}): <strong>{fmtSteps(w.avgSteps)} passos/dia</strong> · {fmtKcal(w.avgKcal)} kcal · {fmtKm(w.avgKm)} km — contexto que o Dr. Exame usa na leitura.
+            </Typography>
+          </Stack>
+        );
+      })()}
+
     </AppCard>
   );
 };
@@ -323,7 +422,9 @@ const ActivityRing = ({ ratio, pct, done }: { ratio: number; pct: number; done: 
           </linearGradient>
         </defs>
       </Box>
+      {/* Centro do anel: logo Health Connect (fallback caminhada) — identidade Google Fit-like. */}
       <DirectionsWalkIcon aria-hidden="true" sx={{ fontSize: 26, color: done ? 'success.main' : 'primary.dark' }} />
+      <Box component="img" src="hc-icon.png" alt="" aria-hidden="true" onError={(e: any) => { e.currentTarget.style.display = 'none'; }} sx={{ position: 'absolute', width: 30, height: 30, borderRadius: '8px' }} />
     </Box>
   );
 };

@@ -56,7 +56,7 @@ const waitFor = <T>(type: string, requestId: string, invoke: () => void, extract
     invoke();
   });
 
-export interface PermissionOutcome { granted: boolean; code?: 'provider_update' | 'unavailable' | 'timeout' | 'denied' }
+export interface PermissionOutcome { granted: boolean; code?: 'provider_update' | 'unavailable' | 'timeout' | 'denied' | 'settings_opened' }
 
 /** Códigos → UX honesta (fix 337: antes falhava em silêncio e o usuário não sabia o porquê). */
 export const permissionOutcomeMessage = (code?: string): string => {
@@ -64,6 +64,7 @@ export const permissionOutcomeMessage = (code?: string): string => {
     case 'provider_update': return 'Seu Health Connect precisa de atualização — abra a Play Store, atualize o "Health Connect" (ou "Saúde Connect") e tente de novo.';
     case 'unavailable': return 'Health Connect não está disponível neste aparelho — verifique na Play Store se ele aparece como instalado/atualizável.';
     case 'timeout': return 'O Health Connect não respondeu — tente conectar de novo.';
+    case 'settings_opened': return 'Abrimos o Health Connect pra você — conceda as permissões ao Dr. Exame lá e volte pra cá.';
     default: return 'Permissão não concedida — você pode tentar outra hora quando quiser.';
   }
 };
@@ -74,7 +75,9 @@ export const requestHealthPermissions = (): Promise<PermissionOutcome> => {
   const requestId = `perm-${Date.now()}`;
   return waitFor<PermissionOutcome>('permissions', requestId, () => window.DxHealth!.requestPermissions(requestId), (e) => {
     const granted = !!e.detail?.granted;
-    return granted ? { granted } : { granted: false, code: (e.detail as any)?.code === 'provider_update' || (e.detail as any)?.code === 'unavailable' || (e.detail as any)?.code === 'timeout' ? (e.detail as any).code : 'denied' };
+    if (granted) return { granted };
+    const code = (e.detail as any)?.code ?? (e.detail as any)?.openedSettings ? 'settings_opened' : 'denied';
+    return { granted: false, code: code as PermissionOutcome['code'] };
   });
 };
 
