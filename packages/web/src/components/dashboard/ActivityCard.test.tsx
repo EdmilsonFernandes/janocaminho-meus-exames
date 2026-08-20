@@ -57,10 +57,21 @@ describe('ActivityView — estado permissão negada', () => {
   });
   it('o dialog explica leitura-only antes do popup nativo (conteúdo testável fora do Portal)', () => {
     const html = shell(<PermissionRationaleContent onConfirm={noop} onClose={noop} asking={false} />);
-    expect(html).toContain('Conectar sua atividade');
     expect(html).toContain('Leitura apenas');
     expect(html).toContain('popup do próprio Android');
     expect(html).toContain('revogar a qualquer momento');
+  });
+
+  it('BRANDING Health Connect exigido (guidelines): nome + "do Google" no ponto de conexão', () => {
+    const html = shell(<PermissionRationaleContent onConfirm={noop} onClose={noop} asking={false} />);
+    expect(html).toContain('Health Connect');
+    expect(html).toContain('do Google');
+  });
+
+  it('falha de conexão aparece DENTRO do dialog (não só toast) com retry a 1 toque', () => {
+    const html = shell(<PermissionRationaleContent onConfirm={noop} onClose={noop} asking={false} error="Seu Health Connect precisa de atualização — abra a Play Store" />);
+    expect(html).toContain('precisa de atualização');
+    expect(html).toContain('Continuar'); // botão segue clicável p/ tentar de novo
   });
 });
 

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNotify } from 'react-admin';
-import { Box, Stack, Typography, Skeleton, ToggleButtonGroup, ToggleButton, Button, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, alpha, useTheme } from '@mui/material';
+import { Box, Stack, Typography, Skeleton, ToggleButtonGroup, ToggleButton, Button, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, Alert, alpha, useTheme } from '@mui/material';
 import DirectionsWalkIcon from '@mui/icons-material/DirectionsWalk';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import RouteIcon from '@mui/icons-material/Route';
@@ -45,6 +45,7 @@ export const ActivityCard = () => {
   const [range, setRange] = useState<ActivityRange>('today');
   const [askOpen, setAskOpen] = useState(false);
   const [asking, setAsking] = useState(false);
+  const [connectError, setConnectError] = useState<string | undefined>();
   const [syncing, setSyncing] = useState(false);
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
 
@@ -79,11 +80,12 @@ export const ActivityCard = () => {
 
   const connect = async () => {
     setAsking(true);
+    setConnectError(undefined);
     const outcome = await requestHealthPermissions();
     console.debug('[DxHealth] connect:', JSON.stringify(outcome)); // visível no adb logcat (debug de campo)
     setAsking(false);
-    setAskOpen(false);
     if (outcome.granted) {
+      setAskOpen(false);
       hapticLight();
       notify('Dados de atividade conectados 🎉', { type: 'success' });
       // Primeira carga + sincronização silenciosa pro histórico entrar no Dr. Exame.
@@ -91,11 +93,11 @@ export const ActivityCard = () => {
       const d = await fetchActivityDays(30);
       setDays(d); setUpdatedAt(d ? new Date() : null); setPhase('data');
       if (d?.length) void syncActivityToServer(d).catch(() => {});
-    } else {
-      // Fix 337: nunca mais falha calado — o motivo vira aviso (provider desatualizado etc).
-      if (outcome.code && outcome.code !== 'denied') notify(permissionOutcomeMessage(outcome.code), { type: 'warning' });
-      setPhase('denied');
+      return;
     }
+    // Falha NUNCA mais calada nem só-toast: o motivo aparece DENTRO do dialog (retry a 1 toque).
+    if (outcome.code === 'denied') { setAskOpen(false); return; } // usuário recusou no sheet — sem drama
+    setConnectError(permissionOutcomeMessage(outcome.code));
   };
 
   // ── Shell: o widget só existe no APK (web/desktop → null, sem card morto na 1ª dobra).
@@ -111,7 +113,8 @@ export const ActivityCard = () => {
       updatedAt={updatedAt}
       askOpen={askOpen}
       asking={asking}
-      onAskOpen={() => { hapticLight(); setAskOpen(true); }}
+      connectError={connectError}
+      onAskOpen={() => { hapticLight(); setConnectError(undefined); setAskOpen(true); }}
       onAskClose={() => setAskOpen(false)}
       onConfirm={connect}
       onSync={() => { hapticLight(); void load().then(() => sync()); }}
@@ -126,7 +129,7 @@ export const ActivityCard = () => {
  * Shell (estado/permissões/sync) fica no ActivityCard acima.
  */
 export const ActivityView = ({
-  phase, days, range, onRange, syncing, updatedAt, askOpen, asking, onAskOpen, onAskClose, onConfirm, onSync, onHide,
+  phase, days, range, onRange, syncing, updatedAt, askOpen, asking, connectError, onAskOpen, onAskClose, onConfirm, onSync, onHide,
 }: {
   phase: 'loading' | 'denied' | 'data';
   days: ActivityDay[] | null;
@@ -136,6 +139,8 @@ export const ActivityView = ({
   updatedAt: Date | null;
   askOpen: boolean;
   asking: boolean;
+  /** Motivo da última falha de conexão (aparece DENTRO do dialog, com retry a 1 toque). */
+  connectError?: string;
   onAskOpen: () => void;
   onAskClose: () => void;
   onConfirm: () => void;
@@ -184,7 +189,7 @@ export const ActivityView = ({
             <GradientButton size="small" sx={{ mt: 1.5, mr: 1 }} onClick={onAskOpen}>Conectar atividade</GradientButton>
           </Box>
         </Stack>
-        <PermissionRationaleDialog open={askOpen} onClose={onAskClose} onConfirm={onConfirm} asking={asking} />
+        <PermissionRationaleDialog open={askOpen} onClose={onAskClose} onConfirm={onConfirm} asking={asking} error={connectError} />
       </AppCard>
     );
   }
@@ -341,17 +346,30 @@ const MetricMini = ({ icon, tone, label, value, unit, range }: { icon: React.Rea
  * Onboarding de permissão — o VALOR antes do popup nativo (UX writing, LGPD):
  * explica O QUE é lido (só leitura), QUEM decide e COMO sair.
  */
-const PermissionRationaleDialog = ({ open, onClose, onConfirm, asking }: { open: boolean; onClose: () => void; onConfirm: () => void; asking: boolean }) => (
+const PermissionRationaleDialog = ({ open, onClose, onConfirm, asking, error }: { open: boolean; onClose: () => void; onConfirm: () => void; asking: boolean; error?: string }) => (
   <Dialog open={open} onClose={asking ? () => {} : onClose} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: '16px' } }}>
-    <PermissionRationaleContent onConfirm={onConfirm} onClose={onClose} asking={asking} />
+    <PermissionRationaleContent onConfirm={onConfirm} onClose={onClose} asking={asking} error={error} />
   </Dialog>
 );
 
-/** Conteúdo do dialog separado do Portal (Dialog não renderiza em SSR — teste usa este). */
-export const PermissionRationaleContent = ({ onConfirm, onClose, asking }: { onConfirm: () => void; onClose: () => void; asking: boolean }) => (
+/** Conteúdo do dialog separado do Portal (Dialog não renderiza em SSR — teste usa este).
+ *  BRANDING exigido pelas guidelines do Health Connect: nome "Health Connect" + "do Google"
+ *  no ponto de conexão — sem isto o usuário não sabe O QUE vai conectar (feedback real do dono). */
+export const PermissionRationaleContent = ({ onConfirm, onClose, asking, error }: { onConfirm: () => void; onClose: () => void; asking: boolean; error?: string }) => (
   <>
-    <DialogTitle sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', display: 'flex', alignItems: 'center', gap: 1, pb: 0.5 }}>
-      <HealthAndSafetyIcon sx={{ color: 'primary.main' }} /> Conectar sua atividade
+    <DialogTitle sx={{ pb: 0.5 }}>
+      <Stack direction="row" spacing={1.25} alignItems="center">
+        {/* Ícone Health Connect (guideline): coração+raio no chip da marca. Trocar pelo asset
+            oficial (public/hc-icon.png) quando disponível — o layout já acomoda. */}
+        <Box sx={{ position: 'relative', width: 40, height: 40, borderRadius: '12px', display: 'grid', placeItems: 'center', flexShrink: 0, bgcolor: '#fff', border: '1px solid #e6f1f0' }}>
+          <HealthAndSafetyIcon sx={{ color: '#20b2aa', fontSize: 24 }} aria-hidden="true" />
+          <Box component="img" src="hc-icon.png" alt="" onError={(e: any) => { e.currentTarget.style.display = 'none'; }} sx={{ position: 'absolute', width: 28, height: 28 }} />
+        </Box>
+        <Box sx={{ position: 'relative' }}>
+          <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 17, lineHeight: 1.2 }}>Health Connect</Typography>
+          <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.2 }}>do Google · seus dados de saúde do celular</Typography>
+        </Box>
+      </Stack>
     </DialogTitle>
     <DialogContent>
       <Typography sx={{ color: 'text.secondary', lineHeight: 1.6, fontSize: 14 }}>
@@ -370,9 +388,14 @@ export const PermissionRationaleContent = ({ onConfirm, onClose, asking }: { onC
         ))}
       </Stack>
     </DialogContent>
+    {error && (
+      <Alert severity="warning" sx={{ mx: 3, mb: 0.5, borderRadius: '12px', fontSize: 13 }}>
+        {error}
+      </Alert>
+    )}
     <DialogActions sx={{ px: 3, pb: 2.5 }}>
       <Button onClick={onClose} disabled={asking} sx={{ textTransform: 'none', fontWeight: 700 }}>Agora não</Button>
-      <GradientButton onClick={onConfirm} disabled={asking}>{asking ? 'Abrindo o Android…' : 'Continuar'}</GradientButton>
+      <GradientButton onClick={onConfirm} disabled={asking}>{asking ? 'Abrindo o Health Connect…' : 'Continuar'}</GradientButton>
     </DialogActions>
   </>
 );

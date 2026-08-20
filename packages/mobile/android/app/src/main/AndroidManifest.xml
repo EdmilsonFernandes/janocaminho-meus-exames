@@ -18,6 +18,18 @@
     <uses-permission android:name="androidx.health.connect.permission.read.TotalCaloriesBurned" />
     <uses-permission android:name="androidx.health.connect.permission.read.Distance" />
 
+    <!-- ANDROID 11+ (API 30): VISIBILIDADE DE PACOTE — sem este bloco o intent da sheet de
+         permissão do Health Connect resolve VAZIO em muitos aparelhos: a sheet simplesmente
+         não abre e nenhum erro sobe (bug real do AAB 335/337: "clico e nada acontece"). -->
+    <queries>
+        <intent>
+            <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
+        </intent>
+        <!-- HC via Play (Android 13-) e HC de sistema (Android 14+) -->
+        <package android:name="com.google.android.apps.healthdata" />
+        <provider android:authorities="androidx.health-connect.provider" />
+    </queries>
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
