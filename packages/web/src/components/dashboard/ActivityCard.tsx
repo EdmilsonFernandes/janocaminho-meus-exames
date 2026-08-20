@@ -7,6 +7,7 @@ import RouteIcon from '@mui/icons-material/Route';
 import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
 import SyncIcon from '@mui/icons-material/Sync';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { AppCard } from '../AppCard';
 import { GradientButton } from '../GradientButton';
 import { hapticLight } from '../../utils/haptic';
@@ -31,9 +32,14 @@ const RANGES: Array<{ value: ActivityRange; label: string }> = [
 
 const rangeLabel = (r: ActivityRange) => RANGES.find((x) => x.value === r)?.label ?? '';
 
+/** Chave de "esconder card" (o volta é no Perfil → Acessibilidade — mesmo padrão do banner Pro). */
+export const ACTIVITY_HIDDEN_KEY = 'dx_activity_hidden';
+export const activityCardHidden = (): boolean => { try { return localStorage.getItem(ACTIVITY_HIDDEN_KEY) === '1'; } catch { return false; } };
+
 export const ActivityCard = () => {
   const notify = useNotify();
   const supported = useMemo(healthConnectSupported, []);
+  const [hidden, setHidden] = useState(activityCardHidden);
   const [phase, setPhase] = useState<'loading' | 'denied' | 'data'>('loading');
   const [days, setDays] = useState<ActivityDay[] | null>(null);
   const [range, setRange] = useState<ActivityRange>('today');
@@ -41,6 +47,12 @@ export const ActivityCard = () => {
   const [asking, setAsking] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
+
+  const hide = () => {
+    try { localStorage.setItem(ACTIVITY_HIDDEN_KEY, '1'); } catch { /* localStorage indisponível */ }
+    setHidden(true);
+    notify('Card de atividade oculto — dá pra trazer de volta em Perfil → Acessibilidade.', { type: 'info' });
+  };
 
   const load = async () => {
     if (!supported) { setPhase('loading'); return; }
@@ -84,7 +96,7 @@ export const ActivityCard = () => {
   };
 
   // ── Shell: o widget só existe no APK (web/desktop → null, sem card morto na 1ª dobra).
-  if (!supported) return null;
+  if (!supported || hidden) return null;
 
   return (
     <ActivityView
@@ -100,6 +112,7 @@ export const ActivityCard = () => {
       onAskClose={() => setAskOpen(false)}
       onConfirm={connect}
       onSync={() => { hapticLight(); void load().then(() => sync()); }}
+      onHide={hide}
     />
   );
 };
@@ -110,7 +123,7 @@ export const ActivityCard = () => {
  * Shell (estado/permissões/sync) fica no ActivityCard acima.
  */
 export const ActivityView = ({
-  phase, days, range, onRange, syncing, updatedAt, askOpen, asking, onAskOpen, onAskClose, onConfirm, onSync,
+  phase, days, range, onRange, syncing, updatedAt, askOpen, asking, onAskOpen, onAskClose, onConfirm, onSync, onHide,
 }: {
   phase: 'loading' | 'denied' | 'data';
   days: ActivityDay[] | null;
@@ -124,6 +137,8 @@ export const ActivityView = ({
   onAskClose: () => void;
   onConfirm: () => void;
   onSync: () => void;
+  /** Esconder o card (persistente; volta em Perfil → Acessibilidade). */
+  onHide: () => void;
 }) => {
   const theme = useTheme();
 
@@ -148,7 +163,12 @@ export const ActivityView = ({
 
   if (phase === 'denied') {
     return (
-      <AppCard sx={{ p: 2 }}>
+      <AppCard sx={{ p: 2, position: 'relative' }}>
+        {/* Quem não quer o card NÃO fica com ele pra sempre: esconde (volta em Perfil → Acessibilidade). */}
+        <IconButton size="small" aria-label="Ocultar card de atividade" title="Ocultar (volta em Perfil → Acessibilidade)" onClick={onHide}
+          sx={{ position: 'absolute', top: 6, right: 6, color: 'text.disabled', '&:hover': { color: 'text.secondary', bgcolor: 'action.hover' } }}>
+          <VisibilityOffIcon sx={{ fontSize: 16 }} />
+        </IconButton>
         <Stack spacing={1.5} alignItems={{ xs: 'stretch', sm: 'flex-start' }} direction={{ xs: 'column', sm: 'row' }} sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
           <Box sx={{ width: 46, height: 46, borderRadius: '14px', display: 'grid', placeItems: 'center', bgcolor: alpha(theme.palette.primary.main, 0.12), color: 'primary.dark', mx: { xs: 'auto', sm: 0 } }}>
             <DirectionsWalkIcon />
@@ -158,7 +178,7 @@ export const ActivityView = ({
             <Typography sx={{ fontSize: 12.5, color: 'text.secondary', lineHeight: 1.5, mt: 0.25 }}>
               Conecte o Health Connect do celular e o Dr. Exame acompanha passos, calorias e distância junto com seus exames.
             </Typography>
-            <GradientButton size="small" sx={{ mt: 1.5 }} onClick={onAskOpen}>Conectar atividade</GradientButton>
+            <GradientButton size="small" sx={{ mt: 1.5, mr: 1 }} onClick={onAskOpen}>Conectar atividade</GradientButton>
           </Box>
         </Stack>
         <PermissionRationaleDialog open={askOpen} onClose={onAskClose} onConfirm={onConfirm} asking={asking} />
@@ -198,6 +218,10 @@ export const ActivityView = ({
           >
             <SyncIcon />
           </IconButton>
+          <IconButton size="small" aria-label="Ocultar card de atividade" title="Ocultar (volta em Perfil → Acessibilidade)" onClick={onHide}
+            sx={{ color: 'text.disabled', '&:hover': { color: 'text.secondary', bgcolor: 'action.hover' } }}>
+            <VisibilityOffIcon sx={{ fontSize: 17 }} />
+          </IconButton>
         </Stack>
       </Stack>
 
@@ -212,9 +236,10 @@ export const ActivityView = ({
         {RANGES.map((r) => <ToggleButton key={r.value} value={r.value} aria-pressed={range === r.value}>{r.label}</ToggleButton>)}
       </ToggleButtonGroup>
 
-      {/* Herói: passos + meta · secundárias: kcal + km */}
-      <Stack direction="row" spacing={2} alignItems="flex-start">
-        <Box sx={{ flex: 1.2, minWidth: 0 }}>
+      {/* Herói: RING de meta (assinatura Google Fit — intuitivo à primeira vista) + número */}
+      <Stack direction="row" spacing={2} alignItems="center">
+        <ActivityRing ratio={s.goalRatio} pct={goalPct} done={s.goalRatio >= 1} />
+        <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
             {range === 'today' ? 'Passos hoje' : `Média de passos (${rangeLabel(range).toLowerCase()})`}
           </Typography>
@@ -222,11 +247,7 @@ export const ActivityView = ({
             <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 34, lineHeight: 1.1, color: 'text.primary' }}>{fmtSteps(s.steps)}</Typography>
             {s.goalRatio >= 1 && <CheckCircleIcon sx={{ fontSize: 20, color: 'success.main', mb: 0.5 }} aria-label="meta batida" />}
           </Stack>
-          {/* Meta 8k — barra fina teal (lavagem), rótulo honesto */}
-          <Box sx={{ mt: 0.75, height: 6, borderRadius: '99px', bgcolor: alpha(theme.palette.primary.main, 0.12), overflow: 'hidden' }} role="progressbar" aria-valuenow={goalPct} aria-valuemin={0} aria-valuemax={100} aria-label={`Meta de ${STEPS_GOAL.toLocaleString('pt-BR')} passos: ${goalPct}%`}>
-            <Box sx={{ width: `${goalPct}%`, height: '100%', borderRadius: '99px', background: 'linear-gradient(90deg,#20b2aa,#178f89)', transition: 'width .6s cubic-bezier(.2,.8,.2,1)' }} />
-          </Box>
-          <Typography sx={{ fontSize: 11, color: 'text.disabled', mt: 0.4 }}>
+          <Typography sx={{ fontSize: 11, color: 'text.disabled', mt: 0.25 }}>
             {s.goalRatio >= 1 ? 'meta de 8 mil passos batida 🎉' : `${goalPct}% da meta de 8 mil`}
           </Typography>
         </Box>
@@ -255,6 +276,47 @@ export const ActivityView = ({
       )}
 
     </AppCard>
+  );
+};
+
+/**
+ * ActivityRing — anel de progresso da meta (linguagem Google Fit: círculo que fecha
+ * ao completar). Ícone de passos no centro; trilha em lavagem teal, arco em gradiente
+ * da marca (permitido: é o elemento-herói do card, não decoração).
+ */
+const RING_SIZE = 74;
+const RING_STROKE = 7;
+const ActivityRing = ({ ratio, pct, done }: { ratio: number; pct: number; done: boolean }) => {
+  const r = (RING_SIZE - RING_STROKE) / 2;
+  const c = 2 * Math.PI * r;
+  const dash = Math.max(0, Math.min(1, ratio)) * c;
+  return (
+    <Box
+      sx={{ position: 'relative', width: RING_SIZE, height: RING_SIZE, flexShrink: 0, display: 'grid', placeItems: 'center' }}
+      role="progressbar"
+      aria-valuenow={pct}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-label={`Meta de ${STEPS_GOAL.toLocaleString('pt-BR')} passos: ${pct}%`}
+    >
+      <Box component="svg" viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`} sx={{ position: 'absolute', inset: 0, transform: 'rotate(-90deg)' }} aria-hidden="true">
+        <circle cx={RING_SIZE / 2} cy={RING_SIZE / 2} r={r} fill="none" stroke="rgba(32,178,170,0.14)" strokeWidth={RING_STROKE} />
+        <circle
+          cx={RING_SIZE / 2} cy={RING_SIZE / 2} r={r} fill="none"
+          stroke={done ? '#059669' : 'url(#dxRingGrad)'}
+          strokeWidth={RING_STROKE} strokeLinecap="round"
+          strokeDasharray={`${dash} ${c}`}
+          style={{ transition: 'stroke-dasharray .7s cubic-bezier(.2,.8,.2,1)' }}
+        />
+        <defs>
+          <linearGradient id="dxRingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#20b2aa" />
+            <stop offset="100%" stopColor="#178f89" />
+          </linearGradient>
+        </defs>
+      </Box>
+      <DirectionsWalkIcon aria-hidden="true" sx={{ fontSize: 26, color: done ? 'success.main' : 'primary.dark' }} />
+    </Box>
   );
 };
 

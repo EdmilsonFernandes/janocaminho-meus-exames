@@ -32,6 +32,7 @@ const baseProps = {
   onAskClose: noop,
   onConfirm: noop,
   onSync: noop,
+  onHide: noop,
 };
 
 describe('ActivityView — estado loading (skeleton)', () => {
@@ -48,6 +49,11 @@ describe('ActivityView — estado permissão negada', () => {
     expect(html).toContain('Seus passos podem entrar aqui');
     expect(html).toContain('Conectar atividade');
     expect(html).not.toContain('MuiSkeleton-root');
+  });
+  it('quem não quer o card consegue OCULTÁ-LO (botão com aria-label, sem card eterno)', () => {
+    const html = shell(<ActivityView {...baseProps} phase="denied" days={null} />);
+    expect(html).toContain('aria-label="Ocultar card de atividade"');
+    expect(html).toContain('Perfil → Acessibilidade'); // tooltip ensina o caminho de volta
   });
   it('o dialog explica leitura-only antes do popup nativo (conteúdo testável fora do Portal)', () => {
     const html = shell(<PermissionRationaleContent onConfirm={noop} onClose={noop} asking={false} />);
@@ -102,5 +108,11 @@ describe('ActivityView — estado dados', () => {
     const html = shell(<ActivityView {...baseProps} phase="data" days={days} syncing />);
     expect(html).toContain('aria-label="Atualizar e sincronizar atividade"');
     expect(html).toContain('disabled');
+  });
+  it('RING de meta (Google Fit-like): progressbar a11y com o percentual do período', () => {
+    const html = shell(<ActivityView {...baseProps} phase="data" days={days} range="today" />);
+    expect(html).toContain('role="progressbar"');
+    expect(html).toContain('aria-valuenow'); // percentual vivo no anel
+    expect(html).toContain('aria-label="Meta de 8.000 passos');
   });
 });

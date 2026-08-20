@@ -97,6 +97,13 @@ export const ProfilePage = () => {
     try { localStorage.setItem('meus_exames_libras', on ? '1' : '0'); } catch { /* localStorage indisponível */ }
     document.body.classList.toggle('libras-off', !on);
   };
+  // Card de atividade (Health Connect): a volta de quem ocultou no Dashboard.
+  const [activityOn, setActivityOn] = useState(() => { try { return localStorage.getItem('dx_activity_hidden') !== '1'; } catch { return true; } });
+  const toggleActivity = (on: boolean) => {
+    setActivityOn(on);
+    try { localStorage.setItem('dx_activity_hidden', on ? '0' : '1'); } catch { /* localStorage indisponível */ }
+    if (on) notify('Card de atividade voltou ao início ✨', { type: 'success' });
+  };
   const changePw = async () => {
     if (nw !== cf) { notify('A nova senha e a confirmação não conferem.', { type: 'error' }); return; }
     if (nw.length < 6) { notify('Nova senha mín. 6 caracteres.', { type: 'error' }); return; }
@@ -228,7 +235,10 @@ export const ProfilePage = () => {
         <CardContent>
           <Typography variant="h6" gutterBottom>♿ Acessibilidade</Typography>
           <FormControlLabel control={<Switch checked={librasOn} onChange={(e) => toggleLibras(e.target.checked)} />} label="Botão de tradução em Libras" />
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>Traduz os textos do app para Língua Brasileira de Sinais. Desligue para remover o botão flutuante da tela.</Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>Traduz os textos do app para Língua Brasileira de Sinais. Desligue para remover o botão flutuante da tela.</Typography>
+          {/* Volta do card de atividade ocultado no Dashboard (Health Connect — só no app Android). */}
+          <FormControlLabel control={<Switch checked={activityOn} onChange={(e) => toggleActivity(e.target.checked)} />} label="Card de atividade física no início" />
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>Passos, calorias e distância (Health Connect do celular). Vale no app Android.</Typography>
         </CardContent>
       </Card>
 
