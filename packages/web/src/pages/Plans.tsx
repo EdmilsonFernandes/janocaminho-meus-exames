@@ -5,6 +5,7 @@ import BoltIcon from '@mui/icons-material/Bolt';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import DiamondIcon from '@mui/icons-material/Diamond';
 import QrCode2Icon from '@mui/icons-material/QrCode2';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { useNotify, useTranslate } from 'react-admin';
 import { useSearchParams } from 'react-router-dom';
 import { API_URL, token } from '../config';
@@ -41,12 +42,14 @@ export const PlansPage = () => {
   const [pendingPix, setPendingPix] = useState<any>(null);
   const [, forceTick] = useState(0); // re-render a cada 1s pro timer do PIX vivo
 
-  useEffect(() => {
+  const checkPendingPix = () => {
     fetch(`${API_URL}/billing/pending-payment`, { headers: { Authorization: `Bearer ${token()}` } })
       .then((r) => (r.ok ? r.json() : null))
-      .then((d) => { if (d?.hasPending) setPendingPix(d); })
+      .then((d) => { setPendingPix(d?.hasPending ? d : null); })
       .catch(() => {});
-  }, []);
+  };
+
+  useEffect(() => { checkPendingPix(); }, []);
 
   // Timer ao vivo: só roda quando há PIX pendente (sem custo quando não tem)
   useEffect(() => {
@@ -270,19 +273,29 @@ export const PlansPage = () => {
           const mmLeft = String(Math.floor(secsLeft / 60)).padStart(2, '0');
           const ssLeft = String(secsLeft % 60).padStart(2, '0');
           return (
-          <Card key={p.id} sx={{ borderRadius: '12px', border: isPending ? '2px solid #20b2aa' : p.popular ? '2px solid #20b2aa' : '1px solid', borderColor: isPending ? undefined : p.popular ? undefined : 'divider', width: '100%', position: 'relative' }}>
-            {isPending && <Box sx={{ textAlign: 'center', pt: 1.5 }}><Chip color="primary" label="⏳ Pagamento em andamento" size="small" sx={{ fontWeight: 700 }} /></Box>}
+          <Card key={p.id} sx={{ borderRadius: '12px', border: isPending ? '2px solid #d97706' : p.popular ? '2px solid #20b2aa' : '1px solid', borderColor: isPending ? undefined : p.popular ? undefined : 'divider', width: '100%', position: 'relative', bgcolor: isPending ? 'rgba(217,119,6,0.04)' : undefined }}>
+            {isPending && <Box sx={{ textAlign: 'center', pt: 1.5 }}><Chip label="⏳ Aguardando pagamento" size="small" sx={{ fontWeight: 700, bgcolor: 'rgba(217,119,6,.15)', color: '#92400e' }} /></Box>}
             {!isPending && p.popular && <Box sx={{ textAlign: 'center', pt: 1.5 }}><Chip color="primary" label="MAIS VENDIDO" size="small" /></Box>}
             <CardContent sx={{ textAlign: 'center', pt: isPending || p.popular ? 1 : 2 }}>
               <Typography sx={{ fontWeight: 800, fontSize: 28, color: 'primary.main', lineHeight: 1.1 }}>{p.credits}</Typography>
               <Typography color="text.secondary">créditos</Typography>
               <Typography variant="h5" sx={{ my: 1, fontWeight: 800 }}>R$ {p.price.toFixed(2).replace('.', ',')}</Typography>
               {isPending ? (
-                <Button variant="contained" fullWidth onClick={() => setPixPack('__pending__')}
-                  startIcon={<QrCode2Icon />}
-                  sx={{ bgcolor: '#20b2aa', '&:hover': { bgcolor: '#178f89' }, textTransform: 'none', fontWeight: 800 }}>
-                  Abrir QR Code · {mmLeft}:{ssLeft}
-                </Button>
+                <Stack spacing={0.75}>
+                  {/* ÂMBAR = ação pendente (vs teal = comprar). Não confunde com os outros cards. */}
+                  <Button variant="contained" fullWidth onClick={() => setPixPack('__pending__')}
+                    startIcon={<QrCode2Icon />}
+                    sx={{ bgcolor: '#d97706', '&:hover': { bgcolor: '#b45309' }, textTransform: 'none', fontWeight: 800, boxShadow: '0 4px 12px rgba(217,119,6,.3)' }}>
+                    Abrir QR Code · {mmLeft}:{ssLeft}
+                  </Button>
+                  {/* Copia-cola inline: copia SEM abrir o modal (1 toque) */}
+                  <Button size="small" variant="outlined" fullWidth
+                    startIcon={<ContentCopyIcon fontSize="small" />}
+                    onClick={() => { navigator.clipboard?.writeText(pendingPix.qrCode || ''); notify('Código PIX copiado! Cole no app do banco.', { type: 'success' }); }}
+                    sx={{ textTransform: 'none', fontWeight: 700, fontSize: 12, borderColor: 'rgba(217,119,6,.4)', color: '#b45309', '&:hover': { borderColor: '#d97706', bgcolor: 'rgba(217,119,6,.06)' } }}>
+                    Copiar código PIX
+                  </Button>
+                </Stack>
               ) : (
                 <Button variant={p.popular ? 'contained' : 'outlined'} fullWidth disabled={!mpOn} onClick={() => { setChooserLabel(`${p.credits} créditos • R$ ${p.price.toFixed(2).replace('.', ',')}`); setChooserPack(p.id); }}>Comprar</Button>
               )}
@@ -330,7 +343,7 @@ export const PlansPage = () => {
       <PixModal
         packId={pixPack}
         existingPix={pixPack === '__pending__' ? pendingPix : undefined}
-        onClose={() => { setPixPack(null); setPendingPix(null); }}
+        onClose={() => { setPixPack(null); checkPendingPix(); }}
         onApproved={() => { setPixPack(null); setPendingPix(null); notify('Créditos adicionados! 🎉', { type: 'success' }); load(); }}
       />
         </>
