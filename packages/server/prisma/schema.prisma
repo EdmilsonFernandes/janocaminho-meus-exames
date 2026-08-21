@@ -412,6 +412,7 @@ model Subscription {
   pixQrCode      String?   // copia-cola
   pixQrBase64    String?   // data URI do QR image
   pixCredits     Int?      // créditos do pacote (pra devolver sem re-lookup)
+  pixNotifiedAt  DateTime? // push de warning já enviado? (idempotência do scheduler)
   amount         Float
   periodDays     Int
   status         String   @default("PENDING") // PENDING | APPROVED | CANCELLED

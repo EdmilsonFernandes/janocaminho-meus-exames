@@ -8,6 +8,7 @@ import { startReminderEmailJob } from './jobs/reminderEmails';
 import { startHealthNudgeJob } from './jobs/healthNudges';
 import { startPlanExpiryJob } from './jobs/planExpiry';
 import { startFirstExamNudgeJob } from './jobs/firstExamNudge';
+import { startPixExpiryJob } from './jobs/pix-expiry';
 import { startAuditRetentionJob } from './jobs/auditRetention';
 import { loadSettings } from './utils/settings';
 import { loadBlockedDomains } from './utils/blockedDomains';
@@ -40,6 +41,7 @@ const server = app.listen(config.port, () => {
   startPlanExpiryJob();
   startFirstExamNudgeJob();
   startAuditRetentionJob(); // limpa ACCESS >90d do audit_logs (mantém login/ações admin — LGPD)
+  startPixExpiryJob(); // PIX: warning push a 1min + auto-cancel expirado + push
   // Recupera exames presos em EXTRACTING: um deploy/restart mata a extração fire-and-forget
   // no meio → o exame fica "extraindo pra sempre". No boot, re-extrai qualquer um nesse estado.
   void (async () => {
