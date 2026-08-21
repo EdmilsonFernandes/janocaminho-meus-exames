@@ -10,6 +10,23 @@ const H = () => ({ Authorization: `Bearer ${token()}` });
  *     → orienta onde refinar os cards .md e os prompts.
  *  2) FLYWHEEL: dataset ANONIMIZADO (opt-in LGPD) doado pelos pacientes → retreinar o ML de risco.
  */
+/** Tradução dos conditionKey crús (banco) → rótulo gerencial em pt-BR */
+const CONDITION_LABEL: Record<string, string> = {
+  cardiovascular_risk: 'Risco Cardiovascular',
+  diabetes_risk: 'Risco de Diabetes',
+  metabolic_risk: 'Risco Metabólico',
+  anemia: 'Anemia',
+  hypothyroidism: 'Hipotireoidismo',
+  kidney_function: 'Função Renal',
+  liver_function: 'Função Hepática',
+  inflammation: 'Inflamação',
+  obesity: 'Obesidade',
+  hypertension: 'Hipertensão',
+  dyslipidemia: 'Dislipidemia',
+  none: 'Nenhuma',
+};
+const conditionLabel = (key: string | null | undefined) => CONDITION_LABEL[key ?? ''] ?? key ?? '—';
+
 export const RiskTab = () => {
   const [q, setQ] = useState<any>(null);
   const [ds, setDs] = useState<any>(null);
@@ -57,7 +74,7 @@ export const RiskTab = () => {
               const color = pct >= 70 ? '#047857' : pct >= 40 ? '#ca8a04' : '#dc2626';
               return (
                 <TableRow key={c.conditionKey}>
-                  <TableCell sx={{ fontWeight: 700 }}>{c.conditionKey}</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>{conditionLabel(c.conditionKey)}</TableCell>
                   <TableCell align="right">{c.total}</TableCell>
                   <TableCell>
                     <Stack direction="row" spacing={1} alignItems="center">
@@ -82,7 +99,7 @@ export const RiskTab = () => {
             {q.negativeComments.map((c: any) => (
               <Card key={c.id} variant="outlined" sx={{ borderRadius: '12px' }}><CardContent sx={{ py: 1.25 }}>
                 <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap" sx={{ mb: 0.5 }}>
-                  <Chip size="small" label={c.riskAssessment?.conditionKey ?? '?'} variant="outlined" />
+                  <Chip size="small" label={conditionLabel(c.riskAssessment?.conditionKey)} variant="outlined" />
                   <Typography variant="caption" color="text.secondary">{new Date(c.createdAt).toLocaleDateString('pt-BR')}</Typography>
                 </Stack>
                 <Typography variant="body2">{c.comment}</Typography>
@@ -96,7 +113,7 @@ export const RiskTab = () => {
       <Alert severity="info" sx={{ mb: 1.5 }}>Registros <strong>anonimizados</strong> (sem nome/CPF/contato — só valores dos exames + faixa etária + sexo) doados por pacientes que ativaram o opt-in. Use pra retreinar o modelo de risco (<code>risk-ml/retrain.py</code>).</Alert>
       {ds.total > 0 ? (
         <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-          {ds.byCondition?.map((c: any) => <Chip key={c.conditionKey} size="small" variant="outlined" label={`${c.conditionKey}: ${c._count}`} />)}
+          {ds.byCondition?.map((c: any) => <Chip key={c.conditionKey} size="small" variant="outlined" label={`${conditionLabel(c.conditionKey)}: ${c._count}`} />)}
         </Stack>
       ) : (
         <Typography variant="body2" color="text.secondary">Nenhum paciente ativou o opt-in ainda. Quando ativar (toggle no app), cada leitura de risco doa um registro anônimo aqui.</Typography>

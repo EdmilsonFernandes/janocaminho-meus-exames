@@ -13,6 +13,36 @@ const KINDS = [
 const TAKE = 50;
 
 /** Auditoria — login/acesso do usuário + ações admin/doctor (tabela audit_logs, LGPD). */
+/** Tradução das ações de auditoria → rótulo pt-BR */
+const ACTION_LABEL: Record<string, string> = {
+  LOGIN_SUCCESS: 'Login OK',
+  LOGIN_FAILED: 'Login falhou',
+  SIGNUP: 'Cadastro',
+  SIGNUP_BLOCKED: 'Cadastro bloqueado',
+  BOT_BLOCKED: 'Bot bloqueado',
+  LOGOUT: 'Logout',
+  PASSWORD_RESET_REQUEST: 'Reset de senha',
+  PASSWORD_RESET_SUCCESS: 'Senha redefinida',
+  MFA_CHALLENGE: 'Desafio MFA',
+  MFA_SUCCESS: 'MFA OK',
+  MFA_FAILED: 'MFA falhou',
+  DATA_EXPORT: 'Export de dados',
+  ACCOUNT_DELETED: 'Conta excluída',
+  PII_VIEWED: 'PII visualizado',
+  ADMIN_ACTION: 'Ação admin',
+  DOCTOR_REGISTER: 'Médico registrou',
+  DOCTOR_LOGIN: 'Médico logou',
+  CREDITS_GRANTED: 'Créditos concedidos',
+  CREDITS_REVOKED: 'Créditos revogados',
+};
+const actionLabel = (a: string | null | undefined) => {
+  if (!a) return '—';
+  if (ACTION_LABEL[a]) return ACTION_LABEL[a];
+  if (a.startsWith('LOGIN_SUCCESS')) return 'Login OK';
+  if (a.startsWith('LOGIN_FAILED')) return 'Login falhou';
+  return a.replace(/_/g, ' ').toLowerCase();
+};
+
 export const AuditTab = () => {
   const [d, setD] = useState<any>(null);
   const [err, setErr] = useState(false);
@@ -80,7 +110,7 @@ export const AuditTab = () => {
       {/* Resumo por ação */}
       {d.byAction?.length > 0 && (
         <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: 2 }}>
-          {d.byAction.map((a: any) => <Chip key={a.action} size="small" variant="outlined" color={color(a.action)} label={`${a.action}: ${a._count}`} />)}
+          {d.byAction.map((a: any) => <Chip key={a.action} size="small" variant="outlined" color={color(a.action)} label={`${actionLabel(a.action)}: ${a._count}`} />)}
         </Stack>
       )}
 
@@ -91,7 +121,7 @@ export const AuditTab = () => {
           return (
             <Card key={l.id} variant="outlined" sx={{ borderRadius: '12px' }}><CardContent sx={{ py: 1.25, '&:last-child': { pb: 1.25 } }}>
               <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
-                <Chip size="small" color={color(l.action)} label={l.action} />
+                <Chip size="small" color={color(l.action)} label={actionLabel(l.action)} />
                 <Typography variant="body2" sx={{ flex: 1, minWidth: 0 }}>
                   <strong>{d.actors?.[l.actorId]?.name ?? l.actorType}</strong>{d.actors?.[l.actorId]?.email ? ` · ${d.actors[l.actorId].email}` : (l.targetType && l.targetType !== 'USER' && l.targetType !== 'DOCTOR' ? ` → ${l.targetType}` : '')}
                 </Typography>

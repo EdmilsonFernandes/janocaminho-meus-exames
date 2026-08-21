@@ -11,6 +11,7 @@ import { TabLoader, SectionError } from './parts';
 const PAGE_SIZE = 20;
 const authH = () => ({ Authorization: `Bearer ${token()}` });
 const statusColor: Record<string, any> = { APPROVED: 'success', PENDING: 'warning', CANCELLED: 'default', FAILED: 'error' };
+const statusLabel: Record<string, string> = { APPROVED: 'Aprovado', PENDING: 'Pendente', CANCELLED: 'Cancelado', FAILED: 'Falhou' };
 
 const buildParams = (page: number, status: string, type: string, q: string) => {
   const p = new URLSearchParams({ page: String(page) });
@@ -131,7 +132,7 @@ export const FinanceiroTab = () => {
               <Typography sx={{ fontWeight: 800, color: 'success.main', whiteSpace: 'nowrap' }}>R$ {Number(p.amount ?? 0).toFixed(2).replace('.', ',')}</Typography>
             </Stack>
             <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" alignItems="center" sx={{ mt: 0.75 }}>
-              <Chip size="small" color={statusColor[p.status] ?? 'default'} label={p.status} />
+              <Chip size="small" color={statusColor[p.status] ?? 'default'} label={statusLabel[p.status] ?? p.status} />
               {p.mpPaymentId && <Typography variant="caption" sx={{ fontFamily: 'monospace', color: 'text.disabled' }}>{p.mpPaymentId}</Typography>}
               {p.rawWebhook && <IconButton size="small" onClick={() => setPayloadRow(p)} title="Ver payload do Mercado Pago"><ReceiptLongIcon sx={{ fontSize: 16, color: '#178f89' }} /></IconButton>}
             </Stack>
@@ -155,7 +156,7 @@ export const FinanceiroTab = () => {
                 <TableCell sx={{ wordBreak: 'break-word', maxWidth: 200 }}>{p.user?.email ?? '—'}</TableCell>
                 <TableCell>R$ {Number(p.amount ?? 0).toFixed(2).replace('.', ',')}</TableCell>
                 <TableCell>{p.periodDays > 0 ? 'Mensal' : 'Créditos'}</TableCell>
-                <TableCell><Chip size="small" color={statusColor[p.status] ?? 'default'} label={p.status} /></TableCell>
+                <TableCell><Chip size="small" color={statusColor[p.status] ?? 'default'} label={statusLabel[p.status] ?? p.status} /></TableCell>
                 <TableCell sx={{ fontSize: 11, fontFamily: 'monospace' }}>{p.mpPaymentId ?? '—'} {p.rawWebhook && <IconButton size="small" onClick={() => setPayloadRow(p)} title="Ver payload do Mercado Pago"><ReceiptLongIcon sx={{ fontSize: 15, color: '#178f89' }} /></IconButton>}</TableCell>
               </TableRow>
             ))}

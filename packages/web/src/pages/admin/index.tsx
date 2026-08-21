@@ -4,6 +4,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Box, Typography, Stack, Chip, Drawer, List, ListItemButton, ListItemIcon, ListItemText, IconButton, AppBar, Toolbar, Divider, useMediaQuery, useTheme } from '@mui/material';
 import { Title } from 'react-admin';
 import MenuIcon from '@mui/icons-material/Menu';
+import MenuOutlinedIcon from '@mui/icons-material/MenuOutlined';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import BoltOutlinedIcon from '@mui/icons-material/BoltOutlined';
 import ScienceOutlinedIcon from '@mui/icons-material/ScienceOutlined';
@@ -59,13 +60,12 @@ const MODULES: { id: ModuleId; label: string; icon: ReactElement; group: string 
   { id: 'config', label: 'Configurações', icon: <SettingsOutlinedIcon />, group: 'Sistema' },
 ];
 
-// Rodapé (mobile): atalhos pros módulos mais usados. Desktop usa a sidebar (sempre visível).
+// Rodapé (mobile): atalhos rápidos + ☰ que abre TODOS os módulos (drawer vertical).
 const FOOTER: { id: ModuleId; short: string }[] = [
   { id: 'overview', short: 'Início' },
   { id: 'users', short: 'Usuários' },
   { id: 'financeiro', short: 'Financ.' },
   { id: 'config', short: 'Config.' },
-  { id: 'support', short: 'Suporte' },
 ];
 
 const authH = () => ({ Authorization: `Bearer ${token()}` });
@@ -180,7 +180,7 @@ export const AdminPage = () => {
           {mod === 'config' && <PricingTab />}
         </Box>
       </Box>
-      {/* Rodapé — atalhos rápidos (mobile; desktop tem a sidebar) */}
+      {/* Rodapé — atalhos rápidos + ☰ abre TODOS os módulos (mobile; desktop tem sidebar) */}
       <Box component="footer" sx={{ display: { xs: 'flex', md: 'none' }, position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1100, bgcolor: 'background.paper', borderTop: 1, borderColor: 'divider', pb: 'env(safe-area-inset-bottom)' }}>
         {FOOTER.map((f) => {
           const m = MODULES.find((x) => x.id === f.id);
@@ -194,6 +194,12 @@ export const AdminPage = () => {
             </Box>
           );
         })}
+        {/* ☰ abre o drawer vertical com TODOS os módulos (substitui 'Suporte' no rodapé) */}
+        <Box onClick={() => setDrawerOpen(true)} sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 0.6, cursor: 'pointer', color: drawerOpen ? '#178f89' : 'text.secondary' }}>
+          <MenuOutlinedIcon sx={{ fontSize: 21 }} />
+          <Typography sx={{ fontSize: 10, fontWeight: 600, mt: 0.25, fontFamily: '"Poppins",sans-serif' }}>Mais</Typography>
+          <Box sx={{ height: 3 }} />
+        </Box>
       </Box>
     </Box>
   );

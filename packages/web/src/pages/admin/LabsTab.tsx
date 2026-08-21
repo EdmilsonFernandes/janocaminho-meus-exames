@@ -77,14 +77,14 @@ export const LabsTab = () => {
 
       <Card sx={{ mb: 2, borderRadius: '12px' }}><CardContent>
         <Typography sx={{ fontWeight: 700, mb: 1.5 }}>➕ Adicionar laboratório</Typography>
-        <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ rowGap: 1, alignItems: 'center' }}>
-          <TextField label="Nome (marca)" size="small" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Ex.: Sabin" sx={{ minWidth: 200 }} />
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} useFlexGap flexWrap="wrap" sx={{ rowGap: 1, alignItems: { sm: 'center' } }}>
+          <TextField label="Nome (marca)" size="small" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Ex.: Sabin" sx={{ width: { xs: '100%', sm: 200 } }} />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexShrink: 0 }}>
             <Typography variant="caption" color="text.secondary">Cor</Typography>
             <input type="color" value={newColor} onChange={(e) => setNewColor(e.target.value)} style={{ width: 38, height: 38, border: 'none', borderRadius: '12px', cursor: 'pointer' }} />
           </Box>
-          <TextField label="Apelidos (vírgula)" size="small" value={newAliases} onChange={(e) => setNewAliases(e.target.value)} placeholder="sjc, posto sabin" sx={{ minWidth: 220 }} />
-          <Button variant="contained" startIcon={<AddIcon />} disabled={saving} onClick={create} sx={{ textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa' }}>Adicionar</Button>
+          <TextField label="Apelidos (vírgula)" size="small" value={newAliases} onChange={(e) => setNewAliases(e.target.value)} placeholder="sjc, posto sabin" sx={{ width: { xs: '100%', sm: 220 } }} />
+          <Button variant="contained" startIcon={<AddIcon />} disabled={saving} onClick={create} sx={{ textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', alignSelf: { xs: 'stretch', sm: 'center' } }}>Adicionar</Button>
         </Stack>
       </CardContent></Card>
 
@@ -92,16 +92,12 @@ export const LabsTab = () => {
         <Stack spacing={1.5}>
           {labs.map((lab) => (
             <Card key={lab.id} sx={{ borderRadius: '12px', opacity: lab.active ? 1 : 0.55 }}><CardContent>
-              <Stack direction="row" spacing={1.5} useFlexGap flexWrap="wrap" sx={{ rowGap: 1, alignItems: 'center' }}>
-                {/* Logo ou círculo colorido */}
-                {lab.logoUrl
-                  ? <Box component="img" src={`${API_URL}/labs/${lab.id}/logo?${lab.updatedAt || ''}`} alt={lab.name} sx={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover', bgcolor: '#fff', border: '1px solid', borderColor: 'divider' }} />
-                  : <Box sx={{ width: 44, height: 44, borderRadius: '50%', display: 'grid', placeItems: 'center', bgcolor: lab.color || '#20b2aa', color: '#fff', fontWeight: 800, fontSize: 18 }}>{(lab.name || '?').charAt(0)}</Box>}
-                <Box sx={{ flex: '1 1 220px', minWidth: 220 }}>
-                  <TextField size="small" defaultValue={lab.name} onBlur={(e) => { if (e.target.value !== lab.name) update(lab.id, { name: e.target.value }); }} label="Nome" sx={{ width: '100%', mb: 0.75 }} />
-                  <TextField size="small" defaultValue={(lab.aliases ?? []).join(', ')} onBlur={(e) => update(lab.id, { aliases: e.target.value.split(',').map((s) => s.trim()).filter(Boolean) })} label="Apelidos (vírgula)" sx={{ width: '100%' }} />
-                </Box>
-                <Stack spacing={0.75} alignItems="flex-start">
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1.5, sm: 1.5 }} useFlexGap sx={{ alignItems: { sm: 'flex-start' } }}>
+                {/* Logo + ações em linha (mobile) / coluna à direita (desktop) */}
+                <Stack direction={{ xs: 'row', sm: 'column' }} spacing={{ xs: 1.5, sm: 0.75 }} alignItems="center" sx={{ flexShrink: 0, alignSelf: { xs: 'flex-start', sm: 'center' } }}>
+                  {lab.logoUrl
+                    ? <Box component="img" src={`${API_URL}/labs/${lab.id}/logo?${lab.updatedAt || ''}`} alt={lab.name} sx={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover', bgcolor: '#fff', border: '1px solid', borderColor: 'divider' }} />
+                    : <Box sx={{ width: 44, height: 44, borderRadius: '50%', display: 'grid', placeItems: 'center', bgcolor: lab.color || '#20b2aa', color: '#fff', fontWeight: 800, fontSize: 18 }}>{(lab.name || '?').charAt(0)}</Box>}
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     <input type="color" defaultValue={lab.color || '#20b2aa'} onBlur={(e) => update(lab.id, { color: e.target.value })} title="Cor da marca" style={{ width: 32, height: 32, border: 'none', borderRadius: '12px', cursor: 'pointer' }} />
                     <Switch size="small" checked={!!lab.active} onChange={(_, v) => update(lab.id, { active: v })} title="Ativo" />
@@ -111,8 +107,15 @@ export const LabsTab = () => {
                     {lab.logoUrl ? 'Trocar logo' : 'Subir logo'}
                     <input type="file" hidden accept="image/png,image/jpeg" ref={(el) => { fileRefs.current[lab.id] = el; }} onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadLogo(lab.id, f); e.target.value = ''; }} />
                   </Button>
-                  {(lab.aliases ?? []).slice(0, 4).map((a: string, i: number) => <Chip key={i} size="small" label={a} sx={{ height: 18, fontSize: 10, mr: 0.25 }} />)}
                 </Stack>
+                {/* Campos: largura total (mobile) / flexível (desktop) */}
+                <Box sx={{ flex: { sm: '1 1 200px' }, width: { xs: '100%', sm: 'auto' }, minWidth: 0 }}>
+                  <TextField size="small" defaultValue={lab.name} onBlur={(e) => { if (e.target.value !== lab.name) update(lab.id, { name: e.target.value }); }} label="Nome" sx={{ width: '100%', mb: 0.75 }} />
+                  <TextField size="small" defaultValue={(lab.aliases ?? []).join(', ')} onBlur={(e) => update(lab.id, { aliases: e.target.value.split(',').map((s) => s.trim()).filter(Boolean) })} label="Apelidos (vírgula)" sx={{ width: '100%' }} />
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.25, mt: 0.5 }}>
+                    {(lab.aliases ?? []).slice(0, 6).map((a: string, i: number) => <Chip key={i} size="small" label={a} sx={{ height: 18, fontSize: 10 }} />)}
+                  </Box>
+                </Box>
               </Stack>
             </CardContent></Card>
           ))}
