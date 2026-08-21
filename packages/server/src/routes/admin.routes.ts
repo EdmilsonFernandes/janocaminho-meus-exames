@@ -132,6 +132,37 @@ router.get('/users', async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
+// USO DE IA — quem gasta, quanto, quais transações (drill-down no admin)
+router.get('/credit-usage', async (req, res, next) => {
+  try {
+    const users = await prisma.user.findMany({
+      select: {
+        id: true, email: true, name: true, credits: true,
+        creditTransactions: {
+          orderBy: { createdAt: 'desc' },
+          take: 50, // últimas 50 por usuário (drill-down)
+          select: { id: true, delta: true, kind: true, label: true, createdAt: true },
+        },
+      },
+      orderBy: { credits: 'desc' },
+    });
+    const rows = users
+      .map((u) => ({
+        userId: u.id,
+        email: u.email,
+        name: u.name,
+        credits: u.credits,
+        totalSpent: u.creditTransactions.filter((t) => t.delta < 0).reduce((s, t) => s + Math.abs(t.delta), 0),
+        totalEarned: u.creditTransactions.filter((t) => t.delta > 0).reduce((s, t) => s + t.delta, 0),
+        txCount: u.creditTransactions.length,
+        lastTxAt: u.creditTransactions[0]?.createdAt?.toISOString() ?? null,
+        transactions: u.creditTransactions.map((t) => ({ ...t, createdAt: t.createdAt.toISOString() })),
+      }))
+      .filter((r) => r.txCount > 0); // só quem tem movimento
+    res.json({ users: rows });
+  } catch (e) { next(e); }
+});
+
 // LISTAR pagamentos (filtros ?status=&type=&q= + paginação ?page=; sem params = compatível)
 router.get('/payments', async (req, res, next) => {
   try {
