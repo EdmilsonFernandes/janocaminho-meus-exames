@@ -18,6 +18,7 @@ import { refreshLlm, testLlmConnection } from '../llm';
 import { generateExplanation } from '../analysis/explain';
 import { encryptPII } from '../utils/crypto';
 import { cpfFingerprint, maskStoredCpf, revealStoredCpf } from '../utils/cpf';
+import { getSubscriptionColumnSupport } from '../utils/subscriptionCompat';
 
 const router = Router();
 router.use(requireAuth);
@@ -134,6 +135,7 @@ router.get('/users', async (req, res, next) => {
 // LISTAR pagamentos (filtros ?status=&type=&q= + paginação ?page=; sem params = compatível)
 router.get('/payments', async (req, res, next) => {
   try {
+    const subscriptionColumns = await getSubscriptionColumnSupport();
     const page = Math.max(1, Number(req.query.page ?? 1));
     const take = 20;
     const status = String(req.query.status ?? '').trim();
@@ -145,7 +147,25 @@ router.get('/payments', async (req, res, next) => {
     else if (type === 'creditos') where.periodDays = 0;
     if (q) where.user = { OR: [{ email: { contains: q, mode: 'insensitive' } }, { name: { contains: q, mode: 'insensitive' } }] };
     const [subs, total] = await Promise.all([
-      prisma.subscription.findMany({ where, orderBy: { createdAt: 'desc' }, skip: (page - 1) * take, take, include: { user: { select: { email: true, name: true } } } }),
+      prisma.subscription.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * take,
+        take,
+        select: {
+          id: true,
+          userId: true,
+          mpPaymentId: true,
+          mpPreferenceId: true,
+          amount: true,
+          periodDays: true,
+          status: true,
+          createdAt: true,
+          updatedAt: true,
+          ...(subscriptionColumns.hasRawWebhook ? { rawWebhook: true } : {}),
+          user: { select: { email: true, name: true } },
+        },
+      }),
       prisma.subscription.count({ where }),
     ]);
     res.json({ payments: subs, total, page, hasMore: page * take < total });

@@ -70,6 +70,8 @@ cd android
 
 - **NUNCA** rodar `npx vitest` da raiz do repo (CWD vaza, pode truncar DB de dev). SEMPRE `npm test --workspace packages/server`.
 - **DB de teste**: `meus_exames_test` (porta 5433). `test/setup.ts` seta `DATABASE_URL`. `prisma db push` sincroniza (NÃO `migrate dev` — migrations têm drift P3006).
+- **Drift gate Prisma/prod**: se o código novo depende de campo/coluna nova do Prisma, confirmar que a coluna existe em `packages/server/prisma/migrations/` ou manter fallback compatível com banco antigo até a migration entrar em produção. Billing/admin financeiro são áreas críticas.
+- **Prisma safe query rule**: em rotas prod sensíveis a drift, evitar `findMany/findFirst/findUnique` sem `select` quando o modelo tem colunas novas/opcionais que podem não estar no banco ainda.
 - **Novo código = novos testes**: unit pra lógica pura, E2E (supertest) pra rotas, regressão pra bugs.
 
 ## Migrations — CUIDADO

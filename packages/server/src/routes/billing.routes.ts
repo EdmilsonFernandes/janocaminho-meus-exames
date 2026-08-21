@@ -5,6 +5,7 @@ import { config, hasMercadoPago } from '../config';
 import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
 import { CREDIT_COSTS, UPLOAD_RULES } from '../utils/credits';
 import { getSettings } from '../utils/settings';
+import { createSubscriptionCompat, findSubscriptionByIdCompat, getSubscriptionColumnSupport, updateSubscriptionCompat, updateSubscriptionCompatWithDb } from '../utils/subscriptionCompat';
 
 const router = Router();
 
@@ -86,9 +87,7 @@ router.post('/checkout', requireAuth, async (req: AuthedRequest, res, next) => {
     const user = await prisma.user.findUnique({ where: { id: req.userId! } });
     if (!user) { res.status(404).json({ error: 'Usuário não encontrado' }); return; }
 
-    const sub = await prisma.subscription.create({
-      data: { userId: user.id, amount: plan.price, periodDays: plan.periodDays, status: 'PENDING' },
-    });
+    const sub = await createSubscriptionCompat({ userId: user.id, amount: plan.price, periodDays: plan.periodDays, status: 'PENDING' });
 
     const back = `${config.webOrigin}${config.webBasePath}/planos`;
     const prefResp = await fetch(`${config.mpApiBaseUrl}/checkout/preferences`, {
@@ -114,7 +113,7 @@ router.post('/checkout', requireAuth, async (req: AuthedRequest, res, next) => {
       return;
     }
     const pref: any = await prefResp.json();
-    await prisma.subscription.update({ where: { id: sub.id }, data: { mpPreferenceId: pref.id ?? null } });
+    await updateSubscriptionCompat(sub.id, { mpPreferenceId: pref.id ?? null });
     res.json({ init_point: pref.init_point ?? pref.sandbox_init_point, subscriptionId: sub.id });
   } catch (e) { next(e); }
 });
@@ -125,6 +124,7 @@ router.post('/checkout', requireAuth, async (req: AuthedRequest, res, next) => {
 router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) => {
   try {
     if (!hasMercadoPago()) { res.status(503).json({ error: 'Pagamentos não configurados.' }); return; }
+    const subscriptionColumns = await getSubscriptionColumnSupport();
     const pack = packById(String(req.body?.pack ?? ''));
     if (!pack) { res.status(400).json({ error: 'Pacote inválido' }); return; }
     const method = String(req.body?.method ?? 'pix').toLowerCase(); // pix | card | debit
@@ -132,7 +132,7 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
     if (!user) { res.status(404).json({ error: 'Usuário não encontrado' }); return; }
 
     // ===== ANTI-DUPLICAÇÃO (PIX): retorna o PIX existente se ainda vale =====
-    if (method === 'pix') {
+    if (method === 'pix' && subscriptionColumns.hasPixResume) {
       const existing = await prisma.subscription.findFirst({
         where: { userId: user.id, status: 'PENDING', periodDays: 0, pixExpiresAt: { gt: new Date() } },
         orderBy: { createdAt: 'desc' },
@@ -170,9 +170,7 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
     }).catch(() => {}); // não bloqueia o fluxo se o cleanup falhar
 
     // registro p/ idempotência no webhook (periodDays=0 marca "pacote de créditos")
-    const sub = await prisma.subscription.create({
-      data: { userId: user.id, amount: pack.price, periodDays: 0, status: 'PENDING' },
-    });
+    const sub = await createSubscriptionCompat({ userId: user.id, amount: pack.price, periodDays: 0, status: 'PENDING' });
     const externalReference = `${sub.id}|${pack.credits}`; // webhook diferencia pacote de mensal pelo "|"
     const expires = new Date(Date.now() + 10 * 60 * 1000); // 10 min
     const base = (process.env.WEB_BASE_PATH ?? '').replace(/\/$/, '');
@@ -200,7 +198,7 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
       });
       if (!prefResp.ok) {
         console.error('[billing] MP Checkout Pro falhou:', prefResp.status, await prefResp.text());
-        await prisma.subscription.update({ where: { id: sub.id }, data: { status: 'FAILED' } });
+        await updateSubscriptionCompat(sub.id, { status: 'FAILED' });
         res.status(502).json({ error: 'Falha ao abrir o pagamento no Mercado Pago.' });
         return;
       }
@@ -226,7 +224,7 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
     });
     if (!r.ok) {
       console.error('[billing] MP PIX falhou:', r.status, await r.text());
-      await prisma.subscription.update({ where: { id: sub.id }, data: { status: 'FAILED' } });
+      await updateSubscriptionCompat(sub.id, { status: 'FAILED' });
       res.status(502).json({ error: 'Falha ao gerar PIX no Mercado Pago.' });
       return;
     }
@@ -238,13 +236,17 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
     const qrImg = rawB64 ? (rawB64.startsWith('data:') ? rawB64 : `data:image/png;base64,${rawB64}`) : '';
     // PERSISTE QR + expiry na Subscription: é o que permite RETOMAR o mesmo PIX
     // quando o usuário sai e volta (padrão gateway — sem criar ordem órfã).
-    await prisma.subscription.update({ where: { id: sub.id }, data: {
-      mpPaymentId: String(pay.id),
-      pixQrCode: td?.qr_code ?? '',
-      pixQrBase64: qrImg,
-      pixExpiresAt: expires,
-      pixCredits: pack.credits,
-    } });
+    if (subscriptionColumns.hasPixResume) {
+      await updateSubscriptionCompat(sub.id, {
+        mpPaymentId: String(pay.id),
+        pixQrCode: td?.qr_code ?? '',
+        pixQrBase64: qrImg,
+        pixExpiresAt: expires,
+        pixCredits: pack.credits,
+      });
+    } else {
+      await updateSubscriptionCompat(sub.id, { mpPaymentId: String(pay.id) });
+    }
     res.json({
       paymentId: String(pay.id),
       qrCode: td?.qr_code ?? '',
@@ -260,9 +262,19 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
 // Se existe PIX não-expirado, retorna os dados pra retomar (QR + timer restante).
 router.get('/pending-payment', requireAuth, async (req: AuthedRequest, res, next) => {
   try {
+    const subscriptionColumns = await getSubscriptionColumnSupport();
+    if (!subscriptionColumns.hasPixResume) { res.json({ hasPending: false }); return; }
     const pending = await prisma.subscription.findFirst({
       where: { userId: req.userId!, status: 'PENDING', periodDays: 0, pixExpiresAt: { gt: new Date() } },
       orderBy: { createdAt: 'desc' },
+      select: {
+        mpPaymentId: true,
+        pixQrCode: true,
+        pixQrBase64: true,
+        pixExpiresAt: true,
+        pixCredits: true,
+        amount: true,
+      },
     });
     if (!pending?.pixQrCode) { res.json({ hasPending: false }); return; }
     res.json({
@@ -317,6 +329,7 @@ router.post('/webhook', async (req, res) => {
     }
     const isPayment = type === 'payment' || String(action || '').startsWith('payment');
     if (isPayment && data?.id && hasMercadoPago()) {
+      const subscriptionColumns = await getSubscriptionColumnSupport();
       const paymentId = data.id;
       const r = await fetch(`${config.mpApiBaseUrl}/v1/payments/${paymentId}`, { headers: { Authorization: `Bearer ${config.mpAccessToken}` } });
       if (r.ok) {
@@ -325,7 +338,7 @@ router.post('/webhook', async (req, res) => {
         // Captura TODOS os status (approved/pending/rejected/refunded) — não só approved.
         const extRef = String(pay.external_reference ?? '');
         const [subIdRef] = extRef.split('|');
-        if (subIdRef && !extRef.startsWith('doctor_sub_')) {
+        if (subscriptionColumns.hasRawWebhook && subIdRef && !extRef.startsWith('doctor_sub_')) {
           await prisma.subscription.updateMany({ where: { id: subIdRef }, data: { rawWebhook: pay, mpPaymentId: String(paymentId) } }).catch(() => {});
         }
         if (pay.status === 'approved' && pay.external_reference) {
@@ -338,28 +351,28 @@ router.post('/webhook', async (req, res) => {
             res.status(200).json({ ok: true }); return;
           }
           const [subId, creditsStr] = String(pay.external_reference).split('|');
-          const sub = await prisma.subscription.findUnique({ where: { id: subId } });
+          const sub = await findSubscriptionByIdCompat(subId);
           if (sub && sub.status !== 'APPROVED') {
             if (creditsStr) {
               // PACOTE DE CRÉDITOS
               const credits = Number(creditsStr);
               if (credits > 0) {
-                await prisma.$transaction([
-                  prisma.subscription.update({ where: { id: sub.id }, data: { status: 'APPROVED', mpPaymentId: String(paymentId) } }),
-                  prisma.user.update({ where: { id: sub.userId }, data: { credits: { increment: credits } } }),
-                  prisma.creditTransaction.create({ data: { userId: sub.userId, delta: credits, kind: 'purchase', label: `Compra de créditos (+${credits})`, refId: sub.id } }),
-                ]);
+                await prisma.$transaction(async (tx) => {
+                  await updateSubscriptionCompatWithDb(tx, sub.id, { status: 'APPROVED', mpPaymentId: String(paymentId) });
+                  await tx.user.update({ where: { id: sub.userId }, data: { credits: { increment: credits } } });
+                  await tx.creditTransaction.create({ data: { userId: sub.userId, delta: credits, kind: 'purchase', label: `Compra de créditos (+${credits})`, refId: sub.id } });
+                });
                 console.log(`[billing] créditos +${credits} p/ user ${sub.userId} (sub ${sub.id})`);
               }
             } else if (sub.periodDays > 0) {
               // PLANO MENSAL — ativa + concede pacote mensal de créditos (parametrizado em app_settings)
               const expires = new Date(Date.now() + sub.periodDays * 86400000);
               const monthlyCredits = getSettings().grants.monthly;
-              await prisma.$transaction([
-                prisma.subscription.update({ where: { id: sub.id }, data: { status: 'APPROVED', mpPaymentId: String(paymentId) } }),
-                prisma.user.update({ where: { id: sub.userId }, data: { planExpiresAt: expires, credits: { increment: monthlyCredits } } }),
-                prisma.creditTransaction.create({ data: { userId: sub.userId, delta: monthlyCredits, kind: 'plan_monthly', label: 'Plano Premium (mensal)', refId: sub.id } }),
-              ]);
+              await prisma.$transaction(async (tx) => {
+                await updateSubscriptionCompatWithDb(tx, sub.id, { status: 'APPROVED', mpPaymentId: String(paymentId) });
+                await tx.user.update({ where: { id: sub.userId }, data: { planExpiresAt: expires, credits: { increment: monthlyCredits } } });
+                await tx.creditTransaction.create({ data: { userId: sub.userId, delta: monthlyCredits, kind: 'plan_monthly', label: 'Plano Premium (mensal)', refId: sub.id } });
+              });
               console.log(`[billing] mensal aprovado — user ${sub.userId} +${monthlyCredits} créditos, ativo até ${expires.toISOString()}`);
             }
           }

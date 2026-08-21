@@ -1,12 +1,14 @@
 import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
 import { api, authHeader, resetDb, createUser, getUserCredits, mpResponse } from './helpers';
 import { prisma } from '../src/prisma';
+import { createSubscriptionCompat, resetSubscriptionColumnsCacheForTests } from '../src/utils/subscriptionCompat';
 
 const fetchMock = () => globalThis.fetch as unknown as Mock;
 
 describe('billing: planos, webhook (idempotente), compra de créditos', () => {
   beforeEach(async () => {
     await resetDb();
+    resetSubscriptionColumnsCacheForTests();
     fetchMock().mockReset();
     fetchMock().mockResolvedValue(mpResponse({})); // default seguro p/ qualquer fetch
   });
@@ -31,15 +33,13 @@ describe('billing: planos, webhook (idempotente), compra de créditos', () => {
 
   it('webhook MENSAL aprova: ativa plano + 250 créditos', async () => {
     const { user } = await createUser({ credits: 0 });
-    const sub = await prisma.subscription.create({
-      data: { userId: user.id, amount: 19.9, periodDays: 30, status: 'PENDING' },
-    });
+    const sub = await createSubscriptionCompat({ userId: user.id, amount: 19.9, periodDays: 30, status: 'PENDING' });
     fetchMock().mockResolvedValueOnce(mpResponse({ status: 'approved', external_reference: sub.id }));
 
     const r = await api().post('/api/billing/webhook').send({ type: 'payment', data: { id: 'pay1' } });
     expect(r.status).toBe(200);
 
-    const dbSub = await prisma.subscription.findUnique({ where: { id: sub.id } });
+    const dbSub = await prisma.subscription.findUnique({ where: { id: sub.id }, select: { status: true } });
     expect(dbSub?.status).toBe('APPROVED');
     expect(await getUserCredits(user.id)).toBe(250);
     const u = await prisma.user.findUnique({ where: { id: user.id } });
@@ -49,9 +49,7 @@ describe('billing: planos, webhook (idempotente), compra de créditos', () => {
 
   it('webhook é idempotente: 2ª chamada NÃO credita de novo', async () => {
     const { user } = await createUser({ credits: 0 });
-    const sub = await prisma.subscription.create({
-      data: { userId: user.id, amount: 19.9, periodDays: 30, status: 'PENDING' },
-    });
+    const sub = await createSubscriptionCompat({ userId: user.id, amount: 19.9, periodDays: 30, status: 'PENDING' });
     const approved = mpResponse({ status: 'approved', external_reference: sub.id });
     fetchMock().mockResolvedValue(approved);
 
@@ -62,9 +60,7 @@ describe('billing: planos, webhook (idempotente), compra de créditos', () => {
 
   it('webhook de PACOTE (external_reference subId|credits) credita N créditos', async () => {
     const { user } = await createUser({ credits: 0 });
-    const sub = await prisma.subscription.create({
-      data: { userId: user.id, amount: 9.9, periodDays: 0, status: 'PENDING' },
-    });
+    const sub = await createSubscriptionCompat({ userId: user.id, amount: 9.9, periodDays: 0, status: 'PENDING' });
     fetchMock().mockResolvedValueOnce(mpResponse({ status: 'approved', external_reference: `${sub.id}|250` }));
 
     await api().post('/api/billing/webhook').send({ type: 'payment', data: { id: 'pay9' } });

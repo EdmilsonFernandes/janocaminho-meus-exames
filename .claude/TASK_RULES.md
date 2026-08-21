@@ -33,6 +33,8 @@ Uma tarefa **só está concluída** quando:
 
 - **NUNCA** `npx vitest` da raiz (CWD vaza, pode truncar DB dev). **SEMPRE** `npm test --workspace packages/server`.
 - DB de teste: `meus_exames_test` (porta 5433). `test/setup.ts` seta o `DATABASE_URL`. `prisma db push` sincroniza (não `migrate dev` — há drift P3006).
+- Drift gate Prisma/prod: se uma coluna nova aparece no `schema.prisma`, ela precisa existir em migration aditiva OU o código precisa tolerar a ausência dela no banco de produção até a migration ser aplicada. Não fazer push de rota Prisma nova baseada em leitura implícita de todas as colunas.
+- Em `subscriptions`, billing e admin financeiro, preferir `select` explícito e fallback seguro para colunas opcionais/novas.
 - Novo código = novos testes: unit pra lógica pura, E2E (supertest) pra rotas, regressão pra bugs.
 
 ## Build mobile (APK/AAB)
