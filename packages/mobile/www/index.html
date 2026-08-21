@@ -76,12 +76,12 @@
       /* Mobile: folga no rodapé do conteúdo pra o FAB do Dr. Exame não cobrir paginação/rodapé. */
       @media (max-width: 599px) { #main-content { padding-bottom: 84px !important; } }
     </style>
-    <script type="module" crossorigin src="./assets/index-BGW8lsUP.js"></script>
+    <script type="module" crossorigin src="./assets/index-DMH7k3W8.js"></script>
     <link rel="modulepreload" crossorigin href="./assets/rolldown-runtime-QTnfLwEv.js">
-    <link rel="modulepreload" crossorigin href="./assets/vendor-ui-CIYbqT1G.js">
-    <link rel="modulepreload" crossorigin href="./assets/vendor-admin-B1f-kgML.js">
+    <link rel="modulepreload" crossorigin href="./assets/vendor-ui-BS6DiCvR.js">
+    <link rel="modulepreload" crossorigin href="./assets/vendor-admin-DX3EmYkG.js">
     <link rel="modulepreload" crossorigin href="./assets/dist-CjyBEm7C.js">
-    <link rel="modulepreload" crossorigin href="./assets/vendor-charts-Fk3jxprH.js">
+    <link rel="modulepreload" crossorigin href="./assets/vendor-charts-xV01Dfk7.js">
   </head>
   <body>
     <noscript>
@@ -104,6 +104,9 @@
     </script>
     <!-- VLibras: tradução automática de texto para Libras (acessibilidade — pacientes surdos) -->
     <style>
+      /* Font smoothing na raiz — iPhone/Safari usa o WEB (não APK); no Android WebView é
+         no-op. Fontes Inter/Poppins ficam mais nítidas em fundo claro. */
+      html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
       /* VLibras no canto INFERIOR ESQUERDO, MENOR e ACIMA do rodapé mobile (zona livre — os FABs
          Dr. Exame/Enviar exame ficam na DIREITA). Auditoria 2026-08-16: duas lições —
          (1) o plugin ATUAL renderiza prefixo `vp-*` (vp-access-button), as regras antigas só
