@@ -39,6 +39,7 @@ export const PlansPage = () => {
   const [histOpen, setHistOpen] = useState(false); // extrato começa recolhido (não auto-expande)
   // PIX PENDENTE (padrão gateway): retoma o mesmo QR/timer se o usuário saiu e voltou.
   const [pendingPix, setPendingPix] = useState<any>(null);
+  const [, forceTick] = useState(0); // re-render a cada 1s pro timer do PIX vivo
 
   useEffect(() => {
     fetch(`${API_URL}/billing/pending-payment`, { headers: { Authorization: `Bearer ${token()}` } })
@@ -46,6 +47,17 @@ export const PlansPage = () => {
       .then((d) => { if (d?.hasPending) setPendingPix(d); })
       .catch(() => {});
   }, []);
+
+  // Timer ao vivo: só roda quando há PIX pendente (sem custo quando não tem)
+  useEffect(() => {
+    if (!pendingPix) return;
+    const iv = setInterval(() => {
+      const left = new Date(pendingPix.expiresAt).getTime() - Date.now();
+      if (left <= 0) { setPendingPix(null); return; } // expirou → remove o banner/botão
+      forceTick((t) => t + 1);
+    }, 1000);
+    return () => clearInterval(iv);
+  }, [pendingPix]);
 
   const loadHistory = async () => {
     setHistLoading(true);
@@ -251,17 +263,33 @@ export const PlansPage = () => {
         O que consome: 💬 pergunta no chat <b>2</b> · ✨ resumo do exame <b>10</b> · 🧾 relatório completo <b>20</b>. Enviar exame é <b>grátis</b>.
       </Typography>
       <Stack spacing={2} sx={{ mb: 3, width: '100%' }}>
-        {packs.map((p) => (
-          <Card key={p.id} sx={{ borderRadius: '12px', border: p.popular ? '2px solid #20b2aa' : '1px solid', borderColor: p.popular ? undefined : 'divider', width: '100%' }}>
-            {p.popular && <Box sx={{ textAlign: 'center', pt: 1.5 }}><Chip color="primary" label="MAIS VENDIDO" size="small" /></Box>}
-            <CardContent sx={{ textAlign: 'center', pt: p.popular ? 1 : 2 }}>
+        {packs.map((p) => {
+          // PIX PENDENTE deste pacote? O botão vira "Retomar pagamento" com timer
+          const isPending = pendingPix && pendingPix.credits === p.credits && pendingPix.price === p.price;
+          const secsLeft = isPending ? Math.max(0, Math.floor((new Date(pendingPix.expiresAt).getTime() - Date.now()) / 1000)) : 0;
+          const mmLeft = String(Math.floor(secsLeft / 60)).padStart(2, '0');
+          const ssLeft = String(secsLeft % 60).padStart(2, '0');
+          return (
+          <Card key={p.id} sx={{ borderRadius: '12px', border: isPending ? '2px solid #20b2aa' : p.popular ? '2px solid #20b2aa' : '1px solid', borderColor: isPending ? undefined : p.popular ? undefined : 'divider', width: '100%', position: 'relative' }}>
+            {isPending && <Box sx={{ textAlign: 'center', pt: 1.5 }}><Chip color="primary" label="⏳ Pagamento em andamento" size="small" sx={{ fontWeight: 700 }} /></Box>}
+            {!isPending && p.popular && <Box sx={{ textAlign: 'center', pt: 1.5 }}><Chip color="primary" label="MAIS VENDIDO" size="small" /></Box>}
+            <CardContent sx={{ textAlign: 'center', pt: isPending || p.popular ? 1 : 2 }}>
               <Typography sx={{ fontWeight: 800, fontSize: 28, color: 'primary.main', lineHeight: 1.1 }}>{p.credits}</Typography>
               <Typography color="text.secondary">créditos</Typography>
               <Typography variant="h5" sx={{ my: 1, fontWeight: 800 }}>R$ {p.price.toFixed(2).replace('.', ',')}</Typography>
-              <Button variant={p.popular ? 'contained' : 'outlined'} fullWidth disabled={!mpOn} onClick={() => { setChooserLabel(`${p.credits} créditos • R$ ${p.price.toFixed(2).replace('.', ',')}`); setChooserPack(p.id); }}>Comprar</Button>
+              {isPending ? (
+                <Button variant="contained" fullWidth onClick={() => setPixPack('__pending__')}
+                  startIcon={<QrCode2Icon />}
+                  sx={{ bgcolor: '#20b2aa', '&:hover': { bgcolor: '#178f89' }, textTransform: 'none', fontWeight: 800 }}>
+                  Abrir QR Code · {mmLeft}:{ssLeft}
+                </Button>
+              ) : (
+                <Button variant={p.popular ? 'contained' : 'outlined'} fullWidth disabled={!mpOn} onClick={() => { setChooserLabel(`${p.credits} créditos • R$ ${p.price.toFixed(2).replace('.', ',')}`); setChooserPack(p.id); }}>Comprar</Button>
+              )}
             </CardContent>
           </Card>
-        ))}
+          );
+        })}
       </Stack>
 
       <Typography align="center" color="text.secondary" sx={{ my: 2, fontWeight: 600 }}>— ou assine —</Typography>
