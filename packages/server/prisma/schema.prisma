@@ -406,6 +406,12 @@ model Subscription {
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   mpPaymentId    String?
   mpPreferenceId String?
+  // PIX RETOMÁVEL (padrão gateway): guarda QR + expiry pra devolver o MESMO pagamento
+  // quando o usuário sai e volta — sem criar ordem nova (anti-órfã).
+  pixExpiresAt   DateTime?
+  pixQrCode      String?   // copia-cola
+  pixQrBase64    String?   // data URI do QR image
+  pixCredits     Int?      // créditos do pacote (pra devolver sem re-lookup)
   amount         Float
   periodDays     Int
   status         String   @default("PENDING") // PENDING | APPROVED | CANCELLED

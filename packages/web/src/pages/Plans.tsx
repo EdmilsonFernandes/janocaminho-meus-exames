@@ -4,6 +4,7 @@ import CheckIcon from '@mui/icons-material/CheckCircle';
 import BoltIcon from '@mui/icons-material/Bolt';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import DiamondIcon from '@mui/icons-material/Diamond';
+import QrCode2Icon from '@mui/icons-material/QrCode2';
 import { useNotify, useTranslate } from 'react-admin';
 import { useSearchParams } from 'react-router-dom';
 import { API_URL, token } from '../config';
@@ -36,6 +37,15 @@ export const PlansPage = () => {
   const [histTotal, setHistTotal] = useState(0);
   const [dispPage, setDispPage] = useState(1);
   const [histOpen, setHistOpen] = useState(false); // extrato começa recolhido (não auto-expande)
+  // PIX PENDENTE (padrão gateway): retoma o mesmo QR/timer se o usuário saiu e voltou.
+  const [pendingPix, setPendingPix] = useState<any>(null);
+
+  useEffect(() => {
+    fetch(`${API_URL}/billing/pending-payment`, { headers: { Authorization: `Bearer ${token()}` } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d?.hasPending) setPendingPix(d); })
+      .catch(() => {});
+  }, []);
 
   const loadHistory = async () => {
     setHistLoading(true);
@@ -104,6 +114,22 @@ export const PlansPage = () => {
     <PageContainer width={860}>
       <PageHeader icon={<DiamondIcon />} title={translate('page.plans')}
         subtitle={<>Use à vontade: assine o <strong>mensal</strong> (250 créditos de IA por mês) ou compre <strong>créditos avulsos</strong> via PIX.</>} />
+
+      {/* PIX PENDENTE (padrão gateway): banner discreto que retoma o mesmo QR/timer.
+          Só aparece se o usuário gerou um PIX e saiu sem pagar — SEM criar ordem nova. */}
+      {pendingPix && (
+        <Alert severity="info" icon={<QrCode2Icon />} sx={{ mb: 2, borderRadius: '12px', alignItems: 'center' }}>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ sm: 'center' }} justifyContent="space-between" sx={{ width: '100%' }}>
+            <Typography sx={{ fontSize: 14 }}>
+              Você tem um PIX de <strong>{pendingPix.credits} créditos</strong> aguardando pagamento
+              {' '}({Math.max(0, Math.ceil((new Date(pendingPix.expiresAt).getTime() - Date.now()) / 60000))} min restantes)
+            </Typography>
+            <Button size="small" variant="contained" onClick={() => setPixPack('__pending__')} sx={{ textTransform: 'none', fontWeight: 700, flexShrink: 0 }}>
+              Retomar pagamento
+            </Button>
+          </Stack>
+        </Alert>
+      )}
 
       {/* HERO — saldo centralizado, gradiente esmeralda + profundidade */}
       <Card sx={{ mb: 2.5, borderRadius: '12px', overflow: 'hidden', position: 'relative', color: '#fff',
@@ -272,7 +298,13 @@ export const PlansPage = () => {
       )}
 
       <PaymentChooser packId={chooserPack} packLabel={chooserLabel} onClose={() => setChooserPack(null)} onPix={() => setPixPack(chooserPack)} />
-      <PixModal packId={pixPack} onClose={() => setPixPack(null)} onApproved={() => { setPixPack(null); notify('Créditos adicionados! 🎉', { type: 'success' }); load(); }} />
+      {/* '__pending__' = retomar PIX existente (não gera ordem nova — o server é idempotente) */}
+      <PixModal
+        packId={pixPack}
+        existingPix={pixPack === '__pending__' ? pendingPix : undefined}
+        onClose={() => { setPixPack(null); setPendingPix(null); }}
+        onApproved={() => { setPixPack(null); setPendingPix(null); notify('Créditos adicionados! 🎉', { type: 'success' }); load(); }}
+      />
         </>
       )}
     </PageContainer>

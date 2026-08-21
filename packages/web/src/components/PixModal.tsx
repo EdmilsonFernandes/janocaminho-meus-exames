@@ -9,7 +9,7 @@ type Phase = 'loading' | 'waiting' | 'approved' | 'expired' | 'error';
 
 /** Modal de pagamento PIX: gera QR + copia-cola, conta regressiva até expirar, faz polling
  *  do status e, ao aprovar, credita automaticamente (via webhook) e avisa o pai. */
-export const PixModal = ({ packId, onClose, onApproved }: { packId: string | null; onClose: () => void; onApproved: () => void }) => {
+export const PixModal = ({ packId, onClose, onApproved, existingPix }: { packId: string | null; onClose: () => void; onApproved: () => void; existingPix?: any }) => {
   const [pix, setPix] = useState<any>(null);
   const [phase, setPhase] = useState<Phase>('loading');
   const [secs, setSecs] = useState(0);
@@ -20,6 +20,14 @@ export const PixModal = ({ packId, onClose, onApproved }: { packId: string | nul
     if (!packId) return;
     let cancelled = false;
     setPhase('loading'); setPix(null); approvedDone.current = false;
+
+    // RETOMADO (padrão gateway): usa o PIX existente — SEM chamar a API de novo.
+    if (existingPix) {
+      setPix(existingPix); setPhase('waiting');
+      setSecs(Math.max(0, Math.floor((new Date(existingPix.expiresAt).getTime() - Date.now()) / 1000)));
+      return;
+    }
+
     (async () => {
       try {
         const r = await fetch(`${API_URL}/billing/buy-credits`, {
@@ -34,7 +42,7 @@ export const PixModal = ({ packId, onClose, onApproved }: { packId: string | nul
       } catch { if (!cancelled) setPhase('error'); }
     })();
     return () => { cancelled = true; };
-  }, [packId]);
+  }, [packId, existingPix]);
 
   useEffect(() => {
     if (phase !== 'waiting' || !pix) return;
