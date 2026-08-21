@@ -99,12 +99,12 @@ router.post('/checkout', requireAuth, async (req: AuthedRequest, res, next) => {
         'X-Idempotency-Key': crypto.randomUUID(),
       },
       body: JSON.stringify({
-        items: [{ id: plan.id, title: `Meus Exames — Premium ${plan.label}`, quantity: 1, unit_price: plan.price, currency_id: 'BRL' }],
+        items: [{ id: plan.id, title: `Dr. Exame Premium — Plano ${plan.label} (250 créditos IA)`, quantity: 1, unit_price: plan.price, currency_id: 'BRL' }],
         payer: { email: user.email, name: user.name },
         back_urls: { success: `${back}?status=success`, failure: `${back}?status=failure`, pending: `${back}?status=pending` },
         auto_return: 'approved',
         external_reference: sub.id, // mensal: external_reference = sub.id (sem "|")
-        statement_descriptor: 'MEUS EXAMES',
+        statement_descriptor: 'DR EXAME',
         notification_url: publicNotifyUrl(),
       }),
     });
@@ -161,6 +161,14 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
       });
     }
 
+    // AUTO-CLEANUP cartão/débito: PENDING sem webhook há >30 min = abandonado → CANCELLED.
+    // (mesma lógica do PIX, mas com janela maior — o checkout Pro demora mais pra processar)
+    const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000);
+    await prisma.subscription.updateMany({
+      where: { userId: user.id, status: 'PENDING', createdAt: { lt: thirtyMinAgo } },
+      data: { status: 'CANCELLED' },
+    }).catch(() => {}); // não bloqueia o fluxo se o cleanup falhar
+
     // registro p/ idempotência no webhook (periodDays=0 marca "pacote de créditos")
     const sub = await prisma.subscription.create({
       data: { userId: user.id, amount: pack.price, periodDays: 0, status: 'PENDING' },
@@ -177,7 +185,7 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
         method: 'POST',
         headers: { Authorization: `Bearer ${config.mpAccessToken}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          items: [{ id: pack.id, title: `Meus Exames — ${pack.credits} créditos`, quantity: 1, unit_price: pack.price, currency_id: 'BRL' }],
+          items: [{ id: pack.id, title: `Dr. Exame — ${pack.credits} créditos de IA`, quantity: 1, unit_price: pack.price, currency_id: 'BRL' }],
           payer: { email: user.email, name: user.name },
           external_reference: externalReference,
           back_urls: {
@@ -187,7 +195,7 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
           },
           auto_return: 'approved',
           notification_url: publicNotifyUrl(),
-          statement_descriptor: 'MEUS EXAMES',
+          statement_descriptor: 'DR EXAME',
         }),
       });
       if (!prefResp.ok) {
@@ -207,13 +215,13 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
       headers: { Authorization: `Bearer ${config.mpAccessToken}`, 'Content-Type': 'application/json', 'X-Idempotency-Key': crypto.randomUUID() },
       body: JSON.stringify({
         transaction_amount: pack.price,
-        description: `Meus Exames — ${pack.credits} créditos`,
+        description: `Dr. Exame — ${pack.credits} créditos de IA para análise de exames`,
         payment_method_id: 'pix',
         payer: { email: user.email, first_name: (user.name || 'Cliente').split(' ')[0] },
         external_reference: externalReference,
         date_of_expiration: expires.toISOString(),
         notification_url: publicNotifyUrl(),
-        statement_descriptor: 'MEUS EXAMES',
+        statement_descriptor: 'DR EXAME',
       }),
     });
     if (!r.ok) {

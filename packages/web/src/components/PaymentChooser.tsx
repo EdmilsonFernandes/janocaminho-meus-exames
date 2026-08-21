@@ -59,8 +59,17 @@ export const PaymentChooser = ({ packId, packLabel, onClose, onPix }: {
             onClick={() => payRedirect('debit')} />
         </Stack>
         {err && <Typography color="error" variant="body2" sx={{ mt: 2 }}>{err}</Typography>}
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2, textAlign: 'center' }}>
-          🔒 Pagamento processado pelo Mercado Pago.
+
+        {/* Selo de confiança (padrão checkout premium): reduz abandono e dúvida "quem é o vendedor" */}
+        <Stack direction="row" spacing={0.75} justifyContent="center" sx={{ mt: 2.5, flexWrap: 'wrap', rowGap: 0.5 }}>
+          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>🔒 Ambiente seguro</Typography>
+          <Typography variant="caption" sx={{ color: 'text.disabled' }}>·</Typography>
+          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>Dr. Exame</Typography>
+          <Typography variant="caption" sx={{ color: 'text.disabled' }}>·</Typography>
+          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>Processado pelo Mercado Pago</Typography>
+        </Stack>
+        <Typography variant="caption" sx={{ display: 'block', mt: 0.5, textAlign: 'center', color: 'text.disabled' }}>
+          Na fatura/PIX aparecerá "DR EXAME"
         </Typography>
       </DialogContent>
     </Dialog>
