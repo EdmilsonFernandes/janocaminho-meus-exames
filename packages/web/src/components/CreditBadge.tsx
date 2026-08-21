@@ -27,6 +27,6 @@ export const CreditBadge = ({ amount, label, size = 'small', sx }: { amount: num
     size={size}
     avatar={<Box sx={{ width: 16, fontSize: 13, textAlign: 'center' }}>💎</Box>}
     label={label ?? `${amount} crédito${amount > 1 ? 's' : ''}`}
-    sx={{ bgcolor: 'rgba(212,165,116,.16)', color: '#b88a54', fontWeight: 700, height: size === 'small' ? 22 : 28, '& .MuiChip-avatar': { margin: '0 2px 0 6px' }, ...sx }}
+    sx={{ bgcolor: 'rgba(212,165,116,.16)', color: '#b88a54', fontWeight: 700, height: size === 'small' ? 22 : 28, fontVariantNumeric: 'tabular-nums', '& .MuiChip-avatar': { margin: '0 2px 0 6px' }, ...sx }}
   />
 );

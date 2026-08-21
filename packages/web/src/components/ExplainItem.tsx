@@ -116,7 +116,10 @@ export const ExplainButton = ({ name, nameCanonical, size = 'small' }: { name: s
         aria-busy={state === 'loading'}
         aria-haspopup="dialog"
         aria-expanded={!!anchor}
-        sx={{ color: 'primary.main', padding: size === 'small' ? 0.5 : 1 }}
+        sx={{ color: 'primary.main', padding: size === 'small' ? 0.5 : 1, position: 'relative', zIndex: 1,
+          // Hit area ≥40px (skill make-interfaces-feel-better): o ícone é pequeno, mas o
+          // alvo de toque cresce 8px pra cada lado SEM mudar o layout em volta.
+          '&::after': { content: '""', position: 'absolute', inset: -8, borderRadius: '50%' } }}
         title="O que é este exame?"
         aria-label="O que é este exame?"
       >

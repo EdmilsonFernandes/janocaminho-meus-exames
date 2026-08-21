@@ -29,8 +29,9 @@ export const PageHeader = ({ title, subtitle, icon, actions, accent = 'primary.m
       </Box>
     )}
     <Box sx={{ flex: 1, minWidth: 0 }}>
-      <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.2 }}>{title}</Typography>
-      {subtitle && <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25 }}>{subtitle}</Typography>}
+      {/* text-wrap: títulos balanceiam a quebra (mobile), subtítulos "pretty" — sem órfãos. */}
+      <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.2, textWrap: 'balance' }}>{title}</Typography>
+      {subtitle && <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25, textWrap: 'pretty' }}>{subtitle}</Typography>}
     </Box>
     {actions && (
       <Stack direction="row" spacing={1} alignItems="center" sx={{ flexShrink: 0 }}>{actions}</Stack>

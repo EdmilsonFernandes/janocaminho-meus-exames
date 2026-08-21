@@ -12,7 +12,7 @@ export const CreditsCard = ({ credits, onClick }: { credits: number | null; onCl
           <BoltIcon sx={{ color: 'primary.dark', fontSize: 26 }} />
         </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography sx={{ fontWeight: 800, fontSize: 26, color: 'primary.dark', lineHeight: 1 }}>{credits.toLocaleString('pt-BR')}</Typography>
+          <Typography sx={{ fontWeight: 800, fontSize: 26, color: 'primary.dark', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{credits.toLocaleString('pt-BR')}</Typography>
           <Typography variant="caption" sx={{ color: 'text.secondary' }}>créditos disponíveis</Typography>
         </Box>
         <Button variant="contained" color="primary" size="small" onClick={onClick} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, py: 1.1, flexShrink: 0 }}>Comprar</Button>

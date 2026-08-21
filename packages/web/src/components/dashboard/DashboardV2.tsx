@@ -139,7 +139,7 @@ const HeroHealthCard = ({ loaded, score, importante, moderada, lastExam, onDetai
               strokeDasharray={`${(score ?? 0) * 2.64} 999`} style={{ transition: 'stroke-dasharray .8s cubic-bezier(.16,1,.3,1)' }} />
           </svg>
           <Box sx={{ position: 'absolute', textAlign: 'center' }}>
-            {loaded ? <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 26, lineHeight: 1, color: 'text.primary' }}>{score ?? '—'}</Typography>
+            {loaded ? <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 26, lineHeight: 1, color: 'text.primary', fontVariantNumeric: 'tabular-nums' }}>{score ?? '—'}</Typography>
               : <Skeleton variant="text" width={36} height={30} />}
             <Typography sx={{ fontSize: 10, color: 'text.secondary', mt: -0.5 }}>de 100</Typography>
           </Box>
@@ -147,7 +147,7 @@ const HeroHealthCard = ({ loaded, score, importante, moderada, lastExam, onDetai
         <Box sx={{ flex: 1, minWidth: 0 }}>
           {/* Sentence case (audit Onda A): caixa alta + ls largo = cara de painel admin. */}
           <Typography sx={{ fontSize: 12, fontWeight: 700, color: st.tone === 'success' ? '#047857' : st.tone === 'warning' ? '#8a5a1f' : st.tone === 'error' ? '#b91c1c' : '#0f6e68' }}>Sua saúde hoje</Typography>
-          <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 22, lineHeight: 1.15, color: 'text.primary', mt: 0.25 }}>{st.label}</Typography>
+          <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 22, lineHeight: 1.15, color: 'text.primary', mt: 0.25, textWrap: 'balance' }}>{st.label}</Typography>
           <Stack direction="row" spacing={1.5} sx={{ mt: 1, flexWrap: 'wrap', rowGap: 0.5 }}>
             {totalAtt > 0 ? (
               <Typography sx={{ fontSize: 13.5, color: 'text.secondary' }}>
@@ -179,7 +179,7 @@ const IndicatorTile = ({ icon, label, value, sub, tone, onClick }: {
         bgcolor: (th) => alpha((th.palette as any)[tone]?.main ?? '#20b2aa', 0.14), color: `${tone}.main` }}>{icon}</Box>
       <Box sx={{ flex: 1, minWidth: 0 }}>
         <Typography sx={{ fontSize: 11, color: 'text.secondary', lineHeight: 1.1 }}>{label}</Typography>
-        <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 16, color: 'text.primary', lineHeight: 1.2, mt: 0.15 }}>{value}</Typography>
+        <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 16, color: 'text.primary', lineHeight: 1.2, mt: 0.15, fontVariantNumeric: 'tabular-nums' }}>{value}</Typography>
         {sub && <Typography sx={{ fontSize: 11, color: 'text.disabled', lineHeight: 1.1 }}>{sub}</Typography>}
       </Box>
     </Stack>

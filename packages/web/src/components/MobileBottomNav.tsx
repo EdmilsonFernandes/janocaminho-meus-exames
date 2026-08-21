@@ -50,7 +50,7 @@ export const MobileBottomNav = () => {
       flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       py: 0.7, cursor: 'pointer', userSelect: 'none', color: on ? '#178f89' : 'text.secondary',
       borderRadius: '12px', bgcolor: on ? 'rgba(32,178,170,.10)' : 'transparent',
-      transition: 'background-color .2s, color .15s, transform .1s', '&:active': { transform: 'scale(.90)' },
+      transition: 'background-color .2s, color .15s, transform .1s', '&:active': { transform: 'scale(.96)' },
     }}>
       {it.robot ? (
         <Box sx={{
@@ -81,7 +81,7 @@ export const MobileBottomNav = () => {
       flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       py: 0.7, cursor: 'pointer', userSelect: 'none', color: on ? '#178f89' : 'text.secondary',
       borderRadius: '12px', bgcolor: on ? 'rgba(32,178,170,.10)' : 'transparent',
-      transition: 'background-color .2s, color .15s, transform .1s', '&:active': { transform: 'scale(.90)' },
+      transition: 'background-color .2s, color .15s, transform .1s', '&:active': { transform: 'scale(.96)' },
     }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 24, transform: on ? 'scale(1.12)' : 'scale(1)', transition: 'transform .18s ease', '& svg': { fontSize: 22 } }}>
         {on ? <MenuIcon /> : <MenuIcon sx={{ opacity: 0.5 }} />}

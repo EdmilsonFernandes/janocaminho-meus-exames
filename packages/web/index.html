@@ -99,6 +99,9 @@
     <script type="module" src="/src/main.tsx"></script>
     <!-- VLibras: tradução automática de texto para Libras (acessibilidade — pacientes surdos) -->
     <style>
+      /* Font smoothing na raiz — iPhone/Safari usa o WEB (não APK); no Android WebView é
+         no-op. Fontes Inter/Poppins ficam mais nítidas em fundo claro. */
+      html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
       /* VLibras no canto INFERIOR ESQUERDO, MENOR e ACIMA do rodapé mobile (zona livre — os FABs
          Dr. Exame/Enviar exame ficam na DIREITA). Auditoria 2026-08-16: duas lições —
          (1) o plugin ATUAL renderiza prefixo `vp-*` (vp-access-button), as regras antigas só
