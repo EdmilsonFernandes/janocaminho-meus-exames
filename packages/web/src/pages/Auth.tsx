@@ -318,14 +318,7 @@ export const LoginPage = ({ fixedRole }: { fixedRole?: 'paciente' | 'medico' }) 
           <TextField
             label={translate('auth.password')} type={showPwd ? 'text' : 'password'} required autoComplete="current-password" value={pwd}
             error={!!errs.pwd}
-            helperText={capsOn ? translate('auth.capslock') : errs.pwd ? (
-              <span style={{ display: 'inline-flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                <span>{errs.pwd}</span>
-                {errs.pwd === translate('auth.err_wrong') && (
-                  <Link component="button" type="button" sx={{ fontSize: 12, fontWeight: 700, color: LINK }} onClick={() => navigate('/recuperar-senha')}>{translate('auth.forgot')}</Link>
-                )}
-              </span>
-            ) : undefined}
+            helperText={capsOn ? translate('auth.capslock') : errs.pwd ?? undefined}
             onChange={(e) => { setPwd(e.target.value); if (errs.pwd) setErrs({ ...errs, pwd: undefined }); }}
             onKeyDown={trackCaps} onKeyUp={trackCaps} sx={fieldSx}
             slotProps={{ input: {

@@ -80,7 +80,10 @@ app.use(accessAudit);
 
 // Rate limiting — protege contra brute force, DoS e dreno de créditos. Skip em dev/test.
 const skipDev = () => process.env.NODE_ENV !== 'production';
-const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false, skip: skipDev, message: { error: 'Muitas tentativas. Aguarde 15 minutos.' } });
+// Auth: só limita POSTs (tentativas de login). GETs (/auth/me) são checagem de sessão
+// e rodal a cada page load — contar elas bloqueava usuários reais após 30 visits/15min (429).
+const authSkip = (req: { method: string }) => req.method === 'GET' || skipDev();
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false, skip: authSkip as any, message: { error: 'Muitas tentativas. Aguarde 15 minutos.' } });
 const aiLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 40, standardHeaders: true, legacyHeaders: false, skip: skipDev, message: { error: 'Limite de IA por hora atingido.' } });
 const generalLimiter = rateLimit({ windowMs: 60 * 1000, max: 120, standardHeaders: true, legacyHeaders: false, skip: skipDev, message: { error: 'Muitas requisições. Aguarde 1 minuto.' } });
 // Cadastro tem limite próprio e bem mais apertado (8/hora/IP) — trava farm de contas pra
