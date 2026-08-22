@@ -599,7 +599,9 @@ export const App = () => {
           if (r && r.status === 401) { try { localStorage.removeItem('token'); localStorage.removeItem('user'); } catch {} }
           return null;
         })
-        .then((d) => { if (!cancelled && d?.user) { localStorage.setItem('user', JSON.stringify(d.user)); if (d.token) { try { localStorage.setItem('token', d.token); } catch {} } if (d.patientId) { localStorage.setItem('patientId', d.patientId); localStorage.setItem('selPatientId', d.patientId); } window.dispatchEvent(new Event('selPatientChanged')); } })
+        .then((d) => { if (!cancelled && d?.user) { localStorage.setItem('user', JSON.stringify(d.user)); if (d.token) { try { localStorage.setItem('token', d.token); } catch {} } if (d.patientId) { localStorage.setItem('patientId', d.patientId); // selPatientId só se FALTAR (comentário prometia "popular se faltar"): sobrescrever sempre
+              // no boot jogava o usuário de volta no TITULAR — modo cuidador (dependente selecionado) se perdia a cada reabertura.
+              if (!localStorage.getItem('selPatientId')) { localStorage.setItem('selPatientId', d.patientId); window.dispatchEvent(new Event('selPatientChanged')); } } } })
         .catch(() => {});
     }
     // Botão/gesto de voltar do Android (Capacitor) — volta no histórico IN-APP ou engole o back na raiz (NUNCA sai do app).
