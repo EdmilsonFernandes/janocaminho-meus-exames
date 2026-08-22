@@ -17,12 +17,30 @@ import { formatCpf, isValidCpf } from '../utils/cpf';
 // dispositivo não é re-perguntado. O Dashboard (NextStepsCard) continua orientando depois.
 const SKIP_FLAG = 'profileSkippedSession';
 
+/** "70,5" → 70.5 · "70.5" → 70.5 · lixo → NaN. Com vírgula: pontos são milhar (1.70,5→170.5); sem vírgula: ponto é decimal. */
+const parseBR = (s: string) => {
+  const t = String(s).trim();
+  if (!t) return NaN;
+  if (t.includes(',')) return Number(t.replace(/\./g, '').replace(',', '.'));
+  return Number(t);
+};
+/** Mantém dígitos + UM separador (.,) — normaliza '.' repetido/trailing. */
+const sanitizeDecimal = (s: string) => {
+  const t = s.replace(/[^\d.,]/g, '');
+  const i = t.search(/[.,]/);
+  if (i < 0) return t;
+  return t.slice(0, i + 1).replace(/[.,]/, ',') + t.slice(i + 1).replace(/[^\d]/g, '');
+};
+
+type StepKey = 'profile' | 'body' | 'cpf';
+
 /**
  * ONBOARDING DE DADOS ("Vamos preparar o Dr. Exame pra você") — stepper pós-login quando
- * faltam dados ESSENCIAIS (sexo, nascimento, altura, peso, CPF). Cada campo explica POR QUE
- * pedimos (referências dos exames, IMC, validação de identidade dos PDFs). Etapa salva ao
- * avançar (abandono no meio não perde o que já digitou). Etnia NÃO pede aqui: nenhum cálculo
- * usa hoje — mora no Perfil como opcional (promessa honesta).
+ * faltam dados ESSENCIAIS (sexo, nascimento, altura, peso, CPF).
+ * PASSOS DINÂMICOS (fix 2026-08-22): só o que está FALTANDO aparece — faltando só CPF,
+ * o usuário cai DIRETO no CPF (antes: passeava por sexo/altura/peso já preenchidos).
+ * Etapa salva ao avançar (abandono no meio não perde o que já digitou). Peso/altura aceitam
+ * vírgula E ponto (teclado BR) — inputs são text + sanitize, nunca type=number.
  */
 export const CompleteProfileModal = () => {
   const translate = useTranslate();
@@ -41,6 +59,8 @@ export const CompleteProfileModal = () => {
   const [cpf, setCpf] = useState('');
   const [needsCpf, setNeedsCpf] = useState(false);
   const [cpfError, setCpfError] = useState('');
+  // Passos que vão aparecer — decididos depois do load, pelo que falta de verdade.
+  const [steps, setSteps] = useState<StepKey[]>([]);
 
   useEffect(() => {
     if (!pid) return;
@@ -55,11 +75,15 @@ export const CompleteProfileModal = () => {
         setGender(p.gender ?? '');
         setHeightCm(p.heightCm != null ? String(p.heightCm) : '');
         setDob(p.dateOfBirth ? p.dateOfBirth.split('T')[0] : '');
-        setWeightKg(p.weightKg != null ? String(p.weightKg) : '');
+        setWeightKg(p.weightKg != null ? String(p.weightKg).replace('.', ',') : '');
         setNeedsCpf(!p.hasCpf);
-        // Abre se falta ALGUM essencial (fonte única: server). Skippável em 1 toque.
-        const missing: string[] = p.profileCompleteness?.missing ?? [];
-        if (missing.length > 0) { setStep(0); setOpen(true); }
+        // INTELIGÊNCIA: monta a fila SÓ com o que falta (fonte: campos reais do paciente).
+        // Faltando só CPF → passo único de CPF. Nada faltando → nem abre.
+        const queue: StepKey[] = [];
+        if (!p.gender || !p.dateOfBirth) queue.push('profile');
+        if (p.heightCm == null || p.weightKg == null) queue.push('body');
+        if (!p.hasCpf) queue.push('cpf');
+        if (queue.length > 0) { setSteps(queue); setStep(0); setOpen(true); }
       } catch {
         // best-effort: se falhar (offline), simplesmente não mostra — não bloqueia o app.
       } finally {
@@ -71,7 +95,8 @@ export const CompleteProfileModal = () => {
 
   const close = () => { sessionStorage.setItem(SKIP_FLAG, '1'); setOpen(false); };
 
-  const stepCount = needsCpf ? 3 : 2;
+  const current: StepKey | undefined = steps[step];
+  const stepCount = Math.max(steps.length, 1);
 
   const saveProfileFields = async () => {
     await fetch(`${API_URL}/patients/${pid}`, {
@@ -79,21 +104,22 @@ export const CompleteProfileModal = () => {
       headers: apiHeaders(true),
       body: JSON.stringify({
         gender,
-        heightCm: heightCm ? Number(heightCm) : null,
+        heightCm: heightCm ? parseBR(heightCm) : null,
         dateOfBirth: dob || null,
       }),
     });
   };
 
   const saveWeight = async () => {
-    if (!weightKg || Number(weightKg) <= 0) return;
+    const kg = parseBR(weightKg);
+    if (!weightKg || !Number.isFinite(kg) || kg <= 0) return;
     await fetch(`${API_URL}/measurements`, {
       method: 'POST',
       headers: apiHeaders(true),
       // measuredAt é obrigatório no server (400 sem ele) — QA 2026-08 pegou o peso sumindo.
       // ISO COMPLETO (não date-only): '2026-08-22' vira meia-noite UTC e exibe como o dia
       // anterior no fuso BR (vi um peso de 22/08 aparecer como 21/08).
-      body: JSON.stringify({ patientId: pid, type: 'WEIGHT', value: Number(String(weightKg).replace(',', '.')), unit: 'kg', measuredAt: new Date().toISOString() }),
+      body: JSON.stringify({ patientId: pid, type: 'WEIGHT', value: kg, unit: 'kg', measuredAt: new Date().toISOString() }),
     }).catch(() => {});
   };
 
@@ -117,12 +143,12 @@ export const CompleteProfileModal = () => {
   const next = async () => {
     setSaving(true);
     try {
-      if (step === 0) await saveProfileFields();
-      if (step === 1) { await saveProfileFields(); await saveWeight(); }
-      if (step === 2) { const ok = await saveCpf(); if (!ok) { setSaving(false); return; } }
+      if (current === 'profile') await saveProfileFields();
+      if (current === 'body') { await saveProfileFields(); await saveWeight(); }
+      if (current === 'cpf') { const ok = await saveCpf(); if (!ok) { setSaving(false); return; } }
       // Dados de perfil mudaram → dashboard/tiles reagem na hora (mesmo sem concluir).
       window.dispatchEvent(new Event('dx-profile-updated'));
-      if (step < stepCount - 1) setStep(step + 1);
+      if (step < steps.length - 1) setStep(step + 1);
       else { setOpen(false); refresh(); }
     } finally {
       setSaving(false);
@@ -132,8 +158,8 @@ export const CompleteProfileModal = () => {
   // Validação por etapa: sexo/nascimento/altura são essenciais (gates de cálculo); peso e CPF
   // são encorajados mas avançam (o Dashboard orienta depois — nada de beco sem saída).
   const canAdvance =
-    step === 0 ? (!!gender && !!dob)
-    : step === 1 ? (!!heightCm && Number(heightCm) > 50)
+    current === 'profile' ? (!!gender && !!dob)
+    : current === 'body' ? (!!heightCm && parseBR(heightCm) > 50)
     : true;
 
   if (loading || !open) return null;
@@ -145,14 +171,14 @@ export const CompleteProfileModal = () => {
           <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 19, color: 'text.primary' }}>
             Vamos preparar o Dr. Exame
           </Typography>
-          <Typography variant="caption" color="text.secondary">Passo {step + 1} de {stepCount}</Typography>
+          <Typography variant="caption" color="text.secondary">Passo {step + 1} de {steps.length}</Typography>
         </Box>
         <IconButton size="small" onClick={close} aria-label="Fechar"><CloseIcon /></IconButton>
       </DialogTitle>
       <LinearProgress variant="determinate" value={((step + 1) / stepCount) * 100} sx={{ mx: isMobile ? 2 : 3, borderRadius: 999, height: 6, mb: 1 }} />
 
       <DialogContent>
-        {step === 0 && (
+        {current === 'profile' && (
           <Stack spacing={2}>
             <Typography variant="body2" color="text.secondary">
               Essas informações personalizam as <b>faixas de referência</b> dos seus exames e os cálculos de idade biológica e função renal.
@@ -164,16 +190,18 @@ export const CompleteProfileModal = () => {
             <DateFieldBR label="Data de nascimento" value={dob} onChange={setDob} fullWidth />
           </Stack>
         )}
-        {step === 1 && (
+        {current === 'body' && (
           <Stack spacing={2}>
             <Typography variant="body2" color="text.secondary">
               Altura e peso calculam seu <b>IMC</b> e entram na leitura de risco cardiometabólico.
             </Typography>
-            <TextField type="number" label="Altura (cm)" value={heightCm} onChange={(e) => setHeightCm(e.target.value)} fullWidth required inputProps={{ inputMode: 'numeric' }} />
-            <TextField label="Peso atual (kg)" value={weightKg} onChange={(e) => setWeightKg(e.target.value)} fullWidth inputProps={{ inputMode: 'decimal' }} helperText="Vai direto pras suas Medições — você acompanha a tendência por lá." />
+            {/* text + sanitize (NUNCA type=number): teclado decimal BR manda vírgula e o browser
+                descarta silenciosamente em input[number] — era o "peso não aceita vírgula". */}
+            <TextField label="Altura (cm)" value={heightCm} onChange={(e) => setHeightCm(e.target.value.replace(/[^\d]/g, '').slice(0, 3))} fullWidth required inputProps={{ inputMode: 'numeric' }} />
+            <TextField label="Peso atual (kg)" value={weightKg} onChange={(e) => setWeightKg(sanitizeDecimal(e.target.value))} fullWidth inputProps={{ inputMode: 'decimal' }} helperText="Aceita vírgula ou ponto (ex.: 70,5). Vai pras suas Medições — acompanhe a tendência por lá." />
           </Stack>
         )}
-        {step === 2 && (
+        {current === 'cpf' && (
           <Stack spacing={2}>
             <Typography variant="body2" color="text.secondary">
               O CPF confirma que os exames que você enviar são <b>seus</b> — é ele que valida a identidade nos PDFs e libera o bônus do 1º exame.
@@ -187,8 +215,8 @@ export const CompleteProfileModal = () => {
       </DialogContent>
       <DialogActions sx={{ justifyContent: 'space-between', gap: 1, px: 3, pb: 2.5, alignItems: 'center' }}>
         <Button onClick={close} variant="text" sx={{ textTransform: 'none' }}>Agora não</Button>
-        <Button onClick={next} variant="contained" disabled={saving || !canAdvance} endIcon={step < stepCount - 1 ? <ArrowForwardIcon /> : undefined} sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 800 }}>
-          {saving ? <CircularProgress size={20} /> : step < stepCount - 1 ? 'Continuar' : 'Concluir'}
+        <Button onClick={next} variant="contained" disabled={saving || !canAdvance} endIcon={step < steps.length - 1 ? <ArrowForwardIcon /> : undefined} sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 800 }}>
+          {saving ? <CircularProgress size={20} /> : step < steps.length - 1 ? 'Continuar' : 'Concluir'}
         </Button>
       </DialogActions>
     </Dialog>
