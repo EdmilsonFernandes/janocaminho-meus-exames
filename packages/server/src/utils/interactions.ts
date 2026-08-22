@@ -54,6 +54,8 @@ const ALIASES: Record<string, string> = {
   FLUCONAZ: 'FLUCONAZOL', 'FLUCONAZOL 150': 'FLUCONAZOL',
 };
 const canon = (n: string): string => { const x = normDrug(n); return ALIASES[x] ?? x; };
+/** Alias map público — rotas usam pra resolver MARCA → GENÉRICO (LEVOID → LEVOTIROXINA). */
+export const ALIASES_PUBLIC: Record<string, string> = ALIASES;
 
 /** O remédio do usuário casa com a droga da regra? (exato, ou contém como palavra inteira —
  *  "VARFARINA SODICA" casa com a regra "VARFARINA"). */

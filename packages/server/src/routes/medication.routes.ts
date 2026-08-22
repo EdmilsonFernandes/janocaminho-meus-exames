@@ -84,8 +84,13 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     try {
       const { normDrug } = await import('../utils/interactions');
       const { buildNormalizedMedication } = await import('../pricing/normalize');
-      const ingredient = normDrug(String(name).trim());
-      const cat = await prisma.medicationCatalogEntry.findUnique({ where: { activeIngredient: ingredient } });
+      // resolve MARCA → GENÉRICO via ALIASES (LEVOID → LEVOTIROXINA) antes de procurar
+      const raw = normDrug(String(name).trim());
+      const { ALIASES_PUBLIC } = await import('../utils/interactions');
+      const ingredient = (ALIASES_PUBLIC as Record<string, string>)[raw] ?? raw;
+      let cat = await prisma.medicationCatalogEntry.findUnique({ where: { activeIngredient: ingredient } });
+      // se não achou direto, tenta o nome cru (sem alias — o catálogo guarda o nome genérico)
+      if (!cat) cat = await prisma.medicationCatalogEntry.findUnique({ where: { activeIngredient: raw } });
       if (cat) {
         const normalized = buildNormalizedMedication(m);
         const key = normalized.medicationKey;
@@ -337,8 +342,16 @@ router.get('/catalog', async (req: AuthedRequest, res, next) => {
       try {
         const { pagueMenosProvider } = await import('../pricing/providers/pagueMenos');
         const offers = await pagueMenosProvider.search({ medicationKey: null, activeIngredient: q, dosageValue: undefined, dosageUnit: undefined, form: 'CP' });
+        // extrai o NOME LIMPO do productName (remove dose/pack): "Levoid 50mcg 30cp" → "Levoid"
+        // e resolve via ALIASES (LEVOID → LEVOTIROXINA) pro POST instantâneo funcionar
+        const { normDrug, } = await import('../utils/interactions');
+        const cleanName = (pn: string): string => {
+          const t = pn.replace(/\d+[.,]?\d*\s*(mg|mcg|ml|g|ui)\b.*$/i, '').replace(/\d+\s*(comprimido|cp|capsula|cap|cx|caixa|un)\b.*$/i, '').trim();
+          return t || pn.split(' ')[0]; // fallback: 1ª palavra
+        };
         vtexHits = offers.slice(0, 6).map((o) => ({
-          name: q, productName: o.productName,
+          name: cleanName(o.productName), // "Levoid" (não a query crua "levoid")
+          productName: o.productName,
           photoUrl: o.imageUrl ?? null, priceCents: o.priceCents,
           pharmacy: o.pharmacy, dosage: '', packQty: null as number | null,
         }));
