@@ -24,8 +24,12 @@ export const QuickActions = () => {
           <Card
             onClick={() => navigate(a.to)}
             sx={{
-              height: '100%', cursor: 'pointer', textAlign: 'center', transition: 'all .15s',
+              height: '100%', cursor: 'pointer', textAlign: 'center',
+              // Skill make-interfaces-feel-better: JAMAIS transition:all (retarget ruim);
+              // press tátil no toque (mobile não tem hover).
+              transition: 'transform .15s ease, box-shadow .15s ease',
               '&:hover': { transform: 'translateY(-2px)', boxShadow: 6 },
+              '&:active': { transform: 'scale(.97)' },
               border: '1px solid', borderColor: a.primary ? 'primary.main' : 'divider',
               background: a.primary ? 'linear-gradient(135deg,#20b2aa,#178f89)' : undefined,
               bgcolor: a.primary ? undefined : 'background.paper',
