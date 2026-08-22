@@ -97,12 +97,13 @@ export async function createUser(opts: {
 }
 
 /** Cria um paciente extra (dependente) vinculado ao user. */
-export async function createPatient(ownerId: string, opts: { fullName?: string; relationship?: string; cpf?: string } = {}) {
+export async function createPatient(ownerId: string, opts: { fullName?: string; relationship?: string; cpf?: string; dateOfBirth?: Date } = {}) {
   return prisma.patient.create({
     data: {
       ownerId,
       fullName: opts.fullName ?? uniq('Dependente'),
       relationship: opts.relationship ?? 'Filha',
+      ...(opts.dateOfBirth ? { dateOfBirth: opts.dateOfBirth } : {}),
       ...encryptedCpfData(opts.cpf ?? testCpf())!,
       identityLockedAt: new Date(),
     },
