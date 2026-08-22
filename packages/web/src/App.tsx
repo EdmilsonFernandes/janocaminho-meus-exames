@@ -30,6 +30,7 @@ import Diversity3Icon from '@mui/icons-material/Diversity3';
 import SummarizeIcon from '@mui/icons-material/Summarize';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
+import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import InfoIcon from '@mui/icons-material/Info';
 import { DrExame } from './components/DrExame';
@@ -54,6 +55,7 @@ const PlansPage = lazy(() => import('./pages/Plans').then(m => ({ default: m.Pla
 const RemindersPage = lazy(() => import('./pages/Reminders').then(m => ({ default: m.RemindersPage })));
 const QuestionsPage = lazy(() => import('./pages/Questions').then(m => ({ default: m.QuestionsPage })));
 const FaqPage = lazy(() => import('./pages/Faq').then(m => ({ default: m.FaqPage })));
+const HowWeValidatePage = lazy(() => import('./pages/HowWeValidate').then(m => ({ default: m.HowWeValidatePage })));
 import { MeasurementsPage } from './pages/Measurements';
 const MedicationsPage = lazy(() => import('./pages/Medications').then(m => ({ default: m.MedicationsPage })));
 import { VaccinesPage } from './pages/Vaccines';
@@ -90,6 +92,7 @@ import { Onboarding } from './components/Onboarding';
 import { WhatsNew } from './components/WhatsNew';
 import { PageSkeleton } from './components/PageSkeleton';
 import { CompleteProfileModal } from './components/CompleteProfileModal';
+import { GoalQuiz } from './components/GoalQuiz';
 import { NotificationsPage } from './pages/Notifications';
 import { MedicosPage } from './pages/Medicos';
 import { SupportPage } from './pages/Support';
@@ -275,6 +278,7 @@ const AppMenu = () => {
     {/* APOIO — "Ajuda e suporte" saiu do menu (decisão 2026-08): o painel de chamados agora
         vive DENTRO do FAQ ("Falar com o suporte"), um caminho só em vez de dois parecidos. */}
     <NavItem to="/faq" primaryText={translate('menu.faq', { _: 'Dúvidas frequentes' })} icon={<QuestionAnswerIcon />} />
+    <NavItem to="/como-validamos" primaryText={translate('menu.howvalidate', { _: 'Como validamos' })} icon={<VerifiedUserIcon />} />
     <MenuItem onClick={() => setAboutOpen(true)} sx={{ mx: 0.5, borderRadius: '8px', py: 0.75 }}>
       <ListItemIcon sx={{ minWidth: 36 }}><InfoIcon fontSize="small" /></ListItemIcon>
       <ListItemText primaryTypographyProps={{ fontSize: 13, fontWeight: 600 }}>{translate('menu.about')}</ListItemText>
@@ -497,6 +501,7 @@ const AppLayout = (props: any) => {
       <Onboarding />
       <WhatsNew />
       <CompleteProfileModal />
+      <GoalQuiz />
       </BiometricGate>
     </DrawerProvider>
     </ConfirmDialogProvider>
@@ -663,6 +668,7 @@ export const App = () => {
       <Route path="/landing" element={<Suspense fallback={<PageSkeleton />}><LandingPage /></Suspense>} />
       <Route path="/convite/:token" element={<InviteLandingPage />} />
       <Route path="/termos" element={<TermsPage />} />
+      <Route path="/como-validamos" element={<Suspense fallback={<PageSkeleton />}><HowWeValidatePage /></Suspense>} />
       <Route path="/registrar" element={<RegisterPage />} />
       <Route path="/recuperar-senha" element={<ResetPage />} />
       <Route path="/doctor" element={<Suspense fallback={<PageSkeleton />}><DoctorPortalPage /></Suspense>} />

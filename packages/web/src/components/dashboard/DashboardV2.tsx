@@ -25,6 +25,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import { getGoals, goalSubtitle } from '../GoalQuiz';
 
 const readTotal = (r: Response) =>
   Number(r.headers.get('X-Total-Count') ?? r.headers.get('content-range')?.split('/')?.[1] ?? '0');
@@ -169,7 +170,8 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
                 {moderada > 0 && <Box component="span" sx={{ color: '#b45309', fontWeight: 700 }}>● {moderada} moderado{moderada > 1 ? 's' : ''}</Box>}
               </Typography>
             ) : noData ? (
-              <Typography sx={{ fontSize: 13.5, color: 'text.secondary' }}>Envie um exame pra começarmos a construir sua visão de saúde.</Typography>
+              /* Copy personalizada pelo objetivo do quiz-first onboarding (licença Mito). */
+              <Typography sx={{ fontSize: 13.5, color: 'text.secondary' }}>{goalSubtitle(getGoals()) ?? 'Envie um exame pra começarmos a construir sua visão de saúde.'}</Typography>
             ) : score != null ? (
               <Typography sx={{ fontSize: 13.5, color: 'success.main', fontWeight: 700 }}>● Nada crítico no momento</Typography>
             ) : null}

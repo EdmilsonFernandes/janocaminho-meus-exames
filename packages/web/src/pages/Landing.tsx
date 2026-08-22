@@ -861,7 +861,7 @@ export const LandingPage = () => {
           <Typography sx={{ fontSize: 12, opacity: .8, mb: 2 }}>Edmilson Fernandes • CNPJ: 44.771.427/0001-69 • Análise educativa, não substitui consulta médica.</Typography>
           {/* Links como <a> de verdade (auditoria a11y: eram divs clicáveis — sem teclado/foco/semântica) */}
           <Stack direction="row" spacing={3} justifyContent="center" useFlexGap sx={{ flexWrap: 'wrap' }}>
-            {[{ l: 'Portal do Médico', h: '#/doctor' }, { l: 'Dúvidas frequentes', h: '#/faq' }, { l: 'Termos e LGPD', h: '#/termos' }, { l: 'Criar conta', h: '#/registrar' }, { l: 'Entrar', h: '#/entrar' }].map((x) => (
+            {[{ l: 'Portal do Médico', h: '#/doctor' }, { l: 'Como validamos', h: '#/como-validamos' }, { l: 'Dúvidas frequentes', h: '#/faq' }, { l: 'Termos e LGPD', h: '#/termos' }, { l: 'Criar conta', h: '#/registrar' }, { l: 'Entrar', h: '#/entrar' }].map((x) => (
               <Box key={x.l} component="a" href={x.h} sx={{ color: '#5fc9c3', fontSize: 13, fontWeight: 700, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>{x.l}</Box>
             ))}
           </Stack>
