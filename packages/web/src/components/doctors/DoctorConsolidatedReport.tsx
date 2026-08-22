@@ -3,6 +3,7 @@ import { Alert, Box, Button, Card, CircularProgress, Stack, Typography } from '@
 import RefreshIcon from '@mui/icons-material/Refresh';
 import RecordVoiceOverIcon from '@mui/icons-material/RecordVoiceOver';
 import StopIcon from '@mui/icons-material/Stop';
+import PrintIcon from '@mui/icons-material/Print';
 import { API_URL } from '../../config';
 import { ConsolidatedReportBody } from '../report/ConsolidatedReportBody';
 import { EmptyState } from '../EmptyState';
@@ -80,6 +81,44 @@ export const DoctorConsolidatedReport = ({ patientId, token, patientName, onOpen
     else { speakText(speakableText, { onDone: () => setSpeaking(false), onFail: () => setSpeaking(false) }); setSpeaking(true); }
   };
 
+  // BRIEF EM PDF DE 1 PÁGINA (pesquisa ago/2026: clínicos frustrados com despejo de exames
+  // D2C sem contexto — STAT jan/2026; Function/Superpower não têm portal). Abre janela
+  // print-friendly A4 e chama print() → "Salvar como PDF". Sem dependência externa.
+  const printBrief = () => {
+    const w = window.open('', '_blank', 'width=820,height=960');
+    if (!w) return;
+    const esc = (s: unknown) => String(s ?? '').replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c] as string));
+    const pontos = (analysis?.structured?.pontosAtencao ?? [])
+      .map((p: any) => {
+        const t = esc(typeof p === 'string' ? p : p?.titulo || '');
+        const x = esc(typeof p === 'string' ? '' : p?.texto || '');
+        return `<li>${t ? `<b>${t}.</b> ` : ''}${x}</li>`;
+      }).join('');
+    const exams = (sourceExams ?? [])
+      .map((e: any) => `<li>${esc(e?.title || e?.examTitle || 'Exame')} — ${esc(e?.performedAt ? new Date(e.performedAt).toLocaleDateString('pt-BR') : 'sem data')}</li>`)
+      .join('');
+    w.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Brief — ${esc(patientName || 'Paciente')}</title>
+<style>
+  @page { size: A4; margin: 14mm 12mm; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; color: #1f2937; font-size: 12px; line-height: 1.5; margin: 0; }
+  header { border-bottom: 3px solid #20b2aa; padding-bottom: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: flex-end; }
+  h1 { font-size: 17px; margin: 0; color: #0f5f5a; }
+  .meta { font-size: 10.5px; color: #6b7280; }
+  h2 { font-size: 12.5px; color: #178f89; text-transform: uppercase; letter-spacing: .05em; margin: 14px 0 5px; }
+  ul { margin: 0; padding-left: 18px; } li { margin-bottom: 4px; }
+  .resumo { background: #f0faf9; border-left: 3px solid #20b2aa; padding: 8px 10px; }
+  footer { margin-top: 16px; border-top: 1px solid #e5e7eb; padding-top: 6px; font-size: 9.5px; color: #9ca3af; }
+</style></head><body>
+<header><h1>Brief de consulta — ${esc(patientName || 'Paciente')}</h1><span class="meta">Dr. Exame · ${esc(createdAt || new Date().toLocaleString('pt-BR'))}</span></header>
+${resumo ? `<h2>Resumo geral</h2><div class="resumo">${esc(resumo)}</div>` : ''}
+${pontos ? `<h2>Pontos de atenção</h2><ul>${pontos}</ul>` : ''}
+${exams ? `<h2>Exames considerados (${sourceExams.length})</h2><ul>${exams}</ul>` : ''}
+<footer>Documento educativo gerado pelo Dr. Exame (IA) com base nos exames compartilhados pelo paciente — não substitui avaliação médica. Valores extraídos diretamente dos laudos originais.</footer>
+<script>window.onload = () => setTimeout(() => window.print(), 150);</script>
+</body></html>`);
+    w.document.close();
+  };
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       {/* Header + atualizar (só quando há relatório — regenera no framing médico) */}
@@ -93,6 +132,10 @@ export const DoctorConsolidatedReport = ({ patientId, token, patientName, onOpen
             <Button size="small" variant="outlined" color="primary" startIcon={speaking ? <StopIcon /> : <RecordVoiceOverIcon />} onClick={toggleSpeak} disabled={!speakableText}
               sx={{ textTransform: 'none', fontWeight: 700, borderRadius: RADIUS.pill }}>
               {speaking ? 'Parar' : 'Ouvir'}
+            </Button>
+            <Button size="small" variant="outlined" color="primary" startIcon={<PrintIcon />} onClick={printBrief}
+              sx={{ textTransform: 'none', fontWeight: 700, borderRadius: RADIUS.pill }}>
+              Salvar PDF
             </Button>
             <Button size="small" variant="outlined" color="primary" startIcon={generating ? <CircularProgress size={14} color="inherit" /> : <RefreshIcon />} onClick={generate} disabled={generating}
               sx={{ textTransform: 'none', fontWeight: 700, borderRadius: RADIUS.pill }}>

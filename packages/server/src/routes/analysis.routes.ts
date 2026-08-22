@@ -6,7 +6,7 @@ import { requireAuth, requirePlan, AuthedRequest, userPatientIds } from '../midd
 import { generateHealthSummary, generateConsolidatedSummary, loadExamContext } from '../analysis/health-summary';
 import { streamChat } from '../analysis/chat';
 import { parseListParams, setListHeaders } from '../utils/list';
-import { chargeCredits, refundCredits, CREDIT_COSTS } from '../utils/credits';
+import { chargeCredits, refundCredits, logCredit, CREDIT_COSTS } from '../utils/credits';
 import { hashSharePin } from '../utils/crypto';
 import { dedupSourceExams } from '../utils/dedup-source-exams';
 
@@ -59,14 +59,21 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     const existing = await prisma.aiAnalysis.findFirst({ where: { examId, type: 'SUMMARY' }, orderBy: { createdAt: 'desc' } });
     if (existing && !req.body?.force) { res.json(existing); return; }
     // DÉBITO ATÔMICO ANTES da IA (anti-race — antes gate-read + charge depois).
-    const charged = await chargeCredits(req.userId!, CREDIT_COSTS.summary, 'ai_summary', 'Resumo do exame');
+    // PRIMEIRA LEITURA É GRÁTIS (setting firstFree.summary, default LIGADO — pesquisa ago/2026:
+    // 35% dos BR já colam o exame no ChatGPT grátis; a 1ª interpretação virou commodity, cobramos
+    // o trabalho EM VOLTA: histórico, família, brief, tendências). Ledger delta-0 marca "já teve o 1º".
+    const firstFreeSummary = (await import('../utils/settings')).getSettings().firstFree?.summary !== 0;
+    const isFirstSummary = firstFreeSummary && !(await prisma.creditTransaction.findFirst({ where: { userId: req.userId!, kind: 'ai_summary' }, select: { id: true } }));
+    const summaryCost = isFirstSummary ? 0 : CREDIT_COSTS.summary;
+    if (isFirstSummary) await logCredit(req.userId!, 0, 'ai_summary', 'Primeiro resumo — grátis');
+    const charged = await chargeCredits(req.userId!, summaryCost, 'ai_summary', 'Resumo do exame');
     if (!charged) {
       res.status(402).json({ error: 'insufficient_credits', message: 'Sem créditos suficientes. Compre um pacote de créditos para gerar análises com IA.' });
       return;
     }
     let generated;
     try { generated = await generateHealthSummary(examId); }
-    catch (e) { await refundCredits(req.userId!, CREDIT_COSTS.summary, 'ai_summary_refund', 'Reembolso: falha na IA (resumo)'); throw e; }
+    catch (e) { await refundCredits(req.userId!, summaryCost, 'ai_summary_refund', 'Reembolso: falha na IA (resumo)'); throw e; }
     const analysis = await prisma.aiAnalysis.create({
       data: {
         examId,

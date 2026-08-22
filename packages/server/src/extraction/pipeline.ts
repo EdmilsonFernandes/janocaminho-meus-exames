@@ -12,6 +12,8 @@ import { readExamFile, mediaTypeFromRef } from '../utils/storage';
 import type { LabExtraction, ExtractionItem } from './schemas';
 import { chargeCredits, CREDIT_COSTS } from '../utils/credits';
 import { cpfFingerprint, maskCpf, maskStoredCpf, normalizeCpf } from '../utils/cpf';
+import { sendPushToUser } from '../utils/push';
+import { sendWhatsAppExamReady } from '../utils/whatsapp';
 
 interface ItemRow {
   panel: string | null;
@@ -226,6 +228,21 @@ async function runExtractionOnce(examId: string): Promise<void> {
       } else if (cpfMismatch) {
         console.log(`[extraction] BÔNUS BLOQUEADO p/ user ${patient.ownerId}: CPF do exame diverge do perfil (anti-farm)`);
       }
+    }
+
+    // EXAME PRONTO → primeira notificação de conclusão do sistema (antes: silêncio absoluto
+    // pós-upload). Push in-app sempre + WhatsApp quando o usuário tem phone no perfil
+    // (canal BR — pesquisa ago/2026: nenhum concorrente notifica no zap). Guard: re-extração
+    // de exame já EXTRACTED não renotifica (evita spam no "gerar novamente").
+    if (patient?.ownerId && exam.status !== 'EXTRACTED') {
+      try {
+        const user = await prisma.user.findUnique({ where: { id: patient.ownerId }, select: { name: true, phone: true } });
+        const firstName = (user?.name || patient.fullName || '').split(' ')[0] || 'Tudo pronto';
+        const pushTitle = 'Seu exame foi lido 🧬';
+        const pushBody = `${firstName}, "${title}" está pronto — ${items.length} valores analisados. Toque pra ver o que mudou.`;
+        await sendPushToUser(patient.ownerId, pushTitle, pushBody, { type: 'exam_ready', examId: String(examId) }).catch((e) => console.error('[extraction] push exam_ready falhou:', e?.message));
+        if (user?.phone) await sendWhatsAppExamReady(user.phone, { name: firstName, exam: title, count: items.length });
+      } catch (e: any) { console.error('[extraction] notify exam_ready falhou:', e?.message); }
     }
 
     // Nudge de 1º exame cumpriu o papel: marca as notificações 'first_exam' como lidas para não

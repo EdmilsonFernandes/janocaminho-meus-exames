@@ -19,32 +19,36 @@ describe('créditos: débito atômico + cache (não cobrar 2x)', () => {
     expect(await getUserCredits(rich.user.id)).toBe(10);
   });
 
-  it('POST /analyses cobra summary (10) e NÃO cobra de novo sem force', async () => {
+  it('POST /analyses: PRIMEIRO summary é grátis; 2º sem force → cache, não cobra', async () => {
     const { user, patient, token } = await createUser({ credits: 100 });
     const exam = await createExam(patient.id);
 
+    // 1ª leitura é SEMPRE grátis (pesquisa ago/2026: a 1ª interpretação virou commodity)
     const r1 = await api().post('/api/analyses').set(authHeader(token)).send({ examId: exam.id });
     expect(r1.status).toBe(201);
-    expect(await getUserCredits(user.id)).toBe(100 - CREDIT_COSTS.summary);
+    expect(await getUserCredits(user.id)).toBe(100);
 
     // 2ª chamada sem force → devolve o existente (cache), NÃO cobra
     const r2 = await api().post('/api/analyses').set(authHeader(token)).send({ examId: exam.id });
     expect(r2.status).toBe(200);
+    expect(await getUserCredits(user.id)).toBe(100);
+  });
+
+  it('POST /analyses com force=true REGENERA e cobra (o 1º grátis foi consumido)', async () => {
+    const { user, patient, token } = await createUser({ credits: 100 });
+    const exam = await createExam(patient.id);
+    await api().post('/api/analyses').set(authHeader(token)).send({ examId: exam.id });        // grátis (1º)
+    await api().post('/api/analyses').set(authHeader(token)).send({ examId: exam.id, force: true }); // cobra 10
     expect(await getUserCredits(user.id)).toBe(100 - CREDIT_COSTS.summary);
   });
 
-  it('POST /analyses com force=true REGENERA e cobra de novo', async () => {
+  it('POST /analyses: saldo insuficiente a partir do 2º summary → 402 insufficient_credits', async () => {
     const { user, patient, token } = await createUser({ credits: 100 });
     const exam = await createExam(patient.id);
-    await api().post('/api/analyses').set(authHeader(token)).send({ examId: exam.id });
-    await api().post('/api/analyses').set(authHeader(token)).send({ examId: exam.id, force: true });
-    expect(await getUserCredits(user.id)).toBe(100 - 2 * CREDIT_COSTS.summary);
-  });
-
-  it('POST /analyses com saldo insuficiente → 402 insufficient_credits', async () => {
-    const { patient, token } = await createUser({ credits: 5 });
-    const exam = await createExam(patient.id);
-    const r = await api().post('/api/analyses').set(authHeader(token)).send({ examId: exam.id });
+    await api().post('/api/analyses').set(authHeader(token)).send({ examId: exam.id }); // 1º grátis
+    // Esvazia o saldo: o PRÓXIMO summary custa e não há crédito
+    await prisma.user.update({ where: { id: user.id }, data: { credits: 5 } });
+    const r = await api().post('/api/analyses').set(authHeader(token)).send({ examId: exam.id, force: true });
     expect(r.status).toBe(402);
     expect(r.body.error).toBe('insufficient_credits');
   });

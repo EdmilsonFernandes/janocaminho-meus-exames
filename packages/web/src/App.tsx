@@ -273,6 +273,7 @@ const AppMenu = () => {
     <Divider sx={{ my: 1 }} />
 
     {/* APOIO */}
+    <NavItem to="/faq" primaryText={translate('menu.faq', { _: 'Dúvidas frequentes' })} icon={<QuestionAnswerIcon />} />
     <NavItem to="/suporte" primaryText={translate('menu.support')} icon={<HelpOutlineIcon />} />
     <MenuItem onClick={() => setAboutOpen(true)} sx={{ mx: 0.5, borderRadius: '8px', py: 0.75 }}>
       <ListItemIcon sx={{ minWidth: 36 }}><InfoIcon fontSize="small" /></ListItemIcon>

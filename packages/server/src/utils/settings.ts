@@ -9,6 +9,10 @@ export const DEFAULT_SETTINGS = {
   creditCosts: { extraction: 0, summary: 10, consolidated: 20, chat: 2 },
   uploadRules: { freeCost: 1, premiumFreeQuota: 6, premiumCost: 5 },
   grants: { freeSignup: 60, monthly: 250, freeExamLimit: 2 },
+  // "Primeiro grátis" (1 = ligado, 0 = desligado; admin edita live como os demais knobs).
+  // Pesquisa ago/2026: a 1ª interpretação virou commodity (35% dos BR colam no ChatGPT) —
+  // o freemium ganha se a primeira leitura for sempre grátis.
+  firstFree: { summary: 1 },
   shares: { exams: 5, evolution: 5, alerts: 3, summary: 5 }, // custo por escopo ao compartilhar c/ médico
   // Faixas temporais (meses) da análise de exames — classificação atual/recente/histórico/antigo
   // e marcação de "desatualizado" (>staleMonths). Defaults = spec clínica. Admin edita live.
