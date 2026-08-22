@@ -65,6 +65,8 @@ export const MedicationsPage = () => {
   const [picked, setPicked] = useState<MedEntry | null>(null);
   const [dose, setDose] = useState('');
   const [freeName, setFreeName] = useState('');
+  const [packQty, setPackQty] = useState<number | null>(null);
+  const [packCustom, setPackCustom] = useState('');
   const [catalogResults, setCatalogResults] = useState<{ name: string; brands?: string[]; photoUrl?: string | null; priceCents?: number | null; productName?: string | null; pharmacy?: string | null }[]>([]);
   const [catalogLoading, setCatalogLoading] = useState(false);
 
@@ -149,11 +151,26 @@ export const MedicationsPage = () => {
   const addPicked = async () => {
     const name = picked?.name ?? freeName.trim();
     if (!name) { notify('Escolha um remédio ou digite o nome', { type: 'error' }); return; }
-    await saveMeds([{ name, dosage: dose || null }]);
-    setAddOpen(false); setPicked(null); setQuery(''); setDose(''); setFreeName('');
+    // packQty junto do cadastro — nunca pedir depois (evita o loop de espera)
+    const finalPack = packQty === -1 ? (parseInt(packCustom, 10) || null) : packQty;
+    // bulk não tem packQty — usa POST individual que aceita
+    const r = await fetch(`${API_URL}/medications`, {
+      method: 'POST', headers: apiHeaders(true),
+      body: JSON.stringify({ patientId: pid, name, dosage: dose || null, frequency: null, packQty: finalPack }),
+    });
+    if (r.ok) {
+      notify('Remédio salvo — buscando preço…', { type: 'success' });
+      void load();
+      setAddOpen(false); setPicked(null); setQuery(''); setDose(''); setFreeName(''); setPackQty(null); setPackCustom('');
+    } else notify('Falha ao salvar', { type: 'error' });
   };
 
-  const quickAdd = async (name: string) => { await saveMeds([{ name }]); };
+  const quickAdd = async (name: string) => {
+    // 1-toque: salva já com packQty 30 (a embalagem mais comum) — se o usuário comprar
+    // outra, ele edita depois. Nunca cair no loop "espera → pergunta embalagem → espera".
+    const r = await fetch(`${API_URL}/medications`, { method: 'POST', headers: apiHeaders(true), body: JSON.stringify({ patientId: pid, name, packQty: 30 }) });
+    if (r.ok) { notify(`${name} adicionado — buscando preço…`, { type: 'success' }); void load(); }
+  };
 
   const onPhoto = async (f?: File) => {
     if (!f) return;
@@ -401,6 +418,26 @@ export const MedicationsPage = () => {
               </Stack>
             ) : null}
             <TextField label="Dose (opcional)" value={dose} onChange={(e) => setDose(e.target.value)} placeholder="ex.: 50 mcg" />
+
+            {/* EMBALAGEM junto do cadastro (nunca pedir depois — evita o loop de espera).
+                Chips comuns + campo livre. O preço só é honesto com a embalagem certa. */}
+            <Box>
+              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.75 }}>
+                Embalagem que você compra (p/ comparar preços):
+              </Typography>
+              <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
+                {[10, 14, 20, 30, 50, 60, 90, 100].map((q) => (
+                  <Chip key={q} label={`${q} un.`} onClick={() => setPackQty(q)} size="small"
+                    sx={{ borderRadius: '999px', fontWeight: 700, mb: 0.5,
+                      ...(packQty === q ? { bgcolor: 'primary.main', color: '#fff' } : { border: '1px solid', borderColor: 'divider' }) }} />
+                ))}
+                <Chip label="Outra" onClick={() => setPackQty(-1)} size="small"
+                  sx={{ borderRadius: '999px', fontWeight: 700, mb: 0.5, border: '1px dashed', borderColor: 'divider' }} />
+              </Stack>
+              {packQty === -1 && (
+                <TextField size="small" type="number" label="Quantidade" value={packCustom} onChange={(e) => setPackCustom(e.target.value)} sx={{ mt: 1, width: 140 }} inputProps={{ min: 1, max: 2000 }} />
+              )}
+            </Box>
           </Stack>
         </DialogContent>
         <DialogActions>
