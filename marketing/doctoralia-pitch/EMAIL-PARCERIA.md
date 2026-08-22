@@ -15,7 +15,7 @@ Sou o fundador do **Meus Exames** (Dr. Exame) — app brasileiro que interpreta 
 laboratoriais em linguagem simples: o paciente envia o PDF do laboratório, nossa IA extrai
 os valores, compara com a faixa de referência e explica o que cada alteração significa.
 
-**Já estamos enviando tráfego qualificado para vocês — e queremos formalizar isso.**
+**Já estamos enviando tráfego qualificado para vocês e queremos formalizar isso.**
 
 Quando um valor vem alterado, o app indica **a especialidade certa** e o botão
 "Agendar com Endocrinologista" (ex.) leva direto à página da especialidade no Doctoralia.

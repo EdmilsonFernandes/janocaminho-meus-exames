@@ -6,6 +6,7 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import EditNoteIcon from '@mui/icons-material/EditNote';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
+import DirectionsWalkIcon from '@mui/icons-material/DirectionsWalk';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { photoUrlFor } from '../../config';
 import { copperText } from '../../theme';
@@ -49,6 +50,8 @@ export interface PatientSummaryProps {
   onOpenExams?: () => void;
   onOpenQuestions?: () => void;
   onOpenNotes?: () => void;
+  /** Atividade 30d (Health Connect do paciente) — null quando não sincroniza; tile some. */
+  activity?: { days: number; avgSteps: number; avgKcal: number; avgKm: number } | null;
 }
 
 interface Tile {
@@ -67,7 +70,7 @@ interface Tile {
  * botão "Trocar" (Dialog reusando DoctorPatientSwitcher) e 4 teclas clínicas.
  * Cores via theme.palette.primary + alpha (sem hex cru).
  */
-export const PatientSummary = ({ patient, exams, abnormal, questions, notes, patients, onSwitchPatient, onAlterados, onOpenExams, onOpenQuestions, onOpenNotes }: PatientSummaryProps) => {
+export const PatientSummary = ({ patient, exams, abnormal, questions, notes, patients, onSwitchPatient, onAlterados, onOpenExams, onOpenQuestions, onOpenNotes, activity }: PatientSummaryProps) => {
   const theme = useTheme();
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const primary = theme.palette.primary.main;
@@ -100,6 +103,16 @@ export const PatientSummary = ({ patient, exams, abnormal, questions, notes, pat
       color: 'text.primary',
       onClick: onOpenExams,
     },
+    // ATIVIDADE (Health Connect): contexto de estilo de vida p/ ler glicose/lipídios/PA.
+    // Tile só existe com dados — sem sincronização, nada de caixa vazia.
+    ...(activity && activity.days > 0 ? [{
+      key: 'activity',
+      label: 'Atividade (30d)',
+      icon: <DirectionsWalkIcon sx={{ fontSize: 18, color: primary }} />,
+      value: `${activity.avgSteps.toLocaleString('pt-BR')} passos/dia`,
+      sub: `${activity.avgKm.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} km · ${activity.avgKcal.toLocaleString('pt-BR')} kcal/dia`,
+      color: 'text.primary',
+    }] : []),
     {
       key: 'alt',
       label: 'Alterações',

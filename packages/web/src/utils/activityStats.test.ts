@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { barHeight, fmtKcal, fmtKm, fmtSteps, metersToKm, normalizeDays, STEPS_GOAL, summarize, type ActivityDay } from './activityStats';
+import { barHeight, fmtKcal, fmtKm, fmtSteps, metersToKm, normalizeDays, STEPS_GOAL, summarize, weekOfExam, type ActivityDay } from './activityStats';
 
 /** Fábrica de dias em ordem DESC (contrato do bridge — mais recente primeiro). */
 const day = (date: string, steps: number, kcal: number, km: number): ActivityDay => ({ date, steps, kcal, km });
@@ -99,17 +99,40 @@ describe('barHeight (sparkline)', () => {
   });
 });
 
+describe('weekOfExam (insight "Dashboard sábio")', () => {
+  const days = [
+    day('2026-08-19', 8000, 2000, 5),
+    day('2026-08-18', 6000, 1800, 4),
+    day('2026-08-17', 7000, 2100, 4.5),
+    day('2026-08-16', 9000, 2200, 6),
+    day('2026-08-15', 4000, 1200, 2.5),
+  ];
+  it('média da janela [exame-6d, exame] com >=3 dias de dados', () => {
+    const w = weekOfExam(days, '2026-08-18');
+    expect(w).not.toBeNull();
+    expect(w!.daysCounted).toBeGreaterThanOrEqual(3);
+    expect(w!.avgSteps).toBe(6500); // janela 12–18: dias 18(6000)+17(7000)+16(9000)+15(4000) = 6500 (o dia 19 é POSTERIOR ao exame — fora)
+  });
+  it('SEM dados suficientes na janela → null (nada inventado)', () => {
+    expect(weekOfExam([day('2026-01-01', 1000, 100, 1)], '2026-08-18')).toBeNull();
+    expect(weekOfExam(days, 'data-inválida')).toBeNull();
+  });
+  it('exame fora do histórico → null (não extrapola)', () => {
+    expect(weekOfExam(days, '2025-01-15')).toBeNull();
+  });
+});
+
 describe('normalizeDays (payload do bridge)', () => {
-  it('ordena DESC, dedupa por data e converte metros→km', () => {
+  it('ordena DESC, dedupa por data e preserva km do bridge (já vem em km — HealthBridge.kt inKilometers)', () => {
     const raw = [
-      { date: '2026-08-17', steps: 100, kcal: 100, km: 1500 },
-      { date: '2026-08-19', steps: 300, kcal: 300, km: 3000 },
-      { date: '2026-08-18', steps: 200, kcal: 200, km: 2000 },
-      { date: '2026-08-18', steps: 999, kcal: 999, km: 9999 }, // duplicata (mantém a última)
+      { date: '2026-08-17', steps: 100, kcal: 100, km: 3.5 },
+      { date: '2026-08-19', steps: 300, kcal: 300, km: 5.2 },
+      { date: '2026-08-18', steps: 200, kcal: 200, km: 4.1 },
+      { date: '2026-08-18', steps: 999, kcal: 999, km: 9.99 }, // duplicata (mantém a última)
     ];
     const out = normalizeDays(raw);
     expect(out.map((d) => d.date)).toEqual(['2026-08-19', '2026-08-18', '2026-08-17']);
-    expect(out[2].km).toBe(1.5);
+    expect(out[2].km).toBe(3.5);
     expect(out[1].steps).toBe(999);
   });
   it('descarta entradas sem data e nega negativos', () => {

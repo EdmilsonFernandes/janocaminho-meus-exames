@@ -38,6 +38,8 @@ const cardIn = keyframes`from{opacity:0;transform:translateY(12px)}to{opacity:1;
 const CTA_BG = 'linear-gradient(135deg, #178f89, #0f766e)';
 const CTA_BG_HOVER = 'linear-gradient(135deg, #006a5f, #00564e)';
 const LINK = '#178f89';
+/** Eco editorial da landing v2: subtítulo-claim em Instrument Serif itálica (única marca da voz na tela de login). */
+const SERIF_I = { fontFamily: "'Instrument Serif', Georgia, serif", fontStyle: 'italic', fontWeight: 400 } as const;
 
 /** Card centralizado sobre fundo teal com profundidade (radial + linear). Mascote respirando,
  *  card com fade-in, sombra/glow teal — feel premium clínico (sem poluir com marketing).
@@ -61,7 +63,7 @@ const Shell = ({ children, subtitle }: { children: ReactNode; subtitle?: string 
         </Box>
         <Box sx={{ textAlign: 'center', mt: 0.5 }}>
           <Typography sx={{ fontWeight: 800, color: 'text.primary', fontFamily: '"Poppins",sans-serif', letterSpacing: '-0.02em', lineHeight: 1.15, fontSize: { xs: 24, sm: 26 } }}>Meus Exames</Typography>
-          <Typography sx={{ fontSize: 13, color: 'text.secondary', mt: 0.25 }}>{subtitle ?? translate('auth.subtitle')}</Typography>
+          <Typography sx={{ ...SERIF_I, fontSize: 14.5, color: '#178f89', mt: 0.25 }}>{subtitle ?? translate('auth.subtitle')}</Typography>
         </Box>
       </Stack>
       {children}

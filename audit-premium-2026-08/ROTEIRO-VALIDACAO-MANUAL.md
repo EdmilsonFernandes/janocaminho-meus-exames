@@ -114,3 +114,23 @@ Anote o item (ex.: "C3") e me fala — cada linha deste roteiro mapeia 1:1 a um 
 ## Pendências conhecidas (não-bloqueantes)
 - Dialog aninhado no "Trocar" mobile (dialog abre outro dialog) — UX ok mas pode virar sheet única no futuro.
 - Console dev mostra `RangeError` do trio Sentry×MUI×react-admin ao empilhar modais (drawer+WhatsNew) — pré-existente, instrumentação de dev, página segue funcional.
+
+## I. RODADA 9 — Tendências com entrada própria (00c3fe0, AAB 319)
+
+| # | Passo | O que ver |
+|---|---|---|
+| I1 | Menu ☰ → seção Exames | **"Tendências" com entrada própria** (ícone de gráfico QueryStats), logo abaixo de "Evolução" — não precisa mais entrar em Evolução e caçar link |
+| I2 | `/evolucao` | Botão destacado (borda teal, full-width no celular) "**Gráfico por marcador (pontos por data) →**" — 1 toque abre o gráfico |
+| I3 | `/tendencias` | Gráfico do marcador com os pontos por data renderizando direto |
+
+## J. RODADA 10 — Auditoria chat/Libras/EC2 (d32d65e, AAB 320)
+
+| # | Passo | O que ver |
+|---|---|---|
+| J1 | Ícone de **Libras** (qualquer tela) | Agora no **canto inferior ESQUERDO**, menor (72%), acima do rodapé — não flutua mais no meio-direita sobre o conteúdo (bug: plugin trocou prefixo de classe e nosso CSS morreu) |
+| J2 | No **chat** | Libras sobe um pouco mais (acima da barra de input) — não cobre o botão "+" |
+| J3 | Chat → mandar pergunta | Se a IA demorar: em até 35s volta "**A IA demorou demais… seu crédito foi devolvido**" (antes: dots infinitos com input travado E crédito perdido) |
+| J4 | Durante a resposta | Botão de enviar vira **⏹ Parar** |
+| J5 | Histórico (🕒) | Conversas feitas em OUTRO aparelho aparecem como "Conversa anterior (outros dispositivos)" |
+| J6 | Rodapé do chat | "2 crédito**s** por pergunta" (plural) e badge do histórico não mostra "0" |
+| J7 | Extrato (painel usuário) | Saldos agora BATEM com o extrato: regularizamos 23 linhas "legacy_adjustment" em prod; ajustes do admin a partir de agora deixam rastro (delta + auditoria) |

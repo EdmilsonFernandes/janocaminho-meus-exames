@@ -691,6 +691,37 @@ router.get('/patients/:patientId/items/timeseries', requireDoctor, async (req: a
 // O médico LÊ o relatório; ele é gerado no tom clínico ("O paciente X apresenta..."), não no
 // tom leigo do paciente ("Edmilson, seu quadre..."). Grátis pro médico (como /summary/generate).
 // Upsert (1 relatório médico por paciente). Sem charge de créditos.
+// ATIVIDADE FÍSICA do paciente (Health Connect → medições): médias 30d p/ o tile do resumo.
+// Scope 'exams' (mesma família dos dados de saúde do paciente); 404-equivalente = {days:0}.
+router.get('/patients/:patientId/activity', requireDoctor, async (req: any, res, next) => {
+  try {
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    if (!share?.scopes.includes('exams')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+    const since = new Date(Date.now() - 30 * 86400000);
+    const rows = await prisma.measurement.findMany({
+      where: { patientId: String(req.params.patientId), type: { in: ['STEPS', 'CALORIES', 'DISTANCE'] }, measuredAt: { gte: since } },
+      select: { type: true, value: true, measuredAt: true },
+    });
+    const byDay = new Map<string, { s: number; c: number; d: number }>();
+    for (const r of rows) {
+      const key = r.measuredAt.toISOString().slice(0, 10);
+      const acc = byDay.get(key) ?? { s: 0, c: 0, d: 0 };
+      if (r.type === 'STEPS') acc.s = r.value;
+      if (r.type === 'CALORIES') acc.c = r.value;
+      if (r.type === 'DISTANCE') acc.d = r.value;
+      byDay.set(key, acc);
+    }
+    const days = [...byDay.values()].filter((a) => a.s > 0);
+    const avg = (k: 's' | 'c' | 'd') => (days.length ? days.reduce((t, a) => t + a[k], 0) / days.length : 0);
+    res.json({
+      days: days.length,
+      avgSteps: Math.round(avg('s')),
+      avgKcal: Math.round(avg('c')),
+      avgKm: Math.round(avg('d') * 10) / 10,
+    });
+  } catch (e) { next(e); }
+});
+
 router.post('/patients/:patientId/analyses/consolidated', requireDoctor, async (req: any, res, next) => {
   try {
     const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });

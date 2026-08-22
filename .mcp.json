@@ -15,6 +15,23 @@
         "--project",
         "C:\\Users\\esantos\\Desktop\\Exame Edmilson"
       ]
+    },
+    "shadcn": {
+      "command": "npx",
+      "args": [
+        "shadcn@latest",
+        "mcp"
+      ]
+    },
+    "biomcp": {
+      "type": "stdio",
+      "command": "C:\\Users\\esantos\\.local\\bin\\uvx.exe",
+      "args": [
+        "--from",
+        "biomcp-cli",
+        "biomcp",
+        "serve"
+      ]
     }
   }
 }

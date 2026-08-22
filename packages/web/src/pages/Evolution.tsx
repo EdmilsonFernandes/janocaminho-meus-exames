@@ -4,6 +4,7 @@ import { Title, useTranslate } from 'react-admin';
 import { ResponsiveContainer, LineChart, Line, ReferenceArea, YAxis, Tooltip } from 'recharts';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import SearchIcon from '@mui/icons-material/Search';
+import DirectionsWalkIcon from '@mui/icons-material/DirectionsWalk';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import { useNavigate } from 'react-router-dom';
@@ -48,6 +49,18 @@ export const EvolutionPage = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<Status | 'all'>('all');
   const [query, setQuery] = useState('');
+
+  // ATIVIDADE (Health Connect → medições): série 30d de passos p/ comparar visualmente
+  // com glicose/lipídios/PA na MESMA tela (Onda 3 — "dados que se complementam").
+  const [steps, setSteps] = useState<{ date: string; steps: number }[]>([]);
+  useEffect(() => {
+    fetch(`${API_URL}/measurements?type=STEPS${pid ? `&patientId=${pid}` : ''}&take=40`, { headers: { Authorization: `Bearer ${token()}` } })
+      .then((r) => (r.ok ? r.json() : []))
+      .then((rows) => setSteps(Array.isArray(rows)
+        ? rows.map((m: any) => ({ date: String(m.measuredAt).slice(0, 10), steps: m.value })).filter((d: any) => d.steps > 0).sort((a: any, b: any) => (a.date < b.date ? -1 : 1))
+        : []))
+      .catch(() => setSteps([]));
+  }, [pid]);
 
   useEffect(() => {
     setLoading(true);
@@ -153,6 +166,32 @@ export const EvolutionPage = () => {
             </Button>
           </Box>
         </>
+      )}
+
+      {/* ONDA 3 — Atividade na mesma tela dos exames: passos/dia dos últimos ~30d como
+          barras discretas. Glicose, lipídios e PA respondem à atividade — comparar na
+          mesma janela é o primeiro passo (correlação educativa, o médico valida). */}
+      {steps.length >= 5 && (
+        <Card variant="outlined" sx={{ mb: 2, borderRadius: '14px', borderColor: 'divider', bgcolor: 'rgba(32,178,170,0.04)' }}>
+          <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+              <DirectionsWalkIcon sx={{ fontSize: 18, color: '#178f89' }} />
+              <Typography sx={{ fontWeight: 800, fontSize: 14, fontFamily: '"Poppins",sans-serif' }}>Sua atividade no período</Typography>
+              <Typography sx={{ fontSize: 11, color: 'text.secondary', ml: 'auto' }}>
+                {Math.round(steps.reduce((t, d) => t + d.steps, 0) / steps.length).toLocaleString('pt-BR')} passos/dia · {steps.length} dias
+              </Typography>
+            </Stack>
+            <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: 30 }} aria-hidden="true">
+              {steps.slice(-30).map((d) => {
+                const max = Math.max(...steps.map((x) => x.steps), 1);
+                return <Box key={d.date} sx={{ flex: 1, minWidth: 2, height: `${Math.max(10, (d.steps / max) * 100)}%`, borderRadius: '2px', bgcolor: d.steps >= 8000 ? '#20b2aa' : 'rgba(32,178,170,0.3)' }} />;
+              })}
+            </Box>
+            <Typography sx={{ fontSize: 11, color: 'text.secondary', mt: 0.75 }}>
+              Compare com a glicose, os lipídios e a pressão abaixo — atividade e exames contam a história juntos (educativo; confirme com seu médico).
+            </Typography>
+          </CardContent>
+        </Card>
       )}
 
       {!loading && items.length === 0 && (

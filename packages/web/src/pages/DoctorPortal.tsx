@@ -336,6 +336,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     } catch (e: any) { snackbar({ message: e.message || 'Falha ao responder.', severity: 'error' }); } finally { setQSending(null); }
   };
   const [newNote, setNewNote] = useState('');
+  const [activity, setActivity] = useState<{ days: number; avgSteps: number; avgKcal: number; avgKm: number } | null>(null);
   const [planInfo, setPlanInfo] = useState<any>(null);
   const [payOpen, setPayOpen] = useState(false);
   const [payData, setPayData] = useState<any>(null);
@@ -466,6 +467,8 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     await Promise.allSettled([
       ...(wantExams ? [get('/exams').then((d) => { if (d && mine()) setExams(d.items ?? []); })] : []),
       ...(wantExams ? [get('/items/abnormal').then((d) => { if (d && mine()) setAbnormalItems(d.items ?? []); })] : []),
+      // Atividade 30d (Health Connect do paciente) p/ o tile do resumo — silencioso se não houver.
+      ...(wantExams ? [get('/activity').then((d) => { if (d && mine()) setActivity(d?.days ? d : null); })] : []),
       get('/questions').then((d) => { if (d && mine()) setQuestions(d.items ?? []); }),
       get('/notes').then((d) => { if (d && mine()) setNotes(d.items ?? []); }),
     ]);
@@ -1111,6 +1114,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               onOpenExams={() => { setTab('exams'); setSelExam(null); }}
               onOpenQuestions={() => { setTab('questions'); setSelExam(null); }}
               onOpenNotes={() => { setTab('notes'); setSelExam(null); }}
+              activity={activity}
             />
 
             {supportedTabs.length > 0 && (

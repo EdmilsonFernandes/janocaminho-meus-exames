@@ -76,3 +76,14 @@ packages/web/test-results/
 packages/web/e2e/screenshots/
 packages/web/e2e/.auth/
 packages/web/playwright/.cache/
+
+# Skills de cibersegurança de terceiros (mukul975/Anthropic-Cybersecurity-Skills) — subconjunto
+# defensivo (384 skills / 21MB). Dependência de dev (como node_modules), reinstalável; não commitar.
+# Ver memory "cybersecurity-skills-instaladas".
+.claude/skills/cybersecurity/
+
+# Skills de terceiros via `npx skills` (pbakaus/impeccable etc.) — junction p/ .agents/skills/.
+# Dev dep reinstalável (como node_modules); não commitar. Reinstalar:
+#   npx skills add https://github.com/pbakaus/impeccable --skill impeccable
+.agents/
+.claude/skills/impeccable
