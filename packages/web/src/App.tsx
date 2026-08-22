@@ -52,6 +52,7 @@ const LandingPage = lazy(() => import('./pages/Landing').then(m => ({ default: m
 const PlansPage = lazy(() => import('./pages/Plans').then(m => ({ default: m.PlansPage })));
 const RemindersPage = lazy(() => import('./pages/Reminders').then(m => ({ default: m.RemindersPage })));
 const QuestionsPage = lazy(() => import('./pages/Questions').then(m => ({ default: m.QuestionsPage })));
+const FaqPage = lazy(() => import('./pages/Faq').then(m => ({ default: m.FaqPage })));
 import { MeasurementsPage } from './pages/Measurements';
 import { VaccinesPage } from './pages/Vaccines';
 import { EmergencyCardPage } from './pages/EmergencyCard';
@@ -656,6 +657,7 @@ export const App = () => {
       <Route path="/landing" element={<Suspense fallback={<PageSkeleton />}><LandingPage /></Suspense>} />
       <Route path="/convite/:token" element={<InviteLandingPage />} />
       <Route path="/termos" element={<TermsPage />} />
+      <Route path="/faq" element={<Suspense fallback={<PageSkeleton />}><FaqPage /></Suspense>} />
       <Route path="/registrar" element={<RegisterPage />} />
       <Route path="/recuperar-senha" element={<ResetPage />} />
       <Route path="/doctor" element={<Suspense fallback={<PageSkeleton />}><DoctorPortalPage /></Suspense>} />

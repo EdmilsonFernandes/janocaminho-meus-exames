@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dr. Exame — landing v2 (o que eu faria)</title>
+  <!-- POV: lições do skill INNOVATION aplicadas DENTRO da marca Dr. Exame (teal #20b2aa, Poppins/Inter, claro).
+       1. Hero com vídeo + crossfade (hoje é estático)
+       2. Serifa itálica editorial SÓ nas palavras de ênfase (par Poppins + Instrument Serif italic)
+       3. Nav pill de vidro (mesma vibe do AppBar translúcido do app — vidro fica no shell)
+       4. Menos seções, mais respiro: hero → statement → 2 cards vídeo → médico → CTA
+       5. Scroll-reveal sutil (uma vez só)
+       Dark hero → body claro: contraste editorial sem virar site dark. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --teal: #20b2aa;
+      --teal-dark: #178f89;
+      --cobre: #d4a574;
+      --bg: #eef7f6;
+      --paper: #ffffff;
+      --ink: #2d3748;
+      --muted: #5f6b76;
+      --ease: cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--ink); overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+    h1, h2, h3 { font-family: 'Poppins', sans-serif; letter-spacing: -0.02em; }
+    .serif-i { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; letter-spacing: 0; }
+    img, video { display: block; }
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+
+    /* vidro — só no shell (nav + stat card flutuante) */
+    .glass {
+      background: rgba(255, 255, 255, 0.55);
+      backdrop-filter: blur(14px) saturate(1.6);
+      -webkit-backdrop-filter: blur(14px) saturate(1.6);
+      border: 1px solid rgba(255, 255, 255, 0.65);
+      box-shadow: 0 8px 32px rgba(23, 143, 137, 0.12), inset 0 1px 0 rgba(255,255,255,0.6);
+    }
+
+    .wrap { max-width: 1152px; margin: 0 auto; padding: 0 24px; }
+
+    /* ─── HERO: vídeo + fade pra claro ─── */
+    .hero { position: relative; min-height: 92vh; display: flex; flex-direction: column; color: #fff; overflow: hidden; }
+    #hero-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; }
+    .hero-scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(6, 38, 36, 0.55) 0%, rgba(6, 38, 36, 0.25) 45%, var(--bg) 100%); }
+    .nav { position: relative; z-index: 20; padding: 20px 24px; }
+    .nav-pill { max-width: 1024px; margin: 0 auto; border-radius: 999px; padding: 10px 12px 10px 22px; display: flex; align-items: center; justify-content: space-between; }
+    .brand { display: flex; align-items: center; gap: 9px; font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 1.05rem; color: var(--ink); }
+    .brand svg { color: var(--teal); }
+    .nav-links { display: flex; gap: 26px; margin-left: 28px; }
+    .nav-links a { font-size: 0.875rem; font-weight: 500; color: var(--muted); transition: color .2s; }
+    .nav-links a:hover { color: var(--teal-dark); }
+    .nav-cta { border-radius: 999px; padding: 9px 22px; font-size: 0.875rem; font-weight: 700; color: #fff; background: linear-gradient(135deg, var(--teal), var(--teal-dark)); box-shadow: 0 6px 18px rgba(32,178,170,.4); transition: transform .2s var(--ease); }
+    .nav-cta:hover { transform: scale(1.04); }
+
+    .hero-body { position: relative; z-index: 10; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 64px 24px 96px; }
+    .hero-eyebrow { font-size: 0.8125rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.75); margin-bottom: 20px; }
+    .hero-h1 { font-size: clamp(2.6rem, 7.5vw, 5.2rem); font-weight: 800; line-height: 1.05; max-width: 14ch; margin-bottom: 22px; text-shadow: 0 2px 30px rgba(6,38,36,.35); }
+    .hero-h1 .serif-i { font-size: 1.06em; color: #bff0ec; }
+    .hero-sub { font-size: 1.0625rem; line-height: 1.65; max-width: 34rem; color: rgba(255,255,255,0.88); margin-bottom: 32px; }
+    .hero-cta { display: inline-block; border-radius: 999px; padding: 15px 36px; font-weight: 700; font-size: 1rem; color: #10302e; background: #fff; box-shadow: 0 10px 30px rgba(6,38,36,.3); transition: transform .2s var(--ease); }
+    .hero-cta:hover { transform: translateY(-2px); }
+    .hero-note { margin-top: 14px; font-size: 0.8125rem; color: rgba(255,255,255,0.65); }
+
+    /* stat card flutuante (vidro) — desce até 40px dentro do body claro */
+    .hero-stat { position: relative; z-index: 30; margin: -64px auto 0; border-radius: 20px; padding: 18px 28px; display: flex; gap: 36px; }
+    .hero-stat div { text-align: center; }
+    .hero-stat b { display: block; font-family: 'Poppins', sans-serif; font-size: 1.35rem; font-weight: 800; color: var(--teal-dark); }
+    .hero-stat span { font-size: 0.78rem; color: var(--muted); }
+
+    /* ─── reveals ─── */
+    .reveal { opacity: 0; transform: translateY(26px); transition: opacity .8s var(--ease), transform .8s var(--ease); }
+    .reveal.in { opacity: 1; transform: none; }
+
+    /* ─── STATEMENT editorial ─── */
+    .statement { padding: 140px 24px 110px; text-align: center; }
+    .statement h2 { font-size: clamp(2.2rem, 6.5vw, 4.2rem); font-weight: 800; line-height: 1.12; max-width: 22ch; margin: 0 auto; }
+    .statement .serif-i { color: var(--teal-dark); }
+    .statement p { margin: 22px auto 0; max-width: 38rem; color: var(--muted); font-size: 1.0625rem; line-height: 1.7; }
+
+    /* ─── CARDS DE VÍDEO ─── */
+    .cards { padding: 0 24px 120px; }
+    .cards-grid { max-width: 1152px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+    .fcard { border-radius: 24px; overflow: hidden; background: var(--paper); border: 1px solid #dcebe9; box-shadow: 0 4px 20px rgba(32,178,170,0.06); transition: transform .5s var(--ease), box-shadow .5s var(--ease); }
+    .fcard:hover { transform: translateY(-6px); box-shadow: 0 18px 44px rgba(32,178,170,0.16); }
+    .fcard-media { position: relative; aspect-ratio: 16/10; overflow: hidden; }
+    .fcard-media video { width: 100%; height: 100%; object-fit: cover; transition: transform .7s var(--ease); }
+    .fcard:hover .fcard-media video { transform: scale(1.05); }
+    .fcard-media::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(6,38,36,.35), transparent 55%); }
+    .fcard-tag { position: absolute; z-index: 2; top: 14px; left: 14px; border-radius: 999px; padding: 6px 14px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #fff; background: rgba(23,143,137,0.85); backdrop-filter: blur(6px); }
+    .fcard-body { padding: 26px 28px 30px; }
+    .fcard-body h3 { font-size: 1.375rem; font-weight: 700; margin-bottom: 10px; }
+    .fcard-body h3 .serif-i { color: var(--teal-dark); }
+    .fcard-body p { color: var(--muted); font-size: 0.9375rem; line-height: 1.7; }
+
+    /* ─── MÉDICO ─── */
+    .medico { background: linear-gradient(135deg, #0d2b29, #134743); color: #fff; padding: 120px 24px; }
+    .medico-inner { max-width: 1152px; margin: 0 auto; display: grid; grid-template-columns: 1.1fr 1fr; gap: 56px; align-items: center; }
+    .medico h2 { font-size: clamp(1.9rem, 4.5vw, 3rem); font-weight: 800; line-height: 1.15; margin-bottom: 18px; }
+    .medico h2 .serif-i { color: #8fe0da; }
+    .medico p { color: rgba(255,255,255,0.82); line-height: 1.7; font-size: 1rem; margin-bottom: 16px; }
+    .medico-list { list-style: none; }
+    .medico-list li { display: flex; gap: 12px; padding: 16px 20px; border-radius: 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); margin-bottom: 12px; font-size: 0.9375rem; line-height: 1.55; }
+    .medico-list svg { flex-shrink: 0; margin-top: 2px; color: #8fe0da; }
+
+    /* ─── CTA ─── */
+    .cta { padding: 130px 24px; text-align: center; background: radial-gradient(ellipse at center, rgba(32,178,170,0.08) 0%, transparent 65%); }
+    .cta h2 { font-size: clamp(2rem, 5.5vw, 3.4rem); font-weight: 800; margin-bottom: 16px; }
+    .cta h2 .serif-i { color: var(--teal-dark); }
+    .cta p { color: var(--muted); font-size: 1.0625rem; margin-bottom: 30px; }
+    .cta-btn { display: inline-block; border-radius: 999px; padding: 16px 42px; font-weight: 800; font-size: 1.0625rem; color: #fff; background: linear-gradient(135deg, var(--teal), var(--teal-dark)); box-shadow: 0 12px 32px rgba(32,178,170,.35); transition: transform .2s var(--ease), box-shadow .2s var(--ease); }
+    .cta-btn:hover { transform: translateY(-3px); box-shadow: 0 18px 44px rgba(32,178,170,.45); }
+    .cta-note { margin-top: 14px; font-size: 0.8125rem; color: var(--muted); }
+
+    footer { padding: 28px 24px 40px; text-align: center; font-size: 0.8125rem; color: var(--muted); }
+
+    @media (max-width: 900px) {
+      .nav-links { display: none; }
+      .cards-grid { grid-template-columns: 1fr; }
+      .medico-inner { grid-template-columns: 1fr; gap: 36px; }
+      .hero-stat { gap: 20px; padding: 14px 20px; margin: -52px 16px 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══ HERO ═══ -->
+  <section class="hero">
+    <video id="hero-video" muted playsinline preload="auto"
+      src="https://plugin-assets.open-design.ai/plugins/innovation/hf_20260405_074625_a81f018a-956b-43fb-9aee-4d1508e30e6a-6993b9.mp4"></video>
+    <div class="hero-scrim"></div>
+
+    <nav class="nav">
+      <div class="nav-pill glass">
+        <div class="brand">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Dr. Exame
+        </div>
+        <div class="nav-links">
+          <a href="#recursos">Recursos</a>
+          <a href="#medico">Para médicos</a>
+          <a href="#planos">Planos</a>
+        </div>
+        <button class="nav-cta">Criar conta grátis</button>
+      </div>
+    </nav>
+
+    <div class="hero-body">
+      <p class="hero-eyebrow">Seus exames, finalmente em português</p>
+      <h1 class="hero-h1">Entenda seus exames como <span class="serif-i">nunca antes.</span></h1>
+      <p class="hero-sub">Envie o laudo e a IA explica cada valor na sua linguagem, compara com sua faixa ideal e monta um plano de ação — sem esperar pela consulta.</p>
+      <a class="hero-cta" href="#planos">Decifrar meu primeiro exame →</a>
+      <p class="hero-note">Grátis pra começar · sem cartão</p>
+    </div>
+  </section>
+
+  <!-- stat flutuante em vidro -->
+  <div class="wrap">
+    <div class="hero-stat glass reveal">
+      <div><b>5s</b><span>pra decifrar um exame</span></div>
+      <div><b>0</b><span>valores inventados</span></div>
+      <div><b>1 min</b><span>pro primeiro exame</span></div>
+    </div>
+  </div>
+
+  <!-- ═══ STATEMENT ═══ -->
+  <section class="statement">
+    <h2 class="reveal">O laboratório <span class="serif-i">mediu</span>.<br />Nós <span class="serif-i">interpretamos</span>.</h2>
+    <p class="reveal">Seu laudo traz os valores brutos. O Dr. Exame calcula os índices que importam — e mostra o valor <strong>ideal</strong>, não só o de referência.</p>
+  </section>
+
+  <!-- ═══ CARDS ═══ -->
+  <section class="cards" id="recursos">
+    <div class="cards-grid">
+      <div class="fcard reveal">
+        <div class="fcard-media">
+          <span class="fcard-tag">Interpretação</span>
+          <video muted autoplay loop playsinline preload="auto"
+            src="https://plugin-assets.open-design.ai/plugins/innovation/hf_20260314_131748_f2ca2a28-fed7-44c8-b9a9-bd9acdd5ec31-b2a357.mp4"></video>
+        </div>
+        <div class="fcard-body">
+          <h3>Decifre um exame em <span class="serif-i">5 segundos</span></h3>
+          <p>Cada valor explicado em linguagem simples, com comparação histórica entre exames e destaque do que realmente mudou desde o último.</p>
+        </div>
+      </div>
+      <div class="fcard reveal">
+        <div class="fcard-media">
+          <span class="fcard-tag">Prevenção</span>
+          <video muted autoplay loop playsinline preload="auto"
+            src="https://plugin-assets.open-design.ai/plugins/innovation/hf_20260324_151826_c7218672-6e92-402c-9e45-f1e0f454bdc4-c2f128.mp4"></video>
+        </div>
+        <div class="fcard-body">
+          <h3>Descubra seu risco — e <span class="serif-i">o que fazer</span></h3>
+          <p>A IA cruza seus exames e aponta possíveis riscos (diabetes, anemia, colesterol, cardiovascular) — e monta um plano: hábitos, quando refazer e perguntas pro médico.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ MÉDICO ═══ -->
+  <section class="medico" id="medico">
+    <div class="medico-inner">
+      <div class="reveal">
+        <h2>Médico e paciente, conectados <span class="serif-i">num clique.</span></h2>
+        <p>O paciente chega pronto na consulta. O médico recebe um brief de pré-consulta com tudo que importa — gerado por IA, sob controle total de quem compartilha.</p>
+        <p>Use o mesmo CRM do convite. Sem instalar nada, sem cadastro manual.</p>
+      </div>
+      <ul class="medico-list reveal">
+        <li>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Top 3 mudanças desde a última visita — sem revisar prontuário inteiro.
+        </li>
+        <li>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Risco + tendência + marcadores a investigar — num relance.
+        </li>
+        <li>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          SOAP rascunho gerado por IA — só revisa e edita.
+        </li>
+        <li>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Revoga quando quiser — o acesso cai na hora.
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ═══ CTA ═══ -->
+  <section class="cta" id="planos">
+    <h2 class="reveal">Pronto pra entender <span class="serif-i">sua saúde?</span></h2>
+    <p class="reveal">Comece grátis. Assine quando precisar — ou pague só pelo que usar.</p>
+    <a class="cta-btn reveal" href="#">Criar conta grátis →</a>
+    <p class="cta-note">Envie seu primeiro exame em menos de 1 minuto.</p>
+  </section>
+
+  <footer>
+    Meus Exames · Dr. Exame — análise educativa, não substitui avaliação médica. · LGPD
+  </footer>
+
+  <script>
+    // crossfade-to-black do vídeo hero (vanilla, mesma técnica do skill innovation)
+    (function () {
+      var v = document.getElementById('hero-video');
+      if (!v) return;
+      var FADE = 500, raf = null;
+      function anim(from, to, dur) {
+        if (raf) cancelAnimationFrame(raf);
+        var t0 = performance.now();
+        function step(now) {
+          var t = Math.min((now - t0) / dur, 1);
+          v.style.opacity = (from + (to - from) * t).toFixed(3);
+          if (t < 1) raf = requestAnimationFrame(step);
+        }
+        raf = requestAnimationFrame(step);
+      }
+      v.addEventListener('canplay', function () { var p = v.play(); if (p && p.catch) p.catch(function () {}); anim(0, 1, FADE); });
+      v.addEventListener('ended', function () {
+        v.style.opacity = '0';
+        setTimeout(function () { v.currentTime = 0; var p = v.play(); if (p && p.catch) p.catch(function () {}); anim(0, 1, FADE); }, 100);
+      });
+      if (v.readyState >= 3) { var p = v.play(); if (p && p.catch) p.catch(function () {}); anim(0, 1, FADE); }
+    })();
+
+    // scroll reveal (uma vez só)
+    (function () {
+      var els = document.querySelectorAll('.reveal');
+      if (!('IntersectionObserver' in window)) { els.forEach(function (el) { el.classList.add('in'); }); return; }
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+        });
+      }, { rootMargin: '-60px 0px', threshold: 0.12 });
+      els.forEach(function (el) { io.observe(el); });
+    })();
+  </script>
+</body>
+</html>
