@@ -5,6 +5,7 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { AppCard } from '../AppCard';
+import { fmtNum } from '../../utils/format';
 import { API_URL, token } from '../../config';
 
 /**
@@ -83,7 +84,7 @@ export const SinceExamCard = ({ lastExamAt }: { lastExamAt?: string | null }) =>
                 ? <TrendingUpIcon sx={{ fontSize: 14, color: 'success.main' }} />
                 : <TrendingDownIcon sx={{ fontSize: 14, color: h.metric.includes('peso') || h.metric.includes('Systolic') ? 'success.main' : 'primary.main' }} />}
               <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary' }}>
-                {h.deltaPct > 0 ? '+' : ''}{h.deltaPct}%
+                {h.deltaPct > 0 ? '+' : ''}{fmtNum(h.deltaPct, 0)}%
               </Typography>
             </Stack>
           </Stack>
@@ -103,7 +104,7 @@ export const SinceExamCard = ({ lastExamAt }: { lastExamAt?: string | null }) =>
                   🧪 {e.name}
                 </Typography>
                 <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: e.direction === 'improved' ? 'success.main' : 'error.main' }}>
-                  {e.direction === 'improved' ? '↓' : '↑'} {Math.abs(e.deltaPct ?? 0)}%
+                  {e.direction === 'improved' ? '↓' : '↑'} {fmtNum(Math.abs(e.deltaPct ?? 0), 0)}%
                 </Typography>
               </Stack>
             ))}
