@@ -34,6 +34,11 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       res.status(400).json({ error: 'Tipo, valor e data são obrigatórios.' });
       return;
     }
+    // Date-only ('2026-08-22') vira meia-noite UTC e EXIBE como o dia anterior no fuso BR
+    // (peso de hoje aparecendo como ontem). Meio-dia UTC é imune a fuso ±11h. (QA 2026-08)
+    const measuredAtRaw = typeof measuredAt === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(measuredAt)
+      ? `${measuredAt}T12:00:00Z`
+      : measuredAt;
     const m = await prisma.measurement.create({
       data: {
         patientId: pid,
@@ -41,10 +46,14 @@ router.post('/', async (req: AuthedRequest, res, next) => {
         value: Number(value),
         valueSecondary: valueSecondary != null ? Number(valueSecondary) : null,
         unit: unit ? String(unit) : '',
-        measuredAt: new Date(measuredAt),
+        measuredAt: new Date(measuredAtRaw),
         note: note ? String(note) : null,
       },
     });
+    // Peso/PA alimentam o health-summary (IMC + cardiometabólico) — sem isto o card ficava
+    // até 5min defasado após registrar peso (QA 2026-08: "Em dia" só aparecia no reload).
+    const { invalidateHealthSummary } = await import('../analysis/hs-cache');
+    invalidateHealthSummary(pid);
     res.status(201).json(m);
   } catch (e) { next(e); }
 });
@@ -171,6 +180,8 @@ router.delete('/:id', async (req: AuthedRequest, res, next) => {
     const pids = await userPatientIds(req.userId!);
     if (!pids.includes(m.patientId)) { res.status(403).json({ error: 'Sem permissão' }); return; }
     await prisma.measurement.delete({ where: { id: m.id } });
+    const { invalidateHealthSummary } = await import('../analysis/hs-cache');
+    invalidateHealthSummary(m.patientId);
     res.json({ id: m.id });
   } catch (e) { next(e); }
 });

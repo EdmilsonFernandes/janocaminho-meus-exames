@@ -345,10 +345,17 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
                 ? 'O CPF deste documento já está cadastrado em outra conta. Por segurança, este exame foi rejeitado — você não pode adicioná-lo nem gerar análise com ele.'
                 : <>O CPF detectado no documento ({identity?.docCpfMasked ?? 'não exibido'}) diverge do CPF cadastrado neste perfil ({identity?.profileCpfMasked ?? 'não exibido'}). Se o exame é de um dependente, troque o perfil no topo e envie novamente.</>}
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>Por segurança, este exame não pode gerar análise neste perfil. Exclua o exame ou acione o suporte para investigar.</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              Por segurança, este exame não entrou no seu histórico nem nas suas análises — só você vê esta tela.
+              {exam.status === 'REJECTED' ? '' : ' Exclua o exame ou acione o suporte para investigar.'}
+            </Typography>
             <Box sx={{ mt: 1.5, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+              <Button size="small" variant="contained" onClick={() => navigate(`/suporte?exam=${exam.id}`)}>Acredito que houve um erro</Button>
               <Button size="small" variant="outlined" color="error" onClick={rejectExam} disabled={attesting}>Excluir exame</Button>
             </Box>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.75 }}>
+              A leitura automática pode errar em documentos rasurados ou ilegíveis — o suporte confere o arquivo original (o contexto já vai anexado, com CPFs mascarados).
+            </Typography>
           </CardContent>
         </Card>
       )}
@@ -445,6 +452,11 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
                         <Typography sx={{ fontSize: '0.85rem', color: 'text.secondary', mt: 0.25, wordBreak: 'break-word' }}>
                           <strong>Referência:</strong> {fmtRef(it)}
                         </Typography>
+                        {/* Régua pediátrica em uso (transparência: por que está marcado) */}
+                        {String(it.refAppliesTo || '').startsWith('Pediátrico') && (
+                          <Chip size="small" label={it.refAppliesTo} title="Faixa por idade (educativa) — nunca substitui o pediatra"
+                            sx={{ mt: 0.25, height: 20, fontSize: '0.7rem', fontWeight: 700, bgcolor: 'rgba(32,178,170,.10)', color: '#178f89' }} />
+                        )}
                         <ValueBar value={it.valueNumeric} low={it.refLow} high={it.refHigh} />
                         <RefBar value={it.valueNumeric} refLow={it.refLow} refHigh={it.refHigh} unit={it.unit} />
                         {/* Sparkline mini-gráfico (linha temporal + faixa verde) — se há histórico */}

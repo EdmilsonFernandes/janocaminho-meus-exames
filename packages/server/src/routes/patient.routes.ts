@@ -216,7 +216,29 @@ router.get('/:id', async (req: AuthedRequest, res, next) => {
       res.status(404).json({ error: 'Paciente não encontrado' });
       return;
     }
-    res.json(serializePatient(p));
+    // Completude de perfil + peso atual — fonte única p/ onboarding progressivo, dashboard e Perfil.
+    // Essenciais = os 5 dados que os cálculos de fato usam (etnia é opcional: nenhum cálculo lê hoje).
+    // Peso NÃO é campo do Patient: vem da última medição WEIGHT (mesma query do IMC no health-state).
+    const latestWeight = await prisma.measurement.findFirst({
+      where: { patientId: id, type: 'WEIGHT' },
+      orderBy: { measuredAt: 'desc' },
+      select: { value: true, measuredAt: true },
+    });
+    const missing: string[] = [];
+    if (!p.gender) missing.push('gender');
+    if (!p.dateOfBirth) missing.push('dateOfBirth');
+    if (p.heightCm == null) missing.push('heightCm');
+    if (!latestWeight) missing.push('weight');
+    if (!(p.cpfHash || p.cpfEncrypted)) missing.push('cpf');
+    res.json({
+      ...serializePatient(p),
+      weightKg: latestWeight?.value ?? null,
+      weightMeasuredAt: latestWeight?.measuredAt ?? null,
+      profileCompleteness: {
+        pct: Math.round(((5 - missing.length) / 5) * 100),
+        missing,
+      },
+    });
   } catch (e) {
     next(e);
   }

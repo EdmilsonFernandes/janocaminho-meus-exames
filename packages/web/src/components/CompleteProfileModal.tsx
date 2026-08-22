@@ -1,44 +1,50 @@
 import { useEffect, useState } from 'react';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions, Button,
-  TextField, MenuItem, Stack, Typography, CircularProgress, IconButton,
+  TextField, MenuItem, Stack, Typography, CircularProgress, IconButton, Box, LinearProgress, useMediaQuery, useTheme,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { useTranslate } from 'react-admin';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import { useTranslate, useRefresh } from 'react-admin';
 import { API_URL, apiHeaders } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import { DateFieldBR } from './DateFieldBR';
+import { formatCpf, isValidCpf } from '../utils/cpf';
 
-const ETH = [
-  { value: 'branca', label: 'Branca' },
-  { value: 'preta', label: 'Preta' },
-  { value: 'parda', label: 'Parda' },
-  { value: 'amarela', label: 'Amarela' },
-  { value: 'indigena', label: 'Indígena' },
-];
-
-const FLAG = 'profileCompleted';
+// Supressão de "Agora não" POR SESSÃO (não mais localStorage permanente): o flag por dispositivo
+// fazia o modal nunca mais aparecer depois de 1 skip ou 1 troca de aparelho — e a completude
+// real é avaliada pelo SERVER (profileCompleteness), então usuário que completa em outro
+// dispositivo não é re-perguntado. O Dashboard (NextStepsCard) continua orientando depois.
+const SKIP_FLAG = 'profileSkippedSession';
 
 /**
- * Modal progressivo (estilo BloodGPT): mostra UMA vez se o paciente ainda não tem
- * sexo/altura. Esses dados personalizam a leitura dos exames — hemoglobina gender-aware
- * (M1) e os índices derivados do M2 (IMC, eGFR, HOMA-IR). Dispensável: seta o flag p/ não
- * perturbar de novo. Auto-gerenciado — basta montar como irmão do <Onboarding /> no AppLayout.
+ * ONBOARDING DE DADOS ("Vamos preparar o Dr. Exame pra você") — stepper pós-login quando
+ * faltam dados ESSENCIAIS (sexo, nascimento, altura, peso, CPF). Cada campo explica POR QUE
+ * pedimos (referências dos exames, IMC, validação de identidade dos PDFs). Etapa salva ao
+ * avançar (abandono no meio não perde o que já digitou). Etnia NÃO pede aqui: nenhum cálculo
+ * usa hoje — mora no Perfil como opcional (promessa honesta).
  */
 export const CompleteProfileModal = () => {
   const translate = useTranslate();
+  const refresh = useRefresh();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [pid] = useSelectedPatient();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [step, setStep] = useState(0);
   const [gender, setGender] = useState('');
   const [heightCm, setHeightCm] = useState('');
-  const [ethnicity, setEthnicity] = useState('');
   const [dob, setDob] = useState('');
+  const [weightKg, setWeightKg] = useState('');
+  const [cpf, setCpf] = useState('');
+  const [needsCpf, setNeedsCpf] = useState(false);
+  const [cpfError, setCpfError] = useState('');
 
   useEffect(() => {
     if (!pid) return;
-    if (localStorage.getItem(FLAG) === '1') return;
+    if (sessionStorage.getItem(SKIP_FLAG) === '1') { setLoading(false); return; }
     let cancelled = false;
     (async () => {
       try {
@@ -48,11 +54,12 @@ export const CompleteProfileModal = () => {
         if (cancelled) return;
         setGender(p.gender ?? '');
         setHeightCm(p.heightCm != null ? String(p.heightCm) : '');
-        setEthnicity(p.ethnicity ?? '');
         setDob(p.dateOfBirth ? p.dateOfBirth.split('T')[0] : '');
-        // Mostra só se faltar algo relevante (sexo/altura). Etnia é opcional.
-        if (!p.gender || p.heightCm == null) setOpen(true);
-        else localStorage.setItem(FLAG, '1'); // já completo — não perturba
+        setWeightKg(p.weightKg != null ? String(p.weightKg) : '');
+        setNeedsCpf(!p.hasCpf);
+        // Abre se falta ALGUM essencial (fonte única: server). Skippável em 1 toque.
+        const missing: string[] = p.profileCompleteness?.missing ?? [];
+        if (missing.length > 0) { setStep(0); setOpen(true); }
       } catch {
         // best-effort: se falhar (offline), simplesmente não mostra — não bloqueia o app.
       } finally {
@@ -62,56 +69,126 @@ export const CompleteProfileModal = () => {
     return () => { cancelled = true; };
   }, [pid]);
 
-  const close = () => { localStorage.setItem(FLAG, '1'); setOpen(false); };
+  const close = () => { sessionStorage.setItem(SKIP_FLAG, '1'); setOpen(false); };
 
-  const save = async () => {
+  const stepCount = needsCpf ? 3 : 2;
+
+  const saveProfileFields = async () => {
+    await fetch(`${API_URL}/patients/${pid}`, {
+      method: 'PUT',
+      headers: apiHeaders(true),
+      body: JSON.stringify({
+        gender,
+        heightCm: heightCm ? Number(heightCm) : null,
+        dateOfBirth: dob || null,
+      }),
+    });
+  };
+
+  const saveWeight = async () => {
+    if (!weightKg || Number(weightKg) <= 0) return;
+    await fetch(`${API_URL}/measurements`, {
+      method: 'POST',
+      headers: apiHeaders(true),
+      // measuredAt é obrigatório no server (400 sem ele) — QA 2026-08 pegou o peso sumindo.
+      // ISO COMPLETO (não date-only): '2026-08-22' vira meia-noite UTC e exibe como o dia
+      // anterior no fuso BR (vi um peso de 22/08 aparecer como 21/08).
+      body: JSON.stringify({ patientId: pid, type: 'WEIGHT', value: Number(String(weightKg).replace(',', '.')), unit: 'kg', measuredAt: new Date().toISOString() }),
+    }).catch(() => {});
+  };
+
+  const saveCpf = async () => {
+    if (!isValidCpf(cpf)) { setCpfError('CPF inválido — confira os números.'); return false; }
+    const r = await fetch(`${API_URL}/patients/${pid}`, {
+      method: 'PUT',
+      headers: apiHeaders(true),
+      body: JSON.stringify({ cpf: String(cpf).replace(/\D/g, '') }),
+    });
+    if (!r.ok) {
+      const d = await r.json().catch(() => ({}));
+      setCpfError(d.error === 'CPF inválido.' || String(d.error).includes('outro paciente')
+        ? 'Este CPF já está cadastrado em outra conta. Fale com o suporte se for seu.'
+        : 'Não conseguimos salvar o CPF. Tente de novo.');
+      return false;
+    }
+    return true;
+  };
+
+  const next = async () => {
     setSaving(true);
     try {
-      const r = await fetch(`${API_URL}/patients/${pid}`, {
-        method: 'PUT',
-        headers: apiHeaders(true),
-        body: JSON.stringify({
-          gender,
-          heightCm: heightCm ? Number(heightCm) : null,
-          ethnicity,
-          dateOfBirth: dob || null,
-        }),
-      });
-      if (r.ok) { localStorage.setItem(FLAG, '1'); setOpen(false); }
+      if (step === 0) await saveProfileFields();
+      if (step === 1) { await saveProfileFields(); await saveWeight(); }
+      if (step === 2) { const ok = await saveCpf(); if (!ok) { setSaving(false); return; } }
+      // Dados de perfil mudaram → dashboard/tiles reagem na hora (mesmo sem concluir).
+      window.dispatchEvent(new Event('dx-profile-updated'));
+      if (step < stepCount - 1) setStep(step + 1);
+      else { setOpen(false); refresh(); }
     } finally {
       setSaving(false);
     }
   };
 
+  // Validação por etapa: sexo/nascimento/altura são essenciais (gates de cálculo); peso e CPF
+  // são encorajados mas avançam (o Dashboard orienta depois — nada de beco sem saída).
+  const canAdvance =
+    step === 0 ? (!!gender && !!dob)
+    : step === 1 ? (!!heightCm && Number(heightCm) > 50)
+    : true;
+
   if (loading || !open) return null;
 
   return (
-    <Dialog open onClose={close} PaperProps={{ sx: { borderRadius: '12px', maxWidth: 440, width: '100%' } }}>
-      <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pr: 1 }}>
-        <span>{translate('profile.complete.title')}</span>
+    <Dialog open onClose={close} fullScreen={isMobile} PaperProps={{ sx: { borderRadius: isMobile ? 0 : '12px', maxWidth: 440, width: '100%' } }}>
+      <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pr: 1, pb: 0.5 }}>
+        <Box>
+          <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 19, color: 'text.primary' }}>
+            Vamos preparar o Dr. Exame
+          </Typography>
+          <Typography variant="caption" color="text.secondary">Passo {step + 1} de {stepCount}</Typography>
+        </Box>
         <IconButton size="small" onClick={close} aria-label="Fechar"><CloseIcon /></IconButton>
       </DialogTitle>
+      <LinearProgress variant="determinate" value={((step + 1) / stepCount) * 100} sx={{ mx: isMobile ? 2 : 3, borderRadius: 999, height: 6, mb: 1 }} />
+
       <DialogContent>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          {translate('profile.complete.subtitle')}
-        </Typography>
-        <Stack spacing={2}>
-          <TextField select label={translate('profile.complete.gender')} value={gender} onChange={(e) => setGender(e.target.value)} fullWidth size="small">
-            <MenuItem value="male">Masculino</MenuItem>
-            <MenuItem value="female">Feminino</MenuItem>
-          </TextField>
-          <TextField type="number" label={translate('profile.complete.height')} value={heightCm} onChange={(e) => setHeightCm(e.target.value)} fullWidth size="small" />
-          <TextField select label={translate('profile.complete.ethnicity')} value={ethnicity} onChange={(e) => setEthnicity(e.target.value)} fullWidth size="small">
-            <MenuItem value="">{translate('profile.complete.ethnicityPreferNot')}</MenuItem>
-            {ETH.map((e) => <MenuItem key={e.value} value={e.value}>{e.label}</MenuItem>)}
-          </TextField>
-          <DateFieldBR label={translate('profile.complete.dob')} value={dob} onChange={setDob} fullWidth size="small" />
-        </Stack>
+        {step === 0 && (
+          <Stack spacing={2}>
+            <Typography variant="body2" color="text.secondary">
+              Essas informações personalizam as <b>faixas de referência</b> dos seus exames e os cálculos de idade biológica e função renal.
+            </Typography>
+            <TextField select label="Sexo" value={gender} onChange={(e) => setGender(e.target.value)} fullWidth required>
+              <MenuItem value="male">Masculino</MenuItem>
+              <MenuItem value="female">Feminino</MenuItem>
+            </TextField>
+            <DateFieldBR label="Data de nascimento" value={dob} onChange={setDob} fullWidth />
+          </Stack>
+        )}
+        {step === 1 && (
+          <Stack spacing={2}>
+            <Typography variant="body2" color="text.secondary">
+              Altura e peso calculam seu <b>IMC</b> e entram na leitura de risco cardiometabólico.
+            </Typography>
+            <TextField type="number" label="Altura (cm)" value={heightCm} onChange={(e) => setHeightCm(e.target.value)} fullWidth required inputProps={{ inputMode: 'numeric' }} />
+            <TextField label="Peso atual (kg)" value={weightKg} onChange={(e) => setWeightKg(e.target.value)} fullWidth inputProps={{ inputMode: 'decimal' }} helperText="Vai direto pras suas Medições — você acompanha a tendência por lá." />
+          </Stack>
+        )}
+        {step === 2 && (
+          <Stack spacing={2}>
+            <Typography variant="body2" color="text.secondary">
+              O CPF confirma que os exames que você enviar são <b>seus</b> — é ele que valida a identidade nos PDFs e libera o bônus do 1º exame.
+            </Typography>
+            <TextField
+              label="CPF" value={formatCpf(cpf)} onChange={(e) => { setCpf(e.target.value); setCpfError(''); }} fullWidth
+              error={!!cpfError} helperText={cpfError || 'Só visível pra você — armazenado criptografado.'} inputProps={{ inputMode: 'numeric', maxLength: 14 }}
+            />
+          </Stack>
+        )}
       </DialogContent>
-      <DialogActions sx={{ justifyContent: 'center', gap: 1, pb: 2 }}>
-        <Button onClick={close} variant="outlined">{translate('profile.complete.skip')}</Button>
-        <Button onClick={save} variant="contained" disabled={saving}>
-          {saving ? <CircularProgress size={20} /> : translate('profile.complete.save')}
+      <DialogActions sx={{ justifyContent: 'space-between', gap: 1, px: 3, pb: 2.5, alignItems: 'center' }}>
+        <Button onClick={close} variant="text" sx={{ textTransform: 'none' }}>Agora não</Button>
+        <Button onClick={next} variant="contained" disabled={saving || !canAdvance} endIcon={step < stepCount - 1 ? <ArrowForwardIcon /> : undefined} sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 800 }}>
+          {saving ? <CircularProgress size={20} /> : step < stepCount - 1 ? 'Continuar' : 'Concluir'}
         </Button>
       </DialogActions>
     </Dialog>

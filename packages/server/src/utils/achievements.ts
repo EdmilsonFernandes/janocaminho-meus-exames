@@ -74,11 +74,13 @@ export async function getUserMetrics(userId: string): Promise<UserMetrics> {
     // Conta UPLOADS (PDFs), NÃO registros split. Um PDF c/ histórico de N anos vira N exames
     // (split pelo #split-N no fileSha256), mas é UMA ação de upload → conta como 1 p/ o engajamento.
     // Sem isto, 1 PDF desbloqueava "Colecionador"(5)/"Estudioso"(10) de uma vez (inflação).
-    prisma.exam.count({ where: { patient: { ownerId: userId }, NOT: { fileSha256: { contains: '#split-' } } } }),
+    // Só EXTRACTED: documento REJEITADO (CPF de terceiro) ou FAILED não é progresso de saúde —
+    // ausência de dado válido não desbloqueia conquista (auditoria de honestidade de estados).
+    prisma.exam.count({ where: { patient: { ownerId: userId }, status: 'EXTRACTED', NOT: { fileSha256: { contains: '#split-' } } } }),
     latestHealthScore(userId),
     prisma.user.findUnique({ where: { id: userId }, select: { streakDays: true } }),
     // Uploads do mês corrente (mesma regra anti-split dos uploads permanentes).
-    prisma.exam.count({ where: { patient: { ownerId: userId }, createdAt: { gte: mStart }, NOT: { fileSha256: { contains: '#split-' } } } }),
+    prisma.exam.count({ where: { patient: { ownerId: userId }, status: 'EXTRACTED', createdAt: { gte: mStart }, NOT: { fileSha256: { contains: '#split-' } } } }),
     // Médicos DISTINTOS compartilhados no mês (delete+recriar mesmo médico não farma: distinct).
     prisma.doctorShare.findMany({ where: { patient: { ownerId: userId }, createdAt: { gte: mStart } }, select: { doctorId: true }, distinct: ['doctorId'] }),
   ]);

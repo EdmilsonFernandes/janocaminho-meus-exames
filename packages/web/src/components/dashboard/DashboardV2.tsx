@@ -8,6 +8,8 @@ import { BiometricService } from '../BiometricService';
 import { PageContainer } from '../layout/PageContainer';
 import { DashboardHeader } from './DashboardHeader';
 import { FailedExamsAlert } from './FailedExamsAlert';
+import { RejectedExamsAlert } from './RejectedExamsAlert';
+import { NextStepsCard } from './NextStepsCard';
 import { AiCard } from './AiCard';
 import { QuickActions } from './QuickActions';
 import { ActivityCard } from './ActivityCard';
@@ -44,6 +46,10 @@ function useDashboardData(pid: string | null) {
   const [worsened, setWorsened] = useState<Marker[]>([]);
   const [improved, setImproved] = useState<Marker[]>([]);
   const [staleWarning, setStaleWarning] = useState('');
+  // Honestidade de estados (auditoria 2026-08): o server diz POR QUE cada feature não calculou
+  // (availability) — o cliente nunca mais infere estado positivo a partir de null.
+  const [availability, setAvailability] = useState<any>(null);
+  const [rejected, setRejected] = useState(0);
 
   useEffect(() => {
     // Score cacheado (instantâneo na 1ª pintura, igual ao legacy).
@@ -63,6 +69,8 @@ function useDashboardData(pid: string | null) {
         if (Array.isArray(eData) && eData[0]?.performedAt) setLastExam(eData[0].performedAt);
         const fe = await fetch(`${API_URL}/exams?_start=0&_end=1&status=FAILED${pidQ}`, { headers: h });
         setFailed(readTotal(fe));
+        const rj = await fetch(`${API_URL}/exams?_start=0&_end=1&status=REJECTED${pidQ}`, { headers: h });
+        setRejected(readTotal(rj));
         // Contagem de alterados VEM DO flag-summary (mesma fonte de /alterados — exclui exames
         // com CPF divergente). Antes: X-Total-Count de /items?abnormal=true (rota de lista, sem
         // o filtro) → Home dizia "8 alterados" enquanto /alterados dizia "tudo dentro da faixa".
@@ -90,6 +98,7 @@ function useDashboardData(pid: string | null) {
             setImportante(hd.byPriority?.importante ?? 0);
             setModerada(hd.byPriority?.moderada ?? 0);
             setCardioRisk(hd.cardiometabolicRisk ?? null);
+            setAvailability(hd.availability ?? null);
             setMarkerCount(typeof hd.markers === 'number' ? hd.markers : 0);
             setStaleWarning(hd.staleWarning ?? '');
             // "Pioraram" = trend PIOROU mesmo (hd.worsening). Antes alimentava com topAttention
@@ -110,25 +119,29 @@ function useDashboardData(pid: string | null) {
     })();
   }, [pid]);
 
-  return { stats, failed, lastExam, buckets, score, importante, moderada, cardioRisk, markerCount, credits, me, loaded, worsened, improved, staleWarning };
+  return { stats, failed, lastExam, buckets, score, importante, moderada, cardioRisk, markerCount, credits, me, loaded, worsened, improved, staleWarning, availability, rejected };
 }
 
 const statusFromScore = (s: number | null): { label: string; tone: 'primary' | 'success' | 'warning' | 'error' } => {
-  if (s == null) return { label: 'Calculando…', tone: 'primary' };
+  if (s == null) return { label: '—', tone: 'primary' };
   if (s >= 80) return { label: 'Em ótima forma', tone: 'success' };
   if (s >= 60) return { label: 'Em boa forma', tone: 'primary' };
   if (s >= 40) return { label: 'Pede atenção', tone: 'warning' };
   return { label: 'Precisa de cuidados', tone: 'error' };
 };
 
-/** HERO — única hierarquia de saúde (score + prioridades + última análise + CTA). */
-const HeroHealthCard = ({ loaded, score, importante, moderada, lastExam, onDetails }: {
-  loaded: boolean; score: number | null; importante: number; moderada: number; lastExam: string | null; onDetails: () => void;
+/** HERO — única hierarquia de saúde (score + prioridades + última análise + CTA).
+ *  Sem exames NÃO existe "Calculando…" eterno (não há nada calculando): é onboarding com
+ *  CTA pro 1º exame. "Nada crítico" só com score real — ausência de dado não é normalidade. */
+const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, onDetails, onFirstExam }: {
+  loaded: boolean; score: number | null; exams: number; importante: number; moderada: number; lastExam: string | null; onDetails: () => void; onFirstExam: () => void;
 }) => {
   const t = useTheme();
   const st = statusFromScore(score);
   const last = lastExam ? new Date(lastExam).toLocaleDateString('pt-BR') : null;
   const totalAtt = importante + moderada;
+  const noData = score == null && exams === 0;
+  const title = noData ? 'Começa com seu primeiro exame' : score == null ? 'Score indisponível' : st.label;
   return (
     <AppCard kind="tinted" tone={st.tone} tone2="secondary" glow sx={{ p: { xs: 2.25, md: 3 } }}>
       <Stack direction="row" spacing={2} alignItems="center" sx={{ width: '100%' }}>
@@ -147,7 +160,7 @@ const HeroHealthCard = ({ loaded, score, importante, moderada, lastExam, onDetai
         <Box sx={{ flex: 1, minWidth: 0 }}>
           {/* Sentence case (audit Onda A): caixa alta + ls largo = cara de painel admin. */}
           <Typography sx={{ fontSize: 12, fontWeight: 700, color: st.tone === 'success' ? '#047857' : st.tone === 'warning' ? '#8a5a1f' : st.tone === 'error' ? '#b91c1c' : '#0f6e68' }}>Sua saúde hoje</Typography>
-          <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 22, lineHeight: 1.15, color: 'text.primary', mt: 0.25, textWrap: 'balance' }}>{st.label}</Typography>
+          <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 22, lineHeight: 1.15, color: 'text.primary', mt: 0.25, textWrap: 'balance' }}>{title}</Typography>
           <Stack direction="row" spacing={1.5} sx={{ mt: 1, flexWrap: 'wrap', rowGap: 0.5 }}>
             {totalAtt > 0 ? (
               <Typography sx={{ fontSize: 13.5, color: 'text.secondary' }}>
@@ -155,16 +168,24 @@ const HeroHealthCard = ({ loaded, score, importante, moderada, lastExam, onDetai
                 {importante > 0 && moderada > 0 && <Box component="span" sx={{ color: 'text.secondary' }}> · </Box>}
                 {moderada > 0 && <Box component="span" sx={{ color: '#b45309', fontWeight: 700 }}>● {moderada} moderado{moderada > 1 ? 's' : ''}</Box>}
               </Typography>
-            ) : (
+            ) : noData ? (
+              <Typography sx={{ fontSize: 13.5, color: 'text.secondary' }}>Envie um exame pra começarmos a construir sua visão de saúde.</Typography>
+            ) : score != null ? (
               <Typography sx={{ fontSize: 13.5, color: 'success.main', fontWeight: 700 }}>● Nada crítico no momento</Typography>
-            )}
-            {last && <Typography sx={{ fontSize: 12.5, color: 'text.disabled' }}>· atualizado {last}</Typography>}
+            ) : null}
+            {last && !noData && <Typography sx={{ fontSize: 12.5, color: 'text.disabled' }}>· atualizado {last}</Typography>}
           </Stack>
         </Box>
       </Stack>
-      <GradientButton onClick={onDetails} endIcon={<ArrowForwardIcon />} sx={{ mt: 2.25, width: { xs: '100%', sm: 'auto' }, alignSelf: 'stretch' }}>
-        Ver análise completa
-      </GradientButton>
+      {noData ? (
+        <GradientButton onClick={onFirstExam} endIcon={<ArrowForwardIcon />} sx={{ mt: 2.25, width: { xs: '100%', sm: 'auto' }, alignSelf: 'stretch' }}>
+          Enviar primeiro exame
+        </GradientButton>
+      ) : (
+        <GradientButton onClick={onDetails} endIcon={<ArrowForwardIcon />} sx={{ mt: 2.25, width: { xs: '100%', sm: 'auto' }, alignSelf: 'stretch' }}>
+          Ver análise completa
+        </GradientButton>
+      )}
     </AppCard>
   );
 };
@@ -210,38 +231,46 @@ export const DashboardV2 = () => {
     <PageContainer width="wide" sx={{ bgcolor: (t) => (t.palette.mode === 'dark' ? 'background.default' : '#FAFBFC'), minHeight: '100vh' }}>
       <DashboardHeader firstName={firstName} />
       <FailedExamsAlert count={d.failed} onClick={() => navigate('/exams')} />
+      <RejectedExamsAlert count={d.rejected} onClick={() => navigate('/exams')} />
 
       {/* HERO + MUDANÇAS — mobile: coluna; desktop: 7/5 */}
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, md: 7 }}>
-          <HeroHealthCard loaded={d.loaded} score={d.score} importante={d.importante} moderada={d.moderada} lastExam={d.lastExam} onDetails={() => navigate('/tendencias')} />
+          <HeroHealthCard loaded={d.loaded} score={d.score} exams={d.stats.exams} importante={d.importante} moderada={d.moderada} lastExam={d.lastExam} onDetails={() => navigate('/tendencias')} onFirstExam={() => navigate('/exams/create')} />
         </Grid>
         <Grid size={{ xs: 12, md: 5 }}>
           <ChangesSinceExam worsened={d.worsened} improved={d.improved} onView={() => navigate('/evolucao')} loaded={d.loaded} />
         </Grid>
       </Grid>
 
+      {/* PRÓXIMOS PASSOS — onboarding progressivo p/ usuário novo/perfil incompleto; some quando pronto */}
+      <NextStepsCard exams={d.stats.exams} />
+
       {/* DR. EXAME — insight + CTA chat (já com contexto) */}
       <Box sx={{ mt: 2 }}>
         <AiCard tip={null} onChat={() => navigate('/chat')} />
       </Box>
 
-      {/* SEUS INDICADORES — tiles (mobile 2x2, desktop 1x4) */}
+      {/* SEUS INDICADORES — tiles (mobile 2x2, desktop 1x4).
+          "Em dia"/"sem fatores" SÓ com cálculo real: sem dados o tile é neutro ("Sem dados")
+          e diz o que destrava — ausência de informação nunca vira normalidade. */}
       <Grid container spacing={1.5} sx={{ mt: 0.5 }}>
         <Grid size={{ xs: 6, md: 3 }}>
-          <IndicatorTile icon={<FavoriteIcon />} tone={cardioFactors > 0 ? 'error' : 'success'} label="Cardiometabólico"
-            value={cardioLevel || (d.loaded ? 'Em dia' : '—')} sub={cardioFactors > 0 ? `${cardioFactors} fator${cardioFactors > 1 ? 'es' : ''} de risco` : 'sem fatores'}
-            onClick={() => navigate('/tendencias')} />
+          <IndicatorTile icon={<FavoriteIcon />} tone={cardioLevel ? (cardioFactors > 0 ? 'error' : 'success') : 'info'} label="Cardiometabólico"
+            value={cardioLevel || (d.loaded ? 'Sem dados' : '—')} sub={cardioLevel
+              ? (cardioFactors > 0 ? `${cardioFactors} fator${cardioFactors > 1 ? 'es' : ''} de risco` : 'sem fatores')
+              : (d.loaded ? (d.stats.exams > 0 ? 'sem colesterol, peso ou pressão' : 'envie um exame ou registre peso/pressão') : '')}
+            onClick={() => navigate(d.stats.exams > 0 ? '/tendencias' : '/exams/create')} />
         </Grid>
         <Grid size={{ xs: 6, md: 3 }}>
           <BiologicalAgeCard />
         </Grid>
         <Grid size={{ xs: 6, md: 3 }}>
           <IndicatorTile icon={<MedicalServicesIcon />} tone="primary" label="Seus exames"
-            value={d.loaded ? String(d.stats.exams) : '—'} sub={`${d.stats.abnormal} alterado${d.stats.abnormal === 1 ? '' : 's'}`} onClick={() => navigate('/exams')} />
+            value={d.loaded ? String(d.stats.exams) : '—'} sub={d.stats.exams === 0 && d.loaded ? 'envie o primeiro' : `${d.stats.abnormal} alterado${d.stats.abnormal === 1 ? '' : 's'}`} onClick={() => navigate('/exams')} />
         </Grid>
         <Grid size={{ xs: 6, md: 3 }}>
-          <IndicatorTile icon={<ShowChartIcon />} tone="info" label="Evolução" value="Tendências" sub={`${totalResults || 0} resultados`} onClick={() => navigate('/evolucao')} />
+          <IndicatorTile icon={<ShowChartIcon />} tone="info" label="Evolução" value="Tendências" sub={totalResults > 0 ? `${totalResults} resultado${totalResults === 1 ? '' : 's'}` : (d.loaded ? 'após o 1º exame' : '')} onClick={() => navigate('/evolucao')} />
         </Grid>
       </Grid>
 

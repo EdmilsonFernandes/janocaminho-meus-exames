@@ -49,7 +49,7 @@ export async function runExtraction(examId: string): Promise<void> {
       console.warn(`[extraction] ${examId} tentativa ${attempt}/3 falhou:`, e?.message);
       if (attempt >= 3) {
         try {
-          await prisma.exam.update({ where: { id: examId }, data: { status: 'FAILED', extractionError: 'Não conseguimos ler este exame agora. Toque em "Re-extrair" para tentar de novo.' } });
+          await prisma.exam.update({ where: { id: examId }, data: { status: 'FAILED', failureKind: 'ia_error', extractionError: 'Não conseguimos ler este exame agora. Toque em "Re-extrair" para tentar de novo.' } });
         } catch { /* */ }
         return; // não propaga erro cru
       }
@@ -88,7 +88,7 @@ async function runExtractionOnce(examId: string): Promise<void> {
     // exame (receita, nota fiscal, RG, rótulo...) — antes de gastar IA.
     const cls = classifyDoc(text);
     if (!cls.accept && cls.strong) {
-      await prisma.exam.update({ where: { id: examId }, data: { status: 'FAILED', extractionError: cls.reason } });
+      await prisma.exam.update({ where: { id: examId }, data: { status: 'FAILED', failureKind: 'not_a_document', extractionError: cls.reason } });
       console.log(`[extraction] ${examId} rejeitado (padrão): ${cls.reason}`);
       return;
     }
@@ -177,9 +177,33 @@ async function runExtractionOnce(examId: string): Promise<void> {
     if (kind !== 'IMAGING' && items.length === 0 && !looksLikeMedical(text)) {
       await prisma.exam.update({
         where: { id: examId },
-        data: { status: 'FAILED', extractionError: cls.reason || 'Não conseguimos identificar um exame neste documento. Tente o Escanear ou envie um PDF do seu exame.' },
+        data: { status: 'FAILED', failureKind: 'not_a_document', extractionError: cls.reason || 'Não conseguimos identificar um exame neste documento. Tente o Escanear ou envie um PDF do seu exame.' },
       });
       console.log(`[extraction] exame ${examId} descartado: não parece exame/laudo médico`);
+      return;
+    }
+
+    // REJEIÇÃO POR IDENTIDADE (CPF do documento ≠ CPF da conta, ou CPF de outro usuário):
+    // antes o exame ficava EXTRACTED com flag JSON — chip verde "Pronto" na lista, vazando p/
+    // portal do médico/conquistas/insights, e o push "exame pronto" disparava mesmo bloqueado.
+    // Agora é estado de 1ª classe: REJECTED. Fica fora de TODOS os agregados por construção
+    // (toda query de análise filtra status:'EXTRACTED'), não grava itens, não cobra crédito,
+    // não notifica. Arquivo retido até o usuário excluir/apelação (suporte) — o PDF é a única
+    // evidência p/ reverter um falso-positivo de OCR.
+    if (raw?.identityMatch?.method === 'cpf' && raw?.identityMatch?.cpfMatch === false) {
+      await prisma.exam.update({
+        where: { id: examId },
+        data: {
+          kind, title, performedAt, sourceLab,
+          pageCount: pageCount || exam.pageCount,
+          rawExtraction: raw,
+          status: 'REJECTED',
+          extractedAt: new Date(),
+          extractionError: 'cpf_mismatch: O CPF identificado no documento é diferente do CPF cadastrado na sua conta.',
+        },
+      });
+      invalidateHealthSummary(exam.patientId);
+      console.log(`[extraction] exame ${examId} REJEITADO: CPF do documento diverge do perfil (${raw.identityMatch.severity})`);
       return;
     }
 
@@ -275,6 +299,9 @@ async function runExtractionOnce(examId: string): Promise<void> {
           if (patient?.cpfHash) sraw.identityMatch = computeIdentityMatch(slab, patient);
           if (patient?.fullName && slab.patientName) sraw.nameMatch = computeNameMatch(String(slab.patientName), patient.fullName);
           delete sraw.patientCpf; delete sraw.cpf; delete sraw.patientCPF;
+          // Split herda a rejeição por identidade (mesma regra do exame principal — sem isto o
+          // split de um PDF de terceiro entraria como exame válido).
+          const splitRejected = sraw?.identityMatch?.method === 'cpf' && sraw?.identityMatch?.cpfMatch === false;
           const screated = await prisma.exam.create({
             data: {
               patientId: exam.patientId,
@@ -287,8 +314,9 @@ async function runExtractionOnce(examId: string): Promise<void> {
               performedAt: parseDate(slab.performedAt),
               sourceLab: slab.sourceLab ?? exam.sourceLab,
               rawExtraction: sraw,
-              status: 'EXTRACTED',
+              status: splitRejected ? 'REJECTED' : 'EXTRACTED',
               extractedAt: new Date(),
+              ...(splitRejected ? { extractionError: 'cpf_mismatch: O CPF identificado no documento é diferente do CPF cadastrado na sua conta.' } : {}),
             },
           });
           await prisma.examItem.createMany({ data: sitems.map((r) => ({ ...r, examId: screated.id })) });

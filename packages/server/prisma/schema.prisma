@@ -276,6 +276,9 @@ model Exam {
   reviewRequired   Boolean    @default(false)
   extractedAt      DateTime?
   extractionError  String?
+  /// Causa estruturada do FAILED ('ia_error' | 'not_a_document' | 'low_quality') — p/ CTA certo
+  /// (retry vs suporte) sem parsear texto de erro. Aditivo: null em linhas antigas/EXTRACTED.
+  failureKind      String?
 
   items            ExamItem[]
   analyses         AiAnalysis[]
@@ -301,6 +304,11 @@ enum ExamStatus {
   EXTRACTED
   FAILED
   DUPLICATE
+  /// Rejeitado por identidade: CPF do documento ≠ CPF da conta (ou CPF de outro usuário).
+  /// Não entra em NENHUM agregado (score/bio/tendências/portal médico) por construção —
+  /// todas as queries filtram status:'EXTRACTED'. Antes vivia como EXTRACTED + flag JSON e
+  /// vazava para doctor.routes/achievements/insights.
+  REJECTED
 }
 
 model ExamItem {

@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { Box, Button, Card, CardContent, Typography, Stack, Chip, TextField, InputLabel, FormControl, Select, MenuItem, CircularProgress, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Link } from '@mui/material';
 import { Title, useTranslate } from 'react-admin';
 import { PageContainer } from '../components/layout/PageContainer';
@@ -18,7 +18,11 @@ const STATUS_META: Record<string, { label: string; color: 'warning' | 'info' | '
   pending: { label: 'Aguardando você', color: 'info' },
   closed: { label: 'Resolvido', color: 'success' },
 };
-const CATS = ['Dúvida sobre um exame', 'Erro no app', 'Cobrança / Planos', 'Compartilhamento com médico', 'Sugestão', 'Outro'];
+const CATS = ['Dúvida sobre um exame', 'Exame rejeitado (CPF divergente)', 'Erro no app', 'Cobrança / Planos', 'Compartilhamento com médico', 'Sugestão', 'Outro'];
+
+/** Prefill de apelação (?exam=<id>): contexto do exame rejeitado é anexado pelo SERVER
+ *  (examId no form → ticket inclui status/CPF mascarados/motivo — nada de CPF integral). */
+export type TicketPrefill = { category?: string; subject?: string; message?: string; examId?: string };
 
 const fmtDate = (d: string | null) => (d ? new Date(d).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' }) : '');
 
@@ -39,7 +43,7 @@ async function downloadAtt(url: string, name: string) {
 // ───────────────────────────────────────────────────────────────────────────
 // Lista de chamados + criação
 // ───────────────────────────────────────────────────────────────────────────
-const CreateTicketDialog = ({ open, onClose, onCreated }: { open: boolean; onClose: () => void; onCreated: () => void }) => {
+const CreateTicketDialog = ({ open, onClose, onCreated, prefill }: { open: boolean; onClose: () => void; onCreated: () => void; prefill?: TicketPrefill | null }) => {
   const [category, setCategory] = useState(CATS[0]);
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
@@ -48,12 +52,25 @@ const CreateTicketDialog = ({ open, onClose, onCreated }: { open: boolean; onClo
   const [err, setErr] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // Apelação de exame rejetado: chega com campos prontos (o usuário só confere e envia).
+  const [appliedPrefill, setAppliedPrefill] = useState(false);
+  useEffect(() => {
+    if (open && prefill && !appliedPrefill) {
+      if (prefill.category) setCategory(prefill.category);
+      if (prefill.subject) setSubject(prefill.subject);
+      if (prefill.message) setMessage(prefill.message);
+      setAppliedPrefill(true);
+    }
+    if (!open) setAppliedPrefill(false);
+  }, [open, prefill, appliedPrefill]);
+
   const submit = async () => {
     if (!subject.trim() || !message.trim()) { setErr('Assunto e descrição são obrigatórios.'); return; }
     setSending(true); setErr('');
     try {
       const fd = new FormData();
       fd.append('category', category); fd.append('subject', subject.trim()); fd.append('message', message.trim());
+      if (prefill?.examId) fd.append('examId', prefill.examId);
       for (const f of files.slice(0, 5)) fd.append('files', f, f.name);
       const r = await fetch(`${API_URL}/tickets`, { method: 'POST', headers: authH(), body: fd });
       if (r.status === 429) { setErr('Você tem chamados demais abertos. Aguarde resolver um.'); setSending(false); return; }
@@ -85,6 +102,7 @@ const CreateTicketDialog = ({ open, onClose, onCreated }: { open: boolean; onClo
             </Stack>
           </Box>
           {err && <Typography color="error" variant="body2">{err}</Typography>}
+          {prefill?.examId && <Typography variant="caption" sx={{ color: '#178f89', fontWeight: 600 }}>📎 O contexto do exame (identificação, CPFs mascarados e motivo da rejeição) será anexado automaticamente ao chamado.</Typography>}
           <Typography variant="caption" color="text.secondary">Resposta em até 1 dia útil. Para urgências, contato@janocaminho.com.br.</Typography>
         </Stack>
       </DialogContent>
@@ -99,11 +117,21 @@ const CreateTicketDialog = ({ open, onClose, onCreated }: { open: boolean; onClo
 const TicketList = () => {
   const navigate = useNavigate();
   const translate = useTranslate();
+  const [params] = useSearchParams();
+  const appealExamId = params.get('exam'); // /suporte?exam=<id> → apelação de exame rejeitado
   const [tickets, setTickets] = useState<any[] | null>(null);
   const [err, setErr] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const load = () => { fetch(`${API_URL}/tickets`, { headers: authH() }).then((r) => r.ok ? r.json() : null).then((d) => { setTickets(d ?? []); setErr(d == null); }).catch(() => { setErr(true); setTickets([]); }); };
   useEffect(() => { void load(); /* eslint-disable-next-line */ }, []);
+  useEffect(() => { if (appealExamId) setCreateOpen(true); }, [appealExamId]);
+
+  const appealPrefill: TicketPrefill | null = appealExamId ? {
+    category: 'Exame rejeitado (CPF divergente)',
+    subject: 'Este exame é meu — rejeição por CPF',
+    message: 'Enviei um exame e ele não foi adicionado porque o CPF do documento é diferente do CPF da minha conta. O documento é meu e gostaria que vocês conferissem. Obrigado!',
+    examId: appealExamId,
+  } : null;
 
   return (
     <PageContainer>
@@ -138,7 +166,7 @@ const TicketList = () => {
             })}
           </Stack>
         )}
-      <CreateTicketDialog open={createOpen} onClose={() => setCreateOpen(false)} onCreated={load} />
+      <CreateTicketDialog open={createOpen} onClose={() => setCreateOpen(false)} onCreated={load} prefill={appealPrefill} />
     </PageContainer>
   );
 };

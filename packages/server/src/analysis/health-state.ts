@@ -67,6 +67,28 @@ export interface MarkerState {
   priorAbnormal: boolean; // true = alguma medição anterior estava alterada (usado p/ "normalizado")
 }
 
+/** Status de disponibilidade de uma feature — fonte única p/ empty states honestos.
+ *  Princípio: ausência de dado NÃO é estado positivo ("sem dados ≠ em dia",
+ *  "sem exame ≠ calculando", "insuficiente ≠ em breve"). */
+export interface FeatureStatus {
+  /** ready = calculado com dados reais; no_data = nada enviado ainda;
+   *  missing_profile = falta dado do perfil; insufficient_data = tem dados, mas não os
+   *  marcadores/específicos que esta feature exige. */
+  status: 'ready' | 'no_data' | 'missing_profile' | 'insufficient_data';
+  /** Requisitos ausentes ('firstExam' | 'dateOfBirth' | 'weight' | nomes clínicos…).
+   *  O cliente usa isto p/ escolher o CTA certo ("Completar perfil" vs "Enviar 1º exame"). */
+  missing: string[];
+}
+
+/** Disponibilidade das features derivadas do health-summary. */
+export interface FeatureAvailability {
+  healthScore: FeatureStatus;
+  biologicalAge: FeatureStatus;
+  cardiometabolic: FeatureStatus;
+}
+
+const CARDIO_INPUT_KEYS = ['ldl', 'hba1c', 'systolicBP', 'egfr', 'homaIr', 'bmi'] as const;
+
 /** Layer 2 — snapshot roll-up do paciente. */
 export interface CurrentHealthSummary {
   patientId: string;
@@ -82,8 +104,10 @@ export interface CurrentHealthSummary {
   worsening: MarkerState[];
   stale: MarkerState[];
   whatChanged: { nameCanonical: string; name: string; deltaPct: number | null; trend: TrendDirection }[];
-  biologicalAge?: { age: number; confidence: 'alta' | 'baixa'; markersUsed: number; method?: 'phenoage' | 'simplified'; missing?: string[] } | null;
+  biologicalAge?: { age: number; confidence: 'alta' | 'baixa'; markersUsed: number; method?: 'phenoage' | 'simplified'; missing?: string[]; assumptions?: string[] } | null;
   cardiometabolicRisk?: { level: string; score: number; factors: { label: string; risk: boolean }[] } | null;
+  /** Empty states honestos por feature (ver FeatureStatus). */
+  availability?: FeatureAvailability;
   clinicalSummary?: string;
   staleWarning?: string | null;
   /** Marcadores NORMALIZADOS (eram anormais no passado, estão normais agora) — seção do relatório. */
@@ -382,11 +406,18 @@ export async function buildCurrentHealthSummary(patientId: string, opts?: { incl
   let biologicalAge: CurrentHealthSummary['biologicalAge'] = null;
   let bioMethod: 'phenoage' | 'simplified' = 'simplified';
   let bioMissing: string[] = [];
+  // Captura p/ availability (empty states honestos): por que a idade bio NÃO calculou.
+  let bioNoDob = false;
+  let bioMinor = false;
+  let bioPhenoMissing: string[] = [];
+  let bioSexAssumed = false;
   try {
     const { prisma } = await import('../prisma');
     const patient = await prisma.patient.findUnique({ where: { id: patientId }, select: { gender: true, dateOfBirth: true } });
+    if (!patient?.dateOfBirth) bioNoDob = true;
     if (patient?.dateOfBirth) {
       const chronoAge = Math.floor((Date.now() - new Date(patient.dateOfBirth).getTime()) / (365.25 * 86400000));
+      if (chronoAge < 18) bioMinor = true;
       if (chronoAge >= 18) {
         // TENTAR PHENOAGE PRIMEIRO (fórmula científica Liu et al. 2018)
         const freshMarkers = markers.filter((m) => !m.latest.stale);
@@ -425,6 +456,7 @@ export async function buildCurrentHealthSummary(patientId: string, opts?: { incl
           crp == null ? 'PCR' : null, lin == null ? 'Linfócitos %' : null, vcm == null ? 'VCM' : null,
           rdw == null ? 'RDW' : null, alp == null ? 'Fosfatase Alcalina' : null, wbc == null ? 'Leucócitos' : null,
         ].filter(Boolean) as string[];
+        bioPhenoMissing = missing;
 
         if (missing.length === 0 && alb != null && cre != null && gli != null && crp != null && lin != null && vcm != null && rdw != null && alp != null && wbc != null) {
           // Todos os 9 marcadores disponíveis — PhenoAge completo
@@ -449,6 +481,8 @@ export async function buildCurrentHealthSummary(patientId: string, opts?: { incl
         // FALLBACK: z-score simplificado (quando PhenoAge não dá)
         if (!biologicalAge) {
           const { estimateBiologicalAge } = await import('./biological-age');
+          const sexKnown = (patient.gender as any) === 'female' || (patient.gender as any) === 'male';
+          if (!sexKnown) bioSexAssumed = true;
           const result = estimateBiologicalAge(
             freshMarkers.map((m) => ({ nameCanonical: m.nameCanonical, value: m.latest.valueNumeric ?? 0 })).filter((m) => m.value > 0),
             chronoAge,
@@ -458,7 +492,7 @@ export async function buildCurrentHealthSummary(patientId: string, opts?: { incl
             // 'missing' = marcadores do PhenoAge que faltaram (ex.: Glicose, PCR). Antes bioMissing
             // era atribuído DEPOIS de ser lido → chegava vazio no card (o usuário não sabia o que faltava).
             bioMissing = missing;
-            biologicalAge = { age: result.biologicalAge, confidence: result.confidence, markersUsed: result.markersUsed, method: 'simplified', missing: bioMissing };
+            biologicalAge = { age: result.biologicalAge, confidence: result.confidence, markersUsed: result.markersUsed, method: 'simplified', missing: bioMissing, ...(bioSexAssumed ? { assumptions: ['sexoNaoInformado'] } : {}) };
           }
         }
       }
@@ -466,6 +500,7 @@ export async function buildCurrentHealthSummary(patientId: string, opts?: { incl
   } catch { /* best-effort */ }
   // R3b — Risco cardiometabólico (LDL + HbA1c + PA + eGFR + HOMA-IR + IMC)
   let cardiometabolicRisk: CurrentHealthSummary['cardiometabolicRisk'] = null;
+  let cardioPresentKeys: string[] = [];
   try {
     const { assessCardiometabolicRisk } = await import('./cardiometabolic-risk');
     const { bmi, egfr, homaIr } = await import('./derived-markers');
@@ -481,7 +516,7 @@ export async function buildCurrentHealthSummary(patientId: string, opts?: { incl
     ]);
     const ageYears = patient?.dateOfBirth ? Math.floor((Date.now() - new Date(patient.dateOfBirth).getTime()) / (365.25 * 86400000)) : null;
     const sex: 'male' | 'female' | undefined = patient?.gender === 'male' || patient?.gender === 'female' ? patient.gender : undefined;
-    const riskResult = assessCardiometabolicRisk({
+    const cardioInputs = {
       ldl: markerVal('LDL'),
       hba1c: markerVal('HEMOGLOBINA_GLICADA'),
       // PAS vem da MEDIÇÃO de pressão (tabela measurements), não de exam_items — antes
@@ -490,7 +525,9 @@ export async function buildCurrentHealthSummary(patientId: string, opts?: { incl
       egfr: egfr(markerVal('CREATININA'), ageYears, sex),
       homaIr: homaIr(markerVal('GLICEMIA'), markerVal('INSULINA')),
       bmi: bmi(weight?.value ?? null, patient?.heightCm ?? null),
-    });
+    };
+    const riskResult = assessCardiometabolicRisk(cardioInputs);
+    cardioPresentKeys = Object.entries(cardioInputs).filter(([, v]) => v != null).map(([k]) => k);
     if (riskResult) cardiometabolicRisk = { level: riskResult.level, score: riskResult.score, factors: riskResult.factors };
   } catch { /* best-effort */ }
   const byPriority: Record<Priority, number> = { normal: 0, leve: 0, moderada: 0, importante: 0 };
@@ -501,6 +538,27 @@ export async function buildCurrentHealthSummary(patientId: string, opts?: { incl
   const abnormal = markers.filter((m) => m.priority !== 'normal');
   const sortByPriorityThenDelta = (a: MarkerState, b: MarkerState) =>
     PRIORITY_RANK[b.priority] - PRIORITY_RANK[a.priority] || Math.abs(b.deltaPct ?? 0) - Math.abs(a.deltaPct ?? 0);
+
+  // Disponibilidade (empty states honestos) — o cliente NUNCA mais infere estado a partir de null.
+  const availability: FeatureAvailability = {
+    healthScore: score != null
+      ? { status: 'ready', missing: [] }
+      : { status: 'no_data', missing: ['firstExam'] },
+    biologicalAge: biologicalAge
+      ? { status: 'ready', missing: [] }
+      : bioNoDob
+        ? { status: 'missing_profile', missing: ['dateOfBirth'] }
+        : bioMinor
+          ? { status: 'insufficient_data', missing: ['maiorDeIdade'] }
+          : total === 0
+            ? { status: 'no_data', missing: ['firstExam'] }
+            : { status: 'insufficient_data', missing: bioPhenoMissing.length > 0 ? bioPhenoMissing : ['marcadoresDeIdade'] },
+    cardiometabolic: cardiometabolicRisk
+      ? { status: 'ready', missing: [] }
+      : cardioPresentKeys.length > 0
+        ? { status: 'insufficient_data', missing: CARDIO_INPUT_KEYS.filter((k) => !cardioPresentKeys.includes(k)) }
+        : { status: 'no_data', missing: ['firstExam', 'weight', 'bloodPressure'] },
+  };
 
   return {
     patientId,
@@ -524,6 +582,7 @@ export async function buildCurrentHealthSummary(patientId: string, opts?: { incl
       .map((m) => ({ nameCanonical: m.nameCanonical, name: m.name, deltaPct: m.deltaPct, trend: m.trend })),
     biologicalAge,
     cardiometabolicRisk,
+    availability,
   };
 }
 

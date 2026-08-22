@@ -14,6 +14,7 @@ router.use(requireAuth);
 // Assuntos pré-definidos (fase 1 hardcoded; fase 2 = configurável via settings).
 export const TICKET_CATEGORIES = [
   'Dúvida sobre um exame',
+  'Exame rejeitado (CPF divergente)',
   'Erro no app',
   'Cobrança / Planos',
   'Compartilhamento com médico',
@@ -80,11 +81,37 @@ router.post('/', upload.array('files', 5), async (req: AuthedRequest, res, next)
     const openCount = await prisma.supportTicket.count({ where: { userId: req.userId!, status: { in: ['open', 'pending'] } } });
     if (openCount >= MAX_OPEN_TICKETS) { res.status(429).json({ error: `Limite de ${MAX_OPEN_TICKETS} chamados abertos. Aguarde um ser resolvido.` }); return; }
     const attachments = await saveAttachments(req.files as Express.Multer.File[] | undefined, 'tickets');
+    // PREFILL DE CONTEXTO (apelação "este exame é meu"): cliente manda examId opcional; o server
+    // anexa o contexto estruturado do exame rejeitado — CPF SEMPRE mascarado (identidade já vem
+    // mascarada do pipeline; nada de CPF integral em ticket/log). Escopado ao dono do exame.
+    let fullMessage = message;
+    const examId = String((req.body as any).examId ?? '').trim();
+    if (examId) {
+      const exam = await prisma.exam.findUnique({
+        where: { id: examId },
+        select: { id: true, title: true, status: true, createdAt: true, performedAt: true, fileSha256: true, extractionError: true, rawExtraction: true, patient: { select: { ownerId: true } } },
+      });
+      if (exam && exam.patient.ownerId === req.userId!) {
+        const im = (exam.rawExtraction as any)?.identityMatch;
+        const lines = [
+          '\n\n— Contexto técnico (anexado automaticamente pelo app) —',
+          `Exame: ${exam.id} · "${exam.title}"`,
+          `Status: ${exam.status}${exam.extractionError ? ` · ${String(exam.extractionError).replace(/^cpf_mismatch:\s*/, '')}` : ''}`,
+          `Enviado em: ${exam.createdAt.toISOString()}${exam.performedAt ? ` · Coleta: ${new Date(exam.performedAt).toISOString().slice(0, 10)}` : ''}`,
+          `Arquivo (sha256): ${exam.fileSha256}`,
+        ];
+        if (im) {
+          lines.push(`CPF da conta: ${im.profileCpfMasked ?? '—'} · CPF do documento: ${im.docCpfMasked ?? '—'} (mascarados)`);
+          lines.push(`Motivo: ${im.severity === 'cross_user' ? 'CPF pertence a outra conta' : 'CPF divergente do cadastro'}`);
+        }
+        fullMessage = `${message}${lines.join('\n')}`;
+      }
+    }
     const ticket = await prisma.supportTicket.create({
       data: {
         userId: req.userId!, category: category || null, subject, status: 'open',
         lastMessageBy: 'user', lastMessageAt: new Date(), unreadByAdmin: true,
-        messages: { create: { authorRole: 'user', authorId: req.userId!, body: message, attachments: attachments.length ? attachments : undefined } },
+        messages: { create: { authorRole: 'user', authorId: req.userId!, body: fullMessage, attachments: attachments.length ? attachments : undefined } },
       },
     });
     res.status(201).json({ id: ticket.id, number: ticket.number, subject: ticket.subject, category: ticket.category, status: ticket.status, createdAt: ticket.createdAt });

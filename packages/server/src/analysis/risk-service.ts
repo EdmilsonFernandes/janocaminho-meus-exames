@@ -148,6 +148,20 @@ export async function buildRiskAssessment(patientId: string, opts: BuildOptions 
   const confidence = computeConfidence(result);
   const snapshot = markers.map((m) => ({ key: m.key, value: m.value, unit: m.unit ?? null, stale: m.stale ?? false }));
 
+  // SEM DADOS ≠ RISCO BAIXO (LGPD/honestidade): paciente sem nenhum marcador no escopo NÃO gera
+  // RiskAssessment. Antes persistíamos riskLevel:'low' + "não foram identificadas alterações" do
+  // nada — poluindo histórico/trend e o dataset do flywheel. O cliente já trata
+  // markersEvaluated===0 com empty state honesto (RiskCard), então só não gravamos.
+  if (markers.length === 0) {
+    return {
+      result: { ...result, insufficientData: true },
+      saved: { id: '', createdAt: new Date() },
+      fromCache: false,
+      trend: 'estavel' as const,
+      prior: null,
+    };
+  }
+
   const created = await prisma.riskAssessment.create({
     data: {
       patientId,

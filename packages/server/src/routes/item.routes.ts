@@ -3,6 +3,7 @@ import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
 import { parseListParams, setListHeaders } from '../utils/list';
 import { getOrCreateExplanation } from '../analysis/explain';
+import { ageBandAt, applyPediatricRange } from '../analysis/pediatric-ranges';
 import { collapseAdjacentNearDupes } from '../analysis/dedup';
 import { medianRefRange } from '../utils/range';
 import { reconcileScaleFlag } from '../utils/normalize';
@@ -46,7 +47,7 @@ router.use(requireAuth);
 // ATUALIZAR item (corrigir valor extraído — usuário corrige erro de OCR; recalc flag)
 router.patch('/:id', async (req: AuthedRequest, res, next) => {
   try {
-    const existing = await prisma.examItem.findUnique({ where: { id: String(req.params.id) }, include: { exam: { select: { patientId: true } } } });
+    const existing = await prisma.examItem.findUnique({ where: { id: String(req.params.id) }, include: { exam: { select: { patientId: true, performedAt: true, patient: { select: { dateOfBirth: true } } } } } });
     if (!existing) { res.status(404).json({ error: 'Item não encontrado' }); return; }
     const pids = await userPatientIds(req.userId!);
     if (!pids.includes(existing.exam.patientId)) { res.status(403).json({ error: 'Sem permissão' }); return; }
@@ -54,22 +55,30 @@ router.patch('/:id', async (req: AuthedRequest, res, next) => {
     const valueText = b.valueText != null ? String(b.valueText) : existing.valueText;
     const valueNumeric = b.valueNumeric != null ? (b.valueNumeric === '' || b.valueNumeric == null ? null : Number(b.valueNumeric)) : existing.valueNumeric;
     const unit = b.unit != null ? (b.unit || null) : existing.unit;
+    const manualRef = b.refLow != null || b.refHigh != null; // usuário digitou faixa própria — respeita
     const refLow = b.refLow != null ? (b.refLow === '' || b.refLow == null ? null : Number(b.refLow)) : existing.refLow;
     const refHigh = b.refHigh != null ? (b.refHigh === '' || b.refHigh == null ? null : Number(b.refHigh)) : existing.refHigh;
+    // PEDIÁTRICO (Lote 2): mesma régua por idade da extração — quando o usuário NÃO digitou faixa
+    // manual e o item é de criança, reclassifica com a banda etária (consistente com pipeline).
+    let effLow = refLow; let effHigh = refHigh; let refAppliesTo = existing.refAppliesTo;
+    if (!manualRef) {
+      const ped = applyPediatricRange(existing.nameCanonical, refLow, refHigh, ageBandAt(existing.exam.patient?.dateOfBirth, existing.exam.performedAt));
+      if (ped) { effLow = ped.low; effHigh = ped.high; refAppliesTo = ped.appliesTo; }
+    }
     let flag = existing.flag; let isAbnormal = existing.isAbnormal;
-    if (valueNumeric != null && refLow != null && refHigh != null) {
+    if (valueNumeric != null && effLow != null && effHigh != null) {
       // Mesmo reconcile de escala da extração (revisão 2026-07): antes a edição manual usava só
       // computeFlag (< / >) e divergia da extração — valor em escala conflitante (ex.: cálcio em
       // mg% vs ref em outra escala) ficava com flag errado persistente. reconcileScaleFlag rebaixa
       // conflitos claros a UNKNOWN (igual pipeline.ts).
-      const rec = reconcileScaleFlag(valueNumeric, refLow, refHigh, unit);
+      const rec = reconcileScaleFlag(valueNumeric, effLow, effHigh, unit);
       flag = rec.flag; isAbnormal = rec.isAbnormal;
-    } else if (valueNumeric != null && (refLow != null || refHigh != null)) {
+    } else if (valueNumeric != null && (effLow != null || effHigh != null)) {
       // PATCH PARCIAL (auditoria 2026-08-17): só UM dos limites presente → impossível classificar.
       // Antes a flag ANTIGA sobrevivia intacta contradizendo a faixa editada — agora desclassifica.
       flag = 'UNKNOWN'; isAbnormal = false;
     }
-    const updated = await prisma.examItem.update({ where: { id: String(req.params.id) }, data: { valueText, valueNumeric, unit, refLow, refHigh, flag, isAbnormal } });
+    const updated = await prisma.examItem.update({ where: { id: String(req.params.id) }, data: { valueText, valueNumeric, unit, refLow: effLow, refHigh: effHigh, refAppliesTo, flag, isAbnormal } });
     invalidateHealthSummary(existing.exam.patientId); // edição muda score/"o que mudou" do paciente
     res.json(updated);
   } catch (e) { next(e); }

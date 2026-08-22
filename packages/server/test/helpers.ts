@@ -114,7 +114,7 @@ export async function createPatient(ownerId: string, opts: { fullName?: string; 
 export async function createExam(patientId: string, opts: {
   title?: string;
   performedAt?: Date;
-  status?: 'UPLOADED' | 'EXTRACTING' | 'EXTRACTED' | 'FAILED';
+  status?: 'UPLOADED' | 'EXTRACTING' | 'EXTRACTED' | 'FAILED' | 'REJECTED';
   kind?: 'LAB_PANEL' | 'IMAGING' | 'OTHER';
   sha?: string;
 } = {}) {

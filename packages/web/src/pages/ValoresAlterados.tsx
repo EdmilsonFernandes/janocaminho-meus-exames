@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Box, Card, CardContent, Typography, Stack, Chip, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
 import { Title, useTranslate } from 'react-admin';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
@@ -23,17 +24,27 @@ import type { AbnormalItem as AbnItem } from '@meus-exames/shared';
 /** Valores fora da faixa, AGRUPADOS POR EXAME (dentro de cada exame, ordenados por PRIORIDADE). */
 export const ValoresAlteradosPage = () => {
   const translate = useTranslate();
+  const navigate = useNavigate();
   const [pid] = useSelectedPatient();
   const [items, setItems] = useState<AbnItem[]>([]);
+  const [examCount, setExamCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
-    fetch(`${API_URL}/items/abnormal${pid ? `?patientId=${pid}` : ''}`, { headers: { Authorization: `Bearer ${token()}` } })
+    // examCount distingue "sem NENHUM exame" (onboarding + CTA) de "exames todos normais"
+    // (✅ all_good legítimo). Antes: os dois casos rendiam "Tudo dentro da faixa!" — usuário
+    // novo via um atestado de saúde sem nunca ter enviado exame.
+    const h = { Authorization: `Bearer ${token()}` };
+    fetch(`${API_URL}/items/abnormal${pid ? `?patientId=${pid}` : ''}`, { headers: h })
       .then((r) => r.json())
       .then((d) => setItems(d.items ?? []))
       .catch(() => setItems([]))
       .finally(() => setLoading(false));
+    fetch(`${API_URL}/exams?_start=0&_end=1${pid ? `&patientId=${pid}` : ''}`, { headers: h })
+      .then((r) => Number(r.headers.get('X-Total-Count') ?? r.headers.get('content-range')?.split('/')?.[1] ?? '0'))
+      .then((n) => setExamCount(Number.isFinite(n) ? n : 0))
+      .catch(() => setExamCount(0));
   }, [pid]);
 
   const groups = useMemo(() => {
@@ -84,6 +95,13 @@ export const ValoresAlteradosPage = () => {
 
       {loading ? (
         <ListSkeleton count={3} />
+      ) : items.length === 0 && examCount === 0 ? (
+        <EmptyState
+          title="Sem exames ainda"
+          desc="Envie seu primeiro exame — o Dr. Exame lê os valores e avisa o que estiver fora da referência."
+          cta="Enviar primeiro exame"
+          onCta={() => navigate('/exams/create')}
+        />
       ) : items.length === 0 ? (
         <EmptyState
           emoji="✅"

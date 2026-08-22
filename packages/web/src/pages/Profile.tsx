@@ -2,14 +2,15 @@ import { useEffect, useState } from 'react';
 import { Box, Card, CardContent, Typography, TextField, Button, Stack, Chip, MenuItem, Switch, FormControlLabel } from '@mui/material';
 import { useNotify, useRefresh, useTranslate } from 'react-admin';
 import { useNavigate } from 'react-router-dom';
-import LockIcon from '@mui/icons-material/Lock';
 import SaveIcon from '@mui/icons-material/Save';
 import BadgeIcon from '@mui/icons-material/WorkspacePremium';
 import DownloadIcon from '@mui/icons-material/Download';
-import UploadIcon from '@mui/icons-material/Upload';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import LockResetIcon from '@mui/icons-material/LockReset';
+import ShieldIcon from '@mui/icons-material/Shield';
+import ScaleIcon from '@mui/icons-material/Scale';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { API_URL, token, apiHeaders } from '../config';
-import { confirmDialog } from '../components/ConfirmDialog';
 import { ReferralCard } from '../components/ReferralCard';
 import { useSelectedPatient } from '../patient-context';
 import { PhotoUpload } from '../components/PhotoUpload';
@@ -27,6 +28,27 @@ const parseHeightCm = (s: string): number | null => {
   return Math.round(n < 3 ? n * 100 : n);
 };
 
+const fmtDate = (d?: string | null) => (d ? new Date(d).toLocaleDateString('pt-BR') : '');
+
+/** Linha de atalho p/ outra área da conta (a funcionalidade continua existindo — em outro lugar). */
+const AccountLinkRow = ({ icon, title, desc, onClick }: { icon: React.ReactNode; title: string; desc: string; onClick: () => void }) => (
+  <Stack direction="row" spacing={1.5} alignItems="center" onClick={onClick} sx={{ py: 1.25, cursor: 'pointer', '&:active': { opacity: 0.7 } }}>
+    <Box sx={{ width: 36, height: 36, borderRadius: '10px', display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,.12)', color: '#178f89', flexShrink: 0 }}>{icon}</Box>
+    <Box sx={{ flex: 1, minWidth: 0 }}>
+      <Typography sx={{ fontWeight: 700, fontSize: 15, color: 'text.primary' }}>{title}</Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ fontSize: 13 }}>{desc}</Typography>
+    </Box>
+    <ChevronRightIcon sx={{ color: 'text.disabled' }} />
+  </Stack>
+);
+
+/**
+ * Meu Perfil — ARQUITETURA (auditoria 2026-08): o Perfil é IDENTIDADE + DADOS CLÍNICOS +
+ * preferências leves. Funções de conta moram nas páginas próprias (nada desapareceu):
+ * trocar senha/MFA/biometria → /seguranca · export/import/excluir (LGPD) → /privacidade.
+ * Peso: apenas EXIBIÇÃO do valor atual (vem da última medição) + atalho — registro é em Medições
+ * (terminou a duplicação de UI: duas telas gravavam peso de jeitos diferentes).
+ */
 export const ProfilePage = () => {
   const translate = useTranslate();
   const [pid] = useSelectedPatient();
@@ -41,15 +63,17 @@ export const ProfilePage = () => {
   const [clinical, setClinical] = useState('');
   const [gender, setGender] = useState('');
   const [heightCm, setHeightCm] = useState('');
-  const [weight, setWeight] = useState('');
-  const [weightSaving, setWeightSaving] = useState(false);
   const [ethnicity, setEthnicity] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [saving, setSaving] = useState(false);
   const [photoVer, setPhotoVer] = useState(0); // cache-bust sincronizado entre header
-  const [cur, setCur] = useState(''); const [nw, setNw] = useState(''); const [cf, setCf] = useState('');
-  const [pwLoading, setPwLoading] = useState(false);
   const [achAlerts, setAchAlerts] = useState(true); // avisar ao desbloquear conquista
+  // Libras: preferência LOCAL (o widget vive no index.html, fora do React) — body class + localStorage.
+  // OPT-IN (2026-08-19, a pedido do dono): default DESLIGADO — o widget flutuante atrapalhava
+  // quem não usa; quem precisa ativa aqui (e o index.html só mostra com 'meus_exames_libras' === '1').
+  const [librasOn, setLibrasOn] = useState(() => { try { return localStorage.getItem('meus_exames_libras') === '1'; } catch { return false; } });
+  // Card de atividade (Health Connect): a volta de quem ocultou no Dashboard.
+  const [activityOn, setActivityOn] = useState(() => { try { return localStorage.getItem('dx_activity_hidden') !== '1'; } catch { return true; } });
 
   const load = async () => {
     const h = { Authorization: `Bearer ${token()}` };
@@ -57,7 +81,12 @@ export const ProfilePage = () => {
     if (me.ok) { const mu = (await me.json())?.user; setUser(mu); setAchAlerts(mu?.achievementAlerts ?? true); }
     if (pid) {
       const pr = await fetch(`${API_URL}/patients/${pid}`, { headers: h });
-      if (pr.ok) { const p = await pr.json(); setPatient(p); setFullName(p.fullName ?? ''); setCpf(p.cpfMasked ?? ''); setPhone(p.phone ?? ''); setClinical(p.clinicalProfile ?? ''); setGender(p.gender ?? ''); setHeightCm(p.heightCm != null ? String(p.heightCm) : ''); setEthnicity(p.ethnicity ?? ''); setBirthDate(p.dateOfBirth ? p.dateOfBirth.split('T')[0] : ''); }
+      if (pr.ok) {
+        const p = await pr.json();
+        setPatient(p); setFullName(p.fullName ?? ''); setCpf(p.cpfMasked ?? ''); setPhone(p.phone ?? '');
+        setClinical(p.clinicalProfile ?? ''); setGender(p.gender ?? ''); setHeightCm(p.heightCm != null ? String(p.heightCm) : '');
+        setEthnicity(p.ethnicity ?? ''); setBirthDate(p.dateOfBirth ? p.dateOfBirth.split('T')[0] : '');
+      }
     }
   };
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [pid]);
@@ -70,98 +99,29 @@ export const ProfilePage = () => {
     if (!patient?.hasCpf && cpf) body.cpf = cpf;
     const r = await fetch(`${API_URL}/patients/${pid}`, { method: 'PUT', headers: apiHeaders(true), body: JSON.stringify(body) });
     setSaving(false);
-    notify(r.ok ? 'Perfil atualizado!' : 'Erro ao salvar', { type: r.ok ? 'success' : 'error' });
-  };
-  // Atalho de peso: registra uma medição WEIGHT (vai pro histórico de Medições e alimenta IMC/cardio).
-  const saveWeight = async () => {
-    if (!pid) return;
-    const w = Number(String(weight).trim().replace(',', '.'));
-    if (!Number.isFinite(w) || w <= 0 || w > 500) { notify('Informe um peso válido em kg.', { type: 'error' }); return; }
-    setWeightSaving(true);
-    const r = await fetch(`${API_URL}/measurements`, { method: 'POST', headers: apiHeaders(true), body: JSON.stringify({ patientId: pid, type: 'WEIGHT', value: w, unit: 'kg', measuredAt: new Date().toISOString().slice(0, 10) }) });
-    setWeightSaving(false);
-    if (r.ok) { notify('Peso registrado em Medições!', { type: 'success' }); setWeight(''); }
-    else { const e = await r.json().catch(() => ({})); notify(e.error || 'Erro ao registrar peso', { type: 'error' }); }
+    if (r.ok) { notify('Perfil atualizado!', { type: 'success' }); await load(); refresh(); }
+    else notify('Erro ao salvar', { type: 'error' });
   };
   const toggleAchAlerts = async (on: boolean) => {
     setAchAlerts(on);
     const r = await fetch(`${API_URL}/auth/me`, { method: 'PATCH', headers: apiHeaders(true), body: JSON.stringify({ achievementAlerts: on }) });
     if (!r.ok) { setAchAlerts(!on); notify('Erro ao salvar preferência.', { type: 'error' }); }
   };
-  // Libras: preferência LOCAL (o widget vive no index.html, fora do React) — body class + localStorage.
-  // OPT-IN (2026-08-19, a pedido do dono): default DESLIGADO — o widget flutuante atrapalhava
-  // quem não usa; quem precisa ativa aqui (e o index.html só mostra com 'meus_exames_libras' === '1').
-  const [librasOn, setLibrasOn] = useState(() => { try { return localStorage.getItem('meus_exames_libras') === '1'; } catch { return false; } });
   const toggleLibras = (on: boolean) => {
     setLibrasOn(on);
     try { localStorage.setItem('meus_exames_libras', on ? '1' : '0'); } catch { /* localStorage indisponível */ }
     document.body.classList.toggle('libras-off', !on);
   };
-  // Card de atividade (Health Connect): a volta de quem ocultou no Dashboard.
-  const [activityOn, setActivityOn] = useState(() => { try { return localStorage.getItem('dx_activity_hidden') !== '1'; } catch { return true; } });
   const toggleActivity = (on: boolean) => {
     setActivityOn(on);
     try { localStorage.setItem('dx_activity_hidden', on ? '0' : '1'); } catch { /* localStorage indisponível */ }
     if (on) notify('Card de atividade voltou ao início ✨', { type: 'success' });
   };
-  const changePw = async () => {
-    if (nw !== cf) { notify('A nova senha e a confirmação não conferem.', { type: 'error' }); return; }
-    if (nw.length < 6) { notify('Nova senha mín. 6 caracteres.', { type: 'error' }); return; }
-    setPwLoading(true);
-    const r = await fetch(`${API_URL}/auth/change-password`, { method: 'POST', headers: apiHeaders(true), body: JSON.stringify({ currentPassword: cur, newPassword: nw }) });
-    setPwLoading(false);
-    if (r.ok) { notify('Senha alterada com sucesso!', { type: 'success' }); setCur(''); setNw(''); setCf(''); }
-    else { const e = await r.json().catch(() => ({})); notify(e.error || 'Erro ao trocar senha', { type: 'error' }); }
-  };
-  const delAccount = async () => {
-    if (!(await confirmDialog({ title: 'Excluir minha conta', message: 'ATENÇÃO: isso apaga TODOS os seus dados (exames, análises, perfil, fotos) definitivamente. NÃO dá pra desfazer.', confirmLabel: 'Excluir conta' }))) return;
-    const r = await fetch(`${API_URL}/auth/account`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });
-    if (r.ok) { localStorage.clear(); navigate('/landing', { replace: true }); }
-    else notify('Falha ao excluir conta. Tente novamente.', { type: 'error' });
-  };
-  const exportData = async () => {
-    const r = await fetch(`${API_URL}/data/export`, { headers: { Authorization: `Bearer ${token()}` } });
-    if (!r.ok) { notify('Falha ao exportar', { type: 'error' }); return; }
-    const blob = await r.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'meus-exames-backup.json'; a.click();
-    URL.revokeObjectURL(url);
-    notify('Backup exportado!', { type: 'success' });
-  };
-  // PACOTE COMPLETO (.zip): dados + relatórios legíveis + PDFs originais — portabilidade LGPD.
-  const [zipLoading, setZipLoading] = useState(false);
-  const exportAll = async () => {
-    setZipLoading(true);
-    try {
-      const r = await fetch(`${API_URL}/data/export-all`, { headers: { Authorization: `Bearer ${token()}` } });
-      if (!r.ok) { const e = await r.json().catch(() => ({})); notify(e.error || 'Falha ao gerar o pacote', { type: 'error' }); return; }
-      const blob = await r.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href = url; a.download = `meus-exames-completo-${new Date().toISOString().slice(0, 10)}.zip`; a.click();
-      URL.revokeObjectURL(url);
-      notify('Pacote completo baixado!', { type: 'success' });
-    } finally { setZipLoading(false); }
-  };
-  const importData = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0]; if (!f) return;
-    if (!(await confirmDialog({ title: 'Importar dados', message: 'Importar cria NOVOS perfis/exames (não sobrescreve os atuais).', confirmLabel: 'Importar', tone: 'primary' }))) { e.target.value = ''; return; }
-    try {
-      const r = await fetch(`${API_URL}/data/import`, { method: 'POST', headers: apiHeaders(true), body: await f.text() });
-      const d = await r.json();
-      if (r.ok) {
-        notify(`Importado! ${d.counts?.patients || 0} perfil(is), ${d.counts?.exams || 0} exame(s).`, { type: 'success' });
-        window.dispatchEvent(new Event('selPatientChanged'));
-        refresh();
-        await load();
-      }
-      else notify(d.error || 'Falha ao importar', { type: 'error' });
-    } catch { notify('Arquivo inválido', { type: 'error' }); }
-    e.target.value = '';
-  };
 
   if (!pid) return <PageSkeleton cards={4} />;
 
   const planActive = user?.planExpiresAt && new Date(user.planExpiresAt) > new Date();
+  const profilePct: number | null = patient?.profileCompleteness?.pct ?? null;
 
   return (
     <PageContainer width={780}>
@@ -181,6 +141,9 @@ export const ProfilePage = () => {
               {planActive
                 ? <Chip size="small" icon={<BadgeIcon sx={{ color: '#fff !important' }} />} label="Premium ativo" sx={{ bgcolor: 'rgba(255,255,255,.18)', color: '#fff', fontWeight: 700 }} />
                 : <Chip size="small" label="Plano grátis" sx={{ bgcolor: 'rgba(255,255,255,.12)', color: '#fff' }} />}
+              {profilePct != null && profilePct < 100 && (
+                <Chip size="small" label={`Perfil ${profilePct}%`} sx={{ bgcolor: 'rgba(255,255,255,.22)', color: '#fff', fontWeight: 700 }} />
+              )}
             </Stack>
             <Typography variant="caption" sx={{ display: 'block', mt: 0.5, opacity: 0.85 }}>Toque na câmera da foto para trocar a imagem.</Typography>
           </Box>
@@ -195,13 +158,18 @@ export const ProfilePage = () => {
             <TextField label="Nome completo" value={fullName} onChange={(e) => setFullName(e.target.value)} fullWidth size="small" disabled={!!patient?.identityLocked} helperText={patient?.identityLocked ? 'Nome bloqueado após verificação de CPF e e-mail. Correção somente via suporte.' : undefined} />
             <TextField label="CPF" value={cpf} onChange={(e) => setCpf(formatCpf(e.target.value))} fullWidth size="small" disabled={!!patient?.hasCpf} inputProps={{ inputMode: 'numeric' }} error={!patient?.hasCpf && !!cpf && cpf.length === 14 && !isValidCpf(cpf)} helperText={patient?.hasCpf ? 'CPF verificado e mascarado. Correção somente via suporte auditado.' : 'Usado para confirmar que os exames pertencem a este perfil.'} />
             <TextField label="Telefone / WhatsApp" value={phone} onChange={(e) => setPhone(e.target.value)} fullWidth size="small" />
-            <TextField select label="Sexo (define a faixa de referência dos exames)" value={gender} onChange={(e) => setGender(e.target.value)} fullWidth size="small" helperText="Mulher usa a coluna 'Mulheres', homem a 'Homens' do laudo.">
-              <MenuItem value="">Prefiro não informar (usa Homens)</MenuItem>
+            <TextField
+              select label="Sexo" value={gender} onChange={(e) => setGender(e.target.value)} fullWidth size="small"
+              helperText={gender
+                ? 'Usamos a coluna de referência correspondente do laudo (Homens/Mulheres) e ajustamos IMC, eGFR e idade biológica.'
+                : 'Sem sexo informado, os cálculos usam a referência masculina — informe para referências exatas.'}
+            >
               <MenuItem value="female">Feminino</MenuItem>
               <MenuItem value="male">Masculino</MenuItem>
+              <MenuItem value="">Não informado</MenuItem>
             </TextField>
             <TextField type="number" label="Altura (cm)" value={heightCm} onChange={(e) => setHeightCm(e.target.value)} fullWidth size="small" helperText="Em centímetros (ex.: 172). Aceita 1,72 m — convertemos pra você. Usada no IMC." />
-            <TextField select label="Etnia (opcional)" value={ethnicity} onChange={(e) => setEthnicity(e.target.value)} fullWidth size="small" helperText="Dados demográficos ajudam a refinar futuras análises.">
+            <TextField select label="Etnia (opcional)" value={ethnicity} onChange={(e) => setEthnicity(e.target.value)} fullWidth size="small" helperText="Opcional de verdade: hoje nenhum cálculo usa etnia (nossas equações são race-free) — guardamos para pesquisas futuras.">
               <MenuItem value="">Prefiro não informar</MenuItem>
               <MenuItem value="branca">Branca</MenuItem>
               <MenuItem value="preta">Preta</MenuItem>
@@ -222,78 +190,53 @@ export const ProfilePage = () => {
         </CardContent>
       </Card>
 
-      {/* Peso atual — atalho que registra medição WEIGHT (alimenta IMC + cardiometabólico) */}
+      {/* Peso atual — EXIBIÇÃO + atalho (registro é em Medições; acabou a 2ª UI de peso).
+          Valor vem da última medição WEIGHT (mesma fonte do IMC no server). */}
       <Card sx={{ mb: 2, borderRadius: '12px' }}>
         <CardContent>
-          <Typography variant="h6" gutterBottom>⚖️ Peso atual</Typography>
-          <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
-            <TextField label="Peso (kg)" value={weight} onChange={(e) => setWeight(e.target.value)} size="small" inputProps={{ inputMode: 'decimal' }} sx={{ width: 150 }} onKeyDown={(e) => { if (e.key === 'Enter') saveWeight(); }} />
-            <Button variant="contained" onClick={saveWeight} disabled={weightSaving || !weight}>{weightSaving ? 'Salvando…' : 'Registrar peso'}</Button>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Box sx={{ width: 40, height: 40, borderRadius: '11px', display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,.12)', color: '#178f89', flexShrink: 0 }}><ScaleIcon /></Box>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography variant="h6">Peso atual</Typography>
+              {patient?.weightKg != null ? (
+                <Typography variant="body2" color="text.secondary">
+                  <Box component="span" sx={{ fontWeight: 800, fontSize: 18, color: 'text.primary' }}>{String(patient.weightKg).replace('.', ',')} kg</Box>
+                  {patient.weightMeasuredAt ? ` · registrado em ${fmtDate(patient.weightMeasuredAt)}` : ''}
+                </Typography>
+              ) : (
+                <Typography variant="body2" color="text.secondary">Sem peso registrado ainda — usado no IMC e no risco cardiometabólico.</Typography>
+              )}
+            </Box>
+            <Button variant={patient?.weightKg != null ? 'outlined' : 'contained'} onClick={() => navigate('/medicoes')} sx={{ flexShrink: 0 }}>
+              {patient?.weightKg != null ? 'Novo peso' : 'Registrar peso'}
+            </Button>
           </Stack>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>Salva como medição — alimenta o IMC e o card de Risco Cardiometabólico. Histórico completo em Medições.</Typography>
         </CardContent>
       </Card>
 
-      {/* Notificações de conquista */}
+      {/* Preferências — notificações + acessibilidade juntas (3 toggles não merecem página própria) */}
       <Card sx={{ mb: 2, borderRadius: '12px' }}>
         <CardContent>
-          <Typography variant="h6" gutterBottom>🔔 Notificações</Typography>
-          <FormControlLabel control={<Switch checked={achAlerts} onChange={(e) => toggleAchAlerts(e.target.checked)} />} label="Avisar quando eu desbloquear uma conquista" />
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>Você continua ganhando os créditos mesmo com isso desligado — só não recebe o aviso no sino.</Typography>
-        </CardContent>
-      </Card>
-
-      {/* Acessibilidade — Libras opcional (2026-08-19): o widget flutuante atrapalhava quem não
-          usa; default DESLIGADO (a pedido do dono) — quem precisa ativa aqui. */}
-      <Card sx={{ mb: 2, borderRadius: '12px' }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>♿ Acessibilidade</Typography>
-          <FormControlLabel control={<Switch checked={librasOn} onChange={(e) => toggleLibras(e.target.checked)} />} label="Botão de tradução em Libras" />
+          <Typography variant="h6" gutterBottom>Preferências</Typography>
+          <FormControlLabel control={<Switch checked={achAlerts} onChange={(e) => toggleAchAlerts(e.target.checked)} />} label={<Box>🔔 Avisar quando eu desbloquear uma conquista</Box>} />
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>Você continua ganhando os créditos mesmo com isso desligado — só não recebe o aviso no sino.</Typography>
+          <FormControlLabel control={<Switch checked={librasOn} onChange={(e) => toggleLibras(e.target.checked)} />} label="♿ Botão de tradução em Libras" />
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>Traduz os textos do app para Língua Brasileira de Sinais. Desligue para remover o botão flutuante da tela.</Typography>
-          {/* Volta do card de atividade ocultado no Dashboard (Health Connect — só no app Android). */}
-          <FormControlLabel control={<Switch checked={activityOn} onChange={(e) => toggleActivity(e.target.checked)} />} label="Card de atividade física no início" />
+          <FormControlLabel control={<Switch checked={activityOn} onChange={(e) => toggleActivity(e.target.checked)} />} label="🏃 Card de atividade física no início" />
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>Passos, calorias e distância (Health Connect do celular). Vale no app Android.</Typography>
         </CardContent>
       </Card>
 
-      {/* Trocar senha */}
-      <Card sx={{ borderRadius: '12px' }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><LockIcon color="action" /> Trocar senha</Typography>
-          <Stack spacing={2}>
-            <TextField type="password" label="Senha atual" value={cur} onChange={(e) => setCur(e.target.value)} fullWidth size="small" />
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <TextField type="password" label="Nova senha" value={nw} onChange={(e) => setNw(e.target.value)} fullWidth size="small" />
-              <TextField type="password" label="Confirmar nova senha" value={cf} onChange={(e) => setCf(e.target.value)} fullWidth size="small" />
-            </Stack>
-          </Stack>
-          <Box sx={{ mt: 2 }}>
-            <Button variant="outlined" startIcon={<LockIcon />} onClick={changePw} disabled={pwLoading || !cur || !nw}> {pwLoading ? 'Alterando…' : 'Alterar senha'}</Button>
-          </Box>
+      {/* CONTA — atalhos pras áreas próprias (nada desapareceu; cada coisa no seu lugar) */}
+      <Card sx={{ mb: 2, borderRadius: '12px' }}>
+        <CardContent sx={{ py: 1 }}>
+          <AccountLinkRow icon={<LockResetIcon />} title="Segurança" desc="Trocar senha, 2FA e biometria" onClick={() => navigate('/seguranca')} />
+          <AccountLinkRow icon={<ShieldIcon />} title="Privacidade e dados" desc="Baixar seus dados, importar, termos (LGPD) e excluir conta" onClick={() => navigate('/privacidade')} />
         </CardContent>
       </Card>
 
-      {/* INDICAÇÃO — convide amigos, ganhe créditos */}
+      {/* BENEFÍCIOS — convide amigos, ganhe créditos */}
       <ReferralCard code={user?.referralCode} />
-
-      {/* Dados e conta (exportar/importar/excluir — termos e LGPD estão em /privacidade) */}
-      <Card sx={{ borderRadius: '12px', mt: 2, borderColor: 'error.main' }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>Meus dados</Typography>
-          <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-            <Button variant="outlined" color="error" onClick={delAccount}>Excluir minha conta</Button>
-            <Button variant="outlined" startIcon={<DownloadIcon />} onClick={exportData}>Exportar dados</Button>
-            <Button variant="outlined" component="label" startIcon={<UploadIcon />}>Importar dados
-              <input type="file" hidden accept="application/json" onChange={importData} />
-            </Button>
-          </Stack>
-          {/* Baixe TUDO em 1 clique (LGPD art. 18, II): zip com dados.json + relatórios .md + PDFs. */}
-          <Button variant="contained" startIcon={<DownloadIcon />} onClick={exportAll} disabled={zipLoading} sx={{ mt: 1.5, borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>
-            {zipLoading ? 'Gerando pacote…' : 'Baixar tudo (.zip)'}
-          </Button>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>A exclusão apaga definitivamente todos os exames, análises e dados. O pacote .zip traz dados, relatórios legíveis e os PDFs originais (portabilidade — LGPD). Termos em "Privacidade".</Typography>
-        </CardContent>
-      </Card>
     </PageContainer>
   );
 };

@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { useTranslate } from 'react-admin';
+import { useEffect, useRef, useState } from 'react';
+import { useTranslate, useNotify } from 'react-admin';
 import { Card, CardContent, Typography, Button, TextField, Select, MenuItem, FormControl, InputLabel, List, ListItem, Box, Chip, IconButton, Stack, Collapse } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { confirmDialog } from '../components/ConfirmDialog';
@@ -24,6 +24,7 @@ const TYPES = [
 
 export const MeasurementsPage = () => {
   const translate = useTranslate();
+  const notify = useNotify();
   const [pid] = useSelectedPatient();
   const [items, setItems] = useState<any[]>([]);
   const [type, setType] = useState('WEIGHT');
@@ -31,6 +32,7 @@ export const MeasurementsPage = () => {
   const [value2, setValue2] = useState('');
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [open, setOpen] = useState(false); // formulário colapsável (usuário não quer preencher nada por padrão)
+  const formRef = useRef<HTMLDivElement>(null);
 
   const load = async () => {
     if (!pid) return;
@@ -39,14 +41,24 @@ export const MeasurementsPage = () => {
   };
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [pid]);
 
+  // Atalho "registrar X" = 1 clique: pré-seleciona o tipo, abre o form E rola até ele
+  // (antes o form abria lá embaixo sem sinal — parecia que o botão não tinha feito nada).
+  const openForm = (typeKey: string) => {
+    setType(typeKey);
+    setValue(''); setValue2('');
+    setOpen(true);
+    requestAnimationFrame(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+  };
+
   const add = async () => {
     if (!value || !date) return;
     const t = TYPES.find((x) => x.v === type)!;
-    await fetch(`${API_URL}/measurements`, {
+    const r = await fetch(`${API_URL}/measurements`, {
       method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
       body: JSON.stringify({ patientId: pid, type, value: Number(value), valueSecondary: t.dual && value2 ? Number(value2) : null, unit: t.u, measuredAt: date }),
     });
-    setValue(''); setValue2(''); load();
+    if (r.ok) { notify(`${t.l} registrada ✓`, { type: 'success' }); setValue(''); setValue2(''); load(); }
+    else { const e = await r.json().catch(() => ({})); notify(e.error || 'Erro ao registrar', { type: 'error' }); }
   };
   // Dado de saúde (LGPD): exclusão SEMPRE confirmada — 1 toque acidental não apaga histórico.
   const del = async (id: string) => {
@@ -93,7 +105,7 @@ export const MeasurementsPage = () => {
             <Box sx={{ textAlign: 'center', py: 2.5 }}>
               <Box sx={{ fontSize: 40, mb: 1, opacity: 0.5 }}>⚖️</Box>
               <Typography color="text.secondary" sx={{ mb: 1.5 }}>Registre seu peso e acompanhe a tendência aqui.</Typography>
-              <Button size="small" variant="outlined" onClick={() => { setType('WEIGHT'); setOpen(true); }} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>Registrar peso</Button>
+              <Button size="small" variant="outlined" onClick={() => openForm('WEIGHT')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>Registrar peso</Button>
             </Box>
           ) : (
             <>
@@ -136,7 +148,7 @@ export const MeasurementsPage = () => {
             <Box sx={{ textAlign: 'center', py: 2.5 }}>
               <Box sx={{ fontSize: 40, mb: 1, opacity: 0.5 }}>🩺</Box>
               <Typography color="text.secondary" sx={{ mb: 1.5 }}>Pressão, glicose e frequência cardíaca que você medir aparecem aqui.</Typography>
-              <Button size="small" variant="outlined" onClick={() => { setType('BLOOD_PRESSURE'); setOpen(true); }} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>Registrar medição</Button>
+              <Button size="small" variant="outlined" onClick={() => openForm('BLOOD_PRESSURE')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>Registrar medição</Button>
             </Box>
           ) : (
             <List>
@@ -160,15 +172,16 @@ export const MeasurementsPage = () => {
         </CardContent>
       </Card>
 
-      {/* REGISTRAR — por último (dado em cima, ferramenta embaixo; colapsado por padrão) */}
-      <Card sx={{ mt: 2 }}>
+      {/* REGISTRAR — por último (dado em cima, ferramenta embaixo; colapsado por padrão).
+          Enter salva (mobile: tecladoDone = salvar, sem caçar o botão). */}
+      <Card sx={{ mt: 2 }} ref={formRef}>
         <CardContent>
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Typography variant="h6">Nova medição</Typography>
             <Button size="small" onClick={() => setOpen((o) => !o)} endIcon={<ExpandMoreIcon sx={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }} />}>{open ? 'Fechar' : 'Registrar'}</Button>
           </Stack>
           <Collapse in={open}>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 2 }} alignItems={{ xs: 'stretch', sm: 'center' }}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 2 }} alignItems={{ xs: 'stretch', sm: 'center' }} onKeyDown={(e) => { if (e.key === 'Enter' && value) add(); }}>
               <FormControl size="small" sx={{ minWidth: 180 }}>
                 <InputLabel>Tipo</InputLabel>
                 <Select label="Tipo" value={type} onChange={(e) => setType(e.target.value)}>

@@ -36,8 +36,8 @@ import { openExamFile } from '../../utils/examFile';
 import { RADIUS } from '../../theme';
 
 // Status de PROCESSAMENTO (não clínico) → chave de paleta (token, sem hex literal).
-const statusColor: Record<string, 'success' | 'error' | 'warning' | 'info' | 'default'> = { EXTRACTED: 'success', FAILED: 'error', UPLOADED: 'warning', EXTRACTING: 'info' };
-const statusLabel: Record<string, string> = { EXTRACTED: 'Pronto', FAILED: 'Falhou', UPLOADED: 'Enviado', EXTRACTING: 'Extraindo' };
+const statusColor: Record<string, 'success' | 'error' | 'warning' | 'info' | 'default'> = { EXTRACTED: 'success', FAILED: 'error', UPLOADED: 'warning', EXTRACTING: 'info', REJECTED: 'default' };
+const statusLabel: Record<string, string> = { EXTRACTED: 'Pronto', FAILED: 'Falhou', UPLOADED: 'Enviado', EXTRACTING: 'Extraindo', REJECTED: 'Rejeitado' };
 const kindLabel: Record<string, string> = { LAB_PANEL: 'Laboratorial', IMAGING: 'Imagem', OTHER: 'Outro' };
 
 /** Cor de paleta resolved (pra alpha em bgcolor) — default cai em text.secondary. */
@@ -215,6 +215,9 @@ const ExamCards = () => {
   const processing = all.filter((r: any) => r.status === 'UPLOADED' || r.status === 'EXTRACTING');
   const failed = all.filter((r: any) => r.status === 'FAILED');
   const extracted = all.filter((r: any) => r.status === 'EXTRACTED');
+  // REJECTED (CPF divergente): visíveis pro dono decidir (apelar ou excluir) — mas FORA do
+  // histórico válido, hero, contagens e indicadores (nem entram em `extracted`).
+  const rejected = all.filter((r: any) => r.status === 'REJECTED');
 
   // latestYear p/ gate Premium (do conjunto COMPLETO, não do filtrado — estável).
   const years = extracted.map(yearOf).filter((y): y is number => y != null);
@@ -289,6 +292,14 @@ const ExamCards = () => {
               ⚠️ {(r.extractionError || 'Falha na leitura do documento').slice(0, 140)}
             </Typography>
             <Button size="small" color="primary" onClick={(e) => reextract(e, r.id)} sx={{ mt: 0.5, textTransform: 'none', fontWeight: 700 }}>↻ Re-extrair</Button>
+          </Box>
+        )}
+        {r.status === 'REJECTED' && (
+          <Box onClick={(e) => e.stopPropagation()} sx={{ px: 1.5, pb: 1.25 }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', lineHeight: 1.35 }}>
+              🚫 Não conseguimos adicionar este exame: o CPF identificado no documento é diferente do CPF da sua conta. Ele não entra nas suas análises.
+            </Typography>
+            <Button size="small" color="primary" onClick={(e) => { e.stopPropagation(); navigate(`/suporte?exam=${r.id}`); }} sx={{ mt: 0.5, textTransform: 'none', fontWeight: 700 }}>Acredito que houve um erro</Button>
           </Box>
         )}
       </AppCard>
@@ -368,6 +379,18 @@ const ExamCards = () => {
                 {failed.length === 1 ? translate('exams.failed_msg_one') : translate('exams.failed_msg_many', { count: failed.length })} {translate('exams.failed_action')} <strong>{translate('exams.reextract')}</strong>.
               </Alert>
               <Stack spacing={1.5}>{failed.map((r: any) => renderCard(r))}</Stack>
+            </Box>
+          )}
+          {rejected.length > 0 && (
+            <Box>
+              <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.75 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'text.secondary' }}>Não adicionados (CPF divergente)</Typography>
+                <Chip size="small" label={rejected.length} sx={{ height: 18, bgcolor: 'rgba(0,0,0,.06)', color: 'text.secondary', fontWeight: 700 }} />
+              </Stack>
+              <Alert severity="info" icon={false} sx={{ mb: 1.25, borderRadius: RADIUS.sectionCard, py: 0.75, '& .MuiAlert-message': { fontSize: 13 } }}>
+                Exames cujo CPF do documento difere do CPF da conta ficam de fora das análises. Se o documento é seu, toque em "Acredito que houve um erro" e o suporte confere (OCR pode errar).
+              </Alert>
+              <Stack spacing={1.5}>{rejected.map((r: any) => renderCard(r))}</Stack>
             </Box>
           )}
           {view === 'category' && lockedCount > 0 && lockCard('cat-lock', `${lockedCount} exame(s) de anos anteriores fazem parte do histórico Premium.`, lockedCount)}
@@ -486,6 +509,20 @@ const ExamCards = () => {
           </Alert>
           <Stack spacing={1.5}>
             {failed.map((r: any) => renderCard(r))}
+          </Stack>
+        </Box>
+      )}
+      {rejected.length > 0 && (
+        <Box>
+          <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.75 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'text.secondary' }}>Não adicionados (CPF divergente)</Typography>
+            <Chip size="small" label={rejected.length} sx={{ height: 18, bgcolor: 'rgba(0,0,0,.06)', color: 'text.secondary', fontWeight: 700 }} />
+          </Stack>
+          <Alert severity="info" icon={false} sx={{ mb: 1.25, borderRadius: RADIUS.sectionCard, py: 0.75, '& .MuiAlert-message': { fontSize: 13 } }}>
+            Exames cujo CPF do documento difere do CPF da conta ficam de fora das análises. Se o documento é seu, toque em "Acredito que houve um erro" e o suporte confere (OCR pode errar).
+          </Alert>
+          <Stack spacing={1.5}>
+            {rejected.map((r: any) => renderCard(r))}
           </Stack>
         </Box>
       )}

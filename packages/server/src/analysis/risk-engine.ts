@@ -58,6 +58,8 @@ export interface RiskResult {
   userExplanation: string;
   doctorQuestions: string[];
   medicalDisclaimer: string;
+  /** true = nenhum marcador no escopo (não é leitura de risco — não persistir/tratar como dado). */
+  insufficientData?: boolean;
 }
 
 const bandMatches = (v: number, b: RiskBand): boolean => {
