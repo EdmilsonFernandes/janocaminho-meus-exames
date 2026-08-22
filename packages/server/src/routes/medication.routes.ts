@@ -5,6 +5,9 @@ import { parseListParams, setListHeaders } from '../utils/list';
 import { chargeCredits, refundCredits, CREDIT_COSTS } from '../utils/credits';
 import { matchInteractions, findUnmatched, isCritical, SEVERITY_LABEL, type InteractionHit } from '../utils/interactions';
 import { upload } from '../middleware/upload';
+import { buildNormalizedMedication } from '../pricing/normalize';
+import { runPriceWorkerTick, processMedicationPrice } from '../pricing/worker';
+import { ProviderRegistry } from '../pricing/provider';
 
 /**
  * Remédios do paciente + checagem de interações A–X.
@@ -30,8 +33,17 @@ router.get('/', async (req: AuthedRequest, res, next) => {
       prisma.medication.count({ where }),
       prisma.medication.findMany({ where, skip: start, take, orderBy: [{ active: 'desc' }, { name: 'asc' }] }),
     ]);
+    // Resumo de preço por card (join batch — nunca 1 query por remédio)
+    const keys = rows.map((m) => m.nameNormalized).filter((k): k is string => !!k && !k.endsWith('|?'));
+    const snaps = keys.length
+      ? await prisma.medicationPriceSnapshot.findMany({ where: { medicationKey: { in: keys }, locationKey: 'BR', expiresAt: { gt: new Date() } }, select: { medicationKey: true, lowestPriceCents: true, offersCount: true, collectedAt: true } })
+      : [];
+    const snapByKey = new Map(snaps.filter((s) => s.lowestPriceCents != null).map((s) => [s.medicationKey, s])); // sem preço → sem resumo (nunca card fantasma)
     setListHeaders(res, start, start + take, total);
-    res.json(rows);
+    res.json(rows.map((m) => ({
+      ...m,
+      priceSummary: (m.nameNormalized && snapByKey.get(m.nameNormalized)) ?? null,
+    })));
   } catch (e) { next(e); }
 });
 
@@ -51,6 +63,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
         frequency: frequency ? String(frequency).trim() : null,
         startedAt: startedAt ? new Date(startedAt) : null,
         notes: notes ? String(notes).trim() : null,
+        priceStatus: 'queued', // worker assíncrono busca preço — cadastro NÃO espera (FASE 5)
       },
     });
     res.status(201).json(m);
@@ -64,7 +77,9 @@ router.patch('/:id', async (req: AuthedRequest, res, next) => {
     if (!m) { res.status(404).json({ error: 'Remédio não encontrado.' }); return; }
     const pids = await userPatientIds(req.userId!);
     if (!pids.includes(m.patientId)) { res.status(403).json({ error: 'Sem permissão.' }); return; }
-    const { name, dosage, frequency, active, notes } = req.body ?? {};
+    const { name, dosage, frequency, active, notes, packQty } = req.body ?? {};
+    // packQty = pergunta contextual "qual embalagem você compra?" (FASE 2) → re-enfileira preço
+    const requeuePrice = packQty != null && Number(packQty) !== m.packQty;
     const updated = await prisma.medication.update({
       where: { id: m.id },
       data: {
@@ -73,6 +88,8 @@ router.patch('/:id', async (req: AuthedRequest, res, next) => {
         frequency: frequency != null ? String(frequency).trim() : undefined,
         notes: notes != null ? String(notes).trim() : undefined,
         active: typeof active === 'boolean' ? active : undefined,
+        packQty: packQty != null ? (() => { const n = Math.round(Number(packQty) || 0); return n >= 1 && n <= 2000 ? n : null; })() : undefined,
+        ...(requeuePrice ? { priceStatus: 'queued' as const } : {}),
       },
     });
     res.json(updated);
@@ -226,6 +243,43 @@ router.post('/scan-photo', upload.single('photo'), async (req: AuthedRequest, re
   } catch (e) { next(e); }
 });
 
+// PREÇOS de um remédio: snapshot + ofertas (dialog "Ver preços"). Sem preço → status.
+router.get('/:id/prices', async (req: AuthedRequest, res, next) => {
+  try {
+    const m = await prisma.medication.findUnique({ where: { id: String(req.params.id) } });
+    if (!m) { res.status(404).json({ error: 'Remédio não encontrado.' }); return; }
+    const pids = await userPatientIds(req.userId!);
+    if (!pids.includes(m.patientId)) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+    const snapshot = m.nameNormalized && !m.nameNormalized.endsWith('|?')
+      ? await prisma.medicationPriceSnapshot.findFirst({
+          where: { medicationKey: m.nameNormalized, locationKey: 'BR' },
+          include: { offers: { orderBy: { priceCents: 'asc' }, take: 12 } },
+        })
+      : null;
+    res.json({ status: m.priceStatus, snapshot });
+  } catch (e) { next(e); }
+});
+
+// WORKER TICK — só em dev/teste (QA e testes E2E disparam sem esperar o cron de 5min).
+router.post('/worker-tick', async (req: AuthedRequest, res, next) => {
+  try {
+    if (process.env.NODE_ENV === 'production') { res.status(404).json({ error: 'Não encontrado.' }); return; }
+    res.json(await runPriceWorkerTick());
+  } catch (e) { next(e); }
+});
+
+// PROCESS ONE — dev/teste: processa um medicamento específico (provider do registry).
+router.post('/:id/process-price', async (req: AuthedRequest, res, next) => {
+  try {
+    if (process.env.NODE_ENV === 'production') { res.status(404).json({ error: 'Não encontrado.' }); return; }
+    const m = await prisma.medication.findUnique({ where: { id: String(req.params.id) } });
+    if (!m) { res.status(404).json({ error: 'Remédio não encontrado.' }); return; }
+    const pids = await userPatientIds(req.userId!);
+    if (!pids.includes(m.patientId)) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+    res.json({ outcome: await processMedicationPrice(m.id, ProviderRegistry.default) });
+  } catch (e) { next(e); }
+});
+
 // BULK — salva os remédios CONFIRMADOS pelo usuário (vindos do scan), sem repetir os já ativos.
 router.post('/bulk', async (req: AuthedRequest, res, next) => {
   try {
@@ -243,6 +297,7 @@ router.post('/bulk', async (req: AuthedRequest, res, next) => {
         name: String(it.name).trim(),
         dosage: it.dosage ? String(it.dosage).trim() : null,
         frequency: it.frequency ? String(it.frequency).trim() : null,
+        priceStatus: 'queued', // worker busca preço em background
       }));
     if (toCreate.length) await prisma.medication.createMany({ data: toCreate });
     res.status(201).json({ created: toCreate.length, skipped: items.length - toCreate.length });

@@ -227,11 +227,57 @@ model Medication {
   active    Boolean   @default(true)
   startedAt DateTime?
   notes     String?
+  // ── Enriquecimento p/ comparação de preços (SISTEMA preenche — usuário nunca digita) ──
+  nameNormalized  String?  // "LOSARTANA POTASSICA 50 MG CX 30 CP"
+  activeIngredient String? // princípio ativo canônico ("LOSARTANA POTASSICA")
+  dosageValue     Float?   // 50
+  dosageUnit      String?  // MG | MCG | ML | G
+  form            String?  // CP (comprimido) | CAP | ML...
+  packQty         Int?     // 30 (unidades por embalagem — perguntado contextualmente)
+  lab             String?  // fabricante (quando identificado)
+  ean             String?  // EAN/GTIN (futuro: catálogo ANVISA)
+  productType     String?  // generico | referencia | similar
+  // ── Pipeline de preço (worker assíncrono — nunca no fluxo do cadastro) ──
+  priceStatus    String    @default("not_requested") // queued|searching|available|no_results|insufficient_data|provider_error
+  priceCheckedAt DateTime?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
   @@index([patientId, active])
+  @@index([priceStatus, priceCheckedAt])
   @@map("medications")
+}
+
+// Snapshot GLOBAL de preços por chave de produto (cache — 500 usuários com a mesma
+// Losartana 50mg/30cp reaproveitam o MESMO snapshot; TTL gerido pelo worker).
+model MedicationPriceSnapshot {
+  id                 String   @id @default(cuid())
+  medicationKey      String   // "LOSARTANA POTASSICA|50MG|CP|30"
+  locationKey        String   @default("BR") // v1 nacional; futuro: CEP/UF
+  lowestPriceCents   Int?
+  averagePriceCents  Int?
+  offersCount        Int
+  provider           String
+  collectedAt        DateTime @default(now())
+  expiresAt          DateTime
+  offers             MedicationPriceOffer[]
+
+  @@unique([medicationKey, locationKey])
+  @@map("medication_price_snapshots")
+}
+
+model MedicationPriceOffer {
+  id            String                  @id @default(cuid())
+  snapshotId    String
+  snapshot      MedicationPriceSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+  pharmacy      String // "Mercado Livre"
+  productName   String // título do anúncio (o que o usuário verá ao abrir)
+  priceCents    Int
+  url           String
+  lastCheckedAt DateTime                @default(now())
+
+  @@index([snapshotId, priceCents])
+  @@map("medication_price_offers")
 }
 
 // Regras de interação fármaco-fármaco — severidade A (desprezível) até X (contraindicação

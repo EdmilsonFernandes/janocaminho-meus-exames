@@ -25,7 +25,15 @@ const SEV: Record<string, { color: string; label: string; bg: string }> = {
   A: { color: '#64748b', label: 'Desprezível', bg: 'rgba(100,116,139,.08)' },
 };
 
-interface Med { id: string; name: string; dosage?: string | null; frequency?: string | null; active: boolean }
+interface Med {
+  id: string; name: string; dosage?: string | null; frequency?: string | null; active: boolean;
+  priceStatus?: string; packQty?: number | null;
+  priceSummary?: { lowestPriceCents?: number | null; offersCount?: number; collectedAt?: string } | null;
+}
+interface PriceOffer { pharmacy: string; productName: string; priceCents: number; url: string }
+interface PricesResp { status: string; snapshot?: { lowestPriceCents?: number | null; offersCount: number; collectedAt: string; expiresAt: string; offers: PriceOffer[] } | null }
+
+const fmtBRL = (cents?: number | null) => (cents == null ? '—' : (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }));
 interface Hit { drugA: string; drugB: string; severity: string; effect: string; recommendation: string }
 interface CheckResp { critical: Hit[]; unmatched: string[]; activeMeds: number; hasMore?: boolean }
 
@@ -63,6 +71,25 @@ export const MedicationsPage = () => {
   const [suggestions, setSuggestions] = useState<{ name: string; dosage: string; on: boolean }[]>([]);
   const photoInput = useRef<HTMLInputElement>(null);
 
+  // PREÇOS: dialog de ofertas + pergunta contextual da embalagem
+  const [pricesFor, setPricesFor] = useState<Med | null>(null);
+  const [pricesData, setPricesData] = useState<PricesResp | null>(null);
+  const [pricesLoading, setPricesLoading] = useState(false);
+  const [packFor, setPackFor] = useState<Med | null>(null);
+
+  const openPrices = async (m: Med) => {
+    setPricesFor(m); setPricesData(null); setPricesLoading(true);
+    try {
+      const r = await fetch(`${API_URL}/medications/${m.id}/prices`, { headers: { Authorization: `Bearer ${token()}` } });
+      setPricesData(r.ok ? await r.json() : { status: m.priceStatus ?? 'not_requested' });
+    } finally { setPricesLoading(false); }
+  };
+
+  const setPack = async (m: Med, qty: number) => {
+    const r = await fetch(`${API_URL}/medications/${m.id}`, { method: 'PATCH', headers: apiHeaders(true), body: JSON.stringify({ packQty: qty }) });
+    if (r.ok) { setPackFor(null); notify('Embalagem salva — buscando preços…', { type: 'success' }); void load(); setTimeout(() => void load(), 5000); setTimeout(() => void load(), 12000); }
+  };
+
   const load = useCallback(async () => {
     if (!pid) return;
     setMeds(null);
@@ -81,7 +108,12 @@ export const MedicationsPage = () => {
   const saveMeds = async (items: { name: string; dosage?: string | null }[]) => {
     if (!items.length) return;
     const r = await fetch(`${API_URL}/medications/bulk`, { method: 'POST', headers: apiHeaders(true), body: JSON.stringify({ patientId: pid, items }) });
-    if (r.ok) { const d = await r.json(); notify(`${d.created} remédio(s) salvos`, { type: 'success' }); void load(); setFull(null); }
+    if (r.ok) {
+      const d = await r.json(); notify(`${d.created} remédio(s) salvos`, { type: 'success' });
+      void load(); setFull(null);
+      // Preço chega em background (worker): re-carrega a lista em cascata p/ o card "acordar"
+      setTimeout(() => void load(), 5000); setTimeout(() => void load(), 12000);
+    }
     else notify('Falha ao salvar', { type: 'error' });
   };
 
@@ -208,6 +240,24 @@ export const MedicationsPage = () => {
                 <Box sx={{ flex: 1, minWidth: 0 }}>
                   <Typography sx={{ fontWeight: 700, color: 'text.primary' }}>{m.name}</Typography>
                   <Typography variant="caption" sx={{ color: 'text.secondary' }}>{[m.dosage, m.frequency].filter(Boolean).join(' · ') || 'uso contínuo'}</Typography>
+                  {/* PREÇO — informação secundária, discreta (saúde, não e-commerce).
+                      Estados: disponível → valor + ver ofertas; embalagem desconhecida →
+                      pergunta contextual; resto (buscando/sem preço) → não polui o card. */}
+                  {m.priceSummary?.lowestPriceCents != null ? (
+                    <Typography
+                      onClick={(e) => { e.stopPropagation(); void openPrices(m); }}
+                      variant="caption" sx={{ display: 'block', color: 'text.secondary', mt: 0.25, cursor: 'pointer', '& b': { color: 'text.primary' }, '&:hover b': { textDecoration: 'underline' } }}
+                    >
+                      💰 <b>{fmtBRL(m.priceSummary.lowestPriceCents)}</b> · {m.priceSummary.offersCount ?? 0} ofertas · <span style={{ textDecoration: 'underline' }}>ver preços</span>
+                    </Typography>
+                  ) : m.priceStatus === 'insufficient_data' ? (
+                    <Typography
+                      onClick={(e) => { e.stopPropagation(); setPackFor(m); }}
+                      variant="caption" sx={{ display: 'block', color: 'text.disabled', mt: 0.25, cursor: 'pointer', '&:hover': { color: 'text.secondary', textDecoration: 'underline' } }}
+                    >
+                      📦 Informar embalagem p/ comparar preços
+                    </Typography>
+                  ) : null}
                 </Box>
                 <Button size="small" onClick={() => toggle(m)} sx={{ textTransform: 'none', borderRadius: '999px' }}>Suspender</Button>
                 <IconButton size="small" onClick={() => remove(m)} aria-label={`Excluir ${m.name}`}><DeleteOutlineIcon fontSize="small" /></IconButton>
@@ -322,6 +372,77 @@ export const MedicationsPage = () => {
             sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>Salvar selecionados</Button>
         </DialogActions>
       </Dialog>
+      <PricesDialog med={pricesFor} data={pricesData} loading={pricesLoading} onClose={() => setPricesFor(null)} />
+      <PackDialog med={packFor} onClose={() => setPackFor(null)} onPick={(q) => { if (packFor) void setPack(packFor, q); }} />
     </PageContainer>
+  );
+};
+
+/** DIALOG: ofertas do remédio (FASE 12) — preço + loja + link externo + aviso honesto. */
+const PricesDialog = ({ med, data, loading, onClose }: { med: Med | null; data: PricesResp | null; loading: boolean; onClose: () => void }) => {
+  const offers = data?.snapshot?.offers ?? [];
+  const updated = data?.snapshot?.collectedAt ? Math.round((Date.now() - new Date(data.snapshot.collectedAt).getTime()) / 60000) : null;
+  return (
+    <Dialog open={!!med} onClose={onClose} fullWidth maxWidth="xs" PaperProps={{ sx: { borderRadius: '12px' } }}>
+      <DialogTitle sx={{ fontWeight: 800 }}>{med?.name} — preços</DialogTitle>
+      <DialogContent>
+        {loading && <Typography sx={{ color: 'text.secondary', py: 2 }}>Buscando ofertas…</Typography>}
+        {!loading && offers.length === 0 && (
+          <Typography sx={{ color: 'text.secondary', py: 2 }}>
+            {data?.status === 'insufficient_data'
+              ? 'Informe a embalagem no card do remédio para buscarmos preços comparáveis.'
+              : 'Ainda não encontramos preços para esta apresentação.'}
+          </Typography>
+        )}
+        {!loading && offers.length > 0 && (
+          <Stack spacing={0.75} sx={{ mt: 1 }}>
+            {offers.map((o, i) => (
+              <Stack key={i} direction="row" spacing={1} alignItems="center" sx={{ p: 1, borderRadius: '10px', bgcolor: i === 0 ? 'rgba(32,178,170,.08)' : 'action.hover' }}>
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography sx={{ fontWeight: 800, fontSize: 14, fontVariantNumeric: 'tabular-nums' }}>{fmtBRL(o.priceCents)}</Typography>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{o.productName}</Typography>
+                  <Typography variant="caption" sx={{ color: 'text.disabled' }}>{o.pharmacy}</Typography>
+                </Box>
+                <Button size="small" href={o.url} target="_blank" rel="noopener noreferrer" sx={{ textTransform: 'none', borderRadius: '999px', flexShrink: 0 }}>Abrir</Button>
+              </Stack>
+            ))}
+            <Typography variant="caption" sx={{ color: 'text.secondary', mt: 1 }}>
+              {updated != null ? `Atualizado há ${updated < 60 ? `${Math.max(1, updated)} min` : `${Math.round(updated / 60)} h`} · ` : ''}Preços, estoque e condições podem mudar no site da loja.
+            </Typography>
+          </Stack>
+        )}
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} sx={{ textTransform: 'none', fontWeight: 700 }}>Fechar</Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
+/** DIALOG: pergunta contextual da embalagem (FASE 2 — nunca bloqueia o cadastro). */
+const PackDialog = ({ med, onClose, onPick }: { med: Med | null; onClose: () => void; onPick: (qty: number) => void }) => {
+  const OPTIONS = [10, 14, 20, 28, 30, 60, 90];
+  const [custom, setCustom] = useState('');
+  return (
+    <Dialog open={!!med} onClose={onClose} fullWidth maxWidth="xs" PaperProps={{ sx: { borderRadius: '12px' } }}>
+      <DialogTitle sx={{ fontWeight: 800 }}>Qual embalagem você compra?</DialogTitle>
+      <DialogContent>
+        <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1.5 }}>
+          {med?.name}{med?.dosage ? ` ${med.dosage}` : ''} — o preço muda conforme a quantidade. Só usamos isso pra comparar.
+        </Typography>
+        <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
+          {OPTIONS.map((q) => (
+            <Chip key={q} label={`${q} un.`} onClick={() => onPick(q)} sx={{ borderRadius: '999px', fontWeight: 700, mb: 0.5, border: '1px solid', borderColor: 'divider', '&:active': { transform: 'scale(.96)' } }} />
+          ))}
+        </Stack>
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 2 }}>
+          <TextField size="small" label="Outra quantidade" value={custom} onChange={(e) => setCustom(e.target.value.replace(/\D/g, ''))} sx={{ flex: 1 }} />
+          <Button variant="contained" disabled={!custom} onClick={() => onPick(Number(custom))} sx={{ borderRadius: '999px', textTransform: 'none' }}>Ok</Button>
+        </Stack>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} sx={{ textTransform: 'none' }}>Agora não</Button>
+      </DialogActions>
+    </Dialog>
   );
 };

@@ -42,6 +42,7 @@ const server = app.listen(config.port, () => {
   startFirstExamNudgeJob();
   startAuditRetentionJob(); // limpa ACCESS >90d do audit_logs (mantém login/ações admin — LGPD)
   startPixExpiryJob(); // PIX: warning push a 1min + auto-cancel expirado + push
+  void import('./pricing/worker').then((m) => m.startPriceWorkerJob()); // preços: worker assíncrono (cache 6h, kill-switch env)
   void (async () => { const { ensureInteractionSeed } = await import('./utils/interactions'); await ensureInteractionSeed(); })(); // base curada de interações (só se tabela vazia)
   // Recupera exames presos em EXTRACTING: um deploy/restart mata a extração fire-and-forget
   // no meio → o exame fica "extraindo pra sempre". No boot, re-extrai qualquer um nesse estado.
