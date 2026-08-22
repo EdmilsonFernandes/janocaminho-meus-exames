@@ -259,13 +259,12 @@ export const MedicationsPage = () => {
                     {m.priceSummary?.lowestPriceCents != null ? (
                       <Typography
                         onClick={(e) => { e.stopPropagation(); void openPrices(m); }}
-                        variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.4, cursor: 'pointer',
-                          color: 'text.secondary', '& b': { color: 'text.primary', fontSize: 14, fontVariantNumeric: 'tabular-nums' },
+                        variant="caption" sx={{ display: 'block', mt: 0.4, cursor: 'pointer',
+                          color: 'text.secondary', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                          '& b': { color: 'text.primary', fontSize: 14, fontVariantNumeric: 'tabular-nums' },
                           '&:hover b': { textDecoration: 'underline' } }}
                       >
-                        💰 <b>{fmtBRL(m.priceSummary.lowestPriceCents)}</b>
-                        <span>· {m.priceSummary.offersCount ?? 0} ofertas</span>
-                        <span style={{ textDecoration: 'underline', color: 'primary.dark' }}>ver preços</span>
+                        💰 <b>{fmtBRL(m.priceSummary.lowestPriceCents)}</b> · {m.priceSummary.offersCount ?? 0} ofertas · <span style={{ textDecoration: 'underline', color: 'primary.dark' }}>ver preços</span>
                       </Typography>
                     ) : m.priceStatus === 'insufficient_data' ? (
                       <Typography
@@ -275,8 +274,8 @@ export const MedicationsPage = () => {
                         📦 Informar embalagem p/ comparar preços
                       </Typography>
                     ) : (m.priceStatus === 'queued' || m.priceStatus === 'searching') ? (
-                      <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.3, color: 'text.disabled' }}>
-                        <CircularProgress size={11} sx={{ mr: 0.3 }} /> Buscando preços…
+                      <Typography variant="caption" sx={{ display: 'block', mt: 0.3, color: 'text.disabled', whiteSpace: 'nowrap' }}>
+                        ⏳ Buscando preços…
                       </Typography>
                     ) : null}
                   </Box>
