@@ -98,7 +98,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
               lowestPriceCents: cat.priceCents, averagePriceCents: cat.priceCents,
               offersCount: Math.max(1, cat.offersCount), provider: 'catalogo',
               collectedAt: now, expiresAt: new Date(now.getTime() + 2 * 60 * 60 * 1000),
-              offers: { create: [{ pharmacy: cat.pharmacy ?? 'Pague Menos', productName: cat.productName ?? String(name).trim(), priceCents: cat.priceCents, url: 'https://www.paguemenos.com.br', imageUrl: cat.photoUrl, ean: cat.ean, lastCheckedAt: now }] },
+              offers: { create: [{ pharmacy: cat.pharmacy ?? 'Pague Menos', productName: cat.productName ?? String(name).trim(), priceCents: cat.priceCents, url: cat.productUrl ?? 'https://www.paguemenos.com.br', imageUrl: cat.photoUrl, ean: cat.ean, lastCheckedAt: now }] },
             },
             update: {},
           }).catch(() => {});
@@ -203,33 +203,52 @@ router.post('/check/full', async (req: AuthedRequest, res, next) => {
 
     let contextual: string | null = null;
     try {
-      // Contexto: marcadores alterados recentes (nomes+valores) — a IA personaliza as perguntas.
-      const abn = await prisma.examItem.findMany({
-        where: { exam: { patientId: c.patient!.id, status: 'EXTRACTED' }, isAbnormal: true },
-        orderBy: { exam: { performedAt: 'desc' } },
-        select: { name: true, valueText: true, unit: true, exam: { select: { performedAt: true } } },
-        take: 40,
-      });
+      // Contexto RICO: marcadores alterados + perfil clínico + datas dos exames —
+      // a IA usa TUDO pra dar conselho personalizado (ex.: "toma levoid, tira a tireoide,
+      // TSH último há 3 meses → sugira novo exame p/ ajustar dose").
+      const [abn, patient] = await Promise.all([
+        prisma.examItem.findMany({
+          where: { exam: { patientId: c.patient!.id, status: 'EXTRACTED' }, isAbnormal: true },
+          orderBy: { exam: { performedAt: 'desc' } },
+          select: { name: true, valueText: true, unit: true, flag: true, exam: { select: { performedAt: true, title: true } } },
+          take: 60,
+        }),
+        prisma.patient.findUnique({ where: { id: c.patient!.id }, select: { dateOfBirth: true, clinicalProfile: true, gender: true } }),
+      ]);
       const seen = new Set<string>(); const markers = abn.filter((i) => {
         const k = i.name.toUpperCase(); if (seen.has(k)) return false; seen.add(k); return true;
-      }).slice(0, 10).map((i) => `${i.name} ${i.valueText ?? ''}${i.unit ?? ''}`.trim());
-      const age = c.patient?.dateOfBirth ? Math.floor((Date.now() - new Date(c.patient.dateOfBirth).getTime()) / (365.25 * 86400000)) : null;
+      }).slice(0, 12).map((i) => {
+        const dt = i.exam.performedAt ? new Date(i.exam.performedAt).toLocaleDateString('pt-BR') : 's/d';
+        return `${i.name}=${i.valueText}${i.unit} (${dt})`;
+      });
+      const age = patient?.dateOfBirth ? Math.floor((Date.now() - new Date(patient.dateOfBirth).getTime()) / (365.25 * 86400000)) : null;
 
       const { getLlm, getModel } = await import('../llm');
       const sys = [
-        'Você é o Dr. Exame, assistente de saúde EDUCATIVO do app Meus Exames.',
-        'NUNCA prescreva, NUNCA sugira dose, NUNCA diga "pare de tomar" ou "troque por X".',
-        'Sua função: explicar em português simples o que as interações conhecidas significam PARA ESTE paciente',
-        'e listar de 3 a 5 PERGUNTAS CONCRETAS para levar ao médico/farmacêutico.',
-        'Termine sempre com: "As decisões sobre seus remédios são do seu médico."',
-      ].join(' ');
-      const user = [
-        `Paciente${age != null ? ` (${age} anos)` : ''}. Remédios ativos: ${c.meds.map((m) => `${m.name}${m.dosage ? ` ${m.dosage}` : ''}`).join('; ') || 'nenhum'}.`,
-        `Interações encontradas na base: ${c.hits.map((h) => `${h.drugA}+${h.drugB} (${h.severity})`).join('; ') || 'nenhuma'}.`,
-        `Marcadores alterados recentes nos exames: ${markers.join('; ') || 'nenhum'}.`,
-        'Escreva: 1 parágrafo curto de leitura geral + 3 a 5 perguntas para o médico em lista.',
+        'Você é o Dr. Exame. Seja DIRETO e BREVE — o paciente está no celular.',
+        'NUNCA prescreva ou sugira dose.',
+        '',
+        'FORMATO OBRIGATÓRIO (máximo 6 linhas no total):',
+        'Linha 1: ✅ tudo certo / ⚠️ atenção com [remédio]',
+        'Linha 2-3: UMA frase cruzando remédio + exame (ex.: "Toma levoid e TSH veio alto em 07/25 — pode precisar de ajuste de dose.")',
+        'Linha 4: "Perguntas pro médico:"',
+        'Linha 5-6: 2-3 perguntas CURTAS (1 linha cada, sem explicação)',
+        '',
+        'PROIBIDO: parágrafos longos, explicações de mecanismo, texto introdutório,',
+        'conclusão em bloco. Se não tem nada importante, só a linha 1 e as perguntas.',
+        'MÁXIMO 80 palavras no total.',
       ].join('\n');
-      const r = await getLlm().complete({ model: getModel(), maxTokens: 700, system: sys, messages: [{ role: 'user', content: user }] });
+      const user = [
+        `PACIENTE: ${age != null ? `${age} anos` : 'idade n/d'}, ${patient?.gender === 'female' ? 'feminino' : patient?.gender === 'male' ? 'masculino' : 'n/d'}.`,
+        `PERFIL CLÍNICO (texto do paciente): "${patient?.clinicalProfile || 'não informado'}"`,
+        '',
+        `REMÉDIOS ATIVOS: ${c.meds.map((m) => `${m.name}${m.dosage ? ` ${m.dosage}` : ''}`).join('; ') || 'nenhum'}.`,
+        `INTERAÇÕES: ${c.hits.map((h) => `${h.drugA}+${h.drugB} (${h.severity})`).join('; ') || 'nenhuma'}.`,
+        `EXAMES ALTERADOS (valor + data): ${markers.join('; ') || 'nenhum'}.`,
+        '',
+        'Escreva a análise personalizada seguindo o FORMATO acima.',
+      ].join('\n');
+      const r = await getLlm().complete({ model: getModel(), maxTokens: 800, system: sys, messages: [{ role: 'user', content: user }] });
       contextual = r.text;
     } catch (e) {
       await refundCredits(req.userId!, CREDIT_COSTS.chat, 'med_interaction_refund', 'Reembolso: IA indisponível (interações)');

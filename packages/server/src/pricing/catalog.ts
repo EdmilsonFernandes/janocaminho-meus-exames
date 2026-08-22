@@ -65,10 +65,11 @@ export async function bootstrapCatalog(): Promise<{ created: number; withPrice: 
         data: {
           name: med.name, activeIngredient: ingredient,
           brands: med.brands ?? [],
-          doses: [], // preenchido pelo combobox (o front já tem as doses)
+          doses: [],
           photoUrl: best?.imageUrl ?? null,
           priceCents: best?.priceCents ?? null,
           productName: best?.productName ?? null,
+          productUrl: best?.url ?? null,
           pharmacy: best?.pharmacy ?? null,
           ean: best?.ean ?? null,
           offersCount: offers.length,

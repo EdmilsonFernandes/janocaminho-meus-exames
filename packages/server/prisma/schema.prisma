@@ -261,6 +261,7 @@ model MedicationCatalogEntry {
   photoUrl         String?
   priceCents       Int?
   productName      String?  // "Losartana Potássica 50mg 30 Comprimidos Genérico"
+  productUrl       String?  // link direto pro produto na farmácia
   pharmacy         String?
   ean              String?
   offersCount      Int      @default(0)
