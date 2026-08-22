@@ -57,14 +57,15 @@ router.get('/', async (req: AuthedRequest, res, next) => {
   } catch (e) { next(e); }
 });
 
-// CREATE
+// CREATE — preço INSTANTÂNEO do catálogo (se tiver); worker só para quem NÃO está no catálogo
 router.post('/', async (req: AuthedRequest, res, next) => {
   try {
     const pids = await userPatientIds(req.userId!);
-    const { patientId, name, dosage, frequency, startedAt, notes } = req.body ?? {};
+    const { patientId, name, dosage, frequency, startedAt, notes, packQty } = req.body ?? {};
     const pid = patientId && pids.includes(patientId) ? patientId : pids[0];
     if (!pid) { res.status(400).json({ error: 'Nenhum paciente vinculado.' }); return; }
     if (!name || !String(name).trim()) { res.status(400).json({ error: 'Informe o nome do remédio (ex.: varfarina).' }); return; }
+    const cleanPack = packQty != null ? (() => { const n = Math.round(Number(packQty) || 0); return n >= 1 && n <= 2000 ? n : null; })() : null;
     const m = await prisma.medication.create({
       data: {
         patientId: pid,
@@ -73,9 +74,44 @@ router.post('/', async (req: AuthedRequest, res, next) => {
         frequency: frequency ? String(frequency).trim() : null,
         startedAt: startedAt ? new Date(startedAt) : null,
         notes: notes ? String(notes).trim() : null,
-        priceStatus: 'queued', // worker assíncrono busca preço — cadastro NÃO espera (FASE 5)
+        packQty: cleanPack,
+        priceStatus: 'queued',
       },
     });
+
+    // INSTANTÂNEO: catálogo tem este remédio? → copia foto+preço AGORA (card acende na hora;
+    // o worker SÓ refresha 2h depois — nunca descobre o que o catálogo já sabe)
+    try {
+      const { normDrug } = await import('../utils/interactions');
+      const { buildNormalizedMedication } = await import('../pricing/normalize');
+      const ingredient = normDrug(String(name).trim());
+      const cat = await prisma.medicationCatalogEntry.findUnique({ where: { activeIngredient: ingredient } });
+      if (cat) {
+        const normalized = buildNormalizedMedication(m);
+        const key = normalized.medicationKey;
+        const now = new Date();
+        if (key && !key.endsWith('|?') && cat.priceCents) {
+          await prisma.medicationPriceSnapshot.upsert({
+            where: { medicationKey_locationKey: { medicationKey: key, locationKey: 'BR' } },
+            create: {
+              medicationKey: key, locationKey: 'BR',
+              lowestPriceCents: cat.priceCents, averagePriceCents: cat.priceCents,
+              offersCount: Math.max(1, cat.offersCount), provider: 'catalogo',
+              collectedAt: now, expiresAt: new Date(now.getTime() + 2 * 60 * 60 * 1000),
+              offers: { create: [{ pharmacy: cat.pharmacy ?? 'Pague Menos', productName: cat.productName ?? String(name).trim(), priceCents: cat.priceCents, url: 'https://www.paguemenos.com.br', imageUrl: cat.photoUrl, ean: cat.ean, lastCheckedAt: now }] },
+            },
+            update: {},
+          }).catch(() => {});
+          await prisma.medication.update({
+            where: { id: m.id },
+            data: { priceStatus: 'available', priceCheckedAt: now, nameNormalized: key, catalogPhotoUrl: cat.photoUrl, activeIngredient: normalized.activeIngredient, dosageValue: normalized.dosageValue ?? null, dosageUnit: normalized.dosageUnit ?? null, form: normalized.form ?? null },
+          });
+        } else if (cat.photoUrl) {
+          await prisma.medication.update({ where: { id: m.id }, data: { catalogPhotoUrl: cat.photoUrl } });
+        }
+      }
+    } catch { /* catálogo falhou → worker cobre */ }
+
     res.status(201).json(m);
   } catch (e) { next(e); }
 });

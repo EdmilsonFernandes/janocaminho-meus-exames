@@ -28,7 +28,7 @@ export const normDrug = (name: string): string =>
 const ALIASES: Record<string, string> = {
   ASPIRINA: 'ACIDO ACETILSALICILICO', AAS: 'ACIDO ACETILSALICILICO', CARDIOASPIRINA: 'ACIDO ACETILSALICILICO',
   ENALAPRILA: 'ENALAPRIL', RENITEC: 'ENALAPRIL', VASOTEC: 'ENALAPRIL',
-  'LOSARTANA POTASSICA': 'LOSARTAN', 'COZAAR': 'LOSARTAN',
+  'LOSARTANA POTASSICA': 'LOSARTAN', LOSARTANA: 'LOSARTAN', 'COZAAR': 'LOSARTAN',
   'VARFARINA SODICA': 'VARFARINA', MAREVAN: 'VARFARINA',
   FERRO: 'SULFATO FERROSO', FERROSSO: 'SULFATO FERROSO',
   NOVALGINA: 'DIPIRONA', LISADOR: 'DIPIRONA', ANADOR: 'DIPIRONA',
@@ -148,6 +148,9 @@ const SEED_RULES: { drugA: string; drugB: string; severity: Severity; effect: st
   { drugA: 'DIGOXINA', drugB: 'AMIODARONA', severity: 'D', effect: 'Aumenta o nível de digoxina (intoxicação).', recommendation: 'Geralmente exige reduzir a digoxina — decisão do médico com exames.' },
   { drugA: 'PREDNISONA', drugB: 'IBUPROFENO', severity: 'C', effect: 'Soma risco de úlcera/sangramento no estômago.', recommendation: 'Pergunte sobre proteção gástrica se o uso for frequente.' },
   { drugA: 'DICLOFENACO', drugB: 'IBUPROFENO', severity: 'C', effect: 'Dois anti-inflamatórios do mesmo tipo não somam alívio — somam risco renal e gástrico.', recommendation: 'Use um só, na menor dose eficaz, sempre com orientação.' },
+  { drugA: 'PARACETAMOL', drugB: 'VARFARINA', severity: 'C', effect: 'Uso prolongado de paracetamol pode aumentar o efeito da varfarina (sangramento).', recommendation: 'Doses ocasionais costumam ser seguras; uso contínuo merece monitorar INR.' },
+  { drugA: 'PARACETAMOL', drugB: 'METOTREXATO', severity: 'C', effect: 'Soma risco de toxicidade hepática.', recommendation: 'Informe seu reumatologista se usar paracetamol com frequência.' },
+  { drugA: 'PARACETAMOL', drugB: 'CARBAMAZEPINA', severity: 'C', effect: 'Aumenta o risco de dano ao fígado.', recommendation: 'Evite uso prolongado sem orientação médica.' },
   { drugA: 'NAPROXENO', drugB: 'IBUPROFENO', severity: 'C', effect: 'Anti-inflamatórios duplicados (mesmo mecanismo).', recommendation: 'Escolha um com o farmacêutico/médico.' },
   { drugA: 'DICLOFENACO', drugB: 'VARFARINA', severity: 'D', effect: 'Risco alto de sangramento digestivo.', recommendation: 'Comunique o médico responsável pelo anticoagulante antes de usar.' },
   { drugA: 'LITIO', drugB: 'IBUPROFENO', severity: 'D', effect: 'Anti-inflamatórios elevam o nível de lítio (tremor, confusão, intoxicação).', recommendation: 'Se precisar de AINE por mais de alguns dias, o médico acompanha litemia.' },

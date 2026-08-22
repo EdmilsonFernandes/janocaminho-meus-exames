@@ -28,7 +28,7 @@ const SEV: Record<string, { color: string; label: string; bg: string }> = {
 
 interface Med {
   id: string; name: string; dosage?: string | null; frequency?: string | null; active: boolean;
-  priceStatus?: string; packQty?: number | null;
+  priceStatus?: string; packQty?: number | null; catalogPhotoUrl?: string | null;
   priceSummary?: { lowestPriceCents?: number | null; offersCount?: number; collectedAt?: string; imageUrl?: string | null } | null;
 }
 interface PriceOffer { pharmacy: string; productName: string; priceCents: number; url: string; imageUrl?: string | null; ean?: string | null }
@@ -280,7 +280,7 @@ export const MedicationsPage = () => {
       {active.length > 0 && (
         <Stack spacing={1} sx={{ mb: inactive.length ? 2 : 0 }}>
           {active.map((m) => {
-            const photo = m.priceSummary?.imageUrl;
+            const photo = m.priceSummary?.imageUrl ?? m.catalogPhotoUrl; // snapshot → catálogo (instantâneo)
             return (
               <Card key={m.id} elevation={0} sx={{
                 p: 1.5, borderRadius: '16px', border: '1px solid', borderColor: 'divider',

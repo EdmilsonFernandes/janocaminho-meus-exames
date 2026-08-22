@@ -240,6 +240,7 @@ model Medication {
   // ── Pipeline de preço (worker assíncrono — nunca no fluxo do cadastro) ──
   priceStatus    String    @default("not_requested") // queued|searching|available|no_results|insufficient_data|provider_error
   priceCheckedAt DateTime?
+  catalogPhotoUrl String? // foto do catálogo (copiada NO CADASTRO — o card mostra instantâneo, antes do worker)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
