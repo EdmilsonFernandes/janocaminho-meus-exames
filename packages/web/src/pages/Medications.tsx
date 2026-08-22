@@ -125,6 +125,15 @@ export const MedicationsPage = () => {
 
   useEffect(() => { void load(); }, [load]);
 
+  // AUTO-REFRESH: enquanto houver remédio em 'queued'/'searching', re-carrega a lista
+  // a cada 4s (o preço chega sozinho, sem o usuário dar F5).
+  useEffect(() => {
+    const hasPending = (meds ?? []).some((m) => m.active && (m.priceStatus === 'queued' || m.priceStatus === 'searching'));
+    if (!hasPending) return;
+    const iv = setInterval(() => { void load(); }, 4000);
+    return () => clearInterval(iv);
+  }, [meds, load]);
+
   const saveMeds = async (items: { name: string; dosage?: string | null }[]) => {
     if (!items.length) return;
     const r = await fetch(`${API_URL}/medications/bulk`, { method: 'POST', headers: apiHeaders(true), body: JSON.stringify({ patientId: pid, items }) });
