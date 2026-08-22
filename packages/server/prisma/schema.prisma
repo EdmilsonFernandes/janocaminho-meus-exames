@@ -210,9 +210,46 @@ model Patient {
   doctorQuestions DoctorQuestion[]
   riskAssessments RiskAssessment[]
   consultations Consultation[]
+  medications  Medication[]
 
   @@index([ownerId])
   @@map("patients")
+}
+
+// Remédios do paciente (uso contínuo) — insumo da checagem de interações A–X.
+model Medication {
+  id        String    @id @default(cuid())
+  patientId String
+  patient   Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  name      String    // nome genérico normalizável (ex.: "Varfarina") — cases/acentos ignorados no match
+  dosage    String?   // "5 mg" — texto livre do usuário
+  frequency String?   // "1× dia", "8/8h"
+  active    Boolean   @default(true)
+  startedAt DateTime?
+  notes     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([patientId, active])
+  @@map("medications")
+}
+
+// Regras de interação fármaco-fármaco — severidade A (desprezível) até X (contraindicação
+// absoluta). Base curada (upsert idempotente no boot) + admin pode editar live.
+model InteractionRule {
+  id             String   @id @default(cuid())
+  drugA          String   // par armazenado em ORDEM ALFABÉTICA canônica (match bidirecional)
+  drugB          String
+  severity       String   // A | B | C | D | X
+  effect         String   // o que acontece (linguagem clara)
+  recommendation String   // conduta educativa (nunca dose/prescrição)
+  source         String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([drugA, drugB])
+  @@index([severity])
+  @@map("interaction_rules")
 }
 
 model Exam {

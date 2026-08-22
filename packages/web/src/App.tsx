@@ -14,6 +14,7 @@ import HistoryIcon from '@mui/icons-material/History';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
 import VaccinesIcon from '@mui/icons-material/Vaccines';
+import MedicationIcon from '@mui/icons-material/Medication';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
@@ -54,6 +55,7 @@ const RemindersPage = lazy(() => import('./pages/Reminders').then(m => ({ defaul
 const QuestionsPage = lazy(() => import('./pages/Questions').then(m => ({ default: m.QuestionsPage })));
 const FaqPage = lazy(() => import('./pages/Faq').then(m => ({ default: m.FaqPage })));
 import { MeasurementsPage } from './pages/Measurements';
+const MedicationsPage = lazy(() => import('./pages/Medications').then(m => ({ default: m.MedicationsPage })));
 import { VaccinesPage } from './pages/Vaccines';
 import { EmergencyCardPage } from './pages/EmergencyCard';
 import { TimelinePage } from './pages/Timeline';
@@ -244,8 +246,9 @@ const AppMenu = () => {
       <NavItem to="/relatorio" primaryText={translate('menu.report')} icon={<SummarizeIcon />} />
     </MenuSectionAccordion>
 
-    <MenuSectionAccordion title={translate('menu.section.care')} icon={<MonitorHeartIcon />} routes={['/medicoes', '/vacinas', '/lembretes', '/emergencia', '/conquistas']}>
+    <MenuSectionAccordion title={translate('menu.section.care')} icon={<MonitorHeartIcon />} routes={['/medicoes', '/medicamentos', '/vacinas', '/lembretes', '/emergencia', '/conquistas']}>
       <NavItem to="/medicoes" primaryText={translate('menu.measurements')} icon={<MonitorHeartIcon />} />
+      <NavItem to="/medicamentos" primaryText={translate('menu.medications')} icon={<MedicationIcon />} />
       <NavItem to="/vacinas" primaryText={translate('menu.vaccines')} icon={<VaccinesIcon />} />
       <NavItem to="/lembretes" primaryText={translate('menu.reminders')} icon={<EventAvailableIcon />} />
       <NavItem to="/emergencia" primaryText={translate('menu.emergency')} icon={<HealthAndSafetyIcon />} highlight />
@@ -684,6 +687,7 @@ export const App = () => {
       <Route path="/alterados" element={<ValoresAlteradosPage />} />
       <Route path="/lembretes" element={<Suspense fallback={<PageSkeleton />}><RemindersPage /></Suspense>} />
       <Route path="/medicoes" element={<MeasurementsPage />} />
+      <Route path="/medicamentos" element={<MedicationsPage />} />
       <Route path="/vacinas" element={<VaccinesPage />} />
       <Route path="/despesas" element={<ExpensesPage />} />
       <Route path="/emergencia" element={<EmergencyCardPage />} />

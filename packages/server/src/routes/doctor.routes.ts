@@ -1201,4 +1201,19 @@ router.post('/patients/:patientId/consultation', requireDoctor, async (req: any,
   } catch (e) { next(e); }
 });
 
+// REMÉDIOS do paciente + interações CRÍTICAS (viewer clínico — contexto pra consulta:
+// ex.: anticoagulante ↔ exame de coagulação). Read-only, igual ao resto do portal.
+router.get('/patients/:patientId/medications', requireDoctor, async (req: any, res, next) => {
+  try {
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    if (!share) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+    void auditLog(req, 'doctor_viewed_medications', String(req.params.patientId));
+    const medications = await prisma.medication.findMany({ where: { patientId: req.params.patientId }, orderBy: [{ active: 'desc' }, { name: 'asc' }] });
+    const rules = await prisma.interactionRule.findMany();
+    const { matchInteractions, isCritical } = await import('../utils/interactions');
+    const hits = matchInteractions(medications.filter((m) => m.active), rules);
+    res.json({ medications, critical: hits.filter((h) => isCritical(h.severity)) });
+  } catch (e) { next(e); }
+});
+
 export default router;

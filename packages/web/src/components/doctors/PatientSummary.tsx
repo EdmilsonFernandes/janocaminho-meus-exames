@@ -3,6 +3,7 @@ import { Avatar, Box, Button, Card, Dialog, DialogContent, Stack, Typography, us
 import { alpha } from '@mui/material/styles';
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import MedicationIcon from '@mui/icons-material/Medication';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import EditNoteIcon from '@mui/icons-material/EditNote';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
@@ -52,6 +53,10 @@ export interface PatientSummaryProps {
   onOpenNotes?: () => void;
   /** Atividade 30d (Health Connect do paciente) — null quando não sincroniza; tile some. */
   activity?: { days: number; avgSteps: number; avgKcal: number; avgKm: number } | null;
+  /** Remédios ativos + interações críticas (tile 5 — contexto farmacológico da consulta). */
+  medsCount?: number;
+  criticalMeds?: number;
+  onOpenMeds?: () => void;
 }
 
 interface Tile {
@@ -70,7 +75,7 @@ interface Tile {
  * botão "Trocar" (Dialog reusando DoctorPatientSwitcher) e 4 teclas clínicas.
  * Cores via theme.palette.primary + alpha (sem hex cru).
  */
-export const PatientSummary = ({ patient, exams, abnormal, questions, notes, patients, onSwitchPatient, onAlterados, onOpenExams, onOpenQuestions, onOpenNotes, activity }: PatientSummaryProps) => {
+export const PatientSummary = ({ patient, exams, abnormal, questions, notes, patients, onSwitchPatient, onAlterados, onOpenExams, onOpenQuestions, onOpenNotes, activity, medsCount, criticalMeds, onOpenMeds }: PatientSummaryProps) => {
   const theme = useTheme();
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const primary = theme.palette.primary.main;
@@ -143,6 +148,15 @@ export const PatientSummary = ({ patient, exams, abnormal, questions, notes, pat
       color: 'text.primary',
       onClick: onOpenNotes,
     },
+    {
+      key: 'meds',
+      label: 'Remédios',
+      icon: <MedicationIcon sx={{ fontSize: 18, color: (criticalMeds ?? 0) > 0 ? theme.palette.error.main : primary }} />,
+      value: String(medsCount ?? 0),
+      sub: (criticalMeds ?? 0) > 0 ? `${criticalMeds} interação${criticalMeds === 1 ? '' : 'ões'} crítica${criticalMeds === 1 ? '' : 's'}` : 'ativos',
+      color: (criticalMeds ?? 0) > 0 ? 'error.main' : 'text.primary',
+      onClick: onOpenMeds,
+    },
   ];
 
   return (
@@ -165,7 +179,7 @@ export const PatientSummary = ({ patient, exams, abnormal, questions, notes, pat
         </Box>
       </Stack>
 
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(4, 1fr)' }, gap: 1, mt: 2 }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)', md: 'repeat(6, 1fr)' }, gap: 1, mt: 2 }}>
         {tiles.map((t) => (
           <Box
             key={t.key}

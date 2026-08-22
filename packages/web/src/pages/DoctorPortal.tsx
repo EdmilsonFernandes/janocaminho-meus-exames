@@ -289,6 +289,9 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   // paciente e o badge da aba Alterados. O count antigo somava TODOS os itens (normais
   // incluídos) e inflava o número.
   const [abnormalItems, setAbnormalItems] = useState<any[]>([]);
+  // Remédios ativos + interações críticas do paciente (tile 6 do hero; dialog no clique).
+  const [medsInfo, setMedsInfo] = useState<{ medications: any[]; critical: any[] } | null>(null);
+  const [medsOpen, setMedsOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
   const openSeq = useRef(0); // guarda de race: só aplica estado do openPatient mais recente
@@ -458,7 +461,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     if (tabOverride && pTabs.includes(tabOverride)) initial = tabOverride;
     setTab(initial);
     setSelExam(null);
-    setDetailLoading(true); setExams([]); setAbnormalItems([]); setNotes([]); setQuestions([]);
+    setDetailLoading(true); setExams([]); setAbnormalItems([]); setNotes([]); setQuestions([]); setMedsInfo(null);
     const mySeq = ++openSeq.current;
     const mine = () => mySeq === openSeq.current;
     const pid = p.patient.id;
@@ -471,6 +474,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
       ...(wantExams ? [get('/activity').then((d) => { if (d && mine()) setActivity(d?.days ? d : null); })] : []),
       get('/questions').then((d) => { if (d && mine()) setQuestions(d.items ?? []); }),
       get('/notes').then((d) => { if (d && mine()) setNotes(d.items ?? []); }),
+      get('/medications').then((d) => { if (d && mine()) setMedsInfo({ medications: d.medications ?? [], critical: d.critical ?? [] }); }),
     ]);
     if (mine()) setDetailLoading(false);
   };
@@ -1114,8 +1118,47 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               onOpenExams={() => { setTab('exams'); setSelExam(null); }}
               onOpenQuestions={() => { setTab('questions'); setSelExam(null); }}
               onOpenNotes={() => { setTab('notes'); setSelExam(null); }}
+              medsCount={medsInfo ? medsInfo.medications.filter((m: any) => m.active).length : 0}
+              criticalMeds={medsInfo?.critical?.length ?? 0}
+              onOpenMeds={() => setMedsOpen(true)}
               activity={activity}
             />
+
+            {/* REMÉDIOS do paciente (read-only) + interações críticas — contexto farmacológico. */}
+            <Dialog open={medsOpen} onClose={() => setMedsOpen(false)} fullWidth maxWidth="sm" PaperProps={{ sx: { borderRadius: '12px' } }}>
+              <DialogTitle sx={{ fontWeight: 800 }}>💊 Remédios de {selected.patient?.fullName ?? 'paciente'}</DialogTitle>
+              <DialogContent>
+                {(!medsInfo || medsInfo.medications.length === 0) && (
+                  <Typography sx={{ color: 'text.secondary', py: 2 }}>Nenhum remédio cadastrado pelo paciente.</Typography>
+                )}
+                {medsInfo && medsInfo.medications.length > 0 && (
+                  <Stack spacing={0.75} sx={{ mt: 1 }}>
+                    {medsInfo.medications.map((m: any) => (
+                      <Box key={m.id} sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 0.75, borderRadius: '8px', bgcolor: 'action.hover', opacity: m.active ? 1 : 0.55 }}>
+                        <Typography sx={{ flex: 1, fontWeight: 700, fontSize: 14 }}>{m.name}</Typography>
+                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>{[m.dosage, m.frequency].filter(Boolean).join(' · ')}{m.active ? '' : ' · suspenso'}</Typography>
+                      </Box>
+                    ))}
+                    {medsInfo.critical.length > 0 && (
+                      <Box sx={{ mt: 1.5 }}>
+                        <Typography sx={{ fontWeight: 800, color: 'error.main', fontSize: 13.5, mb: 0.5 }}>⚠️ Interações críticas</Typography>
+                        {medsInfo.critical.map((c: any, i: number) => (
+                          <Box key={i} sx={{ p: 1, borderRadius: '8px', bgcolor: 'rgba(185,28,28,.08)', mb: 0.75 }}>
+                            <Typography sx={{ fontWeight: 700, fontSize: 13 }}>{c.drugA} + {c.drugB} ({c.severity})</Typography>
+                            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>{c.effect}</Typography>
+                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>💡 {c.recommendation}</Typography>
+                          </Box>
+                        ))}
+                      </Box>
+                    )}
+                    <Typography variant="caption" sx={{ color: 'text.secondary', mt: 1 }}>Cadastro do paciente · leitura educativa, não substitui julgamento clínico.</Typography>
+                  </Stack>
+                )}
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => setMedsOpen(false)} sx={{ textTransform: 'none', fontWeight: 700 }}>Fechar</Button>
+              </DialogActions>
+            </Dialog>
 
             {supportedTabs.length > 0 && (
               <Box sx={{ position: 'sticky', top: 'env(safe-area-inset-top)', zIndex: 10, bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider', mx: -2, px: 2, mt: { xs: -0.5, lg: 0 }, mb: 2 }}>

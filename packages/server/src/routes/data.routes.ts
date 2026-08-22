@@ -16,7 +16,7 @@ const d = (v: any): Date => (v ? new Date(v) : new Date());
 /** Reúne todos os dados estruturados do usuário (base do /export e do /export-all). */
 async function gatherExportData(userId: string) {
   const pids = await userPatientIds(userId);
-  const [patients, exams, measurements, vaccines, expenses, reminders, analyses] = await Promise.all([
+  const [patients, exams, measurements, vaccines, expenses, reminders, analyses, medications] = await Promise.all([
     prisma.patient.findMany({ where: { id: { in: pids } } }),
     prisma.exam.findMany({ where: { patientId: { in: pids } }, include: { items: true } }),
     prisma.measurement.findMany({ where: { patientId: { in: pids } } }),
@@ -24,8 +24,9 @@ async function gatherExportData(userId: string) {
     prisma.expense.findMany({ where: { patientId: { in: pids } } }),
     prisma.reminder.findMany({ where: { patientId: { in: pids } } }),
     prisma.aiAnalysis.findMany({ where: { patientId: { in: pids }, type: 'SUMMARY' }, select: { type: true, contentMd: true, createdAt: true } }),
+    prisma.medication.findMany({ where: { patientId: { in: pids } } }),
   ]);
-  return { exportedAt: new Date().toISOString(), app: 'Meus Exames', version: 1, patients, exams, measurements, vaccines, expenses, reminders, analyses };
+  return { exportedAt: new Date().toISOString(), app: 'Meus Exames', version: 1, patients, exams, measurements, vaccines, expenses, reminders, analyses, medications };
 }
 
 // EXPORT — JSON com todos os dados estruturados do usuário (portabilidade/LGPD/backup)
@@ -107,7 +108,7 @@ router.post('/import', async (req: AuthedRequest, res, next) => {
     const data = req.body;
     if (!data?.patients || !Array.isArray(data.patients)) { res.status(400).json({ error: 'JSON inválido (esperado { patients, exams, ... })' }); return; }
     const uid = req.userId!;
-    const counts = { patients: 0, exams: 0, items: 0, measurements: 0, vaccines: 0, expenses: 0, reminders: 0 };
+    const counts = { patients: 0, exams: 0, items: 0, measurements: 0, vaccines: 0, expenses: 0, reminders: 0, medications: 0 };
     const pidMap = new Map<string, string>();
     for (const p of data.patients) {
       const np = await prisma.patient.create({ data: { ownerId: uid, fullName: String(p.fullName ?? 'Importado'), relationship: p.relationship ?? null, dateOfBirth: p.dateOfBirth ? d(p.dateOfBirth) : null, clinicalProfile: p.clinicalProfile ?? null, phone: p.phone ?? null, gender: p.gender ?? null } });
@@ -134,6 +135,7 @@ router.post('/import', async (req: AuthedRequest, res, next) => {
     for (const v of (data.vaccines ?? [])) { const pid = pidMap.get(v.patientId); if (!pid) continue; await prisma.vaccine.create({ data: { patientId: pid, name: String(v.name ?? ''), dateApplied: d(v.dateApplied), nextDoseDate: v.nextDoseDate ? d(v.nextDoseDate) : null, lot: v.lot ?? null, note: v.note ?? null } }).catch(() => {}); counts.vaccines++; }
     for (const x of (data.expenses ?? [])) { const pid = pidMap.get(x.patientId); if (!pid) continue; await prisma.expense.create({ data: { patientId: pid, ownerId: uid, description: String(x.description ?? ''), category: x.category ?? 'Outro', amount: Number(x.amount) || 0, spentAt: d(x.spentAt) } }).catch(() => {}); counts.expenses++; }
     for (const r of (data.reminders ?? [])) { const pid = pidMap.get(r.patientId); if (!pid) continue; await prisma.reminder.create({ data: { patientId: pid, ownerId: uid, title: String(r.title ?? ''), dueDate: d(r.dueDate), note: r.note ?? null, done: !!r.done } }).catch(() => {}); counts.reminders++; }
+    for (const m of (data.medications ?? [])) { const pid = pidMap.get(m.patientId); if (!pid) continue; await prisma.medication.create({ data: { patientId: pid, name: String(m.name ?? 'Remédio'), dosage: m.dosage ?? null, frequency: m.frequency ?? null, active: m.active !== false, notes: m.notes ?? null } }).catch(() => {}); counts.medications++; }
     res.json({ ok: true, counts });
   } catch (e) { next(e); }
 });
