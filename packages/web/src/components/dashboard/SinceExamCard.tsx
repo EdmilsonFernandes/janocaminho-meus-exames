@@ -61,11 +61,12 @@ export const SinceExamCard = ({ lastExamAt }: { lastExamAt?: string | null }) =>
 
   return (
     <AppCard kind="tinted" tone="primary" sx={{ p: 2 }}>
-      {/* Header */}
+      {/* Header — "Seu dia a dia desde {mês}": este card é sobre HÁBITOS (atividade/peso/PA);
+          o card de marcadores ao lado já cobre "o que mudou nos exames" (sem duplicar título). */}
       <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.25 }}>
         <TrendingUpIcon sx={{ fontSize: 19, color: 'primary.dark' }} />
         <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 700, fontSize: 15 }}>
-          Desde seu exame {examDate && <Box component="span" sx={{ color: 'text.secondary', fontWeight: 600 }}>de {examDate}</Box>}
+          Seu dia a dia {examDate && <Box component="span" sx={{ color: 'text.secondary', fontWeight: 600 }}>desde {examDate}</Box>}
         </Typography>
       </Stack>
 

@@ -4,6 +4,7 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { AppCard } from '../AppCard';
+import { fmtNum } from '../../utils/format';
 
 /**
  * Marker — recorte mínimo de um marcador vindo do health-summary (topAttention / improving).
@@ -26,7 +27,7 @@ const flagDir = (m: Marker) => {
   return m.flag === 'HIGH' ? '↑' : m.flag === 'LOW' ? '↓' : '•';
 };
 const fmtMarker = (m: Marker) =>
-  m.latest?.valueNumeric != null ? `${m.latest.valueNumeric}${m.unit ? ' ' + m.unit : ''}` : '—';
+  m.latest?.valueNumeric != null ? `${fmtNum(m.latest.valueNumeric)}${m.unit ? ' ' + m.unit : ''}` : '—';
 
 /**
  * ChangesSinceExam — "Desde seu último exame": o que piorou (topAttention) e o que melhorou.
@@ -39,7 +40,9 @@ export const ChangesSinceExam = ({
   improved,
   onView,
   loaded,
-  title = 'Desde seu último exame',
+  // "Desde seu último exame" duplicava com o SinceExamCard (hábitos) logo abaixo — este card
+  // é sobre MARCADORES dos exames; o outro, sobre o dia a dia (QA redundância 2026-08).
+  title = 'O que mudou nos seus exames',
   ctaLabel = 'Ver evolução completa',
 }: {
   worsened: Marker[];

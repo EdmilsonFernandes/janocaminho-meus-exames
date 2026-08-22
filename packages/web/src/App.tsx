@@ -272,9 +272,9 @@ const AppMenu = () => {
 
     <Divider sx={{ my: 1 }} />
 
-    {/* APOIO */}
+    {/* APOIO — "Ajuda e suporte" saiu do menu (decisão 2026-08): o painel de chamados agora
+        vive DENTRO do FAQ ("Falar com o suporte"), um caminho só em vez de dois parecidos. */}
     <NavItem to="/faq" primaryText={translate('menu.faq', { _: 'Dúvidas frequentes' })} icon={<QuestionAnswerIcon />} />
-    <NavItem to="/suporte" primaryText={translate('menu.support')} icon={<HelpOutlineIcon />} />
     <MenuItem onClick={() => setAboutOpen(true)} sx={{ mx: 0.5, borderRadius: '8px', py: 0.75 }}>
       <ListItemIcon sx={{ minWidth: 36 }}><InfoIcon fontSize="small" /></ListItemIcon>
       <ListItemText primaryTypographyProps={{ fontSize: 13, fontWeight: 600 }}>{translate('menu.about')}</ListItemText>
@@ -663,7 +663,6 @@ export const App = () => {
       <Route path="/landing" element={<Suspense fallback={<PageSkeleton />}><LandingPage /></Suspense>} />
       <Route path="/convite/:token" element={<InviteLandingPage />} />
       <Route path="/termos" element={<TermsPage />} />
-      <Route path="/faq" element={<Suspense fallback={<PageSkeleton />}><FaqPage /></Suspense>} />
       <Route path="/registrar" element={<RegisterPage />} />
       <Route path="/recuperar-senha" element={<ResetPage />} />
       <Route path="/doctor" element={<Suspense fallback={<PageSkeleton />}><DoctorPortalPage /></Suspense>} />
@@ -681,6 +680,9 @@ export const App = () => {
       <Route path="/perguntas" element={<Suspense fallback={<PageSkeleton />}><QuestionsPage /></Suspense>} />
       <Route path="/seguranca" element={<SecurityPage />} />
       <Route path="/privacidade" element={<PrivacyPage />} />
+      {/* FAQ dentro do layout (era noLayout = "tela solta": sem voltar/menu/rodapé, e o link
+          "voltar" jogava pra /landing). Agora é tela do app, com CTA de suporte in-app. */}
+      <Route path="/faq" element={<Suspense fallback={<PageSkeleton />}><FaqPage /></Suspense>} />
       <Route path="*" element={<NotFoundPage />} />
       <Route path="/evolucao" element={<EvolutionPage />} />
       <Route path="/familia" element={<FamilyPage />} />

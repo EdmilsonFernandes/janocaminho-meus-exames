@@ -14,6 +14,7 @@ import { ExplainButton } from '../components/ExplainItem';
 import { usePremium } from '../components/PremiumGate';
 import { refLabel } from '../utils/medicalData';
 import { groupByYear } from '../utils/groupByYear';
+import { measurementLabel, measurementValue } from '../utils/measurementLabels';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
 import { PageSkeleton } from '../components/PageSkeleton';
@@ -56,13 +57,11 @@ export const TimelinePage = () => {
         itemCount: e._count?.items ?? 0,
         type: 'exam' as const,
       }));
-      // ATIVIDADE (Health Connect): rótulo amigável p/ STEPS/CALORIES/DISTANCE
-      const ACTIVITY_LABELS: Record<string, string> = { STEPS: '👟 Passos', CALORIES: '🔥 Calorias', DISTANCE: '📍 Distância' };
+      // MEDIÇÕES (manuais + Health Connect): rótulo PT-BR + valor formatado — antes exibia
+      // "BLOOD_PRESSURE: 120" (inglês cru, sem a diastólica, float com 14 casas).
       const measEvents: Event[] = (Array.isArray(meas) ? meas : []).map((m: any) => ({
         id: `m-${m.id}`, date: m.measuredAt,
-        title: m.type in ACTIVITY_LABELS
-          ? `${ACTIVITY_LABELS[m.type]}: ${m.value.toLocaleString('pt-BR')} ${m.unit ?? ''}`
-          : `${m.type}: ${m.value}${m.unit ? ` ${m.unit}` : ''}`,
+        title: `${measurementLabel(m.type)}: ${measurementValue(m)}${m.unit ? ` ${m.unit}` : ''}`,
         kind: 'MEASUREMENT',
         abnormalCount: 0, itemCount: 1, type: 'medicao' as const,
       }));

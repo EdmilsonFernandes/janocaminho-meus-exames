@@ -11,6 +11,15 @@ export function fmtVal(it: { valueText?: string | null; valueNumeric?: number | 
 }
 
 /**
+ * Número p/ exibição em PT-BR sem artefatos de float (5.714285714285714 → "5,71").
+ * Fonte única — antes cada card renderizava valueNumeric cru (14 casas, QA 2026-08).
+ */
+export function fmtNum(v: number | null | undefined, maxDec = 2): string {
+  if (v == null || !Number.isFinite(v)) return '—';
+  return v.toLocaleString('pt-BR', { maximumFractionDigits: maxDec });
+}
+
+/**
  * Unidade pra exibir AO LADO do valor (render secundário, menor).
  * Devolve '' quando o valueText já traz a unidade embutida — a extração grava
  * valueText = "17,1 g/dL" (com unidade) E unit = "g/dL" separadamente, então
