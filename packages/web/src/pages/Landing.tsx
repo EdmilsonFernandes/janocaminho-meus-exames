@@ -25,6 +25,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
+import DirectionsWalkIcon from '@mui/icons-material/DirectionsWalk';
 import MonitorWeightIcon from '@mui/icons-material/MonitorWeight';
 import TuneIcon from '@mui/icons-material/Tune';
 import CalculateIcon from '@mui/icons-material/Calculate';
@@ -41,6 +42,10 @@ const TEAL_DARK = '#178f89';
 const INK = '#0f5f5a'; // teal-escuro premium p/ textos de destaque / footer
 const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.janocaminho.drexame&hl=pt_BR'; // app aprovado na Play Store
 const GREEN = '#059669';
+/** Ênfase editorial (landing v2): Instrument Serif itálica SÓ nas palavras-magnet dos títulos. */
+const SERIF_I = { fontFamily: "'Instrument Serif', Georgia, serif", fontStyle: 'italic', fontWeight: 400 } as const;
+/** Vídeo do hero — URL provisória (seed open-design); trocar por footage próprio quando houver. Se 404, hero volta ao estático (fallback silencioso). */
+const HERO_VIDEO_URL = 'https://plugin-assets.open-design.ai/plugins/innovation/hf_20260405_074625_a81f018a-956b-43fb-9aee-4d1508e30e6a-6993b9.mp4';
 
 const benefits = [
   { Icon: HealthAndSafetyIcon, title: 'Leitura de risco', desc: 'Veja possíveis riscos (diabetes, anemia, hipertensão, colesterol, cardiovascular, renal, obesidade) a partir dos seus exames — sempre como "possível", e cada faixa cita a diretriz (ADA/SBC/OMS).' },
@@ -53,6 +58,7 @@ const benefits = [
   { Icon: ChatIcon, title: 'Chat inteligente (economiza)', desc: 'Perguntas simples ("qual meu último TSH?") são respondidas na hora e de graça. Só as complexas vão pra IA.' },
   { Icon: CompareArrowsIcon, title: 'Comparativo visual', desc: 'Veja o que mudou entre exames. Hemoglobina subiu? Colesterol caiu? Gráficos claros com faixa de referência.' },
   { Icon: TrendingUpIcon, title: 'Evolução + Previsão', desc: 'Acompanhe tendências e saiba quando um valor pode sair da faixa (previsão exclusiva do Premium).' },
+  { Icon: DirectionsWalkIcon, title: 'Conecta o Health Connect', desc: 'Passos, calorias e distância do celular (Health Connect do Google) entram JUNTO dos seus exames: o Dr. Exame mostra sua atividade da semana do exame e usa como contexto na leitura — estilo de vida e laboratório na mesma história. Só leitura; você autoriza e pode revogar quando quiser.' },
   { Icon: MedicalServicesIcon, title: 'Portal do seu médico', desc: 'Indique pelo CRM e seu médico ganha um brief de pré-consulta: top 3 mudanças do dia, padrões por sistema (glicêmico, renal, lipídico) e exames de seguimento sugeridos — só o que você autorizar.' },
   { Icon: Diversity3Icon, title: 'Toda a família', desc: 'Gerencie exames de cada dependente. Score familiar + comparativo entre membros.' },
   { Icon: DescriptionIcon, title: 'Pronto para o médico', desc: 'Relatório de 1 página com valores alterados + perfil clínico. Compartilhe por link seguro com PIN.' },
@@ -64,7 +70,7 @@ const CATS = ['Todos', 'IA & Análise', 'Acompanhamento', 'Médico & Família', 
 const catOf = (t: string): string => {
   if (/Dados protegidos/.test(t)) return 'Segurança';
   if (/Portal do seu médico|Toda a família|Pronto para o médico/.test(t)) return 'Médico & Família';
-  if (/Score de Adesão|Alerta preditivo|Comparativo visual|Evolução/.test(t)) return 'Acompanhamento';
+  if (/Score de Adesão|Alerta preditivo|Comparativo visual|Evolução|Health Connect/.test(t)) return 'Acompanhamento';
   return 'IA & Análise';
 };
 
@@ -147,7 +153,7 @@ export const LandingPage = () => {
     return () => window.removeEventListener('scroll', h);
   }, []);
 
-  const [credits, setCredits] = useState(60);
+  const [credits, setCredits] = useState(45);
   const [refBonus, setRefBonus] = useState(10);
   useEffect(() => { fetchPublicConfig().then((c) => { setCredits(c.freeSignup); setRefBonus(c.referralBonus); }); }, []);
 
@@ -199,13 +205,29 @@ export const LandingPage = () => {
         <Box sx={{ position: 'absolute', top: '-10%', right: '-5%', width: 520, height: 520, borderRadius: '50%', background: 'radial-gradient(circle,rgba(32,178,170,.18),transparent 65%)', pointerEvents: 'none' }} />
         <Box sx={{ position: 'absolute', bottom: '-15%', left: '-8%', width: 420, height: 420, borderRadius: '50%', background: 'radial-gradient(circle,rgba(212,165,116,.12),transparent 65%)', pointerEvents: 'none' }} />
         <Box sx={{ position: 'absolute', top: '-5%', left: '-3%', width: 340, height: 340, borderRadius: '50%', background: 'radial-gradient(circle,rgba(212,165,116,.18),transparent 65%)', pointerEvents: 'none' }} />
+        {/* Vídeo de textura (v2) — sutil por cima do gradiente claro; some no reduced-motion e em erro de rede */}
+        <Box
+          component="video"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          src={HERO_VIDEO_URL}
+          aria-hidden="true"
+          sx={{
+            position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover',
+            opacity: 0.16, pointerEvents: 'none',
+            '@media (prefers-reduced-motion: reduce)': { display: 'none' },
+          }}
+        />
         <Container maxWidth="lg" sx={{ position: 'relative' }}>
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.05fr .95fr' }, gap: { xs: 5, md: 6 }, alignItems: 'center' }}>
             {/* Coluna texto */}
             <Box>
               <Chip icon={<AutoAwesomeIcon sx={{ fontSize: 17 }} />} label="IA de Saúde no seu bolso" sx={{ bgcolor: 'rgba(32,178,170,.12)', color: TEAL_DARK, fontWeight: 700, mb: 3, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: TEAL } }} />
               <Typography variant="h1" sx={{ fontSize: { xs: '2.3rem', md: '3.4rem' }, fontWeight: 800, lineHeight: 1.08, mb: 2.5, letterSpacing: '-0.03em', color: 'text.primary' }}>
-                <Box component="span" sx={{ display: 'block' }}>Entenda seus exames</Box>como <Box component="span" sx={{ color: TEAL }}>nunca antes.</Box>
+                <Box component="span" sx={{ display: 'block' }}>Entenda seus exames</Box>como <Box component="span" sx={{ ...SERIF_I, color: TEAL, fontSize: '1.06em' }}>nunca antes.</Box>
               </Typography>
               <Typography sx={{ fontSize: { xs: 16.5, md: 19 }, color: 'text.secondary', mb: 3, lineHeight: 1.6, maxWidth: 500 }}>
                 Envie o exame. O <b style={{ color: 'text.primary' }}>Dr. Exame</b> lê com IA, explica em português simples, mostra sua <b style={{ color: 'text.primary' }}>leitura de risco</b> e monta um <b style={{ color: 'text.primary' }}>plano de ação</b> pra levar ao médico.
@@ -275,7 +297,7 @@ export const LandingPage = () => {
         <Container maxWidth="lg">
           <Box sx={{ textAlign: 'center', mb: { xs: 3.5, md: 5 } }}>
             <Typography sx={{ fontSize: 13, fontWeight: 800, color: TEAL_DARK, letterSpacing: '0.06em', textTransform: 'uppercase', mb: 1 }}>Veja acontecer</Typography>
-            <Typography variant="h2" sx={{ fontSize: { xs: '1.7rem', md: '2.3rem' }, fontWeight: 800, color: 'text.primary', mb: 1, letterSpacing: '-0.02em' }}>Decifre um exame em 5 segundos</Typography>
+            <Typography variant="h2" sx={{ fontSize: { xs: '1.7rem', md: '2.3rem' }, fontWeight: 800, color: 'text.primary', mb: 1, letterSpacing: '-0.02em' }}>Decifre um exame em <Box component="span" sx={{ ...SERIF_I, color: TEAL_DARK }}>5 segundos</Box></Typography>
             <Typography sx={{ color: 'text.secondary', fontSize: 17, maxWidth: 560, mx: 'auto' }}>Toque e veja o Dr. Exame ler o laudo, explicar cada valor e montar sua leitura de risco — sem cadastro.</Typography>
           </Box>
           <ExamDemo />
@@ -291,6 +313,7 @@ export const LandingPage = () => {
               { Icon: AccessibilityNewIcon, t: 'Acessível em Libras' },
               { Icon: MedicalServicesIcon, t: 'Portal do Médico' },
               { Icon: CreditCardIcon, t: 'Sem cartão pra começar' },
+              { Icon: MonitorHeartIcon, t: 'Lê o Health Connect do Google' },
             ].map(({ Icon, t }) => (
               <Stack key={t} direction="row" spacing={1} alignItems="center">
                 <Icon sx={{ fontSize: 20, color: TEAL }} />
@@ -448,7 +471,7 @@ export const LandingPage = () => {
             {/* texto (direita) */}
             <Box sx={{ order: { xs: 1, md: 2 } }}>
               <Chip icon={<MonitorHeartIcon sx={{ fontSize: 17 }} />} label="Leitura de risco + plano de ação" sx={{ bgcolor: 'rgba(255,255,255,.16)', color: '#ffd9b3', fontWeight: 700, mb: 3, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: '#fb923c' } }} />
-              <Typography variant="h2" sx={{ fontSize: { xs: '1.8rem', md: '2.4rem' }, fontWeight: 800, color: '#fff', mb: 2, letterSpacing: '-0.02em' }}>Descubra seu risco — e o que fazer</Typography>
+              <Typography variant="h2" sx={{ fontSize: { xs: '1.8rem', md: '2.4rem' }, fontWeight: 800, color: '#fff', mb: 2, letterSpacing: '-0.02em' }}>Descubra seu risco — e <Box component="span" sx={SERIF_I}>o que fazer</Box></Typography>
               <Typography sx={{ fontSize: 17, color: 'rgba(255,255,255,.82)', mb: 3.5, lineHeight: 1.6 }}>
                 A IA cruza seus exames e aponta <b style={{ color: '#fff' }}>possíveis riscos</b> (diabetes, pré-diabetes, anemia, hipertensão, colesterol e cardiovascular) — e monta um <b style={{ color: '#fff' }}>plano de ação</b> personalizado: hábitos, quando refazer e perguntas pra levar ao médico.
               </Typography>
@@ -472,7 +495,7 @@ export const LandingPage = () => {
       {/* COMO SEUS DADOS FLUEM — mata o ceticismo de IA em saúde (absorve anchor #como-funciona) */}
       <Box id="como-funciona" sx={{ bgcolor: 'background.paper', borderTop: '1px solid', borderBottom: '1px solid', borderColor: 'divider', py: { xs: 8, md: 11 }, scrollMarginTop: 80 }}>
         <Container maxWidth="lg">
-          <Typography align="center" variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>A IA não inventa números</Typography>
+          <Typography align="center" variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>A IA <Box component="span" sx={{ ...SERIF_I, color: TEAL_DARK }}>não inventa</Box> números</Typography>
           <Typography align="center" sx={{ color: 'text.secondary', fontSize: 17, mb: 6, maxWidth: 660, mx: 'auto', lineHeight: 1.6 }}>
             Seus valores saem <b style={{ color: 'text.primary' }}>direto do laudo</b>. A IA só explica o que já está escrito — com criptografia e no seu controle do começo ao fim.
           </Typography>
@@ -506,7 +529,7 @@ export const LandingPage = () => {
           <Reveal>
             <Box sx={{ textAlign: 'center', mb: 4 }}>
               <Chip icon={<MedicalServicesIcon sx={{ fontSize: 17 }} />} label="Dr. Exame Pro" sx={{ bgcolor: 'rgba(212,165,116,.16)', color: '#b88a54', fontWeight: 700, mb: 2, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: '#b88a54' } }} />
-              <Typography variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>Médico e paciente, conectados num clique</Typography>
+              <Typography variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>Médico e paciente, conectados <Box component="span" sx={{ ...SERIF_I, color: TEAL_DARK }}>num clique</Box></Typography>
               <Typography sx={{ color: 'text.secondary', fontSize: 17, maxWidth: 640, mx: 'auto' }}>O paciente chega pronto na consulta. O médico recebe um brief de pré-consulta com tudo que importa — gerado por IA, sob controle total de quem compartilha.</Typography>
             </Box>
           </Reveal>
@@ -662,7 +685,7 @@ export const LandingPage = () => {
           <Reveal>
             <Box sx={{ textAlign: 'center', mb: { xs: 4, md: 6 } }}>
               <Chip icon={<CalculateIcon sx={{ fontSize: 17 }} />} label="Índices que o laudo não dá" sx={{ bgcolor: 'rgba(32,178,170,.12)', color: TEAL_DARK, fontWeight: 700, mb: 2, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: TEAL } }} />
-              <Typography variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>O laboratório mediu. Nós interpretamos.</Typography>
+              <Typography variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>O laboratório <Box component="span" sx={{ ...SERIF_I, color: TEAL_DARK }}>mediu</Box>. Nós <Box component="span" sx={{ ...SERIF_I, color: TEAL_DARK }}>interpretamos</Box>.</Typography>
               <Typography sx={{ color: 'text.secondary', fontSize: 17, maxWidth: 600, mx: 'auto' }}>Seu laudo traz os valores brutos. O Dr. Exame calcula os índices que importam — e mostra o valor <b style={{ color: 'text.primary' }}>ideal</b>, não só o de referência.</Typography>
             </Box>
           </Reveal>
@@ -703,7 +726,7 @@ export const LandingPage = () => {
       {/* COMPARATIVO — posicionamento (Dr. Exame vs alternativas) */}
       <Box sx={{ bgcolor: 'background.paper', borderTop: '1px solid', borderColor: 'divider', py: { xs: 8, md: 11 } }}>
         <Container maxWidth="md">
-          <Typography align="center" variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>Por que não basta ler o papel?</Typography>
+          <Typography align="center" variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>Por que não basta <Box component="span" sx={{ ...SERIF_I, color: TEAL_DARK }}>ler o papel?</Box></Typography>
           <Typography align="center" sx={{ color: 'text.secondary', fontSize: 17, mb: 5, maxWidth: 600, mx: 'auto' }}>O que o Dr. Exame faz que o laudo, o Google e a espera pela consulta não fazem.</Typography>
           <Box sx={{ borderRadius: '12px', border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
             {/* cabeçalho */}
@@ -736,7 +759,7 @@ export const LandingPage = () => {
       {/* PLANOS */}
       <Box id="planos" sx={{ bgcolor: 'background.paper', borderTop: '1px solid', borderColor: 'divider', py: { xs: 8, md: 11 }, scrollMarginTop: 80 }}>
         <Container maxWidth="md">
-          <Typography align="center" variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>Planos simples e justos</Typography>
+          <Typography align="center" variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>Planos <Box component="span" sx={{ ...SERIF_I, color: TEAL_DARK }}>simples e justos</Box></Typography>
           <Typography align="center" sx={{ color: 'text.secondary', mb: 6, fontSize: 17 }}>Comece grátis. Assine quando precisar — ou pague só pelo que usar.</Typography>
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr' }, gap: 3, alignItems: 'center' }}>
             {planData(credits).map((p) => (
@@ -772,7 +795,7 @@ export const LandingPage = () => {
           <Stack direction={{ xs: 'column', md: 'row' }} alignItems="center" spacing={{ xs: 3, md: 6 }} sx={{ textAlign: { xs: 'center', md: 'left' } }}>
             <Box sx={{ fontSize: { xs: 56, md: 72 }, lineHeight: 1, flexShrink: 0 }}>🎁</Box>
             <Box sx={{ flex: 1 }}>
-              <Typography variant="h2" sx={{ fontSize: { xs: '1.7rem', md: '2.3rem' }, fontWeight: 800, color: 'text.primary', mb: 1, letterSpacing: '-0.02em' }}>Indique e ganhe créditos</Typography>
+              <Typography variant="h2" sx={{ fontSize: { xs: '1.7rem', md: '2.3rem' }, fontWeight: 800, color: 'text.primary', mb: 1, letterSpacing: '-0.02em' }}>Indique e <Box component="span" sx={{ ...SERIF_I, color: TEAL_DARK }}>ganhe créditos</Box></Typography>
               <Typography sx={{ color: 'text.secondary', fontSize: 17, mb: 2.5 }}>Compartilhe seu código com amigos. Quando alguém cria a conta com ele, <b style={{ color: TEAL_DARK }}>vocês dois ganham +{refBonus} créditos</b> — pra usar no Dr. Exame.</Typography>
               <Stack direction="row" spacing={1.5} justifyContent={{ xs: 'center', md: 'flex-start' }} flexWrap="wrap" useFlexGap>
                 {[{ n: `+${refBonus}`, l: 'pra você', c: TEAL }, { n: `+${refBonus}`, l: 'pra seu amigo', c: '#0ea5e9' }, { n: '10/mês', l: 'limite anti-abuso', c: 'text.secondary' }].map((x) => (
@@ -800,7 +823,7 @@ export const LandingPage = () => {
           }}>
             <Box sx={{ position: 'absolute', top: '-30%', right: '-10%', width: 360, height: 360, borderRadius: '50%', background: 'rgba(255,255,255,.08)' }} />
             <Box sx={{ position: 'relative' }}>
-              <Typography variant="h2" sx={{ fontSize: { xs: '1.7rem', md: '2.3rem' }, fontWeight: 800, mb: 2, letterSpacing: '-0.02em' }}>Pronto pra entender sua saúde?</Typography>
+              <Typography variant="h2" sx={{ fontSize: { xs: '1.7rem', md: '2.3rem' }, fontWeight: 800, mb: 2, letterSpacing: '-0.02em' }}>Pronto pra entender <Box component="span" sx={{ ...SERIF_I }}>sua saúde?</Box></Typography>
               <Typography sx={{ color: 'rgba(255,255,255,.9)', mb: 4, fontSize: 17, maxWidth: 480, mx: 'auto' }}>Crie sua conta grátis e envie seu primeiro exame em menos de 1 minuto.</Typography>
               <Button size="large" onClick={() => navigate('/registrar')} sx={{ bgcolor: '#fff', color: TEAL_DARK, fontWeight: 800, fontSize: 17, borderRadius: '999px', px: 5, py: 1.5, textTransform: 'none', '&:hover': { bgcolor: '#f0fafa', transform: 'translateY(-2px)' }, transition: 'all .2s' }}>Começar agora →</Button>
               {/* App na Play Store — QR OFICIAL + badge Google Play no ponto de maior intenção.
@@ -815,7 +838,7 @@ export const LandingPage = () => {
                 <Box component="img" src={`${import.meta.env.BASE_URL}playstore-qr.png`} alt="QR code para baixar o Dr. Exame na Play Store"
                   sx={{ width: 116, height: 116, borderRadius: '12px', bgcolor: '#fff', display: 'block', flexShrink: 0 }} />
                 <Box sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
-                  <Typography sx={{ fontWeight: 800, fontSize: 16, lineHeight: 1.15, color: 'text.primary' }}>Dr. Exame no seu celular 📱</Typography>
+                  <Typography sx={{ fontWeight: 800, fontSize: 16, lineHeight: 1.15, color: 'text.primary' }}>Dr. Exame <Box component="span" sx={SERIF_I}>no seu celular</Box> 📱</Typography>
                   <Typography sx={{ fontSize: 13, color: 'text.secondary', mb: 1 }}>Aponte a câmera do celular ou toque pra baixar.</Typography>
                   <Box component="img" src={`${import.meta.env.BASE_URL}playstore-badge.png`} alt="Disponível no Google Play"
                     sx={{ height: 46, width: 'auto', display: 'block', mx: { xs: 'auto', sm: 0 } }} />
