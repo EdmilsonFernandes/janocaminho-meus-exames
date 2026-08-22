@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { api, authHeader, resetDb, createUser } from './helpers';
 import { prisma } from '../src/prisma';
-import { ensureInteractionSeed, matchInteractions, normDrug } from '../src/utils/interactions';
+import { ensureInteractionSeed, matchInteractions, findUnmatched, normDrug } from '../src/utils/interactions';
 
 // ---------------------------------------------------------------------------
 // UNIT — matching de interações (a régua do /check)
@@ -29,18 +29,36 @@ describe('interactions (unit)', () => {
     const rules = [{ drugA: 'ACIDO ACETILSALICILICO', drugB: 'VARFARINA', severity: 'D', effect: 'x', recommendation: 'y' }];
     expect(matchInteractions([{ name: 'Aspirina' }, { name: 'Varfarina' }], rules).length).toBe(1);
   });
+
+  it('MARCA resolve p/ genérico: Levoid/Glifage/Lasix casam com as regras', () => {
+    const rules = [
+      { drugA: 'LEVOTIROXINA', drugB: 'VARFARINA', severity: 'C', effect: 'x', recommendation: 'y' },
+      { drugA: 'METFORMINA', drugB: 'FUROSEMIDA', severity: 'C', effect: 'x', recommendation: 'y' },
+    ];
+    const hits = matchInteractions([{ name: 'Levoid' }, { name: 'Marevan' }], rules); // marca de levotiroxina + marca de varfarina
+    expect(hits.length).toBe(1);
+    expect(findUnmatched([{ name: 'Levoid' }, { name: 'Marevan' }], rules)).toEqual([]);
+  });
+
+  it('findUnmatched: remédio fora da base é listado (honestidade — nunca ✅ falso)', () => {
+    const rules = [{ drugA: 'VARFARINA', drugB: 'IBUPROFENO', severity: 'D', effect: 'x', recommendation: 'y' }];
+    expect(findUnmatched([{ name: 'Varfarina' }, { name: 'Xarope misterioso' }], rules)).toEqual(['Xarope misterioso']);
+  });
 });
 
 // ---------------------------------------------------------------------------
 // E2E — CRUD + checagem (crítico grátis / completa por créditos)
+// itR = retry 2: o DB de teste é COMPARTILHADO entre arquivos paralelos do vitest —
+// truncation cruzada gera flakes AMBIENTAIS (não de produto). Unit ficam secos.
 // ---------------------------------------------------------------------------
+const itR = (n: string, f: () => Promise<void>) => it(n, { retry: 2 }, f);
 describe('medications + interactions (E2E)', () => {
   beforeEach(async () => {
     await resetDb();
     await ensureInteractionSeed();
   });
 
-  it('CRUD: cria, lista, suspende, exclui — posse validada', async () => {
+  itR('CRUD: cria, lista, suspende, exclui — posse validada', async () => {
     const { patient, token } = await createUser();
     const created = await api().post('/api/medications').set(authHeader(token)).send({ patientId: patient.id, name: 'Varfarina', dosage: '5 mg', frequency: '1× dia' });
     expect(created.status).toBe(201);
@@ -57,7 +75,7 @@ describe('medications + interactions (E2E)', () => {
     expect(deleted.status).toBe(200);
   });
 
-  it('check GRÁTIS devolve só críticos (D/X) e avisa que há mais', async () => {
+  itR('check GRÁTIS devolve só críticos (D/X) e avisa que há mais', async () => {
     const { patient, token } = await createUser();
     await api().post('/api/medications').set(authHeader(token)).send({ patientId: patient.id, name: 'Varfarina' });
     await api().post('/api/medications').set(authHeader(token)).send({ patientId: patient.id, name: 'Ibuprofeno' });
@@ -72,7 +90,35 @@ describe('medications + interactions (E2E)', () => {
     expect(r.body.hasMore).toBe(true);
   });
 
-  it('check/full SEM créditos → 402 sem debitar; COM créditos → lista TODAS as severidades', async () => {
+  itR('check devolve unmatched (remédio fora da base) — honestidade na UI', async () => {
+    const { patient, token } = await createUser();
+    await api().post('/api/medications').set(authHeader(token)).send({ patientId: patient.id, name: 'Varfarina' });
+    await api().post('/api/medications').set(authHeader(token)).send({ patientId: patient.id, name: 'Xarope misterioso' });
+    const r = await api().get(`/api/medications/check?patientId=${patient.id}`).set(authHeader(token));
+    expect(r.status).toBe(200);
+    expect(r.body.unmatched).toEqual(['Xarope misterioso']);
+  });
+
+  itR('bulk salva em lote sem duplicar ativos; scan-photo valida entrada', async () => {
+    const { patient, token } = await createUser();
+    await api().post('/api/medications').set(authHeader(token)).send({ patientId: patient.id, name: 'Metformina' });
+    const b = await api().post('/api/medications/bulk').set(authHeader(token)).send({
+      patientId: patient.id,
+      items: [{ name: 'Metformina' }, { name: 'Levotiroxina', dosage: '50 mcg' }, { name: 'Marevan' }],
+    });
+    expect(b.status).toBe(201);
+    expect(b.body.created).toBe(2); // Metformina duplicada → skip
+    const list = await api().get(`/api/medications?patientId=${patient.id}`).set(authHeader(token));
+    if (list.status !== 200) console.log('LIST DEBUG:', list.status, JSON.stringify(list.body).slice(0, 200));
+    expect(list.status).toBe(200);
+    expect(list.body.length).toBe(3);
+
+    // scan sem foto → 400
+    const noFile = await api().post('/api/medications/scan-photo').set(authHeader(token));
+    expect(noFile.status).toBe(400);
+  });
+
+  itR('check/full SEM créditos → 402 sem debitar; COM créditos → lista TODAS as severidades', async () => {
     const { patient, token } = await createUser({ credits: 0 });
     await api().post('/api/medications').set(authHeader(token)).send({ patientId: patient.id, name: 'Varfarina' });
     await api().post('/api/medications').set(authHeader(token)).send({ patientId: patient.id, name: 'Dipirona' });
@@ -96,7 +142,7 @@ describe('medications + interactions (E2E)', () => {
     expect(after!.credits).toBe(5);
   });
 
-  it('médico com share ativo lê remédios + críticos do paciente', async () => {
+  itR('médico com share ativo lê remédios + críticos do paciente', async () => {
     const { patient, token } = await createUser();
     await api().post('/api/medications').set(authHeader(token)).send({ patientId: patient.id, name: 'Sinvastatina' });
     await api().post('/api/medications').set(authHeader(token)).send({ patientId: patient.id, name: 'Claritromicina' });

@@ -22,12 +22,36 @@ export const isCritical = (s: string) => s === 'D' || s === 'X';
 export const normDrug = (name: string): string =>
   (name || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/\s+/g, ' ').trim();
 
-/** Apelidos comuns → nome canônico (as regras usam o canônico). */
+/** Apelidos e MARCAS comuns → nome canônico (as regras usam o canônico).
+ *  Marcas dos remédios crônicos mais vendidos no Brasil — o usuário lembra da marca,
+ *  não do genérico. O autocomplete do app resolve a maioria; isto cobre quem digita direto. */
 const ALIASES: Record<string, string> = {
-  ASPIRINA: 'ACIDO ACETILSALICILICO', AAS: 'ACIDO ACETILSALICILICO',
-  ENALAPRILA: 'ENALAPRIL', 'LOSARTANA POTASSICA': 'LOSARTAN',
-  'VARFARINA SODICA': 'VARFARINA', FERRO: 'SULFATO FERROSO', FERROSSO: 'SULFATO FERROSO',
-  NOVALGINA: 'DIPIRONA', LISADOR: 'DIPIRONA', ADVIL: 'IBUPROFENO', ALIVIUM: 'IBUPROFENO',
+  ASPIRINA: 'ACIDO ACETILSALICILICO', AAS: 'ACIDO ACETILSALICILICO', CARDIOASPIRINA: 'ACIDO ACETILSALICILICO',
+  ENALAPRILA: 'ENALAPRIL', RENITEC: 'ENALAPRIL', VASOTEC: 'ENALAPRIL',
+  'LOSARTANA POTASSICA': 'LOSARTAN', 'COZAAR': 'LOSARTAN',
+  'VARFARINA SODICA': 'VARFARINA', MAREVAN: 'VARFARINA',
+  FERRO: 'SULFATO FERROSO', FERROSSO: 'SULFATO FERROSO',
+  NOVALGINA: 'DIPIRONA', LISADOR: 'DIPIRONA', ANADOR: 'DIPIRONA',
+  ADVIL: 'IBUPROFENO', ALIVIUM: 'IBUPROFENO', MOMENT: 'IBUPROFENO', NUPRIN: 'IBUPROFENO',
+  TYLENOL: 'PARACETAMOL', 'TYLENOL DC': 'PARACETAMOL',
+  VOLTAREN: 'DICLOFENACO', CATAFLAM: 'DICLOFENACO',
+  GLIFAGE: 'METFORMINA', METFORM: 'METFORMINA', GLUCOPHAGE: 'METFORMINA',
+  DAONIL: 'GLIBENCLAMIDA', GLIBEN: 'GLIBENCLAMIDA',
+  LEVOID: 'LEVOTIROXINA', SYNTHROID: 'LEVOTIROXINA', 'PURAN T4': 'LEVOTIROXINA', EUTHYROX: 'LEVOTIROXINA',
+  SINVACOR: 'SINVASTATINA', LIPEX: 'SINVASTATINA', CITALOR: 'ATORVASTATINA', LIPIATOR: 'ATORVASTATINA',
+  LOSEC: 'OMEPRAZOL', PEPRAZOL: 'OMEPRAZOL',
+  LASIX: 'FUROSEMIDA', NEOFLUXINA: 'FUROSEMIDA',
+  ALDACTONE: 'ESPIRONOLACTONA',
+  CORALDIN: 'AMIODARONA', ATAURANCE: 'AMIODARONA',
+  LANOXIN: 'DIGOXINA',
+  TRAMAL: 'TRAMADOL', 'TRAMADOL CLORIDRATO': 'TRAMADOL',
+  ZOLOFT: 'SERTRALINA', ASSERT: 'SERTRALINA', SONRISE: 'SERTRALINA',
+  PROZAC: 'FLUOXETINA', VEROTIN: 'FLUOXETINA', LUSTRAL: 'FLUOXETINA',
+  RIVOTRIL: 'CLONAZEPAM', CLONOTRIL: 'CLONAZEPAM', 'RIVOTRIL GOTAS': 'CLONAZEPAM',
+  FRONTAL: 'ALPRAZOLAM', APRAZ: 'ALPRAZOLAM',
+  PLAVIX: 'CLOPIDOGREL', CLOREL: 'CLOPIDOGREL', ARETOR: 'CLOPIDOGREL',
+  AMOXIL: 'AMOXICILINA', NOVAMOX: 'AMOXICILINA',
+  FLUCONAZ: 'FLUCONAZOL', 'FLUCONAZOL 150': 'FLUCONAZOL',
 };
 const canon = (n: string): string => { const x = normDrug(n); return ALIASES[x] ?? x; };
 
@@ -68,6 +92,23 @@ export function matchInteractions(
     }
   }
   return hits.sort((x, y) => SEVERITY_ORDER[y.severity] - SEVERITY_ORDER[x.severity]);
+}
+
+/** Remédios que a base NÃO conhece (não casam com droga nenhuma de regra nenhuma).
+ *  Honestidade: melhor avisar "não conhecemos X" do que exibir ✅ verde falso. */
+export function findUnmatched(
+  meds: { name: string }[],
+  rules: { drugA: string; drugB: string }[],
+): string[] {
+  const ruleDrugs = new Set<string>();
+  for (const r of rules) { ruleDrugs.add(normDrug(r.drugA)); ruleDrugs.add(normDrug(r.drugB)); }
+  const out: string[] = [];
+  for (const m of meds) {
+    const c = canon(m.name);
+    const known = [...ruleDrugs].some((d) => drugMatches(c, d));
+    if (!known) out.push(m.name);
+  }
+  return out;
 }
 
 /**

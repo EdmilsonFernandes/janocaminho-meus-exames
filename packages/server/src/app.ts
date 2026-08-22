@@ -97,6 +97,7 @@ app.use('/api/doctor/crm', signupLimiter); // busca pública de CRM (consultaCRM
 app.use('/api/auth', authLimiter);
 app.use('/api/analyses', aiLimiter);
 app.use('/api/chat', aiLimiter);
+app.use('/api/medications/scan-photo', aiLimiter); // foto→OCR→IA: mesma cesta de IA do chat
 app.use('/api/', generalLimiter);
 
 app.get('/api/health', async (_req, res) => {

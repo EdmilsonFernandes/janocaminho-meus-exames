@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Box, Button, Card, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, TextField, Typography } from '@mui/material';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Autocomplete, Box, Button, Card, Checkbox, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, TextField, Typography } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import MedicationIcon from '@mui/icons-material/Medication';
+import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import ShieldIcon from '@mui/icons-material/Shield';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { API_URL, apiHeaders, token } from '../config';
@@ -10,9 +11,9 @@ import { useSelectedPatient } from '../patient-context';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
 import { ListSkeleton } from '../components/Skeleton';
-import { EmptyState } from '../components/EmptyState';
 import { AppCard } from '../components/AppCard';
 import { GradientButton } from '../components/GradientButton';
+import { searchMeds, QUICK_MEDS, type MedEntry } from '../data/meds-br';
 import { useNotify } from 'react-admin';
 
 /** Severidade → cor/label (tons 800 p/ AA, mesma régua do app). */
@@ -25,17 +26,42 @@ const SEV: Record<string, { color: string; label: string; bg: string }> = {
 };
 
 interface Med { id: string; name: string; dosage?: string | null; frequency?: string | null; active: boolean }
-interface Hit { drugA: string; drugB: string; severity: string; effect: string; recommendation: string; matchedA: string; matchedB: string }
+interface Hit { drugA: string; drugB: string; severity: string; effect: string; recommendation: string }
+interface CheckResp { critical: Hit[]; unmatched: string[]; activeMeds: number; hasMore?: boolean }
+
+/** Avatar do remédio: inicial + cor estável derivada do nome (paleta do sistema, tons AA
+ *  sobre a lavagem própria) — "logo bonitinho" sem depender de imagem externa/direitos. */
+const MED_TONES: [string, string][] = [['#178f89', '#20b2aa'], ['#b88a54', '#d4a574'], ['#0369a1', '#0ea5e9'], ['#047857', '#059669'], ['#b45309', '#f59e0b'], ['#b91c1c', '#ef4444']];
+const medTone = (n: string): [string, string] => MED_TONES[[...(n || '?')].reduce((a, c) => a + c.charCodeAt(0), 0) % MED_TONES.length];
+const MedAvatar = ({ name, size = 36 }: { name: string; size?: number }) => {
+  const [fg, wash] = medTone(name);
+  return (
+    <Box sx={{ width: size, height: size, borderRadius: '11px', display: 'grid', placeItems: 'center', flexShrink: 0, bgcolor: wash + '22', color: fg, fontWeight: 800, fontSize: size * 0.42, fontFamily: 'Poppins, sans-serif' }}>
+      {(name || '?').trim().charAt(0).toUpperCase()}
+    </Box>
+  );
+};
 
 export const MedicationsPage = () => {
   const notify = useNotify();
   const [pid] = useSelectedPatient();
   const [meds, setMeds] = useState<Med[] | null>(null);
-  const [check, setCheck] = useState<{ critical: Hit[]; activeMeds: number; hasMore?: boolean } | null>(null);
-  const [full, setFull] = useState<{ all: (Hit & { severityLabel?: string })[]; contextual?: string | null } | null>(null);
+  const [check, setCheck] = useState<CheckResp | null>(null);
+  const [full, setFull] = useState<{ all: Hit[]; contextual?: string | null } | null>(null);
   const [fullLoading, setFullLoading] = useState(false);
+
+  // diálogo ADICIONAR (autocomplete dicionário)
   const [addOpen, setAddOpen] = useState(false);
-  const [form, setForm] = useState({ name: '', dosage: '', frequency: '' });
+  const [query, setQuery] = useState('');
+  const [picked, setPicked] = useState<MedEntry | null>(null);
+  const [dose, setDose] = useState('');
+  const [freeName, setFreeName] = useState('');
+
+  // diálogo ESCANEAR (foto → IA → confirma)
+  const [scanOpen, setScanOpen] = useState(false);
+  const [scanLoading, setScanLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState<{ name: string; dosage: string; on: boolean }[]>([]);
+  const photoInput = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async () => {
     if (!pid) return;
@@ -52,11 +78,35 @@ export const MedicationsPage = () => {
 
   useEffect(() => { void load(); }, [load]);
 
-  const addMed = async () => {
-    if (!form.name.trim()) { notify('Informe o nome do remédio.', { type: 'error' }); return; }
-    const r = await fetch(`${API_URL}/medications`, { method: 'POST', headers: apiHeaders(true), body: JSON.stringify({ patientId: pid, ...form }) });
-    if (r.ok) { setAddOpen(false); setForm({ name: '', dosage: '', frequency: '' }); notify('Remédio adicionado', { type: 'success' }); void load(); setFull(null); }
+  const saveMeds = async (items: { name: string; dosage?: string | null }[]) => {
+    if (!items.length) return;
+    const r = await fetch(`${API_URL}/medications/bulk`, { method: 'POST', headers: apiHeaders(true), body: JSON.stringify({ patientId: pid, items }) });
+    if (r.ok) { const d = await r.json(); notify(`${d.created} remédio(s) salvos`, { type: 'success' }); void load(); setFull(null); }
     else notify('Falha ao salvar', { type: 'error' });
+  };
+
+  const addPicked = async () => {
+    const name = picked?.name ?? freeName.trim();
+    if (!name) { notify('Escolha um remédio ou digite o nome', { type: 'error' }); return; }
+    await saveMeds([{ name, dosage: dose || null }]);
+    setAddOpen(false); setPicked(null); setQuery(''); setDose(''); setFreeName('');
+  };
+
+  const quickAdd = async (name: string) => { await saveMeds([{ name }]); };
+
+  const onPhoto = async (f?: File) => {
+    if (!f) return;
+    if (f.size > 6 * 1024 * 1024) { notify('Foto muito grande (máx. 6MB)', { type: 'error' }); return; }
+    setScanOpen(true); setScanLoading(true); setSuggestions([]);
+    try {
+      const fd = new FormData(); fd.append('photo', f);
+      const r = await fetch(`${API_URL}/medications/scan-photo`, { method: 'POST', headers: { Authorization: `Bearer ${token()}` }, body: fd });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) { notify(d.error || 'Não conseguimos ler a foto', { type: 'warning' }); setScanOpen(false); return; }
+      if (!d.suggestions?.length) { notify('Nenhum remédio identificado — adicione manualmente', { type: 'info' }); setScanOpen(false); return; }
+      setSuggestions(d.suggestions.map((s: any) => ({ name: s.name, dosage: s.dosage || '', on: true })));
+    } catch { notify('Falha ao enviar a foto', { type: 'error' }); setScanOpen(false); }
+    finally { setScanLoading(false); }
   };
 
   const toggle = async (m: Med) => {
@@ -73,7 +123,7 @@ export const MedicationsPage = () => {
     try {
       const r = await fetch(`${API_URL}/medications/check/full`, { method: 'POST', headers: apiHeaders(true), body: JSON.stringify({ patientId: pid }) });
       const d = await r.json().catch(() => ({}));
-      if (r.status === 402) { notify(d.message || 'Sem créditos — compre um pacote em Planos.', { type: 'warning' }); return; }
+      if (r.status === 402) { notify(d.message || 'Sem créditos — veja os planos.', { type: 'warning' }); return; }
       if (!r.ok) { notify(d.error || 'Falha na análise', { type: 'error' }); return; }
       setFull(d);
     } finally { setFullLoading(false); }
@@ -81,6 +131,8 @@ export const MedicationsPage = () => {
 
   const active = (meds ?? []).filter((m) => m.active);
   const inactive = (meds ?? []).filter((m) => !m.active);
+  const options = searchMeds(query);
+
   const HitCard = ({ h, dim }: { h: Hit; dim?: boolean }) => {
     const s = SEV[h.severity] ?? SEV.C;
     return (
@@ -97,34 +149,62 @@ export const MedicationsPage = () => {
 
   return (
     <PageContainer width="narrow">
-      <PageHeader icon={<MedicationIcon />} title="Remédios" subtitle="Seus remédios de uso contínuo e a checagem de interações entre eles." />
-      <GradientButton startIcon={<AddIcon />} onClick={() => setAddOpen(true)} sx={{ mb: 2 }}>Adicionar remédio</GradientButton>
+      <PageHeader icon={<MedicationIcon />} title="Remédios" subtitle="Cadastre em segundos — fotografe a receita ou toque nos mais comuns." />
+
+      {/* AÇÕES — foto primeiro (zero digitação), adicionar com busca inteligente */}
+      <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+        <GradientButton startIcon={<PhotoCameraIcon />} onClick={() => photoInput.current?.click()} sx={{ flex: 1 }}>Ler receita</GradientButton>
+        <Button variant="outlined" startIcon={<AddIcon />} onClick={() => setAddOpen(true)} sx={{ flex: 1, borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>Adicionar</Button>
+        <input ref={photoInput} type="file" hidden accept="image/*" capture="environment" onChange={(e) => { void onPhoto(e.target.files?.[0]); if (e.target) e.target.value = ''; }} />
+      </Stack>
 
       {meds == null && <ListSkeleton count={3} />}
+
+      {/* VAZIO — chips 1-toque dos mais usados (cadastro em segundos) */}
       {meds != null && meds.length === 0 && (
-        <EmptyState emoji="💊" title="Nenhum remédio cadastrado" desc="Cadastre os remédios que você usa todo dia (ex.: varfarina 5mg). O Dr. Exame avisa se algum par tem interação conhecida." />
+        <AppCard kind="tinted" tone="primary" sx={{ mb: 2 }}>
+          <Typography sx={{ fontWeight: 800, fontSize: 15, mb: 1 }}>Toque no que você usa:</Typography>
+          <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
+            {QUICK_MEDS.map((name) => (
+              <Chip key={name} label={name} onClick={() => void quickAdd(name)}
+                sx={{ borderRadius: '999px', fontWeight: 700, height: 34, mb: 0.5, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', '&:active': { transform: 'scale(.96)' } }} />
+            ))}
+          </Stack>
+          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 1 }}>Não achou? Use "Adicionar" (busca por marca: Levoid, Glifage, Rivotril…) ou fotografe a receita.</Typography>
+        </AppCard>
       )}
 
-      {/* CHECAGEM CRÍTICA (grátis, sempre visível — segurança não se cobra) */}
+      {/* CHECAGEM — honesta: críticos vermelho, desconhecidos âmbar, verde só quando sabe */}
       {check && check.activeMeds >= 2 && (
-        <AppCard kind={check.critical.length > 0 ? 'accent' : 'tinted'} tone={check.critical.length > 0 ? 'error' : 'success'} sx={{ mb: 2 }}>
+        <AppCard kind={check.critical.length > 0 ? 'accent' : 'tinted'} tone={check.critical.length > 0 ? 'error' : (check.unmatched?.length ? 'warning' : 'success')} sx={{ mb: 2 }}>
           <Stack spacing={1.25}>
             <Stack direction="row" spacing={1} alignItems="center">
-              <ShieldIcon sx={{ color: check.critical.length > 0 ? 'error.main' : 'success.main', fontSize: 20 }} />
-              <Typography sx={{ fontWeight: 800, fontSize: 15 }}>{check.critical.length > 0 ? '⚠️ Interações críticas encontradas' : '✅ Nenhuma interação crítica'}</Typography>
+              <ShieldIcon sx={{ color: check.critical.length > 0 ? 'error.main' : check.unmatched?.length ? 'warning.main' : 'success.main', fontSize: 20 }} />
+              <Typography sx={{ fontWeight: 800, fontSize: 15 }}>
+                {check.critical.length > 0 ? '⚠️ Interações críticas encontradas' : check.unmatched?.length ? '⚠️ Não conhecemos todos os remédios' : '✅ Nenhuma interação crítica conhecida'}
+              </Typography>
             </Stack>
             {check.critical.map((h, i) => <HitCard key={i} h={h} />)}
-            {check.hasMore && <Typography variant="caption" sx={{ color: 'text.secondary' }}>Há interações de severidade menor — veja tudo na análise completa abaixo.</Typography>}
+            {check.unmatched?.length > 0 && (
+              <Box sx={{ p: 1.25, borderRadius: '12px', bgcolor: 'rgba(180,83,9,.08)' }}>
+                <Typography sx={{ fontSize: 13, color: 'text.primary' }}>Ainda não conhecemos: <strong>{check.unmatched.join(', ')}</strong>.</Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>Confira o nome (use o genérico ou toque em "Adicionar" pra buscar a marca) — a checagem cobre os remédios mais usados.</Typography>
+              </Box>
+            )}
+            {check.critical.length === 0 && !check.unmatched?.length && (
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>Checagem automática e gratuita entre seus remédios ativos.</Typography>
+            )}
           </Stack>
         </AppCard>
       )}
 
+      {/* LISTA */}
       {active.length > 0 && (
         <Stack spacing={1} sx={{ mb: inactive.length ? 2 : 0 }}>
           {active.map((m) => (
             <Card key={m.id} elevation={0} sx={{ p: 1.5, borderRadius: '12px', border: '1px solid', borderColor: 'divider' }}>
               <Stack direction="row" spacing={1} alignItems="center">
-                <MedicationIcon sx={{ color: 'primary.dark', fontSize: 20 }} />
+                <MedAvatar name={m.name} />
                 <Box sx={{ flex: 1, minWidth: 0 }}>
                   <Typography sx={{ fontWeight: 700, color: 'text.primary' }}>{m.name}</Typography>
                   <Typography variant="caption" sx={{ color: 'text.secondary' }}>{[m.dosage, m.frequency].filter(Boolean).join(' · ') || 'uso contínuo'}</Typography>
@@ -151,7 +231,7 @@ export const MedicationsPage = () => {
         </Stack>
       )}
 
-      {/* ANÁLISE COMPLETA (créditos): todas as severidades + leitura da IA p/ SEUS exames */}
+      {/* ANÁLISE COMPLETA (créditos) */}
       {active.length >= 2 && (
         <AppCard kind="tinted" tone="primary" sx={{ mt: 3 }}>
           <Stack spacing={1.5}>
@@ -175,18 +255,71 @@ export const MedicationsPage = () => {
         </AppCard>
       )}
 
+      {/* DIÁLOGO ADICIONAR — busca por genérico OU marca (Levoid→Levotiroxina), doses em chips */}
       <Dialog open={addOpen} onClose={() => setAddOpen(false)} fullWidth maxWidth="xs" PaperProps={{ sx: { borderRadius: '12px' } }}>
         <DialogTitle sx={{ fontWeight: 800 }}>Adicionar remédio</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ pt: 1 }}>
-            <TextField label="Nome (use o genérico: varfarina, omeprazol…)" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} autoFocus />
-            <TextField label="Dose (opcional — ex.: 5 mg)" value={form.dosage} onChange={(e) => setForm((f) => ({ ...f, dosage: e.target.value }))} />
-            <TextField label="Frequência (opcional — ex.: 1× ao dia)" value={form.frequency} onChange={(e) => setForm((f) => ({ ...f, frequency: e.target.value }))} />
+            <Autocomplete
+              freeSolo
+              options={options}
+              getOptionLabel={(o) => typeof o === 'string' ? o : o.name}
+              renderOption={({ key, ...li }, o) => (
+                <Box component="li" key={key} {...li}>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography sx={{ fontWeight: 700, fontSize: 14 }}>{o.name}</Typography>
+                    {!!o.brands?.length && <Typography variant="caption" sx={{ color: 'text.secondary' }}>{o.brands.slice(0, 3).join(' · ')}</Typography>}
+                  </Box>
+                </Box>
+              )}
+              inputValue={query}
+              onInputChange={(_, v) => setQuery(v)}
+              value={picked}
+              onChange={(_, v) => { setPicked(typeof v === 'string' ? { name: v } : v); setDose(''); }}
+              renderInput={(params) => <TextField {...params} label="Busque por nome ou marca (ex.: Levoid)" autoFocus />}
+            />
+            {picked?.doses?.length ? (
+              <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
+                {picked.doses.map((d) => (
+                  <Chip key={d} label={d} onClick={() => setDose(d)} size="small"
+                    sx={{ borderRadius: '999px', fontWeight: 700, ...(dose === d ? { bgcolor: 'primary.main', color: '#fff' } : { border: '1px solid', borderColor: 'divider' }) }} />
+                ))}
+              </Stack>
+            ) : null}
+            <TextField label="Dose (opcional)" value={dose} onChange={(e) => setDose(e.target.value)} placeholder="ex.: 50 mcg" />
           </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setAddOpen(false)} sx={{ textTransform: 'none' }}>Cancelar</Button>
-          <Button variant="contained" onClick={addMed} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>Salvar</Button>
+          <Button variant="contained" onClick={addPicked} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>Salvar</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* DIÁLOGO CONFIRMAR LEITURA DA RECEITA — IA sugere, usuário valida (1 clique) */}
+      <Dialog open={scanOpen} onClose={() => setScanOpen(false)} fullWidth maxWidth="xs" PaperProps={{ sx: { borderRadius: '12px' } }}>
+        <DialogTitle sx={{ fontWeight: 800 }}>Remédios identificados 📷</DialogTitle>
+        <DialogContent>
+          {scanLoading && <Typography sx={{ color: 'text.secondary', py: 2 }}>Lendo a foto com o Dr. Exame…</Typography>}
+          {!scanLoading && (
+            <Stack spacing={0.5}>
+              <Typography variant="caption" sx={{ color: 'text.secondary', mb: 1 }}>Confirme os que você realmente usa — desmarque o que não fizer parte.</Typography>
+              {suggestions.map((s, i) => (
+                <Stack key={i} direction="row" spacing={1} alignItems="center" component="label" sx={{ p: 1, borderRadius: '10px', bgcolor: 'action.hover', cursor: 'pointer' }}>
+                  <Checkbox checked={s.on} onChange={() => setSuggestions((arr) => arr.map((x, j) => (j === i ? { ...x, on: !x.on } : x)))} size="small" />
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography sx={{ fontWeight: 700, fontSize: 14 }}>{s.name}</Typography>
+                    {!!s.dosage && <Typography variant="caption" sx={{ color: 'text.secondary' }}>{s.dosage}</Typography>}
+                  </Box>
+                </Stack>
+              ))}
+            </Stack>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setScanOpen(false)} sx={{ textTransform: 'none' }}>Cancelar</Button>
+          <Button variant="contained" disabled={scanLoading || !suggestions.some((s) => s.on)}
+            onClick={async () => { await saveMeds(suggestions.filter((s) => s.on).map((s) => ({ name: s.name, dosage: s.dosage || null }))); setScanOpen(false); }}
+            sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>Salvar selecionados</Button>
         </DialogActions>
       </Dialog>
     </PageContainer>

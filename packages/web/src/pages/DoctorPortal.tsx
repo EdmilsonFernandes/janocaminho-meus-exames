@@ -1135,6 +1135,10 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                   <Stack spacing={0.75} sx={{ mt: 1 }}>
                     {medsInfo.medications.map((m: any) => (
                       <Box key={m.id} sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 0.75, borderRadius: '8px', bgcolor: 'action.hover', opacity: m.active ? 1 : 0.55 }}>
+                        {/* Avatar do remédio: inicial + cor estável (mesma régua da página Remédios). */}
+                        <Box sx={{ width: 32, height: 32, borderRadius: '10px', display: 'grid', placeItems: 'center', flexShrink: 0, bgcolor: (t) => ['#20b2aa', '#d4a574', '#0ea5e9', '#059669', '#f59e0b', '#ef4444'][[...String(m.name || '?')].reduce((a, c) => a + c.charCodeAt(0), 0) % 6] + '22', color: (t) => ['#178f89', '#b88a54', '#0369a1', '#047857', '#b45309', '#b91c1c'][[...String(m.name || '?')].reduce((a, c) => a + c.charCodeAt(0), 0) % 6], fontWeight: 800, fontSize: 14, fontFamily: 'Poppins, sans-serif' }}>
+                          {String(m.name || '?').trim().charAt(0).toUpperCase()}
+                        </Box>
                         <Typography sx={{ flex: 1, fontWeight: 700, fontSize: 14 }}>{m.name}</Typography>
                         <Typography variant="caption" sx={{ color: 'text.secondary' }}>{[m.dosage, m.frequency].filter(Boolean).join(' · ')}{m.active ? '' : ' · suspenso'}</Typography>
                       </Box>
