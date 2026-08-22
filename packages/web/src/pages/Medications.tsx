@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Autocomplete, Box, Button, Card, Checkbox, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, TextField, Typography } from '@mui/material';
+import { Autocomplete, Box, Button, Card, Checkbox, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, TextField, Typography } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import MedicationIcon from '@mui/icons-material/Medication';
@@ -28,7 +28,7 @@ const SEV: Record<string, { color: string; label: string; bg: string }> = {
 interface Med {
   id: string; name: string; dosage?: string | null; frequency?: string | null; active: boolean;
   priceStatus?: string; packQty?: number | null;
-  priceSummary?: { lowestPriceCents?: number | null; offersCount?: number; collectedAt?: string } | null;
+  priceSummary?: { lowestPriceCents?: number | null; offersCount?: number; collectedAt?: string; imageUrl?: string | null } | null;
 }
 interface PriceOffer { pharmacy: string; productName: string; priceCents: number; url: string; imageUrl?: string | null; ean?: string | null }
 interface PricesResp { status: string; snapshot?: { lowestPriceCents?: number | null; offersCount: number; collectedAt: string; expiresAt: string; offers: PriceOffer[] } | null }
@@ -230,40 +230,62 @@ export const MedicationsPage = () => {
         </AppCard>
       )}
 
-      {/* LISTA */}
+      {/* LISTA — premium: FOTO do produto quando disponível (fonte VTEX), fallback avatar */}
       {active.length > 0 && (
         <Stack spacing={1} sx={{ mb: inactive.length ? 2 : 0 }}>
-          {active.map((m) => (
-            <Card key={m.id} elevation={0} sx={{ p: 1.5, borderRadius: '12px', border: '1px solid', borderColor: 'divider' }}>
-              <Stack direction="row" spacing={1} alignItems="center">
-                <MedAvatar name={m.name} />
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography sx={{ fontWeight: 700, color: 'text.primary' }}>{m.name}</Typography>
-                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>{[m.dosage, m.frequency].filter(Boolean).join(' · ') || 'uso contínuo'}</Typography>
-                  {/* PREÇO — informação secundária, discreta (saúde, não e-commerce).
-                      Estados: disponível → valor + ver ofertas; embalagem desconhecida →
-                      pergunta contextual; resto (buscando/sem preço) → não polui o card. */}
-                  {m.priceSummary?.lowestPriceCents != null ? (
-                    <Typography
-                      onClick={(e) => { e.stopPropagation(); void openPrices(m); }}
-                      variant="caption" sx={{ display: 'block', color: 'text.secondary', mt: 0.25, cursor: 'pointer', '& b': { color: 'text.primary' }, '&:hover b': { textDecoration: 'underline' } }}
-                    >
-                      💰 <b>{fmtBRL(m.priceSummary.lowestPriceCents)}</b> · {m.priceSummary.offersCount ?? 0} ofertas · <span style={{ textDecoration: 'underline' }}>ver preços</span>
-                    </Typography>
-                  ) : m.priceStatus === 'insufficient_data' ? (
-                    <Typography
-                      onClick={(e) => { e.stopPropagation(); setPackFor(m); }}
-                      variant="caption" sx={{ display: 'block', color: 'text.disabled', mt: 0.25, cursor: 'pointer', '&:hover': { color: 'text.secondary', textDecoration: 'underline' } }}
-                    >
-                      📦 Informar embalagem p/ comparar preços
-                    </Typography>
-                  ) : null}
-                </Box>
-                <Button size="small" onClick={() => toggle(m)} sx={{ textTransform: 'none', borderRadius: '999px' }}>Suspender</Button>
-                <IconButton size="small" onClick={() => remove(m)} aria-label={`Excluir ${m.name}`}><DeleteOutlineIcon fontSize="small" /></IconButton>
-              </Stack>
-            </Card>
-          ))}
+          {active.map((m) => {
+            const photo = m.priceSummary?.imageUrl;
+            return (
+              <Card key={m.id} elevation={0} sx={{
+                p: 1.5, borderRadius: '16px', border: '1px solid', borderColor: 'divider',
+                transition: 'border-color .15s ease, box-shadow .15s ease',
+                '&:hover': m.priceSummary?.lowestPriceCents != null
+                  ? { borderColor: 'primary.main', boxShadow: (t) => `0 4px 16px ${t.palette.primary.main}22` }
+                  : {},
+              }}>
+                <Stack direction="row" spacing={1.25} alignItems="center">
+                  {/* FOTO do produto (oferta mais barata) ou avatar de inicial */}
+                  {photo ? (
+                    <Box component="img" src={photo} alt={m.name} loading="lazy"
+                      sx={{ width: 52, height: 52, borderRadius: '12px', objectFit: 'contain',
+                        bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', flexShrink: 0 }} />
+                  ) : (
+                    <MedAvatar name={m.name} size={52} />
+                  )}
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography sx={{ fontWeight: 700, color: 'text.primary', fontSize: 15 }}>{m.name}</Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>{[m.dosage, m.frequency].filter(Boolean).join(' · ') || 'uso contínuo'}</Typography>
+                    {/* PREÇO — informação secundária, discreta (saúde, não e-commerce). */}
+                    {m.priceSummary?.lowestPriceCents != null ? (
+                      <Typography
+                        onClick={(e) => { e.stopPropagation(); void openPrices(m); }}
+                        variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.4, cursor: 'pointer',
+                          color: 'text.secondary', '& b': { color: 'text.primary', fontSize: 14, fontVariantNumeric: 'tabular-nums' },
+                          '&:hover b': { textDecoration: 'underline' } }}
+                      >
+                        💰 <b>{fmtBRL(m.priceSummary.lowestPriceCents)}</b>
+                        <span>· {m.priceSummary.offersCount ?? 0} ofertas</span>
+                        <span style={{ textDecoration: 'underline', color: 'primary.dark' }}>ver preços</span>
+                      </Typography>
+                    ) : m.priceStatus === 'insufficient_data' ? (
+                      <Typography
+                        onClick={(e) => { e.stopPropagation(); setPackFor(m); }}
+                        variant="caption" sx={{ display: 'block', color: 'text.disabled', mt: 0.3, cursor: 'pointer', '&:hover': { color: 'text.secondary', textDecoration: 'underline' } }}
+                      >
+                        📦 Informar embalagem p/ comparar preços
+                      </Typography>
+                    ) : (m.priceStatus === 'queued' || m.priceStatus === 'searching') ? (
+                      <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.3, color: 'text.disabled' }}>
+                        <CircularProgress size={11} sx={{ mr: 0.3 }} /> Buscando preços…
+                      </Typography>
+                    ) : null}
+                  </Box>
+                  <Button size="small" onClick={() => toggle(m)} sx={{ textTransform: 'none', borderRadius: '999px' }}>Suspender</Button>
+                  <IconButton size="small" onClick={() => remove(m)} aria-label={`Excluir ${m.name}`}><DeleteOutlineIcon fontSize="small" /></IconButton>
+                </Stack>
+              </Card>
+            );
+          })}
         </Stack>
       )}
       {inactive.length > 0 && (

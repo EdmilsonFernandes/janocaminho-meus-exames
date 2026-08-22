@@ -33,12 +33,22 @@ router.get('/', async (req: AuthedRequest, res, next) => {
       prisma.medication.count({ where }),
       prisma.medication.findMany({ where, skip: start, take, orderBy: [{ active: 'desc' }, { name: 'asc' }] }),
     ]);
-    // Resumo de preço por card (join batch — nunca 1 query por remédio)
+    // Resumo de preço por card (join batch — nunca 1 query por remédio). Inclui a FOTO
+    // da oferta mais barata (pro card mostrar o produto, não só a inicial).
     const keys = rows.map((m) => m.nameNormalized).filter((k): k is string => !!k && !k.endsWith('|?'));
     const snaps = keys.length
-      ? await prisma.medicationPriceSnapshot.findMany({ where: { medicationKey: { in: keys }, locationKey: 'BR', expiresAt: { gt: new Date() } }, select: { medicationKey: true, lowestPriceCents: true, offersCount: true, collectedAt: true } })
+      ? await prisma.medicationPriceSnapshot.findMany({
+          where: { medicationKey: { in: keys }, locationKey: 'BR', expiresAt: { gt: new Date() } },
+          select: { medicationKey: true, lowestPriceCents: true, offersCount: true, collectedAt: true,
+            offers: { orderBy: { priceCents: 'asc' }, take: 1, select: { imageUrl: true } } },
+        })
       : [];
-    const snapByKey = new Map(snaps.filter((s) => s.lowestPriceCents != null).map((s) => [s.medicationKey, s])); // sem preço → sem resumo (nunca card fantasma)
+    const snapByKey = new Map(
+      snaps.filter((s) => s.lowestPriceCents != null).map((s) => [s.medicationKey, {
+        medicationKey: s.medicationKey, lowestPriceCents: s.lowestPriceCents, offersCount: s.offersCount,
+        collectedAt: s.collectedAt, imageUrl: s.offers[0]?.imageUrl ?? null,
+      }]),
+    );
     setListHeaders(res, start, start + take, total);
     res.json(rows.map((m) => ({
       ...m,
