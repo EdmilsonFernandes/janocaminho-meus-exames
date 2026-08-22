@@ -325,15 +325,19 @@ export const MedicationsPage = () => {
           )}
           <Stack spacing={0.5}>
             {products.map((p, i) => (
-              <Stack key={i} direction="row" spacing={1.25} alignItems="center"
+              <Box key={i} component="button" type="button"
                 onClick={() => void pickProduct(p)}
+                aria-label={`Adicionar ${p.productName}`}
                 sx={{
-                  p: 1.25, borderRadius: '12px', cursor: saving === p.productName ? 'wait' : 'pointer',
+                  display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 1.25,
+                  width: '100%', p: 1.25, borderRadius: '12px', textAlign: 'left',
+                  cursor: saving === p.productName ? 'wait' : 'pointer',
                   bgcolor: i === 0 ? 'rgba(32,178,170,.06)' : 'action.hover',
                   border: '1px solid', borderColor: i === 0 ? 'rgba(32,178,170,.2)' : 'transparent',
                   transition: 'all .12s', '&:hover': { bgcolor: 'rgba(32,178,170,.1)', borderColor: 'primary.main' },
                   '&:active': { transform: 'scale(.97)' },
                   opacity: saving && saving !== p.productName ? 0.5 : 1,
+                  outline: 'none', fontFamily: 'inherit', fontSize: 'inherit',
                 }}>
                 {saving === p.productName ? (
                   <Box sx={{ width: 44, height: 44, display: 'grid', placeItems: 'center', flexShrink: 0 }}><CircularProgress size={22} /></Box>
@@ -352,9 +356,9 @@ export const MedicationsPage = () => {
                   )}
                 </Box>
                 {p.priceCents != null && saving !== p.productName && (
-                  <Chip size="small" label="1 toque" sx={{ height: 20, fontSize: 10, fontWeight: 700, bgcolor: 'primary.main', color: '#fff', flexShrink: 0 }} />
+                  <Chip size="small" label="1 toque" sx={{ height: 20, fontSize: 10, fontWeight: 700, bgcolor: 'primary.main', color: '#fff', flexShrink: 0, pointerEvents: 'none' }} />
                 )}
-              </Stack>
+              </Box>
             ))}
           </Stack>
         </DialogContent>
