@@ -1,0 +1,592 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perguntas frequentes — Dr. Exame</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      color: #2d3748;
+      background: #eef7f6;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 60px 24px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .brand-mark {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      color: #20b2aa;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 700;
+      font-size: 1.0625rem;
+    }
+
+    h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+      color: #2d3748;
+    }
+
+    .subtitle {
+      font-size: 1.125rem;
+      color: #5f6b76;
+    }
+
+    .search-box {
+      position: relative;
+      margin-bottom: 32px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 16px 48px 16px 20px;
+      font-size: 1rem;
+      font-family: inherit;
+      border: 2px solid #d3e6e4;
+      border-radius: 14px;
+      background: #fff;
+      transition: border-color 0.2s;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: #20b2aa;
+    }
+
+    .search-icon {
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #9bb8b5;
+    }
+
+    .categories {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 40px;
+      justify-content: center;
+    }
+
+    .category-btn {
+      padding: 10px 20px;
+      border: 2px solid #d3e6e4;
+      border-radius: 999px;
+      background: #fff;
+      color: #5f6b76;
+      font-size: 0.9375rem;
+      font-family: inherit;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .category-btn:hover {
+      border-color: #20b2aa;
+      color: #178f89;
+    }
+
+    .category-btn.active {
+      background: linear-gradient(135deg, #20b2aa, #178f89);
+      border-color: transparent;
+      color: #fff;
+    }
+
+    .faq-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .faq-item {
+      background: #fff;
+      border: 1px solid #dcebe9;
+      border-radius: 16px;
+      overflow: hidden;
+      transition: box-shadow 0.2s;
+    }
+
+    .faq-item:hover {
+      box-shadow: 0 6px 18px rgba(32, 178, 170, 0.12);
+    }
+
+    .faq-item.hidden {
+      display: none;
+    }
+
+    .faq-question {
+      width: 100%;
+      padding: 20px 24px;
+      text-align: left;
+      font-size: 1.0625rem;
+      font-family: inherit;
+      font-weight: 600;
+      color: #2d3748;
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .faq-question:hover {
+      color: #178f89;
+    }
+
+    .faq-icon {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      color: #20b2aa;
+      transition: transform 0.3s;
+    }
+
+    .faq-item.open .faq-icon {
+      transform: rotate(180deg);
+    }
+
+    .faq-answer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out;
+    }
+
+    .faq-answer-content {
+      padding: 0 24px 20px;
+      color: #4b5563;
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+
+    .footer-cta {
+      margin-top: 64px;
+      padding: 32px;
+      background: #fff;
+      border: 1px solid #dcebe9;
+      border-radius: 16px;
+      text-align: center;
+    }
+
+    .footer-cta h2 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #2d3748;
+    }
+
+    .footer-cta p {
+      color: #5f6b76;
+      margin-bottom: 20px;
+    }
+
+    .contact-link {
+      display: inline-block;
+      padding: 12px 32px;
+      background: linear-gradient(135deg, #20b2aa, #178f89);
+      color: #fff;
+      text-decoration: none;
+      border-radius: 12px;
+      font-weight: 600;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .contact-link:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(32, 178, 170, 0.35);
+    }
+
+    .no-results {
+      text-align: center;
+      padding: 48px 24px;
+      color: #9bb8b5;
+      display: none;
+    }
+
+    .no-results.show {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header data-od-id="header">
+      <div class="brand-mark">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Dr. Exame
+      </div>
+      <h1>Perguntas frequentes</h1>
+      <p class="subtitle">Tudo sobre exames, IA, planos e privacidade — direto ao ponto</p>
+    </header>
+
+    <div class="search-box" data-od-id="search">
+      <input
+        type="text"
+        class="search-input"
+        id="searchInput"
+        placeholder="Busque sua dúvida… (ex.: créditos, PDF, médico)"
+        aria-label="Buscar nas perguntas frequentes"
+      >
+      <svg class="search-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path d="M9 17A8 8 0 1 0 9 1a8 8 0 0 0 0 16zM18 18l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+
+    <div class="categories" data-od-id="categories">
+      <button class="category-btn active" data-category="all">Todas</button>
+      <button class="category-btn" data-category="comecando">Começando</button>
+      <button class="category-btn" data-category="planos">Créditos & planos</button>
+      <button class="category-btn" data-category="conta">Conta</button>
+      <button class="category-btn" data-category="exames">Exames & IA</button>
+      <button class="category-btn" data-category="medico">Médico</button>
+      <button class="category-btn" data-category="privacidade">Privacidade</button>
+    </div>
+
+    <div class="faq-list" data-od-id="faq-list">
+      <!-- Começando -->
+      <div class="faq-item" data-category="comecando">
+        <button class="faq-question" aria-expanded="false">
+          <span>O que é o Dr. Exame?</span>
+          <svg class="faq-icon" viewBox="0 0 20 20" fill="none"><path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <div class="faq-answer">
+          <div class="faq-answer-content">
+            É o app que guarda, interpreta e monitora seus exames. Você envia o laudo e a IA explica cada valor em linguagem simples, compara com a sua faixa ideal (não só a de referência), mostra a evolução entre exames e gera um relatório pra levar ao médico.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item" data-category="comecando">
+        <button class="faq-question" aria-expanded="false">
+          <span>Preciso pagar pra começar?</span>
+          <svg class="faq-icon" viewBox="0 0 20 20" fill="none"><path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <div class="faq-answer">
+          <div class="faq-answer-content">
+            Não. Crie sua conta grátis e envie seu primeiro exame. Você assina ou compra créditos só quando precisar de mais — comece grátis, pague só pelo que usar.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item" data-category="comecando">
+        <button class="faq-question" aria-expanded="false">
+          <span>Como envio meu exame?</span>
+          <svg class="faq-icon" viewBox="0 0 20 20" fill="none"><path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <div class="faq-answer">
+          <div class="faq-answer-content">
+            Envie o PDF do laboratório (ideal) ou uma foto do laudo. A extração lê os valores automaticamente e você confere antes de salvar. PDF com vários exames de datas diferentes? O app divide em exames separados sozinho.
+          </div>
+        </div>
+      </div>
+
+      <!-- Créditos & planos -->
+      <div class="faq-item" data-category="planos">
+        <button class="faq-question" aria-expanded="false">
+          <span>Como funcionam os créditos?</span>
+          <svg class="faq-icon" viewBox="0 0 20 20" fill="none"><path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <div class="faq-answer">
+          <div class="faq-answer-content">
+            Enviar exames é grátis. Recursos que consomem mais processamento — como relatório inteligente e o chat com a IA — usam créditos. Você ganha créditos bônus ao começar e ao completar conquistas, e pode comprar mais via PIX a qualquer momento.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item" data-category="planos">
+        <button class="faq-question" aria-expanded="false">
+          <span>O que muda com o plano mensal?</span>
+          <svg class="faq-icon" viewBox="0 0 20 20" fill="none"><path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <div class="faq-answer">
+          <div class="faq-answer-content">
+            O plano mensal libera o uso dos recursos premium com cota mensal generosa — sem ficar contando crédito por crédito. Cancele quando quiser, direto no app, sem multa.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item" data-category="planos">
+        <button class="faq-question" aria-expanded="false">
+          <span>Como funciona o programa de indicação?</span>
+          <svg class="faq-icon" viewBox="0 0 20 20" fill="none"><path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <div class="faq-answer">
+          <div class="faq-answer-content">
+            Compartilhe seu código com amigos. Quando alguém cria a conta usando ele, vocês dois ganham créditos bônus pra usar no app.
+          </div>
+        </div>
+      </div>
+
+      <!-- Conta -->
+      <div class="faq-item" data-category="conta">
+        <button class="faq-question" aria-expanded="false">
+          <span>Esqueci minha senha, e agora?</span>
+          <svg class="faq-icon" viewBox="0 0 20 20" fill="none"><path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <div class="faq-answer">
+          <div class="faq-answer-content">
+            Toque em "Esqueci minha senha" na tela de login e informe seu e-mail. Você recebe um link de redefinição — por segurança, o link é de uso único e expira.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item" data-category="conta">
+        <button class="faq-question" aria-expanded="false">
+          <span>Posso entrar com o Google?</span>
+          <svg class="faq-icon" viewBox="0 0 20 20" fill="none"><path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <div class="faq-answer">
+          <div class="faq-answer-content">
+            Sim — no app Android e no navegador. É a mesma conta nos dois: seus exames ficam sincronizados onde você entrar.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item" data-category="conta">
+        <button class="faq-question" aria-expanded="false">
+          <span>Dá pra gerenciar exames de familiares?</span>
+          <svg class="faq-icon" viewBox="0 0 20 20" fill="none"><path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <div class="faq-answer">
+          <div class="faq-answer-content">
+            Dá. Cada familiar entra como dependente, com histórico e evolução próprios — e você alterna entre as pessoas no painel da família.
+          </div>
+        </div>
+      </div>
+
+      <!-- Exames & IA -->
+      <div class="faq-item" data-category="exames">
+        <button class="faq-question" aria-expanded="false">
+          <span>A IA dá diagnóstico?</span>
+          <svg class="faq-icon" viewBox="0 0 20 20" fill="none"><path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <div class="faq-answer">
+          <div class="faq-answer-content">
+            Não — e isso é por design. A IA educa: compara seus valores com a faixa de referência e com a faixa ideal, contextualiza pelo seu perfil e monta perguntas pra levar ao médico. A decisão clínica é sempre do profissional.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item" data-category="exames">
+        <button class="faq-question" aria-expanded="false">
+          <span>A IA pode inventar valores?</span>
+          <svg class="faq-icon" viewBox="0 0 20 20" fill="none"><path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <div class="faq-answer">
+          <div class="faq-answer-content">
+            Os valores saem direto do seu laudo — a IA só explica o que já está escrito. Antes de salvar, você confere tudo o que foi extraído e corrige se precisar.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item" data-category="exames">
+        <button class="faq-question" aria-expanded="false">
+          <span>Funciona sem internet?</span>
+          <svg class="faq-icon" viewBox="0 0 20 20" fill="none"><path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <div class="faq-answer">
+          <div class="faq-answer-content">
+            Sim. Seus últimos exames e dados ficam disponíveis offline no app; quando a conexão volta, tudo sincroniza automaticamente.
+          </div>
+        </div>
+      </div>
+
+      <!-- Médico -->
+      <div class="faq-item" data-category="medico">
+        <button class="faq-question" aria-expanded="false">
+          <span>Como compartilho meus exames com meu médico?</span>
+          <svg class="faq-icon" viewBox="0 0 20 20" fill="none"><path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <div class="faq-answer">
+          <div class="faq-answer-content">
+            No app, escolha o que compartilhar e indique o CRM do médico. Ele recebe acesso de leitura — exames, valores alterados e relatório — sem precisar cadastrar nada.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item" data-category="medico">
+        <button class="faq-question" aria-expanded="false">
+          <span>O que o médico vê exatamente?</span>
+          <svg class="faq-icon" viewBox="0 0 20 20" fill="none"><path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <div class="faq-answer">
+          <div class="faq-answer-content">
+            Você escolhe o escopo: exames, alterados, relatório e evolução. No portal, o médico ainda recebe um brief de pré-consulta com as principais mudanças desde a última visita e as perguntas que você fez no app.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item" data-category="medico">
+        <button class="faq-question" aria-expanded="false">
+          <span>Posso cancelar o compartilhamento?</span>
+          <svg class="faq-icon" viewBox="0 0 20 20" fill="none"><path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <div class="faq-answer">
+          <div class="faq-answer-content">
+            Sim, a qualquer momento e com um toque. Ao revogar, o médico perde o acesso na hora.
+          </div>
+        </div>
+      </div>
+
+      <!-- Privacidade -->
+      <div class="faq-item" data-category="privacidade">
+        <button class="faq-question" aria-expanded="false">
+          <span>Meus dados de saúde estão seguros?</span>
+          <svg class="faq-icon" viewBox="0 0 20 20" fill="none"><path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <div class="faq-answer">
+          <div class="faq-answer-content">
+            Sim. Seguimos a LGPD: dados de identificação são criptografados, os PDFs dos exames ficam armazenados fora do banco de dados e o acesso é exclusivamente seu — e de quem você autorizar.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item" data-category="privacidade">
+        <button class="faq-question" aria-expanded="false">
+          <span>Quem pode ver meus exames?</span>
+          <svg class="faq-icon" viewBox="0 0 20 20" fill="none"><path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <div class="faq-answer">
+          <div class="faq-answer-content">
+            Só você — e os médicos que você autorizar explicitamente, com o escopo que você definir. Nada é compartilhado sem o seu ato.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item" data-category="privacidade">
+        <button class="faq-question" aria-expanded="false">
+          <span>Como excluo meus dados?</span>
+          <svg class="faq-icon" viewBox="0 0 20 20" fill="none"><path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <div class="faq-answer">
+          <div class="faq-answer-content">
+            Você pode excluir exames individualmente dentro do app ou pedir a exclusão completa da conta pelo suporte — removemos seus dados em conformidade com a LGPD.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="no-results" id="noResults">
+      <p>Nenhuma pergunta encontrada com esse termo. Tente outra palavra ou fale com o suporte.</p>
+    </div>
+
+    <div class="footer-cta" data-od-id="footer-cta">
+      <h2>Ainda com dúvidas?</h2>
+      <p>Abra um chamado no app (Suporte) ou fale com a gente por e-mail.</p>
+      <a href="mailto:contato@janocaminho.com.br" class="contact-link">Falar com o suporte</a>
+    </div>
+  </div>
+
+  <script>
+    // Accordion functionality
+    const faqItems = document.querySelectorAll('.faq-item');
+
+    faqItems.forEach(item => {
+      const question = item.querySelector('.faq-question');
+
+      question.addEventListener('click', () => {
+        const isOpen = item.classList.contains('open');
+
+        // Close all items
+        faqItems.forEach(i => {
+          i.classList.remove('open');
+          i.querySelector('.faq-question').setAttribute('aria-expanded', 'false');
+        });
+
+        // Open clicked item if it was closed
+        if (!isOpen) {
+          item.classList.add('open');
+          question.setAttribute('aria-expanded', 'true');
+        }
+      });
+    });
+
+    // Search functionality
+    const searchInput = document.getElementById('searchInput');
+    const noResults = document.getElementById('noResults');
+
+    searchInput.addEventListener('input', (e) => {
+      const searchTerm = e.target.value.toLowerCase();
+      let visibleCount = 0;
+
+      faqItems.forEach(item => {
+        const question = item.querySelector('.faq-question span').textContent.toLowerCase();
+        const answer = item.querySelector('.faq-answer-content').textContent.toLowerCase();
+        const matchesSearch = question.includes(searchTerm) || answer.includes(searchTerm);
+        const matchesCategory = item.dataset.category === currentCategory || currentCategory === 'all';
+
+        if (matchesSearch && matchesCategory) {
+          item.classList.remove('hidden');
+          visibleCount++;
+        } else {
+          item.classList.add('hidden');
+        }
+      });
+
+      noResults.classList.toggle('show', visibleCount === 0);
+    });
+
+    // Category filtering
+    const categoryBtns = document.querySelectorAll('.category-btn');
+    let currentCategory = 'all';
+
+    categoryBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentCategory = btn.dataset.category;
+
+        // Update active state
+        categoryBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        // Filter items
+        const searchTerm = searchInput.value.toLowerCase();
+        let visibleCount = 0;
+
+        faqItems.forEach(item => {
+          const question = item.querySelector('.faq-question span').textContent.toLowerCase();
+          const answer = item.querySelector('.faq-answer-content').textContent.toLowerCase();
+          const matchesSearch = !searchTerm || question.includes(searchTerm) || answer.includes(searchTerm);
+          const matchesCategory = currentCategory === 'all' || item.dataset.category === currentCategory;
+
+          if (matchesSearch && matchesCategory) {
+            item.classList.remove('hidden');
+            visibleCount++;
+          } else {
+            item.classList.add('hidden');
+          }
+        });
+
+        noResults.classList.toggle('show', visibleCount === 0);
+      });
+    });
+  </script>
+</body>
+</html>
