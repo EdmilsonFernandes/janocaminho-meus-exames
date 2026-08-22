@@ -335,7 +335,7 @@ const ExamCards = () => {
   ) : null;
   if (isMd) {
     return (
-      <Box sx={{ display: 'grid', gridTemplateColumns: 'minmax(0,440px) 1fr', gap: 2, alignItems: 'start', maxWidth: 1500, mx: 'auto' }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { md: 'minmax(0,440px) 1fr', lg: 'minmax(0,520px) 1fr', xl: 'minmax(0,560px) 1fr' }, gap: 2, alignItems: 'start', maxWidth: 1500, mx: 'auto' }}>
         {/* LISTA (esquerda) — sticky, scroll próprio */}
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, position: 'sticky', top: 8, maxHeight: 'calc(100dvh - 16px)', overflowY: 'auto', pr: 0.5 }}>
           <PageHeader icon={<DescriptionOutlinedIcon />} title={translate('exams.title')} subtitle={translate('exams.subtitle', { count: total ?? 0 })} />
