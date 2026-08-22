@@ -270,10 +270,12 @@ model MedicationPriceOffer {
   id            String                  @id @default(cuid())
   snapshotId    String
   snapshot      MedicationPriceSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
-  pharmacy      String // "Mercado Livre"
+  pharmacy      String // "Pague Menos"
   productName   String // título do anúncio (o que o usuário verá ao abrir)
   priceCents    Int
   url           String
+  imageUrl      String? // foto do produto (quando a fonte fornece — VTEX devolve)
+  ean           String? // chave de normalização perfeita (quando a fonte fornece)
   lastCheckedAt DateTime                @default(now())
 
   @@index([snapshotId, priceCents])

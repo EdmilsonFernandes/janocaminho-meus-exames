@@ -22,7 +22,7 @@ async function ensureSnapshot(key: string, offers: PriceOffer[], providerName: s
     create: {
       medicationKey: key, locationKey: 'BR', lowestPriceCents: lowest, averagePriceCents: avg,
       offersCount: offers.length, provider: providerName, collectedAt: now, expiresAt: new Date(now.getTime() + TTL_MS),
-      offers: { create: offers.map((o) => ({ pharmacy: o.pharmacy, productName: o.productName, priceCents: o.priceCents, url: o.url, lastCheckedAt: now })) },
+      offers: { create: offers.map((o) => ({ pharmacy: o.pharmacy, productName: o.productName, priceCents: o.priceCents, url: o.url, imageUrl: o.imageUrl ?? null, ean: o.ean ?? null, lastCheckedAt: now })) },
     },
     update: {
       lowestPriceCents: lowest, averagePriceCents: avg, offersCount: offers.length,
@@ -83,7 +83,8 @@ export async function processMedicationPrice(medId: string, provider: Medication
 }
 
 export async function runPriceWorkerTick(provider: MedicationPriceProvider | null = ProviderRegistry.default): Promise<{ processed: number }> {
-  if (!priceProvidersEnabled()) return { processed: 0 };
+  // Kill-switch NÃO abandona a fila: meds em queued são resolvidas p/ not_requested
+  // (card limpo, sem erro) — processMedicationPrice cuida do caso desligado.
   const staleBefore = new Date(Date.now() - TTL_MS);
   const retryBefore = new Date(Date.now() - 60 * 60 * 1000); // provider_error: retry 1x/h (site caído não vira martelo)
   const meds = await prisma.medication.findMany({

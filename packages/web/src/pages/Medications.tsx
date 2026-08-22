@@ -30,7 +30,7 @@ interface Med {
   priceStatus?: string; packQty?: number | null;
   priceSummary?: { lowestPriceCents?: number | null; offersCount?: number; collectedAt?: string } | null;
 }
-interface PriceOffer { pharmacy: string; productName: string; priceCents: number; url: string }
+interface PriceOffer { pharmacy: string; productName: string; priceCents: number; url: string; imageUrl?: string | null; ean?: string | null }
 interface PricesResp { status: string; snapshot?: { lowestPriceCents?: number | null; offersCount: number; collectedAt: string; expiresAt: string; offers: PriceOffer[] } | null }
 
 const fmtBRL = (cents?: number | null) => (cents == null ? '—' : (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }));
@@ -398,9 +398,16 @@ const PricesDialog = ({ med, data, loading, onClose }: { med: Med | null; data: 
           <Stack spacing={0.75} sx={{ mt: 1 }}>
             {offers.map((o, i) => (
               <Stack key={i} direction="row" spacing={1} alignItems="center" sx={{ p: 1, borderRadius: '10px', bgcolor: i === 0 ? 'rgba(32,178,170,.08)' : 'action.hover' }}>
+                {/* FOTO real do produto (fontes VTEX) — a "foto do remédio" que faltava */}
+                {o.imageUrl ? (
+                  <Box component="img" src={o.imageUrl} alt={o.productName} loading="lazy"
+                    sx={{ width: 44, height: 44, borderRadius: '8px', objectFit: 'contain', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', flexShrink: 0 }} />
+                ) : (
+                  <MedAvatar name={o.productName} size={44} />
+                )}
                 <Box sx={{ flex: 1, minWidth: 0 }}>
                   <Typography sx={{ fontWeight: 800, fontSize: 14, fontVariantNumeric: 'tabular-nums' }}>{fmtBRL(o.priceCents)}</Typography>
-                  <Typography variant="caption" sx={{ color: 'text.secondary', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{o.productName}</Typography>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{o.productName}</Typography>
                   <Typography variant="caption" sx={{ color: 'text.disabled' }}>{o.pharmacy}</Typography>
                 </Box>
                 <Button size="small" href={o.url} target="_blank" rel="noopener noreferrer" sx={{ textTransform: 'none', borderRadius: '999px', flexShrink: 0 }}>Abrir</Button>

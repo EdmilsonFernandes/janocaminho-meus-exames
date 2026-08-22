@@ -118,8 +118,9 @@ describe('medication prices (E2E)', () => {
     expect(list.body[0].priceSummary).toBeNull();
   });
 
-  itR('SEM provider habilitado (produção hoje): volta pra not_requested — sem erro, card limpo', async () => {
-    ProviderRegistry.setOverride(null);
+  itR('KILL-SWITCH (PRICE_PROVIDERS_OFF=1): volta pra not_requested — sem erro, card limpo', async () => {
+    const prev = process.env.PRICE_PROVIDERS_OFF;
+    process.env.PRICE_PROVIDERS_OFF = '1';
     try {
       const { patient, token } = await createUser();
       await api().post('/api/medications').set(authHeader(token)).send({ patientId: patient.id, name: 'Losartana Potassica', dosage: '50 mg', notes: 'cx 30' });
@@ -127,7 +128,9 @@ describe('medication prices (E2E)', () => {
       const list = await api().get(`/api/medications?patientId=${patient.id}`).set(authHeader(token));
       expect(list.body[0].priceStatus).toBe('not_requested');
       expect(list.body[0].priceSummary).toBeNull();
-    } finally { ProviderRegistry.setOverride(fakeProvider); }
+    } finally {
+      if (prev === undefined) delete process.env.PRICE_PROVIDERS_OFF; else process.env.PRICE_PROVIDERS_OFF = prev;
+    }
   });
 
   itR('worker-tick é 404 em produção (rota só dev/teste)', async () => {

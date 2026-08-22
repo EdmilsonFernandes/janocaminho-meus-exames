@@ -16,6 +16,8 @@ export interface PriceOffer {
   productName: string;
   priceCents: number;
   url: string;
+  imageUrl?: string | null; // foto do produto (fontes VTEX)
+  ean?: string | null; // normalização perfeita (fontes VTEX)
 }
 
 export interface MedicationPriceProvider {
@@ -38,11 +40,9 @@ export class ProviderRegistry {
   static setOverride(p: MedicationPriceProvider | null) { ProviderRegistry.override = p; }
   static get default(): MedicationPriceProvider | null {
     if (ProviderRegistry.override) return ProviderRegistry.override;
-    if (process.env.PRICE_ML_ENABLED === 'true') {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const { mercadoLivreProvider } = require('./providers/mercadoLivre');
-      return mercadoLivreProvider;
-    }
-    return null; // sem fonte real habilitada → worker marca not_requested (não erro)
+    // 1ª FONTE REAL: API pública VTEX da Pague Menos (estável, sem anti-bot, com EAN+foto).
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { pagueMenosProvider } = require('./providers/pagueMenos');
+    return pagueMenosProvider;
   }
 }
