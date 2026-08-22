@@ -128,6 +128,20 @@ export const ProfilePage = () => {
     URL.revokeObjectURL(url);
     notify('Backup exportado!', { type: 'success' });
   };
+  // PACOTE COMPLETO (.zip): dados + relatórios legíveis + PDFs originais — portabilidade LGPD.
+  const [zipLoading, setZipLoading] = useState(false);
+  const exportAll = async () => {
+    setZipLoading(true);
+    try {
+      const r = await fetch(`${API_URL}/data/export-all`, { headers: { Authorization: `Bearer ${token()}` } });
+      if (!r.ok) { const e = await r.json().catch(() => ({})); notify(e.error || 'Falha ao gerar o pacote', { type: 'error' }); return; }
+      const blob = await r.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = `meus-exames-completo-${new Date().toISOString().slice(0, 10)}.zip`; a.click();
+      URL.revokeObjectURL(url);
+      notify('Pacote completo baixado!', { type: 'success' });
+    } finally { setZipLoading(false); }
+  };
   const importData = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0]; if (!f) return;
     if (!(await confirmDialog({ title: 'Importar dados', message: 'Importar cria NOVOS perfis/exames (não sobrescreve os atuais).', confirmLabel: 'Importar', tone: 'primary' }))) { e.target.value = ''; return; }
@@ -273,7 +287,11 @@ export const ProfilePage = () => {
               <input type="file" hidden accept="application/json" onChange={importData} />
             </Button>
           </Stack>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>A exclusão apaga definitivamente todos os exames, análises e dados. Termos e LGPD em "Privacidade".</Typography>
+          {/* Baixe TUDO em 1 clique (LGPD art. 18, II): zip com dados.json + relatórios .md + PDFs. */}
+          <Button variant="contained" startIcon={<DownloadIcon />} onClick={exportAll} disabled={zipLoading} sx={{ mt: 1.5, borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>
+            {zipLoading ? 'Gerando pacote…' : 'Baixar tudo (.zip)'}
+          </Button>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>A exclusão apaga definitivamente todos os exames, análises e dados. O pacote .zip traz dados, relatórios legíveis e os PDFs originais (portabilidade — LGPD). Termos em "Privacidade".</Typography>
         </CardContent>
       </Card>
     </PageContainer>

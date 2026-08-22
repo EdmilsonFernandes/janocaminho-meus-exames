@@ -27,6 +27,7 @@
     "@meus-exames/shared": "*",
     "@prisma/client": "^6.19.3",
     "@sentry/node": "^10.59.0",
+    "archiver": "^8.0.0",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
@@ -42,6 +43,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@types/archiver": "^8.0.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
