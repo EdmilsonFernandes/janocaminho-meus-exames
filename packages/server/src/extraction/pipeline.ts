@@ -14,6 +14,7 @@ import { chargeCredits, CREDIT_COSTS } from '../utils/credits';
 import { cpfFingerprint, maskCpf, maskStoredCpf, normalizeCpf } from '../utils/cpf';
 import { sendPushToUser } from '../utils/push';
 import { sendWhatsAppExamReady } from '../utils/whatsapp';
+import { ageBandAt, applyPediatricRange, type AgeBand } from '../analysis/pediatric-ranges';
 
 interface ItemRow {
   panel: string | null;
@@ -61,7 +62,7 @@ export async function runExtraction(examId: string): Promise<void> {
 async function runExtractionOnce(examId: string): Promise<void> {
   const exam = await prisma.exam.findUnique({ where: { id: examId } });
   if (!exam) return;
-  const patient = await prisma.patient.findUnique({ where: { id: exam.patientId }, select: { fullName: true, ownerId: true, gender: true, cpfHash: true, cpfLast4: true, cpfEncrypted: true, cpfIv: true } });
+  const patient = await prisma.patient.findUnique({ where: { id: exam.patientId }, select: { fullName: true, ownerId: true, gender: true, dateOfBirth: true, cpfHash: true, cpfLast4: true, cpfEncrypted: true, cpfIv: true } });
   const demo = patient?.gender === 'female' ? 'Mulheres' : 'Homens';
 
   await prisma.exam.update({
@@ -130,12 +131,14 @@ async function runExtractionOnce(examId: string): Promise<void> {
         title = lab.examTitle ?? title;
         performedAt = parseDate(lab.performedAt) ?? performedAt;
         sourceLab = lab.sourceLab ?? sourceLab;
-        items = flattenLabItems(lab, demo);
+        // Banda pediátrica: idade na DATA DE COLETA (exame feito aos 2a usa régua de 2a)
+        const pedBand = ageBandAt(patient?.dateOfBirth, performedAt ?? exam.performedAt ?? null);
+        items = flattenLabItems(lab, demo, pedBand);
         splitLabs = labs.slice(1); // exames além do primeiro → registros separados (bloco split abaixo)
       }
     } else if (dryRun && raw && Array.isArray(raw.panels)) {
       // replay: apenas re-normaliza a partir do JSON guardado
-      items = flattenLabItems(raw as LabExtraction, demo);
+      items = flattenLabItems(raw as LabExtraction, demo, ageBandAt(patient?.dateOfBirth, exam.performedAt));
     }
 
     // trava anti-alucinação (apenas painel lab): compara itens extraídos vs. densidade de valores no texto
@@ -349,7 +352,7 @@ export function dedupeIntraDoc<T extends { nameCanonical: string | null; name: s
   return out;
 }
 
-function flattenLabItems(lab: LabExtraction, prefers: string): ItemRow[] {
+function flattenLabItems(lab: LabExtraction, prefers: string, pedBand: AgeBand | null = null): ItemRow[] {
   const rows: ItemRow[] = [];
   for (const panel of lab.panels ?? []) {
     for (const it of (panel.items ?? []) as ExtractionItem[]) {
@@ -371,7 +374,12 @@ function flattenLabItems(lab: LabExtraction, prefers: string): ItemRow[] {
       const finalUnit = conv?.unit ?? rawUnit;
       const finalLow = conv && ref?.lowNumeric != null ? Number((ref.lowNumeric * factor).toFixed(4)) : ref?.lowNumeric ?? null;
       const finalHigh = conv && ref?.highNumeric != null ? Number((ref.highNumeric * factor).toFixed(4)) : ref?.highNumeric ?? null;
-      const { flag, isAbnormal } = reconcileScaleFlag(finalValue, finalLow, finalHigh, finalUnit);
+      // PEDIÁTRICO (Lote 2): régua por idade na data do exame. Null = laudo/adulto vence (comportamento
+      // de sempre). Faixa do laudo própria → respeitada; sem faixa ou default adulto óbvio → banda etária.
+      const ped = applyPediatricRange(canonical, finalLow, finalHigh, pedBand);
+      const effLow = ped?.low ?? finalLow;
+      const effHigh = ped?.high ?? finalHigh;
+      const { flag, isAbnormal } = reconcileScaleFlag(finalValue, effLow, effHigh, finalUnit);
       rows.push({
         panel: panel.name ?? null,
         name: it.name,
@@ -379,10 +387,10 @@ function flattenLabItems(lab: LabExtraction, prefers: string): ItemRow[] {
         valueNumeric: finalValue,
         valueText: sanitizeUnitInText(it.valueText) ?? null,
         unit: finalUnit,
-        refLow: finalLow,
-        refHigh: finalHigh,
+        refLow: effLow,
+        refHigh: effHigh,
         refText,
-        refAppliesTo: ref?.appliesTo ?? null,
+        refAppliesTo: ped?.appliesTo ?? ref?.appliesTo ?? null,
         flag,
         isAbnormal,
         extractedPage: it.page,
