@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+// (useCallback já importado acima — preview fetch é memoizado)
 import { Autocomplete, Box, Button, Card, Checkbox, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, TextField, Typography } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
@@ -58,12 +59,31 @@ export const MedicationsPage = () => {
   const [full, setFull] = useState<{ all: Hit[]; contextual?: string | null } | null>(null);
   const [fullLoading, setFullLoading] = useState(false);
 
-  // diálogo ADICIONAR (autocomplete dicionário)
+  // diálogo ADICIONAR: autocomplete que busca no CATÁLOGO do servidor (com foto + preço)
   const [addOpen, setAddOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [picked, setPicked] = useState<MedEntry | null>(null);
   const [dose, setDose] = useState('');
   const [freeName, setFreeName] = useState('');
+  const [catalogResults, setCatalogResults] = useState<{ name: string; brands?: string[]; photoUrl?: string | null; priceCents?: number | null; productName?: string | null; pharmacy?: string | null }[]>([]);
+  const [catalogLoading, setCatalogLoading] = useState(false);
+
+  // busca no catálogo do servidor (com debounce 300ms) — cai pro dicionário local se server não tem
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < 2) { setCatalogResults([]); return; }
+    const t = setTimeout(async () => {
+      setCatalogLoading(true);
+      try {
+        const r = await fetch(`${API_URL}/medications/catalog?q=${encodeURIComponent(q)}`, { headers: { Authorization: `Bearer ${token()}` } });
+        const results = r.ok ? await r.json() : [];
+        if (Array.isArray(results) && results.length > 0) setCatalogResults(results);
+        else setCatalogResults(searchMeds(q).map((m) => ({ name: m.name, brands: m.brands }))); // fallback local
+      } catch { setCatalogResults(searchMeds(q).map((m) => ({ name: m.name, brands: m.brands }))); }
+      finally { setCatalogLoading(false); }
+    }, 300);
+    return () => clearTimeout(t);
+  }, [query]);
 
   // diálogo ESCANEAR (foto → IA → confirma)
   const [scanOpen, setScanOpen] = useState(false);
@@ -219,8 +239,8 @@ export const MedicationsPage = () => {
             {check.critical.map((h, i) => <HitCard key={i} h={h} />)}
             {check.unmatched?.length > 0 && (
               <Box sx={{ p: 1.25, borderRadius: '12px', bgcolor: 'rgba(180,83,9,.08)' }}>
-                <Typography sx={{ fontSize: 13, color: 'text.primary' }}>Ainda não conhecemos: <strong>{check.unmatched.join(', ')}</strong>.</Typography>
-                <Typography variant="caption" sx={{ color: 'text.secondary' }}>Confira o nome (use o genérico ou toque em "Adicionar" pra buscar a marca) — a checagem cobre os remédios mais usados.</Typography>
+                <Typography sx={{ fontSize: 13, color: 'text.primary' }}>Nosso banco de <strong>interações</strong> ainda não cobre: <strong>{check.unmatched.join(', ')}</strong>.</Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>Isso NÃO afeta os preços — apenas não verificamos interações deste remédio com os outros. A base cobre os medicamentos mais usados no Brasil.</Typography>
               </Box>
             )}
             {check.critical.length === 0 && !check.unmatched?.length && (
@@ -257,15 +277,15 @@ export const MedicationsPage = () => {
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>{[m.dosage, m.frequency].filter(Boolean).join(' · ') || 'uso contínuo'}</Typography>
                     {/* PREÇO — informação secundária, discreta (saúde, não e-commerce). */}
                     {m.priceSummary?.lowestPriceCents != null ? (
-                      <Typography
-                        onClick={(e) => { e.stopPropagation(); void openPrices(m); }}
-                        variant="caption" sx={{ display: 'block', mt: 0.4, cursor: 'pointer',
-                          color: 'text.secondary', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                          '& b': { color: 'text.primary', fontSize: 14, fontVariantNumeric: 'tabular-nums' },
-                          '&:hover b': { textDecoration: 'underline' } }}
-                      >
-                        💰 <b>{fmtBRL(m.priceSummary.lowestPriceCents)}</b> · {m.priceSummary.offersCount ?? 0} ofertas · <span style={{ textDecoration: 'underline', color: 'primary.dark' }}>ver preços</span>
-                      </Typography>
+                      <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.4, cursor: 'pointer' }}
+                        onClick={(e) => { e.stopPropagation(); void openPrices(m); }}>
+                        <Typography variant="caption" sx={{ color: 'text.secondary', flexShrink: 0 }}>
+                          💰 <b style={{ color: 'text.primary', fontSize: 14, fontVariantNumeric: 'tabular-nums' }}>{fmtBRL(m.priceSummary.lowestPriceCents)}</b>
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: 'primary.dark', textDecoration: 'underline', flexShrink: 0 }}>
+                          ver preços
+                        </Typography>
+                      </Stack>
                     ) : m.priceStatus === 'insufficient_data' ? (
                       <Typography
                         onClick={(e) => { e.stopPropagation(); setPackFor(m); }}
@@ -333,14 +353,27 @@ export const MedicationsPage = () => {
           <Stack spacing={2} sx={{ pt: 1 }}>
             <Autocomplete
               freeSolo
-              options={options}
-              getOptionLabel={(o) => typeof o === 'string' ? o : o.name}
-              renderOption={({ key, ...li }, o) => (
-                <Box component="li" key={key} {...li}>
+              options={catalogResults.length > 0 ? catalogResults : options}
+              getOptionLabel={(o: any) => typeof o === 'string' ? o : o.name}
+              renderOption={({ key, ...li }, o: any) => (
+                <Box component="li" key={key} {...li} sx={{ display: 'flex', alignItems: 'center', gap: 1.25, py: 0.75 }}>
+                  {/* FOTO do produto (do catálogo — instantânea) ou avatar */}
+                  {o.photoUrl ? (
+                    <Box component="img" src={o.photoUrl} alt={o.name} loading="lazy"
+                      sx={{ width: 40, height: 40, borderRadius: '8px', objectFit: 'contain', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', flexShrink: 0 }} />
+                  ) : (
+                    <MedAvatar name={o.name} size={40} />
+                  )}
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Typography sx={{ fontWeight: 700, fontSize: 14 }}>{o.name}</Typography>
-                    {!!o.brands?.length && <Typography variant="caption" sx={{ color: 'text.secondary' }}>{o.brands.slice(0, 3).join(' · ')}</Typography>}
+                    {!!o.brands?.length && <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>{o.brands.slice(0, 3).join(' · ')}</Typography>}
                   </Box>
+                  {/* PREÇO à direita (se o catálogo já tem) */}
+                  {o.priceCents != null && (
+                    <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.primary', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
+                      {fmtBRL(o.priceCents)}
+                    </Typography>
+                  )}
                 </Box>
               )}
               inputValue={query}
@@ -349,6 +382,7 @@ export const MedicationsPage = () => {
               onChange={(_, v) => { setPicked(typeof v === 'string' ? { name: v } : v); setDose(''); }}
               renderInput={(params) => <TextField {...params} label="Busque por nome ou marca (ex.: Levoid)" autoFocus />}
             />
+            {catalogLoading && <Typography variant="caption" sx={{ color: 'text.disabled' }}>buscando…</Typography>}
             {picked?.doses?.length ? (
               <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
                 {picked.doses.map((d) => (

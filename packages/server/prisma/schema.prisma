@@ -248,6 +248,29 @@ model Medication {
   @@map("medications")
 }
 
+// CATÁLOGO LOCAL de medicamentos — pré-populado via bootstrap (dicionário MEDS_BR → VTEX)
+// e refreshado por cron 2h. O combobox busca AQUI (instantâneo, com foto+preço).
+model MedicationCatalogEntry {
+  id               String   @id @default(cuid())
+  name             String   // "Losartana Potássica" (nome exibido)
+  activeIngredient String   // "LOSARTANA POTASSICA" (chave de busca)
+  brands           String[] @default([]) // ["Cozaar", "Losartana potássica"]
+  doses            String[] @default([]) // ["50 mg", "100 mg"]
+  // melhor oferta conhecida (refresh 2h)
+  photoUrl         String?
+  priceCents       Int?
+  productName      String?  // "Losartana Potássica 50mg 30 Comprimidos Genérico"
+  pharmacy         String?
+  ean              String?
+  offersCount      Int      @default(0)
+  vtexQuery        String?  // query que achou (cache hit no refresh)
+  lastRefreshedAt  DateTime?
+  createdAt        DateTime @default(now())
+
+  @@unique([activeIngredient])
+  @@map("medication_catalog")
+}
+
 // Snapshot GLOBAL de preços por chave de produto (cache — 500 usuários com a mesma
 // Losartana 50mg/30cp reaproveitam o MESMO snapshot; TTL gerido pelo worker).
 model MedicationPriceSnapshot {

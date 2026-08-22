@@ -253,6 +253,60 @@ router.post('/scan-photo', upload.single('photo'), async (req: AuthedRequest, re
   } catch (e) { next(e); }
 });
 
+// CATÁLOGO: busca instantânea (foto + preço já cacheados) pro combobox.
+router.get('/catalog', async (req: AuthedRequest, res, next) => {
+  try {
+    const q = String(req.query.q ?? '').trim().toLowerCase();
+    if (q.length < 2) { res.json([]); return; }
+    const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+    const entries = await prisma.medicationCatalogEntry.findMany({ take: 60 }); // carrega tudo (é pequeno)
+    const results = entries
+      .map((e) => {
+        const hay = norm(`${e.name} ${(e.brands ?? []).join(' ')} ${e.activeIngredient}`);
+        const nq = norm(q);
+        const starts = hay.startsWith(nq) || (e.brands ?? []).some((b) => norm(b).startsWith(nq));
+        const contains = hay.includes(nq);
+        return { e, score: starts ? 2 : contains ? 1 : 0 };
+      })
+      .filter((x) => x.score > 0)
+      .sort((a, b) => b.score - a.score || (a.e.name > b.e.name ? 1 : -1))
+      .slice(0, 8)
+      .map(({ e }) => ({
+        name: e.name, brands: e.brands, photoUrl: e.photoUrl, priceCents: e.priceCents,
+        productName: e.productName, pharmacy: e.pharmacy, offersCount: e.offersCount,
+      }));
+    res.json(results);
+  } catch (e) { next(e); }
+});
+
+// PREVIEW: busca rápida na fonte (VTEX) ANTES de salvar — mostra foto + preço no
+// dialog de adicionar. O usuário vê o que vai custar antes de confirmar (UX inteligente).
+router.get('/preview', async (req: AuthedRequest, res, next) => {
+  try {
+    const q = req.query as Record<string, string | undefined>;
+    const name = String(q.name ?? '').trim();
+    const dosage = String(q.dosage ?? '').trim();
+    if (!name || name.length < 3) { res.status(400).json({ error: 'Informe o nome do remédio.' }); return; }
+    const { pagueMenosProvider } = await import('../pricing/providers/pagueMenos');
+    const { buildNormalizedMedication } = await import('../pricing/normalize');
+    const normalized = buildNormalizedMedication({ name, dosage });
+    try {
+      const offers = await pagueMenosProvider.search(normalized);
+      const best = offers[0] ?? null;
+      res.json({
+        found: !!best,
+        photo: best?.imageUrl ?? null,
+        priceCents: best?.priceCents ?? null,
+        productName: best?.productName ?? null,
+        pharmacy: best?.pharmacy ?? 'Pague Menos',
+        offersCount: offers.length,
+      });
+    } catch {
+      res.json({ found: false, photo: null, priceCents: null, offersCount: 0 }); // fonte fora → sem preview, não trava
+    }
+  } catch (e) { next(e); }
+});
+
 // PREÇOS de um remédio: snapshot + ofertas (dialog "Ver preços"). Sem preço → status.
 router.get('/:id/prices', async (req: AuthedRequest, res, next) => {
   try {
