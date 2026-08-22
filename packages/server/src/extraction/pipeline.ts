@@ -62,7 +62,7 @@ export async function runExtraction(examId: string): Promise<void> {
 async function runExtractionOnce(examId: string): Promise<void> {
   const exam = await prisma.exam.findUnique({ where: { id: examId } });
   if (!exam) return;
-  const patient = await prisma.patient.findUnique({ where: { id: exam.patientId }, select: { fullName: true, ownerId: true, gender: true, dateOfBirth: true, cpfHash: true, cpfLast4: true, cpfEncrypted: true, cpfIv: true } });
+  const patient = await prisma.patient.findUnique({ where: { id: exam.patientId }, select: { fullName: true, ownerId: true, gender: true, dateOfBirth: true, relationship: true, cpfHash: true, cpfLast4: true, cpfEncrypted: true, cpfIv: true } });
   const demo = patient?.gender === 'female' ? 'Mulheres' : 'Homens';
 
   await prisma.exam.update({
@@ -264,8 +264,12 @@ async function runExtractionOnce(examId: string): Promise<void> {
     if (patient?.ownerId && exam.status !== 'EXTRACTED') {
       try {
         const user = await prisma.user.findUnique({ where: { id: patient.ownerId }, select: { name: true, phone: true } });
-        const firstName = (user?.name || patient.fullName || '').split(' ')[0] || 'Tudo pronto';
-        const pushTitle = 'Seu exame foi lido 🧬';
+        // MODO CUIDADOR (Lote 2): exame de DEPENDENTE avisa com o nome de QUEM fez o exame
+        // ("Theo: seu exame foi lido"), não do dono da conta — o celular que recebe é do cuidador.
+        const isDependent = !!patient.relationship && patient.relationship !== 'Titular';
+        const who = isDependent ? (patient.fullName || user?.name) : (user?.name || patient.fullName);
+        const firstName = String(who || '').split(' ')[0] || 'Tudo pronto';
+        const pushTitle = isDependent ? `${firstName}: exame lido 🧬` : 'Seu exame foi lido 🧬';
         const pushBody = `${firstName}, "${title}" está pronto — ${items.length} valores analisados. Toque pra ver o que mudou.`;
         await sendPushToUser(patient.ownerId, pushTitle, pushBody, { type: 'exam_ready', examId: String(examId) }).catch((e) => console.error('[extraction] push exam_ready falhou:', e?.message));
         if (user?.phone) await sendWhatsAppExamReady(user.phone, { name: firstName, exam: title, count: items.length });

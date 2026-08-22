@@ -230,6 +230,17 @@ export const DashboardV2 = () => {
   return (
     <PageContainer width="wide" sx={{ bgcolor: (t) => (t.palette.mode === 'dark' ? 'background.default' : '#FAFBFC'), minHeight: '100vh' }}>
       <DashboardHeader firstName={firstName} />
+      {/* MODO CUIDADOR (Lote 2): dependente selecionado → faixa de contexto — quem você está
+          acompanhando (o push de exame dele também chega com o nome dele). */}
+      {d.me?.relationship && d.me.relationship !== 'Titular' && (
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5, px: 2, py: 1, borderRadius: '14px', bgcolor: (t) => alpha(t.palette.primary.main, 0.08), border: '1px solid', borderColor: (t) => alpha(t.palette.primary.main, 0.25) }}>
+          <FavoriteIcon sx={{ fontSize: 18, color: 'primary.main' }} />
+          <Typography sx={{ fontSize: 14, fontWeight: 700 }}>
+            Você está cuidando de {d.me.fullName}
+            <Typography component="span" sx={{ fontSize: 13, fontWeight: 500, color: 'text.secondary' }}> · {d.me.relationship} · exames e alertas deste perfil chegam no seu celular</Typography>
+          </Typography>
+        </Stack>
+      )}
       <FailedExamsAlert count={d.failed} onClick={() => navigate('/exams')} />
       <RejectedExamsAlert count={d.rejected} onClick={() => navigate('/exams')} />
 
