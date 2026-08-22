@@ -289,29 +289,63 @@ router.post('/scan-photo', upload.single('photo'), async (req: AuthedRequest, re
   } catch (e) { next(e); }
 });
 
-// CATÁLOGO: busca instantânea (foto + preço já cacheados) pro combobox.
+// CATÁLOGO: busca PRODUTOS (foto + dose + pack + preço do VTEX) pro combobox.
+// Retorna VARIANTES — "Dipirona 500mg 20cp Genérico R$ 3,50" — o usuário escolhe
+// o produto completo, não o ingrediente abstrato. 1 toque salva tudo.
 router.get('/catalog', async (req: AuthedRequest, res, next) => {
   try {
     const q = String(req.query.q ?? '').trim().toLowerCase();
     if (q.length < 2) { res.json([]); return; }
     const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
-    const entries = await prisma.medicationCatalogEntry.findMany({ take: 60 }); // carrega tudo (é pequeno)
-    const results = entries
-      .map((e) => {
+
+    // 1. Busca no catálogo local (instantâneo — tem foto+preço já cacheados)
+    const entries = await prisma.medicationCatalogEntry.findMany({ take: 100 });
+    const localHits = entries
+      .filter((e) => {
         const hay = norm(`${e.name} ${(e.brands ?? []).join(' ')} ${e.activeIngredient}`);
-        const nq = norm(q);
-        const starts = hay.startsWith(nq) || (e.brands ?? []).some((b) => norm(b).startsWith(nq));
-        const contains = hay.includes(nq);
-        return { e, score: starts ? 2 : contains ? 1 : 0 };
+        return hay.includes(norm(q));
       })
-      .filter((x) => x.score > 0)
-      .sort((a, b) => b.score - a.score || (a.e.name > b.e.name ? 1 : -1))
-      .slice(0, 8)
-      .map(({ e }) => ({
-        name: e.name, brands: e.brands, photoUrl: e.photoUrl, priceCents: e.priceCents,
-        productName: e.productName, pharmacy: e.pharmacy, offersCount: e.offersCount,
+      .slice(0, 4)
+      .map((e) => ({
+        name: e.name, productName: e.productName ?? e.name,
+        photoUrl: e.photoUrl, priceCents: e.priceCents,
+        pharmacy: e.pharmacy, dosage: '', packQty: null as number | null,
       }));
-    res.json(results);
+
+    // 2. Busca LIVE na VTEX (produtos completos com dose+pack) — só se local < 3
+    let vtexHits: typeof localHits = [];
+    if (localHits.length < 3) {
+      try {
+        const { pagueMenosProvider } = await import('../pricing/providers/pagueMenos');
+        const offers = await pagueMenosProvider.search({ medicationKey: null, activeIngredient: q, dosageValue: undefined, dosageUnit: undefined, form: 'CP' });
+        vtexHits = offers.slice(0, 6).map((o) => ({
+          name: q, productName: o.productName,
+          photoUrl: o.imageUrl ?? null, priceCents: o.priceCents,
+          pharmacy: o.pharmacy, dosage: '', packQty: null as number | null,
+        }));
+      } catch { /* VTEX fora → só local */ }
+    }
+
+    // merge sem duplicar (por productName)
+    const seen = new Set<string>();
+    const all = [...localHits, ...vtexHits].filter((h) => {
+      const k = norm(h.productName); if (seen.has(k)) return false; seen.add(k); return true;
+    }).slice(0, 8);
+
+    // extrai dose e pack do productName ("Dipirona 500mg 20 Comprimidos" → dose=500mg, pack=20)
+    const doseRe = /(\d+[.,]?\d*)\s*(mg|mcg|ml|g|ui)\b/i;
+    const packRe = /(\d+)\s*(comprimido|cp|capsula|cap|cx|caixa|dragea|un)/i;
+    const enriched = all.map((h) => {
+      const dose = h.productName.match(doseRe);
+      const pack = h.productName.match(packRe);
+      return {
+        ...h,
+        dosage: dose ? `${dose[1]} ${dose[2]}`.replace(',', '.') : '',
+        packQty: pack ? parseInt(pack[1], 10) : null,
+      };
+    });
+
+    res.json(enriched);
   } catch (e) { next(e); }
 });
 
