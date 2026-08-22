@@ -75,9 +75,9 @@ export const MedicationsPage = () => {
   const [pricesData, setPricesData] = useState<PricesResp | null>(null);
   const [pricesLoading, setPricesLoading] = useState(false);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (silent = false) => {
     if (!pid) return;
-    setMeds(null);
+    if (!silent) setMeds(null); // skeleton SÓ na 1ª carga (polling não pisca)
     const h = { Authorization: `Bearer ${token()}` };
     try {
       const [m, c] = await Promise.all([
@@ -85,17 +85,18 @@ export const MedicationsPage = () => {
         fetch(`${API_URL}/medications/check?patientId=${pid}`, { headers: h }).then((r) => (r.ok ? r.json() : null)),
       ]);
       setMeds(m); setCheck(c);
-    } catch { setMeds([]); }
+    } catch { if (!silent) setMeds([]); }
   }, [pid]);
 
   useEffect(() => { void load(); }, [load]);
 
-  // AUTO-REFRESH (4s enquanto há 'buscando')
+  // AUTO-REFRESH: SÓ 1× após 8s (não a cada 4s queimando filme — o preço do catálogo
+  // já é instantâneo; o worker só é preciso pra quem NÃO está no catálogo)
   useEffect(() => {
     const pending = (meds ?? []).some((m) => m.active && (m.priceStatus === 'queued' || m.priceStatus === 'searching'));
     if (!pending) return;
-    const iv = setInterval(() => { void load(); }, 4000);
-    return () => clearInterval(iv);
+    const t = setTimeout(() => { void load(true); }, 8000);
+    return () => clearTimeout(t);
   }, [meds, load]);
 
   // BUSCA no catálogo + VTEX (debounce 350ms)
@@ -113,15 +114,25 @@ export const MedicationsPage = () => {
     return () => clearTimeout(t);
   }, [query]);
 
-  /** SALVA um produto do catálogo — 1 TOQUE, tudo já vem (nome+dose+pack+foto+preço) */
+  /** SALVA um produto — 1 TOQUE com feedback (fecha dialog → toast → lista atualiza) */
+  const [saving, setSaving] = useState<string | null>(null);
   const pickProduct = async (p: CatalogProduct) => {
-    setSearchOpen(false); setQuery('');
-    const r = await fetch(`${API_URL}/medications`, {
-      method: 'POST', headers: apiHeaders(true),
-      body: JSON.stringify({ patientId: pid, name: p.name, dosage: p.dosage || null, packQty: p.packQty, frequency: null }),
-    });
-    if (r.ok) { notify(`${p.name} salvo`, { type: 'success' }); void load(); }
-    else notify('Falha ao salvar', { type: 'error' });
+    setSaving(p.productName);
+    try {
+      const r = await fetch(`${API_URL}/medications`, {
+        method: 'POST', headers: apiHeaders(true),
+        body: JSON.stringify({ patientId: pid, name: p.name, dosage: p.dosage || null, packQty: p.packQty, frequency: null }),
+      });
+      if (r.ok) {
+        setSearchOpen(false); setQuery(''); setProducts([]);
+        notify(`${p.name} adicionado ✅`, { type: 'success' });
+        await load(true);
+      } else {
+        const e = await r.json().catch(() => ({}));
+        notify(e.error || 'Falha ao salvar', { type: 'error' });
+      }
+    } catch { notify('Sem conexão', { type: 'error' }); }
+    finally { setSaving(null); }
   };
 
   /** ESCANEAR: foto → IA lista → confirma */
@@ -317,13 +328,16 @@ export const MedicationsPage = () => {
               <Stack key={i} direction="row" spacing={1.25} alignItems="center"
                 onClick={() => void pickProduct(p)}
                 sx={{
-                  p: 1.25, borderRadius: '12px', cursor: 'pointer',
+                  p: 1.25, borderRadius: '12px', cursor: saving === p.productName ? 'wait' : 'pointer',
                   bgcolor: i === 0 ? 'rgba(32,178,170,.06)' : 'action.hover',
                   border: '1px solid', borderColor: i === 0 ? 'rgba(32,178,170,.2)' : 'transparent',
                   transition: 'all .12s', '&:hover': { bgcolor: 'rgba(32,178,170,.1)', borderColor: 'primary.main' },
-                  '&:active': { transform: 'scale(.98)' },
+                  '&:active': { transform: 'scale(.97)' },
+                  opacity: saving && saving !== p.productName ? 0.5 : 1,
                 }}>
-                {p.photoUrl ? (
+                {saving === p.productName ? (
+                  <Box sx={{ width: 44, height: 44, display: 'grid', placeItems: 'center', flexShrink: 0 }}><CircularProgress size={22} /></Box>
+                ) : p.photoUrl ? (
                   <Box component="img" src={p.photoUrl} alt={p.productName} loading="lazy"
                     sx={{ width: 44, height: 44, borderRadius: '10px', objectFit: 'contain', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', flexShrink: 0 }} />
                 ) : (
@@ -337,7 +351,7 @@ export const MedicationsPage = () => {
                     </Typography>
                   )}
                 </Box>
-                {p.priceCents != null && (
+                {p.priceCents != null && saving !== p.productName && (
                   <Chip size="small" label="1 toque" sx={{ height: 20, fontSize: 10, fontWeight: 700, bgcolor: 'primary.main', color: '#fff', flexShrink: 0 }} />
                 )}
               </Stack>
