@@ -1,0 +1,87 @@
+# Definição de campos — pesquisa Dr. Exame (merged: framework + supplementos web 2026-08-22)
+# detail_level: brief | moderate | detailed
+
+fields:
+  basic_info:
+    - name: name
+      description: "Nome do produto/plataforma"
+      detail_level: brief
+    - name: category
+      description: "Categoria (lab, intérprete IA, wearable, plataforma, genética, governo…)"
+      detail_level: brief
+    - name: country
+      description: "País/mercado principal"
+      detail_level: brief
+    - name: stage
+      description: "Estágio (startup, growth, público, morto/falido)"
+      detail_level: brief
+    - name: pricing_model
+      description: "Preço/modelo (grátis, freemium, membership, por-exame) e mudanças recentes de preço"
+      detail_level: moderate
+    - name: target_user
+      description: "Público-alvo (paciente leigo, biohacker, médico, empresa)"
+      detail_level: brief
+    - name: scale_metrics
+      description: "Usuários, valuation, funding, tração (separar ameaça durável de ruído)"
+      detail_level: moderate
+
+  product:
+    - name: core_features
+      description: "Features centrais hoje"
+      detail_level: moderate
+    - name: signature_differentiator
+      description: "A assinatura — o que nenhum outro faz"
+      detail_level: detailed
+    - name: lab_data_handling
+      description: "Como tratam exames: upload PDF? integração com labs? interpretação própria? cadência de reteste e hardware (sangue anual, 2x/ano, chip em casa, CGM, wearable)"
+      detail_level: detailed
+    - name: family_dependents_depth
+      description: "Profundidade familiar: dependentes, modo cuidador, faixas pediátricas, risco hereditário (ninguém nos EUA faz bem — pilar do Dr. Exame)"
+      detail_level: detailed
+    - name: doctor_sharing
+      description: "Compartilhamento com médico / brief de consulta / SOAP"
+      detail_level: moderate
+    - name: action_loop_monetization
+      description: "O que acontece DEPOIS da interpretação: suplementos, protocolos, telemedicina, prescrição, marketplace de imagem/MCED (a margem migrou pro action-loop)"
+      detail_level: detailed
+
+  technology:
+    - name: ai_approach
+      description: "Abordagem de IA (LLM, engine própria, modelos clínicos, humano-no-loop)"
+      detail_level: moderate
+    - name: data_inputs
+      description: "Entradas de dados: labs, wearables, genética, CGM, questionários"
+      detail_level: moderate
+    - name: data_interoperability
+      description: "Superfícies de ingestão/exaustão: PDF, FHIR, Health Connect Medical Records, Apple Health Records, RNDS/REL, integração LIS, WhatsApp (a ingestão ampla é o fosso composto)"
+      detail_level: detailed
+    - name: platform
+      description: "App/web/API/extensão"
+      detail_level: brief
+
+  ux:
+    - name: onboarding
+      description: "Primeira experiência, tempo até o valor"
+      detail_level: brief
+    - name: data_visualization
+      description: "Como mostram tendências/faixas/scores"
+      detail_level: moderate
+    - name: engagement_channel
+      description: "Mecânicas E canal de retenção: comunidade, streaks, nudges, WhatsApp (retenção BR tem cara de WhatsApp; apps de lab são transacionais — abrem no resultado e churnam)"
+      detail_level: detailed
+
+  trust_gaps:
+    - name: clinical_validation_trust
+      description: "Acurácia claimed + metodologia publicada?, board clínico, revisão humana, transparência de cobrança (benchmark de credibilidade e lista de riscos)"
+      detail_level: detailed
+    - name: regulatory_posture
+      description: "Postura vs ANVISA SaMD RDC 657/2022 / linha wellness-vs-device da FDA, LGPD, disclaimers (teto legal das claims de IA no BR — o não-diagnóstico do Dr. Exame é escolha de compliance)"
+      detail_level: detailed
+    - name: gaps_opportunities
+      description: "O que NÃO fazem (oportunidade Dr. Exame) + o que funciona (inspiração, não cópia)"
+      detail_level: detailed
+    - name: relevance
+      description: "Alta/média/baixa + por quê"
+      detail_level: brief
+
+uncertain: []  # preenchido automaticamente na fase deep (campos que ficaram incertos)

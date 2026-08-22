@@ -1,0 +1,82 @@
+topic: "Saúde digital global — features, tecnologias e conceitos para diferenciar o Dr. Exame (plataforma BR de interpretação de exames com IA)"
+created: 2026-08-22
+time_range: "últimos 18 meses (desde 2026-02)"
+focus: "Brasil + top globais · objetivo: GAPS e oportunidades, não copiar"
+
+items:
+  # ── Brasil: laboratórios / ecossistemas ──
+  - id: fleury
+    name: "Fleury"
+    why: "Maior player premium BR; 85% dos exames liberados sem intervenção humana; app transacional (tracking), sem interpretação paciente-facing — gap claro."
+  - id: dasa
+    name: "Dasa / Nav Dasa"
+    why: "Maior grupo de labs BR; app Nav (telemedicina + resultados); 30+ modelos IA internos (Google Cloud) — mas IA dentro do lab, não pro paciente."
+  - id: sabin-hermes
+    name: "Sabin / Hermes Pardini"
+    why: "Entregam resultados por WhatsApp — insight de canal; um grupo desde 2023."
+  - id: dr-consulta
+    name: "Dr. Consulta"
+    why: "Atenção primária acessível em escala BR — referência de preço/acesso, concorre pelo mesmo público."
+  # ── Brasil: intérpretes de exames (competidores diretos) ──
+  - id: calclab
+    name: "CalcLab"
+    why: "Reposicionado B2B (engine agnóstico, 800+ labs, fluxo de consultório) — menos ameaça D2C que o assumido."
+  - id: bloodgpt
+    name: "BloodGPT"
+    why: "Também derrotado pro B2B (white-label pra labs/clínicas); presença paciente-facing fraca."
+  - id: kantesti
+    name: "Kantesti"
+    why: "O competidor BR direto mais ativo: GRÁTIS (web+iOS+Android+extensão Chrome), SEO agressivo (guia do comprador 2026), claims de 98,71% de acurácia SEM metodologia publicada — pressiona o freemium do Dr. Exame."
+  - id: examesia
+    name: "ExamesIA"
+    why: "BR, mesma categoria upload-PDF-interpretação, produto leve."
+  - id: dr-ia-meindica
+    name: "Dr IA (Grupo Meindica)"
+    why: "BR, segunda opinião por IA + simplificação de exames."
+  # ── Globais: plataformas de biomarcadores/longevidade ──
+  - id: function-health
+    name: "Function Health"
+    why: "Líder da categoria US; $2.5B valuation (11/2025); cortou $499→$365/yr (price war); distribui Galleri (GRAIL MCED) — marketplace de diagnóstico avançado."
+  - id: superpower
+    name: "Superpower"
+    why: "Crescimento rápido 2025-26; corte p/ ~$199/yr (fonte única — confirmar); testing + tracking + coach."
+  - id: insidetracker
+    name: "InsideTracker"
+    why: "Ancestral conceitual do 'valor ideal' do Dr. Exame (Optimal Zones vs faixa de referência; InnerAge 2.0)."
+  - id: mito-health
+    name: "Mito Health"
+    why: "Fast-follow do modelo Function ($349/yr, 100+ biomarcadores, 'AI doctor in your pocket', revisão clínica humana)."
+  - id: geviti
+    name: "Geviti"
+    why: "Diferencial = cadência: biomarcadores 2x/ano (vs 1x Function) + revisão por telemedicina — tese da tendência longitudinal."
+  - id: marek-health
+    name: "Marek Health"
+    why: "Melhor exemplo de monetização do action-loop (coaching → TRT $225/mês, peptídeos, GLP-1); Trustpilot 4.8."
+  - id: levels-health
+    name: "Levels Health"
+    why: "Metabólico via CGM; referência de engagement contínuo (comida → glicose → comportamento)."
+  - id: oura
+    name: "Oura"
+    why: "$11B valuation, IPO confidencial (05/2026), Ring 5; virando 'health intelligence platform' com expansão metabólica."
+  # ── Globais: inflexões de tecnologia ──
+  - id: siphox
+    name: "SiPhox Health"
+    why: "Chip de silício fotônico: até 60 biomarcadores em casa, ~$99, resultado em ~60min — pode pular a rede de labs inteiros (fonte: imprensa 04/2026, confirmar)."
+  - id: nucleus
+    name: "Nucleus Genomics"
+    why: "Genoma completo consumer ($14M Série A 01/2025); camada genética que nenhum app de painel possui."
+  # ── Plataformas / sombra / infra ──
+  - id: llms-shadow
+    name: "LLMs genéricos como intérpretes (ChatGPT/Gemini)"
+    why: "O sombra: usuário BR cola o exame no chat grátis. Item de threat modeling — o inimigo é o comportamento, não uma empresa."
+  - id: apple-google-platforms
+    name: "Apple Health + Google Health Connect (plataformas)"
+    why: "Apple Health já mostra resultados de lab com explicação + Trends; coach IA rumorejado p/ 2026. Health Connect (Android 16) ganhou Medical Records FHIR. Interpretação dono-da-plataforma vem aí — ameaça E oportunidade de ingestão."
+  - id: meu-sus-rnds
+    name: "Meu SUS Digital + RNDS"
+    why: "App do governo já exibe resultados de exames (formato REL via RNDS) — baseline nacional grátis e futura fonte de ingestão; Open Health/ANS como vento regulatório."
+
+execution:
+  batch_size: 4
+  items_per_agent: 1
+  output_dir: "./results"
