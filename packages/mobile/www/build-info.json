@@ -1,11 +1,11 @@
 {
   "appName": "Meus Exames",
-  "version": "2.7.131",
-  "versionCode": "372",
-  "commit": "c4b51cf3b1172386f40b08910f4494e68d517541",
-  "shortHash": "c4b51cf",
+  "version": "2.7.132",
+  "versionCode": "373",
+  "commit": "9ca5c600ffb90d55bea40aa6f55d98aef8277c00",
+  "shortHash": "9ca5c60",
   "branch": "main",
-  "builtAt": "2026-08-23T15:24:50.231Z",
+  "builtAt": "2026-08-23T15:35:31.517Z",
   "source": "local",
-  "versionLabel": "v2.7.131.372 (c4b51cf)"
+  "versionLabel": "v2.7.132.373 (9ca5c60)"
 }
