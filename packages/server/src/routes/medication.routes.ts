@@ -99,15 +99,16 @@ router.post('/', async (req: AuthedRequest, res, next) => {
           // Sem URL no catálogo → snapshot SEM offer (o card acende com o preço, mas o
           // worker busca a lista completa com links REAIS em <30s — nunca link genérico)
           const hasRealUrl = !!cat.productUrl;
+          const offerCount = hasRealUrl ? 1 : 0; // SEMPRE igual ao nº real de offers criadas
           await prisma.medicationPriceSnapshot.upsert({
             where: { medicationKey_locationKey: { medicationKey: key, locationKey: 'BR' } },
             create: {
               medicationKey: key, locationKey: 'BR',
               lowestPriceCents: cat.priceCents, averagePriceCents: cat.priceCents,
-              offersCount: hasRealUrl ? Math.max(1, cat.offersCount) : 0,
+              offersCount: offerCount, // NUNCA copiar cat.offersCount (o card mostraria "4" com só 1 real)
               provider: 'catalogo',
               collectedAt: now,
-              expiresAt: new Date(now.getTime() + (hasRealUrl ? 2 * 60 * 60 : 5 * 60) * 1000), // sem URL → expira 5min → worker busca
+              expiresAt: new Date(now.getTime() + (hasRealUrl ? 2 * 60 * 60 : 5 * 60) * 1000),
               ...(hasRealUrl ? { offers: { create: [{ pharmacy: cat.pharmacy ?? 'Pague Menos', productName: cat.productName ?? String(name).trim(), priceCents: cat.priceCents, url: cat.productUrl!, imageUrl: cat.photoUrl, ean: cat.ean, lastCheckedAt: now }] } } : {}),
             },
             update: {},
