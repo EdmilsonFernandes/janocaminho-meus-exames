@@ -463,6 +463,16 @@ router.get('/:id/prices', async (req: AuthedRequest, res, next) => {
   } catch (e) { next(e); }
 });
 
+// FORCE REFRESH: apaga TODOS os snapshots → worker recria com lista completa da VTEX.
+// Uso único: depois de deploy do fix do ensureSnapshot (snapshots antigos tinham offers erradas).
+router.post('/refresh-all', async (req: AuthedRequest, res, next) => {
+  try {
+    const count = await prisma.medicationPriceSnapshot.deleteMany({});
+    await prisma.medication.updateMany({ data: { priceStatus: 'queued', priceCheckedAt: new Date(Date.now() - 8 * 60 * 60 * 1000) } });
+    res.json({ deleted: count.count, message: 'Snapshots resetados — worker recria em 30s' });
+  } catch (e) { next(e); }
+});
+
 // WORKER TICK — só em dev/teste (QA e testes E2E disparam sem esperar o cron de 5min).
 router.post('/worker-tick', async (req: AuthedRequest, res, next) => {
   try {
