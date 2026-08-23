@@ -1134,13 +1134,20 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 {medsInfo && medsInfo.medications.length > 0 && (
                   <Stack spacing={0.75} sx={{ mt: 1 }}>
                     {medsInfo.medications.map((m: any) => (
-                      <Box key={m.id} sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 0.75, borderRadius: '8px', bgcolor: 'action.hover', opacity: m.active ? 1 : 0.55 }}>
-                        {/* Avatar do remédio: inicial + cor estável (mesma régua da página Remédios). */}
-                        <Box sx={{ width: 32, height: 32, borderRadius: '10px', display: 'grid', placeItems: 'center', flexShrink: 0, bgcolor: (t) => ['#20b2aa', '#d4a574', '#0ea5e9', '#059669', '#f59e0b', '#ef4444'][[...String(m.name || '?')].reduce((a, c) => a + c.charCodeAt(0), 0) % 6] + '22', color: (t) => ['#178f89', '#b88a54', '#0369a1', '#047857', '#b45309', '#b91c1c'][[...String(m.name || '?')].reduce((a, c) => a + c.charCodeAt(0), 0) % 6], fontWeight: 800, fontSize: 14, fontFamily: 'Poppins, sans-serif' }}>
-                          {String(m.name || '?').trim().charAt(0).toUpperCase()}
+                      <Box key={m.id} sx={{ display: 'flex', alignItems: 'center', gap: 1.25, p: 1, borderRadius: '12px', bgcolor: 'action.hover', opacity: m.active ? 1 : 0.55 }}>
+                        {/* FOTO do produto (catálogo/snapshot) — mesma régua da página Remédios */}
+                        {m.catalogPhotoUrl ? (
+                          <Box component="img" src={m.catalogPhotoUrl} alt={m.name} loading="lazy"
+                            sx={{ width: 40, height: 40, borderRadius: '10px', objectFit: 'contain', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', flexShrink: 0 }} />
+                        ) : (
+                          <Box sx={{ width: 40, height: 40, borderRadius: '10px', display: 'grid', placeItems: 'center', flexShrink: 0, bgcolor: 'rgba(32,178,170,.1)', color: '#178f89', fontWeight: 800, fontSize: 16, fontFamily: 'Poppins, sans-serif' }}>
+                            {String(m.name || '?').trim().charAt(0).toUpperCase()}
+                          </Box>
+                        )}
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          <Typography sx={{ fontWeight: 700, fontSize: 14 }}>{m.name}</Typography>
+                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>{[m.dosage, m.frequency].filter(Boolean).join(' · ')}{m.active ? '' : ' · suspenso'}</Typography>
                         </Box>
-                        <Typography sx={{ flex: 1, fontWeight: 700, fontSize: 14 }}>{m.name}</Typography>
-                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>{[m.dosage, m.frequency].filter(Boolean).join(' · ')}{m.active ? '' : ' · suspenso'}</Typography>
                       </Box>
                     ))}
                     {medsInfo.critical.length > 0 && (
