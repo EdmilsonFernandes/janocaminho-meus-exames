@@ -34,7 +34,7 @@ export const ShareDialog = ({ analysisId, open, onClose }: { analysisId?: string
       const r = await fetch(`${API_URL}/analyses/${analysisId}/share`, { method: 'POST', headers: { Authorization: `Bearer ${token()}` } });
       if (!r.ok) throw new Error('Falha ao gerar link');
       const d = await r.json();
-      const SHARE_BASE = 'https://janocaminho.com.br/minhasaude';
+      const SHARE_BASE = 'https://drexame.janocaminho.com.br';
       const link = `${SHARE_BASE}/api/public/shared/${d.token}`;
       setData({ link, pin: d.pin });
     } catch (e: any) { setError(e.message); }

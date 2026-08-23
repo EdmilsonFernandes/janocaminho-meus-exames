@@ -304,7 +304,7 @@ const AppMenu = () => {
         </Box>
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
           📧 contato@janocaminho.com.br<br />
-          🌐 janocaminho.com.br/minhasaude
+          🌐 drexame.janocaminho.com.br
         </Typography>
         <Typography variant="caption" sx={{ color: 'text.secondary', mt: 1, display: 'block' }}>
           {translate('about.disclaimer')}

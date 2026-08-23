@@ -2,7 +2,7 @@ import { Capacitor } from '@capacitor/core';
 
 // No APK (origin capacitor://localhost) uma URL relativa não alcança o backend →
 // usa a absoluta do prod. Na web/PWA cai no VITE_API_URL (idêntico a antes).
-const NATIVE_API_URL = import.meta.env.VITE_NATIVE_API_URL || 'https://janocaminho.com.br/minhasaude/api';
+const NATIVE_API_URL = import.meta.env.VITE_NATIVE_API_URL || 'https://drexame.janocaminho.com.br/api';
 export const API_URL = Capacitor.isNativePlatform() ? NATIVE_API_URL : (import.meta.env.VITE_API_URL || 'http://localhost:4001/api');
 
 /** Link de telemedicina (preenchido via VITE_TELEMEDICINE_URL). Vazio → botão fica oculto. */

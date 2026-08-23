@@ -19,7 +19,7 @@ export const ReferralCard = ({ code }: { code?: string }) => {
   }, [code]);
 
   if (!code) return null;
-  const link = `https://janocaminho.com.br/minhasaude/#/registrar?ref=${code}`;
+  const link = `https://drexame.janocaminho.com.br/#/registrar?ref=${code}`;
 
   const copy = () => { navigator.clipboard?.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 2000); };
   const share = async () => {

@@ -248,7 +248,7 @@ export const PlansPage = () => {
             </Typography>
             <Typography sx={{ mt: 2, fontWeight: 700 }}>Acesse pelo navegador:</Typography>
             <Typography sx={{ fontFamily: 'monospace', fontSize: 16, bgcolor: 'background.paper', border: '1px solid #cfe9e5', p: 1, borderRadius: '8px', mt: 0.5, userSelect: 'all' }}>
-              janocaminho.com.br/minhasaude
+              drexame.janocaminho.com.br
             </Typography>
             <Alert severity="info" sx={{ mt: 2 }} icon={false}>
               Depois de assinar ou comprar créditos no site, entre no app com o <strong>mesmo login</strong> — o saldo e o Premium aparecem aqui automaticamente.

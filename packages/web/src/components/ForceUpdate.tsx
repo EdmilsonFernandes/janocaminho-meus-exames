@@ -2,7 +2,7 @@ import { Box, Typography, Button } from '@mui/material';
 import { DrExame } from './DrExame';
 
 // App distribuído por APK (Play rejeita) → link pro site (PWA) + aviso p/ instalar novo APK.
-const UPDATE_URL = 'https://janocaminho.com.br/minhasaude/';
+const UPDATE_URL = 'https://drexame.janocaminho.com.br/';
 
 /** Tela bloqueante: versão instalada abaixo da mínima exigida pelo backend. */
 export const ForceUpdate = ({ latest }: { latest: string }) => (
