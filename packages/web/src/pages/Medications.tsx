@@ -341,62 +341,65 @@ export const MedicationsPage = () => {
         </AppCard>
       )}
 
-      {/* ============ DIALOG BUSCAR — produto-first (1 toque salva tudo) ============ */}
-      <Dialog open={searchOpen} onClose={() => setSearchOpen(false)} fullWidth maxWidth="xs" PaperProps={{ sx: { borderRadius: '16px' } }}>
-        <DialogTitle sx={{ fontWeight: 800, pb: 0 }}>Buscar remédio</DialogTitle>
-        <DialogContent sx={{ pt: 1 }}>
+      {/* ============ DIALOG BUSCAR — simples e direto (1 toque) ============ */}
+      <Dialog open={searchOpen} onClose={() => setSearchOpen(false)} fullWidth maxWidth="xs"
+        PaperProps={{ sx: { borderRadius: '20px', overflow: 'hidden' } }}>
+        <Box sx={{ p: 2, pb: 1 }}>
+          <Typography sx={{ fontWeight: 800, fontSize: 18, fontFamily: 'Poppins, sans-serif', mb: 1.5 }}>
+            Qual remédio você toma?
+          </Typography>
           <TextField
-            autoFocus fullWidth label="Nome ou marca (ex.: dipirona, Novalgina)"
+            autoFocus fullWidth placeholder="dipirona, levoid, osartan..."
             value={query} onChange={(e) => setQuery(e.target.value)}
-            sx={{ mb: 1.5 }}
+            variant="outlined" size="medium"
+            sx={{ '& .MuiOutlinedInput-root': { borderRadius: '14px', bgcolor: 'background.paper' } }}
           />
-          {searching && <Typography variant="caption" sx={{ color: 'text.disabled' }}>buscando…</Typography>}
+        </Box>
+        <DialogContent sx={{ p: 1, pt: 0.5 }}>
+          {searching && <Typography variant="caption" sx={{ color: 'text.disabled', px: 1 }}>buscando…</Typography>}
           {!searching && products.length === 0 && query.length >= 2 && (
-            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', py: 2, textAlign: 'center' }}>
-              Não achamos "{query}" — tente o nome do remédio ou fotografe a receita.
+            <Typography variant="body2" sx={{ color: 'text.secondary', py: 3, textAlign: 'center' }}>
+              Não achamos "{query}" — tente outro nome ou fotografe a receita.
             </Typography>
           )}
-          <Stack spacing={0.5}>
+          <Stack spacing={0.75}>
             {products.map((p, i) => (
               <Box key={i} component="button" type="button"
                 onClick={() => void pickProduct(p)}
-                aria-label={`Adicionar ${p.productName}`}
                 sx={{
-                  display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 1.25,
-                  width: '100%', p: 1.25, borderRadius: '12px', textAlign: 'left',
+                  display: 'flex', alignItems: 'center', gap: 1.5,
+                  width: '100%', p: 1.5, borderRadius: '16px', textAlign: 'left',
                   cursor: saving === p.productName ? 'wait' : 'pointer',
-                  bgcolor: i === 0 ? 'rgba(32,178,170,.06)' : 'action.hover',
-                  border: '1px solid', borderColor: i === 0 ? 'rgba(32,178,170,.2)' : 'transparent',
-                  transition: 'all .12s', '&:hover': { bgcolor: 'rgba(32,178,170,.1)', borderColor: 'primary.main' },
-                  '&:active': { transform: 'scale(.97)' },
-                  opacity: saving && saving !== p.productName ? 0.5 : 1,
-                  outline: 'none', fontFamily: 'inherit', fontSize: 'inherit',
+                  bgcolor: i === 0 ? 'rgba(32,178,170,.05)' : 'transparent',
+                  border: '1px solid', borderColor: i === 0 ? 'rgba(32,178,170,.15)' : 'divider',
+                  transition: 'all .12s', '&:hover': { bgcolor: 'rgba(32,178,170,.08)', borderColor: 'primary.main' },
+                  '&:active': { transform: 'scale(.98)' },
+                  opacity: saving && saving !== p.productName ? 0.4 : 1,
+                  outline: 'none', fontFamily: 'inherit',
+                  animation: `medCardIn .3s ease ${i * 0.05}s both`,
                 }}>
                 {saving === p.productName ? (
-                  <Box sx={{ width: 44, height: 44, display: 'grid', placeItems: 'center', flexShrink: 0 }}><CircularProgress size={22} /></Box>
+                  <Box sx={{ width: 48, height: 48, display: 'grid', placeItems: 'center', flexShrink: 0 }}><CircularProgress size={24} /></Box>
                 ) : p.photoUrl ? (
                   <Box component="img" src={p.photoUrl} alt={p.productName} loading="lazy"
-                    sx={{ width: 44, height: 44, borderRadius: '10px', objectFit: 'contain', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', flexShrink: 0 }} />
+                    sx={{ width: 48, height: 48, borderRadius: '12px', objectFit: 'contain', bgcolor: 'background.paper', flexShrink: 0 }} />
                 ) : (
-                  <MedAvatar name={p.productName} size={44} />
+                  <MedAvatar name={p.productName} size={48} />
                 )}
                 <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography sx={{ fontWeight: 700, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.productName}</Typography>
+                  <Typography sx={{ fontWeight: 700, fontSize: 14, lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {p.productName}
+                  </Typography>
                   {p.priceCents != null && (
-                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
-                      💰 {fmtBRL(p.priceCents)} {p.pharmacy ? `· ${p.pharmacy}` : ''}
-                    </Typography>
+                    <PriceBig cents={p.priceCents} size={16} color="primary.dark" />
                   )}
                 </Box>
-                {p.priceCents != null && saving !== p.productName && (
-                  <Chip size="small" label="1 toque" sx={{ height: 20, fontSize: 10, fontWeight: 700, bgcolor: 'primary.main', color: '#fff', flexShrink: 0, pointerEvents: 'none' }} />
-                )}
               </Box>
             ))}
           </Stack>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setSearchOpen(false)} sx={{ textTransform: 'none' }}>Fechar</Button>
+        <DialogActions sx={{ p: 2, pt: 1 }}>
+          <Button onClick={() => setSearchOpen(false)} sx={{ textTransform: 'none', fontWeight: 700 }}>Fechar</Button>
         </DialogActions>
       </Dialog>
 
@@ -515,41 +518,22 @@ export const MedicationsPage = () => {
               sx={{
                 p: 1.75, borderBottom: '1px solid', borderColor: 'divider',
                 textDecoration: 'none', color: 'inherit',
-                bgcolor: i === 0 ? 'rgba(32,178,170,.05)' : 'transparent',
+                bgcolor: i === 0 ? 'rgba(32,178,170,.04)' : 'transparent',
                 transition: 'background .12s', '&:hover': { bgcolor: 'rgba(32,178,170,.08)' },
-                '&:active': { transform: 'scale(.99)' },
               }}>
-              {/* RANK badge (1º, 2º, 3º...) */}
-              <Box sx={{ width: 28, height: 28, borderRadius: '8px', display: 'grid', placeItems: 'center', flexShrink: 0,
-                bgcolor: i === 0 ? 'primary.main' : 'action.hover', color: i === 0 ? '#fff' : 'text.secondary',
-                fontWeight: 800, fontSize: 13, fontVariantNumeric: 'tabular-nums' }}>
-                {i + 1}
-              </Box>
-              {/* FOTO do produto */}
               {o.imageUrl ? (
                 <Box component="img" src={o.imageUrl} alt={o.productName} loading="lazy"
-                  sx={{ width: 52, height: 52, borderRadius: '12px', objectFit: 'contain', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', flexShrink: 0 }} />
+                  sx={{ width: 52, height: 52, borderRadius: '12px', objectFit: 'contain', bgcolor: 'background.paper', flexShrink: 0 }} />
               ) : (
                 <MedAvatar name={o.productName} size={52} />
               )}
-              {/* INFO: nome + farmácia */}
               <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Typography sx={{ fontWeight: 700, fontSize: 14, lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{o.productName}</Typography>
-                <Typography variant="caption" sx={{ color: 'text.secondary' }}>{o.pharmacy}</Typography>
-                {/* barra de comparação visual */}
-                {offers0Price > 0 && (
-                  <Box sx={{ mt: 0.5, height: 4, borderRadius: '2px', bgcolor: 'divider', width: '100%', overflow: 'hidden' }}>
-                    <Box sx={{ height: '100%', borderRadius: '2px', bgcolor: 'primary.main', width: `${Math.max(15, 100 - ((o.priceCents - offers0Price) / offers0Price) * 100)}%` }} />
-                  </Box>
-                )}
-              </Box>
-              {/* PREÇO + botão */}
-              <Stack alignItems="flex-end" spacing={0.5} sx={{ flexShrink: 0 }}>
-                <Typography sx={{ fontWeight: 800, fontSize: 16, fontVariantNumeric: 'tabular-nums', color: i === 0 ? 'primary.dark' : 'text.primary' }}>
-                  {fmtBRL(o.priceCents)}
+                <Typography sx={{ fontWeight: 700, fontSize: 14, lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {o.productName}
                 </Typography>
-                <Chip label="Ver oferta" size="small" sx={{ height: 24, fontSize: 11, fontWeight: 700, bgcolor: 'primary.main', color: '#fff', '&:hover': { bgcolor: 'primary.dark' } }} />
-              </Stack>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>{o.pharmacy}</Typography>
+              </Box>
+              <PriceBig cents={o.priceCents} size={18} color={i === 0 ? 'primary.dark' : 'text.primary'} />
             </Stack>
           ))}
         </DialogContent>
