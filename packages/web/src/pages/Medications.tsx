@@ -305,9 +305,11 @@ export const MedicationsPage = () => {
                       <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.75, cursor: 'pointer' }}
                         onClick={(e) => { e.stopPropagation(); void openPrices(m); }}>
                         <PriceBig cents={m.priceSummary.lowestPriceCents} size={20} color="primary.dark" />
-                        <Typography variant="caption" sx={{ color: 'primary.main', textDecoration: 'underline', fontWeight: 700, ml: 0.5 }}>
-                          {m.priceSummary.offersCount ?? 1} oferta{(m.priceSummary.offersCount ?? 1) > 1 ? 's' : ''}
-                        </Typography>
+                        {(m.priceSummary.offersCount ?? 0) > 0 && (
+                          <Typography variant="caption" sx={{ color: 'primary.main', textDecoration: 'underline', fontWeight: 700, ml: 0.5 }}>
+                            {m.priceSummary.offersCount} oferta{m.priceSummary.offersCount > 1 ? 's' : ''}
+                          </Typography>
+                        )}
                       </Stack>
                     ) : (m.priceStatus === 'queued' || m.priceStatus === 'searching') ? (
                       <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: 'text.disabled', whiteSpace: 'nowrap' }}>⏳ Buscando…</Typography>

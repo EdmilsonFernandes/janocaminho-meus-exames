@@ -9,7 +9,7 @@ import { buildNormalizedMedication, isKeyComplete } from './normalize';
 import { ProviderRegistry, priceProvidersEnabled, type MedicationPriceProvider, type PriceOffer } from './provider';
 
 const TTL_MS = 6 * 60 * 60 * 1000; // 6h: preço de farmácia muda no dia, não no minuto
-const BATCH = 8;
+const BATCH = 3; // batch pequeno: VTEX rate-limita se martelamos com 8 de uma vez
 
 export type WorkerOutcome = 'available' | 'no_results' | 'insufficient_data' | 'provider_error' | 'cached';
 
