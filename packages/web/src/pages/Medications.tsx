@@ -115,13 +115,13 @@ export const MedicationsPage = () => {
 
   useEffect(() => { void load(); }, [load]);
 
-  // AUTO-REFRESH: SÓ 1× após 8s (não a cada 4s queimando filme — o preço do catálogo
-  // já é instantâneo; o worker só é preciso pra quem NÃO está no catálogo)
+  // AUTO-REFRESH: worker agora roda a cada 30s → refresh em 4s e depois 30s (2 tentativas)
   useEffect(() => {
     const pending = (meds ?? []).some((m) => m.active && (m.priceStatus === 'queued' || m.priceStatus === 'searching'));
     if (!pending) return;
-    const t = setTimeout(() => { void load(true); }, 8000);
-    return () => clearTimeout(t);
+    const t1 = setTimeout(() => { void load(true); }, 4000);
+    const t2 = setTimeout(() => { void load(true); }, 32000); // se o worker demorar (30s cron)
+    return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [meds, load]);
 
   // BUSCA no catálogo + VTEX (debounce 350ms)
@@ -400,19 +400,55 @@ export const MedicationsPage = () => {
         </DialogActions>
       </Dialog>
 
-      {/* ============ DIALOG ESCANEAR ============ */}
-      <Dialog open={scanOpen} onClose={() => setScanOpen(false)} fullWidth maxWidth="xs" PaperProps={{ sx: { borderRadius: '16px' } }}>
-        <DialogTitle sx={{ fontWeight: 800 }}>Remédios identificados 📷</DialogTitle>
-        <DialogContent>
-          {scanLoading && <Typography sx={{ color: 'text.secondary', py: 2 }}>Lendo a foto com o Dr. Exame…</Typography>}
+      {/* ============ DIALOG ESCANEAR — com progresso visual premium ============ */}
+      <Dialog open={scanOpen} onClose={() => scanLoading ? null : setScanOpen(false)} fullWidth maxWidth="xs" PaperProps={{ sx: { borderRadius: '20px', overflow: 'hidden' } }}>
+        <Box sx={{ background: 'linear-gradient(135deg, rgba(32,178,170,.06), rgba(32,178,170,.02))', p: 2.5, borderBottom: '1px solid', borderColor: 'divider' }}>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Box sx={{ width: 56, height: 56, borderRadius: '16px', bgcolor: 'primary.main', display: 'grid', placeItems: 'center', boxShadow: '0 4px 16px rgba(32,178,170,.3)' }}>
+              {scanLoading ? <CircularProgress size={28} sx={{ color: '#fff' }} /> : <PhotoCameraIcon sx={{ color: '#fff', fontSize: 28 }} />}
+            </Box>
+            <Box>
+              <Typography sx={{ fontWeight: 800, fontSize: 18, fontFamily: 'Poppins, sans-serif' }}>
+                {scanLoading ? 'Lendo sua receita…' : 'Remédios identificados'}
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                {scanLoading ? 'O Dr. Exame está extraindo os nomes' : `${suggestions.filter(s => s.on).length} selecionado(s)`}
+              </Typography>
+            </Box>
+          </Stack>
+          {scanLoading && (
+            <Box sx={{ mt: 2 }}>
+              <Box sx={{ height: 4, borderRadius: '2px', bgcolor: 'rgba(32,178,170,.15)', overflow: 'hidden' }}>
+                <Box sx={{ height: '100%', borderRadius: '2px', bgcolor: 'primary.main', animation: 'scanProgress 1.5s ease-in-out infinite', '@keyframes scanProgress': { '0%': { width: '10%', ml: '0%' }, '50%': { width: '60%', ml: '20%' }, '100%': { width: '10%', ml: '90%' } } }} />
+              </Box>
+              <Stack spacing={0.5} sx={{ mt: 1.5 }}>
+                {['📸 Analisando a foto', '🔍 Reconhecendo o texto', '💊 Identificando remédios'].map((step, i) => (
+                  <Stack key={i} direction="row" spacing={1} alignItems="center">
+                    <Box sx={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid', borderColor: i === 0 ? 'primary.main' : 'divider', borderTopColor: i === 0 ? 'transparent' : 'divider', animation: i === 0 ? 'spin 1s linear infinite' : 'none', '@keyframes spin': { from: { transform: 'rotate(0deg)' }, to: { transform: 'rotate(360deg)' } } }} />
+                    <Typography variant="caption" sx={{ color: i === 0 ? 'text.primary' : 'text.disabled' }}>{step}</Typography>
+                  </Stack>
+                ))}
+              </Stack>
+            </Box>
+          )}
+        </Box>
+        <DialogContent sx={{ p: 0 }}>
           {!scanLoading && suggestions.length > 0 && (
-            <Stack spacing={0.5}>
-              <Typography variant="caption" sx={{ color: 'text.secondary', mb: 1 }}>Confirme os que você usa:</Typography>
+            <Stack spacing={0.5} sx={{ p: 1 }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary', px: 1, py: 0.5 }}>Confirme os que você usa:</Typography>
               {suggestions.map((s, i) => (
-                <Stack key={i} direction="row" spacing={1} alignItems="center" component="label" sx={{ p: 1, borderRadius: '10px', bgcolor: 'action.hover', cursor: 'pointer' }}>
-                  <Checkbox checked={s.on} onChange={() => setSuggestions((a) => a.map((x, j) => (j === i ? { ...x, on: !x.on } : x)))} size="small" />
+                <Stack key={i} direction="row" spacing={1.5} alignItems="center" component="label"
+                  sx={{
+                    p: 1.5, borderRadius: '12px', cursor: 'pointer',
+                    bgcolor: s.on ? 'rgba(32,178,170,.06)' : 'transparent',
+                    border: '1px solid', borderColor: s.on ? 'rgba(32,178,170,.2)' : 'divider',
+                    transition: 'all .12s', '&:hover': { bgcolor: 'rgba(32,178,170,.08)' },
+                    animation: `medCardIn .3s ease ${i * 0.08}s both`,
+                    '@keyframes medCardIn': { from: { opacity: 0, transform: 'translateX(-8px)' }, to: { opacity: 1, transform: 'translateX(0)' } },
+                  }}>
+                  <Checkbox checked={s.on} onChange={() => setSuggestions((a) => a.map((x, j) => (j === i ? { ...x, on: !x.on } : x)))} size="small" sx={{ color: 'primary.main' }} />
                   <Box sx={{ flex: 1 }}>
-                    <Typography sx={{ fontWeight: 700, fontSize: 14 }}>{s.name}</Typography>
+                    <Typography sx={{ fontWeight: 700, fontSize: 15 }}>{s.name}</Typography>
                     {!!s.dosage && <Typography variant="caption" sx={{ color: 'text.secondary' }}>{s.dosage}</Typography>}
                   </Box>
                 </Stack>
@@ -420,10 +456,12 @@ export const MedicationsPage = () => {
             </Stack>
           )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setScanOpen(false)} sx={{ textTransform: 'none' }}>Cancelar</Button>
+        <DialogActions sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+          <Button onClick={() => setScanOpen(false)} disabled={scanLoading} sx={{ textTransform: 'none' }}>Cancelar</Button>
           <Button variant="contained" disabled={scanLoading || !suggestions.some((s) => s.on)} onClick={() => void saveScan()}
-            sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>Salvar</Button>
+            sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, px: 3 }}>
+            Salvar {suggestions.filter(s => s.on).length > 0 && `(${suggestions.filter(s => s.on).length})`}
+          </Button>
         </DialogActions>
       </Dialog>
 

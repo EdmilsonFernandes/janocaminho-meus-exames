@@ -106,6 +106,6 @@ export async function runPriceWorkerTick(provider: MedicationPriceProvider | nul
 
 export function startPriceWorkerJob(): void {
   const tick = () => { void runPriceWorkerTick().catch((e) => console.warn('[pricing] tick:', (e as Error).message)); };
-  setTimeout(tick, 30_000); // 1º tick 30s após o boot (deixa o app subir primeiro)
-  setInterval(tick, 5 * 60 * 1000);
+  setTimeout(tick, 10_000); // 1º tick 10s após o boot (deixa o app subir primeiro)
+  setInterval(tick, 30 * 1000); // 30s: usuário cadastra → preço chega em <30s (não 5min)
 }
