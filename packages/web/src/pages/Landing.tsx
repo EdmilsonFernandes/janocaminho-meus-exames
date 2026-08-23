@@ -37,6 +37,7 @@ import ScienceIcon from '@mui/icons-material/Science';
 import { ExamDemo } from '../components/ExamDemo';
 import { FaqSection } from '../components/FaqSection';
 import { fetchPublicConfig } from '../config';
+import { usePlanInfo, fmtBRL } from '../utils/planInfo';
 import { BmiCalculator, BmiCard } from '../components/BmiCalculator';
 import { Reveal } from '../components/Reveal';
 
@@ -83,11 +84,25 @@ const catOf = (t: string): string => {
 // 6 benefícios em destaque por padrão (1 por pilar) — o resto fica sob "Ver todos os 15".
 const DEFAULT_BENEFITS = new Set(['IA que lê seus exames', 'Leitura de risco', 'Plano de ação do Dr. Exame', 'Índices que o laudo não dá', 'Portal do seu médico', 'Dados protegidos + Libras']);
 
-const planData = (credits: number) => [
-  { name: 'Grátis', price: 'R$ 0', period: '', features: [`${credits} créditos pra testar`, '1º resumo de IA grátis', 'Envie exames (PDF/foto)', 'Valores + referência + dependentes', 'Score de Saúde'], highlight: false, cta: 'Começar grátis' },
-  { name: 'Mensal', price: 'R$ 19,90', period: '/mês', features: ['250 créditos de IA/mês', 'Exames + dependentes', 'Comparativo + Tendências', 'Relatório completo + PDF', 'Chat com o Dr. Exame'], highlight: true, cta: 'Assinar mensal' },
-  { name: 'Créditos', price: 'a partir de R$ 9,90', period: 'avulso', features: ['PIX, cartão ou débito', 'Pacotes flexíveis', 'Cada análise consome créditos', 'Sem mensalidade', 'Use quando precisar'], highlight: false, cta: 'Ver pacotes' },
-];
+// Planos da LANDING — preço/créditos/perks vêm da API (admin edita live; honesto por padrão:
+// o free é COMPLETO por uso; o mensal vende economia + perks, não "trancas").
+const planData = (credits: number, info: ReturnType<typeof usePlanInfo> = null) => {
+  const p = info?.plan;
+  const perks = info?.premiumPerks;
+  const minPack = info?.packs?.length ? Math.min(...info.packs.map((x) => x.price)) : 9.9;
+  return [
+    { name: 'Grátis', price: 'R$ 0', period: '', features: [`${credits} créditos pra testar tudo`, '1º resumo de IA grátis', 'Envie exames (PDF/foto)', 'Valores, tendências e dependentes', 'Score de Saúde'], highlight: false, cta: 'Começar grátis' },
+    { name: 'Mensal', price: p ? (p.founder && p.price !== p.effectivePrice ? fmtBRL(p.effectivePrice) : fmtBRL(p.price)) : 'R$ —', period: '/mês',
+      features: [
+        `${p?.monthlyCredits ?? 250} créditos de IA/mês (melhor custo)`,
+        '📄 Relatórios completos incluídos',
+        '📅 Histórico de anos anteriores',
+        `👨‍👩‍👧 Família até ${perks?.familyLimit ?? 10} perfis`,
+        '📤 Envios de exame sem custo',
+      ], highlight: true, cta: p?.founder ? 'Garantir vaga de fundador' : 'Assinar mensal' },
+    { name: 'Créditos', price: `a partir de ${fmtBRL(minPack ?? 9.9)}`, period: 'avulso', features: ['PIX, cartão ou débito', 'Pacotes flexíveis', 'Cada análise consome créditos', 'Sem mensalidade', 'Use quando precisar'], highlight: false, cta: 'Ver pacotes' },
+  ];
+};
 
 // Carrossel "Veja na prática" — 15 slides da apresentação (Meus_Exames_AI_Platform) em WebP
 // (~0,5 MB total — 60× mais leve que o vídeo de 37 MB). Cross-fade suave, auto-rotação,
@@ -162,6 +177,8 @@ export const LandingPage = () => {
   const [credits, setCredits] = useState(45);
   const [refBonus, setRefBonus] = useState(10);
   useEffect(() => { fetchPublicConfig().then((c) => { setCredits(c.freeSignup); setRefBonus(c.referralBonus); }); }, []);
+  // Preço do plano/packs da API pública (admin edita live — landing nunca mais mente sobre preço).
+  const planInfo = usePlanInfo();
 
   const goTo = (id: string) => {
     const el = document.getElementById(id);
@@ -894,7 +911,7 @@ export const LandingPage = () => {
           <Typography align="center" variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>Planos <Box component="span" sx={{ ...SERIF_I, color: TEAL_DARK }}>simples e justos</Box></Typography>
           <Typography align="center" sx={{ color: 'text.secondary', mb: 6, fontSize: 17 }}>Comece grátis. Assine quando precisar — ou pague só pelo que usar.</Typography>
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr' }, gap: 3, alignItems: 'center' }}>
-            {planData(credits).map((p) => (
+            {planData(credits, planInfo).map((p) => (
               <Box key={p.name} sx={{
                 p: 3, borderRadius: '12px', bgcolor: 'background.paper',
                 border: p.highlight ? `2px solid ${TEAL}` : '1px solid',

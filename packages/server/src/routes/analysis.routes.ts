@@ -6,7 +6,8 @@ import { requireAuth, requirePlan, AuthedRequest, userPatientIds } from '../midd
 import { generateHealthSummary, generateConsolidatedSummary, loadExamContext } from '../analysis/health-summary';
 import { streamChat } from '../analysis/chat';
 import { parseListParams, setListHeaders } from '../utils/list';
-import { chargeCredits, refundCredits, logCredit, CREDIT_COSTS } from '../utils/credits';
+import { chargeCredits, refundCredits, logCredit, CREDIT_COSTS, isPremium } from '../utils/credits';
+import { getPremiumPerks } from '../utils/settings';
 import { hashSharePin } from '../utils/crypto';
 import { dedupSourceExams } from '../utils/dedup-source-exams';
 
@@ -112,8 +113,11 @@ router.post('/consolidated', async (req: AuthedRequest, res, next) => {
       orderBy: { createdAt: 'desc' },
     });
     if (recent && !req.body?.force) { res.json({ ...recent, sourceExams }); return; }
+    // PERK PREMIUM (settings): relatório consolidado INCLUÍDO no plano — sem débito. Free paga
+    // créditos normalmente (nada é travado; perk liga/desliga no admin sem estado órfão).
+    const premiumIncluded = getPremiumPerks().consolidatedFree && (await isPremium(req.userId!));
     // DÉBITO ATÔMICO ANTES da IA (anti-race).
-    const charged = await chargeCredits(req.userId!, CREDIT_COSTS.consolidated, 'ai_consolidated', 'Relatório consolidado');
+    const charged = premiumIncluded || await chargeCredits(req.userId!, CREDIT_COSTS.consolidated, 'ai_consolidated', 'Relatório consolidado');
     if (!charged) {
       res.status(402).json({ error: 'insufficient_credits', message: 'Sem créditos suficientes. Compre um pacote para gerar o relatório completo.' });
       return;
@@ -127,8 +131,8 @@ router.post('/consolidated', async (req: AuthedRequest, res, next) => {
         : await prisma.aiAnalysis.create({ data: { patientId, examId: null, type: 'SUMMARY', contentMd, structured: summary as any, modelUsed, tokenUsage: usage as any } });
       res.status(201).json({ ...analysis, sourceExams });
     } catch (genErr: any) {
-      // IA falhou após o débito → reembolsa. (Depois tenta devolver o último relatório salvo.)
-      await refundCredits(req.userId!, CREDIT_COSTS.consolidated, 'ai_consolidated_refund', 'Reembolso: falha na IA (consolidado)');
+      // IA falhou após o débito → reembolsa (premium não foi debitado — não reembolsa).
+      if (!premiumIncluded) await refundCredits(req.userId!, CREDIT_COSTS.consolidated, 'ai_consolidated_refund', 'Reembolso: falha na IA (consolidado)');
       // RAG: se a (re)geração falhou, devolve o ÚLTIMO relatório salvo em vez de erro
       const last = await prisma.aiAnalysis.findFirst({ where: { patientId, type: 'SUMMARY', examId: null, userMessage: null }, orderBy: { createdAt: 'desc' } });
       if (last) {

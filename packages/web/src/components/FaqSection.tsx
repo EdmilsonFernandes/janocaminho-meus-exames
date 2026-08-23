@@ -29,7 +29,7 @@ const FAQ = [
   },
   {
     q: 'Preciso pagar para testar?',
-    a: 'Não. Envie seu primeiro exame (PDF ou foto) e ganhe 45 créditos grátis, sem cartão. Use pra conversar com a IA, gerar relatórios e perguntar ao médico. Só assina (R$ 19,90/mês) ou compra créditos avulsos se precisar de mais.',
+    a: `Não. Envie seu primeiro exame (PDF ou foto) e ganhe créditos grátis, sem cartão. Use pra conversar com a IA, gerar relatórios e perguntar ao médico. Só assina ou compra créditos avulsos se precisar de mais.`,
   },
   {
     q: 'Isso é um diagnóstico?',

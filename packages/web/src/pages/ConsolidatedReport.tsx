@@ -12,6 +12,7 @@ import LiveHelpIcon from '@mui/icons-material/LiveHelp';
 import InsightsIcon from '@mui/icons-material/Insights';
 import { CorrelationSection } from '../components/report/CorrelationSection';
 import { API_URL, apiHeaders, token, doctorPhotoUrl } from '../config';
+import { usePlanInfo, fmtBRL } from '../utils/planInfo';
 import { hapticSuccess, hapticError } from '../utils/haptic';
 import { bumpCredits } from '../utils/credits-events';
 import { speakText, stopSpeakText } from '../utils/nativeDoc';
@@ -110,6 +111,7 @@ const ReportPreviewCard = ({
 
 export const ConsolidatedReportPage = () => {
   const navigate = useNavigate();
+  const planInfo = usePlanInfo();
   const translate = useTranslate();
   const [pid] = useSelectedPatient();
   const [loading, setLoading] = useState(false);
@@ -410,7 +412,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
           <Typography sx={{ fontWeight: 800, mt: 1 }}>Seus créditos acabaram</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 2, maxWidth: 420, mx: 'auto' }}>Recarregue créditos avulsos ou assine o mensal pra gerar relatórios completos e usar a IA sem travar.</Typography>
           <Stack direction="row" spacing={1.5} justifyContent="center" flexWrap="wrap" useFlexGap>
-            <Button variant="contained" onClick={() => navigate('/planos')} sx={{ bgcolor: '#6366f1', textTransform: 'none', fontWeight: 700, borderRadius: '999px', '&:hover': { bgcolor: '#4f46e5' } }}>Assinar R$19,90/mês</Button>
+            <Button variant="contained" onClick={() => navigate('/planos')} sx={{ bgcolor: '#6366f1', textTransform: 'none', fontWeight: 700, borderRadius: '999px', '&:hover': { bgcolor: '#4f46e5' } }}>Assinar {planInfo?.plan ? fmtBRL(planInfo.plan.effectivePrice) : 'plano mensal'}/mês</Button>
             <Button variant="outlined" onClick={() => navigate('/planos')} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '999px' }}>Comprar créditos</Button>
           </Stack>
         </Box>

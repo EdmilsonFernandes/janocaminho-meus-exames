@@ -9,6 +9,25 @@ export const DEFAULT_SETTINGS = {
   creditCosts: { extraction: 0, summary: 10, consolidated: 20, chat: 2 },
   uploadRules: { freeCost: 1, premiumFreeQuota: 6, premiumCost: 5 },
   grants: { freeSignup: 60, monthly: 250, freeExamLimit: 2 },
+  // ===== Estratégia de pricing (2026-08-23) — tudo editável no Admin, sem deploy =====
+  // Preço do plano mensal (era hardcode em 7 lugares). Os créditos do mensal continuam em
+  // grants.monthly (fonte única). periodDays/label aqui só p/ a API expor.
+  plans: { monthly: { price: 19.9, periodDays: 30, label: 'Mensal' } },
+  // Pacotes de créditos avulsos (mesma moeda/saldo — mudar NÃO invalida créditos já comprados).
+  creditPacks: [
+    { id: 'p50', credits: 50, price: 9.9, label: 'Início', popular: false },
+    { id: 'p140', credits: 140, price: 24.9, label: 'Popular', popular: true },
+    { id: 'p320', credits: 320, price: 49.9, label: 'Bônus', popular: false },
+  ],
+  // Perks premium (além dos créditos mensais): relatório consolidado sem débito e limite
+  // familiar maior. Upload grátis usa o knob já existente uploadRules.premiumFreeQuota
+  // (subir p/ 999 no admin = "ilimitado"). Leitura por uso — desligar volta a cobrar, sem
+  // estado órfão.
+  premium: { consolidatedFree: 1, familyLimit: 10 },
+  // Promo "Plano Fundador": preço alternativo p/ os primeiros N assinantes. Default DESLIGADO
+  // (validação 2026-08-23: zero assinantes mensais reais — nada a preservar). `used` é
+  // incrementado pelo webhook a cada aprovação no preço fundador (condicional ao limite).
+  founder: { enabled: 0, price: 19.9, limit: 100, used: 0 },
   // "Primeiro grátis" (1 = ligado, 0 = desligado; admin edita live como os demais knobs).
   // Pesquisa ago/2026: a 1ª interpretação virou commodity (35% dos BR colam no ChatGPT) —
   // o freemium ganha se a primeira leitura ser sempre grátis.
@@ -49,7 +68,8 @@ export async function loadSettings(): Promise<void> {
     const rows = await prisma.appSetting.findMany();
     const next = clone(DEFAULT_SETTINGS);
     for (const r of rows) {
-      if (r.key === 'badges') (next as any)[r.key] = r.value; // array: substitui inteiro
+      // arrays (badges, creditPacks): substitui INTEIRO (merge de array criaria Frankenstein)
+      if (r.key === 'badges' || r.key === 'creditPacks') (next as any)[r.key] = r.value;
       else if (r.key in next) Object.assign((next as any)[r.key], r.value as object);
     }
     cache = next;
@@ -60,10 +80,14 @@ export async function loadSettings(): Promise<void> {
 }
 
 /** Grava uma categoria no banco (upsert) + atualiza cache + objetos vivos.
- *  badges = array (substitui inteiro). Demais = merge. */
-export async function saveSettings(category: SettingCategory, patch: Record<string, number> | any[]): Promise<AnySettings> {
-  if (category === 'badges' && Array.isArray(patch)) {
+ *  badges/creditPacks = array (substitui inteiro). Demais = merge raso.
+ *  `replaceObject: true` substitui a categoria inteira (usado p/ plans/premium/founder no admin,
+ *  que manda o objeto pronto em vez de patch — evita chaves fantasmas de edições antigas). */
+export async function saveSettings(category: SettingCategory, patch: Record<string, number> | any[], replaceObject = false): Promise<AnySettings> {
+  if (Array.isArray(patch)) {
     (cache as any)[category] = patch;
+  } else if (replaceObject) {
+    (cache as any)[category] = { ...patch };
   } else {
     (cache as any)[category] = { ...(cache as any)[category], ...patch };
   }
@@ -75,4 +99,43 @@ export async function saveSettings(category: SettingCategory, patch: Record<stri
   });
   applyToLive(cache);
   return cache;
+}
+
+// ───────────────── helpers da estratégia de pricing (fallbacks defensivos) ─────────────────
+
+/** Preço/ciclo do plano mensal (settings; nunca mais hardcode nas rotas). */
+export function getMonthlyPlan(): { price: number; periodDays: number; label: string } {
+  const m = (getSettings() as any).plans?.monthly;
+  const price = Number(m?.price);
+  return {
+    price: Number.isFinite(price) && price > 0 ? price : 19.9,
+    periodDays: Number(m?.periodDays) > 0 ? Number(m?.periodDays) : 30,
+    label: String(m?.label || 'Mensal'),
+  };
+}
+
+/** Preço EFETIVO no checkout: fundador ligado e com vagas → preço fundador; senão, cheio. */
+export function getEffectivePlanPrice(): { price: number; founder: boolean } {
+  const full = getMonthlyPlan().price;
+  const f = (getSettings() as any).founder;
+  if (Number(f?.enabled) === 1 && Number(f?.used) < Number(f?.limit) && Number(f?.price) > 0 && Number(f?.price) < full) {
+    return { price: Number(f.price), founder: true };
+  }
+  return { price: full, founder: false };
+}
+
+/** Pacotes avulsos (fallback pros defaults se o banco tiver algo inválido). */
+export function getCreditPacks(): { id: string; credits: number; price: number; label: string; popular: boolean }[] {
+  const packs = (getSettings() as any).creditPacks;
+  if (Array.isArray(packs) && packs.length && packs.every((p: any) => p && p.id && Number(p.credits) > 0 && Number(p.price) > 0)) return packs;
+  return DEFAULT_SETTINGS.creditPacks;
+}
+
+/** Perks premium (1 = ligado). */
+export function getPremiumPerks(): { consolidatedFree: boolean; familyLimit: number } {
+  const p = (getSettings() as any).premium ?? {};
+  return {
+    consolidatedFree: Number(p.consolidatedFree) === 1,
+    familyLimit: Number(p.familyLimit) > 0 ? Number(p.familyLimit) : 10,
+  };
 }

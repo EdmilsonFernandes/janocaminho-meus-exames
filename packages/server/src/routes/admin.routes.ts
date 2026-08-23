@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest } from '../middleware/auth';
-import { getSettings, saveSettings, type SettingCategory } from '../utils/settings';
+import { getSettings, saveSettings, getMonthlyPlan, type SettingCategory } from '../utils/settings';
 import { deleteExamFile, saveExamFile, resolveExamFile, saveLabLogo } from '../utils/storage';
 import { invalidateLabsCache, slugify } from './labs.routes';
 import { listBlockedDomains, addBlockedDomain, removeBlockedDomain, syncBlockedDomains } from '../utils/blockedDomains';
@@ -203,29 +203,58 @@ router.get('/payments', async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
-// CONFIG — leitura (tudo do banco: creditCosts/uploadRules/grants/shares)
+// CONFIG — leitura (tudo do banco: creditCosts/uploadRules/grants/shares/plans/creditPacks/premium/founder)
 router.get('/config', (_req, res) => {
   const s = getSettings();
-  res.json({ ...s, plans: { monthly: { price: 19.90, credits: s.grants.monthly } } });
+  res.json({ ...s, plans: { monthly: { ...getMonthlyPlan(), credits: s.grants.monthly } } });
 });
 
-// CONFIG — atualizar (PERSISTE no banco via saveSettings). body: { category, ...valores }
-// category ∈ creditCosts | uploadRules | grants | shares
+// CONFIG — atualizar (PERSISTE no banco via saveSettings). Dois formatos:
+//  1) numérico flat (legado): { category: 'creditCosts', chat: 2, ... }
+//  2) objeto/array (novas categorias): { category: 'plans', value: {...} } — substitui a categoria
+// Validações server-side: preço > 0; packs com id/créditos/preço > 0; founder.price ≤ plano.
+const NUMERIC_CATEGORIES = ['creditCosts', 'uploadRules', 'grants', 'shares'];
+const OBJECT_CATEGORIES = ['plans', 'premium', 'founder', 'creditPacks', 'badges'];
 router.patch('/config/costs', async (req, res, next) => {
   try {
     const category = String(req.body?.category);
-    const patch: Record<string, number> = {};
-    for (const [k, v] of Object.entries(req.body ?? {})) {
-      if (k === 'category') continue;
-      const n = Number(v);
-      if (!isNaN(n)) patch[k] = n;
+    if (NUMERIC_CATEGORIES.includes(category)) {
+      const patch: Record<string, number> = {};
+      for (const [k, v] of Object.entries(req.body ?? {})) {
+        if (k === 'category') continue;
+        const n = Number(v);
+        if (!isNaN(n)) patch[k] = n;
+      }
+      if (Object.keys(patch).length === 0) { res.status(400).json({ error: 'Nenhum valor numérico válido enviado.' }); return; }
+      const s = await saveSettings(category as SettingCategory, patch);
+      console.log('[admin] config atualizada (persistida no banco):', category, patch);
+      res.json({ ...s, plans: { monthly: { ...getMonthlyPlan(), credits: s.grants.monthly } } });
+      return;
     }
-    if (!['creditCosts', 'uploadRules', 'grants', 'shares'].includes(category) || Object.keys(patch).length === 0) {
-      res.status(400).json({ error: 'Envie { category, ...valores }. category ∈ creditCosts|uploadRules|grants|shares.' }); return;
+    if (OBJECT_CATEGORIES.includes(category)) {
+      const value = req.body?.value;
+      if (category === 'plans') {
+        const price = Number(value?.monthly?.price);
+        if (!Number.isFinite(price) || price <= 0) { res.status(400).json({ error: 'Preço mensal inválido (deve ser > 0).' }); return; }
+      }
+      if (category === 'creditPacks') {
+        if (!Array.isArray(value) || !value.length || !value.every((p: any) => p?.id && Number(p.credits) > 0 && Number(p.price) > 0)) {
+          res.status(400).json({ error: 'Pacotes inválidos: cada um precisa de id, créditos > 0 e preço > 0.' }); return;
+        }
+      }
+      if (category === 'founder') {
+        const price = Number(value?.price);
+        if (Number(value?.enabled) === 1 && (!Number.isFinite(price) || price <= 0 || price >= getMonthlyPlan().price)) {
+          res.status(400).json({ error: `Preço fundador inválido: deve ser > 0 e MENOR que o preço cheio (R$ ${getMonthlyPlan().price.toFixed(2).replace('.', ',')}).` }); return;
+        }
+        if (Number(value?.limit) < Number(value?.used ?? 0)) { res.status(400).json({ error: 'Limite fundador menor que as vagas já usadas.' }); return; }
+      }
+      const s = await saveSettings(category as SettingCategory, value, true);
+      console.log('[admin] config atualizada (persistida no banco):', category, JSON.stringify(value));
+      res.json({ ...s, plans: { monthly: { ...getMonthlyPlan(), credits: s.grants.monthly } } });
+      return;
     }
-    const s = await saveSettings(category as SettingCategory, patch);
-    console.log('[admin] config atualizada (persistida no banco):', category, patch);
-    res.json({ ...s, plans: { monthly: { price: 19.90, credits: s.grants.monthly } } });
+    res.status(400).json({ error: `category inválida. Numéricas: ${NUMERIC_CATEGORIES.join('|')}. Objeto: ${OBJECT_CATEGORIES.join('|')}.` });
   } catch (e) { next(e); }
 });
 
@@ -451,7 +480,7 @@ router.get('/metrics', async (_req, res, next) => {
       FROM subscriptions WHERE status = 'APPROVED' GROUP BY 1 ORDER BY 1 DESC LIMIT 12`;
     res.json({
       funnel: { signups, verified, freeActive, premiumActive, conversionPct: verified ? Math.round((premiumActive / verified) * 1000) / 10 : 0 },
-      revenue: { mrr: Math.round(premiumActive * 19.9 * 100) / 100, total: Math.round((agg._sum.amount ?? 0) * 100) / 100, monthlyPayments, creditPurchases },
+      revenue: { mrr: Math.round(premiumActive * getMonthlyPlan().price * 100) / 100, total: Math.round((agg._sum.amount ?? 0) * 100) / 100, monthlyPayments, creditPurchases },
       churn: { everPremium, stillActive, churned, renewals, retentionPct: everPremium ? Math.round((stillActive / everPremium) * 1000) / 10 : 0 },
       cohort: cohort.map((r) => ({ month: r.month, signups: Number(r.signups), converted: Number(r.converted) })).filter((r) => r.month),
       revenueByMonth: revenueByMonth.map((r) => ({ month: r.month, amount: Number(r.amount) })).filter((r) => r.month),

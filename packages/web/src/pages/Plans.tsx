@@ -9,6 +9,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { useNotify, useTranslate } from 'react-admin';
 import { useSearchParams } from 'react-router-dom';
 import { API_URL, token } from '../config';
+import { usePlanInfo, fmtBRL } from '../utils/planInfo';
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
 import { PixModal } from '../components/PixModal';
@@ -26,6 +27,9 @@ export const PlansPage = () => {
   const [params] = useSearchParams();
   const [status, setStatus] = useState<Status | null>(null);
   const [plans, setPlans] = useState<PlanInfo | null>(null);
+  // Preço/perks dinâmicos (admin edita live). planInfo nulo = API indisponível → fallback visual.
+  const planInfo = usePlanInfo();
+  const crLabel = String(planInfo?.plan?.monthlyCredits ?? 250);
   const [subLoading, setSubLoading] = useState(false);
   const [pixPack, setPixPack] = useState<string | null>(null);
   const [chooserPack, setChooserPack] = useState<string | null>(null);
@@ -244,7 +248,7 @@ export const PlansPage = () => {
           <CardContent>
             <Typography variant="h6" sx={{ fontWeight: 800, color: '#178f89' }}>💎 Premium e Créditos de IA</Typography>
             <Typography sx={{ mt: 1, fontSize: 15 }}>
-              O <strong>Plano Premium</strong> (R$ 19,90/mês) e os <strong>créditos</strong> para a IA são adquirados pelo nosso <strong>site</strong>, com PIX instantâneo.
+              O <strong>Plano Premium</strong> ({planInfo?.plan ? fmtBRL(planInfo.plan.effectivePrice) : 'R$ 19,90'}/mês) e os <strong>créditos</strong> para a IA são adquirados pelo nosso <strong>site</strong>, com PIX instantâneo.
             </Typography>
             <Typography sx={{ mt: 2, fontWeight: 700 }}>Acesse pelo navegador:</Typography>
             <Typography sx={{ fontFamily: 'monospace', fontSize: 16, bgcolor: 'background.paper', border: '1px solid #cfe9e5', p: 1, borderRadius: '8px', mt: 0.5, userSelect: 'all' }}>
@@ -307,23 +311,35 @@ export const PlansPage = () => {
 
       <Typography align="center" color="text.secondary" sx={{ my: 2, fontWeight: 600 }}>— ou assine —</Typography>
 
-      {/* PLANO MENSAL */}
+      {/* PLANO MENSAL — preço/perks da API (admin edita live; zero hardcode). */}
       <Card sx={{ borderRadius: '12px', background: 'rgba(32,178,170,0.06)', border: '2px solid #20b2aa' }}>
         <CardContent>
-          <Typography variant="h6" sx={{ fontWeight: 800, color: '#178f89' }}>💎 Premium Mensal</Typography>
+          <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between" flexWrap="wrap" useFlexGap>
+            <Typography variant="h6" sx={{ fontWeight: 800, color: '#178f89' }}>💎 Premium Mensal</Typography>
+            {planInfo?.plan?.founder && (
+              <Chip size="small" label={`🎯 Plano Fundador — restam ${planInfo.plan.founderRemaining} vagas`} sx={{ fontWeight: 800, bgcolor: 'rgba(212,165,116,.18)', color: '#8a5a1f' }} />
+            )}
+          </Stack>
           <Typography color="text.secondary" sx={{ fontSize: 14, mt: 0.5 }}>
-            250 créditos que <strong>somam</strong> ao seu saldo. Válido 30 dias. Seus créditos <strong>não expiram</strong> — você decide se renova.
+            {crLabel} créditos que <strong>somam</strong> ao seu saldo e <strong>não expiram</strong> — o plano vale 30 dias e você decide se renova. Sem fidelidade.
           </Typography>
           <Box component="ul" sx={{ pl: 2.5, mt: 1.5, mb: 2, lineHeight: 1.8, fontSize: 14 }}>
-            <li>250 créditos de IA por mês</li>
-            <li>Exames + dependentes</li>
-            <li>Relatório completo + impressão</li>
+            <li><strong>{crLabel} créditos de IA</strong> por mês (melhor custo por crédito)</li>
+            <li>📄 Relatórios completos <strong>incluídos</strong> — sem gastar créditos</li>
+            <li>📅 Histórico completo (exames de anos anteriores)</li>
+            <li>👨‍👩‍👧 Família até {planInfo?.premiumPerks?.familyLimit ?? 10} perfis</li>
+            <li>📤 Envios de exame sem custo</li>
           </Box>
           <Divider sx={{ mb: 2 }} />
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center" justifyContent="space-between" useFlexGap flexWrap="wrap">
             <Box>
-              <Typography variant="h4" sx={{ fontWeight: 800, color: '#178f89', lineHeight: 1 }}>R$ 19,90</Typography>
-              <Typography color="text.secondary" sx={{ fontSize: 13 }}>/mês · sem anual · sem fidelidade</Typography>
+              {planInfo?.plan?.founder && planInfo.plan.price !== planInfo.plan.effectivePrice && (
+                <Typography sx={{ color: 'text.disabled', textDecoration: 'line-through', fontSize: 16 }}>{fmtBRL(planInfo.plan.price)}</Typography>
+              )}
+              <Typography variant="h4" sx={{ fontWeight: 800, color: '#178f89', lineHeight: 1 }}>
+                {planInfo?.plan ? fmtBRL(planInfo.plan.effectivePrice) : 'R$ —'}
+              </Typography>
+              <Typography color="text.secondary" sx={{ fontSize: 13 }}>/mês · sem anual · sem fidelidade · PIX ou cartão</Typography>
             </Box>
             <Button variant="contained" size="large" disabled={!mpOn || subLoading || !!status?.active} onClick={subscribe} sx={{ minWidth: 160 }}>
               {status?.active ? '✓ Ativo' : subLoading ? 'Abrindo…' : 'Assinar mensal'}

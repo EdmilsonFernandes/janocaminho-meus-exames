@@ -4,24 +4,15 @@ import { prisma } from '../prisma';
 import { config, hasMercadoPago } from '../config';
 import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
 import { CREDIT_COSTS, UPLOAD_RULES } from '../utils/credits';
-import { getSettings } from '../utils/settings';
+import { getSettings, loadSettings, getMonthlyPlan, getEffectivePlanPrice, getCreditPacks, getPremiumPerks } from '../utils/settings';
 import { createSubscriptionCompat, findSubscriptionByIdCompat, getSubscriptionColumnSupport, updateSubscriptionCompat, updateSubscriptionCompatWithDb } from '../utils/subscriptionCompat';
 
 const router = Router();
 
-// Só MENSAL (sem anual — não compromete 12 meses no ar / evita processo).
-const PLANS = {
-  monthly: { id: 'monthly', label: 'Mensal', price: 19.9, periodDays: 30 },
-};
-
-// Pacotes de CRÉDITOS (a moeda da IA — pay-per-use). Proposta propositamente MENOS
-// atrativa que o mensal (250 créditos/R$19,90 + Premium) → empurra pra assinatura recorrente.
-const CREDIT_PACKS = [
-  { id: 'p50', credits: 50, price: 9.9, label: 'Início', popular: false },
-  { id: 'p140', credits: 140, price: 24.9, label: 'Popular', popular: true },
-  { id: 'p320', credits: 320, price: 49.9, label: 'Bônus', popular: false },
-];
-const packById = (id: string) => CREDIT_PACKS.find((p) => p.id === id);
+// Estratégia de pricing vive em app_settings (Admin edita live, sem deploy — auditoria
+// 2026-08-23 eliminou os 7 hardcodes de 19,90). Só MENSAL (sem anual: não compromete 12
+// meses no ar). Pack = mesma moeda/saldo; mudar pack NÃO invalida créditos já comprados.
+const packById = (id: string) => getCreditPacks().find((p) => p.id === id);
 
 /** notification_url só vale se for HTTPS público — localhost/HTTP faz o MP rejeitar
  *  ("notification_url attribute must be url valid"). Em dev (localhost) devolve undefined. */
@@ -31,14 +22,21 @@ const publicNotifyUrl = (): string | undefined => {
 };
 
 router.get('/plans', (_req, res) => {
+  const plan = getMonthlyPlan();
+  const eff = getEffectivePlanPrice();
+  const f = (getSettings() as any).founder;
   res.json({
-    plans: Object.values(PLANS),
-    creditPacks: CREDIT_PACKS,
+    plans: [{ id: 'monthly', ...plan, credits: getSettings().grants.monthly, effectivePrice: eff.price, founder: eff.founder }],
+    creditPacks: getCreditPacks(),
     freeExamLimit: config.freeExamLimit,
     mercadoPagoEnabled: hasMercadoPago(),
     creditCosts: CREDIT_COSTS, // pra o front sincronizar (admin pode ter mudado)
     uploadRules: UPLOAD_RULES, // regras de cobrança de upload (admin pode editar em runtime)
     shares: getSettings().shares, // custo por escopo ao compartilhar c/ médico (pré-visualização no app)
+    // Perks do plano (o que o premium libera além dos créditos) — landing/plans honestos.
+    premiumPerks: getPremiumPerks(),
+    // Fundador público (contagem p/ "restam X vagas"); se desligado, founder: false.
+    founder: eff.founder ? { price: Number(f.price), remaining: Number(f.limit) - Number(f.used) } : null,
   });
 });
 
@@ -79,17 +77,20 @@ router.get('/credits/history', requireAuth, async (req: AuthedRequest, res, next
   } catch (e) { next(e); }
 });
 
-// Checkout do PLANO MENSAL (Checkout Pro — redirect)
+// Checkout do PLANO MENSAL (Checkout Pro — redirect). Preço = settings (fundador, se ativo).
+// O valor cobrado fica GRAVADO no Subscription.amount — o webhook não depende do preço da vez.
 router.post('/checkout', requireAuth, async (req: AuthedRequest, res, next) => {
   try {
     if (!hasMercadoPago()) { res.status(503).json({ error: 'Pagamentos não configurados (MP_ACCESS_TOKEN).' }); return; }
-    const plan = PLANS.monthly; // só mensal
+    const plan = getMonthlyPlan();
+    const eff = getEffectivePlanPrice(); // fundador (promo) ou cheio
     const user = await prisma.user.findUnique({ where: { id: req.userId! } });
     if (!user) { res.status(404).json({ error: 'Usuário não encontrado' }); return; }
 
-    const sub = await createSubscriptionCompat({ userId: user.id, amount: plan.price, periodDays: plan.periodDays, status: 'PENDING' });
+    const sub = await createSubscriptionCompat({ userId: user.id, amount: eff.price, periodDays: plan.periodDays, status: 'PENDING' });
 
     const back = `${config.webOrigin}${config.webBasePath}/planos`;
+    const monthlyCredits = getSettings().grants.monthly;
     const prefResp = await fetch(`${config.mpApiBaseUrl}/checkout/preferences`, {
       method: 'POST',
       headers: {
@@ -98,7 +99,7 @@ router.post('/checkout', requireAuth, async (req: AuthedRequest, res, next) => {
         'X-Idempotency-Key': crypto.randomUUID(),
       },
       body: JSON.stringify({
-        items: [{ id: plan.id, title: `Dr. Exame Premium — Plano ${plan.label} (250 créditos IA)`, quantity: 1, unit_price: plan.price, currency_id: 'BRL' }],
+        items: [{ id: plan.label === 'Mensal' ? 'monthly' : 'monthly', title: `Dr. Exame Premium — Plano ${plan.label} (${monthlyCredits} créditos IA${eff.founder ? ' · Plano Fundador' : ''})`, quantity: 1, unit_price: eff.price, currency_id: 'BRL' }],
         payer: { email: user.email, name: user.name },
         back_urls: { success: `${back}?status=success`, failure: `${back}?status=failure`, pending: `${back}?status=pending` },
         auto_return: 'approved',
@@ -373,6 +374,21 @@ router.post('/webhook', async (req, res) => {
                 await tx.user.update({ where: { id: sub.userId }, data: { planExpiresAt: expires, credits: { increment: monthlyCredits } } });
                 await tx.creditTransaction.create({ data: { userId: sub.userId, delta: monthlyCredits, kind: 'plan_monthly', label: 'Plano Premium (mensal)', refId: sub.id } });
               });
+              // FUNDADOR: se essa cobrança foi no preço promocional, consome 1 vaga (condicional ao
+              // limite — 2 webhooks simultâneos na última vaga: no máximo 1 incrementa; aprovar a
+              // mais é aceitável e documentado). Créditos/vigência não dependem disso.
+              const st = getSettings();
+              const f = (st as any).founder;
+              if (Number(f?.enabled) === 1 && Number(f?.price) > 0 && Math.abs(Number(sub.amount) - Number(f.price)) < 0.001 && Number(f.used) < Number(f.limit)) {
+                const claimed = await prisma.appSetting.updateMany({
+                  where: { key: 'founder', value: { path: ['used'], lt: Number(f.limit) } },
+                  data: { value: { ...f, used: Number(f.used) + 1 } as any },
+                }).catch(() => ({ count: 0 }));
+                if (claimed.count > 0) {
+                  await loadSettings(); // sincroniza o cache em memória com o novo `used`
+                  console.log(`[billing] vaga de FUNDADOR consumida (${Number(f.used) + 1}/${f.limit}) — sub ${sub.id}`);
+                }
+              }
               console.log(`[billing] mensal aprovado — user ${sub.userId} +${monthlyCredits} créditos, ativo até ${expires.toISOString()}`);
             }
           }

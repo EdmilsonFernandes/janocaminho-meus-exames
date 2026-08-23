@@ -2,6 +2,8 @@ import { Router } from 'express';
 import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
 import { parseListParams, setListHeaders } from '../utils/list';
+import { isPremium } from '../utils/credits';
+import { getPremiumPerks } from '../utils/settings';
 import { upload } from '../middleware/upload';
 import fs from 'fs';
 import path from 'path';
@@ -42,22 +44,26 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     if (!cpfData) { res.status(400).json({ error: 'CPF inválido.' }); return; }
     const existingCpf = await prisma.patient.findUnique({ where: { cpfHash: cpfData.cpfHash }, select: { id: true } });
     if (existingCpf) { res.status(409).json({ error: 'CPF já cadastrado em outro paciente.' }); return; }
-    // LIMITE DE DEPENDENTES: titular + 3 grátis. Além disso, 50 créditos por extra.
+    // LIMITE DE DEPENDENTES: free = titular + 3 (extra custa 50 créditos). PREMIUM = limite
+    // maior (perk, settings) e sem cobrança até o limite — família grande é assinante ideal.
     const FREE_LIMIT = 4; // titular + 3
     const EXTRA_COST = 50;
+    const premiumActive = await isPremium(req.userId!);
+    const limit = premiumActive ? getPremiumPerks().familyLimit : FREE_LIMIT;
     const count = await prisma.patient.count({ where: { ownerId: req.userId! } });
-    if (count >= FREE_LIMIT) {
-      const user = await prisma.user.findUnique({ where: { id: req.userId! }, select: { credits: true, planExpiresAt: true } });
-      const active = !!user?.planExpiresAt && user.planExpiresAt > new Date();
-      if (!active && (!user || user.credits < EXTRA_COST)) {
+    if (count >= limit) {
+      if (premiumActive) {
+        res.status(402).json({ error: 'dependent_limit', message: `Seu plano permite até ${limit - 1} dependentes.` });
+        return;
+      }
+      const user = await prisma.user.findUnique({ where: { id: req.userId! }, select: { credits: true } });
+      if (!user || user.credits < EXTRA_COST) {
         res.status(402).json({ error: 'dependent_limit', message: `Você atingiu o limite de ${FREE_LIMIT - 1} dependentes grátis. Compre 50 créditos pra adicionar mais.` });
         return;
       }
-      // debita 50 créditos (ou passa se premium)
-      if (!active) {
-        await prisma.user.update({ where: { id: req.userId! }, data: { credits: { decrement: EXTRA_COST } } });
-        await logCredit(req.userId!, -EXTRA_COST, 'patient_extra', 'Dependente adicional');
-      }
+      // debita 50 créditos
+      await prisma.user.update({ where: { id: req.userId! }, data: { credits: { decrement: EXTRA_COST } } });
+      await logCredit(req.userId!, -EXTRA_COST, 'patient_extra', 'Dependente adicional');
     }
     const p = await prisma.patient.create({
       data: {
