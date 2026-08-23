@@ -17,16 +17,33 @@ async function ensureSnapshot(key: string, offers: PriceOffer[], providerName: s
   const now = new Date();
   const lowest = offers.length ? Math.min(...offers.map((o) => o.priceCents)) : null;
   const avg = offers.length ? Math.round(offers.reduce((s, o) => s + o.priceCents, 0) / offers.length) : null;
-  return prisma.medicationPriceSnapshot.upsert({
+
+  // UPSERT que SEMPRE substitui as ofertas (o update do prisma.upsert não toca
+  // em relações — sem isto, offers antigas/vazias ficavam pra sempre)
+  const existing = await prisma.medicationPriceSnapshot.findUnique({
     where: { medicationKey_locationKey: { medicationKey: key, locationKey: 'BR' } },
-    create: {
+    select: { id: true },
+  });
+  if (existing) {
+    // ATUALIZA: apaga offers antigas + cria as novas + atualiza números
+    await prisma.$transaction([
+      prisma.medicationPriceOffer.deleteMany({ where: { snapshotId: existing.id } }),
+      ...(offers.length ? [prisma.medicationPriceOffer.createMany({
+        data: offers.map((o) => ({ snapshotId: existing.id, pharmacy: o.pharmacy, productName: o.productName, priceCents: o.priceCents, url: o.url, imageUrl: o.imageUrl ?? null, ean: o.ean ?? null, lastCheckedAt: now })),
+      })] : []),
+      prisma.medicationPriceSnapshot.update({
+        where: { id: existing.id },
+        data: { lowestPriceCents: lowest, averagePriceCents: avg, offersCount: offers.length, provider: providerName, collectedAt: now, expiresAt: new Date(now.getTime() + TTL_MS) },
+      }),
+    ]);
+    return prisma.medicationPriceSnapshot.findUnique({ where: { id: existing.id } });
+  }
+  // CRIA: snapshot + offers juntas
+  return prisma.medicationPriceSnapshot.create({
+    data: {
       medicationKey: key, locationKey: 'BR', lowestPriceCents: lowest, averagePriceCents: avg,
       offersCount: offers.length, provider: providerName, collectedAt: now, expiresAt: new Date(now.getTime() + TTL_MS),
       offers: { create: offers.map((o) => ({ pharmacy: o.pharmacy, productName: o.productName, priceCents: o.priceCents, url: o.url, imageUrl: o.imageUrl ?? null, ean: o.ean ?? null, lastCheckedAt: now })) },
-    },
-    update: {
-      lowestPriceCents: lowest, averagePriceCents: avg, offersCount: offers.length,
-      provider: providerName, collectedAt: now, expiresAt: new Date(now.getTime() + TTL_MS),
     },
   });
 }
