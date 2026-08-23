@@ -1026,9 +1026,9 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
             direita em 390px). No desktop (row) flex-start continua: colunas alinham ao topo. */}
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, alignItems: { xs: 'stretch', md: 'flex-start' } }}>
 
-        {/* LISTA DE PACIENTES */}
-        {view === 'patients' && !loading && (!selected || isDesktop) && (
-          <Box sx={{ width: { xs: '100%', md: selected ? 320 : '100%' }, flexShrink: 0, position: 'sticky', top: selected ? 16 : undefined }}>
+        {/* LISTA DE PACIENTES — mobile: sempre visível; desktop: some quando paciente selecionado */}
+        {view === 'patients' && !loading && (!selected || !isDesktop) && (
+          <Box sx={{ width: { xs: '100%', md: selected ? 320 : '100%' }, flexShrink: 0 }}>
             <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ mb: 1.5 }}>
               <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary' }}>Pacientes ({patients.length})</Typography>
               {patients.some((p) => p.hasAlerts) && <Chip size="small" color="error" label={`🔴 ${patients.filter((p) => p.hasAlerts).length} com alerta`} sx={{ fontWeight: 700 }} />}
@@ -1102,9 +1102,15 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           </Box>
         )}
 
-        {/* DETALHE DO PACIENTE — coluna única (PatientSummary → tabs → conteúdo). Desktop: flex 1 ao lado do rail de pacientes. */}
+        {/* DETALHE DO PACIENTE — desktop: LARGA TOTAL (sem rail de pacientes); mobile: coluna única */}
         {view === 'patients' && selected && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flex: { md: 1 }, minWidth: 0 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1, minWidth: 0, maxWidth: { md: 900 }, mx: 'auto' }}>
+            {isDesktop && (
+              <Button size="small" onClick={() => { setSelected(null); setSelExam(null); }} startIcon={<ArrowBackIcon />}
+                sx={{ alignSelf: 'flex-start', textTransform: 'none', fontWeight: 700, color: 'text.secondary', mb: -1 }}>
+                Voltar aos pacientes
+              </Button>
+            )}
             <PatientSummary
               patient={selected}
               exams={exams}
