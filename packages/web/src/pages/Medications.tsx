@@ -42,6 +42,30 @@ interface CatalogProduct {
 
 const fmtBRL = (cents?: number | null) => (cents == null ? '—' : (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }));
 
+/** Preço premium: "R$ 4,19" → R$ menor + número GRANDE (estilo iFood). */
+const PriceBig = ({ cents, size = 22, color = 'text.primary' }: { cents?: number | null; size?: number; color?: string }) => {
+  if (cents == null) return null;
+  const v = (cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+  const [int, dec] = v.split(',');
+  return (
+    <Box component="span" sx={{ display: 'inline-flex', alignItems: 'baseline', lineHeight: 1, color }}>
+      <Box component="span" sx={{ fontSize: size * 0.55, fontWeight: 700, mr: 0.15, fontFamily: 'Poppins, sans-serif' }}>R$</Box>
+      <Box component="span" sx={{ fontSize: size, fontWeight: 800, fontVariantNumeric: 'tabular-nums', fontFamily: 'Poppins, sans-serif' }}>{int}</Box>
+      <Box component="span" sx={{ fontSize: size * 0.65, fontWeight: 700, fontVariantNumeric: 'tabular-nums', fontFamily: 'Poppins, sans-serif' }}>,{dec}</Box>
+    </Box>
+  );
+};
+
+/** Sombra premium em 3 camadas (profundidade real, não flat). */
+const premiumShadow = (elev = 1) => {
+  const shadows = [
+    '0 1px 2px rgba(0,0,0,0.03), 0 2px 8px rgba(0,0,0,0.04), 0 8px 20px rgba(0,0,0,0.03)',
+    '0 2px 4px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.06), 0 12px 28px rgba(0,0,0,0.04)',
+    '0 4px 8px rgba(0,0,0,0.05), 0 8px 20px rgba(0,0,0,0.08), 0 16px 36px rgba(0,0,0,0.05)',
+  ];
+  return shadows[Math.min(elev, 2)];
+};
+
 /** Avatar do remédio (inicial + cor estável) — fallback quando não tem foto. */
 const MED_TONES: [string, string][] = [['#178f89', '#20b2aa'], ['#b88a54', '#d4a574'], ['#0369a1', '#0ea5e9'], ['#047857', '#059669'], ['#b45309', '#f59e0b'], ['#b91c1c', '#ef4444']];
 const medTone = (n: string): [string, string] => MED_TONES[[...(n || '?')].reduce((a, c) => a + c.charCodeAt(0), 0) % MED_TONES.length];
@@ -229,42 +253,50 @@ export const MedicationsPage = () => {
         </AppCard>
       )}
 
-      {/* LISTA — premium */}
+      {/* LISTA — premium (estilo iFood): sombra 3 camadas, radius 20, foto 64px, entrada animada */}
       {active.length > 0 && (
-        <Stack spacing={1} sx={{ mb: inactive.length ? 2 : 0 }}>
-          {active.map((m) => {
+        <Stack spacing={1.5} sx={{ mb: inactive.length ? 2 : 0 }}>
+          {active.map((m, idx) => {
             const photo = m.priceSummary?.imageUrl ?? m.catalogPhotoUrl;
             return (
               <Card key={m.id} elevation={0} sx={{
-                p: 1.5, borderRadius: '16px', border: '1px solid', borderColor: 'divider',
-                transition: 'border-color .15s ease, box-shadow .15s ease',
+                p: 2, borderRadius: '20px', border: '1px solid', borderColor: 'divider',
+                boxShadow: '0 1px 2px rgba(0,0,0,.03), 0 2px 8px rgba(0,0,0,.04), 0 8px 20px rgba(0,0,0,.03)',
+                transition: 'box-shadow .2s ease, border-color .2s ease',
                 '&:hover': m.priceSummary?.lowestPriceCents != null
-                  ? { borderColor: 'primary.main', boxShadow: (t) => `0 4px 16px ${t.palette.primary.main}22` } : {},
+                  ? { borderColor: 'rgba(32,178,170,.3)', boxShadow: '0 2px 4px rgba(32,178,170,.06), 0 8px 24px rgba(32,178,170,.1), 0 16px 36px rgba(32,178,170,.06)' }
+                  : { boxShadow: '0 2px 4px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.06), 0 12px 28px rgba(0,0,0,.04)' },
+                animation: `medCardIn .35s cubic-bezier(.16,1,.3,1) ${idx * 0.05}s both`,
+                '@keyframes medCardIn': { from: { opacity: 0, transform: 'translateY(12px)' }, to: { opacity: 1, transform: 'translateY(0)' } },
               }}>
-                <Stack direction="row" spacing={1.25} alignItems="center">
+                <Stack direction="row" spacing={2} alignItems="center">
                   {photo ? (
                     <Box component="img" src={photo} alt={m.name} loading="lazy"
-                      sx={{ width: 52, height: 52, borderRadius: '12px', objectFit: 'contain', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', flexShrink: 0 }} />
+                      sx={{ width: 64, height: 64, borderRadius: '16px', objectFit: 'contain',
+                        bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider',
+                        flexShrink: 0, transition: 'transform .15s', '&:hover': { transform: 'scale(1.04)' } }} />
                   ) : (
-                    <MedAvatar name={m.name} size={52} />
+                    <MedAvatar name={m.name} size={64} />
                   )}
                   <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography sx={{ fontWeight: 700, fontSize: 15 }}>{m.name}</Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>{[m.dosage, m.frequency].filter(Boolean).join(' · ') || 'uso contínuo'}</Typography>
+                    <Typography sx={{ fontWeight: 700, fontSize: 16, lineHeight: 1.25, fontFamily: 'Poppins, sans-serif', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.name}</Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>{[m.dosage, m.frequency].filter(Boolean).join(' · ') || 'uso contínuo'}</Typography>
                     {m.priceSummary?.lowestPriceCents != null ? (
-                      <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.4, cursor: 'pointer' }}
+                      <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.75, cursor: 'pointer' }}
                         onClick={(e) => { e.stopPropagation(); void openPrices(m); }}>
-                        <Typography variant="caption" sx={{ color: 'text.secondary', flexShrink: 0 }}>
-                          💰 <b style={{ color: 'text.primary', fontSize: 14, fontVariantNumeric: 'tabular-nums' }}>{fmtBRL(m.priceSummary.lowestPriceCents)}</b>
+                        <PriceBig cents={m.priceSummary.lowestPriceCents} size={20} color="primary.dark" />
+                        <Typography variant="caption" sx={{ color: 'primary.main', textDecoration: 'underline', fontWeight: 700, ml: 0.5 }}>
+                          {m.priceSummary.offersCount ?? 1} oferta{(m.priceSummary.offersCount ?? 1) > 1 ? 's' : ''}
                         </Typography>
-                        <Typography variant="caption" sx={{ color: 'primary.dark', textDecoration: 'underline', flexShrink: 0 }}>ver preços</Typography>
                       </Stack>
                     ) : (m.priceStatus === 'queued' || m.priceStatus === 'searching') ? (
-                      <Typography variant="caption" sx={{ display: 'block', mt: 0.3, color: 'text.disabled', whiteSpace: 'nowrap' }}>⏳ Buscando…</Typography>
+                      <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: 'text.disabled', whiteSpace: 'nowrap' }}>⏳ Buscando…</Typography>
                     ) : null}
                   </Box>
-                  <Button size="small" onClick={() => toggle(m)} sx={{ textTransform: 'none', borderRadius: '999px' }}>Suspender</Button>
-                  <IconButton size="small" onClick={() => remove(m)} aria-label={`Excluir ${m.name}`}><DeleteOutlineIcon fontSize="small" /></IconButton>
+                  <Stack spacing={0.5} sx={{ flexShrink: 0 }}>
+                    <Button size="small" onClick={() => toggle(m)} sx={{ textTransform: 'none', borderRadius: '999px', minWidth: 0, px: 1.5 }}>Suspender</Button>
+                    <IconButton size="small" onClick={() => remove(m)} aria-label={`Excluir ${m.name}`} sx={{ '&:hover': { color: 'error.main' } }}><DeleteOutlineIcon fontSize="small" /></IconButton>
+                  </Stack>
                 </Stack>
               </Card>
             );
