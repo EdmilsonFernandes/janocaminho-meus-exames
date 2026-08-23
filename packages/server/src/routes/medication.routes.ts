@@ -336,25 +336,49 @@ router.get('/catalog', async (req: AuthedRequest, res, next) => {
         pharmacy: e.pharmacy, dosage: '', packQty: null as number | null,
       }));
 
-    // 2. Busca LIVE na VTEX (produtos completos com dose+pack) — só se local < 3
+    // 2. Busca LIVE na VTEX — SÓ se local não tem NADA (não gasta API à toa).
+    //    Resultados são CACHEADOS no catálogo: próxima busca da mesma coisa é local.
     let vtexHits: typeof localHits = [];
-    if (localHits.length < 3) {
+    if (localHits.length === 0) {
       try {
         const { pagueMenosProvider } = await import('../pricing/providers/pagueMenos');
         const offers = await pagueMenosProvider.search({ medicationKey: null, activeIngredient: q, dosageValue: undefined, dosageUnit: undefined, form: 'CP' });
-        // extrai o NOME LIMPO do productName (remove dose/pack): "Levoid 50mcg 30cp" → "Levoid"
-        // e resolve via ALIASES (LEVOID → LEVOTIROXINA) pro POST instantâneo funcionar
-        const { normDrug, } = await import('../utils/interactions');
+        const { normDrug } = await import('../utils/interactions');
         const cleanName = (pn: string): string => {
           const t = pn.replace(/\d+[.,]?\d*\s*(mg|mcg|ml|g|ui)\b.*$/i, '').replace(/\d+\s*(comprimido|cp|capsula|cap|cx|caixa|un)\b.*$/i, '').trim();
-          return t || pn.split(' ')[0]; // fallback: 1ª palavra
+          return t || pn.split(' ')[0];
         };
         vtexHits = offers.slice(0, 6).map((o) => ({
-          name: cleanName(o.productName), // "Levoid" (não a query crua "levoid")
+          name: cleanName(o.productName),
           productName: o.productName,
           photoUrl: o.imageUrl ?? null, priceCents: o.priceCents,
           pharmacy: o.pharmacy, dosage: '', packQty: null as number | null,
         }));
+
+        // CACHEIA: salva no catálogo pra a próxima busca ser local (0ms, 0 API externa)
+        const best = offers[0];
+        if (best) {
+          const ingredient = normDrug(cleanName(best.productName));
+          // resolve alias (LEVOID → LEVOTIROXINA) pra bater com o catálogo existente
+          const { ALIASES_PUBLIC } = await import('../utils/interactions');
+          const resolved = (ALIASES_PUBLIC as Record<string, string>)[ingredient] ?? ingredient;
+          await prisma.medicationCatalogEntry.upsert({
+            where: { activeIngredient: resolved },
+            create: {
+              name: cleanName(best.productName), activeIngredient: resolved,
+              brands: [], doses: [],
+              photoUrl: best.imageUrl ?? null, priceCents: best.priceCents ?? null,
+              productName: best.productName, productUrl: best.url ?? null,
+              pharmacy: best.pharmacy ?? null, ean: best.ean ?? null,
+              offersCount: offers.length, vtexQuery: q, lastRefreshedAt: new Date(),
+            },
+            update: {
+              photoUrl: best.imageUrl ?? undefined, priceCents: best.priceCents ?? undefined,
+              productName: best.productName, productUrl: best.url ?? undefined,
+              offersCount: offers.length, lastRefreshedAt: new Date(),
+            },
+          }).catch(() => {}); // upsert falhou → não trava a busca
+        }
       } catch { /* VTEX fora → só local */ }
     }
 
