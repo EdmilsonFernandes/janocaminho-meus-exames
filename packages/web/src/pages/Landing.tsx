@@ -29,6 +29,10 @@ import DirectionsWalkIcon from '@mui/icons-material/DirectionsWalk';
 import MonitorWeightIcon from '@mui/icons-material/MonitorWeight';
 import TuneIcon from '@mui/icons-material/Tune';
 import CalculateIcon from '@mui/icons-material/Calculate';
+import ChildCareIcon from '@mui/icons-material/ChildCare';
+import MedicationIcon from '@mui/icons-material/Medication';
+import FamilyRestroomIcon from '@mui/icons-material/FamilyRestroom';
+import ScienceIcon from '@mui/icons-material/Science';
 
 import { ExamDemo } from '../components/ExamDemo';
 import { FaqSection } from '../components/FaqSection';
@@ -60,7 +64,9 @@ const benefits = [
   { Icon: TrendingUpIcon, title: 'Evolução + Previsão', desc: 'Acompanhe tendências e saiba quando um valor pode sair da faixa (previsão exclusiva do Premium).' },
   { Icon: DirectionsWalkIcon, title: 'Conecta o Health Connect', desc: 'Passos, calorias e distância do celular (Health Connect do Google) entram JUNTO dos seus exames: o Dr. Exame mostra sua atividade da semana do exame e usa como contexto na leitura — estilo de vida e laboratório na mesma história. Só leitura; você autoriza e pode revogar quando quiser.' },
   { Icon: MedicalServicesIcon, title: 'Portal do seu médico', desc: 'Indique pelo CRM e seu médico ganha um brief de pré-consulta: top 3 mudanças do dia, padrões por sistema (glicêmico, renal, lipídico) e exames de seguimento sugeridos — só o que você autorizar.' },
-  { Icon: Diversity3Icon, title: 'Toda a família', desc: 'Gerencie exames de cada dependente. Score familiar + comparativo entre membros.' },
+  { Icon: Diversity3Icon, title: 'Toda a família', desc: 'Cada dependente com histórico e evolução próprios, score familiar e comparativo entre membros — e o modo cuidador: a mãe acompanha filho e avó no mesmo app, com aviso de quem é o perfil ativo.' },
+  { Icon: ChildCareIcon, title: 'Faixas pediátricas', desc: 'Exame de criança não se lê com régua de adulto. Quando o laudo não traz a faixa da idade, aplicamos bandas pediátricas por analito (Harriet Lane) e marcamos o item — a fosfatase "alta" que é normal aos 4 anos para de dar susto.' },
+  { Icon: MedicationIcon, title: 'Remédios + interações', desc: 'Sua lista de medicamentos conferida contra os exames: interações graves (D/X) avisadas de graça, e o preço REAL de farmácia direto no card do remédio — com foto do produto.' },
   { Icon: DescriptionIcon, title: 'Pronto para o médico', desc: 'Relatório de 1 página com valores alterados + perfil clínico. Compartilhe por link seguro com PIN.' },
   { Icon: LockIcon, title: 'Dados protegidos + Libras', desc: 'Seus valores vêm do laudo — a IA não inventa números (extração determinística). Criptografia, PIN de compartilhamento, exclusão a qualquer momento. LGPD completa e VLibras.' },
 ];
@@ -68,8 +74,8 @@ const benefits = [
 // F2 — categorias pra filtrar o mural de benefícios (mata o "wall of text" sem deletar conteúdo)
 const CATS = ['Todos', 'IA & Análise', 'Acompanhamento', 'Médico & Família', 'Segurança'] as const;
 const catOf = (t: string): string => {
-  if (/Dados protegidos/.test(t)) return 'Segurança';
-  if (/Portal do seu médico|Toda a família|Pronto para o médico/.test(t)) return 'Médico & Família';
+  if (/Dados protegidos|Remédios/.test(t)) return 'Segurança';
+  if (/Portal do seu médico|Toda a família|Pronto para o médico|Faixas pediátricas/.test(t)) return 'Médico & Família';
   if (/Score de Adesão|Alerta preditivo|Comparativo visual|Evolução|Health Connect/.test(t)) return 'Acompanhamento';
   return 'IA & Análise';
 };
@@ -78,7 +84,7 @@ const catOf = (t: string): string => {
 const DEFAULT_BENEFITS = new Set(['IA que lê seus exames', 'Leitura de risco', 'Plano de ação do Dr. Exame', 'Índices que o laudo não dá', 'Portal do seu médico', 'Dados protegidos + Libras']);
 
 const planData = (credits: number) => [
-  { name: 'Grátis', price: 'R$ 0', period: '', features: [`${credits} créditos pra testar`, 'Envie exames (PDF/foto)', 'Valores + referência', 'Score de Saúde', 'Pergunte ao Dr. Exame'], highlight: false, cta: 'Começar grátis' },
+  { name: 'Grátis', price: 'R$ 0', period: '', features: [`${credits} créditos pra testar`, '1º resumo de IA grátis', 'Envie exames (PDF/foto)', 'Valores + referência + dependentes', 'Score de Saúde'], highlight: false, cta: 'Começar grátis' },
   { name: 'Mensal', price: 'R$ 19,90', period: '/mês', features: ['250 créditos de IA/mês', 'Exames + dependentes', 'Comparativo + Tendências', 'Relatório completo + PDF', 'Chat com o Dr. Exame'], highlight: true, cta: 'Assinar mensal' },
   { name: 'Créditos', price: 'a partir de R$ 9,90', period: 'avulso', features: ['PIX, cartão ou débito', 'Pacotes flexíveis', 'Cada análise consome créditos', 'Sem mensalidade', 'Use quando precisar'], highlight: false, cta: 'Ver pacotes' },
 ];
@@ -493,6 +499,80 @@ export const LandingPage = () => {
         </Container>
       </Box>
 
+      {/* SEÇÃO — Família de verdade (D1): o diferencial que nenhum app global tem (todos 18+, single-user) */}
+      <Box sx={{ bgcolor: 'background.default', py: { xs: 8, md: 11 } }}>
+        <Container maxWidth="lg">
+          <Reveal>
+            <Box sx={{ textAlign: 'center', mb: 5 }}>
+              <Chip icon={<FamilyRestroomIcon sx={{ fontSize: 17 }} />} label="Família de verdade" sx={{ bgcolor: 'rgba(32,178,170,.12)', color: TEAL_DARK, fontWeight: 700, mb: 2, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: TEAL_DARK } }} />
+              <Typography variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>
+                A saúde de quem você ama, <Box component="span" sx={{ ...SERIF_I, color: TEAL_DARK }}>no seu bolso</Box>
+              </Typography>
+              <Typography sx={{ color: 'text.secondary', fontSize: 17, maxWidth: 640, mx: 'auto' }}>
+                Os apps gringos de saúde são 18+ e single-user. Aqui, filho e avó vivem no mesmo lugar que você — cada um com o histórico próprio, e você no controle.
+              </Typography>
+            </Box>
+          </Reveal>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: { xs: 5, md: 8 }, alignItems: 'center' }}>
+            {/* mockup: app em modo cuidador (faixa + badge pediátrico + push nominado) */}
+            <Box sx={{ display: 'flex', justifyContent: 'center', order: { xs: 2, md: 1 } }}>
+              <Box sx={{ width: '100%', maxWidth: 340 }}>
+                {/* push nominado */}
+                <Box sx={{ borderRadius: '12px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', boxShadow: '0 16px 36px rgba(15,61,58,.12)', p: 1.5, mb: -1, position: 'relative', zIndex: 2, display: 'flex', gap: 1.25, alignItems: 'center' }}>
+                  <Box sx={{ width: 34, height: 34, borderRadius: '50%', background: `linear-gradient(135deg,${TEAL},${TEAL_DARK})`, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                    <AutoAwesomeIcon sx={{ fontSize: 18, color: '#fff' }} />
+                  </Box>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography sx={{ fontSize: 12.5, fontWeight: 800, color: 'text.primary' }}>Theo: exame lido 🧬</Typography>
+                    <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary' }}>2 itens estavam fora da faixa — pra idade dele, 1 é normal.</Typography>
+                  </Box>
+                  <Typography sx={{ fontSize: 10.5, color: 'text.disabled', flexShrink: 0 }}>agora</Typography>
+                </Box>
+                {/* tela: faixa cuidador + item pediátrico */}
+                <Box sx={{ borderRadius: '16px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', boxShadow: '0 30px 60px rgba(15,61,58,.14)', overflow: 'hidden' }}>
+                  <Box sx={{ background: `linear-gradient(135deg,${TEAL},${TEAL_DARK})`, color: '#fff', px: 2, py: 1.25, fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                    <FamilyRestroomIcon sx={{ fontSize: 17 }} /> Você está cuidando de <b>Theo · Filho</b>
+                  </Box>
+                  <Box sx={{ p: 2.25 }}>
+                    <Typography sx={{ fontSize: 11, color: 'text.secondary', mb: 1.25 }}>HEMOGRAMA + BIOQUÍMICA · 01/08</Typography>
+                    {[{ n: 'Fosfatase Alcalina', v: '300', ref: '105–420', ok: true, ped: true }, { n: 'Leucócitos', v: '9.800', ref: '5.000–15.000', ok: true, ped: true }, { n: 'Glicose', v: '92', ref: '70–99', ok: true, ped: false }].map((r) => (
+                      <Box key={r.n} sx={{ py: 1, borderBottom: '1px dashed', borderColor: 'divider' }}>
+                        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
+                          <Typography sx={{ fontSize: 13.5, fontWeight: 700, color: 'text.primary', flex: 1 }}>{r.n}</Typography>
+                          <Typography sx={{ fontSize: 13.5, fontWeight: 800, color: r.ok ? GREEN : '#c2410c', fontVariantNumeric: 'tabular-nums' }}>{r.v}</Typography>
+                          <Chip size="small" label={r.ok ? '✓' : '⚠️'} sx={{ height: 20, minWidth: 24, bgcolor: r.ok ? 'rgba(5,150,105,.12)' : 'rgba(194,65,12,.12)', color: r.ok ? GREEN : '#c2410c', fontWeight: 800 }} />
+                        </Stack>
+                        <Stack direction="row" alignItems="center" spacing={0.75}>
+                          <Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>Referência {r.ref}</Typography>
+                          {r.ped && <Chip size="small" label="Pediátrico · 2–6 anos" sx={{ height: 18, fontSize: 10, fontWeight: 700, bgcolor: 'rgba(32,178,170,.14)', color: TEAL_DARK }} />}
+                        </Stack>
+                      </Box>
+                    ))}
+                    <Typography sx={{ fontSize: 11, color: 'text.disabled', mt: 1.5, textAlign: 'center' }}>Laudo dizia 40–130 (adulto) · régua da idade aplicada, com fonte.</Typography>
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
+            {/* texto */}
+            <Box sx={{ order: { xs: 1, md: 2 } }}>
+              <Typography variant="h3" sx={{ fontSize: { xs: '1.4rem', md: '1.8rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>Cuidador, sem confusão de perfil</Typography>
+              {[
+                { Icon: FamilyRestroomIcon, t: 'Modo cuidador — quando você está no perfil do seu filho, o app avisa: “Você está cuidando de Theo”. Exame e alerta errado de pessoa, nunca mais.' },
+                { Icon: ChildCareIcon, t: 'Faixas pediátricas com fonte — criança não é adulto pequeno. Sem faixa da idade no laudo, aplicamos bandas por idade (Harriet Lane, 22ª ed.) e marcamos o item.' },
+                { Icon: DescriptionIcon, t: 'Histórico próprio por pessoa — cada dependente tem exames, evolução e score dele. O do filho nunca mistura com o seu.' },
+                { Icon: ShareIcon, t: 'O médico de cada um — compartilhe o perfil do dependente com o pediatra, e o seu com seu clínico. Escopos separados, revogáveis.' },
+              ].map(({ Icon, t }) => (
+                <Stack key={t.slice(0, 24)} direction="row" spacing={1.5} alignItems="flex-start" sx={{ mb: 2.25 }}>
+                  <Box sx={{ width: 38, height: 38, borderRadius: '12px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(32,178,170,.10)' }}><Icon sx={{ fontSize: 20, color: TEAL_DARK }} /></Box>
+                  <Typography sx={{ fontSize: 15, color: 'text.secondary', lineHeight: 1.55, pt: 0.6 }}>{t}</Typography>
+                </Stack>
+              ))}
+              <Button variant="contained" color="primary" onClick={() => navigate('/registrar')} sx={{ mt: 1, borderRadius: '999px', px: 4, py: 1.3, textTransform: 'none', fontWeight: 800 }}>Cadastrar minha família →</Button>
+            </Box>
+          </Box>
+        </Container>
+      </Box>
+
       {/* COMO SEUS DADOS FLUEM — mata o ceticismo de IA em saúde (absorve anchor #como-funciona) */}
       <Box id="como-funciona" sx={{ bgcolor: 'background.paper', borderTop: '1px solid', borderBottom: '1px solid', borderColor: 'divider', py: { xs: 8, md: 11 }, scrollMarginTop: 80 }}>
         <Container maxWidth="lg">
@@ -559,7 +639,7 @@ export const LandingPage = () => {
               <Box>
                 <Typography variant="h3" sx={{ fontSize: { xs: '1.4rem', md: '1.8rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>Resumo clínico automático em 1 minuto</Typography>
                 <Typography sx={{ fontSize: 16, color: 'text.secondary', mb: 2.5, lineHeight: 1.6 }}>Use o mesmo CRM do convite e receba um brief de pré-consulta: principais mudanças, risco, o que investigar e as perguntas que o paciente fez no app.</Typography>
-                {['🩺 Top 3 mudanças desde a última visita — sem revisar prontuário inteiro.', '🛡️ Risco + tendência + marcadores a investigar — num relance.', '📝 SOAP rascunho gerado por IA (S/O/A/P) — só revisa e edita.'].map((t) => (
+                {['🩺 Top 3 mudanças desde a última visita — sem revisar prontuário inteiro.', '🛡️ Risco + tendência + marcadores a investigar — num relance.', '📝 SOAP rascunho gerado por IA (S/O/A/P) — só revisa e edita.', '📄 Brief em PDF de 1 página — imprime ou anexa no prontuário.'].map((t) => (
                   <Stack key={t} direction="row" spacing={1.25} alignItems="flex-start" sx={{ mb: 1.5 }}>
                     <CheckCircleIcon sx={{ fontSize: 20, color: GREEN, mt: 0.1, flexShrink: 0 }} />
                     <Typography sx={{ fontSize: 15, color: 'text.secondary', lineHeight: 1.5 }}>{t}</Typography>
@@ -753,6 +833,48 @@ export const LandingPage = () => {
                 <Box sx={{ p: 1.5, textAlign: 'center', display: { xs: 'none', md: 'block' } }}>{r.doc === true ? <CheckCircleIcon sx={{ fontSize: 20, color: GREEN }} /> : r.doc === 'limitado' ? <Typography sx={{ fontSize: 12, color: '#b45309', fontWeight: 700 }}>limitado</Typography> : <Typography sx={{ fontSize: 16, color: 'text.disabled' }}>✕</Typography>}</Box>
               </Box>
             ))}
+          </Box>
+        </Container>
+      </Box>
+
+      {/* SEÇÃO — Ciência sem caixa-preta (D4): as fórmulas e a fonte de cada uma. Anti-claim-vazio. */}
+      <Box sx={{ bgcolor: 'background.default', borderTop: '1px solid', borderBottom: '1px solid', borderColor: 'divider', py: { xs: 8, md: 11 } }}>
+        <Container maxWidth="lg">
+          <Reveal>
+            <Box sx={{ textAlign: 'center', mb: 5 }}>
+              <Chip icon={<ScienceIcon sx={{ fontSize: 17 }} />} label="Ciência sem caixa-preta" sx={{ bgcolor: 'rgba(32,178,170,.12)', color: TEAL_DARK, fontWeight: 700, mb: 2, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: TEAL_DARK } }} />
+              <Typography variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>
+                Nossa análise tem <Box component="span" sx={{ ...SERIF_I, color: TEAL_DARK }}>fórmula e fonte</Box>
+              </Typography>
+              <Typography sx={{ color: 'text.secondary', fontSize: 17, maxWidth: 640, mx: 'auto' }}>
+                Nenhum número aqui é palpite de IA. A checagem é determinística — cada índice abaixo é uma regra com publicação por trás, e a IA só explica o que a régua já decidiu.
+              </Typography>
+            </Box>
+          </Reveal>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(3, 1fr)' }, gap: 2.5 }}>
+            {[
+              { Icon: MonitorHeartIcon, t: 'Score de saúde 0–100', f: 'Marcadores fora da faixa − severidade − recência', d: 'Cada item alterado tira pontos conforme a gravidade; exames antigos pesam menos. O número que você acompanha no app é essa conta — aberta, não mágica.', src: 'Faixas do seu laboratório + diretrizes ADA/SBC/OMS' },
+              { Icon: MonitorWeightIcon, t: 'Idade biológica (PhenoAge)', f: 'Levine et al., Aging 2020 — 9 marcadores', d: 'Albumina, creatinina, glicose, PCR e mais nove marcadores do seu exame comum revelam se seu corpo é mais novo (ou velho) que a carteira.', src: 'Formulação publicada — fórmula de Levine, revisada por pares' },
+              { Icon: CalculateIcon, t: 'eGFR · HOMA-IR · IMC', f: 'CKD-EPI · (glicemia × insulina)/405 · peso/altura²', d: 'Os índices que o laudo não calcula: função renal, resistência à insulina e composição — gerados na hora, com o valor ideal ao lado do de referência.', src: 'CKD-EPI (NEJM) · HOMA-IR (Matthews et al.)' },
+              { Icon: WarningAmberIcon, t: 'Leitura de risco', f: 'Cada risco cita a diretriz que o define', d: 'Pré-diabetes, anemia, cardiovascular: o limiar vem da ADA, SBC ou OMS — e aparece no card. Seu perfil (sexo, idade, etnia) ajusta a leitura.', src: 'ADA · SBC · OMS · diretrizes brasileiras' },
+              { Icon: ChildCareIcon, t: 'Faixas por idade', f: 'Harriet Lane Handbook, 22ª ed. (pediatria)', d: 'Exame de criança lido com régua de criança: quando o laudo não traz a faixa da idade, aplicamos a banda etária e marcamos o item com selo transparente.', src: 'The Johns Hopkins Hospital — referência mundial em pediatria' },
+              { Icon: AutoAwesomeIcon, t: 'IA que explica, não inventa', f: 'Valores vêm do laudo · pós-filtro anti-diagnóstico', d: 'A extração lê o texto do PDF, você confere antes de salvar, e um filtro bloqueia linguagem de diagnóstico. A IA contextualiza — a régua decide.', src: 'RDC 657/2022 (ANVISA): ferramenta educativa, sem diagnóstico' },
+            ].map((c) => (
+              <Box key={c.t} sx={{ p: 3, borderRadius: '12px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', height: '100%', display: 'flex', flexDirection: 'column', transition: 'all .2s ease', '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 20px 44px rgba(15,61,58,.10)', borderColor: TEAL } }}>
+                <Box sx={{ width: 48, height: 48, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2, background: 'linear-gradient(135deg,rgba(32,178,170,.14),rgba(32,178,170,.06))' }}>
+                  <c.Icon sx={{ fontSize: 26, color: TEAL_DARK }} />
+                </Box>
+                <Typography variant="h6" sx={{ fontWeight: 800, fontSize: 16.5, color: 'text.primary', mb: 0.75 }}>{c.t}</Typography>
+                <Box sx={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: 12, color: TEAL_DARK, bgcolor: 'rgba(32,178,170,.08)', borderRadius: '8px', px: 1.25, py: 0.75, mb: 1.5, fontWeight: 600 }}>{c.f}</Box>
+                <Typography sx={{ fontSize: 13.5, color: 'text.secondary', lineHeight: 1.6, flex: 1 }}>{c.d}</Typography>
+                <Typography variant="caption" sx={{ display: 'block', mt: 1.5, color: 'text.disabled', fontStyle: 'italic' }}>Fonte: {c.src}</Typography>
+              </Box>
+            ))}
+          </Box>
+          <Box sx={{ textAlign: 'center', mt: 4 }}>
+            <Button variant="outlined" onClick={() => navigate('/como-validamos')} sx={{ borderRadius: '999px', px: 4, py: 1.2, textTransform: 'none', fontWeight: 700, borderColor: '#d8f4f2', color: TEAL_DARK, '&:hover': { borderColor: TEAL, bgcolor: 'rgba(32,178,170,.06)' } }}>
+              Ver cada regra, com a fonte →
+            </Button>
           </Box>
         </Container>
       </Box>
