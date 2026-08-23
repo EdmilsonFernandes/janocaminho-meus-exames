@@ -111,6 +111,13 @@ router.post('/', async (req: AuthedRequest, res, next) => {
             where: { id: m.id },
             data: { priceStatus: 'available', priceCheckedAt: now, nameNormalized: key, catalogPhotoUrl: cat.photoUrl, activeIngredient: normalized.activeIngredient, dosageValue: normalized.dosageValue ?? null, dosageUnit: normalized.dosageUnit ?? null, form: normalized.form ?? null },
           });
+          // MESMO com preço instantâneo, o worker ainda busca a LISTA COMPLETA de ofertas
+          // (múltiplos genéricos/marcas/laboratórios) — enriquece o "Ver preços" estilo Shopee.
+          // Reset para 'queued' com priceCheckedAt antigo → worker processa no próximo tick.
+          await prisma.medication.update({
+            where: { id: m.id },
+            data: { priceStatus: 'queued', priceCheckedAt: new Date(Date.now() - 7 * 60 * 60 * 1000) }, // 7h atrás = "stale" → worker busca
+          }).catch(() => {});
         } else if (cat.photoUrl) {
           await prisma.medication.update({ where: { id: m.id }, data: { catalogPhotoUrl: cat.photoUrl } });
         }

@@ -70,10 +70,11 @@ export const MedicationsPage = () => {
   const [suggestions, setSuggestions] = useState<{ name: string; dosage: string; on: boolean }[]>([]);
   const photoInput = useRef<HTMLInputElement>(null);
 
-  // PREÇOS dialog
+  // PREÇOS dialog (marketplace-style)
   const [pricesFor, setPricesFor] = useState<Med | null>(null);
   const [pricesData, setPricesData] = useState<PricesResp | null>(null);
   const [pricesLoading, setPricesLoading] = useState(false);
+  const offers0Price = pricesData?.snapshot?.offers?.[0]?.priceCents ?? 0;
 
   const load = useCallback(async (silent = false) => {
     if (!pid) return;
@@ -394,38 +395,99 @@ export const MedicationsPage = () => {
         </DialogActions>
       </Dialog>
 
-      {/* ============ DIALOG VER PREÇOS ============ */}
-      <Dialog open={!!pricesFor} onClose={() => setPricesFor(null)} fullWidth maxWidth="xs" PaperProps={{ sx: { borderRadius: '16px' } }}>
-        <DialogTitle sx={{ fontWeight: 800 }}>{pricesFor?.name} — preços</DialogTitle>
-        <DialogContent>
-          {pricesLoading && <Typography sx={{ color: 'text.secondary', py: 2 }}>Buscando…</Typography>}
-          {!pricesLoading && (pricesData?.snapshot?.offers ?? []).length === 0 && (
-            <Typography sx={{ color: 'text.secondary', py: 2 }}>Ainda não temos preços para este remédio.</Typography>
-          )}
-          {!pricesLoading && (pricesData?.snapshot?.offers ?? []).length > 0 && (
-            <Stack spacing={0.75} sx={{ mt: 1 }}>
-              {(pricesData?.snapshot?.offers ?? []).map((o, i) => (
-                <Stack key={i} direction="row" spacing={1} alignItems="center" sx={{ p: 1, borderRadius: '12px', bgcolor: i === 0 ? 'rgba(32,178,170,.08)' : 'action.hover' }}>
-                  {o.imageUrl ? (
-                    <Box component="img" src={o.imageUrl} alt={o.productName} loading="lazy"
-                      sx={{ width: 44, height: 44, borderRadius: '10px', objectFit: 'contain', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', flexShrink: 0 }} />
-                  ) : (
-                    <MedAvatar name={o.productName} size={44} />
+      {/* ============ DIALOG VER PREÇOS — estilo marketplace (Shopee-like) ============ */}
+      <Dialog open={!!pricesFor} onClose={() => setPricesFor(null)} fullWidth maxWidth="sm" PaperProps={{ sx: { borderRadius: '20px', overflow: 'hidden' } }}>
+        {/* HEADER: foto grande + melhor preço em destaque */}
+        {pricesFor && (() => {
+          const offers = pricesData?.snapshot?.offers ?? [];
+          const best = offers[0];
+          return (
+            <Box sx={{ background: 'linear-gradient(135deg, rgba(32,178,170,.08), rgba(32,178,170,.02))', p: 2.5, borderBottom: '1px solid', borderColor: 'divider' }}>
+              <Stack direction="row" spacing={2} alignItems="center">
+                {best?.imageUrl || pricesFor.catalogPhotoUrl ? (
+                  <Box component="img" src={best?.imageUrl ?? pricesFor.catalogPhotoUrl!} alt={pricesFor.name}
+                    sx={{ width: 72, height: 72, borderRadius: '16px', objectFit: 'contain', bgcolor: 'background.paper', border: '2px solid', borderColor: 'primary.main' }} />
+                ) : (
+                  <MedAvatar name={pricesFor.name} size={72} />
+                )}
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography sx={{ fontWeight: 800, fontSize: 18, lineHeight: 1.2, fontFamily: 'Poppins, sans-serif' }}>{pricesFor.name}</Typography>
+                  {[pricesFor.dosage, pricesFor.packQty ? `${pricesFor.packQty} un.` : null].filter(Boolean).join(' · ') && (
+                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                      {[pricesFor.dosage, pricesFor.packQty ? `${pricesFor.packQty} un.` : null].filter(Boolean).join(' · ')}
+                    </Typography>
                   )}
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography sx={{ fontWeight: 800, fontSize: 14, fontVariantNumeric: 'tabular-nums' }}>{fmtBRL(o.priceCents)}</Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{o.productName}</Typography>
-                    <Typography variant="caption" sx={{ color: 'text.disabled' }}>{o.pharmacy}</Typography>
-                  </Box>
-                  <Button size="small" href={o.url} target="_blank" rel="noopener noreferrer" sx={{ textTransform: 'none', borderRadius: '999px', flexShrink: 0 }}>Abrir</Button>
-                </Stack>
-              ))}
-              <Typography variant="caption" sx={{ color: 'text.secondary', mt: 1 }}>Preços podem mudar no site da loja.</Typography>
-            </Stack>
+                  {best && (
+                    <Stack direction="row" spacing={1} alignItems="baseline" sx={{ mt: 0.5 }}>
+                      <Typography component="span" variant="caption" sx={{ color: 'text.secondary' }}>a partir de</Typography>
+                      <Typography component="span" sx={{ fontWeight: 800, fontSize: 26, lineHeight: 1, color: 'primary.dark', fontVariantNumeric: 'tabular-nums', fontFamily: 'Poppins, sans-serif' }}>
+                        {fmtBRL(best.priceCents)}
+                      </Typography>
+                    </Stack>
+                  )}
+                </Box>
+                {best && (
+                  <Chip label="🏆 MELHOR" size="small" sx={{ bgcolor: 'primary.main', color: '#fff', fontWeight: 800, fontSize: 10, flexShrink: 0 }} />
+                )}
+              </Stack>
+            </Box>
+          );
+        })()}
+
+        <DialogContent sx={{ p: 0 }}>
+          {pricesLoading && <Typography sx={{ color: 'text.secondary', py: 4, textAlign: 'center' }}>Buscando ofertas…</Typography>}
+          {!pricesLoading && (pricesData?.snapshot?.offers ?? []).length === 0 && (
+            <Typography sx={{ color: 'text.secondary', py: 4, textAlign: 'center' }}>Ainda não temos preços para este remédio.</Typography>
           )}
+          {!pricesLoading && (pricesData?.snapshot?.offers ?? []).map((o, i) => (
+            <Stack key={i} direction="row" spacing={1.5} alignItems="center"
+              component="a" href={o.url} target="_blank" rel="noopener noreferrer"
+              sx={{
+                p: 1.75, borderBottom: '1px solid', borderColor: 'divider',
+                textDecoration: 'none', color: 'inherit',
+                bgcolor: i === 0 ? 'rgba(32,178,170,.05)' : 'transparent',
+                transition: 'background .12s', '&:hover': { bgcolor: 'rgba(32,178,170,.08)' },
+                '&:active': { transform: 'scale(.99)' },
+              }}>
+              {/* RANK badge (1º, 2º, 3º...) */}
+              <Box sx={{ width: 28, height: 28, borderRadius: '8px', display: 'grid', placeItems: 'center', flexShrink: 0,
+                bgcolor: i === 0 ? 'primary.main' : 'action.hover', color: i === 0 ? '#fff' : 'text.secondary',
+                fontWeight: 800, fontSize: 13, fontVariantNumeric: 'tabular-nums' }}>
+                {i + 1}
+              </Box>
+              {/* FOTO do produto */}
+              {o.imageUrl ? (
+                <Box component="img" src={o.imageUrl} alt={o.productName} loading="lazy"
+                  sx={{ width: 52, height: 52, borderRadius: '12px', objectFit: 'contain', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', flexShrink: 0 }} />
+              ) : (
+                <MedAvatar name={o.productName} size={52} />
+              )}
+              {/* INFO: nome + farmácia */}
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography sx={{ fontWeight: 700, fontSize: 14, lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{o.productName}</Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>{o.pharmacy}</Typography>
+                {/* barra de comparação visual */}
+                {offers0Price > 0 && (
+                  <Box sx={{ mt: 0.5, height: 4, borderRadius: '2px', bgcolor: 'divider', width: '100%', overflow: 'hidden' }}>
+                    <Box sx={{ height: '100%', borderRadius: '2px', bgcolor: 'primary.main', width: `${Math.max(15, 100 - ((o.priceCents - offers0Price) / offers0Price) * 100)}%` }} />
+                  </Box>
+                )}
+              </Box>
+              {/* PREÇO + botão */}
+              <Stack alignItems="flex-end" spacing={0.5} sx={{ flexShrink: 0 }}>
+                <Typography sx={{ fontWeight: 800, fontSize: 16, fontVariantNumeric: 'tabular-nums', color: i === 0 ? 'primary.dark' : 'text.primary' }}>
+                  {fmtBRL(o.priceCents)}
+                </Typography>
+                <Chip label="Ver oferta" size="small" sx={{ height: 24, fontSize: 11, fontWeight: 700, bgcolor: 'primary.main', color: '#fff', '&:hover': { bgcolor: 'primary.dark' } }} />
+              </Stack>
+            </Stack>
+          ))}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setPricesFor(null)} sx={{ textTransform: 'none', fontWeight: 700 }}>Fechar</Button>
+        <DialogActions sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+          <Typography variant="caption" sx={{ color: 'text.secondary', flex: 1 }}>
+            {pricesData?.snapshot?.collectedAt ? `Atualizado ${new Date(pricesData.snapshot.collectedAt).toLocaleDateString('pt-BR')} · ` : ''}Preços podem mudar no site da loja
+          </Typography>
+          <Button onClick={() => setPricesFor(null)} variant="contained" sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>Fechar</Button>
         </DialogActions>
       </Dialog>
     </PageContainer>
