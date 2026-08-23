@@ -172,19 +172,23 @@ export const MedicationsPage = () => {
       if (!r.ok) { notify(d.error || 'Não conseguimos ler a foto', { type: 'warning' }); setScanOpen(false); return; }
       if (!d.suggestions?.length) { notify('Nenhum remédio identificado', { type: 'info' }); setScanOpen(false); return; }
 
-      // MATCH contra o catálogo: cada remédio identificado ganha foto + preço
+      // MATCH: catálogo primeiro (instantâneo) → se vazio, VTEX live (preview)
       const enriched = await Promise.all(d.suggestions.map(async (s: any) => {
+        const base = { name: s.name, dosage: s.dosage || '', on: true, photoUrl: null as string | null, priceCents: null as number | null, productName: null as string | null };
         try {
+          // 1. Catálogo local (rápido, cacheado)
           const cat = await fetch(`${API_URL}/medications/catalog?q=${encodeURIComponent(s.name)}`, { headers: { Authorization: `Bearer ${token()}` } }).then(r2 => r2.json());
           const best = Array.isArray(cat) && cat.length > 0 ? cat[0] : null;
-          return {
-            name: s.name, dosage: s.dosage || '',
-            on: true,
-            photoUrl: best?.photoUrl ?? null,
-            priceCents: best?.priceCents ?? null,
-            productName: best?.productName ?? null,
-          };
-        } catch { return { name: s.name, dosage: s.dosage || '', on: true, photoUrl: null, priceCents: null, productName: null }; }
+          if (best?.photoUrl || best?.priceCents) {
+            return { ...base, photoUrl: best.photoUrl, priceCents: best.priceCents, productName: best.productName };
+          }
+          // 2. Catálogo vazio → busca LIVE na VTEX (preview endpoint)
+          const prev = await fetch(`${API_URL}/medications/preview?name=${encodeURIComponent(s.name)}&dosage=${encodeURIComponent(s.dosage || '')}`, { headers: { Authorization: `Bearer ${token()}` } }).then(r2 => r2.json());
+          if (prev?.found) {
+            return { ...base, photoUrl: prev.photo, priceCents: prev.priceCents, productName: prev.productName };
+          }
+          return base;
+        } catch { return base; }
       }));
       setSuggestions(enriched);
     } catch { notify('Falha ao enviar', { type: 'error' }); setScanOpen(false); }
@@ -336,21 +340,26 @@ export const MedicationsPage = () => {
         </Stack>
       )}
 
-      {/* ANÁLISE COMPLETA (créditos) */}
+      {/* ANÁLISE COMPLETA (créditos) — copy pro leigo entender o VALOR */}
       {active.length >= 2 && (
         <AppCard kind="tinted" tone="primary" sx={{ mt: 3 }}>
           <Stack spacing={1.5}>
             <Stack direction="row" spacing={1} alignItems="center">
               <AutoAwesomeIcon sx={{ color: 'primary.dark', fontSize: 20 }} />
-              <Typography sx={{ fontWeight: 800, fontSize: 15 }}>Análise completa</Typography>
+              <Typography sx={{ fontWeight: 800, fontSize: 15 }}>Seus remédios podem interagir?</Typography>
             </Stack>
-            <Typography variant="body2" sx={{ color: 'text.secondary' }}>Todas as interações + o Dr. Exame cruza com seus exames. 2 créditos.</Typography>
-            <GradientButton onClick={runFull} disabled={fullLoading}>{fullLoading ? 'Analisando…' : 'Analisar (2 créditos)'}</GradientButton>
+            <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.5 }}>
+              O Dr. Exame cruza seus <strong>remédios com seus exames</strong> e responde em segundos:
+              "Posso tomar estes dois juntos?" · "Este exame mudou por causa do remédio?" · "O que perguntar ao médico?"
+            </Typography>
+            <GradientButton onClick={runFull} disabled={fullLoading} startIcon={<AutoAwesomeIcon />}>
+              {fullLoading ? 'Analisando seus remédios…' : 'Descobrir agora (2 créditos)'}
+            </GradientButton>
             {full && (
               <Stack spacing={1}>
                 {(full.all ?? []).length === 0 && <Typography sx={{ color: 'success.main', fontWeight: 700 }}>✅ Tudo certo entre seus remédios.</Typography>}
                 {(full.all ?? []).map((h, i) => <HitCard key={i} h={h} />)}
-                {full.contextual && <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'action.hover', whiteSpace: 'pre-wrap', fontSize: 13.5 }}>{full.contextual}</Box>}
+                {full.contextual && <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'action.hover', whiteSpace: 'pre-wrap', fontSize: 13.5, lineHeight: 1.6 }}>{full.contextual}</Box>}
               </Stack>
             )}
           </Stack>
