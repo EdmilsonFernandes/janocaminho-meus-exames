@@ -19,6 +19,7 @@ interface Section {
   title: string;
   body: React.ReactNode;
   cite?: string;
+  citeHref?: string;
 }
 
 const SECTIONS: Section[] = [
@@ -48,7 +49,8 @@ const SECTIONS: Section[] = [
     icon: <LockIcon sx={{ color: '#20b2aa' }} />,
     title: '5 · Seus dados são seus',
     body: <>Seguimos a <b>LGPD</b>: dados de identificação (como CPF) são armazenados <b>criptografados</b>, os PDFs dos exames ficam fora do banco de dados, e o acesso é seu — e de quem você autorizar explicitamente. Você pode excluir exames individualmente ou pedir a exclusão completa da conta a qualquer momento.</>,
-    cite: 'Lei nº 13.709/2018 (Lei Geral de Proteção de Dados) — dado de saúde é dado sensível: tratamos com criptografia e minimização.',
+    cite: 'Lei nº 13.709/2018 (LGPD) — dado de saúde é dado sensível: tratamos com criptografia e minimização. Leia a lei na íntegra →',
+    citeHref: 'http://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm',
   },
   {
     icon: <CompareArrowsIcon sx={{ color: '#20b2aa' }} />,
@@ -79,7 +81,9 @@ export const HowWeValidatePage = () => {
                 <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.7 }}>{s.body}</Typography>
                 {s.cite && (
                   <Typography variant="caption" sx={{ display: 'block', mt: 1, color: 'text.disabled', fontStyle: 'italic', lineHeight: 1.5 }}>
-                    {s.cite}
+                    {s.citeHref ? (
+                      <Box component="a" href={s.citeHref} target="_blank" rel="noopener noreferrer" sx={{ color: '#178f89', textDecoration: 'none', fontWeight: 700, '&:hover': { textDecoration: 'underline' } }}>{s.cite}</Box>
+                    ) : s.cite}
                   </Typography>
                 )}
               </Box>

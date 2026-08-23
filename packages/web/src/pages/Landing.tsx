@@ -853,12 +853,12 @@ export const LandingPage = () => {
           </Reveal>
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(3, 1fr)' }, gap: 2.5 }}>
             {[
-              { Icon: MonitorHeartIcon, t: 'Score de saúde 0–100', f: 'Marcadores fora da faixa − severidade − recência', d: 'Cada item alterado tira pontos conforme a gravidade; exames antigos pesam menos. O número que você acompanha no app é essa conta — aberta, não mágica.', src: 'Faixas do seu laboratório + diretrizes ADA/SBC/OMS' },
-              { Icon: MonitorWeightIcon, t: 'Idade biológica (PhenoAge)', f: 'Levine et al., Aging 2020 — 9 marcadores', d: 'Albumina, creatinina, glicose, PCR e mais nove marcadores do seu exame comum revelam se seu corpo é mais novo (ou velho) que a carteira.', src: 'Formulação publicada — fórmula de Levine, revisada por pares' },
-              { Icon: CalculateIcon, t: 'eGFR · HOMA-IR · IMC', f: 'CKD-EPI · (glicemia × insulina)/405 · peso/altura²', d: 'Os índices que o laudo não calcula: função renal, resistência à insulina e composição — gerados na hora, com o valor ideal ao lado do de referência.', src: 'CKD-EPI (NEJM) · HOMA-IR (Matthews et al.)' },
-              { Icon: WarningAmberIcon, t: 'Leitura de risco', f: 'Cada risco cita a diretriz que o define', d: 'Pré-diabetes, anemia, cardiovascular: o limiar vem da ADA, SBC ou OMS — e aparece no card. Seu perfil (sexo, idade, etnia) ajusta a leitura.', src: 'ADA · SBC · OMS · diretrizes brasileiras' },
-              { Icon: ChildCareIcon, t: 'Faixas por idade', f: 'Harriet Lane Handbook, 22ª ed. (pediatria)', d: 'Exame de criança lido com régua de criança: quando o laudo não traz a faixa da idade, aplicamos a banda etária e marcamos o item com selo transparente.', src: 'The Johns Hopkins Hospital — referência mundial em pediatria' },
-              { Icon: AutoAwesomeIcon, t: 'IA que explica, não inventa', f: 'Valores vêm do laudo · pós-filtro anti-diagnóstico', d: 'A extração lê o texto do PDF, você confere antes de salvar, e um filtro bloqueia linguagem de diagnóstico. A IA contextualiza — a régua decide.', src: 'RDC 657/2022 (ANVISA): ferramenta educativa, sem diagnóstico' },
+              { Icon: MonitorHeartIcon, t: 'Score de saúde 0–100', f: 'Marcadores fora da faixa − severidade − recência', d: 'Cada item alterado tira pontos conforme a gravidade; exames antigos pesam menos. O número que você acompanha no app é essa conta — aberta, não mágica.', src: [{ l: 'Faixas do seu laboratório + diretrizes ADA/SBC/OMS' }] },
+              { Icon: MonitorWeightIcon, t: 'Idade biológica (PhenoAge)', f: 'Levine et al., Aging 2018 — 9 marcadores', d: 'Albumina, creatinina, glicose, PCR e mais nove marcadores do seu exame comum revelam se seu corpo é mais novo (ou velho) que a carteira.', src: [{ l: 'Levine et al., Aging 2018 (PubMed) →', href: 'https://pubmed.ncbi.nlm.nih.gov/29676998/' }] },
+              { Icon: CalculateIcon, t: 'eGFR · HOMA-IR · IMC', f: 'CKD-EPI · (glicemia × insulina)/405 · peso/altura²', d: 'Os índices que o laudo não calcula: função renal, resistência à insulina e composição — gerados na hora, com o valor ideal ao lado do de referência.', src: [{ l: 'CKD-EPI: Inker, NEJM 2021 →', href: 'https://pubmed.ncbi.nlm.nih.gov/34554658/' }, { l: 'HOMA-IR: Matthews, 1985 →', href: 'https://pubmed.ncbi.nlm.nih.gov/3899825/' }] },
+              { Icon: WarningAmberIcon, t: 'Leitura de risco', f: 'Cada risco cita a diretriz que o define', d: 'Pré-diabetes, anemia, cardiovascular: o limiar vem da ADA, SBC ou OMS — e aparece no card. Seu perfil (sexo, idade, etnia) ajusta a leitura.', src: [{ l: 'ADA · SBC' }, { l: 'OMS (hipertensão) →', href: 'https://www.who.int/news-room/fact-sheets/detail/hypertension' }] },
+              { Icon: ChildCareIcon, t: 'Faixas por idade', f: 'Harriet Lane Handbook, 22ª ed. (pediatria)', d: 'Exame de criança lido com régua de criança: quando o laudo não traz a faixa da idade, aplicamos a banda etária e marcamos o item com selo transparente.', src: [{ l: 'The Harriet Lane Handbook, 22ª ed. — Elsevier/Johns Hopkins (sem link: cite completa no app)' }] },
+              { Icon: AutoAwesomeIcon, t: 'IA que explica, não inventa', f: 'Valores vêm do laudo · pós-filtro anti-diagnóstico', d: 'A extração lê o texto do PDF, você confere antes de salvar, e um filtro bloqueia linguagem de diagnóstico. A IA contextualiza — a régua decide.', src: [{ l: 'ANVISA, RDC nº 657/2022 (DOU — consulta pública no site da ANVISA)' }] },
             ].map((c) => (
               <Box key={c.t} sx={{ p: 3, borderRadius: '12px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', height: '100%', display: 'flex', flexDirection: 'column', transition: 'all .2s ease', '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 20px 44px rgba(15,61,58,.10)', borderColor: TEAL } }}>
                 <Box sx={{ width: 48, height: 48, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2, background: 'linear-gradient(135deg,rgba(32,178,170,.14),rgba(32,178,170,.06))' }}>
@@ -867,7 +867,16 @@ export const LandingPage = () => {
                 <Typography variant="h6" sx={{ fontWeight: 800, fontSize: 16.5, color: 'text.primary', mb: 0.75 }}>{c.t}</Typography>
                 <Box sx={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: 12, color: TEAL_DARK, bgcolor: 'rgba(32,178,170,.08)', borderRadius: '8px', px: 1.25, py: 0.75, mb: 1.5, fontWeight: 600 }}>{c.f}</Box>
                 <Typography sx={{ fontSize: 13.5, color: 'text.secondary', lineHeight: 1.6, flex: 1 }}>{c.d}</Typography>
-                <Typography variant="caption" sx={{ display: 'block', mt: 1.5, color: 'text.disabled', fontStyle: 'italic' }}>Fonte: {c.src}</Typography>
+                <Typography variant="caption" sx={{ display: 'block', mt: 1.5, color: 'text.disabled', fontStyle: 'italic' }}>
+                  Fonte: {c.src.map((s: { l: string; href?: string }, i: number) => (
+                    <Box key={s.l} component="span">
+                      {i > 0 && ' · '}
+                      {s.href ? (
+                        <Box component="a" href={s.href} target="_blank" rel="noopener noreferrer" sx={{ color: TEAL_DARK, textDecoration: 'none', fontWeight: 700, '&:hover': { textDecoration: 'underline' } }}>{s.l}</Box>
+                      ) : s.l}
+                    </Box>
+                  ))}
+                </Typography>
               </Box>
             ))}
           </Box>
