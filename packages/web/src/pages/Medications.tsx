@@ -31,6 +31,7 @@ interface Med {
 }
 interface Hit { drugA: string; drugB: string; severity: string; effect: string; recommendation: string }
 interface CheckResp { critical: Hit[]; unmatched: string[]; activeMeds: number; hasMore?: boolean }
+interface ScanSuggestion { name: string; dosage: string; on: boolean; photoUrl?: string | null; priceCents?: number | null; productName?: string | null }
 interface PriceOffer { pharmacy: string; productName: string; priceCents: number; url: string; imageUrl?: string | null }
 interface PricesResp { status: string; snapshot?: { lowestPriceCents?: number | null; offersCount: number; collectedAt: string; offers: PriceOffer[] } | null }
 
@@ -91,7 +92,7 @@ export const MedicationsPage = () => {
   // ESCANEAR (foto → IA → confirma)
   const [scanOpen, setScanOpen] = useState(false);
   const [scanLoading, setScanLoading] = useState(false);
-  const [suggestions, setSuggestions] = useState<{ name: string; dosage: string; on: boolean }[]>([]);
+  const [suggestions, setSuggestions] = useState<ScanSuggestion[]>([]);
   const photoInput = useRef<HTMLInputElement>(null);
 
   // PREÇOS dialog (marketplace-style)
@@ -160,7 +161,7 @@ export const MedicationsPage = () => {
     finally { setSaving(null); }
   };
 
-  /** ESCANEAR: foto → IA lista → confirma */
+  /** ESCANEAR: foto → OCR → IA → MATCH catálogo (foto+preço) → confirma com visual rico */
   const onPhoto = async (f?: File) => {
     if (!f) return;
     setScanOpen(true); setScanLoading(true); setSuggestions([]);
@@ -170,7 +171,22 @@ export const MedicationsPage = () => {
       const d = await r.json().catch(() => ({}));
       if (!r.ok) { notify(d.error || 'Não conseguimos ler a foto', { type: 'warning' }); setScanOpen(false); return; }
       if (!d.suggestions?.length) { notify('Nenhum remédio identificado', { type: 'info' }); setScanOpen(false); return; }
-      setSuggestions(d.suggestions.map((s: any) => ({ name: s.name, dosage: s.dosage || '', on: true })));
+
+      // MATCH contra o catálogo: cada remédio identificado ganha foto + preço
+      const enriched = await Promise.all(d.suggestions.map(async (s: any) => {
+        try {
+          const cat = await fetch(`${API_URL}/medications/catalog?q=${encodeURIComponent(s.name)}`, { headers: { Authorization: `Bearer ${token()}` } }).then(r2 => r2.json());
+          const best = Array.isArray(cat) && cat.length > 0 ? cat[0] : null;
+          return {
+            name: s.name, dosage: s.dosage || '',
+            on: true,
+            photoUrl: best?.photoUrl ?? null,
+            priceCents: best?.priceCents ?? null,
+            productName: best?.productName ?? null,
+          };
+        } catch { return { name: s.name, dosage: s.dosage || '', on: true, photoUrl: null, priceCents: null, productName: null }; }
+      }));
+      setSuggestions(enriched);
     } catch { notify('Falha ao enviar', { type: 'error' }); setScanOpen(false); }
     finally { setScanLoading(false); }
   };
@@ -437,22 +453,34 @@ export const MedicationsPage = () => {
         </Box>
         <DialogContent sx={{ p: 0 }}>
           {!scanLoading && suggestions.length > 0 && (
-            <Stack spacing={0.5} sx={{ p: 1 }}>
-              <Typography variant="caption" sx={{ color: 'text.secondary', px: 1, py: 0.5 }}>Confirme os que você usa:</Typography>
+            <Stack spacing={0.75} sx={{ p: 1.5 }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary', px: 0.5, mb: 0.5 }}>Confirme os que você toma:</Typography>
               {suggestions.map((s, i) => (
                 <Stack key={i} direction="row" spacing={1.5} alignItems="center" component="label"
                   sx={{
-                    p: 1.5, borderRadius: '12px', cursor: 'pointer',
-                    bgcolor: s.on ? 'rgba(32,178,170,.06)' : 'transparent',
-                    border: '1px solid', borderColor: s.on ? 'rgba(32,178,170,.2)' : 'divider',
+                    p: 1.5, borderRadius: '16px', cursor: 'pointer',
+                    bgcolor: s.on ? 'rgba(32,178,170,.05)' : 'transparent',
+                    border: '1px solid', borderColor: s.on ? 'rgba(32,178,170,.15)' : 'divider',
                     transition: 'all .12s', '&:hover': { bgcolor: 'rgba(32,178,170,.08)' },
                     animation: `medCardIn .3s ease ${i * 0.08}s both`,
-                    '@keyframes medCardIn': { from: { opacity: 0, transform: 'translateX(-8px)' }, to: { opacity: 1, transform: 'translateX(0)' } },
                   }}>
                   <Checkbox checked={s.on} onChange={() => setSuggestions((a) => a.map((x, j) => (j === i ? { ...x, on: !x.on } : x)))} size="small" sx={{ color: 'primary.main' }} />
-                  <Box sx={{ flex: 1 }}>
-                    <Typography sx={{ fontWeight: 700, fontSize: 15 }}>{s.name}</Typography>
-                    {!!s.dosage && <Typography variant="caption" sx={{ color: 'text.secondary' }}>{s.dosage}</Typography>}
+                  {/* FOTO do produto (do catálogo — match por nome) ou avatar */}
+                  {s.photoUrl ? (
+                    <Box component="img" src={s.photoUrl} alt={s.name} loading="lazy"
+                      sx={{ width: 48, height: 48, borderRadius: '12px', objectFit: 'contain', bgcolor: 'background.paper', flexShrink: 0 }} />
+                  ) : (
+                    <MedAvatar name={s.name} size={48} />
+                  )}
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography sx={{ fontWeight: 700, fontSize: 15, lineHeight: 1.25 }}>{s.name}</Typography>
+                    {!!s.dosage && <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>{s.dosage}</Typography>}
+                    {s.priceCents != null && (
+                      <Stack direction="row" spacing={0.5} alignItems="baseline" sx={{ mt: 0.25 }}>
+                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>a partir de</Typography>
+                        <PriceBig cents={s.priceCents} size={16} color="primary.dark" />
+                      </Stack>
+                    )}
                   </Box>
                 </Stack>
               ))}
