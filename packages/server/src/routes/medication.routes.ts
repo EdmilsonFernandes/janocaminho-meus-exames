@@ -18,6 +18,20 @@ import { ProviderRegistry } from '../pricing/provider';
  */
 
 const router = Router();
+
+// FARMÁCIAS ATIVAS (name + logo + cor) — PÚBLICO (antes do requireAuth de propósito):
+// a landing usa os logos no mock do comparador sem login. Logos não são dado sensível.
+router.get('/pharmacies', async (_req, res, next) => {
+  try {
+    const rows = await prisma.pharmacyConfig.findMany({
+      where: { active: true },
+      orderBy: { sortOrder: 'asc' },
+      select: { name: true, logoUrl: true, color: true },
+    });
+    res.json(rows);
+  } catch (e) { next(e); }
+});
+
 router.use(requireAuth);
 
 // LIST (por paciente; default = primeiro)
@@ -372,20 +386,6 @@ router.post('/scan-photo', upload.single('photo'), async (req: AuthedRequest, re
       .filter((m) => m.name && m.name.length >= 3)
       .slice(0, 12);
     res.json({ suggestions, readChars: text.trim().length });
-  } catch (e) { next(e); }
-});
-
-// FARMÁCIAS ATIVAS (name + logo + cor) — pro app do PACIENTE montar os badges do
-// card de preços. Antes o front buscava /admin/pharmacies → 401 pra paciente
-// (logo nunca carregava, só sigla). Logos não são dado sensível.
-router.get('/pharmacies', async (_req, res, next) => {
-  try {
-    const rows = await prisma.pharmacyConfig.findMany({
-      where: { active: true },
-      orderBy: { sortOrder: 'asc' },
-      select: { name: true, logoUrl: true, color: true },
-    });
-    res.json(rows);
   } catch (e) { next(e); }
 });
 

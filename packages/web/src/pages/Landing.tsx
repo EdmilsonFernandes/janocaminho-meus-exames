@@ -40,7 +40,7 @@ import ScienceIcon from '@mui/icons-material/Science';
 
 import { ExamDemo } from '../components/ExamDemo';
 import { FaqSection } from '../components/FaqSection';
-import { fetchPublicConfig } from '../config';
+import { fetchPublicConfig, API_URL } from '../config';
 import { usePlanInfo, fmtBRL } from '../utils/planInfo';
 import { BmiCalculator, BmiCard } from '../components/BmiCalculator';
 import { Reveal } from '../components/Reveal';
@@ -181,6 +181,15 @@ export const LandingPage = () => {
   const [credits, setCredits] = useState(45);
   const [refBonus, setRefBonus] = useState(10);
   useEffect(() => { fetchPublicConfig().then((c) => { setCredits(c.freeSignup); setRefBonus(c.referralBonus); }); }, []);
+
+  // Logos REAIS das farmácias pro mock do comparador (credibilidade — sigla é fallback).
+  const [pharmLogos, setPharmLogos] = useState<Record<string, string | null>>({});
+  useEffect(() => {
+    fetch(`${API_URL}/medications/pharmacies`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then((rows: { name: string; logoUrl: string | null }[]) => setPharmLogos(Object.fromEntries(rows.map((p) => [p.name, p.logoUrl]))))
+      .catch(() => { /* mock usa sigla colorida */ });
+  }, []);
   // Preço do plano/packs da API pública (admin edita live — landing nunca mais mente sobre preço).
   const planInfo = usePlanInfo();
 
@@ -692,7 +701,11 @@ export const LandingPage = () => {
                     { sigla: 'DP', color: '#1565c0', name: 'Drogaria Pacheco', product: 'Levotiroxina Sódica 25mcg Genérico 30cp', price: 'R$ 9,59', best: false },
                   ].map((o) => (
                     <Stack key={o.name} direction="row" spacing={1.25} alignItems="center" sx={{ py: 1.25, borderTop: '1px solid', borderColor: 'divider', bgcolor: o.best ? 'rgba(32,178,170,.05)' : 'transparent', borderRadius: o.best ? '10px' : 0, px: 0.5 }}>
-                      <Box sx={{ px: 0.75, py: 0.25, borderRadius: '6px', bgcolor: `${o.color}14`, color: o.color, fontWeight: 800, fontSize: 10, fontFamily: 'Poppins, sans-serif', flexShrink: 0 }}>{o.sigla}</Box>
+                      {pharmLogos[o.name] ? (
+                        <Box component="img" src={pharmLogos[o.name]!} alt={o.name} loading="lazy" sx={{ height: 22, maxWidth: 68, objectFit: 'contain', flexShrink: 0 }} />
+                      ) : (
+                        <Box sx={{ px: 0.75, py: 0.25, borderRadius: '6px', bgcolor: `${o.color}14`, color: o.color, fontWeight: 800, fontSize: 10, fontFamily: 'Poppins, sans-serif', flexShrink: 0 }}>{o.sigla}</Box>
+                      )}
                       <Box sx={{ flex: 1, minWidth: 0 }}>
                         <Typography noWrap sx={{ fontSize: 12.5, fontWeight: 700, color: 'text.primary' }}>{o.product}</Typography>
                         <Typography variant="caption" sx={{ color: 'text.secondary' }}>{o.name}</Typography>

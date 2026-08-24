@@ -104,11 +104,26 @@ export const TrendsPage = () => {
 
   // AUTO-SELECT inteligente (auditoria: default alfabético abria em "Basofilos" — irrelevante).
   // Prioridade: 1º marcador ALTERADO com histórico ≥2 pontos; senão o de mais medições.
+  // Bônus: sinaliza cada analito com bolinha AMARELA (alterado) ou VERMELHA (crítico)
+  // no dropdown/chips — o usuário acha o que interessa pela cor (pedido do dono).
   const [abnNames, setAbnNames] = useState<string[]>([]);
+  const [toneByName, setToneByName] = useState<Record<string, 'atencao' | 'critico'>>({});
   useEffect(() => {
     fetch(`${API_URL}/items/abnormal?_start=0&_end=100`, { headers: { Authorization: `Bearer ${token()}` } })
       .then((r) => (r.ok ? r.json() : { items: [] }))
-      .then((d) => setAbnNames([...new Set((d.items ?? []).map((i: any) => String(i.nameCanonical)).filter(Boolean))] as string[]))
+      .then((d) => {
+        const items: any[] = d.items ?? [];
+        setAbnNames([...new Set(items.map((i) => String(i.nameCanonical)).filter(Boolean))] as string[]);
+        // 1º item por nome = mais recente (lista ordenada por data desc) → tom do ÚLTIMO valor
+        const tones: Record<string, 'atencao' | 'critico'> = {};
+        for (const it of items) {
+          const k = String(it.nameCanonical ?? '');
+          if (!k || tones[k]) continue;
+          const t = displayStatus(String(it.flag ?? ''), k, it.refLow, it.refHigh).tone;
+          if (t === 'atencao' || t === 'critico') tones[k] = t;
+        }
+        setToneByName(tones);
+      })
       .catch(() => setAbnNames([]));
   }, []);
   useEffect(() => {
@@ -135,17 +150,34 @@ export const TrendsPage = () => {
         <Card sx={{ mb: 2, borderRadius: '12px' }}><CardContent sx={{ p: { xs: 1.5, md: 2 } }}>
           {multi.length > 1 && (
             <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mb: 1.5 }}>
-              {multi.slice(0, 10).map((n) => (
-                <Chip key={n.nameCanonical} label={prettyName(n.nameCanonical)} onClick={() => setSel(n.nameCanonical)}
-                  color={sel === n.nameCanonical ? 'primary' : 'default'} size="small" title={prettyName(n.nameCanonical)}
-                  sx={{ height: 36, fontWeight: 700, borderRadius: '999px', maxWidth: 165, '& .MuiChip-label': { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }, '&.MuiChip-colorPrimary': { bgcolor: '#20b2aa', color: '#fff' } }} />
-              ))}
+              {multi.slice(0, 10).map((n) => {
+                const tone = toneByName[n.nameCanonical];
+                return (
+                  <Chip key={n.nameCanonical} onClick={() => setSel(n.nameCanonical)}
+                    color={sel === n.nameCanonical ? 'primary' : 'default'} size="small" title={prettyName(n.nameCanonical)}
+                    label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                      {tone && <span style={{ width: 8, height: 8, borderRadius: '50%', background: tone === 'critico' ? '#ef4444' : '#f59e0b', boxShadow: `0 0 6px ${tone === 'critico' ? '#ef4444' : '#f59e0b'}66` }} />}
+                      {prettyName(n.nameCanonical)}
+                    </span>}
+                    sx={{ height: 36, fontWeight: 700, borderRadius: '999px', maxWidth: 185, '& .MuiChip-label': { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }, '&.MuiChip-colorPrimary': { bgcolor: '#20b2aa', color: '#fff' } }} />
+                );
+              })}
             </Stack>
           )}
           <FormControl fullWidth size="small">
-            <Select value={sel} onChange={(e) => setSel(e.target.value as string)} displayEmpty sx={{ borderRadius: '12px' }}>
+            <Select value={sel} onChange={(e) => setSel(e.target.value as string)} displayEmpty
+              MenuProps={{ PaperProps: { sx: { maxWidth: { sm: 480 }, '& .MuiMenuItem-root': { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } } } }}
+              sx={{ borderRadius: '12px', maxWidth: '100%', '& .MuiSelect-select': { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: 1 } }}>
               <MenuItem value="" disabled><em>Todos os analitos ({multi.length})</em></MenuItem>
-              {multi.map((n) => <MenuItem key={n.nameCanonical} value={n.nameCanonical}>{prettyName(n.nameCanonical)} ({n.count} exames)</MenuItem>)}
+              {multi.map((n) => {
+                const tone = toneByName[n.nameCanonical];
+                return (
+                  <MenuItem key={n.nameCanonical} value={n.nameCanonical}>
+                    {tone && <span style={{ width: 8, height: 8, borderRadius: '50%', flexShrink: 0, marginRight: 8, background: tone === 'critico' ? '#ef4444' : '#f59e0b' }} />}
+                    {prettyName(n.nameCanonical)} ({n.count} exames)
+                  </MenuItem>
+                );
+              })}
             </Select>
           </FormControl>
         </CardContent></Card>

@@ -6,6 +6,8 @@ import MedicationIcon from '@mui/icons-material/Medication';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import ShieldIcon from '@mui/icons-material/Shield';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import CloseIcon from '@mui/icons-material/Close';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { API_URL, apiHeaders, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import { PageContainer } from '../components/layout/PageContainer';
@@ -33,7 +35,11 @@ interface Hit { drugA: string; drugB: string; severity: string; effect: string; 
 interface CheckResp { critical: Hit[]; unmatched: string[]; activeMeds: number; hasMore?: boolean }
 interface ScanSuggestion { name: string; dosage: string; on: boolean; photoUrl?: string | null; priceCents?: number | null; productName?: string | null }
 interface PriceOffer { pharmacy: string; productName: string; priceCents: number; url: string; imageUrl?: string | null }
-interface PricesResp { status: string; snapshot?: { lowestPriceCents?: number | null; offersCount: number; collectedAt: string; offers: PriceOffer[] } | null }
+interface PriceOfferRow {
+  pharmacy: string; productName: string; priceCents: number;
+  url: string; imageUrl?: string | null; ean?: string | null;
+}
+interface PricesResp { status: string; snapshot?: { lowestPriceCents?: number | null; offersCount: number; collectedAt: string; offers: PriceOfferRow[] } | null }
 
 /** Produto do catálogo/VTEX — o que aparece no combobox (completo: foto+dose+pack+preço). */
 interface CatalogProduct {
@@ -129,10 +135,12 @@ export const MedicationsPage = () => {
   const [suggestions, setSuggestions] = useState<ScanSuggestion[]>([]);
   const photoInput = useRef<HTMLInputElement>(null);
 
-  // PREÇOS dialog (marketplace-style)
+  // PREÇOS dialog (marketplace-style) + ficha de detalhe da oferta (nome truncado
+  // na lista → clique abre a informação COMPLETA antes de ir pro site da farmácia)
   const [pricesFor, setPricesFor] = useState<Med | null>(null);
   const [pricesData, setPricesData] = useState<PricesResp | null>(null);
   const [pricesLoading, setPricesLoading] = useState(false);
+  const [offerDetail, setOfferDetail] = useState<PriceOfferRow | null>(null);
   const offers0Price = pricesData?.snapshot?.offers?.[0]?.priceCents ?? 0;
 
   const load = useCallback(async (silent = false) => {
@@ -305,7 +313,9 @@ export const MedicationsPage = () => {
         <input ref={photoInput} type="file" hidden accept="image/*" capture="environment" onChange={(e) => { void onPhoto(e.target.files?.[0]); if (e.target) e.target.value = ''; }} />
       </Stack>
 
-      {meds == null && <ListSkeleton count={3} />}
+      {/* skeleton SÓ quando há paciente carregando — sem paciente, o empty state
+          abaixo já convida pra agir (não fica skeleton infinito "queimando") */}
+      {meds == null && pid && <ListSkeleton count={3} />}
 
       {/* INDICADOR: pill sutil quando o worker está buscando preços */}
       {refreshing && meds != null && (
@@ -399,6 +409,26 @@ export const MedicationsPage = () => {
             );
           })}
         </Stack>
+      )}
+
+      {/* EMPTY STATE — nunca tela muda: sempre um convite pra agir (pedido do dono —
+          "aparece só o label Remédios sem interação nenhuma ai queima") */}
+      {(meds != null || !pid) && active.length === 0 && inactive.length === 0 && (
+        <Card elevation={0} sx={{ p: 4, borderRadius: '20px', border: '1px dashed', borderColor: 'divider', textAlign: 'center' }}>
+          <Box sx={{ width: 72, height: 72, mx: 'auto', mb: 2, borderRadius: '20px', display: 'grid', placeItems: 'center', background: 'linear-gradient(135deg,rgba(32,178,170,.14),rgba(32,178,170,.05))' }}>
+            <MedicationIcon sx={{ fontSize: 36, color: 'primary.dark' }} />
+          </Box>
+          <Typography sx={{ fontWeight: 800, fontSize: 18, fontFamily: 'Poppins, sans-serif', mb: 0.5 }}>Nenhum remédio ainda</Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary', maxWidth: 330, mx: 'auto', lineHeight: 1.55, mb: 2.5 }}>
+            Adicione o que você toma e o Dr. Exame avisa interações perigosas e acha o <strong>menor preço em 9 farmácias</strong> — com foto e link.
+          </Typography>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25} justifyContent="center" alignItems={{ xs: 'stretch', sm: 'center' }}>
+            <GradientButton startIcon={<AddIcon />} onClick={() => setSearchOpen(true)} sx={{ px: 3 }}>Buscar meu remédio</GradientButton>
+            <Button variant="outlined" startIcon={<PhotoCameraIcon />} onClick={() => photoInput.current?.click()} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, px: 3 }}>
+              Ler receita
+            </Button>
+          </Stack>
+        </Card>
       )}
 
       {/* SUSPENSOS */}
@@ -634,10 +664,10 @@ export const MedicationsPage = () => {
           )}
           {!pricesLoading && (pricesData?.snapshot?.offers ?? []).map((o, i) => (
             <Stack key={i} direction="row" spacing={1.5} alignItems="center"
-              component="a" href={o.url} target="_blank" rel="noopener noreferrer"
+              onClick={() => setOfferDetail(o)}
               sx={{
                 p: 1.75, borderBottom: '1px solid', borderColor: 'divider',
-                textDecoration: 'none', color: 'inherit',
+                cursor: 'pointer',
                 bgcolor: i === 0 ? 'rgba(32,178,170,.04)' : 'transparent',
                 transition: 'background .12s', '&:hover': { bgcolor: 'rgba(32,178,170,.08)' },
               }}>
@@ -674,6 +704,50 @@ export const MedicationsPage = () => {
           </Typography>
           <Button onClick={() => setPricesFor(null)} variant="contained" sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>Fechar</Button>
         </DialogActions>
+      </Dialog>
+
+      {/* FICHA DA OFERTA — nome COMPLETO (sem truncar), foto grande, farmácia e CTA.
+          A lista truncava nomes longos; agora o clique mostra tudo e o usuário decide
+          se vai pro site (não vai mais direto — camada intermediária). */}
+      <Dialog open={!!offerDetail} onClose={() => setOfferDetail(null)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: '20px', p: 0.5 } }}>
+        {offerDetail && (
+          <>
+            <Box sx={{ position: 'relative', bgcolor: 'rgba(32,178,170,.05)', borderRadius: '16px', m: 1, p: 3, display: 'grid', placeItems: 'center' }}>
+              {offerDetail.imageUrl ? (
+                <Box component="img" src={offerDetail.imageUrl} alt={offerDetail.productName} sx={{ width: 120, height: 120, objectFit: 'contain' }} />
+              ) : (
+                <MedAvatar name={offerDetail.productName} size={120} />
+              )}
+              <IconButton size="small" onClick={() => setOfferDetail(null)} aria-label="Fechar"
+                sx={{ position: 'absolute', top: 6, right: 6, bgcolor: 'background.paper', '&:hover': { bgcolor: 'action.hover' } }}>
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            </Box>
+            <DialogContent sx={{ pt: 1, pb: 0 }}>
+              <Typography sx={{ fontWeight: 800, fontSize: 16, fontFamily: 'Poppins, sans-serif', lineHeight: 1.35, wordBreak: 'break-word' }}>
+                {offerDetail.productName}
+              </Typography>
+              <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mt: 1 }}>
+                <PharmacyBadge name={offerDetail.pharmacy} />
+                <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 600 }}>{offerDetail.pharmacy}</Typography>
+              </Stack>
+              <Stack direction="row" alignItems="baseline" spacing={0.75} sx={{ mt: 2 }}>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>preço</Typography>
+                <PriceBig cents={offerDetail.priceCents} size={30} color="primary.dark" />
+              </Stack>
+              {offerDetail.ean && (
+                <Typography variant="caption" sx={{ display: 'block', mt: 1.5, color: 'text.disabled', fontFamily: 'monospace' }}>EAN {offerDetail.ean}</Typography>
+              )}
+            </DialogContent>
+            <DialogActions sx={{ px: 3, pb: 3, pt: 2 }}>
+              <Button component="a" href={offerDetail.url} target="_blank" rel="noopener noreferrer" variant="contained" fullWidth
+                endIcon={<OpenInNewIcon />}
+                sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, py: 1.2, fontSize: 15 }}>
+                Ver na farmácia
+              </Button>
+            </DialogActions>
+          </>
+        )}
       </Dialog>
     </PageContainer>
   );

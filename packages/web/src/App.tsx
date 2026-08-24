@@ -76,7 +76,6 @@ import { InviteLandingPage } from './pages/InviteLanding';
 import { TermsPage } from './pages/Terms';
 import { PatientSwitcher } from './components/PatientSwitcher';
 import { CreditsChip } from './components/CreditsChip';
-import { FloatingChat } from './components/FloatingChat';
 import { BootSplash } from './components/BootSplash';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { ExamCreateFab } from './components/ExamCreateFab';
@@ -492,7 +491,8 @@ const AppLayout = (props: any) => {
       <ReportReadyToast />
       {/* Menu lateral UNIFICADO (mobile) — ☰ e "Mais" abem o mesmo drawer */}
       <AppDrawer />
-      <FloatingChat />
+      {/* FloatingChat REMOVIDO (pedido do dono): o robô flutuante ocupava tela em
+          todas as páginas — o acesso à IA já existe no rodapé (Dr. Exame) e no menu. */}
       <ExamCreateFab />
       <OfflineBanner />
       <PullToRefresh />
