@@ -137,13 +137,16 @@ export const MedicationsPage = () => {
 
   useEffect(() => { void load(); }, [load]);
 
-  // AUTO-REFRESH: worker agora roda a cada 30s → refresh em 4s e depois 30s (2 tentativas)
+  // AUTO-REFRESH INTELIGENTE: enquanto há remédio 'buscando', re-carrega a lista
+  // silenciosamente a cada 5s (só os dados mudam — sem skeleton, sem piscar).
+  // Para sozinho quando tudo resolveu. O usuário vê um pill sutil "atualizando…".
+  const [refreshing, setRefreshing] = useState(false);
   useEffect(() => {
     const pending = (meds ?? []).some((m) => m.active && (m.priceStatus === 'queued' || m.priceStatus === 'searching'));
-    if (!pending) return;
-    const t1 = setTimeout(() => { void load(true); }, 4000);
-    const t2 = setTimeout(() => { void load(true); }, 32000); // se o worker demorar (30s cron)
-    return () => { clearTimeout(t1); clearTimeout(t2); };
+    if (!pending) { setRefreshing(false); return; }
+    setRefreshing(true);
+    const iv = setInterval(() => { void load(true); }, 5000);
+    return () => { clearInterval(iv); setRefreshing(false); };
   }, [meds, load]);
 
   // BUSCA no catálogo + VTEX (debounce 350ms)
@@ -288,6 +291,21 @@ export const MedicationsPage = () => {
       </Stack>
 
       {meds == null && <ListSkeleton count={3} />}
+
+      {/* INDICADOR: pill sutil quando o worker está buscando preços */}
+      {refreshing && meds != null && (
+        <Stack direction="row" spacing={0.75} alignItems="center" sx={{
+          position: 'fixed', bottom: { xs: 90, md: 24 }, left: '50%', transform: 'translateX(-50%)',
+          px: 2, py: 0.75, borderRadius: '999px',
+          bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider',
+          boxShadow: '0 2px 12px rgba(0,0,0,.08)', zIndex: 1200,
+        }}>
+          <CircularProgress size={14} sx={{ color: 'primary.main' }} />
+          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+            Buscando melhores preços…
+          </Typography>
+        </Stack>
+      )}
 
       {/* INTERAÇÕES — SILENCIOSA quando tudo bem (só mostra se há problema REAL) */}
       {check && check.critical.length > 0 && (
