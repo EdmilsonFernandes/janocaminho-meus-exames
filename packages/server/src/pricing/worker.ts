@@ -104,6 +104,7 @@ export async function runPriceWorkerTick(provider: MedicationPriceProvider | nul
   // (card limpo, sem erro) — processMedicationPrice cuida do caso desligado.
   const staleBefore = new Date(Date.now() - TTL_MS);
   const retryBefore = new Date(Date.now() - 60 * 60 * 1000); // provider_error: retry 1x/h (site caído não vira martelo)
+  const noResultsBefore = new Date(Date.now() - 24 * 60 * 60 * 1000); // no_results: retry 1x/dia (farmácia pode passar a ter o produto)
   const meds = await prisma.medication.findMany({
     where: {
       active: true,
@@ -111,6 +112,7 @@ export async function runPriceWorkerTick(provider: MedicationPriceProvider | nul
         { priceStatus: 'queued' },
         { priceStatus: 'available', priceCheckedAt: { lt: staleBefore } },
         { priceStatus: 'provider_error', priceCheckedAt: { lt: retryBefore } },
+        { priceStatus: 'no_results', priceCheckedAt: { lt: noResultsBefore } },
       ],
     },
     orderBy: { updatedAt: 'asc' },

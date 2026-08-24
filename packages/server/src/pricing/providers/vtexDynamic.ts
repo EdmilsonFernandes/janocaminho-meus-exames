@@ -38,8 +38,8 @@ function matches(name: string, n: NormalizedMedication): boolean {
   return true;
 }
 
-async function vtexFetch(host: string, query: string): Promise<VtexProduct[]> {
-  const r = await fetch(`https://${host}/api/catalog_system/pub/products/search/?ft=${encodeURIComponent(query)}&_from=1&_to=5`, {
+async function vtexFetch(host: string, query: string, to = 5): Promise<VtexProduct[]> {
+  const r = await fetch(`https://${host}/api/catalog_system/pub/products/search/?ft=${encodeURIComponent(query)}&_from=1&_to=${to}`, {
     headers: { 'User-Agent': UA, Accept: 'application/json', 'Accept-Language': 'pt-BR' },
     signal: AbortSignal.timeout(12_000),
   });
@@ -87,28 +87,40 @@ export const vtexDynamicProvider: MedicationPriceProvider = {
       : n.activeIngredient;
     const query = `${cleanIngredient}${dose}`.trim();
 
+    // Busca numa farmácia + fallback: o full-text multi-palavra do VTEX às vezes
+    // falha (206 com fuzzy que não casa — ex. "BARISTAR SABOR BAUNILHA" retorna
+    // Ensure/Suprasenior mas NÃO o Baristar). Se nada casou, tenta SÓ a 1ª palavra
+    // (marca/princípio) com página maior — "BARISTAR" retorna o produto exato.
+    const firstWord = query.split(' ')[0] ?? '';
+    const runQuery = async (config: { name: string; hostname: string }, q: string, to: number): Promise<PriceOffer[]> => {
+      const products = await vtexFetch(config.hostname, q, to);
+      return products
+        .map((p): PriceOffer | null => {
+          const item = p.items?.[0];
+          const offer = item?.sellers?.[0]?.commertialOffer;
+          const price = offer?.Price;
+          const name = item?.nameComplete || p.productName || '';
+          if (!price || price <= 0 || !offer?.IsAvailable) return null;
+          if (!matches(name, n)) return null;
+          return {
+            pharmacy: config.name,
+            productName: name.slice(0, 140),
+            priceCents: Math.round(price * 100),
+            url: p.link || `https://${config.hostname}/`,
+            imageUrl: item?.images?.[0]?.imageUrl ?? null,
+            ean: item?.ean ?? null,
+          };
+        })
+        .filter((o): o is PriceOffer => o !== null);
+    };
+
     const results = await Promise.allSettled(
       configs.map(async (config) => {
-        const products = await vtexFetch(config.hostname, query);
-        return products
-          .map((p): PriceOffer | null => {
-            const item = p.items?.[0];
-            const offer = item?.sellers?.[0]?.commertialOffer;
-            const price = offer?.Price;
-            const name = item?.nameComplete || p.productName || '';
-            if (!price || price <= 0 || !offer?.IsAvailable) return null;
-            if (!matches(name, n)) return null;
-            return {
-              pharmacy: config.name,
-              productName: name.slice(0, 140),
-              priceCents: Math.round(price * 100),
-              url: p.link || `https://${config.hostname}/`,
-              imageUrl: item?.images?.[0]?.imageUrl ?? null,
-              ean: item?.ean ?? null,
-            };
-          })
-          .filter((o): o is PriceOffer => o !== null)
-          .slice(0, 4); // 4 por farmácia (com 9 = até 36)
+        let offers = await runQuery(config, query, 5);
+        if (offers.length === 0 && firstWord.length >= 4 && firstWord !== query) {
+          offers = await runQuery(config, firstWord, 9);
+        }
+        return offers.slice(0, 4); // 4 por farmácia (com 9 = até 36)
       }),
     );
 

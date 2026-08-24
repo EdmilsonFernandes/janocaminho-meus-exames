@@ -63,26 +63,38 @@ export const pagueMenosProvider: MedicationPriceProvider = {
     if (!n.activeIngredient) return [];
     const dose = n.dosageValue ? ` ${n.dosageValue}${(n.dosageUnit || 'mg').toLowerCase()}` : '';
     const query = `${n.activeIngredient}${dose}`.trim();
-    const products = await vtexSearch(query);
-    return products
-      .map((p): (PriceOffer & { sortKey: number }) | null => {
-        const item = p.items?.[0];
-        const offer = item?.sellers?.[0]?.commertialOffer;
-        const price = offer?.Price;
-        const name = item?.nameComplete || p.productName || '';
-        if (!price || price <= 0 || !offer?.IsAvailable) return null;
-        if (!matches(name, n)) return null;
-        return {
-          pharmacy: 'Pague Menos',
-          productName: name.slice(0, 140),
-          priceCents: Math.round(price * 100),
-          url: p.link || `https://www.paguemenos.com.br/${p.linkText || ''}`,
-          imageUrl: item?.images?.[0]?.imageUrl ?? null,
-          ean: item?.ean ?? null,
-          sortKey: Math.round(price * 100),
-        };
-      })
-      .filter((o): o is PriceOffer & { sortKey: number } => o !== null)
+
+    const toOffers = (products: VtexProduct[]) =>
+      products
+        .map((p): (PriceOffer & { sortKey: number }) | null => {
+          const item = p.items?.[0];
+          const offer = item?.sellers?.[0]?.commertialOffer;
+          const price = offer?.Price;
+          const name = item?.nameComplete || p.productName || '';
+          if (!price || price <= 0 || !offer?.IsAvailable) return null;
+          if (!matches(name, n)) return null;
+          return {
+            pharmacy: 'Pague Menos',
+            productName: name.slice(0, 140),
+            priceCents: Math.round(price * 100),
+            url: p.link || `https://www.paguemenos.com.br/${p.linkText || ''}`,
+            imageUrl: item?.images?.[0]?.imageUrl ?? null,
+            ean: item?.ean ?? null,
+            sortKey: Math.round(price * 100),
+          };
+        })
+        .filter((o): o is PriceOffer & { sortKey: number } => o !== null);
+
+    let offers = toOffers(await vtexSearch(query));
+    // Fallback: full-text multi-palavra pode falhar (fuzzy que não casa — ex.
+    // "BARISTAR SABOR BAUNILHA" não retorna o Baristar). Tenta SÓ a 1ª palavra.
+    if (offers.length === 0) {
+      const firstWord = n.activeIngredient.split(' ')[0] ?? '';
+      if (firstWord.length >= 4 && firstWord !== query) {
+        offers = toOffers(await vtexSearch(firstWord));
+      }
+    }
+    return offers
       .sort((a, b) => a.sortKey - b.sortKey)
       .slice(0, 8)
       .map(({ sortKey, ...o }) => { void sortKey; return o; });

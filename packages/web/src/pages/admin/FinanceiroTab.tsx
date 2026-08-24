@@ -52,6 +52,8 @@ export const FinanceiroTab = () => {
   const [error, setError] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [payloadRow, setPayloadRow] = useState<any | null>(null);
+  // ORDENAÇÃO (antes dos early-returns — hook depois de return = React #310)
+  const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
 
   const load = useCallback(async () => {
     setLoading(true); setError(false);
@@ -94,7 +96,6 @@ export const FinanceiroTab = () => {
   if (error && !data) return <SectionError message="Não foi possível carregar os pagamentos." onRetry={() => void load()} />;
 
   // SORTING: data (mais recente) ou valor (maior primeiro)
-  const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
   const sorted = [...(data?.payments ?? [])].sort((a, b) => {
     if (sortBy === 'amount') return Number(b.amount ?? 0) - Number(a.amount ?? 0);
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
