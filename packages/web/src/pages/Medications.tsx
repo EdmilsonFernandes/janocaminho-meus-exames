@@ -161,11 +161,19 @@ export const MedicationsPage = () => {
   /** SALVA um produto — 1 TOQUE com feedback (fecha dialog → toast → lista atualiza) */
   const [saving, setSaving] = useState<string | null>(null);
   const pickProduct = async (p: CatalogProduct) => {
+    if (saving) return; // previna duplo-clique
     setSaving(p.productName);
     try {
       const r = await fetch(`${API_URL}/medications`, {
         method: 'POST', headers: apiHeaders(true),
-        body: JSON.stringify({ patientId: pid, name: p.name, dosage: p.dosage || null, packQty: p.packQty, frequency: null }),
+        body: JSON.stringify({
+          patientId: pid, name: p.name, dosage: p.dosage || null, packQty: p.packQty, frequency: null,
+          // dados VTEX do combobox → server cria offer instantânea com foto+preço
+          vtexPhotoUrl: p.photoUrl || null,
+          vtexPriceCents: p.priceCents || null,
+          vtexProductName: p.productName || null,
+          vtexPharmacy: p.pharmacy || null,
+        }),
       });
       if (r.ok) {
         setSearchOpen(false); setQuery(''); setProducts([]);
