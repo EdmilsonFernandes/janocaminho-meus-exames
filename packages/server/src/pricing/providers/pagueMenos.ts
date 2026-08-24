@@ -35,8 +35,9 @@ function matches(name: string, n: NormalizedMedication): boolean {
   const ingredient = normDrug(n.activeIngredient).split(' ')[0];
   if (!p.includes(ingredient)) return false;
   if (n.dosageValue != null) {
-    const v = String(n.dosageValue).replace('.', ',');
-    if (!new RegExp(`(^|\\D)${n.dosageValue}(\\D|$)`).test(p) && !p.includes(v)) return false;
+    // Borda de dígito obrigatória: "25" NÃO casa "125mcg" (substring include
+    // deixava dose errada vazar). O ponto da regex cobre vírgula (0.25→"0,25").
+    if (!new RegExp(`(^|\\D)${n.dosageValue}(\\D|$)`).test(p)) return false;
   }
   // Embalagem conhecida → prioriza a apresentação certa (30 ≠ 60 comprimidos)
   if (n.packQty != null && !new RegExp(`(^|\\D)${n.packQty}(\\D|$)`).test(p)) return false;

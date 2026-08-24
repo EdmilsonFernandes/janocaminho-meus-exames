@@ -40,13 +40,14 @@ router.get('/', async (req: AuthedRequest, res, next) => {
       ? await prisma.medicationPriceSnapshot.findMany({
           where: { medicationKey: { in: keys }, locationKey: 'BR', expiresAt: { gt: new Date() } },
           select: { medicationKey: true, lowestPriceCents: true, offersCount: true, collectedAt: true,
-            offers: { orderBy: { priceCents: 'asc' }, take: 1, select: { imageUrl: true } } },
+            offers: { orderBy: { priceCents: 'asc' }, take: 1, select: { imageUrl: true, pharmacy: true } } },
         })
       : [];
     const snapByKey = new Map(
       snaps.filter((s) => s.lowestPriceCents != null).map((s) => [s.medicationKey, {
         medicationKey: s.medicationKey, lowestPriceCents: s.lowestPriceCents, offersCount: s.offersCount,
         collectedAt: s.collectedAt, imageUrl: s.offers[0]?.imageUrl ?? null,
+        pharmacy: s.offers[0]?.pharmacy ?? null,
       }]),
     );
     setListHeaders(res, start, start + take, total);

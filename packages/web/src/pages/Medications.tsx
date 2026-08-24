@@ -27,7 +27,7 @@ const SEV: Record<string, { color: string; label: string; bg: string }> = {
 interface Med {
   id: string; name: string; dosage?: string | null; frequency?: string | null; active: boolean;
   priceStatus?: string; packQty?: number | null; catalogPhotoUrl?: string | null;
-  priceSummary?: { lowestPriceCents?: number | null; offersCount?: number; collectedAt?: string; imageUrl?: string | null } | null;
+  priceSummary?: { lowestPriceCents?: number | null; offersCount?: number; collectedAt?: string; imageUrl?: string | null; pharmacy?: string | null } | null;
 }
 interface Hit { drugA: string; drugB: string; severity: string; effect: string; recommendation: string }
 interface CheckResp { critical: Hit[]; unmatched: string[]; activeMeds: number; hasMore?: boolean }
@@ -361,12 +361,20 @@ export const MedicationsPage = () => {
                     <Typography sx={{ fontWeight: 700, fontSize: 16, lineHeight: 1.25, fontFamily: 'Poppins, sans-serif', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.name}</Typography>
                     <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>{[m.dosage, m.frequency].filter(Boolean).join(' · ') || 'uso contínuo'}</Typography>
                     {m.priceSummary?.lowestPriceCents != null ? (
-                      <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.75, cursor: 'pointer' }}
+                      <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mt: 0.75, cursor: 'pointer', minWidth: 0 }}
                         onClick={(e) => { e.stopPropagation(); void openPrices(m); }}>
                         <PriceBig cents={m.priceSummary.lowestPriceCents} size={20} color="primary.dark" />
-                        {(m.priceSummary?.offersCount ?? 0) > 0 && (
-                          <Typography variant="caption" sx={{ color: 'primary.main', textDecoration: 'underline', fontWeight: 700, ml: 0.5 }}>
-                            {m.priceSummary?.offersCount} oferta{(m.priceSummary?.offersCount ?? 0) > 1 ? 's' : ''}
+                        {m.priceSummary?.pharmacy && (
+                          <Stack direction="row" spacing={0.5} alignItems="center" sx={{ minWidth: 0 }}>
+                            <PharmacyBadge name={m.priceSummary.pharmacy} />
+                            <Typography variant="caption" noWrap sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                              {m.priceSummary.pharmacy}
+                            </Typography>
+                          </Stack>
+                        )}
+                        {(m.priceSummary?.offersCount ?? 0) > 1 && (
+                          <Typography variant="caption" noWrap sx={{ color: 'primary.main', textDecoration: 'underline', fontWeight: 700, flexShrink: 0 }}>
+                            +{(m.priceSummary?.offersCount ?? 0) - 1} oferta{(m.priceSummary?.offersCount ?? 0) > 2 ? 's' : ''}
                           </Typography>
                         )}
                       </Stack>
@@ -594,6 +602,12 @@ export const MedicationsPage = () => {
                       <Typography component="span" sx={{ fontWeight: 800, fontSize: 26, lineHeight: 1, color: 'primary.dark', fontVariantNumeric: 'tabular-nums', fontFamily: 'Poppins, sans-serif' }}>
                         {fmtBRL(best.priceCents)}
                       </Typography>
+                    </Stack>
+                  )}
+                  {best?.pharmacy && (
+                    <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.5 }}>
+                      <PharmacyBadge name={best.pharmacy} />
+                      <Typography variant="caption" noWrap sx={{ color: 'text.secondary', fontWeight: 600 }}>{best.pharmacy}</Typography>
                     </Stack>
                   )}
                 </Box>

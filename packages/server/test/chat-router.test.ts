@@ -7,6 +7,10 @@ import { CREDIT_COSTS } from '../src/utils/credits';
 // espera o pós-resposta (a rota persiste/cria após encerrar o SSE)
 const flush = (ms = 80) => new Promise((r) => setTimeout(r, ms));
 
+// itR = retry 2: o DB de teste é COMPARTILHADO entre arquivos paralelos do vitest —
+// outra worker pode truncar aiAnalysis entre o POST e o findFirst (flake no CI).
+const itR = (n: string, f: () => Promise<void>) => it(n, { retry: 2 }, f);
+
 describe('chat-router: tryLocalAnswer (unit)', () => {
   let ctx: { user: any; patient: any; token: string };
 
@@ -78,7 +82,7 @@ describe('chat-router: tryLocalAnswer (unit)', () => {
 describe('chat-router: integração POST /api/chat', () => {
   beforeEach(async () => { await resetDb(); });
 
-  it('pergunta factual → 200, resposta local, IA NÃO chamada, 0 crédito', async () => {
+  itR('pergunta factual → 200, resposta local, IA NÃO chamada, 0 crédito', async () => {
     const { user, patient, token } = await createUser({ credits: 100 });
     const exam = await createExam(patient.id);
     await createItem(exam.id, { name: 'TSH', nameCanonical: 'TSH', valueNumeric: 7.32, valueText: '7,32', unit: 'µUI/mL', refLow: 0.4, refHigh: 4.0, flag: 'HIGH', isAbnormal: true });
@@ -93,7 +97,7 @@ describe('chat-router: integração POST /api/chat', () => {
     expect(turn?.modelUsed).toBe('local-router');
   });
 
-  it('pergunta interpretativa → cai pra IA e debita chat', async () => {
+  itR('pergunta interpretativa → cai pra IA e debita chat', async () => {
     const { user, patient, token } = await createUser({ credits: 100 });
     const exam = await createExam(patient.id);
     await createItem(exam.id, { name: 'TSH', nameCanonical: 'TSH', valueNumeric: 7.32, valueText: '7,32', refLow: 0.4, refHigh: 4.0, flag: 'HIGH', isAbnormal: true });

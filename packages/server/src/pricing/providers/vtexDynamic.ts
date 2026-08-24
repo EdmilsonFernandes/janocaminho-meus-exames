@@ -31,8 +31,10 @@ function matches(name: string, n: NormalizedMedication): boolean {
   // não "30MG"). Sem isto, Baristar/Dipirona 500+20cp nunca casam.
   const isSupplementDose = n.dosageValue != null && n.packQty != null && n.dosageValue === n.packQty;
   if (!isSupplementDose && n.dosageValue != null) {
-    const v = String(n.dosageValue).replace('.', ',');
-    if (!new RegExp(`(^|\\D)${n.dosageValue}(\\D|$)`).test(p) && !p.includes(v)) return false;
+    // Borda de dígito obrigatória: "25" NÃO pode casar "125mcg" (o includes()
+    // por substring deixava 125mcg vazar pro card de 25mcg). O ponto da regex
+    // já cobre vírgula decimal (0.25 casa "0,25").
+    if (!new RegExp(`(^|\\D)${n.dosageValue}(\\D|$)`).test(p)) return false;
   }
   if (n.packQty != null && !new RegExp(`(^|\\D)${n.packQty}(\\D|$)`).test(p)) return false;
   return true;
