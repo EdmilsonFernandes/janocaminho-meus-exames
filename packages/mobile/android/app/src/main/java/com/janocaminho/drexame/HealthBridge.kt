@@ -12,7 +12,7 @@ import androidx.health.connect.client.records.DistanceRecord
 import androidx.health.connect.client.records.ExerciseSessionRecord
 import androidx.health.connect.client.records.HeartRateRecord
 import androidx.health.connect.client.records.StepsRecord
-import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
+import androidx.health.connect.client.records.ActiveCaloriesBurnedRecord
 import androidx.health.connect.client.request.AggregateRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import androidx.health.connect.client.units.Energy
@@ -60,7 +60,7 @@ class HealthBridge(private val activity: MainActivity) {
         val CORE_PERMISSIONS: Set<String> by lazy {
             if (!hcSdkOk()) emptySet() else setOf(
                 HealthPermission.getReadPermission(StepsRecord::class),
-                HealthPermission.getReadPermission(TotalCaloriesBurnedRecord::class),
+                HealthPermission.getReadPermission(ActiveCaloriesBurnedRecord::class),
                 HealthPermission.getReadPermission(DistanceRecord::class),
             )
         }
@@ -227,14 +227,14 @@ class HealthBridge(private val activity: MainActivity) {
                         AggregateRequest(
                             metrics = setOf(
                                 StepsRecord.COUNT_TOTAL,
-                                TotalCaloriesBurnedRecord.ENERGY_TOTAL,
+                                ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL,
                                 DistanceRecord.DISTANCE_TOTAL,
                             ),
                             timeRangeFilter = TimeRangeFilter.between(start, end),
                         )
                     )
                     val steps = res.get<Long>(StepsRecord.COUNT_TOTAL) ?: 0L
-                    val kcal = res.get<Energy>(TotalCaloriesBurnedRecord.ENERGY_TOTAL)?.inKilocalories ?: 0.0
+                    val kcal = res.get<Energy>(ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL)?.inKilocalories ?: 0.0
                     val km = res.get<Length>(DistanceRecord.DISTANCE_TOTAL)?.inKilometers ?: 0.0
 
                     // FR + exercício: lê RECORDS (não há métrica agregada p/ FR no SDK

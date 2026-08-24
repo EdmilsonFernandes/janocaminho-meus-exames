@@ -144,16 +144,16 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
   const noData = score == null && exams === 0;
   const title = noData ? 'Começa com seu primeiro exame' : score == null ? 'Score indisponível' : st.label;
   return (
-    <AppCard kind="tinted" tone={st.tone} tone2="secondary" glow sx={{ p: { xs: 2.25, md: 3 } }}>
-      <Stack direction="row" spacing={2} alignItems="center" sx={{ width: '100%' }}>
-        <Box sx={{ position: 'relative', display: 'grid', placeItems: 'center', width: 92, height: 92, flexShrink: 0 }}>
-          <svg viewBox="0 0 100 100" width="92" height="92" style={{ transform: 'rotate(-90deg)' }}>
+    <AppCard kind="tinted" tone={st.tone} tone2="secondary" glow sx={{ p: { xs: 2, sm: 2.25, md: 3 } }}>
+      <Stack direction="row" spacing={{ xs: 1.5, sm: 2 }} alignItems="center" sx={{ width: '100%', minWidth: 0 }}>
+        <Box sx={{ position: 'relative', display: 'grid', placeItems: 'center', width: { xs: 76, sm: 92 }, height: { xs: 76, sm: 92 }, flexShrink: 0 }}>
+          <Box component="svg" viewBox="0 0 100 100" sx={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
             <circle cx="50" cy="50" r="42" fill="none" stroke={alpha(t.palette.text.primary, 0.12)} strokeWidth="9" />
             <circle cx="50" cy="50" r="42" fill="none" stroke="#20b2aa" strokeWidth="9" strokeLinecap="round"
               strokeDasharray={`${(score ?? 0) * 2.64} 999`} style={{ transition: 'stroke-dasharray .8s cubic-bezier(.16,1,.3,1)' }} />
-          </svg>
+          </Box>
           <Box sx={{ position: 'absolute', textAlign: 'center' }}>
-            {loaded ? <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 26, lineHeight: 1, color: 'text.primary', fontVariantNumeric: 'tabular-nums' }}>{score ?? '—'}</Typography>
+            {loaded ? <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1.25rem, 6vw, 1.625rem)', sm: 26 }, lineHeight: 1, color: 'text.primary', fontVariantNumeric: 'tabular-nums' }}>{score ?? '—'}</Typography>
               : <Skeleton variant="text" width={36} height={30} />}
             <Typography sx={{ fontSize: 10, color: 'text.secondary', mt: -0.5 }}>de 100</Typography>
           </Box>
@@ -161,7 +161,7 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
         <Box sx={{ flex: 1, minWidth: 0 }}>
           {/* Sentence case (audit Onda A): caixa alta + ls largo = cara de painel admin. */}
           <Typography sx={{ fontSize: 12, fontWeight: 700, color: st.tone === 'success' ? '#047857' : st.tone === 'warning' ? '#8a5a1f' : st.tone === 'error' ? '#b91c1c' : '#0f6e68' }}>Sua saúde hoje</Typography>
-          <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 22, lineHeight: 1.15, color: 'text.primary', mt: 0.25, textWrap: 'balance' }}>{title}</Typography>
+          <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1.125rem, 5.5vw, 1.375rem)', sm: 22 }, lineHeight: 1.15, color: 'text.primary', mt: 0.25, textWrap: 'balance' }}>{title}</Typography>
           <Stack direction="row" spacing={1.5} sx={{ mt: 1, flexWrap: 'wrap', rowGap: 0.5 }}>
             {totalAtt > 0 ? (
               <Typography sx={{ fontSize: 13.5, color: 'text.secondary' }}>
@@ -204,14 +204,14 @@ const IndicatorTile = ({ icon, label, value, sub, tone, onClick, idx = 0 }: {
     animation: `dashTileIn .35s cubic-bezier(.16,1,.3,1) ${idx * 0.07}s both`,
     '@keyframes dashTileIn': { from: { opacity: 0, transform: 'translateY(10px)' }, to: { opacity: 1, transform: 'translateY(0)' } },
   }}>
-    <Stack direction="row" spacing={1.5} alignItems="center" sx={{ width: '100%' }}>
-      <Box sx={{ width: 44, height: 44, borderRadius: '14px', display: 'grid', placeItems: 'center', flexShrink: 0,
+    <Stack direction="row" spacing={{ xs: 1, sm: 1.5 }} alignItems="center" sx={{ width: '100%', minWidth: 0 }}>
+      <Box sx={{ width: { xs: 36, sm: 44 }, height: { xs: 36, sm: 44 }, borderRadius: '14px', display: 'grid', placeItems: 'center', flexShrink: 0,
         bgcolor: (th) => alpha((th.palette as any)[tone]?.main ?? '#20b2aa', 0.12), color: `${tone}.main`,
         transition: 'transform .15s', '&:hover': { transform: 'scale(1.06)' } }}>{icon}</Box>
-      <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography sx={{ fontSize: 11, color: 'text.secondary', lineHeight: 1.1, fontWeight: 600 }}>{label}</Typography>
-        <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 17, color: 'text.primary', lineHeight: 1.2, mt: 0.15, fontVariantNumeric: 'tabular-nums' }}>{value}</Typography>
-        {sub && <Typography sx={{ fontSize: 11, color: 'text.disabled', lineHeight: 1.1 }}>{sub}</Typography>}
+      <Box sx={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+        <Typography noWrap sx={{ fontSize: 11, color: 'text.secondary', lineHeight: 1.1, fontWeight: 600, textOverflow: 'ellipsis' }}>{label}</Typography>
+        <Typography noWrap sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(0.875rem, 4.5vw, 1.0625rem)', sm: 17 }, color: 'text.primary', lineHeight: 1.2, mt: 0.15, fontVariantNumeric: 'tabular-nums' }}>{value}</Typography>
+        {sub && <Typography noWrap sx={{ fontSize: 11, color: 'text.disabled', lineHeight: 1.1, textOverflow: 'ellipsis' }}>{sub}</Typography>}
       </Box>
     </Stack>
   </AppCard>
