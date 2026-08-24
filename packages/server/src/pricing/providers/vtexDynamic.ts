@@ -75,8 +75,17 @@ export const vtexDynamicProvider: MedicationPriceProvider = {
     const configs = await prisma.pharmacyConfig.findMany({ where: { active: true }, orderBy: { sortOrder: 'asc' } });
     if (!configs.length) return [];
 
-    const dose = n.dosageValue ? ` ${n.dosageValue}${(n.dosageUnit || 'mg').toLowerCase()}` : '';
-    const query = `${n.activeIngredient}${dose}`.trim();
+    // SUPLEMENTO: se dose == pack (ex.: "30 Cápsulas" → dose=30, pack=30), NÃO incluir
+    // a dose na busca — o produto VTEX diz "30 Cápsulas", não "30mg". Buscar com "30mg"
+    // retornava 0 resultados (Baristar).
+    const isSupplement = n.dosageValue != null && n.packQty != null && n.dosageValue === n.packQty;
+    const dose = !isSupplement && n.dosageValue ? ` ${n.dosageValue}${(n.dosageUnit || 'mg').toLowerCase()}` : '';
+    // também limpar o número do pack que ficou colado no activeIngredient
+    // ("BARISTAR SABOR BAUNILHA 30" → "BARISTAR SABOR BAUNILHA")
+    const cleanIngredient = isSupplement
+      ? n.activeIngredient.replace(/\s+\d+$/, '') // remove número solto no fim
+      : n.activeIngredient;
+    const query = `${cleanIngredient}${dose}`.trim();
 
     const results = await Promise.allSettled(
       configs.map(async (config) => {
