@@ -8,6 +8,7 @@ import MenuOutlinedIcon from '@mui/icons-material/MenuOutlined';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import BoltOutlinedIcon from '@mui/icons-material/BoltOutlined';
 import ScienceOutlinedIcon from '@mui/icons-material/ScienceOutlined';
+import StorefrontOutlinedIcon from '@mui/icons-material/StorefrontOutlined';
 import PeopleOutlinedIcon from '@mui/icons-material/PeopleOutlined';
 import MedicalServicesOutlinedIcon from '@mui/icons-material/MedicalServicesOutlined';
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
@@ -36,11 +37,12 @@ import { SupportTab } from './SupportTab';
 import { PricingTab } from './PricingTab';
 import { PiiTab } from './PiiTab';
 import { LabsTab } from './LabsTab';
+import { PharmaciesTab } from './PharmaciesTab';
 
 /** Backoffice Dr. Exame — ISOLADO do app do paciente (/admin é noLayout).
  *  Shell próprio (topbar + sidebar) com os 11 módulos de gestão. Sem chrome de paciente
  *  (sem MobileBottomNav, FloatingChat, menu de saúde). Guard: só ADMIN. */
-type ModuleId = 'overview' | 'users' | 'doctors' | 'exams' | 'ia' | 'usage' | 'risk' | 'financeiro' | 'push' | 'tech' | 'audit' | 'pii' | 'support' | 'config' | 'labs';
+type ModuleId = 'overview' | 'users' | 'doctors' | 'exams' | 'pharmacies' | 'labs' | 'ia' | 'usage' | 'risk' | 'financeiro' | 'push' | 'tech' | 'audit' | 'pii' | 'support' | 'config';
 
 const MODULES: { id: ModuleId; label: string; icon: ReactElement; group: string }[] = [
   { id: 'overview', label: 'Dashboard', icon: <DashboardOutlinedIcon />, group: 'Visão geral' },
@@ -48,6 +50,7 @@ const MODULES: { id: ModuleId; label: string; icon: ReactElement; group: string 
   { id: 'doctors', label: 'Médicos', icon: <MedicalServicesOutlinedIcon />, group: 'Gestão' },
   { id: 'exams', label: 'Exames', icon: <DescriptionOutlinedIcon />, group: 'Gestão' },
   { id: 'labs', label: 'Laboratórios', icon: <ScienceOutlinedIcon />, group: 'Gestão' },
+  { id: 'pharmacies', label: 'Farmácias', icon: <StorefrontOutlinedIcon />, group: 'Negócio' },
   { id: 'ia', label: 'IA & Alertas', icon: <AutoAwesomeOutlinedIcon />, group: 'Gestão' },
   { id: 'usage', label: 'Uso de IA', icon: <BoltOutlinedIcon />, group: 'Gestão' },
   { id: 'risk', label: 'Risco & Qualidade', icon: <AutoAwesomeOutlinedIcon />, group: 'Gestão' },
@@ -168,6 +171,7 @@ export const AdminPage = () => {
           {mod === 'doctors' && <DoctorsTab />}
           {mod === 'exams' && <ExamsTab />}
           {mod === 'labs' && <LabsTab />}
+          {mod === 'pharmacies' && <PharmaciesTab />}
           {mod === 'ia' && <IaTab />}
           {mod === 'usage' && <UsageTab />}
           {mod === 'risk' && <RiskTab />}
