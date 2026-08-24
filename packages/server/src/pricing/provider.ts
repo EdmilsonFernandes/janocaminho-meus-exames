@@ -41,28 +41,22 @@ export class ProviderRegistry {
   static get default(): MedicationPriceProvider | null {
     if (ProviderRegistry.override) return ProviderRegistry.override;
 
-    // MULTI-PROVIDER: Pague Menos (VTEX, grátis) + Drogasil (Firecrawl, se tiver key).
-    // Ambos rodam em paralelo; ofertas são mescladas e ordenadas por preço.
+    // MULTI-PROVIDER: Pague Menos (VTEX) + Drogaria Pacheco (VTEX) — ambas grátis, sem anti-bot.
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { pagueMenosProvider } = require('./providers/pagueMenos');
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { drogasilFirecrawlProvider } = require('./providers/drogasilFirecrawl');
+    const { pachecoProvider } = require('./providers/pacheco');
 
-    const hasFirecrawl = !!process.env.FIRECRAWL_API_KEY;
-    if (!hasFirecrawl) return pagueMenosProvider; // só Pague Menos (sem key do Firecrawl)
-
-    // Composite: mescla ofertas de ambos
     const composite: MedicationPriceProvider = {
-      name: 'pague-menos+drogasil',
+      name: 'pague-menos+pacheco',
       async search(n) {
-        const [pm, dg] = await Promise.allSettled([
+        const [pm, pc] = await Promise.allSettled([
           pagueMenosProvider.search(n),
-          drogasilFirecrawlProvider.search(n),
+          pachecoProvider.search(n),
         ]);
         const pmOffers = pm.status === 'fulfilled' ? pm.value : [];
-        const dgOffers = dg.status === 'fulfilled' ? dg.value : [];
-        // mescla, dedup por URL, ordena por preço
-        const all = [...pmOffers, ...dgOffers];
+        const pcOffers = pc.status === 'fulfilled' ? pc.value : [];
+        const all = [...pmOffers, ...pcOffers];
         const seen = new Set<string>();
         return all
           .filter((o) => { const k = o.url || o.productName; if (seen.has(k)) return false; seen.add(k); return true; })
