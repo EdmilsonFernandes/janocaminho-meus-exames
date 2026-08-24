@@ -88,12 +88,15 @@ export const saoJoaoProvider = makeVtexProvider('www.farmaciassaojoao.com.br', '
 export const novaEsperancaProvider = makeVtexProvider('www.drogarianovaesperanca.com.br', 'Nova Esperança', 'nova-esperanca');
 export const globoProvider = makeVtexProvider('www.drogariaglobo.com.br', 'Drogaria Globo', 'globo');
 export const santaLuciaProvider = makeVtexProvider('www.santaluciadrogarias.com.br', 'Santa Lucia', 'santa-lucia');
+export const saoPauloProvider = makeVtexProvider('www.drogariasaopaulo.com.br', 'Drogaria São Paulo', 'sao-paulo');
+export const farmaisProvider = makeVtexProvider('www.farmais.com.br', 'Farmais', 'farmais');
+export const coopProvider = makeVtexProvider('www.coopdrogaria.com.br', 'Coop Drogaria', 'coop');
 
-/** MULTI-PROVIDER: 6 farmácias VTEX em paralelo — o "Ver preços" vira um marketplace real. */
+/** MULTI-PROVIDER: 9 farmácias VTEX em paralelo — marketplace real de preços de remédios. */
 export const vtexMultiProvider: MedicationPriceProvider = {
   name: 'vtex-multi',
   async search(n: NormalizedMedication): Promise<PriceOffer[]> {
-    const providers = [pagueMenosProvider, pachecoProvider, saoJoaoProvider, novaEsperancaProvider, globoProvider, santaLuciaProvider];
+    const providers = [pagueMenosProvider, pachecoProvider, saoJoaoProvider, novaEsperancaProvider, globoProvider, santaLuciaProvider, saoPauloProvider, farmaisProvider, coopProvider];
     const results = await Promise.allSettled(providers.map((p) => p.search(n)));
     const all = results.flatMap((r) => (r.status === 'fulfilled' ? r.value : []));
     const seen = new Set<string>();

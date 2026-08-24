@@ -51,6 +51,9 @@ const PHARMACY_BRAND: Record<string, { color: string; bg: string; label: string 
   'Nova Esperança': { color: '#e65100', bg: 'rgba(230,81,0,.08)', label: 'NE' },
   'Drogaria Globo': { color: '#6a1b9a', bg: 'rgba(106,27,154,.08)', label: 'DG' },
   'Santa Lucia': { color: '#00695c', bg: 'rgba(0,105,92,.08)', label: 'SL' },
+  'Drogaria São Paulo': { color: '#c62828', bg: 'rgba(198,40,40,.08)', label: 'SP' },
+  'Farmais': { color: '#283593', bg: 'rgba(40,53,147,.08)', label: 'FM' },
+  'Coop Drogaria': { color: '#37474f', bg: 'rgba(55,71,79,.08)', label: 'CD' },
 };
 const PharmacyBadge = ({ name }: { name: string }) => {
   const brand = PHARMACY_BRAND[name] ?? { color: '#64748b', bg: 'rgba(100,116,139,.08)', label: name?.slice(0, 2).toUpperCase() || '?' };
