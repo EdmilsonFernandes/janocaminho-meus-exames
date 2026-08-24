@@ -91,7 +91,7 @@ const planData = (credits: number, info: ReturnType<typeof usePlanInfo> = null) 
   const perks = info?.premiumPerks;
   const minPack = info?.packs?.length ? Math.min(...info.packs.map((x) => x.price)) : 9.9;
   return [
-    { name: 'Grátis', price: 'R$ 0', period: '', features: [`${credits} créditos pra testar tudo`, '1º resumo de IA grátis', 'Envie exames (PDF/foto)', 'Valores, tendências e dependentes', 'Score de Saúde'], highlight: false, cta: 'Começar grátis' },
+    { name: 'Grátis', price: 'R$ 0', period: '', features: [`${credits} créditos de presente (≈ ${Math.floor(credits / 10)} resumos de IA)`, 'Tudo funciona: envios, valores, tendências, família', 'Envie exames (PDF/foto)', 'Score de Saúde'], highlight: false, cta: 'Começar grátis' },
     { name: 'Mensal', price: p ? (p.founder && p.price !== p.effectivePrice ? fmtBRL(p.effectivePrice) : fmtBRL(p.price)) : 'R$ —', period: '/mês',
       features: [
         `${p?.monthlyCredits ?? 250} créditos de IA/mês (melhor custo)`,
@@ -905,11 +905,27 @@ export const LandingPage = () => {
         </Container>
       </Box>
 
-      {/* PLANOS */}
+      {/* PLANOS — modelo explicado antes dos preços: "como funciona" mata a confusão
+          créditos × avulso × assinatura (feedback do dono: travou 3× lendo os cards). */}
       <Box id="planos" sx={{ bgcolor: 'background.paper', borderTop: '1px solid', borderColor: 'divider', py: { xs: 8, md: 11 }, scrollMarginTop: 80 }}>
         <Container maxWidth="md">
           <Typography align="center" variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>Planos <Box component="span" sx={{ ...SERIF_I, color: TEAL_DARK }}>simples e justos</Box></Typography>
-          <Typography align="center" sx={{ color: 'text.secondary', mb: 6, fontSize: 17 }}>Comece grátis. Assine quando precisar — ou pague só pelo que usar.</Typography>
+          <Typography align="center" sx={{ color: 'text.secondary', mb: 3, fontSize: 17 }}>Comece grátis. Assine quando precisar — ou pague só pelo que usar.</Typography>
+
+          {/* COMO FUNCIONA (3 passos, 1 linha cada) — antes de qualquer preço */}
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1.5, sm: 2.5 }} justifyContent="center" sx={{ mb: 4, flexWrap: 'wrap' }}>
+            {[
+              ['1️⃣', 'Baixe e teste grátis', `${credits} créditos de presente no 1º exame — sem cartão`],
+              ['2️⃣', 'A IA usa créditos', '1 resumo = 10 · 1 pergunta no chat = 2 · 1 envio = 1'],
+              ['3️⃣', 'Acabou? Você escolhe', 'Assina o mensal (melhor custo + extras) ou compra pacotes'],
+            ].map(([n, t, d]) => (
+              <Box key={t} sx={{ flex: { sm: '1 1 220px' }, maxWidth: 320, px: 2.2, py: 1.8, borderRadius: '12px', bgcolor: 'background.default', border: '1px solid', borderColor: 'divider', textAlign: 'left' }}>
+                <Typography sx={{ fontSize: 13, fontWeight: 800, color: 'text.primary' }}>{n} {t}</Typography>
+                <Typography sx={{ fontSize: 13, color: 'text.secondary', mt: 0.3, lineHeight: 1.5 }}>{d}</Typography>
+              </Box>
+            ))}
+          </Stack>
+
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr' }, gap: 3, alignItems: 'center' }}>
             {planData(credits, planInfo).map((p) => (
               <Box key={p.name} sx={{
@@ -935,6 +951,12 @@ export const LandingPage = () => {
               </Box>
             ))}
           </Box>
+
+          {/* REGRA DE DECISÃO — a pergunta que todo visitante tem ("qual eu pego?") respondida
+              em 1 linha. Sem isto, avulso × assinatura parece enigma. */}
+          <Typography align="center" sx={{ color: 'text.secondary', mt: 4, fontSize: 15, maxWidth: 560, mx: 'auto', lineHeight: 1.6 }}>
+            <strong>Não sabe qual escolher?</strong> Faz exame todo mês? O plano se paga sozinho (e vem com relatório ilimitado e histórico completo). Só tem exame de vez em quando? Compre créditos avulsos — sem mensalidade, e eles nunca expiram.
+          </Typography>
         </Container>
       </Box>
 

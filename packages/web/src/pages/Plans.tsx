@@ -132,7 +132,7 @@ export const PlansPage = () => {
   return (
     <PageContainer width={860}>
       <PageHeader icon={<DiamondIcon />} title={translate('page.plans')}
-        subtitle={<>Use à vontade: assine o <strong>mensal</strong> (250 créditos de IA por mês) ou compre <strong>créditos avulsos</strong> via PIX.</>} />
+        subtitle={<>Use à vontade: assine o <strong>mensal</strong> ({crLabel} créditos de IA por mês) ou compre <strong>créditos avulsos</strong> via PIX.</>} />
 
       {/* PIX PENDENTE (padrão gateway): banner discreto que retoma o mesmo QR/timer.
           Só aparece se o usuário gerou um PIX e saiu sem pagar — SEM criar ordem nova. */}
