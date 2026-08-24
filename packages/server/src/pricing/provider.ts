@@ -40,9 +40,36 @@ export class ProviderRegistry {
   static setOverride(p: MedicationPriceProvider | null) { ProviderRegistry.override = p; }
   static get default(): MedicationPriceProvider | null {
     if (ProviderRegistry.override) return ProviderRegistry.override;
-    // 1ª FONTE REAL: API pública VTEX da Pague Menos (estável, sem anti-bot, com EAN+foto).
+
+    // MULTI-PROVIDER: Pague Menos (VTEX, grátis) + Drogasil (Firecrawl, se tiver key).
+    // Ambos rodam em paralelo; ofertas são mescladas e ordenadas por preço.
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { pagueMenosProvider } = require('./providers/pagueMenos');
-    return pagueMenosProvider;
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { drogasilFirecrawlProvider } = require('./providers/drogasilFirecrawl');
+
+    const hasFirecrawl = !!process.env.FIRECRAWL_API_KEY;
+    if (!hasFirecrawl) return pagueMenosProvider; // só Pague Menos (sem key do Firecrawl)
+
+    // Composite: mescla ofertas de ambos
+    const composite: MedicationPriceProvider = {
+      name: 'pague-menos+drogasil',
+      async search(n) {
+        const [pm, dg] = await Promise.allSettled([
+          pagueMenosProvider.search(n),
+          drogasilFirecrawlProvider.search(n),
+        ]);
+        const pmOffers = pm.status === 'fulfilled' ? pm.value : [];
+        const dgOffers = dg.status === 'fulfilled' ? dg.value : [];
+        // mescla, dedup por URL, ordena por preço
+        const all = [...pmOffers, ...dgOffers];
+        const seen = new Set<string>();
+        return all
+          .filter((o) => { const k = o.url || o.productName; if (seen.has(k)) return false; seen.add(k); return true; })
+          .sort((a, b) => a.priceCents - b.priceCents)
+          .slice(0, 12);
+      },
+    };
+    return composite;
   }
 }
