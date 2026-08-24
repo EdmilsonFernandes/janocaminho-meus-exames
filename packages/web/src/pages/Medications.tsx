@@ -43,6 +43,23 @@ interface CatalogProduct {
 
 const fmtBRL = (cents?: number | null) => (cents == null ? '—' : (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }));
 
+/** Identidade visual da farmácia — cor + inicial (ou logo se tivermos). */
+const PHARMACY_BRAND: Record<string, { color: string; bg: string; label: string }> = {
+  'Pague Menos': { color: '#d32f2f', bg: 'rgba(211,47,47,.08)', label: 'PM' },
+  'Drogaria Pacheco': { color: '#1565c0', bg: 'rgba(21,101,192,.08)', label: 'DP' },
+  'Farmácias São João': { color: '#2e7d32', bg: 'rgba(46,125,50,.08)', label: 'SJ' },
+  'Nova Esperança': { color: '#e65100', bg: 'rgba(230,81,0,.08)', label: 'NE' },
+  'Drogaria Globo': { color: '#6a1b9a', bg: 'rgba(106,27,154,.08)', label: 'DG' },
+};
+const PharmacyBadge = ({ name }: { name: string }) => {
+  const brand = PHARMACY_BRAND[name] ?? { color: '#64748b', bg: 'rgba(100,116,139,.08)', label: name?.slice(0, 2).toUpperCase() || '?' };
+  return (
+    <Box sx={{ px: 1, py: 0.25, borderRadius: '6px', bgcolor: brand.bg, color: brand.color, fontWeight: 800, fontSize: 10, fontFamily: 'Poppins, sans-serif', flexShrink: 0 }}>
+      {brand.label}
+    </Box>
+  );
+};
+
 /** Preço premium: "R$ 4,19" → R$ menor + número GRANDE (estilo iFood). */
 const PriceBig = ({ cents, size = 22, color = 'text.primary' }: { cents?: number | null; size?: number; color?: string }) => {
   if (cents == null) return null;
@@ -570,7 +587,10 @@ export const MedicationsPage = () => {
                 <Typography sx={{ fontWeight: 700, fontSize: 14, lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {o.productName}
                 </Typography>
-                <Typography variant="caption" sx={{ color: 'text.secondary' }}>{o.pharmacy}</Typography>
+                <Stack direction="row" spacing={0.5} alignItems="center">
+                  <PharmacyBadge name={o.pharmacy} />
+                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>{o.pharmacy}</Typography>
+                </Stack>
               </Box>
               <PriceBig cents={o.priceCents} size={18} color={i === 0 ? 'primary.dark' : 'text.primary'} />
             </Stack>

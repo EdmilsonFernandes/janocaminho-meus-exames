@@ -41,29 +41,10 @@ export class ProviderRegistry {
   static get default(): MedicationPriceProvider | null {
     if (ProviderRegistry.override) return ProviderRegistry.override;
 
-    // MULTI-PROVIDER: Pague Menos (VTEX) + Drogaria Pacheco (VTEX) — ambas grátis, sem anti-bot.
+    // MULTI-PROVIDER: 5 farmácias VTEX em paralelo (Pague Menos, Pacheco, São João,
+    // Nova Esperança, Drogaria Globo) — todas API pública, grátis, sem anti-bot.
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { pagueMenosProvider } = require('./providers/pagueMenos');
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { pachecoProvider } = require('./providers/pacheco');
-
-    const composite: MedicationPriceProvider = {
-      name: 'pague-menos+pacheco',
-      async search(n) {
-        const [pm, pc] = await Promise.allSettled([
-          pagueMenosProvider.search(n),
-          pachecoProvider.search(n),
-        ]);
-        const pmOffers = pm.status === 'fulfilled' ? pm.value : [];
-        const pcOffers = pc.status === 'fulfilled' ? pc.value : [];
-        const all = [...pmOffers, ...pcOffers];
-        const seen = new Set<string>();
-        return all
-          .filter((o) => { const k = o.url || o.productName; if (seen.has(k)) return false; seen.add(k); return true; })
-          .sort((a, b) => a.priceCents - b.priceCents)
-          .slice(0, 12);
-      },
-    };
-    return composite;
+    const { vtexMultiProvider } = require('./providers/vtexMulti');
+    return vtexMultiProvider;
   }
 }
