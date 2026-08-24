@@ -24,47 +24,56 @@ interface DrogasilProduct {
   image?: string;
 }
 
-/** Extrai ofertas do markdown da Drogasil (padrão: "R$ X,XX" após nome do produto). */
+/** Extrai ofertas do markdown da Drogasil — formato REAL do Firecrawl:
+ *  `[![Imagem](img)](url "Nome do Produto")` + `R$ X,XX` nas linhas seguintes.
+ *  O nome vem no atributo TITLE do link (não no texto âncora). */
 function parseDrogasilMarkdown(md: string, n: NormalizedMedication): PriceOffer[] {
   const offers: PriceOffer[] = [];
-  const lines = md.split('\n');
   const ingredient = normDrug(n.activeIngredient).split(' ')[0];
 
-  let currentName = '';
-  let currentUrl = '';
+  // Padrão 1: [texto](url "Nome do Produto") — nome no title attribute
+  const titleRe = /\[([^\]]*)\]\((https:\/\/www\.drogasil\.com\.br\/[^)\s]+)\s+"([^"]+)"\)/g;
+  // Padrão 2: ## [Nome](url) — nome em heading com link
+  const headRe = /## \[([^\]]+)\]\((https:\/\/www\.drogasil\.com\.br\/[^)\s]+)\)/g;
 
-  for (const line of lines) {
-    // URL do produto
-    const urlMatch = line.match(/\[([^\]]+)\]\((https:\/\/www\.drogasil\.com\.br\/[^)]+)\)/);
-    if (urlMatch) {
-      currentName = urlMatch[1].trim();
-      currentUrl = urlMatch[2];
-      continue;
-    }
-    // Preço (R$ X,XX ou R$ X.XXX,XX)
-    const priceMatch = line.match(/R\$\s?([0-9.]+),(\d{2})/);
-    if (priceMatch && currentName) {
-      const price = parseFloat(priceMatch[1].replace(/\./g, '') + '.' + priceMatch[2]);
-      const p = normDrug(currentName);
-      // filtra: só o princípio ativo pedido
-      if (p.includes(ingredient) && price > 0 && price < 10000) {
-        offers.push({
-          pharmacy: 'Drogasil',
-          productName: currentName.slice(0, 140),
-          priceCents: Math.round(price * 100),
-          url: currentUrl,
-          imageUrl: null, // Firecrawl não extrai imagens do markdown da Drogasil
-          ean: null,
-        });
-      }
-      currentName = ''; // reset — próximo produto
-    }
+  const products: { name: string; url: string }[] = [];
+  let m: RegExpExecArray | null;
+
+  // extrai do title attribute
+  while ((m = titleRe.exec(md)) !== null) {
+    if (m[3] && m[3].length > 5) products.push({ name: m[3], url: m[2] });
+  }
+  // extrai de headings
+  while ((m = headRe.exec(md)) !== null) {
+    if (m[1] && m[1].length > 5) products.push({ name: m[1], url: m[2] });
   }
 
-  return offers
-    .filter((o, i, arr) => arr.findIndex((x) => x.url === o.url) === i) // dedup por URL
-    .sort((a, b) => a.priceCents - b.priceCents)
-    .slice(0, 6);
+  // dedup por URL
+  const seen = new Set<string>();
+  const unique = products.filter((p) => { if (seen.has(p.url)) return false; seen.add(p.url); return true; });
+
+  // para cada produto, acha o 1º preço após a posição dele no markdown
+  for (const p of unique) {
+    const pos = md.indexOf(p.url);
+    if (pos < 0) continue;
+    const after = md.slice(pos, pos + 600); // 600 chars após o produto
+    const priceMatch = after.match(/R\$\s?([0-9.]+),(\d{2})/);
+    if (!priceMatch) continue;
+    const price = parseFloat(priceMatch[1].replace(/\./g, '') + '.' + priceMatch[2]);
+    if (price <= 0 || price > 10000) continue;
+    const pn = normDrug(p.name);
+    if (!pn.includes(ingredient)) continue; // filtra: só o princípio ativo
+    offers.push({
+      pharmacy: 'Drogasil',
+      productName: p.name.slice(0, 140),
+      priceCents: Math.round(price * 100),
+      url: p.url,
+      imageUrl: null,
+      ean: null,
+    });
+  }
+
+  return offers.sort((a, b) => a.priceCents - b.priceCents).slice(0, 6);
 }
 
 async function firecrawlScrape(url: string): Promise<string> {

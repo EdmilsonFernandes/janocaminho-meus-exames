@@ -82,7 +82,7 @@ const PriceBig = ({ cents, size = 22, color = 'text.primary' }: { cents?: number
   const v = (cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
   const [int, dec] = v.split(',');
   return (
-    <Box component="span" sx={{ display: 'inline-flex', alignItems: 'baseline', lineHeight: 1, color }}>
+    <Box component="span" sx={{ display: 'inline-flex', alignItems: 'baseline', lineHeight: 1, color, flexShrink: 0, whiteSpace: 'nowrap' }}>
       <Box component="span" sx={{ fontSize: size * 0.55, fontWeight: 700, mr: 0.15, fontFamily: 'Poppins, sans-serif' }}>R$</Box>
       <Box component="span" sx={{ fontSize: size, fontWeight: 800, fontVariantNumeric: 'tabular-nums', fontFamily: 'Poppins, sans-serif' }}>{int}</Box>
       <Box component="span" sx={{ fontSize: size * 0.65, fontWeight: 700, fontVariantNumeric: 'tabular-nums', fontFamily: 'Poppins, sans-serif' }}>,{dec}</Box>
@@ -369,7 +369,7 @@ export const MedicationsPage = () => {
                         {m.priceSummary?.pharmacy && (
                           <Stack direction="row" spacing={0.5} alignItems="center" sx={{ minWidth: 0 }}>
                             <PharmacyBadge name={m.priceSummary.pharmacy} />
-                            <Typography variant="caption" noWrap sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                            <Typography variant="caption" noWrap sx={{ color: 'text.secondary', fontWeight: 600, minWidth: 0 }}>
                               {m.priceSummary.pharmacy}
                             </Typography>
                           </Stack>
@@ -607,9 +607,9 @@ export const MedicationsPage = () => {
                     </Stack>
                   )}
                   {best?.pharmacy && (
-                    <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.5 }}>
+                    <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.5, minWidth: 0 }}>
                       <PharmacyBadge name={best.pharmacy} />
-                      <Typography variant="caption" noWrap sx={{ color: 'text.secondary', fontWeight: 600 }}>{best.pharmacy}</Typography>
+                      <Typography variant="caption" noWrap sx={{ color: 'text.secondary', fontWeight: 600, minWidth: 0 }}>{best.pharmacy}</Typography>
                     </Stack>
                   )}
                 </Box>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Typography, Stack, Card, CardContent, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, IconButton, Collapse, LinearProgress, TextField, InputAdornment } from '@mui/material';
+import { Box, Typography, Stack, Card, CardContent, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, IconButton, Collapse, LinearProgress, TextField, InputAdornment, MenuItem } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import BoltIcon from '@mui/icons-material/Bolt';
@@ -58,7 +58,14 @@ export const UsageTab = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  const filtered = rows.filter((r) =>
+  // SORTING: por total gasto (desc) — quem mais consome IA primeiro
+  const [sortBy, setSortBy] = useState<'spent' | 'earned' | 'tx'>('spent');
+  const sorted = [...rows].sort((a, b) => {
+    if (sortBy === 'spent') return b.totalSpent - a.totalSpent;
+    if (sortBy === 'earned') return b.totalEarned - a.totalEarned;
+    return b.txCount - a.txCount;
+  });
+  const filtered = sorted.filter((r) =>
     !query || r.email.toLowerCase().includes(query.toLowerCase()) || r.name?.toLowerCase().includes(query.toLowerCase())
   );
 
@@ -94,13 +101,20 @@ export const UsageTab = () => {
         </Card>
       </Stack>
 
-      {/* Busca */}
-      <TextField
-        size="small" fullWidth placeholder="Buscar por e-mail ou nome…"
-        value={query} onChange={(e) => setQuery(e.target.value)}
-        InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon sx={{ fontSize: 18, color: 'text.secondary' }} /></InputAdornment> }}
-        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: 'background.paper' } }}
-      />
+      {/* Busca + ordenação */}
+      <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+        <TextField
+          size="small" fullWidth placeholder="Buscar por e-mail ou nome…"
+          value={query} onChange={(e) => setQuery(e.target.value)}
+          InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon sx={{ fontSize: 18, color: 'text.secondary' }} /></InputAdornment> }}
+          sx={{ flex: 1, minWidth: 200, '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: 'background.paper' } }}
+        />
+        <TextField select size="small" label="Ordenar" value={sortBy} onChange={(e) => setSortBy(e.target.value as 'spent' | 'earned' | 'tx')} sx={{ minWidth: 130, '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: 'background.paper' } }}>
+          <MenuItem value="spent">Gasto ↓</MenuItem>
+          <MenuItem value="earned">Ganho ↓</MenuItem>
+          <MenuItem value="tx">Transações ↓</MenuItem>
+        </TextField>
+      </Stack>
 
       {/* Tabela */}
       <TableContainer component={Card} sx={{ borderRadius: '12px' }}>
