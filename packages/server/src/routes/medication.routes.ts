@@ -35,21 +35,30 @@ router.get('/', async (req: AuthedRequest, res, next) => {
     ]);
     // Resumo de preço por card (join batch — nunca 1 query por remédio). Inclui a FOTO
     // da oferta mais barata (pro card mostrar o produto, não só a inicial).
+    // FALLBACK: snapshot expirado recente (≤6h, ex.: combobox de 5min que o worker
+    // ainda vai enriquecer) continua no card com flag `stale` — preço de minutos
+    // atrás é melhor que card apagado (bug Dorflex/Esomeprazol).
     const keys = rows.map((m) => m.nameNormalized).filter((k): k is string => !!k && !k.endsWith('|?'));
     const snaps = keys.length
       ? await prisma.medicationPriceSnapshot.findMany({
-          where: { medicationKey: { in: keys }, locationKey: 'BR', expiresAt: { gt: new Date() } },
-          select: { medicationKey: true, lowestPriceCents: true, offersCount: true, collectedAt: true,
+          where: { medicationKey: { in: keys }, locationKey: 'BR', collectedAt: { gt: new Date(Date.now() - 6 * 60 * 60 * 1000) } },
+          orderBy: { collectedAt: 'desc' },
+          select: { medicationKey: true, lowestPriceCents: true, offersCount: true, collectedAt: true, expiresAt: true,
             offers: { orderBy: { priceCents: 'asc' }, take: 1, select: { imageUrl: true, pharmacy: true } } },
         })
       : [];
-    const snapByKey = new Map(
-      snaps.filter((s) => s.lowestPriceCents != null).map((s) => [s.medicationKey, {
+    const now = Date.now();
+    const snapByKey = new Map<string, any>();
+    for (const s of snaps) {
+      if (s.lowestPriceCents == null) continue;
+      const entry = {
         medicationKey: s.medicationKey, lowestPriceCents: s.lowestPriceCents, offersCount: s.offersCount,
         collectedAt: s.collectedAt, imageUrl: s.offers[0]?.imageUrl ?? null,
-        pharmacy: s.offers[0]?.pharmacy ?? null,
-      }]),
-    );
+        pharmacy: s.offers[0]?.pharmacy ?? null, stale: s.expiresAt.getTime() <= now,
+      };
+      const cur = snapByKey.get(s.medicationKey);
+      if (!cur || (cur.stale && !entry.stale)) snapByKey.set(s.medicationKey, entry); // fresco > expirado
+    }
     setListHeaders(res, start, start + take, total);
     res.json(rows.map((m) => ({
       ...m,

@@ -74,7 +74,15 @@ export async function processMedicationPrice(medId: string, provider: Medication
     where: { medicationKey: normalized.medicationKey!, locationKey: 'BR', expiresAt: { gt: new Date() } },
   });
   if (fresh) {
-    await prisma.medication.update({ where: { id: med.id }, data: { priceStatus: 'available', priceCheckedAt: new Date() } });
+    // SNAPSHOT CURTO (combobox, TTL 5min) NÃO conta como resolvido: ao expirar o
+    // card apagaria e o worker só voltaria em 6h (bug Dorflex/Esomeprazol — preço
+    // sumia após 5min). Não carimba priceCheckedAt → continua elegível no próximo
+    // tick, que refaz a busca completa assim que o snapshot expira.
+    const shortTtl = fresh.expiresAt.getTime() - fresh.collectedAt.getTime() < 30 * 60 * 1000;
+    await prisma.medication.update({
+      where: { id: med.id },
+      data: { priceStatus: 'available', ...(shortTtl ? {} : { priceCheckedAt: new Date() }) },
+    });
     return 'cached';
   }
 

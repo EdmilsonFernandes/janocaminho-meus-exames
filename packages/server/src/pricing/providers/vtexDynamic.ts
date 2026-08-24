@@ -23,21 +23,25 @@ interface VtexProduct {
 }
 
 /** Tokens úteis do princípio ativo — "CLORIDRATO DE SIBUTRAMINA MONOIDRATADO" →
- * [CLORIDRATO, SIBUTRAMINA, MONOIDRATADO]. Qualquer um presente no nome conta
- * (a 1ª palavra sozinha já era; para sais a 1ª é "CLORIDRATO"/"ACETATO" genérico). */
+ * [CLORIDRATO, SIBUTRAMINA, MONOIDRATADO]. SÓ PALAVRAS ALFABÉTICAS (≥4): número
+ * NÃO é token ("0,25" casava "6x0,25mm" no nome de uma SERINGA — bug Ozempic). */
 const STOP_TOKENS = new Set(['DE', 'DO', 'DA', 'DAS', 'DOS', 'E', 'COM', 'MONO']);
 export function activeTokens(activeIngredient: string): string[] {
-  const tokens = normDrug(activeIngredient).split(' ').filter((t) => t.length >= 4 && !STOP_TOKENS.has(t));
+  const tokens = normDrug(activeIngredient).split(' ').filter((t) => /^[A-Z]{4,}$/.test(t) && !STOP_TOKENS.has(t));
   return tokens.length ? tokens : [normDrug(activeIngredient)];
 }
 
 export function matches(name: string, n: NormalizedMedication, opts: { loosePack?: boolean; looseDose?: boolean } = {}): boolean {
   const p = normDrug(name);
   if (!activeTokens(n.activeIngredient).some((t) => p.includes(t))) return false;
-  // Checagem de dígitos no texto com pontuação PRESERVADA (normDrug troca "," por
-  // espaço e "12,5mg" viraria "12 5mg" — o "5" ficaria solto e casava dose 5).
+  // Checagem de dígitos no texto com pontuação PRESERVADA (o normDrug real mantém
+  // vírgulas — "12,5mg" continua "12,5mg"; a borda `[^,.\d]` impede "5" de casar).
   const raw = name.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();
   const digitAt = (num: number | string) => new RegExp(`(^|[^,.\\d])${num}(\\D|$)`).test(raw);
+  // GUARD ML: dose em MG/MCG não pode casar volume — "0,5ml" de seringa ≠ "0,5mg"
+  // do remédio (a não ser que a dose do remédio SEJA em ML — xarope).
+  const unitIsMl = (n.dosageUnit || 'MG') === 'ML';
+  const followedByMl = (num: number | string) => new RegExp(`(^|[^,.\\d])${num}\\s*ML`).test(raw);
   // SUPLEMENTO: se o "dosage" é igual ao packQty (ex.: "30 Cápsulas" → dose=30, pack=30),
   // é a MESMA informação duplicada pelo parser — não filtrar por dose (o nome tem "30 Cápsulas",
   // não "30MG"). Sem isto, Baristar/Dipirona 500+20cp nunca casam.
@@ -46,6 +50,7 @@ export function matches(name: string, n: NormalizedMedication, opts: { loosePack
     // Borda obrigatória: "25" NÃO casa "125mcg" nem "12,5mg". O ponto da regex
     // cobre vírgula decimal (dose 0.25 casa "0,25").
     if (!digitAt(n.dosageValue)) return false;
+    if (!unitIsMl && followedByMl(n.dosageValue)) return false;
   }
   // EMBALAGEM é preferência, não lei: o default pack=30 assume comprimido — injetável
   // vem em "4 Canetas/Doses" (Mounjaro) e NUNCA teria "30" no nome. loosePack

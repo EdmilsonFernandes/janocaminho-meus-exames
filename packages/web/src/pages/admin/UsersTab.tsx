@@ -10,7 +10,7 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { API_URL, token, photoUrlFor } from '../../config';
 import { confirmDialog } from '../../components/ConfirmDialog';
-import { U, TabLoader, SectionError, ConfirmDialog } from './parts';
+import { U, TabLoader, SectionError, ConfirmDialog, PhotoZoom } from './parts';
 
 const PAGE_SIZE = 15;
 const authH = () => ({ Authorization: `Bearer ${token()}` });
@@ -126,17 +126,23 @@ export const UsersTab = () => {
             '@keyframes userCardIn': { from: { opacity: 0, transform: 'translateY(8px)' }, to: { opacity: u.blocked ? 0.6 : 1, transform: 'translateY(0)' } },
           }}>
             <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', py: 1.5, '&:last-child': { pb: 1.5 } }}>
-              {/* AVATAR com foto (se tiver) ou inicial colorida */}
-              <Box sx={{
-                width: 44, height: 44, borderRadius: '12px', flexShrink: 0,
-                display: 'grid', placeItems: 'center', overflow: 'hidden',
-                bgcolor: 'rgba(32,178,170,.1)', color: '#178f89', fontWeight: 800, fontSize: 17, fontFamily: 'Poppins, sans-serif',
-                ...(u.blocked ? { filter: 'grayscale(1)' } : {}),
-              }}>
-                {(u as any).hasPhoto && (u as any).patientId
-                  ? <Box component="img" src={photoUrlFor((u as any).patientId)} alt={u.name || '?'} loading="lazy" sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  : (u.name || u.email || '?').charAt(0).toUpperCase()}
-              </Box>
+              {/* AVATAR com foto (se tiver) ou inicial colorida — clicável p/ ZOOM */}
+              <PhotoZoom
+                src={(u as any).hasPhoto && (u as any).patientId ? photoUrlFor((u as any).patientId) : null}
+                caption={<span>{u.name || u.email}{u.email ? ` · ${u.email}` : ''}</span>}
+              >
+                <Box sx={{
+                  width: 44, height: 44, borderRadius: '12px', flexShrink: 0,
+                  display: 'grid', placeItems: 'center', overflow: 'hidden',
+                  bgcolor: 'rgba(32,178,170,.1)', color: '#178f89', fontWeight: 800, fontSize: 17, fontFamily: 'Poppins, sans-serif',
+                  ...(u.blocked ? { filter: 'grayscale(1)' } : {}),
+                  ...((u as any).hasPhoto ? { position: 'relative' } : {}),
+                }}>
+                  {(u as any).hasPhoto && (u as any).patientId
+                    ? <Box component="img" src={photoUrlFor((u as any).patientId)} alt={u.name || '?'} loading="lazy" sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    : (u.name || u.email || '?').charAt(0).toUpperCase()}
+                </Box>
+              </PhotoZoom>
               <Box sx={{ flex: 1, minWidth: { xs: 120, sm: 180 } }}>
                 <Typography component="div" sx={{ fontWeight: 700, fontSize: 15, wordBreak: 'break-word', display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap' }}>
                   {u.name || '—'}

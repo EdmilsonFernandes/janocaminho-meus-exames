@@ -8,6 +8,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import { matches } from '../src/pricing/providers/vtexDynamic';
+import { parseActiveIngredient } from '../src/pricing/normalize';
 
 const med = (ai: string, dose: number | null, pack: number | null) =>
   ({ medicationKey: null, activeIngredient: ai, dosageValue: dose, dosageUnit: 'mg', form: 'CP', packQty: pack }) as any;
@@ -72,5 +73,35 @@ describe('matches(): suplemento (dose == pack)', () => {
   it('marca da família casa (Puran T4 é Levotiroxina)', () => {
     const n = med('LEVOTIROXINA', 25, 30);
     expect(matches('Puran T4 Levotiroxina Sódica 25mcg 30 Comprimidos', n)).toBe(true);
+  });
+});
+
+describe('bug Ozempic × seringa (2026-08-24)', () => {
+  it('parseActiveIngredient: dose órfã "0,25" NÃO fica no ingrediente (virava token)', () => {
+    expect(parseActiveIngredient('Ozempic 0,25 e 0,5mg Semaglutida Injetável com 6 Agulhas')).toBe('OZEMPIC');
+  });
+
+  it('parseActiveIngredient: nome com B12/T4 preserva o código (não é dose órfã)', () => {
+    expect(parseActiveIngredient('Vitamina B12 2500mcg')).toBe('VITAMINA B12');
+  });
+
+  it('SERINGA "6x0,25mm 0,5ml" NÃO casa Ozempic 0,5mg (era R$ 2,89 de melhor preço)', () => {
+    const n = med('OZEMPIC', 0.5, 30);
+    expect(matches('Seringa Insulina Uniqmed 0,5ml 6x0,25mm 31G - unidade', n, { loosePack: true })).toBe(false);
+  });
+
+  it('acessório com a marca ("Agulhas p/ Ozempic 0,5ml") NÃO casa — guard ML', () => {
+    const n = med('OZEMPIC', 0.5, 30);
+    expect(matches('Agulhas para Caneta Ozempic 0,5ml - caixa com 6', n, { loosePack: true })).toBe(false);
+  });
+
+  it('Ozempic de verdade ("0,25+0,5Mg Sol Inj") casa — inclusive loosePack (6 agulhas ≠ 30)', () => {
+    const n = med('OZEMPIC', 0.5, 30);
+    expect(matches('Ozempic 0,25+0,5Mg Sol Inj', n, { loosePack: true })).toBe(true);
+  });
+
+  it('xarope em ML continua casando (unit do remédio É ml)', () => {
+    const n = { medicationKey: null, activeIngredient: 'IBUPROFENO', dosageValue: 100, dosageUnit: 'ML', form: 'ML', packQty: null } as any;
+    expect(matches('Ibuprofeno 100mg/5ml Xarope 100ml', n)).toBe(true);
   });
 });

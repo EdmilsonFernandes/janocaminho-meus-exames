@@ -27,7 +27,14 @@ export function parseDosage(text?: string | null): DosageInfo | null {
 export function parseActiveIngredient(name: string): string | null {
   const n = normDrug(name);
   if (!n) return null;
-  const stripped = n.replace(/\b\d+([.,]\d+)?\s*(MCG|MG|G|ML|UI)\b.*$/g, '').replace(/\b(CX|CAIXA|COMPRIMIDO[S]?|CAP[S]?|CP|CÁPSULA[S]?)\b.*$/g, '').trim();
+  const stripped = n
+    .replace(/\b\d+([.,]\d+)?\s*(MCG|MG|G|ML|UI)\b.*$/g, '')
+    .replace(/\b(CX|CAIXA|COMPRIMIDO[S]?|CAP[S]?|CP|CÁPSULA[S]?)\b.*$/g, '')
+    // Dose ÓRFÃ (número sem unidade): "OZEMPIC 0,25 E" → "OZEMPIC". Sem isto
+    // "0,25" vira TOKEN no matcher e casa "6x0,25mm" no nome de uma SERINGA.
+    .replace(/\s+\d+([.,]\d+)?(?=\s|$)/g, '')
+    .replace(/\s+(E|DE|DO|DA|COM)\s*$/, '')
+    .trim();
   return (stripped || n).split(' ').slice(0, 4).join(' ') || null;
 }
 

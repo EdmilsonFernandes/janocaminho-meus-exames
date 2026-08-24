@@ -29,11 +29,11 @@ interface VtexProduct {
   }[];
 }
 
-/** Tokens úteis do ativo — casa "CLORIDRATO DE SIBUTRAMINA MONOIDRATADO" com qualquer
- * token (a 1ª palavra de sal é "CLORIDRADO"/"ACETATO", genérica demais sozinha). */
+/** Tokens úteis do ativo — SÓ ALFABÉTICOS ≥4 (número nunca é token: "0,25" casava
+ * "6x0,25mm" no nome de uma SERINGA — bug Ozempic). */
 const STOP_TOKENS = new Set(['DE', 'DO', 'DA', 'DAS', 'DOS', 'E', 'COM', 'MONO']);
 function activeTokens(activeIngredient: string): string[] {
-  const tokens = normDrug(activeIngredient).split(' ').filter((t) => t.length >= 4 && !STOP_TOKENS.has(t));
+  const tokens = normDrug(activeIngredient).split(' ').filter((t) => /^[A-Z]{4,}$/.test(t) && !STOP_TOKENS.has(t));
   return tokens.length ? tokens : [normDrug(activeIngredient)];
 }
 
@@ -41,14 +41,16 @@ function activeTokens(activeIngredient: string): string[] {
 function matches(name: string, n: NormalizedMedication, opts: { loosePack?: boolean; looseDose?: boolean } = {}): boolean {
   const p = normDrug(name);
   if (!activeTokens(n.activeIngredient).some((t) => p.includes(t))) return false;
-  // Dígitos no texto com pontuação PRESERVADA (normDrug troca "," por espaço e
-  // "12,5mg" viraria "12 5mg" — o "5" solto casava dose 5).
+  // Dígitos com pontuação PRESERVADA + GUARD ML (volume "0,5ml" ≠ dose "0,5mg").
   const raw = name.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();
   const digitAt = (num: number | string) => new RegExp(`(^|[^,.\\d])${num}(\\D|$)`).test(raw);
+  const unitIsMl = (n.dosageUnit || 'MG') === 'ML';
+  const followedByMl = (num: number | string) => new RegExp(`(^|[^,.\\d])${num}\\s*ML`).test(raw);
   if (!opts.looseDose && n.dosageValue != null) {
     // Borda obrigatória: "25" NÃO casa "125mcg" nem "12,5mg". O ponto da regex
     // cobre vírgula decimal (dose 0.25 casa "0,25").
     if (!digitAt(n.dosageValue)) return false;
+    if (!unitIsMl && followedByMl(n.dosageValue)) return false;
   }
   // Embalagem é preferência: pack default 30 assume comprimido — injetável vem
   // em "4 Canetas" e nunca casa. loosePack ignora a embalagem (só se estrito zerou).

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Box, Typography, Card, CardContent, Stack, Chip, Avatar } from '@mui/material';
 import { API_URL, token, doctorPhotoUrl } from '../../config';
-import { TabLoader, SectionError } from './parts';
+import { TabLoader, SectionError, PhotoZoom } from './parts';
 const H = () => ({ Authorization: `Bearer ${token()}` });
 
 /** Gestão de médicos — CRM/UF, foto, validação, pacientes compartilhados. Premium cards. */
@@ -26,9 +26,11 @@ export const DoctorsTab = () => {
             '@keyframes docCardIn': { from: { opacity: 0, transform: 'translateY(8px)' }, to: { opacity: 1, transform: 'translateY(0)' } },
           }}>
             <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.75, py: 1.75, '&:last-child': { pb: 1.75 } }}>
-              <Avatar src={m.photoUrl ? doctorPhotoUrl(m.id) : undefined} sx={{ width: 48, height: 48, borderRadius: '12px', bgcolor: 'rgba(32,178,170,.1)', color: '#178f89', fontWeight: 800, fontSize: 18, fontFamily: 'Poppins, sans-serif', flexShrink: 0 }}>
-                {(m.name || '?').charAt(0).toUpperCase()}
-              </Avatar>
+              <PhotoZoom src={m.photoUrl ? doctorPhotoUrl(m.id) : null} caption={`${m.name} · CRM ${m.crm}${m.crmUf && !String(m.crm).includes('-') ? `-${m.crmUf}` : ''}`}>
+                <Avatar src={m.photoUrl ? doctorPhotoUrl(m.id) : undefined} sx={{ width: 48, height: 48, borderRadius: '12px', bgcolor: 'rgba(32,178,170,.1)', color: '#178f89', fontWeight: 800, fontSize: 18, fontFamily: 'Poppins, sans-serif', flexShrink: 0 }}>
+                  {(m.name || '?').charAt(0).toUpperCase()}
+                </Avatar>
+              </PhotoZoom>
               <Box sx={{ flex: 1, minWidth: 0 }}>
                 <Typography sx={{ fontWeight: 700, fontSize: 15, fontFamily: 'Poppins, sans-serif' }}>{m.name}</Typography>
                 <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>

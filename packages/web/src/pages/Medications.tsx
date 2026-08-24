@@ -27,7 +27,7 @@ const SEV: Record<string, { color: string; label: string; bg: string }> = {
 interface Med {
   id: string; name: string; dosage?: string | null; frequency?: string | null; active: boolean;
   priceStatus?: string; packQty?: number | null; catalogPhotoUrl?: string | null;
-  priceSummary?: { lowestPriceCents?: number | null; offersCount?: number; collectedAt?: string; imageUrl?: string | null; pharmacy?: string | null } | null;
+  priceSummary?: { lowestPriceCents?: number | null; offersCount?: number; collectedAt?: string; imageUrl?: string | null; pharmacy?: string | null; stale?: boolean } | null;
 }
 interface Hit { drugA: string; drugB: string; severity: string; effect: string; recommendation: string }
 interface CheckResp { critical: Hit[]; unmatched: string[]; activeMeds: number; hasMore?: boolean }
@@ -157,7 +157,7 @@ export const MedicationsPage = () => {
   // Para sozinho quando tudo resolveu. O usuário vê um pill sutil "atualizando…".
   const [refreshing, setRefreshing] = useState(false);
   useEffect(() => {
-    const pending = (meds ?? []).some((m) => m.active && (m.priceStatus === 'queued' || m.priceStatus === 'searching'));
+    const pending = (meds ?? []).some((m) => m.active && (m.priceStatus === 'queued' || m.priceStatus === 'searching' || m.priceSummary?.stale));
     if (!pending) { setRefreshing(false); return; }
     setRefreshing(true);
     const iv = setInterval(() => { void load(true); }, 5000);
@@ -375,11 +375,16 @@ export const MedicationsPage = () => {
                             </Typography>
                           </Stack>
                         )}
-                        {(m.priceSummary?.offersCount ?? 0) > 1 && (
+                        {(m.priceSummary?.offersCount ?? 0) > 1 ? (
                           <Typography variant="caption" noWrap sx={{ color: 'primary.main', textDecoration: 'underline', fontWeight: 700, flexShrink: 0 }}>
                             +{(m.priceSummary?.offersCount ?? 0) - 1} oferta{(m.priceSummary?.offersCount ?? 0) > 2 ? 's' : ''}
                           </Typography>
-                        )}
+                        ) : m.priceSummary?.stale ? (
+                          // snapshot provisório (combobox) — worker ainda comparando farmácias
+                          <Typography variant="caption" noWrap sx={{ color: 'text.disabled', fontWeight: 600, flexShrink: 0, animation: 'medHintPulse 1.6s ease-in-out infinite', '@keyframes medHintPulse': { '0%, 100%': { opacity: 0.55 }, '50%': { opacity: 1 } } }}>
+                            comparando farmácias…
+                          </Typography>
+                        ) : null}
                       </Stack>
                     ) : (m.priceStatus === 'queued' || m.priceStatus === 'searching') ? (
                       <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: 'text.disabled', whiteSpace: 'nowrap' }}>⏳ Buscando…</Typography>
