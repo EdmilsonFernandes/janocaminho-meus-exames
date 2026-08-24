@@ -249,6 +249,23 @@ model Medication {
   @@map("medications")
 }
 
+// Configuração das farmácias VTEX — admin gerencia (logo, hostname, ativo/desativo).
+// O worker lê DAQUI quais farmácias buscar (sem hardcode).
+model PharmacyConfig {
+  id        String   @id @default(cuid())
+  name      String   @unique // "Pague Menos" (exibido nas ofertas)
+  slug      String   @unique // "pague-menos" (badge)
+  hostname  String   @unique // "www.paguemenos.com.br" (VTEX API)
+  logoUrl   String?  // logo da farmácia (upload admin → S3)
+  color     String?  // cor do badge quando sem logo
+  active    Boolean  @default(true)
+  sortOrder Int      @default(0) // ordem de exibição
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("pharmacy_configs")
+}
+
 // CATÁLOGO LOCAL de medicamentos — pré-populado via bootstrap (dicionário MEDS_BR → VTEX)
 // e refreshado por cron 2h. O combobox busca AQUI (instantâneo, com foto+preço).
 model MedicationCatalogEntry {

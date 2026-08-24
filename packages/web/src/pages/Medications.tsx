@@ -43,8 +43,8 @@ interface CatalogProduct {
 
 const fmtBRL = (cents?: number | null) => (cents == null ? '—' : (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }));
 
-/** Identidade visual da farmácia — cor + inicial (ou logo se tivermos). */
-const PHARMACY_BRAND: Record<string, { color: string; bg: string; label: string }> = {
+/** Identidade visual da farmácia — usa LOGO quando disponível (da tabela), senão badge colorido. */
+const PHARMACY_BRAND: Record<string, { color: string; bg: string; label: string; logoUrl?: string | null }> = {
   'Pague Menos': { color: '#d32f2f', bg: 'rgba(211,47,47,.08)', label: 'PM' },
   'Drogaria Pacheco': { color: '#1565c0', bg: 'rgba(21,101,192,.08)', label: 'DP' },
   'Farmácias São João': { color: '#2e7d32', bg: 'rgba(46,125,50,.08)', label: 'SJ' },
@@ -55,7 +55,19 @@ const PHARMACY_BRAND: Record<string, { color: string; bg: string; label: string 
   'Farmais': { color: '#283593', bg: 'rgba(40,53,147,.08)', label: 'FM' },
   'Coop Drogaria': { color: '#37474f', bg: 'rgba(55,71,79,.08)', label: 'CD' },
 };
+// logos carregados do admin (fetch uma vez no mount)
+let PHARMACY_LOGOS: Record<string, string | null> = {};
+export const loadPharmacyLogos = async () => {
+  try {
+    const r = await fetch(`${API_URL}/admin/pharmacies`, { headers: { Authorization: `Bearer ${token()}` } });
+    if (r.ok) { const rows = await r.json(); PHARMACY_LOGOS = Object.fromEntries(rows.map((p: any) => [p.name, p.logoUrl])); }
+  } catch { /* fallback: badges coloridos */ }
+};
 const PharmacyBadge = ({ name }: { name: string }) => {
+  const logo = PHARMACY_LOGOS[name];
+  if (logo) {
+    return <Box component="img" src={logo} alt={name} sx={{ height: 18, borderRadius: '3px', flexShrink: 0, objectFit: 'contain' }} />;
+  }
   const brand = PHARMACY_BRAND[name] ?? { color: '#64748b', bg: 'rgba(100,116,139,.08)', label: name?.slice(0, 2).toUpperCase() || '?' };
   return (
     <Box sx={{ px: 1, py: 0.25, borderRadius: '6px', bgcolor: brand.bg, color: brand.color, fontWeight: 800, fontSize: 10, fontFamily: 'Poppins, sans-serif', flexShrink: 0 }}>
@@ -135,7 +147,7 @@ export const MedicationsPage = () => {
     } catch { if (!silent) setMeds([]); }
   }, [pid]);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => { void load(); void loadPharmacyLogos(); }, [load]);
 
   // AUTO-REFRESH INTELIGENTE: enquanto há remédio 'buscando', re-carrega a lista
   // silenciosamente a cada 5s (só os dados mudam — sem skeleton, sem piscar).

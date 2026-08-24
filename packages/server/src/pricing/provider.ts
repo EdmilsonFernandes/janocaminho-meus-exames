@@ -41,10 +41,9 @@ export class ProviderRegistry {
   static get default(): MedicationPriceProvider | null {
     if (ProviderRegistry.override) return ProviderRegistry.override;
 
-    // MULTI-PROVIDER: 5 farmácias VTEX em paralelo (Pague Menos, Pacheco, São João,
-    // Nova Esperança, Drogaria Globo) — todas API pública, grátis, sem anti-bot.
+    // DYNAMIC: lê farmácias ATIVAS da tabela pharmacy_configs (admin gerencia).
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { vtexMultiProvider } = require('./providers/vtexMulti');
-    return vtexMultiProvider;
+    const { vtexDynamicProvider } = require('./providers/vtexDynamic');
+    return vtexDynamicProvider;
   }
 }
