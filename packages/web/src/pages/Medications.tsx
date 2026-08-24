@@ -143,7 +143,9 @@ export const MedicationsPage = () => {
         fetch(`${API_URL}/medications?patientId=${pid}`, { headers: h }).then((r) => (r.ok ? r.json() : [])),
         fetch(`${API_URL}/medications/check?patientId=${pid}`, { headers: h }).then((r) => (r.ok ? r.json() : null)),
       ]);
-      setMeds(m); setCheck(c);
+      // polling não re-renderiza se NADA mudou (array novo = re-render fantasma)
+      setMeds((prev) => (silent && JSON.stringify(prev) === JSON.stringify(m) ? prev : m));
+      setCheck((prev) => (silent && JSON.stringify(prev) === JSON.stringify(c) ? prev : c));
     } catch { if (!silent) setMeds([]); }
   }, [pid]);
 
