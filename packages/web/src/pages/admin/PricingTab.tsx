@@ -164,8 +164,8 @@ export const PricingTab = () => {
       <Section title="💎 Plano mensal" desc="O preço que NOVOS assinantes pagam (cobranças já feitas mantêm o valor gravado — nada é alterado retroativamente). Os créditos entram no saldo do assinante todo mês e não expiram."
         saving={savingKey === 'plans'} onSave={savePlan} dirty={dirtyPlan}>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} flexWrap="wrap">
-          <TextField label="Preço mensal (R$)" type="number" size="small" value={plan.price} onChange={(e) => setPlan({ ...plan, price: Number(e.target.value) })} sx={{ width: 180 }} inputProps={{ step: 0.5, min: 0.5 }} />
-          <TextField label="Créditos por mês" type="number" size="small" value={plan.credits} onChange={(e) => setPlan({ ...plan, credits: Number(e.target.value) })} sx={{ width: 180 }} />
+          <TextField label="Preço mensal (R$)" type="number" size="small" value={plan.price} onChange={(e) => setPlan({ ...plan, price: Number(e.target.value) })} sx={{ width: { xs: '100%', sm: 180 } }} inputProps={{ step: 0.5, min: 0.5 }} />
+          <TextField label="Créditos por mês" type="number" size="small" value={plan.credits} onChange={(e) => setPlan({ ...plan, credits: Number(e.target.value) })} sx={{ width: { xs: '100%', sm: 180 } }} />
         </Stack>
         <Typography variant="caption" sx={{ display: 'block', mt: 1.5, color: 'text.secondary' }}>
           📐 Regra resultante: <b>{plan.credits} créditos por {fmtBRL(plan.price)}</b> = <b>{priceCr.toFixed(1)} créditos/R$</b>
@@ -180,8 +180,8 @@ export const PricingTab = () => {
             <Switch checked={founder.enabled === 1} onChange={(e) => setFounder({ ...founder, enabled: e.target.checked ? 1 : 0 })} color="primary" />
             <Typography sx={{ fontSize: 14 }}>{founder.enabled === 1 ? 'Ligada' : 'Desligada'}</Typography>
           </Stack>
-          <TextField label="Preço fundador (R$)" type="number" size="small" disabled={founder.enabled !== 1} value={founder.price} onChange={(e) => setFounder({ ...founder, price: Number(e.target.value) })} sx={{ width: 180 }} inputProps={{ step: 0.5 }} />
-          <TextField label="Total de vagas" type="number" size="small" disabled={founder.enabled !== 1} value={founder.limit} onChange={(e) => setFounder({ ...founder, limit: Number(e.target.value) })} sx={{ width: 140 }} />
+          <TextField label="Preço fundador (R$)" type="number" size="small" disabled={founder.enabled !== 1} value={founder.price} onChange={(e) => setFounder({ ...founder, price: Number(e.target.value) })} sx={{ width: { xs: '100%', sm: 180 } }} inputProps={{ step: 0.5 }} />
+          <TextField label="Total de vagas" type="number" size="small" disabled={founder.enabled !== 1} value={founder.limit} onChange={(e) => setFounder({ ...founder, limit: Number(e.target.value) })} sx={{ width: { xs: '100%', sm: 140 } }} />
           <Chip size="small" label={`${founder.used} usadas · restam ${Math.max(0, founder.limit - founder.used)}`} variant="outlined" />
         </Stack>
       </Section>
@@ -190,16 +190,18 @@ export const PricingTab = () => {
         saving={savingKey === 'creditPacks'} onSave={savePacks} dirty={dirtyPacks}>
         <Stack spacing={1.5}>
           {packs.map((p, i) => (
-            <Stack key={i} direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ xs: 'stretch', sm: 'center' }} flexWrap="wrap" useFlexGap>
-              <TextField label="Créditos" type="number" size="small" value={p.credits} onChange={(e) => setPacks(packs.map((x, j) => j === i ? { ...x, credits: Number(e.target.value) } : x))} sx={{ width: 120 }} />
-              <TextField label="Preço (R$)" type="number" size="small" value={p.price} onChange={(e) => setPacks(packs.map((x, j) => j === i ? { ...x, price: Number(e.target.value) } : x))} sx={{ width: 130 }} inputProps={{ step: 0.5 }} />
-              <TextField label="Nome" size="small" value={p.label} onChange={(e) => setPacks(packs.map((x, j) => j === i ? { ...x, label: e.target.value } : x))} sx={{ width: 130 }} />
+            <Stack key={i} component="div" spacing={1.5} sx={{ p: { xs: 1.5, sm: 0 }, borderRadius: { xs: '12px' }, bgcolor: { xs: 'background.default' } }}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ xs: 'stretch', sm: 'center' }} flexWrap="wrap" useFlexGap>
+              <TextField label="Créditos" type="number" size="small" value={p.credits} onChange={(e) => setPacks(packs.map((x, j) => j === i ? { ...x, credits: Number(e.target.value) } : x))} sx={{ width: { xs: '50%', sm: 120 } }} />
+              <TextField label="Preço (R$)" type="number" size="small" value={p.price} onChange={(e) => setPacks(packs.map((x, j) => j === i ? { ...x, price: Number(e.target.value) } : x))} sx={{ width: { xs: '50%', sm: 130 } }} inputProps={{ step: 0.5 }} />
+              <TextField label="Nome" size="small" value={p.label} onChange={(e) => setPacks(packs.map((x, j) => j === i ? { ...x, label: e.target.value } : x))} sx={{ width: { xs: '50%', sm: 130 } }} />
               <Stack direction="row" spacing={0.5} alignItems="center">
                 <Switch size="small" checked={!!p.popular} onChange={(e) => setPacks(packs.map((x, j) => j === i ? { ...x, popular: e.target.checked && !(packs.some((y, k) => k !== j && y.popular)) } : { ...x, popular: false }))} color="primary" />
                 <Typography variant="caption">Popular</Typography>
               </Stack>
               <Typography variant="caption" sx={{ color: 'text.secondary', minWidth: 90 }}>{(p.credits / (p.price || 1)).toFixed(1)} cr/R$</Typography>
               <Button size="small" color="error" onClick={() => setPacks(packs.filter((_, j) => j !== i))} disabled={packs.length <= 1}><DeleteOutlineIcon fontSize="small" /></Button>
+            </Stack>
             </Stack>
           ))}
           <Button size="small" startIcon={<AddIcon />} onClick={() => setPacks([...packs, { id: `p${Date.now() % 100000}`, credits: 50, price: 9.9, label: 'Novo', popular: false }])} sx={{ alignSelf: 'flex-start' }}>Adicionar pacote</Button>
@@ -217,7 +219,7 @@ export const PricingTab = () => {
             </Box>
           </Stack>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'stretch', sm: 'center' }}>
-            <TextField label="Limite de perfis da família (premium)" type="number" size="small" value={premium.familyLimit} onChange={(e) => setPremium({ ...premium, familyLimit: Number(e.target.value) })} sx={{ width: 240 }} />
+            <TextField label="Limite de perfis da família (premium)" type="number" size="small" value={premium.familyLimit} onChange={(e) => setPremium({ ...premium, familyLimit: Number(e.target.value) })} sx={{ width: { xs: '100%', sm: 240 } }} />
             <Typography variant="caption" color="text.secondary">Free continua com 4 perfis (extra custa créditos).</Typography>
           </Stack>
         </Stack>
@@ -226,9 +228,9 @@ export const PricingTab = () => {
       <Section title="📤 Envio de exames" desc="Free paga créditos por envio. Premium tem uma cota mensal grátis por dependente — use 999 para 'praticamente ilimitado' (o custo real de envio é baixo; a IA de interpretação é cobrada à parte)."
         saving={savingKey === 'uploadRules'} onSave={saveUpload} dirty={dirtyUpload}>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} flexWrap="wrap">
-          <TextField label="Free: créditos por envio" type="number" size="small" value={uploadRules.freeCost} onChange={(e) => setUploadRules({ ...uploadRules, freeCost: Number(e.target.value) })} sx={{ width: 200 }} />
-          <TextField label="Premium: envios grátis/mês" type="number" size="small" value={uploadRules.premiumFreeQuota} onChange={(e) => setUploadRules({ ...uploadRules, premiumFreeQuota: Number(e.target.value) })} sx={{ width: 210 }} />
-          <TextField label="Premium: créditos após a cota" type="number" size="small" value={uploadRules.premiumCost} onChange={(e) => setUploadRules({ ...uploadRules, premiumCost: Number(e.target.value) })} sx={{ width: 230 }} />
+          <TextField label="Free: créditos por envio" type="number" size="small" value={uploadRules.freeCost} onChange={(e) => setUploadRules({ ...uploadRules, freeCost: Number(e.target.value) })} sx={{ width: { xs: '100%', sm: 200 } }} />
+          <TextField label="Premium: envios grátis/mês" type="number" size="small" value={uploadRules.premiumFreeQuota} onChange={(e) => setUploadRules({ ...uploadRules, premiumFreeQuota: Number(e.target.value) })} sx={{ width: { xs: '100%', sm: 210 } }} />
+          <TextField label="Premium: créditos após a cota" type="number" size="small" value={uploadRules.premiumCost} onChange={(e) => setUploadRules({ ...uploadRules, premiumCost: Number(e.target.value) })} sx={{ width: { xs: '100%', sm: 230 } }} />
         </Stack>
       </Section>
 
@@ -236,14 +238,14 @@ export const PricingTab = () => {
         saving={savingKey === 'creditCosts'} onSave={saveCosts} dirty={dirtyCosts}>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} flexWrap="wrap">
           {[['chat', '💬 Chat (por pergunta)'], ['summary', '📄 Resumo do exame'], ['consolidated', '🧾 Relatório consolidado'], ['extraction', '📤 Upload (0 = grátis)']].map(([k, l]) => (
-            <TextField key={k} label={l} type="number" size="small" value={creditCosts[k] ?? 0} onChange={(e) => setCreditCosts({ ...creditCosts, [k]: Number(e.target.value) })} sx={{ width: 210 }} />
+            <TextField key={k} label={l} type="number" size="small" value={creditCosts[k] ?? 0} onChange={(e) => setCreditCosts({ ...creditCosts, [k]: Number(e.target.value) })} sx={{ width: { xs: '100%', sm: 210 } }} />
           ))}
         </Stack>
       </Section>
 
       <Section title="🎁 Bônus do 1º exame" desc="Créditos dados quando o usuário extrai o primeiro exame com CPF válido (anti-farm). É o 'grátis pra testar' da landing."
         saving={savingKey === 'grants'} onSave={saveSignup} dirty={dirtySignup}>
-        <TextField label="Créditos do bônus" type="number" size="small" value={grants.freeSignup} onChange={(e) => setGrants({ freeSignup: Number(e.target.value) })} sx={{ width: 180 }} />
+        <TextField label="Créditos do bônus" type="number" size="small" value={grants.freeSignup} onChange={(e) => setGrants({ freeSignup: Number(e.target.value) })} sx={{ width: { xs: '100%', sm: 180 } }} />
       </Section>
 
       <Divider />

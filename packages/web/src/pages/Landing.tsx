@@ -912,17 +912,28 @@ export const LandingPage = () => {
           <Typography align="center" variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>Planos <Box component="span" sx={{ ...SERIF_I, color: TEAL_DARK }}>simples e justos</Box></Typography>
           <Typography align="center" sx={{ color: 'text.secondary', mb: 3, fontSize: 17 }}>Comece grátis. Assine quando precisar — ou pague só pelo que usar.</Typography>
 
-          {/* COMO FUNCIONA (3 passos, 1 linha cada) — antes de qualquer preço */}
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1.5, sm: 2.5 }} justifyContent="center" sx={{ mb: 4, flexWrap: 'wrap' }}>
+          {/* COMO FUNCIONA (3 passos) — mobile: LISTA numerada (bolinha teal, sem caixa —
+              caixas empilhadas no 375px pareciam textboxes de formulário, feedback do dono);
+              desktop: os 3 blocos lado a lado. */}
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1.75, sm: 2.5 }} justifyContent="center" alignItems={{ xs: 'stretch', sm: 'stretch' }} sx={{ mb: 4, flexWrap: 'wrap' }}>
             {[
-              ['1️⃣', 'Baixe e teste grátis', `${credits} créditos de presente no 1º exame — sem cartão`],
-              ['2️⃣', 'A IA usa créditos', '1 resumo = 10 · 1 pergunta no chat = 2 · 1 envio = 1'],
-              ['3️⃣', 'Acabou? Você escolhe', 'Assina o mensal (melhor custo + extras) ou compra pacotes'],
-            ].map(([n, t, d]) => (
-              <Box key={t} sx={{ flex: { sm: '1 1 220px' }, maxWidth: 320, px: 2.2, py: 1.8, borderRadius: '12px', bgcolor: 'background.default', border: '1px solid', borderColor: 'divider', textAlign: 'left' }}>
-                <Typography sx={{ fontSize: 13, fontWeight: 800, color: 'text.primary' }}>{n} {t}</Typography>
-                <Typography sx={{ fontSize: 13, color: 'text.secondary', mt: 0.3, lineHeight: 1.5 }}>{d}</Typography>
-              </Box>
+              ['Baixe e teste grátis', `${credits} créditos de presente no 1º exame — sem cartão`],
+              ['A IA usa créditos', '1 resumo = 10 · 1 pergunta no chat = 2 · 1 envio = 1'],
+              ['Acabou? Você escolhe', 'Assina o mensal (melhor custo + extras) ou compra pacotes'],
+            ].map(([t, d], i) => (
+              <Stack key={t} direction="row" spacing={1.5} alignItems="flex-start"
+                sx={{
+                  flex: { sm: '1 1 220px' }, maxWidth: { sm: 320 },
+                  px: { sm: 2.2 }, py: { xs: 0.4, sm: 1.8 },
+                  borderRadius: { sm: '12px' }, bgcolor: { sm: 'background.default' },
+                  border: { sm: '1px solid' }, borderColor: { sm: 'divider' },
+                }}>
+                <Box sx={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, display: 'grid', placeItems: 'center', background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff', fontWeight: 800, fontSize: 14, mt: 0.1 }}>{i + 1}</Box>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography sx={{ fontSize: 14, fontWeight: 800, color: 'text.primary' }}>{t}</Typography>
+                  <Typography sx={{ fontSize: 13, color: 'text.secondary', mt: 0.25, lineHeight: 1.55 }}>{d}</Typography>
+                </Box>
+              </Stack>
             ))}
           </Stack>
 
