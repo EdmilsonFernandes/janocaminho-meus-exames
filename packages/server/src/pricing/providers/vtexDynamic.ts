@@ -26,7 +26,11 @@ function matches(name: string, n: NormalizedMedication): boolean {
   const p = normDrug(name);
   const ingredient = normDrug(n.activeIngredient).split(' ')[0];
   if (!p.includes(ingredient)) return false;
-  if (n.dosageValue != null) {
+  // SUPLEMENTO: se o "dosage" é igual ao packQty (ex.: "30 Cápsulas" → dose=30, pack=30),
+  // é a MESMA informação duplicada pelo parser — não filtrar por dose (o nome tem "30 Cápsulas",
+  // não "30MG"). Sem isto, Baristar/Dipirona 500+20cp nunca casam.
+  const isSupplementDose = n.dosageValue != null && n.packQty != null && n.dosageValue === n.packQty;
+  if (!isSupplementDose && n.dosageValue != null) {
     const v = String(n.dosageValue).replace('.', ',');
     if (!new RegExp(`(^|\\D)${n.dosageValue}(\\D|$)`).test(p) && !p.includes(v)) return false;
   }
