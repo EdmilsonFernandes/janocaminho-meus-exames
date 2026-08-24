@@ -133,10 +133,12 @@
       [class^="vpw-"], [class^="vw-"], [class^="vp-"] { z-index: 2147483647 !important; }
       /* OPT-IN (2026-08-19, revisto a pedido do dono): Libras DESLIGADO por padrão — o widget
          flutuante ocupava tela/atenção de quem não usa. Quem precisa ativa em Perfil →
-         Acessibilidade. Cobre também os popups vp, vw e vpw (prefixos de classe) que nascem
-         FORA do wrapper [vw] — o consentimento da 1ª vez auto-abre; sem isto ficava visível. */
+         Acessibilidade. SUBSTRING ([class*=]) além do prefixo ([class^=]): o widget cria
+         elementos com classes COMBINADAS (ex.: class="enabled vpw-dialog") que o prefixo
+         não casa — era o vazamento do "libras aparece mesmo desligado". */
       body.libras-off [vw], body.libras-off [vw].enabled, body.libras-off div[vw-access-button],
-      body.libras-off [class^="vp-"], body.libras-off [class^="vw-"], body.libras-off [class^="vpw-"] { display: none !important; }
+      body.libras-off [class^="vp-"], body.libras-off [class^="vw-"], body.libras-off [class^="vpw-"],
+      body.libras-off [class*="vp-"], body.libras-off [class*="vw-"], body.libras-off [class*="vpw-"] { display: none !important; }
     </style>
     <script>
       // Aplica a preferência ANTES do widget montar (não pisca na tela). Default: OFF (opt-in).
@@ -150,7 +152,17 @@
     </div>
     <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
     <script>
-      try { new window.VLibras.Widget('https://vlibras.gov.br/app'); } catch (e) { console.warn('VLibras não carregou:', e); }
+      // FIX (2026-08-24): o widget só NASCE se o usuário ativou (opt-in). Antes ele era sempre
+      // inicializado e escondido por CSS — qualquer seletor que escapasse (classe combinada,
+      // elemento novo do plugin) vazava o botão na tela de quem desligou no Perfil. Quem liga
+      // no Perfil inicializa na hora (lazy, em Profile.tsx) — sem precisar recarregar.
+      try {
+        if (localStorage.getItem('meus_exames_libras') === '1') {
+          new window.VLibras.Widget('https://vlibras.gov.br/app');
+        } else {
+          window.__librasNeedsInit = true; // Profile.tsx inicializa no 1º "ligar"
+        }
+      } catch (e) { console.warn('VLibras não carregou:', e); }
     </script>
   </body>
 </html>

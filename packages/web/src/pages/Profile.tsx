@@ -111,6 +111,15 @@ export const ProfilePage = () => {
     setLibrasOn(on);
     try { localStorage.setItem('meus_exames_libras', on ? '1' : '0'); } catch { /* localStorage indisponível */ }
     document.body.classList.toggle('libras-off', !on);
+    // Fix 2026-08-24: com o opt-in, o widget NÃO nasce no boot (index.html só inicializa se
+    // já estava ligado). Primeiro "ligar" inicializa AGORA — o usuário vê o botão na hora,
+    // sem recarregar o app. "Desligar" esconde via CSS (armadura substring no index.html).
+    if (on && (window as any).__librasNeedsInit) {
+      try {
+        new (window as any).VLibras.Widget('https://vlibras.gov.br/app');
+        (window as any).__librasNeedsInit = false;
+      } catch { /* script do VLibras não carregou — sem widget, sem drama */ }
+    }
   };
   const toggleActivity = (on: boolean) => {
     setActivityOn(on);

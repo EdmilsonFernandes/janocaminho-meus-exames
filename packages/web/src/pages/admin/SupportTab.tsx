@@ -1,10 +1,11 @@
 import { useEffect, useState, useRef } from 'react';
-import { Box, Typography, Stack, Chip, Card, CardContent, CircularProgress, IconButton, Button, TextField, Dialog, DialogTitle, DialogContent, DialogActions, Link } from '@mui/material';
+import { Box, Typography, Stack, Chip, Card, CardContent, CircularProgress, IconButton, Button, TextField, Dialog, DialogTitle, DialogContent, DialogActions, Link, Select, InputLabel, FormControl, MenuItem } from '@mui/material';
 import { useNotify } from 'react-admin';
 import CloseIcon from '@mui/icons-material/Close';
 import SendIcon from '@mui/icons-material/Send';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import MarkEmailReadIcon from '@mui/icons-material/MarkEmailRead';
+import BoltIcon from '@mui/icons-material/Bolt';
 import { API_URL, token } from '../../config';
 import { TabLoader, SectionError } from './parts';
 
@@ -18,6 +19,16 @@ const FILTERS: { id: string; label: string }[] = [
   { id: 'open', label: 'Em andamento' },
   { id: 'pending', label: 'Aguardando' },
   { id: 'closed', label: 'Resolvidos' },
+];
+
+/** Respostas rápidas (macros Zendesk/Intercom em versão local): 1 clique insere o texto,
+ *  o agente edita antes de enviar. Zero backend — promove pra server-side quando pesar. */
+const MACROS: { label: string; text: string }[] = [
+  { label: '⚡ Pedir print da tela', text: 'Consegue nos mandar um print da tela (ou da mensagem de erro)? Com ele identificamos o problema na hora. 📎' },
+  { label: '⚡ Exame conferido e liberado', text: 'Conferimos o documento: o exame é seu mesmo e já foi liberado na sua conta. Recarregue o app e confira — qualquer coisa, é só chamar! ✅' },
+  { label: '⚡ Como enviar o exame', text: 'Pra enviar: toque em "Enviar exame" e escolha o PDF do laboratório (ou uma foto do laudo, bem nítida). PDF com vários exames de datas diferentes? A gente separa automaticamente.' },
+  { label: '⚡ Créditos explicados', text: 'Enviar exames é grátis. Recursos de IA (relatório, resumo, chat) usam créditos — você ganha bônus ao começar e pode comprar mais via PIX quando quiser. O plano mensal (R$ 19,90) libera uso com cota mensal.' },
+  { label: '⚡ Agradecimento + fechar', text: 'Que bom que deu certo! 🎉 Vou marcar o chamado como resolvido — se voltar a acontecer, responde aqui que a gente reabre. Saúde em dia!' },
 ];
 
 const fmt = (d: string | null) => (d ? new Date(d).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '');
@@ -68,7 +79,12 @@ export const SupportTab = () => {
         <TextField size="small" placeholder="Buscar (nº, assunto, usuário)…" value={q} onChange={(e) => setQ(e.target.value)} sx={{ width: { xs: '100%', sm: 260 } }} />
       </Stack>
       <Stack direction="row" spacing={0.5} sx={{ mb: 2, flexWrap: 'wrap' }} useFlexGap>
-        {FILTERS.map((f) => <Chip key={f.id} size="small" label={f.label} color={filter === f.id ? 'primary' : 'default'} variant={filter === f.id ? 'filled' : 'outlined'} onClick={() => setFilter(f.id)} />)}
+        {FILTERS.map((f) => {
+          // Contagem honesta: o server devolve só o filtro ATIVO — os inativos ficam sem
+          // número (número inventado de outra lista seria mentira).
+          const count = f.id === filter ? (data?.tickets ?? []).length : null;
+          return <Chip key={f.id} size="small" label={count != null ? `${f.label} (${count})` : f.label} color={filter === f.id ? 'primary' : 'default'} variant={filter === f.id ? 'filled' : 'outlined'} onClick={() => setFilter(f.id)} sx={{ fontWeight: 700 }} />;
+        })}
       </Stack>
 
       {loading ? <TabLoader /> : error ? <SectionError message="Não foi possível carregar os chamados." onRetry={() => void load()} /> : tickets.length === 0 ? (
@@ -155,7 +171,19 @@ const Conversation = ({ ticketId, onClose, onNotify }: { ticketId: string; onClo
       </DialogTitle>
       <DialogContent dividers>
         <Typography sx={{ fontWeight: 700 }}>{data.subject}</Typography>
-        <Typography variant="caption" color="text.secondary">👤 {data.user?.name ?? '—'} · {data.user?.email ?? ''}</Typography>
+        {/* Contexto de quem pergunta (padrão Zendesk): plano, créditos, tempo de cliente —
+            o agente responde sabendo COM quem fala, sem abrir outra tela. */}
+        <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mt: 0.75, mb: 0.5 }} alignItems="center">
+          <Typography variant="caption" color="text.secondary">👤 {data.user?.name ?? '—'} · {data.user?.email ?? ''}</Typography>
+        </Stack>
+        <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mb: 0.75 }}>
+          {data.user?.planExpiresAt && new Date(data.user.planExpiresAt) > new Date()
+            && <Chip size="small" label="⭐ Plano mensal ativo" sx={{ height: 22, fontWeight: 700, bgcolor: 'rgba(212,165,116,.18)', color: '#b88a54' }} />}
+          {typeof data.user?.credits === 'number'
+            && <Chip size="small" label={`Créditos: ${data.user.credits}`} sx={{ height: 22, fontWeight: 700, bgcolor: 'rgba(32,178,170,.12)', color: '#178f89' }} />}
+          {data.user?.createdAt
+            && <Chip size="small" label={`Cliente desde ${new Date(data.user.createdAt).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })}`} sx={{ height: 22, fontWeight: 700 }} variant="outlined" />}
+        </Stack>
         {data.category && <Box sx={{ mt: 0.5 }}><Chip size="small" label={data.category} variant="outlined" /></Box>}
         <Stack spacing={1.5} sx={{ mt: 2 }}>
           {(data.messages ?? []).map((m: any) => {
@@ -181,7 +209,21 @@ const Conversation = ({ ticketId, onClose, onNotify }: { ticketId: string; onClo
       </DialogContent>
       <DialogActions sx={{ flexDirection: 'column', alignItems: 'stretch', gap: 1, p: 2 }}>
         <input ref={fileRef} type="file" multiple accept="image/*,application/pdf" hidden onChange={(e) => setFiles(Array.from(e.target.files ?? []))} />
-        <TextField size="small" multiline minRows={2} placeholder="Responder… pedir mais informações, anexar print…" value={reply} onChange={(e) => setReply(e.target.value)} fullWidth />
+        {/* Macros: 1 clique insere o rascunho (edita antes de enviar) — nada de digitar a
+            mesma orientação de envio pela 40ª vez. */}
+        <FormControl size="small" fullWidth>
+          <InputLabel><Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, fontSize: 13 }}><BoltIcon sx={{ fontSize: 14, color: '#b88a54' }} /> Resposta rápida</Box></InputLabel>
+          <Select
+            label="Resposta rápida" value="" defaultValue=""
+            onChange={(e) => { const m = MACROS.find((x) => x.label === e.target.value); if (m) setReply((prev) => (prev.trim() ? `${prev.trim()}\n\n${m.text}` : m.text)); }}
+            sx={{ '& .MuiSelect-select': { py: 0.75, fontSize: 14 } }}
+          >
+            <MenuItem value="" sx={{ display: 'none' }} />
+            {MACROS.map((m) => <MenuItem key={m.label} value={m.label} sx={{ fontSize: 14 }}>{m.label}</MenuItem>)}
+          </Select>
+        </FormControl>
+        <TextField size="small" multiline minRows={2} placeholder="Responder… pedir mais informações, anexar print…" value={reply} onChange={(e) => setReply(e.target.value)} fullWidth
+          onKeyDown={(e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); void send(); } }} />
         <Stack direction="row" spacing={1} alignItems="center" useFlexGap flexWrap="wrap">
           <Button size="small" startIcon={<AttachFileIcon />} onClick={() => fileRef.current?.click()}>Anexar ({files.length}/5)</Button>
           {files.map((f, i) => <Chip key={i} size="small" label={f.name} onDelete={() => setFiles(files.filter((_, j) => j !== i))} />)}

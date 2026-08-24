@@ -7,7 +7,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import SearchIcon from '@mui/icons-material/Search';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Title } from 'react-admin';
 import { DrExame } from '../components/DrExame';
 import { GradientButton } from '../components/GradientButton';
@@ -67,7 +67,9 @@ const FAQ: FaqEntry[] = [
  */
 export const FaqPage = () => {
   const navigate = useNavigate();
-  const [query, setQuery] = useState('');
+  // Deep-link de busca (?q=): os cards de auto-ajuda do /suporte chegam com a dúvida pronta.
+  const [params] = useSearchParams();
+  const [query, setQuery] = useState(() => params.get('q') ?? '');
   const [category, setCategory] = useState<FaqCategory | 'all'>('all');
   const [expanded, setExpanded] = useState<number | false>(false);
 

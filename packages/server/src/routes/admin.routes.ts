@@ -810,7 +810,9 @@ router.get('/tickets/:id', async (req, res, next) => {
     });
     if (!ticket) { res.status(404).json({ error: 'Chamado não encontrado' }); return; }
     if (ticket.unreadByAdmin) await prisma.supportTicket.update({ where: { id: ticket.id }, data: { unreadByAdmin: false } });
-    const user = await prisma.user.findUnique({ where: { id: ticket.userId }, select: { id: true, name: true, email: true } });
+    // Contexto do usuário no chamado (padrão Zendesk: o agente responde sabendo COM quem fala).
+    // credits/planExpiresAt/createdAt = chips de contexto no admin; sem select implícito.
+    const user = await prisma.user.findUnique({ where: { id: ticket.userId }, select: { id: true, name: true, email: true, credits: true, planExpiresAt: true, createdAt: true } });
     const messages = ticket.messages.map((m) => ({
       id: m.id, authorRole: m.authorRole, body: m.body, createdAt: m.createdAt,
       attachments: ((m.attachments as any[] | null) ?? []).map((a, idx) => ({ name: a.name, size: a.size, type: a.type, url: `admin/tickets/${ticket.id}/messages/${m.id}/attachments/${idx}` })),
