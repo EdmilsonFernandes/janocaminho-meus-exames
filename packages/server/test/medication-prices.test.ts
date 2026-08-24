@@ -93,20 +93,23 @@ describe('medication prices (E2E)', () => {
     expect(m2.body).toBeTruthy();
   });
 
-  itR('sem embalagem → insufficient_data; PATCH packQty contextual re-enfileira → available', async () => {
+  itR('SEM embalagem → default pack=30 (não fica insufficient_data); PATCH muda pack → re-enfileira', async () => {
     const { patient, token } = await createUser();
     const created = await api().post('/api/medications').set(authHeader(token)).send({ patientId: patient.id, name: 'Losartana Potassica', dosage: '50 mg' });
     await runPriceWorkerTick();
     let med = await prisma.medication.findUnique({ where: { id: created.body.id } });
-    expect(med?.priceStatus).toBe('insufficient_data');
+    // DEFAULT pack=30 (fix 2026-08-24: sem isto ficava insufficient_data com key |?)
+    expect(med?.priceStatus).toBe('available');
+    expect(med?.packQty).toBe(30);
 
-    // usuário responde a pergunta contextual da embalagem
-    const patched = await api().patch(`/api/medications/${created.body.id}`).set(authHeader(token)).send({ packQty: 30 });
+    // usuário MUDA a embalagem contextual → re-enfileira
+    const patched = await api().patch(`/api/medications/${created.body.id}`).set(authHeader(token)).send({ packQty: 60 });
     expect(patched.body.priceStatus).toBe('queued');
+    expect(patched.body.packQty).toBe(60);
     await runPriceWorkerTick();
     med = await prisma.medication.findUnique({ where: { id: created.body.id } });
     expect(med?.priceStatus).toBe('available');
-    expect(med?.packQty).toBe(30);
+    expect(med?.packQty).toBe(60);
   });
 
   itR('provider sem ofertas → no_results (honesto, nunca inventa preço)', async () => {
