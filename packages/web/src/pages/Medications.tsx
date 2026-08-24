@@ -50,6 +50,7 @@ const PHARMACY_BRAND: Record<string, { color: string; bg: string; label: string 
   'Farmácias São João': { color: '#2e7d32', bg: 'rgba(46,125,50,.08)', label: 'SJ' },
   'Nova Esperança': { color: '#e65100', bg: 'rgba(230,81,0,.08)', label: 'NE' },
   'Drogaria Globo': { color: '#6a1b9a', bg: 'rgba(106,27,154,.08)', label: 'DG' },
+  'Santa Lucia': { color: '#00695c', bg: 'rgba(0,105,92,.08)', label: 'SL' },
 };
 const PharmacyBadge = ({ name }: { name: string }) => {
   const brand = PHARMACY_BRAND[name] ?? { color: '#64748b', bg: 'rgba(100,116,139,.08)', label: name?.slice(0, 2).toUpperCase() || '?' };
