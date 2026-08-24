@@ -67,6 +67,9 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     if (!name || !String(name).trim()) { res.status(400).json({ error: 'Informe o nome do remédio (ex.: varfarina).' }); return; }
     const cleanPack = packQty != null ? (() => { const n = Math.round(Number(packQty) || 0); return n >= 1 && n <= 2000 ? n : null; })() : null;
     const vtexData = (req.body ?? {}) as { vtexPhotoUrl?: string | null; vtexPriceCents?: number | null; vtexProductName?: string | null; vtexPharmacy?: string | null };
+    // DEFAULT pack=30 quando não especificado (a apresentação mais comum no Brasil).
+    // Sem isto a chave fica BARISTAR|30MG|CAP|? → insufficient_data → card vazio.
+    const finalPack = cleanPack ?? 30;
     const m = await prisma.medication.create({
       data: {
         patientId: pid,
@@ -75,7 +78,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
         frequency: frequency ? String(frequency).trim() : null,
         startedAt: startedAt ? new Date(startedAt) : null,
         notes: notes ? String(notes).trim() : null,
-        packQty: cleanPack,
+        packQty: finalPack,
         priceStatus: 'queued',
       },
     });
@@ -97,43 +100,42 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       // Isto resolve o bug do "Baristar": combobox achou na VTEX mas o catálogo não tinha.
       if (!cat && vtexData?.vtexPriceCents && vtexData?.vtexProductName) {
         const normalized = buildNormalizedMedication(m);
-        const key = normalized.medicationKey;
+        const key = normalized.medicationKey ?? `VTX|${normDrug(String(name).trim())}`; // fallback: mesmo sem key completa
         const now = new Date();
-        if (key && !key.endsWith('|?')) {
-          await prisma.medicationPriceSnapshot.upsert({
-            where: { medicationKey_locationKey: { medicationKey: key, locationKey: 'BR' } },
-            create: {
-              medicationKey: key, locationKey: 'BR',
-              lowestPriceCents: vtexData.vtexPriceCents, averagePriceCents: vtexData.vtexPriceCents,
-              offersCount: 1, provider: 'vtex-combobox',
-              collectedAt: now, expiresAt: new Date(now.getTime() + 5 * 60 * 1000), // 5min → worker busca lista completa
-              offers: { create: [{
-                pharmacy: vtexData.vtexPharmacy ?? 'Pague Menos',
-                productName: vtexData.vtexProductName,
-                priceCents: vtexData.vtexPriceCents,
-                url: 'https://www.paguemenos.com.br', // worker substitui com URL real
-                imageUrl: vtexData.vtexPhotoUrl ?? null,
-                ean: null, lastCheckedAt: now,
-              }] },
-            },
-            update: {},
-          }).catch(() => {});
-          await prisma.medication.update({
-            where: { id: m.id },
-            data: {
-              priceStatus: 'available', priceCheckedAt: now,
-              nameNormalized: key, catalogPhotoUrl: vtexData.vtexPhotoUrl ?? null,
-              activeIngredient: normalized.activeIngredient,
-              dosageValue: normalized.dosageValue ?? null, dosageUnit: normalized.dosageUnit ?? null,
-              form: normalized.form ?? null,
-            },
-          });
-          // worker enriquece com todas as farmácias depois
-          await prisma.medication.update({
-            where: { id: m.id },
-            data: { priceStatus: 'queued', priceCheckedAt: new Date(Date.now() - 8 * 60 * 60 * 1000) },
-          }).catch(() => {});
-        }
+        // SEMPRE salva a offer do VTEX — key completa ou não (o card precisa acender AGORA)
+        await prisma.medicationPriceSnapshot.upsert({
+          where: { medicationKey_locationKey: { medicationKey: key, locationKey: 'BR' } },
+          create: {
+            medicationKey: key, locationKey: 'BR',
+            lowestPriceCents: vtexData.vtexPriceCents, averagePriceCents: vtexData.vtexPriceCents,
+            offersCount: 1, provider: 'vtex-combobox',
+            collectedAt: now, expiresAt: new Date(now.getTime() + 5 * 60 * 1000),
+            offers: { create: [{
+              pharmacy: vtexData.vtexPharmacy ?? 'Pague Menos',
+              productName: vtexData.vtexProductName,
+              priceCents: vtexData.vtexPriceCents,
+              url: 'https://www.paguemenos.com.br',
+              imageUrl: vtexData.vtexPhotoUrl ?? null,
+              ean: null, lastCheckedAt: now,
+            }] },
+          },
+          update: {},
+        }).catch(() => {});
+        await prisma.medication.update({
+          where: { id: m.id },
+          data: {
+            priceStatus: 'available', priceCheckedAt: now,
+            nameNormalized: key, catalogPhotoUrl: vtexData.vtexPhotoUrl ?? null,
+            activeIngredient: normalized.activeIngredient,
+            dosageValue: normalized.dosageValue ?? null, dosageUnit: normalized.dosageUnit ?? null,
+            form: normalized.form ?? null,
+          },
+        });
+        // worker enriquece com todas as farmácias depois
+        await prisma.medication.update({
+          where: { id: m.id },
+          data: { priceStatus: 'queued', priceCheckedAt: new Date(Date.now() - 8 * 60 * 60 * 1000) },
+        }).catch(() => {});
       }
 
       if (cat) {

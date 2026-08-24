@@ -602,9 +602,17 @@ export const MedicationsPage = () => {
                 <Stack direction="row" spacing={0.5} alignItems="center">
                   <PharmacyBadge name={o.pharmacy} />
                   <Typography variant="caption" sx={{ color: 'text.secondary' }}>{o.pharmacy}</Typography>
+                  {i === 0 && (
+                    <Chip label="🏆" size="small" sx={{ height: 18, fontSize: 12, bgcolor: 'transparent', pl: 0, pr: 0, '& .MuiChip-label': { px: 0 } }} />
+                  )}
                 </Stack>
               </Box>
-              <PriceBig cents={o.priceCents} size={18} color={i === 0 ? 'primary.dark' : 'text.primary'} />
+              <Stack alignItems="flex-end" spacing={0.25} sx={{ flexShrink: 0 }}>
+                <PriceBig cents={o.priceCents} size={18} color={i === 0 ? 'primary.dark' : 'text.primary'} />
+                {i === 0 && (
+                  <Chip label="MELHOR PREÇO" size="small" sx={{ height: 18, fontSize: 9, fontWeight: 800, bgcolor: 'primary.main', color: '#fff', letterSpacing: '0.03em' }} />
+                )}
+              </Stack>
             </Stack>
           ))}
         </DialogContent>
