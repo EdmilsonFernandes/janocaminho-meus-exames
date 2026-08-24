@@ -124,18 +124,15 @@ router.post('/', async (req: AuthedRequest, res, next) => {
         await prisma.medication.update({
           where: { id: m.id },
           data: {
-            priceStatus: 'available', priceCheckedAt: now,
+            priceStatus: 'available',
+            priceCheckedAt: new Date(Date.now() - 7 * 60 * 60 * 1000), // 7h atrás: 'available' + stale → worker enriquece no próximo tick SEM esconder o preço do usuário
             nameNormalized: key, catalogPhotoUrl: vtexData.vtexPhotoUrl ?? null,
             activeIngredient: normalized.activeIngredient,
             dosageValue: normalized.dosageValue ?? null, dosageUnit: normalized.dosageUnit ?? null,
             form: normalized.form ?? null,
           },
         });
-        // worker enriquece com todas as farmácias depois
-        await prisma.medication.update({
-          where: { id: m.id },
-          data: { priceStatus: 'queued', priceCheckedAt: new Date(Date.now() - 8 * 60 * 60 * 1000) },
-        }).catch(() => {});
+        // NÃO sobrescrever pra 'queued' — isto escondia o preço que acabamos de salvar!
       }
 
       if (cat) {
@@ -162,15 +159,13 @@ router.post('/', async (req: AuthedRequest, res, next) => {
           }).catch(() => {});
           await prisma.medication.update({
             where: { id: m.id },
-            data: { priceStatus: 'available', priceCheckedAt: now, nameNormalized: key, catalogPhotoUrl: cat.photoUrl, activeIngredient: normalized.activeIngredient, dosageValue: normalized.dosageValue ?? null, dosageUnit: normalized.dosageUnit ?? null, form: normalized.form ?? null },
+            data: {
+              priceStatus: 'available',
+              priceCheckedAt: new Date(Date.now() - 7 * 60 * 60 * 1000), // 7h atrás: 'available' + stale → worker enriquece SEM esconder o preço
+              nameNormalized: key, catalogPhotoUrl: cat.photoUrl, activeIngredient: normalized.activeIngredient, dosageValue: normalized.dosageValue ?? null, dosageUnit: normalized.dosageUnit ?? null, form: normalized.form ?? null,
+            },
           });
-          // MESMO com preço instantâneo, o worker ainda busca a LISTA COMPLETA de ofertas
-          // (múltiplos genéricos/marcas/laboratórios) — enriquece o "Ver preços" estilo Shopee.
-          // Reset para 'queued' com priceCheckedAt antigo → worker processa no próximo tick.
-          await prisma.medication.update({
-            where: { id: m.id },
-            data: { priceStatus: 'queued', priceCheckedAt: new Date(Date.now() - 7 * 60 * 60 * 1000) }, // 7h atrás = "stale" → worker busca
-          }).catch(() => {});
+          // NÃO sobrescrever pra 'queued' — escondia o preço do usuário!
         } else if (cat.photoUrl) {
           await prisma.medication.update({ where: { id: m.id }, data: { catalogPhotoUrl: cat.photoUrl } });
         }
