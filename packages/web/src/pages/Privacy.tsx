@@ -102,9 +102,32 @@ export const PrivacyPage = () => {
         </Box>
       </Card>
 
-      <Card sx={{ mb: 2, borderRadius: '12px' }}>
+      {/* RETENÇÃO DE DADOS — obrigatório Google Play (rejeitado 2026-08-23 sem isto) */}
+      <Card sx={{ mb: 2, borderRadius: '12px', border: '1px solid', borderColor: 'divider' }}>
         <Box sx={{ p: 2.5 }}>
-          <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', mb: 1 }}>🔐 LGPD (Lei Geral de Proteção de Dados)</Typography>
+          <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', mb: 1 }}>⏳ Retenção de Dados (por quanto tempo guardamos)</Typography>
+          <Stack spacing={1.25}>
+            {[
+              'Exames e resultados (PDFs, valores, análises IA): mantidos enquanto sua conta estiver ativa. Você pode excluir qualquer exame a qualquer momento.',
+              'Dados de saúde do Health Connect (passos, calorias, distância): sincronizados sob sua permissão e armazenados como Medições. Excluídos junto com a conta ou individualmente em Medições.',
+              'Remédios e interações: mantidos enquanto sua conta estiver ativa. Você pode excluir qualquer remédio a qualquer momento.',
+              'Fotos de perfil: mantidas enquanto sua conta estiver ativa. Você pode substituir ou remover a qualquer momento.',
+              'Logs de auditoria (acessos, ações de segurança): mantidos por até 90 dias para segurança e conformidade LGPD, depois excluídos automaticamente.',
+              'Tokens de notificação (FCM): mantidos enquanto o app estiver instalado. Removidos quando você desinstala ou desativa notificações.',
+              'Dados de pagamento (Mercado Pago): não armazenamos dados de cartão. Tokens de transação mantidos pelo provedor (Mercado Pago) conforme política deles.',
+              'Ao excluir sua conta: TODOS os dados (exames, análises, remédios, fotos, medições, perguntas) são excluídos permanentemente em até 24 horas. Não há backup de restauração.',
+              'Não retemos dados de usuários que excluíram a conta. Dados anônimos/agregados (sem identificação) podem ser mantidos para estatísticas de uso.',
+            ].map((t, i) => (
+              <Stack key={i} direction="row" spacing={1.5} alignItems="flex-start">
+                <Box sx={{ width: 20, height: 20, borderRadius: '50%', bgcolor: 'rgba(245,158,11,.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: '#b45309', flexShrink: 0, mt: 0.2 }}>{i + 1}</Box>
+                <Typography variant="body2" sx={{ color: 'text.primary', fontSize: 14, lineHeight: 1.5 }}>{t}</Typography>
+              </Stack>
+            ))}
+          </Stack>
+        </Box>
+      </Card>
+
+      <Card sx={{ mb: 2, borderRadius: '12px' }}>
           <Stack spacing={1.5}>
             {[
               'Seus dados de saúde são tratados em ambiente controlado, com autenticação, HTTPS em produção e acesso restrito.',
