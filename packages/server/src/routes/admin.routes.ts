@@ -121,13 +121,15 @@ router.get('/users', async (req, res, next) => {
     const page = Math.max(1, Number(req.query.page ?? 1));
     const limit = Math.min(100, Math.max(1, Number(req.query.limit ?? 20)));
     const where: any = q ? { OR: [{ email: { contains: q, mode: 'insensitive' } }, { name: { contains: q, mode: 'insensitive' } }] } : {};
-    const [users, total, examCount, subCount, approvedRevenue] = await Promise.all([
-      prisma.user.findMany({ where, select: { id: true, email: true, name: true, role: true, credits: true, planExpiresAt: true, createdAt: true, blocked: true, mfaEnabled: true }, orderBy: { createdAt: 'desc' }, skip: (page - 1) * limit, take: limit }),
+    const [rows, total, examCount, subCount, approvedRevenue] = await Promise.all([
+      prisma.user.findMany({ where, select: { id: true, email: true, name: true, role: true, credits: true, planExpiresAt: true, createdAt: true, blocked: true, mfaEnabled: true, patients: { select: { id: true, photoUrl: true }, orderBy: { createdAt: 'asc' }, take: 1 } }, orderBy: { createdAt: 'desc' }, skip: (page - 1) * limit, take: limit }),
       prisma.user.count({ where }),
       prisma.exam.count(),
       prisma.subscription.count(),
       prisma.subscription.aggregate({ where: { status: 'APPROVED' }, _sum: { amount: true } }),
     ]);
+    // patientId/foto: admin mostra a foto do cadastro (patients[0] = perfil principal)
+    const users = rows.map(({ patients, ...u }) => ({ ...u, patientId: patients[0]?.id ?? null, hasPhoto: !!patients[0]?.photoUrl }));
     res.json({ users, total, page, limit, hasMore: page * limit < total, stats: { users: total, exams: examCount, subscriptions: subCount, revenue: approvedRevenue._sum.amount ?? 0 } });
   } catch (e) { next(e); }
 });
@@ -633,7 +635,7 @@ router.post('/users/:id/reset-mfa', async (req: AuthedRequest, res, next) => {
 router.get('/doctors', async (_req, res, next) => {
   try {
     const [doctors, total] = await Promise.all([
-      prisma.doctor.findMany({ orderBy: { createdAt: 'desc' }, take: 200, select: { id: true, name: true, crm: true, crmUf: true, specialty: true, email: true, emailVerified: true, createdAt: true, _count: { select: { shares: { where: { active: true } } } } } }),
+      prisma.doctor.findMany({ orderBy: { createdAt: 'desc' }, take: 200, select: { id: true, name: true, crm: true, crmUf: true, specialty: true, email: true, emailVerified: true, photoUrl: true, createdAt: true, _count: { select: { shares: { where: { active: true } } } } } }),
       prisma.doctor.count(),
     ]);
     res.json({ doctors, total });

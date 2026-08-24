@@ -8,7 +8,7 @@ import LockResetIcon from '@mui/icons-material/LockReset';
 import EditIcon from '@mui/icons-material/Edit';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import { API_URL, token } from '../../config';
+import { API_URL, token, photoUrlFor } from '../../config';
 import { confirmDialog } from '../../components/ConfirmDialog';
 import { U, TabLoader, SectionError, ConfirmDialog } from './parts';
 
@@ -133,8 +133,8 @@ export const UsersTab = () => {
                 bgcolor: 'rgba(32,178,170,.1)', color: '#178f89', fontWeight: 800, fontSize: 17, fontFamily: 'Poppins, sans-serif',
                 ...(u.blocked ? { filter: 'grayscale(1)' } : {}),
               }}>
-                {(u as any).photoUrl
-                  ? <Box component="img" src={(u as any).photoUrl} alt={u.name || '?'} sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                {(u as any).hasPhoto && (u as any).patientId
+                  ? <Box component="img" src={photoUrlFor((u as any).patientId)} alt={u.name || '?'} loading="lazy" sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   : (u.name || u.email || '?').charAt(0).toUpperCase()}
               </Box>
               <Box sx={{ flex: 1, minWidth: { xs: 120, sm: 180 } }}>

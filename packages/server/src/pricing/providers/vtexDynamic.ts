@@ -22,21 +22,35 @@ interface VtexProduct {
   }[];
 }
 
-function matches(name: string, n: NormalizedMedication): boolean {
+/** Tokens úteis do princípio ativo — "CLORIDRATO DE SIBUTRAMINA MONOIDRATADO" →
+ * [CLORIDRATO, SIBUTRAMINA, MONOIDRATADO]. Qualquer um presente no nome conta
+ * (a 1ª palavra sozinha já era; para sais a 1ª é "CLORIDRATO"/"ACETATO" genérico). */
+const STOP_TOKENS = new Set(['DE', 'DO', 'DA', 'DAS', 'DOS', 'E', 'COM', 'MONO']);
+export function activeTokens(activeIngredient: string): string[] {
+  const tokens = normDrug(activeIngredient).split(' ').filter((t) => t.length >= 4 && !STOP_TOKENS.has(t));
+  return tokens.length ? tokens : [normDrug(activeIngredient)];
+}
+
+export function matches(name: string, n: NormalizedMedication, opts: { loosePack?: boolean; looseDose?: boolean } = {}): boolean {
   const p = normDrug(name);
-  const ingredient = normDrug(n.activeIngredient).split(' ')[0];
-  if (!p.includes(ingredient)) return false;
+  if (!activeTokens(n.activeIngredient).some((t) => p.includes(t))) return false;
+  // Checagem de dígitos no texto com pontuação PRESERVADA (normDrug troca "," por
+  // espaço e "12,5mg" viraria "12 5mg" — o "5" ficaria solto e casava dose 5).
+  const raw = name.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();
+  const digitAt = (num: number | string) => new RegExp(`(^|[^,.\\d])${num}(\\D|$)`).test(raw);
   // SUPLEMENTO: se o "dosage" é igual ao packQty (ex.: "30 Cápsulas" → dose=30, pack=30),
   // é a MESMA informação duplicada pelo parser — não filtrar por dose (o nome tem "30 Cápsulas",
   // não "30MG"). Sem isto, Baristar/Dipirona 500+20cp nunca casam.
   const isSupplementDose = n.dosageValue != null && n.packQty != null && n.dosageValue === n.packQty;
-  if (!isSupplementDose && n.dosageValue != null) {
-    // Borda de dígito obrigatória: "25" NÃO pode casar "125mcg" (o includes()
-    // por substring deixava 125mcg vazar pro card de 25mcg). O ponto da regex
-    // já cobre vírgula decimal (0.25 casa "0,25").
-    if (!new RegExp(`(^|\\D)${n.dosageValue}(\\D|$)`).test(p)) return false;
+  if (!isSupplementDose && !opts.looseDose && n.dosageValue != null) {
+    // Borda obrigatória: "25" NÃO casa "125mcg" nem "12,5mg". O ponto da regex
+    // cobre vírgula decimal (dose 0.25 casa "0,25").
+    if (!digitAt(n.dosageValue)) return false;
   }
-  if (n.packQty != null && !new RegExp(`(^|\\D)${n.packQty}(\\D|$)`).test(p)) return false;
+  // EMBALAGEM é preferência, não lei: o default pack=30 assume comprimido — injetável
+  // vem em "4 Canetas/Doses" (Mounjaro) e NUNCA teria "30" no nome. loosePack
+  // (só quando o filtro estrito zerou) ignora a embalagem e mantém ativo+dose.
+  if (!opts.loosePack && n.packQty != null && !digitAt(n.packQty)) return false;
   return true;
 }
 
@@ -89,21 +103,16 @@ export const vtexDynamicProvider: MedicationPriceProvider = {
       : n.activeIngredient;
     const query = `${cleanIngredient}${dose}`.trim();
 
-    // Busca numa farmácia + fallback: o full-text multi-palavra do VTEX às vezes
-    // falha (206 com fuzzy que não casa — ex. "BARISTAR SABOR BAUNILHA" retorna
-    // Ensure/Suprasenior mas NÃO o Baristar). Se nada casou, tenta SÓ a 1ª palavra
-    // (marca/princípio) com página maior — "BARISTAR" retorna o produto exato.
     const firstWord = query.split(' ')[0] ?? '';
-    const runQuery = async (config: { name: string; hostname: string }, q: string, to: number): Promise<PriceOffer[]> => {
-      const products = await vtexFetch(config.hostname, q, to);
-      return products
+    const matchOffers = (products: VtexProduct[], config: { name: string; hostname: string }, opts: { loosePack?: boolean; looseDose?: boolean } = {}): PriceOffer[] =>
+      products
         .map((p): PriceOffer | null => {
           const item = p.items?.[0];
           const offer = item?.sellers?.[0]?.commertialOffer;
           const price = offer?.Price;
           const name = item?.nameComplete || p.productName || '';
           if (!price || price <= 0 || !offer?.IsAvailable) return null;
-          if (!matches(name, n)) return null;
+          if (!matches(name, n, opts)) return null;
           return {
             pharmacy: config.name,
             productName: name.slice(0, 140),
@@ -114,23 +123,47 @@ export const vtexDynamicProvider: MedicationPriceProvider = {
           };
         })
         .filter((o): o is PriceOffer => o !== null);
+
+    const searchPharmacy = (opts: { loosePack?: boolean; looseDose?: boolean } = {}) =>
+      Promise.allSettled(
+        configs.map(async (config) => {
+          // 1) query completa (princípio + dose)
+          let products = await vtexFetch(config.hostname, query, 5);
+          let offers = matchOffers(products, config, opts);
+          // 2) se veio pouco (<3): full-text multi-palavra underperforma — complementa
+          //    com SÓ a 1ª palavra (marca/princípio) e faz MERGE deduplicado.
+          //    ("BARISTAR SABOR BAUNILHA" fuzzy-miss; sibutramina mono acha só 1.)
+          if (offers.length < 3 && firstWord.length >= 4 && firstWord !== query) {
+            products = await vtexFetch(config.hostname, firstWord, 9);
+            const seen = new Set(offers.map((o) => o.url));
+            offers = [...offers, ...matchOffers(products, config, opts).filter((o) => !seen.has(o.url))];
+          }
+          // 3) zerou de novo? embalagem era chute (pack default 30 ≠ "4 Canetas"):
+          //    re-matcha os ÚLTIMOS produtos sem filtro de pack (sem refetch).
+          if (offers.length === 0 && n.packQty != null) {
+            offers = matchOffers(products, config, { ...opts, loosePack: true });
+          }
+          return offers.slice(0, 4); // 4 por farmácia (com 9 = até 36)
+        }),
+      );
+
+    const dedupeSorted = (lists: PromiseSettledResult<PriceOffer[]>[]): PriceOffer[] => {
+      const seen = new Set<string>();
+      return lists
+        .flatMap((r) => (r.status === 'fulfilled' ? r.value : []))
+        .filter((o) => { const k = o.url || o.productName; if (seen.has(k)) return false; seen.add(k); return true; })
+        .sort((a, b) => a.priceCents - b.priceCents)
+        .slice(0, 15);
     };
 
-    const results = await Promise.allSettled(
-      configs.map(async (config) => {
-        let offers = await runQuery(config, query, 5);
-        if (offers.length === 0 && firstWord.length >= 4 && firstWord !== query) {
-          offers = await runQuery(config, firstWord, 9);
-        }
-        return offers.slice(0, 4); // 4 por farmácia (com 9 = até 36)
-      }),
-    );
+    let all = dedupeSorted(await searchPharmacy());
 
-    const all = results.flatMap((r) => (r.status === 'fulfilled' ? r.value : []));
-    const seen = new Set<string>();
-    return all
-      .filter((o) => { const k = o.url || o.productName; if (seen.has(k)) return false; seen.add(k); return true; })
-      .sort((a, b) => a.priceCents - b.priceCents)
-      .slice(0, 15);
+    // 4) GARANTIA (último recurso, só quando TODAS as farmácias zeraram): match de
+    //    FAMÍLIA — tokens do ativo + pack loose + dose loose. O nome do produto fica
+    //    visível no diálogo; "sem preço" é pior que "produto da família".
+    if (all.length === 0) {
+      all = dedupeSorted(await searchPharmacy({ loosePack: true, looseDose: true }));
+    }
+    return all;
   },
 };

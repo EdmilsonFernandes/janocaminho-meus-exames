@@ -29,18 +29,30 @@ interface VtexProduct {
   }[];
 }
 
+/** Tokens úteis do ativo — casa "CLORIDRATO DE SIBUTRAMINA MONOIDRATADO" com qualquer
+ * token (a 1ª palavra de sal é "CLORIDRADO"/"ACETATO", genérica demais sozinha). */
+const STOP_TOKENS = new Set(['DE', 'DO', 'DA', 'DAS', 'DOS', 'E', 'COM', 'MONO']);
+function activeTokens(activeIngredient: string): string[] {
+  const tokens = normDrug(activeIngredient).split(' ').filter((t) => t.length >= 4 && !STOP_TOKENS.has(t));
+  return tokens.length ? tokens : [normDrug(activeIngredient)];
+}
+
 /** Nome casa com o que buscamos? (ativo + dose; e embalagem quando conhecida) */
-function matches(name: string, n: NormalizedMedication): boolean {
+function matches(name: string, n: NormalizedMedication, opts: { loosePack?: boolean; looseDose?: boolean } = {}): boolean {
   const p = normDrug(name);
-  const ingredient = normDrug(n.activeIngredient).split(' ')[0];
-  if (!p.includes(ingredient)) return false;
-  if (n.dosageValue != null) {
-    // Borda de dígito obrigatória: "25" NÃO casa "125mcg" (substring include
-    // deixava dose errada vazar). O ponto da regex cobre vírgula (0.25→"0,25").
-    if (!new RegExp(`(^|\\D)${n.dosageValue}(\\D|$)`).test(p)) return false;
+  if (!activeTokens(n.activeIngredient).some((t) => p.includes(t))) return false;
+  // Dígitos no texto com pontuação PRESERVADA (normDrug troca "," por espaço e
+  // "12,5mg" viraria "12 5mg" — o "5" solto casava dose 5).
+  const raw = name.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();
+  const digitAt = (num: number | string) => new RegExp(`(^|[^,.\\d])${num}(\\D|$)`).test(raw);
+  if (!opts.looseDose && n.dosageValue != null) {
+    // Borda obrigatória: "25" NÃO casa "125mcg" nem "12,5mg". O ponto da regex
+    // cobre vírgula decimal (dose 0.25 casa "0,25").
+    if (!digitAt(n.dosageValue)) return false;
   }
-  // Embalagem conhecida → prioriza a apresentação certa (30 ≠ 60 comprimidos)
-  if (n.packQty != null && !new RegExp(`(^|\\D)${n.packQty}(\\D|$)`).test(p)) return false;
+  // Embalagem é preferência: pack default 30 assume comprimido — injetável vem
+  // em "4 Canetas" e nunca casa. loosePack ignora a embalagem (só se estrito zerou).
+  if (!opts.loosePack && n.packQty != null && !digitAt(n.packQty)) return false;
   return true;
 }
 
@@ -65,7 +77,7 @@ export const pagueMenosProvider: MedicationPriceProvider = {
     const dose = n.dosageValue ? ` ${n.dosageValue}${(n.dosageUnit || 'mg').toLowerCase()}` : '';
     const query = `${n.activeIngredient}${dose}`.trim();
 
-    const toOffers = (products: VtexProduct[]) =>
+    const toOffers = (products: VtexProduct[], opts: { loosePack?: boolean; looseDose?: boolean } = {}) =>
       products
         .map((p): (PriceOffer & { sortKey: number }) | null => {
           const item = p.items?.[0];
@@ -73,7 +85,7 @@ export const pagueMenosProvider: MedicationPriceProvider = {
           const price = offer?.Price;
           const name = item?.nameComplete || p.productName || '';
           if (!price || price <= 0 || !offer?.IsAvailable) return null;
-          if (!matches(name, n)) return null;
+          if (!matches(name, n, opts)) return null;
           return {
             pharmacy: 'Pague Menos',
             productName: name.slice(0, 140),
@@ -86,15 +98,30 @@ export const pagueMenosProvider: MedicationPriceProvider = {
         })
         .filter((o): o is PriceOffer & { sortKey: number } => o !== null);
 
-    let offers = toOffers(await vtexSearch(query));
-    // Fallback: full-text multi-palavra pode falhar (fuzzy que não casa — ex.
-    // "BARISTAR SABOR BAUNILHA" não retorna o Baristar). Tenta SÓ a 1ª palavra.
-    if (offers.length === 0) {
-      const firstWord = n.activeIngredient.split(' ')[0] ?? '';
-      if (firstWord.length >= 4 && firstWord !== query) {
-        offers = toOffers(await vtexSearch(firstWord));
-      }
-    }
+    const run = (opts: { loosePack?: boolean; looseDose?: boolean } = {}) => {
+      // (async dentro — devolve promessa com os 3 estágios)
+      return (async () => {
+        let products = await vtexSearch(query);
+        let offers = toOffers(products, opts);
+        // Complementa com SÓ a 1ª palavra quando veio pouco: full-text multi-palavra
+        // underperforma (fuzzy-miss — "BARISTAR SABOR BAUNILHA" sem o Baristar).
+        const firstWord = n.activeIngredient.split(' ')[0] ?? '';
+        if (offers.length < 3 && firstWord.length >= 4 && firstWord !== query) {
+          products = await vtexSearch(firstWord);
+          const seen = new Set(offers.map((o) => o.url));
+          offers = [...offers, ...toOffers(products, opts).filter((o) => !seen.has(o.url))];
+        }
+        // Zerou? embalagem era chute (default 30 ≠ "4 Canetas" de injetável) —
+        // re-matcha os últimos produtos sem filtro de pack (sem refetch).
+        if (offers.length === 0 && n.packQty != null) {
+          offers = toOffers(products, { ...opts, loosePack: true });
+        }
+        return offers;
+      })();
+    };
+
+    let offers = await run();
+    if (offers.length === 0) offers = await run({ loosePack: true, looseDose: true }); // família
     return offers
       .sort((a, b) => a.sortKey - b.sortKey)
       .slice(0, 8)

@@ -55,11 +55,12 @@ const PHARMACY_BRAND: Record<string, { color: string; bg: string; label: string;
   'Farmais': { color: '#283593', bg: 'rgba(40,53,147,.08)', label: 'FM' },
   'Coop Drogaria': { color: '#37474f', bg: 'rgba(55,71,79,.08)', label: 'CD' },
 };
-// logos carregados do admin (fetch uma vez no mount)
+// logos carregados do endpoint de farmácias ativas (fetch uma vez no mount).
+// NÃO usar /admin/pharmacies — paciente toma 401 e o logo nunca carrega.
 let PHARMACY_LOGOS: Record<string, string | null> = {};
 export const loadPharmacyLogos = async () => {
   try {
-    const r = await fetch(`${API_URL}/admin/pharmacies`, { headers: { Authorization: `Bearer ${token()}` } });
+    const r = await fetch(`${API_URL}/medications/pharmacies`, { headers: { Authorization: `Bearer ${token()}` } });
     if (r.ok) { const rows = await r.json(); PHARMACY_LOGOS = Object.fromEntries(rows.map((p: any) => [p.name, p.logoUrl])); }
   } catch { /* fallback: badges coloridos */ }
 };

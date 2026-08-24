@@ -366,6 +366,20 @@ router.post('/scan-photo', upload.single('photo'), async (req: AuthedRequest, re
   } catch (e) { next(e); }
 });
 
+// FARMÁCIAS ATIVAS (name + logo + cor) — pro app do PACIENTE montar os badges do
+// card de preços. Antes o front buscava /admin/pharmacies → 401 pra paciente
+// (logo nunca carregava, só sigla). Logos não são dado sensível.
+router.get('/pharmacies', async (_req, res, next) => {
+  try {
+    const rows = await prisma.pharmacyConfig.findMany({
+      where: { active: true },
+      orderBy: { sortOrder: 'asc' },
+      select: { name: true, logoUrl: true, color: true },
+    });
+    res.json(rows);
+  } catch (e) { next(e); }
+});
+
 // CATÁLOGO: busca PRODUTOS (foto + dose + pack + preço do VTEX) pro combobox.
 // Retorna VARIANTES — "Dipirona 500mg 20cp Genérico R$ 3,50" — o usuário escolhe
 // o produto completo, não o ingrediente abstrato. 1 toque salva tudo.
