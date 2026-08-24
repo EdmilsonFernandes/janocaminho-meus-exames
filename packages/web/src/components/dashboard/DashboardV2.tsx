@@ -192,17 +192,25 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
   );
 };
 
-/** Tile de indicador (toque → detalhe). */
-const IndicatorTile = ({ icon, label, value, sub, tone, onClick }: {
-  icon: ReactNode; label: string; value: string; sub?: string; tone: 'error' | 'primary' | 'secondary' | 'success' | 'warning' | 'info' | 'premium'; onClick: () => void;
+/** Tile de indicador — premium (sombra 3 camadas, radius 20, hover glow, entrada escalonada). */
+const IndicatorTile = ({ icon, label, value, sub, tone, onClick, idx = 0 }: {
+  icon: ReactNode; label: string; value: string; sub?: string; tone: 'error' | 'primary' | 'secondary' | 'success' | 'warning' | 'info' | 'premium'; onClick: () => void; idx?: number;
 }) => (
-  <AppCard kind="interactive" onClick={onClick} sx={{ p: 1.75, height: '100%' }}>
-    <Stack direction="row" spacing={1.25} alignItems="center" sx={{ width: '100%' }}>
-      <Box sx={{ width: 38, height: 38, borderRadius: '11px', display: 'grid', placeItems: 'center', flexShrink: 0,
-        bgcolor: (th) => alpha((th.palette as any)[tone]?.main ?? '#20b2aa', 0.14), color: `${tone}.main` }}>{icon}</Box>
+  <AppCard kind="interactive" onClick={onClick} sx={{
+    p: 2, height: '100%', borderRadius: '20px !important',
+    boxShadow: '0 1px 2px rgba(0,0,0,.03), 0 2px 8px rgba(0,0,0,.04), 0 8px 20px rgba(0,0,0,.03)',
+    transition: 'box-shadow .2s ease, border-color .2s ease',
+    '&:hover': { boxShadow: '0 2px 4px rgba(32,178,170,.06), 0 8px 24px rgba(32,178,170,.1), 0 16px 36px rgba(32,178,170,.06)' },
+    animation: `dashTileIn .35s cubic-bezier(.16,1,.3,1) ${idx * 0.07}s both`,
+    '@keyframes dashTileIn': { from: { opacity: 0, transform: 'translateY(10px)' }, to: { opacity: 1, transform: 'translateY(0)' } },
+  }}>
+    <Stack direction="row" spacing={1.5} alignItems="center" sx={{ width: '100%' }}>
+      <Box sx={{ width: 44, height: 44, borderRadius: '14px', display: 'grid', placeItems: 'center', flexShrink: 0,
+        bgcolor: (th) => alpha((th.palette as any)[tone]?.main ?? '#20b2aa', 0.12), color: `${tone}.main`,
+        transition: 'transform .15s', '&:hover': { transform: 'scale(1.06)' } }}>{icon}</Box>
       <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography sx={{ fontSize: 11, color: 'text.secondary', lineHeight: 1.1 }}>{label}</Typography>
-        <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 16, color: 'text.primary', lineHeight: 1.2, mt: 0.15, fontVariantNumeric: 'tabular-nums' }}>{value}</Typography>
+        <Typography sx={{ fontSize: 11, color: 'text.secondary', lineHeight: 1.1, fontWeight: 600 }}>{label}</Typography>
+        <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 17, color: 'text.primary', lineHeight: 1.2, mt: 0.15, fontVariantNumeric: 'tabular-nums' }}>{value}</Typography>
         {sub && <Typography sx={{ fontSize: 11, color: 'text.disabled', lineHeight: 1.1 }}>{sub}</Typography>}
       </Box>
     </Stack>
@@ -269,7 +277,7 @@ export const DashboardV2 = () => {
           e diz o que destrava — ausência de informação nunca vira normalidade. */}
       <Grid container spacing={1.5} sx={{ mt: 0.5 }}>
         <Grid size={{ xs: 6, md: 3 }}>
-          <IndicatorTile icon={<FavoriteIcon />} tone={cardioLevel ? (cardioFactors > 0 ? 'error' : 'success') : 'info'} label="Cardiometabólico"
+          <IndicatorTile idx={0} icon={<FavoriteIcon />} tone={cardioLevel ? (cardioFactors > 0 ? 'error' : 'success') : 'info'} label="Cardiometabólico"
             value={cardioLevel || (d.loaded ? 'Sem dados' : '—')} sub={cardioLevel
               ? (cardioFactors > 0 ? `${cardioFactors} fator${cardioFactors > 1 ? 'es' : ''} de risco` : 'sem fatores')
               : (d.loaded ? (d.stats.exams > 0 ? 'sem colesterol, peso ou pressão' : 'envie um exame ou registre peso/pressão') : '')}
@@ -279,11 +287,11 @@ export const DashboardV2 = () => {
           <BiologicalAgeCard />
         </Grid>
         <Grid size={{ xs: 6, md: 3 }}>
-          <IndicatorTile icon={<MedicalServicesIcon />} tone="primary" label="Seus exames"
+          <IndicatorTile idx={2} icon={<MedicalServicesIcon />} tone="primary" label="Seus exames"
             value={d.loaded ? String(d.stats.exams) : '—'} sub={d.stats.exams === 0 && d.loaded ? 'envie o primeiro' : `${d.stats.abnormal} alterado${d.stats.abnormal === 1 ? '' : 's'}`} onClick={() => navigate('/exams')} />
         </Grid>
         <Grid size={{ xs: 6, md: 3 }}>
-          <IndicatorTile icon={<ShowChartIcon />} tone="info" label="Evolução" value="Tendências" sub={totalResults > 0 ? `${totalResults} resultado${totalResults === 1 ? '' : 's'}` : (d.loaded ? 'após o 1º exame' : '')} onClick={() => navigate('/evolucao')} />
+          <IndicatorTile idx={3} icon={<ShowChartIcon />} tone="info" label="Evolução" value="Tendências" sub={totalResults > 0 ? `${totalResults} resultado${totalResults === 1 ? '' : 's'}` : (d.loaded ? 'após o 1º exame' : '')} onClick={() => navigate('/evolucao')} />
         </Grid>
       </Grid>
 
