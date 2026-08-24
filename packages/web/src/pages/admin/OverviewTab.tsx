@@ -3,6 +3,15 @@ import { Stack, Box, Card, CardContent, Typography, Table, TableHead, TableRow, 
 import { API_URL, token } from '../../config';
 import { TabLoader, SectionError } from './parts';
 
+/** "2026-08" → "Ago 2026" (evita datas quebrando no mobile). */
+const MESES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+const fmtMonth = (m: string): string => {
+  if (!m) return '—';
+  const [y, mo] = m.split('-');
+  const idx = parseInt(mo, 10) - 1;
+  return `${MESES[idx] ?? mo} ${y}`;
+};
+
 export const OverviewTab = () => {
   const [metrics, setMetrics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -67,14 +76,21 @@ export const OverviewTab = () => {
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>Taxa de retenção <strong>{metrics.churn.retentionPct}%</strong> — é o número que o nudge de vencimento ajuda a subir.</Typography>
       </CardContent></Card>
 
-      <Card sx={{ borderRadius: '12px' }}><CardContent>
-        <Typography variant="h6" gutterBottom>📅 Cohort — conversão por mês de signup</Typography>
+      <Card sx={{ borderRadius: '16px', boxShadow: '0 1px 2px rgba(0,0,0,.03), 0 2px 8px rgba(0,0,0,.04), 0 8px 20px rgba(0,0,0,.03)' }}><CardContent>
+        <Typography variant="h6" gutterBottom sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>📅 Cohort — conversão por mês</Typography>
         <TableContainer sx={{ overflowX: 'auto' }}>
         <Table size="small">
-          <TableHead><TableRow><TableCell>Mês</TableCell><TableCell align="right">Signups</TableCell><TableCell align="right">Virou Premium</TableCell><TableCell align="right">Conversão</TableCell></TableRow></TableHead>
+          <TableHead><TableRow><TableCell sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>Mês</TableCell><TableCell align="right" sx={{ fontWeight: 700 }}>Signups</TableCell><TableCell align="right" sx={{ fontWeight: 700 }}>Premium</TableCell><TableCell align="right" sx={{ fontWeight: 700 }}>Conv.</TableCell></TableRow></TableHead>
           <TableBody>
             {(metrics.cohort ?? []).map((c: any) => (
-              <TableRow key={c.month}><TableCell>{c.month}</TableCell><TableCell align="right">{c.signups}</TableCell><TableCell align="right">{c.converted}</TableCell><TableCell align="right">{c.signups ? Math.round((c.converted / c.signups) * 1000) / 10 : 0}%</TableCell></TableRow>
+              <TableRow key={c.month} sx={{ '&:hover': { bgcolor: 'rgba(32,178,170,.04)' } }}>
+                <TableCell sx={{ whiteSpace: 'nowrap', fontWeight: 600 }}>{fmtMonth(c.month)}</TableCell>
+                <TableCell align="right" sx={{ fontVariantNumeric: 'tabular-nums' }}>{c.signups}</TableCell>
+                <TableCell align="right" sx={{ fontVariantNumeric: 'tabular-nums' }}>{c.converted}</TableCell>
+                <TableCell align="right" sx={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: c.converted > 0 ? 'success.main' : 'text.secondary' }}>
+                  {c.signups ? Math.round((c.converted / c.signups) * 1000) / 10 : 0}%
+                </TableCell>
+              </TableRow>
             ))}
             {(!metrics.cohort || metrics.cohort.length === 0) && <TableRow><TableCell colSpan={4} align="center">Sem dados ainda.</TableCell></TableRow>}
           </TableBody>
@@ -82,14 +98,19 @@ export const OverviewTab = () => {
         </TableContainer>
       </CardContent></Card>
 
-      <Card sx={{ borderRadius: '12px' }}><CardContent>
-        <Typography variant="h6" gutterBottom>💰 Receita aprovada por mês</Typography>
+      <Card sx={{ borderRadius: '16px', boxShadow: '0 1px 2px rgba(0,0,0,.03), 0 2px 8px rgba(0,0,0,.04), 0 8px 20px rgba(0,0,0,.03)' }}><CardContent>
+        <Typography variant="h6" gutterBottom sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>💰 Receita aprovada por mês</Typography>
         <TableContainer sx={{ overflowX: 'auto' }}>
         <Table size="small">
-          <TableHead><TableRow><TableCell>Mês</TableCell><TableCell align="right">Receita (R$)</TableCell></TableRow></TableHead>
+          <TableHead><TableRow><TableCell sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>Mês</TableCell><TableCell align="right" sx={{ fontWeight: 700 }}>Receita</TableCell></TableRow></TableHead>
           <TableBody>
             {(metrics.revenueByMonth ?? []).map((r: any) => (
-              <TableRow key={r.month}><TableCell>{r.month}</TableCell><TableCell align="right">{(r.amount ?? 0).toFixed(2).replace('.', ',')}</TableCell></TableRow>
+              <TableRow key={r.month} sx={{ '&:hover': { bgcolor: 'rgba(32,178,170,.04)' } }}>
+                <TableCell sx={{ whiteSpace: 'nowrap', fontWeight: 600 }}>{fmtMonth(r.month)}</TableCell>
+                <TableCell align="right" sx={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: 'success.dark' }}>
+                  R$ {(r.amount ?? 0).toFixed(2).replace('.', ',')}
+                </TableCell>
+              </TableRow>
             ))}
             {(!metrics.revenueByMonth || metrics.revenueByMonth.length === 0) && <TableRow><TableCell colSpan={2} align="center">Sem receita ainda.</TableCell></TableRow>}
           </TableBody>

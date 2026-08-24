@@ -93,7 +93,13 @@ export const FinanceiroTab = () => {
   if (loading && !data) return <TabLoader />;
   if (error && !data) return <SectionError message="Não foi possível carregar os pagamentos." onRetry={() => void load()} />;
 
-  const payments = data?.payments ?? [];
+  // SORTING: data (mais recente) ou valor (maior primeiro)
+  const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
+  const sorted = [...(data?.payments ?? [])].sort((a, b) => {
+    if (sortBy === 'amount') return Number(b.amount ?? 0) - Number(a.amount ?? 0);
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+  const payments = sorted;
   const total = data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const rangeStart = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
@@ -115,6 +121,10 @@ export const FinanceiroTab = () => {
           <MenuItem value="creditos">Créditos</MenuItem>
         </TextField>
         <TextField size="small" placeholder="Buscar e-mail..." value={q} onChange={(e) => setQ(e.target.value)} sx={{ minWidth: 200 }} />
+        <TextField select size="small" label="Ordenar" value={sortBy} onChange={(e) => setSortBy(e.target.value as 'date' | 'amount')} sx={{ minWidth: 120 }}>
+          <MenuItem value="date">Data ↓</MenuItem>
+          <MenuItem value="amount">Valor ↓</MenuItem>
+        </TextField>
         <Button startIcon={<DownloadIcon />} variant="outlined" size="small" onClick={() => void exportCsv()} disabled={exporting}>Exportar CSV</Button>
       </Stack>
 

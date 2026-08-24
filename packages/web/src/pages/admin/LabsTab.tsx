@@ -109,11 +109,14 @@ export const LabsTab = () => {
                   </Button>
                 </Stack>
                 {/* Campos: largura total (mobile) / flexível (desktop) */}
-                <Box sx={{ flex: { sm: '1 1 200px' }, width: { xs: '100%', sm: 'auto' }, minWidth: 0 }}>
-                  <TextField size="small" defaultValue={lab.name} onBlur={(e) => { if (e.target.value !== lab.name) update(lab.id, { name: e.target.value }); }} label="Nome" sx={{ width: '100%', mb: 0.75 }} />
-                  <TextField size="small" defaultValue={(lab.aliases ?? []).join(', ')} onBlur={(e) => update(lab.id, { aliases: e.target.value.split(',').map((s) => s.trim()).filter(Boolean) })} label="Apelidos (vírgula)" sx={{ width: '100%' }} />
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.25, mt: 0.5 }}>
-                    {(lab.aliases ?? []).slice(0, 6).map((a: string, i: number) => <Chip key={i} size="small" label={a} sx={{ height: 18, fontSize: 10 }} />)}
+                <Box sx={{ flex: { sm: '1 1 200px' }, width: { xs: '100%', sm: 'auto' }, minWidth: 0, overflow: 'hidden' }}>
+                  <TextField size="small" defaultValue={lab.name} onBlur={(e) => { if (e.target.value !== lab.name) update(lab.id, { name: e.target.value }); }} label="Nome" sx={{ width: '100%', mb: 0.75, '& .MuiInputBase-input': { overflow: 'hidden', textOverflow: 'ellipsis' } }} />
+                  <TextField size="small" defaultValue={(lab.aliases ?? []).join(', ')} onBlur={(e) => update(lab.id, { aliases: e.target.value.split(',').map((s) => s.trim()).filter(Boolean) })} label="Apelidos (vírgula)" sx={{ width: '100%', '& .MuiInputBase-input': { overflow: 'hidden', textOverflow: 'ellipsis' } }} />
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.25, mt: 0.5, maxWidth: '100%', overflow: 'hidden' }}>
+                    {(lab.aliases ?? []).slice(0, 5).map((a: string, i: number) => (
+                      <Chip key={i} size="small" label={a.length > 12 ? a.slice(0, 10) + '…' : a} sx={{ height: 18, fontSize: 10, maxWidth: 120 }} />
+                    ))}
+                    {(lab.aliases ?? []).length > 5 && <Chip size="small" label={`+${lab.aliases.length - 5}`} sx={{ height: 18, fontSize: 10 }} />}
                   </Box>
                 </Box>
               </Stack>
