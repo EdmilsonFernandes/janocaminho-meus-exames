@@ -31,6 +31,10 @@ import TuneIcon from '@mui/icons-material/Tune';
 import CalculateIcon from '@mui/icons-material/Calculate';
 import ChildCareIcon from '@mui/icons-material/ChildCare';
 import MedicationIcon from '@mui/icons-material/Medication';
+import SavingsIcon from '@mui/icons-material/Savings';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import StorefrontIcon from '@mui/icons-material/Storefront';
+import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import FamilyRestroomIcon from '@mui/icons-material/FamilyRestroom';
 import ScienceIcon from '@mui/icons-material/Science';
 
@@ -258,6 +262,7 @@ export const LandingPage = () => {
               </Typography>
               <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', mb: 3, rowGap: 1 }}>
                 <Chip icon={<LockIcon sx={{ fontSize: 17 }} />} label="A IA não inventa números — vêm do seu laudo" sx={{ bgcolor: 'rgba(5,150,105,.10)', color: '#047857', fontWeight: 700, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: GREEN } }} />
+                <Chip icon={<SavingsIcon sx={{ fontSize: 17 }} />} label="Menor preço dos seus remédios em 9 farmácias" sx={{ bgcolor: 'rgba(212,165,116,.14)', color: '#b88a54', fontWeight: 700, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: '#d4a574' } }} />
                 <Chip icon={<VerifiedUserIcon sx={{ fontSize: 17 }} />} label="Conforme a LGPD" sx={{ bgcolor: 'rgba(32,178,170,.10)', color: TEAL_DARK, fontWeight: 700, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: TEAL } }} />
               </Stack>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap sx={{ mb: 1.5 }}>
@@ -618,6 +623,91 @@ export const LandingPage = () => {
             <LockIcon sx={{ fontSize: 18, color: GREEN }} />
             <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>Conforme a LGPD · Análise educativa, nunca um diagnóstico.</Typography>
           </Stack>
+        </Container>
+      </Box>
+
+      {/* REMÉDIOS + MENOR PREÇO — economia como valor (mock do comparador real) */}
+      <Box id="remedios" sx={{ bgcolor: 'background.default', py: { xs: 8, md: 11 }, scrollMarginTop: 80 }}>
+        <Container maxWidth="lg">
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: { xs: 5, md: 7 }, alignItems: 'center' }}>
+            {/* COPY */}
+            <Box>
+              <Chip icon={<SavingsIcon sx={{ fontSize: 17 }} />} label="Economia de verdade" sx={{ bgcolor: 'rgba(212,165,116,.16)', color: '#b88a54', fontWeight: 700, mb: 2, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: '#d4a574' } }} />
+              <Typography variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.5rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em', lineHeight: 1.15 }}>
+                O mesmo remédio pode custar <Box component="span" sx={{ ...SERIF_I, color: '#b88a54' }}>até 20× mais</Box> dependendo da farmácia.
+              </Typography>
+              <Typography sx={{ color: 'text.secondary', fontSize: 16.5, lineHeight: 1.65, mb: 3.5 }}>
+                O Procon-SP já encontrou variação de <b style={{ color: 'text.primary' }}>até 2.400%</b> no preço do mesmo medicamento. Você adiciona o remédio que toma — o Dr. Exame compara <b style={{ color: 'text.primary' }}>9 farmácias online</b> em segundos e mostra o menor preço, com foto do produto e o nome da farmácia.
+              </Typography>
+              <Stack spacing={2} sx={{ mb: 4 }}>
+                {[
+                  { Icon: MedicationIcon, t: '1. Adicione o remédio que você toma', d: 'Nome ou foto da receita — 1 toque. Uso contínuo fica salvo.' },
+                  { Icon: StorefrontIcon, t: '2. Comparamos 9 farmácias online', d: 'Pague Menos, Pacheco, São Paulo, Drogasil e outras — preço, foto e link.' },
+                  { Icon: NotificationsActiveIcon, t: '3. Menor preço na hora — e no bolso', d: 'A diferença entre a farmácia mais cara e a mais barata fica no seu bolso, todo mês.' },
+                ].map((s) => (
+                  <Stack key={s.t} direction="row" spacing={1.75} alignItems="flex-start">
+                    <Box sx={{ width: 40, height: 40, borderRadius: '12px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg,rgba(212,165,116,.18),rgba(212,165,116,.07))' }}>
+                      <s.Icon sx={{ fontSize: 21, color: '#b88a54' }} />
+                    </Box>
+                    <Box>
+                      <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary' }}>{s.t}</Typography>
+                      <Typography sx={{ fontSize: 13.5, color: 'text.secondary', lineHeight: 1.5 }}>{s.d}</Typography>
+                    </Box>
+                  </Stack>
+                ))}
+              </Stack>
+              <Button
+                href="#/registrar"
+                endIcon={<ArrowForwardIcon />}
+                sx={{ textTransform: 'none', fontWeight: 800, fontSize: 16, px: 4, py: 1.5, borderRadius: '999px', color: '#fff', background: 'linear-gradient(135deg,#d4a574,#b88a54)', boxShadow: '0 8px 24px rgba(212,165,116,.35)', '&:hover': { background: 'linear-gradient(135deg,#c89a66,#a67c48)', boxShadow: '0 10px 28px rgba(212,165,116,.45)' } }}
+              >
+                Adicionar meu primeiro remédio
+              </Button>
+              <Typography variant="caption" sx={{ display: 'block', mt: 2, color: 'text.disabled' }}>
+                Fonte: Procon-SP — estudo de variação de preços de medicamentos. Preços dos produtos das farmácias parceiras, atualizados continuamente.
+              </Typography>
+            </Box>
+
+            {/* MOCK do comparador — interface real do app */}
+            <Reveal>
+              <Box sx={{ position: 'relative', maxWidth: 420, mx: 'auto', width: '100%' }}>
+                <Box sx={{ borderRadius: '22px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', p: 2.5, boxShadow: '0 2px 8px rgba(0,0,0,.04), 0 12px 32px rgba(0,0,0,.06)' }}>
+                  <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
+                    <Box sx={{ width: 54, height: 54, borderRadius: '14px', bgcolor: 'rgba(32,178,170,.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <MedicationIcon sx={{ fontSize: 28, color: TEAL_DARK }} />
+                    </Box>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography sx={{ fontWeight: 800, fontSize: 16, fontFamily: 'Poppins, sans-serif', color: 'text.primary', lineHeight: 1.2 }}>Levotiroxina 25mcg</Typography>
+                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>uso contínuo · 30 un.</Typography>
+                      <Stack direction="row" spacing={0.5} alignItems="baseline" sx={{ mt: 0.25 }}>
+                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>a partir de</Typography>
+                        <Typography sx={{ fontWeight: 800, fontSize: 20, color: TEAL_DARK, lineHeight: 1, fontVariantNumeric: 'tabular-nums', fontFamily: 'Poppins, sans-serif' }}>R$ 7,65</Typography>
+                      </Stack>
+                    </Box>
+                    <Chip label="🏆 11 ofertas" size="small" sx={{ bgcolor: 'primary.main', color: '#fff', fontWeight: 800, fontSize: 10, flexShrink: 0 }} />
+                  </Stack>
+                  {[
+                    { sigla: 'CD', color: '#37474f', name: 'Coop Drogaria', product: 'Levotiroxina Sódica 25mg 30 Comprimidos', price: 'R$ 7,65', best: true },
+                    { sigla: 'PM', color: '#d32f2f', name: 'Pague Menos', product: 'Levotiroxina Sódica 25mcg Genérico Merck', price: 'R$ 9,49', best: false },
+                    { sigla: 'DP', color: '#1565c0', name: 'Drogaria Pacheco', product: 'Levotiroxina Sódica 25mcg Genérico 30cp', price: 'R$ 9,59', best: false },
+                  ].map((o) => (
+                    <Stack key={o.name} direction="row" spacing={1.25} alignItems="center" sx={{ py: 1.25, borderTop: '1px solid', borderColor: 'divider', bgcolor: o.best ? 'rgba(32,178,170,.05)' : 'transparent', borderRadius: o.best ? '10px' : 0, px: 0.5 }}>
+                      <Box sx={{ px: 0.75, py: 0.25, borderRadius: '6px', bgcolor: `${o.color}14`, color: o.color, fontWeight: 800, fontSize: 10, fontFamily: 'Poppins, sans-serif', flexShrink: 0 }}>{o.sigla}</Box>
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Typography noWrap sx={{ fontSize: 12.5, fontWeight: 700, color: 'text.primary' }}>{o.product}</Typography>
+                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>{o.name}</Typography>
+                      </Box>
+                      {o.best && <Chip label="MELHOR" size="small" sx={{ height: 18, fontSize: 9, fontWeight: 800, bgcolor: 'primary.main', color: '#fff', flexShrink: 0 }} />}
+                      <Typography sx={{ fontWeight: 800, fontSize: 14, color: 'text.primary', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{o.price}</Typography>
+                    </Stack>
+                  ))}
+                  <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 1.5, color: 'text.disabled' }}>
+                    +8 farmácias comparadas em segundos
+                  </Typography>
+                </Box>
+              </Box>
+            </Reveal>
+          </Box>
         </Container>
       </Box>
 
