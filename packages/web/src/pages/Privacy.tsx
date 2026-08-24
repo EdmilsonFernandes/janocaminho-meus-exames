@@ -128,6 +128,8 @@ export const PrivacyPage = () => {
       </Card>
 
       <Card sx={{ mb: 2, borderRadius: '12px' }}>
+        <Box sx={{ p: 2.5 }}>
+          <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', mb: 1 }}>🔐 LGPD (Lei Geral de Proteção de Dados)</Typography>
           <Stack spacing={1.5}>
             {[
               'Seus dados de saúde são tratados em ambiente controlado, com autenticação, HTTPS em produção e acesso restrito.',
