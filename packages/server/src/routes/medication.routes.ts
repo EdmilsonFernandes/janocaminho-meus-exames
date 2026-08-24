@@ -83,24 +83,23 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       },
     });
 
-    // INSTANTÂNEO: catálogo tem este remédio? → copia foto+preço AGORA (card acende na hora;
-    // o worker SÓ refresha 2h depois — nunca descobre o que o catálogo já sabe)
+    // PREÇO INSTANTÂNEO — VTEX PRIMEIRO (o usuário VIU o preço no combobox, ele TEM que
+    // aparecer). O catálogo é fallback — pode ter meia-resposta (foto sem preço).
     try {
       const { normDrug } = await import('../utils/interactions');
       const { buildNormalizedMedication } = await import('../pricing/normalize');
-      // resolve MARCA → GENÉRICO via ALIASES (LEVOID → LEVOTIROXINA) antes de procurar
       const raw = normDrug(String(name).trim());
       const { ALIASES_PUBLIC } = await import('../utils/interactions');
       const ingredient = (ALIASES_PUBLIC as Record<string, string>)[raw] ?? raw;
       let cat = await prisma.medicationCatalogEntry.findUnique({ where: { activeIngredient: ingredient } });
-      // se não achou direto, tenta o nome cru (sem alias — o catálogo guarda o nome genérico)
       if (!cat) cat = await prisma.medicationCatalogEntry.findUnique({ where: { activeIngredient: raw } });
-      // FALLBACK VTEX: se o catálogo NÃO tem, mas o combobox mandou dados da VTEX
-      // (foto + preço + URL), usa DIRETO — o card acende instantaneamente com TUDO.
-      // Isto resolve o bug do "Baristar": combobox achou na VTEX mas o catálogo não tinha.
-      if (!cat && vtexData?.vtexPriceCents && vtexData?.vtexProductName) {
-        const normalized = buildNormalizedMedication(m);
-        const key = normalized.medicationKey ?? `VTX|${normDrug(String(name).trim())}`; // fallback: mesmo sem key completa
+
+      const normalized = buildNormalizedMedication(m);
+
+      // PRIORIDADE 1: VTEX do combobox — SEMPRE wins (tem preço + foto + productName)
+      // Baristar bug: cat estava com meia-resposta → if(cat) rodava com key null → só foto
+      if (vtexData?.vtexPriceCents && vtexData?.vtexProductName) {
+        const key = normalized.medicationKey ?? `VTX|${raw}`;
         const now = new Date();
         // SEMPRE salva a offer do VTEX — key completa ou não (o card precisa acender AGORA)
         await prisma.medicationPriceSnapshot.upsert({
@@ -133,9 +132,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
           },
         });
         // NÃO sobrescrever pra 'queued' — isto escondia o preço que acabamos de salvar!
-      }
-
-      if (cat) {
+      } else if (cat) {
         const normalized = buildNormalizedMedication(m);
         const key = normalized.medicationKey;
         const now = new Date();
