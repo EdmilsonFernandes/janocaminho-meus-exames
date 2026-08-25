@@ -74,6 +74,15 @@ export const ApiPanelPage = () => {
     return () => clearInterval(iv);
   }, [pix, pendingPix]);
 
+  // POLLING enquanto há PIX pendente: o webhook do MP aprova em segundos após o pagamento —
+  // o painel percebe sozinho (saldo sobe, card limpa) sem F5 e sem "Já paguei".
+  useEffect(() => {
+    if (!pendingPix) return;
+    const iv = setInterval(() => { void load(); }, 5000);
+    return () => clearInterval(iv);
+    /* eslint-disable-next-line */
+  }, [!!pendingPix]);
+
   const mmss = (expiresAt: string) => {
     const secs = Math.max(0, Math.floor((new Date(expiresAt).getTime() - Date.now()) / 1000));
     return `${String(Math.floor(secs / 60)).padStart(2, '0')}:${String(secs % 60).padStart(2, '0')}`;
