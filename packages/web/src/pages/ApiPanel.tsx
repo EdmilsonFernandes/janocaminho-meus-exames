@@ -61,16 +61,21 @@ export const ApiPanelPage = () => {
   };
   useEffect(() => { void load(); /* eslint-disable-next-line */ }, []);
 
-  // countdown do PIX
+  // countdown do PIX (ticka enquanto houver PIX aberto OU pendente no card — igual ao Plans)
   const [, forceTick] = useState(0);
   useEffect(() => {
-    if (!pix) return;
+    if (!pix && !pendingPix) return;
     const iv = setInterval(() => {
-      if (new Date(pix.expiresAt).getTime() - Date.now() <= 0) { setPix(null); return; }
+      if (pix && new Date(pix.expiresAt).getTime() - Date.now() <= 0) { setPix(null); void load(); return; }
       forceTick((t) => t + 1);
     }, 1000);
     return () => clearInterval(iv);
-  }, [pix]);
+  }, [pix, pendingPix]);
+
+  const mmss = (expiresAt: string) => {
+    const secs = Math.max(0, Math.floor((new Date(expiresAt).getTime() - Date.now()) / 1000));
+    return `${String(Math.floor(secs / 60)).padStart(2, '0')}:${String(secs % 60).padStart(2, '0')}`;
+  };
 
   const requestAccess = async () => {
     setSending(true);
@@ -186,21 +191,6 @@ export const ApiPanelPage = () => {
         </Stack>
       </Box>
 
-      {/* PIX DE PACOTE PENDENTE — retoma o MESMO QR (sem ordem nova), igual ao fluxo de créditos */}
-      {approved && pendingPix && (
-        <Alert severity="info" icon={<BoltIcon sx={{ fontSize: 20 }} />} sx={{ mb: 2, borderRadius: '12px', alignItems: 'center' }}>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ sm: 'center' }} justifyContent="space-between" sx={{ width: '100%' }}>
-            <Typography sx={{ fontSize: 14 }}>
-              PIX de <strong>{Number(pendingPix.calls ?? 0).toLocaleString('pt-BR')} chamadas</strong> aguardando pagamento
-              {' '}({Math.max(0, Math.ceil((new Date(pendingPix.expiresAt).getTime() - Date.now()) / 60000))} min restantes)
-            </Typography>
-            <Button size="small" variant="contained" onClick={() => setPix(pendingPix)} sx={{ textTransform: 'none', fontWeight: 700, flexShrink: 0 }}>
-              Retomar pagamento
-            </Button>
-          </Stack>
-        </Alert>
-      )}
-
       {/* SEM APROVAÇÃO — showcase + formulário de solicitação */}
       {!approved && (
         <Card variant="outlined" sx={{ borderRadius: '14px', mb: 2.5 }}>
@@ -292,26 +282,47 @@ export const ApiPanelPage = () => {
                 Pré-pago sem surpresa: quando o saldo acaba, a API responde 402 até você recarregar. PIX na hora ou cartão/débito no checkout seguro.
               </Typography>
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 1.5 }}>
-                {packs.map((p: any) => (
+                {packs.map((p: any) => {
+                  // PIX PENDENTE deste pacote? O card vira "Aguardando pagamento" com countdown
+                  // e o botão primário vira RETOMAR (mesmo QR, sem ordem nova) — igual ao Plans.
+                  const isPending = pendingPix && Number(pendingPix.calls) === Number(p.calls) && Number(pendingPix.price) === Number(p.price);
+                  return (
                   <Box key={p.id} sx={{
-                    borderRadius: '14px', border: p.popular ? '2px solid #20b2aa' : '1px solid', borderColor: p.popular ? '#20b2aa' : 'divider',
+                    borderRadius: '14px', border: isPending ? '2px solid #d97706' : p.popular ? '2px solid #20b2aa' : '1px solid',
+                    borderColor: isPending ? undefined : p.popular ? '#20b2aa' : 'divider',
                     p: 2, textAlign: 'center', position: 'relative',
+                    bgcolor: isPending ? 'rgba(217,119,6,0.04)' : undefined,
                     ...(p.popular ? { background: 'linear-gradient(135deg,rgba(32,178,170,.10),rgba(212,165,116,.08))' } : {}),
                   }}>
-                    {p.popular && <Chip size="small" label="MAIS VENDIDO" sx={{ position: 'absolute', top: -11, left: '50%', transform: 'translateX(-50%)', bgcolor: '#20b2aa', color: '#fff', fontWeight: 800, fontSize: 9.5, height: 20 }} />}
-                    <Typography sx={{ fontSize: 11.5, fontWeight: 800, letterSpacing: 1, color: '#b88a54' }}>{String(p.label).toUpperCase()}</Typography>
+                    {isPending
+                      ? <Box sx={{ position: 'absolute', top: -11, left: '50%', transform: 'translateX(-50%)' }}><Chip size="small" label="⏳ Aguardando pagamento" sx={{ fontWeight: 800, fontSize: 9.5, height: 20, bgcolor: 'rgba(217,119,6,.15)', color: '#92400e' }} /></Box>
+                      : p.popular && <Chip size="small" label="MAIS VENDIDO" sx={{ position: 'absolute', top: -11, left: '50%', transform: 'translateX(-50%)', bgcolor: '#20b2aa', color: '#fff', fontWeight: 800, fontSize: 9.5, height: 20 }} />}
+                    <Typography sx={{ fontSize: 11.5, fontWeight: 800, letterSpacing: 1, color: '#b88a54', mt: isPending ? 1.5 : 0 }}>{String(p.label).toUpperCase()}</Typography>
                     <Typography sx={{ fontWeight: 800, fontSize: 24, mt: 0.5 }}>{Number(p.calls).toLocaleString('pt-BR')}</Typography>
                     <Typography sx={{ fontSize: 11.5, color: 'text.secondary', mb: 1.5 }}>chamadas · R$ {Number(p.price).toFixed(2).replace('.', ',')}</Typography>
-                    <Stack spacing={0.75}>
-                      <Button size="small" variant="contained" disabled={buying === p.id} onClick={() => void buyPack(p.id, 'pix')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>
-                        {buying === p.id ? <CircularProgress size={15} color="inherit" /> : 'PIX (na hora)'}
-                      </Button>
-                      <Button size="small" disabled={buying === p.id} onClick={() => void buyPack(p.id, 'card')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, borderColor: '#d8f4f2', color: '#178f89' }} variant="outlined">
-                        Cartão / débito
-                      </Button>
-                    </Stack>
+                    {isPending ? (
+                      <Stack spacing={0.75}>
+                        {/* Countdown de verdade (mm:ss, tickando) — igual ao PIX de créditos. */}
+                        <Typography sx={{ fontWeight: 800, fontSize: 26, fontVariantNumeric: 'tabular-nums', color: '#92400e', lineHeight: 1 }}>
+                          {mmss(pendingPix.expiresAt)}
+                        </Typography>
+                        <Button size="small" variant="contained" fullWidth onClick={() => setPix(pendingPix)} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, bgcolor: '#d97706', '&:hover': { bgcolor: '#b45309' } }}>
+                          Retomar pagamento
+                        </Button>
+                      </Stack>
+                    ) : (
+                      <Stack spacing={0.75}>
+                        <Button size="small" variant="contained" disabled={buying === p.id} onClick={() => void buyPack(p.id, 'pix')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>
+                          {buying === p.id ? <CircularProgress size={15} color="inherit" /> : 'PIX (na hora)'}
+                        </Button>
+                        <Button size="small" disabled={buying === p.id} onClick={() => void buyPack(p.id, 'card')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, borderColor: '#d8f4f2', color: '#178f89' }} variant="outlined">
+                          Cartão / débito
+                        </Button>
+                      </Stack>
+                    )}
                   </Box>
-                ))}
+                  );
+                })}
               </Box>
             </CardContent>
           </Card>
@@ -350,13 +361,24 @@ export const ApiPanelPage = () => {
         </DialogActions>
       </Dialog>
 
-      {/* DIALOG: PIX do pacote (QR + copia-cola + countdown) */}
+      {/* DIALOG: PIX do pacote (QR + copia-cola + countdown mm:ss + retomada) */}
       <Dialog open={!!pix} onClose={() => setPix(null)} fullWidth maxWidth="xs">
-        <DialogTitle sx={{ fontWeight: 800, pb: 0.5 }}>PIX — {pix?.calls?.toLocaleString('pt-BR')} chamadas</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 800, pb: 0.5, textAlign: 'center' }}>
+          PIX — {pix?.calls?.toLocaleString('pt-BR')} chamadas
+          {pix?.resumed && <Chip size="small" label="mesmo código de antes" sx={{ ml: 1, height: 20, fontSize: 10, fontWeight: 700, bgcolor: 'rgba(217,119,6,.15)', color: '#92400e' }} />}
+        </DialogTitle>
         <DialogContent sx={{ textAlign: 'center' }}>
           {pix?.qrBase64 && <Box component="img" src={pix.qrBase64} alt="QR Code PIX" sx={{ width: 230, height: 230, borderRadius: '12px', bgcolor: '#fff', p: 1, my: 1 }} />}
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>
-            Expira em {Math.max(0, Math.ceil((new Date(pix?.expiresAt ?? 0).getTime() - Date.now()) / 60000))} min · confirmação automática após o pagamento
+          {/* Countdown mm:ss de verdade, tickando — expirou muda o estado e orienta gerar outro. */}
+          {pix && new Date(pix.expiresAt).getTime() - Date.now() > 0 ? (
+            <Typography sx={{ fontWeight: 800, fontSize: 30, fontVariantNumeric: 'tabular-nums', color: '#92400e', lineHeight: 1.1 }}>
+              {mmss(pix.expiresAt)}
+            </Typography>
+          ) : (
+            <Alert severity="warning" sx={{ borderRadius: '12px', mt: 1 }}>PIX expirado — feche e gere um novo (os pacotes voltam liberados).</Alert>
+          )}
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5, mt: 0.5 }}>
+            Confirmação automática após o pagamento
           </Typography>
           <Button size="small" variant="outlined" startIcon={<ContentCopyIcon />} onClick={() => { void navigator.clipboard?.writeText(pix?.qrCode ?? ''); }} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>
             Copiar código PIX
