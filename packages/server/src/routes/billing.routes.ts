@@ -277,8 +277,11 @@ router.post('/buy-api-pack', requireAuth, async (req: AuthedRequest, res, next) 
     const user = await prisma.user.findUnique({ where: { id: req.userId! } });
     if (!user) { res.status(404).json({ error: 'Usuário não encontrado' }); return; }
     const subscriptionColumns = await getSubscriptionColumnSupport();
-    // Filtro JSON por PATH (não objeto): casa só ordens marcadas como api_pack.
-    const apiTag = subscriptionColumns.hasRawWebhook ? { rawWebhook: { path: ['kind'], equals: 'api_pack' } as any } : {};
+    // TAG da ordem de API = mpPreferenceId 'api_pack' (mesmo padrão do marcador referral_ do
+    // auth). NÃO usar rawWebhook: o MP dispara WEBHOOK JÁ NA CRIAÇÃO do PIX (status pending)
+    // e o handler sobrescreve rawWebhook com o payload — a tag sumia e a retomada não achava
+    // o PIX (bug visto em prod). mpPreferenceId: nem o PIX nem o webhook jamais escrevem nele.
+    const apiTag = { mpPreferenceId: 'api_pack' as const };
 
     if (method === 'pix' && subscriptionColumns.hasPixResume) {
       // RETOMA: PIX de API ainda válido → mesmo QR, mesmo timer, ZERO ordem nova.
@@ -298,18 +301,15 @@ router.post('/buy-api-pack', requireAuth, async (req: AuthedRequest, res, next) 
         });
         return;
       }
-      // Expirou (ou é de outra moeda sem tag): cancela órfãos de API — sem acumular ordens.
+      // Expirou: cancela órfãos de API — sem acumular ordens.
       await prisma.subscription.updateMany({
         where: { userId: user.id, status: 'PENDING', periodDays: 0, pixExpiresAt: { lt: new Date() }, ...apiTag },
         data: { status: 'CANCELLED' },
       });
-      if (!subscriptionColumns.hasRawWebhook) {
-        // Sem coluna de tag (drift): fallback conservador — derruba PENDINGs de pacote.
-        await prisma.subscription.updateMany({ where: { userId: user.id, status: 'PENDING', periodDays: 0 }, data: { status: 'CANCELLED' } });
-      }
     }
 
-    const sub = await createSubscriptionCompat({ userId: user.id, amount: pack.price, periodDays: 0, status: 'PENDING', ...(subscriptionColumns.hasRawWebhook ? { rawWebhook: { kind: 'api_pack' } } as any : {}) });
+    const sub = await createSubscriptionCompat({ userId: user.id, amount: pack.price, periodDays: 0, status: 'PENDING' });
+    await updateSubscriptionCompat(sub.id, { mpPreferenceId: 'api_pack' }); // marca ANTES de chamar o MP
     const externalReference = `${sub.id}|${pack.calls}|API`;
     const expires = new Date(Date.now() + API_PIX_TTL_MS); // 5 min (créditos usam 10)
     const base = (process.env.WEB_BASE_PATH ?? '').replace(/\/$/, '');
@@ -378,13 +378,14 @@ router.post('/buy-api-pack', requireAuth, async (req: AuthedRequest, res, next) 
 });
 
 // PIX DE API PENDENTE (retomada no painel #/api): existe PIX de pacote válido → devolve QR
-// + timer restante. Mesmo contrato do pending-payment de créditos, filtrado pela tag api_pack.
+// + timer restante. Mesmo contrato do pending-payment de créditos. Filtro pelo marcador
+// mpPreferenceId='api_pack' — imune ao webhook que sobrescreve rawWebhook na criação do PIX.
 router.get('/pending-api-pack', requireAuth, async (req: AuthedRequest, res, next) => {
   try {
     const subscriptionColumns = await getSubscriptionColumnSupport();
-    if (!subscriptionColumns.hasPixResume || !subscriptionColumns.hasRawWebhook) { res.json({ hasPending: false }); return; }
+    if (!subscriptionColumns.hasPixResume) { res.json({ hasPending: false }); return; }
     const pending = await prisma.subscription.findFirst({
-      where: { userId: req.userId!, status: 'PENDING', periodDays: 0, pixExpiresAt: { gt: new Date() }, rawWebhook: { path: ['kind'], equals: 'api_pack' } },
+      where: { userId: req.userId!, status: 'PENDING', periodDays: 0, pixExpiresAt: { gt: new Date() }, mpPreferenceId: 'api_pack' },
       orderBy: { createdAt: 'desc' },
     });
     if (!pending?.pixQrCode || !pending.pixQrBase64) { res.json({ hasPending: false }); return; }

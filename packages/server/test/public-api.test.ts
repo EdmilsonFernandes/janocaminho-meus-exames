@@ -228,6 +228,11 @@ describe('API pública v1 — Fase 1 + 2', () => {
     const buy = await api().post('/api/billing/buy-api-pack').set(authHeader(token)).send({ pack: 'api1k', method: 'pix' });
     expect(buy.status).toBe(200);
     expect(buy.body.calls).toBe(1000);
+    // BUG DE PROD (reproduzido): o MP dispara WEBHOOK JÁ NA CRIAÇÃO do PIX (status pending).
+    // Ele sobrescreve rawWebhook — se a tag da retomada morasse lá, o PIX sumia do radar.
+    const subCreated = await prisma.subscription.findFirst({ where: { userId: user.id }, orderBy: { createdAt: 'desc' } });
+    fetchMock().mockResolvedValueOnce(mpResponse({ id: 9001, status: 'pending', external_reference: `${subCreated!.id}|1000|API` }));
+    await api().post('/api/billing/webhook').send({ type: 'payment', data: { id: '9001' } });
     // RETOMADA (anti-dupla-ordem): 2ª compra PIX antes de expirar devolve o MESMO QR
     const buy2 = await api().post('/api/billing/buy-api-pack').set(authHeader(token)).send({ pack: 'api1k', method: 'pix' });
     expect(buy2.status).toBe(200);
