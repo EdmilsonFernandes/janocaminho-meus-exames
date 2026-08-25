@@ -197,7 +197,7 @@ export const ApiPanelPage = () => {
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 20, md: 24 }, lineHeight: 1.15 }}>API do Dr. Exame</Typography>
             <Typography sx={{ fontSize: 13.5, opacity: 0.9, mt: 0.5 }}>
-              Preço real de farmácia + interações D/X no seu produto. Documentação completa em <Box component="a" href="/api/docs" target="_blank" rel="noopener noreferrer" sx={{ color: '#fff', fontWeight: 700, textDecoration: 'underline' }}>/api/docs</Box>.
+              Preço real de farmácia + interações D/X no seu produto. Documentação completa em <Box component="a" href="/api-docs" sx={{ color: '#fff', fontWeight: 700, textDecoration: 'underline' }}>/api-docs</Box> · console interativo em <Box component="a" href="/api/docs" target="_blank" rel="noopener noreferrer" sx={{ color: '#fff', fontWeight: 700, textDecoration: 'underline' }}>/api/docs</Box>.
             </Typography>
           </Box>
           {approved && (

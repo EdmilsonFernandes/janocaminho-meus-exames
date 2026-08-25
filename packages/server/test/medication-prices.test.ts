@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { api, authHeader, resetDb, createUser } from './helpers';
 import { prisma } from '../src/prisma';
 import { parseDosage, parseActiveIngredient, parsePackQty, buildNormalizedMedication, isKeyComplete } from '../src/pricing/normalize';
-import { processMedicationPrice, runPriceWorkerTick } from '../src/pricing/worker';
+import { processMedicationPrice, runPriceWorkerTick, relevanceFilter } from '../src/pricing/worker';
 import { ProviderRegistry, type MedicationPriceProvider } from '../src/pricing/provider';
 
 // ---------------------------------------------------------------------------
@@ -55,6 +55,39 @@ const fakeProvider: MedicationPriceProvider = {
 };
 
 const itR = (n: string, f: () => Promise<void>) => it(n, { retry: 2 }, f);
+
+describe('relevanceFilter (unit — bug "baristar")', () => {
+  const mk = (name: string, price = 1000): any => ({ pharmacy: 'X', productName: name, priceCents: price, url: name });
+
+  it('procurou BARISTAR → vizinho temático (Gastrol) fora; Baristar fica', () => {
+    const out = relevanceFilter(
+      [mk('Gastrol Digest Lac 10.000UI Sabor Baunilha', 5999), mk('Baristar Medley Com 30 Cápsulas', 6215), mk('Suplemento Vitamínico Baristar 30 Cápsulas', 7721)],
+      { activeIngredient: 'BARISTAR' },
+    );
+    expect(out.map((o) => o.productName).every((n) => n.toUpperCase().includes('BARISTAR'))).toBe(true);
+    expect(out.length).toBe(2);
+  });
+
+  it('multi-palavra casa pela MAIS distintiva (ACIDO FOLICO → FOLICO, não ACIDO)', () => {
+    const out = relevanceFilter([mk('Ácido Clorídrico Tal'), mk('Fólico 5mg Genérico')], { activeIngredient: 'ACIDO FOLICO' });
+    expect(out.length).toBe(1);
+    expect(out[0].productName).toContain('Fólico');
+  });
+
+  it('nada casa → mantém original (marca sem genérico no nome não vira no_results)', () => {
+    const out = relevanceFilter([mk('Cozaar 50mg')], { activeIngredient: 'LOSARTANA' });
+    expect(out.length).toBe(1);
+    expect(out[0].productName).toBe('Cozaar 50mg');
+  });
+
+  it('mesma farmácia + mesmo preço → distinct (1 linha)', () => {
+    const out = relevanceFilter(
+      [mk('Losartana 50mg 30cp Genérico', 989), mk('Losartana Potássica 50mg 30 Comp', 989), mk('Losartana 50mg 30cp', 1050)],
+      { activeIngredient: 'LOSARTANA' },
+    );
+    expect(out.length).toBe(2); // 989 duplicado vira 1; 1050 (outro preço) fica
+  });
+});
 
 describe('medication prices (E2E)', () => {
   beforeEach(async () => {

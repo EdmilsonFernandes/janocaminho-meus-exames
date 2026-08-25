@@ -13,6 +13,33 @@ const BATCH = 3; // batch pequeno: VTEX rate-limita se martelamos com 8 de uma v
 
 export type WorkerOutcome = 'available' | 'no_results' | 'insufficient_data' | 'provider_error' | 'cached';
 
+/** Relevância (bug "baristar": full-text da farmácia devolve vizinhos temáticos — procurou
+ *  BARISTAR, veio "Gastrol Digest Lac" baratinho como MELHOR PREÇO). Filtro CENTRAL: a oferta
+ *  só entra no snapshot se o nome do produto contém a palavra MAIS DISTINTIVA do princípio
+ *  ativo (a mais longa ≥4 chars — "ACIDO FOLICO" casa por FOLICO, não por ACIDO). Vale pra
+ *  TODOS os providers (o matches() existia só no Pague Menos). Se NADA casa, mantém o
+ *  original: marca sem genérico no nome não vira no_results por engano.
+ *  Exportada pra teste unitário direto. */
+export function relevanceFilter(offers: PriceOffer[], n: { activeIngredient?: string | null }): PriceOffer[] {
+  const norm = (s: string) => (s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();
+  const term = norm(n.activeIngredient ?? '')
+    .split(/\s+/)
+    .filter((w) => w.length >= 4)
+    .sort((a, b) => b.length - a.length)[0];
+  if (!term) return offers;
+  const kept = offers.filter((o) => norm(o.productName).includes(term));
+  const list = kept.length ? kept : offers;
+  // DEDUPE (pedido do dono): mesma farmácia + mesmo preço = 1 linha (o catálogo da farmácia
+  // lista o mesmo produto em variações de título). Mantém a primeira (mais barata vem antes).
+  const seen = new Set<string>();
+  return list.filter((o) => {
+    const k = `${norm(o.pharmacy)}|${o.priceCents}`;
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+}
+
 async function ensureSnapshot(key: string, offers: PriceOffer[], providerName: string) {
   const now = new Date();
   const lowest = offers.length ? Math.min(...offers.map((o) => o.priceCents)) : null;
@@ -95,7 +122,7 @@ export async function processMedicationPrice(medId: string, provider: Medication
 
   await prisma.medication.update({ where: { id: med.id }, data: { priceStatus: 'searching' } });
   try {
-    const offers = await provider.search(normalized);
+    const offers = relevanceFilter(await provider.search(normalized), normalized);
     await ensureSnapshot(normalized.medicationKey!, offers, provider.name);
     const status = offers.length ? 'available' : 'no_results';
     await prisma.medication.update({ where: { id: med.id }, data: { priceStatus: status, priceCheckedAt: new Date() } });

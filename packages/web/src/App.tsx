@@ -1,6 +1,6 @@
 import { Admin, Resource, CustomRoutes, Layout, AppBar, TitlePortal, AppBarProps, useLogout, useLocale, useSetLocale, useRefresh, useNotify, useTranslate, useSidebarState, LoadingIndicator } from 'react-admin';
 import { ConfirmDialogProvider } from './components/ConfirmDialog';
-import { Route, useNavigate, useLocation } from 'react-router-dom';
+import { Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useEffect, useState, useRef, lazy, Suspense } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { Box, Typography, IconButton, Button, useMediaQuery, useTheme, CircularProgress, MenuItem, Divider, ListItemIcon, ListItemText, Collapse, ListItemButton, Dialog, DialogTitle, DialogContent, DialogActions, Chip, Drawer, Avatar, Stack } from '@mui/material';
@@ -96,6 +96,7 @@ import { NotificationsPage } from './pages/Notifications';
 import { MedicosPage } from './pages/Medicos';
 import { SupportPage } from './pages/Support';
 import { ApiPanelPage } from './pages/ApiPanel';
+const ApiDocsPage = lazy(() => import('./pages/ApiDocs').then(m => ({ default: m.ApiDocsPage })));
 import { ConquistasPage } from './pages/Conquistas';
 import { initPush } from './push';
 import { syncCreditCosts } from './components/CreditBadge';
@@ -447,6 +448,10 @@ const AppLayout = (props: any) => {
   // e o menu lateral sumia (5ª vez). Força aberta no desktop; no mobile o menu é o AppDrawer (☰), não esta Sidebar.
   const [sidebarOpen, setSidebarOpen] = useSidebarState();
   useEffect(() => { if (isDesktop && !sidebarOpen) setSidebarOpen(true); }, [isDesktop]); // eslint-disable-line react-hooks/exhaustive-deps
+  // GUARD (bug do dono: deslogado entrava na área do usuário e via telas vazias): sem token,
+  // nenhuma tela autenticada renderiza — vai pro login (que volta pro destino via dxAfterLogin).
+  // Rotas públicas vivem no CustomRoutes noLayout (fora deste shell).
+  if (!token()) return <Navigate to="/entrar" replace />;
   return (
     <ConfirmDialogProvider>
     <DrawerProvider>
@@ -672,6 +677,8 @@ export const App = () => {
       <Route path="/convite/:token" element={<InviteLandingPage />} />
       <Route path="/termos" element={<TermsPage />} />
       <Route path="/como-validamos" element={<Suspense fallback={<PageSkeleton />}><HowWeValidatePage /></Suspense>} />
+      {/* Portal de documentação da API: PÚBLICO (prospects leem antes de solicitar) — fora do shell autenticado. */}
+      <Route path="/api-docs" element={<Suspense fallback={<PageSkeleton />}><ApiDocsPage /></Suspense>} />
       <Route path="/registrar" element={<RegisterPage />} />
       <Route path="/recuperar-senha" element={<ResetPage />} />
       <Route path="/doctor" element={<Suspense fallback={<PageSkeleton />}><DoctorPortalPage /></Suspense>} />
