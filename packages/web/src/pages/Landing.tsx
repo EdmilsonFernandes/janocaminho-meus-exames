@@ -1100,8 +1100,8 @@ export const LandingPage = () => {
               <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1.5, mt: 2.5 }}>
                 {[
                   { l: 'Teste', p: 'grátis', d: '25 chamadas na aprovação' },
-                  { l: 'Pro', p: 'R$ 99', d: '10 mil chamadas' },
-                  { l: 'Scale', p: 'R$ 399', d: '50 mil chamadas' },
+                  { l: 'Profissional', p: 'R$ 99', d: '10 mil chamadas' },
+                  { l: 'Grande volume', p: 'R$ 399', d: '50 mil chamadas' },
                 ].map((t) => (
                   <Box key={t.l} sx={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,.22)', bgcolor: 'rgba(255,255,255,.07)', p: 1.75, textAlign: 'center' }}>
                     <Typography sx={{ fontSize: 11.5, fontWeight: 800, letterSpacing: 1, color: '#ffd9b3' }}>{t.l.toUpperCase()}</Typography>

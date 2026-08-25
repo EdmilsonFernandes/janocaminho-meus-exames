@@ -304,7 +304,11 @@ export const ApiPanelPage = () => {
                 {packs.map((p: any) => {
                   // PIX PENDENTE deste pacote? O card vira "Aguardando pagamento" com countdown
                   // e o botão primário vira RETOMAR (mesmo QR, sem ordem nova) — igual ao Plans.
+                  // Os OUTROS cards DESABILITAM (1 PIX por vez — clicar em outro durante a espera
+                  // abria o PIX pendente de outro pacote, confusão relatada pelo dono).
                   const isPending = pendingPix && Number(pendingPix.calls) === Number(p.calls) && Number(pendingPix.price) === Number(p.price);
+                  const blocked = !!pendingPix && !isPending;
+                  const ptLabel = ({ Starter: 'Inicial', Pro: 'Profissional', Scale: 'Grande volume' } as Record<string, string>)[String(p.label)] ?? p.label;
                   return (
                   <Box key={p.id} sx={{
                     borderRadius: '14px', border: isPending ? '2px solid #d97706' : p.popular ? '2px solid #20b2aa' : '1px solid',
@@ -316,7 +320,7 @@ export const ApiPanelPage = () => {
                     {isPending
                       ? <Chip size="small" label="⏳ Aguardando pagamento" sx={{ fontWeight: 800, fontSize: 10, height: 22, bgcolor: 'rgba(217,119,6,.15)', color: '#92400e' }} />
                       : p.popular ? <Chip size="small" label="MAIS VENDIDO" sx={{ bgcolor: '#20b2aa', color: '#fff', fontWeight: 800, fontSize: 10, height: 22 }} /> : <Box sx={{ height: 22 }} />}
-                    <Typography sx={{ fontSize: 11.5, fontWeight: 800, letterSpacing: 1, color: '#b88a54', mt: 1 }}>{String(p.label).toUpperCase()}</Typography>
+                    <Typography sx={{ fontSize: 11.5, fontWeight: 800, letterSpacing: 1, color: '#b88a54', mt: 1 }}>{String(ptLabel).toUpperCase()}</Typography>
                     <Typography sx={{ fontWeight: 800, fontSize: 24, mt: 0.5 }}>{Number(p.calls).toLocaleString('pt-BR')}</Typography>
                     <Typography sx={{ fontSize: 11.5, color: 'text.secondary', mb: 1.5 }}>chamadas · R$ {Number(p.price).toFixed(2).replace('.', ',')}</Typography>
                     {isPending ? (
@@ -331,11 +335,11 @@ export const ApiPanelPage = () => {
                       </Stack>
                     ) : (
                       <Stack spacing={0.75}>
-                        <Button size="small" variant="contained" disabled={buying === p.id} onClick={() => void buyPack(p.id, 'pix')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>
+                        <Button size="small" variant="contained" disabled={buying === p.id || blocked} onClick={() => void buyPack(p.id, 'pix')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>
                           {buying === p.id ? <CircularProgress size={15} color="inherit" /> : 'PIX (na hora)'}
                         </Button>
-                        <Button size="small" disabled={buying === p.id} onClick={() => void buyPack(p.id, 'card')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, borderColor: '#d8f4f2', color: '#178f89' }} variant="outlined">
-                          Cartão / débito
+                        <Button size="small" disabled={buying === p.id || blocked} onClick={() => void buyPack(p.id, 'card')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, borderColor: '#d8f4f2', color: '#178f89' }} variant="outlined">
+                          {blocked ? 'Aguarde o PIX atual' : 'Cartão / débito'}
                         </Button>
                       </Stack>
                     )}
