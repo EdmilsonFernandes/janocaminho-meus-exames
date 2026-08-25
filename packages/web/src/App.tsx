@@ -31,6 +31,7 @@ import SummarizeIcon from '@mui/icons-material/Summarize';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
+import ApiOutlinedIcon from '@mui/icons-material/ApiOutlined';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import InfoIcon from '@mui/icons-material/Info';
 import { DrExame } from './components/DrExame';
@@ -95,6 +96,7 @@ import { GoalQuiz } from './components/GoalQuiz';
 import { NotificationsPage } from './pages/Notifications';
 import { MedicosPage } from './pages/Medicos';
 import { SupportPage } from './pages/Support';
+import { ApiPanelPage } from './pages/ApiPanel';
 import { ConquistasPage } from './pages/Conquistas';
 import { initPush } from './push';
 import { syncCreditCosts } from './components/CreditBadge';
@@ -278,6 +280,7 @@ const AppMenu = () => {
         vive DENTRO do FAQ ("Falar com o suporte"), um caminho só em vez de dois parecidos. */}
     <NavItem to="/faq" primaryText={translate('menu.faq', { _: 'Dúvidas frequentes' })} icon={<QuestionAnswerIcon />} />
     <NavItem to="/como-validamos" primaryText={translate('menu.howvalidate', { _: 'Como validamos' })} icon={<VerifiedUserIcon />} />
+    <NavItem to="/api" primaryText={translate('menu.api', { _: 'API Dr. Exame' })} icon={<ApiOutlinedIcon />} />
     <MenuItem onClick={() => setAboutOpen(true)} sx={{ mx: 0.5, borderRadius: '8px', py: 0.75 }}>
       <ListItemIcon sx={{ minWidth: 36 }}><InfoIcon fontSize="small" /></ListItemIcon>
       <ListItemText primaryTypographyProps={{ fontSize: 13, fontWeight: 600 }}>{translate('menu.about')}</ListItemText>
@@ -709,6 +712,7 @@ export const App = () => {
       <Route path="/conquistas" element={<ConquistasPage />} />
       <Route path="/suporte" element={<SupportPage />} />
       <Route path="/suporte/:id" element={<SupportPage />} />
+      <Route path="/api" element={<ApiPanelPage />} />
     </CustomRoutes>
   </Admin>
   </>
