@@ -42,6 +42,7 @@ import { ExamDemo } from '../components/ExamDemo';
 import { FaqSection } from '../components/FaqSection';
 import { fetchPublicConfig, API_URL } from '../config';
 import { usePlanInfo, fmtBRL } from '../utils/planInfo';
+import { ScrollReveal, AnimatedNumber } from '../components/ScrollReveal';
 import { BmiCalculator, BmiCard } from '../components/BmiCalculator';
 import { Reveal } from '../components/Reveal';
 
@@ -362,20 +363,22 @@ export const LandingPage = () => {
         </Container>
       </Box>
 
-      {/* FAIXA DE MÉTRICAS — valor concreto, sempre verdadeiro (não depende de volume) */}
+      {/* FAIXA DE MÉTRICAS — contadores ANIMADOS ao entrar no viewport (wow imediato). */}
       <Box sx={{ bgcolor: 'background.default' }}>
         <Container maxWidth="lg" sx={{ py: { xs: 5, md: 7 } }}>
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(4, 1fr)' }, gap: { xs: 2.5, md: 4 }, textAlign: 'center' }}>
             {[
-              { n: '< 30s', l: 'pra ler seu exame com IA' },
-              { n: '7', l: 'riscos monitorados: diabetes, anemia, colesterol, renal…' },
-              { n: '3', l: 'índices que o laudo não dá: IMC, eGFR e HOMA-IR' },
-              { n: '100%', l: 'educativo · LGPD · nunca um diagnóstico' },
-            ].map((m) => (
-              <Box key={m.l}>
-                <Typography sx={{ fontSize: { xs: '1.8rem', md: '2.4rem' }, fontWeight: 800, color: TEAL_DARK, lineHeight: 1, mb: 0.75, fontFamily: '"Poppins","Inter",sans-serif', letterSpacing: '-0.02em' }}>{m.n}</Typography>
+              { n: 30, pre: '< ', suf: 's', l: 'pra ler seu exame com IA' },
+              { n: 7, pre: '', suf: '', l: 'riscos monitorados: diabetes, anemia, colesterol, renal…' },
+              { n: 3, pre: '', suf: '', l: 'índices que o laudo não dá: IMC, eGFR e HOMA-IR' },
+              { n: 100, pre: '', suf: '%', l: 'educativo · LGPD · nunca um diagnóstico' },
+            ].map((m, idx) => (
+              <ScrollReveal key={m.l} delay={idx * 0.08}>
+                <Typography sx={{ fontSize: { xs: '1.8rem', md: '2.4rem' }, fontWeight: 800, color: TEAL_DARK, lineHeight: 1, mb: 0.75, fontFamily: '"Poppins","Inter",sans-serif', letterSpacing: '-0.02em' }}>
+                  <AnimatedNumber value={m.n} prefix={m.pre} suffix={m.suf} duration={1 + idx * 0.2} />
+                </Typography>
                 <Typography sx={{ fontSize: 14, color: 'text.secondary', maxWidth: 230, mx: 'auto', lineHeight: 1.45 }}>{m.l}</Typography>
-              </Box>
+              </ScrollReveal>
             ))}
           </Box>
         </Container>
@@ -531,6 +534,7 @@ export const LandingPage = () => {
       </Box>
 
       {/* SEÇÃO — Família de verdade (D1): o diferencial que nenhum app global tem (todos 18+, single-user) */}
+      <ScrollReveal>
       <Box sx={{ bgcolor: 'background.default', py: { xs: 8, md: 11 } }}>
         <Container maxWidth="lg">
           <Reveal>
@@ -956,8 +960,10 @@ export const LandingPage = () => {
           </Box>
         </Container>
       </Box>
+      </ScrollReveal>
 
       {/* SEÇÃO — Ciência sem caixa-preta (D4): as fórmulas e a fonte de cada uma. Anti-claim-vazio. */}
+      <ScrollReveal>
       <Box sx={{ bgcolor: 'background.default', borderTop: '1px solid', borderBottom: '1px solid', borderColor: 'divider', py: { xs: 8, md: 11 } }}>
         <Container maxWidth="lg">
           <Reveal>
@@ -1007,9 +1013,11 @@ export const LandingPage = () => {
           </Box>
         </Container>
       </Box>
+      </ScrollReveal>
 
       {/* PLANOS — modelo explicado antes dos preços: "como funciona" mata a confusão
           créditos × avulso × assinatura (feedback do dono: travou 3× lendo os cards). */}
+      <ScrollReveal>
       <Box id="planos" sx={{ bgcolor: 'background.paper', borderTop: '1px solid', borderColor: 'divider', py: { xs: 8, md: 11 }, scrollMarginTop: 80 }}>
         <Container maxWidth="md">
           <Typography align="center" variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>Planos <Box component="span" sx={{ ...SERIF_I, color: TEAL_DARK }}>simples e justos</Box></Typography>
@@ -1073,6 +1081,7 @@ export const LandingPage = () => {
           </Typography>
         </Container>
       </Box>
+      </ScrollReveal>
 
       {/* SEÇÃO — Indique e ganhe (programa de indicação) */}
       <Box sx={{ bgcolor: 'background.default', borderTop: '1px solid', borderBottom: '1px solid', borderColor: 'divider', py: { xs: 8, md: 10 } }}>
