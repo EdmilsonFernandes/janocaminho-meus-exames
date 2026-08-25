@@ -81,7 +81,9 @@ export const DoctorExamList = ({ patientId, token, onOpen }: { patientId: string
           <ToggleButton value="category" sx={{ px: 1.25, py: 0.25, textTransform: 'none', fontWeight: 700 }}>Por categoria</ToggleButton>
         </ToggleButtonGroup>
         {presentCats.length > 1 && (
-          <Stack direction="row" spacing={0.75} sx={{ overflowX: 'auto', flexWrap: 'nowrap', pb: 0.25, mx: -0.25, px: 0.25, '&::-webkit-scrollbar': { display: 'none' } }}>
+          // MOBILE: linha única deslizável (dedo). DESKTOP: WRAP — sem mouse não dá pra
+          // descobrir o scroll horizontal e as categorias do fim "sumiam" cortadas.
+          <Stack direction="row" spacing={0.75} useFlexGap sx={{ overflowX: { xs: 'auto', md: 'visible' }, flexWrap: { xs: 'nowrap', md: 'wrap' }, pb: 0.25, mx: -0.25, px: 0.25, '&::-webkit-scrollbar': { display: 'none' } }}>
             <Chip
               size="small"
               label={`Todos (${exams.length})`}

@@ -179,7 +179,9 @@ export const PatientSummary = ({ patient, exams, abnormal, questions, notes, pat
         </Box>
       </Stack>
 
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)', md: 'repeat(6, 1fr)' }, gap: 1, mt: 2 }}>
+      {/* 6 colunas só em tela LARGA (lg+): em ~960px a coluna do detalhe tem ~640px e
+          6 tiles de ~93px cortavam o conteúdo (valor/label vazavam à direita). */}
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)', lg: 'repeat(6, 1fr)' }, gap: 1, mt: 2 }}>
         {tiles.map((t) => (
           <Box
             key={t.key}
@@ -196,13 +198,13 @@ export const PatientSummary = ({ patient, exams, abnormal, questions, notes, pat
               '&:active': t.onClick ? { transform: 'scale(.98)' } : {},
             }}
           >
-            <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 0.25 }}>
+            <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 0.25, minWidth: 0 }}>
               {t.icon}
-              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, flex: 1 }}>{t.label}</Typography>
+              <Typography variant="caption" noWrap sx={{ color: 'text.secondary', fontWeight: 700, flex: 1, minWidth: 0 }}>{t.label}</Typography>
               {t.onClick && <ChevronRightIcon sx={{ fontSize: 15, color: 'text.disabled' }} />}
             </Stack>
             <Typography sx={{ fontWeight: 800, color: t.color as never, fontSize: 16, lineHeight: 1.2 }}>{t.value}</Typography>
-            {t.sub && <Typography variant="caption" sx={{ color: 'text.secondary' }}>{t.sub}</Typography>}
+            {t.sub && <Typography variant="caption" noWrap sx={{ color: 'text.secondary' }}>{t.sub}</Typography>}
           </Box>
         ))}
       </Box>
