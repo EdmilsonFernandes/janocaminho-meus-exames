@@ -12,7 +12,7 @@ export const openapiSpec = {
       'Preço REAL de medicamentos em farmácias brasileiras + checagem de interações D/X.\n\n' +
       '**O que esta API é:** dado público de varejo farmacêutico (catálogo, preços coletados de farmácias, interações medicamentosas educativas) para apps e sites de saúde.\n\n' +
       '**O que ela NÃO é:** não expõe interpretação de exames, nem dado pessoal de saúde (LGPD), e nada aqui é recomendação médica (linha ANVISA RDC 657 — ferramenta educativa).\n\n' +
-      '**Tier grátis:** 100 chamadas/mês, 60/min. Crie sua chave com o login do app em `POST /keys`.',
+      '**Como acessar (pré-pago):** 1) crie sua conta no app → 2) `POST /access-request` (empresa + caso de uso) → 3) na aprovação você recebe o **teste grátis de 25 chamadas** e pode criar chaves → 4) recarregue com pacotes pré-pagos (PIX, cartão ou débito) via `POST /api/billing/buy-api-pack`. Sem saldo → `402` com os pacotes disponíveis.',
     contact: { name: 'Dr. Exame', email: 'contato@janocaminho.com.br' },
   },
   servers: [{ url: `${serverUrl}/api/public/v1` }],
@@ -79,8 +79,17 @@ export const openapiSpec = {
     '/': {
       get: {
         tags: ['Medicamentos'], summary: 'Info da API (sem key)', security: [],
-        responses: { '200': { description: 'Metadados da API' } },
+        responses: { '200': { description: 'Metadados da API (pacotes, como acessar)' } },
       },
+    },
+    '/access-request': {
+      post: {
+        tags: ['Chaves'], summary: 'Solicitar acesso (login do app — Bearer token)', security: [{ bearerAuth: [] }],
+        description: 'Conte quem você é e o que vai construir. Aprovado = pacote teste grátis + permissão de criar chaves.',
+        requestBody: { content: { 'application/json': { schema: { type: 'object', required: ['company', 'useCase'], properties: { company: { type: 'string', example: 'Portal Saúde XYZ' }, useCase: { type: 'string', example: 'Comparador de preço de remédios no meu portal' } } } } } },
+        responses: { '201': { description: 'Solicitação criada (pending) ou auto-aprovada' }, '409': { description: 'Já existe solicitação pendente/aprovada' } },
+      },
+      get: { tags: ['Chaves'], summary: 'Ver status da sua solicitação', security: [{ bearerAuth: [] }], responses: { '200': { description: 'Solicitação mais recente' } } },
     },
     '/meds': {
       get: {

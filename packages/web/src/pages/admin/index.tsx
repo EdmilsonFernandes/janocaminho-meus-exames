@@ -18,6 +18,7 @@ import CampaignOutlinedIcon from '@mui/icons-material/CampaignOutlined';
 import MonitorHeartOutlinedIcon from '@mui/icons-material/MonitorHeartOutlined';
 import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined';
 import SupportAgentOutlinedIcon from '@mui/icons-material/SupportAgentOutlined';
+import ApiOutlinedIcon from '@mui/icons-material/ApiOutlined';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import LogoutIcon from '@mui/icons-material/Logout';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -34,6 +35,7 @@ import { RiskTab } from './RiskTab';
 import { TechTab } from './TechTab';
 import { AuditTab } from './AuditTab';
 import { SupportTab } from './SupportTab';
+import { ApiTab } from './ApiTab';
 import { PricingTab } from './PricingTab';
 import { PiiTab } from './PiiTab';
 import { LabsTab } from './LabsTab';
@@ -42,7 +44,7 @@ import { PharmaciesTab } from './PharmaciesTab';
 /** Backoffice Dr. Exame — ISOLADO do app do paciente (/admin é noLayout).
  *  Shell próprio (topbar + sidebar) com os 11 módulos de gestão. Sem chrome de paciente
  *  (sem MobileBottomNav, FloatingChat, menu de saúde). Guard: só ADMIN. */
-type ModuleId = 'overview' | 'users' | 'doctors' | 'exams' | 'pharmacies' | 'labs' | 'ia' | 'usage' | 'risk' | 'financeiro' | 'push' | 'tech' | 'audit' | 'pii' | 'support' | 'config';
+type ModuleId = 'overview' | 'users' | 'doctors' | 'exams' | 'pharmacies' | 'labs' | 'ia' | 'usage' | 'risk' | 'financeiro' | 'push' | 'tech' | 'audit' | 'pii' | 'support' | 'api' | 'config';
 
 const MODULES: { id: ModuleId; label: string; icon: ReactElement; group: string }[] = [
   { id: 'overview', label: 'Dashboard', icon: <DashboardOutlinedIcon />, group: 'Visão geral' },
@@ -51,6 +53,7 @@ const MODULES: { id: ModuleId; label: string; icon: ReactElement; group: string 
   { id: 'exams', label: 'Exames', icon: <DescriptionOutlinedIcon />, group: 'Gestão' },
   { id: 'labs', label: 'Laboratórios', icon: <ScienceOutlinedIcon />, group: 'Gestão' },
   { id: 'pharmacies', label: 'Farmácias', icon: <StorefrontOutlinedIcon />, group: 'Negócio' },
+  { id: 'api', label: 'API pública', icon: <ApiOutlinedIcon />, group: 'Negócio' },
   { id: 'ia', label: 'IA & Alertas', icon: <AutoAwesomeOutlinedIcon />, group: 'Gestão' },
   { id: 'usage', label: 'Uso de IA', icon: <BoltOutlinedIcon />, group: 'Gestão' },
   { id: 'risk', label: 'Risco & Qualidade', icon: <AutoAwesomeOutlinedIcon />, group: 'Gestão' },
@@ -181,6 +184,7 @@ export const AdminPage = () => {
           {mod === 'audit' && <AuditTab />}
           {mod === 'pii' && <PiiTab />}
           {mod === 'support' && <SupportTab />}
+          {mod === 'api' && <ApiTab />}
           {mod === 'config' && <PricingTab />}
         </Box>
       </Box>

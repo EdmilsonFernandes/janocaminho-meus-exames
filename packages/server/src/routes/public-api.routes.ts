@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest } from '../middleware/auth';
-import { requireApiKey, generateApiKey, hashKey, ApiKeyRequest } from '../middleware/apiKey';
+import { requireApiKey, generateApiKey, hashKey, apiCallBalance, ApiKeyRequest } from '../middleware/apiKey';
+import { logCredit } from '../utils/credits';
 import { getSettings } from '../utils/settings';
 
 /**
@@ -20,13 +21,15 @@ const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCa
 
 // ── INFO (sem key — descoberta) ─────────────────────────────────────────────
 router.get('/', (_req, res) => {
-  const freeMonthly = getSettings().apiAccess?.freeMonthly ?? 100;
+  const st = getSettings().apiAccess ?? { freeMonthly: 25, packs: [] };
   res.json({
     name: 'Dr. Exame API',
-    version: '1.0.0',
+    version: '1.1.0',
     docs: '/api/docs',
-    auth: 'header x-api-key (crie sua chave em POST /api/public/v1/keys)',
-    tier: freeMonthly > 0 ? { name: 'grátis', monthlyCalls: freeMonthly, rateLimit: '60/min' } : { name: 'desativado' },
+    howToAccess: '1) crie sua conta no app → 2) POST /access-request (empresa + caso de uso) → 3) aprovação libera o pacote TESTE grátis + criação de chaves → 4) recarregue com pacotes pré-pagos (PIX/cartão/débito)',
+    freeTrial: { calls: st.freeMonthly },
+    packs: (st.packs ?? []).map((p: any) => ({ id: p.id, calls: p.calls, price: p.price, label: p.label })),
+    rateLimit: '60/min por chave',
     endpoints: ['/meds', '/meds/prices', '/meds/interactions'],
     disclaimer: 'Dado educativo de varejo farmacêutico. Não é recomendação médica.',
   });
@@ -128,10 +131,51 @@ router.get('/meds/interactions', requireApiKey, async (req: ApiKeyRequest, res, 
   } catch (e) { next(e); }
 });
 
+// ── ACCESS REQUEST: dev pede, admin aprova (ou auto se reviewRequired=0) ────
+router.post('/access-request', requireAuth, async (req: AuthedRequest, res, next) => {
+  try {
+    const company = String(req.body?.company ?? '').trim();
+    const useCase = String(req.body?.useCase ?? '').trim();
+    if (company.length < 2 || useCase.length < 10) {
+      res.status(400).json({ error: 'Informe a empresa/projeto e o caso de uso (mín. 10 caracteres).' });
+      return;
+    }
+    const existing = await prisma.apiAccessRequest.findFirst({
+      where: { userId: req.userId!, status: { in: ['pending', 'approved'] } },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (existing?.status === 'approved') { res.status(409).json({ error: 'Acesso já aprovado — crie suas chaves em POST /keys.' }); return; }
+    if (existing?.status === 'pending') { res.status(409).json({ error: 'Solicitação em análise — respondemos no e-mail da conta.' }); return; }
+    const st = getSettings().apiAccess ?? { freeMonthly: 25, reviewRequired: 1 };
+    const row = await prisma.apiAccessRequest.create({ data: { userId: req.userId!, company, useCase } });
+    // Self-serve (admin desligou a revisão): aprova na hora e concede o teste grátis.
+    if (Number(st.reviewRequired) === 0) {
+      await prisma.apiAccessRequest.update({ where: { id: row.id }, data: { status: 'approved', reviewedAt: new Date(), note: 'Aprovação automática.' } });
+      if (Number(st.freeMonthly) > 0) await logCredit(req.userId!, Number(st.freeMonthly), 'api_grant', 'Pacote teste da API (aprovação automática)');
+      res.status(201).json({ id: row.id, status: 'approved', message: 'Acesso liberado — crie sua chave em POST /keys.' });
+      return;
+    }
+    res.status(201).json({ id: row.id, status: 'pending', message: 'Solicitação recebida — analisamos e liberamos o pacote teste.' });
+  } catch (e) { next(e); }
+});
+
+router.get('/access-request', requireAuth, async (req: AuthedRequest, res, next) => {
+  try {
+    const row = await prisma.apiAccessRequest.findFirst({ where: { userId: req.userId! }, orderBy: { createdAt: 'desc' } });
+    res.json(row ?? { status: 'none' });
+  } catch (e) { next(e); }
+});
+
 // ── KEYS: gestão self-service (login normal do app, NÃO api-key) ────────────
 router.post('/keys', requireAuth, async (req: AuthedRequest, res, next) => {
   try {
     const name = String(req.body?.name ?? '').trim() || 'Minha integração';
+    // GATE (Fase 2): sem acesso aprovado não cria chave — o fluxo é solicitar → aprovar → testar → comprar.
+    const st = getSettings().apiAccess ?? { reviewRequired: 1 };
+    if (Number(st.reviewRequired) === 1) {
+      const access = await prisma.apiAccessRequest.findFirst({ where: { userId: req.userId!, status: 'approved' }, orderBy: { createdAt: 'desc' } });
+      if (!access) { res.status(403).json({ error: 'access_required', message: 'Solicite acesso à API primeiro (POST /access-request).' }); return; }
+    }
     const count = await prisma.apiKey.count({ where: { userId: req.userId!, revokedAt: null } });
     if (count >= 5) { res.status(429).json({ error: 'Limite de 5 chaves ativas. Revogue uma antes de criar outra.' }); return; }
     const { key, hash, prefix } = generateApiKey();
@@ -143,17 +187,20 @@ router.post('/keys', requireAuth, async (req: AuthedRequest, res, next) => {
 
 router.get('/keys', requireAuth, async (req: AuthedRequest, res, next) => {
   try {
-    const monthStart = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1));
     const rows = await prisma.apiKey.findMany({
       where: { userId: req.userId! },
       orderBy: { createdAt: 'desc' },
       select: { id: true, name: true, prefix: true, lastUsedAt: true, revokedAt: true, createdAt: true },
     });
-    const used = await prisma.creditTransaction.count({
-      where: { userId: req.userId!, kind: 'api_call', createdAt: { gte: monthStart } },
+    const balance = await apiCallBalance(req.userId!);
+    const access = await prisma.apiAccessRequest.findFirst({ where: { userId: req.userId! }, orderBy: { createdAt: 'desc' } });
+    res.json({
+      keys: rows,
+      access: access ? { status: access.status, note: access.note } : { status: 'none' },
+      balance: { calls: balance },
+      packs: (getSettings().apiAccess?.packs ?? []).map((p: any) => ({ id: p.id, calls: p.calls, price: p.price, label: p.label, popular: p.popular })),
+      buyEndpoint: '/api/billing/buy-api-pack',
     });
-    const freeMonthly = getSettings().apiAccess?.freeMonthly ?? 100;
-    res.json({ keys: rows, usage: { month: monthStart.toISOString().slice(0, 7), used, limit: freeMonthly } });
   } catch (e) { next(e); }
 });
 

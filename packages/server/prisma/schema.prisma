@@ -50,6 +50,7 @@ model User {
   creditTransactions CreditTransaction[]
   acceptedInvites PatientInvite[]
   apiKeys      ApiKey[]
+  apiAccessRequests ApiAccessRequest[]
 
   @@map("users")
 }
@@ -359,6 +360,24 @@ model ApiKey {
 
   @@index([userId])
   @@map("api_keys")
+}
+
+// Solicitação de acesso à API pública: dev pede (empresa + caso de uso), admin aprova no
+// painel → aprovação concede o pacote teste grátis (apiAccess.freeMonthly) e libera a
+// criação de chaves. Rejeição vira resposta (note) — sem portas fechadas sem resposta.
+model ApiAccessRequest {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company    String    // quem vai consumir ("Portal XYZ", "Clínica ABC")
+  useCase    String    // o que vão construir
+  status     String    @default("pending") // pending | approved | rejected
+  note       String?   // resposta do admin (motivo da rejeição / boas-vindas)
+  reviewedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([status, createdAt])
+  @@map("api_access_requests")
 }
 
 model Exam {

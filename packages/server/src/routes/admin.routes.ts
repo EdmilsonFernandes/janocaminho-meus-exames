@@ -822,6 +822,71 @@ router.get('/tickets/:id', async (req, res, next) => {
     res.json({ ...ticket, user, unreadByAdmin: false, messages });
   } catch (e) { next(e); }
 });
+
+// ═══ API PÚBLICA — fila de acesso + visão de uso (Fase 2) ═══
+// GET /admin/api-access: solicitações (com usuário), chaves ativas com saldo, totais vendidos.
+router.get('/api-access', async (_req, res, next) => {
+  try {
+    const [requests, keys, packsSold, callsUsed] = await Promise.all([
+      prisma.apiAccessRequest.findMany({
+        orderBy: [{ status: 'asc' }, { createdAt: 'desc' }], take: 100,
+        include: { user: { select: { name: true, email: true } } },
+      }),
+      prisma.apiKey.findMany({
+        where: { revokedAt: null }, orderBy: { lastUsedAt: 'desc' }, take: 200,
+        include: { user: { select: { name: true, email: true } } },
+      }),
+      prisma.creditTransaction.aggregate({ where: { kind: 'api_pack' }, _count: true, _sum: { delta: true } }),
+      prisma.creditTransaction.aggregate({ where: { kind: 'api_call' }, _count: true, _sum: { delta: true } }),
+    ]);
+    // Saldo por usuário das chaves ativas (uma query, agrupa em código).
+    const balances = await prisma.creditTransaction.groupBy({
+      by: ['userId'], where: { kind: { in: ['api_grant', 'api_pack', 'api_call'] } }, _sum: { delta: true },
+    });
+    const balMap = new Map(balances.map((b) => [b.userId, b._sum.delta ?? 0]));
+    res.json({
+      requests,
+      keys: keys.map((k) => ({ id: k.id, name: k.name, prefix: k.prefix, lastUsedAt: k.lastUsedAt, createdAt: k.createdAt, user: k.user, balance: balMap.get(k.userId) ?? 0 })),
+      totals: { purchases: packsSold._count, callsSold: packsSold._sum.delta ?? 0, callsUsed: Math.abs(callsUsed._sum?.delta ?? 0) },
+    });
+  } catch (e) { next(e); }
+});
+
+// Aprovar solicitação → concede pacote teste (apiAccess.freeMonthly) e libera criação de chaves.
+router.post('/api-access/:id/approve', async (req: AuthedRequest, res, next) => {
+  try {
+    const row = await prisma.apiAccessRequest.findUnique({ where: { id: String(req.params.id) } });
+    if (!row || row.status !== 'pending') { res.status(404).json({ error: 'Solicitação não encontrada/já avaliada.' }); return; }
+    const free = Number(getSettings().apiAccess?.freeMonthly ?? 25);
+    const updated = await prisma.apiAccessRequest.update({
+      where: { id: row.id },
+      data: { status: 'approved', reviewedAt: new Date(), note: String(req.body?.note ?? '').trim() || `Aprovado — pacote teste de ${free} chamadas liberado.` },
+    });
+    if (free > 0) await logCredit(row.userId, free, 'api_grant', 'Pacote teste da API (aprovação admin)', row.id);
+    res.json(updated);
+  } catch (e) { next(e); }
+});
+
+router.post('/api-access/:id/reject', async (req: AuthedRequest, res, next) => {
+  try {
+    const row = await prisma.apiAccessRequest.findUnique({ where: { id: String(req.params.id) } });
+    if (!row || row.status !== 'pending') { res.status(404).json({ error: 'Solicitação não encontrada/já avaliada.' }); return; }
+    const updated = await prisma.apiAccessRequest.update({
+      where: { id: row.id },
+      data: { status: 'rejected', reviewedAt: new Date(), note: String(req.body?.note ?? '').trim() || 'Não se encaixa no programa no momento.' },
+    });
+    res.json(updated);
+  } catch (e) { next(e); }
+});
+
+// Revogar chave de API (abuso/parceiro sai) — o usuário não pode reverter.
+router.post('/api-keys/:id/revoke', async (req, res, next) => {
+  try {
+    const row = await prisma.apiKey.findUnique({ where: { id: String(req.params.id) } });
+    if (!row || row.revokedAt) { res.status(404).json({ error: 'Chave não encontrada.' }); return; }
+    res.json(await prisma.apiKey.update({ where: { id: row.id }, data: { revokedAt: new Date() } }));
+  } catch (e) { next(e); }
+});
 // admin responde (multipart: message + files[]) → notifica usuário (push + email + in-app) + status 'pending'
 router.post('/tickets/:id/messages', upload.array('files', 5), async (req: AuthedRequest, res, next) => {
   try {

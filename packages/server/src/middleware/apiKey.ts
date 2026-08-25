@@ -41,15 +41,20 @@ setInterval(() => {
   }
 }, WINDOW_MS).unref?.();
 
-/** Início do mês corrente (UTC) — a cota mensal reseta no dia 1. */
-function monthStart(): Date {
-  const now = new Date();
-  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+/** Saldo PRÉ-PAGO de chamadas de API = mesmo ledger de créditos do app.
+ *  kinds: api_grant (teste grátis na aprovação) + api_pack (compra PIX/cartão) − api_call (uso).
+ *  Sem coluna nova: o extrato É o saldo — mesma fonte de verdade do app. */
+export async function apiCallBalance(userId: string): Promise<number> {
+  const agg = await prisma.creditTransaction.aggregate({
+    where: { userId, kind: { in: ['api_grant', 'api_pack', 'api_call'] } },
+    _sum: { delta: true },
+  });
+  return agg._sum.delta ?? 0;
 }
 
-/** Auth por API key (header `x-api-key`) + rate limit + cota mensal (meter no ledger).
- *  Fase 1: só tier grátis (apiAccess.freeMonthly, default 100/mês, admin edita live).
- *  Tiers pagos entram depois do deep-research de precificação. */
+/** Auth por API key (header `x-api-key`) + rate limit + SALDO PRÉ-PAGO.
+ *  Sem saldo → 402 com os pacotes disponíveis (quem consume compra mais via PIX/cartão
+ *  no mesmo checkout do app — POST /billing/buy-api-pack). */
 export async function requireApiKey(req: ApiKeyRequest, res: Response, next: NextFunction): Promise<void> {
   const key = req.headers['x-api-key'];
   if (!key || typeof key !== 'string') { res.status(401).json({ error: 'Missing x-api-key header' }); return; }
@@ -60,21 +65,22 @@ export async function requireApiKey(req: ApiKeyRequest, res: Response, next: Nex
       res.status(429).json({ error: 'rate_limited', message: 'Limite de 60 requisições/minuto. Tente em instantes.' });
       return;
     }
-    // Cota mensal: conta as chamadas do mês no LEDGER (kind api_call, delta 0 — não gasta crédito).
-    const freeMonthly = getSettings().apiAccess?.freeMonthly ?? 100;
-    const used = await prisma.creditTransaction.count({
-      where: { userId: row.userId, kind: 'api_call', createdAt: { gte: monthStart() } },
-    });
-    if (used >= freeMonthly) {
-      const next = new Date(monthStart().getTime() + 31 * 24 * 3600 * 1000);
-      res.status(429).json({ error: 'quota_exceeded', message: `Cota mensal do tier grátis (${freeMonthly} chamadas) atingida. Renova em ${next.toISOString().slice(0, 10)}.`, upgrade: '/api/docs#tiers' });
+    const balance = await apiCallBalance(row.userId);
+    if (balance <= 0) {
+      res.status(402).json({
+        error: 'payment_required',
+        message: 'Saldo de chamadas esgotado. Compre um pacote (PIX, cartão ou débito) no app ou em /billing/buy-api-pack.',
+        balance,
+        packs: (getSettings().apiAccess?.packs ?? []).map((p: any) => ({ id: p.id, calls: p.calls, price: p.price, label: p.label })),
+      });
       return;
     }
     req.apiUserId = row.userId;
     req.apiKeyId = row.id;
     void prisma.apiKey.update({ where: { id: row.id }, data: { lastUsedAt: new Date() } }).catch(() => {});
-    // Mede DEPOIS de passar (a própria chamada conta 1).
-    void logCredit(row.userId, 0, 'api_call', `GET ${req.path}`);
+    // Débito AWAIT (não fire-and-forget): o saldo precisa estar consistente ANTES da próxima
+    // chamada — duas requisições seguidas não podem passar duas vezes no mesmo saldo.
+    await logCredit(row.userId, -1, 'api_call', `GET ${req.path}`);
     next();
   } catch {
     res.status(401).json({ error: 'Invalid API key' });

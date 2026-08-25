@@ -259,6 +259,93 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
   } catch (e) { next(e); }
 });
 
+// COMPRA DE PACOTE DE CHAMADAS DE API (Fase 2 — parceiros): mesmo fluxo MP de buy-credits
+// (PIX QR inline / Checkout Pro cartão+débito), mas external_reference `subId|calls|API` —
+// o webhook distingue pelo 3º segmento e credita CHAMADAS (kind api_pack), não créditos de IA.
+// Nota de simplicidade: cancela PENDINGs de pacote anteriores (api OU créditos) antes de
+// criar a ordem — evita retomar PIX de moeda diferente (limite aceito no volume de parceiros).
+router.post('/buy-api-pack', requireAuth, async (req: AuthedRequest, res, next) => {
+  try {
+    if (!hasMercadoPago()) { res.status(503).json({ error: 'Pagamentos não configurados.' }); return; }
+    const packs = (getSettings().apiAccess?.packs ?? []) as { id: string; calls: number; price: number; label: string }[];
+    const pack = packs.find((p) => p.id === String(req.body?.pack ?? ''));
+    if (!pack) { res.status(400).json({ error: 'Pacote de API inválido' }); return; }
+    const method = String(req.body?.method ?? 'pix').toLowerCase();
+    const user = await prisma.user.findUnique({ where: { id: req.userId! } });
+    if (!user) { res.status(404).json({ error: 'Usuário não encontrado' }); return; }
+
+    // Anti-moeda-cruzada: derruba PENDINGs de pacote (qualquer moeda) antes de nova ordem.
+    await prisma.subscription.updateMany({ where: { userId: user.id, status: 'PENDING', periodDays: 0 }, data: { status: 'CANCELLED' } });
+
+    const sub = await createSubscriptionCompat({ userId: user.id, amount: pack.price, periodDays: 0, status: 'PENDING' });
+    const externalReference = `${sub.id}|${pack.calls}|API`;
+    const expires = new Date(Date.now() + 10 * 60 * 1000);
+    const base = (process.env.WEB_BASE_PATH ?? '').replace(/\/$/, '');
+    const origin = process.env.WEB_ORIGIN || '';
+
+    if (method !== 'pix') {
+      const prefResp = await fetch(`${config.mpApiBaseUrl}/checkout/preferences`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${config.mpAccessToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: [{ id: pack.id, title: `Dr. Exame API — ${pack.label} (${pack.calls.toLocaleString('pt-BR')} chamadas)`, quantity: 1, unit_price: pack.price, currency_id: 'BRL' }],
+          payer: { email: user.email, name: user.name },
+          external_reference: externalReference,
+          back_urls: {
+            success: `${origin}${base}/planos?status=success`,
+            failure: `${origin}${base}/planos?status=failure`,
+            pending: `${origin}${base}/planos?status=pending`,
+          },
+          auto_return: 'approved',
+          notification_url: publicNotifyUrl(),
+          statement_descriptor: 'DR EXAME',
+        }),
+      });
+      if (!prefResp.ok) {
+        console.error('[billing] MP Checkout Pro (API pack) falhou:', prefResp.status);
+        await updateSubscriptionCompat(sub.id, { status: 'FAILED' });
+        res.status(502).json({ error: 'Falha ao abrir o pagamento no Mercado Pago.' });
+        return;
+      }
+      const pref: any = await prefResp.json();
+      res.json({ init_point: pref.init_point ?? pref.sandbox_init_point, calls: pack.calls, price: pack.price });
+      return;
+    }
+
+    const r = await fetch(`${config.mpApiBaseUrl}/v1/payments`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${config.mpAccessToken}`, 'Content-Type': 'application/json', 'X-Idempotency-Key': crypto.randomUUID() },
+      body: JSON.stringify({
+        transaction_amount: pack.price,
+        description: `Dr. Exame API — ${pack.label}: ${pack.calls} chamadas`,
+        payment_method_id: 'pix',
+        payer: { email: user.email, first_name: (user.name || 'Parceiro').split(' ')[0] },
+        external_reference: externalReference,
+        date_of_expiration: expires.toISOString(),
+        notification_url: publicNotifyUrl(),
+        statement_descriptor: 'DR EXAME',
+      }),
+    });
+    if (!r.ok) {
+      console.error('[billing] MP PIX (API pack) falhou:', r.status);
+      await updateSubscriptionCompat(sub.id, { status: 'FAILED' });
+      res.status(502).json({ error: 'Falha ao gerar PIX no Mercado Pago.' });
+      return;
+    }
+    const pay: any = await r.json();
+    const td = pay?.point_of_interaction?.transaction_data;
+    const rawB64 = td?.qr_code_base64 ?? '';
+    const qrImg = rawB64 ? (rawB64.startsWith('data:') ? rawB64 : `data:image/png;base64,${rawB64}`) : '';
+    const subscriptionColumns = await getSubscriptionColumnSupport();
+    if (subscriptionColumns.hasPixResume) {
+      await updateSubscriptionCompat(sub.id, { mpPaymentId: String(pay.id), pixQrCode: td?.qr_code ?? '', pixQrBase64: qrImg, pixExpiresAt: expires, pixCredits: pack.calls });
+    } else {
+      await updateSubscriptionCompat(sub.id, { mpPaymentId: String(pay.id) });
+    }
+    res.json({ paymentId: String(pay.id), qrCode: td?.qr_code ?? '', qrBase64: qrImg, expiresAt: expires.toISOString(), calls: pack.calls, price: pack.price });
+  } catch (e) { next(e); }
+});
+
 // PIX PENDENTE (padrão gateway): o frontend chama no mount da página Planos.
 // Se existe PIX não-expirado, retorna os dados pra retomar (QR + timer restante).
 router.get('/pending-payment', requireAuth, async (req: AuthedRequest, res, next) => {
@@ -351,10 +438,21 @@ router.post('/webhook', async (req, res) => {
             console.log(`[billing] Dr. Exame Pro ativado — doctor ${doctorId}, +30d`);
             res.status(200).json({ ok: true }); return;
           }
-          const [subId, creditsStr] = String(pay.external_reference).split('|');
+          const [subId, creditsStr, marker] = String(pay.external_reference).split('|');
           const sub = await findSubscriptionByIdCompat(subId);
           if (sub && sub.status !== 'APPROVED') {
-            if (creditsStr) {
+            if (marker === 'API' && creditsStr) {
+              // PACOTE DE CHAMADAS DE API (3º segmento "API") — credita no LEDGER de chamadas
+              // (kind api_pack), NÃO nos créditos de IA do app. Moedas separadas, mesmo motor.
+              const calls = Number(creditsStr);
+              if (calls > 0) {
+                await prisma.$transaction(async (tx) => {
+                  await updateSubscriptionCompatWithDb(tx, sub.id, { status: 'APPROVED', mpPaymentId: String(paymentId) });
+                  await tx.creditTransaction.create({ data: { userId: sub.userId, delta: calls, kind: 'api_pack', label: `Pacote API +${calls} chamadas`, refId: sub.id } });
+                });
+                console.log(`[billing] API pack +${calls} chamadas p/ user ${sub.userId} (sub ${sub.id})`);
+              }
+            } else if (creditsStr) {
               // PACOTE DE CRÉDITOS
               const credits = Number(creditsStr);
               if (credits > 0) {

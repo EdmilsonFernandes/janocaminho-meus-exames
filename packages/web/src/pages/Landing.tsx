@@ -37,6 +37,7 @@ import StorefrontIcon from '@mui/icons-material/Storefront';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import FamilyRestroomIcon from '@mui/icons-material/FamilyRestroom';
 import ScienceIcon from '@mui/icons-material/Science';
+import ApiIcon from '@mui/icons-material/Api';
 
 import { ExamDemo } from '../components/ExamDemo';
 import { FaqSection } from '../components/FaqSection';
@@ -1051,6 +1052,69 @@ export const LandingPage = () => {
             <Button variant="outlined" onClick={() => navigate('/como-validamos')} sx={{ borderRadius: '999px', px: 4, py: 1.2, textTransform: 'none', fontWeight: 700, borderColor: '#d8f4f2', color: TEAL_DARK, '&:hover': { borderColor: TEAL, bgcolor: 'rgba(32,178,170,.06)' } }}>
               Ver cada regra, com a fonte →
             </Button>
+          </Box>
+        </Container>
+      </Box>
+      </ScrollReveal>
+
+      {/* SEÇÃO — API do Dr. Exame (B2B): preço real de farmácia no produto de terceiros */}
+      <ScrollReveal>
+      <Box sx={{ position: 'relative', overflow: 'hidden', py: { xs: 8, md: 11 }, background: 'linear-gradient(135deg,#0f5f5a 0%,#137a72 55%,#178f89 100%)', color: '#fff' }}>
+        <Box sx={{ position: 'absolute', top: '-12%', left: '-6%', width: 420, height: 420, borderRadius: '50%', background: 'radial-gradient(circle,rgba(212,165,116,.20),transparent 65%)', pointerEvents: 'none' }} />
+        <Container maxWidth="lg" sx={{ position: 'relative' }}>
+          <Box sx={{ textAlign: 'center', mb: 4 }}>
+            <Chip icon={<ApiIcon sx={{ fontSize: 16 }} />} label="Dr. Exame API · para desenvolvedores" sx={{ bgcolor: 'rgba(255,255,255,.16)', color: '#ffd9b3', fontWeight: 700, mb: 2, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: '#d4a574' } }} />
+            <Typography variant="h2" sx={{ fontSize: { xs: '1.8rem', md: '2.4rem' }, fontWeight: 800, mb: 1.5, letterSpacing: '-0.02em' }}>
+              Preço real de farmácia, <Box component="span" sx={SERIF_I}>no seu produto</Box>
+            </Typography>
+            <Typography sx={{ fontSize: 17, color: 'rgba(255,255,255,.85)', maxWidth: 620, mx: 'auto' }}>
+              A mesma base que alimenta o app — catálogo com foto e EAN, preços de farmácias brasileiras e checagem de interações D/X — disponível pra apps, portais e clínicas via REST.
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: { xs: 4, md: 7 }, alignItems: 'center' }}>
+            {/* mockup: request/response */}
+            <Box sx={{ order: { xs: 2, md: 1 }, borderRadius: '14px', bgcolor: 'rgba(0,0,0,.32)', border: '1px solid rgba(255,255,255,.14)', p: { xs: 2, md: 2.5 }, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: 12.5, lineHeight: 1.75, overflowX: 'auto', boxShadow: '0 24px 48px rgba(0,0,0,.28)' }}>
+              <Typography sx={{ color: '#5fc9c3', fontWeight: 700, fontSize: 12, mb: 1 }}># com sua chave de API</Typography>
+              <div style={{ color: '#e8eef0' }}>curl "https://drexame.janocaminho.com.br/api/public/v1<span style={{ color: '#ffd9b3' }}>/meds/prices?ingredient=dipirona</span>" \</div>
+              <div style={{ color: '#e8eef0', paddingLeft: 16 }}>-H "x-api-key: <span style={{ color: '#9ca3af' }}>dxk_live_…</span>"</div>
+              <Typography sx={{ color: '#5fc9c3', fontWeight: 700, fontSize: 12, mt: 2, mb: 1 }}># resposta</Typography>
+              <div style={{ color: '#e8eef0' }}>{'{'}</div>
+              <div style={{ color: '#e8eef0', paddingLeft: 16 }}>"medicationKey": <span style={{ color: '#ffd9b3' }}>"DIPIRONA|500MG|CP|20"</span>,</div>
+              <div style={{ color: '#e8eef0', paddingLeft: 16 }}>"lowestPriceCents": <span style={{ color: '#7ee2d8' }}>589</span>, "offersCount": <span style={{ color: '#7ee2d8' }}>7</span>,</div>
+              <div style={{ color: '#e8eef0', paddingLeft: 16 }}>"offers": [ {'{'} "pharmacy": <span style={{ color: '#ffd9b3' }}>"Pague Menos"</span>, "priceCents": <span style={{ color: '#7ee2d8' }}>589</span> {'}'} … ]</div>
+              <div style={{ color: '#e8eef0' }}>{'}'}</div>
+            </Box>
+            {/* texto + tiers */}
+            <Box sx={{ order: { xs: 1, md: 2 } }}>
+              {[
+                '🔌 3 endpoints: catálogo, preços por farmácia (com foto e EAN) e interações D/X.',
+                '🧾 Pré-pago sem susto: pacotes de chamadas por PIX, cartão ou débito — mesma cobrança do app.',
+                '🛡️ Dado público de varejo, com flag "stale" honesta. Zero dado pessoal de saúde.',
+                '✉️ Acesso mediante aprovação rápida: conte seu caso de uso, liberamos o teste.',
+              ].map((t) => (
+                <Stack key={t.slice(0, 20)} direction="row" spacing={1.25} alignItems="flex-start" sx={{ mb: 1.5 }}>
+                  <CheckCircleIcon sx={{ fontSize: 20, color: '#5fc9c3', mt: 0.15, flexShrink: 0 }} />
+                  <Typography sx={{ fontSize: 15, color: 'rgba(255,255,255,.88)', lineHeight: 1.5 }}>{t}</Typography>
+                </Stack>
+              ))}
+              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1.5, mt: 2.5 }}>
+                {[
+                  { l: 'Teste', p: 'grátis', d: '25 chamadas na aprovação' },
+                  { l: 'Pro', p: 'R$ 99', d: '10 mil chamadas' },
+                  { l: 'Scale', p: 'R$ 399', d: '50 mil chamadas' },
+                ].map((t) => (
+                  <Box key={t.l} sx={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,.22)', bgcolor: 'rgba(255,255,255,.07)', p: 1.75, textAlign: 'center' }}>
+                    <Typography sx={{ fontSize: 11.5, fontWeight: 800, letterSpacing: 1, color: '#ffd9b3' }}>{t.l.toUpperCase()}</Typography>
+                    <Typography sx={{ fontWeight: 800, fontSize: 20, mt: 0.25 }}>{t.p}</Typography>
+                    <Typography sx={{ fontSize: 11.5, color: 'rgba(255,255,255,.75)' }}>{t.d}</Typography>
+                  </Box>
+                ))}
+              </Box>
+              <Stack direction="row" spacing={1.5} sx={{ mt: 2.5 }} useFlexGap flexWrap="wrap">
+                <Button component="a" href="/api/docs" target="_blank" rel="noopener noreferrer" sx={{ borderRadius: '999px', px: 3.5, py: 1.2, textTransform: 'none', fontWeight: 800, bgcolor: '#fff', color: TEAL_DARK, '&:hover': { bgcolor: '#f0fafa' }, boxShadow: '0 10px 24px rgba(0,0,0,.18)' }}>Ver documentação →</Button>
+                <Button component="a" href="/registrar" sx={{ borderRadius: '999px', px: 3.5, py: 1.2, textTransform: 'none', fontWeight: 800, color: '#fff', borderColor: 'rgba(255,255,255,.45)' }} variant="outlined">Solicitar acesso</Button>
+              </Stack>
+            </Box>
           </Box>
         </Container>
       </Box>
