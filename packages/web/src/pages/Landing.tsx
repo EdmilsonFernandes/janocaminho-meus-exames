@@ -213,6 +213,10 @@ export const LandingPage = () => {
   const [showAllBenefits, setShowAllBenefits] = useState(false);
   const [medTab, setMedTab] = useState<'medico' | 'paciente' | 'convite'>('medico');
   const [tourOpen, setTourOpen] = useState(false);
+  // Disclosure nível 1 (NN/g: máx 2 níveis, affordance óbvia) — showcase e ciência
+  // mostram o essencial e revelam o resto sob botão claro. Nada é apagado.
+  const [showTour, setShowTour] = useState<'video' | 'slides'>('video');
+  const [showAllScience, setShowAllScience] = useState(false);
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 40);
     window.addEventListener('scroll', h, { passive: true });
@@ -314,8 +318,6 @@ export const LandingPage = () => {
               </Typography>
               <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', mb: 3, rowGap: 1 }}>
                 <Chip icon={<LockIcon sx={{ fontSize: 17 }} />} label="A IA não inventa números — vêm do seu laudo" sx={{ bgcolor: 'rgba(5,150,105,.10)', color: '#047857', fontWeight: 700, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: GREEN } }} />
-                <Chip icon={<SavingsIcon sx={{ fontSize: 17 }} />} label="Menor preço dos seus remédios em 9 farmácias" sx={{ bgcolor: 'rgba(212,165,116,.14)', color: '#b88a54', fontWeight: 700, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: '#d4a574' } }} />
-                <Chip icon={<VerifiedUserIcon sx={{ fontSize: 17 }} />} label="Conforme a LGPD" sx={{ bgcolor: 'rgba(32,178,170,.10)', color: TEAL_DARK, fontWeight: 700, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: TEAL } }} />
               </Stack>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap sx={{ mb: 1.5 }}>
                 <Button variant="contained" color="primary" size="large" onClick={() => navigate('/registrar')} sx={{ borderRadius: '999px', px: 4, py: 1.5, fontSize: 17, textTransform: 'none', fontWeight: 800 }}>
@@ -413,7 +415,7 @@ export const LandingPage = () => {
               { n: 30, pre: '< ', suf: 's', l: 'pra ler seu exame com IA' },
               { n: 7, pre: '', suf: '', l: 'riscos monitorados: diabetes, anemia, colesterol, renal…' },
               { n: 3, pre: '', suf: '', l: 'índices que o laudo não dá: IMC, eGFR e HOMA-IR' },
-              { n: 100, pre: '', suf: '%', l: 'educativo · LGPD · nunca um diagnóstico' },
+              { n: 9, pre: '', suf: '', l: 'farmácias comparadas — menor preço do seu remédio' },
             ].map((m, idx) => (
               <ScrollReveal key={m.l} delay={idx * 0.08}>
                 <Typography sx={{ fontSize: { xs: '1.8rem', md: '2.4rem' }, fontWeight: 800, color: TEAL_DARK, lineHeight: 1, mb: 0.75, fontFamily: '"Poppins","Inter",sans-serif', letterSpacing: '-0.02em' }}>
@@ -490,26 +492,48 @@ export const LandingPage = () => {
             Um passeio pela plataforma — do upload do exame ao relatório com IA. Passe o mouse pra pausar.
           </Typography>
 
-          {/* Tour em vídeo (YouTube embed) — leitura completa da plataforma */}
-          <Box sx={{ maxWidth: 880, mx: 'auto', width: '100%', mb: 6 }}>
-            <Box sx={{
-              position: 'relative', width: '100%', aspectRatio: '16 / 9',
-              borderRadius: '12px', overflow: 'hidden',
-              border: '1px solid rgba(32,178,170,.25)',
-              boxShadow: '0 30px 60px rgba(32,178,170,.20), 0 12px 26px rgba(0,0,0,.10)',
-            }}>
+          {/* Disclosure nível 1: vídeo OU slides (pílulas no mesmo idioma do filtro de
+              categorias — affordance óbvia). Antes eram dois blocos de mídia empilhados. */}
+          <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', justifyContent: 'center', mb: 4, rowGap: 1 }}>
+            {([['video', '▶ Tour em vídeo'], ['slides', '📸 Slides da plataforma']] as const).map(([k, l]) => (
               <Box
-                component="iframe"
-                src={TOUR_VIDEO_SRC}
-                title="Dr. Exame — tour pela plataforma"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-                loading="lazy"
-                sx={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }}
-              />
+                key={k}
+                component="button"
+                onClick={() => setShowTour(k)}
+                sx={{
+                  px: 2, py: 0.85, borderRadius: '999px', cursor: 'pointer', fontSize: 14, fontWeight: 700, textTransform: 'none',
+                  border: '1px solid', borderColor: showTour === k ? TEAL : 'divider',
+                  bgcolor: showTour === k ? TEAL : 'background.default',
+                  color: showTour === k ? '#fff' : 'text.secondary',
+                  transition: 'all .15s ease',
+                  '&:hover': { borderColor: TEAL, color: showTour === k ? '#fff' : TEAL_DARK },
+                }}
+              >{l}</Box>
+            ))}
+          </Stack>
+          {showTour === 'video' ? (
+            /* Tour em vídeo (YouTube embed) — leitura completa da plataforma */
+            <Box sx={{ maxWidth: 880, mx: 'auto', width: '100%' }}>
+              <Box sx={{
+                position: 'relative', width: '100%', aspectRatio: '16 / 9',
+                borderRadius: '12px', overflow: 'hidden',
+                border: '1px solid rgba(32,178,170,.25)',
+                boxShadow: '0 30px 60px rgba(32,178,170,.20), 0 12px 26px rgba(0,0,0,.10)',
+              }}>
+                <Box
+                  component="iframe"
+                  src={TOUR_VIDEO_SRC}
+                  title="Dr. Exame — tour pela plataforma"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  loading="lazy"
+                  sx={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }}
+                />
+              </Box>
             </Box>
-          </Box>
-          <SlideCarousel />
+          ) : (
+            <SlideCarousel />
+          )}
 
         </Container>
       </Box>
@@ -742,22 +766,26 @@ export const LandingPage = () => {
                     <Chip label="🏆 11 ofertas" size="small" sx={{ bgcolor: 'primary.main', color: '#fff', fontWeight: 800, fontSize: 10, flexShrink: 0 }} />
                   </Stack>
                   {[
-                    { sigla: 'CD', color: '#37474f', name: 'Coop Drogaria', product: 'Levotiroxina Sódica 25mg 30 Comprimidos', price: 'R$ 7,65', best: true },
-                    { sigla: 'PM', color: '#d32f2f', name: 'Pague Menos', product: 'Levotiroxina Sódica 25mcg Genérico Merck', price: 'R$ 9,49', best: false },
-                    { sigla: 'DP', color: '#1565c0', name: 'Drogaria Pacheco', product: 'Levotiroxina Sódica 25mcg Genérico 30cp', price: 'R$ 9,59', best: false },
+                    { sigla: 'CD', color: '#37474f', name: 'Coop Drogaria', product: 'Levotiroxina Sódica 25mcg 30cp', price: 'R$ 7,65', best: true },
+                    { sigla: 'PM', color: '#d32f2f', name: 'Pague Menos', product: 'Levotiroxina 25mcg Genérico', price: 'R$ 9,49', best: false },
+                    { sigla: 'DP', color: '#1565c0', name: 'Drogaria Pacheco', product: 'Levotiroxina 25mcg 30 Comprimidos', price: 'R$ 9,59', best: false },
                   ].map((o) => (
                     <Stack key={o.name} direction="row" spacing={1.25} alignItems="center" sx={{ py: 1.25, borderTop: '1px solid', borderColor: 'divider', bgcolor: o.best ? 'rgba(32,178,170,.05)' : 'transparent', borderRadius: o.best ? '10px' : 0, px: 0.5 }}>
                       {pharmLogos[o.name] ? (
-                        <Box component="img" src={pharmLogos[o.name]!} alt={o.name} loading="lazy" sx={{ height: 22, maxWidth: 68, objectFit: 'contain', flexShrink: 0 }} />
+                        <Box component="img" src={pharmLogos[o.name]!} alt={o.name} loading="lazy" sx={{ height: 22, maxWidth: 60, objectFit: 'contain', flexShrink: 0 }} />
                       ) : (
                         <Box sx={{ px: 0.75, py: 0.25, borderRadius: '6px', bgcolor: `${o.color}14`, color: o.color, fontWeight: 800, fontSize: 10, fontFamily: 'Poppins, sans-serif', flexShrink: 0 }}>{o.sigla}</Box>
                       )}
                       <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <Typography noWrap sx={{ fontSize: 12.5, fontWeight: 700, color: 'text.primary' }}>{o.product}</Typography>
+                        {/* mobile: nome quebra (nada cortado); desktop: 1 linha (cabe inteira) */}
+                        <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: 'text.primary', lineHeight: 1.3, whiteSpace: { xs: 'normal', md: 'nowrap' }, overflow: { md: 'hidden' }, textOverflow: { md: 'ellipsis' } }}>{o.product}</Typography>
                         <Typography variant="caption" sx={{ color: 'text.secondary' }}>{o.name}</Typography>
                       </Box>
-                      {o.best && <Chip label="MELHOR" size="small" sx={{ height: 18, fontSize: 9, fontWeight: 800, bgcolor: 'primary.main', color: '#fff', flexShrink: 0 }} />}
-                      <Typography sx={{ fontWeight: 800, fontSize: 14, color: 'text.primary', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{o.price}</Typography>
+                      {/* Preço + selo empilhados (mesmo padrão do app real — o selo não rouba largura da linha) */}
+                      <Stack alignItems="flex-end" spacing={0.25} sx={{ flexShrink: 0 }}>
+                        <Typography sx={{ fontWeight: 800, fontSize: 14, color: 'text.primary', fontVariantNumeric: 'tabular-nums', lineHeight: 1.1 }}>{o.price}</Typography>
+                        {o.best && <Chip label="MELHOR PREÇO" size="small" sx={{ height: 16, fontSize: 8.5, fontWeight: 800, bgcolor: 'primary.main', color: '#fff', letterSpacing: '0.03em' }} />}
+                      </Stack>
                     </Stack>
                   ))}
                   <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 1.5, color: 'text.disabled' }}>
@@ -1027,7 +1055,7 @@ export const LandingPage = () => {
               { Icon: WarningAmberIcon, t: 'Leitura de risco', f: 'Cada risco cita a diretriz que o define', d: 'Pré-diabetes, anemia, cardiovascular: o limiar vem da ADA, SBC ou OMS — e aparece no card. Seu perfil (sexo, idade, etnia) ajusta a leitura.', src: [{ l: 'ADA · SBC' }, { l: 'OMS (hipertensão) →', href: 'https://www.who.int/news-room/fact-sheets/detail/hypertension' }] },
               { Icon: ChildCareIcon, t: 'Faixas por idade', f: 'Harriet Lane Handbook, 22ª ed. (pediatria)', d: 'Exame de criança lido com régua de criança: quando o laudo não traz a faixa da idade, aplicamos a banda etária e marcamos o item com selo transparente.', src: [{ l: 'The Harriet Lane Handbook, 22ª ed. — Elsevier/Johns Hopkins (sem link: cite completa no app)' }] },
               { Icon: AutoAwesomeIcon, t: 'IA que explica, não inventa', f: 'Valores vêm do laudo · pós-filtro anti-diagnóstico', d: 'A extração lê o texto do PDF, você confere antes de salvar, e um filtro bloqueia linguagem de diagnóstico. A IA contextualiza — a régua decide.', src: [{ l: 'ANVISA, RDC nº 657/2022 (DOU — consulta pública no site da ANVISA)' }] },
-            ].map((c) => (
+            ].slice(0, showAllScience ? 6 : 3).map((c) => (
               <Box key={c.t} sx={{ p: 3, borderRadius: '12px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', height: '100%', display: 'flex', flexDirection: 'column', transition: 'all .2s ease', '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 20px 44px rgba(15,61,58,.10)', borderColor: TEAL } }}>
                 <Box sx={{ width: 48, height: 48, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2, background: 'linear-gradient(135deg,rgba(32,178,170,.14),rgba(32,178,170,.06))' }}>
                   <c.Icon sx={{ fontSize: 26, color: TEAL_DARK }} />
@@ -1048,74 +1076,54 @@ export const LandingPage = () => {
               </Box>
             ))}
           </Box>
-          <Box sx={{ textAlign: 'center', mt: 4 }}>
-            <Button variant="outlined" onClick={() => navigate('/como-validamos')} sx={{ borderRadius: '999px', px: 4, py: 1.2, textTransform: 'none', fontWeight: 700, borderColor: '#d8f4f2', color: TEAL_DARK, '&:hover': { borderColor: TEAL, bgcolor: 'rgba(32,178,170,.06)' } }}>
+          {/* Expander de disclosure — mesmo padrão do "Ver todos os N recursos" (benefícios) */}
+          <Stack direction="row" spacing={1.5} useFlexGap justifyContent="center" alignItems="center" sx={{ mt: 4, flexWrap: 'wrap', rowGap: 1.5 }}>
+            <Button variant="outlined" onClick={() => setShowAllScience((v) => !v)} sx={{ borderRadius: '999px', px: 3.5, py: 1, textTransform: 'none', fontWeight: 700, borderColor: '#d8f4f2', color: TEAL_DARK, '&:hover': { borderColor: TEAL, bgcolor: 'rgba(32,178,170,.06)' } }}>
+              {showAllScience ? 'Ver menos' : 'Ver as outras 3 análises'}
+            </Button>
+            <Button variant="text" onClick={() => navigate('/como-validamos')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, color: TEAL_DARK, '&:hover': { bgcolor: 'rgba(32,178,170,.06)' } }}>
               Ver cada regra, com a fonte →
             </Button>
-          </Box>
+          </Stack>
         </Container>
       </Box>
       </ScrollReveal>
 
-      {/* SEÇÃO — API do Dr. Exame (B2B): preço real de farmácia no produto de terceiros */}
+      {/* API Dr. Exame (B2B) — STRIP compacta: público dev não ocupa a jornada do
+          consumidor. Tiers como stats inline (padrão banda de números); curl e detalhes
+          vivem na página dedicada /api-docs — nada é perdido, só muda de casa. */}
       <ScrollReveal>
-      <Box sx={{ position: 'relative', overflow: 'hidden', py: { xs: 8, md: 11 }, background: 'linear-gradient(135deg,#0f5f5a 0%,#137a72 55%,#178f89 100%)', color: '#fff' }}>
-        <Box sx={{ position: 'absolute', top: '-12%', left: '-6%', width: 420, height: 420, borderRadius: '50%', background: 'radial-gradient(circle,rgba(212,165,116,.20),transparent 65%)', pointerEvents: 'none' }} />
+      <Box sx={{ position: 'relative', overflow: 'hidden', py: { xs: 5, md: 7 }, background: 'linear-gradient(135deg,#0f5f5a 0%,#137a72 55%,#178f89 100%)', color: '#fff' }}>
+        <Box sx={{ position: 'absolute', top: '-30%', left: '-6%', width: 420, height: 420, borderRadius: '50%', background: 'radial-gradient(circle,rgba(212,165,116,.20),transparent 65%)', pointerEvents: 'none' }} />
         <Container maxWidth="lg" sx={{ position: 'relative' }}>
-          <Box sx={{ textAlign: 'center', mb: 4 }}>
-            <Chip icon={<ApiIcon sx={{ fontSize: 16 }} />} label="Dr. Exame API · para desenvolvedores" sx={{ bgcolor: 'rgba(255,255,255,.16)', color: '#ffd9b3', fontWeight: 700, mb: 2, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: '#d4a574' } }} />
-            <Typography variant="h2" sx={{ fontSize: { xs: '1.8rem', md: '2.4rem' }, fontWeight: 800, mb: 1.5, letterSpacing: '-0.02em' }}>
-              Preço real de farmácia, <Box component="span" sx={SERIF_I}>no seu produto</Box>
-            </Typography>
-            <Typography sx={{ fontSize: 17, color: 'rgba(255,255,255,.85)', maxWidth: 620, mx: 'auto' }}>
-              A mesma base que alimenta o app — catálogo com foto e EAN, preços de farmácias brasileiras e checagem de interações D/X — disponível pra apps, portais e clínicas via REST.
-            </Typography>
-          </Box>
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: { xs: 4, md: 7 }, alignItems: 'center' }}>
-            {/* mockup: request/response */}
-            <Box sx={{ order: { xs: 2, md: 1 }, borderRadius: '14px', bgcolor: 'rgba(0,0,0,.32)', border: '1px solid rgba(255,255,255,.14)', p: { xs: 2, md: 2.5 }, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: 12.5, lineHeight: 1.75, overflowX: 'auto', boxShadow: '0 24px 48px rgba(0,0,0,.28)' }}>
-              <Typography sx={{ color: '#5fc9c3', fontWeight: 700, fontSize: 12, mb: 1 }}># com sua chave de API</Typography>
-              <div style={{ color: '#e8eef0' }}>curl "https://drexame.janocaminho.com.br/api/public/v1<span style={{ color: '#ffd9b3' }}>/meds/prices?ingredient=dipirona</span>" \</div>
-              <div style={{ color: '#e8eef0', paddingLeft: 16 }}>-H "x-api-key: <span style={{ color: '#9ca3af' }}>dxk_live_…</span>"</div>
-              <Typography sx={{ color: '#5fc9c3', fontWeight: 700, fontSize: 12, mt: 2, mb: 1 }}># resposta</Typography>
-              <div style={{ color: '#e8eef0' }}>{'{'}</div>
-              <div style={{ color: '#e8eef0', paddingLeft: 16 }}>"medicationKey": <span style={{ color: '#ffd9b3' }}>"DIPIRONA|500MG|CP|20"</span>,</div>
-              <div style={{ color: '#e8eef0', paddingLeft: 16 }}>"lowestPriceCents": <span style={{ color: '#7ee2d8' }}>589</span>, "offersCount": <span style={{ color: '#7ee2d8' }}>7</span>,</div>
-              <div style={{ color: '#e8eef0', paddingLeft: 16 }}>"offers": [ {'{'} "pharmacy": <span style={{ color: '#ffd9b3' }}>"Pague Menos"</span>, "priceCents": <span style={{ color: '#7ee2d8' }}>589</span> {'}'} … ]</div>
-              <div style={{ color: '#e8eef0' }}>{'}'}</div>
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={{ xs: 3, md: 5 }} alignItems="center">
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Chip icon={<ApiIcon sx={{ fontSize: 16 }} />} label="Dr. Exame API · para desenvolvedores" sx={{ bgcolor: 'rgba(255,255,255,.16)', color: '#ffd9b3', fontWeight: 700, mb: 1.5, fontSize: 12, pl: 1, '& .MuiChip-icon': { color: '#d4a574' } }} />
+              <Typography variant="h3" sx={{ fontSize: { xs: '1.4rem', md: '1.8rem' }, fontWeight: 800, mb: 0.75, letterSpacing: '-0.02em' }}>
+                Preço real de farmácia, <Box component="span" sx={SERIF_I}>no seu produto</Box>
+              </Typography>
+              <Typography sx={{ fontSize: 15, color: 'rgba(255,255,255,.85)', lineHeight: 1.55 }}>
+                Catálogo com foto e EAN, preços de farmácias brasileiras e interações D/X via REST. Dado público de varejo — zero dado pessoal de saúde. Pré-pago por PIX, cartão ou débito.
+              </Typography>
             </Box>
-            {/* texto + tiers */}
-            <Box sx={{ order: { xs: 1, md: 2 } }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1.5, flexShrink: 0 }}>
               {[
-                '🔌 3 endpoints: catálogo, preços por farmácia (com foto e EAN) e interações D/X.',
-                '🧾 Pré-pago sem susto: pacotes de chamadas por PIX, cartão ou débito — mesma cobrança do app.',
-                '🛡️ Dado público de varejo, com flag "stale" honesta. Zero dado pessoal de saúde.',
-                '✉️ Acesso mediante aprovação rápida: conte seu caso de uso, liberamos o teste.',
+                { l: 'TESTE', p: 'grátis', d: '25 chamadas' },
+                { l: 'PROFISSIONAL', p: 'R$ 99', d: '10 mil chamadas' },
+                { l: 'GRANDE VOLUME', p: 'R$ 399', d: '50 mil chamadas' },
               ].map((t) => (
-                <Stack key={t.slice(0, 20)} direction="row" spacing={1.25} alignItems="flex-start" sx={{ mb: 1.5 }}>
-                  <CheckCircleIcon sx={{ fontSize: 20, color: '#5fc9c3', mt: 0.15, flexShrink: 0 }} />
-                  <Typography sx={{ fontSize: 15, color: 'rgba(255,255,255,.88)', lineHeight: 1.5 }}>{t}</Typography>
-                </Stack>
+                <Box key={t.l} sx={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,.22)', bgcolor: 'rgba(255,255,255,.07)', p: 1.75, textAlign: 'center', minWidth: 92 }}>
+                  <Typography sx={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 1, color: '#ffd9b3' }}>{t.l}</Typography>
+                  <Typography sx={{ fontWeight: 800, fontSize: 19, mt: 0.25, whiteSpace: 'nowrap' }}>{t.p}</Typography>
+                  <Typography sx={{ fontSize: 11, color: 'rgba(255,255,255,.75)', whiteSpace: 'nowrap' }}>{t.d}</Typography>
+                </Box>
               ))}
-              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1.5, mt: 2.5 }}>
-                {[
-                  { l: 'Teste', p: 'grátis', d: '25 chamadas na aprovação' },
-                  { l: 'Profissional', p: 'R$ 99', d: '10 mil chamadas' },
-                  { l: 'Grande volume', p: 'R$ 399', d: '50 mil chamadas' },
-                ].map((t) => (
-                  <Box key={t.l} sx={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,.22)', bgcolor: 'rgba(255,255,255,.07)', p: 1.75, textAlign: 'center' }}>
-                    <Typography sx={{ fontSize: 11.5, fontWeight: 800, letterSpacing: 1, color: '#ffd9b3' }}>{t.l.toUpperCase()}</Typography>
-                    <Typography sx={{ fontWeight: 800, fontSize: 20, mt: 0.25 }}>{t.p}</Typography>
-                    <Typography sx={{ fontSize: 11.5, color: 'rgba(255,255,255,.75)' }}>{t.d}</Typography>
-                  </Box>
-                ))}
-              </Box>
-              <Stack direction="row" spacing={1.5} sx={{ mt: 2.5 }} useFlexGap flexWrap="wrap">
-                <Button component="a" href="/api/docs" target="_blank" rel="noopener noreferrer" sx={{ borderRadius: '999px', px: 3.5, py: 1.2, textTransform: 'none', fontWeight: 800, bgcolor: '#fff', color: TEAL_DARK, '&:hover': { bgcolor: '#f0fafa' }, boxShadow: '0 10px 24px rgba(0,0,0,.18)' }}>Ver documentação →</Button>
-                <Button onClick={() => navigate('/api')} sx={{ borderRadius: '999px', px: 3.5, py: 1.2, textTransform: 'none', fontWeight: 800, color: '#fff', borderColor: 'rgba(255,255,255,.45)' }} variant="outlined">Solicitar acesso</Button>
-              </Stack>
             </Box>
-          </Box>
+            <Stack direction={{ xs: 'row', md: 'column' }} spacing={1.25} useFlexGap flexWrap="wrap" sx={{ flexShrink: 0 }}>
+              <Button onClick={() => navigate('/api-docs')} sx={{ borderRadius: '999px', px: 3, py: 1, textTransform: 'none', fontWeight: 800, fontSize: 14, bgcolor: '#fff', color: TEAL_DARK, '&:hover': { bgcolor: '#f0fafa' }, boxShadow: '0 10px 24px rgba(0,0,0,.18)', whiteSpace: 'nowrap' }}>Documentação →</Button>
+              <Button onClick={() => navigate('/api')} sx={{ borderRadius: '999px', px: 3, py: 1, textTransform: 'none', fontWeight: 800, fontSize: 14, color: '#fff', borderColor: 'rgba(255,255,255,.45)', whiteSpace: 'nowrap' }} variant="outlined">Solicitar acesso</Button>
+            </Stack>
+          </Stack>
         </Container>
       </Box>
       </ScrollReveal>
