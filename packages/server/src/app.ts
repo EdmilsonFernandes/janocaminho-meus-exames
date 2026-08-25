@@ -28,6 +28,9 @@ import billingRoutes from './routes/billing.routes';
 import labsRoutes from './routes/labs.routes';
 import measurementRoutes from './routes/measurement.routes';
 import medicationRoutes from './routes/medication.routes';
+import publicApiRoutes from './routes/public-api.routes';
+import swaggerUi from 'swagger-ui-express';
+import { openapiSpec } from './docs/openapi';
 import pharmacyRoutes from './routes/pharmacy.routes';
 import riskRoutes from './routes/risk.routes';
 import vaccineRoutes from './routes/vaccine.routes';
@@ -172,6 +175,10 @@ app.use('/api/billing', billingRoutes);
 app.use('/api/labs', labsRoutes);
 app.use('/api/measurements', measurementRoutes);
 app.use('/api/medications', medicationRoutes);
+// API PÚBLICA v1 (parceiros/devs — key em x-api-key) + docs Swagger. Só dado de varejo
+// farmacêutico (preço/interações) — interpretação de exames NÃO exposta (muralha + RDC 657).
+app.use('/api/public/v1', publicApiRoutes);
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup({ ...openapiSpec }, { customCss: '.topbar { display: none }' }));
 app.use('/api/admin/pharmacies', pharmacyRoutes);
 app.use('/api/risk', riskRoutes);
 app.use('/api/vaccines', vaccineRoutes);

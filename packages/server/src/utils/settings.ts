@@ -36,6 +36,9 @@ export const DEFAULT_SETTINGS = {
   // vencendo quando o lab imprime faixa própria não-adulta; a banda só entra sem faixa ou
   // contra default adulto óbvio. Kill-switch instantâneo via admin.
   pediatricRanges: { enabled: 1 },
+  // API pública (Fase 1): cota mensal do tier grátis por chave (admin edita live; 0 = desliga
+  // o acesso público da API inteira). Tiers pagos entram após o research de precificação.
+  apiAccess: { freeMonthly: 100 },
   shares: { exams: 5, evolution: 5, alerts: 3, summary: 5 }, // custo por escopo ao compartilhar c/ médico
   // Faixas temporais (meses) da análise de exames — classificação atual/recente/histórico/antigo
   // e marcação de "desatualizado" (>staleMonths). Defaults = spec clínica. Admin edita live.
