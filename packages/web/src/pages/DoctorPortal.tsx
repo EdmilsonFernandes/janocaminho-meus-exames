@@ -88,17 +88,18 @@ const PayCountdown = ({ expiresAt, onExpire }: { expiresAt: string; onExpire: ()
   );
 };
 
-/* Ícones das abas (feedback E4c): mais ILUSTRATIVOS e distintos entre si.
- * - Exames → ReceiptLong: fita de laudo laboratorial (não um documento genérico).
- * - Alterados → Flag: bandeira = "valores sinalizados" (mesma linguagem do app 🚩).
- * - Relatório → Summarize: documento com resumo/linhas (diferente do Exames). */
+/* Ícones das abas — PHOSPHOR duotone (premium, distintos, peso visual rico).
+ * Mapeamento: Exames=laudo, Alterados=flag, Tendências=gráfico, Relatório=resumo,
+ * Perguntas=chat, Anotações=lápis. */
+import { Receipt, Flag, ChartLineUp, FileText, ChatCircle, NotePencil } from '@phosphor-icons/react';
+
 const SCOPE_META: Record<string, { label: string; icon: ReactElement }> = {
-  exams: { label: 'Exames', icon: <ReceiptLongIcon /> },
-  alterados: { label: 'Alterados', icon: <FlagIcon /> },
-  tendencias: { label: 'Tendências', icon: <TrendingUpIcon /> },
-  relatorio: { label: 'Relatório', icon: <SummarizeIcon /> },
-  questions: { label: 'Perguntas', icon: <QuestionAnswerIcon /> },
-  notes: { label: 'Anotações', icon: <EditNoteIcon /> },
+  exams: { label: 'Exames', icon: <Receipt size={22} weight="duotone" /> },
+  alterados: { label: 'Alterados', icon: <Flag size={22} weight="duotone" /> },
+  tendencias: { label: 'Tendências', icon: <ChartLineUp size={22} weight="duotone" /> },
+  relatorio: { label: 'Relatório', icon: <FileText size={22} weight="duotone" /> },
+  questions: { label: 'Perguntas', icon: <ChatCircle size={22} weight="duotone" /> },
+  notes: { label: 'Anotações', icon: <NotePencil size={22} weight="duotone" /> },
 };
 
 /** Abas do portal = 4 destinos CLÍNICOS grandes (feedback 2026-08-19): Exames, Alterados,

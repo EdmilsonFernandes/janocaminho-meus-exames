@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Stack, Typography, Box, Grid, useTheme, alpha, Skeleton, Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
 import { API_URL, token } from '../../config';
+import { Heartbeat, Stethoscope, ChartLineUp, Dna } from '@phosphor-icons/react';
 import { useSelectedPatient } from '../../patient-context';
 import { syncPushToken } from '../../push';
 import { BiometricService } from '../BiometricService';
@@ -277,7 +278,7 @@ export const DashboardV2 = () => {
           e diz o que destrava — ausência de informação nunca vira normalidade. */}
       <Grid container spacing={1.5} sx={{ mt: 0.5 }}>
         <Grid size={{ xs: 6, md: 3 }}>
-          <IndicatorTile idx={0} icon={<FavoriteIcon />} tone={cardioLevel ? (cardioFactors > 0 ? 'error' : 'success') : 'info'} label="Cardiometabólico"
+          <IndicatorTile idx={0} icon={<Heartbeat size={22} weight="duotone" />} tone={cardioLevel ? (cardioFactors > 0 ? 'error' : 'success') : 'info'} label="Cardiometabólico"
             value={cardioLevel || (d.loaded ? 'Sem dados' : '—')} sub={cardioLevel
               ? (cardioFactors > 0 ? `${cardioFactors} fator${cardioFactors > 1 ? 'es' : ''} de risco` : 'sem fatores')
               : (d.loaded ? (d.stats.exams > 0 ? 'sem colesterol, peso ou pressão' : 'envie um exame ou registre peso/pressão') : '')}
@@ -287,11 +288,11 @@ export const DashboardV2 = () => {
           <BiologicalAgeCard />
         </Grid>
         <Grid size={{ xs: 6, md: 3 }}>
-          <IndicatorTile idx={2} icon={<MedicalServicesIcon />} tone="primary" label="Seus exames"
+          <IndicatorTile idx={2} icon={<Stethoscope size={22} weight="duotone" />} tone="primary" label="Seus exames"
             value={d.loaded ? String(d.stats.exams) : '—'} sub={d.stats.exams === 0 && d.loaded ? 'envie o primeiro' : `${d.stats.abnormal} alterado${d.stats.abnormal === 1 ? '' : 's'}`} onClick={() => navigate('/exams')} />
         </Grid>
         <Grid size={{ xs: 6, md: 3 }}>
-          <IndicatorTile idx={3} icon={<ShowChartIcon />} tone="info" label="Evolução" value="Tendências" sub={totalResults > 0 ? `${totalResults} resultado${totalResults === 1 ? '' : 's'}` : (d.loaded ? 'após o 1º exame' : '')} onClick={() => navigate('/evolucao')} />
+          <IndicatorTile idx={3} icon={<ChartLineUp size={22} weight="duotone" />} tone="info" label="Evolução" value="Tendências" sub={totalResults > 0 ? `${totalResults} resultado${totalResults === 1 ? '' : 's'}` : (d.loaded ? 'após o 1º exame' : '')} onClick={() => navigate('/evolucao')} />
         </Grid>
       </Grid>
 

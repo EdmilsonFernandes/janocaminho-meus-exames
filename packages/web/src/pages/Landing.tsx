@@ -45,6 +45,34 @@ import { usePlanInfo, fmtBRL } from '../utils/planInfo';
 import { ScrollReveal, AnimatedNumber } from '../components/ScrollReveal';
 import { BmiCalculator, BmiCard } from '../components/BmiCalculator';
 import { Reveal } from '../components/Reveal';
+import {
+  Gift, CheckCircle, UploadSimple, Heartbeat, Lightning, FileText,
+  ClockCounterClockwise, UsersThree, CreditCard, Stack as StackIcon, Coins,
+  CalendarBlank, Browser,
+} from '@phosphor-icons/react';
+
+/** Ícone premium por feature dos planos — Phosphor em vez de checkbox genérico.
+ *  Cada feature tem um ícone que REPRESENTA o benefício (não só um check). */
+const PlanFeatureIcon = ({ name, highlight }: { name: string; highlight: boolean }) => {
+  const color = highlight ? TEAL_DARK : GREEN;
+  const size = 18;
+  const icons: Record<string, React.ReactNode> = {
+    gift: <Gift size={size} color={color} weight="duotone" />,
+    check: <CheckCircle size={size} color={color} weight="fill" />,
+    upload: <UploadSimple size={size} color={color} weight="duotone" />,
+    heartbeat: <Heartbeat size={size} color={color} weight="duotone" />,
+    lightning: <Lightning size={size} color={color} weight="fill" />,
+    'file-text': <FileText size={size} color={color} weight="duotone" />,
+    history: <ClockCounterClockwise size={size} color={color} weight="duotone" />,
+    users: <UsersThree size={size} color={color} weight="duotone" />,
+    card: <CreditCard size={size} color={color} weight="duotone" />,
+    stack: <StackIcon size={size} color={color} weight="duotone" />,
+    coins: <Coins size={size} color={color} weight="duotone" />,
+    'no-subscription': <CalendarBlank size={size} color={color} weight="duotone" />,
+    clock: <Browser size={size} color={color} weight="duotone" />,
+  };
+  return <Box sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>{icons[name] ?? <CheckCircle size={size} color={color} weight="fill" />}</Box>;
+};
 
 // ---- Tokens (espelham theme.ts) ----
 const TEAL = '#20b2aa';
@@ -91,21 +119,32 @@ const DEFAULT_BENEFITS = new Set(['IA que lê seus exames', 'Leitura de risco', 
 
 // Planos da LANDING — preço/créditos/perks vêm da API (admin edita live; honesto por padrão:
 // o free é COMPLETO por uso; o mensal vende economia + perks, não "trancas").
+// FEATURES agora são { icon, text } — Phosphor Icons em vez de emoji/checkbox genérico.
 const planData = (credits: number, info: ReturnType<typeof usePlanInfo> = null) => {
   const p = info?.plan;
   const perks = info?.premiumPerks;
   const minPack = info?.packs?.length ? Math.min(...info.packs.map((x) => x.price)) : 9.9;
   return [
-    { name: 'Grátis', price: 'R$ 0', period: '', features: [`${credits} créditos de presente (≈ ${Math.floor(credits / 10)} resumos de IA)`, 'Tudo funciona: envios, valores, tendências, família', 'Envie exames (PDF/foto)', 'Score de Saúde'], highlight: false, cta: 'Começar grátis' },
-    { name: 'Mensal', price: p ? (p.founder && p.price !== p.effectivePrice ? fmtBRL(p.effectivePrice) : fmtBRL(p.price)) : 'R$ —', period: '/mês',
-      features: [
-        `${p?.monthlyCredits ?? 250} créditos de IA/mês (melhor custo)`,
-        '📄 Relatórios completos incluídos',
-        '📅 Histórico de anos anteriores',
-        `👨‍👩‍👧 Família até ${perks?.familyLimit ?? 10} perfis`,
-        '📤 Envios de exame sem custo',
-      ], highlight: true, cta: p?.founder ? 'Garantir vaga de fundador' : 'Assinar mensal' },
-    { name: 'Créditos', price: `a partir de ${fmtBRL(minPack ?? 9.9)}`, period: 'avulso', features: ['PIX, cartão ou débito', 'Pacotes flexíveis', 'Cada análise consome créditos', 'Sem mensalidade', 'Use quando precisar'], highlight: false, cta: 'Ver pacotes' },
+    { name: 'Grátis', price: 'R$ 0', period: '', highlight: false, cta: 'Começar grátis', features: [
+      { icon: 'gift', text: `${credits} créditos de presente (≈ ${Math.floor(credits / 10)} resumos)` },
+      { icon: 'check', text: 'Tudo funciona: envios, valores, tendências, família' },
+      { icon: 'upload', text: 'Envie exames (PDF/foto)' },
+      { icon: 'heartbeat', text: 'Score de Saúde' },
+    ] },
+    { name: 'Mensal', price: p ? (p.founder && p.price !== p.effectivePrice ? fmtBRL(p.effectivePrice) : fmtBRL(p.price)) : 'R$ —', period: '/mês', highlight: true, cta: p?.founder ? 'Garantir vaga de fundador' : 'Assinar mensal', features: [
+      { icon: 'lightning', text: `${p?.monthlyCredits ?? 250} créditos de IA/mês (melhor custo)` },
+      { icon: 'file-text', text: 'Relatórios completos incluídos' },
+      { icon: 'history', text: 'Histórico de anos anteriores' },
+      { icon: 'users', text: `Família até ${perks?.familyLimit ?? 10} perfis` },
+      { icon: 'upload', text: 'Envios de exame sem custo' },
+    ] },
+    { name: 'Créditos', price: `a partir de ${fmtBRL(minPack ?? 9.9)}`, period: 'avulso', highlight: false, cta: 'Ver pacotes', features: [
+      { icon: 'card', text: 'PIX, cartão ou débito' },
+      { icon: 'stack', text: 'Pacotes flexíveis' },
+      { icon: 'coins', text: 'Cada análise consome créditos' },
+      { icon: 'no-subscription', text: 'Sem mensalidade' },
+      { icon: 'clock', text: 'Use quando precisar — não expiram' },
+    ] },
   ];
 };
 
@@ -210,14 +249,16 @@ export const LandingPage = () => {
         @media (prefers-reduced-motion: reduce){ .hero-float{ animation: none !important; } }
       `}</style>
 
-      {/* NAVBAR flutuante (claro/glassy) */}
+      {/* NAVBAR flutuante — GLASSMORPHISM premium (blur 20px + border sutil + sombra leve;
+          NN/g: "sparingly, high-value elements" — navbar é o elemento #1). */}
       <Box sx={{
-        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000, transition: 'all .3s',
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000, transition: 'all .3s cubic-bezier(.16,1,.3,1)',
         paddingTop: 'env(safe-area-inset-top)',
-        bgcolor: scrolled ? 'rgba(255,255,255,.92)' : 'transparent',
-        backdropFilter: scrolled ? 'blur(12px)' : 'none',
-        borderBottom: scrolled ? '1px solid' : '1px solid transparent',
-        borderColor: scrolled ? 'divider' : 'transparent',
+        bgcolor: scrolled ? 'rgba(255,255,255,.85)' : 'transparent',
+        backdropFilter: scrolled ? 'blur(20px) saturate(1.4)' : 'none',
+        WebkitBackdropFilter: scrolled ? 'blur(20px) saturate(1.4)' : 'none',
+        borderBottom: scrolled ? '1px solid rgba(32,178,170,.12)' : '1px solid transparent',
+        boxShadow: scrolled ? '0 1px 12px rgba(15,95,90,.06)' : 'none',
       }}>
         <Container maxWidth="lg" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', py: 1.5 }}>
           <Stack direction="row" alignItems="center" spacing={1.25} sx={{ cursor: 'pointer' }} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
@@ -1063,10 +1104,10 @@ export const LandingPage = () => {
                 <Typography variant="h6" sx={{ fontWeight: 800, fontSize: 18, color: 'text.primary', mb: 1 }}>{p.name}</Typography>
                 <Typography sx={{ fontWeight: 800, fontSize: 32, color: p.highlight ? TEAL : 'text.primary', mb: 0.5, lineHeight: 1.1 }}>{p.price}<Typography component="span" sx={{ fontSize: 14, color: 'text.secondary', fontWeight: 600 }}>{p.period}</Typography></Typography>
                 <Box sx={{ my: 2, height: 1, bgcolor: 'divider' }} />
-                {p.features.map((f) => (
-                  <Stack key={f} direction="row" spacing={1} alignItems="center" sx={{ py: 0.5 }}>
-                    <CheckCircleIcon sx={{ fontSize: 17, color: GREEN, flexShrink: 0 }} />
-                    <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>{f}</Typography>
+                {p.features.map((f: any) => (
+                  <Stack key={f.text} direction="row" spacing={1} alignItems="center" sx={{ py: 0.5 }}>
+                    <PlanFeatureIcon name={f.icon} highlight={p.highlight} />
+                    <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>{f.text}</Typography>
                   </Stack>
                 ))}
                 <Button fullWidth variant={p.highlight ? 'contained' : 'outlined'} color="primary" onClick={() => navigate('/registrar')} sx={{ mt: 2.5, borderRadius: '999px', textTransform: 'none', fontWeight: 700, ...(p.highlight ? {} : { borderColor: '#d8f4f2', color: TEAL_DARK }) }}>{p.cta}</Button>
