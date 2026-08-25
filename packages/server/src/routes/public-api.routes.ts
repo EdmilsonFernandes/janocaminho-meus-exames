@@ -17,9 +17,11 @@ async function notifyAdminsNewRequest(r: { company: string; useCase: string }, r
     html: `<p><b>${requester.name ?? 'Usuário'}</b> (${requester.email}) pediu acesso à API.</p><p><b>Empresa:</b> ${r.company}<br/><b>Caso de uso:</b> ${r.useCase}</p><p>Aprove em <a href="https://drexame.janocaminho.com.br/admin?tab=api">Admin → API pública</a>.</p>`,
     text,
   }).catch(() => {});
-  const admins = await prisma.user.findMany({ where: { role: 'ADMIN' }, select: { id: true } });
-  for (const a of admins) {
-    void sendPushToUser(a.id, subject, `${requester.email} · ${r.company} — avalie no admin`, { type: 'api_access' }).catch(() => {});
+  const adminRows = await prisma.user.findMany({ where: { role: 'ADMIN' }, select: { id: true } });
+  // AWAIT por admin (não void): a notificação in-app precisa existir ANTES da resposta —
+  // fire-and-forget passava local e PERDIA A CORRIDA no CI (teste flakeava com undefined).
+  for (const a of adminRows) {
+    await sendPushToUser(a.id, subject, `${requester.email} · ${r.company} — avalie no admin`, { type: 'api_access' }).catch(() => {});
   }
 }
 
