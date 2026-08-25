@@ -262,8 +262,11 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
 // COMPRA DE PACOTE DE CHAMADAS DE API (Fase 2 — parceiros): mesmo fluxo MP de buy-credits
 // (PIX QR inline / Checkout Pro cartão+débito), mas external_reference `subId|calls|API` —
 // o webhook distingue pelo 3º segmento e credita CHAMADAS (kind api_pack), não créditos de IA.
-// Nota de simplicidade: cancela PENDINGs de pacote anteriores (api OU créditos) antes de
-// criar a ordem — evita retomar PIX de moeda diferente (limite aceito no volume de parceiros).
+// ANTI-DUPLICAÇÃO igual ao buy-credits: PIX ainda válido → devolve o MESMO QR (sem ordem
+// nova no MP); expirado → CANCELLED e ordem nova. Timer de 5 min. A ordem de API é marcada
+// em rawWebhook {kind:'api_pack'} — é o que separa o PIX de API do PIX de créditos na retomada.
+const API_PIX_TTL_MS = 5 * 60 * 1000;
+
 router.post('/buy-api-pack', requireAuth, async (req: AuthedRequest, res, next) => {
   try {
     if (!hasMercadoPago()) { res.status(503).json({ error: 'Pagamentos não configurados.' }); return; }
@@ -273,13 +276,42 @@ router.post('/buy-api-pack', requireAuth, async (req: AuthedRequest, res, next) 
     const method = String(req.body?.method ?? 'pix').toLowerCase();
     const user = await prisma.user.findUnique({ where: { id: req.userId! } });
     if (!user) { res.status(404).json({ error: 'Usuário não encontrado' }); return; }
+    const subscriptionColumns = await getSubscriptionColumnSupport();
+    // Filtro JSON por PATH (não objeto): casa só ordens marcadas como api_pack.
+    const apiTag = subscriptionColumns.hasRawWebhook ? { rawWebhook: { path: ['kind'], equals: 'api_pack' } as any } : {};
 
-    // Anti-moeda-cruzada: derruba PENDINGs de pacote (qualquer moeda) antes de nova ordem.
-    await prisma.subscription.updateMany({ where: { userId: user.id, status: 'PENDING', periodDays: 0 }, data: { status: 'CANCELLED' } });
+    if (method === 'pix' && subscriptionColumns.hasPixResume) {
+      // RETOMA: PIX de API ainda válido → mesmo QR, mesmo timer, ZERO ordem nova.
+      const existing = await prisma.subscription.findFirst({
+        where: { userId: user.id, status: 'PENDING', periodDays: 0, pixExpiresAt: { gt: new Date() }, ...apiTag },
+        orderBy: { createdAt: 'desc' },
+      });
+      if (existing?.pixQrCode && existing?.pixQrBase64 && existing?.pixExpiresAt) {
+        res.json({
+          paymentId: existing.mpPaymentId ?? '',
+          qrCode: existing.pixQrCode,
+          qrBase64: existing.pixQrBase64,
+          expiresAt: existing.pixExpiresAt.toISOString(),
+          calls: existing.pixCredits ?? pack.calls,
+          price: existing.amount,
+          resumed: true,
+        });
+        return;
+      }
+      // Expirou (ou é de outra moeda sem tag): cancela órfãos de API — sem acumular ordens.
+      await prisma.subscription.updateMany({
+        where: { userId: user.id, status: 'PENDING', periodDays: 0, pixExpiresAt: { lt: new Date() }, ...apiTag },
+        data: { status: 'CANCELLED' },
+      });
+      if (!subscriptionColumns.hasRawWebhook) {
+        // Sem coluna de tag (drift): fallback conservador — derruba PENDINGs de pacote.
+        await prisma.subscription.updateMany({ where: { userId: user.id, status: 'PENDING', periodDays: 0 }, data: { status: 'CANCELLED' } });
+      }
+    }
 
-    const sub = await createSubscriptionCompat({ userId: user.id, amount: pack.price, periodDays: 0, status: 'PENDING' });
+    const sub = await createSubscriptionCompat({ userId: user.id, amount: pack.price, periodDays: 0, status: 'PENDING', ...(subscriptionColumns.hasRawWebhook ? { rawWebhook: { kind: 'api_pack' } } as any : {}) });
     const externalReference = `${sub.id}|${pack.calls}|API`;
-    const expires = new Date(Date.now() + 10 * 60 * 1000);
+    const expires = new Date(Date.now() + API_PIX_TTL_MS); // 5 min (créditos usam 10)
     const base = (process.env.WEB_BASE_PATH ?? '').replace(/\/$/, '');
     const origin = process.env.WEB_ORIGIN || '';
 
@@ -336,13 +368,34 @@ router.post('/buy-api-pack', requireAuth, async (req: AuthedRequest, res, next) 
     const td = pay?.point_of_interaction?.transaction_data;
     const rawB64 = td?.qr_code_base64 ?? '';
     const qrImg = rawB64 ? (rawB64.startsWith('data:') ? rawB64 : `data:image/png;base64,${rawB64}`) : '';
-    const subscriptionColumns = await getSubscriptionColumnSupport();
     if (subscriptionColumns.hasPixResume) {
       await updateSubscriptionCompat(sub.id, { mpPaymentId: String(pay.id), pixQrCode: td?.qr_code ?? '', pixQrBase64: qrImg, pixExpiresAt: expires, pixCredits: pack.calls });
     } else {
       await updateSubscriptionCompat(sub.id, { mpPaymentId: String(pay.id) });
     }
     res.json({ paymentId: String(pay.id), qrCode: td?.qr_code ?? '', qrBase64: qrImg, expiresAt: expires.toISOString(), calls: pack.calls, price: pack.price });
+  } catch (e) { next(e); }
+});
+
+// PIX DE API PENDENTE (retomada no painel #/api): existe PIX de pacote válido → devolve QR
+// + timer restante. Mesmo contrato do pending-payment de créditos, filtrado pela tag api_pack.
+router.get('/pending-api-pack', requireAuth, async (req: AuthedRequest, res, next) => {
+  try {
+    const subscriptionColumns = await getSubscriptionColumnSupport();
+    if (!subscriptionColumns.hasPixResume || !subscriptionColumns.hasRawWebhook) { res.json({ hasPending: false }); return; }
+    const pending = await prisma.subscription.findFirst({
+      where: { userId: req.userId!, status: 'PENDING', periodDays: 0, pixExpiresAt: { gt: new Date() }, rawWebhook: { path: ['kind'], equals: 'api_pack' } },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (!pending?.pixQrCode || !pending.pixQrBase64) { res.json({ hasPending: false }); return; }
+    res.json({
+      hasPending: true,
+      qrCode: pending.pixQrCode,
+      qrBase64: pending.pixQrBase64,
+      expiresAt: pending.pixExpiresAt!.toISOString(),
+      calls: pending.pixCredits ?? 0,
+      price: pending.amount,
+    });
   } catch (e) { next(e); }
 });
 

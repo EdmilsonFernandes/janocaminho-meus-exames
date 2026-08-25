@@ -34,6 +34,8 @@ export const ApiPanelPage = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any>(null); // GET /keys → { keys, access, balance, packs }
+  const [authed, setAuthed] = useState(true); // 401 → mostra CTA de login (funil da landing)
+  const [pendingPix, setPendingPix] = useState<any>(null); // PIX de API ainda válido (retomada)
   const [company, setCompany] = useState('');
   const [useCase, setUseCase] = useState('');
   const [sending, setSending] = useState(false);
@@ -49,7 +51,11 @@ export const ApiPanelPage = () => {
   const load = async () => {
     try {
       const r = await fetch(`${API_URL}/public/v1/keys`, { headers: H() });
+      if (r.status === 401) { setAuthed(false); setLoading(false); return; }
       if (r.ok) setData(await r.json());
+      // PIX de pacote ainda válido → banner de retomada (mesmo QR, sem ordem nova).
+      const pp = await fetch(`${API_URL}/billing/pending-api-pack`, { headers: H() });
+      if (pp.ok) { const d = await pp.json(); if (d.hasPending) setPendingPix(d); }
     } catch { /* offline */ }
     setLoading(false);
   };
@@ -116,6 +122,34 @@ export const ApiPanelPage = () => {
 
   if (loading) return <PageContainer><Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}><CircularProgress /></Box></PageContainer>;
 
+  // Funil da landing sem login: convite a entrar/criar conta e VOLTA pro painel (dxAfterLogin).
+  if (!authed) {
+    const go = (path: string) => { try { localStorage.setItem('dxAfterLogin', '/api'); } catch { /* */ } navigate(path); };
+    return (
+      <PageContainer width={560}>
+        <Title title="API Dr. Exame" />
+        <Card variant="outlined" sx={{ borderRadius: '14px' }}>
+          <CardContent sx={{ textAlign: 'center', py: 5, px: 3 }}>
+            <Box sx={{ width: 76, height: 76, mx: 'auto', mb: 2, borderRadius: '50%', bgcolor: 'rgba(32,178,170,.12)', display: 'grid', placeItems: 'center' }}>
+              <ApiIcon sx={{ fontSize: 36, color: '#178f89' }} />
+            </Box>
+            <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 20 }}>API do Dr. Exame</Typography>
+            <Typography color="text.secondary" sx={{ fontSize: 14, mt: 0.75, mb: 2.5, maxWidth: 380, mx: 'auto' }}>
+              Preço real de farmácia e interações D/X no seu produto. Crie uma conta pra solicitar acesso — você volta direto pra cá.
+            </Typography>
+            <Stack direction="row" spacing={1.5} justifyContent="center" useFlexGap flexWrap="wrap">
+              <Button variant="contained" onClick={() => go('/registrar')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 3.5 }}>Criar conta e solicitar</Button>
+              <Button variant="outlined" onClick={() => go('/entrar')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, px: 3.5, borderColor: '#d8f4f2', color: '#178f89' }}>Já tenho conta</Button>
+            </Stack>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2.5 }}>
+              Documentação pública: <Box component="a" href="/api/docs" target="_blank" rel="noopener noreferrer" sx={{ color: '#178f89', fontWeight: 700 }}>/api/docs</Box>
+            </Typography>
+          </CardContent>
+        </Card>
+      </PageContainer>
+    );
+  }
+
   const access = data?.access?.status ?? 'none';
   const approved = access === 'approved';
   const balance = data?.balance?.calls ?? 0;
@@ -151,6 +185,21 @@ export const ApiPanelPage = () => {
           )}
         </Stack>
       </Box>
+
+      {/* PIX DE PACOTE PENDENTE — retoma o MESMO QR (sem ordem nova), igual ao fluxo de créditos */}
+      {approved && pendingPix && (
+        <Alert severity="info" icon={<BoltIcon sx={{ fontSize: 20 }} />} sx={{ mb: 2, borderRadius: '12px', alignItems: 'center' }}>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ sm: 'center' }} justifyContent="space-between" sx={{ width: '100%' }}>
+            <Typography sx={{ fontSize: 14 }}>
+              PIX de <strong>{Number(pendingPix.calls ?? 0).toLocaleString('pt-BR')} chamadas</strong> aguardando pagamento
+              {' '}({Math.max(0, Math.ceil((new Date(pendingPix.expiresAt).getTime() - Date.now()) / 60000))} min restantes)
+            </Typography>
+            <Button size="small" variant="contained" onClick={() => setPix(pendingPix)} sx={{ textTransform: 'none', fontWeight: 700, flexShrink: 0 }}>
+              Retomar pagamento
+            </Button>
+          </Stack>
+        </Alert>
+      )}
 
       {/* SEM APROVAÇÃO — showcase + formulário de solicitação */}
       {!approved && (

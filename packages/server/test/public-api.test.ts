@@ -181,9 +181,22 @@ describe('API pública v1 — Fase 1 + 2', () => {
     // pacote teste creditado (25 default)
     const grant = await prisma.creditTransaction.findFirst({ where: { userId: requester.user.id, kind: 'api_grant' } });
     expect(grant?.delta).toBe(25);
+    // quem pediu fica sabendo: notificação in-app criada (push do sistema é best-effort)
+    const notif = await prisma.notification.findFirst({ where: { userId: requester.user.id, type: 'api_access' } });
+    expect(notif?.title).toContain('aprovado');
     // agora cria a chave
     const { key } = await createKey(requester.token);
     expect(key).toMatch(/^dxk_live_/);
+  });
+
+  it('solicitar acesso notifica o SUPORTE (admins recebem notificação in-app)', async () => {
+    const admin = await createUser({});
+    await prisma.user.update({ where: { id: admin.user.id }, data: { role: 'ADMIN' } });
+    const dev = await createUser({});
+    const r = await api().post('/api/public/v1/access-request').set(authHeader(dev.token)).send({ company: 'Notifica Ltda', useCase: 'Vou integrar preço no meu portal de saúde' });
+    expect(r.status).toBe(201);
+    const notif = await prisma.notification.findFirst({ where: { userId: admin.user.id, type: 'api_access' } });
+    expect(notif?.title).toContain('Notifica Ltda');
   });
 
   it('saldo pré-pago: chamada debita 1; saldo zero → 402 com pacotes', async () => {
@@ -215,6 +228,17 @@ describe('API pública v1 — Fase 1 + 2', () => {
     const buy = await api().post('/api/billing/buy-api-pack').set(authHeader(token)).send({ pack: 'api1k', method: 'pix' });
     expect(buy.status).toBe(200);
     expect(buy.body.calls).toBe(1000);
+    // RETOMADA (anti-dupla-ordem): 2ª compra PIX antes de expirar devolve o MESMO QR
+    const buy2 = await api().post('/api/billing/buy-api-pack').set(authHeader(token)).send({ pack: 'api1k', method: 'pix' });
+    expect(buy2.status).toBe(200);
+    expect(buy2.body.resumed).toBe(true);
+    expect(buy2.body.qrCode).toBe('pix-qr');
+    const subs = await prisma.subscription.count({ where: { userId: user.id, periodDays: 0 } });
+    expect(subs).toBe(1); // não criou ordem nova
+    // pending-api-pack expõe a retomada pro painel
+    const pend = await api().get('/api/billing/pending-api-pack').set(authHeader(token));
+    expect(pend.body.hasPending).toBe(true);
+    expect(pend.body.calls).toBe(1000);
     // webhook de aprovação: o MP devolve o payment com o external_reference da ordem
     const sub = await prisma.subscription.findFirst({ where: { userId: user.id }, orderBy: { createdAt: 'desc' } });
     fetchMock().mockResolvedValueOnce(mpResponse({ id: 9001, status: 'approved', external_reference: `${sub!.id}|1000|API` }));
@@ -225,5 +249,8 @@ describe('API pública v1 — Fase 1 + 2', () => {
     expect(pack?.delta).toBe(1000);
     const u = await prisma.user.findUnique({ where: { id: user.id }, select: { credits: true } });
     expect(u?.credits).toBe(creditsBefore);
+    // aprovado → não há mais pendente
+    const pend2 = await api().get('/api/billing/pending-api-pack').set(authHeader(token));
+    expect(pend2.body.hasPending).toBe(false);
   });
 });

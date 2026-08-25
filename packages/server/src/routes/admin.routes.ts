@@ -863,6 +863,17 @@ router.post('/api-access/:id/approve', async (req: AuthedRequest, res, next) => 
       data: { status: 'approved', reviewedAt: new Date(), note: String(req.body?.note ?? '').trim() || `Aprovado — pacote teste de ${free} chamadas liberado.` },
     });
     if (free > 0) await logCredit(row.userId, free, 'api_grant', 'Pacote teste da API (aprovação admin)', row.id);
+    // Quem pediu fica sabendo NA HORA: push (+ notificação in-app) + e-mail.
+    const requester = await prisma.user.findUnique({ where: { id: row.userId }, select: { name: true, email: true } });
+    if (requester) {
+      await sendPushToUser(row.userId, '🔌 Acesso à API aprovado!', `Pacote de teste com ${free} chamadas liberado — crie sua chave no menu "API Dr. Exame".`, { type: 'api_access' }).catch(() => {});
+      void sendEmail({
+        to: requester.email,
+        subject: '🔌 Seu acesso à API do Dr. Exame foi aprovado',
+        html: `<p>Olá, ${requester.name ?? ''}!</p><p>Seu acesso à <b>API do Dr. Exame</b> foi aprovado — e você já tem <b>${free} chamadas de teste</b> disponíveis.</p><p><b>Próximo passo:</b> no app, menu <b>API Dr. Exame</b> → "+ Nova chave". A documentação completa está em <a href="https://drexame.janocaminho.com.br/api/docs">/api/docs</a>.</p>`,
+        text: `Seu acesso à API foi aprovado — ${free} chamadas de teste liberadas. Crie sua chave no menu "API Dr. Exame" do app. Docs: https://drexame.janocaminho.com.br/api/docs`,
+      }).catch(() => {});
+    }
     res.json(updated);
   } catch (e) { next(e); }
 });
@@ -871,10 +882,22 @@ router.post('/api-access/:id/reject', async (req: AuthedRequest, res, next) => {
   try {
     const row = await prisma.apiAccessRequest.findUnique({ where: { id: String(req.params.id) } });
     if (!row || row.status !== 'pending') { res.status(404).json({ error: 'Solicitação não encontrada/já avaliada.' }); return; }
+    const note = String(req.body?.note ?? '').trim() || 'Não se encaixa no programa no momento.';
     const updated = await prisma.apiAccessRequest.update({
       where: { id: row.id },
-      data: { status: 'rejected', reviewedAt: new Date(), note: String(req.body?.note ?? '').trim() || 'Não se encaixa no programa no momento.' },
+      data: { status: 'rejected', reviewedAt: new Date(), note },
     });
+    // Resposta honesta também na rejeição — ninguém fica no vácuo.
+    const requester = await prisma.user.findUnique({ where: { id: row.userId }, select: { name: true, email: true } });
+    if (requester) {
+      await sendPushToUser(row.userId, 'Solicitação de API avaliada', `Não foi aprovada neste momento. ${note}`, { type: 'api_access' }).catch(() => {});
+      void sendEmail({
+        to: requester.email,
+        subject: 'Sua solicitação de acesso à API',
+        html: `<p>Olá, ${requester.name ?? ''}.</p><p>Sua solicitação de acesso à API não foi aprovada neste momento.</p><p><b>Motivo:</b> ${note}</p><p>Se seu caso mudou, você pode solicitar novamente pelo app.</p>`,
+        text: `Sua solicitação de API não foi aprovada. Motivo: ${note}`,
+      }).catch(() => {});
+    }
     res.json(updated);
   } catch (e) { next(e); }
 });

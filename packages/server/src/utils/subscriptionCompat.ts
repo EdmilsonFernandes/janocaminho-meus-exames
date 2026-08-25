@@ -68,6 +68,9 @@ export async function createSubscriptionCompat(data: {
   amount: number;
   periodDays: number;
   status?: string;
+  /** Tag JSON em rawWebhook (ex.: {kind:'api_pack'}) — só entra quando a coluna existe.
+   *  Usada pelo buy-api-pack pra separar PIX de CHAMADAS de PIX de CRÉDITOS na retomada. */
+  rawWebhook?: any;
 }): Promise<SubscriptionRecord> {
   const support = await getSubscriptionColumnSupport();
   if (support.hasPixResume && support.hasRawWebhook) {
@@ -77,6 +80,7 @@ export async function createSubscriptionCompat(data: {
         amount: data.amount,
         periodDays: data.periodDays,
         status: data.status ?? 'PENDING',
+        ...(data.rawWebhook != null ? { rawWebhook: data.rawWebhook } : {}),
       },
       select: {
         id: true,

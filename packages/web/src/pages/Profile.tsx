@@ -8,6 +8,7 @@ import DownloadIcon from '@mui/icons-material/Download';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import LockResetIcon from '@mui/icons-material/LockReset';
 import ShieldIcon from '@mui/icons-material/Shield';
+import ApiIcon from '@mui/icons-material/Api';
 import ScaleIcon from '@mui/icons-material/Scale';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { API_URL, token, apiHeaders } from '../config';
@@ -240,6 +241,8 @@ export const ProfilePage = () => {
         <CardContent sx={{ py: 1 }}>
           <AccountLinkRow icon={<LockResetIcon />} title="Segurança" desc="Trocar senha, 2FA e biometria" onClick={() => navigate('/seguranca')} />
           <AccountLinkRow icon={<ShieldIcon />} title="Privacidade e dados" desc="Baixar seus dados, importar, termos (LGPD) e excluir conta" onClick={() => navigate('/privacidade')} />
+          {/* Discreto de propósito (dor do dono: dev NÃO no menu principal do leigo). */}
+          <AccountLinkRow icon={<ApiIcon />} title="API para desenvolvedores" desc="Integre preço de remédios e interações no seu produto" onClick={() => navigate('/api')} />
         </CardContent>
       </Card>
 

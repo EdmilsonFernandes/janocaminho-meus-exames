@@ -4,6 +4,24 @@ import { requireAuth, AuthedRequest } from '../middleware/auth';
 import { requireApiKey, generateApiKey, hashKey, apiCallBalance, ApiKeyRequest } from '../middleware/apiKey';
 import { logCredit } from '../utils/credits';
 import { getSettings } from '../utils/settings';
+import { sendPushToUser } from '../utils/push';
+import { sendEmail } from '../utils/mailer';
+
+/** Aviso ao dono/suporte: nova solicitação de acesso à API (e-mail + push pros admins). */
+async function notifyAdminsNewRequest(r: { company: string; useCase: string }, requester: { name?: string; email: string }) {
+  const subject = `🔌 Nova solicitação de API — ${r.company}`;
+  const text = `${requester.name ?? 'Usuário'} (${requester.email}) pediu acesso à API.\n\nEmpresa: ${r.company}\nCaso de uso: ${r.useCase}\n\nAprove em: /admin?tab=api`;
+  void sendEmail({
+    to: 'contato@janocaminho.com.br',
+    subject,
+    html: `<p><b>${requester.name ?? 'Usuário'}</b> (${requester.email}) pediu acesso à API.</p><p><b>Empresa:</b> ${r.company}<br/><b>Caso de uso:</b> ${r.useCase}</p><p>Aprove em <a href="https://drexame.janocaminho.com.br/admin?tab=api">Admin → API pública</a>.</p>`,
+    text,
+  }).catch(() => {});
+  const admins = await prisma.user.findMany({ where: { role: 'ADMIN' }, select: { id: true } });
+  for (const a of admins) {
+    void sendPushToUser(a.id, subject, `${requester.email} · ${r.company} — avalie no admin`, { type: 'api_access' }).catch(() => {});
+  }
+}
 
 /**
  * API PÚBLICA v1 (Fase 1 — monetização por API; ver /api/docs).
@@ -148,6 +166,9 @@ router.post('/access-request', requireAuth, async (req: AuthedRequest, res, next
     if (existing?.status === 'pending') { res.status(409).json({ error: 'Solicitação em análise — respondemos no e-mail da conta.' }); return; }
     const st = getSettings().apiAccess ?? { freeMonthly: 25, reviewRequired: 1 };
     const row = await prisma.apiAccessRequest.create({ data: { userId: req.userId!, company, useCase } });
+    const requester = await prisma.user.findUnique({ where: { id: req.userId! }, select: { name: true, email: true } });
+    // AWAIT (não void): a notificação do admin precisa existir na resposta (teste flakeava).
+    if (requester) await notifyAdminsNewRequest({ company, useCase }, requester);
     // Self-serve (admin desligou a revisão): aprova na hora e concede o teste grátis.
     if (Number(st.reviewRequired) === 0) {
       await prisma.apiAccessRequest.update({ where: { id: row.id }, data: { status: 'approved', reviewedAt: new Date(), note: 'Aprovação automática.' } });

@@ -1112,7 +1112,7 @@ export const LandingPage = () => {
               </Box>
               <Stack direction="row" spacing={1.5} sx={{ mt: 2.5 }} useFlexGap flexWrap="wrap">
                 <Button component="a" href="/api/docs" target="_blank" rel="noopener noreferrer" sx={{ borderRadius: '999px', px: 3.5, py: 1.2, textTransform: 'none', fontWeight: 800, bgcolor: '#fff', color: TEAL_DARK, '&:hover': { bgcolor: '#f0fafa' }, boxShadow: '0 10px 24px rgba(0,0,0,.18)' }}>Ver documentação →</Button>
-                <Button component="a" href="/registrar" sx={{ borderRadius: '999px', px: 3.5, py: 1.2, textTransform: 'none', fontWeight: 800, color: '#fff', borderColor: 'rgba(255,255,255,.45)' }} variant="outlined">Solicitar acesso</Button>
+                <Button onClick={() => navigate('/api')} sx={{ borderRadius: '999px', px: 3.5, py: 1.2, textTransform: 'none', fontWeight: 800, color: '#fff', borderColor: 'rgba(255,255,255,.45)' }} variant="outlined">Solicitar acesso</Button>
               </Stack>
             </Box>
           </Box>

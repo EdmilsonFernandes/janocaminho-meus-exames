@@ -106,6 +106,17 @@ export const LoginPage = ({ fixedRole }: { fixedRole?: 'paciente' | 'medico' }) 
   const notify = useNotify();
   const translate = useTranslate();
   const navigate = useNavigate();
+  // Deep-link pós-login: fluxos públicos (ex.: painel da API sem login) guardam o destino em
+  // dxAfterLogin — o login devolve o usuário PRA ONDE ele estava indo, não pro dashboard.
+  const afterLogin = () => {
+    let dest = '/';
+    try {
+      const d = localStorage.getItem('dxAfterLogin');
+      if (d) localStorage.removeItem('dxAfterLogin');
+      if (d && d.startsWith('/') && !d.startsWith('//')) dest = d;
+    } catch { /* */ }
+    navigate(dest, { replace: true });
+  };
   const [email, setEmail] = useState('');
   const [pwd, setPwd] = useState('');
   const [code, setCode] = useState('');
@@ -146,7 +157,7 @@ export const LoginPage = ({ fixedRole }: { fixedRole?: 'paciente' | 'medico' }) 
             if (d.patientId) { localStorage.setItem('patientId', d.patientId); localStorage.setItem('selPatientId', d.patientId); }
             if (d.user) localStorage.setItem('user', JSON.stringify(d.user));
             window.dispatchEvent(new Event('selPatientChanged'));
-            navigate('/', { replace: true });
+            afterLogin();
           } else {
             // 401 = token do Keystore expirou. Limpa pra não reusar; usuário re-loga por senha.
             localStorage.removeItem('token');
@@ -203,7 +214,7 @@ export const LoginPage = ({ fixedRole }: { fixedRole?: 'paciente' | 'medico' }) 
     if (d.patientId) { localStorage.setItem('patientId', d.patientId); localStorage.setItem('selPatientId', d.patientId); }
     localStorage.setItem('user', JSON.stringify(d.user));
     window.dispatchEvent(new Event('selPatientChanged'));
-    navigate('/', { replace: true });
+    afterLogin();
   };
 
   const sendOtp = async (e?: React.FormEvent) => {
@@ -234,7 +245,7 @@ export const LoginPage = ({ fixedRole }: { fixedRole?: 'paciente' | 'medico' }) 
       if (d.patientId) localStorage.setItem('patientId', d.patientId);
       localStorage.setItem('user', JSON.stringify(d.user));
       notify(translate('auth.welcome'), { type: 'success' });
-      navigate('/', { replace: true });
+      afterLogin();
     } catch (err: any) { notify(err.message, { type: 'error' }); }
     finally { setLoading(false); }
   };
