@@ -61,12 +61,14 @@ export const ApiPanelPage = () => {
   };
   useEffect(() => { void load(); /* eslint-disable-next-line */ }, []);
 
-  // countdown do PIX (ticka enquanto houver PIX aberto OU pendente no card — igual ao Plans)
+  // countdown do PIX (ticka enquanto houver PIX aberto OU pendente no card — igual ao Plans).
+  // Expirou (dialog OU card) → recarrega o estado: cards voltam a "comprar" SEM refresh manual.
   const [, forceTick] = useState(0);
   useEffect(() => {
     if (!pix && !pendingPix) return;
     const iv = setInterval(() => {
       if (pix && new Date(pix.expiresAt).getTime() - Date.now() <= 0) { setPix(null); void load(); return; }
+      if (!pix && pendingPix && new Date(pendingPix.expiresAt).getTime() - Date.now() <= 0) { void load(); return; }
       forceTick((t) => t + 1);
     }, 1000);
     return () => clearInterval(iv);
@@ -76,6 +78,14 @@ export const ApiPanelPage = () => {
     const secs = Math.max(0, Math.floor((new Date(expiresAt).getTime() - Date.now()) / 1000));
     return `${String(Math.floor(secs / 60)).padStart(2, '0')}:${String(secs % 60).padStart(2, '0')}`;
   };
+
+  // Volta do app do banco (pagou o PIX lá fora) → estado reflete na hora, sem F5.
+  useEffect(() => {
+    const onVis = () => { if (document.visibilityState === 'visible') void load(); };
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+    /* eslint-disable-next-line */
+  }, []);
 
   const requestAccess = async () => {
     setSending(true);
@@ -295,9 +305,9 @@ export const ApiPanelPage = () => {
                     ...(p.popular ? { background: 'linear-gradient(135deg,rgba(32,178,170,.10),rgba(212,165,116,.08))' } : {}),
                   }}>
                     {isPending
-                      ? <Box sx={{ position: 'absolute', top: -11, left: '50%', transform: 'translateX(-50%)' }}><Chip size="small" label="⏳ Aguardando pagamento" sx={{ fontWeight: 800, fontSize: 9.5, height: 20, bgcolor: 'rgba(217,119,6,.15)', color: '#92400e' }} /></Box>
-                      : p.popular && <Chip size="small" label="MAIS VENDIDO" sx={{ position: 'absolute', top: -11, left: '50%', transform: 'translateX(-50%)', bgcolor: '#20b2aa', color: '#fff', fontWeight: 800, fontSize: 9.5, height: 20 }} />}
-                    <Typography sx={{ fontSize: 11.5, fontWeight: 800, letterSpacing: 1, color: '#b88a54', mt: isPending ? 1.5 : 0 }}>{String(p.label).toUpperCase()}</Typography>
+                      ? <Chip size="small" label="⏳ Aguardando pagamento" sx={{ fontWeight: 800, fontSize: 10, height: 22, bgcolor: 'rgba(217,119,6,.15)', color: '#92400e' }} />
+                      : p.popular ? <Chip size="small" label="MAIS VENDIDO" sx={{ bgcolor: '#20b2aa', color: '#fff', fontWeight: 800, fontSize: 10, height: 22 }} /> : <Box sx={{ height: 22 }} />}
+                    <Typography sx={{ fontSize: 11.5, fontWeight: 800, letterSpacing: 1, color: '#b88a54', mt: 1 }}>{String(p.label).toUpperCase()}</Typography>
                     <Typography sx={{ fontWeight: 800, fontSize: 24, mt: 0.5 }}>{Number(p.calls).toLocaleString('pt-BR')}</Typography>
                     <Typography sx={{ fontSize: 11.5, color: 'text.secondary', mb: 1.5 }}>chamadas · R$ {Number(p.price).toFixed(2).replace('.', ',')}</Typography>
                     {isPending ? (
@@ -361,8 +371,8 @@ export const ApiPanelPage = () => {
         </DialogActions>
       </Dialog>
 
-      {/* DIALOG: PIX do pacote (QR + copia-cola + countdown mm:ss + retomada) */}
-      <Dialog open={!!pix} onClose={() => setPix(null)} fullWidth maxWidth="xs">
+      {/* DIALOG: PIX do pacote — FECHAR também atualiza o card (aguardando/call back) sem F5. */}
+      <Dialog open={!!pix} onClose={() => { setPix(null); void load(); }} fullWidth maxWidth="xs">
         <DialogTitle sx={{ fontWeight: 800, pb: 0.5, textAlign: 'center' }}>
           PIX — {pix?.calls?.toLocaleString('pt-BR')} chamadas
           {pix?.resumed && <Chip size="small" label="mesmo código de antes" sx={{ ml: 1, height: 20, fontSize: 10, fontWeight: 700, bgcolor: 'rgba(217,119,6,.15)', color: '#92400e' }} />}
