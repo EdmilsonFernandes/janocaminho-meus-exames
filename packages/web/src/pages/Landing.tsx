@@ -126,7 +126,7 @@ const planData = (credits: number, info: ReturnType<typeof usePlanInfo> = null) 
   const perks = info?.premiumPerks;
   const minPack = info?.packs?.length ? Math.min(...info.packs.map((x) => x.price)) : 9.9;
   return [
-    { name: 'Grátis', price: 'R$ 0', period: '', highlight: false, cta: 'Começar grátis', features: [
+    { name: 'Grátis', price: 'R$ 0', period: '', highlight: false, cta: 'Começar grátis →', features: [
       { icon: 'gift', text: `${credits} créditos de presente (≈ ${Math.floor(credits / 10)} resumos)` },
       { icon: 'check', text: 'Tudo funciona: envios, valores, tendências, família' },
       { icon: 'upload', text: 'Envie exames (PDF/foto)' },
@@ -314,7 +314,7 @@ export const LandingPage = () => {
                 <Box component="span" sx={{ display: 'block' }}>Entenda seus exames</Box>como <Box component="span" sx={{ ...SERIF_I, color: TEAL, fontSize: '1.06em' }}>nunca antes.</Box>
               </Typography>
               <Typography sx={{ fontSize: { xs: 16.5, md: 19 }, color: 'text.secondary', mb: 3, lineHeight: 1.6, maxWidth: 500 }}>
-                Envie o exame. O <b style={{ color: 'text.primary' }}>Dr. Exame</b> lê com IA, explica em português simples, mostra sua <b style={{ color: 'text.primary' }}>leitura de risco</b> e monta um <b style={{ color: 'text.primary' }}>plano de ação</b> pra levar ao médico.
+                Envie o exame. O <b style={{ color: 'text.primary' }}>Dr. Exame</b> lê com IA, explica em português simples, mostra sua <b style={{ color: 'text.primary' }}>leitura de risco</b> e monta um <b style={{ color: 'text.primary' }}>plano de ação</b> pra levar ao médico — <b style={{ color: 'text.primary' }}>em cerca de 30 segundos</b>.
               </Typography>
               <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', mb: 3, rowGap: 1 }}>
                 <Chip icon={<LockIcon sx={{ fontSize: 17 }} />} label="A IA não inventa números — vêm do seu laudo" sx={{ bgcolor: 'rgba(5,150,105,.10)', color: '#047857', fontWeight: 700, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: GREEN } }} />
@@ -324,6 +324,10 @@ export const LandingPage = () => {
                   Começar grátis →
                 </Button>
               </Stack>
+              {/* QW CRO: risk-reversal no ponto de decisão (trust ficava 2 seções abaixo) */}
+              <Typography sx={{ fontSize: 13, color: 'text.secondary', fontWeight: 600 }}>
+                Sem cartão pra começar · cancele quando quiser · dados protegidos (LGPD)
+              </Typography>
               <Button variant="text" size="small" onClick={() => navigate('/entrar')} sx={{ textTransform: 'none', fontWeight: 700, color: TEAL_DARK, fontSize: 13, minWidth: 0, px: 0, justifyContent: { xs: 'center', sm: 'flex-start' }, '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' } }}>
                 Já tem conta? Entrar
               </Button>
@@ -883,7 +887,7 @@ export const LandingPage = () => {
                     <Typography sx={{ fontSize: 15, color: 'text.secondary', lineHeight: 1.5, pt: 0.4 }}>{t}</Typography>
                   </Stack>
                 ))}
-                <Button variant="contained" color="primary" onClick={() => navigate('/registrar')} sx={{ mt: 1.5, borderRadius: '999px', px: 4, py: 1.3, textTransform: 'none', fontWeight: 800 }}>Começar grátis</Button>
+                <Button variant="contained" color="primary" onClick={() => navigate('/registrar')} sx={{ mt: 1.5, borderRadius: '999px', px: 4, py: 1.3, textTransform: 'none', fontWeight: 800 }}>Começar grátis →</Button>
               </Box>
               {/* mockup compartilhar */}
               <Box sx={{ display: 'flex', justifyContent: 'center' }}>
@@ -942,7 +946,7 @@ export const LandingPage = () => {
               <Box sx={{ flex: 1, borderRadius: '12px', p: 3, background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff' }}>
                 <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}><MedicalServicesIcon /><Typography sx={{ fontWeight: 800, fontSize: 18 }}>Pra você, paciente</Typography></Stack>
                 <Typography sx={{ fontSize: 15, lineHeight: 1.55, opacity: 0.92, mb: 2 }}>Seu médico ainda não te chamou? Crie sua conta e indique-o pelo CRM em segundos.</Typography>
-                <Button variant="contained" onClick={() => navigate('/registrar')} sx={{ bgcolor: '#fff', color: TEAL_DARK, borderRadius: '999px', textTransform: 'none', fontWeight: 800, boxShadow: 'none', '&:hover': { bgcolor: '#eefaf9' } }}>Criar conta grátis</Button>
+                <Button variant="contained" onClick={() => navigate('/registrar')} sx={{ bgcolor: '#fff', color: TEAL_DARK, borderRadius: '999px', textTransform: 'none', fontWeight: 800, boxShadow: 'none', '&:hover': { bgcolor: '#eefaf9' } }}>Começar grátis →</Button>
               </Box>
               <Box sx={{ flex: 1, borderRadius: '12px', p: 3, bgcolor: 'background.paper', border: '2px solid ' + TEAL }}>
                 <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}><AssignmentIndIcon sx={{ color: TEAL_DARK }} /><Typography sx={{ fontWeight: 800, fontSize: 18, color: INK }}>Pra você, médico</Typography></Stack>
@@ -1192,6 +1196,10 @@ export const LandingPage = () => {
           <Typography align="center" sx={{ color: 'text.secondary', mt: 4, fontSize: 15, maxWidth: 560, mx: 'auto', lineHeight: 1.6 }}>
             <strong>Não sabe qual escolher?</strong> Faz exame todo mês? O plano se paga sozinho (e vem com relatório ilimitado e histórico completo). Só tem exame de vez em quando? Compre créditos avulsos — sem mensalidade, e eles nunca expiram.
           </Typography>
+          {/* QW CRO: anti-surpresa (padrão verificado dr.consulta) — promessa de cancelamento sem custo */}
+          <Typography align="center" sx={{ color: 'text.secondary', mt: 1.5, fontSize: 14, fontWeight: 600 }}>
+            Sem surpresa: nenhuma taxa escondida — cancele quando quiser.
+          </Typography>
         </Container>
       </Box>
       </ScrollReveal>
@@ -1232,7 +1240,7 @@ export const LandingPage = () => {
             <Box sx={{ position: 'relative' }}>
               <Typography variant="h2" sx={{ fontSize: { xs: '1.7rem', md: '2.3rem' }, fontWeight: 800, mb: 2, letterSpacing: '-0.02em' }}>Pronto pra entender <Box component="span" sx={{ ...SERIF_I }}>sua saúde?</Box></Typography>
               <Typography sx={{ color: 'rgba(255,255,255,.9)', mb: 4, fontSize: 17, maxWidth: 480, mx: 'auto' }}>Crie sua conta grátis e envie seu primeiro exame em menos de 1 minuto.</Typography>
-              <Button size="large" onClick={() => navigate('/registrar')} sx={{ bgcolor: '#fff', color: TEAL_DARK, fontWeight: 800, fontSize: 17, borderRadius: '999px', px: 5, py: 1.5, textTransform: 'none', '&:hover': { bgcolor: '#f0fafa', transform: 'translateY(-2px)' }, transition: 'all .2s' }}>Começar agora →</Button>
+              <Button size="large" onClick={() => navigate('/registrar')} sx={{ bgcolor: '#fff', color: TEAL_DARK, fontWeight: 800, fontSize: 17, borderRadius: '999px', px: 5, py: 1.5, textTransform: 'none', '&:hover': { bgcolor: '#f0fafa', transform: 'translateY(-2px)' }, transition: 'all .2s' }}>Começar grátis →</Button>
               {/* App na Play Store — QR OFICIAL + badge Google Play no ponto de maior intenção.
                   Substitui o QR genérico antigo: agora aponta pro app APROVADO na loja (confiança + conversão). */}
               <Stack component="a" href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer"
@@ -1246,7 +1254,9 @@ export const LandingPage = () => {
                   sx={{ width: 116, height: 116, borderRadius: '12px', bgcolor: '#fff', display: 'block', flexShrink: 0 }} />
                 <Box sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
                   <Typography sx={{ fontWeight: 800, fontSize: 16, lineHeight: 1.15, color: 'text.primary' }}>Dr. Exame <Box component="span" sx={SERIF_I}>no seu celular</Box> 📱</Typography>
-                  <Typography sx={{ fontSize: 13, color: 'text.secondary', mb: 1 }}>Aponte a câmera do celular ou toque pra baixar.</Typography>
+                  <Typography sx={{ fontSize: 13, color: 'text.secondary', mb: 0.75 }}>Aponte a câmera do celular ou toque pra baixar.</Typography>
+                  {/* Prova social real: nota atual do app na Play (5,0) */}
+                  <Typography sx={{ fontSize: 13, color: 'text.secondary', mb: 1 }}><Box component="span" sx={{ color: '#f5a623', letterSpacing: 1.5 }}>★★★★★</Box> <b style={{ color: 'text.primary' }}>5,0</b> no Google Play</Typography>
                   <Box component="img" src={`${import.meta.env.BASE_URL}playstore-badge.png`} alt="Disponível no Google Play"
                     sx={{ height: 46, width: 'auto', display: 'block', mx: { xs: 'auto', sm: 0 } }} />
                 </Box>

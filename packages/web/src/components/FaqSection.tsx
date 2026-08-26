@@ -82,7 +82,7 @@ export const FaqSection = () => {
               background: 'none', border: 'none', cursor: 'pointer',
               color: TEAL_DARK, fontWeight: 800, fontSize: 16, textTransform: 'none',
               '&:hover': { textDecoration: 'underline' },
-            }}>Criar conta grátis →</Box>
+            }}>Começar grátis →</Box>
           </Box>
         </Reveal>
       </Container>
