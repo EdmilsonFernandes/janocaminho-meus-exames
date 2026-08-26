@@ -29,6 +29,7 @@ import labsRoutes from './routes/labs.routes';
 import measurementRoutes from './routes/measurement.routes';
 import medicationRoutes from './routes/medication.routes';
 import publicApiRoutes from './routes/public-api.routes';
+import decifreRoutes from './routes/decifre.routes';
 import swaggerUi from 'swagger-ui-express';
 import { openapiSpec } from './docs/openapi';
 import pharmacyRoutes from './routes/pharmacy.routes';
@@ -128,6 +129,9 @@ app.get('/api/build-info', (_req, res) => res.json(APP_BUILD_INFO));
 // URL LIMPA do portal de docs: quem digita/compartilha sem a # cai aqui — manda pro hash
 // do SPA (o portal vive em /#/api-docs). O console swagger segue em /api/docs.
 app.get('/api-docs', (_req, res) => res.redirect('/#/api-docs'));
+// "Decifre seu exame" — topo de funil PÚBLICO da landing (IA só extrai valores; rate-limit
+// 3/dia/IP; cache por hash; nada persistido). A interpretação completa é do usuário logado.
+app.use('/api/public/decifre', decifreRoutes);
 
 // Config PÚBLICA (sem auth) — créditos de cadastro (freeSignup, do banco) + bônus de indicação.
 // A landing/card/link compartilhado leem daqui → valor sempre coerente c/ o que o server entrega.

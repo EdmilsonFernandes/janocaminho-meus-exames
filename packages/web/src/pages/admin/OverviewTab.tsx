@@ -16,12 +16,16 @@ export const OverviewTab = () => {
   const [metrics, setMetrics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [decifre, setDecifre] = useState<{ today: number; week: number; total: number; uniqueIps: number } | null>(null);
 
   const load = async () => {
     setLoading(true); setError(false);
     try {
       const r = await fetch(`${API_URL}/admin/metrics`, { headers: { Authorization: `Bearer ${token()}` } });
       if (r.ok) setMetrics(await r.json()); else setError(true);
+      // Funil anônimo da landing ("cole seu exame") — o dono "sente o calor" aqui.
+      fetch(`${API_URL}/admin/decifre-stats`, { headers: { Authorization: `Bearer ${token()}` } })
+        .then((r2) => (r2.ok ? r2.json() : null)).then(setDecifre).catch(() => {});
     } catch { setError(true); }
     setLoading(false);
   };
@@ -47,6 +51,23 @@ export const OverviewTab = () => {
           </CardContent></Card>
         ))}
       </Box>
+
+      {/* Decifre anônimo (landing) — topo de funil público */}
+      <Card sx={{ borderRadius: '12px' }}><CardContent>
+        <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap" alignItems="center">
+          <Typography variant="h6" sx={{ fontSize: 16 }}>🔥 Decifre grátis (landing)</Typography>
+          {decifre ? (
+            <>
+              <Typography variant="body2"><b>{decifre.today}</b> hoje</Typography>
+              <Typography variant="body2"><b>{decifre.week}</b> nos 7d</Typography>
+              <Typography variant="body2"><b>{decifre.total}</b> no total</Typography>
+              <Typography variant="body2"><b>{decifre.uniqueIps}</b> pessoas diferentes</Typography>
+            </>
+          ) : (
+            <Typography variant="body2" color="text.secondary">Sem decifrações ainda — a landing está pronta pro primeiro visitante colar um exame.</Typography>
+          )}
+        </Stack>
+      </CardContent></Card>
 
       <Card sx={{ borderRadius: '12px' }}><CardContent>
         <Typography variant="h6" gutterBottom>🔻 Funil (conversão)</Typography>

@@ -1,4 +1,4 @@
-import { Box, Container, Typography, Button, Stack, Chip, Fade, Dialog, IconButton } from '@mui/material';
+import { Box, Container, Typography, Button, Stack, Chip, Fade, Dialog, IconButton, Collapse } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
@@ -40,6 +40,7 @@ import ScienceIcon from '@mui/icons-material/Science';
 import ApiIcon from '@mui/icons-material/Api';
 
 import { ExamDemo } from '../components/ExamDemo';
+import { DecifreReal } from '../components/DecifreReal';
 import { FaqSection } from '../components/FaqSection';
 import { fetchPublicConfig, API_URL } from '../config';
 import { usePlanInfo, fmtBRL } from '../utils/planInfo';
@@ -213,6 +214,7 @@ export const LandingPage = () => {
   const [showAllBenefits, setShowAllBenefits] = useState(false);
   const [medTab, setMedTab] = useState<'medico' | 'paciente' | 'convite'>('medico');
   const [tourOpen, setTourOpen] = useState(false);
+  const [demoOpen, setDemoOpen] = useState(false);
   // Disclosure nível 1 (NN/g: máx 2 níveis, affordance óbvia) — showcase e ciência
   // mostram o essencial e revelam o resto sob botão claro. Nada é apagado.
   const [showTour, setShowTour] = useState<'video' | 'slides'>('video');
@@ -379,15 +381,28 @@ export const LandingPage = () => {
         </Container>
       </Box>
 
-      {/* MOMENTO MÁGICO — demo interativo "Decifre seu exame" (F1) */}
+      {/* MOMENTO MÁGICO — "Decifre seu exame" AGORA DE VERDADE (F1.2): o visitante cola o
+          texto e recebe os valores organizados na hora (IA extrai, flags determinísticas,
+          3/dia por IP, cache, nada salvo). O demo encenado vira "ver exemplo" pro curioso. */}
       <Box sx={{ bgcolor: 'background.default', py: { xs: 6, md: 9 } }}>
         <Container maxWidth="lg">
           <Box sx={{ textAlign: 'center', mb: { xs: 3.5, md: 5 } }}>
-            <Typography sx={{ fontSize: 13, fontWeight: 800, color: TEAL_DARK, letterSpacing: '0.06em', textTransform: 'uppercase', mb: 1 }}>Veja acontecer</Typography>
-            <Typography variant="h2" sx={{ fontSize: { xs: '1.7rem', md: '2.3rem' }, fontWeight: 800, color: 'text.primary', mb: 1, letterSpacing: '-0.02em' }}>Decifre um exame em <Box component="span" sx={{ ...SERIF_I, color: TEAL_DARK }}>5 segundos</Box></Typography>
-            <Typography sx={{ color: 'text.secondary', fontSize: 17, maxWidth: 560, mx: 'auto' }}>Toque e veja o Dr. Exame ler o laudo, explicar cada valor e montar sua leitura de risco — sem cadastro.</Typography>
+            <Typography sx={{ fontSize: 13, fontWeight: 800, color: TEAL_DARK, letterSpacing: '0.06em', textTransform: 'uppercase', mb: 1 }}>Experimente agora</Typography>
+            <Typography variant="h2" sx={{ fontSize: { xs: '1.7rem', md: '2.3rem' }, fontWeight: 800, color: 'text.primary', mb: 1, letterSpacing: '-0.02em' }}>Cole seu exame. <Box component="span" sx={{ ...SERIF_I, color: TEAL_DARK }}>De graça, sem cadastro.</Box></Typography>
+            <Typography sx={{ color: 'text.secondary', fontSize: 17, maxWidth: 600, mx: 'auto' }}>A gente organiza cada valor na hora e mostra o que está dentro — e o que pede atenção. A interpretação completa com IA é o próximo passo, no app.</Typography>
           </Box>
-          <ExamDemo />
+          <DecifreReal />
+          <Box sx={{ textAlign: 'center', mt: 2.5 }}>
+            <Typography variant="caption" color="text.secondary">
+              Sem exame na mão?{' '}
+              <Box component="a" sx={{ color: TEAL_DARK, fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setDemoOpen((v) => !v)}>
+                {demoOpen ? 'esconder o exemplo animado' : 'ver um exemplo animado de como funciona no app'}
+              </Box>
+            </Typography>
+          </Box>
+          <Collapse in={demoOpen} sx={{ mt: 2.5 }}>
+            <ExamDemo />
+          </Collapse>
         </Container>
       </Box>
 

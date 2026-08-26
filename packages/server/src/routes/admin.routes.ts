@@ -910,6 +910,26 @@ router.post('/api-keys/:id/revoke', async (req, res, next) => {
     res.json(await prisma.apiKey.update({ where: { id: row.id }, data: { revokedAt: new Date() } }));
   } catch (e) { next(e); }
 });
+
+// DECIFRE (landing, anônimo) — telemetria do funil pro dono "sentir o calor".
+router.get('/decifre-stats', async (_req, res, next) => {
+  try {
+    const dayStart = new Date(); dayStart.setHours(0, 0, 0, 0);
+    const weekStart = new Date(Date.now() - 7 * 24 * 3600 * 1000);
+    const [today, week, total, uniqueIps] = await Promise.all([
+      prisma.decifreEvent.count({ where: { createdAt: { gte: dayStart } } }),
+      prisma.decifreEvent.count({ where: { createdAt: { gte: weekStart } } }),
+      prisma.decifreEvent.count(),
+      prisma.decifreEvent.groupBy({ by: ['ipHash'], _count: { _all: true } }),
+    ]);
+    const abnormalTotal = await prisma.decifreEvent.aggregate({ _sum: { abnormalCount: true } });
+    res.json({
+      today, week, total,
+      uniqueIps: uniqueIps.length,
+      withAbnormal: abnormalTotal._sum.abnormalCount ?? 0,
+    });
+  } catch (e) { next(e); }
+});
 // admin responde (multipart: message + files[]) → notifica usuário (push + email + in-app) + status 'pending'
 router.post('/tickets/:id/messages', upload.array('files', 5), async (req: AuthedRequest, res, next) => {
   try {
