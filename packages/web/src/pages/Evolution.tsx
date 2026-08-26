@@ -110,7 +110,7 @@ export const EvolutionPage = () => {
   ];
 
   return (
-    <PageContainer width="wide">
+    <PageContainer width="wide" sx={{ pb: { xs: 10, sm: 5 } }}>
       <Title title={translate('page.evolution')} />
       <PageHeader
         icon={<TrendingUpIcon />}
@@ -128,7 +128,7 @@ export const EvolutionPage = () => {
               <Stack direction="row" spacing={1.75} flexWrap="wrap" useFlexGap sx={{ mb: 0.5 }}>
                 <Typography component="span" sx={{ fontWeight: 800, color: VERDICT_META.melhorou.color }}>{VERDICT_META.melhorou.emoji} {summary.counts.melhorou} {VERDICT_META.melhorou.label}</Typography>
                 <Typography component="span" sx={{ fontWeight: 800, color: VERDICT_META.piorou.color }}>{VERDICT_META.piorou.emoji} {summary.counts.piorou} {VERDICT_META.piorou.label}</Typography>
-                <Typography component="span" sx={{ fontWeight: 800, color: VERDICT_META.estavel.color }}>{VERDICT_META.estavel.emoji} {summary.counts.estavel} {VERDICT_META.estavel.label}</Typography>
+                <Typography component="span" sx={{ fontWeight: 800, color: VERDICT_META.estavel.color }}>{VERDICT_META.estavel.emoji} {summary.counts.estavel} sem variação</Typography>
               </Stack>
               <Typography variant="caption" color="text.secondary">{trendHeadline(summary)} <strong>·</strong> Conteúdo educativo — a decisão final é do médico.</Typography>
             </CardContent>
@@ -152,14 +152,13 @@ export const EvolutionPage = () => {
             🟢 Melhorou · 🔴 Piorou · ✅ Estável · <strong>🟠 Em mudança</strong> = ainda dentro da faixa, mas subindo ou caindo em relação ao exame anterior — vale acompanhar.
           </Typography>
 
-          {/* Busca fixa (sticky) */}
+          {/* Busca fixa (sticky) + atalho para gráfico */}
           <Paper variant="outlined" sx={{ p: '2px 12px', mb: 1.5, display: 'flex', alignItems: 'center', gap: 1, borderRadius: '999px', position: 'sticky', top: 60, zIndex: 5, bgcolor: 'background.paper', backdropFilter: 'blur(8px)' }}>
             <SearchIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
             <InputBase value={query} onChange={(e: any) => setQuery(e.target.value)} placeholder="Buscar exame (TSH, glicose, colesterol…)" sx={{ flex: 1, fontSize: 14 }} />
             {query && <Chip size="small" label="limpar" onClick={() => setQuery('')} sx={{ height: 22 }} />}
           </Paper>
-          {/* Tendências tem entrada própria no menu; aqui fica o atalho DESTACADO (feedback:
-              era um link miúdo e o gráfico por marcador parecia removido). */}
+
           <Box sx={{ display: 'flex', justifyContent: { xs: 'stretch', sm: 'flex-end' }, mb: 2 }}>
             <Button variant="outlined" size="small" startIcon={<QueryStatsIcon />} onClick={() => navigate('/tendencias')} sx={{ textTransform: 'none', fontWeight: 800, color: '#178f89', borderColor: 'rgba(32,178,170,.5)', borderRadius: '999px', px: 2, py: 0.75, width: { xs: '100%', sm: 'auto' }, '&:hover': { borderColor: '#178f89', bgcolor: 'rgba(32,178,170,.06)' } }}>
               Gráfico por marcador (pontos por data) →
@@ -221,17 +220,20 @@ export const EvolutionPage = () => {
 const CategoryGroup = ({ group, expandOuts }: { group: { cat: string; icon: SvgIconComponent; color: string; items: EvoItem[] }; expandOuts?: boolean }) => {
   // Recolhido por padrão. Exceção: no filtro "Fora da faixa", abre só os grupos que têm alerta.
   const [open, setOpen] = useState(!!expandOuts && group.items.some((i) => statusOf(i) === 'out'));
-  const worst: Status = group.items.some((i) => statusOf(i) === 'out') ? 'out' : group.items.some((i) => statusOf(i) === 'change') ? 'change' : 'stable';
-  // Conta só os analitos FORA da faixa (não o total) — antes o chip mostrava o total da
-  // categoria (ex.: "Hemograma 🔴15"), parecendo que havia 15 alertas quando eram 15 analitos.
   const outs = group.items.filter((i) => statusOf(i) === 'out').length;
+  const changes = group.items.filter((i) => statusOf(i) === 'change').length;
   return (
     <Card sx={{ borderRadius: '12px', border: `1px solid ${group.color}26`, overflow: 'hidden' }}>
       <Box onClick={() => setOpen((o) => !o)} sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 1.25, cursor: 'pointer', bgcolor: `${group.color}0a`, '&:hover': { bgcolor: `${group.color}14` } }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}><group.icon sx={{ fontSize: 20, color: group.color }} /></Box>
         <Typography sx={{ fontWeight: 800, flex: 1, color: 'text.primary', fontSize: 15 }}>{group.cat}</Typography>
-        <Box title={STATUS_META[worst].label} sx={{ fontSize: 14 }}>{STATUS_META[worst].emoji}</Box>
-        {outs > 0 && <Chip size="small" label={`${outs} alterado${outs > 1 ? 's' : ''}`} sx={{ bgcolor: `${group.color}1a`, color: group.color, fontWeight: 700, height: 22 }} />}
+        {outs > 0 ? (
+          <Chip size="small" label={`${outs} alterado${outs > 1 ? 's' : ''}`} sx={{ bgcolor: 'rgba(239,68,68,0.12)', color: '#b91c1c', fontWeight: 700, height: 22 }} />
+        ) : changes > 0 ? (
+          <Chip size="small" label={`${changes} em mudança`} sx={{ bgcolor: 'rgba(245,158,11,0.12)', color: '#b45309', fontWeight: 700, height: 22 }} />
+        ) : (
+          <Chip size="small" label="estável" sx={{ bgcolor: 'rgba(5,150,105,0.12)', color: '#047857', fontWeight: 700, height: 22 }} />
+        )}
         <ExpandMoreIcon sx={{ transform: open ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform .2s', color: group.color, fontSize: 20 }} />
       </Box>
       {open && (
