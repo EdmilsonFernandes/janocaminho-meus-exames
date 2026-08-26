@@ -11,23 +11,27 @@
 
 Olá, {{nome}} — equipe comercial da {{empresa}},
 
-Sou fundador do **Dr. Exame** (Meus Exames) — app brasileiro de saúde com IA que lê
-exames laboratoriais. Hoje o app já **compara preços de medicamentos em 9 farmácias
-online** (Pague Menos, Pacheco, São Paulo e outras) direto no card do remédio que o
-paciente toma — e a {{empresa}} está entre elas.
+Sou fundador do **Dr. Exame** (Meus Exames) — app brasileiro de saúde onde o paciente
+envia o **exame de laboratório** e a IA explica cada valor, e cadastra os **remédios que
+toma** (uso contínuo). No card de cada remédio, o app já mostra **preço em 9 farmácias
+online** com foto do produto e link direto pra loja.
 
-O detalhe que muda o jogo: **nosso usuário chega com a receita na mão**. Ele cadastra o
-remédio de uso contínuo e vê preço, foto do produto e link direto pra loja. Não é clique
-de anúncio — é **intenção de compra recorrente** (quem toma remédio todo mês, compra todo mês).
+**O valor pra {{empresa}}** é o cliente certo na hora certa:
+
+- **O paciente conta pra gente o que ele toma** → o app sugere onde comprar. Vira
+  parceria, a {{empresa}} é a farmácia sugerida — com destaque e cupom próprio;
+- **Remédio contínuo = compra recorrente**: quem toma todo mês, compra todo mês. Não é
+  clique de anúncio, é intenção real segurada por fidelidade;
+- **O exame traz o paciente de volta todo mês** (novo resultado → volta ao app → vê o
+  card do remédio de novo) — o ciclo completo de saúde alimenta o ciclo de compra.
 
 **O que proponho conversar:**
-1. **CPS/CPA direto** — comissão por venda originada no link do app (afiliação própria,
-   sem intermediário);
-2. **Posição destacada** no comparador (card patrocinado) e na vitrine "melhor preço";
-3. Cupom exclusivo Dr. Exame → conseguimos medir juntos desde o dia 1 (links com UTM).
+1. **CPS/CPA direto** — comissão por venda originada no app (sem intermediário);
+2. **Posição destacada** no comparador + cupom exclusivo Dr. Exame;
+3. Tudo mensurável desde o dia 1 (links com UTM).
 
-Temos API pública documentada (preços, interações medicamentosas) se quiserem conferir
-a qualidade do dado: **drexame.janocaminho.com.br/api/docs** — teste grátis na hora.
+Conferem o produto na hora: **drexame.janocaminho.com.br** (o comparador está na seção
+"Economize nos seus remédios") e nossa API pública em **drexame.janocaminho.com.br/api/docs**.
 
 Topa 20 minutos de call essa ou próxima semana?
 

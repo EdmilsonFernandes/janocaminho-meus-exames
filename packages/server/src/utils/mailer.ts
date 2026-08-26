@@ -5,6 +5,10 @@ export interface OutboundEmail {
   subject: string;
   html: string;
   text?: string;
+  /** Cópia oculta (campanha de parceria: registro pro dono). */
+  bcc?: string;
+  /** Anexos (usado pela campanha de parceria: prints do produto). */
+  attachments?: { filename: string; path: string }[];
 }
 
 let _transport: nodemailer.Transporter | null = null;
@@ -57,6 +61,8 @@ export async function sendEmail(mail: OutboundEmail): Promise<{ sent: boolean; d
     subject: mail.subject,
     html: mail.html,
     text,
+    ...(mail.bcc ? { bcc: mail.bcc } : {}),
+    ...(mail.attachments?.length ? { attachments: mail.attachments } : {}),
   });
   return { sent: true };
 }
