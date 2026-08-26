@@ -209,16 +209,17 @@ router.post('/meds/normalize', requireApiKey, async (req: ApiKeyRequest, res, ne
 router.post('/exams/extract', requireApiKeyCost(getSettings().apiAccess?.extractCostCalls ?? 20), upload.single('file'), async (req: ApiKeyRequest, res, next) => {
   const cost = getSettings().apiAccess?.extractCostCalls ?? 20;
   try {
-    if (!getActiveConfig().apiKey) {
-      await refundApiCall(req.apiUserId!, cost, 'IA indisponível');
-      res.status(503).json({ error: 'ai_unavailable', message: 'Motor de extração indisponível no momento. Você não foi cobrado.' });
-      return;
-    }
+    // VALIDAÇÃO DE ENTRADA PRIMEIRO (erro do cliente não depende do estado da IA):
     const file = req.file;
     const text = String(req.body?.text ?? '').trim();
     if (!file && text.length < 50) {
       await refundApiCall(req.apiUserId!, cost, 'payload inválido');
       res.status(400).json({ error: 'Envie o laudo como multipart (campo "file", PDF/imagem) OU JSON { "text": "..." } com o conteúdo do laudo (mín. 50 caracteres).' });
+      return;
+    }
+    if (!getActiveConfig().apiKey) {
+      await refundApiCall(req.apiUserId!, cost, 'IA indisponível');
+      res.status(503).json({ error: 'ai_unavailable', message: 'Motor de extração indisponível no momento. Você não foi cobrado.' });
       return;
     }
     const buffer = file?.buffer ?? Buffer.from(text, 'utf8');
