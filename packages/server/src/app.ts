@@ -125,6 +125,10 @@ app.get('/api/health', async (_req, res) => {
 
 // Build info completo (público) — qual versão/commit está rodando. Útil p/ rastrear deploys.
 app.get('/api/build-info', (_req, res) => res.json(APP_BUILD_INFO));
+// URL LIMPA do portal de docs: quem digita/compartilha sem a # cai aqui — manda pro hash
+// do SPA (o portal vive em /#/api-docs). O console swagger segue em /api/docs.
+app.get('/api-docs', (_req, res) => res.redirect('/#/api-docs'));
+
 // Config PÚBLICA (sem auth) — créditos de cadastro (freeSignup, do banco) + bônus de indicação.
 // A landing/card/link compartilhado leem daqui → valor sempre coerente c/ o que o server entrega.
 app.get('/api/public/config', (_req, res) => {
