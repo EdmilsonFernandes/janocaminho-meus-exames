@@ -239,7 +239,7 @@ export const DashboardV2 = () => {
   const cardioFactors: number = Array.isArray(d.cardioRisk?.factors) ? d.cardioRisk.factors.filter((f: any) => f.risk).length : 0;
 
   return (
-    <PageContainer width="wide" sx={{ bgcolor: (t) => (t.palette.mode === 'dark' ? 'background.default' : '#FAFBFC'), minHeight: '100vh' }}>
+    <PageContainer width="wide" sx={{ bgcolor: (t) => (t.palette.mode === 'dark' ? 'background.default' : '#FAFBFC'), minHeight: '100vh', pb: { xs: 10, sm: 5 } }}>
       <DashboardHeader firstName={firstName} />
       {/* MODO CUIDADOR (Lote 2): dependente selecionado → faixa de contexto — quem você está
           acompanhando (o push de exame dele também chega com o nome dele). */}

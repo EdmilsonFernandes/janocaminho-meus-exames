@@ -50,7 +50,7 @@ export const BiologicalAgeCard = () => {
   const noExams = avail?.status === 'no_data';
   const value = data ? `${data.age}a` : loaded ? '—' : '…';
   const sub = data
-    ? (diff === null ? 'cadastre seu nascimento' : diff === 0 ? 'em equilíbrio' : diff < 0 ? `${Math.abs(diff)}a mais jovem` : `${diff}a mais velho`)
+    ? (diff === null ? 'estimativa corporal' : diff === 0 ? 'em equilíbrio' : diff < 0 ? `${Math.abs(diff)}a mais jovem` : `${diff}a mais velho`)
     : missingProfile ? 'complete seu perfil'
     : noExams ? 'após o 1º exame'
     : loaded ? 'precisa de mais marcadores'
