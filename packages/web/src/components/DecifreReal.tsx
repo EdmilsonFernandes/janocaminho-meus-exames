@@ -64,7 +64,7 @@ export const DecifreReal = () => {
 
   const testSample = () => {
     setMode('texto');
-    setTextO(SAMPLE_EXAM_TEXT);
+    setTexto(SAMPLE_EXAM_TEXT);
     setErr('');
     setLoading(true);
     setResult(null);
