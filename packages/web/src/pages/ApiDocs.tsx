@@ -38,21 +38,21 @@ const Code = ({ children, lang }: { children: string; lang?: string }) => {
         sx={{ position: 'absolute', top: 6, right: 8, minWidth: 0, px: 1, color: copied ? '#7ee2d8' : 'rgba(255,255,255,.6)', fontSize: 11, fontWeight: 700, textTransform: 'none', '&:hover': { bgcolor: 'rgba(255,255,255,.08)' } }}>
         {copied ? 'copiado ✓' : 'copiar'}
       </Button>
-      <Box component="pre" sx={{ m: 0, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: 12.5, lineHeight: 1.7, color: '#e8eef0', whiteSpace: 'pre', }}>{children}</Box>
+      <Box component="pre" sx={{ m: 0, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: 12, lineHeight: 1.6, color: '#e8eef0', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{children}</Box>
     </Box>
   );
 };
 
-/** Tabela de parâmetros no padrão wiki (Propriedade / Tipo / Descrição) — grid, sem <table>. */
+/** Tabela de parâmetros no padrão wiki — responsiva no mobile. */
 const Params = ({ rows }: { rows: [string, string, string][] }) => (
   <Box sx={{ borderRadius: '12px', border: '1px solid', borderColor: 'divider', overflow: 'hidden', my: 1 }}>
-    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: '1.6fr 1fr 3fr' }, bgcolor: 'action.hover', px: 1.5, py: 0.75 }}>
+    <Box sx={{ display: { xs: 'none', sm: 'grid' }, gridTemplateColumns: '1.6fr 1fr 3fr', bgcolor: 'action.hover', px: 1.5, py: 0.75 }}>
       {['Propriedade', 'Tipo', 'Descrição'].map((h) => <Typography key={h} sx={{ fontSize: 11, fontWeight: 800, letterSpacing: 0.5, color: 'text.secondary' }}>{h}</Typography>)}
     </Box>
     {rows.map((r, idx) => (
-      <Box key={r[0]} sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: '1.6fr 1fr 3fr' }, px: 1.5, py: 1, borderTop: idx ? '1px solid' : 'none', borderColor: 'divider' }}>
+      <Box key={r[0]} sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1.6fr 1fr 3fr' }, px: 1.5, py: 1, borderTop: idx ? '1px solid' : 'none', borderColor: 'divider', gap: { xs: 0.5, sm: 0 } }}>
         <Typography sx={{ fontSize: 12.5, fontFamily: 'ui-monospace, monospace', fontWeight: 700, color: '#178f89', wordBreak: 'break-all' }}>{r[0]}</Typography>
-        <Typography sx={{ fontSize: 12.5, fontFamily: 'ui-monospace, monospace', color: 'text.secondary' }}>{r[1]}</Typography>
+        <Typography sx={{ fontSize: 12, fontFamily: 'ui-monospace, monospace', color: 'text.secondary' }}>{r[1]}</Typography>
         <Typography sx={{ fontSize: 12.5, color: 'text.secondary', lineHeight: 1.5 }}>{r[2]}</Typography>
       </Box>
     ))}
@@ -100,34 +100,51 @@ export const ApiDocsPage = () => {
   }, []);
 
   return (
-    <Box sx={{ background: 'background.default', minHeight: '100vh', py: { xs: 2.5, md: 4 } }}>
+    <Box sx={{ background: 'background.default', minHeight: '100vh', py: { xs: 2.5, md: 4 }, pb: { xs: 10, sm: 5 } }}>
       <Container maxWidth="lg">
         {/* HERO */}
         <Box sx={{
           position: 'relative', overflow: 'hidden', mb: 3, borderRadius: '18px', p: { xs: 2.5, md: 3.5 },
           background: 'linear-gradient(135deg,#0f5f5a 0%,#137a72 55%,#178f89 100%)', color: '#fff',
         }}>
-          <Stack direction="row" spacing={2} alignItems="center">
-            <Box sx={{ width: 64, height: 64, flexShrink: 0, borderRadius: '50%', bgcolor: 'rgba(255,255,255,.18)', border: '2px solid rgba(255,255,255,.35)', display: 'grid', placeItems: 'center' }}>
-              <ApiIcon sx={{ fontSize: 30 }} />
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'flex-start', sm: 'center' }}>
+            <Box sx={{ width: 56, height: 56, flexShrink: 0, borderRadius: '50%', bgcolor: 'rgba(255,255,255,.18)', border: '2px solid rgba(255,255,255,.35)', display: 'grid', placeItems: 'center' }}>
+              <ApiIcon sx={{ fontSize: 28 }} />
             </Box>
             <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 20, md: 25 }, lineHeight: 1.15 }}>API do Dr. Exame · v1.2</Typography>
-              <Typography sx={{ fontSize: 13.5, opacity: 0.9, mt: 0.5 }}>
+              <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 19, md: 25 }, lineHeight: 1.15 }}>API do Dr. Exame · v1.2</Typography>
+              <Typography sx={{ fontSize: 13, opacity: 0.9, mt: 0.5, lineHeight: 1.45 }}>
                 Preço real de medicamentos em farmácias brasileiras + interações D/X + motores de laudo (extração e interpretação). Feito pra devs, documentado pra humanos.
               </Typography>
             </Box>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ flexShrink: 0 }}>
+            <Stack direction={{ xs: 'row', sm: 'row' }} spacing={1} sx={{ width: { xs: '100%', sm: 'auto' }, flexShrink: 0, pt: { xs: 1, sm: 0 } }}>
               <Button onClick={() => navigate('/')}
-                sx={{ borderRadius: '999px', px: 2.5, textTransform: 'none', fontWeight: 700, color: '#fff', borderColor: 'rgba(255,255,255,.45)', '&:hover': { bgcolor: 'rgba(255,255,255,.12)', borderColor: 'rgba(255,255,255,.7)' } }} variant="outlined">
+                sx={{ flex: { xs: 1, sm: 'none' }, borderRadius: '999px', px: 2.5, textTransform: 'none', fontWeight: 700, color: '#fff', borderColor: 'rgba(255,255,255,.45)', '&:hover': { bgcolor: 'rgba(255,255,255,.12)', borderColor: 'rgba(255,255,255,.7)' } }} variant="outlined">
                 ← Início
               </Button>
               <Button component="a" href="/api/docs" target="_blank" rel="noopener noreferrer" startIcon={<TerminalIcon />}
-                sx={{ borderRadius: '999px', px: { xs: 2, sm: 3 }, textTransform: 'none', fontWeight: 800, bgcolor: '#fff', color: '#178f89', '&:hover': { bgcolor: '#f0fafa' }, boxShadow: '0 10px 24px rgba(0,0,0,.18)' }}>
-                Console interativo
+                sx={{ flex: { xs: 1, sm: 'none' }, borderRadius: '999px', px: { xs: 2, sm: 3 }, textTransform: 'none', fontWeight: 800, bgcolor: '#fff', color: '#178f89', '&:hover': { bgcolor: '#f0fafa' }, boxShadow: '0 10px 24px rgba(0,0,0,.18)', whiteSpace: 'nowrap' }}>
+                Console
               </Button>
             </Stack>
           </Stack>
+        </Box>
+
+        {/* NAVEGAÇÃO MOBILE (chips com rolagem horizontal) */}
+        <Box sx={{ display: { xs: 'flex', md: 'none' }, gap: 1, overflowX: 'auto', pb: 1.5, mb: 2, mx: -1, px: 1, '&::-webkit-scrollbar': { display: 'none' } }}>
+          {SECTIONS.map((s) => (
+            <Chip
+              key={s.id}
+              label={s.label}
+              onClick={() => { document.getElementById(s.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); setActive(s.id); }}
+              sx={{
+                flexShrink: 0, fontWeight: 700, fontSize: 12,
+                bgcolor: active === s.id ? '#178f89' : 'rgba(32,178,170,.12)',
+                color: active === s.id ? '#fff' : '#178f89',
+                border: '1px solid', borderColor: active === s.id ? '#178f89' : 'rgba(32,178,170,.25)',
+              }}
+            />
+          ))}
         </Box>
 
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '230px 1fr' }, gap: 3, alignItems: 'start' }}>

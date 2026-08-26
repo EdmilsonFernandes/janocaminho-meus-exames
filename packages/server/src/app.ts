@@ -183,10 +183,25 @@ app.use('/api/billing', billingRoutes);
 app.use('/api/labs', labsRoutes);
 app.use('/api/measurements', measurementRoutes);
 app.use('/api/medications', medicationRoutes);
-// API PÚBLICA v1 (parceiros/devs — key em x-api-key) + docs Swagger. Só dado de varejo
-// farmacêutico (preço/interações) — interpretação de exames NÃO exposta (muralha + RDC 657).
-app.use('/api/public/v1', publicApiRoutes);
-app.use('/api/docs', swaggerUi.serve, swaggerUi.setup({ ...openapiSpec }, { customCss: '.topbar { display: none }' }));
+const swaggerMobileCss = `
+  .topbar { display: none !important; }
+  .swagger-ui { max-width: 100vw; overflow-x: hidden; font-family: system-ui, -apple-system, sans-serif; }
+  .swagger-ui .wrapper { padding: 0 12px; max-width: 100%; box-sizing: border-box; }
+  .swagger-ui .opblock .opblock-summary { flex-wrap: wrap; gap: 6px; }
+  .swagger-ui .opblock .opblock-summary-path { max-width: 100%; word-break: break-all !important; font-size: 14px; }
+  .swagger-ui .opblock .opblock-summary-description { word-break: break-word; font-size: 13px; }
+  .swagger-ui table { table-layout: auto !important; display: block; overflow-x: auto; width: 100%; max-width: 100%; }
+  .swagger-ui .code, .swagger-ui code, .swagger-ui pre { word-break: break-all !important; white-space: pre-wrap !important; font-size: 12px !important; }
+  .swagger-ui .parameters-col_name { width: 100% !important; }
+  .swagger-ui .parameter__name, .swagger-ui .parameter__type { word-break: break-all; }
+  @media (max-width: 600px) {
+    .swagger-ui .opblock-summary-method { font-size: 11px; padding: 4px 8px; }
+    .swagger-ui .info { margin: 15px 0; }
+    .swagger-ui .info .title { font-size: 22px; }
+    .swagger-ui .btn { padding: 4px 10px; font-size: 12px; }
+  }
+`;
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup({ ...openapiSpec }, { customCss: swaggerMobileCss }));
 app.use('/api/admin/pharmacies', pharmacyRoutes);
 app.use('/api/risk', riskRoutes);
 app.use('/api/vaccines', vaccineRoutes);
