@@ -34,15 +34,10 @@ const LI = (items: string[]) => `<ul style="margin:0 0 12px 20px;font-size:15px;
 
 const farmaiciasHtml = (empresa: string) => `
 ${P(`Olá, equipe comercial da <b>${empresa}</b>,`)}
-${P(`Sou fundador do <b>Dr. Exame</b> (Meus Exames) — app brasileiro de saúde onde o paciente envia o <b>exame de laboratório</b> e a IA explica cada valor, e cadastra os <b>remédios que toma</b> (uso contínuo). No card de cada remédio, o app já mostra <b>preço em 9 farmácias online</b> com foto do produto e link direto pra loja <i>(prints anexos — é o app real)</i>.`)}
-${P(`<b>O valor pra ${empresa}</b> é o cliente certo na hora certa:`)}
-${LI([
-  '<b>O paciente conta pra gente o que ele toma</b> → o app sugere onde comprar. Vira parceria, a ' + empresa + ' é a farmácia sugerida — com destaque e cupom próprio;',
-  '<b>Remédio contínuo = compra recorrente</b>: quem toma todo mês, compra todo mês. Não é clique de anúncio — é intenção real;',
-  '<b>O exame traz o paciente de volta todo mês</b> (novo resultado → volta ao app → vê o card do remédio de novo).',
-])}
-${P('<b>Se fizer sentido, o caminho natural:</b> (1) CPS/CPA direto — comissão por venda originada no app, sem intermediário; (2) posição destacada no comparador + cupom exclusivo Dr. Exame; (3) tudo mensurável desde o dia 1 (UTM).')}
-${P('Não estou propondo reunião — <b>conheçam primeiro</b>: o tour de 40s e o site mostram o produto inteiro (o comparador está na seção "Economize nos seus remédios"). Gostando do que vir, é só responder este e-mail que eu explico o resto por aqui mesmo.')}
+${P(`Sou fundador do <b>Dr. Exame</b> (Meus Exames) — sistema brasileiro de saúde que acompanha o paciente de ponta a ponta: ele envia o <b>exame de laboratório</b> e a IA explica cada valor em português simples; o <b>médico dele acompanha</b> por um portal de pré-consulta; a <b>família inteira</b> fica no mesmo lugar (dependentes inclusos); e os <b>remédios de uso contínuo</b> moram no app, com checagem de interações e o <b>menor preço em 9 farmácias</b> — é aí que a ${empresa} entra <i>(prints anexos — app real)</i>.`)}
+${P(`O paciente conta pro app o que toma, o app sugere onde comprar: a <b>${empresa} como farmácia destacada</b>, com cupom próprio, pra um cliente que compra todo mês — remédio contínuo é recorrente. Tudo mensurável (UTM) desde o dia 1; CPS/CPA sem intermediário.`)}
+${P('<b>Conheçam o produto</b> (digitando, sem clicar em nada meu):<br>• Site: drexame.janocaminho.com.br — seção "Economize nos seus remédios"<br>• Tour de 40s: youtube.com/watch?v=jyHezElJyjA<br>• App: Google Play, pesquise "Meus Exames"<br>Também temos <b>API pública pra devs</b> (preço de remédios, interações, extração de laudo): drexame.janocaminho.com.br/api/docs')}
+${P('Gostando do que vir, é só responder este e-mail.')}
 ${SIGN}`;
 
 const apiHtml = (nome: string, introLabs: boolean) => `
@@ -96,11 +91,19 @@ async function main() {
     ALVOS.forEach((a) => console.log(` [${a.grupo}] ${a.nome} <${a.to}> — ${a.subject}${a.attachments ? ` (+${a.attachments.length} prints)` : ''}`));
     return;
   }
+  if (flag === '--sample') {
+    // UMA amostra (a de farmácias) pra o dono avaliar — não bombardeia a caixa nem o Zoho.
+    const a = ALVOS[0];
+    const r = await sendEmail({ to: 'contato@janocaminho.com.br', bcc: BCC_DONO, subject: `[AMOSTRA·${a.nome}] ${a.subject}`, html: a.html, ...(a.attachments?.length ? { attachments: a.attachments } : {}) });
+    console.log(`Amostra (${a.nome}): ${r.sent ? 'enviada pra contato@janocaminho.com.br + BCC' : 'FALHOU'}`);
+    return;
+  }
   if (flag === '--test') {
     console.log('SELF-TEST: cópia de todos pra contato@janocaminho.com.br (com BCC do dono)');
     for (const a of ALVOS) {
       const r = await sendEmail({ to: 'contato@janocaminho.com.br', bcc: BCC_DONO, subject: `[TESTE·${a.nome}] ${a.subject}`, html: a.html, ...(a.attachments?.length ? { attachments: a.attachments } : {}) });
       console.log(` ${a.nome}: ${r.sent ? 'ok' : 'FALHOU/dev-preview'}`);
+      await new Promise((res) => setTimeout(res, 30_000)); // Zoho corta conexões rápidas demais
     }
     return;
   }
@@ -109,7 +112,7 @@ async function main() {
   for (const a of enviar) {
     const r = await sendEmail({ to: a.to, bcc: BCC_DONO, subject: a.subject, html: a.html, ...(a.attachments?.length ? { attachments: a.attachments } : {}) });
     console.log(`${r.sent ? '✓' : '✗'} ${a.nome} <${a.to}>`);
-    await new Promise((res) => setTimeout(res, 4000)); // um a um, espaçado
+    await new Promise((res) => setTimeout(res, 30_000)); // Zoho corta conexões em rajada
   }
   console.log(`\nEnviados: ${enviar.length}. Registre no marketing/emails-parceria/tracking.csv`);
 }
