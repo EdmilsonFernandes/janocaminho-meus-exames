@@ -130,14 +130,14 @@ export const PlansPage = () => {
   const isNative = false;
 
   return (
-    <PageContainer width={860}>
+    <PageContainer width={860} sx={{ pb: { xs: 10, sm: 5 } }}>
       <PageHeader icon={<DiamondIcon />} title={translate('page.plans')}
         subtitle={<>Use à vontade: assine o <strong>mensal</strong> ({crLabel} créditos de IA por mês) ou compre <strong>créditos avulsos</strong> via PIX.</>} />
 
       {/* PIX PENDENTE (padrão gateway): banner discreto que retoma o mesmo QR/timer.
           Só aparece se o usuário gerou um PIX e saiu sem pagar — SEM criar ordem nova. */}
       {pendingPix && (
-        <Alert severity="info" icon={<QrCode2Icon />} sx={{ mb: 2, borderRadius: '12px', alignItems: 'center' }}>
+        <Alert severity="info" icon={<QrCode2Icon />} sx={{ mb: 2, borderRadius: '16px', alignItems: 'center' }}>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ sm: 'center' }} justifyContent="space-between" sx={{ width: '100%' }}>
             <Typography sx={{ fontSize: 14 }}>
               Você tem um PIX de <strong>{pendingPix.credits} créditos</strong> aguardando pagamento
@@ -151,9 +151,9 @@ export const PlansPage = () => {
       )}
 
       {/* HERO — saldo centralizado, gradiente esmeralda + profundidade */}
-      <Card sx={{ mb: 2.5, borderRadius: '12px', overflow: 'hidden', position: 'relative', color: '#fff',
-          background: 'linear-gradient(135deg,#0f5f5a 0%,#137a72 55%,#178f89 100%)',
-          boxShadow: '0 20px 44px rgba(15,61,58,.28)' }}>
+      <Card sx={{ mb: 3, borderRadius: '24px', overflow: 'hidden', position: 'relative', color: '#fff',
+          background: 'linear-gradient(135deg,#0c4a46 0%,#137a72 50%,#178f89 100%)',
+          boxShadow: '0 20px 50px rgba(15,61,58,.32)', border: '1px solid rgba(255,255,255,0.2)' }}>
         <Box sx={{ position: 'absolute', top: '-45%', right: '-12%', width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,.16), transparent 70%)', pointerEvents: 'none' }} />
         <CardContent sx={{ position: 'relative', textAlign: 'center', py: { xs: 3.5, md: 4.5 } }}>
           <Typography sx={{ fontSize: 12, fontWeight: 700, letterSpacing: 0.4, textTransform: 'uppercase', color: 'rgba(255,255,255,.72)' }}>Seus créditos</Typography>

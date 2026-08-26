@@ -66,7 +66,7 @@ export const FamilyPage = () => {
   const ranked = [...patients].sort((a, b) => (b.score ?? -1) - (a.score ?? -1)); // 1º = maior score
 
   return (
-    <PageContainer width={980}>
+    <PageContainer width={980} sx={{ pb: { xs: 10, sm: 5 } }}>
       <PageHeader icon={<Diversity3Icon />} title={translate('page.family')} accent="#d4a574"
         subtitle={translate('page.family_sub')} />
       {/* Merge de conceito do menu ("Família & dependentes"): gestão de membros fica a 1 toque da
@@ -76,7 +76,7 @@ export const FamilyPage = () => {
       </Box>
 
       {(data?.crossAlerts ?? []).length > 0 && (
-        <Alert severity="warning" sx={{ mb: 3, borderRadius: '12px' }}>
+        <Alert severity="warning" sx={{ mb: 3, borderRadius: '16px' }}>
           <AlertTitle>🧬 Padrão familiar detectado</AlertTitle>
           <Stack spacing={0.5}>
             {data!.crossAlerts.map((c) => (
@@ -87,7 +87,7 @@ export const FamilyPage = () => {
       )}
 
       {patients.length === 0 && (
-        <Card variant="outlined" sx={{ mt: 2, p: 3, textAlign: 'center', borderColor: 'divider' }}>
+        <Card variant="outlined" sx={{ mt: 2, p: 3, textAlign: 'center', borderColor: 'divider', borderRadius: '20px' }}>
           <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1.5 }}>
             <DrExame size={72} />
           </Box>
@@ -104,16 +104,16 @@ export const FamilyPage = () => {
           <Grid key={p.id} size={{ xs: 12, md: 6 }}>
             <Card variant="outlined" onClick={() => { setSelectedPatient(p.id); navigate('/'); }} role="button" tabIndex={0}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedPatient(p.id); navigate('/'); } }}
-              sx={{ height: '100%', cursor: 'pointer', transition: 'border-color .15s ease, box-shadow .2s ease', '&:hover': { borderColor: 'primary.main', boxShadow: '0 6px 18px rgba(32,178,170,.14)' }, ...(idx === 0 && p.score != null ? { borderColor: '#d4a574', borderWidth: 2 } : {}) }}>
-              <CardContent>
+              sx={{ height: '100%', cursor: 'pointer', borderRadius: '20px', transition: 'all .2s ease', '&:hover': { borderColor: 'primary.main', boxShadow: '0 8px 24px rgba(32,178,170,.16)', transform: 'translateY(-2px)' }, ...(idx === 0 && p.score != null ? { borderColor: '#d4a574', borderWidth: 2 } : {}) }}>
+              <CardContent sx={{ p: 2.5 }}>
                 {idx === 0 && p.score != null && (
-                  <Chip size="small" label="🥇 Melhor score da família" sx={{ mb: 1, bgcolor: 'rgba(212,165,116,.2)', color: '#b88a54', fontWeight: 700 }} />
+                  <Chip size="small" label="🥇 Melhor score da família" sx={{ mb: 1.5, bgcolor: 'rgba(212,165,116,.2)', color: '#b88a54', fontWeight: 800 }} />
                 )}
                 <Stack direction="row" alignItems="center" spacing={1.5} sx={{ flexWrap: 'wrap', rowGap: 1 }}>
-                  <Avatar src={p.photoUrl ? photoUrlFor(p.id) : undefined} sx={{ width: 48, height: 48, bgcolor: 'primary.main', fontSize: 20 }}>{p.fullName.charAt(0).toUpperCase()}</Avatar>
+                  <Avatar src={p.photoUrl ? photoUrlFor(p.id) : undefined} sx={{ width: 50, height: 50, bgcolor: 'primary.main', fontSize: 20, fontWeight: 800 }}>{p.fullName.charAt(0).toUpperCase()}</Avatar>
                   <Box sx={{ flex: '1 1 55%', minWidth: 0 }}>
-                    <Typography variant="h6" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.fullName}</Typography>
-                    {p.relationship && <Chip size="small" label={p.relationship} variant="outlined" />}
+                    <Typography variant="h6" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>{p.fullName}</Typography>
+                    {p.relationship && <Chip size="small" label={p.relationship} variant="outlined" sx={{ fontWeight: 700 }} />}
                   </Box>
                   <Box sx={{ textAlign: 'center', ml: 'auto' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
@@ -121,9 +121,9 @@ export const FamilyPage = () => {
                         const Icon = p.score >= 80 ? CheckCircleIcon : p.score >= 60 ? WarningAmberIcon : ErrorOutlineIcon;
                         return <Icon sx={{ color: scoreColor(p.score), fontSize: 20 }} />;
                       })()}
-                      <Typography variant="h4" sx={{ fontWeight: 800, color: scoreColor(p.score), lineHeight: 1 }}>{p.score ?? '—'}</Typography>
+                      <Typography variant="h4" sx={{ fontWeight: 800, color: scoreColor(p.score), lineHeight: 1, fontFamily: 'Poppins, sans-serif' }}>{p.score ?? '—'}</Typography>
                     </Box>
-                    <Typography variant="caption" color="text.secondary">/100</Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>/100</Typography>
                   </Box>
                 </Stack>
                 {p.score != null && (
@@ -131,18 +131,18 @@ export const FamilyPage = () => {
                     <Box sx={{ height: '100%', width: `${p.score}%`, background: scoreColor(p.score), borderRadius: '12px' }} />
                   </Box>
                 )}
-                <Typography variant="body2" sx={{ mt: 1 }}>
+                <Typography variant="body2" sx={{ mt: 1.5, fontWeight: 600 }}>
                   {p.abnormalCount > 0 ? `⚠️ ${p.abnormalCount} relevante(s) agora` : '✅ Nada relevante agora'}
                   {fmtDate(p.performedAt) && ` • ${fmtDate(p.performedAt)}`}
                 </Typography>
                 {p.score == null && <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>Sem exame enviado.</Typography>}
                 {p.topAbnormal.length > 0 && (
                   <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 1 }}>
-                    {p.topAbnormal.map((a, i) => <Chip key={i} size="small" color="error" variant="outlined" label={a.name} />)}
+                    {p.topAbnormal.map((a, i) => <Chip key={i} size="small" color="error" variant="outlined" label={a.name} sx={{ fontWeight: 700 }} />)}
                   </Stack>
                 )}
                 <Stack direction="row" alignItems="center" justifyContent="flex-end" spacing={0.5} sx={{ mt: 1.5, color: 'primary.main' }}>
-                  <Typography variant="caption" sx={{ fontWeight: 700 }}>Ver painel</Typography>
+                  <Typography variant="caption" sx={{ fontWeight: 800 }}>Ver painel</Typography>
                   <ChevronRightIcon fontSize="small" />
                 </Stack>
               </CardContent>

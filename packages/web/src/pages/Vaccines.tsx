@@ -44,16 +44,16 @@ export const VaccinesPage = () => {
   const overdue = (d: string) => new Date(d) < new Date();
 
   return (
-    <PageContainer width="content">
+    <PageContainer width="content" sx={{ pb: { xs: 10, sm: 5 } }}>
       <PageHeader icon={<VaccinesIcon />} title="Carteira de Vacinação" />
       {/* CARTEIRA primeiro (consulta > cadastro — audit: form-first dava cara de planilha). */}
-      <Card sx={{ mb: 2 }}>
+      <Card sx={{ mb: 2, borderRadius: '20px', overflow: 'hidden', border: '1px solid', borderColor: 'divider', boxShadow: '0 4px 16px rgba(0,0,0,0.03)' }}>
         <CardContent>
-          <Typography variant="h6" gutterBottom>Histórico de vacinas</Typography>
+          <Typography variant="h6" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }} gutterBottom>Histórico de vacinas</Typography>
           {items.length === 0 ? (
             <Box sx={{ textAlign: 'center', py: 2.5 }}>
               <Box sx={{ fontSize: 40, mb: 1, opacity: 0.5 }}>💉</Box>
-              <Typography color="text.secondary" sx={{ mb: 1.5 }}>Sua carteira de vacinas fica aqui — útil na consulta e na viagem.</Typography>
+              <Typography color="text.secondary" sx={{ mb: 1.5, fontWeight: 500 }}>Sua carteira de vacinas fica aqui — útil na consulta e na viagem.</Typography>
               <Button size="small" variant="outlined" onClick={() => setFormOpen(true)} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>Registrar primeira vacina</Button>
             </Box>
           ) : (
@@ -64,9 +64,9 @@ export const VaccinesPage = () => {
                   {/* secondary vira <div> (não <p>): Chip (div) dentro de <p> = DOM inválido (console). */}
                   <ListItemText
                     slotProps={{ secondary: { component: 'div' } }}
-                    primary={<span style={{ fontWeight: 600 }}><VaccinesIcon fontSize="small" sx={{ verticalAlign: 'middle', mr: 0.5 }} />{v.name}</span>}
-                    secondary={<span>Aplicada: {fmt(v.dateApplied)}{v.lot ? ` • Lote: ${v.lot}` : ''}
-                      {v.nextDoseDate && <Chip size="small" sx={{ ml: 1 }} color={overdue(v.nextDoseDate) ? 'error' : 'warning'} label={`Próxima: ${fmt(v.nextDoseDate)}${overdue(v.nextDoseDate) ? ' (vencida)' : ''}`} />}</span>}
+                    primary={<span style={{ fontWeight: 700 }}><VaccinesIcon fontSize="small" sx={{ verticalAlign: 'middle', mr: 0.5, color: '#178f89' }} />{v.name}</span>}
+                    secondary={<span style={{ display: 'inline-flex', alignItems: 'center', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>Aplicada: {fmt(v.dateApplied)}{v.lot ? ` • Lote: ${v.lot}` : ''}
+                      {v.nextDoseDate && <Chip size="small" sx={{ ml: 0.5, fontWeight: 800 }} color={overdue(v.nextDoseDate) ? 'error' : 'warning'} label={`Próxima: ${fmt(v.nextDoseDate)}${overdue(v.nextDoseDate) ? ' (vencida)' : ''}`} />}</span>}
                   />
                 </ListItem>
               ))}
@@ -76,7 +76,7 @@ export const VaccinesPage = () => {
       </Card>
 
       {/* REGISTRAR — colapsado, embaixo (ferramenta, não protagonista) */}
-      <Card>
+      <Card sx={{ borderRadius: '20px', overflow: 'hidden', border: '1px solid', borderColor: 'divider', boxShadow: '0 4px 16px rgba(0,0,0,0.03)' }}>
         <CardContent>
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Typography variant="h6">Registrar vacina</Typography>
