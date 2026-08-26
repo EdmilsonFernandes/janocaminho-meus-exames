@@ -303,7 +303,7 @@ export const MedicationsPage = () => {
   };
 
   return (
-    <PageContainer width="narrow">
+    <PageContainer width="narrow" sx={{ pb: { xs: 10, sm: 5 } }}>
       <PageHeader icon={<MedicationIcon />} title="Remédios" subtitle="Busque, fotografe a receita ou toque nos comuns." />
 
       {/* AÇÕES — busca primeiro (combobox ouro), foto segundo */}

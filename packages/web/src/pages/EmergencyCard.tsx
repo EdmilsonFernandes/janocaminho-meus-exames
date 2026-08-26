@@ -21,21 +21,25 @@ export const EmergencyCardPage = () => {
     : null;
 
   return (
-    <PageContainer width="narrow">
+    <PageContainer width="narrow" sx={{ pb: { xs: 10, sm: 5 } }}>
       {/* Title removido — header vermelho abaixo já cumpre o papel de título visual */}
-      <Card sx={{ borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(211,47,47,.15)' }}>
+      <Card sx={{
+        borderRadius: '24px', overflow: 'hidden',
+        border: '1px solid rgba(239,68,68,0.22)',
+        boxShadow: '0 10px 36px rgba(239,68,68,0.12)'
+      }}>
         {/* Header vermelho */}
-        <Box sx={{ background: 'linear-gradient(135deg,#ef4444,#ef4444)', p: 3, color: '#fff', textAlign: 'center' }}>
+        <Box sx={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)', p: 3, color: '#fff', textAlign: 'center' }}>
           <LocalHospitalIcon sx={{ fontSize: 48 }} />
-          <Typography variant="h5" sx={{ fontWeight: 800, mt: 1 }}>CARTÃO DE EMERGÊNCIA</Typography>
-          <Typography sx={{ opacity: .85 }}>Meus Exames</Typography>
+          <Typography variant="h5" sx={{ fontWeight: 800, mt: 1, fontFamily: 'Poppins, sans-serif' }}>CARTÃO DE EMERGÊNCIA</Typography>
+          <Typography sx={{ opacity: 0.85, fontWeight: 500 }}>Meus Exames</Typography>
         </Box>
         <CardContent sx={{ p: 3 }}>
           {patient ? (
             <>
               <Box sx={{ textAlign: 'center', mb: 2 }}>
-                <Typography variant="h6" sx={{ fontWeight: 700 }}>{patient.fullName}</Typography>
-                {age && <Typography color="text.secondary">{age} anos</Typography>}
+                <Typography variant="h6" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>{patient.fullName}</Typography>
+                {age && <Typography color="text.secondary" sx={{ fontWeight: 600 }}>{age} anos</Typography>}
               </Box>
               <Divider sx={{ my: 2 }} />
               <Box sx={{ mb: 2 }}>
@@ -51,14 +55,14 @@ export const EmergencyCardPage = () => {
                 <Typography variant="body2" color="text.secondary">{patient.phone || 'Não informado'}</Typography>
               </Box>
               <Box sx={{ textAlign: 'center', mt: 3 }}>
-                <Box sx={{ display: 'inline-block', p: 2, border: '2px solid', borderColor: 'divider', borderRadius: '12px', bgcolor: 'background.paper' }}>
-                  <Typography sx={{ fontSize: 48, fontWeight: 900, lineHeight: 1, color: 'text.primary', letterSpacing: 2 }}>
+                <Box sx={{ display: 'inline-block', p: 2, border: '2px dashed rgba(239,68,68,0.3)', borderRadius: '16px', bgcolor: 'rgba(239,68,68,0.04)' }}>
+                  <Typography sx={{ fontSize: 48, fontWeight: 900, lineHeight: 1, color: '#dc2626', letterSpacing: 2, fontFamily: 'Poppins, sans-serif' }}>
                     {patient.fullName?.charAt(0)?.toUpperCase() || '?'}{age ?? ''}
                   </Typography>
-                  <Typography variant="caption" color="text.secondary">ID emergencial</Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>ID emergencial</Typography>
                 </Box>
               </Box>
-              <Button fullWidth variant="contained" color="error" sx={{ mt: 3 }} onClick={() => printPage('Cartão de Emergência')}>
+              <Button fullWidth variant="contained" sx={{ mt: 3, borderRadius: '999px', py: 1.25, fontWeight: 800, textTransform: 'none', bgcolor: '#ef4444', '&:hover': { bgcolor: '#dc2626' } }} onClick={() => printPage('Cartão de Emergência')}>
                 🖨️ Imprimir carteirinha
               </Button>
             </>

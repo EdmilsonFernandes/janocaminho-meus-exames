@@ -107,10 +107,10 @@ export const RemindersPage = () => {
   );
 
   return (
-    <PageContainer width="content">
+    <PageContainer width="content" sx={{ pb: { xs: 10, sm: 5 } }}>
       <PageHeader icon={<BellIcon />} title="Lembretes" />
       {/* PRÓXIMOS primeiro (dado > ferramenta — igual Medições/Vacinas) */}
-      <Card sx={{ mb: 2 }}>
+      <Card sx={{ mb: 2, borderRadius: '20px', overflow: 'hidden', border: '1px solid', borderColor: 'divider', boxShadow: '0 4px 16px rgba(0,0,0,0.03)' }}>
         <CardContent sx={{ pb: '8px !important' }}>
           <Typography component="div" variant="h6" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>Próximos lembretes {upcoming.length > 0 && <Chip size="small" label={upcoming.length} sx={{ bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 800 }} />}</Typography>
           {upcoming.length === 0 ? (

@@ -94,11 +94,18 @@ export const MeasurementsPage = () => {
   };
 
   return (
-    <PageContainer width="content">
+    <PageContainer width="content" sx={{ pb: { xs: 10, sm: 5 } }}>
       <PageHeader icon={<MonitorWeightIcon />} title={translate('page.measurements')} />
-      {/* DADO PRIMEIRO, ferramenta depois (audit: form-first dava cara de planilha). */}
       {/* PESO — bloco em destaque com tendência + sparkline */}
-      <Card sx={{ mb: 2, border: '1px solid', borderColor: 'rgba(32,178,170,.25)', background: 'linear-gradient(135deg, rgba(32,178,170,.08), transparent)' }}>
+      <Card sx={{
+        mb: 2, borderRadius: '20px', overflow: 'hidden',
+        background: (t) => t.palette.mode === 'dark'
+          ? 'linear-gradient(135deg, rgba(20,35,35,0.85), rgba(15,25,25,0.75))'
+          : 'linear-gradient(135deg, rgba(32,178,170,.08), rgba(255,255,255,.9))',
+        backdropFilter: 'blur(20px) saturate(180%)',
+        border: '1px solid', borderColor: 'rgba(32,178,170,.22)',
+        boxShadow: '0 8px 24px rgba(32,178,170,0.06)'
+      }}>
         <CardContent>
           <Typography variant="h6" sx={{ mb: 1 }}>⚖️ Peso</Typography>
           {weights.length === 0 ? (
@@ -141,7 +148,7 @@ export const MeasurementsPage = () => {
       </Card>
 
       {/* MEDIÇÕES VITAIS — pressão, glicose, FC... com chip colorido por tipo */}
-      <Card>
+      <Card sx={{ borderRadius: '20px', overflow: 'hidden', border: '1px solid', borderColor: 'divider', boxShadow: '0 4px 16px rgba(0,0,0,0.03)' }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>Medições vitais</Typography>
           {vitals.length === 0 ? (
