@@ -317,7 +317,7 @@ export const PlansPage = () => {
           <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between" flexWrap="wrap" useFlexGap>
             <Typography variant="h6" sx={{ fontWeight: 800, color: '#178f89' }}>💎 Premium Mensal</Typography>
             {planInfo?.plan?.founder && (
-              <Chip size="small" label={`🎯 Plano Fundador — restam ${planInfo.plan.founderRemaining} vagas`} sx={{ fontWeight: 800, bgcolor: 'rgba(212,165,116,.18)', color: '#8a5a1f' }} />
+              <Chip size="small" label={`🎯 Plano Fundador: restam ${planInfo.plan.founderRemaining} vagas`} sx={{ fontWeight: 800, bgcolor: 'rgba(212,165,116,.18)', color: '#8a5a1f' }} />
             )}
           </Stack>
           <Typography color="text.secondary" sx={{ fontSize: 14, mt: 0.5 }}>

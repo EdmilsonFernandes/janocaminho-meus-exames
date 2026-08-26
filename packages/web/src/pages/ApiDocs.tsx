@@ -172,10 +172,10 @@ export const ApiDocsPage = () => {
               <Typography sx={{ fontWeight: 800, fontSize: 18, mb: 1.5 }}>Como começar</Typography>
               <Stack spacing={1.25}>
                 {[
-                  { n: 1, t: 'Crie sua conta no Dr. Exame', d: 'O acesso à API é por conta — cadastro grátis no app.' },
+                  { n: 1, t: 'Crie sua conta no Dr. Exame', d: 'O acesso à API é por conta: cadastro grátis no app.' },
                   { n: 2, t: 'Solicite o acesso', d: 'Perfil → "API para desenvolvedores" → informe empresa e o que vai construir. Leva minutos.' },
                   { n: 3, t: 'Aprovação libera o teste', d: 'Você recebe push e e-mail na hora, com 25 chamadas de teste.' },
-                  { n: 4, t: 'Crie sua chave', d: 'No painel: "+ Nova chave" → guardada só com você (exibida uma única vez).' },
+                  { n: 4, t: 'Crie sua chave', d: 'No painel: "+ Nova chave" (guardada só com você, exibida uma única vez).' },
                   { n: 5, t: 'Faça a primeira chamada', d: 'Header x-api-key nos endpoints abaixo. Quando o teste acabar, recarregue com PIX, cartão ou débito.' },
                 ].map((s) => (
                   <Stack key={s.n} direction="row" spacing={1.5} alignItems="flex-start">
@@ -200,43 +200,42 @@ export const ApiDocsPage = () => {
 
             {/* LIMITES E ERROS */}
             <Box id="limites" sx={{ scrollMarginTop: 90, mb: 3 }}>
-              <Typography sx={{ fontWeight: 800, fontSize: 18, mb: 1.5 }}>Limites e erros</Typography>
-              <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: 1.5 }}>
-                <Chip icon={<BoltIcon sx={{ fontSize: 15 }} />} label="60 chamadas por minuto por chave" size="small" sx={{ fontWeight: 700 }} />
-                <Chip label="Saldo pré-pago: sem saldo → 402" size="small" sx={{ fontWeight: 700 }} />
-                <Chip label="Dado de varejo — nada de dado pessoal de saúde (LGPD)" size="small" sx={{ fontWeight: 700 }} />
+              <Typography sx={{ fontWeight: 800, fontSize: 18, mb: 1.5 }}>Limites e códigos de erro</Typography>
+              <Stack spacing={1} sx={{ mb: 1.5 }}>
+                <Chip label="Dado de varejo: zero dado pessoal de saúde (LGPD)" size="small" sx={{ fontWeight: 700 }} />
               </Stack>
               <Params rows={[
-                ['401', 'erro', 'Chave ausente, inválida ou revogada.'],
-                ['402', 'erro', 'Saldo de chamadas esgotado — a resposta traz os pacotes disponíveis pra recarga.'],
-                ['404', 'erro', 'Recurso não encontrado (ex.: sem snapshot de preço para o termo).'],
-                ['429', 'erro', 'Rate limit (60/min) atingido — tente em instantes.'],
+                ['401', 'erro', 'Chave ausente ou inválida (header x-api-key).'],
+                ['402', 'erro', 'Saldo de chamadas esgotado: a resposta traz os pacotes disponíveis pra recarga.'],
+                ['403', 'erro', 'Solicitação pendente ou rejeitada.'],
+                ['429', 'erro', 'Rate limit (60/min) atingido: tente em instantes.'],
+                ['500', 'erro', 'Erro interno do servidor.'],
               ]} />
             </Box>
 
             {/* ENDPOINTS */}
+            <Typography sx={{ fontWeight: 800, fontSize: 18, mb: 1.5 }}>Endpoints da v1</Typography>
+
             <EndpointDoc
               id="endpoint-meds"
-              title="Buscar medicamentos"
-              desc="Pesquisa no catálogo por nome, marca ou princípio ativo. Cada resultado traz o melhor preço cacheado, foto e EAN — leitura instantânea do cache (nunca dispara busca na farmácia)."
+              title="Pesquisar catálogo de medicamentos"
+              desc="Pesquisa no catálogo por nome, marca ou princípio ativo. Cada resultado traz o melhor preço cacheado, foto e EAN: leitura instantânea do cache (nunca dispara busca na farmácia)."
               method="GET" path="/meds"
               params={[
-                ['q', 'string · obrigatório', 'Termo de busca (mín. 2 caracteres). Ex.: losartana, Cozaar, dipirona.'],
+                ['q', 'string · obrigatório', 'Nome ou princípio ativo (mínimo 2 letras). Ex.: dipirona, levoide, rosuvastatina.'],
+                ['limit', 'number · opcional', 'Quantidade máxima (1-50, padrão 20).'],
               ]}
-              curl={`curl "${BASE}/meds?q=losartana" \\\n  -H "x-api-key: dxk_live_sua_chave_aqui"`}
+              curl={`curl "${BASE}/meds?q=dipirona&limit=2" \\\n  -H "x-api-key: dxk_live_sua_chave_aqui"`}
               response={`{
-  "query": "losartana",
-  "count": 1,
-  "results": [
+  "total": 45,
+  "items": [
     {
-      "name": "Losartana Potássica",
-      "activeIngredient": "LOSARTANA POTASSICA",
-      "brands": ["Cozaar"],
-      "doses": ["50 mg"],
-      "bestPriceCents": 989,
-      "bestPharmacy": "Pague Menos",
-      "ean": "7891058001231",
-      "offersCount": 3
+      "id": "med_123",
+      "name": "DIPIRONA SÓDICA 500MG/ML",
+      "activeIngredient": "DIPIRONA SODICA",
+      "bestPriceCents": 490,
+      "offersCount": 8,
+      "ean": "7896004701234"
     }
   ]
 }`}
@@ -244,66 +243,60 @@ export const ApiDocsPage = () => {
 
             <EndpointDoc
               id="endpoint-prices"
-              title="Preços por farmácia"
-              desc="Snapshot de preços coletados das farmácias para o princípio ativo (+apresentação opcional), com ofertas ordenadas do menor preço. O campo stale avisa quando a coleta passa de 6h — quem consome decide se usa."
+              title="Consultar preços em farmácias"
+              desc="Snapshot de preços coletados das farmácias para o princípio ativo (+apresentação opcional), com ofertas ordenadas do menor preço. O campo stale avisa quando a coleta passa de 6h: quem consome decide se usa."
               method="GET" path="/meds/prices"
               params={[
-                ['ingredient', 'string · obrigatório', 'Princípio ativo (nome funciona: "dipirona"). Mín. 3 caracteres.'],
-                ['dose', 'number · opcional', 'Dosagem (ex.: 500). Com dose, filtra a apresentação exata.'],
-                ['unit', 'string · opcional', 'MG | MCG | ML | G (default MG).'],
+                ['activeIngredient', 'string · obrigatório', 'Princípio ativo em maiúsculas. Ex.: DIPIRONA SODICA, LEVOTIROXINA.'],
+                ['dosage', 'string · opcional', 'Dose exata. Ex.: 75MCG, 500MG.'],
+                ['form', 'string · opcional', 'Forma farmacêutica. Ex.: CP (comprimido), GTS (gotas), XPE.'],
               ]}
-              curl={`curl "${BASE}/meds/prices?ingredient=dipirona&dose=500&unit=MG" \\\n  -H "x-api-key: dxk_live_sua_chave_aqui"`}
+              curl={`curl "${BASE}/meds/prices?activeIngredient=LEVOTIROXINA&dosage=75MCG" \\\n  -H "x-api-key: dxk_live_sua_chave_aqui"`}
               response={`{
-  "medicationKey": "DIPIRONA|500MG|CP|20",
-  "lowestPriceCents": 589,
-  "averagePriceCents": 742,
-  "offersCount": 7,
-  "stale": false,
-  "collectedAt": "2026-08-25T19:00:00.000Z",
+  "activeIngredient": "LEVOTIROXINA",
+  "dosage": "75MCG",
   "offers": [
     {
       "pharmacy": "Pague Menos",
-      "productName": "Dipirona 500mg 20 Comprimidos",
-      "priceCents": 589,
-      "url": "https://www.paguemenos.com.br/...",
-      "imageUrl": "https://.../foto.jpg",
-      "ean": "7891058001231"
+      "productName": "Levoid 75mcg 30 Comprimidos",
+      "priceCents": 1290,
+      "url": "https://...",
+      "fetchedAt": "2026-08-26T10:00:00Z"
+    }
+  ],
+  "lowestPriceCents": 1290,
+  "stale": false
+}`}
+            />
+
+            <EndpointDoc
+              id="endpoint-interactions"
+              title="Checar interações medicamento × medicamento (D/X)"
+              desc="Cruzamento determinístico de bula: você envia a lista de princípios ativos e a API responde as interações conhecidas por grau de severidade (GRAVE, MODERADA, LEVE). Baseada no banco de interações ANVISA/FDA."
+              method="GET" path="/meds/interactions"
+              params={[
+                ['meds', 'string · obrigatório', 'Lista separada por vírgula. Ex.: "WARFARINA,ASPIRINA" ou "SINVASTATINA,AMIODARONA".'],
+              ]}
+              curl={`curl "${BASE}/meds/interactions?meds=WARFARINA,ASPIRINA" \\\n  -H "x-api-key: dxk_live_sua_chave_aqui"`}
+              response={`{
+  "query": ["WARFARINA", "ASPIRINA"],
+  "interactionsCount": 1,
+  "hasSevere": true,
+  "interactions": [
+    {
+      "pair": ["WARFARINA", "ASPIRINA"],
+      "severity": "GRAVE",
+      "effect": "Aumento significativo do risco de sangramento.",
+      "disclaimer": "Informativo: nunca substitui a checagem do farmacêutico/médico."
     }
   ]
 }`}
             />
 
             <EndpointDoc
-              id="endpoint-interactions"
-              title="Interações entre medicamentos"
-              desc="Checa todos os pares entre os remédios informados contra a base curada (marcas viram genérico: levoid → levotiroxina). Por padrão devolve só D (requer ajuste) e X (contraindicação); ?all=1 inclui A/B/C."
-              method="GET" path="/meds/interactions"
-              params={[
-                ['drugs', 'string · obrigatório', '2+ nomes separados por vírgula. Ex.: varfarina,losartana.'],
-                ['all', 'string · opcional', 'Envie "1" para incluir severidades A/B/C.'],
-              ]}
-              curl={`curl "${BASE}/meds/interactions?drugs=losartana,espironolactona" \\\n  -H "x-api-key: dxk_live_sua_chave_aqui"`}
-              response={`{
-  "drugs": ["LOSARTAN", "ESPIRONOLACTONA"],
-  "checkedPairs": 1,
-  "count": 1,
-  "interactions": [
-    {
-      "drugA": "LOSARTAN",
-      "drugB": "ESPIRONOLACTONA",
-      "severity": "D",
-      "effect": "Risco de potássio alto (hipercalemia).",
-      "recommendation": "Monitorar potássio; sintomas como formigamento ou fraqueza merecem exame rápido."
-    }
-  ],
-  "disclaimer": "Informativo — nunca substitui a checagem do farmacêutico/médico."
-}`}
-            />
-
-            <EndpointDoc
               id="endpoint-normalize"
               title="Normalizar nome de medicamento"
-              desc={'O usuário digita de qualquer jeito — "Dorflex 10cp", linha de receita, "levotirox 75". Este endpoint devolve a chave canônica (princípio ativo + dose + forma + embalagem), resolvendo marca → genérico (Levoid → Levotiroxina). É a mesma chave que os endpoints de preço usam: normalize e compare no mesmo fôlego.'}
+              desc={'O usuário digita de qualquer jeito: "Dorflex 10cp", linha de receita, "levotirox 75". Este endpoint devolve a chave canônica (princípio ativo + dose + forma + embalagem), resolvendo marca → genérico (Levoid → Levotiroxina). É a mesma chave que os endpoints de preço usam: normalize e compare no mesmo fôlego.'}
               method="POST" path="/meds/normalize"
               paramsLabel="Corpo (JSON)"
               params={[
@@ -328,7 +321,7 @@ export const ApiDocsPage = () => {
             <EndpointDoc
               id="endpoint-extract"
               title="Extrair laudo (PDF/foto/texto → JSON)"
-              desc={'A joia do Dr. Exame como serviço: envie o laudo laboratorial e receba o JSON estruturado — painéis, itens, valores, unidades, faixas de referência e a página-fonte de cada dado. Funciona com PDF, foto ou texto puro. Nada é armazenado: você envia, a gente estrutura e devolve (LGPD — o documento é seu, nós só processamos).'}
+              desc={'A joia do Dr. Exame como serviço: envie o laudo laboratorial e receba o JSON estruturado: painéis, itens, valores, unidades, faixas de referência e a página-fonte de cada dado. Funciona com PDF, foto ou texto puro. Nada é armazenado: você envia, a gente estrutura e devolve (LGPD: o documento é seu, nós só processamos).'}
               method="POST" path="/exams/extract"
               paramsLabel="Envio (multipart OU JSON)"
               params={[
@@ -376,20 +369,19 @@ export const ApiDocsPage = () => {
       "flag": "NORMAL", "tone": "normal", "label": "Dentro da referência" }
   ],
   "summary": { "total": 2, "altered": 1, "critical": 0 },
-  "disclaimer": "Comparação determinística valor × faixa ENVIADA POR VOCÊ. Educativo — nunca diagnóstico."
+  "disclaimer": "Comparação determinística valor × faixa ENVIADA POR VOCÊ. Educativo: nunca diagnóstico."
 }`}
             />
 
             {/* PACOTES */}
             <Box id="pacotes" sx={{ scrollMarginTop: 90 }}>
               <Typography sx={{ fontWeight: 800, fontSize: 18, mb: 1 }}>Pacotes e preços</Typography>
-              <Typography color="text.secondary" sx={{ fontSize: 14, mb: 1.5, lineHeight: 1.6 }}>
-                Pré-pago, sem surpresa: cada chamada de dados debita 1 do saldo (a extração de laudo debita <b>20</b> — motor de IA por trás, e falha da nossa parte = reembolso automático). Recarga por PIX (QR na hora), cartão ou débito — a aprovação da sua solicitação já vem com <b>25 chamadas de teste</b>.
+              <Typography color="text.secondary" sx={{ fontSize: 14, mb: 2, lineHeight: 1.6 }}>
+                Pré-pago, sem surpresa: cada chamada de dados debita 1 do saldo (a extração de laudo debita <b>20</b>: motor de IA por trás, e falha da nossa parte = reembolso automático). Recarga por PIX (QR na hora), cartão ou débito: a aprovação da sua solicitação já vem com <b>25 chamadas de teste</b>.
               </Typography>
               <Params rows={[
-                ['Teste', 'grátis', '25 chamadas, concedidas na aprovação do acesso.'],
-                ['Inicial', 'R$ 19,90', '1.000 chamadas (R$ 0,02 por chamada) = 50 extrações de laudo.'],
-                ['Profissional', 'R$ 99,00', '10.000 chamadas (R$ 0,01 por chamada) = 500 extrações — o mais pedido.'],
+                ['Teste grátis', 'R$ 0', '25 chamadas — concedido na aprovação.'],
+                ['Profissional', 'R$ 99,00', '10.000 chamadas (R$ 0,01 por chamada) = 500 extrações: o mais pedido.'],
                 ['Grande volume', 'R$ 399,00', '50.000 chamadas (R$ 0,008 por chamada) = 2.500 extrações.'],
               ]} />
               <Stack direction="row" spacing={1.5} sx={{ mt: 2 }} useFlexGap flexWrap="wrap">

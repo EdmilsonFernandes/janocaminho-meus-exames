@@ -490,7 +490,7 @@ export const RegisterPage = () => {
           } }} />
         {referral ? (
           <Box sx={{ p: 1, borderRadius: '12px', bgcolor: 'rgba(32,178,170,0.10)', border: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography sx={{ fontSize: 12, color: '#178f89', fontWeight: 700 }}>🎁 Indicado por <strong>{referral}</strong> — você ganha +{refBonus} créditos!</Typography>
+            <Typography sx={{ fontSize: 12, color: '#178f89', fontWeight: 700 }}>🎁 Indicado por <strong>{referral}</strong>: você ganha +{refBonus} créditos!</Typography>
           </Box>
         ) : (
           <TextField label="Código de indicação (opcional)" value={referral} onChange={(e) => setReferral(e.target.value.toUpperCase())} sx={fieldSx} />

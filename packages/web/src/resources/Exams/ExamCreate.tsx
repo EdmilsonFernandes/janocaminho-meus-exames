@@ -196,7 +196,7 @@ export const ExamCreate = () => {
     } catch (e: any) {
       if (e?.message && /cancel/i.test(e.message)) return; // usuário cancelou o scanner
       // Scanner indisponível (módulo ML Kit ainda baixando, ou RAM < 1.7GB) → câmera normal
-      notify('Scanner indisponível agora — usando a câmera normal. Tente o scanner novamente em instantes.', { type: 'info' });
+      notify('Scanner indisponível agora. Usando a câmera normal. Tente o scanner novamente em instantes.', { type: 'info' });
       takePhoto();
     }
   };

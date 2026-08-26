@@ -356,7 +356,7 @@ export const ApiPanelPage = () => {
       <Dialog open={createdKey === '__form__'} onClose={() => setCreatedKey(null)} fullWidth maxWidth="xs">
         <DialogTitle sx={{ fontWeight: 800, pb: 0.5 }}>Nova chave</DialogTitle>
         <DialogContent>
-          <TextField label="Nome (pra que serve)" size="small" value={keyName} onChange={(e) => setKeyName(e.target.value)} fullWidth autoFocus sx={{ mt: 0.5 }} placeholder="Ex.: Produção — portal" />
+          <TextField label="Nome (pra que serve)" size="small" value={keyName} onChange={(e) => setKeyName(e.target.value)} fullWidth autoFocus sx={{ mt: 0.5 }} placeholder="Ex.: Produção: portal" />
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2.5 }}>
           <Button onClick={() => setCreatedKey(null)} sx={{ textTransform: 'none' }}>Cancelar</Button>
@@ -368,7 +368,7 @@ export const ApiPanelPage = () => {
 
       {/* DIALOG: chave criada (exibe 1 vez com copiar) */}
       <Dialog open={!!createdKey && createdKey !== '__form__'} onClose={() => setCreatedKey(null)} fullWidth maxWidth="sm">
-        <DialogTitle sx={{ fontWeight: 800, pb: 0.5 }}>🔑 Chave criada — guarde agora</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 800, pb: 0.5 }}>🔑 Chave criada: guarde agora</DialogTitle>
         <DialogContent>
           <Alert severity="warning" sx={{ mb: 1.5, borderRadius: '12px' }}>Esta chave <b>não será exibida novamente</b>. Copie e guarde em segredo (como uma senha).</Alert>
           <Stack direction="row" spacing={1} alignItems="center" sx={{ borderRadius: '12px', bgcolor: 'action.hover', p: 1.25 }}>
@@ -376,23 +376,22 @@ export const ApiPanelPage = () => {
             <IconButton size="small" onClick={() => { void navigator.clipboard?.writeText(createdKey ?? ''); }} aria-label="Copiar"><ContentCopyIcon sx={{ fontSize: 18, color: '#178f89' }} /></IconButton>
           </Stack>
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
-            Use no header das chamadas: <code>x-api-key: {String(createdKey ?? '').slice(0, 16)}…</code> — exemplos em /api/docs.
+            Use no header das chamadas: <code>x-api-key: {String(createdKey ?? '').slice(0, 16)}…</code> (exemplos em /api/docs).
           </Typography>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2.5 }}>
-          <Button variant="contained" onClick={() => setCreatedKey(null)} startIcon={<CheckCircleIcon />} sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 800 }}>Guardei — fechar</Button>
+          <Button variant="contained" onClick={() => setCreatedKey(null)} startIcon={<CheckCircleIcon />} sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 800 }}>Guardei: fechar</Button>
         </DialogActions>
       </Dialog>
 
       {/* DIALOG: PIX do pacote — FECHAR também atualiza o card (aguardando/call back) sem F5. */}
       <Dialog open={!!pix} onClose={() => { setPix(null); void load(); }} fullWidth maxWidth="xs">
         <DialogTitle sx={{ fontWeight: 800, pb: 0.5, textAlign: 'center' }}>
-          PIX — {pix?.calls?.toLocaleString('pt-BR')} chamadas
+          PIX: {pix?.calls?.toLocaleString('pt-BR')} chamadas
           {pix?.resumed && <Chip size="small" label="mesmo código de antes" sx={{ ml: 1, height: 20, fontSize: 10, fontWeight: 700, bgcolor: 'rgba(217,119,6,.15)', color: '#92400e' }} />}
         </DialogTitle>
         <DialogContent sx={{ textAlign: 'center' }}>
           {pix?.qrBase64 && <Box component="img" src={pix.qrBase64} alt="QR Code PIX" sx={{ width: 230, height: 230, borderRadius: '12px', bgcolor: '#fff', p: 1, my: 1 }} />}
-          {/* Countdown mm:ss de verdade, tickando — expirou muda o estado e orienta gerar outro. */}
           {pix && new Date(pix.expiresAt).getTime() - Date.now() > 0 ? (
             <Typography sx={{ fontWeight: 800, fontSize: 30, fontVariantNumeric: 'tabular-nums', color: '#92400e', lineHeight: 1.1 }}>
               {mmss(pix.expiresAt)}

@@ -342,11 +342,11 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
             </Typography>
             <Typography variant="body2" sx={{ mt: 0.5 }}>
               {identity?.crossUser
-                ? 'O CPF deste documento já está cadastrado em outra conta. Por segurança, este exame foi rejeitado — você não pode adicioná-lo nem gerar análise com ele.'
+                ? 'O CPF deste documento já está cadastrado em outra conta. Por segurança, este exame foi rejeitado: você não pode adicioná-lo nem gerar análise com ele.'
                 : <>O CPF detectado no documento ({identity?.docCpfMasked ?? 'não exibido'}) diverge do CPF cadastrado neste perfil ({identity?.profileCpfMasked ?? 'não exibido'}). Se o exame é de um dependente, troque o perfil no topo e envie novamente.</>}
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              Por segurança, este exame não entrou no seu histórico nem nas suas análises — só você vê esta tela.
+              Por segurança, este exame não entrou no seu histórico nem nas suas análises: só você vê esta tela.
               {exam.status === 'REJECTED' ? '' : ' Exclua o exame ou acione o suporte para investigar.'}
             </Typography>
             <Box sx={{ mt: 1.5, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
@@ -354,7 +354,7 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
               <Button size="small" variant="outlined" color="error" onClick={rejectExam} disabled={attesting}>Excluir exame</Button>
             </Box>
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.75 }}>
-              A leitura automática pode errar em documentos rasurados ou ilegíveis — o suporte confere o arquivo original (o contexto já vai anexado, com CPFs mascarados).
+              A leitura automática pode errar em documentos rasurados ou ilegíveis: o suporte confere o arquivo original (o contexto já vai anexado, com CPFs mascarados).
             </Typography>
           </CardContent>
         </Card>
