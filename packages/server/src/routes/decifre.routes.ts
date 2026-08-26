@@ -109,7 +109,10 @@ router.post('/', decifreLimiter, upload.single('file'), async (req, res, next) =
     const result = await getLlm().complete({
       system: SYSTEM,
       messages: [{ role: 'user', content: `Extraia os valores deste exame:\n\n${texto}` }],
-      maxTokens: 1200,
+      // 16000 = o número PROVADO do pipeline de extração (prod, glm-4.6): com menos, o
+      // thinking consome tudo e o text vem vazio (validado: 30k input + 1200/3000/4000
+      // tokens → thinking-only; 16000 → end_turn com JSON perfeito).
+      maxTokens: 16000,
       model: getModel(), // mesmo modelo ativo das outras chamadas (admin/.env) — nunca o default do adapter
     });
     // Resposta fora do formato (ex.: modelo que só devolveu thinking) NUNCA é 500 — vira 422
