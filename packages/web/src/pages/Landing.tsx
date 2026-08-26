@@ -40,6 +40,7 @@ import ScienceIcon from '@mui/icons-material/Science';
 import ApiIcon from '@mui/icons-material/Api';
 
 import { ExamDemo } from '../components/ExamDemo';
+import { LeadPopup } from '../components/LeadPopup';
 import { DecifreReal } from '../components/DecifreReal';
 import { FaqSection } from '../components/FaqSection';
 import { fetchPublicConfig, API_URL } from '../config';
@@ -311,22 +312,39 @@ export const LandingPage = () => {
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.05fr .95fr' }, gap: { xs: 5, md: 6 }, alignItems: 'center' }}>
             {/* Coluna texto */}
             <Box>
-              <Chip
-                icon={<AutoAwesomeIcon sx={{ fontSize: 17 }} />}
-                label={`✨ GANHE ${credits} CRÉDITOS DE PRESENTES NO 1º CADASTRO`}
+              <Box
+                component="button"
                 onClick={() => navigate('/registrar')}
                 sx={{
-                  bgcolor: 'rgba(32,178,170,.14)', color: TEAL_DARK, fontWeight: 800, mb: 3, fontSize: 13.5, pl: 1, cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 0.75,
+                  py: 0.75,
+                  px: 1.75,
+                  mb: 3,
+                  maxWidth: '100%',
+                  borderRadius: '999px',
+                  bgcolor: 'rgba(32,178,170,.14)',
+                  color: TEAL_DARK,
+                  fontWeight: 800,
+                  fontSize: { xs: 11.5, sm: 13 },
+                  cursor: 'pointer',
                   border: '1px solid rgba(32,178,170,.35)',
                   animation: 'pulseGlow 2.5s infinite ease-in-out',
-                  '& .MuiChip-icon': { color: TEAL },
+                  lineHeight: 1.3,
+                  textAlign: 'left',
                   '&:hover': { bgcolor: 'rgba(32,178,170,.22)' },
                   '@keyframes pulseGlow': {
                     '0%, 100%': { boxShadow: '0 0 0 0 rgba(32,178,170,0.45)' },
                     '50%': { boxShadow: '0 0 0 10px rgba(32,178,170,0)' }
                   }
                 }}
-              />
+              >
+                <AutoAwesomeIcon sx={{ fontSize: { xs: 15, sm: 17 }, color: TEAL, flexShrink: 0 }} />
+                <Typography component="span" sx={{ fontSize: 'inherit', fontWeight: 'inherit', color: 'inherit', lineHeight: 'inherit' }}>
+                  ✨ Ganhe {credits} créditos de presente no 1º cadastro
+                </Typography>
+              </Box>
               <Typography variant="h1" sx={{ fontSize: { xs: '2.3rem', md: '3.4rem' }, fontWeight: 800, lineHeight: 1.08, mb: 2.5, letterSpacing: '-0.03em', color: 'text.primary' }}>
                 <Box component="span" sx={{ display: 'block' }}>Entenda seus exames</Box>como <Box component="span" sx={{ ...SERIF_I, color: TEAL, fontSize: '1.06em' }}>nunca antes.</Box>
               </Typography>
@@ -1324,6 +1342,9 @@ export const LandingPage = () => {
           </Stack>
         </Container>
       </Box>
+
+      {/* POPUP de captura de e-mail — scroll 55%, 1×/sessão, cooldown 7d, LGPD (popup-cro). */}
+      <LeadPopup />
 
       {/* MODAL — tour em vídeo (aberto pelo botão ▶ do hero). Iframe só monta ao abrir (não pesa o load). */}
       <Dialog

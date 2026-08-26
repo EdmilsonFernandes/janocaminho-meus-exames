@@ -30,6 +30,7 @@ import measurementRoutes from './routes/measurement.routes';
 import medicationRoutes from './routes/medication.routes';
 import publicApiRoutes from './routes/public-api.routes';
 import decifreRoutes from './routes/decifre.routes';
+import leadRoutes from './routes/lead.routes';
 import swaggerUi from 'swagger-ui-express';
 import { openapiSpec } from './docs/openapi';
 import pharmacyRoutes from './routes/pharmacy.routes';
@@ -132,6 +133,8 @@ app.get('/api-docs', (_req, res) => res.redirect('/#/api-docs'));
 // "Decifre seu exame" — topo de funil PÚBLICO da landing (IA só extrai valores; rate-limit
 // 3/dia/IP; cache por hash; nada persistido). A interpretação completa é do usuário logado.
 app.use('/api/public/decifre', decifreRoutes);
+// Lead de e-mail da landing (popup) — público, honeypot + idempotente, sem dado de saúde.
+app.use('/api/public/lead', leadRoutes);
 
 // Config PÚBLICA (sem auth) — créditos de cadastro (freeSignup, do banco) + bônus de indicação.
 // A landing/card/link compartilhado leem daqui → valor sempre coerente c/ o que o server entrega.

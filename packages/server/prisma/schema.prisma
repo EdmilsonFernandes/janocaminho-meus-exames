@@ -1033,3 +1033,17 @@ model TicketMessage {
   @@index([ticketId, createdAt])
   @@map("ticket_messages")
 }
+
+// Lead de e-mail capturado na landing (popup). LGPD: finalidade única declarada no
+// opt-in (conteúdo do Dr. Exame + link do decoder grátis) — NENHUM dado de saúde aqui.
+model LandingLead {
+  id        String   @id @default(cuid())
+  email     String
+  source    String   @default("popup_landing")
+  ipHash    String? // hash do IP (mesmo padrão do decifre_events) — nunca o IP cru
+  consentAt DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  @@unique([email, source])
+  @@map("landing_leads")
+}
