@@ -47,6 +47,9 @@ export const DEFAULT_SETTINGS = {
       { id: 'api10k', calls: 10000, price: 99, label: 'Pro', popular: true },
       { id: 'api50k', calls: 50000, price: 399, label: 'Scale', popular: false },
     ],
+    // Extração de laudo (POST /exams/extract) custa N CHAMADAS (LLM real por trás).
+    // 20 chamadas → pack Starter (1k) = 50 extrações ≈ R$ 0,40/exame.
+    extractCostCalls: 20,
   },
   shares: { exams: 5, evolution: 5, alerts: 3, summary: 5 }, // custo por escopo ao compartilhar c/ médico
   // Faixas temporais (meses) da análise de exames — classificação atual/recente/histórico/antigo

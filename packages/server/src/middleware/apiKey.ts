@@ -86,3 +86,44 @@ export async function requireApiKey(req: ApiKeyRequest, res: Response, next: Nex
     res.status(401).json({ error: 'Invalid API key' });
   }
 }
+
+/** Variante com CUSTO PESADO (ex.: extração de laudo = 20 chamadas — LLM real por trás).
+ *  Mesma auth/rate-limit/402 do requireApiKey, mas exige saldo >= cost e debita cost.
+ *  Em caso de falha da rota (ex.: IA indisponível), ela REEMBOLSA via refundApiCall —
+ *  cliente não paga por 5xx. */
+export function requireApiKeyCost(cost: number) {
+  return async (req: ApiKeyRequest, res: Response, next: NextFunction): Promise<void> => {
+    const key = req.headers['x-api-key'];
+    if (!key || typeof key !== 'string') { res.status(401).json({ error: 'Missing x-api-key header' }); return; }
+    try {
+      const row = await prisma.apiKey.findUnique({ where: { keyHash: hashKey(key) }, select: { id: true, userId: true, revokedAt: true } });
+      if (!row || row.revokedAt) { res.status(401).json({ error: 'Invalid or revoked API key' }); return; }
+      if (!allowRate(row.id)) {
+        res.status(429).json({ error: 'rate_limited', message: 'Limite de 60 requisições/minuto. Tente em instantes.' });
+        return;
+      }
+      const balance = await apiCallBalance(row.userId);
+      if (balance < cost) {
+        res.status(402).json({
+          error: 'payment_required',
+          message: `Esta chamada custa ${cost} créditos de API e o saldo é ${balance}. Compre um pacote (PIX/cartão) no app ou em /billing/buy-api-pack.`,
+          balance, cost,
+          packs: (getSettings().apiAccess?.packs ?? []).map((p: any) => ({ id: p.id, calls: p.calls, price: p.price, label: p.label })),
+        });
+        return;
+      }
+      req.apiUserId = row.userId;
+      req.apiKeyId = row.id;
+      void prisma.apiKey.update({ where: { id: row.id }, data: { lastUsedAt: new Date() } }).catch(() => {});
+      await logCredit(row.userId, -cost, 'api_call', `POST ${req.path} (x${cost})`);
+      next();
+    } catch {
+      res.status(401).json({ error: 'Invalid API key' });
+    }
+  };
+}
+
+/** Reembolso quando a operação pesada FALHOU (o cliente não paga por erro nosso/da IA). */
+export async function refundApiCall(userId: string, cost: number, label: string): Promise<void> {
+  try { await logCredit(userId, cost, 'api_pack', `reembolso: ${label}`); } catch { /* best-effort */ }
+}

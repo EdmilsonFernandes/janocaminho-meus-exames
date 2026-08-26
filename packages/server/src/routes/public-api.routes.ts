@@ -1,11 +1,15 @@
 import { Router } from 'express';
 import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest } from '../middleware/auth';
-import { requireApiKey, generateApiKey, hashKey, apiCallBalance, ApiKeyRequest } from '../middleware/apiKey';
+import { requireApiKey, requireApiKeyCost, refundApiCall, generateApiKey, hashKey, apiCallBalance, ApiKeyRequest } from '../middleware/apiKey';
 import { logCredit } from '../utils/credits';
 import { getSettings } from '../utils/settings';
 import { sendPushToUser } from '../utils/push';
 import { sendEmail } from '../utils/mailer';
+import { upload } from '../middleware/upload';
+import { buildNormalizedMedication } from '../pricing/normalize';
+import { extractLabPanels } from '../extraction/claude';
+import { getActiveConfig } from '../llm/ai-config';
 
 /** Aviso ao dono/suporte: nova solicitação de acesso à API (e-mail + push pros admins). */
 async function notifyAdminsNewRequest(r: { company: string; useCase: string }, requester: { name?: string; email: string }) {
@@ -28,11 +32,13 @@ async function notifyAdminsNewRequest(r: { company: string; useCase: string }, r
 /**
  * API PÚBLICA v1 (Fase 1 — monetização por API; ver /api/docs).
  * Princípios:
- *  - Só dado de VAREJO público (preço de remédio, catálogo, interações D/X) — zero dado de
- *    saúde pessoal. Interpretação de exames NÃO exposta (muralha do produto + ANVISA RDC 657).
+ *  - Dado de VAREJO público (preço, catálogo, interações D/X) + Motores do produto expostos
+ *    como FERRAMENTA sobre dado ENVIADO PELO CLIENTE (extração/interpretação de laudo DELE):
+ *    somos processador, nunca fonte — nada do nosso usuário sai, nada do cliente é guardado.
  *  - Leitura do CACHE (catálogo/snapshot) — a API pública JAMAIS dispara busca live na fonte
  *    (protege a cota VTEX/Lomadee e garante latência previsível; o worker refresha sozinho).
  *  - Preço vem com flag `stale` honesta (snapshot > 6h) — quem consome decide se usa.
+ *  - Sempre educativo (ANVISA RDC 657): disclaimers em toda resposta de exame.
  */
 
 const router = Router();
@@ -44,14 +50,15 @@ router.get('/', (_req, res) => {
   const st = getSettings().apiAccess ?? { freeMonthly: 25, packs: [] };
   res.json({
     name: 'Dr. Exame API',
-    version: '1.1.0',
+    version: '1.2.0',
     docs: '/api/docs',
     howToAccess: '1) crie sua conta no app → 2) POST /access-request (empresa + caso de uso) → 3) aprovação libera o pacote TESTE grátis + criação de chaves → 4) recarregue com pacotes pré-pagos (PIX/cartão/débito)',
     freeTrial: { calls: st.freeMonthly },
     packs: (st.packs ?? []).map((p: any) => ({ id: p.id, calls: p.calls, price: p.price, label: p.label })),
     rateLimit: '60/min por chave',
-    endpoints: ['/meds', '/meds/prices', '/meds/interactions'],
-    disclaimer: 'Dado educativo de varejo farmacêutico. Não é recomendação médica.',
+    endpoints: ['/meds', '/meds/normalize', '/meds/prices', '/meds/interactions', '/exams/extract', '/exams/interpret'],
+    pricing: { extractCostCalls: st.extractCostCalls ?? 20, note: `/exams/extract custa ${st.extractCostCalls ?? 20} chamadas (motor de IA). Demais endpoints: 1 chamada.` },
+    disclaimer: 'Dado educativo de varejo farmacêutico e ferramentas de estruturação sobre documentos enviados pelo cliente. Não é recomendação médica.',
   });
 });
 
@@ -147,6 +154,143 @@ router.get('/meds/interactions', requireApiKey, async (req: ApiKeyRequest, res, 
         .sort((a, b) => b.severity.localeCompare(a.severity))
         .map((r) => ({ drugA: r.drugA, drugB: r.drugB, severity: r.severity, effect: r.effect, recommendation: r.recommendation, source: r.source })),
       disclaimer: 'Informativo — nunca substitui a checagem do farmacêutico/médico.',
+    });
+  } catch (e) { next(e); }
+});
+
+// ── MEDS/NORMALIZE: texto livre → chave canônica (o motor do app, exposto) ──
+// "Dorflex Analgésico e Relaxante Muscular 10 comprimidos" → princípio ativo +
+// dose + forma + pack + medicationKey — a chave que casa com /meds/prices.
+router.post('/meds/normalize', requireApiKey, async (req: ApiKeyRequest, res, next) => {
+  try {
+    const text = String(req.body?.text ?? '').trim();
+    if (text.length < 3) { res.status(400).json({ error: 'Campo { "text": "..." } obrigatório (mín. 3 caracteres).' }); return; }
+    const { ALIASES_PUBLIC, normDrug } = await import('../utils/interactions');
+    const raw = normDrug(text.toLowerCase());
+    // Alias casa com a marca SECA ("levoid") — tenta o texto todo e a 1ª palavra
+    // ("levoid 75mcg" → "levoid"), senão "levotirox 75" nunca acharia o dicionário.
+    const aliasMap = ALIASES_PUBLIC as Record<string, string>;
+    const aliasKey = [raw, raw.split(' ')[0]].find((k) => aliasMap[k]);
+    const alias = aliasKey ? aliasMap[aliasKey] : null;
+    // Se é marca pura (LEVOID), troca pelo CANÔNICO mantendo o resto do texto
+    // (a dose vem junto: "Levoid 75mcg" → "LEVOTIROXINA 75mcg" — senão a key fica sem dose).
+    const rest = aliasKey ? text.replace(new RegExp(aliasKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'), ' ') : text;
+    const normalized = buildNormalizedMedication({ name: alias ? `${alias} ${rest}`.trim() : text, packQty: req.body?.packQty ?? null });
+    const key = normalized.medicationKey;
+    // Preço no nível INGREDIENTE (o /meds/prices também casa por prefixo) — embalagem
+    // incompleta não impede: quem consome decide com o stale/collectedAt na mão.
+    const withPrices = req.body?.includePrices === true && !!key;
+    let prices: any = null;
+    if (withPrices) {
+      const snapshot = await prisma.medicationPriceSnapshot.findFirst({
+        where: { medicationKey: { startsWith: `${key.split('|')[0]}|` }, locationKey: 'BR' },
+        orderBy: { collectedAt: 'desc' },
+        select: { lowestPriceCents: true, offersCount: true, collectedAt: true },
+      });
+      if (snapshot) prices = snapshot;
+    }
+    res.json({
+      input: text,
+      brandResolved: alias ? { from: aliasKey, to: alias } : null,
+      activeIngredient: normalized.activeIngredient,
+      dosage: normalized.dosageValue != null ? { value: normalized.dosageValue, unit: normalized.dosageUnit ?? null } : null,
+      form: normalized.form ?? null,
+      packQty: normalized.packQty ?? null,
+      medicationKey: key,
+      comparable: !!key && !key.endsWith('|?'), // sem dose/pack o preço não é comparável honestamente
+      prices,
+    });
+  } catch (e) { next(e); }
+});
+
+// ── EXAMS/EXTRACT: laudo (PDF ou texto) do PRÓPRIO CLIENTE → JSON estruturado ─
+// Custo PESADO (LLM real): settings.apiAccess.extractCostCalls chamadas por extração.
+// multipart (campo file) OU JSON { "text": "..." }. Falha da IA → reembolso (sem cobrança).
+router.post('/exams/extract', requireApiKeyCost(getSettings().apiAccess?.extractCostCalls ?? 20), upload.single('file'), async (req: ApiKeyRequest, res, next) => {
+  const cost = getSettings().apiAccess?.extractCostCalls ?? 20;
+  try {
+    if (!getActiveConfig().apiKey) {
+      await refundApiCall(req.apiUserId!, cost, 'IA indisponível');
+      res.status(503).json({ error: 'ai_unavailable', message: 'Motor de extração indisponível no momento. Você não foi cobrado.' });
+      return;
+    }
+    const file = req.file;
+    const text = String(req.body?.text ?? '').trim();
+    if (!file && text.length < 50) {
+      await refundApiCall(req.apiUserId!, cost, 'payload inválido');
+      res.status(400).json({ error: 'Envie o laudo como multipart (campo "file", PDF/imagem) OU JSON { "text": "..." } com o conteúdo do laudo (mín. 50 caracteres).' });
+      return;
+    }
+    const buffer = file?.buffer ?? Buffer.from(text, 'utf8');
+    const mediaType = file?.mimetype ?? 'text/plain';
+    const exams = await extractLabPanels(buffer, mediaType, file ? undefined : text);
+    const itemCount = exams.reduce((s, e) => s + (e.panels ?? []).reduce((s2, p) => s2 + (p.items ?? []).length, 0), 0);
+    if (!itemCount) {
+      await refundApiCall(req.apiUserId!, cost, 'nenhum item extraído');
+      res.status(422).json({ error: 'extraction_empty', message: 'Não foi possível identificar itens de laboratório no documento. Você não foi cobrado.' });
+      return;
+    }
+    // PII do documento do CLIENTE volta pra ELE (somos o processador, não a fonte) —
+    // nunca persistimos nada: resposta only, zero gravação.
+    res.json({
+      exams: exams.map((e) => ({
+        examTitle: e.examTitle ?? null,
+        sourceLab: e.sourceLab ?? null,
+        performedAt: e.performedAt ?? null,
+        patientName: e.patientName ?? null,
+        panels: e.panels ?? [],
+      })),
+      itemCount,
+      charged: cost,
+      disclaimer: 'Estruturação automática (IA) do documento ENVIADO POR VOCÊ. Confira os valores antes de qualquer uso clínico. Dado educativo — nunca diagnóstico (ANVISA RDC 657). Nada é armazenado por nós.',
+    });
+  } catch (e) {
+    await refundApiCall(req.apiUserId!, cost, 'erro na extração');
+    // Cliente recebe JSON honesto (não 500 cru): falhou a IA, não foi cobrado.
+    console.warn('[public-api] extract falhou:', (e as Error).message?.slice(0, 140));
+    res.status(502).json({ error: 'ai_error', message: 'A extração falhou (motor de IA). Você não foi cobrado — tente novamente.' });
+  }
+});
+
+// ── EXAMS/INTERPRET: valor × faixa → flag/tom/rótulo (determinístico, sem IA) ─
+// Espelha o motor de exibição do app (displayStatus): direção + GRAU (>20% além do
+// limite = "Muito acima/abaixo"), LDL/não-HDL sinaliza contexto clínico, sem faixa
+// nunca inventa rótulo. Quem envia a faixa é o caller (a faixa é do laudo DELE).
+router.post('/exams/interpret', requireApiKey, async (req: ApiKeyRequest, res, next) => {
+  try {
+    const items: any[] = Array.isArray(req.body?.items) ? req.body.items : [];
+    if (!items.length || items.length > 200) { res.status(400).json({ error: 'Envie { "items": [{ "name", "value", "refLow"?, "refHigh"? }, …] } (1-200 itens).' }); return; }
+    const normKey = (s: string | null | undefined) => (s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/\s+/g, ' ').trim();
+    const CONTEXT_DEPENDENT = ['LDL', 'NAO HDL', 'NON-HDL', 'NON HDL'];
+    const out = items.map((it) => {
+      const name = String(it?.name ?? '');
+      const value = it?.value != null ? Number(it.value) : null;
+      const low = it?.refLow != null ? Number(it.refLow) : null;
+      const high = it?.refHigh != null ? Number(it.refHigh) : null;
+      if (value == null || !Number.isFinite(value) || low == null || high == null || low === high) {
+        const isCtx = CONTEXT_DEPENDENT.some((k) => normKey(name).includes(k));
+        return {
+          name, value, refLow: low, refHigh: high,
+          flag: 'UNKNOWN',
+          tone: isCtx ? 'contexto' : 'neutro',
+          label: isCtx ? 'Interpretação depende do contexto clínico (metas por risco cardiovascular — SBC)' : 'Referência não informada pelo laboratório',
+        };
+      }
+      if (value > high) {
+        const severe = value > high * 1.2;
+        return { name, value, refLow: low, refHigh: high, flag: 'HIGH', tone: severe ? 'critico' : 'atencao', label: severe ? 'Muito acima da referência' : 'Acima da referência' };
+      }
+      if (value < low) {
+        const severe = value < low * 0.8;
+        return { name, value, refLow: low, refHigh: high, flag: 'LOW', tone: severe ? 'critico' : 'atencao', label: severe ? 'Muito abaixo da referência' : 'Abaixo da referência' };
+      }
+      return { name, value, refLow: low, refHigh: high, flag: 'NORMAL', tone: 'normal', label: 'Dentro da referência' };
+    });
+    const summary = { total: out.length, altered: out.filter((o) => o.flag === 'HIGH' || o.flag === 'LOW').length, critical: out.filter((o) => o.tone === 'critico').length };
+    res.json({
+      items: out,
+      summary,
+      disclaimer: 'Comparação determinística valor × faixa ENVIADA POR VOCÊ. Educativo — nunca diagnóstico nem conduta clínica (ANVISA RDC 657).',
     });
   } catch (e) { next(e); }
 });
