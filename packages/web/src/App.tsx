@@ -169,9 +169,9 @@ const routeMatches = (route: string, pathname: string) => (route === '/' ? pathn
 // barra tinted com chip de ícone preenchido — impossível confundir com um item de menu.
 // A diferença colapsado × expandido é dramática (tint forte + chip gradiente + rail
 // de aninhamento), não só a setinha. Identidade preservada: só teal da marca.
-const MenuSectionAccordion = ({ title, icon, routes, children }: { title: string; icon: React.ReactNode; routes: string[]; children: React.ReactNode }) => {
+const MenuSectionAccordion = ({ title, icon, children, routes }: { title: string; icon: React.ReactNode; children: React.ReactNode; routes: string[] }) => {
   const { pathname } = useLocation();
-  const [open, setOpen] = useState(() => routes.some((r) => routeMatches(r, pathname)));
+  const [open, setOpen] = useState(false);
   useEffect(() => { if (routes.some((r) => routeMatches(r, pathname))) setOpen(true); /* eslint-disable-next-line */ }, [pathname]);
   return (
     <Box sx={{ mb: 0.25 }}>
@@ -179,26 +179,24 @@ const MenuSectionAccordion = ({ title, icon, routes, children }: { title: string
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         sx={(t) => ({
-          borderRadius: '12px', m: '2px 10px', pl: 1.25, pr: 1, minHeight: 48,
-          bgcolor: alpha(t.palette.primary.main, open ? 0.16 : 0.07),
-          border: '1px solid', borderColor: alpha(t.palette.primary.main, open ? 0.34 : 0.13),
+          borderRadius: '14px', m: '2px 8px', pl: 1.25, pr: 1, minHeight: 46,
+          bgcolor: open ? alpha(t.palette.primary.main, 0.12) : alpha(t.palette.primary.main, 0.05),
+          border: '1px solid', borderColor: open ? alpha(t.palette.primary.main, 0.25) : alpha(t.palette.primary.main, 0.1),
           transition: 'background-color .2s, border-color .2s',
-          '&:hover': { bgcolor: alpha(t.palette.primary.main, open ? 0.21 : 0.11) },
+          '&:hover': { bgcolor: alpha(t.palette.primary.main, open ? 0.16 : 0.09) },
         })}
       >
-        {/* Chip de ícone: preenchido (gradiente teal, ícone branco) quando ABERTO; tinted leve quando fechado. */}
         <Box component="span" sx={(t) => ({
-          width: 28, height: 28, borderRadius: '30%', mr: 1.25, flexShrink: 0, display: 'grid', placeItems: 'center',
-          background: open ? 'linear-gradient(135deg, #20b2aa, #178f89)' : alpha(t.palette.primary.main, 0.14),
+          width: 28, height: 28, borderRadius: '10px', mr: 1.25, flexShrink: 0, display: 'grid', placeItems: 'center',
+          background: open ? 'linear-gradient(135deg, #20b2aa, #178f89)' : alpha(t.palette.primary.main, 0.12),
           color: open ? '#fff' : t.palette.primary.dark, transition: 'background .2s, color .2s',
           '& svg': { fontSize: 17 },
         })}>{icon}</Box>
         <ListItemText primary={title} primaryTypographyProps={{ fontSize: 13, fontWeight: 800, color: 'text.primary' }} />
         <ExpandMoreIcon sx={{ transform: open ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform .2s', color: open ? 'primary.main' : 'text.secondary', fontSize: 20 }} />
       </ListItemButton>
-      {/* Rail de aninhamento: linha teal conectando os itens à seção — os filhos "pertencem" ao header. */}
       <Collapse in={open} sx={{ pb: 0.5 }}>
-        <Box sx={{ ml: '24px', pl: 1, borderLeft: '2px solid', borderColor: (t) => alpha(t.palette.primary.main, 0.22) }}>
+        <Box sx={{ ml: '22px', pl: 1, borderLeft: '2px solid', borderColor: (t) => alpha(t.palette.primary.main, 0.2) }}>
           {children}
         </Box>
       </Collapse>
@@ -206,21 +204,24 @@ const MenuSectionAccordion = ({ title, icon, routes, children }: { title: string
   );
 };
 
-// Item de navegação (MUI puro, monocromático, pill teal no ativo).
-// `highlight` destaca as funcionalidades PRINCIPAIS (ícone teal + texto mais forte) — sem rótulo de paywall.
+// Item de navegação (MUI puro, monocromático, borda lateral teal no ativo).
 const NavItem = ({ to, primaryText, icon, highlight }: { to: string; primaryText: string; icon: React.ReactNode; highlight?: boolean }) => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const active = to === '/' ? pathname === '/' : pathname.startsWith(to);
-  const iconColor = highlight ? '#178f89' : active ? 'text.primary' : 'text.secondary';
+  const iconColor = active ? '#20b2aa' : highlight ? '#178f89' : 'text.secondary';
   return (
     <ListItemButton onClick={() => navigate(to)} selected={active}
-      sx={{ borderRadius: '10px', m: '1px 0', py: 0.5, pl: 1.5, minHeight: 42, flex: '0 0 auto',
+      sx={{
+        borderRadius: '10px', m: '1px 0', py: 0.5, pl: 1.25, minHeight: 42, flex: '0 0 auto',
+        borderLeft: active ? '3px solid #20b2aa' : '3px solid transparent',
+        transition: 'all .15s ease',
         '&.Mui-selected': { bgcolor: 'rgba(32,178,170,.12)' },
         '&.Mui-selected:hover': { bgcolor: 'rgba(32,178,170,.18)' },
-        '&:hover': { bgcolor: 'rgba(32,178,170,.06)' } }}>
-      <ListItemIcon sx={{ minWidth: 34, color: iconColor, '& svg': { fontSize: 19 } }}>{icon}</ListItemIcon>
-      <ListItemText primary={primaryText} primaryTypographyProps={{ fontSize: 13, fontWeight: active || highlight ? 700 : 500, color: active || highlight ? 'text.primary' : 'text.secondary', noWrap: true }} />
+        '&:hover': { bgcolor: 'rgba(32,178,170,.06)' }
+      }}>
+      <ListItemIcon sx={{ minWidth: 32, color: iconColor, '& svg': { fontSize: 19 } }}>{icon}</ListItemIcon>
+      <ListItemText primary={primaryText} primaryTypographyProps={{ fontSize: 13, fontWeight: active || highlight ? 800 : 500, color: active ? '#0f6e68' : highlight ? 'text.primary' : 'text.secondary', noWrap: true }} />
     </ListItemButton>
   );
 };
@@ -359,29 +360,46 @@ const AppDrawer = () => {
   }, []);
   return (
     <Drawer anchor="left" open={open} onClose={closeDrawer} keepMounted={false}
-      PaperProps={{ sx: { width: { xs: '86vw', sm: 340 }, maxWidth: 360, display: 'flex', flexDirection: 'column', bgcolor: 'background.paper' } }}>
-      {/* Header — PERFIL do usuário (clean: branco, avatar + nome + plano/email, X discreto). Sem bloco verde. */}
-      <Box sx={{ position: 'relative', px: 2, pt: 'calc(env(safe-area-inset-top) + 16px)', pb: 2 }}>
-        <IconButton onClick={closeDrawer} size="small" title="Fechar" sx={{ position: 'absolute', top: 'calc(env(safe-area-inset-top) + 10px)', right: 8, color: 'text.secondary', '&:hover': { color: 'text.primary', bgcolor: 'transparent' } }}><CloseIcon fontSize="small" /></IconButton>
-        <Stack direction="row" alignItems="center" spacing={1.5}>
-          <Avatar src={userPhoto} sx={{ width: 56, height: 56, fontSize: 22, bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 800, border: '2px solid rgba(32,178,170,0.3)' }}>{userName?.charAt(0)?.toUpperCase() || '👤'}</Avatar>
-          <Box sx={{ minWidth: 0, flex: 1 }}>
-            <Typography sx={{ fontWeight: 800, fontSize: 16, color: 'text.primary', lineHeight: 1.15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{userName || 'Olá!'}</Typography>
-            <Typography sx={{ fontSize: 13, color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{isPremium ? '👑 Premium' : 'Plano grátis'}</Typography>
-            {credits != null && (
-              <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 0.25, flexWrap: 'wrap', rowGap: 0.5 }}>
-                <Typography sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 600, whiteSpace: 'nowrap' }}>⚡ {credits} créditos</Typography>
-                <Box component="button" onClick={() => { closeDrawer(); navigate('/planos'); }} sx={{ fontSize: 12, color: '#059669', fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer', p: 0, whiteSpace: 'nowrap' }}>(+ Recarregar)</Box>
+      PaperProps={{
+        sx: {
+          width: { xs: '84vw', sm: 340 }, maxWidth: 360, display: 'flex', flexDirection: 'column',
+          bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(20, 30, 30, 0.88)' : 'rgba(255, 255, 255, 0.88)',
+          backdropFilter: 'blur(24px) saturate(180%)',
+          '-webkit-backdrop-filter': 'blur(24px) saturate(180%)',
+          borderRadius: '0 24px 24px 0',
+          borderRight: '1px solid',
+          borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(32,178,170,0.18)',
+          boxShadow: '0 20px 50px rgba(0,0,0,0.25)',
+        }
+      }}>
+      {/* Header — PERFIL do usuário em Card de Vidro */}
+      <Box sx={{ position: 'relative', px: 2, pt: 'calc(env(safe-area-inset-top) + 16px)', pb: 1.5 }}>
+        <IconButton onClick={closeDrawer} size="small" title="Fechar" sx={{ position: 'absolute', top: 'calc(env(safe-area-inset-top) + 12px)', right: 12, color: 'text.secondary', zIndex: 2, '&:hover': { color: 'text.primary', bgcolor: 'transparent' } }}>
+          <CloseIcon fontSize="small" />
+        </IconButton>
+        <Box sx={(t) => ({
+          p: 1.75, borderRadius: '18px',
+          bgcolor: alpha(t.palette.primary.main, 0.06),
+          border: '1px solid', borderColor: alpha(t.palette.primary.main, 0.15),
+          boxShadow: '0 4px 14px rgba(0,0,0,0.03)'
+        })}>
+          <Stack direction="row" alignItems="center" spacing={1.5}>
+            <Avatar src={userPhoto} sx={{ width: 52, height: 52, fontSize: 20, bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 800, border: '2px solid rgba(32,178,170,0.3)' }}>{userName?.charAt(0)?.toUpperCase() || '👤'}</Avatar>
+            <Box sx={{ minWidth: 0, flex: 1 }}>
+              <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary', lineHeight: 1.15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{userName || 'Olá!'}</Typography>
+              <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mt: 0.5, flexWrap: 'wrap', gap: 0.5 }}>
+                <Chip size="small" label={isPremium ? '👑 Premium' : 'Plano grátis'} sx={{ height: 20, fontSize: 10.5, fontWeight: 800, bgcolor: isPremium ? 'rgba(212,165,116,0.18)' : 'rgba(0,0,0,0.06)', color: isPremium ? '#b88a54' : 'text.secondary' }} />
+                {credits != null && (
+                  <Chip size="small" onClick={() => { closeDrawer(); navigate('/planos'); }} label={`⚡ ${credits} (+)`} sx={{ height: 20, fontSize: 10.5, fontWeight: 700, bgcolor: 'rgba(32,178,170,0.12)', color: '#0f6e68', cursor: 'pointer', '&:hover': { bgcolor: 'rgba(32,178,170,0.2)' } }} />
+                )}
               </Stack>
-            )}
-          </Box>
-        </Stack>
+            </Box>
+          </Stack>
+        </Box>
       </Box>
-      <Divider sx={{ borderColor: 'divider' }} />
-      {/* Corpo rolável — reutiliza o MESMO AppMenu do Sidebar (fonte única de verdade).
-          EMERGÊNCIA: item destacado DENTRO de "Cuidados" no AppMenu (2026-08-19) — o botão
-          vermelho duplicado aqui em cima ocupava a primeira dobra do drawer p/ todo mundo. */}
-      <Box sx={{ flex: 1, overflowY: 'auto', pb: 2 }}><AppMenu /></Box>
+      <Divider sx={{ borderColor: (t) => alpha(t.palette.primary.main, 0.12), mx: 2 }} />
+      {/* Corpo rolável */}
+      <Box sx={{ flex: 1, overflowY: 'auto', px: 1, py: 1 }}><AppMenu /></Box>
     </Drawer>
   );
 };
