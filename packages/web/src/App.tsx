@@ -107,8 +107,7 @@ import { syncCreditCosts } from './components/CreditBadge';
 const CustomAppBar = (props: AppBarProps) => {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('sm'));
-  // <360px o orçamento horizontal não cabe wordmark + cluster direito: só o símbolo (o robô
-  // também vive no botão central do bottom-nav — marca segue presente 2× no shell).
+  const isDark = theme.palette.mode === 'dark';
   const showWordmark = useMediaQuery(theme.breakpoints.up(360));
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -118,13 +117,17 @@ const CustomAppBar = (props: AppBarProps) => {
     <AppBar
       {...props}
       userMenu={false}
-      // Refresh/loading só no DESKTOP: no mobile o PullToRefresh cobre (touch-only) e o botão
-      // do LoadingIndicator já transbordava fora da tela ≤390px (medido: right 399 vs 381).
-      // <span /> em vez de undefined — undefined faria o RA renderizar o default (LoadingIndicator).
       toolbar={isDesktop ? <LoadingIndicator /> : <span />}
+      sx={{
+        bgcolor: isDark ? 'rgba(22, 32, 32, 0.75)' : 'rgba(255, 255, 255, 0.72)',
+        backdropFilter: 'blur(24px) saturate(180%)',
+        '-webkit-backdrop-filter': 'blur(24px) saturate(180%)',
+        borderBottom: '1px solid',
+        borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(32, 178, 170, 0.14)',
+        boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.4)' : '0 4px 20px rgba(32,178,170,0.06)',
+        color: 'text.primary',
+      }}
     >
-      {/* Mobile: ☰ e Voltar são MUTUAMENTE EXCLUSIVOS. Em sub-rota → Voltar; na raiz → ☰ (drawer unificado).
-          Redundância ☰(topo) + "Mais"(rodapé) é intencional: mesmo drawer, dois alcances de dedo. */}
       {!isDesktop && (
         canBack ? (
           <IconButton color="inherit" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))} title="Voltar" sx={{ p: 1.25, mr: 0.25 }}>
@@ -136,23 +139,29 @@ const CustomAppBar = (props: AppBarProps) => {
           </IconButton>
         )
       )}
-      {/* SÍMBOLO da marca (32px): gradiente teal é assinatura EXCLUSIVA da marca — o chip de créditos
-          é tonal justamente para não competir por este mesmo gradiente na mesma linha. */}
       {!isDesktop && (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexShrink: 0 }}>
-          <Box sx={{ width: 32, height: 32, borderRadius: '32%', flexShrink: 0, display: 'grid', placeItems: 'center', background: 'linear-gradient(145deg,#20b2aa 0%,#178f89 55%,#0f5f5a 100%)', boxShadow: '0 3px 10px rgba(15,95,90,.45)', overflow: 'hidden' }}>
-            <DrExame size={24} sx={{ borderRadius: '22%' }} />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.85, flexShrink: 0 }}>
+          <Box sx={{
+            width: 34, height: 34, borderRadius: '10px', flexShrink: 0, display: 'grid', placeItems: 'center',
+            background: 'linear-gradient(135deg,#20b2aa 0%,#178f89 100%)',
+            boxShadow: '0 4px 14px rgba(32,178,170,.45)', overflow: 'hidden'
+          }}>
+            <DrExame size={26} sx={{ borderRadius: '22%' }} />
           </Box>
           {showWordmark && (
-            <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins", sans-serif', fontSize: 16, letterSpacing: '-0.01em', whiteSpace: 'nowrap' }}>Dr. Exame</Typography>
+            <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins", sans-serif', fontSize: 16, letterSpacing: '-0.01em', whiteSpace: 'nowrap', color: 'text.primary' }}>
+              Dr. Exame
+            </Typography>
           )}
         </Box>
       )}
       {isDesktop && <TitlePortal />}
       <Box sx={{ flex: 1 }} />
-      <CreditsChip />
-      <NotificationBell />
-      <PatientSwitcher />
+      <Stack direction="row" alignItems="center" spacing={1} sx={{ ml: 1 }}>
+        <CreditsChip />
+        <NotificationBell />
+        <PatientSwitcher />
+      </Stack>
     </AppBar>
   );
 };
