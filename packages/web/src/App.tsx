@@ -382,19 +382,37 @@ const AppDrawer = () => {
         }
       }}>
       {/* Header — PERFIL do usuário em Card de Vidro */}
-      <Box sx={{ position: 'relative', px: 2, pt: 'calc(env(safe-area-inset-top) + 16px)', pb: 1.5 }}>
-        <IconButton onClick={closeDrawer} size="small" title="Fechar" sx={{ position: 'absolute', top: 'calc(env(safe-area-inset-top) + 12px)', right: 12, color: 'text.secondary', zIndex: 2, '&:hover': { color: 'text.primary', bgcolor: 'transparent' } }}>
-          <CloseIcon fontSize="small" />
+      <Box sx={{ position: 'relative', px: 1.5, pt: 'calc(env(safe-area-inset-top) + 10px)', pb: 1 }}>
+        <IconButton
+          onClick={closeDrawer}
+          size="small"
+          title="Fechar"
+          sx={(t) => ({
+            position: 'absolute',
+            top: 'calc(env(safe-area-inset-top) + 18px)',
+            right: 20,
+            zIndex: 3,
+            width: 30,
+            height: 30,
+            bgcolor: alpha(t.palette.text.primary, 0.06),
+            color: 'text.secondary',
+            transition: 'all .15s ease',
+            '&:hover': { bgcolor: alpha(t.palette.text.primary, 0.14), color: 'text.primary', transform: 'scale(1.06)' },
+            '&:active': { transform: 'scale(.94)' },
+            '& svg': { fontSize: 17 }
+          })}
+        >
+          <CloseIcon />
         </IconButton>
         <Box sx={(t) => ({
-          p: 1.75, borderRadius: '18px',
+          p: 1.5, borderRadius: '18px',
           bgcolor: alpha(t.palette.primary.main, 0.06),
           border: '1px solid', borderColor: alpha(t.palette.primary.main, 0.15),
           boxShadow: '0 4px 14px rgba(0,0,0,0.03)'
         })}>
           <Stack direction="row" alignItems="center" spacing={1.5}>
-            <Avatar src={userPhoto} sx={{ width: 52, height: 52, fontSize: 20, bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 800, border: '2px solid rgba(32,178,170,0.3)' }}>{userName?.charAt(0)?.toUpperCase() || '👤'}</Avatar>
-            <Box sx={{ minWidth: 0, flex: 1 }}>
+            <Avatar src={userPhoto} sx={{ width: 50, height: 50, fontSize: 20, bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 800, border: '2px solid rgba(32,178,170,0.3)' }}>{userName?.charAt(0)?.toUpperCase() || '👤'}</Avatar>
+            <Box sx={{ minWidth: 0, flex: 1, pr: 2.5 }}>
               <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary', lineHeight: 1.15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{userName || 'Olá!'}</Typography>
               <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mt: 0.5, flexWrap: 'wrap', gap: 0.5 }}>
                 <Chip size="small" label={isPremium ? '👑 Premium' : 'Plano grátis'} sx={{ height: 20, fontSize: 10.5, fontWeight: 800, bgcolor: isPremium ? 'rgba(212,165,116,0.18)' : 'rgba(0,0,0,0.06)', color: isPremium ? '#b88a54' : 'text.secondary' }} />
