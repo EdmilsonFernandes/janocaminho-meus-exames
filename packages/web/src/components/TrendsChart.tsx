@@ -157,7 +157,7 @@ export const TrendsChart = ({ ts, action }: { ts: TS; action?: React.ReactNode }
       <ResponsiveContainer width="100%" height={isMobile ? 240 : 340}>
         <LineChart data={data} margin={{ top: 10, right: isMobile ? 12 : 20, bottom: 10, left: isMobile ? 0 : 4 }}>
           <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
-          <XAxis dataKey="name" interval="preserveStartEnd" minTickGap={8} tickFormatter={(v: string) => (isMobile ? String(v).slice(0, 5) : v)} tick={{ fontSize: isMobile ? 10 : 12, fill: theme.palette.text.secondary }} axisLine={{ stroke: theme.palette.divider }} />
+          <XAxis dataKey="name" interval="preserveStartEnd" minTickGap={16} tick={{ fontSize: isMobile ? 9.5 : 11, fill: theme.palette.text.secondary }} axisLine={{ stroke: theme.palette.divider }} />
           {/* Domínio EXPLÍCITO inclui a faixa de referência: sem isto o recharts 3.x usa
               [dataMin,dataMax] e DESCARTA o ReferenceArea que ultrapasse os dados (a banda
               verde simplesmente não renderizava — ex.: Plaquetas 116–238k vs faixa até 450k). */}

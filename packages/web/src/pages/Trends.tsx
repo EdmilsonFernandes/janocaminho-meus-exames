@@ -16,8 +16,15 @@ import { PremiumGate } from '../components/PremiumGate';
 
 import type { TimeSeriesByName as TS } from '@meus-exames/shared';
 
-/** Title Case pra exibição (ALL CAPS → legível): "CAPACIDADE_LATENTE" → "Capacidade Latente". */
-const prettyName = (n: string) => (n || '').split('_').map((tok) => (tok.length <= 5 && /^[A-Z0-9]+$/.test(tok) ? tok : tok.toLowerCase().replace(/(^|\s)\w/g, (m) => m.toUpperCase()))).join(' ');
+/** Title Case pra exibição (ALL CAPS → legível): "ACIDO URICO" → "Acido Urico". */
+const prettyName = (n: string) => {
+  if (!n) return '';
+  const tokens = n.split(/[_\s]+/);
+  return tokens.map((tok) => {
+    if (tok.length <= 4 && /^[A-Z0-9]+$/.test(tok) && !['ACIDO', 'URICO', 'BILIRRUBINA', 'DIRETA', 'INDIRETA', 'TOTAL'].includes(tok)) return tok;
+    return tok.charAt(0).toUpperCase() + tok.slice(1).toLowerCase();
+  }).join(' ');
+};
 
 /** Valor numérico p/ exibição (4 casas, vírgula decimal) — evita floats longos da conversão (91.33627999...). */
 const fmtNum = (n: number | null | undefined) => n == null ? '—' : String(Number(n.toFixed(4))).replace('.', ',');
@@ -134,7 +141,7 @@ export const TrendsPage = () => {
   }, [multi.length, abnNames]);
 
   return (
-    <PageContainer width="wide">
+    <PageContainer width="wide" sx={{ pb: { xs: 10, sm: 5 } }}>
       <Title title="Tendências" />
 
       {/* HEADER PREMIUM */}
