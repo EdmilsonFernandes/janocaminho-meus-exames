@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Box, Container, Typography, Accordion, AccordionSummary, AccordionDetails, Stack } from '@mui/material';
+import { Box, Container, Typography, Accordion, AccordionSummary, AccordionDetails, Stack, Button } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { useNavigate } from 'react-router-dom';
@@ -13,11 +13,11 @@ const TEAL_DARK = '#178f89';
 const FAQ = [
   {
     q: 'A IA do Dr. Exame substitui o médico?',
-    a: 'Não. Ela é educativa: explica cada valor em português simples, compara com a faixa de referência e sugere perguntas para levar à consulta. A decisão e o diagnóstico são sempre do seu médico.',
+    a: 'Não. Ela é educativa: explica cada valor em português simples, compara com a faixa de referência e sugers perguntas para levar à consulta. A decisão e o diagnóstico são sempre do seu médico.',
   },
   {
     q: 'A IA inventa os valores do meu exame?',
-    a: 'Não. Os valores vêm direto do seu laudo (extração determinística, com a página de origem). A IA só interpreta o que já está escrito — ela não chuta nem cria números.',
+    a: 'Não. Os valores vêm direto do seu laudo (extração determinística, com a página de origem). A IA só interpreta o que já está escrito: ela não chuta nem cria números.',
   },
   {
     q: 'Funciona com o exame do meu laboratório?',
@@ -25,11 +25,11 @@ const FAQ = [
   },
   {
     q: 'Meus dados estão seguros?',
-    a: 'Sim. Dados sensíveis (CPF/RG) são criptografados, os PDFs ficam fora do banco, e o compartilhamento com o médico é por link com PIN — que você revoga a qualquer momento. Você pode excluir tudo quando quiser. Conforme a LGPD.',
+    a: 'Sim. Dados sensíveis (CPF/RG) são criptografados, os PDFs ficam fora do banco, e o compartilhamento com o médico é por link com PIN (que você revoga a qualquer momento). Você pode excluir tudo quando quiser. Conforme a LGPD.',
   },
   {
     q: 'Preciso pagar para testar?',
-    a: `Não. Envie seu primeiro exame (PDF ou foto) e ganhe créditos grátis, sem cartão. Use pra conversar com a IA, gerar relatórios e perguntar ao médico. Só assina ou compra créditos avulsos se precisar de mais.`,
+    a: `Não. Envie seu primeiro exame (PDF ou foto) e ganhe créditos grátis, sem cartão. Use para conversar com a IA, gerar relatórios e perguntar ao médico. Só assina ou compra créditos avulsos se precisar de mais.`,
   },
   {
     q: 'Isso é um diagnóstico?',
@@ -50,8 +50,8 @@ export const FaqSection = () => {
               <HelpOutlineIcon sx={{ fontSize: 20, color: TEAL_DARK }} />
               <Typography sx={{ fontSize: 13, fontWeight: 800, color: TEAL_DARK, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Dúvidas frequentes</Typography>
             </Stack>
-            <Typography variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>Tudo que você quer saber</Typography>
-            <Typography sx={{ color: 'text.secondary', fontSize: 17, maxWidth: 560, mx: 'auto' }}>Saúde e IA geram perguntas — e a gente responde na lata.</Typography>
+            <Typography variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em', fontFamily: 'Poppins, sans-serif' }}>Tudo o que você precisa saber</Typography>
+            <Typography sx={{ color: 'text.secondary', fontSize: 17, maxWidth: 560, mx: 'auto' }}>Saúde e IA geram perguntas: a gente responde direto ao ponto.</Typography>
           </Box>
         </Reveal>
 
@@ -59,16 +59,19 @@ export const FaqSection = () => {
           <Box>
             {FAQ.map((item, i) => (
               <Accordion key={i} disableGutters elevation={0} sx={{
-                mb: 1.5, borderRadius: '14px !important', overflow: 'hidden',
+                mb: 1.75, borderRadius: '18px !important', overflow: 'hidden',
                 border: '1px solid', borderColor: 'divider',
+                bgcolor: 'background.default',
+                transition: 'all .2s ease',
                 '&:before': { display: 'none' },
-                '&.Mui-expanded': { boxShadow: '0 10px 30px rgba(32,178,170,.10)', borderColor: TEAL },
+                '&:hover': { borderColor: 'rgba(32,178,170,0.3)', boxShadow: '0 4px 16px rgba(0,0,0,0.03)' },
+                '&.Mui-expanded': { boxShadow: '0 10px 30px rgba(32,178,170,.12)', borderColor: TEAL, bgcolor: 'rgba(32,178,170,0.02)' },
               }}>
-                <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: TEAL_DARK }} />} sx={{ px: 2.5, py: 0.5, '& .MuiAccordionSummary-content': { my: 1 } }}>
-                  <Typography sx={{ fontWeight: 700, fontSize: { xs: 15, md: 16 }, color: 'text.primary' }}>{item.q}</Typography>
+                <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: TEAL_DARK }} />} sx={{ px: 2.5, py: 0.75, '& .MuiAccordionSummary-content': { my: 1 } }}>
+                  <Typography sx={{ fontWeight: 700, fontSize: { xs: 15.5, md: 16.5 }, color: 'text.primary', fontFamily: 'Poppins, sans-serif' }}>{item.q}</Typography>
                 </AccordionSummary>
-                <AccordionDetails sx={{ px: 2.5, pb: 2.25, pt: 0 }}>
-                  <Typography sx={{ fontSize: 15, color: 'text.secondary', lineHeight: 1.65 }}>{item.q === 'Preciso pagar para testar?' ? `Não. Envie seu primeiro exame e ganhe ${credits} créditos grátis, sem cartão. Use pra conversar com a IA, gerar relatórios e perguntar ao médico.` : item.a}</Typography>
+                <AccordionDetails sx={{ px: 2.5, pb: 2.5, pt: 0 }}>
+                  <Typography sx={{ fontSize: 15, color: 'text.secondary', lineHeight: 1.65 }}>{item.q === 'Preciso pagar para testar?' ? `Não. Envie seu primeiro exame e ganhe ${credits} créditos grátis, sem cartão. Use para conversar com a IA, gerar relatórios e perguntar ao médico.` : item.a}</Typography>
                 </AccordionDetails>
               </Accordion>
             ))}
@@ -78,11 +81,12 @@ export const FaqSection = () => {
         <Reveal delay={120}>
           <Box sx={{ textAlign: 'center', mt: 4 }}>
             <Typography sx={{ color: 'text.secondary', fontSize: 15, mb: 1.5 }}>Ainda com dúvidas? Teste sem compromisso.</Typography>
-            <Box component="button" onClick={() => navigate('/registrar')} sx={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              color: TEAL_DARK, fontWeight: 800, fontSize: 16, textTransform: 'none',
-              '&:hover': { textDecoration: 'underline' },
-            }}>Começar grátis →</Box>
+            <Button onClick={() => navigate('/registrar')} sx={{
+              borderRadius: '999px', px: 3.5, py: 1,
+              bgcolor: 'rgba(32,178,170,0.08)', color: TEAL_DARK, fontWeight: 800, fontSize: 15, textTransform: 'none',
+              border: '1px solid rgba(32,178,170,0.25)',
+              '&:hover': { bgcolor: 'rgba(32,178,170,0.16)', borderColor: TEAL_DARK }
+            }}>Começar grátis →</Button>
           </Box>
         </Reveal>
       </Container>

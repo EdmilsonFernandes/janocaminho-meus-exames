@@ -963,62 +963,78 @@ export const LandingPage = () => {
 
           {/* Dual-CTA transversal (paciente + médico) */}
           <Reveal>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center" alignItems="stretch" sx={{ mt: 6, maxWidth: 780, mx: 'auto' }}>
-              <Box sx={{ flex: 1, borderRadius: '12px', p: 3, background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff' }}>
-                <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}><MedicalServicesIcon /><Typography sx={{ fontWeight: 800, fontSize: 18 }}>Pra você, paciente</Typography></Stack>
-                <Typography sx={{ fontSize: 15, lineHeight: 1.55, opacity: 0.92, mb: 2 }}>Seu médico ainda não te chamou? Crie sua conta e indique-o pelo CRM em segundos.</Typography>
-                <Button variant="contained" onClick={() => navigate('/registrar')} sx={{ bgcolor: '#fff', color: TEAL_DARK, borderRadius: '999px', textTransform: 'none', fontWeight: 800, boxShadow: 'none', '&:hover': { bgcolor: '#eefaf9' } }}>Começar grátis →</Button>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} justifyContent="center" alignItems="stretch" sx={{ mt: 6, maxWidth: 840, mx: 'auto' }}>
+              <Box sx={{ flex: 1, borderRadius: '24px', p: 3.5, bgcolor: 'background.paper', border: '1px solid rgba(32,178,170,0.3)', boxShadow: '0 10px 30px rgba(32,178,170,0.08)' }}>
+                <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1.5 }}>
+                  <Box sx={{ width: 42, height: 42, borderRadius: '12px', bgcolor: 'rgba(32,178,170,0.12)', display: 'grid', placeItems: 'center' }}>
+                    <MedicalServicesIcon sx={{ color: TEAL_DARK }} />
+                  </Box>
+                  <Typography sx={{ fontWeight: 800, fontSize: 19, fontFamily: 'Poppins, sans-serif' }}>Pra você, paciente</Typography>
+                </Stack>
+                <Typography sx={{ fontSize: 14.5, lineHeight: 1.6, color: 'text.secondary', mb: 3 }}>
+                  Seu médico ainda não te chamou? Crie sua conta e indique-o pelo CRM em segundos.
+                </Typography>
+                <Button variant="contained" color="primary" onClick={() => navigate('/registrar')} sx={{ borderRadius: '999px', px: 4, py: 1.25, textTransform: 'none', fontWeight: 800, fontSize: 15, boxShadow: '0 8px 20px rgba(32,178,170,0.3)' }}>
+                  Começar grátis →
+                </Button>
               </Box>
-              <Box sx={{ flex: 1, borderRadius: '12px', p: 3, bgcolor: 'background.paper', border: '2px solid ' + TEAL }}>
-                <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}><AssignmentIndIcon sx={{ color: TEAL_DARK }} /><Typography sx={{ fontWeight: 800, fontSize: 18, color: INK }}>Pra você, médico</Typography></Stack>
-                <Typography sx={{ fontSize: 15, lineHeight: 1.55, color: 'text.secondary', mb: 2 }}>Convide seus pacientes pelo portal e receba um brief de pré-consulta de cada um. Conheça o Dr. Exame Pro.</Typography>
-                <Button variant="outlined" onClick={() => navigate('/doctor')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, borderColor: TEAL, color: TEAL_DARK, '&:hover': { borderColor: TEAL_DARK, bgcolor: 'rgba(32,178,170,.06)' } }}>Portal do médico →</Button>
+              <Box sx={{ flex: 1, borderRadius: '24px', p: 3.5, bgcolor: 'background.paper', border: '1px solid rgba(32,178,170,0.3)', boxShadow: '0 10px 30px rgba(32,178,170,0.08)' }}>
+                <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1.5 }}>
+                  <Box sx={{ width: 42, height: 42, borderRadius: '12px', bgcolor: 'rgba(212,165,116,0.14)', display: 'grid', placeItems: 'center' }}>
+                    <AssignmentIndIcon sx={{ color: '#b88a54' }} />
+                  </Box>
+                  <Typography sx={{ fontWeight: 800, fontSize: 19, color: 'text.primary', fontFamily: 'Poppins, sans-serif' }}>Pra você, médico</Typography>
+                </Stack>
+                <Typography sx={{ fontSize: 14.5, lineHeight: 1.6, color: 'text.secondary', mb: 3 }}>
+                  Convide seus pacientes pelo portal e receba um brief de pré-consulta de cada um. Conheça o Dr. Exame Pro.
+                </Typography>
+                <Button variant="outlined" onClick={() => navigate('/doctor')} sx={{ borderRadius: '999px', px: 4, py: 1.25, textTransform: 'none', fontWeight: 800, fontSize: 15, borderColor: TEAL_DARK, color: TEAL_DARK, '&:hover': { borderColor: TEAL, bgcolor: 'rgba(32,178,170,.08)' } }}>
+                  Portal do Médico →
+                </Button>
               </Box>
             </Stack>
           </Reveal>
         </Container>
       </Box>
 
-      {/* ÍNDICES — USP#3 (IMC/eGFR/HOMA-IR) + calculadora interativa (F4) */}
+      {/* ÍNDICES (IMC, eGFR, HOMA-IR, LDL Ideal) */}
       <Box sx={{ bgcolor: 'background.default', py: { xs: 8, md: 11 } }}>
         <Container maxWidth="lg">
           <Reveal>
             <Box sx={{ textAlign: 'center', mb: { xs: 4, md: 6 } }}>
               <Chip icon={<CalculateIcon sx={{ fontSize: 17 }} />} label="Índices que o laudo não dá" sx={{ bgcolor: 'rgba(32,178,170,.12)', color: TEAL_DARK, fontWeight: 700, mb: 2, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: TEAL } }} />
-              <Typography variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>O laboratório <Box component="span" sx={{ ...SERIF_I, color: TEAL_DARK }}>mediu</Box>. Nós <Box component="span" sx={{ ...SERIF_I, color: TEAL_DARK }}>interpretamos</Box>.</Typography>
-              <Typography sx={{ color: 'text.secondary', fontSize: 17, maxWidth: 600, mx: 'auto' }}>Seu laudo traz os valores brutos. O Dr. Exame calcula os índices que importam — e mostra o valor <b style={{ color: 'text.primary' }}>ideal</b>, não só o de referência.</Typography>
+              <Typography variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em', fontFamily: 'Poppins, sans-serif' }}>
+                O laboratório <Box component="span" sx={{ ...SERIF_I, color: TEAL_DARK }}>mediu</Box>. Nós <Box component="span" sx={{ ...SERIF_I, color: TEAL_DARK }}>interpretamos</Box>.
+              </Typography>
+              <Typography sx={{ color: 'text.secondary', fontSize: 17, maxWidth: 640, mx: 'auto' }}>
+                Seu laudo traz apenas os números brutos. O Dr. Exame calcula os índices essenciais de saúde e mostra a meta <b>ideal</b> recomendada pelas diretrizes médicas.
+              </Typography>
             </Box>
           </Reveal>
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.1fr .9fr' }, gap: { xs: 4, md: 6 }, alignItems: 'center' }}>
-            {/* Tiles IMC/eGFR/HOMA-IR */}
-            <Box>
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2.5 }}>
-                {[
-                  { Icon: MonitorWeightIcon, n: 'IMC', v: '18,5 – 24,9', ideal: 'peso adequado', d: 'Relação peso/altura. Calculamos e dizemos sua faixa (OMS).' },
-                  { Icon: MedicalServicesIcon, n: 'eGFR', v: '> 90', ideal: 'função renal ideal', d: 'Filtração renal — a partir de creatinina, idade e sexo.' },
-                  { Icon: MonitorHeartIcon, n: 'HOMA-IR', v: '< 2,5', ideal: 'baixa resistência', d: 'Resistência insulínica — sinal precoce de pré-diabetes.' },
-                ].map((t, i) => (
-                  <Reveal key={t.n} delay={Math.min(i * 60, 240)}>
-                    <Box sx={{ p: 2.5, borderRadius: '12px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', height: '100%', transition: 'all .2s ease', '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 20px 44px rgba(15,61,58,.10)', borderColor: TEAL } }}>
-                      <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-                        <Box sx={{ width: 36, height: 36, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg,rgba(32,178,170,.14),rgba(32,178,170,.06))' }}><t.Icon sx={{ fontSize: 20, color: TEAL_DARK }} /></Box>
-                        <Typography sx={{ fontWeight: 800, fontSize: 17, color: 'text.primary' }}>{t.n}</Typography>
-                      </Stack>
-                      <Typography sx={{ fontSize: 22, fontWeight: 800, color: TEAL_DARK, lineHeight: 1, mb: 0.25 }}>{t.v}</Typography>
-                      <Typography sx={{ fontSize: 12, fontWeight: 700, color: GREEN, mb: 1 }}>{t.ideal}</Typography>
-                      <Typography sx={{ fontSize: 13, color: 'text.secondary', lineHeight: 1.5 }}>{t.d}</Typography>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(4, 1fr)' }, gap: 2.5 }}>
+            {[
+              { Icon: MonitorWeightIcon, n: 'IMC (Peso Ideal)', sub: 'Índice de Massa Corporal', v: '18,5 a 24,9', ideal: 'Faixa Saudável (OMS)', d: 'Calcula a relação peso e altura indicando a faixa recomendada de peso.' },
+              { Icon: MedicalServicesIcon, n: 'eGFR (Função Renal)', sub: 'Filtração dos Rins', v: '> 90 mL/min', ideal: 'Filtragem Ideal', d: 'Avalia a capacidade de filtragem dos rins com base na creatinina, idade e sexo.' },
+              { Icon: MonitorHeartIcon, n: 'HOMA-IR', sub: 'Resistência à Insulina', v: '< 2,5', ideal: 'Baixa Resistência', d: 'Detecta sinais precoces de pré-diabetes antes que a glicose no sangue se altere.' },
+              { Icon: ScienceIcon, n: 'LDL Ideal', sub: 'Colesterol Ruim Alvo', v: '< 100 mg/dL', ideal: 'Meta Preventiva', d: 'Compara seu colesterol ruim com a meta ideal recomendada pela Sociedade Brasileira de Cardiologia.' },
+            ].map((t, i) => (
+              <Reveal key={t.n} delay={Math.min(i * 60, 240)}>
+                <Box sx={{ p: 3, borderRadius: '20px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', height: '100%', transition: 'all .2s ease', '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 16px 36px rgba(32,178,170,.12)', borderColor: TEAL } }}>
+                  <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mb: 1.5 }}>
+                    <Box sx={{ width: 40, height: 40, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg,rgba(32,178,170,.14),rgba(32,178,170,.06))' }}>
+                      <t.Icon sx={{ fontSize: 22, color: TEAL_DARK }} />
                     </Box>
-                  </Reveal>
-                ))}
-              </Box>
-              <Reveal delay={120}>
-                <Typography sx={{ mt: 2, fontSize: 13, color: 'text.secondary' }}>+ Score de Saúde, tendência por marcador e valor ideal de cada item (ex.: LDL ideal &lt; 100, não só &lt; 130).</Typography>
+                    <Box>
+                      <Typography sx={{ fontWeight: 800, fontSize: 16, color: 'text.primary', fontFamily: 'Poppins, sans-serif', lineHeight: 1.2 }}>{t.n}</Typography>
+                      <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>{t.sub}</Typography>
+                    </Box>
+                  </Stack>
+                  <Typography sx={{ fontSize: 20, fontWeight: 800, color: TEAL_DARK, lineHeight: 1, mb: 0.5, fontFamily: 'Poppins, sans-serif' }}>{t.v}</Typography>
+                  <Typography sx={{ fontSize: 12, fontWeight: 800, color: GREEN, mb: 1.5 }}>{t.ideal}</Typography>
+                  <Typography sx={{ fontSize: 13.5, color: 'text.secondary', lineHeight: 1.5 }}>{t.d}</Typography>
+                </Box>
               </Reveal>
-            </Box>
-            {/* Calculadora IMC ao vivo */}
-            <Reveal delay={80}>
-              <BmiCard />
-            </Reveal>
+            ))}
           </Box>
         </Container>
       </Box>
@@ -1287,19 +1303,23 @@ export const LandingPage = () => {
         </Container>
       </Box>
 
-      {/* RODAPÉ */}
-      <Box sx={{ bgcolor: INK, color: '#9bc4c0', py: 5 }}>
+      {/* RODAPÉ — Obsidian Glass Premium */}
+      <Box sx={{
+        background: 'linear-gradient(180deg, #091c1b 0%, #051211 100%)',
+        color: '#9bc4c0', py: 6,
+        borderTop: '1px solid rgba(32,178,170,0.2)'
+      }}>
         <Container maxWidth="md" sx={{ textAlign: 'center' }}>
-          <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center" sx={{ mb: 1 }}>
-            <Box component="img" src={`${import.meta.env.BASE_URL}app-icon.png`} alt="Dr. Exame" sx={{ width: 30, height: 30, borderRadius: '16%' }} />
-            <Typography sx={{ fontWeight: 800, color: '#fff', fontSize: 18 }}>Meus Exames</Typography>
+          <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center" sx={{ mb: 1.5 }}>
+            <Box component="img" src={`${import.meta.env.BASE_URL}app-icon.png`} alt="Dr. Exame" sx={{ width: 34, height: 34, borderRadius: '20%', border: '1px solid rgba(32,178,170,0.3)' }} />
+            <Typography sx={{ fontWeight: 800, color: '#fff', fontSize: 19, fontFamily: 'Poppins, sans-serif' }}>Meus Exames</Typography>
           </Stack>
-          <Typography sx={{ fontSize: 13, mb: 1 }}>© {new Date().getFullYear()} janocaminho.com.br • contato@janocaminho.com.br</Typography>
-          <Typography sx={{ fontSize: 12, opacity: .8, mb: 2 }}>Edmilson Fernandes • CNPJ: 44.771.427/0001-69 • Análise educativa, não substitui consulta médica.</Typography>
-          {/* Links como <a> de verdade (auditoria a11y: eram divs clicáveis — sem teclado/foco/semântica) */}
-          <Stack direction="row" spacing={3} justifyContent="center" useFlexGap sx={{ flexWrap: 'wrap' }}>
+          <Typography sx={{ fontSize: 13.5, mb: 1, color: '#a0c4c0' }}>© {new Date().getFullYear()} janocaminho.com.br • contato@janocaminho.com.br</Typography>
+          <Typography sx={{ fontSize: 12, opacity: .75, mb: 3, maxWidth: 540, mx: 'auto', lineHeight: 1.5 }}>Edmilson Fernandes • CNPJ: 44.771.427/0001-69 • Análise educativa, não substitui consulta médica.</Typography>
+          {/* Links como <a> de verdade */}
+          <Stack direction="row" spacing={3} justifyContent="center" useFlexGap sx={{ flexWrap: 'wrap', rowGap: 1.25 }}>
             {[{ l: 'Portal do Médico', h: '#/doctor' }, { l: 'Como validamos', h: '#/como-validamos' }, { l: 'Dúvidas frequentes', h: '#/faq' }, { l: 'Termos e LGPD', h: '#/termos' }, { l: 'Criar conta', h: '#/registrar' }, { l: 'Entrar', h: '#/entrar' }].map((x) => (
-              <Box key={x.l} component="a" href={x.h} sx={{ color: '#5fc9c3', fontSize: 13, fontWeight: 700, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>{x.l}</Box>
+              <Box key={x.l} component="a" href={x.h} sx={{ color: '#5fc9c3', fontSize: 13.5, fontWeight: 700, textDecoration: 'none', transition: 'color .15s ease', '&:hover': { color: '#ffffff', textDecoration: 'underline' } }}>{x.l}</Box>
             ))}
           </Stack>
         </Container>
