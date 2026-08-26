@@ -263,108 +263,108 @@ export const ExamCreate = () => {
   const pct = progress ? (progress.done / progress.total) * 100 : 0;
 
   return (
-    <Box sx={{ maxWidth: 600, mx: 'auto' }}>
+    <Box sx={{ maxWidth: 600, mx: 'auto', pb: { xs: 10, sm: 5 }, px: { xs: 1, sm: 0 } }}>
       <Title title="Enviar exames" />
       {/* Cabeçalho */}
-      <Stack direction="row" alignItems="center" spacing={1.25} sx={{ mb: 2.5 }}>
-        <Box sx={{ width: 46, height: 46, borderRadius: '12px', background: 'linear-gradient(135deg,#20b2aa,#178f89)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 22px rgba(32,178,170,.30)' }}>
-          <UploadFileIcon sx={{ color: '#fff' }} />
+      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2.5 }}>
+        <Box sx={{ width: 48, height: 48, borderRadius: '16px', background: 'linear-gradient(135deg,#20b2aa,#178f89)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 24px rgba(32,178,170,.35)', flexShrink: 0 }}>
+          <UploadFileIcon sx={{ color: '#fff', fontSize: 26 }} />
         </Box>
         <Box>
-          <Typography variant="h6" sx={{ fontWeight: 800, lineHeight: 1.1 }}>Enviar exames</Typography>
-          <Typography variant="caption" color="text.secondary">PDF ou foto — a IA extrai os valores pra você.</Typography>
+          <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.2, fontFamily: 'Poppins, sans-serif' }}>Enviar exames</Typography>
+          <Typography variant="body2" color="text.secondary">PDF ou foto: a IA extrai os valores para você.</Typography>
         </Box>
       </Stack>
 
-      {/* BÔNUS DE 1º EXAME — só aparece pra quem ainda não tem nenhum exame. Incentivo direto:
-          envia o PDF → ganha créditos pra conversar com a IA / gerar relatório / perguntar ao médico. */}
+      {/* BÔNUS DE 1º EXAME */}
       {isFirstExam === true && (
         <Alert
           icon={false}
           sx={{
-            mb: 2.5, borderRadius: '12px', p: { xs: 1.5, sm: 2 }, alignItems: 'center',
-            bgcolor: 'rgba(32,178,170,.09)', border: '1px solid rgba(32,178,170,.28)',
+            mb: 2.5, borderRadius: '18px', p: { xs: 1.5, sm: 2 }, alignItems: 'center',
+            bgcolor: 'rgba(32,178,170,.09)', border: '1px solid rgba(32,178,170,.30)',
             '& .MuiAlert-message': { width: '100%' },
           }}
         >
           <Stack direction="row" spacing={1.5} alignItems="center">
-            <Box sx={{ fontSize: 30, lineHeight: 1 }}>🎁</Box>
+            <Box sx={{ fontSize: 32, lineHeight: 1 }}>🎁</Box>
             <Box sx={{ flex: 1 }}>
-              <Typography sx={{ fontWeight: 800, color: 'text.primary', fontSize: { xs: 15, sm: 16 }, lineHeight: 1.25 }}>
+              <Typography sx={{ fontWeight: 800, color: 'text.primary', fontSize: { xs: 15, sm: 16 }, lineHeight: 1.25, fontFamily: 'Poppins, sans-serif' }}>
                 Envie seu primeiro exame e ganhe <Box component="span" sx={{ color: '#178f89' }}>{firstBonus} créditos</Box>!
               </Typography>
               <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.25 }}>
-                Use pra conversar com a IA sobre seu exame, gerar relatório e tirar dúvidas com o médico. É de graça — só enviar o PDF. ✨
+                Use para conversar com a IA sobre seu exame, gerar relatório e tirar dúvidas com o médico. É de graça: só enviar o PDF. ✨
               </Typography>
             </Box>
           </Stack>
         </Alert>
       )}
 
-      <Card sx={{ borderRadius: '12px', border: '1px solid', borderColor: 'divider', boxShadow: '0 12px 32px rgba(15,61,58,.07)' }}>
-        <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2, textAlign: 'center' }}>Escolha como quer enviar seu exame</Typography>
+      <Card sx={{ borderRadius: '24px', border: '1px solid rgba(32,178,170,0.25)', boxShadow: '0 16px 40px rgba(32,178,170,.12)', bgcolor: 'rgba(255,255,255,0.96)', backdropFilter: 'blur(20px)' }}>
+        <CardContent sx={{ p: { xs: 2.5, sm: 3.5 } }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5, textAlign: 'center', fontWeight: 600 }}>Escolha como quer enviar seu exame</Typography>
 
-          <Box component="form" onSubmit={submit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {/* 2 CAMINHOS — Escanear (recomendado, mobile) + PDF/galeria. Leigo é guiado pro que lê melhor. */}
-            <Stack direction="row" spacing={1.5} sx={{ flexWrap: { xs: 'nowrap', sm: 'nowrap' } }}>
-              {/* Caminho 1: Escanear (ML Kit — ajusta borda/luz/nitido no aparelho → OCR limpo). Android only. */}
+          <Box component="form" onSubmit={submit} sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+            {/* 2 CAMINHOS — Escanear (recomendado, mobile) + PDF/galeria. */}
+            <Stack direction="row" spacing={2} sx={{ flexWrap: { xs: 'nowrap', sm: 'nowrap' } }}>
+              {/* Caminho 1: Escanear */}
               {isAndroid && (
                 <Box onClick={busy ? undefined : scanDocument} sx={{
-                  flex: 1, cursor: busy ? 'wait' : 'pointer', borderRadius: '12px', p: { xs: 2, sm: 2.5 }, textAlign: 'center',
-                  border: '2px solid #20b2aa', bgcolor: 'rgba(32,178,170,.07)', transition: 'all .15s', position: 'relative',
+                  flex: 1, cursor: busy ? 'wait' : 'pointer', borderRadius: '20px', p: { xs: 2, sm: 2.5 }, textAlign: 'center',
+                  border: '2px solid #20b2aa', bgcolor: 'rgba(32,178,170,.08)', transition: 'all .2s ease', position: 'relative',
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.75,
-                  '&:active': { transform: 'scale(.97)' }, '&:hover': { bgcolor: 'rgba(32,178,170,.12)' },
+                  '&:active': { transform: 'scale(.97)' }, '&:hover': { bgcolor: 'rgba(32,178,170,.15)', boxShadow: '0 8px 24px rgba(32,178,170,0.18)' },
                 }}>
-                  <Box sx={{ position: 'absolute', top: 6, right: 6, fontSize: 9, fontWeight: 800, color: '#fff', bgcolor: '#20b2aa', px: 0.6, py: 0.15, borderRadius: '999px' }}>RECOMENDADO</Box>
-                  <Box sx={{ fontSize: 36 }}>📷</Box>
-                  <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary' }}>Escanear</Typography>
-                  <Typography variant="caption" color="text.secondary">A câmera ajusta borda,<br />luz e nitido pra você ✨</Typography>
+                  <Box sx={{ position: 'absolute', top: 8, right: 8, fontSize: 9.5, fontWeight: 800, color: '#fff', bgcolor: '#20b2aa', px: 0.8, py: 0.2, borderRadius: '999px', letterSpacing: '0.04em' }}>RECOMENDADO</Box>
+                  <Box sx={{ fontSize: 38 }}>📷</Box>
+                  <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary', fontFamily: 'Poppins, sans-serif' }}>Escanear</Typography>
+                  <Typography variant="caption" color="text.secondary">A câmera ajusta borda,<br />luz e nitidez pra você ✨</Typography>
                 </Box>
               )}
               {/* Caminho 2: PDF (leitura perfeita) ou foto da galeria */}
               <Box component="label" sx={{
-                flex: 1, cursor: 'pointer', borderRadius: '12px', p: { xs: 2, sm: 2.5 }, textAlign: 'center',
-                border: '2px solid', borderColor: files.length ? '#20b2aa' : 'divider',
-                bgcolor: files.length ? 'rgba(32,178,170,.05)' : '#f8fafb', transition: 'all .15s',
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.75,
-                '&:active': { transform: 'scale(.97)' }, '&:hover': { borderColor: '#20b2aa', bgcolor: 'rgba(32,178,170,.05)' },
+                flex: 1, cursor: 'pointer', borderRadius: '20px', p: { xs: 2.5, sm: 3 }, textAlign: 'center',
+                border: files.length ? '2px solid #20b2aa' : '2px dashed rgba(32,178,170,0.35)',
+                bgcolor: files.length ? 'rgba(32,178,170,.08)' : 'rgba(32,178,170,.03)', transition: 'all .2s ease',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1,
+                '&:active': { transform: 'scale(.97)' }, '&:hover': { borderColor: '#20b2aa', bgcolor: 'rgba(32,178,170,.08)', boxShadow: '0 8px 24px rgba(32,178,170,0.12)' },
               }} onClick={(e) => { if (!ensureUploadConsent()) e.preventDefault(); }}>
                 <input type="file" hidden multiple accept=".pdf,.jpg,.jpeg,.png,image/*,application/pdf" onChange={(e) => { onPick(e.target.files); if (e.target) e.target.value = ''; }} />
-                <Box sx={{ fontSize: 36 }}>📄</Box>
-                <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary' }}>{files.length ? `${files.length} arquivo(s)` : 'PDF ou foto'}</Typography>
-                <Typography variant="caption" color="text.secondary">PDF tem leitura perfeita ·<br />foto da galeria: várias de uma vez</Typography>
+                <Box sx={{ fontSize: 40 }}>📄</Box>
+                <Typography sx={{ fontWeight: 800, fontSize: 16, color: 'text.primary', fontFamily: 'Poppins, sans-serif' }}>{files.length ? `${files.length} arquivo(s) selecionado(s)` : 'PDF ou foto'}</Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.4 }}>PDF tem leitura perfeita ·<br />foto da galeria: várias de uma vez</Typography>
               </Box>
             </Stack>
-            {/* Dica amigável pra leigo */}
-            <Box sx={{ px: 1.5, py: 1, borderRadius: '12px', bgcolor: 'rgba(32,178,170,.06)', border: '1px solid', borderColor: 'rgba(32,178,170,.18)' }}>
-              <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1.5 }}>
-                💡 <strong>Pro Dr. Exame ler direitinho:</strong> use <strong>Escanear</strong> (ajusta a foto pra você) ou envie um <strong>PDF</strong>. Evite foto escura, torta ou tremida.
+
+            {/* Dica amigável */}
+            <Box sx={{ px: 2, py: 1.25, borderRadius: '16px', bgcolor: 'rgba(32,178,170,.06)', border: '1px solid', borderColor: 'rgba(32,178,170,.22)' }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1.5, display: 'block' }}>
+                💡 <strong>Para o Dr. Exame ler perfeitamente:</strong> use <strong>Escanear</strong> (ajusta a foto pra você) ou envie um <strong>PDF</strong>. Evite fotos escuras ou desfocadas.
               </Typography>
             </Box>
 
             {/* Arquivos selecionados */}
             {files.length > 0 && (
               <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
-                {files.map((f, i) => (<Chip key={i} label={f.name} onDelete={() => setFiles(files.filter((_, j) => j !== i))} sx={{ borderRadius: '8px', maxWidth: '100%' }} />))}
+                {files.map((f, i) => (<Chip key={i} label={f.name} onDelete={() => setFiles(files.filter((_, j) => j !== i))} sx={{ borderRadius: '10px', maxWidth: '100%', fontWeight: 600 }} />))}
               </Stack>
             )}
 
-            <TextField label="Título (opcional)" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Hemograma — junho/2026" size="small" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />
+            <TextField label="Título (opcional)" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Hemograma - junho/2026" size="small" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '14px' } }} />
 
             {progress && (
-              <Box sx={{ bgcolor: 'background.default', p: 1.5, borderRadius: '12px' }}>
-                <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.primary', mb: 0.5 }}>Enviando {progress.done}/{progress.total}…</Typography>
-                <LinearProgress variant="determinate" value={pct} sx={{ height: 8, borderRadius: '999px', bgcolor: 'action.hover', '& .MuiLinearProgress-bar': { borderRadius: '999px' } }} />
+              <Box sx={{ bgcolor: 'background.default', p: 2, borderRadius: '16px' }}>
+                <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.primary', mb: 0.75 }}>Enviando {progress.done}/{progress.total}…</Typography>
+                <LinearProgress variant="determinate" value={pct} sx={{ height: 10, borderRadius: '999px', bgcolor: 'action.hover', '& .MuiLinearProgress-bar': { borderRadius: '999px', bgcolor: '#20b2aa' } }} />
                 {progress.errors.map((er, i) => <Typography key={i} variant="caption" color="error" sx={{ display: 'block', mt: 0.5 }}>⚠ {er}</Typography>)}
               </Box>
             )}
 
-            {/* ÚNICO botão primário — não compete com os caminhos */}
-            <Button type="submit" variant="contained" size="large" fullWidth disabled={busy || !files.length} sx={{ borderRadius: '999px', py: 1.3, textTransform: 'none', fontWeight: 800, fontSize: 15, bgcolor: '#20b2aa', boxShadow: '0 8px 22px rgba(32,178,170,.25)', '&:hover': { bgcolor: '#178f89' }, '&.Mui-disabled': { bgcolor: 'action.disabledBackground' } }}>
-              {busy ? 'Enviando…' : `Enviar ${files.length || ''} e extrair com IA →`}
+            {/* ÚNICO botão primário */}
+            <Button type="submit" variant="contained" size="large" fullWidth disabled={busy || !files.length} sx={{ borderRadius: '999px', py: 1.5, textTransform: 'none', fontWeight: 800, fontSize: 16, bgcolor: '#20b2aa', color: '#ffffff', boxShadow: '0 10px 28px rgba(32,178,170,.35)', '&:hover': { bgcolor: '#178f89' }, '&.Mui-disabled': { bgcolor: 'action.disabledBackground', color: 'text.disabled' } }}>
+              {busy ? 'Enviando…' : `Enviar ${files.length ? files.length + ' arquivo(s)' : ''} e extrair com IA →`}
             </Button>
-            <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
+            <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', mt: 0.5, fontWeight: 600 }}>
               📤 <strong>1 crédito</strong> por envio (grátis) · <strong>Premium</strong>: 6 envios grátis/mês
             </Typography>
           </Box>
