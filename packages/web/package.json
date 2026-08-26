@@ -7,7 +7,7 @@
     "dev": "node ../../scripts/generate-build-info.mjs && vite",
     "build": "node ../../scripts/generate-build-info.mjs && vite build",
     "preview": "vite preview",
-    "typecheck": "node ../../scripts/generate-build-info.mjs && tsc --noEmit",
+    "typecheck": "tsc --noEmit --incremental",
     "test": "vitest run"
   },
   "dependencies": {
@@ -28,6 +28,7 @@
     "@meus-exames/shared": "*",
     "@mui/icons-material": "^7.0.0",
     "@mui/material": "^7.0.0",
+    "@phosphor-icons/react": "^2.1.10",
     "@react-oauth/google": "^0.13.5",
     "@sentry/react": "^10.59.0",
     "qrcode": "^1.5.4",

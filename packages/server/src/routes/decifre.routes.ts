@@ -5,6 +5,8 @@ import { getLlm, getModel } from '../llm';
 import { extractJsonObject } from '../utils/json';
 import { prisma } from '../prisma';
 import { sendEmail } from '../utils/mailer';
+import { upload } from '../middleware/upload';
+import { pdfToText } from '../extraction/pdfToText';
 
 /**
  * "Decifre seu exame" — ferramenta PÚBLICA da landing (topo de funil): o visitante cola o
@@ -75,11 +77,24 @@ export function toPublicItems(raw: any): { name: string; value: number; unit: st
   return out;
 }
 
-router.post('/', decifreLimiter, async (req, res, next) => {
+// multipart: PDF (o fluxo real do app) OU JSON {texto} — o limiter conta os dois.
+router.post('/', decifreLimiter, upload.single('file'), async (req, res, next) => {
   try {
-    const texto = String(req.body?.texto ?? '').trim();
-    if (texto.length < 20) { res.status(400).json({ error: 'Cole o resultado do exame (texto muito curto).' }); return; }
-    if (texto.length > MAX_CHARS) { res.status(400).json({ error: `Texto muito longo (máx. ${MAX_CHARS} caracteres). Cole um exame por vez.` }); return; }
+    let texto = String(req.body?.texto ?? '').trim();
+    if (req.file) {
+      if (req.file.mimetype !== 'application/pdf') { res.status(400).json({ error: 'Envie um PDF (foto fica pro app, com conta).' }); return; }
+      if (req.file.size > 8 * 1024 * 1024) { res.status(400).json({ error: 'PDF muito grande (máx. 8 MB).' }); return; }
+      texto = (await pdfToText(req.file.buffer)).trim(); // poppler, igual ao pipeline
+    }
+    if (texto.length < 20) { res.status(400).json({ error: 'Não conseguimos ler texto aí — cole o resultado ou envie o PDF do laboratório.' }); return; }
+    // Caps por origem: PDF de lab real passa fácil de 4k (cabeçalho, rodapé, múltiplas páginas)
+    // → trunca em 30k e decifra o que importa. Texto colado: rejeita (usuário colou demais).
+    if (req.file) {
+      texto = texto.slice(0, 30_000);
+    } else if (texto.length > MAX_CHARS) {
+      res.status(400).json({ error: `Texto muito longo (máx. ${MAX_CHARS} caracteres). Cole um exame por vez — ou envie o PDF.` });
+      return;
+    }
 
     // Cache: mesmo texto (erros de digitação à parte) não paga IA de novo.
     const hash = createHash('sha256').update(texto).digest('hex');
