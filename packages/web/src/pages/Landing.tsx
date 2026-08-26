@@ -532,59 +532,34 @@ export const LandingPage = () => {
         )}
       </Container>
 
-      {/* SHOWCASE — Veja na prática (mockups reais) */}
-      <Box sx={{ bgcolor: 'background.paper', borderTop: '1px solid', borderBottom: '1px solid', borderColor: 'divider', py: { xs: 8, md: 11 } }}>
+      {/* SHOWCASE — Veja na prática (mockups reais da plataforma em slides WebP leve) */}
+      <Box sx={{ bgcolor: 'background.paper', borderTop: '1px solid', borderBottom: '1px solid', borderColor: 'divider', py: { xs: 7, md: 9 } }}>
         <Container maxWidth="lg">
           <Typography align="center" variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>
             Veja na prática
           </Typography>
-          <Typography align="center" sx={{ color: 'text.secondary', fontSize: 17, mb: 6, maxWidth: 600, mx: 'auto' }}>
-            Um passeio pela plataforma — do upload do exame ao relatório com IA. Passe o mouse pra pausar.
+          <Typography align="center" sx={{ color: 'text.secondary', fontSize: 17, mb: 4.5, maxWidth: 600, mx: 'auto' }}>
+            Um passeio interativo pela plataforma — do upload do exame ao relatório com IA.
           </Typography>
 
-          {/* Disclosure nível 1: vídeo OU slides (pílulas no mesmo idioma do filtro de
-              categorias — affordance óbvia). Antes eram dois blocos de mídia empilhados. */}
-          <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', justifyContent: 'center', mb: 4, rowGap: 1 }}>
-            {([['video', '▶ Tour em vídeo'], ['slides', '📸 Slides da plataforma']] as const).map(([k, l]) => (
-              <Box
-                key={k}
-                component="button"
-                onClick={() => setShowTour(k)}
-                sx={{
-                  px: 2, py: 0.85, borderRadius: '999px', cursor: 'pointer', fontSize: 14, fontWeight: 700, textTransform: 'none',
-                  border: '1px solid', borderColor: showTour === k ? TEAL : 'divider',
-                  bgcolor: showTour === k ? TEAL : 'background.default',
-                  color: showTour === k ? '#fff' : 'text.secondary',
-                  transition: 'all .15s ease',
-                  '&:hover': { borderColor: TEAL, color: showTour === k ? '#fff' : TEAL_DARK },
-                }}
-              >{l}</Box>
-            ))}
-          </Stack>
-          {showTour === 'video' ? (
-            /* Tour em vídeo (YouTube embed) — leitura completa da plataforma */
-            <Box sx={{ maxWidth: 880, mx: 'auto', width: '100%' }}>
-              <Box sx={{
-                position: 'relative', width: '100%', aspectRatio: '16 / 9',
-                borderRadius: '12px', overflow: 'hidden',
-                border: '1px solid rgba(32,178,170,.25)',
-                boxShadow: '0 30px 60px rgba(32,178,170,.20), 0 12px 26px rgba(0,0,0,.10)',
-              }}>
-                <Box
-                  component="iframe"
-                  src={TOUR_VIDEO_SRC}
-                  title="Dr. Exame — tour pela plataforma"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                  loading="lazy"
-                  sx={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }}
-                />
-              </Box>
-            </Box>
-          ) : (
-            <SlideCarousel />
-          )}
+          {/* Carrossel de Slides em WebP (super leve e fluido) */}
+          <SlideCarousel />
 
+          {/* Botão sutil para acionar o Tour em Vídeo via Pop-up sem poluir o layout */}
+          <Box sx={{ textAlign: 'center', mt: 3.5 }}>
+            <Button
+              onClick={() => setTourOpen(true)}
+              startIcon={<PlayArrowIcon sx={{ fontSize: 19 }} />}
+              sx={{
+                borderRadius: '999px', px: 3, py: 1, fontSize: 14, fontWeight: 700,
+                color: TEAL_DARK, border: '1px solid rgba(32,178,170,0.3)',
+                bgcolor: 'rgba(32,178,170,0.06)', textTransform: 'none',
+                '&:hover': { bgcolor: 'rgba(32,178,170,0.14)', borderColor: TEAL_DARK }
+              }}
+            >
+              Assistir Tour Completo em Vídeo
+            </Button>
+          </Box>
         </Container>
       </Box>
 
