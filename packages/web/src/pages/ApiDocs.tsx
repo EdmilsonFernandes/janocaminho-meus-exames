@@ -127,8 +127,9 @@ export const ApiDocsPage = () => {
             <Typography sx={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, color: 'text.secondary', mb: 1 }}>NESTA PÁGINA</Typography>
             <Stack spacing={0.5}>
               {SECTIONS.map((s) => (
-                <Box key={s.id} component="a" href={`#${s.id}`}
-                  sx={{ display: 'block', py: 0.6, px: 1.5, borderRadius: '8px', textDecoration: 'none', fontSize: 13, fontWeight: active === s.id ? 800 : 600, color: active === s.id ? '#178f89' : 'text.secondary', bgcolor: active === s.id ? 'rgba(32,178,170,.10)' : 'transparent', borderLeft: active === s.id ? '3px solid #20b2aa' : '3px solid transparent', '&:hover': { bgcolor: 'rgba(32,178,170,.06)' } }}>
+                <Box key={s.id} component="button"
+                  onClick={() => { document.getElementById(s.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); setActive(s.id); }}
+                  sx={{ display: 'block', textAlign: 'left', py: 0.6, px: 1.5, borderRadius: '8px', border: 'none', bgcolor: 'transparent', cursor: 'pointer', fontSize: 13, fontWeight: active === s.id ? 800 : 600, color: active === s.id ? '#178f89' : 'text.secondary', ...(active === s.id ? { bgcolor: 'rgba(32,178,170,.10)' } : {}), borderLeft: active === s.id ? '3px solid #20b2aa' : '3px solid transparent', '&:hover': { bgcolor: 'rgba(32,178,170,.06)' } }}>
                   {s.label}
                 </Box>
               ))}
