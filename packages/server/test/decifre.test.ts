@@ -11,6 +11,7 @@ import { api, resetDb } from './helpers';
  */
 const calls = vi.hoisted(() => ({ count: 0 }));
 vi.mock('../src/llm', () => ({
+  getModel: () => 'mock-model', // a rota resolve o modelo ativo — no mock, tanto faz
   getLlm: () => ({
     name: 'mock',
     complete: async () => {
