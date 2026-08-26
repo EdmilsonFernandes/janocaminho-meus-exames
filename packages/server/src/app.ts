@@ -201,6 +201,7 @@ const swaggerMobileCss = `
     .swagger-ui .btn { padding: 4px 10px; font-size: 12px; }
   }
 `;
+app.use('/api/public/v1', publicApiRoutes);
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup({ ...openapiSpec }, { customCss: swaggerMobileCss }));
 app.use('/api/admin/pharmacies', pharmacyRoutes);
 app.use('/api/risk', riskRoutes);
