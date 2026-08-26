@@ -1,4 +1,4 @@
-import { Card, CardContent, Typography, Box, IconButton } from '@mui/material';
+import { Card, CardContent, Typography, Box, IconButton, Stack } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import ScienceIcon from '@mui/icons-material/Science';
 import ImageIcon from '@mui/icons-material/Image';
@@ -113,9 +113,21 @@ export const ExamCard = ({ exam, onOpen, onOpenPdf }: { exam: any; onOpen: (id: 
               🩺 Dr. {doctorInfo.text}
             </Typography>
           )}
-          <Typography variant="caption" color="text.secondary">
-            {cc.cat}{abnormalCount ? ` • ${abnormalCount} alterado(s)` : ''}
-          </Typography>
+          {/* Bolinhas de severidade (mesmo padrão do app do paciente): alterado = laranja
+              com halo, normal = ponto discreto. Visual antes de ler — triagem 1-glance. */}
+          <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.25 }}>
+            {abnormalCount > 0 && (
+              <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.35, px: 0.75, py: 0.15, borderRadius: '999px', bgcolor: 'rgba(234,88,12,.10)', border: '1px solid rgba(234,88,12,.18)' }}>
+                <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#fb923c', flexShrink: 0 }} />
+                <Typography component="span" sx={{ fontSize: '0.72rem', fontWeight: 700, color: '#c2410c', lineHeight: 1 }}>
+                  {abnormalCount} alterado{abnormalCount > 1 ? 's' : ''}
+                </Typography>
+              </Box>
+            )}
+            <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.4 }}>
+              {cc.cat}
+            </Typography>
+          </Stack>
         </Box>
 
         {onOpenPdf && (

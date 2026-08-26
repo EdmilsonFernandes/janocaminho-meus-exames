@@ -47,7 +47,7 @@ export const TrendsChart = ({ ts, action }: { ts: TS; action?: React.ReactNode }
   const refMerged = distinctRanges.size > 1;
 
   const data = (ts.points ?? []).map((p) => ({
-    name: p.performedAt ? new Date(p.performedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }) : 's/d',
+    name: p.performedAt ? new Date(p.performedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: isMobile ? '2-digit' : 'numeric' }) : 's/d',
     valor: p.valueNumeric, flag: p.flag, title: p.title,
   }));
 
@@ -157,7 +157,7 @@ export const TrendsChart = ({ ts, action }: { ts: TS; action?: React.ReactNode }
       <ResponsiveContainer width="100%" height={isMobile ? 240 : 340}>
         <LineChart data={data} margin={{ top: 10, right: isMobile ? 12 : 20, bottom: 10, left: isMobile ? 0 : 4 }}>
           <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
-          <XAxis dataKey="name" interval="preserveStartEnd" minTickGap={16} tick={{ fontSize: isMobile ? 9.5 : 11, fill: theme.palette.text.secondary }} axisLine={{ stroke: theme.palette.divider }} />
+          <XAxis dataKey="name" minTickGap={isMobile ? 24 : 40} tick={{ fontSize: isMobile ? 9.5 : 11, fill: theme.palette.text.secondary }} axisLine={{ stroke: theme.palette.divider }} />
           {/* Domínio EXPLÍCITO inclui a faixa de referência: sem isto o recharts 3.x usa
               [dataMin,dataMax] e DESCARTA o ReferenceArea que ultrapasse os dados (a banda
               verde simplesmente não renderizava — ex.: Plaquetas 116–238k vs faixa até 450k). */}
@@ -175,7 +175,27 @@ export const TrendsChart = ({ ts, action }: { ts: TS; action?: React.ReactNode }
                vê o quão longe da faixa o valor está (comportamento Apple Health). */
             <ReferenceArea y1={uniLow} y2={uniHigh} fill={theme.palette.success.main} fillOpacity={0.08} ifOverflow="extendDomain" />
           )}
-          <Line type="monotone" dataKey="valor" stroke={tealMain} strokeWidth={3} dot={{ r: 5, fill: tealMain, strokeWidth: 0 }} activeDot={{ r: 8, stroke: theme.palette.background.paper, strokeWidth: 2 }} />
+          {/* Dots COLORIDOS por flag (bolinhas dos alterados): HIGH=laranja, LOW=azul, normal=teal.
+              O paciente vê a alteração ANTES de ler o número — mesmo padrão do app. */}
+          <Line
+            type="monotone" dataKey="valor" stroke={tealMain} strokeWidth={3}
+            dot={(props: any) => {
+              const { cx, cy, payload } = props;
+              if (cx == null || cy == null || !payload) return <g key={props.key} />;
+              const flag = payload.flag as string;
+              const isHigh = flag === 'HIGH' || (uniHigh != null && payload.valor > uniHigh);
+              const isLow = flag === 'LOW' || (uniLow != null && payload.valor < uniLow);
+              const color = isHigh ? '#fb923c' : isLow ? '#60a5fa' : tealMain;
+              const r = isHigh || isLow ? 6 : 4.5; // alterados = maiores (destaque visual)
+              return (
+                <g key={props.key}>
+                  {(isHigh || isLow) && <circle cx={cx} cy={cy} r={r + 3} fill={color} fillOpacity={0.18} />}
+                  <circle cx={cx} cy={cy} r={r} fill={color} stroke={theme.palette.background.paper} strokeWidth={1.5} />
+                </g>
+              );
+            }}
+            activeDot={{ r: 8, stroke: theme.palette.background.paper, strokeWidth: 2 }}
+          />
         </LineChart>
       </ResponsiveContainer>
 
