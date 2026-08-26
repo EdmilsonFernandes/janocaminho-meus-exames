@@ -16,16 +16,16 @@ import 'dotenv/config'; // script standalone: carrega SMTP_* do .env (o server f
 import { sendEmail } from '../src/utils/mailer';
 
 const BCC_DONO = 'edmls2008@gmail.com'; // cópia oculta de tudo (registro)
-const VIDEO = 'https://www.youtube.com/watch?v=jyHezElJyjA'; // tour de 40s do app
-const PLAY = 'https://play.google.com/store/apps/details?id=com.janocaminho.drexame&hl=pt_BR';
+// Sem links clicáveis de propósito (pedido do dono): URL escrita por extenso passa
+// mais confiança em e-mail frio do que hyperlink (que lembra phishing).
 const PRINTS = path.resolve(__dirname, '../../../marketing/emails-parceria/prints');
 
 const SIGN = `
 <p style="margin:24px 0 0">Abraço,<br>
 <b>Edmilson Fernandes</b> — fundador, Meus Exames / Dr. Exame<br>
-🌐 <a href="https://drexame.janocaminho.com.br">Site</a> ·
-▶ <a href="${VIDEO}">Tour de 40s (vídeo)</a> ·
-🤖 <a href="${PLAY}">Google Play — "Meus Exames"</a></p>
+<span style="color:#555">Site: drexame.janocaminho.com.br<br>
+Tour de 40s: youtube.com/watch?v=jyHezElJyjA<br>
+App (Google Play): pesquise "Meus Exames"</span></p>
 <p style="color:#999;font-size:11px;margin-top:16px">P.S.: consegui este e-mail no site de vocês (página de contato).<br>
 Não quer mais receber prospecção? Responda "remover".</p>`;
 
@@ -41,8 +41,8 @@ ${LI([
   '<b>Remédio contínuo = compra recorrente</b>: quem toma todo mês, compra todo mês. Não é clique de anúncio — é intenção real;',
   '<b>O exame traz o paciente de volta todo mês</b> (novo resultado → volta ao app → vê o card do remédio de novo).',
 ])}
-${P('<b>O que proponho conversar:</b> (1) CPS/CPA direto — comissão por venda originada no app, sem intermediário; (2) posição destacada no comparador + cupom exclusivo Dr. Exame; (3) tudo mensurável desde o dia 1 (UTM).')}
-${P('Topa 20 minutos de call essa ou próxima semana?')}
+${P('<b>Se fizer sentido, o caminho natural:</b> (1) CPS/CPA direto — comissão por venda originada no app, sem intermediário; (2) posição destacada no comparador + cupom exclusivo Dr. Exame; (3) tudo mensurável desde o dia 1 (UTM).')}
+${P('Não estou propondo reunião — <b>conheçam primeiro</b>: o tour de 40s e o site mostram o produto inteiro (o comparador está na seção "Economize nos seus remédios"). Gostando do que vir, é só responder este e-mail que eu explico o resto por aqui mesmo.')}
 ${SIGN}`;
 
 const apiHtml = (nome: string, introLabs: boolean) => `
@@ -57,10 +57,10 @@ ${LI([
   '<code>POST /exams/extract</code> — <b>laudo em PDF → JSON estruturado</b> com IA;',
   '<code>POST /exams/interpret</code> — valor × faixa → rótulo com grau (determinístico).',
 ])}
-${P('Tudo documentado em português, com curl copiável: <a href="https://drexame.janocaminho.com.br/api/docs">drexame.janocaminho.com.br/api/docs</a> — a aprovação de acesso vem com <b>25 chamadas grátis</b>.')}
+${P('Tudo documentado em português, com curl copiável — a documentação fica em <b>drexame.janocaminho.com.br/api/docs</b> (pode digitar na mão), e a aprovação de acesso vem com <b>25 chamadas grátis</b>: dá pra testar de verdade sem falar com ninguém.')}
 ${introLabs
-  ? P('Se fizer sentido pros laboratórios associados, rodo 5 laudos de exemplo hoje — é mandar um PDF anonimizado. Podemos divulgar juntos?')
-  : P('Se fizer sentido, monto uma chave de teste hoje. 15 minutos essa semana?')}
+  ? P('Se fizer sentido pros laboratórios associados, me respondem — rodo 5 laudos de exemplo na hora que pedirem (é mandar um PDF anonimizado).')
+  : P('Testem com calma. Se rolar, me respondem que eu monto a chave de teste na hora.')}
 ${SIGN}`;
 
 const afiliadosHtml = () => `

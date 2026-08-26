@@ -26,7 +26,7 @@ Tudo documentado em português, com curl copiável:
 **drexame.janocaminho.com.br/api/docs** — e a aprovação de acesso vem com
 **25 chamadas grátis** pra testar de verdade.
 
-Se fizer sentido, monto uma chave de teste pro {{empresa}} hoje. 15 minutos essa semana?
+Testem com calma (digitando o endereço na mão). Se rolar, me respondem que monto a chave de teste na hora.
 
 **Edmilson Fernandes** — fundador, Meus Exames / Dr. Exame
 📞 {{whatsapp}} · drexame.janocaminho.com.br/api/docs
@@ -45,7 +45,7 @@ usado em produção no app Dr. Exame. Aberto como API: manda o PDF, recebe os da
 (≈ R$ 0,40/laudo, sem setup). **25 chamadas grátis** na aprovação:
 **drexame.janocaminho.com.br/api/docs** (endpoint `/exams/extract`).
 
-Posso rodar 5 dos seus laudos de exemplo hoje — manda um PDF anonimizado?
+Se fizer sentido, me respondem — rodo 5 laudos de exemplo na hora que pedirem (é mandar um PDF anonimizado).
 
 **Edmilson Fernandes** — fundador, Meus Exames / Dr. Exame
 📞 {{whatsapp}}
@@ -58,5 +58,5 @@ Posso rodar 5 dos seus laudos de exemplo hoje — manda um PDF anonimizado?
 > em 2 min. Segue?
 
 **Follow-up 2 (D+8):**
-> Fico por aqui — deixo o link da doc salva: drexame.janocaminho.com.br/api/docs.
+> Fico por aqui — a documentação continua em drexame.janocaminho.com.br/api/docs (digite na mão).
 > Quando aparecer a necessidade (preço de remédio ou laudo digital), me chama direto.

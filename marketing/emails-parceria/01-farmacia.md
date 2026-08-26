@@ -25,15 +25,16 @@ online** com foto do produto e link direto pra loja.
 - **O exame traz o paciente de volta todo mês** (novo resultado → volta ao app → vê o
   card do remédio de novo) — o ciclo completo de saúde alimenta o ciclo de compra.
 
-**O que proponho conversar:**
+**Se fizer sentido, o caminho natural:**
 1. **CPS/CPA direto** — comissão por venda originada no app (sem intermediário);
 2. **Posição destacada** no comparador + cupom exclusivo Dr. Exame;
 3. Tudo mensurável desde o dia 1 (links com UTM).
 
-Conferem o produto na hora: **drexame.janocaminho.com.br** (o comparador está na seção
-"Economize nos seus remédios") e nossa API pública em **drexame.janocaminho.com.br/api/docs**.
-
-Topa 20 minutos de call essa ou próxima semana?
+**Não estou propondo reunião — conheçam primeiro.** O produto inteiro está no
+**drexame.janocaminho.com.br** (o comparador é a seção "Economize nos seus remédios"),
+o tour de 40s está no YouTube (**youtube.com/watch?v=jyHezElJyjA**) e o app na Google
+Play (**pesquise "Meus Exames"**). Digitando na mão vocês conferem tudo — sem clicar em
+nada que eu mandei. Gostando do que vir, é só responder este e-mail.
 
 **Edmilson Fernandes** — fundador, Meus Exames / Dr. Exame
 📞 {{whatsapp}} · drexame.janocaminho.com.br · Google Play: "Meus Exames"
@@ -43,9 +44,9 @@ Topa 20 minutos de call essa ou próxima semana?
 ---
 
 **Follow-up 1 (D+3, mesmo thread):**
-> Passando rápido: fiz um mock de como a {{empresa}} aparece hoje no comparador (print
-> em anexo). O tráfego existe — quero só formalizar quem converte melhor. Vale meia
-> hora?
+> Passando rápido: o print em anexo mostra como a {{empresa}} aparece hoje no comparador.
+> Deu uma olhada no site? O tráfego existe — quero só formalizar quem converte melhor.
+> Qualquer dúvida respondo por aqui mesmo.
 
 **Follow-up 2 (D+8, fecha a porta sem queimar):**
 > Última tentativa antes de deixar quieto 😄 — se o timing não é agora, me diz pra quem
