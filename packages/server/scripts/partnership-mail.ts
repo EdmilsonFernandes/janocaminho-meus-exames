@@ -17,14 +17,15 @@ import { sendEmail } from '../src/utils/mailer';
 
 const BCC_DONO = 'edmls2008@gmail.com'; // cópia oculta de tudo (registro)
 const VIDEO = 'https://www.youtube.com/watch?v=jyHezElJyjA'; // tour de 40s do app
+const PLAY = 'https://play.google.com/store/apps/details?id=com.janocaminho.drexame&hl=pt_BR';
 const PRINTS = path.resolve(__dirname, '../../../marketing/emails-parceria/prints');
 
 const SIGN = `
 <p style="margin:24px 0 0">Abraço,<br>
 <b>Edmilson Fernandes</b> — fundador, Meus Exames / Dr. Exame<br>
-🌐 <a href="https://drexame.janocaminho.com.br">drexame.janocaminho.com.br</a> ·
+🌐 <a href="https://drexame.janocaminho.com.br">Site</a> ·
 ▶ <a href="${VIDEO}">Tour de 40s (vídeo)</a> ·
-🤖 Google Play: "Meus Exames"</p>
+🤖 <a href="${PLAY}">Google Play — "Meus Exames"</a></p>
 <p style="color:#999;font-size:11px;margin-top:16px">P.S.: consegui este e-mail no site de vocês (página de contato).<br>
 Não quer mais receber prospecção? Responda "remover".</p>`;
 
