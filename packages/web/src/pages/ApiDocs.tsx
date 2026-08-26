@@ -20,8 +20,11 @@ const SECTIONS = [
   { id: 'autenticacao', label: 'Autenticação' },
   { id: 'limites', label: 'Limites e erros' },
   { id: 'endpoint-meds', label: 'GET /meds' },
+  { id: 'endpoint-normalize', label: 'POST /meds/normalize' },
   { id: 'endpoint-prices', label: 'GET /meds/prices' },
   { id: 'endpoint-interactions', label: 'GET /meds/interactions' },
+  { id: 'endpoint-extract', label: 'POST /exams/extract' },
+  { id: 'endpoint-interpret', label: 'POST /exams/interpret' },
   { id: 'pacotes', label: 'Pacotes e preços' },
 ] as const;
 
@@ -63,15 +66,15 @@ const Method = ({ m, path }: { m: string; path: string }) => (
   </Stack>
 );
 
-const EndpointDoc = ({ id, title, desc, method, path, params, curl, response }: { id: string; title: string; desc: string; method: string; path: string; params: [string, string, string][]; curl: string; response: string }) => (
+const EndpointDoc = ({ id, title, desc, method, path, params, paramsLabel, curl, curlLabel = 'Exemplo', response }: { id: string; title: string; desc: string; method: string; path: string; params: [string, string, string][]; paramsLabel?: string; curl: string; curlLabel?: string; response: string }) => (
   <Card id={id} variant="outlined" sx={{ borderRadius: '14px', mb: 2.5, scrollMarginTop: 90 }}>
     <CardContent sx={{ p: { xs: 2, md: 3 } }}>
       <Typography sx={{ fontWeight: 800, fontSize: 17, mb: 0.75 }}>{title}</Typography>
       <Typography color="text.secondary" sx={{ fontSize: 14, mb: 1.5, lineHeight: 1.6 }}>{desc}</Typography>
       <Method m={method} path={path} />
-      <Typography sx={{ fontWeight: 800, fontSize: 12.5, mt: 2, mb: 0.5 }}>Parâmetros (query)</Typography>
+      <Typography sx={{ fontWeight: 800, fontSize: 12.5, mt: 2, mb: 0.5 }}>{paramsLabel ?? 'Parâmetros (query)'}</Typography>
       <Params rows={params} />
-      <Typography sx={{ fontWeight: 800, fontSize: 12.5, mt: 2, mb: 0.5 }}>Exemplo</Typography>
+      <Typography sx={{ fontWeight: 800, fontSize: 12.5, mt: 2, mb: 0.5 }}>{curlLabel}</Typography>
       <Code lang="bash">{curl}</Code>
       <Typography sx={{ fontWeight: 800, fontSize: 12.5, mt: 1.5, mb: 0.5 }}>Resposta 200</Typography>
       <Code lang="json">{response}</Code>
@@ -109,15 +112,21 @@ export const ApiDocsPage = () => {
               <ApiIcon sx={{ fontSize: 30 }} />
             </Box>
             <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 20, md: 25 }, lineHeight: 1.15 }}>API do Dr. Exame · v1</Typography>
+              <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 20, md: 25 }, lineHeight: 1.15 }}>API do Dr. Exame · v1.2</Typography>
               <Typography sx={{ fontSize: 13.5, opacity: 0.9, mt: 0.5 }}>
-                Preço real de medicamentos em farmácias brasileiras + interações D/X. Feito pra devs, documentado pra humanos.
+                Preço real de medicamentos em farmácias brasileiras + interações D/X + motores de laudo (extração e interpretação). Feito pra devs, documentado pra humanos.
               </Typography>
             </Box>
-            <Button component="a" href="/api/docs" target="_blank" rel="noopener noreferrer" startIcon={<TerminalIcon />}
-              sx={{ flexShrink: 0, borderRadius: '999px', px: { xs: 2, sm: 3 }, textTransform: 'none', fontWeight: 800, bgcolor: '#fff', color: '#178f89', '&:hover': { bgcolor: '#f0fafa' }, boxShadow: '0 10px 24px rgba(0,0,0,.18)' }}>
-              Console interativo
-            </Button>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ flexShrink: 0 }}>
+              <Button onClick={() => navigate('/')}
+                sx={{ borderRadius: '999px', px: 2.5, textTransform: 'none', fontWeight: 700, color: '#fff', borderColor: 'rgba(255,255,255,.45)', '&:hover': { bgcolor: 'rgba(255,255,255,.12)', borderColor: 'rgba(255,255,255,.7)' } }} variant="outlined">
+                ← Início
+              </Button>
+              <Button component="a" href="/api/docs" target="_blank" rel="noopener noreferrer" startIcon={<TerminalIcon />}
+                sx={{ borderRadius: '999px', px: { xs: 2, sm: 3 }, textTransform: 'none', fontWeight: 800, bgcolor: '#fff', color: '#178f89', '&:hover': { bgcolor: '#f0fafa' }, boxShadow: '0 10px 24px rgba(0,0,0,.18)' }}>
+                Console interativo
+              </Button>
+            </Stack>
           </Stack>
         </Box>
 
@@ -274,17 +283,97 @@ export const ApiDocsPage = () => {
 }`}
             />
 
+            <EndpointDoc
+              id="endpoint-normalize"
+              title="Normalizar nome de medicamento"
+              desc={'O usuário digita de qualquer jeito — "Dorflex 10cp", linha de receita, "levotirox 75". Este endpoint devolve a chave canônica (princípio ativo + dose + forma + embalagem), resolvendo marca → genérico (Levoid → Levotiroxina). É a mesma chave que os endpoints de preço usam: normalize e compare no mesmo fôlego.'}
+              method="POST" path="/meds/normalize"
+              paramsLabel="Corpo (JSON)"
+              params={[
+                ['text', 'string · obrigatório', 'Texto livre como veio do usuário. Ex.: "Dorflex Analgésico e Relaxante Muscular 10 comprimidos".'],
+                ['packQty', 'number · opcional', 'Embalagem conhecida (senão o parser infere do texto).'],
+                ['includePrices', 'boolean · opcional', 'true = inclui o melhor preço cacheado do ingrediente na resposta.'],
+              ]}
+              curl={`curl -X POST "${BASE}/meds/normalize" \\\n  -H "x-api-key: dxk_live_sua_chave_aqui" \\\n  -H "Content-Type: application/json" \\\n  -d '{"text":"Levoid 75mcg","includePrices":true}'`}
+              response={`{
+  "input": "Levoid 75mcg",
+  "brandResolved": { "from": "LEVOID", "to": "LEVOTIROXINA" },
+  "activeIngredient": "LEVOTIROXINA",
+  "dosage": { "value": 75, "unit": "MCG" },
+  "form": "CP",
+  "packQty": null,
+  "medicationKey": "LEVOTIROXINA|75MCG|CP|?",
+  "comparable": false,
+  "prices": { "lowestPriceCents": 765, "offersCount": 11 }
+}`}
+            />
+
+            <EndpointDoc
+              id="endpoint-extract"
+              title="Extrair laudo (PDF/foto/texto → JSON)"
+              desc={'A joia do Dr. Exame como serviço: envie o laudo laboratorial e receba o JSON estruturado — painéis, itens, valores, unidades, faixas de referência e a página-fonte de cada dado. Funciona com PDF, foto ou texto puro. Nada é armazenado: você envia, a gente estrutura e devolve (LGPD — o documento é seu, nós só processamos).'}
+              method="POST" path="/exams/extract"
+              paramsLabel="Envio (multipart OU JSON)"
+              params={[
+                ['file', 'arquivo · multipart', 'PDF ou foto do laudo (campo file do multipart/form-data).'],
+                ['text', 'string · JSON', 'Alternativa ao arquivo: o conteúdo textual do laudo (mín. 50 caracteres).'],
+              ]}
+              curl={`curl -X POST "${BASE}/exams/extract" \\\n  -H "x-api-key: dxk_live_sua_chave_aqui" \\\n  -F "file=@laudo.pdf"`}
+              curlLabel="Exemplo (PDF)"
+              response={`{
+  "exams": [
+    {
+      "examTitle": "HEMOGRAMA + TIREOIDE",
+      "sourceLab": "Lab Central",
+      "performedAt": "2026-08-01",
+      "panels": [
+        { "name": "TIREOIDE", "items": [
+          { "name": "TSH", "valueText": "7,32", "valueNumeric": 7.32, "unit": "µUI/mL",
+            "references": [{ "appliesTo": "Adultos", "lowNumeric": 0.4, "highNumeric": 4.0 }],
+            "page": 1 }
+        ] }
+      ]
+    }
+  ],
+  "itemCount": 23,
+  "charged": 20,
+  "disclaimer": "Estruturação automática (IA) do documento ENVIADO POR VOCÊ..."
+}`}
+            />
+
+            <EndpointDoc
+              id="endpoint-interpret"
+              title="Interpretar valor × faixa de referência"
+              desc={'O motor determinístico do app: cada item vira flag + tom + rótulo com grau. ">20% além do limite" já é "Muito acima" (tom crítico). LDL e Colesterol não-HDL sem faixa viram "depende do contexto clínico" (metas por risco cardiovascular), e sem faixa a API nunca inventa rótulo. Você envia a faixa do laudo de origem; a régua é nossa. Zero IA na chamada: resposta em milissegundos.'}
+              method="POST" path="/exams/interpret"
+              paramsLabel="Corpo (JSON)"
+              params={[
+                ['items', 'array · obrigatório', '1-200 itens: { name, value, refLow?, refHigh? }. A faixa é a do laudo de origem.'],
+              ]}
+              curl={`curl -X POST "${BASE}/exams/interpret" \\\n  -H "x-api-key: dxk_live_sua_chave_aqui" \\\n  -H "Content-Type: application/json" \\\n  -d '{"items":[{"name":"TSH","value":4.4,"refLow":0.4,"refHigh":4.0},{"name":"Hemoglobina","value":14,"refLow":12,"refHigh":16}]}'`}
+              response={`{
+  "items": [
+    { "name": "TSH", "value": 4.4, "refLow": 0.4, "refHigh": 4.0,
+      "flag": "HIGH", "tone": "atencao", "label": "Acima da referência" },
+    { "name": "Hemoglobina", "value": 14.0, "refLow": 12, "refHigh": 16,
+      "flag": "NORMAL", "tone": "normal", "label": "Dentro da referência" }
+  ],
+  "summary": { "total": 2, "altered": 1, "critical": 0 },
+  "disclaimer": "Comparação determinística valor × faixa ENVIADA POR VOCÊ. Educativo — nunca diagnóstico."
+}`}
+            />
+
             {/* PACOTES */}
             <Box id="pacotes" sx={{ scrollMarginTop: 90 }}>
               <Typography sx={{ fontWeight: 800, fontSize: 18, mb: 1 }}>Pacotes e preços</Typography>
               <Typography color="text.secondary" sx={{ fontSize: 14, mb: 1.5, lineHeight: 1.6 }}>
-                Pré-pago, sem surpresa: cada chamada debita 1 do saldo. Recarga por PIX (QR na hora), cartão ou débito — a aprovação da sua solicitação já vem com <b>25 chamadas de teste</b>.
+                Pré-pago, sem surpresa: cada chamada de dados debita 1 do saldo (a extração de laudo debita <b>20</b> — motor de IA por trás, e falha da nossa parte = reembolso automático). Recarga por PIX (QR na hora), cartão ou débito — a aprovação da sua solicitação já vem com <b>25 chamadas de teste</b>.
               </Typography>
               <Params rows={[
                 ['Teste', 'grátis', '25 chamadas, concedidas na aprovação do acesso.'],
-                ['Inicial', 'R$ 19,90', '1.000 chamadas (R$ 0,02 por chamada).'],
-                ['Profissional', 'R$ 99,00', '10.000 chamadas (R$ 0,01 por chamada) — o mais pedido.'],
-                ['Grande volume', 'R$ 399,00', '50.000 chamadas (R$ 0,008 por chamada).'],
+                ['Inicial', 'R$ 19,90', '1.000 chamadas (R$ 0,02 por chamada) = 50 extrações de laudo.'],
+                ['Profissional', 'R$ 99,00', '10.000 chamadas (R$ 0,01 por chamada) = 500 extrações — o mais pedido.'],
+                ['Grande volume', 'R$ 399,00', '50.000 chamadas (R$ 0,008 por chamada) = 2.500 extrações.'],
               ]} />
               <Stack direction="row" spacing={1.5} sx={{ mt: 2 }} useFlexGap flexWrap="wrap">
                 <Button variant="contained" onClick={() => navigate('/api')} startIcon={<KeyIcon />} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 3.5 }}>
