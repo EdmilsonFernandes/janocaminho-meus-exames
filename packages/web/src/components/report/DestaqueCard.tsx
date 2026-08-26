@@ -23,16 +23,24 @@ const Variation = ({ anterior, atual, leitura }: { anterior?: string | null; atu
   return null;
 };
 
-/** Item em destaque (comparativo): nome (NameToggle) + anterior → atual + variação + explicar. */
+const prettyName = (n: string) => {
+  if (!n) return '';
+  const tokens = n.split(/[_\s]+/);
+  return tokens.map((tok) => {
+    if (tok.length <= 4 && /^[A-Z0-9]+$/.test(tok) && !['ACIDO', 'URICO', 'BILIRRUBINA', 'DIRETA', 'INDIRETA', 'TOTAL'].includes(tok)) return tok;
+    return tok.charAt(0).toUpperCase() + tok.slice(1).toLowerCase();
+  }).join(' ');
+};
+
 export const DestaqueCard = ({ c }: { c: { name: string; anterior?: string | null; atual?: string | null; leitura?: string | null; entenda?: string | null } }) => (
-  <Box sx={{ p: 1.5, height: '100%', borderRadius: '12px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
+  <Box sx={{ p: 1.75, height: '100%', borderRadius: '14px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 8px rgba(0,0,0,0.03)', overflow: 'hidden' }}>
     <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={1}>
       <Box sx={{ flex: 1, minWidth: 0 }}>
-        <NameToggle name={c.name} entenda={c.entenda} />
-        <Stack direction="row" spacing={0.75} alignItems="baseline" sx={{ mt: 0.5 }} flexWrap="wrap" useFlexGap>
+        <NameToggle name={prettyName(c.name)} entenda={c.entenda} />
+        <Stack direction="row" spacing={0.75} alignItems="baseline" sx={{ mt: 0.75 }} flexWrap="wrap" useFlexGap>
           <Typography variant="body2" color="text.secondary" sx={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{c.anterior || '—'}</Typography>
-          <Typography sx={{ fontWeight: 800, color: 'primary.main' }}>→</Typography>
-          <Typography sx={(t) => ({ fontWeight: 800, color: t.palette.mode === 'dark' ? '#0369a1' : '#0369a1', wordBreak: 'break-word', overflowWrap: 'anywhere' })}>{c.atual || '—'}</Typography>
+          <Typography sx={{ fontWeight: 800, color: '#178f89' }}>→</Typography>
+          <Typography sx={{ fontWeight: 800, color: '#0f6e68', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{c.atual || '—'}</Typography>
         </Stack>
       </Box>
       <Stack direction="column" alignItems="flex-end" spacing={0.5} sx={{ flexShrink: 0 }}>

@@ -379,9 +379,9 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
   };
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 920, mx: 'auto', overflowX: 'hidden' }}>
+    <Box sx={{ p: { xs: 2, md: 3 }, pb: { xs: 10, sm: 5 }, maxWidth: 920, mx: 'auto', overflowX: 'hidden' }}>
       <Title title={translate('page.report')} />
-      <Typography variant="h5" gutterBottom sx={{ fontWeight: 800 }}>🧾 Relatório completo de saúde</Typography>
+      <Typography variant="h5" gutterBottom sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif' }}>🧾 Relatório completo de saúde</Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
         A IA junta seus últimos exames (sangue, imagem e laudo) num documento único — ótimo para levar ao médico ou pedir segunda opinião documental.
       </Typography>
@@ -469,9 +469,9 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
             <ReportSectionCard icon={<ReportProblemIcon />} title={translate('report.attention')} accent="#ef4444" count={s.pontosAtencao.length}>
               <Stack spacing={1.25}>
                 {s.pontosAtencao.map((p, i) => (
-                  <Box key={i}>
-                    <Typography sx={{ fontWeight: 700, wordBreak: 'break-word' }}>{i + 1}. {p.titulo}</Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25, wordBreak: 'break-word' }}>{p.detalhe}</Typography>
+                  <Box key={i} sx={{ p: 1.5, borderRadius: '14px', bgcolor: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.18)' }}>
+                    <Typography sx={{ fontWeight: 800, color: '#b91c1c', wordBreak: 'break-word', fontSize: 14.5 }}>{i + 1}. {p.titulo}</Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, wordBreak: 'break-word', lineHeight: 1.5 }}>{p.detalhe}</Typography>
                   </Box>
                 ))}
               </Stack>
@@ -595,9 +595,14 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
           })()}
 
           {s.leituraFinal && (
-            <Box sx={{ p: 2.5, borderRadius: '16px', background: 'linear-gradient(135deg, rgba(11,92,171,.10), rgba(11,92,171,.04))', border: '1px solid', borderColor: 'divider' }}>
-              <Typography sx={(t) => ({ fontWeight: 800, color: t.palette.mode === 'dark' ? '#0369a1' : '#0369a1', mb: 0.5, fontFamily: '"Poppins",sans-serif' })}>📌 Leitura final</Typography>
-              <Typography sx={{ lineHeight: 1.7, wordBreak: 'break-word' }}>{s.leituraFinal}</Typography>
+            <Box sx={{
+              p: 2.5, borderRadius: '18px',
+              background: 'linear-gradient(135deg, rgba(3,105,161,0.1), rgba(32,178,170,0.04))',
+              border: '1px solid rgba(3,105,161,0.2)',
+              boxShadow: '0 4px 16px rgba(3,105,161,0.04)'
+            }}>
+              <Typography sx={{ fontWeight: 800, color: '#0369a1', mb: 0.75, fontFamily: '"Poppins",sans-serif', fontSize: 16 }}>📌 Leitura final</Typography>
+              <Typography sx={{ lineHeight: 1.7, wordBreak: 'break-word', color: 'text.primary', fontSize: 14 }}>{s.leituraFinal}</Typography>
             </Box>
           )}
 

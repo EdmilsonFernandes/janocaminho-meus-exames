@@ -26,14 +26,25 @@ export const ReportSectionCard = ({ icon, title, accent, count, children, collap
   const [open, setOpen] = useState(defaultExpanded);
   if (!collapsible) {
     return (
-      <Card sx={{ overflow: 'hidden', background: alpha(accent, 0.06), border: '1px solid', borderColor: alpha(accent, 0.25) }}>
+      <Card sx={{
+        overflow: 'hidden', borderRadius: '18px',
+        background: alpha(accent, 0.05),
+        border: '1px solid', borderColor: alpha(accent, 0.2),
+        boxShadow: `0 4px 16px ${alpha(accent, 0.04)}`
+      }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, px: 2, py: 1.5 }}><SectionHeader icon={icon} title={title} accent={accent} count={count} /></Box>
         <CardContent sx={{ pt: 0.5, pb: 2, px: 2, '&:last-child': { pb: 2 } }}>{children}</CardContent>
       </Card>
     );
   }
   return (
-    <Accordion expanded={open} onChange={(_, e) => setOpen(e)} elevation={0} sx={{ overflow: 'hidden', background: alpha(accent, 0.06), border: '1px solid', borderColor: alpha(accent, 0.25), borderRadius: '16px', '&:before': { display: 'none' } }}>
+    <Accordion expanded={open} onChange={(_, e) => setOpen(e)} elevation={0} sx={{
+      overflow: 'hidden', borderRadius: '18px !important',
+      background: alpha(accent, 0.05),
+      border: '1px solid', borderColor: alpha(accent, 0.2),
+      boxShadow: `0 4px 16px ${alpha(accent, 0.04)}`,
+      '&:before': { display: 'none' }
+    }}>
       <AccordionSummary sx={{ px: 2, py: 1.5, minHeight: '0 !important', '& .MuiAccordionSummary-content': { my: 0 } }}><SectionHeader icon={icon} title={title} accent={accent} count={count} expandable /></AccordionSummary>
       <AccordionDetails sx={{ pt: 0.5, pb: 2, px: 2 }}>{children}</AccordionDetails>
     </Accordion>
