@@ -200,8 +200,9 @@ const IndicatorTile = ({ icon, label, value, sub, tone, onClick, idx = 0 }: {
   <AppCard kind="interactive" onClick={onClick} sx={{
     p: 2, height: '100%', borderRadius: '20px !important',
     boxShadow: '0 1px 2px rgba(0,0,0,.03), 0 2px 8px rgba(0,0,0,.04), 0 8px 20px rgba(0,0,0,.03)',
-    transition: 'box-shadow .2s ease, border-color .2s ease',
-    '&:hover': { boxShadow: '0 2px 4px rgba(32,178,170,.06), 0 8px 24px rgba(32,178,170,.1), 0 16px 36px rgba(32,178,170,.06)' },
+    transition: 'transform .15s ease, box-shadow .2s ease, border-color .2s ease',
+    '&:hover': { boxShadow: '0 2px 4px rgba(32,178,170,.06), 0 8px 24px rgba(32,178,170,.1), 0 16px 36px rgba(32,178,170,.06)', transform: 'translateY(-2px)' },
+    '&:active': { transform: 'scale(.98)' },
     animation: `dashTileIn .35s cubic-bezier(.16,1,.3,1) ${idx * 0.07}s both`,
     '@keyframes dashTileIn': { from: { opacity: 0, transform: 'translateY(10px)' }, to: { opacity: 1, transform: 'translateY(0)' } },
   }}>
@@ -292,7 +293,7 @@ export const DashboardV2 = () => {
             value={d.loaded ? String(d.stats.exams) : '—'} sub={d.stats.exams === 0 && d.loaded ? 'envie o primeiro' : `${d.stats.abnormal} alterado${d.stats.abnormal === 1 ? '' : 's'}`} onClick={() => navigate('/exams')} />
         </Grid>
         <Grid size={{ xs: 6, md: 3 }}>
-          <IndicatorTile idx={3} icon={<ChartLineUp size={22} weight="duotone" />} tone="info" label="Evolução" value="Tendências" sub={totalResults > 0 ? `${totalResults} resultado${totalResults === 1 ? '' : 's'}` : (d.loaded ? 'após o 1º exame' : '')} onClick={() => navigate('/evolucao')} />
+          <IndicatorTile idx={3} icon={<ChartLineUp size={22} weight="duotone" />} tone="info" label="Evolução" value={totalResults > 0 ? String(totalResults) : (d.loaded ? 'Sem dados' : '—')} sub={totalResults > 0 ? 'histórico de tendências' : (d.loaded ? 'após o 1º exame' : '')} onClick={() => navigate('/evolucao')} />
         </Grid>
       </Grid>
 
