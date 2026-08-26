@@ -311,7 +311,22 @@ export const LandingPage = () => {
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.05fr .95fr' }, gap: { xs: 5, md: 6 }, alignItems: 'center' }}>
             {/* Coluna texto */}
             <Box>
-              <Chip icon={<AutoAwesomeIcon sx={{ fontSize: 17 }} />} label="IA de Saúde no seu bolso" sx={{ bgcolor: 'rgba(32,178,170,.12)', color: TEAL_DARK, fontWeight: 700, mb: 3, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: TEAL } }} />
+              <Chip
+                icon={<AutoAwesomeIcon sx={{ fontSize: 17 }} />}
+                label={`✨ GANHE ${credits} CRÉDITOS DE PRESENTES NO 1º CADASTRO`}
+                onClick={() => navigate('/registrar')}
+                sx={{
+                  bgcolor: 'rgba(32,178,170,.14)', color: TEAL_DARK, fontWeight: 800, mb: 3, fontSize: 13.5, pl: 1, cursor: 'pointer',
+                  border: '1px solid rgba(32,178,170,.35)',
+                  animation: 'pulseGlow 2.5s infinite ease-in-out',
+                  '& .MuiChip-icon': { color: TEAL },
+                  '&:hover': { bgcolor: 'rgba(32,178,170,.22)' },
+                  '@keyframes pulseGlow': {
+                    '0%, 100%': { boxShadow: '0 0 0 0 rgba(32,178,170,0.45)' },
+                    '50%': { boxShadow: '0 0 0 10px rgba(32,178,170,0)' }
+                  }
+                }}
+              />
               <Typography variant="h1" sx={{ fontSize: { xs: '2.3rem', md: '3.4rem' }, fontWeight: 800, lineHeight: 1.08, mb: 2.5, letterSpacing: '-0.03em', color: 'text.primary' }}>
                 <Box component="span" sx={{ display: 'block' }}>Entenda seus exames</Box>como <Box component="span" sx={{ ...SERIF_I, color: TEAL, fontSize: '1.06em' }}>nunca antes.</Box>
               </Typography>
@@ -324,6 +339,22 @@ export const LandingPage = () => {
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap sx={{ mb: 1.5 }}>
                 <Button variant="contained" color="primary" size="large" onClick={() => navigate('/registrar')} sx={{ borderRadius: '999px', px: 4, py: 1.5, fontSize: 17, textTransform: 'none', fontWeight: 800 }}>
                   Começar grátis →
+                </Button>
+                <Button
+                  variant="outlined"
+                  size="large"
+                  component="a"
+                  href={PLAY_STORE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  startIcon={<SmartphoneIcon />}
+                  sx={{
+                    borderRadius: '999px', px: 3, py: 1.5, fontSize: 15, textTransform: 'none', fontWeight: 700,
+                    borderColor: 'rgba(32,178,170,.4)', color: TEAL_DARK, bgcolor: 'rgba(32,178,170,.04)',
+                    '&:hover': { borderColor: TEAL_DARK, bgcolor: 'rgba(32,178,170,.12)', transform: 'translateY(-1px)' }
+                  }}
+                >
+                  Baixar na Play Store
                 </Button>
               </Stack>
               {/* QW CRO: risk-reversal no ponto de decisão (trust ficava 2 seções abaixo) */}
