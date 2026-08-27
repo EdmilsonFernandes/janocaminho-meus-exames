@@ -85,13 +85,13 @@
     </noscript>
     <div id="root"></div>
     <script>
-      // LIMPA Service Workers de OUTROS apps (ex.: EdEspeto) que interceptam /minhasaude
-      // e quebram o fetch ("/api/exams" → "failed to fetch" no Chrome mobile; Firefox funciona).
-      // Remove TODOS os SWs + caches. Se achou algum, RECARREGA (garante estado limpo).
+      // DOMÍNIO PRÓPRIO (drexame.janocaminho.com.br): o SW do EdEspeto (escopo janocaminho.com.br/)
+      // NÃO alcança subdomínio — origens separadas. O SW "no-op" nosso não é mais necessário.
+      // E ele QUEBRA POST com FormData no Chrome Android (o re-fetch de dentro do SW corrompe
+      // o multipart → "erro de conexão" no upload de PDF). Remove TODO SW desta origem.
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(function(e) { console.warn('SW ME:', e); });
         navigator.serviceWorker.getRegistrations().then(function(regs) {
-          regs.forEach(function(reg) { if (!reg.scope || reg.scope.indexOf('minhasaude') === -1) reg.unregister(); });
+          regs.forEach(function(reg) { reg.unregister(); });
           if ('caches' in window) { caches.keys().then(function(keys) { keys.forEach(function(k) { caches.delete(k); }); }); }
         });
       }
