@@ -134,7 +134,7 @@ export const ChatPage = () => {
         ]);
         if (!msgs.length) return;
         setConvs((prev) => {
-          const knownFirst = new Set(prev.map((c) => c.messages[0]?.text));
+          const knownFirst = new Set(prev.map((c) => (c.messages ?? [])[0]?.text));
           if (knownFirst.has(msgs[0].text)) return prev;
           return [...prev, { id: `server-${pid}`, title: 'Conversa anterior (outros dispositivos)', createdAt: isoNow(), updatedAt: isoNow(), messages: msgs }];
         });
@@ -160,9 +160,12 @@ export const ChatPage = () => {
 
     let cid = curId;
     let work: Conv[] = convs;
-    if (!cid) {
+    // curId pode apontar pra conversa que o rollback JÁ removeu (closure stale do send
+    // anterior: rollback não resetava curId → find voltava undefined → crash em .messages).
+    // Agora: conversa sumiu = começa uma NOVA em vez de explodir.
+    if (!cid || !work.some((c) => c.id === cid)) {
       cid = newId();
-      work = [{ id: cid, title: message.slice(0, 48), createdAt: isoNow(), updatedAt: isoNow(), messages: [] }, ...convs];
+      work = [{ id: cid, title: message.slice(0, 48), createdAt: isoNow(), updatedAt: isoNow(), messages: [] }, ...work.filter((c) => c.id !== cid)];
     }
     const now = isoNow();
     const baseMsgs: Msg[] = [...(work.find((c) => c.id === cid)!.messages), { role: 'user', text: message, ts: now }, { role: 'assistant', text: '', ts: now }];
@@ -175,7 +178,9 @@ export const ChatPage = () => {
     const rollback = () => {
       work = work.map((c) => c.id === cid ? { ...c, messages: c.messages.slice(0, -2) } : c).filter((c) => c.messages.length > 0 || c.id !== cid);
       setConvs(work); if (pid) saveConvs(pid, work);
-      if (curId === cid) setCurId(null);
+      // Functional update: compara o estado ATUAL, não o closure stale do send
+      // (antes: curId capturado era null → nunca resetava → conversa fantasma armava o crash).
+      setCurId((v) => (v === cid ? null : v));
     };
     const persist = () => { if (pid) saveConvs(pid, work); };
 

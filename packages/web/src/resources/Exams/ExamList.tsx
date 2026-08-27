@@ -413,6 +413,8 @@ const ExamCards = () => {
   // Contagem por categoria (do conjunto COMPLETO de extraídos — não muda com o filtro).
   const catCounts: Record<string, number> = {};
   for (const r of extracted) { const k = categorizeExam(r).key; catCounts[k] = (catCounts[k] ?? 0) + 1; }
+  // Categorias presentes (só as que têm exame), da mais frequente pra menos.
+  const presentCats = CATS.filter((c) => catCounts[c.key]).sort((a, b) => catCounts[b.key] - catCounts[a.key]);
   const abnormalCount = extracted.filter((r: any) => (abnByExam[r.id] ?? 0) > 0).length;
   const recentCount = extracted.filter((r: any) => { const d = r.performedAt ?? r.createdAt; return !!d && (Date.now() - new Date(d).getTime()) < RECENT_DAYS * 86400000; }).length;
 

@@ -149,7 +149,7 @@ const CustomAppBar = (props: AppBarProps) => {
             <DrExame size={24} sx={{ borderRadius: '22%' }} />
           </Box>
           {showWordmark && (
-            <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins", sans-serif', fontSize: { xs: 14, sm: 16 }, letterSpacing: '-0.01em', whiteSpace: 'nowrap', color: 'text.primary', display: { xs: 'none', minSm: 'block' } }}>
+            <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins", sans-serif', fontSize: { xs: 14, sm: 16 }, letterSpacing: '-0.01em', whiteSpace: 'nowrap', color: 'text.primary' }}>
               Dr. Exame
             </Typography>
           )}

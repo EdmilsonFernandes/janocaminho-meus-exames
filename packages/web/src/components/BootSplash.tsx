@@ -43,7 +43,7 @@ export const BootSplash = ({
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        justify: 'center',
+        justifyContent: 'center',
         bgcolor: '#031412',
         color: '#fff',
         overflow: 'hidden',
