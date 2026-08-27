@@ -1114,6 +1114,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
             )}
             <PatientSummary
               patient={selected}
+              loading={detailLoading}
               exams={exams}
               abnormal={abnormalStats}
               questions={questions}

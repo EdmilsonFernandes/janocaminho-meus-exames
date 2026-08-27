@@ -22,19 +22,23 @@ export const DoctorExamList = ({ patientId, token, onOpen }: { patientId: string
   const t = useDoctorT();
   const [exams, setExams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  // ERRO ≠ VAZIO (critique P1 26/08): catch silencioso transformava falha de rede em
+  // "Nenhum exame compartilhado" — o médico concluía que o paciente não tem exames.
+  const [error, setError] = useState(false);
   const [q, setQ] = useState('');
   const [view, setView] = useState<'date' | 'category'>('date');
   const [cat, setCat] = useState<string>('all');
 
-  useEffect(() => {
-    setLoading(true);
+  const load = () => {
+    setLoading(true); setError(false);
     const h: Record<string, string> = { Authorization: `Bearer ${token}` };
     fetch(`${API_URL}/doctor/patients/${patientId}/exams`, { headers: h })
-      .then((r) => (r.ok ? r.json() : { items: [] }))
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
       .then((d) => setExams(d.items ?? []))
-      .catch(() => setExams([]))
+      .catch(() => { setError(true); setExams([]); })
       .finally(() => setLoading(false));
-  }, [patientId, token]);
+  };
+  useEffect(load, [patientId, token]);
 
   const norm = (s: any) => (s == null ? '' : String(s)).toLowerCase().trim();
   const query = norm(q);
@@ -115,6 +119,9 @@ export const DoctorExamList = ({ patientId, token, onOpen }: { patientId: string
 
       {loading ? (
         <ListSkeleton count={3} />
+      ) : error ? (
+        <EmptyState emoji="📡" title="Não consegui carregar os exames" desc="Falha de conexão — o paciente pode ter exames; não é lista vazia."
+          cta="Tentar de novo" onCta={load} />
       ) : exams.length === 0 ? (
         <EmptyState emoji="📄" title="Nenhum exame compartilhado" desc="Este paciente ainda não compartilhou exames com você." />
       ) : (

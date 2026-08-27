@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { Avatar, Box, Button, Card, Dialog, DialogContent, Stack, Typography, useTheme } from '@mui/material';
+import { Avatar, Box, Button, Card, Dialog, DialogContent, Skeleton, Stack, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
@@ -57,6 +57,10 @@ export interface PatientSummaryProps {
   medsCount?: number;
   criticalMeds?: number;
   onOpenMeds?: () => void;
+  /** TRUE enquanto o fetch do paciente corre (critique P1 26/08: sem isto os tiles
+   *  mostram '0' verde ANTES do dado chegar — falso 'tudo normal' numa ferramenta
+   *  de triagem clínica. Com loading → skeleton em cada tile, NUNCA 0 falso). */
+  loading?: boolean;
 }
 
 interface Tile {
@@ -75,7 +79,7 @@ interface Tile {
  * botão "Trocar" (Dialog reusando DoctorPatientSwitcher) e 4 teclas clínicas.
  * Cores via theme.palette.primary + alpha (sem hex cru).
  */
-export const PatientSummary = ({ patient, exams, abnormal, questions, notes, patients, onSwitchPatient, onAlterados, onOpenExams, onOpenQuestions, onOpenNotes, activity, medsCount, criticalMeds, onOpenMeds }: PatientSummaryProps) => {
+export const PatientSummary = ({ patient, exams, abnormal, questions, notes, patients, onSwitchPatient, onAlterados, onOpenExams, onOpenQuestions, onOpenNotes, activity, medsCount, criticalMeds, onOpenMeds, loading }: PatientSummaryProps) => {
   const theme = useTheme();
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const primary = theme.palette.primary.main;
@@ -201,10 +205,14 @@ export const PatientSummary = ({ patient, exams, abnormal, questions, notes, pat
             <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 0.25, minWidth: 0 }}>
               {t.icon}
               <Typography variant="caption" noWrap sx={{ color: 'text.secondary', fontWeight: 700, flex: 1, minWidth: 0 }}>{t.label}</Typography>
-              {t.onClick && <ChevronRightIcon sx={{ fontSize: 15, color: 'text.disabled' }} />}
+              {t.onClick && !loading && <ChevronRightIcon sx={{ fontSize: 15, color: 'text.disabled' }} />}
             </Stack>
-            <Typography sx={{ fontWeight: 800, color: t.color as never, fontSize: 16, lineHeight: 1.2 }}>{t.value}</Typography>
-            {t.sub && <Typography variant="caption" noWrap sx={{ color: 'text.secondary' }}>{t.sub}</Typography>}
+            {loading ? (
+              <Skeleton variant="rounded" width={44} height={22} sx={{ mt: 0.5 }} />
+            ) : (
+              <Typography sx={{ fontWeight: 800, color: t.color as never, fontSize: 16, lineHeight: 1.2 }}>{t.value}</Typography>
+            )}
+            {!loading && t.sub && <Typography variant="caption" noWrap sx={{ color: 'text.secondary' }}>{t.sub}</Typography>}
           </Box>
         ))}
       </Box>
