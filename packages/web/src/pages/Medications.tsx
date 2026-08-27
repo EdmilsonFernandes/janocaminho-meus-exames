@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Box, Button, Card, Checkbox, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Snackbar, Stack, TextField, Typography } from '@mui/material';
+import { Box, Button, Card, Checkbox, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Snackbar, Stack, TextField, Typography, Alert } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import MedicationIcon from '@mui/icons-material/Medication';
@@ -121,8 +121,16 @@ export const MedicationsPage = () => {
   const [pid] = useSelectedPatient();
   const [meds, setMeds] = useState<Med[] | null>(null);
   const [check, setCheck] = useState<CheckResp | null>(null);
-  const [full, setFull] = useState<{ all: Hit[]; contextual?: string | null } | null>(null);
+  const [full, setFull] = useState<{ all: Hit[]; contextual?: string | null; contextualAvailable?: boolean } | null>(null);
   const [fullLoading, setFullLoading] = useState(false);
+  // Análise completa pode levar 30s+ (LLM pelo relay). Sem fases visíveis, o botão
+  // parece morto e o usuário acha que não aconteceu nada (feedback do dono 27/08).
+  const [fullStep, setFullStep] = useState(0);
+  useEffect(() => {
+    if (!fullLoading) { setFullStep(0); return; }
+    const t = setInterval(() => setFullStep((s) => Math.min(s + 1, 2)), 6000);
+    return () => clearInterval(t);
+  }, [fullLoading]);
 
   // BUSCAR (combobox produto-first)
   const [searchOpen, setSearchOpen] = useState(false);
@@ -486,14 +494,29 @@ export const MedicationsPage = () => {
               O Dr. Exame cruza seus <strong>remédios com seus exames</strong> e responde em segundos:
               "Posso tomar estes dois juntos?" · "Este exame mudou por causa do remédio?" · "O que perguntar ao médico?"
             </Typography>
-            <GradientButton onClick={runFull} disabled={fullLoading} startIcon={<AutoAwesomeIcon />}>
-              {fullLoading ? 'Analisando seus remédios…' : 'Descobrir agora (2 créditos)'}
+            <GradientButton onClick={runFull} disabled={fullLoading} startIcon={fullLoading ? <CircularProgress size={16} sx={{ color: '#fff' }} /> : <AutoAwesomeIcon />}>
+              {fullLoading ? 'Analisando…' : 'Descobrir agora (2 créditos)'}
             </GradientButton>
+            {fullLoading && (
+              <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: 'wrap' }}>
+                <CircularProgress size={14} sx={{ color: 'primary.dark', flexShrink: 0 }} />
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                  {['💊 Conferindo as interações entre seus remédios…', '🧬 Cruzando com os exames alterados…', '🧠 Escrevendo a análise personalizada…'][fullStep]} <Box component="span" sx={{ color: 'text.disabled' }}>(pode levar ~30s)</Box>
+                </Typography>
+              </Stack>
+            )}
             {full && (
               <Stack spacing={1}>
                 {(full.all ?? []).length === 0 && <Typography sx={{ color: 'success.main', fontWeight: 700 }}>✅ Tudo certo entre seus remédios.</Typography>}
                 {(full.all ?? []).map((h, i) => <HitCard key={i} h={h} />)}
                 {full.contextual && <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'action.hover', whiteSpace: 'pre-wrap', fontSize: 13.5, lineHeight: 1.6 }}>{full.contextual}</Box>}
+                {/* IA falhou → antes: silêncio total ("pensa e não mostra"). O server já
+                    reembolsa os créditos; agora avisamos com honestidade + libera retry. */}
+                {full.contextualAvailable === false && (
+                  <Alert severity="info" sx={{ borderRadius: '12px' }}>
+                    A IA não respondeu agora — <strong>seus 2 créditos foram devolvidos</strong>. A lista de interações acima está completa; toque em <em>Descobrir agora</em> de novo em instantes pra tentar a análise personalizada.
+                  </Alert>
+                )}
               </Stack>
             )}
           </Stack>
