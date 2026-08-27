@@ -77,10 +77,19 @@ export function toPublicItems(raw: any): { name: string; value: number; unit: st
   return out;
 }
 
-// multipart: PDF (o fluxo real do app) OU JSON {texto} — o limiter conta os dois.
+// multipart: PDF OU JSON {texto} OU JSON {pdfBase64} (Chrome Android) — limiter conta os três.
 router.post('/', decifreLimiter, upload.single('file'), async (req, res, next) => {
   try {
     let texto = String(req.body?.texto ?? '').trim();
+    // JSON base64 (Chrome Android: fetch+FormData corrompe multipart; base64 via JSON é confiável)
+    const b64 = String(req.body?.pdfBase64 ?? '').trim();
+    if (b64) {
+      if (b64.length > 8 * 1024 * 1024 * 1.37) { res.status(400).json({ error: 'PDF muito grande (máx. 8 MB).' }); return; } // base64 ≈ 1.37x
+      try {
+        const buf = Buffer.from(b64, 'base64');
+        texto = (await pdfToText(buf)).trim();
+      } catch { res.status(400).json({ error: 'Não conseguimos ler esse PDF. Verifique se é o arquivo do laboratório.' }); return; }
+    }
     if (req.file) {
       if (req.file.mimetype !== 'application/pdf') { res.status(400).json({ error: 'Envie um PDF (foto fica pro app, com conta).' }); return; }
       if (req.file.size > 8 * 1024 * 1024) { res.status(400).json({ error: 'PDF muito grande (máx. 8 MB).' }); return; }

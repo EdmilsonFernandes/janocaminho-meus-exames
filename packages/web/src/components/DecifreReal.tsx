@@ -98,17 +98,28 @@ export const DecifreReal = () => {
     try {
       let r: Response;
       if (mode === 'pdf' && file) {
-        // DIAGNÓSTICO Android: file picker pode retornar File inválido (content:// URI)
-        console.log('[decifre] file:', file.name, file.size, file.type, 'mode:', file instanceof File ? 'File' : typeof file);
+        // CHROME ANDROID BUG: fetch + FormData + File do picker corrompe o multipart body.
+        // Firefox Android e Chrome Desktop funcionam; Chrome Android não. Fix: ler o File
+        // como ArrayBuffer → base64 → JSON POST (JSON é comprovadamente confiável em todos).
         if (!file.size || file.size === 0) {
           setErr('O arquivo parece vazio. Tente escolher o PDF de novo — ou cole o texto.');
           return;
         }
-        const fd = new FormData();
-        fd.append('file', file, file.name);
-        console.log('[decifre] fetch POST →', `${API_URL}/public/decifre`, '| fd entries:', fd.entries ? Array.from(fd.entries()).length : 'n/a');
-        r = await fetch(`${API_URL}/public/decifre`, { method: 'POST', body: fd, signal: ctrl.signal });
-        console.log('[decifre] response:', r.status, r.ok);
+        const buf = await file.arrayBuffer();
+        const bytes = new Uint8Array(buf);
+        let binary = '';
+        const chunk = 32768; // evita stack overflow em PDFs grandes
+        for (let i = 0; i < bytes.length; i += chunk) {
+          binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+        }
+        const b64 = btoa(binary);
+        console.log('[decifre] PDF → base64:', b64.length, 'chars (file:', file.size, 'bytes)');
+        r = await fetch(`${API_URL}/public/decifre`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pdfBase64: b64, filename: file.name }),
+          signal: ctrl.signal,
+        });
       } else {
         r = await fetch(`${API_URL}/public/decifre`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
