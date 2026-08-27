@@ -26,6 +26,9 @@ const fmt = (n: number | null) => (n == null ? '—' : String(n).replace('.', ',
 /** Fases do "calculando" — texto vivo + skeleton shimmer (a sensação de trabalho real). */
 const PHASES = ['Abrindo o laudo…', 'Encontrando os valores…', 'Conferindo as faixas de referência…', 'Quase lá…'];
 
+/** Mobile: hint pra não trocar de app durante o processamento (Android mata a conexão). */
+const MOBILE_HINT = '📱 Mantenha esta tela aberta — pode levar até 1 minuto';
+
 /**
  * "Decifre seu exame" — VERSÃO REAL do funil público: PDF do laboratório (o fluxo real do
  * app) OU texto colado → valores organizados na hora, sem cadastro. IA só extrai; flags
@@ -88,16 +91,21 @@ export const DecifreReal = () => {
 
   const decifrar = async () => {
     setLoading(true); setErr(''); setResult(null);
+    // AbortController: Android Chrome mata fetch longa silenciosamente (network error genérico).
+    // 120s explícito → AbortError limpo que a UI trata com mensagem útil.
+    const ctrl = new AbortController();
+    const timeout = setTimeout(() => ctrl.abort(), 120_000);
     try {
       let r: Response;
       if (mode === 'pdf' && file) {
         const fd = new FormData();
         fd.append('file', file, file.name);
-        r = await fetch(`${API_URL}/public/decifre`, { method: 'POST', body: fd });
+        r = await fetch(`${API_URL}/public/decifre`, { method: 'POST', body: fd, signal: ctrl.signal });
       } else {
         r = await fetch(`${API_URL}/public/decifre`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ texto: texto.trim().slice(0, 4000) }),
+          signal: ctrl.signal,
         });
       }
       const d = await r.json();
@@ -117,11 +125,14 @@ export const DecifreReal = () => {
       setResult(d);
     } catch (e: any) {
       // Diferencia timeout (IA demorando) de rede caída — mensagem honesta pra cada caso.
+      clearTimeout(timeout);
       if (e?.name === 'AbortError') {
-        setErr('A análise demorou mais que o esperado. Tente novamente — ou cole o texto em vez do PDF.');
+        setErr('A análise demorou mais que o esperado (mobile é mais lento). Tente de novo — ou cole só o texto em vez do PDF.');
       } else {
         setErr('Falha de conexão. Verifique sua internet e tente novamente.');
       }
+    } finally {
+      clearTimeout(timeout);
     }
     setLoading(false);
   };
@@ -249,6 +260,10 @@ export const DecifreReal = () => {
               width: `${88 - i * 7}%`,
             }} />
           ))}
+          {/* Mobile: Android mata conexão se trocar de app durante processamento */}
+          <Typography sx={{ fontSize: 11.5, opacity: 0.7, mt: 1, textAlign: 'center', display: { xs: 'block', sm: 'none' } }}>
+            {MOBILE_HINT}
+          </Typography>
         </Box>
       )}
 

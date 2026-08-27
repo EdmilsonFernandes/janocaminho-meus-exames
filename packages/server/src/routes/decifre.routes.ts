@@ -42,7 +42,7 @@ function pruneCache() {
 }
 
 const SYSTEM = [
-  'Você é um extrator de valores de exames laboratoriais brasileiros.',
+  'Você é um extrator de valores de exames laboratoriais brasileiros. Responda IMEDIATAMENTE com o JSON — sem raciocinar, sem analisar, sem explicar.',
   'Recebe o TEXTO de um exame e devolve APENAS um JSON, sem nenhum texto fora dele:',
   '{"items":[{"name":"Hemoglobina","value":13.5,"unit":"g/dL","refLow":12,"refHigh":16}]}',
   'Regras: name = nome do analito como está no laudo; value = número (vírgula vira ponto); unit = unidade ou null;',
@@ -90,7 +90,10 @@ router.post('/', decifreLimiter, upload.single('file'), async (req, res, next) =
     // Caps por origem: PDF de lab real passa fácil de 4k (cabeçalho, rodapé, múltiplas páginas)
     // → trunca em 30k e decifra o que importa. Texto colado: rejeita (usuário colou demais).
     if (req.file) {
-      texto = texto.slice(0, 30_000);
+      // 15k (não 30k): menos input = menos thinking do modelo = resposta mais rápida.
+      // 15k cobre ~3 páginas de laudo (os valores principais estão nas primeiras).
+      // CRÍTICO pro Android: o Chrome mobile mata conexões longas antes do desktop.
+      texto = texto.slice(0, 15_000);
     } else if (texto.length > MAX_CHARS) {
       res.status(400).json({ error: `Texto muito longo (máx. ${MAX_CHARS} caracteres). Cole um exame por vez — ou envie o PDF.` });
       return;
