@@ -101,9 +101,28 @@ export const DecifreReal = () => {
         });
       }
       const d = await r.json();
-      if (!r.ok) { setErr(d.error || 'Não conseguimos ler esse exame. Tente o PDF do laboratório ou cole o texto.'); return; }
+      if (!r.ok) {
+        // Erros do SERVER têm mensagens claras — prioriza elas (rate limit, PDF ruim, etc).
+        if (r.status === 429 && d.error?.includes('Limite')) {
+          setErr('Você já usou suas 3 decifrações grátis de hoje. Crie sua conta pra continuar sem limite.');
+        } else if (r.status === 422) {
+          setErr(d.error || 'Não encontramos valores de exame nesse PDF. Verifique se é o resultado do laboratório.');
+        } else if (r.status === 413 || r.status === 400) {
+          setErr(d.error || 'Arquivo muito grande ou formato inválido. Envie o PDF do laboratório (até 8 MB).');
+        } else {
+          setErr(d.error || 'Não conseguimos ler esse exame. Tente o PDF do laboratório ou cole o texto.');
+        }
+        return;
+      }
       setResult(d);
-    } catch { setErr('Falha de conexão. Tente novamente.'); }
+    } catch (e: any) {
+      // Diferencia timeout (IA demorando) de rede caída — mensagem honesta pra cada caso.
+      if (e?.name === 'AbortError') {
+        setErr('A análise demorou mais que o esperado. Tente novamente — ou cole o texto em vez do PDF.');
+      } else {
+        setErr('Falha de conexão. Verifique sua internet e tente novamente.');
+      }
+    }
     setLoading(false);
   };
 
