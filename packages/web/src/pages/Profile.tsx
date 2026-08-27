@@ -119,6 +119,7 @@ export const ProfilePage = () => {
       (window as any).__loadVLibras?.();
     } else {
       document.getElementById('vlibras-host')?.remove();
+      document.querySelectorAll('[vw], [vw-access-button], [vw-plugin-wrapper], [class*="vp-"], [class*="vw-"], [class*="vpw-"]').forEach((el) => el.remove());
     }
   };
   const toggleActivity = (on: boolean) => {
