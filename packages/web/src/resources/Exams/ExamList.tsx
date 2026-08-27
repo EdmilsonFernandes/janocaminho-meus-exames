@@ -100,6 +100,164 @@ const ExamHero = ({ r, abnCount, onView, onPdf }: { r: any; abnCount: number; on
   );
 };
 
+/** Toolbar Unificada de Filtros: Busca + Alternância por Data/Categoria + Régua Única de Chips (sem duplicação) */
+const ExamFilterToolbar = ({
+  q, setQ,
+  sfilter, setSfilter,
+  cat, setCat,
+  view, setView,
+  extractedCount,
+  abnormalCount,
+  recentCount,
+  presentCats,
+  catCounts,
+  translate,
+}: {
+  q: string; setQ: (v: string) => void;
+  sfilter: 'all' | 'altered' | 'recent'; setSfilter: (v: 'all' | 'altered' | 'recent') => void;
+  cat: string; setCat: (v: string) => void;
+  view: 'date' | 'category'; setView: (v: 'date' | 'category') => void;
+  extractedCount: number;
+  abnormalCount: number;
+  recentCount: number;
+  presentCats: typeof CATS;
+  catCounts: Record<string, number>;
+  translate: any;
+}) => {
+  const isAllActive = sfilter === 'all' && cat === 'all';
+  const isAlteredActive = sfilter === 'altered';
+  const isRecentActive = sfilter === 'recent';
+
+  return (
+    <Stack spacing={1} sx={{ mb: 0.5 }}>
+      {/* Linha Topo: Busca + Alternador Discreto (Data vs Categoria) */}
+      <Stack direction="row" spacing={1} alignItems="center">
+        <TextField
+          size="small"
+          fullWidth
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder={translate('exams.search_ph')}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+              </InputAdornment>
+            ),
+          }}
+          sx={{ flex: 1, '& .MuiOutlinedInput-root': { borderRadius: RADIUS.button, bgcolor: 'background.paper' } }}
+        />
+        <ToggleButtonGroup
+          exclusive
+          size="small"
+          value={view}
+          onChange={(_, v) => { if (v) setView(v); }}
+          sx={{ flexShrink: 0, bgcolor: 'background.paper', borderRadius: RADIUS.button, height: 40 }}
+        >
+          <ToggleButton value="date" sx={{ px: 1.25, py: 0.5, fontSize: 12, fontWeight: 700, textTransform: 'none', border: '1px solid', borderColor: 'divider' }}>
+            📅 Data
+          </ToggleButton>
+          <ToggleButton value="category" sx={{ px: 1.25, py: 0.5, fontSize: 12, fontWeight: 700, textTransform: 'none', border: '1px solid', borderColor: 'divider' }}>
+            📁 Categoria
+          </ToggleButton>
+        </ToggleButtonGroup>
+      </Stack>
+
+      {/* Linha Única de Chips (Filtros Rápidos + Categorias de Saúde) */}
+      <Stack
+        direction="row"
+        spacing={0.75}
+        sx={{
+          overflowX: 'auto',
+          flexWrap: 'nowrap',
+          py: 0.25,
+          mx: -0.25,
+          px: 0.25,
+          '&::-webkit-scrollbar': { display: 'none' },
+        }}
+      >
+        {/* Todos */}
+        <Chip
+          size="small"
+          label={translate('exams.all', { count: extractedCount })}
+          onClick={() => { setSfilter('all'); setCat('all'); }}
+          sx={{
+            height: 32,
+            flexShrink: 0,
+            fontWeight: 800,
+            whiteSpace: 'nowrap',
+            bgcolor: isAllActive ? '#0f5f5a' : 'rgba(15,95,90,0.08)',
+            color: isAllActive ? '#fff' : '#0f5f5a',
+            border: '1px solid',
+            borderColor: isAllActive ? '#0f5f5a' : 'rgba(15,95,90,0.2)',
+          }}
+        />
+
+        {/* Alterados */}
+        {abnormalCount > 0 && (
+          <Chip
+            size="small"
+            label={`⚠️ Alterados (${abnormalCount})`}
+            onClick={() => { setSfilter(isAlteredActive ? 'all' : 'altered'); setCat('all'); }}
+            sx={{
+              height: 32,
+              flexShrink: 0,
+              fontWeight: 800,
+              whiteSpace: 'nowrap',
+              bgcolor: isAlteredActive ? '#c2410c' : 'rgba(234,88,12,0.12)',
+              color: isAlteredActive ? '#fff' : '#c2410c',
+              border: '1px solid',
+              borderColor: isAlteredActive ? '#c2410c' : 'rgba(234,88,12,0.3)',
+            }}
+          />
+        )}
+
+        {/* Recentes */}
+        {recentCount > 0 && (
+          <Chip
+            size="small"
+            label={`⏱️ Recentes (${recentCount})`}
+            onClick={() => { setSfilter(isRecentActive ? 'all' : 'recent'); setCat('all'); }}
+            sx={{
+              height: 32,
+              flexShrink: 0,
+              fontWeight: 700,
+              whiteSpace: 'nowrap',
+              bgcolor: isRecentActive ? '#0284c7' : 'rgba(2,132,199,0.1)',
+              color: isRecentActive ? '#fff' : '#0284c7',
+              border: '1px solid',
+              borderColor: isRecentActive ? '#0284c7' : 'rgba(2,132,199,0.25)',
+            }}
+          />
+        )}
+
+        {/* Categorias (Hemograma, Imagem, Hormônios...) */}
+        {presentCats.map((c) => {
+          const isCatActive = cat === c.key && sfilter === 'all';
+          return (
+            <Chip
+              key={c.key}
+              size="small"
+              icon={<Box component={c.icon} sx={{ fontSize: 15, color: `${isCatActive ? '#fff' : c.color} !important`, ml: 0.5, mr: -0.5 }} />}
+              label={`${c.cat} (${catCounts[c.key]})`}
+              onClick={() => { setCat(isCatActive ? 'all' : c.key); setSfilter('all'); }}
+              sx={{
+                height: 32,
+                flexShrink: 0,
+                fontWeight: 700,
+                whiteSpace: 'nowrap',
+                bgcolor: isCatActive ? c.color : c.color + '1a',
+                color: isCatActive ? '#fff' : c.color,
+                border: `1px solid ${isCatActive ? c.color : c.color + '40'}`,
+              }}
+            />
+          );
+        })}
+      </Stack>
+    </Stack>
+  );
+};
+
 /** Cards agrupados por ano OU por categoria + busca + filtros (Todos/Alterados/Recentes) + hero. */
 const ExamCards = () => {
   const { data, isLoading, total } = useListContext<any>();
@@ -254,7 +412,8 @@ const ExamCards = () => {
   // Contagem por categoria (do conjunto COMPLETO de extraídos — não muda com o filtro).
   const catCounts: Record<string, number> = {};
   for (const r of extracted) { const k = categorizeExam(r).key; catCounts[k] = (catCounts[k] ?? 0) + 1; }
-  const presentCats = CATS.filter((c) => catCounts[c.key]).sort((a, b) => catCounts[b.key] - catCounts[a.key]);
+  const abnormalCount = extracted.filter((r: any) => (abnByExam[r.id] ?? 0) > 0).length;
+  const recentCount = extracted.filter((r: any) => { const d = r.performedAt ?? r.createdAt; return !!d && (Date.now() - new Date(d).getTime()) < RECENT_DAYS * 86400000; }).length;
 
   const renderCard = (r: any) => {
     const sc = statusColor[r.status] ?? 'default';
@@ -347,26 +506,18 @@ const ExamCards = () => {
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, position: 'sticky', top: 8, maxHeight: 'calc(100dvh - 16px)', overflowY: 'auto', pr: 0.5 }}>
           <PageHeader icon={<DescriptionOutlinedIcon />} title={translate('exams.title')} subtitle={translate('exams.subtitle', { count: total ?? 0 })} />
           <ConfirmDialog open={!!delTarget} onClose={() => setDelTarget(null)} onConfirm={confirmDel} title={translate('exams.delete_title')} message={delTarget ? translate('exams.delete_msg', { title: delTarget.title }) : ''} confirmLabel={translate('ra.action.delete')} />
-          <Stack spacing={1.25}>
-            <TextField size="small" fullWidth value={q} onChange={(e) => setQ(e.target.value)} placeholder={translate('exams.search_ph')} InputProps={{ startAdornment: (<InputAdornment position="start"><SearchIcon fontSize="small" sx={{ color: 'text.secondary' }} /></InputAdornment>) }} sx={{ '& .MuiOutlinedInput-root': { borderRadius: RADIUS.button, bgcolor: 'background.paper' } }} />
-            <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ flexWrap: 'wrap', rowGap: 1 }}>
-              <ToggleButtonGroup exclusive size="small" value={sfilter} onChange={(_, v) => { if (v) setSfilter(v); }}>
-                <ToggleButton value="all" sx={{ px: 1.25, py: { xs: 0.75, sm: 0.35 }, minHeight: { xs: 40, sm: 0 }, textTransform: 'none', fontWeight: 700 }}>Todos</ToggleButton>
-                <ToggleButton value="altered" sx={{ px: 1.25, py: { xs: 0.75, sm: 0.35 }, minHeight: { xs: 40, sm: 0 }, textTransform: 'none', fontWeight: 700 }}>Alterados</ToggleButton>
-                <ToggleButton value="recent" sx={{ px: 1.25, py: { xs: 0.75, sm: 0.35 }, minHeight: { xs: 40, sm: 0 }, textTransform: 'none', fontWeight: 700 }}>Recentes</ToggleButton>
-              </ToggleButtonGroup>
-              <ToggleButtonGroup exclusive size="small" value={view} onChange={(_, v) => { if (v) setView(v); }}>
-                <ToggleButton value="date" sx={{ px: 1.25, py: { xs: 0.75, sm: 0.35 }, minHeight: { xs: 40, sm: 0 }, textTransform: 'none', fontWeight: 700 }}>{translate('exams.by_date')}</ToggleButton>
-                <ToggleButton value="category" sx={{ px: 1.25, py: { xs: 0.75, sm: 0.35 }, minHeight: { xs: 40, sm: 0 }, textTransform: 'none', fontWeight: 700 }}>{translate('exams.by_category')}</ToggleButton>
-              </ToggleButtonGroup>
-            </Stack>
-            {presentCats.length > 1 && (
-              <Stack direction="row" spacing={0.75} sx={{ overflowX: 'auto', flexWrap: 'nowrap', pb: 0.25, mx: -0.25, px: 0.25, '&::-webkit-scrollbar': { display: 'none' } }}>
-                <Chip size="small" label={translate('exams.all', { count: extracted.length })} onClick={() => setCat('all')} sx={{ height: 32, flexShrink: 0, fontWeight: 700, whiteSpace: 'nowrap', bgcolor: cat === 'all' ? '#0f5f5a' : '#0f5f5a14', color: cat === 'all' ? '#fff' : '#0f5f5a' }} />
-                {presentCats.map((c) => (<Chip key={c.key} size="small" icon={<Box component={c.icon} sx={{ fontSize: 15, color: `${cat === c.key ? '#fff' : c.color} !important`, ml: 0.5, mr: -0.5 }} />} label={`${c.cat} (${catCounts[c.key]})`} onClick={() => setCat(cat === c.key ? 'all' : c.key)} sx={{ height: 32, flexShrink: 0, fontWeight: 700, whiteSpace: 'nowrap', bgcolor: cat === c.key ? c.color : c.color + '1a', color: cat === c.key ? '#fff' : c.color, border: `1px solid ${cat === c.key ? c.color : c.color + '40'}` }} />))}
-              </Stack>
-            )}
-          </Stack>
+          <ExamFilterToolbar
+            q={q} setQ={setQ}
+            sfilter={sfilter} setSfilter={setSfilter}
+            cat={cat} setCat={setCat}
+            view={view} setView={setView}
+            extractedCount={extracted.length}
+            abnormalCount={abnormalCount}
+            recentCount={recentCount}
+            presentCats={presentCats}
+            catCounts={catCounts}
+            translate={translate}
+          />
           {processing.length > 0 && (
             <Box>
               <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.75 }}>
@@ -461,35 +612,19 @@ const ExamCards = () => {
         confirmLabel={translate('ra.action.delete')}
       />
 
-      {/* Toolbar: busca + filtros (Todos/Alterados/Recentes) + agrupamento (data/categoria). */}
-      <Stack spacing={1.25}>
-        <TextField
-          size="small" fullWidth value={q} onChange={(e) => setQ(e.target.value)}
-          placeholder={translate('exams.search_ph')}
-          InputProps={{ startAdornment: (<InputAdornment position="start"><SearchIcon fontSize="small" sx={{ color: 'text.secondary' }} /></InputAdornment>) }}
-          sx={{ '& .MuiOutlinedInput-root': { borderRadius: RADIUS.button, bgcolor: 'background.paper' } }}
-        />
-        <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ flexWrap: 'wrap', rowGap: 1 }}>
-          <ToggleButtonGroup exclusive size="small" value={sfilter} onChange={(_, v) => { if (v) setSfilter(v); }}>
-            <ToggleButton value="all" sx={{ px: 1.5, py: { xs: 0.85, sm: 0.6 }, minHeight: { xs: 40, sm: 0 }, textTransform: 'none', fontWeight: 700 }}>Todos</ToggleButton>
-            <ToggleButton value="altered" sx={{ px: 1.5, py: { xs: 0.85, sm: 0.6 }, minHeight: { xs: 40, sm: 0 }, textTransform: 'none', fontWeight: 700 }}>Alterados</ToggleButton>
-            <ToggleButton value="recent" sx={{ px: 1.5, py: { xs: 0.85, sm: 0.6 }, minHeight: { xs: 40, sm: 0 }, textTransform: 'none', fontWeight: 700 }}>Recentes</ToggleButton>
-          </ToggleButtonGroup>
-          <ToggleButtonGroup exclusive size="small" value={view} onChange={(_, v) => { if (v) setView(v); }}>
-            <ToggleButton value="date" sx={{ px: 1.5, py: { xs: 0.85, sm: 0.6 }, minHeight: { xs: 40, sm: 0 }, textTransform: 'none', fontWeight: 700 }}>{translate('exams.by_date')}</ToggleButton>
-            <ToggleButton value="category" sx={{ px: 1.5, py: { xs: 0.85, sm: 0.6 }, minHeight: { xs: 40, sm: 0 }, textTransform: 'none', fontWeight: 700 }}>{translate('exams.by_category')}</ToggleButton>
-          </ToggleButtonGroup>
-        </Stack>
-        {/* Chips de categoria — só aparecem se houver +1 categoria nos exames prontos */}
-        {presentCats.length > 1 && (
-          <Stack direction="row" spacing={0.75} sx={{ overflowX: 'auto', flexWrap: 'nowrap', pb: 0.25, mx: -0.25, px: 0.25, '&::-webkit-scrollbar': { display: 'none' } }}>
-            <Chip size="small" label={translate('exams.all', { count: extracted.length })} onClick={() => setCat('all')} sx={{ height: 32, flexShrink: 0, fontWeight: 700, whiteSpace: 'nowrap', bgcolor: cat === 'all' ? '#0f5f5a' : '#0f5f5a14', color: cat === 'all' ? '#fff' : '#0f5f5a' }} />
-            {presentCats.map((c) => (
-              <Chip key={c.key} size="small" icon={<Box component={c.icon} sx={{ fontSize: 15, color: `${cat === c.key ? '#fff' : c.color} !important`, ml: 0.5, mr: -0.5 }} />} label={`${c.cat} (${catCounts[c.key]})`} onClick={() => setCat(cat === c.key ? 'all' : c.key)} sx={{ height: 32, flexShrink: 0, fontWeight: 700, whiteSpace: 'nowrap', bgcolor: cat === c.key ? c.color : c.color + '1a', color: cat === c.key ? '#fff' : c.color, border: `1px solid ${cat === c.key ? c.color : c.color + '40'}` }} />
-            ))}
-          </Stack>
-        )}
-      </Stack>
+      {/* Toolbar Unificada de Filtros: Busca + Alternância + Régua Única de Chips */}
+      <ExamFilterToolbar
+        q={q} setQ={setQ}
+        sfilter={sfilter} setSfilter={setSfilter}
+        cat={cat} setCat={setCat}
+        view={view} setView={setView}
+        extractedCount={extracted.length}
+        abnormalCount={abnormalCount}
+        recentCount={recentCount}
+        presentCats={presentCats}
+        catCounts={catCounts}
+        translate={translate}
+      />
 
       {/* HERO + "O que mudou" — só no modo padrão (sem busca/filtro), resumo de entrada. */}
       {isDefaultView && lastExam && (
