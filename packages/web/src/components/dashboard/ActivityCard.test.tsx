@@ -102,21 +102,36 @@ describe('ActivityView — estado dados', () => {
 
   it('HOJE com meta batida: check de meta + rótulo comemorativo', () => {
     const html = shell(<ActivityView {...baseProps} phase="data" days={days} range="today" />);
-    expect(html).toContain('meta de 8 mil passos batida');
+    expect(html).toContain('meta batida');
   });
 
   it('HOJE abaixo da meta: porcentagem honesta no progressbar (a11y)', () => {
     const below = [{ date: '2026-08-19', steps: 4000, kcal: 1000, km: 2 }];
     const html = shell(<ActivityView {...baseProps} phase="data" days={below} range="today" />);
-    expect(html).toContain('50% da meta de 8 mil');
+    expect(html).toContain('50% da meta');
     expect(html).toContain('aria-valuenow="50"');
   });
 
-  it('7 DIAS: rótulo de média + kcal/km por dia', () => {
+  it('7 DIAS: rótulo de média por dia (sem sufixo /dia nas unidades)', () => {
     const html = shell(<ActivityView {...baseProps} phase="data" days={days} range="7d" />);
-    expect(html).toContain('Média de passos (7 dias)');
-    expect(html).toContain('kcal/dia');
-    expect(html).toContain('km/dia');
+    expect(html).toContain('Média (7 dias)');
+  });
+
+  it('HOJE com passos mas SEM calorias: explica o lote do HC (não mente com um 0 mudo)', () => {
+    const partial = [{ date: '2026-08-27', steps: 1060, kcal: 0, km: 0.6 }];
+    const html = shell(<ActivityView {...baseProps} phase="data" days={partial} range="today" />);
+    expect(html).toContain('ainda não chegaram ao Health Connect');
+  });
+
+  it('HOJE com calorias presentes: hint de lote NÃO aparece', () => {
+    const full = [{ date: '2026-08-27', steps: 1060, kcal: 517, km: 0.6 }];
+    const html = shell(<ActivityView {...baseProps} phase="data" days={full} range="today" />);
+    expect(html).not.toContain('ainda não chegaram ao Health Connect');
+  });
+
+  it('hora da última leitura aparece SEM restrição de tela (mobile inclusive)', () => {
+    const html = shell(<ActivityView {...baseProps} phase="data" days={days} range="today" updatedAt={new Date('2026-08-27T09:12:00')} />);
+    expect(html).toContain('09:12');
   });
 
   it('sem dias: estado "sem dados" orienta (não inventa zero como dado)', () => {

@@ -59,27 +59,36 @@ export const ActivityCard = ({ lastExamAt }: { lastExamAt?: string | null }) => 
     notify('Card de atividade oculto — dá pra trazer de volta em Perfil → Acessibilidade.', { type: 'info' });
   };
 
-  const load = async () => {
-    if (!supported) { setPhase('loading'); return; }
-    if (!hasHealthPermissions()) { setPhase('denied'); return; }
+  const load = async (): Promise<ActivityDay[] | null> => {
+    if (!supported) { setPhase('loading'); return null; }
+    if (!hasHealthPermissions()) { setPhase('denied'); return null; }
     setPhase('loading');
     const d = await fetchActivityDays(30);
     setDays(d);
     setUpdatedAt(d ? new Date() : null);
     setPhase('data');
+    return d;
   };
 
   useEffect(() => { void load(); /* eslint-disable-line */ }, []);
 
-  const sync = async (silent = false) => {
-    if (!days?.length) return;
+  const sync = async (list: ActivityDay[] | null, silent = false) => {
+    if (!list?.length) return;
     setSyncing(true);
     try {
-      await syncActivityToServer(days);
+      await syncActivityToServer(list);
       if (!silent) { hapticLight(); notify('Atividade sincronizada com o Dr. Exame ✨', { type: 'success' }); }
     } catch {
       if (!silent) notify('Não deu pra sincronizar agora — tenta de novo em instantes.', { type: 'warning' });
     } finally { setSyncing(false); }
+  };
+
+  /** Re-lê o Health Connect e sincroniza o que chegou. O Samsung Health (e afins)
+   *  exportam pro HC em LOTES — re-ler ao voltar pro app é o que aproxima o card
+   *  do tempo real do app de saúde. */
+  const refresh = async (silent = false) => {
+    const d = await load();
+    if (d?.length) await sync(d, silent);
   };
 
   const connect = async () => {
@@ -105,17 +114,23 @@ export const ActivityCard = ({ lastExamAt }: { lastExamAt?: string | null }) => 
     setConnectError(permissionOutcomeMessage(outcome.code));
   };
 
-  // FALLBACK: quando o HC settings abriu (Samsung), re-checa ao VOLTAR pro app.
+  // Ao VOLTAR pro app (foreground): (a) vindo do HC settings, re-checa permissões;
+  // (b) já conectado, RE-LÊ o dia corrente — o Health Connect recebe dados das apps
+  // de saúde em lotes (Samsung Health exporta com atraso), então o "hoje" do card
+  // pode estar defasado em relação ao app de saúde.
   useEffect(() => {
     const onVisible = async () => {
       if (document.visibilityState !== 'visible') return;
-      if (phase !== 'denied') return;
-      // O usuário voltou do HC settings — deu as permissões?
-      if (hasHealthPermissions()) {
-        hapticLight();
-        notify('Atividade conectada! 🎉', { type: 'success' });
-        await loadAndSync();
+      if (phase === 'denied') {
+        // O usuário voltou do HC settings — deu as permissões?
+        if (hasHealthPermissions()) {
+          hapticLight();
+          notify('Atividade conectada! 🎉', { type: 'success' });
+          await loadAndSync();
+        }
+        return;
       }
+      if (phase === 'data') void refresh(true);
     };
     document.addEventListener('visibilitychange', onVisible);
     return () => document.removeEventListener('visibilitychange', onVisible);
@@ -123,9 +138,7 @@ export const ActivityCard = ({ lastExamAt }: { lastExamAt?: string | null }) => 
 
   const loadAndSync = async () => {
     if (!hasHealthPermissions()) return;
-    const d = await fetchActivityDays(30);
-    setDays(d); setUpdatedAt(d ? new Date() : null); setPhase('data');
-    if (d?.length) void syncActivityToServer(d).catch(() => {});
+    await refresh(true);
   };
 
   // ── Shell: o widget só existe no APK (web/desktop → null, sem card morto na 1ª dobra).
@@ -146,7 +159,7 @@ export const ActivityCard = ({ lastExamAt }: { lastExamAt?: string | null }) => 
       onAskOpen={() => { hapticLight(); setConnectError(undefined); setAskOpen(true); }}
       onAskClose={() => setAskOpen(false)}
       onConfirm={connect}
-      onSync={() => { hapticLight(); void load().then(() => sync()); }}
+      onSync={() => { hapticLight(); void refresh(); }}
       onHide={hide}
     />
   );
@@ -290,7 +303,7 @@ export const ActivityView = ({
         </Typography>
         <Stack direction="row" spacing={0.5} alignItems="center">
           {updatedAt && (
-            <Typography sx={{ fontSize: 11, color: 'text.disabled', display: { xs: 'none', sm: 'block' } }}>
+            <Typography noWrap title="Hora da última leitura do Health Connect" sx={{ fontSize: 11, color: 'text.disabled' }}>
               {updatedAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
             </Typography>
           )}
@@ -355,6 +368,14 @@ export const ActivityView = ({
           )}
         </Stack>
       </Stack>
+
+      {/* Dado em trânsito: passos chegaram mas calorias NÃO — apps como o Samsung Health
+          exportam pro HC em lotes; um 0 mudo pareceria "sem queima", o que seria mentira. */}
+      {range === 'today' && s.steps > 0 && s.kcal === 0 && (
+        <Typography sx={{ fontSize: 11, color: 'text.secondary', lineHeight: 1.5, mt: 1.25 }}>
+          Calorias ainda não chegaram ao Health Connect — apps de saúde exportam em lotes ao longo do dia. Toque ↻ mais tarde.
+        </Typography>
+      )}
 
       {/* Sparkline do período (hoje: oculta — a barra de meta já conta a história) */}
       {range !== 'today' && s.series.length > 1 && (
