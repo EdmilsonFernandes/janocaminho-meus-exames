@@ -31,6 +31,7 @@ import medicationRoutes from './routes/medication.routes';
 import publicApiRoutes from './routes/public-api.routes';
 import decifreRoutes from './routes/decifre.routes';
 import leadRoutes from './routes/lead.routes';
+import { publicPrivacyHtml } from './utils/publicPages';
 import swaggerUi from 'swagger-ui-express';
 import { openapiSpec } from './docs/openapi';
 import pharmacyRoutes from './routes/pharmacy.routes';
@@ -127,6 +128,12 @@ app.get('/api/health', async (_req, res) => {
 
 // Build info completo (público) — qual versão/commit está rodando. Útil p/ rastrear deploys.
 app.get('/api/build-info', (_req, res) => res.json(APP_BUILD_INFO));
+// POLÍTICA PÚBLICA (Play Store): HTML estático, sem hash-router, sem JS e sem login —
+// o crawler de política do Google não executa o SPA e a rota #/privacidade do app vive
+// atrás do shell autenticado (rejeição "Política de Privacidade exige login", 27/08/2026).
+app.get(['/privacidade', '/termos', '/privacy'], (_req, res) => {
+  res.type('html').send(publicPrivacyHtml());
+});
 // URL LIMPA do portal de docs: quem digita/compartilha sem a # cai aqui — manda pro hash
 // do SPA (o portal vive em /#/api-docs). O console swagger segue em /api/docs.
 app.get('/api-docs', (_req, res) => res.redirect('/#/api-docs'));
