@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Box, Button, Card, Checkbox, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, TextField, Typography } from '@mui/material';
+import { Box, Button, Card, Checkbox, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Snackbar, Stack, TextField, Typography } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import MedicationIcon from '@mui/icons-material/Medication';
@@ -8,6 +8,7 @@ import ShieldIcon from '@mui/icons-material/Shield';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import CloseIcon from '@mui/icons-material/Close';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { API_URL, apiHeaders, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import { PageContainer } from '../components/layout/PageContainer';
@@ -261,9 +262,27 @@ export const MedicationsPage = () => {
     await fetch(`${API_URL}/medications/${m.id}`, { method: 'PATCH', headers: apiHeaders(true), body: JSON.stringify({ active: !m.active }) });
     void load();
   };
+  // DELETE com DESFAZER (critique P1 2026-08-26: dado de saúde sumia num toquezinho
+  // sem confirmação nem volta). Remove na hora (lista reage) + Snackbar próprio com
+  // botão DESFAZER (5s) que re-cria o remédio com os mesmos dados — melhor que
+  // dialog bloqueante, e sem depender de internals de undo do react-admin.
+  const [undoRemove, setUndoRemove] = useState<Med | null>(null);
   const remove = async (m: Med) => {
     await fetch(`${API_URL}/medications/${m.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });
     void load(); setFull(null);
+    setUndoRemove(m);
+    setTimeout(() => setUndoRemove((cur) => (cur?.id === m.id ? null : cur)), 6000);
+  };
+  const doUndoRemove = async () => {
+    const m = undoRemove;
+    if (!m) return;
+    setUndoRemove(null);
+    const r = await fetch(`${API_URL}/medications`, {
+      method: 'POST', headers: apiHeaders(true),
+      body: JSON.stringify({ patientId: pid, name: m.name, dosage: m.dosage ?? undefined, frequency: m.frequency ?? undefined, packQty: m.packQty ?? undefined }),
+    });
+    if (r.ok) { notify('Remédio restaurado', { type: 'success' }); void load(); }
+    else notify('Não consegui restaurar — cadastre de novo', { type: 'error' });
   };
 
   const openPrices = async (m: Med) => {
@@ -371,11 +390,18 @@ export const MedicationsPage = () => {
                     <MedAvatar name={m.name} size={64} />
                   )}
                   <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography sx={{ fontWeight: 700, fontSize: 16, lineHeight: 1.25, fontFamily: 'Poppins, sans-serif', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.name}</Typography>
+                    {/* NOME com clamp 2 linhas + DOSE sempre legível (critique P1:
+                        "Mounjaro 5…"/"Ozempic 0,…" escondiam a dose — identificação
+                        clínica ilegível. Nome quebra até 2 linhas; dose nunca truncada. */}
+                    <Typography sx={{ fontWeight: 700, fontSize: 15.5, lineHeight: 1.25, fontFamily: 'Poppins, sans-serif', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', wordBreak: 'break-word' }} title={m.name}>{m.name}</Typography>
                     <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>{[m.dosage, m.frequency].filter(Boolean).join(' · ') || 'uso contínuo'}</Typography>
                     {m.priceSummary?.lowestPriceCents != null ? (
-                      <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mt: 0.75, cursor: 'pointer', minWidth: 0 }}
-                        onClick={(e) => { e.stopPropagation(); void openPrices(m); }}>
+                      // Row de preço clicável = BOTÃO de verdade (teclado + leitor de tela)
+                      // com chevron: affordance visível de que abre o comparador (critique P2).
+                      <Stack component="button" direction="row" spacing={0.75} alignItems="center"
+                        onClick={(e) => { e.stopPropagation(); void openPrices(m); }}
+                        aria-label={`Ver preços de ${m.name}`}
+                        sx={{ mt: 0.75, cursor: 'pointer', minWidth: 0, maxWidth: '100%', p: 0, border: 'none', bgcolor: 'transparent', textAlign: 'left', fontFamily: 'inherit', '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', borderRadius: '8px' } }}>
                         <PriceBig cents={m.priceSummary.lowestPriceCents} size={20} color="primary.dark" />
                         {m.priceSummary?.pharmacy && (
                           <Stack direction="row" spacing={0.5} alignItems="center" sx={{ minWidth: 0 }}>
@@ -385,6 +411,7 @@ export const MedicationsPage = () => {
                             </Typography>
                           </Stack>
                         )}
+                        <ChevronRightIcon sx={{ fontSize: 18, color: 'text.disabled', flexShrink: 0 }} />
                         {(m.priceSummary?.offersCount ?? 0) > 1 ? (
                           <Typography variant="caption" noWrap sx={{ color: 'primary.main', textDecoration: 'underline', fontWeight: 700, flexShrink: 0 }}>
                             +{(m.priceSummary?.offersCount ?? 0) - 1} oferta{(m.priceSummary?.offersCount ?? 0) > 2 ? 's' : ''}
@@ -614,10 +641,13 @@ export const MedicationsPage = () => {
 
       {/* ============ DIALOG VER PREÇOS — estilo marketplace (Shopee-like) ============ */}
       <Dialog open={!!pricesFor} onClose={() => setPricesFor(null)} fullWidth maxWidth="sm" PaperProps={{ sx: { borderRadius: '20px', overflow: 'hidden' } }}>
-        {/* HEADER: foto grande + melhor preço em destaque */}
+        {/* HEADER: foto grande + melhor preço em destaque + ECONOMIA (delta entre
+            a mais cara e a melhor — o argumento de venda que faltava, critique P2) */}
         {pricesFor && (() => {
           const offers = pricesData?.snapshot?.offers ?? [];
           const best = offers[0];
+          const worst = offers.length > 1 ? offers[offers.length - 1] : null;
+          const savings = best && worst ? worst.priceCents - best.priceCents : 0;
           return (
             <Box sx={{ background: 'linear-gradient(135deg, rgba(32,178,170,.08), rgba(32,178,170,.02))', p: 2.5, borderBottom: '1px solid', borderColor: 'divider' }}>
               <Stack direction="row" spacing={2} alignItems="center">
@@ -642,6 +672,9 @@ export const MedicationsPage = () => {
                       </Typography>
                     </Stack>
                   )}
+                  {savings > 0 && (
+                    <Chip size="small" label={`economize ${fmtBRL(savings)} vs. a mais cara`} sx={{ mt: 0.75, height: 24, fontWeight: 800, fontSize: 11.5, bgcolor: 'rgba(5,150,105,.12)', color: '#047857' }} />
+                  )}
                   {best?.pharmacy && (
                     <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.5, minWidth: 0 }}>
                       <PharmacyBadge name={best.pharmacy} />
@@ -663,13 +696,16 @@ export const MedicationsPage = () => {
             <Typography sx={{ color: 'text.secondary', py: 4, textAlign: 'center' }}>Ainda não temos preços para este remédio.</Typography>
           )}
           {!pricesLoading && (pricesData?.snapshot?.offers ?? []).map((o, i) => (
-            <Stack key={i} direction="row" spacing={1.5} alignItems="center"
+            <Stack key={i} component="button" direction="row" spacing={1.5} alignItems="center"
               onClick={() => setOfferDetail(o)}
+              aria-label={`Detalhes de ${o.productName} na ${o.pharmacy}`}
               sx={{
-                p: 1.75, borderBottom: '1px solid', borderColor: 'divider',
-                cursor: 'pointer',
+                width: '100%', p: 1.75, borderBottom: '1px solid', borderColor: 'divider',
+                cursor: 'pointer', border: 'none', borderTop: 'none', borderLeft: 'none', borderRight: 'none',
                 bgcolor: i === 0 ? 'rgba(32,178,170,.04)' : 'transparent',
+                fontFamily: 'inherit', textAlign: 'left',
                 transition: 'background .12s', '&:hover': { bgcolor: 'rgba(32,178,170,.08)' },
+                '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main' },
               }}>
               {o.imageUrl ? (
                 <Box component="img" src={o.imageUrl} alt={o.productName} loading="lazy"
@@ -689,11 +725,14 @@ export const MedicationsPage = () => {
                   )}
                 </Stack>
               </Box>
-              <Stack alignItems="flex-end" spacing={0.25} sx={{ flexShrink: 0 }}>
-                <PriceBig cents={o.priceCents} size={18} color={i === 0 ? 'primary.dark' : 'text.primary'} />
-                {i === 0 && (
-                  <Chip label="MELHOR PREÇO" size="small" sx={{ height: 18, fontSize: 9, fontWeight: 800, bgcolor: 'primary.main', color: '#fff', letterSpacing: '0.03em' }} />
-                )}
+              <Stack direction="row" spacing={0.5} alignItems="center" sx={{ flexShrink: 0 }}>
+                <Stack alignItems="flex-end" spacing={0.25}>
+                  <PriceBig cents={o.priceCents} size={18} color={i === 0 ? 'primary.dark' : 'text.primary'} />
+                  {i === 0 && (
+                    <Chip label="MELHOR PREÇO" size="small" sx={{ height: 18, fontSize: 9, fontWeight: 800, bgcolor: 'primary.main', color: '#fff', letterSpacing: '0.03em' }} />
+                  )}
+                </Stack>
+                <ChevronRightIcon sx={{ fontSize: 18, color: 'text.disabled' }} />
               </Stack>
             </Stack>
           ))}
@@ -749,6 +788,24 @@ export const MedicationsPage = () => {
           </>
         )}
       </Dialog>
+
+      {/* DESFAZER exclusão — 6s de janela,Snackbar próprio (sem internals de undo do RA) */}
+      <Snackbar
+        open={!!undoRemove}
+        onClose={() => setUndoRemove(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        autoHideDuration={6000}
+        sx={{ bottom: { xs: 'calc(var(--me-bottom-nav-h, 76px) + 16px)', sm: 24 } }}
+      >
+        <Box sx={{ bgcolor: 'rgba(15,23,42,.95)', color: '#fff', borderRadius: '12px', px: 2, py: 1.25, display: 'flex', alignItems: 'center', gap: 2, boxShadow: 3 }}>
+          <Typography sx={{ fontSize: 14 }}>
+            {undoRemove?.name.slice(0, 28)}{(undoRemove?.name.length ?? 0) > 28 ? '…' : ''} removido
+          </Typography>
+          <Button size="small" onClick={() => { void doUndoRemove(); }} sx={{ color: '#7ee2d8', fontWeight: 800, textTransform: 'none', minWidth: 0 }}>
+            DESFAZER
+          </Button>
+        </Box>
+      </Snackbar>
     </PageContainer>
   );
 };
