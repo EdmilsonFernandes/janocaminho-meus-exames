@@ -239,11 +239,34 @@ const NavItem = ({ to, primaryText, icon, highlight }: { to: string; primaryText
 const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
   const navigate = useNavigate();
   const [credits, setCredits] = useState<number | null>(null);
-  const userObj = (() => { try { const s = typeof localStorage !== 'undefined' ? localStorage.getItem('user') : null; return s ? JSON.parse(s) : null; } catch { return null; } })();
-  const userName = (userObj?.name as string) || null;
-  const isPremium = !!(userObj?.planExpiresAt && new Date(userObj.planExpiresAt) > new Date());
-  const patientId = typeof localStorage !== 'undefined' ? (localStorage.getItem('selPatientId') || localStorage.getItem('patientId')) : null;
-  const userPhoto = patientId ? photoUrlFor(patientId) : undefined;
+  const [userInfo, setUserInfo] = useState<{ name: string; photo?: string; isPremium: boolean }>({
+    name: 'Usuário',
+    isPremium: false,
+  });
+
+  const updateUserInfo = () => {
+    try {
+      const s = typeof localStorage !== 'undefined' ? localStorage.getItem('user') : null;
+      const u = s ? JSON.parse(s) : null;
+      const pid = typeof localStorage !== 'undefined' ? (localStorage.getItem('selPatientId') || localStorage.getItem('patientId')) : null;
+      const photo = pid ? photoUrlFor(pid) : undefined;
+      const name = u?.name || u?.fullName || u?.email?.split('@')[0] || 'Usuário';
+      const isPrem = !!(u?.planExpiresAt && new Date(u.planExpiresAt) > new Date());
+      setUserInfo({ name, photo, isPremium: isPrem });
+    } catch {
+      setUserInfo({ name: 'Usuário', isPremium: false });
+    }
+  };
+
+  useEffect(() => {
+    updateUserInfo();
+    window.addEventListener('storage', updateUserInfo);
+    window.addEventListener('userChanged', updateUserInfo);
+    return () => {
+      window.removeEventListener('storage', updateUserInfo);
+      window.removeEventListener('userChanged', updateUserInfo);
+    };
+  }, []);
 
   useEffect(() => {
     const load = () => fetch(`${API_URL}/billing/status`, { headers: { Authorization: `Bearer ${token()}` } })
@@ -257,7 +280,7 @@ const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
   }, []);
 
   return (
-    <Box sx={{ p: 1.5, pb: 1, pt: onClose ? 'max(env(safe-area-inset-top), 12px)' : 1.5 }}>
+    <Box sx={{ p: 1.5, pb: 1, pt: onClose ? 'calc(env(safe-area-inset-top, 0px) + 12px)' : 1.5 }}>
       <Box sx={(t) => ({
         p: 1.5, borderRadius: '18px',
         bgcolor: alpha(t.palette.primary.main, 0.06),
@@ -265,15 +288,15 @@ const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
         boxShadow: '0 4px 14px rgba(0,0,0,0.03)'
       })}>
         <Stack direction="row" alignItems="center" spacing={1.25}>
-          <Avatar src={userPhoto} sx={{ width: 44, height: 44, fontSize: 18, bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 800, border: '2px solid rgba(32,178,170,0.3)', flexShrink: 0 }}>
-            {userName?.charAt(0)?.toUpperCase() || '👤'}
+          <Avatar src={userInfo.photo} sx={{ width: 44, height: 44, fontSize: 18, bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 800, border: '2px solid rgba(32,178,170,0.3)', flexShrink: 0 }}>
+            {userInfo.name.charAt(0)?.toUpperCase() || '👤'}
           </Avatar>
           <Box sx={{ minWidth: 0, flex: 1 }}>
             <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: 'text.primary', lineHeight: 1.15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {userName || 'Olá!'}
+              {userInfo.name}
             </Typography>
             <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mt: 0.5, flexWrap: 'wrap', gap: 0.5 }}>
-              <Chip size="small" label={isPremium ? '👑 Premium' : 'Plano grátis'} sx={{ height: 20, fontSize: 10, fontWeight: 800, bgcolor: isPremium ? 'rgba(212,165,116,0.18)' : 'rgba(0,0,0,0.06)', color: isPremium ? '#b88a54' : 'text.secondary' }} />
+              <Chip size="small" label={userInfo.isPremium ? '👑 Premium' : 'Plano grátis'} sx={{ height: 20, fontSize: 10, fontWeight: 800, bgcolor: userInfo.isPremium ? 'rgba(212,165,116,0.18)' : 'rgba(0,0,0,0.06)', color: userInfo.isPremium ? '#b88a54' : 'text.secondary' }} />
               {credits != null && (
                 <Chip size="small" onClick={() => { onClose?.(); navigate('/planos'); }} label={`⚡ ${credits} (+)`} sx={{ height: 20, fontSize: 10, fontWeight: 700, bgcolor: 'rgba(32,178,170,0.12)', color: '#0f6e68', cursor: 'pointer', '&:hover': { bgcolor: 'rgba(32,178,170,0.2)' } }} />
               )}
