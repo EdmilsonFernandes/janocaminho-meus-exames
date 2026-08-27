@@ -71,36 +71,46 @@ export const PatientSwitcher = () => {
   const current = patients.find((p) => p.id === pid);
 
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', mr: 1 }}>
+    <Box sx={{ display: 'flex', alignItems: 'center' }}>
       <Button
         onClick={(e) => setAnchor(e.currentTarget)}
         disableElevation
         sx={{
-          borderRadius: '999px', pl: 0.5, pr: { xs: 0.5, sm: 1 }, py: 0.25, color: 'inherit', textTransform: 'none',
-          // Sem pill 'frosted' (lavava a foto). Avatar GRANDE c/ anel nítido + sombra = a foto
-          // salta visível (antes era pequena/difícil de ver = sem credibilidade).
-          bgcolor: 'transparent',
-          '&:hover': { bgcolor: 'rgba(255,255,255,0.12)' },
-          maxWidth: { sm: 280 },
-          // No mobile (só o avatar, nome oculto) remove o gap do startIcon.
-          '& .MuiButton-startIcon': { mr: { xs: 0, sm: 0.5 } },
+          borderRadius: '999px',
+          pl: 0.5, pr: 1, py: 0.25,
+          color: 'inherit',
+          textTransform: 'none',
+          bgcolor: 'rgba(32,178,170,0.08)',
+          border: '1px solid rgba(32,178,170,0.2)',
+          '&:hover': { bgcolor: 'rgba(32,178,170,0.16)' },
+          maxWidth: { xs: 150, sm: 280 },
+          '& .MuiButton-startIcon': { mr: 0.75, ml: 0 },
         }}
         startIcon={
-          // 40px no mobile (o bloco do botão completa ~44px de alvo; 44px no desktop onde há nome).
-          <Avatar src={photoFor(current)} sx={{ width: { xs: 40, sm: 44 }, height: { xs: 40, sm: 44 }, bgcolor: 'primary.main', fontSize: { xs: 15, sm: 16 }, fontWeight: 700, boxShadow: '0 0 0 2px rgba(255,255,255,.95), 0 3px 8px rgba(0,0,0,.28)' }}>
-            {current?.fullName?.charAt(0)?.toUpperCase()}
+          <Avatar
+            src={photoFor(current)}
+            sx={{
+              width: 32,
+              height: 32,
+              bgcolor: 'primary.main',
+              fontSize: 14,
+              fontWeight: 800,
+              boxShadow: '0 0 0 2px rgba(255,255,255,.95), 0 2px 6px rgba(0,0,0,.2)',
+            }}
+          >
+            {current?.fullName?.charAt(0)?.toUpperCase() || '👤'}
           </Avatar>
         }
-        // Seta só no desktop (onde há nome e o menu pede affordance extra) — no mobile o avatar no
-        // canto + convenção Google já comunicam; a seta custava 20px no orçamento da barra.
-        endIcon={<KeyboardArrowDownIcon sx={{ opacity: 0.6, display: { xs: 'none', sm: 'block' } }} />}
+        endIcon={<KeyboardArrowDownIcon sx={{ opacity: 0.7, fontSize: 18 }} />}
       >
-        <Box sx={{ display: { xs: 'none', sm: 'flex' }, flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.15, overflow: 'hidden' }}>
-          <Typography component="span" sx={{ fontSize: 13, fontWeight: 700, maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.15, overflow: 'hidden', textAlign: 'left' }}>
+          <Typography component="span" sx={{ fontSize: 12, fontWeight: 800, maxWidth: { xs: 75, sm: 130 }, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {current?.fullName ?? 'Selecionar'}
           </Typography>
           {current?.relationship && (
-            <Typography component="span" sx={{ display: { xs: 'none', sm: 'block' }, fontSize: 10, color: 'text.secondary' }}>{current.relationship}</Typography>
+            <Typography component="span" sx={{ fontSize: 9, color: 'text.secondary', opacity: 0.85, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {current.relationship}
+            </Typography>
           )}
         </Box>
       </Button>

@@ -234,11 +234,12 @@ const ExamFilterToolbar = ({
         {/* Categorias (Hemograma, Imagem, Hormônios...) */}
         {presentCats.map((c) => {
           const isCatActive = cat === c.key && sfilter === 'all';
+          const IconComp = c.icon;
           return (
             <Chip
               key={c.key}
               size="small"
-              icon={<Box component={c.icon} sx={{ fontSize: 15, color: `${isCatActive ? '#fff' : c.color} !important`, ml: 0.5, mr: -0.5 }} />}
+              icon={<IconComp sx={{ fontSize: '15px !important', color: `${isCatActive ? '#fff' : c.color} !important`, ml: 0.5, mr: -0.5 }} />}
               label={`${c.cat} (${catCounts[c.key]})`}
               onClick={() => { setCat(isCatActive ? 'all' : c.key); setSfilter('all'); }}
               sx={{

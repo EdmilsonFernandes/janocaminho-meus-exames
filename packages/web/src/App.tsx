@@ -140,24 +140,24 @@ const CustomAppBar = (props: AppBarProps) => {
         )
       )}
       {!isDesktop && (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.85, flexShrink: 0 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexShrink: 0 }}>
           <Box sx={{
-            width: 34, height: 34, borderRadius: '10px', flexShrink: 0, display: 'grid', placeItems: 'center',
+            width: 32, height: 32, borderRadius: '9px', flexShrink: 0, display: 'grid', placeItems: 'center',
             background: 'linear-gradient(135deg,#20b2aa 0%,#178f89 100%)',
-            boxShadow: '0 4px 14px rgba(32,178,170,.45)', overflow: 'hidden'
+            boxShadow: '0 3px 10px rgba(32,178,170,.35)', overflow: 'hidden'
           }}>
-            <DrExame size={26} sx={{ borderRadius: '22%' }} />
+            <DrExame size={24} sx={{ borderRadius: '22%' }} />
           </Box>
           {showWordmark && (
-            <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins", sans-serif', fontSize: 16, letterSpacing: '-0.01em', whiteSpace: 'nowrap', color: 'text.primary' }}>
+            <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins", sans-serif', fontSize: { xs: 14, sm: 16 }, letterSpacing: '-0.01em', whiteSpace: 'nowrap', color: 'text.primary', display: { xs: 'none', minSm: 'block' } }}>
               Dr. Exame
             </Typography>
           )}
         </Box>
       )}
       {isDesktop && <TitlePortal />}
-      <Box sx={{ flex: 1 }} />
-      <Stack direction="row" alignItems="center" spacing={1} sx={{ ml: 1 }}>
+      <Box sx={{ flex: 1, minWidth: 4 }} />
+      <Stack direction="row" alignItems="center" spacing={{ xs: 0.5, sm: 1 }} sx={{ ml: 0.5, flexShrink: 0 }}>
         <CreditsChip />
         <NotificationBell />
         <PatientSwitcher />
