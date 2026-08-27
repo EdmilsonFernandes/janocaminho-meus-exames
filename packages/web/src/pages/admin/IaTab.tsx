@@ -103,7 +103,7 @@ const AiProviderCard = () => {
           <Typography sx={{ fontWeight: 800, flex: 1 }}>🤖 Provedor de IA (Dr. Exame)</Typography>
           {cfg && <Chip size="small" color="success" variant="outlined" label={`Ativo: ${PROVIDER_LABEL[cfg.activeProvider] ?? cfg.activeProvider}`} />}
         </Stack>
-        <Alert severity="info" sx={{ mb: 1.5, fontSize: 13 }}>Troca em <strong>tempo real</strong> (sem restart/deploy). Os valores abaixo são o que <strong>tá rodando</strong> (banco ou <strong>.env</strong>). A chave é <strong>cifrada</strong> no banco e nunca volta completa — deixe vazia pra manter a atual.</Alert>
+        <Alert severity="info" sx={{ mb: 1.5, fontSize: 13 }}>Troca em <strong>tempo real</strong> (sem restart/deploy). Os valores abaixo são o que <strong>tá rodando</strong> (banco ou <strong>.env</strong>). A chave é <strong>cifrada</strong> no banco e nunca volta completa — deixe vazia pra manter a atual. Aceita <strong>várias chaves separadas por vírgula</strong> (ex.: chave1,chave2): a 1ª é a principal e, se der rate limit, o sistema alterna pras backups e volta pra principal sozinho quando o limite reseta.</Alert>
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1.5, mb: 1.5 }}>
           <FormControl size="small" fullWidth>
             <InputLabel>Provedor</InputLabel>

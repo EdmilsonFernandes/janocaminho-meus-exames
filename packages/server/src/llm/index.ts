@@ -3,11 +3,11 @@
  * (painel admin · aba IA), com fallback p/ o .env. getModel() = modelo ativo.
  * Trocar em runtime: PATCH /admin/ai-config → refreshLlm(). Sem restart nem redeploy.
  */
-import { AnthropicAdapter } from './anthropic';
+import { AnthropicAdapter, classifyError } from './anthropic';
 import { OpenAIAdapter } from './openai';
 import { GeminiAdapter } from './gemini';
-import { getActiveConfig, loadAiConfig, resolveProviderConfig, seedAiModelsIfEmpty, type AiProviderName } from './ai-config';
-import type { LlmProvider } from './types';
+import { getActiveConfig, loadAiConfig, resolveProviderConfig, seedAiModelsIfEmpty, AI_PROVIDERS, type AiProviderName } from './ai-config';
+import type { LlmProvider, LlmRequest, LlmStream, LlmResult } from './types';
 
 /** Modelo do provedor ativo (banco → env → default). Substitui o antigo `const MODEL`. */
 export function getModel(): string {
@@ -16,17 +16,62 @@ export function getModel(): string {
 
 let _llm: LlmProvider | null = null;
 
-function build(): LlmProvider {
-  const p = getActiveConfig().provider;
+function buildAdapter(p: AiProviderName): LlmProvider {
   if (p === 'openai') return new OpenAIAdapter();
   if (p === 'gemini') return new GeminiAdapter();
   return new AnthropicAdapter();
 }
 
+/** Failover ENTRE provedores: o ativo esgota (rate limit/auth/overloaded em todas as chaves do
+ *  pool) → a MESMA request tenta os outros provedores que têm chave configurada (admin · IA).
+ *  Só alterna em erro "de provedor" (429/401/403/529/503); erro de request (400 etc.) sobe direto.
+ *  O stream só rejeita ANTES do 1º token, então o retry nunca duplica texto pro cliente. */
+export class FallbackProvider implements LlmProvider {
+  name: string;
+  constructor(private primary: LlmProvider, private backups: LlmProvider[]) {
+    this.name = primary.name;
+  }
+  async stream(req: LlmRequest): Promise<LlmStream> {
+    try {
+      return await this.primary.stream(req);
+    } catch (e) {
+      if (!classifyError(e).rotate || !this.backups.length) throw e;
+      console.warn(`[llm] ${this.primary.name} esgotou (${(e as any)?.status ?? '?'}) — failover p/ ${this.backups.map((b) => b.name).join(' → ')}`);
+      let last = e;
+      for (const b of this.backups) {
+        try {
+          return await b.stream(req);
+        } catch (e2) {
+          last = e2;
+          if (!classifyError(e2).rotate) throw e2;
+        }
+      }
+      throw last;
+    }
+  }
+  async complete(req: LlmRequest): Promise<LlmResult> {
+    const s = await this.stream(req);
+    const r = await s.final();
+    if (!r) throw new Error('LLM: resposta vazia');
+    return r;
+  }
+}
+
+function build(): LlmProvider {
+  const active = getActiveConfig();
+  const primary = buildAdapter(active.provider);
+  const backups = AI_PROVIDERS.filter((p) => p !== active.provider)
+    .map((p) => resolveProviderConfig(p))
+    .filter((cfg) => !!cfg.apiKey)
+    .map((cfg) => buildAdapter(cfg.provider));
+  return backups.length ? new FallbackProvider(primary, backups) : primary;
+}
+
 export function getLlm(): LlmProvider {
   if (!_llm) {
     _llm = build();
-    console.log(`[llm] provider ativo: ${_llm.name} | model: ${getModel()}`);
+    const fb = _llm instanceof FallbackProvider;
+    console.log(`[llm] provider ativo: ${_llm.name} | model: ${getModel()}${fb ? ' | failover: ON' : ' | failover: off (só 1 provedor com chave)'}`);
   }
   return _llm;
 }
