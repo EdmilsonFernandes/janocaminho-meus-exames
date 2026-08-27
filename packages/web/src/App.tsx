@@ -235,6 +235,73 @@ const NavItem = ({ to, primaryText, icon, highlight }: { to: string; primaryText
   );
 };
 
+// Card de perfil do usuário (Foto Edmilson, nome, plano, créditos) — topo do menu.
+const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
+  const navigate = useNavigate();
+  const [credits, setCredits] = useState<number | null>(null);
+  const userObj = (() => { try { const s = typeof localStorage !== 'undefined' ? localStorage.getItem('user') : null; return s ? JSON.parse(s) : null; } catch { return null; } })();
+  const userName = (userObj?.name as string) || null;
+  const isPremium = !!(userObj?.planExpiresAt && new Date(userObj.planExpiresAt) > new Date());
+  const patientId = typeof localStorage !== 'undefined' ? (localStorage.getItem('selPatientId') || localStorage.getItem('patientId')) : null;
+  const userPhoto = patientId ? photoUrlFor(patientId) : undefined;
+
+  useEffect(() => {
+    const load = () => fetch(`${API_URL}/billing/status`, { headers: { Authorization: `Bearer ${token()}` } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => setCredits(typeof d?.credits === 'number' ? d.credits : null))
+      .catch(() => {});
+    load();
+    const h = () => load();
+    window.addEventListener('creditsChanged', h);
+    return () => window.removeEventListener('creditsChanged', h);
+  }, []);
+
+  return (
+    <Box sx={{ p: 1.5, pb: 1, pt: onClose ? 'max(env(safe-area-inset-top), 12px)' : 1.5 }}>
+      <Box sx={(t) => ({
+        p: 1.5, borderRadius: '18px',
+        bgcolor: alpha(t.palette.primary.main, 0.06),
+        border: '1px solid', borderColor: alpha(t.palette.primary.main, 0.15),
+        boxShadow: '0 4px 14px rgba(0,0,0,0.03)'
+      })}>
+        <Stack direction="row" alignItems="center" spacing={1.25}>
+          <Avatar src={userPhoto} sx={{ width: 44, height: 44, fontSize: 18, bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 800, border: '2px solid rgba(32,178,170,0.3)', flexShrink: 0 }}>
+            {userName?.charAt(0)?.toUpperCase() || '👤'}
+          </Avatar>
+          <Box sx={{ minWidth: 0, flex: 1 }}>
+            <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: 'text.primary', lineHeight: 1.15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {userName || 'Olá!'}
+            </Typography>
+            <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mt: 0.5, flexWrap: 'wrap', gap: 0.5 }}>
+              <Chip size="small" label={isPremium ? '👑 Premium' : 'Plano grátis'} sx={{ height: 20, fontSize: 10, fontWeight: 800, bgcolor: isPremium ? 'rgba(212,165,116,0.18)' : 'rgba(0,0,0,0.06)', color: isPremium ? '#b88a54' : 'text.secondary' }} />
+              {credits != null && (
+                <Chip size="small" onClick={() => { onClose?.(); navigate('/planos'); }} label={`⚡ ${credits} (+)`} sx={{ height: 20, fontSize: 10, fontWeight: 700, bgcolor: 'rgba(32,178,170,0.12)', color: '#0f6e68', cursor: 'pointer', '&:hover': { bgcolor: 'rgba(32,178,170,0.2)' } }} />
+              )}
+            </Stack>
+          </Box>
+          {onClose && (
+            <IconButton
+              onClick={onClose}
+              size="small"
+              title="Fechar menu"
+              sx={(t) => ({
+                width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
+                bgcolor: alpha(t.palette.text.primary, 0.06),
+                color: 'text.secondary',
+                transition: 'all .15s ease',
+                '&:hover': { bgcolor: alpha(t.palette.primary.main, 0.15), color: 'primary.main' },
+                '& svg': { fontSize: 18 }
+              })}
+            >
+              <CloseIcon />
+            </IconButton>
+          )}
+        </Stack>
+      </Box>
+    </Box>
+  );
+};
+
 // Menu lateral — organizado como app profissional (headers de seção, sem acordeão)
 const AppMenu = () => {
   const logout = useLogout();
@@ -244,13 +311,11 @@ const AppMenu = () => {
   const [aboutOpen, setAboutOpen] = useState(false);
   const userStr = typeof localStorage !== 'undefined' ? localStorage.getItem('user') : null;
   const isAdmin = (() => { try { return userStr ? (JSON.parse(userStr)?.role === 'ADMIN') : false; } catch { return false; } })();
+  const isDesktop = useMediaQuery((t: any) => t.breakpoints.up('sm'));
   return (
   <Box component="nav" sx={{ py: 1, display: 'flex', flexDirection: 'column', minHeight: '100%', width: '100%', minWidth: 0, maxWidth: '100%', containerType: 'inline-size', overflowX: 'hidden', overflowY: 'auto', maxHeight: '100vh', '& .MuiListItemButton-root, & .MuiMenuItem-root': { flex: '0 0 auto' } }}>
-    {/* 4 seções por INTENÇÃO (auditoria premium 2026-08): antes eram grid de 9 atalhos + 3
-       acordeões com 3 destinos DUPLICADOS (alterados/tendências/linha-do-tempo) e ~24 entradas.
-       FEEDBACK do dono (rodada 8): "Evolução & tendências" fundido ESCONDIA o gráfico por
-       marcador atrás de um link → desfeito: /tendencias tem entrada própria de novo (ícone
-       QueryStats). "Família & dependentes" segue fundido (/familia ↔ /patients). */}
+    {isDesktop && <UserProfileCard />}
+    {isDesktop && <Divider sx={{ borderColor: (t) => alpha(t.palette.primary.main, 0.12), mx: 2, mb: 1 }} />}
     <MenuSectionAccordion title={translate('menu.section.exams')} icon={<MedicalInformationIcon />} routes={['/exams', '/alterados', '/evolucao', '/tendencias', '/linha-do-tempo', '/relatorio']}>
       <NavItem to="/exams" primaryText={translate('menu.exams')} icon={<MedicalInformationIcon />} />
       <NavItem to="/alterados" primaryText={translate('menu.alterados')} icon={<WarningAmberIcon />} highlight />
@@ -286,12 +351,8 @@ const AppMenu = () => {
 
     <Divider sx={{ my: 1 }} />
 
-    {/* APOIO — "Ajuda e suporte" saiu do menu (decisão 2026-08): o painel de chamados agora
-        vive DENTRO do FAQ ("Falar com o suporte"), um caminho só em vez de dois parecidos. */}
     <NavItem to="/faq" primaryText={translate('menu.faq', { _: 'Dúvidas frequentes' })} icon={<QuestionAnswerIcon />} />
     <NavItem to="/como-validamos" primaryText={translate('menu.howvalidate', { _: 'Como validamos' })} icon={<VerifiedUserIcon />} />
-    {/* API Dr. Exame NÃO fica no menu (dor do dono: item dev confunde usuário leigo).
-        Acesso: Perfil → "API para desenvolvedores" (discreto) + funil da landing (#/api). */}
     <MenuItem onClick={() => setAboutOpen(true)} sx={{ mx: 0.5, borderRadius: '8px', py: 0.75 }}>
       <ListItemIcon sx={{ minWidth: 36 }}><InfoIcon fontSize="small" /></ListItemIcon>
       <ListItemText primaryTypographyProps={{ fontSize: 13, fontWeight: 600 }}>{translate('menu.about')}</ListItemText>
@@ -301,7 +362,6 @@ const AppMenu = () => {
       <ListItemText primaryTypographyProps={{ fontSize: 13, fontWeight: 600 }}>{translate('menu.logout')}</ListItemText>
     </MenuItem>
 
-    {/* POPUP "Sobre o App" */}
     <Dialog open={aboutOpen} onClose={() => setAboutOpen(false)} maxWidth="xs" fullWidth>
       <DialogTitle sx={{ textAlign: 'center', pb: 0 }}>
         <Box sx={{ mb: 1.5, display: 'flex', justifyContent: 'center' }}><DrExame size={64} /></Box>
@@ -333,40 +393,18 @@ const AppMenu = () => {
 
 // Menu lateral UNIFICADO (mobile). O ☰ do AppBar e o "Mais" do rodapé abem o
 // MESMO AppDrawer aqui — mesma fonte de verdade (AppMenu), zero divergência de layout.
-// Fecha sozinho ao trocar de rota (mesmo comportamento do Sidebar nativo).
 const AppDrawer = () => {
   const { open, closeDrawer } = useAppDrawer();
   const { pathname } = useLocation();
-  const navigate = useNavigate();
-  const [credits, setCredits] = useState<number | null>(null);
-  const userObj = (() => { try { const s = typeof localStorage !== 'undefined' ? localStorage.getItem('user') : null; return s ? JSON.parse(s) : null; } catch { return null; } })();
-  const userName = (userObj?.name as string) || null;
-  const userEmail = (userObj?.email as string) || null;
-  const isPremium = !!(userObj?.planExpiresAt && new Date(userObj.planExpiresAt) > new Date());
-  const patientId = typeof localStorage !== 'undefined' ? (localStorage.getItem('selPatientId') || localStorage.getItem('patientId')) : null;
-  const userPhoto = patientId ? photoUrlFor(patientId) : undefined;
-  // auto-close ao navegar (clica num item → rota muda → fecha)
-  useEffect(() => { closeDrawer(); /* deps intencional: só pathname */ }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
-  // Espelha o estado do drawer pro handler global de voltar (App.tsx backButton): gesto/botão
-  // de voltar fecha o drawer ANTES de navegar/sair. Sem isto, o branch do drawer no handler era
-  // código morto (window.__drawerOpen nunca era setado pelo DrawerProvider, que usa contexto React).
+
+  useEffect(() => { closeDrawer(); }, [pathname]);
   useEffect(() => {
     (window as any).__drawerOpen = open;
     const onClose = () => closeDrawer();
     window.addEventListener('app:closeDrawer', onClose);
     return () => { (window as any).__drawerOpen = false; window.removeEventListener('app:closeDrawer', onClose); };
   }, [open, closeDrawer]);
-  // Saldo de créditos no header do drawer (reativo: recarrega quando muda).
-  useEffect(() => {
-    const load = () => fetch(`${API_URL}/billing/status`, { headers: { Authorization: `Bearer ${token()}` } })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => setCredits(typeof d?.credits === 'number' ? d.credits : null))
-      .catch(() => {});
-    load();
-    const h = () => load();
-    window.addEventListener('creditsChanged', h);
-    return () => window.removeEventListener('creditsChanged', h);
-  }, []);
+
   return (
     <Drawer anchor="left" open={open} onClose={closeDrawer} keepMounted={false}
       PaperProps={{
@@ -381,46 +419,8 @@ const AppDrawer = () => {
           boxShadow: '0 20px 50px rgba(0,0,0,0.25)',
         }
       }}>
-      {/* Header — PERFIL do usuário em Card de Vidro */}
-      <Box sx={{ px: 1.5, pt: 'calc(env(safe-area-inset-top) + 12px)', pb: 1 }}>
-        <Box sx={(t) => ({
-          p: 1.5, borderRadius: '18px',
-          bgcolor: alpha(t.palette.primary.main, 0.06),
-          border: '1px solid', borderColor: alpha(t.palette.primary.main, 0.15),
-          boxShadow: '0 4px 14px rgba(0,0,0,0.03)'
-        })}>
-          <Stack direction="row" alignItems="center" spacing={1.25}>
-            <Avatar src={userPhoto} sx={{ width: 48, height: 48, fontSize: 20, bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 800, border: '2px solid rgba(32,178,170,0.3)', flexShrink: 0 }}>{userName?.charAt(0)?.toUpperCase() || '👤'}</Avatar>
-            <Box sx={{ minWidth: 0, flex: 1 }}>
-              <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary', lineHeight: 1.15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{userName || 'Olá!'}</Typography>
-              <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mt: 0.5, flexWrap: 'wrap', gap: 0.5 }}>
-                <Chip size="small" label={isPremium ? '👑 Premium' : 'Plano grátis'} sx={{ height: 20, fontSize: 10.5, fontWeight: 800, bgcolor: isPremium ? 'rgba(212,165,116,0.18)' : 'rgba(0,0,0,0.06)', color: isPremium ? '#b88a54' : 'text.secondary' }} />
-                {credits != null && (
-                  <Chip size="small" onClick={() => { closeDrawer(); navigate('/planos'); }} label={`⚡ ${credits} (+)`} sx={{ height: 20, fontSize: 10.5, fontWeight: 700, bgcolor: 'rgba(32,178,170,0.12)', color: '#0f6e68', cursor: 'pointer', '&:hover': { bgcolor: 'rgba(32,178,170,0.2)' } }} />
-                )}
-              </Stack>
-            </Box>
-            <IconButton
-              onClick={closeDrawer}
-              size="small"
-              title="Fechar menu"
-              sx={(t) => ({
-                width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
-                bgcolor: alpha(t.palette.text.primary, 0.06),
-                color: 'text.secondary',
-                transition: 'all .15s ease',
-                '&:hover': { bgcolor: alpha(t.palette.primary.main, 0.15), color: 'primary.main', transform: 'scale(1.08)' },
-                '&:active': { transform: 'scale(.92)' },
-                '& svg': { fontSize: 18 }
-              })}
-            >
-              <CloseIcon />
-            </IconButton>
-          </Stack>
-        </Box>
-      </Box>
+      <UserProfileCard onClose={closeDrawer} />
       <Divider sx={{ borderColor: (t) => alpha(t.palette.primary.main, 0.12), mx: 2 }} />
-      {/* Corpo rolável */}
       <Box sx={{ flex: 1, overflowY: 'auto', px: 1, py: 1 }}><AppMenu /></Box>
     </Drawer>
   );
