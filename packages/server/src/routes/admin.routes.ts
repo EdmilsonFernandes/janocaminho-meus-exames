@@ -711,7 +711,7 @@ router.get('/audit', async (req: AuthedRequest, res, next) => {
     const [auditLogs, count, byAction, byActorType] = await Promise.all([
       prisma.auditLog.findMany({
         where, orderBy: { createdAt: 'desc' }, take, skip,
-        select: { id: true, actorType: true, actorId: true, action: true, targetType: true, targetId: true, ip: true, after: true, createdAt: true },
+        select: { id: true, actorType: true, actorId: true, action: true, targetType: true, targetId: true, ip: true, before: true, after: true, createdAt: true },
       }),
       prisma.auditLog.count({ where }),
       prisma.auditLog.groupBy({ by: ['action'], _count: true, where }),

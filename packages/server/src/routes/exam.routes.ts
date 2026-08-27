@@ -9,6 +9,7 @@ import { sha256Buffer } from '../utils/crypto';
 import { isAllowedUpload } from '../utils/fileMagic';
 import { saveExamFile, resolveExamFile, deleteExamFile, patientSlug } from '../utils/storage';
 import { parseListParams, setListHeaders } from '../utils/list';
+import { audit } from '../utils/audit';
 import { serializeExam } from '../utils/serialize';
 import { runExtraction } from '../extraction/pipeline';
 import { config } from '../config';
@@ -267,6 +268,17 @@ router.delete('/:id', async (req: AuthedRequest, res, next) => {
     const exam = await loadOwnedExam(req, res, req.params.id);
     if (!exam) return;
     const patientId = exam.patientId;
+    // TOMBSTONE de auditoria (LGPD-safe: só metadados, NENHUM dado de saúde). Sem isto o
+    // exame deletado virava invisível pro admin — investigação de crédito/fraude dependia
+    // de cruzar credit_transactions na mão (caso real: user extraía 1º exame, ganhava o
+    // bônus e deletava; admin não via exame nenhum). Best-effort, nunca bloqueia o delete.
+    await audit('EXAM_DELETED', req, {
+      targetType: 'EXAM', targetId: exam.id, actorType: 'USER', actorId: req.userId,
+      before: {
+        title: exam.title, kind: exam.kind, status: exam.status, patientId,
+        performedAt: exam.performedAt ?? null, extractedAt: exam.extractedAt ?? null,
+      },
+    });
     await deleteExamFile(exam.filePath);
     await prisma.exam.delete({ where: { id: exam.id } });
     // Invalida o relatório consolidado (aiAnalysis SUMMARY do paciente) — pode ter sido gerado

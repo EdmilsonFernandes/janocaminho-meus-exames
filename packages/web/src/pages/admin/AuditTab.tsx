@@ -34,6 +34,7 @@ const ACTION_LABEL: Record<string, string> = {
   DOCTOR_LOGIN: 'Médico logou',
   CREDITS_GRANTED: 'Créditos concedidos',
   CREDITS_REVOKED: 'Créditos revogados',
+  EXAM_DELETED: 'Exame excluído',
 };
 const actionLabel = (a: string | null | undefined) => {
   if (!a) return '—';
@@ -75,6 +76,7 @@ export const AuditTab = () => {
   const color = (a: string): any =>
     a.startsWith('LOGIN_SUCCESS') ? 'success'
     : a.startsWith('LOGIN_FAILED') ? 'warning'
+    : a === 'EXAM_DELETED' ? 'warning'
     : a === 'ACCESS' ? 'info'
     : a.includes('BLOCK') ? 'error'
     : a.includes('UNBLOCK') ? 'success' : 'default';
@@ -86,6 +88,20 @@ export const AuditTab = () => {
       const a = typeof l.after === 'string' ? JSON.parse(l.after) : l.after;
       if (a && a.method && a.path) return `${a.method} ${a.path} · ${a.status} · ${a.ms ?? '?'}ms`;
     } catch { /* after malformado — ignora */ }
+    return null;
+  };
+
+  // EXAM_DELETED: tombstone com metadados do exame (título, data, extração) — sem dado de saúde.
+  const examInfo = (l: any): string | null => {
+    if (l.action !== 'EXAM_DELETED' || !l.before) return null;
+    try {
+      const b = typeof l.before === 'string' ? JSON.parse(l.before) : l.before;
+      if (!b?.title) return null;
+      const parts = [`Exame: ${b.title}`];
+      if (b.performedAt) parts.push(`realizado ${new Date(b.performedAt).toLocaleDateString('pt-BR')}`);
+      if (b.extractedAt) parts.push(`extraído ${new Date(b.extractedAt).toLocaleDateString('pt-BR')}`);
+      return parts.join(' · ');
+    } catch { /* before malformado — ignora */ }
     return null;
   };
 
@@ -117,7 +133,7 @@ export const AuditTab = () => {
       {/* Lista */}
       <Stack spacing={1}>
         {d.auditLogs?.map((l: any) => {
-          const info = accessInfo(l);
+          const info = accessInfo(l) ?? examInfo(l);
           return (
             <Card key={l.id} variant="outlined" sx={{ borderRadius: '12px' }}><CardContent sx={{ py: 1.25, '&:last-child': { pb: 1.25 } }}>
               <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
