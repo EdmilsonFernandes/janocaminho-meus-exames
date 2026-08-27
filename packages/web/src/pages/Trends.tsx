@@ -6,7 +6,7 @@ import { ListSkeleton } from '../components/Skeleton';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceArea, Legend } from 'recharts';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Flag } from '../components/Flag';
 import { displayStatus } from '../utils/examStatus';
 import { ExplainButton } from '../components/ExplainItem';
@@ -32,6 +32,8 @@ const fmtNum = (n: number | null | undefined) => n == null ? '—' : String(Numb
 export const TrendsPage = () => {
   const [pid] = useSelectedPatient();
   const navigate = useNavigate();
+  const location = useLocation();
+  const queryParamSelect = new URLSearchParams(location.search).get('select');
   const [names, setNames] = useState<{ nameCanonical: string; count: number }[]>([]);
   const [sel, setSel] = useState('');
   const [ts, setTs] = useState<TS | null>(null);
@@ -110,9 +112,7 @@ export const TrendsPage = () => {
   const multi = names.filter((n) => n.count >= 2);
 
   // AUTO-SELECT inteligente (auditoria: default alfabético abria em "Basofilos" — irrelevante).
-  // Prioridade: 1º marcador ALTERADO com histórico ≥2 pontos; senão o de mais medições.
-  // Bônus: sinaliza cada analito com bolinha AMARELA (alterado) ou VERMELHA (crítico)
-  // no dropdown/chips — o usuário acha o que interessa pela cor (pedido do dono).
+  // Prioridade: (1) analito recebido no query param ?select=..., (2) 1º marcador ALTERADO, (3) mais medições.
   const [abnNames, setAbnNames] = useState<string[]>([]);
   const [toneByName, setToneByName] = useState<Record<string, 'atencao' | 'critico'>>({});
   useEffect(() => {
@@ -134,11 +134,16 @@ export const TrendsPage = () => {
       .catch(() => setAbnNames([]));
   }, []);
   useEffect(() => {
-    if (sel || multi.length === 0) return;
+    if (sel || names.length === 0) return;
+    if (queryParamSelect && names.some((n) => n.nameCanonical === queryParamSelect)) {
+      setSel(queryParamSelect);
+      return;
+    }
+    if (multi.length === 0) return;
     const abn = multi.find((n) => abnNames.includes(n.nameCanonical));
     const best = abn ?? [...multi].sort((a, b) => b.count - a.count)[0];
-    setSel(best.nameCanonical);
-  }, [multi.length, abnNames]);
+    setSel(best?.nameCanonical ?? '');
+  }, [multi.length, abnNames, queryParamSelect, names, sel]);
 
   return (
     <PageContainer width="wide" sx={{ pb: { xs: 10, sm: 5 } }}>

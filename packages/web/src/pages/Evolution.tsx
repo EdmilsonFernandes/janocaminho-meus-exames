@@ -134,36 +134,36 @@ export const EvolutionPage = () => {
             </CardContent>
           </Card>
 
-          {/* Resumo interativo (chips que filtram) */}
-          {/* Resumo interativo — Grid 2x2 no mobile, 4 colunas no desktop (mobile-first, nunca estoura) */}
-          <Grid container spacing={1} sx={{ mb: 0.5 }}>
+          {/* Resumo interativo — Linha única de chips de status */}
+          <Stack direction="row" spacing={0.75} sx={{ overflowX: 'auto', flexWrap: 'nowrap', pb: 0.5, mb: 1, mx: -0.25, px: 0.25, '&::-webkit-scrollbar': { display: 'none' } }}>
             {CHIPS.map((c) => {
               const on = filter === c.key;
               return (
-                <Grid key={c.key} size={{ xs: 6, sm: 3 }}>
-                  <Chip onClick={() => setFilter(c.key)} label={`${c.emoji} ${c.label} (${c.count})`}
-                    sx={{ width: '100%', height: 38, borderRadius: '12px', bgcolor: on ? c.color : `${c.color}1a`, color: on ? '#fff' : c.color, fontWeight: 700, border: `1px solid ${c.color}55`, '&:hover': { bgcolor: on ? c.color : `${c.color}2e` } }} />
-                </Grid>
+                <Chip
+                  key={c.key}
+                  onClick={() => setFilter(c.key)}
+                  label={`${c.emoji} ${c.label} (${c.count})`}
+                  sx={{
+                    height: 34,
+                    flexShrink: 0,
+                    borderRadius: '999px',
+                    bgcolor: on ? c.color : `${c.color}14`,
+                    color: on ? '#fff' : c.color,
+                    fontWeight: 700,
+                    border: `1px solid ${c.color}40`,
+                    '&:hover': { bgcolor: on ? c.color : `${c.color}28` }
+                  }}
+                />
               );
             })}
-          </Grid>
-          {/* Glossário de 1 linha (auditoria: 🟠 "Em mudança" era mistério p/ o leigo — in-range subindo/descendo) */}
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2, lineHeight: 1.5 }}>
-            🟢 Melhorou · 🔴 Piorou · ✅ Estável · <strong>🟠 Em mudança</strong> = ainda dentro da faixa, mas subindo ou caindo em relação ao exame anterior — vale acompanhar.
-          </Typography>
+          </Stack>
 
-          {/* Busca fixa (sticky) + atalho para gráfico */}
-          <Paper variant="outlined" sx={{ p: '2px 12px', mb: 1.5, display: 'flex', alignItems: 'center', gap: 1, borderRadius: '999px', position: 'sticky', top: 60, zIndex: 5, bgcolor: 'background.paper', backdropFilter: 'blur(8px)' }}>
+          {/* Busca por marcador com filtro dinamico */}
+          <Paper variant="outlined" sx={{ p: '2px 12px', mb: 2, display: 'flex', alignItems: 'center', gap: 1, borderRadius: '999px', bgcolor: 'background.paper' }}>
             <SearchIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
             <InputBase value={query} onChange={(e: any) => setQuery(e.target.value)} placeholder="Buscar exame (TSH, glicose, colesterol…)" sx={{ flex: 1, fontSize: 14 }} />
             {query && <Chip size="small" label="limpar" onClick={() => setQuery('')} sx={{ height: 22 }} />}
           </Paper>
-
-          <Box sx={{ display: 'flex', justifyContent: { xs: 'stretch', sm: 'flex-end' }, mb: 2 }}>
-            <Button variant="outlined" size="small" startIcon={<QueryStatsIcon />} onClick={() => navigate('/tendencias')} sx={{ textTransform: 'none', fontWeight: 800, color: '#178f89', borderColor: 'rgba(32,178,170,.5)', borderRadius: '999px', px: 2, py: 0.75, width: { xs: '100%', sm: 'auto' }, '&:hover': { borderColor: '#178f89', bgcolor: 'rgba(32,178,170,.06)' } }}>
-              Gráfico por marcador (pontos por data) →
-            </Button>
-          </Box>
         </>
       )}
 
@@ -245,6 +245,46 @@ const CategoryGroup = ({ group, expandOuts }: { group: { cat: string; icon: SvgI
   );
 };
 
+/** Mini curva de tendência Sparkline para exibição instantânea nos cards da Evolução */
+const EvoSparkline = ({ points, color }: { points: { value: number }[]; color: string }) => {
+  if (!points || points.length < 2) return null;
+  const vals = points.map((p) => p.value).filter((v) => typeof v === 'number' && !Number.isNaN(v));
+  if (vals.length < 2) return null;
+  const min = Math.min(...vals);
+  const max = Math.max(...vals);
+  const range = max - min || 1;
+  const width = 44;
+  const height = 16;
+  const padding = 2;
+
+  const coords = vals.map((v, i) => {
+    const x = padding + (i / (vals.length - 1)) * (width - 2 * padding);
+    const y = height - padding - ((v - min) / range) * (height - 2 * padding);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  });
+
+  return (
+    <Box sx={{ display: 'inline-flex', alignItems: 'center', mx: 0.5, flexShrink: 0 }} title="Curva de tendência recente">
+      <svg width={width} height={height} style={{ overflow: 'visible' }}>
+        <polyline
+          fill="none"
+          stroke={color}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          points={coords.join(' ')}
+        />
+        <circle
+          cx={coords[coords.length - 1].split(',')[0]}
+          cy={coords[coords.length - 1].split(',')[1]}
+          r="2.5"
+          fill={color}
+        />
+      </svg>
+    </Box>
+  );
+};
+
 /** Card recolhido por padrão (nome + valor + tag); expande pro gráfico + detalhes. */
 const EvoRow = ({ it, defaultExpanded }: { it: EvoItem; defaultExpanded?: boolean }) => {
   const navigate = useNavigate();
@@ -258,7 +298,8 @@ const EvoRow = ({ it, defaultExpanded }: { it: EvoItem; defaultExpanded?: boolea
       <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '52px !important', '& .MuiAccordionSummary-content': { my: 0.75, flexWrap: 'wrap', gap: 0.5 } }}>
         <Stack direction="row" alignItems="center" spacing={1} useFlexGap sx={{ flex: 1, minWidth: 0, pr: 1, flexWrap: 'wrap', gap: 0.5 }}>
           <Box sx={{ fontSize: 15 }}>{meta.emoji}</Box>
-          <Typography sx={{ fontWeight: 700, flex: '1 1 60%', minWidth: 120 }}>{it.nameCanonical}</Typography>
+          <Typography sx={{ fontWeight: 700, flex: '1 1 50%', minWidth: 110 }}>{it.nameCanonical}</Typography>
+          <EvoSparkline points={it.points} color={lineColor} />
           <Typography sx={{ fontWeight: 800, color: meta.color }}>{it.lastValue} {it.unit ? <UnitLabel unit={it.unit} /> : null}</Typography>
           {st !== 'stable' && it.pctChange !== 0 && <Chip size="small" sx={{ bgcolor: `${lineColor}14`, color: lineColor, fontWeight: 700, height: 20 }} label={`${it.pctChange > 0 ? '+' : ''}${it.pctChange}%`} />}
         </Stack>
@@ -320,6 +361,9 @@ const EvoRow = ({ it, defaultExpanded }: { it: EvoItem; defaultExpanded?: boolea
         )}
         <Stack direction="row" spacing={1} sx={{ mt: 1 }} useFlexGap flexWrap="wrap" alignItems="center">
           <ExplainButton name={it.nameCanonical} nameCanonical={it.nameCanonical} />
+          <Button size="small" variant="outlined" onClick={() => navigate(`/tendencias?select=${encodeURIComponent(it.nameCanonical)}`)} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, borderColor: 'rgba(32,178,170,0.4)', color: '#178f89' }}>
+            📊 Gráfico completo em Tendências →
+          </Button>
           {(() => { const lp = it.points[it.points.length - 1]; if (!lp?.examId) return null; return <Button size="small" onClick={() => navigate(`/exams/${lp.examId}/show`)}>↗ Exame de origem</Button>; })()}
         </Stack>
       </AccordionDetails>
