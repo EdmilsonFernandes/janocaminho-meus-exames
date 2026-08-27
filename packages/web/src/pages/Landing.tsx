@@ -1,6 +1,6 @@
 import { Box, Container, Typography, Button, Stack, Chip, Dialog, IconButton, Collapse } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
 // Ícones MUI (premium, no lugar dos emojis antigos)
@@ -166,6 +166,7 @@ const SlideCarousel = () => {
 
 export const LandingPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [scrolled, setScrolled] = useState(false);
   const [tourOpen, setTourOpen] = useState(false);
   const [demoOpen, setDemoOpen] = useState(false);
@@ -178,6 +179,13 @@ export const LandingPage = () => {
     window.addEventListener('scroll', h, { passive: true });
     return () => window.removeEventListener('scroll', h);
   }, []);
+  // Deep-link do e-mail de boas-vindas do lead: ?ir=decifre rola direto pro
+  // "Cole seu exame" (#demo) — o CTA cumpre a promessa do e-mail no primeiro toque.
+  useEffect(() => {
+    if (searchParams.get('ir') !== 'decifre') return;
+    const t = setTimeout(() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 450);
+    return () => clearTimeout(t);
+  }, [searchParams]);
 
   const [credits, setCredits] = useState(45);
   const [refBonus, setRefBonus] = useState(10);

@@ -206,3 +206,28 @@ export function doctorAnswerEmail(opts: { patientName?: string; doctorName: stri
       <p style="font-size:14px;color:#8b9bb4;margin:0">A resposta do médico é orientação profissional — não substitui uma consulta presencial quando ele julgar necessária.</p>`,
   });
 }
+
+/** Boas-vindas do lead da landing (popup de e-mail). Deep-link direto pro decodificador
+ *  ("Cole seu exame", âncora #demo via ?ir=decifre) — não pro topo da landing genérica.
+ *  Credibilidade em 3 sinais (qualquer lab · educativo/privado · BR) antes do CTA. */
+export function leadWelcomeEmail(opts: { decifreUrl: string; signupUrl: string }): string {
+  const li = 'font-size:14px;color:#51607a;line-height:1.6;margin:0 0 8px';
+  return emailTemplate({
+    title: 'Decifre seu exame de graça — Dr. Exame',
+    preheader: 'Cole o texto do seu laudo e veja cada valor organizado em segundos. Sem cadastro.',
+    content: `
+      <p style="font-size:16px;color:#15233b;margin:0 0 10px">Olá!</p>
+      <h2 style="font-size:19px;color:#0f3d3a;margin:0 0 12px;line-height:1.35">Seu exame pode deixar de ser um enigma — hoje.</h2>
+      <p style="font-size:15px;color:#51607a;line-height:1.6;margin:0 0 20px">Você pediu o link, então aqui vai: <strong>cole o texto do seu laudo</strong> e a IA organiza cada valor na hora — o que está dentro da faixa, e o que pede atenção.</p>
+      <div style="text-align:center;margin:0 0 22px">
+        <a href="${opts.decifreUrl}" style="display:inline-block;background:#20b2aa;color:#fff;font-size:16px;font-weight:700;padding:14px 36px;border-radius:99px;text-decoration:none">Decifrar meu exame agora →</a>
+      </div>
+      <div style="background:#f3f6fb;border-radius:12px;padding:16px 18px;margin:0 0 22px">
+        <p style="${li}">✓ <strong>Qualquer laboratório</strong> — cole o texto, envie o PDF ou uma foto do laudo</p>
+        <p style="${li}">✓ <strong>Educativo e privado</strong> — nada fica salvo, nada vira diagnóstico (LGPD)</p>
+        <p style="font-size:14px;color:#51607a;line-height:1.6;margin:0">✓ <strong>Feito no Brasil</strong> — em português claro, pra levar ao seu médico</p>
+      </div>
+      <p style="font-size:14px;color:#51607a;line-height:1.6;margin:0 0 8px">Quiser ir além: <a href="${opts.signupUrl}" style="color:#178f89;font-weight:700;text-decoration:none">crie sua conta grátis</a> e envie o exame completo — a IA monta sua leitura de risco e um plano de ação. O 1º resumo é grátis e não pede cartão.</p>
+      <p style="font-size:12px;color:#8b9bb4;line-height:1.55;margin:0">Você recebe este e-mail porque pediu o link no site. Não quer mais? Responda "remover" que excluímos seu e-mail na hora (LGPD).</p>`,
+  });
+}

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { createHash } from 'crypto';
 import { prisma } from '../prisma';
 import { sendEmail } from '../utils/mailer';
+import { leadWelcomeEmail, webUrl } from '../utils/emailTemplate';
 
 /**
  * Captura de lead da landing (popup de e-mail) — topo de funil, sem cadastro.
@@ -40,13 +41,16 @@ router.post('/', async (req, res, next) => {
 
     await prisma.landingLead.create({ data: { email, source, ipHash } });
 
-    // Boas-vindas com o valor existente (link do decoder + 1º exame grátis). Best-effort:
-    // falha de SMTP não deve 500ar a captura — o lead já está salvo.
+    // Boas-vindas com o valor existente. Deep-link direto pro decodificador
+    // (?ir=decifre rola até a seção "Cole seu exame"), template com credencial
+    // (qualquer lab · educativo/privado · BR) — não link genérico pro topo.
+    // Best-effort: falha de SMTP não 500a a captura — o lead já está salvo.
+    const decifreUrl = webUrl('/#/landing?ir=decifre');
     await sendEmail({
       to: email,
-      subject: '🩺 Seu link pra decifrar seu exame de graça',
-      html: `<p>Olá!</p><p>Obrigado por deixar seu e-mail. Aqui está o que prometemos:</p><p><b>1.</b> Decifre seu exame <b>de graça</b> — cole o texto do laudo e receba os valores organizados na hora: <a href="https://drexame.janocaminho.com.br/#/landing">abrir o Dr. Exame</a>.</p><p><b>2.</b> Se quiser ir além: crie sua conta grátis e envie o PDF/foto do exame — a IA explica em português simples, monta sua leitura de risco e um plano de ação pra levar ao médico. Sem cartão.</p><p>— Dr. Exame</p><p style="color:#888;font-size:12px">Você recebe este e-mail porque pediu o link no site. Não quer mais? Responda "remover" que excluimos seu e-mail na hora (LGPD).</p>`,
-      text: 'Decifre seu exame de graça: https://drexame.janocaminho.com.br/#/landing — conta grátis sem cartão. Responda "remover" para sair da lista (LGPD).',
+      subject: 'Decifre seu exame de graça — Dr. Exame',
+      html: leadWelcomeEmail({ decifreUrl, signupUrl: webUrl('/#/registrar') }),
+      text: `Decifre seu exame de graça (cole o texto do laudo): ${decifreUrl} — ou crie sua conta grátis (1º resumo grátis, sem cartão): ${webUrl('/#/registrar')}. Responda "remover" para sair da lista (LGPD).`,
     }).catch(() => {});
 
     res.status(201).json({ ok: true });
