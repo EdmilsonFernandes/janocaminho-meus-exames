@@ -98,9 +98,17 @@ export const DecifreReal = () => {
     try {
       let r: Response;
       if (mode === 'pdf' && file) {
+        // DIAGNÓSTICO Android: file picker pode retornar File inválido (content:// URI)
+        console.log('[decifre] file:', file.name, file.size, file.type, 'mode:', file instanceof File ? 'File' : typeof file);
+        if (!file.size || file.size === 0) {
+          setErr('O arquivo parece vazio. Tente escolher o PDF de novo — ou cole o texto.');
+          return;
+        }
         const fd = new FormData();
         fd.append('file', file, file.name);
+        console.log('[decifre] fetch POST →', `${API_URL}/public/decifre`, '| fd entries:', fd.entries ? Array.from(fd.entries()).length : 'n/a');
         r = await fetch(`${API_URL}/public/decifre`, { method: 'POST', body: fd, signal: ctrl.signal });
+        console.log('[decifre] response:', r.status, r.ok);
       } else {
         r = await fetch(`${API_URL}/public/decifre`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -126,10 +134,13 @@ export const DecifreReal = () => {
     } catch (e: any) {
       // Diferencia timeout (IA demorando) de rede caída — mensagem honesta pra cada caso.
       clearTimeout(timeout);
+      console.error('[decifre] FETCH ERROR:', e?.name, e?.message, '| file:', file?.name, file?.size, '| API_URL:', API_URL);
       if (e?.name === 'AbortError') {
         setErr('A análise demorou mais que o esperado (mobile é mais lento). Tente de novo — ou cole só o texto em vez do PDF.');
+      } else if (e?.message?.includes('Failed to fetch')) {
+        setErr('O navegador não conseguiu enviar o arquivo. Tente: 1) colar o texto em vez do PDF, ou 2) abrir em aba anônima.');
       } else {
-        setErr('Falha de conexão. Verifique sua internet e tente novamente.');
+        setErr(`Erro: ${e?.message || 'desconhecido'}. Tente colar o texto em vez do PDF.`);
       }
     } finally {
       clearTimeout(timeout);
