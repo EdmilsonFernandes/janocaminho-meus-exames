@@ -76,12 +76,12 @@
       /* Mobile: folga no rodapé do conteúdo pra o FAB do Dr. Exame não cobrir paginação/rodapé. */
       @media (max-width: 599px) { #main-content { padding-bottom: 84px !important; } }
     </style>
-    <script type="module" crossorigin src="./assets/index-DvT2DCGD.js"></script>
+    <script type="module" crossorigin src="./assets/index-4wlJL_hm.js"></script>
     <link rel="modulepreload" crossorigin href="./assets/rolldown-runtime-QTnfLwEv.js">
-    <link rel="modulepreload" crossorigin href="./assets/vendor-ui-W7RDM1Fg.js">
-    <link rel="modulepreload" crossorigin href="./assets/vendor-admin-UkDTgnu1.js">
+    <link rel="modulepreload" crossorigin href="./assets/vendor-ui-Bw2211Oy.js">
+    <link rel="modulepreload" crossorigin href="./assets/vendor-admin-D1LQnq43.js">
     <link rel="modulepreload" crossorigin href="./assets/dist-CjyBEm7C.js">
-    <link rel="modulepreload" crossorigin href="./assets/vendor-charts-c1cAlCB_.js">
+    <link rel="modulepreload" crossorigin href="./assets/vendor-charts-iD5FGV24.js">
   </head>
   <body>
     <noscript>
@@ -141,9 +141,10 @@
          Acessibilidade. SUBSTRING ([class*=]) além do prefixo ([class^=]): o widget cria
          elementos com classes COMBINADAS (ex.: class="enabled vpw-dialog") que o prefixo
          não casa — era o vazamento do "libras aparece mesmo desligado". */
-      body.libras-off [vw], body.libras-off [vw].enabled, body.libras-off div[vw-access-button],
-      body.libras-off [class^="vp-"], body.libras-off [class^="vw-"], body.libras-off [class^="vpw-"],
-      body.libras-off [class*="vp-"], body.libras-off [class*="vw-"], body.libras-off [class*="vpw-"] { display: none !important; }
+      body.libras-off #vlibras-host, body.libras-off [vw], body.libras-off [vw].enabled, body.libras-off div[vw-access-button],
+      body.libras-off [vw-plugin-wrapper], body.libras-off [class*="vp"], body.libras-off [class*="vw"], body.libras-off [class*="vpw"] {
+        display: none !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important;
+      }
     </style>
     <script>
       // Aplica a preferência ANTES do widget montar (não pisca na tela). Default: OFF (opt-in).
