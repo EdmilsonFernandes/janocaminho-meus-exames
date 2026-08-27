@@ -620,6 +620,7 @@ if (typeof window !== 'undefined' && !(window as any).__navPatched) {
 // o react-admin normaliza /login e descarta a query).
 export const App = () => {
   const [booted, setBooted] = useState(false);
+  const [bootExiting, setBootExiting] = useState(false);
   const [forceUpdate, setForceUpdate] = useState<string | null>(null);
   const isNativeApp = Capacitor.isNativePlatform();
   useEffect(() => {
@@ -660,7 +661,12 @@ export const App = () => {
         }
       }
     } catch { /* ignore */ }
-    const bootTimer = setTimeout(() => { if (!cancelled) setBooted(true); }, 1100); // splash visível na abertura
+    const bootTimer = setTimeout(() => {
+      if (!cancelled) {
+        setBootExiting(true);
+        setTimeout(() => { if (!cancelled) setBooted(true); }, 420);
+      }
+    }, 1100); // splash visível na abertura
     void initPush();
     void checkAppUpdate().then((r) => { if (!cancelled && r.required) setForceUpdate(r.latest); }); // força-update se versão instalada < mínima
     void checkPlayUpdate(); // in-app update NATIVO do Google Play (baixa e atualiza sozinho) — só em builds da Play Store
@@ -721,10 +727,10 @@ export const App = () => {
     })();
     return () => { cancelled = true; clearTimeout(bootTimer); clearInterval(updateInterval); remove?.(); };
   }, []);
-  if (!booted) return <BootSplash messages={['Iniciando o Dr. Exame…', 'Carregando seus exames…', 'Preparando seu painel…', 'Quase lá…']} />;
   if (forceUpdate) return <ForceUpdate latest={forceUpdate} />;
   return (
   <>
+  {!booted && <BootSplash isExiting={bootExiting} messages={['Iniciando o Dr. Exame…', 'Carregando seus exames…', 'Preparando seu painel…', 'Quase lá…']} />}
   <Admin
     dataProvider={dataProvider}
     authProvider={authProvider}
