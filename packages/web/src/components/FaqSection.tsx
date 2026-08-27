@@ -13,7 +13,7 @@ const TEAL_DARK = '#178f89';
 const FAQ = [
   {
     q: 'A IA do Dr. Exame substitui o médico?',
-    a: 'Não. Ela é educativa: explica cada valor em português simples, compara com a faixa de referência e sugers perguntas para levar à consulta. A decisão e o diagnóstico são sempre do seu médico.',
+    a: 'Não. Ela é educativa: explica cada valor em português simples, compara com a faixa de referência e sugere perguntas para levar à consulta. A decisão e o diagnóstico são sempre do seu médico.',
   },
   {
     q: 'A IA inventa os valores do meu exame?',

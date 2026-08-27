@@ -121,7 +121,7 @@ const CustomAppBar = (props: AppBarProps) => {
       sx={{
         bgcolor: isDark ? 'rgba(22, 32, 32, 0.75)' : 'rgba(255, 255, 255, 0.72)',
         backdropFilter: 'blur(24px) saturate(180%)',
-        '-webkit-backdrop-filter': 'blur(24px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(24px) saturate(180%)',
         borderBottom: '1px solid',
         borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(32, 178, 170, 0.14)',
         boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.4)' : '0 4px 20px rgba(32,178,170,0.06)',
@@ -374,7 +374,7 @@ const AppDrawer = () => {
           width: { xs: '84vw', sm: 340 }, maxWidth: 360, display: 'flex', flexDirection: 'column',
           bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(20, 30, 30, 0.88)' : 'rgba(255, 255, 255, 0.88)',
           backdropFilter: 'blur(24px) saturate(180%)',
-          '-webkit-backdrop-filter': 'blur(24px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(24px) saturate(180%)',
           borderRadius: '0 24px 24px 0',
           borderRight: '1px solid',
           borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(32,178,170,0.18)',
@@ -606,8 +606,14 @@ export const App = () => {
     try {
       const p = window.location.pathname || '/';
       const hasHashRoute = window.location.hash.startsWith('#/');
-      if (!isNativeApp && !hasHashRoute && (p === '/' || p === '') && !localStorage.getItem('token')) {
-        window.history.replaceState({}, '', '/landing');
+      // ROOT sob basename: o app é servido em /minhasaude/ — a condição antiga (p === '/')
+      // nunca casava em produção e o anônimo caía no LOGIN em vez da vitrine (critique
+      // 2026-08-26). Também corrige o destino: '/landing' absoluto dava 404 no refresh
+      // sob o subpath — o replace precisa manter o prefixo real.
+      const isAppRoot = p === '/' || p === '' || /\/minhasaude\/?$/i.test(p);
+      if (!isNativeApp && !hasHashRoute && isAppRoot && !localStorage.getItem('token')) {
+        const base = p.replace(/\/+$/, '');
+        window.history.replaceState({}, '', `${base}/landing`);
       }
     } catch { /* ignore */ }
     // COLD-START FIX (web): o react-admin roteia por HASH (HashRouter). Quem cai direto numa

@@ -148,7 +148,7 @@ export const buildTheme = (mode: ThemeMode): Theme => {
             backgroundClip: 'content-box',
             '&:hover': { background: isDark ? 'rgba(148,163,184,.4)' : 'rgba(23,143,137,.38)', backgroundClip: 'content-box' },
           },
-          'html': { '-webkit-tap-highlight-color': 'transparent', scrollBehavior: 'smooth' },
+          'html': { WebkitTapHighlightColor: 'transparent', scrollBehavior: 'smooth' },
         },
       },
       MuiDrawer: {
@@ -203,7 +203,7 @@ export const buildTheme = (mode: ThemeMode): Theme => {
             // FROSTED GLASS real (direção "vidro clean / app grande"): blur alto + saturate
             // realça o que passa por trás — era blur(12) opaco .92, parecia só cinza claro.
             backdropFilter: 'blur(18px) saturate(160%)',
-            '-webkit-backdrop-filter': 'blur(18px) saturate(160%)',
+            WebkitBackdropFilter: 'blur(18px) saturate(160%)',
             borderBottom: `1px solid ${surfaces.divider}`,
             boxShadow: 'none',
             color: surfaces.text.primary,

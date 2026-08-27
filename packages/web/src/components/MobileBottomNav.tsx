@@ -154,7 +154,7 @@ export const MobileBottomNav = () => {
       // Vidro Flutuante 3D (Floating Island Lens):
       bgcolor: isDark ? 'rgba(18, 28, 28, 0.75)' : 'rgba(255, 255, 255, 0.72)',
       backdropFilter: 'blur(28px) saturate(200%)',
-      '-webkit-backdrop-filter': 'blur(28px) saturate(200%)',
+      WebkitBackdropFilter: 'blur(28px) saturate(200%)',
       border: '1px solid',
       borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.7)',
       boxShadow: isDark
