@@ -24,22 +24,38 @@ const SCOPE_META = [
   { key: 'summary', label: 'Resumos IA', short: 'IA', icon: '✨' },
 ];
 
-/** Toggle card de escopo — SEMPRE mostra label (mesmo compacto) + acende quando ativo. */
+const fixSpecialty = (s?: string) => {
+  if (!s) return 'Outros';
+  if (s === 'Cirurgiao Geral') return 'Cirurgião Geral';
+  return s;
+};
+
+/** Toggle card de escopo — Pílula visual interativa em tom esmeralda. */
 const ScopeToggle = ({ scopeKey, active, onToggle, compact }: { scopeKey: string; active: boolean; onToggle: (k: string) => void; compact?: boolean }) => {
   const meta = SCOPE_META.find((s) => s.key === scopeKey)!;
   return (
-    <Box onClick={(e) => { e.stopPropagation(); onToggle(scopeKey); }} sx={{
-      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: compact ? 1 : 2,
-      px: compact ? 0.75 : 1.5, py: compact ? 0.5 : 1, borderRadius: '12px', cursor: 'pointer',
-      minWidth: compact ? 58 : 72, transition: 'all .15s',
-      bgcolor: active ? 'rgba(32,178,170,.10)' : 'background.default',
-      border: `2px solid ${active ? '#20b2aa' : 'divider'}`,
-      '&:active': { transform: 'scale(.92)' },
-    }}>
-      <Box sx={{ fontSize: compact ? 15 : 22, filter: active ? 'none' : 'grayscale(1) opacity(.35)', lineHeight: 1 }}>{meta.icon}</Box>
-      <Typography sx={{ fontSize: compact ? 8 : 10, fontWeight: 700, lineHeight: 1, whiteSpace: 'nowrap', color: active ? '#178f89' : 'text.secondary' }}>{compact ? meta.short : meta.label}</Typography>
-      {active && <Box sx={{ width: 4, height: 4, borderRadius: '50%', bgcolor: '#059669' }} />}
-    </Box>
+    <Chip
+      size="small"
+      onClick={(e) => { e.stopPropagation(); onToggle(scopeKey); }}
+      label={
+        <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
+          <span>{meta.icon}</span>
+          <span>{compact ? meta.short : meta.label}</span>
+        </Box>
+      }
+      sx={{
+        height: 28,
+        fontSize: 11,
+        fontWeight: 700,
+        cursor: 'pointer',
+        borderRadius: '999px',
+        bgcolor: active ? 'rgba(5,150,105,0.12)' : 'rgba(0,0,0,0.04)',
+        color: active ? '#047857' : 'text.secondary',
+        border: `1px solid ${active ? 'rgba(5,150,105,0.3)' : 'rgba(0,0,0,0.08)'}`,
+        '&:hover': { bgcolor: active ? 'rgba(5,150,105,0.22)' : 'rgba(0,0,0,0.08)' },
+        transition: 'all 0.15s ease',
+      }}
+    />
   );
 };
 
@@ -210,27 +226,89 @@ export const MedicosPage = () => {
   const activeCount = myShares.filter((s) => s.active).length;
 
   return (
-    <PageContainer width={760}>
-      <PageHeader icon={<MedicalServicesIcon />} title={translate('page.doctors')}
-        subtitle={translate('page.doctors_sub')}
-        actions={<Button variant="contained" startIcon={<PersonAddIcon />} onClick={() => setShowForm(true)} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>
-          Compartilhar
-        </Button>} />
+    <PageContainer width={760} sx={{ pb: { xs: 10, sm: 5 } }}>
+      {/* HERO BANNER PREMIUM */}
+      <Card
+        elevation={0}
+        sx={{
+          mb: 3,
+          borderRadius: '20px',
+          background: 'linear-gradient(135deg, #0f5f5a 0%, #178f89 100%)',
+          color: '#fff',
+          overflow: 'hidden',
+          boxShadow: '0 12px 32px rgba(15,95,90,0.22)',
+        }}
+      >
+        <CardContent sx={{ p: { xs: 2.5, sm: 3.5 } }}>
+          <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={2}>
+            <Box>
+              <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1 }}>
+                <Box sx={{ bgcolor: 'rgba(255,255,255,0.2)', p: 1, borderRadius: '14px', display: 'flex', alignItems: 'center' }}>
+                  <MedicalServicesIcon sx={{ fontSize: 28, color: '#fff' }} />
+                </Box>
+                <Typography variant="h5" sx={{ fontWeight: 900, fontFamily: 'Poppins, sans-serif', letterSpacing: '-0.02em' }}>
+                  Meus Médicos
+                </Typography>
+                <Chip
+                  size="small"
+                  label={`${activeCount} com acesso ativo`}
+                  sx={{ bgcolor: 'rgba(255,255,255,0.22)', color: '#fff', fontWeight: 800, backdropFilter: 'blur(6px)' }}
+                />
+              </Stack>
+              <Typography sx={{ opacity: 0.9, fontSize: 14, maxWidth: 520, lineHeight: 1.4 }}>
+                Controle o que cada médico pode ver. Altere permissões ou revogue o acesso a qualquer momento.
+              </Typography>
+            </Box>
+
+            <Button
+              variant="contained"
+              startIcon={<PersonAddIcon />}
+              onClick={() => setShowForm(true)}
+              sx={{
+                bgcolor: 'rgba(255,255,255,0.18)',
+                color: '#fff',
+                fontWeight: 800,
+                textTransform: 'none',
+                borderRadius: '999px',
+                px: 2.5,
+                py: 1,
+                backdropFilter: 'blur(8px)',
+                border: '1px solid rgba(255,255,255,0.35)',
+                whiteSpace: 'nowrap',
+                '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' },
+              }}
+            >
+              + Compartilhar
+            </Button>
+          </Stack>
+        </CardContent>
+      </Card>
 
       {/* Filtros */}
       {!loading && myShares.length > 0 && (
-        <Stack spacing={1} sx={{ mb: 2 }}>
-          <TextField placeholder={translate('docs.search_ph')} value={search} onChange={(e) => setSearch(e.target.value)} size="small" fullWidth
-            slotProps={{ input: { startAdornment: <InputAdornment position="start"><SearchIcon sx={{ fontSize: 18, color: 'text.secondary' }} /></InputAdornment> } }} />
+        <Stack spacing={1} sx={{ mb: 2.5 }}>
+          <TextField
+            placeholder={translate('docs.search_ph')}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            size="small"
+            fullWidth
+            slotProps={{
+              input: {
+                startAdornment: <InputAdornment position="start"><SearchIcon sx={{ fontSize: 18, color: 'text.secondary' }} /></InputAdornment>,
+                sx: { borderRadius: '999px', bgcolor: 'background.paper' }
+              }
+            }}
+          />
           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" alignItems="center">
             {specialties.length > 1 && (
-              <TextField select size="small" value={specFilter} onChange={(e) => setSpecFilter(e.target.value)} sx={{ minWidth: 160 }} label="Especialidade">
+              <TextField select size="small" value={specFilter} onChange={(e) => setSpecFilter(e.target.value)} sx={{ minWidth: 160, '& .MuiOutlinedInput-root': { borderRadius: '999px' } }} label="Especialidade">
                 <MenuItem value="">{translate('docs.all')}</MenuItem>
-                {specialties.map((sp: string) => <MenuItem key={sp} value={sp}>{sp}</MenuItem>)}
+                {specialties.map((sp: string) => <MenuItem key={sp} value={sp}>{fixSpecialty(sp)}</MenuItem>)}
               </TextField>
             )}
-            <FormControlLabel control={<Switch size="small" checked={activeOnly} onChange={(e) => setActiveOnly(e.target.checked)} />} label={<Typography sx={{ fontSize: 13 }}>Só ativos</Typography>} />
-            <Chip size="small" label={`${myShares.length} ${myShares.length === 1 ? 'médico' : 'médicos'} • ${activeCount} ${activeCount === 1 ? 'ativo' : 'ativos'}`} sx={{ bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 700 }} />
+            <FormControlLabel control={<Switch size="small" checked={activeOnly} onChange={(e) => setActiveOnly(e.target.checked)} />} label={<Typography sx={{ fontSize: 13, fontWeight: 700 }}>Só ativos</Typography>} />
+            <Chip size="small" label={`${myShares.length} ${myShares.length === 1 ? 'médico' : 'médicos'} • ${activeCount} ${activeCount === 1 ? 'ativo' : 'ativos'}`} sx={{ bgcolor: 'rgba(15,95,90,0.1)', color: '#0f5f5a', fontWeight: 800 }} />
           </Stack>
         </Stack>
       )}
@@ -240,7 +318,7 @@ export const MedicosPage = () => {
 
       {/* Empty state */}
       {!loading && myShares.length === 0 && (
-        <Card sx={{ borderRadius: '12px', background: 'background.default', border: '1px solid', borderColor: 'divider' }}><CardContent sx={{ textAlign: 'center', py: 5 }}>
+        <Card sx={{ borderRadius: '20px', background: 'background.default', border: '1px solid', borderColor: 'divider' }}><CardContent sx={{ textAlign: 'center', py: 5 }}>
           <Box sx={{ fontSize: 56, mb: 1 }}>🩺</Box>
           <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', mb: 0.5 }}>{translate('docs.empty_title')}</Typography>
           <Typography color="text.secondary" sx={{ mb: 2.5, maxWidth: 320, mx: 'auto' }}>{translate('docs.empty_desc')}</Typography>
@@ -250,36 +328,89 @@ export const MedicosPage = () => {
 
       {/* Lista agrupada por especialidade */}
       {!loading && grouped.active.map(([specName, items]) => (
-        <Box key={specName} sx={{ mb: 2.5 }}>
-          {/* Typography é <p>: Chip (div) dentro é DOM inválido (console error ×2) — component="div". */}
-          <Typography component="div" sx={{ fontWeight: 800, fontSize: 13, color: 'text.primary', mb: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            {specName} <Chip size="small" label={items.length} sx={{ height: 20, fontSize: 11, bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 700 }} />
+        <Box key={specName} sx={{ mb: 3 }}>
+          <Typography component="div" sx={{ fontWeight: 900, fontSize: 14, color: 'text.primary', mb: 1.25, display: 'flex', alignItems: 'center', gap: 1, fontFamily: 'Poppins, sans-serif' }}>
+            <span>{fixSpecialty(specName)}</span>
+            <Chip size="small" label={items.length} sx={{ height: 20, fontSize: 11, bgcolor: 'rgba(15,95,90,0.12)', color: '#0f5f5a', fontWeight: 800 }} />
           </Typography>
-          <Stack spacing={1}>
+          <Stack spacing={1.5}>
             {items.map((s) => (
-              <Card key={s.id} onClick={() => setDetail(s.doctor)} sx={{ borderRadius: '12px', position: 'relative', overflow: 'hidden', border: '1px solid', borderColor: 'divider', cursor: 'pointer', '&:hover': { boxShadow: '0 4px 16px rgba(32,178,170,.15)' }, '&:active': { transform: 'scale(.99)' }, transition: 'all .15s' }}>
-                <Box sx={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, bgcolor: s.active ? '#20b2aa' : '#cbd5e1' }} />
-                <CardContent sx={{ pl: 2.5, py: 1.5, '&:last-child': { pb: 1.5 } }}>
-                  <Stack direction="row" alignItems="flex-start" spacing={1.5}>
+              <Card
+                key={s.id}
+                onClick={() => setDetail(s.doctor)}
+                sx={{
+                  borderRadius: '16px',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  cursor: 'pointer',
+                  bgcolor: 'background.paper',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+                  '&:hover': {
+                    borderColor: '#178f89',
+                    boxShadow: '0 8px 24px rgba(15,95,90,0.14)',
+                    transform: 'translateY(-2px)',
+                  },
+                  '&:active': { transform: 'scale(.99)' },
+                  transition: 'all .2s ease',
+                }}
+              >
+                <Box sx={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, bgcolor: s.active ? '#059669' : '#cbd5e1' }} />
+                <CardContent sx={{ pl: 2.5, py: 2, '&:last-child': { pb: 2 } }}>
+                  <Stack direction="row" alignItems="flex-start" spacing={1.75}>
                     <Box sx={{ position: 'relative', flexShrink: 0 }}>
-                      <Avatar src={s.doctor?.id ? doctorPhotoUrl(s.doctor.id) : undefined} sx={{ width: 48, height: 48, fontWeight: 800, fontSize: 20, bgcolor: '#20b2aa' }}>{s.doctor?.name?.charAt(0)?.toUpperCase()}</Avatar>
-                      <Box sx={{ position: 'absolute', bottom: -1, right: -1, width: 13, height: 13, borderRadius: '50%', bgcolor: s.active ? '#059669' : 'text.secondary', border: '2.5px solid #fff' }} />
+                      <Avatar
+                        src={s.doctor?.id ? doctorPhotoUrl(s.doctor.id) : undefined}
+                        sx={{
+                          width: 52,
+                          height: 52,
+                          fontWeight: 800,
+                          fontSize: 20,
+                          bgcolor: '#0f5f5a',
+                          border: `2.5px solid ${s.active ? '#059669' : '#cbd5e1'}`,
+                        }}
+                      >
+                        {s.doctor?.name?.charAt(0)?.toUpperCase()}
+                      </Avatar>
+                      <Box sx={{ position: 'absolute', bottom: 0, right: 0, width: 13, height: 13, borderRadius: '50%', bgcolor: s.active ? '#059669' : '#94a3b8', border: '2px solid #fff' }} />
                     </Box>
+
                     <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Stack direction="row" alignItems="center" spacing={0.5} useFlexGap flexWrap="wrap">
-                        <Typography sx={{ fontWeight: 800, color: 'text.primary', fontSize: 15 }}>{s.doctor?.name}</Typography>
+                      <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
+                        <Typography sx={{ fontWeight: 800, color: 'text.primary', fontSize: 16, fontFamily: 'Poppins, sans-serif' }}>
+                          {s.doctor?.name}
+                        </Typography>
+                        <IconButton size="small" aria-label={`Mais opções de ${s.doctor?.name}`} title="Mais opções" onClick={(e) => { e.stopPropagation(); setMenuEl({ id: s.id, el: e.currentTarget }); }} sx={{ flexShrink: 0, mt: -0.5 }}>
+                          <MoreVertIcon fontSize="small" />
+                        </IconButton>
                       </Stack>
-                      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>CRM {s.doctor?.crm}{s.convenio ? ` • ${s.convenio}` : ''}</Typography>
-                      {/* Scope toggles */}
-                      <Stack direction="row" spacing={0.5} sx={{ mt: 1 }}>
+
+                      <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 0.25, mb: 1, flexWrap: 'wrap', gap: 0.5 }}>
+                        <Chip size="small" label={`CRM ${s.doctor?.crm}`} sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(15,95,90,0.08)', color: '#0f5f5a' }} />
+                        {s.convenio && <Chip size="small" label={s.convenio} sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(0,0,0,0.05)', color: 'text.secondary' }} />}
+                      </Stack>
+
+                      {/* Scope toggles em pilulas limpas */}
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', mb: 0.5 }}>
+                        Acessos autorizados (toque para alternar):
+                      </Typography>
+                      <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap">
                         {SCOPE_META.map((sm) => (
-                          <ScopeToggle key={sm.key} scopeKey={sm.key} active={!!s.scopes?.includes(sm.key)} compact
-                            onToggle={(k) => { const on = s.scopes?.includes(k); const ns = on ? s.scopes.filter((x: string) => x !== k) : [...(s.scopes || []), k]; updateScopes(s.id, ns); }} />
+                          <ScopeToggle
+                            key={sm.key}
+                            scopeKey={sm.key}
+                            active={!!s.scopes?.includes(sm.key)}
+                            compact
+                            onToggle={(k) => {
+                              const on = s.scopes?.includes(k);
+                              const ns = on ? s.scopes.filter((x: string) => x !== k) : [...(s.scopes || []), k];
+                              updateScopes(s.id, ns);
+                            }}
+                          />
                         ))}
                       </Stack>
                     </Box>
-                    {/* Menu ⋯ */}
-                    <IconButton size="small" aria-label={`Mais opções de ${s.doctor?.name}`} title="Mais opções" onClick={(e) => { e.stopPropagation(); setMenuEl({ id: s.id, el: e.currentTarget }); }} sx={{ flexShrink: 0, mt: -0.5 }}><MoreVertIcon fontSize="small" /></IconButton>
                   </Stack>
                 </CardContent>
               </Card>
