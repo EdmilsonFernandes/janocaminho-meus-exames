@@ -304,7 +304,10 @@ export async function generateConsolidatedSummary(patientId: string, audience: '
   let response: any;
   try {
     response = await withRateLimitRetry(async () => {
-      const s = await getLlm().stream({ model: getModel(), maxTokens: 6000, system: HEALTH_SYSTEM, messages: messages as any });
+      // maxTokens 12k (era 6k): o glm-5.3 emite bloco thinking ANTES do texto — com 6k o
+      // raciocínio consumia o orçamento e o JSON vinha VAZIO ("A IA não devolveu JSON.
+      // Início da resposta: "). Streaming já suporta; paga-se só o que gerar.
+      const s = await getLlm().stream({ model: getModel(), maxTokens: 12000, system: HEALTH_SYSTEM, messages: messages as any });
       return s.final();
     });
   } catch (e: any) {
@@ -413,7 +416,7 @@ export async function generateHealthSummary(examId: string): Promise<{ summary: 
 
   const s = await getLlm().stream({
     model: getModel(),
-    maxTokens: 6000,
+    maxTokens: 12000, // idem consolidado: folga p/ thinking do glm-5.3 antes do texto
     system: HEALTH_SYSTEM,
     messages: [
       {
