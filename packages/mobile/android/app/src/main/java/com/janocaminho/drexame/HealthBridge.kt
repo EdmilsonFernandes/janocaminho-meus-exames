@@ -13,10 +13,7 @@ import androidx.health.connect.client.records.ExerciseSessionRecord
 import androidx.health.connect.client.records.HeartRateRecord
 import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.ActiveCaloriesBurnedRecord
-import androidx.health.connect.client.request.AggregateRequest
 import androidx.health.connect.client.time.TimeRangeFilter
-import androidx.health.connect.client.units.Energy
-import androidx.health.connect.client.units.Length
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -218,87 +215,68 @@ class HealthBridge(private val activity: MainActivity) {
             try {
                 val zone: ZoneId = ZoneId.systemDefault()
                 val arr = JSONArray()
+                val today: LocalDate = LocalDate.now(zone)
+                val periodStart: Instant = today.minusDays((days - 1).toLong()).atStartOfDay(zone).toInstant()
+                val periodEnd: Instant = today.plusDays(1).atStartOfDay(zone).toInstant()
 
                 // DEDUP multi-fonte (Samsung Health + Google Fit + …): o aggregate global SOMA
                 // registros de apps diferentes — quando dois apps registram o MESMO passeio
-                // (sessões distintas, sem overlap p/ o HC deduplicar), os passos dobram.
-                // Estratégia: agregar POR ORIGEM (dataOriginsFilter) e ficar com o MÁXIMO
-                // diário de cada métrica — o app que mais registrou aquele dia "vence".
-                // Bônus: uma origem sem calorias não zera a métrica de outra (max, não soma).
-                val periodStart: Instant = LocalDate.now(zone).minusDays((days - 1).toLong()).atStartOfDay(zone).toInstant()
-                val periodEnd: Instant = LocalDate.now(zone).plusDays(1).atStartOfDay(zone).toInstant()
-                val originSet = LinkedHashSet<androidx.health.connect.client.records.DataOrigin>()
+                // (sessões distintas, sem overlap pro HC deduplicar), os passos dobram.
+                // Estratégia: ler os records UMA vez, somar POR ORIGEM em cada dia e ficar com
+                // o MÁXIMO diário de cada métrica — o app que mais registrou aquele dia vence.
+                // Bônus: origem sem calorias não zera a métrica de outra (max, não soma).
+                // (SDK 1.1.0 não tem dataOriginsFilter no AggregateRequest — daí a soma manual.)
+                data class OriginDay(val day: LocalDate, val origin: String)
+                val stepsBy = HashMap<OriginDay, Long>()
+                val kcalBy = HashMap<OriginDay, Double>()
+                val kmBy = HashMap<OriginDay, Double>()
+                val origins = LinkedHashSet<String>()
                 try {
-                    originSet += client.readRecords(
+                    for (r in client.readRecords(
                         androidx.health.connect.client.request.ReadRecordsRequest(
                             recordType = StepsRecord::class,
                             timeRangeFilter = TimeRangeFilter.between(periodStart, periodEnd),
                         )
-                    ).records.map { it.metadata.dataOrigin }
-                    originSet += client.readRecords(
+                    ).records) {
+                        val k = OriginDay(r.endTime.atZone(zone).toLocalDate(), r.metadata.dataOrigin.packageName)
+                        origins.add(k.origin); stepsBy[k] = (stepsBy[k] ?: 0L) + r.count
+                    }
+                    for (r in client.readRecords(
                         androidx.health.connect.client.request.ReadRecordsRequest(
                             recordType = ActiveCaloriesBurnedRecord::class,
                             timeRangeFilter = TimeRangeFilter.between(periodStart, periodEnd),
                         )
-                    ).records.map { it.metadata.dataOrigin }
-                    originSet += client.readRecords(
+                    ).records) {
+                        val k = OriginDay(r.endTime.atZone(zone).toLocalDate(), r.metadata.dataOrigin.packageName)
+                        origins.add(k.origin); kcalBy[k] = (kcalBy[k] ?: 0.0) + r.energy.inKilocalories
+                    }
+                    for (r in client.readRecords(
                         androidx.health.connect.client.request.ReadRecordsRequest(
                             recordType = DistanceRecord::class,
                             timeRangeFilter = TimeRangeFilter.between(periodStart, periodEnd),
                         )
-                    ).records.map { it.metadata.dataOrigin }
+                    ).records) {
+                        val k = OriginDay(r.endTime.atZone(zone).toLocalDate(), r.metadata.dataOrigin.packageName)
+                        origins.add(k.origin); kmBy[k] = (kmBy[k] ?: 0.0) + r.distance.inKilometers
+                    }
                 } catch (e: Exception) {
-                    android.util.Log.w("DxHealth", "origin scan failed: ${e.message}")
+                    android.util.Log.w("DxHealth", "record read failed: ${e.message}")
                 }
-                val origins = originSet.toList()
-                android.util.Log.d("DxHealth", "dedup: ${origins.size} origem(ns) — ${origins.joinToString { it.packageName }}")
+                android.util.Log.d("DxHealth", "dedup: ${origins.size} origem(ns) — ${origins.joinToString()}")
 
                 // Dia corrente primeiro (ordem DESC — o contrato do web espera mais recente primeiro).
                 for (offset in 0 until days) {
-                    val day: LocalDate = LocalDate.now(zone).minusDays(offset.toLong())
+                    val day: LocalDate = today.minusDays(offset.toLong())
                     val start: Instant = day.atStartOfDay(zone).toInstant()
                     val end: Instant = day.plusDays(1).atStartOfDay(zone).toInstant()
 
                     var steps = 0L
                     var kcal = 0.0
                     var km = 0.0
-                    if (origins.size <= 1) {
-                        // Fonte única: aggregate direto (o HC já deduplica overlaps da própria fonte).
-                        val res = client.aggregate(
-                            AggregateRequest(
-                                metrics = setOf(
-                                    StepsRecord.COUNT_TOTAL,
-                                    ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL,
-                                    DistanceRecord.DISTANCE_TOTAL,
-                                ),
-                                timeRangeFilter = TimeRangeFilter.between(start, end),
-                            )
-                        )
-                        steps = res.get<Long>(StepsRecord.COUNT_TOTAL) ?: 0L
-                        kcal = res.get<Energy>(ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL)?.inKilocalories ?: 0.0
-                        km = res.get<Length>(DistanceRecord.DISTANCE_TOTAL)?.inKilometers ?: 0.0
-                    } else {
-                        // Multi-fonte: máximo diário POR ORIGEM (mata a duplicação de companion apps).
-                        for (origin in origins) {
-                            try {
-                                val res = client.aggregate(
-                                    AggregateRequest(
-                                        metrics = setOf(
-                                            StepsRecord.COUNT_TOTAL,
-                                            ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL,
-                                            DistanceRecord.DISTANCE_TOTAL,
-                                        ),
-                                        timeRangeFilter = TimeRangeFilter.between(start, end),
-                                        dataOriginsFilter = setOf(origin),
-                                    )
-                                )
-                                steps = Math.max(steps, res.get<Long>(StepsRecord.COUNT_TOTAL) ?: 0L)
-                                kcal = Math.max(kcal, res.get<Energy>(ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL)?.inKilocalories ?: 0.0)
-                                km = Math.max(km, res.get<Length>(DistanceRecord.DISTANCE_TOTAL)?.inKilometers ?: 0.0)
-                            } catch (e: Exception) {
-                                android.util.Log.w("DxHealth", "per-origin aggregate failed (${origin.packageName}): ${e.message}")
-                            }
-                        }
+                    for (o in origins) {
+                        steps = Math.max(steps, stepsBy[OriginDay(day, o)] ?: 0L)
+                        kcal = Math.max(kcal, kcalBy[OriginDay(day, o)] ?: 0.0)
+                        km = Math.max(km, kmBy[OriginDay(day, o)] ?: 0.0)
                     }
 
                     // FR + exercício: lê RECORDS (não há métrica agregada p/ FR no SDK
