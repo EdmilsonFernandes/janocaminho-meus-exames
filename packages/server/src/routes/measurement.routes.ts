@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { prisma } from '../prisma';
-import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
+import { requireAuth, AuthedRequest, userPatientIds, firstPatientId } from '../middleware/auth';
 import { parseListParams, setListHeaders } from '../utils/list';
 
 const router = Router();
@@ -130,7 +130,15 @@ router.post('/activity-sync', async (req: AuthedRequest, res, next) => {
   try {
     const pids = await userPatientIds(req.userId!);
     const { patientId, days } = req.body ?? {};
-    const pid = patientId && pids.includes(patientId) ? patientId : pids[0];
+    // Perfil de destino da atividade do APARELHO: o celular é do TITULAR — passos/calorias
+    // são DELE por natureza, INDEPENDENTE do perfil selecionado no momento do sync.
+    // Bateria: body.patientId (chamada explícita/teste) → paciente Titular da conta
+    // (firstPatientId) → pids[0]. ANTES caía sempre em pids[0] (ordem de criação): numa
+    // conta cujo 1º paciente era um dependente, TODA atividade do Health Connect
+    // aterrissava no perfil errado e o titular ficava sem dados nas telas compartilhadas.
+    const pid = (patientId && pids.includes(patientId) ? patientId : undefined)
+      ?? (await firstPatientId(req.userId!))
+      ?? pids[0];
     if (!pid) { res.status(400).json({ error: 'Nenhum paciente vinculado.' }); return; }
     if (!Array.isArray(days) || days.length === 0) { res.status(400).json({ error: 'days[] é obrigatório.' }); return; }
     if (days.length > 31) { res.status(400).json({ error: 'Máximo de 31 dias por sincronização.' }); return; }

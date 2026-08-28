@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { api, resetDb, createUser } from './helpers';
+import { api, resetDb, createUser, createPatient } from './helpers';
 import { prisma } from '../src/prisma';
 
 /**
@@ -95,5 +95,33 @@ describe('POST /api/measurements/activity-sync', () => {
     expect(r.status).toBe(201);
     expect(await prisma.measurement.count({ where: { patientId: b.patient.id } })).toBe(0);
     expect(await prisma.measurement.count({ where: { patientId: a.patient.id } })).toBe(3);
+  });
+
+  it('atividade do APARELHO vai pro TITULAR da conta, mesmo com dependente selecionado', async () => {
+    // Regressão da divergência titular×dependente: o celular é do titular → passos são
+    // dele. Antes o sync caía em pids[0] (ordem de criação): se o 1º paciente era um
+    // dependente, TODA atividade do Health Connect aterrissava no perfil errado e o
+    // titular ficava sem atividades/medições nas telas compartilhadas.
+    const { token, user, patient } = await createUser();
+    const dep = await createPatient(user.id, { fullName: 'Filho Teste', relationship: 'Filho' });
+
+    // Sem patientId no body (é o caso real do app) e com o DEPENDENTE selecionado (header
+    // X-Patient-Id): ainda assim grava no TITULAR.
+    const r = await api().post('/api/measurements/activity-sync').set(H(token)).set('X-Patient-Id', dep.id).send({
+      days: [day('2026-08-19', 5000, 1500, 3)],
+    });
+    expect(r.status).toBe(201);
+    expect(await prisma.measurement.count({ where: { patientId: patient.id } })).toBe(3); // titular
+    expect(await prisma.measurement.count({ where: { patientId: dep.id } })).toBe(0);     // dependente intacto
+
+    // Header de paciente de OUTRO usuário também não vaza: B sincroniza → grava no
+    // TITULAR de B, e o titular de A continua com exatamente as 3 medições de antes.
+    const b = await createUser();
+    const r2 = await api().post('/api/measurements/activity-sync').set(H(b.token)).set('X-Patient-Id', patient.id).send({
+      days: [day('2026-08-19', 10, 10, 0.1)],
+    });
+    expect(r2.status).toBe(201);
+    expect(await prisma.measurement.count({ where: { patientId: patient.id } })).toBe(3); // intacto (não ganhou nem perdeu)
+    expect(await prisma.measurement.count({ where: { patientId: b.patient.id } })).toBe(3); // foi pro titular de B
   });
 });

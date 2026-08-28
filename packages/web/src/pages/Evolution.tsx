@@ -15,7 +15,6 @@ import { displayStatus } from '../utils/examStatus';
 import { summarizeTrends, trendHeadline, VERDICT_META } from '../utils/evolutionSummary';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
-import { SelectedPatientBanner } from '../components/layout/SelectedPatientBanner';
 import { ListSkeleton } from '../components/Skeleton';
 import { EmptyState } from '../components/EmptyState';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
@@ -120,7 +119,6 @@ export const EvolutionPage = () => {
         title={translate('evo.title')}
         subtitle={translate('evo.subtitle')}
       />
-      <SelectedPatientBanner title="Perfil em foco" subtitle="Evolução e tendências deste perfil ativo." />
 
       {loading && <ListSkeleton count={4} />}
 

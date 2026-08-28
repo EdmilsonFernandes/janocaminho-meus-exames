@@ -9,7 +9,6 @@ import { syncPushToken } from '../../push';
 import { BiometricService } from '../BiometricService';
 import { PageContainer } from '../layout/PageContainer';
 import { DashboardHeader } from './DashboardHeader';
-import { SelectedPatientBanner } from '../layout/SelectedPatientBanner';
 import { FailedExamsAlert } from './FailedExamsAlert';
 import { RejectedExamsAlert } from './RejectedExamsAlert';
 import { NextStepsCard } from './NextStepsCard';
@@ -247,14 +246,6 @@ export const DashboardV2 = () => {
   return (
     <PageContainer width="wide" sx={{ bgcolor: (t) => (t.palette.mode === 'dark' ? 'background.default' : '#FAFBFC'), minHeight: '100vh', pb: { xs: 10, sm: 5 } }}>
       <DashboardHeader firstName={firstName} />
-      <SelectedPatientBanner
-        title="Perfil em foco"
-        subtitle={d.me?.relationship === 'Titular'
-          ? 'Você está vendo seus próprios dados com a mesma estrutura usada para dependentes.'
-          : d.me?.fullName
-            ? `Você está cuidando de ${d.me.fullName}. Exames e alertas deste perfil chegam no seu celular.`
-            : undefined}
-      />
       <FailedExamsAlert count={d.failed} onClick={() => navigate('/exams')} />
       <RejectedExamsAlert count={d.rejected} onClick={() => navigate('/exams')} />
 
@@ -299,10 +290,14 @@ export const DashboardV2 = () => {
         </Grid>
       </Grid>
 
-      {/* ATIVIDADE FÍSICA (Health Connect) — só existe no APK; no web o card retorna null */}
-      <Box sx={{ mt: 2 }}>
-        <ActivityCard lastExamAt={d.lastExam} />
-      </Box>
+      {/* ATIVIDADE FÍSICA (Health Connect) — só existe no APK; no web o card retorna null.
+          Só no perfil TITULAR: o celular é do titular, então os passos do aparelho são
+          dele — no dashboard de um dependente o card mostraria os passos do pai. */}
+      {(!d.me?.relationship || d.me.relationship === 'Titular') && (
+        <Box sx={{ mt: 2 }}>
+          <ActivityCard lastExamAt={d.lastExam} />
+        </Box>
+      )}
 
       {/* "DESDE SEU ÚLTIMO EXAME" (assinatura do produto): o que mudou no dia-a-dia
           entre exames — só existe com atividade sincronizada + exames extraídos */}

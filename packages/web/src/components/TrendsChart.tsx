@@ -155,7 +155,7 @@ export const TrendsChart = ({ ts, action }: { ts: TS; action?: React.ReactNode }
 
       {/* Gráfico — linha teal + área verde (faixa de referência). Sem margin negativa (não sangra). */}
       <ResponsiveContainer width="100%" height={isMobile ? 240 : 340}>
-        <LineChart data={data} margin={{ top: 10, right: isMobile ? 12 : 20, bottom: 10, left: isMobile ? 0 : 4 }}>
+        <LineChart data={data} margin={{ top: 10, right: isMobile ? 26 : 34, bottom: 10, left: isMobile ? 0 : 4 }}>
           <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
           <XAxis dataKey="name" minTickGap={isMobile ? 24 : 40} tick={{ fontSize: isMobile ? 9.5 : 11, fill: theme.palette.text.secondary }} axisLine={{ stroke: theme.palette.divider }} />
           {/* Domínio EXPLÍCITO inclui a faixa de referência: sem isto o recharts 3.x usa

@@ -377,7 +377,7 @@ export const ActivityView = ({
 
       {/* Dado em trânsito: passos chegaram mas calorias NÃO — apps como o Samsung Health
           exportam pro HC em lotes; um 0 mudo pareceria "sem queima", o que seria mentira. */}
-      {range === 'today' && s.steps > 0 && s.kcal === 0 && (
+      {s.steps > 0 && primaryKcal === 0 && (
         <Typography sx={{ fontSize: 11, color: 'text.secondary', lineHeight: 1.5, mt: 1.25 }}>
           Calorias ainda não chegaram ao Health Connect — apps de saúde exportam em lotes ao longo do dia. Toque ↻ mais tarde.
         </Typography>

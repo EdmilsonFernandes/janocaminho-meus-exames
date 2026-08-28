@@ -28,7 +28,6 @@ import { DestaqueCard } from '../components/report/DestaqueCard';
 import { MetaCard } from '../components/report/MetaCard';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
-import { SelectedPatientBanner } from '../components/layout/SelectedPatientBanner';
 import SummarizeIcon from '@mui/icons-material/Summarize';
 
 interface Summary {
@@ -390,7 +389,6 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
         title="Relatório completo de saúde"
         subtitle="A IA junta seus últimos exames, tendências e perguntas num documento único para consulta."
       />
-      <SelectedPatientBanner title="Perfil em foco" subtitle="Relatório consolidado do perfil ativo." />
 
       {!analysis && examCount === 0 && pid && (
         <Box sx={{ mt: 2, p: 4, borderRadius: '12px', textAlign: 'center', bgcolor: 'background.paper', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}>
