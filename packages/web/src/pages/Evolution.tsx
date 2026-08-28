@@ -15,6 +15,7 @@ import { displayStatus } from '../utils/examStatus';
 import { summarizeTrends, trendHeadline, VERDICT_META } from '../utils/evolutionSummary';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
+import { SelectedPatientBanner } from '../components/layout/SelectedPatientBanner';
 import { ListSkeleton } from '../components/Skeleton';
 import { EmptyState } from '../components/EmptyState';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
@@ -54,6 +55,7 @@ export const EvolutionPage = () => {
   // com glicose/lipídios/PA na MESMA tela (Onda 3 — "dados que se complementam").
   const [steps, setSteps] = useState<{ date: string; steps: number }[]>([]);
   useEffect(() => {
+    if (!pid) { setSteps([]); return; }
     fetch(`${API_URL}/measurements?type=STEPS${pid ? `&patientId=${pid}` : ''}&take=40`, { headers: { Authorization: `Bearer ${token()}` } })
       .then((r) => (r.ok ? r.json() : []))
       .then((rows) => setSteps(Array.isArray(rows)
@@ -63,6 +65,7 @@ export const EvolutionPage = () => {
   }, [pid]);
 
   useEffect(() => {
+    if (!pid) { setItems([]); setLoading(false); return; }
     setLoading(true);
     fetch(`${API_URL}/items/evolution${pid ? `?patientId=${pid}` : ''}`, { headers: { Authorization: `Bearer ${token()}` } })
       .then((r) => r.json())
@@ -117,6 +120,7 @@ export const EvolutionPage = () => {
         title={translate('evo.title')}
         subtitle={translate('evo.subtitle')}
       />
+      <SelectedPatientBanner title="Perfil em foco" subtitle="Evolução e tendências deste perfil ativo." />
 
       {loading && <ListSkeleton count={4} />}
 
@@ -295,14 +299,38 @@ const EvoRow = ({ it, defaultExpanded }: { it: EvoItem; defaultExpanded?: boolea
   return (
     <Accordion defaultExpanded={defaultExpanded} disableGutters elevation={0}
       sx={{ '&:before': { display: 'none' }, border: `1px solid ${meta.color}33`, borderRadius: '12px !important' }}>
-      <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '52px !important', '& .MuiAccordionSummary-content': { my: 0.75, flexWrap: 'wrap', gap: 0.5 } }}>
-        <Stack direction="row" alignItems="center" spacing={1} useFlexGap sx={{ flex: 1, minWidth: 0, pr: 1, flexWrap: 'wrap', gap: 0.5 }}>
-          <Box sx={{ fontSize: 15 }}>{meta.emoji}</Box>
-          <Typography sx={{ fontWeight: 700, flex: '1 1 50%', minWidth: 110 }}>{it.nameCanonical}</Typography>
-          <EvoSparkline points={it.points} color={lineColor} />
-          <Typography sx={{ fontWeight: 800, color: meta.color }}>{it.lastValue} {it.unit ? <UnitLabel unit={it.unit} /> : null}</Typography>
-          {st !== 'stable' && it.pctChange !== 0 && <Chip size="small" sx={{ bgcolor: `${lineColor}14`, color: lineColor, fontWeight: 700, height: 20 }} label={`${it.pctChange > 0 ? '+' : ''}${it.pctChange}%`} />}
-        </Stack>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '52px !important', '& .MuiAccordionSummary-content': { my: 0.75 } }}>
+        <Box
+          sx={{
+            flex: 1,
+            minWidth: 0,
+            pr: 1,
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: 'minmax(0,1fr) auto' },
+            gap: 0.75,
+            alignItems: 'center',
+          }}
+        >
+          <Stack direction="row" alignItems="center" spacing={1} sx={{ minWidth: 0 }}>
+            <Box sx={{ fontSize: 15, flexShrink: 0 }}>{meta.emoji}</Box>
+            <Typography sx={{ fontWeight: 700, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.nameCanonical}</Typography>
+          </Stack>
+          <Stack
+            direction="row"
+            alignItems="center"
+            spacing={0.75}
+            useFlexGap
+            sx={{
+              minWidth: 0,
+              justifyContent: { xs: 'flex-start', sm: 'flex-end' },
+              flexWrap: { xs: 'wrap', sm: 'nowrap' },
+            }}
+          >
+            <Typography sx={{ fontWeight: 800, color: meta.color, whiteSpace: 'nowrap' }}>{it.lastValue} {it.unit ? <UnitLabel unit={it.unit} /> : null}</Typography>
+            <EvoSparkline points={it.points} color={lineColor} />
+            {st !== 'stable' && it.pctChange !== 0 && <Chip size="small" sx={{ bgcolor: `${lineColor}14`, color: lineColor, fontWeight: 700, height: 20, flexShrink: 0 }} label={`${it.pctChange > 0 ? '+' : ''}${it.pctChange}%`} />}
+          </Stack>
+        </Box>
       </AccordionSummary>
       <AccordionDetails sx={{ p: 2 }}>
         <Typography variant="body2" sx={{ mb: 1 }}>

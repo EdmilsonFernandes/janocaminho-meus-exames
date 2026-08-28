@@ -17,6 +17,7 @@ import { groupByYear } from '../utils/groupByYear';
 import { measurementLabel, measurementValue } from '../utils/measurementLabels';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
+import { SelectedPatientBanner } from '../components/layout/SelectedPatientBanner';
 import { PageSkeleton } from '../components/PageSkeleton';
 import EventIcon from '@mui/icons-material/Event';
 import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
@@ -145,6 +146,7 @@ export const TimelinePage = () => {
         title="Sua jornada de saúde"
         subtitle={`${counts.exam} ${counts.exam === 1 ? 'exame' : 'exames'} • ${counts.medicao} ${counts.medicao === 1 ? 'medição' : 'medições'} • ${counts.vacina} ${counts.vacina === 1 ? 'vacina' : 'vacinas'} • ${totalAbnormal > 0 ? `${totalAbnormal} ${totalAbnormal === 1 ? 'sinal' : 'sinais'} de atenção` : 'sem alterações'}. Toque num exame para abri-lo.`}
       />
+      <SelectedPatientBanner title="Perfil em foco" subtitle="Linha do tempo, medições e vacinas deste perfil ativo." />
 
       {/* Filtro por tipo de evento (auditoria item 17: narrativa com exames + medições + vacinas) */}
       <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mb: 2 }}>

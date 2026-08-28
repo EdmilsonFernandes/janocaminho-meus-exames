@@ -26,6 +26,10 @@ import { ReportHero } from '../components/report/ReportHero';
 import { ReportSectionCard } from '../components/report/ReportSectionCard';
 import { DestaqueCard } from '../components/report/DestaqueCard';
 import { MetaCard } from '../components/report/MetaCard';
+import { PageContainer } from '../components/layout/PageContainer';
+import { PageHeader } from '../components/layout/PageHeader';
+import { SelectedPatientBanner } from '../components/layout/SelectedPatientBanner';
+import SummarizeIcon from '@mui/icons-material/Summarize';
 
 interface Summary {
   resumoGeral?: string;
@@ -379,12 +383,14 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
   };
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3 }, pb: { xs: 10, sm: 5 }, maxWidth: 920, mx: 'auto', overflowX: 'hidden' }}>
+    <PageContainer width="content" sx={{ pb: { xs: 10, sm: 5 }, overflowX: 'hidden' }}>
       <Title title={translate('page.report')} />
-      <Typography variant="h5" gutterBottom sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif' }}>🧾 Relatório completo de saúde</Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        A IA junta seus últimos exames (sangue, imagem e laudo) num documento único — ótimo para levar ao médico ou pedir segunda opinião documental.
-      </Typography>
+      <PageHeader
+        icon={<SummarizeIcon />}
+        title="Relatório completo de saúde"
+        subtitle="A IA junta seus últimos exames, tendências e perguntas num documento único para consulta."
+      />
+      <SelectedPatientBanner title="Perfil em foco" subtitle="Relatório consolidado do perfil ativo." />
 
       {!analysis && examCount === 0 && pid && (
         <Box sx={{ mt: 2, p: 4, borderRadius: '12px', textAlign: 'center', bgcolor: 'background.paper', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}>
@@ -617,6 +623,6 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
         desc="Vamos analisar seus exames mais recentes com a IA e gerar um relatório completo."
         onClose={() => setConfirmSpend(s => ({ ...s, open: false }))} onConfirm={confirmSpend.onYes} />
       {loading && <BootSplash title={translate('report.generating')} messages={['Analisando seu histórico de exames…', 'Cruzando dados laboratoriais…', 'Identificando tendências…', 'Preparando insights…']} />}
-    </Box>
+    </PageContainer>
   );
 };

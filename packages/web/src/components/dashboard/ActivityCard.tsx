@@ -293,6 +293,12 @@ export const ActivityView = ({
   const s = summarize(days ?? [], range);
   const maxSteps = Math.max(...s.series.map((d) => d.steps), 1);
   const goalPct = Math.round(s.goalRatio * 100);
+  const primarySteps = range === 'today' ? s.steps : s.totalSteps;
+  const primaryKcal = range === 'today' ? s.kcal : s.totalKcal;
+  const primaryKm = range === 'today' ? s.km : s.totalKm;
+  const stepsLabel = range === 'today' ? 'Passos hoje' : `Passos em ${rangeLabel(range).toLowerCase()}`;
+  const stepsSupport = range === 'today' ? (s.goalRatio >= 1 ? 'meta batida 🎉' : `${goalPct}% da meta`) : `média ${fmtSteps(s.avgSteps)}/dia`;
+  const periodMetricLabel = range === 'today' ? undefined : `Média ${rangeLabel(range).toLowerCase()}`;
 
   return (
     <AppCard sx={{ p: 2 }}>
@@ -347,24 +353,24 @@ export const ActivityView = ({
         <ActivityRing ratio={s.goalRatio} pct={goalPct} done={s.goalRatio >= 1} />
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary' }}>
-            {range === 'today' ? 'Passos hoje' : `Média (${rangeLabel(range).toLowerCase()})`}
+            {stepsLabel}
           </Typography>
           <Stack direction="row" alignItems="baseline" spacing={0.5} sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1.5rem, 8vw, 2rem)', sm: 'clamp(1.75rem, 5vw, 2.125rem)', md: 34 }, lineHeight: 1.1, color: 'text.primary', fontVariantNumeric: 'tabular-nums' }}>{fmtSteps(s.steps)}</Typography>
+            <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1.5rem, 8vw, 2rem)', sm: 'clamp(1.75rem, 5vw, 2.125rem)', md: 34 }, lineHeight: 1.1, color: 'text.primary', fontVariantNumeric: 'tabular-nums' }}>{fmtSteps(primarySteps)}</Typography>
             {s.goalRatio >= 1 && <CheckCircleIcon sx={{ fontSize: 20, color: 'success.main', mb: 0.5 }} aria-label="meta batida" />}
           </Stack>
           <Typography noWrap sx={{ fontSize: 11, color: 'text.disabled', mt: 0.25 }}>
-            {s.goalRatio >= 1 ? 'meta batida 🎉' : `${goalPct}% da meta`}
+            {stepsSupport}
           </Typography>
         </Box>
         <Stack spacing={{ xs: 0.75, sm: 1 }} sx={{ flex: 1, minWidth: 0 }}>
-          <MetricMini icon={<LocalFireDepartmentIcon sx={{ fontSize: 15 }} />} tone="#c2410c" label="Calorias" value={fmtKcal(s.kcal)} unit="kcal" range={range} />
-          <MetricMini icon={<RouteIcon sx={{ fontSize: 15 }} />} tone="#0369a1" label="Distância" value={fmtKm(s.km)} unit="km" range={range} />
+          <MetricMini icon={<LocalFireDepartmentIcon sx={{ fontSize: 15 }} />} tone="#c2410c" label="Calorias" value={fmtKcal(primaryKcal)} unit="kcal" contextLabel={periodMetricLabel} />
+          <MetricMini icon={<RouteIcon sx={{ fontSize: 15 }} />} tone="#0369a1" label="Distância" value={fmtKm(primaryKm)} unit="km" contextLabel={periodMetricLabel} />
           {(s.hrAvg ?? 0) > 0 && (
-            <MetricMini icon={<FavoriteIcon sx={{ fontSize: 15 }} />} tone="#ef4444" label="Freq. cardíaca" value={`${Math.round(s.hrAvg ?? 0)}`} unit="bpm" range={range} />
+            <MetricMini icon={<FavoriteIcon sx={{ fontSize: 15 }} />} tone="#ef4444" label="Freq. cardíaca" value={`${Math.round(s.hrAvg ?? 0)}`} unit="bpm" contextLabel={periodMetricLabel} />
           )}
           {(s.exerciseMin ?? 0) > 0 && (
-            <MetricMini icon={<TimerIcon sx={{ fontSize: 15 }} />} tone="#047857" label="Exercício" value={`${Math.round(s.exerciseMin ?? 0)}min`} unit="" range={range} />
+            <MetricMini icon={<TimerIcon sx={{ fontSize: 15 }} />} tone="#047857" label="Exercício" value={`${Math.round(s.exerciseMin ?? 0)}min`} unit="" contextLabel={periodMetricLabel} />
           )}
         </Stack>
       </Stack>
@@ -462,7 +468,7 @@ const ActivityRing = ({ ratio, pct, done }: { ratio: number; pct: number; done: 
 
 /** Métrica secundária — resistente a largura: valor+unidade SEMPRE juntos (noWrap), label
  *  com ellipsis se não couber. Fonte clamp() escala sem quebrar. (fix Samsung M62) */
-const MetricMini = ({ icon, tone, label, value, unit, range: _range }: { icon: React.ReactNode; tone: string; label: string; value: string; unit: string; range: ActivityRange }) => (
+const MetricMini = ({ icon, tone, label, value, unit, contextLabel }: { icon: React.ReactNode; tone: string; label: string; value: string; unit: string; contextLabel?: string }) => (
   <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0 }}>
     <Box sx={{ width: { xs: 26, sm: 30 }, height: { xs: 26, sm: 30 }, borderRadius: '10px', display: 'grid', placeItems: 'center', flexShrink: 0, bgcolor: `${tone}1E`, color: tone }}>{icon}</Box>
     <Box sx={{ minWidth: 0, overflow: 'hidden' }}>
@@ -470,6 +476,7 @@ const MetricMini = ({ icon, tone, label, value, unit, range: _range }: { icon: R
       <Typography noWrap sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(0.875rem, 4vw, 1.0625rem)', sm: 17 }, lineHeight: 1.15, fontVariantNumeric: 'tabular-nums' }}>
         {value}{unit ? <Typography component="span" sx={{ fontSize: 11, color: 'text.disabled', fontWeight: 600 }}> {unit}</Typography> : null}
       </Typography>
+      {contextLabel && <Typography noWrap sx={{ fontSize: 10.5, color: 'text.disabled', lineHeight: 1.1 }}>{contextLabel}</Typography>}
     </Box>
   </Stack>
 );

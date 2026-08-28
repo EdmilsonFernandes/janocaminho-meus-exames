@@ -27,6 +27,8 @@ describe('summarize — HOJE', () => {
     expect(s.steps).toBe(8432);
     expect(s.kcal).toBe(2100);
     expect(s.km).toBe(5.4);
+    expect(s.totalSteps).toBe(8432);
+    expect(s.avgSteps).toBe(8432);
     expect(s.daysCounted).toBe(1);
   });
   it('goalRatio = passos/meta (cap em 1)', () => {
@@ -47,6 +49,10 @@ describe('summarize — 7 DIAS (média diária)', () => {
     expect(s.steps).toBe(Math.round((8000 + 6000 + 7000) / 3)); // 7000
     expect(s.kcal).toBe(Math.round((2000 + 1800 + 2100) / 3)); // 1967
     expect(s.km).toBeCloseTo(3.5, 1);
+    expect(s.totalSteps).toBe(21000);
+    expect(s.totalKcal).toBe(5900);
+    expect(s.totalKm).toBe(10.5);
+    expect(s.avgSteps).toBe(7000);
     expect(s.daysCounted).toBe(3);
   });
   it('série do sparkline fica CRONOLÓGICA (mais antigo primeiro)', () => {
@@ -66,6 +72,8 @@ describe('summarize — vazio', () => {
     expect(s.steps).toBe(0);
     expect(s.kcal).toBe(0);
     expect(s.km).toBe(0);
+    expect(s.totalSteps).toBe(0);
+    expect(s.avgSteps).toBe(0);
     expect(s.series).toEqual([]);
     expect(s.goalRatio).toBe(0);
     expect(Number.isNaN(s.steps)).toBe(false);

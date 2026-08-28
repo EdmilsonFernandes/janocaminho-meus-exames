@@ -112,9 +112,12 @@ describe('ActivityView — estado dados', () => {
     expect(html).toContain('aria-valuenow="50"');
   });
 
-  it('7 DIAS: rótulo de média por dia (sem sufixo /dia nas unidades)', () => {
+  it('7 DIAS: destaca o total do período e explica a média diária', () => {
     const html = shell(<ActivityView {...baseProps} phase="data" days={days} range="7d" />);
-    expect(html).toContain('Média (7 dias)');
+    expect(html).toContain('Passos em 7 dias');
+    expect(html).toContain('22 mil');
+    expect(html).toContain('média 7.333/dia');
+    expect(html).toContain('Média 7 dias');
   });
 
   it('HOJE com passos mas SEM calorias: explica o lote do HC (não mente com um 0 mudo)', () => {

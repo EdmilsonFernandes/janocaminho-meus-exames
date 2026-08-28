@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Stack, Typography, Box, Grid, useTheme, alpha, Skeleton, Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
+import { Stack, Typography, Box, Grid, useTheme, Skeleton, Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
 import { API_URL, token } from '../../config';
 import { Heartbeat, Stethoscope, ChartLineUp, Dna } from '@phosphor-icons/react';
 import { useSelectedPatient } from '../../patient-context';
@@ -8,6 +8,7 @@ import { syncPushToken } from '../../push';
 import { BiometricService } from '../BiometricService';
 import { PageContainer } from '../layout/PageContainer';
 import { DashboardHeader } from './DashboardHeader';
+import { SelectedPatientBanner } from '../layout/SelectedPatientBanner';
 import { FailedExamsAlert } from './FailedExamsAlert';
 import { RejectedExamsAlert } from './RejectedExamsAlert';
 import { NextStepsCard } from './NextStepsCard';
@@ -22,7 +23,6 @@ import { ReviewPrompt } from '../ReviewPrompt';
 import { AppCard } from '../AppCard';
 import { GradientButton } from '../GradientButton';
 import { ChangesSinceExam, type Marker } from './ChangesSinceExam';
-import FavoriteIcon from '@mui/icons-material/Favorite';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
@@ -54,6 +54,10 @@ function useDashboardData(pid: string | null) {
   const [rejected, setRejected] = useState(0);
 
   useEffect(() => {
+    if (!pid) {
+      setLoaded(true);
+      return;
+    }
     // Score cacheado (instantâneo na 1ª pintura, igual ao legacy).
     try {
       const c = pid ? localStorage.getItem(`dashScore:${pid}`) : null;
@@ -242,17 +246,14 @@ export const DashboardV2 = () => {
   return (
     <PageContainer width="wide" sx={{ bgcolor: (t) => (t.palette.mode === 'dark' ? 'background.default' : '#FAFBFC'), minHeight: '100vh', pb: { xs: 10, sm: 5 } }}>
       <DashboardHeader firstName={firstName} />
-      {/* MODO CUIDADOR (Lote 2): dependente selecionado → faixa de contexto — quem você está
-          acompanhando (o push de exame dele também chega com o nome dele). */}
-      {d.me?.relationship && d.me.relationship !== 'Titular' && (
-        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5, px: 2, py: 1, borderRadius: '14px', bgcolor: (t) => alpha(t.palette.primary.main, 0.08), border: '1px solid', borderColor: (t) => alpha(t.palette.primary.main, 0.25) }}>
-          <FavoriteIcon sx={{ fontSize: 18, color: 'primary.main' }} />
-          <Typography sx={{ fontSize: 14, fontWeight: 700 }}>
-            Você está cuidando de {d.me.fullName}
-            <Typography component="span" sx={{ fontSize: 13, fontWeight: 500, color: 'text.secondary' }}> · {d.me.relationship} · exames e alertas deste perfil chegam no seu celular</Typography>
-          </Typography>
-        </Stack>
-      )}
+      <SelectedPatientBanner
+        title="Perfil em foco"
+        subtitle={d.me?.relationship === 'Titular'
+          ? 'Você está vendo seus próprios dados com a mesma estrutura usada para dependentes.'
+          : d.me?.fullName
+            ? `Você está cuidando de ${d.me.fullName}. Exames e alertas deste perfil chegam no seu celular.`
+            : undefined}
+      />
       <FailedExamsAlert count={d.failed} onClick={() => navigate('/exams')} />
       <RejectedExamsAlert count={d.rejected} onClick={() => navigate('/exams')} />
 
