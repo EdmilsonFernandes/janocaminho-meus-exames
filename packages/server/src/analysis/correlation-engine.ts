@@ -102,6 +102,42 @@ const CORRELATION_MATRIX: {
     source: 'AHA/ESC 2023',
     statement: 'Atividade física aeróbica regular está associada à redução da pressão arterial sistólica em 5-8 mmHg em média. Sal, peso e estresse também influenciam.',
   },
+  // INFLAMAÇÃO × ATIVIDADE (deep search 2026-08: RCTs — aeróbico ≥8 semanas reduz PCR, inclusive em hipertensos)
+  {
+    biomarkerPattern: /pcr|prote[ií]na c reativa|c-reativa|crp|ultrassens[ií]vel/i,
+    hcMetric: 'avgSteps', hcMetricLabel: 'atividade física',
+    betterWhen: 'hc_up_bio_down',
+    evidenceLevel: 'HIGH',
+    source: 'JACC (meta-análise)',
+    statement: 'Atividade aeróbica regular está associada à redução de marcadores inflamatórios como a PCR-ultrassensível. Inflamação crônica também depende de peso, dieta e tabagismo.',
+  },
+  // INSULINA × ATIVIDADE (1 sessão melhora sensibilidade por 12-48h; 8+ semanas reduzem insulina/HOMA)
+  {
+    biomarkerPattern: /insulina|homa/i,
+    hcMetric: 'avgSteps', hcMetricLabel: 'atividade física',
+    betterWhen: 'hc_up_bio_down',
+    evidenceLevel: 'HIGH',
+    source: 'Diabetes Care/PMC 2024',
+    statement: 'Atividade regular melhora a sensibilidade à insulina e associa-se a menores insulina de jejum e HOMA-IR. O efeito de cada sessão dura 12-48h — regularidade importa mais que intensidade.',
+  },
+  // ÁCIDO ÚRICO × ATIVIDADE MODERADA (45 dias aeróbico: −10,5% urato; atenção: esforço supramáximo eleva transitoriamente)
+  {
+    biomarkerPattern: /[áa]cido [úu]rico|urato|[úu]ric/i,
+    hcMetric: 'avgSteps', hcMetricLabel: 'atividade física',
+    betterWhen: 'hc_up_bio_down',
+    evidenceLevel: 'MODERATE',
+    source: 'PMC 2024 (revisão)',
+    statement: 'Atividade aeróbica moderada e regular associa-se à redução do ácido úrico e a menos crises de gota. Atenção: exercício extenuante pode elevá-lo temporariamente. Dieta, álcool e medicamentos influenciam fortemente.',
+  },
+  // VITAMINA D × ATIVIDADE (associação real, mas parcialmente explicada por exposição solar — confounder EXPLÍCITO)
+  {
+    biomarkerPattern: /vitamina d|25-oh|25oh|colecalciferol/i,
+    hcMetric: 'avgSteps', hcMetricLabel: 'atividade física',
+    betterWhen: 'hc_up_bio_up',
+    evidenceLevel: 'EXPLORATORY',
+    source: 'Nutrients 2025',
+    statement: 'Atividade física associa-se a maiores níveis de vitamina D — parcialmente porque atividades ao ar livre aumentam a exposição ao sol. Suplementação e dieta influenciam mais esse marcador.',
+  },
   // PA × PESO
   {
     biomarkerPattern: /pressão|pressao|sistólica|sistolica/i,

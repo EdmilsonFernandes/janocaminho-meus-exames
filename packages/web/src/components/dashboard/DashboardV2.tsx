@@ -15,6 +15,7 @@ import { NextStepsCard } from './NextStepsCard';
 import { AiCard } from './AiCard';
 import { QuickActions } from './QuickActions';
 import { ActivityCard } from './ActivityCard';
+import { RestingHeartCard } from './RestingHeartCard';
 import { SinceExamCard } from './SinceExamCard';
 import { CreditsCard } from './CreditsCard';
 import { BiologicalAgeCard } from './BiologicalAgeCard';
@@ -294,8 +295,9 @@ export const DashboardV2 = () => {
           Só no perfil TITULAR: o celular é do titular, então os passos do aparelho são
           dele — no dashboard de um dependente o card mostraria os passos do pai. */}
       {(!d.me?.relationship || d.me.relationship === 'Titular') && (
-        <Box sx={{ mt: 2 }}>
+        <Box sx={{ mt: 2, display: 'grid', gap: 2 }}>
           <ActivityCard lastExamAt={d.lastExam} />
+          <RestingHeartCard />
         </Box>
       )}
 

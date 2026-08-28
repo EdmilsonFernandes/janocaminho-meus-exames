@@ -153,12 +153,15 @@ router.post('/activity-sync', async (req: AuthedRequest, res, next) => {
       const steps = Math.max(0, Math.round(Number(d.steps ?? 0)));
       const kcal = Math.max(0, Number(d.kcal ?? 0));
       const km = Math.max(0, Number(d.km ?? 0));
-      if ([steps, kcal, km].some((v) => Number.isNaN(v))) { res.status(400).json({ error: `Valores inválidos em ${dateStr}.` }); return; }
-      if (steps === 0 && kcal === 0 && km === 0) continue; // dia sem dados não gera ruído
+      const hr = Math.max(0, Math.round(Number(d.hr ?? 0)));
+      if ([steps, kcal, km, hr].some((v) => Number.isNaN(v))) { res.status(400).json({ error: `Valores inválidos em ${dateStr}.` }); return; }
+      if (steps === 0 && kcal === 0 && km === 0 && hr === 0) continue; // dia sem dados não gera ruído
       const rows = [
         ...(steps > 0 ? [{ type: 'STEPS', value: steps, unit: 'passos', at }] : []),
         ...(kcal > 0 ? [{ type: 'CALORIES', value: Math.round(kcal), unit: 'kcal', at }] : []),
         ...(km > 0 ? [{ type: 'DISTANCE', value: Number(km.toFixed(2)), unit: 'km', at }] : []),
+        // FC média do dia (Health Connect) — alimenta o card de tendência de FC no Dashboard.
+        ...(hr > 0 ? [{ type: 'HEART_RATE', value: hr, unit: 'bpm', at }] : []),
       ];
       parsed.push({ date: dateStr, rows });
     }
@@ -170,6 +173,8 @@ router.post('/activity-sync', async (req: AuthedRequest, res, next) => {
         const dayEnd = new Date(`${dateStr}T23:59:59.999`);
         // Idempotente: re-sync do mesmo dia SUBSTITUI (sem duplicar histórico).
         await tx.measurement.deleteMany({ where: { patientId: pid, type: { in: [...ACTIVITY_TYPES] }, measuredAt: { gte: dayStart, lte: dayEnd } } });
+        // HEART_RATE também é vital MANUAL: só substitui a linha do Health Connect — manual fica.
+        await tx.measurement.deleteMany({ where: { patientId: pid, type: 'HEART_RATE', note: 'Health Connect', measuredAt: { gte: dayStart, lte: dayEnd } } });
         for (const r of rows) {
           await tx.measurement.create({ data: { patientId: pid, type: r.type, value: r.value, unit: r.unit, measuredAt: r.at, note: 'Health Connect' } });
           synced++;
@@ -177,6 +182,35 @@ router.post('/activity-sync', async (req: AuthedRequest, res, next) => {
       }
     });
     res.status(201).json({ synced, days: parsed.length });
+  } catch (e) { next(e); }
+});
+
+// ============================================================================
+// FC MÉDIA DIÁRIA (Health Connect) — série p/ o card de tendência no Dashboard.
+// Só linhas do HC (note filter — medições manuais de FC ficam de fora), 7-90 dias.
+// ============================================================================
+router.get('/hr-trend', async (req: AuthedRequest, res, next) => {
+  try {
+    const pids = await userPatientIds(req.userId!);
+    const q = req.query as Record<string, string | undefined>;
+    const pid = (q.patientId && pids.includes(q.patientId) ? q.patientId : undefined) ?? pids[0];
+    if (!pid) { res.status(400).json({ error: 'Nenhum paciente vinculado.' }); return; }
+    const days = Math.min(90, Math.max(7, Number(q.days ?? 30) || 30));
+    const since = new Date(Date.now() - days * 86400000);
+    const rows = await prisma.measurement.findMany({
+      where: { patientId: pid, type: 'HEART_RATE', note: 'Health Connect', measuredAt: { gte: since } },
+      orderBy: { measuredAt: 'asc' },
+      select: { value: true, measuredAt: true },
+    });
+    const byDay = new Map<string, { sum: number; n: number }>();
+    for (const r of rows) {
+      const key = r.measuredAt.toISOString().slice(0, 10);
+      const acc = byDay.get(key) ?? { sum: 0, n: 0 };
+      acc.sum += r.value; acc.n += 1;
+      byDay.set(key, acc);
+    }
+    const series = [...byDay.entries()].map(([date, a]) => ({ date, avg: Math.round(a.sum / a.n) }));
+    res.json({ days: series.length, series });
   } catch (e) { next(e); }
 });
 

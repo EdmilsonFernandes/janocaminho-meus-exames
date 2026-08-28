@@ -9,7 +9,7 @@ import { prisma } from '../src/prisma';
  */
 const H = (t: string) => ({ Authorization: `Bearer ${t}` });
 
-const day = (date: string, steps: number, kcal: number, km: number) => ({ date, steps, kcal, km });
+const day = (date: string, steps: number, kcal: number, km: number, hr = 0) => ({ date, steps, kcal, km, hr });
 
 describe('POST /api/measurements/activity-sync', () => {
   beforeEach(async () => { await resetDb(); });
@@ -95,6 +95,32 @@ describe('POST /api/measurements/activity-sync', () => {
     expect(r.status).toBe(201);
     expect(await prisma.measurement.count({ where: { patientId: b.patient.id } })).toBe(0);
     expect(await prisma.measurement.count({ where: { patientId: a.patient.id } })).toBe(3);
+  });
+
+  it('sincroniza FC média do dia e PRESERVA medição manual de FC no re-sync', async () => {
+    const { token, patient } = await createUser();
+    const patientId = patient.id;
+    // FC manual registrada pelo USUÁRIO no mesmo dia (não pode ser apagada pelo sync)
+    await prisma.measurement.create({
+      data: { patientId, type: 'HEART_RATE', value: 88, unit: 'bpm', measuredAt: new Date('2026-08-19T09:00:00'), note: null },
+    });
+
+    const r = await api().post('/api/measurements/activity-sync').set(H(token)).send({
+      patientId, days: [day('2026-08-19', 4000, 1000, 2, 72)],
+    });
+    expect(r.status).toBe(201);
+    expect(r.body.synced).toBe(4); // STEPS + CALORIES + DISTANCE + HEART_RATE
+
+    const hrs = await prisma.measurement.findMany({ where: { patientId, type: 'HEART_RATE' }, orderBy: { value: 'asc' } });
+    expect(hrs.map((h) => h.value)).toEqual([72, 88]); // HC (72) + manual (88)
+    expect(hrs.find((h) => h.value === 72)?.note).toBe('Health Connect');
+
+    // Re-sync com FC nova do HC: substitui SÓ a linha do Health Connect
+    await api().post('/api/measurements/activity-sync').set(H(token)).send({
+      patientId, days: [day('2026-08-19', 4100, 1000, 2, 70)],
+    });
+    const hrs2 = await prisma.measurement.findMany({ where: { patientId, type: 'HEART_RATE' }, orderBy: { value: 'asc' } });
+    expect(hrs2.map((h) => h.value)).toEqual([70, 88]); // manual intacta, HC atualizada
   });
 
   it('atividade do APARELHO vai pro TITULAR da conta, mesmo com dependente selecionado', async () => {

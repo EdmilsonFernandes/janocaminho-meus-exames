@@ -102,7 +102,7 @@ export const syncActivityToServer = async (days: ActivityDay[]): Promise<{ synce
   const r = await fetch(`${API_URL}/measurements/activity-sync`, {
     method: 'POST',
     headers: apiHeaders(true),
-    body: JSON.stringify({ days: days.map((d) => ({ date: d.date, steps: d.steps, kcal: Math.round(d.kcal), km: d.km })) }),
+    body: JSON.stringify({ days: days.map((d) => ({ date: d.date, steps: d.steps, kcal: Math.round(d.kcal), km: d.km, hr: Math.round(d.hrAvg ?? 0) })) }),
   });
   if (!r.ok) throw new Error(`Falha na sincronização (${r.status})`);
   return r.json();

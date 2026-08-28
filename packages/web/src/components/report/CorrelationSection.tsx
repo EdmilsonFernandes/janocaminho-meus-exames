@@ -75,6 +75,9 @@ export const CorrelationSection = ({ patientId }: { patientId?: string }) => {
           mb: i < Math.min(findings.length, 3) - 1 ? 1.5 : 0,
           pb: i < Math.min(findings.length, 3) - 1 ? 1.5 : 0,
           borderBottom: i < Math.min(findings.length, 3) - 1 ? `1px solid ${alpha(theme.palette.primary.main, 0.12)}` : 'none',
+          // Entrada escalonada (premium sutil — mesmo easing da casa)
+          animation: `DxCorrIn .45s cubic-bezier(.2,.8,.2,1) ${i * 90}ms both`,
+          '@keyframes DxCorrIn': { from: { opacity: 0, transform: 'translateY(6px)' }, to: { opacity: 1, transform: 'none' } },
         }}>
           {/* 1. OBSERVAÇÃO */}
           <Stack direction="row" spacing={2} sx={{ mb: 0.75, flexWrap: 'wrap', rowGap: 0.5 }}>
@@ -114,8 +117,11 @@ export const CorrelationSection = ({ patientId }: { patientId?: string }) => {
             <Typography sx={{
               fontSize: 10, fontWeight: 700, px: 0.75, py: 0.25, borderRadius: '8px',
               bgcolor: f.evidenceLevel === 'HIGH'
-                ? alpha('#059669', 0.12) : alpha('#b45309', 0.12),
-              color: f.evidenceLevel === 'HIGH' ? '#047857' : '#92400e',
+                ? alpha('#059669', 0.12)
+                : f.evidenceLevel === 'MODERATE' ? alpha('#b45309', 0.12) : alpha(theme.palette.text.primary, 0.08),
+              color: f.evidenceLevel === 'HIGH'
+                ? '#047857'
+                : f.evidenceLevel === 'MODERATE' ? '#92400e' : theme.palette.text.secondary,
             }}>
               {EVIDENCE_LABEL[f.evidenceLevel]} · {f.evidenceSource}
             </Typography>

@@ -297,7 +297,18 @@ export const ActivityView = ({
   const primaryKcal = range === 'today' ? s.kcal : s.totalKcal;
   const primaryKm = range === 'today' ? s.km : s.totalKm;
   const stepsLabel = range === 'today' ? 'Passos hoje' : `Passos em ${rangeLabel(range).toLowerCase()}`;
-  const stepsSupport = range === 'today' ? (s.goalRatio >= 1 ? 'meta batida 🎉' : `${goalPct}% da meta`) : `média ${fmtSteps(s.avgSteps)}/dia`;
+  // Marco científico (Lancet Public Health 2025): ~7.000 passos/dia é onde está o maior
+  // salto de benefício (-47% risco de mortalidade vs 2.000) — celebrar ANTES da meta 8k
+  // motiva e é honesto com a evidência. A meta continua 8k (aspiracional).
+  const stepsSupport = range === 'today'
+    ? (s.goalRatio >= 1
+        ? 'meta batida 🎉'
+        : s.steps >= 7000
+          ? `✨ passou de 7.000 — marco científico`
+          : `${goalPct}% da meta · ✨ maior benefício a partir de 7.000`)
+    : (s.avgSteps >= 7000
+        ? `média ${fmtSteps(s.avgSteps)}/dia · ✨ acima do marco científico`
+        : `média ${fmtSteps(s.avgSteps)}/dia`);
   const periodMetricLabel = range === 'today' ? undefined : `Média ${rangeLabel(range).toLowerCase()}`;
 
   return (
@@ -391,7 +402,12 @@ export const ActivityView = ({
               flex: 1, minWidth: 2, maxWidth: 14,
               height: `${Math.max(8, barHeight(d.steps, maxSteps) * 100)}%`,
               borderRadius: '3px',
-              bgcolor: d.steps >= STEPS_GOAL ? 'primary.main' : alpha(theme.palette.primary.main, 0.28),
+              // Três tons: meta 8k cheia · marco científico 7k médio · resto lavagem
+              bgcolor: d.steps >= STEPS_GOAL
+                ? 'primary.main'
+                : d.steps >= 7000
+                  ? alpha(theme.palette.primary.main, 0.55)
+                  : alpha(theme.palette.primary.main, 0.28),
               transition: 'height .5s cubic-bezier(.2,.8,.2,1)',
             }} />
           ))}
