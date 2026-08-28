@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Stack, Typography, Box, Grid, useTheme, Skeleton, Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { API_URL, token } from '../../config';
 import { Heartbeat, Stethoscope, ChartLineUp, Dna } from '@phosphor-icons/react';
 import { useSelectedPatient } from '../../patient-context';
