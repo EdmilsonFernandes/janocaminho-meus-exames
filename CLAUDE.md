@@ -34,7 +34,7 @@ Skills de UI/UX (`.claude/skills/`) continuam **sob demanda** — lidas só em t
 
 ## Stack (NÃO MUDAR)
 - **Node 20** + Prisma 6 (não 7) + Capacitor 7 (não 8) + react-admin 5.14 + MUI ^7 (não 9)
-- **IA**: GLM-4.6 via relay Z.ai (`ANTHROPIC_AUTH_TOKEN` + `ANTHROPIC_BASE_URL=https://api.z.ai/api/anthropic`). NUNCA `ANTHROPIC_API_KEY` real. Relay NÃO suporta structured output / thinking / effort.
+- **IA**: GLM-4.6 via relay Z.ai (`ANTHROPIC_AUTH_TOKEN` + `ANTHROPIC_BASE_URL=https://api.z.ai/api/anthropic`). NUNCA `ANTHROPIC_API_KEY` real. Relay NÃO suporta structured output / effort. `thinking:{type:'disabled'}` PASSOU a ser aceito (validado 28/08/26, stream+ não-stream) — o adapter envia p/ glm-5* (sem isso o 5.3 "pensa" minutos e come o max_tokens).
 - **Extração**: pdftotext → texto → GLM. NUNCA visão (relay alucina em PDF).
 - **Portas**: backend 4001, Postgres 5433 (janocaminho ocupa 4000/5432).
 

@@ -9,7 +9,7 @@ import { AnthropicAdapter, splitKeys, parseResetAt, classifyError, keyId, clearC
 
 // Registry de comportamento por chave — o mock do SDK consulta isso (hoisted: roda antes do vi.mock).
 const { registry } = vi.hoisted(() => ({
-  registry: { mode: new Map<string, 'ok' | 'rate' | 'bad400'>(), calls: new Map<string, number>() },
+  registry: { mode: new Map<string, 'ok' | 'rate' | 'bad400'>(), calls: new Map<string, number>(), lastParams: null as any },
 }));
 
 vi.mock('@anthropic-ai/sdk', () => ({
@@ -17,9 +17,10 @@ vi.mock('@anthropic-ai/sdk', () => ({
     apiKey: string;
     constructor(opts: { apiKey: string }) { this.apiKey = opts.apiKey; }
     messages = {
-      stream: () => {
+      stream: (params: any) => {
         const key = this.apiKey;
         registry.calls.set(key, (registry.calls.get(key) ?? 0) + 1);
+        registry.lastParams = params;
         const mode = registry.mode.get(key) ?? 'ok';
         const listeners: Record<string, Array<(v: unknown) => void>> = {};
         let finalReject!: (e: unknown) => void;
@@ -60,6 +61,7 @@ beforeEach(() => {
   clearCooldowns();
   registry.mode.clear();
   registry.calls.clear();
+  registry.lastParams = null;
 });
 
 describe('splitKeys (pool no campo único de chave)', () => {
@@ -157,5 +159,17 @@ describe('AnthropicAdapter failover', () => {
     await expect(adapter.complete(req)).rejects.toThrow('429');
     expect(registry.calls.get(KEY_A)).toBe(1);
     expect(registry.calls.get(KEY_B)).toBe(1); // tentou as duas antes de desistir
+  });
+
+  it('glm-5.x: pede thinking DISABLED (velocidade + orçamento); glm-4.6: NÃO envia o param', async () => {
+    registry.mode.set(KEY_A, 'ok');
+
+    const a5 = new AnthropicAdapter({ apiKey: KEY_A, model: 'glm-5.3' });
+    await a5.complete(req);
+    expect(registry.lastParams.thinking).toEqual({ type: 'disabled' });
+
+    const a4 = new AnthropicAdapter({ apiKey: KEY_A, model: 'glm-4.6' });
+    await a4.complete(req);
+    expect(registry.lastParams.thinking).toBeUndefined(); // param era documentado como quebrado no relay p/ 4.x
   });
 });

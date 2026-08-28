@@ -138,9 +138,16 @@ export class AnthropicAdapter implements LlmProvider {
         : system)
       : undefined;
     return new Promise<LlmStream>((resolve, reject) => {
+      const model = req.model ?? this.cfg.model;
       const stream = client.messages.stream({
-        model: req.model ?? this.cfg.model,
+        model,
         max_tokens: req.maxTokens,
+        // glm-5.x "pensa" (bloco thinking) ANTES de escrever: no consolidado o raciocinio
+        // comia o orcamento de tokens (JSON vazio) e added MINUTOS de latencia. O relay
+        // PASSOU a aceitar thinking disabled (validado 28/08, streaming e nao-streaming:
+        // 200 + content direto em text). Só enviamos pra geracao glm-5* — em 4.6 o param
+        // era documentado como quebrado e nao ha o que desligar.
+        ...(model.startsWith('glm-5') ? { thinking: { type: 'disabled' as const } } : {}),
         ...(systemParam ? { system: systemParam } : {}),
         messages: req.messages as any,
       } as any, { signal: req.signal });
