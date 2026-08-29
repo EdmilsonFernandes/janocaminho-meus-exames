@@ -26,6 +26,7 @@ const COOLDOWN_MS = 7 * 24 * 3600_000;
 export const LeadPopup = () => {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState('');
+  const [err, setErr] = useState(''); // antes: e-mail inválido/rede falhavam em silêncio total
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
   const fired = useRef(false);
@@ -62,19 +63,21 @@ export const LeadPopup = () => {
   const submit = async () => {
     if (sending) return;
     const mail = email.trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail)) return;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail)) { setErr('Confira o e-mail — parece incompleto.'); return; }
     setSending(true);
+    setErr('');
     try {
-      await fetch(`${API_URL}/public/lead`, {
+      const r = await fetch(`${API_URL}/public/lead`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: mail, website: '' }),
       });
+      if (!r.ok) { setErr('Não deu pra enviar agora — tente de novo em instantes.'); setSending(false); return; }
       try { localStorage.setItem(LS_SUBMITTED, '1'); } catch { /* ok */ }
       setDone(true);
       setTimeout(() => setOpen(false), 4500);
     } catch {
-      setOpen(false); // rede falhou: fecha sem castigar o usuário
+      setErr('Sem conexão agora — tente de novo.');
     } finally {
       setSending(false);
     }
@@ -139,7 +142,9 @@ export const LeadPopup = () => {
                 type="email"
                 placeholder="seu@email.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                error={!!err}
+                helperText={err || undefined}
+                onChange={(e) => { setEmail(e.target.value); setErr(''); }}
                 onKeyDown={(e) => { if (e.key === 'Enter') submit(); }}
                 fullWidth
                 sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: '#fff' } }}
