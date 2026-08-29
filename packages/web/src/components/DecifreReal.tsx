@@ -7,6 +7,7 @@ import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import LockIcon from '@mui/icons-material/Lock';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { API_URL } from '../config';
 import { GradientButton } from './GradientButton';
 
@@ -214,20 +215,61 @@ export const DecifreReal = () => {
       {mode === 'pdf' ? (
         <Box>
           <input ref={fileRef} type="file" accept="application/pdf" hidden onChange={(e) => { setFile(e.target.files?.[0] ?? null); setErr(''); }} />
-          <Box
-            component="button" onClick={() => fileRef.current?.click()}
-            sx={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.25, py: 3.5, px: 2, borderRadius: '16px', cursor: 'pointer', bgcolor: 'rgba(255,255,255,.96)', border: '2px dashed', borderColor: file ? '#20b2aa' : 'rgba(15,95,90,.35)', transition: 'all .15s ease', '&:hover': { borderColor: '#20b2aa', bgcolor: '#ffffff' }, boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}
-          >
-            {file
-              ? <PictureAsPdfIcon sx={{ fontSize: 40, color: '#178f89' }} />
-              : <UploadFileIcon sx={{ fontSize: 40, color: '#178f89' }} />}
-            <Typography sx={{ fontSize: 15, fontWeight: 800, color: '#0f5f5a', maxWidth: '90%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {file ? file.name : 'Clique para escolher o PDF do exame'}
-            </Typography>
-            <Typography sx={{ fontSize: 12, color: 'rgba(15,95,90,.7)', fontWeight: 600 }}>
-              {file ? `${(file.size / 1024 / 1024).toFixed(1).replace('.', ',')} MB — pronto pra decifrar` : 'O arquivo PDF enviado pelo laboratório (até 8 MB)'}
-            </Typography>
-          </Box>
+          {!file ? (
+            /* VAZIO — área 100% AFORDÁVEL: parece botão, É botão. Ícone com seta subindo
+               + micro-animação, instrução imperativa ("Toque para escolher"), hover com
+               elevação. Antes parecia um painel informativo — usuário não sabia clicar. */
+            <Box
+              component="button" onClick={() => fileRef.current?.click()}
+              sx={{
+                width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, py: 3.5, px: 2,
+                borderRadius: '16px', cursor: 'pointer',
+                bgcolor: 'rgba(255,255,255,.96)', border: '2px dashed #20b2aa',
+                transition: 'all .18s cubic-bezier(.2,.8,.2,1)',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.10)',
+                '&:hover': { bgcolor: '#ffffff', transform: 'translateY(-2px)', boxShadow: '0 10px 28px rgba(0,0,0,0.18)', borderColor: '#178f89' },
+                '&:active': { transform: 'translateY(0) scale(.99)' },
+              }}
+            >
+              <Box sx={{ position: 'relative', display: 'grid', placeItems: 'center', animation: 'DxUpFloat 2.2s ease-in-out infinite', '@keyframes DxUpFloat': { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-5px)' } } }}>
+                <UploadFileIcon sx={{ fontSize: 42, color: '#178f89' }} />
+              </Box>
+              <Typography sx={{ fontSize: 16, fontWeight: 800, color: '#0f5f5a', fontFamily: '"Poppins",sans-serif' }}>
+                Toque aqui para escolher o PDF
+              </Typography>
+              <Typography sx={{ fontSize: 12.5, color: 'rgba(15,95,90,.75)', fontWeight: 600, textAlign: 'center' }}>
+                O arquivo do laboratório · até 8 MB · ou toque em “Colar texto”
+              </Typography>
+            </Box>
+          ) : (
+            /* COM ARQUIVO — painel de CONFIRMAÇÃO (não-botão!): check verde, nome, tamanho
+               e estado "pronto". Ação secundária (trocar) fica discreta À DIREITA — o
+               próximo passo óbvio vira o botão "Decifrar grátis". Antes o card selecionado
+               continuava pareciendo área de upload — induzia ao erro. */
+            <Box sx={{
+              width: '100%', display: 'flex', alignItems: 'center', gap: 1.5, p: 1.75,
+              borderRadius: '16px', bgcolor: 'rgba(52,211,153,.13)', border: '1.5px solid rgba(52,211,153,.45)',
+            }}>
+              <Box sx={{ width: 44, height: 44, borderRadius: '14px', bgcolor: 'rgba(52,211,153,.22)', border: '1.5px solid rgba(52,211,153,.5)', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                <CheckCircleIcon sx={{ fontSize: 26, color: '#5eead4' }} />
+              </Box>
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography sx={{ fontSize: 14.5, fontWeight: 800, color: '#fff', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                  <PictureAsPdfIcon sx={{ fontSize: 17, color: '#5eead4', flexShrink: 0 }} />
+                  {file.name}
+                </Typography>
+                <Typography sx={{ fontSize: 12, color: 'rgba(255,255,255,.8)', fontWeight: 600 }}>
+                  {(file.size / 1024 / 1024).toFixed(1).replace('.', ',')} MB · pronto pra decifrar ✓
+                </Typography>
+              </Box>
+              <Button
+                size="small" onClick={() => fileRef.current?.click()}
+                sx={{ flexShrink: 0, color: 'rgba(255,255,255,.85)', textTransform: 'none', fontWeight: 700, fontSize: 12.5, '&:hover': { bgcolor: 'rgba(255,255,255,.12)' } }}
+              >
+                trocar
+              </Button>
+            </Box>
+          )}
         </Box>
       ) : (
         <TextField
