@@ -171,10 +171,12 @@ router.post('/activity-sync', async (req: AuthedRequest, res, next) => {
       for (const { rows, date: dateStr } of parsed) {
         const dayStart = new Date(`${dateStr}T00:00:00`);
         const dayEnd = new Date(`${dateStr}T23:59:59.999`);
-        // Idempotente: re-sync do mesmo dia SUBSTITUI (sem duplicar histórico).
-        await tx.measurement.deleteMany({ where: { patientId: pid, type: { in: [...ACTIVITY_TYPES] }, measuredAt: { gte: dayStart, lte: dayEnd } } });
-        // HEART_RATE também é vital MANUAL: só substitui a linha do Health Connect — manual fica.
-        await tx.measurement.deleteMany({ where: { patientId: pid, type: 'HEART_RATE', note: 'Health Connect', measuredAt: { gte: dayStart, lte: dayEnd } } });
+        // Idempotência POR MÉTRICA: só substitui a métrica que o payload traz (>0).
+        // ANTES o dia INTEIRO era apagado — um build com leitura bugada (steps=0, km>0,
+        // caso 403/404 com o bug da página de 1000 registros) APAGAVA passos válidos
+        // do servidor a cada sync. Payload parcial agora PRESERVA o que não traz.
+        const typesInPayload = rows.map((r) => r.type);
+        await tx.measurement.deleteMany({ where: { patientId: pid, type: { in: typesInPayload }, note: 'Health Connect', measuredAt: { gte: dayStart, lte: dayEnd } } });
         for (const r of rows) {
           await tx.measurement.create({ data: { patientId: pid, type: r.type, value: r.value, unit: r.unit, measuredAt: r.at, note: 'Health Connect' } });
           synced++;

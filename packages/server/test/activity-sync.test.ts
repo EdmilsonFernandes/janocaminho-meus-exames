@@ -123,6 +123,28 @@ describe('POST /api/measurements/activity-sync', () => {
     expect(hrs2.map((h) => h.value)).toEqual([70, 88]); // manual intacta, HC atualizada
   });
 
+  it('payload PARCIAL não apaga métrica ausente (anti-wipe de build bugado)', async () => {
+    // Regressão real (403/404): bridge com bug de paginação mandava steps=0, km>0 —
+    // o sync antigo apagava o DIA INTEIRO e regravava só a distância, ERUDINDO os
+    // passos válidos do servidor a cada sync. Agora só substitui o que o payload traz.
+    const { token, patient } = await createUser();
+    const patientId = patient.id;
+    // Dia com passos válidos já no servidor
+    await api().post('/api/measurements/activity-sync').set(H(token)).send({
+      patientId, days: [day('2026-08-25', 9000, 500, 6)],
+    });
+    // Build bugado re-sincroniza o MESMO dia com steps=0, kcal=0, km=6.2
+    await api().post('/api/measurements/activity-sync').set(H(token)).send({
+      patientId, days: [day('2026-08-25', 0, 0, 6.2)],
+    });
+    const steps = await prisma.measurement.findMany({ where: { patientId, type: 'STEPS' } });
+    expect(steps).toHaveLength(1);
+    expect(steps[0].value).toBe(9000); // passos PRESERVADOS
+    const km = await prisma.measurement.findMany({ where: { patientId, type: 'DISTANCE' } });
+    expect(km).toHaveLength(1);
+    expect(km[0].value).toBe(6.2); // distância atualizada
+  });
+
   it('atividade do APARELHO vai pro TITULAR da conta, mesmo com dependente selecionado', async () => {
     // Regressão da divergência titular×dependente: o celular é do titular → passos são
     // dele. Antes o sync caía em pids[0] (ordem de criação): se o 1º paciente era um
