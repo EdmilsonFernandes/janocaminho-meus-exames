@@ -50,16 +50,28 @@ export const EvolutionPage = () => {
   const [filter, setFilter] = useState<Status | 'all'>('all');
   const [query, setQuery] = useState('');
 
-  // ATIVIDADE (Health Connect → medições): série 30d de passos p/ comparar visualmente
-  // com glicose/lipídios/PA na MESMA tela (Onda 3 — "dados que se complementam").
-  const [steps, setSteps] = useState<{ date: string; steps: number }[]>([]);
+  // ATIVIDADE (Health Connect → medições): série 30d de passos (+kcal/km pro detalhe do
+  // gráfico interativo) p/ comparar visualmente com glicose/lipídios/PA na MESMA tela.
+  const [steps, setSteps] = useState<{ date: string; steps: number; kcal: number; km: number }[]>([]);
+  const [actSel, setActSel] = useState<string | null>(null);
   useEffect(() => {
     if (!pid) { setSteps([]); return; }
-    fetch(`${API_URL}/measurements?type=STEPS${pid ? `&patientId=${pid}` : ''}&take=40`, { headers: { Authorization: `Bearer ${token()}` } })
-      .then((r) => (r.ok ? r.json() : []))
-      .then((rows) => setSteps(Array.isArray(rows)
-        ? rows.map((m: any) => ({ date: String(m.measuredAt).slice(0, 10), steps: m.value })).filter((d: any) => d.steps > 0).sort((a: any, b: any) => (a.date < b.date ? -1 : 1))
-        : []))
+    const h = { Authorization: `Bearer ${token()}` };
+    const byDay = new Map<string, { steps: number; kcal: number; km: number }>();
+    const absorb = (type: 'steps' | 'kcal' | 'km') => (rows: any[]) => {
+      if (!Array.isArray(rows)) return;
+      for (const m of rows) {
+        const key = String(m.measuredAt).slice(0, 10);
+        const acc = byDay.get(key) ?? { steps: 0, kcal: 0, km: 0 };
+        acc[type] = m.value; byDay.set(key, acc);
+      }
+    };
+    Promise.all([
+      fetch(`${API_URL}/measurements?type=STEPS&patientId=${pid}&take=40`, { headers: h }).then((r) => (r.ok ? r.json() : [])),
+      fetch(`${API_URL}/measurements?type=CALORIES&patientId=${pid}&take=40`, { headers: h }).then((r) => (r.ok ? r.json() : [])),
+      fetch(`${API_URL}/measurements?type=DISTANCE&patientId=${pid}&take=40`, { headers: h }).then((r) => (r.ok ? r.json() : [])),
+    ])
+      .then(([s, c, d]) => { absorb('steps')(s); absorb('kcal')(c); absorb('km')(d); setSteps([...byDay.entries()].map(([date, v]) => ({ date, ...v })).filter((x) => x.steps > 0).sort((a, b) => (a.date < b.date ? -1 : 1))); })
       .catch(() => setSteps([]));
   }, [pid]);
 
@@ -182,12 +194,44 @@ export const EvolutionPage = () => {
                 {Math.round(steps.reduce((t, d) => t + d.steps, 0) / steps.length).toLocaleString('pt-BR')} passos/dia · {steps.length} dias
               </Typography>
             </Stack>
-            <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: 30 }} aria-hidden="true">
+            {/* Gráfico INTERATIVO: tocar na barra mostra o dia (passos/kcal/km) —
+                antes era "imagem fixa", impossível saber o valor de cada dia. */}
+            <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: 30 }}>
               {steps.slice(-30).map((d) => {
                 const max = Math.max(...steps.map((x) => x.steps), 1);
-                return <Box key={d.date} sx={{ flex: 1, minWidth: 2, height: `${Math.max(10, (d.steps / max) * 100)}%`, borderRadius: '2px', bgcolor: d.steps >= 8000 ? '#20b2aa' : 'rgba(32,178,170,0.3)' }} />;
+                const on = (actSel ?? steps[steps.length - 1]?.date) === d.date;
+                return (
+                  <Box
+                    key={d.date}
+                    component="button"
+                    onClick={() => setActSel(d.date)}
+                    aria-label={`${new Date(`${d.date}T12:00:00`).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}: ${d.steps.toLocaleString('pt-BR')} passos`}
+                    sx={{
+                      flex: 1, minWidth: 2, p: 0, border: 'none', cursor: 'pointer',
+                      height: `${Math.max(10, (d.steps / max) * 100)}%`,
+                      borderRadius: '2px',
+                      bgcolor: d.steps >= 8000 ? '#20b2aa' : 'rgba(32,178,170,0.3)',
+                      outline: on ? '2px solid #20b2aa' : 'none',
+                      outlineOffset: on ? 1 : 0,
+                      transition: 'height .4s cubic-bezier(.2,.8,.2,1)',
+                    }}
+                  />
+                );
               })}
             </Box>
+            {(() => {
+              const sel = steps.find((d) => d.date === (actSel ?? steps[steps.length - 1]?.date));
+              if (!sel) return null;
+              const dt = new Date(`${sel.date}T12:00:00`).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' }).replace('.', '');
+              return (
+                <Stack direction="row" spacing={1.5} alignItems="center" useFlexGap flexWrap="wrap" sx={{ mt: 0.75, px: 1, py: 0.6, borderRadius: '10px', bgcolor: 'rgba(32,178,170,0.07)' }}>
+                  <Typography sx={{ fontSize: 12, fontWeight: 800, color: '#178f89', textTransform: 'capitalize' }}>{dt}</Typography>
+                  <Typography sx={{ fontSize: 13, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{sel.steps.toLocaleString('pt-BR')} <span style={{ fontSize: 11, color: 'text.secondary', fontWeight: 600 }}>passos</span></Typography>
+                  {sel.kcal > 0 && <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>🔥 {Math.round(sel.kcal).toLocaleString('pt-BR')} kcal</Typography>}
+                  {sel.km > 0 && <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>📍 {sel.km.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} km</Typography>}
+                </Stack>
+              );
+            })()}
             <Typography sx={{ fontSize: 11, color: 'text.secondary', mt: 0.75 }}>
               Compare com a glicose, os lipídios e a pressão abaixo — atividade e exames contam a história juntos (educativo; confirme com seu médico).
             </Typography>

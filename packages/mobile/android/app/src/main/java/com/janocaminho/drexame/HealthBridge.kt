@@ -316,8 +316,11 @@ class HealthBridge(private val activity: MainActivity) {
                     }
 
                     // FR + exercício: lê RECORDS (não há métrica agregada p/ FR no SDK
-                    // alpha11) e calcula avg/max manualmente — mais confiável cross-device.
-                    var hrAvg = 0L; var hrMax = 0L; var exerciseMin = 0L
+                    // alpha11) e calcula avg/max/rest manualmente — mais confiável cross-device.
+                    // hrRest = PERCENTIL 10 das amostras: o aparelho só grava FC durante
+                    // atividade, então a média simples sai enviesada p/ cima (média de treino,
+                    // não de repouso). O percentil baixo aproxima a FC de repouso do dia.
+                    var hrAvg = 0L; var hrMax = 0L; var hrRest = 0L; var exerciseMin = 0L
                     try {
                         android.util.Log.d("DxHealth", "Reading HR records for $day")
                         val hrResponse = client.readRecords(
@@ -329,9 +332,11 @@ class HealthBridge(private val activity: MainActivity) {
                         android.util.Log.d("DxHealth", "HR records: ${hrResponse.records.size}, samples: ${hrResponse.records.sumOf { it.samples.size }}")
                         val allSamples = hrResponse.records.flatMap { it.samples }
                         if (allSamples.isNotEmpty()) {
-                            hrAvg = Math.round(allSamples.map { it.beatsPerMinute }.average())
-                            hrMax = allSamples.maxOf { it.beatsPerMinute }
-                            android.util.Log.d("DxHealth", "HR avg=$hrAvg max=$hrMax")
+                            val sorted = allSamples.map { it.beatsPerMinute }.sorted()
+                            hrAvg = Math.round(sorted.average())
+                            hrMax = sorted.last()
+                            hrRest = sorted[(sorted.size * 10 / 100).coerceAtMost(sorted.size - 1)]
+                            android.util.Log.d("DxHealth", "HR avg=$hrAvg rest=$hrRest max=$hrMax")
                         } else {
                             android.util.Log.w("DxHealth", "HR: no samples for $day")
                         }
@@ -358,6 +363,7 @@ class HealthBridge(private val activity: MainActivity) {
                             .put("kcal", Math.round(kcal).toDouble())
                             .put("km", Math.round(km * 100.0) / 100.0)
                             .put("hrAvg", hrAvg.toDouble())
+                            .put("hrRest", hrRest.toDouble())
                             .put("hrMax", hrMax.toDouble())
                             .put("exerciseMin", exerciseMin.toDouble())
                     )

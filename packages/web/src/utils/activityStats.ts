@@ -17,6 +17,8 @@ export interface ActivityDay {
   hrAvg?: number;
   /** FR máxima do dia (bpm) — 0 se sem dado */
   hrMax?: number;
+  /** FC de REPOUSO do dia (percentil 10 das amostras) — 0 se sem dado */
+  hrRest?: number;
   /** Minutos de exercício formal (esteira, corrida, etc) */
   exerciseMin?: number;
 }
@@ -52,8 +54,14 @@ export interface ActivitySummary {
   hrAvg: number;
   /** FR máxima (bpm) do período */
   hrMax: number;
-  /** Minutos de exercício formal (média/dia ou total do dia) */
+  /** FC de REPOUSO aproximada (percentil baixo das amostras — a média simples sai
+   *  enviesada p/ cima porque o aparelho só grava FC durante atividade/treino). */
+  hrRest: number;
+  /** Minutos de exercício: hoje = valor do dia; 7d/30d = TOTAL do período (média/dia
+   *  era rótulo mentiroso: "14min" era 98min÷7 — incoerente com passos/km que são totais). */
   exerciseMin: number;
+  /** Total de exercício do período (soma bruta — hoje = exerciseMin). */
+  totalExercise: number;
   /** Série p/ o sparkline (mais antigo → mais recente), já recortada ao range.
    *  kcal/km por dia alimentam o DETALHE ao tocar numa barra (gráfico interativo). */
   series: { date: string; steps: number; kcal: number; km: number }[];
@@ -64,7 +72,7 @@ export interface ActivitySummary {
 /** Resumo do range a partir da série de dias (esperada em ordem DESC — mais recente primeiro). */
 export const summarize = (days: ActivityDay[], range: ActivityRange): ActivitySummary => {
   if (!days.length) {
-    return { steps: 0, kcal: 0, km: 0, totalSteps: 0, totalKcal: 0, totalKm: 0, avgSteps: 0, avgKcal: 0, avgKm: 0, hrAvg: 0, hrMax: 0, exerciseMin: 0, series: [], daysCounted: 0, goalRatio: 0 };
+    return { steps: 0, kcal: 0, km: 0, totalSteps: 0, totalKcal: 0, totalKm: 0, avgSteps: 0, avgKcal: 0, avgKm: 0, hrAvg: 0, hrMax: 0, hrRest: 0, exerciseMin: 0, totalExercise: 0, series: [], daysCounted: 0, goalRatio: 0 };
   }
   if (range === 'today') {
     const d = days[0];
@@ -72,7 +80,8 @@ export const summarize = (days: ActivityDay[], range: ActivityRange): ActivitySu
       steps: d.steps, kcal: d.kcal, km: d.km,
       totalSteps: d.steps, totalKcal: d.kcal, totalKm: d.km,
       avgSteps: d.steps, avgKcal: d.kcal, avgKm: d.km,
-      hrAvg: d.hrAvg ?? 0, hrMax: d.hrMax ?? 0, exerciseMin: d.exerciseMin ?? 0,
+      hrAvg: d.hrAvg ?? 0, hrMax: d.hrMax ?? 0, hrRest: d.hrRest ?? 0,
+      exerciseMin: d.exerciseMin ?? 0, totalExercise: d.exerciseMin ?? 0,
       series: [{ date: d.date, steps: d.steps, kcal: d.kcal, km: d.km }],
       daysCounted: 1,
       goalRatio: Math.min(1, d.steps / STEPS_GOAL),
@@ -81,9 +90,11 @@ export const summarize = (days: ActivityDay[], range: ActivityRange): ActivitySu
   const n = range === '7d' ? 7 : 30;
   const slice = days.slice(0, n);
   const hrDays = slice.filter((d) => (d.hrAvg ?? 0) > 0);
+  const hrRestDays = slice.filter((d) => (d.hrRest ?? 0) > 0);
   const totalSteps = slice.reduce((a, d) => a + d.steps, 0);
   const totalKcal = slice.reduce((a, d) => a + d.kcal, 0);
   const totalKm = Math.round(slice.reduce((a, d) => a + d.km, 0) * 10) / 10;
+  const totalExercise = Math.round(slice.reduce((t, d) => t + (d.exerciseMin ?? 0), 0));
   const avgSteps = Math.round(avg(days, 'steps', n));
   const avgKcal = Math.round(avg(days, 'kcal', n));
   const avgKm = Math.round(avg(days, 'km', n) * 10) / 10;
@@ -99,7 +110,12 @@ export const summarize = (days: ActivityDay[], range: ActivityRange): ActivitySu
     avgKm,
     hrAvg: hrDays.length ? Math.round(hrDays.reduce((t, d) => t + (d.hrAvg ?? 0), 0) / hrDays.length) : 0,
     hrMax: slice.reduce((m, d) => Math.max(m, d.hrMax ?? 0), 0),
-    exerciseMin: Math.round(slice.reduce((t, d) => t + (d.exerciseMin ?? 0), 0) / slice.length),
+    // Repouso: média dos percentis diários (fallback: média simples se o bridge não mandou)
+    hrRest: hrRestDays.length
+      ? Math.round(hrRestDays.reduce((t, d) => t + (d.hrRest ?? 0), 0) / hrRestDays.length)
+      : hrDays.length ? Math.round(hrDays.reduce((t, d) => t + (d.hrAvg ?? 0), 0) / hrDays.length) : 0,
+    exerciseMin: totalExercise, // períodos mostram o TOTAL (consistente com passos/km)
+    totalExercise,
     series: [...slice].reverse().map((d) => ({ date: d.date, steps: d.steps, kcal: d.kcal, km: d.km })),
     daysCounted: slice.length,
     goalRatio: Math.min(1, avgSteps / STEPS_GOAL),
@@ -152,6 +168,7 @@ export const normalizeDays = (raw: Array<Partial<ActivityDay>>): ActivityDay[] =
       km: Math.max(0, Number(r.km ?? 0)),
       hrAvg: Math.max(0, Math.round(Number(r.hrAvg ?? 0))),
       hrMax: Math.max(0, Math.round(Number(r.hrMax ?? 0))),
+      hrRest: Math.max(0, Math.round(Number(r.hrRest ?? 0))),
       exerciseMin: Math.max(0, Math.round(Number(r.exerciseMin ?? 0))),
     });
   }
