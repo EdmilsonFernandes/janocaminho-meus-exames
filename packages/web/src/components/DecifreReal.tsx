@@ -290,13 +290,22 @@ export const DecifreReal = () => {
         </Box>
       )}
 
-      {/* RESULTADO — reveal escalonado por linha */}
-      {result && !loading && (
+      {/* RESULTADO — reveal escalonado por linha + tease "8 de 55" (conversão) */}
+      {result && !loading && (() => {
+        const shown = result.items.length;
+        const total = Math.max(result.totalDetected ?? shown, shown);
+        const hidden = Math.max(total - shown, 0);
+        return (
         <Box sx={{ mt: 2.5, borderRadius: '18px', bgcolor: 'rgba(0,0,0,.35)', border: '1px solid rgba(255,255,255,.25)', p: { xs: 2, md: 3 } }}>
-          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5, flexWrap: 'wrap' }} useFlexGap>
-            <Typography sx={{ fontWeight: 800, fontSize: 16, fontFamily: 'Poppins, sans-serif' }}>
-              {result.items.length} valores encontrados
+          {/* Herói de conversão: 8 DE 55 — o número grande é o TOTAL do laudo */}
+          <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mb: 1.75, flexWrap: 'wrap' }} useFlexGap>
+            <Typography sx={{ fontWeight: 800, fontSize: { xs: 26, sm: 30 }, fontFamily: 'Poppins, sans-serif', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+              {shown}<span style={{ opacity: 0.55, fontWeight: 700 }}> de </span>{total}
             </Typography>
+            <Box>
+              <Typography sx={{ fontWeight: 700, fontSize: 13, lineHeight: 1.2 }}>valores no seu exame</Typography>
+              <Typography sx={{ fontSize: 11.5, opacity: 0.8, lineHeight: 1.3 }}>{hidden > 0 ? `mostrando os ${shown} principais — ${hidden} no relatório completo` : 'todos os valores analisados'}</Typography>
+            </Box>
             {abnormal > 0
               ? <Chip size="small" label={`${abnormal} ${abnormal > 1 ? 'pedem atenção' : 'pede atenção'}`} sx={{ height: 26, fontWeight: 800, fontSize: 12, bgcolor: 'rgba(251,146,60,.3)', color: '#ffd9b3', border: '1px solid rgba(251,146,60,.4)' }} />
               : <Chip size="small" label="tudo dentro da faixa do laudo" sx={{ height: 26, fontWeight: 800, fontSize: 12, bgcolor: 'rgba(52,211,153,.3)', color: '#a7f3d0', border: '1px solid rgba(52,211,153,.4)' }} />}
@@ -319,9 +328,28 @@ export const DecifreReal = () => {
               );
             })}
           </Stack>
+          {/* TEASE de conversão: os {hidden} escondidos como linhas BORRADAS + cadeado —
+              o usuário VÊ que tem mais (gatilho de curiosidade), não só lê. */}
+          {hidden > 0 && (
+            <Stack spacing={1} sx={{ mt: 1.5 }} aria-label={`${hidden} valores adicionais no app`}>
+              {[0, 1, 2].map((i) => (
+                <Stack key={i} direction="row" spacing={1.25} alignItems="center" sx={{ py: 0.65, px: 1, borderRadius: '10px', bgcolor: 'rgba(255,255,255,.04)', border: '1px dashed rgba(255,255,255,.14)' }}>
+                  <Box sx={{ flex: 1, height: 10, borderRadius: '5px', bgcolor: 'rgba(255,255,255,.22)', filter: 'blur(3px)', width: `${58 - i * 9}%` }} />
+                  <Box sx={{ height: 10, width: 42, borderRadius: '5px', bgcolor: 'rgba(255,255,255,.22)', filter: 'blur(3px)' }} />
+                  <LockIcon sx={{ fontSize: 14, opacity: 0.65 }} />
+                </Stack>
+              ))}
+              <Typography sx={{ textAlign: 'center', fontSize: 12, fontWeight: 700, opacity: 0.9, pt: 0.25 }}>
+                ＋ {hidden} valores analisados aguardando no app
+              </Typography>
+            </Stack>
+          )}
+
           <Box sx={{ mt: 2.5, borderRadius: '16px', bgcolor: 'rgba(255,255,255,.15)', p: 2, textAlign: 'center', border: '1px solid rgba(255,255,255,.2)' }}>
             <Typography sx={{ fontSize: 14, lineHeight: 1.5, fontWeight: 600 }}>
-              Quer entender <b>o que isso significa</b> — explicação com IA, tendência entre exames e perguntas pro seu médico?
+              {hidden > 0
+                ? <>Os outros <b>{hidden} valores</b> + entender <b>o que isso significa</b> — explicação com IA, tendência entre exames e perguntas pro seu médico?</>
+                : <>Quer entender <b>o que isso significa</b> — explicação com IA, tendência entre exames e perguntas pro seu médico?</>}
             </Typography>
             <Button onClick={() => navigate('/registrar')} endIcon={<ArrowForwardIcon />}
               sx={{ mt: 1.5, borderRadius: '999px', px: 4, py: 1.25, fontWeight: 800, fontSize: 15, textTransform: 'none', bgcolor: '#ffffff', color: '#0f5f5a', boxShadow: '0 10px 24px rgba(0,0,0,.28)', '&:hover': { bgcolor: '#f0fafa', transform: 'translateY(-1px)' } }}>
@@ -330,7 +358,8 @@ export const DecifreReal = () => {
             <Typography sx={{ fontSize: 11, opacity: 0.8, mt: 1, fontWeight: 500 }}>Créditos de boas-vindas · sem cartão · cancele quando quiser</Typography>
           </Box>
         </Box>
-      )}
+        );
+      })()}
     </Box>
   );
 };

@@ -385,7 +385,11 @@ export const ActivityView = ({
           </Typography>
         </Box>
         <Stack spacing={{ xs: 0.75, sm: 1 }} sx={{ flex: 1, minWidth: 0 }}>
-          <MetricMini icon={<LocalFireDepartmentIcon sx={{ fontSize: 15 }} />} tone="#c2410c" label="Calorias" value={fmtKcal(primaryKcal)} unit="kcal" contextLabel={periodMetricLabel} />
+          {/* kcal some quando o período INTEIRO veio zerado (aparelho sem exportação de
+              caloria ativa do HC — comum em Samsung): linha "0 kcal" fantasma não ajuda. */}
+          {primaryKcal > 0 && (
+            <MetricMini icon={<LocalFireDepartmentIcon sx={{ fontSize: 15 }} />} tone="#c2410c" label="Calorias" value={fmtKcal(primaryKcal)} unit="kcal" contextLabel={periodMetricLabel} />
+          )}
           <MetricMini icon={<RouteIcon sx={{ fontSize: 15 }} />} tone="#0369a1" label="Distância" value={fmtKm(primaryKm)} unit="km" contextLabel={periodMetricLabel} />
           {(s.hrRest ?? 0) > 0 && (
             <MetricMini icon={<FavoriteIcon sx={{ fontSize: 15 }} />} tone="#ef4444" label="FC de repouso" value={`${Math.round(s.hrRest ?? 0)}`} unit="bpm" contextLabel={periodMetricLabel} />

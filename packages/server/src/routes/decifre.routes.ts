@@ -44,10 +44,11 @@ function pruneCache() {
 const SYSTEM = [
   'Você é um extrator de valores de exames laboratoriais brasileiros. Responda IMEDIATAMENTE com o JSON — sem raciocinar, sem analisar, sem explicar.',
   'Recebe o TEXTO de um exame e devolve APENAS um JSON, sem nenhum texto fora dele:',
-  '{"items":[{"name":"Hemoglobina","value":13.5,"unit":"g/dL","refLow":12,"refHigh":16}]}',
+  '{"total":55,"items":[{"name":"Hemoglobina","value":13.5,"unit":"g/dL","refLow":12,"refHigh":16}]}',
   'Regras: name = nome do analito como está no laudo; value = número (vírgula vira ponto); unit = unidade ou null;',
   'refLow/refHigh = faixa de referência impressa NO LAUDO (número) ou null se não vier;',
-  'máximo 15 itens, priorize os principais (hemograma, lipídicos, glicose, tireoide, rins, fígado);',
+  'total = número TOTAL de analitos com valor numérico no documento INTEIRO (mesmo os que não caibam em items — conte todos);',
+  'items = os 15 principais (hemograma, lipídicos, glicose, tireoide, rins, fígado);',
   'NUNCA inclua opinião, diagnóstico, recomendação ou texto explicativo. Só os valores.',
 ].join('\n');
 
@@ -135,8 +136,12 @@ router.post('/', decifreLimiter, upload.single('file'), async (req, res, next) =
     // Resposta fora do formato (ex.: modelo que só devolveu thinking) NUNCA é 500 — vira 422
     // amigável (validado na mão contra o relay: glm-4.6 abre com bloco de thinking).
     let items: ReturnType<typeof toPublicItems> = [];
+    let totalRaw = 0;
     try {
-      items = toPublicItems(extractJsonObject(result.text));
+      const parsed = extractJsonObject(result.text);
+      items = toPublicItems(parsed);
+      const t = Number(parsed?.total);
+      if (Number.isFinite(t)) totalRaw = Math.round(t);
     } catch {
       items = [];
     }
@@ -144,7 +149,10 @@ router.post('/', decifreLimiter, upload.single('file'), async (req, res, next) =
       res.status(422).json({ error: 'Não encontramos valores de exame nesse texto. Cole o resultado com os números (ex.: Hemoglobina 13,5 g/dL).' });
       return;
     }
-    const totalDetected = items.length; // já limitado a 8
+    // totalDetected = CONTAGEM REAL do laudo (o modelo conta todos, ex.: 55) — alimenta o
+    // tease de conversão "8 de 55" na landing. Sanity: piso = itens mostrados (nunca menos),
+    // teto 400 (alucinação de modelo não vira "999 valores encontrados").
+    const totalDetected = Math.min(Math.max(totalRaw, items.length), 400);
     cache.set(hash, { items, totalDetected, expiresAt: Date.now() + CACHE_TTL_MS });
     void trackDecifre(req, items, false);
     res.json({ items, totalDetected, cached: false, disclaimer: DISCLAIMER });
