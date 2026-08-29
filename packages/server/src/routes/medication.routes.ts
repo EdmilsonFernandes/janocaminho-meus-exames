@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
 import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
 import { parseListParams, setListHeaders } from '../utils/list';
@@ -29,6 +30,41 @@ router.get('/pharmacies', async (_req, res, next) => {
       select: { name: true, logoUrl: true, color: true },
     });
     res.json(rows);
+  } catch (e) { next(e); }
+});
+
+// VITRINE DE PREÇOS REAIS (catálogo × melhor oferta conhecida) — PÚBLICO: a landing
+// prova que a comparação funciona com DADO VIVO (antes era 1 mock hardcoded). Só
+// campos de marketing do catálogo global — nenhum dado de usuário, nenhum endpoint
+// de busca (a comparação completa continua sendo do app, logada).
+// BLINDAGEM anti-leecher (dado é atualizado 2x/h pelo worker — cache não perde nada):
+//  - CACHE em memória de 10min → mil scrapers batendo = 1 query/10min no banco;
+//  - RATE-LIMIT dedicado 30/min/IP (além do limiter global de /api);
+//  - RESPOSTA ENXUTA: productName propositalmente fora (menos valor de scrape).
+const dealsCache: { at: number; data: { name: string; doses: string[]; priceCents: number | null; pharmacy: string | null; offersCount: number }[] | null } = { at: 0, data: null };
+const dealsLimiter = rateLimit({
+  windowMs: 60 * 1000, max: 30,
+  standardHeaders: true, legacyHeaders: false,
+  skip: () => process.env.NODE_ENV !== 'production',
+  message: { error: 'Muitas requisições.' },
+});
+router.get('/deals', dealsLimiter, async (_req, res, next) => {
+  try {
+    if (dealsCache.data && Date.now() - dealsCache.at < 10 * 60 * 1000) {
+      res.setHeader('Cache-Control', 'public, max-age=300');
+      res.json(dealsCache.data);
+      return;
+    }
+    const rows = await prisma.medicationCatalogEntry.findMany({
+      where: { priceCents: { not: null }, offersCount: { gt: 0 } },
+      orderBy: [{ offersCount: 'desc' }, { name: 'asc' }],
+      take: 8,
+      select: { name: true, doses: true, priceCents: true, pharmacy: true, offersCount: true },
+    });
+    const data = rows.map((r) => ({ name: r.name, doses: r.doses.slice(0, 1), priceCents: r.priceCents, pharmacy: r.pharmacy, offersCount: r.offersCount }));
+    dealsCache.at = Date.now(); dealsCache.data = data;
+    res.setHeader('Cache-Control', 'public, max-age=300');
+    res.json(data);
   } catch (e) { next(e); }
 });
 

@@ -199,6 +199,15 @@ export const LandingPage = () => {
       .then((rows: { name: string; logoUrl: string | null }[]) => setPharmLogos(Object.fromEntries(rows.map((p) => [p.name, p.logoUrl]))))
       .catch(() => { /* mock usa sigla colorida */ });
   }, []);
+  // VITRINE REAL de preços (catálogo × melhor oferta) — prova viva de que a comparação
+  // funciona; antes era 1 mock hardcoded e o dono reclamou: "legal mostrar todos".
+  const [medDeals, setMedDeals] = useState<{ name: string; doses: string[]; priceCents: number; pharmacy: string; offersCount: number }[]>([]);
+  useEffect(() => {
+    fetch(`${API_URL}/medications/deals`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then((rows: any[]) => setMedDeals(Array.isArray(rows) ? rows.slice(0, 6) : []))
+      .catch(() => { /* sem vitrine, o hero card continua */ });
+  }, []);
   // Preço do plano/packs da API pública (admin edita live — landing nunca mais mente sobre preço).
   const planInfo = usePlanInfo();
 
@@ -669,6 +678,39 @@ export const LandingPage = () => {
                   <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 1.5, color: 'text.disabled' }}>
                     +8 farmácias comparadas em segundos
                   </Typography>
+
+                  {/* VITRINE REAL — dados vivos do comparador (não mock): o visitante vê
+                      VÁRIOS remédios com preço real e nº de ofertas. Grade 2×3 no mobile. */}
+                  {medDeals.length > 0 && (
+                    <Box sx={{ mt: 2, pt: 2, borderTop: '1px dashed', borderColor: 'divider' }}>
+                      <Typography sx={{ fontSize: 11.5, fontWeight: 800, color: 'text.secondary', mb: 1.25, letterSpacing: '.02em', textTransform: 'uppercase' }}>
+                        Comparando agora · preços de hoje
+                      </Typography>
+                      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: '1fr 1fr 1fr' }, gap: 1 }}>
+                        {medDeals.map((d) => (
+                          <Box key={`${d.name}-${d.doses?.[0] ?? ''}`} sx={{ p: 1.25, borderRadius: '12px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
+                            <Typography sx={{ fontSize: 12.5, fontWeight: 800, color: 'text.primary', lineHeight: 1.25, minHeight: 32, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                              {d.name}{d.doses?.[0] ? ` ${d.doses[0].replace(' ', '')}` : ''}
+                            </Typography>
+                            <Stack direction="row" spacing={0.5} alignItems="baseline" sx={{ mt: 0.5 }}>
+                              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 10 }}>a partir de</Typography>
+                              <Typography sx={{ fontWeight: 800, fontSize: 15, color: TEAL_DARK, lineHeight: 1, fontVariantNumeric: 'tabular-nums', fontFamily: 'Poppins, sans-serif' }}>
+                                {(d.priceCents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                              </Typography>
+                            </Stack>
+                            <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.5, minHeight: 18 }}>
+                              {pharmLogos[d.pharmacy] ? (
+                                <Box component="img" src={pharmLogos[d.pharmacy]!} alt={d.pharmacy} loading="lazy" sx={{ height: 13, maxWidth: 44, objectFit: 'contain' }} />
+                              ) : (
+                                <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 10 }}>{d.pharmacy}</Typography>
+                              )}
+                              {d.offersCount > 1 && <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: 10 }}>· {d.offersCount} ofertas</Typography>}
+                            </Stack>
+                          </Box>
+                        ))}
+                      </Box>
+                    </Box>
+                  )}
                 </Box>
               </Box>
             </Reveal>

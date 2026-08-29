@@ -1027,8 +1027,11 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
             direita em 390px). No desktop (row) flex-start continua: colunas alinham ao topo. */}
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, alignItems: { xs: 'stretch', md: 'flex-start' } }}>
 
-        {/* LISTA DE PACIENTES — mobile: sempre visível; desktop: some quando paciente selecionado */}
-        {view === 'patients' && !loading && (!selected || !isDesktop) && (
+        {/* LISTA DE PACIENTES — mobile: SOME quando paciente selecionado (o "← Voltar" do
+            header retorna à lista; antes a lista empilhava EM CIMA do prontuário — feedback
+            do dono). Desktop: rail master/detail permanece ao lado (comportamento que já
+            estava certo na web). */}
+        {view === 'patients' && !loading && (!selected || isDesktop) && (
           <Box sx={{ width: { xs: '100%', md: selected ? 320 : '100%' }, flexShrink: 0 }}>
             <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ mb: 1.5 }}>
               <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary' }}>Pacientes ({patients.length})</Typography>
