@@ -231,31 +231,67 @@ class HealthBridge(private val activity: MainActivity) {
                 val kcalBy = HashMap<OriginDay, Double>()
                 val kmBy = HashMap<OriginDay, Double>()
                 val origins = LinkedHashSet<String>()
-                try {
-                    for (r in client.readRecords(
-                        androidx.health.connect.client.request.ReadRecordsRequest(
-                            recordType = StepsRecord::class,
-                            timeRangeFilter = TimeRangeFilter.between(periodStart, periodEnd),
+
+                // PAGINAÇÃO OBRIGATÓRIA: o readRecords devolve no máx. 1000 registros por
+                // página, MAIS ANTIGOS PRIMEIRO. O Samsung grava passos em segmentos curtos
+                // (minuto a minuto) → 30 dias passam de 1000 → sem paginar, os dias RECENTES
+                // caem fora (sintoma: 7 dias zerado, 30 dias com dado).
+                suspend fun readAllSteps(): List<StepsRecord> {
+                    val out = ArrayList<StepsRecord>(); var token: String? = null
+                    do {
+                        val resp = client.readRecords(
+                            androidx.health.connect.client.request.ReadRecordsRequest(
+                                recordType = StepsRecord::class,
+                                timeRangeFilter = TimeRangeFilter.between(periodStart, periodEnd),
+                                pageSize = 1000,
+                                pageToken = token,
+                            )
                         )
-                    ).records) {
+                        out += resp.records; token = resp.pageToken
+                    } while (token != null)
+                    return out
+                }
+                suspend fun readAllCalories(): List<ActiveCaloriesBurnedRecord> {
+                    val out = ArrayList<ActiveCaloriesBurnedRecord>(); var token: String? = null
+                    do {
+                        val resp = client.readRecords(
+                            androidx.health.connect.client.request.ReadRecordsRequest(
+                                recordType = ActiveCaloriesBurnedRecord::class,
+                                timeRangeFilter = TimeRangeFilter.between(periodStart, periodEnd),
+                                pageSize = 1000,
+                                pageToken = token,
+                            )
+                        )
+                        out += resp.records; token = resp.pageToken
+                    } while (token != null)
+                    return out
+                }
+                suspend fun readAllDistance(): List<DistanceRecord> {
+                    val out = ArrayList<DistanceRecord>(); var token: String? = null
+                    do {
+                        val resp = client.readRecords(
+                            androidx.health.connect.client.request.ReadRecordsRequest(
+                                recordType = DistanceRecord::class,
+                                timeRangeFilter = TimeRangeFilter.between(periodStart, periodEnd),
+                                pageSize = 1000,
+                                pageToken = token,
+                            )
+                        )
+                        out += resp.records; token = resp.pageToken
+                    } while (token != null)
+                    return out
+                }
+
+                try {
+                    for (r in readAllSteps()) {
                         val k = OriginDay(r.endTime.atZone(zone).toLocalDate(), r.metadata.dataOrigin.packageName)
                         origins.add(k.origin); stepsBy[k] = (stepsBy[k] ?: 0L) + r.count
                     }
-                    for (r in client.readRecords(
-                        androidx.health.connect.client.request.ReadRecordsRequest(
-                            recordType = ActiveCaloriesBurnedRecord::class,
-                            timeRangeFilter = TimeRangeFilter.between(periodStart, periodEnd),
-                        )
-                    ).records) {
+                    for (r in readAllCalories()) {
                         val k = OriginDay(r.endTime.atZone(zone).toLocalDate(), r.metadata.dataOrigin.packageName)
                         origins.add(k.origin); kcalBy[k] = (kcalBy[k] ?: 0.0) + r.energy.inKilocalories
                     }
-                    for (r in client.readRecords(
-                        androidx.health.connect.client.request.ReadRecordsRequest(
-                            recordType = DistanceRecord::class,
-                            timeRangeFilter = TimeRangeFilter.between(periodStart, periodEnd),
-                        )
-                    ).records) {
+                    for (r in readAllDistance()) {
                         val k = OriginDay(r.endTime.atZone(zone).toLocalDate(), r.metadata.dataOrigin.packageName)
                         origins.add(k.origin); kmBy[k] = (kmBy[k] ?: 0.0) + r.distance.inKilometers
                     }
