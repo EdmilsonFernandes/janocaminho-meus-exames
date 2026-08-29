@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNotify } from 'react-admin';
-import { Box, Stack, Typography, Skeleton, ToggleButtonGroup, ToggleButton, Button, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, Alert, alpha, useTheme } from '@mui/material';
+import { Box, Stack, Typography, Skeleton, ToggleButtonGroup, ToggleButton, Button, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, Alert, Chip, alpha, useTheme } from '@mui/material';
 import DirectionsWalkIcon from '@mui/icons-material/DirectionsWalk';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import RouteIcon from '@mui/icons-material/Route';
@@ -189,10 +189,17 @@ export const ActivityView = ({
   onAskClose: () => void;
   onConfirm: () => void;
   onSync: () => void;
-  /** Esconder o card (persistente; volta em Perfil → Acessibilidade). */
+  /** Esconder o card (persistente; volta em Perfil → Acessibilidade). Chamado só após CONFIRMAR no dialog. */
   onHide: () => void;
 }) => {
   const theme = useTheme();
+  // Esconder é reversível só via Perfil — antes era 1 clique direto + toast sutil que
+  // passava despercebido (o card "sumia"). Agora: diálogo de confirmação premium.
+  const [hideAsk, setHideAsk] = useState(false);
+  const confirmHide = () => { setHideAsk(false); onHide(); };
+  // Gráfico INTERATIVO: dia selecionado (default = mais recente). Hook AQUI no topo —
+  // depois de early-return o React #310 crasha (regra da casa).
+  const [selDay, setSelDay] = useState<string | null>(null);
 
   if (phase === 'loading' && !days) {
     return (
@@ -216,8 +223,9 @@ export const ActivityView = ({
   if (phase === 'denied') {
     return (
       <AppCard sx={{ p: 2, position: 'relative' }}>
-        {/* Quem não quer o card NÃO fica com ele pra sempre: esconde (volta em Perfil → Acessibilidade). */}
-        <IconButton size="small" aria-label="Ocultar card de atividade" title="Ocultar (volta em Perfil → Acessibilidade)" onClick={onHide}
+        {/* Quem não quer o card NÃO fica com ele pra sempre: esconde (com CONFIRMAÇÃO —
+            voltar é em Perfil → Acessibilidade, então o gesto não pode ser 1 clique cego). */}
+        <IconButton size="small" aria-label="Ocultar card de atividade" title="Ocultar (volta em Perfil → Acessibilidade)" onClick={() => setHideAsk(true)}
           sx={{ position: 'absolute', top: 6, right: 6, color: 'text.disabled', '&:hover': { color: 'text.secondary', bgcolor: 'action.hover' } }}>
           <VisibilityOffIcon sx={{ fontSize: 16 }} />
         </IconButton>
@@ -292,6 +300,8 @@ export const ActivityView = ({
 
   const s = summarize(days ?? [], range);
   const maxSteps = Math.max(...s.series.map((d) => d.steps), 1);
+  const sel = s.series.find((d) => d.date === selDay) ?? s.series[s.series.length - 1] ?? null;
+  const selFmt = sel ? new Date(`${sel.date}T12:00:00`).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' }).replace('.', '') : '';
   const goalPct = Math.round(s.goalRatio * 100);
   const primarySteps = range === 'today' ? s.steps : s.totalSteps;
   const primaryKcal = range === 'today' ? s.kcal : s.totalKcal;
@@ -339,7 +349,7 @@ export const ActivityView = ({
           >
             <SyncIcon />
           </IconButton>
-          <IconButton size="small" aria-label="Ocultar card de atividade" title="Ocultar (volta em Perfil → Acessibilidade)" onClick={onHide}
+          <IconButton size="small" aria-label="Ocultar card de atividade" title="Ocultar (volta em Perfil → Acessibilidade)" onClick={() => setHideAsk(true)}
             sx={{ color: 'text.disabled', '&:hover': { color: 'text.secondary', bgcolor: 'action.hover' } }}>
             <VisibilityOffIcon sx={{ fontSize: 17 }} />
           </IconButton>
@@ -394,23 +404,57 @@ export const ActivityView = ({
         </Typography>
       )}
 
-      {/* Sparkline do período (hoje: oculta — a barra de meta já conta a história) */}
+      {/* Sparkline INTERATIVO (hoje: oculta — a barra de meta já conta a história):
+          cada barra é um botão; tocar mostra o detalhe daquele dia logo abaixo. */}
       {range !== 'today' && s.series.length > 1 && (
-        <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: { xs: '3px', sm: '4px' }, height: 34, mt: 1.75 }} aria-hidden="true">
-          {s.series.map((d) => (
-            <Box key={d.date} sx={{
-              flex: 1, minWidth: 2, maxWidth: 14,
-              height: `${Math.max(8, barHeight(d.steps, maxSteps) * 100)}%`,
-              borderRadius: '3px',
-              // Três tons: meta 8k cheia · marco científico 7k médio · resto lavagem
-              bgcolor: d.steps >= STEPS_GOAL
-                ? 'primary.main'
-                : d.steps >= 7000
-                  ? alpha(theme.palette.primary.main, 0.55)
-                  : alpha(theme.palette.primary.main, 0.28),
-              transition: 'height .5s cubic-bezier(.2,.8,.2,1)',
-            }} />
-          ))}
+        <Box sx={{ mt: 1.75 }}>
+          <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: { xs: '3px', sm: '4px' }, height: 34 }}>
+            {s.series.map((d) => {
+              const on = sel?.date === d.date;
+              return (
+                <Box
+                  key={d.date}
+                  component="button"
+                  onClick={() => setSelDay(d.date)}
+                  aria-label={`${new Date(`${d.date}T12:00:00`).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}: ${fmtSteps(d.steps)} passos`}
+                  sx={{
+                    flex: 1, minWidth: 2, maxWidth: 14, p: 0, border: 'none', cursor: 'pointer',
+                    height: `${Math.max(8, barHeight(d.steps, maxSteps) * 100)}%`,
+                    borderRadius: on ? '4px' : '3px',
+                    // Três tons: meta 8k cheia · marco científico 7k médio · resto lavagem;
+                    // selecionada ganha contorno + brilho (feedback claro do toque)
+                    bgcolor: d.steps >= STEPS_GOAL
+                      ? 'primary.main'
+                      : d.steps >= 7000
+                        ? alpha(theme.palette.primary.main, 0.55)
+                        : alpha(theme.palette.primary.main, 0.28),
+                    outline: on ? `2px solid ${theme.palette.primary.main}` : 'none',
+                    outlineOffset: on ? 1 : 0,
+                    transform: on ? 'scaleY(1.06)' : 'none',
+                    transition: 'height .5s cubic-bezier(.2,.8,.2,1), transform .15s ease',
+                  }}
+                />
+              );
+            })}
+          </Box>
+          {/* Detalhe do dia selecionado — o gráfico sozinho não conta a história */}
+          {sel && (
+            <Stack
+              direction="row"
+              spacing={{ xs: 1.25, sm: 2 }}
+              alignItems="center"
+              sx={{ mt: 1, px: 1.25, py: 0.9, borderRadius: '12px', bgcolor: alpha(theme.palette.primary.main, 0.07), border: `1px solid ${alpha(theme.palette.primary.main, 0.18)}`, flexWrap: 'wrap' }}
+            >
+              <Typography sx={{ fontSize: 12, fontWeight: 800, color: 'primary.dark', textTransform: 'capitalize', minWidth: 64 }}>{selFmt}</Typography>
+              <Typography sx={{ fontSize: 14, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>
+                {fmtSteps(sel.steps)} <Typography component="span" sx={{ fontSize: 11, color: 'text.secondary', fontWeight: 600 }}>passos</Typography>
+              </Typography>
+              <Typography sx={{ fontSize: 12.5, color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>🔥 {fmtKcal(sel.kcal)} kcal</Typography>
+              <Typography sx={{ fontSize: 12.5, color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>📍 {fmtKm(sel.km)} km</Typography>
+              {sel.steps >= STEPS_GOAL && <Chip size="small" label="meta 🎉" sx={{ height: 22, fontSize: 11, fontWeight: 800, bgcolor: alpha('#059669', 0.15), color: '#047857' }} />}
+              {sel.steps >= 7000 && sel.steps < STEPS_GOAL && <Chip size="small" label="✨ 7k+" sx={{ height: 22, fontSize: 11, fontWeight: 800, bgcolor: alpha(theme.palette.primary.main, 0.15), color: 'primary.dark' }} />}
+            </Stack>
+          )}
         </Box>
       )}
       {s.daysCounted === 0 && (
@@ -435,6 +479,27 @@ export const ActivityView = ({
         );
       })()}
 
+      {/* CONFIRMAÇÃO de esconder — antes o card sumia num clique e o toast de "como voltar"
+          passava despercebido. Premium: pergunta clara + pra onde vai + como volta. */}
+      <Dialog open={hideAsk} onClose={() => setHideAsk(false)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: '16px' } }}>
+        <DialogTitle sx={{ pb: 0.5, fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 17, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <VisibilityOffIcon sx={{ fontSize: 20, color: 'text.secondary' }} /> Esconder o card de atividade?
+        </DialogTitle>
+        <DialogContent>
+          <Typography sx={{ color: 'text.secondary', lineHeight: 1.6, fontSize: 14 }}>
+            Ele sai da sua tela inicial agora. Nenhum dado é apagado — seus passos continuam sendo lidos e guardados.
+          </Typography>
+          <Alert severity="info" sx={{ mt: 1.5, borderRadius: '12px', fontSize: 13, alignItems: 'center' }}>
+            Pra trazer de volta: <strong>Perfil → Acessibilidade</strong> → "Card de atividade física no início".
+          </Alert>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5 }}>
+          <Button onClick={() => setHideAsk(false)} sx={{ textTransform: 'none', fontWeight: 700 }}>Manter no início</Button>
+          <Button onClick={confirmHide} color="inherit" sx={{ textTransform: 'none', fontWeight: 800, color: 'text.secondary', '&:hover': { bgcolor: 'action.hover' } }}>
+            Esconder
+          </Button>
+        </DialogActions>
+      </Dialog>
     </AppCard>
   );
 };

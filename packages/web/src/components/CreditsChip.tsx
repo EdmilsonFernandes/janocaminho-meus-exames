@@ -33,11 +33,9 @@ export const CreditsChip = () => {
     };
   }, []);
   if (credits == null) return null;
-  // Compacto ≥1000 ("97,2k") — precisão de dígito não muda decisão; número COMPLETO fica no
-  // aria-label/tootip e o saldo detalhado segue visível no drawer e no card do Dashboard.
-  const compact = credits >= 1000
-    ? `${(credits / 1000).toFixed(1).replace('.', ',').replace(',0', '')}k`
-    : String(credits);
+  // Saldo SEMPRE exato e formatado (97.009, nunca "97k"): carteira do usuário não se
+  // abrevia — feedback do dono: "tem que fazer jus do que o usuário tem". Chip elástico
+  // (pill sem width fixa) acomoda; fonte 13 tabular mantém o alinhamento estável.
   const full = credits.toLocaleString('pt-BR');
   const open = () => navigate('/planos');
   return (
@@ -65,9 +63,9 @@ export const CreditsChip = () => {
       <BoltIcon sx={{ fontSize: 15 }} />
       <Typography
         component="span"
-        sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 13, lineHeight: 1, letterSpacing: '-0.01em' }}
+        sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 13, lineHeight: 1, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums' }}
       >
-        {compact}
+        {full}
       </Typography>
     </Box>
   );

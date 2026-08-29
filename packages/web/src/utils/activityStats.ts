@@ -54,8 +54,9 @@ export interface ActivitySummary {
   hrMax: number;
   /** Minutos de exercício formal (média/dia ou total do dia) */
   exerciseMin: number;
-  /** Série p/ o sparkline (mais antigo → mais recente), já recortada ao range. */
-  series: { date: string; steps: number }[];
+  /** Série p/ o sparkline (mais antigo → mais recente), já recortada ao range.
+   *  kcal/km por dia alimentam o DETALHE ao tocar numa barra (gráfico interativo). */
+  series: { date: string; steps: number; kcal: number; km: number }[];
   daysCounted: number;
   goalRatio: number;
 }
@@ -72,7 +73,7 @@ export const summarize = (days: ActivityDay[], range: ActivityRange): ActivitySu
       totalSteps: d.steps, totalKcal: d.kcal, totalKm: d.km,
       avgSteps: d.steps, avgKcal: d.kcal, avgKm: d.km,
       hrAvg: d.hrAvg ?? 0, hrMax: d.hrMax ?? 0, exerciseMin: d.exerciseMin ?? 0,
-      series: [{ date: d.date, steps: d.steps }],
+      series: [{ date: d.date, steps: d.steps, kcal: d.kcal, km: d.km }],
       daysCounted: 1,
       goalRatio: Math.min(1, d.steps / STEPS_GOAL),
     };
@@ -99,7 +100,7 @@ export const summarize = (days: ActivityDay[], range: ActivityRange): ActivitySu
     hrAvg: hrDays.length ? Math.round(hrDays.reduce((t, d) => t + (d.hrAvg ?? 0), 0) / hrDays.length) : 0,
     hrMax: slice.reduce((m, d) => Math.max(m, d.hrMax ?? 0), 0),
     exerciseMin: Math.round(slice.reduce((t, d) => t + (d.exerciseMin ?? 0), 0) / slice.length),
-    series: [...slice].reverse().map((d) => ({ date: d.date, steps: d.steps })),
+    series: [...slice].reverse().map((d) => ({ date: d.date, steps: d.steps, kcal: d.kcal, km: d.km })),
     daysCounted: slice.length,
     goalRatio: Math.min(1, avgSteps / STEPS_GOAL),
   };
