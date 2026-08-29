@@ -32,6 +32,11 @@ vi.mock('../src/llm', () => ({
   }),
 }));
 
+// PDF → texto: mockado (poppler não roda no CI do teste unitário; o fluxo real é E2E).
+vi.mock('../src/extraction/pdfToText', () => ({
+  pdfToText: async () => 'CABEÇALHO DO LABORATÓRIO\n' + 'x'.repeat(9_000) + '\n' + 'Hemoglobina 13,5 g/dL (12 - 16)\nLDL 190 mg/dL (< 130)\nTSH 7,32 µUI/mL (0,4 - 4)',
+}));
+
 const EXAME = `HEMOGRAMA COMPLETO
 Hemoglobina 13,5 g/dL (12 - 16)
 LDL 190 mg/dL (< 130)
@@ -75,6 +80,16 @@ describe('decifre (público, landing)', () => {
     expect((await request(app).post('/api/public/decifre').send({ texto: 'curto' })).status).toBe(400);
     expect((await request(app).post('/api/public/decifre').send({ texto: 'x'.repeat(4001) })).status).toBe(400);
     expect(calls.count).toBe(0);
+  });
+
+  it('PDF base64 com texto > 4k NÃO é rejeitado (é PDF, não texto colado)', async () => {
+    // Regressão real: o front manda PDF por pdfBase64 (JSON — Chrome Android corrompe
+    // multipart), mas a rota só isentava req.file do limite de 4k → PDF de lab real
+    // (texto > 4k) era REJEITADO com "envie o PDF" pra quem tinha enviado um PDF.
+    const app = (await import('../src/app')).app;
+    const r = await request(app).post('/api/public/decifre').send({ pdfBase64: Buffer.from('fake-pdf').toString('base64') });
+    expect(r.status).toBe(200); // era 400 antes do fix
+    expect(r.body.items.length).toBeGreaterThanOrEqual(1); // decifrou o que importa
   });
 
   it('IA devolvendo lixo → 0 itens (rota responderia 422, não 500)', async () => {

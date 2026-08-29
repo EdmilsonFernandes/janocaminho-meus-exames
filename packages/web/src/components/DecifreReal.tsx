@@ -144,7 +144,6 @@ export const DecifreReal = () => {
       setResult(d);
     } catch (e: any) {
       // Diferencia timeout (IA demorando) de rede caída — mensagem honesta pra cada caso.
-      clearTimeout(timeout);
       console.error('[decifre] FETCH ERROR:', e?.name, e?.message, '| file:', file?.name, file?.size, '| API_URL:', API_URL);
       if (e?.name === 'AbortError') {
         setErr('A análise demorou mais que o esperado (mobile é mais lento). Tente de novo — ou cole só o texto em vez do PDF.');
@@ -155,8 +154,10 @@ export const DecifreReal = () => {
       }
     } finally {
       clearTimeout(timeout);
+      // SEMPRE desliga o loading — inclusive no return do erro (antes ficava depois do
+      // return: o loading TRAVAVA e o skeleton continuava rodando junto com a msg de erro).
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const abnormal = (result?.items ?? []).filter((i) => i.flag === 'HIGH' || i.flag === 'LOW').length;

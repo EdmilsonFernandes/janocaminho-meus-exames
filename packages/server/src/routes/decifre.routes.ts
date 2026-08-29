@@ -97,8 +97,13 @@ router.post('/', decifreLimiter, upload.single('file'), async (req, res, next) =
     }
     if (texto.length < 20) { res.status(400).json({ error: 'Não conseguimos ler texto aí — cole o resultado ou envie o PDF do laboratório.' }); return; }
     // Caps por origem: PDF de lab real passa fácil de 4k (cabeçalho, rodapé, múltiplas páginas)
-    // → trunca em 30k e decifra o que importa. Texto colado: rejeita (usuário colou demais).
-    if (req.file) {
+    // → trunca e decifra o que importa. Texto colado: rejeita (usuário colou demais).
+    // IMPORTANTE: PDF chega por DOIS caminhos — multipart (req.file) OU base64 JSON
+    // (pdfBase64 — o front usa esse: Chrome Android corrompe multipart). AMBOS são PDF:
+    // o bug era só checar req.file → PDF base64 com texto > 4k era REJEITADO com a msg
+    // absurda "envie o PDF" pra quem tinha acabado de enviar um PDF.
+    const veioDePdf = !!(req.file || b64);
+    if (veioDePdf) {
       // 15k (não 30k): menos input = menos thinking do modelo = resposta mais rápida.
       // 15k cobre ~3 páginas de laudo (os valores principais estão nas primeiras).
       // CRÍTICO pro Android: o Chrome mobile mata conexões longas antes do desktop.
