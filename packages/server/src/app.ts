@@ -110,9 +110,20 @@ app.use('/api/', generalLimiter);
 app.get('/api/health', async (_req, res) => {
   const checks: Record<string, string> = {};
   try { await prisma.$queryRaw`SELECT 1`; checks.db = 'ok'; } catch { checks.db = 'down'; }
-  const ok = Object.values(checks).every((v) => v === 'ok');
+  // DISCO (postmortem 29/08): o health só falhava DEPOIS do crash — agora expõe o uso
+  // ANTES do problema. >85% = warn (health ainda ok, campo diskPct denuncia);
+  // >95% = checks.disk = 'critical' (health 503 — o alerta externo dispara ANTES do PANIC).
+  let disk: { usedPct: number; freeGb: number } | undefined;
+  try {
+    const df = await import('node:fs/promises').then((fs) => fs.statfs('/'));
+    const usedPct = Math.round((1 - Number(df.bavail) / Number(df.blocks)) * 100);
+    disk = { usedPct, freeGb: Math.round((Number(df.bavail) * Number(df.bsize)) / 1024 ** 3) };
+    if (usedPct > 95) checks.disk = 'critical';   // 503 — alerta externo dispara ANTES do PANIC
+    else if (usedPct > 85) checks.disk = 'warn';   // ainda 200 — mas visível no JSON
+  } catch { /* statfs indisponível (ex.: win local) — segue sem métrica de disco */ }
+  const ok = Object.values(checks).every((v) => v === 'ok' || v === 'warn');
   res.status(ok ? 200 : 503).json({
-    ok, ts: new Date().toISOString(), checks,
+    ok, ts: new Date().toISOString(), checks, disk,
     // build carimbado na imagem → identifica exatamente qual versão está no ar no EC2
     build: {
       version: APP_BUILD_INFO.version,
