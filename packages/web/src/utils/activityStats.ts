@@ -12,6 +12,9 @@ export interface ActivityDay {
   date: string;
   steps: number;
   kcal: number;
+  /** true quando kcal veio do FALLBACK TotalCaloriesBurned (Samsung Health não publica
+   *  caloria ativa no HC) — inclui metabolismo basal; a UI rotula "total do dia". */
+  kcalIsTotal?: boolean;
   km: number;
   /** FR média do dia (bpm) — 0 se sem dado */
   hrAvg?: number;
@@ -30,8 +33,8 @@ export const STEPS_GOAL = 8000;
 /** Metros → km com 2 casas (Health Connect DISTANCE vem em metros/Length). */
 export const metersToKm = (meters: number): number => Math.round((meters / 1000) * 100) / 100;
 
-/** Média de um campo dos últimos N dias (incluindo hoje), ignorando dias ausentes. */
-const avg = (days: ActivityDay[], key: keyof Omit<ActivityDay, 'date'>, n: number): number => {
+/** Média de um campo NUMÉRICO dos últimos N dias (incluindo hoje), ignorando dias ausentes. */
+const avg = (days: ActivityDay[], key: 'steps' | 'kcal' | 'km', n: number): number => {
   const slice = days.slice(0, n);
   if (!slice.length) return 0;
   return slice.reduce((a, d) => a + (d[key] || 0), 0) / slice.length;
@@ -41,6 +44,9 @@ export interface ActivitySummary {
   /** Métrica principal legada do período (hoje = valor do dia; 7d/30d = média/dia). */
   steps: number;
   kcal: number;
+  /** true se ALGUM dia contabilizado usa kcal TOTAL (fallback Samsung) — o rótulo
+   *  do período precisa ser honesto (média mistura ativas + totais). */
+  kcalIsTotal: boolean;
   km: number;
   /** Totais do período selecionado. */
   totalSteps: number;
@@ -64,7 +70,7 @@ export interface ActivitySummary {
   totalExercise: number;
   /** Série p/ o sparkline (mais antigo → mais recente), já recortada ao range.
    *  kcal/km por dia alimentam o DETALHE ao tocar numa barra (gráfico interativo). */
-  series: { date: string; steps: number; kcal: number; km: number }[];
+  series: { date: string; steps: number; kcal: number; kcalIsTotal: boolean; km: number }[];
   daysCounted: number;
   goalRatio: number;
 }
@@ -72,17 +78,17 @@ export interface ActivitySummary {
 /** Resumo do range a partir da série de dias (esperada em ordem DESC — mais recente primeiro). */
 export const summarize = (days: ActivityDay[], range: ActivityRange): ActivitySummary => {
   if (!days.length) {
-    return { steps: 0, kcal: 0, km: 0, totalSteps: 0, totalKcal: 0, totalKm: 0, avgSteps: 0, avgKcal: 0, avgKm: 0, hrAvg: 0, hrMax: 0, hrRest: 0, exerciseMin: 0, totalExercise: 0, series: [], daysCounted: 0, goalRatio: 0 };
+    return { steps: 0, kcal: 0, kcalIsTotal: false, km: 0, totalSteps: 0, totalKcal: 0, totalKm: 0, avgSteps: 0, avgKcal: 0, avgKm: 0, hrAvg: 0, hrMax: 0, hrRest: 0, exerciseMin: 0, totalExercise: 0, series: [], daysCounted: 0, goalRatio: 0 };
   }
   if (range === 'today') {
     const d = days[0];
     return {
-      steps: d.steps, kcal: d.kcal, km: d.km,
+      steps: d.steps, kcal: d.kcal, kcalIsTotal: d.kcal > 0 && !!d.kcalIsTotal, km: d.km,
       totalSteps: d.steps, totalKcal: d.kcal, totalKm: d.km,
       avgSteps: d.steps, avgKcal: d.kcal, avgKm: d.km,
       hrAvg: d.hrAvg ?? 0, hrMax: d.hrMax ?? 0, hrRest: d.hrRest ?? 0,
       exerciseMin: d.exerciseMin ?? 0, totalExercise: d.exerciseMin ?? 0,
-      series: [{ date: d.date, steps: d.steps, kcal: d.kcal, km: d.km }],
+      series: [{ date: d.date, steps: d.steps, kcal: d.kcal, kcalIsTotal: !!d.kcalIsTotal, km: d.km }],
       daysCounted: 1,
       goalRatio: Math.min(1, d.steps / STEPS_GOAL),
     };
@@ -101,6 +107,9 @@ export const summarize = (days: ActivityDay[], range: ActivityRange): ActivitySu
   return {
     steps: avgSteps,
     kcal: avgKcal,
+    // Período: rótulo honesto se QUALQUER dia com kcal caiu no fallback total
+    // (Samsung) — a média mistura semânticas e o usuário merece saber.
+    kcalIsTotal: slice.some((d) => d.kcal > 0 && !!d.kcalIsTotal),
     km: avgKm,
     totalSteps,
     totalKcal,
@@ -116,7 +125,7 @@ export const summarize = (days: ActivityDay[], range: ActivityRange): ActivitySu
       : hrDays.length ? Math.round(hrDays.reduce((t, d) => t + (d.hrAvg ?? 0), 0) / hrDays.length) : 0,
     exerciseMin: totalExercise, // períodos mostram o TOTAL (consistente com passos/km)
     totalExercise,
-    series: [...slice].reverse().map((d) => ({ date: d.date, steps: d.steps, kcal: d.kcal, km: d.km })),
+    series: [...slice].reverse().map((d) => ({ date: d.date, steps: d.steps, kcal: d.kcal, kcalIsTotal: !!d.kcalIsTotal, km: d.km })),
     daysCounted: slice.length,
     goalRatio: Math.min(1, avgSteps / STEPS_GOAL),
   };
@@ -142,7 +151,7 @@ export const barHeight = (value: number, max: number): number =>
  * média de atividade na janela [exame-6d, exame]. Só retorna se houver >=3 dias
  * com dados nessa janela — sem dados suficientes, NADA aparece (nada inventado).
  */
-export const weekOfExam = (days: ActivityDay[], examDate: string): { avgSteps: number; avgKcal: number; avgKm: number; daysCounted: number } | null => {
+export const weekOfExam = (days: ActivityDay[], examDate: string): { avgSteps: number; avgKcal: number; kcalIsTotal: boolean; avgKm: number; daysCounted: number } | null => {
   const end = new Date(`${examDate}T12:00:00`);
   if (Number.isNaN(end.getTime())) return null;
   const start = new Date(end.getTime() - 6 * 86400000);
@@ -152,7 +161,7 @@ export const weekOfExam = (days: ActivityDay[], examDate: string): { avgSteps: n
   });
   if (inWindow.length < 3) return null;
   const avg = (k: 'steps' | 'kcal' | 'km') => inWindow.reduce((a, d) => a + d[k], 0) / inWindow.length;
-  return { avgSteps: Math.round(avg('steps')), avgKcal: Math.round(avg('kcal')), avgKm: Math.round(avg('km') * 10) / 10, daysCounted: inWindow.length };
+  return { avgSteps: Math.round(avg('steps')), avgKcal: Math.round(avg('kcal')), kcalIsTotal: inWindow.some((d) => d.kcal > 0 && !!d.kcalIsTotal), avgKm: Math.round(avg('km') * 10) / 10, daysCounted: inWindow.length };
 };
 
 /** Normaliza o payload cru do bridge p/ ActivityDay[] (ORDENA desc + dedup por data). */
@@ -164,6 +173,8 @@ export const normalizeDays = (raw: Array<Partial<ActivityDay>>): ActivityDay[] =
       date: r.date,
       steps: Math.max(0, Math.round(Number(r.steps ?? 0))),
       kcal: Math.max(0, Number(r.kcal ?? 0)),
+      // Flag do fallback (Samsung): só faz sentido acompanhando um valor > 0
+      kcalIsTotal: Number(r.kcal ?? 0) > 0 && !!r.kcalIsTotal,
       // Bridge já envia KM (não metros) — NÃO converter (bug: metersToKm dividia por 1000)
       km: Math.max(0, Number(r.km ?? 0)),
       hrAvg: Math.max(0, Math.round(Number(r.hrAvg ?? 0))),

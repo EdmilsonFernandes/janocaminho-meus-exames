@@ -385,10 +385,11 @@ export const ActivityView = ({
           </Typography>
         </Box>
         <Stack spacing={{ xs: 0.75, sm: 1 }} sx={{ flex: 1, minWidth: 0 }}>
-          {/* kcal some quando o período INTEIRO veio zerado (aparelho sem exportação de
-              caloria ativa do HC — comum em Samsung): linha "0 kcal" fantasma não ajuda. */}
+          {/* kcal some quando o período INTEIRO veio zerado (nenhuma origem publica caloria):
+              linha "0 kcal" fantasma não ajuda. kcalIsTotal = fallback Samsung (o Health
+              Connect do aparelho só tem TOTAL, que inclui metabolismo basal) — rótulo honesto. */}
           {primaryKcal > 0 && (
-            <MetricMini icon={<LocalFireDepartmentIcon sx={{ fontSize: 15 }} />} tone="#c2410c" label="Calorias" value={fmtKcal(primaryKcal)} unit="kcal" contextLabel={periodMetricLabel} />
+            <MetricMini icon={<LocalFireDepartmentIcon sx={{ fontSize: 15 }} />} tone="#c2410c" label={s.kcalIsTotal ? 'Calorias (total do dia)' : 'Calorias'} value={fmtKcal(primaryKcal)} unit="kcal" contextLabel={periodMetricLabel} />
           )}
           <MetricMini icon={<RouteIcon sx={{ fontSize: 15 }} />} tone="#0369a1" label="Distância" value={fmtKm(primaryKm)} unit="km" contextLabel={periodMetricLabel} />
           {(s.hrRest ?? 0) > 0 && (
@@ -455,7 +456,7 @@ export const ActivityView = ({
               <Typography sx={{ fontSize: 14, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>
                 {fmtSteps(sel.steps)} <Typography component="span" sx={{ fontSize: 11, color: 'text.secondary', fontWeight: 600 }}>passos</Typography>
               </Typography>
-              <Typography sx={{ fontSize: 12.5, color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>🔥 {fmtKcal(sel.kcal)} kcal</Typography>
+              <Typography sx={{ fontSize: 12.5, color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>🔥 {fmtKcal(sel.kcal)} kcal{sel.kcalIsTotal ? ' (total do dia)' : ''}</Typography>
               <Typography sx={{ fontSize: 12.5, color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>📍 {fmtKm(sel.km)} km</Typography>
               {sel.steps >= STEPS_GOAL && <Chip size="small" label="meta 🎉" sx={{ height: 22, fontSize: 11, fontWeight: 800, bgcolor: alpha('#059669', 0.15), color: '#047857' }} />}
               {sel.steps >= 7000 && sel.steps < STEPS_GOAL && <Chip size="small" label="✨ 7k+" sx={{ height: 22, fontSize: 11, fontWeight: 800, bgcolor: alpha(theme.palette.primary.main, 0.15), color: 'primary.dark' }} />}
@@ -479,7 +480,7 @@ export const ActivityView = ({
           <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mt: 1.5, px: 1.25, py: 0.9, borderRadius: '12px', bgcolor: alpha(theme.palette.primary.main, 0.07), border: `1px solid ${alpha(theme.palette.primary.main, 0.18)}` }}>
             <InsightsIcon sx={{ fontSize: 16, color: 'primary.dark', flexShrink: 0 }} />
             <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.45 }}>
-              Na semana do seu exame ({dt}): <strong>{fmtSteps(w.avgSteps)} passos/dia</strong> · {fmtKcal(w.avgKcal)} kcal · {fmtKm(w.avgKm)} km — contexto que o Dr. Exame usa na leitura.
+              Na semana do seu exame ({dt}): <strong>{fmtSteps(w.avgSteps)} passos/dia</strong> · {fmtKcal(w.avgKcal)} {w.kcalIsTotal ? 'kcal totais' : 'kcal'} · {fmtKm(w.avgKm)} km — contexto que o Dr. Exame usa na leitura.
             </Typography>
           </Stack>
         );

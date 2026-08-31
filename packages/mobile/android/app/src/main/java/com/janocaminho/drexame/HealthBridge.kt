@@ -13,6 +13,7 @@ import androidx.health.connect.client.records.ExerciseSessionRecord
 import androidx.health.connect.client.records.HeartRateRecord
 import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.ActiveCaloriesBurnedRecord
+import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.time.TimeRangeFilter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -35,7 +36,7 @@ import java.util.concurrent.atomic.AtomicInteger
  * Contrato (ver packages/web/src/services/healthConnect.ts):
  *   isAvailable()                          -> Boolean (Health Connect instalado e suportado)
  *   checkPermissions(requestId)            -> event {type:"permissions", granted}
- *   aggregates(requestId, daysBack)        -> event {type:"aggregates", days:[{date,steps,kcal,km}]}
+ *   aggregates(requestId, daysBack)        -> event {type:"aggregates", days:[{date,steps,kcal,kcalIsTotal,km}]}
  *   (requestPermissions é lançado pela MainActivity via ActivityResultLauncher registrado lá —
  *    registerForActivityResult precisa acontecer antes de onStart, no ciclo da Activity.)
  */
@@ -51,6 +52,11 @@ class HealthBridge(private val activity: MainActivity) {
 
         /**
          * CORE: o mínimo para o widget funcionar (passos + calorias + distância).
+         * TOTAL de calorias está no CORE (não no EXTENDED) porque o Samsung Health NÃO
+         * publica ActiveCaloriesBurned no Health Connect — só TotalCaloriesBurned (e
+         * apenas de treinos): sem essa permissão, aparelho Samsung fica SEM caloria de
+         * jeito nenhum. Custo: quem já estava conectado re-conecta (1 tap) para o gate
+         * exigir a permissão nova — popup do HC já vem com as antigas marcadas.
          * EXTENDED: dados extras (FR, exercício) — se o usuário não conceder, o widget
          * funciona normalmente sem eles (não bloqueia a conexão).
          */
@@ -58,6 +64,7 @@ class HealthBridge(private val activity: MainActivity) {
             if (!hcSdkOk()) emptySet() else setOf(
                 HealthPermission.getReadPermission(StepsRecord::class),
                 HealthPermission.getReadPermission(ActiveCaloriesBurnedRecord::class),
+                HealthPermission.getReadPermission(TotalCaloriesBurnedRecord::class),
                 HealthPermission.getReadPermission(DistanceRecord::class),
             )
         }
@@ -229,6 +236,7 @@ class HealthBridge(private val activity: MainActivity) {
                 data class OriginDay(val day: LocalDate, val origin: String)
                 val stepsBy = HashMap<OriginDay, Long>()
                 val kcalBy = HashMap<OriginDay, Double>()
+                val totalKcalBy = HashMap<OriginDay, Double>()
                 val kmBy = HashMap<OriginDay, Double>()
                 val origins = LinkedHashSet<String>()
 
@@ -266,6 +274,23 @@ class HealthBridge(private val activity: MainActivity) {
                     } while (token != null)
                     return out
                 }
+                // TOTAL (fallback Samsung): o Samsung Health só publica caloria TOTAL
+                // (e só de treinos) — ler sempre; o merge por dia decide qual usar.
+                suspend fun readAllTotalCalories(): List<TotalCaloriesBurnedRecord> {
+                    val out = ArrayList<TotalCaloriesBurnedRecord>(); var token: String? = null
+                    do {
+                        val resp = client.readRecords(
+                            androidx.health.connect.client.request.ReadRecordsRequest(
+                                recordType = TotalCaloriesBurnedRecord::class,
+                                timeRangeFilter = TimeRangeFilter.between(periodStart, periodEnd),
+                                pageSize = 1000,
+                                pageToken = token,
+                            )
+                        )
+                        out += resp.records; token = resp.pageToken
+                    } while (token != null)
+                    return out
+                }
                 suspend fun readAllDistance(): List<DistanceRecord> {
                     val out = ArrayList<DistanceRecord>(); var token: String? = null
                     do {
@@ -291,6 +316,10 @@ class HealthBridge(private val activity: MainActivity) {
                         val k = OriginDay(r.endTime.atZone(zone).toLocalDate(), r.metadata.dataOrigin.packageName)
                         origins.add(k.origin); kcalBy[k] = (kcalBy[k] ?: 0.0) + r.energy.inKilocalories
                     }
+                    for (r in readAllTotalCalories()) {
+                        val k = OriginDay(r.endTime.atZone(zone).toLocalDate(), r.metadata.dataOrigin.packageName)
+                        origins.add(k.origin); totalKcalBy[k] = (totalKcalBy[k] ?: 0.0) + r.energy.inKilocalories
+                    }
                     for (r in readAllDistance()) {
                         val k = OriginDay(r.endTime.atZone(zone).toLocalDate(), r.metadata.dataOrigin.packageName)
                         origins.add(k.origin); kmBy[k] = (kmBy[k] ?: 0.0) + r.distance.inKilometers
@@ -308,12 +337,20 @@ class HealthBridge(private val activity: MainActivity) {
 
                     var steps = 0L
                     var kcal = 0.0
+                    var totalKcal = 0.0
                     var km = 0.0
                     for (o in origins) {
                         steps = Math.max(steps, stepsBy[OriginDay(day, o)] ?: 0L)
                         kcal = Math.max(kcal, kcalBy[OriginDay(day, o)] ?: 0.0)
+                        totalKcal = Math.max(totalKcal, totalKcalBy[OriginDay(day, o)] ?: 0.0)
                         km = Math.max(km, kmBy[OriginDay(day, o)] ?: 0.0)
                     }
+                    // MERGE caloria por dia: ATIVA é a semântica certa do card ("Calorias");
+                    // TOTAL (ativa + metabolismo basal, ~1.3-1.8k kcal/dia) é FALLBACK —
+                    // dia sem NENHUM ativa em nenhuma origem usa o total (Samsung puro).
+                    // Semânticas nunca se misturam no mesmo dia (max separado, flag honesta).
+                    val kcalIsTotal = kcal <= 0.0 && totalKcal > 0.0
+                    if (kcalIsTotal) kcal = totalKcal
 
                     // FR + exercício: lê RECORDS (não há métrica agregada p/ FR no SDK
                     // alpha11) e calcula avg/max/rest manualmente — mais confiável cross-device.
@@ -361,6 +398,7 @@ class HealthBridge(private val activity: MainActivity) {
                             .put("date", day.toString())
                             .put("steps", steps.toDouble())
                             .put("kcal", Math.round(kcal).toDouble())
+                            .put("kcalIsTotal", kcalIsTotal)
                             .put("km", Math.round(km * 100.0) / 100.0)
                             .put("hrAvg", hrAvg.toDouble())
                             .put("hrRest", hrRest.toDouble())

@@ -150,3 +150,41 @@ describe('normalizeDays (payload do bridge)', () => {
     expect(out[0].km).toBe(0);
   });
 });
+
+describe('kcalIsTotal (fallback Samsung — TotalCaloriesBurned quando não há ativa)', () => {
+  it('normalizeDays propaga a flag e NÃO marca quando kcal=0', () => {
+    const out = normalizeDays([
+      { date: '2026-08-19', steps: 8000, kcal: 450, kcalIsTotal: false },
+      { date: '2026-08-18', steps: 8000, kcal: 2100, kcalIsTotal: true },
+      { date: '2026-08-17', steps: 8000, kcal: 0, kcalIsTotal: true }, // flag órfã de dia zerado
+    ]);
+    expect(out[0].kcalIsTotal).toBe(false);
+    expect(out[1].kcalIsTotal).toBe(true);
+    expect(out[2].kcalIsTotal).toBe(false);
+  });
+  it('HOJE herda a flag do dia corrente', () => {
+    expect(summarize([day('2026-08-19', 8000, 2100, 5)], 'today').kcalIsTotal).toBe(false);
+    const d = { ...day('2026-08-19', 8000, 2100, 5), kcalIsTotal: true };
+    const s = summarize([d], 'today');
+    expect(s.kcalIsTotal).toBe(true);
+    expect(s.series[0].kcalIsTotal).toBe(true);
+  });
+  it('7d/30d marca se ALGUM dia com kcal caiu no fallback (média mistura semânticas)', () => {
+    const mixed = [
+      day('2026-08-19', 8000, 450, 4),
+      { ...day('2026-08-18', 8000, 2100, 4), kcalIsTotal: true },
+      day('2026-08-17', 8000, 500, 4),
+    ];
+    expect(summarize(mixed, '7d').kcalIsTotal).toBe(true);
+    expect(summarize(mixed.slice(0, 1).concat(mixed.slice(2)), '7d').kcalIsTotal).toBe(false); // sem o dia total → false
+  });
+  it('weekOfExam sinaliza kcal totais na janela do exame', () => {
+    const days = [
+      day('2026-08-18', 6000, 1800, 4),
+      { ...day('2026-08-17', 7000, 2100, 4.5), kcalIsTotal: true },
+      day('2026-08-16', 9000, 2200, 6),
+    ];
+    expect(weekOfExam(days, '2026-08-18')!.kcalIsTotal).toBe(true);
+    expect(weekOfExam(days.map((d) => ({ ...d, kcalIsTotal: false })), '2026-08-18')!.kcalIsTotal).toBe(false);
+  });
+});

@@ -13,11 +13,15 @@
     <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove" />
 
     <!-- Health Connect (Activity Widget — leitura APENAS, nunca escrita): passos, calorias
-         ATIVAS (não totais — fix 2026-08-24: TotalCaloriesBurned incluía BMR, inflando
-         o número 3.5x vs Samsung Health) e distância. -->
+         e distância. Caloria ATIVA é a preferida; TOTAL é FALLBACK ROTULADO (kcalIsTotal) —
+         o Samsung Health não publica ActiveCaloriesBurned no HC (só Total, e só de treinos),
+         então aparelho Samsung puro ficava sem caloria (fix 2026-08-24 removeu Total porque
+         ele incluía BMR inflando 3.5x; agora só entra quando Active não existe em NENHUMA
+         origem e a UI marca "total do dia"). -->
     <!-- Formato ANTIGO (Android 13- / app da Play Store com.google.android.apps.healthdata) -->
     <uses-permission android:name="androidx.health.connect.permission.read.Steps" />
     <uses-permission android:name="androidx.health.connect.permission.read.ActiveCaloriesBurned" />
+    <uses-permission android:name="androidx.health.connect.permission.read.TotalCaloriesBurned" />
     <uses-permission android:name="androidx.health.connect.permission.read.Distance" />
     <uses-permission android:name="androidx.health.connect.permission.read.HeartRate" />
     <uses-permission android:name="androidx.health.connect.permission.read.ExerciseSession" />
@@ -25,6 +29,7 @@
          — sem estas, o sistema mostra "Atualização necessária" e NÃO deixa conceder permissões. -->
     <uses-permission android:name="android.permission.health.READ_STEPS" />
     <uses-permission android:name="android.permission.health.READ_ACTIVE_CALORIES_BURNED" />
+    <uses-permission android:name="android.permission.health.READ_TOTAL_CALORIES_BURNED" />
     <uses-permission android:name="android.permission.health.READ_DISTANCE" />
     <uses-permission android:name="android.permission.health.READ_HEART_RATE" />
     <uses-permission android:name="android.permission.health.READ_EXERCISE" />
