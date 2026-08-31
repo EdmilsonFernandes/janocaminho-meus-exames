@@ -1108,7 +1108,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
 
         {/* DETALHE DO PACIENTE — desktop: LARGA TOTAL (sem rail de pacientes); mobile: coluna única */}
         {view === 'patients' && selected && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1, minWidth: 0, maxWidth: { md: 900 }, mx: 'auto' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1, minWidth: 0, maxWidth: { md: 900 }, mx: 'auto', width: '100%' }}>
             {isDesktop && (
               <Button size="small" onClick={() => { setSelected(null); setSelExam(null); }} startIcon={<ArrowBackIcon />}
                 sx={{ alignSelf: 'flex-start', textTransform: 'none', fontWeight: 700, color: 'text.secondary', mb: -1 }}>
@@ -1200,7 +1200,12 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                     '& .MuiTab-root': {
                       // 4 abas agora: MAIORES, com rótulo SEMPRE visível (ícone em cima,
                       // descrição embaixo) — alvo confortável + clareza de destino.
+                      // minWidth 0 no xs: o padrão do MUI (90px/aba) soma 360px fixos e
+                      // CORTA "Relatório" fora da tela em viewports ≤358px (bug mobile
+                      // reportado: itens da barra inacessíveis à direita). fullWidth +
+                      // minWidth 0 deixa as 4 se dividirem no que houver.
                       minHeight: 58, px: { xs: 0.5, sm: 1.5 }, py: 1,
+                      minWidth: { xs: 0, sm: 90 }, flex: '1 1 0',
                       textTransform: 'none', fontWeight: 700,
                       color: 'text.secondary', flexDirection: 'column', gap: 0.5,
                       '& .MuiTab-icon': { fontSize: 26 },

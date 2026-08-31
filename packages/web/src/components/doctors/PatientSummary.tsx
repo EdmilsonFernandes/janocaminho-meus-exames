@@ -176,7 +176,7 @@ export const PatientSummary = ({ patient, exams, abnormal, questions, notes, pat
               cobre do modo médico. */}
           <Typography component="div" sx={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.09em', lineHeight: 1.4, color: (t) => copperText(t.palette.mode) }}>PACIENTE · PRONTUÁRIO COMPARTILHADO</Typography>
           <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 20, lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'text.primary' }}>{fullName}</Typography>
+            <Typography title={fullName} sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 20, lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: '1 1 auto', minWidth: 0, color: 'text.primary' }}>{fullName}</Typography>
             <Button size="small" onClick={() => setSwitcherOpen(true)} startIcon={<SwapHorizIcon />} aria-label="Trocar paciente" sx={{ flexShrink: 0, minWidth: 0, textTransform: 'none', fontWeight: 700, color: primary, borderRadius: '999px', py: 0.25, px: 1, '&:hover': { bgcolor: alpha(primary, 0.08) } }}>Trocar</Button>
           </Stack>
           {caption && <Typography sx={{ color: 'text.primary', opacity: 0.72, display: 'block', mt: 0.5, fontSize: 13, fontWeight: 600, lineHeight: 1.3 }}>{caption}</Typography>}
@@ -184,8 +184,12 @@ export const PatientSummary = ({ patient, exams, abnormal, questions, notes, pat
       </Stack>
 
       {/* 6 colunas só em tela LARGA (lg+): em ~960px a coluna do detalhe tem ~640px e
-          6 tiles de ~93px cortavam o conteúdo (valor/label vazavam à direita). */}
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)', lg: 'repeat(6, 1fr)' }, gap: 1, mt: 2 }}>
+          6 tiles de ~93px cortavam o conteúdo (valor/label vazavam à direita).
+          minWidth 0 nos tiles: sub com noWrap ("4.043 passos/dia") fixava o min-content
+          do track em ~160px → grid ≥330px → CARD de 362px transbordava o container
+          (278px em viewport 320) e o prontuário inteiro ficava cortado à direita,
+          sem scrollbar (clipado) — bug mobile reportado na área do médico. */}
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)', lg: 'repeat(6, 1fr)' }, gap: 1, mt: 2, minWidth: 0 }}>
         {tiles.map((t) => (
           <Box
             key={t.key}
@@ -197,6 +201,7 @@ export const PatientSummary = ({ patient, exams, abnormal, questions, notes, pat
             sx={{
               p: 1.25, borderRadius: '12px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider',
               cursor: t.onClick ? 'pointer' : 'default',
+              minWidth: 0, overflow: 'hidden',
               transition: 'border-color .15s, box-shadow .15s',
               '&:hover': t.onClick ? { borderColor: primary, boxShadow: `0 2px 8px ${alpha(primary, 0.15)}` } : {},
               '&:active': t.onClick ? { transform: 'scale(.98)' } : {},
@@ -204,15 +209,15 @@ export const PatientSummary = ({ patient, exams, abnormal, questions, notes, pat
           >
             <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 0.25, minWidth: 0 }}>
               {t.icon}
-              <Typography variant="caption" noWrap sx={{ color: 'text.secondary', fontWeight: 700, flex: 1, minWidth: 0 }}>{t.label}</Typography>
+              <Typography variant="caption" noWrap sx={{ color: 'text.secondary', fontWeight: 700, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.label}</Typography>
               {t.onClick && !loading && <ChevronRightIcon sx={{ fontSize: 15, color: 'text.disabled' }} />}
             </Stack>
             {loading ? (
               <Skeleton variant="rounded" width={44} height={22} sx={{ mt: 0.5 }} />
             ) : (
-              <Typography sx={{ fontWeight: 800, color: t.color as never, fontSize: 16, lineHeight: 1.2 }}>{t.value}</Typography>
+              <Typography sx={{ fontWeight: 800, color: t.color as never, fontSize: 16, lineHeight: 1.2, overflowWrap: 'anywhere' }}>{t.value}</Typography>
             )}
-            {!loading && t.sub && <Typography variant="caption" noWrap sx={{ color: 'text.secondary' }}>{t.sub}</Typography>}
+            {!loading && t.sub && <Typography variant="caption" noWrap sx={{ color: 'text.secondary', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.sub}</Typography>}
           </Box>
         ))}
       </Box>
