@@ -63,6 +63,10 @@ model DeviceClaim {
   userId    String?
   user      User?    @relation("DeviceClaims", fields: [userId], references: [id], onDelete: SetNull)
   createdAt DateTime @default(now())
+
+  // FK sem índice (auditoria Postgres 01/09/26): o Prisma NÃO cria índice automático
+  // pra FK no Postgres — delete de User (SetNull) virava seq scan.
+  @@index([userId])
   @@map("device_claims")
 }
 
@@ -390,6 +394,7 @@ model ApiAccessRequest {
   createdAt  DateTime  @default(now())
 
   @@index([status, createdAt])
+  @@index([userId]) // FK sem índice (auditoria Postgres 01/09/26)
   @@map("api_access_requests")
 }
 
@@ -804,6 +809,7 @@ model PatientInvite {
   createdAt       DateTime  @default(now())
 
   @@index([doctorId, status])
+  @@index([acceptedUserId]) // FK sem índice (auditoria Postgres 01/09/26)
   @@map("patient_invites")
 }
 
