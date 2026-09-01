@@ -78,6 +78,10 @@ cd android
 - **Prod usa `prisma migrate deploy`** no boot do container (Dockerfile CMD).
 - **Dev/Teste usa `prisma db push`** (direto schema→DB, sem migration files).
 - **NUNCA misturar** `db push` em prod com `migrate deploy` → colunas duplicadas → P3009 → app cai (502).
+
+## Postgres de PROD — realidade e reprovisionamento
+- **NÃO existe `meus-exames-db` em prod**: o app usa o DB `meus_exames` DENTRO do **`janocaminho-postgres`** (compartilhado com EdEspeto, rede `janocaminho_default`). NUNCA recriar esse container sem avaliar blip nos dois apps; queries: `docker exec janocaminho-postgres psql -U meus_exames -d meus_exames`.
+- **Hardening aplicado (auditoria 01/09/26)**: timeouts por DATABASE (`idle_in_transaction 60s`, `statement 30s`, `lock 10s`) + `pg_stat_statements` (preload via `ALTER SYSTEM` no volume). Tudo que vive DENTRO do banco morre num volume novo → **instalação do zero = rodar `scripts/db-hardening.sql` 1x** (o script tem os comandos completos, inclusive o passo de restart da instância).
 - **Migrations aditivas** (ADD COLUMN): usar `IF NOT EXISTS` (idempotente — sobrevive a re-run/estado parcial).
 - **Migration falhou em prod (P3009)**: `UPDATE _prisma_migrations SET finished_at=now() WHERE finished_at IS NULL;` (marca como aplicada) + restart container.
 
