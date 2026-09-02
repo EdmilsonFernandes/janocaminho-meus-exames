@@ -33,6 +33,7 @@ import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import { API_URL, photoUrlFor, doctorPhotoUrl } from '../config';
+import { AppCard } from '../components/AppCard';
 import { LAYOUT, COPPER, copperText } from '../theme';
 import { priorityOf, refScaleSuspect } from '../utils/alertPriority';
 import { QuestionStatusBadge } from '../components/QuestionStatusBadge';
@@ -91,7 +92,7 @@ const PayCountdown = ({ expiresAt, onExpire }: { expiresAt: string; onExpire: ()
 /* Ícones das abas — PHOSPHOR duotone (premium, distintos, peso visual rico).
  * Mapeamento: Exames=laudo, Alterados=flag, Tendências=gráfico, Relatório=resumo,
  * Perguntas=chat, Anotações=lápis. */
-import { Receipt, Flag, ChartLineUp, FileText, ChatCircle, NotePencil } from '@phosphor-icons/react';
+import { Receipt, Flag, ChartLineUp, FileText, ChatCircle, NotePencil, Stethoscope, CalendarBlank, Diamond } from '@phosphor-icons/react';
 
 const SCOPE_META: Record<string, { label: string; icon: ReactElement }> = {
   exams: { label: 'Exames', icon: <Receipt size={22} weight="duotone" /> },
@@ -290,6 +291,12 @@ const a11yClick = (fn: () => void) => ({
   },
 });
 const focusRingSx = { '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 } } as const;
+/** Marcador de status SEM emoji — leitor de tela lia "círculo vermelho grande" e o emoji
+ *  compete com a linguagem Phosphor do app. Ponto colorido resolve os dois. */
+const statusDot = (color: string) => (
+  <Box component="span" aria-hidden="true" sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: color, display: 'inline-block', flexShrink: 0 }} />
+);
+const inlineStat = { display: 'inline-flex', alignItems: 'center', gap: 0.4, verticalAlign: 'middle' } as const;
 
 const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => void }) => {
   const [patients, setPatients] = useState<any[]>([]);
@@ -547,8 +554,8 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
             <Avatar src={doctor?.photoUrl ? doctorPhotoUrl(doctor.id, photoVer) : undefined} sx={{ width: 52, height: 52, fontSize: 20, bgcolor: 'rgba(255,255,255,.2)', fontWeight: 800, border: '2px solid rgba(255,255,255,.5)' }}>{doctor?.name?.charAt(0)}</Avatar>
           </IconButton>
           <Box sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>🩺 {doctor?.name || 'Médico'}</Typography>
-            {unreadQ > 0 && <Chip size="small" label={`❓ ${unreadQ} ${unreadQ === 1 ? 'pergunta nova' : 'perguntas novas'}`} sx={{ mt: 0.5, height: 22, fontSize: 12, bgcolor: 'rgba(255,255,255,.28)', color: '#fff', fontWeight: 700 }} />}
+            <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>{doctor?.name || 'Médico'}</Typography>
+            {unreadQ > 0 && <Chip size="small" label={`${unreadQ} ${unreadQ === 1 ? 'pergunta nova' : 'perguntas novas'}`} sx={{ mt: 0.5, height: 22, fontSize: 12, bgcolor: 'rgba(255,255,255,.28)', color: '#fff', fontWeight: 700 }} />}
             <Typography variant="caption" sx={{ opacity: 0.9, display: 'block' }}>{[doctor?.specialty, doctor?.crm && `CRM ${doctor.crm}`].filter(Boolean).join(' • ')}</Typography>
           </Box>
         </Stack>
@@ -557,7 +564,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
       <Box sx={{ mx: '10px', mt: 1.5, p: 1.25, borderRadius: '12px', background: planInfo?.isPremium ? 'rgba(99,102,241,.08)' : 'rgba(32,178,170,0.08)', border: '1px solid', borderColor: planInfo?.isPremium ? 'rgba(99,102,241,.2)' : 'divider' }}>
         <Typography variant="caption" sx={{ fontWeight: 800, color: planInfo?.isPremium ? '#6366f1' : 'primary.dark', display: 'block' }}>PLANO</Typography>
         {planInfo?.isPremium
-          ? <><Typography sx={{ fontSize: 13, fontWeight: 700, color: '#6366f1' }}>💎 Dr. Exame Pro</Typography><Typography variant="caption" sx={{ color: 'text.secondary' }}>SOAP e planos ilimitados.{planInfo.planExpiresAt ? ` Até ${new Date(planInfo.planExpiresAt).toLocaleDateString('pt-BR')}.` : ''}</Typography></>
+          ? <><Typography sx={{ fontSize: 13, fontWeight: 700, color: '#6366f1', display: 'inline-flex', alignItems: 'center', gap: 0.5 }}><Diamond size={14} weight="fill" /> Dr. Exame Pro</Typography><Typography variant="caption" sx={{ color: 'text.secondary' }}>SOAP e planos ilimitados.{planInfo.planExpiresAt ? ` Até ${new Date(planInfo.planExpiresAt).toLocaleDateString('pt-BR')}.` : ''}</Typography></>
           : <><Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary' }}>Grátis ({planInfo?.freeUsed ?? 0}/{planInfo?.freeLimit ?? 5} usados)</Typography><Typography variant="caption" sx={{ color: 'text.secondary' }}>5 pré-consultas/SOAP grátis por mês.</Typography></>}
       </Box>
       <List sx={{
@@ -612,10 +619,10 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           <Box sx={{ flex: 1 }}>
             <Stack direction="row" spacing={0.75} alignItems="center" sx={{ minWidth: 0 }}>
               <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 17, color: 'text.primary', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{view === 'overview' ? 'Painel' : view === 'patients' ? (selected ? 'Detalhe do paciente' : 'Pacientes') : view === 'invites' ? 'Convites' : view === 'questions' ? 'Perguntas' : view === 'profile' ? 'Meu Perfil' : 'Trocar Senha'}</Typography>
-              {planInfo?.isPremium && <Chip size="small" label="💎 Pro" sx={{ bgcolor: 'rgba(99,102,241,.10)', color: '#6366f1', fontWeight: 700, height: 20, fontSize: 12, flexShrink: 0 }} />}
+              {planInfo?.isPremium && <Chip size="small" icon={<Diamond size={12} weight="fill" />} label="Pro" sx={{ bgcolor: 'rgba(99,102,241,.10)', color: '#6366f1', fontWeight: 700, height: 22, fontSize: 12, flexShrink: 0, '& .MuiChip-icon': { color: '#6366f1' } }} />}
             </Stack>
             {/* Assinatura do portal: cobre = modo médico (viewer clínico somente leitura). */}
-            <Chip size="small" label="🩺 Acesso médico · leitura" title="Você acessa como médico — vista somente leitura dos dados compartilhados pelo paciente" sx={{ mt: 0.5, height: 22, fontSize: 12, fontWeight: 700, bgcolor: COPPER.wash, color: (t: Theme) => copperText(t.palette.mode) }} />
+            <Chip size="small" icon={<Stethoscope size={13} />} label="Acesso médico · leitura" title="Você acessa como médico — vista somente leitura dos dados compartilhados pelo paciente" sx={{ mt: 0.5, height: 22, fontSize: 12, fontWeight: 700, bgcolor: COPPER.wash, color: (t: Theme) => copperText(t.palette.mode), '& .MuiChip-icon': { color: (t: Theme) => copperText(t.palette.mode) } }} />
           </Box>
         ) : (
           <>
@@ -628,7 +635,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 15, color: 'text.primary', lineHeight: 1.2 }}>{doctor?.name || 'Médico'}</Typography>
               <Typography variant="caption" sx={{ color: 'text.secondary' }}>{[doctor?.specialty, doctor?.crm && `CRM ${doctor.crm}`].filter(Boolean).join(' • ') || 'Portal do Médico'}</Typography>
               {/* Assinatura do portal: cobre = modo médico (viewer clínico somente leitura). */}
-              <Chip size="small" label="🩺 Acesso médico · leitura" title="Você acessa como médico — vista somente leitura dos dados compartilhados pelo paciente" sx={{ mt: 0.5, height: 20, fontSize: 12, fontWeight: 700, bgcolor: COPPER.wash, color: (t: Theme) => copperText(t.palette.mode) }} />
+              <Chip size="small" icon={<Stethoscope size={13} />} label="Acesso médico · leitura" title="Você acessa como médico — vista somente leitura dos dados compartilhados pelo paciente" sx={{ mt: 0.5, height: 20, fontSize: 12, fontWeight: 700, bgcolor: COPPER.wash, color: (t: Theme) => copperText(t.palette.mode), '& .MuiChip-icon': { color: (t: Theme) => copperText(t.palette.mode) } }} />
             </Box>
           </>
         )}
@@ -671,7 +678,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                     const waBase = it.phone ? `https://wa.me/${it.phone.startsWith('55') ? '' : '55'}${it.phone}` : '';
                     const waMsg = waBase ? `${waBase}?text=${encodeURIComponent(`Olá! Aqui é ${doctor?.name || 'seu médico'}. Cadastre-se no app Meus Exames pra eu acompanhar seus exames: ${linkFor(it.token)}`)}` : '';
                     return (
-                      <Card key={it.id} sx={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}><CardContent>
+                      <AppCard key={it.id}><CardContent>
                         <Stack direction="row" alignItems="center" spacing={1.5}>
                           <Avatar sx={{ bgcolor: 'rgba(234,88,12,.12)', color: '#c2410c', fontWeight: 800, width: 44, height: 44 }}>{it.patientName?.charAt(0)}</Avatar>
                           <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -685,7 +692,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                           <Button size="small" variant="outlined" onClick={() => { try { navigator.clipboard?.writeText(linkFor(it.token)); } catch {} snackbar({ message: 'Link copiado!', severity: 'success' }); }} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>Copiar link</Button>
                           <Button size="small" onClick={() => cancelInvite(it.id)} sx={{ borderRadius: '999px', textTransform: 'none', color: 'error.main', fontWeight: 700 }}>Cancelar</Button>
                         </Stack>
-                      </CardContent></Card>
+                      </CardContent></AppCard>
                     );
                   })}
                 </Stack>
@@ -695,14 +702,14 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 <Typography sx={{ fontWeight: 800, mb: 1, display: 'flex', alignItems: 'center', gap: 0.75 }}><CheckCircleOutlinedIcon fontSize="small" sx={{ color: 'success.main' }} />Aceitos ({accepted.length})</Typography>
                 <Stack spacing={1}>
                   {accepted.map((it) => (
-                    <Card key={it.id} sx={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}><CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.25 }}>
+                    <AppCard key={it.id}><CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.25 }}>
                       <Avatar sx={{ bgcolor: 'rgba(22,163,74,.12)', color: '#047857', fontWeight: 800, width: 44, height: 44 }}>{it.patientName?.charAt(0)}</Avatar>
                       <Box sx={{ flex: 1, minWidth: 0 }}>
                         <Typography sx={{ fontWeight: 800 }}>{it.patientName}</Typography>
                         <Typography variant="caption" color="text.secondary">Conta criada em {relDate(it.acceptedAt)} · já nos seus pacientes</Typography>
                       </Box>
                       <Chip size="small" label="ativo" sx={{ height: 20, bgcolor: 'rgba(22,163,74,.12)', color: '#047857', fontWeight: 700 }} />
-                    </CardContent></Card>
+                    </CardContent></AppCard>
                   ))}
                 </Stack>
               </Box>)}
@@ -711,21 +718,21 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 <Typography sx={{ fontWeight: 800, mb: 1, color: 'text.secondary', display: 'flex', alignItems: 'center', gap: 0.75 }}><ScheduleOutlinedIcon fontSize="small" />Expirados / cancelados ({expired.length})</Typography>
                 <Stack spacing={1}>
                   {expired.map((it) => (
-                    <Card key={it.id} sx={{ borderRadius: '12px', opacity: 0.75 }}><CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.25 }}>
+                    <AppCard key={it.id} sx={{ opacity: 0.75 }}><CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.25 }}>
                       <Avatar sx={{ bgcolor: 'action.hover', color: 'text.secondary', fontWeight: 800, width: 44, height: 44 }}>{it.patientName?.charAt(0)}</Avatar>
                       <Box sx={{ flex: 1, minWidth: 0 }}><Typography sx={{ fontWeight: 700 }}>{it.patientName}</Typography></Box>
                       <Button size="small" variant="outlined" startIcon={<PersonAddAlt1Icon />} onClick={() => { setInv({ name: it.patientName, phone: it.phone || '', email: it.email || '' }); setInvResult(null); setInviteOpen(true); }} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, borderColor: 'primary.main', color: 'primary.dark' }}>Reenviar</Button>
-                    </CardContent></Card>
+                    </CardContent></AppCard>
                   ))}
                 </Stack>
               </Box>)}
 
               {invites.length === 0 && (
-                <Card sx={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}><CardContent><Box sx={{ textAlign: 'center', py: 5 }}>
+                <AppCard><CardContent><Box sx={{ textAlign: 'center', py: 5 }}>
                   <Box sx={{ fontSize: 56, mb: 1.5, opacity: 0.4 }}>📨</Box>
                   <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 17, mb: 0.5 }}>Nenhum convite ainda</Typography>
                   <Typography color="text.secondary">Toque em “Convidar” pra enviar o app a um paciente — ele instala e vocês já ficam conectados.</Typography>
-                </Box></CardContent></Card>
+                </Box></CardContent></AppCard>
               )}
             </>
           );
@@ -743,7 +750,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
             const qp = patients.find((pp: any) => pp.patient?.id === q.patientId);
             const isOpen = replyOpen === q.id;
             return (
-              <Card key={q.id} sx={{ borderRadius: '12px', mb: 1.5, boxShadow: '0 1px 3px rgba(0,0,0,.04)', border: '1px solid', borderColor: answered ? 'divider' : 'transparent' }}><CardContent>
+              <AppCard key={q.id} sx={{ mb: 1.5, border: '1px solid', borderColor: answered ? 'divider' : 'transparent' }}><CardContent>
                 <Stack direction="row" alignItems="center" spacing={1.25}>
                   <Box role="button" tabIndex={0} {...a11yClick(() => goToPatient(q.patientId))} title="Abrir o paciente" sx={{ display: 'flex', alignItems: 'center', gap: 1.25, flex: 1, minWidth: 0, cursor: 'pointer', borderRadius: '12px', mx: -0.5, px: 0.5, py: 0.25, transition: 'background .15s', '&:hover': { bgcolor: 'rgba(32,178,170,.06)' }, ...focusRingSx }}>
                     <Avatar src={q.patient?.id ? photoUrlFor(q.patient.id) : undefined} sx={{ bgcolor: 'primary.dark', fontWeight: 800, width: 44, height: 44, flexShrink: 0 }}>{q.patient?.fullName?.charAt(0)}</Avatar>
@@ -778,7 +785,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                     <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>{String(lastDoctor.body)}</Typography>
                   </Box>
                 )}
-              </CardContent></Card>
+              </CardContent></AppCard>
             );
           };
           return (
@@ -792,11 +799,11 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               </Stack>
               {allQLoading && <Box sx={{ textAlign: 'center', py: 4 }}><CircularProgress sx={{ color: 'primary.dark' }} /></Box>}
               {!allQLoading && allQ.length === 0 && (
-                <Card sx={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}><CardContent><Box sx={{ textAlign: 'center', py: 5 }}>
+                <AppCard><CardContent><Box sx={{ textAlign: 'center', py: 5 }}>
                   <Box sx={{ fontSize: 56, mb: 1.5, opacity: 0.4 }}>💬</Box>
                   <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 17 }}>Nenhuma pergunta ainda</Typography>
                   <Typography color="text.secondary">Quando um paciente enviar uma pergunta pelo app, ela aparece aqui.</Typography>
-                </Box></CardContent></Card>
+                </Box></CardContent></AppCard>
               )}
               {!allQLoading && openQ.length > 0 && (<Box sx={{ mb: 3 }}>
                 <Typography sx={{ fontWeight: 800, mb: 1.5, display: 'flex', alignItems: 'center', gap: 0.75 }}><ScheduleOutlinedIcon fontSize="small" sx={{ color: 'warning.main' }} />Em aberto ({openQ.length})</Typography>
@@ -893,7 +900,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           const alerts = [...patients].filter((p) => p.hasAlerts).sort((a, b) => (a.patient?.fullName ?? '').localeCompare(b.patient?.fullName ?? '', 'pt-BR', { sensitivity: 'base' }));
           const openQP = patients.filter((p) => (p.openQuestions ?? 0) > 0);
           const pendingInv = invites.filter((i) => i.status === 'pending');
-          const PRIORITY_LABEL: Record<string, string> = { importante: '🔴 Prioridade alta', moderada: '🟠 Alterações moderadas', leve: '🟡 Alterações leves' };
+          const PRIORITY_LABEL: Record<string, string> = { importante: 'Prioridade alta', moderada: 'Alterações moderadas', leve: 'Alterações leves' };
           const relDays = (d?: string | null) => { if (!d) return null; const n = Math.floor((Date.now() - new Date(d).getTime()) / 86400000); return n < 1 ? 'hoje' : n < 30 ? `há ${n} ${n === 1 ? 'dia' : 'dias'}` : n < 365 ? `há ${Math.floor(n / 30)} ${Math.floor(n / 30) === 1 ? 'mês' : 'meses'}` : `há ${Math.floor(n / 365)} ${Math.floor(n / 365) === 1 ? 'ano' : 'anos'}`; };
           // Renovação: exame antigo (>1 ano) ou nenhum exame compartilhado — deixa o médico pedir atualização.
           const stale = patients
@@ -906,7 +913,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           const row = (p: any, statusLine: ReactNode, onClick: () => void) => {
             const who = [p.age != null ? `${p.age}a` : null, p.sex === 'female' ? 'F' : p.sex === 'male' ? 'M' : null].filter(Boolean).join(' · ');
             return (
-            <Card key={p.shareId} role="button" tabIndex={0} {...a11yClick(onClick)} sx={{ borderRadius: '12px', cursor: 'pointer', transition: 'all .15s', boxShadow: '0 1px 3px rgba(0,0,0,.04)', '&:hover': { boxShadow: '0 4px 16px rgba(0,0,0,.08)', transform: 'translateY(-1px)' }, ...focusRingSx }}>
+            <AppCard kind="interactive" key={p.shareId} role="button" tabIndex={0} {...a11yClick(onClick)} sx={{ ...focusRingSx }}>
               <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, '&:last-child': { pb: 1.5 } }}>
                 <Avatar src={p.patient?.id ? photoUrlFor(p.patient.id) : undefined} sx={{ bgcolor: 'rgba(32,178,170,.08)', color: 'primary.dark', fontWeight: 800, width: 44, height: 44, flexShrink: 0 }}>{p.patient?.fullName?.charAt(0)}</Avatar>
                 <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -918,7 +925,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 </Box>
                 <ChevronRightIcon sx={{ color: 'text.disabled', fontSize: 20, flexShrink: 0 }} />
               </CardContent>
-            </Card>
+            </AppCard>
             );
           };
           return (
@@ -944,7 +951,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                   { label: 'Perguntas abertas', value: patients.reduce((n, p) => n + (p.openQuestions ?? 0), 0), color: '#b45309', onClick: () => { setView('questions'); loadAllQ(); }, icon: <QuestionAnswerIcon /> },
                   { label: 'Convites pendentes', value: pendingInv.length, color: '#c2410c', onClick: () => setView('invites'), icon: <PersonAddAlt1Icon /> },
                 ] as const).map((tile) => (
-                  <Card key={tile.label} role="button" tabIndex={0} {...a11yClick(tile.onClick)} sx={{ borderRadius: '12px', cursor: 'pointer', transition: 'all .15s', boxShadow: '0 1px 3px rgba(0,0,0,.04)', '&:hover': { boxShadow: '0 4px 16px rgba(0,0,0,.08)', transform: 'translateY(-1px)' }, ...focusRingSx }}>
+                  <AppCard kind="interactive" key={tile.label} role="button" tabIndex={0} {...a11yClick(tile.onClick)} sx={{ ...focusRingSx }}>
                     <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
                       <Stack direction="row" alignItems="center" spacing={1}>
                         <Box component="span" sx={{ display: 'inline-flex', color: tile.color, '& svg': { fontSize: 18 } }}>{tile.icon}</Box>
@@ -952,7 +959,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                       </Stack>
                       <Typography variant="caption" color="text.secondary">{tile.label}</Typography>
                     </CardContent>
-                  </Card>
+                  </AppCard>
                 ))}
               </Box>
 
@@ -960,13 +967,13 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               {alerts.length > 0 && (
                 <Box>
                   <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
-                    <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 15 }}>🩺 Precisam de atenção agora</Typography>
+                    <Stack direction="row" alignItems="center" spacing={0.75} sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 15, color: 'text.primary' }}><Stethoscope size={18} weight="duotone" color={COPPER.deep} />Precisam de atenção agora</Stack>
                     <Button size="small" onClick={() => setView('patients')} sx={{ textTransform: 'none', fontWeight: 700, color: 'primary.dark', borderRadius: '999px' }}>Ver todos</Button>
                   </Stack>
                   <Stack spacing={1.25}>
                     {alerts.slice(0, 4).map((p) => row(
                       p,
-                      <>{PRIORITY_LABEL[p.maxPriority] ?? '🔴 Com alerta'}{p.openQuestions ? ` · ❓ ${p.openQuestions}` : ''}{p.lastExamAt ? ` · exame ${relDays(p.lastExamAt)}` : ''}</>,
+                      <>{statusDot(p.maxPriority === 'importante' ? '#ef4444' : p.maxPriority === 'moderada' ? '#f59e0b' : '#eab308')} {PRIORITY_LABEL[p.maxPriority] ?? 'Com alerta'}{p.openQuestions ? ` · ${p.openQuestions} em aberto` : ''}{p.lastExamAt ? ` · exame ${relDays(p.lastExamAt)}` : ''}</>,
                       () => openPatient(p, 'alterados'),
                     ))}
                     {alerts.length > 4 && (
@@ -982,11 +989,11 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               {openQP.length > 0 && (
                 <Box>
                   <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
-                    <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 15 }}>❓ Perguntas aguardando você</Typography>
+                    <Stack direction="row" alignItems="center" spacing={0.75} sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 15, color: 'text.primary' }}><ChatCircle size={18} weight="duotone" color={COPPER.deep} />Perguntas aguardando você</Stack>
                     <Button size="small" onClick={() => { setView('questions'); loadAllQ(); }} sx={{ textTransform: 'none', fontWeight: 700, color: 'primary.dark', borderRadius: '999px' }}>Inbox</Button>
                   </Stack>
                   <Stack spacing={1.25}>
-                    {openQP.slice(0, 3).map((p) => row(p, `❓ ${p.openQuestions} em aberto`, () => openPatient(p, 'questions')))}
+                    {openQP.slice(0, 3).map((p) => row(p, `${p.openQuestions} em aberto`, () => openPatient(p, 'questions')))}
                   </Stack>
                 </Box>
               )}
@@ -994,7 +1001,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               {/* RENOVAÇÃO: exames velhos ou inexistentes — oportunidade de pedido novo */}
               {stale.length > 0 && (
                 <Box>
-                  <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 15, mb: 1 }}>📅 Exames para renovar</Typography>
+                  <Stack direction="row" alignItems="center" spacing={0.75} sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 15, mb: 1, color: 'text.primary' }}><CalendarBlank size={18} weight="duotone" color={COPPER.deep} />Exames para renovar</Stack>
                   <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>Sem exame novo há mais de 1 ano (ou nenhum compartilhado) — peça uma atualização na próxima consulta.</Typography>
                   <Stack spacing={1.25}>
                     {stale.slice(0, 3).map((p) => row(p, (p.examsCount ?? 0) === 0 ? 'sem exames compartilhados' : `último exame ${relDays(p.lastExamAt)}`, () => openPatient(p)))}
@@ -1004,12 +1011,12 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
 
               {/* EMPTY: sem pacientes ainda → funil de convite */}
               {patients.length === 0 && (
-                <Card sx={{ borderRadius: '12px' }}><CardContent><Box sx={{ textAlign: 'center', py: 4 }}>
+                <AppCard><CardContent><Box sx={{ textAlign: 'center', py: 4 }}>
                   <Box sx={{ fontSize: 56, mb: 1.5, opacity: 0.4 }}>🩺</Box>
                   <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 17, mb: 0.5 }}>Seu painel começa com 1 paciente</Typography>
                   <Typography color="text.secondary" sx={{ mb: 2, maxWidth: 380, mx: 'auto' }}>Convide pelo WhatsApp — ele instala o app, sobe os exames e você acompanha tudo aqui, na hora que ele chegar.</Typography>
                   <Button variant="contained" startIcon={<PersonAddAlt1Icon />} onClick={() => { setInvResult(null); setInviteOpen(true); }} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>Convidar paciente</Button>
-                </Box></CardContent></Card>
+                </Box></CardContent></AppCard>
               )}
             </Stack>
           );
@@ -1020,14 +1027,14 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           <Box sx={{ mb: 2, p: 2, pr: 6, borderRadius: '12px', position: 'relative', background: 'linear-gradient(135deg,rgba(99,102,241,.08),rgba(99,102,241,.02))', border: '1px solid', borderColor: 'rgba(99,102,241,.2)' }}>
             <IconButton size="small" aria-label="Fechar banner" onClick={() => { try { localStorage.setItem('doctorPayDismissed', '1'); } catch { /* */ } setPayDismissed(true); }} sx={{ position: 'absolute', top: 6, right: 6, color: 'text.secondary', '&:hover': { bgcolor: 'rgba(99,102,241,.10)' } }}><span aria-hidden style={{ fontSize: 20, lineHeight: 1 }}>×</span></IconButton>
             <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" useFlexGap>
-              <Typography sx={{ fontWeight: 800, color: '#6366f1', fontSize: 16 }}>💎 Dr. Exame Pro</Typography>
+              <Typography sx={{ fontWeight: 800, color: '#6366f1', fontSize: 16, display: 'inline-flex', alignItems: 'center', gap: 0.5 }}><Diamond size={16} weight="fill" />Dr. Exame Pro</Typography>
               <Typography variant="body2" sx={{ color: 'text.secondary', flex: 1, minWidth: 180 }}>{planInfo.freeUsed >= planInfo.freeLimit ? '🔒 Pré-consultas grátis esgotadas este mês.' : `💡 ${planInfo.freeUsed} de ${planInfo.freeLimit} pré-consultas grátis usadas.`}</Typography>
               <Button size="small" variant="contained" onClick={() => startCheckout('pix')} disabled={payLoading} sx={{ bgcolor: '#6366f1', textTransform: 'none', borderRadius: '999px', fontWeight: 700, '&:hover': { bgcolor: '#4f46e5' } }}>{payLoading ? 'Gerando...' : 'Assinar R$29,90/mês'}</Button>
             </Stack>
           </Box>
         )}
         {planInfo?.isPremium && (view === 'overview' || view === 'patients') && !selected && (
-          <Chip size="small" label="💎 Dr. Exame Pro ativo" sx={{ mb: 1.5, bgcolor: 'rgba(99,102,241,.12)', color: '#6366f1', fontWeight: 700 }} />
+          <Chip size="small" icon={<Diamond size={12} weight="fill" />} label="Dr. Exame Pro ativo" sx={{ mb: 1.5, bgcolor: 'rgba(99,102,241,.12)', color: '#6366f1', fontWeight: 700, '& .MuiChip-icon': { color: '#6366f1' } }} />
         )}
 
         {/* MASTER/DETAIL LEVE (desktop): rail de pacientes à esquerda MESMO com paciente aberto —
@@ -1061,12 +1068,12 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               </Stack>
             )}
             {patients.length === 0 && (
-              <Card sx={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,.04)', border: 'none' }}><CardContent><Box sx={{ textAlign: 'center', py: 6 }}>
+              <AppCard><CardContent><Box sx={{ textAlign: 'center', py: 6 }}>
                 <Box sx={{ fontSize: 64, mb: 2, opacity: 0.4 }}>🩺</Box>
                 <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 18, color: 'text.primary', mb: 1 }}>Nenhum paciente ainda</Typography>
                 <Typography color="text.secondary" sx={{ mb: 0.5 }}>Quando um paciente compartilhar os exames com você, ele aparece aqui automaticamente.</Typography>
                 <Typography variant="caption" color="text.secondary">💡 O paciente faz isso no app dele em "Meus Médicos → Compartilhar"</Typography>
-              </Box></CardContent></Card>
+              </Box></CardContent></AppCard>
             )}
             <Stack spacing={1.5}>
               {(() => {
@@ -1086,14 +1093,15 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                   // Vínculo familiar como DETALHE sutil (não eixo principal): dependente mostra o titular.
                   const isDependente = !!p.relationship && !/titular|respons/i.test(p.relationship);
                   const titularHint = isDependente && p.ownerName ? ` · titular: ${p.ownerName}` : '';
-                  const statusLine = [
-                    p.hasAlerts ? `🔴 alerta` : null,
-                    p.examsCount > 0 ? `📋 ${p.examsCount} exame${p.examsCount > 1 ? 's' : ''}` : null,
-                    p.lastExamAt ? `📅 ${fmtDate(p.lastExamAt)}` : null,
+                  // Status sem emoji (a11y + identidade Phosphor): ponto p/ alerta, ícones duotone.
+                  const statusParts: ReactNode[] = [
+                    p.hasAlerts ? <Box key="alerta" component="span" sx={inlineStat}>{statusDot('#ef4444')}alerta</Box> : null,
+                    p.examsCount > 0 ? <Box key="exames" component="span" sx={inlineStat}><Receipt size={12} weight="duotone" />{p.examsCount} exame{p.examsCount > 1 ? 's' : ''}</Box> : null,
+                    p.lastExamAt ? <Box key="data" component="span" sx={inlineStat}><CalendarBlank size={12} weight="duotone" />{fmtDate(p.lastExamAt)}</Box> : null,
                     p.convenio || 'Particular',
-                  ].filter(Boolean).join(' · ');
+                  ].filter(Boolean) as ReactNode[];
                   return (
-                    <Card key={key} role="button" tabIndex={0} sx={{ borderRadius: '12px', cursor: 'pointer', transition: 'all .15s', border: 'none', boxShadow: '0 1px 3px rgba(0,0,0,.04)', '&:hover': { boxShadow: '0 4px 16px rgba(0,0,0,.08)', transform: 'translateY(-1px)' }, ...focusRingSx }} {...a11yClick(() => openPatient(p))}>
+                    <AppCard kind="interactive" key={key} role="button" tabIndex={0} sx={{ ...focusRingSx }} {...a11yClick(() => openPatient(p))}>
                       <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5 }}>
                         <Box sx={{ position: 'relative', flexShrink: 0 }}>
                           <Avatar src={p.patient?.id ? photoUrlFor(p.patient.id) : undefined} sx={{ bgcolor: 'rgba(32,178,170,.08)', color: 'primary.dark', fontWeight: 800, width: 48, height: 48, border: '2px solid', borderColor: p.hasAlerts ? '#ef4444' : 'rgba(32,178,170,.15)' }}>{p.patient?.fullName?.charAt(0)}</Avatar>
@@ -1104,11 +1112,11 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                           <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>
                             {[p.age != null ? `${p.age}a` : null, sex, p.relationship].filter(Boolean).join(' · ')}{titularHint}
                           </Typography>
-                          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25, fontSize: 12 }}>{statusLine}</Typography>
+                          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25, fontSize: 12 }}>{statusParts.map((el, i) => <Box component="span" key={i}>{i > 0 ? ' · ' : ''}{el}</Box>)}</Typography>
                         </Box>
                         <ChevronRightIcon sx={{ color: 'text.disabled', fontSize: 20, flexShrink: 0 }} />
                       </CardContent>
-                    </Card>
+                    </AppCard>
                   );
                 };
                 return filtered.map((p) => card(p, p.shareId));
@@ -1407,7 +1415,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
             <Badge color="error" variant="dot" invisible={it.badge === 0} overlap="circular" sx={{ '& .MuiBadge-badge': { right: 4, top: 4 } }}>
               <Box sx={{ fontSize: 21, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', '& .MuiSvgIcon-root': { fontSize: 22 } }}>{it.icon}</Box>
             </Badge>
-            <Typography sx={{ fontSize: 11, fontWeight: it.on ? 800 : 600, mt: 0.25, fontFamily: 'Poppins, sans-serif' }}>{it.label}</Typography>
+            <Typography sx={{ fontSize: 12, fontWeight: it.on ? 800 : 600, mt: 0.25, fontFamily: 'Poppins, sans-serif' }}>{it.label}</Typography>
             <Box sx={{ height: 3, width: it.on ? 22 : 0, borderRadius: '12px', bgcolor: COPPER.main, mt: 0.3, transition: 'width .2s' }} />
           </Box>
         ))}
