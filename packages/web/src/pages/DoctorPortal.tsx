@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, type ReactElement, type ReactNode } from 'react';
+import { useState, useEffect, useRef, useMemo, type KeyboardEvent, type ReactElement, type ReactNode } from 'react';
 import { Box, Card, CardContent, Typography, TextField, Button, CircularProgress, Stack, Chip, Avatar, Menu, MenuItem, Alert, Divider, InputAdornment, IconButton, Link, Drawer, List, ListItemButton, ListItemText, ListItemIcon, Accordion, AccordionSummary, AccordionDetails, Badge, InputBase, Paper, useMediaQuery, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Tabs, Tab } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import type { Theme } from '@mui/material/styles';
@@ -218,7 +218,7 @@ export const DoctorPortalPage = () => {
               <Box sx={{ fontSize: 24, flexShrink: 0 }}>🩺</Box>
               <Box>
                 <Typography sx={{ fontSize: 13, fontWeight: 800, color: 'text.primary' }}>Conta de Profissional de Saúde</Typography>
-                <Typography sx={{ fontSize: 11, color: 'text.secondary', lineHeight: 1.35 }}>Use o <strong>mesmo CRM</strong> que seu paciente informou no convite pra ativar seu acesso.</Typography>
+                <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.35 }}>Use o <strong>mesmo CRM</strong> que seu paciente informou no convite pra ativar seu acesso.</Typography>
               </Box>
             </Box>
             <TextField placeholder="Nome completo" required value={regName} onChange={(e) => setRegName(e.target.value)} sx={fieldSx}
@@ -280,6 +280,16 @@ const QUICK_REPLIES = [
   'Seus resultados estão dentro da normalidade — mantenha o acompanhamento de rotina.',
   'Está tudo estável, sem alterações relevantes. Continue assim!',
 ];
+
+/** Cards clicáveis acessíveis por TECLADO (WCAG 2.1.1): Enter/Space disparam a mesma ação
+ *  do clique. Usar sempre junto com role="button" tabIndex={0} + focusRingSx no componente. */
+const a11yClick = (fn: () => void) => ({
+  onClick: fn,
+  onKeyDown: (e: KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fn(); }
+  },
+});
+const focusRingSx = { '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 } } as const;
 
 const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => void }) => {
   const [patients, setPatients] = useState<any[]>([]);
@@ -538,7 +548,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           </IconButton>
           <Box sx={{ minWidth: 0 }}>
             <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>🩺 {doctor?.name || 'Médico'}</Typography>
-            {unreadQ > 0 && <Chip size="small" label={`❓ ${unreadQ} ${unreadQ === 1 ? 'pergunta nova' : 'perguntas novas'}`} sx={{ mt: 0.5, height: 20, fontSize: 11, bgcolor: 'rgba(255,255,255,.28)', color: '#fff', fontWeight: 700 }} />}
+            {unreadQ > 0 && <Chip size="small" label={`❓ ${unreadQ} ${unreadQ === 1 ? 'pergunta nova' : 'perguntas novas'}`} sx={{ mt: 0.5, height: 22, fontSize: 12, bgcolor: 'rgba(255,255,255,.28)', color: '#fff', fontWeight: 700 }} />}
             <Typography variant="caption" sx={{ opacity: 0.9, display: 'block' }}>{[doctor?.specialty, doctor?.crm && `CRM ${doctor.crm}`].filter(Boolean).join(' • ')}</Typography>
           </Box>
         </Stack>
@@ -602,10 +612,10 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           <Box sx={{ flex: 1 }}>
             <Stack direction="row" spacing={0.75} alignItems="center" sx={{ minWidth: 0 }}>
               <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 17, color: 'text.primary', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{view === 'overview' ? 'Painel' : view === 'patients' ? (selected ? 'Detalhe do paciente' : 'Pacientes') : view === 'invites' ? 'Convites' : view === 'questions' ? 'Perguntas' : view === 'profile' ? 'Meu Perfil' : 'Trocar Senha'}</Typography>
-              {planInfo?.isPremium && <Chip size="small" label="💎 Pro" sx={{ bgcolor: 'rgba(99,102,241,.10)', color: '#6366f1', fontWeight: 700, height: 18, fontSize: 10, flexShrink: 0 }} />}
+              {planInfo?.isPremium && <Chip size="small" label="💎 Pro" sx={{ bgcolor: 'rgba(99,102,241,.10)', color: '#6366f1', fontWeight: 700, height: 20, fontSize: 12, flexShrink: 0 }} />}
             </Stack>
             {/* Assinatura do portal: cobre = modo médico (viewer clínico somente leitura). */}
-            <Chip size="small" label="🩺 Acesso médico · leitura" title="Você acessa como médico — vista somente leitura dos dados compartilhados pelo paciente" sx={{ mt: 0.5, height: 20, fontSize: 10.5, fontWeight: 700, bgcolor: COPPER.wash, color: (t: Theme) => copperText(t.palette.mode) }} />
+            <Chip size="small" label="🩺 Acesso médico · leitura" title="Você acessa como médico — vista somente leitura dos dados compartilhados pelo paciente" sx={{ mt: 0.5, height: 22, fontSize: 12, fontWeight: 700, bgcolor: COPPER.wash, color: (t: Theme) => copperText(t.palette.mode) }} />
           </Box>
         ) : (
           <>
@@ -618,7 +628,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 15, color: 'text.primary', lineHeight: 1.2 }}>{doctor?.name || 'Médico'}</Typography>
               <Typography variant="caption" sx={{ color: 'text.secondary' }}>{[doctor?.specialty, doctor?.crm && `CRM ${doctor.crm}`].filter(Boolean).join(' • ') || 'Portal do Médico'}</Typography>
               {/* Assinatura do portal: cobre = modo médico (viewer clínico somente leitura). */}
-              <Chip size="small" label="🩺 Acesso médico · leitura" title="Você acessa como médico — vista somente leitura dos dados compartilhados pelo paciente" sx={{ mt: 0.5, height: 18, fontSize: 10, fontWeight: 700, bgcolor: COPPER.wash, color: (t: Theme) => copperText(t.palette.mode) }} />
+              <Chip size="small" label="🩺 Acesso médico · leitura" title="Você acessa como médico — vista somente leitura dos dados compartilhados pelo paciente" sx={{ mt: 0.5, height: 20, fontSize: 12, fontWeight: 700, bgcolor: COPPER.wash, color: (t: Theme) => copperText(t.palette.mode) }} />
             </Box>
           </>
         )}
@@ -735,7 +745,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
             return (
               <Card key={q.id} sx={{ borderRadius: '12px', mb: 1.5, boxShadow: '0 1px 3px rgba(0,0,0,.04)', border: '1px solid', borderColor: answered ? 'divider' : 'transparent' }}><CardContent>
                 <Stack direction="row" alignItems="center" spacing={1.25}>
-                  <Box onClick={() => goToPatient(q.patientId)} title="Abrir o paciente" sx={{ display: 'flex', alignItems: 'center', gap: 1.25, flex: 1, minWidth: 0, cursor: 'pointer', borderRadius: '12px', mx: -0.5, px: 0.5, py: 0.25, transition: 'background .15s', '&:hover': { bgcolor: 'rgba(32,178,170,.06)' } }}>
+                  <Box role="button" tabIndex={0} {...a11yClick(() => goToPatient(q.patientId))} title="Abrir o paciente" sx={{ display: 'flex', alignItems: 'center', gap: 1.25, flex: 1, minWidth: 0, cursor: 'pointer', borderRadius: '12px', mx: -0.5, px: 0.5, py: 0.25, transition: 'background .15s', '&:hover': { bgcolor: 'rgba(32,178,170,.06)' }, ...focusRingSx }}>
                     <Avatar src={q.patient?.id ? photoUrlFor(q.patient.id) : undefined} sx={{ bgcolor: 'primary.dark', fontWeight: 800, width: 44, height: 44, flexShrink: 0 }}>{q.patient?.fullName?.charAt(0)}</Avatar>
                     <Box sx={{ minWidth: 0 }}>
                       <Stack direction="row" spacing={0.75} alignItems="center" sx={{ flexWrap: 'wrap', rowGap: 0.5 }}>
@@ -873,8 +883,9 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         {view === 'patients' && loading && <Box sx={{ textAlign: 'center', py: 6 }}><CircularProgress sx={{ color: 'primary.dark' }} /></Box>}
 
         {/* PAINEL INICIAL DO MÉDICO (self-service): o que importa AGORA, em 5 segundos —
-            quem precisa de atenção (risk-sorted), perguntas em aberto, exames a renovar.
-            Princípios de dashboard clínico: priorização por risco + por quê + ação de 1 clique. */}
+            quem precisa de atenção, perguntas em aberto, exames a renovar.
+            Princípios de dashboard clínico: o PORQUÊ visível na linha de status + ação de 1 clique.
+            (Ordenação alfabética — decisão do dono 2026-08-19; prioridade clínica segue na linha.) */}
         {view === 'overview' && loading && <Box sx={{ textAlign: 'center', py: 6 }}><CircularProgress sx={{ color: 'primary.dark' }} /></Box>}
         {view === 'overview' && !loading && (() => {
           // Alfabética (2026-08-19): pedido do dono — organização previsível pro médico; a
@@ -895,7 +906,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           const row = (p: any, statusLine: ReactNode, onClick: () => void) => {
             const who = [p.age != null ? `${p.age}a` : null, p.sex === 'female' ? 'F' : p.sex === 'male' ? 'M' : null].filter(Boolean).join(' · ');
             return (
-            <Card key={p.shareId} onClick={onClick} sx={{ borderRadius: '12px', cursor: 'pointer', transition: 'all .15s', boxShadow: '0 1px 3px rgba(0,0,0,.04)', '&:hover': { boxShadow: '0 4px 16px rgba(0,0,0,.08)', transform: 'translateY(-1px)' } }}>
+            <Card key={p.shareId} role="button" tabIndex={0} {...a11yClick(onClick)} sx={{ borderRadius: '12px', cursor: 'pointer', transition: 'all .15s', boxShadow: '0 1px 3px rgba(0,0,0,.04)', '&:hover': { boxShadow: '0 4px 16px rgba(0,0,0,.08)', transform: 'translateY(-1px)' }, ...focusRingSx }}>
               <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, '&:last-child': { pb: 1.5 } }}>
                 <Avatar src={p.patient?.id ? photoUrlFor(p.patient.id) : undefined} sx={{ bgcolor: 'rgba(32,178,170,.08)', color: 'primary.dark', fontWeight: 800, width: 44, height: 44, flexShrink: 0 }}>{p.patient?.fullName?.charAt(0)}</Avatar>
                 <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -933,7 +944,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                   { label: 'Perguntas abertas', value: patients.reduce((n, p) => n + (p.openQuestions ?? 0), 0), color: '#b45309', onClick: () => { setView('questions'); loadAllQ(); }, icon: <QuestionAnswerIcon /> },
                   { label: 'Convites pendentes', value: pendingInv.length, color: '#c2410c', onClick: () => setView('invites'), icon: <PersonAddAlt1Icon /> },
                 ] as const).map((tile) => (
-                  <Card key={tile.label} onClick={tile.onClick} sx={{ borderRadius: '12px', cursor: 'pointer', transition: 'all .15s', boxShadow: '0 1px 3px rgba(0,0,0,.04)', '&:hover': { boxShadow: '0 4px 16px rgba(0,0,0,.08)', transform: 'translateY(-1px)' } }}>
+                  <Card key={tile.label} role="button" tabIndex={0} {...a11yClick(tile.onClick)} sx={{ borderRadius: '12px', cursor: 'pointer', transition: 'all .15s', boxShadow: '0 1px 3px rgba(0,0,0,.04)', '&:hover': { boxShadow: '0 4px 16px rgba(0,0,0,.08)', transform: 'translateY(-1px)' }, ...focusRingSx }}>
                     <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
                       <Stack direction="row" alignItems="center" spacing={1}>
                         <Box component="span" sx={{ display: 'inline-flex', color: tile.color, '& svg': { fontSize: 18 } }}>{tile.icon}</Box>
@@ -945,7 +956,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 ))}
               </Box>
 
-              {/* FILA DE ATENÇÃO: risk-sorted, com o PORQUÊ e ação de 1 clique */}
+              {/* FILA DE ATENÇÃO: alfabética (decisão do dono), com o PORQUÊ e ação de 1 clique */}
               {alerts.length > 0 && (
                 <Box>
                   <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
@@ -1082,7 +1093,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                     p.convenio || 'Particular',
                   ].filter(Boolean).join(' · ');
                   return (
-                    <Card key={key} sx={{ borderRadius: '12px', cursor: 'pointer', transition: 'all .15s', border: 'none', boxShadow: '0 1px 3px rgba(0,0,0,.04)', '&:hover': { boxShadow: '0 4px 16px rgba(0,0,0,.08)', transform: 'translateY(-1px)' } }} onClick={() => openPatient(p)}>
+                    <Card key={key} role="button" tabIndex={0} sx={{ borderRadius: '12px', cursor: 'pointer', transition: 'all .15s', border: 'none', boxShadow: '0 1px 3px rgba(0,0,0,.04)', '&:hover': { boxShadow: '0 4px 16px rgba(0,0,0,.08)', transform: 'translateY(-1px)' }, ...focusRingSx }} {...a11yClick(() => openPatient(p))}>
                       <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5 }}>
                         <Box sx={{ position: 'relative', flexShrink: 0 }}>
                           <Avatar src={p.patient?.id ? photoUrlFor(p.patient.id) : undefined} sx={{ bgcolor: 'rgba(32,178,170,.08)', color: 'primary.dark', fontWeight: 800, width: 48, height: 48, border: '2px solid', borderColor: p.hasAlerts ? '#ef4444' : 'rgba(32,178,170,.15)' }}>{p.patient?.fullName?.charAt(0)}</Avatar>
@@ -1093,7 +1104,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                           <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>
                             {[p.age != null ? `${p.age}a` : null, sex, p.relationship].filter(Boolean).join(' · ')}{titularHint}
                           </Typography>
-                          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25, fontSize: 11 }}>{statusLine}</Typography>
+                          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25, fontSize: 12 }}>{statusLine}</Typography>
                         </Box>
                         <ChevronRightIcon sx={{ color: 'text.disabled', fontSize: 20, flexShrink: 0 }} />
                       </CardContent>
@@ -1304,7 +1315,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                                     <Box key={i} sx={{ display: 'flex', justifyContent: isDoc ? 'flex-end' : 'flex-start', gap: 0.75, alignItems: 'flex-end' }}>
                                       {!isDoc && av}
                                       <Box sx={{ maxWidth: '78%', p: 1, px: 1.25, borderRadius: '12px', bgcolor: (t) => isDoc ? (t.palette.mode === 'dark' ? '#1e2d2c' : '#e0f2f1') : isAi ? (t.palette.mode === 'dark' ? '#2b2438' : '#f3e8ff') : (t.palette.mode === 'dark' ? '#242f33' : '#f1f5f9'), border: '1px solid', borderColor: isDoc ? 'rgba(32,178,170,.25)' : 'transparent' }}>
-                                        <Typography variant="caption" sx={{ display: 'block', fontWeight: 700, color: isDoc ? 'primary.dark' : isAi ? '#6366f1' : 'text.secondary', mb: 0.25, fontSize: 11 }}>{role} · {new Date(m.createdAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</Typography>
+                                        <Typography variant="caption" sx={{ display: 'block', fontWeight: 700, color: isDoc ? 'primary.dark' : isAi ? '#6366f1' : 'text.secondary', mb: 0.25, fontSize: 12 }}>{role} · {new Date(m.createdAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</Typography>
                                         <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.45, wordBreak: 'break-word' }}>{m.body}</Typography>
                                       </Box>
                                       {isDoc && av}
@@ -1396,7 +1407,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
             <Badge color="error" variant="dot" invisible={it.badge === 0} overlap="circular" sx={{ '& .MuiBadge-badge': { right: 4, top: 4 } }}>
               <Box sx={{ fontSize: 21, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', '& .MuiSvgIcon-root': { fontSize: 22 } }}>{it.icon}</Box>
             </Badge>
-            <Typography sx={{ fontSize: 10, fontWeight: it.on ? 800 : 600, mt: 0.25, fontFamily: 'Poppins, sans-serif' }}>{it.label}</Typography>
+            <Typography sx={{ fontSize: 11, fontWeight: it.on ? 800 : 600, mt: 0.25, fontFamily: 'Poppins, sans-serif' }}>{it.label}</Typography>
             <Box sx={{ height: 3, width: it.on ? 22 : 0, borderRadius: '12px', bgcolor: COPPER.main, mt: 0.3, transition: 'width .2s' }} />
           </Box>
         ))}

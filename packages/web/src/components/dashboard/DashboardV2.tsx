@@ -68,28 +68,35 @@ function useDashboardData(pid: string | null) {
     } catch { /* ignore */ }
     (async () => {
       const h = { Authorization: `Bearer ${token()}` };
-      try {
-        const pidQ = pid ? `&patientId=${pid}` : '';
-        const e = await fetch(`${API_URL}/exams?_start=0&_end=1${pidQ}`, { headers: h });
-        const eData = await e.json().catch(() => []);
-        setStats((s) => ({ ...s, exams: readTotal(e) }));
-        if (Array.isArray(eData) && eData[0]?.performedAt) setLastExam(eData[0].performedAt);
-        const fe = await fetch(`${API_URL}/exams?_start=0&_end=1&status=FAILED${pidQ}`, { headers: h });
-        setFailed(readTotal(fe));
-        const rj = await fetch(`${API_URL}/exams?_start=0&_end=1&status=REJECTED${pidQ}`, { headers: h });
-        setRejected(readTotal(rj));
+      const pidQ = pid ? `&patientId=${pid}` : '';
+      // Fetches independentes em PARALELO (antes: 7 awaits encadeados — o score só pintava
+      // depois de TODOS responderem, lento em 3G). Catch por bloco: uma falha isolada não
+      // derruba o resto; setLoaded roda no finally de qualquer jeito.
+      const jobs: Promise<void>[] = [
+        (async () => { // total de exames + data do último
+          const e = await fetch(`${API_URL}/exams?_start=0&_end=1${pidQ}`, { headers: h });
+          const eData = await e.json().catch(() => []);
+          setStats((s) => ({ ...s, exams: readTotal(e) }));
+          if (Array.isArray(eData) && eData[0]?.performedAt) setLastExam(eData[0].performedAt);
+        })(),
+        (async () => setFailed(readTotal(await fetch(`${API_URL}/exams?_start=0&_end=1&status=FAILED${pidQ}`, { headers: h }))))(),
+        (async () => setRejected(readTotal(await fetch(`${API_URL}/exams?_start=0&_end=1&status=REJECTED${pidQ}`, { headers: h }))))(),
         // Contagem de alterados VEM DO flag-summary (mesma fonte de /alterados — exclui exames
         // com CPF divergente). Antes: X-Total-Count de /items?abnormal=true (rota de lista, sem
         // o filtro) → Home dizia "8 alterados" enquanto /alterados dizia "tudo dentro da faixa".
-        const fs = await fetch(`${API_URL}/items/flag-summary${pid ? `?patientId=${pid}` : ''}`, { headers: h });
-        if (fs.ok) {
-          const fd = await fs.json();
-          const b = fd.buckets ?? { bons: 0, alerta: 0, alterados: 0 };
-          setBuckets(b);
-          setStats((s) => ({ ...s, abnormal: (b.alerta ?? 0) + (b.alterados ?? 0) }));
-          try { if (pid) localStorage.setItem(`dashScore:${pid}`, JSON.stringify(b)); } catch { /* ignore */ }
-        }
-        if (pid) {
+        (async () => {
+          const fs = await fetch(`${API_URL}/items/flag-summary${pid ? `?patientId=${pid}` : ''}`, { headers: h });
+          if (fs.ok) {
+            const fd = await fs.json();
+            const b = fd.buckets ?? { bons: 0, alerta: 0, alterados: 0 };
+            setBuckets(b);
+            setStats((s) => ({ ...s, abnormal: (b.alerta ?? 0) + (b.alterados ?? 0) }));
+            try { if (pid) localStorage.setItem(`dashScore:${pid}`, JSON.stringify(b)); } catch { /* ignore */ }
+          }
+        })(),
+        // Camada canonical (Layer 2): score dedup-12m + availability + trend real.
+        (async () => {
+          if (!pid) return;
           const hs = await fetch(`${API_URL}/patients/${pid}/health-summary`, { headers: h });
           if (hs.ok) {
             const hd = await hs.json();
@@ -115,13 +122,19 @@ function useDashboardData(pid: string | null) {
             setWorsened(Array.isArray(hd.worsening) ? hd.worsening.slice(0, 3) : []);
             setImproved(Array.isArray(hd.improving) ? hd.improving.slice(0, 3) : []);
           }
-        }
-        const p = await fetch(`${API_URL}/patients`, { headers: h });
-        if (p.ok) { const pd = await p.json(); setMe(Array.isArray(pd) ? (pd.find((x: any) => x.id === pid) ?? pd[0]) : null); }
-        const st = await fetch(`${API_URL}/billing/status`, { headers: h });
-        if (st.ok) { const sd = await st.json(); setCredits(typeof sd.credits === 'number' ? sd.credits : null); }
-        fetch(`${API_URL}/achievements/heartbeat`, { method: 'POST', headers: h }).catch(() => {});
-      } catch { /* ignore */ } finally { setLoaded(true); }
+        })(),
+        (async () => {
+          const p = await fetch(`${API_URL}/patients`, { headers: h });
+          if (p.ok) { const pd = await p.json(); setMe(Array.isArray(pd) ? (pd.find((x: any) => x.id === pid) ?? pd[0]) : null); }
+        })(),
+        (async () => {
+          const st = await fetch(`${API_URL}/billing/status`, { headers: h });
+          if (st.ok) { const sd = await st.json(); setCredits(typeof sd.credits === 'number' ? sd.credits : null); }
+        })(),
+      ];
+      try { await Promise.all(jobs.map((j) => j.catch(() => {}))); } finally { setLoaded(true); }
+      // Streak server-side das conquistas — fire-and-forget (1x/dia, idempotente).
+      fetch(`${API_URL}/achievements/heartbeat`, { method: 'POST', headers: h }).catch(() => {});
       void syncPushToken();
     })();
   }, [pid]);
@@ -135,6 +148,16 @@ const statusFromScore = (s: number | null): { label: string; tone: 'primary' | '
   if (s >= 60) return { label: 'Em boa forma', tone: 'primary' };
   if (s >= 40) return { label: 'Pede atenção', tone: 'warning' };
   return { label: 'Precisa de cuidados', tone: 'error' };
+};
+
+/** Contraste AA nos DOIS modos: tom do texto por prioridade (light = tom escuro sobre wash
+ *  claro; dark = tom claro sobre card tinted escuro). Antes: cores fixas escuras que caíam
+ *  p/ ~2.4:1 no dark mode (WCAG AA pede 4.5:1 p/ texto pequeno). */
+const TONE_TEXT: Record<string, { light: string; dark: string }> = {
+  success: { light: '#047857', dark: '#34d399' },
+  warning: { light: '#8a5a1f', dark: '#fbbf24' },
+  error: { light: '#b91c1c', dark: '#f87171' },
+  primary: { light: '#0f6e68', dark: '#5fc9c3' },
 };
 
 /** HERO — única hierarquia de saúde (score + prioridades + última análise + CTA).
@@ -153,7 +176,7 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
     <AppCard kind="tinted" tone={st.tone} tone2="secondary" glow sx={{ p: { xs: 2, sm: 2.25, md: 3 } }}>
       <Stack direction="row" spacing={{ xs: 1.5, sm: 2 }} alignItems="center" sx={{ width: '100%', minWidth: 0 }}>
         <Box sx={{ position: 'relative', display: 'grid', placeItems: 'center', width: { xs: 76, sm: 92 }, height: { xs: 76, sm: 92 }, flexShrink: 0 }}>
-          <Box component="svg" viewBox="0 0 100 100" sx={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
+          <Box component="svg" aria-hidden="true" viewBox="0 0 100 100" sx={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
             <circle cx="50" cy="50" r="42" fill="none" stroke={alpha(t.palette.text.primary, 0.12)} strokeWidth="9" />
             <circle cx="50" cy="50" r="42" fill="none" stroke="#20b2aa" strokeWidth="9" strokeLinecap="round"
               strokeDasharray={`${(score ?? 0) * 2.64} 999`} style={{ transition: 'stroke-dasharray .8s cubic-bezier(.16,1,.3,1)' }} />
@@ -166,14 +189,14 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
         </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           {/* Sentence case (audit Onda A): caixa alta + ls largo = cara de painel admin. */}
-          <Typography sx={{ fontSize: 12, fontWeight: 700, color: st.tone === 'success' ? '#047857' : st.tone === 'warning' ? '#8a5a1f' : st.tone === 'error' ? '#b91c1c' : '#0f6e68' }}>Sua saúde hoje</Typography>
+          <Typography sx={{ fontSize: 12, fontWeight: 700, color: (t) => TONE_TEXT[st.tone][t.palette.mode === 'dark' ? 'dark' : 'light'] }}>Sua saúde hoje</Typography>
           <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1.125rem, 5.5vw, 1.375rem)', sm: 22 }, lineHeight: 1.15, color: 'text.primary', mt: 0.25, textWrap: 'balance' }}>{title}</Typography>
           <Stack direction="row" spacing={1.5} sx={{ mt: 1, flexWrap: 'wrap', rowGap: 0.5 }}>
             {totalAtt > 0 ? (
               <Typography sx={{ fontSize: 13.5, color: 'text.secondary' }}>
-                {importante > 0 && <Box component="span" sx={{ color: '#b91c1c', fontWeight: 700 }}>● {importante} importante{importante > 1 ? 's' : ''}</Box>}
+                {importante > 0 && <Box component="span" sx={{ color: (t) => (t.palette.mode === 'dark' ? '#f87171' : '#b91c1c'), fontWeight: 700 }}>● {importante} importante{importante > 1 ? 's' : ''}</Box>}
                 {importante > 0 && moderada > 0 && <Box component="span" sx={{ color: 'text.secondary' }}> · </Box>}
-                {moderada > 0 && <Box component="span" sx={{ color: '#b45309', fontWeight: 700 }}>● {moderada} moderado{moderada > 1 ? 's' : ''}</Box>}
+                {moderada > 0 && <Box component="span" sx={{ color: (t) => (t.palette.mode === 'dark' ? '#fbbf24' : '#b45309'), fontWeight: 700 }}>● {moderada} moderado{moderada > 1 ? 's' : ''}</Box>}
               </Typography>
             ) : noData ? (
               /* Copy personalizada pelo objetivo do quiz-first onboarding (licença Mito). */
@@ -218,7 +241,9 @@ const IndicatorTile = ({ icon, label, value, sub, tone, onClick, idx = 0 }: {
       <Box sx={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
         <Typography noWrap sx={{ fontSize: 11, color: 'text.secondary', lineHeight: 1.1, fontWeight: 600, textOverflow: 'ellipsis' }}>{label}</Typography>
         <Typography noWrap sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(0.875rem, 4.5vw, 1.0625rem)', sm: 17 }, color: 'text.primary', lineHeight: 1.2, mt: 0.15, fontVariantNumeric: 'tabular-nums' }}>{value}</Typography>
-        {sub && <Typography noWrap sx={{ fontSize: 11, color: 'text.disabled', lineHeight: 1.1, textOverflow: 'ellipsis' }}>{sub}</Typography>}
+        {/* Sub NUNCA mais trunca em 1 linha no mobile (375px): quebra em até 2 linhas com
+            clamp — textos como "envie um exame ou registre peso/pressão" não caberiam em ~110px. */}
+        {sub && <Typography sx={{ fontSize: 11, color: 'text.disabled', lineHeight: 1.25, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{sub}</Typography>}
       </Box>
     </Stack>
   </AppCard>
