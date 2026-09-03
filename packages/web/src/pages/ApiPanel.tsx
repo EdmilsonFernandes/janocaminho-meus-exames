@@ -391,7 +391,7 @@ export const ApiPanelPage = () => {
           {pix?.resumed && <Chip size="small" label="mesmo código de antes" sx={{ ml: 1, height: 20, fontSize: 10, fontWeight: 700, bgcolor: 'rgba(217,119,6,.15)', color: '#92400e' }} />}
         </DialogTitle>
         <DialogContent sx={{ textAlign: 'center' }}>
-          {pix?.qrBase64 && <Box component="img" src={pix.qrBase64} alt="QR Code PIX" sx={{ width: 230, height: 230, borderRadius: '12px', bgcolor: '#fff', p: 1, my: 1 }} />}
+          {pix?.qrBase64 && <Box component="img" src={pix.qrBase64} alt="QR Code PIX" sx={{ width: 'min(230px, 64vw)', aspectRatio: '1 / 1', height: 'auto', borderRadius: '12px', bgcolor: '#fff', p: 1, my: 1 }} />}
           {pix && new Date(pix.expiresAt).getTime() - Date.now() > 0 ? (
             <Typography sx={{ fontWeight: 800, fontSize: 30, fontVariantNumeric: 'tabular-nums', color: '#92400e', lineHeight: 1.1 }}>
               {mmss(pix.expiresAt)}

@@ -33,10 +33,14 @@ export const CreditsChip = () => {
     };
   }, []);
   if (credits == null) return null;
-  // Saldo SEMPRE exato e formatado (97.009, nunca "97k"): carteira do usuário não se
-  // abrevia — feedback do dono: "tem que fazer jus do que o usuário tem". Chip elástico
-  // (pill sem width fixa) acomoda; fonte 13 tabular mantém o alinhamento estável.
+  // Saldo exato até 999.999 (feedback do dono: "tem que fazer jus do que o usuário tem" —
+  // "999.999" ainda cabe no chip). ≥1 milhão vira compacto pt-BR ("1,2 mi"): 7+ dígitos
+  // estouravam qualquer header ≤430px e empurravam sino/avatar pra fora da tela. O número
+  // COMPLETO segue sempre no aria-label/tooltip (e no drawer + card do Dashboard).
   const full = credits.toLocaleString('pt-BR');
+  const shown = credits >= 1_000_000
+    ? new Intl.NumberFormat('pt-BR', { notation: 'compact', maximumFractionDigits: 1 }).format(credits)
+    : full;
   const open = () => navigate('/planos');
   return (
     <Box
@@ -49,6 +53,9 @@ export const CreditsChip = () => {
       sx={(theme) => ({
         display: 'flex', alignItems: 'center', gap: 0.5, cursor: 'pointer', userSelect: 'none', flexShrink: 0,
         px: 1.25, minHeight: 40, mr: 0.5, borderRadius: '999px',
+        // Cap de largura (P0 header): chip nunca cresce além disso nem empurra os irmãos;
+        // texto interno ellipsiza como última rede (não deveria ocorrer <1M).
+        maxWidth: { xs: 108, sm: 160 }, overflow: 'hidden',
         // TONAL (fundo teal translúcido + texto teal): o gradiente/sombra ficam reservados à MARCA.
         // Texto #0f766e (light ~5,5:1) / #5fc9c3 (dark ~5,4:1) — AA nos dois temas.
         background: 'rgba(32,178,170,0.12)',
@@ -63,9 +70,9 @@ export const CreditsChip = () => {
       <BoltIcon sx={{ fontSize: 15 }} />
       <Typography
         component="span"
-        sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 13, lineHeight: 1, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums' }}
+        sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 13, lineHeight: 1, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
       >
-        {full}
+        {shown}
       </Typography>
     </Box>
   );

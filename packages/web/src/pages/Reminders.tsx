@@ -158,38 +158,29 @@ export const RemindersPage = () => {
     <PageContainer width="content" sx={{ pb: { xs: 10, sm: 5 } }}>
       <PageHeader icon={<BellIcon />} title="Lembretes" subtitle="Agende avisos para repetir exames, consultas e medicamentos. Avisamos por push, e-mail e notificação." />
 
-      {/* Hero stat bar */}
+      {/* Resumo COMPACTO acionável (P2): uma linha com os números + CTA à lista — antes
+          eram 3 contadores grandes ocupando a 1ª dobra sem ação associada. */}
       <Card sx={{
-        mb: 2.5, borderRadius: '20px', overflow: 'hidden',
+        mb: 2.5, borderRadius: '16px', overflow: 'hidden',
         background: 'linear-gradient(135deg, #0c4a46 0%, #137a72 50%, #178f89 100%)',
         color: '#fff', position: 'relative',
-        boxShadow: '0 12px 32px rgba(15,61,58,.2)',
+        boxShadow: '0 10px 26px rgba(15,61,58,.2)',
       }}>
-        <Box sx={{ position: 'absolute', top: -20, right: -20, width: 90, height: 90, borderRadius: '50%', bgcolor: 'rgba(255,255,255,.06)' }} />
-        <CardContent sx={{ py: 2, px: { xs: 2, sm: 3 }, position: 'relative', zIndex: 1 }}>
-          <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-around" flexWrap="wrap">
-            <Box sx={{ textAlign: 'center' }}>
-              <Typography sx={{ fontWeight: 900, fontSize: 28, fontFamily: 'Poppins, sans-serif' }}>{upcoming.length}</Typography>
-              <Typography sx={{ fontSize: 12, opacity: 0.85 }}>Agendados</Typography>
-            </Box>
-            <Box sx={{ width: 1, height: 36, bgcolor: 'rgba(255,255,255,.2)' }} />
-            <Box sx={{ textAlign: 'center' }}>
-              <Typography sx={{ fontWeight: 900, fontSize: 28, fontFamily: 'Poppins, sans-serif' }}>{past.filter((r) => r.done).length}</Typography>
-              <Typography sx={{ fontSize: 12, opacity: 0.85 }}>Concluídos</Typography>
-            </Box>
-            <Box sx={{ width: 1, height: 36, bgcolor: 'rgba(255,255,255,.2)' }} />
-            <Box sx={{ textAlign: 'center' }}>
-              <Typography sx={{ fontWeight: 900, fontSize: 28, fontFamily: 'Poppins, sans-serif', color: past.filter((r) => !r.done).length > 0 ? '#fbbf24' : '#fff' }}>
-                {past.filter((r) => !r.done).length}
-              </Typography>
-              <Typography sx={{ fontSize: 12, opacity: 0.85 }}>Atrasados</Typography>
-            </Box>
+        <CardContent sx={{ py: 1.75, px: { xs: 2, sm: 2.5 }, position: 'relative', zIndex: 1 }}>
+          <Stack direction="row" alignItems="center" spacing={1.25} useFlexGap flexWrap="wrap">
+            <BellIcon sx={{ fontSize: 20, opacity: 0.9 }} />
+            <Typography sx={{ fontSize: 13, fontWeight: 700, flex: 1, minWidth: 150, lineHeight: 1.45 }}>
+              {upcoming.length} agendado{upcoming.length === 1 ? '' : 's'}
+              {(() => { const n = past.filter((r) => !r.done).length; return n > 0 ? ` · ${n} atrasado${n > 1 ? 's' : ''}` : ''; })()}
+              {(() => { const n = past.filter((r) => r.done).length; return n > 0 ? ` · ${n} concluído${n > 1 ? 's' : ''}` : ''; })()}
+            </Typography>
+            <Button size="small" disableElevation onClick={() => document.getElementById('proximos')?.scrollIntoView({ behavior: 'smooth' })} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: 'rgba(255,255,255,.16)', color: '#fff', '&:hover': { bgcolor: 'rgba(255,255,255,.24)' } }}>Ver lembretes</Button>
           </Stack>
         </CardContent>
       </Card>
 
       {/* PRÓXIMOS primeiro (dado > ferramenta — igual Medições/Vacinas) */}
-      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
+      <Stack id="proximos" direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
         <EventAvailableIcon sx={{ color: '#178f89', fontSize: 22 }} />
         <Typography sx={{ fontWeight: 900, fontSize: 16, fontFamily: 'Poppins, sans-serif' }}>Próximos lembretes</Typography>
         {upcoming.length > 0 && <Chip size="small" label={upcoming.length} sx={{ bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 800, height: 24 }} />}

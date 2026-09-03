@@ -16,6 +16,7 @@ import { AppCard } from '../AppCard';
 import { GradientButton } from '../GradientButton';
 import { hapticLight } from '../../utils/haptic';
 import { fetchActivityDays, hasHealthPermissions, healthConnectSupported, permissionOutcomeMessage, requestHealthPermissions, syncActivityToServer } from '../../services/healthConnect';
+import { fetchActivitySummary, summaryToDays, syncStamp } from '../../services/activitySummary';
 import { barHeight, fmtKcal, fmtKm, fmtSteps, summarize, weekOfExam, STEPS_GOAL, type ActivityDay, type ActivityRange } from '../../utils/activityStats';
 
 /**
@@ -25,7 +26,9 @@ import { barHeight, fmtKcal, fmtKm, fmtSteps, summarize, weekOfExam, STEPS_GOAL,
  * como herói, lavagens teal p/ hierarquia (The One Gradient Rule — gradiente só no
  * CTA "Conectar"), skeleton elegante, micro-interações (barras crescem, press sutil,
  * haptic ao conectar) e fluxo de permissão com UX writing que explica o VALOR antes
- * do popup nativo. Estados: loading → unsupported (web/desktop) | denied | data.
+ * do popup nativo. DUAS FONTES: no APK lê o Health Connect (device); na WEB mostra
+ * o consolidado que o APK sincronizou (cloud — services/activitySummary.ts).
+ * Estados: loading → denied (device) | data | null sem dados (cloud).
  */
 
 const RANGES: Array<{ value: ActivityRange; label: string }> = [
@@ -52,6 +55,7 @@ export const ActivityCard = ({ lastExamAt }: { lastExamAt?: string | null }) => 
   const [connectError, setConnectError] = useState<string | undefined>();
   const [syncing, setSyncing] = useState(false);
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
+  const [cloudSyncedAt, setCloudSyncedAt] = useState<string | null>(null);
 
   const hide = () => {
     try { localStorage.setItem(ACTIVITY_HIDDEN_KEY, '1'); } catch { /* localStorage indisponível */ }
@@ -60,7 +64,18 @@ export const ActivityCard = ({ lastExamAt }: { lastExamAt?: string | null }) => 
   };
 
   const load = async (): Promise<ActivityDay[] | null> => {
-    if (!supported) { setPhase('loading'); return null; }
+    // FONTE CLOUD (web/desktop — sem bridge nativa): busca o consolidado que o APK já
+    // sincronizou no backend. Sem dados → null (o card nem renderiza: sem card morto na
+    // 1ª dobra de quem nunca usou o app no celular). A web NUNCA acessa o Health Connect.
+    if (!supported) {
+      setPhase('loading');
+      const s = await fetchActivitySummary(30);
+      const d = s ? summaryToDays(s) : [];
+      setCloudSyncedAt(s?.lastSyncAt ?? null);
+      setDays(d.length ? d : null);
+      setPhase('data');
+      return d.length ? d : null;
+    }
     if (!hasHealthPermissions()) { setPhase('denied'); return null; }
     setPhase('loading');
     const d = await fetchActivityDays(30);
@@ -88,7 +103,7 @@ export const ActivityCard = ({ lastExamAt }: { lastExamAt?: string | null }) => 
    *  do tempo real do app de saúde. */
   const refresh = async (silent = false) => {
     const d = await load();
-    if (d?.length) await sync(d, silent);
+    if (supported && d?.length) await sync(d, silent); // cloud: só leitura (quem sincroniza é o APK)
   };
 
   const connect = async () => {
@@ -141,8 +156,10 @@ export const ActivityCard = ({ lastExamAt }: { lastExamAt?: string | null }) => 
     await refresh(true);
   };
 
-  // ── Shell: o widget só existe no APK (web/desktop → null, sem card morto na 1ª dobra).
-  if (!supported || hidden) return null;
+  // ── Shell: no APK lê o Health Connect (fonte device); na WEB mostra o consolidado que
+  // o APK sincronizou (fonte cloud). Sem dados na web → null (sem card morto na 1ª dobra).
+  if (hidden) return null;
+  if (!supported && phase === 'data' && !days?.length) return null;
 
   return (
     <ActivityView
@@ -152,6 +169,8 @@ export const ActivityCard = ({ lastExamAt }: { lastExamAt?: string | null }) => 
       onRange={(r) => { hapticLight(); setRange(r); }}
       syncing={syncing}
       updatedAt={updatedAt}
+      source={supported ? 'device' : 'cloud'}
+      syncedAtISO={supported ? undefined : (cloudSyncedAt ?? undefined)}
       askOpen={askOpen}
       asking={asking}
       connectError={connectError}
@@ -171,7 +190,7 @@ export const ActivityCard = ({ lastExamAt }: { lastExamAt?: string | null }) => 
  * Shell (estado/permissões/sync) fica no ActivityCard acima.
  */
 export const ActivityView = ({
-  phase, days, range, onRange, syncing, updatedAt, askOpen, asking, connectError, lastExamAt, onAskOpen, onAskClose, onConfirm, onSync, onHide,
+  phase, days, range, onRange, syncing, updatedAt, askOpen, asking, connectError, lastExamAt, onAskOpen, onAskClose, onConfirm, onSync, onHide, source = 'device', syncedAtISO,
 }: {
   phase: 'loading' | 'denied' | 'data';
   days: ActivityDay[] | null;
@@ -179,6 +198,10 @@ export const ActivityView = ({
   onRange: (r: ActivityRange) => void;
   syncing: boolean;
   updatedAt: Date | null;
+  /** Fonte dos dados: device (bridge HC no APK) ou cloud (consolidado do server, web). */
+  source?: 'device' | 'cloud';
+  /** ISO do último sync (fonte cloud) — carimba "Sincronizado há X" + hint de staleness. */
+  syncedAtISO?: string;
   askOpen: boolean;
   asking: boolean;
   /** Motivo da última falha de conexão (aparece DENTRO do dialog, com retry a 1 toque). */
@@ -329,11 +352,20 @@ export const ActivityView = ({
           <DirectionsWalkIcon sx={{ fontSize: 19, color: 'primary.dark' }} /> Atividade física
         </Typography>
         <Stack direction="row" spacing={0.5} alignItems="center">
-          {updatedAt && (
+          {source === 'cloud' && syncedAtISO && (() => {
+            const st = syncStamp(syncedAtISO);
+            return (
+              <Typography noWrap title="Última sincronização feita pelo app Dr. Exame no seu celular" sx={{ fontSize: 11, color: 'text.disabled' }}>
+                Sincronizado {st.label}{st.stale ? ' · atualize pelo app' : ''}
+              </Typography>
+            );
+          })()}
+          {source === 'device' && updatedAt && (
             <Typography noWrap title="Hora da última leitura do Health Connect" sx={{ fontSize: 11, color: 'text.disabled' }}>
-              {updatedAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+              Sincronizado {updatedAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
             </Typography>
           )}
+          {source === 'device' && (
           <IconButton
             size="small"
             aria-label="Atualizar e sincronizar atividade"
@@ -349,6 +381,7 @@ export const ActivityView = ({
           >
             <SyncIcon />
           </IconButton>
+          )}
           <IconButton size="small" aria-label="Ocultar card de atividade" title="Ocultar (volta em Perfil → Acessibilidade)" onClick={() => setHideAsk(true)}
             sx={{ color: 'text.disabled', '&:hover': { color: 'text.secondary', bgcolor: 'action.hover' } }}>
             <VisibilityOffIcon sx={{ fontSize: 17 }} />
@@ -364,7 +397,11 @@ export const ActivityView = ({
         aria-label="Período da atividade"
         sx={{ mb: 1.5, '& .MuiToggleButton-root': { px: 1.25, py: { xs: 0.75, sm: 0.35 }, minHeight: { xs: 40, sm: 0 }, borderRadius: '99px !important', border: '1px solid', borderColor: 'divider', textTransform: 'none', fontWeight: 700, fontSize: 12.5, color: 'text.secondary', '&.Mui-selected': { bgcolor: alpha(theme.palette.primary.main, 0.15), color: 'primary.dark', borderColor: alpha(theme.palette.primary.main, 0.4) } } }}
       >
-        {RANGES.map((r) => <ToggleButton key={r.value} value={r.value} aria-pressed={range === r.value}>{r.label}</ToggleButton>)}
+        {RANGES.map((r) => (
+          <ToggleButton key={r.value} value={r.value} aria-pressed={range === r.value} disabled={source === 'cloud' && r.value === 'today'} title={source === 'cloud' && r.value === 'today' ? 'O dado de hoje chega pela sincronização do app no celular — veja 7 ou 30 dias' : undefined}>
+            {r.label}
+          </ToggleButton>
+        ))}
       </ToggleButtonGroup>
 
       {/* Herói: RING de meta (assinatura Google Fit — intuitivo à primeira vista) + número.

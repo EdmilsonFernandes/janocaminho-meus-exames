@@ -154,3 +154,32 @@ describe('ActivityView — estado dados', () => {
     expect(html).toContain('aria-label="Meta de 8.000 passos');
   });
 });
+
+describe('ActivityView — fonte CLOUD (web, sem bridge nativa)', () => {
+  const days = [{ date: '2026-08-19', steps: 5214, kcal: 628, km: 3.46 }];
+  const iso = (h: number) => new Date(Date.now() - h * 3600000).toISOString();
+
+  it('carimba "Sincronizado há X" e NÃO oferece botão de sync (quem sincroniza é o APK)', () => {
+    const html = shell(<ActivityView {...baseProps} phase="data" days={days} range="7d" source="cloud" syncedAtISO={iso(2)} />);
+    // renderToString separa os text nodes com "<!-- -->" — asserções por fragmento.
+    expect(html).toContain('Sincronizado');
+    expect(html).toContain('há 2 horas');
+    expect(html).not.toContain('aria-label="Atualizar e sincronizar atividade"');
+  });
+
+  it('stale (>24h): acrescenta hint para abrir o app no celular', () => {
+    const html = shell(<ActivityView {...baseProps} phase="data" days={days} range="7d" source="cloud" syncedAtISO={iso(80)} />);
+    expect(html).toContain('há 3 dias');
+    expect(html).toContain('atualize pelo app');
+  });
+
+  it('range "Hoje" desabilitado no cloud (dado do dia chega pela sincronização do app)', () => {
+    const html = shell(<ActivityView {...baseProps} phase="data" days={days} range="7d" source="cloud" syncedAtISO={iso(2)} />);
+    expect(html).toContain('O dado de hoje chega pela sincronização');
+  });
+
+  it('fonte device (default): botão de sync presente', () => {
+    const html = shell(<ActivityView {...baseProps} phase="data" days={days} range="7d" />);
+    expect(html).toContain('aria-label="Atualizar e sincronizar atividade"');
+  });
+});

@@ -154,14 +154,18 @@ router.post('/activity-sync', async (req: AuthedRequest, res, next) => {
       const kcal = Math.max(0, Number(d.kcal ?? 0));
       const km = Math.max(0, Number(d.km ?? 0));
       const hr = Math.max(0, Math.round(Number(d.hr ?? 0)));
-      if ([steps, kcal, km, hr].some((v) => Number.isNaN(v))) { res.status(400).json({ error: `Valores inválidos em ${dateStr}.` }); return; }
-      if (steps === 0 && kcal === 0 && km === 0 && hr === 0) continue; // dia sem dados não gera ruído
+      // Minutos de exercício formal (ExerciseSessionRecord) — o bridge já lia e o wrapper
+      // descartava; agora entra no consolidado (tile "Exercício" + ActivityCard na web).
+      const exerciseMin = Math.max(0, Math.round(Number(d.exerciseMin ?? 0)));
+      if ([steps, kcal, km, hr, exerciseMin].some((v) => Number.isNaN(v))) { res.status(400).json({ error: `Valores inválidos em ${dateStr}.` }); return; }
+      if (steps === 0 && kcal === 0 && km === 0 && hr === 0 && exerciseMin === 0) continue; // dia sem dados não gera ruído
       const rows = [
         ...(steps > 0 ? [{ type: 'STEPS', value: steps, unit: 'passos', at }] : []),
         ...(kcal > 0 ? [{ type: 'CALORIES', value: Math.round(kcal), unit: 'kcal', at }] : []),
         ...(km > 0 ? [{ type: 'DISTANCE', value: Number(km.toFixed(2)), unit: 'km', at }] : []),
         // FC média do dia (Health Connect) — alimenta o card de tendência de FC no Dashboard.
         ...(hr > 0 ? [{ type: 'HEART_RATE', value: hr, unit: 'bpm', at }] : []),
+        ...(exerciseMin > 0 ? [{ type: 'EXERCISE_MINUTES', value: exerciseMin, unit: 'min', at }] : []),
       ];
       parsed.push({ date: dateStr, rows });
     }
@@ -213,6 +217,96 @@ router.get('/hr-trend', async (req: AuthedRequest, res, next) => {
     }
     const series = [...byDay.entries()].map(([date, a]) => ({ date, avg: Math.round(a.sum / a.n) }));
     res.json({ days: series.length, series });
+  } catch (e) { next(e); }
+});
+
+// ============================================================================
+// ACTIVITY SUMMARY (consolidado) — a fonte da WEB (duas-fontes do ActivityCard).
+// O APK lê o Health Connect direto pela bridge nativa; o navegador NÃO tem
+// acesso ao dispositivo. Este endpoint consolida o que o APK JÁ sincronizou
+// (mesma tabela measurements, note='Health Connect') numa resposta única por
+// métrica: último valor, médias 7/30d, delta vs período anterior e séries
+// diárias. lastSyncAt = max(createdAt) das rows (o sync é delete+create por
+// dia → o createdAt da linha mais recente ≈ hora do último sync) — SEM
+// coluna nova/SEM migration.
+// ============================================================================
+const ACTIVITY_METRICS = ['STEPS', 'CALORIES', 'DISTANCE', 'HEART_RATE', 'EXERCISE_MINUTES'] as const;
+type ActivityMetric = (typeof ACTIVITY_METRICS)[number];
+/** Meta diária de passos — espelha STEPS_GOAL do web (utils/activityStats.ts). */
+const ACTIVITY_STEP_GOAL = 8000;
+type MetricSummary = {
+  latest: number | null; latestDate: string | null;
+  goal?: number; goalPct?: number | null;
+  avg7: number | null; avg30: number | null; prevAvg30: number | null; deltaPct30: number | null;
+  series7: { date: string; value: number }[]; series30: { date: string; value: number }[];
+};
+/** DISTANCE guarda km com 2 decimais — round() genérico amassava 3,46 → 4. */
+const rndMetric = (t: ActivityMetric, v: number) => (t === 'DISTANCE' ? Number(v.toFixed(2)) : Math.round(v));
+
+router.get('/activity-summary', async (req: AuthedRequest, res, next) => {
+  try {
+    const pids = await userPatientIds(req.userId!);
+    const q = req.query as Record<string, string | undefined>;
+    const pid = (q.patientId && pids.includes(q.patientId) ? q.patientId : undefined) ?? pids[0];
+    if (!pid) { res.status(400).json({ error: 'Nenhum paciente vinculado.' }); return; }
+    const days = Math.min(90, Math.max(7, Number(q.days ?? 30) || 30));
+    const since = new Date(Date.now() - 2 * days * 86400000); // janela 2×: período atual + anterior
+    const rows = await prisma.measurement.findMany({
+      where: { patientId: pid, type: { in: [...ACTIVITY_METRICS] }, note: 'Health Connect', measuredAt: { gte: since } },
+      orderBy: [{ measuredAt: 'desc' }, { createdAt: 'desc' }],
+      select: { type: true, value: true, measuredAt: true, createdAt: true },
+    });
+
+    const emptyMetrics = (): Record<ActivityMetric, MetricSummary> => ({
+      STEPS: { latest: null, latestDate: null, goal: ACTIVITY_STEP_GOAL, goalPct: null, avg7: null, avg30: null, prevAvg30: null, deltaPct30: null, series7: [], series30: [] },
+      CALORIES: { latest: null, latestDate: null, avg7: null, avg30: null, prevAvg30: null, deltaPct30: null, series7: [], series30: [] },
+      DISTANCE: { latest: null, latestDate: null, avg7: null, avg30: null, prevAvg30: null, deltaPct30: null, series7: [], series30: [] },
+      HEART_RATE: { latest: null, latestDate: null, avg7: null, avg30: null, prevAvg30: null, deltaPct30: null, series7: [], series30: [] },
+      EXERCISE_MINUTES: { latest: null, latestDate: null, avg7: null, avg30: null, prevAvg30: null, deltaPct30: null, series7: [], series30: [] },
+    });
+    if (rows.length === 0) { res.json({ lastSyncAt: null, metrics: emptyMetrics() }); return; }
+
+    // Dedup de LEITURA por type+dia: o sort é desc, o 1º visto é o mais recente do dia.
+    // (O sync já é idempotente, mas rows de syncs distintos podem cruzar a janela 2×.)
+    const byMetricDay = new Map<ActivityMetric, Map<string, number>>();
+    let lastSyncAt: Date | null = null;
+    for (const r of rows) {
+      const t = r.type as ActivityMetric;
+      if (!ACTIVITY_METRICS.includes(t)) continue;
+      const day = r.measuredAt.toISOString().slice(0, 10);
+      const daysMap = byMetricDay.get(t) ?? new Map<string, number>();
+      if (!daysMap.has(day)) daysMap.set(day, r.value);
+      byMetricDay.set(t, daysMap);
+      if (!lastSyncAt || r.createdAt > lastSyncAt) lastSyncAt = r.createdAt;
+    }
+
+    const metrics = emptyMetrics();
+    const cutoff = Date.now() - days * 86400000;
+    for (const t of ACTIVITY_METRICS) {
+      const daysMap = byMetricDay.get(t);
+      if (!daysMap) continue;
+      const entries = [...daysMap.entries()].map(([date, value]) => ({ date, value })).sort((a, b) => (a.date < b.date ? -1 : 1));
+      const inWindow = (e: { date: string }) => new Date(`${e.date}T12:00:00Z`).getTime() >= cutoff;
+      const cur = entries.filter(inWindow);
+      const prev = entries.filter((e) => !inWindow(e));
+      const avg = (arr: { value: number }[]) => (arr.length ? arr.reduce((s, e) => s + e.value, 0) / arr.length : null);
+      const avg7 = avg(cur.slice(-7));
+      const avg30 = avg(cur.slice(-Math.min(30, days)));
+      const prevAvg = avg(prev.slice(-days));
+      const last = entries[entries.length - 1] ?? null;
+      metrics[t] = {
+        latest: last?.value ?? null,
+        latestDate: last?.date ?? null,
+        ...(t === 'STEPS' ? { goal: ACTIVITY_STEP_GOAL, goalPct: last ? Math.min(100, Math.round((last.value / ACTIVITY_STEP_GOAL) * 100)) : null } : {}),
+        avg7: avg7 != null ? rndMetric(t, avg7) : null,
+        avg30: avg30 != null ? rndMetric(t, avg30) : null,
+        prevAvg30: prevAvg != null ? rndMetric(t, prevAvg) : null,
+        deltaPct30: avg30 != null && prevAvg && prevAvg > 0 ? Math.round(((avg30 - prevAvg) / prevAvg) * 100) : null,
+        series7: cur.slice(-7),
+        series30: cur.slice(-30),
+      };
+    }
+    res.json({ lastSyncAt: lastSyncAt?.toISOString() ?? null, metrics });
   } catch (e) { next(e); }
 });
 

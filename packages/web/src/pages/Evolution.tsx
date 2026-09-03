@@ -1,11 +1,12 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Box, Button, Card, CardContent, Typography, Chip, Stack, Grid, Accordion, AccordionSummary, AccordionDetails, InputBase, Paper } from '@mui/material';
+import { Box, Button, Card, CardContent, Typography, Chip, Stack, Grid, Accordion, AccordionSummary, AccordionDetails, InputBase, Paper, Collapse } from '@mui/material';
 import { Title, useTranslate } from 'react-admin';
 import { ResponsiveContainer, LineChart, Line, ReferenceArea, YAxis, Tooltip } from 'recharts';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import SearchIcon from '@mui/icons-material/Search';
 import DirectionsWalkIcon from '@mui/icons-material/DirectionsWalk';
 import { API_URL, token } from '../config';
+import { fetchActivitySummary } from '../services/activitySummary';
 import { useSelectedPatient } from '../patient-context';
 import { useNavigate } from 'react-router-dom';
 import { ExplainButton } from '../components/ExplainItem';
@@ -53,25 +54,23 @@ export const EvolutionPage = () => {
   // ATIVIDADE (Health Connect → medições): série 30d de passos (+kcal/km pro detalhe do
   // gráfico interativo) p/ comparar visualmente com glicose/lipídios/PA na MESMA tela.
   const [steps, setSteps] = useState<{ date: string; steps: number; kcal: number; km: number }[]>([]);
+  const [stepsDelta, setStepsDelta] = useState<number | null>(null);
   const [actSel, setActSel] = useState<string | null>(null);
+  const [actInfo, setActInfo] = useState(false);
   useEffect(() => {
-    if (!pid) { setSteps([]); return; }
-    const h = { Authorization: `Bearer ${token()}` };
-    const byDay = new Map<string, { steps: number; kcal: number; km: number }>();
-    const absorb = (type: 'steps' | 'kcal' | 'km') => (rows: any[]) => {
-      if (!Array.isArray(rows)) return;
-      for (const m of rows) {
-        const key = String(m.measuredAt).slice(0, 10);
-        const acc = byDay.get(key) ?? { steps: 0, kcal: 0, km: 0 };
-        acc[type] = m.value; byDay.set(key, acc);
-      }
-    };
-    Promise.all([
-      fetch(`${API_URL}/measurements?type=STEPS&patientId=${pid}&take=40`, { headers: h }).then((r) => (r.ok ? r.json() : [])),
-      fetch(`${API_URL}/measurements?type=CALORIES&patientId=${pid}&take=40`, { headers: h }).then((r) => (r.ok ? r.json() : [])),
-      fetch(`${API_URL}/measurements?type=DISTANCE&patientId=${pid}&take=40`, { headers: h }).then((r) => (r.ok ? r.json() : [])),
-    ])
-      .then(([s, c, d]) => { absorb('steps')(s); absorb('kcal')(c); absorb('km')(d); setSteps([...byDay.entries()].map(([date, v]) => ({ date, ...v })).filter((x) => x.steps > 0).sort((a, b) => (a.date < b.date ? -1 : 1))); })
+    if (!pid) { setSteps([]); setStepsDelta(null); return; }
+    // Fonte única: consolidado do server (mesmo endpoint do ActivityCard na web) —
+    // 1 request no lugar de 3, com deltaPct30 vs período anterior já calculado.
+    fetchActivitySummary(30, pid)
+      .then((s) => {
+        if (!s) { setSteps([]); setStepsDelta(null); return; }
+        const byDay = new Map<string, { steps: number; kcal: number; km: number }>();
+        for (const p of s.metrics.STEPS.series30) byDay.set(p.date, { steps: p.value, kcal: 0, km: 0 });
+        for (const p of s.metrics.CALORIES.series30) { const d = byDay.get(p.date); if (d) d.kcal = p.value; }
+        for (const p of s.metrics.DISTANCE.series30) { const d = byDay.get(p.date); if (d) d.km = p.value; }
+        setSteps([...byDay.entries()].filter(([, v]) => v.steps > 0).map(([date, v]) => ({ date, ...v })).sort((a, b) => (a.date < b.date ? -1 : 1)));
+        setStepsDelta(s.metrics.STEPS.deltaPct30);
+      })
       .catch(() => setSteps([]));
   }, [pid]);
 
@@ -136,30 +135,46 @@ export const EvolutionPage = () => {
 
       {!loading && items.length > 0 && (
         <>
-          {/* Resumo da evolução (melhorou/piorou/estável) — leitura amigável e não-alarmista */}
+          {/* Resumo da evolução (melhorou/piorou/estável) — grid 3 colunas: antes eram 3 spans
+              em row-wrap e "100 sem variação" quebrava no meio em 360px. Agora número grande +
+              label curto por célula ("estáveis" — nomenclatura curta, fonte única VERDICT_META). */}
           <Card variant="outlined" sx={{ mb: 2, borderRadius: '12px', borderColor: 'divider', bgcolor: 'rgba(15,61,58,0.03)' }}>
             <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-              <Stack direction="row" spacing={1.75} flexWrap="wrap" useFlexGap sx={{ mb: 0.5 }}>
-                <Typography component="span" sx={{ fontWeight: 800, color: VERDICT_META.melhorou.color }}>{VERDICT_META.melhorou.emoji} {summary.counts.melhorou} {VERDICT_META.melhorou.label}</Typography>
-                <Typography component="span" sx={{ fontWeight: 800, color: VERDICT_META.piorou.color }}>{VERDICT_META.piorou.emoji} {summary.counts.piorou} {VERDICT_META.piorou.label}</Typography>
-                <Typography component="span" sx={{ fontWeight: 800, color: VERDICT_META.estavel.color }}>{VERDICT_META.estavel.emoji} {summary.counts.estavel} sem variação</Typography>
-              </Stack>
+              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 1, mb: 0.75 }}>
+                {([['melhorou', summary.counts.melhorou], ['piorou', summary.counts.piorou], ['estavel', summary.counts.estavel]] as const).map(([k, n]) => {
+                  const v = VERDICT_META[k];
+                  return (
+                    <Box key={k} sx={{ textAlign: 'center', py: 0.75, borderRadius: '12px', bgcolor: `${v.color}0F`, border: `1px solid ${v.color}2E` }}>
+                      <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: { xs: 18, sm: 20 }, lineHeight: 1, color: v.color, fontVariantNumeric: 'tabular-nums' }}>{n}</Typography>
+                      <Typography sx={{ fontSize: { xs: 10.5, sm: 11 }, color: v.color, fontWeight: 700, mt: 0.25 }}>{v.label}</Typography>
+                    </Box>
+                  );
+                })}
+              </Box>
               <Typography variant="caption" color="text.secondary">{trendHeadline(summary)} <strong>·</strong> Conteúdo educativo — a decisão final é do médico.</Typography>
             </CardContent>
           </Card>
 
-          {/* Resumo interativo — Linha única de chips de status */}
-          <Stack direction="row" spacing={0.75} sx={{ overflowX: 'auto', flexWrap: 'nowrap', pb: 0.5, mb: 1, mx: -0.25, px: 0.25, '&::-webkit-scrollbar': { display: 'none' } }}>
+          {/* Filtros de status — carrossel horizontal CONTROLADO (scroll só aqui, nunca na
+              página): scroll-snap + ponto de cor no lugar de emoji (leitor de tela lia
+              "círculo vermelho"; a cor segue sinalizando no dot). */}
+          <Stack direction="row" spacing={0.75} sx={{ overflowX: 'auto', flexWrap: 'nowrap', pb: 0.5, mb: 1, mx: -0.25, px: 0.25, scrollSnapType: 'x proximity', '&::-webkit-scrollbar': { display: 'none' } }}>
             {CHIPS.map((c) => {
               const on = filter === c.key;
               return (
                 <Chip
                   key={c.key}
                   onClick={() => setFilter(c.key)}
-                  label={`${c.emoji} ${c.label} (${c.count})`}
+                  label={(
+                    <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
+                      <Box component="span" aria-hidden="true" sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'currentColor', display: 'inline-block', flexShrink: 0 }} />
+                      {c.label} · {c.count}
+                    </Box>
+                  )}
                   sx={{
                     height: 34,
                     flexShrink: 0,
+                    scrollSnapAlign: 'start',
                     borderRadius: '999px',
                     bgcolor: on ? c.color : `${c.color}14`,
                     color: on ? '#fff' : c.color,
@@ -190,8 +205,8 @@ export const EvolutionPage = () => {
             <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
               <DirectionsWalkIcon sx={{ fontSize: 18, color: '#178f89' }} />
               <Typography sx={{ fontWeight: 800, fontSize: 14, fontFamily: '"Poppins",sans-serif' }}>Sua atividade no período</Typography>
-              <Typography sx={{ fontSize: 11, color: 'text.secondary', ml: 'auto' }}>
-                {Math.round(steps.reduce((t, d) => t + d.steps, 0) / steps.length).toLocaleString('pt-BR')} passos/dia · {steps.length} dias
+              <Typography sx={{ fontSize: 11, color: 'text.secondary', ml: 'auto', textAlign: 'right' }}>
+                {Math.round(steps.reduce((t, d) => t + d.steps, 0) / steps.length).toLocaleString('pt-BR')} passos/dia{stepsDelta != null ? ` · ${stepsDelta > 0 ? '+' : ''}${stepsDelta}% vs período anterior` : ` · ${steps.length} dias`}
               </Typography>
             </Stack>
             {/* Gráfico INTERATIVO: tocar na barra mostra o dia (passos/kcal/km) —
@@ -232,9 +247,16 @@ export const EvolutionPage = () => {
                 </Stack>
               );
             })()}
-            <Typography sx={{ fontSize: 11, color: 'text.secondary', mt: 0.75 }}>
-              Compare com a glicose, os lipídios e a pressão abaixo — atividade e exames contam a história juntos (educativo; confirme com seu médico).
-            </Typography>
+            {/* Texto educativo em "Saiba mais" (colapsado): hierarquia pro gráfico e ao
+                detalhe do dia — o parágrafo fixo competia pela atenção do card. */}
+            <Button size="small" onClick={() => setActInfo((v) => !v)} endIcon={<ExpandMoreIcon sx={{ transform: actInfo ? 'rotate(180deg)' : 'none', transition: 'transform .2s', fontSize: 16 }} />} sx={{ mt: 0.75, textTransform: 'none', fontWeight: 700, color: 'primary.dark', borderRadius: '999px', px: 1, minHeight: 28, alignSelf: 'flex-start' }}>
+              {actInfo ? 'Menos' : 'Saiba mais'}
+            </Button>
+            <Collapse in={actInfo} unmountOnExit>
+              <Typography sx={{ fontSize: 11, color: 'text.secondary', mt: 0.5 }}>
+                Compare com a glicose, os lipídios e a pressão abaixo — atividade e exames contam a história juntos (educativo; confirme com seu médico).
+              </Typography>
+            </Collapse>
           </CardContent>
         </Card>
       )}

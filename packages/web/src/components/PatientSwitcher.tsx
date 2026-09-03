@@ -77,13 +77,15 @@ export const PatientSwitcher = () => {
         disableElevation
         sx={{
           borderRadius: '999px',
-          pl: 0.5, pr: 1, py: 0.25,
+          pl: 0.5, pr: { xs: 0.5, sm: 1 }, py: 0.25,
           color: 'inherit',
           textTransform: 'none',
           bgcolor: 'rgba(32,178,170,0.08)',
           border: '1px solid rgba(32,178,170,0.2)',
           '&:hover': { bgcolor: 'rgba(32,178,170,0.16)' },
-          maxWidth: { xs: 150, sm: 280 },
+          // xs: colapsa a avatar+chevron (~58px) — nome/vínculo ficam só no menu aberto
+          // (P0 header 320–430px: prioridade pro logo, créditos, sino e avatar).
+          maxWidth: { xs: 'none', sm: 280 },
           '& .MuiButton-startIcon': { mr: 0.75, ml: 0 },
         }}
         startIcon={
@@ -103,7 +105,7 @@ export const PatientSwitcher = () => {
         }
         endIcon={<KeyboardArrowDownIcon sx={{ opacity: 0.7, fontSize: 18 }} />}
       >
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.15, overflow: 'hidden', textAlign: 'left' }}>
+        <Box sx={{ display: { xs: 'none', sm: 'flex' }, flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.15, overflow: 'hidden', textAlign: 'left', minWidth: 0 }}>
           <Typography component="span" sx={{ fontSize: 12, fontWeight: 800, maxWidth: { xs: 75, sm: 130 }, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {current?.fullName ?? 'Selecionar'}
           </Typography>

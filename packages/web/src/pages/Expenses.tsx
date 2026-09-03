@@ -79,12 +79,13 @@ export const ExpensesPage = () => {
         <CardContent>
           <Typography variant="h6" gutterBottom>Registrar despesa</Typography>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} useFlexGap flexWrap="wrap">
-            <TextField size="small" label="Descrição" placeholder="Consulta, exame, remédio..." value={desc} onChange={(e) => setDesc(e.target.value)} sx={{ flex: 1, minWidth: 200 }} />
-            <TextField size="small" select label="Categoria" value={category} onChange={(e) => setCategory(e.target.value)} sx={{ width: 130 }}>
+            {/* Larguras fluidas no xs (causa raiz de overflow em 600–768px), fixas só no sm+. */}
+            <TextField size="small" label="Descrição" placeholder="Consulta, exame, remédio..." value={desc} onChange={(e) => setDesc(e.target.value)} sx={{ flex: { xs: '1 1 100%', sm: 1 }, minWidth: { xs: 0, sm: 200 } }} />
+            <TextField size="small" select label="Categoria" value={category} onChange={(e) => setCategory(e.target.value)} sx={{ width: { xs: '100%', sm: 130 } }}>
               {['Exame', 'Consulta', 'Remédio', 'Outro'].map((c) => <option key={c} value={c}>{c}</option>)}
             </TextField>
-            <TextField size="small" label="Valor (R$)" type="number" value={amount} onChange={(e) => setAmount(e.target.value)} sx={{ width: 120 }} />
-            <TextField size="small" type="date" value={date} onChange={(e) => setDate(e.target.value)} InputLabelProps={{ shrink: true }} />
+            <TextField size="small" label="Valor (R$)" type="number" value={amount} onChange={(e) => setAmount(e.target.value)} sx={{ width: { xs: '100%', sm: 120 } }} />
+            <TextField size="small" type="date" value={date} onChange={(e) => setDate(e.target.value)} InputLabelProps={{ shrink: true }} sx={{ width: { xs: '100%', sm: 160 } }} />
             <Button variant="contained" onClick={add} disabled={!desc.trim() || !amount || saving}>{saving ? 'Salvando…' : 'Adicionar'}</Button>
           </Stack>
         </CardContent>

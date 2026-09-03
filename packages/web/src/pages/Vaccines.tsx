@@ -55,44 +55,25 @@ export const VaccinesPage = () => {
     <PageContainer width="content" sx={{ pb: { xs: 10, sm: 5 } }}>
       <PageHeader icon={<VaccinesIcon />} title="Carteira de Vacinação" subtitle="Registre suas vacinas e próximas doses — útil na consulta e na viagem." />
 
-      {/* Hero stats */}
-      <Card sx={{
-        mb: 2.5, borderRadius: '20px', overflow: 'hidden',
-        background: 'linear-gradient(135deg, #2d1b69 0%, #4f46e5 60%, #6366f1 100%)',
-        color: '#fff', position: 'relative',
-        boxShadow: '0 12px 32px rgba(79,70,229,.25)',
-      }}>
-        <Box sx={{ position: 'absolute', top: -25, right: -25, width: 100, height: 100, borderRadius: '50%', bgcolor: 'rgba(255,255,255,.06)' }} />
-        <Box sx={{ position: 'absolute', bottom: -15, left: -15, width: 60, height: 60, borderRadius: '50%', bgcolor: 'rgba(255,255,255,.04)' }} />
-        <CardContent sx={{ py: 2, px: { xs: 2, sm: 3 }, position: 'relative', zIndex: 1 }}>
-          <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-around" flexWrap="wrap">
-            <Box sx={{ textAlign: 'center' }}>
-              <Typography sx={{ fontWeight: 900, fontSize: 32, fontFamily: 'Poppins, sans-serif' }}>{items.length}</Typography>
-              <Typography sx={{ fontSize: 12, opacity: 0.85 }}>Vacinas registradas</Typography>
-            </Box>
-            {overdueCount > 0 && (
-              <>
-                <Box sx={{ width: 1, height: 36, bgcolor: 'rgba(255,255,255,.2)' }} />
-                <Box sx={{ textAlign: 'center' }}>
-                  <Typography sx={{ fontWeight: 900, fontSize: 32, fontFamily: 'Poppins, sans-serif', color: '#fbbf24' }}>{overdueCount}</Typography>
-                  <Typography sx={{ fontSize: 12, opacity: 0.85 }}>Doses vencidas</Typography>
-                </Box>
-              </>
-            )}
-            <Box sx={{ width: 1, height: 36, bgcolor: 'rgba(255,255,255,.2)' }} />
-            <Box sx={{ textAlign: 'center' }}>
-              <Typography sx={{ fontWeight: 900, fontSize: 32, fontFamily: 'Poppins, sans-serif' }}>
-                {items.filter((v) => v.nextDoseDate && !overdue(v.nextDoseDate)).length}
-              </Typography>
-              <Typography sx={{ fontSize: 12, opacity: 0.85 }}>Próximas doses</Typography>
-            </Box>
+      {/* Resumo COMPACTO acionável (P2): antes eram 3 contadores gigantes ocupando a área
+          de destaque sem informação nova. Uma linha com os números + CTA direto à carteira. */}
+      <Card sx={{ mb: 2.5, borderRadius: '16px', overflow: 'hidden', background: 'linear-gradient(135deg, #0c4a46 0%, #137a72 50%, #178f89 100%)', color: '#fff', position: 'relative', boxShadow: '0 10px 26px rgba(15,61,58,.2)' }}>
+        <CardContent sx={{ py: 1.75, px: { xs: 2, sm: 2.5 }, position: 'relative', zIndex: 1 }}>
+          <Stack direction="row" alignItems="center" spacing={1.25} useFlexGap flexWrap="wrap">
+            <VaccinesIcon sx={{ fontSize: 20, opacity: 0.9 }} />
+            <Typography sx={{ fontSize: 13, fontWeight: 700, flex: 1, minWidth: 150, lineHeight: 1.45 }}>
+              {items.length} vacina{items.length === 1 ? '' : 's'} registrada{items.length === 1 ? '' : 's'}
+              {overdueCount > 0 ? ` · ${overdueCount} vencida${overdueCount > 1 ? 's' : ''}` : ''}
+              {(() => { const n = items.filter((v) => v.nextDoseDate && !overdue(v.nextDoseDate)).length; return n > 0 ? ` · ${n} próxima${n > 1 ? 's' : ''} dose${n > 1 ? 's' : ''}` : ''; })()}
+            </Typography>
+            <Button size="small" disableElevation onClick={() => document.getElementById('carteira')?.scrollIntoView({ behavior: 'smooth' })} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: 'rgba(255,255,255,.16)', color: '#fff', '&:hover': { bgcolor: 'rgba(255,255,255,.24)' } }}>Ver carteira</Button>
           </Stack>
         </CardContent>
       </Card>
 
       {/* CARTEIRA primeiro (consulta > cadastro — audit: form-first dava cara de planilha). */}
-      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
-        <VaccinesIcon sx={{ color: '#4f46e5', fontSize: 22 }} />
+      <Stack id="carteira" direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
+        <VaccinesIcon sx={{ color: '#178f89', fontSize: 22 }} />
         <Typography sx={{ fontWeight: 900, fontSize: 16, fontFamily: 'Poppins, sans-serif' }}>Histórico de vacinas</Typography>
       </Stack>
 
@@ -106,8 +87,8 @@ export const VaccinesPage = () => {
             </Typography>
             <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={() => setFormOpen(true)} sx={{
               borderRadius: '999px', textTransform: 'none', fontWeight: 800,
-              bgcolor: '#4f46e5', px: 3, boxShadow: '0 6px 16px rgba(79,70,229,.3)',
-              '&:hover': { bgcolor: '#4338ca' },
+              bgcolor: 'primary.main', px: 3, boxShadow: '0 6px 16px rgba(32,178,170,.3)',
+              '&:hover': { bgcolor: 'primary.dark' },
             }}>Registrar primeira vacina</Button>
           </CardContent>
         </Card>
@@ -131,8 +112,8 @@ export const VaccinesPage = () => {
                     <Box sx={{
                       width: 40, height: 40, borderRadius: '12px', flexShrink: 0,
                       display: 'grid', placeItems: 'center',
-                      bgcolor: isOverdue ? 'rgba(239,68,68,.1)' : 'rgba(79,70,229,.1)',
-                      color: isOverdue ? '#ef4444' : '#4f46e5',
+                      bgcolor: isOverdue ? 'rgba(239,68,68,.1)' : 'rgba(32,178,170,.1)',
+                      color: isOverdue ? '#ef4444' : '#178f89',
                     }}>
                       <VaccinesIcon fontSize="small" />
                     </Box>
@@ -167,14 +148,14 @@ export const VaccinesPage = () => {
       {/* REGISTRAR — colapsado, embaixo (ferramenta, não protagonista) */}
       <Card sx={{
         borderRadius: '20px', overflow: 'hidden',
-        border: '1px solid', borderColor: formOpen ? '#4f46e5' : 'divider',
+        border: '1px solid', borderColor: formOpen ? 'primary.main' : 'divider',
         transition: 'border-color .3s',
-        boxShadow: formOpen ? '0 8px 24px rgba(79,70,229,.1)' : '0 4px 16px rgba(0,0,0,0.03)',
+        boxShadow: formOpen ? '0 8px 24px rgba(32,178,170,.1)' : '0 4px 16px rgba(0,0,0,0.03)',
       }}>
         <CardContent>
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Stack direction="row" alignItems="center" spacing={1}>
-              <Box sx={{ width: 36, height: 36, borderRadius: '10px', display: 'grid', placeItems: 'center', bgcolor: 'rgba(79,70,229,.12)', color: '#4f46e5' }}>
+              <Box sx={{ width: 36, height: 36, borderRadius: '10px', display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,.12)', color: 'primary.dark' }}>
                 <AddCircleOutlineIcon fontSize="small" />
               </Box>
               <Typography variant="h6" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>Registrar vacina</Typography>
@@ -193,8 +174,8 @@ export const VaccinesPage = () => {
                 sx={{
                   alignSelf: { xs: 'stretch', sm: 'center' },
                   borderRadius: '999px', textTransform: 'none', fontWeight: 800,
-                  bgcolor: '#4f46e5', boxShadow: '0 6px 16px rgba(79,70,229,.3)',
-                  '&:hover': { bgcolor: '#4338ca' },
+                  bgcolor: 'primary.main', boxShadow: '0 6px 16px rgba(32,178,170,.3)',
+                  '&:hover': { bgcolor: 'primary.dark' },
                 }}>Adicionar</Button>
             </Stack>
           </Collapse>

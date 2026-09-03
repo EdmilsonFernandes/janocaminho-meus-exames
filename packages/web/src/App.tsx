@@ -58,6 +58,7 @@ const FaqPage = lazy(() => import('./pages/Faq').then(m => ({ default: m.FaqPage
 const HowWeValidatePage = lazy(() => import('./pages/HowWeValidate').then(m => ({ default: m.HowWeValidatePage })));
 import { MeasurementsPage } from './pages/Measurements';
 const MedicationsPage = lazy(() => import('./pages/Medications').then(m => ({ default: m.MedicationsPage })));
+const MeasurementHistoryPage = lazy(() => import('./pages/MeasurementHistory').then(m => ({ default: m.MeasurementHistoryPage })));
 import { VaccinesPage } from './pages/Vaccines';
 import { EmergencyCardPage } from './pages/EmergencyCard';
 import { TimelinePage } from './pages/Timeline';
@@ -783,6 +784,9 @@ export const App = () => {
       <Route path="/alterados" element={<ValoresAlteradosPage />} />
       <Route path="/lembretes" element={<Suspense fallback={<PageSkeleton />}><RemindersPage /></Suspense>} />
       <Route path="/medicoes" element={<MeasurementsPage />} />
+      {/* Histórico por métrica — detalhe da central de sinais (sub-rota: back-gesture
+          Android funciona nativo; gráfico+períodos+tabela não cabem em dialog 360px). */}
+      <Route path="/medicoes/historico/:type" element={<Suspense fallback={<PageSkeleton />}><MeasurementHistoryPage /></Suspense>} />
       <Route path="/medicamentos" element={<MedicationsPage />} />
       <Route path="/vacinas" element={<VaccinesPage />} />
       <Route path="/despesas" element={<ExpensesPage />} />

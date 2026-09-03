@@ -101,15 +101,17 @@ export const QuestionsPage = () => {
               <Chip key={k} size="small" label={l} color={qFilter === k ? 'primary' : 'default'} variant={qFilter === k ? 'filled' : 'outlined'} onClick={() => setQFilter(k)} sx={{ fontWeight: 700, borderRadius: '999px' }} />
             ))}
           </Stack>
-          <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" alignItems="center">
-            <FormControl size="small" sx={{ minWidth: 150, flex: 1 }}>
+          {/* Filtros: coluna no xs — 3×minWidth:150 em linha forçava 450px+ e vazava a tela
+              em 360px (causa raiz de overflow-x, não clip global). */}
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} useFlexGap flexWrap="wrap" alignItems={{ xs: 'stretch', sm: 'center' }}>
+            <FormControl size="small" sx={{ minWidth: { xs: 0, sm: 150 }, width: { xs: '100%', sm: 'auto' }, flex: { sm: 1 } }}>
               <Select value={doctorFilter} displayEmpty onChange={(e) => setDoctorFilter(String(e.target.value))}>
                 <MenuItem value="">{translate('q.all_doctors')}</MenuItem>
                 {doctors.map((d: any) => <MenuItem key={d?.id} value={d?.id}>{d?.name}</MenuItem>)}
               </Select>
             </FormControl>
-            <TextField type="date" size="small" label={translate('q.from')} value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} InputLabelProps={{ shrink: true }} sx={{ minWidth: 150, flex: 1 }} />
-            <TextField type="date" size="small" label={translate('q.to')} value={dateTo} onChange={(e) => setDateTo(e.target.value)} InputLabelProps={{ shrink: true }} sx={{ minWidth: 150, flex: 1 }} />
+            <TextField type="date" size="small" label={translate('q.from')} value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} InputLabelProps={{ shrink: true }} sx={{ minWidth: { xs: 0, sm: 150 }, width: { xs: '100%', sm: 'auto' }, flex: { sm: 1 } }} />
+            <TextField type="date" size="small" label={translate('q.to')} value={dateTo} onChange={(e) => setDateTo(e.target.value)} InputLabelProps={{ shrink: true }} sx={{ minWidth: { xs: 0, sm: 150 }, width: { xs: '100%', sm: 'auto' }, flex: { sm: 1 } }} />
           </Stack>
         </Stack>
       )}

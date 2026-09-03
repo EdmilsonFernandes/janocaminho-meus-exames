@@ -48,7 +48,7 @@ const EditableItemValue = ({ it, color, onSaved }: { it: any; color: string; onS
     <Box component="input" value={v} autoFocus disabled={busy}
       onChange={(e: any) => setV(e.target.value)} onBlur={save}
       onKeyDown={(e: any) => { if (e.key === 'Enter') save(); if (e.key === 'Escape') { setV(it.valueText ?? ''); setEditing(false); } }}
-      sx={{ fontSize: '1.4rem', fontWeight: 800, p: '2px 6px', borderRadius: '8px', border: '2px solid #20b2aa', outline: 'none', width: 150, bgcolor: 'background.paper', color }} />
+      sx={{ fontSize: '1.4rem', fontWeight: 800, p: '2px 6px', borderRadius: '8px', border: '2px solid #20b2aa', outline: 'none', width: 'min(150px, 45vw)', maxWidth: '100%', bgcolor: 'background.paper', color }} />
   );
   return (
     <Typography onClick={() => setEditing(true)} title="Toque para corrigir o valor"

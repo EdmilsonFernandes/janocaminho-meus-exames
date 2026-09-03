@@ -302,7 +302,7 @@ export const MedicosPage = () => {
           />
           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" alignItems="center">
             {specialties.length > 1 && (
-              <TextField select size="small" value={specFilter} onChange={(e) => setSpecFilter(e.target.value)} sx={{ minWidth: 160, '& .MuiOutlinedInput-root': { borderRadius: '999px' } }} label="Especialidade">
+              <TextField select size="small" value={specFilter} onChange={(e) => setSpecFilter(e.target.value)} sx={{ minWidth: { xs: 0, sm: 160 }, width: { xs: '100%', sm: 'auto' }, '& .MuiOutlinedInput-root': { borderRadius: '999px' } }} label="Especialidade">
                 <MenuItem value="">{translate('docs.all')}</MenuItem>
                 {specialties.map((sp: string) => <MenuItem key={sp} value={sp}>{fixSpecialty(sp)}</MenuItem>)}
               </TextField>
@@ -520,7 +520,7 @@ export const MedicosPage = () => {
             {spec === 'Outro' && (
               <TextField label="Qual especialidade?" value={specOther} onChange={(e) => setSpecOther(e.target.value)} size="small" fullWidth required placeholder="Ex.: Cirurgia de Cabeça e Pescoço" />
             )}
-            <TextField select label="Convênio" value={convenio} onChange={(e) => setConvenio(e.target.value)} size="small" sx={{ width: 220 }}>
+            <TextField select label="Convênio" value={convenio} onChange={(e) => setConvenio(e.target.value)} size="small" sx={{ width: { xs: '100%', sm: 220 } }}>
               {CONVENIOS.map((c) => <MenuItem key={c} value={c}>{c}</MenuItem>)}
             </TextField>
             <Box>
