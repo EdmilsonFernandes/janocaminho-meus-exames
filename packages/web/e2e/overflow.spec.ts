@@ -47,7 +47,9 @@ test.describe('Layout base — sem overflow horizontal', () => {
       await page.goto('/#' + route, { waitUntil: 'domcontentloaded' });
       await page.waitForTimeout(800);
       await expectNoHorizontalOverflow(page, name);
-      await page.screenshot({ path: `e2e/screenshots/overflow-${name}-${info.project.name}.png`, fullPage: true });
+      // fullPage em páginas com gráficos/animações pode passar dos 10s default sob carga
+      // (CI paralelo) — 30s não muda a semântica do gate (a asserção já rodou acima).
+      await page.screenshot({ path: `e2e/screenshots/overflow-${name}-${info.project.name}.png`, fullPage: true, timeout: 30000 });
     });
   }
 });

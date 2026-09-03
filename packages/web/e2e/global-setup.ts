@@ -14,11 +14,15 @@ test('autenticar dev', async ({ page, request }) => {
   const r = await request.post(`${API}/auth/login`, { data: { username: DEV_USER, password: DEV_PASS } });
   expect(r.ok(), 'login API falhou no setup').toBeTruthy();
   const { token, patientId, user } = await r.json();
-  await page.goto('http://localhost:4011/');
-  await page.evaluate((ctx) => {
+  // addInitScript (em vez de page.evaluate pós-goto): o boot do app (splash → redirect
+  // de rota) destrói o execution context durante o evaluate — corrida clássica. Com o
+  // init script os itens já existem ANTES de qualquer script da página rodar.
+  await page.addInitScript((ctx) => {
     localStorage.setItem('token', ctx.token);
     if (ctx.patientId) { localStorage.setItem('patientId', ctx.patientId); localStorage.setItem('selPatientId', ctx.patientId); }
     localStorage.setItem('user', JSON.stringify(ctx.user));
   }, { token, patientId, user });
+  await page.goto('http://localhost:4011/');
+  await page.waitForTimeout(1200);
   await page.context().storageState({ path: 'e2e/.auth/user.json' });
 });
