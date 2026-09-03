@@ -7,18 +7,21 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import SearchIcon from '@mui/icons-material/Search';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link as RouterLink } from 'react-router-dom';
 import { Title } from 'react-admin';
 import { DrExame } from '../components/DrExame';
 import { GradientButton } from '../components/GradientButton';
 import { PageContainer } from '../components/layout/PageContainer';
 
-type FaqCategory = 'comecando' | 'planos' | 'conta' | 'exames' | 'medico' | 'privacidade';
+type FaqCategory = 'comecando' | 'planos' | 'conta' | 'exames' | 'confianca' | 'medico' | 'privacidade';
 
 interface FaqEntry {
   q: string;
   a: string;
   cat: FaqCategory;
+  /** Link opcional no fim da resposta (deep-link interno, ex.: /como-validamos). */
+  linkTo?: string;
+  linkLabel?: string;
 }
 
 const CATEGORIES: { id: FaqCategory | 'all'; label: string }[] = [
@@ -27,6 +30,7 @@ const CATEGORIES: { id: FaqCategory | 'all'; label: string }[] = [
   { id: 'planos', label: 'Créditos & planos' },
   { id: 'conta', label: 'Conta' },
   { id: 'exames', label: 'Exames & IA' },
+  { id: 'confianca', label: 'Como validamos' },
   { id: 'medico', label: 'Médico' },
   { id: 'privacidade', label: 'Privacidade' },
 ];
@@ -46,7 +50,12 @@ const FAQ: FaqEntry[] = [
   { cat: 'conta', q: 'Dá pra gerenciar exames de familiares?', a: 'Dá. Cada familiar entra como dependente, com histórico e evolução próprios — e você alterna entre as pessoas no painel da família.' },
   // Exames & IA
   { cat: 'exames', q: 'A IA dá diagnóstico?', a: 'Não — e isso é por design. A IA educa: compara seus valores com a faixa de referência e com a faixa ideal, contextualiza pelo seu perfil e monta perguntas pra levar ao médico. A decisão clínica é sempre do profissional.' },
-  { cat: 'exames', q: 'Como vocês validam a análise?', a: 'A checagem de valores é determinística (regras com a faixa do seu laboratório), a IA só explica — e cada regra tem fonte pública: veja a página Como validamos em /como-validamos.' },
+  { cat: 'exames', q: 'Como vocês validam a análise?', a: 'A checagem de valores é determinística (regras com a faixa do seu laboratório), a IA só explica — e cada regra tem fonte pública.', linkTo: '/como-validamos', linkLabel: 'Veja a página completa com as fontes' },
+  // Como validamos (destilado da página /como-validamos — que sai do menu e vive aqui + link)
+  { cat: 'confianca', q: 'De onde vêm os valores e as faixas?', a: 'Os valores saem do laudo que você enviou, nunca de "memória" da IA. As faixas usadas na comparação vêm do próprio laboratório e, quando o laudo não traz, de fontes médicas de referência.' },
+  { cat: 'confianca', q: 'O que a IA faz — e o que ela nunca faz?', a: 'A IA explica, contextualiza pelo seu perfil e monta perguntas pra levar ao médico. Ela nunca diagnostica, nunca prescreve e nunca inventa valores: a checagem é feita por regras antes de qualquer texto (alinhado à ANVISA RDC 657/2022).' },
+  { cat: 'confianca', q: 'Como meus dados são tratados?', a: 'Seguimos a LGPD: dados de identificação são criptografados, os PDFs ficam fora do banco de dados e nada é compartilhado sem o seu ato — nem com médicos, sem autorização explícita.' },
+  { cat: 'confianca', q: 'Por que não colar meu exame num chatbot grátis?', a: 'Aqui cada número que você vê é rastreável até o laudo, com faixa e fonte — e seus dados de saúde não viram conteúdo de treinamento. Num chat genérico, nada disso é garantido.' },
   { cat: 'exames', q: 'A IA pode inventar valores?', a: 'Os valores saem direto do seu laudo — a IA só explica o que já está escrito. Antes de salvar, você confere tudo o que foi extraído e corrige se precisar.' },
   { cat: 'exames', q: 'Funciona sem internet?', a: 'Sim. Seus últimos exames e dados ficam disponíveis offline no app; quando a conexão volta, tudo sincroniza automaticamente.' },
   { cat: 'exames', q: 'Meu exame não foi adicionado (CPF divergente). E agora?', a: 'Quando o CPF do documento é diferente do CPF da conta, o exame fica de fora das suas análises — é a proteção contra exames de outra pessoa. Se o documento é seu, toque em "Acredito que houve um erro" no aviso do exame: a leitura automática pode errar em documentos ilegíveis e o suporte confere o arquivo original.' },
@@ -162,7 +171,7 @@ export const FaqPage = () => {
           Nenhuma pergunta encontrada com esse termo. Tente outra palavra ou fale com o suporte.
         </Typography>
       ) : (
-        filtered.map(({ index, q, a }, i) => (
+        filtered.map(({ index, q, a, linkTo, linkLabel }, i) => (
           <Accordion
             key={index}
             expanded={expanded === index}
@@ -181,7 +190,14 @@ export const FaqPage = () => {
             <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: '#20b2aa' }} />} sx={{ fontWeight: 600, fontSize: '0.95rem' }}>
               {q}
             </AccordionSummary>
-            <AccordionDetails sx={{ color: 'text.secondary', lineHeight: 1.7, pt: 0, animation: 'faqUp .3s ease both' }}>{a}</AccordionDetails>
+            <AccordionDetails sx={{ color: 'text.secondary', lineHeight: 1.7, pt: 0, animation: 'faqUp .3s ease both' }}>
+              {a}
+              {linkTo && (
+                <Box component="span" sx={{ display: 'block', mt: 1 }}>
+                  <MuiLink component={RouterLink} to={linkTo} sx={{ fontWeight: 700, fontSize: 13 }}>{linkLabel ?? 'Saiba mais'} →</MuiLink>
+                </Box>
+              )}
+            </AccordionDetails>
           </Accordion>
         ))
       )}

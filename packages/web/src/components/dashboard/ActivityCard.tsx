@@ -404,29 +404,30 @@ export const ActivityView = ({
         ))}
       </ToggleButtonGroup>
 
-      {/* Herói: RING de meta (assinatura Google Fit — intuitivo à primeira vista) + número.
-          RESPONSIVO (fix Samsung M62): fontes clamp() fluídas + minWidth:0 em TODO flex container
-          (sem isto o flex não encolhe e o texto vaza). Labels com noWrap+ellipsis. */}
-      <Stack direction="row" spacing={{ xs: 1.5, sm: 2 }} alignItems="center">
-        <ActivityRing ratio={s.goalRatio} pct={goalPct} done={s.goalRatio >= 1} />
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary' }}>
-            {stepsLabel}
-          </Typography>
-          <Stack direction="row" alignItems="baseline" spacing={0.5} sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1.5rem, 8vw, 2rem)', sm: 'clamp(1.75rem, 5vw, 2.125rem)', md: 34 }, lineHeight: 1.1, color: 'text.primary', fontVariantNumeric: 'tabular-nums' }}>{fmtSteps(primarySteps)}</Typography>
-            {s.goalRatio >= 1 && <CheckCircleIcon sx={{ fontSize: 20, color: 'success.main', mb: 0.5 }} aria-label="meta batida" />}
-          </Stack>
-          <Typography noWrap sx={{ fontSize: 11, color: 'text.disabled', mt: 0.25 }}>
-            {stepsSupport}
-          </Typography>
-        </Box>
-        <Stack spacing={{ xs: 0.75, sm: 1 }} sx={{ flex: 1, minWidth: 0 }}>
+      {/* Herói: RING de meta (assinatura Google Fit) + número. MOBILE-FIRST (regra CRITICAL
+          de UX: texto NUNCA clipa em caixa fixa — largura fluida, altura por conteúdo): no xs
+          EMPILHA — ring+número numa linha (número com ~225px de folga; support quebra em até
+          2 linhas) e as métricas em grid auto-fit de chips largos (~149px/célula, sem
+          ellipsis). sm+ mantém as 3 colunas clássicas (ring | número | coluna de minis). */}
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1.75, sm: 2 }} alignItems={{ xs: 'stretch', sm: 'center' }}>
+        <Stack direction="row" spacing={1.5} alignItems="center" sx={{ minWidth: 0 }}>
+          <ActivityRing ratio={s.goalRatio} pct={goalPct} done={s.goalRatio >= 1} />
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>{stepsLabel}</Typography>
+            <Stack direction="row" alignItems="baseline" spacing={0.5} sx={{ minWidth: 0 }}>
+              <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1.5rem, 8vw, 2rem)', sm: 'clamp(1.75rem, 5vw, 2.125rem)', md: 34 }, lineHeight: 1.1, color: 'text.primary', fontVariantNumeric: 'tabular-nums' }}>{fmtSteps(primarySteps)}</Typography>
+              {s.goalRatio >= 1 && <CheckCircleIcon sx={{ fontSize: 20, color: 'success.main', mb: 0.5 }} aria-label="meta batida" />}
+            </Stack>
+            <Typography sx={{ fontSize: 11, color: 'text.disabled', mt: 0.25, lineHeight: 1.35 }}>{stepsSupport}</Typography>
+          </Box>
+        </Stack>
+        <Box sx={{ flex: { sm: 1 }, minWidth: 0, display: 'grid', gridTemplateColumns: { xs: 'repeat(auto-fit, minmax(140px, 1fr))', sm: '1fr' }, gap: { xs: 1.25, sm: 0.75 } }}>
           {/* kcal some quando o período INTEIRO veio zerado (nenhuma origem publica caloria):
               linha "0 kcal" fantasma não ajuda. kcalIsTotal = fallback Samsung (o Health
-              Connect do aparelho só tem TOTAL, que inclui metabolismo basal) — rótulo honesto. */}
+              Connect do aparelho só tem TOTAL, que inclui metabolismo basal) — rótulo honesto,
+              curto ("Calorias totais") com a explicação no title do label. */}
           {primaryKcal > 0 && (
-            <MetricMini icon={<LocalFireDepartmentIcon sx={{ fontSize: 15 }} />} tone="#c2410c" label={s.kcalIsTotal ? 'Calorias (total do dia)' : 'Calorias'} value={fmtKcal(primaryKcal)} unit="kcal" contextLabel={periodMetricLabel} />
+            <MetricMini icon={<LocalFireDepartmentIcon sx={{ fontSize: 15 }} />} tone="#c2410c" label={s.kcalIsTotal ? 'Calorias totais' : 'Calorias'} labelTitle={s.kcalIsTotal ? 'Inclui metabolismo basal (Samsung Health só publica o total do dia)' : undefined} value={fmtKcal(primaryKcal)} unit="kcal" contextLabel={periodMetricLabel} />
           )}
           <MetricMini icon={<RouteIcon sx={{ fontSize: 15 }} />} tone="#0369a1" label="Distância" value={fmtKm(primaryKm)} unit="km" contextLabel={periodMetricLabel} />
           {(s.hrRest ?? 0) > 0 && (
@@ -437,7 +438,7 @@ export const ActivityView = ({
           {(s.exerciseMin ?? 0) >= 10 && (
             <MetricMini icon={<TimerIcon sx={{ fontSize: 15 }} />} tone="#047857" label="Exercício" value={`${Math.round(s.exerciseMin ?? 0)} min`} unit="" contextLabel={undefined} />
           )}
-        </Stack>
+        </Box>
       </Stack>
 
       {/* Dado em trânsito: passos chegaram mas calorias NÃO — apps como o Samsung Health
@@ -591,17 +592,18 @@ const ActivityRing = ({ ratio, pct, done }: { ratio: number; pct: number; done: 
   );
 };
 
-/** Métrica secundária — resistente a largura: valor+unidade SEMPRE juntos (noWrap), label
- *  com ellipsis se não couber. Fonte clamp() escala sem quebrar. (fix Samsung M62) */
-const MetricMini = ({ icon, tone, label, value, unit, contextLabel }: { icon: React.ReactNode; tone: string; label: string; value: string; unit: string; contextLabel?: string }) => (
+/** Métrica secundária — SEM clipe (regra CRITICAL): label e contexto fluem/quebram; só o
+ *  par semântico valor+unidade é noWrap (curto por construção). No xs vive numa célula da
+ *  grid auto-fit (~149px) — "Calorias totais"/"FC de repouso"/"15.234 kcal" cabem inteiros. */
+const MetricMini = ({ icon, tone, label, labelTitle, value, unit, contextLabel }: { icon: React.ReactNode; tone: string; label: string; labelTitle?: string; value: string; unit: string; contextLabel?: string }) => (
   <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0 }}>
     <Box sx={{ width: { xs: 26, sm: 30 }, height: { xs: 26, sm: 30 }, borderRadius: '10px', display: 'grid', placeItems: 'center', flexShrink: 0, bgcolor: `${tone}1E`, color: tone }}>{icon}</Box>
-    <Box sx={{ minWidth: 0, overflow: 'hidden' }}>
-      <Typography noWrap sx={{ fontSize: 11, color: 'text.secondary', lineHeight: 1.1, textOverflow: 'ellipsis' }}>{label}</Typography>
+    <Box sx={{ minWidth: 0 }}>
+      <Typography title={labelTitle} sx={{ fontSize: 11, color: 'text.secondary', lineHeight: 1.15 }}>{label}</Typography>
       <Typography noWrap sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(0.875rem, 4vw, 1.0625rem)', sm: 17 }, lineHeight: 1.15, fontVariantNumeric: 'tabular-nums' }}>
         {value}{unit ? <Typography component="span" sx={{ fontSize: 11, color: 'text.disabled', fontWeight: 600 }}> {unit}</Typography> : null}
       </Typography>
-      {contextLabel && <Typography noWrap sx={{ fontSize: 10.5, color: 'text.disabled', lineHeight: 1.1 }}>{contextLabel}</Typography>}
+      {contextLabel && <Typography sx={{ fontSize: 10.5, color: 'text.disabled', lineHeight: 1.15 }}>{contextLabel}</Typography>}
     </Box>
   </Stack>
 );

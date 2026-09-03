@@ -3,7 +3,7 @@ import { ConfirmDialogProvider } from './components/ConfirmDialog';
 import { Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useEffect, useState, useRef, lazy, Suspense } from 'react';
 import { Capacitor } from '@capacitor/core';
-import { Box, Typography, IconButton, Button, useMediaQuery, useTheme, CircularProgress, MenuItem, Divider, ListItemIcon, ListItemText, Collapse, ListItemButton, Dialog, DialogTitle, DialogContent, DialogActions, Chip, Drawer, Avatar, Stack } from '@mui/material';
+import { Box, Typography, IconButton, Button, useMediaQuery, useTheme, CircularProgress, MenuItem, Divider, ListItemIcon, ListItemText, Collapse, ListItemButton, Dialog, DialogTitle, DialogContent, DialogActions, Chip, Drawer, Avatar, Stack, Link as MuiLink } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CloseIcon from '@mui/icons-material/Close';
@@ -30,7 +30,6 @@ import Diversity3Icon from '@mui/icons-material/Diversity3';
 import SummarizeIcon from '@mui/icons-material/Summarize';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
-import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import InfoIcon from '@mui/icons-material/Info';
 import { DrExame } from './components/DrExame';
@@ -349,13 +348,15 @@ const AppMenu = () => {
       <NavItem to="/relatorio" primaryText={translate('menu.report')} icon={<SummarizeIcon />} />
     </MenuSectionAccordion>
 
-    <MenuSectionAccordion title={translate('menu.section.care')} icon={<MonitorHeartIcon />} routes={['/medicoes', '/medicamentos', '/vacinas', '/lembretes', '/emergencia', '/conquistas']}>
+    <MenuSectionAccordion title={translate('menu.section.care')} icon={<MonitorHeartIcon />} routes={['/medicoes', '/medicamentos', '/vacinas', '/lembretes', '/emergencia', '/conquistas', '/despesas']}>
       <NavItem to="/medicoes" primaryText={translate('menu.measurements')} icon={<MonitorHeartIcon />} />
       <NavItem to="/medicamentos" primaryText={translate('menu.medications')} icon={<MedicationIcon />} />
       <NavItem to="/vacinas" primaryText={translate('menu.vaccines')} icon={<VaccinesIcon />} />
       <NavItem to="/lembretes" primaryText={translate('menu.reminders')} icon={<EventAvailableIcon />} />
       <NavItem to="/emergencia" primaryText={translate('menu.emergency')} icon={<HealthAndSafetyIcon />} highlight />
       <NavItem to="/conquistas" primaryText={translate('menu.achievements')} icon={<EmojiEventsIcon />} />
+      {/* Despesa médica é CUIDADO de saúde (pedido do dono) — antes ficava em "Conta". */}
+      <NavItem to="/despesas" primaryText={translate('menu.expenses')} icon={<AccountBalanceWalletIcon />} />
     </MenuSectionAccordion>
 
     <MenuSectionAccordion title={translate('menu.section.people')} icon={<Diversity3Icon />} routes={['/familia', '/patients', '/medicos', '/perguntas']}>
@@ -364,19 +365,19 @@ const AppMenu = () => {
       <NavItem to="/perguntas" primaryText={translate('menu.questions')} icon={<QuestionAnswerIcon />} />
     </MenuSectionAccordion>
 
-    <MenuSectionAccordion title={translate('menu.section.account')} icon={<AccountCircleIcon />} routes={['/perfil', '/seguranca', '/privacidade', '/planos', '/despesas', '/admin']}>
+    <MenuSectionAccordion title={translate('menu.section.account')} icon={<AccountCircleIcon />} routes={['/perfil', '/seguranca', '/privacidade', '/planos', '/admin']}>
       <NavItem to="/perfil" primaryText={translate('menu.profile')} icon={<AccountCircleIcon />} />
       <NavItem to="/seguranca" primaryText={translate('menu.security_pwd')} icon={<LockIcon />} />
       <NavItem to="/privacidade" primaryText={translate('menu.privacy')} icon={<HealthAndSafetyIcon />} />
       <NavItem to="/planos" primaryText={translate('menu.plans')} icon={<WorkspacePremiumIcon />} />
-      <NavItem to="/despesas" primaryText={translate('menu.expenses')} icon={<AccountBalanceWalletIcon />} />
       {isAdmin && <NavItem to="/admin" primaryText={translate('menu.admin')} icon={<AdminPanelSettingsIcon />} />}
     </MenuSectionAccordion>
 
     <Divider sx={{ my: 1 }} />
 
     <NavItem to="/faq" primaryText={translate('menu.faq', { _: 'Dúvidas frequentes' })} icon={<QuestionAnswerIcon />} />
-    <NavItem to="/como-validamos" primaryText={translate('menu.howvalidate', { _: 'Como validamos' })} icon={<VerifiedUserIcon />} />
+    {/* "Como validamos" saiu do menu (pedido do dono): vive dentro do FAQ (categoria
+        "Como validamos") — a rota /como-validamos segue pública (landing/FAQ linkam). */}
     <MenuItem onClick={() => setAboutOpen(true)} sx={{ mx: 0.5, borderRadius: '8px', py: 0.75 }}>
       <ListItemIcon sx={{ minWidth: 36 }}><InfoIcon fontSize="small" /></ListItemIcon>
       <ListItemText primaryTypographyProps={{ fontSize: 13, fontWeight: 600 }}>{translate('menu.about')}</ListItemText>
@@ -399,10 +400,10 @@ const AppMenu = () => {
           <Chip size="small" label="Scanner ML Kit" sx={{ bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 700 }} />
           <Chip size="small" label="LGPD" sx={{ bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 700 }} />
         </Box>
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-          📧 contato@janocaminho.com.br<br />
-          🌐 drexame.janocaminho.com.br
-        </Typography>
+        <Stack spacing={0.5} sx={{ mb: 1 }}>
+          <MuiLink href="mailto:contato@janocaminho.com.br" sx={{ fontSize: 12.5, fontWeight: 700 }}>📧 contato@janocaminho.com.br</MuiLink>
+          <MuiLink href="https://drexame.janocaminho.com.br" target="_blank" rel="noopener noreferrer" sx={{ fontSize: 12.5, fontWeight: 700 }}>🌐 drexame.janocaminho.com.br</MuiLink>
+        </Stack>
         <Typography variant="caption" sx={{ color: 'text.secondary', mt: 1, display: 'block' }}>
           {translate('about.disclaimer')}
         </Typography>

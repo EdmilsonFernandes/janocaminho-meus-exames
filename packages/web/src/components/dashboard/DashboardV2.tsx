@@ -13,6 +13,8 @@ import { FailedExamsAlert } from './FailedExamsAlert';
 import { RejectedExamsAlert } from './RejectedExamsAlert';
 import { NextStepsCard } from './NextStepsCard';
 import { AiCard } from './AiCard';
+import { AiTip } from './AiTip';
+import { GamificationBadges } from '../GamificationBadges';
 import { QuickActions } from './QuickActions';
 import { ActivityCard } from './ActivityCard';
 import { RestingHeartCard } from './RestingHeartCard';
@@ -269,8 +271,20 @@ export const DashboardV2 = () => {
   const cardioLevel: string = d.cardioRisk?.level ?? '';
   const cardioFactors: number = Array.isArray(d.cardioRisk?.factors) ? d.cardioRisk.factors.filter((f: any) => f.risk).length : 0;
 
+  // Dica da IA SEM fetch novo: mesmos markers do ChangesSinceExam (padrão do Dashboard
+  // legacy). Sem marker de atenção → fallback convida pro chat.
+  const markerToTip = (m: Marker | undefined): any => (m ? {
+    name: m.name,
+    value: (m as any).latest?.valueNumeric ?? null,
+    unit: (m as any).unit,
+    flag: ((m as any).latest?.valueNumeric != null && (m as any).refHigh != null && (m as any).latest.valueNumeric > (m as any).refHigh) ? 'HIGH'
+        : ((m as any).latest?.valueNumeric != null && (m as any).refLow != null && (m as any).latest.valueNumeric < (m as any).refLow) ? 'LOW'
+        : ((m as any).flag || ''),
+  } : null);
+  const tipNode = <AiTip firstName={firstName} tipData={{ abnormal: markerToTip(d.worsened[0]), good: markerToTip(d.improved[0]) }} fallbackTip="Toque e pergunte qualquer coisa sobre seus exames — eu leio seu histórico antes de responder." />;
+
   return (
-    <PageContainer width="wide" sx={{ bgcolor: (t) => (t.palette.mode === 'dark' ? 'background.default' : '#FAFBFC'), minHeight: '100vh', pb: { xs: 10, sm: 5 } }}>
+    <PageContainer width="wide" sx={{ bgcolor: (t) => (t.palette.mode === 'dark' ? 'background.default' : '#FAFBFC'), minHeight: '100vh' }}>
       <DashboardHeader firstName={firstName} />
       <FailedExamsAlert count={d.failed} onClick={() => navigate('/exams')} />
       <RejectedExamsAlert count={d.rejected} onClick={() => navigate('/exams')} />
@@ -290,7 +304,7 @@ export const DashboardV2 = () => {
 
       {/* DR. EXAME — insight + CTA chat (já com contexto) */}
       <Box sx={{ mt: 2 }}>
-        <AiCard tip={null} onChat={() => navigate('/chat')} />
+        <AiCard tip={tipNode} onChat={() => navigate('/chat')} />
       </Box>
 
       {/* SEUS INDICADORES — tiles (mobile 2x2, desktop 1x4).
@@ -338,6 +352,12 @@ export const DashboardV2 = () => {
       </Box>
       <Box sx={{ mt: 2 }}>
         <CreditsCard credits={d.credits} onClick={() => navigate('/planos')} />
+      </Box>
+
+      {/* Conquistas — preenche o fim da página com ENGAJAMENTO (antes: ~170px de gap
+          branco entre o card de créditos e o rodapé; pb duplicado do shell removido acima). */}
+      <Box sx={{ mt: 2 }}>
+        <GamificationBadges examsCount={d.stats.exams} score={d.score} />
       </Box>
 
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>

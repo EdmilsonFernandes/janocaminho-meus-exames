@@ -357,7 +357,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     } catch (e: any) { snackbar({ message: e.message || 'Falha ao responder.', severity: 'error' }); } finally { setQSending(null); }
   };
   const [newNote, setNewNote] = useState('');
-  const [activity, setActivity] = useState<{ days: number; avgSteps: number; avgKcal: number; avgKm: number } | null>(null);
+  const [activity, setActivity] = useState<{ days: number; avgSteps: number; avgKcal: number; avgKm: number; totalSteps?: number; totalKcal?: number; totalKm?: number } | null>(null);
   const [planInfo, setPlanInfo] = useState<any>(null);
   const [payOpen, setPayOpen] = useState(false);
   const [payData, setPayData] = useState<any>(null);
@@ -898,7 +898,9 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           // Alfabética (2026-08-19): pedido do dono — organização previsível pro médico; a
           // prioridade clínica segue visível na linha de status (🟠 moderadas · exame há X).
           const alerts = [...patients].filter((p) => p.hasAlerts).sort((a, b) => (a.patient?.fullName ?? '').localeCompare(b.patient?.fullName ?? '', 'pt-BR', { sensitivity: 'base' }));
-          const openQP = patients.filter((p) => (p.openQuestions ?? 0) > 0);
+          // Mais perguntas primeiro (quem mais espera encabeça); desempate alfabético.
+          const openQP = [...patients].filter((p) => (p.openQuestions ?? 0) > 0)
+            .sort((a, b) => ((b.openQuestions ?? 0) - (a.openQuestions ?? 0)) || (a.patient?.fullName ?? '').localeCompare(b.patient?.fullName ?? '', 'pt-BR', { sensitivity: 'base' }));
           const pendingInv = invites.filter((i) => i.status === 'pending');
           const PRIORITY_LABEL: Record<string, string> = { importante: 'Prioridade alta', moderada: 'Alterações moderadas', leve: 'Alterações leves' };
           const relDays = (d?: string | null) => { if (!d) return null; const n = Math.floor((Date.now() - new Date(d).getTime()) / 86400000); return n < 1 ? 'hoje' : n < 30 ? `há ${n} ${n === 1 ? 'dia' : 'dias'}` : n < 365 ? `há ${Math.floor(n / 30)} ${Math.floor(n / 30) === 1 ? 'mês' : 'meses'}` : `há ${Math.floor(n / 365)} ${Math.floor(n / 365) === 1 ? 'ano' : 'anos'}`; };
@@ -994,6 +996,13 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                   </Stack>
                   <Stack spacing={1.25}>
                     {openQP.slice(0, 3).map((p) => row(p, `${p.openQuestions} em aberto`, () => openPatient(p, 'questions')))}
+                    {/* Escala c/ 50 pacientes: slice 3 + escape pro inbox (mesmo padrão do
+                        bloco "Precisam de atenção" — antes a lista simplesmente engolia a tela). */}
+                    {openQP.length > 3 && (
+                      <Button size="small" variant="outlined" onClick={() => { setView('questions'); loadAllQ(); }} sx={{ alignSelf: 'center', borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>
+                        {`+${openQP.length - 3} paciente${openQP.length - 3 > 1 ? 's' : ''} aguardando resposta`}
+                      </Button>
+                    )}
                   </Stack>
                 </Box>
               )}
@@ -1001,10 +1010,18 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               {/* RENOVAÇÃO: exames velhos ou inexistentes — oportunidade de pedido novo */}
               {stale.length > 0 && (
                 <Box>
-                  <Stack direction="row" alignItems="center" spacing={0.75} sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 15, mb: 1, color: 'text.primary' }}><CalendarBlank size={18} weight="duotone" color={COPPER.deep} />Exames para renovar</Stack>
+                  <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
+                    <Stack direction="row" alignItems="center" spacing={0.75} sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 15, color: 'text.primary' }}><CalendarBlank size={18} weight="duotone" color={COPPER.deep} />Exames para renovar</Stack>
+                    <Button size="small" onClick={() => setView('patients')} sx={{ textTransform: 'none', fontWeight: 700, color: 'primary.dark', borderRadius: '999px' }}>Ver todos</Button>
+                  </Stack>
                   <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>Sem exame novo há mais de 1 ano (ou nenhum compartilhado) — peça uma atualização na próxima consulta.</Typography>
                   <Stack spacing={1.25}>
                     {stale.slice(0, 3).map((p) => row(p, (p.examsCount ?? 0) === 0 ? 'sem exames compartilhados' : `último exame ${relDays(p.lastExamAt)}`, () => openPatient(p)))}
+                    {stale.length > 3 && (
+                      <Button size="small" variant="outlined" onClick={() => setView('patients')} sx={{ alignSelf: 'center', borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>
+                        {`+${stale.length - 3} para renovar`}
+                      </Button>
+                    )}
                   </Stack>
                 </Box>
               )}

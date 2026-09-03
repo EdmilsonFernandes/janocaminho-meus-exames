@@ -251,9 +251,9 @@ export const PlansPage = () => {
               O <strong>Plano Premium</strong> ({planInfo?.plan ? fmtBRL(planInfo.plan.effectivePrice) : 'R$ 19,90'}/mês) e os <strong>créditos</strong> para a IA são adquirados pelo nosso <strong>site</strong>, com PIX instantâneo.
             </Typography>
             <Typography sx={{ mt: 2, fontWeight: 700 }}>Acesse pelo navegador:</Typography>
-            <Typography sx={{ fontFamily: 'monospace', fontSize: 16, bgcolor: 'background.paper', border: '1px solid #cfe9e5', p: 1, borderRadius: '8px', mt: 0.5, userSelect: 'all' }}>
+            <Box component="a" href="https://drexame.janocaminho.com.br" target="_blank" rel="noopener noreferrer" sx={{ display: 'block', fontFamily: 'monospace', fontSize: 16, bgcolor: 'background.paper', border: '1px solid #cfe9e5', p: 1, borderRadius: '8px', mt: 0.5, userSelect: 'all', textDecoration: 'none', color: 'primary.dark', '&:hover': { textDecoration: 'underline', borderColor: 'primary.main' } }}>
               drexame.janocaminho.com.br
-            </Typography>
+            </Box>
             <Alert severity="info" sx={{ mt: 2 }} icon={false}>
               Depois de assinar ou comprar créditos no site, entre no app com o <strong>mesmo login</strong> — o saldo e o Premium aparecem aqui automaticamente.
             </Alert>

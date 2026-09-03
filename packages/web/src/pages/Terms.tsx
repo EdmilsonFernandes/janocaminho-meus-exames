@@ -39,7 +39,7 @@ export const TermsPage = () => {
         <H>6. Exclusão de conta e dados (titular dos dados — LGPD)</H>
         <P>Você pode, a qualquer momento: <strong>acessar, corrigir, portar ou excluir</strong> seus dados do <strong>Meus Exames</strong>, total ou parcialmente.</P>
         <P><strong>Como solicitar a exclusão da conta e dos dados:</strong></P>
-        <P>1. <strong>Pelo app:</strong> acesse <strong>Perfil → “Excluir conta”</strong>. Apaga definitivamente a conta (nome e e-mail), os exames (PDFs e imagens), os valores extraídos, as análises da IA, as fotos e a memória do assistente Dr. Exame.<br />2. <strong>Por e-mail:</strong> envie um pedido para <strong>contato@janocaminho.com.br</strong> informando o nome e o e-mail da conta. O prazo máximo de atendimento é de 30 dias (LGPD).</P>
+        <P>1. <strong>Pelo app:</strong> acesse <strong>Perfil → “Excluir conta”</strong>. Apaga definitivamente a conta (nome e e-mail), os exames (PDFs e imagens), os valores extraídos, as análises da IA, as fotos e a memória do assistente Dr. Exame.<br />2. <strong>Por e-mail:</strong> envie um pedido para <MuiLink href="mailto:contato@janocaminho.com.br" sx={{ fontWeight: 700 }}>contato@janocaminho.com.br</MuiLink> informando o nome e o e-mail da conta. O prazo máximo de atendimento é de 30 dias (LGPD).</P>
         <P><strong>Excluir apenas parte dos dados (sem excluir a conta):</strong> dentro do app você pode apagar exames, dependentes ou a memória da IA individualmente, a qualquer momento.</P>
         <P><strong>O que pode ser mantido temporariamente:</strong> logs de segurança/auditoria e registros necessários para cumprimento legal podem ser retidos por até <strong>90 dias</strong> após a exclusão, sendo então completamente apagados.</P>
 
@@ -50,7 +50,7 @@ export const TermsPage = () => {
         <P>O app não é direcionado a menores de 18 anos sem supervisão de um responsável. Perfis de dependentes devem ser criados e geridos por um adulto responsável.</P>
 
         <H>9. Alterações e contato</H>
-        <P>Estes termos podem ser atualizados; mudanças relevantes serão comunicadas no app. Dúvidas ou solicitações (LGPD): <strong>contato@janocaminho.com.br</strong>.</P>
+        <P>Estes termos podem ser atualizados; mudanças relevantes serão comunicadas no app. Dúvidas ou solicitações (LGPD): <MuiLink href="mailto:contato@janocaminho.com.br" sx={{ fontWeight: 700 }}>contato@janocaminho.com.br</MuiLink>.</P>
 
         <Divider sx={{ my: 3 }} />
         <Box sx={{ textAlign: 'center' }}>

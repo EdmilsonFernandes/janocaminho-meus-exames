@@ -126,7 +126,7 @@ const CreateTicketDialog = ({ open, onClose, onCreated, prefill }: { open: boole
           </Box>
           {err && <Typography color="error" variant="body2">{err}</Typography>}
           {prefill?.examId && <Typography variant="caption" sx={{ color: '#178f89', fontWeight: 600 }}>📎 O contexto do exame (identificação, CPFs mascarados e motivo da rejeição) será anexado automaticamente ao chamado.</Typography>}
-          <Typography variant="caption" color="text.secondary">Resposta em até 1 dia útil. Para urgências, contato@janocaminho.com.br.</Typography>
+          <Typography variant="caption" color="text.secondary">Resposta em até 1 dia útil. Para urgências, <Box component="a" href="mailto:contato@janocaminho.com.br" sx={{ fontWeight: 700, color: 'primary.dark', textDecoration: 'underline' }}>contato@janocaminho.com.br</Box>.</Typography>
         </Stack>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2.5 }}>
@@ -191,7 +191,7 @@ const TicketList = () => {
           </Box>
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 21, md: 25 }, lineHeight: 1.15 }}>Como podemos ajudar?</Typography>
-            <Typography sx={{ fontSize: 14, opacity: 0.92, mt: 0.5 }}>Resposta em até 1 dia útil · urgências: contato@janocaminho.com.br</Typography>
+            <Typography sx={{ fontSize: 14, opacity: 0.92, mt: 0.5 }}>Resposta em até 1 dia útil · urgências: <Box component="a" href="mailto:contato@janocaminho.com.br" sx={{ fontWeight: 700, color: 'inherit', textDecoration: 'underline' }}>contato@janocaminho.com.br</Box></Typography>
           </Box>
           <Button
             variant="contained" onClick={() => openCreate()} startIcon={<AddIcon />}

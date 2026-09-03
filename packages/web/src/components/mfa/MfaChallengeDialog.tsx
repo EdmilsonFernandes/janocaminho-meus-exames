@@ -51,7 +51,7 @@ export const MfaChallengeDialog = ({ open, challengeToken, account, verifyUrl, o
             <Typography sx={{ fontSize: 13, color: 'text.secondary', lineHeight: 1.5 }}>
               📸 Envie uma <b>foto segurando seu documento</b> (RG ou CPF) para:
             </Typography>
-            <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'primary.main' }}>
+            <Typography component="a" href="mailto:contato@janocaminho.com.br" sx={{ fontSize: 13, fontWeight: 700, color: 'primary.main', textDecoration: 'underline' }}>
               📧 contato@janocaminho.com.br
             </Typography>
             <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>

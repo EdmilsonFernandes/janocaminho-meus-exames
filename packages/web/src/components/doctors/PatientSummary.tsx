@@ -34,6 +34,12 @@ const timeAgo = (d?: string): string => {
 
 const sexLabel = (s?: string): string | null => (s === 'female' ? 'Feminino' : s === 'male' ? 'Masculino' : null);
 
+/** 142300 → "142 mil" · 9250 → "9.250" — números grandes do tile de atividade sem estourar. */
+const fmtCompact = (n: number): string =>
+  n >= 100000 ? `${Math.round(n / 1000)} mil`
+  : n >= 10000 ? `${(n / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} mil`
+  : n.toLocaleString('pt-BR');
+
 export interface PatientSummaryProps {
   patient: any;
   exams: any[];
@@ -51,8 +57,9 @@ export interface PatientSummaryProps {
   onOpenExams?: () => void;
   onOpenQuestions?: () => void;
   onOpenNotes?: () => void;
-  /** Atividade 30d (Health Connect do paciente) — null quando não sincroniza; tile some. */
-  activity?: { days: number; avgSteps: number; avgKcal: number; avgKm: number } | null;
+  /** Atividade 30d (Health Connect do paciente) — null quando não sincroniza; tile some.
+   *  Totais do período em destaque (pedido do dono); médias seguem como contexto. */
+  activity?: { days: number; avgSteps: number; avgKcal: number; avgKm: number; totalSteps?: number; totalKcal?: number; totalKm?: number } | null;
   /** Remédios ativos + interações críticas (tile 5 — contexto farmacológico da consulta). */
   medsCount?: number;
   criticalMeds?: number;
@@ -69,6 +76,8 @@ interface Tile {
   icon: ReactNode;
   value: string;
   sub?: string;
+  /** true = sub pode quebrar em 2 linhas (texts longos de atividade; default = 1 linha c/ ellipsis). */
+  subWrap?: boolean;
   color: string;
   onClick?: () => void;
 }
@@ -114,13 +123,17 @@ export const PatientSummary = ({ patient, exams, abnormal, questions, notes, pat
     },
     // ATIVIDADE (Health Connect): contexto de estilo de vida p/ ler glicose/lipídios/PA.
     // Tile só existe com dados — sem sincronização, nada de caixa vazia.
+    // TOTAIS do período em destaque + média/dia como contexto (pedido do dono: "soma tudo
+    // e é dos 30 dias" — a média sozinha escondia o volume). Guard: server sem totais
+    // (deploy cruzado) deriva da média × dias.
     ...(activity && activity.days > 0 ? [{
       key: 'activity',
       label: 'Atividade (30d)',
       icon: <DirectionsWalkIcon sx={{ fontSize: 18, color: primary }} />,
-      value: `${activity.avgSteps.toLocaleString('pt-BR')} passos/dia`,
-      sub: `${activity.avgKm.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} km · ${activity.avgKcal.toLocaleString('pt-BR')} kcal/dia`,
+      value: `${fmtCompact(activity.totalSteps ?? Math.round(activity.avgSteps * activity.days))} passos · ${activity.days} dias`,
+      sub: `média ${fmtCompact(activity.avgSteps)}/dia · ${(activity.totalKm ?? activity.avgKm).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} km · ${fmtCompact(activity.totalKcal ?? Math.round(activity.avgKcal * activity.days))} kcal`,
       color: 'text.primary',
+      subWrap: true,
     }] : []),
     {
       key: 'alt',
@@ -217,7 +230,7 @@ export const PatientSummary = ({ patient, exams, abnormal, questions, notes, pat
             ) : (
               <Typography sx={{ fontWeight: 800, color: t.color as never, fontSize: 16, lineHeight: 1.2, overflowWrap: 'anywhere' }}>{t.value}</Typography>
             )}
-            {!loading && t.sub && <Typography variant="caption" noWrap sx={{ color: 'text.secondary', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.sub}</Typography>}
+            {!loading && t.sub && <Typography variant="caption" noWrap={!t.subWrap} sx={{ color: 'text.secondary', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.3 }}>{t.sub}</Typography>}
           </Box>
         ))}
       </Box>

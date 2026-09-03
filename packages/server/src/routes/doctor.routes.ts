@@ -691,7 +691,9 @@ router.get('/patients/:patientId/items/timeseries', requireDoctor, async (req: a
 // O médico LÊ o relatório; ele é gerado no tom clínico ("O paciente X apresenta..."), não no
 // tom leigo do paciente ("Edmilson, seu quadre..."). Grátis pro médico (como /summary/generate).
 // Upsert (1 relatório médico por paciente). Sem charge de créditos.
-// ATIVIDADE FÍSICA do paciente (Health Connect → medições): médias 30d p/ o tile do resumo.
+// ATIVIDADE FÍSICA do paciente (Health Connect → medições): TOTAIS + médias 30d p/ o tile
+// do resumo. Totais em destaque (pedido do dono: "soma tudo e é dos 30 dias" — a média/dia
+// sozinha escondia o volume real); médias seguem como contexto (sobre os dias COM passos).
 // Scope 'exams' (mesma família dos dados de saúde do paciente); 404-equivalente = {days:0}.
 router.get('/patients/:patientId/activity', requireDoctor, async (req: any, res, next) => {
   try {
@@ -713,8 +715,12 @@ router.get('/patients/:patientId/activity', requireDoctor, async (req: any, res,
     }
     const days = [...byDay.values()].filter((a) => a.s > 0);
     const avg = (k: 's' | 'c' | 'd') => (days.length ? days.reduce((t, a) => t + a[k], 0) / days.length : 0);
+    const sum = (k: 's' | 'c' | 'd') => days.reduce((t, a) => t + a[k], 0);
     res.json({
       days: days.length,
+      totalSteps: Math.round(sum('s')),
+      totalKcal: Math.round(sum('c')),
+      totalKm: Math.round(sum('d') * 10) / 10,
       avgSteps: Math.round(avg('s')),
       avgKcal: Math.round(avg('c')),
       avgKm: Math.round(avg('d') * 10) / 10,

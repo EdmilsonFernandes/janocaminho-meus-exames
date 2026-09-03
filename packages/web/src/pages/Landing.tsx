@@ -858,7 +858,7 @@ export const LandingPage = () => {
             <Box component="img" src={`${import.meta.env.BASE_URL}app-icon.png`} alt="Dr. Exame" sx={{ width: 34, height: 34, borderRadius: '20%', border: '1px solid rgba(32,178,170,0.3)' }} />
             <Typography sx={{ fontWeight: 800, color: '#fff', fontSize: 19, fontFamily: 'Poppins, sans-serif' }}>Meus Exames</Typography>
           </Stack>
-          <Typography sx={{ fontSize: 13.5, mb: 1, color: '#a0c4c0' }}>© {new Date().getFullYear()} janocaminho.com.br • contato@janocaminho.com.br</Typography>
+          <Typography sx={{ fontSize: 13.5, mb: 1, color: '#a0c4c0' }}>© {new Date().getFullYear()} janocaminho.com.br • <Box component="a" href="mailto:contato@janocaminho.com.br" sx={{ color: '#a0c4c0', textDecoration: 'underline' }}>contato@janocaminho.com.br</Box></Typography>
           <Typography sx={{ fontSize: 12, opacity: .75, mb: 3, maxWidth: 540, mx: 'auto', lineHeight: 1.5 }}>Edmilson Fernandes • CNPJ: 44.771.427/0001-69 • Análise educativa, não substitui consulta médica.</Typography>
 
           {/* WHATSAPP — botão premium com logo oficial, gradient verde e pulse sutil

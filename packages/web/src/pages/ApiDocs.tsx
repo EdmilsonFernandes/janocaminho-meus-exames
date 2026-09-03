@@ -393,7 +393,7 @@ export const ApiDocsPage = () => {
                 </Button>
               </Stack>
               <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2.5 }}>
-                Meus Exames — dado educativo de varejo farmacêutico. Não é recomendação médica (linha ANVISA RDC 657). Dúvidas: contato@janocaminho.com.br.
+                Meus Exames — dado educativo de varejo farmacêutico. Não é recomendação médica (linha ANVISA RDC 657). Dúvidas: <Box component="a" href="mailto:contato@janocaminho.com.br" sx={{ fontWeight: 700, color: 'primary.dark', textDecoration: 'underline' }}>contato@janocaminho.com.br</Box>.
               </Typography>
             </Box>
           </Box>
