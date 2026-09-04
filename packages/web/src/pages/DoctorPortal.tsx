@@ -40,9 +40,10 @@ import { QuestionStatusBadge } from '../components/QuestionStatusBadge';
 import { confirmDialog, snackbar } from '../components/ConfirmDialog';
 import { DrExame } from '../components/DrExame';
 import { OtpInput } from '../components/OtpInput';
-import { MfaSetupCard } from '../components/mfa/MfaSetupCard';
+import { DoctorProfileForm } from '../components/doctors/portal/DoctorProfileForm';
+import { DoctorChangePasswordForm } from '../components/doctors/portal/DoctorChangePasswordForm';
+import { NotesTab, Empty } from '../components/doctors/portal/NotesTab';
 import { SPECIALTIES, UFS } from '../utils/medicalData';
-import { PhotoUpload } from '../components/PhotoUpload';
 import { formatCpf, isValidCpf } from '../utils/cpf';
 import { DoctorPatientSwitcher } from '../components/doctors/DoctorPatientSwitcher';
 import { DoctorExamList } from '../components/doctors/DoctorExamList';
@@ -642,8 +643,8 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
       </Box>
 
       <Box sx={{ maxWidth: LAYOUT.content, mx: 'auto', p: { xs: 2, md: 3 }, pb: { xs: 11, md: 4 }, bgcolor: 'background.default', minHeight: '100vh', overflowX: 'hidden', width: '100%' }}>
-        {view === 'profile' && <DoctorProfile token={token} doctor={doctor} onBack={() => setView('patients')} onSaved={(d) => setDoctor(d)} onPhoto={() => setPhotoVer((v) => v + 1)} photoVer={photoVer} />}
-        {view === 'password' && <DoctorChangePassword token={token} onBack={() => setView('patients')} />}
+        {view === 'profile' && <DoctorProfileForm token={token} doctor={doctor} onBack={() => setView('patients')} onSaved={(d) => setDoctor(d)} onPhoto={() => setPhotoVer((v) => v + 1)} photoVer={photoVer} />}
+        {view === 'password' && <DoctorChangePasswordForm token={token} onBack={() => setView('patients')} />}
 
         {/* CONVITES — gestão dedicada (criar, copiar link, reenviar WhatsApp, cancelar). Tira o
             convite de dentro da lista de pacientes (poluía a tela principal do médico). */}
@@ -1441,163 +1442,6 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   );
 };
 
-const Empty = ({ label, icon = '📭' }: { label: string; icon?: string }) => (
-  <Card sx={{ borderRadius: '12px' }}><CardContent><Box sx={{ textAlign: 'center', py: 4 }}>
-    <Box sx={{ fontSize: 44, mb: 1 }}>{icon}</Box>
-    <Typography color="text.secondary">{label}</Typography>
-  </Box></CardContent></Card>
-);
-
-/** Perfil do médico: foto (reusa PhotoUpload) + edição de nome/especialidade/e-mail. CRM fixo. */
-const DoctorProfile = ({ token, doctor, onBack, onSaved, onPhoto, photoVer }: { token: string; doctor: any; onBack: () => void; onSaved: (d: any) => void; onPhoto: () => void; photoVer: number }) => {
-  const [name, setName] = useState(doctor?.name ?? '');
-  const [spec, setSpec] = useState(doctor?.specialty ?? '');
-  const [email, setEmail] = useState(doctor?.email ?? '');
-  // Perfil público (visto pelo paciente ao abrir o médico na lista dele)
-  const [phone, setPhone] = useState(doctor?.phone ?? '');
-  const [clinicName, setClinicName] = useState(doctor?.clinicName ?? '');
-  const [clinicCity, setClinicCity] = useState(doctor?.clinicCity ?? '');
-  const [bio, setBio] = useState(doctor?.bio ?? '');
-  const [saving, setSaving] = useState(false);
-  const [msg, setMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
-
-  const save = async () => {
-    setSaving(true); setMsg(null);
-    try {
-      const r = await fetch(`${API_URL}/doctor/me`, { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ name, specialty: spec, email }) });
-      const d = await r.json();
-      if (!r.ok) throw new Error(d.error || 'Falha ao salvar');
-      // Perfil público (telefone/consultório/cidade/bio) — endpoint dedicado, visto pelo paciente.
-      const r2 = await fetch(`${API_URL}/doctor/profile`, { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ phone, clinicName, clinicCity, bio }) });
-      const d2 = await r2.json();
-      if (!r2.ok) throw new Error(d2.error || 'Falha ao salvar perfil público');
-      onSaved(d2.doctor); setMsg({ type: 'ok', text: 'Perfil atualizado!' });
-    } catch (e: any) { setMsg({ type: 'err', text: e.message }); } finally { setSaving(false); }
-  };
-
-  return (
-    <Box>
-      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
-        <Button size="small" onClick={onBack} sx={{ color: 'primary.dark', textTransform: 'none', fontWeight: 700, minWidth: 0 }}>← Voltar</Button>
-        <Typography sx={{ fontWeight: 800, color: 'text.primary' }}>Meu perfil</Typography>
-      </Stack>
-
-      <Card sx={{ borderRadius: '12px', mb: 2, background: 'rgba(32,178,170,0.08)', border: '1px solid', borderColor: 'divider' }}>
-        <CardContent>
-          <Stack direction="row" spacing={2} alignItems="center">
-            <PhotoUpload endpoint={`${API_URL}/doctor/me/photo`} authToken={token} fallback={doctor?.name?.charAt(0)} src={doctor?.photoUrl ? doctorPhotoUrl(doctor.id, photoVer) : undefined} onUploaded={onPhoto} size={84} hideLabel />
-            <Box>
-              <Typography sx={{ fontWeight: 800, color: 'text.primary' }}>{name || 'Médico'}</Typography>
-              <Typography variant="caption" color="text.secondary">CRM {doctor?.crm}{spec ? ` • ${spec}` : ''}</Typography>
-              <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>Toque na câmera pra trocar a foto.</Typography>
-            </Box>
-          </Stack>
-        </CardContent>
-      </Card>
-
-      <Box sx={{ mt: 2 }}>
-        <MfaSetupCard apiBase={`${API_URL}/doctor`} authToken={token} />
-      </Box>
-
-      <Card sx={{ borderRadius: '12px' }}>
-        <CardContent>
-          <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 800, color: 'primary.dark' }}>DADOS PROFISSIONAIS</Typography>
-          <Stack spacing={2}>
-            <TextField label="Nome completo" value={name} onChange={(e) => setName(e.target.value)} size="small" fullWidth />
-            <TextField label="CPF" value={doctor?.cpfMasked ?? 'Não cadastrado'} disabled size="small" fullWidth helperText="CPF fica bloqueado após verificação. Correção somente via suporte auditado." />
-            <TextField label="CRM" value={doctor?.crm ?? ''} disabled size="small" fullWidth helperText="O CRM não pode ser alterado (identidade profissional)." />
-            <TextField select label="Especialidade" value={spec} onChange={(e) => setSpec(e.target.value)} size="small" fullWidth>
-              <MenuItem value=""><em>Selecione…</em></MenuItem>
-              {SPECIALTIES.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
-            </TextField>
-            <TextField label="E-mail" type="email" value={email} onChange={(e) => setEmail(e.target.value)} size="small" fullWidth />
-            <Divider sx={{ my: 0.5 }}><Typography variant="caption" color="text.secondary">PERFIL PÚBLICO (visto pelo paciente)</Typography></Divider>
-            <TextField label="Telefone / WhatsApp" value={phone} onChange={(e) => setPhone(e.target.value)} size="small" fullWidth helperText="Vira o botão 'Agendar no WhatsApp' para o paciente." inputProps={{ inputMode: 'tel' }} />
-            <TextField label="Consultório / Clínica" value={clinicName} onChange={(e) => setClinicName(e.target.value)} size="small" fullWidth />
-            <TextField label="Cidade - UF" value={clinicCity} onChange={(e) => setClinicCity(e.target.value)} size="small" fullWidth placeholder="Ex.: São Paulo - SP" />
-            <TextField label="Apresentação / referências" value={bio} onChange={(e) => setBio(e.target.value)} size="small" fullWidth multiline minRows={2} inputProps={{ maxLength: 500 }} />
-          </Stack>
-          {msg && <Alert severity={msg.type === 'ok' ? 'success' : 'error'} sx={{ mt: 1.5, py: 0.5, borderRadius: '12px' }}>{msg.text}</Alert>}
-          <Button variant="contained" color="primary" onClick={save} disabled={saving} startIcon={saving ? <CircularProgress size={18} color="inherit" /> : undefined} sx={{ mt: 2, borderRadius: '12px', textTransform: 'none', fontWeight: 800 }}>{saving ? 'Salvando…' : 'Salvar perfil'}</Button>
-        </CardContent>
-      </Card>
-    </Box>
-  );
-};
-
-/** Trocar senha do médico. */
-const DoctorChangePassword = ({ token, onBack }: { token: string; onBack: () => void }) => {
-  const [cur, setCur] = useState(''); const [nw, setNw] = useState(''); const [cf, setCf] = useState('');
-  const [saving, setSaving] = useState(false);
-  const [msg, setMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
-  const save = async () => {
-    if (nw !== cf) { setMsg({ type: 'err', text: 'A nova senha e a confirmação não conferem.' }); return; }
-    if (nw.length < 6) { setMsg({ type: 'err', text: 'Nova senha mín. 6 caracteres.' }); return; }
-    setSaving(true); setMsg(null);
-    try { const r = await fetch(`${API_URL}/doctor/me/password`, { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ currentPassword: cur, newPassword: nw }) }); const d = await r.json(); if (!r.ok) throw new Error(d.error || 'Falha'); setMsg({ type: 'ok', text: 'Senha alterada com sucesso!' }); setCur(''); setNw(''); setCf(''); }
-    catch (e: any) { setMsg({ type: 'err', text: e.message }); } finally { setSaving(false); }
-  };
-  return (
-    <Box>
-      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
-        <Button size="small" onClick={onBack} sx={{ color: 'primary.dark', textTransform: 'none', fontWeight: 700, minWidth: 0 }}>← Voltar</Button>
-        <Typography sx={{ fontWeight: 800, color: 'text.primary' }}>🔒 Trocar senha</Typography>
-      </Stack>
-      <Card sx={{ borderRadius: '12px' }}><CardContent>
-        <Stack spacing={2}>
-          <TextField type="password" label="Senha atual" value={cur} onChange={(e) => setCur(e.target.value)} size="small" fullWidth />
-          <TextField type="password" label="Nova senha (mín. 6)" value={nw} onChange={(e) => setNw(e.target.value)} size="small" fullWidth />
-          <TextField type="password" label="Confirmar nova senha" value={cf} onChange={(e) => setCf(e.target.value)} size="small" fullWidth />
-          {msg && <Alert severity={msg.type === 'ok' ? 'success' : 'error'} sx={{ py: 0.5, borderRadius: '12px' }}>{msg.text}</Alert>}
-          <Button variant="contained" color="primary" onClick={save} disabled={saving || !cur || !nw} startIcon={saving ? <CircularProgress size={18} color="inherit" /> : <LockIcon />} sx={{ alignSelf: 'flex-start', borderRadius: '12px', textTransform: 'none', fontWeight: 800 }}>{saving ? 'Alterando…' : 'Alterar senha'}</Button>
-        </Stack>
-      </CardContent></Card>
-    </Box>
-  );
-};
-
-/** #1 Anotações clínicas (histórico de atendimento) — adicionar / editar / excluir. */
-const NotesTab = ({ notes, newNote, setNewNote, onAdd, onDelete, onSave }: { notes: any[]; newNote: string; setNewNote: (s: string) => void; onAdd: () => void; onDelete: (id: string) => void; onSave: (id: string, content: string) => void }) => {
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editText, setEditText] = useState('');
-  const btnSx = { borderRadius: '12px', textTransform: 'none', fontWeight: 800, bgcolor: 'primary.dark', '&:hover': { bgcolor: 'primary.main' } } as const;
-  return (
-    <Box>
-      <Card sx={{ mb: 2, borderRadius: '12px', border: '1px solid', borderColor: 'divider' }}><CardContent>
-        <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 800, color: 'primary.dark' }}>📝 Nova anotação</Typography>
-        <TextField value={newNote} onChange={(e) => setNewNote(e.target.value)} multiline minRows={2} fullWidth size="small" placeholder="Conduta, observação clínica, retorno solicitado…" />
-        <Button variant="contained" onClick={onAdd} disabled={!newNote.trim()} sx={{ mt: 1, ...btnSx }}>Adicionar</Button>
-      </CardContent></Card>
-      {notes.length === 0 && <Empty label="Nenhuma anotação ainda. Use o campo acima pra registrar uma conduta." icon="📝" />}
-      <Stack spacing={1.25}>
-        {notes.map((n) => (
-          <Card key={n.id} variant="outlined" sx={{ borderRadius: '12px', borderColor: 'divider' }}><CardContent>
-            {editingId === n.id ? (
-              <>
-                <TextField value={editText} onChange={(e) => setEditText(e.target.value)} multiline minRows={2} fullWidth size="small" autoFocus />
-                <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-                  <Button size="small" variant="contained" disabled={!editText.trim()} onClick={() => { onSave(n.id, editText.trim()); setEditingId(null); }} sx={btnSx}>Salvar</Button>
-                  <Button size="small" onClick={() => setEditingId(null)}>Cancelar</Button>
-                </Stack>
-              </>
-            ) : (
-              <>
-                <Typography sx={{ whiteSpace: 'pre-wrap', fontSize: 14, color: 'text.primary' }}>{n.content}</Typography>
-                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 1 }}>
-                  <Typography variant="caption" color="text.secondary">{new Date(n.createdAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })}</Typography>
-                  <Stack direction="row" spacing={0.5}>
-                    <IconButton aria-label="Editar anotação" size="small" sx={{ color: 'text.secondary' }} onClick={() => { setEditingId(n.id); setEditText(n.content); }}><EditOutlinedIcon fontSize="small" /></IconButton>
-                    <IconButton aria-label="Excluir anotação" size="small" sx={{ color: 'error.main' }} onClick={() => onDelete(n.id)}><DeleteOutlinedIcon fontSize="small" /></IconButton>
-                  </Stack>
-                </Stack>
-              </>
-            )}
-          </CardContent></Card>
-        ))}
-      </Stack>
-    </Box>
-  );
-};
+// Perfil/senha/anotações: components/doctors/portal/* (extraídos no split do P3).
 
 // Status de triagem do analito removido (EvolutionCharts migrado para components/doctors).
-
