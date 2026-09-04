@@ -26,7 +26,9 @@ fi
 
 ts="$(date -u +%Y%m%dT%H%M%SZ)"; out="$OUT_DIR/${DB_NAME}_${ts}.sql.gz"; checksum="$out.sha256"
 echo "Backup de $DB_NAME ($CONTAINER_NAME) -> $out"
-docker exec "$CONTAINER_NAME" sh -lc "pg_dump -U \"$USER_NAME\" -d \"$DB_NAME\" --no-owner --no-privileges" | gzip -9 > "$out"
+# gzip -6 (default): -9 custava 2-3x mais CPU no EC2 2 vCPU compartilhado — contribuiu
+# pro congestionamento do incidente de 04/09 (dump + gzip pesado no horário de uso).
+docker exec "$CONTAINER_NAME" sh -lc "pg_dump -U \"$USER_NAME\" -d \"$DB_NAME\" --no-owner --no-privileges" | gzip -6 > "$out"
 test -s "$out" && gzip -t "$out"
 command -v sha256sum >/dev/null 2>&1 && ( cd "$OUT_DIR" && sha256sum "$(basename "$out")" > "$(basename "$checksum")" ) || true
 
