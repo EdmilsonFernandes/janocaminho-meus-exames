@@ -75,9 +75,8 @@ interface Tile {
   label: string;
   icon: ReactNode;
   value: string;
-  sub?: string;
-  /** true = sub pode quebrar em 2 linhas (texts longos de atividade; default = 1 linha c/ ellipsis). */
-  subWrap?: boolean;
+  /** string[] = 1 linha por item (quebras EXPLÍCITAS — wrap aleatório corta frases no meio). */
+  sub?: string | string[];
   color: string;
   onClick?: () => void;
 }
@@ -128,12 +127,16 @@ export const PatientSummary = ({ patient, exams, abnormal, questions, notes, pat
     // (deploy cruzado) deriva da média × dias.
     ...(activity && activity.days > 0 ? [{
       key: 'activity',
-      label: 'Atividade (30d)',
+      label: 'Atividade · 30d',
       icon: <DirectionsWalkIcon sx={{ fontSize: 18, color: primary }} />,
-      value: `${fmtCompact(activity.totalSteps ?? Math.round(activity.avgSteps * activity.days))} passos · ${activity.days} dias`,
-      sub: `média ${fmtCompact(activity.avgSteps)}/dia · ${(activity.totalKm ?? activity.avgKm).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} km · ${fmtCompact(activity.totalKcal ?? Math.round(activity.avgKcal * activity.days))} kcal`,
+      // "30d" já está no label — o value fica curto (1 linha) e o sub quebra em 2
+      // linhas EXPLÍCITAS (antes o wrap aleatório derrubava "dias"/"kcal" sozinhos).
+      value: `${fmtCompact(activity.totalSteps ?? Math.round(activity.avgSteps * activity.days))} passos`,
+      sub: [
+        `média ${fmtCompact(activity.avgSteps)}/dia`,
+        `${(activity.totalKm ?? activity.avgKm).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} km · ${fmtCompact(activity.totalKcal ?? Math.round(activity.avgKcal * activity.days))} kcal`,
+      ],
       color: 'text.primary',
-      subWrap: true,
     }] : []),
     {
       key: 'alt',
@@ -230,7 +233,9 @@ export const PatientSummary = ({ patient, exams, abnormal, questions, notes, pat
             ) : (
               <Typography sx={{ fontWeight: 800, color: t.color as never, fontSize: 16, lineHeight: 1.2, overflowWrap: 'anywhere' }}>{t.value}</Typography>
             )}
-            {!loading && t.sub && <Typography variant="caption" noWrap={!t.subWrap} sx={{ color: 'text.secondary', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.3 }}>{t.sub}</Typography>}
+            {!loading && t.sub && (Array.isArray(t.sub)
+              ? t.sub.map((line) => <Typography key={line} variant="caption" sx={{ color: 'text.secondary', display: 'block', lineHeight: 1.3 }}>{line}</Typography>)
+              : <Typography variant="caption" noWrap sx={{ color: 'text.secondary', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.3 }}>{t.sub}</Typography>)}
           </Box>
         ))}
       </Box>

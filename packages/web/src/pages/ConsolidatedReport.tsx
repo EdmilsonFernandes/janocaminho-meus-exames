@@ -372,15 +372,6 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
     (m: any) => m && typeof m === 'object' && (String(m.medicamento || '').trim() || String(m.observacao || '').trim())
   );
 
-  // Nome de laboratório pode vir corrompido da extração (ex.: "VOLPI ara Vol! Jnir...").
-  // Trunca pra não dominar o card; o texto completo fica no tooltip (title). O fix raiz é
-  // na extração (pdftotext), mas aqui evitamos estouro de layout.
-  const trimLab = (lab?: string | null) => {
-    if (!lab) return '';
-    const v = lab.trim();
-    return v.length > 42 ? `${v.slice(0, 42)}…` : v;
-  };
-
   return (
     <PageContainer width="content" sx={{ pb: { xs: 10, sm: 5 }, overflowX: 'hidden' }}>
       <Title title={translate('page.report')} />
@@ -445,30 +436,13 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
             onShare={() => setShareOpen(true)}
             onPrint={printReport}
             onRegen={() => generate(true)}
+            sourceExams={sourceExams}
+            onOpenExam={(id) => navigate(`/exams/${id}/show`)}
           />
 
-          {sourceExams.length > 0 && (
-            <ReportSectionCard icon={<DescriptionIcon />} title={translate('report.based')} accent="#20b2aa" count={sourceExams.length}>
-              <Stack spacing={0.5} useFlexGap>
-                {sourceExams.map((e, i) => (
-                  <Box key={i} onClick={() => navigate(`/exams/${e.id}/show`)} sx={{ cursor: 'pointer', '&:hover': { opacity: 0.8 } }}>
-                    <Typography variant="body2" title={e.sourceLab || undefined} sx={{ wordBreak: 'break-word', overflowWrap: 'anywhere', color: 'primary.main', fontWeight: 600, lineHeight: 1.35 }}>
-                      📄 {e.title}{e.performedAt ? ` — ${fmtDate(e.performedAt)}` : ''}{e.sourceLab ? ` • ${trimLab(e.sourceLab)}` : ''}
-                    </Typography>
-                  </Box>
-                ))}
-              </Stack>
-            </ReportSectionCard>
-          )}
-
-          {s.comparativo?.length ? (
-            <ReportSectionCard icon={<InsightsIcon />} title={translate('report.highlights')} accent="#0369a1" count={s.comparativo.length}>
-              <Grid container spacing={1.5}>
-                {s.comparativo.map((c, i) => <Grid key={i} size={{ xs: 12, md: 6 }}><DestaqueCard c={c} /></Grid>)}
-              </Grid>
-            </ReportSectionCard>
-          ) : null}
-
+          {/* ORDEM CLÍNICA (fix da tela extensa): o que merece atenção vem PRIMEIRO (herói
+              clínico); o comparativo item-a-item vira seção colapsada "Comparativo" — antes
+              eram 2 blocos abertos competindo logo abaixo de 2 títulos de página redundantes. */}
           {s.pontosAtencao?.length ? (
             <ReportSectionCard icon={<ReportProblemIcon />} title={translate('report.attention')} accent="#ef4444" count={s.pontosAtencao.length}>
               <Stack spacing={1.25}>
@@ -479,6 +453,14 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
                   </Box>
                 ))}
               </Stack>
+            </ReportSectionCard>
+          ) : null}
+
+          {s.comparativo?.length ? (
+            <ReportSectionCard icon={<InsightsIcon />} title="Comparativo anterior → atual" accent="#0369a1" count={s.comparativo.length} collapsible defaultExpanded={false}>
+              <Grid container spacing={1.5}>
+                {s.comparativo.map((c, i) => <Grid key={i} size={{ xs: 12, md: 6 }}><DestaqueCard c={c} /></Grid>)}
+              </Grid>
             </ReportSectionCard>
           ) : null}
 

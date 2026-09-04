@@ -46,6 +46,8 @@ export const RestingHeartCard = () => {
   const theme = useTheme();
   const [pid] = useSelectedPatient();
   const [series, setSeries] = useState<HrDay[] | null>(null);
+  // Dia selecionado no sparkline (tocar a barra → ver o valor) — padrão do ActivityCard.
+  const [selDay, setSelDay] = useState<string | null>(null);
 
   useEffect(() => {
     if (!pid) { setSeries(null); return; }
@@ -72,7 +74,8 @@ export const RestingHeartCard = () => {
 
   const z = zone(s.avgLast7);
   const max = Math.max(...s.series.map((d) => d.avg), 1);
-  const lastDate = s.series[s.series.length - 1]?.date;
+  const sel = s.series.find((d) => d.date === selDay) ?? s.series[s.series.length - 1] ?? null;
+  const selFmt = sel ? new Date(`${sel.date}T12:00:00`).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' }).replace('.', '') : '';
 
   return (
     <AppCard sx={{ p: 2, ...CARD_IN }}>
@@ -116,24 +119,48 @@ export const RestingHeartCard = () => {
           )}
         </Box>
 
-        {/* Sparkline 30d — barra do dia mais recente em destaque */}
-        <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: 40, flex: 1, minWidth: 0 }} aria-hidden="true">
-          {s.series.map((d) => (
-            <Box
-              key={d.date}
-              sx={{
-                flex: 1,
-                minWidth: 2,
-                maxWidth: 12,
-                height: `${Math.max(10, (d.avg / max) * 100)}%`,
-                borderRadius: '3px 3px 0 0',
-                bgcolor: alpha(z.color, d.date === lastDate ? 1 : 0.35),
-                transition: 'height .5s cubic-bezier(.2,.8,.2,1)',
-              }}
-            />
-          ))}
+        {/* Sparkline 30d INTERATIVO — cada barra é um botão; tocar mostra o dia (mesmo
+            padrão do ActivityCard). Default = dia mais recente. */}
+        <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: 44, flex: 1, minWidth: 0 }}>
+          {s.series.map((d) => {
+            const on = sel?.date === d.date;
+            return (
+              <Box
+                key={d.date}
+                component="button"
+                onClick={() => setSelDay(d.date)}
+                aria-label={`${new Date(`${d.date}T12:00:00`).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}: ${d.avg} bpm`}
+                sx={{
+                  flex: 1,
+                  minWidth: 2,
+                  maxWidth: 12,
+                  p: 0,
+                  border: 'none',
+                  cursor: 'pointer',
+                  height: `${Math.max(10, (d.avg / max) * 100)}%`,
+                  borderRadius: on ? '4px 4px 0 0' : '3px 3px 0 0',
+                  bgcolor: alpha(z.color, on ? 1 : 0.35),
+                  outline: on ? `2px solid ${z.color}` : 'none',
+                  outlineOffset: on ? 1 : 0,
+                  transform: on ? 'scaleY(1.06)' : 'none',
+                  transition: 'height .5s cubic-bezier(.2,.8,.2,1), transform .15s ease',
+                }}
+              />
+            );
+          })}
         </Box>
       </Stack>
+
+      {/* Detalhe do dia tocado — 1 linha (o gráfico sozinho não conta a história) */}
+      {sel && (
+        <Box sx={{ mt: 1, px: 1.25, py: 0.75, borderRadius: '12px', bgcolor: alpha(z.color, 0.07), border: `1px solid ${alpha(z.color, 0.25)}` }}>
+          <Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>
+            <Box component="strong" sx={{ color: z.color, fontWeight: 800, textTransform: 'capitalize' }}>{selFmt}</Box>
+            {' · '}<Box component="strong" sx={{ fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{sel.avg} bpm</Box>
+            {sel.avg > 80 ? ' — elevada naquele dia; comente com seu médico' : ''}
+          </Typography>
+        </Box>
+      )}
 
       {/* Contexto educativo honesto (nunca diagnóstico) */}
       <Typography sx={{ fontSize: 11, color: theme.palette.text.secondary, lineHeight: 1.5, mt: 1.25 }}>

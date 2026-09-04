@@ -183,10 +183,10 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
             <circle cx="50" cy="50" r="42" fill="none" stroke="#20b2aa" strokeWidth="9" strokeLinecap="round"
               strokeDasharray={`${(score ?? 0) * 2.64} 999`} style={{ transition: 'stroke-dasharray .8s cubic-bezier(.16,1,.3,1)' }} />
           </Box>
-          <Box sx={{ position: 'absolute', textAlign: 'center' }}>
-            {loaded ? <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1.25rem, 6vw, 1.625rem)', sm: 26 }, lineHeight: 1, color: 'text.primary', fontVariantNumeric: 'tabular-nums' }}>{score ?? '—'}</Typography>
+          <Box sx={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', px: 0.5, minWidth: 0, pointerEvents: 'none' }}>
+            {loaded ? <Typography noWrap sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1.25rem, 6vw, 1.625rem)', sm: 26 }, lineHeight: 1, color: 'text.primary', fontVariantNumeric: 'tabular-nums' }}>{score ?? '—'}</Typography>
               : <Skeleton variant="text" width={36} height={30} />}
-            <Typography sx={{ fontSize: 10, color: 'text.secondary', mt: -0.5 }}>de 100</Typography>
+            <Typography noWrap sx={{ fontSize: 10, color: 'text.secondary' }}>de 100</Typography>
           </Box>
         </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>

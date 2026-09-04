@@ -5,6 +5,8 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import VolumeUpIcon from '@mui/icons-material/RecordVoiceOver';
 import ShareIcon from '@mui/icons-material/Share';
 import PrintIcon from '@mui/icons-material/Print';
+import DescriptionIcon from '@mui/icons-material/Description';
+import type { SourceExam } from '@meus-exames/shared';
 import { DrExame } from '../DrExame';
 import { AppCard } from '../AppCard';
 
@@ -22,9 +24,12 @@ const StatTile = ({ value, label, accent }: { value: ReactNode; label: string; a
   </Box>
 );
 
-export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare, onPrint, onRegen }: {
+export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare, onPrint, onRegen, sourceExams, onOpenExam }: {
   resumo?: string; counts: { itens: number; atencao: number; positivos: number };
   speaking: boolean; loading: boolean; onSpeak: () => void; onShare: () => void; onPrint: () => void; onRegen: () => void;
+  /** Exames que alimentaram a análise — rows compactas clicáveis (o título da página
+   *  já diz "Relatório completo de saúde"; este card não repete outro título). */
+  sourceExams?: SourceExam[]; onOpenExam?: (id: string) => void;
 }) => (
   <Box sx={(t) => ({
     position: 'relative', overflow: 'hidden', p: { xs: 2, sm: 2.5 }, borderRadius: '22px',
@@ -41,8 +46,7 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
         <DrExame size={42} sx={{ borderRadius: '50%' }} />
       </Box>
       <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography variant="h6" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', color: 'text.primary', lineHeight: 1.2 }}>Relatório consolidado 🩺</Typography>
-        <Typography sx={{ fontSize: 13, color: 'text.secondary', fontWeight: 500 }}>Análise educativa — não substitui consulta médica</Typography>
+        <Typography sx={{ fontSize: 13.5, color: 'text.secondary', fontWeight: 600, lineHeight: 1.35 }}>Análise educativa gerada pela IA<br />— não substitui consulta médica</Typography>
       </Box>
     </Stack>
 
@@ -51,6 +55,49 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
       <Grid size={{ xs: 4 }}><StatTile value={counts.atencao} label="Atenção" accent="#ef4444" /></Grid>
       <Grid size={{ xs: 4 }}><StatTile value={counts.positivos} label="Positivos" accent="#059669" /></Grid>
     </Grid>
+
+    {/* "Baseado em N exames" — ANTES era uma seção própria com linhas body2 📄 (feia,
+        ocupava um bloco inteiro da tela). Agora é parte do herói: rows compactas
+        clicáveis (ícone + título + data·lab, ellipsis com title completo). */}
+    {sourceExams && sourceExams.length > 0 && onOpenExam && (
+      <Box sx={{ mt: 1.75 }}>
+        <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary' }}>
+          Baseado em {sourceExams.length} exame{sourceExams.length === 1 ? '' : 's'} — toque para abrir:
+        </Typography>
+        <Stack spacing={0.5} sx={{ mt: 0.5 }}>
+          {sourceExams.map((e, i) => {
+            const dt = e.performedAt ? new Date(`${String(e.performedAt).slice(0, 10)}T12:00:00`).toLocaleDateString('pt-BR') : '';
+            const lab = (e.sourceLab || '').trim();
+            const labShort = lab.length > 42 ? `${lab.slice(0, 42)}…` : lab;
+            return (
+              <Box
+                key={i}
+                component="button"
+                onClick={() => onOpenExam(e.id)}
+                title={`${e.title}${dt ? ` — ${dt}` : ''}${lab ? ` • ${lab}` : ''}`}
+                sx={{
+                  display: 'flex', alignItems: 'center', gap: 1, width: '100%', textAlign: 'left',
+                  p: 0.75, borderRadius: '10px', cursor: 'pointer',
+                  border: '1px solid', borderColor: 'divider', bgcolor: 'transparent',
+                  transition: 'background-color .15s ease, border-color .15s ease',
+                  '&:hover': { bgcolor: alpha('#20b2aa', 0.06), borderColor: alpha('#20b2aa', 0.35) },
+                }}
+              >
+                <Box sx={{ width: 28, height: 28, borderRadius: '8px', display: 'grid', placeItems: 'center', flexShrink: 0, bgcolor: alpha('#20b2aa', 0.12), color: '#178f89' }}>
+                  <DescriptionIcon sx={{ fontSize: 16 }} />
+                </Box>
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography noWrap sx={{ fontSize: 12.5, fontWeight: 700, color: 'text.primary' }}>{e.title}</Typography>
+                  <Typography noWrap variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                    {dt}{labShort ? ` • ${labShort}` : ''}
+                  </Typography>
+                </Box>
+              </Box>
+            );
+          })}
+        </Stack>
+      </Box>
+    )}
 
     <Stack direction="row" spacing={1} sx={{ mt: 2 }} useFlexGap flexWrap="wrap" alignItems="center">
       <Button size="small" variant="contained" startIcon={<VolumeUpIcon />} onClick={onSpeak} disabled={!resumo}

@@ -119,9 +119,9 @@ export const HealthScoreCard = ({ loaded, score, abnormalCount, markerCount, onD
         <Stack direction="row" alignItems="center" gap={{ xs: 1.5, sm: 2.5 }} sx={{ flexWrap: 'nowrap' }}>
           <Box sx={{ position: 'relative', width: { xs: 118, sm: 138 }, height: { xs: 118, sm: 138 }, flexShrink: 0 }}>
             <Gauge value={score} color={color} />
-            <Box sx={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-              <Typography sx={{ fontWeight: 800, fontSize: { xs: 28, sm: 36 }, lineHeight: 1, color: 'text.primary' }}>{displayScore}</Typography>
-              <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1, fontSize: { xs: 9, sm: 11 } }}>de 100</Typography>
+            <Box sx={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', px: 0.5, minWidth: 0, pointerEvents: 'none' }}>
+              <Typography noWrap sx={{ fontWeight: 800, fontSize: { xs: 28, sm: 36 }, lineHeight: 1, color: 'text.primary', fontVariantNumeric: 'tabular-nums' }}>{displayScore}</Typography>
+              <Typography noWrap variant="caption" color="text.secondary" sx={{ lineHeight: 1, fontSize: { xs: 9, sm: 11 } }}>de 100</Typography>
             </Box>
           </Box>
           <Box sx={{ flex: '1 1 0', minWidth: 0 }}>

@@ -12,7 +12,10 @@ const CACHE_KEY = '__meus_exames_api_cache';
 const cache = new Map<string, { body: unknown; ts: number }>();
 
 // Endpoints NÃO cacheáveis (streams, health, pagamentos, mutations, uploads).
-const EXCLUDE = /\/api\/(chat|health|build-info|billing|devices\/token|public\/|patients\/.*\/photo|doctor\/photo)/;
+// `measurements`: dado clínico movido pelo sync do Health Connect — offline serve
+// cache SEM TTL (bug: evolução mostrava atividade de ontem). Sem cache, offline esses
+// GETs caem no vazio limpo e os cards somem (por design deles).
+const EXCLUDE = /\/api\/(chat|health|build-info|billing|devices\/token|public\/|patients\/.*\/photo|doctor\/photo|measurements)/;
 
 // Carrega cache persistido do localStorage (sobrevive a reload/fechar app).
 try {

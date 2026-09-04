@@ -92,6 +92,10 @@ export const ActivityCard = ({ lastExamAt }: { lastExamAt?: string | null }) => 
     setSyncing(true);
     try {
       await syncActivityToServer(list);
+      // Avisa a app inteira: quem leu o consolidado do SERVER (Evolução, Medições) pode
+      // refazer o GET — antes a Evolução busava ANTES deste POST commitar e mostrava
+      // atividade de ontem enquanto o dashboard já mostrava hoje (race reportada em campo).
+      try { window.dispatchEvent(new Event('dx:activity-synced')); } catch { /* best-effort */ }
       if (!silent) { hapticLight(); notify('Atividade sincronizada com o Dr. Exame ✨', { type: 'success' }); }
     } catch {
       if (!silent) notify('Não deu pra sincronizar agora — tenta de novo em instantes.', { type: 'warning' });

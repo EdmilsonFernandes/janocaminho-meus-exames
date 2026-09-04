@@ -98,18 +98,18 @@ export const FamilyPage = () => {
         <CardContent sx={{ p: { xs: 2.5, sm: 3.5 } }}>
           <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={2}>
             <Box>
-              <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1 }}>
-                <Box sx={{ bgcolor: 'rgba(255,255,255,0.2)', p: 1, borderRadius: '14px', display: 'flex', alignItems: 'center' }}>
+              <Stack direction="row" alignItems="center" spacing={1.5} useFlexGap sx={{ mb: 1, flexWrap: 'wrap', rowGap: 0.75, minWidth: 0 }}>
+                <Box sx={{ bgcolor: 'rgba(255,255,255,0.2)', p: 1, borderRadius: '14px', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
                   <Diversity3Icon sx={{ fontSize: 28, color: '#fff' }} />
                 </Box>
-                <Typography variant="h5" sx={{ fontWeight: 900, fontFamily: 'Poppins, sans-serif', letterSpacing: '-0.02em' }}>
+                <Typography variant="h5" sx={{ fontWeight: 900, fontFamily: 'Poppins, sans-serif', letterSpacing: '-0.02em', minWidth: 0 }}>
                   Saúde da Família
                 </Typography>
                 {avgScore != null && (
                   <Chip
                     size="small"
                     label={`Média ${avgScore}/100`}
-                    sx={{ bgcolor: 'rgba(255,255,255,0.22)', color: '#fff', fontWeight: 800, backdropFilter: 'blur(6px)' }}
+                    sx={{ bgcolor: 'rgba(255,255,255,0.22)', color: '#fff', fontWeight: 800, backdropFilter: 'blur(6px)', flexShrink: 0 }}
                   />
                 )}
               </Stack>
@@ -290,13 +290,13 @@ export const FamilyPage = () => {
                       )}
                     </Box>
 
-                    <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
+                    <Box sx={{ textAlign: 'right', flexShrink: 0, pl: 1 }}>
                       {p.score != null ? (
                         <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'flex-end', gap: 0.25 }}>
-                          <Typography variant="h4" sx={{ fontWeight: 900, color: sColor, lineHeight: 1, fontFamily: 'Poppins, sans-serif' }}>
+                          <Typography noWrap sx={{ fontWeight: 900, color: sColor, lineHeight: 1, fontFamily: 'Poppins, sans-serif', fontSize: { xs: 24, sm: 30 }, fontVariantNumeric: 'tabular-nums' }}>
                             {p.score}
                           </Typography>
-                          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>
+                          <Typography noWrap variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>
                             /100
                           </Typography>
                         </Box>

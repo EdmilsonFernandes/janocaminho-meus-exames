@@ -13,7 +13,7 @@ import { ExplainButton } from '../components/ExplainItem';
 import { UnitLabel } from '../components/UnitLabel';
 import { CATS, categorize } from '../utils/medicalData';
 import { displayStatus } from '../utils/examStatus';
-import { summarizeTrends, trendHeadline, VERDICT_META } from '../utils/evolutionSummary';
+import { summarizeTrends, trendHeadline } from '../utils/evolutionSummary';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
 import { ListSkeleton } from '../components/Skeleton';
@@ -57,10 +57,10 @@ export const EvolutionPage = () => {
   const [stepsDelta, setStepsDelta] = useState<number | null>(null);
   const [actSel, setActSel] = useState<string | null>(null);
   const [actInfo, setActInfo] = useState(false);
-  useEffect(() => {
+  // Fonte única: consolidado do server (mesmo endpoint do ActivityCard na web) —
+  // 1 request no lugar de 3, com deltaPct30 vs período anterior já calculado.
+  const loadActivity = () => {
     if (!pid) { setSteps([]); setStepsDelta(null); return; }
-    // Fonte única: consolidado do server (mesmo endpoint do ActivityCard na web) —
-    // 1 request no lugar de 3, com deltaPct30 vs período anterior já calculado.
     fetchActivitySummary(30, pid)
       .then((s) => {
         if (!s) { setSteps([]); setStepsDelta(null); return; }
@@ -72,6 +72,14 @@ export const EvolutionPage = () => {
         setStepsDelta(s.metrics.STEPS.deltaPct30);
       })
       .catch(() => setSteps([]));
+  };
+  useEffect(() => { loadActivity(); /* eslint-disable-line */ }, [pid]);
+  // RACE sync×fetch: o ActivityCard sincroniza HC→server DEPOIS de esta página já ter
+  // buscado (mostrava quinta enquanto o painel mostrava sexta). Ouço o evento pós-sync
+  // e REFAÇO o GET — cobre mount, foreground e botão ↻.
+  useEffect(() => {
+    window.addEventListener('dx:activity-synced', loadActivity);
+    return () => window.removeEventListener('dx:activity-synced', loadActivity);
   }, [pid]);
 
   useEffect(() => {
@@ -135,57 +143,41 @@ export const EvolutionPage = () => {
 
       {!loading && items.length > 0 && (
         <>
-          {/* Resumo da evolução (melhorou/piorou/estável) — grid 3 colunas: antes eram 3 spans
-              em row-wrap e "100 sem variação" quebrava no meio em 360px. Agora número grande +
-              label curto por célula ("estáveis" — nomenclatura curta, fonte única VERDICT_META). */}
-          <Card variant="outlined" sx={{ mb: 2, borderRadius: '12px', borderColor: 'divider', bgcolor: 'rgba(15,61,58,0.03)' }}>
-            <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 1, mb: 0.75 }}>
-                {([['melhorou', summary.counts.melhorou], ['piorou', summary.counts.piorou], ['estavel', summary.counts.estavel]] as const).map(([k, n]) => {
-                  const v = VERDICT_META[k];
-                  return (
-                    <Box key={k} sx={{ textAlign: 'center', py: 0.75, borderRadius: '12px', bgcolor: `${v.color}0F`, border: `1px solid ${v.color}2E` }}>
-                      <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: { xs: 18, sm: 20 }, lineHeight: 1, color: v.color, fontVariantNumeric: 'tabular-nums' }}>{n}</Typography>
-                      <Typography sx={{ fontSize: { xs: 10.5, sm: 11 }, color: v.color, fontWeight: 700, mt: 0.25 }}>{v.label}</Typography>
-                    </Box>
-                  );
-                })}
-              </Box>
-              <Typography variant="caption" color="text.secondary">{trendHeadline(summary)} <strong>·</strong> Conteúdo educativo — a decisão final é do médico.</Typography>
-            </CardContent>
-          </Card>
-
-          {/* Filtros de status — carrossel horizontal CONTROLADO (scroll só aqui, nunca na
-              página): scroll-snap + ponto de cor no lugar de emoji (leitor de tela lia
-              "círculo vermelho"; a cor segue sinalizando no dot). */}
-          <Stack direction="row" spacing={0.75} sx={{ overflowX: 'auto', flexWrap: 'nowrap', pb: 0.5, mb: 1, mx: -0.25, px: 0.25, scrollSnapType: 'x proximity', '&::-webkit-scrollbar': { display: 'none' } }}>
-            {CHIPS.map((c) => {
-              const on = filter === c.key;
-              return (
-                <Chip
-                  key={c.key}
-                  onClick={() => setFilter(c.key)}
-                  label={(
-                    <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
-                      <Box component="span" aria-hidden="true" sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'currentColor', display: 'inline-block', flexShrink: 0 }} />
-                      {c.label} · {c.count}
-                    </Box>
-                  )}
-                  sx={{
-                    height: 34,
-                    flexShrink: 0,
-                    scrollSnapAlign: 'start',
-                    borderRadius: '999px',
-                    bgcolor: on ? c.color : `${c.color}14`,
-                    color: on ? '#fff' : c.color,
-                    fontWeight: 700,
-                    border: `1px solid ${c.color}40`,
-                    '&:hover': { bgcolor: on ? c.color : `${c.color}28` }
-                  }}
-                />
-              );
-            })}
-          </Stack>
+          {/* RESUMO + FILTRO UNIFICADOS (fim das "informações brigando"): UMA grade de
+              filtros-cards clicáveis com os counts da MESMA taxonomia do filtro (statusOf) —
+              antes o grid melhorou/piorou usava outra régua e os números divergiam dos chips,
+              confundindo. A narrativa de tendência vira o headline de 1 linha em cima. */}
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+              {trendHeadline(summary)} <strong>·</strong> Conteúdo educativo — a decisão final é do médico.
+            </Typography>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' }, gap: 1 }}>
+              {CHIPS.map((c) => {
+                const on = filter === c.key;
+                return (
+                  <Box
+                    key={c.key}
+                    component="button"
+                    onClick={() => setFilter(c.key)}
+                    aria-pressed={on}
+                    sx={{
+                      textAlign: 'center', py: 0.9, borderRadius: '12px', cursor: 'pointer',
+                      bgcolor: on ? `${c.color}14` : `${c.color}0F`,
+                      border: on ? `2px solid ${c.color}` : `1px solid ${c.color}2E`,
+                      transition: 'border-color .15s ease, background-color .15s ease',
+                      '&:hover': { bgcolor: `${c.color}1E` },
+                    }}
+                  >
+                    <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: { xs: 18, sm: 20 }, lineHeight: 1, color: c.color, fontVariantNumeric: 'tabular-nums' }}>{c.count}</Typography>
+                    <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.5} sx={{ mt: 0.25 }}>
+                      <Box aria-hidden="true" sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: c.color, display: 'inline-block' }} />
+                      <Typography sx={{ fontSize: { xs: 10.5, sm: 11 }, color: c.color, fontWeight: 700 }}>{c.label}</Typography>
+                    </Stack>
+                  </Box>
+                );
+              })}
+            </Box>
+          </Box>
 
           {/* Busca por marcador com filtro dinamico */}
           <Paper variant="outlined" sx={{ p: '2px 12px', mb: 2, display: 'flex', alignItems: 'center', gap: 1, borderRadius: '999px', bgcolor: 'background.paper' }}>
