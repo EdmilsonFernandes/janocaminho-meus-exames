@@ -82,7 +82,7 @@ export const CorrelationSection = ({ patientId }: { patientId?: string }) => {
           {/* 1. OBSERVAÇÃO */}
           <Stack direction="row" spacing={2} sx={{ mb: 0.75, flexWrap: 'wrap', rowGap: 0.5 }}>
             <Stack direction="row" spacing={0.5} alignItems="center"
-              sx={{ px: 1, py: 0.4, borderRadius: '99px', bgcolor: alpha(theme.palette.primary.main, 0.08) }}>
+              sx={{ px: 1, py: 0.4, borderRadius: '999px', bgcolor: alpha(theme.palette.primary.main, 0.08) }}>
               <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'primary.dark' }}>
                 {f.hcMetricLabel}
               </Typography>
@@ -94,7 +94,7 @@ export const CorrelationSection = ({ patientId }: { patientId?: string }) => {
               </Typography>
             </Stack>
             <Stack direction="row" spacing={0.5} alignItems="center"
-              sx={{ px: 1, py: 0.4, borderRadius: '99px', bgcolor: alpha(theme.palette.primary.main, 0.08) }}>
+              sx={{ px: 1, py: 0.4, borderRadius: '999px', bgcolor: alpha(theme.palette.primary.main, 0.08) }}>
               <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'primary.dark' }}>
                 🧪 {f.biomarker}
               </Typography>
@@ -108,7 +108,7 @@ export const CorrelationSection = ({ patientId }: { patientId?: string }) => {
           </Stack>
 
           {/* 2+3. CONTEXTO + EVIDÊNCIA */}
-          <Typography sx={{ fontSize: 12.5, color: 'text.secondary', lineHeight: 1.55 }}>
+          <Typography sx={{ fontSize: 13, color: 'text.secondary', lineHeight: 1.55 }}>
             {f.evidenceStatement}
           </Typography>
 

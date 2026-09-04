@@ -138,7 +138,7 @@ export const MeasurementsPage = () => {
 
       {/* PESO — destaque com tendência (vazio COMPACTO: não gasta uma tela com empty state) */}
       <Card sx={{
-        mb: 2, borderRadius: '20px', overflow: 'hidden',
+        mb: 2, borderRadius: '16px', overflow: 'hidden',
         background: (t) => t.palette.mode === 'dark'
           ? 'linear-gradient(135deg, rgba(20,35,35,0.85), rgba(15,25,25,0.75))'
           : 'linear-gradient(135deg, rgba(32,178,170,.08), rgba(255,255,255,.9))',
@@ -217,11 +217,11 @@ export const MeasurementsPage = () => {
               ) : (
                 <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 20, lineHeight: 1.1, color: 'text.disabled' }}>—</Typography>
               )}
-              <Typography noWrap sx={{ fontSize: 10.5, color: 'text.secondary', minHeight: 13 }}>{tileSub(t, d)}</Typography>
+              <Typography noWrap sx={{ fontSize: 11, color: 'text.secondary', minHeight: 13 }}>{tileSub(t, d)}</Typography>
               <Box sx={{ mt: 'auto', minHeight: 26, display: 'flex', alignItems: 'flex-end' }}>
                 {d && d.series7.length >= 2 && <Sparkline points={d.series7} width={84} height={24} />}
               </Box>
-              {t.synced && hasData && <Typography sx={{ fontSize: 9.5, color: 'text.disabled' }}>via Health Connect</Typography>}
+              {t.synced && hasData && <Typography sx={{ fontSize: 10, color: 'text.disabled' }}>via Health Connect</Typography>}
             </AppCard>
           );
         })}

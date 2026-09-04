@@ -440,7 +440,7 @@ export const LandingPage = () => {
             ].map((d, i) => (
               <ScrollReveal key={d.name} delay={i * 0.08}>
                 <Box sx={{ height: '100%', p: 2.5, borderRadius: '16px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.default', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                  <Typography sx={{ fontSize: 14.5, color: 'text.primary', lineHeight: 1.6, flex: 1 }}>"{d.text}"</Typography>
+                  <Typography sx={{ fontSize: 15, color: 'text.primary', lineHeight: 1.6, flex: 1 }}>"{d.text}"</Typography>
                   <Stack direction="row" spacing={1} alignItems="center">
                     <Box sx={{ width: 32, height: 32, borderRadius: '50%', bgcolor: 'rgba(32,178,170,.12)', color: TEAL_DARK, display: 'grid', placeItems: 'center', fontWeight: 800, fontSize: 13, fontFamily: '"Poppins",sans-serif' }}>{d.name.charAt(0)}</Box>
                     <Box sx={{ minWidth: 0 }}>
@@ -541,10 +541,10 @@ export const LandingPage = () => {
                     <AutoAwesomeIcon sx={{ fontSize: 18, color: '#fff' }} />
                   </Box>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography sx={{ fontSize: 12.5, fontWeight: 800, color: 'text.primary' }}>Theo: exame lido 🧬</Typography>
+                    <Typography sx={{ fontSize: 13, fontWeight: 800, color: 'text.primary' }}>Theo: exame lido 🧬</Typography>
                     <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary' }}>2 itens estavam fora da faixa — pra idade dele, 1 é normal.</Typography>
                   </Box>
-                  <Typography sx={{ fontSize: 10.5, color: 'text.disabled', flexShrink: 0 }}>agora</Typography>
+                  <Typography sx={{ fontSize: 11, color: 'text.disabled', flexShrink: 0 }}>agora</Typography>
                 </Box>
                 {/* tela: faixa cuidador + item pediátrico */}
                 <Box sx={{ borderRadius: '16px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', boxShadow: '0 30px 60px rgba(15,61,58,.14)', overflow: 'hidden' }}>
@@ -556,12 +556,12 @@ export const LandingPage = () => {
                     {[{ n: 'Fosfatase Alcalina', v: '300', ref: '105–420', ok: true, ped: true }, { n: 'Leucócitos', v: '9.800', ref: '5.000–15.000', ok: true, ped: true }, { n: 'Glicose', v: '92', ref: '70–99', ok: true, ped: false }].map((r) => (
                       <Box key={r.n} sx={{ py: 1, borderBottom: '1px dashed', borderColor: 'divider' }}>
                         <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
-                          <Typography sx={{ fontSize: 13.5, fontWeight: 700, color: 'text.primary', flex: 1 }}>{r.n}</Typography>
-                          <Typography sx={{ fontSize: 13.5, fontWeight: 800, color: r.ok ? GREEN : '#c2410c', fontVariantNumeric: 'tabular-nums' }}>{r.v}</Typography>
+                          <Typography sx={{ fontSize: 14, fontWeight: 700, color: 'text.primary', flex: 1 }}>{r.n}</Typography>
+                          <Typography sx={{ fontSize: 14, fontWeight: 800, color: r.ok ? GREEN : '#c2410c', fontVariantNumeric: 'tabular-nums' }}>{r.v}</Typography>
                           <Chip size="small" label={r.ok ? '✓' : '⚠️'} sx={{ height: 20, minWidth: 24, bgcolor: r.ok ? 'rgba(5,150,105,.12)' : 'rgba(194,65,12,.12)', color: r.ok ? GREEN : '#c2410c', fontWeight: 800 }} />
                         </Stack>
                         <Stack direction="row" alignItems="center" spacing={0.75}>
-                          <Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>Referência {r.ref}</Typography>
+                          <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>Referência {r.ref}</Typography>
                           {r.ped && <Chip size="small" label="Pediátrico · 2–6 anos" sx={{ height: 18, fontSize: 10, fontWeight: 700, bgcolor: 'rgba(32,178,170,.14)', color: TEAL_DARK }} />}
                         </Stack>
                       </Box>
@@ -602,7 +602,7 @@ export const LandingPage = () => {
               <Typography variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.5rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em', lineHeight: 1.15 }}>
                 O mesmo remédio pode custar <Box component="span" sx={{ ...SERIF_I, color: '#b88a54' }}>até 20× mais</Box> dependendo da farmácia.
               </Typography>
-              <Typography sx={{ color: 'text.secondary', fontSize: 16.5, lineHeight: 1.65, mb: 3.5 }}>
+              <Typography sx={{ color: 'text.secondary', fontSize: 17, lineHeight: 1.65, mb: 3.5 }}>
                 O Procon-SP já encontrou variação de <b style={{ color: 'text.primary' }}>até 2.400%</b> no preço do mesmo medicamento. Você adiciona o remédio que toma — o Dr. Exame compara <b style={{ color: 'text.primary' }}>9 farmácias online</b> em segundos e mostra o menor preço, com foto do produto e o nome da farmácia.
               </Typography>
               <Stack spacing={2} sx={{ mb: 4 }}>
@@ -617,7 +617,7 @@ export const LandingPage = () => {
                     </Box>
                     <Box>
                       <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary' }}>{s.t}</Typography>
-                      <Typography sx={{ fontSize: 13.5, color: 'text.secondary', lineHeight: 1.5 }}>{s.d}</Typography>
+                      <Typography sx={{ fontSize: 14, color: 'text.secondary', lineHeight: 1.5 }}>{s.d}</Typography>
                     </Box>
                   </Stack>
                 ))}
@@ -637,9 +637,9 @@ export const LandingPage = () => {
             {/* MOCK do comparador — interface real do app */}
             <Reveal>
               <Box sx={{ position: 'relative', maxWidth: 420, mx: 'auto', width: '100%' }}>
-                <Box sx={{ borderRadius: '22px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', p: 2.5, boxShadow: '0 2px 8px rgba(0,0,0,.04), 0 12px 32px rgba(0,0,0,.06)' }}>
+                <Box sx={{ borderRadius: '16px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', p: 2.5, boxShadow: '0 2px 8px rgba(0,0,0,.04), 0 12px 32px rgba(0,0,0,.06)' }}>
                   <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
-                    <Box sx={{ width: 54, height: 54, borderRadius: '14px', bgcolor: 'rgba(32,178,170,.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Box sx={{ width: 54, height: 54, borderRadius: '12px', bgcolor: 'rgba(32,178,170,.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       <MedicationIcon sx={{ fontSize: 28, color: TEAL_DARK }} />
                     </Box>
                     <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -661,17 +661,17 @@ export const LandingPage = () => {
                       {pharmLogos[o.name] ? (
                         <Box component="img" src={pharmLogos[o.name]!} alt={o.name} loading="lazy" sx={{ height: 22, maxWidth: 60, objectFit: 'contain', flexShrink: 0 }} />
                       ) : (
-                        <Box sx={{ px: 0.75, py: 0.25, borderRadius: '6px', bgcolor: `${o.color}14`, color: o.color, fontWeight: 800, fontSize: 10, fontFamily: 'Poppins, sans-serif', flexShrink: 0 }}>{o.sigla}</Box>
+                        <Box sx={{ px: 0.75, py: 0.25, borderRadius: '8px', bgcolor: `${o.color}14`, color: o.color, fontWeight: 800, fontSize: 10, fontFamily: 'Poppins, sans-serif', flexShrink: 0 }}>{o.sigla}</Box>
                       )}
                       <Box sx={{ flex: 1, minWidth: 0 }}>
                         {/* mobile: nome quebra (nada cortado); desktop: 1 linha (cabe inteira) */}
-                        <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: 'text.primary', lineHeight: 1.3, whiteSpace: { xs: 'normal', md: 'nowrap' }, overflow: { md: 'hidden' }, textOverflow: { md: 'ellipsis' } }}>{o.product}</Typography>
+                        <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary', lineHeight: 1.3, whiteSpace: { xs: 'normal', md: 'nowrap' }, overflow: { md: 'hidden' }, textOverflow: { md: 'ellipsis' } }}>{o.product}</Typography>
                         <Typography variant="caption" sx={{ color: 'text.secondary' }}>{o.name}</Typography>
                       </Box>
                       {/* Preço + selo empilhados (mesmo padrão do app real — o selo não rouba largura da linha) */}
                       <Stack alignItems="flex-end" spacing={0.25} sx={{ flexShrink: 0 }}>
                         <Typography sx={{ fontWeight: 800, fontSize: 14, color: 'text.primary', fontVariantNumeric: 'tabular-nums', lineHeight: 1.1 }}>{o.price}</Typography>
-                        {o.best && <Chip label="MELHOR PREÇO" size="small" sx={{ height: 16, fontSize: 8.5, fontWeight: 800, bgcolor: 'primary.main', color: '#fff', letterSpacing: '0.03em' }} />}
+                        {o.best && <Chip label="MELHOR PREÇO" size="small" sx={{ height: 16, fontSize: 9, fontWeight: 800, bgcolor: 'primary.main', color: '#fff', letterSpacing: '0.03em' }} />}
                       </Stack>
                     </Stack>
                   ))}
@@ -683,13 +683,13 @@ export const LandingPage = () => {
                       VÁRIOS remédios com preço real e nº de ofertas. Grade 2×3 no mobile. */}
                   {medDeals.length > 0 && (
                     <Box sx={{ mt: 2, pt: 2, borderTop: '1px dashed', borderColor: 'divider' }}>
-                      <Typography sx={{ fontSize: 11.5, fontWeight: 800, color: 'text.secondary', mb: 1.25, letterSpacing: '.02em', textTransform: 'uppercase' }}>
+                      <Typography sx={{ fontSize: 12, fontWeight: 800, color: 'text.secondary', mb: 1.25, letterSpacing: '.02em', textTransform: 'uppercase' }}>
                         Comparando agora · preços de hoje
                       </Typography>
                       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: '1fr 1fr 1fr' }, gap: 1 }}>
                         {medDeals.map((d) => (
                           <Box key={`${d.name}-${d.doses?.[0] ?? ''}`} sx={{ p: 1.25, borderRadius: '12px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
-                            <Typography sx={{ fontSize: 12.5, fontWeight: 800, color: 'text.primary', lineHeight: 1.25, minHeight: 32, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                            <Typography sx={{ fontSize: 13, fontWeight: 800, color: 'text.primary', lineHeight: 1.25, minHeight: 32, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                               {d.name}{d.doses?.[0] ? ` ${d.doses[0].replace(' ', '')}` : ''}
                             </Typography>
                             <Stack direction="row" spacing={0.5} alignItems="baseline" sx={{ mt: 0.5 }}>
@@ -858,7 +858,7 @@ export const LandingPage = () => {
             <Box component="img" src={`${import.meta.env.BASE_URL}app-icon.png`} alt="Dr. Exame" sx={{ width: 34, height: 34, borderRadius: '20%', border: '1px solid rgba(32,178,170,0.3)' }} />
             <Typography sx={{ fontWeight: 800, color: '#fff', fontSize: 19, fontFamily: 'Poppins, sans-serif' }}>Meus Exames</Typography>
           </Stack>
-          <Typography sx={{ fontSize: 13.5, mb: 1, color: '#a0c4c0' }}>© {new Date().getFullYear()} janocaminho.com.br • <Box component="a" href="mailto:contato@janocaminho.com.br" sx={{ color: '#a0c4c0', textDecoration: 'underline' }}>contato@janocaminho.com.br</Box></Typography>
+          <Typography sx={{ fontSize: 14, mb: 1, color: '#a0c4c0' }}>© {new Date().getFullYear()} janocaminho.com.br • <Box component="a" href="mailto:contato@janocaminho.com.br" sx={{ color: '#a0c4c0', textDecoration: 'underline' }}>contato@janocaminho.com.br</Box></Typography>
           <Typography sx={{ fontSize: 12, opacity: .75, mb: 3, maxWidth: 540, mx: 'auto', lineHeight: 1.5 }}>Edmilson Fernandes • CNPJ: 44.771.427/0001-69 • Análise educativa, não substitui consulta médica.</Typography>
 
           {/* WHATSAPP — botão premium com logo oficial, gradient verde e pulse sutil
@@ -899,7 +899,7 @@ export const LandingPage = () => {
               </Box>
               Fale com a gente no WhatsApp
             </Box>
-            <Typography sx={{ fontSize: 12.5, color: '#7ea8a4', display: { xs: 'none', sm: 'block' } }}>
+            <Typography sx={{ fontSize: 13, color: '#7ea8a4', display: { xs: 'none', sm: 'block' } }}>
               (12) 3933-4979 · seg-sex 8h-18h
             </Typography>
           </Stack>
@@ -907,7 +907,7 @@ export const LandingPage = () => {
           {/* Links como <a> de verdade */}
           <Stack direction="row" spacing={3} justifyContent="center" useFlexGap sx={{ flexWrap: 'wrap', rowGap: 1.25 }}>
             {[{ l: 'Portal do Médico', h: '#/doctor' }, { l: 'Como validamos', h: '#/como-validamos' }, { l: 'API para devs', h: '#/api-docs' }, { l: 'Dúvidas frequentes', h: '#/faq' }, { l: 'Termos e LGPD', h: '#/termos' }, { l: 'Criar conta', h: '#/registrar' }, { l: 'Entrar', h: '#/entrar' }].map((x) => (
-              <Box key={x.l} component="a" href={x.h} sx={{ color: '#5fc9c3', fontSize: 13.5, fontWeight: 700, textDecoration: 'none', transition: 'color .15s ease', '&:hover': { color: '#ffffff', textDecoration: 'underline' } }}>{x.l}</Box>
+              <Box key={x.l} component="a" href={x.h} sx={{ color: '#5fc9c3', fontSize: 14, fontWeight: 700, textDecoration: 'none', transition: 'color .15s ease', '&:hover': { color: '#ffffff', textDecoration: 'underline' } }}>{x.l}</Box>
             ))}
           </Stack>
         </Container>

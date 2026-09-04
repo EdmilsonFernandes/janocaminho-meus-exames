@@ -178,11 +178,11 @@ export const UsageTab = () => {
             <TableHead>
               <TableRow sx={{ bgcolor: 'action.hover' }}>
                 <TableCell width={48} />
-                <TableCell sx={{ py: 1.5 }}><Typography sx={{ fontWeight: 800, fontSize: 12.5 }}>Usuário</Typography></TableCell>
-                <TableCell align="right" sx={{ py: 1.5, whiteSpace: 'nowrap' }}><Typography sx={{ fontWeight: 800, fontSize: 12.5 }}>Saldo</Typography></TableCell>
-                <TableCell align="right" sx={{ py: 1.5, whiteSpace: 'nowrap' }}><Typography sx={{ fontWeight: 800, fontSize: 12.5 }}>Gasto IA</Typography></TableCell>
-                <TableCell align="right" sx={{ py: 1.5, whiteSpace: 'nowrap' }}><Typography sx={{ fontWeight: 800, fontSize: 12.5 }}>Transações</Typography></TableCell>
-                <TableCell sx={{ py: 1.5, whiteSpace: 'nowrap' }}><Typography sx={{ fontWeight: 800, fontSize: 12.5 }}>Última Atividade</Typography></TableCell>
+                <TableCell sx={{ py: 1.5 }}><Typography sx={{ fontWeight: 800, fontSize: 13 }}>Usuário</Typography></TableCell>
+                <TableCell align="right" sx={{ py: 1.5, whiteSpace: 'nowrap' }}><Typography sx={{ fontWeight: 800, fontSize: 13 }}>Saldo</Typography></TableCell>
+                <TableCell align="right" sx={{ py: 1.5, whiteSpace: 'nowrap' }}><Typography sx={{ fontWeight: 800, fontSize: 13 }}>Gasto IA</Typography></TableCell>
+                <TableCell align="right" sx={{ py: 1.5, whiteSpace: 'nowrap' }}><Typography sx={{ fontWeight: 800, fontSize: 13 }}>Transações</Typography></TableCell>
+                <TableCell sx={{ py: 1.5, whiteSpace: 'nowrap' }}><Typography sx={{ fontWeight: 800, fontSize: 13 }}>Última Atividade</Typography></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -206,7 +206,7 @@ export const UsageTab = () => {
                         </IconButton>
                       </TableCell>
                       <TableCell>
-                        <Typography sx={{ fontSize: 13.5, fontWeight: 700, color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 220 }}>
+                        <Typography sx={{ fontSize: 14, fontWeight: 700, color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 220 }}>
                           {r.name || r.email}
                         </Typography>
                         <Typography sx={{ fontSize: 11, color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 220 }}>
@@ -227,7 +227,7 @@ export const UsageTab = () => {
                         />
                       </TableCell>
                       <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
-                        <Typography sx={{ fontSize: 13.5, fontWeight: 800, color: '#c2410c' }}>
+                        <Typography sx={{ fontSize: 14, fontWeight: 800, color: '#c2410c' }}>
                           {r.totalSpent.toLocaleString('pt-BR')}
                         </Typography>
                       </TableCell>
@@ -237,7 +237,7 @@ export const UsageTab = () => {
                         </Typography>
                       </TableCell>
                       <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                        <Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>
+                        <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
                           {r.lastTxAt ? new Date(r.lastTxAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'}
                         </Typography>
                       </TableCell>
@@ -263,11 +263,11 @@ export const UsageTab = () => {
                                   <Typography sx={{ fontSize: 11, color: 'text.secondary', width: 85, flexShrink: 0 }}>
                                     {new Date(tx.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
                                   </Typography>
-                                  <Chip size="small" label={KIND_LABEL[tx.kind] ?? tx.kind} sx={{ height: 20, fontSize: 10.5, fontWeight: 700, flexShrink: 0 }} />
+                                  <Chip size="small" label={KIND_LABEL[tx.kind] ?? tx.kind} sx={{ height: 20, fontSize: 11, fontWeight: 700, flexShrink: 0 }} />
                                   <Typography sx={{ fontSize: 12, color: 'text.secondary', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                     {tx.label}
                                   </Typography>
-                                  <Typography sx={{ fontSize: 12.5, fontWeight: 800, flexShrink: 0, color: tx.delta < 0 ? '#c2410c' : '#047857' }}>
+                                  <Typography sx={{ fontSize: 13, fontWeight: 800, flexShrink: 0, color: tx.delta < 0 ? '#c2410c' : '#047857' }}>
                                     {tx.delta > 0 ? '+' : ''}{tx.delta}
                                   </Typography>
                                 </Stack>

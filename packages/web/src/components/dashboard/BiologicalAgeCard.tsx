@@ -61,7 +61,7 @@ export const BiologicalAgeCard = () => {
     <>
       <AppCard kind="interactive" onClick={() => setExplain(true)} sx={{ p: 1.75, height: '100%' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, width: '100%' }}>
-          <Box sx={{ width: 38, height: 38, borderRadius: '11px', display: 'grid', placeItems: 'center', flexShrink: 0, bgcolor: alpha(PREMIUM, 0.14), color: PREMIUM }}><Dna size={22} weight="duotone" color={PREMIUM} /></Box>
+          <Box sx={{ width: 38, height: 38, borderRadius: '12px', display: 'grid', placeItems: 'center', flexShrink: 0, bgcolor: alpha(PREMIUM, 0.14), color: PREMIUM }}><Dna size={22} weight="duotone" color={PREMIUM} /></Box>
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography sx={{ fontSize: 11, color: 'text.secondary', lineHeight: 1.1 }}>Idade biológica</Typography>
             <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 16, color: 'text.primary', lineHeight: 1.2, mt: 0.15 }}>{value}</Typography>

@@ -187,7 +187,7 @@ export const RemindersPage = () => {
       </Stack>
 
       {upcoming.length === 0 ? (
-        <Card variant="outlined" sx={{ borderRadius: '20px', mb: 2.5, borderStyle: 'dashed', borderColor: 'divider' }}>
+        <Card variant="outlined" sx={{ borderRadius: '16px', mb: 2.5, borderStyle: 'dashed', borderColor: 'divider' }}>
           <CardContent sx={{ textAlign: 'center', py: 4 }}>
             <Box sx={{ fontSize: 48, mb: 1, opacity: 0.4, animation: `${pulse} 2s ease infinite` }}>⏰</Box>
             <Typography sx={{ fontWeight: 700, fontSize: 16, mb: 0.5 }}>Nenhum lembrete agendado</Typography>
@@ -208,11 +208,11 @@ export const RemindersPage = () => {
       )}
 
       {/* NOVO LEMBRETE — colapsado, abaixo dos agendados */}
-      <Card sx={{ mb: 2.5, borderRadius: '20px', overflow: 'hidden', border: '1px solid', borderColor: formOpen ? '#20b2aa' : 'divider', transition: 'border-color .3s', boxShadow: formOpen ? '0 8px 24px rgba(32,178,170,.1)' : '0 4px 16px rgba(0,0,0,0.03)' }}>
+      <Card sx={{ mb: 2.5, borderRadius: '16px', overflow: 'hidden', border: '1px solid', borderColor: formOpen ? '#20b2aa' : 'divider', transition: 'border-color .3s', boxShadow: formOpen ? '0 8px 24px rgba(32,178,170,.1)' : '0 4px 16px rgba(0,0,0,0.03)' }}>
         <CardContent>
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Stack direction="row" alignItems="center" spacing={1}>
-              <Box sx={{ width: 36, height: 36, borderRadius: '10px', display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,.12)', color: '#178f89' }}>
+              <Box sx={{ width: 36, height: 36, borderRadius: '8px', display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,.12)', color: '#178f89' }}>
                 <AddAlarmIcon fontSize="small" />
               </Box>
               <Typography variant="h6" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>Novo lembrete</Typography>
@@ -265,7 +265,7 @@ export const RemindersPage = () => {
 
       {/* HISTÓRICO (passados) — colapsável, não briga com os agendados */}
       {past.length > 0 && (
-        <Card sx={{ borderRadius: '20px', overflow: 'hidden', border: '1px solid', borderColor: 'divider', boxShadow: '0 4px 16px rgba(0,0,0,0.03)' }}>
+        <Card sx={{ borderRadius: '16px', overflow: 'hidden', border: '1px solid', borderColor: 'divider', boxShadow: '0 4px 16px rgba(0,0,0,0.03)' }}>
           <CardContent sx={{ pb: '8px !important' }}>
             <Accordion elevation={0} sx={{ '&:before': { display: 'none' } }}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ px: 0, minHeight: 40, '& .MuiAccordionSummary-content': { my: 0 } }}>

@@ -63,7 +63,7 @@ export const NextStepsCard = ({ exams }: { exams: number }) => {
           <Typography component="span" sx={{ fontSize: 12, fontWeight: 700, color: '#178f89' }}>{completeness.pct}% do perfil</Typography>
         )}
       </Stack>
-      <Typography sx={{ fontSize: 13.5, color: 'text.secondary', mb: 1.5 }}>
+      <Typography sx={{ fontSize: 14, color: 'text.secondary', mb: 1.5 }}>
         {doneCount === 0
           ? 'Leva menos de um minuto e destrava análises personalizadas pra você.'
           : 'Um passo pra destravar análises mais precisas.'}

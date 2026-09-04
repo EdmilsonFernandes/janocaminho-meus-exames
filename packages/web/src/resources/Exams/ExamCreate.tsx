@@ -281,7 +281,7 @@ export const ExamCreate = () => {
         <Alert
           icon={false}
           sx={{
-            mb: 2.5, borderRadius: '18px', p: { xs: 1.5, sm: 2 }, alignItems: 'center',
+            mb: 2.5, borderRadius: '16px', p: { xs: 1.5, sm: 2 }, alignItems: 'center',
             bgcolor: 'rgba(32,178,170,.09)', border: '1px solid rgba(32,178,170,.30)',
             '& .MuiAlert-message': { width: '100%' },
           }}
@@ -300,7 +300,7 @@ export const ExamCreate = () => {
         </Alert>
       )}
 
-      <Card sx={{ borderRadius: '24px', border: '1px solid rgba(32,178,170,0.25)', boxShadow: '0 16px 40px rgba(32,178,170,.12)', bgcolor: 'rgba(255,255,255,0.96)', backdropFilter: 'blur(20px)' }}>
+      <Card sx={{ borderRadius: '16px', border: '1px solid rgba(32,178,170,0.25)', boxShadow: '0 16px 40px rgba(32,178,170,.12)', bgcolor: 'rgba(255,255,255,0.96)', backdropFilter: 'blur(20px)' }}>
         <CardContent sx={{ p: { xs: 2.5, sm: 3.5 } }}>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5, textAlign: 'center', fontWeight: 600 }}>Escolha como quer enviar seu exame</Typography>
 
@@ -310,12 +310,12 @@ export const ExamCreate = () => {
               {/* Caminho 1: Escanear */}
               {isAndroid && (
                 <Box onClick={busy ? undefined : scanDocument} sx={{
-                  flex: 1, cursor: busy ? 'wait' : 'pointer', borderRadius: '20px', p: { xs: 2, sm: 2.5 }, textAlign: 'center',
+                  flex: 1, cursor: busy ? 'wait' : 'pointer', borderRadius: '16px', p: { xs: 2, sm: 2.5 }, textAlign: 'center',
                   border: '2px solid #20b2aa', bgcolor: 'rgba(32,178,170,.08)', transition: 'all .2s ease', position: 'relative',
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.75,
                   '&:active': { transform: 'scale(.97)' }, '&:hover': { bgcolor: 'rgba(32,178,170,.15)', boxShadow: '0 8px 24px rgba(32,178,170,0.18)' },
                 }}>
-                  <Box sx={{ position: 'absolute', top: 8, right: 8, fontSize: 9.5, fontWeight: 800, color: '#fff', bgcolor: '#20b2aa', px: 0.8, py: 0.2, borderRadius: '999px', letterSpacing: '0.04em' }}>RECOMENDADO</Box>
+                  <Box sx={{ position: 'absolute', top: 8, right: 8, fontSize: 10, fontWeight: 800, color: '#fff', bgcolor: '#20b2aa', px: 0.8, py: 0.2, borderRadius: '999px', letterSpacing: '0.04em' }}>RECOMENDADO</Box>
                   <Box sx={{ fontSize: 38 }}>📷</Box>
                   <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary', fontFamily: 'Poppins, sans-serif' }}>Escanear</Typography>
                   <Typography variant="caption" color="text.secondary">A câmera ajusta borda,<br />luz e nitidez pra você ✨</Typography>
@@ -323,7 +323,7 @@ export const ExamCreate = () => {
               )}
               {/* Caminho 2: PDF (leitura perfeita) ou foto da galeria */}
               <Box component="label" sx={{
-                flex: 1, cursor: 'pointer', borderRadius: '20px', p: { xs: 2.5, sm: 3 }, textAlign: 'center',
+                flex: 1, cursor: 'pointer', borderRadius: '16px', p: { xs: 2.5, sm: 3 }, textAlign: 'center',
                 border: files.length ? '2px solid #20b2aa' : '2px dashed rgba(32,178,170,0.35)',
                 bgcolor: files.length ? 'rgba(32,178,170,.08)' : 'rgba(32,178,170,.03)', transition: 'all .2s ease',
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1,
@@ -346,11 +346,11 @@ export const ExamCreate = () => {
             {/* Arquivos selecionados */}
             {files.length > 0 && (
               <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
-                {files.map((f, i) => (<Chip key={i} label={f.name} onDelete={() => setFiles(files.filter((_, j) => j !== i))} sx={{ borderRadius: '10px', maxWidth: '100%', fontWeight: 600 }} />))}
+                {files.map((f, i) => (<Chip key={i} label={f.name} onDelete={() => setFiles(files.filter((_, j) => j !== i))} sx={{ borderRadius: '8px', maxWidth: '100%', fontWeight: 600 }} />))}
               </Stack>
             )}
 
-            <TextField label="Título (opcional)" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Hemograma - junho/2026" size="small" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '14px' } }} />
+            <TextField label="Título (opcional)" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Hemograma - junho/2026" size="small" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />
 
             {progress && (
               <Box sx={{ bgcolor: 'background.default', p: 2, borderRadius: '16px' }}>

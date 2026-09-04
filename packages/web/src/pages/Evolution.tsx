@@ -192,7 +192,7 @@ export const EvolutionPage = () => {
           barras discretas. Glicose, lipídios e PA respondem à atividade — comparar na
           mesma janela é o primeiro passo (correlação educativa, o médico valida). */}
       {steps.length >= 5 && (
-        <Card variant="outlined" sx={{ mb: 2, borderRadius: '14px', borderColor: 'divider', bgcolor: 'rgba(32,178,170,0.04)' }}>
+        <Card variant="outlined" sx={{ mb: 2, borderRadius: '12px', borderColor: 'divider', bgcolor: 'rgba(32,178,170,0.04)' }}>
           <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
             <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
               <DirectionsWalkIcon sx={{ fontSize: 18, color: '#178f89' }} />
@@ -231,7 +231,7 @@ export const EvolutionPage = () => {
               if (!sel) return null;
               const dt = new Date(`${sel.date}T12:00:00`).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' }).replace('.', '');
               return (
-                <Stack direction="row" spacing={1.5} alignItems="center" useFlexGap flexWrap="wrap" sx={{ mt: 0.75, px: 1, py: 0.6, borderRadius: '10px', bgcolor: 'rgba(32,178,170,0.07)' }}>
+                <Stack direction="row" spacing={1.5} alignItems="center" useFlexGap flexWrap="wrap" sx={{ mt: 0.75, px: 1, py: 0.6, borderRadius: '8px', bgcolor: 'rgba(32,178,170,0.07)' }}>
                   <Typography sx={{ fontSize: 12, fontWeight: 800, color: '#178f89', textTransform: 'capitalize' }}>{dt}</Typography>
                   <Typography sx={{ fontSize: 13, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{sel.steps.toLocaleString('pt-BR')} <span style={{ fontSize: 11, color: 'text.secondary', fontWeight: 600 }}>passos</span></Typography>
                   {sel.kcal > 0 && <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>🔥 {Math.round(sel.kcal).toLocaleString('pt-BR')} kcal</Typography>}

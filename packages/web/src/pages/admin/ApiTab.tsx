@@ -82,7 +82,7 @@ export const ApiTab = () => {
                   <Typography sx={{ fontWeight: 800, fontSize: 14 }}>{r.company}</Typography>
                   <Typography variant="caption" color="text.secondary">{r.user?.name} · {r.user?.email} · {fmt(r.createdAt)}</Typography>
                 </Stack>
-                <Typography sx={{ fontSize: 13.5, color: 'text.secondary', mt: 0.5, lineHeight: 1.5 }}>{r.useCase}</Typography>
+                <Typography sx={{ fontSize: 14, color: 'text.secondary', mt: 0.5, lineHeight: 1.5 }}>{r.useCase}</Typography>
                 {r.note && r.status !== 'pending' && <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: 'text.disabled', fontStyle: 'italic' }}>→ {r.note}</Typography>}
                 {r.status === 'pending' && (
                   <Stack direction="row" spacing={1} sx={{ mt: 1.25 }} alignItems="center" useFlexGap flexWrap="wrap">

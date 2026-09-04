@@ -100,7 +100,16 @@ export const LAYOUT = {
  * em elementos baixos (items do Alterados). String NÃO é multiplicada (probe `12px`→12px).
  * Já validado via DOM eval (commit anterior usava `${RADIUS.x}px` como escape manual).
  */
-export const RADIUS = { card: '16px', sectionCard: '14px', button: '12px', pill: '99px', tile: '12px' } as const;
+/**
+ * ESCALA DE RAIO OFICIAL (auditoria DS 04/09: 401 literais em 14 valores distintos):
+ *   sm='8px'    → chips, inputs, ícones-box pequenos
+ *   md='12px'   → list items, cards internos, botões (aliases: button/tile)
+ *   card='16px' → cards de conteúdo (padrão AppCard)
+ *   pill='999px'→ pílulas/badges arredondados
+ * sectionCard 14→12 e pill 99→999: harmoniza os 21+15 usos do token com a escala
+ * (o codemod desta auditoria normalizou os literais 6/9/10→8, 14→12, 18/20/22/24→16).
+ */
+export const RADIUS = { sm: '8px', md: '12px', card: '16px', pill: '999px', button: '12px', tile: '12px', sectionCard: '12px' } as const;
 
 /** Cobre premium — assinatura do portal do médico (estados ativos do modo "viewer clínico";
  *  no app do paciente o ativo continua teal). Espelha palette.secondary (D4A574/B88A54). */

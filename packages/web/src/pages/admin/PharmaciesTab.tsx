@@ -216,10 +216,10 @@ export const PharmaciesTab = () => {
                       size="small"
                       label={p.active ? 'Ativa' : 'Pausada'}
                       color={p.active ? 'success' : 'default'}
-                      sx={{ height: 20, fontSize: 10.5, fontWeight: 800 }}
+                      sx={{ height: 20, fontSize: 11, fontWeight: 800 }}
                     />
                   </Stack>
-                  <Typography variant="body2" sx={{ color: 'text.secondary', fontFamily: 'monospace', fontSize: 12.5, wordBreak: 'break-all' }}>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', fontFamily: 'monospace', fontSize: 13, wordBreak: 'break-all' }}>
                     {p.hostname}
                   </Typography>
 

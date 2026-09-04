@@ -228,7 +228,7 @@ export const BootSplash = ({
             <Typography
               key={msgKey}
               sx={{
-                fontSize: 13.5,
+                fontSize: 14,
                 fontWeight: 600,
                 color: 'rgba(240, 253, 250, 0.92)',
                 letterSpacing: '-0.01em',

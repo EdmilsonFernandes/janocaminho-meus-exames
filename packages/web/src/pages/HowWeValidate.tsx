@@ -64,7 +64,7 @@ export const HowWeValidatePage = () => {
   return (
     <Box sx={{ background: 'background.default', minHeight: '100vh', py: { xs: 3, md: 5 } }}>
       <Container maxWidth="md">
-        <Box sx={{ textAlign: 'center', mb: 3, background: 'background.paper', borderRadius: '14px', p: { xs: 2.5, md: 4 }, boxShadow: 1 }}>
+        <Box sx={{ textAlign: 'center', mb: 3, background: 'background.paper', borderRadius: '12px', p: { xs: 2.5, md: 4 }, boxShadow: 1 }}>
           <DrExame size={56} sx={{ borderRadius: '18%' }} />
           <Typography variant="h5" sx={{ fontWeight: 800, mt: 1 }}>Como validamos</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 480, mx: 'auto', mt: 0.5 }}>
@@ -73,7 +73,7 @@ export const HowWeValidatePage = () => {
         </Box>
 
         {SECTIONS.map((s) => (
-          <Card key={s.title} variant="outlined" sx={{ mb: 1.5, borderRadius: '14px', '&:hover': { boxShadow: '0 6px 18px rgba(32,178,170,0.12)' } }}>
+          <Card key={s.title} variant="outlined" sx={{ mb: 1.5, borderRadius: '12px', '&:hover': { boxShadow: '0 6px 18px rgba(32,178,170,0.12)' } }}>
             <CardContent sx={{ display: 'flex', gap: 2, alignItems: 'flex-start', py: 2.5, '&:last-child': { pb: 2.5 } }}>
               <Box sx={{ mt: 0.5, flexShrink: 0 }}>{s.icon}</Box>
               <Box>

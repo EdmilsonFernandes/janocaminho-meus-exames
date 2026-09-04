@@ -62,7 +62,7 @@ export const ConquistasPage = () => {
 
   const badgeCard = (b: Badge) => (
     <Card key={b.id} sx={{
-      borderRadius: '20px', p: 0, textAlign: 'center', position: 'relative',
+      borderRadius: '16px', p: 0, textAlign: 'center', position: 'relative',
       border: b.claimed ? '1.5px solid rgba(32,178,170,.45)' : b.earned ? '1.5px solid rgba(32,178,170,.3)' : '1px solid',
       borderColor: b.claimed || b.earned ? undefined : 'divider',
       bgcolor: b.claimed ? 'rgba(32,178,170,.07)' : b.earned ? 'rgba(32,178,170,.04)' : 'background.paper',
@@ -91,13 +91,13 @@ export const ConquistasPage = () => {
           transition: 'all .3s ease',
           animation: b.claimable ? `${pop} .5s ease both` : 'none',
         }}>{b.emoji}</Box>
-        <Typography sx={{ fontSize: 13.5, fontWeight: 800, color: b.earned ? 'text.primary' : 'text.secondary', lineHeight: 1.25 }}>{b.title}</Typography>
-        <Typography sx={{ fontSize: 11.5, color: 'text.secondary', lineHeight: 1.35, mt: 0.5, minHeight: 32 }}>{b.desc}</Typography>
-        <Chip size="small" label={`🎁 ${b.reward} crédito${b.reward > 1 ? 's' : ''}`} sx={{ height: 22, mt: 0.75, bgcolor: 'rgba(184,138,84,.12)', color: '#b88a54', fontWeight: 800, fontSize: 11.5 }} />
+        <Typography sx={{ fontSize: 14, fontWeight: 800, color: b.earned ? 'text.primary' : 'text.secondary', lineHeight: 1.25 }}>{b.title}</Typography>
+        <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.35, mt: 0.5, minHeight: 32 }}>{b.desc}</Typography>
+        <Chip size="small" label={`🎁 ${b.reward} crédito${b.reward > 1 ? 's' : ''}`} sx={{ height: 22, mt: 0.75, bgcolor: 'rgba(184,138,84,.12)', color: '#b88a54', fontWeight: 800, fontSize: 12 }} />
         {b.claimed ? (
-          <Typography sx={{ fontSize: 11.5, fontWeight: 800, color: '#178f89', mt: 1 }}>✓ {b.period === 'monthly' ? 'Resgatado este mês' : 'Resgatado'}</Typography>
+          <Typography sx={{ fontSize: 12, fontWeight: 800, color: '#178f89', mt: 1 }}>✓ {b.period === 'monthly' ? 'Resgatado este mês' : 'Resgatado'}</Typography>
         ) : b.claimable ? (
-          <Button size="small" fullWidth disabled={busy === b.id} onClick={() => claim(b.id)} sx={{ mt: 1, borderRadius: '999px', textTransform: 'none', fontWeight: 800, fontSize: 12.5, bgcolor: '#20b2aa', color: '#fff', boxShadow: '0 6px 16px rgba(32,178,170,0.3)', '&:hover': { bgcolor: '#178f89' } }}>
+          <Button size="small" fullWidth disabled={busy === b.id} onClick={() => claim(b.id)} sx={{ mt: 1, borderRadius: '999px', textTransform: 'none', fontWeight: 800, fontSize: 13, bgcolor: '#20b2aa', color: '#fff', boxShadow: '0 6px 16px rgba(32,178,170,0.3)', '&:hover': { bgcolor: '#178f89' } }}>
             {busy === b.id ? '…' : '🎉 Resgatar'}
           </Button>
         ) : (
@@ -105,7 +105,7 @@ export const ConquistasPage = () => {
             <Box sx={{ mt: 1.25, px: 1 }}>
               <LinearProgress variant="determinate" value={b.progress * 100} sx={{ height: 6, borderRadius: '999px', bgcolor: 'rgba(0,0,0,0.06)', '& .MuiLinearProgress-bar': { bgcolor: b.progress >= 0.75 ? '#059669' : '#20b2aa', borderRadius: '999px', transition: 'width .4s ease' } }} />
             </Box>
-            <Typography sx={{ fontSize: 11.5, fontWeight: 700, color: b.progress >= 0.75 ? '#059669' : 'text.secondary', mt: 0.5 }}>{Math.round(b.progress * 100)}%</Typography>
+            <Typography sx={{ fontSize: 12, fontWeight: 700, color: b.progress >= 0.75 ? '#059669' : 'text.secondary', mt: 0.5 }}>{Math.round(b.progress * 100)}%</Typography>
           </>
         )}
       </Box>
@@ -121,7 +121,7 @@ export const ConquistasPage = () => {
       </Stack>
 
       {/* Resumo + resgatar tudo */}
-      <Card sx={{ borderRadius: '24px', mb: 3, background: 'linear-gradient(135deg, #0c4a46 0%, #137a72 50%, #178f89 100%)', color: '#fff', boxShadow: '0 16px 36px rgba(15,61,58,.25)', border: '1px solid rgba(255,255,255,0.2)', overflow: 'hidden', position: 'relative' }}>
+      <Card sx={{ borderRadius: '16px', mb: 3, background: 'linear-gradient(135deg, #0c4a46 0%, #137a72 50%, #178f89 100%)', color: '#fff', boxShadow: '0 16px 36px rgba(15,61,58,.25)', border: '1px solid rgba(255,255,255,0.2)', overflow: 'hidden', position: 'relative' }}>
         {/* Decoração de fundo */}
         <Box sx={{ position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.06)' }} />
         <Box sx={{ position: 'absolute', bottom: -20, left: -20, width: 80, height: 80, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.04)' }} />

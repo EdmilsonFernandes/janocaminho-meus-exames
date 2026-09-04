@@ -36,7 +36,7 @@ export const AiCard = ({ tip, onChat }: { tip: ReactNode; onChat: () => void }) 
               borderRadius: '999px',
               textTransform: 'none',
               fontWeight: 800,
-              fontSize: 13.5,
+              fontSize: 14,
               py: { xs: 1, sm: 1.1 },
               px: { xs: 2.5, sm: 3.5 },
               width: { xs: '100%', sm: 'auto' },

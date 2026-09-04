@@ -32,7 +32,7 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
   sourceExams?: SourceExam[]; onOpenExam?: (id: string) => void;
 }) => (
   <Box sx={(t) => ({
-    position: 'relative', overflow: 'hidden', p: { xs: 2, sm: 2.5 }, borderRadius: '22px',
+    position: 'relative', overflow: 'hidden', p: { xs: 2, sm: 2.5 }, borderRadius: '16px',
     background: t.palette.mode === 'dark'
       ? 'linear-gradient(135deg, rgba(20,35,35,0.9), rgba(15,25,25,0.85))'
       : 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(240,250,249,0.85))',
@@ -46,7 +46,7 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
         <DrExame size={42} sx={{ borderRadius: '50%' }} />
       </Box>
       <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography sx={{ fontSize: 13.5, color: 'text.secondary', fontWeight: 600, lineHeight: 1.35 }}>Análise educativa gerada pela IA<br />— não substitui consulta médica</Typography>
+        <Typography sx={{ fontSize: 14, color: 'text.secondary', fontWeight: 600, lineHeight: 1.35 }}>Análise educativa gerada pela IA<br />— não substitui consulta médica</Typography>
       </Box>
     </Stack>
 
@@ -77,7 +77,7 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
                 title={`${e.title}${dt ? ` — ${dt}` : ''}${lab ? ` • ${lab}` : ''}`}
                 sx={{
                   display: 'flex', alignItems: 'center', gap: 1, width: '100%', textAlign: 'left',
-                  p: 0.75, borderRadius: '10px', cursor: 'pointer',
+                  p: 0.75, borderRadius: '8px', cursor: 'pointer',
                   border: '1px solid', borderColor: 'divider', bgcolor: 'transparent',
                   transition: 'background-color .15s ease, border-color .15s ease',
                   '&:hover': { bgcolor: alpha('#20b2aa', 0.06), borderColor: alpha('#20b2aa', 0.35) },
@@ -87,7 +87,7 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
                   <DescriptionIcon sx={{ fontSize: 16 }} />
                 </Box>
                 <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography noWrap sx={{ fontSize: 12.5, fontWeight: 700, color: 'text.primary' }}>{e.title}</Typography>
+                  <Typography noWrap sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary' }}>{e.title}</Typography>
                   <Typography noWrap variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
                     {dt}{labShort ? ` • ${labShort}` : ''}
                   </Typography>

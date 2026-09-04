@@ -33,7 +33,7 @@ const prettyName = (n: string) => {
 };
 
 export const DestaqueCard = ({ c }: { c: { name: string; anterior?: string | null; atual?: string | null; leitura?: string | null; entenda?: string | null } }) => (
-  <Box sx={{ p: 1.75, height: '100%', borderRadius: '14px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 8px rgba(0,0,0,0.03)', overflow: 'hidden' }}>
+  <Box sx={{ p: 1.75, height: '100%', borderRadius: '12px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 8px rgba(0,0,0,0.03)', overflow: 'hidden' }}>
     <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={1}>
       <Box sx={{ flex: 1, minWidth: 0 }}>
         <NameToggle name={prettyName(c.name)} entenda={c.entenda} />

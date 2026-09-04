@@ -24,7 +24,7 @@ export const EmergencyCardPage = () => {
     <PageContainer width="narrow" sx={{ pb: { xs: 10, sm: 5 } }}>
       {/* Title removido — header vermelho abaixo já cumpre o papel de título visual */}
       <Card sx={{
-        borderRadius: '24px', overflow: 'hidden',
+        borderRadius: '16px', overflow: 'hidden',
         border: '1px solid rgba(239,68,68,0.22)',
         boxShadow: '0 10px 36px rgba(239,68,68,0.12)'
       }}>

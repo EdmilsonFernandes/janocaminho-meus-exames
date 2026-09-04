@@ -195,18 +195,18 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
           <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1.125rem, 5.5vw, 1.375rem)', sm: 22 }, lineHeight: 1.15, color: 'text.primary', mt: 0.25, textWrap: 'balance' }}>{title}</Typography>
           <Stack direction="row" spacing={1.5} sx={{ mt: 1, flexWrap: 'wrap', rowGap: 0.5 }}>
             {totalAtt > 0 ? (
-              <Typography sx={{ fontSize: 13.5, color: 'text.secondary' }}>
+              <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>
                 {importante > 0 && <Box component="span" sx={{ color: (t) => (t.palette.mode === 'dark' ? '#f87171' : '#b91c1c'), fontWeight: 700 }}>● {importante} importante{importante > 1 ? 's' : ''}</Box>}
                 {importante > 0 && moderada > 0 && <Box component="span" sx={{ color: 'text.secondary' }}> · </Box>}
                 {moderada > 0 && <Box component="span" sx={{ color: (t) => (t.palette.mode === 'dark' ? '#fbbf24' : '#b45309'), fontWeight: 700 }}>● {moderada} moderado{moderada > 1 ? 's' : ''}</Box>}
               </Typography>
             ) : noData ? (
               /* Copy personalizada pelo objetivo do quiz-first onboarding (licença Mito). */
-              <Typography sx={{ fontSize: 13.5, color: 'text.secondary' }}>{goalSubtitle(getGoals()) ?? 'Envie um exame pra começarmos a construir sua visão de saúde.'}</Typography>
+              <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>{goalSubtitle(getGoals()) ?? 'Envie um exame pra começarmos a construir sua visão de saúde.'}</Typography>
             ) : score != null ? (
-              <Typography sx={{ fontSize: 13.5, color: 'success.main', fontWeight: 700 }}>● Nada crítico no momento</Typography>
+              <Typography sx={{ fontSize: 14, color: 'success.main', fontWeight: 700 }}>● Nada crítico no momento</Typography>
             ) : null}
-            {last && !noData && <Typography sx={{ fontSize: 12.5, color: 'text.disabled' }}>· atualizado {last}</Typography>}
+            {last && !noData && <Typography sx={{ fontSize: 13, color: 'text.disabled' }}>· atualizado {last}</Typography>}
           </Stack>
         </Box>
       </Stack>
@@ -237,7 +237,7 @@ const IndicatorTile = ({ icon, label, value, sub, tone, onClick, idx = 0 }: {
     '@keyframes dashTileIn': { from: { opacity: 0, transform: 'translateY(10px)' }, to: { opacity: 1, transform: 'translateY(0)' } },
   }}>
     <Stack direction="row" spacing={{ xs: 1, sm: 1.5 }} alignItems="center" sx={{ width: '100%', minWidth: 0 }}>
-      <Box sx={{ width: { xs: 36, sm: 44 }, height: { xs: 36, sm: 44 }, borderRadius: '14px', display: 'grid', placeItems: 'center', flexShrink: 0,
+      <Box sx={{ width: { xs: 36, sm: 44 }, height: { xs: 36, sm: 44 }, borderRadius: '12px', display: 'grid', placeItems: 'center', flexShrink: 0,
         bgcolor: (th) => alpha((th.palette as any)[tone]?.main ?? '#20b2aa', 0.12), color: `${tone}.main`,
         transition: 'transform .15s', '&:hover': { transform: 'scale(1.06)' } }}>{icon}</Box>
       <Box sx={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>

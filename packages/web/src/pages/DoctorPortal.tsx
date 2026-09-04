@@ -1185,9 +1185,9 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                         {/* FOTO do produto (catálogo/snapshot) — mesma régua da página Remédios */}
                         {m.catalogPhotoUrl ? (
                           <Box component="img" src={m.catalogPhotoUrl} alt={m.name} loading="lazy"
-                            sx={{ width: 40, height: 40, borderRadius: '10px', objectFit: 'contain', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', flexShrink: 0 }} />
+                            sx={{ width: 40, height: 40, borderRadius: '8px', objectFit: 'contain', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', flexShrink: 0 }} />
                         ) : (
-                          <Box sx={{ width: 40, height: 40, borderRadius: '10px', display: 'grid', placeItems: 'center', flexShrink: 0, bgcolor: 'rgba(32,178,170,.1)', color: '#178f89', fontWeight: 800, fontSize: 16, fontFamily: 'Poppins, sans-serif' }}>
+                          <Box sx={{ width: 40, height: 40, borderRadius: '8px', display: 'grid', placeItems: 'center', flexShrink: 0, bgcolor: 'rgba(32,178,170,.1)', color: '#178f89', fontWeight: 800, fontSize: 16, fontFamily: 'Poppins, sans-serif' }}>
                             {String(m.name || '?').trim().charAt(0).toUpperCase()}
                           </Box>
                         )}
@@ -1199,7 +1199,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                     ))}
                     {medsInfo.critical.length > 0 && (
                       <Box sx={{ mt: 1.5 }}>
-                        <Typography sx={{ fontWeight: 800, color: 'error.main', fontSize: 13.5, mb: 0.5 }}>⚠️ Interações críticas</Typography>
+                        <Typography sx={{ fontWeight: 800, color: 'error.main', fontSize: 14, mb: 0.5 }}>⚠️ Interações críticas</Typography>
                         {medsInfo.critical.map((c: any, i: number) => (
                           <Box key={i} sx={{ p: 1, borderRadius: '8px', bgcolor: 'rgba(185,28,28,.08)', mb: 0.75 }}>
                             <Typography sx={{ fontWeight: 700, fontSize: 13 }}>{c.drugA} + {c.drugB} ({c.severity})</Typography>

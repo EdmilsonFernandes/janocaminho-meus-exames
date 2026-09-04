@@ -65,13 +65,13 @@ export const ChangesSinceExam = ({
       <Stack spacing={1.1}>
         {worsened.slice(0, 3).map((m, i) => (
           <Stack key={`w${i}`} direction="row" justifyContent="space-between" alignItems="baseline">
-            <Typography sx={{ fontSize: 13.5, color: 'text.primary', fontWeight: 600 }}><Box component="span" sx={{ color: '#b91c1c', mr: 0.5 }}>{flagDir(m, false)}</Box>{m.name}</Typography>
+            <Typography sx={{ fontSize: 14, color: 'text.primary', fontWeight: 600 }}><Box component="span" sx={{ color: '#b91c1c', mr: 0.5 }}>{flagDir(m, false)}</Box>{m.name}</Typography>
             <Typography sx={{ fontSize: 13, color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>{fmtMarker(m)}</Typography>
           </Stack>
         ))}
         {improvedUnique.slice(0, 3).map((m, i) => (
           <Stack key={`i${i}`} direction="row" justifyContent="space-between" alignItems="baseline">
-            <Typography sx={{ fontSize: 13.5, color: 'text.primary', fontWeight: 600 }}><Box component="span" sx={{ color: '#047857', mr: 0.5 }}>{flagDir(m, true)}</Box>{m.name}</Typography>
+            <Typography sx={{ fontSize: 14, color: 'text.primary', fontWeight: 600 }}><Box component="span" sx={{ color: '#047857', mr: 0.5 }}>{flagDir(m, true)}</Box>{m.name}</Typography>
             <Typography sx={{ fontSize: 13, color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>{fmtMarker(m)}</Typography>
           </Stack>
         ))}

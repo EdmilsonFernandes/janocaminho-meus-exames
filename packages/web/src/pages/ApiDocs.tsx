@@ -51,9 +51,9 @@ const Params = ({ rows }: { rows: [string, string, string][] }) => (
     </Box>
     {rows.map((r, idx) => (
       <Box key={r[0]} sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1.6fr 1fr 3fr' }, px: 1.5, py: 1, borderTop: idx ? '1px solid' : 'none', borderColor: 'divider', gap: { xs: 0.5, sm: 0 } }}>
-        <Typography sx={{ fontSize: 12.5, fontFamily: 'ui-monospace, monospace', fontWeight: 700, color: '#178f89', wordBreak: 'break-all' }}>{r[0]}</Typography>
+        <Typography sx={{ fontSize: 13, fontFamily: 'ui-monospace, monospace', fontWeight: 700, color: '#178f89', wordBreak: 'break-all' }}>{r[0]}</Typography>
         <Typography sx={{ fontSize: 12, fontFamily: 'ui-monospace, monospace', color: 'text.secondary' }}>{r[1]}</Typography>
-        <Typography sx={{ fontSize: 12.5, color: 'text.secondary', lineHeight: 1.5 }}>{r[2]}</Typography>
+        <Typography sx={{ fontSize: 13, color: 'text.secondary', lineHeight: 1.5 }}>{r[2]}</Typography>
       </Box>
     ))}
   </Box>
@@ -67,16 +67,16 @@ const Method = ({ m, path }: { m: string; path: string }) => (
 );
 
 const EndpointDoc = ({ id, title, desc, method, path, params, paramsLabel, curl, curlLabel = 'Exemplo', response }: { id: string; title: string; desc: string; method: string; path: string; params: [string, string, string][]; paramsLabel?: string; curl: string; curlLabel?: string; response: string }) => (
-  <Card id={id} variant="outlined" sx={{ borderRadius: '14px', mb: 2.5, scrollMarginTop: 90 }}>
+  <Card id={id} variant="outlined" sx={{ borderRadius: '12px', mb: 2.5, scrollMarginTop: 90 }}>
     <CardContent sx={{ p: { xs: 2, md: 3 } }}>
       <Typography sx={{ fontWeight: 800, fontSize: 17, mb: 0.75 }}>{title}</Typography>
       <Typography color="text.secondary" sx={{ fontSize: 14, mb: 1.5, lineHeight: 1.6 }}>{desc}</Typography>
       <Method m={method} path={path} />
-      <Typography sx={{ fontWeight: 800, fontSize: 12.5, mt: 2, mb: 0.5 }}>{paramsLabel ?? 'Parâmetros (query)'}</Typography>
+      <Typography sx={{ fontWeight: 800, fontSize: 13, mt: 2, mb: 0.5 }}>{paramsLabel ?? 'Parâmetros (query)'}</Typography>
       <Params rows={params} />
-      <Typography sx={{ fontWeight: 800, fontSize: 12.5, mt: 2, mb: 0.5 }}>{curlLabel}</Typography>
+      <Typography sx={{ fontWeight: 800, fontSize: 13, mt: 2, mb: 0.5 }}>{curlLabel}</Typography>
       <Code lang="bash">{curl}</Code>
-      <Typography sx={{ fontWeight: 800, fontSize: 12.5, mt: 1.5, mb: 0.5 }}>Resposta 200</Typography>
+      <Typography sx={{ fontWeight: 800, fontSize: 13, mt: 1.5, mb: 0.5 }}>Resposta 200</Typography>
       <Code lang="json">{response}</Code>
     </CardContent>
   </Card>
@@ -104,7 +104,7 @@ export const ApiDocsPage = () => {
       <Container maxWidth="lg">
         {/* HERO */}
         <Box sx={{
-          position: 'relative', overflow: 'hidden', mb: 3, borderRadius: '18px', p: { xs: 2.5, md: 3.5 },
+          position: 'relative', overflow: 'hidden', mb: 3, borderRadius: '16px', p: { xs: 2.5, md: 3.5 },
           background: 'linear-gradient(135deg,#0f5f5a 0%,#137a72 55%,#178f89 100%)', color: '#fff',
         }}>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'flex-start', sm: 'center' }}>
@@ -181,7 +181,7 @@ export const ApiDocsPage = () => {
                   <Stack key={s.n} direction="row" spacing={1.5} alignItems="flex-start">
                     <Box sx={{ width: 26, height: 26, flexShrink: 0, borderRadius: '50%', bgcolor: 'rgba(32,178,170,.14)', color: '#178f89', display: 'grid', placeItems: 'center', fontWeight: 800, fontSize: 13 }}>{s.n}</Box>
                     <Box>
-                      <Typography sx={{ fontWeight: 700, fontSize: 14.5 }}>{s.t}</Typography>
+                      <Typography sx={{ fontWeight: 700, fontSize: 15 }}>{s.t}</Typography>
                       <Typography sx={{ fontSize: 13, color: 'text.secondary', lineHeight: 1.55 }}>{s.d}</Typography>
                     </Box>
                   </Stack>

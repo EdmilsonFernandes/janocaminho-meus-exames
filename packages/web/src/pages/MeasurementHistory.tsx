@@ -116,7 +116,7 @@ export const MeasurementHistoryPage = () => {
         value={period}
         onChange={(_, v) => { if (v) setPeriod(v as Period); }}
         aria-label="Período do histórico"
-        sx={{ mb: 2, '& .MuiToggleButton-root': { px: 1.5, py: { xs: 0.75, sm: 0.4 }, minHeight: { xs: 40, sm: 0 }, borderRadius: '99px !important', border: '1px solid', borderColor: 'divider', textTransform: 'none', fontWeight: 700, fontSize: 12.5, color: 'text.secondary', '&.Mui-selected': { bgcolor: alpha(theme.palette.primary.main, 0.15), color: 'primary.dark', borderColor: alpha(theme.palette.primary.main, 0.4) } } }}
+        sx={{ mb: 2, '& .MuiToggleButton-root': { px: 1.5, py: { xs: 0.75, sm: 0.4 }, minHeight: { xs: 40, sm: 0 }, borderRadius: '99px !important', border: '1px solid', borderColor: 'divider', textTransform: 'none', fontWeight: 700, fontSize: 13, color: 'text.secondary', '&.Mui-selected': { bgcolor: alpha(theme.palette.primary.main, 0.15), color: 'primary.dark', borderColor: alpha(theme.palette.primary.main, 0.4) } } }}
       >
         {PERIODS.map((p) => <ToggleButton key={p.v} value={p.v} aria-pressed={period === p.v}>{p.l}</ToggleButton>)}
       </ToggleButtonGroup>
@@ -126,7 +126,7 @@ export const MeasurementHistoryPage = () => {
       {rows !== null && rows.length === 0 && (
         <AppCard sx={{ p: 4, textAlign: 'center' }}>
           <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', mb: 0.5 }}>Nenhum registro de {t.l.toLowerCase()}</Typography>
-          <Typography color="text.secondary" sx={{ mb: 2, fontSize: 13.5 }}>
+          <Typography color="text.secondary" sx={{ mb: 2, fontSize: 14 }}>
             {t.synced ? 'Os dados chegam pelo Health Connect — abra o app Dr. Exame no celular para sincronizar.' : 'Registre pela página de Medições e a tendência aparece aqui.'}
           </Typography>
           <Button size="small" variant="outlined" onClick={() => navigate('/medicoes')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>Ir às medições</Button>
@@ -181,7 +181,7 @@ export const MeasurementHistoryPage = () => {
           {/* Tabela diária — a antiga "lista bruta", agora no lugar dela (detalhe). */}
           <AppCard sx={{ p: 0 }}>
             {tableRows.length === 0 ? (
-              <Typography sx={{ p: 3, textAlign: 'center', color: 'text.secondary', fontSize: 13.5 }}>Nenhum registro neste período.</Typography>
+              <Typography sx={{ p: 3, textAlign: 'center', color: 'text.secondary', fontSize: 14 }}>Nenhum registro neste período.</Typography>
             ) : (
               tableRows.map((m) => (
                 <Stack key={m.id} direction="row" justifyContent="space-between" alignItems="center" sx={{ px: 2, py: 1.25, borderBottom: '1px solid', borderColor: 'divider', '&:last-child': { borderBottom: 'none' } }}>
@@ -201,7 +201,7 @@ export const MeasurementHistoryPage = () => {
             )}
           </AppCard>
 
-          <Alert severity="info" icon={false} sx={{ mt: 2, borderRadius: '12px', '& .MuiAlert-message': { fontSize: 12.5 } }}>
+          <Alert severity="info" icon={false} sx={{ mt: 2, borderRadius: '12px', '& .MuiAlert-message': { fontSize: 13 } }}>
             Estes dados informam, não diagnosticam — converse com seu médico sobre o que significam no seu caso.
           </Alert>
         </>

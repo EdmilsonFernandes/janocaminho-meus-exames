@@ -34,7 +34,7 @@ const fmtDate = (d?: string | null) => (d ? new Date(d).toLocaleDateString('pt-B
 /** Linha de atalho p/ outra área da conta (a funcionalidade continua existindo — em outro lugar). */
 const AccountLinkRow = ({ icon, title, desc, onClick }: { icon: React.ReactNode; title: string; desc: string; onClick: () => void }) => (
   <Stack direction="row" spacing={1.5} alignItems="center" onClick={onClick} sx={{ py: 1.25, cursor: 'pointer', '&:active': { opacity: 0.7 } }}>
-    <Box sx={{ width: 36, height: 36, borderRadius: '10px', display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,.12)', color: '#178f89', flexShrink: 0 }}>{icon}</Box>
+    <Box sx={{ width: 36, height: 36, borderRadius: '8px', display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,.12)', color: '#178f89', flexShrink: 0 }}>{icon}</Box>
     <Box sx={{ flex: 1, minWidth: 0 }}>
       <Typography sx={{ fontWeight: 700, fontSize: 15, color: 'text.primary' }}>{title}</Typography>
       <Typography variant="body2" color="text.secondary" sx={{ fontSize: 13 }}>{desc}</Typography>
@@ -205,7 +205,7 @@ export const ProfilePage = () => {
       <Card sx={{ mb: 2, borderRadius: '12px' }}>
         <CardContent>
           <Stack direction="row" spacing={2} alignItems="center">
-            <Box sx={{ width: 40, height: 40, borderRadius: '11px', display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,.12)', color: '#178f89', flexShrink: 0 }}><ScaleIcon /></Box>
+            <Box sx={{ width: 40, height: 40, borderRadius: '12px', display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,.12)', color: '#178f89', flexShrink: 0 }}><ScaleIcon /></Box>
             <Box sx={{ flex: 1, minWidth: 0 }}>
               <Typography variant="h6">Peso atual</Typography>
               {patient?.weightKg != null ? (

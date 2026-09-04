@@ -78,7 +78,7 @@ const PharmacyBadge = ({ name }: { name: string }) => {
   }
   const brand = PHARMACY_BRAND[name] ?? { color: '#64748b', bg: 'rgba(100,116,139,.08)', label: name?.slice(0, 2).toUpperCase() || '?' };
   return (
-    <Box sx={{ px: 1, py: 0.25, borderRadius: '6px', bgcolor: brand.bg, color: brand.color, fontWeight: 800, fontSize: 10, fontFamily: 'Poppins, sans-serif', flexShrink: 0 }}>
+    <Box sx={{ px: 1, py: 0.25, borderRadius: '8px', bgcolor: brand.bg, color: brand.color, fontWeight: 800, fontSize: 10, fontFamily: 'Poppins, sans-serif', flexShrink: 0 }}>
       {brand.label}
     </Box>
   );
@@ -321,10 +321,10 @@ export const MedicationsPage = () => {
       <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: s.bg, border: '1px solid', borderColor: s.color + '33' }}>
         <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5, flexWrap: 'wrap' }}>
           <Chip size="small" label={`${h.severity} · ${s.label}`} sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: s.color, color: '#fff' }} />
-          <Typography sx={{ fontWeight: 700, fontSize: 13.5 }}>{h.drugA} + {h.drugB}</Typography>
+          <Typography sx={{ fontWeight: 700, fontSize: 14 }}>{h.drugA} + {h.drugB}</Typography>
         </Stack>
         <Typography sx={{ fontSize: 13, opacity: 0.85 }}>{h.effect}</Typography>
-        <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mt: 0.5 }}>💡 {h.recommendation}</Typography>
+        <Typography sx={{ fontSize: 13, color: 'text.secondary', mt: 0.5 }}>💡 {h.recommendation}</Typography>
       </Box>
     );
   };
@@ -379,7 +379,7 @@ export const MedicationsPage = () => {
             const photo = m.priceSummary?.imageUrl ?? m.catalogPhotoUrl;
             return (
               <Card key={m.id} elevation={0} sx={{
-                p: 2, borderRadius: '20px', border: '1px solid', borderColor: 'divider',
+                p: 2, borderRadius: '16px', border: '1px solid', borderColor: 'divider',
                 boxShadow: '0 1px 2px rgba(0,0,0,.03), 0 2px 8px rgba(0,0,0,.04), 0 8px 20px rgba(0,0,0,.03)',
                 transition: 'box-shadow .2s ease, border-color .2s ease',
                 '&:hover': m.priceSummary?.lowestPriceCents != null
@@ -401,7 +401,7 @@ export const MedicationsPage = () => {
                     {/* NOME com clamp 2 linhas + DOSE sempre legível (critique P1:
                         "Mounjaro 5…"/"Ozempic 0,…" escondiam a dose — identificação
                         clínica ilegível. Nome quebra até 2 linhas; dose nunca truncada. */}
-                    <Typography sx={{ fontWeight: 700, fontSize: 15.5, lineHeight: 1.25, fontFamily: 'Poppins, sans-serif', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', wordBreak: 'break-word' }} title={m.name}>{m.name}</Typography>
+                    <Typography sx={{ fontWeight: 700, fontSize: 16, lineHeight: 1.25, fontFamily: 'Poppins, sans-serif', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', wordBreak: 'break-word' }} title={m.name}>{m.name}</Typography>
                     <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>{[m.dosage, m.frequency].filter(Boolean).join(' · ') || 'uso contínuo'}</Typography>
                     {m.priceSummary?.lowestPriceCents != null ? (
                       // Row de preço clicável = BOTÃO de verdade (teclado + leitor de tela)
@@ -449,8 +449,8 @@ export const MedicationsPage = () => {
       {/* EMPTY STATE — nunca tela muda: sempre um convite pra agir (pedido do dono —
           "aparece só o label Remédios sem interação nenhuma ai queima") */}
       {(meds != null || !pid) && active.length === 0 && inactive.length === 0 && (
-        <Card elevation={0} sx={{ p: 4, borderRadius: '20px', border: '1px dashed', borderColor: 'divider', textAlign: 'center' }}>
-          <Box sx={{ width: 72, height: 72, mx: 'auto', mb: 2, borderRadius: '20px', display: 'grid', placeItems: 'center', background: 'linear-gradient(135deg,rgba(32,178,170,.14),rgba(32,178,170,.05))' }}>
+        <Card elevation={0} sx={{ p: 4, borderRadius: '16px', border: '1px dashed', borderColor: 'divider', textAlign: 'center' }}>
+          <Box sx={{ width: 72, height: 72, mx: 'auto', mb: 2, borderRadius: '16px', display: 'grid', placeItems: 'center', background: 'linear-gradient(135deg,rgba(32,178,170,.14),rgba(32,178,170,.05))' }}>
             <MedicationIcon sx={{ fontSize: 36, color: 'primary.dark' }} />
           </Box>
           <Typography sx={{ fontWeight: 800, fontSize: 18, fontFamily: 'Poppins, sans-serif', mb: 0.5 }}>Nenhum remédio ainda</Typography>
@@ -509,7 +509,7 @@ export const MedicationsPage = () => {
               <Stack spacing={1}>
                 {(full.all ?? []).length === 0 && <Typography sx={{ color: 'success.main', fontWeight: 700 }}>✅ Tudo certo entre seus remédios.</Typography>}
                 {(full.all ?? []).map((h, i) => <HitCard key={i} h={h} />)}
-                {full.contextual && <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'action.hover', whiteSpace: 'pre-wrap', fontSize: 13.5, lineHeight: 1.6 }}>{full.contextual}</Box>}
+                {full.contextual && <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'action.hover', whiteSpace: 'pre-wrap', fontSize: 14, lineHeight: 1.6 }}>{full.contextual}</Box>}
                 {/* IA falhou → antes: silêncio total ("pensa e não mostra"). O server já
                     reembolsa os créditos; agora avisamos com honestidade + libera retry. */}
                 {full.contextualAvailable === false && (
@@ -525,7 +525,7 @@ export const MedicationsPage = () => {
 
       {/* ============ DIALOG BUSCAR — simples e direto (1 toque) ============ */}
       <Dialog open={searchOpen} onClose={() => setSearchOpen(false)} fullWidth maxWidth="xs"
-        PaperProps={{ sx: { borderRadius: '20px', overflow: 'hidden' } }}>
+        PaperProps={{ sx: { borderRadius: '16px', overflow: 'hidden' } }}>
         <Box sx={{ p: 2, pb: 1 }}>
           <Typography sx={{ fontWeight: 800, fontSize: 18, fontFamily: 'Poppins, sans-serif', mb: 1.5 }}>
             Qual remédio você toma?
@@ -534,7 +534,7 @@ export const MedicationsPage = () => {
             autoFocus fullWidth placeholder="dipirona, levoid, osartan..."
             value={query} onChange={(e) => setQuery(e.target.value)}
             variant="outlined" size="medium"
-            sx={{ '& .MuiOutlinedInput-root': { borderRadius: '14px', bgcolor: 'background.paper' } }}
+            sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: 'background.paper' } }}
           />
         </Box>
         <DialogContent sx={{ p: 1, pt: 0.5 }}>
@@ -586,7 +586,7 @@ export const MedicationsPage = () => {
       </Dialog>
 
       {/* ============ DIALOG ESCANEAR — com progresso visual premium ============ */}
-      <Dialog open={scanOpen} onClose={() => scanLoading ? null : setScanOpen(false)} fullWidth maxWidth="xs" PaperProps={{ sx: { borderRadius: '20px', overflow: 'hidden' } }}>
+      <Dialog open={scanOpen} onClose={() => scanLoading ? null : setScanOpen(false)} fullWidth maxWidth="xs" PaperProps={{ sx: { borderRadius: '16px', overflow: 'hidden' } }}>
         <Box sx={{ background: 'linear-gradient(135deg, rgba(32,178,170,.06), rgba(32,178,170,.02))', p: 2.5, borderBottom: '1px solid', borderColor: 'divider' }}>
           <Stack direction="row" spacing={2} alignItems="center">
             <Box sx={{ width: 56, height: 56, borderRadius: '16px', bgcolor: 'primary.main', display: 'grid', placeItems: 'center', boxShadow: '0 4px 16px rgba(32,178,170,.3)' }}>
@@ -663,7 +663,7 @@ export const MedicationsPage = () => {
       </Dialog>
 
       {/* ============ DIALOG VER PREÇOS — estilo marketplace (Shopee-like) ============ */}
-      <Dialog open={!!pricesFor} onClose={() => setPricesFor(null)} fullWidth maxWidth="sm" PaperProps={{ sx: { borderRadius: '20px', overflow: 'hidden' } }}>
+      <Dialog open={!!pricesFor} onClose={() => setPricesFor(null)} fullWidth maxWidth="sm" PaperProps={{ sx: { borderRadius: '16px', overflow: 'hidden' } }}>
         {/* HEADER: foto grande + melhor preço em destaque + ECONOMIA (delta entre
             a mais cara e a melhor — o argumento de venda que faltava, critique P2) */}
         {pricesFor && (() => {
@@ -696,7 +696,7 @@ export const MedicationsPage = () => {
                     </Stack>
                   )}
                   {savings > 0 && (
-                    <Chip size="small" label={`economize ${fmtBRL(savings)} vs. a mais cara`} sx={{ mt: 0.75, height: 24, fontWeight: 800, fontSize: 11.5, bgcolor: 'rgba(5,150,105,.12)', color: '#047857' }} />
+                    <Chip size="small" label={`economize ${fmtBRL(savings)} vs. a mais cara`} sx={{ mt: 0.75, height: 24, fontWeight: 800, fontSize: 12, bgcolor: 'rgba(5,150,105,.12)', color: '#047857' }} />
                   )}
                   {best?.pharmacy && (
                     <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.5, minWidth: 0 }}>
@@ -771,7 +771,7 @@ export const MedicationsPage = () => {
       {/* FICHA DA OFERTA — nome COMPLETO (sem truncar), foto grande, farmácia e CTA.
           A lista truncava nomes longos; agora o clique mostra tudo e o usuário decide
           se vai pro site (não vai mais direto — camada intermediária). */}
-      <Dialog open={!!offerDetail} onClose={() => setOfferDetail(null)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: '20px', p: 0.5 } }}>
+      <Dialog open={!!offerDetail} onClose={() => setOfferDetail(null)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: '16px', p: 0.5 } }}>
         {offerDetail && (
           <>
             <Box sx={{ position: 'relative', bgcolor: 'rgba(32,178,170,.05)', borderRadius: '16px', m: 1, p: 3, display: 'grid', placeItems: 'center' }}>

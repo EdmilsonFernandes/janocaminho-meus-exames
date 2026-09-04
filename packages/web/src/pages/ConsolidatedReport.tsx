@@ -447,8 +447,8 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
             <ReportSectionCard icon={<ReportProblemIcon />} title={translate('report.attention')} accent="#ef4444" count={s.pontosAtencao.length}>
               <Stack spacing={1.25}>
                 {s.pontosAtencao.map((p, i) => (
-                  <Box key={i} sx={{ p: 1.5, borderRadius: '14px', bgcolor: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.18)' }}>
-                    <Typography sx={{ fontWeight: 800, color: '#b91c1c', wordBreak: 'break-word', fontSize: 14.5 }}>{i + 1}. {p.titulo}</Typography>
+                  <Box key={i} sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.18)' }}>
+                    <Typography sx={{ fontWeight: 800, color: '#b91c1c', wordBreak: 'break-word', fontSize: 15 }}>{i + 1}. {p.titulo}</Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, wordBreak: 'break-word', lineHeight: 1.5 }}>{p.detalhe}</Typography>
                   </Box>
                 ))}
@@ -582,7 +582,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
 
           {s.leituraFinal && (
             <Box sx={{
-              p: 2.5, borderRadius: '18px',
+              p: 2.5, borderRadius: '16px',
               background: 'linear-gradient(135deg, rgba(3,105,161,0.1), rgba(32,178,170,0.04))',
               border: '1px solid rgba(3,105,161,0.2)',
               boxShadow: '0 4px 16px rgba(3,105,161,0.04)'

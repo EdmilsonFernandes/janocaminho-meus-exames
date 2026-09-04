@@ -63,7 +63,7 @@ const Shell = ({ children, subtitle }: { children: ReactNode; subtitle?: string 
         </Box>
         <Box sx={{ textAlign: 'center', mt: 0.5 }}>
           <Typography sx={{ fontWeight: 800, color: 'text.primary', fontFamily: '"Poppins",sans-serif', letterSpacing: '-0.02em', lineHeight: 1.15, fontSize: { xs: 24, sm: 26 } }}>Meus Exames</Typography>
-          <Typography sx={{ ...SERIF_I, fontSize: 14.5, color: '#178f89', mt: 0.25 }}>{subtitle ?? translate('auth.subtitle')}</Typography>
+          <Typography sx={{ ...SERIF_I, fontSize: 15, color: '#178f89', mt: 0.25 }}>{subtitle ?? translate('auth.subtitle')}</Typography>
         </Box>
       </Stack>
       {children}

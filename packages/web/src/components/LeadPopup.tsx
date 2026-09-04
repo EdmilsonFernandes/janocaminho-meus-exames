@@ -119,7 +119,7 @@ export const LeadPopup = () => {
             <Typography sx={{ fontWeight: 800, fontSize: 17, fontFamily: 'Poppins, sans-serif', color: 'text.primary' }}>
               Pronto! Confira seu e-mail 📩
             </Typography>
-            <Typography sx={{ fontSize: 13.5, color: 'text.secondary', lineHeight: 1.5 }}>
+            <Typography sx={{ fontSize: 14, color: 'text.secondary', lineHeight: 1.5 }}>
               O link pra decifrar seu exame de graça já está a caminho.
             </Typography>
           </Stack>
@@ -127,11 +127,11 @@ export const LeadPopup = () => {
           <Stack spacing={1.5}>
             <Stack direction="row" spacing={1.25} alignItems="center">
               <Box component="img" src={`${import.meta.env.BASE_URL}app-icon.png`} alt="Dr. Exame" sx={{ width: 34, height: 34, borderRadius: '16%', flexShrink: 0 }} />
-              <Typography sx={{ fontWeight: 800, fontSize: 16.5, fontFamily: 'Poppins, sans-serif', color: 'text.primary', lineHeight: 1.2, pr: 3 }}>
+              <Typography sx={{ fontWeight: 800, fontSize: 17, fontFamily: 'Poppins, sans-serif', color: 'text.primary', lineHeight: 1.2, pr: 3 }}>
                 Seu exame de sangue vira <Box component="span" sx={{ color: TEAL_DARK, fontStyle: 'italic', fontFamily: 'Georgia, serif' }}>português claro</Box>.
               </Typography>
             </Stack>
-            <Typography sx={{ fontSize: 13.5, color: 'text.secondary', lineHeight: 1.5 }}>
+            <Typography sx={{ fontSize: 14, color: 'text.secondary', lineHeight: 1.5 }}>
               Deixe seu e-mail e receba o link pra decifrar seu 1º exame <b>de graça</b> — sem cartão, sem spam.
             </Typography>
             {/* honeypot: oculto pra humanos, irresistível pra bots */}

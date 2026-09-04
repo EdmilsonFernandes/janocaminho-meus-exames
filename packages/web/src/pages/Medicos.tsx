@@ -232,7 +232,7 @@ export const MedicosPage = () => {
         elevation={0}
         sx={{
           mb: 3,
-          borderRadius: '20px',
+          borderRadius: '16px',
           background: 'linear-gradient(135deg, #0f5f5a 0%, #178f89 100%)',
           color: '#fff',
           overflow: 'hidden',
@@ -243,7 +243,7 @@ export const MedicosPage = () => {
           <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={2}>
             <Box>
               <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1 }}>
-                <Box sx={{ bgcolor: 'rgba(255,255,255,0.2)', p: 1, borderRadius: '14px', display: 'flex', alignItems: 'center' }}>
+                <Box sx={{ bgcolor: 'rgba(255,255,255,0.2)', p: 1, borderRadius: '12px', display: 'flex', alignItems: 'center' }}>
                   <MedicalServicesIcon sx={{ fontSize: 28, color: '#fff' }} />
                 </Box>
                 <Typography variant="h5" sx={{ fontWeight: 900, fontFamily: 'Poppins, sans-serif', letterSpacing: '-0.02em' }}>
@@ -318,7 +318,7 @@ export const MedicosPage = () => {
 
       {/* Empty state */}
       {!loading && myShares.length === 0 && (
-        <Card sx={{ borderRadius: '20px', background: 'background.default', border: '1px solid', borderColor: 'divider' }}><CardContent sx={{ textAlign: 'center', py: 5 }}>
+        <Card sx={{ borderRadius: '16px', background: 'background.default', border: '1px solid', borderColor: 'divider' }}><CardContent sx={{ textAlign: 'center', py: 5 }}>
           <Box sx={{ fontSize: 56, mb: 1 }}>🩺</Box>
           <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', mb: 0.5 }}>{translate('docs.empty_title')}</Typography>
           <Typography color="text.secondary" sx={{ mb: 2.5, maxWidth: 320, mx: 'auto' }}>{translate('docs.empty_desc')}</Typography>

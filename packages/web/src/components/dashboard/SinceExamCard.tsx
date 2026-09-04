@@ -100,10 +100,10 @@ export const SinceExamCard = ({ lastExamAt }: { lastExamAt?: string | null }) =>
           <Stack spacing={0.5}>
             {data?.examChanges?.filter((e) => e.direction !== 'stable').slice(0, 3).map((e) => (
               <Stack key={e.name} direction="row" spacing={1} alignItems="center">
-                <Typography sx={{ fontSize: 12.5, color: 'text.secondary', flex: 1, minWidth: 0 }}>
+                <Typography sx={{ fontSize: 13, color: 'text.secondary', flex: 1, minWidth: 0 }}>
                   🧪 {e.name}
                 </Typography>
-                <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: e.direction === 'improved' ? 'success.main' : 'error.main' }}>
+                <Typography sx={{ fontSize: 13, fontWeight: 700, color: e.direction === 'improved' ? 'success.main' : 'error.main' }}>
                   {e.direction === 'improved' ? '↓' : '↑'} {fmtNum(Math.abs(e.deltaPct ?? 0), 0)}%
                 </Typography>
               </Stack>
@@ -131,7 +131,7 @@ export const SinceExamCard = ({ lastExamAt }: { lastExamAt?: string | null }) =>
         onClick={() => navigate('/relatorio')}
         sx={{ mt: 1.25, cursor: 'pointer', color: 'primary.dark', '&:hover': { opacity: 0.8 } }}
       >
-        <Typography sx={{ fontSize: 12.5, fontWeight: 700 }}>Ver relatório completo</Typography>
+        <Typography sx={{ fontSize: 13, fontWeight: 700 }}>Ver relatório completo</Typography>
         <ArrowForwardIcon sx={{ fontSize: 14 }} />
       </Stack>
     </AppCard>

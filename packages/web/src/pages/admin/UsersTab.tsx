@@ -112,7 +112,7 @@ export const UsersTab = () => {
 
   return (
     <Box>
-      <TextField placeholder="Buscar por nome ou e-mail..." value={q} onChange={(e) => setQ(e.target.value)} size="small" fullWidth sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: '14px' } }} />
+      <TextField placeholder="Buscar por nome ou e-mail..." value={q} onChange={(e) => setQ(e.target.value)} size="small" fullWidth sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />
       {error && <Box sx={{ mb: 2 }}><SectionError message="Falha ao atualizar a lista." onRetry={() => void load()} /></Box>}
       <Stack spacing={1.5}>
         {users.map((u, idx) => (

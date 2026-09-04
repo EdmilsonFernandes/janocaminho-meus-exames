@@ -95,7 +95,7 @@ export const GoalQuiz = () => {
                   justifyContent: 'flex-start',
                   borderRadius: '12px',
                   height: 44,
-                  fontSize: 14.5,
+                  fontSize: 15,
                   fontWeight: on ? 800 : 600,
                   border: '1.5px solid',
                   borderColor: on ? '#20b2aa' : 'divider',

@@ -152,7 +152,7 @@ export const ApiPanelPage = () => {
     return (
       <PageContainer width={560}>
         <Title title="API Dr. Exame" />
-        <Card variant="outlined" sx={{ borderRadius: '14px' }}>
+        <Card variant="outlined" sx={{ borderRadius: '12px' }}>
           <CardContent sx={{ textAlign: 'center', py: 5, px: 3 }}>
             <Box sx={{ width: 76, height: 76, mx: 'auto', mb: 2, borderRadius: '50%', bgcolor: 'rgba(32,178,170,.12)', display: 'grid', placeItems: 'center' }}>
               <ApiIcon sx={{ fontSize: 36, color: '#178f89' }} />
@@ -186,7 +186,7 @@ export const ApiPanelPage = () => {
       {/* HERO */}
       <Box sx={{
         position: 'relative', overflow: 'hidden', mb: 3,
-        borderRadius: '18px', p: { xs: 2.5, md: 3.5 },
+        borderRadius: '16px', p: { xs: 2.5, md: 3.5 },
         background: 'linear-gradient(135deg,#0f5f5a 0%,#137a72 55%,#178f89 100%)',
         color: '#fff',
       }}>
@@ -196,15 +196,15 @@ export const ApiPanelPage = () => {
           </Box>
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 20, md: 24 }, lineHeight: 1.15 }}>API do Dr. Exame</Typography>
-            <Typography sx={{ fontSize: 13.5, opacity: 0.9, mt: 0.5 }}>
+            <Typography sx={{ fontSize: 14, opacity: 0.9, mt: 0.5 }}>
               Preço real de farmácia + interações D/X no seu produto. Documentação completa em <Box component="a" href="/api-docs" sx={{ color: '#fff', fontWeight: 700, textDecoration: 'underline' }}>/api-docs</Box> · console interativo em <Box component="a" href="/api/docs" target="_blank" rel="noopener noreferrer" sx={{ color: '#fff', fontWeight: 700, textDecoration: 'underline' }}>/api/docs</Box>.
             </Typography>
           </Box>
           {approved && (
-            <Box sx={{ textAlign: 'center', flexShrink: 0, px: 2, py: 1.25, borderRadius: '14px', bgcolor: 'rgba(255,255,255,.16)', border: '1px solid rgba(255,255,255,.28)' }}>
-              <Typography sx={{ fontSize: 10.5, letterSpacing: 1, fontWeight: 700, opacity: 0.85 }}>SALDO</Typography>
+            <Box sx={{ textAlign: 'center', flexShrink: 0, px: 2, py: 1.25, borderRadius: '12px', bgcolor: 'rgba(255,255,255,.16)', border: '1px solid rgba(255,255,255,.28)' }}>
+              <Typography sx={{ fontSize: 11, letterSpacing: 1, fontWeight: 700, opacity: 0.85 }}>SALDO</Typography>
               <Typography sx={{ fontWeight: 800, fontSize: 26, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{balance.toLocaleString('pt-BR')}</Typography>
-              <Typography sx={{ fontSize: 10.5, opacity: 0.85 }}>chamadas</Typography>
+              <Typography sx={{ fontSize: 11, opacity: 0.85 }}>chamadas</Typography>
             </Box>
           )}
         </Stack>
@@ -212,12 +212,12 @@ export const ApiPanelPage = () => {
 
       {/* SEM APROVAÇÃO — showcase + formulário de solicitação */}
       {!approved && (
-        <Card variant="outlined" sx={{ borderRadius: '14px', mb: 2.5 }}>
+        <Card variant="outlined" sx={{ borderRadius: '12px', mb: 2.5 }}>
           <CardContent sx={{ p: { xs: 2.5, md: 3 } }}>
             {access === 'pending' ? (
               <Stack alignItems="center" spacing={1.5} sx={{ py: 3, textAlign: 'center' }}>
                 <Chip color="warning" label="⏳ Solicitação em análise" sx={{ fontWeight: 800 }} />
-                <Typography color="text.secondary" sx={{ fontSize: 14.5, maxWidth: 420 }}>
+                <Typography color="text.secondary" sx={{ fontSize: 15, maxWidth: 420 }}>
                   Recebemos seu pedido — analisamos e liberamos o pacote de teste (25 chamadas). Você recebe a resposta no e-mail da conta, e esta tela atualiza sozinha.
                 </Typography>
               </Stack>
@@ -239,8 +239,8 @@ export const ApiPanelPage = () => {
                     <Stack key={e.p} direction="row" spacing={1.25} alignItems="center" sx={{ borderRadius: '12px', bgcolor: 'action.hover', px: 1.5, py: 1 }}>
                       <Chip size="small" label={e.m} sx={{ height: 20, fontWeight: 800, fontSize: 10, bgcolor: 'rgba(32,178,170,.14)', color: '#178f89' }} />
                       <Box sx={{ minWidth: 0, flex: 1 }}>
-                        <Typography sx={{ fontFamily: 'ui-monospace, monospace', fontSize: 12.5, fontWeight: 700, wordBreak: 'break-all' }}>{e.p}</Typography>
-                        <Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>{e.d}</Typography>
+                        <Typography sx={{ fontFamily: 'ui-monospace, monospace', fontSize: 13, fontWeight: 700, wordBreak: 'break-all' }}>{e.p}</Typography>
+                        <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>{e.d}</Typography>
                       </Box>
                     </Stack>
                   ))}
@@ -261,7 +261,7 @@ export const ApiPanelPage = () => {
       {/* APROVADO — chaves + pacotes */}
       {approved && (
         <>
-          <Card variant="outlined" sx={{ borderRadius: '14px', mb: 2.5 }}>
+          <Card variant="outlined" sx={{ borderRadius: '12px', mb: 2.5 }}>
             <CardContent sx={{ p: { xs: 2.5, md: 3 } }}>
               <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
                 <KeyIcon sx={{ color: '#178f89', fontSize: 20 }} />
@@ -291,13 +291,13 @@ export const ApiPanelPage = () => {
           </Card>
 
           {/* PACOTES pré-pagos */}
-          <Card variant="outlined" sx={{ borderRadius: '14px' }}>
+          <Card variant="outlined" sx={{ borderRadius: '12px' }}>
             <CardContent sx={{ p: { xs: 2.5, md: 3 } }}>
               <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
                 <BoltIcon sx={{ color: '#b88a54', fontSize: 20 }} />
                 <Typography sx={{ fontWeight: 800, fontSize: 17 }}>Recarregar chamadas</Typography>
               </Stack>
-              <Typography color="text.secondary" sx={{ fontSize: 13.5, mb: 2 }}>
+              <Typography color="text.secondary" sx={{ fontSize: 14, mb: 2 }}>
                 Pré-pago sem surpresa: quando o saldo acaba, a API responde 402 até você recarregar. PIX na hora ou cartão/débito no checkout seguro.
               </Typography>
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 1.5 }}>
@@ -311,7 +311,7 @@ export const ApiPanelPage = () => {
                   const ptLabel = ({ Starter: 'Inicial', Pro: 'Profissional', Scale: 'Grande volume' } as Record<string, string>)[String(p.label)] ?? p.label;
                   return (
                   <Box key={p.id} sx={{
-                    borderRadius: '14px', border: isPending ? '2px solid #d97706' : p.popular ? '2px solid #20b2aa' : '1px solid',
+                    borderRadius: '12px', border: isPending ? '2px solid #d97706' : p.popular ? '2px solid #20b2aa' : '1px solid',
                     borderColor: isPending ? undefined : p.popular ? '#20b2aa' : 'divider',
                     p: 2, textAlign: 'center', position: 'relative',
                     bgcolor: isPending ? 'rgba(217,119,6,0.04)' : undefined,
@@ -320,9 +320,9 @@ export const ApiPanelPage = () => {
                     {isPending
                       ? <Chip size="small" label="⏳ Aguardando pagamento" sx={{ fontWeight: 800, fontSize: 10, height: 22, bgcolor: 'rgba(217,119,6,.15)', color: '#92400e' }} />
                       : p.popular ? <Chip size="small" label="MAIS VENDIDO" sx={{ bgcolor: '#20b2aa', color: '#fff', fontWeight: 800, fontSize: 10, height: 22 }} /> : <Box sx={{ height: 22 }} />}
-                    <Typography sx={{ fontSize: 11.5, fontWeight: 800, letterSpacing: 1, color: '#b88a54', mt: 1 }}>{String(ptLabel).toUpperCase()}</Typography>
+                    <Typography sx={{ fontSize: 12, fontWeight: 800, letterSpacing: 1, color: '#b88a54', mt: 1 }}>{String(ptLabel).toUpperCase()}</Typography>
                     <Typography sx={{ fontWeight: 800, fontSize: 24, mt: 0.5 }}>{Number(p.calls).toLocaleString('pt-BR')}</Typography>
-                    <Typography sx={{ fontSize: 11.5, color: 'text.secondary', mb: 1.5 }}>chamadas · R$ {Number(p.price).toFixed(2).replace('.', ',')}</Typography>
+                    <Typography sx={{ fontSize: 12, color: 'text.secondary', mb: 1.5 }}>chamadas · R$ {Number(p.price).toFixed(2).replace('.', ',')}</Typography>
                     {isPending ? (
                       <Stack spacing={0.75}>
                         {/* Countdown de verdade (mm:ss, tickando) — igual ao PIX de créditos. */}
@@ -372,7 +372,7 @@ export const ApiPanelPage = () => {
         <DialogContent>
           <Alert severity="warning" sx={{ mb: 1.5, borderRadius: '12px' }}>Esta chave <b>não será exibida novamente</b>. Copie e guarde em segredo (como uma senha).</Alert>
           <Stack direction="row" spacing={1} alignItems="center" sx={{ borderRadius: '12px', bgcolor: 'action.hover', p: 1.25 }}>
-            <Typography sx={{ fontFamily: 'ui-monospace, monospace', fontSize: 12.5, wordBreak: 'break-all', flex: 1 }}>{createdKey}</Typography>
+            <Typography sx={{ fontFamily: 'ui-monospace, monospace', fontSize: 13, wordBreak: 'break-all', flex: 1 }}>{createdKey}</Typography>
             <IconButton size="small" onClick={() => { void navigator.clipboard?.writeText(createdKey ?? ''); }} aria-label="Copiar"><ContentCopyIcon sx={{ fontSize: 18, color: '#178f89' }} /></IconButton>
           </Stack>
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>

@@ -204,7 +204,7 @@ export const LabsTab = () => {
                   placeholder="Nome oficial da rede"
                   sx={{ flex: { sm: 1.2 } }}
                 />
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, height: 40, px: 1.5, borderRadius: '10px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', width: { xs: '100%', sm: 'auto' } }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, height: 40, px: 1.5, borderRadius: '8px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', width: { xs: '100%', sm: 'auto' } }}>
                   <ColorLensIcon sx={{ fontSize: 18, color: newColor }} />
                   <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', mr: 0.5 }}>Cor da marca</Typography>
                   <input
@@ -286,7 +286,7 @@ export const LabsTab = () => {
                           onChange={(e) => setEditName(e.target.value)}
                           sx={{ flex: { sm: 1.2 } }}
                         />
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, height: 40, px: 1.5, borderRadius: '10px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', width: { xs: '100%', sm: 'auto' } }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, height: 40, px: 1.5, borderRadius: '8px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', width: { xs: '100%', sm: 'auto' } }}>
                           <ColorLensIcon sx={{ fontSize: 18, color: editColor }} />
                           <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary' }}>Cor</Typography>
                           <input
@@ -316,7 +316,7 @@ export const LabsTab = () => {
                           variant="contained"
                           onClick={() => saveEdit(lab.id)}
                           startIcon={<SaveIcon />}
-                          sx={{ borderRadius: '10px', px: 2.5, textTransform: 'none', fontWeight: 800, bgcolor: '#20b2aa' }}
+                          sx={{ borderRadius: '8px', px: 2.5, textTransform: 'none', fontWeight: 800, bgcolor: '#20b2aa' }}
                         >
                           Salvar alterações
                         </Button>
@@ -376,7 +376,7 @@ export const LabsTab = () => {
                             size="small"
                             label={lab.active ? 'Ativo' : 'Inativo'}
                             color={lab.active ? 'success' : 'default'}
-                            sx={{ height: 20, fontSize: 10.5, fontWeight: 800 }}
+                            sx={{ height: 20, fontSize: 11, fontWeight: 800 }}
                           />
                           <Box
                             title={`Cor da marca: ${lab.color || '#20b2aa'}`}

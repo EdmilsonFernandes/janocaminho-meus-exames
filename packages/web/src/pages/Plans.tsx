@@ -151,7 +151,7 @@ export const PlansPage = () => {
       )}
 
       {/* HERO — saldo centralizado, gradiente esmeralda + profundidade */}
-      <Card sx={{ mb: 3, borderRadius: '24px', overflow: 'hidden', position: 'relative', color: '#fff',
+      <Card sx={{ mb: 3, borderRadius: '16px', overflow: 'hidden', position: 'relative', color: '#fff',
           background: 'linear-gradient(135deg,#0c4a46 0%,#137a72 50%,#178f89 100%)',
           boxShadow: '0 20px 50px rgba(15,61,58,.32)', border: '1px solid rgba(255,255,255,0.2)' }}>
         <Box sx={{ position: 'absolute', top: '-45%', right: '-12%', width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,.16), transparent 70%)', pointerEvents: 'none' }} />

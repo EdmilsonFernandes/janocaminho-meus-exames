@@ -68,7 +68,7 @@ export const FaqSection = () => {
                 '&.Mui-expanded': { boxShadow: '0 10px 30px rgba(32,178,170,.12)', borderColor: TEAL, bgcolor: 'rgba(32,178,170,0.02)' },
               }}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: TEAL_DARK }} />} sx={{ px: 2.5, py: 0.75, '& .MuiAccordionSummary-content': { my: 1 } }}>
-                  <Typography sx={{ fontWeight: 700, fontSize: { xs: 15.5, md: 16.5 }, color: 'text.primary', fontFamily: 'Poppins, sans-serif' }}>{item.q}</Typography>
+                  <Typography sx={{ fontWeight: 700, fontSize: { xs: 16, md: 17 }, color: 'text.primary', fontFamily: 'Poppins, sans-serif' }}>{item.q}</Typography>
                 </AccordionSummary>
                 <AccordionDetails sx={{ px: 2.5, pb: 2.5, pt: 0 }}>
                   <Typography sx={{ fontSize: 15, color: 'text.secondary', lineHeight: 1.65 }}>{item.q === 'Preciso pagar para testar?' ? `Não. Envie seu primeiro exame e ganhe ${credits} créditos grátis, sem cartão. Use para conversar com a IA, gerar relatórios e perguntar ao médico.` : item.a}</Typography>

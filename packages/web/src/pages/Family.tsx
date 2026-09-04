@@ -87,7 +87,7 @@ export const FamilyPage = () => {
         elevation={0}
         sx={{
           mb: 3,
-          borderRadius: '20px',
+          borderRadius: '16px',
           background: 'linear-gradient(135deg, #0f5f5a 0%, #178f89 100%)',
           color: '#fff',
           overflow: 'hidden',
@@ -99,7 +99,7 @@ export const FamilyPage = () => {
           <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={2}>
             <Box>
               <Stack direction="row" alignItems="center" spacing={1.5} useFlexGap sx={{ mb: 1, flexWrap: 'wrap', rowGap: 0.75, minWidth: 0 }}>
-                <Box sx={{ bgcolor: 'rgba(255,255,255,0.2)', p: 1, borderRadius: '14px', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+                <Box sx={{ bgcolor: 'rgba(255,255,255,0.2)', p: 1, borderRadius: '12px', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
                   <Diversity3Icon sx={{ fontSize: 28, color: '#fff' }} />
                 </Box>
                 <Typography variant="h5" sx={{ fontWeight: 900, fontFamily: 'Poppins, sans-serif', letterSpacing: '-0.02em', minWidth: 0 }}>
@@ -147,7 +147,7 @@ export const FamilyPage = () => {
           variant="outlined"
           sx={{
             mb: 3,
-            borderRadius: '18px',
+            borderRadius: '16px',
             borderColor: 'rgba(245,158,11,0.4)',
             background: 'linear-gradient(135deg, rgba(245,158,11,0.06) 0%, rgba(239,68,68,0.04) 100%)',
           }}
@@ -199,7 +199,7 @@ export const FamilyPage = () => {
       )}
 
       {patients.length === 0 && (
-        <Card variant="outlined" sx={{ mt: 2, p: 3, textAlign: 'center', borderColor: 'divider', borderRadius: '20px' }}>
+        <Card variant="outlined" sx={{ mt: 2, p: 3, textAlign: 'center', borderColor: 'divider', borderRadius: '16px' }}>
           <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1.5 }}>
             <DrExame size={72} />
           </Box>
@@ -225,7 +225,7 @@ export const FamilyPage = () => {
                 sx={{
                   height: '100%',
                   cursor: 'pointer',
-                  borderRadius: '20px',
+                  borderRadius: '16px',
                   position: 'relative',
                   overflow: 'hidden',
                   transition: 'all 0.22s ease',
@@ -390,7 +390,7 @@ export const FamilyPage = () => {
                               alignItems: 'center',
                               justifyContent: 'space-between',
                               p: 1,
-                              borderRadius: '10px',
+                              borderRadius: '8px',
                               bgcolor: isAbn ? 'rgba(239,68,68,0.06)' : 'rgba(5,150,105,0.06)',
                               border: `1px solid ${isAbn ? 'rgba(239,68,68,0.2)' : 'rgba(5,150,105,0.2)'}`,
                             }}

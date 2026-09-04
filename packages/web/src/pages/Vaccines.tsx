@@ -78,7 +78,7 @@ export const VaccinesPage = () => {
       </Stack>
 
       {items.length === 0 ? (
-        <Card variant="outlined" sx={{ borderRadius: '20px', mb: 2.5, borderStyle: 'dashed', borderColor: 'divider' }}>
+        <Card variant="outlined" sx={{ borderRadius: '16px', mb: 2.5, borderStyle: 'dashed', borderColor: 'divider' }}>
           <CardContent sx={{ textAlign: 'center', py: 4 }}>
             <Box sx={{ fontSize: 48, mb: 1, opacity: 0.4 }}>💉</Box>
             <Typography sx={{ fontWeight: 700, fontSize: 16, mb: 0.5 }}>Carteira vazia</Typography>
@@ -147,7 +147,7 @@ export const VaccinesPage = () => {
 
       {/* REGISTRAR — colapsado, embaixo (ferramenta, não protagonista) */}
       <Card sx={{
-        borderRadius: '20px', overflow: 'hidden',
+        borderRadius: '16px', overflow: 'hidden',
         border: '1px solid', borderColor: formOpen ? 'primary.main' : 'divider',
         transition: 'border-color .3s',
         boxShadow: formOpen ? '0 8px 24px rgba(32,178,170,.1)' : '0 4px 16px rgba(0,0,0,0.03)',
@@ -155,7 +155,7 @@ export const VaccinesPage = () => {
         <CardContent>
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Stack direction="row" alignItems="center" spacing={1}>
-              <Box sx={{ width: 36, height: 36, borderRadius: '10px', display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,.12)', color: 'primary.dark' }}>
+              <Box sx={{ width: 36, height: 36, borderRadius: '8px', display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,.12)', color: 'primary.dark' }}>
                 <AddCircleOutlineIcon fontSize="small" />
               </Box>
               <Typography variant="h6" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>Registrar vacina</Typography>

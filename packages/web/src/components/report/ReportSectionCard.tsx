@@ -27,7 +27,7 @@ export const ReportSectionCard = ({ icon, title, accent, count, children, collap
   if (!collapsible) {
     return (
       <Card sx={{
-        overflow: 'hidden', borderRadius: '18px',
+        overflow: 'hidden', borderRadius: '16px',
         background: alpha(accent, 0.05),
         border: '1px solid', borderColor: alpha(accent, 0.2),
         boxShadow: `0 4px 16px ${alpha(accent, 0.04)}`

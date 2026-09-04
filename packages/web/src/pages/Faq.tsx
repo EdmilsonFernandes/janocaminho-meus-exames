@@ -101,7 +101,7 @@ export const FaqPage = () => {
           discreto dá vida sem distrair. */}
       <Box sx={{
         position: 'relative', overflow: 'hidden', mb: 3,
-        borderRadius: '18px', p: { xs: 2.5, md: 3.5 },
+        borderRadius: '16px', p: { xs: 2.5, md: 3.5 },
         background: 'linear-gradient(135deg,#20b2aa,#178f89)',
         color: '#fff',
         '&::after': {
@@ -205,7 +205,7 @@ export const FaqPage = () => {
       {/* SUPORTE IN-APP — ação primária única da tela (design system: 1 CTA por tela). */}
       <Box sx={{
         mt: 4, p: { xs: 2.5, md: 3 }, textAlign: 'center', position: 'relative', overflow: 'hidden',
-        borderRadius: '18px',
+        borderRadius: '16px',
         background: (t) => (t.palette.mode === 'dark' ? 'rgba(32,178,170,.10)' : 'linear-gradient(135deg, rgba(32,178,170,.10), rgba(212,165,116,.08))'),
         border: '1px solid', borderColor: 'rgba(32,178,170,.30)',
       }}>

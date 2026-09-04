@@ -148,7 +148,7 @@ export const MobileBottomNav = () => {
       maxWidth: 460,
       margin: '0 auto',
       height: 60,
-      borderRadius: '26px',
+      borderRadius: '16px',
       zIndex: 1100,
       display: 'flex', justifyContent: 'space-around', alignItems: 'center',
       // Vidro Flutuante 3D (Floating Island Lens):

@@ -176,7 +176,7 @@ const TicketList = () => {
       {/* HERO — "Como podemos ajudar?" (padrão visual do FAQ: gradiente + mascote) */}
       <Box sx={{
         position: 'relative', overflow: 'hidden', mb: 3,
-        borderRadius: '18px', p: { xs: 2.5, md: 3.5 },
+        borderRadius: '16px', p: { xs: 2.5, md: 3.5 },
         background: 'linear-gradient(135deg,#20b2aa,#178f89)',
         color: '#fff',
         '&::after': {
@@ -206,14 +206,14 @@ const TicketList = () => {
       <Typography sx={{ fontWeight: 800, fontSize: 15, mb: 1.5 }}>Resposta na hora</Typography>
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1.5, mb: 4 }}>
         {SELF_HELP.map(({ Icon, t, d, faq, tone }) => (
-          <Card key={t} variant="outlined" onClick={() => navigate(`/faq?q=${encodeURIComponent(faq)}`)} sx={{ cursor: 'pointer', borderRadius: '14px', transition: 'all .2s ease', '&:hover': { transform: 'translateY(-3px)', boxShadow: '0 16px 36px rgba(15,61,58,.10)', borderColor: '#20b2aa' }, height: '100%' }}>
+          <Card key={t} variant="outlined" onClick={() => navigate(`/faq?q=${encodeURIComponent(faq)}`)} sx={{ cursor: 'pointer', borderRadius: '12px', transition: 'all .2s ease', '&:hover': { transform: 'translateY(-3px)', boxShadow: '0 16px 36px rgba(15,61,58,.10)', borderColor: '#20b2aa' }, height: '100%' }}>
             <CardContent sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start', py: 2, '&:last-child': { pb: 2 } }}>
               <Box sx={{ width: 40, height: 40, borderRadius: '12px', flexShrink: 0, display: 'grid', placeItems: 'center', background: 'rgba(32,178,170,.10)' }}>
                 <Icon sx={{ fontSize: 21, color: tone }} />
               </Box>
               <Box sx={{ minWidth: 0 }}>
-                <Typography sx={{ fontWeight: 800, fontSize: 14.5 }}>{t}</Typography>
-                <Typography sx={{ fontSize: 12.5, color: 'text.secondary', lineHeight: 1.5, mt: 0.25 }}>{d}</Typography>
+                <Typography sx={{ fontWeight: 800, fontSize: 15 }}>{t}</Typography>
+                <Typography sx={{ fontSize: 13, color: 'text.secondary', lineHeight: 1.5, mt: 0.25 }}>{d}</Typography>
               </Box>
             </CardContent>
           </Card>
@@ -229,7 +229,7 @@ const TicketList = () => {
       {tickets == null ? <ListSkeleton count={4} /> :
         err ? <Typography color="error">Não foi possível carregar seus chamados.</Typography> :
         tickets.length === 0 ? (
-          <Card variant="outlined" sx={{ borderRadius: '14px' }}>
+          <Card variant="outlined" sx={{ borderRadius: '12px' }}>
             <CardContent sx={{ textAlign: 'center', py: 5 }}>
               <Box sx={{ width: 84, height: 84, mx: 'auto', mb: 2, borderRadius: '50%', bgcolor: 'rgba(32,178,170,.10)', display: 'grid', placeItems: 'center', animation: 'onbFloat 2.6s ease-in-out infinite' }}>
                 <DrExame size={54} sx={{ borderRadius: '50%' }} />
@@ -246,7 +246,7 @@ const TicketList = () => {
             {tickets.map((t) => {
               const st = STATUS_META[t.status] ?? STATUS_META.open;
               return (
-                <Card key={t.id} variant="outlined" onClick={() => navigate(`/suporte/${t.id}`)} sx={{ cursor: 'pointer', borderRadius: '14px', transition: 'all .2s ease', '&:hover': { transform: 'translateY(-3px)', boxShadow: '0 16px 36px rgba(15,61,58,.10)', borderColor: '#20b2aa' }, ...(t.unreadByUser ? { borderColor: '#20b2aa', borderWidth: 1.5 } : {}) }}>
+                <Card key={t.id} variant="outlined" onClick={() => navigate(`/suporte/${t.id}`)} sx={{ cursor: 'pointer', borderRadius: '12px', transition: 'all .2s ease', '&:hover': { transform: 'translateY(-3px)', boxShadow: '0 16px 36px rgba(15,61,58,.10)', borderColor: '#20b2aa' }, ...(t.unreadByUser ? { borderColor: '#20b2aa', borderWidth: 1.5 } : {}) }}>
                   <CardContent sx={{ py: 1.75, '&:last-child': { pb: 1.75 } }}>
                     <Stack direction="row" alignItems="center" spacing={1} useFlexGap flexWrap="wrap">
                       {CAT_ICON[t.category] ?? <QuestionAnswerIcon sx={{ fontSize: 17, color: 'text.disabled' }} />}
@@ -331,9 +331,9 @@ const TicketThread = ({ id }: { id: string }) => {
                   <DrExame size={24} sx={{ borderRadius: '50%' }} />
                 </Box>
               )}
-              <Box sx={{ maxWidth: { xs: '82%', sm: '70%' }, bgcolor: mine ? 'transparent' : 'action.hover', color: 'text.primary', px: mine ? 0 : 1.5, py: mine ? 0 : 1.25, borderRadius: '14px', borderBottomRightRadius: mine ? 14 : 4, borderBottomLeftRadius: mine ? 4 : 14, ...(mine ? { background: 'linear-gradient(135deg,#20b2aa,#178f89)', px: 1.5, py: 1.25, color: '#fff' } : {}) }}>
+              <Box sx={{ maxWidth: { xs: '82%', sm: '70%' }, bgcolor: mine ? 'transparent' : 'action.hover', color: 'text.primary', px: mine ? 0 : 1.5, py: mine ? 0 : 1.25, borderRadius: '12px', borderBottomRightRadius: mine ? 14 : 4, borderBottomLeftRadius: mine ? 4 : 14, ...(mine ? { background: 'linear-gradient(135deg,#20b2aa,#178f89)', px: 1.5, py: 1.25, color: '#fff' } : {}) }}>
                 {!mine && <Typography sx={{ fontSize: 11, fontWeight: 800, color: '#178f89' }}>Dr. Suporte</Typography>}
-                <Typography sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: 14.5, lineHeight: 1.55 }}>{m.body}</Typography>
+                <Typography sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: 15, lineHeight: 1.55 }}>{m.body}</Typography>
                 {atts.length > 0 && (
                   <Stack spacing={0.5} sx={{ mt: 0.5 }}>
                     {atts.map((a: any, i: number) => (
@@ -350,7 +350,7 @@ const TicketThread = ({ id }: { id: string }) => {
       </Stack>
 
       {/* Resposta */}
-      <Card variant="outlined" sx={{ borderRadius: '14px' }}>
+      <Card variant="outlined" sx={{ borderRadius: '12px' }}>
         <CardContent>
           <Stack spacing={1}>
             <TextField size="small" multiline minRows={2} placeholder={data.status === 'closed' ? 'Escreva para reabrir o chamado…' : 'Escreva uma mensagem…'} value={reply} onChange={(e) => setReply(e.target.value)} fullWidth

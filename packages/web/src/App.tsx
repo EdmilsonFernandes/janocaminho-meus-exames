@@ -40,7 +40,7 @@ import { lightTheme, darkTheme } from './theme';
 import { alpha } from '@mui/material/styles';
 import { i18nProvider } from './i18n';
 import { APP_BUILD_INFO } from './generated/buildInfo';
-import { Dashboard } from './pages/Dashboard';
+import { DashboardV2 as Dashboard } from './components/dashboard/DashboardV2';
 import { ExamList } from './resources/Exams/ExamList';
 import { ExamShow } from './resources/Exams/ExamShow';
 import { ExamCreate } from './resources/Exams/ExamCreate';
@@ -142,7 +142,7 @@ const CustomAppBar = (props: AppBarProps) => {
       {!isDesktop && (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexShrink: 0 }}>
           <Box sx={{
-            width: 32, height: 32, borderRadius: '9px', flexShrink: 0, display: 'grid', placeItems: 'center',
+            width: 32, height: 32, borderRadius: '8px', flexShrink: 0, display: 'grid', placeItems: 'center',
             background: 'linear-gradient(135deg,#20b2aa 0%,#178f89 100%)',
             boxShadow: '0 3px 10px rgba(32,178,170,.35)', overflow: 'hidden'
           }}>
@@ -188,7 +188,7 @@ const MenuSectionAccordion = ({ title, icon, children, routes }: { title: string
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         sx={(t) => ({
-          borderRadius: '14px', m: '2px 8px', pl: 1.25, pr: 1, minHeight: 46,
+          borderRadius: '12px', m: '2px 8px', pl: 1.25, pr: 1, minHeight: 46,
           bgcolor: open ? alpha(t.palette.primary.main, 0.12) : alpha(t.palette.primary.main, 0.05),
           border: '1px solid', borderColor: open ? alpha(t.palette.primary.main, 0.25) : alpha(t.palette.primary.main, 0.1),
           transition: 'background-color .2s, border-color .2s',
@@ -196,7 +196,7 @@ const MenuSectionAccordion = ({ title, icon, children, routes }: { title: string
         })}
       >
         <Box component="span" sx={(t) => ({
-          width: 28, height: 28, borderRadius: '10px', mr: 1.25, flexShrink: 0, display: 'grid', placeItems: 'center',
+          width: 28, height: 28, borderRadius: '8px', mr: 1.25, flexShrink: 0, display: 'grid', placeItems: 'center',
           background: open ? 'linear-gradient(135deg, #20b2aa, #178f89)' : alpha(t.palette.primary.main, 0.12),
           color: open ? '#fff' : t.palette.primary.dark, transition: 'background .2s, color .2s',
           '& svg': { fontSize: 17 },
@@ -222,7 +222,7 @@ const NavItem = ({ to, primaryText, icon, highlight }: { to: string; primaryText
   return (
     <ListItemButton onClick={() => navigate(to)} selected={active}
       sx={{
-        borderRadius: '10px', m: '1px 0', py: 0.5, pl: 1.25, minHeight: 42, flex: '0 0 auto',
+        borderRadius: '8px', m: '1px 0', py: 0.5, pl: 1.25, minHeight: 42, flex: '0 0 auto',
         borderLeft: active ? '3px solid #20b2aa' : '3px solid transparent',
         transition: 'all .15s ease',
         '&.Mui-selected': { bgcolor: 'rgba(32,178,170,.12)' },
@@ -282,7 +282,7 @@ const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
   return (
     <Box sx={{ p: 1.5, pb: 1, pt: onClose ? 'calc(env(safe-area-inset-top, 0px) + 12px)' : 1.5 }}>
       <Box sx={(t) => ({
-        p: 1.5, borderRadius: '18px',
+        p: 1.5, borderRadius: '16px',
         bgcolor: alpha(t.palette.primary.main, 0.06),
         border: '1px solid', borderColor: alpha(t.palette.primary.main, 0.15),
         boxShadow: '0 4px 14px rgba(0,0,0,0.03)'
@@ -292,7 +292,7 @@ const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
             {userInfo.name.charAt(0)?.toUpperCase() || '👤'}
           </Avatar>
           <Box sx={{ minWidth: 0, flex: 1 }}>
-            <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: 'text.primary', lineHeight: 1.15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary', lineHeight: 1.15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {userInfo.name}
             </Typography>
             <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mt: 0.5, flexWrap: 'wrap', gap: 0.5 }}>
@@ -401,8 +401,8 @@ const AppMenu = () => {
           <Chip size="small" label="LGPD" sx={{ bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 700 }} />
         </Box>
         <Stack spacing={0.5} sx={{ mb: 1 }}>
-          <MuiLink href="mailto:contato@janocaminho.com.br" sx={{ fontSize: 12.5, fontWeight: 700 }}>📧 contato@janocaminho.com.br</MuiLink>
-          <MuiLink href="https://drexame.janocaminho.com.br" target="_blank" rel="noopener noreferrer" sx={{ fontSize: 12.5, fontWeight: 700 }}>🌐 drexame.janocaminho.com.br</MuiLink>
+          <MuiLink href="mailto:contato@janocaminho.com.br" sx={{ fontSize: 13, fontWeight: 700 }}>📧 contato@janocaminho.com.br</MuiLink>
+          <MuiLink href="https://drexame.janocaminho.com.br" target="_blank" rel="noopener noreferrer" sx={{ fontSize: 13, fontWeight: 700 }}>🌐 drexame.janocaminho.com.br</MuiLink>
         </Stack>
         <Typography variant="caption" sx={{ color: 'text.secondary', mt: 1, display: 'block' }}>
           {translate('about.disclaimer')}

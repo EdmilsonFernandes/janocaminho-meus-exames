@@ -88,7 +88,7 @@ export const RestingHeartCard = () => {
           direction="row"
           spacing={0.5}
           alignItems="center"
-          sx={{ px: 1, py: 0.35, borderRadius: '99px', bgcolor: alpha(z.color, 0.1), border: `1px solid ${alpha(z.color, 0.25)}` }}
+          sx={{ px: 1, py: 0.35, borderRadius: '999px', bgcolor: alpha(z.color, 0.1), border: `1px solid ${alpha(z.color, 0.25)}` }}
         >
           <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: z.color, boxShadow: `0 0 8px ${z.color}`, ...BEAT }} />
           <Typography sx={{ fontSize: 11, fontWeight: 700, color: z.color }}>{z.label}</Typography>
@@ -154,7 +154,7 @@ export const RestingHeartCard = () => {
       {/* Detalhe do dia tocado — 1 linha (o gráfico sozinho não conta a história) */}
       {sel && (
         <Box sx={{ mt: 1, px: 1.25, py: 0.75, borderRadius: '12px', bgcolor: alpha(z.color, 0.07), border: `1px solid ${alpha(z.color, 0.25)}` }}>
-          <Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>
+          <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>
             <Box component="strong" sx={{ color: z.color, fontWeight: 800, textTransform: 'capitalize' }}>{selFmt}</Box>
             {' · '}<Box component="strong" sx={{ fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{sel.avg} bpm</Box>
             {sel.avg > 80 ? ' — elevada naquele dia; comente com seu médico' : ''}

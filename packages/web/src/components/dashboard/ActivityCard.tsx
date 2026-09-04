@@ -295,7 +295,7 @@ export const ActivityView = ({
             <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 700, fontSize: 15 }}>
               Seus passos podem entrar aqui
             </Typography>
-            <Typography sx={{ fontSize: 12.5, color: 'text.secondary', lineHeight: 1.5, mt: 0.25 }}>
+            <Typography sx={{ fontSize: 13, color: 'text.secondary', lineHeight: 1.5, mt: 0.25 }}>
               Passos, calorias e distância do seu celular entram junto com seus exames — o Dr. Exame conecta tudo.
             </Typography>
           </Box>
@@ -399,7 +399,7 @@ export const ActivityView = ({
         value={range}
         onChange={(_, v) => { if (v) onRange(v as ActivityRange); }}
         aria-label="Período da atividade"
-        sx={{ mb: 1.5, '& .MuiToggleButton-root': { px: 1.25, py: { xs: 0.75, sm: 0.35 }, minHeight: { xs: 40, sm: 0 }, borderRadius: '99px !important', border: '1px solid', borderColor: 'divider', textTransform: 'none', fontWeight: 700, fontSize: 12.5, color: 'text.secondary', '&.Mui-selected': { bgcolor: alpha(theme.palette.primary.main, 0.15), color: 'primary.dark', borderColor: alpha(theme.palette.primary.main, 0.4) } } }}
+        sx={{ mb: 1.5, '& .MuiToggleButton-root': { px: 1.25, py: { xs: 0.75, sm: 0.35 }, minHeight: { xs: 40, sm: 0 }, borderRadius: '99px !important', border: '1px solid', borderColor: 'divider', textTransform: 'none', fontWeight: 700, fontSize: 13, color: 'text.secondary', '&.Mui-selected': { bgcolor: alpha(theme.palette.primary.main, 0.15), color: 'primary.dark', borderColor: alpha(theme.palette.primary.main, 0.4) } } }}
       >
         {RANGES.map((r) => (
           <ToggleButton key={r.value} value={r.value} aria-pressed={range === r.value} disabled={source === 'cloud' && r.value === 'today'} title={source === 'cloud' && r.value === 'today' ? 'O dado de hoje chega pela sincronização do app no celular — veja 7 ou 30 dias' : undefined}>
@@ -498,8 +498,8 @@ export const ActivityView = ({
               <Typography sx={{ fontSize: 14, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>
                 {fmtSteps(sel.steps)} <Typography component="span" sx={{ fontSize: 11, color: 'text.secondary', fontWeight: 600 }}>passos</Typography>
               </Typography>
-              <Typography sx={{ fontSize: 12.5, color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>🔥 {fmtKcal(sel.kcal)} kcal{sel.kcalIsTotal ? ' (total do dia)' : ''}</Typography>
-              <Typography sx={{ fontSize: 12.5, color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>📍 {fmtKm(sel.km)} km</Typography>
+              <Typography sx={{ fontSize: 13, color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>🔥 {fmtKcal(sel.kcal)} kcal{sel.kcalIsTotal ? ' (total do dia)' : ''}</Typography>
+              <Typography sx={{ fontSize: 13, color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>📍 {fmtKm(sel.km)} km</Typography>
               {sel.steps >= STEPS_GOAL && <Chip size="small" label="meta 🎉" sx={{ height: 22, fontSize: 11, fontWeight: 800, bgcolor: alpha('#059669', 0.15), color: '#047857' }} />}
               {sel.steps >= 7000 && sel.steps < STEPS_GOAL && <Chip size="small" label="✨ 7k+" sx={{ height: 22, fontSize: 11, fontWeight: 800, bgcolor: alpha(theme.palette.primary.main, 0.15), color: 'primary.dark' }} />}
             </Stack>
@@ -601,13 +601,13 @@ const ActivityRing = ({ ratio, pct, done }: { ratio: number; pct: number; done: 
  *  grid auto-fit (~149px) — "Calorias totais"/"FC de repouso"/"15.234 kcal" cabem inteiros. */
 const MetricMini = ({ icon, tone, label, labelTitle, value, unit, contextLabel }: { icon: React.ReactNode; tone: string; label: string; labelTitle?: string; value: string; unit: string; contextLabel?: string }) => (
   <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0 }}>
-    <Box sx={{ width: { xs: 26, sm: 30 }, height: { xs: 26, sm: 30 }, borderRadius: '10px', display: 'grid', placeItems: 'center', flexShrink: 0, bgcolor: `${tone}1E`, color: tone }}>{icon}</Box>
+    <Box sx={{ width: { xs: 26, sm: 30 }, height: { xs: 26, sm: 30 }, borderRadius: '8px', display: 'grid', placeItems: 'center', flexShrink: 0, bgcolor: `${tone}1E`, color: tone }}>{icon}</Box>
     <Box sx={{ minWidth: 0 }}>
       <Typography title={labelTitle} sx={{ fontSize: 11, color: 'text.secondary', lineHeight: 1.15 }}>{label}</Typography>
       <Typography noWrap sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(0.875rem, 4vw, 1.0625rem)', sm: 17 }, lineHeight: 1.15, fontVariantNumeric: 'tabular-nums' }}>
         {value}{unit ? <Typography component="span" sx={{ fontSize: 11, color: 'text.disabled', fontWeight: 600 }}> {unit}</Typography> : null}
       </Typography>
-      {contextLabel && <Typography sx={{ fontSize: 10.5, color: 'text.disabled', lineHeight: 1.15 }}>{contextLabel}</Typography>}
+      {contextLabel && <Typography sx={{ fontSize: 11, color: 'text.disabled', lineHeight: 1.15 }}>{contextLabel}</Typography>}
     </Box>
   </Stack>
 );
@@ -653,7 +653,7 @@ export const PermissionRationaleContent = ({ onConfirm, onClose, asking, error }
         ].map((t) => (
           <Stack key={t} direction="row" spacing={0.75} alignItems="flex-start">
             <CheckCircleIcon sx={{ fontSize: 16, color: 'primary.main', mt: '2px' }} />
-            <Typography sx={{ fontSize: 12.5, color: 'text.secondary', lineHeight: 1.5 }}>{t}</Typography>
+            <Typography sx={{ fontSize: 13, color: 'text.secondary', lineHeight: 1.5 }}>{t}</Typography>
           </Stack>
         ))}
       </Stack>

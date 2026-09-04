@@ -138,7 +138,7 @@ export const TrendsChart = ({ ts, action }: { ts: TS; action?: React.ReactNode }
           <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mt: 0.5, flexWrap: 'wrap' }}>
             <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, px: 1, py: 0.25, borderRadius: '999px', bgcolor: alpha(theme.palette.success.main, 0.10), border: `1px solid ${alpha(theme.palette.success.main, 0.22)}` }}>
               <Box component="span" sx={{ width: 8, height: 8, borderRadius: '2px', bgcolor: alpha(theme.palette.success.main, 0.55), display: 'inline-block' }} />
-              <Typography component="span" sx={{ fontSize: 12.5, fontWeight: 700, color: 'text.secondary' }}>
+              <Typography component="span" sx={{ fontSize: 13, fontWeight: 700, color: 'text.secondary' }}>
                 {(uniLow != null && uniHigh != null)
                   ? `${fmtRef(uniLow)} – ${fmtRef(uniHigh)}${ts.unit ? ` ${ts.unit}` : ''}`
                   : `${fmtRef(uniLow ?? uniHigh)}${ts.unit ? ` ${ts.unit}` : ''}`}

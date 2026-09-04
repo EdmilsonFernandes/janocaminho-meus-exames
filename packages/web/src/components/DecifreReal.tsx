@@ -166,7 +166,7 @@ export const DecifreReal = () => {
   return (
     <Box sx={{
       position: 'relative', overflow: 'hidden',
-      borderRadius: '24px', p: { xs: 2.5, md: 4 },
+      borderRadius: '16px', p: { xs: 2.5, md: 4 },
       background: 'linear-gradient(135deg,#0c4a46 0%,#137a72 50%,#178f89 100%)',
       color: '#fff', boxShadow: '0 24px 60px rgba(15,61,58,.32)',
       border: '1px solid rgba(255,255,255,.18)'
@@ -178,14 +178,14 @@ export const DecifreReal = () => {
       `}</style>
 
       <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
-        <Box sx={{ width: 46, height: 46, borderRadius: '14px', bgcolor: 'rgba(255,255,255,.18)', border: '1px solid rgba(255,255,255,.32)', display: 'grid', placeItems: 'center', flexShrink: 0, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+        <Box sx={{ width: 46, height: 46, borderRadius: '12px', bgcolor: 'rgba(255,255,255,.18)', border: '1px solid rgba(255,255,255,.32)', display: 'grid', placeItems: 'center', flexShrink: 0, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
           <AutoAwesomeIcon sx={{ fontSize: 26, color: '#fff' }} />
         </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 20, md: 24 }, lineHeight: 1.15 }}>
             Decifre seu exame agora — de graça
           </Typography>
-          <Typography sx={{ fontSize: 13.5, opacity: 0.95, mt: 0.25 }}>Envie o PDF do laboratório ou cole o texto. Sem cadastro.</Typography>
+          <Typography sx={{ fontSize: 14, opacity: 0.95, mt: 0.25 }}>Envie o PDF do laboratório ou cole o texto. Sem cadastro.</Typography>
         </Box>
       </Stack>
 
@@ -193,7 +193,7 @@ export const DecifreReal = () => {
       <Stack direction="row" spacing={1} sx={{ mb: 2 }} alignItems="center" flexWrap="wrap" useFlexGap>
         {([['pdf', '📄 PDF do exame'], ['texto', '📝 Colar texto']] as const).map(([m, label]) => (
           <Box key={m} component="button" onClick={() => { setMode(m); setErr(''); }}
-            sx={{ px: 2.25, py: 0.85, borderRadius: '999px', cursor: 'pointer', fontSize: 13.5, fontWeight: 700, border: '1.5px solid', borderColor: mode === m ? '#fff' : 'rgba(255,255,255,.35)', bgcolor: mode === m ? 'rgba(255,255,255,.22)' : 'transparent', color: '#fff', transition: 'all .15s ease', '&:hover': { bgcolor: 'rgba(255,255,255,.15)' } }}>
+            sx={{ px: 2.25, py: 0.85, borderRadius: '999px', cursor: 'pointer', fontSize: 14, fontWeight: 700, border: '1.5px solid', borderColor: mode === m ? '#fff' : 'rgba(255,255,255,.35)', bgcolor: mode === m ? 'rgba(255,255,255,.22)' : 'transparent', color: '#fff', transition: 'all .15s ease', '&:hover': { bgcolor: 'rgba(255,255,255,.15)' } }}>
             {label}
           </Box>
         ))}
@@ -202,7 +202,7 @@ export const DecifreReal = () => {
           onClick={testSample}
           startIcon={<AutoAwesomeIcon sx={{ fontSize: 16 }} />}
           sx={{
-            borderRadius: '999px', px: 2, py: 0.75, fontSize: 12.5, fontWeight: 800,
+            borderRadius: '999px', px: 2, py: 0.75, fontSize: 13, fontWeight: 800,
             bgcolor: 'rgba(255,255,255,.95)', color: '#0f5f5a', textTransform: 'none',
             boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
             '&:hover': { bgcolor: '#fff', transform: 'scale(1.03)' }
@@ -237,7 +237,7 @@ export const DecifreReal = () => {
               <Typography sx={{ fontSize: 16, fontWeight: 800, color: '#0f5f5a', fontFamily: '"Poppins",sans-serif' }}>
                 Toque aqui para escolher o PDF
               </Typography>
-              <Typography sx={{ fontSize: 12.5, color: 'rgba(15,95,90,.75)', fontWeight: 600, textAlign: 'center' }}>
+              <Typography sx={{ fontSize: 13, color: 'rgba(15,95,90,.75)', fontWeight: 600, textAlign: 'center' }}>
                 O arquivo do laboratório · até 8 MB · ou toque em “Colar texto”
               </Typography>
             </Box>
@@ -250,11 +250,11 @@ export const DecifreReal = () => {
               width: '100%', display: 'flex', alignItems: 'center', gap: 1.5, p: 1.75,
               borderRadius: '16px', bgcolor: 'rgba(52,211,153,.13)', border: '1.5px solid rgba(52,211,153,.45)',
             }}>
-              <Box sx={{ width: 44, height: 44, borderRadius: '14px', bgcolor: 'rgba(52,211,153,.22)', border: '1.5px solid rgba(52,211,153,.5)', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+              <Box sx={{ width: 44, height: 44, borderRadius: '12px', bgcolor: 'rgba(52,211,153,.22)', border: '1.5px solid rgba(52,211,153,.5)', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
                 <CheckCircleIcon sx={{ fontSize: 26, color: '#5eead4' }} />
               </Box>
               <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Typography sx={{ fontSize: 14.5, fontWeight: 800, color: '#fff', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                <Typography sx={{ fontSize: 15, fontWeight: 800, color: '#fff', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 0.75 }}>
                   <PictureAsPdfIcon sx={{ fontSize: 17, color: '#5eead4', flexShrink: 0 }} />
                   {file.name}
                 </Typography>
@@ -264,7 +264,7 @@ export const DecifreReal = () => {
               </Box>
               <Button
                 size="small" onClick={() => fileRef.current?.click()}
-                sx={{ flexShrink: 0, color: 'rgba(255,255,255,.85)', textTransform: 'none', fontWeight: 700, fontSize: 12.5, '&:hover': { bgcolor: 'rgba(255,255,255,.12)' } }}
+                sx={{ flexShrink: 0, color: 'rgba(255,255,255,.85)', textTransform: 'none', fontWeight: 700, fontSize: 13, '&:hover': { bgcolor: 'rgba(255,255,255,.12)' } }}
               >
                 trocar
               </Button>
@@ -302,12 +302,12 @@ export const DecifreReal = () => {
         </Button>
         <Stack direction="row" spacing={0.75} alignItems="center" sx={{ opacity: 0.95 }}>
           <LockIcon sx={{ fontSize: 15 }} />
-          <Typography sx={{ fontSize: 12.5, fontWeight: 600 }}>Não salvamos seu exame — processa e esquece (LGPD)</Typography>
+          <Typography sx={{ fontSize: 13, fontWeight: 600 }}>Não salvamos seu exame — processa e esquece (LGPD)</Typography>
         </Stack>
       </Stack>
 
       {err && (
-        <Typography sx={{ mt: 1.5, fontSize: 13.5, bgcolor: 'rgba(0,0,0,.35)', borderRadius: '12px', px: 2, py: 1.25, border: '1px solid rgba(255,255,255,0.2)' }}>
+        <Typography sx={{ mt: 1.5, fontSize: 14, bgcolor: 'rgba(0,0,0,.35)', borderRadius: '12px', px: 2, py: 1.25, border: '1px solid rgba(255,255,255,0.2)' }}>
           ⚠️ {err}
         </Typography>
       )}
@@ -318,7 +318,7 @@ export const DecifreReal = () => {
           <Typography sx={{ fontWeight: 800, fontSize: 15, mb: 1.5, color: '#fff' }}>{PHASES[phase]}</Typography>
           {[0, 1, 2, 3].map((i) => (
             <Box key={i} sx={{
-              height: 36, borderRadius: '10px', mb: 1.25,
+              height: 36, borderRadius: '8px', mb: 1.25,
               background: 'linear-gradient(90deg, rgba(255,255,255,.08) 25%, rgba(255,255,255,.22) 50%, rgba(255,255,255,.08) 75%)',
               backgroundSize: '600px 100%',
               animation: `dxShimmer 1.3s ease-in-out ${i * 0.12}s infinite`,
@@ -326,7 +326,7 @@ export const DecifreReal = () => {
             }} />
           ))}
           {/* Mobile: Android mata conexão se trocar de app durante processamento */}
-          <Typography sx={{ fontSize: 11.5, opacity: 0.7, mt: 1, textAlign: 'center', display: { xs: 'block', sm: 'none' } }}>
+          <Typography sx={{ fontSize: 12, opacity: 0.7, mt: 1, textAlign: 'center', display: { xs: 'block', sm: 'none' } }}>
             {MOBILE_HINT}
           </Typography>
         </Box>
@@ -338,7 +338,7 @@ export const DecifreReal = () => {
         const total = Math.max(result.totalDetected ?? shown, shown);
         const hidden = Math.max(total - shown, 0);
         return (
-        <Box sx={{ mt: 2.5, borderRadius: '18px', bgcolor: 'rgba(0,0,0,.35)', border: '1px solid rgba(255,255,255,.25)', p: { xs: 2, md: 3 } }}>
+        <Box sx={{ mt: 2.5, borderRadius: '16px', bgcolor: 'rgba(0,0,0,.35)', border: '1px solid rgba(255,255,255,.25)', p: { xs: 2, md: 3 } }}>
           {/* Herói de conversão: 8 DE 55 — o número grande é o TOTAL do laudo */}
           <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mb: 1.75, flexWrap: 'wrap' }} useFlexGap>
             <Typography sx={{ fontWeight: 800, fontSize: { xs: 26, sm: 30 }, fontFamily: 'Poppins, sans-serif', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
@@ -346,7 +346,7 @@ export const DecifreReal = () => {
             </Typography>
             <Box>
               <Typography sx={{ fontWeight: 700, fontSize: 13, lineHeight: 1.2 }}>valores no seu exame</Typography>
-              <Typography sx={{ fontSize: 11.5, opacity: 0.8, lineHeight: 1.3 }}>{hidden > 0 ? `mostrando os ${shown} principais — ${hidden} no relatório completo` : 'todos os valores analisados'}</Typography>
+              <Typography sx={{ fontSize: 12, opacity: 0.8, lineHeight: 1.3 }}>{hidden > 0 ? `mostrando os ${shown} principais — ${hidden} no relatório completo` : 'todos os valores analisados'}</Typography>
             </Box>
             {abnormal > 0
               ? <Chip size="small" label={`${abnormal} ${abnormal > 1 ? 'pedem atenção' : 'pede atenção'}`} sx={{ height: 26, fontWeight: 800, fontSize: 12, bgcolor: 'rgba(251,146,60,.3)', color: '#ffd9b3', border: '1px solid rgba(251,146,60,.4)' }} />
@@ -357,15 +357,15 @@ export const DecifreReal = () => {
               const meta = FLAG_META[it.flag as string] ?? FLAG_META.UNKNOWN;
               return (
                 <Stack key={idx} direction="row" spacing={1.25} alignItems="center"
-                  sx={{ py: 0.8, px: 1, borderRadius: '10px', bgcolor: 'rgba(255,255,255,.05)', borderBottom: idx < result.items.length - 1 ? '1px dashed rgba(255,255,255,.14)' : 'none', animation: `dxRowIn .4s ease ${idx * 0.08}s both` }}>
-                  <Typography sx={{ flex: 1, fontSize: 14.5, fontWeight: 700, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.name}</Typography>
+                  sx={{ py: 0.8, px: 1, borderRadius: '8px', bgcolor: 'rgba(255,255,255,.05)', borderBottom: idx < result.items.length - 1 ? '1px dashed rgba(255,255,255,.14)' : 'none', animation: `dxRowIn .4s ease ${idx * 0.08}s both` }}>
+                  <Typography sx={{ flex: 1, fontSize: 15, fontWeight: 700, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.name}</Typography>
                   <Typography sx={{ fontSize: 15, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>
-                    {fmt(it.value)}{it.unit ? <span style={{ fontSize: 11.5, opacity: 0.8 }}> {it.unit}</span> : null}
+                    {fmt(it.value)}{it.unit ? <span style={{ fontSize: 12, opacity: 0.8 }}> {it.unit}</span> : null}
                   </Typography>
-                  <Typography sx={{ fontSize: 11.5, opacity: 0.75, display: { xs: 'none', sm: 'block' }, width: 100, textAlign: 'right' }}>
+                  <Typography sx={{ fontSize: 12, opacity: 0.75, display: { xs: 'none', sm: 'block' }, width: 100, textAlign: 'right' }}>
                     {it.refLow != null || it.refHigh != null ? `${fmt(it.refLow)}–${fmt(it.refHigh)}` : '—'}
                   </Typography>
-                  <Chip size="small" label={meta.label} sx={{ height: 24, fontSize: 11.5, fontWeight: 800, bgcolor: meta.bg, color: meta.color, border: `1px solid ${meta.color}66` }} />
+                  <Chip size="small" label={meta.label} sx={{ height: 24, fontSize: 12, fontWeight: 800, bgcolor: meta.bg, color: meta.color, border: `1px solid ${meta.color}66` }} />
                 </Stack>
               );
             })}
@@ -375,7 +375,7 @@ export const DecifreReal = () => {
           {hidden > 0 && (
             <Stack spacing={1} sx={{ mt: 1.5 }} aria-label={`${hidden} valores adicionais no app`}>
               {[0, 1, 2].map((i) => (
-                <Stack key={i} direction="row" spacing={1.25} alignItems="center" sx={{ py: 0.65, px: 1, borderRadius: '10px', bgcolor: 'rgba(255,255,255,.04)', border: '1px dashed rgba(255,255,255,.14)' }}>
+                <Stack key={i} direction="row" spacing={1.25} alignItems="center" sx={{ py: 0.65, px: 1, borderRadius: '8px', bgcolor: 'rgba(255,255,255,.04)', border: '1px dashed rgba(255,255,255,.14)' }}>
                   <Box sx={{ flex: 1, height: 10, borderRadius: '5px', bgcolor: 'rgba(255,255,255,.22)', filter: 'blur(3px)', width: `${58 - i * 9}%` }} />
                   <Box sx={{ height: 10, width: 42, borderRadius: '5px', bgcolor: 'rgba(255,255,255,.22)', filter: 'blur(3px)' }} />
                   <LockIcon sx={{ fontSize: 14, opacity: 0.65 }} />
