@@ -15,6 +15,7 @@ import { GoogleG, LockSecure } from './GoogleG';
 import { AppCard } from '../AppCard';
 import { GradientButton } from '../GradientButton';
 import { hapticLight } from '../../utils/haptic';
+import { SEM } from '../../theme';
 import { fetchActivityDays, hasHealthPermissions, healthConnectSupported, permissionOutcomeMessage, requestHealthPermissions, syncActivityToServer } from '../../services/healthConnect';
 import { fetchActivitySummary, summaryToDays, syncStamp } from '../../services/activitySummary';
 import { barHeight, fmtKcal, fmtKm, fmtSteps, summarize, weekOfExam, STEPS_GOAL, type ActivityDay, type ActivityRange } from '../../utils/activityStats';
@@ -431,16 +432,16 @@ export const ActivityView = ({
               Connect do aparelho só tem TOTAL, que inclui metabolismo basal) — rótulo honesto,
               curto ("Calorias totais") com a explicação no title do label. */}
           {primaryKcal > 0 && (
-            <MetricMini icon={<LocalFireDepartmentIcon sx={{ fontSize: 15 }} />} tone="#c2410c" label={s.kcalIsTotal ? 'Calorias totais' : 'Calorias'} labelTitle={s.kcalIsTotal ? 'Inclui metabolismo basal (Samsung Health só publica o total do dia)' : undefined} value={fmtKcal(primaryKcal)} unit="kcal" contextLabel={periodMetricLabel} />
+            <MetricMini icon={<LocalFireDepartmentIcon sx={{ fontSize: 15 }} />} tone={SEM.warn[theme.palette.mode]} label={s.kcalIsTotal ? 'Calorias totais' : 'Calorias'} labelTitle={s.kcalIsTotal ? 'Inclui metabolismo basal (Samsung Health só publica o total do dia)' : undefined} value={fmtKcal(primaryKcal)} unit="kcal" contextLabel={periodMetricLabel} />
           )}
-          <MetricMini icon={<RouteIcon sx={{ fontSize: 15 }} />} tone="#0369a1" label="Distância" value={fmtKm(primaryKm)} unit="km" contextLabel={periodMetricLabel} />
+          <MetricMini icon={<RouteIcon sx={{ fontSize: 15 }} />} tone={SEM.info[theme.palette.mode]} label="Distância" value={fmtKm(primaryKm)} unit="km" contextLabel={periodMetricLabel} />
           {(s.hrRest ?? 0) > 0 && (
-            <MetricMini icon={<FavoriteIcon sx={{ fontSize: 15 }} />} tone="#ef4444" label="FC de repouso" value={`${Math.round(s.hrRest ?? 0)}`} unit="bpm" contextLabel={periodMetricLabel} />
+            <MetricMini icon={<FavoriteIcon sx={{ fontSize: 15 }} />} tone={SEM.bad[theme.palette.mode]} label="FC de repouso" value={`${Math.round(s.hrRest ?? 0)}`} unit="bpm" contextLabel={periodMetricLabel} />
           )}
           {/* Exercício: TOTAL do período (média/dia era rótulo mentiroso — "14min" era 98÷7).
               Corte de ruído: <10 min no período = fontes não registram sessões, não mostra. */}
           {(s.exerciseMin ?? 0) >= 10 && (
-            <MetricMini icon={<TimerIcon sx={{ fontSize: 15 }} />} tone="#047857" label="Exercício" value={`${Math.round(s.exerciseMin ?? 0)} min`} unit="" contextLabel={undefined} />
+            <MetricMini icon={<TimerIcon sx={{ fontSize: 15 }} />} tone={SEM.ok[theme.palette.mode]} label="Exercício" value={`${Math.round(s.exerciseMin ?? 0)} min`} unit="" contextLabel={undefined} />
           )}
         </Box>
       </Stack>

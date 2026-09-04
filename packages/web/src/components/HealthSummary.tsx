@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { ChartLineUp, Flag, CheckCircle, Stethoscope, Pill, Carrot, UsersThree, Target, TrendUp, CalendarBlank } from '@phosphor-icons/react';
 import { Card, CardContent, Typography, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Chip, Stack, Divider, Button, IconButton, Accordion, AccordionSummary, AccordionDetails, useMediaQuery, useTheme, Popover } from '@mui/material';
 import { AppCard } from './AppCard';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -210,7 +211,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
 
         {/* Comparativo */}
         {structured.comparativo && structured.comparativo.length > 0 && (
-          <AccordionSection icon="📊" title="Comparativo (anterior × atual)" color="#178f89" count={structured.comparativo.length} defaultExpanded>
+          <AccordionSection icon={<ChartLineUp size={17} weight="duotone" />} title="Comparativo (anterior × atual)" color="#178f89" count={structured.comparativo.length} defaultExpanded>
             {isMobile ? (
               // Mobile: cards (não quebra labels como a tabela)
               <Stack spacing={1}>
@@ -265,7 +266,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
 
         {/* Pontos de atenção */}
         {structured.pontosAtencao && structured.pontosAtencao.length > 0 && (
-          <AccordionSection icon="🚩" title="Pontos que merecem atenção" color="#c2410c" count={structured.pontosAtencao.length} defaultExpanded>
+          <AccordionSection icon={<Flag size={17} weight="duotone" />} title="Pontos que merecem atenção" color="#c2410c" count={structured.pontosAtencao.length} defaultExpanded>
             {structured.pontosAtencao.map((p, i) => (
               <Box key={i} sx={{ mb: 1.5, '&:last-child': { mb: 0 } }}>
                 <Typography sx={{ fontWeight: 700, color: 'text.primary' }}>{i + 1}. {p.titulo}</Typography>
@@ -277,7 +278,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
 
         {/* Coisas boas */}
         {structured.coisasBoas && structured.coisasBoas.length > 0 && (
-          <AccordionSection icon="✅" title="Coisas boas" color="#047857">
+          <AccordionSection icon={<CheckCircle size={17} weight="duotone" />} title="Coisas boas" color="#047857">
             <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
               {structured.coisasBoas.map((b, i) => <Chip key={i} sx={{ bgcolor: '#04785715', color: '#047857', fontWeight: 600 }} label={b} />)}
             </Stack>
@@ -294,7 +295,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
 
         {/* Perguntas */}
         {structured.perguntasParaOMedico && structured.perguntasParaOMedico.length > 0 && (
-          <AccordionSection icon="🩺" title="Perguntas para levar ao médico" color="#6366f1" count={structured.perguntasParaOMedico.length}>
+          <AccordionSection icon={<Stethoscope size={17} weight="duotone" />} title="Perguntas para levar ao médico" color="#6366f1" count={structured.perguntasParaOMedico.length}>
             {structured.perguntasParaOMedico.map((q, i) => (
               <Typography key={i} sx={{ py: 0.5, pl: 1, borderLeft: '3px solid #6366f133' }}>{i + 1}. {q}</Typography>
             ))}
@@ -303,7 +304,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
 
         {/* 💊 Interações medicamento × exame */}
         {structured.interacoesMedicamentos && structured.interacoesMedicamentos.length > 0 && (
-          <AccordionSection icon="💊" title="Interações medicamento × exame" color="#ef4444">
+          <AccordionSection icon={<Pill size={17} weight="duotone" />} title="Interações medicamento × exame" color="#ef4444">
             {structured.interacoesMedicamentos.map((m, i) => (
               <Box key={i} sx={{ mb: 1, p: 1.5, borderRadius: '12px', bgcolor: 'rgba(239,68,68,0.08)' }}>
                 <Typography sx={{ fontWeight: 700, fontSize: '0.95rem' }}>{m.medicamento} → {m.analito}</Typography>
@@ -315,7 +316,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
 
         {/* 🥗 Sugestões de nutrição */}
         {structured.sugestoesNutricao && structured.sugestoesNutricao.length > 0 && (
-          <AccordionSection icon="🥗" title="Sugestões de nutrição" color="#047857">
+          <AccordionSection icon={<Carrot size={17} weight="duotone" />} title="Sugestões de nutrição" color="#047857">
             {structured.sugestoesNutricao.map((s, i) => (
               <Typography key={i} sx={{ py: 0.3 }}>• {s}</Typography>
             ))}
@@ -324,14 +325,14 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
 
         {/* 👨‍👩‍👧 Comparação familiar */}
         {structured.comparacaoFamiliar && (
-          <AccordionSection icon="👨‍👩‍👧" title="Comparação familiar" color="#6366f1">
+          <AccordionSection icon={<UsersThree size={17} weight="duotone" />} title="Comparação familiar" color="#6366f1">
             <Typography sx={{ lineHeight: 1.7 }}>{structured.comparacaoFamiliar}</Typography>
           </AccordionSection>
         )}
 
         {/* 🎯 Metas de saúde */}
         {structured.metasSaude && structured.metasSaude.length > 0 && (
-          <AccordionSection icon="🎯" title="Metas de saúde" color="#0369a1" count={structured.metasSaude.length}>
+          <AccordionSection icon={<Target size={17} weight="duotone" />} title="Metas de saúde" color="#0369a1" count={structured.metasSaude.length}>
             <Stack spacing={1}>
               {structured.metasSaude.map((m, i) => (
                 <Box key={i} sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'rgba(2,136,209,0.08)', border: '1px solid', borderColor: 'divider' }}>
@@ -348,7 +349,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
 
         {/* 📈 Evolução desde os exames anteriores (direção + Δ% do DB) */}
         {structured.evolucao && structured.evolucao.length > 0 && (
-          <AccordionSection icon="📈" title="Evolução desde os exames anteriores" color="#047857" count={structured.evolucao.length}>
+          <AccordionSection icon={<TrendUp size={17} weight="duotone" />} title="Evolução desde os exames anteriores" color="#047857" count={structured.evolucao.length}>
             <Stack spacing={0.5}>
               {structured.evolucao.map((e, i) => {
                 const dir = (e.direcao || '').toLowerCase();
@@ -370,7 +371,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
 
         {/* ✅ Alterações antigas já normalizadas (eram anormais, voltaram ao normal — NÃO é condição atual) */}
         {structured.antigosNormalizados && structured.antigosNormalizados.length > 0 && (
-          <AccordionSection icon="✅" title="Alterações antigas já normalizadas" color="#047857" count={structured.antigosNormalizados.length}>
+          <AccordionSection icon={<CheckCircle size={17} weight="duotone" />} title="Alterações antigas já normalizadas" color="#047857" count={structured.antigosNormalizados.length}>
             <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>Eram alteradas antes e voltaram ao normal — não representam condição atual.</Typography>
             <Stack spacing={0.5}>
               {structured.antigosNormalizados.map((a, i) => (
@@ -388,7 +389,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
 
         {/* 📅 Acompanhamentos desatualizados — marcadores sem medição recente (fonte: backend/datas reais) */}
         {structured.desatualizados && structured.desatualizados.length > 0 && (
-          <AccordionSection icon="📅" title="Acompanhamentos que podem estar desatualizados" color="#ed6c02" count={structured.desatualizados.length}>
+          <AccordionSection icon={<CalendarBlank size={17} weight="duotone" />} title="Acompanhamentos que podem estar desatualizados" color="#ed6c02" count={structured.desatualizados.length}>
             <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>Marcadores sem medição recente — converse com seu médico sobre a necessidade de refazer.</Typography>
             <Stack spacing={0.75}>
               {structured.desatualizados.map((d, i) => (

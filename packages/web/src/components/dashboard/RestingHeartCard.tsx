@@ -4,6 +4,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { API_URL, apiHeaders } from '../../config';
+import { SEM } from '../../theme';
 import { useSelectedPatient } from '../../patient-context';
 import { AppCard } from '../AppCard';
 
@@ -19,10 +20,12 @@ import { AppCard } from '../AppCard';
 
 interface HrDay { date: string; avg: number }
 
-const zone = (bpm: number): { label: string; color: string } => {
-  if (bpm > 0 && bpm < 60) return { label: 'zona ótima', color: '#059669' };
-  if (bpm <= 80) return { label: 'zona típica', color: '#178f89' };
-  return { label: 'elevada — comente com seu médico', color: '#b45309' };
+/** Zona educativa da FC — cores SEMÂNTICAS com par dark (SEM do theme; a "típica" é a
+ *  marca: teal claro no dark p/ contraste). Antes hex fixo escurecia no modo escuro. */
+const zone = (bpm: number, mode: 'light' | 'dark'): { label: string; color: string } => {
+  if (bpm > 0 && bpm < 60) return { label: 'zona ótima', color: SEM.ok[mode] };
+  if (bpm <= 80) return { label: 'zona típica', color: mode === 'dark' ? '#5fc9c3' : '#178f89' };
+  return { label: 'elevada — comente com seu médico', color: SEM.warn[mode] };
 };
 
 // Animações (fora do JSX — menos aninhamento, mesma linguagem da casa)
@@ -72,7 +75,7 @@ export const RestingHeartCard = () => {
 
   if (!s) return null;
 
-  const z = zone(s.avgLast7);
+  const z = zone(s.avgLast7, theme.palette.mode);
   const max = Math.max(...s.series.map((d) => d.avg), 1);
   const sel = s.series.find((d) => d.date === selDay) ?? s.series[s.series.length - 1] ?? null;
   const selFmt = sel ? new Date(`${sel.date}T12:00:00`).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' }).replace('.', '') : '';

@@ -109,11 +109,12 @@ export const LAYOUT = {
  * sectionCard 14→12 e pill 99→999: harmoniza os 21+15 usos do token com a escala
  * (o codemod desta auditoria normalizou os literais 6/9/10→8, 14→12, 18/20/22/24→16).
  */
-export const RADIUS = { sm: '8px', md: '12px', card: '16px', pill: '999px', button: '12px', tile: '12px', sectionCard: '12px' } as const;
-
-/** Cobre premium — assinatura do portal do médico (estados ativos do modo "viewer clínico";
- *  no app do paciente o ativo continua teal). Espelha palette.secondary (D4A574/B88A54). */
-export const COPPER = { main: '#d4a574', deep: '#b88a54', textAA: '#8a5f2e', wash: 'rgba(212,165,116,.16)' } as const;
+// Tokens PUROS vivem em ./tokens.ts (sem MUI — carregáveis em testes node; importar
+// theme.ts em ambiente de teste node quebra no createTheme). Aqui só RE-EXPORTA p/
+// compatibilidade dos imports existentes `from '../theme'`.
+export { RADIUS, COPPER, SEM } from './tokens';
+export type { SemKey } from './tokens';
+import { COPPER } from './tokens';
 /** Texto cobre AA nos dois modos: tom 800 no light (≥4,5:1 sobre papel), tom claro no dark. */
 export const copperText = (mode: 'light' | 'dark') => (mode === 'dark' ? COPPER.main : COPPER.textAA);
 

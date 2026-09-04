@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Stack, Typography, Box, Grid, useTheme, Skeleton, Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { API_URL, token } from '../../config';
+import { SEM } from '../../theme';
 import { Heartbeat, Stethoscope, ChartLineUp, Dna } from '@phosphor-icons/react';
 import { useSelectedPatient } from '../../patient-context';
 import { syncPushToken } from '../../push';
@@ -152,14 +153,14 @@ const statusFromScore = (s: number | null): { label: string; tone: 'primary' | '
   return { label: 'Precisa de cuidados', tone: 'error' };
 };
 
-/** Contraste AA nos DOIS modos: tom do texto por prioridade (light = tom escuro sobre wash
- *  claro; dark = tom claro sobre card tinted escuro). Antes: cores fixas escuras que caíam
- *  p/ ~2.4:1 no dark mode (WCAG AA pede 4.5:1 p/ texto pequeno). */
+/** Contraste AA nos DOIS modos: tom do texto por prioridade. Antes: cores fixas escuras
+ *  que caíam p/ ~2.4:1 no dark mode — agora consome os tokens SEM do theme (P2 da
+ *  auditoria DS: uma fonte da verdade p/ estado ok/warn/bad em todo o app). */
 const TONE_TEXT: Record<string, { light: string; dark: string }> = {
-  success: { light: '#047857', dark: '#34d399' },
-  warning: { light: '#8a5a1f', dark: '#fbbf24' },
-  error: { light: '#b91c1c', dark: '#f87171' },
-  primary: { light: '#0f6e68', dark: '#5fc9c3' },
+  success: SEM.ok,
+  warning: { light: '#8a5a1f', dark: SEM.warn.dark },
+  error: SEM.bad,
+  primary: SEM.tealDeep,
 };
 
 /** HERO — única hierarquia de saúde (score + prioridades + última análise + CTA).

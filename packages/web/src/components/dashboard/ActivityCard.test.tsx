@@ -8,7 +8,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { renderToString } from 'react-dom/server';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 
-vi.mock('react-admin', () => ({ useNotify: () => () => undefined }));
+vi.mock('react-admin', () => ({ useNotify: () => () => undefined, defaultTheme: {} }));
 // AppCard/GradientButton puxam theme.ts → react-admin (precisa de browser). No teste de
 // ESTADO, viram passthrough simples — o que se valida é o contrato da ActivityView.
 vi.mock('../AppCard', () => ({ AppCard: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));
