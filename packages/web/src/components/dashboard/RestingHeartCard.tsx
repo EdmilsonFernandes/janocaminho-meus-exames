@@ -122,9 +122,9 @@ export const RestingHeartCard = () => {
           )}
         </Box>
 
-        {/* Sparkline 30d INTERATIVO — cada barra é um botão; tocar mostra o dia (mesmo
-            padrão do ActivityCard). Default = dia mais recente. */}
-        <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: 44, flex: 1, minWidth: 0 }}>
+        {/* Sparkline 30d INTERATIVO — cada barra é um botão; tocar mostra o dia.
+            Premium: gradiente vertical nas barras, glow na selecionada. */}
+        <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: 48, flex: 1, minWidth: 0 }}>
           {s.series.map((d) => {
             const on = sel?.date === d.date;
             return (
@@ -140,13 +140,17 @@ export const RestingHeartCard = () => {
                   p: 0,
                   border: 'none',
                   cursor: 'pointer',
-                  height: `${Math.max(10, (d.avg / max) * 100)}%`,
+                  height: `${Math.max(12, (d.avg / max) * 100)}%`,
                   borderRadius: on ? '4px 4px 0 0' : '3px 3px 0 0',
-                  bgcolor: alpha(z.color, on ? 1 : 0.35),
+                  // Gradiente vertical premium (cor cheia no topo, fade pra transparent)
+                  background: on
+                    ? `linear-gradient(to bottom, ${z.color}, ${alpha(z.color, 0.5)})`
+                    : `linear-gradient(to bottom, ${alpha(z.color, 0.45)}, ${alpha(z.color, 0.12)})`,
                   outline: on ? `2px solid ${z.color}` : 'none',
                   outlineOffset: on ? 1 : 0,
+                  boxShadow: on ? `0 0 8px ${alpha(z.color, 0.35)}` : 'none',
                   transform: on ? 'scaleY(1.06)' : 'none',
-                  transition: 'height .5s cubic-bezier(.2,.8,.2,1), transform .15s ease',
+                  transition: 'height .5s cubic-bezier(.2,.8,.2,1), transform .15s ease, background .2s ease, box-shadow .2s ease',
                 }}
               />
             );
@@ -156,7 +160,12 @@ export const RestingHeartCard = () => {
 
       {/* Detalhe do dia tocado — 1 linha (o gráfico sozinho não conta a história) */}
       {sel && (
-        <Box sx={{ mt: 1, px: 1.25, py: 0.75, borderRadius: '12px', bgcolor: alpha(z.color, 0.07), border: `1px solid ${alpha(z.color, 0.25)}` }}>
+        <Box sx={{
+          mt: 1, px: 1.25, py: 0.75, borderRadius: '12px',
+          bgcolor: alpha(z.color, 0.07), border: `1px solid ${alpha(z.color, 0.25)}`,
+          animation: 'dxHrTip .2s ease both',
+          '@keyframes dxHrTip': { from: { opacity: 0, transform: 'scale(.96)' }, to: { opacity: 1, transform: 'scale(1)' } },
+        }}>
           <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>
             <Box component="strong" sx={{ color: z.color, fontWeight: 800, textTransform: 'capitalize' }}>{selFmt}</Box>
             {' · '}<Box component="strong" sx={{ fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{sel.avg} bpm</Box>

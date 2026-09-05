@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Stack, Typography, Box, Grid, useTheme, Skeleton, Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
 import { alpha } from '@mui/material/styles';
@@ -27,9 +27,13 @@ import { ReviewPrompt } from '../ReviewPrompt';
 import { AppCard } from '../AppCard';
 import { GradientButton } from '../GradientButton';
 import { ChangesSinceExam, type Marker } from './ChangesSinceExam';
+import { ScrollReveal } from './ScrollReveal';
+import { Section } from './Section';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { getGoals, goalSubtitle } from '../GoalQuiz';
 
 const readTotal = (r: Response) =>
@@ -153,9 +157,7 @@ const statusFromScore = (s: number | null): { label: string; tone: 'primary' | '
   return { label: 'Precisa de cuidados', tone: 'error' };
 };
 
-/** Contraste AA nos DOIS modos: tom do texto por prioridade. Antes: cores fixas escuras
- *  que caíam p/ ~2.4:1 no dark mode — agora consome os tokens SEM do theme (P2 da
- *  auditoria DS: uma fonte da verdade p/ estado ok/warn/bad em todo o app). */
+/** Contraste AA nos DOIS modos: tom do texto por prioridade. */
 const TONE_TEXT: Record<string, { light: string; dark: string }> = {
   success: SEM.ok,
   warning: { light: '#8a5a1f', dark: SEM.warn.dark },
@@ -163,9 +165,57 @@ const TONE_TEXT: Record<string, { light: string; dark: string }> = {
   primary: SEM.tealDeep,
 };
 
-/** HERO — única hierarquia de saúde (score + prioridades + última análise + CTA).
- *  Sem exames NÃO existe "Calculando…" eterno (não há nada calculando): é onboarding com
- *  CTA pro 1º exame. "Nada crítico" só com score real — ausência de dado não é normalidade. */
+/** Cor do glow por score — muda a vibe do ring. */
+const scoreGlowColor = (s: number | null) => {
+  if (s == null) return 'rgba(32,178,170,.08)';
+  if (s >= 80) return 'rgba(5,150,105,.18)';
+  if (s >= 60) return 'rgba(32,178,170,.15)';
+  if (s >= 40) return 'rgba(245,158,11,.12)';
+  return 'rgba(239,68,68,.12)';
+};
+
+/** Countup hook — anima um número de 0 ao alvo com easing. CSS-free, cancelável. */
+const useCountUp = (target: number | null, duration = 1200) => {
+  const [value, setValue] = useState(0);
+  const prevTarget = useRef<number | null>(null);
+  useEffect(() => {
+    if (target == null || target === prevTarget.current) return;
+    prevTarget.current = target;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { setValue(target); return; }
+    let start: number | null = null;
+    let raf: number;
+    const step = (ts: number) => {
+      if (!start) start = ts;
+      const p = Math.min((ts - start) / duration, 1);
+      const ease = 1 - Math.pow(1 - p, 3); // easeOutCubic
+      setValue(Math.round(ease * target));
+      if (p < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration]);
+  return target == null ? null : value;
+};
+
+/** Floating sparkle CSS-only — 3 partículas lentas no bg do hero. */
+const SPARKLE_KF = {
+  '@keyframes dxSparkle': {
+    '0%': { transform: 'translateY(0) scale(1)', opacity: 0.7 },
+    '50%': { transform: 'translateY(-12px) scale(1.3)', opacity: 1 },
+    '100%': { transform: 'translateY(0) scale(1)', opacity: 0.7 },
+  },
+} as const;
+const Sparkle = ({ top, left, delay, size = 4 }: { top: string; left: string; delay: number; size?: number }) => (
+  <Box sx={{
+    position: 'absolute', top, left, width: size, height: size,
+    borderRadius: '50%', bgcolor: 'rgba(32,178,170,.4)',
+    boxShadow: '0 0 6px rgba(32,178,170,.4)',
+    animation: `dxSparkle ${3 + delay}s ease-in-out ${delay}s infinite`,
+    pointerEvents: 'none', ...SPARKLE_KF,
+  }} />
+);
+
+/** HERO — score ring com gradiente cônico animado, countup, mesh gradient bg, sparkles. */
 const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, onDetails, onFirstExam }: {
   loaded: boolean; score: number | null; exams: number; importante: number; moderada: number; lastExam: string | null; onDetails: () => void; onFirstExam: () => void;
 }) => {
@@ -175,23 +225,76 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
   const totalAtt = importante + moderada;
   const noData = score == null && exams === 0;
   const title = noData ? 'Começa com seu primeiro exame' : score == null ? 'Score indisponível' : st.label;
+  const animatedScore = useCountUp(score);
+  const dashLen = (score ?? 0) * 2.64;
+  const isDark = t.palette.mode === 'dark';
   return (
-    <AppCard kind="tinted" tone={st.tone} tone2="secondary" glow sx={{ p: { xs: 2, sm: 2.25, md: 3 } }}>
-      <Stack direction="row" spacing={{ xs: 1.5, sm: 2 }} alignItems="center" sx={{ width: '100%', minWidth: 0 }}>
-        <Box sx={{ position: 'relative', display: 'grid', placeItems: 'center', width: { xs: 76, sm: 92 }, height: { xs: 76, sm: 92 }, flexShrink: 0 }}>
-          <Box component="svg" aria-hidden="true" viewBox="0 0 100 100" sx={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
-            <circle cx="50" cy="50" r="42" fill="none" stroke={alpha(t.palette.text.primary, 0.12)} strokeWidth="9" />
-            <circle cx="50" cy="50" r="42" fill="none" stroke="#20b2aa" strokeWidth="9" strokeLinecap="round"
-              strokeDasharray={`${(score ?? 0) * 2.64} 999`} style={{ transition: 'stroke-dasharray .8s cubic-bezier(.16,1,.3,1)' }} />
+    <AppCard kind="tinted" tone={st.tone} tone2="secondary" glow sx={{
+      p: { xs: 2, sm: 2.25, md: 3 }, position: 'relative', overflow: 'hidden',
+      borderRadius: '20px !important',
+      // Mesh gradient bg — sutil, só dá profundidade
+      background: isDark
+        ? `radial-gradient(ellipse at 20% 30%, rgba(32,178,170,.12), transparent 60%), radial-gradient(ellipse at 80% 70%, rgba(212,165,116,.06), transparent 50%), ${t.palette.background.paper}`
+        : `radial-gradient(ellipse at 20% 30%, rgba(32,178,170,.08), transparent 60%), radial-gradient(ellipse at 80% 70%, rgba(212,165,116,.04), transparent 50%), #ffffff`,
+      boxShadow: `0 2px 8px rgba(0,0,0,.04), 0 8px 32px ${scoreGlowColor(score)}`,
+      transition: 'box-shadow .6s ease',
+    }}>
+      {/* Floating sparkles */}
+      <Sparkle top="15%" left="85%" delay={0} size={4} />
+      <Sparkle top="60%" left="92%" delay={1.2} size={3} />
+      <Sparkle top="35%" left="78%" delay={2.5} size={5} />
+
+      <Stack direction="row" spacing={{ xs: 1.5, sm: 2 }} alignItems="center" sx={{ width: '100%', minWidth: 0, position: 'relative', zIndex: 1 }}>
+        {/* Score Ring — gradiente cônico animado */}
+        <Box sx={{
+          position: 'relative', display: 'grid', placeItems: 'center',
+          width: { xs: 84, sm: 100 }, height: { xs: 84, sm: 100 }, flexShrink: 0,
+          // Glow pulsante atrás do ring
+          '&::before': {
+            content: '""', position: 'absolute', inset: -4,
+            borderRadius: '50%',
+            background: scoreGlowColor(score),
+            filter: 'blur(12px)',
+            animation: 'dxRingPulse 3s ease-in-out infinite',
+          },
+          '@keyframes dxRingPulse': {
+            '0%, 100%': { opacity: 0.5, transform: 'scale(1)' },
+            '50%': { opacity: 1, transform: 'scale(1.08)' },
+          },
+        }}>
+          <Box component="svg" aria-hidden="true" viewBox="0 0 100 100" sx={{ width: '100%', height: '100%', transform: 'rotate(-90deg)', position: 'relative', zIndex: 1 }}>
+            <defs>
+              <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#20b2aa" />
+                <stop offset="50%" stopColor="#059669" />
+                <stop offset="100%" stopColor="#20b2aa" />
+              </linearGradient>
+            </defs>
+            {/* Track — mais sutil */}
+            <circle cx="50" cy="50" r="42" fill="none"
+              stroke={alpha(t.palette.text.primary, isDark ? 0.08 : 0.06)}
+              strokeWidth="8" />
+            {/* Progress — gradiente + animação */}
+            <circle cx="50" cy="50" r="42" fill="none"
+              stroke="url(#scoreGrad)" strokeWidth="8" strokeLinecap="round"
+              strokeDasharray={`${dashLen} 999`}
+              style={{ transition: 'stroke-dasharray 1.2s cubic-bezier(.16,1,.3,1)' }}
+              filter={score && score >= 60 ? 'drop-shadow(0 0 4px rgba(32,178,170,.4))' : undefined}
+            />
           </Box>
-          <Box sx={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', px: 0.5, minWidth: 0, pointerEvents: 'none' }}>
-            {loaded ? <Typography noWrap sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1.25rem, 6vw, 1.625rem)', sm: 26 }, lineHeight: 1, color: 'text.primary', fontVariantNumeric: 'tabular-nums' }}>{score ?? '—'}</Typography>
-              : <Skeleton variant="text" width={36} height={30} />}
-            <Typography noWrap sx={{ fontSize: 10, color: 'text.secondary' }}>de 100</Typography>
+          <Box sx={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', px: 0.5, minWidth: 0, pointerEvents: 'none', zIndex: 2 }}>
+            {loaded ? (
+              <Typography noWrap sx={{
+                fontFamily: 'Poppins, sans-serif', fontWeight: 800,
+                fontSize: { xs: 'clamp(1.375rem, 7vw, 1.75rem)', sm: 28 },
+                lineHeight: 1, color: 'text.primary', fontVariantNumeric: 'tabular-nums',
+              }}>{animatedScore ?? '—'}</Typography>
+            ) : <Skeleton variant="text" width={36} height={30} />}
+            <Typography noWrap sx={{ fontSize: 10, color: 'text.secondary', mt: 0.15 }}>de 100</Typography>
           </Box>
         </Box>
+
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          {/* Sentence case (audit Onda A): caixa alta + ls largo = cara de painel admin. */}
           <Typography sx={{ fontSize: 12, fontWeight: 700, color: (t) => TONE_TEXT[st.tone][t.palette.mode === 'dark' ? 'dark' : 'light'] }}>Sua saúde hoje</Typography>
           <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1.125rem, 5.5vw, 1.375rem)', sm: 22 }, lineHeight: 1.15, color: 'text.primary', mt: 0.25, textWrap: 'balance' }}>{title}</Typography>
           <Stack direction="row" spacing={1.5} sx={{ mt: 1, flexWrap: 'wrap', rowGap: 0.5 }}>
@@ -202,7 +305,6 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
                 {moderada > 0 && <Box component="span" sx={{ color: (t) => (t.palette.mode === 'dark' ? '#fbbf24' : '#b45309'), fontWeight: 700 }}>● {moderada} moderado{moderada > 1 ? 's' : ''}</Box>}
               </Typography>
             ) : noData ? (
-              /* Copy personalizada pelo objetivo do quiz-first onboarding (licença Mito). */
               <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>{goalSubtitle(getGoals()) ?? 'Envie um exame pra começarmos a construir sua visão de saúde.'}</Typography>
             ) : score != null ? (
               <Typography sx={{ fontSize: 14, color: 'success.main', fontWeight: 700 }}>● Nada crítico no momento</Typography>
@@ -212,11 +314,11 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
         </Box>
       </Stack>
       {noData ? (
-        <GradientButton onClick={onFirstExam} endIcon={<ArrowForwardIcon />} sx={{ mt: 2.25, width: { xs: '100%', sm: 'auto' }, alignSelf: 'stretch' }}>
+        <GradientButton onClick={onFirstExam} endIcon={<ArrowForwardIcon />} sx={{ mt: 2.25, width: { xs: '100%', sm: 'auto' }, alignSelf: 'stretch', position: 'relative', zIndex: 1 }}>
           Enviar primeiro exame
         </GradientButton>
       ) : (
-        <GradientButton onClick={onDetails} endIcon={<ArrowForwardIcon />} sx={{ mt: 2.25, width: { xs: '100%', sm: 'auto' }, alignSelf: 'stretch' }}>
+        <GradientButton onClick={onDetails} endIcon={<ArrowForwardIcon />} sx={{ mt: 2.25, width: { xs: '100%', sm: 'auto' }, alignSelf: 'stretch', position: 'relative', zIndex: 1 }}>
           Ver análise completa
         </GradientButton>
       )}
@@ -224,30 +326,60 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
   );
 };
 
-/** Tile de indicador — premium (sombra 3 camadas, radius 20, hover glow, entrada escalonada). */
-const IndicatorTile = ({ icon, label, value, sub, tone, onClick, idx = 0 }: {
-  icon: ReactNode; label: string; value: string; sub?: string; tone: 'error' | 'primary' | 'secondary' | 'success' | 'warning' | 'info' | 'premium'; onClick: () => void; idx?: number;
+/** Mini arc gauge SVG — semicírculo progressivo de 180°. */
+const MiniArc = ({ percent, color, size = 32 }: { percent: number; color: string; size?: number }) => {
+  const r = 12; const circ = Math.PI * r; const dash = (percent / 100) * circ;
+  return (
+    <Box component="svg" viewBox="0 0 30 18" sx={{ width: size, height: size * 0.6, mt: 0.5, display: 'block' }}>
+      <path d="M3,15 A12,12 0 0,1 27,15" fill="none" stroke="rgba(0,0,0,.06)" strokeWidth="3" strokeLinecap="round" />
+      <path d="M3,15 A12,12 0 0,1 27,15" fill="none" stroke={color} strokeWidth="3" strokeLinecap="round"
+        strokeDasharray={`${dash} ${circ}`} style={{ transition: 'stroke-dasharray .8s ease' }} />
+    </Box>
+  );
+};
+
+/** Tile de indicador — PREMIUM: radius 24, sombra refinada, mini arc gauge, spring entrance. */
+const IndicatorTile = ({ icon, label, value, sub, tone, onClick, idx = 0, arcPercent, arcColor }: {
+  icon: ReactNode; label: string; value: string; sub?: string;
+  tone: 'error' | 'primary' | 'secondary' | 'success' | 'warning' | 'info' | 'premium';
+  onClick: () => void; idx?: number;
+  arcPercent?: number; arcColor?: string;
 }) => (
   <AppCard kind="interactive" onClick={onClick} sx={{
-    p: 2, height: '100%', borderRadius: '20px !important',
-    boxShadow: '0 1px 2px rgba(0,0,0,.03), 0 2px 8px rgba(0,0,0,.04), 0 8px 20px rgba(0,0,0,.03)',
-    transition: 'transform .15s ease, box-shadow .2s ease, border-color .2s ease',
-    '&:hover': { boxShadow: '0 2px 4px rgba(32,178,170,.06), 0 8px 24px rgba(32,178,170,.1), 0 16px 36px rgba(32,178,170,.06)', transform: 'translateY(-2px)' },
-    '&:active': { transform: 'scale(.98)' },
-    animation: `dashTileIn .35s cubic-bezier(.16,1,.3,1) ${idx * 0.07}s both`,
-    '@keyframes dashTileIn': { from: { opacity: 0, transform: 'translateY(10px)' }, to: { opacity: 1, transform: 'translateY(0)' } },
+    p: 2, height: '100%', borderRadius: '24px !important',
+    boxShadow: (th) => th.palette.mode === 'dark'
+      ? '0 2px 8px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.2)'
+      : '0 1px 3px rgba(0,0,0,.03), 0 4px 12px rgba(0,0,0,.04), 0 12px 28px rgba(0,0,0,.03)',
+    transition: 'transform .2s cubic-bezier(.16,1,.3,1), box-shadow .25s ease, border-color .2s ease',
+    '&:hover': {
+      boxShadow: '0 4px 8px rgba(32,178,170,.06), 0 12px 32px rgba(32,178,170,.1), 0 20px 48px rgba(32,178,170,.06)',
+      transform: 'translateY(-3px)',
+    },
+    '&:active': { transform: 'scale(.97)' },
+    animation: `dxTileSpring .45s cubic-bezier(.34,1.56,.64,1) ${idx * 0.08}s both`,
+    '@keyframes dxTileSpring': {
+      from: { opacity: 0, transform: 'translateY(16px) scale(.95)' },
+      to: { opacity: 1, transform: 'translateY(0) scale(1)' },
+    },
   }}>
-    <Stack direction="row" spacing={{ xs: 1, sm: 1.5 }} alignItems="center" sx={{ width: '100%', minWidth: 0 }}>
-      <Box sx={{ width: { xs: 36, sm: 44 }, height: { xs: 36, sm: 44 }, borderRadius: '12px', display: 'grid', placeItems: 'center', flexShrink: 0,
-        bgcolor: (th) => alpha((th.palette as any)[tone]?.main ?? '#20b2aa', 0.12), color: `${tone}.main`,
-        transition: 'transform .15s', '&:hover': { transform: 'scale(1.06)' } }}>{icon}</Box>
-      <Box sx={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
-        <Typography noWrap sx={{ fontSize: 11, color: 'text.secondary', lineHeight: 1.1, fontWeight: 600, textOverflow: 'ellipsis' }}>{label}</Typography>
-        <Typography noWrap sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(0.875rem, 4.5vw, 1.0625rem)', sm: 17 }, color: 'text.primary', lineHeight: 1.2, mt: 0.15, fontVariantNumeric: 'tabular-nums' }}>{value}</Typography>
-        {/* Sub NUNCA mais trunca em 1 linha no mobile (375px): quebra em até 2 linhas com
-            clamp — textos como "envie um exame ou registre peso/pressão" não caberiam em ~110px. */}
-        {sub && <Typography sx={{ fontSize: 11, color: 'text.disabled', lineHeight: 1.25, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{sub}</Typography>}
-      </Box>
+    <Stack spacing={0.25} sx={{ width: '100%', minWidth: 0 }}>
+      <Stack direction="row" spacing={{ xs: 1, sm: 1.5 }} alignItems="center" sx={{ width: '100%', minWidth: 0 }}>
+        <Box sx={{
+          width: { xs: 40, sm: 46 }, height: { xs: 40, sm: 46 },
+          borderRadius: '14px', display: 'grid', placeItems: 'center', flexShrink: 0,
+          bgcolor: (th) => alpha((th.palette as any)[tone]?.main ?? '#20b2aa', 0.12),
+          color: `${tone}.main`,
+          transition: 'transform .2s ease, background-color .2s ease',
+          '&:hover': { transform: 'scale(1.08)' },
+        }}>{icon}</Box>
+        <Box sx={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+          <Typography noWrap sx={{ fontSize: 11, color: 'text.secondary', lineHeight: 1.1, fontWeight: 600, textOverflow: 'ellipsis' }}>{label}</Typography>
+          <Typography noWrap sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1rem, 5vw, 1.125rem)', sm: 18 }, color: 'text.primary', lineHeight: 1.2, mt: 0.15, fontVariantNumeric: 'tabular-nums' }}>{value}</Typography>
+        </Box>
+      </Stack>
+      {/* Mini arc gauge — visual premium debaixo do valor */}
+      {arcPercent != null && arcColor && <MiniArc percent={arcPercent} color={arcColor} />}
+      {sub && <Typography sx={{ fontSize: 11, color: 'text.disabled', lineHeight: 1.25, mt: 0.25, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{sub}</Typography>}
     </Stack>
   </AppCard>
 );
@@ -284,6 +416,11 @@ export const DashboardV2 = () => {
   } : null);
   const tipNode = <AiTip firstName={firstName} tipData={{ abnormal: markerToTip(d.worsened[0]), good: markerToTip(d.improved[0]) }} fallbackTip="Toque e pergunte qualquer coisa sobre seus exames — eu leio seu histórico antes de responder." />;
 
+  // Arc percentages para os indicator tiles (sem fetch novo — calcula dos dados que já existem).
+  const cardioArc = cardioLevel === 'baixo' ? 20 : cardioLevel === 'moderado' ? 55 : cardioLevel === 'alto' ? 90 : 0;
+  const cardioArcColor = cardioLevel === 'baixo' ? '#059669' : cardioLevel === 'moderado' ? '#f59e0b' : cardioLevel === 'alto' ? '#ef4444' : '#94a3b8';
+  const examsArcPercent = d.stats.exams > 0 ? Math.round(((d.stats.exams - d.stats.abnormal) / d.stats.exams) * 100) : 0;
+
   return (
     <PageContainer width="wide" sx={{ bgcolor: (t) => (t.palette.mode === 'dark' ? 'background.default' : '#FAFBFC'), minHeight: '100vh' }}>
       <DashboardHeader firstName={firstName} />
@@ -291,83 +428,113 @@ export const DashboardV2 = () => {
       <RejectedExamsAlert count={d.rejected} onClick={() => navigate('/exams')} />
 
       {/* HERO + MUDANÇAS — mobile: coluna; desktop: 7/5 */}
-      <Grid container spacing={2}>
-        <Grid size={{ xs: 12, md: 7 }}>
-          <HeroHealthCard loaded={d.loaded} score={d.score} exams={d.stats.exams} importante={d.importante} moderada={d.moderada} lastExam={d.lastExam} onDetails={() => navigate('/tendencias')} onFirstExam={() => navigate('/exams/create')} />
+      <ScrollReveal>
+        <Grid container spacing={2}>
+          <Grid size={{ xs: 12, md: 7 }}>
+            <HeroHealthCard loaded={d.loaded} score={d.score} exams={d.stats.exams} importante={d.importante} moderada={d.moderada} lastExam={d.lastExam} onDetails={() => navigate('/tendencias')} onFirstExam={() => navigate('/exams/create')} />
+          </Grid>
+          <Grid size={{ xs: 12, md: 5 }}>
+            <ChangesSinceExam worsened={d.worsened} improved={d.improved} onView={() => navigate('/evolucao')} loaded={d.loaded} />
+          </Grid>
         </Grid>
-        <Grid size={{ xs: 12, md: 5 }}>
-          <ChangesSinceExam worsened={d.worsened} improved={d.improved} onView={() => navigate('/evolucao')} loaded={d.loaded} />
-        </Grid>
-      </Grid>
+      </ScrollReveal>
 
-      {/* PRÓXIMOS PASSOS — onboarding progressivo p/ usuário novo/perfil incompleto; some quando pronto */}
-      <NextStepsCard exams={d.stats.exams} />
+      {/* PRÓXIMOS PASSOS — onboarding progressivo */}
+      <ScrollReveal delay={60}>
+        <NextStepsCard exams={d.stats.exams} />
+      </ScrollReveal>
 
-      {/* DR. EXAME — insight + CTA chat (já com contexto) */}
-      <Box sx={{ mt: 2 }}>
-        <AiCard tip={tipNode} onChat={() => navigate('/chat')} />
-      </Box>
-
-      {/* SEUS INDICADORES — tiles (mobile 2x2, desktop 1x4).
-          "Em dia"/"sem fatores" SÓ com cálculo real: sem dados o tile é neutro ("Sem dados")
-          e diz o que destrava — ausência de informação nunca vira normalidade. */}
-      <Grid container spacing={1.5} sx={{ mt: 0.5 }}>
-        <Grid size={{ xs: 6, md: 3 }}>
-          <IndicatorTile idx={0} icon={<Heartbeat size={22} weight="duotone" />} tone={cardioLevel ? (cardioFactors > 0 ? 'error' : 'success') : 'info'} label="Cardiometabólico"
-            value={cardioLevel || (d.loaded ? 'Sem dados' : '—')} sub={cardioLevel
-              ? (cardioFactors > 0 ? `${cardioFactors} fator${cardioFactors > 1 ? 'es' : ''} de risco` : 'sem fatores')
-              : (d.loaded ? (d.stats.exams > 0 ? 'sem colesterol, peso ou pressão' : 'envie um exame ou registre peso/pressão') : '')}
-            onClick={() => navigate(d.stats.exams > 0 ? '/tendencias' : '/exams/create')} />
-        </Grid>
-        <Grid size={{ xs: 6, md: 3 }}>
-          <BiologicalAgeCard />
-        </Grid>
-        <Grid size={{ xs: 6, md: 3 }}>
-          <IndicatorTile idx={2} icon={<Stethoscope size={22} weight="duotone" />} tone="primary" label="Seus exames"
-            value={d.loaded ? String(d.stats.exams) : '—'} sub={d.stats.exams === 0 && d.loaded ? 'envie o primeiro' : `${d.stats.abnormal} alterado${d.stats.abnormal === 1 ? '' : 's'}`} onClick={() => navigate('/exams')} />
-        </Grid>
-        <Grid size={{ xs: 6, md: 3 }}>
-          <IndicatorTile idx={3} icon={<ChartLineUp size={22} weight="duotone" />} tone="info" label="Evolução" value={totalResults > 0 ? String(totalResults) : (d.loaded ? 'Sem dados' : '—')} sub={totalResults > 0 ? 'histórico de tendências' : (d.loaded ? 'após o 1º exame' : '')} onClick={() => navigate('/evolucao')} />
-        </Grid>
-      </Grid>
-
-      {/* ATIVIDADE FÍSICA (Health Connect) — só existe no APK; no web o card retorna null.
-          Só no perfil TITULAR: o celular é do titular, então os passos do aparelho são
-          dele — no dashboard de um dependente o card mostraria os passos do pai. */}
-      {(!d.me?.relationship || d.me.relationship === 'Titular') && (
-        <Box sx={{ mt: 2, display: 'grid', gap: 2 }}>
-          <ActivityCard lastExamAt={d.lastExam} />
-          <RestingHeartCard />
+      {/* DR. EXAME — insight + CTA chat */}
+      <ScrollReveal delay={120}>
+        <Box sx={{ mt: 2 }}>
+          <AiCard tip={tipNode} onChat={() => navigate('/chat')} />
         </Box>
+      </ScrollReveal>
+
+      {/* SEUS INDICADORES */}
+      <ScrollReveal delay={180}>
+        <Section label="Seus indicadores" icon={<FavoriteBorderIcon />}>
+          <Grid container spacing={1.5}>
+            <Grid size={{ xs: 6, md: 3 }}>
+              <IndicatorTile idx={0} icon={<Heartbeat size={22} weight="duotone" />}
+                tone={cardioLevel ? (cardioFactors > 0 ? 'error' : 'success') : 'info'}
+                label="Cardiometabólico"
+                value={cardioLevel || (d.loaded ? 'Sem dados' : '—')}
+                sub={cardioLevel
+                  ? (cardioFactors > 0 ? `${cardioFactors} fator${cardioFactors > 1 ? 'es' : ''} de risco` : 'sem fatores')
+                  : (d.loaded ? (d.stats.exams > 0 ? 'sem colesterol, peso ou pressão' : 'envie um exame ou registre peso/pressão') : '')}
+                arcPercent={cardioArc} arcColor={cardioArcColor}
+                onClick={() => navigate(d.stats.exams > 0 ? '/tendencias' : '/exams/create')} />
+            </Grid>
+            <Grid size={{ xs: 6, md: 3 }}>
+              <BiologicalAgeCard />
+            </Grid>
+            <Grid size={{ xs: 6, md: 3 }}>
+              <IndicatorTile idx={2} icon={<Stethoscope size={22} weight="duotone" />} tone="primary" label="Seus exames"
+                value={d.loaded ? String(d.stats.exams) : '—'}
+                sub={d.stats.exams === 0 && d.loaded ? 'envie o primeiro' : `${d.stats.abnormal} alterado${d.stats.abnormal === 1 ? '' : 's'}`}
+                arcPercent={d.stats.exams > 0 ? examsArcPercent : undefined}
+                arcColor="#20b2aa"
+                onClick={() => navigate('/exams')} />
+            </Grid>
+            <Grid size={{ xs: 6, md: 3 }}>
+              <IndicatorTile idx={3} icon={<ChartLineUp size={22} weight="duotone" />} tone="info" label="Evolução"
+                value={totalResults > 0 ? String(totalResults) : (d.loaded ? 'Sem dados' : '—')}
+                sub={totalResults > 0 ? 'histórico de tendências' : (d.loaded ? 'após o 1º exame' : '')}
+                onClick={() => navigate('/evolucao')} />
+            </Grid>
+          </Grid>
+        </Section>
+      </ScrollReveal>
+
+      {/* ATIVIDADE FÍSICA — só titular */}
+      {(!d.me?.relationship || d.me.relationship === 'Titular') && (
+        <ScrollReveal delay={240}>
+          <Section label="Atividade física" icon={<Heartbeat size={18} weight="duotone" />}>
+            <Box sx={{ display: 'grid', gap: 2 }}>
+              <ActivityCard lastExamAt={d.lastExam} />
+              <RestingHeartCard />
+            </Box>
+          </Section>
+        </ScrollReveal>
       )}
 
-      {/* "DESDE SEU ÚLTIMO EXAME" (assinatura do produto): o que mudou no dia-a-dia
-          entre exames — só existe com atividade sincronizada + exames extraídos */}
-      <Box sx={{ mt: 2 }}>
-        <SinceExamCard lastExamAt={d.lastExam} />
-      </Box>
+      {/* DESDE SEU ÚLTIMO EXAME */}
+      <ScrollReveal delay={300}>
+        <Box sx={{ mt: 2 }}>
+          <SinceExamCard lastExamAt={d.lastExam} />
+        </Box>
+      </ScrollReveal>
 
       {/* AÇÕES RÁPIDAS + CRÉDITOS */}
-      <Box sx={{ mt: 2.5 }}>
-        <QuickActions />
-      </Box>
-      <Box sx={{ mt: 2 }}>
-        <CreditsCard credits={d.credits} onClick={() => navigate('/planos')} />
-      </Box>
+      <ScrollReveal delay={360}>
+        <Section label="Ações rápidas" icon={<AutoAwesomeIcon sx={{ fontSize: 18 }} />}>
+          <QuickActions />
+        </Section>
+      </ScrollReveal>
 
-      {/* Conquistas — preenche o fim da página com ENGAJAMENTO (antes: ~170px de gap
-          branco entre o card de créditos e o rodapé; pb duplicado do shell removido acima). */}
-      <Box sx={{ mt: 2 }}>
-        <GamificationBadges examsCount={d.stats.exams} score={d.score} />
-      </Box>
+      <ScrollReveal delay={420}>
+        <Box sx={{ mt: 2 }}>
+          <CreditsCard credits={d.credits} onClick={() => navigate('/planos')} />
+        </Box>
+      </ScrollReveal>
 
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-        <ShareHealthButton score={d.score ?? undefined} />
-      </Box>
+      {/* Conquistas */}
+      <ScrollReveal delay={480}>
+        <Box sx={{ mt: 2 }}>
+          <GamificationBadges examsCount={d.stats.exams} score={d.score} />
+        </Box>
+      </ScrollReveal>
+
+      <ScrollReveal delay={540}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+          <ShareHealthButton score={d.score ?? undefined} />
+        </Box>
+      </ScrollReveal>
+
       <ReviewPrompt trigger={d.loaded && d.stats.exams > 0} />
 
-      {/* Oferta de biometria — DIALOG (o card flutuante de rodapé se perdia atrás da
-          MobileBottomNav e parecia "sumido"; dialog é o padrão de app de banco). */}
+      {/* Oferta de biometria */}
       <Dialog open={bioOffer} onClose={() => setBioOffer(false)} PaperProps={{ sx: { borderRadius: '12px' } }}>
         <DialogTitle sx={{ fontWeight: 800, color: 'text.primary' }}>🔐 Entrar com biometria?</DialogTitle>
         <DialogContent><Typography sx={{ color: 'text.secondary' }}>Ative a entrada por face/digital neste aparelho. Na próxima vez, você entra sem digitar senha — mais rápido e seguro.</Typography></DialogContent>

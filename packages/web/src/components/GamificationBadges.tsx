@@ -11,19 +11,26 @@ const PREVIEW = [
   { id: 'streak3', emoji: '🔥', need: 3, metric: 'streak' as const },
 ];
 
-/** Card de conquistas no Dashboard — CLICÁVEL → /conquistas (detalhes + resgatar créditos). */
+/** Card de conquistas no Dashboard — CLICÁVEL → /conquistas (detalhes + resgatar créditos).
+ *  Premium: bounce animation nos badges ativos, gold shimmer glow, frosted blur nos trancados. */
 export const GamificationBadges = ({ examsCount, score }: { examsCount: number; score: number | null }) => {
   const navigate = useNavigate();
   const earned = (p: (typeof PREVIEW)[number]) =>
-    p.metric === 'exams' ? examsCount >= p.need : p.metric === 'score' ? (score ?? 0) >= p.need : false; // streak: só no server
+    p.metric === 'exams' ? examsCount >= p.need : p.metric === 'score' ? (score ?? 0) >= p.need : false;
   const earnedCount = PREVIEW.filter(earned).length;
 
   return (
     <Card
       onClick={() => navigate('/conquistas')}
       sx={{
-        borderRadius: '12px', cursor: 'pointer', background: 'rgba(32,178,170,0.06)', border: '1px solid', borderColor: 'divider',
-        transition: 'all .2s', '&:hover': { boxShadow: '0 10px 26px rgba(32,178,170,.14)', transform: 'translateY(-1px)' }, '&:active': { transform: 'scale(.99)' },
+        borderRadius: '16px', cursor: 'pointer',
+        background: (t) => t.palette.mode === 'dark'
+          ? 'linear-gradient(135deg, rgba(212,165,116,.06), rgba(32,178,170,.04))'
+          : 'linear-gradient(135deg, rgba(212,165,116,.06), rgba(32,178,170,.03))',
+        border: '1px solid', borderColor: 'divider',
+        transition: 'transform .2s ease, box-shadow .2s ease',
+        '&:hover': { boxShadow: '0 10px 30px rgba(212,165,116,.14)', transform: 'translateY(-2px)' },
+        '&:active': { transform: 'scale(.99)' },
       }}
     >
       <CardContent>
@@ -34,17 +41,48 @@ export const GamificationBadges = ({ examsCount, score }: { examsCount: number; 
           </Box>
           <ChevronRightIcon sx={{ color: '#178f89' }} />
         </Stack>
-        <Box sx={{ display: 'flex', gap: 1, justifyContent: 'space-between' }}>
-          {PREVIEW.map((p) => {
+        <Box sx={{ display: 'flex', gap: 1.5, justifyContent: 'space-between' }}>
+          {PREVIEW.map((p, i) => {
             const on = earned(p);
             return (
-              <Box key={p.id} sx={{ textAlign: 'center', flex: 1 }}>
-                <Box sx={{ fontSize: 26, filter: on ? 'none' : 'grayscale(1)', opacity: on ? 1 : 0.45 }}>{p.emoji}</Box>
+              <Box key={p.id} sx={{
+                textAlign: 'center', flex: 1, position: 'relative',
+                // Earned badge: bounce in + gold glow
+                ...(on ? {
+                  animation: `dxBadgeBounce .5s cubic-bezier(.34,1.56,.64,1) ${i * 0.08}s both`,
+                  '@keyframes dxBadgeBounce': {
+                    from: { opacity: 0, transform: 'scale(.5) translateY(8px)' },
+                    to: { opacity: 1, transform: 'scale(1) translateY(0)' },
+                  },
+                } : {}),
+              }}>
+                {/* Gold shimmer glow behind earned badge */}
+                {on && <Box sx={{
+                  position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+                  width: 36, height: 36, borderRadius: '50%',
+                  background: 'radial-gradient(circle, rgba(212,165,116,.35), transparent 70%)',
+                  animation: 'dxGoldPulse 2s ease-in-out infinite',
+                  '@keyframes dxGoldPulse': {
+                    '0%, 100%': { opacity: 0.5, transform: 'translate(-50%, -50%) scale(1)' },
+                    '50%': { opacity: 1, transform: 'translate(-50%, -50%) scale(1.2)' },
+                  },
+                  pointerEvents: 'none',
+                }} />}
+                <Box sx={{
+                  fontSize: 28, position: 'relative', zIndex: 1,
+                  // Locked: frosted blur instead of flat grayscale
+                  filter: on ? 'none' : 'grayscale(1) blur(1px)',
+                  opacity: on ? 1 : 0.35,
+                  transition: 'filter .3s ease, opacity .3s ease',
+                }}>{p.emoji}</Box>
               </Box>
             );
           })}
         </Box>
-        <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 1.25, color: '#178f89', fontWeight: 700 }}>
+        <Typography variant="caption" sx={{
+          display: 'block', textAlign: 'center', mt: 1.25,
+          color: '#b88a54', fontWeight: 700,
+        }}>
           {earnedCount} desbloqueada(s) · toque para ver e resgatar →
         </Typography>
       </CardContent>
