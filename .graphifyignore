@@ -1,0 +1,4 @@
+# Graphify: excluir artefatos de build (bundles minificados) do grafo de código.
+# São saída de `npm run sync` (Capacitor), não fonte — poluem o mapa (38% dos nós).
+packages/mobile/www/
+packages/mobile/ios/App/App/public/
