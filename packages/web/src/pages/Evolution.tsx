@@ -6,7 +6,9 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import SearchIcon from '@mui/icons-material/Search';
 import DirectionsWalkIcon from '@mui/icons-material/DirectionsWalk';
 import { API_URL, token } from '../config';
-import { fetchActivitySummary } from '../services/activitySummary';
+import { fetchActivitySummary, syncStamp } from '../services/activitySummary';
+import { fetchActivityDays, hasHealthPermissions, syncActivityToServer } from '../services/healthConnect';
+import type { ActivityDay } from '../utils/activityStats';
 import { useSelectedPatient } from '../patient-context';
 import { useNavigate } from 'react-router-dom';
 import { ExplainButton } from '../components/ExplainItem';
@@ -57,13 +59,17 @@ export const EvolutionPage = () => {
   const [stepsDelta, setStepsDelta] = useState<number | null>(null);
   const [actSel, setActSel] = useState<string | null>(null);
   const [actInfo, setActInfo] = useState(false);
-  // Fonte única: consolidado do server (mesmo endpoint do ActivityCard na web) —
+  // Carimbo da fonte cloud ("Sincronizado há X"): sem isto, dado velho do server parece
+  // um bug congelado — o usuário não sabe que só abre o app no celular pra atualizar.
+  const [syncedNote, setSyncedNote] = useState<string | null>(null);
+  // Consolida o que o APK já sincronizou (mesmo endpoint do ActivityCard na web) —
   // 1 request no lugar de 3, com deltaPct30 vs período anterior já calculado.
-  const loadActivity = () => {
-    if (!pid) { setSteps([]); setStepsDelta(null); return; }
+  const loadFromServer = () => {
     fetchActivitySummary(30, pid)
       .then((s) => {
         if (!s) { setSteps([]); setStepsDelta(null); return; }
+        const st = s.lastSyncAt ? syncStamp(s.lastSyncAt) : null;
+        setSyncedNote(st ? `Sincronizado ${st.label}${st.stale ? ' · abra o app no celular' : ''}` : null);
         const byDay = new Map<string, { steps: number; kcal: number; km: number }>();
         for (const p of s.metrics.STEPS.series30) byDay.set(p.date, { steps: p.value, kcal: 0, km: 0 });
         for (const p of s.metrics.CALORIES.series30) { const d = byDay.get(p.date); if (d) d.kcal = p.value; }
@@ -72,6 +78,39 @@ export const EvolutionPage = () => {
         setStepsDelta(s.metrics.STEPS.deltaPct30);
       })
       .catch(() => setSteps([]));
+  };
+  // DUAS FONTES (mesmo padrão do ActivityCard): no APK com Health Connect conectado e
+  // perfil TITULAR selecionado, lê o aparelho DIRETO — a série acaba em HOJE, não no
+  // último sync do server (bug de campo: "travou na quinta e o dia não muda mais").
+  // 'patientId' do login = firstPatientId() do server (mesma noção de titular do sync).
+  // Web/dependente: consolidado do server.
+  const loadActivity = () => {
+    setSyncedNote(null);
+    if (!pid) { setSteps([]); setStepsDelta(null); return; }
+    let ownPid: string | null = null;
+    try { ownPid = localStorage.getItem('patientId'); } catch { /* localStorage indisponível */ }
+    if (pid === ownPid && hasHealthPermissions()) {
+      fetchActivityDays(60)
+        .then((days) => {
+          if (!days?.length) { loadFromServer(); return; } // bridge vazio → cloud
+          setSteps(days
+            .filter((d) => d.steps > 0)
+            .sort((a, b) => (a.date < b.date ? -1 : 1))
+            .slice(-30)
+            .map(({ date, steps: st, kcal, km }) => ({ date, steps: st, kcal, km })));
+          // deltaPct30 LOCAL: média dos 30d mais recentes vs 30 anteriores (days vem DESC).
+          const avg = (arr: ActivityDay[]) => (arr.length ? arr.reduce((t, d) => t + d.steps, 0) / arr.length : null);
+          const cur = avg(days.slice(0, 30));
+          const prev = avg(days.slice(30, 60));
+          setStepsDelta(cur != null && prev && prev > 0 ? Math.round(((cur - prev) / prev) * 100) : null);
+          // Repassa o sync (silencioso): web, portal do médico e Linha do Tempo passam a
+          // enxergar a atividade de hoje MESMO se o Dashboard não for visitado nesta sessão.
+          syncActivityToServer(days.slice(0, 31)).catch(() => { /* best-effort */ });
+        })
+        .catch(() => loadFromServer());
+      return;
+    }
+    loadFromServer();
   };
   useEffect(() => { loadActivity(); /* eslint-disable-line */ }, [pid]);
   // RACE sync×fetch: o ActivityCard sincroniza HC→server DEPOIS de esta página já ter
@@ -199,6 +238,7 @@ export const EvolutionPage = () => {
               <Typography sx={{ fontWeight: 800, fontSize: 14, fontFamily: '"Poppins",sans-serif' }}>Sua atividade no período</Typography>
               <Typography sx={{ fontSize: 11, color: 'text.secondary', ml: 'auto', textAlign: 'right' }}>
                 {Math.round(steps.reduce((t, d) => t + d.steps, 0) / steps.length).toLocaleString('pt-BR')} passos/dia{stepsDelta != null ? ` · ${stepsDelta > 0 ? '+' : ''}${stepsDelta}% vs período anterior` : ` · ${steps.length} dias`}
+                {syncedNote && <Box component="span" sx={{ display: 'block', fontSize: 10, color: 'text.disabled' }}>{syncedNote}</Box>}
               </Typography>
             </Stack>
             {/* Gráfico INTERATIVO: tocar na barra mostra o dia (passos/kcal/km) —

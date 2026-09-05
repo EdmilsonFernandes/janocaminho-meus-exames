@@ -86,7 +86,16 @@ export const ActivityCard = ({ lastExamAt }: { lastExamAt?: string | null }) => 
     return d;
   };
 
-  useEffect(() => { void load(); /* eslint-disable-line */ }, []);
+  // Cold start NÃO dispara visibilitychange: sem o sync no mount, o 1º acesso do dia
+  // lia o Health Connect (device fresco) mas não empurrava nada pro server — a Evolução
+  // e a web continuavam no dia do ÚLTIMO sync (bug de campo: "travou na quinta").
+  useEffect(() => {
+    void (async () => {
+      const d = await load();
+      if (supported && d?.length) await sync(d, true);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const sync = async (list: ActivityDay[] | null, silent = false) => {
     if (!list?.length) return;
