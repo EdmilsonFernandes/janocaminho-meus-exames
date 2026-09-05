@@ -78,10 +78,12 @@ Skills de UI/UX (`.claude/skills/`) continuam **sob demanda** — lidas só em t
 This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
 
 Rules:
+- **Obrigatório ANTES de implementar/melhorar qualquer coisa** (tela, rota, refatoração, bugfix): `graphify query "<pergunta>"` primeiro. `graphify path "<A>" "<B>"` para relações/impacto, `graphify explain "<conceito>"` para foco. Só partir para grep/leitura de arquivo depois de o grafo orientar.
 - For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
 - If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
 - Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
-- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
+- **Auto-update a cada commit**: hook git post-commit instalado — rebuild AST em background (não bloqueia o commit). Commit só de docs/imagens NÃO dispara rebuild → `/graphify --update` manual nesses casos. Se for consultar o grafo na mesma sessão ANTES de commitar código alterado, rodar `graphify update .`.
+- `.graphifyignore` exclui artefatos de build (`packages/mobile/www/`, `packages/mobile/ios/App/App/public/`). NÃO remover — sem ele o grafo volta a ~38% de nós de bundles minificados.
 
 ---
 
