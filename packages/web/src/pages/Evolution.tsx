@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Box, Button, Card, CardContent, Typography, Chip, Stack, Grid, Accordion, AccordionSummary, AccordionDetails, InputBase, Paper, Collapse } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { Title, useTranslate } from 'react-admin';
 import { ResponsiveContainer, LineChart, Line, ReferenceArea, YAxis, Tooltip } from 'recharts';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -20,6 +21,7 @@ import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
 import { ListSkeleton } from '../components/Skeleton';
 import { EmptyState } from '../components/EmptyState';
+import { ScrollReveal } from '../components/dashboard/ScrollReveal';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import type { SvgIconComponent } from '@mui/icons-material';
@@ -182,16 +184,25 @@ export const EvolutionPage = () => {
 
       {!loading && items.length > 0 && (
         <>
-          {/* RESUMO + FILTRO UNIFICADOS (fim das "informações brigando"): UMA grade de
-              filtros-cards clicáveis com os counts da MESMA taxonomia do filtro (statusOf) —
-              antes o grid melhorou/piorou usava outra régua e os números divergiam dos chips,
-              confundindo. A narrativa de tendência vira o headline de 1 linha em cima. */}
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-              {trendHeadline(summary)} <strong>·</strong> Conteúdo educativo — a decisão final é do médico.
-            </Typography>
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' }, gap: 1 }}>
-              {CHIPS.map((c) => {
+          {/* RESUMO — banner sutil com accent bar */}
+          <ScrollReveal>
+            <Box sx={{
+              mb: 2, p: 1.5, borderRadius: '16px',
+              display: 'flex', gap: 1.25, alignItems: 'flex-start',
+              bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(245,158,11,.06)' : 'rgba(245,158,11,.05)',
+              border: '1px solid rgba(245,158,11,.12)',
+            }}>
+              <Box sx={{ width: 3, minHeight: 32, borderRadius: '999px', bgcolor: '#f59e0b', flexShrink: 0, mt: 0.25 }} />
+              <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.5 }}>
+                {trendHeadline(summary)} <strong>·</strong> Conteúdo educativo — a decisão final é do médico.
+              </Typography>
+            </Box>
+          </ScrollReveal>
+
+          {/* FILTROS — cards premium com glow no selecionado */}
+          <ScrollReveal delay={60}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' }, gap: 1, mb: 2 }}>
+              {CHIPS.map((c, i) => {
                 const on = filter === c.key;
                 return (
                   <Box
@@ -200,97 +211,121 @@ export const EvolutionPage = () => {
                     onClick={() => setFilter(c.key)}
                     aria-pressed={on}
                     sx={{
-                      textAlign: 'center', py: 0.9, borderRadius: '12px', cursor: 'pointer',
-                      bgcolor: on ? `${c.color}14` : `${c.color}0F`,
-                      border: on ? `2px solid ${c.color}` : `1px solid ${c.color}2E`,
-                      transition: 'border-color .15s ease, background-color .15s ease',
-                      '&:hover': { bgcolor: `${c.color}1E` },
+                      textAlign: 'center', py: 1.1, borderRadius: '20px', cursor: 'pointer',
+                      bgcolor: on ? `${c.color}14` : `${c.color}08`,
+                      border: on ? `2px solid ${c.color}` : `1px solid ${c.color}20`,
+                      boxShadow: on ? `0 4px 16px ${c.color}22` : 'none',
+                      transition: 'border-color .2s ease, background-color .2s ease, box-shadow .25s ease, transform .15s ease',
+                      '&:hover': { bgcolor: `${c.color}1E`, transform: 'translateY(-1px)' },
+                      '&:active': { transform: 'scale(.97)' },
+                      animation: `dxFilterIn .35s cubic-bezier(.16,1,.3,1) ${i * 0.06}s both`,
+                      '@keyframes dxFilterIn': { from: { opacity: 0, transform: 'translateY(8px)' }, to: { opacity: 1, transform: 'none' } },
                     }}
                   >
-                    <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: { xs: 18, sm: 20 }, lineHeight: 1, color: c.color, fontVariantNumeric: 'tabular-nums' }}>{c.count}</Typography>
-                    <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.5} sx={{ mt: 0.25 }}>
+                    <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: { xs: 22, sm: 24 }, lineHeight: 1, color: c.color, fontVariantNumeric: 'tabular-nums' }}>{c.count}</Typography>
+                    <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.5} sx={{ mt: 0.35 }}>
                       <Box aria-hidden="true" sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: c.color, display: 'inline-block' }} />
-                      <Typography sx={{ fontSize: { xs: 10.5, sm: 11 }, color: c.color, fontWeight: 700 }}>{c.label}</Typography>
+                      <Typography sx={{ fontSize: { xs: 11, sm: 12 }, color: c.color, fontWeight: 700 }}>{c.label}</Typography>
                     </Stack>
                   </Box>
                 );
               })}
             </Box>
-          </Box>
+          </ScrollReveal>
 
-          {/* Busca por marcador com filtro dinamico */}
-          <Paper variant="outlined" sx={{ p: '2px 12px', mb: 2, display: 'flex', alignItems: 'center', gap: 1, borderRadius: '999px', bgcolor: 'background.paper' }}>
-            <SearchIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
-            <InputBase value={query} onChange={(e: any) => setQuery(e.target.value)} placeholder="Buscar exame (TSH, glicose, colesterol…)" sx={{ flex: 1, fontSize: 14 }} />
-            {query && <Chip size="small" label="limpar" onClick={() => setQuery('')} sx={{ height: 22 }} />}
-          </Paper>
+          {/* Busca premium — pill com hover glow */}
+          <ScrollReveal delay={120}>
+            <Paper variant="outlined" sx={{
+              p: '4px 14px', mb: 2, display: 'flex', alignItems: 'center', gap: 1,
+              borderRadius: '999px', bgcolor: 'background.paper',
+              transition: 'box-shadow .2s ease, border-color .2s ease',
+              '&:focus-within': { borderColor: '#20b2aa', boxShadow: '0 0 0 3px rgba(32,178,170,.12)' },
+            }}>
+              <SearchIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
+              <InputBase value={query} onChange={(e: any) => setQuery(e.target.value)} placeholder="Buscar exame (TSH, glicose, colesterol…)" sx={{ flex: 1, fontSize: 14 }} />
+              {query && <Chip size="small" label="limpar" onClick={() => setQuery('')} sx={{ height: 22 }} />}
+            </Paper>
+          </ScrollReveal>
         </>
       )}
 
-      {/* ONDA 3 — Atividade na mesma tela dos exames: passos/dia dos últimos ~30d como
-          barras discretas. Glicose, lipídios e PA respondem à atividade — comparar na
-          mesma janela é o primeiro passo (correlação educativa, o médico valida). */}
+      {/* ATIVIDADE — card premium com mesh gradient e barras gradiente */}
       {steps.length >= 5 && (
-        <Card variant="outlined" sx={{ mb: 2, borderRadius: '12px', borderColor: 'divider', bgcolor: 'rgba(32,178,170,0.04)' }}>
-          <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-            <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-              <DirectionsWalkIcon sx={{ fontSize: 18, color: '#178f89' }} />
-              <Typography sx={{ fontWeight: 800, fontSize: 14, fontFamily: '"Poppins",sans-serif' }}>Sua atividade no período</Typography>
-              <Typography sx={{ fontSize: 11, color: 'text.secondary', ml: 'auto', textAlign: 'right' }}>
-                {Math.round(steps.reduce((t, d) => t + d.steps, 0) / steps.length).toLocaleString('pt-BR')} passos/dia{stepsDelta != null ? ` · ${stepsDelta > 0 ? '+' : ''}${stepsDelta}% vs período anterior` : ` · ${steps.length} dias`}
-                {syncedNote && <Box component="span" sx={{ display: 'block', fontSize: 10, color: 'text.disabled' }}>{syncedNote}</Box>}
-              </Typography>
-            </Stack>
-            {/* Gráfico INTERATIVO: tocar na barra mostra o dia (passos/kcal/km) —
-                antes era "imagem fixa", impossível saber o valor de cada dia. */}
-            <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: 30 }}>
-              {steps.slice(-30).map((d) => {
-                const max = Math.max(...steps.map((x) => x.steps), 1);
-                const on = (actSel ?? steps[steps.length - 1]?.date) === d.date;
+        <ScrollReveal delay={180}>
+          <Card variant="outlined" sx={{
+            mb: 2, borderRadius: '20px', borderColor: 'divider', overflow: 'hidden',
+            background: (t) => t.palette.mode === 'dark'
+              ? `radial-gradient(ellipse at 20% 30%, rgba(32,178,170,.10), transparent 55%), ${t.palette.background.paper}`
+              : `radial-gradient(ellipse at 20% 30%, rgba(32,178,170,.06), transparent 55%), #ffffff`,
+          }}>
+            <CardContent sx={{ py: 1.75, '&:last-child': { pb: 1.75 } }}>
+              <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+                <DirectionsWalkIcon sx={{ fontSize: 18, color: '#178f89' }} />
+                <Typography sx={{ fontWeight: 800, fontSize: 14, fontFamily: '"Poppins",sans-serif' }}>Sua atividade no período</Typography>
+                <Typography sx={{ fontSize: 11, color: 'text.secondary', ml: 'auto', textAlign: 'right' }}>
+                  {Math.round(steps.reduce((t, d) => t + d.steps, 0) / steps.length).toLocaleString('pt-BR')} passos/dia{stepsDelta != null ? ` · ${stepsDelta > 0 ? '+' : ''}${stepsDelta}% vs período anterior` : ` · ${steps.length} dias`}
+                  {syncedNote && <Box component="span" sx={{ display: 'block', fontSize: 10, color: 'text.disabled' }}>{syncedNote}</Box>}
+                </Typography>
+              </Stack>
+              {/* Sparkline com barras gradiente premium */}
+              <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: 36 }}>
+                {steps.slice(-30).map((d) => {
+                  const max = Math.max(...steps.map((x) => x.steps), 1);
+                  const on = (actSel ?? steps[steps.length - 1]?.date) === d.date;
+                  return (
+                    <Box
+                      key={d.date}
+                      component="button"
+                      onClick={() => setActSel(d.date)}
+                      aria-label={`${new Date(`${d.date}T12:00:00`).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}: ${d.steps.toLocaleString('pt-BR')} passos`}
+                      sx={{
+                        flex: 1, minWidth: 2, p: 0, border: 'none', cursor: 'pointer',
+                        height: `${Math.max(12, (d.steps / max) * 100)}%`,
+                        borderRadius: on ? '4px 4px 0 0' : '3px 3px 0 0',
+                        background: on
+                          ? 'linear-gradient(to bottom, #20b2aa, rgba(32,178,170,0.45))'
+                          : d.steps >= 8000
+                            ? 'linear-gradient(to bottom, rgba(32,178,170,0.7), rgba(32,178,170,0.2))'
+                            : 'linear-gradient(to bottom, rgba(32,178,170,0.35), rgba(32,178,170,0.08))',
+                        outline: on ? '2px solid #20b2aa' : 'none',
+                        outlineOffset: on ? 1 : 0,
+                        boxShadow: on ? '0 0 8px rgba(32,178,170,.3)' : 'none',
+                        transform: on ? 'scaleY(1.06)' : 'none',
+                        transition: 'height .4s cubic-bezier(.2,.8,.2,1), transform .15s ease, box-shadow .2s ease',
+                      }}
+                    />
+                  );
+                })}
+              </Box>
+              {(() => {
+                const sel = steps.find((d) => d.date === (actSel ?? steps[steps.length - 1]?.date));
+                if (!sel) return null;
+                const dt = new Date(`${sel.date}T12:00:00`).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' }).replace('.', '');
                 return (
-                  <Box
-                    key={d.date}
-                    component="button"
-                    onClick={() => setActSel(d.date)}
-                    aria-label={`${new Date(`${d.date}T12:00:00`).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}: ${d.steps.toLocaleString('pt-BR')} passos`}
-                    sx={{
-                      flex: 1, minWidth: 2, p: 0, border: 'none', cursor: 'pointer',
-                      height: `${Math.max(10, (d.steps / max) * 100)}%`,
-                      borderRadius: '2px',
-                      bgcolor: d.steps >= 8000 ? '#20b2aa' : 'rgba(32,178,170,0.3)',
-                      outline: on ? '2px solid #20b2aa' : 'none',
-                      outlineOffset: on ? 1 : 0,
-                      transition: 'height .4s cubic-bezier(.2,.8,.2,1)',
-                    }}
-                  />
+                  <Stack direction="row" spacing={1.5} alignItems="center" useFlexGap flexWrap="wrap" sx={{
+                    mt: 0.75, px: 1.25, py: 0.75, borderRadius: '12px',
+                    bgcolor: 'rgba(32,178,170,0.07)', border: '1px solid rgba(32,178,170,0.15)',
+                    animation: 'dxActTip .2s ease both',
+                    '@keyframes dxActTip': { from: { opacity: 0, transform: 'scale(.96)' }, to: { opacity: 1, transform: 'scale(1)' } },
+                  }}>
+                    <Typography sx={{ fontSize: 12, fontWeight: 800, color: '#178f89', textTransform: 'capitalize' }}>{dt}</Typography>
+                    <Typography sx={{ fontSize: 13, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{sel.steps.toLocaleString('pt-BR')} <span style={{ fontSize: 11, color: 'text.secondary', fontWeight: 600 }}>passos</span></Typography>
+                    {sel.kcal > 0 && <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>🔥 {Math.round(sel.kcal).toLocaleString('pt-BR')} kcal</Typography>}
+                    {sel.km > 0 && <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>📍 {sel.km.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} km</Typography>}
+                  </Stack>
                 );
-              })}
-            </Box>
-            {(() => {
-              const sel = steps.find((d) => d.date === (actSel ?? steps[steps.length - 1]?.date));
-              if (!sel) return null;
-              const dt = new Date(`${sel.date}T12:00:00`).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' }).replace('.', '');
-              return (
-                <Stack direction="row" spacing={1.5} alignItems="center" useFlexGap flexWrap="wrap" sx={{ mt: 0.75, px: 1, py: 0.6, borderRadius: '8px', bgcolor: 'rgba(32,178,170,0.07)' }}>
-                  <Typography sx={{ fontSize: 12, fontWeight: 800, color: '#178f89', textTransform: 'capitalize' }}>{dt}</Typography>
-                  <Typography sx={{ fontSize: 13, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{sel.steps.toLocaleString('pt-BR')} <span style={{ fontSize: 11, color: 'text.secondary', fontWeight: 600 }}>passos</span></Typography>
-                  {sel.kcal > 0 && <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>🔥 {Math.round(sel.kcal).toLocaleString('pt-BR')} kcal</Typography>}
-                  {sel.km > 0 && <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>📍 {sel.km.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} km</Typography>}
-                </Stack>
-              );
-            })()}
-            {/* Texto educativo em "Saiba mais" (colapsado): hierarquia pro gráfico e ao
-                detalhe do dia — o parágrafo fixo competia pela atenção do card. */}
-            <Button size="small" onClick={() => setActInfo((v) => !v)} endIcon={<ExpandMoreIcon sx={{ transform: actInfo ? 'rotate(180deg)' : 'none', transition: 'transform .2s', fontSize: 16 }} />} sx={{ mt: 0.75, textTransform: 'none', fontWeight: 700, color: 'primary.dark', borderRadius: '999px', px: 1, minHeight: 28, alignSelf: 'flex-start' }}>
-              {actInfo ? 'Menos' : 'Saiba mais'}
-            </Button>
-            <Collapse in={actInfo} unmountOnExit>
-              <Typography sx={{ fontSize: 11, color: 'text.secondary', mt: 0.5 }}>
-                Compare com a glicose, os lipídios e a pressão abaixo — atividade e exames contam a história juntos (educativo; confirme com seu médico).
-              </Typography>
-            </Collapse>
-          </CardContent>
-        </Card>
+              })()}
+              <Button size="small" onClick={() => setActInfo((v) => !v)} endIcon={<ExpandMoreIcon sx={{ transform: actInfo ? 'rotate(180deg)' : 'none', transition: 'transform .2s', fontSize: 16 }} />} sx={{ mt: 0.75, textTransform: 'none', fontWeight: 700, color: 'primary.dark', borderRadius: '999px', px: 1, minHeight: 28, alignSelf: 'flex-start' }}>
+                {actInfo ? 'Menos' : 'Saiba mais'}
+              </Button>
+              <Collapse in={actInfo} unmountOnExit>
+                <Typography sx={{ fontSize: 11, color: 'text.secondary', mt: 0.5 }}>
+                  Compare com a glicose, os lipídios e a pressão abaixo — atividade e exames contam a história juntos (educativo; confirme com seu médico).
+                </Typography>
+              </Collapse>
+            </CardContent>
+          </Card>
+        </ScrollReveal>
       )}
 
       {!loading && items.length === 0 && (
@@ -308,37 +343,58 @@ export const EvolutionPage = () => {
       )}
 
       {!loading && filtered.length > 0 && (
-        <Stack spacing={1.5}>
-          {groups.map((g) => <CategoryGroup key={g.cat} group={g} expandOuts={filter === 'out'} />)}
-        </Stack>
+        <ScrollReveal delay={240}>
+          <Stack spacing={1.5}>
+            {groups.map((g, i) => <CategoryGroup key={g.cat} group={g} expandOuts={filter === 'out'} idx={i} />)}
+          </Stack>
+        </ScrollReveal>
       )}
     </PageContainer>
   );
 };
 
-/** Grupo colapsável por categoria médica — header com emoji, nome, pior status e contagem; dentro ficam os cards de cada analito. */
-const CategoryGroup = ({ group, expandOuts }: { group: { cat: string; icon: SvgIconComponent; color: string; items: EvoItem[] }; expandOuts?: boolean }) => {
-  // Recolhido por padrão. Exceção: no filtro "Fora da faixa", abre só os grupos que têm alerta.
+/** Grupo colapsável — premium: accent bar lateral, radius 20, hover suave, slide dos markers. */
+const CategoryGroup = ({ group, expandOuts, idx = 0 }: { group: { cat: string; icon: SvgIconComponent; color: string; items: EvoItem[] }; expandOuts?: boolean; idx?: number }) => {
   const [open, setOpen] = useState(!!expandOuts && group.items.some((i) => statusOf(i) === 'out'));
   const outs = group.items.filter((i) => statusOf(i) === 'out').length;
   const changes = group.items.filter((i) => statusOf(i) === 'change').length;
   return (
-    <Card sx={{ borderRadius: '12px', border: `1px solid ${group.color}26`, overflow: 'hidden' }}>
-      <Box onClick={() => setOpen((o) => !o)} sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 1.25, cursor: 'pointer', bgcolor: `${group.color}0a`, '&:hover': { bgcolor: `${group.color}14` } }}>
+    <Card sx={{
+      borderRadius: '20px', border: 'none', overflow: 'hidden', position: 'relative',
+      boxShadow: (t) => t.palette.mode === 'dark'
+        ? '0 2px 8px rgba(0,0,0,.3)'
+        : '0 1px 3px rgba(0,0,0,.03), 0 4px 12px rgba(0,0,0,.04)',
+      animation: `dxCatIn .35s cubic-bezier(.16,1,.3,1) ${idx * 0.06}s both`,
+      '@keyframes dxCatIn': { from: { opacity: 0, transform: 'translateY(10px)' }, to: { opacity: 1, transform: 'none' } },
+    }}>
+      {/* Left accent bar */}
+      <Box sx={{
+        position: 'absolute', left: 0, top: 0, bottom: 0, width: open ? 4 : 3,
+        bgcolor: group.color, borderRadius: '0 4px 4px 0',
+        transition: 'width .2s ease',
+        boxShadow: open ? `0 0 8px ${group.color}40` : 'none',
+      }} />
+      <Box onClick={() => setOpen((o) => !o)} sx={{
+        display: 'flex', alignItems: 'center', gap: 1, pl: 2.5, pr: 1.5, py: 1.5,
+        cursor: 'pointer',
+        bgcolor: open ? `${group.color}08` : 'transparent',
+        transition: 'background-color .2s ease',
+        '&:hover': { bgcolor: `${group.color}10` },
+      }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}><group.icon sx={{ fontSize: 20, color: group.color }} /></Box>
         <Typography sx={{ fontWeight: 800, flex: 1, color: 'text.primary', fontSize: 15 }}>{group.cat}</Typography>
         {outs > 0 ? (
-          <Chip size="small" label={`${outs} alterado${outs > 1 ? 's' : ''}`} sx={{ bgcolor: 'rgba(239,68,68,0.12)', color: '#b91c1c', fontWeight: 700, height: 22 }} />
+          <Chip size="small" label={`${outs} alterado${outs > 1 ? 's' : ''}`} sx={{ bgcolor: 'rgba(239,68,68,0.12)', color: '#b91c1c', fontWeight: 700, height: 24, borderRadius: '999px' }} />
         ) : changes > 0 ? (
-          <Chip size="small" label={`${changes} em mudança`} sx={{ bgcolor: 'rgba(245,158,11,0.12)', color: '#b45309', fontWeight: 700, height: 22 }} />
+          <Chip size="small" label={`${changes} em mudança`} sx={{ bgcolor: 'rgba(245,158,11,0.12)', color: '#b45309', fontWeight: 700, height: 24, borderRadius: '999px' }} />
         ) : (
-          <Chip size="small" label="estável" sx={{ bgcolor: 'rgba(5,150,105,0.12)', color: '#047857', fontWeight: 700, height: 22 }} />
+          <Chip size="small" label="estável" sx={{ bgcolor: 'rgba(5,150,105,0.12)', color: '#047857', fontWeight: 700, height: 24, borderRadius: '999px' }} />
         )}
-        <ExpandMoreIcon sx={{ transform: open ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform .2s', color: group.color, fontSize: 20 }} />
+        <ExpandMoreIcon sx={{ transform: open ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform .25s cubic-bezier(.16,1,.3,1)', color: group.color, fontSize: 20 }} />
       </Box>
       {open && (
-        <Stack spacing={0.75} sx={{ p: 1 }}>
-          {group.items.map((it) => <EvoRow key={it.nameCanonical} it={it} defaultExpanded={!!expandOuts && statusOf(it) === 'out'} />)}
+        <Stack spacing={0.75} sx={{ p: 1.25, pt: 0.5 }}>
+          {group.items.map((it, i) => <EvoRow key={it.nameCanonical} it={it} defaultExpanded={!!expandOuts && statusOf(it) === 'out'} idx={i} />)}
         </Stack>
       )}
     </Card>
@@ -385,8 +441,8 @@ const EvoSparkline = ({ points, color }: { points: { value: number }[]; color: s
   );
 };
 
-/** Card recolhido por padrão (nome + valor + tag); expande pro gráfico + detalhes. */
-const EvoRow = ({ it, defaultExpanded }: { it: EvoItem; defaultExpanded?: boolean }) => {
+/** Card marcador — premium: borda lateral colorida, sombra layered, slide-in. */
+const EvoRow = ({ it, defaultExpanded, idx = 0 }: { it: EvoItem; defaultExpanded?: boolean; idx?: number }) => {
   const navigate = useNavigate();
   const st = statusOf(it);
   const meta = STATUS_META[st];
@@ -394,8 +450,25 @@ const EvoRow = ({ it, defaultExpanded }: { it: EvoItem; defaultExpanded?: boolea
   const lineColor = st === 'out' ? '#ef4444' : up ? '#c2410c' : '#0369a1';
   return (
     <Accordion defaultExpanded={defaultExpanded} disableGutters elevation={0}
-      sx={{ '&:before': { display: 'none' }, border: `1px solid ${meta.color}33`, borderRadius: '12px !important' }}>
-      <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '52px !important', '& .MuiAccordionSummary-content': { my: 0.75 } }}>
+      sx={{
+        '&:before': { display: 'none' },
+        border: 'none',
+        borderRadius: '16px !important',
+        position: 'relative',
+        overflow: 'hidden',
+        boxShadow: '0 1px 3px rgba(0,0,0,.03), 0 2px 8px rgba(0,0,0,.03)',
+        transition: 'box-shadow .2s ease',
+        '&:hover': { boxShadow: '0 2px 6px rgba(0,0,0,.05), 0 4px 16px rgba(0,0,0,.05)' },
+        animation: `dxRowIn .3s ease ${idx * 0.04}s both`,
+        '@keyframes dxRowIn': { from: { opacity: 0, transform: 'translateX(-6px)' }, to: { opacity: 1, transform: 'none' } },
+        // Left accent bar
+        '&::before': {
+          content: '""', position: 'absolute', left: 0, top: 0, bottom: 0,
+          width: 3, bgcolor: meta.color, borderRadius: '0 3px 3px 0',
+          display: 'block !important', opacity: '1 !important',
+        },
+      }}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '52px !important', '& .MuiAccordionSummary-content': { my: 0.75 }, pl: 2 }}>
         <Box
           sx={{
             flex: 1,
@@ -424,7 +497,7 @@ const EvoRow = ({ it, defaultExpanded }: { it: EvoItem; defaultExpanded?: boolea
           >
             <Typography sx={{ fontWeight: 800, color: meta.color, whiteSpace: 'nowrap' }}>{it.lastValue} {it.unit ? <UnitLabel unit={it.unit} /> : null}</Typography>
             <EvoSparkline points={it.points} color={lineColor} />
-            {st !== 'stable' && it.pctChange !== 0 && <Chip size="small" sx={{ bgcolor: `${lineColor}14`, color: lineColor, fontWeight: 700, height: 20, flexShrink: 0 }} label={`${it.pctChange > 0 ? '+' : ''}${it.pctChange}%`} />}
+            {st !== 'stable' && it.pctChange !== 0 && <Chip size="small" sx={{ bgcolor: `${lineColor}14`, color: lineColor, fontWeight: 700, height: 22, borderRadius: '999px', flexShrink: 0 }} label={`${it.pctChange > 0 ? '+' : ''}${it.pctChange}%`} />}
           </Stack>
         </Box>
       </AccordionSummary>
