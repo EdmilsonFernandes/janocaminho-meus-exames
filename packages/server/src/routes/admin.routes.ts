@@ -8,6 +8,7 @@ import { deleteExamFile, saveExamFile, resolveExamFile, saveLabLogo } from '../u
 import { invalidateLabsCache, slugify } from './labs.routes';
 import { listBlockedDomains, addBlockedDomain, removeBlockedDomain, syncBlockedDomains } from '../utils/blockedDomains';
 import { sendPush, sendPushToUser, PUSH_TOPIC } from '../utils/push';
+import { parseAudienceFilter, resolveAudienceUserIds, dispatchCampaign } from '../utils/pushAudience';
 import { sendEmail } from '../utils/mailer';
 import { ticketReplyEmail, webUrl } from '../utils/emailTemplate';
 import { upload } from '../middleware/upload';
@@ -591,6 +592,49 @@ router.post('/push/global', async (req: AuthedRequest, res, next) => {
     await prisma.pushCampaign.create({ data: { name: title.slice(0, 60), title, body, route: route ?? null, sentAt: new Date(), sentCount: list.length, createdBy: req.userId ?? null } }).catch(() => {});
     console.log(`[admin] push global enviado por ${req.userId}: "${title}" → ${list.length} dispositivo(s)`);
     res.json({ ok: true, sent: list.length, topic: PUSH_TOPIC });
+  } catch (e) { next(e); }
+});
+
+// PUSH SEGMENTADO — campanhas por público-alvo (plano/engajamento/exames/atividade HC).
+// Filtro sanitizado em parseAudienceFilter; interseção entre grupos; merge fields
+// {{nome}}/{{streak}}/{{passosOntem}} resolvidos por usuário no dispatch.
+// Body: { title, body, route?, filter?, scheduledAt? } — scheduledAt futuro agenda
+// (PushCampaign com sentAt null; o scheduler jobs/pushCampaigns dispara).
+router.post('/push/audience-preview', async (req: AuthedRequest, res, next) => {
+  try {
+    const filter = parseAudienceFilter(req.body?.filter);
+    const ids = await resolveAudienceUserIds(filter);
+    const devices = ids.length ? await prisma.deviceToken.count({ where: { userId: { in: ids } } }) : 0;
+    res.json({ users: ids.length, devices });
+  } catch (e) { next(e); }
+});
+
+router.post('/push/campaign', async (req: AuthedRequest, res, next) => {
+  try {
+    const title = String(req.body?.title ?? '').trim();
+    const body = String(req.body?.body ?? '').trim();
+    const route = req.body?.route ? String(req.body.route) : undefined;
+    const filter = parseAudienceFilter(req.body?.filter);
+    if (!title || !body) { res.status(400).json({ error: 'title e body são obrigatórios' }); return; }
+    if (!Object.keys(filter).length) { res.status(400).json({ error: 'Escolha ao menos um público (para todos, use o push global).' }); return; }
+    const scheduledAt = req.body?.scheduledAt ? new Date(String(req.body.scheduledAt)) : null;
+    if (scheduledAt && (!scheduledAt.getTime() || Number.isNaN(scheduledAt.getTime()))) { res.status(400).json({ error: 'scheduledAt inválido' }); return; }
+
+    if (scheduledAt && scheduledAt.getTime() > Date.now() + 60000) {
+      const campaign = await prisma.pushCampaign.create({
+        data: { name: title.slice(0, 60), title, body, route: route ?? null, audienceFilter: filter as object, scheduledAt, createdBy: req.userId ?? null },
+      });
+      console.log(`[admin] push campaign AGENDADA por ${req.userId} p/ ${scheduledAt.toISOString()}: "${title}"`);
+      res.status(201).json({ ok: true, scheduled: true, campaignId: campaign.id, at: scheduledAt.toISOString() });
+      return;
+    }
+
+    const { sent } = await dispatchCampaign({ title, body, route, filter });
+    await prisma.pushCampaign.create({
+      data: { name: title.slice(0, 60), title, body, route: route ?? null, audienceFilter: filter as object, sentAt: new Date(), sentCount: sent, createdBy: req.userId ?? null },
+    }).catch(() => {});
+    console.log(`[admin] push campaign enviada por ${req.userId}: "${title}" → ${sent} usuário(s)`);
+    res.json({ ok: true, sent });
   } catch (e) { next(e); }
 });
 
