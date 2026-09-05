@@ -223,6 +223,10 @@ export const LandingPage = () => {
         @keyframes heroFloat { 0%,100%{transform:translateY(0) rotate(-1.5deg)} 50%{transform:translateY(-12px) rotate(-1.5deg)} }
         @keyframes chipFloatA { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-9px)} }
         @keyframes chipFloatB { 0%,100%{transform:translateY(0)} 50%{transform:translateY(9px)} }
+        @keyframes shimmerBtn {
+          0% { background-position: 200% center; }
+          100% { background-position: -200% center; }
+        }
         .hero-float { animation: heroFloat 6s ease-in-out infinite; }
         @media (prefers-reduced-motion: reduce){ .hero-float{ animation: none !important; } }
       `}</style>
@@ -255,15 +259,15 @@ export const LandingPage = () => {
         </Container>
       </Box>
 
-      {/* HERO — claro premium */}
+      {/* HERO — premium mesh gradient */}
       <Box sx={{
         position: 'relative', overflow: 'hidden',
-        background: 'linear-gradient(180deg, rgba(32,178,170,.12) 0%, rgba(212,165,116,.04) 35%, transparent 75%)',
+        background: 'linear-gradient(135deg, rgba(255,255,255,1) 0%, rgba(240,250,249,1) 100%)',
         pt: { xs: 11, md: 14 }, pb: { xs: 7, md: 10 },
       }}>
-        <Box sx={{ position: 'absolute', top: '-10%', right: '-5%', width: 520, height: 520, borderRadius: '50%', background: 'radial-gradient(circle,rgba(32,178,170,.18),transparent 65%)', pointerEvents: 'none' }} />
-        <Box sx={{ position: 'absolute', bottom: '-15%', left: '-8%', width: 420, height: 420, borderRadius: '50%', background: 'radial-gradient(circle,rgba(212,165,116,.12),transparent 65%)', pointerEvents: 'none' }} />
-        <Box sx={{ position: 'absolute', top: '-5%', left: '-3%', width: 340, height: 340, borderRadius: '50%', background: 'radial-gradient(circle,rgba(212,165,116,.18),transparent 65%)', pointerEvents: 'none' }} />
+        <Box sx={{ position: 'absolute', top: '-10%', right: '-5%', width: 520, height: 520, borderRadius: '50%', background: 'radial-gradient(circle,rgba(32,178,170,.25),transparent 70%)', pointerEvents: 'none', filter: 'blur(40px)' }} />
+        <Box sx={{ position: 'absolute', bottom: '-15%', left: '-8%', width: 420, height: 420, borderRadius: '50%', background: 'radial-gradient(circle,rgba(212,165,116,.20),transparent 70%)', pointerEvents: 'none', filter: 'blur(40px)' }} />
+        <Box sx={{ position: 'absolute', top: '-5%', left: '-3%', width: 340, height: 340, borderRadius: '50%', background: 'radial-gradient(circle,rgba(250,253,252,.5),transparent 70%)', pointerEvents: 'none', filter: 'blur(30px)' }} />
         {/* Vídeo de textura (v2) — sutil por cima do gradiente claro; some no reduced-motion e em erro de rede */}
         <Box
           component="video"
@@ -296,7 +300,18 @@ export const LandingPage = () => {
                 <Chip icon={<LockIcon sx={{ fontSize: 17 }} />} label="A IA não inventa números — vêm do seu laudo" sx={{ bgcolor: 'rgba(5,150,105,.10)', color: '#047857', fontWeight: 700, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: GREEN } }} />
               </Stack>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap sx={{ mb: 1.5 }}>
-                <Button variant="contained" color="primary" size="large" onClick={() => navigate('/registrar')} sx={{ borderRadius: '999px', px: 4, py: 1.5, fontSize: 17, textTransform: 'none', fontWeight: 800 }}>
+                <Button variant="contained" size="large" onClick={() => navigate('/registrar')} sx={{
+                  borderRadius: '999px', px: 4, py: 1.5, fontSize: 17, textTransform: 'none', fontWeight: 800,
+                  bgcolor: '#178f89',
+                  background: 'linear-gradient(90deg, #178f89 0%, #20b2aa 50%, #178f89 100%)',
+                  backgroundSize: '200% auto',
+                  animation: 'shimmerBtn 3s linear infinite',
+                  boxShadow: '0 8px 24px rgba(32,178,170,.35)',
+                  '&:hover': {
+                    backgroundPosition: 'right center',
+                    boxShadow: '0 10px 28px rgba(32,178,170,.45)',
+                  }
+                }}>
                   Começar grátis — com {credits} créditos
                 </Button>
                 <Button
@@ -382,10 +397,15 @@ export const LandingPage = () => {
         </Container>
       </Box>
 
-      {/* TRUST STRIP */}
-      <Box sx={{ bgcolor: 'background.paper', borderTop: '1px solid', borderBottom: '1px solid', borderColor: 'divider' }}>
+      {/* TRUST STRIP - Glassmorphism */}
+      <Box sx={{ position: 'relative', zIndex: 10, mt: -2 }}>
         <Container maxWidth="lg">
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 2, sm: 4 }} useFlexGap justifyContent="center" alignItems="center" sx={{ py: 2.5, flexWrap: 'wrap' }}>
+          <Box sx={{
+            bgcolor: 'rgba(255,255,255,.65)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+            borderRadius: '24px', border: '1px solid rgba(255,255,255,.8)',
+            boxShadow: '0 4px 24px rgba(0,0,0,.04)', px: 3, py: 2.5
+          }}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 2, sm: 4 }} useFlexGap justifyContent="center" alignItems="center" sx={{ flexWrap: 'wrap' }}>
             {[
               { Icon: VerifiedUserIcon, t: 'Conforme a LGPD' },
               { Icon: AccessibilityNewIcon, t: 'Acessível em Libras' },
@@ -398,7 +418,8 @@ export const LandingPage = () => {
                 <Typography sx={{ fontSize: 14, fontWeight: 600, color: 'text.primary' }}>{t}</Typography>
               </Stack>
             ))}
-          </Stack>
+            </Stack>
+          </Box>
         </Container>
       </Box>
 
@@ -515,6 +536,75 @@ export const LandingPage = () => {
           </Box>
         </Container>
       </Box>
+
+      {/* SEÇÃO — Health Connect (NOVO) */}
+      <ScrollReveal>
+      <Box sx={{ position: 'relative', overflow: 'hidden', bgcolor: 'background.paper', py: { xs: 8, md: 11 }, borderTop: '1px solid', borderBottom: '1px solid', borderColor: 'divider' }}>
+        <Container maxWidth="lg" sx={{ position: 'relative' }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: { xs: 5, md: 7 }, alignItems: 'center' }}>
+            <Box>
+              <Chip icon={<MonitorHeartIcon sx={{ fontSize: 17 }} />} label="Integração nativa" sx={{ bgcolor: 'rgba(32,178,170,.12)', color: TEAL_DARK, fontWeight: 700, mb: 2, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: TEAL_DARK } }} />
+              <Typography variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>
+                Seu corpo fala 24h por dia. <Box component="span" sx={{ ...SERIF_I, color: TEAL_DARK }}>A IA escuta.</Box>
+              </Typography>
+              <Typography sx={{ color: 'text.secondary', fontSize: 17, mb: 3.5, lineHeight: 1.6 }}>
+                Exames de sangue mostram uma foto do momento. Seus sinais vitais mostram o filme completo. O Dr. Exame conecta com o <b>Health Connect</b> do Google para ler passos, sono e batimentos cardíacos direto do seu smartwatch ou celular.
+              </Typography>
+              <Stack spacing={2} sx={{ mb: 4 }}>
+                {[
+                  { t: 'Sincronização invisível', d: 'Conecte uma vez e os dados fluem sozinhos do Google Fit, Samsung Health e Apple Health.' },
+                  { t: 'Risco cardiovascular preciso', d: 'O Dr. Exame cruza seu LDL (colesterol) com seu sedentarismo para avaliar risco real.' },
+                ].map((s) => (
+                  <Stack key={s.t} direction="row" spacing={1.5} alignItems="flex-start">
+                    <Box sx={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0, display: 'grid', placeItems: 'center', background: 'rgba(32,178,170,.12)' }}>
+                      <AutoAwesomeIcon sx={{ fontSize: 16, color: TEAL_DARK }} />
+                    </Box>
+                    <Box>
+                      <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary' }}>{s.t}</Typography>
+                      <Typography sx={{ fontSize: 14, color: 'text.secondary', lineHeight: 1.5 }}>{s.d}</Typography>
+                    </Box>
+                  </Stack>
+                ))}
+              </Stack>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+              <Box sx={{ position: 'relative', width: '100%', maxWidth: 360 }}>
+                {/* Watch mock */}
+                <Box sx={{ position: 'absolute', top: -30, right: -20, zIndex: 2, width: 90, height: 90, borderRadius: '24px', background: 'linear-gradient(135deg, #111, #333)', border: '4px solid #444', boxShadow: '0 20px 40px rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#059669' }}>
+                   <MonitorHeartIcon sx={{ fontSize: 40 }} />
+                </Box>
+                {/* Phone mock */}
+                <Box sx={{ borderRadius: '24px', bgcolor: '#fff', border: '8px solid #f3f4f6', boxShadow: '0 30px 60px rgba(32,178,170,.12), 0 10px 24px rgba(0,0,0,.06)', p: 3, position: 'relative', overflow: 'hidden' }}>
+                  <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary', mb: 2, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Health Connect Ativo</Typography>
+                  <Stack spacing={1.5}>
+                    <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'rgba(32,178,170,.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography sx={{ fontSize: 14, fontWeight: 700 }}>Passos diários</Typography>
+                      <Typography sx={{ fontSize: 16, fontWeight: 800, color: TEAL_DARK, fontVariantNumeric: 'tabular-nums' }}>8.430</Typography>
+                    </Box>
+                    <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'rgba(239,68,68,.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography sx={{ fontSize: 14, fontWeight: 700 }}>BPM Repouso</Typography>
+                      <Typography sx={{ fontSize: 16, fontWeight: 800, color: '#dc2626', fontVariantNumeric: 'tabular-nums' }}>68</Typography>
+                    </Box>
+                    <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'rgba(99,102,241,.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography sx={{ fontSize: 14, fontWeight: 700 }}>Sono profundo</Typography>
+                      <Typography sx={{ fontSize: 16, fontWeight: 800, color: '#4f46e5', fontVariantNumeric: 'tabular-nums' }}>2h 15m</Typography>
+                    </Box>
+                  </Stack>
+                  <Box sx={{ mt: 3, p: 2, borderRadius: '12px', bgcolor: '#0f5f5a', color: '#fff' }}>
+                    <Typography sx={{ fontSize: 12, fontWeight: 700, mb: 0.5, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <AutoAwesomeIcon sx={{ fontSize: 14 }} /> Insight da IA
+                    </Typography>
+                    <Typography sx={{ fontSize: 13, lineHeight: 1.4, opacity: 0.9 }}>
+                      Seu sedentarismo caiu 30% esse mês. Continue assim para ajudar a baixar aquele LDL do último exame!
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
+          </Box>
+        </Container>
+      </Box>
+      </ScrollReveal>
 
       {/* SEÇÃO — Família de verdade (D1): o diferencial que nenhum app global tem (todos 18+, single-user) */}
       <ScrollReveal>
