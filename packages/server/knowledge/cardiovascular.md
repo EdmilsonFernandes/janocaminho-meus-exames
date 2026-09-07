@@ -33,4 +33,7 @@ fraqueza/paralisia de um lado, fala arrastada: **pronto-socorro imediato**.
 - Preciso de outros exames (PCR, Lp(a), calcio score) pra estratificar?
 
 ## Fontes
-SBC (Diretriz de Prevenão Cardiovascular); SBI; Ministério da Saúde; AHA/ACC; OMS.
+- Beyond SCORE2 — reavaliação da estratificação de risco cardiovascular (2026): limites
+  e evolução dos escores (confiança: média-alta) — PMID 42513406 — consultado 2026-09-07
+- ESC — Guidelines de prevenção de doença cardiovascular / SCORE2 (confiança: alta;
+  documento-sociedade) — consultado 2026-09-07

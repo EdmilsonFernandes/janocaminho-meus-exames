@@ -32,4 +32,8 @@ Cansaço excessivo, falta de ar, palpitação, palidez, tontura. Sangramento vis
 - Posso só ajustar a dieta, ou preciso de suplemento?
 
 ## Fontes
-OMS (anemia); SBI (Diretriz de Anemias); Ministério da Saúde; SBHH.
+- Ferritin cutoffs and diagnosis of iron deficiency in primary care (2024) — pontos de
+  corte de ferritina/hemoglobina na atenção primária (confiança: alta) — PMID 39102268 —
+  consultado 2026-09-07
+- OMS — WHO guideline on anemia and iron deficiency (confiança: alta;
+  documento-sociedade) — consultado 2026-09-07

@@ -33,4 +33,8 @@ Dor no peito ou falta de ar = urgência.
 - Preciso de outros exames (PCR, Lp(a), glicemia) pra estratificar risco?
 
 ## Fontes
-SBC (Diretriz de Dislipidemias); SBI; Ministério da Saúde; AHA/ACC.
+- Comparação das diretrizes ESC/EAS 2025 × ACC/AHA 2026 de dislipidemias (2026) —
+  LDL-alvo por categoria de risco e estatina conforme risco (confiança: alta) —
+  PMID 42579320 — consultado 2026-09-07
+- SBC/SBI — Diretrizes brasileiras de dislipidemias (confiança: alta;
+  documento-sociedade) — consultado 2026-09-07

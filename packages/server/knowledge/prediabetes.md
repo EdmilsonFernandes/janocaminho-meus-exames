@@ -32,4 +32,8 @@ excessivas ou xixi frequente, pode ter evoluído pra diabetes: procure o médico
 - Vale investigar resistência à insulina?
 
 ## Fontes
-ADA (American Diabetes Association); Ministério da Saúde; OMS.
+- ADA — Standards of Care in Diabetes (edição corrente) — faixas 100–125 mg/dL e HbA1c
+  5,7–6,4%; intervenção de estilo de vida (confiança: alta; documento-sociedade) —
+  consultado 2026-09-07
+- Atrasar a progressão de pré-diabetes→diabetes associa-se a menor mortalidade
+  (coorte de seguimento, 2024) (confiança: média-alta) — PMID 39434432 — consultado 2026-09-07

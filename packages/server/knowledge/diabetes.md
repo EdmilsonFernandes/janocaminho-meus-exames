@@ -35,4 +35,8 @@ não cicatrizam, sonolência intensa.
 - Qual o papel de dieta e exercício antes de medicação?
 
 ## Fontes
-ADA (American Diabetes Association); Ministério da Saúde (CADM/SBP diabetes); OMS.
+- Sociedade Brasileira de Diabetes — Diretriz brasileira de rastreio e diagnóstico do DM2
+  (2025) — faixas de glicemia/HbA1c e confirmação diagnóstica (confiança: alta) —
+  PMID 40038723 — consultado 2026-09-07
+- ADA — Standards of Care in Diabetes (edição corrente) — classificação e metas
+  (confiança: alta; documento-sociedade) — consultado 2026-09-07

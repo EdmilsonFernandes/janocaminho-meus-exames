@@ -36,4 +36,9 @@ dor de cabeça intensa — podem ser crises perigosas: **pronto-socorro**.
 - Sal, peso e exercício resolvem, ou preciso de medicação?
 
 ## Fontes
-SBC (Diretriz de Hipertensão); Ministério da Saúde; OMS; ACC/AHA.
+- Revisão de diretrizes vigentes de manejo de hipertensão (2025) — limiares diagnósticos
+  e papel do estilo de vida (confiança: alta) — PMID 41390616 — consultado 2026-09-07
+- Limiar ACC/AHA 130/80 mmHg identifica mais risco que 140/90 (validação populacional,
+  2022) (confiança: alta) — PMID 35147130 — consultado 2026-09-07
+- SBC — Diretriz Brasileira de Hipertensão Arterial (confiança: alta;
+  documento-sociedade) — consultado 2026-09-07
