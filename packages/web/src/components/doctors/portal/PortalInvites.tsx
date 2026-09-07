@@ -27,9 +27,9 @@ export const PortalInvites = ({ invites, doctorName, onNewInvite, onCancel, link
               </Stack>
               <Stack direction="row" spacing={1.5} sx={{ mb: 2.5 }} useFlexGap flexWrap="wrap">
                 {[['Pendentes', pending.length, '#c2410c'], ['Aceitos', accepted.length, '#047857'], ['Expirados', expired.length, '#94a3b8']].map(([l, n, c]) => (
-                  <Box key={l as string} sx={{ flex: 1, minWidth: 100, p: 1.5, borderRadius: '12px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
-                    <Typography sx={{ fontWeight: 800, fontSize: 22, color: c as string, lineHeight: 1.1 }}>{n as number}</Typography>
-                    <Typography variant="caption" color="text.secondary">{l as string}</Typography>
+                  <Box key={l as string} sx={{ flex: 1, minWidth: 100, p: 2, borderRadius: '20px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', boxShadow: '0 4px 16px rgba(0,0,0,0.04)', transition: 'transform 0.2s ease, box-shadow 0.2s ease', '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 8px 24px rgba(0,0,0,0.08)' } }}>
+                    <Typography sx={{ fontWeight: 800, fontSize: 24, color: c as string, lineHeight: 1.1 }}>{n as number}</Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>{l as string}</Typography>
                   </Box>
                 ))}
               </Stack>

@@ -78,11 +78,11 @@ export const DoctorExamList = ({ patientId, token, onOpen }: { patientId: string
           size="small" fullWidth value={q} onChange={(e) => setQ(e.target.value)}
           placeholder="Buscar por título ou laboratório…"
           slotProps={{ input: { startAdornment: (<SearchIcon fontSize="small" sx={{ color: 'text.secondary', mr: 1 }} />) } }}
-          sx={{ '& .MuiOutlinedInput-root': { borderRadius: RADIUS.tile, bgcolor: 'background.paper' } }}
+          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '14px', bgcolor: 'background.paper' } }}
         />
-        <ToggleButtonGroup exclusive size="small" value={view} onChange={(_, v) => { if (v) setView(v); }}>
-          <ToggleButton value="date" sx={{ px: 1.25, py: 0.25, textTransform: 'none', fontWeight: 700 }}>Por data</ToggleButton>
-          <ToggleButton value="category" sx={{ px: 1.25, py: 0.25, textTransform: 'none', fontWeight: 700 }}>Por categoria</ToggleButton>
+        <ToggleButtonGroup exclusive size="small" value={view} onChange={(_, v) => { if (v) setView(v); }} sx={{ '& .MuiToggleButton-root': { borderRadius: '10px' } }}>
+          <ToggleButton value="date" sx={{ px: 1.5, py: 0.35, textTransform: 'none', fontWeight: 700 }}>Por data</ToggleButton>
+          <ToggleButton value="category" sx={{ px: 1.5, py: 0.35, textTransform: 'none', fontWeight: 700 }}>Por categoria</ToggleButton>
         </ToggleButtonGroup>
         {presentCats.length > 1 && (
           // MOBILE: linha única deslizável (dedo). DESKTOP: WRAP — sem mouse não dá pra
@@ -93,9 +93,10 @@ export const DoctorExamList = ({ patientId, token, onOpen }: { patientId: string
               label={`Todos (${exams.length})`}
               onClick={() => setCat('all')}
               sx={(t) => ({
-                height: 44, flexShrink: 0, fontWeight: 700, whiteSpace: 'nowrap', borderRadius: RADIUS.pill,
+                height: 38, flexShrink: 0, fontWeight: 700, whiteSpace: 'nowrap', borderRadius: RADIUS.pill,
                 bgcolor: cat === 'all' ? t.palette.primary.dark : alpha(t.palette.primary.main, 0.1),
                 color: cat === 'all' ? '#fff' : t.palette.primary.dark,
+                transition: 'all 0.15s ease',
               })}
             />
             {presentCats.map((c) => (
@@ -106,10 +107,11 @@ export const DoctorExamList = ({ patientId, token, onOpen }: { patientId: string
                 label={`${c.cat} (${catCounts[c.key]})`}
                 onClick={() => setCat(cat === c.key ? 'all' : c.key)}
                 sx={{
-                  height: 44, flexShrink: 0, fontWeight: 700, whiteSpace: 'nowrap', borderRadius: RADIUS.pill,
+                  height: 38, flexShrink: 0, fontWeight: 700, whiteSpace: 'nowrap', borderRadius: RADIUS.pill,
                   bgcolor: cat === c.key ? c.color : alpha(c.color, 0.1),
                   color: cat === c.key ? '#fff' : c.color,
                   border: `1px solid ${cat === c.key ? c.color : alpha(c.color, 0.25)}`,
+                  transition: 'all 0.15s ease',
                 }}
               />
             ))}
@@ -127,7 +129,28 @@ export const DoctorExamList = ({ patientId, token, onOpen }: { patientId: string
       ) : (
         <>
           {view === 'date' && dateGroups.map((g) => (
-            <Accordion key={String(g.year ?? 'sdata')} defaultExpanded elevation={0} disableGutters sx={(t) => ({ borderRadius: `${RADIUS.sectionCard} !important`, overflow: 'hidden', border: '1px solid', borderColor: 'divider', '&:before': { display: 'none' } })}>
+            <Accordion
+              key={String(g.year ?? 'sdata')}
+              defaultExpanded
+              elevation={0}
+              disableGutters
+              sx={(t) => ({
+                borderRadius: '20px !important',
+                overflow: 'hidden',
+                border: '1px solid',
+                borderColor: 'divider',
+                boxShadow: t.palette.mode === 'dark' ? '0 4px 14px rgba(0,0,0,0.2)' : '0 2px 8px rgba(0,0,0,0.03)',
+                '&:before': { display: 'none' },
+                '& .MuiAccordionSummary-root': {
+                  borderTopLeftRadius: '20px',
+                  borderTopRightRadius: '20px',
+                },
+                '& .MuiAccordionDetails-root': {
+                  borderBottomLeftRadius: '20px',
+                  borderBottomRightRadius: '20px',
+                },
+              })}
+            >
               <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={(t) => ({ bgcolor: alpha(t.palette.primary.main, 0.04) })}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>{g.label}</Typography>
                 <Chip size="small" label={g.items.length} sx={(t) => ({ ml: 1, bgcolor: alpha(t.palette.primary.main, 0.12), color: t.palette.primary.dark, fontWeight: 700, height: 22 })} />
@@ -140,7 +163,27 @@ export const DoctorExamList = ({ patientId, token, onOpen }: { patientId: string
             </Accordion>
           ))}
           {view === 'category' && catGroups.map((g) => (
-            <Accordion key={g.cat.key} defaultExpanded elevation={0} disableGutters sx={{ borderRadius: `${RADIUS.sectionCard} !important`, overflow: 'hidden', border: `1px solid ${alpha(g.cat.color, 0.15)}`, '&:before': { display: 'none' } }}>
+            <Accordion
+              key={g.cat.key}
+              defaultExpanded
+              elevation={0}
+              disableGutters
+              sx={{
+                borderRadius: '20px !important',
+                overflow: 'hidden',
+                border: `1px solid ${alpha(g.cat.color, 0.2)}`,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                '&:before': { display: 'none' },
+                '& .MuiAccordionSummary-root': {
+                  borderTopLeftRadius: '20px',
+                  borderTopRightRadius: '20px',
+                },
+                '& .MuiAccordionDetails-root': {
+                  borderBottomLeftRadius: '20px',
+                  borderBottomRightRadius: '20px',
+                },
+              }}
+            >
               <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: alpha(g.cat.color, 0.04) }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}><Box component={g.cat.icon} sx={{ fontSize: 18, color: g.cat.color }} /><Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary' }}>{g.cat.cat}</Typography></Box>
                 <Chip size="small" label={g.items.length} sx={{ ml: 1, bgcolor: alpha(g.cat.color, 0.12), color: g.cat.color, fontWeight: 700, height: 22 }} />

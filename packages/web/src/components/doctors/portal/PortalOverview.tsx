@@ -53,16 +53,43 @@ export const PortalOverview = ({ patients, invites, doctorName, onOpenPatient, o
           return (
             <Stack spacing={2}>
               {/* HERO: saudação + manchete clínica do dia */}
-              <Box sx={(t) => ({ borderRadius: '16px', overflow: 'hidden', background: `linear-gradient(135deg, ${t.palette.primary.main}, ${t.palette.primary.dark})`, color: t.palette.primary.contrastText, p: { xs: 2, md: 2.5 }, boxShadow: '0 10px 28px rgba(15,95,90,.25)' })}>
-                <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: { xs: 19, md: 22 }, lineHeight: 1.2 }}>{greet}, Dr. {firstName} 👋</Typography>
-                <Typography sx={{ opacity: 0.92, fontSize: 14, mt: 0.75 }}>
+              <Box
+                sx={(t) => ({
+                  borderRadius: '20px',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  background:
+                    t.palette.mode === 'dark'
+                      ? 'radial-gradient(ellipse 95% 85% at 0% 0%, #0d9488 0%, #0f544f 45%, #082827 100%)'
+                      : 'radial-gradient(ellipse 95% 85% at 0% 0%, #20B2AA 0%, #0d9488 50%, #065f57 100%)',
+                  color: '#ffffff',
+                  p: { xs: 2.25, md: 3 },
+                  boxShadow: '0 12px 32px rgba(13,148,136,0.22)',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    height: '3px',
+                    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent)',
+                  },
+                })}
+              >
+                <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: { xs: 20, md: 24 }, lineHeight: 1.2 }}>
+                  {greet}, Dr. {firstName} 👋
+                </Typography>
+                <Typography sx={{ opacity: 0.95, fontSize: 14.5, mt: 0.75, fontWeight: 500 }}>
                   {alerts.length > 0
                     ? `${alerts.length} ${alerts.length === 1 ? 'paciente com valores alterados' : 'pacientes com valores alterados'}${openQP.length ? ` · ${openQP.length} ${openQP.length === 1 ? 'pergunta em aberto' : 'perguntas em aberto'}` : ''}`
                     : openQP.length > 0
                       ? `${openQP.length} ${openQP.length === 1 ? 'pergunta aguardando resposta' : 'perguntas aguardando resposta'}`
                       : 'Tudo em ordem — nenhum alerta crítico no momento ✅'}
                 </Typography>
-                <Typography variant="caption" sx={{ opacity: 0.75, display: 'block', mt: 0.5, textTransform: 'capitalize' }}>{today}</Typography>
+                <Typography variant="caption" sx={{ opacity: 0.8, display: 'block', mt: 0.75, textTransform: 'capitalize', fontWeight: 600 }}>
+                  {today}
+                </Typography>
               </Box>
 
               {/* TILES: números do consultório (cada um navega) */}
@@ -73,13 +100,27 @@ export const PortalOverview = ({ patients, invites, doctorName, onOpenPatient, o
                   { label: 'Perguntas abertas', value: patients.reduce((n, p) => n + (p.openQuestions ?? 0), 0), color: '#b45309', onClick: () => { onSetView('questions'); onLoadAllQ(); }, icon: <QuestionAnswerIcon /> },
                   { label: 'Convites pendentes', value: pendingInv.length, color: '#c2410c', onClick: () => onSetView('invites'), icon: <PersonAddAlt1Icon /> },
                 ] as const).map((tile) => (
-                  <AppCard kind="interactive" key={tile.label} role="button" tabIndex={0} {...a11yClick(tile.onClick)} sx={{ ...focusRingSx }}>
-                    <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
+                  <AppCard
+                    kind="interactive"
+                    key={tile.label}
+                    role="button"
+                    tabIndex={0}
+                    {...a11yClick(tile.onClick)}
+                    sx={{
+                      ...focusRingSx,
+                      borderRadius: '20px',
+                      transition: 'transform 0.18s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.18s',
+                      '&:hover': {
+                        transform: 'translateY(-3px)',
+                      },
+                    }}
+                  >
+                    <CardContent sx={{ py: 1.75, '&:last-child': { pb: 1.75 } }}>
                       <Stack direction="row" alignItems="center" spacing={1}>
-                        <Box component="span" sx={{ display: 'inline-flex', color: tile.color, '& svg': { fontSize: 18 } }}>{tile.icon}</Box>
-                        <Typography sx={{ fontWeight: 800, fontSize: 22, color: tile.color, lineHeight: 1.1 }}>{tile.value}</Typography>
+                        <Box component="span" sx={{ display: 'inline-flex', color: tile.color, '& svg': { fontSize: 20 } }}>{tile.icon}</Box>
+                        <Typography sx={{ fontWeight: 800, fontSize: 23, color: tile.color, lineHeight: 1.1 }}>{tile.value}</Typography>
                       </Stack>
-                      <Typography variant="caption" color="text.secondary">{tile.label}</Typography>
+                      <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, mt: 0.5, display: 'block' }}>{tile.label}</Typography>
                     </CardContent>
                   </AppCard>
                 ))}

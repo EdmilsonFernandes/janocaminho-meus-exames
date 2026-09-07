@@ -10,7 +10,7 @@ import { SPECIALTIES } from '../../../utils/medicalData';
 
 /** Empty state compacto das views do portal. */
 export const Empty = ({ label, icon = '📭' }: { label: string; icon?: string }) => (
-  <Card sx={{ borderRadius: '12px' }}><CardContent><Box sx={{ textAlign: 'center', py: 4 }}>
+  <Card sx={{ borderRadius: '20px', border: '1px solid', borderColor: 'divider', boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}><CardContent><Box sx={{ textAlign: 'center', py: 4 }}>
     <Box sx={{ fontSize: 44, mb: 1 }}>{icon}</Box>
     <Typography color="text.secondary">{label}</Typography>
   </Box></CardContent></Card>
@@ -34,13 +34,13 @@ export const DoctorChangePasswordForm = ({ token, onBack }: { token: string; onB
         <Button size="small" onClick={onBack} sx={{ color: 'primary.dark', textTransform: 'none', fontWeight: 700, minWidth: 0 }}>← Voltar</Button>
         <Typography sx={{ fontWeight: 800, color: 'text.primary' }}>🔒 Trocar senha</Typography>
       </Stack>
-      <Card sx={{ borderRadius: '12px' }}><CardContent>
+      <Card sx={{ borderRadius: '20px', border: '1px solid', borderColor: 'divider', boxShadow: '0 4px 20px rgba(0,0,0,0.04)' }}><CardContent sx={{ p: 2.5 }}>
         <Stack spacing={2}>
-          <TextField type="password" label="Senha atual" value={cur} onChange={(e) => setCur(e.target.value)} size="small" fullWidth />
-          <TextField type="password" label="Nova senha (mín. 6)" value={nw} onChange={(e) => setNw(e.target.value)} size="small" fullWidth />
-          <TextField type="password" label="Confirmar nova senha" value={cf} onChange={(e) => setCf(e.target.value)} size="small" fullWidth />
-          {msg && <Alert severity={msg.type === 'ok' ? 'success' : 'error'} sx={{ py: 0.5, borderRadius: '12px' }}>{msg.text}</Alert>}
-          <Button variant="contained" color="primary" onClick={save} disabled={saving || !cur || !nw} startIcon={saving ? <CircularProgress size={18} color="inherit" /> : <LockIcon />} sx={{ alignSelf: 'flex-start', borderRadius: '12px', textTransform: 'none', fontWeight: 800 }}>{saving ? 'Alterando…' : 'Alterar senha'}</Button>
+          <TextField type="password" label="Senha atual" value={cur} onChange={(e) => setCur(e.target.value)} size="small" fullWidth sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />
+          <TextField type="password" label="Nova senha (mín. 6)" value={nw} onChange={(e) => setNw(e.target.value)} size="small" fullWidth sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />
+          <TextField type="password" label="Confirmar nova senha" value={cf} onChange={(e) => setCf(e.target.value)} size="small" fullWidth sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />
+          {msg && <Alert severity={msg.type === 'ok' ? 'success' : 'error'} sx={{ py: 0.5, borderRadius: '14px' }}>{msg.text}</Alert>}
+          <Button variant="contained" color="primary" onClick={save} disabled={saving || !cur || !nw} startIcon={saving ? <CircularProgress size={18} color="inherit" /> : <LockIcon />} sx={{ alignSelf: 'flex-start', borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 3, py: 1, boxShadow: 'none' }}>{saving ? 'Alterando…' : 'Alterar senha'}</Button>
         </Stack>
       </CardContent></Card>
     </Box>

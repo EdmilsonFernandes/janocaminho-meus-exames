@@ -78,9 +78,21 @@ export const DoctorValoresAlterados = ({ patientId, token }: { patientId: string
       ) : (
         <>
           {/* Resumo não-alarmista por prioridade */}
-          <Card variant="outlined" sx={(t) => ({ borderRadius: RADIUS.card, borderColor: 'divider', bgcolor: alpha(t.palette.primary.main, 0.03) })}>
-            <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-              <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap sx={{ mb: 0.5 }}>
+          <Card
+            variant="outlined"
+            sx={{
+              borderRadius: '20px',
+              borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(32,178,170,0.2)' : '#d8ece9'),
+              background: (t) =>
+                t.palette.mode === 'dark'
+                  ? 'radial-gradient(ellipse 90% 70% at 10% 0%, rgba(32,178,170,0.10), transparent 70%), #152223'
+                  : 'radial-gradient(ellipse 90% 70% at 10% 0%, rgba(32,178,170,0.06), transparent 70%), #ffffff',
+              boxShadow: (t) =>
+                t.palette.mode === 'dark' ? '0 4px 20px rgba(0,0,0,0.3)' : '0 4px 16px rgba(32,178,170,0.06)',
+            }}
+          >
+            <CardContent sx={{ py: 1.75, px: 2, '&:last-child': { pb: 1.75 } }}>
+              <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap sx={{ mb: 0.75 }}>
                 <Typography component="span" sx={{ fontWeight: 800, color: PRIORITY_META.importante.color }}>{PRIORITY_META.importante.emoji} {counts.importante} {PRIORITY_META.importante.label}{counts.importante !== 1 ? 's' : ''}</Typography>
                 <Typography component="span" sx={{ fontWeight: 800, color: PRIORITY_META.moderada.color }}>{PRIORITY_META.moderada.emoji} {counts.moderada} {PRIORITY_META.moderada.label}{counts.moderada !== 1 ? 's' : ''}</Typography>
                 <Typography component="span" sx={{ fontWeight: 800, color: PRIORITY_META.leve.color }}>{PRIORITY_META.leve.emoji} {counts.leve} {PRIORITY_META.leve.label}{counts.leve !== 1 ? 's' : ''}</Typography>
@@ -96,19 +108,38 @@ export const DoctorValoresAlterados = ({ patientId, token }: { patientId: string
             </CardContent>
           </Card>
 
-          <Stack spacing={1}>
+          <Stack spacing={1.25}>
             {groups.map((g) => {
               const mp = maxPriority(g.items);
               const meta = PRIORITY_META[mp];
               const stale = isStaleExam(g.performedAt);
-              // Side-tab → lavagem no summary (Onda B): cor segue no emoji/chip/dot.
               return (
-                <Accordion key={g.examId} disableGutters elevation={0} sx={{ border: `1px solid ${alpha(meta.color, 0.3)}`, borderRadius: RADIUS.sectionCard, '&:before': { display: 'none' }, '& .MuiAccordionSummary-root': { borderTopLeftRadius: RADIUS.sectionCard, borderTopRightRadius: RADIUS.sectionCard, bgcolor: alpha(meta.color, 0.05) }, '& .MuiAccordionDetails-root': { borderBottomLeftRadius: RADIUS.sectionCard, borderBottomRightRadius: RADIUS.sectionCard } }}>
+                <Accordion
+                  key={g.examId}
+                  disableGutters
+                  elevation={0}
+                  sx={{
+                    border: `1px solid ${alpha(meta.color, 0.28)}`,
+                    borderLeft: `4px solid ${meta.color}`,
+                    borderRadius: '20px !important',
+                    overflow: 'hidden',
+                    boxShadow: (t) => (t.palette.mode === 'dark' ? '0 4px 14px rgba(0,0,0,0.25)' : '0 2px 8px rgba(0,0,0,0.03)'),
+                    '&:before': { display: 'none' },
+                    '& .MuiAccordionSummary-root': {
+                      borderTopLeftRadius: '20px',
+                      borderTopRightRadius: '20px',
+                      bgcolor: alpha(meta.color, 0.05),
+                    },
+                    '& .MuiAccordionDetails-root': {
+                      borderBottomLeftRadius: '20px',
+                      borderBottomRightRadius: '20px',
+                    },
+                  }}
+                >
                   <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: alpha(meta.color, 0.04) }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 1 }}>
                       <Box component="span" sx={{ fontSize: 18, lineHeight: 1 }}>{meta.emoji}</Box>
                       <Box sx={{ flex: 1, minWidth: 0 }}>
-                        {/* COR = SINAL: título neutro, data/doctor neutros — cor só no borderLeft + chip. */}
                         <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary', lineHeight: 1.2, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{g.examTitle}</Typography>
                         <Typography variant="caption" color="text.secondary">📅 {fmtDate(g.performedAt)}{g.performedAt ? ` · ${timeAgo(g.performedAt)}` : ''}</Typography>
                         {stale && <Typography variant="caption" sx={{ display: 'block', color: 'warning.dark' }}>⏳ Exame antigo — considere renovar</Typography>}

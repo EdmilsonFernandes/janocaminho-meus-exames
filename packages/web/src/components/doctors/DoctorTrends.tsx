@@ -151,31 +151,57 @@ export const DoctorTrends = ({ patientId, token }: Props) => {
           virava fricção). Sem banner de seção: a aba já diz "Tendências" e o hero da tela
           é o PatientSummary (One Gradient Rule — o gradiente fica p/ o CTA, não p/ título). */}
       {multi.length > 0 && (
-        <Card sx={{ mb: 2, borderRadius: RADIUS.sectionCard }}><CardContent sx={{ p: { xs: 1.5, md: 2 } }}>
+        <Card
+          sx={{
+            mb: 2,
+            borderRadius: '20px',
+            border: '1px solid',
+            borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(32,178,170,0.2)' : '#d8ece9'),
+            boxShadow: (t) => (t.palette.mode === 'dark' ? '0 4px 20px rgba(0,0,0,0.25)' : '0 4px 14px rgba(32,178,170,0.05)'),
+          }}
+        >
+          <CardContent sx={{ p: { xs: 2, md: 2.25 } }}>
           {/* Desktop: atalhos (máx 6). Mobile: só busca (sem parede de chips). */}
           {!isMobile && multi.length > 1 && (
-            <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mb: 1.5 }}>
+            <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mb: 1.75 }}>
               {multi.slice(0, 6).map((n) => (
-                <Chip key={n.nameCanonical} label={prettyName(n.nameCanonical)} onClick={() => setSel(n.nameCanonical)}
-                  size="small" title={prettyName(n.nameCanonical)}
+                <Chip
+                  key={n.nameCanonical}
+                  label={prettyName(n.nameCanonical)}
+                  onClick={() => setSel(n.nameCanonical)}
+                  title={prettyName(n.nameCanonical)}
                   sx={{
-                    fontWeight: 700, borderRadius: RADIUS.pill, maxWidth: 165,
-                    ...(sel === n.nameCanonical ? {
-                      bgcolor: 'rgba(212,165,116,.16)',
-                      color: (t: Theme) => copperText(t.palette.mode),
-                      border: '1px solid rgba(212,165,116,.5)',
-                    } : {}),
-                    '& .MuiChip-label': { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
-                  }} />
+                    height: 38,
+                    fontWeight: 700,
+                    borderRadius: RADIUS.pill,
+                    maxWidth: 180,
+                    transition: 'all 0.15s ease',
+                    ...(sel === n.nameCanonical
+                      ? {
+                          bgcolor: 'rgba(212,165,116,.22)',
+                          color: (t: Theme) => copperText(t.palette.mode),
+                          border: '1.5px solid rgba(212,165,116,.6)',
+                          boxShadow: '0 2px 8px rgba(212,165,116,.25)',
+                        }
+                      : {
+                          bgcolor: (t: Theme) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'),
+                          border: '1px solid transparent',
+                          '&:hover': {
+                            bgcolor: 'rgba(212,165,116,.10)',
+                            borderColor: 'rgba(212,165,116,.3)',
+                          },
+                        }),
+                    '& .MuiChip-label': { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', px: 1.5 },
+                  }}
+                />
               ))}
-              {multi.length > 6 && <Chip size="small" variant="outlined" label={`+${multi.length - 6}`} title="Ver todos na busca abaixo" sx={{ fontWeight: 700, borderRadius: RADIUS.pill }} />}
+              {multi.length > 6 && <Chip size="small" variant="outlined" label={`+${multi.length - 6}`} title="Ver todos na busca abaixo" sx={{ height: 38, fontWeight: 700, borderRadius: RADIUS.pill }} />}
             </Stack>
           )}
-          {/* Mobile: Select PURO — Autocomplete é input editável → abre o TECLADO do celular e
-              cobre a lista (feedback do dono 2026-08-19). Busca fica no desktop, onde digitar é barato. */}
+          {/* Mobile: Select PURO */}
           {isMobile ? (
             <FormControl fullWidth size="small">
-              <Select value={sel} onChange={(e) => setSel(e.target.value as string)} displayEmpty sx={{ borderRadius: RADIUS.button, fontWeight: 700 }}>
+              <Select value={sel} onChange={(e) => setSel(e.target.value as string)} displayEmpty sx={{ borderRadius: '14px', fontWeight: 700 }}>
                 <MenuItem value="" disabled><em>Marcador ({multi.length})</em></MenuItem>
                 {multi.map((n) => <MenuItem key={n.nameCanonical} value={n.nameCanonical} sx={{ fontWeight: 700 }}>{prettyName(n.nameCanonical)} ({n.count} exames)</MenuItem>)}
               </Select>

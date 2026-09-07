@@ -180,32 +180,88 @@ export const PatientSummary = ({ patient, exams, abnormal, questions, notes, pat
   ];
 
   return (
-    <Card elevation={0} sx={{ p: 2, borderRadius: '12px', border: '1px solid', borderColor: 'divider', bgcolor: (t) => (t.palette.mode === 'dark' ? alpha(primary, 0.05) : alpha(primary, 0.03)) }}>
+    <Card
+      elevation={0}
+      sx={{
+        p: { xs: 2, md: 2.5 },
+        borderRadius: '20px',
+        border: '1px solid',
+        borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(32,178,170,0.2)' : '#d8ece9'),
+        background: (t) =>
+          t.palette.mode === 'dark'
+            ? 'radial-gradient(ellipse 90% 70% at 10% 0%, rgba(32,178,170,0.12), transparent 70%), #152223'
+            : 'radial-gradient(ellipse 90% 70% at 10% 0%, rgba(32,178,170,0.06), transparent 70%), #ffffff',
+        boxShadow: (t) =>
+          t.palette.mode === 'dark'
+            ? '0 10px 30px rgba(0,0,0,0.4)'
+            : '0 8px 24px rgba(32,178,170,0.08)',
+      }}
+    >
       <Stack direction="row" spacing={1.5} alignItems="center" sx={{ minWidth: 0 }}>
         <Box sx={{ position: 'relative', flexShrink: 0 }}>
-          <Box sx={{ position: 'absolute', inset: -3, borderRadius: '50%', border: `2px solid ${ringColor}`, opacity: patient?.hasAlerts ? 1 : 0.35 }} />
-          <Avatar src={photo} sx={{ width: 56, height: 56, fontWeight: 800, bgcolor: alpha(primary, 0.14), color: primary, fontSize: 20 }}>{fullName?.charAt(0)}</Avatar>
+          <Box
+            sx={{
+              position: 'absolute',
+              inset: -4,
+              borderRadius: '50%',
+              border: `2px solid ${ringColor}`,
+              opacity: patient?.hasAlerts ? 1 : 0.4,
+              boxShadow: patient?.hasAlerts ? `0 0 12px ${ringColor}` : undefined,
+              transition: 'box-shadow 0.3s ease',
+            }}
+          />
+          <Avatar
+            src={photo}
+            sx={{
+              width: 56,
+              height: 56,
+              fontWeight: 800,
+              bgcolor: alpha(primary, 0.14),
+              color: primary,
+              fontSize: 20,
+              border: '2px solid rgba(255,255,255,0.2)',
+            }}
+          >
+            {fullName?.charAt(0)}
+          </Avatar>
         </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          {/* Kicker de papel (aprovado pelo dono 2026-08-19): desambigua MÉDICO (chip cobre
-              no header) × PACIENTE (este hero) sem custo de altura — tipográfico, na voz
-              cobre do modo médico. */}
-          <Typography component="div" sx={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.09em', lineHeight: 1.4, color: (t) => copperText(t.palette.mode) }}>PACIENTE · PRONTUÁRIO COMPARTILHADO</Typography>
+          {/* Kicker de papel: desambigua MÉDICO × PACIENTE */}
+          <Typography component="div" sx={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.09em', lineHeight: 1.4, color: (t) => copperText(t.palette.mode) }}>
+            PACIENTE · PRONTUÁRIO COMPARTILHADO
+          </Typography>
           <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0 }}>
-            <Typography title={fullName} sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 20, lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: '1 1 auto', minWidth: 0, color: 'text.primary' }}>{fullName}</Typography>
-            <Button size="small" onClick={() => setSwitcherOpen(true)} startIcon={<SwapHorizIcon />} aria-label="Trocar paciente" sx={{ flexShrink: 0, minWidth: 0, textTransform: 'none', fontWeight: 700, color: primary, borderRadius: '999px', py: 0.25, px: 1, '&:hover': { bgcolor: alpha(primary, 0.08) } }}>Trocar</Button>
+            <Typography title={fullName} sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: { xs: 18, md: 21 }, lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: '1 1 auto', minWidth: 0, color: 'text.primary' }}>
+              {fullName}
+            </Typography>
+            <Button
+              size="small"
+              onClick={() => setSwitcherOpen(true)}
+              startIcon={<SwapHorizIcon />}
+              aria-label="Trocar paciente"
+              sx={{
+                flexShrink: 0,
+                minWidth: 0,
+                textTransform: 'none',
+                fontWeight: 700,
+                color: primary,
+                borderRadius: '999px',
+                py: 0.35,
+                px: 1.25,
+                border: '1px solid',
+                borderColor: alpha(primary, 0.25),
+                bgcolor: alpha(primary, 0.05),
+                '&:hover': { bgcolor: alpha(primary, 0.12), borderColor: primary },
+              }}
+            >
+              Trocar
+            </Button>
           </Stack>
           {caption && <Typography sx={{ color: 'text.primary', opacity: 0.72, display: 'block', mt: 0.5, fontSize: 13, fontWeight: 600, lineHeight: 1.3 }}>{caption}</Typography>}
         </Box>
       </Stack>
 
-      {/* 6 colunas só em tela LARGA (lg+): em ~960px a coluna do detalhe tem ~640px e
-          6 tiles de ~93px cortavam o conteúdo (valor/label vazavam à direita).
-          minWidth 0 nos tiles: sub com noWrap ("4.043 passos/dia") fixava o min-content
-          do track em ~160px → grid ≥330px → CARD de 362px transbordava o container
-          (278px em viewport 320) e o prontuário inteiro ficava cortado à direita,
-          sem scrollbar (clipado) — bug mobile reportado na área do médico. */}
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)', lg: 'repeat(6, 1fr)' }, gap: 1, mt: 2, minWidth: 0 }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)', lg: 'repeat(6, 1fr)' }, gap: 1.25, mt: 2.25, minWidth: 0 }}>
         {tiles.map((t) => (
           <Box
             key={t.key}
@@ -215,23 +271,35 @@ export const PatientSummary = ({ patient, exams, abnormal, questions, notes, pat
             tabIndex={t.onClick ? 0 : undefined}
             aria-label={t.onClick ? `Abrir ${t.label}` : undefined}
             sx={{
-              p: 1.25, borderRadius: '12px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider',
+              p: 1.35,
+              borderRadius: '14px',
+              bgcolor: 'background.paper',
+              border: '1px solid',
+              borderColor: (theme) => (theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : '#e2e8f0'),
               cursor: t.onClick ? 'pointer' : 'default',
-              minWidth: 0, overflow: 'hidden',
-              transition: 'border-color .15s, box-shadow .15s',
-              '&:hover': t.onClick ? { borderColor: primary, boxShadow: `0 2px 8px ${alpha(primary, 0.15)}` } : {},
+              minWidth: 0,
+              overflow: 'hidden',
+              boxShadow: (theme) => (theme.palette.mode === 'dark' ? '0 2px 8px rgba(0,0,0,0.2)' : '0 2px 6px rgba(0,0,0,0.03)'),
+              transition: 'transform 0.18s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.18s, box-shadow 0.18s',
+              '&:hover': t.onClick
+                ? {
+                    transform: 'translateY(-2px)',
+                    borderColor: primary,
+                    boxShadow: `0 6px 16px ${alpha(primary, 0.18)}`,
+                  }
+                : {},
               '&:active': t.onClick ? { transform: 'scale(.98)' } : {},
             }}
           >
-            <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 0.25, minWidth: 0 }}>
+            <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 0.35, minWidth: 0 }}>
               {t.icon}
               <Typography variant="caption" noWrap sx={{ color: 'text.secondary', fontWeight: 700, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.label}</Typography>
               {t.onClick && !loading && <ChevronRightIcon sx={{ fontSize: 15, color: 'text.disabled' }} />}
             </Stack>
             {loading ? (
-              <Skeleton variant="rounded" width={44} height={22} sx={{ mt: 0.5 }} />
+              <Skeleton variant="rounded" width={44} height={22} sx={{ mt: 0.5, borderRadius: '6px' }} />
             ) : (
-              <Typography sx={{ fontWeight: 800, color: t.color as never, fontSize: 16, lineHeight: 1.2, overflowWrap: 'anywhere' }}>{t.value}</Typography>
+              <Typography sx={{ fontWeight: 800, color: t.color as never, fontSize: 17, lineHeight: 1.2, overflowWrap: 'anywhere' }}>{t.value}</Typography>
             )}
             {!loading && t.sub && (Array.isArray(t.sub)
               ? t.sub.map((line) => <Typography key={line} variant="caption" sx={{ color: 'text.secondary', display: 'block', lineHeight: 1.3 }}>{line}</Typography>)
@@ -240,12 +308,12 @@ export const PatientSummary = ({ patient, exams, abnormal, questions, notes, pat
         ))}
       </Box>
 
-      <Dialog open={switcherOpen} onClose={() => setSwitcherOpen(false)} fullWidth maxWidth="sm" PaperProps={{ sx: { borderRadius: '12px' } }}>
-        <DialogContent sx={{ pt: 3 }}>
+      <Dialog open={switcherOpen} onClose={() => setSwitcherOpen(false)} fullWidth maxWidth="sm" PaperProps={{ sx: { borderRadius: '20px', p: 1 } }}>
+        <DialogContent sx={{ pt: 2 }}>
           <Stack spacing={1.5}>
-            <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif' }}>Selecionar paciente</Typography>
+            <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 18 }}>Selecionar paciente</Typography>
             <DoctorPatientSwitcher patients={patients} value={pid} onSelect={(id) => { onSwitchPatient(id); setSwitcherOpen(false); }} />
-            <Button onClick={() => setSwitcherOpen(false)} sx={{ alignSelf: 'flex-end', textTransform: 'none', borderRadius: '999px' }}>Fechar</Button>
+            <Button onClick={() => setSwitcherOpen(false)} sx={{ alignSelf: 'flex-end', textTransform: 'none', borderRadius: '999px', fontWeight: 700 }}>Fechar</Button>
           </Stack>
         </DialogContent>
       </Dialog>

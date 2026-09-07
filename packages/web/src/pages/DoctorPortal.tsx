@@ -552,32 +552,81 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   // Mesma fonte de verdade pros dois — preserva a identidade do portal do médico.
   const renderSideMenu = (onNav: () => void) => (
     <>
-      <Box sx={{ p: 2, pb: 1.5, background: (t) => `linear-gradient(135deg, ${t.palette.primary.main}, ${t.palette.primary.dark})`, color: '#fff' }}>
+      <Box
+        sx={{
+          p: 2.25,
+          pb: 2,
+          background: (t) =>
+            t.palette.mode === 'dark'
+              ? 'radial-gradient(ellipse 90% 80% at 10% 0%, #0d9488 0%, #082d2b 100%)'
+              : 'radial-gradient(ellipse 90% 80% at 10% 0%, #20B2AA 0%, #0f766e 100%)',
+          color: '#fff',
+          boxShadow: '0 4px 16px rgba(15,95,90,.18)',
+        }}
+      >
         <Stack direction="row" alignItems="center" spacing={1.5}>
-          <IconButton onClick={(e) => setAvatarEl(e.currentTarget)} aria-label="Menu do médico" sx={{ p: 0.5, borderRadius: '50%', '&:hover': { bgcolor: 'rgba(255,255,255,.18)' } }}>
-            <Avatar src={doctor?.photoUrl ? doctorPhotoUrl(doctor.id, photoVer) : undefined} sx={{ width: 52, height: 52, fontSize: 20, bgcolor: 'rgba(255,255,255,.2)', fontWeight: 800, border: '2px solid rgba(255,255,255,.5)' }}>{doctor?.name?.charAt(0)}</Avatar>
+          <IconButton
+            onClick={(e) => setAvatarEl(e.currentTarget)}
+            aria-label="Menu do médico"
+            sx={{
+              p: 0.5,
+              borderRadius: '50%',
+              '&:hover': { bgcolor: 'rgba(255,255,255,.18)' },
+            }}
+          >
+            <Avatar
+              src={doctor?.photoUrl ? doctorPhotoUrl(doctor.id, photoVer) : undefined}
+              sx={{
+                width: 54,
+                height: 54,
+                fontSize: 21,
+                bgcolor: 'rgba(255,255,255,.22)',
+                fontWeight: 800,
+                border: '2px solid rgba(255,255,255,.7)',
+                boxShadow: '0 0 0 3px rgba(255,255,255,0.2), 0 0 14px rgba(32,178,170,0.5)',
+              }}
+            >
+              {doctor?.name?.charAt(0)}
+            </Avatar>
           </IconButton>
           <Box sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>{doctor?.name || 'Médico'}</Typography>
+            <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 16 }}>{doctor?.name || 'Médico'}</Typography>
             {unreadQ > 0 && <Chip size="small" label={`${unreadQ} ${unreadQ === 1 ? 'pergunta nova' : 'perguntas novas'}`} sx={{ mt: 0.5, height: 22, fontSize: 12, bgcolor: 'rgba(255,255,255,.28)', color: '#fff', fontWeight: 700 }} />}
-            <Typography variant="caption" sx={{ opacity: 0.9, display: 'block' }}>{[doctor?.specialty, doctor?.crm && `CRM ${doctor.crm}`].filter(Boolean).join(' • ')}</Typography>
+            <Typography variant="caption" sx={{ opacity: 0.9, display: 'block', mt: 0.25, fontWeight: 500 }}>{[doctor?.specialty, doctor?.crm && `CRM ${doctor.crm}`].filter(Boolean).join(' • ')}</Typography>
           </Box>
         </Stack>
       </Box>
       <Divider />
-      <Box sx={{ mx: '10px', mt: 1.5, p: 1.25, borderRadius: '12px', background: planInfo?.isPremium ? 'rgba(99,102,241,.08)' : 'rgba(32,178,170,0.08)', border: '1px solid', borderColor: planInfo?.isPremium ? 'rgba(99,102,241,.2)' : 'divider' }}>
-        <Typography variant="caption" sx={{ fontWeight: 800, color: planInfo?.isPremium ? '#6366f1' : 'primary.dark', display: 'block' }}>PLANO</Typography>
+      <Box sx={{ mx: '12px', mt: 1.5, p: 1.5, borderRadius: '16px', background: planInfo?.isPremium ? 'linear-gradient(135deg, rgba(99,102,241,.12), rgba(99,102,241,.04))' : 'linear-gradient(135deg, rgba(32,178,170,0.12), rgba(32,178,170,0.03))', border: '1px solid', borderColor: planInfo?.isPremium ? 'rgba(99,102,241,.25)' : 'rgba(32,178,170,0.2)', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
+        <Typography variant="caption" sx={{ fontWeight: 800, letterSpacing: '0.05em', color: planInfo?.isPremium ? '#6366f1' : 'primary.dark', display: 'block' }}>PLANO</Typography>
         {planInfo?.isPremium
-          ? <><Typography sx={{ fontSize: 13, fontWeight: 700, color: '#6366f1', display: 'inline-flex', alignItems: 'center', gap: 0.5 }}><Diamond size={14} weight="fill" /> Dr. Exame Pro</Typography><Typography variant="caption" sx={{ color: 'text.secondary' }}>SOAP e planos ilimitados.{planInfo.planExpiresAt ? ` Até ${new Date(planInfo.planExpiresAt).toLocaleDateString('pt-BR')}.` : ''}</Typography></>
-          : <><Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary' }}>Grátis ({planInfo?.freeUsed ?? 0}/{planInfo?.freeLimit ?? 5} usados)</Typography><Typography variant="caption" sx={{ color: 'text.secondary' }}>5 pré-consultas/SOAP grátis por mês.</Typography></>}
+          ? <><Typography sx={{ fontSize: 13.5, fontWeight: 800, color: '#6366f1', display: 'inline-flex', alignItems: 'center', gap: 0.5, mt: 0.25 }}><Diamond size={15} weight="fill" /> Dr. Exame Pro</Typography><Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>SOAP e planos ilimitados.{planInfo.planExpiresAt ? ` Até ${new Date(planInfo.planExpiresAt).toLocaleDateString('pt-BR')}.` : ''}</Typography></>
+          : <><Typography sx={{ fontSize: 13.5, fontWeight: 800, color: 'text.primary', mt: 0.25 }}>Grátis ({planInfo?.freeUsed ?? 0}/{planInfo?.freeLimit ?? 5} usados)</Typography><Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>5 pré-consultas/SOAP grátis por mês.</Typography></>}
       </Box>
       <List sx={{
-        pt: 1,
-        '& .MuiListItemButton-root': { borderRadius: '12px', m: '2px 10px' },
-        // Assinatura cobre: item ativo do menu do portal (no app do paciente é teal).
-        '& .MuiListItemButton-root.Mui-selected': { bgcolor: (t: Theme) => (t.palette.mode === 'dark' ? 'rgba(212,165,116,.24)' : 'rgba(212,165,116,.16)') },
-        '& .MuiListItemButton-root.Mui-selected:hover': { bgcolor: 'rgba(212,165,116,.20)' },
-        '& .MuiListItemButton-root.Mui-selected .MuiListItemText-primary': { color: (t: Theme) => copperText(t.palette.mode) },
+        pt: 1.25,
+        px: 0.5,
+        '& .MuiListItemButton-root': {
+          borderRadius: '12px',
+          m: '3px 8px',
+          py: 0.85,
+          transition: 'all 0.18s cubic-bezier(0.4, 0, 0.2, 1)',
+          '&:hover': {
+            transform: 'translateX(4px)',
+            bgcolor: (t: Theme) => alpha(t.palette.primary.main, 0.08),
+          },
+        },
+        '& .MuiListItemButton-root.Mui-selected': {
+          bgcolor: (t: Theme) => (t.palette.mode === 'dark' ? 'rgba(212,165,116,.24)' : 'rgba(212,165,116,.16)'),
+          borderLeft: `3px solid ${COPPER.main}`,
+          pl: '13px',
+          '& .MuiListItemIcon-root': {
+            transform: 'scale(1.12)',
+            transition: 'transform 0.18s ease',
+          },
+        },
+        '& .MuiListItemButton-root.Mui-selected:hover': { bgcolor: 'rgba(212,165,116,.22)' },
+        '& .MuiListItemButton-root.Mui-selected .MuiListItemText-primary': { color: (t: Theme) => copperText(t.palette.mode), fontWeight: 700 },
       }}>
         <ListItemButton selected={view === 'overview'} onClick={() => { setView('overview'); setSelected(null); setSelExam(null); onNav(); }}><ListItemIcon sx={{ minWidth: 38 }}><SpaceDashboardIcon sx={{ color: 'secondary.dark' }} /></ListItemIcon><ListItemText primary="Painel" primaryTypographyProps={{ fontWeight: 600 }} /></ListItemButton>
         <ListItemButton selected={view === 'patients'} onClick={() => { setView('patients'); setSelected(null); setSelExam(null); onNav(); }}><ListItemIcon sx={{ minWidth: 38 }}><GroupsIcon sx={{ color: 'secondary.dark' }} /></ListItemIcon><ListItemText primary="Pacientes" primaryTypographyProps={{ fontWeight: 600 }} /></ListItemButton>
@@ -591,17 +640,21 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         </ListItemButton>
         <ListItemButton selected={view === 'profile'} onClick={() => { setView('profile'); onNav(); }}><ListItemIcon sx={{ minWidth: 38 }}><PersonIcon sx={{ color: 'secondary.dark' }} /></ListItemIcon><ListItemText primary="Meu perfil" primaryTypographyProps={{ fontWeight: 600 }} /></ListItemButton>
         <ListItemButton selected={view === 'password'} onClick={() => { setView('password'); onNav(); }}><ListItemIcon sx={{ minWidth: 38 }}><LockIcon sx={{ color: 'secondary.dark' }} /></ListItemIcon><ListItemText primary="Trocar senha" primaryTypographyProps={{ fontWeight: 600 }} /></ListItemButton>
-        <Divider sx={{ my: 1 }} />
-        <ListItemButton onClick={() => { onNav(); onLogout(); }} sx={{ color: 'error.main' }}><ListItemIcon sx={{ minWidth: 38 }}><LogoutIcon sx={{ color: 'error.main' }} /></ListItemIcon><ListItemText primary="Sair" primaryTypographyProps={{ fontWeight: 600 }} /></ListItemButton>
+        <Divider sx={{ my: 1, mx: 1 }} />
+        <ListItemButton onClick={() => { onNav(); onLogout(); }} sx={{ color: 'error.main', '&:hover': { bgcolor: 'rgba(239,68,68,0.08)' } }}><ListItemIcon sx={{ minWidth: 38 }}><LogoutIcon sx={{ color: 'error.main' }} /></ListItemIcon><ListItemText primary="Sair" primaryTypographyProps={{ fontWeight: 600 }} /></ListItemButton>
       </List>
-      <Typography variant="caption" sx={{ mt: 'auto', p: 2, color: 'text.secondary' }}>Portal do Médico</Typography>
+      <Box sx={{ mt: 'auto', p: 2, borderTop: '1px solid', borderColor: 'divider', textAlign: 'center' }}>
+        <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
+          Dr. Exame • Portal do Médico 🩺
+        </Typography>
+      </Box>
     </>
   );
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', display: 'flex' }}>
       {/* Menu vertical do avatar (perfil/senha/sair) — aberto ao clicar no avatar do médico */}
-      <Menu anchorEl={avatarEl} open={!!avatarEl} onClose={() => setAvatarEl(null)} slotProps={{ paper: { sx: { borderRadius: '12px', minWidth: 210, mt: 1 } } }}>
+      <Menu anchorEl={avatarEl} open={!!avatarEl} onClose={() => setAvatarEl(null)} slotProps={{ paper: { sx: { borderRadius: '16px', minWidth: 210, mt: 1, boxShadow: '0 10px 28px rgba(0,0,0,0.12)' } } }}>
         <MenuItem onClick={() => { setView('profile'); setAvatarEl(null); }}><ListItemIcon><PersonIcon fontSize="small" /></ListItemIcon><ListItemText>Meu perfil</ListItemText></MenuItem>
         <MenuItem onClick={() => { setView('password'); setAvatarEl(null); }}><ListItemIcon><LockIcon fontSize="small" /></ListItemIcon><ListItemText>Trocar senha</ListItemText></MenuItem>
         <Divider sx={{ my: 0.5 }} />
@@ -649,19 +702,18 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         {view === 'profile' && <DoctorProfileForm token={token} doctor={doctor} onBack={() => setView('patients')} onSaved={(d) => setDoctor(d)} onPhoto={() => setPhotoVer((v) => v + 1)} photoVer={photoVer} />}
         {view === 'password' && <DoctorChangePasswordForm token={token} onBack={() => setView('patients')} />}
 
-        {/* CONVITES — gestão dedicada (criar, copiar link, reenviar WhatsApp, cancelar). Tira o
-            convite de dentro da lista de pacientes (poluía a tela principal do médico). */}
+        {/* CONVITES — gestão dedicada */}
         {view === 'invites' && (
           <PortalInvites invites={invites} doctorName={doctor?.name} onNewInvite={() => { setInvResult(null); setInviteOpen(true); }} onCancel={cancelInvite} linkFor={(tok) => `${window.location.href.split('#')[0]}#/convite/${tok}`} onSnackbar={(m, s) => snackbar({ message: m, severity: s })} onPrefill={(p) => { setInv({ name: p.name ?? '', phone: p.phone ?? '', email: p.email ?? '' }); setInvResult(null); setInviteOpen(true); }} />
         )}
-        {/* PERGUNTAS — inbox global (todas as pacientes). Em aberto primeiro. Responder abre o paciente. */}
+        {/* PERGUNTAS — inbox global */}
         {view === 'questions' && (
           <PortalQuestions allQ={allQ} allQLoading={allQLoading} patients={patients} qText={qText} setQText={setQText} qSending={qSending} replyOpen={replyOpen} setReplyOpen={setReplyOpen} onAnswer={answerInbox} onRefresh={loadAllQ} onGoToPatient={goToPatient} />
         )}
 
-        {/* Dialog de convite — sempre montado (aberto pela lista de pacientes E pela tela de Convites). */}
-        <Dialog open={inviteOpen} onClose={() => setInviteOpen(false)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: '12px' } }}>
-          <DialogTitle sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif' }}>Convidar paciente</DialogTitle>
+        {/* Dialog de convite */}
+        <Dialog open={inviteOpen} onClose={() => setInviteOpen(false)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: '20px', p: 1 } }}>
+          <DialogTitle sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 18 }}>Convidar paciente</DialogTitle>
           <DialogContent>
             {invResult ? (
               <Box sx={{ textAlign: 'center', py: 1 }}>
@@ -687,18 +739,15 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         </Dialog>
         {view === 'patients' && loading && <Box sx={{ textAlign: 'center', py: 6 }}><CircularProgress sx={{ color: 'primary.dark' }} /></Box>}
 
-        {/* PAINEL INICIAL DO MÉDICO (self-service): o que importa AGORA, em 5 segundos —
-            quem precisa de atenção, perguntas em aberto, exames a renovar.
-            Princípios de dashboard clínico: o PORQUÊ visível na linha de status + ação de 1 clique.
-            (Ordenação alfabética — decisão do dono 2026-08-19; prioridade clínica segue na linha.) */}
+        {/* PAINEL INICIAL DO MÉDICO (self-service) */}
         {view === 'overview' && loading && <Box sx={{ textAlign: 'center', py: 6 }}><CircularProgress sx={{ color: 'primary.dark' }} /></Box>}
         {view === 'overview' && !loading && (
           <PortalOverview patients={patients} invites={invites} doctorName={doctor?.name} onOpenPatient={openPatient} onSetView={(v) => setView(v as any)} onLoadAllQ={() => { setView('questions'); loadAllQ(); }} onNewInvite={() => { setInvResult(null); setInviteOpen(true); }} onSetPatAlertOnly={setPatAlertOnly} />
         )}
-        {/* DR. EXAME PRO — banner premium (free tier + CTA). No painel e na LISTA (sem paciente aberto). Dismissível. */}
+        {/* DR. EXAME PRO — banner premium */}
         {planInfo && !planInfo.isPremium && (view === 'overview' || view === 'patients') && !selected && !payDismissed && (
-          <Box sx={{ mb: 2, p: 2, pr: 6, borderRadius: '12px', position: 'relative', background: 'linear-gradient(135deg,rgba(99,102,241,.08),rgba(99,102,241,.02))', border: '1px solid', borderColor: 'rgba(99,102,241,.2)' }}>
-            <IconButton size="small" aria-label="Fechar banner" onClick={() => { try { localStorage.setItem('doctorPayDismissed', '1'); } catch { /* */ } setPayDismissed(true); }} sx={{ position: 'absolute', top: 6, right: 6, color: 'text.secondary', '&:hover': { bgcolor: 'rgba(99,102,241,.10)' } }}><span aria-hidden style={{ fontSize: 20, lineHeight: 1 }}>×</span></IconButton>
+          <Box sx={{ mb: 2.5, p: 2.25, pr: 6, borderRadius: '20px', position: 'relative', background: 'linear-gradient(135deg,rgba(99,102,241,.10),rgba(99,102,241,.03))', border: '1px solid', borderColor: 'rgba(99,102,241,.25)', boxShadow: '0 8px 24px rgba(99,102,241,0.08)' }}>
+            <IconButton size="small" aria-label="Fechar banner" onClick={() => { try { localStorage.setItem('doctorPayDismissed', '1'); } catch { /* */ } setPayDismissed(true); }} sx={{ position: 'absolute', top: 8, right: 8, color: 'text.secondary', '&:hover': { bgcolor: 'rgba(99,102,241,.10)' } }}><span aria-hidden style={{ fontSize: 20, lineHeight: 1 }}>×</span></IconButton>
             <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" useFlexGap>
               <Typography sx={{ fontWeight: 800, color: '#6366f1', fontSize: 16, display: 'inline-flex', alignItems: 'center', gap: 0.5 }}><Diamond size={16} weight="fill" />Dr. Exame Pro</Typography>
               <Typography variant="body2" sx={{ color: 'text.secondary', flex: 1, minWidth: 180 }}>{planInfo.freeUsed >= planInfo.freeLimit ? '🔒 Pré-consultas grátis esgotadas este mês.' : `💡 ${planInfo.freeUsed} de ${planInfo.freeLimit} pré-consultas grátis usadas.`}</Typography>
@@ -969,21 +1018,21 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                     {[...questions].filter((q: any) => qFilter === 'all' || (qFilter === 'pending' ? q.status !== 'answered' : q.status === 'answered')).sort((a: any, b: any) => (a.status === 'answered' ? 1 : 0) - (b.status === 'answered' ? 1 : 0)).map((q: any) => {
                       const msgs = q.messages ?? [];
                       return (
-                        <Card key={q.id} variant="outlined" sx={{ borderRadius: '12px', borderColor: 'divider' }}>
-                          <CardContent>
-                            <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1} sx={{ mb: 1 }}>
+                        <Card key={q.id} variant="outlined" sx={{ borderRadius: '20px', borderColor: 'divider', boxShadow: '0 4px 16px rgba(0,0,0,0.03)' }}>
+                          <CardContent sx={{ p: { xs: 2, md: 2.25 } }}>
+                            <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1} sx={{ mb: 1.25 }}>
                               {/* Título com clamp 2 linhas (perguntas antigas têm subject longo) + texto completo no title. */}
                               <Typography sx={{ fontWeight: 800, wordBreak: 'break-word', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }} title={q.subject}>💬 {q.subject}</Typography>
                               <QuestionStatusBadge status={q.status} />
                             </Stack>
                             {msgs.length > 0 && (
-                              <Stack spacing={0.75} sx={{ mb: 1 }}>
+                              <Stack spacing={1} sx={{ mb: 1.25 }}>
                                 {msgs.map((m: any, i: number) => {
                                   const isDoc = m.authorRole === 'doctor';
                                   const isAi = m.authorRole === 'ai';
                                   const isSys = m.authorRole === 'system';
                                   if (isSys) {
-                                    // Auto-recebimento (ex.: "✅ Recebido! Dr. X vai analisar em breve") — centralizado, muted.
+                                    // Auto-recebimento — centralizado, muted.
                                     return <Box key={i} sx={{ textAlign: 'center', my: 0.5 }}><Box sx={{ display: 'inline-block', px: 1.5, py: 0.5, borderRadius: '999px', bgcolor: 'rgba(32,178,170,.08)', color: 'text.secondary', fontSize: 12, fontWeight: 600 }}>{m.body}</Box></Box>;
                                   }
                                   const av = isAi ? null : isDoc
@@ -995,7 +1044,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                                   return (
                                     <Box key={i} sx={{ display: 'flex', justifyContent: isDoc ? 'flex-end' : 'flex-start', gap: 0.75, alignItems: 'flex-end' }}>
                                       {!isDoc && av}
-                                      <Box sx={{ maxWidth: '78%', p: 1, px: 1.25, borderRadius: '12px', bgcolor: (t) => isDoc ? (t.palette.mode === 'dark' ? '#1e2d2c' : '#e0f2f1') : isAi ? (t.palette.mode === 'dark' ? '#2b2438' : '#f3e8ff') : (t.palette.mode === 'dark' ? '#242f33' : '#f1f5f9'), border: '1px solid', borderColor: isDoc ? 'rgba(32,178,170,.25)' : 'transparent' }}>
+                                      <Box sx={{ maxWidth: '78%', p: 1.25, px: 1.5, borderRadius: '16px', bgcolor: (t) => isDoc ? (t.palette.mode === 'dark' ? '#1e2d2c' : '#e0f2f1') : isAi ? (t.palette.mode === 'dark' ? '#2b2438' : '#f3e8ff') : (t.palette.mode === 'dark' ? '#242f33' : '#f1f5f9'), border: '1px solid', borderColor: isDoc ? 'rgba(32,178,170,.25)' : 'transparent' }}>
                                         <Typography variant="caption" sx={{ display: 'block', fontWeight: 700, color: isDoc ? 'primary.dark' : isAi ? '#6366f1' : 'text.secondary', mb: 0.25, fontSize: 12 }}>{role} · {new Date(m.createdAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</Typography>
                                         <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.45, wordBreak: 'break-word' }}>{m.body}</Typography>
                                       </Box>
@@ -1006,11 +1055,11 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                               </Stack>
                             )}
                             {q.status === 'answered' ? null : (<>
-                              <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mb: 0.75 }}>
-                                {QUICK_REPLIES.slice(0, 4).map((t) => <Chip key={t} size="small" variant="outlined" label={t} onClick={() => setQText((prev) => ({ ...prev, [q.id]: t }))} sx={{ fontWeight: 600, height: 'auto', maxWidth: '100%', borderRadius: '12px', py: 0.5, borderColor: 'rgba(32,178,170,.4)', color: 'primary.dark', '& .MuiChip-label': { whiteSpace: 'normal', lineHeight: 1.3 }, '&:hover': { bgcolor: 'rgba(32,178,170,.06)' } }} />)}
+                              <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mb: 1 }}>
+                                {QUICK_REPLIES.slice(0, 4).map((t) => <Chip key={t} size="small" variant="outlined" label={t} onClick={() => setQText((prev) => ({ ...prev, [q.id]: t }))} sx={{ fontWeight: 600, height: 'auto', maxWidth: '100%', borderRadius: '999px', py: 0.5, borderColor: 'rgba(32,178,170,.4)', color: 'primary.dark', '& .MuiChip-label': { whiteSpace: 'normal', lineHeight: 1.3 }, '&:hover': { bgcolor: 'rgba(32,178,170,.08)' } }} />)}
                               </Stack>
                               <TextField multiline minRows={1} size="small" fullWidth placeholder="Escrever resposta…" value={qText[q.id] ?? ''} onChange={(e) => setQText((t) => ({ ...t, [q.id]: e.target.value }))} />
-                              <Button size="small" disabled={qSending === q.id || !(qText[q.id]?.trim())} onClick={() => responderQ(q.id)} startIcon={qSending === q.id ? <CircularProgress size={14} color="inherit" /> : undefined} sx={{ mt: 0.5, textTransform: 'none', fontWeight: 700, color: 'primary.dark' }}>{qSending === q.id ? 'Enviando…' : 'Responder'}</Button>
+                              <Button size="small" disabled={qSending === q.id || !(qText[q.id]?.trim())} onClick={() => responderQ(q.id)} startIcon={qSending === q.id ? <CircularProgress size={14} color="inherit" /> : undefined} sx={{ mt: 0.75, textTransform: 'none', fontWeight: 700, color: 'primary.dark', borderRadius: '999px' }}>{qSending === q.id ? 'Enviando…' : 'Responder'}</Button>
                             </>)}
                           </CardContent>
                         </Card>
@@ -1036,19 +1085,19 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
       )}
 
       {/* DIALOG DE PAGAMENTO — PIX QR inline + timer + opção cartão */}
-      <Dialog open={payOpen} onClose={() => { setPayOpen(false); setPayData(null); }} PaperProps={{ sx: { borderRadius: '12px', maxWidth: 380 } }}>
-        <DialogTitle sx={{ fontWeight: 800, textAlign: 'center', pb: 1 }}>💎 Dr. Exame Pro — R$29,90/mês</DialogTitle>
+      <Dialog open={payOpen} onClose={() => { setPayOpen(false); setPayData(null); }} PaperProps={{ sx: { borderRadius: '20px', maxWidth: 390, p: 1 } }}>
+        <DialogTitle sx={{ fontWeight: 800, textAlign: 'center', pb: 1, fontFamily: 'Poppins, sans-serif' }}>💎 Dr. Exame Pro — R$29,90/mês</DialogTitle>
         <DialogContent>
           {payData?.qrBase64 ? (
             <Box sx={{ textAlign: 'center' }}>
               <Typography variant="body2" sx={{ mb: 1.5, color: 'text.secondary' }}>Escaneie o QR Code com o app do seu banco:</Typography>
-              <Box component="img" src={payData.qrBase64} alt="PIX QR Code" sx={{ width: 220, height: 220, borderRadius: '12px', border: '1px solid', borderColor: 'divider' }} />
+              <Box component="img" src={payData.qrBase64} alt="PIX QR Code" sx={{ width: 220, height: 220, borderRadius: '16px', border: '1px solid', borderColor: 'divider', boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }} />
               <Box sx={{ mt: 1.5, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 0.5 }}>
                 <Typography component="span" sx={{ fontSize: 20 }}>⏳</Typography>
                 <PayCountdown expiresAt={payData.expiresAt} onExpire={() => { setPayOpen(false); setPayData(null); }} />
               </Box>
               <Typography variant="caption" sx={{ display: 'block', mt: 1, color: '#047857', fontWeight: 700 }}>✅ Detecta pagamento automaticamente</Typography>
-              <Button fullWidth size="small" onClick={() => { if (payData.qrCode) navigator.clipboard.writeText(payData.qrCode); }} sx={{ mt: 1, textTransform: 'none', borderRadius: '999px' }}>📋 Copiar código PIX</Button>
+              <Button fullWidth size="small" onClick={() => { if (payData.qrCode) navigator.clipboard.writeText(payData.qrCode); }} sx={{ mt: 1.25, textTransform: 'none', borderRadius: '999px', fontWeight: 700 }}>📋 Copiar código PIX</Button>
               <Divider sx={{ my: 1.5 }}><Typography variant="caption" sx={{ color: 'text.secondary' }}>ou pague com</Typography></Divider>
               <Button fullWidth size="small" variant="outlined" onClick={() => startCheckout('card')} sx={{ textTransform: 'none', borderRadius: '999px', fontWeight: 700 }}>💳 Cartão de crédito / débito</Button>
             </Box>
@@ -1060,6 +1109,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           )}
         </DialogContent>
       </Dialog>
+
 
       {/* MENU RODAPÉ (mobile) — Pacientes · Perguntas · Perfil · Mais. Botões acessíveis (aria + button nativo). */}
       <Box component="nav" sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1100, display: { xs: 'flex', md: 'none' }, justifyContent: 'space-around', bgcolor: 'background.paper', backdropFilter: 'blur(14px)', borderTop: '1px solid', borderTopColor: 'divider', pb: 'env(safe-area-inset-bottom)', boxShadow: '0 -6px 24px rgba(32,178,170,.10)' }}>

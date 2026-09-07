@@ -65,7 +65,7 @@ export const DoctorPatientSwitcher = ({ patients, value, onSelect }: { patients:
       renderOption={renderOption}
       renderInput={input}
       fullWidth
-      slotProps={{ paper: { sx: { borderRadius: '12px', mt: 0.5 } } }}
+      slotProps={{ paper: { sx: { borderRadius: '16px', mt: 0.5, boxShadow: '0 12px 32px rgba(0,0,0,0.12)', border: '1px solid', borderColor: 'divider' } } }}
     />
   );
 
@@ -85,7 +85,7 @@ export const DoctorPatientSwitcher = ({ patients, value, onSelect }: { patients:
         <Box sx={{ flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected ? pName(selected) : 'Selecionar paciente…'}</Box>
         <SwapHorizIcon sx={{ color: '#178f89', fontSize: 22 }} />
       </Button>
-      <Dialog open={mobileOpen} onClose={() => setMobileOpen(false)} fullWidth maxWidth="sm" PaperProps={{ sx: { borderRadius: '12px' } }}>
+      <Dialog open={mobileOpen} onClose={() => setMobileOpen(false)} fullWidth maxWidth="sm" PaperProps={{ sx: { borderRadius: '20px', p: 1 } }}>
         <DialogContent sx={{ pt: 3 }}>
           <Stack spacing={1.5}>
             <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif' }}>Selecionar paciente</Typography>
