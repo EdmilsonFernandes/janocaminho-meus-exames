@@ -16,6 +16,7 @@ import { prisma } from '../prisma';
 import { chargeCredits, refundCredits, CREDIT_COSTS } from '../utils/credits';
 import { buildRiskAssessment, latestRiskAssessment } from '../analysis/risk-service';
 import { generateActionPlan } from '../analysis/risk-action-plan';
+import { sourcesFor } from '../analysis/knowledge';
 import { saveAnalysisDoc, getLatestAnalysisDoc, DOC_KIND } from '../utils/analysisDoc';
 import { computeAdherenceScore, computePredictions } from '../analysis/insights';
 
@@ -109,6 +110,17 @@ router.post('/consent', async (req: AuthedRequest, res, next) => {
     }
     await prisma.patient.update({ where: { id: patientId }, data: { dataContributionConsent: consent, consentedAt: consent ? new Date() : null } });
     res.json({ ok: true, consent });
+  } catch (e) { next(e); }
+});
+
+// FONTES da condição (gratuito, sem IA) — evidência citada do knowledge/*.md curado
+// (skill medical-research). Lê o ARQUIVO direto: sempre atual, independe de quando a
+// análise foi gerada — nada precisa ser regenerado. Aceita SÓ chaves conhecidas do
+// FILE_BY_CONDITION (nunca path arbitrário).
+router.get('/sources', async (req: AuthedRequest, res, next) => {
+  try {
+    const condition = String((req.query as Record<string, string | undefined>).condition ?? '');
+    res.json({ condition, sources: sourcesFor(condition) });
   } catch (e) { next(e); }
 });
 

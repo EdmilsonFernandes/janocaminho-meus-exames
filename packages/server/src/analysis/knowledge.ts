@@ -53,3 +53,35 @@ export function knowledgeFor(conditionKey: string): string | null {
     return null;
   }
 }
+
+/**
+ * Entradas do bloco "## Fontes" do card da condição — evidência citada (formato da skill
+ * medical-research: fonte + achado + confiança + PMID + data de consulta).
+ *
+ * Fonte de verdade é o ARQUIVO curado: "Ver fontes" na UI sempre mostra o estado atual,
+ * mesmo que a análise/leitura de risco tenha sido gerada antes de uma atualização —
+ * nada precisa ser regenerado.
+ */
+export function sourcesFor(conditionKey: string): string[] {
+  const file = FILE_BY_CONDITION[conditionKey];
+  if (!file) return [];
+  const txt = knowledgeFor(conditionKey);
+  if (!txt) return [];
+  const m = txt.match(/^##\s+Fontes\s*$/m);
+  if (!m || m.index == null) return [];
+  return txt
+    .slice(m.index + m[0].length)
+    .split('\n')
+    .reduce<string[]>((acc, line) => {
+      const t = line.trim();
+      if (t.startsWith('#')) return acc; // começou a próxima seção — para
+      if (t.startsWith('- ')) {
+        acc.push(t.slice(2).replace(/\s+/g, ' ').trim());
+      } else if (t && acc.length) {
+        // continuação indentada da entrada anterior (entrada ocupa várias linhas)
+        acc[acc.length - 1] = `${acc[acc.length - 1]} ${t}`.replace(/\s+/g, ' ').trim();
+      }
+      return acc;
+    }, [])
+    .filter(Boolean);
+}

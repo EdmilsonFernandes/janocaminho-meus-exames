@@ -80,10 +80,27 @@ export const RiskCard = () => {
   const [planErr, setPlanErr] = useState<null | 'credits' | 'error'>(null);
   const [feedback, setFeedback] = useState<null | 1 | 0>(null);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
+  // Fontes citadas da condição (knowledge/*.md curado — sempre atuais no server).
+  const [showSources, setShowSources] = useState(false);
+  const [sources, setSources] = useState<string[] | null>(null);
 
   // Reset estados derivados do paciente anterior ao trocar de perfil — não vazar
   // plano/feedback de um dependente (ex: Edmilson) pra outro (ex: Heloisa).
-  useEffect(() => { setPlan(null); setPlanErr(null); setFeedback(null); setShowQuestions(false); setShowFull(false); setHasMoreExplanation(false); setShowPlan(false); }, [pid]);
+  useEffect(() => { setPlan(null); setPlanErr(null); setFeedback(null); setShowQuestions(false); setShowFull(false); setHasMoreExplanation(false); setShowPlan(false); setSources(null); setShowSources(false); }, [pid]);
+
+  // Fontes: busca 1x ao expandir (grátis, sem créditos — lê o card curado do server).
+  const toggleSources = useCallback(() => {
+    setShowSources((v) => {
+      const open = !v;
+      if (open && sources == null && r?.predictedConditionKey) {
+        fetch(`${API_URL}/risk/sources?condition=${encodeURIComponent(r.predictedConditionKey)}`, { headers: { Authorization: `Bearer ${token()}` } })
+          .then((res) => (res.ok ? res.json() : { sources: [] }))
+          .then((d) => setSources(Array.isArray(d.sources) ? d.sources : []))
+          .catch(() => setSources([]));
+      }
+      return open;
+    });
+  }, [sources, r?.predictedConditionKey]);
 
   // Ao abrir: busca o ÚLTIMO plano salvo (GRÁTIS — /latest). Só cobra de novo no botão "Gerar novo".
   useEffect(() => {
@@ -431,6 +448,32 @@ export const RiskCard = () => {
         <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', color: 'text.secondary' }}>
           {r.medicalDisclaimer}
         </Typography>
+
+        {/* Fontes citadas — a camada científica deixa de ser bastidor: evidência com
+            PMID, confiança e data de consulta, sempre atuais (lê o card curado). */}
+        <Stack alignItems="center" sx={{ mt: 0.5 }}>
+          <Button size="small" onClick={toggleSources} endIcon={<ExpandMoreIcon sx={{ transform: showSources ? 'rotate(180deg)' : 'none', transition: 'transform .2s', fontSize: 16 }} />}
+            sx={{ textTransform: 'none', fontWeight: 700, fontSize: 12, color: 'text.secondary', minWidth: 0, px: 1, borderRadius: '999px' }}>
+            📚 Ver fontes desta leitura
+          </Button>
+          <Collapse in={showSources} unmountOnExit sx={{ width: '100%' }}>
+            {sources == null ? (
+              <Box sx={{ display: 'grid', placeItems: 'center', py: 1 }}><CircularProgress size={16} /></Box>
+            ) : sources.length === 0 ? (
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', py: 0.5 }}>
+                Fontes em atualização para esta condição.
+              </Typography>
+            ) : (
+              <Stack spacing={0.5} sx={{ mt: 0.5, px: 1.5, py: 1, borderRadius: '10px', bgcolor: 'action.hover' }}>
+                {sources.map((s) => (
+                  <Typography key={s} variant="caption" sx={{ color: 'text.secondary', lineHeight: 1.5, display: 'list-item', ml: 2 }}>
+                    {s}
+                  </Typography>
+                ))}
+              </Stack>
+            )}
+          </Collapse>
+        </Stack>
         {consent != null && (
           <Stack direction="row" spacing={0.75} alignItems="center" justifyContent="center" sx={{ mt: 1 }}>
             <Typography variant="caption" sx={{ color: 'text.secondary' }}>🧪 Ajudar a IA a melhorar (dados anônimos)</Typography>
