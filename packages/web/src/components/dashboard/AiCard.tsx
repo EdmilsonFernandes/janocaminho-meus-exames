@@ -10,18 +10,47 @@ import { AppCard } from '../AppCard';
 export const AiCard = ({ tip, onChat }: { tip: ReactNode; onChat: () => void }) => (
   <AppCard kind="tinted" tone="primary" tone2="secondary" sx={{
     mt: 2, position: 'relative', overflow: 'hidden', borderRadius: '20px !important',
-    // Gradiente mesh animado — hue shift sutil (10s loop)
     background: (t) => t.palette.mode === 'dark'
-      ? `radial-gradient(ellipse at 30% 20%, rgba(32,178,170,.16), transparent 55%), radial-gradient(ellipse at 85% 80%, rgba(99,102,241,.08), transparent 50%), ${t.palette.background.paper}`
-      : `radial-gradient(ellipse at 30% 20%, rgba(32,178,170,.10), transparent 55%), radial-gradient(ellipse at 85% 80%, rgba(99,102,241,.05), transparent 50%), #ffffff`,
-    border: (t) => `1px solid ${t.palette.mode === 'dark' ? 'rgba(32,178,170,.2)' : 'rgba(32,178,170,.15)'}`,
-    transition: 'box-shadow .3s ease',
-    '&:hover': { boxShadow: '0 8px 28px rgba(32,178,170,.12)' },
+      ? `radial-gradient(ellipse at 25% 20%, rgba(32,178,170,.22), transparent 55%), radial-gradient(ellipse at 85% 80%, rgba(212,165,116,.14), transparent 50%), radial-gradient(ellipse at 70% 20%, rgba(99,102,241,.10), transparent 45%), ${t.palette.background.paper}`
+      : `radial-gradient(ellipse at 25% 20%, rgba(32,178,170,.14), transparent 55%), radial-gradient(ellipse at 85% 80%, rgba(212,165,116,.08), transparent 50%), radial-gradient(ellipse at 70% 20%, rgba(99,102,241,.06), transparent 45%), #ffffff`,
+    border: (t) => `1px solid ${t.palette.mode === 'dark' ? 'rgba(32,178,170,.28)' : 'rgba(32,178,170,.20)'}`,
+    boxShadow: '0 4px 20px rgba(32,178,170,.06), 0 1px 3px rgba(0,0,0,.02)',
+    transition: 'box-shadow .3s ease, transform .2s ease',
+    '&:hover': { boxShadow: '0 8px 30px rgba(32,178,170,.18)', transform: 'translateY(-1px)' },
   }}>
-    {/* Rotating backdrop icon — quase imperceptível mas dá vida */}
+    {/* Floating sparkle particles */}
+    <Box sx={{
+      position: 'absolute', top: 16, right: '25%', width: 6, height: 6, borderRadius: '50%',
+      bgcolor: '#20b2aa', opacity: 0.6,
+      animation: 'dxSparkleFloat1 4s ease-in-out infinite',
+      '@keyframes dxSparkleFloat1': {
+        '0%, 100%': { transform: 'translate(0, 0) scale(1)', opacity: 0.3 },
+        '50%': { transform: 'translate(-10px, -8px) scale(1.4)', opacity: 0.8 },
+      },
+    }} />
+    <Box sx={{
+      position: 'absolute', bottom: 24, right: '40%', width: 4, height: 4, borderRadius: '50%',
+      bgcolor: '#d4a574', opacity: 0.5,
+      animation: 'dxSparkleFloat2 5s ease-in-out infinite 1s',
+      '@keyframes dxSparkleFloat2': {
+        '0%, 100%': { transform: 'translate(0, 0) scale(1)', opacity: 0.2 },
+        '50%': { transform: 'translate(8px, -12px) scale(1.5)', opacity: 0.7 },
+      },
+    }} />
+    <Box sx={{
+      position: 'absolute', top: '45%', right: '12%', width: 5, height: 5, borderRadius: '50%',
+      bgcolor: '#6366f1', opacity: 0.5,
+      animation: 'dxSparkleFloat3 4.5s ease-in-out infinite 2s',
+      '@keyframes dxSparkleFloat3': {
+        '0%, 100%': { transform: 'translate(0, 0) scale(1)', opacity: 0.2 },
+        '50%': { transform: 'translate(-6px, 10px) scale(1.3)', opacity: 0.75 },
+      },
+    }} />
+
+    {/* Rotating backdrop icon */}
     <AutoAwesomeIcon sx={{
-      position: 'absolute', right: -10, bottom: -16, fontSize: 120,
-      color: '#20b2aa', opacity: 0.07, pointerEvents: 'none',
+      position: 'absolute', right: -10, bottom: -16, fontSize: 130,
+      color: '#20b2aa', opacity: 0.08, pointerEvents: 'none',
       animation: 'dxAiSpin 60s linear infinite',
       '@keyframes dxAiSpin': { from: { transform: 'rotate(0deg)' }, to: { transform: 'rotate(360deg)' } },
     }} />

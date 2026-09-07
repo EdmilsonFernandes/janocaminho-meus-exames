@@ -33,8 +33,18 @@ const fmtDate = (d?: string | null) => (d ? new Date(d).toLocaleDateString('pt-B
 
 /** Linha de atalho p/ outra área da conta (a funcionalidade continua existindo — em outro lugar). */
 const AccountLinkRow = ({ icon, title, desc, onClick }: { icon: React.ReactNode; title: string; desc: string; onClick: () => void }) => (
-  <Stack direction="row" spacing={1.5} alignItems="center" onClick={onClick} sx={{ py: 1.25, cursor: 'pointer', '&:active': { opacity: 0.7 } }}>
-    <Box sx={{ width: 36, height: 36, borderRadius: '8px', display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,.12)', color: '#178f89', flexShrink: 0 }}>{icon}</Box>
+  <Stack direction="row" spacing={1.75} alignItems="center" onClick={onClick} sx={{
+    py: 1.5, cursor: 'pointer', borderRadius: '14px', px: 1,
+    transition: 'background-color .15s ease, transform .15s ease',
+    '&:hover': { bgcolor: 'rgba(32,178,170,.06)', transform: 'translateX(4px)' },
+    '&:active': { opacity: 0.7 },
+  }}>
+    <Box sx={{
+      width: 40, height: 40, borderRadius: '12px', display: 'grid', placeItems: 'center',
+      background: 'linear-gradient(135deg, rgba(32,178,170,.18), rgba(32,178,170,.08))',
+      color: '#178f89', flexShrink: 0,
+      border: '1px solid rgba(32,178,170,.15)',
+    }}>{icon}</Box>
     <Box sx={{ flex: 1, minWidth: 0 }}>
       <Typography sx={{ fontWeight: 700, fontSize: 15, color: 'text.primary' }}>{title}</Typography>
       <Typography variant="body2" color="text.secondary" sx={{ fontSize: 13 }}>{desc}</Typography>
@@ -138,8 +148,18 @@ export const ProfilePage = () => {
       <PageHeader icon={<AccountCircleIcon />} title={translate('page.profile')} subtitle={translate('page.profile_sub')} />
 
       {/* Cabeçalho: conta + foto EDITÁVEL (unificado — só uma foto) */}
-      <Card sx={{ mb: 2, borderRadius: '12px', overflow: 'hidden', background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff' }}>
-        <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2.5, flexWrap: 'wrap', py: 3 }}>
+      <Card sx={{
+        mb: 2.5, borderRadius: '20px', overflow: 'hidden',
+        background: 'linear-gradient(135deg,#0c4a46 0%,#137a72 50%,#20b2aa 100%)',
+        boxShadow: '0 12px 32px rgba(15,95,90,0.22)',
+        color: '#fff', position: 'relative',
+        '&::after': {
+          content: '""', position: 'absolute', inset: 0,
+          background: 'radial-gradient(ellipse at 85% 15%, rgba(255,255,255,0.18), transparent 55%)',
+          pointerEvents: 'none',
+        },
+      }}>
+        <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2.5, flexWrap: 'wrap', py: 3, position: 'relative', zIndex: 1 }}>
           <PhotoUpload patientId={pid} photoUrl={patient?.photoUrl} size={76} hideLabel version={photoVer}
             fallback={(fullName || user?.name || '').trim().charAt(0).toUpperCase()}
             onUploaded={() => { setPhotoVer((v) => v + 1); void load(); }} />
@@ -149,7 +169,7 @@ export const ProfilePage = () => {
             <Stack direction="row" spacing={1} sx={{ mt: 1 }} useFlexGap flexWrap="wrap">
               {patient?.relationship && <Chip size="small" label={patient.relationship} sx={{ bgcolor: 'rgba(255,255,255,.18)', color: '#fff', fontWeight: 700 }} />}
               {planActive
-                ? <Chip size="small" icon={<BadgeIcon sx={{ color: '#fff !important' }} />} label="Premium ativo" sx={{ bgcolor: 'rgba(255,255,255,.18)', color: '#fff', fontWeight: 700 }} />
+                 ? <Chip size="small" icon={<BadgeIcon sx={{ color: '#fff !important' }} />} label="Premium ativo" sx={{ bgcolor: 'rgba(255,255,255,.18)', color: '#fff', fontWeight: 700 }} />
                 : <Chip size="small" label="Plano grátis" sx={{ bgcolor: 'rgba(255,255,255,.12)', color: '#fff' }} />}
               {profilePct != null && profilePct < 100 && (
                 <Chip size="small" label={`Perfil ${profilePct}%`} sx={{ bgcolor: 'rgba(255,255,255,.22)', color: '#fff', fontWeight: 700 }} />
@@ -161,9 +181,9 @@ export const ProfilePage = () => {
       </Card>
 
       {/* Dados + perfil clínico */}
-      <Card sx={{ mb: 2, borderRadius: '12px' }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>Dados e perfil clínico</Typography>
+      <Card sx={{ mb: 2.5, borderRadius: '20px' }}>
+        <CardContent sx={{ p: { xs: 2.5, md: 3 } }}>
+          <Typography variant="h6" gutterBottom sx={{ fontWeight: 800 }}>Dados e perfil clínico</Typography>
           <Stack spacing={2}>
             <TextField label="Nome completo" value={fullName} onChange={(e) => setFullName(e.target.value)} fullWidth size="small" disabled={!!patient?.identityLocked} helperText={patient?.identityLocked ? 'Nome bloqueado após verificação de CPF e e-mail. Correção somente via suporte.' : undefined} />
             <TextField label="CPF" value={cpf} onChange={(e) => setCpf(formatCpf(e.target.value))} fullWidth size="small" disabled={!!patient?.hasCpf} inputProps={{ inputMode: 'numeric' }} error={!patient?.hasCpf && !!cpf && cpf.length === 14 && !isValidCpf(cpf)} helperText={patient?.hasCpf ? 'CPF verificado e mascarado. Correção somente via suporte auditado.' : 'Usado para confirmar que os exames pertencem a este perfil.'} />
@@ -194,20 +214,31 @@ export const ProfilePage = () => {
               helperText="Ex.: 'Sem tireoide; usa levotiroxina; usa testosterona.' Isso contextualiza a IA — nunca substitui o médico."
             />
           </Stack>
-          <Box sx={{ mt: 2 }}>
-            <Button variant="contained" startIcon={<SaveIcon />} onClick={saveProfile} disabled={saving}>{saving ? 'Salvando…' : 'Salvar perfil'}</Button>
+          <Box sx={{ mt: 2.5 }}>
+            <Button
+              variant="contained"
+              startIcon={<SaveIcon />}
+              onClick={saveProfile}
+              disabled={saving}
+              sx={{
+                borderRadius: '999px', px: 3.5, py: 1.1, textTransform: 'none', fontWeight: 800,
+                background: 'linear-gradient(135deg,#20b2aa,#178f89)',
+                boxShadow: '0 4px 14px rgba(32,178,170,.3)',
+              }}
+            >
+              {saving ? 'Salvando…' : 'Salvar perfil'}
+            </Button>
           </Box>
         </CardContent>
       </Card>
 
-      {/* Peso atual — EXIBIÇÃO + atalho (registro é em Medições; acabou a 2ª UI de peso).
-          Valor vem da última medição WEIGHT (mesma fonte do IMC no server). */}
-      <Card sx={{ mb: 2, borderRadius: '12px' }}>
-        <CardContent>
+      {/* Peso atual */}
+      <Card sx={{ mb: 2.5, borderRadius: '20px' }}>
+        <CardContent sx={{ p: { xs: 2.5, md: 3 } }}>
           <Stack direction="row" spacing={2} alignItems="center">
-            <Box sx={{ width: 40, height: 40, borderRadius: '12px', display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,.12)', color: '#178f89', flexShrink: 0 }}><ScaleIcon /></Box>
+            <Box sx={{ width: 44, height: 44, borderRadius: '14px', display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,.12)', color: '#178f89', flexShrink: 0 }}><ScaleIcon /></Box>
             <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography variant="h6">Peso atual</Typography>
+              <Typography variant="h6" sx={{ fontWeight: 800 }}>Peso atual</Typography>
               {patient?.weightKg != null ? (
                 <Typography variant="body2" color="text.secondary">
                   <Box component="span" sx={{ fontWeight: 800, fontSize: 18, color: 'text.primary' }}>{String(patient.weightKg).replace('.', ',')} kg</Box>
@@ -217,32 +248,31 @@ export const ProfilePage = () => {
                 <Typography variant="body2" color="text.secondary">Sem peso registrado ainda — usado no IMC e no risco cardiometabólico.</Typography>
               )}
             </Box>
-            <Button variant={patient?.weightKg != null ? 'outlined' : 'contained'} onClick={() => navigate('/medicoes')} sx={{ flexShrink: 0 }}>
+            <Button variant={patient?.weightKg != null ? 'outlined' : 'contained'} onClick={() => navigate('/medicoes')} sx={{ flexShrink: 0, borderRadius: '999px', textTransform: 'none', fontWeight: 800 }}>
               {patient?.weightKg != null ? 'Novo peso' : 'Registrar peso'}
             </Button>
           </Stack>
         </CardContent>
       </Card>
 
-      {/* Preferências — notificações + acessibilidade juntas (3 toggles não merecem página própria) */}
-      <Card sx={{ mb: 2, borderRadius: '12px' }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>Preferências</Typography>
-          <FormControlLabel control={<Switch checked={achAlerts} onChange={(e) => toggleAchAlerts(e.target.checked)} />} label={<Box>🔔 Avisar quando eu desbloquear uma conquista</Box>} />
+      {/* Preferências */}
+      <Card sx={{ mb: 2.5, borderRadius: '20px' }}>
+        <CardContent sx={{ p: { xs: 2.5, md: 3 } }}>
+          <Typography variant="h6" gutterBottom sx={{ fontWeight: 800 }}>Preferências</Typography>
+          <FormControlLabel control={<Switch checked={achAlerts} onChange={(e) => toggleAchAlerts(e.target.checked)} />} label={<Box sx={{ fontWeight: 600 }}>🔔 Avisar quando eu desbloquear uma conquista</Box>} />
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>Você continua ganhando os créditos mesmo com isso desligado — só não recebe o aviso no sino.</Typography>
-          <FormControlLabel control={<Switch checked={librasOn} onChange={(e) => toggleLibras(e.target.checked)} />} label="♿ Botão de tradução em Libras" />
+          <FormControlLabel control={<Switch checked={librasOn} onChange={(e) => toggleLibras(e.target.checked)} />} label={<Box sx={{ fontWeight: 600 }}>♿ Botão de tradução em Libras</Box>} />
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>Traduz os textos do app para Língua Brasileira de Sinais. Desligue para remover o botão flutuante da tela.</Typography>
-          <FormControlLabel control={<Switch checked={activityOn} onChange={(e) => toggleActivity(e.target.checked)} />} label="🏃 Card de atividade física no início" />
+          <FormControlLabel control={<Switch checked={activityOn} onChange={(e) => toggleActivity(e.target.checked)} />} label={<Box sx={{ fontWeight: 600 }}>🏃 Card de atividade física no início</Box>} />
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>Passos, calorias e distância (Health Connect do celular). Vale no app Android.</Typography>
         </CardContent>
       </Card>
 
-      {/* CONTA — atalhos pras áreas próprias (nada desapareceu; cada coisa no seu lugar) */}
-      <Card sx={{ mb: 2, borderRadius: '12px' }}>
-        <CardContent sx={{ py: 1 }}>
+      {/* CONTA */}
+      <Card sx={{ mb: 2.5, borderRadius: '20px' }}>
+        <CardContent sx={{ py: 1.5, px: { xs: 1.5, md: 2 } }}>
           <AccountLinkRow icon={<LockResetIcon />} title="Segurança" desc="Trocar senha, 2FA e biometria" onClick={() => navigate('/seguranca')} />
           <AccountLinkRow icon={<ShieldIcon />} title="Privacidade e dados" desc="Baixar seus dados, importar, termos (LGPD) e excluir conta" onClick={() => navigate('/privacidade')} />
-          {/* Discreto de propósito (dor do dono: dev NÃO no menu principal do leigo). */}
           <AccountLinkRow icon={<ApiIcon />} title="API para desenvolvedores" desc="Integre preço de remédios e interações no seu produto" onClick={() => navigate('/api')} />
         </CardContent>
       </Card>

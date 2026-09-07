@@ -86,32 +86,43 @@ export const ExpensesPage = () => {
     <PageContainer width="content">
       <PageHeader icon={<PaymentsIcon />} title={translate('page.expenses')} subtitle="Consultas, exames, farmácia: registre e veja pra onde vai seu dinheiro em saúde — organizado pro imposto de renda e pra conversar com o médico sobre custos." />
 
-      {/* RESUMO — total geral + nº de lançamentos (chips por categoria saíram: ruído no 375px,
-          o detalhe agora mora no total de cada mês abaixo). */}
-      <AppCard kind="tinted" tone="primary" sx={{ p: 2, mb: 2 }}>
-        <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: { xs: 30, sm: 34 }, lineHeight: 1.1, color: 'primary.dark' }}>{brl(total)}</Typography>
-        <Typography color="text.secondary" sx={{ fontSize: 13 }}>Total gasto em saúde · {items.length} lançamento{items.length === 1 ? '' : 's'} · vale dedução de IR (mantenha os comprovantes)</Typography>
+      {/* RESUMO — total geral + nº de lançamentos */}
+      <AppCard kind="tinted" tone="primary" sx={{
+        p: { xs: 2.5, sm: 3 }, mb: 2.5, borderRadius: '20px !important',
+        background: (t) => t.palette.mode === 'dark'
+          ? 'radial-gradient(ellipse at 15% 30%, rgba(32,178,170,.18), transparent 60%), rgba(26,36,36,0.5)'
+          : 'radial-gradient(ellipse at 15% 30%, rgba(32,178,170,.12), transparent 60%), #ffffff',
+        border: '1px solid rgba(32,178,170,.2)',
+        boxShadow: '0 4px 20px rgba(32,178,170,.06)',
+      }}>
+        <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: { xs: 32, sm: 38 }, lineHeight: 1.1, color: 'primary.dark' }}>{brl(total)}</Typography>
+        <Typography color="text.secondary" sx={{ fontSize: 13.5, mt: 0.5 }}>Total gasto em saúde · {items.length} lançamento{items.length === 1 ? '' : 's'} · dedutível no IR (mantenha os comprovantes)</Typography>
       </AppCard>
 
-      <AppCard sx={{ p: 2, mb: 2 }}>
-        <Typography variant="h6" sx={{ mb: 1.5 }}>Registrar despesa</Typography>
+      <AppCard sx={{ p: { xs: 2, sm: 2.5 }, mb: 2.5, borderRadius: '20px !important' }}>
+        <Typography variant="h6" sx={{ mb: 1.5, fontWeight: 800 }}>Registrar despesa</Typography>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} useFlexGap flexWrap="wrap">
-          {/* Larguras fluidas no xs (causa raiz de overflow em 600–768px), fixas só no sm+. */}
+          {/* Larguras fluidas no xs */}
           <TextField size="small" label="Descrição" placeholder="Consulta, exame, remédio..." value={desc} onChange={(e) => setDesc(e.target.value)} sx={{ flex: { xs: '1 1 100%', sm: 1 }, minWidth: { xs: 0, sm: 200 } }} />
+          <TextField size="small" label="Valor (R$)" type="number" placeholder="0,00" value={amount} onChange={(e) => setAmount(e.target.value)} sx={{ width: { xs: '100%', sm: 120 } }} />
+          <TextField size="small" label="Data" type="date" value={date} onChange={(e) => setDate(e.target.value)} slotProps={{ inputLabel: { shrink: true } }} sx={{ width: { xs: '100%', sm: 140 } }} />
           <TextField size="small" select label="Categoria" value={category} onChange={(e) => setCategory(e.target.value)} sx={{ width: { xs: '100%', sm: 130 } }}>
-            {['Exame', 'Consulta', 'Remédio', 'Outro'].map((c) => <option key={c} value={c}>{c}</option>)}
+            {['Exame', 'Consulta', 'Farmácia', 'Procedimento', 'Outro'].map((c) => <option key={c} value={c}>{c}</option>)}
           </TextField>
-          <TextField size="small" label="Valor (R$)" type="number" value={amount} onChange={(e) => setAmount(e.target.value)} sx={{ width: { xs: '100%', sm: 120 } }} />
-          <TextField size="small" type="date" value={date} onChange={(e) => setDate(e.target.value)} InputLabelProps={{ shrink: true }} sx={{ width: { xs: '100%', sm: 160 } }} />
-          <Button variant="contained" onClick={add} disabled={!desc.trim() || !amount || saving}>{saving ? 'Salvando…' : 'Adicionar'}</Button>
+          <Button variant="contained" disabled={saving || !desc.trim() || !amount} onClick={add} sx={{
+            textTransform: 'none', fontWeight: 800, minWidth: 100, borderRadius: '999px',
+            background: 'linear-gradient(135deg,#20b2aa,#178f89)', boxShadow: '0 4px 12px rgba(32,178,170,.3)',
+          }}>
+            {saving ? '...' : 'Salvar'}
+          </Button>
         </Stack>
       </AppCard>
 
-      <AppCard sx={{ p: 2 }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" useFlexGap flexWrap="wrap" sx={{ mb: 1.5 }}>
-          <Typography variant="h6">Histórico de despesas</Typography>
+      <AppCard sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: '20px !important' }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
+          <Typography variant="h6" sx={{ fontWeight: 800 }}>Histórico de gastos</Typography>
           {items.length > 0 && (
-            <Button variant="outlined" size="small" onClick={() => printPage('Relatório de Despesas')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>🖨️ Imprimir relatório (IR)</Button>
+            <Button size="small" onClick={() => printPage()} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '999px' }}>📄 Relatório para IR</Button>
           )}
         </Stack>
 
@@ -123,16 +134,16 @@ export const ExpensesPage = () => {
           const monthTotal = list.reduce((s, i) => s + i.amount, 0);
           return (
             <Box key={key} sx={{ mb: 2.5, '&:last-child': { mb: 0 } }}>
-              {/* Header do mês — sticky (acompanha a rolagem) com o TOTAL do período */}
+              {/* Header do mês */}
               <Box sx={{ position: 'sticky', top: { xs: 58, sm: 64 }, zIndex: 2, bgcolor: 'background.paper', display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 1, py: 0.75, px: 1, mx: -1, borderBottom: '2px solid', borderColor: 'rgba(32,178,170,.35)' }}>
                 <Typography sx={{ fontWeight: 800, fontSize: 14 }}>{monthLabel(key)}</Typography>
                 <Typography sx={{ fontWeight: 800, fontSize: 14, color: 'primary.dark', fontVariantNumeric: 'tabular-nums' }}>{brl(monthTotal)}</Typography>
               </Box>
 
-              {/* XS — lista-card: nada de tabela de 5 colunas cortando data/letra no mobile */}
+              {/* XS — lista-card */}
               <Stack spacing={1} sx={{ mt: 1, display: { xs: 'flex', sm: 'none' } }}>
                 {list.map((item) => (
-                  <Box key={item.id} sx={{ display: 'flex', alignItems: 'center', gap: 1.25, p: 1.25, borderRadius: '12px', bgcolor: 'background.default', border: '1px solid', borderColor: 'divider' }}>
+                  <Box key={item.id} sx={{ display: 'flex', alignItems: 'center', gap: 1.25, p: 1.5, borderRadius: '14px', bgcolor: 'background.default', border: '1px solid', borderColor: 'divider' }}>
                     <Box sx={{ flex: 1, minWidth: 0 }}>
                       <Typography sx={{ fontWeight: 700, fontSize: 14, lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.description}</Typography>
                       <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mt: 0.25 }}>
@@ -148,15 +159,15 @@ export const ExpensesPage = () => {
                 ))}
               </Stack>
 
-              {/* SM+ — tabela clássica (tem espaço) */}
-              <TableContainer component={Paper} variant="outlined" sx={{ mt: 1, display: { xs: 'none', sm: 'block' } }}>
+              {/* SM+ — tabela clássica */}
+              <TableContainer component={Paper} variant="outlined" sx={{ mt: 1, borderRadius: '14px', overflow: 'hidden', display: { xs: 'none', sm: 'block' } }}>
                 <Table size="small">
                   <TableHead><TableRow sx={{ bgcolor: 'action.hover' }}>
-                    <TableCell>Descrição</TableCell><TableCell>Categoria</TableCell><TableCell align="right">Valor</TableCell><TableCell>Data</TableCell><TableCell></TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Descrição</TableCell><TableCell sx={{ fontWeight: 700 }}>Categoria</TableCell><TableCell align="right" sx={{ fontWeight: 700 }}>Valor</TableCell><TableCell sx={{ fontWeight: 700 }}>Data</TableCell><TableCell></TableCell>
                   </TableRow></TableHead>
                   <TableBody>
                     {list.map((item) => (
-                      <TableRow key={item.id}>
+                      <TableRow key={item.id} sx={{ transition: 'background-color .15s', '&:hover': { bgcolor: 'rgba(32,178,170,.04)' } }}>
                         <TableCell>{item.description}</TableCell>
                         <TableCell>{item.category}</TableCell>
                         <TableCell align="right" sx={{ fontWeight: 600 }}>{item.amount.toFixed(2).replace('.', ',')}</TableCell>

@@ -24,6 +24,18 @@ export const PageHeader = ({ title, subtitle, icon, actions, accent = 'primary.m
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(32,178,170,0.16)' : 'rgba(32,178,170,0.10)',
         color: accent, '& svg': { fontSize: 22 },
+        position: 'relative',
+        '&::before': {
+          content: '""', position: 'absolute', inset: -3,
+          borderRadius: '50%',
+          background: 'rgba(32,178,170,0.12)',
+          filter: 'blur(6px)',
+          animation: 'dxHeaderGlow 3s ease-in-out infinite',
+        },
+        '@keyframes dxHeaderGlow': {
+          '0%, 100%': { opacity: 0.4, transform: 'scale(1)' },
+          '50%': { opacity: 0.8, transform: 'scale(1.1)' },
+        },
       }}>
         {icon}
       </Box>

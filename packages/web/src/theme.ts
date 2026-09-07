@@ -175,11 +175,11 @@ export const buildTheme = (mode: ThemeMode): Theme => {
       MuiCard: {
         styleOverrides: {
           root: {
-            borderRadius: '16px',
+            borderRadius: '20px',
             boxShadow: isDark
-              ? '0 2px 8px rgba(0,0,0,0.4)'
-              : '0 2px 6px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)',
-            border: `1px solid ${isDark ? '#2a3636' : '#e6f1f0'}`,
+              ? '0 2px 8px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.2)'
+              : '0 1px 3px rgba(0,0,0,.03), 0 4px 12px rgba(0,0,0,.04), 0 12px 28px rgba(32,178,170,.03)',
+            border: `1px solid ${isDark ? '#2a3636' : '#d8ece9'}`,
             // Press state (feel nativo): card 'respira' leve ao toque. Sutil p/ não estranhar em cards estáticos.
             transition: 'transform .12s ease, box-shadow .2s ease',
             '&:active': { transform: 'scale(0.985)' },

@@ -151,9 +151,11 @@ export const PlansPage = () => {
       )}
 
       {/* HERO — saldo centralizado, gradiente esmeralda + profundidade */}
-      <Card sx={{ mb: 3, borderRadius: '16px', overflow: 'hidden', position: 'relative', color: '#fff',
-          background: 'linear-gradient(135deg,#0c4a46 0%,#137a72 50%,#178f89 100%)',
-          boxShadow: '0 20px 50px rgba(15,61,58,.32)', border: '1px solid rgba(255,255,255,0.2)' }}>
+      <Card sx={{
+        mb: 3, borderRadius: '20px', overflow: 'hidden', position: 'relative', color: '#fff',
+        background: 'linear-gradient(135deg,#0c4a46 0%,#137a72 50%,#178f89 100%)',
+        boxShadow: '0 20px 50px rgba(15,61,58,.32)', border: '1px solid rgba(255,255,255,0.2)'
+      }}>
         <Box sx={{ position: 'absolute', top: '-45%', right: '-12%', width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,.16), transparent 70%)', pointerEvents: 'none' }} />
         <CardContent sx={{ position: 'relative', textAlign: 'center', py: { xs: 3.5, md: 4.5 } }}>
           <Typography sx={{ fontSize: 12, fontWeight: 700, letterSpacing: 0.4, textTransform: 'uppercase', color: 'rgba(255,255,255,.72)' }}>Seus créditos</Typography>
@@ -168,8 +170,8 @@ export const PlansPage = () => {
       </Card>
 
       {/* CONSUMO RECENTE */}
-      {( /* Histórico de Uso: sempre visível — load lazy ao expandir */ 
-        <Card sx={{ mb: 2, borderRadius: '12px' }}><CardContent>
+      {(
+        <Card sx={{ mb: 2.5, borderRadius: '20px' }}><CardContent sx={{ p: { xs: 2, md: 2.5 } }}>
           <Stack direction="row" alignItems="center" justifyContent="space-between" onClick={() => setHistOpen((v) => !v)} sx={{ mb: histOpen ? 1.5 : 0, cursor: 'pointer', userSelect: 'none', '&:hover': { opacity: 0.8 } }}>
             <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', fontSize: 17 }}>Histórico de Uso</Typography>
             <Typography variant="caption" sx={{ color: '#178f89', fontWeight: 700 }}>{histOpen ? 'Ocultar ▲' : histTotal ? `${histTotal} lançamento(s) ▼` : 'Ver histórico ▼'}</Typography>
@@ -241,20 +243,17 @@ export const PlansPage = () => {
       )}
 
       {isNative ? (
-        /* Android (Play Store): SEM compra dentro do app — o usuário assina/compra créditos
-           pelo SITE. Evita violar a política de pagamentos do Google (Play Billing p/ bens digitais).
-           O saldo e o Premium adquirados no site aparecem aqui automaticamente. */
-        <Card sx={{ mt: 1, borderRadius: '12px', border: '2px dashed #20b2aa', background: 'rgba(32,178,170,0.08)' }}>
+        <Card sx={{ mt: 1, borderRadius: '20px', border: '2px dashed #20b2aa', background: 'rgba(32,178,170,0.08)' }}>
           <CardContent>
             <Typography variant="h6" sx={{ fontWeight: 800, color: '#178f89' }}>💎 Premium e Créditos de IA</Typography>
             <Typography sx={{ mt: 1, fontSize: 15 }}>
               O <strong>Plano Premium</strong> ({planInfo?.plan ? fmtBRL(planInfo.plan.effectivePrice) : 'R$ 19,90'}/mês) e os <strong>créditos</strong> para a IA são adquirados pelo nosso <strong>site</strong>, com PIX instantâneo.
             </Typography>
             <Typography sx={{ mt: 2, fontWeight: 700 }}>Acesse pelo navegador:</Typography>
-            <Box component="a" href="https://drexame.janocaminho.com.br" target="_blank" rel="noopener noreferrer" sx={{ display: 'block', fontFamily: 'monospace', fontSize: 16, bgcolor: 'background.paper', border: '1px solid #cfe9e5', p: 1, borderRadius: '8px', mt: 0.5, userSelect: 'all', textDecoration: 'none', color: 'primary.dark', '&:hover': { textDecoration: 'underline', borderColor: 'primary.main' } }}>
+            <Box component="a" href="https://drexame.janocaminho.com.br" target="_blank" rel="noopener noreferrer" sx={{ display: 'block', fontFamily: 'monospace', fontSize: 16, bgcolor: 'background.paper', border: '1px solid #cfe9e5', p: 1, borderRadius: '12px', mt: 0.5, userSelect: 'all', textDecoration: 'none', color: 'primary.dark', '&:hover': { textDecoration: 'underline', borderColor: 'primary.main' } }}>
               drexame.janocaminho.com.br
             </Box>
-            <Alert severity="info" sx={{ mt: 2 }} icon={false}>
+            <Alert severity="info" sx={{ mt: 2, borderRadius: '16px' }} icon={false}>
               Depois de assinar ou comprar créditos no site, entre no app com o <strong>mesmo login</strong> — o saldo e o Premium aparecem aqui automaticamente.
             </Alert>
           </CardContent>
@@ -263,45 +262,48 @@ export const PlansPage = () => {
         <>
       {/* PACOTES DE CRÉDITOS */}
       <Typography variant="h6" sx={{ mt: 1, mb: 0.5, display: 'flex', alignItems: 'center', gap: 1 }}><BoltIcon color="secondary" /> Comprar créditos (PIX instantâneo)</Typography>
-      {/* Auditoria: faltava dizer O QUE consome créditos e quanto — transparencia total de custos.
-          Valores padrão do AppSetting creditCosts (admin pode ajustar no painel; upstream envia
-          junto no billing/status quando disponível). */}
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5, lineHeight: 1.5 }}>
         O que consome: 💬 pergunta no chat <b>2</b> · ✨ resumo do exame <b>10</b> · 🧾 relatório completo <b>20</b>. Enviar exame é <b>grátis</b>.
       </Typography>
       <Stack spacing={2} sx={{ mb: 3, width: '100%' }}>
         {packs.map((p) => {
-          // PIX PENDENTE deste pacote? O botão vira "Retomar pagamento" com timer
           const isPending = pendingPix && pendingPix.credits === p.credits && pendingPix.price === p.price;
           const secsLeft = isPending ? Math.max(0, Math.floor((new Date(pendingPix.expiresAt).getTime() - Date.now()) / 1000)) : 0;
           const mmLeft = String(Math.floor(secsLeft / 60)).padStart(2, '0');
           const ssLeft = String(secsLeft % 60).padStart(2, '0');
           return (
-          <Card key={p.id} sx={{ borderRadius: '12px', border: isPending ? '2px solid #d97706' : p.popular ? '2px solid #20b2aa' : '1px solid', borderColor: isPending ? undefined : p.popular ? undefined : 'divider', width: '100%', position: 'relative', bgcolor: isPending ? 'rgba(217,119,6,0.04)' : undefined }}>
+          <Card key={p.id} sx={{
+            borderRadius: '20px',
+            border: isPending ? '2px solid #d97706' : p.popular ? '2px solid #20b2aa' : '1px solid',
+            borderColor: isPending ? undefined : p.popular ? undefined : 'divider',
+            width: '100%', position: 'relative',
+            bgcolor: isPending ? 'rgba(217,119,6,0.04)' : undefined,
+            boxShadow: p.popular ? '0 8px 24px rgba(32,178,170,.15)' : 'none',
+            transition: 'transform .18s ease, box-shadow .2s ease',
+            '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 8px 28px rgba(0,0,0,.08)' },
+          }}>
             {isPending && <Box sx={{ textAlign: 'center', pt: 1.5 }}><Chip label="⏳ Aguardando pagamento" size="small" sx={{ fontWeight: 700, bgcolor: 'rgba(217,119,6,.15)', color: '#92400e' }} /></Box>}
-            {!isPending && p.popular && <Box sx={{ textAlign: 'center', pt: 1.5 }}><Chip color="primary" label="MAIS VENDIDO" size="small" /></Box>}
+            {!isPending && p.popular && <Box sx={{ textAlign: 'center', pt: 1.5 }}><Chip color="primary" label="MAIS VENDIDO" size="small" sx={{ fontWeight: 800, borderRadius: '999px' }} /></Box>}
             <CardContent sx={{ textAlign: 'center', pt: isPending || p.popular ? 1 : 2 }}>
               <Typography sx={{ fontWeight: 800, fontSize: 28, color: 'primary.main', lineHeight: 1.1 }}>{p.credits}</Typography>
               <Typography color="text.secondary">créditos</Typography>
               <Typography variant="h5" sx={{ my: 1, fontWeight: 800 }}>R$ {p.price.toFixed(2).replace('.', ',')}</Typography>
               {isPending ? (
                 <Stack spacing={0.75}>
-                  {/* ÂMBAR = ação pendente (vs teal = comprar). Não confunde com os outros cards. */}
                   <Button variant="contained" fullWidth onClick={() => setPixPack('__pending__')}
                     startIcon={<QrCode2Icon />}
-                    sx={{ bgcolor: '#d97706', '&:hover': { bgcolor: '#b45309' }, textTransform: 'none', fontWeight: 800, boxShadow: '0 4px 12px rgba(217,119,6,.3)' }}>
+                    sx={{ bgcolor: '#d97706', '&:hover': { bgcolor: '#b45309' }, textTransform: 'none', fontWeight: 800, borderRadius: '999px', boxShadow: '0 4px 12px rgba(217,119,6,.3)' }}>
                     Abrir QR Code · {mmLeft}:{ssLeft}
                   </Button>
-                  {/* Copia-cola inline: copia SEM abrir o modal (1 toque) */}
                   <Button size="small" variant="outlined" fullWidth
                     startIcon={<ContentCopyIcon fontSize="small" />}
                     onClick={() => { navigator.clipboard?.writeText(pendingPix.qrCode || ''); notify('Código PIX copiado! Cole no app do banco.', { type: 'success' }); }}
-                    sx={{ textTransform: 'none', fontWeight: 700, fontSize: 12, borderColor: 'rgba(217,119,6,.4)', color: '#b45309', '&:hover': { borderColor: '#d97706', bgcolor: 'rgba(217,119,6,.06)' } }}>
+                    sx={{ textTransform: 'none', fontWeight: 700, fontSize: 12, borderRadius: '999px', borderColor: 'rgba(217,119,6,.4)', color: '#b45309', '&:hover': { borderColor: '#d97706', bgcolor: 'rgba(217,119,6,.06)' } }}>
                     Copiar código PIX
                   </Button>
                 </Stack>
               ) : (
-                <Button variant={p.popular ? 'contained' : 'outlined'} fullWidth disabled={!mpOn} onClick={() => { setChooserLabel(`${p.credits} créditos • R$ ${p.price.toFixed(2).replace('.', ',')}`); setChooserPack(p.id); }}>Comprar</Button>
+                <Button variant={p.popular ? 'contained' : 'outlined'} fullWidth disabled={!mpOn} sx={{ borderRadius: '999px', fontWeight: 800, textTransform: 'none' }} onClick={() => { setChooserLabel(`${p.credits} créditos • R$ ${p.price.toFixed(2).replace('.', ',')}`); setChooserPack(p.id); }}>Comprar</Button>
               )}
             </CardContent>
           </Card>
@@ -312,8 +314,8 @@ export const PlansPage = () => {
       <Typography align="center" color="text.secondary" sx={{ my: 2, fontWeight: 600 }}>— ou assine —</Typography>
 
       {/* PLANO MENSAL — preço/perks da API (admin edita live; zero hardcode). */}
-      <Card sx={{ borderRadius: '12px', background: 'rgba(32,178,170,0.06)', border: '2px solid #20b2aa' }}>
-        <CardContent>
+      <Card sx={{ borderRadius: '20px', background: 'rgba(32,178,170,0.06)', border: '2px solid #20b2aa', boxShadow: '0 8px 30px rgba(32,178,170,.12)' }}>
+        <CardContent sx={{ p: { xs: 2.5, md: 3 } }}>
           <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between" flexWrap="wrap" useFlexGap>
             <Typography variant="h6" sx={{ fontWeight: 800, color: '#178f89' }}>💎 Premium Mensal</Typography>
             {planInfo?.plan?.founder && (

@@ -56,38 +56,94 @@ export const ChangesSinceExam = ({
   const improvedUnique = improved.filter((m) => !worsenedNames.has((m.nameCanonical || m.name).toUpperCase()));
   return (
     <AppCard kind="default" sx={{ p: { xs: 2, md: 2.5 }, height: '100%' }}>
-      <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary' }}>{title}</Typography>
-      <Stack direction="row" spacing={2} sx={{ mt: 1, mb: 1.5, flexWrap: 'wrap', rowGap: 0.5 }}>
-        {worsened.length > 0 && <Chip size="small" icon={<TrendingUpIcon />} label={`${worsened.length} ${worsened.length === 1 ? 'piorou' : 'pioraram'}`} sx={{ bgcolor: alpha('#dc2626', 0.12), color: '#b91c1c', fontWeight: 700 }} />}
-        {improvedUnique.length > 0 && <Chip size="small" icon={<TrendingDownIcon />} label={`${improvedUnique.length} ${improvedUnique.length === 1 ? 'melhorou' : 'melhoraram'}`} sx={{ bgcolor: alpha('#047857', 0.12), color: '#047857', fontWeight: 700 }} />}
+      <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{title}</Typography>
+      <Stack direction="row" spacing={1.5} sx={{ mt: 1, mb: 1.5, flexWrap: 'wrap', rowGap: 0.5 }}>
+        {worsened.length > 0 && (
+          <Chip
+            size="small"
+            icon={<TrendingUpIcon />}
+            label={`${worsened.length} ${worsened.length === 1 ? 'piorou' : 'pioraram'}`}
+            sx={{
+              bgcolor: alpha('#dc2626', 0.12),
+              color: '#b91c1c',
+              fontWeight: 800,
+              borderRadius: '8px',
+              animation: 'dxSpringChip 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+              '@keyframes dxSpringChip': {
+                '0%': { transform: 'scale(0.8)', opacity: 0 },
+                '100%': { transform: 'scale(1)', opacity: 1 },
+              },
+            }}
+          />
+        )}
+        {improvedUnique.length > 0 && (
+          <Chip
+            size="small"
+            icon={<TrendingDownIcon />}
+            label={`${improvedUnique.length} ${improvedUnique.length === 1 ? 'melhorou' : 'melhoraram'}`}
+            sx={{
+              bgcolor: alpha('#047857', 0.12),
+              color: '#047857',
+              fontWeight: 800,
+              borderRadius: '8px',
+              animation: 'dxSpringChip 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both',
+            }}
+          />
+        )}
         {worsened.length === 0 && improved.length === 0 && <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>Carregando…</Typography>}
       </Stack>
-      <Stack spacing={1.1}>
+      <Stack spacing={1.2}>
         {worsened.slice(0, 3).map((m, i) => (
-          <Stack key={`w${i}`} direction="row" justifyContent="space-between" alignItems="baseline" sx={{
-            animation: `dxMarkerIn .3s ease ${i * 0.06}s both`,
-            '@keyframes dxMarkerIn': { from: { opacity: 0, transform: 'translateX(-8px)' }, to: { opacity: 1, transform: 'none' } },
-          }}>
-            <Typography sx={{ fontSize: 14, color: 'text.primary', fontWeight: 600 }}><Box component="span" sx={{ color: '#b91c1c', mr: 0.5 }}>{flagDir(m, false)}</Box>{m.name}</Typography>
-            <Typography sx={{ fontSize: 13, color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>{fmtMarker(m)}</Typography>
-          </Stack>
+          <Box
+            key={`w${i}`}
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              p: '6px 10px',
+              borderRadius: '10px',
+              bgcolor: alpha('#dc2626', 0.04),
+              borderLeft: '3px solid #dc2626',
+              animation: `dxMarkerIn .3s ease ${i * 0.06}s both`,
+              '@keyframes dxMarkerIn': { from: { opacity: 0, transform: 'translateX(-8px)' }, to: { opacity: 1, transform: 'none' } },
+            }}
+          >
+            <Typography sx={{ fontSize: 13.5, color: 'text.primary', fontWeight: 600 }}>
+              <Box component="span" sx={{ color: '#dc2626', mr: 0.75, fontWeight: 800 }}>{flagDir(m, false)}</Box>
+              {m.name}
+            </Typography>
+            <Typography sx={{ fontSize: 13, color: 'text.secondary', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{fmtMarker(m)}</Typography>
+          </Box>
         ))}
+
+        {worsened.length > 0 && improvedUnique.length > 0 && (
+          <Box sx={{ borderBottom: '1px dashed', borderColor: 'divider', my: 0.5 }} />
+        )}
+
         {improvedUnique.slice(0, 3).map((m, i) => (
-          <Stack key={`i${i}`} direction="row" justifyContent="space-between" alignItems="baseline" sx={{
-            animation: `dxMarkerIn .3s ease ${(worsened.length + i) * 0.06}s both`,
-            '@keyframes dxMarkerIn': { from: { opacity: 0, transform: 'translateX(-8px)' }, to: { opacity: 1, transform: 'none' } },
-          }}>
-            <Typography sx={{ fontSize: 14, color: 'text.primary', fontWeight: 600 }}><Box component="span" sx={{ color: '#047857', mr: 0.5 }}>{flagDir(m, true)}</Box>{m.name}</Typography>
-            <Typography sx={{ fontSize: 13, color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>{fmtMarker(m)}</Typography>
-          </Stack>
+          <Box
+            key={`i${i}`}
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              p: '6px 10px',
+              borderRadius: '10px',
+              bgcolor: alpha('#047857', 0.04),
+              borderLeft: '3px solid #047857',
+              animation: `dxMarkerIn .3s ease ${(worsened.length + i) * 0.06}s both`,
+            }}
+          >
+            <Typography sx={{ fontSize: 13.5, color: 'text.primary', fontWeight: 600 }}>
+              <Box component="span" sx={{ color: '#047857', mr: 0.75, fontWeight: 800 }}>{flagDir(m, true)}</Box>
+              {m.name}
+            </Typography>
+            <Typography sx={{ fontSize: 13, color: 'text.secondary', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{fmtMarker(m)}</Typography>
+          </Box>
         ))}
       </Stack>
       <Box sx={{ mt: 1.5 }}>
-        {/* CTA SECUNDÁRIO do par de cards do hero: a ação primária é o "Ver análise" do
-            ExamHero — aqui é link discreto (teal, sem fundo). Antes: GradientButton com
-            variant="text" (que vencia o contained interno) = gradiente cru em cima de um
-            botão text → bloco verde "cortante" (feedback do dono). */}
-        <Button variant="text" onClick={onView} endIcon={<ArrowForwardIcon />} sx={{ p: 0, px: 0.5, minHeight: 40, alignSelf: 'flex-start', textTransform: 'none', fontWeight: 800, color: 'primary.dark', '&:hover': { bgcolor: 'rgba(32,178,170,.08)' } }}>{ctaLabel}</Button>
+        <Button variant="text" onClick={onView} endIcon={<ArrowForwardIcon />} sx={{ p: 0, px: 0.5, minHeight: 36, alignSelf: 'flex-start', textTransform: 'none', fontWeight: 800, color: 'primary.main', '&:hover': { bgcolor: 'rgba(32,178,170,.08)' } }}>{ctaLabel}</Button>
       </Box>
     </AppCard>
   );

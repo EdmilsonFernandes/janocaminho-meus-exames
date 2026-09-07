@@ -23,13 +23,13 @@ export const GamificationBadges = ({ examsCount, score }: { examsCount: number; 
     <Card
       onClick={() => navigate('/conquistas')}
       sx={{
-        borderRadius: '16px', cursor: 'pointer',
+        borderRadius: '20px', cursor: 'pointer',
         background: (t) => t.palette.mode === 'dark'
-          ? 'linear-gradient(135deg, rgba(212,165,116,.06), rgba(32,178,170,.04))'
-          : 'linear-gradient(135deg, rgba(212,165,116,.06), rgba(32,178,170,.03))',
+          ? 'radial-gradient(ellipse at 20% 20%, rgba(212,165,116,.10), transparent 50%), radial-gradient(ellipse at 80% 80%, rgba(32,178,170,.06), transparent 50%), rgba(26,36,36,0.5)'
+          : 'radial-gradient(ellipse at 20% 20%, rgba(212,165,116,.08), transparent 50%), radial-gradient(ellipse at 80% 80%, rgba(32,178,170,.05), transparent 50%), #ffffff',
         border: '1px solid', borderColor: 'divider',
         transition: 'transform .2s ease, box-shadow .2s ease',
-        '&:hover': { boxShadow: '0 10px 30px rgba(212,165,116,.14)', transform: 'translateY(-2px)' },
+        '&:hover': { boxShadow: '0 10px 30px rgba(212,165,116,.18)', transform: 'translateY(-2px)' },
         '&:active': { transform: 'scale(.99)' },
       }}
     >
@@ -41,13 +41,13 @@ export const GamificationBadges = ({ examsCount, score }: { examsCount: number; 
           </Box>
           <ChevronRightIcon sx={{ color: '#178f89' }} />
         </Stack>
-        <Box sx={{ display: 'flex', gap: 1.5, justifyContent: 'space-between' }}>
+
+        <Box sx={{ display: 'flex', gap: 1.5, justifyContent: 'space-between', mb: 1.5 }}>
           {PREVIEW.map((p, i) => {
             const on = earned(p);
             return (
               <Box key={p.id} sx={{
                 textAlign: 'center', flex: 1, position: 'relative',
-                // Earned badge: bounce in + gold glow
                 ...(on ? {
                   animation: `dxBadgeBounce .5s cubic-bezier(.34,1.56,.64,1) ${i * 0.08}s both`,
                   '@keyframes dxBadgeBounce': {
@@ -56,7 +56,6 @@ export const GamificationBadges = ({ examsCount, score }: { examsCount: number; 
                   },
                 } : {}),
               }}>
-                {/* Gold shimmer glow behind earned badge */}
                 {on && <Box sx={{
                   position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
                   width: 36, height: 36, borderRadius: '50%',
@@ -70,20 +69,41 @@ export const GamificationBadges = ({ examsCount, score }: { examsCount: number; 
                 }} />}
                 <Box sx={{
                   fontSize: 28, position: 'relative', zIndex: 1,
-                  // Locked: frosted blur instead of flat grayscale
-                  filter: on ? 'none' : 'grayscale(1) blur(1px)',
-                  opacity: on ? 1 : 0.35,
+                  filter: on ? 'none' : 'grayscale(1)',
+                  opacity: on ? 1 : 0.28,
                   transition: 'filter .3s ease, opacity .3s ease',
                 }}>{p.emoji}</Box>
               </Box>
             );
           })}
         </Box>
+
+        {/* Mini progress bar */}
+        <Box sx={{ width: '100%', height: 5, borderRadius: '999px', bgcolor: 'rgba(0,0,0,0.06)', overflow: 'hidden', mb: 1 }}>
+          <Box sx={{
+            height: '100%',
+            width: `${Math.max(10, (earnedCount / PREVIEW.length) * 100)}%`,
+            borderRadius: '999px',
+            background: 'linear-gradient(90deg, #20b2aa, #d4a574)',
+            transition: 'width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)',
+          }} />
+        </Box>
+
         <Typography variant="caption" sx={{
-          display: 'block', textAlign: 'center', mt: 1.25,
-          color: '#b88a54', fontWeight: 700,
+          display: 'block', textAlign: 'center',
+          color: '#b88a54', fontWeight: 800,
+          position: 'relative',
+          background: 'linear-gradient(90deg, #b88a54, #d4a574, #b88a54)',
+          backgroundSize: '200% 100%',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          animation: 'dxTextShimmer 4s ease-in-out infinite',
+          '@keyframes dxTextShimmer': {
+            '0%': { backgroundPosition: '0% 0' },
+            '100%': { backgroundPosition: '200% 0' },
+          },
         }}>
-          {earnedCount} desbloqueada(s) · toque para ver e resgatar →
+          {earnedCount} de {PREVIEW.length} desbloqueada(s) · toque para ver e resgatar →
         </Typography>
       </CardContent>
     </Card>

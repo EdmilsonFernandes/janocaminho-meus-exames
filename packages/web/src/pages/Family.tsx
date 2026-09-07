@@ -58,10 +58,10 @@ export const FamilyPage = () => {
 
   if (loading) return (
     <PageContainer width={980}>
-      <Skeleton variant="rectangular" height={140} sx={{ borderRadius: '16px', mb: 3 }} />
+      <Skeleton variant="rectangular" height={140} sx={{ borderRadius: '20px', mb: 3 }} />
       <Grid container spacing={2}>
-        <Grid size={{ xs: 12, md: 6 }}><Skeleton variant="rounded" height={180} sx={{ borderRadius: '16px' }} /></Grid>
-        <Grid size={{ xs: 12, md: 6 }}><Skeleton variant="rounded" height={180} sx={{ borderRadius: '16px' }} /></Grid>
+        <Grid size={{ xs: 12, md: 6 }}><Skeleton variant="rounded" height={180} sx={{ borderRadius: '20px' }} /></Grid>
+        <Grid size={{ xs: 12, md: 6 }}><Skeleton variant="rounded" height={180} sx={{ borderRadius: '20px' }} /></Grid>
       </Grid>
     </PageContainer>
   );
@@ -69,7 +69,7 @@ export const FamilyPage = () => {
   if (err && !data) return (
     <PageContainer width={980}>
       <PageHeader icon={<Diversity3Icon />} title={translate('page.family')} accent="#d4a574" subtitle={translate('page.family_sub')} />
-      <Alert severity="error" sx={{ mt: 2, borderRadius: '16px' }} action={<Button color="inherit" size="small" onClick={() => setReloadKey((k) => k + 1)}>Tentar de novo</Button>}>
+      <Alert severity="error" sx={{ mt: 2, borderRadius: '20px' }} action={<Button color="inherit" size="small" onClick={() => setReloadKey((k) => k + 1)}>Tentar de novo</Button>}>
         Não carregamos a visão familiar. Verifique sua conexão e tente novamente.
       </Alert>
     </PageContainer>
@@ -87,19 +87,24 @@ export const FamilyPage = () => {
         elevation={0}
         sx={{
           mb: 3,
-          borderRadius: '16px',
-          background: 'linear-gradient(135deg, #0f5f5a 0%, #178f89 100%)',
+          borderRadius: '20px',
+          background: 'linear-gradient(135deg, #0f5f5a 0%, #178f89 50%, #20b2aa 100%)',
           color: '#fff',
           overflow: 'hidden',
           position: 'relative',
-          boxShadow: '0 12px 32px rgba(15,95,90,0.22)',
+          boxShadow: '0 12px 32px rgba(15,95,90,0.25)',
+          '&::before': {
+            content: '""', position: 'absolute', inset: 0,
+            background: 'radial-gradient(ellipse at 85% 20%, rgba(255,255,255,0.2), transparent 55%)',
+            pointerEvents: 'none',
+          },
         }}
       >
-        <CardContent sx={{ p: { xs: 2.5, sm: 3.5 } }}>
+        <CardContent sx={{ p: { xs: 2.5, sm: 3.5 }, position: 'relative', zIndex: 1 }}>
           <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={2}>
             <Box>
               <Stack direction="row" alignItems="center" spacing={1.5} useFlexGap sx={{ mb: 1, flexWrap: 'wrap', rowGap: 0.75, minWidth: 0 }}>
-                <Box sx={{ bgcolor: 'rgba(255,255,255,0.2)', p: 1, borderRadius: '12px', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+                <Box sx={{ bgcolor: 'rgba(255,255,255,0.2)', p: 1, borderRadius: '14px', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
                   <Diversity3Icon sx={{ fontSize: 28, color: '#fff' }} />
                 </Box>
                 <Typography variant="h5" sx={{ fontWeight: 900, fontFamily: 'Poppins, sans-serif', letterSpacing: '-0.02em', minWidth: 0 }}>
@@ -113,7 +118,7 @@ export const FamilyPage = () => {
                   />
                 )}
               </Stack>
-              <Typography sx={{ opacity: 0.9, fontSize: 14, maxWidth: 520, lineHeight: 1.4 }}>
+              <Typography sx={{ opacity: 0.92, fontSize: 14, maxWidth: 520, lineHeight: 1.45 }}>
                 Monitoramento unificado, cruzamento de exames e scores de saúde de todos os seus dependentes.
               </Typography>
             </Box>
@@ -132,7 +137,8 @@ export const FamilyPage = () => {
                 backdropFilter: 'blur(8px)',
                 border: '1px solid rgba(255,255,255,0.35)',
                 whiteSpace: 'nowrap',
-                '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' },
+                transition: 'all .15s ease',
+                '&:hover': { bgcolor: 'rgba(255,255,255,0.3)', transform: 'translateY(-1px)' },
               }}
             >
               ⚙️ Gerenciar dependentes →
@@ -147,7 +153,7 @@ export const FamilyPage = () => {
           variant="outlined"
           sx={{
             mb: 3,
-            borderRadius: '16px',
+            borderRadius: '20px',
             borderColor: 'rgba(245,158,11,0.4)',
             background: 'linear-gradient(135deg, rgba(245,158,11,0.06) 0%, rgba(239,68,68,0.04) 100%)',
           }}
@@ -165,7 +171,7 @@ export const FamilyPage = () => {
                   key={c.analyte}
                   sx={{
                     p: 1.25,
-                    borderRadius: '12px',
+                    borderRadius: '14px',
                     bgcolor: 'background.paper',
                     border: '1px solid rgba(245,158,11,0.2)',
                     display: 'flex',
@@ -199,7 +205,7 @@ export const FamilyPage = () => {
       )}
 
       {patients.length === 0 && (
-        <Card variant="outlined" sx={{ mt: 2, p: 3, textAlign: 'center', borderColor: 'divider', borderRadius: '16px' }}>
+        <Card variant="outlined" sx={{ mt: 2, p: 3, textAlign: 'center', borderColor: 'divider', borderRadius: '20px' }}>
           <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1.5 }}>
             <DrExame size={72} />
           </Box>
@@ -225,13 +231,15 @@ export const FamilyPage = () => {
                 sx={{
                   height: '100%',
                   cursor: 'pointer',
-                  borderRadius: '16px',
+                  borderRadius: '20px',
                   position: 'relative',
                   overflow: 'hidden',
                   transition: 'all 0.22s ease',
                   border: idx === 0 && p.score != null ? '2px solid #d4a574' : '1px solid',
                   borderColor: idx === 0 && p.score != null ? '#d4a574' : 'divider',
-                  bgcolor: 'background.paper',
+                  background: (t) => t.palette.mode === 'dark'
+                    ? 'radial-gradient(ellipse at 15% 15%, rgba(32,178,170,.06), transparent 50%), rgba(26,36,36,0.5)'
+                    : 'radial-gradient(ellipse at 15% 15%, rgba(32,178,170,.04), transparent 50%), #ffffff',
                   '&:hover': {
                     borderColor: '#178f89',
                     boxShadow: '0 10px 30px rgba(15,95,90,0.14)',

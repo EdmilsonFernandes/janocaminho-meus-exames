@@ -7,7 +7,7 @@
 /** Raios consolidados (auditoria DS 04/09: 401 literais → escala de 4 valores).
  * ⚠️ DEVEM SER STRING (com px): o sx do MUI multiplica borderRadius NUMÉRICO por
  * theme.shape.borderRadius (14) — ex.: 12 vira 168px. String não é multiplicada. */
-export const RADIUS = { sm: '8px', md: '12px', card: '16px', pill: '999px', button: '12px', tile: '12px', sectionCard: '12px' } as const;
+export const RADIUS = { sm: '8px', md: '12px', card: '20px', pill: '999px', button: '12px', tile: '12px', sectionCard: '12px' } as const;
 
 /** Cobre premium — assinatura do portal do médico (modo "viewer clínico"); no app do
  *  paciente o ativo continua teal. Espelha palette.secondary (D4A574/B88A54). */

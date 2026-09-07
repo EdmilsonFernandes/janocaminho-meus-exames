@@ -107,16 +107,17 @@ export const RemindersPage = () => {
     const ta = timeAgo(r.dueDate);
     return (
       <Card key={r.id} variant="outlined" sx={{
-        borderRadius: '16px', overflow: 'hidden',
-        opacity: r.done ? 0.55 : 1,
-        borderColor: isOverdue ? 'error.main' : 'divider',
-        bgcolor: isOverdue ? 'rgba(239,68,68,.04)' : r.done ? 'rgba(0,0,0,0.02)' : 'background.paper',
-        transition: 'all .2s',
-        '&:hover': { boxShadow: '0 4px 16px rgba(0,0,0,.06)' },
+        borderRadius: '20px', overflow: 'hidden',
+        borderColor: isOverdue ? '#ef4444' : 'divider',
+        bgcolor: isOverdue ? 'rgba(239,68,68,.03)' : r.done ? 'rgba(0,0,0,.02)' : 'background.paper',
+        boxShadow: '0 1px 3px rgba(0,0,0,.03), 0 4px 12px rgba(0,0,0,.03)',
+        transition: 'all .2s ease',
+        opacity: r.done ? 0.72 : 1,
+        '&:hover': { boxShadow: '0 8px 24px rgba(32,178,170,.1)', transform: 'translateY(-2px)' },
       }}>
-        <CardContent sx={{ py: 1.75, px: 2, '&:last-child': { pb: 1.75 } }}>
-          <Stack direction="row" alignItems="flex-start" spacing={1}>
-            <Checkbox checked={r.done} onChange={() => toggle(r)} sx={{ mt: -0.5, color: isOverdue ? 'error.main' : undefined }} />
+        <CardContent sx={{ py: 1.75, px: 2.25, '&:last-child': { pb: 1.75 } }}>
+          <Stack direction="row" alignItems="flex-start" spacing={1.5}>
+            <Checkbox checked={!!r.done} onChange={() => toggle(r)} sx={{ p: 0.5, color: 'text.disabled', '&.Mui-checked': { color: '#178f89' } }} />
             <Box sx={{ flex: 1, minWidth: 0 }}>
               <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap">
                 <Typography sx={{
@@ -128,10 +129,11 @@ export const RemindersPage = () => {
                   <Chip size="small" label={ta} sx={{
                     height: 22, fontSize: 11, fontWeight: 800,
                     bgcolor: 'rgba(32,178,170,.12)', color: '#178f89',
+                    borderRadius: '6px',
                   }} />
                 )}
                 {isOverdue && (
-                  <Chip size="small" label="Atrasado" color="error" sx={{ height: 22, fontSize: 11, fontWeight: 800 }} />
+                  <Chip size="small" label="Atrasado" color="error" sx={{ height: 22, fontSize: 11, fontWeight: 800, borderRadius: '6px' }} />
                 )}
               </Stack>
               <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 0.5 }}>
@@ -141,7 +143,7 @@ export const RemindersPage = () => {
               {Array.isArray(r.notifyOffsetsMin) && r.notifyOffsetsMin.length > 0 && (
                 <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.75 }}>
                   <BellIcon sx={{ fontSize: 14, color: 'text.disabled', mt: 0.25 }} />
-                  {r.notifyOffsetsMin.map((o: number) => <Chip key={o} size="small" variant="outlined" label={offsetShort(o)} sx={{ height: 22, fontSize: 11, borderColor: 'divider' }} />)}
+                  {r.notifyOffsetsMin.map((o: number) => <Chip key={o} size="small" variant="outlined" label={offsetShort(o)} sx={{ height: 22, fontSize: 11, borderColor: 'divider', borderRadius: '6px' }} />)}
                 </Stack>
               )}
             </Box>
@@ -158,36 +160,33 @@ export const RemindersPage = () => {
     <PageContainer width="content" sx={{ pb: { xs: 10, sm: 5 } }}>
       <PageHeader icon={<BellIcon />} title="Lembretes" subtitle="Agende avisos para repetir exames, consultas e medicamentos. Avisamos por push, e-mail e notificação." />
 
-      {/* Resumo COMPACTO acionável (P2): uma linha com os números + CTA à lista — antes
-          eram 3 contadores grandes ocupando a 1ª dobra sem ação associada. */}
       <Card sx={{
-        mb: 2.5, borderRadius: '16px', overflow: 'hidden',
+        mb: 2.5, borderRadius: '20px', overflow: 'hidden',
         background: 'linear-gradient(135deg, #0c4a46 0%, #137a72 50%, #178f89 100%)',
         color: '#fff', position: 'relative',
         boxShadow: '0 10px 26px rgba(15,61,58,.2)',
       }}>
-        <CardContent sx={{ py: 1.75, px: { xs: 2, sm: 2.5 }, position: 'relative', zIndex: 1 }}>
+        <CardContent sx={{ py: 2, px: { xs: 2, sm: 2.5 }, position: 'relative', zIndex: 1 }}>
           <Stack direction="row" alignItems="center" spacing={1.25} useFlexGap flexWrap="wrap">
-            <BellIcon sx={{ fontSize: 20, opacity: 0.9 }} />
-            <Typography sx={{ fontSize: 13, fontWeight: 700, flex: 1, minWidth: 150, lineHeight: 1.45 }}>
+            <BellIcon sx={{ fontSize: 22, opacity: 0.9 }} />
+            <Typography sx={{ fontSize: 13.5, fontWeight: 700, flex: 1, minWidth: 150, lineHeight: 1.45 }}>
               {upcoming.length} agendado{upcoming.length === 1 ? '' : 's'}
               {(() => { const n = past.filter((r) => !r.done).length; return n > 0 ? ` · ${n} atrasado${n > 1 ? 's' : ''}` : ''; })()}
               {(() => { const n = past.filter((r) => r.done).length; return n > 0 ? ` · ${n} concluído${n > 1 ? 's' : ''}` : ''; })()}
             </Typography>
-            <Button size="small" disableElevation onClick={() => document.getElementById('proximos')?.scrollIntoView({ behavior: 'smooth' })} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: 'rgba(255,255,255,.16)', color: '#fff', '&:hover': { bgcolor: 'rgba(255,255,255,.24)' } }}>Ver lembretes</Button>
+            <Button size="small" disableElevation onClick={() => document.getElementById('proximos')?.scrollIntoView({ behavior: 'smooth' })} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 2, bgcolor: 'rgba(255,255,255,.16)', color: '#fff', '&:hover': { bgcolor: 'rgba(255,255,255,.24)' } }}>Ver lembretes</Button>
           </Stack>
         </CardContent>
       </Card>
 
-      {/* PRÓXIMOS primeiro (dado > ferramenta — igual Medições/Vacinas) */}
       <Stack id="proximos" direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
         <EventAvailableIcon sx={{ color: '#178f89', fontSize: 22 }} />
         <Typography sx={{ fontWeight: 900, fontSize: 16, fontFamily: 'Poppins, sans-serif' }}>Próximos lembretes</Typography>
-        {upcoming.length > 0 && <Chip size="small" label={upcoming.length} sx={{ bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 800, height: 24 }} />}
+        {upcoming.length > 0 && <Chip size="small" label={upcoming.length} sx={{ bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 800, height: 24, borderRadius: '999px' }} />}
       </Stack>
 
       {upcoming.length === 0 ? (
-        <Card variant="outlined" sx={{ borderRadius: '16px', mb: 2.5, borderStyle: 'dashed', borderColor: 'divider' }}>
+        <Card variant="outlined" sx={{ borderRadius: '20px', mb: 2.5, borderStyle: 'dashed', borderColor: 'divider' }}>
           <CardContent sx={{ textAlign: 'center', py: 4 }}>
             <Box sx={{ fontSize: 48, mb: 1, opacity: 0.4, animation: `${pulse} 2s ease infinite` }}>⏰</Box>
             <Typography sx={{ fontWeight: 700, fontSize: 16, mb: 0.5 }}>Nenhum lembrete agendado</Typography>

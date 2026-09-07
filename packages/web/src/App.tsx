@@ -188,24 +188,30 @@ const MenuSectionAccordion = ({ title, icon, children, routes }: { title: string
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         sx={(t) => ({
-          borderRadius: '12px', m: '2px 8px', pl: 1.25, pr: 1, minHeight: 46,
+          borderRadius: '14px', m: '2px 8px', pl: 1.25, pr: 1, minHeight: 46,
           bgcolor: open ? alpha(t.palette.primary.main, 0.12) : alpha(t.palette.primary.main, 0.05),
           border: '1px solid', borderColor: open ? alpha(t.palette.primary.main, 0.25) : alpha(t.palette.primary.main, 0.1),
-          transition: 'background-color .2s, border-color .2s',
-          '&:hover': { bgcolor: alpha(t.palette.primary.main, open ? 0.16 : 0.09) },
+          transition: 'background-color .2s, border-color .2s, box-shadow .25s ease',
+          '&:hover': { bgcolor: alpha(t.palette.primary.main, open ? 0.16 : 0.09), boxShadow: '0 0 12px rgba(32,178,170,.08)' },
         })}
       >
         <Box component="span" sx={(t) => ({
           width: 28, height: 28, borderRadius: '8px', mr: 1.25, flexShrink: 0, display: 'grid', placeItems: 'center',
           background: open ? 'linear-gradient(135deg, #20b2aa, #178f89)' : alpha(t.palette.primary.main, 0.12),
-          color: open ? '#fff' : t.palette.primary.dark, transition: 'background .2s, color .2s',
+          color: open ? '#fff' : t.palette.primary.dark,
+          transition: 'background .2s, color .2s, transform .3s cubic-bezier(.34,1.56,.64,1)',
+          transform: open ? 'rotate(0deg)' : 'none',
           '& svg': { fontSize: 17 },
         })}>{icon}</Box>
         <ListItemText primary={title} primaryTypographyProps={{ fontSize: 13, fontWeight: 800, color: 'text.primary' }} />
-        <ExpandMoreIcon sx={{ transform: open ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform .2s', color: open ? 'primary.main' : 'text.secondary', fontSize: 20 }} />
+        <ExpandMoreIcon sx={{ transform: open ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform .25s cubic-bezier(.34,1.56,.64,1)', color: open ? 'primary.main' : 'text.secondary', fontSize: 20 }} />
       </ListItemButton>
-      <Collapse in={open} sx={{ pb: 0.5 }}>
-        <Box sx={{ ml: '22px', pl: 1, borderLeft: '2px solid', borderColor: (t) => alpha(t.palette.primary.main, 0.2) }}>
+      <Collapse in={open} timeout={280} easing="cubic-bezier(.34,1.56,.64,1)" sx={{ pb: 0.5 }}>
+        <Box sx={{
+          ml: '22px', pl: 1,
+          borderLeft: '2px solid',
+          borderImage: 'linear-gradient(to bottom, #20b2aa, rgba(32,178,170,0.08)) 1',
+        }}>
           {children}
         </Box>
       </Collapse>
@@ -218,18 +224,26 @@ const NavItem = ({ to, primaryText, icon, highlight }: { to: string; primaryText
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const active = to === '/' ? pathname === '/' : pathname.startsWith(to);
-  const iconColor = active ? '#20b2aa' : highlight ? '#178f89' : 'text.secondary';
   return (
     <ListItemButton onClick={() => navigate(to)} selected={active}
       sx={{
-        borderRadius: '8px', m: '1px 0', py: 0.5, pl: 1.25, minHeight: 42, flex: '0 0 auto',
-        borderLeft: active ? '3px solid #20b2aa' : '3px solid transparent',
-        transition: 'all .15s ease',
-        '&.Mui-selected': { bgcolor: 'rgba(32,178,170,.12)' },
-        '&.Mui-selected:hover': { bgcolor: 'rgba(32,178,170,.18)' },
-        '&:hover': { bgcolor: 'rgba(32,178,170,.06)' }
+        borderRadius: '10px', m: '1px 0', py: 0.5, pl: 1.25, minHeight: 42, flex: '0 0 auto',
+        borderLeft: 'none',
+        transition: 'all .15s ease, transform .15s ease',
+        ...(active ? {
+          background: 'linear-gradient(135deg, rgba(32,178,170,0.16), rgba(32,178,170,0.08))',
+          boxShadow: '0 2px 8px rgba(32,178,170,.1)',
+        } : {}),
+        '&.Mui-selected': { bgcolor: 'transparent', background: 'linear-gradient(135deg, rgba(32,178,170,0.16), rgba(32,178,170,0.08))' },
+        '&.Mui-selected:hover': { background: 'linear-gradient(135deg, rgba(32,178,170,0.22), rgba(32,178,170,0.12))' },
+        '&:hover': active ? {} : { bgcolor: 'rgba(32,178,170,.06)', transform: 'translateX(4px)' },
       }}>
-      <ListItemIcon sx={{ minWidth: 32, color: iconColor, '& svg': { fontSize: 19 } }}>{icon}</ListItemIcon>
+      <ListItemIcon sx={{
+        minWidth: 32,
+        color: active ? '#20b2aa' : highlight ? '#178f89' : 'text.secondary',
+        '& svg': { fontSize: 19, transition: 'transform .2s ease' },
+        ...(active ? { '& svg': { fontSize: 19, transform: 'scale(1.12)' } } : {}),
+      }}>{icon}</ListItemIcon>
       <ListItemText primary={primaryText} primaryTypographyProps={{ fontSize: 13, fontWeight: active || highlight ? 800 : 500, color: active ? '#0f6e68' : highlight ? 'text.primary' : 'text.secondary', noWrap: true }} />
     </ListItemButton>
   );
@@ -282,21 +296,52 @@ const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
   return (
     <Box sx={{ p: 1.5, pb: 1, pt: onClose ? 'calc(env(safe-area-inset-top, 0px) + 12px)' : 1.5 }}>
       <Box sx={(t) => ({
-        p: 1.5, borderRadius: '16px',
-        bgcolor: alpha(t.palette.primary.main, 0.06),
-        border: '1px solid', borderColor: alpha(t.palette.primary.main, 0.15),
-        boxShadow: '0 4px 14px rgba(0,0,0,0.03)'
+        p: 1.5, borderRadius: '20px',
+        background: t.palette.mode === 'dark'
+          ? `radial-gradient(ellipse at 20% 30%, rgba(32,178,170,.12), transparent 60%), radial-gradient(ellipse at 80% 70%, rgba(212,165,116,.06), transparent 50%), ${t.palette.background.paper}`
+          : `radial-gradient(ellipse at 20% 30%, rgba(32,178,170,.08), transparent 60%), radial-gradient(ellipse at 80% 70%, rgba(212,165,116,.04), transparent 50%), #ffffff`,
+        border: '1px solid', borderColor: alpha(t.palette.primary.main, 0.18),
+        boxShadow: '0 4px 14px rgba(0,0,0,0.03), 0 8px 24px rgba(32,178,170,.04)',
       })}>
         <Stack direction="row" alignItems="center" spacing={1.25}>
-          <Avatar src={userInfo.photo} sx={{ width: 44, height: 44, fontSize: 18, bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 800, border: '2px solid rgba(32,178,170,0.3)', flexShrink: 0 }}>
-            {userInfo.name.charAt(0)?.toUpperCase() || '👤'}
-          </Avatar>
+          <Box sx={{ position: 'relative', flexShrink: 0 }}>
+            <Avatar src={userInfo.photo} sx={{ width: 44, height: 44, fontSize: 18, bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 800, border: '2px solid rgba(32,178,170,0.3)', position: 'relative', zIndex: 1 }}>
+              {userInfo.name.charAt(0)?.toUpperCase() || '👤'}
+            </Avatar>
+            {/* Glow ring pulsante */}
+            <Box sx={{
+              position: 'absolute', inset: -3, borderRadius: '50%',
+              background: 'rgba(32,178,170,0.15)', filter: 'blur(6px)',
+              animation: 'dxAvatarGlow 3s ease-in-out infinite', pointerEvents: 'none',
+              '@keyframes dxAvatarGlow': {
+                '0%, 100%': { opacity: 0.4, transform: 'scale(1)' },
+                '50%': { opacity: 0.9, transform: 'scale(1.15)' },
+              },
+            }} />
+          </Box>
           <Box sx={{ minWidth: 0, flex: 1 }}>
             <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary', lineHeight: 1.15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {userInfo.name}
             </Typography>
             <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mt: 0.5, flexWrap: 'wrap', gap: 0.5 }}>
-              <Chip size="small" label={userInfo.isPremium ? '👑 Premium' : 'Plano grátis'} sx={{ height: 20, fontSize: 10, fontWeight: 800, bgcolor: userInfo.isPremium ? 'rgba(212,165,116,0.18)' : 'rgba(0,0,0,0.06)', color: userInfo.isPremium ? '#b88a54' : 'text.secondary' }} />
+              <Chip size="small" label={userInfo.isPremium ? '👑 Premium' : 'Plano grátis'} sx={{
+                height: 20, fontSize: 10, fontWeight: 800,
+                bgcolor: userInfo.isPremium ? 'rgba(212,165,116,0.18)' : 'rgba(0,0,0,0.06)',
+                color: userInfo.isPremium ? '#b88a54' : 'text.secondary',
+                ...(userInfo.isPremium ? {
+                  position: 'relative', overflow: 'hidden',
+                  '&::after': {
+                    content: '""', position: 'absolute', inset: 0,
+                    background: 'linear-gradient(105deg, transparent 35%, rgba(212,165,116,.3) 50%, transparent 65%)',
+                    backgroundSize: '200% 100%',
+                    animation: 'dxPremShimmer 3s ease-in-out infinite',
+                  },
+                  '@keyframes dxPremShimmer': {
+                    '0%': { backgroundPosition: '200% 0' },
+                    '100%': { backgroundPosition: '-200% 0' },
+                  },
+                } : {}),
+              }} />
               {credits != null && (
                 <Chip size="small" onClick={() => { onClose?.(); navigate('/planos'); }} label={`⚡ ${credits} (+)`} sx={{ height: 20, fontSize: 10, fontWeight: 700, bgcolor: 'rgba(32,178,170,0.12)', color: '#0f6e68', cursor: 'pointer', '&:hover': { bgcolor: 'rgba(32,178,170,0.2)' } }} />
               )}
@@ -373,19 +418,33 @@ const AppMenu = () => {
       {isAdmin && <NavItem to="/admin" primaryText={translate('menu.admin')} icon={<AdminPanelSettingsIcon />} />}
     </MenuSectionAccordion>
 
-    <Divider sx={{ my: 1 }} />
+    {/* Gradient divider premium */}
+    <Box sx={{ mx: 2, my: 1, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(32,178,170,.2) 30%, rgba(32,178,170,.2) 70%, transparent)' }} />
 
     <NavItem to="/faq" primaryText={translate('menu.faq', { _: 'Dúvidas frequentes' })} icon={<QuestionAnswerIcon />} />
-    {/* "Como validamos" saiu do menu (pedido do dono): vive dentro do FAQ (categoria
-        "Como validamos") — a rota /como-validamos segue pública (landing/FAQ linkam). */}
-    <MenuItem onClick={() => setAboutOpen(true)} sx={{ mx: 0.5, borderRadius: '8px', py: 0.75 }}>
+    <MenuItem onClick={() => setAboutOpen(true)} sx={{ mx: 1, borderRadius: '10px', py: 0.75 }}>
       <ListItemIcon sx={{ minWidth: 36 }}><InfoIcon fontSize="small" /></ListItemIcon>
       <ListItemText primaryTypographyProps={{ fontSize: 13, fontWeight: 600 }}>{translate('menu.about')}</ListItemText>
     </MenuItem>
-    <MenuItem onClick={() => logout('/entrar')} sx={{ mx: 0.5, my: 0.25, borderRadius: '8px', py: 0.75, color: 'error.main', '&:hover': { bgcolor: 'rgba(239,68,68,.08)' } }}>
+    <MenuItem onClick={() => logout('/entrar')} sx={{
+      mx: 1, my: 0.25, borderRadius: '10px', py: 0.75, color: 'error.main',
+      transition: 'background-color .15s ease',
+      '&:hover': { bgcolor: 'rgba(239,68,68,.08)', '& .MuiListItemIcon-root svg': { animation: 'dxShake .4s ease' } },
+      '@keyframes dxShake': {
+        '0%, 100%': { transform: 'rotate(0)' },
+        '25%': { transform: 'rotate(-8deg)' },
+        '75%': { transform: 'rotate(8deg)' },
+      },
+    }}>
       <ListItemIcon sx={{ color: 'error.main', minWidth: 36 }}><LogoutIcon fontSize="small" /></ListItemIcon>
       <ListItemText primaryTypographyProps={{ fontSize: 13, fontWeight: 600 }}>{translate('menu.logout')}</ListItemText>
     </MenuItem>
+
+    <Box sx={{ px: 2, pt: 1.5, pb: 1, textAlign: 'center', opacity: 0.7 }}>
+      <Typography variant="caption" sx={{ fontSize: 11, fontWeight: 700, color: 'text.secondary', letterSpacing: '0.02em' }}>
+        Dr. Exame • Saúde Inteligente 🩺
+      </Typography>
+    </Box>
 
     <Dialog open={aboutOpen} onClose={() => setAboutOpen(false)} maxWidth="xs" fullWidth>
       <DialogTitle sx={{ textAlign: 'center', pb: 0 }}>
@@ -446,7 +505,24 @@ const AppDrawer = () => {
       }}>
       <UserProfileCard onClose={closeDrawer} />
       <Divider sx={{ borderColor: (t) => alpha(t.palette.primary.main, 0.12), mx: 2 }} />
-      <Box sx={{ flex: 1, overflowY: 'auto', px: 1, py: 1 }}><AppMenu /></Box>
+      <Box sx={{
+        flex: 1, overflowY: 'auto', px: 1, py: 1,
+        '& > *': {
+          animation: 'dxDrawerItemFade 0.35s cubic-bezier(0.16, 1, 0.3, 1) backwards',
+        },
+        '& > *:nth-of-type(1)': { animationDelay: '0.04s' },
+        '& > *:nth-of-type(2)': { animationDelay: '0.08s' },
+        '& > *:nth-of-type(3)': { animationDelay: '0.12s' },
+        '& > *:nth-of-type(4)': { animationDelay: '0.16s' },
+        '& > *:nth-of-type(5)': { animationDelay: '0.20s' },
+        '& > *:nth-of-type(6)': { animationDelay: '0.24s' },
+        '@keyframes dxDrawerItemFade': {
+          '0%': { opacity: 0, transform: 'translateX(-12px)' },
+          '100%': { opacity: 1, transform: 'translateX(0)' },
+        },
+      }}>
+        <AppMenu />
+      </Box>
     </Drawer>
   );
 };

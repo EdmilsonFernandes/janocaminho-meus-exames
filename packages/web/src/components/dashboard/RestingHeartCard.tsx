@@ -81,7 +81,7 @@ export const RestingHeartCard = () => {
   const selFmt = sel ? new Date(`${sel.date}T12:00:00`).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' }).replace('.', '') : '';
 
   return (
-    <AppCard sx={{ p: 2, ...CARD_IN }}>
+    <AppCard sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: '20px !important', ...CARD_IN }}>
       {/* Cabeçalho + zona (chip com batimento) */}
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.25 }}>
         <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 700, fontSize: 15, display: 'flex', alignItems: 'center', gap: 0.75 }}>
@@ -122,9 +122,8 @@ export const RestingHeartCard = () => {
           )}
         </Box>
 
-        {/* Sparkline 30d INTERATIVO — cada barra é um botão; tocar mostra o dia.
-            Premium: gradiente vertical nas barras, glow na selecionada. */}
-        <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: 48, flex: 1, minWidth: 0 }}>
+        {/* Sparkline 30d INTERATIVO — cada barra é um botão; tocar mostra o dia. */}
+        <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: 52, flex: 1, minWidth: 0, position: 'relative' }}>
           {s.series.map((d) => {
             const on = sel?.date === d.date;
             return (
@@ -142,15 +141,27 @@ export const RestingHeartCard = () => {
                   cursor: 'pointer',
                   height: `${Math.max(12, (d.avg / max) * 100)}%`,
                   borderRadius: on ? '4px 4px 0 0' : '3px 3px 0 0',
-                  // Gradiente vertical premium (cor cheia no topo, fade pra transparent)
+                  position: 'relative',
                   background: on
                     ? `linear-gradient(to bottom, ${z.color}, ${alpha(z.color, 0.5)})`
                     : `linear-gradient(to bottom, ${alpha(z.color, 0.45)}, ${alpha(z.color, 0.12)})`,
                   outline: on ? `2px solid ${z.color}` : 'none',
                   outlineOffset: on ? 1 : 0,
-                  boxShadow: on ? `0 0 8px ${alpha(z.color, 0.35)}` : 'none',
+                  boxShadow: on ? `0 0 10px ${alpha(z.color, 0.45)}` : 'none',
                   transform: on ? 'scaleY(1.06)' : 'none',
                   transition: 'height .5s cubic-bezier(.2,.8,.2,1), transform .15s ease, background .2s ease, box-shadow .2s ease',
+                  '&::after': on ? {
+                    content: '""',
+                    position: 'absolute',
+                    top: -5,
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    width: 4,
+                    height: 4,
+                    borderRadius: '50%',
+                    bgcolor: z.color,
+                    boxShadow: `0 0 6px ${z.color}`,
+                  } : {},
                 }}
               />
             );
@@ -158,17 +169,17 @@ export const RestingHeartCard = () => {
         </Box>
       </Stack>
 
-      {/* Detalhe do dia tocado — 1 linha (o gráfico sozinho não conta a história) */}
+      {/* Detalhe do dia tocado */}
       {sel && (
         <Box sx={{
-          mt: 1, px: 1.25, py: 0.75, borderRadius: '12px',
-          bgcolor: alpha(z.color, 0.07), border: `1px solid ${alpha(z.color, 0.25)}`,
+          mt: 1.25, px: 1.5, py: 1, borderRadius: '14px',
+          bgcolor: alpha(z.color, 0.08), border: `1px solid ${alpha(z.color, 0.22)}`,
           animation: 'dxHrTip .2s ease both',
           '@keyframes dxHrTip': { from: { opacity: 0, transform: 'scale(.96)' }, to: { opacity: 1, transform: 'scale(1)' } },
         }}>
-          <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>
+          <Typography sx={{ fontSize: 13.5, color: 'text.secondary' }}>
             <Box component="strong" sx={{ color: z.color, fontWeight: 800, textTransform: 'capitalize' }}>{selFmt}</Box>
-            {' · '}<Box component="strong" sx={{ fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{sel.avg} bpm</Box>
+            {' · '}<Box component="strong" sx={{ fontWeight: 800, color: 'text.primary', fontVariantNumeric: 'tabular-nums' }}>{sel.avg} bpm</Box>
             {sel.avg > 80 ? ' — elevada naquele dia; comente com seu médico' : ''}
           </Typography>
         </Box>

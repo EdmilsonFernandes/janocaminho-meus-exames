@@ -379,12 +379,14 @@ export const MedicationsPage = () => {
             const photo = m.priceSummary?.imageUrl ?? m.catalogPhotoUrl;
             return (
               <Card key={m.id} elevation={0} sx={{
-                p: 2, borderRadius: '16px', border: '1px solid', borderColor: 'divider',
-                boxShadow: '0 1px 2px rgba(0,0,0,.03), 0 2px 8px rgba(0,0,0,.04), 0 8px 20px rgba(0,0,0,.03)',
-                transition: 'box-shadow .2s ease, border-color .2s ease',
-                '&:hover': m.priceSummary?.lowestPriceCents != null
-                  ? { borderColor: 'rgba(32,178,170,.3)', boxShadow: '0 2px 4px rgba(32,178,170,.06), 0 8px 24px rgba(32,178,170,.1), 0 16px 36px rgba(32,178,170,.06)' }
-                  : { boxShadow: '0 2px 4px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.06), 0 12px 28px rgba(0,0,0,.04)' },
+                p: 2.25, borderRadius: '20px', border: '1px solid', borderColor: 'divider',
+                boxShadow: '0 1px 3px rgba(0,0,0,.03), 0 4px 12px rgba(0,0,0,.04), 0 12px 28px rgba(32,178,170,.03)',
+                transition: 'transform .18s ease, box-shadow .2s ease, border-color .2s ease',
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                  borderColor: 'rgba(32,178,170,.35)',
+                  boxShadow: '0 4px 12px rgba(32,178,170,.08), 0 12px 28px rgba(32,178,170,.12)',
+                },
                 animation: `medCardIn .35s cubic-bezier(.16,1,.3,1) ${idx * 0.05}s both`,
                 '@keyframes medCardIn': { from: { opacity: 0, transform: 'translateY(12px)' }, to: { opacity: 1, transform: 'translateY(0)' } },
               }}>

@@ -150,36 +150,61 @@ export const TrendsPage = () => {
       <Title title="Tendências" />
 
       {/* HEADER PREMIUM */}
-      <Card sx={{ mb: 2, borderRadius: '12px', overflow: 'hidden', background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff' }}>
-        <CardContent sx={{ py: 2.5 }}>
-          <Typography variant="h5" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>📈 Tendências</Typography>
-          <Typography sx={{ opacity: 0.9, mt: 0.5, fontSize: 14 }}>Veja como seus resultados evoluíram ao longo do tempo.</Typography>
+      <Card sx={{
+        mb: 2.5, borderRadius: '20px', overflow: 'hidden',
+        background: 'linear-gradient(135deg,#20b2aa 0%,#178f89 50%,#0f6e68 100%)',
+        boxShadow: '0 6px 24px rgba(32,178,170,0.25)',
+        color: '#fff', position: 'relative',
+        '&::after': {
+          content: '""', position: 'absolute', inset: 0,
+          background: 'radial-gradient(ellipse at 80% 20%, rgba(255,255,255,0.18), transparent 60%)',
+          pointerEvents: 'none',
+        },
+      }}>
+        <CardContent sx={{ py: 3, px: { xs: 2.5, sm: 3 }, position: 'relative', zIndex: 1 }}>
+          <Typography variant="h5" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', letterSpacing: '-0.01em' }}>
+            📈 Tendências
+          </Typography>
+          <Typography sx={{ opacity: 0.92, mt: 0.5, fontSize: 14.5 }}>
+            Veja como seus resultados evoluíram ao longo do tempo.
+          </Typography>
         </CardContent>
       </Card>
 
       {/* ATALHOS (chips dos principais analitos) + DROPDOWN */}
       {multi.length > 0 && (
-        <Card sx={{ mb: 2, borderRadius: '12px' }}><CardContent sx={{ p: { xs: 1.5, md: 2 } }}>
+        <Card sx={{ mb: 2.5, borderRadius: '20px' }}><CardContent sx={{ p: { xs: 2, md: 2.5 } }}>
           {multi.length > 1 && (
-            <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mb: 1.5 }}>
+            <Stack direction="row" spacing={0.85} useFlexGap flexWrap="wrap" sx={{ mb: 2 }}>
               {multi.slice(0, 10).map((n) => {
                 const tone = toneByName[n.nameCanonical];
+                const isSelected = sel === n.nameCanonical;
                 return (
                   <Chip key={n.nameCanonical} onClick={() => setSel(n.nameCanonical)}
-                    color={sel === n.nameCanonical ? 'primary' : 'default'} size="small" title={prettyName(n.nameCanonical)}
+                    color={isSelected ? 'primary' : 'default'} size="small" title={prettyName(n.nameCanonical)}
                     label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                       {tone && <span style={{ width: 8, height: 8, borderRadius: '50%', background: tone === 'critico' ? '#ef4444' : '#f59e0b', boxShadow: `0 0 6px ${tone === 'critico' ? '#ef4444' : '#f59e0b'}66` }} />}
                       {prettyName(n.nameCanonical)}
                     </span>}
-                    sx={{ height: 36, fontWeight: 700, borderRadius: '999px', maxWidth: 185, '& .MuiChip-label': { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }, '&.MuiChip-colorPrimary': { bgcolor: '#20b2aa', color: '#fff' } }} />
+                    sx={{
+                      height: 38, fontWeight: 700, borderRadius: '999px', maxWidth: 195,
+                      transition: 'transform .15s ease, box-shadow .15s ease',
+                      '&:hover': { transform: 'translateY(-1px)', boxShadow: '0 4px 12px rgba(32,178,170,.15)' },
+                      '& .MuiChip-label': { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', px: 1.5 },
+                      '&.MuiChip-colorPrimary': {
+                        background: 'linear-gradient(135deg,#20b2aa,#178f89)',
+                        boxShadow: '0 4px 12px rgba(32,178,170,.3)',
+                        color: '#fff',
+                      },
+                    }} />
                 );
               })}
             </Stack>
           )}
           <FormControl fullWidth size="small">
             <Select value={sel} onChange={(e) => setSel(e.target.value as string)} displayEmpty
-              MenuProps={{ PaperProps: { sx: { maxWidth: { sm: 480 }, '& .MuiMenuItem-root': { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } } } }}
-              sx={{ borderRadius: '12px', maxWidth: '100%', '& .MuiSelect-select': { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: 1 } }}>
+              MenuProps={{ PaperProps: { sx: { borderRadius: '16px', maxWidth: { sm: 480 }, '& .MuiMenuItem-root': { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } } } }}
+              sx={{ borderRadius: '14px', maxWidth: '100%', '& .MuiSelect-select': { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: 1 } }}>
               <MenuItem value="" disabled><em>Todos os analitos ({multi.length})</em></MenuItem>
               {multi.map((n) => {
                 const tone = toneByName[n.nameCanonical];
@@ -197,7 +222,7 @@ export const TrendsPage = () => {
 
       {/* EMPTY STATE (sem dados) */}
       {!sel && multi.length === 0 && (
-        <Card sx={{ borderRadius: '12px', textAlign: 'center', py: 5 }}>
+        <Card sx={{ borderRadius: '20px', textAlign: 'center', py: 5 }}>
           <CardContent>
             <Box sx={{ fontSize: 56, mb: 1 }}>📊</Box>
             <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', mb: 0.5 }}>
@@ -208,20 +233,23 @@ export const TrendsPage = () => {
                 ? 'Envie ao menos um exame laboratorial para começar a acompanhar suas tendências.'
                 : 'Você já tem exames, mas precisa de um 2º resultado do mesmo tipo para comparar a evolução.'}
             </Typography>
-            <Button variant="contained" onClick={() => navigate('/exams/create')} sx={{ mt: 2, borderRadius: '999px', textTransform: 'none', fontWeight: 800 }}>{names.length === 0 ? 'Enviar exame' : 'Enviar outro exame'}</Button>
+            <Button variant="contained" onClick={() => navigate('/exams/create')} sx={{
+              mt: 2.5, borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 3.5, py: 1.1,
+              background: 'linear-gradient(135deg,#20b2aa,#178f89)', boxShadow: '0 4px 14px rgba(32,178,170,.3)',
+            }}>{names.length === 0 ? 'Enviar exame' : 'Enviar outro exame'}</Button>
           </CardContent>
         </Card>
       )}
 
       {/* LOADING */}
-      {loading && <Card sx={{ borderRadius: '12px' }}><CardContent><ListSkeleton count={4} /></CardContent></Card>}
+      {loading && <Card sx={{ borderRadius: '20px' }}><CardContent><ListSkeleton count={4} /></CardContent></Card>}
 
-            {/* GRÁFICO + DETALHES — primitiva compartilhada (dedup paciente↔médico). */}
+      {/* GRÁFICO + DETALHES — primitiva compartilhada (dedup paciente↔médico). */}
       {!loading && ts && ts.points.length > 0 && (
         <TrendsChart ts={ts} />
       )}
       {!loading && ts && ts.points.length === 0 && sel && (
-        <Card sx={{ borderRadius: '12px', textAlign: 'center', py: 4 }}>
+        <Card sx={{ borderRadius: '20px', textAlign: 'center', py: 4 }}>
           <CardContent><Typography color="text.secondary">Sem pontos numéricos para este analito.</Typography></CardContent>
         </Card>
       )}
