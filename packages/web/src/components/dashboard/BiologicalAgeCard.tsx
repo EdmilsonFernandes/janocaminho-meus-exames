@@ -59,7 +59,7 @@ export const BiologicalAgeCard = () => {
 
   return (
     <>
-      <AppCard kind="interactive" onClick={() => setExplain(true)} sx={{ p: 1.75, height: '100%' }}>
+      <AppCard kind="interactive" onClick={() => setExplain(true)} sx={{ p: 2, height: '100%', borderRadius: '24px !important' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, width: '100%' }}>
           <Box sx={{ width: 38, height: 38, borderRadius: '12px', display: 'grid', placeItems: 'center', flexShrink: 0, bgcolor: alpha(PREMIUM, 0.14), color: PREMIUM }}><Dna size={22} weight="duotone" color={PREMIUM} /></Box>
           <Box sx={{ flex: 1, minWidth: 0 }}>
