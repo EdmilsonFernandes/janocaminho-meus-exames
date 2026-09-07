@@ -137,7 +137,7 @@ const SlideCarousel = () => {
             key={idx}
             component="img"
             src={`${import.meta.env.BASE_URL}showcase/slide-${idx + 1}.webp`}
-            alt={`Meus Exames — slide ${idx + 1}`}
+            alt={`Dr. Exame — slide ${idx + 1}`}
             loading={idx === 0 ? 'eager' : 'lazy'}
             onClick={() => setI((idx + 1) % SHOWCASE_SLIDE_COUNT)}
             sx={{
@@ -254,7 +254,7 @@ export const LandingPage = () => {
         <Container maxWidth="lg" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', py: 1.5 }}>
           <Stack direction="row" alignItems="center" spacing={1.25} sx={{ cursor: 'pointer' }} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
             <Box component="img" src={`${import.meta.env.BASE_URL}app-icon.png`} alt="Dr. Exame" sx={{ width: 38, height: 38, borderRadius: '16%', objectFit: 'cover' }} />
-            <Typography variant="h6" sx={{ color: 'text.primary', fontWeight: 800, fontSize: 19, letterSpacing: '-0.01em' }}>Meus Exames</Typography>
+            <Typography variant="h6" sx={{ color: 'text.primary', fontWeight: 800, fontSize: 19, letterSpacing: '-0.01em' }}>Dr. Exame</Typography>
           </Stack>
           <Stack direction="row" spacing={1.5} alignItems="center">
             <Box component="button" onClick={() => goTo('demo')} sx={{ ...navBtn(scrolled), display: { xs: 'none', sm: 'inline' } }}>Como funciona</Box>
@@ -437,7 +437,7 @@ export const LandingPage = () => {
         <Container maxWidth="lg" sx={{ py: { xs: 5, md: 7 } }}>
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(4, 1fr)' }, gap: { xs: 2.5, md: 4 }, textAlign: 'center' }}>
             {[
-              { n: 30, pre: '< ', suf: 's', l: 'pra ler seu exame com IA' },
+              { n: 30, pre: '~', suf: 's', l: 'pra ler seu exame com IA' },
               { n: 7, pre: '', suf: '', l: 'riscos monitorados: diabetes, anemia, colesterol, renal…' },
               { n: 3, pre: '', suf: '', l: 'índices que o laudo não dá: IMC, eGFR e HOMA-IR' },
               { n: 9, pre: '', suf: '', l: 'farmácias comparadas — menor preço do seu remédio' },
@@ -460,7 +460,7 @@ export const LandingPage = () => {
         <Container maxWidth="md">
           <Stack direction="row" spacing={0.75} alignItems="center" justifyContent="center" sx={{ mb: 3 }}>
             {[0, 1, 2, 3, 4].map((i) => <Box key={i} component="span" sx={{ color: '#f59e0b', fontSize: 18, lineHeight: 1 }}>★</Box>)}
-            <Typography sx={{ fontWeight: 800, fontSize: 15, ml: 1, color: 'text.primary' }}>5,0 na Google Play</Typography>
+            <Typography component="a" href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer" sx={{ fontWeight: 800, fontSize: 15, ml: 1, color: 'text.primary', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>5,0 na Google Play · ver avaliações</Typography>
           </Stack>
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 2.5 }}>
             {[
@@ -955,7 +955,7 @@ export const LandingPage = () => {
         <Container maxWidth="md" sx={{ textAlign: 'center' }}>
           <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center" sx={{ mb: 1.5 }}>
             <Box component="img" src={`${import.meta.env.BASE_URL}app-icon.png`} alt="Dr. Exame" sx={{ width: 34, height: 34, borderRadius: '20%', border: '1px solid rgba(32,178,170,0.3)' }} />
-            <Typography sx={{ fontWeight: 800, color: '#fff', fontSize: 19, fontFamily: 'Poppins, sans-serif' }}>Meus Exames</Typography>
+            <Typography sx={{ fontWeight: 800, color: '#fff', fontSize: 19, fontFamily: 'Poppins, sans-serif' }}>Dr. Exame</Typography>
           </Stack>
           <Typography sx={{ fontSize: 14, mb: 1, color: '#a0c4c0' }}>© {new Date().getFullYear()} janocaminho.com.br • <Box component="a" href="mailto:contato@janocaminho.com.br" sx={{ color: '#a0c4c0', textDecoration: 'underline' }}>contato@janocaminho.com.br</Box></Typography>
           <Typography sx={{ fontSize: 12, opacity: .75, mb: 3, maxWidth: 540, mx: 'auto', lineHeight: 1.5 }}>Edmilson Fernandes • CNPJ: 44.771.427/0001-69 • Análise educativa, não substitui consulta médica.</Typography>
