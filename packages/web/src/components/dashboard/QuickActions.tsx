@@ -1,4 +1,4 @@
-import { Box, Card, CardContent, Grid, Typography } from '@mui/material';
+import { Box, Card, CardContent, Typography } from '@mui/material';
 import { UploadSimple, ChartLineUp, UsersThree, FileText } from '@phosphor-icons/react';
 import { useNavigate } from 'react-router-dom';
 
@@ -15,9 +15,21 @@ const ACTIONS = [
 export const QuickActions = () => {
   const navigate = useNavigate();
   return (
-    <Grid container spacing={1.5}>
+    // Container query (não breakpoint de viewport): as colunas respondem à LARGURA DA COLUNA
+    // do app (shell centraliza em ~360px). Com Grid xs/sm por viewport, janelas de 600-900px
+    // viravam 4 colunas de 81px e os cards quebravam ("Enviar exame" em 2 linhas, cortado).
+    // '@sm' no sx = @container (min-width: 600px) medindo ESTE Box. Fix 2026-09-07.
+    // Padrão container-query correto: o wrapper é o query container; o grid (FILHO) tem a
+    // regra @container — um elemento não pode ser seu próprio container (spec CSS).
+    <Box sx={{ containerType: 'inline-size' }}>
+      <Box sx={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(2, 1fr)',
+        gap: 1.5,
+        '@container (min-width: 600px)': { gridTemplateColumns: 'repeat(4, 1fr)' },
+      }}>
       {ACTIONS.map((a, i) => (
-        <Grid size={{ xs: 6, sm: 3 }} key={a.label}>
+        <Box key={a.label}>
           {a.primary ? (
             /* CTA primário — borda animada com rotating conic-gradient */
             <Box sx={{
@@ -92,8 +104,9 @@ export const QuickActions = () => {
               </CardContent>
             </Card>
           )}
-        </Grid>
+        </Box>
       ))}
-    </Grid>
+      </Box>
+    </Box>
   );
 };

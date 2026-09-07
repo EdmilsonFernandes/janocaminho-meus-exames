@@ -454,8 +454,10 @@ export const DashboardV2 = () => {
       {/* SEUS INDICADORES */}
       <ScrollReveal delay={180}>
         <Section label="Seus indicadores" icon={<FavoriteBorderIcon />}>
-          <Grid container spacing={1.5}>
-            <Grid size={{ xs: 6, md: 3 }}>
+          {/* Container query (não viewport — mesmo bug do QuickActions): janelas 900-1100px
+              com a coluna do app estreita viravam 4 tiles de ~80px, cortados. */}
+          <Box sx={{ containerType: 'inline-size' }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 1.5, '@container (min-width: 600px)': { gridTemplateColumns: 'repeat(4, 1fr)' } }}>
               <IndicatorTile idx={0} icon={<Heartbeat size={22} weight="duotone" />}
                 tone={cardioLevel ? (cardioFactors > 0 ? 'error' : 'success') : 'info'}
                 label="Cardiometabólico"
@@ -465,25 +467,19 @@ export const DashboardV2 = () => {
                   : (d.loaded ? (d.stats.exams > 0 ? 'sem colesterol, peso ou pressão' : 'envie um exame ou registre peso/pressão') : '')}
                 arcPercent={cardioArc} arcColor={cardioArcColor}
                 onClick={() => navigate(d.stats.exams > 0 ? '/tendencias' : '/exams/create')} />
-            </Grid>
-            <Grid size={{ xs: 6, md: 3 }}>
               <BiologicalAgeCard />
-            </Grid>
-            <Grid size={{ xs: 6, md: 3 }}>
               <IndicatorTile idx={2} icon={<Stethoscope size={22} weight="duotone" />} tone="primary" label="Seus exames"
                 value={d.loaded ? String(d.stats.exams) : '—'}
                 sub={d.stats.exams === 0 && d.loaded ? 'envie o primeiro' : `${d.stats.abnormal} alterado${d.stats.abnormal === 1 ? '' : 's'}`}
                 arcPercent={d.stats.exams > 0 ? examsArcPercent : undefined}
                 arcColor="#20b2aa"
                 onClick={() => navigate('/exams')} />
-            </Grid>
-            <Grid size={{ xs: 6, md: 3 }}>
               <IndicatorTile idx={3} icon={<ChartLineUp size={22} weight="duotone" />} tone="info" label="Evolução"
                 value={totalResults > 0 ? String(totalResults) : (d.loaded ? 'Sem dados' : '—')}
                 sub={totalResults > 0 ? 'histórico de tendências' : (d.loaded ? 'após o 1º exame' : '')}
                 onClick={() => navigate('/evolucao')} />
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
         </Section>
       </ScrollReveal>
 
