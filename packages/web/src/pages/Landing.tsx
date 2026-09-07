@@ -174,8 +174,17 @@ export const LandingPage = () => {
   // mostram o essencial e revelam o resto sob botão claro. Nada é apagado.
   const [showTour, setShowTour] = useState<'video' | 'slides'>('video');
   const [showAllScience, setShowAllScience] = useState(false);
+  // CTA FIXO mobile: a página tem ~12 mil px e o botão grande só existia na 1ª e na
+  // última dobra — no meio do funil o polegar não alcançava conversão nenhuma.
+  const [showMobileCta, setShowMobileCta] = useState(false);
   useEffect(() => {
-    const h = () => setScrolled(window.scrollY > 40);
+    const h = () => {
+      setScrolled(window.scrollY > 40);
+      // Aparece após o hero; SOME na zona do CTA final/footer (últimos ~900px) pra
+      // não ecoar dois CTAs grandes na mesma tela.
+      const nearBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 900;
+      setShowMobileCta(window.scrollY > 700 && !nearBottom);
+    };
     window.addEventListener('scroll', h, { passive: true });
     return () => window.removeEventListener('scroll', h);
   }, []);
@@ -870,7 +879,7 @@ export const LandingPage = () => {
               }}>
                 {p.highlight && <Chip label="RECOMENDADO" size="small" sx={{ position: 'absolute', top: -13, left: '50%', transform: 'translateX(-50%)', bgcolor: TEAL, color: '#fff', fontWeight: 800, fontSize: 11 }} />}
                 <Typography variant="h6" sx={{ fontWeight: 800, fontSize: 18, color: 'text.primary', mb: 1 }}>{p.name}</Typography>
-                <Typography sx={{ fontWeight: 800, fontSize: 32, color: p.highlight ? TEAL : 'text.primary', mb: 0.5, lineHeight: 1.1 }}>{p.price}<Typography component="span" sx={{ fontSize: 14, color: 'text.secondary', fontWeight: 600 }}>{p.period}</Typography></Typography>
+                <Typography sx={{ fontWeight: 800, fontSize: 32, color: p.highlight ? TEAL : 'text.primary', mb: 0.5, lineHeight: 1.1 }}>{p.price}{p.period && <Typography component="span" sx={{ fontSize: 14, color: 'text.secondary', fontWeight: 600 }}>{` ${p.period}`}</Typography>}</Typography>
                 <Box sx={{ my: 2, height: 1, bgcolor: 'divider' }} />
                 {p.features.map((f: any) => (
                   <Stack key={f.text} direction="row" spacing={1} alignItems="center" sx={{ py: 0.5 }}>
@@ -1001,6 +1010,33 @@ export const LandingPage = () => {
             ))}
           </Stack>
         </Container>
+      </Box>
+
+      {/* CTA FIXO MOBILE — só xs; desliza pra fora no reduced-motion-off e some na
+          zona final (showMobileCta). Uma ação só, na cor da casa, sem competir com o
+          conteúdo. visibility:hidden tira da árvore de acessibilidade quando oculta. */}
+      <Box
+        component="button"
+        onClick={() => navigate('/registrar')}
+        sx={{
+          display: { xs: 'flex', sm: 'none' },
+          position: 'fixed', left: 14, right: 14,
+          bottom: 'calc(14px + env(safe-area-inset-bottom))',
+          zIndex: 1100,
+          alignItems: 'center', justifyContent: 'center',
+          py: 1.5, borderRadius: '999px', border: 'none', cursor: 'pointer',
+          background: 'linear-gradient(90deg,#178f89,#20b2aa)',
+          color: '#fff', fontWeight: 800, fontSize: 16,
+          fontFamily: '"Poppins","Inter",sans-serif', letterSpacing: '-0.01em',
+          boxShadow: '0 10px 30px rgba(32,178,170,.45)',
+          transform: showMobileCta ? 'none' : 'translateY(140%)',
+          visibility: showMobileCta ? 'visible' : 'hidden',
+          transition: 'transform .3s cubic-bezier(.16,1,.3,1), visibility .3s',
+          '@media (prefers-reduced-motion: reduce)': { transition: 'none' },
+          '&:active': { transform: 'scale(.98)' },
+        }}
+      >
+        Começar grátis — {credits} créditos de IA
       </Box>
 
       {/* POPUP de captura de e-mail — scroll 55%, 1×/sessão, cooldown 7d, LGPD (popup-cro). */}

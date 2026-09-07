@@ -59,6 +59,11 @@ export const AnimatedNumber = ({ value, suffix = '', prefix = '', duration = 1.2
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    // Reduced motion: sem contagem — valor final direto (a animação é decorativa).
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+      setDisplay(value);
+      return;
+    }
     const obs = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting && !started.current) {
         started.current = true;
@@ -78,8 +83,12 @@ export const AnimatedNumber = ({ value, suffix = '', prefix = '', duration = 1.2
   }, [value, duration]);
 
   return (
-    <Box component="span" ref={ref} sx={{ fontVariantNumeric: 'tabular-nums', ...sx }}>
-      {prefix}{display.toLocaleString('pt-BR')}{suffix}
+    <Box component="span" ref={ref} sx={{ ...sx }}>
+      {/* A11y: até animar, o contador expõe "0" — leitor de tela leria "0 riscos
+          monitorados". A animação é aria-hidden; o valor FINAL é o texto acessível
+          (visualmente escondido, padrão sr-only). */}
+      <Box component="span" aria-hidden="true" sx={{ fontVariantNumeric: 'tabular-nums' }}>{prefix}{display.toLocaleString('pt-BR')}{suffix}</Box>
+      <Box component="span" sx={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0 0 0 0)', whiteSpace: 'nowrap', border: 0 }}>{prefix}{value.toLocaleString('pt-BR')}{suffix}</Box>
     </Box>
   );
 };
