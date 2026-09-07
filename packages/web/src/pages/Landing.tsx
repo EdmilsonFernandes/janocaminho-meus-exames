@@ -153,9 +153,12 @@ const SlideCarousel = () => {
             key={idx}
             onClick={() => setI(idx)}
             sx={{
-              width: idx === i ? 22 : 7, height: 7, borderRadius: '999px',
+              width: 22, height: 7, borderRadius: '999px',
               bgcolor: idx === i ? TEAL : 'rgba(15,61,58,.22)',
-              cursor: 'pointer', transition: 'width .3s ease, background-color .3s ease',
+              cursor: 'pointer',
+              transform: idx === i ? 'scaleX(1)' : 'scaleX(0.35)',
+              transformOrigin: 'center',
+              transition: 'transform .3s ease, background-color .3s ease',
             }}
           />
         ))}
@@ -349,27 +352,64 @@ export const LandingPage = () => {
               </Button>
             </Box>
 
-            {/* Coluna visual — capaIA de ponta a ponta, sem matte e sem cards flutuantes => preenche tudo, sem espaço branco. */}
-            <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+            {/* Coluna visual — Mockup em camadas com badges flutuantes de glassmorphism */}
+            <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', position: 'relative' }}>
+              {/* Badge flutuante 1 (topo-esquerda) */}
+              <Box
+                sx={{
+                  position: 'absolute', top: { xs: -12, md: 12 }, left: { xs: 6, md: -20 }, zIndex: 4,
+                  bgcolor: 'rgba(255,255,255,0.94)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+                  borderRadius: '16px', px: 1.75, py: 1,
+                  boxShadow: '0 12px 30px rgba(0,0,0,0.08), 0 2px 8px rgba(32,178,170,0.12)',
+                  border: '1px solid rgba(255,255,255,0.85)',
+                  display: 'flex', alignItems: 'center', gap: 1,
+                  animation: 'chipFloatA 5s ease-in-out infinite',
+                }}
+              >
+                <Box sx={{ width: 9, height: 9, borderRadius: '50%', bgcolor: '#059669', boxShadow: '0 0 0 3px rgba(5,150,105,0.2)' }} />
+                <Typography sx={{ fontSize: 13, fontWeight: 800, color: 'text.primary', fontFamily: '"Poppins",sans-serif' }}>
+                  Glicose: 92 mg/dL <Box component="span" sx={{ color: '#059669', fontWeight: 700, fontSize: 12 }}>· Normal</Box>
+                </Typography>
+              </Box>
+
+              {/* Badge flutuante 2 (base-direita) */}
+              <Box
+                sx={{
+                  position: 'absolute', bottom: { xs: -14, md: 16 }, right: { xs: 6, md: -16 }, zIndex: 4,
+                  bgcolor: 'rgba(255,255,255,0.94)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+                  borderRadius: '16px', px: 1.75, py: 1,
+                  boxShadow: '0 12px 32px rgba(32,178,170,0.18), 0 2px 8px rgba(0,0,0,0.06)',
+                  border: '1px solid rgba(32,178,170,0.25)',
+                  display: 'flex', alignItems: 'center', gap: 0.8,
+                  animation: 'chipFloatB 6s ease-in-out infinite',
+                }}
+              >
+                <AutoAwesomeIcon sx={{ fontSize: 17, color: TEAL_DARK }} />
+                <Typography sx={{ fontSize: 13, fontWeight: 800, color: TEAL_DARK, fontFamily: '"Poppins",sans-serif' }}>
+                  Laudo lido em ~28s
+                </Typography>
+              </Box>
+
               <Box className="hero-float" sx={{
-                position: 'relative', width: '100%', maxWidth: 560,
-                borderRadius: '12px', overflow: 'hidden', p: '6px',
-                background: 'linear-gradient(135deg,rgba(32,178,170,.12),rgba(212,165,116,.08))',
-                border: '1px solid rgba(32,178,170,.25)',
-                boxShadow: '0 30px 60px rgba(32,178,170,.20), 0 10px 24px rgba(0,0,0,.07)',
+                position: 'relative', width: '100%', maxWidth: 540,
+                borderRadius: '24px', overflow: 'hidden', p: '6px',
+                background: 'linear-gradient(135deg, rgba(32,178,170,.22), rgba(212,165,116,.16))',
+                border: '1px solid rgba(32,178,170,.30)',
+                boxShadow: '0 32px 72px rgba(32,178,170,.24), 0 12px 28px rgba(0,0,0,.08)',
               }}>
-                <Box sx={{ position: 'relative' }}>
-                  <Box component="img" src={`${import.meta.env.BASE_URL}capa-ia.png`} alt="Dr. Exame — seus exames com IA" sx={{ width: '100%', height: 'auto', display: 'block', borderRadius: '12px' }} />
+                <Box sx={{ position: 'relative', borderRadius: '18px', overflow: 'hidden', cursor: 'pointer' }} onClick={() => setTourOpen(true)}>
+                  <Box component="img" src={`${import.meta.env.BASE_URL}capa-ia.png`} alt="Dr. Exame — seus exames com IA" sx={{ width: '100%', height: 'auto', display: 'block', borderRadius: '18px', transition: 'transform .35s ease', '&:hover': { transform: 'scale(1.02)' } }} />
                   <IconButton
-                    onClick={() => setTourOpen(true)}
+                    onClick={(e) => { e.stopPropagation(); setTourOpen(true); }}
                     aria-label="Assistir tour do Dr. Exame"
                     sx={{
                       position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
                       bgcolor: 'rgba(32,178,170,.92)', color: '#fff',
                       width: { xs: 64, md: 78 }, height: { xs: 64, md: 78 },
-                      boxShadow: '0 12px 30px rgba(32,178,170,.45)',
+                      boxShadow: '0 12px 36px rgba(32,178,170,.55), 0 0 0 10px rgba(255,255,255,0.22)',
+                      backdropFilter: 'blur(12px)',
                       transition: 'transform .2s ease, background-color .2s ease',
-                      '&:hover': { bgcolor: '#20b2aa', transform: 'translate(-50%,-50%) scale(1.07)' },
+                      '&:hover': { bgcolor: '#178f89', transform: 'translate(-50%,-50%) scale(1.08)' },
                     }}
                   >
                     <PlayArrowIcon sx={{ fontSize: { xs: 38, md: 46 } }} />
@@ -485,62 +525,81 @@ export const LandingPage = () => {
         </Container>
       </Box>
 
-      {/* SEÇÃO — Descubra seu risco + plano de ação (NOVO) — momento premium escuro (dark-teal) */}
-      <Box sx={{ position: 'relative', overflow: 'hidden', py: { xs: 8, md: 11 }, background: 'linear-gradient(135deg,#0f5f5a 0%,#137a72 55%,#178f89 100%)', color: '#fff' }}>
-        <Box sx={{ position: 'absolute', top: '-15%', right: '-5%', width: 460, height: 460, borderRadius: '50%', background: 'radial-gradient(circle,rgba(234,88,12,.18),transparent 65%)', pointerEvents: 'none' }} />
-        <Box sx={{ position: 'absolute', bottom: '-20%', left: '-8%', width: 380, height: 380, borderRadius: '50%', background: 'radial-gradient(circle,rgba(32,178,170,.30),transparent 65%)', pointerEvents: 'none' }} />
-        <Container maxWidth="lg" sx={{ position: 'relative' }}>
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: { xs: 5, md: 7 }, alignItems: 'center' }}>
-            {/* mockup do RiskCard (esquerda) */}
-            <Box sx={{ display: 'flex', justifyContent: 'center', order: { xs: 2, md: 1 } }}>
-              <Box sx={{ width: '100%', maxWidth: 380, borderRadius: '12px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', boxShadow: '0 30px 60px rgba(0,0,0,.28), 0 10px 24px rgba(0,0,0,.18)', p: 2.5, background: 'linear-gradient(135deg, rgba(234,88,12,.06), rgba(234,88,12,.02))' }}>
-                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
-                  <HealthAndSafetyIcon sx={{ color: '#c2410c' }} />
-                  <Typography sx={{ fontWeight: 800, flex: 1 }}>Leitura de risco</Typography>
-                  <Chip size="small" label="🟠 Moderado" sx={{ fontWeight: 800, height: 22, bgcolor: 'rgba(234,88,12,.16)', color: '#c2410c' }} />
-                </Stack>
-                <Stack direction="row" spacing={1} useFlexGap sx={{ mb: 1.5, flexWrap: 'wrap' }}>
-                  <Chip size="small" label="↓ Risco caiu desde 11/06" sx={{ fontWeight: 700, height: 22, bgcolor: 'rgba(22,163,74,.14)', color: '#047857' }} />
-                </Stack>
-                <Typography sx={{ fontWeight: 800, color: '#c2410c', mb: 1.25 }}>Possível risco de colesterol alto</Typography>
-                <Stack spacing={0.6} sx={{ mb: 1.5 }}>
-                  {[{ n: 'LDL', v: '190 mg/dL' }, { n: 'Triglicerídeos', v: '260 mg/dL' }, { n: 'HDL', v: '35 mg/dL' }].map((f) => (
-                    <Box key={f.n} sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.3, borderBottom: '1px dashed', borderColor: 'divider' }}>
-                      <Chip size="small" label={`🟠 ${f.v}`} sx={{ fontWeight: 700, height: 20, bgcolor: 'rgba(234,88,12,.14)', color: '#c2410c' }} />
-                      <Typography sx={{ fontWeight: 700, fontSize: '0.85rem' }}>{f.n}</Typography>
+      {/* SEÇÃO — Descubra seu risco + plano de ação — momento premium esculpido (dark-teal card) */}
+      <Box sx={{ py: { xs: 5, md: 8 }, bgcolor: 'background.default' }}>
+        <Container maxWidth="lg">
+          <Box sx={{
+            position: 'relative', overflow: 'hidden',
+            borderRadius: { xs: '24px', md: '32px' },
+            py: { xs: 6, md: 8 }, px: { xs: 3, sm: 5, md: 7 },
+            background: 'linear-gradient(135deg, #093330 0%, #0f5f5a 45%, #178f89 100%)',
+            color: '#fff',
+            border: '1px solid rgba(255,255,255,0.12)',
+            boxShadow: '0 24px 64px rgba(15,95,90,0.25)',
+          }}>
+            <Box sx={{ position: 'absolute', top: '-15%', right: '-5%', width: 460, height: 460, borderRadius: '50%', background: 'radial-gradient(circle,rgba(234,88,12,.22),transparent 65%)', pointerEvents: 'none', filter: 'blur(40px)' }} />
+            <Box sx={{ position: 'absolute', bottom: '-20%', left: '-8%', width: 380, height: 380, borderRadius: '50%', background: 'radial-gradient(circle,rgba(32,178,170,.35),transparent 65%)', pointerEvents: 'none', filter: 'blur(40px)' }} />
+            <Box sx={{ position: 'relative' }}>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: { xs: 5, md: 7 }, alignItems: 'center' }}>
+                {/* mockup do RiskCard (esquerda) */}
+                <Box sx={{ display: 'flex', justifyContent: 'center', order: { xs: 2, md: 1 } }}>
+                  <Box sx={{
+                    width: '100%', maxWidth: 390, borderRadius: '20px',
+                    bgcolor: 'background.paper', border: '1px solid rgba(255,255,255,0.3)',
+                    boxShadow: '0 30px 60px rgba(0,0,0,.32), 0 10px 24px rgba(0,0,0,.20)',
+                    p: 2.75,
+                    background: (t) => t.palette.mode === 'dark' ? '#162423' : '#ffffff',
+                    color: 'text.primary',
+                  }}>
+                    <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
+                      <HealthAndSafetyIcon sx={{ color: '#c2410c' }} />
+                      <Typography sx={{ fontWeight: 800, flex: 1, color: 'text.primary' }}>Leitura de risco</Typography>
+                      <Chip size="small" label="🟠 Moderado" sx={{ fontWeight: 800, height: 22, bgcolor: 'rgba(234,88,12,.16)', color: '#c2410c' }} />
+                    </Stack>
+                    <Stack direction="row" spacing={1} useFlexGap sx={{ mb: 1.5, flexWrap: 'wrap' }}>
+                      <Chip size="small" label="↓ Risco caiu desde 11/06" sx={{ fontWeight: 700, height: 22, bgcolor: 'rgba(22,163,74,.14)', color: '#047857' }} />
+                    </Stack>
+                    <Typography sx={{ fontWeight: 800, color: '#c2410c', mb: 1.25 }}>Possível risco de colesterol alto</Typography>
+                    <Stack spacing={0.6} sx={{ mb: 1.5 }}>
+                      {[{ n: 'LDL', v: '190 mg/dL' }, { n: 'Triglicerídeos', v: '260 mg/dL' }, { n: 'HDL', v: '35 mg/dL' }].map((f) => (
+                        <Box key={f.n} sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.3, borderBottom: '1px dashed', borderColor: 'divider' }}>
+                          <Chip size="small" label={`🟠 ${f.v}`} sx={{ fontWeight: 700, height: 20, bgcolor: 'rgba(234,88,12,.14)', color: '#c2410c' }} />
+                          <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', color: 'text.primary' }}>{f.n}</Typography>
+                        </Box>
+                      ))}
+                    </Stack>
+                    <Box sx={{ borderRadius: '12px', bgcolor: 'action.hover', p: 1.25 }}>
+                      <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', mb: 0.25, display: 'flex', alignItems: 'center', gap: 0.5, color: 'text.primary' }}>
+                        <AutoStoriesIcon sx={{ fontSize: 16 }} /> Plano de ação do Dr. Exame
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.78rem', color: 'text.secondary', lineHeight: 1.4 }}>
+                        Reduza carnes vermelhas e frituras; mais aveia e azeite. Refazer perfil lipídico em 3 meses.
+                      </Typography>
                     </Box>
-                  ))}
-                </Stack>
-                <Box sx={{ borderRadius: '12px', bgcolor: 'action.hover', p: 1.25 }}>
-                  <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', mb: 0.25, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <AutoStoriesIcon sx={{ fontSize: 16 }} /> Plano de ação do Dr. Exame
-                  </Typography>
-                  <Typography sx={{ fontSize: '0.78rem', color: 'text.secondary', lineHeight: 1.4 }}>
-                    Reduza carnes vermelhas e frituras; mais aveia e azeite. Refazer perfil lipídico em 3 meses.
-                  </Typography>
+                    <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 1, color: 'text.secondary' }}>*Educativo. Não substitui consulta médica.</Typography>
+                  </Box>
                 </Box>
-                <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 1, color: 'text.secondary' }}>*Educativo. Não substitui consulta médica.</Typography>
+                {/* texto (direita) */}
+                <Box sx={{ order: { xs: 1, md: 2 } }}>
+                  <Chip icon={<MonitorHeartIcon sx={{ fontSize: 17 }} />} label="Leitura de risco + plano de ação" sx={{ bgcolor: 'rgba(255,255,255,.16)', color: '#ffd9b3', fontWeight: 700, mb: 3, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: '#fb923c' } }} />
+                  <Typography variant="h2" sx={{ fontSize: { xs: '1.8rem', md: '2.4rem' }, fontWeight: 800, color: '#fff', mb: 2, letterSpacing: '-0.02em' }}>Descubra seu risco — e <Box component="span" sx={SERIF_I}>o que fazer</Box></Typography>
+                  <Typography sx={{ fontSize: 17, color: 'rgba(255,255,255,.82)', mb: 3.5, lineHeight: 1.6 }}>
+                    A IA cruza seus exames e aponta <b style={{ color: '#fff' }}>possíveis riscos</b> (diabetes, pré-diabetes, anemia, hipertensão, colesterol e cardiovascular) — e monta um <b style={{ color: '#fff' }}>plano de ação</b> personalizado: hábitos, quando refazer e perguntas pra levar ao médico.
+                  </Typography>
+                  {[
+                    'Detecta pré-diabetes — faixa que a maioria ignora e que é reversível.',
+                    'Plano de ação gerado por IA: o que fazer, quando refazer, o que perguntar.',
+                    'Tendência de risco: veja se seu risco caiu ou subiu ao longo do tempo.',
+                    'Sempre educativo: nunca diagnóstico. A decisão é do seu médico.',
+                  ].map((t) => (
+                    <Stack key={t} direction="row" spacing={1.25} alignItems="flex-start" sx={{ mb: 1.75 }}>
+                      <CheckCircleIcon sx={{ fontSize: 20, color: '#5fc9c3', mt: 0.1, flexShrink: 0 }} />
+                      <Typography sx={{ fontSize: 15, color: 'rgba(255,255,255,.82)', lineHeight: 1.5 }}>{t}</Typography>
+                    </Stack>
+                  ))}
+                  <Button onClick={() => navigate('/registrar')} sx={{ mt: 1.5, borderRadius: '999px', px: 4, py: 1.3, textTransform: 'none', fontWeight: 800, bgcolor: '#fff', color: TEAL_DARK, '&:hover': { bgcolor: '#f0fafa', transform: 'translateY(-2px)' }, boxShadow: '0 10px 24px rgba(0,0,0,.18)', transition: 'all .2s ease' }}>Ver minha leitura de risco</Button>
+                </Box>
               </Box>
-            </Box>
-            {/* texto (direita) */}
-            <Box sx={{ order: { xs: 1, md: 2 } }}>
-              <Chip icon={<MonitorHeartIcon sx={{ fontSize: 17 }} />} label="Leitura de risco + plano de ação" sx={{ bgcolor: 'rgba(255,255,255,.16)', color: '#ffd9b3', fontWeight: 700, mb: 3, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: '#fb923c' } }} />
-              <Typography variant="h2" sx={{ fontSize: { xs: '1.8rem', md: '2.4rem' }, fontWeight: 800, color: '#fff', mb: 2, letterSpacing: '-0.02em' }}>Descubra seu risco — e <Box component="span" sx={SERIF_I}>o que fazer</Box></Typography>
-              <Typography sx={{ fontSize: 17, color: 'rgba(255,255,255,.82)', mb: 3.5, lineHeight: 1.6 }}>
-                A IA cruza seus exames e aponta <b style={{ color: '#fff' }}>possíveis riscos</b> (diabetes, pré-diabetes, anemia, hipertensão, colesterol e cardiovascular) — e monta um <b style={{ color: '#fff' }}>plano de ação</b> personalizado: hábitos, quando refazer e perguntas pra levar ao médico.
-              </Typography>
-              {[
-                'Detecta pré-diabetes — faixa que a maioria ignora e que é reversível.',
-                'Plano de ação gerado por IA: o que fazer, quando refazer, o que perguntar.',
-                'Tendência de risco: veja se seu risco caiu ou subiu ao longo do tempo.',
-                'Sempre educativo: nunca diagnóstico. A decisão é do seu médico.',
-              ].map((t) => (
-                <Stack key={t} direction="row" spacing={1.25} alignItems="flex-start" sx={{ mb: 1.75 }}>
-                  <CheckCircleIcon sx={{ fontSize: 20, color: '#5fc9c3', mt: 0.1, flexShrink: 0 }} />
-                  <Typography sx={{ fontSize: 15, color: 'rgba(255,255,255,.82)', lineHeight: 1.5 }}>{t}</Typography>
-                </Stack>
-              ))}
-              <Button onClick={() => navigate('/registrar')} sx={{ mt: 1.5, borderRadius: '999px', px: 4, py: 1.3, textTransform: 'none', fontWeight: 800, bgcolor: '#fff', color: TEAL_DARK, '&:hover': { bgcolor: '#f0fafa', transform: 'translateY(-2px)' }, boxShadow: '0 10px 24px rgba(0,0,0,.18)', transition: 'all .2s ease' }}>Ver minha leitura de risco</Button>
             </Box>
           </Box>
         </Container>

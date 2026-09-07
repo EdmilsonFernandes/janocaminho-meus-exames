@@ -11,9 +11,11 @@ import { Box } from '@mui/material';
  */
 export const ScrollReveal = ({ children, delay = 0, sx }: { children: ReactNode; delay?: number; sx?: any }) => {
   const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
+  const prefersReduced = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+  const [visible, setVisible] = useState(Boolean(prefersReduced));
 
   useEffect(() => {
+    if (prefersReduced) return;
     const el = ref.current;
     if (!el) return;
     const obs = new IntersectionObserver(
@@ -23,11 +25,11 @@ export const ScrollReveal = ({ children, delay = 0, sx }: { children: ReactNode;
           obs.disconnect();
         }
       },
-      { threshold: 0.08, rootMargin: '0px 0px -40px 0px' },
+      { threshold: 0.01, rootMargin: '120px 0px 120px 0px' },
     );
     obs.observe(el);
     return () => obs.disconnect();
-  }, []);
+  }, [prefersReduced]);
 
   return (
     <Box
