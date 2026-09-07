@@ -82,13 +82,19 @@ export const NotFoundPage = () => {
         {SHORTCUTS.map(({ label, hint, to, icon, color }) => (
           <Card
             key={to}
+            role="button"
+            tabIndex={0}
+            aria-label={`${label} — ${hint}`}
             onClick={() => navigate(to)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(to); } }}
             variant="outlined"
             sx={{
               cursor: 'pointer', p: 2, borderRadius: '16px',
               display: 'flex', flexDirection: 'column', alignItems: 'center',
               textAlign: 'center', gap: 0.75,
               transition: 'all .25s ease',
+              outline: 'none',
+              '&:focus-visible': { boxShadow: `0 0 0 3px ${color}66` },
               '&:hover': {
                 borderColor: color, transform: 'translateY(-3px)',
                 boxShadow: `0 8px 24px ${color}22`,
