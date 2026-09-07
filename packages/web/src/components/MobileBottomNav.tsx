@@ -50,9 +50,14 @@ export const MobileBottomNav = () => {
   const maisActive = SECONDARY_ROUTES.some((r) => active(r));
 
   const item = (it: { icon: string; label: string; to: string; robot?: boolean }, onClick?: () => void, on?: boolean) => (
-    <Box key={it.to} onClick={() => { hapticLight(); (onClick ?? (() => navigate(it.to)))(); }} sx={{
+    <Box key={it.to} component="button" type="button" aria-current={on ? 'page' : undefined}
+      aria-label={it.robot ? 'Dr. Exame — conversar com a IA' : translate(it.label)}
+      onClick={() => { hapticLight(); (onClick ?? (() => navigate(it.to)))(); }} sx={{
       flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       py: 0.5, cursor: 'pointer', userSelect: 'none',
+      background: 'transparent', border: 'none', fontFamily: 'inherit', textAlign: 'center',
+      borderRadius: '12px', outline: 'none',
+      '&:focus-visible': { boxShadow: '0 0 0 3px rgba(32,178,170,0.55)' },
       color: on ? '#20b2aa' : (isDark ? 'rgba(255,255,255,0.55)' : 'rgba(30,41,59,0.55)'),
       position: 'relative', transition: 'color .18s ease, transform .12s ease',
       '&:active': { transform: 'scale(.94)' },
@@ -105,9 +110,12 @@ export const MobileBottomNav = () => {
   );
 
   const maisItem = (on: boolean, onClick?: () => void) => (
-    <Box onClick={() => { hapticLight(); onClick?.(); }} sx={{
+    <Box component="button" type="button" aria-label={translate('nav.more')} onClick={() => { hapticLight(); onClick?.(); }} sx={{
       flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       py: 0.5, cursor: 'pointer', userSelect: 'none',
+      background: 'transparent', border: 'none', fontFamily: 'inherit', textAlign: 'center',
+      borderRadius: '12px', outline: 'none',
+      '&:focus-visible': { boxShadow: '0 0 0 3px rgba(32,178,170,0.55)' },
       color: on ? '#20b2aa' : (isDark ? 'rgba(255,255,255,0.55)' : 'rgba(30,41,59,0.55)'),
       position: 'relative', transition: 'color .18s ease, transform .12s ease',
       '&:active': { transform: 'scale(.94)' },

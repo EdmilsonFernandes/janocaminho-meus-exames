@@ -139,7 +139,10 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       `- Exames recentes (TODOS os itens — nome: valor (ref) [flag se alterado]):\n${examsBlock}\n` +
       (trendBlock ? `\n- Analitos ao longo do tempo (use pra evolução/comparar/tendência; o 1º valor de cada linha é o MAIS RECENTE):\n${trendBlock}\n` : '') +
       (memory ? `- Resumo de análises anteriores (mantenha coerência):\n${memory}\n` : '') +
-      `\nDIRETIVA: responda DIRETAMENTE à pergunta USANDO os dados acima. Ao citar um valor como "atual/último", ` +
+      `\nDIRETIVA: responda DIRETAMENTE à pergunta USANDO os dados acima. Se o usuário CITAR um valor específico na ` +
+      `pergunta (ex.: "minha glicose deu 108"), responda sobre ESSE valor: localize-o nos exames (data + flag) e, se NÃO ` +
+      `for o mais recente, compare explicitamente com o mais recente — NUNCA tranquilize com um valor diferente do que foi ` +
+      `perguntado. Ao citar um valor como "atual/último", ` +
       `use SEMPRE o do exame MAIS RECENTE (maior data) daquele analito — está em "VALORES ATUAIS". Extraia e CRUZE os itens ` +
       `específicos pedidos — "valores fora da faixa" → liste cada um com valor+ref+flag; "evolução/comparar/ ` +
       `tendência" → use a linha do tempo por analito; "atenção/urgência" → aponte os alterados relevantes. ` +

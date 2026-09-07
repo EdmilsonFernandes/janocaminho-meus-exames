@@ -77,6 +77,49 @@ describe('chat-router: tryLocalAnswer (unit)', () => {
     expect(r.text).toMatch(/não encontrei/i);
     expect(r.text).toMatch(/Creatinina/i);
   });
+
+  // P0 (bateria 2026-09-05): perguntar sobre valor CITADO nunca responde com o "último"
+  it('valor CITADO na pergunta → responde sobre ELE (não sobre o último) + contrasta com o mais recente', async () => {
+    const glicemia = await createExam(ctx.patient.id, { title: 'Glicemia', performedAt: new Date('2026-07-09T00:00:00Z') });
+    await createItem(glicemia.id, { name: 'GLICOSE', nameCanonical: 'GLICEMIA', valueNumeric: 108, valueText: '108', unit: 'mg/dL', refLow: 70, refHigh: 99, flag: 'HIGH', isAbnormal: true });
+    const recente = await createExam(ctx.patient.id, { title: 'Painel', performedAt: new Date('2026-07-16T00:00:00Z') });
+    await createItem(recente.id, { name: 'GLICOSE', nameCanonical: 'GLICEMIA', valueNumeric: 95, valueText: '95', unit: 'mg/dL', refLow: 70, refHigh: 99, flag: 'NORMAL', isAbnormal: false });
+
+    const r = await tryLocalAnswer({ message: 'minha glicose deu 108', userId: ctx.user.id, patientId: ctx.patient.id });
+    expect(r.answered).toBe(true);
+    expect(r.text).toMatch(/108/);           // âncora no valor citado
+    expect(r.text).toMatch(/acima/i);        // 108 está HIGH
+    expect(r.text).toMatch(/95/);            // contrasta com o mais recente
+    expect(r.text).toMatch(/MAIS RECENTE/i); // deixa explícita a discrepância
+    // o texto NÃO pode abrir com o último (era o bug: "Seu último GLICOSE foi 95")
+    expect(r.text).not.toMatch(/^Seu último/);
+  });
+
+  it('valor citado COM palavras de preocupação → IA (interpretativa)', async () => {
+    const r = await tryLocalAnswer({ message: 'minha glicose deu 108, é preocupante?', userId: ctx.user.id, patientId: ctx.patient.id });
+    expect(r.answered).toBe(false);
+  });
+
+  it('valor citado que não casa com nenhum exame → IA (não responde "não achei" seco)', async () => {
+    const r = await tryLocalAnswer({ message: 'meu HGB deu 20', userId: ctx.user.id, patientId: ctx.patient.id });
+    expect(r.answered).toBe(false);
+  });
+
+  it('valor citado que É o mais recente → responde sem Obs redundante', async () => {
+    const r = await tryLocalAnswer({ message: 'meu TSH deu 7,32', userId: ctx.user.id, patientId: ctx.patient.id });
+    expect(r.answered).toBe(true);
+    expect(r.text).toMatch(/7,32/);
+    expect(r.text).toMatch(/acima/i);
+    expect(r.text).not.toMatch(/MAIS RECENTE/);
+  });
+
+  it('citedNumbers: parse pt-BR e ignora anos', async () => {
+    const { citedNumbers } = await import('../src/analysis/chat-router');
+    expect(citedNumbers('glicose 108')).toEqual([108]);
+    expect(citedNumbers('TSH de 7,32')).toEqual([7.32]);
+    expect(citedNumbers('exame de 2026')).toEqual([]);
+    expect(citedNumbers('não há números')).toEqual([]);
+  });
 });
 
 describe('chat-router: integração POST /api/chat', () => {

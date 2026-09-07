@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { API_URL, token } from '../config';
 import { DrExame } from './DrExame';
 import { notifRoute } from '../utils/notifRoute';
+import { claimColdDialog } from '../utils/coldDialog';
 
 export const NotificationPopup = () => {
   const [open, setOpen] = useState(false);
@@ -34,7 +35,9 @@ export const NotificationPopup = () => {
           setNotif({ id: item.id, title: item.title, body: item.body });
           // Só abre se o app tá visível — evita dialog fantasma pipocando depois
           // de voltar do background (parecia "app travado" após ocioso).
-          timer = setTimeout(() => { if (!document.hidden) setOpen(true); }, 2500);
+          // + Máx 1 diálogo de cold-load por SESSÃO (P1 bateria 2026-09): se WhatsNew/GoalQuiz
+          // já abriram nesta sessão, a notificação fica pro badge/bell, não vira modal.
+          timer = setTimeout(() => { if (!document.hidden && claimColdDialog('notif')) setOpen(true); }, 2500);
         }
       })
       .catch(() => {});

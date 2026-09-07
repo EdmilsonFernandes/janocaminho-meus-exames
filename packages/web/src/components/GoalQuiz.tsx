@@ -5,6 +5,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { DrExame } from './DrExame';
+import { claimColdDialog } from '../utils/coldDialog';
 
 /** Quiz-first onboarding (licença Mito): "o que você quer entender?" ANTES do upload —
  *  personaliza a primeira experiência com valor instantâneo. 1 tela, <60s, 1x por dispositivo.
@@ -56,8 +57,10 @@ export const GoalQuiz = () => {
     // modais no 1º login. Se em 30s não deu, desiste sem marcar (pergunta no próximo boot).
     const iv = setInterval(() => {
       if (document.querySelector('.MuiDialog-root')) return;
-      setOpen(true);
       clearInterval(iv);
+      // Máx 1 diálogo de cold-load por SESSÃO (P1 bateria 2026-09): se WhatsNew/notificação
+      // já abriram nesta sessão, o quiz fica pra próxima — sem cascata de modais.
+      if (claimColdDialog('quiz')) setOpen(true);
     }, 1200);
     const kill = setTimeout(() => clearInterval(iv), 30000);
     return () => { clearInterval(iv); clearTimeout(kill); };

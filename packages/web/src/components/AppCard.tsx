@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { ReactNode, KeyboardEvent } from 'react';
 import { Card, CardProps } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 import { RADIUS } from '../theme';
@@ -57,9 +57,17 @@ export const AppCard = ({ kind = 'default', tone = 'primary', tone2, glow, sx, c
     case 'interactive':
       extra = {
         cursor: 'pointer', border: 'none', boxShadow: theme.shadows[3],
-        transition: 'transform .12s ease, box-shadow .2s ease',
-        '&:hover': { transform: 'translateY(-2px)', boxShadow: theme.shadows[8] },
+        transition: 'transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .2s ease',
+        '&:hover': {
+          transform: 'translateY(-3px)',
+          boxShadow: `0 4px 12px rgba(0,0,0,.06), 0 12px 28px ${alpha(theme.palette.primary.main, 0.12)}`,
+        },
         '&:active': { transform: 'translateY(0)' },
+        // Teclado/leitor de tela (a11y P1, bateria 2026-09): cards clicáveis precisam de
+        // foco visível. O elemento continua <div> com role=button (ver abaixo) porque os
+        // cards de exame têm botões ANINHADOS (excluir, re-extrair) — <button> pai seria
+        // HTML inválido.
+        '&:focus-visible': { boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.45)}` },
       };
       break;
     case 'tinted':
@@ -81,10 +89,28 @@ export const AppCard = ({ kind = 'default', tone = 'primary', tone2, glow, sx, c
 
   if (glow) extra = { ...extra, boxShadow: `0 10px 30px ${alpha(glowColor, 0.10)}` };
 
+  // kind="interactive" com onClick → alvo de clique acessível por teclado. Não usamos
+  // component="button" porque cards de lista têm botões aninhados; role=button + Enter/Space
+  // é o padrão a11y p/ composite click targets.
+  const clickable = kind === 'interactive' && typeof rest.onClick === 'function';
+  const a11yProps = clickable
+    ? {
+        role: 'button' as const,
+        tabIndex: 0,
+        onKeyDown: (e: KeyboardEvent<HTMLDivElement>) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            e.currentTarget.click();
+          }
+        },
+      }
+    : {};
+
   return (
     <Card
       variant={kind === 'outline' ? 'outlined' : undefined}
       sx={{ ...base, ...extra, ...(sx as object) }}
+      {...a11yProps}
       {...rest}
     >
       {children}

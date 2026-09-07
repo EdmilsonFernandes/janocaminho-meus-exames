@@ -280,7 +280,7 @@ export const ChatPage = () => {
             </Box>
             <Stack spacing={0.75} sx={{ width: '100%', maxWidth: 460, mt: 0.5 }}>
               {QUICK_ACTIONS.slice(0, 6).map((a) => (
-                <Paper key={a.title} elevation={0} onClick={() => send(a.prompt)} sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 1.25, p: 1.25, px: 1.5, borderRadius: '12px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', textAlign: 'left', '&:hover': { bgcolor: 'rgba(32,178,170,.08)', borderColor: TEAL, transform: 'translateY(-1px)' }, transition: 'all .15s' }}>
+                <Paper key={a.title} elevation={0} component="button" type="button" onClick={() => send(a.prompt)} sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 1.25, p: 1.25, px: 1.5, borderRadius: '12px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', textAlign: 'left', fontFamily: 'inherit', fontSize: 'inherit', color: 'inherit', width: '100%', '&:focus-visible': { boxShadow: `0 0 0 3px ${TEAL}55` }, '&:hover': { bgcolor: 'rgba(32,178,170,.08)', borderColor: TEAL, transform: 'translateY(-1px)' }, transition: 'all .15s' }}>
                   <Box sx={{ fontSize: 20 }}>{a.icon}</Box>
                   <Typography sx={{ flex: 1, fontSize: 14, fontWeight: 600, color: 'text.primary' }}>{a.title}</Typography>
                   <Box component="span" sx={{ color: TEAL, fontWeight: 800, fontSize: 18, lineHeight: 1 }}>›</Box>
@@ -353,7 +353,7 @@ export const ChatPage = () => {
         <Box sx={{ maxHeight: '68vh', overflowY: 'auto' }}>
         <Stack spacing={0.75}>
           {QUICK_ACTIONS.map((a) => (
-            <Paper key={a.title} elevation={0} onClick={() => { setSheetOpen(false); send(a.prompt); }} sx={{ display: 'flex', alignItems: 'center', gap: 1.25, p: 1.1, px: 1.5, borderRadius: '12px', border: '1px solid', borderColor: 'divider', cursor: 'pointer', '&:hover': { bgcolor: 'action.hover', borderColor: TEAL } }}>
+            <Paper key={a.title} elevation={0} component="button" type="button" onClick={() => { setSheetOpen(false); send(a.prompt); }} sx={{ display: 'flex', alignItems: 'center', gap: 1.25, p: 1.1, px: 1.5, borderRadius: '12px', border: '1px solid', borderColor: 'divider', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', color: 'inherit', width: '100%', textAlign: 'left', '&:focus-visible': { boxShadow: `0 0 0 3px ${TEAL}55` }, '&:hover': { bgcolor: 'action.hover', borderColor: TEAL } }}>
               <Box sx={{ fontSize: 20, width: 34, height: 34, borderRadius: '8px', bgcolor: 'rgba(32,178,170,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{a.icon}</Box>
               <Typography sx={{ flex: 1, fontWeight: 700, color: 'text.primary', fontSize: 15 }}>{a.title}</Typography>
               <Typography sx={{ color: TEAL, fontWeight: 800 }}>›</Typography>

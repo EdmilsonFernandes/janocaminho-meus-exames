@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Stack, Typography, Box } from '@mui/material';
 import { APP_VERSION } from '../utils/version';
+import { claimColdDialog } from '../utils/coldDialog';
 
 // Novidades da linha atual (2.7). Mantenha honesto e curto — o popup aparece 1× por linha de versão.
 const FEATURES = [
@@ -18,7 +19,7 @@ export const WhatsNew = () => {
 
   useEffect(() => {
     try {
-      if (localStorage.getItem('onboarded') && !localStorage.getItem(key)) setShow(true);
+      if (localStorage.getItem('onboarded') && !localStorage.getItem(key) && claimColdDialog('whatsnew')) setShow(true);
     } catch { /* ignore */ }
   }, []);
 

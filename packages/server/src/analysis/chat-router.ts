@@ -9,7 +9,7 @@ import { normalizeKey, findMarkerInText, computeFlag, reconcileScaleFlag } from 
 // normalizeKey stripa acentos → os patterns são SEM acento. Inclui verbos analíticos (resumo,
 // faixa, comparar, evolução, tendência, atenção, repetir, alimentação, explicar…) que ANTES
 // batiam em LIST_EXAMS e voltavam só com a lista de títulos (sem análise nenhuma).
-const INTERPRETIVE = /O QUE (SIGNIFICA|SIGNIFICACAO|PODE|E|SAO)|POR QUE|PORQUE|E GRAVE|E PERIGOSO|POSSO|TRATAMENTO|CAUSA|DOENC|ANOMAL|PRECISO|PROCURAR|MEDIC|ALERTA|RESUMO|FAIXA|REFEREN|FORA DA|COMPAR|EVOLU|TENDEN|MELHOR|PIOR|REPET|ATENCAO|URGEN|ALTERAD|ALIMENT|DIETA|EXPLICA|MEDID|ONDE ESTOU|DESTAQU|CRUZ|FALT|METAS|META\b|SINAIS|SINAL|RISCO|CARDIAC|VASCU|IMAGEM|VACIN|LEMBRET|COMPROMISS|RECOMEND|SUGIR|SUGEST|ROTINA|EXERCIC|NUTRIENT/;
+const INTERPRETIVE = /O QUE (SIGNIFICA|SIGNIFICACAO|PODE|E|SAO)|POR QUE|PORQUE|E GRAVE|E PERIGOSO|PREOCUPA|ANORMAL|POSSO|TRATAMENTO|CAUSA|DOENC|ANOMAL|PRECISO|PROCURAR|MEDIC|ALERTA|RESUMO|FAIXA|REFEREN|FORA DA|COMPAR|EVOLU|TENDEN|MELHOR|PIOR|REPET|ATENCAO|URGEN|ALTERAD|ALIMENT|DIETA|EXPLICA|MEDID|ONDE ESTOU|DESTAQU|CRUZ|FALT|METAS|META\b|SINAIS|SINAL|RISCO|CARDIAC|VASCU|IMAGEM|VACIN|LEMBRET|COMPROMISS|RECOMEND|SUGIR|SUGEST|ROTINA|EXERCIC|NUTRIENT/;
 // Contagem / lista de exames (sem marcador específico).
 const COUNT_EXAMS = /QUANTOS EXAMES|QUANTIDADE DE EXAMES|NUMERO DE EXAMES|N EXAMES/;
 // Só casa pedido EXPLÍCITO de listar/mostrar os exames ("liste meus exames", "mostre meus exames")
@@ -23,6 +23,22 @@ const LIST_EXAMS = /\b(LISTE|LISTAR|LISTA|MOSTRE|MOSTRAR|MOSTR|EXIBA|EXIB|VEJA|V
 export interface LocalAnswer {
   answered: boolean;
   text?: string;
+}
+
+/**
+ * P0 (bateria design 2026-09-05): números CITADOS na pergunta ("glicose deu 108").
+ * A resposta local deve ancorar no valor que o usuário perguntou — nunca responder
+ * com o "último" quando ele citou outro. Anos (1900-2100) são ignorados (datas, não valores).
+ */
+export function citedNumbers(message: string): number[] {
+  const out: number[] = [];
+  for (const m of normalizeKey(message).matchAll(/(\d{1,4}(?:[.,]\d{1,3})?)/g)) {
+    const v = parseFloat(m[1].replace(',', '.'));
+    if (!Number.isFinite(v)) continue;
+    if (Number.isInteger(v) && v >= 1900 && v <= 2100) continue;
+    out.push(v);
+  }
+  return out;
 }
 
 /** Tenta responder localmente. answered=true → o texto já é a resposta final. */
@@ -71,6 +87,41 @@ export async function tryLocalAnswer(opts: {
   const marker = findMarkerInText(message);
   if (marker) {
     if (INTERPRETIVE.test(norm)) return { answered: false }; // pergunta de significado → IA
+
+    // 3a) Valor CITADO na pergunta ("minha glicose deu 108") → ancorar NELE, não no último.
+    // Antes: "glicose deu 108, é preocupante?" era respondido com o último (95, "na faixa") —
+    // tranquilizava com um número que NÃO foi o perguntado (P0 bateria 2026-09-05).
+    const cited = citedNumbers(message);
+    if (cited.length) {
+      const candidates = await prisma.examItem.findMany({
+        where: { nameCanonical: marker, valueNumeric: { not: null }, exam: { patientId, status: 'EXTRACTED' } },
+        orderBy: { exam: { performedAt: 'desc' } },
+        take: 40,
+        include: { exam: { select: { performedAt: true } } },
+      });
+      const tol = (v: number) => Math.max(0.05, Math.abs(v) * 0.01);
+      const citedItem = candidates.find((it) =>
+        it.valueNumeric != null && cited.some((c) => Math.abs(it.valueNumeric! - c) <= tol(c)));
+      if (!citedItem) return { answered: false }; // valor citado não casa → IA interpreta (unidade? digitação?)
+      const fmtNum = (v: number) => String(v).replace('.', ',');
+      const fmtDate = (d: Date | null) => (d ? new Date(d).toLocaleDateString('pt-BR') : 'data indisponível');
+      const fmtItemLine = (it: (typeof candidates)[number]) => {
+        const ref = it.refText ?? (it.refLow != null && it.refHigh != null ? `${fmtNum(it.refLow)}–${fmtNum(it.refHigh)}` : null);
+        const flag = reconcileScaleFlag(it.valueNumeric, it.refLow, it.refHigh, it.unit ?? undefined);
+        const st = flag.flag === 'NORMAL' ? '✅ na faixa de referência'
+          : flag.flag === 'HIGH' ? '⚠️ acima da referência'
+          : flag.flag === 'LOW' ? '⚠️ abaixo da referência' : '';
+        const refTxt = ref ? ` (referência: ${ref}${it.unit ? ' ' + it.unit : ''})` : '';
+        return `**${fmtNum(it.valueNumeric!)}${it.unit ? ' ' + it.unit : ''}** em ${fmtDate(it.exam.performedAt)}${refTxt}` + (st ? ` — ${st}` : '');
+      };
+      let text = `O valor ${fmtItemLine(citedItem)} que você citou.`;
+      const latest = candidates[0];
+      if (latest && latest.id !== citedItem.id) {
+        text += `\nObs.: seu resultado MAIS RECENTE deste analito é ${fmtItemLine(latest)}.`;
+      }
+      return { answered: true, text };
+    }
+
     const item = await prisma.examItem.findFirst({
       where: { nameCanonical: marker, exam: { patientId, status: 'EXTRACTED' } },
       include: { exam: { select: { performedAt: true } } },
