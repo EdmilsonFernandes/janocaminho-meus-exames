@@ -82,19 +82,23 @@ router.get('/', async (req: AuthedRequest, res, next) => {
 });
 
 // GET ONE (com itens agrupados + último resumo)
-// CÓDIGO DE ENVIO POR E-MAIL (R2): devolve (ou gera) o código ativo do usuário +
-// o endereço da caixa. 1 código válido por usuário, 30 dias, single-use no ingest.
+// CÓDIGO DE ENVIO POR E-MAIL (R2): devolve (ou gera) o código ativo DO PERFIL selecionado
+// (titular/dependente — o exame por e-mail tem que cair na pessoa certa) + o endereço da
+// caixa. 1 código válido por perfil, 30 dias, single-use no ingest.
 // ANTES do GET /:id (rota paramétrica engoliria "email-upload-code" como id).
 router.get('/email-upload-code', async (req: AuthedRequest, res, next) => {
   try {
+    const pids = await userPatientIds(req.userId!);
+    const q = req.query as Record<string, string | undefined>;
+    const patientId = q.patientId && pids.includes(q.patientId) ? q.patientId : (await firstPatientId(req.userId!));
     const valid = await prisma.emailUploadCode.findFirst({
-      where: { userId: req.userId!, usedAt: null, expiresAt: { gt: new Date() } },
+      where: { userId: req.userId!, patientId, usedAt: null, expiresAt: { gt: new Date() } },
       orderBy: { createdAt: 'desc' },
       select: { code: true, expiresAt: true },
     });
     if (valid) { res.json({ code: valid.code, expiresAt: valid.expiresAt, inbox: EXAM_INBOX_ADDRESS, enabled: !!inboxConfig() }); return; }
     const created = await prisma.emailUploadCode.create({
-      data: { userId: req.userId!, code: genExamCode(), expiresAt: new Date(Date.now() + 30 * 86400000) },
+      data: { userId: req.userId!, patientId, code: genExamCode(), expiresAt: new Date(Date.now() + 30 * 86400000) },
       select: { code: true, expiresAt: true },
     });
     res.json({ code: created.code, expiresAt: created.expiresAt, inbox: EXAM_INBOX_ADDRESS, enabled: !!inboxConfig() });

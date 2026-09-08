@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { api, authHeader, createUser, resetDb } from './helpers';
+import { api, authHeader, createUser, createPatient, resetDb } from './helpers';
 import { prisma } from '../src/prisma';
 import { examCodeFromSubject, genExamCode, EXAM_CODE_RE } from '../src/utils/emailInbox';
 
@@ -46,6 +46,24 @@ describe('Rotas — defer-first e email-upload-code', () => {
     const v = await createUser();
     const r3 = await api().get('/api/exams/email-upload-code').set(authHeader(v.token));
     expect(r3.body.code).not.toBe(r1.body.code);
+  });
+
+  it('código é POR PERFIL: dependente tem código próprio (exame cai na pessoa certa)', async () => {
+    const u = await createUser();
+    const dep = await createPatient(u.user.id, { fullName: 'Esposa Teste', relationship: 'Cônjuge' });
+    const rt = await api().get('/api/exams/email-upload-code').set(authHeader(u.token)); // titular
+    const rd = await api().get(`/api/exams/email-upload-code?patientId=${dep.id}`).set(authHeader(u.token)); // dependente
+    expect(rt.status).toBe(200);
+    expect(rd.status).toBe(200);
+    expect(rd.body.code).not.toBe(rt.body.code); // perfis diferentes → códigos diferentes
+    // repete pro dependente → mesmo código (1 ativo por perfil)
+    const rd2 = await api().get(`/api/exams/email-upload-code?patientId=${dep.id}`).set(authHeader(u.token));
+    expect(rd2.body.code).toBe(rd.body.code);
+    // patientId de OUTRO usuário → ignora e usa o titular do dono do token (não vaza perfil alheio)
+    const other = await createUser();
+    const ro = await api().get(`/api/exams/email-upload-code?patientId=${other.patient.id}`).set(authHeader(u.token));
+    expect(ro.status).toBe(200);
+    expect(ro.body.code).toBe(rt.body.code);
   });
 
   it('ambas exigem autenticação', async () => {

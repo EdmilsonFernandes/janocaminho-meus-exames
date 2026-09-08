@@ -71,7 +71,9 @@ async function ingestOne(code: string, m: { subject: string; from: string; pdfs:
   }
 
   const userId = ec.user.id;
-  const patientId = await firstPatientId(userId); // exame do TITULAR (igual upload sem patientId)
+  // PERFIL: o código é POR PERFIL — exame cai na pessoa certa (titular OU dependente;
+  // faixa de referência depende disso). Códigos legados (patientId null) → titular.
+  const patientId = ec.patientId ?? (await firstPatientId(userId));
   if (!patientId) return;
   const fileSha256 = sha256Buffer(pdf.buffer);
 

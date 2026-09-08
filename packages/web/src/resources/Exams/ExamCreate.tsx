@@ -119,7 +119,7 @@ export const ExamCreate = () => {
     fetchPublicConfig().then((c) => setFirstBonus(c.freeSignup)).catch(() => {});
     // Código de envio por e-mail no MOUNT: define se o card existe (enabled) e já
     // deixa o código pronto pro copiar (sem fetch na hora do clique).
-    fetch(`${API_URL}/exams/email-upload-code`, { headers: { Authorization: `Bearer ${token()}` } })
+    fetch(`${API_URL}/exams/email-upload-code${pid ? `?patientId=${pid}` : ''}`, { headers: { Authorization: `Bearer ${token()}` } })
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => { if (d?.code) setEmailInfo({ code: d.code, inbox: d.inbox, enabled: !!d.enabled }); })
       .catch(() => {});
@@ -367,7 +367,9 @@ export const ExamCreate = () => {
                   <Typography sx={{ fontSize: 13, fontWeight: 800, color: '#178f89', letterSpacing: '.08em', flex: 1 }}>Assunto: {emailInfo.code}</Typography>
                   <Button size="small" onClick={() => copy(emailInfo.code, 'Código')} sx={{ ...copyBtnSx }}>copiar</Button>
                 </Stack>
-                <Typography sx={{ fontSize: 11, color: 'text.disabled' }}>1 exame por código · PDF até 8 MB · válido por 30 dias</Typography>
+                <Typography sx={{ fontSize: 11, color: 'text.disabled' }}>
+                  O código é do perfil selecionado no app — troque de perfil antes de enviar o exame de outra pessoa. · 1 exame por código · PDF até 8 MB · válido 30 dias
+                </Typography>
               </Stack>
             )}
           </Box>

@@ -1056,15 +1056,19 @@ model LandingLead {
 }
 
 // Código pessoal de envio de exame POR E-MAIL (R2 ingestão — "EX-AB2C" no assunto do
-// encaminhamento do PDF do laboratório). 1 código ativo por usuário, single-use, 30 dias.
+// encaminhamento do PDF do laboratório). 1 código ativo POR PERFIL (titular/dependente —
+// o exame precisa cair na pessoa certa: faixa de referência depende de quem é),
+// single-use, 30 dias. patientId null = código legado → cai no titular.
 model EmailUploadCode {
   id        String    @id @default(cuid())
   userId    String
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  patientId String?
   code      String    @unique
   createdAt DateTime  @default(now())
   expiresAt DateTime
   usedAt    DateTime?
   @@index([userId])
+  @@index([patientId])
   @@map("email_upload_codes")
 }
