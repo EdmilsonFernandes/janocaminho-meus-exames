@@ -475,7 +475,7 @@ export const ExamCreate = () => {
             py: 1.1,
             borderRadius: '12px',
             fontWeight: 700,
-            fontSize: { xs: 13, sm: 14 },
+            fontSize: { xs: 12.5, sm: 14 },
             textTransform: 'none',
             color: method === 'email' ? 'text.primary' : 'text.secondary',
             bgcolor: method === 'email' ? 'background.paper' : 'transparent',
@@ -484,26 +484,29 @@ export const ExamCreate = () => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: 0.75,
+            gap: 0.6,
+            minWidth: 0,
             '&:hover': {
               bgcolor: method === 'email' ? 'background.paper' : 'action.selected',
             },
           }}
         >
-          <EmailIcon sx={{ fontSize: 19, color: method === 'email' ? '#20b2aa' : 'inherit' }} />
-          <span>Encaminhar por E-mail</span>
+          <EmailIcon sx={{ fontSize: 18, color: method === 'email' ? '#20b2aa' : 'inherit', flexShrink: 0 }} />
+          <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Encaminhar por E-mail</Box>
+          <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>Via E-mail</Box>
           <Box sx={{
-            fontSize: 9.5,
+            fontSize: 9,
             fontWeight: 800,
             bgcolor: method === 'email' ? 'rgba(32,178,170,.18)' : 'rgba(32,178,170,.12)',
             color: '#178f89',
-            px: 0.85,
-            py: 0.25,
+            px: 0.75,
+            py: 0.2,
             borderRadius: '999px',
             display: { xs: 'none', sm: 'inline-flex' },
             letterSpacing: '0.02em',
+            flexShrink: 0,
           }}>
-            MAIS PRÁTICO
+            PRÁTICO
           </Box>
         </Button>
       </Box>
@@ -762,111 +765,45 @@ export const ExamCreate = () => {
           {/* Barra de destaque superior em gradiente */}
           <Box sx={{ height: 6, background: 'linear-gradient(90deg, #093330, #20b2aa, #d4a574)' }} />
 
-          <CardContent sx={{ p: { xs: 2.5, sm: 3.5 } }}>
-            {/* Header da Seção de E-mail */}
-            <Stack direction="row" spacing={2} alignItems="flex-start" sx={{ mb: 2.5 }}>
+          <CardContent sx={{ p: { xs: 2, sm: 3.5 } }}>
+            {/* Header compacto */}
+            <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
               <Box sx={{
-                width: { xs: 46, sm: 52 },
-                height: { xs: 46, sm: 52 },
-                borderRadius: '16px',
+                width: 44,
+                height: 44,
+                borderRadius: '14px',
                 background: 'linear-gradient(135deg, #093330, #178f89)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 8px 20px rgba(23,143,137,0.3)',
+                boxShadow: '0 6px 16px rgba(23,143,137,0.3)',
                 flexShrink: 0,
               }}>
-                <EmailIcon sx={{ color: '#fff', fontSize: { xs: 24, sm: 28 } }} />
+                <EmailIcon sx={{ color: '#fff', fontSize: 22 }} />
               </Box>
               <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5, flexWrap: 'wrap' }}>
-                  <Typography variant="h6" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: { xs: 16, sm: 19 }, wordBreak: 'keep-all' }}>
-                    Encaminhe direto do seu <Box component="span" sx={{ whiteSpace: 'nowrap' }}>e-mail</Box>
-                  </Typography>
-                  <Chip
-                    size="small"
-                    label="Sem baixar arquivo"
-                    sx={{
-                      bgcolor: 'rgba(32,178,170,0.12)',
-                      color: '#0f766e',
-                      fontWeight: 800,
-                      fontSize: 10,
-                      borderRadius: '999px',
-                      height: 22,
-                    }}
-                  />
-                </Stack>
-                <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: 12.5, sm: 14 }, lineHeight: 1.45 }}>
-                  Recebeu o laudo no Gmail ou Outlook? Não precisa baixar o PDF pro aparelho. É só encaminhar pra cá com o código no assunto!
+                <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: { xs: 15, sm: 18 }, lineHeight: 1.2 }}>
+                  Encaminhe pelo e-mail
+                </Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.35, display: 'block' }}>
+                  Copie os dados abaixo e encaminhe o PDF do laudo
                 </Typography>
               </Box>
             </Stack>
 
-            {/* 3 Passos Ilustrados */}
+            {/* Box Voucher — estilo PIX, compacto */}
             <Box sx={{
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
-              gap: 1.25,
-              mb: 2.5,
-            }}>
-              {[
-                { step: '1', title: 'Abra o e-mail do laudo', desc: 'No app ou web do laboratório', icon: '📬' },
-                { step: '2', title: 'Toque em Encaminhar', desc: 'Com o anexo do exame', icon: '↗️' },
-                { step: '3', title: 'Cole o código no assunto', desc: 'Entra na sua conta sozinho', icon: '✨' },
-              ].map((s) => (
-                <Box
-                  key={s.step}
-                  sx={{
-                    p: 1.5,
-                    borderRadius: '14px',
-                    bgcolor: 'rgba(32,178,170,0.04)',
-                    border: '1px solid rgba(32,178,170,0.14)',
-                    display: 'flex',
-                    flexDirection: { xs: 'row', sm: 'column' },
-                    alignItems: { xs: 'center', sm: 'flex-start' },
-                    gap: 1.25,
-                  }}
-                >
-                  <Box sx={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: '9px',
-                    bgcolor: 'rgba(32,178,170,0.15)',
-                    color: '#178f89',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 800,
-                    fontSize: 14,
-                    flexShrink: 0,
-                  }}>
-                    {s.icon}
-                  </Box>
-                  <Box sx={{ minWidth: 0 }}>
-                    <Typography sx={{ fontWeight: 800, fontSize: 12.5, color: 'text.primary', lineHeight: 1.3 }}>
-                      {s.title}
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', lineHeight: 1.3 }}>
-                      {s.desc}
-                    </Typography>
-                  </Box>
-                </Box>
-              ))}
-            </Box>
-
-            {/* Box Voucher com campos de cópia estilo Chave PIX */}
-            <Box sx={{
-              borderRadius: '18px',
-              p: { xs: 1.75, sm: 2.25 },
+              borderRadius: '16px',
+              p: { xs: 1.5, sm: 2.25 },
               bgcolor: 'action.hover',
               border: '1px solid',
               borderColor: 'divider',
-              mb: 2.5,
+              mb: 2,
             }}>
               {/* Campo 1: Destinatário */}
-              <Box sx={{ mb: 1.75 }}>
-                <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', mb: 0.5, fontSize: 10.5 }}>
-                  1. Para onde encaminhar (Destinatário)
+              <Box sx={{ mb: 1.25 }}>
+                <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', mb: 0.4, fontSize: 10 }}>
+                  Para (destinatário)
                 </Typography>
                 <Stack
                   direction="row"
@@ -921,10 +858,10 @@ export const ExamCreate = () => {
                 </Stack>
               </Box>
 
-              {/* Campo 2: Assunto (Código de Identificação) */}
+              {/* Campo 2: Assunto (Código) */}
               <Box>
-                <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', mb: 0.5, fontSize: 10.5 }}>
-                  2. Código obrigatório no ASSUNTO do e-mail
+                <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', mb: 0.4, fontSize: 10 }}>
+                  Assunto (cole o código)
                 </Typography>
                 <Stack
                   direction="row"
@@ -988,24 +925,25 @@ export const ExamCreate = () => {
               variant="contained"
               fullWidth
               startIcon={<ForwardToInboxIcon />}
-              endIcon={<OpenInNewIcon sx={{ fontSize: 18 }} />}
+              endIcon={<OpenInNewIcon sx={{ fontSize: 17 }} />}
               sx={{
                 borderRadius: '999px',
-                py: 1.5,
-                fontSize: { xs: 14.5, sm: 16 },
+                py: { xs: 1.35, sm: 1.5 },
+                fontSize: { xs: 14, sm: 16 },
                 fontWeight: 800,
                 textTransform: 'none',
                 background: 'linear-gradient(135deg, #20b2aa, #178f89)',
                 color: '#fff',
                 boxShadow: '0 10px 28px rgba(32,178,170,.35)',
-                mb: 2.5,
+                mb: 2,
                 '&:hover': {
                   background: 'linear-gradient(135deg, #178f89, #0f5f5a)',
                   boxShadow: '0 12px 32px rgba(23,143,137,.45)',
                 },
               }}
             >
-              Abrir meu aplicativo de E-mail
+              <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Abrir meu aplicativo de E-mail</Box>
+              <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>Abrir E-mail</Box>
             </Button>
 
             {/* Status do Robô Ouvindo */}
@@ -1036,9 +974,9 @@ export const ExamCreate = () => {
               </Box>
             </Box>
 
-            {/* Regras e avisos */}
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2, textAlign: 'center', fontSize: 11.5, lineHeight: 1.5 }}>
-              📌 <strong>Dica:</strong> O código é exclusivo do perfil selecionado (troque de perfil no topo se for para outra pessoa). · 1 exame por código · PDF de até 8 MB · Código válido por 30 dias.
+            {/* Dica rodapé */}
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5, textAlign: 'center', fontSize: 11, lineHeight: 1.45 }}>
+              📌 Código exclusivo deste perfil · 1 exame · PDF até 8 MB · Válido 30 dias
             </Typography>
           </CardContent>
         </Card>
