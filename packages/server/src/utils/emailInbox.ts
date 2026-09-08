@@ -30,20 +30,23 @@ export interface InboundMessage {
 }
 
 /** Endereço PÚBLICO da caixa de exames (o que o app mostra pro usuário encaminhar). */
-export const EXAM_INBOX_ADDRESS = 'contato@janocaminho.com.br';
+export const EXAM_INBOX_ADDRESS = process.env.EXAM_INBOX_ADDRESS || 'contato@janocaminho.com.br';
 
 /**
  * Config IMAP (null = ingestão desligada). EXIGE IMAP_USER/IMAP_PASS dedicados —
  * NÃO herda do SMTP: o SMTP_USER do .env pode ser de OUTRA conta (ex.: chamanoespeto),
  * e polir a caixa errada perderia exames silenciosamente. Ligar: IMAP_ENABLED=true
  * + IMAP/IMAP Access habilitado no Zoho da conta do EXAM_INBOX_ADDRESS.
+ * IMAP_FOLDER: pasta dedicada (ex.: 'drexame' + alias/redirect do Zoho) — o robô
+ * lê SÓ ela; o INBOX humano fica intocado.
  */
-export function inboxConfig(): { host: string; port: number; user: string; pass: string } | null {
+export function inboxConfig(): { host: string; port: number; user: string; pass: string; folder: string } | null {
   const user = process.env.IMAP_USER;
   const pass = process.env.IMAP_PASS;
-  const host = process.env.IMAP_HOST || 'imap.zoho.com';
+  const host = process.env.IMAP_HOST || 'imappro.zoho.com';
+  const folder = process.env.IMAP_FOLDER || 'INBOX';
   if (process.env.IMAP_ENABLED !== 'true' || !user || !pass) return null;
-  return { host, port: 993, user, pass };
+  return { host, port: 993, user, pass, folder };
 }
 
 export function genExamCode(): string {
@@ -68,7 +71,7 @@ export async function fetchNewMessages(lastUid: number, max = 10): Promise<{ mes
   const client = new ImapFlow({ host: cfg.host, port: cfg.port, secure: true, auth: { user: cfg.user, pass: cfg.pass }, logger: false });
   await client.connect();
   try {
-    const lock = await client.getMailboxLock('INBOX');
+    const lock = await client.getMailboxLock(cfg.folder);
     const messages: InboundMessage[] = [];
     try {
       // range `n:*` no IMAP devolve sempre ≥1 (a última) mesmo sem novas — o guard uid resolve.
