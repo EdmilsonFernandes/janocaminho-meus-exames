@@ -76,6 +76,13 @@ async function maybeNudge(u: {
     select: { id: true },
   });
   if (recent) return;
+  // CARÊNCIA do ADIAMENTO (R4): quem clicou "não tenho o PDF agora" na tela de upload
+  // disse explicitamente "depois" — não encher por 10 dias (o e-mail de lembrete já foi).
+  const deferred = await prisma.notification.findFirst({
+    where: { userId: u.id, type: 'first_exam_deferred', createdAt: { gte: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000) } },
+    select: { id: true },
+  });
+  if (deferred) return;
   // Teto: já recebeu demais (não insiste pra sempre)?
   const sent = await prisma.notification.count({ where: { userId: u.id, type: TYPE } });
   if (sent >= MAX_NUDGES) return;

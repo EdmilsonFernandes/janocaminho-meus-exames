@@ -45,6 +45,7 @@ model User {
   subscriptions Subscription[]
   deviceTokens DeviceToken[]
   notifications Notification[]
+  emailUploadCodes EmailUploadCode[]
   deviceClaims DeviceClaim[] @relation("DeviceClaims")
   achievementGrants AchievementGrant[]
   creditTransactions CreditTransaction[]
@@ -1052,4 +1053,18 @@ model LandingLead {
 
   @@unique([email, source])
   @@map("landing_leads")
+}
+
+// Código pessoal de envio de exame POR E-MAIL (R2 ingestão — "EX-AB2C" no assunto do
+// encaminhamento do PDF do laboratório). 1 código ativo por usuário, single-use, 30 dias.
+model EmailUploadCode {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code      String    @unique
+  createdAt DateTime  @default(now())
+  expiresAt DateTime
+  usedAt    DateTime?
+  @@index([userId])
+  @@map("email_upload_codes")
 }

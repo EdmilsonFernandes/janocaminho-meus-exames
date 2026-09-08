@@ -104,6 +104,12 @@ export const ExamCreate = () => {
   // o bônus de créditos). bonus vem do /public/config (freeSignup) → sempre bate c/ o server.
   const [isFirstExam, setIsFirstExam] = useState<boolean | null>(null);
   const [firstBonus, setFirstBonus] = useState(45);
+  // Escape "não tenho o PDF agora": 1 clique → registra adiamento + lembrete por e-mail.
+  const [deferDone, setDeferDone] = useState(false);
+  const [deferLoading, setDeferLoading] = useState(false);
+  // Envio por E-MAIL (R2): código pessoal + endereço da caixa (busca sob demanda ao expandir).
+  const [emailInfo, setEmailInfo] = useState<{ code: string; inbox: string } | null>(null);
+  const [emailOpen, setEmailOpen] = useState(false);
   const notify = useNotify();
   const redirect = useRedirect();
   const refresh = useRefresh();
@@ -126,6 +132,42 @@ export const ExamCreate = () => {
     if (uploadConsentAccepted) return true;
     setConsentOpen(true);
     return false;
+  };
+
+  const deferFirst = async () => {
+    if (deferLoading || deferDone) return;
+    setDeferLoading(true);
+    try {
+      const r = await fetch(`${API_URL}/exams/defer-first`, { method: 'POST', headers: { Authorization: `Bearer ${token()}` } });
+      if (!r.ok) throw new Error();
+      setDeferDone(true);
+      notify('Sem pressa! Enviamos um lembrete pro seu e-mail — o Dr. Exame espera você. 💚', { type: 'success' });
+      setTimeout(() => redirect('/'), 1400);
+    } catch {
+      notify('Não deu pra agendar o lembrete agora — pode tentar de novo.', { type: 'warning' });
+    }
+    setDeferLoading(false);
+  };
+
+  const toggleEmailInfo = () => {
+    const open = !emailOpen;
+    setEmailOpen(open);
+    if (open && !emailInfo) {
+      fetch(`${API_URL}/exams/email-upload-code`, { headers: { Authorization: `Bearer ${token()}` } })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => d?.code && setEmailInfo({ code: d.code, inbox: d.inbox }))
+        .catch(() => {});
+    }
+  };
+
+  const copy = (text: string, label: string) => {
+    try { navigator.clipboard.writeText(text); notify(`${label} copiado!`, { type: 'success' }); }
+    catch { notify('Não deu pra copiar — anote aí 😅', { type: 'warning' }); }
+  };
+
+  const copyBtnSx = {
+    minWidth: 0, px: 1.25, py: 0.25, fontSize: 11, fontWeight: 700, textTransform: 'none' as const,
+    borderRadius: '999px', color: '#178f89', borderColor: 'rgba(32,178,170,.4)',
   };
 
   const acceptUploadConsent = () => {
@@ -275,6 +317,64 @@ export const ExamCreate = () => {
           <Typography variant="body2" color="text.secondary">PDF ou foto: a IA extrai os valores para você.</Typography>
         </Box>
       </Stack>
+
+      {/* ESCAPE HONESTO (R1/R4 pesquisa de ativação): quem não tem o PDF em mãos no 1º
+          acesso ganha saída digna — registra o adiamento (server segmenta o nudge) e
+          agenda o lembrete por e-mail. Sem isto, o usuário some e vira estatística. */}
+      {isFirstExam === true && !deferDone && (
+        <Box component="button" onClick={deferFirst}
+          sx={{
+            display: 'flex', width: '100%', mb: 2, px: 2, py: 1.25, gap: 1.25, alignItems: 'center',
+            borderRadius: '12px', cursor: 'pointer', textAlign: 'left',
+            bgcolor: 'transparent', border: '1px dashed', borderColor: 'divider',
+            color: 'text.secondary', transition: 'all .15s ease',
+            '&:hover': { bgcolor: 'action.hover', borderColor: 'rgba(32,178,170,.4)' },
+          }}>
+          <Box sx={{ fontSize: 20, lineHeight: 1 }}>💬</Box>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.secondary' }}>
+              Não tem seu exame em mãos agora?
+            </Typography>
+            <Typography sx={{ fontSize: 12, color: 'text.disabled' }}>
+              Sem problema — {deferLoading ? 'agendando…' : 'a gente te lembra por e-mail quando quiser voltar'}.
+            </Typography>
+          </Box>
+        </Box>
+      )}
+
+      {/* ENVIAR POR E-MAIL (R2): o PDF do laboratório chega no e-mail do usuário —
+          encaminhar com o código no assunto injeta no mesmo pipeline do upload. */}
+      <Box sx={{ mb: 2, borderRadius: '12px', border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
+        <Box component="button" onClick={toggleEmailInfo}
+          sx={{ display: 'flex', width: '100%', px: 2, py: 1.25, gap: 1.25, alignItems: 'center', cursor: 'pointer', bgcolor: 'transparent', border: 'none', textAlign: 'left', color: 'text.secondary', '&:hover': { bgcolor: 'action.hover' } }}>
+          <Box sx={{ fontSize: 20, lineHeight: 1 }}>📧</Box>
+          <Typography sx={{ flex: 1, fontSize: 13, fontWeight: 700 }}>Está no seu e-mail? Encaminhe pra cá</Typography>
+          <Box sx={{ fontSize: 16, transform: emailOpen ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>▾</Box>
+        </Box>
+        {emailOpen && (
+          <Box sx={{ px: 2, pb: 1.5 }}>
+            <Typography sx={{ fontSize: 12.5, color: 'text.secondary', lineHeight: 1.55, mb: 1 }}>
+              Abra o e-mail do laboratório no seu celular, toque em <b>Encaminhar</b> e envie pro endereço abaixo
+              escrevendo o código no <b>assunto</b>. O exame entra aqui sozinho. ✨
+            </Typography>
+            {emailInfo ? (
+              <Stack spacing={0.75}>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Typography sx={{ fontSize: 13, fontWeight: 700, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>{emailInfo.inbox}</Typography>
+                  <Button size="small" onClick={() => copy(emailInfo.inbox, 'Endereço')} sx={{ ...copyBtnSx }}>copiar</Button>
+                </Stack>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Typography sx={{ fontSize: 13, fontWeight: 800, color: '#178f89', letterSpacing: '.08em', flex: 1 }}>Assunto: {emailInfo.code}</Typography>
+                  <Button size="small" onClick={() => copy(emailInfo.code, 'Código')} sx={{ ...copyBtnSx }}>copiar</Button>
+                </Stack>
+                <Typography sx={{ fontSize: 11, color: 'text.disabled' }}>1 exame por código · PDF até 8 MB · válido por 30 dias</Typography>
+              </Stack>
+            ) : (
+              <Typography sx={{ fontSize: 12, color: 'text.disabled' }}>carregando seu código…</Typography>
+            )}
+          </Box>
+        )}
+      </Box>
 
       {/* BÔNUS DE 1º EXAME */}
       {isFirstExam === true && (

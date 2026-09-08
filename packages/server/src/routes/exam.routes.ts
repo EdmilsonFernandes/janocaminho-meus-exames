@@ -10,6 +10,8 @@ import { isAllowedUpload } from '../utils/fileMagic';
 import { saveExamFile, resolveExamFile, deleteExamFile, patientSlug } from '../utils/storage';
 import { parseListParams, setListHeaders } from '../utils/list';
 import { audit } from '../utils/audit';
+import { sendNudgeEmail } from '../utils/nudgeMail';
+import { genExamCode } from '../utils/emailInbox';
 import { serializeExam } from '../utils/serialize';
 import { runExtraction } from '../extraction/pipeline';
 import { config } from '../config';
@@ -80,6 +82,25 @@ router.get('/', async (req: AuthedRequest, res, next) => {
 });
 
 // GET ONE (com itens agrupados + último resumo)
+// CÓDIGO DE ENVIO POR E-MAIL (R2): devolve (ou gera) o código ativo do usuário +
+// o endereço da caixa. 1 código válido por usuário, 30 dias, single-use no ingest.
+// ANTES do GET /:id (rota paramétrica engoliria "email-upload-code" como id).
+router.get('/email-upload-code', async (req: AuthedRequest, res, next) => {
+  try {
+    const valid = await prisma.emailUploadCode.findFirst({
+      where: { userId: req.userId!, usedAt: null, expiresAt: { gt: new Date() } },
+      orderBy: { createdAt: 'desc' },
+      select: { code: true, expiresAt: true },
+    });
+    if (valid) { res.json({ code: valid.code, expiresAt: valid.expiresAt, inbox: process.env.IMAP_USER || process.env.SMTP_USER || 'contato@janocaminho.com.br' }); return; }
+    const created = await prisma.emailUploadCode.create({
+      data: { userId: req.userId!, code: genExamCode(), expiresAt: new Date(Date.now() + 30 * 86400000) },
+      select: { code: true, expiresAt: true },
+    });
+    res.json({ code: created.code, expiresAt: created.expiresAt, inbox: process.env.IMAP_USER || process.env.SMTP_USER || 'contato@janocaminho.com.br' });
+  } catch (e) { next(e); }
+});
+
 router.get('/:id', async (req: AuthedRequest, res, next) => {
   try {
     const exam = await loadOwnedExam(req, res, req.params.id, {
@@ -92,6 +113,34 @@ router.get('/:id', async (req: AuthedRequest, res, next) => {
   } catch (e) {
     next(e);
   }
+});
+
+// ADIAR 1º EXAME — escape honesto da tela de upload (R1/R4 da pesquisa de ativação):
+// "não tenho o PDF agora" registra a intenção (Notification p/ o firstExamNudge respeitar
+// janela de carência de 10d) e dispara 1 e-mail de lembrete (idempotente em 14d).
+router.post('/defer-first', async (req: AuthedRequest, res, next) => {
+  try {
+    const u = await prisma.user.findUnique({ where: { id: req.userId! }, select: { email: true, name: true, emailVerified: true, nudgeEmails: true } });
+    if (!u) { res.status(404).json({ error: 'Usuário não encontrado' }); return; }
+    const recent = await prisma.notification.findFirst({
+      where: { userId: req.userId!, type: 'first_exam_deferred', createdAt: { gte: new Date(Date.now() - 14 * 86400000) } },
+      select: { id: true },
+    });
+    if (!recent) {
+      await prisma.notification.create({
+        data: { userId: req.userId!, type: 'first_exam_deferred', title: 'Retorno agendado', body: 'Usuário adiou o 1º exame pela tela de upload (não tinha o PDF em mãos).' },
+      });
+      if (u.emailVerified && u.nudgeEmails) {
+        const first = (u.name || '').split(' ')[0] || 'Olá';
+        void sendNudgeEmail({
+          to: u.email, userId: req.userId!, firstName: first,
+          title: `${first}, sem pressa — o Dr. Exame espera você`,
+          body: 'Você criou sua conta mas ainda não tem o exame em mãos, e tudo bem. Quando o PDF do laboratório chegar no seu e-mail, é só abrir o app e enviar — leitura, valores e perguntas pro médico em segundos.',
+        }).catch(() => { /* best-effort */ });
+      }
+    }
+    res.json({ ok: true });
+  } catch (e) { next(e); }
 });
 
 // UPLOAD (multipart: file + patientId? + title?)

@@ -27,7 +27,9 @@ export const Onboarding = () => {
 
   const last = step === SLIDES.length - 1;
   const finish = () => { localStorage.setItem('onboarded', '1'); setShow(false); };
-  const finishAndGo = () => { finish(); navigate('/exams'); };
+  // Momento da verdade é o 1º exame (pesquisa de ativação: conversão mediana = 24min no
+  // dia 0) — o CTA final cai DIRETO no upload, não na lista vazia.
+  const finishAndGo = () => { finish(); navigate('/exams/create'); };
   const next = () => { if (last) { finish(); return; } setStep((s) => Math.min(s + 1, SLIDES.length - 1)); };
   const back = () => { setStep((s) => Math.max(s - 1, 0)); };
 
