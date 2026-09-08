@@ -3,6 +3,13 @@ import { Box, Card, CardContent, Button, TextField, Typography, Alert, Chip, Sta
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import DocumentScannerIcon from '@mui/icons-material/DocumentScanner';
+import EmailIcon from '@mui/icons-material/Email';
+import ForwardToInboxIcon from '@mui/icons-material/ForwardToInbox';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import CheckIcon from '@mui/icons-material/Check';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
 import { Title, useNotify, useRedirect, useRefresh, useLogout } from 'react-admin';
 import { API_URL, token, fetchPublicConfig } from '../../config';
 import { confirmDialog } from '../../components/ConfirmDialog';
@@ -109,7 +116,9 @@ export const ExamCreate = () => {
   const [deferLoading, setDeferLoading] = useState(false);
   // Envio por E-MAIL (R2): código pessoal + endereço da caixa (busca sob demanda ao expandir).
   const [emailInfo, setEmailInfo] = useState<{ code: string; inbox: string; enabled?: boolean } | null>(null);
-  const [emailOpen, setEmailOpen] = useState(false);
+  const [method, setMethod] = useState<'upload' | 'email'>('upload');
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const notify = useNotify();
   const redirect = useRedirect();
   const refresh = useRefresh();
@@ -155,17 +164,46 @@ export const ExamCreate = () => {
     setDeferLoading(false);
   };
 
-  const toggleEmailInfo = () => setEmailOpen((v) => !v);
-
-  const copy = (text: string, label: string) => {
-    try { navigator.clipboard.writeText(text); notify(`${label} copiado!`, { type: 'success' }); }
-    catch { notify('Não deu pra copiar — anote aí 😅', { type: 'warning' }); }
+  const copy = (text: string, label: string, key?: string) => {
+    try {
+      navigator.clipboard.writeText(text);
+      if (key) {
+        setCopiedKey(key);
+        setTimeout(() => setCopiedKey(null), 2200);
+      }
+      notify(`${label} copiado!`, { type: 'success' });
+    } catch {
+      notify('Não deu pra copiar — anote aí 😅', { type: 'warning' });
+    }
   };
 
-  const copyBtnSx = {
-    minWidth: 0, px: 1.25, py: 0.25, fontSize: 11, fontWeight: 700, textTransform: 'none' as const,
-    borderRadius: '999px', color: '#178f89', borderColor: 'rgba(32,178,170,.4)',
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
   };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    if (!ensureUploadConsent()) return;
+    if (e.dataTransfer?.files?.length) {
+      onPick(e.dataTransfer.files);
+    }
+  };
+
+  const mailtoHref = emailInfo
+    ? `mailto:${emailInfo.inbox}?subject=${encodeURIComponent(emailInfo.code)}&body=${encodeURIComponent(
+        `Olá Dr. Exame,\n\nSegue em anexo o arquivo do meu exame médico para extração e análise inteligente.\n\nCódigo de importação: ${emailInfo.code}`
+      )}`
+    : 'mailto:contato@janocaminho.com.br';
 
   const acceptUploadConsent = () => {
     try { localStorage.setItem(UPLOAD_CONSENT_KEY, 'accepted'); } catch { /* localStorage indisponível */ }
@@ -302,79 +340,68 @@ export const ExamCreate = () => {
   const pct = progress ? (progress.done / progress.total) * 100 : 0;
 
   return (
-    <Box sx={{ maxWidth: 600, mx: 'auto', pb: { xs: 10, sm: 5 }, px: { xs: 1, sm: 0 } }}>
+    <Box sx={{ maxWidth: 640, mx: 'auto', pb: { xs: 10, sm: 6 }, px: { xs: 1.5, sm: 0 } }}>
       <Title title="Enviar exames" />
-      {/* Cabeçalho */}
-      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2.5 }}>
-        <Box sx={{ width: 48, height: 48, borderRadius: '16px', background: 'linear-gradient(135deg,#20b2aa,#178f89)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 24px rgba(32,178,170,.35)', flexShrink: 0 }}>
-          <UploadFileIcon sx={{ color: '#fff', fontSize: 26 }} />
+
+      {/* Cabeçalho de Página */}
+      <Stack direction="row" alignItems="center" spacing={1.75} sx={{ mb: 2.5 }}>
+        <Box sx={{
+          width: 52,
+          height: 52,
+          borderRadius: '18px',
+          background: 'linear-gradient(135deg,#20b2aa,#178f89)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 10px 24px rgba(32,178,170,.35)',
+          flexShrink: 0,
+        }}>
+          <UploadFileIcon sx={{ color: '#fff', fontSize: 28 }} />
         </Box>
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.2, fontFamily: 'Poppins, sans-serif' }}>Enviar exames</Typography>
-          <Typography variant="body2" color="text.secondary">PDF ou foto: a IA extrai os valores para você.</Typography>
+          <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.2, fontFamily: 'Poppins, sans-serif' }}>
+            Enviar exames
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            PDF, foto ou e-mail: a IA lê e extrai os valores para você.
+          </Typography>
         </Box>
       </Stack>
 
-      {/* ESCAPE HONESTO (R1/R4 pesquisa de ativação): quem não tem o PDF em mãos no 1º
-          acesso ganha saída digna — registra o adiamento (server segmenta o nudge) e
-          agenda o lembrete por e-mail. Sem isto, o usuário some e vira estatística. */}
+      {/* ESCAPE HONESTO: quem não tem o PDF em mãos no 1º acesso */}
       {isFirstExam === true && !deferDone && (
-        <Box component="button" onClick={deferFirst}
+        <Box
+          component="button"
+          onClick={deferFirst}
           sx={{
-            display: 'flex', width: '100%', mb: 2, px: 2, py: 1.25, gap: 1.25, alignItems: 'center',
-            borderRadius: '12px', cursor: 'pointer', textAlign: 'left',
-            bgcolor: 'transparent', border: '1px dashed', borderColor: 'divider',
-            color: 'text.secondary', transition: 'all .15s ease',
-            '&:hover': { bgcolor: 'action.hover', borderColor: 'rgba(32,178,170,.4)' },
-          }}>
+            display: 'flex',
+            width: '100%',
+            mb: 2,
+            px: 2,
+            py: 1.25,
+            gap: 1.25,
+            alignItems: 'center',
+            borderRadius: '14px',
+            cursor: 'pointer',
+            textAlign: 'left',
+            bgcolor: 'action.hover',
+            border: '1px dashed',
+            borderColor: 'divider',
+            color: 'text.secondary',
+            transition: 'all .15s ease',
+            '&:hover': { bgcolor: 'action.selected', borderColor: 'rgba(32,178,170,.5)' },
+          }}
+        >
           <Box sx={{ fontSize: 20, lineHeight: 1 }}>💬</Box>
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.secondary' }}>
+            <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary' }}>
               Não tem seu exame em mãos agora?
             </Typography>
-            <Typography sx={{ fontSize: 12, color: 'text.disabled' }}>
+            <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
               Sem problema — {deferLoading ? 'agendando…' : 'a gente te lembra por e-mail quando quiser voltar'}.
             </Typography>
           </Box>
         </Box>
-      )}
-
-      {/* ENVIAR POR E-MAIL (R2): o PDF do laboratório chega no e-mail do usuário —
-          encaminhar com o código no assunto injeta no mesmo pipeline do upload.
-          Só aparece quando o INGEST está ativo no server (IMAP habilitado) — card
-          morto prometendo e-mail que não chega é pior que não ter card. */}
-      {emailInfo?.enabled === true && (
-      <Box sx={{ mb: 2, borderRadius: '12px', border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
-        <Box component="button" onClick={toggleEmailInfo}
-          sx={{ display: 'flex', width: '100%', px: 2, py: 1.25, gap: 1.25, alignItems: 'center', cursor: 'pointer', bgcolor: 'transparent', border: 'none', textAlign: 'left', color: 'text.secondary', '&:hover': { bgcolor: 'action.hover' } }}>
-          <Box sx={{ fontSize: 20, lineHeight: 1 }}>📧</Box>
-          <Typography sx={{ flex: 1, fontSize: 13, fontWeight: 700 }}>Está no seu e-mail? Encaminhe pra cá</Typography>
-          <Box sx={{ fontSize: 16, transform: emailOpen ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>▾</Box>
-        </Box>
-        {emailOpen && (
-          <Box sx={{ px: 2, pb: 1.5 }}>
-            <Typography sx={{ fontSize: 12.5, color: 'text.secondary', lineHeight: 1.55, mb: 1 }}>
-              Abra o e-mail do laboratório no seu celular, toque em <b>Encaminhar</b> e envie pro endereço abaixo
-              escrevendo o código no <b>assunto</b>. O exame entra aqui sozinho. ✨
-            </Typography>
-            {emailInfo && (
-              <Stack spacing={0.75}>
-                <Stack direction="row" spacing={1} alignItems="center">
-                  <Typography sx={{ fontSize: 13, fontWeight: 700, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>{emailInfo.inbox}</Typography>
-                  <Button size="small" onClick={() => copy(emailInfo.inbox, 'Endereço')} sx={{ ...copyBtnSx }}>copiar</Button>
-                </Stack>
-                <Stack direction="row" spacing={1} alignItems="center">
-                  <Typography sx={{ fontSize: 13, fontWeight: 800, color: '#178f89', letterSpacing: '.08em', flex: 1 }}>Assunto: {emailInfo.code}</Typography>
-                  <Button size="small" onClick={() => copy(emailInfo.code, 'Código')} sx={{ ...copyBtnSx }}>copiar</Button>
-                </Stack>
-                <Typography sx={{ fontSize: 11, color: 'text.disabled' }}>
-                  O código é do perfil selecionado no app — troque de perfil antes de enviar o exame de outra pessoa. · 1 exame por código · PDF até 8 MB · válido 30 dias
-                </Typography>
-              </Stack>
-            )}
-          </Box>
-        )}
-      </Box>
       )}
 
       {/* BÔNUS DE 1º EXAME */}
@@ -382,8 +409,12 @@ export const ExamCreate = () => {
         <Alert
           icon={false}
           sx={{
-            mb: 2.5, borderRadius: '16px', p: { xs: 1.5, sm: 2 }, alignItems: 'center',
-            bgcolor: 'rgba(32,178,170,.09)', border: '1px solid rgba(32,178,170,.30)',
+            mb: 2.5,
+            borderRadius: '18px',
+            p: { xs: 1.75, sm: 2 },
+            alignItems: 'center',
+            bgcolor: 'rgba(32,178,170,.09)',
+            border: '1px solid rgba(32,178,170,.30)',
             '& .MuiAlert-message': { width: '100%' },
           }}
         >
@@ -394,83 +425,624 @@ export const ExamCreate = () => {
                 Envie seu primeiro exame e ganhe <Box component="span" sx={{ color: '#178f89' }}>{firstBonus} créditos</Box>!
               </Typography>
               <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.25 }}>
-                Use para conversar com a IA sobre seu exame, gerar relatório e tirar dúvidas com o médico. É de graça: só enviar o PDF. ✨
+                Use para conversar com a IA sobre seu exame, gerar relatório e tirar dúvidas com o médico. É de graça: só enviar o laudo. ✨
               </Typography>
             </Box>
           </Stack>
         </Alert>
       )}
 
-      <Card sx={{ borderRadius: '16px', border: '1px solid rgba(32,178,170,0.25)', boxShadow: '0 16px 40px rgba(32,178,170,.12)', bgcolor: 'rgba(255,255,255,0.96)', backdropFilter: 'blur(20px)' }}>
-        <CardContent sx={{ p: { xs: 2.5, sm: 3.5 } }}>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5, textAlign: 'center', fontWeight: 600 }}>Escolha como quer enviar seu exame</Typography>
+      {/* SELETOR SEGMENTADO DE MÉTODOS (Apple / Linear style) */}
+      <Box sx={{
+        display: 'flex',
+        p: 0.5,
+        borderRadius: '16px',
+        bgcolor: 'action.hover',
+        mb: 2.5,
+        border: '1px solid',
+        borderColor: 'divider',
+      }}>
+        <Button
+          onClick={() => setMethod('upload')}
+          sx={{
+            flex: 1,
+            py: 1.1,
+            borderRadius: '12px',
+            fontWeight: 700,
+            fontSize: { xs: 13, sm: 14 },
+            textTransform: 'none',
+            color: method === 'upload' ? 'text.primary' : 'text.secondary',
+            bgcolor: method === 'upload' ? 'background.paper' : 'transparent',
+            boxShadow: method === 'upload' ? '0 4px 14px rgba(0,0,0,0.08)' : 'none',
+            transition: 'all .2s ease',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 0.85,
+            '&:hover': {
+              bgcolor: method === 'upload' ? 'background.paper' : 'action.selected',
+            },
+          }}
+        >
+          <UploadFileIcon sx={{ fontSize: 19, color: method === 'upload' ? '#20b2aa' : 'inherit' }} />
+          <span>Arquivo ou Foto</span>
+        </Button>
 
-          <Box component="form" onSubmit={submit} sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-            {/* 2 CAMINHOS — Escanear (recomendado, mobile) + PDF/galeria. */}
-            <Stack direction="row" spacing={2} sx={{ flexWrap: { xs: 'nowrap', sm: 'nowrap' } }}>
-              {/* Caminho 1: Escanear */}
-              {isAndroid && (
-                <Box onClick={busy ? undefined : scanDocument} sx={{
-                  flex: 1, cursor: busy ? 'wait' : 'pointer', borderRadius: '16px', p: { xs: 2, sm: 2.5 }, textAlign: 'center',
-                  border: '2px solid #20b2aa', bgcolor: 'rgba(32,178,170,.08)', transition: 'all .2s ease', position: 'relative',
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.75,
-                  '&:active': { transform: 'scale(.97)' }, '&:hover': { bgcolor: 'rgba(32,178,170,.15)', boxShadow: '0 8px 24px rgba(32,178,170,0.18)' },
-                }}>
-                  <Box sx={{ position: 'absolute', top: 8, right: 8, fontSize: 10, fontWeight: 800, color: '#fff', bgcolor: '#20b2aa', px: 0.8, py: 0.2, borderRadius: '999px', letterSpacing: '0.04em' }}>RECOMENDADO</Box>
-                  <Box sx={{ fontSize: 38 }}>📷</Box>
-                  <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary', fontFamily: 'Poppins, sans-serif' }}>Escanear</Typography>
-                  <Typography variant="caption" color="text.secondary">A câmera ajusta borda,<br />luz e nitidez pra você ✨</Typography>
+        <Button
+          onClick={() => setMethod('email')}
+          sx={{
+            flex: 1,
+            py: 1.1,
+            borderRadius: '12px',
+            fontWeight: 700,
+            fontSize: { xs: 13, sm: 14 },
+            textTransform: 'none',
+            color: method === 'email' ? 'text.primary' : 'text.secondary',
+            bgcolor: method === 'email' ? 'background.paper' : 'transparent',
+            boxShadow: method === 'email' ? '0 4px 14px rgba(0,0,0,0.08)' : 'none',
+            transition: 'all .2s ease',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 0.75,
+            '&:hover': {
+              bgcolor: method === 'email' ? 'background.paper' : 'action.selected',
+            },
+          }}
+        >
+          <EmailIcon sx={{ fontSize: 19, color: method === 'email' ? '#20b2aa' : 'inherit' }} />
+          <span>Encaminhar por E-mail</span>
+          <Box sx={{
+            fontSize: 9.5,
+            fontWeight: 800,
+            bgcolor: method === 'email' ? 'rgba(32,178,170,.18)' : 'rgba(32,178,170,.12)',
+            color: '#178f89',
+            px: 0.85,
+            py: 0.25,
+            borderRadius: '999px',
+            display: { xs: 'none', sm: 'inline-flex' },
+            letterSpacing: '0.02em',
+          }}>
+            MAIS PRÁTICO
+          </Box>
+        </Button>
+      </Box>
+
+      {/* ABA 1: ENVIAR ARQUIVO / FOTO */}
+      {method === 'upload' && (
+        <Card sx={{
+          borderRadius: '24px',
+          border: '1px solid rgba(32,178,170,0.25)',
+          boxShadow: '0 16px 40px rgba(32,178,170,.12)',
+          bgcolor: 'background.paper',
+          overflow: 'hidden',
+          position: 'relative',
+        }}>
+          <Box sx={{ height: 4, background: 'linear-gradient(90deg, #20b2aa, #178f89)' }} />
+          <CardContent sx={{ p: { xs: 2.5, sm: 3.5 } }}>
+            <Box component="form" onSubmit={submit} sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+              
+              {/* Opções de Captura */}
+              {isAndroid ? (
+                <Stack direction="row" spacing={2}>
+                  {/* Caminho 1: Escanear com ML Kit */}
+                  <Box
+                    onClick={busy ? undefined : scanDocument}
+                    sx={{
+                      flex: 1,
+                      cursor: busy ? 'wait' : 'pointer',
+                      borderRadius: '18px',
+                      p: { xs: 2, sm: 2.5 },
+                      textAlign: 'center',
+                      border: '2px solid #20b2aa',
+                      bgcolor: 'rgba(32,178,170,.08)',
+                      transition: 'all .2s ease',
+                      position: 'relative',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: 0.75,
+                      '&:active': { transform: 'scale(.97)' },
+                      '&:hover': { bgcolor: 'rgba(32,178,170,.14)', boxShadow: '0 8px 24px rgba(32,178,170,0.18)' },
+                    }}
+                  >
+                    <Box sx={{
+                      position: 'absolute',
+                      top: 8,
+                      right: 8,
+                      fontSize: 9.5,
+                      fontWeight: 800,
+                      color: '#fff',
+                      bgcolor: '#20b2aa',
+                      px: 0.8,
+                      py: 0.2,
+                      borderRadius: '999px',
+                      letterSpacing: '0.04em',
+                    }}>
+                      RECOMENDADO
+                    </Box>
+                    <Box sx={{ fontSize: 36 }}>📷</Box>
+                    <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary', fontFamily: 'Poppins, sans-serif' }}>
+                      Escanear
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      A câmera ajusta borda,<br />luz e nitidez pra você ✨
+                    </Typography>
+                  </Box>
+
+                  {/* Caminho 2: Galeria ou PDF */}
+                  <Box
+                    component="label"
+                    sx={{
+                      flex: 1,
+                      cursor: 'pointer',
+                      borderRadius: '18px',
+                      p: { xs: 2, sm: 2.5 },
+                      textAlign: 'center',
+                      border: files.length ? '2px solid #20b2aa' : '2px dashed rgba(32,178,170,0.35)',
+                      bgcolor: files.length ? 'rgba(32,178,170,.08)' : 'rgba(32,178,170,.03)',
+                      transition: 'all .2s ease',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: 0.75,
+                      '&:active': { transform: 'scale(.97)' },
+                      '&:hover': { borderColor: '#20b2aa', bgcolor: 'rgba(32,178,170,.08)' },
+                    }}
+                    onClick={(e) => { if (!ensureUploadConsent()) e.preventDefault(); }}
+                  >
+                    <input type="file" hidden multiple accept=".pdf,.jpg,.jpeg,.png,image/*,application/pdf" onChange={(e) => { onPick(e.target.files); if (e.target) e.target.value = ''; }} />
+                    <Box sx={{ fontSize: 36 }}>📄</Box>
+                    <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary', fontFamily: 'Poppins, sans-serif' }}>
+                      {files.length ? `${files.length} selecionado(s)` : 'PDF ou Galeria'}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.35 }}>
+                      Vários de uma vez ·<br />leitura perfeita de PDF
+                    </Typography>
+                  </Box>
+                </Stack>
+              ) : (
+                /* Desktop / Web Dropzone */
+                <Box
+                  component="label"
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onClick={(e) => { if (!ensureUploadConsent()) e.preventDefault(); }}
+                  sx={{
+                    cursor: 'pointer',
+                    borderRadius: '20px',
+                    py: { xs: 3.5, sm: 4.5 },
+                    px: 3,
+                    textAlign: 'center',
+                    border: files.length || isDragging ? '2.5px dashed #20b2aa' : '2px dashed rgba(32,178,170,0.35)',
+                    bgcolor: isDragging ? 'rgba(32,178,170,0.12)' : files.length ? 'rgba(32,178,170,0.06)' : 'rgba(32,178,170,0.03)',
+                    transition: 'all .2s ease',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 1.5,
+                    '&:hover': {
+                      borderColor: '#20b2aa',
+                      bgcolor: 'rgba(32,178,170,0.08)',
+                      boxShadow: '0 8px 24px rgba(32,178,170,0.10)',
+                    },
+                  }}
+                >
+                  <input type="file" hidden multiple accept=".pdf,.jpg,.jpeg,.png,image/*,application/pdf" onChange={(e) => { onPick(e.target.files); if (e.target) e.target.value = ''; }} />
+                  <Box sx={{
+                    width: 60,
+                    height: 60,
+                    borderRadius: '50%',
+                    bgcolor: 'rgba(32,178,170,0.12)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#178f89',
+                  }}>
+                    <UploadFileIcon sx={{ fontSize: 32 }} />
+                  </Box>
+                  <Box>
+                    <Typography sx={{ fontWeight: 800, fontSize: { xs: 16, sm: 18 }, color: 'text.primary', fontFamily: 'Poppins, sans-serif' }}>
+                      {files.length ? `${files.length} arquivo(s) pronto(s) para envio` : 'Arraste seu PDF ou fotos aqui'}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                      ou clique para selecionar do seu computador
+                    </Typography>
+                  </Box>
+                  <Stack direction="row" spacing={1} sx={{ mt: 0.5 }}>
+                    <Chip size="small" label="PDF (leitura imediata)" sx={{ bgcolor: 'rgba(32,178,170,0.12)', color: '#0f766e', fontWeight: 700, fontSize: 11 }} />
+                    <Chip size="small" label="JPG / PNG" sx={{ bgcolor: 'action.hover', color: 'text.secondary', fontWeight: 600, fontSize: 11 }} />
+                    <Chip size="small" label="Até 32 MB" sx={{ bgcolor: 'action.hover', color: 'text.secondary', fontWeight: 600, fontSize: 11 }} />
+                  </Stack>
                 </Box>
               )}
-              {/* Caminho 2: PDF (leitura perfeita) ou foto da galeria */}
-              <Box component="label" sx={{
-                flex: 1, cursor: 'pointer', borderRadius: '16px', p: { xs: 2.5, sm: 3 }, textAlign: 'center',
-                border: files.length ? '2px solid #20b2aa' : '2px dashed rgba(32,178,170,0.35)',
-                bgcolor: files.length ? 'rgba(32,178,170,.08)' : 'rgba(32,178,170,.03)', transition: 'all .2s ease',
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1,
-                '&:active': { transform: 'scale(.97)' }, '&:hover': { borderColor: '#20b2aa', bgcolor: 'rgba(32,178,170,.08)', boxShadow: '0 8px 24px rgba(32,178,170,0.12)' },
-              }} onClick={(e) => { if (!ensureUploadConsent()) e.preventDefault(); }}>
-                <input type="file" hidden multiple accept=".pdf,.jpg,.jpeg,.png,image/*,application/pdf" onChange={(e) => { onPick(e.target.files); if (e.target) e.target.value = ''; }} />
-                <Box sx={{ fontSize: 40 }}>📄</Box>
-                <Typography sx={{ fontWeight: 800, fontSize: 16, color: 'text.primary', fontFamily: 'Poppins, sans-serif' }}>{files.length ? `${files.length} arquivo(s) selecionado(s)` : 'PDF ou foto'}</Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.4 }}>PDF tem leitura perfeita ·<br />foto da galeria: várias de uma vez</Typography>
+
+              {/* Arquivos selecionados */}
+              {files.length > 0 && (
+                <Box sx={{ p: 2, borderRadius: '16px', bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider' }}>
+                  <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', mb: 1 }}>
+                    Arquivos selecionados ({files.length}):
+                  </Typography>
+                  <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+                    {files.map((f, i) => (
+                      <Chip
+                        key={i}
+                        icon={<DescriptionOutlinedIcon sx={{ fontSize: 16 }} />}
+                        label={`${f.name} (${Math.round(f.size / 1024)} KB)`}
+                        onDelete={() => setFiles(files.filter((_, j) => j !== i))}
+                        sx={{
+                          borderRadius: '10px',
+                          maxWidth: '100%',
+                          fontWeight: 600,
+                          bgcolor: 'background.paper',
+                          border: '1px solid',
+                          borderColor: 'divider',
+                        }}
+                      />
+                    ))}
+                  </Stack>
+                </Box>
+              )}
+
+              {/* Dica amigável */}
+              <Box sx={{ px: 2, py: 1.25, borderRadius: '16px', bgcolor: 'rgba(32,178,170,.06)', border: '1px solid', borderColor: 'rgba(32,178,170,.22)' }}>
+                <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1.5, display: 'block' }}>
+                  💡 <strong>Dica do Dr. Exame:</strong> Laudos originais em <strong>PDF</strong> emitidos pelo laboratório têm 100% de nitidez e leitura instantânea pela IA.
+                </Typography>
+              </Box>
+
+              {/* Campo de título opcional */}
+              <TextField
+                label="Título ou identificação do exame (opcional)"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Ex.: Hemograma completo - Julho/2026"
+                size="small"
+                fullWidth
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '14px' } }}
+              />
+
+              {/* Barra de Progresso */}
+              {progress && (
+                <Box sx={{ bgcolor: 'background.default', p: 2, borderRadius: '16px' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.primary', mb: 0.75 }}>
+                    Enviando {progress.done}/{progress.total}…
+                  </Typography>
+                  <LinearProgress variant="determinate" value={pct} sx={{ height: 10, borderRadius: '999px', bgcolor: 'action.hover', '& .MuiLinearProgress-bar': { borderRadius: '999px', bgcolor: '#20b2aa' } }} />
+                  {progress.errors.map((er, i) => (
+                    <Typography key={i} variant="caption" color="error" sx={{ display: 'block', mt: 0.5 }}>
+                      ⚠ {er}
+                    </Typography>
+                  ))}
+                </Box>
+              )}
+
+              {/* Botão de Ação Primário */}
+              <Button
+                type="submit"
+                variant="contained"
+                size="large"
+                fullWidth
+                disabled={busy || !files.length}
+                sx={{
+                  borderRadius: '999px',
+                  py: 1.6,
+                  textTransform: 'none',
+                  fontWeight: 800,
+                  fontSize: 16,
+                  bgcolor: '#20b2aa',
+                  color: '#ffffff',
+                  boxShadow: '0 10px 28px rgba(32,178,170,.35)',
+                  '&:hover': { bgcolor: '#178f89' },
+                  '&.Mui-disabled': { bgcolor: 'action.disabledBackground', color: 'text.disabled' },
+                }}
+              >
+                {busy ? 'Enviando e analisando com IA…' : `Enviar ${files.length ? files.length + ' arquivo(s)' : ''} e extrair com IA →`}
+              </Button>
+
+              <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', fontWeight: 600 }}>
+                📤 <strong>1 crédito</strong> por envio (grátis) · <strong>Premium</strong>: 6 envios grátis/mês
+              </Typography>
+            </Box>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ABA 2: ENCAMINHAR POR E-MAIL (VOUCHER ULTRA-PREMIUM) */}
+      {method === 'email' && (
+        <Card sx={{
+          borderRadius: '24px',
+          border: '1px solid rgba(32,178,170,0.28)',
+          boxShadow: '0 20px 48px rgba(32,178,170,.12), 0 4px 12px rgba(0,0,0,.03)',
+          bgcolor: 'background.paper',
+          overflow: 'hidden',
+          position: 'relative',
+        }}>
+          {/* Barra de destaque superior em gradiente */}
+          <Box sx={{ height: 6, background: 'linear-gradient(90deg, #093330, #20b2aa, #d4a574)' }} />
+
+          <CardContent sx={{ p: { xs: 2.5, sm: 3.5 } }}>
+            {/* Header da Seção de E-mail */}
+            <Stack direction="row" spacing={2} alignItems="flex-start" sx={{ mb: 2.5 }}>
+              <Box sx={{
+                width: { xs: 46, sm: 52 },
+                height: { xs: 46, sm: 52 },
+                borderRadius: '16px',
+                background: 'linear-gradient(135deg, #093330, #178f89)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 8px 20px rgba(23,143,137,0.3)',
+                flexShrink: 0,
+              }}>
+                <EmailIcon sx={{ color: '#fff', fontSize: { xs: 24, sm: 28 } }} />
+              </Box>
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5, flexWrap: 'wrap' }}>
+                  <Typography variant="h6" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: { xs: 16, sm: 19 }, wordBreak: 'keep-all' }}>
+                    Encaminhe direto do seu <Box component="span" sx={{ whiteSpace: 'nowrap' }}>e-mail</Box>
+                  </Typography>
+                  <Chip
+                    size="small"
+                    label="Sem baixar arquivo"
+                    sx={{
+                      bgcolor: 'rgba(32,178,170,0.12)',
+                      color: '#0f766e',
+                      fontWeight: 800,
+                      fontSize: 10,
+                      borderRadius: '999px',
+                      height: 22,
+                    }}
+                  />
+                </Stack>
+                <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: 12.5, sm: 14 }, lineHeight: 1.45 }}>
+                  Recebeu o laudo no Gmail ou Outlook? Não precisa baixar o PDF pro aparelho. É só encaminhar pra cá com o código no assunto!
+                </Typography>
               </Box>
             </Stack>
 
-            {/* Dica amigável */}
-            <Box sx={{ px: 2, py: 1.25, borderRadius: '16px', bgcolor: 'rgba(32,178,170,.06)', border: '1px solid', borderColor: 'rgba(32,178,170,.22)' }}>
-              <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1.5, display: 'block' }}>
-                💡 <strong>Para o Dr. Exame ler perfeitamente:</strong> use <strong>Escanear</strong> (ajusta a foto pra você) ou envie um <strong>PDF</strong>. Evite fotos escuras ou desfocadas.
-              </Typography>
+            {/* 3 Passos Ilustrados */}
+            <Box sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+              gap: 1.25,
+              mb: 2.5,
+            }}>
+              {[
+                { step: '1', title: 'Abra o e-mail do laudo', desc: 'No app ou web do laboratório', icon: '📬' },
+                { step: '2', title: 'Toque em Encaminhar', desc: 'Com o anexo do exame', icon: '↗️' },
+                { step: '3', title: 'Cole o código no assunto', desc: 'Entra na sua conta sozinho', icon: '✨' },
+              ].map((s) => (
+                <Box
+                  key={s.step}
+                  sx={{
+                    p: 1.5,
+                    borderRadius: '14px',
+                    bgcolor: 'rgba(32,178,170,0.04)',
+                    border: '1px solid rgba(32,178,170,0.14)',
+                    display: 'flex',
+                    flexDirection: { xs: 'row', sm: 'column' },
+                    alignItems: { xs: 'center', sm: 'flex-start' },
+                    gap: 1.25,
+                  }}
+                >
+                  <Box sx={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: '9px',
+                    bgcolor: 'rgba(32,178,170,0.15)',
+                    color: '#178f89',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 800,
+                    fontSize: 14,
+                    flexShrink: 0,
+                  }}>
+                    {s.icon}
+                  </Box>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography sx={{ fontWeight: 800, fontSize: 12.5, color: 'text.primary', lineHeight: 1.3 }}>
+                      {s.title}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', lineHeight: 1.3 }}>
+                      {s.desc}
+                    </Typography>
+                  </Box>
+                </Box>
+              ))}
             </Box>
 
-            {/* Arquivos selecionados */}
-            {files.length > 0 && (
-              <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
-                {files.map((f, i) => (<Chip key={i} label={f.name} onDelete={() => setFiles(files.filter((_, j) => j !== i))} sx={{ borderRadius: '8px', maxWidth: '100%', fontWeight: 600 }} />))}
-              </Stack>
-            )}
-
-            <TextField label="Título (opcional)" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Hemograma - junho/2026" size="small" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />
-
-            {progress && (
-              <Box sx={{ bgcolor: 'background.default', p: 2, borderRadius: '16px' }}>
-                <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.primary', mb: 0.75 }}>Enviando {progress.done}/{progress.total}…</Typography>
-                <LinearProgress variant="determinate" value={pct} sx={{ height: 10, borderRadius: '999px', bgcolor: 'action.hover', '& .MuiLinearProgress-bar': { borderRadius: '999px', bgcolor: '#20b2aa' } }} />
-                {progress.errors.map((er, i) => <Typography key={i} variant="caption" color="error" sx={{ display: 'block', mt: 0.5 }}>⚠ {er}</Typography>)}
+            {/* Box Voucher com campos de cópia estilo Chave PIX */}
+            <Box sx={{
+              borderRadius: '18px',
+              p: { xs: 1.75, sm: 2.25 },
+              bgcolor: 'action.hover',
+              border: '1px solid',
+              borderColor: 'divider',
+              mb: 2.5,
+            }}>
+              {/* Campo 1: Destinatário */}
+              <Box sx={{ mb: 1.75 }}>
+                <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', mb: 0.5, fontSize: 10.5 }}>
+                  1. Para onde encaminhar (Destinatário)
+                </Typography>
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  alignItems="center"
+                  justifyContent="space-between"
+                  sx={{
+                    bgcolor: 'background.paper',
+                    py: 1,
+                    px: { xs: 1.25, sm: 1.5 },
+                    borderRadius: '12px',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                  }}
+                >
+                  <Stack direction="row" spacing={0.85} alignItems="center" sx={{ minWidth: 0, flex: 1, mr: 1 }}>
+                    <EmailIcon sx={{ fontSize: 18, color: '#178f89', flexShrink: 0 }} />
+                    <Typography
+                      sx={{
+                        fontWeight: 700,
+                        fontSize: { xs: 12.5, sm: 14 },
+                        color: 'text.primary',
+                        fontFamily: 'monospace',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
+                    >
+                      {emailInfo?.inbox || 'contato@janocaminho.com.br'}
+                    </Typography>
+                  </Stack>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => copy(emailInfo?.inbox || 'contato@janocaminho.com.br', 'Endereço de e-mail', 'inbox')}
+                    startIcon={copiedKey === 'inbox' ? <CheckIcon sx={{ fontSize: 14 }} /> : <ContentCopyIcon sx={{ fontSize: 14 }} />}
+                    sx={{
+                      borderRadius: '8px',
+                      textTransform: 'none',
+                      fontWeight: 700,
+                      fontSize: 11.5,
+                      px: 1.25,
+                      py: 0.4,
+                      color: copiedKey === 'inbox' ? '#10b981' : '#178f89',
+                      borderColor: copiedKey === 'inbox' ? '#10b981' : 'rgba(32,178,170,0.4)',
+                      bgcolor: copiedKey === 'inbox' ? 'rgba(16,185,129,0.08)' : 'transparent',
+                      flexShrink: 0,
+                    }}
+                  >
+                    {copiedKey === 'inbox' ? 'Copiado!' : 'Copiar'}
+                  </Button>
+                </Stack>
               </Box>
-            )}
 
-            {/* ÚNICO botão primário */}
-            <Button type="submit" variant="contained" size="large" fullWidth disabled={busy || !files.length} sx={{ borderRadius: '999px', py: 1.5, textTransform: 'none', fontWeight: 800, fontSize: 16, bgcolor: '#20b2aa', color: '#ffffff', boxShadow: '0 10px 28px rgba(32,178,170,.35)', '&:hover': { bgcolor: '#178f89' }, '&.Mui-disabled': { bgcolor: 'action.disabledBackground', color: 'text.disabled' } }}>
-              {busy ? 'Enviando…' : `Enviar ${files.length ? files.length + ' arquivo(s)' : ''} e extrair com IA →`}
+              {/* Campo 2: Assunto (Código de Identificação) */}
+              <Box>
+                <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', mb: 0.5, fontSize: 10.5 }}>
+                  2. Código obrigatório no ASSUNTO do e-mail
+                </Typography>
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  alignItems="center"
+                  justifyContent="space-between"
+                  sx={{
+                    bgcolor: 'rgba(32,178,170,0.08)',
+                    py: 1,
+                    px: { xs: 1.25, sm: 1.5 },
+                    borderRadius: '12px',
+                    border: '1.5px dashed #20b2aa',
+                  }}
+                >
+                  <Stack direction="row" spacing={0.85} alignItems="center" sx={{ minWidth: 0, flex: 1, mr: 1 }}>
+                    <AutoAwesomeIcon sx={{ fontSize: 18, color: '#178f89', flexShrink: 0 }} />
+                    <Typography
+                      sx={{
+                        fontWeight: 900,
+                        fontSize: { xs: 16, sm: 19 },
+                        color: '#0f766e',
+                        letterSpacing: '0.08em',
+                        fontFamily: 'monospace',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {emailInfo?.code || 'CARREGANDO...'}
+                    </Typography>
+                  </Stack>
+                  <Button
+                    size="small"
+                    variant="contained"
+                    onClick={() => copy(emailInfo?.code || '', 'Código de assunto', 'code')}
+                    startIcon={copiedKey === 'code' ? <CheckIcon sx={{ fontSize: 14 }} /> : <ContentCopyIcon sx={{ fontSize: 14 }} />}
+                    sx={{
+                      borderRadius: '8px',
+                      textTransform: 'none',
+                      fontWeight: 800,
+                      fontSize: 11.5,
+                      px: 1.35,
+                      py: 0.5,
+                      bgcolor: copiedKey === 'code' ? '#10b981' : '#20b2aa',
+                      color: '#fff',
+                      boxShadow: '0 4px 12px rgba(32,178,170,0.3)',
+                      '&:hover': { bgcolor: copiedKey === 'code' ? '#059669' : '#178f89' },
+                      flexShrink: 0,
+                    }}
+                  >
+                    {copiedKey === 'code' ? 'Copiado!' : 'Copiar Código'}
+                  </Button>
+                </Stack>
+              </Box>
+            </Box>
+
+            {/* Botão Mágico: Abrir meu App de E-mail */}
+            <Button
+              component="a"
+              href={mailtoHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="contained"
+              fullWidth
+              startIcon={<ForwardToInboxIcon />}
+              endIcon={<OpenInNewIcon sx={{ fontSize: 18 }} />}
+              sx={{
+                borderRadius: '999px',
+                py: 1.5,
+                fontSize: { xs: 14.5, sm: 16 },
+                fontWeight: 800,
+                textTransform: 'none',
+                background: 'linear-gradient(135deg, #20b2aa, #178f89)',
+                color: '#fff',
+                boxShadow: '0 10px 28px rgba(32,178,170,.35)',
+                mb: 2.5,
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #178f89, #0f5f5a)',
+                  boxShadow: '0 12px 32px rgba(23,143,137,.45)',
+                },
+              }}
+            >
+              Abrir meu aplicativo de E-mail
             </Button>
-            <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', mt: 0.5, fontWeight: 600 }}>
-              📤 <strong>1 crédito</strong> por envio (grátis) · <strong>Premium</strong>: 6 envios grátis/mês
+
+            {/* Status do Robô Ouvindo */}
+            <Box sx={{
+              p: 2,
+              borderRadius: '16px',
+              bgcolor: 'rgba(16,185,129,0.07)',
+              border: '1px solid rgba(16,185,129,0.22)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.5,
+            }}>
+              <Box sx={{
+                width: 12,
+                height: 12,
+                borderRadius: '50%',
+                bgcolor: '#10b981',
+                boxShadow: '0 0 0 4px rgba(16,185,129,0.25)',
+                flexShrink: 0,
+              }} />
+              <Box sx={{ flex: 1 }}>
+                <Typography sx={{ fontWeight: 800, fontSize: 13, color: '#065f46' }}>
+                  Robô do Dr. Exame conectado e aguardando seu envio
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25, lineHeight: 1.4 }}>
+                  Assim que você encaminhar, o PDF é processado com IA e o laudo entra na sua conta em ~30 segundos.
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* Regras e avisos */}
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2, textAlign: 'center', fontSize: 11.5, lineHeight: 1.5 }}>
+              📌 <strong>Dica:</strong> O código é exclusivo do perfil selecionado (troque de perfil no topo se for para outra pessoa). · 1 exame por código · PDF de até 8 MB · Código válido por 30 dias.
             </Typography>
-          </Box>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       <Dialog open={consentOpen} onClose={() => setConsentOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ fontWeight: 800, color: 'text.primary' }}>Antes de enviar seu exame</DialogTitle>
