@@ -14,6 +14,7 @@ import { chargeCredits, CREDIT_COSTS } from '../utils/credits';
 import { cpfFingerprint, maskCpf, maskStoredCpf, normalizeCpf } from '../utils/cpf';
 import { sendPushToUser } from '../utils/push';
 import { sendWhatsAppExamReady } from '../utils/whatsapp';
+import { sendNudgeEmail } from '../utils/nudgeMail';
 import { ageBandAt, applyPediatricRange, type AgeBand } from '../analysis/pediatric-ranges';
 
 interface ItemRow {
@@ -273,6 +274,25 @@ async function runExtractionOnce(examId: string): Promise<void> {
         const pushBody = `${firstName}, "${title}" está pronto — ${items.length} valores analisados. Toque pra ver o que mudou.`;
         await sendPushToUser(patient.ownerId, pushTitle, pushBody, { type: 'exam_ready', examId: String(examId) }).catch((e) => console.error('[extraction] push exam_ready falhou:', e?.message));
         if (user?.phone) await sendWhatsAppExamReady(user.phone, { name: firstName, exam: title, count: items.length });
+        // EXAME VEIO POR E-MAIL (R2): fecha o ciclo no MESMO canal — quem encaminhou por
+        // e-mail recebe o "pronto" por e-mail também (o push/WhatsApp já cobrem o resto).
+        try {
+          const cameByEmail = await prisma.notification.findFirst({
+            where: { userId: patient.ownerId, type: 'email_upload_received', data: { path: ['examId'], equals: String(examId) } },
+            select: { id: true },
+          });
+          if (cameByEmail) {
+            const u2 = await prisma.user.findUnique({ where: { id: patient.ownerId }, select: { email: true, name: true } });
+            if (u2?.email) {
+              await sendNudgeEmail({
+                to: u2.email, userId: patient.ownerId, firstName,
+                title: isDependent ? `${firstName}: exame pronto 🧬` : 'Seu exame por e-mail está pronto 🧬',
+                body: `"${title}" foi lido — ${items.length} valores analisados, com o que mudou e as perguntas pra levar ao médico.`,
+                examId: String(examId),
+              });
+            }
+          }
+        } catch (e: any) { console.error('[extraction] email exam_ready(por e-mail) falhou:', e?.message); }
       } catch (e: any) { console.error('[extraction] notify exam_ready falhou:', e?.message); }
     }
 

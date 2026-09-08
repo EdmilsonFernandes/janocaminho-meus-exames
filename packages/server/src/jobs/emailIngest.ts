@@ -17,6 +17,8 @@ import { firstPatientId } from '../middleware/auth';
 import { runExtraction } from '../extraction/pipeline';
 import { computeUploadCost } from '../utils/credits';
 import { sendPushToUser } from '../utils/push';
+import { sendEmail } from '../utils/mailer';
+import { sendNudgeEmail } from '../utils/nudgeMail';
 
 const TICK_MS = 90 * 1000;
 const CURSOR_KEY = 'emailIngestLastUid';
@@ -55,18 +57,44 @@ export function startEmailIngestJob(): void {
 }
 
 /** Casa código → usuário → injeta o 1º PDF válido no pipeline (mesmas regras do upload). */
+/**
+ * Resposta automática a QUEM ENCAMINHOU quando o processamento falha (fluxo por e-mail é
+ * assíncrono: sem resposta, o usuário fica no escuro achando que "enviou"). Só pra remetentes
+ * humanos (pula mailer-daemon/noreply). Best-effort — falha nunca quebra o tick.
+ */
+const ROBOT_SENDER = /mailer-daemon|no-?reply|postmaster/i;
+async function replyProblem(to: string, code: string, reason: string): Promise<void> {
+  if (!to || ROBOT_SENDER.test(to)) return;
+  try {
+    await sendEmail({
+      to,
+      subject: `Dr. Exame — não conseguimos processar seu exame (${code})`,
+      html: `<p>Olá! Recebemos seu e-mail com o código <b>${code}</b> no assunto, mas não conseguimos processar:</p>
+<p style="padding:12px;background:#fdecea;border-left:3px solid #d32f2f;border-radius:6px">${reason}</p>
+<p>Abra o app Dr. Exame → <b>Enviar exame</b> → toque em <b>“Está no seu e-mail? Encaminhe pra cá”</b> para ver seu código atual, ou envie o PDF diretamente pelo app.</p>
+<p style="color:#666;font-size:12px">Se você não encaminhou nenhum exame, ignore este e-mail.</p>`,
+      text: `Recebemos seu e-mail com o código ${code}, mas não conseguimos processar: ${reason} Abra o app Dr. Exame → Enviar exame para ver seu código atual ou enviar o PDF pelo app.`,
+    });
+    console.log(`[emailIngest] resposta de problema enviada a ${to} (${code})`);
+  } catch (e) {
+    console.error('[emailIngest] falha ao responder problema:', (e as Error).message);
+  }
+}
+
 async function ingestOne(code: string, m: { subject: string; from: string; pdfs: { filename: string; buffer: Buffer }[] }): Promise<void> {
   const ec = await prisma.emailUploadCode.findUnique({
     where: { code },
-    include: { user: { select: { id: true, credits: true, planExpiresAt: true, blocked: true } } },
+    include: { user: { select: { id: true, email: true, name: true, credits: true, planExpiresAt: true, blocked: true } } },
   });
   if (!ec || ec.usedAt || ec.expiresAt < new Date() || ec.user.blocked) {
     console.log(`[emailIngest] código ${code} inválido/usado/expirado (de ${m.from}) — ignorado`);
+    await replyProblem(m.from, code, 'o código do assunto não é válido (não existe, já foi usado ou expirou). Códigos valem para <b>1 exame</b> por <b>30 dias</b>.');
     return;
   }
   const pdf = m.pdfs.find((p) => isAllowedUpload(p.buffer));
   if (!pdf) {
     console.log(`[emailIngest] ${code}: sem PDF válido (≤8MB) — ignorado`);
+    await replyProblem(m.from, code, 'não encontramos um <b>PDF</b> de até <b>8 MB</b> anexado ao e-mail.');
     return;
   }
 
@@ -77,10 +105,13 @@ async function ingestOne(code: string, m: { subject: string; from: string; pdfs:
   if (!patientId) return;
   const fileSha256 = sha256Buffer(pdf.buffer);
 
-  // idempotência: mesmo arquivo já na conta → apenas responde (não duplica)
-  const existing = await prisma.exam.findFirst({ where: { fileSha256, patient: { ownerId: userId } }, select: { id: true } });
+  // idempotência: mesmo arquivo já na conta → avisa (não duplica) — clareza pro usuário
+  const existing = await prisma.exam.findFirst({ where: { fileSha256, patient: { ownerId: userId } }, select: { id: true, title: true } });
   if (existing) {
     await prisma.emailUploadCode.update({ where: { id: ec.id }, data: { usedAt: new Date() } }).catch(() => {});
+    await sendPushToUser(userId, 'Este exame já estava na sua conta ✅', `O PDF que você encaminhou por e-mail é o mesmo de "${existing.title}" — nada foi duplicado.`, { type: 'email_upload_duplicate', route: `/exams/${existing.id}/show` });
+    await sendNudgeEmail({ to: ec.user.email, userId, firstName: (ec.user.name || 'Olá').split(' ')[0], title: 'Este exame já estava na sua conta', body: `O PDF que você encaminhou por e-mail (${code}) é o mesmo documento de "${existing.title}" — por isso nada foi duplicado. Se for um exame NOVO, ele deve ter data diferente; em caso de dúvida, envie pelo app.` }).catch(() => {});
+    console.log(`[emailIngest] ${code}: duplicata (${existing.id}) — usuário avisado`);
     return;
   }
 
@@ -94,6 +125,7 @@ async function ingestOne(code: string, m: { subject: string; from: string; pdfs:
   const uploadCost = isFirstExamEver ? 0 : computeUploadCost(active, countSoFar);
   if (uploadCost > 0 && ec.user.credits < uploadCost) {
     await sendPushToUser(userId, 'Exame por e-mail não processado', `Chegou um exame seu por e-mail, mas faltam créditos (${uploadCost}). Abra o app pra recarregar.`, { type: 'email_upload_no_credits', route: '/planos' });
+    await replyProblem(m.from, code, `faltam <b>créditos</b> (${uploadCost}) para processar este exame. Recarregue no app e encaminhe de novo — o código continua válido.`);
     return; // NÃO marca usado: o usuário pode recarregar e reencaminhar
   }
 
@@ -117,6 +149,14 @@ async function ingestOne(code: string, m: { subject: string; from: string; pdfs:
   });
 
   await sendPushToUser(userId, 'Exame recebido por e-mail 📧', `"${exam.title}" chegou — a IA já está lendo. Você será avisado quando estiver pronto.`, { type: 'email_upload_received', route: `/exams/${exam.id}/show` });
+  // Ciclo completo no MESMO canal: quem encaminhou por e-mail recebe confirmação por e-mail
+  // (o push de "pronto" + o e-mail de pronto vêm do pipeline exam_ready).
+  await sendNudgeEmail({
+    to: ec.user.email, userId, firstName: (ec.user.name || 'Olá').split(' ')[0],
+    title: 'Recebemos seu exame por e-mail 📧',
+    body: `"${exam.title}" (${code}) chegou e a IA já está lendo. Em instantes você recebe o aviso de que está pronto — com valores, leitura de risco e as perguntas pro médico.`,
+    examId: exam.id,
+  }).catch(() => { /* best-effort: o push/in-app já garantiram */ });
   runExtraction(exam.id).catch((e) => console.error('[emailIngest] extração falhou:', (e as Error).message));
   console.log(`[emailIngest] ${code} → exam ${exam.id} (user ${userId})`);
 }
