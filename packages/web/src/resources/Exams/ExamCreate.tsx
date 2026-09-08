@@ -108,7 +108,7 @@ export const ExamCreate = () => {
   const [deferDone, setDeferDone] = useState(false);
   const [deferLoading, setDeferLoading] = useState(false);
   // Envio por E-MAIL (R2): código pessoal + endereço da caixa (busca sob demanda ao expandir).
-  const [emailInfo, setEmailInfo] = useState<{ code: string; inbox: string } | null>(null);
+  const [emailInfo, setEmailInfo] = useState<{ code: string; inbox: string; enabled?: boolean } | null>(null);
   const [emailOpen, setEmailOpen] = useState(false);
   const notify = useNotify();
   const redirect = useRedirect();
@@ -117,6 +117,12 @@ export const ExamCreate = () => {
 
   useEffect(() => {
     fetchPublicConfig().then((c) => setFirstBonus(c.freeSignup)).catch(() => {});
+    // Código de envio por e-mail no MOUNT: define se o card existe (enabled) e já
+    // deixa o código pronto pro copiar (sem fetch na hora do clique).
+    fetch(`${API_URL}/exams/email-upload-code`, { headers: { Authorization: `Bearer ${token()}` } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d?.code) setEmailInfo({ code: d.code, inbox: d.inbox, enabled: !!d.enabled }); })
+      .catch(() => {});
     // Banner só pra quem NUNCA teve 1º exame: examCount===0 E ainda não recebeu o bônus.
     // Assim o user que extraiu, deletou tudo e volta NÃO vê a msg de novo (bônus já foi, 1x só).
     Promise.all([
@@ -149,16 +155,7 @@ export const ExamCreate = () => {
     setDeferLoading(false);
   };
 
-  const toggleEmailInfo = () => {
-    const open = !emailOpen;
-    setEmailOpen(open);
-    if (open && !emailInfo) {
-      fetch(`${API_URL}/exams/email-upload-code`, { headers: { Authorization: `Bearer ${token()}` } })
-        .then((r) => (r.ok ? r.json() : null))
-        .then((d) => d?.code && setEmailInfo({ code: d.code, inbox: d.inbox }))
-        .catch(() => {});
-    }
-  };
+  const toggleEmailInfo = () => setEmailOpen((v) => !v);
 
   const copy = (text: string, label: string) => {
     try { navigator.clipboard.writeText(text); notify(`${label} copiado!`, { type: 'success' }); }
@@ -343,7 +340,10 @@ export const ExamCreate = () => {
       )}
 
       {/* ENVIAR POR E-MAIL (R2): o PDF do laboratório chega no e-mail do usuário —
-          encaminhar com o código no assunto injeta no mesmo pipeline do upload. */}
+          encaminhar com o código no assunto injeta no mesmo pipeline do upload.
+          Só aparece quando o INGEST está ativo no server (IMAP habilitado) — card
+          morto prometendo e-mail que não chega é pior que não ter card. */}
+      {emailInfo?.enabled === true && (
       <Box sx={{ mb: 2, borderRadius: '12px', border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
         <Box component="button" onClick={toggleEmailInfo}
           sx={{ display: 'flex', width: '100%', px: 2, py: 1.25, gap: 1.25, alignItems: 'center', cursor: 'pointer', bgcolor: 'transparent', border: 'none', textAlign: 'left', color: 'text.secondary', '&:hover': { bgcolor: 'action.hover' } }}>
@@ -357,7 +357,7 @@ export const ExamCreate = () => {
               Abra o e-mail do laboratório no seu celular, toque em <b>Encaminhar</b> e envie pro endereço abaixo
               escrevendo o código no <b>assunto</b>. O exame entra aqui sozinho. ✨
             </Typography>
-            {emailInfo ? (
+            {emailInfo && (
               <Stack spacing={0.75}>
                 <Stack direction="row" spacing={1} alignItems="center">
                   <Typography sx={{ fontSize: 13, fontWeight: 700, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>{emailInfo.inbox}</Typography>
@@ -369,12 +369,11 @@ export const ExamCreate = () => {
                 </Stack>
                 <Typography sx={{ fontSize: 11, color: 'text.disabled' }}>1 exame por código · PDF até 8 MB · válido por 30 dias</Typography>
               </Stack>
-            ) : (
-              <Typography sx={{ fontSize: 12, color: 'text.disabled' }}>carregando seu código…</Typography>
             )}
           </Box>
         )}
       </Box>
+      )}
 
       {/* BÔNUS DE 1º EXAME */}
       {isFirstExam === true && (

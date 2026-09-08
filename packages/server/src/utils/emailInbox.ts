@@ -29,13 +29,21 @@ export interface InboundMessage {
   pdfs: { filename: string; buffer: Buffer }[];
 }
 
-/** Config IMAP (null = ingestão desligada). */
-export function inboxConfig(): { host: string; port: number; user: string; pass: string; address: string } | null {
-  const user = process.env.IMAP_USER || process.env.SMTP_USER;
-  const pass = process.env.IMAP_PASS || process.env.SMTP_PASS;
+/** Endereço PÚBLICO da caixa de exames (o que o app mostra pro usuário encaminhar). */
+export const EXAM_INBOX_ADDRESS = 'contato@janocaminho.com.br';
+
+/**
+ * Config IMAP (null = ingestão desligada). EXIGE IMAP_USER/IMAP_PASS dedicados —
+ * NÃO herda do SMTP: o SMTP_USER do .env pode ser de OUTRA conta (ex.: chamanoespeto),
+ * e polir a caixa errada perderia exames silenciosamente. Ligar: IMAP_ENABLED=true
+ * + IMAP/IMAP Access habilitado no Zoho da conta do EXAM_INBOX_ADDRESS.
+ */
+export function inboxConfig(): { host: string; port: number; user: string; pass: string } | null {
+  const user = process.env.IMAP_USER;
+  const pass = process.env.IMAP_PASS;
   const host = process.env.IMAP_HOST || 'imap.zoho.com';
   if (process.env.IMAP_ENABLED !== 'true' || !user || !pass) return null;
-  return { host, port: 993, user, pass, address: user };
+  return { host, port: 993, user, pass };
 }
 
 export function genExamCode(): string {

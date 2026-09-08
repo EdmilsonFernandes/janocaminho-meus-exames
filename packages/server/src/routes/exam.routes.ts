@@ -11,7 +11,7 @@ import { saveExamFile, resolveExamFile, deleteExamFile, patientSlug } from '../u
 import { parseListParams, setListHeaders } from '../utils/list';
 import { audit } from '../utils/audit';
 import { sendNudgeEmail } from '../utils/nudgeMail';
-import { genExamCode } from '../utils/emailInbox';
+import { genExamCode, EXAM_INBOX_ADDRESS, inboxConfig } from '../utils/emailInbox';
 import { serializeExam } from '../utils/serialize';
 import { runExtraction } from '../extraction/pipeline';
 import { config } from '../config';
@@ -92,12 +92,12 @@ router.get('/email-upload-code', async (req: AuthedRequest, res, next) => {
       orderBy: { createdAt: 'desc' },
       select: { code: true, expiresAt: true },
     });
-    if (valid) { res.json({ code: valid.code, expiresAt: valid.expiresAt, inbox: process.env.IMAP_USER || process.env.SMTP_USER || 'contato@janocaminho.com.br' }); return; }
+    if (valid) { res.json({ code: valid.code, expiresAt: valid.expiresAt, inbox: EXAM_INBOX_ADDRESS, enabled: !!inboxConfig() }); return; }
     const created = await prisma.emailUploadCode.create({
       data: { userId: req.userId!, code: genExamCode(), expiresAt: new Date(Date.now() + 30 * 86400000) },
       select: { code: true, expiresAt: true },
     });
-    res.json({ code: created.code, expiresAt: created.expiresAt, inbox: process.env.IMAP_USER || process.env.SMTP_USER || 'contato@janocaminho.com.br' });
+    res.json({ code: created.code, expiresAt: created.expiresAt, inbox: EXAM_INBOX_ADDRESS, enabled: !!inboxConfig() });
   } catch (e) { next(e); }
 });
 
