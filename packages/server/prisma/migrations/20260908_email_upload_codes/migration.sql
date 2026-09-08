@@ -10,4 +10,7 @@ CREATE TABLE IF NOT EXISTS "email_upload_codes" (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS "email_upload_codes_code_key" ON "email_upload_codes"("code");
 CREATE INDEX IF NOT EXISTS "email_upload_codes_userId_idx" ON "email_upload_codes"("userId");
-ALTER TABLE "email_upload_codes" ADD CONSTRAINT IF NOT EXISTS "email_upload_codes_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+-- ADD CONSTRAINT não aceita IF NOT EXISTS no Postgres — DO/EXCEPTION é o idempotente daqui.
+DO $$ BEGIN
+  ALTER TABLE "email_upload_codes" ADD CONSTRAINT "email_upload_codes_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
