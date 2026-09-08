@@ -74,9 +74,17 @@ export async function fetchNewMessages(lastUid: number, max = 10): Promise<{ mes
     const lock = await client.getMailboxLock(cfg.folder);
     const messages: InboundMessage[] = [];
     try {
+      // 1ª LEITURA (cursor 0): pular o histórico inteiro — começar da próxima mensagem.
+      // Sem isto, o 1º tick baixa TODA a caixa (travou em prod com 140 e-mails: fetch
+      // gigante silencioso). O cursor salvo já era a borda; aqui formalizamos o salto.
+      const firstRunSkip = client.mailbox && typeof client.mailbox === 'object' ? (client.mailbox as { uidNext?: number }).uidNext : undefined;
+      if (lastUid === 0 && firstRunSkip) {
+        return { messages: [], lastUid: Math.max(0, firstRunSkip - 1) };
+      }
       // range `n:*` no IMAP devolve sempre ≥1 (a última) mesmo sem novas — o guard uid resolve.
       for await (const msg of client.fetch({ uid: `${lastUid + 1}:*` }, { uid: true, source: true }, { uid: true })) {
-        if (msg.uid <= lastUid || messages.length >= max || !msg.source) continue;
+        if (msg.uid <= lastUid || !msg.source) continue;
+        if (messages.length >= max) break; // PARA o stream — não baixa o resto da caixa
         const parsed = await simpleParser(msg.source);
         const pdfs = (parsed.attachments ?? [])
           .filter((a: { contentType?: string; content?: Buffer | Uint8Array }) =>
