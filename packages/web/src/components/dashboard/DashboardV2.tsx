@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Stack, Typography, Box, Grid, useTheme, Skeleton, Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
+import { Stack, Typography, Box, Grid, useTheme, Skeleton, Dialog, DialogTitle, DialogContent, DialogActions, Button, LinearProgress } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { API_URL, token } from '../../config';
 import { SEM } from '../../theme';
-import { Heartbeat, Stethoscope, ChartLineUp, Dna } from '@phosphor-icons/react';
+import { Heartbeat, Stethoscope, ChartLineUp, Dna, ChatCircle } from '@phosphor-icons/react';
 import { useSelectedPatient } from '../../patient-context';
 import { syncPushToken } from '../../push';
 import { BiometricService } from '../BiometricService';
@@ -216,8 +216,8 @@ const Sparkle = ({ top, left, delay, size = 4 }: { top: string; left: string; de
 );
 
 /** HERO — score ring com gradiente cônico animado, countup, mesh gradient bg, sparkles. */
-const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, onDetails, onFirstExam }: {
-  loaded: boolean; score: number | null; exams: number; importante: number; moderada: number; lastExam: string | null; onDetails: () => void; onFirstExam: () => void;
+const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, onDetails, onFirstExam, onChat }: {
+  loaded: boolean; score: number | null; exams: number; importante: number; moderada: number; lastExam: string | null; onDetails: () => void; onFirstExam: () => void; onChat?: () => void;
 }) => {
   const t = useTheme();
   const st = statusFromScore(score);
@@ -244,11 +244,11 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
       <Sparkle top="60%" left="92%" delay={1.2} size={3} />
       <Sparkle top="35%" left="78%" delay={2.5} size={5} />
 
-      <Stack direction="row" spacing={{ xs: 1.5, sm: 2 }} alignItems="center" sx={{ width: '100%', minWidth: 0, position: 'relative', zIndex: 1 }}>
+      <Stack direction="row" spacing={{ xs: 1.5, sm: 2.25 }} alignItems="center" sx={{ width: '100%', minWidth: 0, position: 'relative', zIndex: 1 }}>
         {/* Score Ring — gradiente cônico animado */}
         <Box sx={{
           position: 'relative', display: 'grid', placeItems: 'center',
-          width: { xs: 84, sm: 100 }, height: { xs: 84, sm: 100 }, flexShrink: 0,
+          width: { xs: 80, sm: 96 }, height: { xs: 80, sm: 96 }, flexShrink: 0,
           // Glow pulsante atrás do ring
           '&::before': {
             content: '""', position: 'absolute', inset: -4,
@@ -286,7 +286,7 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
             {loaded ? (
               <Typography noWrap sx={{
                 fontFamily: 'Poppins, sans-serif', fontWeight: 800,
-                fontSize: { xs: 'clamp(1.375rem, 7vw, 1.75rem)', sm: 28 },
+                fontSize: { xs: 'clamp(1.375rem, 7vw, 1.75rem)', sm: 26 },
                 lineHeight: 1, color: 'text.primary', fontVariantNumeric: 'tabular-nums',
               }}>{animatedScore ?? '—'}</Typography>
             ) : <Skeleton variant="text" width={36} height={30} />}
@@ -295,14 +295,14 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
         </Box>
 
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography sx={{ fontSize: 12, fontWeight: 700, color: (t) => TONE_TEXT[st.tone][t.palette.mode === 'dark' ? 'dark' : 'light'] }}>Sua saúde hoje</Typography>
+          <Typography sx={{ fontSize: 12, fontWeight: 700, color: (th) => TONE_TEXT[st.tone][th.palette.mode === 'dark' ? 'dark' : 'light'] }}>Sua saúde hoje</Typography>
           <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1.125rem, 5.5vw, 1.375rem)', sm: 22 }, lineHeight: 1.15, color: 'text.primary', mt: 0.25, textWrap: 'balance' }}>{title}</Typography>
           <Stack direction="row" spacing={1.5} sx={{ mt: 1, flexWrap: 'wrap', rowGap: 0.5 }}>
             {totalAtt > 0 ? (
               <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>
-                {importante > 0 && <Box component="span" sx={{ color: (t) => (t.palette.mode === 'dark' ? '#f87171' : '#b91c1c'), fontWeight: 700 }}>● {importante} importante{importante > 1 ? 's' : ''}</Box>}
+                {importante > 0 && <Box component="span" sx={{ color: (th) => (th.palette.mode === 'dark' ? '#f87171' : '#b91c1c'), fontWeight: 700 }}>● {importante} importante{importante > 1 ? 's' : ''}</Box>}
                 {importante > 0 && moderada > 0 && <Box component="span" sx={{ color: 'text.secondary' }}> · </Box>}
-                {moderada > 0 && <Box component="span" sx={{ color: (t) => (t.palette.mode === 'dark' ? '#fbbf24' : '#b45309'), fontWeight: 700 }}>● {moderada} moderado{moderada > 1 ? 's' : ''}</Box>}
+                {moderada > 0 && <Box component="span" sx={{ color: (th) => (th.palette.mode === 'dark' ? '#fbbf24' : '#b45309'), fontWeight: 700 }}>● {moderada} moderado{moderada > 1 ? 's' : ''}</Box>}
               </Typography>
             ) : noData ? (
               <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>{goalSubtitle(getGoals()) ?? 'Envie um exame pra começarmos a construir sua visão de saúde.'}</Typography>
@@ -313,15 +313,45 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
           </Stack>
         </Box>
       </Stack>
-      {noData ? (
-        <GradientButton onClick={onFirstExam} endIcon={<ArrowForwardIcon />} sx={{ mt: 2.25, width: { xs: '100%', sm: 'auto' }, alignSelf: 'stretch', position: 'relative', zIndex: 1 }}>
-          Enviar primeiro exame
-        </GradientButton>
-      ) : (
-        <GradientButton onClick={onDetails} endIcon={<ArrowForwardIcon />} sx={{ mt: 2.25, width: { xs: '100%', sm: 'auto' }, alignSelf: 'stretch', position: 'relative', zIndex: 1 }}>
-          Ver análise completa
-        </GradientButton>
-      )}
+
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25} sx={{ mt: 2.25, width: '100%', position: 'relative', zIndex: 1 }}>
+        {noData ? (
+          <GradientButton onClick={onFirstExam} endIcon={<ArrowForwardIcon />} sx={{ width: { xs: '100%', sm: 'auto' }, alignSelf: 'stretch' }}>
+            Enviar primeiro exame
+          </GradientButton>
+        ) : (
+          <>
+            <GradientButton onClick={onDetails} endIcon={<ArrowForwardIcon />} sx={{ flex: 1, width: { xs: '100%', sm: 'auto' }, alignSelf: 'stretch' }}>
+              Ver análise completa
+            </GradientButton>
+            {onChat && (
+              <Button
+                onClick={onChat}
+                variant="outlined"
+                startIcon={<ChatCircle size={18} weight="bold" />}
+                sx={{
+                  flex: { xs: 'none', sm: '0 0 auto' },
+                  width: { xs: '100%', sm: 'auto' },
+                  py: 1.1, px: 2.25,
+                  borderRadius: '12px',
+                  borderColor: (th) => alpha(th.palette.primary.main, 0.35),
+                  color: 'primary.dark',
+                  fontWeight: 700,
+                  fontSize: 13,
+                  textTransform: 'none',
+                  bgcolor: (th) => alpha(th.palette.primary.main, 0.04),
+                  '&:hover': {
+                    borderColor: 'primary.main',
+                    bgcolor: (th) => alpha(th.palette.primary.main, 0.1),
+                  }
+                }}
+              >
+                Tirar dúvida com IA
+              </Button>
+            )}
+          </>
+        )}
+      </Stack>
     </AppCard>
   );
 };
@@ -338,51 +368,121 @@ const MiniArc = ({ percent, color, size = 32 }: { percent: number; color: string
   );
 };
 
-/** Tile de indicador — PREMIUM: radius 24, sombra refinada, mini arc gauge, spring entrance. */
-const IndicatorTile = ({ icon, label, value, sub, tone, onClick, idx = 0, arcPercent, arcColor }: {
+/** Tile de indicador — SOFT BADGE MODERNO (SaaS / Hospital management). */
+const IndicatorTile = ({ icon, label, value, sub, tone, onClick, idx = 0, badgeBg, badgeColor, arcPercent, arcColor }: {
   icon: ReactNode; label: string; value: string; sub?: string;
   tone: 'error' | 'primary' | 'secondary' | 'success' | 'warning' | 'info' | 'premium';
   onClick: () => void; idx?: number;
+  badgeBg?: string; badgeColor?: string;
   arcPercent?: number; arcColor?: string;
-}) => (
-  <AppCard kind="interactive" onClick={onClick} sx={{
-    p: 2, height: '100%', borderRadius: '24px !important',
-    boxShadow: (th) => th.palette.mode === 'dark'
-      ? '0 2px 8px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.2)'
-      : '0 1px 3px rgba(0,0,0,.03), 0 4px 12px rgba(0,0,0,.04), 0 12px 28px rgba(0,0,0,.03)',
-    transition: 'transform .2s cubic-bezier(.16,1,.3,1), box-shadow .25s ease, border-color .2s ease',
-    '&:hover': {
-      boxShadow: '0 4px 8px rgba(32,178,170,.06), 0 12px 32px rgba(32,178,170,.1), 0 20px 48px rgba(32,178,170,.06)',
-      transform: 'translateY(-3px)',
-    },
-    '&:active': { transform: 'scale(.97)' },
-    animation: `dxTileSpring .45s cubic-bezier(.34,1.56,.64,1) ${idx * 0.08}s both`,
-    '@keyframes dxTileSpring': {
-      from: { opacity: 0, transform: 'translateY(16px) scale(.95)' },
-      to: { opacity: 1, transform: 'translateY(0) scale(1)' },
-    },
-  }}>
-    <Stack spacing={0.25} sx={{ width: '100%', minWidth: 0 }}>
-      <Stack direction="row" spacing={{ xs: 1, sm: 1.5 }} alignItems="center" sx={{ width: '100%', minWidth: 0 }}>
-        <Box sx={{
-          width: { xs: 40, sm: 46 }, height: { xs: 40, sm: 46 },
-          borderRadius: '14px', display: 'grid', placeItems: 'center', flexShrink: 0,
-          bgcolor: (th) => alpha((th.palette as any)[tone]?.main ?? '#20b2aa', 0.12),
-          color: `${tone}.main`,
-          transition: 'transform .2s ease, background-color .2s ease',
-          '&:hover': { transform: 'scale(1.08)' },
-        }}>{icon}</Box>
-        <Box sx={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
-          <Typography noWrap sx={{ fontSize: 11, color: 'text.secondary', lineHeight: 1.1, fontWeight: 600, textOverflow: 'ellipsis' }}>{label}</Typography>
-          <Typography noWrap sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1rem, 5vw, 1.125rem)', sm: 18 }, color: 'text.primary', lineHeight: 1.2, mt: 0.15, fontVariantNumeric: 'tabular-nums' }}>{value}</Typography>
+}) => {
+  const theme = useTheme();
+  const bg = badgeBg ?? alpha((theme.palette as any)[tone]?.main ?? '#20b2aa', 0.12);
+  const color = badgeColor ?? `${tone}.main`;
+
+  return (
+    <AppCard kind="interactive" onClick={onClick} sx={{
+      p: 2, height: '100%', borderRadius: '20px !important',
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      boxShadow: (th) => th.palette.mode === 'dark'
+        ? '0 2px 8px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.2)'
+        : '0 1px 3px rgba(0,0,0,.03), 0 4px 12px rgba(0,0,0,.04)',
+      transition: 'transform .2s cubic-bezier(.16,1,.3,1), box-shadow .25s ease, border-color .2s ease',
+      '&:hover': {
+        boxShadow: '0 4px 14px rgba(0,0,0,.06)',
+        transform: 'translateY(-2px)',
+      },
+      '&:active': { transform: 'scale(.98)' },
+      animation: `dxTileSpring .45s cubic-bezier(.34,1.56,.64,1) ${idx * 0.08}s both`,
+      '@keyframes dxTileSpring': {
+        from: { opacity: 0, transform: 'translateY(14px) scale(.96)' },
+        to: { opacity: 1, transform: 'translateY(0) scale(1)' },
+      },
+    }}>
+      <Box sx={{ minWidth: 0, flex: 1, pr: 1.25 }}>
+        <Typography noWrap sx={{ fontSize: 11.5, color: 'text.secondary', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+          {label}
+        </Typography>
+        <Typography noWrap sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1.125rem, 5vw, 1.375rem)', sm: 22 }, color: 'text.primary', lineHeight: 1.2, mt: 0.25, fontVariantNumeric: 'tabular-nums' }}>
+          {value}
+        </Typography>
+        {arcPercent != null && arcColor && <MiniArc percent={arcPercent} color={arcColor} />}
+        {sub && (
+          <Typography noWrap sx={{ fontSize: 11, color: 'text.secondary', fontWeight: 600, mt: 0.25, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {sub}
+          </Typography>
+        )}
+      </Box>
+      <Box sx={{
+        width: 42, height: 42,
+        borderRadius: '12px', display: 'grid', placeItems: 'center', flexShrink: 0,
+        bgcolor: bg, color: color,
+        transition: 'transform .2s ease',
+        '&:hover': { transform: 'scale(1.06)' },
+      }}>
+        {icon}
+      </Box>
+    </AppCard>
+  );
+};
+
+/** Panorama de Marcadores — estilo Hospital Management / Department Occupancy */
+const MarkerDistributionCard = ({ buckets, totalMarkers }: { buckets: { bons: number; alerta: number; alterados: number }; totalMarkers: number }) => {
+  const t = useTheme();
+  const isDark = t.palette.mode === 'dark';
+  const total = (buckets.bons + buckets.alerta + buckets.alterados) || totalMarkers;
+  const bonsPct = total > 0 ? Math.round((buckets.bons / total) * 100) : 0;
+  const alertaPct = total > 0 ? Math.round((buckets.alerta / total) * 100) : 0;
+  const alteradosPct = total > 0 ? Math.round((buckets.alterados / total) * 100) : 0;
+
+  return (
+    <AppCard sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: '20px !important' }}>
+      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
+        <Box sx={{ width: 36, height: 36, borderRadius: '10px', display: 'grid', placeItems: 'center', bgcolor: 'rgba(13, 148, 136, 0.12)', color: 'primary.dark' }}>
+          <ShowChartIcon sx={{ fontSize: 20 }} />
+        </Box>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: 14.5, lineHeight: 1.2 }}>
+            Seus Marcadores
+          </Typography>
+          <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>
+            {total > 0 ? `Distribuição de ${total} marcadores analisados` : 'Nenhum exame analisado ainda'}
+          </Typography>
         </Box>
       </Stack>
-      {/* Mini arc gauge — visual premium debaixo do valor */}
-      {arcPercent != null && arcColor && <MiniArc percent={arcPercent} color={arcColor} />}
-      {sub && <Typography sx={{ fontSize: 11, color: 'text.disabled', lineHeight: 1.25, mt: 0.25, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{sub}</Typography>}
-    </Stack>
-  </AppCard>
-);
+
+      <Stack spacing={1.75}>
+        <Box>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
+            <Typography sx={{ fontSize: 12.5, fontWeight: 600, color: 'text.primary' }}>Normais & Saudáveis</Typography>
+            <Typography sx={{ fontSize: 12, fontWeight: 800, color: '#059669' }}>{buckets.bons}/{total} ({bonsPct}%)</Typography>
+          </Stack>
+          <LinearProgress variant="determinate" value={bonsPct} sx={{ height: 6, borderRadius: 3, bgcolor: isDark ? 'rgba(255,255,255,0.08)' : '#f1f5f9', '& .MuiLinearProgress-bar': { bgcolor: '#10b981', borderRadius: 3 } }} />
+        </Box>
+
+        <Box>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
+            <Typography sx={{ fontSize: 12.5, fontWeight: 600, color: 'text.primary' }}>Alteração Leve</Typography>
+            <Typography sx={{ fontSize: 12, fontWeight: 800, color: '#d97706' }}>{buckets.alerta}/{total} ({alertaPct}%)</Typography>
+          </Stack>
+          <LinearProgress variant="determinate" value={alertaPct} sx={{ height: 6, borderRadius: 3, bgcolor: isDark ? 'rgba(255,255,255,0.08)' : '#f1f5f9', '& .MuiLinearProgress-bar': { bgcolor: '#f59e0b', borderRadius: 3 } }} />
+        </Box>
+
+        <Box>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
+            <Typography sx={{ fontSize: 12.5, fontWeight: 600, color: 'text.primary' }}>Requerem Atenção</Typography>
+            <Typography sx={{ fontSize: 12, fontWeight: 800, color: '#ef4444' }}>{buckets.alterados}/{total} ({alteradosPct}%)</Typography>
+          </Stack>
+          <LinearProgress variant="determinate" value={alteradosPct} sx={{ height: 6, borderRadius: 3, bgcolor: isDark ? 'rgba(255,255,255,0.08)' : '#f1f5f9', '& .MuiLinearProgress-bar': { bgcolor: '#ef4444', borderRadius: 3 } }} />
+        </Box>
+      </Stack>
+
+      <Typography sx={{ fontSize: 10.5, color: 'text.secondary', mt: 2, lineHeight: 1.35 }}>
+        💡 Comparações baseadas nas diretrizes oficiais dos laboratórios credenciados.
+      </Typography>
+    </AppCard>
+  );
+};
 
 export const DashboardV2 = () => {
   const navigate = useNavigate();
@@ -427,105 +527,121 @@ export const DashboardV2 = () => {
       <FailedExamsAlert count={d.failed} onClick={() => navigate('/exams')} />
       <RejectedExamsAlert count={d.rejected} onClick={() => navigate('/exams')} />
 
-      {/* HERO + MUDANÇAS — mobile: coluna; desktop: 7/5 */}
+      {/* 1. HERO HEALTH CARD (Score + Status + Ações em largura total) */}
       <ScrollReveal>
-        <Grid container spacing={2}>
-          <Grid size={{ xs: 12, md: 7 }}>
-            <HeroHealthCard loaded={d.loaded} score={d.score} exams={d.stats.exams} importante={d.importante} moderada={d.moderada} lastExam={d.lastExam} onDetails={() => navigate('/tendencias')} onFirstExam={() => navigate('/exams/create')} />
+        <HeroHealthCard
+          loaded={d.loaded}
+          score={d.score}
+          exams={d.stats.exams}
+          importante={d.importante}
+          moderada={d.moderada}
+          lastExam={d.lastExam}
+          onDetails={() => navigate('/tendencias')}
+          onFirstExam={() => navigate('/exams/create')}
+          onChat={() => navigate('/chat')}
+        />
+      </ScrollReveal>
+
+      {/* 2. 4 CARDS DE KPI COM SOFT BADGES (2x2 no mobile, 4x1 no desktop) */}
+      <ScrollReveal delay={80}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 1.5, mt: 2 }}>
+          <IndicatorTile
+            idx={0}
+            icon={<Heartbeat size={22} weight="duotone" />}
+            badgeBg="rgba(13, 148, 136, 0.12)"
+            badgeColor="#0d9488"
+            tone="primary"
+            label="Score Saúde"
+            value={d.score != null ? `${d.score}` : d.loaded ? '—' : '…'}
+            sub={statusFromScore(d.score).label}
+            onClick={() => navigate('/tendencias')}
+          />
+          <IndicatorTile
+            idx={1}
+            icon={<Stethoscope size={22} weight="duotone" />}
+            badgeBg="rgba(99, 102, 241, 0.12)"
+            badgeColor="#6366f1"
+            tone="primary"
+            label="Exames"
+            value={d.loaded ? String(d.stats.exams) : '—'}
+            sub={d.stats.exams === 0 && d.loaded ? 'envie o primeiro' : `${d.stats.abnormal} alterado${d.stats.abnormal === 1 ? '' : 's'}`}
+            arcPercent={d.stats.exams > 0 ? examsArcPercent : undefined}
+            arcColor="#6366f1"
+            onClick={() => navigate('/exams')}
+          />
+          <BiologicalAgeCard />
+          <IndicatorTile
+            idx={3}
+            icon={<ChartLineUp size={22} weight="duotone" />}
+            badgeBg={cardioLevel === 'alto' ? 'rgba(239, 68, 68, 0.12)' : cardioLevel === 'moderado' ? 'rgba(245, 158, 11, 0.12)' : 'rgba(16, 185, 129, 0.12)'}
+            badgeColor={cardioLevel === 'alto' ? '#ef4444' : cardioLevel === 'moderado' ? '#f59e0b' : '#059669'}
+            tone={cardioLevel ? (cardioFactors > 0 ? 'error' : 'success') : 'info'}
+            label="Cardiorrisco"
+            value={cardioLevel || (d.loaded ? 'Sem dados' : '—')}
+            sub={cardioLevel
+              ? (cardioFactors > 0 ? `${cardioFactors} fator${cardioFactors > 1 ? 'es' : ''} de risco` : 'sem fatores')
+              : (d.loaded ? (d.stats.exams > 0 ? 'sem colesterol, peso ou pressão' : 'envie um exame') : '')}
+            arcPercent={cardioArc}
+            arcColor={cardioArcColor}
+            onClick={() => navigate(d.stats.exams > 0 ? '/tendencias' : '/exams/create')}
+          />
+        </Box>
+      </ScrollReveal>
+
+      {/* 3. GRID ASSIMÉTRICO 2 COLUNAS (Desktop 65/35, Mobile 1 coluna fluida) */}
+      <ScrollReveal delay={140}>
+        <Grid container spacing={2.5} sx={{ mt: 0.5 }}>
+          {/* COLUNA PRINCIPAL (65%) */}
+          <Grid size={{ xs: 12, md: 7, lg: 8 }}>
+            <Stack spacing={2.5}>
+              {/* PRÓXIMOS PASSOS (onboarding) */}
+              <NextStepsCard exams={d.stats.exams} />
+
+              {/* O QUE MUDOU NO SEU ÚLTIMO EXAME */}
+              <ChangesSinceExam worsened={d.worsened} improved={d.improved} onView={() => navigate('/evolucao')} loaded={d.loaded} />
+
+              {/* ATIVIDADE FÍSICA & HEALTH CONNECT */}
+              {(!d.me?.relationship || d.me.relationship === 'Titular') && (
+                <Section label="Atividade física • Health Connect" icon={<Heartbeat size={18} weight="duotone" />}>
+                  <Box sx={{ display: 'grid', gap: 2 }}>
+                    <ActivityCard lastExamAt={d.lastExam} />
+                    <RestingHeartCard />
+                  </Box>
+                </Section>
+              )}
+
+              {/* DR. EXAME IA */}
+              <AiCard tip={tipNode} onChat={() => navigate('/chat')} />
+
+              {/* DESDE SEU ÚLTIMO EXAME */}
+              <SinceExamCard lastExamAt={d.lastExam} />
+            </Stack>
           </Grid>
-          <Grid size={{ xs: 12, md: 5 }}>
-            <ChangesSinceExam worsened={d.worsened} improved={d.improved} onView={() => navigate('/evolucao')} loaded={d.loaded} />
+
+          {/* COLUNA LATERAL (35%) */}
+          <Grid size={{ xs: 12, md: 5, lg: 4 }}>
+            <Stack spacing={2.5}>
+              {/* PANORAMA DOS MARCADORES */}
+              <MarkerDistributionCard buckets={d.buckets} totalMarkers={d.markerCount} />
+
+              {/* AÇÕES RÁPIDAS */}
+              <Section label="Ações rápidas" icon={<AutoAwesomeIcon sx={{ fontSize: 18 }} />}>
+                <QuickActions />
+              </Section>
+
+              {/* CRÉDITOS DO PLANO */}
+              <CreditsCard credits={d.credits} onClick={() => navigate('/planos')} />
+
+              {/* CONQUISTAS */}
+              <GamificationBadges examsCount={d.stats.exams} score={d.score} />
+
+              {/* COMPARTILHAMENTO DE SAÚDE */}
+              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                <ShareHealthButton score={d.score ?? undefined} />
+              </Box>
+            </Stack>
           </Grid>
         </Grid>
-      </ScrollReveal>
-
-      {/* PRÓXIMOS PASSOS — onboarding progressivo */}
-      <ScrollReveal delay={60}>
-        <NextStepsCard exams={d.stats.exams} />
-      </ScrollReveal>
-
-      {/* DR. EXAME — insight + CTA chat */}
-      <ScrollReveal delay={120}>
-        <Box sx={{ mt: 2 }}>
-          <AiCard tip={tipNode} onChat={() => navigate('/chat')} />
-        </Box>
-      </ScrollReveal>
-
-      {/* SEUS INDICADORES */}
-      <ScrollReveal delay={180}>
-        <Section label="Seus indicadores" icon={<FavoriteBorderIcon />}>
-          {/* Container query (não viewport — mesmo bug do QuickActions): janelas 900-1100px
-              com a coluna do app estreita viravam 4 tiles de ~80px, cortados. */}
-          <Box sx={{ containerType: 'inline-size' }}>
-            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 1.5, '@container (min-width: 600px)': { gridTemplateColumns: 'repeat(4, 1fr)' } }}>
-              <IndicatorTile idx={0} icon={<Heartbeat size={22} weight="duotone" />}
-                tone={cardioLevel ? (cardioFactors > 0 ? 'error' : 'success') : 'info'}
-                label="Cardiometabólico"
-                value={cardioLevel || (d.loaded ? 'Sem dados' : '—')}
-                sub={cardioLevel
-                  ? (cardioFactors > 0 ? `${cardioFactors} fator${cardioFactors > 1 ? 'es' : ''} de risco` : 'sem fatores')
-                  : (d.loaded ? (d.stats.exams > 0 ? 'sem colesterol, peso ou pressão' : 'envie um exame ou registre peso/pressão') : '')}
-                arcPercent={cardioArc} arcColor={cardioArcColor}
-                onClick={() => navigate(d.stats.exams > 0 ? '/tendencias' : '/exams/create')} />
-              <BiologicalAgeCard />
-              <IndicatorTile idx={2} icon={<Stethoscope size={22} weight="duotone" />} tone="primary" label="Seus exames"
-                value={d.loaded ? String(d.stats.exams) : '—'}
-                sub={d.stats.exams === 0 && d.loaded ? 'envie o primeiro' : `${d.stats.abnormal} alterado${d.stats.abnormal === 1 ? '' : 's'}`}
-                arcPercent={d.stats.exams > 0 ? examsArcPercent : undefined}
-                arcColor="#20b2aa"
-                onClick={() => navigate('/exams')} />
-              <IndicatorTile idx={3} icon={<ChartLineUp size={22} weight="duotone" />} tone="info" label="Evolução"
-                value={totalResults > 0 ? String(totalResults) : (d.loaded ? 'Sem dados' : '—')}
-                sub={totalResults > 0 ? 'histórico de tendências' : (d.loaded ? 'após o 1º exame' : '')}
-                onClick={() => navigate('/evolucao')} />
-            </Box>
-          </Box>
-        </Section>
-      </ScrollReveal>
-
-      {/* ATIVIDADE FÍSICA — só titular */}
-      {(!d.me?.relationship || d.me.relationship === 'Titular') && (
-        <ScrollReveal delay={240}>
-          <Section label="Atividade física" icon={<Heartbeat size={18} weight="duotone" />}>
-            <Box sx={{ display: 'grid', gap: 2 }}>
-              <ActivityCard lastExamAt={d.lastExam} />
-              <RestingHeartCard />
-            </Box>
-          </Section>
-        </ScrollReveal>
-      )}
-
-      {/* DESDE SEU ÚLTIMO EXAME */}
-      <ScrollReveal delay={300}>
-        <Box sx={{ mt: 2 }}>
-          <SinceExamCard lastExamAt={d.lastExam} />
-        </Box>
-      </ScrollReveal>
-
-      {/* AÇÕES RÁPIDAS + CRÉDITOS */}
-      <ScrollReveal delay={360}>
-        <Section label="Ações rápidas" icon={<AutoAwesomeIcon sx={{ fontSize: 18 }} />}>
-          <QuickActions />
-        </Section>
-      </ScrollReveal>
-
-      <ScrollReveal delay={420}>
-        <Box sx={{ mt: 2 }}>
-          <CreditsCard credits={d.credits} onClick={() => navigate('/planos')} />
-        </Box>
-      </ScrollReveal>
-
-      {/* Conquistas */}
-      <ScrollReveal delay={480}>
-        <Box sx={{ mt: 2 }}>
-          <GamificationBadges examsCount={d.stats.exams} score={d.score} />
-        </Box>
-      </ScrollReveal>
-
-      <ScrollReveal delay={540}>
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-          <ShareHealthButton score={d.score ?? undefined} />
-        </Box>
       </ScrollReveal>
 
       <ReviewPrompt trigger={d.loaded && d.stats.exams > 0} />

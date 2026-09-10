@@ -59,14 +59,43 @@ export const BiologicalAgeCard = () => {
 
   return (
     <>
-      <AppCard kind="interactive" onClick={() => setExplain(true)} sx={{ p: 2, height: '100%', borderRadius: '24px !important' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, width: '100%' }}>
-          <Box sx={{ width: 38, height: 38, borderRadius: '12px', display: 'grid', placeItems: 'center', flexShrink: 0, bgcolor: alpha(PREMIUM, 0.14), color: PREMIUM }}><Dna size={22} weight="duotone" color={PREMIUM} /></Box>
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography sx={{ fontSize: 11, color: 'text.secondary', lineHeight: 1.1 }}>Idade biológica</Typography>
-            <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 16, color: 'text.primary', lineHeight: 1.2, mt: 0.15 }}>{value}</Typography>
-            <Typography sx={{ fontSize: 11, color: subColor, lineHeight: 1.1 }}>{sub}</Typography>
-          </Box>
+      <AppCard
+        kind="interactive"
+        onClick={() => setExplain(true)}
+        sx={{
+          p: 2,
+          height: '100%',
+          borderRadius: '20px !important',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          transition: 'transform .18s ease, box-shadow .18s ease',
+          '&:hover': {
+            boxShadow: '0 4px 16px rgba(0,0,0,.06)',
+            transform: 'translateY(-2px)',
+          },
+          '&:active': { transform: 'scale(.98)' },
+        }}
+      >
+        <Box sx={{ minWidth: 0, flex: 1, pr: 1 }}>
+          <Typography noWrap sx={{ fontSize: 11.5, color: 'text.secondary', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+            Idade Bio
+          </Typography>
+          <Typography noWrap sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1.125rem, 5vw, 1.375rem)', sm: 22 }, color: 'text.primary', lineHeight: 1.2, mt: 0.25, fontVariantNumeric: 'tabular-nums' }}>
+            {value}
+          </Typography>
+          {sub && (
+            <Typography noWrap sx={{ fontSize: 11, color: subColor, fontWeight: 600, mt: 0.25 }}>
+              {sub}
+            </Typography>
+          )}
+        </Box>
+        <Box sx={{
+          width: 42, height: 42, borderRadius: '12px',
+          display: 'grid', placeItems: 'center', flexShrink: 0,
+          bgcolor: 'rgba(16, 185, 129, 0.12)', color: '#059669',
+        }}>
+          <Dna size={22} weight="duotone" />
         </Box>
       </AppCard>
 
