@@ -742,10 +742,22 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         {/* PAINEL INICIAL DO MÉDICO (self-service) */}
         {view === 'overview' && loading && <Box sx={{ textAlign: 'center', py: 6 }}><CircularProgress sx={{ color: 'primary.dark' }} /></Box>}
         {view === 'overview' && !loading && (
-          <PortalOverview patients={patients} invites={invites} doctorName={doctor?.name} onOpenPatient={openPatient} onSetView={(v) => setView(v as any)} onLoadAllQ={() => { setView('questions'); loadAllQ(); }} onNewInvite={() => { setInvResult(null); setInviteOpen(true); }} onSetPatAlertOnly={setPatAlertOnly} />
+          <PortalOverview
+            patients={patients}
+            invites={invites}
+            doctorName={doctor?.name}
+            planInfo={planInfo}
+            onStartCheckout={startCheckout}
+            payLoading={payLoading}
+            onOpenPatient={openPatient}
+            onSetView={(v) => setView(v as any)}
+            onLoadAllQ={() => { setView('questions'); loadAllQ(); }}
+            onNewInvite={() => { setInvResult(null); setInviteOpen(true); }}
+            onSetPatAlertOnly={setPatAlertOnly}
+          />
         )}
-        {/* DR. EXAME PRO — banner premium */}
-        {planInfo && !planInfo.isPremium && (view === 'overview' || view === 'patients') && !selected && !payDismissed && (
+        {/* DR. EXAME PRO — banner premium (na aba Pacientes; no Painel fica integrado na coluna lateral) */}
+        {planInfo && !planInfo.isPremium && view === 'patients' && !selected && !payDismissed && (
           <Box sx={{ mb: 2.5, p: 2.25, pr: 6, borderRadius: '20px', position: 'relative', background: 'linear-gradient(135deg,rgba(99,102,241,.10),rgba(99,102,241,.03))', border: '1px solid', borderColor: 'rgba(99,102,241,.25)', boxShadow: '0 8px 24px rgba(99,102,241,0.08)' }}>
             <IconButton size="small" aria-label="Fechar banner" onClick={() => { try { localStorage.setItem('doctorPayDismissed', '1'); } catch { /* */ } setPayDismissed(true); }} sx={{ position: 'absolute', top: 8, right: 8, color: 'text.secondary', '&:hover': { bgcolor: 'rgba(99,102,241,.10)' } }}><span aria-hidden style={{ fontSize: 20, lineHeight: 1 }}>×</span></IconButton>
             <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" useFlexGap>
@@ -755,7 +767,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
             </Stack>
           </Box>
         )}
-        {planInfo?.isPremium && (view === 'overview' || view === 'patients') && !selected && (
+        {planInfo?.isPremium && view === 'patients' && !selected && (
           <Chip size="small" icon={<Diamond size={12} weight="fill" />} label="Dr. Exame Pro ativo" sx={{ mb: 1.5, bgcolor: 'rgba(99,102,241,.12)', color: '#6366f1', fontWeight: 700, '& .MuiChip-icon': { color: '#6366f1' } }} />
         )}
 
