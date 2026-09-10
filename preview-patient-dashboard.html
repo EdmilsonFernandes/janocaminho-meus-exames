@@ -808,56 +808,497 @@
       background: linear-gradient(135deg, #2dd4bf 0%, #0f766e 100%);
     }
 
-    /* HEALTH CONNECT */
-    .health-connect-card {
-      background: #f8fafc;
-      border: 1px solid var(--border-color);
-      border-radius: 18px;
-      padding: 16px;
+    /* HEALTH CONNECT & ATIVIDADE FÍSICA (Zero Mobile Clipping) */
+    .activity-section {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
     }
 
-    .hc-header {
+    .activity-card, .resting-heart-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 18px 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      overflow: hidden;
+    }
+
+    /* GOOGLE HEALTH CONNECT SECURITY BADGE */
+    .hc-badge-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: rgba(32, 178, 170, 0.05);
+      border: 1px solid rgba(32, 178, 170, 0.18);
+      border-radius: 12px;
+    }
+
+    .google-g-logo {
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+
+    .hc-badge-text {
+      flex: 1;
+      min-width: 0;
+      line-height: 1.25;
+    }
+
+    .hc-badge-text span {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      font-weight: 600;
+      display: block;
+    }
+
+    .hc-badge-text strong {
+      font-size: 12.5px;
+      color: #1a73e8;
+      font-weight: 700;
+    }
+
+    .hc-secure-tag {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: #5f6368;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    /* ATIVIDADE HEADER & TOGGLES */
+    .activity-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 10px;
+      gap: 10px;
+      flex-wrap: wrap;
     }
 
-    .hc-title {
-      font-size: 12.5px;
+    .activity-header-title {
+      font-family: 'Poppins', sans-serif;
+      font-size: 15px;
       font-weight: 700;
       color: var(--text-main);
       display: flex;
       align-items: center;
+      gap: 7px;
+    }
+
+    .sync-info {
+      display: flex;
+      align-items: center;
       gap: 6px;
+      font-size: 11px;
+      color: var(--text-muted);
     }
 
-    .hc-stats {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
+    .btn-sync {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 1px solid rgba(13, 148, 136, 0.2);
+      background: rgba(13, 148, 136, 0.08);
+      color: var(--teal-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
     }
 
-    .hc-stat-box {
-      background: #ffffff;
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
-      padding: 8px 10px;
+    .btn-sync:hover {
+      background: rgba(13, 148, 136, 0.18);
     }
 
-    .hc-stat-label {
-      font-size: 10px;
+    .btn-sync.spinning svg {
+      animation: DxSpin 0.9s linear infinite;
+    }
+
+    @keyframes DxSpin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* RANGE TOGGLES (Hoje, 7d, 30d) */
+    .range-toggle-group {
+      display: inline-flex;
+      background: #f1f5f9;
+      border-radius: 999px;
+      padding: 3px;
+      gap: 2px;
+      align-self: flex-start;
+    }
+
+    .range-toggle-btn {
+      border: none;
+      background: transparent;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 12px;
       font-weight: 700;
       color: var(--text-muted);
-      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.15s ease;
     }
 
-    .hc-stat-val {
+    .range-toggle-btn.active {
+      background: #ffffff;
+      color: var(--teal-dark);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+
+    /* ATIVIDADE HERO: RING + NUMERO + METRIC CHIPS */
+    .activity-hero-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .activity-ring-box {
+      width: 68px;
+      height: 68px;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .activity-ring-svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .activity-ring-bg {
+      fill: none;
+      stroke: #f1f5f9;
+      stroke-width: 6;
+    }
+
+    .activity-ring-fg {
+      fill: none;
+      stroke: url(#tealGradient);
+      stroke-width: 6;
+      stroke-linecap: round;
+      stroke-dasharray: 238;
+      stroke-dashoffset: 47.6; /* 80% */
+      transition: stroke-dashoffset 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .activity-ring-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       font-family: 'Poppins', sans-serif;
-      font-size: 16px;
+      font-weight: 800;
+      font-size: 14px;
+      color: var(--teal-dark);
+    }
+
+    .activity-main-steps {
+      flex: 1;
+      min-width: 160px;
+    }
+
+    .activity-steps-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .activity-steps-val {
+      font-family: 'Poppins', sans-serif;
+      font-size: clamp(24px, 6vw, 32px);
       font-weight: 800;
       color: var(--text-main);
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+
+    .activity-steps-sub {
+      font-size: 11.5px;
+      color: #059669;
+      font-weight: 600;
+      margin-top: 3px;
+    }
+
+    /* MINI METRICS AUTO-FIT GRID (Never squished) */
+    .activity-mini-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+      width: 100%;
+    }
+
+    .mini-metric-chip {
+      background: #f8fafc;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: border-color 0.15s ease;
+    }
+
+    .mini-metric-chip:hover {
+      border-color: #cbd5e1;
+    }
+
+    .mini-chip-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .mini-chip-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .mini-chip-label {
+      font-size: 10.5px;
+      color: var(--text-muted);
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .mini-chip-val {
+      font-family: 'Poppins', sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1.15;
+    }
+
+    /* SPARKLINE BARS (Interactive 30-Day Step Chart) */
+    .sparkline-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+      margin-top: 2px;
+    }
+
+    .sparkline-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .sparkline-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 48px;
+      width: 100%;
+      padding: 2px 0;
+    }
+
+    .spark-bar {
+      flex: 1;
+      min-width: 2px;
+      max-width: 14px;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      position: relative;
+    }
+
+    .spark-bar:hover, .spark-bar.active {
+      transform: scaleY(1.08);
+      filter: brightness(1.15);
+      outline: 2px solid var(--teal-primary);
+      outline-offset: 1px;
+    }
+
+    /* SELECTED DAY DETAIL STRIP */
+    .selected-day-detail {
+      display: flex;
+      align-items: center;
+      gap: 8px 12px;
+      padding: 8px 12px;
+      background: rgba(13, 148, 136, 0.07);
+      border: 1px solid rgba(13, 148, 136, 0.18);
+      border-radius: 12px;
+      flex-wrap: wrap;
+      font-size: 12px;
+      color: var(--text-main);
+    }
+
+    .sel-date {
+      font-weight: 800;
+      color: var(--teal-dark);
+      text-transform: capitalize;
+    }
+
+    .sel-steps {
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .sel-badge-goal {
+      margin-left: auto;
+      background: rgba(16, 185, 129, 0.15);
+      color: #047857;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 999px;
+    }
+
+    /* EXAM WEEK CONTEXTUAL INSIGHT */
+    .exam-week-insight {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 12px;
+      background: #f8fafc;
+      border: 1px dashed rgba(13, 148, 136, 0.3);
+      border-radius: 12px;
+      font-size: 11.5px;
+      color: #475569;
+      line-height: 1.4;
+    }
+
+    .exam-week-icon {
+      color: var(--teal-primary);
+      flex-shrink: 0;
       margin-top: 1px;
+    }
+
+    /* RESTING HEART RATE CARD */
+    .hr-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .hr-title {
+      font-family: 'Poppins', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .hr-pulsing-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      font-size: 11px;
+      font-weight: 700;
+      color: #059669;
+    }
+
+    .hr-pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+      animation: DxHrBeat 1.6s ease-in-out infinite;
+    }
+
+    @keyframes DxHrBeat {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.4); }
+      100% { transform: scale(1); }
+    }
+
+    .hr-hero-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .hr-hero-stats {
+      flex: 1;
+      min-width: 140px;
+    }
+
+    .hr-hero-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .hr-hero-val {
+      font-family: 'Poppins', sans-serif;
+      font-size: clamp(24px, 6vw, 32px);
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1.1;
+    }
+
+    .hr-hero-val span {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-left: 2px;
+    }
+
+    .hr-trend-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #059669;
+      margin-top: 3px;
+    }
+
+    .hr-sparkline-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 44px;
+      flex: 1;
+      min-width: 130px;
+    }
+
+    .hr-spark-bar {
+      flex: 1;
+      min-width: 2px;
+      max-width: 12px;
+      border-radius: 3px 3px 0 0;
+      background: linear-gradient(to bottom, #10b981, rgba(16, 185, 129, 0.25));
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .hr-spark-bar:hover, .hr-spark-bar.active {
+      transform: scaleY(1.08);
+      outline: 2px solid #059669;
+      outline-offset: 1px;
     }
 
     /* MOBILE SPECIFIC OVERRIDES */
@@ -1145,6 +1586,172 @@
             </div>
           </div>
 
+          <!-- ATIVIDADE FÍSICA & HEALTH CONNECT (MÓDULO COMPLETO E RESPONSIVO) -->
+          <div class="activity-section">
+            <div class="section-header">
+              <div class="section-title">
+                <svg width="18" height="18" fill="var(--teal-primary)" viewBox="0 0 256 256"><path d="M208,32H48A24,24,0,0,0,24,56V200a24,24,0,0,0,24,24H208a24,24,0,0,0,24-24V56A24,24,0,0,0,208,32Zm8,168a8,8,0,0,1-8,8H48a8,8,0,0,1-8-8V56a8,8,0,0,1,8-8H208a8,8,0,0,1,8,8Zm-38.34-77.66a8,8,0,0,1,0,11.32l-32,32a8,8,0,0,1-11.32,0l-16-16a8,8,0,0,1,11.32-11.32L147.31,144l26.35-26.34A8,8,0,0,1,177.66,117.66ZM96,96a16,16,0,1,1-16-16A16,16,0,0,1,96,96Z"/></svg>
+                Atividade Física • Health Connect
+              </div>
+              <span style="font-size: 11px; font-weight: 700; color: #059669; background: rgba(16,185,129,0.1); padding: 3px 8px; border-radius: 999px;">Sincronizado</span>
+            </div>
+
+            <!-- CARD DE ATIVIDADE & PASSOS -->
+            <div class="activity-card">
+              <!-- GOOGLE HEALTH CONNECT BADGE -->
+              <div class="hc-badge-row">
+                <svg class="google-g-logo" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z"/>
+                  <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.26 21.36 7.34 24 12 24Z"/>
+                  <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.94 0 12s.46 3.84 1.26 5.42l4.02-3.15Z"/>
+                  <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98Z"/>
+                </svg>
+                <div class="hc-badge-text">
+                  <span>Conectado com segurança via</span>
+                  <strong>Google Health Connect</strong>
+                </div>
+                <div class="hc-secure-tag">
+                  <svg width="13" height="13" fill="currentColor" viewBox="0 0 256 256"><path d="M208,80H176V56a48,48,0,0,0-96,0V80H48A16,16,0,0,0,32,96V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V96A16,16,0,0,0,208,80ZM96,56a32,32,0,0,1,64,0V80H96ZM208,208H48V96H208V208Zm-80-64a16,16,0,0,0-16,16v16a16,16,0,0,0,32,0V160A16,16,0,0,0,128,144Z"/></svg>
+                  Dados seguros
+                </div>
+              </div>
+
+              <!-- HEADER DO CARD: TÍTULO + SINCRONIZAÇÃO -->
+              <div class="activity-header">
+                <div class="activity-header-title">
+                  <svg width="18" height="18" fill="var(--teal-primary)" viewBox="0 0 256 256"><path d="M208,40H48A16,16,0,0,0,32,56v48a16,16,0,0,0,16,16h8.73l22.4,89.6A16,16,0,0,0,94.67,224h66.66a16,16,0,0,0,15.54-14.4l22.4-89.6H208a16,16,0,0,0,16-16V56A16,16,0,0,0,208,40ZM48,56H208v48H48Zm113.87,152H94.13l-20-80h107.74Z"/></svg>
+                  Passos & Movimento
+                </div>
+                <div class="sync-info">
+                  <span id="syncLabel">Sincronizado hoje 17:45</span>
+                  <button class="btn-sync" id="btnSync" title="Atualizar agora" onclick="handleSyncClick()">
+                    <svg width="14" height="14" fill="currentColor" viewBox="0 0 256 256"><path d="M224,128a96,96,0,0,1-144.07,83.11l-18.26,18.26A8,8,0,0,1,48,224V168a8,8,0,0,1,8-8h56a8,8,0,0,1,5.66,13.66L99.39,192A80,80,0,1,0,51.85,99.1a8,8,0,0,1-15.65-3.41A96,96,0,1,1,224,128Z"/></svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- TOGGLE PERÍODO: HOJE | 7 DIAS | 30 DIAS -->
+              <div class="range-toggle-group">
+                <button class="range-toggle-btn" onclick="setActivityRange('today', this)">Hoje</button>
+                <button class="range-toggle-btn" onclick="setActivityRange('7d', this)">7 dias</button>
+                <button class="range-toggle-btn active" onclick="setActivityRange('30d', this)">30 dias</button>
+              </div>
+
+              <!-- HERÓI: ANEL DE META + NÚMERO DE PASSOS -->
+              <div class="activity-hero-row">
+                <div class="activity-ring-box">
+                  <svg class="activity-ring-svg" viewBox="0 0 84 84">
+                    <circle class="activity-ring-bg" cx="42" cy="42" r="38" />
+                    <circle id="activityRingFg" class="activity-ring-fg" cx="42" cy="42" r="38" />
+                  </svg>
+                  <div class="activity-ring-center" id="ringPercentText">
+                    80%
+                  </div>
+                </div>
+
+                <div class="activity-main-steps">
+                  <div class="activity-steps-label" id="stepsPeriodLabel">Passos em 30 dias</div>
+                  <div class="activity-steps-val" id="stepsHeroVal">198.540</div>
+                  <div class="activity-steps-sub" id="stepsSupportText">média 6.618/dia • ✨ maior benefício a partir de 7.000</div>
+                </div>
+              </div>
+
+              <!-- MINI METRICS EM GRID AUTO-FIT (NÃO ESPREME NO MOBILE) -->
+              <div class="activity-mini-grid">
+                <div class="mini-metric-chip">
+                  <div class="mini-chip-icon" style="background: rgba(245, 158, 11, 0.12); color: #d97706;">🔥</div>
+                  <div class="mini-chip-content">
+                    <div class="mini-chip-label">Calorias</div>
+                    <div class="mini-chip-val" id="chipKcal">12.600 <span style="font-size: 11px; font-weight: 500; color: var(--text-muted);">kcal</span></div>
+                  </div>
+                </div>
+
+                <div class="mini-metric-chip">
+                  <div class="mini-chip-icon" style="background: rgba(14, 165, 233, 0.12); color: #0284c7;">📍</div>
+                  <div class="mini-chip-content">
+                    <div class="mini-chip-label">Distância</div>
+                    <div class="mini-chip-val" id="chipKm">148,8 <span style="font-size: 11px; font-weight: 500; color: var(--text-muted);">km</span></div>
+                  </div>
+                </div>
+
+                <div class="mini-metric-chip">
+                  <div class="mini-chip-icon" style="background: rgba(239, 68, 68, 0.12); color: #ef4444;">❤️</div>
+                  <div class="mini-chip-content">
+                    <div class="mini-chip-label">FC Repouso</div>
+                    <div class="mini-chip-val">68 <span style="font-size: 11px; font-weight: 500; color: var(--text-muted);">bpm</span></div>
+                  </div>
+                </div>
+
+                <div class="mini-metric-chip">
+                  <div class="mini-chip-icon" style="background: rgba(16, 185, 129, 0.12); color: #059669;">⏱️</div>
+                  <div class="mini-chip-content">
+                    <div class="mini-chip-label">Exercício</div>
+                    <div class="mini-chip-val">1.040 <span style="font-size: 11px; font-weight: 500; color: var(--text-muted);">min</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- GRÁFICO INTERATIVO DE BARRAS DE 30 DIAS (SPARKLINE) -->
+              <div class="sparkline-container" id="sparklineContainer">
+                <div class="sparkline-header-row">
+                  <span>Histórico diário (30 dias)</span>
+                  <span style="color: var(--teal-primary);">● Meta 8k • Marco 7k</span>
+                </div>
+
+                <div class="sparkline-bars" id="sparklineBars">
+                  <!-- 30 barras geradas dinamicamente via JS ou estáticas interativas -->
+                </div>
+
+                <!-- DETALHE DO DIA SELECIONADO -->
+                <div class="selected-day-detail" id="selectedDayDetail">
+                  <span class="sel-date" id="selDateLabel">Ontem (09/09)</span>
+                  <span class="sel-steps" id="selStepsLabel"><strong>8.410</strong> passos</span>
+                  <span style="color: var(--text-muted);">• 🔥 490 kcal</span>
+                  <span style="color: var(--text-muted);">• 📍 6,2 km</span>
+                  <span class="sel-badge-goal" id="selGoalBadge">meta batida 🎉</span>
+                </div>
+              </div>
+
+              <!-- INSIGHT CONTEXTUAL: SEMANA DO EXAME -->
+              <div class="exam-week-insight">
+                <svg class="exam-week-icon" width="16" height="16" fill="currentColor" viewBox="0 0 256 256"><path d="M224,128a96,96,0,1,1-96-96A96,96,0,0,1,224,128Z" opacity="0.2"/><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm16-40a8,8,0,0,1-8,8,16,16,0,0,1-16-16V128a8,8,0,0,1,0-16,16,16,0,0,1,16,16v40A8,8,0,0,1,144,176Zm-16-80a12,12,0,1,1,12-12A12,12,0,0,1,128,96Z"/></svg>
+                <div>
+                  <strong>Na semana do seu exame (04/09):</strong> você fez média de <strong>7.820 passos/dia</strong> e 460 kcal — contexto que o Dr. Exame utiliza para correlacionar com a redução do seu colesterol e glicemia.
+                </div>
+              </div>
+            </div>
+
+            <!-- CARD DE FREQUÊNCIA CARDÍACA DE REPOUSO -->
+            <div class="resting-heart-card">
+              <div class="hr-header-row">
+                <div class="hr-title">
+                  <svg width="18" height="18" fill="#ef4444" viewBox="0 0 256 256"><path d="M178,40c-20.65,0-38.73,8.88-50,23.89C116.73,48.88,98.65,40,78,40a62.07,62.07,0,0,0-62,62c0,70,103.79,126.66,108.21,129a8,8,0,0,0,7.58,0C136.21,228.66,240,172,240,102A62.07,62.07,0,0,0,178,40Z"/></svg>
+                  Frequência Cardíaca de Repouso
+                </div>
+                <div class="hr-pulsing-badge">
+                  <div class="hr-pulse-dot"></div>
+                  <span>zona ótima</span>
+                </div>
+              </div>
+
+              <div class="hr-hero-row">
+                <div class="hr-hero-stats">
+                  <div class="hr-hero-label">Média dos últimos 7 dias</div>
+                  <div class="hr-hero-val">64 <span>bpm</span></div>
+                  <div class="hr-trend-tag">
+                    <svg width="14" height="14" fill="currentColor" viewBox="0 0 256 256"><path d="M213.66,181.66l-80-80a8,8,0,0,0-11.32,0l-48,48L29.66,105.34a8,8,0,0,0-11.32,11.32l50.34,50.34a8,8,0,0,0,11.32,0l48-48,74.34,74.34a8,8,0,0,0,11.32-11.32Z"/></svg>
+                    -2 bpm vs semana anterior • melhora do fôlego
+                  </div>
+                </div>
+
+                <!-- SPARKLINE DE FC 30 DIAS -->
+                <div class="hr-sparkline-bars" id="hrSparklineBars">
+                  <!-- 14 barras diárias de tendência de FC -->
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- INSIGHT INTELIGENTE DR. EXAME (IA) -->
           <div class="ai-box">
             <div class="ai-header">
@@ -1247,27 +1854,6 @@
             </div>
           </div>
 
-          <!-- ATIVIDADE FÍSICA -->
-          <div class="health-connect-card">
-            <div class="hc-header">
-              <span class="hc-title">
-                <svg width="16" height="16" fill="var(--teal-primary)" viewBox="0 0 256 256"><path d="M178,40c-20.65,0-38.73,8.88-50,23.89C116.73,48.88,98.65,40,78,40a62.07,62.07,0,0,0-62,62c0,70,103.79,126.66,108.21,129a8,8,0,0,0,7.58,0C136.21,228.66,240,172,240,102A62.07,62.07,0,0,0,178,40Z"/></svg>
-                Atividade Hoje
-              </span>
-              <span style="font-size: 11px; font-weight: 700; color: #059669;">80% da meta</span>
-            </div>
-            <div class="hc-stats">
-              <div class="hc-stat-box">
-                <span class="hc-stat-label">Passos</span>
-                <div class="hc-stat-val">6.420</div>
-              </div>
-              <div class="hc-stat-box">
-                <span class="hc-stat-label">FC Repouso</span>
-                <div class="hc-stat-val">68 <span style="font-size: 11px; font-weight: 500;">bpm</span></div>
-              </div>
-            </div>
-          </div>
-
         </div>
 
       </div>
@@ -1275,5 +1861,192 @@
     </div>
   </main>
 
+  <script>
+    // DADOS DE EXEMPLO (30 dias de passos)
+    const DAYS_DATA = [
+      { date: '11/08', steps: 6100, kcal: 390, km: 4.5 },
+      { date: '12/08', steps: 7200, kcal: 430, km: 5.3 },
+      { date: '13/08', steps: 8300, kcal: 480, km: 6.1 },
+      { date: '14/08', steps: 5800, kcal: 370, km: 4.2 },
+      { date: '15/08', steps: 7500, kcal: 440, km: 5.5 },
+      { date: '16/08', steps: 8900, kcal: 510, km: 6.6 },
+      { date: '17/08', steps: 6400, kcal: 400, km: 4.8 },
+      { date: '18/08', steps: 7100, kcal: 420, km: 5.2 },
+      { date: '19/08', steps: 8050, kcal: 470, km: 6.0 },
+      { date: '20/08', steps: 7600, kcal: 450, km: 5.6 },
+      { date: '21/08', steps: 5400, kcal: 350, km: 3.9 },
+      { date: '22/08', steps: 6800, kcal: 410, km: 5.0 },
+      { date: '23/08', steps: 8150, kcal: 490, km: 6.1 },
+      { date: '24/08', steps: 9200, kcal: 540, km: 6.8 },
+      { date: '25/08', steps: 7800, kcal: 460, km: 5.7 },
+      { date: '26/08', steps: 6300, kcal: 390, km: 4.6 },
+      { date: '27/08', steps: 7400, kcal: 430, km: 5.4 },
+      { date: '28/08', steps: 8600, kcal: 500, km: 6.4 },
+      { date: '29/08', steps: 7100, kcal: 420, km: 5.2 },
+      { date: '30/08', steps: 6900, kcal: 410, km: 5.1 },
+      { date: '31/08', steps: 8200, kcal: 480, km: 6.1 },
+      { date: '01/09', steps: 5900, kcal: 370, km: 4.3 },
+      { date: '02/09', steps: 7300, kcal: 440, km: 5.4 },
+      { date: '03/09', steps: 8500, kcal: 510, km: 6.3 },
+      { date: '04/09', steps: 7820, kcal: 460, km: 5.6 }, // Dia do exame
+      { date: '05/09', steps: 6200, kcal: 380, km: 4.6 },
+      { date: '06/09', steps: 7400, kcal: 440, km: 5.5 },
+      { date: '07/09', steps: 8900, kcal: 520, km: 6.6 },
+      { date: '08/09', steps: 8410, kcal: 490, km: 6.2 },
+      { date: '09/09', steps: 6420, kcal: 420, km: 4.8 } // Hoje
+    ];
+
+    // RENDERIZA SPARKLINE 30 DIAS
+    function renderStepSparkline() {
+      const container = document.getElementById('sparklineBars');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const max = Math.max(...DAYS_DATA.map(d => d.steps));
+
+      DAYS_DATA.forEach((d, idx) => {
+        const bar = document.createElement('div');
+        bar.className = 'spark-bar' + (idx === DAYS_DATA.length - 1 ? ' active' : '');
+        const heightPct = Math.max(16, Math.round((d.steps / max) * 100));
+        bar.style.height = heightPct + '%';
+
+        // Cores semânticas da evidência científica (Lancet 2025)
+        if (d.steps >= 8000) {
+          bar.style.background = 'var(--teal-primary)';
+        } else if (d.steps >= 7000) {
+          bar.style.background = 'rgba(13, 148, 136, 0.55)';
+        } else {
+          bar.style.background = 'rgba(13, 148, 136, 0.22)';
+        }
+
+        bar.title = `${d.date}: ${d.steps.toLocaleString('pt-BR')} passos`;
+
+        // Interação ao tocar/passar mouse
+        const selectBar = () => {
+          document.querySelectorAll('.spark-bar').forEach(b => b.classList.remove('active'));
+          bar.classList.add('active');
+          updateDayDetail(d, idx === DAYS_DATA.length - 1);
+        };
+
+        bar.addEventListener('click', selectBar);
+        bar.addEventListener('mouseenter', selectBar);
+
+        container.appendChild(bar);
+      });
+    }
+
+    // ATUALIZA DETALHE DO DIA
+    function updateDayDetail(d, isToday) {
+      const dateLabel = document.getElementById('selDateLabel');
+      const stepsLabel = document.getElementById('selStepsLabel');
+      const badge = document.getElementById('selGoalBadge');
+
+      if (dateLabel) {
+        dateLabel.textContent = isToday ? 'Hoje (' + d.date + ')' : d.date;
+      }
+      if (stepsLabel) {
+        stepsLabel.innerHTML = `<strong>${d.steps.toLocaleString('pt-BR')}</strong> passos • 🔥 ${d.kcal} kcal • 📍 ${d.km.toFixed(1)} km`;
+      }
+      if (badge) {
+        if (d.steps >= 8000) {
+          badge.textContent = 'meta batida 🎉';
+          badge.style.background = 'rgba(16, 185, 129, 0.15)';
+          badge.style.color = '#047857';
+          badge.style.display = 'inline-block';
+        } else if (d.steps >= 7000) {
+          badge.textContent = '✨ 7k+ marco';
+          badge.style.background = 'rgba(13, 148, 136, 0.15)';
+          badge.style.color = 'var(--teal-dark)';
+          badge.style.display = 'inline-block';
+        } else {
+          badge.textContent = Math.round((d.steps / 8000) * 100) + '% da meta';
+          badge.style.background = '#f1f5f9';
+          badge.style.color = 'var(--text-muted)';
+          badge.style.display = 'inline-block';
+        }
+      }
+    }
+
+    // TOGGLE DE PERÍODO (Hoje, 7 dias, 30 dias)
+    function setActivityRange(range, btn) {
+      document.querySelectorAll('.range-toggle-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const heroVal = document.getElementById('stepsHeroVal');
+      const periodLabel = document.getElementById('stepsPeriodLabel');
+      const support = document.getElementById('stepsSupportText');
+      const ringFg = document.getElementById('activityRingFg');
+      const ringText = document.getElementById('ringPercentText');
+      const chipKcal = document.getElementById('chipKcal');
+      const chipKm = document.getElementById('chipKm');
+
+      if (range === 'today') {
+        periodLabel.textContent = 'Passos hoje';
+        heroVal.textContent = '6.420';
+        support.textContent = '80% da meta • ✨ maior benefício a partir de 7.000';
+        if (ringFg) ringFg.style.strokeDashoffset = '47.6'; // 80% de 238
+        if (ringText) ringText.textContent = '80%';
+        if (chipKcal) chipKcal.innerHTML = '420 <span style="font-size: 11px; font-weight: 500; color: var(--text-muted);">kcal</span>';
+        if (chipKm) chipKm.innerHTML = '4,8 <span style="font-size: 11px; font-weight: 500; color: var(--text-muted);">km</span>';
+      } else if (range === '7d') {
+        periodLabel.textContent = 'Passos em 7 dias';
+        heroVal.textContent = '47.180';
+        support.textContent = 'média 6.740/dia • 3 metas batidas no período';
+        if (ringFg) ringFg.style.strokeDashoffset = '38'; // 84%
+        if (ringText) ringText.textContent = '84%';
+        if (chipKcal) chipKcal.innerHTML = '3.080 <span style="font-size: 11px; font-weight: 500; color: var(--text-muted);">kcal</span>';
+        if (chipKm) chipKm.innerHTML = '36,4 <span style="font-size: 11px; font-weight: 500; color: var(--text-muted);">km</span>';
+      } else {
+        periodLabel.textContent = 'Passos em 30 dias';
+        heroVal.textContent = '198.540';
+        support.textContent = 'média 6.618/dia • ✨ marco científico (Lancet 2025)';
+        if (ringFg) ringFg.style.strokeDashoffset = '42.8'; // 82%
+        if (ringText) ringText.textContent = '82%';
+        if (chipKcal) chipKcal.innerHTML = '12.600 <span style="font-size: 11px; font-weight: 500; color: var(--text-muted);">kcal</span>';
+        if (chipKm) chipKm.innerHTML = '148,8 <span style="font-size: 11px; font-weight: 500; color: var(--text-muted);">km</span>';
+      }
+    }
+
+    // SPARKLINE DE FC (14 dias)
+    function renderHrSparkline() {
+      const container = document.getElementById('hrSparklineBars');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const hrData = [66, 65, 67, 64, 65, 63, 64, 66, 65, 64, 63, 64, 63, 64];
+      const min = 58;
+      const max = 70;
+
+      hrData.forEach((hr, idx) => {
+        const bar = document.createElement('div');
+        bar.className = 'hr-spark-bar' + (idx === hrData.length - 1 ? ' active' : '');
+        const pct = Math.round(((hr - min) / (max - min)) * 100);
+        bar.style.height = Math.max(25, pct) + '%';
+        bar.title = `${hr} bpm`;
+        container.appendChild(bar);
+      });
+    }
+
+    // CLIQUE NO BOTÃO DE SINCRONIZAÇÃO
+    function handleSyncClick() {
+      const btn = document.getElementById('btnSync');
+      const label = document.getElementById('syncLabel');
+      if (!btn || btn.classList.contains('spinning')) return;
+
+      btn.classList.add('spinning');
+      if (label) label.textContent = 'Sincronizando...';
+
+      setTimeout(() => {
+        btn.classList.remove('spinning');
+        if (label) label.textContent = 'Sincronizado agora ✨';
+      }, 900);
+    }
+
+    // INICIALIZAÇÃO
+    window.addEventListener('DOMContentLoaded', () => {
+      renderStepSparkline();
+      renderHrSparkline();
+    });
+  </script>
 </body>
 </html>
