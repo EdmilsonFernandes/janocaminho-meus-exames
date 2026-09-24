@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Health Connect exige minSdk 26; o app suporta 23 (Android 6/7 da base ainda ativa).
+    <!-- Health Connect exige minSdk 26; o app suporta 24 (Android 7 da base ainda ativa).
          Seguro porque TODO acesso às classes HC no HealthBridge é guardado por
          Build.VERSION.SDK_INT >= 26 — em aparelhos <26 o widget simplesmente não aparece. -->
     <uses-sdk tools:overrideLibrary="androidx.health.connect.client" />

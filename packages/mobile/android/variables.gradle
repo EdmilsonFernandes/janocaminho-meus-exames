@@ -1,5 +1,6 @@
 ext {
-    minSdkVersion = 23
+    // 24 = piso exigido pela "Proteção automática" do Play (upload com 23 é recusado, AAB 428).
+    minSdkVersion = 24
     compileSdkVersion = 36
     targetSdkVersion = 36
     androidxActivityVersion = '1.9.2'
