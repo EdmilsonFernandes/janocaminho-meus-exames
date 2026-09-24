@@ -39,6 +39,20 @@ import { getGoals, goalSubtitle } from '../GoalQuiz';
 const readTotal = (r: Response) =>
   Number(r.headers.get('X-Total-Count') ?? r.headers.get('content-range')?.split('/')?.[1] ?? '0');
 
+/** Um único ponto p/ prefers-reduced-motion (sparkles, ring pulse, tile spring). */
+const usePrefersReducedMotion = () => {
+  const [reduced, setReduced] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+  );
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const fn = () => setReduced(mq.matches);
+    mq.addEventListener('change', fn);
+    return () => mq.removeEventListener('change', fn);
+  }, []);
+  return reduced;
+};
+
 /** Busca os mesmos dados do Dashboard legacy — V2 isolada (não toca no fetch do legacy). */
 function useDashboardData(pid: string | null) {
   const [stats, setStats] = useState({ exams: 0, abnormal: 0 });
@@ -56,6 +70,10 @@ function useDashboardData(pid: string | null) {
   const [worsened, setWorsened] = useState<Marker[]>([]);
   const [improved, setImproved] = useState<Marker[]>([]);
   const [staleWarning, setStaleWarning] = useState('');
+  // Idade biológica: espelha o MESMO /health-summary que o hook já busca (o tile não refaz o GET).
+  const [bio, setBio] = useState<any>(null);
+  const [bioAvail, setBioAvail] = useState<any>(null);
+  const [hsLoaded, setHsLoaded] = useState(false);
   // Honestidade de estados (auditoria 2026-08): o server diz POR QUE cada feature não calculou
   // (availability) — o cliente nunca mais infere estado positivo a partir de null.
   const [availability, setAvailability] = useState<any>(null);
@@ -104,30 +122,36 @@ function useDashboardData(pid: string | null) {
         // Camada canonical (Layer 2): score dedup-12m + availability + trend real.
         (async () => {
           if (!pid) return;
-          const hs = await fetch(`${API_URL}/patients/${pid}/health-summary`, { headers: h });
-          if (hs.ok) {
-            const hd = await hs.json();
-            if (typeof hd.score === 'number') {
-              setScore(hd.score);
-              try { localStorage.setItem(`dashScoreNum:${pid}`, String(hd.score)); } catch { /* ignore */ }
-            } else {
-              // Sem score canônico agora (ex.: todos os exames eram de terceiro) → NÃO fica
-              // score velho do localStorage (mostrava 93 de dados que não são mais contados).
-              try { localStorage.removeItem(`dashScoreNum:${pid}`); } catch { /* ignore */ }
-              setScore(null);
+          try {
+            const hs = await fetch(`${API_URL}/patients/${pid}/health-summary`, { headers: h });
+            if (hs.ok) {
+              const hd = await hs.json();
+              if (typeof hd.score === 'number') {
+                setScore(hd.score);
+                try { localStorage.setItem(`dashScoreNum:${pid}`, String(hd.score)); } catch { /* ignore */ }
+              } else {
+                // Sem score canônico agora (ex.: todos os exames eram de terceiro) → NÃO fica
+                // score velho do localStorage (mostrava 93 de dados que não são mais contados).
+                try { localStorage.removeItem(`dashScoreNum:${pid}`); } catch { /* ignore */ }
+                setScore(null);
+              }
+              setImportante(hd.byPriority?.importante ?? 0);
+              setModerada(hd.byPriority?.moderada ?? 0);
+              setCardioRisk(hd.cardiometabolicRisk ?? null);
+              setAvailability(hd.availability ?? null);
+              setMarkerCount(typeof hd.markers === 'number' ? hd.markers : 0);
+              setStaleWarning(hd.staleWarning ?? '');
+              setBio(hd.biologicalAge ?? null);
+              setBioAvail(hd.availability?.biologicalAge ?? null);
+              // "Pioraram" = trend PIOROU mesmo (hd.worsening). Antes alimentava com topAttention
+              // (= alterados, qualquer tendência) — marcador ALTERADO-QUER-MELHORANDO caía nas
+              // DUAS listas (topAttention ∩ improving) e o card mostrava o mesmo valor 2×
+              // (bug da Heloisa: PCR 7.61 "piorou" e "melhorou" ao mesmo tempo).
+              setWorsened(Array.isArray(hd.worsening) ? hd.worsening.slice(0, 3) : []);
+              setImproved(Array.isArray(hd.improving) ? hd.improving.slice(0, 3) : []);
             }
-            setImportante(hd.byPriority?.importante ?? 0);
-            setModerada(hd.byPriority?.moderada ?? 0);
-            setCardioRisk(hd.cardiometabolicRisk ?? null);
-            setAvailability(hd.availability ?? null);
-            setMarkerCount(typeof hd.markers === 'number' ? hd.markers : 0);
-            setStaleWarning(hd.staleWarning ?? '');
-            // "Pioraram" = trend PIOROU mesmo (hd.worsening). Antes alimentava com topAttention
-            // (= alterados, qualquer tendência) — marcador ALTERADO-QUER-MELHORANDO caía nas
-            // DUAS listas (topAttention ∩ improving) e o card mostrava o mesmo valor 2×
-            // (bug da Heloisa: PCR 7.61 "piorou" e "melhorou" ao mesmo tempo).
-            setWorsened(Array.isArray(hd.worsening) ? hd.worsening.slice(0, 3) : []);
-            setImproved(Array.isArray(hd.improving) ? hd.improving.slice(0, 3) : []);
+          } finally {
+            setHsLoaded(true); // tile Idade Bio sai do '…' mesmo se o health-summary falhar
           }
         })(),
         (async () => {
@@ -146,7 +170,7 @@ function useDashboardData(pid: string | null) {
     })();
   }, [pid]);
 
-  return { stats, failed, lastExam, buckets, score, importante, moderada, cardioRisk, markerCount, credits, me, loaded, worsened, improved, staleWarning, availability, rejected };
+  return { stats, failed, lastExam, buckets, score, importante, moderada, cardioRisk, markerCount, credits, me, loaded, worsened, improved, staleWarning, availability, rejected, bio, bioAvail, hsLoaded };
 }
 
 const statusFromScore = (s: number | null): { label: string; tone: 'primary' | 'success' | 'warning' | 'error' } => {
@@ -205,7 +229,10 @@ const SPARKLE_KF = {
     '100%': { transform: 'translateY(0) scale(1)', opacity: 0.7 },
   },
 } as const;
-const Sparkle = ({ top, left, delay, size = 4 }: { top: string; left: string; delay: number; size?: number }) => (
+const Sparkle = ({ top, left, delay, size = 4 }: { top: string; left: string; delay: number; size?: number }) => {
+  // Partículas são decoração pura: reduced-motion → nem renderiza.
+  if (usePrefersReducedMotion()) return null;
+  return (
   <Box sx={{
     position: 'absolute', top, left, width: size, height: size,
     borderRadius: '50%', bgcolor: 'rgba(32,178,170,.4)',
@@ -213,11 +240,12 @@ const Sparkle = ({ top, left, delay, size = 4 }: { top: string; left: string; de
     animation: `dxSparkle ${3 + delay}s ease-in-out ${delay}s infinite`,
     pointerEvents: 'none', ...SPARKLE_KF,
   }} />
-);
+  );
+};
 
 /** HERO — score ring com gradiente cônico animado, countup, mesh gradient bg, sparkles. */
-const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, onDetails, onFirstExam, onChat }: {
-  loaded: boolean; score: number | null; exams: number; importante: number; moderada: number; lastExam: string | null; onDetails: () => void; onFirstExam: () => void; onChat?: () => void;
+const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, staleWarning, onDetails, onFirstExam, onChat }: {
+  loaded: boolean; score: number | null; exams: number; importante: number; moderada: number; lastExam: string | null; staleWarning: string; onDetails: () => void; onFirstExam: () => void; onChat?: () => void;
 }) => {
   const t = useTheme();
   const st = statusFromScore(score);
@@ -228,6 +256,7 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
   const animatedScore = useCountUp(score);
   const dashLen = (score ?? 0) * 2.64;
   const isDark = t.palette.mode === 'dark';
+  const reduced = usePrefersReducedMotion();
   return (
     <AppCard kind="tinted" tone={st.tone} tone2="secondary" glow sx={{
       p: { xs: 2, sm: 2.25, md: 3 }, position: 'relative', overflow: 'hidden',
@@ -255,7 +284,7 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
             borderRadius: '50%',
             background: scoreGlowColor(score),
             filter: 'blur(12px)',
-            animation: 'dxRingPulse 3s ease-in-out infinite',
+            animation: reduced ? 'none' : 'dxRingPulse 3s ease-in-out infinite',
           },
           '@keyframes dxRingPulse': {
             '0%, 100%': { opacity: 0.5, transform: 'scale(1)' },
@@ -290,7 +319,7 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
                 lineHeight: 1, color: 'text.primary', fontVariantNumeric: 'tabular-nums',
               }}>{animatedScore ?? '—'}</Typography>
             ) : <Skeleton variant="text" width={36} height={30} />}
-            <Typography noWrap sx={{ fontSize: 10, color: 'text.secondary', mt: 0.15 }}>de 100</Typography>
+            <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary', mt: 0.15 }}>de 100</Typography>
           </Box>
         </Box>
 
@@ -309,7 +338,12 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
             ) : score != null ? (
               <Typography sx={{ fontSize: 14, color: 'success.main', fontWeight: 700 }}>● Nada crítico no momento</Typography>
             ) : null}
-            {last && !noData && <Typography sx={{ fontSize: 13, color: 'text.disabled' }}>· atualizado {last}</Typography>}
+            {/* Honestidade de estado (voltou pra V2): dados velhos AVISAM em vez de parecerem atuais. */}
+            {staleWarning && !noData ? (
+              <Typography sx={{ fontSize: 12, fontWeight: 600, lineHeight: 1.35, color: (th) => TONE_TEXT.warning[th.palette.mode === 'dark' ? 'dark' : 'light'] }}>⏳ {staleWarning}</Typography>
+            ) : last && !noData ? (
+              <Typography sx={{ fontSize: 13, color: 'text.disabled' }}>· atualizado {last}</Typography>
+            ) : null}
           </Stack>
         </Box>
       </Stack>
@@ -377,6 +411,7 @@ const IndicatorTile = ({ icon, label, value, sub, tone, onClick, idx = 0, badgeB
   arcPercent?: number; arcColor?: string;
 }) => {
   const theme = useTheme();
+  const reduced = usePrefersReducedMotion();
   const bg = badgeBg ?? alpha((theme.palette as any)[tone]?.main ?? '#20b2aa', 0.12);
   const color = badgeColor ?? `${tone}.main`;
 
@@ -393,14 +428,16 @@ const IndicatorTile = ({ icon, label, value, sub, tone, onClick, idx = 0, badgeB
         transform: 'translateY(-2px)',
       },
       '&:active': { transform: 'scale(.98)' },
-      animation: `dxTileSpring .45s cubic-bezier(.34,1.56,.64,1) ${idx * 0.08}s both`,
+      // Hover no CARD inteiro escala o ícone (antes o seletor era no próprio ícone de 42px).
+      '&:hover .dx-tile-icon': { transform: 'scale(1.06)' },
+      animation: reduced ? 'none' : `dxTileSpring .45s cubic-bezier(.34,1.56,.64,1) ${idx * 0.08}s both`,
       '@keyframes dxTileSpring': {
         from: { opacity: 0, transform: 'translateY(14px) scale(.96)' },
         to: { opacity: 1, transform: 'translateY(0) scale(1)' },
       },
     }}>
       <Box sx={{ minWidth: 0, flex: 1, pr: 1.25 }}>
-        <Typography noWrap sx={{ fontSize: 11.5, color: 'text.secondary', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+        <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
           {label}
         </Typography>
         <Typography noWrap sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1.125rem, 5vw, 1.375rem)', sm: 22 }, color: 'text.primary', lineHeight: 1.2, mt: 0.25, fontVariantNumeric: 'tabular-nums' }}>
@@ -408,17 +445,16 @@ const IndicatorTile = ({ icon, label, value, sub, tone, onClick, idx = 0, badgeB
         </Typography>
         {arcPercent != null && arcColor && <MiniArc percent={arcPercent} color={arcColor} />}
         {sub && (
-          <Typography noWrap sx={{ fontSize: 11, color: 'text.secondary', fontWeight: 600, mt: 0.25, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 600, mt: 0.25, overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {sub}
           </Typography>
         )}
       </Box>
-      <Box sx={{
+      <Box className="dx-tile-icon" sx={{
         width: 42, height: 42,
         borderRadius: '12px', display: 'grid', placeItems: 'center', flexShrink: 0,
         bgcolor: bg, color: color,
         transition: 'transform .2s ease',
-        '&:hover': { transform: 'scale(1.06)' },
       }}>
         {icon}
       </Box>
@@ -445,7 +481,7 @@ const MarkerDistributionCard = ({ buckets, totalMarkers }: { buckets: { bons: nu
           <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: 14.5, lineHeight: 1.2 }}>
             Seus Marcadores
           </Typography>
-          <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>
+          <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
             {total > 0 ? `Distribuição de ${total} marcadores analisados` : 'Nenhum exame analisado ainda'}
           </Typography>
         </Box>
@@ -455,7 +491,7 @@ const MarkerDistributionCard = ({ buckets, totalMarkers }: { buckets: { bons: nu
         <Box>
           <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
             <Typography sx={{ fontSize: 12.5, fontWeight: 600, color: 'text.primary' }}>Normais & Saudáveis</Typography>
-            <Typography sx={{ fontSize: 12, fontWeight: 800, color: '#059669' }}>{buckets.bons}/{total} ({bonsPct}%)</Typography>
+            <Typography sx={{ fontSize: 12, fontWeight: 800, color: (th) => TONE_TEXT.success[th.palette.mode === 'dark' ? 'dark' : 'light'] }}>{buckets.bons}/{total} ({bonsPct}%)</Typography>
           </Stack>
           <LinearProgress variant="determinate" value={bonsPct} sx={{ height: 6, borderRadius: 3, bgcolor: isDark ? 'rgba(255,255,255,0.08)' : '#f1f5f9', '& .MuiLinearProgress-bar': { bgcolor: '#10b981', borderRadius: 3 } }} />
         </Box>
@@ -463,7 +499,7 @@ const MarkerDistributionCard = ({ buckets, totalMarkers }: { buckets: { bons: nu
         <Box>
           <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
             <Typography sx={{ fontSize: 12.5, fontWeight: 600, color: 'text.primary' }}>Alteração Leve</Typography>
-            <Typography sx={{ fontSize: 12, fontWeight: 800, color: '#d97706' }}>{buckets.alerta}/{total} ({alertaPct}%)</Typography>
+            <Typography sx={{ fontSize: 12, fontWeight: 800, color: (th) => TONE_TEXT.warning[th.palette.mode === 'dark' ? 'dark' : 'light'] }}>{buckets.alerta}/{total} ({alertaPct}%)</Typography>
           </Stack>
           <LinearProgress variant="determinate" value={alertaPct} sx={{ height: 6, borderRadius: 3, bgcolor: isDark ? 'rgba(255,255,255,0.08)' : '#f1f5f9', '& .MuiLinearProgress-bar': { bgcolor: '#f59e0b', borderRadius: 3 } }} />
         </Box>
@@ -471,13 +507,13 @@ const MarkerDistributionCard = ({ buckets, totalMarkers }: { buckets: { bons: nu
         <Box>
           <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
             <Typography sx={{ fontSize: 12.5, fontWeight: 600, color: 'text.primary' }}>Requerem Atenção</Typography>
-            <Typography sx={{ fontSize: 12, fontWeight: 800, color: '#ef4444' }}>{buckets.alterados}/{total} ({alteradosPct}%)</Typography>
+            <Typography sx={{ fontSize: 12, fontWeight: 800, color: (th) => TONE_TEXT.error[th.palette.mode === 'dark' ? 'dark' : 'light'] }}>{buckets.alterados}/{total} ({alteradosPct}%)</Typography>
           </Stack>
           <LinearProgress variant="determinate" value={alteradosPct} sx={{ height: 6, borderRadius: 3, bgcolor: isDark ? 'rgba(255,255,255,0.08)' : '#f1f5f9', '& .MuiLinearProgress-bar': { bgcolor: '#ef4444', borderRadius: 3 } }} />
         </Box>
       </Stack>
 
-      <Typography sx={{ fontSize: 10.5, color: 'text.secondary', mt: 2, lineHeight: 1.35 }}>
+      <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 2, lineHeight: 1.35 }}>
         💡 Comparações baseadas nas diretrizes oficiais dos laboratórios credenciados.
       </Typography>
     </AppCard>
@@ -519,7 +555,6 @@ export const DashboardV2 = () => {
   // Arc percentages para os indicator tiles (sem fetch novo — calcula dos dados que já existem).
   const cardioArc = cardioLevel === 'baixo' ? 20 : cardioLevel === 'moderado' ? 55 : cardioLevel === 'alto' ? 90 : 0;
   const cardioArcColor = cardioLevel === 'baixo' ? '#059669' : cardioLevel === 'moderado' ? '#f59e0b' : cardioLevel === 'alto' ? '#ef4444' : '#94a3b8';
-  const examsArcPercent = d.stats.exams > 0 ? Math.round(((d.stats.exams - d.stats.abnormal) / d.stats.exams) * 100) : 0;
 
   return (
     <PageContainer width="wide" sx={{ bgcolor: (t) => (t.palette.mode === 'dark' ? 'background.default' : '#FAFBFC'), minHeight: '100vh' }}>
@@ -536,6 +571,7 @@ export const DashboardV2 = () => {
           importante={d.importante}
           moderada={d.moderada}
           lastExam={d.lastExam}
+          staleWarning={d.staleWarning}
           onDetails={() => navigate('/tendencias')}
           onFirstExam={() => navigate('/exams/create')}
           onChat={() => navigate('/chat')}
@@ -545,16 +581,20 @@ export const DashboardV2 = () => {
       {/* 2. 4 CARDS DE KPI COM SOFT BADGES (2x2 no mobile, 4x1 no desktop) */}
       <ScrollReveal delay={80}>
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 1.5, mt: 2 }}>
+          {/* Alterados (antes: tile de Score — redundante com o hero logo acima). O score
+              continua no HERO; aqui entra a métrica que estava só num subtítulo minúsculo. */}
           <IndicatorTile
             idx={0}
-            icon={<Heartbeat size={22} weight="duotone" />}
-            badgeBg="rgba(13, 148, 136, 0.12)"
-            badgeColor="#0d9488"
-            tone="primary"
-            label="Score Saúde"
-            value={d.score != null ? `${d.score}` : d.loaded ? '—' : '…'}
-            sub={statusFromScore(d.score).label}
-            onClick={() => navigate('/tendencias')}
+            icon={<FavoriteBorderIcon />}
+            badgeBg={d.stats.abnormal > 0 ? 'rgba(239, 68, 68, 0.12)' : 'rgba(5, 150, 105, 0.12)'}
+            badgeColor={d.stats.abnormal > 0 ? '#ef4444' : '#059669'}
+            tone={d.stats.abnormal > 0 ? 'error' : 'success'}
+            label="Alterados"
+            value={d.loaded ? String(d.stats.abnormal) : '—'}
+            sub={d.loaded ? (totalResults > 0 ? `de ${totalResults} marcadores` : '') : ''}
+            arcPercent={totalResults > 0 ? Math.max(0, Math.round((d.stats.abnormal / totalResults) * 100)) : undefined}
+            arcColor={d.stats.abnormal > 0 ? '#ef4444' : '#059669'}
+            onClick={() => navigate('/alterados')}
           />
           <IndicatorTile
             idx={1}
@@ -565,11 +605,9 @@ export const DashboardV2 = () => {
             label="Exames"
             value={d.loaded ? String(d.stats.exams) : '—'}
             sub={d.stats.exams === 0 && d.loaded ? 'envie o primeiro' : `${d.stats.abnormal} alterado${d.stats.abnormal === 1 ? '' : 's'}`}
-            arcPercent={d.stats.exams > 0 ? examsArcPercent : undefined}
-            arcColor="#6366f1"
             onClick={() => navigate('/exams')}
           />
-          <BiologicalAgeCard />
+          <BiologicalAgeCard idx={2} bio={d.bio} bioAvail={d.bioAvail} bioLoaded={d.hsLoaded} />
           <IndicatorTile
             idx={3}
             icon={<ChartLineUp size={22} weight="duotone" />}

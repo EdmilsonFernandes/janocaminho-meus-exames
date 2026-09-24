@@ -1,13 +1,20 @@
 import { Box, Typography, Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
-import { alpha } from '@mui/material/styles';
+import { useTheme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import { API_URL, token } from '../../config';
 import { useSelectedPatient } from '../../patient-context';
 import { useEffect, useState } from 'react';
 import { AppCard } from '../AppCard';
+import { SEM } from '../../theme';
 import { Dna } from '@phosphor-icons/react';
 
-const PREMIUM = '#6366f1';
+type BioData = { age: number; confidence: string; markersUsed: number; missing?: string[] | null; method?: string; assumptions?: string[] };
+
+/** Reduced-motion avaliado 1x na carga do módulo (guarda o spring do tile). */
+const REDUCED_MOTION = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// Accent único da feature (tile E dialog): esmeralda — antes o tile era esmeralda e o dialog, indigo.
+const ACCENT = '#059669';
 
 /**
  * Tile "Idade Biológica" — estimativa (PhenoAge) baseada em marcadores sanguíneos.
@@ -17,29 +24,47 @@ const PREMIUM = '#6366f1';
  * falta exame → CTA 1º exame; faltam marcadores específicos → lista. "Em breve" genérico nunca
  * mais (ausência de dado não é um prazo). A explicação rica fica num Dialog (toque no tile).
  */
-export const BiologicalAgeCard = () => {
+export const BiologicalAgeCard = ({ idx = 2, bio, bioAvail, bioLoaded }: {
+  idx?: number;
+  /** Vêm do MESMO /health-summary que o DashboardV2 já buscou — o tile não refaz o GET. */
+  bio?: BioData | null;
+  bioAvail?: { status: string; missing: string[] } | null;
+  bioLoaded?: boolean;
+}) => {
   const [pid] = useSelectedPatient();
   const navigate = useNavigate();
-  const [data, setData] = useState<{ age: number; confidence: string; markersUsed: number; missing?: string[] | null; method?: string; assumptions?: string[] } | null>(null);
-  const [avail, setAvail] = useState<{ status: string; missing: string[] } | null>(null);
-  const [loaded, setLoaded] = useState(false);
+  const t = useTheme();
+  const isDark = t.palette.mode === 'dark';
+  // Estado PRÓPRIO só p/ uso isolado (sem props) e p/ refresh via dx-profile-updated.
+  const [ownData, setOwnData] = useState<BioData | null>(null);
+  const [ownAvail, setOwnAvail] = useState<{ status: string; missing: string[] } | null>(null);
+  const [ownLoaded, setOwnLoaded] = useState(false);
+  const [refreshed, setRefreshed] = useState(false);
   const [explain, setExplain] = useState(false);
+  const controlled = bioLoaded !== undefined;
 
   const loadBio = () => {
     if (!pid) return;
-    setLoaded(false);
+    setOwnLoaded(false);
     fetch(`${API_URL}/patients/${pid}/health-summary`, { headers: { Authorization: `Bearer ${token()}` } })
       .then((r) => (r.ok ? r.json() : null))
-      .then((d) => { setData(d?.biologicalAge ?? null); setAvail(d?.availability?.biologicalAge ?? null); })
+      .then((d) => { setOwnData(d?.biologicalAge ?? null); setOwnAvail(d?.availability?.biologicalAge ?? null); setRefreshed(true); })
       .catch(() => {})
-      .finally(() => setLoaded(true));
+      .finally(() => setOwnLoaded(true));
   };
-  useEffect(() => { loadBio(); /* eslint-disable-next-line */ }, [pid]);
+  // Isolado (sem props): busca na mount. Controlado: só refaz em dx-profile-updated.
+  useEffect(() => { if (!controlled) loadBio(); /* eslint-disable-next-line */ }, [pid, controlled]);
   // Reage ao onboarding salvar (idade biológica depende de nascimento/sexo) sem reload.
   useEffect(() => {
     window.addEventListener('dx-profile-updated', loadBio);
     return () => { window.removeEventListener('dx-profile-updated', loadBio); };
   }, [pid]);
+  // Troca de paciente: descarta o refresh próprio e volta a espelhar as props.
+  useEffect(() => { setRefreshed(false); setOwnData(null); setOwnAvail(null); }, [pid]);
+
+  const data = controlled && !refreshed ? (bio ?? null) : ownData;
+  const avail = controlled && !refreshed ? (bioAvail ?? null) : ownAvail;
+  const loaded = controlled && !refreshed ? !!bioLoaded : ownLoaded;
 
   const userStr = typeof localStorage !== 'undefined' ? localStorage.getItem('user') : null;
   const chronoAge = userStr ? (() => { try { return JSON.parse(userStr)?.age ?? null; } catch { return null; } })() : null;
@@ -53,9 +78,10 @@ export const BiologicalAgeCard = () => {
     ? (diff === null ? 'estimativa corporal' : diff === 0 ? 'em equilíbrio' : diff < 0 ? `${Math.abs(diff)}a mais jovem` : `${diff}a mais velho`)
     : missingProfile ? 'complete seu perfil'
     : noExams ? 'após o 1º exame'
-    : loaded ? 'precisa de mais marcadores'
+    : loaded && avail ? 'precisa de mais marcadores'
     : '';
-  const subColor = diff !== null && diff < 0 ? '#059669' : diff !== null && diff > 0 ? '#dc2626' : 'text.secondary';
+  // SEM: verde/vermelho AA nos DOIS modos (o hardcode falhava contraste no dark).
+  const subColor = diff !== null && diff < 0 ? SEM.ok[isDark ? 'dark' : 'light'] : diff !== null && diff > 0 ? SEM.bad[isDark ? 'dark' : 'light'] : 'text.secondary';
 
   return (
     <>
@@ -70,6 +96,12 @@ export const BiologicalAgeCard = () => {
           alignItems: 'center',
           justifyContent: 'space-between',
           transition: 'transform .18s ease, box-shadow .18s ease',
+          // Mesmo spring escalonado dos IndicatorTiles (idx=2 → 3º da linha de KPI).
+          animation: REDUCED_MOTION ? 'none' : `dxTileSpring .45s cubic-bezier(.34,1.56,.64,1) ${idx * 0.08}s both`,
+          '@keyframes dxTileSpring': {
+            from: { opacity: 0, transform: 'translateY(14px) scale(.96)' },
+            to: { opacity: 1, transform: 'translateY(0) scale(1)' },
+          },
           '&:hover': {
             boxShadow: '0 4px 16px rgba(0,0,0,.06)',
             transform: 'translateY(-2px)',
@@ -78,14 +110,14 @@ export const BiologicalAgeCard = () => {
         }}
       >
         <Box sx={{ minWidth: 0, flex: 1, pr: 1 }}>
-          <Typography noWrap sx={{ fontSize: 11.5, color: 'text.secondary', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+          <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
             Idade Bio
           </Typography>
           <Typography noWrap sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1.125rem, 5vw, 1.375rem)', sm: 22 }, color: 'text.primary', lineHeight: 1.2, mt: 0.25, fontVariantNumeric: 'tabular-nums' }}>
             {value}
           </Typography>
           {sub && (
-            <Typography noWrap sx={{ fontSize: 11, color: subColor, fontWeight: 600, mt: 0.25 }}>
+            <Typography noWrap sx={{ fontSize: 12, color: subColor, fontWeight: 600, mt: 0.25 }}>
               {sub}
             </Typography>
           )}
@@ -104,9 +136,9 @@ export const BiologicalAgeCard = () => {
         <DialogContent>
           {data ? (
             <>
-              <Typography variant="h6" sx={{ fontWeight: 800, color: PREMIUM }}>{data.age} anos{chronoAge ? ` (você tem ${chronoAge})` : ''}</Typography>
+              <Typography variant="h6" sx={{ fontWeight: 800, color: ACCENT }}>{data.age} anos{chronoAge ? ` (você tem ${chronoAge})` : ''}</Typography>
               {diff !== null && diff !== 0 && (
-                <Typography variant="body2" sx={{ mt: 0.5, color: diff < 0 ? '#059669' : '#dc2626', fontWeight: 700 }}>
+                <Typography variant="body2" sx={{ mt: 0.5, color: diff < 0 ? SEM.ok[isDark ? 'dark' : 'light'] : SEM.bad[isDark ? 'dark' : 'light'], fontWeight: 700 }}>
                   {diff < 0 ? `💚 Seu corpo está ${Math.abs(diff)}a mais jovem que sua idade` : `⚠️ Seu corpo está ${diff}a mais velho que sua idade`}
                 </Typography>
               )}
@@ -115,7 +147,7 @@ export const BiologicalAgeCard = () => {
                 É a idade estimada do seu <b>corpo</b> a partir de exames de sangue — glicose, colesterol, função do rim e do fígado, hormônios e outros marcadores. Pode diferir da sua idade de carteira (cronológica).
               </Typography>
               {chronoAge == null && (
-                <Typography variant="body2" sx={{ mt: 1.5, color: PREMIUM, fontWeight: 700 }}>
+                <Typography variant="body2" sx={{ mt: 1.5, color: ACCENT, fontWeight: 700 }}>
                   Cadastre sua data de nascimento no perfil para compararmos com sua idade real.
                 </Typography>
               )}
