@@ -58,7 +58,10 @@ window.fetch = (async function (input: RequestInfo | URL, init?: RequestInit): P
     if (urlStr.includes('/api/')) {
       try {
         const renewed = res.headers.get('X-Renewed-Token');
-        if (renewed) localStorage.setItem('token', renewed);
+        // photoToken roda JUNTO: sem isto ele expirava em 7d (TTL do JWT) e as URLs ?t= das
+        // fotos 401avam — photoAuthToken até pula o expirado, mas rotacionar mantém a janela
+        // de cache estável do <img> em vez de cair pro token que muda toda renovação.
+        if (renewed) { localStorage.setItem('token', renewed); if (localStorage.getItem('photoToken')) localStorage.setItem('photoToken', renewed); }
       } catch { /* localStorage/headers indisponíveis — ignora */ }
     }
 

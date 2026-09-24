@@ -10,10 +10,29 @@ export const TELEMEDICINE_URL = import.meta.env.VITE_TELEMEDICINE_URL || '';
 
 export const token = () => localStorage.getItem('token');
 
+/** Exp (unix seg) de um JWT, ou null se não decodificar (não é JWT / formato inesperado). */
+const jwtExp = (t: string): number | null => {
+  try {
+    const p = JSON.parse(atob(t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+    return typeof p.exp === 'number' ? p.exp : null;
+  } catch { return null; }
+};
+
 /** Token pra anexar em URLs de IMAGEM (?t=) — aceita paciente ('token') OU médico
  *  ('doctorToken'). O portal do médico guarda o token em 'doctorToken'; sem isto, o avatar
- *  do paciente não carregava pra o médico (photoUrlFor lia só 'token' → vazio → 401 na rota). */
-const photoAuthToken = (): string | null => localStorage.getItem('photoToken') || localStorage.getItem('doctorPhotoToken') || localStorage.getItem('token') || localStorage.getItem('doctorToken');
+ *  do paciente não carregava pra o médico (photoUrlFor lia só 'token' → vazio → 401 na rota).
+ *  PULA candidatos EXPIRADOS: photoToken é gravado no login e nunca rotacionado (era p/ ser
+ *  "estável" pro cache) — depois dos 7d de TTL ele virava sombra sobre o token vivo da
+ *  sessão e TODAS as fotos 401avam (avatar sumia = "foto não salva"). */
+const photoAuthToken = (): string | null => {
+  for (const k of ['photoToken', 'doctorPhotoToken', 'token', 'doctorToken']) {
+    const t = localStorage.getItem(k);
+    if (!t) continue;
+    const exp = jwtExp(t);
+    if (exp == null || exp * 1000 > Date.now() + 60_000) return t; // sem exp (não-JWT) ou ainda válido
+  }
+  return null;
+};
 
 /** Headers padrão com token + paciente selecionado (garante escopo no servidor). */
 export function apiHeaders(json = false): Record<string, string> {

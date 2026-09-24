@@ -140,9 +140,10 @@ export const LoginPage = ({ fixedRole }: { fixedRole?: 'paciente' | 'medico' }) 
     try {
       const r = await BiometricService.loginWithBiometric();
       if (!r) { notify(translate('auth.bio_cancel'), { type: 'error' }); return; }
-      if (r.isDoctor) { localStorage.setItem('doctorToken', r.token); navigate('/doctor'); }
+      if (r.isDoctor) { localStorage.setItem('doctorToken', r.token); localStorage.setItem('doctorPhotoToken', r.token); navigate('/doctor'); }
       else {
         localStorage.setItem('token', r.token);
+        localStorage.setItem('photoToken', r.token);
         // Bio login só guardava o token → drawer ficava "Olá" e admin sumia. Popula user/paciente.
         // BUG: se o token da biometria EXPIROU (JWT 7d), /auth/me dá 401 e antes o app entrava
         // SEM dados (não populava user/paciente mas navegava pra '/'). Agora: só entra se /me
@@ -153,7 +154,7 @@ export const LoginPage = ({ fixedRole }: { fixedRole?: 'paciente' | 'medico' }) 
             const d = await me.json();
             // Sliding session: /me devolve um token FRESCO → renova localStorage + Keystore da
             // biometria. Assim a biometria não expira pra quem usa o app (só pra quem fica 7d sem abrir).
-            if (d.token) { localStorage.setItem('token', d.token); BiometricService.enroll(d.token, false); }
+            if (d.token) { localStorage.setItem('token', d.token); localStorage.setItem('photoToken', d.token); BiometricService.enroll(d.token, false); }
             if (d.patientId) { localStorage.setItem('patientId', d.patientId); localStorage.setItem('selPatientId', d.patientId); }
             if (d.user) localStorage.setItem('user', JSON.stringify(d.user));
             window.dispatchEvent(new Event('selPatientChanged'));
@@ -211,6 +212,7 @@ export const LoginPage = ({ fixedRole }: { fixedRole?: 'paciente' | 'medico' }) 
     setMfaChallenge(null);
     if (mfaChallenge?.isDoctor) { localStorage.setItem('doctorToken', d.token); localStorage.setItem('doctorPhotoToken', d.token); navigate('/doctor'); return; }
     localStorage.setItem('token', d.token);
+    localStorage.setItem('photoToken', d.token);
     if (d.patientId) { localStorage.setItem('patientId', d.patientId); localStorage.setItem('selPatientId', d.patientId); }
     localStorage.setItem('user', JSON.stringify(d.user));
     window.dispatchEvent(new Event('selPatientChanged'));
@@ -242,6 +244,7 @@ export const LoginPage = ({ fixedRole }: { fixedRole?: 'paciente' | 'medico' }) 
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Token inválido');
       localStorage.setItem('token', d.token);
+      localStorage.setItem('photoToken', d.token);
       if (d.patientId) localStorage.setItem('patientId', d.patientId);
       localStorage.setItem('user', JSON.stringify(d.user));
       notify(translate('auth.welcome'), { type: 'success' });
@@ -269,6 +272,7 @@ export const LoginPage = ({ fixedRole }: { fixedRole?: 'paciente' | 'medico' }) 
           navigate('/doctor');
         } else {
           localStorage.setItem('token', d.token);
+          localStorage.setItem('photoToken', d.token); // igual authProvider.login — sem isto o Google ficava sem ?t= estável
           if (d.user) localStorage.setItem('user', JSON.stringify(d.user));
           if (d.patientId) { localStorage.setItem('patientId', d.patientId); localStorage.setItem('selPatientId', d.patientId); }
           window.dispatchEvent(new Event('selPatientChanged'));
@@ -437,6 +441,7 @@ export const RegisterPage = () => {
       if (!r.ok) throw new Error(d.message || d.error || 'Falha no cadastro');
       if (d.needsVerification) { setVerifyEmail(d.email); notify('Enviamos um código de ativação no seu e-mail (cheque o spam).', { type: 'success' }); return; }
       localStorage.setItem('token', d.token);
+      localStorage.setItem('photoToken', d.token);
       if (d.patientId) { localStorage.setItem('patientId', d.patientId); localStorage.setItem('selPatientId', d.patientId); }
       localStorage.setItem('user', JSON.stringify(d.user));
       notify('Conta criada! Bem-vindo! 🎉', { type: 'success' });
@@ -456,6 +461,7 @@ export const RegisterPage = () => {
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Código inválido');
       localStorage.setItem('token', d.token);
+      localStorage.setItem('photoToken', d.token);
       if (d.patientId) { localStorage.setItem('patientId', d.patientId); localStorage.setItem('selPatientId', d.patientId); }
       localStorage.setItem('user', JSON.stringify(d.user));
       notify('Conta ativada! Bem-vindo! 🎉', { type: 'success' });

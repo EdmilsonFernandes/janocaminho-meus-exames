@@ -34,6 +34,8 @@ export const authProvider = {
 
   async logout() {
     localStorage.removeItem('token');
+    localStorage.removeItem('photoToken'); // não deixa JWT expirado fazer sombra no próximo login (fotos 401)
+    localStorage.removeItem('doctorPhotoToken');
     localStorage.removeItem('patientId');
     localStorage.removeItem('selPatientId');
     localStorage.removeItem('user');

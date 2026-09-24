@@ -11,6 +11,11 @@
  */
 
 const REJECT: { test: RegExp; reason: string }[] = [
+  // PEDIDO/SOLICITAÇÃO de exame (o médico PEDIU o exame; usuário sobe achando que é o exame).
+  // Caso real recorrente: 2 dos 3 uploads rejeitados de set/26 eram solicitação/guia TISS
+  // ("Solicitação de Exame(s)", "Hipótese Diagnóstica", "procedimento solicitado").
+  { test: /(solicita[cç][aã]o de exames?|exames? solicitad|hip[oó]tese diagn[oó]stica|procedimento[s]? solicitad|guia de (solicita[cç][aã]o|encaminhamento)|pedido m[eé]dico)/i,
+    reason: 'Isso é um PEDIDO de exame (solicitação do médico), não o resultado. Envie o resultado quando estiver pronto — crie um Lembrete para não esquecer de buscá-lo.' },
   { test: /(receitu[aá]rio|receita m[eé]dica|prescri[cç][aã]o(?! de exame)|uso oral|tomar\s+\d*\s*comprimido|via oral\s*\d|posologia|1 comprimido|de \d+\s*em\s*\d+\s*horas|farm[aá]cia|clorado|xarope)/i,
     reason: 'Isso parece uma RECEITA/PRESCRIÇÃO de medicamento, não um resultado de exame. Envie o exame de sangue, imagem ou laudo.' },
   { test: /(nota fiscal|recibo(?! médico)|cnpj|forma de pagamento|valor (total )?(a )?pagar|linha digit[aá]vel|c[oó]digo de barras(?! de coleta)|d[aá]vida ativa|boleto)/i,
