@@ -294,7 +294,7 @@ const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
   }, []);
 
   return (
-    <Box sx={{ p: 1.5, pb: 1, pt: onClose ? 'calc(env(safe-area-inset-top, 0px) + 12px)' : 1.5 }}>
+    <Box sx={{ p: 1.5, pb: 1, pt: onClose ? 'calc(env(safe-area-inset-top, 0px) + 4px)' : 1.5 }}>
       <Box sx={(t) => ({
         p: 1.5, borderRadius: '20px',
         background: t.palette.mode === 'dark'
