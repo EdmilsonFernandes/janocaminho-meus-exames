@@ -2,17 +2,23 @@ import { prisma } from '../prisma';
 import { sendPushToUser } from '../utils/push';
 import { sendNudgeEmail } from '../utils/nudgeMail';
 import { getLlm, getModel } from '../llm';
+import { getCachedHealthSummary } from '../analysis/hs-cache';
+import { buildTipPrompt, curatedFallback, pickTipTheme, classifySegment, type TipContext, type TipMarker, type TipTheme } from './tipEngine';
 
 /** Scheduler de NUDGES de saúde (08h BRT).
  *  - ALERTA: valor alterado em exame recente (30d) DESTE paciente, sem alerta nos últimos 3 dias.
  *    Pode vir qualquer dia — é informação relevante. Anti-spam: máx 1x/3d por paciente.
- *  - DICA: PERSONALIZADA ao perfil/exames do paciente (por segmento), SÓ 2x/semana (terça e sexta).
- *    Nunca mais dica genérica "beba água" todo dia — a dica agora fala do foco real do paciente
- *    (colesterol, glicemia, pressão, anemia, tireoide, renal) ou prevenção de rotina.
+ *  - DICA INTELIGENTE (25/09/26 — antes era por "segmento", todo mundo do segmento recebia o
+ *    mesmo texto): SÓ 2x/semana (terça e sexta), gerada POR PACIENTE com os dados DELE —
+ *    marcadores com valores/tendência (health-summary), atividade da semana (Health Connect),
+ *    medicações ativas, tempo desde o último exame. ROTAÇÃO de tema com memória (as 2 últimas
+ *    dicas do paciente não repetem o tema — notification.data.theme) e o GLM recebe as dicas
+ *    anteriores pra não repetir o ângulo. Fallback curado por TEMA já preenchido com os dados.
  *  - Cria Notification (central) + push (Firebase). E-mail só cai pro ALERTA e só pra quem não tem push.
  *
  *  Histórico: a "dica genérica às 08h" vinha daqui (FALLBACK rotativo c/ "beba água" + IA global).
- *  dfa91a7 corrigiu a dica do DASHBOARD (web), não a do push — por isso o "beba água" voltava. */
+ *  dfa91a7 corrigiu a dica do DASHBOARD (web), não a do push — por isso o "beba água" voltava.
+ *  set/26: dica por segmento (1 GLM/dia p/ todo o segmento) ainda parecia repetitiva — este rework. */
 const COOLDOWN_MS = 3 * 24 * 60 * 60 * 1000; // 3 dias (só p/ alerta)
 const RECENT_MS = 30 * 24 * 60 * 60 * 1000;  // 30 dias
 const NUDGE_UTC_HOUR = 11; // 08h BRT = 11h UTC (Brasil sem DST desde 2019 → UTC-3 o ano todo)
@@ -27,58 +33,79 @@ function msUntilNextUtcHour(targetHour: number): number {
   return next.getTime() - now.getTime();
 }
 
-// Segmento de saúde do paciente — chaveia a dica personalizada (1 segmento por paciente/dia).
-type Segment = 'colesterol' | 'glicemia' | 'pressao' | 'anemia' | 'tireoide' | 'renal' | 'rotina';
-const SEGMENT_RULES: { seg: Segment; test: RegExp }[] = [
-  { seg: 'colesterol', test: /(ldl|colesterol|triglicer|hdl|lipid)/i },
-  { seg: 'glicemia', test: /(glicemia|glicose|hemoglobina glic|hba1c|insulina|homair|glicada)/i },
-  { seg: 'pressao', test: /(pressao|pa\b|arterial|sistol|diastol|has\b)/i },
-  { seg: 'tireoide', test: /(tsh|t4\b|t4livre|tiro|levotiroxina)/i },
-  { seg: 'anemia', test: /(hemoglobin|hematocrito|ferro|ferritina|eritro|vcm|hcm)/i },
-  { seg: 'renal', test: /(creatinina|ureia|egfr|renal|microalbumin|tfg)/i },
-];
-
-/** Classifica o segmento do paciente a partir do histórico (itens alterados + perfil clínico livre). */
-function classifySegment(text: string): Segment {
-  for (const r of SEGMENT_RULES) if (r.test.test(text)) return r.seg;
-  return 'rotina';
-}
-
-// Fallback curado POR SEGMENTO — relevante ao foco do paciente, SEM "beba água"/genéricas chatas.
-const FALLBACK_BY_SEGMENT: Record<Segment, string> = {
-  colesterol: 'Seu colesterol já esteve alterado: corte gordura saturada (carnes vermelhas, frituras) e capriche na fibra — aveia e feijão ajudam o LDL a cair.',
-  glicemia: 'Sua glicose merece atenção: evite açúcar em jejum, prefira integrais e caminhe 15 min após as refeições — o músculo consome a glicose.',
-  pressao: 'Já teve pressão alta? Reduza o sal e embutidos, e meça a PA sempre no mesmo braço e horário. Anote pra ver a tendência.',
-  anemia: 'Seus hematimetos já variaram: capriche em ferro (carne, feijão, folhas escuras) com vitamina C (laranja) pra absorver melhor.',
-  tireoide: 'Você tem medicação de tireoide: tome em jejum, longe de cálcio/ferro, e revise a TSH na frequência que o médico pediu.',
-  renal: 'Sua função renal pede cuidado: hidrate-se bem, evite excesso de anti-inflamatórios e de proteína animal.',
-  rotina: 'Previnir é mais fácil que remediar: mantenha os exames de rotina em dia e leve cada dúvida ao seu médico.',
-};
-
-// Cache de dica por dia+segmento (no máx ~7 chamadas GLM/dia, uma por segmento — não uma por paciente).
+// Cache de dica por dia+paciente (retry no mesmo dia não regenera nem queima token de novo).
 const tipCache = new Map<string, string>();
 
-/** Dica personalizada ao segmento, gerada pela IA (cacheada por dia+segmento). Fallback curado se o GLM falhar. */
-async function getTipForSegment(seg: Segment): Promise<string> {
+/** Dica via GLM POR PACIENTE (contexto real + últimas dicas p/ não repetir). Fallback curado do tema. */
+async function generateTip(patientId: string, ctx: TipContext, theme: TipTheme, recentBodies: string[]): Promise<string> {
   const day = new Date().toISOString().slice(0, 10);
-  const key = `${day}:${seg}`;
+  const key = `${day}:${patientId}`;
   const cached = tipCache.get(key);
   if (cached) return cached;
+  const { system, user } = buildTipPrompt(ctx, theme, recentBodies);
   try {
-    const r = await getLlm().complete({
-      model: getModel(),
-      maxTokens: 200,
-      system: 'Você é o Dr. Exame, assistente de saúde empático e prático do app Meus Exames. Gere UMA dica de saúde curta (máx 2 frases, ~180 caracteres), acionável e ESPECÍFICA para o foco informado. Sem jargão médico, sem diagnóstico. PROIBIDO gerar dicas genéricas/óbvias como "beba água", "coma frutas", "durma bem" — seja específico do foco. Responda APENAS com a dica, sem aspas nem prefixo.',
-      messages: [{ role: 'user', content: `Foco de saúde do usuário: ${seg}. Dê uma dica prática e específica para este foco.` }],
-    });
-    const text = (r.text || '').trim();
+    const r = await getLlm().complete({ model: getModel(), maxTokens: 220, system, messages: [{ role: 'user', content: user }] });
+    let text = (r.text || '').trim().replace(/^["'\s]+|["'\s]+$/g, '');
+    if (text.length > 280) text = text.slice(0, 277).trimEnd() + '…';
     if (text) { tipCache.set(key, text); return text; }
   } catch (e) {
-    console.warn('[nudges] GLM tip falhou, usando fallback de segmento:', (e as Error).message);
+    console.warn('[nudges] GLM tip falhou, usando fallback do tema:', (e as Error).message);
   }
-  const fb = FALLBACK_BY_SEGMENT[seg];
+  const fb = curatedFallback(ctx, theme);
   tipCache.set(key, fb);
   return fb;
+}
+
+/** Monta o contexto REAL do paciente p/ a dica: health-summary + atividade HC + medicação + dicas recentes.
+ *  (exportada p/ smoke test manual: `npx tsx scripts/smoke-tip.ts`) */
+export async function buildSmartTip(patientId: string, ownerId: string, firstName: string): Promise<{ body: string; theme: TipTheme } | null> {
+  const [hs, lastExam, meds, recentTips, acts] = await Promise.all([
+    getCachedHealthSummary(patientId).catch(() => null),
+    prisma.exam.findFirst({ where: { patientId, status: 'EXTRACTED', performedAt: { not: null } }, orderBy: { performedAt: 'desc' }, select: { performedAt: true } }),
+    prisma.medication.findMany({ where: { patientId, active: true }, select: { name: true }, take: 4 }),
+    prisma.notification.findMany({ where: { userId: ownerId, type: 'tip', data: { path: ['patientId'], equals: patientId } }, orderBy: { createdAt: 'desc' }, take: 5, select: { body: true, data: true } }),
+    prisma.measurement.findMany({ where: { patientId, type: { in: ['STEPS', 'EXERCISE_MINUTES', 'HEART_RATE'] }, note: 'Health Connect', measuredAt: { gte: new Date(Date.now() - 14 * 86400000) } }, select: { type: true, value: true, measuredAt: true }, orderBy: { measuredAt: 'desc' } }),
+  ]);
+
+  const mk = (m: any): TipMarker => ({
+    name: m?.name ?? '', value: m?.latest?.valueNumeric ?? null, prev: m?.prior?.valueNumeric ?? null,
+    unit: m?.unit ?? null, deltaPct: m?.deltaPct ?? null, flag: m?.flag ?? '', refHigh: m?.refHigh ?? null,
+  });
+  const improving: TipMarker[] = (Array.isArray(hs?.improving) ? (hs.improving as any[]).slice(0, 3) : []).map((m: any) => mk(m)).filter((m) => m.name);
+  const worsening: TipMarker[] = (Array.isArray(hs?.worsening) ? (hs.worsening as any[]).slice(0, 3) : []).map((m: any) => mk(m)).filter((m) => m.name);
+
+  // Atividade: só considera quem sincroniza (acts.length > 0) — sem dado ≠ sedentário.
+  const now = Date.now();
+  let minWeek = 0, minPrev = 0, steps = 0, stepDays = 0, restingHr: number | null = null;
+  for (const a of acts) {
+    const ageD = (now - a.measuredAt.getTime()) / 86400000;
+    if (a.type === 'EXERCISE_MINUTES') { if (ageD < 7) minWeek += a.value; else minPrev += a.value; }
+    else if (a.type === 'STEPS' && ageD < 7) { steps += a.value; stepDays++; }
+    else if (a.type === 'HEART_RATE' && restingHr == null) restingHr = a.value; // mais recente
+  }
+
+  const cardio = hs?.cardiometabolicRisk;
+  const ctx: TipContext = {
+    firstName,
+    score: typeof hs?.score === 'number' ? hs.score : null,
+    daysSinceExam: lastExam?.performedAt ? Math.floor((now - lastExam.performedAt.getTime()) / 86400000) : null,
+    stale: !!hs?.staleWarning,
+    improving, worsening,
+    cardioLevel: typeof cardio?.level === 'string' ? cardio.level : '',
+    cardioFactors: Array.isArray(cardio?.factors) ? cardio.factors.filter((f: any) => f?.risk).length : 0,
+    activeMinutesWeek: acts.length ? minWeek : null,
+    activeMinutesPrevWeek: acts.length ? minPrev : null,
+    stepsAvgDay: stepDays ? Math.round(steps / stepDays) : null,
+    restingHr,
+    medications: meds.map((m) => m.name),
+    segment: classifySegment(`${worsening[0]?.name ?? ''} ${improving[0]?.name ?? ''} ${hs?.clinicalSummary ?? ''}`),
+  };
+
+  const recentThemes = recentTips.map((n) => (n.data as any)?.theme).filter(Boolean) as string[];
+  const recentBodies = recentTips.map((n) => n.body).filter(Boolean);
+  const theme = pickTipTheme(ctx, recentThemes);
+  const body = await generateTip(patientId, ctx, theme, recentBodies);
+  return { body, theme };
 }
 
 export function startHealthNudgeJob(): void {
@@ -94,6 +121,8 @@ export function startHealthNudgeJob(): void {
       console.log(`[nudges] ${patients.length} paciente(s) com exames (1 nudge por dependente, nome/dados dele)`);
       for (const p of patients) {
         await maybeNudgeForPatient(p).catch((e) => console.error('[nudges] erro paciente', p.id, (e as Error).message));
+        // Pacing: dica agora é 1 GLM POR paciente — 150ms entre pacientes poupa o relay.
+        await new Promise((r) => setTimeout(r, 150));
       }
       console.log('[nudges] tick concluído');
     } catch (e) {
@@ -138,21 +167,17 @@ async function maybeNudgeForPatient(patient: { id: string; fullName: string; own
     }
   }
 
-  // 2) Sem alerta hoje → DICA personalizada ao perfil/exames, SÓ 2x/semana (ter/sex).
-  //    Nos outros dias, não incomoda (sem dica genérica diária).
+  // 2) Sem alerta hoje → DICA INTELIGENTE por paciente, SÓ 2x/semana (ter/sex).
+  //    Nos outros dias, não incomoda. Tema gira com memória (nunca 2 dicas seguidas iguais).
   if (!type) {
     const dow = new Date().getUTCDay();
     if (!TIP_DAYS.has(dow)) return; // hoje não é dia de dica → silencioso
-    // Classifica o segmento pelo histórico do paciente (último alterado + perfil clínico livre).
-    const [lastAbn, prof] = await Promise.all([
-      prisma.examItem.findFirst({ where: { isAbnormal: true, exam: { patientId: patient.id } }, orderBy: { exam: { performedAt: 'desc' } }, select: { name: true, nameCanonical: true } }),
-      prisma.patient.findUnique({ where: { id: patient.id }, select: { clinicalProfile: true } }),
-    ]);
-    const segText = `${lastAbn?.nameCanonical ?? ''} ${lastAbn?.name ?? ''} ${prof?.clinicalProfile ?? ''}`;
-    const seg = classifySegment(segText);
+    const tip = await buildSmartTip(patient.id, owner.id, first);
+    if (!tip) return;
     type = 'tip';
     title = `💡 Dica do Dr. Exame pra ${first}`;
-    body = await getTipForSegment(seg);
+    body = tip.body;
+    data.theme = tip.theme; // memória da rotação (notification.data.theme)
   }
 
   // sendPushToUser salva a notificação in-app (central) E envia o push pro OWNER (dono da conta).
