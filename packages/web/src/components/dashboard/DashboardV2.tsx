@@ -524,6 +524,11 @@ export const DashboardV2 = () => {
   const navigate = useNavigate();
   const [pid] = useSelectedPatient();
   const d = useDashboardData(pid);
+  const th = useTheme();
+  const isDark = th.palette.mode === 'dark';
+  // Badges dos KPI tiles a partir dos tokens SEM (mode-aware — fecha o P10 da review).
+  // As tintas de fundo (rgba .12) continuam literais: são deliberadamente mode-agnósticas.
+  const semC = (k: 'ok' | 'warn' | 'bad' | 'premium') => SEM[k][isDark ? 'dark' : 'light'];
   const [bioOffer, setBioOffer] = useState(false);
   const firstName = (d.me?.fullName || '').split(' ')[0];
 
@@ -587,7 +592,7 @@ export const DashboardV2 = () => {
             idx={0}
             icon={<FavoriteBorderIcon />}
             badgeBg={d.stats.abnormal > 0 ? 'rgba(239, 68, 68, 0.12)' : 'rgba(5, 150, 105, 0.12)'}
-            badgeColor={d.stats.abnormal > 0 ? '#ef4444' : '#059669'}
+            badgeColor={d.stats.abnormal > 0 ? semC('bad') : semC('ok')}
             tone={d.stats.abnormal > 0 ? 'error' : 'success'}
             label="Alterados"
             value={d.loaded ? String(d.stats.abnormal) : '—'}
@@ -600,7 +605,7 @@ export const DashboardV2 = () => {
             idx={1}
             icon={<Stethoscope size={22} weight="duotone" />}
             badgeBg="rgba(99, 102, 241, 0.12)"
-            badgeColor="#6366f1"
+            badgeColor={semC('premium')}
             tone="primary"
             label="Exames"
             value={d.loaded ? String(d.stats.exams) : '—'}
@@ -612,7 +617,7 @@ export const DashboardV2 = () => {
             idx={3}
             icon={<ChartLineUp size={22} weight="duotone" />}
             badgeBg={cardioLevel === 'alto' ? 'rgba(239, 68, 68, 0.12)' : cardioLevel === 'moderado' ? 'rgba(245, 158, 11, 0.12)' : 'rgba(16, 185, 129, 0.12)'}
-            badgeColor={cardioLevel === 'alto' ? '#ef4444' : cardioLevel === 'moderado' ? '#f59e0b' : '#059669'}
+            badgeColor={cardioLevel === 'alto' ? semC('bad') : cardioLevel === 'moderado' ? semC('warn') : semC('ok')}
             tone={cardioLevel ? (cardioFactors > 0 ? 'error' : 'success') : 'info'}
             label="Cardiorrisco"
             value={cardioLevel || (d.loaded ? 'Sem dados' : '—')}

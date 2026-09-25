@@ -14,7 +14,7 @@ type BioData = { age: number; confidence: string; markersUsed: number; missing?:
 const REDUCED_MOTION = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // Accent único da feature (tile E dialog): esmeralda — antes o tile era esmeralda e o dialog, indigo.
-const ACCENT = '#059669';
+// Mode-aware via SEM.ok (o literal #059669 perdia contraste no dark).
 
 /**
  * Tile "Idade Biológica" — estimativa (PhenoAge) baseada em marcadores sanguíneos.
@@ -35,6 +35,7 @@ export const BiologicalAgeCard = ({ idx = 2, bio, bioAvail, bioLoaded }: {
   const navigate = useNavigate();
   const t = useTheme();
   const isDark = t.palette.mode === 'dark';
+  const accent = SEM.ok[isDark ? 'dark' : 'light'];
   // Estado PRÓPRIO só p/ uso isolado (sem props) e p/ refresh via dx-profile-updated.
   const [ownData, setOwnData] = useState<BioData | null>(null);
   const [ownAvail, setOwnAvail] = useState<{ status: string; missing: string[] } | null>(null);
@@ -125,7 +126,7 @@ export const BiologicalAgeCard = ({ idx = 2, bio, bioAvail, bioLoaded }: {
         <Box sx={{
           width: 42, height: 42, borderRadius: '12px',
           display: 'grid', placeItems: 'center', flexShrink: 0,
-          bgcolor: 'rgba(16, 185, 129, 0.12)', color: '#059669',
+          bgcolor: 'rgba(16, 185, 129, 0.12)', color: accent,
         }}>
           <Dna size={22} weight="duotone" />
         </Box>
@@ -136,7 +137,7 @@ export const BiologicalAgeCard = ({ idx = 2, bio, bioAvail, bioLoaded }: {
         <DialogContent>
           {data ? (
             <>
-              <Typography variant="h6" sx={{ fontWeight: 800, color: ACCENT }}>{data.age} anos{chronoAge ? ` (você tem ${chronoAge})` : ''}</Typography>
+              <Typography variant="h6" sx={{ fontWeight: 800, color: accent }}>{data.age} anos{chronoAge ? ` (você tem ${chronoAge})` : ''}</Typography>
               {diff !== null && diff !== 0 && (
                 <Typography variant="body2" sx={{ mt: 0.5, color: diff < 0 ? SEM.ok[isDark ? 'dark' : 'light'] : SEM.bad[isDark ? 'dark' : 'light'], fontWeight: 700 }}>
                   {diff < 0 ? `💚 Seu corpo está ${Math.abs(diff)}a mais jovem que sua idade` : `⚠️ Seu corpo está ${diff}a mais velho que sua idade`}
@@ -147,7 +148,7 @@ export const BiologicalAgeCard = ({ idx = 2, bio, bioAvail, bioLoaded }: {
                 É a idade estimada do seu <b>corpo</b> a partir de exames de sangue — glicose, colesterol, função do rim e do fígado, hormônios e outros marcadores. Pode diferir da sua idade de carteira (cronológica).
               </Typography>
               {chronoAge == null && (
-                <Typography variant="body2" sx={{ mt: 1.5, color: ACCENT, fontWeight: 700 }}>
+                <Typography variant="body2" sx={{ mt: 1.5, color: accent, fontWeight: 700 }}>
                   Cadastre sua data de nascimento no perfil para compararmos com sua idade real.
                 </Typography>
               )}
