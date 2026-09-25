@@ -29,6 +29,7 @@ import { GradientButton } from '../GradientButton';
 import { ChangesSinceExam, type Marker } from './ChangesSinceExam';
 import { ScrollReveal } from './ScrollReveal';
 import { Section } from './Section';
+import { DEMO_DASHBOARD, DEMO_CHRONO_AGE } from './demoData';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
@@ -244,8 +245,8 @@ const Sparkle = ({ top, left, delay, size = 4 }: { top: string; left: string; de
 };
 
 /** HERO — score ring com gradiente cônico animado, countup, mesh gradient bg, sparkles. */
-const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, staleWarning, onDetails, onFirstExam, onChat }: {
-  loaded: boolean; score: number | null; exams: number; importante: number; moderada: number; lastExam: string | null; staleWarning: string; onDetails: () => void; onFirstExam: () => void; onChat?: () => void;
+const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, staleWarning, onDetails, onFirstExam, onChat, onDemo }: {
+  loaded: boolean; score: number | null; exams: number; importante: number; moderada: number; lastExam: string | null; staleWarning: string; onDetails: () => void; onFirstExam: () => void; onChat?: () => void; onDemo?: () => void;
 }) => {
   const t = useTheme();
   const st = statusFromScore(score);
@@ -350,9 +351,17 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
 
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25} sx={{ mt: 2.25, width: '100%', position: 'relative', zIndex: 1 }}>
         {noData ? (
-          <GradientButton onClick={onFirstExam} endIcon={<ArrowForwardIcon />} sx={{ width: { xs: '100%', sm: 'auto' }, alignSelf: 'stretch' }}>
-            Enviar primeiro exame
-          </GradientButton>
+          <>
+            <GradientButton onClick={onFirstExam} endIcon={<ArrowForwardIcon />} sx={{ width: { xs: '100%', sm: 'auto' }, alignSelf: 'stretch' }}>
+              Enviar primeiro exame
+            </GradientButton>
+            {/* Ação secundária (design system: 1 primária por tela) — "vendo o app sente vontade". */}
+            {onDemo && (
+              <Button variant="text" onClick={onDemo} sx={{ width: { xs: '100%', sm: 'auto' }, alignSelf: 'stretch', borderRadius: '12px', textTransform: 'none', fontWeight: 700, color: 'primary.dark' }}>
+                👀 Ver com dados de exemplo
+              </Button>
+            )}
+          </>
         ) : (
           <>
             <GradientButton onClick={onDetails} endIcon={<ArrowForwardIcon />} sx={{ flex: 1, width: { xs: '100%', sm: 'auto' }, alignSelf: 'stretch' }}>
@@ -523,14 +532,23 @@ const MarkerDistributionCard = ({ buckets, totalMarkers }: { buckets: { bons: nu
 export const DashboardV2 = () => {
   const navigate = useNavigate();
   const [pid] = useSelectedPatient();
-  const d = useDashboardData(pid);
+  const real = useDashboardData(pid);
+  // MODO EXEMPLO: swap 1:1 do payload (ver demoData.ts). NÃO persiste — dado fictício
+  // de saúde jamais "vira seu"; sair/recarregar volta pro app real. O hook real continua
+  // rodando (hooks incondicionais) e o firstName continua o DO USUÁRIO (saudação real).
+  const [demo, setDemo] = useState(false);
+  const [demoAsk, setDemoAsk] = useState(false);
+  const d = demo ? DEMO_DASHBOARD : real;
   const th = useTheme();
   const isDark = th.palette.mode === 'dark';
   // Badges dos KPI tiles a partir dos tokens SEM (mode-aware — fecha o P10 da review).
   // As tintas de fundo (rgba .12) continuam literais: são deliberadamente mode-agnósticas.
   const semC = (k: 'ok' | 'warn' | 'bad' | 'premium') => SEM[k][isDark ? 'dark' : 'light'];
   const [bioOffer, setBioOffer] = useState(false);
-  const firstName = (d.me?.fullName || '').split(' ')[0];
+  const firstName = (real.me?.fullName || '').split(' ')[0];
+  // Navegação guardada: no demo, telas de DADO REAL abrem dialog de conversão em vez de
+  // navegar pro vazio (quebraria a ilusão e confundiria).
+  const go = (to: string) => (demo ? () => setDemoAsk(true) : () => navigate(to));
 
   useEffect(() => {
     // Offer por PAPEL (paciente): médico matriculado no aparelho não pode calar o offer
@@ -540,6 +558,8 @@ export const DashboardV2 = () => {
       return () => clearTimeout(id);
     }
   }, []);
+  // Demo cala o offer de biometria (ruído em cima de dado fictício).
+  useEffect(() => { if (demo) setBioOffer(false); }, [demo]);
 
   const totalResults = d.buckets.bons + d.buckets.alerta + d.buckets.alterados;
   const cardioLevel: string = d.cardioRisk?.level ?? '';
@@ -567,6 +587,19 @@ export const DashboardV2 = () => {
       <FailedExamsAlert count={d.failed} onClick={() => navigate('/exams')} />
       <RejectedExamsAlert count={d.rejected} onClick={() => navigate('/exams')} />
 
+      {/* MODO EXEMPLO — banner sempre visível: dado fictício nunca pode passar por seu. */}
+      {demo && (
+        <AppCard kind="accent" tone="warning" sx={{ p: { xs: 1.5, md: 2 }, borderRadius: '14px', display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+          <Typography sx={{ flex: 1, minWidth: 180, fontSize: 13, lineHeight: 1.45 }}>
+            👀 <b>Modo exemplo</b> — tudo aqui é de uma pessoa fictícia. Seu app real ganha essa análise no 1º exame.
+          </Typography>
+          <Stack direction="row" spacing={1}>
+            <Button onClick={() => setDemo(false)} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, px: 2 }}>Sair</Button>
+            <GradientButton onClick={() => navigate('/exams/create')} sx={{ py: 0.9, px: 2.25, fontSize: 13 }}>Usar meu exame</GradientButton>
+          </Stack>
+        </AppCard>
+      )}
+
       {/* 1. HERO HEALTH CARD (Score + Status + Ações em largura total) */}
       <ScrollReveal>
         <HeroHealthCard
@@ -577,9 +610,10 @@ export const DashboardV2 = () => {
           moderada={d.moderada}
           lastExam={d.lastExam}
           staleWarning={d.staleWarning}
-          onDetails={() => navigate('/tendencias')}
+          onDetails={go('/tendencias')}
           onFirstExam={() => navigate('/exams/create')}
-          onChat={() => navigate('/chat')}
+          onChat={go('/chat')}
+          onDemo={demo ? undefined : () => setDemo(true)}
         />
       </ScrollReveal>
 
@@ -599,7 +633,7 @@ export const DashboardV2 = () => {
             sub={d.loaded ? (totalResults > 0 ? `de ${totalResults} marcadores` : '') : ''}
             arcPercent={totalResults > 0 ? Math.max(0, Math.round((d.stats.abnormal / totalResults) * 100)) : undefined}
             arcColor={d.stats.abnormal > 0 ? '#ef4444' : '#059669'}
-            onClick={() => navigate('/alterados')}
+            onClick={go('/alterados')}
           />
           <IndicatorTile
             idx={1}
@@ -610,9 +644,9 @@ export const DashboardV2 = () => {
             label="Exames"
             value={d.loaded ? String(d.stats.exams) : '—'}
             sub={d.stats.exams === 0 && d.loaded ? 'envie o primeiro' : `${d.stats.abnormal} alterado${d.stats.abnormal === 1 ? '' : 's'}`}
-            onClick={() => navigate('/exams')}
+            onClick={go('/exams')}
           />
-          <BiologicalAgeCard idx={2} bio={d.bio} bioAvail={d.bioAvail} bioLoaded={d.hsLoaded} />
+          <BiologicalAgeCard idx={2} bio={d.bio} bioAvail={d.bioAvail} bioLoaded={d.hsLoaded} chronoAge={demo ? DEMO_CHRONO_AGE : undefined} />
           <IndicatorTile
             idx={3}
             icon={<ChartLineUp size={22} weight="duotone" />}
@@ -626,7 +660,7 @@ export const DashboardV2 = () => {
               : (d.loaded ? (d.stats.exams > 0 ? 'sem colesterol, peso ou pressão' : 'envie um exame') : '')}
             arcPercent={cardioArc}
             arcColor={cardioArcColor}
-            onClick={() => navigate(d.stats.exams > 0 ? '/tendencias' : '/exams/create')}
+            onClick={go(d.stats.exams > 0 ? '/tendencias' : '/exams/create')}
           />
         </Box>
       </ScrollReveal>
@@ -637,14 +671,14 @@ export const DashboardV2 = () => {
           {/* COLUNA PRINCIPAL (65%) */}
           <Grid size={{ xs: 12, md: 7, lg: 8 }}>
             <Stack spacing={2.5}>
-              {/* PRÓXIMOS PASSOS (onboarding) */}
-              <NextStepsCard exams={d.stats.exams} />
+              {/* PRÓXIMOS PASSOS (onboarding) — escondido no demo (checklist real não faz sentido) */}
+              {!demo && <NextStepsCard exams={d.stats.exams} />}
 
               {/* O QUE MUDOU NO SEU ÚLTIMO EXAME */}
-              <ChangesSinceExam worsened={d.worsened} improved={d.improved} onView={() => navigate('/evolucao')} loaded={d.loaded} />
+              <ChangesSinceExam worsened={d.worsened} improved={d.improved} onView={go('/evolucao')} loaded={d.loaded} />
 
-              {/* ATIVIDADE FÍSICA & HEALTH CONNECT */}
-              {(!d.me?.relationship || d.me.relationship === 'Titular') && (
+              {/* ATIVIDADE FÍSICA & HEALTH CONNECT — escondida no demo (dado é do DEVICE, não há como fingir) */}
+              {!demo && (!real.me?.relationship || real.me.relationship === 'Titular') && (
                 <Section label="Atividade física • Health Connect" icon={<Heartbeat size={18} weight="duotone" />}>
                   <Box sx={{ display: 'grid', gap: 2 }}>
                     <ActivityCard lastExamAt={d.lastExam} />
@@ -654,7 +688,7 @@ export const DashboardV2 = () => {
               )}
 
               {/* DR. EXAME IA */}
-              <AiCard tip={tipNode} onChat={() => navigate('/chat')} />
+              <AiCard tip={tipNode} onChat={go('/chat')} />
 
               {/* DESDE SEU ÚLTIMO EXAME */}
               <SinceExamCard lastExamAt={d.lastExam} />
@@ -678,16 +712,32 @@ export const DashboardV2 = () => {
               {/* CONQUISTAS */}
               <GamificationBadges examsCount={d.stats.exams} score={d.score} />
 
-              {/* COMPARTILHAMENTO DE SAÚDE */}
-              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                <ShareHealthButton score={d.score ?? undefined} />
-              </Box>
+              {/* COMPARTILHAMENTO DE SAÚDE — JAMAIS no demo (compartilhar score fictício) */}
+              {!demo && (
+                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                  <ShareHealthButton score={d.score ?? undefined} />
+                </Box>
+              )}
             </Stack>
           </Grid>
         </Grid>
       </ScrollReveal>
 
-      <ReviewPrompt trigger={d.loaded && d.stats.exams > 0} />
+      <ReviewPrompt trigger={!demo && d.loaded && d.stats.exams > 0} />
+
+      {/* Dialog de conversão do modo exemplo (clique em tela de dado real) */}
+      <Dialog open={demoAsk} onClose={() => setDemoAsk(false)} PaperProps={{ sx: { borderRadius: '12px', maxWidth: 420 } }}>
+        <DialogTitle sx={{ fontWeight: 800 }}>Isso é o modo exemplo 👀</DialogTitle>
+        <DialogContent>
+          <Typography sx={{ lineHeight: 1.6 }}>
+            Os números que você está vendo são de uma pessoa fictícia. Envie seu primeiro exame (PDF ou foto) e em poucos minutos o Dr. Exame monta a <b>sua</b> análise igual a essa.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setDemoAsk(false)} sx={{ textTransform: 'none', fontWeight: 700 }}>Continuar no exemplo</Button>
+          <GradientButton onClick={() => { setDemoAsk(false); navigate('/exams/create'); }}>Enviar meu exame</GradientButton>
+        </DialogActions>
+      </Dialog>
 
       {/* Oferta de biometria */}
       <Dialog open={bioOffer} onClose={() => setBioOffer(false)} PaperProps={{ sx: { borderRadius: '12px' } }}>

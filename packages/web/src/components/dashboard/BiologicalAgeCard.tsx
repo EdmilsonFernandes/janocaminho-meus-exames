@@ -24,12 +24,14 @@ const REDUCED_MOTION = typeof window !== 'undefined' && window.matchMedia('(pref
  * falta exame → CTA 1º exame; faltam marcadores específicos → lista. "Em breve" genérico nunca
  * mais (ausência de dado não é um prazo). A explicação rica fica num Dialog (toque no tile).
  */
-export const BiologicalAgeCard = ({ idx = 2, bio, bioAvail, bioLoaded }: {
+export const BiologicalAgeCard = ({ idx = 2, bio, bioAvail, bioLoaded, chronoAge: chronoAgeOverride }: {
   idx?: number;
   /** Vêm do MESMO /health-summary que o DashboardV2 já buscou — o tile não refaz o GET. */
   bio?: BioData | null;
   bioAvail?: { status: string; missing: string[] } | null;
   bioLoaded?: boolean;
+  /** Override da idade cronológica (modo exemplo): diff/dialog coerentes com a persona. */
+  chronoAge?: number | null;
 }) => {
   const [pid] = useSelectedPatient();
   const navigate = useNavigate();
@@ -68,7 +70,8 @@ export const BiologicalAgeCard = ({ idx = 2, bio, bioAvail, bioLoaded }: {
   const loaded = controlled && !refreshed ? !!bioLoaded : ownLoaded;
 
   const userStr = typeof localStorage !== 'undefined' ? localStorage.getItem('user') : null;
-  const chronoAge = userStr ? (() => { try { return JSON.parse(userStr)?.age ?? null; } catch { return null; } })() : null;
+  const chronoAge = chronoAgeOverride !== undefined ? chronoAgeOverride
+    : userStr ? (() => { try { return JSON.parse(userStr)?.age ?? null; } catch { return null; } })() : null;
   const diff = chronoAge && data ? data.age - chronoAge : null;
 
   // Estado vazio HONESTO: o tile explica o que falta em vez de prometer um "Em breve" sem prazo.
