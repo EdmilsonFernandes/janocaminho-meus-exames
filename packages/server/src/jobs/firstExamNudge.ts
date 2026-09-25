@@ -17,7 +17,7 @@ import { sendNudgeEmail } from '../utils/nudgeMail';
  */
 const COOLDOWN_MS = 3 * 24 * 60 * 60 * 1000; // 3 dias entre nudges do mesmo usuário
 const MIN_AGE_MS = 24 * 60 * 60 * 1000;      // só após 24h do cadastro (não incomodar no dia 0)
-const MAX_NUDGES = 6;                          // teto: 6×3d ≈ 18 dias de insistência (era 8×2d=16d, mais gritante)
+const MAX_NUDGES = 3;                          // teto: 3×3d ≈ 9 dias (R3 set/26: 6 nudges ≈ 5/usuário não converteram NINGUÉM — fadiga pura; demo mode + e-mail cobrem a ativação agora)
 const NUDGE_UTC_HOUR = 11;                     // 08h BRT = 11h UTC
 const EXAMS_ROUTE = '/exams/create';
 const TYPE = 'first_exam';
