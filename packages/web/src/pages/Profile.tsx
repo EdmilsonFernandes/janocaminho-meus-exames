@@ -19,15 +19,11 @@ import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
 import { PageSkeleton } from '../components/PageSkeleton';
 import { formatCpf, isValidCpf } from '../utils/cpf';
+import { parseHeightCm, maskHeightInput, fmtHeight } from '../utils/height';
 import { DateFieldBR } from '../components/DateFieldBR';
 
-/** Altura: aceita "172" (cm) ou "1.72"/"1,72" (m) → devolve cm inteiro; null se inválido.
- *  <3 entende como metros (1.72 → 172); caso contrário já está em centímetros. */
-const parseHeightCm = (s: string): number | null => {
-  const n = Number(String(s ?? '').trim().replace(',', '.'));
-  if (!Number.isFinite(n) || n <= 0) return null;
-  return Math.round(n < 3 ? n * 100 : n);
-};
+// parseHeightCm/maskHeightInput/fmtHeight: utils/height.ts (fonte única — o mesmo bug
+// existia em 2 lugares com implementações diferentes).
 
 const fmtDate = (d?: string | null) => (d ? new Date(d).toLocaleDateString('pt-BR') : '');
 
@@ -200,7 +196,14 @@ export const ProfilePage = () => {
               <MenuItem value="male">Masculino</MenuItem>
               <MenuItem value="">Não informado</MenuItem>
             </TextField>
-            <TextField type="number" label="Altura (cm)" value={heightCm} onChange={(e) => setHeightCm(e.target.value)} fullWidth size="small" helperText="Em centímetros (ex.: 172). Aceita 1,72 m — convertemos pra você. Usada no IMC." />
+            <TextField
+              label="Altura"
+              value={heightCm}
+              onChange={(e) => setHeightCm(maskHeightInput(e.target.value))}
+              fullWidth size="small"
+              inputProps={{ inputMode: 'decimal' }} /* decimal: teclado Android mostra a VÍRGULA (type=number esconde em vários aparelhos) */
+              helperText={parseHeightCm(heightCm) ? fmtHeight(parseHeightCm(heightCm)) : 'Ex.: 1,72 ou 172 — convertemos pra você. Usada no IMC.'}
+            />
             <TextField select label="Etnia (opcional)" value={ethnicity} onChange={(e) => setEthnicity(e.target.value)} fullWidth size="small" helperText="Opcional de verdade: hoje nenhum cálculo usa etnia (nossas equações são race-free) — guardamos para pesquisas futuras.">
               <MenuItem value="">Prefiro não informar</MenuItem>
               <MenuItem value="branca">Branca</MenuItem>

@@ -10,6 +10,7 @@ import { API_URL, apiHeaders } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import { DateFieldBR } from './DateFieldBR';
 import { formatCpf, isValidCpf } from '../utils/cpf';
+import { parseHeightCm, maskHeightInput, fmtHeight } from '../utils/height';
 
 // Supressão de "Agora não" POR SESSÃO (não mais localStorage permanente): o flag por dispositivo
 // fazia o modal nunca mais aparecer depois de 1 skip ou 1 troca de aparelho — e a completude
@@ -104,7 +105,7 @@ export const CompleteProfileModal = () => {
       headers: apiHeaders(true),
       body: JSON.stringify({
         gender,
-        heightCm: heightCm ? parseBR(heightCm) : null,
+        heightCm: parseHeightCm(heightCm), // aceita 172 ou 1,72 → sempre cm válido (ou null)
         dateOfBirth: dob || null,
       }),
     });
@@ -159,7 +160,7 @@ export const CompleteProfileModal = () => {
   // são encorajados mas avançam (o Dashboard orienta depois — nada de beco sem saída).
   const canAdvance =
     current === 'profile' ? (!!gender && !!dob)
-    : current === 'body' ? (!!heightCm && parseBR(heightCm) > 50)
+    : current === 'body' ? parseHeightCm(heightCm) != null // faixa humana 100–250 (parse valida)
     : true;
 
   if (loading || !open) return null;
@@ -197,7 +198,16 @@ export const CompleteProfileModal = () => {
             </Typography>
             {/* text + sanitize (NUNCA type=number): teclado decimal BR manda vírgula e o browser
                 descarta silenciosamente em input[number] — era o "peso não aceita vírgula". */}
-            <TextField label="Altura (cm)" value={heightCm} onChange={(e) => setHeightCm(e.target.value.replace(/[^\d]/g, '').slice(0, 3))} fullWidth required inputProps={{ inputMode: 'numeric' }} />
+            {/* Altura: aceita 172 (cm) OU 1,72 (m) — bug do dono 26/09: antes o campo stripava
+                vírgula/ponto na digitação ("1.72" virava "172" na tela; "1.7" corrompia p/ 17cm). */}
+            <TextField
+              label="Altura"
+              value={heightCm}
+              onChange={(e) => setHeightCm(maskHeightInput(e.target.value))}
+              fullWidth required
+              inputProps={{ inputMode: 'decimal' }}
+              helperText={parseHeightCm(heightCm) ? fmtHeight(parseHeightCm(heightCm)) : 'Ex.: 1,72 ou 172 — convertemos pra você'}
+            />
             <TextField label="Peso atual (kg)" value={weightKg} onChange={(e) => setWeightKg(sanitizeDecimal(e.target.value))} fullWidth inputProps={{ inputMode: 'decimal' }} helperText="Aceita vírgula ou ponto (ex.: 70,5). Vai pras suas Medições — acompanhe a tendência por lá." />
           </Stack>
         )}
