@@ -165,11 +165,13 @@ router.get('/:id/dashboard-summary', async (req: AuthedRequest, res, next) => {
     const pids = await userPatientIds(req.userId!);
     const id = String(req.params.id);
     if (!pids.includes(id)) { res.status(403).json({ error: 'Paciente não pertence ao usuário' }); return; }
-    const [total, last, failed, rejected, flagRows, health, me, user] = await Promise.all([
+    const [total, last, failed, rejected, processing, flagRows, health, me, user] = await Promise.all([
       prisma.exam.count({ where: { patientId: id } }),
       prisma.exam.findFirst({ where: { patientId: id }, orderBy: { performedAt: 'desc' }, select: { performedAt: true } }),
       prisma.exam.count({ where: { patientId: id, status: 'FAILED' } }),
       prisma.exam.count({ where: { patientId: id, status: 'REJECTED' } }),
+      // Em processamento (E1): alimenta a strip "analisando… há 1:32" do dashboard.
+      prisma.exam.findMany({ where: { patientId: id, status: { in: ['UPLOADED', 'EXTRACTING'] } }, orderBy: { createdAt: 'asc' }, select: { createdAt: true } }),
       prisma.examItem.findMany({ where: { exam: { patientId: id, status: 'EXTRACTED' } }, select: { flag: true, exam: { select: { rawExtraction: true } } } }),
       getCachedHealthSummary(id).catch(() => null),
       prisma.patient.findUnique({ where: { id }, select: { id: true, fullName: true, relationship: true } }),
@@ -182,7 +184,8 @@ router.get('/:id/dashboard-summary', async (req: AuthedRequest, res, next) => {
     }
     const hd: any = health;
     res.json({
-      exams: { total, lastExamAt: last?.performedAt ?? null, failed, rejected },
+          exams: { total, lastExamAt: last?.performedAt ?? null, failed, rejected },
+      processing: { count: processing.length, oldestAt: processing[0]?.createdAt ?? null },
       buckets: { bons: c.NORMAL ?? 0, alerta: c.LOW ?? 0, alterados: (c.HIGH ?? 0) + (c.ABNORMAL ?? 0) + (c.CRITICAL ?? 0) },
       health: hd ? {
         score: hd.score ?? null,

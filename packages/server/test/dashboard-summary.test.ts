@@ -28,6 +28,8 @@ describe('GET /api/patients/:id/dashboard-summary', () => {
     const e2 = await createExam(patient.id, { performedAt: new Date('2026-02-20T00:00:00Z') });
     await createExam(patient.id, { status: 'FAILED', performedAt: new Date('2026-03-01T00:00:00Z') });
     await createExam(patient.id, { status: 'REJECTED' });
+    // E1: um em processamento alimenta a strip "analisando… há X" do dashboard.
+    await createExam(patient.id, { status: 'EXTRACTING' });
     await seedItem(e1.id, 'Glicose', 'NORMAL');
     await seedItem(e1.id, 'LDL', 'HIGH', 150);
     await seedItem(e2.id, 'TSH', 'LOW', 0.2);
@@ -36,10 +38,13 @@ describe('GET /api/patients/:id/dashboard-summary', () => {
     const r = await api().get(`/api/patients/${patient.id}/dashboard-summary`).set(H(token));
     expect(r.status).toBe(200);
     // exams: total = TODOS (qualquer status, como a lista); lastExamAt = performedAt desc.
-    expect(r.body.exams.total).toBe(4);
+    expect(r.body.exams.total).toBe(5); // 4 anteriores + 1 EXTRACTING (strip E1)
     expect(new Date(r.body.exams.lastExamAt).toISOString()).toBe('2026-03-01T00:00:00.000Z');
     expect(r.body.exams.failed).toBe(1);
     expect(r.body.exams.rejected).toBe(1);
+    // E1 — processando: count + createdAt do mais antigo (elapsed real na UI).
+    expect(r.body.processing.count).toBe(1);
+    expect(r.body.processing.oldestAt).toBeTruthy();
     // buckets: mesma régua do flag-summary (HIGH+ABNORMAL+CRITICAL = alterados).
     expect(r.body.buckets).toEqual({ bons: 2, alerta: 1, alterados: 1 });
     // health (Layer 2) presente com o essencial do dashboard.

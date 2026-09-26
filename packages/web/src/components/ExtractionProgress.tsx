@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { Box, Typography, LinearProgress, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { DrExame } from './DrExame';
+import { API_URL, token } from '../config';
 
 const STEPS = [
   { msg: 'Lendo o documento…', emoji: '📄' },
@@ -17,14 +18,27 @@ const STEPS = [
  *  telas e voltar. O timer reduz ansiedade (sabe QUANTO tempo tá passando, não só um spinner).
  *  `startedAt` (createdAt do exame) faz o elapsed/step derivarem do TEMPO REAL desde o envio
  *  → NÃO zera quando o user sai da tela e volta (antes era state local que reiniciava em 0). */
-export const ExtractionProgress = ({ startedAt }: { startedAt?: string }) => {
+export const ExtractionProgress = ({ startedAt, examId }: { startedAt?: string; examId?: string }) => {
   const navigate = useNavigate();
   const [now, setNow] = useState(() => Date.now());
+  const [cancelling, setCancelling] = useState(false);
   const mountMs = useRef(Date.now()).current;
   useEffect(() => {
     const elapsedTimer = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(elapsedTimer);
   }, []);
+
+  // E3 — watchdog honesto: depois de 5 min a copy ADMITE que pode ter travado e oferece
+  // saída (cancelar e reenviar). Antes as mensagens giravam pra sempre e o usuário nunca
+  // sabia se estava travado (queixa do dono 26/09). (stalled calculado após elapsed.)
+  const cancelAndResend = async () => {
+    if (!examId || cancelling) return;
+    setCancelling(true);
+    try {
+      await fetch(`${API_URL}/exams/${examId}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });
+    } catch { /* já segue pro upload — o exame órfão pode ser apagado na lista */ }
+    navigate('/exams/create');
+  };
 
   // startMs = tempo do envio (se tiver startedAt) ou do mount (fallback). elapsed = real, persiste.
   const startMs = startedAt ? new Date(startedAt).getTime() : mountMs;
@@ -34,6 +48,7 @@ export const ExtractionProgress = ({ startedAt }: { startedAt?: string }) => {
   const mins = Math.floor(elapsed / 60);
   const secs = elapsed % 60;
   const timeStr = `${mins}:${secs.toString().padStart(2, '0')}`;
+  const stalled = elapsed >= 300; // 5 min sem concluir = watchdog honesto
 
   return (
     <Box sx={{ textAlign: 'center', py: 5, px: 3, mt: 2, borderRadius: '12px', background: 'linear-gradient(135deg, rgba(32,178,170,.06), rgba(99,102,241,.04))', border: '1px solid rgba(0,0,0,.06)' }}>
@@ -60,9 +75,10 @@ export const ExtractionProgress = ({ startedAt }: { startedAt?: string }) => {
 
       {/* Mensagem contextual baseada no tempo */}
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2, lineHeight: 1.5 }}>
-        {elapsed < 30 && 'Normalmente leva de 1 a 3 minutos. ⏱️'}
-        {elapsed >= 30 && elapsed < 90 && 'Quase lá! O Dr. Exame está conferindo cada detalhe. 🔍'}
-        {elapsed >= 90 && 'Tá demorando um pouco mais que o normal, mas continua trabalhando. ⏳'}
+        {!stalled && elapsed < 30 && 'Normalmente leva de 1 a 3 minutos. ⏱️'}
+        {!stalled && elapsed >= 30 && elapsed < 90 && 'Quase lá! O Dr. Exame está conferindo cada detalhe. 🔍'}
+        {!stalled && elapsed >= 90 && 'Tá demorando um pouco mais que o normal, mas continua trabalhando. ⏳'}
+        {stalled && <>Isto está demorando <b>mais que o esperado</b> — pode ter travado do nosso lado. Cancelar e reenviar resolve na maioria das vezes, e seus créditos voltam se algo falhar. 💚</>}
         <br />
         <b>Pode usar o app normalmente</b> — ele avisa quando terminar. 🔔
       </Typography>
@@ -71,6 +87,13 @@ export const ExtractionProgress = ({ startedAt }: { startedAt?: string }) => {
       <Button size="small" onClick={() => navigate('/exams')} sx={{ textTransform: 'none', fontWeight: 700, color: '#178f89', borderRadius: '999px', px: 2.5, py: 0.75, border: '1px solid', borderColor: 'rgba(32,178,170,.3)' }}>
         Ver meus exames →
       </Button>
+
+      {/* E3 — saída de emergência após 5 min (travou de verdade?): cancela e reenvia. */}
+      {stalled && examId && (
+        <Button size="small" disabled={cancelling} onClick={cancelAndResend} sx={{ display: 'block', mx: 'auto', mt: 1, textTransform: 'none', fontWeight: 700, color: 'error.main', borderRadius: '999px', px: 2.5, py: 0.75 }}>
+          {cancelling ? 'Cancelando…' : 'Cancelar e reenviar exame'}
+        </Button>
+      )}
 
       <style>{`
         @keyframes drBob{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-8px) rotate(-3deg)}}

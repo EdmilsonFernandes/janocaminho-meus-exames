@@ -31,6 +31,7 @@ export const DEMO_DASHBOARD = {
   stats: { exams: 6, abnormal: 5 },
   failed: 0,
   lastExam: daysAgo(12),
+  processing: null, // E1: strip só com dado real — demo jamais "analisando"
   buckets: { bons: 24, alerta: 3, alterados: 2 },
   score: 78,
   prevScore: null, // nunca exibe ganho no demo (guard `demo ? 0 :` no scoreGain)

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Stack, Typography, Box, Grid, useTheme, Skeleton, Dialog, DialogTitle, DialogContent, DialogActions, Button, LinearProgress } from '@mui/material';
+import { Stack, Typography, Box, Grid, useTheme, Skeleton, Dialog, DialogTitle, DialogContent, DialogActions, Button, LinearProgress, CircularProgress } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { API_URL, token } from '../../config';
 import { SEM, copperText } from '../../theme';
@@ -35,6 +35,7 @@ import { DEMO_DASHBOARD, DEMO_CHRONO_AGE } from './demoData';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { getGoals, goalSubtitle } from '../GoalQuiz';
@@ -75,6 +76,8 @@ function useDashboardData(pid: string | null) {
   const [worsened, setWorsened] = useState<Marker[]>([]);
   const [improved, setImproved] = useState<Marker[]>([]);
   const [staleWarning, setStaleWarning] = useState('');
+  // E1: exames em processamento (UPLOADED/EXTRACTING) — strip global do dashboard.
+  const [processing, setProcessing] = useState<{ count: number; oldestAt: string | null } | null>(null);
   // Idade biológica: espelha o MESMO /health-summary que o hook já busca (o tile não refaz o GET).
   const [bio, setBio] = useState<any>(null);
   const [bioAvail, setBioAvail] = useState<any>(null);
@@ -112,6 +115,7 @@ function useDashboardData(pid: string | null) {
           setLastExam(d.exams?.lastExamAt ?? null);
           setFailed(d.exams?.failed ?? 0);
           setRejected(d.exams?.rejected ?? 0);
+          setProcessing(d.processing && typeof d.processing.count === 'number' ? d.processing : null);
           if (d.buckets) {
             setBuckets(d.buckets);
             try { localStorage.setItem(`dashScore:${pid}`, JSON.stringify(d.buckets)); } catch { /* ignore */ }
@@ -152,7 +156,7 @@ function useDashboardData(pid: string | null) {
     })();
   }, [pid]);
 
-  return { stats, failed, lastExam, buckets, score, prevScore, importante, moderada, cardioRisk, markerCount, credits, me, loaded, worsened, improved, staleWarning, availability, rejected, bio, bioAvail, hsLoaded };
+  return { stats, failed, lastExam, buckets, score, prevScore, importante, moderada, cardioRisk, markerCount, credits, me, loaded, worsened, improved, staleWarning, availability, rejected, bio, bioAvail, hsLoaded, processing };
 }
 
 const statusFromScore = (s: number | null): { label: string; tone: 'primary' | 'success' | 'warning' | 'error' } => {
@@ -222,6 +226,35 @@ const Sparkle = ({ top, left, delay, size = 4 }: { top: string; left: string; de
     animation: `dxSparkle ${3 + delay}s ease-in-out ${delay}s infinite`,
     pointerEvents: 'none', ...SPARKLE_KF,
   }} />
+  );
+};
+
+/** E1 — strip "analisando… há 1:32" no dashboard: sinal GLOBAL de exame em processamento.
+ *  Antes só existia na lista de exames — quem ficava no painel não sabia onde estava a
+ *  análise (ansiedade "cadê meu exame?"). Elapsed deriva do createdAt real do exame. */
+const ProcessingStrip = ({ count, oldestAt, onClick }: { count: number; oldestAt: string | null; onClick: () => void }) => {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => { const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, []);
+  const start = oldestAt ? new Date(oldestAt).getTime() : 0;
+  const elapsed = start ? Math.max(0, Math.floor((now - start) / 1000)) : 0;
+  const mm = Math.floor(elapsed / 60);
+  const ss = (elapsed % 60).toString().padStart(2, '0');
+  return (
+    <AppCard kind="interactive" onClick={onClick} sx={{ p: 1.5, mb: 2, borderRadius: '16px', display: 'flex', alignItems: 'center', gap: 1.5 }}>
+      <Box sx={{ position: 'relative', flexShrink: 0, width: 40, height: 40, display: 'grid', placeItems: 'center' }}>
+        <CircularProgress size={34} thickness={4.5} sx={{ color: 'info.main', position: 'absolute' }} />
+        <Box sx={{ fontSize: 15 }}>🤖</Box>
+      </Box>
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Typography sx={{ fontWeight: 800, fontSize: 14, color: 'text.primary' }}>
+          {count === 1 ? 'Dr. Exame está analisando seu exame' : `Dr. Exame está analisando ${count} exames`}
+        </Typography>
+        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+          {start ? `há ${mm}:${ss}` : 'agora'} · toque para acompanhar · pode usar o app normalmente
+        </Typography>
+      </Box>
+      <ChevronRightIcon sx={{ color: 'text.disabled', flexShrink: 0 }} />
+    </AppCard>
   );
 };
 
@@ -625,6 +658,10 @@ export const DashboardV2 = () => {
       <DashboardHeader firstName={firstName} />
       <FailedExamsAlert count={d.failed} onClick={() => navigate('/exams')} />
       <RejectedExamsAlert count={d.rejected} onClick={() => navigate('/exams')} />
+      {/* E1 — sinal global de análise em andamento (o exame não "some" ao sair da lista). */}
+      {!demo && d.processing && d.processing.count > 0 && (
+        <ProcessingStrip count={d.processing.count} oldestAt={d.processing.oldestAt} onClick={() => navigate('/exams')} />
+      )}
 
       {/* MODO EXEMPLO — banner sempre visível: dado fictício nunca pode passar por seu. */}
       {demo && (

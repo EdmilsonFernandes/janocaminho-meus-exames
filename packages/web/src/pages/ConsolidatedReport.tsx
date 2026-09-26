@@ -132,6 +132,9 @@ export const ConsolidatedReportPage = () => {
   const [error, setError] = useState('');
   const [noCredits, setNoCredits] = useState(false);
   const [noExams, setNoExams] = useState(false);
+  // R2: geração em andamento em OUTRA sessão/visita (registry server-side) — quem sai
+  // durante a geração e volta vê o aviso em vez do relatório antigo sem explicação.
+  const [generatingSince, setGeneratingSince] = useState<number | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
   // Frente C: tick das perguntas do relatório pra levar ao médico + envio (cria DoctorQuestion + email).
   const [tickQ, setTickQ] = useState<Record<number, boolean>>({});
@@ -242,13 +245,28 @@ export const ConsolidatedReportPage = () => {
     } catch { hapticError(); setSend({ status: 'error', msg: 'Sem conexão. Tente novamente.' }); }
   };
 
-  // Carrega o ÚLTIMO relatório salvo ao entrar (não repensa a cada visita — economiza créditos)
+  // Carrega o ÚLTIMO relatório salvo ao entrar (não repensa a cada visita — economiza créditos).
+  // Se houver geração EM ANDAMENTO (registry server-side), avisa e POLLA até ficar pronta.
   useEffect(() => {
     if (!pid) return;
-    fetch(`${API_URL}/analyses/consolidated/latest?patientId=${pid}`, { headers: apiHeaders() })
+    let dead = false;
+    let poll: ReturnType<typeof setInterval> | undefined;
+    const load = () => fetch(`${API_URL}/analyses/consolidated/latest?patientId=${pid}`, { headers: apiHeaders() })
       .then((r) => (r.ok ? r.json() : null))
-      .then((d) => { if (d?.analysis) setAnalysis({ ...d.analysis, sourceExams: d.sourceExams ?? [] }); })
+      .then((d) => {
+        if (dead || !d) return;
+        if (d?.analysis) setAnalysis({ ...d.analysis, sourceExams: d.sourceExams ?? [] });
+        if (d?.generating) {
+          setGeneratingSince(d.generating);
+          if (!poll) poll = setInterval(load, 10_000); // ficou pronta noutro lugar → aparece aqui
+        } else {
+          setGeneratingSince(null);
+          if (poll) { clearInterval(poll); poll = undefined; }
+        }
+      })
       .catch(() => {});
+    load();
+    return () => { dead = true; if (poll) clearInterval(poll); };
   }, [pid]);
 
   const [confirmSpend, setConfirmSpend] = useState<{ open: boolean; onYes: () => void }>({ open: false, onYes: () => {} });
@@ -602,7 +620,22 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
       <ConfirmSpend open={confirmSpend.open} credits={CREDIT_COSTS.consolidated} title={translate('report.generate_new')}
         desc="Vamos analisar seus exames mais recentes com a IA e gerar um relatório completo."
         onClose={() => setConfirmSpend(s => ({ ...s, open: false }))} onConfirm={confirmSpend.onYes} />
-      {loading && <BootSplash title={translate('report.generating')} messages={['Analisando seu histórico de exames…', 'Cruzando dados laboratoriais…', 'Identificando tendências…', 'Preparando insights…']} />}
+      {loading && (
+        <BootSplash
+          title={translate('report.generating')}
+          messages={['Analisando seu histórico de exames…', 'Cruzando dados laboratoriais…', 'Identificando tendências…', 'Preparando insights…']}
+          footNote="Pode sair e continuar usando o app — a geração continua no servidor e o relatório fica salvo aqui. 🔒"
+          leaveLabel="Continuar usando o app"
+          onLeave={() => navigate('/')}
+        />
+      )}
+
+      {/* R2 — voltou durante uma geração que começou antes: mostra QUE está atualizando. */}
+      {!loading && generatingSince && (
+        <Alert severity="info" icon={<CircularProgress size={16} sx={{ color: 'info.main', mt: 0.4 }} />} sx={{ mb: 2, borderRadius: '14px', py: 0.9, '& .MuiAlert-message': { fontSize: 13.5 } }}>
+          <b>Atualização em andamento</b> — o relatório segue sendo gerado e aparece aqui automaticamente. Pode continuar usando o app.
+        </Alert>
+      )}
     </PageContainer>
   );
 };

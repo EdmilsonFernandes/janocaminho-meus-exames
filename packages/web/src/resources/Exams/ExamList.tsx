@@ -54,16 +54,26 @@ const yearOf = (r: any): number | null => {
 };
 
 /** Cartão de exame EM PROCESSAMENTO (UPLOADED/EXTRACTING) — sempre no TOPO da lista.
- *  Barra indeterminada (não há % real no servidor). Toca pra acompanhar a extração. */
+ *  Barra indeterminada (não há % real no servidor). Toca pra acompanhar a extração.
+ *  E2: tempo decorrido INLINE (criação real do exame) — sem precisar entrar no detalhe
+ *  pra saber "há quanto tempo está analisando" (queixa do dono 26/09). */
 const ProcessingCard = ({ r, onCancel }: { r: any; onCancel?: (e: any) => void }) => {
   const navigate = useNavigate();
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => { const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, []);
+  const start = r.createdAt ? new Date(r.createdAt).getTime() : 0;
+  const elapsed = start ? Math.max(0, Math.floor((now - start) / 1000)) : 0;
+  const mm = Math.floor(elapsed / 60);
+  const ss = (elapsed % 60).toString().padStart(2, '0');
   return (
     <AppCard kind="interactive" onClick={() => navigate(`/exams/${r.id}/show`)} sx={{ overflow: 'hidden' }}>
       <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, '&:last-child': { pb: 1.5 } }}>
         <CircularProgress size={32} thickness={5} sx={{ color: 'info.main', flexShrink: 0 }} />
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography sx={{ fontWeight: 700, wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.2 }}>{r.title || 'Novo exame enviado'}</Typography>
-          <Typography variant="caption" color="text.secondary">Dr. Exame está extraindo… toque para acompanhar</Typography>
+          <Typography variant="caption" color="text.secondary">
+            Dr. Exame está extraindo… {start ? <Box component="span" sx={{ fontWeight: 700, fontFamily: 'monospace' }}>há {mm}:{ss}</Box> : null} · toque para acompanhar
+          </Typography>
         </Box>
         {onCancel && <IconButton size="small" onClick={(e) => { e.stopPropagation(); onCancel(e); }} title="Cancelar e excluir" aria-label="Cancelar e excluir exame" sx={{ flexShrink: 0, color: 'text.secondary', p: 1.25 }}><CloseIcon fontSize="small" /></IconButton>}
         <ChevronRightIcon sx={{ color: 'text.disabled', flexShrink: 0 }} />

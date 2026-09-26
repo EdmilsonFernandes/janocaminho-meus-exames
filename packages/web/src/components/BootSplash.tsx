@@ -25,11 +25,18 @@ export const BootSplash = ({
   subtitle,
   messages,
   isExiting = false,
+  footNote,
+  leaveLabel,
+  onLeave,
 }: {
   title?: string;
   subtitle?: string;
   messages?: string[];
   isExiting?: boolean;
+  /** Esperas que CONTINUAM server-side: avisa que pode sair sem perder (anti-ansiedade). */
+  footNote?: string;
+  leaveLabel?: string;
+  onLeave?: () => void;
 }) => {
   const { text: rotatingMsg, key: msgKey } = useRotatingText(messages && messages.length > 1 ? messages : []);
   const currentSub = messages && messages.length ? rotatingMsg : subtitle ?? 'Seu assistente de saúde com IA';
@@ -239,6 +246,27 @@ export const BootSplash = ({
             </Typography>
           </Box>
         </Box>
+
+        {/* Rodapé opcional: "pode sair" (esperas que continuam server-side — anti-ansiedade). */}
+        {(footNote || (leaveLabel && onLeave)) && (
+          <Box sx={{ mt: 2.5, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.25, zIndex: 2 }}>
+            {footNote && (
+              <Typography sx={{ fontSize: 12.5, color: 'rgba(204,251,241,.78)', maxWidth: 330, lineHeight: 1.55, px: 2, textWrap: 'balance' }}>
+                {footNote}
+              </Typography>
+            )}
+            {leaveLabel && onLeave && (
+              <Box
+                component="button"
+                type="button"
+                onClick={onLeave}
+                sx={{ px: 2.5, py: 0.85, borderRadius: '999px', border: '1px solid rgba(45,212,191,.45)', bgcolor: 'rgba(45,212,191,.10)', color: '#ccfbf1', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', '&:hover': { bgcolor: 'rgba(45,212,191,.18)' } }}
+              >
+                {leaveLabel} →
+              </Box>
+            )}
+          </Box>
+        )}
 
         {/* --- Monitor de ECG Neon em Tempo Real --- */}
         <Box sx={{ position: 'relative', width: 220, height: 32, mt: 1 }}>

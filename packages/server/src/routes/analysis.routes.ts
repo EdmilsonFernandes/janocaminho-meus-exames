@@ -122,6 +122,7 @@ router.post('/consolidated', async (req: AuthedRequest, res, next) => {
       res.status(402).json({ error: 'insufficient_credits', message: 'Sem créditos suficientes. Compre um pacote para gerar o relatório completo.' });
       return;
     }
+    generatingReports.set(patientId, Date.now()); // R2: visita de volta sabe que está gerando
     try {
       const { summary, contentMd, modelUsed, usage } = await generateConsolidatedSummary(patientId);
       // UPSERT: 1 resumo consolidado por paciente (atualiza o existente em vez de acumular duplicatas).
@@ -141,6 +142,8 @@ router.post('/consolidated', async (req: AuthedRequest, res, next) => {
         return;
       }
       throw genErr;
+    } finally {
+      generatingReports.delete(patientId);
     }
   } catch (e: any) {
     console.error('[consolidated] erro ao gerar:', e?.status, e?.message);
@@ -152,12 +155,17 @@ router.post('/consolidated', async (req: AuthedRequest, res, next) => {
   }
 });
 
+// R2 — registry EM MEMÓRIA de gerações em andamento: quem sai da tela durante a geração e
+// volta vê "⏳ atualização sendo gerada" em vez do relatório antigo sem explicação. A IA
+// roda server-side independente do cliente; o registry só informa QUEM está pendente.
+const generatingReports = new Map<string, number>();
+
 // ÚLTIMO relatório consolidado salvo (não regenera — só mostra o que já existe, economiza créditos)
 router.get('/consolidated/latest', async (req: AuthedRequest, res, next) => {
   try {
     const pids = await userPatientIds(req.userId!);
     const patientId = String(req.query.patientId ?? '');
-    if (!patientId || !pids.includes(patientId)) { res.json({ analysis: null, sourceExams: [] }); return; }
+    if (!patientId || !pids.includes(patientId)) { res.json({ analysis: null, sourceExams: [], generating: null }); return; }
     const sourceExams = dedupSourceExams(await prisma.exam.findMany({
       where: { patientId, status: 'EXTRACTED' },
       orderBy: { performedAt: 'desc' },
@@ -165,7 +173,7 @@ router.get('/consolidated/latest', async (req: AuthedRequest, res, next) => {
       select: { id: true, title: true, performedAt: true, sourceLab: true, kind: true },
     })).slice(0, 5);
     const last = await prisma.aiAnalysis.findFirst({ where: { patientId, type: 'SUMMARY', examId: null, userMessage: null }, orderBy: { createdAt: 'desc' } });
-    res.json({ analysis: last, sourceExams });
+    res.json({ analysis: last, sourceExams, generating: generatingReports.get(patientId) ?? null });
   } catch (e) { next(e); }
 });
 

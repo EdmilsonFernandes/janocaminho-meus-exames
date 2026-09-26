@@ -328,7 +328,7 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
             </Alert>
           )}
           {(exam.status === 'UPLOADED' || exam.status === 'EXTRACTING') && (
-            <ExtractionProgress startedAt={exam.createdAt} />
+            <ExtractionProgress startedAt={exam.createdAt} examId={exam.id} />
           )}
         </CardContent>
       </Card>

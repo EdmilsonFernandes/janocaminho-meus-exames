@@ -41,21 +41,45 @@ interface ItemRow {
  * normaliza os nomes canônicos -> calcula as flags -> persiste itens + JSON bruto.
  * Idempotente: pode ser re-rodado (reextract).
  */
+/** Timeout duro por tentativa: relay da IA em HANG (sem crash) deixava o exame EXTRACTING
+ *  para sempre — o sweeper de boot só cobre restart do processo. 5 min/tentativa ≈ pior
+ *  caso 15min + backoff, depois vira FAILED com mensagem honesta. */
+const LLM_TIMEOUT_MS = 5 * 60_000;
+
 // Extração PARALELA (vários exames ao mesmo tempo) + 3 tentativas + erro amigável (sem stack pro usuário).
 export async function runExtraction(examId: string): Promise<void> {
   for (let attempt = 1; attempt <= 3; attempt++) {
+    let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
     try {
-      await runExtractionOnce(examId);
+      await Promise.race([
+        runExtractionOnce(examId),
+        new Promise<never>((_, reject) => {
+          timeoutHandle = setTimeout(() => reject(new Error('ia_timeout')), LLM_TIMEOUT_MS);
+        }),
+      ]);
       return;
     } catch (e: any) {
       console.warn(`[extraction] ${examId} tentativa ${attempt}/3 falhou:`, e?.message);
+      const timedOut = e?.message === 'ia_timeout';
       if (attempt >= 3) {
         try {
-          await prisma.exam.update({ where: { id: examId }, data: { status: 'FAILED', failureKind: 'ia_error', extractionError: 'Não conseguimos ler este exame agora. Toque em "Re-extrair" para tentar de novo.' } });
+          await prisma.exam.update({
+            where: { id: examId },
+            data: {
+              status: 'FAILED',
+              failureKind: timedOut ? 'ia_timeout' : 'ia_error',
+              // Timeout = mensagem própria (o exame PODE estar ok — convida reenviar).
+              extractionError: timedOut
+                ? 'A análise demorou mais que o esperado. Toque em "Re-extrair" — normalmente resolve de primeira.'
+                : 'Não conseguimos ler este exame agora. Toque em "Re-extrair" para tentar de novo.',
+            },
+          });
         } catch { /* */ }
         return; // não propaga erro cru
       }
       await new Promise((r) => setTimeout(r, 2500 * attempt));
+    } finally {
+      if (timeoutHandle) clearTimeout(timeoutHandle);
     }
   }
 }
@@ -164,6 +188,16 @@ async function runExtractionOnce(examId: string): Promise<void> {
             raw.identityMatch.severity = 'cross_user';
           }
         }
+      }
+    }
+
+    // GUARDA ANTI-CORRIDA (timeout de tentativa): a IA demorou > timeout, o runExtraction
+    // já marcou FAILED — esta tentativa órfã NÃO sobrescreve o status nem persiste itens.
+    {
+      const cur = await prisma.exam.findUnique({ where: { id: examId }, select: { status: true } });
+      if (cur && cur.status !== 'EXTRACTING') {
+        console.warn(`[extraction] ${examId} tentativa concluída tarde demais (status atual: ${cur.status}) — descartando persistência`);
+        return;
       }
     }
 
