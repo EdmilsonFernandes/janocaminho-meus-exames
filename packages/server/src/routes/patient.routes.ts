@@ -17,9 +17,24 @@ import { buildCurrentHealthSummary } from '../analysis/health-state';
 // (delete de exame, extração, edição de item) — antes o painel mostrava dado morto por 5 min.
 import { getCachedHealthSummary } from '../analysis/hs-cache';
 import { encryptedCpfData, maskStoredCpf } from '../utils/cpf';
+import { isCpfMismatch } from '../utils/examIdentity';
 
 const router = Router();
 router.use(requireAuth);
+
+// MODO EXEMPLO — medição de conversão (R1 da pesquisa de ativação): started = entrou no
+// demo; converted = clicou "Usar meu exame". Contadores em AppSetting (chave demoMetrics).
+router.post('/demo-event', async (req: AuthedRequest, res, next) => {
+  try {
+    const type = String((req.body as any)?.type);
+    if (type !== 'started' && type !== 'converted') { res.status(400).json({ error: 'type inválido' }); return; }
+    const row = await prisma.appSetting.findUnique({ where: { key: 'demoMetrics' } });
+    const cur = (row?.value as any) ?? {};
+    const next = { started: Number(cur.started ?? 0) + (type === 'started' ? 1 : 0), converted: Number(cur.converted ?? 0) + (type === 'converted' ? 1 : 0) };
+    await prisma.appSetting.upsert({ where: { key: 'demoMetrics' }, create: { key: 'demoMetrics', value: next as any }, update: { value: next as any } });
+    res.json({ ok: true });
+  } catch (e) { next(e); }
+});
 
 function serializePatient<T extends Record<string, any>>(patient: T | null): any {
   if (!patient) return patient;
@@ -137,6 +152,52 @@ router.get('/:id/health-summary', async (req: AuthedRequest, res, next) => {
     const id = String(req.params.id);
     if (!pids.includes(id)) { res.status(403).json({ error: 'Paciente não pertence ao usuário' }); return; }
     res.json(await getCachedHealthSummary(id));
+  } catch (e) { next(e); }
+});
+
+// DASHBOARD-SUMMARY (1 round-trip) — consolida os 8 GETs que o Dashboard V2 fazia no load
+// (exams×2, failed, rejected, flag-summary, health-summary, patients, billing). Em 3G o
+// first paint do APK pagava 8 RTTs; agora paga 1. Mesma semântica de cada fonte (drift-zero
+// na UI): counts espelham as queries originais, buckets = flag-summary (mesma exclusão de
+// CPF divergente), health = Layer 2 cacheada, credits = user.credits.
+router.get('/:id/dashboard-summary', async (req: AuthedRequest, res, next) => {
+  try {
+    const pids = await userPatientIds(req.userId!);
+    const id = String(req.params.id);
+    if (!pids.includes(id)) { res.status(403).json({ error: 'Paciente não pertence ao usuário' }); return; }
+    const [total, last, failed, rejected, flagRows, health, me, user] = await Promise.all([
+      prisma.exam.count({ where: { patientId: id } }),
+      prisma.exam.findFirst({ where: { patientId: id }, orderBy: { performedAt: 'desc' }, select: { performedAt: true } }),
+      prisma.exam.count({ where: { patientId: id, status: 'FAILED' } }),
+      prisma.exam.count({ where: { patientId: id, status: 'REJECTED' } }),
+      prisma.examItem.findMany({ where: { exam: { patientId: id, status: 'EXTRACTED' } }, select: { flag: true, exam: { select: { rawExtraction: true } } } }),
+      getCachedHealthSummary(id).catch(() => null),
+      prisma.patient.findUnique({ where: { id }, select: { id: true, fullName: true, relationship: true } }),
+      prisma.user.findUnique({ where: { id: req.userId! }, select: { credits: true } }),
+    ]);
+    const c: Record<string, number> = {};
+    for (const r of flagRows) {
+      if (isCpfMismatch((r.exam as any).rawExtraction)) continue;
+      c[r.flag] = (c[r.flag] ?? 0) + 1;
+    }
+    const hd: any = health;
+    res.json({
+      exams: { total, lastExamAt: last?.performedAt ?? null, failed, rejected },
+      buckets: { bons: c.NORMAL ?? 0, alerta: c.LOW ?? 0, alterados: (c.HIGH ?? 0) + (c.ABNORMAL ?? 0) + (c.CRITICAL ?? 0) },
+      health: hd ? {
+        score: hd.score ?? null,
+        byPriority: hd.byPriority ?? null,
+        cardiometabolicRisk: hd.cardiometabolicRisk ?? null,
+        availability: hd.availability ?? null,
+        markers: hd.markers ?? 0,
+        staleWarning: hd.staleWarning ?? null,
+        worsening: hd.worsening ?? [],
+        improving: hd.improving ?? [],
+        biologicalAge: hd.biologicalAge ?? null,
+      } : null,
+      me,
+      credits: user?.credits ?? null,
+    });
   } catch (e) { next(e); }
 });
 

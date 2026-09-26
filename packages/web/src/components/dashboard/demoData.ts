@@ -33,6 +33,7 @@ export const DEMO_DASHBOARD = {
   lastExam: daysAgo(12),
   buckets: { bons: 24, alerta: 3, alterados: 2 },
   score: 78,
+  prevScore: null, // nunca exibe ganho no demo (guard `demo ? 0 :` no scoreGain)
   importante: 1,
   moderada: 2,
   cardioRisk: { level: 'moderado', factors: [{ risk: true }, { risk: true }] },

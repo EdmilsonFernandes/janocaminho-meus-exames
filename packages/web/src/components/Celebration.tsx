@@ -74,12 +74,34 @@ export const Celebration = ({ open, firstName, onDone, onCta }: {
   onDone: () => void;
   onCta: () => void;
 }) => {
+  // A11y (review multi-lente): foco inicial no CTA primário, TRAP de Tab dentro do dialog,
+  // Escape fecha e o foco VOLTA pra quem abriu. Hooks ANTES do early-return (regra #310).
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const primaryRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const restore = document.activeElement as HTMLElement | null;
+    const t = setTimeout(() => primaryRef.current?.focus(), 80); // depois do pop-in
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { e.stopPropagation(); onDone(); return; }
+      if (e.key !== 'Tab') return;
+      const focusables = Array.from(overlayRef.current?.querySelectorAll<HTMLElement>('button:not([disabled])') ?? []);
+      if (!focusables.length) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    };
+    document.addEventListener('keydown', onKey, true);
+    return () => { clearTimeout(t); document.removeEventListener('keydown', onKey, true); restore?.focus?.(); };
+  }, [open, onDone]);
   if (!open) return null;
   // PORTAL pro body: sem isto o overlay fica preso no stacking context da página e
   // dialogs MUI (portaled, z1300) pintam POR CIMA e engolem os cliques (bug do QA).
   // SSR (renderToString) renderiza in-place — contrato de teste continua válido.
   const overlay = (
     <Box
+      ref={overlayRef}
       role="dialog"
       aria-modal="true"
       aria-label="Celebração do primeiro exame"
@@ -132,7 +154,7 @@ export const Celebration = ({ open, firstName, onDone, onCta }: {
           O Dr. Exame já leu tudo e montou a sua visão de saúde. Bora ver o resultado?
         </Typography>
         <Stack spacing={1.25} sx={{ mt: 2.5 }}>
-          <GradientButton onClick={onCta} sx={{ width: '100%', py: 1.2, fontSize: 15 }}>
+          <GradientButton ref={primaryRef} onClick={onCta} sx={{ width: '100%', py: 1.2, fontSize: 15 }}>
             Ver minha análise
           </GradientButton>
           <Button onClick={onDone} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, color: 'text.secondary' }}>

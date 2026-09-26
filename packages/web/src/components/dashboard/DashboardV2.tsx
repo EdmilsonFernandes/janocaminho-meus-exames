@@ -99,73 +99,50 @@ function useDashboardData(pid: string | null) {
     (async () => {
       const h = { Authorization: `Bearer ${token()}` };
       const pidQ = pid ? `&patientId=${pid}` : '';
-      // Fetches independentes em PARALELO (antes: 7 awaits encadeados — o score só pintava
-      // depois de TODOS responderem, lento em 3G). Catch por bloco: uma falha isolada não
-      // derruba o resto; setLoaded roda no finally de qualquer jeito.
+      // 1 ROUND-TRIP (antes: 8 GETs paralelos — exams×2, failed, rejected, flag-summary,
+      // health-summary, patients, billing). /dashboard-summary consolida tudo no server com
+      // a MESMA semântica de cada fonte. Catch: offline → o cache instantâneo já pintou.
       const jobs: Promise<void>[] = [
-        (async () => { // total de exames + data do último
-          const e = await fetch(`${API_URL}/exams?_start=0&_end=1${pidQ}`, { headers: h });
-          const eData = await e.json().catch(() => []);
-          setStats((s) => ({ ...s, exams: readTotal(e) }));
-          if (Array.isArray(eData) && eData[0]?.performedAt) setLastExam(eData[0].performedAt);
-        })(),
-        (async () => setFailed(readTotal(await fetch(`${API_URL}/exams?_start=0&_end=1&status=FAILED${pidQ}`, { headers: h }))))(),
-        (async () => setRejected(readTotal(await fetch(`${API_URL}/exams?_start=0&_end=1&status=REJECTED${pidQ}`, { headers: h }))))(),
-        // Contagem de alterados VEM DO flag-summary (mesma fonte de /alterados — exclui exames
-        // com CPF divergente). Antes: X-Total-Count de /items?abnormal=true (rota de lista, sem
-        // o filtro) → Home dizia "8 alterados" enquanto /alterados dizia "tudo dentro da faixa".
         (async () => {
-          const fs = await fetch(`${API_URL}/items/flag-summary${pid ? `?patientId=${pid}` : ''}`, { headers: h });
-          if (fs.ok) {
-            const fd = await fs.json();
-            const b = fd.buckets ?? { bons: 0, alerta: 0, alterados: 0 };
-            setBuckets(b);
-            setStats((s) => ({ ...s, abnormal: (b.alerta ?? 0) + (b.alterados ?? 0) }));
-            try { if (pid) localStorage.setItem(`dashScore:${pid}`, JSON.stringify(b)); } catch { /* ignore */ }
-          }
-        })(),
-        // Camada canonical (Layer 2): score dedup-12m + availability + trend real.
-        (async () => {
-          if (!pid) return;
           try {
-            const hs = await fetch(`${API_URL}/patients/${pid}/health-summary`, { headers: h });
-            if (hs.ok) {
-              const hd = await hs.json();
-              if (typeof hd.score === 'number') {
-                setScore(hd.score);
-                try { localStorage.setItem(`dashScoreNum:${pid}`, String(hd.score)); } catch { /* ignore */ }
-              } else {
-                // Sem score canônico agora (ex.: todos os exames eram de terceiro) → NÃO fica
-                // score velho do localStorage (mostrava 93 de dados que não são mais contados).
-                try { localStorage.removeItem(`dashScoreNum:${pid}`); } catch { /* ignore */ }
-                setScore(null);
-              }
-              setImportante(hd.byPriority?.importante ?? 0);
-              setModerada(hd.byPriority?.moderada ?? 0);
-              setCardioRisk(hd.cardiometabolicRisk ?? null);
-              setAvailability(hd.availability ?? null);
-              setMarkerCount(typeof hd.markers === 'number' ? hd.markers : 0);
-              setStaleWarning(hd.staleWarning ?? '');
-              setBio(hd.biologicalAge ?? null);
-              setBioAvail(hd.availability?.biologicalAge ?? null);
-              // "Pioraram" = trend PIOROU mesmo (hd.worsening). Antes alimentava com topAttention
-              // (= alterados, qualquer tendência) — marcador ALTERADO-QUER-MELHORANDO caía nas
-              // DUAS listas (topAttention ∩ improving) e o card mostrava o mesmo valor 2×
-              // (bug da Heloisa: PCR 7.61 "piorou" e "melhorou" ao mesmo tempo).
-              setWorsened(Array.isArray(hd.worsening) ? hd.worsening.slice(0, 3) : []);
-              setImproved(Array.isArray(hd.improving) ? hd.improving.slice(0, 3) : []);
-            }
-          } finally {
-            setHsLoaded(true); // tile Idade Bio sai do '…' mesmo se o health-summary falhar
+          const r = await fetch(`${API_URL}/patients/${pid}/dashboard-summary`, { headers: h });
+          if (!r.ok) return;
+          const d = await r.json();
+          setStats({ exams: d.exams?.total ?? 0, abnormal: (d.buckets?.alerta ?? 0) + (d.buckets?.alterados ?? 0) });
+          setLastExam(d.exams?.lastExamAt ?? null);
+          setFailed(d.exams?.failed ?? 0);
+          setRejected(d.exams?.rejected ?? 0);
+          if (d.buckets) {
+            setBuckets(d.buckets);
+            try { localStorage.setItem(`dashScore:${pid}`, JSON.stringify(d.buckets)); } catch { /* ignore */ }
           }
-        })(),
-        (async () => {
-          const p = await fetch(`${API_URL}/patients`, { headers: h });
-          if (p.ok) { const pd = await p.json(); setMe(Array.isArray(pd) ? (pd.find((x: any) => x.id === pid) ?? pd[0]) : null); }
-        })(),
-        (async () => {
-          const st = await fetch(`${API_URL}/billing/status`, { headers: h });
-          if (st.ok) { const sd = await st.json(); setCredits(typeof sd.credits === 'number' ? sd.credits : null); }
+          const hd: any = d.health;
+          if (hd) {
+            if (typeof hd.score === 'number') {
+              setScore(hd.score);
+              try { localStorage.setItem(`dashScoreNum:${pid}`, String(hd.score)); } catch { /* ignore */ }
+            } else {
+              // Sem score canônico agora → NÃO fica score velho do localStorage.
+              try { localStorage.removeItem(`dashScoreNum:${pid}`); } catch { /* ignore */ }
+              setScore(null);
+            }
+            setImportante(hd.byPriority?.importante ?? 0);
+            setModerada(hd.byPriority?.moderada ?? 0);
+            setCardioRisk(hd.cardiometabolicRisk ?? null);
+            setAvailability(hd.availability ?? null);
+            setMarkerCount(typeof hd.markers === 'number' ? hd.markers : 0);
+            setStaleWarning(hd.staleWarning ?? '');
+            setBio(hd.biologicalAge ?? null);
+            setBioAvail(hd.availability?.biologicalAge ?? null);
+            // "Pioraram" = trend PIOROU mesmo (worsening) — nunca topAttention (bug da Heloisa).
+            setWorsened(Array.isArray(hd.worsening) ? hd.worsening.slice(0, 3) : []);
+            setImproved(Array.isArray(hd.improving) ? hd.improving.slice(0, 3) : []);
+          }
+          setMe(d.me ?? null);
+          setCredits(typeof d.credits === 'number' ? d.credits : null);
+          } finally {
+            setHsLoaded(true); // tile Idade Bio sai do '…' mesmo se o resumo falhar
+          }
         })(),
       ];
       try { await Promise.all(jobs.map((j) => j.catch(() => {}))); } finally { setLoaded(true); }
@@ -575,6 +552,22 @@ export const DashboardV2 = () => {
   // navegar pro vazio (quebraria a ilusão e confundiria).
   const go = (to: string) => (demo ? () => setDemoAsk(true) : () => navigate(to));
 
+  // MEDIÇÃO do modo exemplo (R1): started = entrou; converted = clicou "Usar meu exame"
+  // (1× por sessão de demo — banner e dialog apontam pro mesmo conversor).
+  const demoConvertedRef = useRef(false);
+  const demoEvent = (type: 'started' | 'converted') => {
+    fetch(`${API_URL}/patients/demo-event`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
+      body: JSON.stringify({ type }),
+    }).catch(() => {});
+  };
+  const convertDemo = () => {
+    if (!demoConvertedRef.current) { demoConvertedRef.current = true; demoEvent('converted'); }
+    setDemoAsk(false);
+    navigate('/exams/create');
+  };
+
   useEffect(() => {
     // Offer por PAPEL (paciente): médico matriculado no aparelho não pode calar o offer
     // do paciente (bug: hasEnrollment "qualquer papel" escondia p/ sempre).
@@ -641,7 +634,7 @@ export const DashboardV2 = () => {
           </Typography>
           <Stack direction="row" spacing={1}>
             <Button onClick={() => setDemo(false)} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, px: 2 }}>Sair</Button>
-            <GradientButton onClick={() => navigate('/exams/create')} sx={{ py: 0.9, px: 2.25, fontSize: 13 }}>Usar meu exame</GradientButton>
+            <GradientButton onClick={convertDemo} sx={{ py: 0.9, px: 2.25, fontSize: 13 }}>Usar meu exame</GradientButton>
           </Stack>
         </AppCard>
       )}
@@ -660,7 +653,7 @@ export const DashboardV2 = () => {
           onDetails={go('/tendencias')}
           onFirstExam={() => navigate('/exams/create')}
           onChat={go('/chat')}
-          onDemo={demo ? undefined : () => setDemo(true)}
+          onDemo={demo ? undefined : () => { setDemo(true); demoEvent('started'); }}
         />
       </ScrollReveal>
 
@@ -797,7 +790,7 @@ export const DashboardV2 = () => {
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button onClick={() => setDemoAsk(false)} sx={{ textTransform: 'none', fontWeight: 700 }}>Continuar no exemplo</Button>
-          <GradientButton onClick={() => { setDemoAsk(false); navigate('/exams/create'); }}>Enviar meu exame</GradientButton>
+          <GradientButton onClick={convertDemo}>Enviar meu exame</GradientButton>
         </DialogActions>
       </Dialog>
 
