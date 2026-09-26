@@ -70,6 +70,19 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!-- G2 — ANDROID APP LINKS: links https do nosso domínio (convite do médico no
+                 WhatsApp, e-mail de exame) oferecem/abrem o APP em vez de só navegador.
+                 Verificação total (abrir direto, sem chooser) exige assetlinks.json na RAIZ
+                 do domínio — o arquivo vive em web/public/.well-known/ e o nginx da EC2 deve
+                 servi-lo em https://janocaminho.com.br/.well-known/assetlinks.json (location
+                 de 3 linhas no server block compartilhado). Sem isso: o app aparece no chooser. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="janocaminho.com.br" android:pathPrefix="/minhasaude" />
+            </intent-filter>
             <!-- Atalhos estáticos (long-press no ícone): Cartão de emergência -->
             <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
 

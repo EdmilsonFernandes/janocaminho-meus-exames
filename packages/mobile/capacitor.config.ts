@@ -13,6 +13,16 @@ const config: CapacitorConfig = {
   },
   plugins: {
     Camera: {},
+    // G5 — splash premium: overlay do Capacitor com fade-out (o theme estático do Android
+    // continua no boot frio; o plugin pinta a transição suave pra primeira tela do webview).
+    SplashScreen: {
+      launchShowDuration: 900,
+      launchAutoHide: true,
+      fadeOutDuration: 350,
+      showSpinner: false,
+      backgroundColor: '#031412',
+      androidSplashResourceName: 'splash',
+    },
   },
 };
 

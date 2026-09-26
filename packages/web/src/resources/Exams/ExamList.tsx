@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { List, useListContext, useRefresh, useNotify, useTranslate } from 'react-admin';
+import { track } from '../../utils/analytics';
 import { Chip, Box, CardContent, Typography, IconButton, Stack, LinearProgress, Button, Accordion, AccordionSummary, AccordionDetails, Alert, CircularProgress, TextField, InputAdornment, ToggleButton, ToggleButtonGroup, useTheme, useMediaQuery } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import ScienceIcon from '@mui/icons-material/Science';
@@ -324,6 +325,7 @@ const ExamCards = () => {
       window.dispatchEvent(new Event('creditsChanged'));
       window.dispatchEvent(new Event('notificationsChanged'));
       setBump((b) => b + 1);
+      track('exam_extracted'); // G4 — funil de ativação (no-op sem PostHog)
     }
     prevProcessingRef.current = processingCount;
   }, [processingCount]);

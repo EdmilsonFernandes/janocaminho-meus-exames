@@ -11,6 +11,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@capacitor-community/in-app-review": "^7.1.0",
     "@capacitor-community/text-to-speech": "^6.1.0",
     "@capacitor-mlkit/document-scanner": "^7.5.0",
     "@capacitor/app": "^7.1.2",
@@ -18,8 +19,10 @@
     "@capacitor/camera": "^7.0.5",
     "@capacitor/core": "^7.6.6",
     "@capacitor/filesystem": "^7.1.8",
+    "@capacitor/network": "^7.0.4",
     "@capacitor/push-notifications": "^7.0.0",
     "@capacitor/share": "^7.0.4",
+    "@capacitor/splash-screen": "^7.0.5",
     "@capawesome/capacitor-app-update": "^7.2.0",
     "@capawesome/capacitor-file-picker": "^7.2.0",
     "@capgo/capacitor-social-login": "^7.20.0",
@@ -30,7 +33,9 @@
     "@mui/material": "^7.0.0",
     "@phosphor-icons/react": "^2.1.10",
     "@react-oauth/google": "^0.13.5",
+    "@sentry/capacitor": "^4.4.0",
     "@sentry/react": "^10.59.0",
+    "posthog-js": "^1.434.15",
     "qrcode": "^1.5.4",
     "ra-data-simple-rest": "^5.14.7",
     "react": "^19.2.7",

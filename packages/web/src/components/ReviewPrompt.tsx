@@ -27,9 +27,17 @@ export const ReviewPrompt = ({ trigger }: { trigger: boolean }) => {
 
   if (!isNative) return null;
 
+  // G1 — In-App Review NATIVO (padrão app grande): dialog de estrelas DENTRO do app,
+  // sem abrir navegador nem sair da experiência. O SO controla a cota (pode não mostrar
+  // — silencioso por design). Fallback: Play Store no Browser (capacitor:// → window.open).
   const rate = async () => {
     setOpen(false);
-    try { const { Browser } = await import('@capacitor/browser'); await Browser.open({ url: PLAY_URL }); } catch { window.open(PLAY_URL, '_blank'); }
+    try {
+      const { InAppReview } = await import('@capacitor-community/in-app-review');
+      await InAppReview.requestReview();
+    } catch {
+      try { const { Browser } = await import('@capacitor/browser'); await Browser.open({ url: PLAY_URL }); } catch { window.open(PLAY_URL, '_blank'); }
+    }
   };
 
   return (
@@ -49,4 +57,4 @@ export const ReviewPrompt = ({ trigger }: { trigger: boolean }) => {
       </DialogActions>
     </Dialog>
   );
-};
+};;

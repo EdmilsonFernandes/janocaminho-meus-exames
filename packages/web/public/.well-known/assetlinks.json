@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.janocaminho.drexame",
+    "sha256_cert_fingerprints": [
+      "24:F4:AF:C9:6B:19:AE:F4:FC:DB:B1:08:DE:E8:2A:63:D1:1B:0C:8B:BD:63:E6:D9:A9:5D:18:57:3A:67:72:BF"
+    ]
+  }
+}]

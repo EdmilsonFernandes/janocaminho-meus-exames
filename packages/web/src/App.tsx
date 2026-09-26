@@ -81,12 +81,13 @@ import { MobileBottomNav } from './components/MobileBottomNav';
 import { ExamCreateFab } from './components/ExamCreateFab';
 import { BiometricGate } from './components/BiometricGate';
 import { DrawerProvider, useAppDrawer } from './components/drawerState';
-import { OfflineBanner } from './components/OfflineBanner';
 import { ForceUpdate } from './components/ForceUpdate';
 import { checkAppUpdate, checkPlayUpdate } from './utils/version';
 import { decideBackAction } from './utils/backNavigation';
 import { NotificationBell } from './components/NotificationBell';
 import { NotificationPopup } from './components/NotificationPopup';
+import { OfflineBanner } from './components/OfflineBanner';
+import { initDeepLinks } from './utils/deepLinks';
 import { Onboarding } from './components/Onboarding';
 import { WhatsNew } from './components/WhatsNew';
 import { PageSkeleton } from './components/PageSkeleton';
@@ -647,6 +648,7 @@ const AppLayout = (props: any) => {
       <PullToRefresh />
       <MobileBottomNav />
       <NotificationPopup />
+      <OfflineBanner />
       <Onboarding />
       <WhatsNew />
       <CompleteProfileModal />
@@ -701,6 +703,8 @@ export const App = () => {
   const [bootExiting, setBootExiting] = useState(false);
   const [forceUpdate, setForceUpdate] = useState<string | null>(null);
   const isNativeApp = Capacitor.isNativePlatform();
+  // G2 — App Links https abrem o app direto na rota (convite de médico, e-mails).
+  useEffect(() => { initDeepLinks(); }, []);
   useEffect(() => {
     let cancelled = false; // previne setState após unmount (race condition)
     // WEB: anônimo na raiz → landing (porta pública/vitrine). APK: abre direto no LOGIN (app instalado não precisa de vitrine).

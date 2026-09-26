@@ -32,6 +32,7 @@ import { ChangesSinceExam, type Marker } from './ChangesSinceExam';
 import { ScrollReveal } from './ScrollReveal';
 import { Section } from './Section';
 import { DEMO_DASHBOARD, DEMO_CHRONO_AGE } from './demoData';
+import { track } from '../../utils/analytics';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
@@ -594,6 +595,7 @@ export const DashboardV2 = () => {
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
       body: JSON.stringify({ type }),
     }).catch(() => {});
+    track(`demo_${type}`); // G4 — funil do modo exemplo no PostHog (no-op sem key)
   };
   const convertDemo = () => {
     if (!demoConvertedRef.current) { demoConvertedRef.current = true; demoEvent('converted'); }
@@ -624,7 +626,7 @@ export const DashboardV2 = () => {
     if (seen) return;
     if (d.stats.exams > 1) { try { localStorage.setItem(firstKey, '1'); } catch { /* ignore */ } return; }
     if (d.stats.exams === 1) {
-      const tm = setTimeout(() => setCelebrate(true), 900);
+      const tm = setTimeout(() => { setCelebrate(true); track('celebration_shown'); }, 900);
       return () => clearTimeout(tm);
     }
   }, [d.loaded, d.stats.exams, pid, demo, firstKey]);
