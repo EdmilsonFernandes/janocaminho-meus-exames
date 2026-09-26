@@ -76,7 +76,7 @@
       /* Mobile: folga no rodapé do conteúdo pra o FAB do Dr. Exame não cobrir paginação/rodapé. */
       @media (max-width: 599px) { #main-content { padding-bottom: 84px !important; } }
     </style>
-    <script type="module" crossorigin src="./assets/index-at-jMzQl.js"></script>
+    <script type="module" crossorigin src="./assets/index-BCgldDP0.js"></script>
     <link rel="modulepreload" crossorigin href="./assets/rolldown-runtime-QTnfLwEv.js">
     <link rel="modulepreload" crossorigin href="./assets/vendor-ui-gBn14vSP.js">
     <link rel="modulepreload" crossorigin href="./assets/vendor-admin-BqDfjYEA.js">
@@ -143,6 +143,7 @@
          elementos com classes COMBINADAS (ex.: class="enabled vpw-dialog") que o prefixo
          não casa — era o vazamento do "libras aparece mesmo desligado". */
       body.libras-off #vlibras-host, body.libras-off [vw], body.libras-off [vw].enabled, body.libras-off div[vw-access-button],
+      body.libras-off [id*="vlibras"],
       body.libras-off [vw-plugin-wrapper], body.libras-off [class*="vp"], body.libras-off [class*="vw"], body.libras-off [class*="vpw"] {
         display: none !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important;
       }
@@ -170,6 +171,16 @@
           s.onload = function () { try { new window.VLibras.Widget('https://vlibras.gov.br/app'); } catch (e) { console.warn('VLibras não inicializou:', e); } };
           document.body.appendChild(s);
         } catch (e) { console.warn('VLibras não carregou:', e); }
+      };
+      /* DESCARREGA de verdade (bug: desligar em Perfil só escondia por CSS — e o wrapper
+         #vlibras-access-wrapper, que o widget injeta com id-sem-classe, escapava dos
+         seletores e o botão flutuante ficava na tela). Remove host, wrappers e o script;
+         re-ligar chama __loadVLibras() de novo (o host não existe mais). */
+      window.__unloadVLibras = function () {
+        try {
+          document.querySelectorAll('#vlibras-host, [id*="vlibras"], [vw], [vw-plugin-wrapper]').forEach(function (el) { el.remove(); });
+          document.querySelectorAll('script[src*="vlibras"]').forEach(function (s) { s.remove(); });
+        } catch (e) { /* DOM indisponível — ignora */ }
       };
       try { if (localStorage.getItem('meus_exames_libras') === '1') window.__loadVLibras(); } catch (e) {}
     </script>
