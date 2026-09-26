@@ -1,5 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Box, Button, Card, CardContent, Typography, Chip, Stack, Grid, Accordion, AccordionSummary, AccordionDetails, InputBase, Paper, Collapse } from '@mui/material';
+/** Reduced-motion 1× (charts draw-in e afins) — Recharts não tem gate global. */
+const REDUCED_MOTION = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 import { alpha } from '@mui/material/styles';
 import { Title, useTranslate } from 'react-admin';
 import { ResponsiveContainer, LineChart, Line, ReferenceArea, YAxis, Tooltip } from 'recharts';
@@ -542,7 +544,8 @@ const EvoRow = ({ it, defaultExpanded, idx = 0 }: { it: EvoItem; defaultExpanded
                     <stop offset="100%" stopColor={lineColor} />
                   </linearGradient>
                 </defs>
-                <Line type="monotone" dataKey="v" stroke="url(#evolutionGrad)" strokeWidth={2.5} dot={{ r: 4, fill: lineColor }} activeDot={{ r: 6, stroke: '#fff', strokeWidth: 2 }} isAnimationActive={false} />
+                {/* W3 — draw-in do traço (reduced-motion desliga). */}
+                <Line type="monotone" dataKey="v" stroke="url(#evolutionGrad)" strokeWidth={2.5} dot={{ r: 4, fill: lineColor }} activeDot={{ r: 6, stroke: '#fff', strokeWidth: 2 }} isAnimationActive={!REDUCED_MOTION} animationDuration={900} />
               </LineChart>
             </ResponsiveContainer>
           </Box>

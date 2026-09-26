@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useNotify } from 'react-admin';
 import { Box, Stack, Typography, ToggleButtonGroup, ToggleButton, Chip, IconButton, Button, Alert } from '@mui/material';
+/** Reduced-motion 1× (charts draw-in e afins) — Recharts não tem gate global. */
+const REDUCED_MOTION = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 import { alpha, useTheme } from '@mui/material/styles';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
@@ -157,7 +159,8 @@ export const MeasurementHistoryPage = () => {
                         );
                       }}
                     />
-                    <Line type="monotone" dataKey="v" stroke={t.color} strokeWidth={2.5} dot={{ r: 2.5, fill: t.color, strokeWidth: 0 }} activeDot={{ r: 4 }} isAnimationActive={false} />
+                    {/* W3 — draw-in do traço (reduced-motion desliga). */}
+                    <Line type="monotone" dataKey="v" stroke={t.color} strokeWidth={2.5} dot={{ r: 2.5, fill: t.color, strokeWidth: 0 }} activeDot={{ r: 4 }} isAnimationActive={!REDUCED_MOTION} animationDuration={900} />
                   </LineChart>
                 </ResponsiveContainer>
               </Box>

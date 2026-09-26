@@ -25,6 +25,14 @@ export const PageContainer = ({ width = 'content', children, sx, ...rest }: Page
       maxWidth: typeof width === 'number' ? width : LAYOUT[width],
       mx: 'auto',
       p: { xs: 2, md: 3 },
+      // W5 — entrada de página com fade sutil (150ms): feel de app nativo sem tocar em
+      // scroll/layout (impossível quebrar). prefers-reduced-motion: desliga.
+      animation: 'dxPageIn .15s ease-out both',
+      '@keyframes dxPageIn': {
+        from: { opacity: 0, transform: 'translateY(4px)' },
+        to: { opacity: 1, transform: 'none' },
+      },
+      '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
       ...(sx as object),
     }}
     {...rest}

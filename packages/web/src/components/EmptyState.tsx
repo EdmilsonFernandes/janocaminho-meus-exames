@@ -8,7 +8,7 @@ import { DrExame } from './DrExame';
  *  não recebeu o bônus (passar undefined esconde). */
 export const EmptyState = ({ emoji, title, desc, cta, onCta, bonus }: { emoji?: string; title: string; desc?: string; cta?: string; onCta?: () => void; bonus?: number }) => (
   <Box sx={{ textAlign: 'center', py: { xs: 5, md: 7 }, px: 3 }}>
-    <Box sx={{ width: 96, height: 96, mx: 'auto', mb: 2, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle at 50% 40%, rgba(32,178,170,.22), rgba(32,178,170,.05) 70%)', animation: 'esFloat 2.5s ease-in-out infinite' }}>
+    <Box className="dx-empty-aura" sx={{ width: 96, height: 96, mx: 'auto', mb: 2, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle at 50% 40%, rgba(32,178,170,.22), rgba(32,178,170,.05) 70%)', animation: 'esFloat 2.5s ease-in-out infinite', '@media (prefers-reduced-motion: reduce)': { animation: 'none' } }}>
       {emoji ? <Box sx={{ fontSize: { xs: 44, md: 56 } }}>{emoji}</Box> : <DrExame size={60} sx={{ borderRadius: '50%' }} />}
     </Box>
     <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', mb: 0.75, fontFamily: 'Poppins, sans-serif' }}>{title}</Typography>

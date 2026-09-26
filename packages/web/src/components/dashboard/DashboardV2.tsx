@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Stack, Typography, Box, Grid, useTheme, Skeleton, Dialog, DialogTitle, DialogContent, DialogActions, Button, LinearProgress } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { API_URL, token } from '../../config';
-import { SEM } from '../../theme';
+import { SEM, copperText } from '../../theme';
 import { Heartbeat, Stethoscope, ChartLineUp, Dna, ChatCircle } from '@phosphor-icons/react';
 import { useSelectedPatient } from '../../patient-context';
 import { syncPushToken } from '../../push';
@@ -26,6 +26,8 @@ import { ShareHealthButton } from '../ShareHealthCard';
 import { ReviewPrompt } from '../ReviewPrompt';
 import { AppCard } from '../AppCard';
 import { GradientButton } from '../GradientButton';
+import { Celebration } from '../Celebration';
+import { Shimmer, TileShimmer } from '../Shimmer';
 import { ChangesSinceExam, type Marker } from './ChangesSinceExam';
 import { ScrollReveal } from './ScrollReveal';
 import { Section } from './Section';
@@ -61,6 +63,8 @@ function useDashboardData(pid: string | null) {
   const [lastExam, setLastExam] = useState<string | null>(null);
   const [buckets, setBuckets] = useState<{ bons: number; alerta: number; alterados: number }>({ bons: 0, alerta: 0, alterados: 0 });
   const [score, setScore] = useState<number | null>(null);
+  // Score da última VISITA (cache no mount) — alimenta o "⚡ +N desde sua última visita".
+  const [prevScore, setPrevScore] = useState<number | null>(null);
   const [importante, setImportante] = useState(0);
   const [moderada, setModerada] = useState(0);
   const [cardioRisk, setCardioRisk] = useState<any>(null);
@@ -90,7 +94,7 @@ function useDashboardData(pid: string | null) {
       const c = pid ? localStorage.getItem(`dashScore:${pid}`) : null;
       if (c) setBuckets(JSON.parse(c));
       const cn = pid ? localStorage.getItem(`dashScoreNum:${pid}`) : null;
-      if (cn) setScore(Number(cn));
+      if (cn) { setScore(Number(cn)); setPrevScore(Number(cn)); } // prevScore = score da ÚLTIMA VISITA (pro badge de ganho)
     } catch { /* ignore */ }
     (async () => {
       const h = { Authorization: `Bearer ${token()}` };
@@ -171,7 +175,7 @@ function useDashboardData(pid: string | null) {
     })();
   }, [pid]);
 
-  return { stats, failed, lastExam, buckets, score, importante, moderada, cardioRisk, markerCount, credits, me, loaded, worsened, improved, staleWarning, availability, rejected, bio, bioAvail, hsLoaded };
+  return { stats, failed, lastExam, buckets, score, prevScore, importante, moderada, cardioRisk, markerCount, credits, me, loaded, worsened, improved, staleWarning, availability, rejected, bio, bioAvail, hsLoaded };
 }
 
 const statusFromScore = (s: number | null): { label: string; tone: 'primary' | 'success' | 'warning' | 'error' } => {
@@ -245,8 +249,8 @@ const Sparkle = ({ top, left, delay, size = 4 }: { top: string; left: string; de
 };
 
 /** HERO — score ring com gradiente cônico animado, countup, mesh gradient bg, sparkles. */
-const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, staleWarning, onDetails, onFirstExam, onChat, onDemo }: {
-  loaded: boolean; score: number | null; exams: number; importante: number; moderada: number; lastExam: string | null; staleWarning: string; onDetails: () => void; onFirstExam: () => void; onChat?: () => void; onDemo?: () => void;
+const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, staleWarning, scoreGain = 0, onDetails, onFirstExam, onChat, onDemo }: {
+  loaded: boolean; score: number | null; exams: number; importante: number; moderada: number; lastExam: string | null; staleWarning: string; scoreGain?: number; onDetails: () => void; onFirstExam: () => void; onChat?: () => void; onDemo?: () => void;
 }) => {
   const t = useTheme();
   const st = statusFromScore(score);
@@ -258,6 +262,12 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
   const dashLen = (score ?? 0) * 2.64;
   const isDark = t.palette.mode === 'dark';
   const reduced = usePrefersReducedMotion();
+  // Badge de ganho some sozinho (8s) — nunca vira ruído permanente.
+  const [showGain, setShowGain] = useState(true);
+  useEffect(() => {
+    if (scoreGain > 0) { const tm = setTimeout(() => setShowGain(false), 8000); return () => clearTimeout(tm); }
+    setShowGain(true);
+  }, [scoreGain]);
   return (
     <AppCard kind="tinted" tone={st.tone} tone2="secondary" glow sx={{
       p: { xs: 2, sm: 2.25, md: 3 }, position: 'relative', overflow: 'hidden',
@@ -291,6 +301,15 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
             '0%, 100%': { opacity: 0.5, transform: 'scale(1)' },
             '50%': { opacity: 1, transform: 'scale(1.08)' },
           },
+          // W2 — pulso dourado quando o score subiu (4 batidas e descansa).
+          ...(scoreGain > 0 && showGain ? {
+            animation: 'dxGoldPulse .85s ease-in-out 4',
+            '@keyframes dxGoldPulse': {
+              '0%, 100%': { boxShadow: '0 0 0 0 rgba(212,165,116,0)' },
+              '50%': { boxShadow: '0 0 0 10px rgba(212,165,116,.38)' },
+            },
+          } : {}),
+          '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
         }}>
           <Box component="svg" aria-hidden="true" viewBox="0 0 100 100" sx={{ width: '100%', height: '100%', transform: 'rotate(-90deg)', position: 'relative', zIndex: 1 }}>
             <defs>
@@ -319,7 +338,7 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
                 fontSize: { xs: 'clamp(1.375rem, 7vw, 1.75rem)', sm: 26 },
                 lineHeight: 1, color: 'text.primary', fontVariantNumeric: 'tabular-nums',
               }}>{animatedScore ?? '—'}</Typography>
-            ) : <Skeleton variant="text" width={36} height={30} />}
+            ) : <Shimmer w={40} h={26} r={8} />}
             <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary', mt: 0.15 }}>de 100</Typography>
           </Box>
         </Box>
@@ -327,6 +346,12 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography sx={{ fontSize: 12, fontWeight: 700, color: (th) => TONE_TEXT[st.tone][th.palette.mode === 'dark' ? 'dark' : 'light'] }}>Sua saúde hoje</Typography>
           <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1.125rem, 5.5vw, 1.375rem)', sm: 22 }, lineHeight: 1.15, color: 'text.primary', mt: 0.25, textWrap: 'balance' }}>{title}</Typography>
+          {/* W2 — comemora o progresso (só quando SUBIU; nunca pune queda). */}
+          {scoreGain > 0 && showGain && (
+            <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, mt: 0.75, px: 1.25, py: 0.4, borderRadius: '999px', bgcolor: 'rgba(212,165,116,.14)', border: '1px solid rgba(212,165,116,.35)', fontSize: 12.5, fontWeight: 800, color: (th) => copperText(th.palette.mode) }}>
+              ⚡ +{scoreGain} pontos desde sua última visita
+            </Box>
+          )}
           <Stack direction="row" spacing={1.5} sx={{ mt: 1, flexWrap: 'wrap', rowGap: 0.5 }}>
             {totalAtt > 0 ? (
               <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>
@@ -561,6 +586,27 @@ export const DashboardV2 = () => {
   // Demo cala o offer de biometria (ruído em cima de dado fictício).
   useEffect(() => { if (demo) setBioOffer(false); }, [demo]);
 
+  // W1 — CELEBRAÇÃO DO 1º EXAME (1× por paciente): dispara quando a conta passa a ter
+  // exatamente 1 exame extraído. Veteranos (exames > 1) marcam a flag em silêncio —
+  // nunca celebram "1º exame" atrasado. Demo jamais dispara.
+  const [celebrate, setCelebrate] = useState(false);
+  const firstKey = `dx1st:${pid}`;
+  useEffect(() => {
+    if (demo || !d.loaded || !pid) return;
+    let seen = false;
+    try { seen = localStorage.getItem(firstKey) === '1'; } catch { /* ignore */ }
+    if (seen) return;
+    if (d.stats.exams > 1) { try { localStorage.setItem(firstKey, '1'); } catch { /* ignore */ } return; }
+    if (d.stats.exams === 1) {
+      const tm = setTimeout(() => setCelebrate(true), 900);
+      return () => clearTimeout(tm);
+    }
+  }, [d.loaded, d.stats.exams, pid, demo, firstKey]);
+  const finishCelebration = () => {
+    setCelebrate(false);
+    try { localStorage.setItem(firstKey, '1'); } catch { /* ignore */ }
+  };
+
   const totalResults = d.buckets.bons + d.buckets.alerta + d.buckets.alterados;
   const cardioLevel: string = d.cardioRisk?.level ?? '';
   const cardioFactors: number = Array.isArray(d.cardioRisk?.factors) ? d.cardioRisk.factors.filter((f: any) => f.risk).length : 0;
@@ -610,6 +656,7 @@ export const DashboardV2 = () => {
           moderada={d.moderada}
           lastExam={d.lastExam}
           staleWarning={d.staleWarning}
+          scoreGain={demo ? 0 : (d.score != null && d.prevScore != null && d.score > d.prevScore ? d.score - d.prevScore : 0)}
           onDetails={go('/tendencias')}
           onFirstExam={() => navigate('/exams/create')}
           onChat={go('/chat')}
@@ -617,8 +664,14 @@ export const DashboardV2 = () => {
         />
       </ScrollReveal>
 
-      {/* 2. 4 CARDS DE KPI COM SOFT BADGES (2x2 no mobile, 4x1 no desktop) */}
+      {/* 2. 4 CARDS DE KPI COM SOFT BADGES (2x2 no mobile, 4x1 no desktop). W4: enquanto
+          carrega, TILES EM SHIMMER (mesmo footprint) em vez de '…' — feel de app nativo. */}
       <ScrollReveal delay={80}>
+        {!d.loaded && !demo ? (
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 1.5, mt: 2 }}>
+            {[0, 1, 2, 3].map((i) => <TileShimmer key={i} />)}
+          </Box>
+        ) : (
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 1.5, mt: 2 }}>
           {/* Alterados (antes: tile de Score — redundante com o hero logo acima). O score
               continua no HERO; aqui entra a métrica que estava só num subtítulo minúsculo. */}
@@ -663,6 +716,7 @@ export const DashboardV2 = () => {
             onClick={go(d.stats.exams > 0 ? '/tendencias' : '/exams/create')}
           />
         </Box>
+        )}
       </ScrollReveal>
 
       {/* 3. GRID ASSIMÉTRICO 2 COLUNAS (Desktop 65/35, Mobile 1 coluna fluida) */}
@@ -724,6 +778,14 @@ export const DashboardV2 = () => {
       </ScrollReveal>
 
       <ReviewPrompt trigger={!demo && d.loaded && d.stats.exams > 0} />
+
+      {/* W1 — o momento "woowww" do funil de ativação. */}
+      <Celebration
+        open={celebrate}
+        firstName={firstName}
+        onDone={finishCelebration}
+        onCta={() => { finishCelebration(); navigate('/tendencias'); }}
+      />
 
       {/* Dialog de conversão do modo exemplo (clique em tela de dado real) */}
       <Dialog open={demoAsk} onClose={() => setDemoAsk(false)} PaperProps={{ sx: { borderRadius: '12px', maxWidth: 420 } }}>
