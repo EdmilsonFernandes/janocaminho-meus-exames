@@ -34,7 +34,8 @@ import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import { API_URL, photoUrlFor, doctorPhotoUrl } from '../config';
 import { AppCard } from '../components/AppCard';
-import { LAYOUT, COPPER, copperText } from '../theme';
+import { LAYOUT, COPPER, copperText, SEM } from '../theme';
+import { premiumText, badDot } from '../components/doctors/portal/shared';
 import { priorityOf, refScaleSuspect } from '../utils/alertPriority';
 import { QuestionStatusBadge } from '../components/QuestionStatusBadge';
 import { confirmDialog, snackbar } from '../components/ConfirmDialog';
@@ -60,12 +61,12 @@ const docKey = 'doctorToken';
 
 /* Ícones inline (sem dependência extra). */
 const I = {
-  Mail: () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></svg>),
-  Lock: () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>),
-  Person: () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-3.3 3.6-5 8-5s8 1.7 8 5" /></svg>),
-  Badge: () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 10h18M8 4v4M16 4v4" /></svg>),
-  Eye: () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></svg>),
-  EyeOff: () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3l18 18" /><path d="M10.6 5.1A10.9 10.9 0 0 1 12 5c6.5 0 10 7 10 7a18 18 0 0 1-3.2 4M6.6 6.6A18 18 0 0 0 2 12s3.5 7 10 7a10.8 10.8 0 0 0 5.4-1.5" /><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" /></svg>),
+  Mail: () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></svg>),
+  Lock: () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>),
+  Person: () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-3.3 3.6-5 8-5s8 1.7 8 5" /></svg>),
+  Badge: () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 10h18M8 4v4M16 4v4" /></svg>),
+  Eye: () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></svg>),
+  EyeOff: () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3l18 18" /><path d="M10.6 5.1A10.9 10.9 0 0 1 12 5c6.5 0 10 7 10 7a18 18 0 0 1-3.2 4M6.6 6.6A18 18 0 0 0 2 12s3.5 7 10 7a10.8 10.8 0 0 0 5.4-1.5" /><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" /></svg>),
 };
 
 const fieldSx = {
@@ -79,6 +80,7 @@ const fieldSx = {
 
 // Countdown timer pro dialog de PIX (10 min, fecha sozinho ao expirar)
 const PayCountdown = ({ expiresAt, onExpire }: { expiresAt: string; onExpire: () => void }) => {
+  const t = useTheme();
   const [secs, setSecs] = useState(Math.max(0, Math.floor((new Date(expiresAt).getTime() - Date.now()) / 1000)));
   useEffect(() => {
     if (secs <= 0) { onExpire(); return; }
@@ -88,7 +90,7 @@ const PayCountdown = ({ expiresAt, onExpire }: { expiresAt: string; onExpire: ()
   const mm = Math.floor(secs / 60), ss = secs % 60;
   return (
     <Box aria-live="polite" aria-atomic="true" component="span" sx={{ display: 'inline-flex', alignItems: 'center' }}>
-      <Typography component="span" sx={{ fontWeight: 800, color: secs < 60 ? 'error.main' : '#6366f1', fontFamily: 'monospace', fontSize: 18 }}>{String(mm).padStart(2, '0')}:{String(ss).padStart(2, '0')}</Typography>
+      <Typography component="span" sx={{ fontWeight: 800, color: secs < 60 ? 'error.main' : premiumText(t.palette.mode), fontFamily: 'monospace', fontSize: 18 }}>{String(mm).padStart(2, '0')}:{String(ss).padStart(2, '0')}</Typography>
     </Box>
   );
 };
@@ -383,14 +385,30 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     document.body.classList.add('libras-off');
     return () => { try { document.body.classList.toggle('libras-off', localStorage.getItem('meus_exames_libras') !== '1'); } catch { /* */ } };
   }, []);
+  // Lista de pacientes com ERRO EXPLÍPITO (review 09/26): antes o catch engolia a falha e o
+  // médico via o empty state "Nenhum paciente ainda" — parecia ter PERDIDO os pacientes.
+  const [loadErr, setLoadErr] = useState(false);
+  const loadPatients = () => {
+    setLoading(true); setLoadErr(false);
+    fetch(`${API_URL}/doctor/patients`, { headers: h })
+      .then((r) => {
+        if (!r.ok) throw new Error(String(r.status));
+        // fetch-cache devolve 200-VAZIO com X-Offline-Empty quando offline sem cache —
+        // sem este check, offline de 1ª carga renderizava o empty state "Nenhum paciente".
+        if (r.headers.get('X-Offline-Empty') === 'true') throw new Error('offline');
+        return r.json();
+      })
+      // Ordem alfabética por nome do paciente (2026-08-19): médico com vários pacientes precisa
+      // de lista previsível p/ se organizar — localeCompare pt-BR ignora acento.
+      .then((d) => {
+        setPatients([...(d.items ?? [])].sort((a: any, b: any) => (a.patient?.fullName ?? '').localeCompare(b.patient?.fullName ?? '', 'pt-BR', { sensitivity: 'base' })));
+      })
+      .catch(() => setLoadErr(true))
+      .finally(() => setLoading(false));
+  };
   useEffect(() => {
     fetch(`${API_URL}/doctor/me`, { headers: h }).then((r) => r.json()).then((d) => setDoctor(d.doctor)).catch(() => {});
-    // Ordem alfabética por nome do paciente (2026-08-19): médico com vários pacientes precisa
-    // de lista previsível p/ se organizar — localeCompare pt-BR ignora acento.
-    fetch(`${API_URL}/doctor/patients`, { headers: h }).then((r) => r.json()).then((d) => {
-      setPatients([...(d.items ?? [])].sort((a: any, b: any) => (a.patient?.fullName ?? '').localeCompare(b.patient?.fullName ?? '', 'pt-BR', { sensitivity: 'base' })));
-      setLoading(false);
-    }).catch(() => setLoading(false));
+    loadPatients(); /* eslint-disable-next-line react-hooks/exhaustive-deps */
     fetch(`${API_URL}/doctor/me/plan`, { headers: h }).then((r) => r.json()).then(setPlanInfo).catch(() => {});
     fetch(`${API_URL}/doctor/invites`, { headers: h }).then((r) => r.json()).then((d) => setInvites(d.items ?? [])).catch(() => {});
   }, []);
@@ -598,9 +616,9 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
       </Box>
       <Divider />
       <Box sx={{ mx: '12px', mt: 1.5, p: 1.5, borderRadius: '16px', background: planInfo?.isPremium ? 'linear-gradient(135deg, rgba(99,102,241,.12), rgba(99,102,241,.04))' : 'linear-gradient(135deg, rgba(32,178,170,0.12), rgba(32,178,170,0.03))', border: '1px solid', borderColor: planInfo?.isPremium ? 'rgba(99,102,241,.25)' : 'rgba(32,178,170,0.2)', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
-        <Typography variant="caption" sx={{ fontWeight: 800, letterSpacing: '0.05em', color: planInfo?.isPremium ? '#6366f1' : 'primary.dark', display: 'block' }}>PLANO</Typography>
+        <Typography variant="caption" sx={{ fontWeight: 800, letterSpacing: '0.05em', color: (t: Theme) => (planInfo?.isPremium ? premiumText(t.palette.mode) : 'primary.dark'), display: 'block' }}>PLANO</Typography>
         {planInfo?.isPremium
-          ? <><Typography sx={{ fontSize: 13.5, fontWeight: 800, color: '#6366f1', display: 'inline-flex', alignItems: 'center', gap: 0.5, mt: 0.25 }}><Diamond size={15} weight="fill" /> Dr. Exame Pro</Typography><Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>SOAP e planos ilimitados.{planInfo.planExpiresAt ? ` Até ${new Date(planInfo.planExpiresAt).toLocaleDateString('pt-BR')}.` : ''}</Typography></>
+          ? <><Typography sx={{ fontSize: 13.5, fontWeight: 800, color: (t: Theme) => premiumText(t.palette.mode), display: 'inline-flex', alignItems: 'center', gap: 0.5, mt: 0.25 }}><Diamond size={15} weight="fill" /> Dr. Exame Pro</Typography><Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>SOAP e planos ilimitados.{planInfo.planExpiresAt ? ` Até ${new Date(planInfo.planExpiresAt).toLocaleDateString('pt-BR')}.` : ''}</Typography></>
           : <><Typography sx={{ fontSize: 13.5, fontWeight: 800, color: 'text.primary', mt: 0.25 }}>Grátis ({planInfo?.freeUsed ?? 0}/{planInfo?.freeLimit ?? 5} usados)</Typography><Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>5 pré-consultas/SOAP grátis por mês.</Typography></>}
       </Box>
       <List sx={{
@@ -676,7 +694,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           <Box sx={{ flex: 1 }}>
             <Stack direction="row" spacing={0.75} alignItems="center" sx={{ minWidth: 0 }}>
               <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 17, color: 'text.primary', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{view === 'overview' ? 'Painel' : view === 'patients' ? (selected ? 'Detalhe do paciente' : 'Pacientes') : view === 'invites' ? 'Convites' : view === 'questions' ? 'Perguntas' : view === 'profile' ? 'Meu Perfil' : 'Trocar Senha'}</Typography>
-              {planInfo?.isPremium && <Chip size="small" icon={<Diamond size={12} weight="fill" />} label="Pro" sx={{ bgcolor: 'rgba(99,102,241,.10)', color: '#6366f1', fontWeight: 700, height: 22, fontSize: 12, flexShrink: 0, '& .MuiChip-icon': { color: '#6366f1' } }} />}
+              {planInfo?.isPremium && <Chip size="small" icon={<Diamond size={12} weight="fill" />} label="Pro" sx={{ bgcolor: 'rgba(99,102,241,.10)', color: (t: Theme) => premiumText(t.palette.mode), fontWeight: 700, height: 22, fontSize: 12, flexShrink: 0, '& .MuiChip-icon': { color: (t: Theme) => premiumText(t.palette.mode) } }} />}
             </Stack>
             {/* Assinatura do portal: cobre = modo médico (viewer clínico somente leitura). */}
             <Chip size="small" icon={<Stethoscope size={13} />} label="Acesso médico · leitura" title="Você acessa como médico — vista somente leitura dos dados compartilhados pelo paciente" sx={{ mt: 0.5, height: 22, fontSize: 12, fontWeight: 700, bgcolor: COPPER.wash, color: (t: Theme) => copperText(t.palette.mode), '& .MuiChip-icon': { color: (t: Theme) => copperText(t.palette.mode) } }} />
@@ -738,9 +756,19 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           </DialogActions>
         </Dialog>
         {view === 'patients' && loading && <Box sx={{ textAlign: 'center', py: 6 }}><CircularProgress sx={{ color: 'primary.dark' }} /></Box>}
+        {view === 'patients' && !loading && loadErr && (
+          <Alert severity="warning" sx={{ mb: 2, borderRadius: '14px' }} action={<Button color="inherit" size="small" onClick={loadPatients} sx={{ fontWeight: 700 }}>Tentar de novo</Button>}>
+            Sem conexão — não conseguimos carregar sua lista de pacientes. Seus dados estão intactos.
+          </Alert>
+        )}
 
         {/* PAINEL INICIAL DO MÉDICO (self-service) */}
         {view === 'overview' && loading && <Box sx={{ textAlign: 'center', py: 6 }}><CircularProgress sx={{ color: 'primary.dark' }} /></Box>}
+        {view === 'overview' && !loading && loadErr && (
+          <Alert severity="warning" sx={{ mb: 2, borderRadius: '14px' }} action={<Button color="inherit" size="small" onClick={loadPatients} sx={{ fontWeight: 700 }}>Tentar de novo</Button>}>
+            Sem conexão — não conseguimos carregar sua lista de pacientes. Seus dados estão intactos.
+          </Alert>
+        )}
         {view === 'overview' && !loading && (
           <PortalOverview
             patients={patients}
@@ -761,14 +789,14 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           <Box sx={{ mb: 2.5, p: 2.25, pr: 6, borderRadius: '20px', position: 'relative', background: 'linear-gradient(135deg,rgba(99,102,241,.10),rgba(99,102,241,.03))', border: '1px solid', borderColor: 'rgba(99,102,241,.25)', boxShadow: '0 8px 24px rgba(99,102,241,0.08)' }}>
             <IconButton size="small" aria-label="Fechar banner" onClick={() => { try { localStorage.setItem('doctorPayDismissed', '1'); } catch { /* */ } setPayDismissed(true); }} sx={{ position: 'absolute', top: 8, right: 8, color: 'text.secondary', '&:hover': { bgcolor: 'rgba(99,102,241,.10)' } }}><span aria-hidden style={{ fontSize: 20, lineHeight: 1 }}>×</span></IconButton>
             <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" useFlexGap>
-              <Typography sx={{ fontWeight: 800, color: '#6366f1', fontSize: 16, display: 'inline-flex', alignItems: 'center', gap: 0.5 }}><Diamond size={16} weight="fill" />Dr. Exame Pro</Typography>
+              <Typography sx={{ fontWeight: 800, color: (t: Theme) => premiumText(t.palette.mode), fontSize: 16, display: 'inline-flex', alignItems: 'center', gap: 0.5 }}><Diamond size={16} weight="fill" />Dr. Exame Pro</Typography>
               <Typography variant="body2" sx={{ color: 'text.secondary', flex: 1, minWidth: 180 }}>{planInfo.freeUsed >= planInfo.freeLimit ? '🔒 Pré-consultas grátis esgotadas este mês.' : `💡 ${planInfo.freeUsed} de ${planInfo.freeLimit} pré-consultas grátis usadas.`}</Typography>
               <Button size="small" variant="contained" onClick={() => startCheckout('pix')} disabled={payLoading} sx={{ bgcolor: '#6366f1', textTransform: 'none', borderRadius: '999px', fontWeight: 700, '&:hover': { bgcolor: '#4f46e5' } }}>{payLoading ? 'Gerando...' : 'Assinar R$29,90/mês'}</Button>
             </Stack>
           </Box>
         )}
         {planInfo?.isPremium && view === 'patients' && !selected && (
-          <Chip size="small" icon={<Diamond size={12} weight="fill" />} label="Dr. Exame Pro ativo" sx={{ mb: 1.5, bgcolor: 'rgba(99,102,241,.12)', color: '#6366f1', fontWeight: 700, '& .MuiChip-icon': { color: '#6366f1' } }} />
+          <Chip size="small" icon={<Diamond size={12} weight="fill" />} label="Dr. Exame Pro ativo" sx={{ mb: 1.5, bgcolor: 'rgba(99,102,241,.12)', color: (t: Theme) => premiumText(t.palette.mode), fontWeight: 700, '& .MuiChip-icon': { color: (t: Theme) => premiumText(t.palette.mode) } }} />
         )}
 
         {/* MASTER/DETAIL LEVE (desktop): rail de pacientes à esquerda MESMO com paciente aberto —
@@ -797,11 +825,11 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                   {patQuery && <Chip size="small" label="limpar" onClick={() => setPatQuery('')} sx={{ height: 22 }} />}
                 </Paper>
                 {patients.some((p) => p.hasAlerts) && (
-                  <Chip size="small" icon={<Box component="span" sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#ef4444', display: 'inline-block' }} />} label="Só alerta" onClick={() => setPatAlertOnly((v) => !v)} color={patAlertOnly ? 'error' : 'default'} variant={patAlertOnly ? 'filled' : 'outlined'} sx={{ fontWeight: 700, flexShrink: 0 }} />
+                  <Chip size="small" icon={<Box component="span" sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: badDot(theme.palette.mode), display: 'inline-block' }} />} label="Só alerta" onClick={() => setPatAlertOnly((v) => !v)} color={patAlertOnly ? 'error' : 'default'} variant={patAlertOnly ? 'filled' : 'outlined'} sx={{ fontWeight: 700, flexShrink: 0 }} />
                 )}
               </Stack>
             )}
-            {patients.length === 0 && (
+            {patients.length === 0 && !loadErr && (
               <AppCard><CardContent><Box sx={{ textAlign: 'center', py: 6 }}>
                 <Box sx={{ fontSize: 64, mb: 2, opacity: 0.4 }}>🩺</Box>
                 <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 18, color: 'text.primary', mb: 1 }}>Nenhum paciente ainda</Typography>
@@ -829,7 +857,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                   const titularHint = isDependente && p.ownerName ? ` · titular: ${p.ownerName}` : '';
                   // Status sem emoji (a11y + identidade Phosphor): ponto p/ alerta, ícones duotone.
                   const statusParts: ReactNode[] = [
-                    p.hasAlerts ? <Box key="alerta" component="span" sx={inlineStat}>{statusDot('#ef4444')}alerta</Box> : null,
+                    p.hasAlerts ? <Box key="alerta" component="span" sx={inlineStat}>{statusDot(badDot(theme.palette.mode))}alerta</Box> : null,
                     p.examsCount > 0 ? <Box key="exames" component="span" sx={inlineStat}><Receipt size={12} weight="duotone" />{p.examsCount} exame{p.examsCount > 1 ? 's' : ''}</Box> : null,
                     p.lastExamAt ? <Box key="data" component="span" sx={inlineStat}><CalendarBlank size={12} weight="duotone" />{fmtDate(p.lastExamAt)}</Box> : null,
                     p.convenio || 'Particular',
@@ -839,7 +867,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                       <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5 }}>
                         <Box sx={{ position: 'relative', flexShrink: 0 }}>
                           <Avatar src={p.patient?.id ? photoUrlFor(p.patient.id) : undefined} sx={{ bgcolor: 'rgba(32,178,170,.08)', color: 'primary.dark', fontWeight: 800, width: 48, height: 48, border: '2px solid', borderColor: p.hasAlerts ? '#ef4444' : 'rgba(32,178,170,.15)' }}>{p.patient?.fullName?.charAt(0)}</Avatar>
-                          {p.hasAlerts && <Box sx={{ position: 'absolute', top: -2, right: -2, width: 12, height: 12, borderRadius: '50%', bgcolor: '#ef4444', border: '2px solid #fff' }} />}
+                          {p.hasAlerts && <Box sx={{ position: 'absolute', top: -2, right: -2, width: 12, height: 12, borderRadius: '50%', bgcolor: badDot(theme.palette.mode), border: '2px solid', borderColor: 'background.paper' }} />}
                         </Box>
                         <Box sx={{ flex: 1, minWidth: 0 }}>
                           <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 15, color: 'text.primary', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.patient?.fullName}</Typography>
@@ -977,7 +1005,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                         value={s}
                         icon={meta.icon}
                         iconPosition="top"
-                        aria-label={meta.label}
+                        aria-label={`${meta.label}${count > 0 ? ` (${count})` : ''}`}
                         title={meta.label}
                         label={
                           <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, fontSize: { xs: 12, sm: 13 }, lineHeight: 1.2 }}>
@@ -1115,7 +1143,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
             </Box>
           ) : (
             <Box sx={{ textAlign: 'center', py: 3 }}>
-              <CircularProgress size={28} sx={{ color: '#6366f1' }} />
+              <CircularProgress size={28} sx={{ color: (t: Theme) => premiumText(t.palette.mode) }} />
               <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>Gerando pagamento...</Typography>
             </Box>
           )}

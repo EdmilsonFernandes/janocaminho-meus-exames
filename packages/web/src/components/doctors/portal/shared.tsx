@@ -16,5 +16,10 @@ export const a11yClick = (fn: () => void) => ({
 export const focusRingSx = { '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 } } as const;
 
 /** Cobre premium — assinatura do portal do médico. */
-import { COPPER } from '../../../tokens';
+import { COPPER, SEM } from '../../../tokens';
 export { COPPER };
+
+/** Indigo premium (Dr. Exame Pro) AA nos dois modos — o literal #6366f1 perdia contraste no dark. */
+export const premiumText = (mode: 'light' | 'dark') => SEM.premium[mode === 'dark' ? 'dark' : 'light'];
+/** Vermelho de alerta AA nos dois modos (dots/badges do portal). */
+export const badDot = (mode: 'light' | 'dark') => SEM.bad[mode === 'dark' ? 'dark' : 'light'];

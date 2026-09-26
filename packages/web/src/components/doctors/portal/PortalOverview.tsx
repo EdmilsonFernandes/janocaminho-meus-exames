@@ -1,4 +1,4 @@
-import { Box, Stack, Typography, Button, CardContent, Avatar, LinearProgress, Chip } from '@mui/material';
+import { Box, Stack, Typography, Button, CardContent, Avatar, LinearProgress, Chip, useTheme } from '@mui/material';
 import GroupsIcon from '@mui/icons-material/Groups';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
@@ -9,7 +9,7 @@ import { AppCard } from '../../AppCard';
 import { photoUrlFor } from '../../../config';
 import { CalendarBlank, ChatCircle, Stethoscope, ChartLineUp, Lightning, Diamond } from '@phosphor-icons/react';
 import type { ReactNode } from 'react';
-import { a11yClick, focusRingSx, COPPER, statusDot, inlineStat } from './shared';
+import { a11yClick, focusRingSx, COPPER, statusDot, inlineStat, premiumText } from './shared';
 
 interface PortalOverviewProps {
   patients: any[];
@@ -45,6 +45,8 @@ export const PortalOverview = ({
   onNewInvite,
   onSetPatAlertOnly,
 }: PortalOverviewProps) => {
+  const t = useTheme();
+  const premium = premiumText(t.palette.mode); // indigo AA no modo atual (dark usa o claro)
   // Alfabética: organização previsível pro médico
   const alerts = [...patients]
     .filter((p) => p.hasAlerts)
@@ -210,9 +212,9 @@ export const PortalOverview = ({
       label: 'Convites Pendentes',
       value: pendingInv.length,
       sub: pendingInv.length === 1 ? '1 aguardando' : `${pendingInv.length} aguardando`,
-      color: '#6366f1',
+      color: premium,
       bg: 'rgba(99, 102, 241, 0.12)',
-      icon: <PersonAddAlt1Icon sx={{ fontSize: 26, color: '#6366f1' }} />,
+      icon: <PersonAddAlt1Icon sx={{ fontSize: 26, color: premium } as any} />,
       onClick: () => onSetView('invites'),
     },
   ];
@@ -675,8 +677,8 @@ export const PortalOverview = ({
               }}
             >
               <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-                <Diamond size={16} weight="fill" color="#6366f1" />
-                <Typography sx={{ fontWeight: 800, fontSize: 14, color: '#6366f1' }}>
+                <Diamond size={16} weight="fill" color={premium} />
+                <Typography sx={{ fontWeight: 800, fontSize: 14, color: premium }}>
                   Dr. Exame Pro
                 </Typography>
               </Stack>
