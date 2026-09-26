@@ -128,8 +128,10 @@ export const ProfilePage = () => {
     if (on) {
       (window as any).__loadVLibras?.();
     } else {
-      document.getElementById('vlibras-host')?.remove();
-      document.querySelectorAll('[vw], [vw-access-button], [vw-plugin-wrapper], [class*="vp-"], [class*="vw-"], [class*="vpw-"]').forEach((el) => el.remove());
+      // Fonte única do unload (index.html): a lista manual daqui não pegava o wrapper
+      // #vlibras-access-wrapper que o widget injeta com id-sem-classe — era o botão que
+      // "não sumia" ao desligar (bug reportado pelo dono 26/09).
+      (window as any).__unloadVLibras?.();
     }
   };
   const toggleActivity = (on: boolean) => {
