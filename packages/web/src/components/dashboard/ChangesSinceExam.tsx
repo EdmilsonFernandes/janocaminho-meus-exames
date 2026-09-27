@@ -5,6 +5,7 @@ import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { AppCard } from '../AppCard';
 import { fmtNum } from '../../utils/format';
+import { tealText } from '../../theme';
 
 /**
  * Marker — recorte mínimo de um marcador vindo do health-summary (topAttention / improving).
@@ -56,7 +57,7 @@ export const ChangesSinceExam = ({
   const improvedUnique = improved.filter((m) => !worsenedNames.has((m.nameCanonical || m.name).toUpperCase()));
   return (
     <AppCard kind="default" sx={{ p: { xs: 2, md: 2.5 }, height: '100%' }}>
-      <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{title}</Typography>
+      <Typography component="h2" sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{title}</Typography>
       <Stack direction="row" spacing={1.5} sx={{ mt: 1, mb: 1.5, flexWrap: 'wrap', rowGap: 0.5 }}>
         {worsened.length > 0 && (
           <Chip
@@ -143,7 +144,7 @@ export const ChangesSinceExam = ({
         ))}
       </Stack>
       <Box sx={{ mt: 1.5 }}>
-        <Button variant="text" onClick={onView} endIcon={<ArrowForwardIcon />} sx={{ p: 0, px: 0.5, minHeight: 36, alignSelf: 'flex-start', textTransform: 'none', fontWeight: 800, color: 'primary.main', '&:hover': { bgcolor: 'rgba(32,178,170,.08)' } }}>{ctaLabel}</Button>
+        <Button variant="text" onClick={onView} endIcon={<ArrowForwardIcon />} sx={{ p: 0, px: 0.5, minHeight: 44, alignSelf: 'flex-start', textTransform: 'none', fontWeight: 800, color: (th) => tealText(th.palette.mode), '&:hover': { bgcolor: 'rgba(32,178,170,.08)' } }}>{ctaLabel}</Button>
       </Box>
     </AppCard>
   );

@@ -91,9 +91,10 @@ export const GamificationBadges = ({ examsCount, score }: { examsCount: number; 
 
         <Typography variant="caption" sx={{
           display: 'block', textAlign: 'center',
-          color: '#b88a54', fontWeight: 800,
+          color: '#8a5f2e', fontWeight: 800,
           position: 'relative',
-          background: 'linear-gradient(90deg, #b88a54, #d4a574, #b88a54)',
+          // Shimmer cobre com paradas AA (D3 27/09): #b88a54→#d4a574 davam 2,4–3:1 sobre papel.
+          background: 'linear-gradient(90deg, #8a5f2e, #a06a35, #8a5f2e)',
           backgroundSize: '200% 100%',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',

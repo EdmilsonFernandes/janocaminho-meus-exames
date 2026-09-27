@@ -10,6 +10,7 @@ import { photoUrlFor } from '../../../config';
 import { CalendarBlank, ChatCircle, Stethoscope, ChartLineUp, Lightning, Diamond } from '@phosphor-icons/react';
 import type { ReactNode } from 'react';
 import { a11yClick, focusRingSx, COPPER, statusDot, inlineStat, premiumText } from './shared';
+import { tealText } from '../../../theme';
 
 interface PortalOverviewProps {
   patients: any[];
@@ -246,7 +247,7 @@ export const PortalOverview = ({
           },
         })}
       >
-        <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: { xs: 20, md: 24 }, lineHeight: 1.2 }}>
+        <Typography component="h1" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: { xs: 20, md: 24 }, lineHeight: 1.2 }}>
           {greet}, Dr(a). {firstName} 👋
         </Typography>
         <Typography sx={{ opacity: 0.95, fontSize: 14.5, mt: 0.75, fontWeight: 500 }}>
@@ -292,7 +293,7 @@ export const PortalOverview = ({
                     fontWeight: 700,
                     textTransform: 'uppercase',
                     letterSpacing: '0.04em',
-                    fontSize: { xs: 10, sm: 11 },
+                    fontSize: { xs: 12, sm: 12 },
                     display: 'block',
                     mb: 0.25,
                     whiteSpace: 'nowrap',
@@ -315,7 +316,7 @@ export const PortalOverview = ({
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
-                    fontSize: { xs: 11, sm: 12 },
+                    fontSize: { xs: 12, sm: 12 },
                   }}
                 >
                   {kpi.sub}
@@ -350,12 +351,12 @@ export const PortalOverview = ({
               <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.25 }}>
                 <Stack direction="row" alignItems="center" spacing={1}>
                   <Stethoscope size={20} weight="duotone" color={COPPER.deep} />
-                  <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 16, color: 'text.primary' }}>
+                  <Typography component="h2" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 16, color: 'text.primary' }}>
                     Precisam de atenção agora
                   </Typography>
-                  <Chip size="small" label={alerts.length} sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(239,68,68,0.12)', color: '#ef4444' }} />
+                  <Chip size="small" label={alerts.length} sx={{ height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(239,68,68,0.12)', color: '#ef4444' }} />
                 </Stack>
-                <Button size="small" onClick={() => onSetView('patients')} sx={{ textTransform: 'none', fontWeight: 700, color: 'primary.dark', borderRadius: '999px' }}>
+                <Button size="small" onClick={() => onSetView('patients')} sx={{ textTransform: 'none', fontWeight: 700, color: (t) => tealText(t.palette.mode), borderRadius: '999px' }}>
                   Ver todos
                 </Button>
               </Stack>
@@ -393,12 +394,12 @@ export const PortalOverview = ({
               <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.25 }}>
                 <Stack direction="row" alignItems="center" spacing={1}>
                   <ChatCircle size={20} weight="duotone" color={COPPER.deep} />
-                  <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 16, color: 'text.primary' }}>
+                  <Typography component="h2" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 16, color: 'text.primary' }}>
                     Dúvidas aguardando resposta
                   </Typography>
-                  <Chip size="small" label={openQCount} sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(245,158,11,0.12)', color: '#d97706' }} />
+                  <Chip size="small" label={openQCount} sx={{ height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(245,158,11,0.12)', color: '#d97706' }} />
                 </Stack>
-                <Button size="small" onClick={() => { onSetView('questions'); onLoadAllQ(); }} sx={{ textTransform: 'none', fontWeight: 700, color: 'primary.dark', borderRadius: '999px' }}>
+                <Button size="small" onClick={() => { onSetView('questions'); onLoadAllQ(); }} sx={{ textTransform: 'none', fontWeight: 700, color: (t) => tealText(t.palette.mode), borderRadius: '999px' }}>
                   Abrir Inbox
                 </Button>
               </Stack>
@@ -426,11 +427,11 @@ export const PortalOverview = ({
               <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 0.5 }}>
                 <Stack direction="row" alignItems="center" spacing={1}>
                   <CalendarBlank size={20} weight="duotone" color={COPPER.deep} />
-                  <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 16, color: 'text.primary' }}>
+                  <Typography component="h2" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 16, color: 'text.primary' }}>
                     Exames para renovar
                   </Typography>
                 </Stack>
-                <Button size="small" onClick={() => onSetView('patients')} sx={{ textTransform: 'none', fontWeight: 700, color: 'primary.dark', borderRadius: '999px' }}>
+                <Button size="small" onClick={() => onSetView('patients')} sx={{ textTransform: 'none', fontWeight: 700, color: (t) => tealText(t.palette.mode), borderRadius: '999px' }}>
                   Ver todos
                 </Button>
               </Stack>
@@ -506,10 +507,10 @@ export const PortalOverview = ({
                 <ChartLineUp size={20} weight="bold" color="#0f766e" />
               </Box>
               <Box>
-                <Typography sx={{ fontWeight: 800, fontSize: 15, fontFamily: 'Poppins, sans-serif', color: 'text.primary', lineHeight: 1.2 }}>
+                <Typography component="h2" sx={{ fontWeight: 800, fontSize: 15, fontFamily: 'Poppins, sans-serif', color: 'text.primary', lineHeight: 1.2 }}>
                   Panorama da Carteira
                 </Typography>
-                <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 11.5 }}>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 12 }}>
                   Distribuição clínica dos pacientes
                 </Typography>
               </Box>
@@ -583,7 +584,7 @@ export const PortalOverview = ({
               </Box>
             </Stack>
 
-            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 2, fontSize: 11, lineHeight: 1.4 }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 2, fontSize: 12, lineHeight: 1.4 }}>
               💡 Dados alimentados automaticamente pelos exames autorizados que os pacientes sobem no app.
             </Typography>
           </AppCard>
@@ -604,7 +605,7 @@ export const PortalOverview = ({
               >
                 <Lightning size={20} weight="fill" color="#d97706" />
               </Box>
-              <Typography sx={{ fontWeight: 800, fontSize: 15, fontFamily: 'Poppins, sans-serif', color: 'text.primary' }}>
+              <Typography component="h2" sx={{ fontWeight: 800, fontSize: 15, fontFamily: 'Poppins, sans-serif', color: 'text.primary' }}>
                 Ações Rápidas
               </Typography>
             </Stack>

@@ -58,7 +58,7 @@ export const MobileBottomNav = () => {
       background: 'transparent', border: 'none', fontFamily: 'inherit', textAlign: 'center',
       borderRadius: '12px', outline: 'none',
       '&:focus-visible': { boxShadow: '0 0 0 3px rgba(32,178,170,0.55)' },
-      color: on ? '#20b2aa' : (isDark ? 'rgba(255,255,255,0.55)' : 'rgba(30,41,59,0.55)'),
+      color: on ? (isDark ? '#5fc9c3' : '#0f766e') : (isDark ? 'rgba(255,255,255,0.55)' : 'rgba(30,41,59,0.68)'),
       position: 'relative', transition: 'color .18s ease, transform .12s ease',
       '&:active': { transform: 'scale(.94)' },
     }}>
@@ -89,7 +89,7 @@ export const MobileBottomNav = () => {
         </Box>
       )}
       <Typography sx={{
-        fontSize: 10, fontWeight: on ? 800 : 500, mt: 0.2,
+        fontSize: 12, fontWeight: on ? 800 : 500, mt: 0.2,
         fontFamily: 'Poppins, sans-serif', maxWidth: '100%', overflow: 'hidden',
         textOverflow: 'ellipsis', whiteSpace: 'nowrap', px: 0.5,
         letterSpacing: on ? '-0.01em' : 'normal'
@@ -116,7 +116,7 @@ export const MobileBottomNav = () => {
       background: 'transparent', border: 'none', fontFamily: 'inherit', textAlign: 'center',
       borderRadius: '12px', outline: 'none',
       '&:focus-visible': { boxShadow: '0 0 0 3px rgba(32,178,170,0.55)' },
-      color: on ? '#20b2aa' : (isDark ? 'rgba(255,255,255,0.55)' : 'rgba(30,41,59,0.55)'),
+      color: on ? (isDark ? '#5fc9c3' : '#0f766e') : (isDark ? 'rgba(255,255,255,0.55)' : 'rgba(30,41,59,0.68)'),
       position: 'relative', transition: 'color .18s ease, transform .12s ease',
       '&:active': { transform: 'scale(.94)' },
     }}>
@@ -131,7 +131,7 @@ export const MobileBottomNav = () => {
         {on ? <MenuIcon /> : <MenuIcon sx={{ opacity: 0.65 }} />}
       </Box>
       <Typography sx={{
-        fontSize: 10, fontWeight: on ? 800 : 500, mt: 0.2,
+        fontSize: 12, fontWeight: on ? 800 : 500, mt: 0.2,
         fontFamily: 'Poppins, sans-serif', letterSpacing: on ? '-0.01em' : 'normal'
       }}>
         {translate('nav.more')}

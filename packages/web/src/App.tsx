@@ -445,7 +445,7 @@ const AppMenu = () => {
     </MenuItem>
 
     <Box sx={{ px: 2, pt: 1.5, pb: 1, textAlign: 'center', opacity: 0.7 }}>
-      <Typography variant="caption" sx={{ fontSize: 11, fontWeight: 700, color: 'text.secondary', letterSpacing: '0.02em' }}>
+      <Typography variant="caption" sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary', letterSpacing: '0.02em' }}>
         Dr. Exame • Saúde Inteligente 🩺
       </Typography>
     </Box>

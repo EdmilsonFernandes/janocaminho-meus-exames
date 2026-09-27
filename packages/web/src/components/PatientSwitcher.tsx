@@ -77,7 +77,7 @@ export const PatientSwitcher = () => {
         disableElevation
         sx={{
           borderRadius: '999px',
-          pl: 0.5, pr: { xs: 0.5, sm: 1 }, py: 0.25,
+          pl: 0.5, pr: { xs: 0.5, sm: 1 }, py: 0.25, minHeight: 44,
           color: 'inherit',
           textTransform: 'none',
           bgcolor: 'rgba(32,178,170,0.08)',
@@ -110,7 +110,7 @@ export const PatientSwitcher = () => {
             {current?.fullName ?? 'Selecionar'}
           </Typography>
           {current?.relationship && (
-            <Typography component="span" sx={{ fontSize: 9, color: 'text.secondary', opacity: 0.85, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <Typography component="span" sx={{ fontSize: 12, color: 'text.secondary', opacity: 0.85, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {current.relationship}
             </Typography>
           )}

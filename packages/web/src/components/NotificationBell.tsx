@@ -38,7 +38,7 @@ export const NotificationBell = () => {
   return (
     <IconButton color="inherit" onClick={() => navigate('/notificacoes')} title="Notificações" aria-label="Notificações"
       sx={{
-        flexShrink: 0, p: 1, ml: 1, borderRadius: '12px', // respiro — não fica espremido ao lado do switcher
+        flexShrink: 0, p: '11px', ml: 1, borderRadius: '12px', // respiro — não fica espremido ao lado do switcher (44px de alvo tátil)
         transition: 'background-color .18s ease',
         '&:hover': { bgcolor: 'action.hover' },
       }}>
@@ -46,7 +46,7 @@ export const NotificationBell = () => {
           badge gigante dessensibiliza p/ o dia em que a notificação IMPORTA (resultado novo).
           Vermelho #dc2626: branco sobre ele = ~5:1 (o #ef4444 padrão dava 3,8:1 — reprovar AA). */}
       <Badge badgeContent={unread > 9 ? '9+' : unread} color="error" overlap="circular"
-        sx={{ '& .MuiBadge-badge': { fontSize: 11, fontWeight: 700, height: 18, minWidth: 18, padding: '0 4px', top: 3, right: 3, bgcolor: '#dc2626', color: '#fff' } }}>
+        sx={{ '& .MuiBadge-badge': { fontSize: 12, fontWeight: 700, height: 18, minWidth: 18, padding: '0 4px', top: 3, right: 3, bgcolor: '#dc2626', color: '#fff' } }}>
         <NotificationsNoneIcon sx={{ fontSize: 22 }} />
       </Badge>
     </IconButton>

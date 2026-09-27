@@ -117,6 +117,9 @@ export type { SemKey } from './tokens';
 import { COPPER } from './tokens';
 /** Texto cobre AA nos dois modos: tom 800 no light (≥4,5:1 sobre papel), tom claro no dark. */
 export const copperText = (mode: 'light' | 'dark') => (mode === 'dark' ? COPPER.main : COPPER.textAA);
+/** Texto teal AA nos dois modos (D3 27/09): #20b2aa/#178f89 como TEXTO no light davam 2,5–3,9:1
+ *  sobre papel — links/ações passam a usar teal-700 no light e o teal claro no dark. */
+export const tealText = (mode: 'light' | 'dark') => (mode === 'dark' ? '#5fc9c3' : '#0f766e');
 
 export type ThemeMode = 'light' | 'dark';
 

@@ -369,13 +369,13 @@ export const ActivityView = ({
           {source === 'cloud' && syncedAtISO && (() => {
             const st = syncStamp(syncedAtISO);
             return (
-              <Typography noWrap title="Última sincronização feita pelo app Dr. Exame no seu celular" sx={{ fontSize: 11, color: 'text.disabled' }}>
+              <Typography noWrap title="Última sincronização feita pelo app Dr. Exame no seu celular" sx={{ fontSize: 12, color: 'text.disabled' }}>
                 Sincronizado {st.label}{st.stale ? ' · atualize pelo app' : ''}
               </Typography>
             );
           })()}
           {source === 'device' && updatedAt && (
-            <Typography noWrap title="Hora da última leitura do Health Connect" sx={{ fontSize: 11, color: 'text.disabled' }}>
+            <Typography noWrap title="Hora da última leitura do Health Connect" sx={{ fontSize: 12, color: 'text.disabled' }}>
               Sincronizado {updatedAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
             </Typography>
           )}

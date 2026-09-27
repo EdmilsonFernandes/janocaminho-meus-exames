@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Stack, Typography, Box, Grid, useTheme, Skeleton, Dialog, DialogTitle, DialogContent, DialogActions, Button, LinearProgress, CircularProgress } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { API_URL, token } from '../../config';
-import { SEM, copperText } from '../../theme';
+import { SEM, copperText, tealText } from '../../theme';
 import { Heartbeat, Stethoscope, ChartLineUp, Dna, ChatCircle } from '@phosphor-icons/react';
 import { useSelectedPatient } from '../../patient-context';
 import { syncPushToken } from '../../push';
@@ -393,7 +393,7 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
             </GradientButton>
             {/* Ação secundária (design system: 1 primária por tela) — "vendo o app sente vontade". */}
             {onDemo && (
-              <Button variant="text" onClick={onDemo} sx={{ width: { xs: '100%', sm: 'auto' }, alignSelf: 'stretch', borderRadius: '12px', textTransform: 'none', fontWeight: 700, color: 'primary.dark' }}>
+              <Button variant="text" onClick={onDemo} sx={{ width: { xs: '100%', sm: 'auto' }, alignSelf: 'stretch', borderRadius: '12px', textTransform: 'none', fontWeight: 700, color: (th) => tealText(th.palette.mode) }}>
                 👀 Ver com dados de exemplo
               </Button>
             )}
@@ -414,7 +414,7 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
                   py: 1.1, px: 2.25,
                   borderRadius: '12px',
                   borderColor: (th) => alpha(th.palette.primary.main, 0.35),
-                  color: 'primary.dark',
+                  color: (th) => tealText(th.palette.mode),
                   fontWeight: 700,
                   fontSize: 13,
                   textTransform: 'none',
@@ -527,6 +527,7 @@ const MarkerDistributionCard = ({ buckets, totalMarkers, onOpen }: { buckets: { 
       sx={{
         display: 'block', width: '100%', textAlign: 'left', p: 0, m: 0, border: 'none',
         bgcolor: 'transparent', fontFamily: 'inherit', cursor: 'pointer',
+        minHeight: 44,
         borderRadius: '10px', px: 0.75, py: 0.5, mx: -0.75,
         '&:hover': { bgcolor: 'action.hover' },
         '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: -2 },
@@ -535,7 +536,7 @@ const MarkerDistributionCard = ({ buckets, totalMarkers, onOpen }: { buckets: { 
       }}
     >
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
-        <Typography sx={{ fontSize: 12.5, fontWeight: 600, color: 'text.primary' }}>{label} <Box component="span" sx={{ color: 'text.disabled', fontSize: 11 }}>ver →</Box></Typography>
+        <Typography sx={{ fontSize: 12.5, fontWeight: 600, color: 'text.primary' }}>{label} <Box component="span" sx={{ color: 'text.secondary', fontSize: 12 }}>ver →</Box></Typography>
         <Typography sx={{ fontSize: 12, fontWeight: 800, color }}>{count}/{total} ({pct}%)</Typography>
       </Stack>
       <LinearProgress variant="determinate" value={pct} sx={{ height: 6, borderRadius: 3, bgcolor: isDark ? 'rgba(255,255,255,0.08)' : '#f1f5f9', '& .MuiLinearProgress-bar': { bgcolor: bar, borderRadius: 3 } }} />
@@ -549,7 +550,7 @@ const MarkerDistributionCard = ({ buckets, totalMarkers, onOpen }: { buckets: { 
           <ShowChartIcon sx={{ fontSize: 20 }} />
         </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: 14.5, lineHeight: 1.2 }}>
+          <Typography component="h2" sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: 14.5, lineHeight: 1.2 }}>
             Seus Marcadores
           </Typography>
           <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>

@@ -27,7 +27,7 @@ export const DashboardHeader = ({ firstName }: { firstName: string }) => (
   }}>
     <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1.5}>
       <Box>
-        <Typography sx={{
+        <Typography component="h1" sx={{
           fontWeight: 800,
           letterSpacing: '-0.02em',
           fontSize: { xs: '1.45rem', sm: '1.85rem' },
@@ -60,7 +60,7 @@ export const DashboardHeader = ({ firstName }: { firstName: string }) => (
           bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(16,185,129,0.15)' : 'rgba(16,185,129,0.10)',
           color: (t) => t.palette.mode === 'dark' ? '#34d399' : '#047857',
           fontWeight: 700,
-          fontSize: 11,
+          fontSize: 12,
           height: 26,
           borderRadius: '999px',
           border: '1px solid rgba(16,185,129,0.2)',
