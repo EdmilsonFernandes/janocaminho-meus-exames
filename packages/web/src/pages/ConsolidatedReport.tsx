@@ -18,7 +18,7 @@ import { bumpCredits } from '../utils/credits-events';
 import { speakText, stopSpeakText } from '../utils/nativeDoc';
 import { useSelectedPatient } from '../patient-context';
 import { ShareDialog } from '../components/ShareDialog';
-import { BootSplash } from '../components/BootSplash';
+import { ReportGeneratingCard } from '../components/ReportGeneratingCard';
 import { CreditBadge, CREDIT_COSTS } from '../components/CreditBadge';
 import { ConfirmSpend } from '../components/ConfirmSpend';
 import { DocPreview } from '../components/DocPreview';
@@ -278,8 +278,10 @@ export const ConsolidatedReportPage = () => {
     }
     doGenerate(false);
   };
+  const [genStart, setGenStart] = useState<number | null>(null); // início REAL da geração (timer do card)
   const doGenerate = (force: boolean) => {
     setLoading(true);
+    setGenStart(Date.now());
     setError(''); setNoCredits(false); setNoExams(false);
     fetch(`${API_URL}/analyses/consolidated`, {
       method: 'POST', headers: apiHeaders(true), body: JSON.stringify({ patientId: pid, force }),
@@ -407,7 +409,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
           <Button variant="contained" onClick={() => navigate('/exams')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 4, bgcolor: '#178f89' }}>Enviar meu primeiro exame →</Button>
         </Box>
       )}
-      {!analysis && examCount !== 0 && (
+      {!loading && !analysis && examCount !== 0 && (
         <ReportPreviewCard
           loading={loading}
           disabled={loading || !pid}
@@ -417,6 +419,10 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
       )}
       {!pid && <Typography color="text.secondary" sx={{ mt: 1 }}>Selecione um perfil no topo para gerar o relatório.</Typography>}
       {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
+
+      {/* Progresso NO CONTEXTO (sênior 27/09): geração mora onde o resultado vai aparecer —
+          nada de splash full-screen. O card substitui o conteúdo enquanto gera. */}
+      {loading && <ReportGeneratingCard startedAt={genStart ?? undefined} onLeave={() => navigate('/')} />}
 
       {/* Sem créditos — card premium (converter: recarregar/assinar) em vez de "insufficient_credits" cru */}
       {noCredits && (
@@ -441,7 +447,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
         </Box>
       )}
 
-      {analysis && s && (
+      {!loading && analysis && s && (
         <Stack spacing={2} sx={{ mt: 2 }}>
           {/* CORRELAÇÕES hábito×exame (Fase 2): só aparece com dados de atividade */}
           <CorrelationSection patientId={pid ?? undefined} />
@@ -620,16 +626,6 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
       <ConfirmSpend open={confirmSpend.open} credits={CREDIT_COSTS.consolidated} title={translate('report.generate_new')}
         desc="Vamos analisar seus exames mais recentes com a IA e gerar um relatório completo."
         onClose={() => setConfirmSpend(s => ({ ...s, open: false }))} onConfirm={confirmSpend.onYes} />
-      {loading && (
-        <BootSplash
-          title={translate('report.generating')}
-          messages={['Analisando seu histórico de exames…', 'Cruzando dados laboratoriais…', 'Identificando tendências…', 'Preparando insights…']}
-          footNote="Pode sair e continuar usando o app — a geração continua no servidor e o relatório fica salvo aqui. 🔒"
-          leaveLabel="Continuar usando o app"
-          onLeave={() => navigate('/')}
-        />
-      )}
-
       {/* R2 — voltou durante uma geração que começou antes: mostra QUE está atualizando. */}
       {!loading && generatingSince && (
         <Alert severity="info" icon={<CircularProgress size={16} sx={{ color: 'info.main', mt: 0.4 }} />} sx={{ mb: 2, borderRadius: '14px', py: 0.9, '& .MuiAlert-message': { fontSize: 13.5 } }}>

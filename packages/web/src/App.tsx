@@ -295,9 +295,12 @@ const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
   }, []);
 
   return (
-    <Box sx={{ p: 1.5, pb: 1, pt: onClose ? 'calc(env(safe-area-inset-top, 0px) + 4px)' : 1.5 }}>
+    /* Gap do avatar (bug dono 27/09): drawer já nasce ABAIXO da status bar no APK
+       (env() = 0/inválida lá) — o calc empilhava 4px + 12px de padding dobro = respiro
+       morto. pt fixo mínimo; o card interno tem o próprio p: 1.5 de respiro. */
+    <Box sx={{ px: 1.5, pb: 1, pt: onClose ? 0.75 : 1.5 }}>
       <Box sx={(t) => ({
-        p: 1.5, borderRadius: '20px',
+        p: 1.25, pt: 1, borderRadius: '20px',
         background: t.palette.mode === 'dark'
           ? `radial-gradient(ellipse at 20% 30%, rgba(32,178,170,.12), transparent 60%), radial-gradient(ellipse at 80% 70%, rgba(212,165,116,.06), transparent 50%), ${t.palette.background.paper}`
           : `radial-gradient(ellipse at 20% 30%, rgba(32,178,170,.08), transparent 60%), radial-gradient(ellipse at 80% 70%, rgba(212,165,116,.04), transparent 50%), #ffffff`,
