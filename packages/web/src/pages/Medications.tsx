@@ -78,7 +78,7 @@ const PharmacyBadge = ({ name }: { name: string }) => {
   }
   const brand = PHARMACY_BRAND[name] ?? { color: '#64748b', bg: 'rgba(100,116,139,.08)', label: name?.slice(0, 2).toUpperCase() || '?' };
   return (
-    <Box sx={{ px: 1, py: 0.25, borderRadius: '8px', bgcolor: brand.bg, color: brand.color, fontWeight: 800, fontSize: 10, fontFamily: 'Poppins, sans-serif', flexShrink: 0 }}>
+    <Box sx={{ px: 1, py: 0.25, borderRadius: '8px', bgcolor: brand.bg, color: brand.color, fontWeight: 800, fontSize: 11, fontFamily: 'Poppins, sans-serif', flexShrink: 0 }}>
       {brand.label}
     </Box>
   );
@@ -320,7 +320,7 @@ export const MedicationsPage = () => {
     return (
       <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: s.bg, border: '1px solid', borderColor: s.color + '33' }}>
         <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5, flexWrap: 'wrap' }}>
-          <Chip size="small" label={`${h.severity} · ${s.label}`} sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: s.color, color: '#fff' }} />
+          <Chip size="small" label={`${h.severity} · ${s.label}`} sx={{ height: 21, fontSize: 11.5, fontWeight: 800, bgcolor: s.color, color: '#fff' }} />
           <Typography sx={{ fontWeight: 700, fontSize: 14 }}>{h.drugA} + {h.drugB}</Typography>
         </Stack>
         <Typography sx={{ fontSize: 13, opacity: 0.85 }}>{h.effect}</Typography>
@@ -438,7 +438,7 @@ export const MedicationsPage = () => {
                     ) : null}
                   </Box>
                   <Stack spacing={0.5} sx={{ flexShrink: 0 }}>
-                    <Button size="small" onClick={() => toggle(m)} sx={{ textTransform: 'none', borderRadius: '999px', minWidth: 0, px: 1.5 }}>Suspender</Button>
+                    <Button size="small" onClick={() => toggle(m)} sx={{ textTransform: 'none', borderRadius: '999px', minWidth: 0, px: 1.75, py: 0.6 }}>Suspender</Button>
                     <IconButton size="small" onClick={() => remove(m)} aria-label={`Excluir ${m.name}`} sx={{ '&:hover': { color: 'error.main' } }}><DeleteOutlineIcon fontSize="small" /></IconButton>
                   </Stack>
                 </Stack>
@@ -476,7 +476,7 @@ export const MedicationsPage = () => {
             <Card key={m.id} elevation={0} sx={{ p: 1, borderRadius: '12px', border: '1px dashed', borderColor: 'divider', opacity: 0.7 }}>
               <Stack direction="row" spacing={1} alignItems="center">
                 <Typography sx={{ flex: 1, fontWeight: 600, fontSize: 14 }}>{m.name}</Typography>
-                <Button size="small" onClick={() => toggle(m)} sx={{ textTransform: 'none' }}>Retomar</Button>
+                <Button size="small" onClick={() => toggle(m)} sx={{ textTransform: 'none', py: 0.6 }}>Retomar</Button>
                 <IconButton size="small" onClick={() => remove(m)} aria-label={`Excluir ${m.name}`}><DeleteOutlineIcon fontSize="small" /></IconButton>
               </Stack>
             </Card>
@@ -708,7 +708,7 @@ export const MedicationsPage = () => {
                   )}
                 </Box>
                 {best && (
-                  <Chip label="🏆 MELHOR" size="small" sx={{ bgcolor: 'primary.main', color: '#fff', fontWeight: 800, fontSize: 10, flexShrink: 0 }} />
+                  <Chip label="🏆 MELHOR" size="small" sx={{ bgcolor: 'primary.main', color: '#fff', fontWeight: 800, fontSize: 11, flexShrink: 0 }} />
                 )}
               </Stack>
             </Box>
@@ -754,7 +754,7 @@ export const MedicationsPage = () => {
                 <Stack alignItems="flex-end" spacing={0.25}>
                   <PriceBig cents={o.priceCents} size={18} color={i === 0 ? 'primary.dark' : 'text.primary'} />
                   {i === 0 && (
-                    <Chip label="MELHOR PREÇO" size="small" sx={{ height: 18, fontSize: 9, fontWeight: 800, bgcolor: 'primary.main', color: '#fff', letterSpacing: '0.03em' }} />
+                    <Chip label="MELHOR PREÇO" size="small" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'primary.main', color: '#fff', letterSpacing: '0.03em' }} />
                   )}
                 </Stack>
                 <ChevronRightIcon sx={{ fontSize: 18, color: 'text.disabled' }} />

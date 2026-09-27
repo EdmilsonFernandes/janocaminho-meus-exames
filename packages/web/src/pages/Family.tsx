@@ -193,7 +193,7 @@ export const FamilyPage = () => {
                         key={pName}
                         size="small"
                         label={pName}
-                        sx={{ height: 22, fontSize: 11, fontWeight: 700, bgcolor: '#fee2e2', color: '#c2410c' }}
+                        sx={{ height: 22, fontSize: 11.5, fontWeight: 700, bgcolor: '#fee2e2', color: '#c2410c' }}
                       />
                     ))}
                   </Stack>
@@ -293,7 +293,7 @@ export const FamilyPage = () => {
                         <Chip
                           size="small"
                           label={p.relationship}
-                          sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(15,95,90,0.08)', color: '#0f5f5a', mt: 0.25 }}
+                          sx={{ height: 21, fontSize: 11.5, fontWeight: 700, bgcolor: 'rgba(15,95,90,0.08)', color: '#0f5f5a', mt: 0.25 }}
                         />
                       )}
                     </Box>
@@ -339,7 +339,7 @@ export const FamilyPage = () => {
                           label={prettyName(a.name)}
                           sx={{
                             height: 22,
-                            fontSize: 11,
+                            fontSize: 11.5,
                             fontWeight: 700,
                             bgcolor: 'rgba(239,68,68,0.12)',
                             color: '#b91c1c',
@@ -384,7 +384,7 @@ export const FamilyPage = () => {
                       <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary' }}>
                         {prettyName(row.analyte)}
                       </Typography>
-                      {row.unit && <Chip size="small" label={row.unit} sx={{ height: 20, fontSize: 10, fontWeight: 700 }} />}
+                      {row.unit && <Chip size="small" label={row.unit} sx={{ height: 21, fontSize: 11, fontWeight: 700 }} />}
                     </Box>
 
                     <Stack spacing={0.75}>

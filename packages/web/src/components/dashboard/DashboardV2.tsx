@@ -508,13 +508,39 @@ const IndicatorTile = ({ icon, label, value, sub, tone, onClick, idx = 0, badgeB
 };
 
 /** Panorama de Marcadores — estilo Hospital Management / Department Occupancy */
-const MarkerDistributionCard = ({ buckets, totalMarkers }: { buckets: { bons: number; alerta: number; alterados: number }; totalMarkers: number }) => {
+const MarkerDistributionCard = ({ buckets, totalMarkers, onOpen }: { buckets: { bons: number; alerta: number; alterados: number }; totalMarkers: number; onOpen: (dest: 'exams' | 'alterados') => void }) => {
   const t = useTheme();
   const isDark = t.palette.mode === 'dark';
   const total = (buckets.bons + buckets.alerta + buckets.alterados) || totalMarkers;
   const bonsPct = total > 0 ? Math.round((buckets.bons / total) * 100) : 0;
   const alertaPct = total > 0 ? Math.round((buckets.alerta / total) * 100) : 0;
   const alteradosPct = total > 0 ? Math.round((buckets.alterados / total) * 100) : 0;
+
+  /** F4 — linha do panorama = atalho (padrão app grande): Normais → exames;
+   *  fora-da-faixa → /alterados. Teclado + hover + hint "ver". */
+  const row = (label: string, count: number, pct: number, color: any, bar: string, dest: 'exams' | 'alterados', last = false) => (
+    <Box
+      component="button"
+      type="button"
+      onClick={() => onOpen(dest)}
+      aria-label={`${label}: ${count} de ${total} (${pct}%) — ver`}
+      sx={{
+        display: 'block', width: '100%', textAlign: 'left', p: 0, m: 0, border: 'none',
+        bgcolor: 'transparent', fontFamily: 'inherit', cursor: 'pointer',
+        borderRadius: '10px', px: 0.75, py: 0.5, mx: -0.75,
+        '&:hover': { bgcolor: 'action.hover' },
+        '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: -2 },
+        '&:active': { transform: 'scale(.99)' },
+        ...(last ? {} : { mb: 0.25 }),
+      }}
+    >
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
+        <Typography sx={{ fontSize: 12.5, fontWeight: 600, color: 'text.primary' }}>{label} <Box component="span" sx={{ color: 'text.disabled', fontSize: 11 }}>ver →</Box></Typography>
+        <Typography sx={{ fontSize: 12, fontWeight: 800, color }}>{count}/{total} ({pct}%)</Typography>
+      </Stack>
+      <LinearProgress variant="determinate" value={pct} sx={{ height: 6, borderRadius: 3, bgcolor: isDark ? 'rgba(255,255,255,0.08)' : '#f1f5f9', '& .MuiLinearProgress-bar': { bgcolor: bar, borderRadius: 3 } }} />
+    </Box>
+  );
 
   return (
     <AppCard sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: '20px !important' }}>
@@ -532,30 +558,10 @@ const MarkerDistributionCard = ({ buckets, totalMarkers }: { buckets: { bons: nu
         </Box>
       </Stack>
 
-      <Stack spacing={1.75}>
-        <Box>
-          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
-            <Typography sx={{ fontSize: 12.5, fontWeight: 600, color: 'text.primary' }}>Normais & Saudáveis</Typography>
-            <Typography sx={{ fontSize: 12, fontWeight: 800, color: (th) => TONE_TEXT.success[th.palette.mode === 'dark' ? 'dark' : 'light'] }}>{buckets.bons}/{total} ({bonsPct}%)</Typography>
-          </Stack>
-          <LinearProgress variant="determinate" value={bonsPct} sx={{ height: 6, borderRadius: 3, bgcolor: isDark ? 'rgba(255,255,255,0.08)' : '#f1f5f9', '& .MuiLinearProgress-bar': { bgcolor: '#10b981', borderRadius: 3 } }} />
-        </Box>
-
-        <Box>
-          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
-            <Typography sx={{ fontSize: 12.5, fontWeight: 600, color: 'text.primary' }}>Alteração Leve</Typography>
-            <Typography sx={{ fontSize: 12, fontWeight: 800, color: (th) => TONE_TEXT.warning[th.palette.mode === 'dark' ? 'dark' : 'light'] }}>{buckets.alerta}/{total} ({alertaPct}%)</Typography>
-          </Stack>
-          <LinearProgress variant="determinate" value={alertaPct} sx={{ height: 6, borderRadius: 3, bgcolor: isDark ? 'rgba(255,255,255,0.08)' : '#f1f5f9', '& .MuiLinearProgress-bar': { bgcolor: '#f59e0b', borderRadius: 3 } }} />
-        </Box>
-
-        <Box>
-          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
-            <Typography sx={{ fontSize: 12.5, fontWeight: 600, color: 'text.primary' }}>Requerem Atenção</Typography>
-            <Typography sx={{ fontSize: 12, fontWeight: 800, color: (th) => TONE_TEXT.error[th.palette.mode === 'dark' ? 'dark' : 'light'] }}>{buckets.alterados}/{total} ({alteradosPct}%)</Typography>
-          </Stack>
-          <LinearProgress variant="determinate" value={alteradosPct} sx={{ height: 6, borderRadius: 3, bgcolor: isDark ? 'rgba(255,255,255,0.08)' : '#f1f5f9', '& .MuiLinearProgress-bar': { bgcolor: '#ef4444', borderRadius: 3 } }} />
-        </Box>
+      <Stack spacing={0.75}>
+        {row('Normais & Saudáveis', buckets.bons, bonsPct, (th: any) => TONE_TEXT.success[th.palette.mode === 'dark' ? 'dark' : 'light'], '#10b981', 'exams')}
+        {row('Alteração Leve', buckets.alerta, alertaPct, (th: any) => TONE_TEXT.warning[th.palette.mode === 'dark' ? 'dark' : 'light'], '#f59e0b', 'alterados')}
+        {row('Requerem Atenção', buckets.alterados, alteradosPct, (th: any) => TONE_TEXT.error[th.palette.mode === 'dark' ? 'dark' : 'light'], '#ef4444', 'alterados', true)}
       </Stack>
 
       <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 2, lineHeight: 1.35 }}>
@@ -785,7 +791,7 @@ export const DashboardV2 = () => {
           <Grid size={{ xs: 12, md: 5, lg: 4 }}>
             <Stack spacing={2.5}>
               {/* PANORAMA DOS MARCADORES */}
-              <MarkerDistributionCard buckets={d.buckets} totalMarkers={d.markerCount} />
+              <MarkerDistributionCard buckets={d.buckets} totalMarkers={d.markerCount} onOpen={(dest) => (dest === 'alterados' ? go('/alterados') : go('/exams'))()} />
 
               {/* AÇÕES RÁPIDAS */}
               <Section label="Ações rápidas" icon={<AutoAwesomeIcon sx={{ fontSize: 18 }} />}>

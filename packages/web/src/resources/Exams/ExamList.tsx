@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { List, useListContext, useRefresh, useNotify, useTranslate } from 'react-admin';
 import { track } from '../../utils/analytics';
+import { chipA11y } from '../../utils/chipA11y';
 import { Chip, Box, CardContent, Typography, IconButton, Stack, LinearProgress, Button, Accordion, AccordionSummary, AccordionDetails, Alert, CircularProgress, TextField, InputAdornment, ToggleButton, ToggleButtonGroup, useTheme, useMediaQuery } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import ScienceIcon from '@mui/icons-material/Science';
@@ -192,6 +193,7 @@ const ExamFilterToolbar = ({
           size="small"
           label={translate('exams.all', { count: extractedCount })}
           onClick={() => { setSfilter('all'); setCat('all'); }}
+          {...chipA11y(isAllActive)}
           sx={{
             height: 32,
             flexShrink: 0,
@@ -210,6 +212,7 @@ const ExamFilterToolbar = ({
             size="small"
             label={`⚠️ Alterados (${abnormalCount})`}
             onClick={() => { setSfilter(isAlteredActive ? 'all' : 'altered'); setCat('all'); }}
+            {...chipA11y(isAlteredActive)}
             sx={{
               height: 32,
               flexShrink: 0,
@@ -229,6 +232,7 @@ const ExamFilterToolbar = ({
             size="small"
             label={`⏱️ Recentes (${recentCount})`}
             onClick={() => { setSfilter(isRecentActive ? 'all' : 'recent'); setCat('all'); }}
+            {...chipA11y(isRecentActive)}
             sx={{
               height: 32,
               flexShrink: 0,
@@ -253,6 +257,7 @@ const ExamFilterToolbar = ({
               icon={<IconComp sx={{ fontSize: '15px !important', color: `${isCatActive ? '#fff' : c.color} !important`, ml: 0.5, mr: -0.5 }} />}
               label={`${c.cat} (${catCounts[c.key]})`}
               onClick={() => { setCat(isCatActive ? 'all' : c.key); setSfilter('all'); }}
+              {...chipA11y(isCatActive)}
               sx={{
                 height: 32,
                 flexShrink: 0,
