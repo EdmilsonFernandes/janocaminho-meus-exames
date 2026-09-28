@@ -66,9 +66,9 @@ describe('faersSearchTerm (normalização BR→INN)', () => {
 });
 
 describe('faersCacheKey', () => {
-  it('chave normalizada e estável', () => {
-    expect(faersCacheKey('Losartan Potassium')).toBe('LOSARTAN POTASSIUM');
-    expect(faersCacheKey('losartan  potassium')).toBe('LOSARTAN POTASSIUM');
+  it('chave normalizada e estável (prefixo v2 = invalidação do cache sem tradução PT)', () => {
+    expect(faersCacheKey('Losartan Potassium')).toBe('v2-LOSARTAN POTASSIUM');
+    expect(faersCacheKey('losartan  potassium')).toBe('v2-LOSARTAN POTASSIUM');
   });
 });
 
