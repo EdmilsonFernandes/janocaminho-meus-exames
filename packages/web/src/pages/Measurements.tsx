@@ -5,6 +5,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { confirmDialog } from '../components/ConfirmDialog';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import MonitorWeightIcon from '@mui/icons-material/MonitorWeight';
+import HeightIcon from '@mui/icons-material/Height';
 import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
 import WaterDropIcon from '@mui/icons-material/WaterDrop';
 import FavoriteIcon from '@mui/icons-material/Favorite';
@@ -28,6 +29,8 @@ import { STEPS_GOAL } from '../utils/activityStats';
 export const TYPES = [
   { v: 'BLOOD_PRESSURE', l: 'Pressão arterial', u: 'mmHg', dual: true, color: '#dc2626', icon: <MonitorHeartIcon sx={{ fontSize: 16 }} /> },
   { v: 'WEIGHT', l: 'Peso', u: 'kg', color: '#178f89', icon: <MonitorWeightIcon sx={{ fontSize: 16 }} /> },
+  // Altura infantil (curvas de crescimento OMS na Evolução) — medição comum, unidade cm.
+  { v: 'HEIGHT', l: 'Altura', u: 'cm', color: '#0f766e', icon: <HeightIcon sx={{ fontSize: 16 }} /> },
   { v: 'GLUCOSE', l: 'Glicose', u: 'mg/dL', color: '#c2410c', icon: <WaterDropIcon sx={{ fontSize: 16 }} /> },
   { v: 'HEART_RATE', l: 'Freq. cardíaca', u: 'bpm', color: '#ef4444', icon: <FavoriteIcon sx={{ fontSize: 16 }} /> },
   // Atividade (Health Connect): sincronizada do celular — leitura, não entra pelo form manual.
