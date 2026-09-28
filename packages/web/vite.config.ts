@@ -28,6 +28,10 @@ export default defineConfig({
       // Cobre tanto `import "@capacitor/core"` quanto `@capacitor/core/sub` (alias de string
       // do vite casa o prefixo em boundary).
       '@capacitor/core': capCoreDir,
+      // Web consome o TS FONTE do shared (como sempre foi). Sem isto, o vite resolve
+      // pelo main (dist CJS p/ o node do server) e a análise ESM de named exports
+      // falha atrás do __exportStar ("does not provide an export named 'findIdealRange'").
+      '@meus-exames/shared': path.resolve(__dirname, '../shared/src/index.ts'),
     },
   },
   build: {

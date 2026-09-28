@@ -34,46 +34,63 @@ export interface FaersCacheData {
  * Termo fora do mapa → mostra o original (spec: nunca inventar tradução).
  */
 const MEDDRA_PT: Record<string, string> = {
-  'Nausea': 'Náusea',
-  'Headache': 'Dor de cabeça',
-  'Dizziness': 'Tontura',
-  'Fatigue': 'Fadiga',
-  'Vomiting': 'Vômito',
-  'Diarrhoea': 'Diarreia',
-  'Rash': 'Erupção cutânea',
-  'Pruritus': 'Coceira',
-  'Abdominal pain upper': 'Dor abdominal alta',
-  'Dyspnoea': 'Falta de ar',
-  'Somnolence': 'Sonolência',
-  'Insomnia': 'Insônia',
-  'Weight decreased': 'Perda de peso',
-  'Asthenia': 'Fraqueza',
-  'Pyrexia': 'Febre',
-  'Arthralgia': 'Dor articular',
-  'Myalgia': 'Dor muscular',
-  'Back pain': 'Dor nas costas',
-  'Pain': 'Dor',
-  'Chest pain': 'Dor no peito',
-  'Palpitations': 'Palpitações',
-  'Hypertension': 'Pressão alta',
-  'Hypotension': 'Pressão baixa',
-  'Syncope': 'Desmaio',
-  'Alopecia': 'Queda de cabelo',
-  'Cough': 'Tosse',
-  'Constipation': 'Prisão de ventre',
-  'Dyspepsia': 'Má digestão',
-  'Oedema peripheral': 'Inchaço nas pernas',
-  'Paraesthesia': 'Formigamento',
-  'Tremor': 'Tremor',
-  'Anxiety': 'Ansiedade',
-  'Depression': 'Depressão',
-  'Decreased appetite': 'Perda de apetite',
-  'Blood glucose increased': 'Glicose alta',
+  'nausea': 'Náusea',
+  'headache': 'Dor de cabeça',
+  'dizziness': 'Tontura',
+  'fatigue': 'Fadiga',
+  'vomiting': 'Vômito',
+  'diarrhoea': 'Diarreia',
+  'rash': 'Erupção cutânea',
+  'pruritus': 'Coceira',
+  'abdominal pain upper': 'Dor abdominal alta',
+  'abdominal pain': 'Dor abdominal',
+  'dyspnoea': 'Falta de ar',
+  'somnolence': 'Sonolência',
+  'insomnia': 'Insônia',
+  'weight decreased': 'Perda de peso',
+  'weight increased': 'Ganho de peso',
+  'asthenia': 'Fraqueza',
+  'pyrexia': 'Febre',
+  'arthralgia': 'Dor articular',
+  'myalgia': 'Dor muscular',
+  'back pain': 'Dor nas costas',
+  'pain': 'Dor',
+  'chest pain': 'Dor no peito',
+  'palpitations': 'Palpitações',
+  'hypertension': 'Pressão alta',
+  'hypotension': 'Pressão baixa',
+  'syncope': 'Desmaio',
+  'alopecia': 'Queda de cabelo',
+  'cough': 'Tosse',
+  'constipation': 'Prisão de ventre',
+  'dyspepsia': 'Má digestão',
+  'oedema peripheral': 'Inchaço nas pernas',
+  'paraesthesia': 'Formigamento',
+  'tremor': 'Tremor',
+  'anxiety': 'Ansiedade',
+  'depression': 'Depressão',
+  'decreased appetite': 'Perda de apetite',
+  'blood glucose increased': 'Glicose alta',
+  // Top globais do FAERS (o count é case-insensitive, mas os termos dominantes):
+  'drug ineffective': 'Medicação sem efeito',
+  'off label use': 'Uso fora da bula',
+  'death': 'Óbito',
+  'feeling abnormal': 'Sensação anormal',
+  'malaise': 'Mal-estar',
+  'fall': 'Queda',
+  'condition aggravated': 'Condição agravada',
+  'incorrect dose administered': 'Dose incorreta administrada',
+  'product quality issue': 'Problema de qualidade do produto',
+  'gastrointestinal disorder': 'Problema gastrointestinal',
+  'therapy non-responder': 'Sem resposta ao tratamento',
+  'renal failure': 'Falência renal',
 };
 
-/** Traduz um termo MedDRA (match exato; sem tradução → original). */
+/** Traduz um termo MedDRA. O FAERS devolve EM CAIXA ALTA — normalizamos p/
+ *  minúsculas antes de consultar (bug da 1ª versão: match exato 'Nausea' x
+ *  'NAUSEA' deixava TUDO em inglês). Sem tradução → original. */
 export function translateMeddra(term: string): string {
-  return MEDDRA_PT[term] ?? term;
+  return MEDDRA_PT[String(term).toLowerCase().trim()] ?? term;
 }
 
 /**
@@ -175,9 +192,10 @@ export function faersSearchTerm(activeIngredient: string | null | undefined, nam
   return mapped.length ? mapped.join(' ') : null;
 }
 
-/** Chave única de cache do FAERS (medKey) — a partir do termo de busca. */
+/** Chave única de cache do FAERS (medKey) — a partir do termo de busca.
+ *  Prefixo v2: invalida em lote o cache da 1ª versão (termos sem tradução PT). */
 export function faersCacheKey(searchTerm: string): string {
-  return normalizeKey(searchTerm);
+  return `v2-${normalizeKey(searchTerm)}`;
 }
 
 /**

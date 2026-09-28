@@ -32,6 +32,7 @@ const SEV: Record<string, { color: string; label: string; bg: string }> = {
 
 interface Med {
   id: string; name: string; dosage?: string | null; frequency?: string | null; active: boolean;
+  activeIngredient?: string | null;
   priceStatus?: string; packQty?: number | null; catalogPhotoUrl?: string | null;
   priceSummary?: { lowestPriceCents?: number | null; offersCount?: number; collectedAt?: string; imageUrl?: string | null; pharmacy?: string | null; stale?: boolean } | null;
 }
@@ -210,7 +211,7 @@ const SignalsToggle = ({ medId, name }: { medId: string; name: string }) => {
         endIcon={<ExpandMoreIcon sx={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s', fontSize: 18 }} />}
       >
         <MonitorHeartIcon sx={{ fontSize: 16, mr: 0.5 }} />
-        Sinais de segurança (FAERS/FDA)
+        Efeitos mais relatados deste remédio
       </Button>
       {open && (
         <Box sx={{ pt: 0.5, pb: 0.5 }}>
@@ -248,7 +249,7 @@ const SignalsToggle = ({ medId, name }: { medId: string; name: string }) => {
           )}
           {/* Rodapé fixo (spec): disclaimer + fonte */}
           <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.5, mt: 1 }}>
-            Fonte: openFDA FAERS — relatos espontâneos, não indicam incidência nem causalidade. Dúvidas → seu médico ou farmacêutico.{' '}
+            Fonte: FDA (agência de saúde dos EUA) — base mundial de relatos espontâneos de quem usa o remédio. Não é incidência nem efeito garantido. Dúvidas → seu médico ou farmacêutico.{' '}
             <Box component="a" href="https://open.fda.gov" target="_blank" rel="noopener noreferrer"
               sx={{ color: (t) => tealText(t.palette.mode), fontWeight: 700, textDecoration: 'underline', whiteSpace: 'nowrap' }}>
               open.fda.gov
@@ -459,6 +460,17 @@ export const MedicationsPage = () => {
   const active = (meds ?? []).filter((m) => m.active);
   const inactive = (meds ?? []).filter((m) => !m.active);
 
+  // Sinais de segurança são dado da SUBSTÂNCIA: com remédio duplicado (2x Losartana)
+  // ou doses distintas da mesma substância (Levotiroxina 25/125), o painel aparece
+  // só no PRIMEIRO card — "FAERS pra todos sendo que são os mesmos" seria ruído.
+  const substKey = (m: Med) => String(m.activeIngredient || m.name).split(/\s+/)[0].toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const seenSubst = new Set<string>();
+  const signalsFirstIds = new Set<string>();
+  for (const m of active) {
+    const k = substKey(m);
+    if (!seenSubst.has(k)) { seenSubst.add(k); signalsFirstIds.add(m.id); }
+  }
+
   const HitCard = ({ h }: { h: Hit }) => {
     const s = SEV[h.severity] ?? SEV.C;
     return (
@@ -515,6 +527,9 @@ export const MedicationsPage = () => {
           </Stack>
         </AppCard>
       )}
+
+      {/* Sinais de segurança = dado da SUBSTÂNCIA: painel só no primeiro card de cada
+          substância (ver firstOfSubstance computado antes do return). */}
 
       {/* LISTA — premium (estilo iFood): sombra 3 camadas, radius 20, foto 64px, entrada animada */}
       {active.length > 0 && (
@@ -587,7 +602,7 @@ export const MedicationsPage = () => {
                   </Stack>
                 </Stack>
                 {/* Feature D — farmacovigilância: expansível discreto por card */}
-                <SignalsToggle medId={m.id} name={m.name} />
+                {signalsFirstIds.has(m.id) && <SignalsToggle medId={m.id} name={m.name} />}
               </Card>
             );
           })}
