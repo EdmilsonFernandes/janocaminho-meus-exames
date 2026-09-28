@@ -449,7 +449,7 @@ router.get('/me', requireAuth, async (req: AuthedRequest, res, next) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.userId! },
-      select: { id: true, email: true, name: true, role: true, planExpiresAt: true, credits: true, referralCode: true, referredBy: true, achievementAlerts: true, firstExamBonusGranted: true },
+      select: { id: true, email: true, name: true, role: true, planExpiresAt: true, credits: true, referralCode: true, referredBy: true, achievementAlerts: true, firstExamBonusGranted: true, librasEnabled: true },
     });
     const patientId = user ? await firstPatientId(user.id) : null;
     // Backfill: usuários antigos sem referralCode → gera um (pra ReferralCard aparecer)
@@ -472,6 +472,7 @@ router.patch('/me', requireAuth, async (req: AuthedRequest, res, next) => {
   try {
     const data: any = {};
     if (typeof req.body?.achievementAlerts === 'boolean') data.achievementAlerts = req.body.achievementAlerts;
+    if (typeof req.body?.librasEnabled === 'boolean') data.librasEnabled = req.body.librasEnabled;
     if (typeof req.body?.name === 'string' && req.body.name.trim()) {
       const nextName = req.body.name.trim();
       const current = await prisma.user.findUnique({ where: { id: req.userId! }, select: { name: true } });

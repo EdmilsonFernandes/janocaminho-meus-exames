@@ -27,6 +27,9 @@ model User {
   streakDays        Int     @default(0)
   lastActiveDay     String? // YYYY-MM-DD do último dia ativo (idempotente no dia)
   achievementAlerts Boolean @default(true) // notifica (in-app) quando desbloqueia conquista
+  // Libras (VLibras opt-in): antes só localStorage — o admin não sabia quem ativou.
+  // localStorage continua mandando no widget (client), isto é o ESPELHO server p/ usabilidade.
+  librasEnabled     Boolean @default(false)
   // Bônus de 1º exame (freeSignup) JÁ concedido — anti re-farm: se o user envia o 1º exame,
   // ganha o bônus, DELETA (volta a 0 exames) e envia de novo, NÃO ganha de novo. Grant atômico
   // via updateMany(where: { firstExamBonusGranted: false }) → 1x só por usuário, nunca mais.

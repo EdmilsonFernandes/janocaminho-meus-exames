@@ -78,6 +78,9 @@ export const ProfilePage = () => {
   // Libras: preferência LOCAL (o widget vive no index.html, fora do React) — body class + localStorage.
   // OPT-IN (2026-08-19, a pedido do dono): default DESLIGADO — o widget flutuante atrapalhava
   // quem não usa; quem precisa ativa aqui (e o index.html só mostra com 'meus_exames_libras' === '1').
+  // 28/09: o toggle também ESPELHA pro server (PATCH /auth/me) — antes só localStorage, o
+  // painel admin não sabia quem ativou. localStorage segue mandando no widget (instantâneo,
+  // funciona offline); o server é só o espelho de usabilidade (best-effort, sem erro na tela).
   const [librasOn, setLibrasOn] = useState(() => { try { return localStorage.getItem('meus_exames_libras') === '1'; } catch { return false; } });
   // Card de atividade (Health Connect): a volta de quem ocultou no Dashboard.
   const [activityOn, setActivityOn] = useState(() => { try { return localStorage.getItem('dx_activity_hidden') !== '1'; } catch { return true; } });
@@ -85,7 +88,7 @@ export const ProfilePage = () => {
   const load = async () => {
     const h = { Authorization: `Bearer ${token()}` };
     const me = await fetch(`${API_URL}/auth/me`, { headers: h });
-    if (me.ok) { const mu = (await me.json())?.user; setUser(mu); setAchAlerts(mu?.achievementAlerts ?? true); }
+    if (me.ok) { const mu = (await me.json())?.user; setUser(mu); setAchAlerts(mu?.achievementAlerts ?? true); if (typeof mu?.librasEnabled === 'boolean') setLibrasOn(mu.librasEnabled); }
     if (pid) {
       const pr = await fetch(`${API_URL}/patients/${pid}`, { headers: h });
       if (pr.ok) {
@@ -118,12 +121,15 @@ export const ProfilePage = () => {
     setLibrasOn(on);
     try { localStorage.setItem('meus_exames_libras', on ? '1' : '0'); } catch { /* localStorage indisponível */ }
     document.body.classList.toggle('libras-off', !on);
+    // Espelho server (usabilidade admin) — best-effort: falha de rede não desfaz o toggle local.
+    fetch(`${API_URL}/auth/me`, { method: 'PATCH', headers: apiHeaders(true), body: JSON.stringify({ librasEnabled: on }) }).catch(() => {});
     // OPT-IN TOTAL (2026-08-24 r3): nada do VLibras existe até ligar — o index.html só
     // injeta script+DOM via __loadVLibras(). "Ligar" carrega tudo na hora (sem reload);
     // "desligar" remove o host inteiro (o widget some de vez, não só esconde por CSS).
     if (on) {
       (window as any).__loadVLibras?.();
     } else {
+
       // Fonte única do unload (index.html): a lista manual daqui não pegava o wrapper
       // #vlibras-access-wrapper que o widget injeta com id-sem-classe — era o botão que
       // "não sumia" ao desligar (bug reportado pelo dono 26/09).
