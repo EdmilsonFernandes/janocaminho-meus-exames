@@ -763,6 +763,25 @@ router.get('/patients/:patientId/analyses/consolidated/latest', requireDoctor, a
   } catch (e) { next(e); }
 });
 
+// RASTREAMENTO DE SAÚDE MENTAL (PHQ-9/GAD-7) — só se scope 'summary' (mesma permissão do
+// relatório consolidado: alimenta a linha discreta do brief/Relatório). Degrada com null
+// se a migration da tabela ainda não rolou (drift gate, P2021).
+router.get('/patients/:patientId/mental-screenings/latest', requireDoctor, async (req: any, res, next) => {
+  try {
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    if (!share?.scopes.includes('summary')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+    const sel = { id: true, type: true, total: true, createdAt: true } as const;
+    const [phq9, gad7] = await Promise.all([
+      prisma.mentalHealthScreening.findFirst({ where: { patientId: req.params.patientId, type: 'phq9' }, orderBy: { createdAt: 'desc' }, select: sel }),
+      prisma.mentalHealthScreening.findFirst({ where: { patientId: req.params.patientId, type: 'gad7' }, orderBy: { createdAt: 'desc' }, select: sel }),
+    ]);
+    res.json({ phq9, gad7 });
+  } catch (e: any) {
+    if (e?.code === 'P2021') { res.json({ phq9: null, gad7: null }); return; }
+    next(e);
+  }
+});
+
 // EVOLUÇÃO do paciente (só se scope 'evolution')
 router.get('/patients/:patientId/evolution', requireDoctor, async (req: any, res, next) => {
   try {
