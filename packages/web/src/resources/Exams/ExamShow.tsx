@@ -24,6 +24,7 @@ import { UnitLabel } from '../../components/UnitLabel';
 import { TelemedicineButton } from '../../components/TelemedicineButton';
 import { fmtVal, unitSuffix, fmtDateShort } from '../../utils/format';
 import { categorizeExam } from '../../utils/medicalData';
+import { tealText } from '../../theme';
 import { ExtractionProgress } from '../../components/ExtractionProgress';
 import { AnimatedDoctor } from '../../components/AnimatedDoctor';
 import { CreditBadge, CREDIT_COSTS } from '../../components/CreditBadge';
@@ -94,7 +95,7 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
   const [genLoading, setGenLoading] = useState(false);
   const [reExtracting, setReExtracting] = useState(false);
   const [chatInput, setChatInput] = useState('');
-  const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'assistant'; text: string }[]>([]);
+  const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'assistant'; text: string; sources?: { label: string; topic: string }[] }[]>([]);
   const [chatBusy, setChatBusy] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [explain, setExplain] = useState<any | null>(null);
@@ -238,7 +239,12 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
         const parts = buf.split('\n\n'); buf = parts.pop() ?? '';
         for (const p of parts) {
           const line = p.startsWith('data: ') ? p.slice(6) : p;
-          try { const evt = JSON.parse(line); if (evt.delta) setChatMessages((m) => { const c = [...m]; c[idx] = { role: 'assistant', text: (c[idx]?.text ?? '') + evt.delta }; return c; }); } catch { /* */ }
+          try {
+            const evt = JSON.parse(line);
+            if (evt.delta) setChatMessages((m) => { const c = [...m]; c[idx] = { role: 'assistant', text: (c[idx]?.text ?? '') + evt.delta }; return c; });
+            // FEATURE C — fontes [FONTE ANO] citadas pela IA (SSE extra; vazio não é emitido).
+            if (evt.type === 'sources' && Array.isArray(evt.sources)) setChatMessages((m) => { const c = [...m]; c[idx] = { role: 'assistant', text: c[idx]?.text ?? '', sources: evt.sources }; return c; });
+          } catch { /* */ }
         }
       }
     } catch { notify('Erro no chat', { type: 'error' }); }
@@ -540,6 +546,15 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
               {chatMessages.map((m, i) => (
                 <Box key={i} sx={{ textAlign: m.role === 'user' ? 'right' : 'left', mb: 1 }}>
                   <Box sx={{ display: 'inline-block', maxWidth: '85%', px: 1.25, py: 0.75, borderRadius: '12px', whiteSpace: 'pre-wrap', wordBreak: 'break-word', bgcolor: m.role === 'user' ? 'primary.main' : 'background.paper', color: m.role === 'user' ? 'primary.contrastText' : 'text.primary', border: m.role === 'user' ? 'none' : '1px solid', borderColor: 'divider' }}>{m.text || '…'}</Box>
+                  {/* FEATURE C — rodapé discreto com as diretrizes citadas (chips 12px, teal AA) */}
+                  {m.role === 'assistant' && !!m.sources?.length && (
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, alignItems: 'center', mt: 0.5, justifyContent: 'flex-start' }}>
+                      <Typography component="span" sx={{ fontSize: 12, fontWeight: 700, color: (t) => tealText(t.palette.mode) }}>📚 Fontes:</Typography>
+                      {m.sources.map((s, si) => (
+                        <Chip key={`${s.label}-${si}`} label={s.label} size="small" sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(32,178,170,.10)', color: (t) => tealText(t.palette.mode), border: '1px solid rgba(32,178,170,.18)' }} />
+                      ))}
+                    </Box>
+                  )}
                 </Box>
               ))}
             </Box>

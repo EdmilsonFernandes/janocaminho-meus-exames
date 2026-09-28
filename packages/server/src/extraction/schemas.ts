@@ -125,6 +125,13 @@ export const HealthSummarySchema = z.object({
     quando: z.string().nullable().optional(),
     detalhe: z.string().nullable().optional(),
   })).default([]),
+  // FEATURE C — diretrizes com citação: fontes [FONTE ANO] que a IA usou na resposta.
+  // Preenchido pelo BACKEND (extractSources — parse determinístico do texto gerado), não
+  // pela IA. Opcional/default [] p/ não quebrar relatórios antigos (front antigo ignora).
+  sources: z.array(z.object({
+    label: z.string(),
+    topic: z.string(),
+  })).default([]),
   disclaimer: z.string().default(''),
 });
 

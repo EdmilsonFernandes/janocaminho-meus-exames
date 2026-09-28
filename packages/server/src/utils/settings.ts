@@ -36,6 +36,10 @@ export const DEFAULT_SETTINGS = {
   // vencendo quando o lab imprime faixa própria não-adulta; a banda só entra sem faixa ou
   // contra default adulto óbvio. Kill-switch instantâneo via admin.
   pediatricRanges: { enabled: 1 },
+  // Diretrizes clínicas com citação (Feature C): injeta cards de sociedades médicas
+  // (knowledge/guidelines/*.md) no prompt do chat/resumo e extrai as fontes citadas
+  // [FONTE ANO] da resposta. 1 = ligado. Kill-switch instantâneo via admin, sem deploy.
+  guidelines: { enabled: 1 },
   // API pública (Fase 2): acesso mediante solicitação aprovada no admin; aprovação concede
   // o pacote TESTE grátis (freeMonthly calls). Pacotes pré-pagos via PIX/cartão/débito (MP).
   // reviewRequired=0 = auto-aprova (self-serve). Preço/cobertura 100% editável no admin.
@@ -153,4 +157,12 @@ export function getPremiumPerks(): { consolidatedFree: boolean; familyLimit: num
     consolidatedFree: Number(p.consolidatedFree) === 1,
     familyLimit: Number(p.familyLimit) > 0 ? Number(p.familyLimit) : 10,
   };
+}
+
+/** Diretrizes com citação (Feature C): 1 = ligado (default). Admin desliga via PATCH
+ *  /admin/config/costs { category: 'guidelines', enabled: 0 } — sem deploy. */
+export function guidelinesEnabled(): boolean {
+  const g = (getSettings() as any).guidelines;
+  // default LIGADO: ausência da chave (banco antigo) não pode desligar a feature.
+  return g == null || Number(g.enabled) !== 0;
 }

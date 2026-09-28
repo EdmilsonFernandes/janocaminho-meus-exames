@@ -6,6 +6,8 @@ import { memoryDigest, patientSlug, appendConversation } from '../analysis/agent
 import { chargeCredits, refundCredits, CREDIT_COSTS } from '../utils/credits';
 import { tryLocalAnswer, streamLocalAnswer } from '../analysis/chat-router';
 import { describeStaleness } from '../analysis/health-state';
+import { guidelinesContext } from '../analysis/guidelines';
+import { guidelinesEnabled } from '../utils/settings';
 
 const router = Router();
 router.use(requireAuth);
@@ -20,7 +22,7 @@ router.get('/', async (req: AuthedRequest, res, next) => {
       where: { patientId: pid, type: 'CHAT' },
       orderBy: { createdAt: 'asc' },
       take: 40,
-      select: { userMessage: true, contentMd: true },
+      select: { userMessage: true, contentMd: true, structured: true },
     });
     res.json(turns);
   } catch (e) { next(e); }
@@ -150,6 +152,17 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       `os dados certos. Valores de exames ANTIGOS (rotulados "histórico"/"desatualizado") NÃO representam o estado ` +
       `atual — diga que pode estar desatualizado e oriente a refazer o exame. Conteúdo educativo; oriente sempre o médico.`;
 
+    // FEATURE C — diretrizes de sociedades médicas com citação: casa os analitos reais da
+    // conversa (nameCanonical dos itens, mesma chave do normalize.ts) + a pergunta contra os
+    // cards de knowledge/guidelines/*.md e injeta os pontos-chave com a instrução de citar
+    // [FONTE ANO]. Kill-switch: AppSetting guidelines.enabled=0 → block null, nada muda.
+    const { block: guidelinesTxt, topics: guidelineTopics } = guidelinesContext(
+      recent.flatMap((e) => (e.items as any[]).map((it) => it.nameCanonical)),
+      message,
+      guidelinesEnabled(),
+    );
+    const fullContext = guidelinesTxt ? `${contextText}\n${guidelinesTxt}` : contextText;
+
     // DÉBITO ATÔMICO ANTES da chamada de IA (anti-race). Antes era gate-read + charge DEPOIS do
     // stream: N requisições paralelas passavam no gate com o mesmo saldo → N respostas de IA, 1 débito.
     // Agora: chargeCredits (atômico, só debita se credits>=cost) ANTES; se falhar → 402 sem chamar IA.
@@ -159,15 +172,15 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       res.status(402).json({ error: 'insufficient_credits', message: 'Sem créditos para conversar. Compre um pacote de créditos.' });
       return;
     }
-    let text: string; let model: string;
+    let text: string; let model: string; let sources: { label: string; topic: string }[];
     try {
-      ({ text, model } = await streamChat({ res, contextText, history, message }));
+      ({ text, model, sources } = await streamChat({ res, contextText: fullContext, history, message, guidelineTopics }));
     } catch (e) {
       await refundCredits(req.userId!, CREDIT_COSTS.chat, 'ai_chat_refund', 'Reembolso: falha na IA (chat)');
       throw e;
     }
     await prisma.aiAnalysis.create({
-      data: { type: 'CHAT', patientId: pid, userMessage: message, contentMd: text, modelUsed: model },
+      data: { type: 'CHAT', patientId: pid, userMessage: message, contentMd: text, modelUsed: model, structured: { sources: sources ?? [] } as any },
     });
     // Persiste a conversa em .md (não se perde; vira memória durável do paciente)
     appendConversation(slug, message, text);

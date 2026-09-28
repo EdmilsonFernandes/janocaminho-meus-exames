@@ -7,7 +7,8 @@ import { generateHealthSummary, generateConsolidatedSummary, loadExamContext } f
 import { streamChat } from '../analysis/chat';
 import { parseListParams, setListHeaders } from '../utils/list';
 import { chargeCredits, refundCredits, logCredit, CREDIT_COSTS, isPremium } from '../utils/credits';
-import { getPremiumPerks } from '../utils/settings';
+import { getPremiumPerks, guidelinesEnabled } from '../utils/settings';
+import { guidelinesContext } from '../analysis/guidelines';
 import { hashSharePin } from '../utils/crypto';
 import { dedupSourceExams } from '../utils/dedup-source-exams';
 
@@ -230,10 +231,17 @@ router.post('/:id/chat', async (req: AuthedRequest, res, next) => {
     }
 
     const exam = await loadExamContext(parent.examId);
+    // FEATURE C — diretrizes por tema: analitos deste exame + a pergunta do paciente.
+    const { block: guidelinesTxt, topics: guidelineTopics } = guidelinesContext(
+      exam.items.map((i) => i.nameCanonical),
+      message,
+      guidelinesEnabled(),
+    );
     const contextText =
       `Exame: ${exam.title} (${exam.kind})\n` +
       `Valores:\n${JSON.stringify(exam.items.map((i) => ({ name: i.name, value: i.valueText, ref: i.refText, flag: i.flag })), null, 2)}` +
-      (exam.patient.clinicalProfile ? `\nPerfil clínico: ${exam.patient.clinicalProfile}` : '');
+      (exam.patient.clinicalProfile ? `\nPerfil clínico: ${exam.patient.clinicalProfile}` : '') +
+      (guidelinesTxt ? `\n${guidelinesTxt}` : '');
 
     const prior = await prisma.aiAnalysis.findMany({
       where: { parentAnalysisId: parent.id, type: 'CHAT' },
@@ -244,7 +252,7 @@ router.post('/:id/chat', async (req: AuthedRequest, res, next) => {
       { role: 'assistant' as const, content: t.contentMd },
     ]);
 
-    const { text, model } = await streamChat({ res, contextText, history, message });
+    const { text, model } = await streamChat({ res, contextText, history, message, guidelineTopics });
     await prisma.aiAnalysis.create({
       data: {
         examId: parent.examId,

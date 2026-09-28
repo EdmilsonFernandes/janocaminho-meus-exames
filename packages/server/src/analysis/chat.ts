@@ -1,6 +1,7 @@
 import type { Response } from 'express';
 import { getLlm, getModel } from '../llm';
 import { HEALTH_SYSTEM, diagnosticGuard } from './system';
+import { extractSources } from './guidelines';
 
 /** Redige PII do texto que o usuário digita no chat (CPF/telefone/e-mail/cartão) antes de mandar
  *  ao LLM (relay Z.ai = processador terceiro). Over-redaction de um número longo é aceitável
@@ -30,7 +31,11 @@ export async function streamChat(opts: {
   contextText: string;
   history: ChatTurn[];
   message: string;
-}): Promise<{ text: string; model: string }> {
+  /** Temas de diretriz injetados no contexto (Feature C) — mapeiam a citação [FONTE ANO]
+   *  da resposta ao tema p/ o rodapé "📚 Fontes" da UI. Opcional: sem ele, o parse de
+   *  sources ainda roda (topic 'geral'), e se nada for citado nada é emitido. */
+  guidelineTopics?: string[];
+}): Promise<{ text: string; model: string; sources: { label: string; topic: string }[] }> {
   const { res, contextText, history, message } = opts;
 
   res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
@@ -87,9 +92,16 @@ export async function streamChat(opts: {
       // envia o disclaimer extra como um delta final
       res.write(`data: ${JSON.stringify({ type: 'disclaimer', delta: '\n\n*⚠️ Análise educativa — não substitui avaliação médica.*' })}\n\n`);
     }
+    // Feature C — fontes citadas: parse DETERMINÍSTICO dos [FONTE ANO] que a IA realmente
+    // escreveu (zero confiança no LLM p/ estruturar). Vazio → evento não é emitido (UI antiga
+    // e cliente que não lida com o tipo seguem funcionando — degradação silenciosa).
+    const sources = extractSources(full, opts.guidelineTopics ?? []);
+    if (sources.length) {
+      res.write(`data: ${JSON.stringify({ type: 'sources', sources })}\n\n`);
+    }
     res.write(`data: ${JSON.stringify({ type: 'done', usage, model })}\n\n`);
     res.end();
-    return { text: guarded.text, model: model ?? getModel() ?? 'glm-4.6' };
+    return { text: guarded.text, model: model ?? getModel() ?? 'glm-4.6', sources };
   } catch (e: any) {
     const aborted = ac.signal.aborted || e?.name === 'AbortError';
     failSse(aborted

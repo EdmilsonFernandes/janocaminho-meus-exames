@@ -7,6 +7,8 @@ import { JSON_SUFFIX, extractJsonObject } from '../utils/json';
 import { patientSlug, memoryDigest, appendPatientMemory, saveFullReport } from './agent-memory';
 import { buildCurrentHealthSummary, formatSnapshotContext, type MarkerState, type CurrentHealthSummary } from './health-state';
 import { normalizeKey } from '../utils/normalize';
+import { guidelinesContext, extractSources } from './guidelines';
+import { guidelinesEnabled } from '../utils/settings';
 
 /**
  * PÓS-COERÇÃO (anti-alucinação): substitui os valores que a IA escreveu no comparativo pelos
@@ -255,6 +257,21 @@ export async function generateConsolidatedSummary(patientId: string, audience: '
       ).join('\n') + '\n'
     : '';
 
+  // FEATURE C — diretrizes de sociedades médicas com citação: mesmos analitos do snapshot
+  // (nameCanonical dos exames recentes) casam contra knowledge/guidelines/*.md; os pontos-chave
+  // entram no prompt com a instrução de citar [FONTE ANO] inline. Kill-switch: guidelines.enabled.
+  const recentForGuidelines = await prisma.exam.findMany({
+    where: { patientId, status: 'EXTRACTED' },
+    orderBy: { performedAt: 'desc' },
+    take: 8,
+    select: { items: { select: { nameCanonical: true } } },
+  }).catch(() => []);
+  const { block: guidelinesTxt, topics: guidelineTopics } = guidelinesContext(
+    recentForGuidelines.flatMap((e) => e.items.map((i) => i.nameCanonical)),
+    undefined,
+    guidelinesEnabled(),
+  );
+
   const messages = [
     {
       role: 'user',
@@ -285,6 +302,7 @@ export async function generateConsolidatedSummary(patientId: string, audience: '
           : `PACIENTE: ${String(patient.fullName || '').split(' ')[0] || 'paciente'}\n`) +
         `Score atual: ${snapshot.score ?? '—'}/100 em ${snapshot.markers} marcador(es). Distribuição: ${JSON.stringify(snapshot.byPriority)}.\n` +
         perfilText + activityText + correlationText + '\n' + memoryText +
+        (guidelinesTxt ?? '') +
         `${formatSnapshotContext(snapshot)}\n\n` +
         (audience === 'doctor'
           ? `ESTILO (médico): tom clínico e objetivo; cite valores e variações reais; liste pontos a investigar na consulta; coisasBoas pode ser vazio. Sem diagnóstico definitivo. REFIRA-SE AO PACIENTE EM 3ª PESSOA ("o paciente apresenta...", "quadro do paciente"), NUNCA "você/seu/sua".\n\n`
@@ -328,6 +346,11 @@ export async function generateConsolidatedSummary(patientId: string, audience: '
   summary = attachDesatualizados(summary, snapshot); // seção estruturada de desatualizados (fonte: DB, confiável)
   summary = attachEvolucao(summary, snapshot); // seção de evolução (direção + Δ% do DB)
   summary = attachAntigosNormalizados(summary, snapshot); // seção de alterações antigas normalizadas
+  // FEATURE C — fontes citadas: parse determinístico do texto BRUTO da IA (antes de qualquer
+  // coerção — as citações [FONTE ANO] vêm inline no texto/JSON). Sobrescreve qualquer campo
+  // `sources` que o modelo tenha inventado sozinho (fonte de verdade = o que ele ESCREVEU).
+  const citedSources = extractSources(text, guidelineTopics);
+  summary = { ...summary, sources: citedSources };
   let contentMd = renderSummaryMd(summary);
   contentMd = diagnosticGuard(contentMd).text;
   appendPatientMemory(slug, `Relatório consolidado (${snapshot.markers} marcadores)`,
@@ -414,6 +437,14 @@ export async function generateHealthSummary(examId: string): Promise<{ summary: 
     ? `\nPERFIL CLÍNICO DO PACIENTE (use para contextualizar, nunca para diagnosticar):\n${profile}\n`
     : '';
 
+  // FEATURE C — diretrizes com citação: analitos DESTE exame (nameCanonical) contra os
+  // cards de knowledge/guidelines/*.md. Kill-switch: AppSetting guidelines.enabled.
+  const { block: guidelinesTxt, topics: guidelineTopics } = guidelinesContext(
+    exam.items.map((i) => i.nameCanonical),
+    undefined,
+    guidelinesEnabled(),
+  );
+
   const s = await getLlm().stream({
     model: getModel(),
     maxTokens: 12000, // idem consolidado: folga p/ thinking do glm-5.3 antes do texto
@@ -429,7 +460,7 @@ export async function generateHealthSummary(examId: string): Promise<{ summary: 
           `LABORATÓRIO: ${exam.sourceLab ?? (exam.rawExtraction as any)?.sourceLab ?? 'Não identificado'}\n` +
           `MÉDICO SOLICITANTE: ${(exam.rawExtraction as any)?.requestingDoctor ?? 'Não identificado'}\n` +
           (prior ? `Exame anterior de comparação: ${prior.title} (${prior.performedAt?.toLocaleDateString('pt-BR') ?? 's/d'}).\n` : 'Não há exame anterior para comparar; use apenas o atual.\n') +
-          profileText + '\n' + memoryText +
+          profileText + '\n' + memoryText + (guidelinesTxt ?? '') +
           `ITENS (atual x anterior x referência):\n${JSON.stringify(comparativoInput, null, 2)}\n\n` +
           `VALORES FORA DA FAIXA NO ATUAL:\n${JSON.stringify(foraDaFaixa, null, 2)}\n\n` +
           `Monte o JSON com estas chaves:\n` +
@@ -459,7 +490,10 @@ export async function generateHealthSummary(examId: string): Promise<{ summary: 
   const text = response.text;
   const json = extractJsonObject(text);
   const z = HealthSummarySchema.safeParse(json);
-  const summary = (z.success ? z.data : json) as HealthSummary;
+  let summary = (z.success ? z.data : json) as HealthSummary;
+  // FEATURE C — fontes citadas: parse determinístico das citações [FONTE ANO] que a IA
+  // escreveu no texto/JSON. Sobrescreve campo `sources` auto-inventado pelo modelo.
+  summary = { ...summary, sources: extractSources(text, guidelineTopics) };
 
   let contentMd = renderSummaryMd(summary);
   contentMd = diagnosticGuard(contentMd).text;
