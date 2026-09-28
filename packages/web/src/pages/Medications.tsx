@@ -19,6 +19,7 @@ import { PageHeader } from '../components/layout/PageHeader';
 import { ListSkeleton } from '../components/Skeleton';
 import { AppCard } from '../components/AppCard';
 import { GradientButton } from '../components/GradientButton';
+import { WhatIsThis } from '../components/WhatIsThis';
 import { useNotify } from 'react-admin';
 
 /** Severidade → cor/label (tons 800 p/ AA). */
@@ -205,14 +206,18 @@ const SignalsToggle = ({ medId, name }: { medId: string; name: string }) => {
 
   return (
     <Box sx={{ mt: 1.75, borderTop: '1px dashed', borderColor: 'divider', pt: 0.5 }}>
-      <Button
-        size="small" variant="text" onClick={() => setOpen((o) => !o)} aria-expanded={open}
-        sx={{ textTransform: 'none', fontWeight: 700, px: 0, minHeight: 32, color: (t) => tealText(t.palette.mode), '&:hover': { bgcolor: 'rgba(32,178,170,.07)' } }}
-        endIcon={<ExpandMoreIcon sx={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s', fontSize: 18 }} />}
-      >
-        <MonitorHeartIcon sx={{ fontSize: 16, mr: 0.5 }} />
-        Efeitos mais relatados deste remédio
-      </Button>
+      <Stack direction="row" spacing={0.25} alignItems="center" justifyContent="space-between">
+        <Button
+          size="small" variant="text" onClick={() => setOpen((o) => !o)} aria-expanded={open}
+          sx={{ textTransform: 'none', fontWeight: 700, px: 0, minHeight: 32, color: (t) => tealText(t.palette.mode), '&:hover': { bgcolor: 'rgba(32,178,170,.07)' } }}
+          endIcon={<ExpandMoreIcon sx={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s', fontSize: 18 }} />}
+        >
+          <MonitorHeartIcon sx={{ fontSize: 16, mr: 0.5 }} />
+          Efeitos mais relatados deste remédio
+        </Button>
+        {/* G4 — explainer "O que é isso?" (dados FAERS/FDA em linguagem de gente) */}
+        <WhatIsThis topic="faers" />
+      </Stack>
       {open && (
         <Box sx={{ pt: 0.5, pb: 0.5 }}>
           {state === 'loading' && <SignalSkeleton />}
