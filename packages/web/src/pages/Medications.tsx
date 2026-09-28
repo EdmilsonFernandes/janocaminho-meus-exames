@@ -9,7 +9,10 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import CloseIcon from '@mui/icons-material/Close';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
 import { API_URL, apiHeaders, token } from '../config';
+import { tealText } from '../theme';
 import { useSelectedPatient } from '../patient-context';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
@@ -114,6 +117,147 @@ const medTone = (n: string): [string, string] => MED_TONES[[...(n || '?')].reduc
 const MedAvatar = ({ name, size = 48 }: { name: string; size?: number }) => {
   const [fg, wash] = medTone(name);
   return <Box sx={{ width: size, height: size, borderRadius: '12px', display: 'grid', placeItems: 'center', flexShrink: 0, bgcolor: wash + '22', color: fg, fontWeight: 800, fontSize: size * 0.42, fontFamily: 'Poppins, sans-serif' }}>{(name || '?').trim().charAt(0).toUpperCase()}</Box>;
+};
+
+// ── FARMACOVIGILÂNCIA (feature D): sinais de segurança FAERS/FDA ─────────────
+// Eventos adversos MAIS RELATADOS no openFDA para o remédio. Relatos espontâneos
+// — NÃO é incidência nem causalidade (disclaimer fixo no rodapé do painel).
+// Componentes em nível de MÓDULO (identidade estável — estado sobrevive a
+// re-renders da página sem remontar/refetch). Nada no dashboard/menu (spec).
+export interface SignalEvent { term: string; termPt: string; count: number }
+export interface SignalsResp { source?: string; searched?: string; events: SignalEvent[]; stale?: boolean }
+/** Cache em memória medId→resposta OK: fechar/abrir o painel não refaz a query. */
+const signalsMemCache = new Map<string, SignalsResp>();
+
+const fmtCount = (n: number) => n.toLocaleString('pt-BR');
+
+/** Barra horizontal relativa — largura proporcional ao maior evento (top 8). */
+const SignalBars = ({ events }: { events: SignalEvent[] }) => {
+  const top = events.slice(0, 8);
+  const max = Math.max(...top.map((e) => e.count), 1);
+  return (
+    <Stack spacing={1} sx={{ mt: 0.5 }}>
+      {top.map((e) => (
+        <Box key={e.term}>
+          <Stack direction="row" spacing={0.5} justifyContent="space-between" alignItems="baseline" sx={{ minWidth: 0 }}>
+            <Typography sx={{ fontSize: 12.5, fontWeight: 700, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {e.termPt}{e.termPt !== e.term ? ` (${e.term})` : ''}
+            </Typography>
+            <Typography component="span" sx={{ fontSize: 12, color: 'text.secondary', flexShrink: 0 }}>
+              {fmtCount(e.count)} relatos
+            </Typography>
+          </Stack>
+          <Box sx={{ height: 6, borderRadius: '3px', bgcolor: 'rgba(148,163,184,.16)', overflow: 'hidden', mt: 0.4 }}>
+            <Box sx={{
+              width: `${Math.max((e.count / max) * 100, 2)}%`, height: '100%', borderRadius: '3px',
+              background: 'linear-gradient(90deg,#20b2aa,#178f89)',
+            }} />
+          </Box>
+        </Box>
+      ))}
+    </Stack>
+  );
+};
+
+const SignalSkeleton = () => (
+  <Stack spacing={1} sx={{ mt: 0.5 }} aria-label="Carregando sinais de segurança">
+    {[0, 1, 2, 3].map((i) => (
+      <Box key={i}>
+        <Box sx={{ height: 10, width: `${52 - i * 8}%`, borderRadius: '5px', mb: 0.6, bgcolor: 'rgba(148,163,184,.18)', animation: 'signalShimmer 1.3s ease-in-out infinite', '@keyframes signalShimmer': { '0%,100%': { opacity: 0.45 }, '50%': { opacity: 1 } } }} />
+        <Box sx={{ height: 6, borderRadius: '3px', bgcolor: 'rgba(148,163,184,.14)', animation: 'signalShimmer 1.3s ease-in-out infinite', animationDelay: `${i * 0.12}s` }} />
+      </Box>
+    ))}
+  </Stack>
+);
+
+/** Painel expandível por card — busca na 1ª abertura (lazy), estados completos. */
+const SignalsToggle = ({ medId, name }: { medId: string; name: string }) => {
+  const cached = signalsMemCache.get(medId) ?? null;
+  const [open, setOpen] = useState(false);
+  const [data, setData] = useState<SignalsResp | null>(cached);
+  // 'idle' = nunca buscou (painel fechado); primeira abertura vira loading+fetch
+  const [state, setState] = useState<'idle' | 'loading' | 'ok' | 'nodata' | 'error' | 'offline'>(cached ? 'ok' : 'idle');
+  const tried = useRef(false);
+
+  const load = useCallback(async () => {
+    setState('loading');
+    try {
+      const r = await fetch(`${API_URL}/medications/${medId}/event-signals`, { headers: { Authorization: `Bearer ${token()}` } });
+      // fetch-cache devolve 200-VAZIO com X-Offline-Empty quando offline sem cache.
+      if (r.headers.get('X-Offline-Empty') === 'true') { setState('offline'); return; }
+      if (r.status === 404) { setState('nodata'); return; }
+      if (!r.ok) { setState('error'); return; }
+      const d: SignalsResp = await r.json();
+      if (!d || !Array.isArray(d.events)) { setState('error'); return; }
+      signalsMemCache.set(medId, d);
+      setData(d);
+      setState('ok');
+    } catch {
+      setState('error');
+    }
+  }, [medId]);
+
+  // Primeira abertura dispara a busca UMA vez (retry é explícito, no botão).
+  useEffect(() => {
+    if (open && !tried.current) { tried.current = true; void load(); }
+  }, [open, load]);
+
+  return (
+    <Box sx={{ mt: 1.75, borderTop: '1px dashed', borderColor: 'divider', pt: 0.5 }}>
+      <Button
+        size="small" variant="text" onClick={() => setOpen((o) => !o)} aria-expanded={open}
+        sx={{ textTransform: 'none', fontWeight: 700, px: 0, minHeight: 32, color: (t) => tealText(t.palette.mode), '&:hover': { bgcolor: 'rgba(32,178,170,.07)' } }}
+        endIcon={<ExpandMoreIcon sx={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s', fontSize: 18 }} />}
+      >
+        <MonitorHeartIcon sx={{ fontSize: 16, mr: 0.5 }} />
+        Sinais de segurança (FAERS/FDA)
+      </Button>
+      {open && (
+        <Box sx={{ pt: 0.5, pb: 0.5 }}>
+          {state === 'loading' && <SignalSkeleton />}
+          {state === 'ok' && data && (
+            <>
+              {data.stale && (
+                <Typography sx={{ fontSize: 12, color: 'text.secondary', mb: 0.5 }}>
+                  Mostrando dados em cache — a base da FDA não respondeu agora.
+                </Typography>
+              )}
+              {data.events.length === 0 ? (
+                <Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>Sem relatos registrados para {name}.</Typography>
+              ) : (
+                <SignalBars events={data.events} />
+              )}
+            </>
+          )}
+          {state === 'nodata' && (
+            <Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>
+              Sem dados de segurança para {name} na base da FDA (openFDA). Isso é comum para nomes nacionais — não significa ausência de efeitos.
+            </Typography>
+          )}
+          {(state === 'error' || state === 'offline') && (
+            <Stack spacing={0.5}>
+              <Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>
+                {state === 'offline' ? 'Sem conexão — os sinais aparecem quando você voltar online.' : 'Não foi possível carregar os sinais agora.'}
+              </Typography>
+              {state === 'error' && (
+                <Button size="small" variant="text" onClick={() => void load()} sx={{ textTransform: 'none', alignSelf: 'flex-start', px: 0, minHeight: 28, fontWeight: 700, color: (t) => tealText(t.palette.mode) }}>
+                  Tentar de novo
+                </Button>
+              )}
+            </Stack>
+          )}
+          {/* Rodapé fixo (spec): disclaimer + fonte */}
+          <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.5, mt: 1 }}>
+            Fonte: openFDA FAERS — relatos espontâneos, não indicam incidência nem causalidade. Dúvidas → seu médico ou farmacêutico.{' '}
+            <Box component="a" href="https://open.fda.gov" target="_blank" rel="noopener noreferrer"
+              sx={{ color: (t) => tealText(t.palette.mode), fontWeight: 700, textDecoration: 'underline', whiteSpace: 'nowrap' }}>
+              open.fda.gov
+            </Box>
+          </Typography>
+        </Box>
+      )}
+    </Box>
+  );
 };
 
 export const MedicationsPage = () => {
@@ -442,6 +586,8 @@ export const MedicationsPage = () => {
                     <IconButton size="small" onClick={() => remove(m)} aria-label={`Excluir ${m.name}`} sx={{ '&:hover': { color: 'error.main' } }}><DeleteOutlineIcon fontSize="small" /></IconButton>
                   </Stack>
                 </Stack>
+                {/* Feature D — farmacovigilância: expansível discreto por card */}
+                <SignalsToggle medId={m.id} name={m.name} />
               </Card>
             );
           })}
