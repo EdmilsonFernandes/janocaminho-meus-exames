@@ -2,10 +2,10 @@
   "name": "@meus-exames/shared",
   "version": "0.1.0",
   "private": true,
-  "main": "src/index.ts",
+  "main": "dist/index.js",
   "types": "src/index.ts",
   "scripts": {
-    "build": "echo \"@meus-exames/shared: consumido como TS cru (sem build)\""
+    "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
     "zod": "^4.4.3"

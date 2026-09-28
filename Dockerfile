@@ -27,6 +27,10 @@ COPY . .
 RUN node scripts/generate-build-info.mjs
 # gera o client Prisma ANTES do tsc (senão faltam os tipos @prisma/client no build)
 RUN cd packages/server && npx prisma generate
+# build do shared p/ JS (o runtime exige: imports de VALOR de @meus-exames/shared — ex.
+# validateScreeningAnswers — não carregam src/index.ts num node sem tsx; types continuam
+# vindos do src p/ o tsc do server ver TS)
+RUN npm run build --workspace packages/shared
 # build do servidor (tsc)
 RUN npm run build --workspace packages/server
 # typecheck do front (PEGA imports faltando como o Button antes de empacotar)
@@ -47,6 +51,8 @@ COPY package*.json ./
 COPY packages/server/package.json packages/server/
 COPY packages/shared/package.json packages/shared/
 RUN npm install --omit=dev --workspaces --include-workspace-root
+# JS compilado do shared (runtime resolve main=dist/index.js)
+COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
 COPY --from=builder /app/packages/server/dist ./packages/server/dist
 COPY --from=builder /app/packages/server/prisma ./packages/server/prisma
 COPY --from=builder /app/packages/server/node_modules/.prisma ./packages/server/node_modules/.prisma
