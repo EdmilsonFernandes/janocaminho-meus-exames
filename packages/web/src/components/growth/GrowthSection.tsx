@@ -21,9 +21,10 @@ import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip } from 'rec
 import { API_URL, token } from '../../config';
 import { useSelectedPatient } from '../../patient-context';
 import {
-  PERCENTILE_ZS, ageInDays, buildChartGrid, formatAgePt, zForValue,
+  PERCENTILE_ZS, ageInDays, buildChartGrid, formatAgePt, zForValue, growthDelta,
   type GrowthIndicator,
 } from '../../utils/growth';
+import { WhatIsThis } from '../WhatIsThis';
 import type { Sex } from '../../utils/growthData';
 
 type MRow = { id: string; value: number; measuredAt: string };
@@ -166,6 +167,12 @@ export const GrowthSection = () => {
     return [...days.values()].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 5);
   }, [points]);
 
+  // Bônus G4 — delta "cresceu X cm e Y kg desde <mês/ano>" (1º vs último registro).
+  const delta = useMemo(
+    () => growthDelta(points?.wfa ?? [], points?.lhfa ?? []),
+    [points],
+  );
+
   // Sem perfil criança (ou perfil não carregável — offline sem cache) → não renderiza
   // NADA: seção exclusiva de crianças. Erro silencioso: o banner global de offline
   // já avisa, e um card "indisponível" na Evolução de um adulto seria ruído.
@@ -193,9 +200,13 @@ export const GrowthSection = () => {
               <Typography component="h2" sx={{ fontWeight: 800, fontSize: 14, fontFamily: '"Poppins",sans-serif' }}>
                 Crescimento · {formatAgePt(ageDaysNow)}
               </Typography>
-              <Typography sx={{ fontSize: 12, color: 'text.secondary', ml: 'auto', textAlign: 'right' }}>
-                Percentis OMS (0-19 anos)
-              </Typography>
+              <Stack direction="row" spacing={0.25} alignItems="center" sx={{ ml: 'auto' }}>
+                <Typography sx={{ fontSize: 12, color: 'text.secondary', textAlign: 'right' }}>
+                  Percentis OMS (0-19 anos)
+                </Typography>
+                {/* G4 — explainer "O que é isso?" (o que significam os percentis) */}
+                <WhatIsThis topic="percentis" />
+              </Stack>
             </Stack>
 
             {/* Seletor de indicador */}
@@ -297,6 +308,13 @@ export const GrowthSection = () => {
                 <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>sua criança</Typography>
               </Stack>
             </Stack>
+
+            {/* Bônus G4 — delta discreto desde o primeiro registro (só com 2+ medidas e ganho > 0) */}
+            {delta && (
+              <Typography sx={{ fontSize: 12, color: 'text.secondary', textAlign: 'center', mt: 0.25 }}>
+                Cresceu <strong>{delta.parts}</strong> desde {delta.sinceLabel}.
+              </Typography>
+            )}
 
             {/* Mini-formulário: data + peso + altura */}
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ mt: 1.5 }} useFlexGap>

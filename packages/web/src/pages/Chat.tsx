@@ -18,6 +18,7 @@ import { confirmDialog, promptDialog } from '../components/ConfirmDialog';
 import { useSelectedPatient } from '../patient-context';
 import { CREDIT_COSTS } from '../components/CreditBadge';
 import { DrExame } from '../components/DrExame';
+import { WhatIsThis } from '../components/WhatIsThis';
 import ReactMarkdown from 'react-markdown';
 import { keyframes } from '@mui/material';
 import { tealText } from '../theme';
@@ -339,6 +340,8 @@ export const ChatPage = () => {
                   {!isUser && !!m.sources?.length && (
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, alignItems: 'center', mt: 0.75 }}>
                       <Typography component="span" sx={{ fontSize: 12, fontWeight: 700, color: (t) => tealText(t.palette.mode) }}>📚 Fontes:</Typography>
+                      {/* G4 — explainer "O que é isso?" (que diretrizes são essas) */}
+                      <WhatIsThis topic="diretrizes" />
                       {m.sources.map((s, si) => (
                         <Chip key={`${s.label}-${si}`} label={s.label} size="small" sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(32,178,170,.10)', color: (t) => tealText(t.palette.mode), border: '1px solid rgba(32,178,170,.18)' }} />
                       ))}

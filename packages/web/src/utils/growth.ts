@@ -144,3 +144,41 @@ export async function buildChartGrid(
   }
   return rows;
 }
+
+// === Bônus G4: linha de delta "cresceu X cm e Y kg desde <mês/ano>" ===
+
+export interface GrowthPoint { date: string; value: number }
+
+/**
+ * Delta de crescimento: primeiro vs último registro de peso/altura.
+ * Só entra a dimensão com 2+ registros E diferença > 0 (spec: nada de linha
+ * "cresceu 0" ou negativa — dado ruim/erro de digitação não vira mensagem).
+ * `null` = não há o que mostrar.
+ */
+export function growthDelta(
+  weights: GrowthPoint[],
+  heights: GrowthPoint[],
+): { parts: string; sinceLabel: string } | null {
+  const firstLast = (pts: GrowthPoint[]) => {
+    const s = pts
+      .filter((p) => p.value > 0 && /^\d{4}-\d{2}-\d{2}/.test(p.date))
+      .sort((a, b) => (a.date < b.date ? -1 : 1));
+    return s.length >= 2 ? { first: s[0], last: s[s.length - 1] } : null;
+  };
+  const w = firstLast(weights);
+  const h = firstLast(heights);
+  if (!w && !h) return null;
+
+  const fmt1 = (n: number) => n.toLocaleString('pt-BR', { maximumFractionDigits: 1, minimumFractionDigits: 1 });
+  const pieces: string[] = [];
+  const usedFirst: GrowthPoint[] = [];
+  if (h && h.last.value - h.first.value > 0) { pieces.push(`${fmt1(h.last.value - h.first.value)} cm`); usedFirst.push(h.first); }
+  if (w && w.last.value - w.first.value > 0) { pieces.push(`${fmt1(w.last.value - w.first.value)} kg`); usedFirst.push(w.first); }
+  if (pieces.length === 0) return null;
+
+  // "Desde" o registro mais antigo entre as séries QUE ENTRARAM na frase (mês/ano, pt-BR).
+  const oldest = usedFirst.sort((a, b) => (a.date < b.date ? -1 : 1))[0]!;
+  const sinceLabel = new Date(`${oldest.date.slice(0, 10)}T12:00:00`)
+    .toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+  return { parts: pieces.join(' e '), sinceLabel };
+}

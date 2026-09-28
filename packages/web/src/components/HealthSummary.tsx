@@ -12,6 +12,7 @@ import VolumeUpIcon from '@mui/icons-material/RecordVoiceOver';
 import ReactMarkdown from 'react-markdown';
 import { API_URL, token } from '../config';
 import { ShareDialog } from './ShareDialog';
+import { WhatIsThis } from './WhatIsThis';
 import { findIdealRange, isAboveIdeal } from '@meus-exames/shared';
 
 interface ComparativoRow { name: string; anterior?: string | null; atual?: string | null; leitura?: string | null; entenda?: string | null }
@@ -415,6 +416,8 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
         {!!structured.sources?.length && (
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, alignItems: 'center', justifyContent: 'center', mb: 0.75 }}>
             <Typography component="span" sx={{ fontSize: 12, fontWeight: 700, color: (t) => tealText(t.palette.mode) }}>📚 Fontes:</Typography>
+            {/* G4 — explainer "O que é isso?" (que diretrizes são essas) */}
+            <WhatIsThis topic="diretrizes" />
             {structured.sources.map((s, i) => (
               <Chip key={`${s.label}-${i}`} label={s.label} size="small" sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(32,178,170,.10)', color: (t) => tealText(t.palette.mode), border: '1px solid rgba(32,178,170,.18)' }} />
             ))}
