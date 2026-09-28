@@ -24,6 +24,7 @@ import { PageHeader } from '../components/layout/PageHeader';
 import { ListSkeleton } from '../components/Skeleton';
 import { EmptyState } from '../components/EmptyState';
 import { ScrollReveal } from '../components/dashboard/ScrollReveal';
+import { GrowthSection } from '../components/growth/GrowthSection';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import type { SvgIconComponent } from '@mui/icons-material';
@@ -181,6 +182,10 @@ export const EvolutionPage = () => {
         title={translate('evo.title')}
         subtitle={translate('evo.subtitle')}
       />
+
+      {/* CRESCIMENTO INFANTIL — só aparece se o paciente selecionado for criança
+          (< 19a com birthdate+gênero); o próprio componente decide/retorna null. */}
+      <GrowthSection />
 
       {loading && <ListSkeleton count={4} />}
 
