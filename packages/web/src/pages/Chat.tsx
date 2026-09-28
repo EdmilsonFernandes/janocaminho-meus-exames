@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import { Box, Typography, Button, CircularProgress, Paper, Stack, IconButton, SwipeableDrawer, Drawer, ListItemButton, ListItemText, ListItemIcon, Menu, MenuItem, Badge, Chip } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import StopCircleIcon from '@mui/icons-material/StopCircle';
+import MicIcon from '@mui/icons-material/Mic';
+import StopIcon from '@mui/icons-material/Stop';
 import EditIcon from '@mui/icons-material/EditNote';
 import HistoryIcon from '@mui/icons-material/History';
 import AddIcon from '@mui/icons-material/Add';
@@ -19,6 +21,7 @@ import { DrExame } from '../components/DrExame';
 import ReactMarkdown from 'react-markdown';
 import { keyframes } from '@mui/material';
 import { tealText } from '../theme';
+import { useVoiceInput } from '../hooks/useVoiceInput';
 
 const TEAL = '#178f89';
 
@@ -27,6 +30,8 @@ const dotPulse = keyframes`
   0%, 60%, 100% { opacity: 0.25; transform: translateY(0); }
   30% { opacity: 1; transform: translateY(-3px); }
 `;
+// Pulso sutil do indicador de ditado por voz (o sx desliga com prefers-reduced-motion).
+const voicePulse = keyframes`0%,100%{opacity:.45;transform:scale(.9)}50%{opacity:1;transform:scale(1.25)}`;
 // Aura/badge animados do mascote no hero (mesma identidade do FAB Dr. Exame).
 const drAura = keyframes`0%,100%{opacity:.4;transform:scale(.92)}50%{opacity:.72;transform:scale(1.14)}`;
 const drBob = keyframes`0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}`;
@@ -103,6 +108,10 @@ export const ChatPage = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   // Abort da resposta em andamento (auditoria: provider travado = dots infinitos + input morto).
   const abortRef = useRef<AbortController | null>(null);
+
+  // FEATURE F — ditado por voz pt-BR: transcrição (parcial ao vivo + final) só
+  // preenche o input, NUNCA envia sozinha — ASR erra termo médico, o usuário revisa.
+  const voice = useVoiceInput(setInput);
 
   const [patientName, setPatientName] = useState('');
 
@@ -343,13 +352,24 @@ export const ChatPage = () => {
         </Stack>
       </Box>
 
-      {/* INPUT com botão "+" (bottom sheet de ações) — estilo Mercado Pago */}
-      <Box component="form" onSubmit={(e: any) => { e.preventDefault(); send(); }} sx={{ display: 'flex', gap: 0.75, alignItems: 'center', mt: 1, p: 0.5, pl: 1, borderRadius: '999px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', boxShadow: '0 2px 12px rgba(32,178,170,.08)' }}>
+      {/* INPUT com botão "+" (bottom sheet de ações) e DITADO POR VOZ — estilo Mercado Pago.
+          Gravando: borda error + ponto pulsante; transcrição aparece NO INPUT (parcial ao vivo). */}
+      <Box component="form" onSubmit={(e: any) => { e.preventDefault(); voice.stop(); send(); }} sx={{ display: 'flex', gap: 0.75, alignItems: 'center', mt: 1, p: 0.5, pl: 1, borderRadius: '999px', border: '1px solid', borderColor: voice.isRecording ? 'error.main' : 'divider', bgcolor: 'background.paper', boxShadow: '0 2px 12px rgba(32,178,170,.08)' }}>
         <IconButton onClick={() => setSheetOpen(true)} title="Ações rápidas" sx={{ color: TEAL, '&:hover': { bgcolor: 'rgba(32,178,170,.08)' } }}><AddIcon /></IconButton>
-        <Box component="input" value={input} disabled={busy} placeholder="Pergunte sobre seus exames…"
+        {voice.isRecording && (
+          <Box aria-hidden sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'error.main', flexShrink: 0, animation: `${voicePulse} 1.2s ease-in-out infinite`, '@media (prefers-reduced-motion: reduce)': { animation: 'none' } }} />
+        )}
+        <Box component="input" value={input} disabled={busy || voice.isRecording} placeholder={voice.isRecording ? 'Ouvindo você…' : 'Pergunte sobre seus exames…'}
           onChange={(e: any) => setInput(e.target.value)}
-          onKeyDown={(e: any) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
+          onKeyDown={(e: any) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); voice.stop(); send(); } }}
           style={{ flex: 1, padding: '10px 4px', fontSize: 16, border: 'none', outline: 'none', background: 'transparent', fontFamily: 'inherit' }} />
+        {/* FEATURE F — ditado por voz: mic à esquerda do Enviar; gravando vira "parar" (error.main). */}
+        {voice.isVoiceAvailable && (
+          <IconButton onClick={() => voice.toggle(input)} aria-label={voice.isRecording ? 'Parar ditado' : 'Ditar pergunta'} title={voice.isRecording ? 'Parar ditado' : 'Ditar pergunta'}
+            sx={{ p: { xs: 1.25, sm: 1 }, color: voice.isRecording ? 'error.main' : TEAL, ...(voice.isRecording ? { bgcolor: 'rgba(211,47,47,.10)', '&:hover': { bgcolor: 'rgba(211,47,47,.18)' } } : { '&:hover': { bgcolor: 'rgba(32,178,170,.08)' } }) }}>
+            {voice.isRecording ? <StopIcon /> : <MicIcon />}
+          </IconButton>
+        )}
         <Button type={busy ? 'button' : 'submit'} variant="contained" disabled={!busy && !input.trim()}
           onClick={busy ? stop : undefined}
           aria-label={busy ? 'Parar resposta' : 'Enviar'}
