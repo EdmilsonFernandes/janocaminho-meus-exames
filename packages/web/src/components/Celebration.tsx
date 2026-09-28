@@ -67,9 +67,15 @@ const ConfettiCanvas = () => {
   return <Box component="canvas" ref={ref} aria-hidden="true" sx={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }} />;
 };
 
-export const Celebration = ({ open, firstName, onDone, onCta }: {
+export const Celebration = ({ open, firstName, title, subtitle, ctaLabel = 'Ver minha análise', dismissLabel = 'Continuar no painel', ariaLabel = 'Celebração do primeiro exame', onDone, onCta }: {
   open: boolean;
   firstName?: string;
+  /** Momento customizado (G1: "Primeiro retrato da sua saúde mental"). Default = 1º exame. */
+  title?: string;
+  subtitle?: string;
+  ctaLabel?: string;
+  dismissLabel?: string;
+  ariaLabel?: string;
   /** Fecha E marca a flag 1×-por-paciente (chamado em qualquer saída). */
   onDone: () => void;
   onCta: () => void;
@@ -104,7 +110,7 @@ export const Celebration = ({ open, firstName, onDone, onCta }: {
       ref={overlayRef}
       role="dialog"
       aria-modal="true"
-      aria-label="Celebração do primeiro exame"
+      aria-label={ariaLabel}
       onClick={onDone}
       sx={{
         position: 'fixed', inset: 0, zIndex: 1400,
@@ -148,17 +154,17 @@ export const Celebration = ({ open, firstName, onDone, onCta }: {
           <DrExame size={68} sx={{ borderRadius: '50%' }} />
         </Box>
         <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1.15rem, 5.5vw, 1.45rem)' }, lineHeight: 1.2, color: 'text.primary', textWrap: 'balance' }}>
-          🎉 {firstName ? `${firstName}, seu` : 'Seu'} primeiro exame virou análise!
+          {title ?? `🎉 ${firstName ? `${firstName}, seu` : 'Seu'} primeiro exame virou análise!`}
         </Typography>
         <Typography sx={{ color: 'text.secondary', mt: 1, fontSize: 14.5, lineHeight: 1.55, maxWidth: 300, mx: 'auto' }}>
-          O Dr. Exame já leu tudo e montou a sua visão de saúde. Bora ver o resultado?
+          {subtitle ?? 'O Dr. Exame já leu tudo e montou a sua visão de saúde. Bora ver o resultado?'}
         </Typography>
         <Stack spacing={1.25} sx={{ mt: 2.5 }}>
           <GradientButton ref={primaryRef} onClick={onCta} sx={{ width: '100%', py: 1.2, fontSize: 15 }}>
-            Ver minha análise
+            {ctaLabel}
           </GradientButton>
           <Button onClick={onDone} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, color: 'text.secondary' }}>
-            Continuar no painel
+            {dismissLabel}
           </Button>
         </Stack>
       </Box>

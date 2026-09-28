@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNotify } from 'react-admin';
 import { Box, Button, Chip, CircularProgress, Stack, Typography } from '@mui/material';
@@ -12,7 +12,9 @@ import { useSelectedPatient } from '../patient-context';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
 import { AppCard } from '../components/AppCard';
+import { Celebration } from '../components/Celebration';
 import { SEM } from '../theme';
+import { deltaEntre, deltaLabel, proximaJanela } from '../utils/mental-delta';
 import {
   SCREENING_OPTIONS, screeningItems, maxScoreOf,
   type ScreeningType, type ScreeningSeverity,
@@ -55,7 +57,12 @@ export const SaudeMentalPage = () => {
   const [offline, setOffline] = useState(false);
   const [saving, setSaving] = useState(false);
   const [result, setResult] = useState<Row | null>(null);
+  // G1 — o "momento" da 1ª conclusão (sem sinal grave). Instrumentos já concluídos
+  // NESTA sessão (refazer não relembra) + gate de 1ª vez na vida (histórico vazio p/ tipo).
+  const [firstMoment, setFirstMoment] = useState(false);
+  const doneTypesRef = useRef<Set<ScreeningType>>(new Set());
 
+  const [histLoaded, setHistLoaded] = useState(false);
   const load = useCallback(async () => {
     if (!pid) return;
     setOffline(false);
@@ -66,6 +73,7 @@ export const SaudeMentalPage = () => {
       if (r.headers.get('X-Offline-Empty') === 'true') { setOffline(true); return; }
       if (r.ok) setHistory(await r.json());
     } catch { setOffline(true); }
+    finally { setHistLoaded(true); }
   }, [pid]);
 
   useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [pid]);
@@ -107,7 +115,15 @@ export const SaudeMentalPage = () => {
       });
       const d = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(d?.error || 'Erro ao salvar');
-      setResult(d as Row);
+      const saved = d as Row;
+      // G1 — Celebration SÓ na 1ª conclusão do instrumento (sessão E na vida: histórico
+      // prévio vazio p/ o tipo), score < 15 e SEM ideação de autolesa (card de crise
+      // sempre ganha; celebrar perto dele seria desumano). histLoaded evita a race do
+      // "histórico ainda não carregou": sem certeza, NÃO celebra (erro pro lado seguro).
+      const isFirst = histLoaded && !offline && !doneTypesRef.current.has(type) && !history.some((h) => h.type === type);
+      doneTypesRef.current.add(type);
+      setFirstMoment(isFirst && saved.total < 15 && !saved.suicidalIdeation);
+      setResult(saved);
       setPhase('result');
       load(); // histórico atualiza atrás (sem reload — APK crasha)
     } catch (e: unknown) {
@@ -121,6 +137,18 @@ export const SaudeMentalPage = () => {
   };
 
   const crisis = type === 'phq9' && (result?.suicidalIdeation || answers[8] > 0);
+
+  // G3 — registro anterior do MESMO instrumento p/ o chip de delta ("↓4 desde setembro").
+  // O load() pós-save é assíncrono: trata os dois estados (histórico já contém o resultado
+  // novo → anterior é o penúltimo; ainda não contém → anterior é o último).
+  const prevOfSame = useMemo(() => {
+    if (!result) return null;
+    const rows = history.filter((h) => h.type === result.type);
+    const last = rows[rows.length - 1];
+    if (!last) return null;
+    if (last.id === result.id) return rows.length >= 2 ? rows[rows.length - 2] : null;
+    return last;
+  }, [history, result]);
 
   return (
     <PageContainer width="content" sx={{ pb: { xs: 10, sm: 5 } }}>
@@ -252,13 +280,38 @@ export const SaudeMentalPage = () => {
               <Typography component="span" sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 56, lineHeight: 1, color: (t) => sevColor(result.severity.key)(t.palette.mode) }}>{result.total}</Typography>
               <Typography component="span" color="text.secondary" sx={{ fontWeight: 600 }}>de {maxScoreOf(result.type)}</Typography>
             </Stack>
-            <Chip label={result.severity.label} sx={{ height: 30, fontSize: 15, fontWeight: 800, textTransform: 'capitalize', bgcolor: (t) => `${sevColor(result.severity.key)(t.palette.mode)}1f`, color: (t) => sevColor(result.severity.key)(t.palette.mode) }} />
+            <Stack direction="row" justifyContent="center" alignItems="center" spacing={1} sx={{ mt: 0.5, flexWrap: 'wrap' }}>
+              <Chip label={result.severity.label} sx={{ height: 30, fontSize: 15, fontWeight: 800, textTransform: 'capitalize', bgcolor: (t) => `${sevColor(result.severity.key)(t.palette.mode)}1f`, color: (t) => sevColor(result.severity.key)(t.palette.mode) }} />
+              {prevOfSame && (() => {
+                const delta = deltaEntre(prevOfSame.total, result.total);
+                const toneKey = delta.tone === 'good' ? 'ok' : delta.tone === 'warn' ? 'warn' : null;
+                return (
+                  <Chip
+                    size="small"
+                    label={deltaLabel(delta, prevOfSame.createdAt)}
+                    aria-label={`Diferença desde o rastreamento anterior: ${delta.dir === 'down' ? 'menos' : delta.dir === 'up' ? 'mais' : 'igual'} ${delta.abs} pontos`}
+                    sx={{
+                      height: 26, fontSize: 12.5, fontWeight: 800,
+                      ...(toneKey
+                        ? { bgcolor: (t) => `${SEM[toneKey][t.palette.mode]}1f`, color: (t) => SEM[toneKey][t.palette.mode] }
+                        : { bgcolor: 'action.selected', color: 'text.secondary' }),
+                    }}
+                  />
+                );
+              })()}
+            </Stack>
+            {/* G1 — janela de reavaliação: rastreamentos valem 2 semanas (createdAt + 14d). */}
+            <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mt: 1.5 }}>
+              Rastreamentos valem por 2 semanas — próxima janela ideal: <strong>{proximaJanela(result.createdAt)}</strong>
+            </Typography>
             <Typography sx={{ fontSize: 13, color: 'text.secondary', mt: 2, maxWidth: 460, mx: 'auto' }}>
               Este é um <strong>rastreamento, não um diagnóstico</strong>. Ele ajuda a organizar o que você sente — leve o resultado ao seu médico para uma avaliação adequada.
             </Typography>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} justifyContent="center" sx={{ mt: 2.5 }}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} justifyContent="center" alignItems="center" sx={{ mt: 2.5 }}>
               <Button variant="contained" startIcon={<VolunteerActivismIcon />} onClick={() => navigate('/medicos')} sx={{ textTransform: 'none', fontWeight: 700 }}>Compartilhar com meu médico</Button>
               <Button variant="outlined" onClick={() => setPhase('intro')} sx={{ textTransform: 'none', fontWeight: 700 }}>Concluir</Button>
+              {/* Válido, mas NÃO é o caminho principal — discreto (12px, texto). */}
+              <Button variant="text" onClick={() => startQuiz(result.type)} sx={{ textTransform: 'none', fontSize: 12, fontWeight: 600, minWidth: 0, px: 1, color: 'text.secondary' }}>Refazer agora</Button>
             </Stack>
           </AppCard>
 
@@ -279,6 +332,18 @@ export const SaudeMentalPage = () => {
           )}
         </>
       )}
+
+      {/* G1 — momento da 1ª conclusão (reuso do Celebration do 1º exame; never com crise). */}
+      <Celebration
+        open={firstMoment}
+        title="Primeiro retrato da sua saúde mental 🧠"
+        subtitle="Você acabou de colocar no papel como está — isso já é cuidado. O próximo retrato vale dali a 2 semanas."
+        ctaLabel="Compartilhar com meu médico"
+        dismissLabel="Continuar aqui"
+        ariaLabel="Celebração do primeiro rastreamento"
+        onDone={() => setFirstMoment(false)}
+        onCta={() => { setFirstMoment(false); navigate('/medicos'); }}
+      />
     </PageContainer>
   );
 };
