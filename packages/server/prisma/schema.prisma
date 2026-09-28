@@ -218,9 +218,26 @@ model Patient {
   riskAssessments RiskAssessment[]
   consultations Consultation[]
   medications  Medication[]
+  mentalScreenings MentalHealthScreening[]
 
   @@index([ownerId])
   @@map("patients")
+}
+
+// Rastreamento de saúde mental (PHQ-9 / GAD-7, PT-BR validado — domínio público).
+// Gratuito: NÃO passa pelo sistema de créditos/billing. answers = array 0-3 por item;
+// total é SEMPRE recalculado server-side (a web nunca manda o score).
+model MentalHealthScreening {
+  id        String   @id @default(cuid())
+  patientId String
+  patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  type      String   // "phq9" | "gad7"
+  total     Int
+  answers   Json
+  createdAt DateTime @default(now())
+
+  @@index([patientId, type, createdAt])
+  @@map("mental_health_screenings")
 }
 
 // Remédios do paciente (uso contínuo) — insumo da checagem de interações A–X.

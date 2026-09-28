@@ -5,6 +5,7 @@ import RecordVoiceOverIcon from '@mui/icons-material/RecordVoiceOver';
 import StopIcon from '@mui/icons-material/Stop';
 import PrintIcon from '@mui/icons-material/Print';
 import { API_URL } from '../../config';
+import { severityOf, type ScreeningType } from '@meus-exames/shared';
 import { ConsolidatedReportBody } from '../report/ConsolidatedReportBody';
 import { EmptyState } from '../EmptyState';
 import { DrExame } from '../DrExame';
@@ -28,6 +29,10 @@ export const DoctorConsolidatedReport = ({ patientId, token, patientName, onOpen
   const [generating, setGenerating] = useState(false);
   const [genError, setGenError] = useState('');
   const [speaking, setSpeaking] = useState(false);
+  // Rastreamento de saúde mental (PHQ-9/GAD-7) — linha discreta no relatório. Só chega
+  // até aqui se o share inclui scope 'summary' (validado no endpoint; a tab Relatório
+  // também só existe com esse scope). Falha silenciosa → null (não bloqueia o relatório).
+  const [mental, setMental] = useState<{ phq9: any | null; gad7: any | null } | null>(null);
 
   const load = useCallback(() => {
     const h: Record<string, string> = { Authorization: `Bearer ${token}` };
@@ -61,6 +66,18 @@ export const DoctorConsolidatedReport = ({ patientId, token, patientName, onOpen
 
   // Interrompe a narração ao sair da tela (não deixa o áudio sangrar p/ outras abas).
   useEffect(() => () => { stopSpeakText(); }, []);
+
+  // PHQ-9/GAD-7 mais recentes do paciente (mesma permissão do relatório — scope summary).
+  useEffect(() => {
+    fetch(`${API_URL}/doctor/patients/${patientId}/mental-screenings/latest`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => setMental(d ?? { phq9: null, gad7: null }))
+      .catch(() => setMental({ phq9: null, gad7: null }));
+  }, [patientId, token]);
+
+  const mentalLine = (t: ScreeningType, row: any): string | null =>
+    row ? `${t === 'phq9' ? 'PHQ-9' : 'GAD-7'}: ${row.total} (${severityOf(t, row.total).label}) · ${row.createdAt ? new Date(row.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : ''}` : null;
+  const mentalLines = [mentalLine('phq9', mental?.phq9), mentalLine('gad7', mental?.gad7)].filter(Boolean) as string[];
 
   if (loading && !loaded) {
     return <Box sx={{ textAlign: 'center', py: 5 }}><CircularProgress /></Box>;
@@ -112,6 +129,7 @@ export const DoctorConsolidatedReport = ({ patientId, token, patientName, onOpen
 <header><h1>Brief de consulta — ${esc(patientName || 'Paciente')}</h1><span class="meta">Dr. Exame · ${esc(createdAt || new Date().toLocaleString('pt-BR'))}</span></header>
 ${resumo ? `<h2>Resumo geral</h2><div class="resumo">${esc(resumo)}</div>` : ''}
 ${pontos ? `<h2>Pontos de atenção</h2><ul>${pontos}</ul>` : ''}
+${mentalLines.length ? `<h2>Rastreamento de saúde mental</h2><ul>${mentalLines.map((l) => `<li>${esc(l)}</li>`).join('')}</ul>` : ''}
 ${exams ? `<h2>Exames considerados (${sourceExams.length})</h2><ul>${exams}</ul>` : ''}
 <footer>Documento educativo gerado pelo Dr. Exame (IA) com base nos exames compartilhados pelo paciente — não substitui avaliação médica. Valores extraídos diretamente dos laudos originais.</footer>
 <script>window.onload = () => setTimeout(() => window.print(), 150);</script>
@@ -174,6 +192,11 @@ ${exams ? `<h2>Exames considerados (${sourceExams.length})</h2><ul>${exams}</ul>
               </Box>
             </Stack>
             {resumo && <Typography sx={{ mt: 1.5, lineHeight: 1.7, wordBreak: 'break-word' }}>{resumo}</Typography>}
+            {mentalLines.length > 0 && (
+              <Typography variant="caption" sx={{ display: 'block', mt: 1, color: 'text.secondary' }}>
+                {mentalLines.join('  ·  ')} — rastreamentos autorreportados (PHQ-9/GAD-7)
+              </Typography>
+            )}
           </Box>
 
           <ConsolidatedReportBody analysis={analysis} sourceExams={sourceExams} onOpenExam={onOpenExam} />

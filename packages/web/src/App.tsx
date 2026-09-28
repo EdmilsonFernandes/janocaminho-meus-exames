@@ -58,6 +58,7 @@ const HowWeValidatePage = lazy(() => import('./pages/HowWeValidate').then(m => (
 import { MeasurementsPage } from './pages/Measurements';
 const MedicationsPage = lazy(() => import('./pages/Medications').then(m => ({ default: m.MedicationsPage })));
 const MeasurementHistoryPage = lazy(() => import('./pages/MeasurementHistory').then(m => ({ default: m.MeasurementHistoryPage })));
+const SaudeMentalPage = lazy(() => import('./pages/SaudeMental').then(m => ({ default: m.SaudeMentalPage })));
 import { VaccinesPage } from './pages/Vaccines';
 import { EmergencyCardPage } from './pages/EmergencyCard';
 import { TimelinePage } from './pages/Timeline';
@@ -871,6 +872,8 @@ export const App = () => {
       {/* Histórico por métrica — detalhe da central de sinais (sub-rota: back-gesture
           Android funciona nativo; gráfico+períodos+tabela não cabem em dialog 360px). */}
       <Route path="/medicoes/historico/:type" element={<Suspense fallback={<PageSkeleton />}><MeasurementHistoryPage /></Suspense>} />
+      {/* Saúde mental (PHQ-9/GAD-7) — entra pelo card da página Medições (sem item de menu). */}
+      <Route path="/saude-mental" element={<Suspense fallback={<PageSkeleton />}><SaudeMentalPage /></Suspense>} />
       <Route path="/medicamentos" element={<MedicationsPage />} />
       <Route path="/vacinas" element={<VaccinesPage />} />
       <Route path="/despesas" element={<ExpensesPage />} />

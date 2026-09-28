@@ -19,6 +19,7 @@ import { verifyUnsubToken } from './utils/unsubscribeToken';
 import { hashSharePin } from './utils/crypto';
 import authRoutes, { REFERRAL_BONUS } from './routes/auth.routes';
 import patientRoutes from './routes/patient.routes';
+import mentalScreeningRoutes from './routes/mental-screening.routes';
 import examRoutes from './routes/exam.routes';
 import itemRoutes from './routes/item.routes';
 import analysisRoutes from './routes/analysis.routes';
@@ -195,6 +196,9 @@ app.get('/api/patients/:id/photo', requirePhotoToken, async (req, res) => {
 });
 
 app.use('/api/patients', patientRoutes);
+// PHQ-9/GAD-7: mesmo prefixo /api/patients — paths /:patientId/mental-screenings* não
+// colidem com os /:id/* do patientRoutes (2+ segmentos). Cai aqui por fall-through.
+app.use('/api/patients', mentalScreeningRoutes);
 app.use('/api/exams', examRoutes);
 app.use('/api/items', itemRoutes);
 app.use('/api/analyses', analysisRoutes);

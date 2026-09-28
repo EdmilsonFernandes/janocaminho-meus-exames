@@ -14,6 +14,7 @@ import RouteIcon from '@mui/icons-material/Route';
 import PushPinIcon from '@mui/icons-material/PushPin';
 import TimerIcon from '@mui/icons-material/Timer';
 import AddIcon from '@mui/icons-material/Add';
+import PsychologyIcon from '@mui/icons-material/Psychology';
 import { useNavigate } from 'react-router-dom';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
@@ -226,6 +227,27 @@ export const MeasurementsPage = () => {
           );
         })}
       </Box>
+
+      {/* SAÚDE MENTAL — entrada do PHQ-9/GAD-7 (recurso gratuito, 2 min). Card aqui na
+          Medições (SEM item de menu/tile novo — decisão de produto). */}
+      <AppCard
+        kind="interactive"
+        role="button"
+        tabIndex={0}
+        onClick={() => navigate('/saude-mental')}
+        onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/saude-mental'); } }}
+        aria-label="Abrir rastreamento de saúde mental (PHQ-9 e GAD-7)"
+        sx={{ mb: 2, p: 2, display: 'flex', alignItems: 'center', gap: 1.5, '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 } }}
+      >
+        <Box aria-hidden="true" sx={{ width: 40, height: 40, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'rgba(32,178,170,.12)', color: 'primary.dark', flexShrink: 0 }}>
+          <PsychologyIcon />
+        </Box>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography sx={{ fontWeight: 700 }}>Saúde Mental — PHQ-9/GAD-7</Typography>
+          <Typography variant="caption" color="text.secondary">Questionários validados de depressão e ansiedade · 2 min</Typography>
+        </Box>
+        <Chip size="small" label="Grátis" sx={{ height: 22, fontWeight: 700, bgcolor: 'rgba(32,178,170,.12)', color: 'primary.dark' }} />
+      </AppCard>
 
       {/* REGISTRAR — por último (dado em cima, ferramenta embaixo; colapsado por padrão).
           Enter salva (mobile: tecladoDone = salvar, sem caçar o botão). */}
