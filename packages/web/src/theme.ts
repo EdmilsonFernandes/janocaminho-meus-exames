@@ -161,7 +161,15 @@ export const buildTheme = (mode: ThemeMode): Theme => {
             backgroundClip: 'content-box',
             '&:hover': { background: isDark ? 'rgba(148,163,184,.4)' : 'rgba(23,143,137,.38)', backgroundClip: 'content-box' },
           },
-          'html': { WebkitTapHighlightColor: 'transparent', scrollBehavior: 'smooth' },
+          'html': { WebkitTapHighlightColor: 'transparent', scrollBehavior: 'smooth', overscrollBehavior: 'none' },
+          // MOBILE-NATIVE (skill): tap sem o delay de double-tap-zoom em tudo que é tocável.
+          'button, a, [role="button"]': { touchAction: 'manipulation' },
+          // MOBILE-NATIVE (skill): iOS Safari dá zoom da página ao focar input <16px e NÃO
+          // volta ao dar blur. Em telas touch o piso dos campos é 16px (desktop mantém o
+          // desenho fino). Zoom do usuário NUNCA é desativado (regra de acessibilidade).
+          '@media (hover: none) and (pointer: coarse)': {
+            'input, textarea, select, .MuiInputBase-input': { fontSize: 16 },
+          },
         },
       },
       MuiDrawer: {
@@ -196,11 +204,19 @@ export const buildTheme = (mode: ThemeMode): Theme => {
             background: 'linear-gradient(135deg, #20b2aa, #178f89)',
             boxShadow: '0 4px 12px rgba(32,178,170,0.30)',
             '&:hover': { background: 'linear-gradient(135deg, #1ba39c, #137a74)', boxShadow: '0 6px 16px rgba(32,178,170,0.40)' },
+            // HOVER PRESO (skill mobile-native): no toque o :hover aplica no tap e FICA.
+            // Em telas touch o hover repete o estado base — o feedback fica pro ripple/active.
+            '@media (hover: none)': {
+              '&:hover': { background: 'linear-gradient(135deg, #20b2aa, #178f89)', boxShadow: '0 4px 12px rgba(32,178,170,0.30)' },
+            },
           },
           containedSecondary: {
             background: 'linear-gradient(135deg, #d4a574, #b88a54)',
             boxShadow: '0 4px 12px rgba(212,165,116,0.30)',
             '&:hover': { background: 'linear-gradient(135deg, #c89863, #a87a4a)' },
+            '@media (hover: none)': {
+              '&:hover': { background: 'linear-gradient(135deg, #d4a574, #b88a54)' },
+            },
           },
         },
       },
@@ -230,6 +246,10 @@ export const buildTheme = (mode: ThemeMode): Theme => {
             margin: '3px 10px',
             transition: 'transform .1s ease, background-color .15s ease',
             '&:hover': { background: hoverAlpha },
+            // HOVER PRESO (skill mobile-native): menu lateral era o pior caso — o item tocado
+            // ficava teal até tocar em outro. No toque, hover não pinta (item ativo tem classe
+            // própria abaixo e NÃO é afetado).
+            '@media (hover: none)': { '&:hover': { background: 'transparent' } },
             '&:active': { transform: 'scale(0.97)' },
             '&.RaMenuItem-activeMenuItem, &[class*="active"]': {
               background: activeAlpha,

@@ -24,6 +24,7 @@ import { ConfirmSpend } from '../components/ConfirmSpend';
 import { DocPreview } from '../components/DocPreview';
 import { ReportHero } from '../components/report/ReportHero';
 import { tealText } from '../theme';
+import { WhatIsThis } from '../components/WhatIsThis';
 import { ReportSectionCard } from '../components/report/ReportSectionCard';
 import { DestaqueCard } from '../components/report/DestaqueCard';
 import { MetaCard } from '../components/report/MetaCard';
@@ -623,6 +624,8 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
           {!!s.sources?.length && (
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, alignItems: 'center', justifyContent: 'center' }}>
               <Typography component="span" sx={{ fontSize: 12, fontWeight: 700, color: (t) => tealText(t.palette.mode) }}>📚 Fontes:</Typography>
+              {/* G4 — explainer "O que é isso?" (que diretrizes são essas) */}
+              <WhatIsThis topic="diretrizes" />
               {s.sources.map((src, i) => (
                 <Chip key={`${src.label}-${i}`} label={src.label} size="small" sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(32,178,170,.10)', color: (t) => tealText(t.palette.mode), border: '1px solid rgba(32,178,170,.18)' }} />
               ))}

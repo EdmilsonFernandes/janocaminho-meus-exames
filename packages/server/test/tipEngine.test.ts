@@ -54,6 +54,24 @@ describe('pickTipTheme — rotação com memória', () => {
     expect(pickTipTheme(ctx({ daysSinceExam: 40 }), [])).toBe('rotina');
   });
 
+  it('mente candidata quando nunca fez OU janela de reavaliação aberta (≥14d)', () => {
+    expect(pickTipTheme(ctx({ mental: { never: true, daysSince: null, openWindow: false, lastScore: null, lastType: '' } }), [])).toBe('mente');
+    expect(pickTipTheme(ctx({ mental: { never: false, daysSince: 20, openWindow: true, lastScore: 4, lastType: 'phq9' } }), [])).toBe('mente');
+    // Dentro da janela (fechada) → não candidata.
+    expect(pickTipTheme(ctx({ mental: { never: false, daysSince: 5, openWindow: false, lastScore: 2, lastType: 'gad7' } }), [])).toBe('rotina');
+    // Sem dado/tabela → nunca candidata.
+    expect(pickTipTheme(ctx({ mental: null }), [])).toBe('rotina');
+  });
+
+  it('crianca candidata quando <19a e peso/altura ausente ou em atraso (≥30d)', () => {
+    expect(pickTipTheme(ctx({ childAgeMonths: 30, childLastMeasureDays: null }), [])).toBe('crianca');
+    expect(pickTipTheme(ctx({ childAgeMonths: 30, childLastMeasureDays: 45 }), [])).toBe('crianca');
+    // Medição recente → não candidata.
+    expect(pickTipTheme(ctx({ childAgeMonths: 30, childLastMeasureDays: 10 }), [])).toBe('rotina');
+    // Adulto → nunca candidata.
+    expect(pickTipTheme(ctx({ childAgeMonths: 300, childLastMeasureDays: 90 }), [])).toBe('rotina');
+  });
+
   it('sem dado nenhum → rotina', () => {
     expect(pickTipTheme(ctx(), [])).toBe('rotina');
   });
@@ -107,6 +125,23 @@ describe('curatedFallback — específico mesmo sem GLM', () => {
   it('rotina usa o segmento', () => {
     expect(curatedFallback(ctx({ segment: 'glicemia' }), 'rotina')).toContain('glicose');
   });
+
+  it('mente cita o convite ou a janela aberta (sem alarmismo de score)', () => {
+    const convite = curatedFallback(ctx({ mental: { never: true, daysSince: null, openWindow: false, lastScore: null, lastType: '' } }), 'mente');
+    expect(convite).toContain('2 min');
+    expect(convite).toContain('Ana');
+    const janela = curatedFallback(ctx({ mental: { never: false, daysSince: 17, openWindow: true, lastScore: 12, lastType: 'phq9' } }), 'mente');
+    expect(janela).toContain('17 dias');
+    expect(janela).not.toContain('12'); // score NÃO vira conteúdo da dica
+  });
+
+  it('crianca cita a medição em atraso ou a primeira medição', () => {
+    const primeira = curatedFallback(ctx({ childAgeMonths: 18, childLastMeasureDays: null }), 'crianca');
+    expect(primeira).toContain('Ana');
+    expect(primeira).toContain('curva de crescimento');
+    const atraso = curatedFallback(ctx({ childAgeMonths: 18, childLastMeasureDays: 40 }), 'crianca');
+    expect(atraso).toContain('40 dias');
+  });
 });
 
 describe('buildTipPrompt — contexto e anti-repetição', () => {
@@ -123,5 +158,20 @@ describe('buildTipPrompt — contexto e anti-repetição', () => {
   it('não inclui atividade quando o paciente não sincroniza', () => {
     const { user } = buildTipPrompt(ctx(), 'rotina', []);
     expect(user).not.toContain('Health Connect');
+  });
+
+  it('mente: prompt traz o estado do rastreamento e a regra sem estigma', () => {
+    const { user } = buildTipPrompt(ctx({ mental: { never: true, daysSince: null, openWindow: false, lastScore: null, lastType: '' } }), 'mente', []);
+    expect(user).toContain('NUNCA respondeu');
+    expect(user).toContain('SEM estigma');
+    const { user: u2 } = buildTipPrompt(ctx({ mental: { never: false, daysSince: 20, openWindow: true, lastScore: 3, lastType: 'gad7' } }), 'mente', []);
+    expect(u2).toContain('GAD-7 (ansiedade)');
+    expect(u2).toContain('ABERTA');
+  });
+
+  it('crianca: prompt traz idade e atraso da medição', () => {
+    const { user } = buildTipPrompt(ctx({ childAgeMonths: 18, childLastMeasureDays: 40 }), 'crianca', []);
+    expect(user).toContain('18 meses');
+    expect(user).toContain('40 dia(s)');
   });
 });

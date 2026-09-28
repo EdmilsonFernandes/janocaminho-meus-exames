@@ -59,13 +59,31 @@ async function generateTip(patientId: string, ctx: TipContext, theme: TipTheme, 
 /** Monta o contexto REAL do paciente p/ a dica: health-summary + atividade HC + medicação + dicas recentes.
  *  (exportada p/ smoke test manual: `npx tsx scripts/smoke-tip.ts`) */
 export async function buildSmartTip(patientId: string, ownerId: string, firstName: string): Promise<{ body: string; theme: TipTheme } | null> {
-  const [hs, lastExam, meds, recentTips, acts] = await Promise.all([
+  const [hs, lastExam, meds, recentTips, acts, patientRow, lastMental] = await Promise.all([
     getCachedHealthSummary(patientId).catch(() => null),
     prisma.exam.findFirst({ where: { patientId, status: 'EXTRACTED', performedAt: { not: null } }, orderBy: { performedAt: 'desc' }, select: { performedAt: true } }),
     prisma.medication.findMany({ where: { patientId, active: true }, select: { name: true }, take: 4 }),
     prisma.notification.findMany({ where: { userId: ownerId, type: 'tip', data: { path: ['patientId'], equals: patientId } }, orderBy: { createdAt: 'desc' }, take: 5, select: { body: true, data: true } }),
     prisma.measurement.findMany({ where: { patientId, type: { in: ['STEPS', 'EXERCISE_MINUTES', 'HEART_RATE'] }, note: 'Health Connect', measuredAt: { gte: new Date(Date.now() - 14 * 86400000) } }, select: { type: true, value: true, measuredAt: true }, orderBy: { measuredAt: 'desc' } }),
+    prisma.patient.findUnique({ where: { id: patientId }, select: { dateOfBirth: true } }),
+    // P2021 (tabela ausente em DB pré-migration) → null: tema 'mente' simplesmente não candidata.
+    prisma.mentalHealthScreening.findFirst({ where: { patientId }, orderBy: { createdAt: 'desc' }, select: { type: true, total: true, createdAt: true } })
+      .catch((e: any) => (e?.code === 'P2021' ? null : Promise.reject(e))),
   ]);
+
+  // Perfil criança (mesma regra da GrowthSection: <19 anos com data de nascimento).
+  const now = Date.now();
+  const ageDays = patientRow?.dateOfBirth ? (now - patientRow.dateOfBirth.getTime()) / 86400000 : null;
+  const isChild = ageDays != null && ageDays >= 0 && ageDays < 19 * 365.25;
+  const lastGrowth = isChild
+    ? await prisma.measurement.findFirst({ where: { patientId, type: { in: ['HEIGHT', 'WEIGHT'] } }, orderBy: { measuredAt: 'desc' }, select: { measuredAt: true } }).catch(() => null)
+    : null;
+  const mental = lastMental
+    ? (() => {
+        const daysSince = Math.floor((now - lastMental.createdAt.getTime()) / 86400000);
+        return { never: false, daysSince, openWindow: daysSince >= 14, lastScore: lastMental.total, lastType: lastMental.type };
+      })()
+    : { never: true, daysSince: null, openWindow: false, lastScore: null, lastType: '' };
 
   const mk = (m: any): TipMarker => ({
     name: m?.name ?? '', value: m?.latest?.valueNumeric ?? null, prev: m?.prior?.valueNumeric ?? null,
@@ -75,7 +93,6 @@ export async function buildSmartTip(patientId: string, ownerId: string, firstNam
   const worsening: TipMarker[] = (Array.isArray(hs?.worsening) ? (hs.worsening as any[]).slice(0, 3) : []).map((m: any) => mk(m)).filter((m) => m.name);
 
   // Atividade: só considera quem sincroniza (acts.length > 0) — sem dado ≠ sedentário.
-  const now = Date.now();
   let minWeek = 0, minPrev = 0, steps = 0, stepDays = 0, restingHr: number | null = null;
   for (const a of acts) {
     const ageD = (now - a.measuredAt.getTime()) / 86400000;
@@ -99,6 +116,11 @@ export async function buildSmartTip(patientId: string, ownerId: string, firstNam
     restingHr,
     medications: meds.map((m) => m.name),
     segment: classifySegment(`${worsening[0]?.name ?? ''} ${improving[0]?.name ?? ''} ${hs?.clinicalSummary ?? ''}`),
+    mental,
+    childAgeMonths: isChild ? Math.floor(ageDays! / 30.4375) : null,
+    childLastMeasureDays: isChild
+      ? (lastGrowth?.measuredAt ? Math.floor((now - lastGrowth.measuredAt.getTime()) / 86400000) : null)
+      : null,
   };
 
   const recentThemes = recentTips.map((n) => (n.data as any)?.theme).filter(Boolean) as string[];
