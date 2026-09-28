@@ -12,7 +12,7 @@
  *   v(z) = M · (1 + L·S·z)^(1/L)   |   L≈0: v = M·e^(S·z)
  * Percentil via CDF normal (Abramowitz-Stegun 26.2.17, já exportada pelo pacote).
  */
-import { loadTable, lookupLms, normalCdf, type LmsRow, type Sex } from '@pedi-growth/core';
+import { loadTable, lookupLms, normalCdf, type LmsRow, type Sex } from './growthData';
 
 export type GrowthIndicator = 'wfa' | 'lhfa' | 'bfa'; // peso / altura(comprimento) / IMC — para a idade
 

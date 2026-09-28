@@ -24,7 +24,7 @@ import {
   PERCENTILE_ZS, ageInDays, buildChartGrid, formatAgePt, zForValue,
   type GrowthIndicator,
 } from '../../utils/growth';
-import type { Sex } from '@pedi-growth/core';
+import type { Sex } from '../../utils/growthData';
 
 type MRow = { id: string; value: number; measuredAt: string };
 type ChartRow = {

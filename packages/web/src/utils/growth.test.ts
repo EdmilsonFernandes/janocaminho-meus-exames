@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   ageInDays, formatAgePt, valueForZ, zFromLms, percentileForZ, getLms, zForValue, buildChartGrid,
 } from './growth';
-import type { LmsRow } from '@pedi-growth/core';
+import type { LmsRow } from './growthData';
 
 // Utilitário: linha LMS sintética p/ identidades matemáticas (independe da tabela real).
 const row = (L: number, M: number, S: number): LmsRow => ({ age: 0, L, M, S });
