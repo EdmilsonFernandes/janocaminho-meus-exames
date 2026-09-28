@@ -112,9 +112,12 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
         sx={{ minWidth: 0, px: 1.5, borderRadius: '999px', borderColor: 'rgba(32,178,170,0.3)', color: '#178f89', '&:hover': { borderColor: '#178f89', bgcolor: 'rgba(32,178,170,0.06)' } }}>
         <PrintIcon fontSize="small" />
       </Button>
-      <Button size="small" variant="outlined" onClick={onRegen} disabled={loading} startIcon={loading ? <CircularProgress size={14} color="inherit" /> : <AutoAwesomeIcon />}
-        sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 1.75, borderColor: 'rgba(32,178,170,0.3)', color: '#178f89', '&:hover': { borderColor: '#178f89', bgcolor: 'rgba(32,178,170,0.06)' } }}>
-        {loading ? 'Gerando…' : 'Atualizar relatório'}
+      {/* Mobile: texto largo quebrava a barra pra 2ª linha (xs) — vira ícone-only como
+          Compartilhar/Imprimir (aria-label/title mantêm o nome); sm+ mostra o texto. */}
+      <Button size="small" variant="outlined" onClick={onRegen} disabled={loading} aria-label="Atualizar relatório" title="Atualizar relatório"
+        startIcon={loading ? <CircularProgress size={14} color="inherit" /> : <AutoAwesomeIcon />}
+        sx={{ minWidth: 0, borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: { xs: 1.5, sm: 1.75 }, borderColor: 'rgba(32,178,170,0.3)', color: '#178f89', '&:hover': { borderColor: '#178f89', bgcolor: 'rgba(32,178,170,0.06)' } }}>
+        <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>{loading ? 'Gerando…' : 'Atualizar relatório'}</Box>
       </Button>
     </Stack>
 
