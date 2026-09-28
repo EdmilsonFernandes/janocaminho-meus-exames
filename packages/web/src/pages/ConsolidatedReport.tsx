@@ -23,6 +23,7 @@ import { CreditBadge, CREDIT_COSTS } from '../components/CreditBadge';
 import { ConfirmSpend } from '../components/ConfirmSpend';
 import { DocPreview } from '../components/DocPreview';
 import { ReportHero } from '../components/report/ReportHero';
+import { tealText } from '../theme';
 import { ReportSectionCard } from '../components/report/ReportSectionCard';
 import { DestaqueCard } from '../components/report/DestaqueCard';
 import { MetaCard } from '../components/report/MetaCard';
@@ -40,6 +41,8 @@ interface Summary {
   interacoesMedicamentos?: { medicamento: string; analito: string; observacao: string }[];
   sugestoesNutricao?: string[];
   metasSaude?: { analito: string; meta: string; prazo?: string | null }[];
+  // FEATURE C — diretrizes de sociedades médicas citadas na resposta (parse server-side).
+  sources?: { label: string; topic: string }[];
   disclaimer?: string;
 }
 import type { SourceExam } from '@meus-exames/shared';
@@ -613,6 +616,16 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
             }}>
               <Typography sx={{ fontWeight: 800, color: '#0369a1', mb: 0.75, fontFamily: '"Poppins",sans-serif', fontSize: 16 }}>📌 Leitura final</Typography>
               <Typography sx={{ lineHeight: 1.7, wordBreak: 'break-word', color: 'text.primary', fontSize: 14 }}>{s.leituraFinal}</Typography>
+            </Box>
+          )}
+
+          {/* FEATURE C — rodapé discreto com as diretrizes citadas (chips 12px, teal AA) */}
+          {!!s.sources?.length && (
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, alignItems: 'center', justifyContent: 'center' }}>
+              <Typography component="span" sx={{ fontSize: 12, fontWeight: 700, color: (t) => tealText(t.palette.mode) }}>📚 Fontes:</Typography>
+              {s.sources.map((src, i) => (
+                <Chip key={`${src.label}-${i}`} label={src.label} size="small" sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(32,178,170,.10)', color: (t) => tealText(t.palette.mode), border: '1px solid rgba(32,178,170,.18)' }} />
+              ))}
             </Box>
           )}
 

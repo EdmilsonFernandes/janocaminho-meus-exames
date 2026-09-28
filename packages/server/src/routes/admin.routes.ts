@@ -216,7 +216,7 @@ router.get('/config', (_req, res) => {
 //  1) numérico flat (legado): { category: 'creditCosts', chat: 2, ... }
 //  2) objeto/array (novas categorias): { category: 'plans', value: {...} } — substitui a categoria
 // Validações server-side: preço > 0; packs com id/créditos/preço > 0; founder.price ≤ plano.
-const NUMERIC_CATEGORIES = ['creditCosts', 'uploadRules', 'grants', 'shares'];
+const NUMERIC_CATEGORIES = ['creditCosts', 'uploadRules', 'grants', 'shares', 'guidelines'];
 const OBJECT_CATEGORIES = ['plans', 'premium', 'founder', 'creditPacks', 'badges'];
 router.patch('/config/costs', async (req, res, next) => {
   try {

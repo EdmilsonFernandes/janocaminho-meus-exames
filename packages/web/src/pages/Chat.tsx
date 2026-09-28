@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Box, Typography, Button, CircularProgress, Paper, Stack, IconButton, SwipeableDrawer, Drawer, ListItemButton, ListItemText, ListItemIcon, Menu, MenuItem, Badge } from '@mui/material';
+import { Box, Typography, Button, CircularProgress, Paper, Stack, IconButton, SwipeableDrawer, Drawer, ListItemButton, ListItemText, ListItemIcon, Menu, MenuItem, Badge, Chip } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import StopCircleIcon from '@mui/icons-material/StopCircle';
 import EditIcon from '@mui/icons-material/EditNote';
@@ -18,6 +18,7 @@ import { CREDIT_COSTS } from '../components/CreditBadge';
 import { DrExame } from '../components/DrExame';
 import ReactMarkdown from 'react-markdown';
 import { keyframes } from '@mui/material';
+import { tealText } from '../theme';
 
 const TEAL = '#178f89';
 
@@ -68,7 +69,7 @@ const QUICK_ACTIONS = [
   { icon: '🎯', title: 'Minhas metas do ano', prompt: 'Com base nos meus exames, sugira metas de saúde realistas para os próximos meses.' },
 ];
 
-interface Msg { role: 'user' | 'assistant'; text: string; ts?: string }
+interface Msg { role: 'user' | 'assistant'; text: string; ts?: string; sources?: { label: string; topic: string }[] }
 const fmtTime = (iso?: string) => (iso ? new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '');
 interface Conv { id: string; title: string; createdAt: string; updatedAt: string; messages: Msg[] }
 
@@ -126,11 +127,11 @@ export const ChatPage = () => {
     // SÓ em localStorage → troca de aparelho/limpeza de cache perdia tudo. Dedupa pela 1ª pergunta.
     fetch(`${API_URL}/chat?patientId=${pid}`, { headers: apiHeaders() })
       .then((r) => (r.ok ? r.json() : []))
-      .then((turns: { userMessage?: string; contentMd?: string }[]) => {
+      .then((turns: { userMessage?: string; contentMd?: string; structured?: { sources?: { label: string; topic: string }[] } | null }[]) => {
         if (!Array.isArray(turns) || !turns.length) return;
         const msgs: Msg[] = turns.flatMap((t) => [
           ...(t.userMessage ? [{ role: 'user' as const, text: t.userMessage }] : []),
-          ...(t.contentMd ? [{ role: 'assistant' as const, text: t.contentMd }] : []),
+          ...(t.contentMd ? [{ role: 'assistant' as const, text: t.contentMd, sources: t.structured?.sources ?? [] }] : []),
         ]);
         if (!msgs.length) return;
         setConvs((prev) => {
@@ -214,6 +215,10 @@ export const ChatPage = () => {
             if (evt.delta) {
               gotDelta = true;
               work = work.map((c) => c.id === cid ? { ...c, messages: c.messages.map((m, i) => i === assistantIdx ? { ...m, text: (m.text ?? '') + evt.delta } : m) } : c); setConvs(work);
+            }
+            // FEATURE C — fontes citadas [FONTE ANO] (SSE extra do servidor; vazio não é emitido).
+            if (evt.type === 'sources' && Array.isArray(evt.sources)) {
+              work = work.map((c) => c.id === cid ? { ...c, messages: c.messages.map((m, i) => i === assistantIdx ? { ...m, sources: evt.sources } : m) } : c); setConvs(work);
             }
           } catch { /* pacote parcial */ }
         }
@@ -321,6 +326,15 @@ export const ChatPage = () => {
                   {m.text
                     ? (m.role === 'assistant' ? <ReactMarkdown>{m.text}</ReactMarkdown> : <Box sx={{ whiteSpace: 'pre-wrap' }}>{m.text}</Box>)
                     : (isLastAssistant ? <TypingDots /> : null)}
+                  {/* FEATURE C — rodapé discreto com as diretrizes citadas (chips 12px, teal AA) */}
+                  {!isUser && !!m.sources?.length && (
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, alignItems: 'center', mt: 0.75 }}>
+                      <Typography component="span" sx={{ fontSize: 12, fontWeight: 700, color: (t) => tealText(t.palette.mode) }}>📚 Fontes:</Typography>
+                      {m.sources.map((s, si) => (
+                        <Chip key={`${s.label}-${si}`} label={s.label} size="small" sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(32,178,170,.10)', color: (t) => tealText(t.palette.mode), border: '1px solid rgba(32,178,170,.18)' }} />
+                      ))}
+                    </Box>
+                  )}
                   {m.ts && <Typography sx={{ display: 'block', fontSize: 10, mt: 0.4, opacity: 0.6, textAlign: isUser ? 'right' : 'left' }}>{fmtTime(m.ts)}</Typography>}
                 </Paper>
               </Box>

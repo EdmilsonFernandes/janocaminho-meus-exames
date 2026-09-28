@@ -6,6 +6,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PrintIcon from '@mui/icons-material/Print';
 import { DrExame } from './DrExame';
 import { printDocument, speakText, stopSpeakText } from '../utils/nativeDoc';
+import { tealText } from '../theme';
 import ShareIcon from '@mui/icons-material/Share';
 import VolumeUpIcon from '@mui/icons-material/RecordVoiceOver';
 import ReactMarkdown from 'react-markdown';
@@ -31,6 +32,8 @@ interface Summary {
   evolucao?: { name: string; direcao: string; detalhe?: string | null }[];
   // Alterações antigas já normalizadas (eram anormais, voltaram ao normal).
   antigosNormalizados?: { name: string; quando?: string | null; detalhe?: string | null }[];
+  // FEATURE C — diretrizes de sociedades médicas citadas na resposta (parse server-side).
+  sources?: { label: string; topic: string }[];
   disclaimer?: string;
 }
 
@@ -408,6 +411,15 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
         )}
 
         <Divider sx={{ my: 2 }} />
+        {/* FEATURE C — rodapé discreto com as diretrizes citadas (chips 12px, teal AA) */}
+        {!!structured.sources?.length && (
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, alignItems: 'center', justifyContent: 'center', mb: 0.75 }}>
+            <Typography component="span" sx={{ fontSize: 12, fontWeight: 700, color: (t) => tealText(t.palette.mode) }}>📚 Fontes:</Typography>
+            {structured.sources.map((s, i) => (
+              <Chip key={`${s.label}-${i}`} label={s.label} size="small" sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(32,178,170,.10)', color: (t) => tealText(t.palette.mode), border: '1px solid rgba(32,178,170,.18)' }} />
+            ))}
+          </Box>
+        )}
         <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', textAlign: 'center' }}>
           {structured.disclaimer || 'Análise educativa. Leve ao seu médico para interpretação clínica.'}
         </Typography>
