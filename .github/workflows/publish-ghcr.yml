@@ -49,6 +49,9 @@ jobs:
           node-version: '20'
           cache: 'npm'
       - run: npm ci
+      # shared precisa de dist/ ANTES dos testes: vitest resolve o pacote pelo main
+      # (dist/index.js) e o checkout fresco não tem build artifact.
+      - run: npm run build --workspace packages/shared
       - run: cd packages/server && npx prisma generate
       - run: cd packages/server && npx prisma db push --skip-generate
       - run: npm test --workspace packages/server
