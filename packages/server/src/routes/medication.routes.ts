@@ -9,6 +9,11 @@ import { upload } from '../middleware/upload';
 import { buildNormalizedMedication } from '../pricing/normalize';
 import { runPriceWorkerTick, processMedicationPrice } from '../pricing/worker';
 import { ProviderRegistry } from '../pricing/provider';
+import {
+  FAERS_TTL_MS, FAERS_NOT_FOUND_TTL_MS, FAERS_TIMEOUT_MS,
+  faersSearchTerm, faersCacheKey, buildFaersUrl, parseFaersEvents,
+  type FaersCacheData, type FaersEvent,
+} from '../utils/faers';
 
 /**
  * Remédios do paciente + checagem de interações A–X.
@@ -560,6 +565,124 @@ router.get('/:id/prices', async (req: AuthedRequest, res, next) => {
       : null;
     res.json({ status: m.priceStatus, snapshot });
   } catch (e) { next(e); }
+});
+
+// ── FARMACOVIGILÂNCIA (feature D): sinais de evento adverso da openFDA FAERS ──
+// Eventos adversos MAIS RELATADOS para o remédio (suspeito principal). Cache em
+// banco (drug_signal_cache): 7d sucesso / 1h não-encontrado. Falha da FDA →
+// serve stale com X-Stale: true ou 503 amigável — NUNCA estoura a request.
+// Drift gate: a tabela é nova — se a migration ainda não rodou (P2021), o cache
+// degrada para no-op e a rota continua funcionando (busca direta, sem cache).
+
+/** Cache read tolerante a drift: tabela ausente (P2021) → null (segue sem cache). */
+const readSignalCache = async (medKey: string) => {
+  try {
+    return await prisma.drugSignalCache.findUnique({ where: { medKey }, select: { data: true, fetchedAt: true } });
+  } catch (e) {
+    console.warn('[faers] cache read falhou (tabela ausente?) — seguindo sem cache:', (e as { code?: string }).code ?? e);
+    return null;
+  }
+};
+/** Cache write tolerante a drift: falha não derruba a resposta ao usuário. */
+const writeSignalCache = async (medKey: string, data: FaersCacheData) => {
+  try {
+    // JSON round-trip: interface sem index-signature não é InputJsonObject do Prisma
+    const payload = JSON.parse(JSON.stringify(data));
+    await prisma.drugSignalCache.upsert({
+      where: { medKey },
+      create: { medKey, data: payload },
+      update: { data: payload, fetchedAt: new Date() },
+      select: { medKey: true }, // aditivo: nunca leia colunas não-migradas
+    });
+  } catch (e) {
+    console.warn('[faers] cache write falhou (tabela ausente?) — resposta sem persistir:', (e as { code?: string }).code ?? e);
+  }
+};
+
+router.get('/:id/event-signals', async (req: AuthedRequest, res, next) => {
+  try {
+    // select EXPLÍCITO (drift gate) — só o que a rota usa.
+    const m = await prisma.medication.findUnique({
+      where: { id: String(req.params.id) },
+      select: { id: true, patientId: true, name: true, activeIngredient: true },
+    });
+    if (!m) { res.status(404).json({ error: 'Remédio não encontrado.' }); return; }
+    const pids = await userPatientIds(req.userId!);
+    if (!pids.includes(m.patientId)) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+
+    const searchTerm = faersSearchTerm(m.activeIngredient, m.name);
+    if (!searchTerm) { res.status(404).json({ error: 'Sem dados de segurança para esse remédio.' }); return; }
+    const medKey = faersCacheKey(searchTerm);
+
+    const serve = (data: FaersCacheData, stale = false) => {
+      if (stale) res.setHeader('X-Stale', 'true');
+      res.json({ source: 'openFDA FAERS', searched: data.searched, events: data.events, stale });
+    };
+
+    const cached = await readSignalCache(medKey);
+    const cachedData = cached?.data as FaersCacheData | undefined;
+    const ageMs = cached ? Date.now() - cached.fetchedAt.getTime() : Infinity;
+
+    // Hit fresco → resposta imediata (não toca na FDA).
+    if (cachedData) {
+      const ttl = cachedData.notFound ? FAERS_NOT_FOUND_TTL_MS : FAERS_TTL_MS;
+      if (ageMs < ttl) {
+        if (cachedData.notFound) { res.status(404).json({ error: 'Sem dados de segurança para esse remédio na base da FDA.' }); return; }
+        serve(cachedData);
+        return;
+      }
+    }
+
+    // Miss/expirado → busca no openFDA com timeout 15s (AbortController).
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), FAERS_TIMEOUT_MS);
+    try {
+      const r = await fetch(buildFaersUrl(searchTerm), { signal: ctrl.signal, headers: { Accept: 'application/json' } });
+      if (r.status === 404 || r.status === 429) {
+        // Droga não encontrada é COMUM (nome nacional fora do FAERS); 429 = rate limit.
+        // Sem cache de sucesso anterior → 404 amigável já (não faz o usuário esperar);
+        // guarda o notFound por 1h p/ não martelar a FDA a cada card aberto.
+        if (cachedData && !cachedData.notFound) { serve(cachedData, true); return; } // stale > nada
+        await writeSignalCache(medKey, { events: [], searched: searchTerm, notFound: true });
+        res.status(404).json({ error: 'Sem dados de segurança para esse remédio na base da FDA.' });
+        return;
+      }
+      if (!r.ok) throw new Error(`openFDA ${r.status}`);
+      const events: FaersEvent[] = parseFaersEvents(await r.json());
+      if (events.length === 0) {
+        // 200 vazio = nenhum relato casado — trata como notFound (TTL curto).
+        if (cachedData && !cachedData.notFound) { serve(cachedData, true); return; }
+        await writeSignalCache(medKey, { events: [], searched: searchTerm, notFound: true });
+        res.status(404).json({ error: 'Sem dados de segurança para esse remédio na base da FDA.' });
+        return;
+      }
+      const data: FaersCacheData = { events, searched: searchTerm };
+      await writeSignalCache(medKey, data);
+      serve(data);
+    } finally {
+      clearTimeout(timer);
+    }
+  } catch (e) {
+    // Timeout/rede/5xx da FDA: stale serve; sem stale → 503 amigável (nunca 500 cru).
+    try {
+      const m = await prisma.medication.findUnique({
+        where: { id: String(req.params.id) },
+        select: { name: true, activeIngredient: true },
+      });
+      const st = faersSearchTerm(m?.activeIngredient, m?.name);
+      if (st) {
+        const cached = await readSignalCache(faersCacheKey(st));
+        const data = cached?.data as FaersCacheData | undefined;
+        if (data && !data.notFound) {
+          res.setHeader('X-Stale', 'true');
+          res.json({ source: 'openFDA FAERS', searched: data.searched, events: data.events, stale: true });
+          return;
+        }
+      }
+    } catch { /* degrade silencioso — o 503 abaixo já cobre */ }
+    console.warn('[faers] falha ao consultar openFDA:', e instanceof Error ? e.message : e);
+    res.status(503).json({ error: 'Base da FDA indisponível no momento. Tente novamente em instantes.' });
+  }
 });
 
 // FORCE REFRESH: apaga TODOS os snapshots → worker recria com lista completa da VTEX.

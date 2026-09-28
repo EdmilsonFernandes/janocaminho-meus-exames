@@ -175,6 +175,19 @@ model ExamKnowledge {
   @@map("exam_knowledge")
 }
 
+// Farmacovigilância (feature D): cache dos sinais de evento adverso da openFDA
+// FAERS por remédio — mesmo padrão do exam_knowledge (chave única + Json).
+// TTL: 7d sucesso / 1h "não encontrado" (ver utils/faers.ts). Nenhum dado de
+// usuário — só chave do remédio + resposta pública da FDA.
+model DrugSignalCache {
+  id        String   @id @default(cuid())
+  medKey    String   @unique // termo de busca normalizado (LOSARTAN POTASSIUM)
+  data      Json     // { events: [{term, termPt, count}], searched, notFound? }
+  fetchedAt DateTime @default(now())
+
+  @@map("drug_signal_cache")
+}
+
 enum Role {
   OWNER
   ADMIN
