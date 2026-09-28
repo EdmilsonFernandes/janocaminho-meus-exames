@@ -253,6 +253,19 @@ model MentalHealthScreening {
   @@map("mental_health_screenings")
 }
 
+// FEATURE E — cache de ensaios clínicos (ClinicalTrials.gov API v2) por palavra-chave de
+// condição. LGPD: chave = termo EN genérico (NADA do paciente); mesma condição em N
+// pacientes = 1 row compartilhada. TTL 7 dias (fetchedAt).
+model ClinicalTrialCache {
+  id        String   @id @default(cuid())
+  condKey   String   @unique // palavra-chave EN (query.cond) — ex.: "diabetes"
+  data      Json     // TrialStudy[] final: {nctId,title,city?,state?,url}
+  fetchedAt DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  @@map("clinical_trial_cache")
+}
+
 // Remédios do paciente (uso contínuo) — insumo da checagem de interações A–X.
 model Medication {
   id        String    @id @default(cuid())

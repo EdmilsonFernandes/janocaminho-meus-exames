@@ -31,6 +31,7 @@ import { generateSoap } from '../analysis/doctor-soap';
 import { suggestCid10 } from '../analysis/cid10';
 import { encryptedCpfData, maskStoredCpf } from '../utils/cpf';
 import { dedupSourceExams } from '../utils/dedup-source-exams';
+import { deriveTrialConditions, fetchTrials, coerceCachedStudies, type TrialStudy } from '../analysis/clinical-trials';
 
 // Especialidades base (espelha o front-end). O dropdown real = base ∪ especialidades que já existem no banco.
 const BASE_SPECIALTIES = [
@@ -1238,6 +1239,66 @@ router.get('/patients/:patientId/medications', requireDoctor, async (req: any, r
     const { matchInteractions, isCritical } = await import('../utils/interactions');
     const hits = matchInteractions(medications.filter((m) => m.active), rules);
     res.json({ medications, critical: hits.filter((h) => isCritical(h.severity)) });
+  } catch (e) { next(e); }
+});
+
+// FEATURE E — PESQUISAS CLÍNICAS RECRUTANDO (ClinicalTrials.gov API v2, pública, sem chave).
+// Visão do Relatório/brief (scope 'summary', igual ao consolidado e ao mental-screening).
+// LGPD: do servidor só sai a palavra-chave EN da condição (map estático de
+// clinical-trials.ts) — nenhum PII/dado de saúde individual na chamada externa.
+// Cache 7d em clinical_trial_cache (chave = condição, compartilhada entre pacientes).
+// Degradação: condição que falha vira studies:[] + failed; header X-Trials-Partial —
+// NUNCA 500 na cara do médico. Tabela ausente (P2021, drift gate) → busca ao vivo sem cache.
+const TRIAL_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+router.get('/patients/:patientId/clinical-trials', requireDoctor, async (req: any, res, next) => {
+  try {
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    if (!share?.scopes.includes('summary')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+    const pid = String(req.params.patientId);
+    const [patient, meds, abnormalItems] = await Promise.all([
+      prisma.patient.findUnique({ where: { id: pid }, select: { clinicalProfile: true } }),
+      prisma.medication.findMany({ where: { patientId: pid, active: true }, select: { name: true, activeIngredient: true } }),
+      prisma.examItem.findMany({
+        where: { exam: { patientId: pid, status: 'EXTRACTED' }, isAbnormal: true },
+        select: { nameCanonical: true, flag: true, examId: true },
+        orderBy: { exam: { performedAt: 'desc' } }, take: 400,
+      }),
+    ]);
+    const conditions = deriveTrialConditions({
+      clinicalProfile: patient?.clinicalProfile ?? null,
+      medications: meds,
+      abnormalItems,
+    });
+    // Sem sinal → card não renderiza (não inventa condição).
+    if (!conditions.length) { res.json({ conditions: [], degraded: false }); return; }
+
+    const entries = await Promise.all(conditions.map(async (c) => {
+      // Cache (7d) — tolera tabela ausente (drift gate): segue ao vivo sem persistir.
+      try {
+        const cached = await prisma.clinicalTrialCache.findUnique({ where: { condKey: c.condition } });
+        if (cached && Date.now() - new Date(cached.fetchedAt).getTime() < TRIAL_CACHE_TTL_MS) {
+          const studies = coerceCachedStudies(cached.data);
+          if (studies) return { ...c, studies, failed: false };
+        }
+      } catch { /* P2021 (tabela nova pré-migration) → sem cache, busca ao vivo */ }
+      try {
+        const studies = await fetchTrials(c.condition);
+        try {
+          await prisma.clinicalTrialCache.upsert({
+            where: { condKey: c.condition },
+            update: { data: studies as any, fetchedAt: new Date() },
+            create: { condKey: c.condition, data: studies as any },
+          });
+        } catch { /* cache best-effort */ }
+        return { ...c, studies, failed: false };
+      } catch {
+        return { ...c, studies: [] as TrialStudy[], failed: true };
+      }
+    }));
+
+    const degraded = entries.some((e) => e.failed);
+    if (degraded) res.setHeader('X-Trials-Partial', 'true');
+    res.json({ conditions: entries, degraded });
   } catch (e) { next(e); }
 });
 

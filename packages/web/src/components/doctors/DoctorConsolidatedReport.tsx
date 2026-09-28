@@ -7,6 +7,7 @@ import PrintIcon from '@mui/icons-material/Print';
 import { API_URL } from '../../config';
 import { severityOf, type ScreeningType } from '@meus-exames/shared';
 import { ConsolidatedReportBody } from '../report/ConsolidatedReportBody';
+import { ClinicalTrialsCard } from './ClinicalTrialsCard';
 import { EmptyState } from '../EmptyState';
 import { DrExame } from '../DrExame';
 import { RADIUS } from '../../theme';
@@ -202,6 +203,10 @@ ${exams ? `<h2>Exames considerados (${sourceExams.length})</h2><ul>${exams}</ul>
           <ConsolidatedReportBody analysis={analysis} sourceExams={sourceExams} onOpenExam={onOpenExam} />
         </>
       )}
+
+      {/* FEATURE E — ensaios clínicos recrutando (mesmo scope 'summary' do relatório; depende
+          das condições do paciente, não da análise gerada → renderiza também no estado vazio). */}
+      <ClinicalTrialsCard patientId={patientId} token={token} />
     </Box>
   );
 };
