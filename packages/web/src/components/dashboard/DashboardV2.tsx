@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Stack, Typography, Box, Grid, useTheme, Skeleton, Dialog, DialogTitle, DialogContent, DialogActions, Button, LinearProgress, CircularProgress } from '@mui/material';
+import { Stack, Typography, Box, Grid, useTheme, Skeleton, Dialog, DialogTitle, DialogContent, DialogActions, Button, LinearProgress, CircularProgress, Chip, IconButton } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { API_URL, token } from '../../config';
 import { SEM, copperText, tealText } from '../../theme';
+import { deltaEntre, deltaLabel, proximaJanela } from '../../utils/mental-delta';
 import { Heartbeat, Stethoscope, ChartLineUp, Dna, ChatCircle } from '@phosphor-icons/react';
 import { useSelectedPatient } from '../../patient-context';
 import { syncPushToken } from '../../push';
@@ -37,12 +38,28 @@ import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import CloseIcon from '@mui/icons-material/Close';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { getGoals, goalSubtitle } from '../GoalQuiz';
 
 const readTotal = (r: Response) =>
   Number(r.headers.get('X-Total-Count') ?? r.headers.get('content-range')?.split('/')?.[1] ?? '0');
+
+/** G2 — linha de rastreamento mental (subset do que /mental-screenings/latest serializa). */
+interface MentalRow {
+  id: string;
+  type: 'phq9' | 'gad7';
+  total: number;
+  severity: { key: string; label: string };
+  createdAt: string;
+}
+interface MentalLatest {
+  phq9: MentalRow | null;
+  gad7: MentalRow | null;
+  phq9Previous: MentalRow | null;
+  gad7Previous: MentalRow | null;
+}
 
 /** Um único ponto p/ prefers-reduced-motion (sparkles, ring pulse, tile spring). */
 const usePrefersReducedMotion = () => {
@@ -87,6 +104,10 @@ function useDashboardData(pid: string | null) {
   // (availability) — o cliente nunca mais infere estado positivo a partir de null.
   const [availability, setAvailability] = useState<any>(null);
   const [rejected, setRejected] = useState(0);
+  // G2 — rastreamento de saúde mental (/latest, fetch LEVE: não integra o job do
+  // dashboard-summary nem bloqueia `loaded` — o card tem gate de render próprio).
+  const [mental, setMental] = useState<MentalLatest | null>(null);
+  const [mentalOffline, setMentalOffline] = useState(false);
 
   useEffect(() => {
     if (!pid) {
@@ -103,6 +124,17 @@ function useDashboardData(pid: string | null) {
     (async () => {
       const h = { Authorization: `Bearer ${token()}` };
       const pidQ = pid ? `&patientId=${pid}` : '';
+      // G2 — saúde mental: fire-and-forget (fora dos `jobs` — não atrasa o loaded).
+      // X-Offline-Empty → desconhecido (nunca "nunca fez": sem dado não se afirma estado).
+      (async () => {
+        try {
+          const r = await fetch(`${API_URL}/patients/${pid}/mental-screenings/latest`, { headers: h });
+          if (r.headers.get('X-Offline-Empty') === 'true') { setMentalOffline(true); return; }
+          if (!r.ok) return;
+          const dm = await r.json();
+          setMental({ phq9: dm.phq9 ?? null, gad7: dm.gad7 ?? null, phq9Previous: dm.phq9Previous ?? null, gad7Previous: dm.gad7Previous ?? null });
+        } catch { /* silencioso — card mental não é crítico */ }
+      })();
       // 1 ROUND-TRIP (antes: 8 GETs paralelos — exams×2, failed, rejected, flag-summary,
       // health-summary, patients, billing). /dashboard-summary consolida tudo no server com
       // a MESMA semântica de cada fonte. Catch: offline → o cache instantâneo já pintou.
@@ -157,7 +189,7 @@ function useDashboardData(pid: string | null) {
     })();
   }, [pid]);
 
-  return { stats, failed, lastExam, buckets, score, prevScore, importante, moderada, cardioRisk, markerCount, credits, me, loaded, worsened, improved, staleWarning, availability, rejected, bio, bioAvail, hsLoaded, processing };
+  return { stats, failed, lastExam, buckets, score, prevScore, importante, moderada, cardioRisk, markerCount, credits, me, loaded, worsened, improved, staleWarning, availability, rejected, bio, bioAvail, hsLoaded, processing, mental, mentalOffline };
 }
 
 const statusFromScore = (s: number | null): { label: string; tone: 'primary' | 'success' | 'warning' | 'error' } => {
@@ -252,6 +284,79 @@ const ProcessingStrip = ({ count, oldestAt, onClick }: { count: number; oldestAt
         </Typography>
         <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
           {start ? `há ${mm}:${ss}` : 'agora'} · toque para acompanhar · pode usar o app normalmente
+        </Typography>
+      </Box>
+      <ChevronRightIcon sx={{ color: 'text.disabled', flexShrink: 0 }} />
+    </AppCard>
+  );
+};
+
+/** G2 — Saúde mental no dashboard: atalho de STATUS (não é painel). Compacto (~72px):
+ *  h2 "Saúde mental" + valor "PHQ-9 9 · Leve" + chip de delta (G3) + caption
+ *  "28/09 · próxima janela 12/10"; toque → /saude-mental. Quem nunca fez vê 1× por
+ *  paciente a variante educativa (flag dx-mental-intro:<pid>, dismissível no X).
+ *  Desconhecido (offline/ainda carregando) → NÃO renderiza: dashboard limpo, sem estado inventado. */
+const MentalCard = ({ mental, mentalOffline, introDismissed, onDismissIntro, onOpen }: {
+  mental: MentalLatest | null;
+  mentalOffline: boolean;
+  introDismissed: boolean;
+  onDismissIntro: () => void;
+  onOpen: () => void;
+}) => {
+  if (mentalOffline || !mental) return null;
+  const fmtDay = (iso: string) => new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+  // Instrumento mais recente entre os dois (o "como estou" da vez).
+  const { phq9, gad7, phq9Previous, gad7Previous } = mental;
+  const latest = phq9 && gad7 ? (phq9.createdAt >= gad7.createdAt ? phq9 : gad7) : (phq9 ?? gad7);
+
+  // Variante educativa (1× por paciente): 🧠 + convite. X ou "Responder" setam a flag.
+  if (!latest) {
+    if (introDismissed) return null;
+    return (
+      <AppCard sx={{ p: 1.5, borderRadius: '16px', display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <Box sx={{ width: 40, height: 40, borderRadius: '12px', flexShrink: 0, display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,.12)', fontSize: 20 }} aria-hidden="true">🧠</Box>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography component="h2" sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: 13.5, lineHeight: 1.2 }}>Saúde mental</Typography>
+          <Typography sx={{ fontSize: 12.5, color: 'text.secondary', lineHeight: 1.4 }}>
+            Saúde mental também é saúde — 2 minutos, questionário validado, grátis
+          </Typography>
+        </Box>
+        <Button variant="contained" size="small" onClick={onOpen} sx={{ textTransform: 'none', fontWeight: 700, flexShrink: 0, borderRadius: '10px' }}>Responder</Button>
+        <IconButton aria-label="Dispensar dica de saúde mental" size="small" onClick={onDismissIntro} sx={{ flexShrink: 0, color: 'text.disabled' }}>
+          <CloseIcon sx={{ fontSize: 18 }} />
+        </IconButton>
+      </AppCard>
+    );
+  }
+
+  const prev = latest.type === 'phq9' ? phq9Previous : gad7Previous;
+  const delta = prev ? deltaEntre(prev.total, latest.total) : null;
+  const toneKey = delta ? (delta.tone === 'good' ? 'ok' : delta.tone === 'warn' ? 'warn' : null) : null;
+  return (
+    <AppCard kind="interactive" onClick={onOpen} aria-label="Saúde mental — ver rastreamentos" sx={{ p: 1.5, borderRadius: '16px', display: 'flex', alignItems: 'center', gap: 1.5 }}>
+      <Box sx={{ width: 40, height: 40, borderRadius: '12px', flexShrink: 0, display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,.12)', fontSize: 20 }} aria-hidden="true">🧠</Box>
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Typography component="h2" sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: 13.5, lineHeight: 1.2 }}>Saúde mental</Typography>
+        <Stack direction="row" spacing={0.75} alignItems="center" sx={{ flexWrap: 'wrap', rowGap: 0.25 }}>
+          <Typography noWrap sx={{ fontWeight: 800, fontSize: 15, lineHeight: 1.3, color: 'text.primary' }}>
+            {latest.type === 'phq9' ? 'PHQ-9' : 'GAD-7'} {latest.total} · {latest.severity.label}
+          </Typography>
+          {delta && prev && (
+            <Chip
+              size="small"
+              label={deltaLabel(delta, prev.createdAt)}
+              aria-label={`Diferença desde o rastreamento anterior: ${delta.dir === 'down' ? 'menos' : delta.dir === 'up' ? 'mais' : 'igual'} ${delta.abs} pontos`}
+              sx={{
+                height: 21, fontSize: 11.5, fontWeight: 800,
+                ...(toneKey
+                  ? { bgcolor: (t) => `${SEM[toneKey][t.palette.mode]}1f`, color: (t) => SEM[toneKey][t.palette.mode] }
+                  : { bgcolor: 'action.selected', color: 'text.secondary' }),
+              }}
+            />
+          )}
+        </Stack>
+        <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary' }}>
+          {fmtDay(latest.createdAt)} · próxima janela {proximaJanela(latest.createdAt)}
         </Typography>
       </Box>
       <ChevronRightIcon sx={{ color: 'text.disabled', flexShrink: 0 }} />
@@ -642,6 +747,20 @@ export const DashboardV2 = () => {
     try { localStorage.setItem(firstKey, '1'); } catch { /* ignore */ }
   };
 
+  // G2 — variante educativa do card mental: 1× por PACIENTE (dx-mental-intro:<pid>),
+  // setada ao dispensar (X) OU ao responder (entrar na tela conta como "viu").
+  const mentalIntroKey = `dx-mental-intro:${pid}`;
+  const [mentalIntroSeen, setMentalIntroSeen] = useState(() => {
+    try { return pid ? localStorage.getItem(`dx-mental-intro:${pid}`) === '1' : true; } catch { return true; }
+  });
+  useEffect(() => {
+    try { setMentalIntroSeen(pid ? localStorage.getItem(mentalIntroKey) === '1' : true); } catch { setMentalIntroSeen(true); }
+  }, [pid, mentalIntroKey]);
+  const dismissMentalIntro = () => {
+    try { localStorage.setItem(mentalIntroKey, '1'); } catch { /* ignore */ }
+    setMentalIntroSeen(true);
+  };
+
   const totalResults = d.buckets.bons + d.buckets.alerta + d.buckets.alterados;
   const cardioLevel: string = d.cardioRisk?.level ?? '';
   const cardioFactors: number = Array.isArray(d.cardioRisk?.factors) ? d.cardioRisk.factors.filter((f: any) => f.risk).length : 0;
@@ -769,6 +888,18 @@ export const DashboardV2 = () => {
 
               {/* O QUE MUDOU NO SEU ÚLTIMO EXAME */}
               <ChangesSinceExam worsened={d.worsened} improved={d.improved} onView={go('/evolucao')} loaded={d.loaded} />
+
+              {/* G2 — saúde mental: flui do "como estou" (exames) pro "como estou por
+                  dentro". Dado real do paciente → JAMAIS no modo exemplo. */}
+              {!demo && (
+                <MentalCard
+                  mental={real.mental}
+                  mentalOffline={real.mentalOffline}
+                  introDismissed={mentalIntroSeen}
+                  onDismissIntro={dismissMentalIntro}
+                  onOpen={() => { dismissMentalIntro(); navigate('/saude-mental'); }}
+                />
+              )}
 
               {/* ATIVIDADE FÍSICA & HEALTH CONNECT — escondida no demo (dado é do DEVICE, não há como fingir) */}
               {!demo && (!real.me?.relationship || real.me.relationship === 'Titular') && (

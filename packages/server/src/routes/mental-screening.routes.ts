@@ -78,19 +78,26 @@ router.get('/:patientId/mental-screenings', async (req: AuthedRequest, res, next
   }
 });
 
-// MAIS RECENTES por instrumento → { phq9, gad7 } (null quando nunca fez).
+// MAIS RECENTES por instrumento → { phq9, gad7 } (null quando nunca fez) +
+// <tipo>Previous = registro anterior do mesmo instrumento (G3: chip "↓4 desde setembro"
+// no dashboard — comparar com o próprio histórico, não entre instrumentos).
 router.get('/:patientId/mental-screenings/latest', async (req: AuthedRequest, res, next) => {
   try {
     const pid = String(req.params.patientId);
     const pids = await userPatientIds(req.userId!);
     if (!pids.includes(pid)) { res.status(403).json({ error: 'Paciente não pertence ao usuário' }); return; }
-    const [phq9, gad7] = await Promise.all([
-      prisma.mentalHealthScreening.findFirst({ where: { patientId: pid, type: 'phq9' }, orderBy: { createdAt: 'desc' }, select: SELECT }),
-      prisma.mentalHealthScreening.findFirst({ where: { patientId: pid, type: 'gad7' }, orderBy: { createdAt: 'desc' }, select: SELECT }),
+    const [phq9Rows, gad7Rows] = await Promise.all([
+      prisma.mentalHealthScreening.findMany({ where: { patientId: pid, type: 'phq9' }, orderBy: { createdAt: 'desc' }, take: 2, select: SELECT }),
+      prisma.mentalHealthScreening.findMany({ where: { patientId: pid, type: 'gad7' }, orderBy: { createdAt: 'desc' }, take: 2, select: SELECT }),
     ]);
-    res.json({ phq9: phq9 ? serialize(phq9) : null, gad7: gad7 ? serialize(gad7) : null });
+    res.json({
+      phq9: phq9Rows[0] ? serialize(phq9Rows[0]) : null,
+      gad7: gad7Rows[0] ? serialize(gad7Rows[0]) : null,
+      phq9Previous: phq9Rows[1] ? serialize(phq9Rows[1]) : null,
+      gad7Previous: gad7Rows[1] ? serialize(gad7Rows[1]) : null,
+    });
   } catch (e) {
-    if (isTableMissing(e)) { res.setHeader('X-Table-Missing', 'true'); res.json({ phq9: null, gad7: null }); return; }
+    if (isTableMissing(e)) { res.setHeader('X-Table-Missing', 'true'); res.json({ phq9: null, gad7: null, phq9Previous: null, gad7Previous: null }); return; }
     next(e);
   }
 });
