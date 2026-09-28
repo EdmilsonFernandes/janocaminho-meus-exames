@@ -67,6 +67,12 @@ const FAQ: FaqEntry[] = [
   { cat: 'privacidade', q: 'Meus dados de saúde estão seguros?', a: 'Sim. Seguimos a LGPD: dados de identificação são criptografados, os PDFs dos exames ficam armazenados fora do banco de dados e o acesso é exclusivamente seu — e de quem você autorizar.' },
   { cat: 'privacidade', q: 'Quem pode ver meus exames?', a: 'Só você — e os médicos que você autorizar explicitamente, com o escopo que você definir. Nada é compartilhado sem o seu ato.' },
   { cat: 'privacidade', q: 'Como excluo meus dados?', a: 'Você pode baixar tudo ou excluir sua conta em Privacidade e dados — na hora, sem intermediário. A exclusão apaga exames, análises e perfil definitivamente.' },
+  // Leva 2 — saúde mental, fontes da IA, efeitos relatados, voz, pesquisa clínica
+  { cat: 'exames', q: 'O questionário de saúde mental é diagnóstico?', a: 'Não. O PHQ-9 e o GAD-7 são rastreamentos validados, usados no mundo inteiro: medem como você andou se sentindo em 2 minutos. O resultado é educativo e vai junto pro seu médico. Se em algum momento você pensar em se machucar, procure ajuda na hora: CVV, ligação gratuita 188, 24 horas.' },
+  { cat: 'confianca', q: 'De onde vêm as fontes que a IA cita?', a: 'Das sociedades médicas de referência: SBC (cardiologia), SBD (diabetes) e ADA, entre outras. Cada resposta traz um rodapé "Fontes" com a diretriz usada — sempre à vista, pra você conferir de onde veio cada orientação.', linkTo: '/como-validamos', linkLabel: 'Como validamos cada análise' },
+  { cat: 'confianca', q: 'O que são os "efeitos mais relatados" do meu remédio?', a: 'É um painel com os efeitos que mais aparecem nos relatos do mundo inteiro sobre aquele remédio — da base pública da FDA (agência americana), em português. Importante: são relatos espontâneos, não uma previsão do que vai acontecer com você. Use pra informar a conversa com seu médico ou farmacêutico.' },
+  { cat: 'exames', q: 'A voz funciona no meu celular?', a: 'No app Android e nos navegadores Chrome você pode ditar a pergunta no chat em vez de digitar — o app entende português. Ele mostra o texto na tela e só envia depois que você confirma, nada vai por acidente.' },
+  { cat: 'medico', q: 'Tem pesquisa clínica pra minha condição?', a: 'Seu médico encontra no portal as pesquisas clínicas recrutando no Brasil relacionadas ao seu perfil — uma via a mais de acesso a tratamento de ponta, indicada por quem acompanha você de perto.' },
 ];
 
 /**

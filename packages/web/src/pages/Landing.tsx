@@ -26,6 +26,9 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import ShareIcon from '@mui/icons-material/Share';
 import StorefrontIcon from '@mui/icons-material/Storefront';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
+import PsychologyIcon from '@mui/icons-material/Psychology';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
+import RecordVoiceOverIcon from '@mui/icons-material/RecordVoiceOver';
 
 import { ExamDemo } from '../components/ExamDemo';
 import { LeadPopup } from '../components/LeadPopup';
@@ -674,6 +677,62 @@ export const LandingPage = () => {
       </Box>
       </ScrollReveal>
 
+      {/* SEÇÃO — Cuidado de verdade, com fonte (leva 2): rastreamento PHQ-9/GAD-7,
+          IA cita diretrizes (SBC/SBD/ADA) e efeitos mais relatados (base FDA) em PT.
+          Benefício primeiro, zero jargão. + item de acessibilidade: ditado por voz. */}
+      <ScrollReveal>
+      <Box sx={{ bgcolor: 'background.paper', borderTop: '1px solid', borderBottom: '1px solid', borderColor: 'divider', py: { xs: 8, md: 11 } }}>
+        <Container maxWidth="lg">
+          <Box sx={{ textAlign: 'center', mb: 5 }}>
+            <Chip icon={<VerifiedUserIcon sx={{ fontSize: 17 }} />} label="Confiança clínica" sx={{ bgcolor: 'rgba(32,178,170,.12)', color: TEAL_DARK, fontWeight: 700, mb: 2, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: TEAL_DARK } }} />
+            <Typography variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>
+              Cuidado de verdade, <Box component="span" sx={{ ...SERIF_I, color: TEAL_DARK }}>com fonte.</Box>
+            </Typography>
+            <Typography sx={{ color: 'text.secondary', fontSize: 17, maxWidth: 560, mx: 'auto', lineHeight: 1.6 }}>
+              Nada de resposta solta: cada informação vem de instrumento validado ou de diretriz de sociedade médica — e a origem fica sempre à vista.
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 2.5 }}>
+            {[
+              {
+                Icon: PsychologyIcon,
+                t: 'Mente também é saúde',
+                d: 'Rastreamento validado (PHQ-9 e GAD-7) em 2 minutos, de graça — com aviso de ajuda quando importa (CVV 188, 24h).',
+              },
+              {
+                Icon: MenuBookIcon,
+                t: 'IA que cita a fonte',
+                d: 'Respostas baseadas nas sociedades médicas (SBC, SBD, ADA), com a fonte sempre à vista no rodapé "Fontes" — você confere de onde veio.',
+              },
+              {
+                Icon: MedicationIcon,
+                t: 'Seus remédios sob os holofotes',
+                d: 'Os efeitos mais relatados no mundo sobre o seu remédio — base mundial da FDA, em português — pra informar a conversa com seu médico.',
+              },
+            ].map(({ Icon, t, d }) => (
+              <Reveal key={t}>
+                <Box sx={{ height: '100%', p: 3, borderRadius: '20px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.default', display: 'flex', flexDirection: 'column', gap: 1.5, transition: 'transform .2s ease, box-shadow .2s ease', '&:hover': { transform: 'translateY(-3px)', boxShadow: '0 14px 34px rgba(32,178,170,.14)' } }}>
+                  <Box sx={{ width: 46, height: 46, borderRadius: '14px', display: 'grid', placeItems: 'center', background: 'rgba(32,178,170,.12)' }}>
+                    <Icon sx={{ fontSize: 24, color: TEAL_DARK }} />
+                  </Box>
+                  <Typography sx={{ fontWeight: 800, fontSize: 17, color: 'text.primary' }}>{t}</Typography>
+                  <Typography sx={{ fontSize: 14.5, color: 'text.secondary', lineHeight: 1.6, flex: 1 }}>{d}</Typography>
+                </Box>
+              </Reveal>
+            ))}
+          </Box>
+          {/* Acessibilidade (leva 2): ditado por voz no chat — mesma seção "com fonte"
+              porque acesso facilitado também é cuidado. Libras segue no app. */}
+          <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mt: 3, mx: 'auto', maxWidth: 660, width: '100%', p: 2, borderRadius: '14px', bgcolor: 'rgba(32,178,170,.06)', border: '1px dashed rgba(32,178,170,.35)' }}>
+            <RecordVoiceOverIcon sx={{ fontSize: 26, color: TEAL_DARK, flexShrink: 0 }} />
+            <Typography sx={{ fontSize: 14, color: 'text.secondary', lineHeight: 1.55 }}>
+              <b style={{ color: 'text.primary' }}>Fale, não digite</b> — o chat entende português. Pra quem tem dificuldade com teclado ou enxerga pouco.
+            </Typography>
+          </Stack>
+        </Container>
+      </Box>
+      </ScrollReveal>
+
       {/* SEÇÃO — Família de verdade (D1): o diferencial que nenhum app global tem (todos 18+, single-user) */}
       <ScrollReveal>
       <Box sx={{ bgcolor: 'background.default', py: { xs: 8, md: 11 } }}>
@@ -746,6 +805,72 @@ export const LandingPage = () => {
               <Button variant="contained" color="primary" onClick={() => navigate('/registrar')} sx={{ mt: 1, borderRadius: '999px', px: 4, py: 1.3, textTransform: 'none', fontWeight: 800 }}>Cadastrar minha família →</Button>
             </Box>
           </Box>
+
+          {/* SUB-BLOCO — Curva de crescimento OMS (leva 2): o gráfico que o pediatra
+              mostra, agora no app. Entra depois do modo cuidador/faixas pediátricas. */}
+          <Reveal>
+            <Box sx={{ mt: { xs: 6, md: 8 }, pt: { xs: 5, md: 6 }, borderTop: '1px dashed', borderColor: 'divider', display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: { xs: 4, md: 7 }, alignItems: 'center' }}>
+              <Box>
+                <Typography variant="h3" sx={{ fontSize: { xs: '1.4rem', md: '1.8rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>
+                  A curva de crescimento, <Box component="span" sx={{ ...SERIF_I, color: TEAL_DARK }}>como no pediatra</Box>
+                </Typography>
+                <Typography sx={{ color: 'text.secondary', fontSize: 16, lineHeight: 1.65, mb: 2.5 }}>
+                  Altura e peso do seu filho entram num gráfico de percentis — igual àquela curva que o pediatra mostra na consulta. Você vê se o crescimento segue o trilho de sempre, entre uma consulta e outra.
+                </Typography>
+                {[
+                  'Percentis oficiais da OMS (0 a 19 anos).',
+                  'Cada medida nova atualiza a curva — e você vê se saiu do trilho.',
+                ].map((t) => (
+                  <Stack key={t} direction="row" spacing={1.25} alignItems="flex-start" sx={{ mb: 1.75 }}>
+                    <CheckCircleIcon sx={{ fontSize: 20, color: TEAL_DARK, mt: 0.1, flexShrink: 0 }} />
+                    <Typography sx={{ fontSize: 15, color: 'text.secondary', lineHeight: 1.5 }}>{t}</Typography>
+                  </Stack>
+                ))}
+              </Box>
+              {/* Mini-visual: curva percentil estática (SVG inline, sem lib) */}
+              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                <Box sx={{ width: '100%', maxWidth: 420, p: 2.5, borderRadius: '20px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', boxShadow: '0 16px 36px rgba(15,61,58,.10)' }}>
+                  <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.25 }}>
+                    <ChildCareIcon sx={{ fontSize: 18, color: TEAL_DARK }} />
+                    <Typography sx={{ fontSize: 11, fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Altura por idade · curva de percentis</Typography>
+                  </Stack>
+                  <Box
+                    component="svg"
+                    viewBox="0 0 320 200"
+                    role="img"
+                    aria-label="Gráfico de curva de crescimento: linhas de percentil e o ponto do criança seguindo o trilho do meio"
+                    sx={{ width: '100%', height: 'auto', display: 'block' }}
+                  >
+                    {/* eixos */}
+                    <line x1="34" y1="12" x2="34" y2="168" stroke="#b9d2cf" strokeWidth="1.5" />
+                    <line x1="34" y1="168" x2="308" y2="168" stroke="#b9d2cf" strokeWidth="1.5" />
+                    {/* percentis (leque) */}
+                    <path d="M34,150 C110,146 190,132 308,102" fill="none" stroke="rgba(32,178,170,.22)" strokeWidth="1.5" />
+                    <path d="M34,138 C110,133 190,115 308,80" fill="none" stroke="rgba(32,178,170,.22)" strokeWidth="1.5" />
+                    <path d="M34,124 C110,118 190,96 308,60" fill="none" stroke="rgba(32,178,170,.38)" strokeWidth="1.5" strokeDasharray="4 4" />
+                    <path d="M34,110 C110,103 190,78 308,40" fill="none" stroke="rgba(32,178,170,.22)" strokeWidth="1.5" />
+                    <path d="M34,96 C110,88 190,60 308,20" fill="none" stroke="rgba(32,178,170,.22)" strokeWidth="1.5" />
+                    {/* trilho da criança + ponto teal */}
+                    <path d="M34,122 C90,116 150,102 206,88 C246,78 280,70 304,66" fill="none" stroke="#20b2aa" strokeWidth="3" strokeLinecap="round" />
+                    <circle cx="206" cy="88" r="10" fill="rgba(32,178,170,.18)" />
+                    <circle cx="206" cy="88" r="5" fill="#20b2aa" stroke="#fff" strokeWidth="2" />
+                    {/* labels dos percentis */}
+                    <text x="311" y="105" fontSize="8" fill="#7ea8a4">3</text>
+                    <text x="311" y="83" fontSize="8" fill="#7ea8a4">15</text>
+                    <text x="311" y="63" fontSize="8" fill="#7ea8a4">50</text>
+                    <text x="311" y="43" fontSize="8" fill="#7ea8a4">85</text>
+                    <text x="311" y="23" fontSize="8" fill="#7ea8a4">97</text>
+                    {/* label do ponto */}
+                    <text x="222" y="84" fontSize="9" fontWeight="700" fill="#0f5f5a">percentil 50</text>
+                    {/* eixos: idade e altura */}
+                    <text x="19" y="181" fontSize="8" fill="#7ea8a4">0</text>
+                    <text x="258" y="181" fontSize="8" fill="#7ea8a4">19 anos</text>
+                    <text x="8" y="10" fontSize="8" fill="#7ea8a4">altura (cm)</text>
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
+          </Reveal>
         </Container>
       </Box>
       </ScrollReveal>
@@ -883,8 +1008,11 @@ export const LandingPage = () => {
           <Typography sx={{ fontSize: { xs: 17, md: 19 }, fontWeight: 800, color: 'text.primary', fontFamily: '"Poppins",sans-serif' }}>
             É médico? Receba o <Box component="span" sx={{ ...SERIF_I, color: '#b88a54' }}>brief de pré-consulta</Box> de cada paciente.
           </Typography>
-          <Typography sx={{ fontSize: 14, color: 'text.secondary', mt: 0.75, mb: 1.5, maxWidth: 520, mx: 'auto', lineHeight: 1.55 }}>
+          <Typography sx={{ fontSize: 14, color: 'text.secondary', mt: 0.75, mb: 0.5, maxWidth: 520, mx: 'auto', lineHeight: 1.55 }}>
             Top 3 mudanças, risco com tendência, rascunho SOAP e as perguntas que o paciente fez no app — gerados por IA, revisados por você. Grátis pra começar.
+          </Typography>
+          <Typography sx={{ fontSize: 14, color: 'text.secondary', mb: 1.5, maxWidth: 520, mx: 'auto', lineHeight: 1.55 }}>
+            E tem mais: <Box component="b" sx={{ color: '#b88a54' }}>pesquisas clínicas recrutando no Brasil</Box> direto no brief de cada paciente.
           </Typography>
           <Button variant="outlined" onClick={() => navigate('/doctor')} sx={{ borderRadius: '999px', px: 3, textTransform: 'none', fontWeight: 700, borderColor: 'rgba(212,165,116,.5)', color: '#b88a54', '&:hover': { borderColor: '#b88a54', bgcolor: 'rgba(212,165,116,.08)' } }}>
             Conhecer o Portal do Médico →
