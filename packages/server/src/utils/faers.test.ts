@@ -66,20 +66,20 @@ describe('faersSearchTerm (normalização BR→INN)', () => {
 });
 
 describe('faersCacheKey', () => {
-  it('chave normalizada e estável (prefixo v2 = invalidação do cache sem tradução PT)', () => {
-    expect(faersCacheKey('Losartan Potassium')).toBe('v2-LOSARTAN POTASSIUM');
-    expect(faersCacheKey('losartan  potassium')).toBe('v2-LOSARTAN POTASSIUM');
+  it('chave normalizada e estável (prefixo v3 = invalidação do cache de números globais)', () => {
+    expect(faersCacheKey('Losartan Potassium')).toBe('v3-LOSARTAN POTASSIUM');
+    expect(faersCacheKey('losartan  potassium')).toBe('v3-LOSARTAN POTASSIUM');
   });
 });
 
 describe('buildFaersUrl', () => {
-  it('monta a query da spec (medicinalproduct + drugcharacterization:1 + count exact)', () => {
+  it('monta a query SÓ com medicinalproduct (o `+drugcharacterization` literal dissolvia o filtro — contagens globais)', () => {
     const url = buildFaersUrl('LOSARTAN POTASSIUM');
     expect(url).toContain('https://api.fda.gov/drug/event.json?search=');
     expect(url).toContain('count=patient.reaction.reactionmeddrapt.exact');
     expect(url).toContain('limit=10');
-    // `+` do AND precisa ficar literal (não %2B); `:`/`"` encodados são ok
-    expect(url).toContain('%22+patient.drug.drugcharacterization%3A1');
+    // o filtro que quebrava NÃO pode estar mais na URL
+    expect(url).not.toContain('drugcharacterization');
     expect(url).not.toContain('%2B');
   });
 

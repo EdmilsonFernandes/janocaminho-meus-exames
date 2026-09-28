@@ -193,18 +193,21 @@ export function faersSearchTerm(activeIngredient: string | null | undefined, nam
 }
 
 /** Chave única de cache do FAERS (medKey) — a partir do termo de busca.
- *  Prefixo v2: invalida em lote o cache da 1ª versão (termos sem tradução PT). */
+ *  Prefixo v3: v2 órfãou o cache sem tradução PT; v3 órfãa o cache com números
+ *  GLOBAIS (bug do `+` que dissolvia o filtro por remédio — ver buildFaersUrl). */
 export function faersCacheKey(searchTerm: string): string {
-  return `v2-${normalizeKey(searchTerm)}`;
+  return `v3-${normalizeKey(searchTerm)}`;
 }
 
 /**
- * Monta a URL do openFDA. O `+` precisa continuar literal (separador AND do
- * openFDA) — encodeURIComponent encodaria como %2B, então devolvemos `+`
- * depois. Espaços dentro do nome vão como `+` (formalmente space na query).
+ * Monta a URL do openFDA. SÓ o filtro por remédio — provado ao vivo (28/09):
+ * `medicinalproduct:"X"+drugcharacterization:1` com `+` literal faz o servidor
+ * decodificar como espaço e DISSOLVE o filtro (contagens globais iguais pra
+ * todo remédio, ~1,3M em Death). Sem o sufixo, os números são por remédio e
+ * clinicamente coerentes (metformina → náusea/diarreia/glicose alta).
  */
 export function buildFaersUrl(searchTerm: string): string {
-  const q = `patient.drug.medicinalproduct:"${searchTerm}"+patient.drug.drugcharacterization:1`;
+  const q = `patient.drug.medicinalproduct:"${searchTerm}"`;
   const search = encodeURIComponent(q.replace(/\s+/g, '+')).replace(/%2B/gi, '+');
   return `https://api.fda.gov/drug/event.json?search=${search}&count=patient.reaction.reactionmeddrapt.exact&limit=10`;
 }
