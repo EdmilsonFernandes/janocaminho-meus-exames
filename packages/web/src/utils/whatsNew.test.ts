@@ -19,8 +19,8 @@ const claimTrue = () => true;
 const claimFalse = () => false;
 
 describe('RELEASE_NOTES — mapa por versionCode', () => {
-  it('v443 tem os 5 itens (leva 1 + FAERS + voz) com deep-links válidos', () => {
-    const n = notesForVersion(443);
+  it('v444 tem os 5 itens (leva 1 + FAERS + voz) com deep-links válidos', () => {
+    const n = notesForVersion(444);
     expect(n.map((x) => x.title)).toEqual([
       'Saúde mental no app',
       'Curva de crescimento do seu filho',
@@ -33,7 +33,7 @@ describe('RELEASE_NOTES — mapa por versionCode', () => {
       expect(item.desc).toBeTruthy();
       expect(item.to.startsWith('/')).toBe(true);
     }
-    expect(RELEASE_NOTES[443].length).toBeLessThanOrEqual(5); // spec: máx ~5 (scroll)
+    expect(RELEASE_NOTES[444].length).toBeLessThanOrEqual(5); // spec: máx ~5 (scroll)
   });
 
   it('v442 tem a leva 1 (A/B/C)', () => {
@@ -51,21 +51,21 @@ describe('RELEASE_NOTES — mapa por versionCode', () => {
 describe('shouldShowWhatsNew — gatilho', () => {
   it('abre 1× para a versão com conteúdo (onboarded, não vista, slot ganho)', () => {
     const s = mkStorage({ onboarded: '1' });
-    expect(shouldShowWhatsNew(443, s, claimTrue)).toBe(true);
+    expect(shouldShowWhatsNew(444, s, claimTrue)).toBe(true);
   });
 
   it('não abre sem onboarding', () => {
-    expect(shouldShowWhatsNew(443, mkStorage({}), claimTrue)).toBe(false);
+    expect(shouldShowWhatsNew(444, mkStorage({}), claimTrue)).toBe(false);
   });
 
   it('não abre de novo após visto (chave por versionCode)', () => {
-    const s = mkStorage({ onboarded: '1', [whatsNewKey(443)]: '1' });
-    expect(shouldShowWhatsNew(443, s, claimTrue)).toBe(false);
+    const s = mkStorage({ onboarded: '1', [whatsNewKey(444)]: '1' });
+    expect(shouldShowWhatsNew(444, s, claimTrue)).toBe(false);
   });
 
   it('viu a versão anterior mas a NOVA (com conteúdo) volta a mostrar — fim do congelamento por major.minor', () => {
     const s = mkStorage({ onboarded: '1', [whatsNewKey(442)]: '1' }); // já viu a 442
-    expect(shouldShowWhatsNew(443, s, claimTrue)).toBe(true);
+    expect(shouldShowWhatsNew(444, s, claimTrue)).toBe(true);
   });
 
   it('versão sem conteúdo nunca abre, mesmo sem chave', () => {
@@ -74,7 +74,7 @@ describe('shouldShowWhatsNew — gatilho', () => {
 
   it('perdeu o slot de cold-dialog (outro modal abriu 1º) → não abre', () => {
     const s = mkStorage({ onboarded: '1' });
-    expect(shouldShowWhatsNew(443, s, claimFalse)).toBe(false);
+    expect(shouldShowWhatsNew(444, s, claimFalse)).toBe(false);
   });
 
   it('storage bloqueado não trava: claim decide', () => {
@@ -82,17 +82,17 @@ describe('shouldShowWhatsNew — gatilho', () => {
       getItem: () => { throw new Error('denied'); },
       setItem: () => { throw new Error('denied'); },
     };
-    expect(shouldShowWhatsNew(443, blocked, claimTrue)).toBe(true);
-    expect(shouldShowWhatsNew(443, blocked, claimFalse)).toBe(false);
+    expect(shouldShowWhatsNew(444, blocked, claimTrue)).toBe(true);
+    expect(shouldShowWhatsNew(444, blocked, claimFalse)).toBe(false);
   });
 });
 
 describe('markWhatsNewSeen', () => {
   it('grava a chave da versão e a leitura seguinte não reabre', () => {
     const s = mkStorage({ onboarded: '1' });
-    markWhatsNewSeen(443, s);
-    expect(s.getItem(whatsNewKey(443))).toBe('1');
-    expect(shouldShowWhatsNew(443, s, claimTrue)).toBe(false);
+    markWhatsNewSeen(444, s);
+    expect(s.getItem(whatsNewKey(444))).toBe('1');
+    expect(shouldShowWhatsNew(444, s, claimTrue)).toBe(false);
   });
 
   it('storage bloqueado: engole o erro sem quebrar', () => {
@@ -100,6 +100,6 @@ describe('markWhatsNewSeen', () => {
       getItem: () => null,
       setItem: () => { throw new Error('denied'); },
     };
-    expect(() => markWhatsNewSeen(443, blocked)).not.toThrow();
+    expect(() => markWhatsNewSeen(444, blocked)).not.toThrow();
   });
 });

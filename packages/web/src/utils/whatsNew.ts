@@ -27,10 +27,11 @@ const LEVA_1: ReleaseNote[] = [
   { emoji: '📚', title: 'Respostas com fonte', desc: 'A IA agora cita as sociedades médicas (SBC, SBD…).', to: '/chat' },
 ];
 
-/** Novidades por versionCode — manter curtas (máx ~5 itens, lista com scroll). */
+/** Novidades por versionCode — manter curtas (máx ~5 itens, lista com scroll).
+ *  443 já saiu sem este lote — as notas dele sobem p/ o 444 (AAB do lote G). */
 export const RELEASE_NOTES: Record<number, ReleaseNote[]> = {
   442: LEVA_1,
-  443: [
+  444: [
     ...LEVA_1,
     { emoji: '⚕️', title: 'Efeitos mais relatados do seu remédio', desc: 'Dados mundiais da FDA, em português.', to: '/medicamentos' },
     { emoji: '🎤', title: 'Fale com o Dr. Exame', desc: 'Ditado por voz em português no chat.', to: '/chat' },
