@@ -1,6 +1,7 @@
 import { Box, Button, CardContent, IconButton, Popover, Skeleton, Stack, Typography } from '@mui/material';
 import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
 import { AppCard } from '../AppCard';
+import { dangerText } from '../../theme';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { useEffect, useState } from 'react';

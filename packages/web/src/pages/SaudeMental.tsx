@@ -282,6 +282,17 @@ export const SaudeMentalPage = () => {
             </Stack>
             <Stack direction="row" justifyContent="center" alignItems="center" spacing={1} sx={{ mt: 0.5, flexWrap: 'wrap' }}>
               <Chip label={result.severity.label} sx={{ height: 30, fontSize: 15, fontWeight: 800, textTransform: 'capitalize', bgcolor: (t) => `${sevColor(result.severity.key)(t.palette.mode)}1f`, color: (t) => sevColor(result.severity.key)(t.palette.mode) }} />
+              {/* 28/09 (bug bash): "leve" ficava vago — a régua de faixas mostra onde o score
+                  cai e os cortes. A faixa ATUAL em negrito/teal, as demais discretas. */}
+              <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1.7 }}>
+                {(result.type === 'phq9'
+                  ? [['0-4', 'mínima'], ['5-9', 'leve'], ['10-14', 'moderada'], ['15-19', 'mod. grave'], ['20-27', 'grave']]
+                  : [['0-4', 'mínima'], ['5-9', 'leve'], ['10-14', 'moderada'], ['15-21', 'grave']]
+                ).map(([range, label]) => label === result.severity.label
+                  ? <strong key={range} style={{ color: '#0f766e' }}>{range} {label}</strong>
+                  : <span key={range}>{range} {label}</span>
+                ).reduce<React.ReactNode[]>((acc, el, i) => (i === 0 ? [el] : [...acc, ' · ', el]), [])}
+              </Typography>
               {prevOfSame && (() => {
                 const delta = deltaEntre(prevOfSame.total, result.total);
                 const toneKey = delta.tone === 'good' ? 'ok' : delta.tone === 'warn' ? 'warn' : null;

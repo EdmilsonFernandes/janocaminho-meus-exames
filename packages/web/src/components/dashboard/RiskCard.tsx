@@ -59,7 +59,7 @@ const SEV_TO_PRIO = { low: 'leve', moderate: 'moderada', high: 'importante' } as
 // tendência vs leitura anterior (motivo de retornar ao app — alavanca de retenção)
 const TREND_CHIP: Record<string, { emoji: string; color: string; label: string }> = {
   melhorou: { emoji: '↓', color: '#047857', label: 'Risco caiu' },
-  piorou: { emoji: '↑', color: '#dc2626', label: 'Risco subiu' },
+  piorou: { emoji: '↑', color: '#ef4444', label: 'Risco subiu' },
   estavel: { emoji: '→', color: '#64748b', label: 'Risco estável' },
 };
 

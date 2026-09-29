@@ -1,3 +1,4 @@
+import { dangerText } from '../../theme';
 import { Stack, Typography, Box, Chip, Button } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
@@ -110,7 +111,7 @@ export const ChangesSinceExam = ({
             }}
           >
             <Typography sx={{ fontSize: 13.5, color: 'text.primary', fontWeight: 600 }}>
-              <Box component="span" sx={{ color: '#dc2626', mr: 0.75, fontWeight: 800 }}>{flagDir(m, false)}</Box>
+              <Box component="span" sx={{ color: (t) => dangerText(t.palette.mode), mr: 0.75, fontWeight: 800 }}>{flagDir(m, false)}</Box>
               {m.name}
             </Typography>
             <Typography sx={{ fontSize: 13, color: 'text.secondary', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{fmtMarker(m)}</Typography>

@@ -1,3 +1,4 @@
+import { tealText } from './theme';
 import { Admin, Resource, CustomRoutes, Layout, AppBar, TitlePortal, AppBarProps, useLogout, useLocale, useSetLocale, useRefresh, useNotify, useTranslate, useSidebarState, LoadingIndicator } from 'react-admin';
 import { ConfirmDialogProvider } from './components/ConfirmDialog';
 import { Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
@@ -316,7 +317,7 @@ const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
       })}>
         <Stack direction="row" alignItems="center" spacing={1.25}>
           <Box sx={{ position: 'relative', flexShrink: 0 }}>
-            <Avatar src={userInfo.photo} sx={{ width: 44, height: 44, fontSize: 18, bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 800, border: '2px solid rgba(32,178,170,0.3)', position: 'relative', zIndex: 1 }}>
+            <Avatar src={userInfo.photo} sx={{ width: 44, height: 44, fontSize: 18, bgcolor: 'rgba(32,178,170,0.15)', color: (t) => tealText(t.palette.mode), fontWeight: 800, border: '2px solid rgba(32,178,170,0.3)', position: 'relative', zIndex: 1 }}>
               {userInfo.name.charAt(0)?.toUpperCase() || '👤'}
             </Avatar>
             {/* Glow ring pulsante */}
@@ -468,12 +469,12 @@ const AppMenu = () => {
         Meus Exames
       </DialogTitle>
       <DialogContent sx={{ textAlign: 'center' }}>
-        <Typography sx={{ fontWeight: 800, fontSize: 20, color: '#178f89', mb: 2 }}>v{APP_BUILD_INFO.version}</Typography>
+        <Typography sx={{ fontWeight: 800, fontSize: 20, color: (t) => tealText(t.palette.mode), mb: 2 }}>v{APP_BUILD_INFO.version}</Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>{translate('about.tagline')}</Typography>
         <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', flexWrap: 'wrap', mb: 2 }}>
-          <Chip size="small" label="IA GLM-4.6" sx={{ bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 700 }} />
-          <Chip size="small" label="Scanner ML Kit" sx={{ bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 700 }} />
-          <Chip size="small" label="LGPD" sx={{ bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 700 }} />
+          <Chip size="small" label="IA GLM-4.6" sx={{ bgcolor: 'rgba(32,178,170,0.15)', color: (t) => tealText(t.palette.mode), fontWeight: 700 }} />
+          <Chip size="small" label="Scanner ML Kit" sx={{ bgcolor: 'rgba(32,178,170,0.15)', color: (t) => tealText(t.palette.mode), fontWeight: 700 }} />
+          <Chip size="small" label="LGPD" sx={{ bgcolor: 'rgba(32,178,170,0.15)', color: (t) => tealText(t.palette.mode), fontWeight: 700 }} />
         </Box>
         <Stack spacing={0.5} sx={{ mb: 1 }}>
           <MuiLink href="mailto:contato@janocaminho.com.br" sx={{ fontSize: 13, fontWeight: 700 }}>📧 contato@janocaminho.com.br</MuiLink>

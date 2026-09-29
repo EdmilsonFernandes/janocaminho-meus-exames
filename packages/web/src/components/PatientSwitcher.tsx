@@ -15,7 +15,8 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import { API_URL, token, photoUrlFor } from '../config';
 import { useSelectedPatient, setSelectedPatient } from '../patient-context';
 
-const RELACOES = ['Titular', 'Cônjuge', 'Filho(a)', 'Mãe', 'Pai', 'Irmão(ã)', 'Avó/Avô', 'Outro'];
+// 28/09 (bug bash do dono): faltava Neto(a)/Neta — cobertura familiar completa.
+const RELACOES = ['Titular', 'Cônjuge', 'Filho(a)', 'Neto(a)', 'Mãe', 'Pai', 'Irmão(ã)', 'Avó/Avô', 'Sobrinho(a)', 'Outro'];
 
 /** Avatar = MENU ÚNICO do AppBar: trocar dependente + tema + idioma + sair. Pill "frosted"
  *  premium que lê bem sobre o AppBar teal (antes era teal-sobre-teal, sumia). */

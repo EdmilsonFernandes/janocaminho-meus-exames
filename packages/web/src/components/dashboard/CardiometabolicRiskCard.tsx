@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 const RISK_META = {
   baixo: { emoji: '🟢', color: '#059669', label: 'Baixo', bg: 'rgba(5,150,105,.08)' },
   moderado: { emoji: '🟠', color: '#c2410c', label: 'Moderado', bg: 'rgba(234,88,12,.08)' },
-  alto: { emoji: '🔴', color: '#dc2626', label: 'Alto', bg: 'rgba(220,38,38,.08)' },
+  alto: { emoji: '🔴', color: '#ef4444', label: 'Alto', bg: 'rgba(220,38,38,.08)' },
 };
 
 type CardioRisk = { level: string; score: number; factors: { label: string; risk: boolean }[] };

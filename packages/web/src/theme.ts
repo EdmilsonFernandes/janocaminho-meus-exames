@@ -120,6 +120,9 @@ export const copperText = (mode: 'light' | 'dark') => (mode === 'dark' ? COPPER.
 /** Texto teal AA nos dois modos (D3 27/09): #20b2aa/#178f89 como TEXTO no light davam 2,5–3,9:1
  *  sobre papel — links/ações passam a usar teal-700 no light e o teal claro no dark. */
 export const tealText = (mode: 'light' | 'dark') => (mode === 'dark' ? '#5fc9c3' : '#0f766e');
+// 28/09 (bug bash do dono): vermelho #ef4444/#dc2626 ilegível em dark — mesmo padrão
+// do tealText: tom AA por modo p/ texto/ícone de ALERTA.
+export const dangerText = (mode: 'light' | 'dark') => (mode === 'dark' ? '#f87171' : '#dc2626');
 
 export type ThemeMode = 'light' | 'dark';
 

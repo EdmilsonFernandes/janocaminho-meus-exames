@@ -1,3 +1,4 @@
+import { dangerText } from '../../theme';
 import { useEffect, useMemo, useState } from 'react';
 import { Box, Stack, Typography, alpha, useTheme } from '@mui/material';
 import FavoriteIcon from '@mui/icons-material/Favorite';
@@ -85,7 +86,7 @@ export const RestingHeartCard = () => {
       {/* Cabeçalho + zona (chip com batimento) */}
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.25 }}>
         <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 700, fontSize: 15, display: 'flex', alignItems: 'center', gap: 0.75 }}>
-          <FavoriteIcon sx={{ fontSize: 19, color: '#ef4444' }} /> Frequência cardíaca
+          <FavoriteIcon sx={{ fontSize: 19, color: (t) => dangerText(t.palette.mode) }} /> Frequência cardíaca
         </Typography>
         <Stack
           direction="row"
