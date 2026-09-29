@@ -352,7 +352,7 @@ const MentalCard = ({ mental, mentalOffline, introDismissed, onDismissIntro, onO
               label={deltaLabel(delta, prev.createdAt)}
               aria-label={`Diferença desde o rastreamento anterior: ${delta.dir === 'down' ? 'menos' : delta.dir === 'up' ? 'mais' : 'igual'} ${delta.abs} pontos`}
               sx={{
-                height: 21, fontSize: 11.5, fontWeight: 800,
+                height: 21, fontSize: 12, fontWeight: 800,
                 ...(toneKey
                   ? { bgcolor: (t) => `${SEM[toneKey][t.palette.mode]}1f`, color: (t) => SEM[toneKey][t.palette.mode] }
                   : { bgcolor: 'action.selected', color: 'text.secondary' }),

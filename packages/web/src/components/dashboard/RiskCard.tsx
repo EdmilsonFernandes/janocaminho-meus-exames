@@ -315,7 +315,7 @@ export const RiskCard = () => {
             agora cada finding aparece uma vez só, legível. */}
         {r.findings.length > 0 && (
           <Box sx={{ mb: 1.25 }}>
-            <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', display: 'block', mb: 0.5, fontSize: '0.72rem', letterSpacing: '0.03em' }}>
+            <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', display: 'block', mb: 0.5, fontSize: '0.75rem', letterSpacing: '0.03em' }}>
               ⚠️ O QUE CHAMOU ATENÇÃO
             </Typography>
             <Stack divider={<Divider flexItem sx={{ borderColor: 'divider', borderStyle: 'dashed' }} />}>
@@ -330,7 +330,7 @@ export const RiskCard = () => {
                         <Typography component="span" sx={{ fontWeight: 800, fontSize: '0.82rem', color: pm.color, whiteSpace: 'nowrap' }}>
                           {f.value}{f.unit ? ` ${f.unit}` : ''}
                           {f.priorValue != null && (
-                            <Typography component="span" sx={{ fontSize: '0.7rem', color: 'text.secondary', ml: 0.5, fontWeight: 600 }}>
+                            <Typography component="span" sx={{ fontSize: '0.75rem', color: 'text.secondary', ml: 0.5, fontWeight: 600 }}>
                               (antes {f.priorValue}{f.deltaPct != null ? `, ${f.deltaPct > 0 ? '+' : ''}${Math.round(f.deltaPct)}%` : ''})
                             </Typography>
                           )}
@@ -344,7 +344,7 @@ export const RiskCard = () => {
                       {f.source && (
                         <Box sx={{ mt: 0.5 }}>
                           <details>
-                            <summary style={{ cursor: 'pointer', color: '#178f89', fontSize: '0.72rem', fontWeight: 700, display: 'inline-block', listStyle: 'none' }}>📖 Por quê? (fonte da faixa)</summary>
+                            <summary style={{ cursor: 'pointer', color: '#178f89', fontSize: '0.75rem', fontWeight: 700, display: 'inline-block', listStyle: 'none' }}>📖 Por quê? (fonte da faixa)</summary>
                             <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', pl: 1.5, mt: 0.25, lineHeight: 1.3 }}>{f.source}</Typography>
                           </details>
                         </Box>

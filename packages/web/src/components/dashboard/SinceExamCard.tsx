@@ -94,7 +94,7 @@ export const SinceExamCard = ({ lastExamAt }: { lastExamAt?: string | null }) =>
       {/* Exames que mudaram (se houver) */}
       {examCount > 0 && (
         <Box sx={{ mt: 1.5, pt: 1.25, borderTop: `1px solid ${alpha(theme.palette.primary.main, 0.15)}` }}>
-          <Typography sx={{ fontSize: 11, color: 'text.secondary', fontWeight: 700, mb: 0.5, textTransform: 'none' }}>
+          <Typography sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 700, mb: 0.5, textTransform: 'none' }}>
             Exames que também mudaram
           </Typography>
           <Stack spacing={0.5}>

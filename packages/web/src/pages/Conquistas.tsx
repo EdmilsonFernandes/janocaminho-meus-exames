@@ -87,7 +87,7 @@ export const ConquistasPage = () => {
       )}
       <Box sx={{ position: 'relative', zIndex: 1, p: 2.25 }}>
         {b.period === 'monthly' && (
-          <Chip size="small" label="♻️ mensal" sx={{ position: 'absolute', top: 8, right: 8, height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(32,178,170,.14)', color: (t) => tealText(t.palette.mode) }} />
+          <Chip size="small" label="♻️ mensal" sx={{ position: 'absolute', top: 8, right: 8, height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(32,178,170,.14)', color: (t) => tealText(t.palette.mode) }} />
         )}
         <Box sx={{
           fontSize: 44, mb: 0.75, lineHeight: 1,
@@ -108,7 +108,7 @@ export const ConquistasPage = () => {
         ) : (
           <Box sx={{ mt: 1 }}>
             <LinearProgress variant="determinate" value={b.progress * 100} sx={{ height: 6, borderRadius: '999px', bgcolor: 'rgba(0,0,0,0.06)', '& .MuiLinearProgress-bar': { bgcolor: '#20b2aa', borderRadius: '999px' } }} />
-            <Typography sx={{ fontSize: 11, color: 'text.secondary', mt: 0.5, fontVariantNumeric: 'tabular-nums' }}>{Math.round(b.progress * 100)}%</Typography>
+            <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 0.5, fontVariantNumeric: 'tabular-nums' }}>{Math.round(b.progress * 100)}%</Typography>
           </Box>
         )}
       </Box>

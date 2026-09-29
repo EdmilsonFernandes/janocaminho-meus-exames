@@ -203,9 +203,9 @@ export const ApiPanelPage = () => {
           </Box>
           {approved && (
             <Box sx={{ textAlign: 'center', flexShrink: 0, px: 2, py: 1.25, borderRadius: '12px', bgcolor: 'rgba(255,255,255,.16)', border: '1px solid rgba(255,255,255,.28)' }}>
-              <Typography sx={{ fontSize: 11, letterSpacing: 1, fontWeight: 700, opacity: 0.85 }}>SALDO</Typography>
+              <Typography sx={{ fontSize: 12, letterSpacing: 1, fontWeight: 700, opacity: 0.85 }}>SALDO</Typography>
               <Typography sx={{ fontWeight: 800, fontSize: 26, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{balance.toLocaleString('pt-BR')}</Typography>
-              <Typography sx={{ fontSize: 11, opacity: 0.85 }}>chamadas</Typography>
+              <Typography sx={{ fontSize: 12, opacity: 0.85 }}>chamadas</Typography>
             </Box>
           )}
         </Stack>
@@ -238,7 +238,7 @@ export const ApiPanelPage = () => {
                 <Stack spacing={1.5} sx={{ mb: 2.5 }}>
                   {ENDPOINTS.map((e) => (
                     <Stack key={e.p} direction="row" spacing={1.25} alignItems="center" sx={{ borderRadius: '12px', bgcolor: 'action.hover', px: 1.5, py: 1 }}>
-                      <Chip size="small" label={e.m} sx={{ height: 20, fontWeight: 800, fontSize: 10, bgcolor: 'rgba(32,178,170,.14)', color: (t) => tealText(t.palette.mode) }} />
+                      <Chip size="small" label={e.m} sx={{ height: 20, fontWeight: 800, fontSize: 12, bgcolor: 'rgba(32,178,170,.14)', color: (t) => tealText(t.palette.mode) }} />
                       <Box sx={{ minWidth: 0, flex: 1 }}>
                         <Typography sx={{ fontFamily: 'ui-monospace, monospace', fontSize: 13, fontWeight: 700, wordBreak: 'break-all' }}>{e.p}</Typography>
                         <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>{e.d}</Typography>
@@ -319,8 +319,8 @@ export const ApiPanelPage = () => {
                     ...(p.popular ? { background: 'linear-gradient(135deg,rgba(32,178,170,.10),rgba(212,165,116,.08))' } : {}),
                   }}>
                     {isPending
-                      ? <Chip size="small" label="⏳ Aguardando pagamento" sx={{ fontWeight: 800, fontSize: 10, height: 22, bgcolor: 'rgba(217,119,6,.15)', color: '#92400e' }} />
-                      : p.popular ? <Chip size="small" label="MAIS VENDIDO" sx={{ bgcolor: '#20b2aa', color: '#fff', fontWeight: 800, fontSize: 10, height: 22 }} /> : <Box sx={{ height: 22 }} />}
+                      ? <Chip size="small" label="⏳ Aguardando pagamento" sx={{ fontWeight: 800, fontSize: 12, height: 22, bgcolor: 'rgba(217,119,6,.15)', color: '#92400e' }} />
+                      : p.popular ? <Chip size="small" label="MAIS VENDIDO" sx={{ bgcolor: '#20b2aa', color: '#fff', fontWeight: 800, fontSize: 12, height: 22 }} /> : <Box sx={{ height: 22 }} />}
                     <Typography sx={{ fontSize: 12, fontWeight: 800, letterSpacing: 1, color: '#b88a54', mt: 1 }}>{String(ptLabel).toUpperCase()}</Typography>
                     <Typography sx={{ fontWeight: 800, fontSize: 24, mt: 0.5 }}>{Number(p.calls).toLocaleString('pt-BR')}</Typography>
                     <Typography sx={{ fontSize: 12, color: 'text.secondary', mb: 1.5 }}>chamadas · R$ {Number(p.price).toFixed(2).replace('.', ',')}</Typography>
@@ -389,7 +389,7 @@ export const ApiPanelPage = () => {
       <Dialog open={!!pix} onClose={() => { setPix(null); void load(); }} fullWidth maxWidth="xs">
         <DialogTitle sx={{ fontWeight: 800, pb: 0.5, textAlign: 'center' }}>
           PIX: {pix?.calls?.toLocaleString('pt-BR')} chamadas
-          {pix?.resumed && <Chip size="small" label="mesmo código de antes" sx={{ ml: 1, height: 20, fontSize: 10, fontWeight: 700, bgcolor: 'rgba(217,119,6,.15)', color: '#92400e' }} />}
+          {pix?.resumed && <Chip size="small" label="mesmo código de antes" sx={{ ml: 1, height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(217,119,6,.15)', color: '#92400e' }} />}
         </DialogTitle>
         <DialogContent sx={{ textAlign: 'center' }}>
           {pix?.qrBase64 && <Box component="img" src={pix.qrBase64} alt="QR Code PIX" sx={{ width: 'min(230px, 64vw)', aspectRatio: '1 / 1', height: 'auto', borderRadius: '12px', bgcolor: '#fff', p: 1, my: 1 }} />}

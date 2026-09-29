@@ -46,7 +46,7 @@ const ScopeToggle = ({ scopeKey, active, onToggle, compact }: { scopeKey: string
       }
       sx={{
         height: 28,
-        fontSize: 11,
+        fontSize: 12,
         fontWeight: 700,
         cursor: 'pointer',
         borderRadius: '999px',
@@ -332,7 +332,7 @@ export const MedicosPage = () => {
         <Box key={specName} sx={{ mb: 3 }}>
           <Typography component="div" sx={{ fontWeight: 900, fontSize: 14, color: 'text.primary', mb: 1.25, display: 'flex', alignItems: 'center', gap: 1, fontFamily: 'Poppins, sans-serif' }}>
             <span>{fixSpecialty(specName)}</span>
-            <Chip size="small" label={items.length} sx={{ height: 20, fontSize: 11, bgcolor: 'rgba(15,95,90,0.12)', color: '#0f5f5a', fontWeight: 800 }} />
+            <Chip size="small" label={items.length} sx={{ height: 20, fontSize: 12, bgcolor: 'rgba(15,95,90,0.12)', color: '#0f5f5a', fontWeight: 800 }} />
           </Typography>
           <Stack spacing={1.5}>
             {items.map((s) => (
@@ -388,12 +388,12 @@ export const MedicosPage = () => {
                       </Stack>
 
                       <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 0.25, mb: 1, flexWrap: 'wrap', gap: 0.5 }}>
-                        <Chip size="small" label={`CRM ${s.doctor?.crm}`} sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(15,95,90,0.08)', color: '#0f5f5a' }} />
-                        {s.convenio && <Chip size="small" label={s.convenio} sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(0,0,0,0.05)', color: 'text.secondary' }} />}
+                        <Chip size="small" label={`CRM ${s.doctor?.crm}`} sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(15,95,90,0.08)', color: '#0f5f5a' }} />
+                        {s.convenio && <Chip size="small" label={s.convenio} sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(0,0,0,0.05)', color: 'text.secondary' }} />}
                       </Stack>
 
                       {/* Scope toggles em pilulas limpas */}
-                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', mb: 0.5 }}>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', mb: 0.5 }}>
                         Acessos autorizados (toque para alternar):
                       </Typography>
                       <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap">

@@ -64,7 +64,7 @@ export const TrendsChart = ({ ts, action }: { ts: TS; action?: React.ReactNode }
     const d = payload[0].payload;
     return (
       <Box sx={{ bgcolor: alpha(theme.palette.background.paper, 0.92), color: theme.palette.text.primary, p: 1.25, borderRadius: '12px', boxShadow: theme.shadows[4], minWidth: 120, border: `1px solid ${theme.palette.divider}` }}>
-        <Box sx={{ fontWeight: 700, fontSize: 11, opacity: 0.8 }}>{d.name}</Box>
+        <Box sx={{ fontWeight: 700, fontSize: 12, opacity: 0.8 }}>{d.name}</Box>
         <Box sx={{ fontSize: 19, fontWeight: 800 }}>{fmtNum(d.valor)} {ts.unit ? <UnitLabel unit={ts.unit} fontSize="1.19rem" /> : null}</Box>
         {(() => {
           // Classifica contra a faixa UNIFICADA (a mesma do header) — nunca contra a faixa do

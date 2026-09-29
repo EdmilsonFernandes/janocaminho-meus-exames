@@ -139,8 +139,8 @@ export const ExamDemo = () => {
                           <Typography sx={{ fontSize: 14, fontWeight: 700, color: 'text.primary' }}>{r.name}</Typography>
                           <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>ref. {r.ref} {r.unit}</Typography>
                         </Box>
-                        <Typography sx={{ fontWeight: 800, fontSize: 16, color: r.flag === 'ok' ? GREEN : ORANGE }}>{r.val}<Typography component="span" sx={{ fontSize: 11, color: 'text.secondary', fontWeight: 600 }}> {r.unit}</Typography></Typography>
-                        <Chip size="small" label={m.label} sx={{ height: 22, fontWeight: 800, fontSize: 11, bgcolor: m.bg, color: m.color }} />
+                        <Typography sx={{ fontWeight: 800, fontSize: 16, color: r.flag === 'ok' ? GREEN : ORANGE }}>{r.val}<Typography component="span" sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 600 }}> {r.unit}</Typography></Typography>
+                        <Chip size="small" label={m.label} sx={{ height: 22, fontWeight: 800, fontSize: 12, bgcolor: m.bg, color: m.color }} />
                       </Box>
                     </Fade>
                   );

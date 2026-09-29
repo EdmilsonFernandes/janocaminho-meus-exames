@@ -71,17 +71,22 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- G2 — ANDROID APP LINKS: links https do nosso domínio (convite do médico no
-                 WhatsApp, e-mail de exame) oferecem/abrem o APP em vez de só navegador.
-                 Verificação total (abrir direto, sem chooser) exige assetlinks.json na RAIZ
-                 do domínio — o arquivo vive em web/public/.well-known/ e o nginx da EC2 deve
-                 servi-lo em https://janocaminho.com.br/.well-known/assetlinks.json (location
-                 de 3 linhas no server block compartilhado). Sem isso: o app aparece no chooser. -->
+            <!-- G2 — ANDROID APP LINKS: links https do domínio PRÓPRIO (convite do médico no
+                 WhatsApp, e-mail de exame) abrem o APP em vez do navegador. A verificação
+                 (abrir direto, sem chooser) exige o assetlinks.json na RAIZ do host — servido
+                 pelo nosso Express em https://drexame.janocaminho.com.br/.well-known/assetlinks.json
+                 (rota explícita no app.ts; express.static ignora dot-diretórios) com o SHA-256
+                 do certificado de ASSINATURA do app (Play Console → Integridade do app), não
+                 o da keystore de upload. O filtro antigo janocaminho.com.br/minhasaude foi
+                 REMOVIDO: o Android só lê assetlinks na RAIZ do host, e a raiz janocaminho.com.br
+                 pertence ao EdEspeto (assetlinks de lá declara com.janocaminho.app) → nunca
+                 verificaria e o Play Console seguia marcando "domínio não verificado". Links
+                 antigos /minhasaude continuam abrindo a SPA no navegador (mesma aplicação). -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="janocaminho.com.br" android:pathPrefix="/minhasaude" />
+                <data android:scheme="https" android:host="drexame.janocaminho.com.br" />
             </intent-filter>
             <!-- Atalhos estáticos (long-press no ícone): Cartão de emergência -->
             <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />

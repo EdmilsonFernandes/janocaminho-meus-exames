@@ -371,7 +371,7 @@ export const PortalOverview = ({
                       label={p.maxPriority === 'importante' ? 'Alta' : p.maxPriority === 'moderada' ? 'Média' : 'Leve'}
                       sx={{
                         height: 18,
-                        fontSize: 10,
+                        fontSize: 12,
                         fontWeight: 800,
                         bgcolor: p.maxPriority === 'importante' ? 'rgba(239,68,68,0.12)' : p.maxPriority === 'moderada' ? 'rgba(245,158,11,0.12)' : 'rgba(234,179,8,0.12)',
                         color: p.maxPriority === 'importante' ? '#ef4444' : p.maxPriority === 'moderada' ? '#d97706' : '#ca8a04',
@@ -409,7 +409,7 @@ export const PortalOverview = ({
                     p,
                     `${p.openQuestions} pergunta(s) em aberto`,
                     () => onOpenPatient(p, 'questions'),
-                    <Chip size="small" label="Aguardando" sx={{ height: 18, fontSize: 10, fontWeight: 800, bgcolor: 'rgba(245,158,11,0.12)', color: '#d97706' }} />
+                    <Chip size="small" label="Aguardando" sx={{ height: 18, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(245,158,11,0.12)', color: '#d97706' }} />
                   )
                 )}
                 {openQP.length > 3 && (

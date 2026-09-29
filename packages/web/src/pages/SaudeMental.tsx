@@ -213,8 +213,8 @@ export const SaudeMentalPage = () => {
               <Box sx={{ height: 200 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData} margin={{ top: 6, right: 12, bottom: 0, left: -18 }}>
-                    <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="rgba(148,163,184,.6)" />
-                    <YAxis domain={[0, 27]} tick={{ fontSize: 11 }} stroke="rgba(148,163,184,.6)" allowDecimals={false} />
+                    <XAxis dataKey="date" tick={{ fontSize: 12 }} stroke="rgba(148,163,184,.6)" />
+                    <YAxis domain={[0, 27]} tick={{ fontSize: 12 }} stroke="rgba(148,163,184,.6)" allowDecimals={false} />
                     <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12 }} />
                     {/* Corte "moderada" (≥10 nos dois instrumentos) — ReferenceLine, NÃO ReferenceArea. */}
                     <ReferenceLine y={10} stroke="rgba(245,158,11,.5)" strokeDasharray="4 4" />

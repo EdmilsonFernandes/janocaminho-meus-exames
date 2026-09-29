@@ -95,7 +95,7 @@ export const RestingHeartCard = () => {
           sx={{ px: 1, py: 0.35, borderRadius: '999px', bgcolor: alpha(z.color, 0.1), border: `1px solid ${alpha(z.color, 0.25)}` }}
         >
           <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: z.color, boxShadow: `0 0 8px ${z.color}`, ...BEAT }} />
-          <Typography sx={{ fontSize: 11, fontWeight: 700, color: z.color }}>{z.label}</Typography>
+          <Typography sx={{ fontSize: 12, fontWeight: 700, color: z.color }}>{z.label}</Typography>
         </Stack>
       </Stack>
 
@@ -116,7 +116,7 @@ export const RestingHeartCard = () => {
               ) : (
                 <TrendingUpIcon sx={{ fontSize: 15, color: '#b45309' }} />
               )}
-              <Typography noWrap sx={{ fontSize: 11, fontWeight: 700, color: s.delta < 0 ? 'success.main' : '#b45309' }}>
+              <Typography noWrap sx={{ fontSize: 12, fontWeight: 700, color: s.delta < 0 ? 'success.main' : '#b45309' }}>
                 {s.delta < 0 ? '' : '+'}{s.delta} bpm vs semana anterior{s.delta < 0 ? ' · condicionamento tende a melhorar' : ' · acompanhe com seu médico'}
               </Typography>
             </Stack>
@@ -187,7 +187,7 @@ export const RestingHeartCard = () => {
       )}
 
       {/* Contexto educativo honesto (nunca diagnóstico) */}
-      <Typography sx={{ fontSize: 11, color: theme.palette.text.secondary, lineHeight: 1.5, mt: 1.25 }}>
+      <Typography sx={{ fontSize: 12, color: theme.palette.text.secondary, lineHeight: 1.5, mt: 1.25 }}>
         Média de 30 dias: <strong>{s.avg30} bpm</strong> · {s.days} dias registrados. Estudos prospectivos associam cada +10 bpm na frequência de repouso a maior risco cardiovascular — a <strong>tendência importa mais que o número isolado</strong>. Educativo; não substitui avaliação médica.
       </Typography>
     </AppCard>

@@ -116,7 +116,7 @@ export const CorrelationSection = ({ patientId }: { patientId?: string }) => {
           {/* Evidência badge */}
           <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }}>
             <Typography sx={{
-              fontSize: 10, fontWeight: 700, px: 0.75, py: 0.25, borderRadius: '8px',
+              fontSize: 12, fontWeight: 700, px: 0.75, py: 0.25, borderRadius: '8px',
               bgcolor: f.evidenceLevel === 'HIGH'
                 ? alpha('#059669', 0.12)
                 : f.evidenceLevel === 'MODERATE' ? alpha('#b45309', 0.12) : alpha(theme.palette.text.primary, 0.08),

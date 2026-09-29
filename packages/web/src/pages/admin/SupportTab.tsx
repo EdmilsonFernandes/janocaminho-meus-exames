@@ -192,14 +192,14 @@ const Conversation = ({ ticketId, onClose, onNotify }: { ticketId: string; onClo
             return (
               <Box key={m.id} sx={{ display: 'flex', justifyContent: mine ? 'flex-end' : 'flex-start' }}>
                 <Box sx={{ maxWidth: { xs: '85%', sm: '70%' }, bgcolor: mine ? '#178f89' : 'action.hover', color: mine ? '#fff' : 'text.primary', px: 1.5, py: 1, borderRadius: '12px' }}>
-                  {!mine && <Typography sx={{ fontSize: 11, fontWeight: 800, opacity: 0.7 }}>Usuário</Typography>}
+                  {!mine && <Typography sx={{ fontSize: 12, fontWeight: 800, opacity: 0.7 }}>Usuário</Typography>}
                   <Typography sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{m.body}</Typography>
                   {atts.length > 0 && (
                     <Stack spacing={0.5} sx={{ mt: 0.5 }}>
                       {atts.map((a: any, i: number) => <Link key={i} component="button" sx={{ color: mine ? '#fff' : 'primary.main', fontSize: 13, textAlign: 'left' }} onClick={() => void downloadAtt(a.url, a.name)}>📎 {a.name}</Link>)}
                     </Stack>
                   )}
-                  <Typography sx={{ fontSize: 10, opacity: 0.7, textAlign: mine ? 'right' : 'left', mt: 0.25 }}>{fmt(m.createdAt)}</Typography>
+                  <Typography sx={{ fontSize: 12, opacity: 0.7, textAlign: mine ? 'right' : 'left', mt: 0.25 }}>{fmt(m.createdAt)}</Typography>
                 </Box>
               </Box>
             );

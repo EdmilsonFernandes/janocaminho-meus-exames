@@ -148,7 +148,7 @@ export const ExpensesPage = () => {
                     <Box sx={{ flex: 1, minWidth: 0 }}>
                       <Typography sx={{ fontWeight: 700, fontSize: 14, lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.description}</Typography>
                       <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mt: 0.25 }}>
-                        <Chip size="small" label={item.category} sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(32,178,170,.12)', color: (t) => tealText(t.palette.mode) }} />
+                        <Chip size="small" label={item.category} sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(32,178,170,.12)', color: (t) => tealText(t.palette.mode) }} />
                         <Typography variant="caption" sx={{ color: 'text.secondary' }}>{fmtDate(item.spentAt)}</Typography>
                       </Stack>
                     </Box>

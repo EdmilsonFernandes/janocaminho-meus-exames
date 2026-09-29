@@ -270,10 +270,10 @@ export const ChatPage = () => {
             Dr. Exame
             <Box component="span" sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#4ade80', display: 'inline-block', boxShadow: '0 0 6px #4ade80' }} />
           </Typography>
-          <Typography sx={{ fontSize: 11, opacity: 0.9 }}>Assistente de saúde com IA{firstName ? ` · ${firstName}` : ''}</Typography>
+          <Typography sx={{ fontSize: 12, opacity: 0.9 }}>Assistente de saúde com IA{firstName ? ` · ${firstName}` : ''}</Typography>
         </Box>
         <IconButton onClick={() => setHistOpen(true)} aria-label={`Histórico de conversas (${convs.length})`} title="Histórico de conversas" sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,.15)', p: { xs: 1.25, sm: 1 }, '&:hover': { bgcolor: 'rgba(255,255,255,.25)' } }}>
-          <Badge badgeContent={convs.length > 9 ? '9+' : convs.length} color="warning" overlap="circular" invisible={convs.length === 0} sx={{ '& .MuiBadge-badge': { fontSize: 11, fontWeight: 700, height: 18, minWidth: 18, top: 3, right: 3, bgcolor: '#dc2626' } }}><HistoryIcon sx={{ fontSize: 24 }} /></Badge>
+          <Badge badgeContent={convs.length > 9 ? '9+' : convs.length} color="warning" overlap="circular" invisible={convs.length === 0} sx={{ '& .MuiBadge-badge': { fontSize: 12, fontWeight: 700, height: 18, minWidth: 18, top: 3, right: 3, bgcolor: '#dc2626' } }}><HistoryIcon sx={{ fontSize: 24 }} /></Badge>
         </IconButton>
       </Paper>
 
@@ -316,7 +316,7 @@ export const ChatPage = () => {
                   <Box sx={{ position: 'relative', width: 30, height: 30, flexShrink: 0, mb: 0.25 }}>
                     <DrExame size={30} sx={{ borderRadius: '28%' }} />
                     <Box sx={{ position: 'absolute', top: -3, right: -3, width: 14, height: 14, borderRadius: '50%', bgcolor: 'primary.dark', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <AutoAwesomeIcon sx={{ fontSize: 8, color: '#fff' }} />
+                      <AutoAwesomeIcon sx={{ fontSize: 12, color: '#fff' }} />
                     </Box>
                   </Box>
                 )}
@@ -347,7 +347,7 @@ export const ChatPage = () => {
                       ))}
                     </Box>
                   )}
-                  {m.ts && <Typography sx={{ display: 'block', fontSize: 10, mt: 0.4, opacity: 0.6, textAlign: isUser ? 'right' : 'left' }}>{fmtTime(m.ts)}</Typography>}
+                  {m.ts && <Typography sx={{ display: 'block', fontSize: 12, mt: 0.4, opacity: 0.6, textAlign: isUser ? 'right' : 'left' }}>{fmtTime(m.ts)}</Typography>}
                 </Paper>
               </Box>
             );
@@ -413,7 +413,7 @@ export const ChatPage = () => {
             if (!items.length) return null;
             return (
               <Box key={bk}>
-                <Typography sx={{ fontSize: 11, fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5, px: 2, pt: 1.5, pb: 0.5 }}>{bk}</Typography>
+                <Typography sx={{ fontSize: 12, fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5, px: 2, pt: 1.5, pb: 0.5 }}>{bk}</Typography>
                 {items.map((c) => <HistoryRow key={c.id} conv={c} active={c.id === curId} onOpen={() => { setCurId(c.id); setHistOpen(false); }} onRename={(t) => renameConv(c.id, t)} onDelete={() => deleteConv(c.id)} />)}
               </Box>
             );
@@ -429,7 +429,7 @@ const HistoryRow = ({ conv, active, onOpen, onRename, onDelete }: { conv: Conv; 
   return (
     <ListItemButton selected={active} onClick={onOpen} sx={{ py: 1, px: 2, '&.Mui-selected': { bgcolor: 'rgba(32,178,170,.08)' }, '&.Mui-selected:hover': { bgcolor: 'rgba(32,178,170,.12)' } }}>
       <ListItemIcon sx={{ minWidth: 34 }}><ChatBubbleIcon sx={{ color: active ? TEAL : 'text.secondary', fontSize: 18 }} /></ListItemIcon>
-      <ListItemText primary={conv.title || 'Sem título'} primaryTypographyProps={{ fontSize: 14, fontWeight: active ? 700 : 500, color: 'text.primary', noWrap: true }} secondary={new Date(conv.updatedAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} secondaryTypographyProps={{ fontSize: 11 }} />
+      <ListItemText primary={conv.title || 'Sem título'} primaryTypographyProps={{ fontSize: 14, fontWeight: active ? 700 : 500, color: 'text.primary', noWrap: true }} secondary={new Date(conv.updatedAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} secondaryTypographyProps={{ fontSize: 12 }} />
       <IconButton size="small" edge="end" onClick={(e) => { e.stopPropagation(); setMenu(e.currentTarget); }}><MoreVertIcon fontSize="small" sx={{ color: 'text.secondary' }} /></IconButton>
       <Menu anchorEl={menu} open={!!menu} onClose={() => setMenu(null)} slotProps={{ paper: { sx: { borderRadius: '12px' } } }}>
         <MenuItem onClick={async () => { setMenu(null); const t = await promptDialog({ title: 'Renomear conversa', label: 'Título', defaultValue: conv.title, confirmLabel: 'Salvar' }); if (t != null) onRename(t.trim() || conv.title); }}>✏️ Renomear</MenuItem>

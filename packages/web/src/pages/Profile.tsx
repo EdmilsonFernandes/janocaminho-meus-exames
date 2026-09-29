@@ -87,6 +87,9 @@ export const ProfilePage = () => {
   const [librasOn, setLibrasOn] = useState(() => { try { return localStorage.getItem('meus_exames_libras') === '1'; } catch { return false; } });
   // Card de atividade (Health Connect): a volta de quem ocultou no Dashboard.
   const [activityOn, setActivityOn] = useState(() => { try { return localStorage.getItem('dx_activity_hidden') !== '1'; } catch { return true; } });
+  // F7 (29/09) — "Aa Texto grande": o px dos textos NÃO escala com o "Tamanho da fonte" do
+  // Android no WebView, então o usuário amplia aqui. Reflete o estado salvo ao abrir a tela.
+  const [textLarge, setTextLarge] = useState(() => { try { return localStorage.getItem('dx_text_large') === '1'; } catch { return false; } });
 
   const load = async () => {
     const h = { Authorization: `Bearer ${token()}` };
@@ -143,6 +146,16 @@ export const ProfilePage = () => {
     setActivityOn(on);
     try { localStorage.setItem('dx_activity_hidden', on ? '0' : '1'); } catch { /* localStorage indisponível */ }
     if (on) notify('Card de atividade voltou ao início ✨', { type: 'success' });
+  };
+  // F7 — "Aa Texto grande": amplia os textos que seguem o TEMA do app (títulos, corpo,
+  // botões, labels de campo) via par de temas com raiz rem maior (html 16→18px, ×1,125 —
+  // tudo em rem cresce junto). LIMITAÇÃO HONESTA: textos/números com tamanho FIXO no
+  // código (tiles do dashboard, chips de contagem) não crescem — seguem o piso de 12px.
+  // O App ouve o evento e troca o par de temas na hora (sem reload — reload crasha o APK).
+  const toggleTextLarge = (on: boolean) => {
+    setTextLarge(on);
+    try { localStorage.setItem('dx_text_large', on ? '1' : '0'); } catch { /* localStorage indisponível */ }
+    try { window.dispatchEvent(new Event('dx-text-large')); } catch { /* best-effort */ }
   };
 
   if (!pid) return <PageSkeleton cards={4} />;
@@ -276,6 +289,7 @@ export const ProfilePage = () => {
           <FormControlLabel control={<Switch checked={achAlerts} onChange={(e) => toggleAchAlerts(e.target.checked)} />} label={<Box sx={{ fontWeight: 600 }}>🔔 Avisar quando eu desbloquear uma conquista</Box>} />
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>Você continua ganhando os créditos mesmo com isso desligado — só não recebe o aviso no sino.</Typography>
           <FormControlLabel control={<Switch checked={librasOn} onChange={(e) => toggleLibras(e.target.checked)} />} label={<Box sx={{ fontWeight: 600 }}>♿ Botão de tradução em Libras</Box>} />
+          <FormControlLabel control={<Switch checked={textLarge} onChange={(e) => toggleTextLarge(e.target.checked)} />} label={<Box sx={{ fontWeight: 600 }}>🔍 Aa Texto grande — amplia os textos do app</Box>} />
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>Traduz os textos do app para Língua Brasileira de Sinais. Desligue para remover o botão flutuante da tela.</Typography>
           <FormControlLabel control={<Switch checked={activityOn} onChange={(e) => toggleActivity(e.target.checked)} />} label={<Box sx={{ fontWeight: 600 }}>🏃 Card de atividade física no início</Box>} />
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>Passos, calorias e distância (Health Connect do celular). Vale no app Android.</Typography>

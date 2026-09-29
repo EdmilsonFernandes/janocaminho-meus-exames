@@ -43,7 +43,7 @@ import { DrExame } from './components/DrExame';
 import { dataProvider } from './dataProvider';
 import { API_URL, token, photoUrlFor } from './config';
 import { authProvider } from './authProvider';
-import { lightTheme, darkTheme } from './theme';
+import { lightTheme, darkTheme, lightThemeLarge, darkThemeLarge } from './theme';
 import { alpha } from '@mui/material/styles';
 import { i18nProvider } from './i18n';
 import { APP_BUILD_INFO } from './generated/buildInfo';
@@ -337,7 +337,7 @@ const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
             </Typography>
             <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mt: 0.5, flexWrap: 'wrap', gap: 0.5 }}>
               <Chip size="small" label={userInfo.isPremium ? '👑 Premium' : 'Plano grátis'} sx={{
-                height: 20, fontSize: 10, fontWeight: 800,
+                height: 20, fontSize: 12, fontWeight: 800,
                 bgcolor: userInfo.isPremium ? 'rgba(212,165,116,0.18)' : 'rgba(0,0,0,0.06)',
                 color: userInfo.isPremium ? '#b88a54' : 'text.secondary',
                 ...(userInfo.isPremium ? {
@@ -355,7 +355,7 @@ const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
                 } : {}),
               }} />
               {credits != null && (
-                <Chip size="small" onClick={() => { onClose?.(); navigate('/planos'); }} label={`⚡ ${credits} (+)`} sx={{ height: 20, fontSize: 10, fontWeight: 700, bgcolor: 'rgba(32,178,170,0.12)', color: '#0f6e68', cursor: 'pointer', '&:hover': { bgcolor: 'rgba(32,178,170,0.2)' } }} />
+                <Chip size="small" onClick={() => { onClose?.(); navigate('/planos'); }} label={`⚡ ${credits} (+)`} sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(32,178,170,0.12)', color: '#0f6e68', cursor: 'pointer', '&:hover': { bgcolor: 'rgba(32,178,170,0.2)' } }} />
               )}
             </Stack>
           </Box>
@@ -721,6 +721,17 @@ export const App = () => {
   const isNativeApp = Capacitor.isNativePlatform();
   // G2 — App Links https abrem o app direto na rota (convite de médico, e-mails).
   useEffect(() => { initDeepLinks(); }, []);
+  // F7 (29/09) — "Aa Texto grande" (Perfil → Preferências): px não escala com o "Tamanho da
+  // fonte" do Android no WebView, então a escolha é no app. O toggle grava dx_text_large no
+  // localStorage e dispara 'dx-text-large' (padrão dx-profile-updated); aqui trocamos o PAR
+  // de temas do react-admin pela variante com raiz rem maior (html 16→18px = ×1,125).
+  const [textLarge, setTextLarge] = useState(() => { try { return localStorage.getItem('dx_text_large') === '1'; } catch { return false; } });
+  useEffect(() => {
+    const read = () => setTextLarge(() => { try { return localStorage.getItem('dx_text_large') === '1'; } catch { return false; } });
+    window.addEventListener('dx-text-large', read); // toggle no Perfil (mesma sessão)
+    window.addEventListener('storage', read); // mudou em outra aba/janela
+    return () => { window.removeEventListener('dx-text-large', read); window.removeEventListener('storage', read); };
+  }, []);
   useEffect(() => {
     let cancelled = false; // previne setState após unmount (race condition)
     // WEB: anônimo na raiz → landing (porta pública/vitrine). APK: abre direto no LOGIN (app instalado não precisa de vitrine).
@@ -832,8 +843,8 @@ export const App = () => {
   <Admin
     dataProvider={dataProvider}
     authProvider={authProvider}
-    theme={lightTheme}
-    darkTheme={darkTheme}
+    theme={textLarge ? lightThemeLarge : lightTheme}
+    darkTheme={textLarge ? darkThemeLarge : darkTheme}
     defaultTheme="light"
     i18nProvider={i18nProvider}
     layout={AppLayout}

@@ -127,7 +127,7 @@ export const VaccinesPage = () => {
                       <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 0.5 }} flexWrap="wrap" useFlexGap>
                         <CalendarMonthIcon sx={{ fontSize: 14, color: 'text.disabled' }} />
                         <Typography variant="caption" color="text.secondary">Aplicada: {fmt(v.dateApplied)}</Typography>
-                        {v.lot && <Chip size="small" label={`Lote: ${v.lot}`} sx={{ height: 20, fontSize: 11, bgcolor: 'rgba(0,0,0,.05)', fontWeight: 600 }} />}
+                        {v.lot && <Chip size="small" label={`Lote: ${v.lot}`} sx={{ height: 20, fontSize: 12, bgcolor: 'rgba(0,0,0,.05)', fontWeight: 600 }} />}
                       </Stack>
                       {hasNext && (
                         <Chip

@@ -168,7 +168,7 @@ export const FinanceiroTab = () => {
                 <TableCell>R$ {Number(p.amount ?? 0).toFixed(2).replace('.', ',')}</TableCell>
                 <TableCell>{p.periodDays > 0 ? 'Mensal' : 'Créditos'}</TableCell>
                 <TableCell><Chip size="small" color={statusColor[p.status] ?? 'default'} label={statusLabel[p.status] ?? p.status} /></TableCell>
-                <TableCell sx={{ fontSize: 11, fontFamily: 'monospace' }}>{p.mpPaymentId ?? '—'} {p.rawWebhook && <IconButton size="small" onClick={() => setPayloadRow(p)} title="Ver payload do Mercado Pago"><ReceiptLongIcon sx={{ fontSize: 15, color: '#178f89' }} /></IconButton>}</TableCell>
+                <TableCell sx={{ fontSize: 12, fontFamily: 'monospace' }}>{p.mpPaymentId ?? '—'} {p.rawWebhook && <IconButton size="small" onClick={() => setPayloadRow(p)} title="Ver payload do Mercado Pago"><ReceiptLongIcon sx={{ fontSize: 15, color: '#178f89' }} /></IconButton>}</TableCell>
               </TableRow>
             ))}
             {payments.length === 0 && <TableRow><TableCell colSpan={6} align="center">Nenhum pagamento.</TableCell></TableRow>}

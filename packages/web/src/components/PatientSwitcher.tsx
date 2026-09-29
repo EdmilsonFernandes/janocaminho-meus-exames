@@ -122,7 +122,7 @@ export const PatientSwitcher = () => {
         {patients.map((p) => (
           <MenuItem key={p.id} sx={{ py: 1, borderRadius: '8px', m: 0.5 }} onClick={() => { setSel(p.id); setAnchor(null); navigate('/'); }}>
             <Avatar src={photoFor(p)} sx={{ width: 36, height: 36, mr: 1.5, bgcolor: 'primary.main', fontSize: 14 }}>{p.fullName?.charAt(0)?.toUpperCase()}</Avatar>
-            <ListItemText primary={p.fullName} secondary={p.relationship} primaryTypographyProps={{ fontSize: 14, fontWeight: 600 }} secondaryTypographyProps={{ fontSize: 11 }} />
+            <ListItemText primary={p.fullName} secondary={p.relationship} primaryTypographyProps={{ fontSize: 14, fontWeight: 600 }} secondaryTypographyProps={{ fontSize: 12 }} />
             {p.id === pid && <CheckIcon fontSize="small" color="primary" sx={{ ml: 1 }} />}
           </MenuItem>
         ))}

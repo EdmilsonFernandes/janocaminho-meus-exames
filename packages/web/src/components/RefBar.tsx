@@ -53,8 +53,8 @@ export const RefBar = ({ value, refLow, refHigh, unit }: { value: number | null;
       </Box>
       {/* Labels */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 0.25 }}>
-        <Typography variant="caption" sx={{ fontSize: 10, color: 'text.secondary' }}>{refLow}{unit ? ` ${unit}` : ''}</Typography>
-        <Typography variant="caption" sx={{ fontSize: 10, color: 'text.secondary' }}>{refHigh}{unit ? ` ${unit}` : ''}</Typography>
+        <Typography variant="caption" sx={{ fontSize: 12, color: 'text.secondary' }}>{refLow}{unit ? ` ${unit}` : ''}</Typography>
+        <Typography variant="caption" sx={{ fontSize: 12, color: 'text.secondary' }}>{refHigh}{unit ? ` ${unit}` : ''}</Typography>
       </Box>
     </Box>
   );

@@ -20,6 +20,7 @@ import { prisma } from '../prisma';
 import { collapseAdjacentNearDupes } from './dedup';
 import { getSettings } from '../utils/settings';
 import { normalizeUnit, parseNumeric } from '../utils/normalize';
+import { personalizedTargets as computePersonalizedTargets, type PersonalizedTarget } from './personalized-targets';
 // NOTA: trendVerdict canônico vive em @meus-exames/shared (consumido pelo web/vite).
 // O server (Node) não dá require em shared em runtime (shared é TS-source, sem build p/ JS),
 // então espelhamos a lógica aqui. Unificar quando shared ganhar build step (V1).
@@ -112,6 +113,10 @@ export interface CurrentHealthSummary {
   staleWarning?: string | null;
   /** Marcadores NORMALIZADOS (eram anormais no passado, estão normais agora) — seção do relatório. */
   normalized: MarkerState[];
+  /** F1 — alvos personalizados por medicação/condição (ex.: TSH 0,4–2,5 p/ levotiroxina).
+   *  Leitura COMPLEMENTAR: NUNCA substituem a faixa do laboratório e NÃO alteram
+   *  score/flags/prioridade — a IA do chat e o front consomem. */
+  personalizedTargets?: PersonalizedTarget[];
 }
 
 // ───────────────────────── helpers puros ─────────────────────────
@@ -544,6 +549,24 @@ export async function buildCurrentHealthSummary(patientId: string, opts?: { incl
     cardioPresentKeys = Object.entries(cardioInputs).filter(([, v]) => v != null).map(([k]) => k);
     if (riskResult) cardiometabolicRisk = { level: riskResult.level, score: riskResult.score, factors: riskResult.factors };
   } catch { /* best-effort */ }
+  // F1 — Alvos personalizados por medicação/condição (leitura complementar). SÓ EXPÕE:
+  // não muda score/flags/prioridade — mudar score sem estudo clínico seria irresponsável.
+  // Regras fechadas (levotiroxina→TSH; diabetes→LDL/HbA1c), cada uma com citação real
+  // (ver personalized-targets.ts). Remédios ATIVOS + clinicalProfile alimentam o gatilho.
+  let pTargets: PersonalizedTarget[] = [];
+  try {
+    const [prof, meds] = await Promise.all([
+      prisma.patient.findUnique({ where: { id: patientId }, select: { clinicalProfile: true } }),
+      prisma.medication.findMany({ where: { patientId, active: true }, select: { name: true, activeIngredient: true } }),
+    ]);
+    pTargets = computePersonalizedTargets(
+      markers.map((m) => ({ nameCanonical: m.nameCanonical, valueNumeric: m.latest.valueNumeric })),
+      {
+        medications: meds.flatMap((m) => [m.name, m.activeIngredient]).filter((x): x is string => !!x),
+        conditions: prof?.clinicalProfile ?? '',
+      },
+    );
+  } catch { /* best-effort — sem alvos se falhar */ }
   const byPriority: Record<Priority, number> = { normal: 0, leve: 0, moderada: 0, importante: 0 };
   for (const m of markers) byPriority[m.priority]++;
   const total = markers.length;
@@ -597,6 +620,7 @@ export async function buildCurrentHealthSummary(patientId: string, opts?: { incl
     biologicalAge,
     cardiometabolicRisk,
     availability,
+    personalizedTargets: pTargets,
   };
 }
 

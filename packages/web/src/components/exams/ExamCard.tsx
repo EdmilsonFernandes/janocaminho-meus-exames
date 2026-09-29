@@ -120,7 +120,7 @@ export const ExamCard = ({ exam, onOpen, onOpenPdf }: { exam: any; onOpen: (id: 
             {abnormalCount > 0 && (
               <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.35, px: 0.75, py: 0.15, borderRadius: '999px', bgcolor: 'rgba(234,88,12,.10)', border: '1px solid rgba(234,88,12,.18)' }}>
                 <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#fb923c', flexShrink: 0 }} />
-                <Typography component="span" sx={{ fontSize: '0.72rem', fontWeight: 700, color: '#c2410c', lineHeight: 1 }}>
+                <Typography component="span" sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#c2410c', lineHeight: 1 }}>
                   {abnormalCount} alterado{abnormalCount > 1 ? 's' : ''}
                 </Typography>
               </Box>

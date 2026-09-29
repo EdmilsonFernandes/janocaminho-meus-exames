@@ -1012,7 +1012,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                             <Box component="span">{meta.label}</Box>
                             {count > 0 && (
                               <Box component="sup" sx={{
-                                fontSize: 11, fontWeight: 800, lineHeight: 1,
+                                fontSize: 12, fontWeight: 800, lineHeight: 1,
                                 color: s === 'alterados' && abnormalStats.total > 0 ? 'error.main' : 'text.secondary',
                                 ml: 0.25,
                               }}>{count}</Box>

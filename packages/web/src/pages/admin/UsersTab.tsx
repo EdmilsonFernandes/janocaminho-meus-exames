@@ -146,13 +146,13 @@ export const UsersTab = () => {
               <Box sx={{ flex: 1, minWidth: { xs: 120, sm: 180 } }}>
                 <Typography component="div" sx={{ fontWeight: 700, fontSize: 15, wordBreak: 'break-word', display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap' }}>
                   {u.name || '—'}
-                  {u.role === 'ADMIN' && <Chip size="small" label="ADMIN" color="warning" sx={{ height: 18, fontSize: 10 }} />}
-                  {u.blocked && <Chip size="small" label="Bloqueado" color="error" sx={{ height: 18, fontSize: 10 }} />}
+                  {u.role === 'ADMIN' && <Chip size="small" label="ADMIN" color="warning" sx={{ height: 18, fontSize: 12 }} />}
+                  {u.blocked && <Chip size="small" label="Bloqueado" color="error" sx={{ height: 18, fontSize: 12 }} />}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">{u.email}</Typography>
                 {/* 28/09 (dono): data de criação visível — saber QUANDO a conta surgiu. */}
                 {(u as any).createdAt && (
-                  <Typography variant="caption" sx={{ display: 'block', fontSize: 10.5, color: 'text.disabled' }}>
+                  <Typography variant="caption" sx={{ display: 'block', fontSize: 12, color: 'text.disabled' }}>
                     Criado em {new Date((u as any).createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                   </Typography>
                 )}

@@ -126,8 +126,26 @@ export const dangerText = (mode: 'light' | 'dark') => (mode === 'dark' ? '#f8717
 
 export type ThemeMode = 'light' | 'dark';
 
-export const buildTheme = (mode: ThemeMode): Theme => {
+/**
+ * F7 (29/09 — "letrinhas difíceis de ler no Samsung Ultra"): escala de texto do USUÁRIO.
+ *
+ * COMO O MUI v7 REALMENTE ESCALA (verificado): as variantes de typography são strings em
+ * REM ('0.875rem'…) — `typography.fontSize`/`htmlFontSize` NÃO as recalculam (createTypography
+ * só usa htmlFontSize no `pxToRem`). O que amplia TUDO proporcionalmente é o font-size RAIZ
+ * do <html> (1rem = esse valor). Então o tema 'large' sobe o html de 16→18px (×1,125):
+ * variantes do tema (body1/2, títulos, caption, button), textos de componentes MUI que usam
+ * pxToRem (Chip, Tabs…) e literais rem do sx crescem JUNTOS. `typography.fontSize` 14→16 é
+ * o bump semântico do par (não move variantes sozinho — fica p/ quem lê theme.typography.fontSize).
+ *
+ * LIMITAÇÃO HONESTA (documentada no toggle do Perfil): fontSize px EXPLÍCITO no sx (tiles
+ * do dashboard, números grandes, labels de listas) NÃO escala — esses seguem o piso de 12px
+ * do F7. Layout NÃO estica: espaçamento MUI é px e nenhum width/height/padding do app usa rem.
+ */
+export type TextScale = 'normal' | 'large';
+
+export const buildTheme = (mode: ThemeMode, textScale: TextScale = 'normal'): Theme => {
   const isDark = mode === 'dark';
+  const isLarge = textScale === 'large';
   const surfaces = isDark ? DARK_PALETTE : LIGHT_PALETTE;
   const hoverAlpha = alpha('#20b2aa', isDark ? 0.12 : 0.07);
   const activeAlpha = alpha('#20b2aa', isDark ? 0.20 : 0.12);
@@ -141,7 +159,7 @@ export const buildTheme = (mode: ThemeMode): Theme => {
       ...surfaces,
     },
     shape: { borderRadius: 14 }, // base do tema (multiplicador) — DEVE ser número. Não mexer (codemod pegou por engano).
-    typography: TYPOGRAPHY,
+    typography: isLarge ? { ...TYPOGRAPHY, fontSize: 16 } : TYPOGRAPHY,
     shadows: (isDark ? SHADOWS_DARK : SHADOWS_LIGHT) as any,
     components: {
       MuiCssBaseline: {
@@ -164,7 +182,13 @@ export const buildTheme = (mode: ThemeMode): Theme => {
             backgroundClip: 'content-box',
             '&:hover': { background: isDark ? 'rgba(148,163,184,.4)' : 'rgba(23,143,137,.38)', backgroundClip: 'content-box' },
           },
-          'html': { WebkitTapHighlightColor: 'transparent', scrollBehavior: 'smooth', overscrollBehavior: 'none' },
+          'html': {
+            WebkitTapHighlightColor: 'transparent', scrollBehavior: 'smooth', overscrollBehavior: 'none',
+            // F7 "Aa Texto grande": raiz rem maior = toda a tipografia rem do app cresce ×1,125.
+            // Mantemos typography.htmlFontSize no default (16) DE PROPÓSITO: o pxToRem continua
+            // dividindo por 16, então os tamanhos que ele gera (Chip, Tabs…) também escalam.
+            ...(isLarge ? { fontSize: '18px' } : {}),
+          },
           // MOBILE-NATIVE (skill): tap sem o delay de double-tap-zoom em tudo que é tocável.
           'button, a, [role="button"]': { touchAction: 'manipulation' },
           // MOBILE-NATIVE (skill): iOS Safari dá zoom da página ao focar input <16px e NÃO
@@ -294,6 +318,9 @@ export const buildTheme = (mode: ThemeMode): Theme => {
 
 export const lightTheme = buildTheme('light');
 export const darkTheme = buildTheme('dark');
+// F7: par alternativo do toggle "Aa Texto grande" — mesmos tokens, raiz rem maior (18px).
+export const lightThemeLarge = buildTheme('light', 'large');
+export const darkThemeLarge = buildTheme('dark', 'large');
 
 // Retrocompatibilidade: imports existentes de { theme } continuam funcionando (modo claro).
 export const theme = lightTheme;

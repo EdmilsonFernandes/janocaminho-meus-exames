@@ -143,7 +143,7 @@ export const BiologicalAgeCard = ({ idx = 2, bio, bioAvail, bioLoaded, chronoAge
               <Typography variant="h6" sx={{ fontWeight: 800, color: accent }}>{data.age} anos{chronoAge ? ` (você tem ${chronoAge})` : ''}</Typography>
               {/* 28/09 (bug bash): honestidade da estimativa — 'baixa' (menos de 6 marcadores)
                   não pode parecer cálculo forte. Diz quantos marcadores entraram na conta. */}
-              <Chip size="small" sx={{ mt: 0.5, mb: 0.5, height: 22, fontSize: 11, fontWeight: 700, bgcolor: (data.confidence === 'alta') ? 'rgba(5,150,105,.10)' : 'rgba(245,158,11,.12)', color: (data.confidence === 'alta') ? '#059669' : '#b45309' }}
+              <Chip size="small" sx={{ mt: 0.5, mb: 0.5, height: 22, fontSize: 12, fontWeight: 700, bgcolor: (data.confidence === 'alta') ? 'rgba(5,150,105,.10)' : 'rgba(245,158,11,.12)', color: (data.confidence === 'alta') ? '#059669' : '#b45309' }}
                 label={data.confidence === 'alta'
                   ? `estimativa com ${data.markersUsed ?? '?'} marcadores`
                   : `estimativa FRACA — só ${data.markersUsed ?? '?'} marcador(es); envie mais exames pra afinar`} />
@@ -165,7 +165,7 @@ export const BiologicalAgeCard = ({ idx = 2, bio, bioAvail, bioLoaded, chronoAge
                     {(data as any).detail.map((d: { label: string; deltaYears: number; status: string }, i: number) => (
                       <Stack key={i} direction="row" alignItems="center" spacing={1} sx={{ p: 0.5, px: 1, borderRadius: '8px', border: '1px solid', borderColor: 'divider' }}>
                         <Typography sx={{ fontSize: 12.5, fontWeight: 600, flex: 1, minWidth: 0 }}>{d.label}</Typography>
-                        <Typography sx={{ fontSize: 11.5, fontWeight: 800, width: 60, textAlign: 'right', color: d.status === 'envelhece' ? '#dc2626' : d.status === 'rejuvenesce' ? '#059669' : 'text.disabled' }}>
+                        <Typography sx={{ fontSize: 12, fontWeight: 800, width: 60, textAlign: 'right', color: d.status === 'envelhece' ? '#dc2626' : d.status === 'rejuvenesce' ? '#059669' : 'text.disabled' }}>
                           {d.deltaYears > 0 ? '+' : ''}{String(Math.round(d.deltaYears * 100) / 100).replace('.', ',')}
                         </Typography>
                       </Stack>
@@ -186,7 +186,7 @@ export const BiologicalAgeCard = ({ idx = 2, bio, bioAvail, bioLoaded, chronoAge
                       <Stack key={i} direction="row" alignItems="center" spacing={1} sx={{ p: 0.6, px: 1, borderRadius: '8px', bgcolor: d.status === 'envelhece' ? 'rgba(239,68,68,.06)' : d.status === 'rejuvenesce' ? 'rgba(16,185,129,.06)' : 'transparent', border: '1px solid', borderColor: 'divider' }}>
                         <Typography sx={{ fontSize: 12.5, fontWeight: 600, flex: 1, minWidth: 0 }}>{d.label}</Typography>
                         <Typography sx={{ fontSize: 12, color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>{d.value}</Typography>
-                        <Typography sx={{ fontSize: 11.5, fontWeight: 800, width: 64, textAlign: 'right', color: d.status === 'envelhece' ? '#dc2626' : d.status === 'rejuvenesce' ? '#059669' : 'text.disabled' }}>
+                        <Typography sx={{ fontSize: 12, fontWeight: 800, width: 64, textAlign: 'right', color: d.status === 'envelhece' ? '#dc2626' : d.status === 'rejuvenesce' ? '#059669' : 'text.disabled' }}>
                           {d.status === 'ok' ? 'neutro' : `${d.deltaYears > 0 ? '+' : ''}${String(d.deltaYears).replace('.', ',')}a`}
                         </Typography>
                       </Stack>

@@ -224,7 +224,7 @@ const TicketList = () => {
       {/* FILA DE CHAMADOS */}
       <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
         <Typography sx={{ fontWeight: 800, fontSize: 15 }}>Seus chamados</Typography>
-        {openCount > 0 && <Chip size="small" label={`${openCount} em aberto`} sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(180,83,9,.12)', color: '#b45309' }} />}
+        {openCount > 0 && <Chip size="small" label={`${openCount} em aberto`} sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(180,83,9,.12)', color: '#b45309' }} />}
       </Stack>
 
       {tickets == null ? <ListSkeleton count={4} /> :
@@ -252,10 +252,10 @@ const TicketList = () => {
                     <Stack direction="row" alignItems="center" spacing={1} useFlexGap flexWrap="wrap">
                       {CAT_ICON[t.category] ?? <QuestionAnswerIcon sx={{ fontSize: 17, color: 'text.disabled' }} />}
                       <Typography sx={{ fontWeight: 800, color: (t) => tealText(t.palette.mode) }}>#{t.number}</Typography>
-                      {t.category && <Chip size="small" label={t.category} variant="outlined" sx={{ height: 20, fontSize: 11 }} />}
+                      {t.category && <Chip size="small" label={t.category} variant="outlined" sx={{ height: 20, fontSize: 12 }} />}
                       <Box sx={{ flex: 1 }} />
                       <Chip size="small" color={st.color as any} label={st.label} sx={{ fontWeight: 700, height: 22 }} />
-                      {t.unreadByUser && <Chip size="small" color="error" label="novidade" sx={{ height: 20, fontSize: 11 }} />}
+                      {t.unreadByUser && <Chip size="small" color="error" label="novidade" sx={{ height: 20, fontSize: 12 }} />}
                     </Stack>
                     <Typography sx={{ fontWeight: 700, mt: 0.5, wordBreak: 'break-word' }}>{t.subject}</Typography>
                     <Typography variant="caption" color="text.secondary" title={fmtDate(t.lastMessageAt ?? t.createdAt)}>
@@ -312,11 +312,11 @@ const TicketThread = ({ id }: { id: string }) => {
         <Typography sx={{ fontWeight: 800, color: (t) => tealText(t.palette.mode) }}>#{data.number}</Typography>
         <Chip size="small" color={st.color as any} label={st.label} sx={{ fontWeight: 700 }} />
         <Box sx={{ flex: 1 }} />
-        {data.status === 'closed' && <Chip size="small" variant="outlined" label="Reabrir respondendo" sx={{ fontSize: 11 }} />}
+        {data.status === 'closed' && <Chip size="small" variant="outlined" label="Reabrir respondendo" sx={{ fontSize: 12 }} />}
       </Stack>
       <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 19, mb: 0.5 }}>{data.subject}</Typography>
       <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: 2.5 }}>
-        {data.category && <Chip size="small" label={data.category} variant="outlined" sx={{ height: 22, fontSize: 11 }} />}
+        {data.category && <Chip size="small" label={data.category} variant="outlined" sx={{ height: 22, fontSize: 12 }} />}
         <Typography variant="caption" color="text.secondary">aberto {fmtDate(data.createdAt)}</Typography>
       </Stack>
 
@@ -333,7 +333,7 @@ const TicketThread = ({ id }: { id: string }) => {
                 </Box>
               )}
               <Box sx={{ maxWidth: { xs: '82%', sm: '70%' }, bgcolor: mine ? 'transparent' : 'action.hover', color: 'text.primary', px: mine ? 0 : 1.5, py: mine ? 0 : 1.25, borderRadius: '12px', borderBottomRightRadius: mine ? 14 : 4, borderBottomLeftRadius: mine ? 4 : 14, ...(mine ? { background: 'linear-gradient(135deg,#20b2aa,#178f89)', px: 1.5, py: 1.25, color: '#fff' } : {}) }}>
-                {!mine && <Typography sx={{ fontSize: 11, fontWeight: 800, color: (t) => tealText(t.palette.mode) }}>Dr. Suporte</Typography>}
+                {!mine && <Typography sx={{ fontSize: 12, fontWeight: 800, color: (t) => tealText(t.palette.mode) }}>Dr. Suporte</Typography>}
                 <Typography sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: 15, lineHeight: 1.55 }}>{m.body}</Typography>
                 {atts.length > 0 && (
                   <Stack spacing={0.5} sx={{ mt: 0.5 }}>
@@ -342,7 +342,7 @@ const TicketThread = ({ id }: { id: string }) => {
                     ))}
                   </Stack>
                 )}
-                <Typography sx={{ fontSize: 10, opacity: 0.65, textAlign: mine ? 'right' : 'left', mt: 0.4 }}>{fmtDate(m.createdAt)}</Typography>
+                <Typography sx={{ fontSize: 12, opacity: 0.65, textAlign: mine ? 'right' : 'left', mt: 0.4 }}>{fmtDate(m.createdAt)}</Typography>
               </Box>
             </Box>
           );

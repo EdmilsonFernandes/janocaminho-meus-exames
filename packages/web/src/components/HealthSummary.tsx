@@ -65,7 +65,7 @@ const IdealBadge = ({ name, atual }: { name: string; atual?: string | null }) =>
   const acima = isAboveIdeal(num(atual), ideal);
   return (
     <Chip size="small" variant="outlined"
-      sx={{ fontSize: 10, height: 18, mt: 0.3, borderColor: acima ? '#c2410c55' : 'divider', color: acima ? '#c2410c' : 'text.secondary' }}
+      sx={{ fontSize: 12, height: 18, mt: 0.3, borderColor: acima ? '#c2410c55' : 'divider', color: acima ? '#c2410c' : 'text.secondary' }}
       label={`🎯 ${ideal.label}`} />
   );
 };

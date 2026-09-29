@@ -187,7 +187,7 @@ export const PushTab = () => {
             <strong>{preview.users}</strong> usuário(s) · <strong>{preview.devices}</strong> dispositivo(s){segmented ? '' : ' (global)'}
           </Alert>
         )}
-        {segmented && <Chip size="small" label="cap: 1 push manual/usuário/semana" variant="outlined" sx={{ height: 24, fontSize: 10.5, color: 'text.secondary' }} />}
+        {segmented && <Chip size="small" label="cap: 1 push manual/usuário/semana" variant="outlined" sx={{ height: 24, fontSize: 12, color: 'text.secondary' }} />}
       </Stack>
       {!segmented && (
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>

@@ -79,7 +79,7 @@ export const DoctorPatientSwitcher = ({ patients, value, onSelect }: { patients:
       <Button
         fullWidth
         variant="outlined"
-        startIcon={<Avatar src={selected ? pPhoto(selected) : undefined} sx={{ width: 22, height: 22, bgcolor: 'rgba(32,178,170,.14)', color: (t) => tealText(t.palette.mode), fontSize: 11, fontWeight: 800 }}>{selected ? pName(selected).charAt(0) : ''}</Avatar>}
+        startIcon={<Avatar src={selected ? pPhoto(selected) : undefined} sx={{ width: 22, height: 22, bgcolor: 'rgba(32,178,170,.14)', color: (t) => tealText(t.palette.mode), fontSize: 12, fontWeight: 800 }}>{selected ? pName(selected).charAt(0) : ''}</Avatar>}
         onClick={() => setMobileOpen(true)}
         sx={{ justifyContent: 'flex-start', borderRadius: '999px', textTransform: 'none', fontWeight: 700, color: 'text.primary', borderColor: 'divider', py: 0.85, px: 1.5, minHeight: 40 }}
       >

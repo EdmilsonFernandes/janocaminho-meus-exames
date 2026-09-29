@@ -81,9 +81,9 @@ export const UsabilityTab = () => {
                   <Typography sx={{ fontWeight: 800, fontSize: { xs: 22, sm: 26 }, lineHeight: 1.1, color: s.color }}>
                     {s.value.toLocaleString('pt-BR')}
                   </Typography>
-                  <Typography sx={{ fontSize: 11.5, color: 'text.secondary', fontWeight: 600, mt: 0.25 }}>{s.label}</Typography>
+                  <Typography sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 600, mt: 0.25 }}>{s.label}</Typography>
                   {i > 0 && (
-                    <Typography sx={{ fontSize: 11, fontWeight: 800, mt: 0.5, color: pct >= 60 ? '#047857' : pct >= 30 ? '#b45309' : '#c2410c' }}>
+                    <Typography sx={{ fontSize: 12, fontWeight: 800, mt: 0.5, color: pct >= 60 ? '#047857' : pct >= 30 ? '#b45309' : '#c2410c' }}>
                       {pct}% da etapa anterior
                     </Typography>
                   )}
@@ -188,10 +188,10 @@ export const UsabilityTab = () => {
                                   <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: 'text.primary', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: { xs: 'normal', sm: 'nowrap' } }}>
                                     {u.name || u.email}
                                   </Typography>
-                                  <Typography sx={{ fontSize: 11.5, color: 'text.secondary', flex: { sm: 1 }, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: { xs: 'normal', sm: 'nowrap' } }}>
+                                  <Typography sx={{ fontSize: 12, color: 'text.secondary', flex: { sm: 1 }, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: { xs: 'normal', sm: 'nowrap' } }}>
                                     {u.email}
                                   </Typography>
-                                  <Typography sx={{ fontSize: 11, color: 'text.secondary', flexShrink: 0, textAlign: { xs: 'left', sm: 'right' } }}>{fmt(u.at)}</Typography>
+                                  <Typography sx={{ fontSize: 12, color: 'text.secondary', flexShrink: 0, textAlign: { xs: 'left', sm: 'right' } }}>{fmt(u.at)}</Typography>
                                 </Stack>
                               ))}
                             </Stack>

@@ -37,7 +37,7 @@ const SECTIONS: Section[] = [
   {
     icon: <ChildCareIcon sx={{ color: '#20b2aa' }} />,
     title: '3 · Faixas de referência com fonte',
-    body: <>A régua que vale é a <b>do seu laboratório</b> — está impressa no laudo e é ela que usamos. Para crianças e adolescentes, quando o laudo não traz faixa própria da idade, aplicamos bandas pediátricas por analito e marcamos o item com um selo <Chip size="small" label="Pediátrico" sx={{ height: 18, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(32,178,170,.14)', color: (t) => tealText(t.palette.mode) }} /> indicando a faixa usada. Se você digitar uma faixa manual, <b>a sua edição vence sempre</b>.</>,
+    body: <>A régua que vale é a <b>do seu laboratório</b> — está impressa no laudo e é ela que usamos. Para crianças e adolescentes, quando o laudo não traz faixa própria da idade, aplicamos bandas pediátricas por analito e marcamos o item com um selo <Chip size="small" label="Pediátrico" sx={{ height: 18, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(32,178,170,.14)', color: (t) => tealText(t.palette.mode) }} /> indicando a faixa usada. Se você digitar uma faixa manual, <b>a sua edição vence sempre</b>.</>,
     cite: 'Bandas pediátricas aproximadas do The Harriet Lane Handbook (Johns Hopkins Hospital, 22ª ed.) — quando aplicadas, o selo no item indica a faixa etária usada.',
   },
   {

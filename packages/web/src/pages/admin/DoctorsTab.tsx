@@ -39,7 +39,7 @@ export const DoctorsTab = () => {
                 <Typography variant="caption" sx={{ color: 'text.disabled' }}>{m.email}</Typography>
                 {/* 28/09 (dono): quando a conta do médico foi criada. */}
                 {(m as any).createdAt && (
-                  <Typography variant="caption" sx={{ display: 'block', fontSize: 10.5, color: 'text.disabled' }}>
+                  <Typography variant="caption" sx={{ display: 'block', fontSize: 12, color: 'text.disabled' }}>
                     Criado em {new Date((m as any).createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                   </Typography>
                 )}
@@ -47,8 +47,8 @@ export const DoctorsTab = () => {
               <Stack spacing={0.5} alignItems="flex-end">
                 <Chip size="small" label={`${m._count?.shares ?? 0} paciente${m._count?.shares === 1 ? '' : 's'}`} sx={{ fontWeight: 700, height: 22 }} />
                 {m.emailVerified
-                  ? <Chip size="small" label="✓ Verificado" color="success" sx={{ height: 20, fontSize: 10 }} />
-                  : <Chip size="small" label="pendente" color="warning" sx={{ height: 20, fontSize: 10 }} />}
+                  ? <Chip size="small" label="✓ Verificado" color="success" sx={{ height: 20, fontSize: 12 }} />
+                  : <Chip size="small" label="pendente" color="warning" sx={{ height: 20, fontSize: 12 }} />}
               </Stack>
             </CardContent>
           </Card>

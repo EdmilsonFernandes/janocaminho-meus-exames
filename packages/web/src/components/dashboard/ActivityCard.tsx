@@ -292,7 +292,7 @@ export const ActivityView = ({
           </Box>
           <Stack direction="row" spacing={0.5} alignItems="center" sx={{ flexShrink: 0 }}>
             <LockSecure size={13} color="#5f6368" />
-            <Typography sx={{ fontSize: 11, color: 'text.secondary', fontWeight: 600 }}>Dados seguros</Typography>
+            <Typography sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 600 }}>Dados seguros</Typography>
           </Stack>
         </Stack>
 
@@ -432,7 +432,7 @@ export const ActivityView = ({
               <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1.5rem, 8vw, 2rem)', sm: 'clamp(1.75rem, 5vw, 2.125rem)', md: 34 }, lineHeight: 1.1, color: 'text.primary', fontVariantNumeric: 'tabular-nums' }}>{fmtSteps(primarySteps)}</Typography>
               {s.goalRatio >= 1 && <CheckCircleIcon sx={{ fontSize: 20, color: 'success.main', mb: 0.5 }} aria-label="meta batida" />}
             </Stack>
-            <Typography sx={{ fontSize: 11, color: 'text.disabled', mt: 0.25, lineHeight: 1.35 }}>{stepsSupport}</Typography>
+            <Typography sx={{ fontSize: 12, color: 'text.disabled', mt: 0.25, lineHeight: 1.35 }}>{stepsSupport}</Typography>
           </Box>
         </Stack>
         <Box sx={{ flex: { sm: 1 }, minWidth: 0, display: 'grid', gridTemplateColumns: { xs: 'repeat(auto-fit, minmax(140px, 1fr))', sm: '1fr' }, gap: { xs: 1.25, sm: 0.75 } }}>
@@ -458,7 +458,7 @@ export const ActivityView = ({
       {/* Dado em trânsito: passos chegaram mas calorias NÃO — apps como o Samsung Health
           exportam pro HC em lotes; um 0 mudo pareceria "sem queima", o que seria mentira. */}
       {s.steps > 0 && primaryKcal === 0 && (
-        <Typography sx={{ fontSize: 11, color: 'text.secondary', lineHeight: 1.5, mt: 1.25 }}>
+        <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.5, mt: 1.25 }}>
           Calorias ainda não chegaram ao Health Connect — apps de saúde exportam em lotes ao longo do dia. Toque ↻ mais tarde.
         </Typography>
       )}
@@ -506,12 +506,12 @@ export const ActivityView = ({
             >
               <Typography sx={{ fontSize: 12, fontWeight: 800, color: 'primary.dark', textTransform: 'capitalize', minWidth: 64 }}>{selFmt}</Typography>
               <Typography sx={{ fontSize: 14, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>
-                {fmtSteps(sel.steps)} <Typography component="span" sx={{ fontSize: 11, color: 'text.secondary', fontWeight: 600 }}>passos</Typography>
+                {fmtSteps(sel.steps)} <Typography component="span" sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 600 }}>passos</Typography>
               </Typography>
               <Typography sx={{ fontSize: 13, color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>🔥 {fmtKcal(sel.kcal)} kcal{sel.kcalIsTotal ? ' (total do dia)' : ''}</Typography>
               <Typography sx={{ fontSize: 13, color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>📍 {fmtKm(sel.km)} km</Typography>
-              {sel.steps >= STEPS_GOAL && <Chip size="small" label="meta 🎉" sx={{ height: 22, fontSize: 11, fontWeight: 800, bgcolor: alpha('#059669', 0.15), color: '#047857' }} />}
-              {sel.steps >= 7000 && sel.steps < STEPS_GOAL && <Chip size="small" label="✨ 7k+" sx={{ height: 22, fontSize: 11, fontWeight: 800, bgcolor: alpha(theme.palette.primary.main, 0.15), color: 'primary.dark' }} />}
+              {sel.steps >= STEPS_GOAL && <Chip size="small" label="meta 🎉" sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: alpha('#059669', 0.15), color: '#047857' }} />}
+              {sel.steps >= 7000 && sel.steps < STEPS_GOAL && <Chip size="small" label="✨ 7k+" sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: alpha(theme.palette.primary.main, 0.15), color: 'primary.dark' }} />}
             </Stack>
           )}
         </Box>
@@ -613,11 +613,11 @@ const MetricMini = ({ icon, tone, label, labelTitle, value, unit, contextLabel }
   <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0 }}>
     <Box sx={{ width: { xs: 26, sm: 30 }, height: { xs: 26, sm: 30 }, borderRadius: '8px', display: 'grid', placeItems: 'center', flexShrink: 0, bgcolor: `${tone}1E`, color: tone }}>{icon}</Box>
     <Box sx={{ minWidth: 0 }}>
-      <Typography title={labelTitle} sx={{ fontSize: 11, color: 'text.secondary', lineHeight: 1.15 }}>{label}</Typography>
+      <Typography title={labelTitle} sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.15 }}>{label}</Typography>
       <Typography noWrap sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(0.875rem, 4vw, 1.0625rem)', sm: 17 }, lineHeight: 1.15, fontVariantNumeric: 'tabular-nums' }}>
-        {value}{unit ? <Typography component="span" sx={{ fontSize: 11, color: 'text.disabled', fontWeight: 600 }}> {unit}</Typography> : null}
+        {value}{unit ? <Typography component="span" sx={{ fontSize: 12, color: 'text.disabled', fontWeight: 600 }}> {unit}</Typography> : null}
       </Typography>
-      {contextLabel && <Typography sx={{ fontSize: 11, color: 'text.disabled', lineHeight: 1.15 }}>{contextLabel}</Typography>}
+      {contextLabel && <Typography sx={{ fontSize: 12, color: 'text.disabled', lineHeight: 1.15 }}>{contextLabel}</Typography>}
     </Box>
   </Stack>
 );

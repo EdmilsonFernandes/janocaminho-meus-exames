@@ -495,7 +495,7 @@ export const ExamCreate = () => {
           <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Encaminhar por E-mail</Box>
           <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>Via E-mail</Box>
           <Box sx={{
-            fontSize: 9,
+            fontSize: 12,
             fontWeight: 800,
             bgcolor: method === 'email' ? 'rgba(32,178,170,.18)' : 'rgba(32,178,170,.12)',
             color: '#178f89',
@@ -553,7 +553,7 @@ export const ExamCreate = () => {
                       position: 'absolute',
                       top: 8,
                       right: 8,
-                      fontSize: 9.5,
+                      fontSize: 12,
                       fontWeight: 800,
                       color: '#fff',
                       bgcolor: '#20b2aa',
@@ -654,9 +654,9 @@ export const ExamCreate = () => {
                     </Typography>
                   </Box>
                   <Stack direction="row" spacing={1} sx={{ mt: 0.5 }}>
-                    <Chip size="small" label="PDF (leitura imediata)" sx={{ bgcolor: 'rgba(32,178,170,0.12)', color: '#0f766e', fontWeight: 700, fontSize: 11 }} />
-                    <Chip size="small" label="JPG / PNG" sx={{ bgcolor: 'action.hover', color: 'text.secondary', fontWeight: 600, fontSize: 11 }} />
-                    <Chip size="small" label="Até 32 MB" sx={{ bgcolor: 'action.hover', color: 'text.secondary', fontWeight: 600, fontSize: 11 }} />
+                    <Chip size="small" label="PDF (leitura imediata)" sx={{ bgcolor: 'rgba(32,178,170,0.12)', color: '#0f766e', fontWeight: 700, fontSize: 12 }} />
+                    <Chip size="small" label="JPG / PNG" sx={{ bgcolor: 'action.hover', color: 'text.secondary', fontWeight: 600, fontSize: 12 }} />
+                    <Chip size="small" label="Até 32 MB" sx={{ bgcolor: 'action.hover', color: 'text.secondary', fontWeight: 600, fontSize: 12 }} />
                   </Stack>
                 </Box>
               )}
@@ -802,7 +802,7 @@ export const ExamCreate = () => {
             }}>
               {/* Campo 1: Destinatário */}
               <Box sx={{ mb: 1.25 }}>
-                <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', mb: 0.4, fontSize: 10 }}>
+                <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', mb: 0.4, fontSize: 12 }}>
                   Para (destinatário)
                 </Typography>
                 <Stack
@@ -844,7 +844,7 @@ export const ExamCreate = () => {
                       borderRadius: '8px',
                       textTransform: 'none',
                       fontWeight: 700,
-                      fontSize: 11.5,
+                      fontSize: 12,
                       px: 1.25,
                       py: 0.4,
                       color: copiedKey === 'inbox' ? '#10b981' : '#178f89',
@@ -860,7 +860,7 @@ export const ExamCreate = () => {
 
               {/* Campo 2: Assunto (Código) */}
               <Box>
-                <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', mb: 0.4, fontSize: 10 }}>
+                <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', mb: 0.4, fontSize: 12 }}>
                   Assunto (cole o código)
                 </Typography>
                 <Stack
@@ -900,7 +900,7 @@ export const ExamCreate = () => {
                       borderRadius: '8px',
                       textTransform: 'none',
                       fontWeight: 800,
-                      fontSize: 11.5,
+                      fontSize: 12,
                       px: 1.35,
                       py: 0.5,
                       bgcolor: copiedKey === 'code' ? '#10b981' : '#20b2aa',
@@ -975,7 +975,7 @@ export const ExamCreate = () => {
             </Box>
 
             {/* Dica rodapé */}
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5, textAlign: 'center', fontSize: 11, lineHeight: 1.45 }}>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5, textAlign: 'center', fontSize: 12, lineHeight: 1.45 }}>
               📌 Código exclusivo deste perfil · 1 exame · PDF até 8 MB · Válido 30 dias
             </Typography>
           </CardContent>
@@ -996,7 +996,7 @@ export const ExamCreate = () => {
               'Você pode apagar exames, exportar seus dados e excluir sua conta pelo Perfil.',
             ].map((text, i) => (
               <Stack key={i} direction="row" spacing={1.25} alignItems="flex-start">
-                <Box sx={{ width: 20, height: 20, borderRadius: '50%', bgcolor: 'rgba(32,178,170,.12)', color: '#178f89', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, flexShrink: 0, mt: 0.15 }}>{i + 1}</Box>
+                <Box sx={{ width: 20, height: 20, borderRadius: '50%', bgcolor: 'rgba(32,178,170,.12)', color: '#178f89', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, flexShrink: 0, mt: 0.15 }}>{i + 1}</Box>
                 <Typography variant="body2" sx={{ lineHeight: 1.55 }}>{text}</Typography>
               </Stack>
             ))}

@@ -227,7 +227,7 @@ export const PatientSummary = ({ patient, exams, abnormal, questions, notes, pat
         </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           {/* Kicker de papel: desambigua MÉDICO × PACIENTE */}
-          <Typography component="div" sx={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.09em', lineHeight: 1.4, color: (t) => copperText(t.palette.mode) }}>
+          <Typography component="div" sx={{ fontSize: 12, fontWeight: 800, letterSpacing: '0.09em', lineHeight: 1.4, color: (t) => copperText(t.palette.mode) }}>
             PACIENTE · PRONTUÁRIO COMPARTILHADO
           </Typography>
           <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0 }}>

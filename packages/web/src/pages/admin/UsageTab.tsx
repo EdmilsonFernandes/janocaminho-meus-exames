@@ -209,7 +209,7 @@ export const UsageTab = () => {
                         <Typography sx={{ fontSize: 14, fontWeight: 700, color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 220 }}>
                           {r.name || r.email}
                         </Typography>
-                        <Typography sx={{ fontSize: 11, color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 220 }}>
+                        <Typography sx={{ fontSize: 12, color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 220 }}>
                           {r.email}
                         </Typography>
                       </TableCell>
@@ -219,7 +219,7 @@ export const UsageTab = () => {
                           label={`${r.credits.toLocaleString('pt-BR')} cr` }
                           sx={{
                             height: 22,
-                            fontSize: 11,
+                            fontSize: 12,
                             fontWeight: 800,
                             // 28/09 (dono): saldo cortado não dava pra ler a quantidade —
                             // chip nunca encolhe/trunca, célula deixa esticar.
@@ -264,10 +264,10 @@ export const UsageTab = () => {
                                   alignItems="center"
                                   sx={{ p: 0.75, borderRadius: '8px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}
                                 >
-                                  <Typography sx={{ fontSize: 11, color: 'text.secondary', width: 85, flexShrink: 0 }}>
+                                  <Typography sx={{ fontSize: 12, color: 'text.secondary', width: 85, flexShrink: 0 }}>
                                     {new Date(tx.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
                                   </Typography>
-                                  <Chip size="small" label={KIND_LABEL[tx.kind] ?? tx.kind} sx={{ height: 20, fontSize: 11, fontWeight: 700, flexShrink: 0 }} />
+                                  <Chip size="small" label={KIND_LABEL[tx.kind] ?? tx.kind} sx={{ height: 20, fontSize: 12, fontWeight: 700, flexShrink: 0 }} />
                                   <Typography sx={{ fontSize: 12, color: 'text.secondary', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                     {tx.label}
                                   </Typography>

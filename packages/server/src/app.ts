@@ -346,6 +346,31 @@ function pinGateHtml(actionUrl: string, empty: boolean): string {
   });
 }
 
+// ANDROID APP LINKS — o assetlinks.json tem que responder 200 + application/json na RAIZ do
+// host (https://drexame.janocaminho.com.br/.well-known/assetlinks.json) sem redirect. O
+// express.static abaixo NÃO o serve: serve-static ignora dot-diretórios por default
+// (dotfiles:'ignore') → o request caía no fallback da SPA → 200 text/html → o Play Console
+// marcava "domínio não verificado" (reclamação de links diretos). Rota explícita, registrada
+// ANTES do static/fallback e em qualquer ambiente: em prod resolve do dist do build; em
+// dev/teste/CI (sem dist), do public/ do repo (mesma fonte — o vite copia public/ pro dist).
+{
+  const assetlinksCandidates = [
+    path.resolve(process.cwd(), '../web/dist/.well-known/assetlinks.json'),        // prod: cwd=packages/server
+    path.resolve(process.cwd(), 'packages/web/dist/.well-known/assetlinks.json'),  // cwd=raiz do repo
+    path.resolve(process.cwd(), '../web/public/.well-known/assetlinks.json'),      // repo/CI: dist não buildado
+  ];
+  const assetlinks = assetlinksCandidates.find((p) => fs.existsSync(p));
+  if (assetlinks) {
+    app.get('/.well-known/assetlinks.json', (_req, res) => {
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=3600'); // SHA muda raramente; 1h é suficiente
+      // dotfiles:'allow' é OBRIGATÓRIO: o send (por baixo do sendFile/static) trata
+      // dot-DIRETÓRIOS (.well-known) como inexistentes por default → 404 "Not Found".
+      res.sendFile(assetlinks, { dotfiles: 'allow' });
+    });
+  }
+}
+
 // Em produção: serve o build do front (SPA) no mesmo container (1 domínio só)
 if (config.isProd) {
   // dist pode estar em dist/ (rootDir src) ou dist/src/ (rootDir .) — tenta ambos

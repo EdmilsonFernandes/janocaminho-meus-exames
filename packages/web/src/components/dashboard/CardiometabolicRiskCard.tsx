@@ -60,7 +60,7 @@ export const CardiometabolicRiskCard = ({ risk: riskProp }: { risk?: CardioRisk 
         {risk.factors.filter((f) => f.risk).length > 0 && (
           <Box sx={{ mt: 1.25, display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
             {risk.factors.filter((f) => f.risk).map((f, i) => (
-              <Chip key={i} size="small" label={f.label} sx={{ bgcolor: meta.color + '15', color: meta.color, fontWeight: 600, height: 22, fontSize: 11 }} />
+              <Chip key={i} size="small" label={f.label} sx={{ bgcolor: meta.color + '15', color: meta.color, fontWeight: 600, height: 22, fontSize: 12 }} />
             ))}
           </Box>
         )}
@@ -75,7 +75,7 @@ export const CardiometabolicRiskCard = ({ risk: riskProp }: { risk?: CardioRisk 
             <Button size="small" onClick={() => navigate('/medicoes')} sx={{ mt: 0.5, px: 0, minWidth: 0, minHeight: 0, fontSize: 12, color: '#20b2aa', fontWeight: 700, textTransform: 'none' }}>Ir para Medições →</Button>
           </Box>
         )}
-        <Typography variant="caption" sx={{ display: 'block', mt: 1.5, color: 'text.secondary', fontSize: 11, lineHeight: 1.4, fontStyle: 'italic' }}>
+        <Typography variant="caption" sx={{ display: 'block', mt: 1.5, color: 'text.secondary', fontSize: 12, lineHeight: 1.4, fontStyle: 'italic' }}>
           Esta análise identifica fatores de risco, não calcula a probabilidade individual de infarto ou AVC. A avaliação completa depende do conjunto de exames, histórico clínico e consulta médica.
         </Typography>
       </CardContent>

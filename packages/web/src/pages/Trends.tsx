@@ -65,7 +65,7 @@ export const TrendsPage = () => {
     const d = payload[0].payload;
     return (
       <Box sx={{ bgcolor: 'rgba(15,23,42,0.92)', color: '#fff', p: 1.25, borderRadius: '12px', boxShadow: 4, minWidth: 120 }}>
-        <Box sx={{ fontWeight: 700, fontSize: 11, opacity: 0.8 }}>{d.name}</Box>
+        <Box sx={{ fontWeight: 700, fontSize: 12, opacity: 0.8 }}>{d.name}</Box>
         <Box sx={{ fontSize: 19, fontWeight: 800 }}>{fmtNum(d.valor)} {ts?.unit ? <UnitLabel unit={ts.unit} fontSize="1.19rem" /> : null}</Box>
         {(() => {
           const s = displayStatus(d.flag as string, d.name, ts?.refLow, ts?.refHigh);

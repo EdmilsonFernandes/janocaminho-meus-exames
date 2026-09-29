@@ -34,9 +34,9 @@ const Code = ({ children, lang }: { children: string; lang?: string }) => {
   const [copied, setCopied] = useState(false);
   return (
     <Box sx={{ position: 'relative', borderRadius: '12px', bgcolor: '#0c2422', border: '1px solid rgba(32,178,170,.25)', p: 2, my: 1, overflowX: 'auto' }}>
-      {lang && <Chip size="small" label={lang} sx={{ position: 'absolute', top: 8, right: 46, height: 18, fontSize: 10, fontWeight: 700, bgcolor: 'rgba(32,178,170,.2)', color: '#7ee2d8' }} />}
+      {lang && <Chip size="small" label={lang} sx={{ position: 'absolute', top: 8, right: 46, height: 18, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(32,178,170,.2)', color: '#7ee2d8' }} />}
       <Button size="small" onClick={() => { void navigator.clipboard?.writeText(children); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
-        sx={{ position: 'absolute', top: 6, right: 8, minWidth: 0, px: 1, color: copied ? '#7ee2d8' : 'rgba(255,255,255,.6)', fontSize: 11, fontWeight: 700, textTransform: 'none', '&:hover': { bgcolor: 'rgba(255,255,255,.08)' } }}>
+        sx={{ position: 'absolute', top: 6, right: 8, minWidth: 0, px: 1, color: copied ? '#7ee2d8' : 'rgba(255,255,255,.6)', fontSize: 12, fontWeight: 700, textTransform: 'none', '&:hover': { bgcolor: 'rgba(255,255,255,.08)' } }}>
         {copied ? 'copiado ✓' : 'copiar'}
       </Button>
       <Box component="pre" sx={{ m: 0, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: 12, lineHeight: 1.6, color: '#e8eef0', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{children}</Box>
@@ -48,7 +48,7 @@ const Code = ({ children, lang }: { children: string; lang?: string }) => {
 const Params = ({ rows }: { rows: [string, string, string][] }) => (
   <Box sx={{ borderRadius: '12px', border: '1px solid', borderColor: 'divider', overflow: 'hidden', my: 1 }}>
     <Box sx={{ display: { xs: 'none', sm: 'grid' }, gridTemplateColumns: '1.6fr 1fr 3fr', bgcolor: 'action.hover', px: 1.5, py: 0.75 }}>
-      {['Propriedade', 'Tipo', 'Descrição'].map((h) => <Typography key={h} sx={{ fontSize: 11, fontWeight: 800, letterSpacing: 0.5, color: 'text.secondary' }}>{h}</Typography>)}
+      {['Propriedade', 'Tipo', 'Descrição'].map((h) => <Typography key={h} sx={{ fontSize: 12, fontWeight: 800, letterSpacing: 0.5, color: 'text.secondary' }}>{h}</Typography>)}
     </Box>
     {rows.map((r, idx) => (
       <Box key={r[0]} sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1.6fr 1fr 3fr' }, px: 1.5, py: 1, borderTop: idx ? '1px solid' : 'none', borderColor: 'divider', gap: { xs: 0.5, sm: 0 } }}>
@@ -62,7 +62,7 @@ const Params = ({ rows }: { rows: [string, string, string][] }) => (
 
 const Method = ({ m, path }: { m: string; path: string }) => (
   <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: 'wrap', rowGap: 0.5 }}>
-    <Chip label={m} size="small" sx={{ height: 22, fontWeight: 800, fontSize: 11, bgcolor: m === 'GET' ? 'rgba(5,150,105,.14)' : 'rgba(59,130,246,.14)', color: m === 'GET' ? '#047857' : '#1d4ed8' }} />
+    <Chip label={m} size="small" sx={{ height: 22, fontWeight: 800, fontSize: 12, bgcolor: m === 'GET' ? 'rgba(5,150,105,.14)' : 'rgba(59,130,246,.14)', color: m === 'GET' ? '#047857' : '#1d4ed8' }} />
     <Typography sx={{ fontFamily: 'ui-monospace, monospace', fontSize: 14, fontWeight: 700, wordBreak: 'break-all' }}>{BASE}{path}</Typography>
   </Stack>
 );
@@ -151,7 +151,7 @@ export const ApiDocsPage = () => {
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '230px 1fr' }, gap: 3, alignItems: 'start' }}>
           {/* SIDEBAR wiki (desktop) */}
           <Box component="nav" sx={{ display: { xs: 'none', md: 'block' }, position: 'sticky', top: 90 }}>
-            <Typography sx={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, color: 'text.secondary', mb: 1 }}>NESTA PÁGINA</Typography>
+            <Typography sx={{ fontSize: 12, fontWeight: 800, letterSpacing: 1, color: 'text.secondary', mb: 1 }}>NESTA PÁGINA</Typography>
             <Stack spacing={0.5}>
               {SECTIONS.map((s) => (
                 <Box key={s.id} component="button"

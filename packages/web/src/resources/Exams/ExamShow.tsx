@@ -462,7 +462,7 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
                         {/* Régua pediátrica em uso (transparência: por que está marcado) */}
                         {String(it.refAppliesTo || '').startsWith('Pediátrico') && (
                           <Chip size="small" label={it.refAppliesTo} title="Faixa por idade (educativa) — nunca substitui o pediatra"
-                            sx={{ mt: 0.25, height: 20, fontSize: '0.7rem', fontWeight: 700, bgcolor: 'rgba(32,178,170,.10)', color: '#178f89' }} />
+                            sx={{ mt: 0.25, height: 20, fontSize: '0.75rem', fontWeight: 700, bgcolor: 'rgba(32,178,170,.10)', color: '#178f89' }} />
                         )}
                         <ValueBar value={it.valueNumeric} low={it.refLow} high={it.refHigh} />
                         <RefBar value={it.valueNumeric} refLow={it.refLow} refHigh={it.refHigh} unit={it.unit} />
@@ -470,7 +470,7 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
                         {it.history && it.history.length >= 2 && (
                           <Box sx={{ mt: 0.5, display: 'flex', alignItems: 'center', gap: 1 }}>
                             <Sparkline points={it.history.map((h: any) => ({ value: h.valueNumeric ?? h.value, date: h.date }))} refLow={it.refLow} refHigh={it.refHigh} />
-                            <Typography variant="caption" sx={{ fontSize: 10, color: 'text.secondary' }}>{it.history.length} medições</Typography>
+                            <Typography variant="caption" sx={{ fontSize: 12, color: 'text.secondary' }}>{it.history.length} medições</Typography>
                           </Box>
                         )}
                         {out && it.valueNumeric != null && it.refLow != null && it.refHigh != null && (

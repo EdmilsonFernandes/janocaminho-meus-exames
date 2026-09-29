@@ -393,7 +393,7 @@ export const DecifreReal = () => {
               sx={{ mt: 1.5, borderRadius: '999px', px: 4, py: 1.25, fontWeight: 800, fontSize: 15, textTransform: 'none', bgcolor: '#ffffff', color: '#0f5f5a', boxShadow: '0 10px 24px rgba(0,0,0,.28)', '&:hover': { bgcolor: '#f0fafa', transform: 'translateY(-1px)' } }}>
               Criar conta grátis — 1º resumo por nossa conta
             </Button>
-            <Typography sx={{ fontSize: 11, opacity: 0.8, mt: 1, fontWeight: 500 }}>Créditos de boas-vindas · sem cartão · cancele quando quiser</Typography>
+            <Typography sx={{ fontSize: 12, opacity: 0.8, mt: 1, fontWeight: 500 }}>Créditos de boas-vindas · sem cartão · cancele quando quiser</Typography>
           </Box>
         </Box>
         );

@@ -118,7 +118,7 @@ export const AdminPage = () => {
             const on = mod === m.id;
             return (
               <Box key={m.id}>
-                {showGroup && <Typography sx={{ px: 2.5, pt: 1.5, pb: 0.25, fontSize: 10, fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>{m.group}</Typography>}
+                {showGroup && <Typography sx={{ px: 2.5, pt: 1.5, pb: 0.25, fontSize: 12, fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>{m.group}</Typography>}
                 <ListItemButton onClick={() => select(m.id)} selected={on} sx={{ mx: 1, borderRadius: '8px', py: 0.7, '&.Mui-selected': { bgcolor: 'rgba(32,178,170,.14)' }, '&.Mui-selected .MuiListItemIcon-root': { color: '#178f89' } }}>
                   <ListItemIcon sx={{ minWidth: 36, color: on ? '#178f89' : 'text.secondary', '& svg': { fontSize: 20 } }}>{m.icon}</ListItemIcon>
                   <ListItemText primary={m.label} primaryTypographyProps={{ fontSize: 14, fontWeight: on ? 700 : 500, color: on ? 'text.primary' : 'text.secondary' }} />
@@ -201,7 +201,7 @@ export const AdminPage = () => {
           return (
             <Box key={f.id} onClick={() => select(f.id)} sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 0.6, cursor: 'pointer', color: on ? '#178f89' : 'text.secondary', '& svg': { fontSize: 21 } }}>
               {m.icon}
-              <Typography sx={{ fontSize: 10, fontWeight: on ? 800 : 600, mt: 0.25, fontFamily: '"Poppins",sans-serif' }}>{f.short}</Typography>
+              <Typography sx={{ fontSize: 12, fontWeight: on ? 800 : 600, mt: 0.25, fontFamily: '"Poppins",sans-serif' }}>{f.short}</Typography>
               <Box sx={{ height: 3, width: on ? 20 : 0, borderRadius: '12px', bgcolor: '#178f89', mt: 0.3, transition: 'width .2s' }} />
             </Box>
           );
@@ -209,7 +209,7 @@ export const AdminPage = () => {
         {/* ☰ abre o drawer vertical com TODOS os módulos (substitui 'Suporte' no rodapé) */}
         <Box onClick={() => setDrawerOpen(true)} sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 0.6, cursor: 'pointer', color: drawerOpen ? '#178f89' : 'text.secondary' }}>
           <MenuOutlinedIcon sx={{ fontSize: 21 }} />
-          <Typography sx={{ fontSize: 10, fontWeight: 600, mt: 0.25, fontFamily: '"Poppins",sans-serif' }}>Mais</Typography>
+          <Typography sx={{ fontSize: 12, fontWeight: 600, mt: 0.25, fontFamily: '"Poppins",sans-serif' }}>Mais</Typography>
           <Box sx={{ height: 3 }} />
         </Box>
       </Box>

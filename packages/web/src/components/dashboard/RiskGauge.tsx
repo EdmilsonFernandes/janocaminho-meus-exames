@@ -34,7 +34,7 @@ export const RiskGauge = ({ level, none }: { level: 'low' | 'moderate' | 'high';
       </svg>
       <Box sx={{ position: 'absolute', top: 30, left: 0, right: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', px: 0.5, minWidth: 0, pointerEvents: 'none' }}>
         <Typography noWrap sx={{ fontWeight: 900, fontSize: 15, color, lineHeight: 1, fontFamily: '"Poppins",sans-serif' }}>{label}</Typography>
-        <Typography noWrap sx={{ fontSize: 10, color: 'text.secondary', fontWeight: 700, mt: 0.25 }}>leitura de risco</Typography>
+        <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 700, mt: 0.25 }}>leitura de risco</Typography>
       </Box>
     </Box>
   );

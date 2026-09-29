@@ -62,7 +62,7 @@ const FaersViz = () => {
           }} />
         ))}
       </Box>
-      <Typography sx={{ fontSize: 11, color: 'text.secondary', textAlign: 'center', mt: 0.25 }}>
+      <Typography sx={{ fontSize: 12, color: 'text.secondary', textAlign: 'center', mt: 0.25 }}>
         nº de relatos — o mais comum em destaque
       </Typography>
     </Box>
@@ -86,8 +86,8 @@ const PercentisViz = () => (
           ...NO_MOTION,
         }} />
       <Box component="circle" cx={158} cy={26} r={3.2} sx={{ fill: '#20b2aa' }} />
-      <Box component="text" x={4} y={9} sx={{ fontSize: 8, fill: 'rgba(100,116,139,.9)' }}>P85</Box>
-      <Box component="text" x={4} y={49} sx={{ fontSize: 8, fill: 'rgba(100,116,139,.9)' }}>P15</Box>
+      <Box component="text" x={4} y={11} sx={{ fontSize: 12, fill: 'rgba(100,116,139,.9)' }}>P85</Box>
+      <Box component="text" x={4} y={49} sx={{ fontSize: 12, fill: 'rgba(100,116,139,.9)' }}>P15</Box>
     </Box>
   </Box>
 );
@@ -104,7 +104,7 @@ const DiretrizesViz = () => (
     }}>✓</Box>
     <Stack spacing={0.4}>
       {['Sociedade Brasileira de Cardiologia', 'Sociedade Brasileira de Diabetes'].map((s) => (
-        <Box key={s} sx={{ fontSize: 11, color: 'text.secondary', px: 1, py: 0.3, borderRadius: '8px', bgcolor: 'rgba(32,178,170,.08)', border: '1px solid rgba(32,178,170,.18)' }}>
+        <Box key={s} sx={{ fontSize: 12, color: 'text.secondary', px: 1, py: 0.3, borderRadius: '8px', bgcolor: 'rgba(32,178,170,.08)', border: '1px solid rgba(32,178,170,.18)' }}>
           📖 {s}
         </Box>
       ))}

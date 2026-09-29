@@ -128,13 +128,13 @@ export const RemindersPage = () => {
                 }}>{r.title}</Typography>
                 {ta && !isPast && (
                   <Chip size="small" label={ta} sx={{
-                    height: 22, fontSize: 11.5, fontWeight: 800,
+                    height: 22, fontSize: 12, fontWeight: 800,
                     bgcolor: 'rgba(32,178,170,.12)', color: (t) => tealText(t.palette.mode),
                     borderRadius: '6px',
                   }} />
                 )}
                 {isOverdue && (
-                  <Chip size="small" label="Atrasado" color="error" sx={{ height: 22, fontSize: 11.5, fontWeight: 800, borderRadius: '6px' }} />
+                  <Chip size="small" label="Atrasado" color="error" sx={{ height: 22, fontSize: 12, fontWeight: 800, borderRadius: '6px' }} />
                 )}
               </Stack>
               <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 0.5 }}>
@@ -144,7 +144,7 @@ export const RemindersPage = () => {
               {Array.isArray(r.notifyOffsetsMin) && r.notifyOffsetsMin.length > 0 && (
                 <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.75 }}>
                   <BellIcon sx={{ fontSize: 14, color: 'text.disabled', mt: 0.25 }} />
-                  {r.notifyOffsetsMin.map((o: number) => <Chip key={o} size="small" variant="outlined" label={offsetShort(o)} sx={{ height: 22, fontSize: 11.5, borderColor: 'divider', borderRadius: '6px' }} />)}
+                  {r.notifyOffsetsMin.map((o: number) => <Chip key={o} size="small" variant="outlined" label={offsetShort(o)} sx={{ height: 22, fontSize: 12, borderColor: 'divider', borderRadius: '6px' }} />)}
                 </Stack>
               )}
             </Box>

@@ -762,7 +762,7 @@ export const LandingPage = () => {
                     <Typography sx={{ fontSize: 13, fontWeight: 800, color: 'text.primary' }}>Theo: exame lido 🧬</Typography>
                     <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary' }}>2 itens estavam fora da faixa — pra idade dele, 1 é normal.</Typography>
                   </Box>
-                  <Typography sx={{ fontSize: 11, color: 'text.disabled', flexShrink: 0 }}>agora</Typography>
+                  <Typography sx={{ fontSize: 12, color: 'text.disabled', flexShrink: 0 }}>agora</Typography>
                 </Box>
                 {/* tela: faixa cuidador + item pediátrico */}
                 <Box sx={{ borderRadius: '16px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', boxShadow: '0 30px 60px rgba(15,61,58,.14)', overflow: 'hidden' }}>
@@ -770,7 +770,7 @@ export const LandingPage = () => {
                     <FamilyRestroomIcon sx={{ fontSize: 17 }} /> Você está cuidando de <b>Theo · Filho</b>
                   </Box>
                   <Box sx={{ p: 2.25 }}>
-                    <Typography sx={{ fontSize: 11, color: 'text.secondary', mb: 1.25 }}>HEMOGRAMA + BIOQUÍMICA · 01/08</Typography>
+                    <Typography sx={{ fontSize: 12, color: 'text.secondary', mb: 1.25 }}>HEMOGRAMA + BIOQUÍMICA · 01/08</Typography>
                     {[{ n: 'Fosfatase Alcalina', v: '300', ref: '105–420', ok: true, ped: true }, { n: 'Leucócitos', v: '9.800', ref: '5.000–15.000', ok: true, ped: true }, { n: 'Glicose', v: '92', ref: '70–99', ok: true, ped: false }].map((r) => (
                       <Box key={r.n} sx={{ py: 1, borderBottom: '1px dashed', borderColor: 'divider' }}>
                         <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
@@ -780,11 +780,11 @@ export const LandingPage = () => {
                         </Stack>
                         <Stack direction="row" alignItems="center" spacing={0.75}>
                           <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>Referência {r.ref}</Typography>
-                          {r.ped && <Chip size="small" label="Pediátrico · 2–6 anos" sx={{ height: 18, fontSize: 10, fontWeight: 700, bgcolor: 'rgba(32,178,170,.14)', color: TEAL_DARK }} />}
+                          {r.ped && <Chip size="small" label="Pediátrico · 2–6 anos" sx={{ height: 18, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(32,178,170,.14)', color: TEAL_DARK }} />}
                         </Stack>
                       </Box>
                     ))}
-                    <Typography sx={{ fontSize: 11, color: 'text.disabled', mt: 1.5, textAlign: 'center' }}>Laudo dizia 40–130 (adulto) · régua da idade aplicada, com fonte.</Typography>
+                    <Typography sx={{ fontSize: 12, color: 'text.disabled', mt: 1.5, textAlign: 'center' }}>Laudo dizia 40–130 (adulto) · régua da idade aplicada, com fonte.</Typography>
                   </Box>
                 </Box>
               </Box>
@@ -833,7 +833,7 @@ export const LandingPage = () => {
                 <Box sx={{ width: '100%', maxWidth: 420, p: 2.5, borderRadius: '20px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', boxShadow: '0 16px 36px rgba(15,61,58,.10)' }}>
                   <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.25 }}>
                     <ChildCareIcon sx={{ fontSize: 18, color: TEAL_DARK }} />
-                    <Typography sx={{ fontSize: 11, fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Altura por idade · curva de percentis</Typography>
+                    <Typography sx={{ fontSize: 12, fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Altura por idade · curva de percentis</Typography>
                   </Stack>
                   <Box
                     component="svg"
@@ -934,7 +934,7 @@ export const LandingPage = () => {
                         <Typography sx={{ fontWeight: 800, fontSize: 20, color: TEAL_DARK, lineHeight: 1, fontVariantNumeric: 'tabular-nums', fontFamily: 'Poppins, sans-serif' }}>R$ 7,65</Typography>
                       </Stack>
                     </Box>
-                    <Chip label="🏆 11 ofertas" size="small" sx={{ bgcolor: 'primary.main', color: '#fff', fontWeight: 800, fontSize: 10, flexShrink: 0 }} />
+                    <Chip label="🏆 11 ofertas" size="small" sx={{ bgcolor: 'primary.main', color: '#fff', fontWeight: 800, fontSize: 12, flexShrink: 0 }} />
                   </Stack>
                   {[
                     { sigla: 'CD', color: '#37474f', name: 'Coop Drogaria', product: 'Levotiroxina Sódica 25mcg 30cp', price: 'R$ 7,65', best: true },
@@ -945,7 +945,7 @@ export const LandingPage = () => {
                       {pharmLogos[o.name] ? (
                         <Box component="img" src={pharmLogos[o.name]!} alt={o.name} loading="lazy" sx={{ height: 22, maxWidth: 60, objectFit: 'contain', flexShrink: 0 }} />
                       ) : (
-                        <Box sx={{ px: 0.75, py: 0.25, borderRadius: '8px', bgcolor: `${o.color}14`, color: o.color, fontWeight: 800, fontSize: 10, fontFamily: 'Poppins, sans-serif', flexShrink: 0 }}>{o.sigla}</Box>
+                        <Box sx={{ px: 0.75, py: 0.25, borderRadius: '8px', bgcolor: `${o.color}14`, color: o.color, fontWeight: 800, fontSize: 12, fontFamily: 'Poppins, sans-serif', flexShrink: 0 }}>{o.sigla}</Box>
                       )}
                       <Box sx={{ flex: 1, minWidth: 0 }}>
                         {/* mobile: nome quebra (nada cortado); desktop: 1 linha (cabe inteira) */}
@@ -955,7 +955,7 @@ export const LandingPage = () => {
                       {/* Preço + selo empilhados (mesmo padrão do app real — o selo não rouba largura da linha) */}
                       <Stack alignItems="flex-end" spacing={0.25} sx={{ flexShrink: 0 }}>
                         <Typography sx={{ fontWeight: 800, fontSize: 14, color: 'text.primary', fontVariantNumeric: 'tabular-nums', lineHeight: 1.1 }}>{o.price}</Typography>
-                        {o.best && <Chip label="MELHOR PREÇO" size="small" sx={{ height: 16, fontSize: 9, fontWeight: 800, bgcolor: 'primary.main', color: '#fff', letterSpacing: '0.03em' }} />}
+                        {o.best && <Chip label="MELHOR PREÇO" size="small" sx={{ height: 18, fontSize: 12, fontWeight: 800, bgcolor: 'primary.main', color: '#fff', letterSpacing: '0.03em' }} />}
                       </Stack>
                     </Stack>
                   ))}
@@ -977,7 +977,7 @@ export const LandingPage = () => {
                               {d.name}{d.doses?.[0] ? ` ${d.doses[0].replace(' ', '')}` : ''}
                             </Typography>
                             <Stack direction="row" spacing={0.5} alignItems="baseline" sx={{ mt: 0.5 }}>
-                              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 10 }}>a partir de</Typography>
+                              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 12 }}>a partir de</Typography>
                               <Typography sx={{ fontWeight: 800, fontSize: 15, color: TEAL_DARK, lineHeight: 1, fontVariantNumeric: 'tabular-nums', fontFamily: 'Poppins, sans-serif' }}>
                                 {(d.priceCents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                               </Typography>
@@ -986,9 +986,9 @@ export const LandingPage = () => {
                               {pharmLogos[d.pharmacy] ? (
                                 <Box component="img" src={pharmLogos[d.pharmacy]!} alt={d.pharmacy} loading="lazy" sx={{ height: 13, maxWidth: 44, objectFit: 'contain' }} />
                               ) : (
-                                <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 10 }}>{d.pharmacy}</Typography>
+                                <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 12 }}>{d.pharmacy}</Typography>
                               )}
-                              {d.offersCount > 1 && <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: 10 }}>· {d.offersCount} ofertas</Typography>}
+                              {d.offersCount > 1 && <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: 12 }}>· {d.offersCount} ofertas</Typography>}
                             </Stack>
                           </Box>
                         ))}
@@ -1065,7 +1065,7 @@ export const LandingPage = () => {
                 ...(p.highlight ? { bgcolor: 'transparent', background: 'linear-gradient(135deg,rgba(32,178,170,.14),rgba(212,165,116,.10))' } : {}),
                 transition: 'transform .2s ease, box-shadow .2s ease',
               }}>
-                {p.highlight && <Chip label="RECOMENDADO" size="small" sx={{ position: 'absolute', top: -13, left: '50%', transform: 'translateX(-50%)', bgcolor: TEAL, color: '#fff', fontWeight: 800, fontSize: 11 }} />}
+                {p.highlight && <Chip label="RECOMENDADO" size="small" sx={{ position: 'absolute', top: -13, left: '50%', transform: 'translateX(-50%)', bgcolor: TEAL, color: '#fff', fontWeight: 800, fontSize: 12 }} />}
                 <Typography variant="h6" sx={{ fontWeight: 800, fontSize: 18, color: 'text.primary', mb: 1 }}>{p.name}</Typography>
                 <Typography sx={{ fontWeight: 800, fontSize: 32, color: p.highlight ? TEAL : 'text.primary', mb: 0.5, lineHeight: 1.1 }}>{p.price}{p.period && <Typography component="span" sx={{ fontSize: 14, color: 'text.secondary', fontWeight: 600 }}>{` ${p.period}`}</Typography>}</Typography>
                 <Box sx={{ my: 2, height: 1, bgcolor: 'divider' }} />

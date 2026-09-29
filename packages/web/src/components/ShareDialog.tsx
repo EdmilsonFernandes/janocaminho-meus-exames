@@ -96,7 +96,7 @@ export const ShareDialog = ({ analysisId, open, onClose }: { analysisId?: string
 
             <Typography variant="subtitle2" sx={{ color: '#0369a1' }}>Link de acesso</Typography>
             <Stack direction="row" spacing={1} sx={{ mb: 2, alignItems: 'center' }}>
-              <TextField value={data.link} size="small" fullWidth InputProps={{ readOnly: true }} sx={{ '& .MuiInputBase-input': { fontSize: 11 } }} />
+              <TextField value={data.link} size="small" fullWidth InputProps={{ readOnly: true }} sx={{ '& .MuiInputBase-input': { fontSize: 12 } }} />
               <IconButton onClick={() => copy(data.link)} color="primary" title="Copiar link"><ContentCopyIcon /></IconButton>
             </Stack>
             <Typography variant="subtitle2" sx={{ color: '#0369a1' }}>🔑 Senha (envie ao médico separadamente do link)</Typography>

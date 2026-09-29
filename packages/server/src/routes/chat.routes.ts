@@ -8,6 +8,7 @@ import { tryLocalAnswer, streamLocalAnswer } from '../analysis/chat-router';
 import { describeStaleness } from '../analysis/health-state';
 import { guidelinesContext } from '../analysis/guidelines';
 import { guidelinesEnabled } from '../utils/settings';
+import { personalizedTargets, formatTarget } from '../analysis/personalized-targets';
 
 const router = Router();
 router.use(requireAuth);
@@ -92,6 +93,32 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       ? `- ATIVIDADE FÍSICA (Health Connect do celular, últimos 7 dias — use quando a pergunta envolver rotina, atividade, peso, sono ou condicionamento; nunca invente números):\n${activityLines.join('\n')}\n`
       : '';
 
+    // F1 — ALVOS PERSONALIZADOS por medicação/condição (levotiroxina→TSH 0,4–2,5;
+    // diabetes→LDL<100 e HbA1c<7 — regras fechadas com citação real). A IA passa a
+    // interpretar estes analitos contra o alvo do TRATAMENTO do paciente, citando o
+    // motivo. Leitura COMPLEMENTAR: nunca substituem a faixa do laboratório do laudo.
+    const activeMeds = await prisma.medication.findMany({
+      where: { patientId: pid, active: true },
+      select: { name: true, activeIngredient: true },
+    });
+    const pTargets = personalizedTargets(
+      recent.flatMap((e) =>
+        (e.items as any[]).map((it: any) => ({
+          nameCanonical: String(it.nameCanonical ?? it.name ?? ''),
+          valueNumeric: it.valueNumeric ?? null,
+        })),
+      ),
+      {
+        medications: activeMeds.flatMap((m) => [m.name, m.activeIngredient]).filter((x): x is string => !!x),
+        conditions: patient?.clinicalProfile ?? '',
+      },
+    );
+    const targetsBlock = pTargets.length
+      ? `- ALVOS PERSONALIZADOS pelo seu tratamento (use ao interpretar estes analitos; cite o motivo e a fonte entre colchetes; são COMPLEMENTO — a faixa de referência do laudo continua válida para leitura do item):\n${pTargets
+          .map((t) => `   • ${t.analyte}: alvo ${formatTarget(t)}${t.unit ? ' ' + t.unit : ''} (${t.appliesTo}) [${t.citation}]`)
+          .join('\n')}\n`
+      : '';
+
     // histórico da conversa (últimos turnos deste paciente)
     const prior = await prisma.aiAnalysis.findMany({
       where: { patientId: pid, type: 'CHAT' },
@@ -166,6 +193,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       `- Paciente: ${patient?.fullName ?? '—'}\n` +
       (patient?.clinicalProfile ? `- Perfil clínico: ${patient.clinicalProfile}\n` : '') +
       activityBlock +
+      targetsBlock +
       (currentBlock.length ? `- VALORES ATUAIS (exame MAIS RECENTE por analito — use ESTES ao citar "atual/último resultado"):\n${currentBlock.join('\n')}\n` : '') +
       `- Exames recentes (TODOS os itens — nome: valor (ref) [flag se alterado]):\n${examsBlock}\n` +
       (trendBlock ? `\n- Analitos ao longo do tempo (use pra evolução/comparar/tendência; o 1º valor de cada linha é o MAIS RECENTE):\n${trendBlock}\n` : '') +

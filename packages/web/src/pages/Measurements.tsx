@@ -213,20 +213,20 @@ export const MeasurementsPage = () => {
             >
               <Stack direction="row" alignItems="center" spacing={0.5} sx={{ minWidth: 0 }}>
                 <Box aria-hidden="true" sx={{ display: 'inline-flex', color: t.color, flexShrink: 0 }}>{t.icon}</Box>
-                <Typography noWrap sx={{ fontSize: 11, fontWeight: 700, color: t.color }}>{t.l}</Typography>
+                <Typography noWrap sx={{ fontSize: 12, fontWeight: 700, color: t.color }}>{t.l}</Typography>
               </Stack>
               {hasData ? (
                 <Typography noWrap sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 20, lineHeight: 1.1, fontVariantNumeric: 'tabular-nums' }}>
-                  {fmtVal(d!.latest)}<Typography component="span" sx={{ fontSize: 11, color: 'text.disabled', fontWeight: 600 }}> {t.u}</Typography>
+                  {fmtVal(d!.latest)}<Typography component="span" sx={{ fontSize: 12, color: 'text.disabled', fontWeight: 600 }}> {t.u}</Typography>
                 </Typography>
               ) : (
                 <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 20, lineHeight: 1.1, color: 'text.disabled' }}>—</Typography>
               )}
-              <Typography noWrap sx={{ fontSize: 11, color: 'text.secondary', minHeight: 13 }}>{tileSub(t, d)}</Typography>
+              <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary', minHeight: 13 }}>{tileSub(t, d)}</Typography>
               <Box sx={{ mt: 'auto', minHeight: 26, display: 'flex', alignItems: 'flex-end' }}>
                 {d && d.series7.length >= 2 && <Sparkline points={d.series7} width={84} height={24} />}
               </Box>
-              {t.synced && hasData && <Typography sx={{ fontSize: 10, color: 'text.disabled' }}>via Health Connect</Typography>}
+              {t.synced && hasData && <Typography sx={{ fontSize: 12, color: 'text.disabled' }}>via Health Connect</Typography>}
             </AppCard>
           );
         })}

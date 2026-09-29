@@ -191,7 +191,7 @@ export const MeasurementHistoryPage = () => {
                 <Stack key={m.id} direction="row" justifyContent="space-between" alignItems="center" sx={{ px: 2, py: 1.25, borderBottom: '1px solid', borderColor: 'divider', '&:last-child': { borderBottom: 'none' } }}>
                   <Box sx={{ minWidth: 0 }}>
                     <Typography sx={{ fontWeight: 700, fontSize: 14, color: 'text.primary' }}>
-                      {fmtVal(m)} <Typography component="span" sx={{ fontSize: 11, color: 'text.disabled' }}>{m.unit}</Typography>
+                      {fmtVal(m)} <Typography component="span" sx={{ fontSize: 12, color: 'text.disabled' }}>{m.unit}</Typography>
                     </Typography>
                     <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
                       {new Date(m.measuredAt).toLocaleDateString('pt-BR')}{m.note ? ` — ${m.note}` : ''}

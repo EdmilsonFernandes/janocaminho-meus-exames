@@ -75,7 +75,7 @@ export const BmiCard = () => {
           border: `3px solid ${cat.color}`, boxShadow: '0 2px 8px rgba(0,0,0,.18)',
         }} />
       </Box>
-      <Stack direction="row" justifyContent="space-between" sx={{ fontSize: 11, color: 'text.secondary', fontWeight: 600, px: 0.5 }}>
+      <Stack direction="row" justifyContent="space-between" sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 600, px: 0.5 }}>
         <span>15</span><span>18,5</span><span>25</span><span>30</span><span>40</span>
       </Stack>
 

@@ -376,7 +376,7 @@ export const LabsTab = () => {
                             size="small"
                             label={lab.active ? 'Ativo' : 'Inativo'}
                             color={lab.active ? 'success' : 'default'}
-                            sx={{ height: 20, fontSize: 11, fontWeight: 800 }}
+                            sx={{ height: 20, fontSize: 12, fontWeight: 800 }}
                           />
                           <Box
                             title={`Cor da marca: ${lab.color || '#20b2aa'}`}
@@ -398,7 +398,7 @@ export const LabsTab = () => {
                                   label={alias}
                                   sx={{
                                     height: 22,
-                                    fontSize: 11,
+                                    fontSize: 12,
                                     fontWeight: 600,
                                     bgcolor: 'action.hover',
                                     border: '1px solid',

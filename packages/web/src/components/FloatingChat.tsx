@@ -91,7 +91,7 @@ export const FloatingChat = () => {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             animation: 'drSpark 2.2s ease-in-out infinite',
           }}>
-            <AutoAwesomeIcon sx={{ fontSize: 10, color: '#fff' }} />
+            <AutoAwesomeIcon sx={{ fontSize: 12, color: '#fff' }} />
           </Box>
         </Box>
       </Box>

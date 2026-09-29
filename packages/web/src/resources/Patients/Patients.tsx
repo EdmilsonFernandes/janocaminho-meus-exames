@@ -75,7 +75,7 @@ const PatientCards = () => {
             <Avatar src={p.photoUrl ? photoUrlFor(String(p.id)) : undefined} sx={{ width: 50, height: 50, bgcolor: titularStyle ? 'primary.main' : '#cfd8dc', color: titularStyle ? '#fff' : '#5a6b72', fontWeight: 800, fontSize: 20 }}>
               {p.photoUrl ? '' : (p.fullName?.charAt(0)?.toUpperCase() || '?')}
             </Avatar>
-            {titularStyle && <Box sx={{ position: 'absolute', bottom: -2, right: -2, width: 18, height: 18, borderRadius: '50%', bgcolor: '#d4a574', border: '2px solid #fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9 }}>★</Box>}
+            {titularStyle && <Box sx={{ position: 'absolute', bottom: -2, right: -2, width: 18, height: 18, borderRadius: '50%', bgcolor: '#d4a574', border: '2px solid #fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>★</Box>}
           </Box>
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap' }}>
