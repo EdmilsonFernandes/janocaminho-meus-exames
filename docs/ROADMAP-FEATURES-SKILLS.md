@@ -44,3 +44,13 @@
 
 ## Ordem de execução
 F1 (alvos personalizados) → F3 (CVV) → F5 (verify-refs pré-revisão) → F2 (timeline efeito) → F4 (copy) → F6 (KDM)
+
+## F7. Legibilidade real (dono 29/09: "letrinhas bem difíceis de ler no Samsung Ultra") ⭐ junto com F1
+- **Causa técnica provável**: texto todo em `px` fixo (typography base 14 + dezenas de 10.5/11/11.5 espalhados) — `px` NÃO respeita o "Tamanho da fonte" do Android (fontScale/textZoom). Usuário com fonte grande no sistema vê o app pequeno igual.
+- **Plano**:
+  1. **Floor 12px absoluto** — varredura dos 10.5/11/11.5 (estende a regra da auditoria D2 que já valia).
+  2. **Respeitar textZoom do Android** no WebView do Capacitor (o sistema amplia, o app acompanha SEM quebrar: testar 320/390/430px + fontScale 1.3 no Playwright).
+  3. **Escala tipográfica única** (12/13/15/17/20/24) com line-height confortável (1.5 corpo) — "colírio pros olhos" = menos tamanhos diferentes, não mais opções.
+  4. Labels de input ≥16px em touch (já regra do polimento mobile).
+- **Onde mora**: theme.ts + varredura; nenhuma tela nova.
+- Aprovado pelo dono: F1→F7 (29/09). Execução em lotes: F7+F1 primeiro (mesma frente visual/clínica).
