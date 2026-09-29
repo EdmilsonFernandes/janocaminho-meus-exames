@@ -8,7 +8,7 @@ import { AppCard } from '../../AppCard';
 import { QuestionStatusBadge } from '../../QuestionStatusBadge';
 import { photoUrlFor } from '../../../config';
 import { a11yClick, focusRingSx } from './shared';
-import { tealText } from '../../../../../../../../../../../theme';
+import { tealText } from '../../../theme';
 
 /** Respostas prontas pro médico (chips de 1 clique) — frases de triagem neutras. */
 export const QUICK_REPLIES = [
@@ -37,7 +37,7 @@ export const PortalQuestions = ({ allQ, allQLoading, patients, qText, setQText, 
               <AppCard key={q.id} sx={{ mb: 1.5, border: '1px solid', borderColor: answered ? 'divider' : 'transparent', borderRadius: '20px' }}><CardContent sx={{ p: { xs: 1.75, md: 2 } }}>
                 <Stack direction="row" alignItems="center" spacing={1.25}>
                   <Box role="button" tabIndex={0} {...a11yClick(() => onGoToPatient(q.patientId))} title="Abrir o paciente" sx={{ display: 'flex', alignItems: 'center', gap: 1.25, flex: 1, minWidth: 0, cursor: 'pointer', borderRadius: '14px', mx: -0.5, px: 0.75, py: 0.5, transition: 'background .15s', '&:hover': { bgcolor: 'rgba(32,178,170,.06)' }, ...focusRingSx }}>
-                    <Avatar src={q.patient?.id ? photoUrlFor(q.patient.id) : undefined} sx={{ bgcolor: (t) => tealText(t.palette.mode), fontWeight: 800, width: 44, height: 44, flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>{q.patient?.fullName?.charAt(0)}</Avatar>
+                    <Avatar src={q.patient?.id ? photoUrlFor(q.patient.id) : undefined} sx={{ bgcolor: 'primary.dark', fontWeight: 800, width: 44, height: 44, flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>{q.patient?.fullName?.charAt(0)}</Avatar>
                     <Box sx={{ minWidth: 0 }}>
                       <Stack direction="row" spacing={0.75} alignItems="center" sx={{ flexWrap: 'wrap', rowGap: 0.5 }}>
                         <Typography sx={{ fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>{q.patient?.fullName}<OpenInNewIcon sx={{ fontSize: 13, color: 'text.disabled' }} /></Typography>
@@ -59,7 +59,7 @@ export const PortalQuestions = ({ allQ, allQLoading, patients, qText, setQText, 
                     <TextField multiline minRows={2} size="small" fullWidth placeholder="Escrever resposta…" value={qText[q.id] ?? ''} onChange={(e) => setQText((t) => ({ ...t, [q.id]: e.target.value }))} sx={{ '& .MuiOutlinedInput-root': { borderRadius: '14px' } }} />
                     <Stack direction="row" spacing={1} sx={{ mt: 1 }} justifyContent="flex-end">
                       <Button size="small" onClick={() => { setQText((t) => ({ ...t, [q.id]: '' })); setReplyOpen(null); }} sx={{ textTransform: 'none', fontWeight: 700, color: 'text.secondary', borderRadius: '999px' }}>Cancelar</Button>
-                      <Button size="small" variant="contained" disabled={qSending === q.id || !(qText[q.id]?.trim())} onClick={() => onAnswer(q.id)} startIcon={qSending === q.id ? <CircularProgress size={14} color="inherit" /> : undefined} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: 'primary.main', boxShadow: 'none', '&:hover': { bgcolor: (t) => tealText(t.palette.mode) } }}>{qSending === q.id ? 'Enviando…' : 'Enviar resposta'}</Button>
+                      <Button size="small" variant="contained" disabled={qSending === q.id || !(qText[q.id]?.trim())} onClick={() => onAnswer(q.id)} startIcon={qSending === q.id ? <CircularProgress size={14} color="inherit" /> : undefined} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: 'primary.main', boxShadow: 'none', '&:hover': { bgcolor: 'primary.dark' } }}>{qSending === q.id ? 'Enviando…' : 'Enviar resposta'}</Button>
                     </Stack>
                   </Box>
                 )}
@@ -99,7 +99,7 @@ export const PortalQuestions = ({ allQ, allQLoading, patients, qText, setQText, 
                       <Accordion key={g.p?.id} elevation={0} sx={{ '&:before': { display: 'none' }, border: '1px solid', borderColor: 'divider', borderRadius: '20px !important', overflow: 'hidden', boxShadow: (t) => t.palette.mode === 'dark' ? '0 4px 14px rgba(0,0,0,0.2)' : '0 2px 8px rgba(0,0,0,0.03)' }}>
                         <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '52px !important', '& .MuiAccordionSummary-content': { my: 0.75 } }}>
                           <Stack direction="row" alignItems="center" spacing={1.5} sx={{ flex: 1, minWidth: 0 }}>
-                            <Avatar src={g.p?.id ? photoUrlFor(g.p.id) : undefined} sx={{ width: 40, height: 40, bgcolor: (t) => tealText(t.palette.mode), fontSize: 15, fontWeight: 700, flexShrink: 0 }}>{(g.p?.fullName || 'P').charAt(0)}</Avatar>
+                            <Avatar src={g.p?.id ? photoUrlFor(g.p.id) : undefined} sx={{ width: 40, height: 40, bgcolor: 'primary.dark', fontSize: 15, fontWeight: 700, flexShrink: 0 }}>{(g.p?.fullName || 'P').charAt(0)}</Avatar>
                             <Box sx={{ flex: 1, minWidth: 0 }}>
                               <Typography sx={{ fontWeight: 800, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.p?.fullName || 'Paciente'}</Typography>
                               <Typography variant="caption" color="text.secondary">{g.qs.length} pergunta(s) · última {new Date(g.last).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</Typography>

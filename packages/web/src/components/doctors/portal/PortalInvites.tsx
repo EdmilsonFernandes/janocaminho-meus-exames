@@ -5,7 +5,7 @@ import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined';
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
 import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined';
 import { AppCard } from '../../AppCard';
-import { tealText } from '../../../../../../../../../../../theme';
+import { tealText } from '../../../theme';
 
 export interface InviteItem { id: string; patientName?: string; phone?: string; email?: string; status: string; token: string; createdAt?: string; acceptedAt?: string }
 
@@ -24,7 +24,7 @@ export const PortalInvites = ({ invites, doctorName, onNewInvite, onCancel, link
                   <Typography variant="h6" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>Convites</Typography>
                   <Typography variant="caption" color="text.secondary">Convide pacientes — eles instalam o app e o compartilhamento já fica ativo.</Typography>
                 </Box>
-                <Button variant="contained" startIcon={<PersonAddAlt1Icon />} onClick={() => onNewInvite()} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: 'primary.main', boxShadow: 'none', '&:hover': { bgcolor: (t) => tealText(t.palette.mode) } }}>Convidar</Button>
+                <Button variant="contained" startIcon={<PersonAddAlt1Icon />} onClick={() => onNewInvite()} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: 'primary.main', boxShadow: 'none', '&:hover': { bgcolor: 'primary.dark' } }}>Convidar</Button>
               </Stack>
               <Stack direction="row" spacing={1.5} sx={{ mb: 2.5 }} useFlexGap flexWrap="wrap">
                 {[['Pendentes', pending.length, '#c2410c'], ['Aceitos', accepted.length, '#047857'], ['Expirados', expired.length, '#94a3b8']].map(([l, n, c]) => (

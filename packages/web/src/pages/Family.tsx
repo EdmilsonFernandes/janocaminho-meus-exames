@@ -13,7 +13,7 @@ import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
 import { DrExame } from '../components/DrExame';
 import { setSelectedPatient } from '../patient-context';
-import { tealText } from '../../../../../../../../../theme';
+import { tealText } from '../theme';
 
 interface FamPatient {
   id: string; fullName: string; relationship: string | null; photoUrl: string | null;

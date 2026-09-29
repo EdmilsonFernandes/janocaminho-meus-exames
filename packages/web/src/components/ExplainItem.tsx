@@ -4,7 +4,7 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { explainExam, type ExamExplain } from '../data/examDictionary';
 import { API_URL, token } from '../config';
-import { tealText } from '../../../../../../../../../theme';
+import { tealText } from '../theme';
 
 // Cache de sessão: 2ª vez que abre o mesmo "?" não vai na rede (o backend também
 // cacheia em arquivo, então a 1ª vez de QUALQUER usuário já fica salva p/ todos).

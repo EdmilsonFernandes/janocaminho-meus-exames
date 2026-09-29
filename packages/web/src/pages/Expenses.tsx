@@ -11,7 +11,7 @@ import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
 import { ListSkeleton } from '../components/Skeleton';
 import { AppCard } from '../components/AppCard';
-import { tealText } from '../../../../../../../../../theme';
+import { tealText } from '../theme';
 
 interface Expense { id: string; description: string; category: string; amount: number; spentAt: string; }
 

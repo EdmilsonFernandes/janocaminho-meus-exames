@@ -30,7 +30,7 @@ import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import type { SvgIconComponent } from '@mui/icons-material';
 
 import type { EvolutionItem as EvoItem } from '@meus-exames/shared';
-import { tealText } from '../../../../../../../../../theme';
+import { tealText } from '../theme';
 
 const fmtDate = (d: string | null) =>
   d ? new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }) : 's/d';

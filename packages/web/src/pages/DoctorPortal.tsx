@@ -99,7 +99,7 @@ const PayCountdown = ({ expiresAt, onExpire }: { expiresAt: string; onExpire: ()
  * Mapeamento: Exames=laudo, Alterados=flag, Tendências=gráfico, Relatório=resumo,
  * Perguntas=chat, Anotações=lápis. */
 import { Receipt, Flag, ChartLineUp, FileText, ChatCircle, NotePencil, Stethoscope, CalendarBlank, Diamond } from '@phosphor-icons/react';
-import { tealText } from '../../../../../../../../../theme';
+import { tealText } from '../theme';
 
 const SCOPE_META: Record<string, { label: string; icon: ReactElement }> = {
   exams: { label: 'Exames', icon: <Receipt size={22} weight="duotone" /> },
@@ -1076,7 +1076,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                                     return <Box key={i} sx={{ textAlign: 'center', my: 0.5 }}><Box sx={{ display: 'inline-block', px: 1.5, py: 0.5, borderRadius: '999px', bgcolor: 'rgba(32,178,170,.08)', color: 'text.secondary', fontSize: 12, fontWeight: 600 }}>{m.body}</Box></Box>;
                                   }
                                   const av = isAi ? null : isDoc
-                                    ? <Avatar src={doctor?.photoUrl ? doctorPhotoUrl(doctor.id, photoVer) : undefined} sx={{ width: 36, height: 36, bgcolor: (t) => tealText(t.palette.mode), fontSize: 14, fontWeight: 700, flexShrink: 0 }}>{(doctor?.name || 'M').charAt(0)}</Avatar>
+                                    ? <Avatar src={doctor?.photoUrl ? doctorPhotoUrl(doctor.id, photoVer) : undefined} sx={{ width: 36, height: 36, bgcolor: 'primary.dark', fontSize: 14, fontWeight: 700, flexShrink: 0 }}>{(doctor?.name || 'M').charAt(0)}</Avatar>
                                     : <Avatar src={selected?.patient?.photoUrl ? photoUrlFor(selected.patient.id, 0) : undefined} sx={{ width: 36, height: 36, bgcolor: '#94a3b8', fontSize: 14, fontWeight: 700, flexShrink: 0 }}>{(selected?.patient?.fullName || 'P').charAt(0)}</Avatar>;
                                   // Nome do médico vem com "Dr." no cadastro — stripa p/ não virar "Dr. Dr." (auditoria)
                                   const docName = (doctor?.name || 'Médico').replace(/^Dr[aº.]*\s+/i, '').trim();

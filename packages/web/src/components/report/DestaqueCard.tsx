@@ -2,7 +2,7 @@ import { Box, Stack, Typography, Chip } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { NameToggle } from '../HealthSummary';
 import { ExplainButton } from '../ExplainItem';
-import { tealText } from '../../../../../../../../../../theme';
+import { tealText } from '../../theme';
 
 // Mesmo parser numérico do HealthSummary (vírgula decimal, separador de milhar).
 const num = (s?: string | null): number | null => {

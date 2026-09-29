@@ -16,7 +16,7 @@ import GavelIcon from '@mui/icons-material/Gavel';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import WalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
-import { tealText } from '../../../../../../../../../theme';
+import { tealText } from '../theme';
 
 const authH = () => ({ Authorization: `Bearer ${token()}` });
 const STATUS_META: Record<string, { label: string; color: 'warning' | 'info' | 'success' | 'default' }> = {

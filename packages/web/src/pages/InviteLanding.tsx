@@ -3,7 +3,7 @@ import { Box, Typography, Button, Stack, CircularProgress, Chip } from '@mui/mat
 import { useNavigate, useParams } from 'react-router-dom';
 import { API_URL } from '../config';
 import { DrExame } from '../components/DrExame';
-import { tealText } from '../../../../../../../../../theme';
+import { tealText } from '../theme';
 
 // Landing pública do convite do médico: paciente clica no link (WhatsApp/email), vê quem convidou,
 // cria conta/entra carregando o token — o aceite ativa o share médico↔paciente (backend).

@@ -7,7 +7,7 @@ import { API_URL, doctorPhotoUrl } from '../../../config';
 import { PhotoUpload } from '../../PhotoUpload';
 import { MfaSetupCard } from '../../mfa/MfaSetupCard';
 import { SPECIALTIES } from '../../../utils/medicalData';
-import { tealText } from '../../../../../../../../../../../theme';
+import { tealText } from '../../../theme';
 
 /** Empty state compacto das views do portal. */
 export const Empty = ({ label, icon = '📭' }: { label: string; icon?: string }) => (

@@ -4,7 +4,7 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import { API_URL, token } from '../../config';
 import { AppCard } from '../AppCard';
-import { tealText } from '../../../../../../../../../../theme';
+import { tealText } from '../../theme';
 
 /**
  * CorrelationSection — "Hábitos e sinais que contextualizam seus exames".

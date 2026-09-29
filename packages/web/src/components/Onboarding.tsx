@@ -3,7 +3,7 @@ import { Dialog, Box, Typography, Button, MobileStepper } from '@mui/material';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { useNavigate } from 'react-router-dom';
 import { DrExame } from './DrExame';
-import { tealText } from '../../../../../../../../../theme';
+import { tealText } from '../theme';
 
 const SLIDES = [
   { emoji: '📄', title: 'Envie seu exame', desc: 'Mande o PDF ou foto do exame. O Dr. Exame extrai todos os valores automaticamente — em segundos.' },

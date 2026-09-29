@@ -3,7 +3,7 @@ import { Box, Typography, LinearProgress, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { DrExame } from './DrExame';
 import { API_URL, token } from '../config';
-import { tealText } from '../../../../../../../../../theme';
+import { tealText } from '../theme';
 
 const STEPS = [
   { msg: 'Lendo o documento…', emoji: '📄' },

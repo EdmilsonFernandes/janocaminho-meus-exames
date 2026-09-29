@@ -1,6 +1,6 @@
 import { Box, Typography, Button } from '@mui/material';
 import { DrExame } from './DrExame';
-import { tealText } from '../../../../../../../../../theme';
+import { tealText } from '../theme';
 
 /** Empty state premium — mascote Dr. Exame em aura teal (padrão = assinatura da marca em todas as
  *  telas vazias) + título + descrição + CTA opcional. `emoji` opcional pra casos que precisem de

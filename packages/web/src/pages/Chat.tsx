@@ -285,7 +285,7 @@ export const ChatPage = () => {
             <Box sx={{ position: 'relative', width: 84, height: 84, display: 'grid', placeItems: 'center', animation: `${drBob} 3.4s ease-in-out infinite` }}>
               <Box sx={{ position: 'absolute', inset: -14, borderRadius: '50%', background: 'radial-gradient(circle, rgba(32,178,170,.30) 0%, rgba(32,178,170,.10) 45%, transparent 72%)', filter: 'blur(4px)', animation: `${drAura} 2.6s ease-in-out infinite` }} />
               <DrExame size={64} sx={{ position: 'relative', borderRadius: '28%', filter: 'drop-shadow(0 2px 6px rgba(15,61,58,.25))' }} />
-              <Box sx={{ position: 'absolute', top: 2, right: 0, width: 24, height: 24, borderRadius: '50%', bgcolor: (t) => tealText(t.palette.mode), display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,.22)', animation: `${drSpark} 2.2s ease-in-out infinite` }}>
+              <Box sx={{ position: 'absolute', top: 2, right: 0, width: 24, height: 24, borderRadius: '50%', bgcolor: 'primary.dark', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,.22)', animation: `${drSpark} 2.2s ease-in-out infinite` }}>
                 <AutoAwesomeIcon sx={{ fontSize: 13, color: '#fff' }} />
               </Box>
             </Box>
@@ -315,7 +315,7 @@ export const ChatPage = () => {
                 {!isUser && (
                   <Box sx={{ position: 'relative', width: 30, height: 30, flexShrink: 0, mb: 0.25 }}>
                     <DrExame size={30} sx={{ borderRadius: '28%' }} />
-                    <Box sx={{ position: 'absolute', top: -3, right: -3, width: 14, height: 14, borderRadius: '50%', bgcolor: (t) => tealText(t.palette.mode), display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Box sx={{ position: 'absolute', top: -3, right: -3, width: 14, height: 14, borderRadius: '50%', bgcolor: 'primary.dark', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <AutoAwesomeIcon sx={{ fontSize: 8, color: '#fff' }} />
                     </Box>
                   </Box>

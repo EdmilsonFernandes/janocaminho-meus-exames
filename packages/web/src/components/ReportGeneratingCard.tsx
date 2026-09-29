@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Box, Typography, LinearProgress, Button } from '@mui/material';
 import { DrExame } from './DrExame';
-import { tealText } from '../../../../../../../../../theme';
+import { tealText } from '../theme';
 
 const STAGES = [
   { msg: 'Reunindo seus exames mais recentes…', emoji: '📚' },

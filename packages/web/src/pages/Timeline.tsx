@@ -21,7 +21,7 @@ import { PageSkeleton } from '../components/PageSkeleton';
 import EventIcon from '@mui/icons-material/Event';
 import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
 import VaccinesIcon from '@mui/icons-material/Vaccines';
-import { tealText } from '../../../../../../../../../theme';
+import { tealText } from '../theme';
 
 type EvType = 'exam' | 'medicao' | 'vacina';
 interface Event { id: string; date: string | null; title: string; kind: string; abnormalCount: number; itemCount: number; type: EvType }
@@ -176,7 +176,7 @@ export const TimelinePage = () => {
                       <Typography sx={{ fontWeight: 800 }}>Histórico de {g.label}</Typography>
                       <Typography variant="caption" color="text.secondary">Desbloqueie todo o seu histórico de exames (Premium).</Typography>
                     </Box>
-                    <Button size="small" variant="contained" onClick={() => navigate('/planos')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', boxShadow: 'none', '&:hover': { bgcolor: (t) => tealText(t.palette.mode) } }}>Ver planos</Button>
+                    <Button size="small" variant="contained" onClick={() => navigate('/planos')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', boxShadow: 'none', '&:hover': { bgcolor: 'primary.dark' } }}>Ver planos</Button>
                   </Card>
                 ) : (
                   <Box sx={{ position: 'relative', pl: 3.5 }}>

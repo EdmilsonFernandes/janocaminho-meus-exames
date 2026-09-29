@@ -14,7 +14,7 @@ import KeyIcon from '@mui/icons-material/Key';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import BoltIcon from '@mui/icons-material/Bolt';
-import { tealText } from '../../../../../../../../../theme';
+import { tealText } from '../theme';
 
 const H = () => ({ Authorization: `Bearer ${token()}` });
 const fmt = (d: string | null) => (d ? new Date(d).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—');

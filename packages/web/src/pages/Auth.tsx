@@ -12,7 +12,7 @@ import { OtpInput } from '../components/OtpInput';
 import { MfaChallengeDialog } from '../components/mfa/MfaChallengeDialog';
 import { BiometricService, getDeviceId } from '../components/BiometricService';
 import { formatCpf, isValidCpf } from '../utils/cpf';
-import { tealText } from '../../../../../../../../../theme';
+import { tealText } from '../theme';
 
 /* ---------- ícones inline (sem dependência de @mui/icons-material) ---------- */
 const I = {

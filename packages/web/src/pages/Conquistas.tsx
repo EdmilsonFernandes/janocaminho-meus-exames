@@ -6,7 +6,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import { API_URL, token } from '../config';
 import { PageContainer } from '../components/layout/PageContainer';
-import { tealText } from '../../../../../../../../../theme';
+import { tealText } from '../theme';
 
 const shimmer = keyframes`0%{background-position:-200% 0}100%{background-position:200% 0}`;
 const pop = keyframes`0%{transform:scale(.85)}60%{transform:scale(1.08)}100%{transform:scale(1)}`;
@@ -102,7 +102,7 @@ export const ConquistasPage = () => {
         {b.claimed ? (
           <Typography sx={{ fontSize: 12, fontWeight: 800, color: (t) => tealText(t.palette.mode), mt: 1 }}>✓ {b.period === 'monthly' ? 'Resgatado este mês' : 'Resgatado'}</Typography>
         ) : b.claimable ? (
-          <Button size="small" fullWidth disabled={busy === b.id} onClick={() => claim(b.id)} sx={{ mt: 1, borderRadius: '999px', textTransform: 'none', fontWeight: 800, fontSize: 13, bgcolor: '#20b2aa', color: '#fff', boxShadow: '0 6px 16px rgba(32,178,170,0.3)', '&:hover': { bgcolor: (t) => tealText(t.palette.mode) } }}>
+          <Button size="small" fullWidth disabled={busy === b.id} onClick={() => claim(b.id)} sx={{ mt: 1, borderRadius: '999px', textTransform: 'none', fontWeight: 800, fontSize: 13, bgcolor: '#20b2aa', color: '#fff', boxShadow: '0 6px 16px rgba(32,178,170,0.3)', '&:hover': { bgcolor: 'primary.dark' } }}>
             {busy === b.id ? 'Resgatando…' : 'Resgatar'}
           </Button>
         ) : (

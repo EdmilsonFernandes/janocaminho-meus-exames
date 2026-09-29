@@ -12,7 +12,7 @@ import { cleanExtractedLabel } from '../../utils/examDisplay';
 import { categorizeExam } from '../../utils/medicalData';
 import { fmtDateShort } from '../../utils/format';
 import { RADIUS } from '../../theme';
-import { tealText } from '../../../../../../../../../../theme';
+import { tealText } from '../../theme';
 
 const kindLabel: Record<string, string> = { LAB_PANEL: 'Laboratorial', IMAGING: 'Imagem', OTHER: 'Outro' };
 

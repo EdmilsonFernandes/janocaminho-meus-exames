@@ -13,7 +13,7 @@ import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
-import { tealText } from '../../../../../../../../../theme';
+import { tealText } from '../theme';
 
 const fadeUp = keyframes`from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}`;
 
@@ -180,7 +180,7 @@ export const VaccinesPage = () => {
                   alignSelf: { xs: 'stretch', sm: 'center' },
                   borderRadius: '999px', textTransform: 'none', fontWeight: 800,
                   bgcolor: 'primary.main', boxShadow: '0 6px 16px rgba(32,178,170,.3)',
-                  '&:hover': { bgcolor: (t) => tealText(t.palette.mode) },
+                  '&:hover': { bgcolor: 'primary.dark' },
                 }}>Adicionar</Button>
             </Stack>
           </Collapse>

@@ -9,7 +9,7 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import type { SourceExam } from '@meus-exames/shared';
 import { DrExame } from '../DrExame';
 import { AppCard } from '../AppCard';
-import { tealText } from '../../../../../../../../../../theme';
+import { tealText } from '../../theme';
 
 const StatTile = ({ value, label, accent }: { value: ReactNode; label: string; accent: string }) => (
   <Box sx={{
@@ -102,7 +102,7 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
 
     <Stack direction="row" spacing={1} sx={{ mt: 2 }} useFlexGap flexWrap="wrap" alignItems="center">
       <Button size="small" variant="contained" startIcon={<VolumeUpIcon />} onClick={onSpeak} disabled={!resumo}
-        sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 2, bgcolor: (t) => tealText(t.palette.mode), boxShadow: 'none', '&:hover': { bgcolor: '#0f766e', boxShadow: 'none' } }}>
+        sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 2, bgcolor: 'primary.dark', boxShadow: 'none', '&:hover': { bgcolor: '#0f766e', boxShadow: 'none' } }}>
         {speaking ? 'Parar' : 'Ouvir'}
       </Button>
       <Button size="small" variant="outlined" onClick={onShare} aria-label="Compartilhar"

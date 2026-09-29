@@ -1,6 +1,6 @@
 import { Box, Typography, Button } from '@mui/material';
 import { DrExame } from './DrExame';
-import { tealText } from '../../../../../../../../../theme';
+import { tealText } from '../theme';
 
 // App distribuído por APK (Play rejeita) → link pro site (PWA) + aviso p/ instalar novo APK.
 const UPDATE_URL = 'https://drexame.janocaminho.com.br/';

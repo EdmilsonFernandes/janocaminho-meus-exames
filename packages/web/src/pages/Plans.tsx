@@ -16,7 +16,7 @@ import { PixModal } from '../components/PixModal';
 import { PaymentChooser } from '../components/PaymentChooser';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
-import { tealText } from '../../../../../../../../../theme';
+import { tealText } from '../theme';
 
 interface Status { active: boolean; planExpiresAt: string | null; examsCount: number; freeExamLimit: number; credits: number; tokensUsed: number; }
 interface Pack { id: string; credits: number; price: number; label: string; popular: boolean; }

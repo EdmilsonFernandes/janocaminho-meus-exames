@@ -14,7 +14,7 @@ import { hapticSuccess, hapticError } from '../utils/haptic';
 import { useSelectedPatient } from '../patient-context';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
-import { tealText } from '../../../../../../../../../theme';
+import { tealText } from '../theme';
 
 const pulse = keyframes`0%,100%{transform:scale(1)}50%{transform:scale(1.12)}`;
 
@@ -197,7 +197,7 @@ export const RemindersPage = () => {
             <Button variant="contained" startIcon={<AddAlarmIcon />} onClick={() => setFormOpen(true)} sx={{
               borderRadius: '999px', textTransform: 'none', fontWeight: 800,
               bgcolor: '#20b2aa', px: 3, boxShadow: '0 6px 16px rgba(32,178,170,.3)',
-              '&:hover': { bgcolor: (t) => tealText(t.palette.mode) },
+              '&:hover': { bgcolor: 'primary.dark' },
             }}>Criar lembrete</Button>
           </CardContent>
         </Card>
@@ -256,7 +256,7 @@ export const RemindersPage = () => {
                   alignSelf: 'flex-start', borderRadius: '999px', textTransform: 'none',
                   fontWeight: 800, px: 3, bgcolor: '#20b2aa',
                   boxShadow: '0 6px 16px rgba(32,178,170,.3)',
-                  '&:hover': { bgcolor: (t) => tealText(t.palette.mode) },
+                  '&:hover': { bgcolor: 'primary.dark' },
                 }}>Adicionar</Button>
             </Stack>
           </Collapse>

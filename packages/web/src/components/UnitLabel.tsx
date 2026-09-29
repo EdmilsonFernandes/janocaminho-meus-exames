@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Box, Popover, IconButton, Typography } from '@mui/material';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { explainUnit } from '../data/unitDictionary';
-import { tealText } from '../../../../../../../../../theme';
+import { tealText } from '../theme';
 
 /**
  * UnitLabel — exibe a unidade de medida (mg/dL, µUI/mL...) com um "?" tocável que abre um

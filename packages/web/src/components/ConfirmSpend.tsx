@@ -1,6 +1,6 @@
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Box, Stack } from '@mui/material';
 import { CreditBadge } from './CreditBadge';
-import { tealText } from '../../../../../../../../../theme';
+import { tealText } from '../theme';
 
 /**
  * Dialog premium de confirmação de gasto de créditos.
@@ -23,7 +23,7 @@ export const ConfirmSpend = ({ open, onClose, onConfirm, credits, title, desc }:
     </DialogContent>
     <DialogActions sx={{ px: 3, pb: 3, justifyContent: 'center', gap: 1 }}>
       <Button onClick={onClose} variant="outlined" sx={{ borderRadius: '999px', px: 3, textTransform: 'none', fontWeight: 600, borderColor: 'divider', color: 'text.secondary' }}>Cancelar</Button>
-      <Button onClick={onConfirm} variant="contained" sx={{ borderRadius: '999px', px: 4, textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', '&:hover': { bgcolor: (t) => tealText(t.palette.mode) } }}>Confirmar</Button>
+      <Button onClick={onConfirm} variant="contained" sx={{ borderRadius: '999px', px: 4, textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', '&:hover': { bgcolor: 'primary.dark' } }}>Confirmar</Button>
     </DialogActions>
   </Dialog>
 );

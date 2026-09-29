@@ -26,7 +26,7 @@ import {
 } from '../../utils/growth';
 import { WhatIsThis } from '../WhatIsThis';
 import type { Sex } from '../../utils/growthData';
-import { tealText } from '../../../../../../../../../../theme';
+import { tealText } from '../../theme';
 
 type MRow = { id: string; value: number; measuredAt: string };
 type ChartRow = {

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Autocomplete, Avatar, Box, Button, Dialog, DialogContent, Stack, TextField, Typography, useMediaQuery, useTheme } from '@mui/material';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import { photoUrlFor } from '../../config';
-import { tealText } from '../../../../../../../../../../theme';
+import { tealText } from '../../theme';
 
 /** Pega o nome do paciente (shape do /doctor/patients: {patient:{fullName}} ou {fullName}). */
 const pName = (p: any): string => p?.patient?.fullName || p?.fullName || 'Paciente';

@@ -16,7 +16,7 @@ import { AppCard } from '../components/AppCard';
 import { ListSkeleton } from '../components/Skeleton';
 import { confirmDialog } from '../components/ConfirmDialog';
 import { TYPES } from './Measurements';
-import { tealText } from '../../../../../../../../../theme';
+import { tealText } from '../theme';
 
 /**
  * Histórico por métrica (/medicoes/historico/:type) — detalhe da "central de sinais".

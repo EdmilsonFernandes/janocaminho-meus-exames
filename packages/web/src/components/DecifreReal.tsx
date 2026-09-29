@@ -10,7 +10,7 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { API_URL } from '../config';
 import { GradientButton } from './GradientButton';
-import { tealText } from '../../../../../../../../../theme';
+import { tealText } from '../theme';
 
 const GREEN = '#34d399';
 const ORANGE = '#fb923c';

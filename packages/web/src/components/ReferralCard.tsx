@@ -4,7 +4,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import ShareIcon from '@mui/icons-material/Share';
 import GiftIcon from '@mui/icons-material/CardGiftcard';
 import { API_URL, token, fetchPublicConfig } from '../config';
-import { tealText } from '../../../../../../../../../theme';
+import { tealText } from '../theme';
 
 /** Card de indicação — mostra código, copia, compartilha e estatísticas. */
 export const ReferralCard = ({ code }: { code?: string }) => {

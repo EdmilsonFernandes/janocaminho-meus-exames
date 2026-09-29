@@ -12,7 +12,7 @@ import { Title } from 'react-admin';
 import { DrExame } from '../components/DrExame';
 import { GradientButton } from '../components/GradientButton';
 import { PageContainer } from '../components/layout/PageContainer';
-import { tealText } from '../../../../../../../../../theme';
+import { tealText } from '../theme';
 
 type FaqCategory = 'comecando' | 'planos' | 'conta' | 'exames' | 'confianca' | 'medico' | 'privacidade';
 

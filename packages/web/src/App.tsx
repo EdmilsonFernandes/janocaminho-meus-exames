@@ -858,8 +858,8 @@ export const App = () => {
       <Route path="/admin" element={<AdminPage />} />
     </CustomRoutes>
 
-    <Resource name="exams" list={ExamList} show={ExamShow} create={ExamCreate} options={{ label: 'Exames' }} icon={MedicalInformationIcon} />
-    <Resource name="patients" list={PatientList} edit={PatientEdit} options={{ label: 'Dependentes' }} icon={Diversity3Icon} />
+    <Resource name="exams" list={ExamList} show={ExamShow} create={ExamCreate} options={{ label: 'Exames' }} icon={FactCheckOutlinedIcon} />
+    <Resource name="patients" list={PatientList} edit={PatientEdit} options={{ label: 'Dependentes' }} icon={Diversity3OutlinedIcon} />
     <Resource name="items" options={{ label: 'Itens' }} />
     <Resource name="analyses" options={{ label: 'Análises' }} />
 

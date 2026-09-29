@@ -13,10 +13,9 @@ import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
 import { AppCard } from '../components/AppCard';
 import { Celebration } from '../components/Celebration';
-import { SEM } from '../theme';
+import { SEM, tealText } from '../theme';
 import { deltaEntre, deltaLabel, proximaJanela } from '../utils/mental-delta';
 import {
-import { tealText } from '../../../../../../../../../theme';
   SCREENING_OPTIONS, screeningItems, maxScoreOf,
   type ScreeningType, type ScreeningSeverity,
 } from '@meus-exames/shared';

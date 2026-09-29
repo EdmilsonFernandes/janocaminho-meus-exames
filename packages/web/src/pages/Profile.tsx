@@ -23,7 +23,7 @@ import { PageSkeleton } from '../components/PageSkeleton';
 import { formatCpf, isValidCpf } from '../utils/cpf';
 import { parseHeightCm, maskHeightInput, fmtHeight } from '../utils/height';
 import { DateFieldBR } from '../components/DateFieldBR';
-import { tealText } from '../../../../../../../../../theme';
+import { tealText } from '../theme';
 
 // parseHeightCm/maskHeightInput/fmtHeight: utils/height.ts (fonte única — o mesmo bug
 // existia em 2 lugares com implementações diferentes).

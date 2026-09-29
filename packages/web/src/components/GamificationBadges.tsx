@@ -1,7 +1,7 @@
 import { Card, CardContent, Typography, Box, Stack } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import { tealText } from '../../../../../../../../../theme';
+import { tealText } from '../theme';
 
 // Preview rápido no Dashboard (streak fica no server — só em /conquistas).
 const PREVIEW = [

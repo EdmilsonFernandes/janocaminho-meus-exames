@@ -10,14 +10,14 @@ import { DrExame } from '../components/DrExame';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
 import { ListSkeleton } from '../components/Skeleton';
-import { tealText } from '../../../../../../../../../theme';
+import { tealText } from '../theme';
 
 const TYPE_META: Record<string, { emoji: string; color: string }> = {
   alert: { emoji: '🔴', color: '#ef4444' },
   trend: { emoji: '📈', color: '#f59e0b' },
   reminder: { emoji: '📅', color: '#0ea5e9' },
   info: { emoji: '✨', color: '#20b2aa' },
-  ticket: { emoji: '💬', color: (t) => tealText(t.palette.mode) },
+  ticket: { emoji: '💬', color: '#20b2aa' },
 };
 const fmtDt = (d: string) => new Date(d).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 

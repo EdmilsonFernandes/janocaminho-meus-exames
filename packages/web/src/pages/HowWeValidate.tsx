@@ -9,7 +9,7 @@ import LockIcon from '@mui/icons-material/Lock';
 import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 import { useNavigate } from 'react-router-dom';
 import { DrExame } from '../components/DrExame';
-import { tealText } from '../../../../../../../../../theme';
+import { tealText } from '../theme';
 
 /** Página pública "Como validamos" (D4 — confiança estrutural): cada regra com fonte,
  *  o que a IA faz e o que nunca faz, privacidade. Contra marketing de fachada (claims de

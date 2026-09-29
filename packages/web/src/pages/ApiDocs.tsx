@@ -6,7 +6,7 @@ import ApiIcon from '@mui/icons-material/Api';
 import KeyIcon from '@mui/icons-material/Key';
 import BoltIcon from '@mui/icons-material/Bolt';
 import TerminalIcon from '@mui/icons-material/Terminal';
-import { tealText } from '../../../../../../../../../theme';
+import { tealText } from '../theme';
 
 /**
  * Portal de documentação da API (estilo wiki — inspirado no plug&play da Minu, mas com o

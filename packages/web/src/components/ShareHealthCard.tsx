@@ -12,7 +12,7 @@
 import { useState } from 'react';
 import { Box, Button, Snackbar, Alert } from '@mui/material';
 import ShareIcon from '@mui/icons-material/Share';
-import { tealText } from '../../../../../../../../../theme';
+import { tealText } from '../theme';
 
 const APP_URL = 'https://drexame.janocaminho.com.br';
 const APP_HASHTAGS = '#MeusExames #DrExame #SaúdeInteligente';

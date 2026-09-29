@@ -7,7 +7,7 @@ import { API_URL, doctorPhotoUrl } from '../../../config';
 import { PhotoUpload } from '../../PhotoUpload';
 import { MfaSetupCard } from '../../mfa/MfaSetupCard';
 import { SPECIALTIES } from '../../../utils/medicalData';
-import { tealText } from '../../../../../../../../../../../theme';
+import { tealText } from '../../../theme';
 
 /** Empty state compacto das views do portal. */
 export const Empty = ({ label, icon = '📭' }: { label: string; icon?: string }) => (
@@ -21,7 +21,7 @@ export const Empty = ({ label, icon = '📭' }: { label: string; icon?: string }
 export const NotesTab = ({ notes, newNote, setNewNote, onAdd, onDelete, onSave }: { notes: any[]; newNote: string; setNewNote: (s: string) => void; onAdd: () => void; onDelete: (id: string) => void; onSave: (id: string, content: string) => void }) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
-  const btnSx = { borderRadius: '999px', textTransform: 'none', fontWeight: 800, bgcolor: (t) => tealText(t.palette.mode), '&:hover': { bgcolor: 'primary.main' } } as const;
+  const btnSx = { borderRadius: '999px', textTransform: 'none', fontWeight: 800, bgcolor: 'primary.dark', '&:hover': { bgcolor: 'primary.main' } } as const;
   return (
     <Box>
       <Card

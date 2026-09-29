@@ -7,7 +7,7 @@ import UploadIcon from '@mui/icons-material/Upload';
 import { API_URL, token, apiHeaders } from '../config';
 import { confirmDialog } from '../components/ConfirmDialog';
 import { TermsPage } from './Terms';
-import { tealText } from '../../../../../../../../../theme';
+import { tealText } from '../theme';
 
 /** Página de Privacidade e Termos — e o lar REAL de "Gerenciar seus dados" (export/import/
  *  exclusão LGPD mudaram do Perfil pra cá na re-arquitetura 2026-08: função de dados, não

@@ -24,12 +24,12 @@ import { PageHeader } from '../components/layout/PageHeader';
 import { AppCard } from '../components/AppCard';
 import { Sparkline } from '../components/Sparkline';
 import { STEPS_GOAL } from '../utils/activityStats';
-import { tealText } from '../../../../../../../../../theme';
+import { tealText } from '../theme';
 
 /** Ícones (sem emoji — leitor de tela lia "coração vermelho" e a linguagem do app é ícone). */
 export const TYPES = [
   { v: 'BLOOD_PRESSURE', l: 'Pressão arterial', u: 'mmHg', dual: true, color: '#dc2626', icon: <MonitorHeartIcon sx={{ fontSize: 16 }} /> },
-  { v: 'WEIGHT', l: 'Peso', u: 'kg', color: (t) => tealText(t.palette.mode), icon: <MonitorWeightIcon sx={{ fontSize: 16 }} /> },
+  { v: 'WEIGHT', l: 'Peso', u: 'kg', color: '#20b2aa', icon: <MonitorWeightIcon sx={{ fontSize: 16 }} /> },
   // Altura infantil (curvas de crescimento OMS na Evolução) — medição comum, unidade cm.
   { v: 'HEIGHT', l: 'Altura', u: 'cm', color: '#0f766e', icon: <HeightIcon sx={{ fontSize: 16 }} /> },
   { v: 'GLUCOSE', l: 'Glicose', u: 'mg/dL', color: '#c2410c', icon: <WaterDropIcon sx={{ fontSize: 16 }} /> },

@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useRef } from 'react';
 import { DrExame } from './DrExame';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
-import { tealText } from '../../../../../../../../../theme';
+import { tealText } from '../theme';
 
 /**
  * Dr. Exame flutuante — atalho pro chat.
@@ -87,7 +87,7 @@ export const FloatingChat = () => {
           {/* Badge ✨ IA — símbolo universal de inteligência artificial */}
           <Box sx={{
             position: 'absolute', top: -2, right: -2, width: 18, height: 18, borderRadius: '50%',
-            bgcolor: (t) => tealText(t.palette.mode),
+            bgcolor: 'primary.dark',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             animation: 'drSpark 2.2s ease-in-out infinite',
           }}>

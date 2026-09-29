@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, Typography, Button, Stack, TextField, CircularProgress, Alert, Box, Chip } from '@mui/material';
-import { tealText } from '../../../../../../../../../../theme';
+import { tealText } from '../../theme';
 
 /** Card de configuração MFA (TOTP 2FA) — reutilizável pra paciente e médico.
  *  apiBase = '/api/auth' (paciente) ou '/api/doctor' (médico). authToken = JWT. */

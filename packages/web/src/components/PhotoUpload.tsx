@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { Avatar, IconButton, Box, Typography } from '@mui/material';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import { API_URL, token, photoUrlFor } from '../config';
-import { tealText } from '../../../../../../../../../theme';
+import { tealText } from '../theme';
 
 /**
  * Upload de foto com preview circular. Cache-bust controlado por `version` (sincroniza
@@ -66,7 +66,7 @@ export const PhotoUpload = ({
           size="small"
           onClick={() => inputRef.current?.click()}
           disabled={uploading || !targetUrl}
-          sx={{ position: 'absolute', bottom: -2, right: -2, bgcolor: 'primary.main', color: '#fff', '&:hover': { bgcolor: (t) => tealText(t.palette.mode) }, width: 28, height: 28 }}
+          sx={{ position: 'absolute', bottom: -2, right: -2, bgcolor: 'primary.main', color: '#fff', '&:hover': { bgcolor: 'primary.dark' }, width: 28, height: 28 }}
         >
           <PhotoCameraIcon sx={{ fontSize: 16 }} />
         </IconButton>

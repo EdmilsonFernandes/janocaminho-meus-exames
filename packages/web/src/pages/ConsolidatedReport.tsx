@@ -81,7 +81,7 @@ const ReportPreviewCard = ({
           </Typography>
         </Box>
         <Stack spacing={1} alignItems={{ xs: 'stretch', md: 'flex-end' }} sx={{ flexShrink: 0 }}>
-          <Button variant="contained" size="large" startIcon={loading ? <CircularProgress size={18} color="inherit" /> : <DescriptionIcon />} onClick={onGenerate} disabled={disabled} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 900, bgcolor: (t) => tealText(t.palette.mode), boxShadow: 'none', '&:hover': { bgcolor: '#0f766e', boxShadow: 'none' } }}>
+          <Button variant="contained" size="large" startIcon={loading ? <CircularProgress size={18} color="inherit" /> : <DescriptionIcon />} onClick={onGenerate} disabled={disabled} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 900, bgcolor: 'primary.dark', boxShadow: 'none', '&:hover': { bgcolor: '#0f766e', boxShadow: 'none' } }}>
             {loading ? 'Gerando...' : 'Gerar relatório completo'}
           </Button>
           <Box sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
@@ -410,7 +410,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
           <Box sx={{ fontSize: 56, mb: 1.5, opacity: 0.4 }}>📄</Box>
           <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 18, mb: 1 }}>Você ainda não tem exames</Typography>
           <Typography color="text.secondary" sx={{ mb: 2.5 }}>Envie seu primeiro exame de sangue, imagem ou laudo para gerar um relatório completo da sua saúde.</Typography>
-          <Button variant="contained" onClick={() => navigate('/exams')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 4, bgcolor: (t) => tealText(t.palette.mode) }}>Enviar meu primeiro exame →</Button>
+          <Button variant="contained" onClick={() => navigate('/exams')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 4, bgcolor: 'primary.dark' }}>Enviar meu primeiro exame →</Button>
         </Box>
       )}
       {!loading && !analysis && examCount !== 0 && (

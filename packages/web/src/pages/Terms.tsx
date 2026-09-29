@@ -1,7 +1,7 @@
 import { Box, Container, Typography, Link as MuiLink, Divider } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { DrExame } from '../components/DrExame';
-import { tealText } from '../../../../../../../../../theme';
+import { tealText } from '../theme';
 
 const H = ({ children }: { children: React.ReactNode }) => <Typography variant="h6" sx={{ fontWeight: 800, mt: 3, mb: 1, color: (t) => tealText(t.palette.mode) }}>{children}</Typography>;
 const P = ({ children }: { children: React.ReactNode }) => <Typography variant="body2" sx={{ mb: 1, lineHeight: 1.7 }}>{children}</Typography>;
