@@ -512,7 +512,14 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
         <Box sx={{ mt: 2 }}>
           {summary ? (
             <>
-              <HealthSummary analysis={summary} />
+              {/* 29/09: regenerar TAMBÉM é espera de IA — antes só um spinner 18px no
+                  botão (dono: "gerar resumo não veio animação"). Cena do robô durante
+                  a regeneração; o resumo volta quando termina. */}
+              {genLoading ? (
+                <Box sx={{ py: 2 }}><RobotAnalysis label="Dr. Exame está regenerando seu resumo" /></Box>
+              ) : (
+                <HealthSummary analysis={summary} />
+              )}
               <Box sx={{ mt: 1.5, textAlign: 'center' }}>
                 <Button size="small" variant="outlined" onClick={() => generateSummary(true)} disabled={genLoading}>
                   {genLoading ? <CircularProgress size={18} /> : '↻ Regenerar resumo'}

@@ -339,7 +339,12 @@ const MentalCard = ({ mental, mentalOffline, introDismissed, onDismissIntro, onO
         <Typography component="h2" sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: 13.5, lineHeight: 1.2 }}>Saúde mental</Typography>
         <Stack direction="row" spacing={0.75} alignItems="center" sx={{ flexWrap: 'wrap', rowGap: 0.25 }}>
           <Typography noWrap sx={{ fontWeight: 800, fontSize: 15, lineHeight: 1.3, color: 'text.primary' }}>
-            {latest.type === 'phq9' ? 'PHQ-9' : 'GAD-7'} {latest.total} · {latest.severity.label}
+            {latest.type === 'phq9' ? 'PHQ-9' : 'GAD-7'} {latest.total}/{latest.type === 'phq9' ? 27 : 21} · {latest.severity.label}
+            {/* 29/09 (dono: "não explicou de quanto a quanto vai") — range da faixa atual. */}
+            {' '}({(latest.type === 'phq9'
+              ? { minima: '0-4', leve: '5-9', moderada: '10-14', moderadamente_grave: '15-19', grave: '20-27' }
+              : { minima: '0-4', leve: '5-9', moderada: '10-14', moderadamente_grave: '15-21', grave: '15-21' }
+            )[latest.severity.key] ?? ''})
           </Typography>
           {delta && prev && (
             <Chip
