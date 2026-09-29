@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Box, Typography, LinearProgress, Button } from '@mui/material';
-import { DrExame } from './DrExame';
+import { RobotAnalysis } from './RobotAnalysis';
 import { tealText } from '../theme';
 
 const STAGES = [
@@ -28,12 +28,12 @@ export const ReportGeneratingCard = ({ startedAt, onLeave }: { startedAt?: numbe
 
   return (
     <Box sx={{ mt: 2, py: { xs: 4, md: 6 }, px: 3, borderRadius: '20px', textAlign: 'center', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 12px rgba(0,0,0,.04)' }}>
-      <Box sx={{ display: 'inline-block', animation: 'rGCbob 1.6s ease-in-out infinite', '@media (prefers-reduced-motion: reduce)': { animation: 'none' } }}>
-        <DrExame size={84} sx={{ borderRadius: '20%', boxShadow: '0 6px 18px rgba(32,178,170,.22)' }} />
+      {/* 28/09: cena do Dr. Exame analisando (robô caminha pela esteira de exames
+          conferindo ✓ um a um — "de desenhista", padrão iFood de loading premium).
+          Substitui o avatar estático + bob; estágios/timer seguem embaixo. */}
+      <Box sx={{ maxWidth: 300, mx: 'auto', mb: 0.5 }}>
+        <RobotAnalysis label="Montando seu relatório completo" />
       </Box>
-      <Typography sx={{ mt: 1.5, color: (t) => tealText(t.palette.mode), fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: { xs: 17, md: 19 } }}>
-        Montando seu relatório completo
-      </Typography>
       <Typography color="text.secondary" sx={{ mb: 2, minHeight: 24, fontSize: 14 }}>
         {STAGES[stage].emoji} {STAGES[stage].msg}
       </Typography>

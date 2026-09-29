@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { Box, Typography, LinearProgress, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { DrExame } from './DrExame';
+import { RobotAnalysis } from './RobotAnalysis';
 import { API_URL, token } from '../config';
 import { tealText } from '../theme';
 
@@ -53,10 +54,11 @@ export const ExtractionProgress = ({ startedAt, examId }: { startedAt?: string; 
 
   return (
     <Box sx={{ textAlign: 'center', py: 5, px: 3, mt: 2, borderRadius: '12px', background: 'linear-gradient(135deg, rgba(32,178,170,.06), rgba(99,102,241,.04))', border: '1px solid rgba(0,0,0,.06)' }}>
-      <Box sx={{ display: 'inline-block', animation: 'drBob 1.6s ease-in-out infinite' }}>
-        <DrExame size={88} sx={{ borderRadius: '20%', boxShadow: '0 6px 18px rgba(32,178,170,.22)' }} />
+      {/* 28/09: cena premium "analisando" (robô na esteira de exames conferindo ✓) —
+          mesmo componente do relatório completo; estágios/timer/watchdog seguem. */}
+      <Box sx={{ maxWidth: 300, mx: 'auto' }}>
+        <RobotAnalysis label="Dr. Exame está analisando seu exame" />
       </Box>
-      <Typography sx={{ mt: 1.5, color: (t) => tealText(t.palette.mode), fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 18 }}>Dr. Exame está analisando seu exame</Typography>
 
       {/* Mensagem do estágio atual (rotativa a cada 5s) */}
       <Typography color="text.secondary" sx={{ mb: 2, minHeight: 24, fontSize: 14 }}>
