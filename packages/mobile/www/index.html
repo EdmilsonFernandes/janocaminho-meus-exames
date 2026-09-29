@@ -76,7 +76,7 @@
       /* Mobile: folga no rodapé do conteúdo pra o FAB do Dr. Exame não cobrir paginação/rodapé. */
       @media (max-width: 599px) { #main-content { padding-bottom: 84px !important; } }
     </style>
-    <script type="module" crossorigin src="./assets/index-CVVk50uj.js"></script>
+    <script type="module" crossorigin src="./assets/index-ChmcJOin.js"></script>
     <link rel="modulepreload" crossorigin href="./assets/rolldown-runtime-QTnfLwEv.js">
     <link rel="modulepreload" crossorigin href="./assets/vendor-ui-CNUpKZ5e.js">
     <link rel="modulepreload" crossorigin href="./assets/vendor-admin-CTq8EvrT.js">
@@ -144,7 +144,11 @@
          não casa — era o vazamento do "libras aparece mesmo desligado". */
       body.libras-off #vlibras-host, body.libras-off [vw], body.libras-off [vw].enabled, body.libras-off div[vw-access-button],
       body.libras-off [id*="vlibras"],
-      body.libras-off [vw-plugin-wrapper], body.libras-off [class*="vp"], body.libras-off [class*="vw"], body.libras-off [class*="vpw"] {
+      /* 29/09 — BUG CRÍTICO: [class*="vw"] casava com hashes do MUI (css-VW... → css-vwa7ij!)
+         por CONTER "vw" — cards/dialogos inteiros sumiam "do nada" (Tendências, Sobre… no dark
+         o hash mudava e caía na loteria). ^= casa só classes que COMEÇAM com vp/vpw (as reais
+         do VLibras) — nunca com "css-vwXXXX" do emotion. */
+      body.libras-off [vw-plugin-wrapper], body.libras-off [class^="vp"], body.libras-off [class^="vw"], body.libras-off [class^="vpw"] {
         display: none !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important;
       }
     </style>
