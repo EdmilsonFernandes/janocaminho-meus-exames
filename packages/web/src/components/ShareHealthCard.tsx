@@ -12,6 +12,7 @@
 import { useState } from 'react';
 import { Box, Button, Snackbar, Alert } from '@mui/material';
 import ShareIcon from '@mui/icons-material/Share';
+import { tealText } from '../../../../../../../../../theme';
 
 const APP_URL = 'https://drexame.janocaminho.com.br';
 const APP_HASHTAGS = '#MeusExames #DrExame #SaúdeInteligente';
@@ -54,7 +55,7 @@ export const ShareHealthButton = ({ score, biologicalAge }: { score?: number | n
         onClick={share}
         sx={{
           borderRadius: '999px', textTransform: 'none', fontWeight: 700, py: 1, px: 2.5,
-          bgcolor: 'rgba(32,178,170,.08)', color: '#178f89',
+          bgcolor: 'rgba(32,178,170,.08)', color: (t) => tealText(t.palette.mode),
           border: '1px solid', borderColor: 'rgba(32,178,170,.3)',
           '&:hover': { bgcolor: 'rgba(32,178,170,.14)', borderColor: '#20b2aa' },
         }}

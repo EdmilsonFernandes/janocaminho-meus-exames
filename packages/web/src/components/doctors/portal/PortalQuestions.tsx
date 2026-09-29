@@ -8,6 +8,7 @@ import { AppCard } from '../../AppCard';
 import { QuestionStatusBadge } from '../../QuestionStatusBadge';
 import { photoUrlFor } from '../../../config';
 import { a11yClick, focusRingSx } from './shared';
+import { tealText } from '../../../../../../../../../../../theme';
 
 /** Respostas prontas pro médico (chips de 1 clique) — frases de triagem neutras. */
 export const QUICK_REPLIES = [
@@ -36,7 +37,7 @@ export const PortalQuestions = ({ allQ, allQLoading, patients, qText, setQText, 
               <AppCard key={q.id} sx={{ mb: 1.5, border: '1px solid', borderColor: answered ? 'divider' : 'transparent', borderRadius: '20px' }}><CardContent sx={{ p: { xs: 1.75, md: 2 } }}>
                 <Stack direction="row" alignItems="center" spacing={1.25}>
                   <Box role="button" tabIndex={0} {...a11yClick(() => onGoToPatient(q.patientId))} title="Abrir o paciente" sx={{ display: 'flex', alignItems: 'center', gap: 1.25, flex: 1, minWidth: 0, cursor: 'pointer', borderRadius: '14px', mx: -0.5, px: 0.75, py: 0.5, transition: 'background .15s', '&:hover': { bgcolor: 'rgba(32,178,170,.06)' }, ...focusRingSx }}>
-                    <Avatar src={q.patient?.id ? photoUrlFor(q.patient.id) : undefined} sx={{ bgcolor: 'primary.dark', fontWeight: 800, width: 44, height: 44, flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>{q.patient?.fullName?.charAt(0)}</Avatar>
+                    <Avatar src={q.patient?.id ? photoUrlFor(q.patient.id) : undefined} sx={{ bgcolor: (t) => tealText(t.palette.mode), fontWeight: 800, width: 44, height: 44, flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>{q.patient?.fullName?.charAt(0)}</Avatar>
                     <Box sx={{ minWidth: 0 }}>
                       <Stack direction="row" spacing={0.75} alignItems="center" sx={{ flexWrap: 'wrap', rowGap: 0.5 }}>
                         <Typography sx={{ fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>{q.patient?.fullName}<OpenInNewIcon sx={{ fontSize: 13, color: 'text.disabled' }} /></Typography>
@@ -53,18 +54,18 @@ export const PortalQuestions = ({ allQ, allQLoading, patients, qText, setQText, 
                   <Box sx={{ mt: 1.5 }}>
                     <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary' }}>⚡ Resposta rápida:</Typography>
                     <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.75, mb: 1.25 }}>
-                      {QUICK_REPLIES.map((t) => <Chip key={t} size="small" variant="outlined" label={t} onClick={() => setQText((prev) => ({ ...prev, [q.id]: t }))} sx={{ fontWeight: 600, height: 'auto', maxWidth: '100%', borderRadius: '999px', py: 0.5, borderColor: 'rgba(32,178,170,.4)', color: 'primary.dark', '& .MuiChip-label': { whiteSpace: 'normal', lineHeight: 1.3 }, '&:hover': { bgcolor: 'rgba(32,178,170,.08)' } }} />)}
+                      {QUICK_REPLIES.map((t) => <Chip key={t} size="small" variant="outlined" label={t} onClick={() => setQText((prev) => ({ ...prev, [q.id]: t }))} sx={{ fontWeight: 600, height: 'auto', maxWidth: '100%', borderRadius: '999px', py: 0.5, borderColor: 'rgba(32,178,170,.4)', color: (t) => tealText(t.palette.mode), '& .MuiChip-label': { whiteSpace: 'normal', lineHeight: 1.3 }, '&:hover': { bgcolor: 'rgba(32,178,170,.08)' } }} />)}
                     </Stack>
                     <TextField multiline minRows={2} size="small" fullWidth placeholder="Escrever resposta…" value={qText[q.id] ?? ''} onChange={(e) => setQText((t) => ({ ...t, [q.id]: e.target.value }))} sx={{ '& .MuiOutlinedInput-root': { borderRadius: '14px' } }} />
                     <Stack direction="row" spacing={1} sx={{ mt: 1 }} justifyContent="flex-end">
                       <Button size="small" onClick={() => { setQText((t) => ({ ...t, [q.id]: '' })); setReplyOpen(null); }} sx={{ textTransform: 'none', fontWeight: 700, color: 'text.secondary', borderRadius: '999px' }}>Cancelar</Button>
-                      <Button size="small" variant="contained" disabled={qSending === q.id || !(qText[q.id]?.trim())} onClick={() => onAnswer(q.id)} startIcon={qSending === q.id ? <CircularProgress size={14} color="inherit" /> : undefined} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: 'primary.main', boxShadow: 'none', '&:hover': { bgcolor: 'primary.dark' } }}>{qSending === q.id ? 'Enviando…' : 'Enviar resposta'}</Button>
+                      <Button size="small" variant="contained" disabled={qSending === q.id || !(qText[q.id]?.trim())} onClick={() => onAnswer(q.id)} startIcon={qSending === q.id ? <CircularProgress size={14} color="inherit" /> : undefined} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: 'primary.main', boxShadow: 'none', '&:hover': { bgcolor: (t) => tealText(t.palette.mode) } }}>{qSending === q.id ? 'Enviando…' : 'Enviar resposta'}</Button>
                     </Stack>
                   </Box>
                 )}
                 {answered && lastDoctor && (
                   <Box sx={{ mt: 1.25, p: 1.25, px: 1.5, borderRadius: '16px', bgcolor: (t) => t.palette.mode === 'dark' ? '#1e2d2c' : '#e0f2f1', border: '1px solid', borderColor: 'rgba(32,178,170,.25)' }}>
-                    <Typography variant="caption" sx={{ fontWeight: 700, color: 'primary.dark' }}>Sua resposta</Typography>
+                    <Typography variant="caption" sx={{ fontWeight: 700, color: (t) => tealText(t.palette.mode) }}>Sua resposta</Typography>
                     <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', mt: 0.25 }}>{String(lastDoctor.body)}</Typography>
                   </Box>
                 )}
@@ -78,9 +79,9 @@ export const PortalQuestions = ({ allQ, allQLoading, patients, qText, setQText, 
                   <Typography variant="h6" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>Perguntas</Typography>
                   <Typography variant="caption" color="text.secondary">{openQ.length} em aberto · {answeredQ.length} respondidas</Typography>
                 </Box>
-                <IconButton onClick={onRefresh} disabled={allQLoading} sx={{ color: 'primary.dark' }}><RefreshIcon /></IconButton>
+                <IconButton onClick={onRefresh} disabled={allQLoading} sx={{ color: (t) => tealText(t.palette.mode) }}><RefreshIcon /></IconButton>
               </Stack>
-              {allQLoading && <Box sx={{ textAlign: 'center', py: 4 }}><CircularProgress sx={{ color: 'primary.dark' }} /></Box>}
+              {allQLoading && <Box sx={{ textAlign: 'center', py: 4 }}><CircularProgress sx={{ color: (t) => tealText(t.palette.mode) }} /></Box>}
               {!allQLoading && allQ.length === 0 && (
                 <AppCard sx={{ borderRadius: '20px' }}><CardContent><Box sx={{ textAlign: 'center', py: 5 }}>
                   <Box sx={{ fontSize: 56, mb: 1.5, opacity: 0.4 }}>💬</Box>
@@ -98,7 +99,7 @@ export const PortalQuestions = ({ allQ, allQLoading, patients, qText, setQText, 
                       <Accordion key={g.p?.id} elevation={0} sx={{ '&:before': { display: 'none' }, border: '1px solid', borderColor: 'divider', borderRadius: '20px !important', overflow: 'hidden', boxShadow: (t) => t.palette.mode === 'dark' ? '0 4px 14px rgba(0,0,0,0.2)' : '0 2px 8px rgba(0,0,0,0.03)' }}>
                         <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '52px !important', '& .MuiAccordionSummary-content': { my: 0.75 } }}>
                           <Stack direction="row" alignItems="center" spacing={1.5} sx={{ flex: 1, minWidth: 0 }}>
-                            <Avatar src={g.p?.id ? photoUrlFor(g.p.id) : undefined} sx={{ width: 40, height: 40, bgcolor: 'primary.dark', fontSize: 15, fontWeight: 700, flexShrink: 0 }}>{(g.p?.fullName || 'P').charAt(0)}</Avatar>
+                            <Avatar src={g.p?.id ? photoUrlFor(g.p.id) : undefined} sx={{ width: 40, height: 40, bgcolor: (t) => tealText(t.palette.mode), fontSize: 15, fontWeight: 700, flexShrink: 0 }}>{(g.p?.fullName || 'P').charAt(0)}</Avatar>
                             <Box sx={{ flex: 1, minWidth: 0 }}>
                               <Typography sx={{ fontWeight: 800, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.p?.fullName || 'Paciente'}</Typography>
                               <Typography variant="caption" color="text.secondary">{g.qs.length} pergunta(s) · última {new Date(g.last).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</Typography>
@@ -124,12 +125,12 @@ export const PortalQuestions = ({ allQ, allQLoading, patients, qText, setQText, 
                       <Accordion key={g.p?.id} elevation={0} sx={{ '&:before': { display: 'none' }, border: '1px solid', borderColor: 'divider', borderRadius: '12px !important', overflow: 'hidden' }}>
                         <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '52px !important', '& .MuiAccordionSummary-content': { my: 0.75 } }}>
                           <Stack direction="row" alignItems="center" spacing={1.5} sx={{ flex: 1, minWidth: 0 }}>
-                            <Avatar src={g.p?.id ? photoUrlFor(g.p.id) : undefined} sx={{ width: 40, height: 40, bgcolor: 'rgba(32,178,170,.08)', color: 'primary.dark', fontSize: 15, fontWeight: 700, flexShrink: 0 }}>{(g.p?.fullName || 'P').charAt(0)}</Avatar>
+                            <Avatar src={g.p?.id ? photoUrlFor(g.p.id) : undefined} sx={{ width: 40, height: 40, bgcolor: 'rgba(32,178,170,.08)', color: (t) => tealText(t.palette.mode), fontSize: 15, fontWeight: 700, flexShrink: 0 }}>{(g.p?.fullName || 'P').charAt(0)}</Avatar>
                             <Box sx={{ flex: 1, minWidth: 0 }}>
                               <Typography sx={{ fontWeight: 800, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'text.secondary' }}>{g.p?.fullName || 'Paciente'}</Typography>
                               <Typography variant="caption" color="text.secondary">{g.qs.length} respondida(s) · última {new Date(g.last).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</Typography>
                             </Box>
-                            <Chip size="small" label="✓" sx={{ height: 22, fontWeight: 700, bgcolor: 'rgba(32,178,170,.12)', color: 'primary.dark', flexShrink: 0 }} />
+                            <Chip size="small" label="✓" sx={{ height: 22, fontWeight: 700, bgcolor: 'rgba(32,178,170,.12)', color: (t) => tealText(t.palette.mode), flexShrink: 0 }} />
                           </Stack>
                         </AccordionSummary>
                         <AccordionDetails sx={{ p: 1.5, pt: 0.5 }}>

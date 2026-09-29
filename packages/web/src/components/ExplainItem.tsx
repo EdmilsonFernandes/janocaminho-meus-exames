@@ -4,6 +4,7 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { explainExam, type ExamExplain } from '../data/examDictionary';
 import { API_URL, token } from '../config';
+import { tealText } from '../../../../../../../../../theme';
 
 // Cache de sessão: 2ª vez que abre o mesmo "?" não vai na rede (o backend também
 // cacheia em arquivo, então a 1ª vez de QUALQUER usuário já fica salva p/ todos).
@@ -80,7 +81,7 @@ export const ExplainButton = ({ name, nameCanonical, size = 'small' }: { name: s
     if (state === 'ok' && data) {
       return (
         <>
-          <Typography id={titleId} sx={{ fontWeight: 800, color: 'primary.dark', fontSize: '1.05rem' }}>{data.titulo}</Typography>
+          <Typography id={titleId} sx={{ fontWeight: 800, color: (t) => tealText(t.palette.mode), fontSize: '1.05rem' }}>{data.titulo}</Typography>
           <Typography variant="body2" sx={{ mt: 0.5 }}>{data.resumo}</Typography>
           {data.analogia && <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>💡 {data.analogia}</Typography>}
           {data.alterado && (
@@ -92,7 +93,7 @@ export const ExplainButton = ({ name, nameCanonical, size = 'small' }: { name: s
     if (state === 'error') {
       return (
         <>
-          <Typography id={titleId} sx={{ fontWeight: 800, color: 'primary.dark', fontSize: '1.05rem' }}>Não foi possível carregar</Typography>
+          <Typography id={titleId} sx={{ fontWeight: 800, color: (t) => tealText(t.palette.mode), fontSize: '1.05rem' }}>Não foi possível carregar</Typography>
           <Typography variant="body2" sx={{ mt: 0.5, color: 'text.secondary' }}>{errorReason || 'Tente novamente em instantes.'}</Typography>
           <Button
             ref={(el: HTMLButtonElement) => { firstFocusRef.current = el; }}

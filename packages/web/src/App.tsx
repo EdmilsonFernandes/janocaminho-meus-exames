@@ -8,30 +8,36 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CloseIcon from '@mui/icons-material/Close';
 import MenuIcon from '@mui/icons-material/Menu';
-import InsightsIcon from '@mui/icons-material/Insights';
-import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
-import HistoryIcon from '@mui/icons-material/History';
-import EventAvailableIcon from '@mui/icons-material/EventAvailable';
-import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
-import VaccinesIcon from '@mui/icons-material/Vaccines';
-import MedicationIcon from '@mui/icons-material/Medication';
-import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
-import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
+// Menu V2 seção E — família Outlined consistente no AppMenu (audit navegação: peso visual
+// irregular com filled misturado; Emergência≠Privacidade resolvem o ícone duplicado).
+import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
+import FactCheckOutlinedIcon from '@mui/icons-material/FactCheckOutlined';
+import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined';
+import InsightsOutlinedIcon from '@mui/icons-material/InsightsOutlined';
+import QueryStatsOutlinedIcon from '@mui/icons-material/QueryStatsOutlined';
+import HistoryOutlinedIcon from '@mui/icons-material/HistoryOutlined';
+import SummarizeOutlinedIcon from '@mui/icons-material/SummarizeOutlined';
+import MonitorHeartOutlinedIcon from '@mui/icons-material/MonitorHeartOutlined';
+import MedicationOutlinedIcon from '@mui/icons-material/MedicationOutlined';
+import VaccinesOutlinedIcon from '@mui/icons-material/VaccinesOutlined';
+import EventAvailableOutlinedIcon from '@mui/icons-material/EventAvailableOutlined';
+import EmergencyOutlinedIcon from '@mui/icons-material/EmergencyOutlined';
+import EmojiEventsOutlinedIcon from '@mui/icons-material/EmojiEventsOutlined';
+import AccountBalanceWalletOutlinedIcon from '@mui/icons-material/AccountBalanceWalletOutlined';
+import Diversity3OutlinedIcon from '@mui/icons-material/Diversity3Outlined';
+import MedicalServicesOutlinedIcon from '@mui/icons-material/MedicalServicesOutlined';
+import QuestionAnswerOutlinedIcon from '@mui/icons-material/QuestionAnswerOutlined';
+import ManageAccountsOutlinedIcon from '@mui/icons-material/ManageAccountsOutlined';
+import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import HealthAndSafetyOutlinedIcon from '@mui/icons-material/HealthAndSafetyOutlined';
+import WorkspacePremiumOutlinedIcon from '@mui/icons-material/WorkspacePremiumOutlined';
+import AdminPanelSettingsOutlinedIcon from '@mui/icons-material/AdminPanelSettingsOutlined';
+import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
-import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
-import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
-import LockIcon from '@mui/icons-material/Lock';
-import MedicalInformationIcon from '@mui/icons-material/MedicalInformation';
-import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
-import WarningAmberIcon from '@mui/icons-material/WarningAmber';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import Diversity3Icon from '@mui/icons-material/Diversity3';
-import SummarizeIcon from '@mui/icons-material/Summarize';
-import QueryStatsIcon from '@mui/icons-material/QueryStats';
-import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
-import InfoIcon from '@mui/icons-material/Info';
 import { DrExame } from './components/DrExame';
 import { dataProvider } from './dataProvider';
 import { API_URL, token, photoUrlFor } from './config';
@@ -389,46 +395,51 @@ const AppMenu = () => {
   <Box component="nav" sx={{ py: 1, display: 'flex', flexDirection: 'column', minHeight: '100%', width: '100%', minWidth: 0, maxWidth: '100%', containerType: 'inline-size', overflowX: 'hidden', overflowY: 'auto', maxHeight: '100vh', '& .MuiListItemButton-root, & .MuiMenuItem-root': { flex: '0 0 auto' } }}>
     {isDesktop && <UserProfileCard />}
     {isDesktop && <Divider sx={{ borderColor: (t) => alpha(t.palette.primary.main, 0.12), mx: 2, mb: 1 }} />}
-    <MenuSectionAccordion title={translate('menu.section.exams')} icon={<MedicalInformationIcon />} routes={['/exams', '/alterados', '/evolucao', '/tendencias', '/linha-do-tempo', '/relatorio']}>
-      <NavItem to="/exams" primaryText={translate('menu.exams')} icon={<MedicalInformationIcon />} />
-      <NavItem to="/alterados" primaryText={translate('menu.alterados')} icon={<WarningAmberIcon />} highlight />
-      <NavItem to="/evolucao" primaryText={translate('menu.evolution')} icon={<InsightsIcon />} />
-      <NavItem to="/tendencias" primaryText={translate('menu.trends')} icon={<QueryStatsIcon />} />
-      <NavItem to="/linha-do-tempo" primaryText={translate('menu.timeline')} icon={<HistoryIcon />} />
-      <NavItem to="/relatorio" primaryText={translate('menu.report')} icon={<SummarizeIcon />} />
+    {/* Início fora dos acordeões: desktop NÃO tem bottom-nav — sem isto, quem navega
+        pra qualquer tela perde o caminho de volta ao dashboard (beco sem saída). */}
+    <NavItem to="/" primaryText={translate('menu.home', { _: 'Início' })} icon={<HomeOutlinedIcon />} />
+    <MenuSectionAccordion title={translate('menu.section.exams')} icon={<FactCheckOutlinedIcon />} routes={['/exams', '/alterados', '/evolucao', '/tendencias', '/linha-do-tempo', '/relatorio']}>
+      <NavItem to="/exams" primaryText={translate('menu.exams')} icon={<FactCheckOutlinedIcon />} />
+      <NavItem to="/alterados" primaryText={translate('menu.alterados')} icon={<WarningAmberOutlinedIcon />} highlight />
+      <NavItem to="/evolucao" primaryText={translate('menu.evolution')} icon={<InsightsOutlinedIcon />} />
+      <NavItem to="/tendencias" primaryText={translate('menu.trends')} icon={<QueryStatsOutlinedIcon />} />
+      <NavItem to="/linha-do-tempo" primaryText={translate('menu.timeline')} icon={<HistoryOutlinedIcon />} />
+      <NavItem to="/relatorio" primaryText={translate('menu.report')} icon={<SummarizeOutlinedIcon />} />
     </MenuSectionAccordion>
 
-    <MenuSectionAccordion title={translate('menu.section.care')} icon={<MonitorHeartIcon />} routes={['/medicoes', '/medicamentos', '/vacinas', '/lembretes', '/emergencia', '/conquistas', '/despesas']}>
-      <NavItem to="/medicoes" primaryText={translate('menu.measurements')} icon={<MonitorHeartIcon />} />
-      <NavItem to="/medicamentos" primaryText={translate('menu.medications')} icon={<MedicationIcon />} />
-      <NavItem to="/vacinas" primaryText={translate('menu.vaccines')} icon={<VaccinesIcon />} />
-      <NavItem to="/lembretes" primaryText={translate('menu.reminders')} icon={<EventAvailableIcon />} />
-      <NavItem to="/emergencia" primaryText={translate('menu.emergency')} icon={<HealthAndSafetyIcon />} highlight />
-      <NavItem to="/conquistas" primaryText={translate('menu.achievements')} icon={<EmojiEventsIcon />} />
+    <MenuSectionAccordion title={translate('menu.section.care')} icon={<MonitorHeartOutlinedIcon />} routes={['/medicoes', '/medicamentos', '/vacinas', '/lembretes', '/emergencia', '/conquistas', '/despesas']}>
+      <NavItem to="/medicoes" primaryText={translate('menu.measurements')} icon={<MonitorHeartOutlinedIcon />} />
+      <NavItem to="/medicamentos" primaryText={translate('menu.medications')} icon={<MedicationOutlinedIcon />} />
+      <NavItem to="/vacinas" primaryText={translate('menu.vaccines')} icon={<VaccinesOutlinedIcon />} />
+      <NavItem to="/lembretes" primaryText={translate('menu.reminders')} icon={<EventAvailableOutlinedIcon />} />
+      {/* Emergência ganha ícone PRÓPRIO (semáforo SOS) — antes repetia HealthAndSafety
+          da Privacidade: funções distintas, mesmo glifo = confusão na busca visual. */}
+      <NavItem to="/emergencia" primaryText={translate('menu.emergency')} icon={<EmergencyOutlinedIcon />} highlight />
+      <NavItem to="/conquistas" primaryText={translate('menu.achievements')} icon={<EmojiEventsOutlinedIcon />} />
       {/* Despesa médica é CUIDADO de saúde (pedido do dono) — antes ficava em "Conta". */}
-      <NavItem to="/despesas" primaryText={translate('menu.expenses')} icon={<AccountBalanceWalletIcon />} />
+      <NavItem to="/despesas" primaryText={translate('menu.expenses')} icon={<AccountBalanceWalletOutlinedIcon />} />
     </MenuSectionAccordion>
 
-    <MenuSectionAccordion title={translate('menu.section.people')} icon={<Diversity3Icon />} routes={['/familia', '/patients', '/medicos', '/perguntas']}>
-      <NavItem to="/familia" primaryText={translate('menu.family_full')} icon={<Diversity3Icon />} />
-      <NavItem to="/medicos" primaryText={translate('menu.doctors')} icon={<MedicalServicesIcon />} />
-      <NavItem to="/perguntas" primaryText={translate('menu.questions')} icon={<QuestionAnswerIcon />} />
+    <MenuSectionAccordion title={translate('menu.section.people')} icon={<Diversity3OutlinedIcon />} routes={['/familia', '/patients', '/medicos', '/perguntas']}>
+      <NavItem to="/familia" primaryText={translate('menu.family_full')} icon={<Diversity3OutlinedIcon />} />
+      <NavItem to="/medicos" primaryText={translate('menu.doctors')} icon={<MedicalServicesOutlinedIcon />} />
+      <NavItem to="/perguntas" primaryText={translate('menu.questions')} icon={<QuestionAnswerOutlinedIcon />} />
     </MenuSectionAccordion>
 
-    <MenuSectionAccordion title={translate('menu.section.account')} icon={<AccountCircleIcon />} routes={['/perfil', '/seguranca', '/privacidade', '/planos', '/admin']}>
-      <NavItem to="/perfil" primaryText={translate('menu.profile')} icon={<AccountCircleIcon />} />
-      <NavItem to="/seguranca" primaryText={translate('menu.security_pwd')} icon={<LockIcon />} />
-      <NavItem to="/privacidade" primaryText={translate('menu.privacy')} icon={<HealthAndSafetyIcon />} />
-      <NavItem to="/planos" primaryText={translate('menu.plans')} icon={<WorkspacePremiumIcon />} />
-      {isAdmin && <NavItem to="/admin" primaryText={translate('menu.admin')} icon={<AdminPanelSettingsIcon />} />}
+    <MenuSectionAccordion title={translate('menu.section.account')} icon={<ManageAccountsOutlinedIcon />} routes={['/perfil', '/seguranca', '/privacidade', '/planos', '/admin']}>
+      <NavItem to="/perfil" primaryText={translate('menu.profile')} icon={<AccountCircleOutlinedIcon />} />
+      <NavItem to="/seguranca" primaryText={translate('menu.security_pwd')} icon={<LockOutlinedIcon />} />
+      <NavItem to="/privacidade" primaryText={translate('menu.privacy')} icon={<HealthAndSafetyOutlinedIcon />} />
+      <NavItem to="/planos" primaryText={translate('menu.plans')} icon={<WorkspacePremiumOutlinedIcon />} />
+      {isAdmin && <NavItem to="/admin" primaryText={translate('menu.admin')} icon={<AdminPanelSettingsOutlinedIcon />} />}
     </MenuSectionAccordion>
 
     {/* Gradient divider premium */}
     <Box sx={{ mx: 2, my: 1, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(32,178,170,.2) 30%, rgba(32,178,170,.2) 70%, transparent)' }} />
 
-    <NavItem to="/faq" primaryText={translate('menu.faq', { _: 'Dúvidas frequentes' })} icon={<QuestionAnswerIcon />} />
+    <NavItem to="/faq" primaryText={translate('menu.faq', { _: 'Dúvidas frequentes' })} icon={<HelpOutlineOutlinedIcon />} />
     <MenuItem onClick={() => setAboutOpen(true)} sx={{ mx: 1, borderRadius: '10px', py: 0.75 }}>
-      <ListItemIcon sx={{ minWidth: 36 }}><InfoIcon fontSize="small" /></ListItemIcon>
+      <ListItemIcon sx={{ minWidth: 36 }}><InfoOutlinedIcon fontSize="small" /></ListItemIcon>
       <ListItemText primaryTypographyProps={{ fontSize: 13, fontWeight: 600 }}>{translate('menu.about')}</ListItemText>
     </MenuItem>
     <MenuItem onClick={() => logout('/entrar')} sx={{

@@ -10,6 +10,7 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { API_URL } from '../config';
 import { GradientButton } from './GradientButton';
+import { tealText } from '../../../../../../../../../theme';
 
 const GREEN = '#34d399';
 const ORANGE = '#fb923c';
@@ -232,7 +233,7 @@ export const DecifreReal = () => {
               }}
             >
               <Box sx={{ position: 'relative', display: 'grid', placeItems: 'center', animation: 'DxUpFloat 2.2s ease-in-out infinite', '@keyframes DxUpFloat': { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-5px)' } } }}>
-                <UploadFileIcon sx={{ fontSize: 42, color: '#178f89' }} />
+                <UploadFileIcon sx={{ fontSize: 42, color: (t) => tealText(t.palette.mode) }} />
               </Box>
               <Typography sx={{ fontSize: 16, fontWeight: 800, color: '#0f5f5a', fontFamily: '"Poppins",sans-serif' }}>
                 Toque aqui para escolher o PDF

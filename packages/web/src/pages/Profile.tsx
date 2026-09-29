@@ -11,6 +11,8 @@ import ShieldIcon from '@mui/icons-material/Shield';
 import ApiIcon from '@mui/icons-material/Api';
 import ScaleIcon from '@mui/icons-material/Scale';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import StarIcon from '@mui/icons-material/Star';
+import { PLAY_URL } from '../components/ReviewPrompt';
 import { API_URL, token, apiHeaders } from '../config';
 import { ReferralCard } from '../components/ReferralCard';
 import { useSelectedPatient } from '../patient-context';
@@ -21,6 +23,7 @@ import { PageSkeleton } from '../components/PageSkeleton';
 import { formatCpf, isValidCpf } from '../utils/cpf';
 import { parseHeightCm, maskHeightInput, fmtHeight } from '../utils/height';
 import { DateFieldBR } from '../components/DateFieldBR';
+import { tealText } from '../../../../../../../../../theme';
 
 // parseHeightCm/maskHeightInput/fmtHeight: utils/height.ts (fonte única — o mesmo bug
 // existia em 2 lugares com implementações diferentes).
@@ -38,7 +41,7 @@ const AccountLinkRow = ({ icon, title, desc, onClick }: { icon: React.ReactNode;
     <Box sx={{
       width: 40, height: 40, borderRadius: '12px', display: 'grid', placeItems: 'center',
       background: 'linear-gradient(135deg, rgba(32,178,170,.18), rgba(32,178,170,.08))',
-      color: '#178f89', flexShrink: 0,
+      color: (t) => tealText(t.palette.mode), flexShrink: 0,
       border: '1px solid rgba(32,178,170,.15)',
     }}>{icon}</Box>
     <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -247,7 +250,7 @@ export const ProfilePage = () => {
       <Card sx={{ mb: 2.5, borderRadius: '20px' }}>
         <CardContent sx={{ p: { xs: 2.5, md: 3 } }}>
           <Stack direction="row" spacing={2} alignItems="center">
-            <Box sx={{ width: 44, height: 44, borderRadius: '14px', display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,.12)', color: '#178f89', flexShrink: 0 }}><ScaleIcon /></Box>
+            <Box sx={{ width: 44, height: 44, borderRadius: '14px', display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,.12)', color: (t) => tealText(t.palette.mode), flexShrink: 0 }}><ScaleIcon /></Box>
             <Box sx={{ flex: 1, minWidth: 0 }}>
               <Typography variant="h6" sx={{ fontWeight: 800 }}>Peso atual</Typography>
               {patient?.weightKg != null ? (
@@ -276,6 +279,21 @@ export const ProfilePage = () => {
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>Traduz os textos do app para Língua Brasileira de Sinais. Desligue para remover o botão flutuante da tela.</Typography>
           <FormControlLabel control={<Switch checked={activityOn} onChange={(e) => toggleActivity(e.target.checked)} />} label={<Box sx={{ fontWeight: 600 }}>🏃 Card de atividade física no início</Box>} />
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>Passos, calorias e distância (Health Connect do celular). Vale no app Android.</Typography>
+          {/* Review (skill in-app-review): o prompt nativo dispara sozinho no momento
+              positivo — este botão é a rota pra quem quer ESCREVER um review (deep link). */}
+          <Button
+            variant="text"
+            onClick={async () => {
+              try {
+                const { Browser } = await import('@capacitor/browser');
+                await Browser.open({ url: PLAY_URL });
+              } catch { window.open(PLAY_URL, '_blank'); }
+            }}
+            sx={{ mt: 1.5, borderRadius: '999px', textTransform: 'none', fontWeight: 700, color: (t) => (t.palette.mode === 'dark' ? '#5fc9c3' : '#0f766e'), alignSelf: 'flex-start' }}
+            startIcon={<StarIcon sx={{ color: '#f59e0b' }} />}
+          >
+            Avaliar o app na Play Store
+          </Button>
         </CardContent>
       </Card>
 

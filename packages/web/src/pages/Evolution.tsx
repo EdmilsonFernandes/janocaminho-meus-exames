@@ -30,6 +30,7 @@ import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import type { SvgIconComponent } from '@mui/icons-material';
 
 import type { EvolutionItem as EvoItem } from '@meus-exames/shared';
+import { tealText } from '../../../../../../../../../theme';
 
 const fmtDate = (d: string | null) =>
   d ? new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }) : 's/d';
@@ -168,7 +169,7 @@ export const EvolutionPage = () => {
   }, [filtered]);
 
   const CHIPS: { key: Status | 'all'; emoji: string; label: string; color: string; count: number }[] = [
-    { key: 'all', emoji: '📋', label: 'Todos', color: '#178f89', count: items.length },
+    { key: 'all', emoji: '📋', label: 'Todos', color: '#20b2aa', count: items.length },
     { key: 'out', emoji: STATUS_META.out.emoji, label: STATUS_META.out.label, color: STATUS_META.out.color, count: counts.out },
     { key: 'change', emoji: STATUS_META.change.emoji, label: STATUS_META.change.label, color: STATUS_META.change.color, count: counts.change },
     { key: 'stable', emoji: STATUS_META.stable.emoji, label: STATUS_META.stable.label, color: STATUS_META.stable.color, count: counts.stable },
@@ -267,7 +268,7 @@ export const EvolutionPage = () => {
           }}>
             <CardContent sx={{ py: 1.75, '&:last-child': { pb: 1.75 } }}>
               <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-                <DirectionsWalkIcon sx={{ fontSize: 18, color: '#178f89' }} />
+                <DirectionsWalkIcon sx={{ fontSize: 18, color: (t) => tealText(t.palette.mode) }} />
                 <Typography sx={{ fontWeight: 800, fontSize: 14, fontFamily: '"Poppins",sans-serif' }}>Sua atividade no período</Typography>
                 <Typography sx={{ fontSize: 11, color: 'text.secondary', ml: 'auto', textAlign: 'right' }}>
                   {Math.round(steps.reduce((t, d) => t + d.steps, 0) / steps.length).toLocaleString('pt-BR')} passos/dia{stepsDelta != null ? ` · ${stepsDelta > 0 ? '+' : ''}${stepsDelta}% vs período anterior` : ` · ${steps.length} dias`}
@@ -315,14 +316,14 @@ export const EvolutionPage = () => {
                     animation: 'dxActTip .2s ease both',
                     '@keyframes dxActTip': { from: { opacity: 0, transform: 'scale(.96)' }, to: { opacity: 1, transform: 'scale(1)' } },
                   }}>
-                    <Typography sx={{ fontSize: 12, fontWeight: 800, color: '#178f89', textTransform: 'capitalize' }}>{dt}</Typography>
+                    <Typography sx={{ fontSize: 12, fontWeight: 800, color: (t) => tealText(t.palette.mode), textTransform: 'capitalize' }}>{dt}</Typography>
                     <Typography sx={{ fontSize: 13, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{sel.steps.toLocaleString('pt-BR')} <span style={{ fontSize: 11, color: 'text.secondary', fontWeight: 600 }}>passos</span></Typography>
                     {sel.kcal > 0 && <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>🔥 {Math.round(sel.kcal).toLocaleString('pt-BR')} kcal</Typography>}
                     {sel.km > 0 && <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>📍 {sel.km.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} km</Typography>}
                   </Stack>
                 );
               })()}
-              <Button size="small" onClick={() => setActInfo((v) => !v)} endIcon={<ExpandMoreIcon sx={{ transform: actInfo ? 'rotate(180deg)' : 'none', transition: 'transform .2s', fontSize: 16 }} />} sx={{ mt: 0.75, textTransform: 'none', fontWeight: 700, color: 'primary.dark', borderRadius: '999px', px: 1, minHeight: 28, alignSelf: 'flex-start' }}>
+              <Button size="small" onClick={() => setActInfo((v) => !v)} endIcon={<ExpandMoreIcon sx={{ transform: actInfo ? 'rotate(180deg)' : 'none', transition: 'transform .2s', fontSize: 16 }} />} sx={{ mt: 0.75, textTransform: 'none', fontWeight: 700, color: (t) => tealText(t.palette.mode), borderRadius: '999px', px: 1, minHeight: 28, alignSelf: 'flex-start' }}>
                 {actInfo ? 'Menos' : 'Saiba mais'}
               </Button>
               <Collapse in={actInfo} unmountOnExit>
@@ -566,7 +567,7 @@ const EvoRow = ({ it, defaultExpanded, idx = 0 }: { it: EvoItem; defaultExpanded
         )}
         <Stack direction="row" spacing={1} sx={{ mt: 1 }} useFlexGap flexWrap="wrap" alignItems="center">
           <ExplainButton name={it.nameCanonical} nameCanonical={it.nameCanonical} />
-          <Button size="small" variant="outlined" onClick={() => navigate(`/tendencias?select=${encodeURIComponent(it.nameCanonical)}`)} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, borderColor: 'rgba(32,178,170,0.4)', color: '#178f89' }}>
+          <Button size="small" variant="outlined" onClick={() => navigate(`/tendencias?select=${encodeURIComponent(it.nameCanonical)}`)} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, borderColor: 'rgba(32,178,170,0.4)', color: (t) => tealText(t.palette.mode) }}>
             📊 Gráfico completo em Tendências →
           </Button>
           {(() => { const lp = it.points[it.points.length - 1]; if (!lp?.examId) return null; return <Button size="small" onClick={() => navigate(`/exams/${lp.examId}/show`)}>↗ Exame de origem</Button>; })()}

@@ -9,6 +9,7 @@ import LockIcon from '@mui/icons-material/Lock';
 import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 import { useNavigate } from 'react-router-dom';
 import { DrExame } from '../components/DrExame';
+import { tealText } from '../../../../../../../../../theme';
 
 /** Página pública "Como validamos" (D4 — confiança estrutural): cada regra com fonte,
  *  o que a IA faz e o que nunca faz, privacidade. Contra marketing de fachada (claims de
@@ -36,7 +37,7 @@ const SECTIONS: Section[] = [
   {
     icon: <ChildCareIcon sx={{ color: '#20b2aa' }} />,
     title: '3 · Faixas de referência com fonte',
-    body: <>A régua que vale é a <b>do seu laboratório</b> — está impressa no laudo e é ela que usamos. Para crianças e adolescentes, quando o laudo não traz faixa própria da idade, aplicamos bandas pediátricas por analito e marcamos o item com um selo <Chip size="small" label="Pediátrico" sx={{ height: 18, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(32,178,170,.14)', color: '#178f89' }} /> indicando a faixa usada. Se você digitar uma faixa manual, <b>a sua edição vence sempre</b>.</>,
+    body: <>A régua que vale é a <b>do seu laboratório</b> — está impressa no laudo e é ela que usamos. Para crianças e adolescentes, quando o laudo não traz faixa própria da idade, aplicamos bandas pediátricas por analito e marcamos o item com um selo <Chip size="small" label="Pediátrico" sx={{ height: 18, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(32,178,170,.14)', color: (t) => tealText(t.palette.mode) }} /> indicando a faixa usada. Se você digitar uma faixa manual, <b>a sua edição vence sempre</b>.</>,
     cite: 'Bandas pediátricas aproximadas do The Harriet Lane Handbook (Johns Hopkins Hospital, 22ª ed.) — quando aplicadas, o selo no item indica a faixa etária usada.',
   },
   {
@@ -82,7 +83,7 @@ export const HowWeValidatePage = () => {
                 {s.cite && (
                   <Typography variant="caption" sx={{ display: 'block', mt: 1, color: 'text.disabled', fontStyle: 'italic', lineHeight: 1.5 }}>
                     {s.citeHref ? (
-                      <Box component="a" href={s.citeHref} target="_blank" rel="noopener noreferrer" sx={{ color: '#178f89', textDecoration: 'none', fontWeight: 700, '&:hover': { textDecoration: 'underline' } }}>{s.cite}</Box>
+                      <Box component="a" href={s.citeHref} target="_blank" rel="noopener noreferrer" sx={{ color: (t) => tealText(t.palette.mode), textDecoration: 'none', fontWeight: 700, '&:hover': { textDecoration: 'underline' } }}>{s.cite}</Box>
                     ) : s.cite}
                   </Typography>
                 )}
@@ -98,7 +99,7 @@ export const HowWeValidatePage = () => {
           >
             Criar conta grátis
           </Button>
-          <Button onClick={() => navigate('/landing')} sx={{ textTransform: 'none', fontWeight: 700, color: '#178f89' }}>
+          <Button onClick={() => navigate('/landing')} sx={{ textTransform: 'none', fontWeight: 700, color: (t) => tealText(t.palette.mode) }}>
             ← Voltar ao início
           </Button>
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>

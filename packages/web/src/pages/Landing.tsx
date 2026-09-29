@@ -39,6 +39,7 @@ import { usePlanInfo, fmtBRL } from '../utils/planInfo';
 import { ScrollReveal, AnimatedNumber } from '../components/ScrollReveal';
 import { Reveal } from '../components/Reveal';
 import {
+import { tealText } from '../../../../../../../../../theme';
   Gift, CheckCircle, UploadSimple, Heartbeat, Lightning, FileText,
   ClockCounterClockwise, UsersThree, CreditCard, Stack as StackIcon, Coins,
   CalendarBlank, Browser,
@@ -317,7 +318,7 @@ export const LandingPage = () => {
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap sx={{ mb: 1.5 }}>
                 <Button variant="contained" size="large" onClick={() => navigate('/registrar')} sx={{
                   borderRadius: '999px', px: 4, py: 1.5, fontSize: 17, textTransform: 'none', fontWeight: 800,
-                  bgcolor: '#178f89',
+                  bgcolor: (t) => tealText(t.palette.mode),
                   background: 'linear-gradient(90deg, #178f89 0%, #20b2aa 50%, #178f89 100%)',
                   backgroundSize: '200% auto',
                   animation: 'shimmerBtn 3s linear infinite',
@@ -412,7 +413,7 @@ export const LandingPage = () => {
                       boxShadow: '0 12px 36px rgba(32,178,170,.55), 0 0 0 10px rgba(255,255,255,0.22)',
                       backdropFilter: 'blur(12px)',
                       transition: 'transform .2s ease, background-color .2s ease',
-                      '&:hover': { bgcolor: '#178f89', transform: 'translate(-50%,-50%) scale(1.08)' },
+                      '&:hover': { bgcolor: (t) => tealText(t.palette.mode), transform: 'translate(-50%,-50%) scale(1.08)' },
                     }}
                   >
                     <PlayArrowIcon sx={{ fontSize: { xs: 38, md: 46 } }} />

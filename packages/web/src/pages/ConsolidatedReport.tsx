@@ -72,7 +72,7 @@ const ReportPreviewCard = ({
     <Box sx={{ mt: 2, p: { xs: 2, md: 2.5 }, borderRadius: '12px', border: '1px solid', borderColor: 'rgba(32,178,170,.22)', background: 'linear-gradient(135deg, rgba(32,178,170,.12), transparent)' }}>
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ xs: 'stretch', md: 'center' }}>
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Chip size="small" label="Preview do relatório" sx={{ height: 22, mb: 1, bgcolor: '#20b2aa18', color: '#178f89', fontWeight: 900 }} />
+          <Chip size="small" label="Preview do relatório" sx={{ height: 22, mb: 1, bgcolor: '#20b2aa18', color: (t) => tealText(t.palette.mode), fontWeight: 900 }} />
           <Typography sx={{ fontWeight: 900, fontSize: { xs: 22, md: 26 }, lineHeight: 1.12, color: 'text.primary', fontFamily: 'Poppins, sans-serif' }}>
             Um resumo pronto para consulta, antes de abrir exame por exame
           </Typography>
@@ -81,7 +81,7 @@ const ReportPreviewCard = ({
           </Typography>
         </Box>
         <Stack spacing={1} alignItems={{ xs: 'stretch', md: 'flex-end' }} sx={{ flexShrink: 0 }}>
-          <Button variant="contained" size="large" startIcon={loading ? <CircularProgress size={18} color="inherit" /> : <DescriptionIcon />} onClick={onGenerate} disabled={disabled} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 900, bgcolor: '#178f89', boxShadow: 'none', '&:hover': { bgcolor: '#0f766e', boxShadow: 'none' } }}>
+          <Button variant="contained" size="large" startIcon={loading ? <CircularProgress size={18} color="inherit" /> : <DescriptionIcon />} onClick={onGenerate} disabled={disabled} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 900, bgcolor: (t) => tealText(t.palette.mode), boxShadow: 'none', '&:hover': { bgcolor: '#0f766e', boxShadow: 'none' } }}>
             {loading ? 'Gerando...' : 'Gerar relatório completo'}
           </Button>
           <Box sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
@@ -108,7 +108,7 @@ const ReportPreviewCard = ({
         <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>
           Consome créditos somente ao gerar. Use quando quiser levar uma visão consolidada para consulta.
         </Typography>
-        <Button size="small" onClick={onExams} sx={{ alignSelf: { xs: 'flex-start', sm: 'center' }, textTransform: 'none', fontWeight: 800, borderRadius: '999px', color: '#178f89' }}>
+        <Button size="small" onClick={onExams} sx={{ alignSelf: { xs: 'flex-start', sm: 'center' }, textTransform: 'none', fontWeight: 800, borderRadius: '999px', color: (t) => tealText(t.palette.mode) }}>
           Ver exames usados →
         </Button>
       </Stack>
@@ -410,7 +410,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
           <Box sx={{ fontSize: 56, mb: 1.5, opacity: 0.4 }}>📄</Box>
           <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 18, mb: 1 }}>Você ainda não tem exames</Typography>
           <Typography color="text.secondary" sx={{ mb: 2.5 }}>Envie seu primeiro exame de sangue, imagem ou laudo para gerar um relatório completo da sua saúde.</Typography>
-          <Button variant="contained" onClick={() => navigate('/exams')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 4, bgcolor: '#178f89' }}>Enviar meu primeiro exame →</Button>
+          <Button variant="contained" onClick={() => navigate('/exams')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 4, bgcolor: (t) => tealText(t.palette.mode) }}>Enviar meu primeiro exame →</Button>
         </Box>
       )}
       {!loading && !analysis && examCount !== 0 && (

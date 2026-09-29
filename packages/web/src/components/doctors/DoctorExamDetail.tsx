@@ -12,6 +12,7 @@ import { cleanExtractedLabel } from '../../utils/examDisplay';
 import { categorizeExam } from '../../utils/medicalData';
 import { fmtDateShort } from '../../utils/format';
 import { RADIUS } from '../../theme';
+import { tealText } from '../../../../../../../../../../theme';
 
 const kindLabel: Record<string, string> = { LAB_PANEL: 'Laboratorial', IMAGING: 'Imagem', OTHER: 'Outro' };
 
@@ -89,11 +90,11 @@ export const DoctorExamDetail = ({ patientId, examId, token, onBack }: { patient
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 0.75, sm: 1 }} alignItems={{ sm: 'center' }} sx={{ p: 1 }}>
           <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0, width: '100%' }}>
             {isMobile ? (
-              <IconButton onClick={onBack} size="small" aria-label="Voltar" sx={{ flexShrink: 0, color: 'primary.dark', bgcolor: (t) => alpha(t.palette.primary.main, 0.1), '&:hover': { bgcolor: (t) => alpha(t.palette.primary.main, 0.18) } }}>
+              <IconButton onClick={onBack} size="small" aria-label="Voltar" sx={{ flexShrink: 0, color: (t) => tealText(t.palette.mode), bgcolor: (t) => alpha(t.palette.primary.main, 0.1), '&:hover': { bgcolor: (t) => alpha(t.palette.primary.main, 0.18) } }}>
                 <ArrowBackIcon fontSize="small" />
               </IconButton>
             ) : (
-              <Button onClick={onBack} startIcon={<ArrowBackIcon />} sx={{ flexShrink: 0, textTransform: 'none', fontWeight: 700, color: 'primary.dark', borderRadius: RADIUS.pill, minWidth: 'auto', px: 1.5 }}>
+              <Button onClick={onBack} startIcon={<ArrowBackIcon />} sx={{ flexShrink: 0, textTransform: 'none', fontWeight: 700, color: (t) => tealText(t.palette.mode), borderRadius: RADIUS.pill, minWidth: 'auto', px: 1.5 }}>
                 Voltar
               </Button>
             )}
@@ -159,7 +160,7 @@ export const DoctorExamDetail = ({ patientId, examId, token, onBack }: { patient
             {exam.performedAt ? (
               <Box sx={(t) => ({ display: 'inline-flex', alignItems: 'center', gap: 0.5, px: 1, py: 0.3, borderRadius: RADIUS.pill, bgcolor: alpha(t.palette.primary.main, 0.1) })}>
                 <CalendarMonthIcon sx={{ fontSize: 16, color: 'primary.main' }} />
-                <Typography component="span" sx={{ fontWeight: 700, color: 'primary.dark', fontSize: '0.9rem', lineHeight: 1 }}>{fmtDateShort(exam.performedAt)}</Typography>
+                <Typography component="span" sx={{ fontWeight: 700, color: (t) => tealText(t.palette.mode), fontSize: '0.9rem', lineHeight: 1 }}>{fmtDateShort(exam.performedAt)}</Typography>
               </Box>
             ) : (
               <Typography component="span" sx={{ fontWeight: 700, color: 'warning.main', fontSize: '0.85rem' }}>Data não identificada</Typography>

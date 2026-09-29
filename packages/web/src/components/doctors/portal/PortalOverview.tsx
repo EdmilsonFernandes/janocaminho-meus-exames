@@ -120,7 +120,7 @@ export const PortalOverview = ({
               src={p.patient?.id ? photoUrlFor(p.patient.id) : undefined}
               sx={{
                 bgcolor: 'rgba(32,178,170,.08)',
-                color: 'primary.dark',
+                color: (t) => tealText(t.palette.mode),
                 fontWeight: 800,
                 width: 46,
                 height: 46,

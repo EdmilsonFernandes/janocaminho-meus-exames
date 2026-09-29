@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Box, Typography, LinearProgress, Button } from '@mui/material';
 import { DrExame } from './DrExame';
+import { tealText } from '../../../../../../../../../theme';
 
 const STAGES = [
   { msg: 'Reunindo seus exames mais recentes…', emoji: '📚' },
@@ -30,7 +31,7 @@ export const ReportGeneratingCard = ({ startedAt, onLeave }: { startedAt?: numbe
       <Box sx={{ display: 'inline-block', animation: 'rGCbob 1.6s ease-in-out infinite', '@media (prefers-reduced-motion: reduce)': { animation: 'none' } }}>
         <DrExame size={84} sx={{ borderRadius: '20%', boxShadow: '0 6px 18px rgba(32,178,170,.22)' }} />
       </Box>
-      <Typography sx={{ mt: 1.5, color: 'primary.dark', fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: { xs: 17, md: 19 } }}>
+      <Typography sx={{ mt: 1.5, color: (t) => tealText(t.palette.mode), fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: { xs: 17, md: 19 } }}>
         Montando seu relatório completo
       </Typography>
       <Typography color="text.secondary" sx={{ mb: 2, minHeight: 24, fontSize: 14 }}>
@@ -39,7 +40,7 @@ export const ReportGeneratingCard = ({ startedAt, onLeave }: { startedAt?: numbe
 
       <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, mb: 1.5, px: 1.5, py: 0.5, borderRadius: '999px', bgcolor: 'rgba(32,178,170,.08)' }}>
         <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#20b2aa', animation: 'rGCpulse 1.5s ease-in-out infinite', '@media (prefers-reduced-motion: reduce)': { animation: 'none' } }} />
-        <Typography variant="caption" sx={{ fontWeight: 700, color: 'primary.dark', fontFamily: 'monospace' }}>{mm}:{ss}</Typography>
+        <Typography variant="caption" sx={{ fontWeight: 700, color: (t) => tealText(t.palette.mode), fontFamily: 'monospace' }}>{mm}:{ss}</Typography>
       </Box>
 
       <Box sx={{ maxWidth: 360, mx: 'auto', mb: 1.5 }}>
@@ -52,7 +53,7 @@ export const ReportGeneratingCard = ({ startedAt, onLeave }: { startedAt?: numbe
       </Typography>
 
       {onLeave && (
-        <Button size="small" onClick={onLeave} sx={{ textTransform: 'none', fontWeight: 700, color: 'primary.dark', borderRadius: '999px', px: 2.5, py: 0.75, border: '1px solid', borderColor: 'rgba(32,178,170,.3)' }}>
+        <Button size="small" onClick={onLeave} sx={{ textTransform: 'none', fontWeight: 700, color: (t) => tealText(t.palette.mode), borderRadius: '999px', px: 2.5, py: 0.75, border: '1px solid', borderColor: 'rgba(32,178,170,.3)' }}>
           Voltar ao painel →
         </Button>
       )}

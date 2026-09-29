@@ -99,6 +99,7 @@ const PayCountdown = ({ expiresAt, onExpire }: { expiresAt: string; onExpire: ()
  * Mapeamento: Exames=laudo, Alterados=flag, Tendências=gráfico, Relatório=resumo,
  * Perguntas=chat, Anotações=lápis. */
 import { Receipt, Flag, ChartLineUp, FileText, ChatCircle, NotePencil, Stethoscope, CalendarBlank, Diamond } from '@phosphor-icons/react';
+import { tealText } from '../../../../../../../../../theme';
 
 const SCOPE_META: Record<string, { label: string; icon: ReactElement }> = {
   exams: { label: 'Exames', icon: <Receipt size={22} weight="duotone" /> },
@@ -209,7 +210,7 @@ export const DoctorPortalPage = () => {
     <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2, background: 'linear-gradient(135deg, rgba(32,178,170,.08), transparent)' }}>
       <Box sx={{ width: '100%', maxWidth: 420, bgcolor: 'background.paper', borderRadius: '16px', boxShadow: '0 10px 40px rgba(0,80,70,.12)', p: { xs: 3, sm: 4 } }}>
         <Box sx={{ mb: 1 }}>
-          <Button size="small" onClick={() => navigate('/')} sx={{ color: 'text.secondary', textTransform: 'none', fontWeight: 700, p: 0, minWidth: 0, '&:hover': { bgcolor: 'transparent', color: 'primary.dark' } }}>← Voltar ao app</Button>
+          <Button size="small" onClick={() => navigate('/')} sx={{ color: 'text.secondary', textTransform: 'none', fontWeight: 700, p: 0, minWidth: 0, '&:hover': { bgcolor: 'transparent', color: (t) => tealText(t.palette.mode) } }}>← Voltar ao app</Button>
         </Box>
         <Stack alignItems="center" spacing={1} sx={{ mb: 3 }}>
           <Box sx={{ width: 78, height: 78, borderRadius: '50%', bgcolor: 'rgba(32,178,170,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'inset 0 0 0 1px rgba(32,178,170,.15)' }}>
@@ -240,7 +241,7 @@ export const DoctorPortalPage = () => {
                 {UFS.map((u) => <MenuItem key={u} value={u}>{u}</MenuItem>)}
               </TextField>
             </Box>
-            <Button type="button" variant="outlined" size="small" onClick={buscarCrmReg} disabled={regLooking} startIcon={regLooking ? <CircularProgress size={15} color="inherit" /> : <span>🔍</span>} sx={{ alignSelf: 'flex-start', borderRadius: '999px', textTransform: 'none', fontWeight: 700, color: 'primary.dark', borderColor: 'primary.dark' }}>
+            <Button type="button" variant="outlined" size="small" onClick={buscarCrmReg} disabled={regLooking} startIcon={regLooking ? <CircularProgress size={15} color="inherit" /> : <span>🔍</span>} sx={{ alignSelf: 'flex-start', borderRadius: '999px', textTransform: 'none', fontWeight: 700, color: (t) => tealText(t.palette.mode), borderColor: 'primary.dark' }}>
               {regLooking ? 'Buscando…' : 'Buscar dados no conselho'}
             </Button>
             {regHint && <Alert severity={regHint.type} icon={false} sx={{ py: 0.5, borderRadius: '12px', '& .MuiAlert-message': { fontSize: 13 } }}>{regHint.msg}</Alert>}
@@ -264,7 +265,7 @@ export const DoctorPortalPage = () => {
 
         <Typography align="center" sx={{ mt: 2, fontSize: 13, color: 'text.secondary' }}>
           {mode === 'login' ? 'Primeiro acesso?' : 'Já tem conta?'}{' '}
-          <Link component="button" type="button" onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setErr(''); }} sx={{ fontWeight: 700, color: 'primary.dark' }}>
+          <Link component="button" type="button" onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setErr(''); }} sx={{ fontWeight: 700, color: (t) => tealText(t.palette.mode) }}>
             {mode === 'login' ? 'Cadastrar' : 'Fazer login'}
           </Link>
         </Typography>
@@ -656,10 +657,9 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           <ListItemIcon sx={{ minWidth: 38 }}><Badge color="error" variant="dot" invisible={unreadQ === 0}><QuestionAnswerIcon sx={{ color: 'secondary.dark' }} /></Badge></ListItemIcon>
           <ListItemText primary={`Perguntas${unreadQ ? ` · ${unreadQ}` : ''}`} primaryTypographyProps={{ fontWeight: 600 }} />
         </ListItemButton>
-        <ListItemButton selected={view === 'profile'} onClick={() => { setView('profile'); onNav(); }}><ListItemIcon sx={{ minWidth: 38 }}><PersonIcon sx={{ color: 'secondary.dark' }} /></ListItemIcon><ListItemText primary="Meu perfil" primaryTypographyProps={{ fontWeight: 600 }} /></ListItemButton>
-        <ListItemButton selected={view === 'password'} onClick={() => { setView('password'); onNav(); }}><ListItemIcon sx={{ minWidth: 38 }}><LockIcon sx={{ color: 'secondary.dark' }} /></ListItemIcon><ListItemText primary="Trocar senha" primaryTypographyProps={{ fontWeight: 600 }} /></ListItemButton>
-        <Divider sx={{ my: 1, mx: 1 }} />
-        <ListItemButton onClick={() => { onNav(); onLogout(); }} sx={{ color: 'error.main', '&:hover': { bgcolor: 'rgba(239,68,68,0.08)' } }}><ListItemIcon sx={{ minWidth: 38 }}><LogoutIcon sx={{ color: 'error.main' }} /></ListItemIcon><ListItemText primary="Sair" primaryTypographyProps={{ fontWeight: 600 }} /></ListItemButton>
+        {/* Perfil / Trocar senha / Sair ficam SÓ no menu do avatar (topo) — antes duplicavam
+            aqui (dedup audit 28/09). O avatar do topo aparece no sidebar E no drawer mobile,
+            então o acesso existe nas duas plataformas. */}
       </List>
       <Box sx={{ mt: 'auto', p: 2, borderTop: '1px solid', borderColor: 'divider', textAlign: 'center' }}>
         <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
@@ -703,7 +703,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           <>
             {view !== 'profile' && (
               <IconButton onClick={(e) => setAvatarEl(e.currentTarget)} aria-label="Menu do médico" sx={{ p: 0.5, borderRadius: '50%', flexShrink: 0 }}>
-                <Avatar src={doctor?.photoUrl ? doctorPhotoUrl(doctor.id, photoVer) : undefined} sx={{ bgcolor: 'rgba(32,178,170,.10)', color: 'primary.dark', fontWeight: 800, border: '2px solid rgba(32,178,170,.15)', width: 44, height: 44, fontSize: 17 }}>{doctor?.name?.charAt(0)}</Avatar>
+                <Avatar src={doctor?.photoUrl ? doctorPhotoUrl(doctor.id, photoVer) : undefined} sx={{ bgcolor: 'rgba(32,178,170,.10)', color: (t) => tealText(t.palette.mode), fontWeight: 800, border: '2px solid rgba(32,178,170,.15)', width: 44, height: 44, fontSize: 17 }}>{doctor?.name?.charAt(0)}</Avatar>
               </IconButton>
             )}
             <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -752,10 +752,10 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           <DialogActions sx={{ justifyContent: 'center', pb: 2, gap: 1 }}>
             <Button onClick={() => setInviteOpen(false)} sx={{ textTransform: 'none' }}>{invResult ? 'Fechar' : 'Cancelar'}</Button>
             {!invResult && <Button variant="contained" disabled={invBusy || !inv.name.trim() || (!inv.phone.trim() && !inv.email.trim())} onClick={createInvite} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: 'primary.main' }}>{invBusy ? 'Gerando…' : 'Gerar convite'}</Button>}
-            {invResult && <Button onClick={() => setInvResult(null)} sx={{ textTransform: 'none', color: 'primary.dark' }}>Novo convite</Button>}
+            {invResult && <Button onClick={() => setInvResult(null)} sx={{ textTransform: 'none', color: (t) => tealText(t.palette.mode) }}>Novo convite</Button>}
           </DialogActions>
         </Dialog>
-        {view === 'patients' && loading && <Box sx={{ textAlign: 'center', py: 6 }}><CircularProgress sx={{ color: 'primary.dark' }} /></Box>}
+        {view === 'patients' && loading && <Box sx={{ textAlign: 'center', py: 6 }}><CircularProgress sx={{ color: (t) => tealText(t.palette.mode) }} /></Box>}
         {view === 'patients' && !loading && loadErr && (
           <Alert severity="warning" sx={{ mb: 2, borderRadius: '14px' }} action={<Button color="inherit" size="small" onClick={loadPatients} sx={{ fontWeight: 700 }}>Tentar de novo</Button>}>
             Sem conexão — não conseguimos carregar sua lista de pacientes. Seus dados estão intactos.
@@ -763,7 +763,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         )}
 
         {/* PAINEL INICIAL DO MÉDICO (self-service) */}
-        {view === 'overview' && loading && <Box sx={{ textAlign: 'center', py: 6 }}><CircularProgress sx={{ color: 'primary.dark' }} /></Box>}
+        {view === 'overview' && loading && <Box sx={{ textAlign: 'center', py: 6 }}><CircularProgress sx={{ color: (t) => tealText(t.palette.mode) }} /></Box>}
         {view === 'overview' && !loading && loadErr && (
           <Alert severity="warning" sx={{ mb: 2, borderRadius: '14px' }} action={<Button color="inherit" size="small" onClick={loadPatients} sx={{ fontWeight: 700 }}>Tentar de novo</Button>}>
             Sem conexão — não conseguimos carregar sua lista de pacientes. Seus dados estão intactos.
@@ -866,7 +866,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                     <AppCard kind="interactive" key={key} role="button" tabIndex={0} sx={{ ...focusRingSx }} {...a11yClick(() => openPatient(p))}>
                       <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5 }}>
                         <Box sx={{ position: 'relative', flexShrink: 0 }}>
-                          <Avatar src={p.patient?.id ? photoUrlFor(p.patient.id) : undefined} sx={{ bgcolor: 'rgba(32,178,170,.08)', color: 'primary.dark', fontWeight: 800, width: 48, height: 48, border: '2px solid', borderColor: p.hasAlerts ? '#ef4444' : 'rgba(32,178,170,.15)' }}>{p.patient?.fullName?.charAt(0)}</Avatar>
+                          <Avatar src={p.patient?.id ? photoUrlFor(p.patient.id) : undefined} sx={{ bgcolor: 'rgba(32,178,170,.08)', color: (t) => tealText(t.palette.mode), fontWeight: 800, width: 48, height: 48, border: '2px solid', borderColor: p.hasAlerts ? '#ef4444' : 'rgba(32,178,170,.15)' }}>{p.patient?.fullName?.charAt(0)}</Avatar>
                           {p.hasAlerts && <Box sx={{ position: 'absolute', top: -2, right: -2, width: 12, height: 12, borderRadius: '50%', bgcolor: badDot(theme.palette.mode), border: '2px solid', borderColor: 'background.paper' }} />}
                         </Box>
                         <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -932,7 +932,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                           <Box component="img" src={m.catalogPhotoUrl} alt={m.name} loading="lazy"
                             sx={{ width: 40, height: 40, borderRadius: '8px', objectFit: 'contain', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', flexShrink: 0 }} />
                         ) : (
-                          <Box sx={{ width: 40, height: 40, borderRadius: '8px', display: 'grid', placeItems: 'center', flexShrink: 0, bgcolor: 'rgba(32,178,170,.1)', color: '#178f89', fontWeight: 800, fontSize: 16, fontFamily: 'Poppins, sans-serif' }}>
+                          <Box sx={{ width: 40, height: 40, borderRadius: '8px', display: 'grid', placeItems: 'center', flexShrink: 0, bgcolor: 'rgba(32,178,170,.1)', color: (t) => tealText(t.palette.mode), fontWeight: 800, fontSize: 16, fontFamily: 'Poppins, sans-serif' }}>
                             {String(m.name || '?').trim().charAt(0).toUpperCase()}
                           </Box>
                         )}
@@ -1076,7 +1076,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                                     return <Box key={i} sx={{ textAlign: 'center', my: 0.5 }}><Box sx={{ display: 'inline-block', px: 1.5, py: 0.5, borderRadius: '999px', bgcolor: 'rgba(32,178,170,.08)', color: 'text.secondary', fontSize: 12, fontWeight: 600 }}>{m.body}</Box></Box>;
                                   }
                                   const av = isAi ? null : isDoc
-                                    ? <Avatar src={doctor?.photoUrl ? doctorPhotoUrl(doctor.id, photoVer) : undefined} sx={{ width: 36, height: 36, bgcolor: 'primary.dark', fontSize: 14, fontWeight: 700, flexShrink: 0 }}>{(doctor?.name || 'M').charAt(0)}</Avatar>
+                                    ? <Avatar src={doctor?.photoUrl ? doctorPhotoUrl(doctor.id, photoVer) : undefined} sx={{ width: 36, height: 36, bgcolor: (t) => tealText(t.palette.mode), fontSize: 14, fontWeight: 700, flexShrink: 0 }}>{(doctor?.name || 'M').charAt(0)}</Avatar>
                                     : <Avatar src={selected?.patient?.photoUrl ? photoUrlFor(selected.patient.id, 0) : undefined} sx={{ width: 36, height: 36, bgcolor: '#94a3b8', fontSize: 14, fontWeight: 700, flexShrink: 0 }}>{(selected?.patient?.fullName || 'P').charAt(0)}</Avatar>;
                                   // Nome do médico vem com "Dr." no cadastro — stripa p/ não virar "Dr. Dr." (auditoria)
                                   const docName = (doctor?.name || 'Médico').replace(/^Dr[aº.]*\s+/i, '').trim();
@@ -1096,10 +1096,10 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                             )}
                             {q.status === 'answered' ? null : (<>
                               <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mb: 1 }}>
-                                {QUICK_REPLIES.slice(0, 4).map((t) => <Chip key={t} size="small" variant="outlined" label={t} onClick={() => setQText((prev) => ({ ...prev, [q.id]: t }))} sx={{ fontWeight: 600, height: 'auto', maxWidth: '100%', borderRadius: '999px', py: 0.5, borderColor: 'rgba(32,178,170,.4)', color: 'primary.dark', '& .MuiChip-label': { whiteSpace: 'normal', lineHeight: 1.3 }, '&:hover': { bgcolor: 'rgba(32,178,170,.08)' } }} />)}
+                                {QUICK_REPLIES.slice(0, 4).map((t) => <Chip key={t} size="small" variant="outlined" label={t} onClick={() => setQText((prev) => ({ ...prev, [q.id]: t }))} sx={{ fontWeight: 600, height: 'auto', maxWidth: '100%', borderRadius: '999px', py: 0.5, borderColor: 'rgba(32,178,170,.4)', color: (t) => tealText(t.palette.mode), '& .MuiChip-label': { whiteSpace: 'normal', lineHeight: 1.3 }, '&:hover': { bgcolor: 'rgba(32,178,170,.08)' } }} />)}
                               </Stack>
                               <TextField multiline minRows={1} size="small" fullWidth placeholder="Escrever resposta…" value={qText[q.id] ?? ''} onChange={(e) => setQText((t) => ({ ...t, [q.id]: e.target.value }))} />
-                              <Button size="small" disabled={qSending === q.id || !(qText[q.id]?.trim())} onClick={() => responderQ(q.id)} startIcon={qSending === q.id ? <CircularProgress size={14} color="inherit" /> : undefined} sx={{ mt: 0.75, textTransform: 'none', fontWeight: 700, color: 'primary.dark', borderRadius: '999px' }}>{qSending === q.id ? 'Enviando…' : 'Responder'}</Button>
+                              <Button size="small" disabled={qSending === q.id || !(qText[q.id]?.trim())} onClick={() => responderQ(q.id)} startIcon={qSending === q.id ? <CircularProgress size={14} color="inherit" /> : undefined} sx={{ mt: 0.75, textTransform: 'none', fontWeight: 700, color: (t) => tealText(t.palette.mode), borderRadius: '999px' }}>{qSending === q.id ? 'Enviando…' : 'Responder'}</Button>
                             </>)}
                           </CardContent>
                         </Card>

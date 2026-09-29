@@ -16,6 +16,7 @@ import { AppCard } from '../components/AppCard';
 import { ListSkeleton } from '../components/Skeleton';
 import { confirmDialog } from '../components/ConfirmDialog';
 import { TYPES } from './Measurements';
+import { tealText } from '../../../../../../../../../theme';
 
 /**
  * Histórico por métrica (/medicoes/historico/:type) — detalhe da "central de sinais".
@@ -118,7 +119,7 @@ export const MeasurementHistoryPage = () => {
         value={period}
         onChange={(_, v) => { if (v) setPeriod(v as Period); }}
         aria-label="Período do histórico"
-        sx={{ mb: 2, '& .MuiToggleButton-root': { px: 1.5, py: { xs: 0.75, sm: 0.4 }, minHeight: { xs: 40, sm: 0 }, borderRadius: '99px !important', border: '1px solid', borderColor: 'divider', textTransform: 'none', fontWeight: 700, fontSize: 13, color: 'text.secondary', '&.Mui-selected': { bgcolor: alpha(theme.palette.primary.main, 0.15), color: 'primary.dark', borderColor: alpha(theme.palette.primary.main, 0.4) } } }}
+        sx={{ mb: 2, '& .MuiToggleButton-root': { px: 1.5, py: { xs: 0.75, sm: 0.4 }, minHeight: { xs: 40, sm: 0 }, borderRadius: '99px !important', border: '1px solid', borderColor: 'divider', textTransform: 'none', fontWeight: 700, fontSize: 13, color: 'text.secondary', '&.Mui-selected': { bgcolor: alpha(theme.palette.primary.main, 0.15), color: (t) => tealText(t.palette.mode), borderColor: alpha(theme.palette.primary.main, 0.4) } } }}
       >
         {PERIODS.map((p) => <ToggleButton key={p.v} value={p.v} aria-pressed={period === p.v}>{p.l}</ToggleButton>)}
       </ToggleButtonGroup>

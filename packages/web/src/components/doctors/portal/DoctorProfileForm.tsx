@@ -7,6 +7,7 @@ import { API_URL, doctorPhotoUrl } from '../../../config';
 import { PhotoUpload } from '../../PhotoUpload';
 import { MfaSetupCard } from '../../mfa/MfaSetupCard';
 import { SPECIALTIES } from '../../../utils/medicalData';
+import { tealText } from '../../../../../../../../../../../theme';
 
 /** Empty state compacto das views do portal. */
 export const Empty = ({ label, icon = '📭' }: { label: string; icon?: string }) => (
@@ -46,7 +47,7 @@ export const DoctorProfileForm = ({ token, doctor, onBack, onSaved, onPhoto, pho
   return (
     <Box>
       <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
-        <Button size="small" onClick={onBack} sx={{ color: 'primary.dark', textTransform: 'none', fontWeight: 700, minWidth: 0 }}>← Voltar</Button>
+        <Button size="small" onClick={onBack} sx={{ color: (t) => tealText(t.palette.mode), textTransform: 'none', fontWeight: 700, minWidth: 0 }}>← Voltar</Button>
         <Typography sx={{ fontWeight: 800, color: 'text.primary' }}>Meu perfil</Typography>
       </Stack>
 
@@ -69,7 +70,7 @@ export const DoctorProfileForm = ({ token, doctor, onBack, onSaved, onPhoto, pho
 
       <Card sx={{ borderRadius: '20px', border: '1px solid', borderColor: 'divider', boxShadow: '0 4px 20px rgba(0,0,0,0.04)', mt: 2 }}>
         <CardContent sx={{ p: 2.5 }}>
-          <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 800, color: 'primary.dark', letterSpacing: '0.03em' }}>DADOS PROFISSIONAIS</Typography>
+          <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 800, color: (t) => tealText(t.palette.mode), letterSpacing: '0.03em' }}>DADOS PROFISSIONAIS</Typography>
           <Stack spacing={2}>
             <TextField label="Nome completo" value={name} onChange={(e) => setName(e.target.value)} size="small" fullWidth sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />
             <TextField label="CPF" value={doctor?.cpfMasked ?? 'Não cadastrado'} disabled size="small" fullWidth helperText="CPF fica bloqueado após verificação. Correção somente via suporte auditado." sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />

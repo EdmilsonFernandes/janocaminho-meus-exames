@@ -16,6 +16,7 @@ import { Celebration } from '../components/Celebration';
 import { SEM } from '../theme';
 import { deltaEntre, deltaLabel, proximaJanela } from '../utils/mental-delta';
 import {
+import { tealText } from '../../../../../../../../../theme';
   SCREENING_OPTIONS, screeningItems, maxScoreOf,
   type ScreeningType, type ScreeningSeverity,
 } from '@meus-exames/shared';
@@ -187,7 +188,7 @@ export const SaudeMentalPage = () => {
                     sx={{ p: 2.5, '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 } }}
                   >
                     <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-                      <PsychologyIcon sx={{ fontSize: 20, color: 'primary.dark' }} />
+                      <PsychologyIcon sx={{ fontSize: 20, color: (t) => tealText(t.palette.mode) }} />
                       <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>{t === 'phq9' ? 'PHQ-9 · Depressão' : 'GAD-7 · Ansiedade'}</Typography>
                     </Stack>
                     <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mb: 1.5 }}>
@@ -195,7 +196,7 @@ export const SaudeMentalPage = () => {
                     </Typography>
                     {last ? (
                       <Stack direction="row" alignItems="center" spacing={1}>
-                        <Typography sx={{ fontWeight: 800, fontSize: 26, color: 'primary.dark', lineHeight: 1 }}>{last.total}</Typography>
+                        <Typography sx={{ fontWeight: 800, fontSize: 26, color: (t) => tealText(t.palette.mode), lineHeight: 1 }}>{last.total}</Typography>
                         <Chip size="small" label={`${last.severity.label} · ${fmtDay(last.createdAt)}`} sx={{ height: 24, fontWeight: 700, bgcolor: (t2) => `${sevColor(last.severity.key)(t2.palette.mode)}1f`, color: (t2) => sevColor(last.severity.key)(t2.palette.mode) }} />
                       </Stack>
                     ) : (

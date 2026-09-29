@@ -4,6 +4,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import ShareIcon from '@mui/icons-material/Share';
 import GiftIcon from '@mui/icons-material/CardGiftcard';
 import { API_URL, token, fetchPublicConfig } from '../config';
+import { tealText } from '../../../../../../../../../theme';
 
 /** Card de indicação — mostra código, copia, compartilha e estatísticas. */
 export const ReferralCard = ({ code }: { code?: string }) => {
@@ -42,7 +43,7 @@ export const ReferralCard = ({ code }: { code?: string }) => {
     <Card sx={{ mt: 2, borderRadius: '12px', overflow: 'hidden', background: 'rgba(32,178,170,0.06)', border: '1px solid', borderColor: 'divider' }}>
       <CardContent>
         <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
-          <GiftIcon sx={{ color: '#178f89' }} />
+          <GiftIcon sx={{ color: (t) => tealText(t.palette.mode) }} />
           <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary' }}>Indique e ganhe créditos</Typography>
         </Stack>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Cada amigo que se cadastrar com seu código ganha <strong>+{refBonus} créditos</strong>. Você também ganha <strong>+{refBonus}</strong>!</Typography>
@@ -50,9 +51,9 @@ export const ReferralCard = ({ code }: { code?: string }) => {
         {/* Código */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
           <Box sx={{ flex: 1, p: 1.5, borderRadius: '12px', bgcolor: 'background.paper', border: '2px dashed #20b2aa', textAlign: 'center' }}>
-            <Typography sx={{ fontFamily: 'monospace', fontWeight: 800, fontSize: 18, color: '#178f89', letterSpacing: 1 }}>{code}</Typography>
+            <Typography sx={{ fontFamily: 'monospace', fontWeight: 800, fontSize: 18, color: (t) => tealText(t.palette.mode), letterSpacing: 1 }}>{code}</Typography>
           </Box>
-          <Button variant="outlined" startIcon={<ContentCopyIcon />} onClick={copy} sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 700, borderColor: '#20b2aa', color: '#178f89' }}>
+          <Button variant="outlined" startIcon={<ContentCopyIcon />} onClick={copy} sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 700, borderColor: '#20b2aa', color: (t) => tealText(t.palette.mode) }}>
             {copied ? '✓ Copiado!' : 'Copiar'}
           </Button>
         </Box>
@@ -66,24 +67,24 @@ export const ReferralCard = ({ code }: { code?: string }) => {
         {stats && (
           <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap">
             <Box sx={{ textAlign: 'center', flex: '1 1 80px' }}>
-              <Typography sx={{ fontSize: 24, fontWeight: 900, color: '#178f89' }}>{stats.count}</Typography>
+              <Typography sx={{ fontSize: 24, fontWeight: 900, color: (t) => tealText(t.palette.mode) }}>{stats.count}</Typography>
               <Typography variant="caption" color="text.secondary">amigos indicados</Typography>
             </Box>
             <Box sx={{ textAlign: 'center', flex: '1 1 80px' }}>
-              <Typography sx={{ fontSize: 24, fontWeight: 900, color: '#178f89' }}>+{stats.creditsEarned}</Typography>
+              <Typography sx={{ fontSize: 24, fontWeight: 900, color: (t) => tealText(t.palette.mode) }}>+{stats.creditsEarned}</Typography>
               <Typography variant="caption" color="text.secondary">créditos ganhos</Typography>
             </Box>
             {stats.friends?.length > 0 && (
               <Box sx={{ flex: '1 1 100%' }}>
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>Indicados:</Typography>
                 <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap">
-                  {stats.friends.slice(0, 8).map((f: any, i: number) => <Chip key={i} size="small" label={f.name} sx={{ bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 600 }} />)}
+                  {stats.friends.slice(0, 8).map((f: any, i: number) => <Chip key={i} size="small" label={f.name} sx={{ bgcolor: 'rgba(32,178,170,0.15)', color: (t) => tealText(t.palette.mode), fontWeight: 600 }} />)}
                 </Stack>
               </Box>
             )}
           </Stack>
         )}
-        {stats === null && code && <Box sx={{ textAlign: 'center' }}><CircularProgress size={20} sx={{ color: '#178f89' }} /></Box>}
+        {stats === null && code && <Box sx={{ textAlign: 'center' }}><CircularProgress size={20} sx={{ color: (t) => tealText(t.palette.mode) }} /></Box>}
       </CardContent>
     </Card>
   );

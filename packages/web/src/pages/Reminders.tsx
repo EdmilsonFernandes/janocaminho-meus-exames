@@ -14,6 +14,7 @@ import { hapticSuccess, hapticError } from '../utils/haptic';
 import { useSelectedPatient } from '../patient-context';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
+import { tealText } from '../../../../../../../../../theme';
 
 const pulse = keyframes`0%,100%{transform:scale(1)}50%{transform:scale(1.12)}`;
 
@@ -117,7 +118,7 @@ export const RemindersPage = () => {
       }}>
         <CardContent sx={{ py: 1.75, px: 2.25, '&:last-child': { pb: 1.75 } }}>
           <Stack direction="row" alignItems="flex-start" spacing={1.5}>
-            <Checkbox checked={!!r.done} onChange={() => toggle(r)} sx={{ p: 0.5, color: 'text.disabled', '&.Mui-checked': { color: '#178f89' } }} />
+            <Checkbox checked={!!r.done} onChange={() => toggle(r)} sx={{ p: 0.5, color: 'text.disabled', '&.Mui-checked': { color: (t) => tealText(t.palette.mode) } }} />
             <Box sx={{ flex: 1, minWidth: 0 }}>
               <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap">
                 <Typography sx={{
@@ -128,7 +129,7 @@ export const RemindersPage = () => {
                 {ta && !isPast && (
                   <Chip size="small" label={ta} sx={{
                     height: 22, fontSize: 11.5, fontWeight: 800,
-                    bgcolor: 'rgba(32,178,170,.12)', color: '#178f89',
+                    bgcolor: 'rgba(32,178,170,.12)', color: (t) => tealText(t.palette.mode),
                     borderRadius: '6px',
                   }} />
                 )}
@@ -180,9 +181,9 @@ export const RemindersPage = () => {
       </Card>
 
       <Stack id="proximos" direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
-        <EventAvailableIcon sx={{ color: '#178f89', fontSize: 22 }} />
+        <EventAvailableIcon sx={{ color: (t) => tealText(t.palette.mode), fontSize: 22 }} />
         <Typography sx={{ fontWeight: 900, fontSize: 16, fontFamily: 'Poppins, sans-serif' }}>Próximos lembretes</Typography>
-        {upcoming.length > 0 && <Chip size="small" label={upcoming.length} sx={{ bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 800, height: 24, borderRadius: '999px' }} />}
+        {upcoming.length > 0 && <Chip size="small" label={upcoming.length} sx={{ bgcolor: 'rgba(32,178,170,0.15)', color: (t) => tealText(t.palette.mode), fontWeight: 800, height: 24, borderRadius: '999px' }} />}
       </Stack>
 
       {upcoming.length === 0 ? (
@@ -196,7 +197,7 @@ export const RemindersPage = () => {
             <Button variant="contained" startIcon={<AddAlarmIcon />} onClick={() => setFormOpen(true)} sx={{
               borderRadius: '999px', textTransform: 'none', fontWeight: 800,
               bgcolor: '#20b2aa', px: 3, boxShadow: '0 6px 16px rgba(32,178,170,.3)',
-              '&:hover': { bgcolor: '#178f89' },
+              '&:hover': { bgcolor: (t) => tealText(t.palette.mode) },
             }}>Criar lembrete</Button>
           </CardContent>
         </Card>
@@ -211,7 +212,7 @@ export const RemindersPage = () => {
         <CardContent>
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Stack direction="row" alignItems="center" spacing={1}>
-              <Box sx={{ width: 36, height: 36, borderRadius: '8px', display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,.12)', color: '#178f89' }}>
+              <Box sx={{ width: 36, height: 36, borderRadius: '8px', display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,.12)', color: (t) => tealText(t.palette.mode) }}>
                 <AddAlarmIcon fontSize="small" />
               </Box>
               <Typography variant="h6" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>Novo lembrete</Typography>
@@ -255,7 +256,7 @@ export const RemindersPage = () => {
                   alignSelf: 'flex-start', borderRadius: '999px', textTransform: 'none',
                   fontWeight: 800, px: 3, bgcolor: '#20b2aa',
                   boxShadow: '0 6px 16px rgba(32,178,170,.3)',
-                  '&:hover': { bgcolor: '#178f89' },
+                  '&:hover': { bgcolor: (t) => tealText(t.palette.mode) },
                 }}>Adicionar</Button>
             </Stack>
           </Collapse>

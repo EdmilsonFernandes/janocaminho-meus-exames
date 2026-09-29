@@ -5,6 +5,7 @@ import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined';
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
 import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined';
 import { AppCard } from '../../AppCard';
+import { tealText } from '../../../../../../../../../../../theme';
 
 export interface InviteItem { id: string; patientName?: string; phone?: string; email?: string; status: string; token: string; createdAt?: string; acceptedAt?: string }
 
@@ -23,7 +24,7 @@ export const PortalInvites = ({ invites, doctorName, onNewInvite, onCancel, link
                   <Typography variant="h6" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>Convites</Typography>
                   <Typography variant="caption" color="text.secondary">Convide pacientes — eles instalam o app e o compartilhamento já fica ativo.</Typography>
                 </Box>
-                <Button variant="contained" startIcon={<PersonAddAlt1Icon />} onClick={() => onNewInvite()} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: 'primary.main', boxShadow: 'none', '&:hover': { bgcolor: 'primary.dark' } }}>Convidar</Button>
+                <Button variant="contained" startIcon={<PersonAddAlt1Icon />} onClick={() => onNewInvite()} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: 'primary.main', boxShadow: 'none', '&:hover': { bgcolor: (t) => tealText(t.palette.mode) } }}>Convidar</Button>
               </Stack>
               <Stack direction="row" spacing={1.5} sx={{ mb: 2.5 }} useFlexGap flexWrap="wrap">
                 {[['Pendentes', pending.length, '#c2410c'], ['Aceitos', accepted.length, '#047857'], ['Expirados', expired.length, '#94a3b8']].map(([l, n, c]) => (
@@ -84,7 +85,7 @@ export const PortalInvites = ({ invites, doctorName, onNewInvite, onCancel, link
                     <AppCard key={it.id} sx={{ opacity: 0.75 }}><CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.25 }}>
                       <Avatar sx={{ bgcolor: 'action.hover', color: 'text.secondary', fontWeight: 800, width: 44, height: 44 }}>{it.patientName?.charAt(0)}</Avatar>
                       <Box sx={{ flex: 1, minWidth: 0 }}><Typography sx={{ fontWeight: 700 }}>{it.patientName}</Typography></Box>
-                      <Button size="small" variant="outlined" startIcon={<PersonAddAlt1Icon />} onClick={() => onPrefill({ name: it.patientName, phone: it.phone || '', email: it.email || '' })} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, borderColor: 'primary.main', color: 'primary.dark' }}>Reenviar</Button>
+                      <Button size="small" variant="outlined" startIcon={<PersonAddAlt1Icon />} onClick={() => onPrefill({ name: it.patientName, phone: it.phone || '', email: it.email || '' })} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, borderColor: 'primary.main', color: (t) => tealText(t.palette.mode) }}>Reenviar</Button>
                     </CardContent></AppCard>
                   ))}
                 </Stack>

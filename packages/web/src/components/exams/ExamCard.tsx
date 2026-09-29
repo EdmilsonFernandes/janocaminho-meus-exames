@@ -11,6 +11,7 @@ import { cleanExtractedLabel } from '../../utils/examDisplay';
 import { categorizeExam } from '../../utils/medicalData';
 import { fmtDateShort } from '../../utils/format';
 import { RADIUS } from '../../theme';
+import { tealText } from '../../../../../../../../../../theme';
 
 const kindLabel: Record<string, string> = { LAB_PANEL: 'Laboratorial', IMAGING: 'Imagem', OTHER: 'Outro' };
 
@@ -92,7 +93,7 @@ export const ExamCard = ({ exam, onOpen, onOpenPdf }: { exam: any; onOpen: (id: 
               })}
             >
               <CalendarMonthIcon sx={{ fontSize: 14, color: 'primary.main' }} />
-              <Typography component="span" sx={{ fontWeight: 700, color: 'primary.dark', fontSize: '0.78rem', lineHeight: 1 }}>
+              <Typography component="span" sx={{ fontWeight: 700, color: (t) => tealText(t.palette.mode), fontSize: '0.78rem', lineHeight: 1 }}>
                 {dt}{ago ? ` • ${ago}` : ''}
               </Typography>
             </Box>

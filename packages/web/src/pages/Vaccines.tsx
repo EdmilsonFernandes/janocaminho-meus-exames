@@ -13,6 +13,7 @@ import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
+import { tealText } from '../../../../../../../../../theme';
 
 const fadeUp = keyframes`from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}`;
 
@@ -76,7 +77,7 @@ export const VaccinesPage = () => {
 
       {/* CARTEIRA primeiro */}
       <Stack id="carteira" direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
-        <VaccinesIcon sx={{ color: '#178f89', fontSize: 22 }} />
+        <VaccinesIcon sx={{ color: (t) => tealText(t.palette.mode), fontSize: 22 }} />
         <Typography sx={{ fontWeight: 900, fontSize: 16, fontFamily: 'Poppins, sans-serif' }}>Histórico de vacinas</Typography>
       </Stack>
 
@@ -159,7 +160,7 @@ export const VaccinesPage = () => {
         <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Stack direction="row" alignItems="center" spacing={1}>
-              <Box sx={{ width: 40, height: 40, borderRadius: '12px', display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,.12)', color: 'primary.dark' }}>
+              <Box sx={{ width: 40, height: 40, borderRadius: '12px', display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,.12)', color: (t) => tealText(t.palette.mode) }}>
                 <AddCircleOutlineIcon fontSize="small" />
               </Box>
               <Typography variant="h6" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>Registrar vacina</Typography>
@@ -179,7 +180,7 @@ export const VaccinesPage = () => {
                   alignSelf: { xs: 'stretch', sm: 'center' },
                   borderRadius: '999px', textTransform: 'none', fontWeight: 800,
                   bgcolor: 'primary.main', boxShadow: '0 6px 16px rgba(32,178,170,.3)',
-                  '&:hover': { bgcolor: 'primary.dark' },
+                  '&:hover': { bgcolor: (t) => tealText(t.palette.mode) },
                 }}>Adicionar</Button>
             </Stack>
           </Collapse>

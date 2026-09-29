@@ -2,6 +2,7 @@ import { Box, Stack, Typography, Chip } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { NameToggle } from '../HealthSummary';
 import { ExplainButton } from '../ExplainItem';
+import { tealText } from '../../../../../../../../../../theme';
 
 // Mesmo parser numérico do HealthSummary (vírgula decimal, separador de milhar).
 const num = (s?: string | null): number | null => {
@@ -39,7 +40,7 @@ export const DestaqueCard = ({ c }: { c: { name: string; anterior?: string | nul
         <NameToggle name={prettyName(c.name)} entenda={c.entenda} />
         <Stack direction="row" spacing={0.75} alignItems="baseline" sx={{ mt: 0.75 }} flexWrap="wrap" useFlexGap>
           <Typography variant="body2" color="text.secondary" sx={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{c.anterior || '—'}</Typography>
-          <Typography sx={{ fontWeight: 800, color: '#178f89' }}>→</Typography>
+          <Typography sx={{ fontWeight: 800, color: (t) => tealText(t.palette.mode) }}>→</Typography>
           <Typography sx={{ fontWeight: 800, color: '#0f6e68', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{c.atual || '—'}</Typography>
         </Stack>
       </Box>

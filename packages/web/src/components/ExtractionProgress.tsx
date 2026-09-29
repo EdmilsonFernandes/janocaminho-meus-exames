@@ -3,6 +3,7 @@ import { Box, Typography, LinearProgress, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { DrExame } from './DrExame';
 import { API_URL, token } from '../config';
+import { tealText } from '../../../../../../../../../theme';
 
 const STEPS = [
   { msg: 'Lendo o documento…', emoji: '📄' },
@@ -55,7 +56,7 @@ export const ExtractionProgress = ({ startedAt, examId }: { startedAt?: string; 
       <Box sx={{ display: 'inline-block', animation: 'drBob 1.6s ease-in-out infinite' }}>
         <DrExame size={88} sx={{ borderRadius: '20%', boxShadow: '0 6px 18px rgba(32,178,170,.22)' }} />
       </Box>
-      <Typography sx={{ mt: 1.5, color: '#178f89', fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 18 }}>Dr. Exame está analisando seu exame</Typography>
+      <Typography sx={{ mt: 1.5, color: (t) => tealText(t.palette.mode), fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 18 }}>Dr. Exame está analisando seu exame</Typography>
 
       {/* Mensagem do estágio atual (rotativa a cada 5s) */}
       <Typography color="text.secondary" sx={{ mb: 2, minHeight: 24, fontSize: 14 }}>
@@ -65,7 +66,7 @@ export const ExtractionProgress = ({ startedAt, examId }: { startedAt?: string; 
       {/* Timer decorrido — reduz ansiedade (usuário SABE quanto tempo passou) */}
       <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, mb: 1.5, px: 1.5, py: 0.5, borderRadius: '999px', bgcolor: 'rgba(32,178,170,.08)' }}>
         <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#20b2aa', animation: 'pulse 1.5s ease-in-out infinite' }} />
-        <Typography variant="caption" sx={{ fontWeight: 700, color: '#178f89', fontFamily: 'monospace' }}>{timeStr}</Typography>
+        <Typography variant="caption" sx={{ fontWeight: 700, color: (t) => tealText(t.palette.mode), fontFamily: 'monospace' }}>{timeStr}</Typography>
       </Box>
 
       {/* Barra indeterminada (honesto — não há progresso real) */}
@@ -84,7 +85,7 @@ export const ExtractionProgress = ({ startedAt, examId }: { startedAt?: string; 
       </Typography>
 
       {/* Botão: pode sair — extração continua server-side */}
-      <Button size="small" onClick={() => navigate('/exams')} sx={{ textTransform: 'none', fontWeight: 700, color: '#178f89', borderRadius: '999px', px: 2.5, py: 0.75, border: '1px solid', borderColor: 'rgba(32,178,170,.3)' }}>
+      <Button size="small" onClick={() => navigate('/exams')} sx={{ textTransform: 'none', fontWeight: 700, color: (t) => tealText(t.palette.mode), borderRadius: '999px', px: 2.5, py: 0.75, border: '1px solid', borderColor: 'rgba(32,178,170,.3)' }}>
         Ver meus exames →
       </Button>
 

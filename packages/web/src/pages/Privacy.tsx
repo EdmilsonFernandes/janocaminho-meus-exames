@@ -7,6 +7,7 @@ import UploadIcon from '@mui/icons-material/Upload';
 import { API_URL, token, apiHeaders } from '../config';
 import { confirmDialog } from '../components/ConfirmDialog';
 import { TermsPage } from './Terms';
+import { tealText } from '../../../../../../../../../theme';
 
 /** Página de Privacidade e Termos — e o lar REAL de "Gerenciar seus dados" (export/import/
  *  exclusão LGPD mudaram do Perfil pra cá na re-arquitetura 2026-08: função de dados, não
@@ -74,7 +75,7 @@ export const PrivacyPage = () => {
           <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: 14, lineHeight: 1.6, mb: 1.5 }}>
             O Meus Exames é um app de apoio à gestão de saúde pessoal. A análise gerada pela IA é <strong>educativa</strong> e <strong>não substitui</strong> consulta, diagnóstico ou tratamento médico. Em urgências, procure um serviço de saúde.
           </Typography>
-          <Button variant="outlined" size="small" onClick={() => setTermsOpen(true)} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, borderColor: '#20b2aa', color: '#178f89' }}>
+          <Button variant="outlined" size="small" onClick={() => setTermsOpen(true)} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, borderColor: '#20b2aa', color: (t) => tealText(t.palette.mode) }}>
             Ler termos completos →
           </Button>
         </Box>
@@ -139,7 +140,7 @@ export const PrivacyPage = () => {
               'Não vendemos seus dados; compartilhamos apenas com operadores necessários para IA, notificações, pagamentos, suporte e infraestrutura.',
             ].map((t, i) => (
               <Stack key={i} direction="row" spacing={1.5} alignItems="flex-start">
-                <Box sx={{ width: 20, height: 20, borderRadius: '50%', bgcolor: 'rgba(32,178,170,.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: '#178f89', flexShrink: 0, mt: 0.2 }}>{i + 1}</Box>
+                <Box sx={{ width: 20, height: 20, borderRadius: '50%', bgcolor: 'rgba(32,178,170,.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: (t) => tealText(t.palette.mode), flexShrink: 0, mt: 0.2 }}>{i + 1}</Box>
                 <Typography variant="body2" sx={{ color: 'text.primary', fontSize: 14, lineHeight: 1.5 }}>{t}</Typography>
               </Stack>
             ))}

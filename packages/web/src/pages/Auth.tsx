@@ -12,6 +12,7 @@ import { OtpInput } from '../components/OtpInput';
 import { MfaChallengeDialog } from '../components/mfa/MfaChallengeDialog';
 import { BiometricService, getDeviceId } from '../components/BiometricService';
 import { formatCpf, isValidCpf } from '../utils/cpf';
+import { tealText } from '../../../../../../../../../theme';
 
 /* ---------- ícones inline (sem dependência de @mui/icons-material) ---------- */
 const I = {
@@ -63,7 +64,7 @@ const Shell = ({ children, subtitle }: { children: ReactNode; subtitle?: string 
         </Box>
         <Box sx={{ textAlign: 'center', mt: 0.5 }}>
           <Typography sx={{ fontWeight: 800, color: 'text.primary', fontFamily: '"Poppins",sans-serif', letterSpacing: '-0.02em', lineHeight: 1.15, fontSize: { xs: 24, sm: 26 } }}>Meus Exames</Typography>
-          <Typography sx={{ ...SERIF_I, fontSize: 15, color: '#178f89', mt: 0.25 }}>{subtitle ?? translate('auth.subtitle')}</Typography>
+          <Typography sx={{ ...SERIF_I, fontSize: 15, color: (t) => tealText(t.palette.mode), mt: 0.25 }}>{subtitle ?? translate('auth.subtitle')}</Typography>
         </Box>
       </Stack>
       {children}
@@ -496,7 +497,7 @@ export const RegisterPage = () => {
           } }} />
         {referral ? (
           <Box sx={{ p: 1, borderRadius: '12px', bgcolor: 'rgba(32,178,170,0.10)', border: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography sx={{ fontSize: 12, color: '#178f89', fontWeight: 700 }}>🎁 Indicado por <strong>{referral}</strong>: você ganha +{refBonus} créditos!</Typography>
+            <Typography sx={{ fontSize: 12, color: (t) => tealText(t.palette.mode), fontWeight: 700 }}>🎁 Indicado por <strong>{referral}</strong>: você ganha +{refBonus} créditos!</Typography>
           </Box>
         ) : (
           <TextField label="Código de indicação (opcional)" value={referral} onChange={(e) => setReferral(e.target.value.toUpperCase())} sx={fieldSx} />

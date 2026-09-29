@@ -1,6 +1,7 @@
 import { Card, CardContent, Typography, Box, Stack } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import { tealText } from '../../../../../../../../../theme';
 
 // Preview rápido no Dashboard (streak fica no server — só em /conquistas).
 const PREVIEW = [
@@ -39,7 +40,7 @@ export const GamificationBadges = ({ examsCount, score }: { examsCount: number; 
             <Typography sx={{ fontWeight: 800, color: 'text.primary', fontSize: 16 }}>🏆 Suas conquistas</Typography>
             <Typography variant="caption" sx={{ color: 'text.secondary' }}>Resgate 1 crédito a cada meta atingida</Typography>
           </Box>
-          <ChevronRightIcon sx={{ color: '#178f89' }} />
+          <ChevronRightIcon sx={{ color: (t) => tealText(t.palette.mode) }} />
         </Stack>
 
         <Box sx={{ display: 'flex', gap: 1.5, justifyContent: 'space-between', mb: 1.5 }}>

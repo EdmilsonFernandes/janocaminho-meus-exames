@@ -1,60 +1,44 @@
 /**
- * ReviewPrompt — pede avaliação no Google Play após momento positivo.
- * Aparece UMA vez (localStorage) após: score calculado + pelo menos 1 exame extraído.
- * No nativo (APK): abre a Play Store direto. No web: silent (não perturba).
+ * Review nativo (skill in-app-review, revisão 28/09) — `requestReview()` DIRETO no
+ * momento positivo, SEM UI própria: o dialog do sistema já faz a pergunta; um dialog
+ * custom antes significa que, com a cota do SO esgotada, o usuário clica "Avaliar" e
+ * NADA acontece (clique sem resposta). O SO controla a cota (~3x/ano por usuário) e
+ * pode não exibir nada — silencioso por design.
+ *
+ * - Cooldown local de 90d entre TENTATIVAS (chamar demais pode throttlear o prompt do
+ *   app inteiro). A key antiga `me_review_asked` (1x na vida) é aposentada.
+ * - Quem quer ESCREVER um review usa "Avaliar o app" nas Configurações (Perfil) —
+ *   deep link direto pra listagem da Play Store (ver Profile.tsx).
+ * - Web: no-op (só nativo).
  */
-import { useEffect, useState } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Stack } from '@mui/material';
-import StarIcon from '@mui/icons-material/Star';
+import { useEffect } from 'react';
 import { Capacitor } from '@capacitor/core';
 
-const KEY = 'me_review_asked';
-const PLAY_URL = 'https://play.google.com/store/apps/details?id=com.janocaminho.drexame';
+const LAST_KEY = 'me_review_last_prompted';
+const COOLDOWN_MS = 90 * 24 * 60 * 60 * 1000;
 
+export const PLAY_URL = 'https://play.google.com/store/apps/details?id=com.janocaminho.drexame';
+
+/** Chama o review nativo se couber (nativo + fora do cooldown). Best-effort, silencioso. */
+export async function maybeRequestReview(): Promise<void> {
+  if (!Capacitor.isNativePlatform()) return;
+  let last = 0;
+  try { last = Number(localStorage.getItem(LAST_KEY) ?? 0) || 0; } catch { /* localStorage indisponível */ }
+  if (Date.now() - last < COOLDOWN_MS) return;
+  try {
+    const { InAppReview } = await import('@capacitor-community/in-app-review');
+    await InAppReview.requestReview();
+  } catch { /* cota/erro do SO — próxima janela em 90d */ }
+  try { localStorage.setItem(LAST_KEY, String(Date.now())); } catch { /* ignora */ }
+}
+
+/** Gatilho declarativo (mantém o ponto de uso no dashboard intacto): dispara 3s após
+ *  o momento positivo — sem interromper a animação/leitura do score na tela. */
 export const ReviewPrompt = ({ trigger }: { trigger: boolean }) => {
-  const [open, setOpen] = useState(false);
-  const isNative = Capacitor.isNativePlatform();
-
   useEffect(() => {
-    if (!trigger || !isNative) return;
-    try {
-      if (localStorage.getItem(KEY)) return;
-      // Espera 3s após o trigger pra não interromper a experiência
-      const t = setTimeout(() => { setOpen(true); try { localStorage.setItem(KEY, '1'); } catch {} }, 3000);
-      return () => clearTimeout(t);
-    } catch {}
-  }, [trigger, isNative]);
-
-  if (!isNative) return null;
-
-  // G1 — In-App Review NATIVO (padrão app grande): dialog de estrelas DENTRO do app,
-  // sem abrir navegador nem sair da experiência. O SO controla a cota (pode não mostrar
-  // — silencioso por design). Fallback: Play Store no Browser (capacitor:// → window.open).
-  const rate = async () => {
-    setOpen(false);
-    try {
-      const { InAppReview } = await import('@capacitor-community/in-app-review');
-      await InAppReview.requestReview();
-    } catch {
-      try { const { Browser } = await import('@capacitor/browser'); await Browser.open({ url: PLAY_URL }); } catch { window.open(PLAY_URL, '_blank'); }
-    }
-  };
-
-  return (
-    <Dialog open={open} onClose={() => setOpen(false)} PaperProps={{ sx: { borderRadius: '12px', maxWidth: 340 } }}>
-      <DialogTitle sx={{ textAlign: 'center', pb: 0 }}>
-        <Stack alignItems="center" spacing={1}>
-          <Stack direction="row" spacing={0.5}>{[1,2,3,4,5].map(i => <StarIcon key={i} sx={{ color: '#f59e0b', fontSize: 28 }} />)}</Stack>
-          Gostando do Dr. Exame?
-        </Stack>
-      </DialogTitle>
-      <DialogContent sx={{ textAlign: 'center' }}>
-        <Typography color="text.secondary">Sua avaliação ajuda mais pessoas a descobrirem o app. Leva 10 segundos! 🙏</Typography>
-      </DialogContent>
-      <DialogActions sx={{ justifyContent: 'center', pb: 3, flexDirection: 'column', gap: 1 }}>
-        <Button variant="contained" onClick={rate} startIcon={<StarIcon />} sx={{ borderRadius: '999px', px: 4, textTransform: 'none', fontWeight: 800, bgcolor: '#f59e0b', '&:hover': { bgcolor: '#b45309' } }}>Avaliar no Google Play</Button>
-        <Button size="small" onClick={() => setOpen(false)} sx={{ textTransform: 'none', color: 'text.secondary' }}>Talvez depois</Button>
-      </DialogActions>
-    </Dialog>
-  );
-};;
+    if (!trigger) return;
+    const t = setTimeout(() => { void maybeRequestReview(); }, 3000);
+    return () => clearTimeout(t);
+  }, [trigger]);
+  return null;
+};

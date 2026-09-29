@@ -14,6 +14,7 @@ import KeyIcon from '@mui/icons-material/Key';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import BoltIcon from '@mui/icons-material/Bolt';
+import { tealText } from '../../../../../../../../../theme';
 
 const H = () => ({ Authorization: `Bearer ${token()}` });
 const fmt = (d: string | null) => (d ? new Date(d).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—');
@@ -155,7 +156,7 @@ export const ApiPanelPage = () => {
         <Card variant="outlined" sx={{ borderRadius: '12px' }}>
           <CardContent sx={{ textAlign: 'center', py: 5, px: 3 }}>
             <Box sx={{ width: 76, height: 76, mx: 'auto', mb: 2, borderRadius: '50%', bgcolor: 'rgba(32,178,170,.12)', display: 'grid', placeItems: 'center' }}>
-              <ApiIcon sx={{ fontSize: 36, color: '#178f89' }} />
+              <ApiIcon sx={{ fontSize: 36, color: (t) => tealText(t.palette.mode) }} />
             </Box>
             <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 20 }}>API do Dr. Exame</Typography>
             <Typography color="text.secondary" sx={{ fontSize: 14, mt: 0.75, mb: 2.5, maxWidth: 380, mx: 'auto' }}>
@@ -163,10 +164,10 @@ export const ApiPanelPage = () => {
             </Typography>
             <Stack direction="row" spacing={1.5} justifyContent="center" useFlexGap flexWrap="wrap">
               <Button variant="contained" onClick={() => go('/registrar')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 3.5 }}>Criar conta e solicitar</Button>
-              <Button variant="outlined" onClick={() => go('/entrar')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, px: 3.5, borderColor: '#d8f4f2', color: '#178f89' }}>Já tenho conta</Button>
+              <Button variant="outlined" onClick={() => go('/entrar')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, px: 3.5, borderColor: '#d8f4f2', color: (t) => tealText(t.palette.mode) }}>Já tenho conta</Button>
             </Stack>
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2.5 }}>
-              Documentação pública: <Box component="a" href="/api/docs" target="_blank" rel="noopener noreferrer" sx={{ color: '#178f89', fontWeight: 700 }}>/api/docs</Box>
+              Documentação pública: <Box component="a" href="/api/docs" target="_blank" rel="noopener noreferrer" sx={{ color: (t) => tealText(t.palette.mode), fontWeight: 700 }}>/api/docs</Box>
             </Typography>
           </CardContent>
         </Card>
@@ -237,7 +238,7 @@ export const ApiPanelPage = () => {
                 <Stack spacing={1.5} sx={{ mb: 2.5 }}>
                   {ENDPOINTS.map((e) => (
                     <Stack key={e.p} direction="row" spacing={1.25} alignItems="center" sx={{ borderRadius: '12px', bgcolor: 'action.hover', px: 1.5, py: 1 }}>
-                      <Chip size="small" label={e.m} sx={{ height: 20, fontWeight: 800, fontSize: 10, bgcolor: 'rgba(32,178,170,.14)', color: '#178f89' }} />
+                      <Chip size="small" label={e.m} sx={{ height: 20, fontWeight: 800, fontSize: 10, bgcolor: 'rgba(32,178,170,.14)', color: (t) => tealText(t.palette.mode) }} />
                       <Box sx={{ minWidth: 0, flex: 1 }}>
                         <Typography sx={{ fontFamily: 'ui-monospace, monospace', fontSize: 13, fontWeight: 700, wordBreak: 'break-all' }}>{e.p}</Typography>
                         <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>{e.d}</Typography>
@@ -264,7 +265,7 @@ export const ApiPanelPage = () => {
           <Card variant="outlined" sx={{ borderRadius: '12px', mb: 2.5 }}>
             <CardContent sx={{ p: { xs: 2.5, md: 3 } }}>
               <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
-                <KeyIcon sx={{ color: '#178f89', fontSize: 20 }} />
+                <KeyIcon sx={{ color: (t) => tealText(t.palette.mode), fontSize: 20 }} />
                 <Typography sx={{ fontWeight: 800, fontSize: 17 }}>Suas chaves</Typography>
                 <Box sx={{ flex: 1 }} />
                 <Button size="small" variant="contained" onClick={() => setCreatedKey('__form__')} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '999px' }}>+ Nova chave</Button>
@@ -338,7 +339,7 @@ export const ApiPanelPage = () => {
                         <Button size="small" variant="contained" disabled={buying === p.id || blocked} onClick={() => void buyPack(p.id, 'pix')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>
                           {buying === p.id ? <CircularProgress size={15} color="inherit" /> : 'PIX (na hora)'}
                         </Button>
-                        <Button size="small" disabled={buying === p.id || blocked} onClick={() => void buyPack(p.id, 'card')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, borderColor: '#d8f4f2', color: '#178f89' }} variant="outlined">
+                        <Button size="small" disabled={buying === p.id || blocked} onClick={() => void buyPack(p.id, 'card')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, borderColor: '#d8f4f2', color: (t) => tealText(t.palette.mode) }} variant="outlined">
                           {blocked ? 'Aguarde o PIX atual' : 'Cartão / débito'}
                         </Button>
                       </Stack>
@@ -373,7 +374,7 @@ export const ApiPanelPage = () => {
           <Alert severity="warning" sx={{ mb: 1.5, borderRadius: '12px' }}>Esta chave <b>não será exibida novamente</b>. Copie e guarde em segredo (como uma senha).</Alert>
           <Stack direction="row" spacing={1} alignItems="center" sx={{ borderRadius: '12px', bgcolor: 'action.hover', p: 1.25 }}>
             <Typography sx={{ fontFamily: 'ui-monospace, monospace', fontSize: 13, wordBreak: 'break-all', flex: 1 }}>{createdKey}</Typography>
-            <IconButton size="small" onClick={() => { void navigator.clipboard?.writeText(createdKey ?? ''); }} aria-label="Copiar"><ContentCopyIcon sx={{ fontSize: 18, color: '#178f89' }} /></IconButton>
+            <IconButton size="small" onClick={() => { void navigator.clipboard?.writeText(createdKey ?? ''); }} aria-label="Copiar"><ContentCopyIcon sx={{ fontSize: 18, color: (t) => tealText(t.palette.mode) }} /></IconButton>
           </Stack>
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
             Use no header das chamadas: <code>x-api-key: {String(createdKey ?? '').slice(0, 16)}…</code> (exemplos em /api/docs).

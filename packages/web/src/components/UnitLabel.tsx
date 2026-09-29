@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Box, Popover, IconButton, Typography } from '@mui/material';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { explainUnit } from '../data/unitDictionary';
+import { tealText } from '../../../../../../../../../theme';
 
 /**
  * UnitLabel — exibe a unidade de medida (mg/dL, µUI/mL...) com um "?" tocável que abre um
@@ -38,7 +39,7 @@ export const UnitLabel = ({ unit, fontSize = '0.85rem' }: { unit: string | null 
         slotProps={{ paper: { sx: { maxWidth: 330, borderRadius: '12px', mt: 0.5 } } }}
       >
         <Box sx={{ p: 2, maxWidth: 330 }}>
-          <Typography sx={{ fontWeight: 800, color: 'primary.dark', fontSize: '1.05rem' }}>{info.nome}</Typography>
+          <Typography sx={{ fontWeight: 800, color: (t) => tealText(t.palette.mode), fontSize: '1.05rem' }}>{info.nome}</Typography>
           <Typography variant="body2" sx={{ mt: 0.5, lineHeight: 1.5 }}>{info.explicacao}</Typography>
           <Typography variant="caption" sx={{ display: 'block', mt: 1.5, color: 'text.secondary' }}>*Educativo. Sempre confirme com seu médico.</Typography>
         </Box>

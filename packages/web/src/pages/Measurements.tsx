@@ -24,11 +24,12 @@ import { PageHeader } from '../components/layout/PageHeader';
 import { AppCard } from '../components/AppCard';
 import { Sparkline } from '../components/Sparkline';
 import { STEPS_GOAL } from '../utils/activityStats';
+import { tealText } from '../../../../../../../../../theme';
 
 /** Ícones (sem emoji — leitor de tela lia "coração vermelho" e a linguagem do app é ícone). */
 export const TYPES = [
   { v: 'BLOOD_PRESSURE', l: 'Pressão arterial', u: 'mmHg', dual: true, color: '#dc2626', icon: <MonitorHeartIcon sx={{ fontSize: 16 }} /> },
-  { v: 'WEIGHT', l: 'Peso', u: 'kg', color: '#178f89', icon: <MonitorWeightIcon sx={{ fontSize: 16 }} /> },
+  { v: 'WEIGHT', l: 'Peso', u: 'kg', color: (t) => tealText(t.palette.mode), icon: <MonitorWeightIcon sx={{ fontSize: 16 }} /> },
   // Altura infantil (curvas de crescimento OMS na Evolução) — medição comum, unidade cm.
   { v: 'HEIGHT', l: 'Altura', u: 'cm', color: '#0f766e', icon: <HeightIcon sx={{ fontSize: 16 }} /> },
   { v: 'GLUCOSE', l: 'Glicose', u: 'mg/dL', color: '#c2410c', icon: <WaterDropIcon sx={{ fontSize: 16 }} /> },
@@ -152,7 +153,7 @@ export const MeasurementsPage = () => {
       }}>
         <CardContent>
           <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: weights.length === 0 ? 0 : 1 }}>
-            <MonitorWeightIcon sx={{ fontSize: 18, color: 'primary.dark' }} />
+            <MonitorWeightIcon sx={{ fontSize: 18, color: (t) => tealText(t.palette.mode) }} />
             <Typography variant="h6">Peso</Typography>
           </Stack>
           {weights.length === 0 ? (
@@ -164,7 +165,7 @@ export const MeasurementsPage = () => {
             <>
               <Stack direction="row" alignItems="center" spacing={1.5} useFlexGap flexWrap="wrap" sx={{ mb: 0.5 }}>
                 <Stack direction="row" alignItems="baseline" spacing={0.5}>
-                  <Typography sx={{ fontWeight: 800, fontSize: 32, color: 'primary.dark', lineHeight: 1 }}>{latestWeight.value}</Typography>
+                  <Typography sx={{ fontWeight: 800, fontSize: 32, color: (t) => tealText(t.palette.mode), lineHeight: 1 }}>{latestWeight.value}</Typography>
                   <Typography component="span" sx={{ fontSize: 14, color: 'text.secondary', fontWeight: 600 }}>kg</Typography>
                 </Stack>
                 {prevWeight && Number(latestWeight.value) !== Number(prevWeight.value) && (() => {
@@ -242,14 +243,14 @@ export const MeasurementsPage = () => {
         aria-label="Abrir rastreamento de saúde mental (PHQ-9 e GAD-7)"
         sx={{ mb: 2, p: 2, display: 'flex', alignItems: 'center', gap: 1.5, '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 } }}
       >
-        <Box aria-hidden="true" sx={{ width: 40, height: 40, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'rgba(32,178,170,.12)', color: 'primary.dark', flexShrink: 0 }}>
+        <Box aria-hidden="true" sx={{ width: 40, height: 40, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'rgba(32,178,170,.12)', color: (t) => tealText(t.palette.mode), flexShrink: 0 }}>
           <PsychologyIcon />
         </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography sx={{ fontWeight: 700 }}>Saúde Mental — PHQ-9/GAD-7</Typography>
           <Typography variant="caption" color="text.secondary">Questionários validados de depressão e ansiedade · 2 min</Typography>
         </Box>
-        <Chip size="small" label="Grátis" sx={{ height: 22, fontWeight: 700, bgcolor: 'rgba(32,178,170,.12)', color: 'primary.dark' }} />
+        <Chip size="small" label="Grátis" sx={{ height: 22, fontWeight: 700, bgcolor: 'rgba(32,178,170,.12)', color: (t) => tealText(t.palette.mode) }} />
       </AppCard>
 
       {/* REGISTRAR — por último (dado em cima, ferramenta embaixo; colapsado por padrão).

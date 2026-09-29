@@ -7,6 +7,7 @@ import { API_URL, doctorPhotoUrl } from '../../../config';
 import { PhotoUpload } from '../../PhotoUpload';
 import { MfaSetupCard } from '../../mfa/MfaSetupCard';
 import { SPECIALTIES } from '../../../utils/medicalData';
+import { tealText } from '../../../../../../../../../../../theme';
 
 /** Empty state compacto das views do portal. */
 export const Empty = ({ label, icon = '📭' }: { label: string; icon?: string }) => (
@@ -31,7 +32,7 @@ export const DoctorChangePasswordForm = ({ token, onBack }: { token: string; onB
   return (
     <Box>
       <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
-        <Button size="small" onClick={onBack} sx={{ color: 'primary.dark', textTransform: 'none', fontWeight: 700, minWidth: 0 }}>← Voltar</Button>
+        <Button size="small" onClick={onBack} sx={{ color: (t) => tealText(t.palette.mode), textTransform: 'none', fontWeight: 700, minWidth: 0 }}>← Voltar</Button>
         <Typography sx={{ fontWeight: 800, color: 'text.primary' }}>🔒 Trocar senha</Typography>
       </Stack>
       <Card sx={{ borderRadius: '20px', border: '1px solid', borderColor: 'divider', boxShadow: '0 4px 20px rgba(0,0,0,0.04)' }}><CardContent sx={{ p: 2.5 }}>

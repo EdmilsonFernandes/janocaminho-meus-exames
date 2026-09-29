@@ -7,12 +7,13 @@ import ScienceIcon from '@mui/icons-material/Science';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import DiamondIcon from '@mui/icons-material/Diamond';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
+import { tealText } from '../../../../../../../../../theme';
 
 const float = keyframes`0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}`;
 const fadeUp = keyframes`from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}`;
 
 const SHORTCUTS = [
-  { label: 'Meus exames', hint: 'Histórico e laudos', to: '/exams', icon: <ScienceIcon fontSize="small" />, color: '#178f89' },
+  { label: 'Meus exames', hint: 'Histórico e laudos', to: '/exams', icon: <ScienceIcon fontSize="small" />, color: (t) => tealText(t.palette.mode) },
   { label: 'Evolução', hint: 'Gráficos ao longo do tempo', to: '/evolucao', icon: <ShowChartIcon fontSize="small" />, color: '#f59e0b' },
   { label: 'Planos', hint: 'Créditos e assinatura', to: '/planos', icon: <DiamondIcon fontSize="small" />, color: '#6366f1' },
   { label: 'Suporte', hint: 'Abra um chamado', to: '/suporte', icon: <SupportAgentIcon fontSize="small" />, color: '#ef4444' },
@@ -61,7 +62,7 @@ export const NotFoundPage = () => {
           fontWeight: 800, fontSize: 16,
           bgcolor: '#20b2aa',
           boxShadow: '0 8px 24px rgba(32,178,170,.3)',
-          '&:hover': { bgcolor: '#178f89', boxShadow: '0 12px 32px rgba(32,178,170,.35)' },
+          '&:hover': { bgcolor: (t) => tealText(t.palette.mode), boxShadow: '0 12px 32px rgba(32,178,170,.35)' },
           mb: 4.5,
           animation: `${fadeUp} .5s ease both`, animationDelay: '.2s',
         }}

@@ -11,6 +11,7 @@ import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
 import { ListSkeleton } from '../components/Skeleton';
 import { AppCard } from '../components/AppCard';
+import { tealText } from '../../../../../../../../../theme';
 
 interface Expense { id: string; description: string; category: string; amount: number; spentAt: string; }
 
@@ -95,7 +96,7 @@ export const ExpensesPage = () => {
         border: '1px solid rgba(32,178,170,.2)',
         boxShadow: '0 4px 20px rgba(32,178,170,.06)',
       }}>
-        <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: { xs: 32, sm: 38 }, lineHeight: 1.1, color: 'primary.dark' }}>{brl(total)}</Typography>
+        <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: { xs: 32, sm: 38 }, lineHeight: 1.1, color: (t) => tealText(t.palette.mode) }}>{brl(total)}</Typography>
         <Typography color="text.secondary" sx={{ fontSize: 13.5, mt: 0.5 }}>Total gasto em saúde · {items.length} lançamento{items.length === 1 ? '' : 's'} · dedutível no IR (mantenha os comprovantes)</Typography>
       </AppCard>
 
@@ -137,7 +138,7 @@ export const ExpensesPage = () => {
               {/* Header do mês */}
               <Box sx={{ position: 'sticky', top: { xs: 58, sm: 64 }, zIndex: 2, bgcolor: 'background.paper', display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 1, py: 0.75, px: 1, mx: -1, borderBottom: '2px solid', borderColor: 'rgba(32,178,170,.35)' }}>
                 <Typography sx={{ fontWeight: 800, fontSize: 14 }}>{monthLabel(key)}</Typography>
-                <Typography sx={{ fontWeight: 800, fontSize: 14, color: 'primary.dark', fontVariantNumeric: 'tabular-nums' }}>{brl(monthTotal)}</Typography>
+                <Typography sx={{ fontWeight: 800, fontSize: 14, color: (t) => tealText(t.palette.mode), fontVariantNumeric: 'tabular-nums' }}>{brl(monthTotal)}</Typography>
               </Box>
 
               {/* XS — lista-card */}
@@ -147,7 +148,7 @@ export const ExpensesPage = () => {
                     <Box sx={{ flex: 1, minWidth: 0 }}>
                       <Typography sx={{ fontWeight: 700, fontSize: 14, lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.description}</Typography>
                       <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mt: 0.25 }}>
-                        <Chip size="small" label={item.category} sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(32,178,170,.12)', color: 'primary.dark' }} />
+                        <Chip size="small" label={item.category} sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(32,178,170,.12)', color: (t) => tealText(t.palette.mode) }} />
                         <Typography variant="caption" sx={{ color: 'text.secondary' }}>{fmtDate(item.spentAt)}</Typography>
                       </Stack>
                     </Box>

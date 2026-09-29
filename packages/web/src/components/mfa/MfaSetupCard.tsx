@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, Typography, Button, Stack, TextField, CircularProgress, Alert, Box, Chip } from '@mui/material';
+import { tealText } from '../../../../../../../../../../theme';
 
 /** Card de configuração MFA (TOTP 2FA) — reutilizável pra paciente e médico.
  *  apiBase = '/api/auth' (paciente) ou '/api/doctor' (médico). authToken = JWT. */
@@ -40,7 +41,7 @@ export const MfaSetupCard = ({ apiBase, authToken }: { apiBase: string; authToke
         <Stack spacing={1.5}>
           {!setup ? <Box sx={{ textAlign: 'center', py: 2 }}><CircularProgress size={28} sx={{ color: '#20b2aa' }} /></Box> : (<>
             <Box sx={{ textAlign: 'center' }}><Box component="img" src={setup.qrCodeDataUrl} alt="QR Code" sx={{ width: 'min(200px, 64vw)', aspectRatio: '1 / 1', height: 'auto', borderRadius: '12px', border: '1px solid', borderColor: 'divider' }} /></Box>
-            <Typography variant="caption" color="text.secondary">Ou digite manualmente: <Box component="span" sx={{ fontFamily: 'monospace', fontWeight: 700, cursor: 'pointer', userSelect: 'all', color: '#178f89' }} onClick={() => { try { navigator.clipboard?.writeText(setup.secret); } catch {} }}>{setup.secret}</Box></Typography>
+            <Typography variant="caption" color="text.secondary">Ou digite manualmente: <Box component="span" sx={{ fontFamily: 'monospace', fontWeight: 700, cursor: 'pointer', userSelect: 'all', color: (t) => tealText(t.palette.mode) }} onClick={() => { try { navigator.clipboard?.writeText(setup.secret); } catch {} }}>{setup.secret}</Box></Typography>
             <TextField label="Código de 6 dígitos" value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))} inputMode="numeric" sx={{ '& input': { textAlign: 'center', fontSize: 22, letterSpacing: 6, fontFamily: 'monospace' } }} />
             <Button variant="contained" onClick={confirm} disabled={loading || code.length !== 6} sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 800 }}>{loading ? <CircularProgress size={22} color="inherit" /> : 'Confirmar e ativar'}</Button>
           </>)}

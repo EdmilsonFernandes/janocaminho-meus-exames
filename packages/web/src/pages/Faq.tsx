@@ -12,6 +12,7 @@ import { Title } from 'react-admin';
 import { DrExame } from '../components/DrExame';
 import { GradientButton } from '../components/GradientButton';
 import { PageContainer } from '../components/layout/PageContainer';
+import { tealText } from '../../../../../../../../../theme';
 
 type FaqCategory = 'comecando' | 'planos' | 'conta' | 'exames' | 'confianca' | 'medico' | 'privacidade';
 
@@ -215,7 +216,7 @@ export const FaqPage = () => {
         background: (t) => (t.palette.mode === 'dark' ? 'rgba(32,178,170,.10)' : 'linear-gradient(135deg, rgba(32,178,170,.10), rgba(212,165,116,.08))'),
         border: '1px solid', borderColor: 'rgba(32,178,170,.30)',
       }}>
-        <SupportAgentIcon sx={{ fontSize: 34, color: '#178f89' }} />
+        <SupportAgentIcon sx={{ fontSize: 34, color: (t) => tealText(t.palette.mode) }} />
         <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 18, mt: 0.5 }}>Ainda com dúvidas?</Typography>
         <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 380, mx: 'auto', mb: 2 }}>
           Abra um chamado direto no app — você acompanha a resposta por aqui e por notificação. Resposta em até 1 dia útil.

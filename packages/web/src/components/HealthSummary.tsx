@@ -91,7 +91,7 @@ export const NameToggle = ({ name, entenda }: { name: string; entenda?: string |
       <Popover open={!!a} anchorEl={a} onClose={() => setA(null)} anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
         slotProps={{ paper: { sx: { maxWidth: 340, borderRadius: '12px' } } }}>
         <Box sx={{ p: 2, maxWidth: 340 }}>
-          <Typography sx={{ fontWeight: 800, color: '#178f89' }}>{name}</Typography>
+          <Typography sx={{ fontWeight: 800, color: (t) => tealText(t.palette.mode) }}>{name}</Typography>
           {entenda && <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>💡 {entenda}</Typography>}
         </Box>
       </Popover>

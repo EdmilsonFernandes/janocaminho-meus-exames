@@ -9,6 +9,7 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import type { SourceExam } from '@meus-exames/shared';
 import { DrExame } from '../DrExame';
 import { AppCard } from '../AppCard';
+import { tealText } from '../../../../../../../../../../theme';
 
 const StatTile = ({ value, label, accent }: { value: ReactNode; label: string; accent: string }) => (
   <Box sx={{
@@ -83,7 +84,7 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
                   '&:hover': { bgcolor: alpha('#20b2aa', 0.06), borderColor: alpha('#20b2aa', 0.35) },
                 }}
               >
-                <Box sx={{ width: 28, height: 28, borderRadius: '8px', display: 'grid', placeItems: 'center', flexShrink: 0, bgcolor: alpha('#20b2aa', 0.12), color: '#178f89' }}>
+                <Box sx={{ width: 28, height: 28, borderRadius: '8px', display: 'grid', placeItems: 'center', flexShrink: 0, bgcolor: alpha('#20b2aa', 0.12), color: (t) => tealText(t.palette.mode) }}>
                   <DescriptionIcon sx={{ fontSize: 16 }} />
                 </Box>
                 <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -101,22 +102,22 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
 
     <Stack direction="row" spacing={1} sx={{ mt: 2 }} useFlexGap flexWrap="wrap" alignItems="center">
       <Button size="small" variant="contained" startIcon={<VolumeUpIcon />} onClick={onSpeak} disabled={!resumo}
-        sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 2, bgcolor: '#178f89', boxShadow: 'none', '&:hover': { bgcolor: '#0f766e', boxShadow: 'none' } }}>
+        sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 2, bgcolor: (t) => tealText(t.palette.mode), boxShadow: 'none', '&:hover': { bgcolor: '#0f766e', boxShadow: 'none' } }}>
         {speaking ? 'Parar' : 'Ouvir'}
       </Button>
       <Button size="small" variant="outlined" onClick={onShare} aria-label="Compartilhar"
-        sx={{ minWidth: 0, px: 1.5, borderRadius: '999px', borderColor: 'rgba(32,178,170,0.3)', color: '#178f89', '&:hover': { borderColor: '#178f89', bgcolor: 'rgba(32,178,170,0.06)' } }}>
+        sx={{ minWidth: 0, px: 1.5, borderRadius: '999px', borderColor: 'rgba(32,178,170,0.3)', color: (t) => tealText(t.palette.mode), '&:hover': { borderColor: '#178f89', bgcolor: 'rgba(32,178,170,0.06)' } }}>
         <ShareIcon fontSize="small" />
       </Button>
       <Button size="small" variant="outlined" onClick={onPrint} aria-label="Imprimir / PDF"
-        sx={{ minWidth: 0, px: 1.5, borderRadius: '999px', borderColor: 'rgba(32,178,170,0.3)', color: '#178f89', '&:hover': { borderColor: '#178f89', bgcolor: 'rgba(32,178,170,0.06)' } }}>
+        sx={{ minWidth: 0, px: 1.5, borderRadius: '999px', borderColor: 'rgba(32,178,170,0.3)', color: (t) => tealText(t.palette.mode), '&:hover': { borderColor: '#178f89', bgcolor: 'rgba(32,178,170,0.06)' } }}>
         <PrintIcon fontSize="small" />
       </Button>
       {/* Mobile: texto largo quebrava a barra pra 2ª linha (xs) — vira ícone-only como
           Compartilhar/Imprimir (aria-label/title mantêm o nome); sm+ mostra o texto. */}
       <Button size="small" variant="outlined" onClick={onRegen} disabled={loading} aria-label="Atualizar relatório" title="Atualizar relatório"
         startIcon={loading ? <CircularProgress size={14} color="inherit" /> : <AutoAwesomeIcon />}
-        sx={{ minWidth: 0, borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: { xs: 1.5, sm: 1.75 }, borderColor: 'rgba(32,178,170,0.3)', color: '#178f89', '&:hover': { borderColor: '#178f89', bgcolor: 'rgba(32,178,170,0.06)' } }}>
+        sx={{ minWidth: 0, borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: { xs: 1.5, sm: 1.75 }, borderColor: 'rgba(32,178,170,0.3)', color: (t) => tealText(t.palette.mode), '&:hover': { borderColor: '#178f89', bgcolor: 'rgba(32,178,170,0.06)' } }}>
         <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>{loading ? 'Gerando…' : 'Atualizar relatório'}</Box>
       </Button>
     </Stack>

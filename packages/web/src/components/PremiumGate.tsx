@@ -3,6 +3,7 @@ import { Box, Button, Typography } from '@mui/material';
 import LockIcon from '@mui/icons-material/Lock';
 import { useNavigate } from 'react-router-dom';
 import { API_URL, token } from '../config';
+import { tealText } from '../../../../../../../../../theme';
 
 /**
  * Devolve se o plano premium está ativo. Fast-path pelo localStorage('user')
@@ -43,11 +44,11 @@ export const PremiumGate = ({ children }: { children: ReactNode }) => {
       background: 'linear-gradient(135deg, rgba(32,178,170,.10), rgba(32,178,170,.02))',
       border: '1px dashed rgba(32,178,170,.45)',
     }}>
-      <LockIcon sx={{ fontSize: 30, color: '#178f89' }} />
+      <LockIcon sx={{ fontSize: 30, color: (t) => tealText(t.palette.mode) }} />
       <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary' }}>Previsão exclusiva do Premium</Typography>
       <Typography variant="caption" color="text.secondary">Assine pra ver quando seu marcador deve sair da faixa de referência.</Typography>
       <Button variant="contained" size="small" onClick={() => navigate('/planos')}
-        sx={{ mt: 0.5, borderRadius: '12px', textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', boxShadow: 'none', '&:hover': { bgcolor: '#178f89' } }}>
+        sx={{ mt: 0.5, borderRadius: '12px', textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', boxShadow: 'none', '&:hover': { bgcolor: (t) => tealText(t.palette.mode) } }}>
         Ver planos
       </Button>
     </Box>

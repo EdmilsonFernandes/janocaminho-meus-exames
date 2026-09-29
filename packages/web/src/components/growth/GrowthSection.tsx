@@ -26,6 +26,7 @@ import {
 } from '../../utils/growth';
 import { WhatIsThis } from '../WhatIsThis';
 import type { Sex } from '../../utils/growthData';
+import { tealText } from '../../../../../../../../../../theme';
 
 type MRow = { id: string; value: number; measuredAt: string };
 type ChartRow = {
@@ -188,7 +189,7 @@ export const GrowthSection = () => {
       <CardContent sx={{ py: 1.75, '&:last-child': { pb: 1.75 } }}>
         {!sex ? (
           <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: 'wrap' }}>
-            <ChildCareIcon sx={{ fontSize: 18, color: '#178f89' }} />
+            <ChildCareIcon sx={{ fontSize: 18, color: (t) => tealText(t.palette.mode) }} />
             <Typography sx={{ fontSize: 13 }}>
               Curvas de crescimento (OMS) disponíveis para crianças — complete o <strong>gênero</strong> e a <strong>data de nascimento</strong> no Perfil.
             </Typography>
@@ -196,7 +197,7 @@ export const GrowthSection = () => {
         ) : (
           <>
             <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-              <ChildCareIcon sx={{ fontSize: 18, color: '#178f89' }} />
+              <ChildCareIcon sx={{ fontSize: 18, color: (t) => tealText(t.palette.mode) }} />
               <Typography component="h2" sx={{ fontWeight: 800, fontSize: 14, fontFamily: '"Poppins",sans-serif' }}>
                 Crescimento · {formatAgePt(ageDaysNow)}
               </Typography>

@@ -619,7 +619,7 @@ export const MedicationsPage = () => {
       {(meds != null || !pid) && active.length === 0 && inactive.length === 0 && (
         <Card elevation={0} sx={{ p: 4, borderRadius: '16px', border: '1px dashed', borderColor: 'divider', textAlign: 'center' }}>
           <Box sx={{ width: 72, height: 72, mx: 'auto', mb: 2, borderRadius: '16px', display: 'grid', placeItems: 'center', background: 'linear-gradient(135deg,rgba(32,178,170,.14),rgba(32,178,170,.05))' }}>
-            <MedicationIcon sx={{ fontSize: 36, color: 'primary.dark' }} />
+            <MedicationIcon sx={{ fontSize: 36, color: (t) => tealText(t.palette.mode) }} />
           </Box>
           <Typography sx={{ fontWeight: 800, fontSize: 18, fontFamily: 'Poppins, sans-serif', mb: 0.5 }}>Nenhum remédio ainda</Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary', maxWidth: 330, mx: 'auto', lineHeight: 1.55, mb: 2.5 }}>
@@ -655,7 +655,7 @@ export const MedicationsPage = () => {
         <AppCard kind="tinted" tone="primary" sx={{ mt: 3 }}>
           <Stack spacing={1.5}>
             <Stack direction="row" spacing={1} alignItems="center">
-              <AutoAwesomeIcon sx={{ color: 'primary.dark', fontSize: 20 }} />
+              <AutoAwesomeIcon sx={{ color: (t) => tealText(t.palette.mode), fontSize: 20 }} />
               <Typography sx={{ fontWeight: 800, fontSize: 15 }}>Seus remédios podem interagir?</Typography>
             </Stack>
             <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.5 }}>
@@ -667,7 +667,7 @@ export const MedicationsPage = () => {
             </GradientButton>
             {fullLoading && (
               <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: 'wrap' }}>
-                <CircularProgress size={14} sx={{ color: 'primary.dark', flexShrink: 0 }} />
+                <CircularProgress size={14} sx={{ color: (t) => tealText(t.palette.mode), flexShrink: 0 }} />
                 <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                   {['💊 Conferindo as interações entre seus remédios…', '🧬 Cruzando com os exames alterados…', '🧠 Escrevendo a análise personalizada…'][fullStep]} <Box component="span" sx={{ color: 'text.disabled' }}>(pode levar ~30s)</Box>
                 </Typography>
@@ -858,7 +858,7 @@ export const MedicationsPage = () => {
                   {best && (
                     <Stack direction="row" spacing={1} alignItems="baseline" sx={{ mt: 0.5 }}>
                       <Typography component="span" variant="caption" sx={{ color: 'text.secondary' }}>a partir de</Typography>
-                      <Typography component="span" sx={{ fontWeight: 800, fontSize: 26, lineHeight: 1, color: 'primary.dark', fontVariantNumeric: 'tabular-nums', fontFamily: 'Poppins, sans-serif' }}>
+                      <Typography component="span" sx={{ fontWeight: 800, fontSize: 26, lineHeight: 1, color: (t) => tealText(t.palette.mode), fontVariantNumeric: 'tabular-nums', fontFamily: 'Poppins, sans-serif' }}>
                         {fmtBRL(best.priceCents)}
                       </Typography>
                     </Stack>

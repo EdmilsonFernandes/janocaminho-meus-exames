@@ -6,6 +6,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import { API_URL, token } from '../config';
 import { PageContainer } from '../components/layout/PageContainer';
+import { tealText } from '../../../../../../../../../theme';
 
 const shimmer = keyframes`0%{background-position:-200% 0}100%{background-position:200% 0}`;
 const pop = keyframes`0%{transform:scale(.85)}60%{transform:scale(1.08)}100%{transform:scale(1)}`;
@@ -86,7 +87,7 @@ export const ConquistasPage = () => {
       )}
       <Box sx={{ position: 'relative', zIndex: 1, p: 2.25 }}>
         {b.period === 'monthly' && (
-          <Chip size="small" label="♻️ mensal" sx={{ position: 'absolute', top: 8, right: 8, height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(32,178,170,.14)', color: '#178f89' }} />
+          <Chip size="small" label="♻️ mensal" sx={{ position: 'absolute', top: 8, right: 8, height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(32,178,170,.14)', color: (t) => tealText(t.palette.mode) }} />
         )}
         <Box sx={{
           fontSize: 44, mb: 0.75, lineHeight: 1,
@@ -99,9 +100,9 @@ export const ConquistasPage = () => {
         <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.35, mt: 0.5, minHeight: 32 }}>{b.desc}</Typography>
         <Chip size="small" label={`🎁 ${b.reward} crédito${b.reward > 1 ? 's' : ''}`} sx={{ height: 22, mt: 0.75, bgcolor: 'rgba(184,138,84,.14)', color: '#b88a54', fontWeight: 800, fontSize: 12 }} />
         {b.claimed ? (
-          <Typography sx={{ fontSize: 12, fontWeight: 800, color: '#178f89', mt: 1 }}>✓ {b.period === 'monthly' ? 'Resgatado este mês' : 'Resgatado'}</Typography>
+          <Typography sx={{ fontSize: 12, fontWeight: 800, color: (t) => tealText(t.palette.mode), mt: 1 }}>✓ {b.period === 'monthly' ? 'Resgatado este mês' : 'Resgatado'}</Typography>
         ) : b.claimable ? (
-          <Button size="small" fullWidth disabled={busy === b.id} onClick={() => claim(b.id)} sx={{ mt: 1, borderRadius: '999px', textTransform: 'none', fontWeight: 800, fontSize: 13, bgcolor: '#20b2aa', color: '#fff', boxShadow: '0 6px 16px rgba(32,178,170,0.3)', '&:hover': { bgcolor: '#178f89' } }}>
+          <Button size="small" fullWidth disabled={busy === b.id} onClick={() => claim(b.id)} sx={{ mt: 1, borderRadius: '999px', textTransform: 'none', fontWeight: 800, fontSize: 13, bgcolor: '#20b2aa', color: '#fff', boxShadow: '0 6px 16px rgba(32,178,170,0.3)', '&:hover': { bgcolor: (t) => tealText(t.palette.mode) } }}>
             {busy === b.id ? 'Resgatando…' : 'Resgatar'}
           </Button>
         ) : (
@@ -169,7 +170,7 @@ export const ConquistasPage = () => {
         <Box sx={{ mb: 3 }}>
           <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.25 }}>
             <Typography variant="subtitle2" sx={{ fontWeight: 900, color: 'text.primary', fontFamily: 'Poppins, sans-serif', fontSize: 15 }}>♻️ Desafios do mês</Typography>
-            {state.monthLabel && <Chip size="small" label={state.monthLabel} sx={{ height: 22, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(32,178,170,.10)', color: '#178f89' }} />}
+            {state.monthLabel && <Chip size="small" label={state.monthLabel} sx={{ height: 22, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(32,178,170,.10)', color: (t) => tealText(t.palette.mode) }} />}
           </Stack>
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.25 }}>
             Recomeçam todo mês — mantê-los em dia é o hábito que cuida da sua saúde.

@@ -4,6 +4,7 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import { API_URL, token } from '../../config';
 import { AppCard } from '../AppCard';
+import { tealText } from '../../../../../../../../../../theme';
 
 /**
  * CorrelationSection — "Hábitos e sinais que contextualizam seus exames".
@@ -64,7 +65,7 @@ export const CorrelationSection = ({ patientId }: { patientId?: string }) => {
     <AppCard kind="tinted" tone="primary" sx={{ p: 2, mb: 2 }}>
       {/* Header */}
       <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
-        <TrendingUpIcon sx={{ fontSize: 19, color: 'primary.dark' }} />
+        <TrendingUpIcon sx={{ fontSize: 19, color: (t) => tealText(t.palette.mode) }} />
         <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 700, fontSize: 15 }}>
           Hábitos e sinais que contextualizam seus exames
         </Typography>
@@ -83,7 +84,7 @@ export const CorrelationSection = ({ patientId }: { patientId?: string }) => {
           <Stack direction="row" spacing={2} sx={{ mb: 0.75, flexWrap: 'wrap', rowGap: 0.5 }}>
             <Stack direction="row" spacing={0.5} alignItems="center"
               sx={{ px: 1, py: 0.4, borderRadius: '999px', bgcolor: alpha(theme.palette.primary.main, 0.08) }}>
-              <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'primary.dark' }}>
+              <Typography sx={{ fontSize: 12, fontWeight: 700, color: (t) => tealText(t.palette.mode) }}>
                 {f.hcMetricLabel}
               </Typography>
               {f.hcDelta > 0
@@ -95,7 +96,7 @@ export const CorrelationSection = ({ patientId }: { patientId?: string }) => {
             </Stack>
             <Stack direction="row" spacing={0.5} alignItems="center"
               sx={{ px: 1, py: 0.4, borderRadius: '999px', bgcolor: alpha(theme.palette.primary.main, 0.08) }}>
-              <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'primary.dark' }}>
+              <Typography sx={{ fontSize: 12, fontWeight: 700, color: (t) => tealText(t.palette.mode) }}>
                 🧪 {f.biomarker}
               </Typography>
               {f.biomarkerDelta < 0

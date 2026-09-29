@@ -16,6 +16,7 @@ import GavelIcon from '@mui/icons-material/Gavel';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import WalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
+import { tealText } from '../../../../../../../../../theme';
 
 const authH = () => ({ Authorization: `Bearer ${token()}` });
 const STATUS_META: Record<string, { label: string; color: 'warning' | 'info' | 'success' | 'default' }> = {
@@ -26,11 +27,11 @@ const STATUS_META: Record<string, { label: string; color: 'warning' | 'info' | '
 const CATS = ['Dúvida sobre um exame', 'Exame rejeitado (CPF divergente)', 'Erro no app', 'Cobrança / Planos', 'Compartilhamento com médico', 'Sugestão', 'Outro'];
 /** Ícone por categoria — o card fica escaneável sem ler texto (padrão Zendesk/Intercom). */
 const CAT_ICON: Record<string, React.ReactNode> = {
-  'Dúvida sobre um exame': <QuestionAnswerIcon sx={{ fontSize: 17, color: '#178f89' }} />,
+  'Dúvida sobre um exame': <QuestionAnswerIcon sx={{ fontSize: 17, color: (t) => tealText(t.palette.mode) }} />,
   'Exame rejeitado (CPF divergente)': <GavelIcon sx={{ fontSize: 17, color: '#b45309' }} />,
   'Erro no app': <SupportAgentIcon sx={{ fontSize: 17, color: '#b91c1c' }} />,
   'Cobrança / Planos': <WalletIcon sx={{ fontSize: 17, color: '#0f6e68' }} />,
-  'Compartilhamento com médico': <MedicalServicesIcon sx={{ fontSize: 17, color: '#178f89' }} />,
+  'Compartilhamento com médico': <MedicalServicesIcon sx={{ fontSize: 17, color: (t) => tealText(t.palette.mode) }} />,
 };
 
 /** Prefill de apelação (?exam=<id>): contexto do exame rejeitado é anexado pelo SERVER
@@ -125,8 +126,8 @@ const CreateTicketDialog = ({ open, onClose, onCreated, prefill }: { open: boole
             </Stack>
           </Box>
           {err && <Typography color="error" variant="body2">{err}</Typography>}
-          {prefill?.examId && <Typography variant="caption" sx={{ color: '#178f89', fontWeight: 600 }}>📎 O contexto do exame (identificação, CPFs mascarados e motivo da rejeição) será anexado automaticamente ao chamado.</Typography>}
-          <Typography variant="caption" color="text.secondary">Resposta em até 1 dia útil. Para urgências, <Box component="a" href="mailto:contato@janocaminho.com.br" sx={{ fontWeight: 700, color: 'primary.dark', textDecoration: 'underline' }}>contato@janocaminho.com.br</Box>.</Typography>
+          {prefill?.examId && <Typography variant="caption" sx={{ color: (t) => tealText(t.palette.mode), fontWeight: 600 }}>📎 O contexto do exame (identificação, CPFs mascarados e motivo da rejeição) será anexado automaticamente ao chamado.</Typography>}
+          <Typography variant="caption" color="text.secondary">Resposta em até 1 dia útil. Para urgências, <Box component="a" href="mailto:contato@janocaminho.com.br" sx={{ fontWeight: 700, color: (t) => tealText(t.palette.mode), textDecoration: 'underline' }}>contato@janocaminho.com.br</Box>.</Typography>
         </Stack>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2.5 }}>
@@ -195,7 +196,7 @@ const TicketList = () => {
           </Box>
           <Button
             variant="contained" onClick={() => openCreate()} startIcon={<AddIcon />}
-            sx={{ flexShrink: 0, bgcolor: '#fff', color: '#178f89', borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: { xs: 2, sm: 3 }, '&:hover': { bgcolor: '#f0fafa' }, boxShadow: '0 10px 24px rgba(0,0,0,.15)' }}
+            sx={{ flexShrink: 0, bgcolor: '#fff', color: (t) => tealText(t.palette.mode), borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: { xs: 2, sm: 3 }, '&:hover': { bgcolor: '#f0fafa' }, boxShadow: '0 10px 24px rgba(0,0,0,.15)' }}
           >
             Novo chamado
           </Button>
@@ -250,7 +251,7 @@ const TicketList = () => {
                   <CardContent sx={{ py: 1.75, '&:last-child': { pb: 1.75 } }}>
                     <Stack direction="row" alignItems="center" spacing={1} useFlexGap flexWrap="wrap">
                       {CAT_ICON[t.category] ?? <QuestionAnswerIcon sx={{ fontSize: 17, color: 'text.disabled' }} />}
-                      <Typography sx={{ fontWeight: 800, color: '#178f89' }}>#{t.number}</Typography>
+                      <Typography sx={{ fontWeight: 800, color: (t) => tealText(t.palette.mode) }}>#{t.number}</Typography>
                       {t.category && <Chip size="small" label={t.category} variant="outlined" sx={{ height: 20, fontSize: 11 }} />}
                       <Box sx={{ flex: 1 }} />
                       <Chip size="small" color={st.color as any} label={st.label} sx={{ fontWeight: 700, height: 22 }} />
@@ -308,7 +309,7 @@ const TicketThread = ({ id }: { id: string }) => {
       <Title title={`Chamado #${data.number}`} />
       <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
         <IconButton onClick={() => navigate('/suporte')} title="Voltar"><ArrowBackIcon /></IconButton>
-        <Typography sx={{ fontWeight: 800, color: '#178f89' }}>#{data.number}</Typography>
+        <Typography sx={{ fontWeight: 800, color: (t) => tealText(t.palette.mode) }}>#{data.number}</Typography>
         <Chip size="small" color={st.color as any} label={st.label} sx={{ fontWeight: 700 }} />
         <Box sx={{ flex: 1 }} />
         {data.status === 'closed' && <Chip size="small" variant="outlined" label="Reabrir respondendo" sx={{ fontSize: 11 }} />}
@@ -332,7 +333,7 @@ const TicketThread = ({ id }: { id: string }) => {
                 </Box>
               )}
               <Box sx={{ maxWidth: { xs: '82%', sm: '70%' }, bgcolor: mine ? 'transparent' : 'action.hover', color: 'text.primary', px: mine ? 0 : 1.5, py: mine ? 0 : 1.25, borderRadius: '12px', borderBottomRightRadius: mine ? 14 : 4, borderBottomLeftRadius: mine ? 4 : 14, ...(mine ? { background: 'linear-gradient(135deg,#20b2aa,#178f89)', px: 1.5, py: 1.25, color: '#fff' } : {}) }}>
-                {!mine && <Typography sx={{ fontSize: 11, fontWeight: 800, color: '#178f89' }}>Dr. Suporte</Typography>}
+                {!mine && <Typography sx={{ fontSize: 11, fontWeight: 800, color: (t) => tealText(t.palette.mode) }}>Dr. Suporte</Typography>}
                 <Typography sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: 15, lineHeight: 1.55 }}>{m.body}</Typography>
                 {atts.length > 0 && (
                   <Stack spacing={0.5} sx={{ mt: 0.5 }}>

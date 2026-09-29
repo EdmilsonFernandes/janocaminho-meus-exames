@@ -1,5 +1,6 @@
 import { Box, Typography, Button } from '@mui/material';
 import { DrExame } from './DrExame';
+import { tealText } from '../../../../../../../../../theme';
 
 /** Empty state premium — mascote Dr. Exame em aura teal (padrão = assinatura da marca em todas as
  *  telas vazias) + título + descrição + CTA opcional. `emoji` opcional pra casos que precisem de
@@ -16,7 +17,7 @@ export const EmptyState = ({ emoji, title, desc, cta, onCta, bonus }: { emoji?: 
     {bonus != null && (
       <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, mb: 2.5, px: 1.75, py: 0.85, borderRadius: '999px', bgcolor: 'rgba(32,178,170,.10)', border: '1px solid rgba(32,178,170,.28)' }}>
         <Box sx={{ fontSize: 18 }}>🎁</Box>
-        <Typography sx={{ fontWeight: 700, color: '#178f89', fontSize: 14 }}>Ganhe <Box component="span" sx={{ fontWeight: 800 }}>{bonus} créditos</Box> ao enviar seu 1º exame</Typography>
+        <Typography sx={{ fontWeight: 700, color: (t) => tealText(t.palette.mode), fontSize: 14 }}>Ganhe <Box component="span" sx={{ fontWeight: 800 }}>{bonus} créditos</Box> ao enviar seu 1º exame</Typography>
       </Box>
     )}
     {cta && onCta && (

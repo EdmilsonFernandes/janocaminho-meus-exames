@@ -1,6 +1,7 @@
 import { Fab } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { tealText } from '../../../../../../../../../theme';
 
 /**
  * Botão flutuante "＋ Enviar exame" — só aparece na lista de exames (/exams).
@@ -24,7 +25,7 @@ export const ExamCreateFab = () => {
         bottom: { xs: 'calc(var(--me-bottom-nav-h, 76px) + 14px)', sm: 24 },
         zIndex: 1200,
         bgcolor: '#20b2aa',
-        '&:hover': { bgcolor: '#178f89' },
+        '&:hover': { bgcolor: (t) => tealText(t.palette.mode) },
         boxShadow: '0 6px 20px rgba(32,178,170,.35)',
       }}>
       <AddIcon />

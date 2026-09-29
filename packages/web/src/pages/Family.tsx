@@ -13,6 +13,7 @@ import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
 import { DrExame } from '../components/DrExame';
 import { setSelectedPatient } from '../patient-context';
+import { tealText } from '../../../../../../../../../theme';
 
 interface FamPatient {
   id: string; fullName: string; relationship: string | null; photoUrl: string | null;
@@ -350,7 +351,7 @@ export const FamilyPage = () => {
                     </Stack>
                   )}
 
-                  <Stack direction="row" alignItems="center" justifyContent="flex-end" spacing={0.5} sx={{ mt: 2, color: '#178f89' }}>
+                  <Stack direction="row" alignItems="center" justifyContent="flex-end" spacing={0.5} sx={{ mt: 2, color: (t) => tealText(t.palette.mode) }}>
                     <Typography variant="caption" sx={{ fontWeight: 800, fontSize: 12 }}>
                       Ver painel completo
                     </Typography>

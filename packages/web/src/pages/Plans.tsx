@@ -16,6 +16,7 @@ import { PixModal } from '../components/PixModal';
 import { PaymentChooser } from '../components/PaymentChooser';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
+import { tealText } from '../../../../../../../../../theme';
 
 interface Status { active: boolean; planExpiresAt: string | null; examsCount: number; freeExamLimit: number; credits: number; tokensUsed: number; }
 interface Pack { id: string; credits: number; price: number; label: string; popular: boolean; }
@@ -174,7 +175,7 @@ export const PlansPage = () => {
         <Card sx={{ mb: 2.5, borderRadius: '20px' }}><CardContent sx={{ p: { xs: 2, md: 2.5 } }}>
           <Stack direction="row" alignItems="center" justifyContent="space-between" onClick={() => setHistOpen((v) => !v)} sx={{ mb: histOpen ? 1.5 : 0, cursor: 'pointer', userSelect: 'none', '&:hover': { opacity: 0.8 } }}>
             <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', fontSize: 17 }}>Histórico de Uso</Typography>
-            <Typography variant="caption" sx={{ color: '#178f89', fontWeight: 700 }}>{histOpen ? 'Ocultar ▲' : histTotal ? `${histTotal} lançamento(s) ▼` : 'Ver histórico ▼'}</Typography>
+            <Typography variant="caption" sx={{ color: (t) => tealText(t.palette.mode), fontWeight: 700 }}>{histOpen ? 'Ocultar ▲' : histTotal ? `${histTotal} lançamento(s) ▼` : 'Ver histórico ▼'}</Typography>
           </Stack>
           {histOpen && (histLoading ? <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}><CircularProgress size={22} /></Box> : <>
           {/* Filtros rápidos — segmented control borderless (ativo = verde 14%, inativo = texto sutil) */}
@@ -245,12 +246,12 @@ export const PlansPage = () => {
       {isNative ? (
         <Card sx={{ mt: 1, borderRadius: '20px', border: '2px dashed #20b2aa', background: 'rgba(32,178,170,0.08)' }}>
           <CardContent>
-            <Typography variant="h6" sx={{ fontWeight: 800, color: '#178f89' }}>💎 Premium e Créditos de IA</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 800, color: (t) => tealText(t.palette.mode) }}>💎 Premium e Créditos de IA</Typography>
             <Typography sx={{ mt: 1, fontSize: 15 }}>
               O <strong>Plano Premium</strong> ({planInfo?.plan ? fmtBRL(planInfo.plan.effectivePrice) : 'R$ 19,90'}/mês) e os <strong>créditos</strong> para a IA são adquirados pelo nosso <strong>site</strong>, com PIX instantâneo.
             </Typography>
             <Typography sx={{ mt: 2, fontWeight: 700 }}>Acesse pelo navegador:</Typography>
-            <Box component="a" href="https://drexame.janocaminho.com.br" target="_blank" rel="noopener noreferrer" sx={{ display: 'block', fontFamily: 'monospace', fontSize: 16, bgcolor: 'background.paper', border: '1px solid #cfe9e5', p: 1, borderRadius: '12px', mt: 0.5, userSelect: 'all', textDecoration: 'none', color: 'primary.dark', '&:hover': { textDecoration: 'underline', borderColor: 'primary.main' } }}>
+            <Box component="a" href="https://drexame.janocaminho.com.br" target="_blank" rel="noopener noreferrer" sx={{ display: 'block', fontFamily: 'monospace', fontSize: 16, bgcolor: 'background.paper', border: '1px solid #cfe9e5', p: 1, borderRadius: '12px', mt: 0.5, userSelect: 'all', textDecoration: 'none', color: (t) => tealText(t.palette.mode), '&:hover': { textDecoration: 'underline', borderColor: 'primary.main' } }}>
               drexame.janocaminho.com.br
             </Box>
             <Alert severity="info" sx={{ mt: 2, borderRadius: '16px' }} icon={false}>
@@ -317,7 +318,7 @@ export const PlansPage = () => {
       <Card sx={{ borderRadius: '20px', background: 'rgba(32,178,170,0.06)', border: '2px solid #20b2aa', boxShadow: '0 8px 30px rgba(32,178,170,.12)' }}>
         <CardContent sx={{ p: { xs: 2.5, md: 3 } }}>
           <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between" flexWrap="wrap" useFlexGap>
-            <Typography variant="h6" sx={{ fontWeight: 800, color: '#178f89' }}>💎 Premium Mensal</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 800, color: (t) => tealText(t.palette.mode) }}>💎 Premium Mensal</Typography>
             {planInfo?.plan?.founder && (
               <Chip size="small" label={`🎯 Plano Fundador: restam ${planInfo.plan.founderRemaining} vagas`} sx={{ fontWeight: 800, bgcolor: 'rgba(212,165,116,.18)', color: '#8a5a1f' }} />
             )}
@@ -338,7 +339,7 @@ export const PlansPage = () => {
               {planInfo?.plan?.founder && planInfo.plan.price !== planInfo.plan.effectivePrice && (
                 <Typography sx={{ color: 'text.disabled', textDecoration: 'line-through', fontSize: 16 }}>{fmtBRL(planInfo.plan.price)}</Typography>
               )}
-              <Typography variant="h4" sx={{ fontWeight: 800, color: '#178f89', lineHeight: 1 }}>
+              <Typography variant="h4" sx={{ fontWeight: 800, color: (t) => tealText(t.palette.mode), lineHeight: 1 }}>
                 {planInfo?.plan ? fmtBRL(planInfo.plan.effectivePrice) : 'R$ —'}
               </Typography>
               <Typography color="text.secondary" sx={{ fontSize: 13 }}>/mês · sem anual · sem fidelidade · PIX ou cartão</Typography>

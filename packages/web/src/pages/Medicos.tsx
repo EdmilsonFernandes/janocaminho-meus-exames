@@ -16,6 +16,7 @@ import type { DoctorLookupResult, DoctorLookupSource } from '../types/doctor';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
 import { ListSkeleton } from '../components/Skeleton';
+import { tealText } from '../../../../../../../../../theme';
 
 const SCOPE_META = [
   { key: 'exams', label: 'Exames', short: 'Exames', icon: '📋' },
@@ -432,7 +433,7 @@ export const MedicosPage = () => {
                     <Typography sx={{ fontWeight: 600, fontSize: 13, color: 'text.secondary' }}>{s.doctor?.name}</Typography>
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>CRM {s.doctor?.crm}</Typography>
                   </Box>
-                  <Button size="small" onClick={() => reactivate(s.id)} sx={{ textTransform: 'none', color: '#178f89', fontSize: 12 }}>{translate('docs.reactivate')}</Button>
+                  <Button size="small" onClick={() => reactivate(s.id)} sx={{ textTransform: 'none', color: (t) => tealText(t.palette.mode), fontSize: 12 }}>{translate('docs.reactivate')}</Button>
                 </CardContent>
               </Card>
             ))}
@@ -459,7 +460,7 @@ export const MedicosPage = () => {
               {detail.name}
             </DialogTitle>
             <DialogContent sx={{ textAlign: 'center' }}>
-              {detail.specialty && <Chip size="small" label={detail.specialty} sx={{ mb: 1.5, bgcolor: 'rgba(32,178,170,0.15)', color: '#178f89', fontWeight: 700 }} />}
+              {detail.specialty && <Chip size="small" label={detail.specialty} sx={{ mb: 1.5, bgcolor: 'rgba(32,178,170,0.15)', color: (t) => tealText(t.palette.mode), fontWeight: 700 }} />}
               <Typography variant="body2" sx={{ mb: 0.5 }}>CRM {detail.crm}{detail.uf ? `-${detail.uf}` : ''}</Typography>
               {detail.clinicName && <Typography sx={{ fontWeight: 700, mt: 1, color: 'text.primary' }}>{detail.clinicName}</Typography>}
               {detail.clinicCity && <Typography variant="body2" color="text.secondary">📍 {detail.clinicCity}</Typography>}
@@ -474,10 +475,10 @@ export const MedicosPage = () => {
               <Divider sx={{ my: 0.5 }}><Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', letterSpacing: 0.5 }}>TIRAR UMA DÚVIDA</Typography></Divider>
               {/* Pergunta paga ao médico (2 créditos) — vira thread no portal do médico */}
               <Box sx={{ mt: 1.5, textAlign: 'left' }}>
-                <Typography variant="caption" sx={{ fontWeight: 800, color: '#178f89', display: 'block', mb: 0.5 }}>❓ Perguntar ao médico · 2 créditos</Typography>
+                <Typography variant="caption" sx={{ fontWeight: 800, color: (t) => tealText(t.palette.mode), display: 'block', mb: 0.5 }}>❓ Perguntar ao médico · 2 créditos</Typography>
                 <TextField multiline minRows={2} size="small" fullWidth placeholder={translate('docs.ask_ph')} value={perg} onChange={(e) => setPerg(e.target.value)} />
                 {pergMsg && <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: pergMsg.startsWith('✓') ? '#059669' : 'error.main', fontWeight: 700, lineHeight: 1.3 }}>{pergMsg}</Typography>}
-                <Button size="small" disabled={enviando || !perg.trim()} onClick={enviarPergunta} startIcon={enviando ? <CircularProgress size={14} color="inherit" /> : undefined} sx={{ mt: 1, borderRadius: '999px', textTransform: 'none', fontWeight: 700, py: 1, px: 2.5, bgcolor: '#178f89', color: '#fff', '&:hover': { bgcolor: '#0f766e' }, boxShadow: 'none' }}>{enviando ? 'Enviando…' : 'Enviar pergunta · 2 💎'}</Button>
+                <Button size="small" disabled={enviando || !perg.trim()} onClick={enviarPergunta} startIcon={enviando ? <CircularProgress size={14} color="inherit" /> : undefined} sx={{ mt: 1, borderRadius: '999px', textTransform: 'none', fontWeight: 700, py: 1, px: 2.5, bgcolor: (t) => tealText(t.palette.mode), color: '#fff', '&:hover': { bgcolor: '#0f766e' }, boxShadow: 'none' }}>{enviando ? 'Enviando…' : 'Enviar pergunta · 2 💎'}</Button>
               </Box>
             </DialogContent>
           </>
@@ -524,7 +525,7 @@ export const MedicosPage = () => {
               {CONVENIOS.map((c) => <MenuItem key={c} value={c}>{c}</MenuItem>)}
             </TextField>
             <Box>
-              <Typography variant="caption" sx={{ fontWeight: 800, display: 'block', mb: 1, color: '#178f89' }}>O que ele pode ver:</Typography>
+              <Typography variant="caption" sx={{ fontWeight: 800, display: 'block', mb: 1, color: (t) => tealText(t.palette.mode) }}>O que ele pode ver:</Typography>
               <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
                 {SCOPE_META.map((sm) => (
                   <ScopeToggle key={sm.key} scopeKey={sm.key} active={scopes.includes(sm.key)} onToggle={toggleScope} />
@@ -534,7 +535,7 @@ export const MedicosPage = () => {
                   Vazio = TODOS (mantém o behavior de hoje). Pra evolução, marca vários. */}
               {scopes.includes('exams') && (
                 <Box sx={{ mt: 1.5 }}>
-                  <Typography variant="caption" sx={{ fontWeight: 800, color: '#178f89' }}>Quais exames? (vazio = todos)</Typography>
+                  <Typography variant="caption" sx={{ fontWeight: 800, color: (t) => tealText(t.palette.mode) }}>Quais exames? (vazio = todos)</Typography>
                   <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75 }}>Cada médico pode avaliar um conjunto. Pra ver evolução, marque vários.</Typography>
                   {examOptions.length === 0 ? (
                     <Typography variant="caption" color="text.secondary">Nenhum exame enviado ainda — o médico verá todos quando você enviar o primeiro.</Typography>

@@ -3,6 +3,7 @@ import { Dialog, Box, Typography, Button, MobileStepper } from '@mui/material';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { useNavigate } from 'react-router-dom';
 import { DrExame } from './DrExame';
+import { tealText } from '../../../../../../../../../theme';
 
 const SLIDES = [
   { emoji: '📄', title: 'Envie seu exame', desc: 'Mande o PDF ou foto do exame. O Dr. Exame extrai todos os valores automaticamente — em segundos.' },
@@ -81,7 +82,7 @@ export const Onboarding = () => {
               '& .MuiMobileStepper-dotActive': { bgcolor: '#fff', width: 22, borderRadius: '999px' } }}
             nextButton={<Box />} backButton={<Box />} />
           <Button fullWidth onClick={last ? finishAndGo : next} endIcon={!last ? <ArrowForwardIcon /> : null}
-            sx={{ bgcolor: '#fff', color: '#178f89', fontWeight: 800, textTransform: 'none', fontSize: 17, borderRadius: '999px', py: 1.5,
+            sx={{ bgcolor: '#fff', color: (t) => tealText(t.palette.mode), fontWeight: 800, textTransform: 'none', fontSize: 17, borderRadius: '999px', py: 1.5,
               animation: 'onbPulse 2.4s ease-in-out infinite', '&:hover': { bgcolor: '#f0f9f8' } }}>
             {last ? 'Começar 🚀' : 'Próximo'}
           </Button>

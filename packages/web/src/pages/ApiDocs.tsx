@@ -6,6 +6,7 @@ import ApiIcon from '@mui/icons-material/Api';
 import KeyIcon from '@mui/icons-material/Key';
 import BoltIcon from '@mui/icons-material/Bolt';
 import TerminalIcon from '@mui/icons-material/Terminal';
+import { tealText } from '../../../../../../../../../theme';
 
 /**
  * Portal de documentação da API (estilo wiki — inspirado no plug&play da Minu, mas com o
@@ -51,7 +52,7 @@ const Params = ({ rows }: { rows: [string, string, string][] }) => (
     </Box>
     {rows.map((r, idx) => (
       <Box key={r[0]} sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1.6fr 1fr 3fr' }, px: 1.5, py: 1, borderTop: idx ? '1px solid' : 'none', borderColor: 'divider', gap: { xs: 0.5, sm: 0 } }}>
-        <Typography sx={{ fontSize: 13, fontFamily: 'ui-monospace, monospace', fontWeight: 700, color: '#178f89', wordBreak: 'break-all' }}>{r[0]}</Typography>
+        <Typography sx={{ fontSize: 13, fontFamily: 'ui-monospace, monospace', fontWeight: 700, color: (t) => tealText(t.palette.mode), wordBreak: 'break-all' }}>{r[0]}</Typography>
         <Typography sx={{ fontSize: 12, fontFamily: 'ui-monospace, monospace', color: 'text.secondary' }}>{r[1]}</Typography>
         <Typography sx={{ fontSize: 13, color: 'text.secondary', lineHeight: 1.5 }}>{r[2]}</Typography>
       </Box>
@@ -123,7 +124,7 @@ export const ApiDocsPage = () => {
                 ← Início
               </Button>
               <Button component="a" href="/api/docs" target="_blank" rel="noopener noreferrer" startIcon={<TerminalIcon />}
-                sx={{ flex: { xs: 1, sm: 'none' }, borderRadius: '999px', px: { xs: 2, sm: 3 }, textTransform: 'none', fontWeight: 800, bgcolor: '#fff', color: '#178f89', '&:hover': { bgcolor: '#f0fafa' }, boxShadow: '0 10px 24px rgba(0,0,0,.18)', whiteSpace: 'nowrap' }}>
+                sx={{ flex: { xs: 1, sm: 'none' }, borderRadius: '999px', px: { xs: 2, sm: 3 }, textTransform: 'none', fontWeight: 800, bgcolor: '#fff', color: (t) => tealText(t.palette.mode), '&:hover': { bgcolor: '#f0fafa' }, boxShadow: '0 10px 24px rgba(0,0,0,.18)', whiteSpace: 'nowrap' }}>
                 Console
               </Button>
             </Stack>
@@ -160,7 +161,7 @@ export const ApiDocsPage = () => {
                 </Box>
               ))}
             </Stack>
-            <Button fullWidth variant="outlined" onClick={() => navigate('/api')} startIcon={<KeyIcon />} sx={{ mt: 2, borderRadius: '999px', textTransform: 'none', fontWeight: 800, borderColor: '#d8f4f2', color: '#178f89' }}>
+            <Button fullWidth variant="outlined" onClick={() => navigate('/api')} startIcon={<KeyIcon />} sx={{ mt: 2, borderRadius: '999px', textTransform: 'none', fontWeight: 800, borderColor: '#d8f4f2', color: (t) => tealText(t.palette.mode) }}>
               Solicitar acesso
             </Button>
           </Box>
@@ -179,7 +180,7 @@ export const ApiDocsPage = () => {
                   { n: 5, t: 'Faça a primeira chamada', d: 'Header x-api-key nos endpoints abaixo. Quando o teste acabar, recarregue com PIX, cartão ou débito.' },
                 ].map((s) => (
                   <Stack key={s.n} direction="row" spacing={1.5} alignItems="flex-start">
-                    <Box sx={{ width: 26, height: 26, flexShrink: 0, borderRadius: '50%', bgcolor: 'rgba(32,178,170,.14)', color: '#178f89', display: 'grid', placeItems: 'center', fontWeight: 800, fontSize: 13 }}>{s.n}</Box>
+                    <Box sx={{ width: 26, height: 26, flexShrink: 0, borderRadius: '50%', bgcolor: 'rgba(32,178,170,.14)', color: (t) => tealText(t.palette.mode), display: 'grid', placeItems: 'center', fontWeight: 800, fontSize: 13 }}>{s.n}</Box>
                     <Box>
                       <Typography sx={{ fontWeight: 700, fontSize: 15 }}>{s.t}</Typography>
                       <Typography sx={{ fontSize: 13, color: 'text.secondary', lineHeight: 1.55 }}>{s.d}</Typography>
@@ -193,7 +194,7 @@ export const ApiDocsPage = () => {
             <Box id="autenticacao" sx={{ scrollMarginTop: 90, mb: 3 }}>
               <Typography sx={{ fontWeight: 800, fontSize: 18, mb: 1.5 }}>Autenticação</Typography>
               <Typography color="text.secondary" sx={{ fontSize: 14, mb: 1, lineHeight: 1.6 }}>
-                Toda chamada usa a chave no header <code style={{ fontFamily: 'ui-monospace, monospace', color: '#178f89', fontWeight: 700 }}>x-api-key</code>. A chave tem formato <code style={{ fontFamily: 'ui-monospace, monospace' }}>dxk_live_…</code>, é pessoal como senha e pode ser revogada no painel a qualquer momento.
+                Toda chamada usa a chave no header <code style={{ fontFamily: 'ui-monospace, monospace', color: '#0e9488', fontWeight: 700 }}>x-api-key</code>. A chave tem formato <code style={{ fontFamily: 'ui-monospace, monospace' }}>dxk_live_…</code>, é pessoal como senha e pode ser revogada no painel a qualquer momento.
               </Typography>
               <Code lang="bash">{`curl "${BASE}/meds?q=dipirona" \\\n  -H "x-api-key: dxk_live_sua_chave_aqui"`}</Code>
             </Box>
@@ -388,12 +389,12 @@ export const ApiDocsPage = () => {
                 <Button variant="contained" onClick={() => navigate('/api')} startIcon={<KeyIcon />} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 3.5 }}>
                   Solicitar acesso
                 </Button>
-                <Button component="a" href="/api/docs" target="_blank" rel="noopener noreferrer" startIcon={<TerminalIcon />} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, px: 3.5, borderColor: '#d8f4f2', color: '#178f89' }} variant="outlined">
+                <Button component="a" href="/api/docs" target="_blank" rel="noopener noreferrer" startIcon={<TerminalIcon />} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, px: 3.5, borderColor: '#d8f4f2', color: (t) => tealText(t.palette.mode) }} variant="outlined">
                   Abrir console interativo
                 </Button>
               </Stack>
               <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2.5 }}>
-                Meus Exames — dado educativo de varejo farmacêutico. Não é recomendação médica (linha ANVISA RDC 657). Dúvidas: <Box component="a" href="mailto:contato@janocaminho.com.br" sx={{ fontWeight: 700, color: 'primary.dark', textDecoration: 'underline' }}>contato@janocaminho.com.br</Box>.
+                Meus Exames — dado educativo de varejo farmacêutico. Não é recomendação médica (linha ANVISA RDC 657). Dúvidas: <Box component="a" href="mailto:contato@janocaminho.com.br" sx={{ fontWeight: 700, color: (t) => tealText(t.palette.mode), textDecoration: 'underline' }}>contato@janocaminho.com.br</Box>.
               </Typography>
             </Box>
           </Box>
