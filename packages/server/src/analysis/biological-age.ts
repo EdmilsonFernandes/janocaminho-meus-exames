@@ -14,24 +14,33 @@ import type { BioSex } from './derived-markers';
 
 interface MarkerInput { nameCanonical: string; value: number; }
 
+/** Linha do "como chegamos" (29/09, pedido do dono): cada marcador usado com sua
+ *  contribuição em anos — o card mostra ao clicar. delta>0 envelhece, <0 rejuvenesce. */
+export interface BioMarkerDetail {
+  label: string;          // nome amigável (GLICEMIA → Glicose)
+  value: number;
+  deltaYears: number;     // contribuição clamped (±3)
+  status: 'ok' | 'envelhece' | 'rejuvenesce';
+}
+
 /** Marcadores usados e seus pesos (quanto maior o peso, mais impacto na idade).
  *  'direction': +1 = valor ALTO envelhece; -1 = valor BAIXO envelhece. */
-const AGE_MARKERS: { canonical: string; direction: 1 | -1 | 0; weight: number }[] = [
-  { canonical: 'GLICEMIA', direction: 1, weight: 1.2 },      // glicose alta = envelhece
-  { canonical: 'HEMOGLOBINA_GLICADA', direction: 1, weight: 1.5 },
-  { canonical: 'CREATININA', direction: 1, weight: 1.0 },     // função renal
-  { canonical: 'COLESTEROL_TOTAL', direction: 1, weight: 0.8 },
-  { canonical: 'LDL', direction: 1, weight: 0.8 },
-  { canonical: 'TRIGLICERIDES', direction: 1, weight: 0.6 },
-  { canonical: 'LEUCOCITOS', direction: 1, weight: 0.7 },    // inflamação
-  { canonical: 'PCR', direction: 1, weight: 1.0 },            // proteína C reativa
-  { canonical: 'HEMOGLOBINA', direction: -1, weight: 0.8 },   // anemia envelhece
-  { canonical: 'ALBUMINA', direction: -1, weight: 0.9 },      // nutrição/fígado
-  { canonical: 'VCM', direction: 1, weight: 0.4 },
-  { canonical: 'TESTOSTERONA_TOTAL', direction: 0, weight: 0.6 }, // U-shape: muito alto OU muito baixo envelhece
-  { canonical: 'TESTOSTERONA_LIVRE', direction: 0, weight: 0.5 },
-  { canonical: 'TGO', direction: 1, weight: 0.5 },             // AST — fígado
-  { canonical: 'TGP', direction: 1, weight: 0.5 },             // ALT — fígado
+const AGE_MARKERS: { canonical: string; direction: 1 | -1 | 0; weight: number; friendly?: string }[] = [
+  { canonical: 'GLICEMIA', direction: 1, weight: 1.2, friendly: 'Glicose (jejum)' },      // glicose alta = envelhece
+  { canonical: 'HEMOGLOBINA_GLICADA', direction: 1, weight: 1.5, friendly: 'Hemoglobina glicada (HbA1c)' },
+  { canonical: 'CREATININA', direction: 1, weight: 1.0, friendly: 'Creatinina (rim)' },     // função renal
+  { canonical: 'COLESTEROL_TOTAL', direction: 1, weight: 0.8, friendly: 'Colesterol total' },
+  { canonical: 'LDL', direction: 1, weight: 0.8, friendly: 'LDL (colesterol ruim)' },
+  { canonical: 'TRIGLICERIDES', direction: 1, weight: 0.6, friendly: 'Triglicérides' },
+  { canonical: 'LEUCOCITOS', direction: 1, weight: 0.7, friendly: 'Leucócitos (inflamação)' },    // inflamação
+  { canonical: 'PCR', direction: 1, weight: 1.0, friendly: 'Proteína C reativa (inflamação)' },            // proteína C reativa
+  { canonical: 'HEMOGLOBINA', direction: -1, weight: 0.8, friendly: 'Hemoglobina (anemia)' },   // anemia envelhece
+  { canonical: 'ALBUMINA', direction: -1, weight: 0.9, friendly: 'Albumina (nutrição/fígado)' },      // nutrição/fígado
+  { canonical: 'VCM', direction: 1, weight: 0.4, friendly: 'VCM (glóbulos vermelhos)' },
+  { canonical: 'TESTOSTERONA_TOTAL', direction: 0, weight: 0.6, friendly: 'Testosterona total' }, // U-shape: muito alto OU muito baixo envelhece
+  { canonical: 'TESTOSTERONA_LIVRE', direction: 0, weight: 0.5, friendly: 'Testosterona livre' },
+  { canonical: 'TGO', direction: 1, weight: 0.5, friendly: 'TGO (fígado)' },             // AST — fígado
+  { canonical: 'TGP', direction: 1, weight: 0.5, friendly: 'TGP (fígado)' },             // ALT — fígado
 ];
 
 /** Faixas de referência "saudável" por sexo (valores médios de adultos 20-40a).
@@ -67,14 +76,15 @@ export function estimateBiologicalAge(
   markers: MarkerInput[],
   chronologicalAge: number,
   gender: BioSex | undefined,
-): { biologicalAge: number; confidence: 'alta' | 'baixa'; markersUsed: number } {
+): { biologicalAge: number; confidence: 'alta' | 'baixa'; markersUsed: number; detail: BioMarkerDetail[] } {
   if (!chronologicalAge || chronologicalAge < 18 || markers.length === 0) {
-    return { biologicalAge: chronologicalAge, confidence: 'baixa', markersUsed: 0 };
+    return { biologicalAge: chronologicalAge, confidence: 'baixa', markersUsed: 0, detail: [] };
   }
 
   let totalDelta = 0;
   let totalWeight = 0;
   let used = 0;
+  const detail: BioMarkerDetail[] = [];
   const sex: 'male' | 'female' = gender === 'female' ? 'female' : 'male';
 
   for (const m of markers) {
@@ -104,10 +114,16 @@ export function estimateBiologicalAge(
     totalDelta += clampedDelta;
     totalWeight += cfg.weight;
     used++;
+    detail.push({
+      label: cfg.friendly ?? cfg.canonical,
+      value: m.value,
+      deltaYears: Math.round(clampedDelta * 10) / 10,
+      status: clampedDelta > 0.15 ? 'envelhece' : clampedDelta < -0.15 ? 'rejuvenesce' : 'ok',
+    });
   }
 
   if (used === 0 || totalWeight === 0) {
-    return { biologicalAge: chronologicalAge, confidence: 'baixa', markersUsed: 0 };
+    return { biologicalAge: chronologicalAge, confidence: 'baixa', markersUsed: 0, detail: [] };
   }
 
   // Média ponderada dos deltas (em anos)
@@ -120,5 +136,6 @@ export function estimateBiologicalAge(
     biologicalAge,
     confidence: used >= 6 ? 'alta' : 'baixa',
     markersUsed: used,
+    detail,
   };
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Box, Button, Card, CardContent, Typography, Chip, Stack, Grid, Accordion, AccordionSummary, AccordionDetails, InputBase, Paper, Collapse } from '@mui/material';
+import { Box, Button, Card, CardContent, Typography, Chip, Stack, Grid, Accordion, AccordionSummary, AccordionDetails, InputBase, Paper } from '@mui/material';
 /** Reduced-motion 1× (charts draw-in e afins) — Recharts não tem gate global. */
 const REDUCED_MOTION = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 import { alpha } from '@mui/material/styles';
@@ -7,11 +7,7 @@ import { Title, useTranslate } from 'react-admin';
 import { ResponsiveContainer, LineChart, Line, ReferenceArea, YAxis, Tooltip } from 'recharts';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import SearchIcon from '@mui/icons-material/Search';
-import DirectionsWalkIcon from '@mui/icons-material/DirectionsWalk';
 import { API_URL, token } from '../config';
-import { fetchActivitySummary, syncStamp } from '../services/activitySummary';
-import { fetchActivityDays, hasHealthPermissions, syncActivityToServer } from '../services/healthConnect';
-import type { ActivityDay } from '../utils/activityStats';
 import { useSelectedPatient } from '../patient-context';
 import { useNavigate } from 'react-router-dom';
 import { ExplainButton } from '../components/ExplainItem';
@@ -58,74 +54,6 @@ export const EvolutionPage = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<Status | 'all'>('all');
   const [query, setQuery] = useState('');
-
-  // ATIVIDADE (Health Connect → medições): série 30d de passos (+kcal/km pro detalhe do
-  // gráfico interativo) p/ comparar visualmente com glicose/lipídios/PA na MESMA tela.
-  const [steps, setSteps] = useState<{ date: string; steps: number; kcal: number; km: number }[]>([]);
-  const [stepsDelta, setStepsDelta] = useState<number | null>(null);
-  const [actSel, setActSel] = useState<string | null>(null);
-  const [actInfo, setActInfo] = useState(false);
-  // Carimbo da fonte cloud ("Sincronizado há X"): sem isto, dado velho do server parece
-  // um bug congelado — o usuário não sabe que só abre o app no celular pra atualizar.
-  const [syncedNote, setSyncedNote] = useState<string | null>(null);
-  // Consolida o que o APK já sincronizou (mesmo endpoint do ActivityCard na web) —
-  // 1 request no lugar de 3, com deltaPct30 vs período anterior já calculado.
-  const loadFromServer = () => {
-    fetchActivitySummary(30, pid)
-      .then((s) => {
-        if (!s) { setSteps([]); setStepsDelta(null); return; }
-        const st = s.lastSyncAt ? syncStamp(s.lastSyncAt) : null;
-        setSyncedNote(st ? `Sincronizado ${st.label}${st.stale ? ' · abra o app no celular' : ''}` : null);
-        const byDay = new Map<string, { steps: number; kcal: number; km: number }>();
-        for (const p of s.metrics.STEPS.series30) byDay.set(p.date, { steps: p.value, kcal: 0, km: 0 });
-        for (const p of s.metrics.CALORIES.series30) { const d = byDay.get(p.date); if (d) d.kcal = p.value; }
-        for (const p of s.metrics.DISTANCE.series30) { const d = byDay.get(p.date); if (d) d.km = p.value; }
-        setSteps([...byDay.entries()].filter(([, v]) => v.steps > 0).map(([date, v]) => ({ date, ...v })).sort((a, b) => (a.date < b.date ? -1 : 1)));
-        setStepsDelta(s.metrics.STEPS.deltaPct30);
-      })
-      .catch(() => setSteps([]));
-  };
-  // DUAS FONTES (mesmo padrão do ActivityCard): no APK com Health Connect conectado e
-  // perfil TITULAR selecionado, lê o aparelho DIRETO — a série acaba em HOJE, não no
-  // último sync do server (bug de campo: "travou na quinta e o dia não muda mais").
-  // 'patientId' do login = firstPatientId() do server (mesma noção de titular do sync).
-  // Web/dependente: consolidado do server.
-  const loadActivity = () => {
-    setSyncedNote(null);
-    if (!pid) { setSteps([]); setStepsDelta(null); return; }
-    let ownPid: string | null = null;
-    try { ownPid = localStorage.getItem('patientId'); } catch { /* localStorage indisponível */ }
-    if (pid === ownPid && hasHealthPermissions()) {
-      fetchActivityDays(60)
-        .then((days) => {
-          if (!days?.length) { loadFromServer(); return; } // bridge vazio → cloud
-          setSteps(days
-            .filter((d) => d.steps > 0)
-            .sort((a, b) => (a.date < b.date ? -1 : 1))
-            .slice(-30)
-            .map(({ date, steps: st, kcal, km }) => ({ date, steps: st, kcal, km })));
-          // deltaPct30 LOCAL: média dos 30d mais recentes vs 30 anteriores (days vem DESC).
-          const avg = (arr: ActivityDay[]) => (arr.length ? arr.reduce((t, d) => t + d.steps, 0) / arr.length : null);
-          const cur = avg(days.slice(0, 30));
-          const prev = avg(days.slice(30, 60));
-          setStepsDelta(cur != null && prev && prev > 0 ? Math.round(((cur - prev) / prev) * 100) : null);
-          // Repassa o sync (silencioso): web, portal do médico e Linha do Tempo passam a
-          // enxergar a atividade de hoje MESMO se o Dashboard não for visitado nesta sessão.
-          syncActivityToServer(days.slice(0, 31)).catch(() => { /* best-effort */ });
-        })
-        .catch(() => loadFromServer());
-      return;
-    }
-    loadFromServer();
-  };
-  useEffect(() => { loadActivity(); /* eslint-disable-line */ }, [pid]);
-  // RACE sync×fetch: o ActivityCard sincroniza HC→server DEPOIS de esta página já ter
-  // buscado (mostrava quinta enquanto o painel mostrava sexta). Ouço o evento pós-sync
-  // e REFAÇO o GET — cobre mount, foreground e botão ↻.
-  useEffect(() => {
-    window.addEventListener('dx:activity-synced', loadActivity);
-    return () => window.removeEventListener('dx:activity-synced', loadActivity);
-  }, [pid]);
 
   useEffect(() => {
     if (!pid) { setItems([]); setLoading(false); return; }
@@ -255,85 +183,6 @@ export const EvolutionPage = () => {
             </Paper>
           </ScrollReveal>
         </>
-      )}
-
-      {/* ATIVIDADE — card premium com mesh gradient e barras gradiente */}
-      {steps.length >= 5 && (
-        <ScrollReveal delay={180}>
-          <Card variant="outlined" sx={{
-            mb: 2, borderRadius: '20px', borderColor: 'divider', overflow: 'hidden',
-            background: (t) => t.palette.mode === 'dark'
-              ? `radial-gradient(ellipse at 20% 30%, rgba(32,178,170,.10), transparent 55%), ${t.palette.background.paper}`
-              : `radial-gradient(ellipse at 20% 30%, rgba(32,178,170,.06), transparent 55%), #ffffff`,
-          }}>
-            <CardContent sx={{ py: 1.75, '&:last-child': { pb: 1.75 } }}>
-              <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-                <DirectionsWalkIcon sx={{ fontSize: 18, color: (t) => tealText(t.palette.mode) }} />
-                <Typography sx={{ fontWeight: 800, fontSize: 14, fontFamily: '"Poppins",sans-serif' }}>Sua atividade no período</Typography>
-                <Typography sx={{ fontSize: 11, color: 'text.secondary', ml: 'auto', textAlign: 'right' }}>
-                  {Math.round(steps.reduce((t, d) => t + d.steps, 0) / steps.length).toLocaleString('pt-BR')} passos/dia{stepsDelta != null ? ` · ${stepsDelta > 0 ? '+' : ''}${stepsDelta}% vs período anterior` : ` · ${steps.length} dias`}
-                  {syncedNote && <Box component="span" sx={{ display: 'block', fontSize: 10, color: 'text.disabled' }}>{syncedNote}</Box>}
-                </Typography>
-              </Stack>
-              {/* Sparkline com barras gradiente premium */}
-              <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: 36 }}>
-                {steps.slice(-30).map((d) => {
-                  const max = Math.max(...steps.map((x) => x.steps), 1);
-                  const on = (actSel ?? steps[steps.length - 1]?.date) === d.date;
-                  return (
-                    <Box
-                      key={d.date}
-                      component="button"
-                      onClick={() => setActSel(d.date)}
-                      aria-label={`${new Date(`${d.date}T12:00:00`).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}: ${d.steps.toLocaleString('pt-BR')} passos`}
-                      sx={{
-                        flex: 1, minWidth: 2, p: 0, border: 'none', cursor: 'pointer',
-                        height: `${Math.max(12, (d.steps / max) * 100)}%`,
-                        borderRadius: on ? '4px 4px 0 0' : '3px 3px 0 0',
-                        background: on
-                          ? 'linear-gradient(to bottom, #20b2aa, rgba(32,178,170,0.45))'
-                          : d.steps >= 8000
-                            ? 'linear-gradient(to bottom, rgba(32,178,170,0.7), rgba(32,178,170,0.2))'
-                            : 'linear-gradient(to bottom, rgba(32,178,170,0.35), rgba(32,178,170,0.08))',
-                        outline: on ? '2px solid #20b2aa' : 'none',
-                        outlineOffset: on ? 1 : 0,
-                        boxShadow: on ? '0 0 8px rgba(32,178,170,.3)' : 'none',
-                        transform: on ? 'scaleY(1.06)' : 'none',
-                        transition: 'height .4s cubic-bezier(.2,.8,.2,1), transform .15s ease, box-shadow .2s ease',
-                      }}
-                    />
-                  );
-                })}
-              </Box>
-              {(() => {
-                const sel = steps.find((d) => d.date === (actSel ?? steps[steps.length - 1]?.date));
-                if (!sel) return null;
-                const dt = new Date(`${sel.date}T12:00:00`).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' }).replace('.', '');
-                return (
-                  <Stack direction="row" spacing={1.5} alignItems="center" useFlexGap flexWrap="wrap" sx={{
-                    mt: 0.75, px: 1.25, py: 0.75, borderRadius: '12px',
-                    bgcolor: 'rgba(32,178,170,0.07)', border: '1px solid rgba(32,178,170,0.15)',
-                    animation: 'dxActTip .2s ease both',
-                    '@keyframes dxActTip': { from: { opacity: 0, transform: 'scale(.96)' }, to: { opacity: 1, transform: 'scale(1)' } },
-                  }}>
-                    <Typography sx={{ fontSize: 12, fontWeight: 800, color: (t) => tealText(t.palette.mode), textTransform: 'capitalize' }}>{dt}</Typography>
-                    <Typography sx={{ fontSize: 13, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{sel.steps.toLocaleString('pt-BR')} <span style={{ fontSize: 11, color: 'text.secondary', fontWeight: 600 }}>passos</span></Typography>
-                    {sel.kcal > 0 && <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>🔥 {Math.round(sel.kcal).toLocaleString('pt-BR')} kcal</Typography>}
-                    {sel.km > 0 && <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>📍 {sel.km.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} km</Typography>}
-                  </Stack>
-                );
-              })()}
-              <Button size="small" onClick={() => setActInfo((v) => !v)} endIcon={<ExpandMoreIcon sx={{ transform: actInfo ? 'rotate(180deg)' : 'none', transition: 'transform .2s', fontSize: 16 }} />} sx={{ mt: 0.75, textTransform: 'none', fontWeight: 700, color: (t) => tealText(t.palette.mode), borderRadius: '999px', px: 1, minHeight: 28, alignSelf: 'flex-start' }}>
-                {actInfo ? 'Menos' : 'Saiba mais'}
-              </Button>
-              <Collapse in={actInfo} unmountOnExit>
-                <Typography sx={{ fontSize: 11, color: 'text.secondary', mt: 0.5 }}>
-                  Compare com a glicose, os lipídios e a pressão abaixo — atividade e exames contam a história juntos (educativo; confirme com seu médico).
-                </Typography>
-              </Collapse>
-            </CardContent>
-          </Card>
-        </ScrollReveal>
       )}
 
       {!loading && items.length === 0 && (

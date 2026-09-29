@@ -175,6 +175,7 @@ const MEDDRA_PT: Record<string, string> = {
   'therapeutic response decreased': 'Resposta ao tratamento diminuída',
   'sudden death': 'Morte súbita',
   'covid-19': 'Covid-19', 'drug interaction': 'Interação medicamentosa',
+  'product tampering': 'Adulteração do produto',
   'completed suicide': 'Suicídio consumado',
   'self injurious behaviour': 'Comportamento autolesivo',
   'suicidal ideation': 'Ideação suicida',
@@ -259,6 +260,9 @@ const INN_EN: Record<string, string> = {
   'CINACALCETE': 'CINACALCET', 'SEVELAMER': 'SEVELAMER', 'HIDROXIZINA': 'HYDROXYZINE',
   // 28/09 (bug bash do dono): sibutramina/baricitinibe sem painel FDA — fora do mapa.
   'SIBUTRAMINA': 'SIBUTRAMINE', 'BARICITINIBE': 'BARICITINIB', 'ORLISTAT': 'ORLISTAT',
+  // 29/09: combinações BR famosas → princípio ativo PRINCIPAL (o painel mostra o termo
+  // buscado; efeitos são do componente majoritário — melhor que "sem dados").
+  'DORFLEX': 'DIPYRONE', 'NOVALGINA': 'DIPYRONE', 'NEOSSALDINA': 'DIPYRONE',
   'FLUTICASONA': 'FLUTICASONE', 'MOMETASONA': 'MOMETASONE', 'RETAPAMULINA': 'RETAPAMULIN',
   'SAXAGLIPTINA': 'SAXAGLIPTIN', 'LINAGLIPTINA': 'LINAGLIPTIN', 'GLIBURIDA': 'GLYBURIDE',
 };
@@ -272,9 +276,11 @@ const DROP_TOKENS = new Set([
   'LIBERACAO', 'PROLONGADA', 'ORODISPERSIVEL', 'SOLUCAO', 'SUSPENSAO', 'INJETAVEL', 'TOPICO', 'GEL',
   'FRASCO', 'AMPOLA', 'SACH', 'REVEN', 'XR', 'XL', 'SR', 'ODT',
   // sais (28/09): o FAERS casa a substância sem o sal — CLORIDRATO/MALEATO no termo = 404.
+  // 29/09: +MONOIDRATADO (sibutramina do dono: "SIBUTRAMINE MONOIDRATADO" = 404 na FDA).
   'CLORIDRATO', 'MALEATO', 'BESILATO', 'MESILATO', 'HEMISSUCINATO', 'FOSFATO', 'TARTARATO',
+  'MONOIDRATADO', 'HEMIMAGNESIATO', 'ANHIDRO', 'BESILATO', 'DIIDRATADO',
   // conectores PT ("CLORIDRATO DE SIBUTRAMINA") — lixo no termo de busca.
-  'DE', 'DO', 'DA', 'COM',
+  'DE', 'DO', 'DA', 'COM', 'ANALGESICO', 'RELAXANTE', 'MUSCULAR', 'SABOR', 'BAUNILHA',
 ]);
 
 /**

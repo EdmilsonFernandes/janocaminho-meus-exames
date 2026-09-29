@@ -1,4 +1,4 @@
-import { Box, Typography, Dialog, DialogTitle, DialogContent, DialogActions, Button, Chip } from '@mui/material';
+import { Box, Typography, Dialog, DialogTitle, DialogContent, DialogActions, Button, Chip, Stack } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import { API_URL, token } from '../../config';
@@ -151,6 +151,29 @@ export const BiologicalAgeCard = ({ idx = 2, bio, bioAvail, bioLoaded, chronoAge
                 <Typography variant="body2" sx={{ mt: 0.5, color: diff < 0 ? SEM.ok[isDark ? 'dark' : 'light'] : SEM.bad[isDark ? 'dark' : 'light'], fontWeight: 700 }}>
                   {diff < 0 ? `💚 Seu corpo está ${Math.abs(diff)}a mais jovem que sua idade` : `⚠️ Seu corpo está ${diff}a mais velho que sua idade`}
                 </Typography>
+              )}
+              {/* 29/09 (dono: "ao clicar mostrar o PORQUÊ e as referências"): cada marcador
+                  usado com sua contribuição em anos — transparência total da estimativa. */}
+              {Array.isArray((data as any).detail) && (data as any).detail.length > 0 && (
+                <Box sx={{ mt: 1.5 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', display: 'block', mb: 0.75 }}>
+                    COMO CHEGAMOS NESSA IDADE ({(data as any).detail.length} marcador{((data as any).detail.length || 0) > 1 ? 'es' : ''}):
+                  </Typography>
+                  <Stack spacing={0.4}>
+                    {(data as any).detail.map((d: { label: string; value: number; deltaYears: number; status: string }, i: number) => (
+                      <Stack key={i} direction="row" alignItems="center" spacing={1} sx={{ p: 0.6, px: 1, borderRadius: '8px', bgcolor: d.status === 'envelhece' ? 'rgba(239,68,68,.06)' : d.status === 'rejuvenesce' ? 'rgba(16,185,129,.06)' : 'transparent', border: '1px solid', borderColor: 'divider' }}>
+                        <Typography sx={{ fontSize: 12.5, fontWeight: 600, flex: 1, minWidth: 0 }}>{d.label}</Typography>
+                        <Typography sx={{ fontSize: 12, color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>{d.value}</Typography>
+                        <Typography sx={{ fontSize: 11.5, fontWeight: 800, width: 64, textAlign: 'right', color: d.status === 'envelhece' ? '#dc2626' : d.status === 'rejuvenesce' ? '#059669' : 'text.disabled' }}>
+                          {d.status === 'ok' ? 'neutro' : `${d.deltaYears > 0 ? '+' : ''}${String(d.deltaYears).replace('.', ',')}a`}
+                        </Typography>
+                      </Stack>
+                    ))}
+                  </Stack>
+                  <Typography variant="caption" sx={{ display: 'block', mt: 0.75, color: 'text.disabled', lineHeight: 1.4 }}>
+                    Cada marcador compara seu valor com a faixa saudável adulta e soma/anula anos. Valores muito fora da faixa são descartados (erro de leitura). Quanto mais marcadores, mais precisa a estimativa.
+                  </Typography>
+                </Box>
               )}
               {diff === 0 && <Typography variant="body2" sx={{ mt: 0.5 }} color="text.secondary">Seu corpo está em equilíbrio com sua idade.</Typography>}
               <Typography variant="body2" sx={{ lineHeight: 1.6, display: 'block', mt: 1.5 }}>

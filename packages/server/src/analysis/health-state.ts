@@ -104,7 +104,7 @@ export interface CurrentHealthSummary {
   worsening: MarkerState[];
   stale: MarkerState[];
   whatChanged: { nameCanonical: string; name: string; deltaPct: number | null; trend: TrendDirection }[];
-  biologicalAge?: { age: number; confidence: 'alta' | 'baixa'; markersUsed: number; method?: 'phenoage' | 'simplified'; missing?: string[]; assumptions?: string[] } | null;
+  biologicalAge?: { age: number; confidence: 'alta' | 'baixa'; markersUsed: number; detail?: { label: string; value: number; deltaYears: number; status: 'ok' | 'envelhece' | 'rejuvenesce' }[]; method?: 'phenoage' | 'simplified'; missing?: string[]; assumptions?: string[] } | null;
   cardiometabolicRisk?: { level: string; score: number; factors: { label: string; risk: boolean }[] } | null;
   /** Empty states honestos por feature (ver FeatureStatus). */
   availability?: FeatureAvailability;
@@ -492,7 +492,7 @@ export async function buildCurrentHealthSummary(patientId: string, opts?: { incl
             // 'missing' = marcadores do PhenoAge que faltaram (ex.: Glicose, PCR). Antes bioMissing
             // era atribuído DEPOIS de ser lido → chegava vazio no card (o usuário não sabia o que faltava).
             bioMissing = missing;
-            biologicalAge = { age: result.biologicalAge, confidence: result.confidence, markersUsed: result.markersUsed, method: 'simplified', missing: bioMissing, ...(bioSexAssumed ? { assumptions: ['sexoNaoInformado'] } : {}) };
+            biologicalAge = { age: result.biologicalAge, confidence: result.confidence, markersUsed: result.markersUsed, detail: result.detail, method: 'simplified', missing: bioMissing, ...(bioSexAssumed ? { assumptions: ['sexoNaoInformado'] } : {}) };
           }
         }
       }

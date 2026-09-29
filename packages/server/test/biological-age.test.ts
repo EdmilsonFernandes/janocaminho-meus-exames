@@ -23,6 +23,9 @@ describe('estimateBiologicalAge — não-fallback garantido', () => {
     expect(r.markersUsed).toBe(6);
     expect(r.confidence).toBe('alta');
     expect(r.biologicalAge).toBeGreaterThan(40); // envelheceu — NÃO é a cronológica
+    // 29/09: detail = o 'porquê' (cada marcador com contribuição em anos)
+    expect(r.detail).toHaveLength(6);
+    expect(r.detail.every((d: any) => d.label && typeof d.value === 'number' && typeof d.deltaYears === 'number')).toBe(true);
   });
 
   it('perfil saudável completo → confiança alta e bio alinhada (resultado legítimo, não fallback)', () => {
