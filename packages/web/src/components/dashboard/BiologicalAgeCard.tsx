@@ -153,8 +153,30 @@ export const BiologicalAgeCard = ({ idx = 2, bio, bioAvail, bioLoaded, chronoAge
                 </Typography>
               )}
               {/* 29/09 (dono: "ao clicar mostrar o PORQUÊ e as referências"): cada marcador
-                  usado com sua contribuição em anos — transparência total da estimativa. */}
-              {Array.isArray((data as any).detail) && (data as any).detail.length > 0 && (
+                  usado com sua contribuição — transparência total da estimativa.
+                  method 'phenoage' (Levine 2018): contribuições são SCORES do modelo
+                  (negativo protege, positivo envelhece) — não "anos" como no z-score. */}
+              {(data as any).method === 'phenoage' && Array.isArray((data as any).detail) && (data as any).detail.length > 0 && (
+                <Box sx={{ mt: 1.5 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', display: 'block', mb: 0.75 }}>
+                    MATEMÁTICA DO PHENOAGE — 9 marcadores (Levine et al. 2018, Aging):
+                  </Typography>
+                  <Stack spacing={0.4}>
+                    {(data as any).detail.map((d: { label: string; deltaYears: number; status: string }, i: number) => (
+                      <Stack key={i} direction="row" alignItems="center" spacing={1} sx={{ p: 0.5, px: 1, borderRadius: '8px', border: '1px solid', borderColor: 'divider' }}>
+                        <Typography sx={{ fontSize: 12.5, fontWeight: 600, flex: 1, minWidth: 0 }}>{d.label}</Typography>
+                        <Typography sx={{ fontSize: 11.5, fontWeight: 800, width: 60, textAlign: 'right', color: d.status === 'envelhece' ? '#dc2626' : d.status === 'rejuvenesce' ? '#059669' : 'text.disabled' }}>
+                          {d.deltaYears > 0 ? '+' : ''}{String(Math.round(d.deltaYears * 100) / 100).replace('.', ',')}
+                        </Typography>
+                      </Stack>
+                    ))}
+                  </Stack>
+                  <Typography variant="caption" sx={{ display: 'block', mt: 0.75, color: 'text.disabled', lineHeight: 1.4 }}>
+                    Score de cada marcador no modelo (negativo = protege, positivo = envelhece). Fórmula publicada e validada — Levine et al., Aging 2018. Estimativa educativa; a avaliação é do seu médico.
+                  </Typography>
+                </Box>
+              )}
+              {(data as any).method !== 'phenoage' && Array.isArray((data as any).detail) && (data as any).detail.length > 0 && (
                 <Box sx={{ mt: 1.5 }}>
                   <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', display: 'block', mb: 0.75 }}>
                     COMO CHEGAMOS NESSA IDADE ({(data as any).detail.length} marcador{((data as any).detail.length || 0) > 1 ? 'es' : ''}):

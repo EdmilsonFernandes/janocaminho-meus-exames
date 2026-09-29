@@ -459,21 +459,35 @@ export async function buildCurrentHealthSummary(patientId: string, opts?: { incl
         bioPhenoMissing = missing;
 
         if (missing.length === 0 && alb != null && cre != null && gli != null && crp != null && lin != null && vcm != null && rdw != null && alp != null && wbc != null) {
-          // Todos os 9 marcadores disponíveis — PhenoAge completo
+          // Todos os 9 marcadores disponíveis — PhenoAge COMPLETO (Levine 2018; unidades
+          // cruas BR — a função converte e devolve as contribuições de cada marcador).
           const phenoResult = calculatePhenoAge({
-            age: chronoAge,
-            albumin: albuminGdLToGL(alb),       // g/dL → g/L
-            creatinine: creatinineMgDLToUmolL(cre), // mg/dL → µmol/L
-            glucose: glucoseMgDLToMmolL(gli),   // mg/dL → mmol/L
-            crp,                                // mg/dL (convertido acima pela unit real)
-            lymphocytePct: lin,                 // % (já na unidade certa)
-            mcv: vcm,                           // fL
-            rdw,                                // %
-            alkalinePhosphatase: alp,           // U/L
-            wbc: wbc > 100 ? wbcPerULTo1000(wbc) : wbc, // >100 = cél/µL → ÷1000; senão já é 1000/µL
+            chronologicalAge: chronoAge,
+            albuminGDdL: alb,
+            creatinineMgDdL: cre,
+            glucoseMgDdL: gli,
+            crpMgD: crp,          // mg/dL (normalizado acima pela unit real do exame)
+            lymphocytePercent: lin,
+            mcvFemtoliter: vcm,
+            rdwPercent: rdw,
+            alkalinePhosphatase: alp,
+            whiteBloodCellCount: wbc, // /µL — a função divide (>100 assume células)
           });
           if (phenoResult) {
-            biologicalAge = { age: phenoResult.biologicalAge, confidence: 'alta', markersUsed: 9, method: 'phenoage' };
+            biologicalAge = {
+              age: phenoResult.phenotypicAge,
+              confidence: 'alta',
+              markersUsed: 9,
+              method: 'phenoage',
+              // 'Porquê' com a matemática do Levine: contribuição de cada marcador
+              // (score parcial — negativa protege, positiva envelhece) + citação.
+              detail: phenoResult.contributions.map((c) => ({
+                label: c.label,
+                value: c.contribution, // score parcial (não são 'anos' — o card rotula
+                deltaYears: c.contribution, // igual; método phenoage mostra natureza própria)
+                status: c.contribution > 0.05 ? 'envelhece' : c.contribution < -0.05 ? 'rejuvenesce' : 'ok',
+              })),
+            };
             bioMethod = 'phenoage';
           }
         }
