@@ -27,7 +27,7 @@ import { categorizeExam } from '../../utils/medicalData';
 import { tealText } from '../../theme';
 import { WhatIsThis } from '../../components/WhatIsThis';
 import { ExtractionProgress } from '../../components/ExtractionProgress';
-import { AnimatedDoctor } from '../../components/AnimatedDoctor';
+import { RobotAnalysis } from '../../components/RobotAnalysis';
 import { CreditBadge, CREDIT_COSTS } from '../../components/CreditBadge';
 import { ConfirmSpend } from '../../components/ConfirmSpend';
 import { DocPreview } from '../../components/DocPreview';
@@ -531,7 +531,7 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
                   {genLoading ? <CircularProgress size={22} /> : 'Gerar resumo'}
                 </Button>{' '}
                 <CreditBadge amount={CREDIT_COSTS.summary} />
-                {genLoading && <AnimatedDoctor text="Dr. Exame está analisando seu exame…" />}
+                {genLoading && <Box sx={{ mt: 2 }}><RobotAnalysis label="Dr. Exame está analisando seu exame" /></Box>}
               </CardContent>
             </Card>
           )}

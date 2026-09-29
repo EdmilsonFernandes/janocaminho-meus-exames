@@ -1,4 +1,4 @@
-import { List, useListContext, Edit, SimpleForm, TextInput, DateInput, useRecordContext, useNotify, useRefresh, CreateButton, TopToolbar, useInput } from 'react-admin';
+import { List, useListContext, Edit, Create, SimpleForm, TextInput, DateInput, useRecordContext, useNotify, useRefresh, CreateButton, TopToolbar, useInput, required } from 'react-admin';
 import { Box, Avatar, Typography, Chip, IconButton, Stack, Card, CardContent, TextField as MuiTextField } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
@@ -19,7 +19,16 @@ const ageFrom = (dob?: string | null) => {
 
 const PatientListActions = () => (
   <TopToolbar>
-    <CreateButton label="Adicionar dependente" variant="contained" />
+    {/* Bug do dono (28/09): no mobile (<md) o CreateButton do react-admin vira um FAB FIXO
+        (right:20, bottom:60, z-index 1000) e caía POR CIMA do MobileBottomNav (z-index 1100,
+        flutuante no rodapé) — briga de toque no canto inferior direito. Sobe o FAB acima da
+        altura REAL do nav (--me-bottom-nav-h, publicada pelo MobileBottomNav), mesmo padrão
+        do ExamCreateFab. Só no xs: a partir do sm não existe bottom-nav (default do RA fica). */}
+    <CreateButton
+      label="Adicionar dependente"
+      variant="contained"
+      sx={{ '&.RaCreateButton-floating': { bottom: { xs: 'calc(var(--me-bottom-nav-h, 76px) + 14px)', sm: 60 }, zIndex: { xs: 1200, sm: 1000 } } }}
+    />
   </TopToolbar>
 );
 
@@ -118,14 +127,14 @@ const PhotoField = () => {
   return <PhotoUpload patientId={String(record.id)} photoUrl={record.photoUrl} size={90} />;
 };
 
-const PatientNameInput = () => {
+const PatientNameInput = ({ validate }: { validate?: any }) => {
   const record = useRecordContext();
-  return <TextInput source="fullName" label="Nome completo" fullWidth disabled={!!record?.identityLocked} helperText={record?.identityLocked ? 'Nome bloqueado após verificação de CPF e e-mail.' : undefined} />;
+  return <TextInput source="fullName" label="Nome completo" fullWidth validate={validate} disabled={!!record?.identityLocked} helperText={record?.identityLocked ? 'Nome bloqueado após verificação de CPF e e-mail.' : undefined} />;
 };
 
-const PatientCpfInput = () => {
+const PatientCpfInput = ({ validate }: { validate?: any }) => {
   const record = useRecordContext();
-  const { field } = useInput({ source: 'cpf' });
+  const { field } = useInput({ source: 'cpf', validate });
   if (record?.hasCpf) {
     return <MuiTextField label="CPF" value={record.cpfMasked ?? ''} disabled fullWidth size="small" helperText="CPF verificado e mascarado. Correção somente via suporte auditado." />;
   }
@@ -149,8 +158,48 @@ export const PatientList = () => (
   </List>
 );
 
+/** POST /patients EXIGE CPF válido (dedup por cpfHash) — sem isso o server devolve 400. */
+const cpfValidate = (value: any) => (!value ? 'Informe o CPF.' : isValidCpf(String(value)) ? undefined : 'CPF inválido.');
+
+/** Bug do dono (28/09): /patients/create não tinha view — o roteamento do Resource casava a URL
+ *  na rota de EDIT com id="create" → GET /patients/create → 403 (guarda de PII/IDOR do server)
+ *  → authProvider.checkError(403) derrubava a sessão (logout → login → biometria) e o dono era
+ *  expulso do fluxo de criar dependente. View de criação de verdade: o FAB/toolbar e o card
+ *  "+ Adicionar um dependente" agora caem AQUI (form) em vez de logar fora do app. */
+export const PatientCreate = () => (
+  /* Toolbar do SimpleForm é FIXED bottom:0 no mobile (padrão RA) e ficava por baixo do
+     MobileBottomNav — o Salvar era intocável. Sobe junto com o nav (mesma var do layout).
+     No sx do <Create> porque a toolbar é irmã do SimpleForm-root (sx do form não a alcança).
+     O transform:none no :active do card: o theme dá scale(0.985) a todo MuiCard :active —
+     ao PRESSIONAR o Salvar o card virava containing-block da toolbar fixed (toolbar pulava
+     ~200px no meio do toque e o click era retargetado pro fundo = Salvar "morto"). */
+  <Create title="Adicionar dependente" sx={{
+    '& .MuiToolbar-root.RaToolbar-mobileToolbar': { bottom: 'calc(var(--me-bottom-nav-h, 76px) + 14px)' },
+    '& .MuiCard-root:active': { transform: 'none !important' },
+  }}>
+    <SimpleForm sx={{ maxWidth: 640, pt: 1 }}>
+      <PatientNameInput validate={required('Informe o nome.')} />
+      <PatientCpfInput validate={cpfValidate} />
+      <TextInput source="relationship" label="Parentesco (Titular, Filha, Mãe...)" fullWidth />
+      <DateInput source="dateOfBirth" label="Data de nascimento" fullWidth />
+      <TextInput
+        source="clinicalProfile"
+        label="Perfil clínico (condições, medicações, histórico relevante)"
+        multiline
+        fullWidth
+        minRows={4}
+        helperText="Ex.: 'Sem tireoide; usa levotiroxina (Levoid); usa testosterona; usa tirzepatida (Mounjaro).' Essas informações alimentam a IA para contextualizar a análise (nunca para diagnosticar)."
+      />
+    </SimpleForm>
+  </Create>
+);
+
 export const PatientEdit = () => (
-  <Edit title="Perfil do paciente">
+  /* Mesma subida do toolbar mobile + mesmo neutralizador do :active do card (ver PatientCreate). */
+  <Edit title="Perfil do paciente" sx={{
+    '& .MuiToolbar-root.RaToolbar-mobileToolbar': { bottom: 'calc(var(--me-bottom-nav-h, 76px) + 14px)' },
+    '& .MuiCard-root:active': { transform: 'none !important' },
+  }}>
     <SimpleForm sx={{ maxWidth: 640, pt: 1 }}>
       <Box sx={{ pt: 2, pb: 1 }}>
         <PhotoField />

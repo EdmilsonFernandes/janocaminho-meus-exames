@@ -1,4 +1,4 @@
-import { Box, Typography, Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
+import { Box, Typography, Dialog, DialogTitle, DialogContent, DialogActions, Button, Chip } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import { API_URL, token } from '../../config';
@@ -141,6 +141,12 @@ export const BiologicalAgeCard = ({ idx = 2, bio, bioAvail, bioLoaded, chronoAge
           {data ? (
             <>
               <Typography variant="h6" sx={{ fontWeight: 800, color: accent }}>{data.age} anos{chronoAge ? ` (você tem ${chronoAge})` : ''}</Typography>
+              {/* 28/09 (bug bash): honestidade da estimativa — 'baixa' (menos de 6 marcadores)
+                  não pode parecer cálculo forte. Diz quantos marcadores entraram na conta. */}
+              <Chip size="small" sx={{ mt: 0.5, mb: 0.5, height: 22, fontSize: 11, fontWeight: 700, bgcolor: (data.confidence === 'alta') ? 'rgba(5,150,105,.10)' : 'rgba(245,158,11,.12)', color: (data.confidence === 'alta') ? '#059669' : '#b45309' }}
+                label={data.confidence === 'alta'
+                  ? `estimativa com ${data.markersUsed ?? '?'} marcadores`
+                  : `estimativa FRACA — só ${data.markersUsed ?? '?'} marcador(es); envie mais exames pra afinar`} />
               {diff !== null && diff !== 0 && (
                 <Typography variant="body2" sx={{ mt: 0.5, color: diff < 0 ? SEM.ok[isDark ? 'dark' : 'light'] : SEM.bad[isDark ? 'dark' : 'light'], fontWeight: 700 }}>
                   {diff < 0 ? `💚 Seu corpo está ${Math.abs(diff)}a mais jovem que sua idade` : `⚠️ Seu corpo está ${diff}a mais velho que sua idade`}

@@ -19,6 +19,7 @@ import { PageHeader } from '../components/layout/PageHeader';
 import { ListSkeleton } from '../components/Skeleton';
 import { AppCard } from '../components/AppCard';
 import { GradientButton } from '../components/GradientButton';
+import { RobotAnalysis } from '../components/RobotAnalysis';
 import { WhatIsThis } from '../components/WhatIsThis';
 import { useNotify } from 'react-admin';
 
@@ -666,12 +667,14 @@ export const MedicationsPage = () => {
               {fullLoading ? 'Analisando…' : 'Descobrir agora (2 créditos)'}
             </GradientButton>
             {fullLoading && (
-              <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: 'wrap' }}>
-                <CircularProgress size={14} sx={{ color: (t) => tealText(t.palette.mode), flexShrink: 0 }} />
-                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+              <Box>
+                {/* 29/09: cena Dr. Exame analisando (padrão dos demais fluxos de IA);
+                    estágios rotativos + prazo seguem embaixo. */}
+                <RobotAnalysis label="Dr. Exame está verificando as interações" />
+                <Typography variant="body2" sx={{ color: 'text.secondary', textAlign: 'center' }}>
                   {['💊 Conferindo as interações entre seus remédios…', '🧬 Cruzando com os exames alterados…', '🧠 Escrevendo a análise personalizada…'][fullStep]} <Box component="span" sx={{ color: 'text.disabled' }}>(pode levar ~30s)</Box>
                 </Typography>
-              </Stack>
+              </Box>
             )}
             {full && (
               <Stack spacing={1}>
@@ -771,9 +774,9 @@ export const MedicationsPage = () => {
           </Stack>
           {scanLoading && (
             <Box sx={{ mt: 2 }}>
-              <Box sx={{ height: 4, borderRadius: '2px', bgcolor: 'rgba(32,178,170,.15)', overflow: 'hidden' }}>
-                <Box sx={{ height: '100%', borderRadius: '2px', bgcolor: 'primary.main', animation: 'scanProgress 1.5s ease-in-out infinite', '@keyframes scanProgress': { '0%': { width: '10%', ml: '0%' }, '50%': { width: '60%', ml: '20%' }, '100%': { width: '10%', ml: '90%' } } }} />
-              </Box>
+              {/* 29/09: cena Dr. Exame analisando (padrão dos demais fluxos de IA) — substitui
+                  a barra fake; header acima já diz "Lendo sua receita…", por isso sem label. */}
+              <RobotAnalysis />
               <Stack spacing={0.5} sx={{ mt: 1.5 }}>
                 {['📸 Analisando a foto', '🔍 Reconhecendo o texto', '💊 Identificando remédios'].map((step, i) => (
                   <Stack key={i} direction="row" spacing={1} alignItems="center">

@@ -221,6 +221,10 @@ export const UsageTab = () => {
                             height: 22,
                             fontSize: 11,
                             fontWeight: 800,
+                            // 28/09 (dono): saldo cortado não dava pra ler a quantidade —
+                            // chip nunca encolhe/trunca, célula deixa esticar.
+                            whiteSpace: 'nowrap',
+                            maxWidth: 'none',
                             bgcolor: r.credits > 100 ? 'rgba(4,120,87,.1)' : 'rgba(194,65,12,.1)',
                             color: r.credits > 100 ? '#047857' : '#c2410c',
                           }}

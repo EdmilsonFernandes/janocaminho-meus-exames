@@ -37,6 +37,12 @@ export const DoctorsTab = () => {
                   CRM {m.crm}{m.crmUf && !String(m.crm).includes('-') ? `-${m.crmUf}` : ''}{m.specialty ? ` · ${m.specialty}` : ''}
                 </Typography>
                 <Typography variant="caption" sx={{ color: 'text.disabled' }}>{m.email}</Typography>
+                {/* 28/09 (dono): quando a conta do médico foi criada. */}
+                {(m as any).createdAt && (
+                  <Typography variant="caption" sx={{ display: 'block', fontSize: 10.5, color: 'text.disabled' }}>
+                    Criado em {new Date((m as any).createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                  </Typography>
+                )}
               </Box>
               <Stack spacing={0.5} alignItems="flex-end">
                 <Chip size="small" label={`${m._count?.shares ?? 0} paciente${m._count?.shares === 1 ? '' : 's'}`} sx={{ fontWeight: 700, height: 22 }} />

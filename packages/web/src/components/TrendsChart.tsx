@@ -5,7 +5,7 @@ import { displayStatus } from '../utils/examStatus';
 import { ExplainButton } from './ExplainItem';
 import { UnitLabel } from './UnitLabel';
 import { Flag } from './Flag';
-import { RADIUS } from '../theme';
+import { RADIUS, tealText } from '../theme';
 import type { Theme } from '@mui/material/styles';
 import type { TimeSeriesByName as TS } from '@meus-exames/shared';
 
@@ -32,7 +32,15 @@ export const TrendsChart = ({ ts, action }: { ts: TS; action?: React.ReactNode }
   const theme = useTheme<Theme>();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const tealMain = theme.palette.primary.main;
-  const tealDark = theme.palette.primary.dark;
+  // 28/09 bug bash (dark): shades `.dark` de palette CUSTOM (BRAND) não flipam no dark do
+  // MUI — error.dark/info.dark/success.dark = darken(main,30%) nos DOIS modos → ~2:1 sobre
+  // paper escuro (valor grande, tendência e "estável" ficavam invisíveis no dark).
+  // TEXTO ganha tom claro no dark; light inalterado. BG/borda seguem nos tons originais.
+  const isDark = theme.palette.mode === 'dark';
+  const errText = isDark ? '#f87171' : theme.palette.error.dark;
+  const infoText = isDark ? '#7dd3fc' : theme.palette.info.dark;
+  const okText = isDark ? '#6ee7b7' : theme.palette.success.dark;
+  const titleText = tealText(theme.palette.mode);
 
   // REFERÊNCIA UNIFICADA do gráfico (feedback do dono): pontos de labs diferentes podem ter
   // faixas próprias (ex.: hemoglobina 12–15.8 num exame, 13–16.5 noutro). Uma faixa única na
@@ -108,7 +116,7 @@ export const TrendsChart = ({ ts, action }: { ts: TS; action?: React.ReactNode }
       {/* Título do analito — minWidth:0 + truncation evita cortar o nome no mobile.
           `action` = slot opcional à direita (ex.: segmented de período do portal médico). */}
       <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mb: 1, minWidth: 0 }}>
-        <Typography variant="subtitle1" sx={{ fontWeight: 800, color: tealDark, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{prettyName(ts.nameCanonical)}</Typography>
+        <Typography variant="subtitle1" sx={{ fontWeight: 800, color: titleText, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{prettyName(ts.nameCanonical)}</Typography>
         <ExplainButton name={ts.nameCanonical} nameCanonical={ts.nameCanonical} />
         {action && <Box sx={{ ml: 'auto', flexShrink: 0 }}>{action}</Box>}
       </Stack>
@@ -116,7 +124,7 @@ export const TrendsChart = ({ ts, action }: { ts: TS; action?: React.ReactNode }
       {/* Cabeçalho empilhado: valor → tendência → última data → referência. */}
       <Box sx={{ mb: 1.5, minWidth: 0 }}>
         <Stack direction="row" alignItems="baseline" spacing={1.25} flexWrap="wrap" sx={{ minWidth: 0 }}>
-          <Typography sx={{ fontSize: 30, fontWeight: 800, lineHeight: 1, color: predict?.dir === 'up' ? theme.palette.error.dark : predict?.dir === 'down' ? theme.palette.info.dark : tealDark }}>
+          <Typography sx={{ fontSize: 30, fontWeight: 800, lineHeight: 1, color: predict?.dir === 'up' ? errText : predict?.dir === 'down' ? infoText : titleText }}>
             {fmtNum(lastPt?.valueNumeric)} {ts.unit ? <UnitLabel unit={ts.unit} fontSize="1.875rem" /> : null}
           </Typography>
           {absDelta != null && absDelta > 0 && ts.unit && (
@@ -125,7 +133,7 @@ export const TrendsChart = ({ ts, action }: { ts: TS; action?: React.ReactNode }
             </Typography>
           )}
         </Stack>
-        <Typography sx={{ fontWeight: 700, mt: 0.25, color: predict?.dir === 'up' ? theme.palette.error.dark : predict?.dir === 'down' ? theme.palette.info.dark : theme.palette.success.dark }}>
+        <Typography sx={{ fontWeight: 700, mt: 0.25, color: predict?.dir === 'up' ? errText : predict?.dir === 'down' ? infoText : okText }}>
           {predict?.dir === 'up' ? '↑ Tendência de alta' : predict?.dir === 'down' ? '↓ Tendência de queda' : '→ Estável'} · {data.length} {data.length === 1 ? 'medição' : 'medições'}
         </Typography>
         {lastPt && (
@@ -202,13 +210,13 @@ export const TrendsChart = ({ ts, action }: { ts: TS; action?: React.ReactNode }
       {/* Previsão de sair da faixa (linear) — informativo, médico valida. */}
       {predict && predict.dir !== 'stable' && predict.months && (
         <Box sx={{ mt: 2, p: 1.5, borderRadius: '12px', background: predict.dir === 'up' ? alpha(theme.palette.error.dark, 0.08) : alpha(theme.palette.info.dark, 0.08), border: `1px solid ${predict.dir === 'up' ? alpha(theme.palette.error.dark, 0.2) : alpha(theme.palette.info.dark, 0.2)}` }}>
-          <Typography sx={{ fontWeight: 700, color: predict.dir === 'up' ? theme.palette.error.dark : theme.palette.info.dark }}>📈 Tendência: {predict.dir === 'up' ? 'subindo' : 'caindo'}</Typography>
+          <Typography sx={{ fontWeight: 700, color: predict.dir === 'up' ? errText : infoText }}>📈 Tendência: {predict.dir === 'up' ? 'subindo' : 'caindo'}</Typography>
           <Typography variant="body2" sx={{ mt: 0.5 }}>Neste ritmo, {ts.nameCanonical} {predict.dir === 'up' ? 'ultrapassa' : 'fica abaixo de'} a faixa em <strong>~{predict.months} {predict.months === 1 ? 'mês' : 'meses'}</strong>.</Typography>
         </Box>
       )}
       {predict && predict.dir === 'stable' && (
         <Box sx={{ mt: 2, p: 1.5, borderRadius: '12px', background: alpha(theme.palette.success.main, 0.08) }}>
-          <Typography sx={{ color: theme.palette.success.dark, fontWeight: 600 }}>✅ Tendência estável.</Typography>
+          <Typography sx={{ color: okText, fontWeight: 600 }}>✅ Tendência estável.</Typography>
         </Box>
       )}
 

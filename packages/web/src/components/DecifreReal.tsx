@@ -9,6 +9,7 @@ import LockIcon from '@mui/icons-material/Lock';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { API_URL } from '../config';
+import { RobotAnalysis } from './RobotAnalysis';
 import { GradientButton } from './GradientButton';
 import { tealText } from '../theme';
 
@@ -313,19 +314,13 @@ export const DecifreReal = () => {
         </Typography>
       )}
 
-      {/* LOADING — skeleton shimmer (a sensação de "tá calculando") */}
+      {/* LOADING — cena Dr. Exame analisando (29/09: mesmo robô do app; sem label porque
+          o texto da fase abaixo já é branco — o label do componente usaria cor clara-em-fundo-
+          escuro no dark mode). Fases rotativas + hint mobile seguem. */}
       {loading && (
         <Box sx={{ mt: 2.5, borderRadius: '16px', bgcolor: 'rgba(0,0,0,.32)', border: '1px solid rgba(255,255,255,.2)', p: 2.5 }}>
-          <Typography sx={{ fontWeight: 800, fontSize: 15, mb: 1.5, color: '#fff' }}>{PHASES[phase]}</Typography>
-          {[0, 1, 2, 3].map((i) => (
-            <Box key={i} sx={{
-              height: 36, borderRadius: '8px', mb: 1.25,
-              background: 'linear-gradient(90deg, rgba(255,255,255,.08) 25%, rgba(255,255,255,.22) 50%, rgba(255,255,255,.08) 75%)',
-              backgroundSize: '600px 100%',
-              animation: `dxShimmer 1.3s ease-in-out ${i * 0.12}s infinite`,
-              width: `${88 - i * 7}%`,
-            }} />
-          ))}
+          <RobotAnalysis />
+          <Typography sx={{ fontWeight: 800, fontSize: 15, mt: 1, color: '#fff', textAlign: 'center' }}>{PHASES[phase]}</Typography>
           {/* Mobile: Android mata conexão se trocar de app durante processamento */}
           <Typography sx={{ fontSize: 12, opacity: 0.7, mt: 1, textAlign: 'center', display: { xs: 'block', sm: 'none' } }}>
             {MOBILE_HINT}

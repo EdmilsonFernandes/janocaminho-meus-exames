@@ -150,6 +150,12 @@ export const UsersTab = () => {
                   {u.blocked && <Chip size="small" label="Bloqueado" color="error" sx={{ height: 18, fontSize: 10 }} />}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">{u.email}</Typography>
+                {/* 28/09 (dono): data de criação visível — saber QUANDO a conta surgiu. */}
+                {(u as any).createdAt && (
+                  <Typography variant="caption" sx={{ display: 'block', fontSize: 10.5, color: 'text.disabled' }}>
+                    Criado em {new Date((u as any).createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                  </Typography>
+                )}
               </Box>
               <Box sx={{ textAlign: 'center', minWidth: 56 }}>
                 <Typography sx={{ fontWeight: 800, fontSize: 16, fontVariantNumeric: 'tabular-nums', color: u.credits > 0 ? 'success.main' : 'text.disabled' }}>{u.credits}</Typography>

@@ -51,7 +51,7 @@ import { DashboardV2 as Dashboard } from './components/dashboard/DashboardV2';
 import { ExamList } from './resources/Exams/ExamList';
 import { ExamShow } from './resources/Exams/ExamShow';
 import { ExamCreate } from './resources/Exams/ExamCreate';
-import { PatientList, PatientEdit } from './resources/Patients/Patients';
+import { PatientList, PatientEdit, PatientCreate } from './resources/Patients/Patients';
 import { TrendsPage } from './pages/Trends';
 // Code splitting — páginas pesadas carregam sob demanda (bundle inicial menor)
 const ChatPage = lazy(() => import('./pages/Chat').then(m => ({ default: m.ChatPage })));
@@ -860,7 +860,9 @@ export const App = () => {
     </CustomRoutes>
 
     <Resource name="exams" list={ExamList} show={ExamShow} create={ExamCreate} options={{ label: 'Exames' }} icon={FactCheckOutlinedIcon} />
-    <Resource name="patients" list={PatientList} edit={PatientEdit} options={{ label: 'Dependentes' }} icon={Diversity3OutlinedIcon} />
+    {/* create é OBRIGATÓRIO: sem ele /patients/create caía na rota de EDIT com id="create" →
+        403 da guarda de PII → checkError derrubava a sessão (bug do dono 28/09: biometria + expulso). */}
+    <Resource name="patients" list={PatientList} edit={PatientEdit} create={PatientCreate} options={{ label: 'Dependentes' }} icon={Diversity3OutlinedIcon} />
     <Resource name="items" options={{ label: 'Itens' }} />
     <Resource name="analyses" options={{ label: 'Análises' }} />
 

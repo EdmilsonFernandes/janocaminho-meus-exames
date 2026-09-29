@@ -686,6 +686,8 @@ export const DashboardV2 = () => {
   // rodando (hooks incondicionais) e o firstName continua o DO USUÁRIO (saudação real).
   const [demo, setDemo] = useState(false);
   const [demoAsk, setDemoAsk] = useState(false);
+  // 28/09: tile Cardiorrisco abre os FATORES (dialog) em vez de navegar pra Tendências.
+  const [cardioOpen, setCardioOpen] = useState(false);
   const d = demo ? DEMO_DASHBOARD : real;
   const th = useTheme();
   const isDark = th.palette.mode === 'dark';
@@ -871,7 +873,9 @@ export const DashboardV2 = () => {
               : (d.loaded ? (d.stats.exams > 0 ? 'sem colesterol, peso ou pressão' : 'envie um exame') : '')}
             arcPercent={cardioArc}
             arcColor={cardioArcColor}
-            onClick={go(d.stats.exams > 0 ? '/tendencias' : '/exams/create')}
+            /* 28/09 (bug bash do dono): levava a Tendências — incoerente. Agora abre os
+               FATORES que dimensionam o risco (o que o tile promete). */
+            onClick={() => setCardioOpen(true)}
           />
         </Box>
         )}
@@ -948,6 +952,37 @@ export const DashboardV2 = () => {
       </ScrollReveal>
 
       <ReviewPrompt trigger={!demo && d.loaded && d.stats.exams > 0} />
+
+      {/* FATORES DO RISCO CARDIOMETABÓLICO (28/09): o tile promete fatores — entrega fatores.
+          Nível + cada insumo (✓ dentro / ⚠ acima) + o que falta cadastrar. Educativo. */}
+      <Dialog open={cardioOpen} onClose={() => setCardioOpen(false)} PaperProps={{ sx: { borderRadius: '12px', maxWidth: 440 } }}>
+        <DialogTitle sx={{ fontWeight: 800 }}>❤️ Seu risco cardiometabólico</DialogTitle>
+        <DialogContent>
+          <Typography sx={{ fontWeight: 800, fontSize: 17, mb: 1.5, color: cardioArcColor }}>
+            {cardioLevel === 'baixo' ? 'Baixo' : cardioLevel === 'moderado' ? 'Moderado' : cardioLevel === 'alto' ? 'Alto' : 'Sem dados'}
+            {cardioFactors > 0 ? ` · ${cardioFactors} fator${cardioFactors > 1 ? 'es' : ''} de risco` : ' · nenhum fator'}
+          </Typography>
+          <Stack spacing={0.75}>
+            {(d.cardioRisk?.factors ?? []).map((f: any, i: number) => (
+              <Stack key={i} direction="row" alignItems="center" spacing={1} sx={{ p: 0.9, borderRadius: '10px', bgcolor: f.risk ? 'rgba(239,68,68,.08)' : 'rgba(16,185,129,.07)' }}>
+                <Typography sx={{ fontSize: 16 }}>{f.risk ? '⚠️' : '✅'}</Typography>
+                <Typography sx={{ fontSize: 13.5, fontWeight: 700, flex: 1 }}>{f.label}</Typography>
+                <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>{f.risk ? 'acima do ideal' : 'dentro do esperado'}</Typography>
+              </Stack>
+            ))}
+            {(!d.cardioRisk?.factors || d.cardioRisk.factors.length === 0) && (
+              <Typography variant="body2" color="text.secondary">Envie exames com colesterol/glicose e cadastre peso e pressão em Medições pra dimensionar o risco.</Typography>
+            )}
+          </Stack>
+          <Typography variant="caption" sx={{ display: 'block', mt: 1.5, color: 'text.secondary', lineHeight: 1.4 }}>
+            Identifica fatores de risco — não calcula probabilidade individual de infarto/AVC. A avaliação completa é com seu médico.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => { setCardioOpen(false); navigate('/medicoes'); }} sx={{ textTransform: 'none', fontWeight: 700 }}>Cadastrar peso/pressão</Button>
+          <Button onClick={() => setCardioOpen(false)} variant="contained" sx={{ textTransform: 'none', fontWeight: 700 }}>Fechar</Button>
+        </DialogActions>
+      </Dialog>
 
       {/* W1 — o momento "woowww" do funil de ativação. */}
       <Celebration

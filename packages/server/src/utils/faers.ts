@@ -174,6 +174,7 @@ const MEDDRA_PT: Record<string, string> = {
   'interaction': 'Interação medicamentosa',
   'therapeutic response decreased': 'Resposta ao tratamento diminuída',
   'sudden death': 'Morte súbita',
+  'covid-19': 'Covid-19', 'drug interaction': 'Interação medicamentosa',
   'completed suicide': 'Suicídio consumado',
   'self injurious behaviour': 'Comportamento autolesivo',
   'suicidal ideation': 'Ideação suicida',
@@ -271,7 +272,9 @@ const DROP_TOKENS = new Set([
   'LIBERACAO', 'PROLONGADA', 'ORODISPERSIVEL', 'SOLUCAO', 'SUSPENSAO', 'INJETAVEL', 'TOPICO', 'GEL',
   'FRASCO', 'AMPOLA', 'SACH', 'REVEN', 'XR', 'XL', 'SR', 'ODT',
   // sais (28/09): o FAERS casa a substância sem o sal — CLORIDRATO/MALEATO no termo = 404.
-  'CLORIDRATO', 'MALEATO', 'BESILATO', 'MESILATO', 'HEMISSUCINATO',
+  'CLORIDRATO', 'MALEATO', 'BESILATO', 'MESILATO', 'HEMISSUCINATO', 'FOSFATO', 'TARTARATO',
+  // conectores PT ("CLORIDRATO DE SIBUTRAMINA") — lixo no termo de busca.
+  'DE', 'DO', 'DA', 'COM',
 ]);
 
 /**

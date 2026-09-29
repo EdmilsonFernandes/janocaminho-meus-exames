@@ -48,8 +48,8 @@ export const ValueBar = ({ value, low, high }: { value: number | null; low: numb
           />
         </Box>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 0.25 }}>
-          <Typography variant="caption" sx={{ color: 'success.dark', fontWeight: 600 }}>▲ {low}</Typography>
-          <Typography variant="caption" sx={{ color: 'success.dark', fontWeight: 600 }}>{high} ▲</Typography>
+          <Typography variant="caption" sx={{ color: (t) => (t.palette.mode === 'dark' ? '#6ee7b7' : t.palette.success.dark), fontWeight: 600 }}>▲ {low}</Typography>
+          <Typography variant="caption" sx={{ color: (t) => (t.palette.mode === 'dark' ? '#6ee7b7' : t.palette.success.dark), fontWeight: 600 }}>{high} ▲</Typography>
         </Box>
       </Box>
     </Tooltip>

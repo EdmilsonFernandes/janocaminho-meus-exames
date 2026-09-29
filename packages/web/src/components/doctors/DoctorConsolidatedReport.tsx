@@ -10,6 +10,7 @@ import { ConsolidatedReportBody } from '../report/ConsolidatedReportBody';
 import { ClinicalTrialsCard } from './ClinicalTrialsCard';
 import { EmptyState } from '../EmptyState';
 import { DrExame } from '../DrExame';
+import { RobotAnalysis } from '../RobotAnalysis';
 import { RADIUS } from '../../theme';
 import { speakText, stopSpeakText } from '../../utils/nativeDoc';
 
@@ -165,9 +166,10 @@ ${exams ? `<h2>Exames considerados (${sourceExams.length})</h2><ul>${exams}</ul>
       </Stack>
 
       {generating ? (
-        <Card sx={{ p: 4, textAlign: 'center', borderRadius: RADIUS.card }}>
-          <CircularProgress />
-          <Typography sx={{ mt: 1.5, color: 'text.secondary' }}>Lendo os exames e montando a análise clínica…</Typography>
+        <Card sx={{ p: { xs: 2.5, md: 4 }, textAlign: 'center', borderRadius: RADIUS.card }}>
+          {/* 29/09: cena Dr. Exame analisando (padrão dos demais fluxos de IA) —
+              substitui o CircularProgress solto; a copy segue como label do robô. */}
+          <RobotAnalysis label="Lendo os exames e montando a análise clínica" />
         </Card>
       ) : !analysis ? (
         <>

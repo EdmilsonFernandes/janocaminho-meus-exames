@@ -1,7 +1,7 @@
 import { Chip } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 import type { Priority } from '../utils/alertPriority';
-import { PRIORITY_META } from '../utils/alertPriority';
+import { PRIORITY_META, priorityText } from '../utils/alertPriority';
 import { RADIUS } from '../theme';
 
 /**
@@ -48,7 +48,8 @@ export const SeverityBadge = ({ severity, state, size = 'small', title }: Props)
     const m = PRIORITY_META[severity];
     emoji = m.emoji;
     label = m.label;
-    color = m.color;
+    // TEXTO por modo (dark: tom 400 AA ~5,8:1); o BG segue alpha do tom 800 (sinal).
+    color = priorityText(theme.palette.mode, severity);
     hint = m.hint;
   } else {
     const s = STATE_META[state ?? 'normal'];

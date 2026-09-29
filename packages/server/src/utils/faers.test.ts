@@ -154,3 +154,13 @@ describe('translateMeddra — ampliação PT (GLP-1/admin que vazavam EN)', () =
     expect(translateMeddra('SUDDEN DEATH')).toBe('Morte súbita');
   });
 });
+
+describe('FAERS cobertura — bug bash 28/09 (sibutramina/baricitinibe com sal na embalagem)', () => {
+  it('sibutramina com CLORIDRATO e dose vira o INN limpo (sal descartado)', () => {
+    expect(faersSearchTerm('CLORIDRATO DE SIBUTRAMINA 15 MG', 'sibutramina 15mg'))
+      .toBe('SIBUTRAMINE');
+  });
+  it('baricitinibe mapeia pro INN', () => {
+    expect(faersSearchTerm('FOSFATO DE BARICITINIBE 5MG', null)).toBe('BARICITINIB');
+  });
+});

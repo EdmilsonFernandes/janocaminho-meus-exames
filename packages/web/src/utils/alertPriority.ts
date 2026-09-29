@@ -21,6 +21,15 @@ export const PRIORITY_META: Record<Priority, PriorityMeta> = {
 /** Ordem de gravidade pra comparar/ordenar (importante > moderada > leve). */
 export const PRIORITY_RANK: Record<Priority, number> = { importante: 3, moderada: 2, leve: 1 };
 
+/** Cor de TEXTO da prioridade AA nos dois modos (28/09 bug bash): os tons 800 de
+ *  PRIORITY_META garantem AA sobre papel claro, mas como TEXTO no dark dão 2,2–2,5:1
+ *  sobre #1a2424 (ilegível). No dark usam os tons 400 do mesmo matiz. PRIORITY_META.color
+ *  segue sendo a cor de SINAL p/ bg/borda com alpha (não mudar por não ser texto). */
+export const priorityText = (mode: 'light' | 'dark', p: Priority): string =>
+  mode === 'dark'
+    ? { importante: '#f87171', moderada: '#fb923c', leve: '#fbbf24' }[p]
+    : PRIORITY_META[p].color;
+
 // ---------------------------------------------------------------------------
 // Magnitude plausível por analito — bounds GENEROSOS (ordem de grandeza, NÃO faixa clínica).
 // Usado SOMENTE pra detectar "valor plausível mas faixa em escala errada" (erro de leitura/OCR),

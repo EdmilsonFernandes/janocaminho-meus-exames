@@ -1,6 +1,6 @@
 import { Box, Typography } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
-import { priorityOf, PRIORITY_META } from '../utils/alertPriority';
+import { priorityOf, PRIORITY_META, priorityText } from '../utils/alertPriority';
 import { refLabel } from '../utils/medicalData';
 import { fmtVal, unitSuffix } from '../utils/format';
 import { RADIUS } from '../theme';
@@ -26,6 +26,8 @@ export const ExamMarker = ({ it, suspect }: { it: any; suspect: boolean }) => {
   const theme = useTheme();
   const p = priorityOf(it);
   const col = suspect ? theme.palette.text.secondary : PRIORITY_META[p].color;
+  // TEXTO por modo (dark: tons 400 AA) — `col` segue p/ bg/borda com alpha (sinal).
+  const textCol = suspect ? 'text.secondary' : priorityText(theme.palette.mode, p);
 
   return (
     <Box sx={{ borderRadius: RADIUS.tile, bgcolor: alpha(col, 0.08), border: `1px solid ${alpha(col, 0.25)}`, px: 1.5, py: 1.25 }}>
@@ -40,14 +42,14 @@ export const ExamMarker = ({ it, suspect }: { it: any; suspect: boolean }) => {
         </Box>
         <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
           <Box sx={{ lineHeight: 1.1 }}>
-            <Typography component="span" sx={{ fontSize: '1.35rem', fontWeight: 800, color: col }}>{fmtVal(it)}</Typography>
+            <Typography component="span" sx={{ fontSize: '1.35rem', fontWeight: 800, color: textCol }}>{fmtVal(it)}</Typography>
             {unitSuffix(it) ? <Typography component="span" sx={{ ml: 0.5 }}><UnitLabel unit={unitSuffix(it)} fontSize="0.8rem" /></Typography> : null}
           </Box>
           {/* Status explícito em TEXTO (não só cor) — acessível + claro.
               NUMÉRICO PRIMEIRO: rótulo deriva do valor × faixa DESENHADA na barra ao lado
               (guard de escala via `suspect`); flag armazenado é só fallback. Texto e barra
               nunca se contradizem (mandato 2026-08-17). */}
-          <Typography variant="caption" sx={{ display: 'block', fontWeight: 700, color: suspect ? 'text.secondary' : col, lineHeight: 1.2 }}>
+          <Typography variant="caption" sx={{ display: 'block', fontWeight: 700, color: textCol, lineHeight: 1.2 }}>
             {suspect ? 'Conferir faixa'
               : it.valueNumeric != null && it.refLow != null && it.refHigh != null
                 ? (it.valueNumeric > it.refHigh ? '↑ Acima da ref.' : it.valueNumeric < it.refLow ? '↓ Abaixo da ref.' : 'Na referência')

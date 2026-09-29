@@ -16,7 +16,7 @@ import { EmptyState } from '../components/EmptyState';
 import { TelemedicineButton } from '../components/TelemedicineButton';
 import { fmtVal, unitSuffix } from '../utils/format';
 import { refLabel, categorize } from '../utils/medicalData';
-import { priorityOf, maxPriority, isStaleExam, refScaleSuspect, PRIORITY_META, PRIORITY_RANK } from '../utils/alertPriority';
+import { priorityOf, maxPriority, isStaleExam, refScaleSuspect, PRIORITY_META, PRIORITY_RANK, priorityText } from '../utils/alertPriority';
 import { CappedExamMarkers } from '../components/CappedExamMarkers';
 
 import type { AbnormalItem as AbnItem } from '@meus-exames/shared';
@@ -114,9 +114,9 @@ export const ValoresAlteradosPage = () => {
           <Card variant="outlined" sx={{ mb: 1, borderRadius: '12px', borderColor: 'divider', bgcolor: 'rgba(15,61,58,0.03)' }}>
             <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
               <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap sx={{ mb: 0.5 }}>
-                <Typography component="span" sx={{ fontWeight: 800, color: PRIORITY_META.importante.color }}>{PRIORITY_META.importante.emoji} {counts.importante} {PRIORITY_META.importante.label}{counts.importante !== 1 ? 's' : ''}</Typography>
-                <Typography component="span" sx={{ fontWeight: 800, color: PRIORITY_META.moderada.color }}>{PRIORITY_META.moderada.emoji} {counts.moderada} {PRIORITY_META.moderada.label}{counts.moderada !== 1 ? 's' : ''}</Typography>
-                <Typography component="span" sx={{ fontWeight: 800, color: PRIORITY_META.leve.color }}>{PRIORITY_META.leve.emoji} {counts.leve} {PRIORITY_META.leve.label}{counts.leve !== 1 ? 's' : ''}</Typography>
+                <Typography component="span" sx={{ fontWeight: 800, color: (t) => priorityText(t.palette.mode, 'importante') }}>{PRIORITY_META.importante.emoji} {counts.importante} {PRIORITY_META.importante.label}{counts.importante !== 1 ? 's' : ''}</Typography>
+                <Typography component="span" sx={{ fontWeight: 800, color: (t) => priorityText(t.palette.mode, 'moderada') }}>{PRIORITY_META.moderada.emoji} {counts.moderada} {PRIORITY_META.moderada.label}{counts.moderada !== 1 ? 's' : ''}</Typography>
+                <Typography component="span" sx={{ fontWeight: 800, color: (t) => priorityText(t.palette.mode, 'leve') }}>{PRIORITY_META.leve.emoji} {counts.leve} {PRIORITY_META.leve.label}{counts.leve !== 1 ? 's' : ''}</Typography>
               </Stack>
               <Typography variant="caption" color="text.secondary">
                 {counts.importante > 0
@@ -124,7 +124,7 @@ export const ValoresAlteradosPage = () => {
                   : <>Nada crítico — os ajustes são <strong>{PRIORITY_META.moderada.emoji} moderados</strong> ou <strong>{PRIORITY_META.leve.emoji} leves</strong>. Comente com seu médico na próxima consulta.</>}
               </Typography>
               {suspectCount > 0 && (
-                <Typography variant="caption" sx={{ display: 'block', color: '#64748b', mt: 0.5 }}>⚠️ {suspectCount} valor(es) com faixa de referência possivelmente incorreta (escala) — mostrados como “conferir”, não como alerta.</Typography>
+                <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mt: 0.5 }}>⚠️ {suspectCount} valor(es) com faixa de referência possivelmente incorreta (escala) — mostrados como “conferir”, não como alerta.</Typography>
               )}
             </CardContent>
           </Card>
@@ -140,12 +140,12 @@ export const ValoresAlteradosPage = () => {
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 1 }}>
                       <Box component="span" sx={{ fontSize: 18 }}>{meta.emoji}</Box>
                       <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <Typography sx={{ fontWeight: 800, color: meta.color, lineHeight: 1.2 }}>{g.examTitle}</Typography>
-                        <Typography variant="caption" sx={{ color: meta.color, opacity: 0.85 }}>📅 {fmtDate(g.performedAt)}{g.performedAt ? ` · ${timeAgo(g.performedAt)}` : ''}</Typography>
-                        {stale && <Typography variant="caption" sx={{ display: 'block', color: '#92400e' }}>⏳ Exame antigo — considere renovar com seu médico</Typography>}
-                        {g.requestingDoctor && <Typography variant="caption" sx={{ display: 'block', color: meta.color, opacity: 0.85 }}>🩺 Dr. {g.requestingDoctor}</Typography>}
+                        <Typography sx={{ fontWeight: 800, color: (t) => priorityText(t.palette.mode, mp), lineHeight: 1.2 }}>{g.examTitle}</Typography>
+                        <Typography variant="caption" sx={{ color: (t) => priorityText(t.palette.mode, mp), opacity: 0.85 }}>📅 {fmtDate(g.performedAt)}{g.performedAt ? ` · ${timeAgo(g.performedAt)}` : ''}</Typography>
+                        {stale && <Typography variant="caption" sx={{ display: 'block', color: (t) => (t.palette.mode === 'dark' ? '#fbbf24' : '#92400e') }}>⏳ Exame antigo — considere renovar com seu médico</Typography>}
+                        {g.requestingDoctor && <Typography variant="caption" sx={{ display: 'block', color: (t) => priorityText(t.palette.mode, mp), opacity: 0.85 }}>🩺 Dr. {g.requestingDoctor}</Typography>}
                       </Box>
-                      <Chip size="small" label={`${g.items.length} alterado(s)`} sx={{ fontWeight: 700, height: 20, bgcolor: meta.color + '22', color: meta.color }} />
+                      <Chip size="small" label={`${g.items.length} alterado(s)`} sx={{ fontWeight: 700, height: 20, bgcolor: meta.color + '22', color: (t) => priorityText(t.palette.mode, mp) }} />
                     </Box>
                   </AccordionSummary>
                   <AccordionDetails sx={{ p: 1.25 }}>
