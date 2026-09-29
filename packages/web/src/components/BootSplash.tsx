@@ -117,7 +117,25 @@ export const BootSplash = ({
         }}
       >
         {/* Container do Emblema 3D */}
-        <Box sx={{ position: 'relative', animation: 'bootFloat 3.6s ease-in-out infinite' }}>
+        <Box
+          sx={{
+            position: 'relative',
+            // ENTRADA DO ROBÔ (fix 29/09 — "amassado e preto, rápido e zoado"):
+            // - `bootRobotIn` com fill-mode `both` define o estado inicial NO CSS
+            //   (0% = opacity 0) → os primeiros frames de decode do PNG (Android
+            //   WebView pinta <img> não-decodificada PRETA/estirada) e o settle
+            //   do backdrop-filter ficam INVISÍVEIS atrás do fade.
+            // - cubic-bezier com overshoot (y>1) = spring suave (chegada elástica).
+            // - Float só DEPOIS (delay 560ms): sem conflito de transform — o último
+            //   da lista vence e ambos pontam em translateY(0) scale(1).
+            // - reduced-motion: fade simples, sem transform (e sem float decorativo).
+            animation:
+              'bootRobotIn 560ms cubic-bezier(0.34, 1.3, 0.32, 1) both, bootFloat 3.6s ease-in-out 560ms infinite',
+            '@media (prefers-reduced-motion: reduce)': {
+              animation: 'bootRobotFade 360ms ease-out both',
+            },
+          }}
+        >
           {/* Resplendor Neon Traseiro */}
           <Box
             sx={{
@@ -314,6 +332,18 @@ export const BootSplash = ({
 
       {/* --- Animações Keyframes CSS de Altíssima Desempenho (60 FPS) --- */}
       <style>{`
+        /* Entrada do robô: spring (overshoot via cubic-bezier). Estado inicial
+           DEFINIDO no 0% + fill-mode both = nunca existe frame sem estilo/decode visível. */
+        @keyframes bootRobotIn {
+          0% { opacity: 0; transform: translateY(10px) scale(0.86); }
+          55% { opacity: 1; }
+          100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        /* Entrada acessível (prefers-reduced-motion): só fade, sem transform. */
+        @keyframes bootRobotFade {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
         @keyframes bootFloat {
           0%, 100% { transform: translateY(0) scale(1); }
           50% { transform: translateY(-7px) scale(1.02); }

@@ -7,7 +7,6 @@ import PrintIcon from '@mui/icons-material/Print';
 import { API_URL } from '../../config';
 import { severityOf, type ScreeningType } from '@meus-exames/shared';
 import { ConsolidatedReportBody } from '../report/ConsolidatedReportBody';
-import { ClinicalTrialsCard } from './ClinicalTrialsCard';
 import { EmptyState } from '../EmptyState';
 import { DrExame } from '../DrExame';
 import { RobotAnalysis } from '../RobotAnalysis';
@@ -206,9 +205,11 @@ ${exams ? `<h2>Exames considerados (${sourceExams.length})</h2><ul>${exams}</ul>
         </>
       )}
 
-      {/* FEATURE E — ensaios clínicos recrutando (mesmo scope 'summary' do relatório; depende
-          das condições do paciente, não da análise gerada → renderiza também no estado vazio). */}
-      <ClinicalTrialsCard patientId={patientId} token={token} />
+      {/* FEATURE E — REMOVIDO do relatório do médico (29/09, pedido do dono): títulos em
+          inglês do ClinicalTrials.gov e sem valor claro na consulta — "não quero só
+          preencher dados, quero valor agregado". O endpoint continua no server; se um dia
+          voltar, volta CURADO (título PT + contexto de por que aquele médico/paciente)
+          e pro lado certo do público. Ver components/doctors/ClinicalTrialsCard.tsx. */}
     </Box>
   );
 };

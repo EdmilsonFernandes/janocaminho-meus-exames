@@ -231,7 +231,7 @@ const INN_EN: Record<string, string> = {
   'MEMANTINA': 'MEMANTINE', 'RIVASTIGMINA': 'RIVASTIGMINE', 'DONEPEZILA': 'DONEPEZIL',
   'LEVODOPA': 'LEVODOPA', 'PRAMIPEXOLE': 'PRAMIPEXOLE',
   // tireoide
-  'LEVOTIROXINA': 'LEVOTHIROXINE',
+  'LEVOTIROXINA': 'LEVOTHYROXINE',  // 29/09: typo — INN é LEVOTHYROXINE (remédio diário do dono dava 404)
   // anticoagulantes/antiagregantes
   'VARFARINA': 'WARFARIN', 'RIVAROXABANA': 'RIVAROXABAN', 'APIXABANA': 'APIXABAN',
   'DABIGATRANA': 'DABIGATRAN', 'CLOPIDOGREL': 'CLOPIDOGREL',
@@ -280,7 +280,7 @@ const DROP_TOKENS = new Set([
   'CLORIDRATO', 'MALEATO', 'BESILATO', 'MESILATO', 'HEMISSUCINATO', 'FOSFATO', 'TARTARATO',
   'MONOIDRATADO', 'HEMIMAGNESIATO', 'ANHIDRO', 'BESILATO', 'DIIDRATADO',
   // conectores PT ("CLORIDRATO DE SIBUTRAMINA") — lixo no termo de busca.
-  'DE', 'DO', 'DA', 'COM', 'ANALGESICO', 'RELAXANTE', 'MUSCULAR', 'SABOR', 'BAUNILHA',
+  'DE', 'DO', 'DA', 'COM', 'E', 'OU', 'ANALGESICO', 'RELAXANTE', 'MUSCULAR', 'SABOR', 'BAUNILHA',
 ]);
 
 /**
@@ -304,7 +304,7 @@ export function faersSearchTerm(activeIngredient: string | null | undefined, nam
  *  Prefixo v3: v2 órfãou o cache sem tradução PT; v3 órfãa o cache com números
  *  GLOBAIS (bug do `+` que dissolvia o filtro por remédio — ver buildFaersUrl). */
 export function faersCacheKey(searchTerm: string): string {
-  return `v3-${normalizeKey(searchTerm)}`;
+  return `v4-${normalizeKey(searchTerm)}`; // v4 29/09: mapa novo (typo levo + sais + E) — cache v3 serviria termos EN por 7d
 }
 
 /**
@@ -345,4 +345,39 @@ export function parseFaersEvents(json: unknown): FaersEvent[] {
       !!r && typeof (r as { term?: unknown }).term === 'string' && typeof (r as { count?: unknown }).count === 'number')
     .slice(0, 10)
     .map((r) => ({ term: r.term, termPt: translateMeddra(r.term), count: r.count }));
+}
+
+// ── RESOLVER de nomes (29/09, pedido do dono: "algoritmo inteligente, não mapa") ──
+// Camada 2 além do mapa INN: gera CANDIDATOS plausíveis e o openFDA VALIDA qual
+// existe (a resposta da FDA é o juiz — nunca chutamos cego). Cobertura: remédio
+// novo/fora do mapa, sal desconhecido, typo — a classe inteira de furos.
+
+/** Variações morfológicas PT-BR → INN inglês (as famílias que cobrem a maioria):
+ *  SIBUTRAMINA→SIBUTRAMINE, BARICITINIBE→BARICITINIB, VARFARINA→VARFARIN(one é
+ *  WARFARIN — só o mapa pega cross-língua; morfologia pega o sufixo regular). */
+export function morphCandidates(token: string): string[] {
+  const t = token.toUpperCase();
+  const out = new Set<string>([t]);
+  if (t.endsWith('INA')) out.add(t.slice(0, -3) + 'INE');   // sertralina→sertraline
+  if (t.endsWith('IBE')) out.add(t.slice(0, -1));            // baricitinibe→baricitinib
+  if (t.endsWith('ONA')) out.add(t.slice(0, -1) + 'E');      // espironolactona→(mapa)
+  if (t.endsWith('OL') || t.endsWith('OLOL')) out.add(t);   // já INN
+  if (t.endsWith('A')) out.add(t.slice(0, -1) + 'E');       // dipirona→dipirone(mapa)
+  return [...out];
+}
+
+/** Candidatos de busca ordenados por plausibilidade: o termo inteiro da camada 1,
+ *  depois o MAIOR token alfabético (a substância costuma ser a palavra mais longa
+ *  do que sobra depois dos drops) com suas variações morfológicas. */
+export function faersCandidates(searchTerm: string, raw: string): string[] {
+  const seen = new Set<string>();
+  const push = (s: string) => { const v = s.trim(); if (v) seen.add(v); };
+  push(searchTerm);
+  const tokens = normalizeKey(raw || searchTerm).split(' ')
+    .filter((t) => t && !DROP_TOKENS.has(t) && !/^\d/.test(t) && t.length >= 5)
+    .sort((a, b) => b.length - a.length); // maior = mais provável de ser a substância
+  for (const tok of tokens.slice(0, 2)) { // 2 maiores tokens bastam (ex.: "CLORIDRATO DE SIBUTRAMINA MONOIDRATADO" → SIBUTRAMINA, MONOIDRATADO)
+    for (const m of morphCandidates(tok)) push(m);
+  }
+  return [...seen].slice(0, 6);
 }

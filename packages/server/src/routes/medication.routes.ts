@@ -11,7 +11,7 @@ import { runPriceWorkerTick, processMedicationPrice } from '../pricing/worker';
 import { ProviderRegistry } from '../pricing/provider';
 import {
   FAERS_TTL_MS, FAERS_NOT_FOUND_TTL_MS, FAERS_TIMEOUT_MS,
-  faersSearchTerm, faersCacheKey, buildFaersUrl, parseFaersEvents,
+  faersSearchTerm, faersCacheKey, buildFaersUrl, parseFaersEvents, faersCandidates,
   type FaersCacheData, type FaersEvent, type FaersMode,
 } from '../utils/faers';
 
@@ -646,22 +646,29 @@ router.get('/:id/event-signals', async (req: AuthedRequest, res, next) => {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), FAERS_TIMEOUT_MS);
     try {
+      // RESOLVER (29/09): além do termo do mapa, CANDIDATOS inteligentes (maior token
+      // do nome + morfologia PT→INN) — a FDA valida qual existe. Mata a classe de
+      // furos: remédio novo, sal desconhecido, typo. Cache guarda o que FUNCIONOU.
       const modes: FaersMode[] = ['medicinal', 'brand', 'generic'];
+      const candidates = faersCandidates(searchTerm, m?.activeIngredient || m?.name || '');
       let events: FaersEvent[] = [];
-      for (const mode of modes) {
-        const r = await fetch(buildFaersUrl(searchTerm, mode), { signal: ctrl.signal, headers: { Accept: 'application/json' } });
-        if (r.status === 404 || r.status === 429) continue; // campo não casou → próximo modo
-        if (!r.ok) throw new Error(`openFDA ${r.status}`);
-        events = parseFaersEvents(await r.json());
-        if (events.length > 0) {
-          const data: FaersCacheData = { events, searched: searchTerm };
-          await writeSignalCache(medKey, data);
-          serve(data);
-          return;
+      let searchedOk = searchTerm;
+      outer: for (const cand of candidates) {
+        for (const mode of modes) {
+          const r = await fetch(buildFaersUrl(cand, mode), { signal: ctrl.signal, headers: { Accept: 'application/json' } });
+          if (r.status === 404 || r.status === 429) continue; // não casou → próximo
+          if (!r.ok) throw new Error(`openFDA ${r.status}`);
+          events = parseFaersEvents(await r.json());
+          if (events.length > 0) { searchedOk = cand; break outer; }
         }
       }
-      // Esgotou os modos (404/429/vazio em todos) — droga não encontrada é COMUM (nome
-      // nacional fora do FAERS); 429 = rate limit. notFound por 1h (não martela a FDA).
+      if (events.length > 0) {
+        const data: FaersCacheData = { events, searched: searchedOk };
+        await writeSignalCache(medKey, data);
+        serve(data);
+        return;
+      }
+      // Esgotou candidatos × modos — notFound por 1h (não martela a FDA).
       await notFound();
     } finally {
       clearTimeout(timer);

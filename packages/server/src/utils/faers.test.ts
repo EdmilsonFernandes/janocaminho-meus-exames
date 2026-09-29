@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  translateMeddra, faersSearchTerm, faersCacheKey, buildFaersUrl, parseFaersEvents,
+  translateMeddra, faersSearchTerm, faersCandidates, faersCacheKey, buildFaersUrl, parseFaersEvents,
   FAERS_TTL_MS, FAERS_NOT_FOUND_TTL_MS,
 } from './faers';
 
@@ -48,7 +48,7 @@ describe('faersSearchTerm (normalização BR→INN)', () => {
 
   it('sem activeIngredient usa o nome (marca fica como está)', () => {
     expect(faersSearchTerm(null, 'Mounjaro')).toBe('MOUNJARO');
-    expect(faersSearchTerm(null, 'Levotiroxina 75 mcg')).toBe('LEVOTHIROXINE');
+    expect(faersSearchTerm(null, 'Levotiroxina 75 mcg')).toBe('LEVOTHYROXINE');
   });
 
   it('normaliza acento/caixa (normalizeKey)', () => {
@@ -67,8 +67,8 @@ describe('faersSearchTerm (normalização BR→INN)', () => {
 
 describe('faersCacheKey', () => {
   it('chave normalizada e estável (prefixo v3 = invalidação do cache de números globais)', () => {
-    expect(faersCacheKey('Losartan Potassium')).toBe('v3-LOSARTAN POTASSIUM');
-    expect(faersCacheKey('losartan  potassium')).toBe('v3-LOSARTAN POTASSIUM');
+    expect(faersCacheKey('Losartan Potassium')).toBe('v4-LOSARTAN POTASSIUM');
+    expect(faersCacheKey('losartan  potassium')).toBe('v4-LOSARTAN POTASSIUM');
   });
 });
 
@@ -162,5 +162,29 @@ describe('FAERS cobertura — bug bash 28/09 (sibutramina/baricitinibe com sal n
   });
   it('baricitinibe mapeia pro INN', () => {
     expect(faersSearchTerm('FOSFATO DE BARICITINIBE 5MG', null)).toBe('BARICITINIB');
+  });
+});
+
+describe('FAERS regressões 29/09 (typo levo + conector E + cache v4)', () => {
+  it('levotiroxina mapeia ao INN CORRETO (LEVOTHYROXINE — typo dava 404)', () => {
+    expect(faersSearchTerm('LEVOTIROXINA 100MCG', null)).toBe('LEVOTHYROXINE');
+  });
+  it('conector E não entra no termo (Dorflex → DIPYRONE puro)', () => {
+    expect(faersSearchTerm('DORFLEX ANALGESICO E RELAXANTE', 'dorflex')).toBe('DIPYRONE');
+  });
+  it('cache key versionou p/ v4 (invalida termos EN do cache v3)', () => {
+    expect(faersCacheKey('DIPYRONE')).toBe('v4-DIPYRONE');
+  });
+});
+
+describe('faersCandidates — resolver inteligente (29/09)', () => {
+  it('maior token + morfologia geram o INN de nome fora do mapa', () => {
+    const c = faersCandidates('SIBUTRAMINA MONOIDRATADO', 'Cloridrato de Sibutramina Monoidratado 15mg');
+    expect(c).toContain('SIBUTRAMINE');     // INA→INE
+    expect(c[0]).toBe('SIBUTRAMINA MONOIDRATADO'); // camada 1 primeiro
+  });
+  it('remédio totalmente desconhecido ganha candidatos (valida a FDA depois)', () => {
+    const c = faersCandidates('FOOBARFANINA', 'Foobarfanina 10mg');
+    expect(c).toContain('FOOBARFANINE');
   });
 });
