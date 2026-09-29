@@ -127,3 +127,30 @@ describe('TTLs da spec', () => {
     expect(FAERS_NOT_FOUND_TTL_MS).toBe(60 * 60 * 1000);
   });
 });
+
+describe('buildFaersUrl — modos de campo (cascata p/ nome comercial)', () => {
+  it('padrão casa medicinalproduct', () => {
+    expect(buildFaersUrl('TIRZEPATIDE')).toContain('patient.drug.medicinalproduct');
+  });
+  it('mode brand casa openfda.brand_name (Mounjaro/Ozempic)', () => {
+    expect(buildFaersUrl('MOUNJARO', 'brand')).toContain('patient.drug.openfda.brand_name');
+  });
+  it('mode generic casa openfda.generic_name', () => {
+    expect(buildFaersUrl('TIRZEPATIDE', 'generic')).toContain('patient.drug.openfda.generic_name');
+  });
+});
+
+describe('translateMeddra — ampliação PT (GLP-1/admin que vazavam EN)', () => {
+  it('termos de tirzepatida/semaglutida traduzem', () => {
+    expect(translateMeddra('ERUCTATION')).toBe('Arroto (eructação)');
+    expect(translateMeddra('GASTROOESOPHAGEAL REFLUX DISEASE')).toBe('Refluxo gastroesofágico');
+    expect(translateMeddra('PANCREATITIS')).toBe('Pancreatite');
+    expect(translateMeddra('DECREASED APPETITE')).toBe('Perda de apetite');
+  });
+  it('administrativos e graves traduzem (nada de EN no painel)', () => {
+    expect(translateMeddra('PRODUCT USE ISSUE')).toBe('Problema no uso do produto');
+    expect(translateMeddra('OVERDOSE')).toBe('Superdose');
+    expect(translateMeddra('HYPERSSENSITIVITY' in {} ? '' : 'HYPERSENSITIVITY')).toBe('Hipersensibilidade (alergia)');
+    expect(translateMeddra('SUDDEN DEATH')).toBe('Morte súbita');
+  });
+});

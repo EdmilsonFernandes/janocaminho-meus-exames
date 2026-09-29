@@ -56,6 +56,9 @@ async function notifyNewUser(name: string, email: string) {
       subject: `Novo cadastro no Meus Exames: ${name}`,
       html: `<div style="font-family:Segoe UI,Arial,sans-serif;color:#15233b"><h3 style="color:#178f89">Novo usuário 🎉</h3><p><b>Nome:</b> ${name}</p><p><b>E-mail:</b> ${email}</p><p style="color:#888;font-size:12px;margin-top:16px">Notificação automática — toda conta criada chega aqui.</p></div>`,
     });
+    // 28/09: envio agora deixa rastro (o dono reportou "não chega" — sem log não dava pra
+    // distinguir falha de SMTP de entrega no spam; o sendEmail real não loga nada).
+    console.log(`[notifyNewUser] aviso enviado p/ ${admin}: ${email}`);
   } catch (e: any) { console.error('[notifyNewUser] falhou:', e?.message); }
 }
 

@@ -159,6 +159,14 @@ export const PushTab = () => {
       {/* PÚBLICO-ALVO */}
       <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1 }}>🎯 Público-alvo</Typography>
       <Stack spacing={1} sx={{ mb: 1.5 }}>
+        {/* GLOBAL explícito (28/09, pedido do dono): antes "sem público = global" era
+            implícito — agora é uma opção visível de 1 clique, destacada. */}
+        <Stack direction="row" spacing={0.75} alignItems="center">
+          <Chip size="small" clickable onClick={() => setAudience({})} aria-pressed={!segmented}
+            label="🌍 Global — TODOS os usuários"
+            sx={{ height: 32, fontSize: 13, fontWeight: !segmented ? 800 : 700, bgcolor: !segmented ? 'rgba(32,178,170,.22)' : 'rgba(32,178,170,.06)', color: '#178f89', border: !segmented ? '2px solid rgba(32,178,170,.6)' : '1px solid rgba(32,178,170,.18)', '&:hover': { bgcolor: 'rgba(32,178,170,.16)' } }} />
+          {!segmented && <Typography variant="caption" sx={{ color: 'text.secondary' }}>sem filtros — broadcast p/ todos os dispositivos</Typography>}
+        </Stack>
         {AUDIENCE_GROUPS.map((g) => (
           <Stack key={g.key} direction="row" spacing={0.75} useFlexGap flexWrap="wrap" alignItems="center">
             <Typography variant="caption" sx={{ width: 130, color: 'text.secondary', fontWeight: 700, flexShrink: 0 }}>{g.label}</Typography>

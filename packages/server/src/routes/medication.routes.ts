@@ -12,7 +12,7 @@ import { ProviderRegistry } from '../pricing/provider';
 import {
   FAERS_TTL_MS, FAERS_NOT_FOUND_TTL_MS, FAERS_TIMEOUT_MS,
   faersSearchTerm, faersCacheKey, buildFaersUrl, parseFaersEvents,
-  type FaersCacheData, type FaersEvent,
+  type FaersCacheData, type FaersEvent, type FaersMode,
 } from '../utils/faers';
 
 /**
@@ -634,31 +634,35 @@ router.get('/:id/event-signals', async (req: AuthedRequest, res, next) => {
     }
 
     // Miss/expirado → busca no openFDA com timeout 15s (AbortController).
+    // CASCATA de campo (28/09 noite): `medicinalproduct` (nome como veio no relato) falha
+    // pra nome COMERCIAL fora do mapa INN → tenta openfda.brand_name (marca: Mounjaro,
+    // Ozempic…) e openfda.generic_name (INN normalizado pela própria FDA). O 1º que
+    // retorna eventos vence; esgotou os 3 → notFound com TTL curto como antes.
+    const notFound = async () => {
+      if (cachedData && !cachedData.notFound) { serve(cachedData, true); return; } // stale > nada
+      await writeSignalCache(medKey, { events: [], searched: searchTerm, notFound: true });
+      res.status(404).json({ error: 'Sem dados de segurança para esse remédio na base da FDA.' });
+    };
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), FAERS_TIMEOUT_MS);
     try {
-      const r = await fetch(buildFaersUrl(searchTerm), { signal: ctrl.signal, headers: { Accept: 'application/json' } });
-      if (r.status === 404 || r.status === 429) {
-        // Droga não encontrada é COMUM (nome nacional fora do FAERS); 429 = rate limit.
-        // Sem cache de sucesso anterior → 404 amigável já (não faz o usuário esperar);
-        // guarda o notFound por 1h p/ não martelar a FDA a cada card aberto.
-        if (cachedData && !cachedData.notFound) { serve(cachedData, true); return; } // stale > nada
-        await writeSignalCache(medKey, { events: [], searched: searchTerm, notFound: true });
-        res.status(404).json({ error: 'Sem dados de segurança para esse remédio na base da FDA.' });
-        return;
+      const modes: FaersMode[] = ['medicinal', 'brand', 'generic'];
+      let events: FaersEvent[] = [];
+      for (const mode of modes) {
+        const r = await fetch(buildFaersUrl(searchTerm, mode), { signal: ctrl.signal, headers: { Accept: 'application/json' } });
+        if (r.status === 404 || r.status === 429) continue; // campo não casou → próximo modo
+        if (!r.ok) throw new Error(`openFDA ${r.status}`);
+        events = parseFaersEvents(await r.json());
+        if (events.length > 0) {
+          const data: FaersCacheData = { events, searched: searchTerm };
+          await writeSignalCache(medKey, data);
+          serve(data);
+          return;
+        }
       }
-      if (!r.ok) throw new Error(`openFDA ${r.status}`);
-      const events: FaersEvent[] = parseFaersEvents(await r.json());
-      if (events.length === 0) {
-        // 200 vazio = nenhum relato casado — trata como notFound (TTL curto).
-        if (cachedData && !cachedData.notFound) { serve(cachedData, true); return; }
-        await writeSignalCache(medKey, { events: [], searched: searchTerm, notFound: true });
-        res.status(404).json({ error: 'Sem dados de segurança para esse remédio na base da FDA.' });
-        return;
-      }
-      const data: FaersCacheData = { events, searched: searchTerm };
-      await writeSignalCache(medKey, data);
-      serve(data);
+      // Esgotou os modos (404/429/vazio em todos) — droga não encontrada é COMUM (nome
+      // nacional fora do FAERS); 429 = rate limit. notFound por 1h (não martela a FDA).
+      await notFound();
     } finally {
       clearTimeout(timer);
     }

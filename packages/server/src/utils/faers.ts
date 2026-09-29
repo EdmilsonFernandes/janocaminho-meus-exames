@@ -84,6 +84,99 @@ const MEDDRA_PT: Record<string, string> = {
   'gastrointestinal disorder': 'Problema gastrointestinal',
   'therapy non-responder': 'Sem resposta ao tratamento',
   'renal failure': 'Falência renal',
+  // GLP-1/digestivo (tirzepatida/semaglutida — painéis cheios de termos que ficavam EN)
+  'eructation': 'Arroto (eructação)',
+  'gastrooesophageal reflux disease': 'Refluxo gastroesofágico',
+  'gastroesophageal reflux disease': 'Refluxo gastroesofágico',
+  'abdominal discomfort': 'Desconforto abdominal',
+  'abdominal distension': 'Barriga inchada',
+  'abdominal pain lower': 'Dor abdominal baixa',
+  'gastroenteritis': 'Gastroenterite',
+  'gastritis': 'Gastrite',
+  'pancreatitis': 'Pancreatite',
+  'cholelithiasis': 'Pedra na vesícula',
+  'haemorrhoids': 'Hemorroidas',
+  'faecal incontinence': 'Incontinência fecal',
+  'defaecation urgency': 'Urgência para evacuar',
+  'rectal haemorrhage': 'Sangramento retal',
+  'haematemesis': 'Vômito com sangue',
+  'melaena': "Fezes escuras (melena)",
+  'stomatitis': 'Inflamação na boca',
+  'dry mouth': 'Boca seca',
+  'throat irritation': 'Irritação na garganta',
+  'gastrointestinal pain': 'Dor gastrointestinal',
+  // metabólico/endócrino
+  'hypoglycaemia': 'Hipoglicemia',
+  'hyperglycaemia': 'Hiperglicemia',
+  'blood glucose fluctuation': 'Glicose instável',
+  'diabetes mellitus inadequate control': 'Diabetes descompensado',
+  'hyperthyroidism': 'Hipertireoidismo',
+  'hypothyroidism': 'Hipotireoidismo',
+  // cardio/neuro ampliado
+  'cerebrovascular accident': 'AVC (derrame)',
+  'myocardial infarction': 'Infarto',
+  'atrial fibrillation': 'Fibrilação atrial',
+  'bradycardia': 'Batimentos lentos',
+  'tachycardia': 'Batimentos acelerados',
+  'oesophagitis': 'Inflamação do esôfago',
+  'migraine': 'Enxaqueca',
+  'convulsion': 'Convulsão',
+  'vertigo': 'Vertigem',
+  'paraesthesia oral': 'Formigamento na boca',
+  'amnesia': 'Perda de memória',
+  'confusional state': 'Confusão mental',
+  // pele/geral ampliado
+  'urticaria': 'Urticária',
+  'hyperhidrosis': 'Suor excessivo',
+  'night sweats': 'Suores noturnos',
+  'dry skin': 'Pele seca',
+  'skin hyperpigmentation': 'Manchas na pele',
+  'face oedema': 'Inchaço no rosto',
+  'peripheral swelling': 'Inchaço nas extremidades',
+  'thirst': 'Sede excessiva',
+  'pollakiuria': 'Xixi frequente',
+  'urinary tract infection': 'Infecção urinária',
+  'muscle spasms': 'Cãibras',
+  'muscular weakness': 'Fraqueza muscular',
+  'joint swelling': 'Inchaço articular',
+  'neck pain': 'Dor no pescoço',
+  'toothache': 'Dor de dente',
+  'vision blurred': 'Visão embaçada',
+  'eye swelling': 'Inchaço nos olhos',
+  'epistaxis': 'Sangramento nasal',
+  'rhinorrhoea': 'Coriza',
+  'influenza like illness': 'Sintomas gripais',
+  'nasopharyngitis': 'Rinofaringite (resfriado)',
+  'upper respiratory tract infection': 'Infecção respiratória',
+  'pneumonia': 'Pneumonia',
+  'dehydration': 'Desidratação',
+  'hypokalaemia': 'Potássio baixo',
+  'hyponatraemia': 'Sódio baixo',
+  'anaemia': 'Anemia',
+  'neutropenia': 'Neutrófilos baixos',
+  'thrombocytopenia': 'Plaquetas baixas',
+  'leukopenia': 'Leucócitos baixos',
+  // administrativos que vazavam em inglês
+  'product use issue': 'Problema no uso do produto',
+  'overdose': 'Superdose',
+  'accidental overdose': 'Superdose acidental',
+  'medication error': 'Erro de medicação',
+  'product monograph revision required': 'Bula revisada',
+  'interference with laboratory test': 'Interferência em exame laboratorial',
+  'toxicity to various agents': 'Toxicidade a agentes',
+  'intentional product misuse': 'Uso indevido intencional',
+  'poor quality product administered': 'Produto de má qualidade administrado',
+  'storage error': 'Erro de armazenamento',
+  'wrong technique in product usage process': 'Técnica errada de uso',
+  'immune mediated reaction': 'Reação imunomediada',
+  'hypersensitivity': 'Hipersensibilidade (alergia)',
+  'anaphylactic reaction': 'Reação anafilática',
+  'interaction': 'Interação medicamentosa',
+  'therapeutic response decreased': 'Resposta ao tratamento diminuída',
+  'sudden death': 'Morte súbita',
+  'completed suicide': 'Suicídio consumado',
+  'self injurious behaviour': 'Comportamento autolesivo',
+  'suicidal ideation': 'Ideação suicida',
 };
 
 /** Traduz um termo MedDRA. O FAERS devolve EM CAIXA ALTA — normalizamos p/
@@ -205,9 +298,21 @@ export function faersCacheKey(searchTerm: string): string {
  * decodificar como espaço e DISSOLVE o filtro (contagens globais iguais pra
  * todo remédio, ~1,3M em Death). Sem o sufixo, os números são por remédio e
  * clinicamente coerentes (metformina → náusea/diarreia/glicose alta).
+ *
+ * 28/09 (noite): modos de campo — `medicinal` (padrão, casa o nome do produto)
+ * falha p/ nomes COMERCIAIS fora do mapa INN (Mounjaro, Ozempic, Viagra…).
+ * Cascata da rota: medicinal → brand (openfda.brand_name, nome de marca) →
+ * generic (openfda.generic_name, INN normalizado). Cobertura sem inventar mapa.
  */
-export function buildFaersUrl(searchTerm: string): string {
-  const q = `patient.drug.medicinalproduct:"${searchTerm}"`;
+export type FaersMode = 'medicinal' | 'brand' | 'generic';
+
+export function buildFaersUrl(searchTerm: string, mode: FaersMode = 'medicinal'): string {
+  const field = mode === 'medicinal'
+    ? 'patient.drug.medicinalproduct'
+    : mode === 'brand'
+      ? 'patient.drug.openfda.brand_name'
+      : 'patient.drug.openfda.generic_name';
+  const q = `${field}:"${searchTerm}"`;
   const search = encodeURIComponent(q.replace(/\s+/g, '+')).replace(/%2B/gi, '+');
   return `https://api.fda.gov/drug/event.json?search=${search}&count=patient.reaction.reactionmeddrapt.exact&limit=10`;
 }

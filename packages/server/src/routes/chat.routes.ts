@@ -64,6 +64,34 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     const slug = patientSlug(patient?.fullName ?? 'paciente', pid);
     const memory = memoryDigest(slug, 3);
 
+    // ATIVIDADE FÍSICA (Health Connect) — a IA enxerga passos/calorias/FC/distância do
+    // paciente e responde perguntas de rotina/atividade/peso com DADOS reais (pedido do
+    // dono 28/09: "ela não considera quando a pessoa tem Health Connect conectado").
+    // Sem sincronização ≠ sedentário: o bloco só entra se existirem medições HC.
+    const hcActs = await prisma.measurement.findMany({
+      where: {
+        patientId: pid, note: 'Health Connect',
+        type: { in: ['STEPS', 'CALORIES', 'DISTANCE', 'HEART_RATE', 'EXERCISE_MINUTES'] },
+        measuredAt: { gte: new Date(Date.now() - 14 * 86400000) },
+      },
+      select: { type: true, value: true, measuredAt: true },
+      orderBy: { measuredAt: 'desc' },
+      take: 400,
+    });
+    const days7 = new Set(hcActs.filter((a) => Date.now() - a.measuredAt.getTime() < 7 * 86400000).map((a) => a.measuredAt.toISOString().slice(0, 10)));
+    const sumType = (t: string) => hcActs.filter((a) => a.type === t && Date.now() - a.measuredAt.getTime() < 7 * 86400000).reduce((s, a) => s + a.value, 0);
+    const avgDay = (t: string) => Math.round(sumType(t) / Math.max(1, days7.size));
+    const activityLines: string[] = [];
+    if (hcActs.some((a) => a.type === 'STEPS')) activityLines.push(`   • Passos: média de ${avgDay('STEPS').toLocaleString('pt-BR')}/dia nos últimos 7 dias`);
+    if (hcActs.some((a) => a.type === 'EXERCISE_MINUTES')) activityLines.push(`   • Minutos de atividade: ${Math.round(sumType('EXERCISE_MINUTES'))} acumulados em 7 dias (OMS recomenda 150/sem)`);
+    if (hcActs.some((a) => a.type === 'CALORIES')) activityLines.push(`   • Calorias: média de ${avgDay('CALORIES').toLocaleString('pt-BR')} kcal/dia`);
+    if (hcActs.some((a) => a.type === 'DISTANCE')) activityLines.push(`   • Distância: ${(sumType('DISTANCE')).toFixed(1).replace('.', ',')} km em 7 dias`);
+    const lastHr = hcActs.find((a) => a.type === 'HEART_RATE');
+    if (lastHr) activityLines.push(`   • Frequência cardíaca de repouso mais recente: ${Math.round(lastHr.value)} bpm`);
+    const activityBlock = activityLines.length
+      ? `- ATIVIDADE FÍSICA (Health Connect do celular, últimos 7 dias — use quando a pergunta envolver rotina, atividade, peso, sono ou condicionamento; nunca invente números):\n${activityLines.join('\n')}\n`
+      : '';
+
     // histórico da conversa (últimos turnos deste paciente)
     const prior = await prisma.aiAnalysis.findMany({
       where: { patientId: pid, type: 'CHAT' },
@@ -137,6 +165,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       `CONTEXTO DO PACIENTE (use estes dados REAIS pra responder com precisão):\n` +
       `- Paciente: ${patient?.fullName ?? '—'}\n` +
       (patient?.clinicalProfile ? `- Perfil clínico: ${patient.clinicalProfile}\n` : '') +
+      activityBlock +
       (currentBlock.length ? `- VALORES ATUAIS (exame MAIS RECENTE por analito — use ESTES ao citar "atual/último resultado"):\n${currentBlock.join('\n')}\n` : '') +
       `- Exames recentes (TODOS os itens — nome: valor (ref) [flag se alterado]):\n${examsBlock}\n` +
       (trendBlock ? `\n- Analitos ao longo do tempo (use pra evolução/comparar/tendência; o 1º valor de cada linha é o MAIS RECENTE):\n${trendBlock}\n` : '') +
