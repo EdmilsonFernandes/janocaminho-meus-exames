@@ -48,6 +48,7 @@ export const DEMO_DASHBOARD = {
   availability: null,
   rejected: 0,
   bio: { age: 32, confidence: 'media', markersUsed: 14 },
+  bioKdm: null, // 2ª idade bio (KDM) no modo exemplo: card mostra só a principal (trata null)
   bioAvail: null,
   hsLoaded: true,
 };
