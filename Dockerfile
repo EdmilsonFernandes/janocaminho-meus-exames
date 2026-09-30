@@ -7,7 +7,10 @@ COPY packages/server/package.json packages/server/
 COPY packages/web/package.json packages/web/
 COPY packages/shared/package.json packages/shared/
 COPY packages/mobile/package.json packages/mobile/
-RUN npm install --workspaces --include-workspace-root
+# npm ci = EXATAMENTE o package-lock (determinístico; instala o lock inteiro, workspaces
+# inclusos). npm install re-resolve e pode trazer versão diferente da local — suspeita do
+# typecheck que passava local e quebrava só no Docker (30/09).
+RUN npm ci
 # Build info: carimba versão + commit git na imagem (vindo do CI via build-args).
 # ENV persiste pros RUN abaixo — os scripts npm rodam o gerador automaticamente.
 ARG BUILD_VERSION=
