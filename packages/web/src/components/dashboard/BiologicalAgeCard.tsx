@@ -228,7 +228,7 @@ export const BiologicalAgeCard = ({ idx = 2, bio, bioKdm, bioAvail, bioLoaded, c
                     </Typography>
                   )}
                 </Box>
-              )}}
+              )}
               <Typography variant="body2" sx={{ lineHeight: 1.6, display: 'block', mt: 1.5 }}>
                 É a idade estimada do seu <b>corpo</b> a partir de exames de sangue — glicose, colesterol, função do rim e do fígado, hormônios e outros marcadores. Pode diferir da sua idade de carteira (cronológica).
               </Typography>
