@@ -24,10 +24,14 @@ const REDUCED_MOTION = typeof window !== 'undefined' && window.matchMedia('(pref
  * falta exame → CTA 1º exame; faltam marcadores específicos → lista. "Em breve" genérico nunca
  * mais (ausência de dado não é um prazo). A explicação rica fica num Dialog (toque no tile).
  */
-export const BiologicalAgeCard = ({ idx = 2, bio, bioAvail, bioLoaded, chronoAge: chronoAgeOverride }: {
+export const BiologicalAgeCard = ({ idx = 2, bio, bioKdm, bioAvail, bioLoaded, chronoAge: chronoAgeOverride }: {
   idx?: number;
   /** Vêm do MESMO /health-summary que o DashboardV2 já buscou — o tile não refaz o GET. */
   bio?: BioData | null;
+  /** F6 — 2º estimador independente (KDM, Klemera-Doubal 2006) do mesmo health-summary.
+   *  Presente só com insumo suficiente; quando existe, o dialog mostra UMA linha extra
+   *  com a convergência/divergência entre os dois métodos. */
+  bioKdm?: { age: number; method: string; markersUsed: number } | null;
   bioAvail?: { status: string; missing: string[] } | null;
   bioLoaded?: boolean;
   /** Override da idade cronológica (modo exemplo): diff/dialog coerentes com a persona. */
@@ -40,6 +44,7 @@ export const BiologicalAgeCard = ({ idx = 2, bio, bioAvail, bioLoaded, chronoAge
   const accent = SEM.ok[isDark ? 'dark' : 'light'];
   // Estado PRÓPRIO só p/ uso isolado (sem props) e p/ refresh via dx-profile-updated.
   const [ownData, setOwnData] = useState<BioData | null>(null);
+  const [ownKdm, setOwnKdm] = useState<{ age: number; method: string; markersUsed: number } | null>(null);
   const [ownAvail, setOwnAvail] = useState<{ status: string; missing: string[] } | null>(null);
   const [ownLoaded, setOwnLoaded] = useState(false);
   const [refreshed, setRefreshed] = useState(false);
@@ -51,7 +56,7 @@ export const BiologicalAgeCard = ({ idx = 2, bio, bioAvail, bioLoaded, chronoAge
     setOwnLoaded(false);
     fetch(`${API_URL}/patients/${pid}/health-summary`, { headers: { Authorization: `Bearer ${token()}` } })
       .then((r) => (r.ok ? r.json() : null))
-      .then((d) => { setOwnData(d?.biologicalAge ?? null); setOwnAvail(d?.availability?.biologicalAge ?? null); setRefreshed(true); })
+      .then((d) => { setOwnData(d?.biologicalAge ?? null); setOwnKdm(d?.biologicalAgeKdm ?? null); setOwnAvail(d?.availability?.biologicalAge ?? null); setRefreshed(true); })
       .catch(() => {})
       .finally(() => setOwnLoaded(true));
   };
@@ -63,9 +68,10 @@ export const BiologicalAgeCard = ({ idx = 2, bio, bioAvail, bioLoaded, chronoAge
     return () => { window.removeEventListener('dx-profile-updated', loadBio); };
   }, [pid]);
   // Troca de paciente: descarta o refresh próprio e volta a espelhar as props.
-  useEffect(() => { setRefreshed(false); setOwnData(null); setOwnAvail(null); }, [pid]);
+  useEffect(() => { setRefreshed(false); setOwnData(null); setOwnKdm(null); setOwnAvail(null); }, [pid]);
 
   const data = controlled && !refreshed ? (bio ?? null) : ownData;
+  const kdm = controlled && !refreshed ? (bioKdm ?? null) : ownKdm;
   const avail = controlled && !refreshed ? (bioAvail ?? null) : ownAvail;
   const loaded = controlled && !refreshed ? !!bioLoaded : ownLoaded;
 
@@ -150,6 +156,16 @@ export const BiologicalAgeCard = ({ idx = 2, bio, bioAvail, bioLoaded, chronoAge
               {diff !== null && diff !== 0 && (
                 <Typography variant="body2" sx={{ mt: 0.5, color: diff < 0 ? SEM.ok[isDark ? 'dark' : 'light'] : SEM.bad[isDark ? 'dark' : 'light'], fontWeight: 700 }}>
                   {diff < 0 ? `💚 Seu corpo está ${Math.abs(diff)}a mais jovem que sua idade` : `⚠️ Seu corpo está ${diff}a mais velho que sua idade`}
+                </Typography>
+              )}
+              {/* F6 — 2º método independente (KDM) do mesmo health-summary: UMA linha.
+                  Concordam (±3a) → convergem; divergem → frase honesta de estabilidade. */}
+              {kdm && (
+                <Typography variant="body2" sx={{ mt: 0.5, color: 'text.secondary' }}>
+                  🧪 2º método independente (Klemera-Doubal 2006): {kdm.age}a —{' '}
+                  {Math.abs(kdm.age - data.age) <= 3
+                    ? 'os dois métodos convergem'
+                    : `métodos divergem (${data.method === 'phenoage' ? 'PhenoAge' : 'estimativa principal'} ${data.age}a · KDM ${kdm.age}a) — quanto mais dados, mais estável`}
                 </Typography>
               )}
               {/* 29/09 (dono: "ao clicar mostrar o PORQUÊ e as referências"): cada marcador

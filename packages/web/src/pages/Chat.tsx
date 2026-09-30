@@ -55,7 +55,7 @@ const QUICK_ACTIONS = [
   { icon: '📖', title: 'Explicar termo médico', prompt: 'Quero entender um termo médico do meu exame. Pode explicar de forma simples?' },
   { icon: '🔬', title: 'O que significa meu resultado', prompt: 'Pegue um dos meus resultados, explique o que ele mede e diga se está dentro do esperado.' },
   { icon: '🎯', title: 'Minhas metas e referências', prompt: 'Quais são as faixas de referência saudáveis dos meus principais exames e onde estou em relação a elas?' },
-  { icon: '🚨', title: 'O que precisa de atenção urgente', prompt: 'Há algum resultado nos meus exames que precise de atenção médica imediata? Seja honesto e indique urgência.' },
+  { icon: '⚠️', title: 'O que merece atenção primeiro', prompt: 'Há algum resultado nos meus exames que precise de atenção médica? Seja honesto: diga o que merece prioridade e o que pode esperar a próxima consulta.' },
   // Ação
   { icon: '🩺', title: 'O que perguntar ao médico', prompt: 'Quais perguntas devo levar ao médico na próxima consulta com base nos meus resultados?' },
   { icon: '💡', title: 'Como melhorar minha saúde', prompt: 'Quais ações práticas (hábitos, exercício, sono) posso tomar para melhorar meus resultados?' },

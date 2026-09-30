@@ -1,6 +1,7 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { api, authHeader, resetDb, createUser, createExam, createItem, getUserCredits } from './helpers';
 import { tryLocalAnswer } from '../src/analysis/chat-router';
+import { streamChat } from '../src/analysis/chat'; // mockado no setup.ts — inspeciona o contextText
 import { prisma } from '../src/prisma';
 import { CREDIT_COSTS } from '../src/utils/credits';
 
@@ -152,5 +153,27 @@ describe('chat-router: integração POST /api/chat', () => {
 
     const turn = await prisma.aiAnalysis.findFirst({ where: { patientId: patient.id, type: 'CHAT' } });
     expect(turn?.modelUsed).not.toBe('local-router'); // foi pra IA de verdade
+  });
+
+  // F2 fase 1 — medicação ativa (com startedAt) entra no contextText que a rota monta pra IA.
+  // O streamChat é MOCKADO (setup.ts) → a última chamada expõe o contextText real da rota.
+  itR('F2: medicações ativas com data de início entram no contextText da IA (bloco MEDICAÇÕES ATIVAS)', async () => {
+    const { patient, token } = await createUser({ credits: 100 });
+    const exam = await createExam(patient.id);
+    await createItem(exam.id, { name: 'TSH', nameCanonical: 'TSH', valueNumeric: 7.32, valueText: '7,32', unit: 'µUI/mL', refLow: 0.4, refHigh: 4.0, flag: 'HIGH', isAbnormal: true });
+    await prisma.medication.create({ data: { patientId: patient.id, name: 'Losartana potássica', active: true, startedAt: new Date(2026, 4, 12) } });
+    await prisma.medication.create({ data: { patientId: patient.id, name: 'Sibutramina', active: true, startedAt: new Date(2026, 8, 2) } });
+    await prisma.medication.create({ data: { patientId: patient.id, name: 'Clonazepam', active: false } }); // suspensa → fora do contexto
+
+    // "o que pode ser" = INTERPRETIVE → escala pra IA (não responde local)
+    const r = await api().post('/api/chat').set(authHeader(token)).send({ message: 'Estou com a boca muito seca desde que comecei a sibutramina, o que pode ser?', patientId: patient.id });
+    expect(r.status).toBe(200);
+    await flush();
+
+    const ctx = vi.mocked(streamChat).mock.calls.at(-1)?.[0]?.contextText ?? '';
+    expect(ctx).toContain('MEDICAÇÕES ATIVAS');
+    expect(ctx).toContain('Losartana potássica (desde 12/05/2026)');
+    expect(ctx).toContain('Sibutramina (desde 02/09/2026), Losartana'); // mais recente primeiro (timing = pista)
+    expect(ctx).not.toContain('Clonazepam'); // active=false nunca entra no contexto
   });
 });

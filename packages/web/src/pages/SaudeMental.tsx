@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNotify } from 'react-admin';
-import { Box, Button, Chip, CircularProgress, Stack, Typography } from '@mui/material';
+import { Box, Button, Chip, CircularProgress, Link, Stack, Typography } from '@mui/material';
 import PsychologyIcon from '@mui/icons-material/Psychology';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import VolunteerActivismIcon from '@mui/icons-material/VolunteerActivism';
-import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import PhoneInTalkIcon from '@mui/icons-material/PhoneInTalk';
+import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, ReferenceLine } from 'recharts';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
@@ -26,7 +28,8 @@ import {
  * server; a tela só envia as respostas 0-3.
  *
  * ÉTICO/CRÍTICO: qualquer resposta > 0 no item 9 do PHQ-9 (pensamento de autolesa)
- * exibe o card de crise com CVV 188 — sem tom de alarme, mas impossível de não ver.
+ * exibe o bloco de ACOLHIMENTO (F3) logo acima do disclaimer: teal da marca com borda
+ * suave, CVV 188 (ligar/chat), SAMU 192 e rede de apoio — presença, não pânico.
  *
  * Gotchas respeitados: hooks ANTES de qualquer return (#310); X-Offline-Empty tratado
  * como erro amigável; NUNCA reload/navigate(0); Recharts SEM ReferenceArea (descarta
@@ -117,8 +120,8 @@ export const SaudeMentalPage = () => {
       if (!r.ok) throw new Error(d?.error || 'Erro ao salvar');
       const saved = d as Row;
       // G1 — Celebration SÓ na 1ª conclusão do instrumento (sessão E na vida: histórico
-      // prévio vazio p/ o tipo), score < 15 e SEM ideação de autolesa (card de crise
-      // sempre ganha; celebrar perto dele seria desumano). histLoaded evita a race do
+      // prévio vazio p/ o tipo), score < 15 e SEM ideação de autolesa (bloco de
+      // acolhimento sempre ganha; celebrar perto dele seria desumano). histLoaded evita a race do
       // "histórico ainda não carregou": sem certeza, NÃO celebra (erro pro lado seguro).
       const isFirst = histLoaded && !offline && !doneTypesRef.current.has(type) && !history.some((h) => h.type === type);
       doneTypesRef.current.add(type);
@@ -315,6 +318,67 @@ export const SaudeMentalPage = () => {
             <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mt: 1.5 }}>
               Rastreamentos valem por 2 semanas — próxima janela ideal: <strong>{proximaJanela(result.createdAt)}</strong>
             </Typography>
+            {/* F3 — ACOLHIMENTO IMEDIATO (item 9 do PHQ-9 > 0): presença, não pânico. Teal da
+                marca + borda suave (nada de vermelho gritante); é conteúdo da tela de resultado,
+                não alerta dismissable. Links com alvo de toque ≥44px: CVV 188 (ligar/chat),
+                SAMU 192 em risco imediato, rede de apoio + levar o resultado ao médico. */}
+            {crisis && (
+              <Box
+                component="section"
+                aria-label="Apoio imediato — CVV 188, ligação gratuita 24 horas"
+                sx={{
+                  mt: 2, mb: 0.5, p: 2, textAlign: 'left',
+                  borderRadius: '14px',
+                  border: '1.5px solid rgba(32,178,170,.45)',
+                  bgcolor: 'rgba(32,178,170,.08)',
+                }}
+              >
+                <Stack direction="row" spacing={1.25} alignItems="flex-start">
+                  <FavoriteIcon sx={{ fontSize: 20, color: (t) => tealText(t.palette.mode), mt: '2px' }} />
+                  <Typography sx={{ fontSize: 14, fontWeight: 700, lineHeight: 1.55, textAlign: 'left' }}>
+                    Se pensamentos difíceis passaram pela sua cabeça nas últimas semanas, você não precisa carregar isso sozinho(a).
+                  </Typography>
+                </Stack>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ mt: 1.5 }}>
+                  <Link
+                    href="tel:188"
+                    underline="none"
+                    sx={{
+                      display: 'flex', alignItems: 'center', gap: 1, flex: 1,
+                      minHeight: 44, px: 1.5, borderRadius: '12px',
+                      border: '1.5px solid rgba(32,178,170,.55)',
+                      bgcolor: 'rgba(32,178,170,.10)',
+                      fontWeight: 800, fontSize: 14, color: (t) => tealText(t.palette.mode),
+                    }}
+                  >
+                    <PhoneInTalkIcon sx={{ fontSize: 20 }} />
+                    Ligar agora (gratuito, 24h): CVV 188
+                  </Link>
+                  <Link
+                    href="https://www.cvv.org.br/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    underline="none"
+                    sx={{
+                      display: 'flex', alignItems: 'center', gap: 1, flex: 1,
+                      minHeight: 44, px: 1.5, borderRadius: '12px',
+                      border: '1.5px solid rgba(32,178,170,.55)',
+                      bgcolor: 'rgba(32,178,170,.10)',
+                      fontWeight: 800, fontSize: 14, color: (t) => tealText(t.palette.mode),
+                    }}
+                  >
+                    <ChatBubbleOutlineIcon sx={{ fontSize: 20 }} />
+                    Prefere escrever? cvv.org.br (chat 24h)
+                  </Link>
+                </Stack>
+                <Typography sx={{ fontSize: 13, mt: 1.25, lineHeight: 1.55, color: 'text.secondary', textAlign: 'left' }}>
+                  Se sentir risco imediato, ligue <strong>192 (SAMU)</strong> ou vá a um <strong>pronto-socorro</strong>.
+                </Typography>
+                <Typography sx={{ fontSize: 13, mt: 0.5, lineHeight: 1.55, color: 'text.secondary', textAlign: 'left' }}>
+                  Contar pra alguém de confiança também é um começo — e leve este resultado ao seu médico.
+                </Typography>
+              </Box>
+            )}
             <Typography sx={{ fontSize: 13, color: 'text.secondary', mt: 2, maxWidth: 460, mx: 'auto' }}>
               Este é um <strong>rastreamento, não um diagnóstico</strong>. Ele ajuda a organizar o que você sente — leve o resultado ao seu médico para uma avaliação adequada.
             </Typography>
@@ -325,22 +389,6 @@ export const SaudeMentalPage = () => {
               <Button variant="text" onClick={() => startQuiz(result.type)} sx={{ textTransform: 'none', fontSize: 12, fontWeight: 600, minWidth: 0, px: 1, color: 'text.secondary' }}>Refazer agora</Button>
             </Stack>
           </AppCard>
-
-          {/* CRÍTICO (ético): item 9 do PHQ-9 > 0 → card de crise em destaque, tom firme sem alarme. */}
-          {crisis && (
-            <AppCard kind="accent" tone="error" sx={{ mt: 2, p: 2.5 }}>
-              <Stack direction="row" spacing={1.5} alignItems="flex-start">
-                <WarningAmberIcon sx={{ color: (t) => SEM.bad[t.palette.mode], mt: 0.25 }} />
-                <Box>
-                  <Typography sx={{ fontWeight: 800, color: (t) => SEM.bad[t.palette.mode] }}>Você não precisa passar por isso sozinho(a)</Typography>
-                  <Typography sx={{ fontSize: 13.5, mt: 0.5, lineHeight: 1.55 }}>
-                    Se você pensou em se machucar, converse agora com alguém treinado para ajudar:
-                    <strong> CVV — ligue 188</strong> (24h, gratuito e sigiloso) · ou procure a <strong>UPA mais próxima</strong>.
-                  </Typography>
-                </Box>
-              </Stack>
-            </AppCard>
-          )}
         </>
       )}
 

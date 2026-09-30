@@ -52,6 +52,8 @@ interface MentalRow {
   type: 'phq9' | 'gad7';
   total: number;
   severity: { key: string; label: string };
+  /** F3 — ideação (item 9 do PHQ-9 > 0). Opcional: cache offline antigo pode não ter o campo. */
+  suicidalIdeation?: boolean;
   createdAt: string;
 }
 interface MentalLatest {
@@ -98,6 +100,7 @@ function useDashboardData(pid: string | null) {
   const [processing, setProcessing] = useState<{ count: number; oldestAt: string | null } | null>(null);
   // Idade biológica: espelha o MESMO /health-summary que o hook já busca (o tile não refaz o GET).
   const [bio, setBio] = useState<any>(null);
+  const [bioKdm, setBioKdm] = useState<any>(null);
   const [bioAvail, setBioAvail] = useState<any>(null);
   const [hsLoaded, setHsLoaded] = useState(false);
   // Honestidade de estados (auditoria 2026-08): o server diz POR QUE cada feature não calculou
@@ -170,6 +173,7 @@ function useDashboardData(pid: string | null) {
             setMarkerCount(typeof hd.markers === 'number' ? hd.markers : 0);
             setStaleWarning(hd.staleWarning ?? '');
             setBio(hd.biologicalAge ?? null);
+            setBioKdm(hd.biologicalAgeKdm ?? null);
             setBioAvail(hd.availability?.biologicalAge ?? null);
             // "Pioraram" = trend PIOROU mesmo (worsening) — nunca topAttention (bug da Heloisa).
             setWorsened(Array.isArray(hd.worsening) ? hd.worsening.slice(0, 3) : []);
@@ -189,7 +193,7 @@ function useDashboardData(pid: string | null) {
     })();
   }, [pid]);
 
-  return { stats, failed, lastExam, buckets, score, prevScore, importante, moderada, cardioRisk, markerCount, credits, me, loaded, worsened, improved, staleWarning, availability, rejected, bio, bioAvail, hsLoaded, processing, mental, mentalOffline };
+  return { stats, failed, lastExam, buckets, score, prevScore, importante, moderada, cardioRisk, markerCount, credits, me, loaded, worsened, improved, staleWarning, availability, rejected, bio, bioKdm, bioAvail, hsLoaded, processing, mental, mentalOffline };
 }
 
 const statusFromScore = (s: number | null): { label: string; tone: 'primary' | 'success' | 'warning' | 'error' } => {
@@ -360,6 +364,13 @@ const MentalCard = ({ mental, mentalOffline, introDismissed, onDismissIntro, onO
             />
           )}
         </Stack>
+        {/* F3 — presença, não pânico: 1 linha discreta quando o PHQ-9 marcou ideação (item 9 > 0).
+            Campo opcional (cache offline antigo não tem) → truthy check degrada com segurança. */}
+        {latest.suicidalIdeation && (
+          <Typography noWrap sx={{ fontSize: 12, fontWeight: 700, color: (t) => tealText(t.palette.mode) }}>
+            Apoio 24h: CVV 188
+          </Typography>
+        )}
         <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary' }}>
           {fmtDay(latest.createdAt)} · próxima janela {proximaJanela(latest.createdAt)}
         </Typography>
@@ -864,7 +875,7 @@ export const DashboardV2 = () => {
             sub={d.stats.exams === 0 && d.loaded ? 'envie o primeiro' : `${d.stats.abnormal} alterado${d.stats.abnormal === 1 ? '' : 's'}`}
             onClick={go('/exams')}
           />
-          <BiologicalAgeCard idx={2} bio={d.bio} bioAvail={d.bioAvail} bioLoaded={d.hsLoaded} chronoAge={demo ? DEMO_CHRONO_AGE : undefined} />
+          <BiologicalAgeCard idx={2} bio={d.bio} bioKdm={d.bioKdm} bioAvail={d.bioAvail} bioLoaded={d.hsLoaded} chronoAge={demo ? DEMO_CHRONO_AGE : undefined} />
           <IndicatorTile
             idx={3}
             icon={<ChartLineUp size={22} weight="duotone" />}

@@ -9,6 +9,7 @@ import { describeStaleness } from '../analysis/health-state';
 import { guidelinesContext } from '../analysis/guidelines';
 import { guidelinesEnabled } from '../utils/settings';
 import { personalizedTargets, formatTarget } from '../analysis/personalized-targets';
+import { medicationsContextBlock } from '../analysis/medications-context';
 
 const router = Router();
 router.use(requireAuth);
@@ -97,10 +98,13 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     // diabetes→LDL<100 e HbA1c<7 — regras fechadas com citação real). A IA passa a
     // interpretar estes analitos contra o alvo do TRATAMENTO do paciente, citando o
     // motivo. Leitura COMPLEMENTAR: nunca substituem a faixa do laboratório do laudo.
+    // F2 — a MESMA query alimenta o bloco MEDICAÇÕES ATIVAS do contexto (startedAt:
+    // sintoma novo + efeito conhecido + timing pós-início → a IA conecta na resposta).
     const activeMeds = await prisma.medication.findMany({
       where: { patientId: pid, active: true },
-      select: { name: true, activeIngredient: true },
+      select: { name: true, activeIngredient: true, startedAt: true },
     });
+    const medsBlock = medicationsContextBlock(activeMeds);
     const pTargets = personalizedTargets(
       recent.flatMap((e) =>
         (e.items as any[]).map((it: any) => ({
@@ -193,6 +197,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       `- Paciente: ${patient?.fullName ?? '—'}\n` +
       (patient?.clinicalProfile ? `- Perfil clínico: ${patient.clinicalProfile}\n` : '') +
       activityBlock +
+      medsBlock +
       targetsBlock +
       (currentBlock.length ? `- VALORES ATUAIS (exame MAIS RECENTE por analito — use ESTES ao citar "atual/último resultado"):\n${currentBlock.join('\n')}\n` : '') +
       `- Exames recentes (TODOS os itens — nome: valor (ref) [flag se alterado]):\n${examsBlock}\n` +

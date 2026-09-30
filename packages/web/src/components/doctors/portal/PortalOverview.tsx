@@ -352,7 +352,7 @@ export const PortalOverview = ({
                 <Stack direction="row" alignItems="center" spacing={1}>
                   <Stethoscope size={20} weight="duotone" color={COPPER.deep} />
                   <Typography component="h2" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 16, color: 'text.primary' }}>
-                    Precisam de atenção agora
+                    Requerem atenção
                   </Typography>
                   <Chip size="small" label={alerts.length} sx={{ height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(239,68,68,0.12)', color: '#ef4444' }} />
                 </Stack>

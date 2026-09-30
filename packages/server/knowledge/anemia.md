@@ -35,5 +35,5 @@ Cansaço excessivo, falta de ar, palpitação, palidez, tontura. Sangramento vis
 - Ferritin cutoffs and diagnosis of iron deficiency in primary care (2024) — pontos de
   corte de ferritina/hemoglobina na atenção primária (confiança: alta) — PMID 39102268 —
   consultado 2026-09-07
-- OMS — WHO guideline on anemia and iron deficiency (confiança: alta;
+- OMS — WHO guideline on use of ferritin concentrations to assess iron status (2020) (confiança: alta;
   documento-sociedade) — consultado 2026-09-07

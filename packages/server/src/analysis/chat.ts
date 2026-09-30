@@ -76,6 +76,8 @@ export async function streamChat(opts: {
         HEALTH_SYSTEM,
         contextText,
         'ESTILO DO CHAT: responda APENAS o que foi perguntado, direto ao ponto. Resposta CURTA (30-80 palavras), português simples. SEM introduções, SEM repetir a pergunta ou contexto já dado, SEM tutoriais ou desvios. Só mencione um exame/valor se a pergunta for sobre ele (não liste por iniciativa própria). Destaque com **negrito** e listas (-) quando ajudar; NUNCA asteriscos crus. Se a pergunta assustar, acalme com FATOS do exame dele e oriente o médico.',
+        // F2 fase 1 — sintoma novo × medicação ativa: conecta pelo timing, sem causalidade.
+        'MEDICAÇÕES × SINTOMAS: se o usuário relatar um SINTOMA novo, pense nos remédios dele (seção MEDICAÇÕES ATIVAS do contexto): se o sintoma é efeito CONHECIDO de uma medicação ativa — especialmente se começou depois da data de início —, conecte-os na resposta (cite o remédio e o timing) e sugira ver o painel "Efeitos mais relatados" daquele remédio e conversar com o médico. Não afirme causalidade — "pode estar relacionado" é o limite.',
       ],
       messages,
     });

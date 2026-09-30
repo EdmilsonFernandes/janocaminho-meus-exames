@@ -106,6 +106,10 @@ export interface CurrentHealthSummary {
   stale: MarkerState[];
   whatChanged: { nameCanonical: string; name: string; deltaPct: number | null; trend: TrendDirection }[];
   biologicalAge?: { age: number; confidence: 'alta' | 'baixa'; markersUsed: number; detail?: { label: string; value: number; deltaYears: number; status: 'ok' | 'envelhece' | 'rejuvenesce' }[]; method?: 'phenoage' | 'simplified'; missing?: string[]; assumptions?: string[] } | null;
+  /** F6 — 2º estimador INDEPENDENTE (Klemera-Doubal 2006). Roda AO LADO do biologicalAge
+   *  principal (hierarquia phenoage > z-score intacta — KDM nunca substitui). Presente só
+   *  quando há insumo suficiente (≥4 biomarcadores válidos); ausente/nunca improvisado. */
+  biologicalAgeKdm?: { age: number; method: 'kdm'; markersUsed: number } | null;
   cardiometabolicRisk?: { level: string; score: number; factors: { label: string; risk: boolean }[] } | null;
   /** Empty states honestos por feature (ver FeatureStatus). */
   availability?: FeatureAvailability;
@@ -409,6 +413,8 @@ export async function buildCurrentHealthSummary(patientId: string, opts?: { incl
   const staleCount = allMarkers.length - freshOnly.length;
   // Idade biológica: PhenoAge (quando completa) ou z-score simplificado (fallback)
   let biologicalAge: CurrentHealthSummary['biologicalAge'] = null;
+  // F6 — KDM (Klemera-Doubal 2006): 2º estimador independente, AO LADO do principal.
+  let biologicalAgeKdm: CurrentHealthSummary['biologicalAgeKdm'] = null;
   let bioMethod: 'phenoage' | 'simplified' = 'simplified';
   let bioMissing: string[] = [];
   // Captura p/ availability (empty states honestos): por que a idade bio NÃO calculou.
@@ -514,6 +520,38 @@ export async function buildCurrentHealthSummary(patientId: string, opts?: { incl
             biologicalAge = { age: result.biologicalAge, confidence: result.confidence, markersUsed: result.markersUsed, detail: result.detail, method: 'simplified', missing: bioMissing, ...(bioSexAssumed ? { assumptions: ['sexoNaoInformado'] } : {}) };
           }
         }
+
+        // F6 — KDM (Klemera-Doubal 2006): 2º estimador INDEPENDENTE. Computa com os
+        // biomarcadores disponíveis (≥4 válidos dentre glicose, creatinina, ln(PCR),
+        // albumina, VCM, RDW, fosfatase, colesterol, linfócitos, leucócitos) mesmo quando
+        // o PhenoAge (que exige 9/9) não fecha. Sem insumo suficiente → ausente (null).
+        // NÃO substitui o biologicalAge principal — é campo novo lido pelo card.
+        try {
+          const { calculateKdmAge } = await import('./kdm-age');
+          // Colesterol total: não é do PhenoAge, mas é do conjunto KDM clássico (Kwon) e o app extrai.
+          const cholKdm = findM('COLESTEROL_TOTAL')?.latest.valueNumeric ?? null;
+          // PCR pro KDM em mg/L (o PhenoAge acima normaliza pra mg/dL — aqui mantém mg/L
+          // pro ln): '/dl' → ×10; '/l' ou valor típico BR (≤5, s/ unidade) → assume mg/L.
+          const crpMgL = crpRaw == null ? null
+            : crpUnit.includes('/dl') ? crpRaw * 10
+            : (crpUnit.includes('/l') || crpRaw <= 5) ? crpRaw
+            : crpRaw * 10;
+          const kdm = calculateKdmAge({
+            chronologicalAge: chronoAge,
+            sex: (patient.gender as any) === 'female' ? 'female' : 'male',
+            albuminGDdL: alb,
+            creatinineMgDdL: cre,
+            glucoseMgDdL: gli,
+            crpMgL,
+            lymphocytePercent: lin,
+            mcvFemtoliter: vcm,
+            rdwPercent: rdw,
+            alkalinePhosphatase: alp,
+            totalCholesterolMgDdL: cholKdm,
+            whiteBloodCellCount: wbc,
+          });
+          if (kdm) biologicalAgeKdm = { age: kdm.age, method: 'kdm', markersUsed: kdm.markersUsed.length };
+        } catch { /* best-effort — 2º método é opcional, nunca derruba o principal */ }
       }
     }
   } catch { /* best-effort */ }
@@ -618,6 +656,7 @@ export async function buildCurrentHealthSummary(patientId: string, opts?: { incl
       .slice(0, 6)
       .map((m) => ({ nameCanonical: m.nameCanonical, name: m.name, deltaPct: m.deltaPct, trend: m.trend })),
     biologicalAge,
+    biologicalAgeKdm,
     cardiometabolicRisk,
     availability,
     personalizedTargets: pTargets,
