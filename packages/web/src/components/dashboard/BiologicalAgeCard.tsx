@@ -213,7 +213,22 @@ export const BiologicalAgeCard = ({ idx = 2, bio, bioKdm, bioAvail, bioLoaded, c
                   </Typography>
                 </Box>
               )}
-              {diff === 0 && <Typography variant="body2" sx={{ mt: 0.5 }} color="text.secondary">Seu corpo está em equilíbrio com sua idade.</Typography>}
+              {diff === 0 && (
+                <Box sx={{ mt: 0.5, p: 1, borderRadius: '10px', bgcolor: 'rgba(16,185,129,.08)', border: '1px solid rgba(16,185,129,.18)' }}>
+                  {/* 30/09 (dono: "mesma idade parece não-calculado"): delta 0 com
+                      marcadores suficientes é RESULTADO REAL — doravante dito alto. */}
+                  <Typography variant="body2" sx={{ fontWeight: 700, color: (data as any).confidence === 'alta' ? '#059669' : 'text.primary' }}>
+                    {Number(data.markersUsed ?? 0) >= 6
+                      ? `✅ ${data.markersUsed} marcadores analisados — todos alinhados. Bioidade igual à cronológica é o resultado esperado de um painel saudável (não é falta de dados).`
+                      : `Seu corpo está em equilíbrio com sua idade — mas com poucos marcadores (${data.markersUsed ?? '?'}).`}
+                  </Typography>
+                  {Number(data.markersUsed ?? 0) < 6 && (
+                    <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: 'text.secondary' }}>
+                      Pra estimativa completa: no próximo exame, inclua hemograma com RDW e linfócitos, creatinina e fosfatase alcalina.
+                    </Typography>
+                  )}
+                </Box>
+              )}}
               <Typography variant="body2" sx={{ lineHeight: 1.6, display: 'block', mt: 1.5 }}>
                 É a idade estimada do seu <b>corpo</b> a partir de exames de sangue — glicose, colesterol, função do rim e do fígado, hormônios e outros marcadores. Pode diferir da sua idade de carteira (cronológica).
               </Typography>
