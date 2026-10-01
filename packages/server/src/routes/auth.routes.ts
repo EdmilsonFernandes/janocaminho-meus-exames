@@ -38,6 +38,11 @@ async function issueSession(userId: string) {
  *  Retorna true se era a 1ª vez nesse aparelho (pode dar bônus), false se já resgatou.
  *  Race-safe: o deviceId é UNIQUE no banco — 2 cadastros simultâneos no mesmo aparelho
  *  só conseguem 1 bônus (o 2º create falha na constraint). Sem deviceId (web) → libera. */
+/** Auditoria LGPD (01/10): qual documento o usuário aceitou. Bump na versão a
+ *  cada mudança real dos termos → a trilha sabe qual texto valeu pra cada aceite. */
+const TERMS_VERSION = 'v1-2026-10';
+const TERMS_URL = 'https://janocaminho.com.br/minhasaude/#/termos';
+
 async function claimDeviceBonus(deviceId?: string | null): Promise<boolean> {
   const d = String(deviceId ?? '').trim();
   if (!d) return true;
@@ -201,7 +206,7 @@ router.post('/google', async (req, res, next) => {
     }
     const user = await prisma.$transaction(async (tx) => {
       const created = await tx.user.create({
-        data: { email: mail, name: String(name), passwordHash: 'google-oauth', credits: 0, emailVerified: true, referralCode },
+        data: { email: mail, name: String(name), passwordHash: 'google-oauth', credits: 0, emailVerified: true, referralCode, termsAcceptedAt: new Date(), termsVersion: TERMS_VERSION, termsUrl: TERMS_URL },
       });
       await tx.patient.create({ data: { ownerId: created.id, fullName: String(name), relationship: 'Titular', photoUrl: null } });
       return created;
@@ -263,7 +268,7 @@ router.post('/register', validate(schemas.register), async (req, res, next) => {
     const deviceId = String(req.body?.deviceId ?? '').trim();
     const user = await prisma.$transaction(async (tx) => {
       const created = await tx.user.create({
-        data: { email: mail, name: String(name), passwordHash, credits: 0, referralCode, referredBy: referrer?.referralCode ?? null, deviceId: deviceId || null },
+        data: { email: mail, name: String(name), passwordHash, credits: 0, referralCode, referredBy: referrer?.referralCode ?? null, deviceId: deviceId || null, termsAcceptedAt: new Date(), termsVersion: TERMS_VERSION, termsUrl: TERMS_URL },
       });
       await tx.patient.create({ data: { ownerId: created.id, fullName: String(name), relationship: 'Titular', ...cpfData } });
       return created;

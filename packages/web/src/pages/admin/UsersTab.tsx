@@ -150,6 +150,14 @@ export const UsersTab = () => {
                   {u.blocked && <Chip size="small" label="Bloqueado" color="error" sx={{ height: 18, fontSize: 12 }} />}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">{u.email}</Typography>
+                {/* 01/10 (dono): trilha de aceite dos termos — auditoria LGPD. Antigos = null. */}
+                {(u as any).termsAcceptedAt ? (
+                  <Typography variant='caption' sx={{ display: 'block', fontSize: 10.5, color: 'text.disabled' }}>
+                    📜 Termos {(u as any).termsVersion ? (u as any).termsVersion + String.fromCharCode(32) : String.fromCharCode(32)}aceitos em {new Date((u as any).termsAcceptedAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  </Typography>
+                ) : (
+                  <Typography variant='caption' sx={{ display: 'block', fontSize: 10.5, color: 'text.disabled' }}>📜 Aceite dos termos: anterior ao registro de trilha</Typography>
+                )}
                 {/* 28/09 (dono): data de criação visível — saber QUANDO a conta surgiu. */}
                 {(u as any).createdAt && (
                   <Typography variant="caption" sx={{ display: 'block', fontSize: 12, color: 'text.disabled' }}>

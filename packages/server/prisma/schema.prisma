@@ -30,6 +30,12 @@ model User {
   // Libras (VLibras opt-in): antes só localStorage — o admin não sabia quem ativou.
   // localStorage continua mandando no widget (client), isto é o ESPELHO server p/ usabilidade.
   librasEnabled     Boolean @default(false)
+  // Trilha de auditoria LGPD (01/10): o aceite dos termos era só checkbox no front —
+  // nada gravava QUANDO nem QUAL versão. Contas antigas ficam null (histórico honesto).
+  ///termsVersion bumba a cada mudança do documento → auditoria sabe qual texto valeu.
+  termsAcceptedAt   DateTime?
+  termsVersion      String?   // ex.: 'v1-2026-10'
+  termsUrl          String?   // documento aceito (rota canônica dos termos)
   // Bônus de 1º exame (freeSignup) JÁ concedido — anti re-farm: se o user envia o 1º exame,
   // ganha o bônus, DELETA (volta a 0 exames) e envia de novo, NÃO ganha de novo. Grant atômico
   // via updateMany(where: { firstExamBonusGranted: false }) → 1x só por usuário, nunca mais.

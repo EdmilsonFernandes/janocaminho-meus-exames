@@ -123,7 +123,7 @@ router.get('/users', async (req, res, next) => {
     const limit = Math.min(100, Math.max(1, Number(req.query.limit ?? 20)));
     const where: any = q ? { OR: [{ email: { contains: q, mode: 'insensitive' } }, { name: { contains: q, mode: 'insensitive' } }] } : {};
     const [rows, total, examCount, subCount, approvedRevenue] = await Promise.all([
-      prisma.user.findMany({ where, select: { id: true, email: true, name: true, role: true, credits: true, planExpiresAt: true, createdAt: true, blocked: true, mfaEnabled: true, patients: { select: { id: true, photoUrl: true }, orderBy: { createdAt: 'asc' }, take: 1 } }, orderBy: { createdAt: 'desc' }, skip: (page - 1) * limit, take: limit }),
+      prisma.user.findMany({ where, select: { id: true, email: true, name: true, role: true, credits: true, planExpiresAt: true, createdAt: true, termsAcceptedAt: true, termsVersion: true, termsUrl: true, blocked: true, mfaEnabled: true, patients: { select: { id: true, photoUrl: true }, orderBy: { createdAt: 'asc' }, take: 1 } }, orderBy: { createdAt: 'desc' }, skip: (page - 1) * limit, take: limit }),
       prisma.user.count({ where }),
       prisma.exam.count(),
       prisma.subscription.count(),
