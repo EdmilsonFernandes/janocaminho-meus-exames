@@ -93,6 +93,13 @@ export const config = {
   mpWebhookUrl: process.env.MP_WEBHOOK_URL ?? '',
   mpNotificationUrl: process.env.MP_NOTIFICATION_URL ?? '',
 
+  // Provedor de PIX: 'mp' (Mercado Pago, default — volta é só apagar a env) | 'openpix'.
+  // Toggle de emergência criado na suspensão do MP (02/10): PAYMENT_PROVIDER=openpix
+  // move TODO o fluxo PIX pro OpenPix; cartão/débito seguem no MP (OpenPix é PIX-only).
+  paymentProvider: (process.env.PAYMENT_PROVIDER ?? 'mp').toLowerCase(),
+  openPixAppId: process.env.OPENPIX_APP_ID ?? '',
+  openPixApiBaseUrl: process.env.OPENPIX_API_BASE_URL ?? 'https://api.openpix.com.br',
+
   // Paywall: nº de exames gratuitos antes de exigir assinatura
   freeExamLimit: Number(process.env.FREE_EXAM_LIMIT ?? 2),
 
@@ -137,6 +144,8 @@ if (config.isProd) {
 }
 
 export const hasMercadoPago = () => config.mpAccessToken.trim().length > 0;
+
+export const hasOpenPix = () => config.openPixAppId.trim().length > 0;
 
 export const useS3 = () => config.s3Bucket.trim().length > 0;
 

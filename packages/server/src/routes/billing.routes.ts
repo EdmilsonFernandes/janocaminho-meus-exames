@@ -1,11 +1,13 @@
 import { Router } from 'express';
 import crypto from 'crypto';
 import { prisma } from '../prisma';
-import { config, hasMercadoPago } from '../config';
+import { config, hasMercadoPago, hasOpenPix } from '../config';
 import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
 import { CREDIT_COSTS, UPLOAD_RULES } from '../utils/credits';
-import { getSettings, loadSettings, getMonthlyPlan, getEffectivePlanPrice, getCreditPacks, getPremiumPerks } from '../utils/settings';
-import { createSubscriptionCompat, findSubscriptionByIdCompat, getSubscriptionColumnSupport, updateSubscriptionCompat, updateSubscriptionCompatWithDb } from '../utils/subscriptionCompat';
+import { getSettings, getMonthlyPlan, getEffectivePlanPrice, getCreditPacks, getPremiumPerks } from '../utils/settings';
+import { createSubscriptionCompat, getSubscriptionColumnSupport, updateSubscriptionCompat } from '../utils/subscriptionCompat';
+import { createPixCharge, activePixProvider, type PixChargeResult } from '../payments/pix-provider';
+import { approvePendingSubscription, type ApprovalKind } from '../utils/billingApproval';
 
 const router = Router();
 
@@ -30,6 +32,7 @@ router.get('/plans', (_req, res) => {
     creditPacks: getCreditPacks(),
     freeExamLimit: config.freeExamLimit,
     mercadoPagoEnabled: hasMercadoPago(),
+    pixProvider: activePixProvider(), // 'mp' | 'openpix' — diagnóstico (toggle PAYMENT_PROVIDER)
     creditCosts: CREDIT_COSTS, // pra o front sincronizar (admin pode ter mudado)
     uploadRules: UPLOAD_RULES, // regras de cobrança de upload (admin pode editar em runtime)
     shares: getSettings().shares, // custo por escopo ao compartilhar c/ médico (pré-visualização no app)
@@ -124,7 +127,8 @@ router.post('/checkout', requireAuth, async (req: AuthedRequest, res, next) => {
 // devolve o MESMO QR/timer — nunca cria ordem órfã duplicada.
 router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) => {
   try {
-    if (!hasMercadoPago()) { res.status(503).json({ error: 'Pagamentos não configurados.' }); return; }
+    // Gate por provider: PIX usa o ativo (mp|openpix); cartão/débito exigem MP abaixo.
+    if (activePixProvider() === 'openpix' ? !hasOpenPix() : !hasMercadoPago()) { res.status(503).json({ error: 'Pagamentos não configurados.' }); return; }
     const subscriptionColumns = await getSubscriptionColumnSupport();
     const pack = packById(String(req.body?.pack ?? ''));
     if (!pack) { res.status(400).json({ error: 'Pacote inválido' }); return; }
@@ -179,6 +183,8 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
 
     if (method !== 'pix') {
       // CARTÃO / DÉBITO — Checkout Pro (página segura do MP; usuário paga lá e volta).
+      // OpenPix é PIX-ONLY: cartão/débito seguem no MP até provedor de cartão entrar.
+      if (!hasMercadoPago()) { res.status(503).json({ error: 'Cartão/débito indisponível (Mercado Pago não configurado).' }); return; }
       // O webhook (external_reference subId|credits) credita os créditos na aprovação.
       const prefResp = await fetch(`${config.mpApiBaseUrl}/checkout/preferences`, {
         method: 'POST',
@@ -208,49 +214,47 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
       return;
     }
 
-    // PIX — QR Code inline (copia-cola + countdown)
-    const r = await fetch(`${config.mpApiBaseUrl}/v1/payments`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${config.mpAccessToken}`, 'Content-Type': 'application/json', 'X-Idempotency-Key': crypto.randomUUID() },
-      body: JSON.stringify({
-        transaction_amount: pack.price,
+    // PIX — QR Code inline (copia-cola + countdown). Provider abstraído em
+    // payments/pix-provider (env PAYMENT_PROVIDER: 'mp' default | 'openpix' — toggle
+    // da suspensão do MP 02/10). Cartão/débito seguem no MP acima (OpenPix é PIX-only).
+    const correlationID = `credits_${sub.id}_${pack.credits}`; // webhook OpenPix casa por mpPaymentId
+    let charge: PixChargeResult;
+    try {
+      charge = await createPixCharge({
+        amountBrlCents: Math.round(pack.price * 100),
+        correlationID,
+        externalReference, // MP: subId|credits — webhook MP depende deste formato
         description: `Dr. Exame — ${pack.credits} créditos de IA para análise de exames`,
-        payment_method_id: 'pix',
-        payer: { email: user.email, first_name: (user.name || 'Cliente').split(' ')[0] },
-        external_reference: externalReference,
-        date_of_expiration: expires.toISOString(),
-        notification_url: publicNotifyUrl(),
-        statement_descriptor: 'DR EXAME',
-      }),
-    });
-    if (!r.ok) {
-      console.error('[billing] MP PIX falhou:', r.status, await r.text());
+        payerEmail: user.email,
+        payerFirstName: (user.name || 'Cliente').split(' ')[0],
+        expiresAt: expires,
+        notificationUrl: publicNotifyUrl(),
+      });
+    } catch (e) {
+      console.error('[buy-credits] PIX falhou (' + activePixProvider() + '):', (e as Error).message);
       await updateSubscriptionCompat(sub.id, { status: 'FAILED' });
-      res.status(502).json({ error: 'Falha ao gerar PIX no Mercado Pago.' });
+      res.status(502).json({ error: 'Falha ao gerar PIX.' });
       return;
     }
-    const pay: any = await r.json();
-    const td = pay?.point_of_interaction?.transaction_data;
-    console.log('[buy-credits] MP payment:', pay.id, '| status:', pay.status, '| tem QR:', !!td?.qr_code_base64, '| tem td:', !!td, '| msg:', pay.message || pay.error);
-    // MP devolve qr_code_base64 em base64 PURO — prefixa p/ virar data URI e renderizar no <img>
-    const rawB64 = td?.qr_code_base64 ?? '';
-    const qrImg = rawB64 ? (rawB64.startsWith('data:') ? rawB64 : `data:image/png;base64,${rawB64}`) : '';
+    console.log('[buy-credits] PIX criado:', charge.id, '| provider:', activePixProvider(), '| tem QR img:', !!charge.qrBase64);
+    // qrBase64 pode vir null (OpenPix best-effort) — o front mostra o copia-e-cola.
+    const qrImg = charge.qrBase64 ? (charge.qrBase64.startsWith('data:') ? charge.qrBase64 : `data:image/png;base64,${charge.qrBase64}`) : '';
     // PERSISTE QR + expiry na Subscription: é o que permite RETOMAR o mesmo PIX
     // quando o usuário sai e volta (padrão gateway — sem criar ordem órfã).
     if (subscriptionColumns.hasPixResume) {
       await updateSubscriptionCompat(sub.id, {
-        mpPaymentId: String(pay.id),
-        pixQrCode: td?.qr_code ?? '',
+        mpPaymentId: charge.id, // id externo genérico (MP payment id | OpenPix correlationID)
+        pixQrCode: charge.qrCode,
         pixQrBase64: qrImg,
         pixExpiresAt: expires,
         pixCredits: pack.credits,
       });
     } else {
-      await updateSubscriptionCompat(sub.id, { mpPaymentId: String(pay.id) });
+      await updateSubscriptionCompat(sub.id, { mpPaymentId: charge.id });
     }
     res.json({
-      paymentId: String(pay.id),
-      qrCode: td?.qr_code ?? '',
+      paymentId: charge.id,
+      qrCode: charge.qrCode,
       qrBase64: qrImg,
       expiresAt: expires.toISOString(),
       credits: pack.credits,
@@ -269,7 +273,8 @@ const API_PIX_TTL_MS = 5 * 60 * 1000;
 
 router.post('/buy-api-pack', requireAuth, async (req: AuthedRequest, res, next) => {
   try {
-    if (!hasMercadoPago()) { res.status(503).json({ error: 'Pagamentos não configurados.' }); return; }
+    // Gate por provider (igual buy-credits): PIX no provider ativo; cartão exige MP.
+    if (activePixProvider() === 'openpix' ? !hasOpenPix() : !hasMercadoPago()) { res.status(503).json({ error: 'Pagamentos não configurados.' }); return; }
     const packs = (getSettings().apiAccess?.packs ?? []) as { id: string; calls: number; price: number; label: string }[];
     const pack = packs.find((p) => p.id === String(req.body?.pack ?? ''));
     if (!pack) { res.status(400).json({ error: 'Pacote de API inválido' }); return; }
@@ -316,6 +321,8 @@ router.post('/buy-api-pack', requireAuth, async (req: AuthedRequest, res, next) 
     const origin = process.env.WEB_ORIGIN || '';
 
     if (method !== 'pix') {
+      // CARTÃO/DÉBITO — segue MP (OpenPix é PIX-only).
+      if (!hasMercadoPago()) { res.status(503).json({ error: 'Cartão/débito indisponível (Mercado Pago não configurado).' }); return; }
       const prefResp = await fetch(`${config.mpApiBaseUrl}/checkout/preferences`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${config.mpAccessToken}`, 'Content-Type': 'application/json' },
@@ -344,36 +351,34 @@ router.post('/buy-api-pack', requireAuth, async (req: AuthedRequest, res, next) 
       return;
     }
 
-    const r = await fetch(`${config.mpApiBaseUrl}/v1/payments`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${config.mpAccessToken}`, 'Content-Type': 'application/json', 'X-Idempotency-Key': crypto.randomUUID() },
-      body: JSON.stringify({
-        transaction_amount: pack.price,
+    // PIX via provider abstraído (PAYMENT_PROVIDER=mp|openpix — OpenPix é PIX-only).
+    const correlationID = `api_${sub.id}_${pack.calls}`; // webhook OpenPix casa por mpPaymentId
+    let charge: PixChargeResult;
+    try {
+      charge = await createPixCharge({
+        amountBrlCents: Math.round(pack.price * 100),
+        correlationID,
+        externalReference, // MP: subId|calls|API — webhook MP depende deste formato
         description: `Dr. Exame API — ${pack.label}: ${pack.calls} chamadas`,
-        payment_method_id: 'pix',
-        payer: { email: user.email, first_name: (user.name || 'Parceiro').split(' ')[0] },
-        external_reference: externalReference,
-        date_of_expiration: expires.toISOString(),
-        notification_url: publicNotifyUrl(),
-        statement_descriptor: 'DR EXAME',
-      }),
-    });
-    if (!r.ok) {
-      console.error('[billing] MP PIX (API pack) falhou:', r.status);
+        payerEmail: user.email,
+        payerFirstName: (user.name || 'Parceiro').split(' ')[0],
+        expiresAt: expires,
+        notificationUrl: publicNotifyUrl(),
+      });
+    } catch (e) {
+      console.error('[buy-api-pack] PIX falhou (' + activePixProvider() + '):', (e as Error).message);
       await updateSubscriptionCompat(sub.id, { status: 'FAILED' });
-      res.status(502).json({ error: 'Falha ao gerar PIX no Mercado Pago.' });
+      res.status(502).json({ error: 'Falha ao gerar PIX.' });
       return;
     }
-    const pay: any = await r.json();
-    const td = pay?.point_of_interaction?.transaction_data;
-    const rawB64 = td?.qr_code_base64 ?? '';
-    const qrImg = rawB64 ? (rawB64.startsWith('data:') ? rawB64 : `data:image/png;base64,${rawB64}`) : '';
+    console.log('[buy-api-pack] PIX criado:', charge.id, '| provider:', activePixProvider(), '| tem QR img:', !!charge.qrBase64);
+    const qrImg = charge.qrBase64 ? (charge.qrBase64.startsWith('data:') ? charge.qrBase64 : `data:image/png;base64,${charge.qrBase64}`) : '';
     if (subscriptionColumns.hasPixResume) {
-      await updateSubscriptionCompat(sub.id, { mpPaymentId: String(pay.id), pixQrCode: td?.qr_code ?? '', pixQrBase64: qrImg, pixExpiresAt: expires, pixCredits: pack.calls });
+      await updateSubscriptionCompat(sub.id, { mpPaymentId: charge.id, pixQrCode: charge.qrCode, pixQrBase64: qrImg, pixExpiresAt: expires, pixCredits: pack.calls });
     } else {
-      await updateSubscriptionCompat(sub.id, { mpPaymentId: String(pay.id) });
+      await updateSubscriptionCompat(sub.id, { mpPaymentId: charge.id });
     }
-    res.json({ paymentId: String(pay.id), qrCode: td?.qr_code ?? '', qrBase64: qrImg, expiresAt: expires.toISOString(), calls: pack.calls, price: pack.price });
+    res.json({ paymentId: charge.id, qrCode: charge.qrCode, qrBase64: qrImg, expiresAt: expires.toISOString(), calls: pack.calls, price: pack.price });
   } catch (e) { next(e); }
 });
 
@@ -431,9 +436,21 @@ router.get('/pending-payment', requireAuth, async (req: AuthedRequest, res, next
   } catch (e) { next(e); }
 });
 
-// Status de um pagamento PIX (polling do frontend enquanto mostra o QR)
+// Status de um pagamento PIX (polling do frontend enquanto mostra o QR).
+// OpenPix: paymentId = correlationID → status vem da Subscription (atualizada pelo
+// webhook /api/webhooks/openpix). MP: pergunta a API do MP como antes.
 router.get('/payment-status/:id', requireAuth, async (req, res, next) => {
   try {
+    if (activePixProvider() === 'openpix') {
+      const sub = await prisma.subscription.findFirst({
+        where: { userId: (req as AuthedRequest).userId!, mpPaymentId: String(req.params.id) },
+        orderBy: { createdAt: 'desc' },
+        select: { status: true },
+      });
+      const approved = sub?.status === 'APPROVED';
+      res.json({ status: approved ? 'approved' : String(sub?.status ?? 'pending').toLowerCase(), approved });
+      return;
+    }
     if (!hasMercadoPago()) { res.status(503).json({ error: 'MP não configurado' }); return; }
     const r = await fetch(`${config.mpApiBaseUrl}/v1/payments/${req.params.id}`, { headers: { Authorization: `Bearer ${config.mpAccessToken}` } });
     if (!r.ok) { res.status(502).json({ error: 'falha' }); return; }
@@ -492,58 +509,15 @@ router.post('/webhook', async (req, res) => {
             console.log(`[billing] Dr. Exame Pro ativado — doctor ${doctorId}, +30d`);
             res.status(200).json({ ok: true }); return;
           }
+          // Mensal/pacotes: MESMA aprovação do webhook OpenPix (helper compartilhado em
+          // utils/billingApproval — extraída daqui na migração PIX→OpenPix 02/10).
           const [subId, creditsStr, marker] = String(pay.external_reference).split('|');
-          const sub = await findSubscriptionByIdCompat(subId);
-          if (sub && sub.status !== 'APPROVED') {
-            if (marker === 'API' && creditsStr) {
-              // PACOTE DE CHAMADAS DE API (3º segmento "API") — credita no LEDGER de chamadas
-              // (kind api_pack), NÃO nos créditos de IA do app. Moedas separadas, mesmo motor.
-              const calls = Number(creditsStr);
-              if (calls > 0) {
-                await prisma.$transaction(async (tx) => {
-                  await updateSubscriptionCompatWithDb(tx, sub.id, { status: 'APPROVED', mpPaymentId: String(paymentId) });
-                  await tx.creditTransaction.create({ data: { userId: sub.userId, delta: calls, kind: 'api_pack', label: `Pacote API +${calls} chamadas`, refId: sub.id } });
-                });
-                console.log(`[billing] API pack +${calls} chamadas p/ user ${sub.userId} (sub ${sub.id})`);
-              }
-            } else if (creditsStr) {
-              // PACOTE DE CRÉDITOS
-              const credits = Number(creditsStr);
-              if (credits > 0) {
-                await prisma.$transaction(async (tx) => {
-                  await updateSubscriptionCompatWithDb(tx, sub.id, { status: 'APPROVED', mpPaymentId: String(paymentId) });
-                  await tx.user.update({ where: { id: sub.userId }, data: { credits: { increment: credits } } });
-                  await tx.creditTransaction.create({ data: { userId: sub.userId, delta: credits, kind: 'purchase', label: `Compra de créditos (+${credits})`, refId: sub.id } });
-                });
-                console.log(`[billing] créditos +${credits} p/ user ${sub.userId} (sub ${sub.id})`);
-              }
-            } else if (sub.periodDays > 0) {
-              // PLANO MENSAL — ativa + concede pacote mensal de créditos (parametrizado em app_settings)
-              const expires = new Date(Date.now() + sub.periodDays * 86400000);
-              const monthlyCredits = getSettings().grants.monthly;
-              await prisma.$transaction(async (tx) => {
-                await updateSubscriptionCompatWithDb(tx, sub.id, { status: 'APPROVED', mpPaymentId: String(paymentId) });
-                await tx.user.update({ where: { id: sub.userId }, data: { planExpiresAt: expires, credits: { increment: monthlyCredits } } });
-                await tx.creditTransaction.create({ data: { userId: sub.userId, delta: monthlyCredits, kind: 'plan_monthly', label: 'Plano Premium (mensal)', refId: sub.id } });
-              });
-              // FUNDADOR: se essa cobrança foi no preço promocional, consome 1 vaga (condicional ao
-              // limite — 2 webhooks simultâneos na última vaga: no máximo 1 incrementa; aprovar a
-              // mais é aceitável e documentado). Créditos/vigência não dependem disso.
-              const st = getSettings();
-              const f = (st as any).founder;
-              if (Number(f?.enabled) === 1 && Number(f?.price) > 0 && Math.abs(Number(sub.amount) - Number(f.price)) < 0.001 && Number(f.used) < Number(f.limit)) {
-                const claimed = await prisma.appSetting.updateMany({
-                  where: { key: 'founder', value: { path: ['used'], lt: Number(f.limit) } },
-                  data: { value: { ...f, used: Number(f.used) + 1 } as any },
-                }).catch(() => ({ count: 0 }));
-                if (claimed.count > 0) {
-                  await loadSettings(); // sincroniza o cache em memória com o novo `used`
-                  console.log(`[billing] vaga de FUNDADOR consumida (${Number(f.used) + 1}/${f.limit}) — sub ${sub.id}`);
-                }
-              }
-              console.log(`[billing] mensal aprovado — user ${sub.userId} +${monthlyCredits} créditos, ativo até ${expires.toISOString()}`);
-            }
-          }
+          const kind: ApprovalKind = marker === 'API' && creditsStr
+            ? { type: 'api', calls: Number(creditsStr) }
+            : creditsStr
+              ? { type: 'credits', credits: Number(creditsStr) }
+              : { type: 'plan' };
+          await approvePendingSubscription(subId, kind, String(paymentId));
         }
       }
     }
