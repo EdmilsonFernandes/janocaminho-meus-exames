@@ -269,7 +269,7 @@ export const LandingPage = () => {
             <Box component="button" onClick={() => goTo('planos')} sx={{ ...navBtn(scrolled), display: { xs: 'none', md: 'inline' } }}>Planos</Box>
             <Box component="button" onClick={() => navigate('/doctor')} sx={{ ...navBtn(scrolled), display: { xs: 'none', lg: 'inline' } }}>É médico?</Box>
             <Box component="button" onClick={() => navigate('/faq')} sx={{ ...navBtn(scrolled), display: { xs: 'none', md: 'inline' } }}>Dúvidas</Box>
-            <Button onClick={() => navigate('/entrar')} sx={{ color: TEAL_DARK, fontWeight: 700, textTransform: 'none' }}>Entrar</Button>
+            <Button onClick={() => navigate('/entrar')} sx={{ color: INK, fontWeight: 700, textTransform: 'none', minHeight: 44, px: 1.5 }}>Entrar</Button>
             <Button variant="contained" color="primary" size="small" onClick={() => navigate('/registrar')} sx={{ borderRadius: '999px', px: 2.5, textTransform: 'none', fontWeight: 700 }}>Criar conta</Button>
           </Stack>
         </Container>
@@ -307,7 +307,7 @@ export const LandingPage = () => {
                 entrou no CTA). Uma ação primária, uma secundária, retornante discreto. */}
             <Box>
               <Typography variant="h1" sx={{ fontSize: { xs: '2.3rem', md: '3.4rem' }, fontWeight: 800, lineHeight: 1.08, mb: 2.5, letterSpacing: '-0.03em', color: 'text.primary' }}>
-                <Box component="span" sx={{ display: 'block' }}>Entenda seus exames</Box> como <Box component="span" sx={{ ...SERIF_I, color: TEAL, fontSize: '1.06em' }}>nunca antes.</Box>
+                <Box component="span" sx={{ display: 'block' }}>Entenda seus exames</Box> como <Box component="span" sx={{ ...SERIF_I, color: INK, fontSize: '1.06em' }}>nunca antes.</Box>
               </Typography>
               <Typography sx={{ fontSize: { xs: 16.5, md: 19 }, color: 'text.secondary', mb: 3, lineHeight: 1.6, maxWidth: 500 }}>
                 Envie o exame. O <b style={{ color: 'text.primary' }}>Dr. Exame</b> lê com IA, explica em português simples, mostra sua <b style={{ color: 'text.primary' }}>leitura de risco</b> e monta um <b style={{ color: 'text.primary' }}>plano de ação</b> pra levar ao médico — <b style={{ color: 'text.primary' }}>em cerca de 30 segundos</b>.
@@ -351,7 +351,7 @@ export const LandingPage = () => {
               <Typography sx={{ fontSize: 13, color: 'text.secondary', fontWeight: 600 }}>
                 Sem cartão pra começar · cancele quando quiser · dados protegidos (LGPD)
               </Typography>
-              <Button variant="text" size="small" onClick={() => navigate('/entrar')} sx={{ textTransform: 'none', fontWeight: 700, color: TEAL_DARK, fontSize: 13, minWidth: 0, px: 0, justifyContent: { xs: 'center', sm: 'flex-start' }, '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' } }}>
+              <Button variant="text" size="small" onClick={() => navigate('/entrar')} sx={{ textTransform: 'none', fontWeight: 700, color: INK, fontSize: 13, minWidth: 0, px: 0, justifyContent: { xs: 'center', sm: 'flex-start' }, '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' } }}>
                 Já tem conta? Entrar
               </Button>
             </Box>
@@ -372,7 +372,7 @@ export const LandingPage = () => {
               >
                 <Box sx={{ width: 9, height: 9, borderRadius: '50%', bgcolor: '#059669', boxShadow: '0 0 0 3px rgba(5,150,105,0.2)' }} />
                 <Typography sx={{ fontSize: 13, fontWeight: 800, color: 'text.primary', fontFamily: '"Poppins",sans-serif' }}>
-                  Glicose: 92 mg/dL <Box component="span" sx={{ color: '#059669', fontWeight: 700, fontSize: 12 }}>· Normal</Box>
+                  Glicose: 92 mg/dL <Box component="span" sx={{ color: '#047857', fontWeight: 700, fontSize: 12 }}>· Normal</Box>
                 </Typography>
               </Box>
 
@@ -389,7 +389,7 @@ export const LandingPage = () => {
                 }}
               >
                 <AutoAwesomeIcon sx={{ fontSize: 17, color: TEAL_DARK }} />
-                <Typography sx={{ fontSize: 13, fontWeight: 800, color: TEAL_DARK, fontFamily: '"Poppins",sans-serif' }}>
+                <Typography sx={{ fontSize: 13, fontWeight: 800, color: INK, fontFamily: '"Poppins",sans-serif' }}>
                   Laudo lido em ~28s
                 </Typography>
               </Box>
@@ -431,7 +431,7 @@ export const LandingPage = () => {
       <Box id="demo" sx={{ bgcolor: 'background.default', py: { xs: 6, md: 9 }, scrollMarginTop: 80 }}>
         <Container maxWidth="lg">
           <Box sx={{ textAlign: 'center', mb: { xs: 3.5, md: 5 } }}>
-            <Typography sx={{ fontSize: 13, fontWeight: 800, color: TEAL_DARK, letterSpacing: '0.06em', textTransform: 'uppercase', mb: 1 }}>Experimente agora</Typography>
+            <Typography sx={{ fontSize: 13, fontWeight: 800, color: INK, letterSpacing: '0.06em', textTransform: 'uppercase', mb: 1 }}>Experimente agora</Typography>
             <Typography variant="h2" sx={{ fontSize: { xs: '1.7rem', md: '2.3rem' }, fontWeight: 800, color: 'text.primary', mb: 1, letterSpacing: '-0.02em' }}>Cole seu exame. <Box component="span" sx={{ ...SERIF_I, color: TEAL_DARK }}>De graça, sem cadastro.</Box></Typography>
             <Typography sx={{ color: 'text.secondary', fontSize: 17, maxWidth: 600, mx: 'auto' }}>A gente organiza cada valor na hora e mostra o que está dentro — e o que pede atenção. A interpretação completa com IA é o próximo passo, no app.</Typography>
           </Box>
