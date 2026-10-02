@@ -95,7 +95,9 @@ async function createOpenPixCharge(input: CreatePixChargeInput): Promise<PixChar
       correlationID: input.correlationID,
       value: input.amountBrlCents,
       expiresIn: expiresInSec, // alinha a validade do QR com o countdown do front
-      comment: String(input.description ?? '').replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{2B00}-\u{2BFF}]/gu, '').trim().slice(0, 100) || undefined,
+      // OpenPix rejeita NÃO-ASCII no comment (até o travessão — vira 'Emoji não é
+      // permitido', provado ao vivo 02/10). Régua: só ASCII imprimível, sem acento.
+      comment: String(input.description ?? '').normalize('NFD').replace(/['+chr(92)+'u0300-'+chr(92)+'u036f]/g, '').replace(/[^'+chr(92)+'x20-'+chr(92)+'x7E]/g, '').replace(/['+chr(92)+'s]+/g, ' ').trim().slice(0, 100) || undefined,
     }),
   });
   if (!r.ok) {

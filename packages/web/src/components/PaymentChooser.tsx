@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Dialog, DialogTitle, DialogContent, IconButton, Button, Typography, Stack, CircularProgress, Box } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import QrCode2Icon from '@mui/icons-material/QrCode2';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
-import { API_URL, token } from '../config';
+import { API_URL, token, fetchPublicConfig } from '../config';
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
 
@@ -14,6 +14,10 @@ export const PaymentChooser = ({ packId, packLabel, onClose, onPix }: {
 }) => {
   const [busy, setBusy] = useState('');
   const [err, setErr] = useState('');
+  // 02/10 (MP suspenso): cartão/débito só aparecem quando o admin religar
+  // (AppSetting payments.cardEnabled) — config pública, sem novo deploy/AAB.
+  const [cardEnabled, setCardEnabled] = useState(false);
+  useEffect(() => { fetchPublicConfig().then((c) => setCardEnabled(!!(c as any).cardEnabled)).catch(() => {}); }, []);
 
   const payRedirect = async (method: 'card' | 'debit') => {
     if (!packId) return;
@@ -53,10 +57,14 @@ export const PaymentChooser = ({ packId, packLabel, onClose, onPix }: {
         <Stack spacing={1.5}>
           <Opt icon={<QrCode2Icon />} title="PIX" sub="Instantâneo • QR code" busyKey="pix" color="#20b2aa"
             onClick={() => { onPix(); onClose(); }} />
-          <Opt icon={<CreditCardIcon />} title="Cartão de crédito" sub="Até 12x • via Mercado Pago" busyKey="card" color="#0369a1"
-            onClick={() => payRedirect('card')} />
-          <Opt icon={<AccountBalanceIcon />} title="Débito" sub="À vista • via Mercado Pago" busyKey="debit" color="#178f89"
-            onClick={() => payRedirect('debit')} />
+          {cardEnabled && (
+            <>
+              <Opt icon={<CreditCardIcon />} title="Cartão de crédito" sub="Até 12x • via Mercado Pago" busyKey="card" color="#0369a1"
+                onClick={() => payRedirect('card')} />
+              <Opt icon={<AccountBalanceIcon />} title="Débito" sub="À vista • via Mercado Pago" busyKey="debit" color="#178f89"
+                onClick={() => payRedirect('debit')} />
+            </>
+          )}
         </Stack>
         {err && <Typography color="error" variant="body2" sx={{ mt: 2 }}>{err}</Typography>}
 

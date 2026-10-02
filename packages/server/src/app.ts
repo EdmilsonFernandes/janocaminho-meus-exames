@@ -159,8 +159,13 @@ app.use('/api/public/lead', leadRoutes);
 // Config PÚBLICA (sem auth) — créditos de cadastro (freeSignup, do banco) + bônus de indicação.
 // A landing/card/link compartilhado leem daqui → valor sempre coerente c/ o que o server entrega.
 app.get('/api/public/config', (_req, res) => {
-  const { grants } = getSettings();
-  res.json({ freeSignup: grants?.freeSignup ?? 60, referralBonus: REFERRAL_BONUS });
+  const { grants, payments } = getSettings();
+  res.json({
+    freeSignup: grants?.freeSignup ?? 60, referralBonus: REFERRAL_BONUS,
+    // 02/10 (MP suspenso): cartão/débito escondidos até reabilitar — religa por
+    // AppSetting payments.cardEnabled=true (zero deploy). PIX segue OpenPix.
+    cardEnabled: payments?.cardEnabled ?? false,
+  });
 });
 // Força-atualização (público, sem auth): app compara a versão instalada com a mínima exigida.
 app.get('/api/app/version', (_req, res) => res.json({ latest: config.appLatestVersion, minRequired: config.appMinVersion }));

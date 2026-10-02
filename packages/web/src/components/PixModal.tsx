@@ -12,6 +12,7 @@ type Phase = 'loading' | 'waiting' | 'approved' | 'expired' | 'error';
 export const PixModal = ({ packId, onClose, onApproved, existingPix }: { packId: string | null; onClose: () => void; onApproved: () => void; existingPix?: any }) => {
   const [pix, setPix] = useState<any>(null);
   const [phase, setPhase] = useState<Phase>('loading');
+  const [errMsg, setErrMsg] = useState('');
   const [secs, setSecs] = useState(0);
   const pollRef = useRef<any>(null);
   const approvedDone = useRef(false); // garante que onApproved dispara só 1x (evita toast duplicado)
@@ -36,10 +37,10 @@ export const PixModal = ({ packId, onClose, onApproved, existingPix }: { packId:
         });
         const d = await r.json();
         if (cancelled) return;
-        if (!r.ok) { setPhase('error'); return; }
+        if (!r.ok) { setErrMsg(d?.error || ''); setPhase('error'); return; }
         setPix(d); setPhase('waiting');
         setSecs(Math.max(0, Math.floor((new Date(d.expiresAt).getTime() - Date.now()) / 1000)));
-      } catch { if (!cancelled) setPhase('error'); }
+      } catch { if (!cancelled) { setErrMsg(''); setPhase('error'); } }
     })();
     return () => { cancelled = true; };
   }, [packId, existingPix]);
@@ -105,7 +106,7 @@ export const PixModal = ({ packId, onClose, onApproved, existingPix }: { packId:
         )}
         {(phase === 'expired' || phase === 'error') && (
           <Box sx={{ py: 3 }}>
-            <Typography color="error" sx={{ mb: 1 }}>{phase === 'expired' ? '⏰ O PIX expirou.' : 'Não foi possível gerar o PIX.'}</Typography>
+            <Typography color="error" sx={{ mb: 1 }}>{phase === 'expired' ? '⏰ O PIX expirou.' : errMsg || 'Pagamento indisponível no momento — tente novamente em alguns minutos.'}</Typography>
             <Button variant="contained" onClick={onClose}>Fechar e tentar de novo</Button>
           </Box>
         )}

@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import {
   Box, Typography, Stack, Card, CardContent, Table, TableBody, TableCell,
   TableContainer, TableHead, TableRow, Chip, IconButton, Collapse,
-  LinearProgress, TextField, InputAdornment, MenuItem, Tooltip
+  LinearProgress, TextField, InputAdornment, MenuItem, Tooltip,
+  useMediaQuery, useTheme
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -44,6 +45,8 @@ const KIND_LABEL: Record<string, string> = {
 };
 
 export const UsageTab = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [rows, setRows] = useState<UsageRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -85,10 +88,10 @@ export const UsageTab = () => {
   return (
     <Stack spacing={2.5}>
       {/* Cards de Resumo */}
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr' }, gap: 2 }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: { xs: 1, sm: 2 } }}>
         <Card variant="outlined" sx={{ borderRadius: '16px', bgcolor: 'background.paper', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
-          <CardContent sx={{ p: 2.25 }}>
-            <Stack direction="row" alignItems="center" spacing={1.5}>
+          <CardContent sx={{ p: { xs: 1.25, sm: 2.25 }, '&:last-child': { pb: { xs: 1.25, sm: 2.25 } } }}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} alignItems="center" spacing={{ xs: 0.5, sm: 1.5 }}>
               <Box sx={{ p: 1.25, borderRadius: '12px', bgcolor: 'rgba(32,178,170,0.1)', color: '#178f89' }}>
                 <PeopleAltOutlinedIcon />
               </Box>
@@ -105,8 +108,8 @@ export const UsageTab = () => {
         </Card>
 
         <Card variant="outlined" sx={{ borderRadius: '16px', bgcolor: 'background.paper', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
-          <CardContent sx={{ p: 2.25 }}>
-            <Stack direction="row" alignItems="center" spacing={1.5}>
+          <CardContent sx={{ p: { xs: 1.25, sm: 2.25 }, '&:last-child': { pb: { xs: 1.25, sm: 2.25 } } }}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} alignItems="center" spacing={{ xs: 0.5, sm: 1.5 }}>
               <Box sx={{ p: 1.25, borderRadius: '12px', bgcolor: 'rgba(194,65,12,0.1)', color: '#c2410c' }}>
                 <BoltOutlinedIcon />
               </Box>
@@ -123,8 +126,8 @@ export const UsageTab = () => {
         </Card>
 
         <Card variant="outlined" sx={{ borderRadius: '16px', bgcolor: 'background.paper', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
-          <CardContent sx={{ p: 2.25 }}>
-            <Stack direction="row" alignItems="center" spacing={1.5}>
+          <CardContent sx={{ p: { xs: 1.25, sm: 2.25 }, '&:last-child': { pb: { xs: 1.25, sm: 2.25 } } }}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} alignItems="center" spacing={{ xs: 0.5, sm: 1.5 }}>
               <Box sx={{ p: 1.25, borderRadius: '12px', bgcolor: 'rgba(4,120,87,0.1)', color: '#047857' }}>
                 <ShoppingBagOutlinedIcon />
               </Box>
@@ -171,7 +174,107 @@ export const UsageTab = () => {
         </TextField>
       </Stack>
 
-      {/* Tabela de Uso */}
+      {isMobile ? (
+        <Stack spacing={1}>
+          {filtered.length === 0 ? (
+            <Card variant="outlined" sx={{ borderRadius: '16px', p: 3, textAlign: 'center' }}>
+              <Typography color="text.secondary">Nenhum usuário encontrado.</Typography>
+            </Card>
+          ) : filtered.slice(0, 100).map((r) => (
+            <Card
+              key={r.userId}
+              variant="outlined"
+              onClick={() => setExpanded(expanded === r.userId ? null : r.userId)}
+              sx={{
+                borderRadius: '16px',
+                cursor: 'pointer',
+                overflow: 'hidden',
+                transition: 'all .15s ease',
+                '&:active': { transform: 'scale(0.98)' },
+                borderLeft: expanded === r.userId ? '3px solid #178f89' : undefined,
+              }}
+            >
+              <CardContent sx={{ p: 1.75, '&:last-child': { pb: 1.75 } }}>
+                {/* Header: nome + saldo */}
+                <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography sx={{ fontSize: 15, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {r.name || r.email}
+                    </Typography>
+                    <Typography sx={{ fontSize: 12, color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {r.email}
+                    </Typography>
+                  </Box>
+                  <Stack direction="row" alignItems="center" spacing={0.5}>
+                    <Chip
+                      size="small"
+                      label={`${r.credits.toLocaleString('pt-BR')} cr`}
+                      sx={{
+                        height: 24, fontSize: 12, fontWeight: 800, whiteSpace: 'nowrap',
+                        bgcolor: r.credits > 100 ? 'rgba(4,120,87,.12)' : 'rgba(194,65,12,.12)',
+                        color: r.credits > 100 ? '#047857' : '#c2410c',
+                      }}
+                    />
+                    <IconButton size="small" sx={{ transform: expanded === r.userId ? 'rotate(180deg)' : 'none', transition: 'transform .2s', p: 0.25 }}>
+                      <ExpandMoreIcon fontSize="small" />
+                    </IconButton>
+                  </Stack>
+                </Stack>
+                {/* Métricas rápidas */}
+                <Stack direction="row" spacing={0} sx={{ mt: 1.25, pt: 1, borderTop: '1px solid', borderColor: 'divider' }}>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography sx={{ fontSize: 10, color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>Gasto</Typography>
+                    <Typography sx={{ fontSize: 16, fontWeight: 800, color: '#c2410c', lineHeight: 1.2 }}>{r.totalSpent.toLocaleString('pt-BR')}</Typography>
+                  </Box>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography sx={{ fontSize: 10, color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>Ganho</Typography>
+                    <Typography sx={{ fontSize: 16, fontWeight: 800, color: '#047857', lineHeight: 1.2 }}>{r.totalEarned.toLocaleString('pt-BR')}</Typography>
+                  </Box>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography sx={{ fontSize: 10, color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>Trans.</Typography>
+                    <Typography sx={{ fontSize: 16, fontWeight: 800, color: 'text.primary', lineHeight: 1.2 }}>{r.txCount}</Typography>
+                  </Box>
+                  <Box sx={{ flex: 1, textAlign: 'right' }}>
+                    <Typography sx={{ fontSize: 10, color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>Última</Typography>
+                    <Typography sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 600, lineHeight: 1.6 }}>
+                      {r.lastTxAt ? new Date(r.lastTxAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : '—'}
+                    </Typography>
+                  </Box>
+                </Stack>
+                {/* Histórico expansível */}
+                <Collapse in={expanded === r.userId} timeout="auto" unmountOnExit>
+                  <Box sx={{ mt: 1.5, pt: 1.5, borderTop: '1px dashed', borderColor: 'divider' }}>
+                    <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', display: 'block', mb: 1 }}>
+                      📜 Histórico ({r.transactions.length})
+                    </Typography>
+                    <Stack spacing={0.5}>
+                      {r.transactions.slice(0, 30).map((tx) => (
+                        <Stack
+                          key={tx.id}
+                          direction="row"
+                          spacing={0.75}
+                          alignItems="center"
+                          sx={{ p: 0.75, borderRadius: '10px', bgcolor: tx.delta < 0 ? 'rgba(194,65,12,0.04)' : 'rgba(4,120,87,0.04)' }}
+                        >
+                          <Typography sx={{ fontSize: 11, color: 'text.secondary', flexShrink: 0, width: 40 }}>
+                            {new Date(tx.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+                          </Typography>
+                          <Typography sx={{ fontSize: 12, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'text.secondary' }}>
+                            {KIND_LABEL[tx.kind] ?? tx.kind}
+                          </Typography>
+                          <Typography sx={{ fontSize: 13, fontWeight: 800, flexShrink: 0, color: tx.delta < 0 ? '#c2410c' : '#047857' }}>
+                            {tx.delta > 0 ? '+' : ''}{tx.delta}
+                          </Typography>
+                        </Stack>
+                      ))}
+                    </Stack>
+                  </Box>
+                </Collapse>
+              </CardContent>
+            </Card>
+          ))}
+        </Stack>
+      ) : (
       <Card variant="outlined" sx={{ borderRadius: '16px', overflow: 'hidden' }}>
         <TableContainer sx={{ overflowX: 'auto' }}>
           <Table size="small" sx={{ minWidth: 640 }}>
@@ -288,6 +391,7 @@ export const UsageTab = () => {
           </Table>
         </TableContainer>
       </Card>
+      )}
     </Stack>
   );
 };
