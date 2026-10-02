@@ -113,16 +113,18 @@ async function createOpenPixCharge(input: CreatePixChargeInput): Promise<PixChar
   const charge = data?.charge;
   if (!charge?.brCode) throw new Error('OpenPix: resposta sem charge.brCode');
   // QR em imagem: BEST-EFFORT — falha não derruba a compra (o copia-e-cola basta).
+  // 02/10: o endpoint /api/image/qrcode/base64 devolve 'not found' pra cobrança
+  // DYNAMIC — a imagem certa vem NO CORPO da charge (qrCodeImage, PNG público,
+  // provado 200/10KB sem auth). Baixa e vira data-uri (contrato do front).
   let qrBase64: string | null = null;
   try {
-    const img = await fetch(
-      `${config.openPixApiBaseUrl}/api/image/qrcode/base64/${encodeURIComponent(input.correlationID)}`,
-      { headers: { Authorization: config.openPixAppId } },
-    );
-    if (img.ok) {
-      const imgData: any = await img.json();
-      const b64 = imgData?.imageBase64 ?? '';
-      qrBase64 = b64 ? toDataUri(b64) : null;
+    const imgUrl: string | undefined = charge.paymentMethods?.pix?.qrCodeImage ?? charge.qrCodeImage;
+    if (imgUrl) {
+      const img = await fetch(imgUrl);
+      if (img.ok) {
+        const buf = Buffer.from(await img.arrayBuffer());
+        qrBase64 = `data:image/png;base64,${buf.toString('base64')}`;
+      }
     }
   } catch { /* best-effort: front mostra o copia-e-cola */ }
   return {

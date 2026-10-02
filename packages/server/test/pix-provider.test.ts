@@ -81,30 +81,37 @@ describe('pix-provider: Mercado Pago (default)', () => {
 });
 
 describe('pix-provider: OpenPix', () => {
-  it('charge + QR base64 (2 fetches: /charge e /image/qrcode/base64)', async () => {
+  it('charge + QR base64 (2 fetches: /charge e o qrCodeImage do CORPO da resposta)', async () => {
     const { createPixCharge, activePixProvider } = await loadProvider({
       PAYMENT_PROVIDER: 'openpix', OPENPIX_APP_ID: 'appid-teste',
     });
     expect(activePixProvider()).toBe('openpix');
     fetchMock().mockReset();
     fetchMock()
-      .mockResolvedValueOnce(resp({ charge: { correlationID: 'credits_sub9_140', brCode: 'BRCODE123', status: 'ACTIVE', expiresDate: '2026-10-02T12:10:00.000Z' } }))
-      .mockResolvedValueOnce(resp({ imageBase64: 'QkFBRQ==' }));
+      .mockResolvedValueOnce(resp({
+        charge: {
+          correlationID: 'credits_sub9_140', brCode: 'BRCODE123', status: 'ACTIVE',
+          expiresDate: '2026-10-02T12:10:00.000Z',
+          // 02/10: imagem vem NA charge (PNG público) — endpoint /image/qrcode/base64
+          // responde 'not found' pra DYNAMIC (prova ao vivo).
+          paymentMethods: { pix: { qrCodeImage: 'https://api.woovi.com/x.png' } },
+        },
+      }))
+      .mockResolvedValueOnce({ ok: true, json: async () => ({}), arrayBuffer: async () => new Uint8Array([0x42, 0x41, 0x41]).buffer });
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
     const charge = await createPixCharge({ amountBrlCents: 990, correlationID: 'credits_sub9_140', description: 'd', expiresAt });
     expect(charge.id).toBe('credits_sub9_140'); // paymentId = correlationID
     expect(charge.qrCode).toBe('BRCODE123');
-    expect(charge.qrBase64).toBe('data:image/png;base64,QkFBRQ==');
+    expect(charge.qrBase64).toBe(`data:image/png;base64,${Buffer.from([0x42, 0x41, 0x41]).toString('base64')}`);
     expect(charge.expiresAt).toBe(expiresAt);
-    // POST /api/v1/charge: Authorization = APP_ID puro, value EM CENTAVOS
     const [url, init] = fetchMock().mock.calls[0];
     expect(String(url)).toBe('https://api.openpix.com.br/api/v1/charge');
     expect(init.headers.Authorization).toBe('appid-teste');
     const body = JSON.parse(init.body);
     expect(body.correlationID).toBe('credits_sub9_140');
     expect(body.value).toBe(990);
-    // QR imagem best-effort pelo correlationID
-    expect(String(fetchMock().mock.calls[1][0])).toContain('/api/image/qrcode/base64/credits_sub9_140');
+    // QR imagem: baixa o PNG do corpo da charge (URL pública)
+    expect(String(fetchMock().mock.calls[1][0])).toBe('https://api.woovi.com/x.png');
   });
 
   it('QR imagem falha → qrBase64 null (copia-e-cola segue válido)', async () => {
