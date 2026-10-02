@@ -19,8 +19,9 @@ const reducedMotion = () => {
   try { return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return false; }
 };
 
-/** Confetti canvas puro — ~46 partículas caindo com rotação, auto-para em ~4,2s. */
-const ConfettiCanvas = () => {
+/** Confetti canvas puro — ~46 partículas caindo com rotação, auto-para em ~4,2s.
+ *  Exportado p/ reuso leve (PixModal aprovado): absolute inset 0 dentro de um pai relative. */
+export const ConfettiCanvas = () => {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     if (reducedMotion()) return;

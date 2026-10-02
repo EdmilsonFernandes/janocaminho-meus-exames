@@ -17,7 +17,7 @@ export const PaymentChooser = ({ packId, packLabel, onClose, onPix }: {
   // 02/10 (MP suspenso): cartão/débito só aparecem quando o admin religar
   // (AppSetting payments.cardEnabled) — config pública, sem novo deploy/AAB.
   const [cardEnabled, setCardEnabled] = useState(false);
-  useEffect(() => { fetchPublicConfig().then((c) => setCardEnabled(!!(c as any).cardEnabled)).catch(() => {}); }, []);
+  useEffect(() => { fetchPublicConfig().then((c) => setCardEnabled(c.cardEnabled)).catch(() => {}); }, []);
 
   const payRedirect = async (method: 'card' | 'debit') => {
     if (!packId) return;
@@ -55,7 +55,7 @@ export const PaymentChooser = ({ packId, packLabel, onClose, onPix }: {
       <DialogContent sx={{ pb: 3 }}>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>{packLabel}</Typography>
         <Stack spacing={1.5}>
-          <Opt icon={<QrCode2Icon />} title="PIX" sub="Instantâneo • QR code" busyKey="pix" color="#20b2aa"
+          <Opt icon={<QrCode2Icon />} title="PIX" sub="Instantâneo • via OpenPix (Woovi)" busyKey="pix" color="#20b2aa"
             onClick={() => { onPix(); onClose(); }} />
           {cardEnabled && (
             <>
@@ -68,16 +68,19 @@ export const PaymentChooser = ({ packId, packLabel, onClose, onPix }: {
         </Stack>
         {err && <Typography color="error" variant="body2" sx={{ mt: 2 }}>{err}</Typography>}
 
-        {/* Selo de confiança (padrão checkout premium): reduz abandono e dúvida "quem é o vendedor" */}
+        {/* Selo de confiança (padrão checkout premium): reduz abandono e dúvida "quem é o vendedor".
+            02/10: PIX = OpenPix (Woovi); cartão/débito = Mercado Pago — nunca mais um selo único fixo. */}
         <Stack direction="row" spacing={0.75} justifyContent="center" sx={{ mt: 2.5, flexWrap: 'wrap', rowGap: 0.5 }}>
           <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>🔒 Ambiente seguro</Typography>
           <Typography variant="caption" sx={{ color: 'text.disabled' }}>·</Typography>
           <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>Dr. Exame</Typography>
           <Typography variant="caption" sx={{ color: 'text.disabled' }}>·</Typography>
-          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>Processado pelo Mercado Pago</Typography>
+          {cardEnabled
+            ? <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>PIX via OpenPix (Woovi) · Cartão via Mercado Pago</Typography>
+            : <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>Processado via OpenPix (Woovi)</Typography>}
         </Stack>
         <Typography variant="caption" sx={{ display: 'block', mt: 0.5, textAlign: 'center', color: 'text.disabled' }}>
-          Na fatura/PIX aparecerá "DR EXAME"
+          No extrato do PIX aparece o nome do recebedor registrado
         </Typography>
       </DialogContent>
     </Dialog>

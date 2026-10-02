@@ -8,7 +8,7 @@ import QrCode2Icon from '@mui/icons-material/QrCode2';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { useNotify, useTranslate } from 'react-admin';
 import { useSearchParams } from 'react-router-dom';
-import { API_URL, token } from '../config';
+import { API_URL, token, fetchPublicConfig } from '../config';
 import { usePlanInfo, fmtBRL } from '../utils/planInfo';
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
@@ -35,6 +35,9 @@ export const PlansPage = () => {
   const [pixPack, setPixPack] = useState<string | null>(null);
   const [chooserPack, setChooserPack] = useState<string | null>(null);
   const [chooserLabel, setChooserLabel] = useState('');
+  // 1-clique (02/10): com cartão desligado (payments.cardEnabled=false, default) o pacote
+  // vai DIRETO pro PixModal — o PaymentChooser só entra quando há escolha a fazer.
+  const [cardEnabled, setCardEnabled] = useState(false);
   const [hist, setHist] = useState<any[]>([]);
   const [histPage, setHistPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
@@ -55,6 +58,7 @@ export const PlansPage = () => {
   };
 
   useEffect(() => { checkPendingPix(); }, []);
+  useEffect(() => { fetchPublicConfig().then((c) => setCardEnabled(c.cardEnabled)).catch(() => {}); }, []);
 
   // Timer ao vivo: só roda quando há PIX pendente (sem custo quando não tem)
   useEffect(() => {
@@ -304,7 +308,11 @@ export const PlansPage = () => {
                   </Button>
                 </Stack>
               ) : (
-                <Button variant={p.popular ? 'contained' : 'outlined'} fullWidth disabled={!mpOn} sx={{ borderRadius: '999px', fontWeight: 800, textTransform: 'none' }} onClick={() => { setChooserLabel(`${p.credits} créditos • R$ ${p.price.toFixed(2).replace('.', ',')}`); setChooserPack(p.id); }}>Comprar</Button>
+                <Button variant={p.popular ? 'contained' : 'outlined'} fullWidth disabled={!mpOn} sx={{ borderRadius: '999px', fontWeight: 800, textTransform: 'none' }} onClick={() => {
+                  // PIX-only (cardEnabled=false) → 1-clique direto no QR; religado → escolhe forma.
+                  if (cardEnabled) { setChooserLabel(`${p.credits} créditos • R$ ${p.price.toFixed(2).replace('.', ',')}`); setChooserPack(p.id); }
+                  else setPixPack(p.id);
+                }}>Comprar</Button>
               )}
             </CardContent>
           </Card>
