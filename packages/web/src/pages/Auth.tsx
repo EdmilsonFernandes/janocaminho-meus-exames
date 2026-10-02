@@ -8,6 +8,7 @@ import { DrExame } from '../components/DrExame';
 import { API_URL, fetchPublicConfig } from '../config';
 import { Capacitor } from '@capacitor/core';
 import { nativeGoogleLogin } from '../utils/nativeGoogleAuth';
+import { GoogleSignInButton } from '../components/GoogleSignInButton';
 import { OtpInput } from '../components/OtpInput';
 import { MfaChallengeDialog } from '../components/mfa/MfaChallengeDialog';
 import { BiometricService, getDeviceId } from '../components/BiometricService';
@@ -510,6 +511,9 @@ export const RegisterPage = () => {
         <Button type="submit" variant="contained" size="large" fullWidth disabled={loading} endIcon={<I.ArrowRight />} sx={primaryBtnSx}>
           {loading ? <CircularProgress size={22} color="inherit" /> : 'Criar conta'}
         </Button>
+        {/* 02/10 (dono): criar com GOOGLE também no registro — o /auth/google cria a
+            conta (user+titular+termos) se não existir. Antes o botão só existia no login. */}
+        <GoogleSignInButton label={translate('auth.google')} />
       </Box>
       <Typography align="center" sx={{ mt: 2, fontSize: 13 }}>
         {translate('auth.have_account')} <Link component="button" type="button" sx={{ fontWeight: 700, color: LINK }} onClick={() => navigate('/')}>{translate('auth.signin')}</Link>
