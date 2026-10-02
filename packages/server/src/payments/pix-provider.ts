@@ -95,7 +95,7 @@ async function createOpenPixCharge(input: CreatePixChargeInput): Promise<PixChar
       correlationID: input.correlationID,
       value: input.amountBrlCents,
       expiresIn: expiresInSec, // alinha a validade do QR com o countdown do front
-      comment: input.description,
+      comment: String(input.description ?? '').replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{2B00}-\u{2BFF}]/gu, '').trim().slice(0, 100) || undefined,
     }),
   });
   if (!r.ok) {

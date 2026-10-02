@@ -233,7 +233,7 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
     } catch (e) {
       console.error('[buy-credits] PIX falhou (' + activePixProvider() + '):', (e as Error).message);
       await updateSubscriptionCompat(sub.id, { status: 'FAILED' });
-      res.status(502).json({ error: 'Falha ao gerar PIX.' });
+      res.status(503).json({ error: 'Pagamento indisponível no momento — tente novamente em alguns minutos. Se persistir, fale com o suporte.' });
       return;
     }
     console.log('[buy-credits] PIX criado:', charge.id, '| provider:', activePixProvider(), '| tem QR img:', !!charge.qrBase64);
@@ -368,7 +368,7 @@ router.post('/buy-api-pack', requireAuth, async (req: AuthedRequest, res, next) 
     } catch (e) {
       console.error('[buy-api-pack] PIX falhou (' + activePixProvider() + '):', (e as Error).message);
       await updateSubscriptionCompat(sub.id, { status: 'FAILED' });
-      res.status(502).json({ error: 'Falha ao gerar PIX.' });
+      res.status(503).json({ error: 'Pagamento indisponível no momento — tente novamente em alguns minutos. Se persistir, fale com o suporte.' });
       return;
     }
     console.log('[buy-api-pack] PIX criado:', charge.id, '| provider:', activePixProvider(), '| tem QR img:', !!charge.qrBase64);
