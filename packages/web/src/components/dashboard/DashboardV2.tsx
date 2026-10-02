@@ -24,7 +24,7 @@ import { SinceExamCard } from './SinceExamCard';
 import { CreditsCard } from './CreditsCard';
 import { BiologicalAgeCard } from './BiologicalAgeCard';
 import { ShareHealthButton } from '../ShareHealthCard';
-import { ReviewPrompt } from '../ReviewPrompt';
+import { ReviewPrompt, maybeRequestReview } from '../ReviewPrompt';
 import { AppCard } from '../AppCard';
 import { GradientButton } from '../GradientButton';
 import { Celebration } from '../Celebration';
@@ -761,6 +761,9 @@ export const DashboardV2 = () => {
     }
   }, [d.loaded, d.stats.exams, pid, demo, firstKey]);
   const finishCelebration = () => {
+    // REVIEW (01/10, gatilho 3): celebrou e FECHOU a celebração = vitória consumida —
+    // momento certo pro review nativo (mesma API/90d; nunca durante a animação).
+    void maybeRequestReview();
     setCelebrate(false);
     try { localStorage.setItem(firstKey, '1'); } catch { /* ignore */ }
   };

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography, Button, CircularProgress, Stack, Alert, Grid, Chip, Checkbox, Dialog, DialogTitle, DialogContent, DialogActions, Select, MenuItem, FormControl, Avatar } from '@mui/material';
 import { Title, useTranslate } from 'react-admin';
@@ -17,6 +17,7 @@ import { hapticSuccess, hapticError } from '../utils/haptic';
 import { bumpCredits } from '../utils/credits-events';
 import { speakText, stopSpeakText } from '../utils/nativeDoc';
 import { useSelectedPatient } from '../patient-context';
+import { maybeRequestReview } from '../components/ReviewPrompt';
 import { ShareDialog } from '../components/ShareDialog';
 import { ReportGeneratingCard } from '../components/ReportGeneratingCard';
 import { CreditBadge, CREDIT_COSTS } from '../components/CreditBadge';
@@ -272,6 +273,19 @@ export const ConsolidatedReportPage = () => {
     load();
     return () => { dead = true; if (poll) clearInterval(poll); };
   }, [pid]);
+
+  // REVIEW (01/10, gatilho 2 — skill in-app-review): transição 'gerando → pronto' é o
+  // WOW do app (relatório completo que o usuário esperou). Review NATIVO 2,5s depois
+  // da revelação — nunca na cara do resultado. Mesma API e cooldown de 90d do A1.
+  const genWasRef = useRef(false);
+  useEffect(() => {
+    if (generatingSince) { genWasRef.current = true; return; }
+    if (genWasRef.current && analysis) {
+      genWasRef.current = false;
+      const t = setTimeout(() => { void maybeRequestReview(); }, 2500);
+      return () => clearTimeout(t);
+    }
+  }, [generatingSince, analysis?.id]);
 
   const [confirmSpend, setConfirmSpend] = useState<{ open: boolean; onYes: () => void }>({ open: false, onYes: () => {} });
   const generate = (force = false) => {
