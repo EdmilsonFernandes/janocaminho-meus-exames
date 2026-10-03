@@ -27,6 +27,7 @@ import chatRoutes from './routes/chat.routes';
 import reminderRoutes from './routes/reminder.routes';
 import billingRoutes from './routes/billing.routes';
 import openpixWebhookRoutes from './routes/openpix-webhook.routes';
+import asaasWebhookRoutes from './routes/asaas-webhook.routes';
 import labsRoutes from './routes/labs.routes';
 import measurementRoutes from './routes/measurement.routes';
 import medicationRoutes from './routes/medication.routes';
@@ -214,6 +215,9 @@ app.use('/api/billing', billingRoutes);
 // Webhook público do OpenPix (PIX — PAYMENT_PROVIDER=openpix). PÚBLICO como o do MP:
 // a "assinatura" é a existência de Subscription PENDING + valor bater (ver rota).
 app.use('/api/webhooks', openpixWebhookRoutes);
+// Webhook público do Asaas (PIX/cartão — PAYMENT_PROVIDER=asaas). MESMA defesa do
+// OpenPix: Subscription PENDING por payment.id + valor bater (ver rota).
+app.use('/api/webhooks', asaasWebhookRoutes);
 app.use('/api/labs', labsRoutes);
 app.use('/api/measurements', measurementRoutes);
 app.use('/api/medications', medicationRoutes);

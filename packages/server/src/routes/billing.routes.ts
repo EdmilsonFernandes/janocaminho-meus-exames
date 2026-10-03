@@ -1,12 +1,12 @@
 import { Router } from 'express';
 import crypto from 'crypto';
 import { prisma } from '../prisma';
-import { config, hasMercadoPago, hasOpenPix } from '../config';
+import { config, hasMercadoPago } from '../config';
 import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
 import { CREDIT_COSTS, UPLOAD_RULES } from '../utils/credits';
 import { getSettings, getMonthlyPlan, getEffectivePlanPrice, getCreditPacks, getPremiumPerks } from '../utils/settings';
 import { createSubscriptionCompat, getSubscriptionColumnSupport, updateSubscriptionCompat } from '../utils/subscriptionCompat';
-import { createPixCharge, activePixProvider, type PixChargeResult } from '../payments/pix-provider';
+import { createPixCharge, activePixProvider, pixProviderReady, type PixChargeResult } from '../payments/pix-provider';
 import { cancelStalePendingPixes } from '../jobs/pix-expiry';
 import { approvePendingSubscription, type ApprovalKind } from '../utils/billingApproval';
 
@@ -33,7 +33,7 @@ router.get('/plans', (_req, res) => {
     creditPacks: getCreditPacks(),
     freeExamLimit: config.freeExamLimit,
     mercadoPagoEnabled: hasMercadoPago(),
-    pixProvider: activePixProvider(), // 'mp' | 'openpix' — diagnóstico (toggle PAYMENT_PROVIDER)
+    pixProvider: activePixProvider(), // 'mp' | 'openpix' | 'asaas' — diagnóstico (toggle PAYMENT_PROVIDER)
     creditCosts: CREDIT_COSTS, // pra o front sincronizar (admin pode ter mudado)
     uploadRules: UPLOAD_RULES, // regras de cobrança de upload (admin pode editar em runtime)
     shares: getSettings().shares, // custo por escopo ao compartilhar c/ médico (pré-visualização no app)
@@ -129,8 +129,8 @@ router.post('/checkout', requireAuth, async (req: AuthedRequest, res, next) => {
 // compra outro pack (nem por cartão) enquanto o PIX atual vive.
 router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) => {
   try {
-    // Gate por provider: PIX usa o ativo (mp|openpix); cartão/débito exigem MP abaixo.
-    if (activePixProvider() === 'openpix' ? !hasOpenPix() : !hasMercadoPago()) { res.status(503).json({ error: 'Pagamentos não configurados.' }); return; }
+    // Gate por provider: PIX usa o ativo (mp|openpix|asaas); cartão/débito exigem MP abaixo.
+    if (!pixProviderReady()) { res.status(503).json({ error: 'Pagamentos não configurados.' }); return; }
     const subscriptionColumns = await getSubscriptionColumnSupport();
     const pack = packById(String(req.body?.pack ?? ''));
     if (!pack) { res.status(400).json({ error: 'Pacote inválido' }); return; }
@@ -240,6 +240,8 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
         description: `Dr. Exame — ${pack.credits} créditos de IA para análise de exames`,
         payerEmail: user.email,
         payerFirstName: (user.name || 'Cliente').split(' ')[0],
+        userId: user.id, // Asaas: cache de customer (cus_*) por usuário
+        payerName: user.name || undefined, // Asaas: customer com nome real
         expiresAt: expires,
         notificationUrl: publicNotifyUrl(),
       });
@@ -286,8 +288,8 @@ const API_PIX_TTL_MS = 5 * 60 * 1000;
 
 router.post('/buy-api-pack', requireAuth, async (req: AuthedRequest, res, next) => {
   try {
-    // Gate por provider (igual buy-credits): PIX no provider ativo; cartão exige MP.
-    if (activePixProvider() === 'openpix' ? !hasOpenPix() : !hasMercadoPago()) { res.status(503).json({ error: 'Pagamentos não configurados.' }); return; }
+    // Gate por provider (igual buy-credits): PIX no provider ativo (mp|openpix|asaas); cartão exige MP.
+    if (!pixProviderReady()) { res.status(503).json({ error: 'Pagamentos não configurados.' }); return; }
     const packs = (getSettings().apiAccess?.packs ?? []) as { id: string; calls: number; price: number; label: string }[];
     const pack = packs.find((p) => p.id === String(req.body?.pack ?? ''));
     if (!pack) { res.status(400).json({ error: 'Pacote de API inválido' }); return; }
@@ -375,6 +377,8 @@ router.post('/buy-api-pack', requireAuth, async (req: AuthedRequest, res, next) 
         description: `Dr. Exame API — ${pack.label}: ${pack.calls} chamadas`,
         payerEmail: user.email,
         payerFirstName: (user.name || 'Parceiro').split(' ')[0],
+        userId: user.id, // Asaas: cache de customer (cus_*) por usuário
+        payerName: user.name || undefined, // Asaas: customer com nome real
         expiresAt: expires,
         notificationUrl: publicNotifyUrl(),
       });
@@ -471,11 +475,11 @@ router.delete('/pending/:id', requireAuth, async (req: AuthedRequest, res, next)
 });
 
 // Status de um pagamento PIX (polling do frontend enquanto mostra o QR).
-// OpenPix: paymentId = correlationID → status vem da Subscription (atualizada pelo
-// webhook /api/webhooks/openpix). MP: pergunta a API do MP como antes.
+// OpenPix/Asaas: paymentId = correlationID | pay_... → status vem da Subscription
+// (atualizada pelos webhooks /api/webhooks/{openpix,asaas}). MP: pergunta a API do MP.
 router.get('/payment-status/:id', requireAuth, async (req, res, next) => {
   try {
-    if (activePixProvider() === 'openpix') {
+    if (activePixProvider() !== 'mp') {
       const sub = await prisma.subscription.findFirst({
         where: { userId: (req as AuthedRequest).userId!, mpPaymentId: String(req.params.id) },
         orderBy: { createdAt: 'desc' },

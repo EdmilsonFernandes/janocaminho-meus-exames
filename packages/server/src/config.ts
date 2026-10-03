@@ -93,12 +93,18 @@ export const config = {
   mpWebhookUrl: process.env.MP_WEBHOOK_URL ?? '',
   mpNotificationUrl: process.env.MP_NOTIFICATION_URL ?? '',
 
-  // Provedor de PIX: 'mp' (Mercado Pago, default — volta é só apagar a env) | 'openpix'.
+  // Provedor de PIX: 'mp' (Mercado Pago, default — volta é só apagar a env) | 'openpix' | 'asaas'.
   // Toggle de emergência criado na suspensão do MP (02/10): PAYMENT_PROVIDER=openpix
   // move TODO o fluxo PIX pro OpenPix; cartão/débito seguem no MP (OpenPix é PIX-only).
+  // 03/10: 'asaas' = gateway completo (PIX ≥R$5 + cartão); abaixo de R$5 o pix-provider
+  // cai pro OpenPix. Fallback chain: escolhido → openpix → mp (ver payments/pix-provider).
   paymentProvider: (process.env.PAYMENT_PROVIDER ?? 'mp').toLowerCase(),
   openPixAppId: process.env.OPENPIX_APP_ID ?? '',
   openPixApiBaseUrl: process.env.OPENPIX_API_BASE_URL ?? 'https://api.openpix.com.br',
+  // Asaas (gateway completo — PIX + cartão). Auth: header `access_token` SEM Bearer.
+  // Base SEM /v3 (paths carregam /v3/*). Default = produção (a chave já é de produção).
+  asaasApiKey: process.env.ASAAS_API_KEY ?? '',
+  asaasApiBaseUrl: (process.env.ASAAS_API_BASE_URL ?? 'https://api.asaas.com').replace(/\/$/, ''),
 
   // Paywall: nº de exames gratuitos antes de exigir assinatura
   freeExamLimit: Number(process.env.FREE_EXAM_LIMIT ?? 2),
@@ -146,6 +152,8 @@ if (config.isProd) {
 export const hasMercadoPago = () => config.mpAccessToken.trim().length > 0;
 
 export const hasOpenPix = () => config.openPixAppId.trim().length > 0;
+
+export const hasAsaas = () => config.asaasApiKey.trim().length > 0;
 
 export const useS3 = () => config.s3Bucket.trim().length > 0;
 

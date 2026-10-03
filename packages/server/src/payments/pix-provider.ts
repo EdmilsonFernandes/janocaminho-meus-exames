@@ -1,16 +1,18 @@
-// Provedor de cobrança PIX — Mercado Pago (default) ou OpenPix (env PAYMENT_PROVIDER).
+// Provedor de cobrança PIX — Mercado Pago (default), OpenPix ou Asaas (env PAYMENT_PROVIDER).
 // Toggle de emergência da suspensão do MP (02/10): PAYMENT_PROVIDER=openpix move o PIX
 // pro OpenPix; voltar pro MP = remover a env. Camada PURA (só fetch global + config)
 // → mockável em teste (stub de globalThis.fetch, igual ao MP em test/helpers).
 //
 // Contrato único pro caller (billing.routes): { id, qrCode, qrBase64, expiresAt }.
-//   - id = id externo genérico: MP payment id | OpenPix correlationID (gravado em
-//     Subscription.mpPaymentId — o campo é o "payment id externo" desde o início).
+//   - id = id externo genérico: MP payment id | OpenPix correlationID | Asaas payment id
+//     ("pay_...") — gravado em Subscription.mpPaymentId (o campo é o "payment id externo"
+//     desde o início; cada webhook casa a aprovação pelo formato do seu id).
 //   - qrBase64 pode vir NULL (OpenPix QR imagem é best-effort) → front mostra copia-e-cola.
 import crypto from 'crypto';
-import { config, hasMercadoPago, hasOpenPix } from '../config';
+import { config, hasMercadoPago, hasOpenPix, hasAsaas } from '../config';
+import { createAsaasPixCharge, getAsaasQrCode } from './asaas-provider';
 
-export type PixProviderName = 'mp' | 'openpix';
+export type PixProviderName = 'mp' | 'openpix' | 'asaas';
 
 export interface PixChargeResult {
   id: string;
@@ -34,37 +36,67 @@ export interface CreatePixChargeInput {
   expiresAt: Date;
   /** notification_url pública (MP; undefined em dev/localhost — MP rejeita URL não-HTTPS) */
   notificationUrl?: string;
+  /** Asaas: id do usuário do app — chave do cache de customer (cus_*) */
+  userId?: string;
+  /** Asaas: nome COMPLETO do pagador (cria o customer com nome real, não só 1º nome) */
+  payerName?: string;
 }
 
 /** Provider ativo segundo env (default 'mp'). */
 export function activePixProvider(): PixProviderName {
-  return config.paymentProvider === 'openpix' ? 'openpix' : 'mp';
+  if (config.paymentProvider === 'openpix') return 'openpix';
+  if (config.paymentProvider === 'asaas') return 'asaas';
+  return 'mp';
+}
+
+/** Credenciais do provider de PIX OK? (gate 503 de buy-credits/buy-api-pack —
+ *  cartão/débito seguem exigindo MP à parte, como hoje). */
+export function pixProviderReady(): boolean {
+  const p = activePixProvider();
+  return p === 'mp' ? hasMercadoPago() : p === 'openpix' ? hasOpenPix() : hasAsaas();
 }
 
 const toDataUri = (b64: string) => (b64.startsWith('data:') ? b64 : `data:image/png;base64,${b64}`);
 
-/** Fallback chain (dono 03/10): provider ativo falha → tenta o outro (se
- *  configurado). Ambos falham → erro amigável (a rota já devolve 503 com ela).
- *  Reverse fallback (MP → openpix) não é preciso: PAYMENT_PROVIDER=mp = MP saudável. */
+/** Fallback chain (dono 03/10): provider ESCOLHIDO → openpix → mp (se configurados).
+ *  - 'mp' primário: sem fallback (PAYMENT_PROVIDER=mp = MP saudável, comportamento histórico).
+ *  - 'asaas' primário: PIX exige ≥ R$5 (abaixo o próprio Asaas recusa e o openpix assume).
+ *  - MP de resgate exige external_reference (webhook MP casa aprovação por subId|credits) —
+ *    sem ela o fallback creditaria errado. Sem token MP → sem resgate.
+ *  Fallback tentado E falho → erro amigável (a rota já devolve 503 com ela); sem fallback
+ *  possível → propaga o erro original (mais específico p/ log/diagnóstico). */
+const PIX_UNAVAILABLE = 'Pagamento indisponível no momento — tente novamente em alguns minutos.';
+
 export async function createPixCharge(input: CreatePixChargeInput): Promise<PixChargeResult> {
-  if (activePixProvider() === 'openpix') {
-    try {
-      return await createOpenPixCharge(input);
-    } catch (e) {
-      // MP de resgate exige external_reference (webhook MP casa aprovação por
-      // subId|credits) — sem ela o fallback creditaria errado. Sem token MP → sem resgate.
-      const canFallback = hasMercadoPago() && !!input.externalReference;
-      if (!canFallback) throw e;
-      console.error(`[pix] openpix falhou, tentando MP: ${(e as Error).message}`);
+  const primary = activePixProvider();
+  if (primary === 'mp') return createMercadoPagoPix(input);
+
+  const run: Record<PixProviderName, (inp: CreatePixChargeInput) => Promise<PixChargeResult>> = {
+    mp: createMercadoPagoPix,
+    openpix: createOpenPixCharge,
+    asaas: createAsaasPix,
+  };
+  try {
+    return await run[primary](input);
+  } catch (primaryErr) {
+    let triedFallback = false;
+    for (const p of ['openpix', 'mp'] as PixProviderName[]) {
+      if (p === primary) continue;
+      const canFallback =
+        p === 'mp'
+          ? hasMercadoPago() && !!input.externalReference // webhook MP casa por subId|credits
+          : hasOpenPix();
+      if (!canFallback) continue;
+      triedFallback = true;
+      console.error(`[pix] ${primary} falhou, tentando ${p}: ${(primaryErr as Error).message}`);
       try {
-        return await createMercadoPagoPix(input);
+        return await run[p](input);
       } catch (e2) {
-        console.error(`[pix] MP também falhou: ${(e2 as Error).message}`);
-        throw new Error('Pagamento indisponível no momento — tente novamente em alguns minutos.');
+        console.error(`[pix] ${p} também falhou: ${(e2 as Error).message}`);
       }
     }
+    throw triedFallback ? new Error(PIX_UNAVAILABLE) : primaryErr;
   }
-  return createMercadoPagoPix(input);
 }
 
 /** Mercado Pago — réplica do fetch que vivia em billing.routes (POST /v1/payments pix). */
@@ -100,6 +132,22 @@ async function createMercadoPagoPix(input: CreatePixChargeInput): Promise<PixCha
     qrBase64: rawB64 ? toDataUri(rawB64) : null,
     expiresAt: input.expiresAt,
   };
+}
+
+/** Asaas — customer (1x por userId, cache) + payment PIX + QR assíncrono. O QR do
+ *  Asaas demora ~3s p/ ficar pronto após criar o payment → getAsaasQrCode com retry
+ *  (sleep 3s) antes de devolver o contrato (o caller persiste QR e mostra na hora). */
+async function createAsaasPix(input: CreatePixChargeInput): Promise<PixChargeResult> {
+  const charge = await createAsaasPixCharge({
+    amountBrlCents: input.amountBrlCents,
+    correlationID: input.correlationID,
+    description: input.description,
+    userId: input.userId ?? input.payerEmail ?? input.correlationID,
+    userName: input.payerName ?? input.payerFirstName,
+    userEmail: input.payerEmail,
+  });
+  const qr = await getAsaasQrCode(charge.paymentId);
+  return { id: charge.paymentId, qrCode: qr.payload, qrBase64: qr.encodedImage, expiresAt: input.expiresAt };
 }
 
 /** OpenPix — POST /api/v1/charge (value EM CENTAVOS) + QR imagem best-effort. */
