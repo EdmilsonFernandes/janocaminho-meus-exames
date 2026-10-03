@@ -5,6 +5,7 @@ import QrCode2Icon from '@mui/icons-material/QrCode2';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import { API_URL, token, fetchPublicConfig } from '../config';
+import { PaymentLogos } from './PaymentLogos';
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
 
@@ -69,15 +70,16 @@ export const PaymentChooser = ({ packId, packLabel, onClose, onPix }: {
         {err && <Typography color="error" variant="body2" sx={{ mt: 2 }}>{err}</Typography>}
 
         {/* Selo de confiança (padrão checkout premium): reduz abandono e dúvida "quem é o vendedor".
-            02/10: PIX = OpenPix (Woovi); cartão/débito = Mercado Pago — nunca mais um selo único fixo. */}
-        <Stack direction="row" spacing={0.75} justifyContent="center" sx={{ mt: 2.5, flexWrap: 'wrap', rowGap: 0.5 }}>
-          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>🔒 Ambiente seguro</Typography>
-          <Typography variant="caption" sx={{ color: 'text.disabled' }}>·</Typography>
-          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>Dr. Exame</Typography>
-          <Typography variant="caption" sx={{ color: 'text.disabled' }}>·</Typography>
-          {cardEnabled
-            ? <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>PIX via OpenPix (Woovi) · Cartão via Mercado Pago</Typography>
-            : <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>Processado via OpenPix (Woovi)</Typography>}
+            03/10 multi-provider: logos OpenPix + Asaas (+"MP" c/ cartão ativo) no lugar do texto. */}
+        <Stack justifyContent="center" sx={{ mt: 2.5 }} spacing={0.5}>
+          <Stack direction="row" spacing={0.75} justifyContent="center" sx={{ flexWrap: 'wrap', rowGap: 0.5 }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>🔒 Ambiente seguro</Typography>
+            <Typography variant="caption" sx={{ color: 'text.disabled' }}>·</Typography>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>Dr. Exame</Typography>
+            <Typography variant="caption" sx={{ color: 'text.disabled' }}>·</Typography>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>Processado via:</Typography>
+          </Stack>
+          <PaymentLogos showMp={cardEnabled} />
         </Stack>
         <Typography variant="caption" sx={{ display: 'block', mt: 0.5, textAlign: 'center', color: 'text.disabled' }}>
           No extrato do PIX aparece o nome do recebedor registrado

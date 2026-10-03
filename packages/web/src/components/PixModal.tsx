@@ -5,9 +5,10 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import QrCode2Icon from '@mui/icons-material/QrCode2';
 import ScheduleIcon from '@mui/icons-material/Schedule';
-import { API_URL, token } from '../config';
+import { API_URL, token, fetchPublicConfig } from '../config';
 import { tealText } from '../theme';
 import { ConfettiCanvas } from './Celebration';
+import { PaymentLogos } from './PaymentLogos';
 
 type Phase = 'loading' | 'waiting' | 'approved' | 'expired' | 'error';
 
@@ -20,6 +21,9 @@ export const PixModal = ({ packId, onClose, onApproved, existingPix }: { packId:
   const [errMsg, setErrMsg] = useState('');
   const [secs, setSecs] = useState(0);
   const [copied, setCopied] = useState(false);
+  // Cartão religado (Asaas, 03/10): chip "MP" do rodapé só faz sentido c/ cartão ativo.
+  const [cardEnabled, setCardEnabled] = useState(false);
+  useEffect(() => { fetchPublicConfig().then((c) => setCardEnabled(c.cardEnabled)).catch(() => {}); }, []);
   // "Gerar novo PIX" (expired): nonce que força NOVA charge mesmo vindo de existingPix.
   const [regen, setRegen] = useState(0);
   const copyTimer = useRef<any>(null);
@@ -184,13 +188,17 @@ export const PixModal = ({ packId, onClose, onApproved, existingPix }: { packId:
               <Typography variant="body2" color="text.secondary">Aguardando confirmação do pagamento…</Typography>
             </Box>
 
-            {/* Selo de confiança — mesmo padrão do PaymentChooser */}
-            <Stack direction="row" spacing={0.75} justifyContent="center" sx={{ mt: 2.5, flexWrap: 'wrap', rowGap: 0.5 }}>
-              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>🔒 Ambiente seguro</Typography>
-              <Typography variant="caption" sx={{ color: 'text.disabled' }}>·</Typography>
-              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>Dr. Exame</Typography>
-              <Typography variant="caption" sx={{ color: 'text.disabled' }}>·</Typography>
-              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>Processado via OpenPix (Woovi)</Typography>
+            {/* Selo de confiança — mesmo padrão do PaymentChooser. Logos multi-provider
+                (OpenPix + Asaas; "MP" só c/ cartão ativo) no lugar do selo texto-único. */}
+            <Stack justifyContent="center" sx={{ mt: 2.5 }} spacing={0.5}>
+              <Stack direction="row" spacing={0.75} justifyContent="center" sx={{ flexWrap: 'wrap', rowGap: 0.5 }}>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>🔒 Ambiente seguro</Typography>
+                <Typography variant="caption" sx={{ color: 'text.disabled' }}>·</Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>Dr. Exame</Typography>
+                <Typography variant="caption" sx={{ color: 'text.disabled' }}>·</Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>Processado via:</Typography>
+              </Stack>
+              <PaymentLogos showMp={cardEnabled} />
             </Stack>
           </Box>
         )}

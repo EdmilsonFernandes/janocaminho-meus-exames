@@ -60,9 +60,9 @@ export const DEFAULT_SETTINGS = {
   // e marcação de "desatualizado" (>staleMonths). Defaults = spec clínica. Admin edita live.
   temporalThresholds: { freshMonths: 6, recentMonths: 12, staleMonths: 12, oldMonths: 36 },
   badges: DEFAULT_BADGES.map((b) => ({ id: b.id, emoji: b.emoji, title: b.title, desc: b.desc, metric: b.metric, threshold: b.threshold, reward: b.reward })),
-  // 02/10 (MP suspenso): PIX segue OpenPix; cartão/débito escondidos até o MP voltar.
-  // Religar = AppSetting payments.cardEnabled true (admin/SQL) — sem deploy.
-  payments: { cardEnabled: false },
+  // 03/10 (Asaas on): cartão/débito voltam — PIX = OpenPix/Woovi + Asaas, cartão = Asaas
+  // (MP standby). Desligar = AppSetting payments.cardEnabled false (admin/SQL) — sem deploy.
+  payments: { cardEnabled: true },
 };
 
 export type SettingCategory = keyof typeof DEFAULT_SETTINGS;

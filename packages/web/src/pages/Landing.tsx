@@ -34,6 +34,7 @@ import { ExamDemo } from '../components/ExamDemo';
 import { LeadPopup } from '../components/LeadPopup';
 import { DecifreReal } from '../components/DecifreReal';
 import { FaqSection } from '../components/FaqSection';
+import { PaymentLogos } from '../components/PaymentLogos';
 import { fetchPublicConfig, API_URL } from '../config';
 import { usePlanInfo, fmtBRL } from '../utils/planInfo';
 import { ScrollReveal, AnimatedNumber } from '../components/ScrollReveal';
@@ -1089,6 +1090,15 @@ export const LandingPage = () => {
           <Typography align="center" sx={{ color: 'text.secondary', mt: 1.5, fontSize: 14, fontWeight: 600 }}>
             Sem surpresa: nenhuma taxa escondida — cancele quando quiser.
           </Typography>
+
+          {/* Multi-provider (03/10): linha discreta de confiança de pagamento — OpenPix PIX,
+              Asaas PIX/cartão, Mercado Pago standby. Logo = prova social de gateway. */}
+          <Typography align="center" variant="caption" sx={{ display: 'block', mt: 4, color: 'text.secondary' }}>
+            Pagamentos processados com segurança via:
+          </Typography>
+          <Box sx={{ mt: 1, mb: 1 }}>
+            <PaymentLogos showMp />
+          </Box>
         </Container>
       </Box>
       </ScrollReveal>

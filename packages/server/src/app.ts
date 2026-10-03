@@ -162,9 +162,9 @@ app.get('/api/public/config', (_req, res) => {
   const { grants, payments } = getSettings();
   res.json({
     freeSignup: grants?.freeSignup ?? 60, referralBonus: REFERRAL_BONUS,
-    // 02/10 (MP suspenso): cartão/débito escondidos até reabilitar — religa por
-    // AppSetting payments.cardEnabled=true (zero deploy). PIX segue OpenPix.
-    cardEnabled: payments?.cardEnabled ?? false,
+    // 03/10 (Asaas on): cartão/débito voltam — kill-switch via
+    // AppSetting payments.cardEnabled=false (zero deploy). PIX = OpenPix + Asaas.
+    cardEnabled: payments?.cardEnabled ?? true,
   });
 });
 // Força-atualização (público, sem auth): app compara a versão instalada com a mínima exigida.
