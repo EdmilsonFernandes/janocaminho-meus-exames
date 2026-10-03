@@ -8,7 +8,7 @@ import { startReminderEmailJob } from './jobs/reminderEmails';
 import { startHealthNudgeJob } from './jobs/healthNudges';
 import { startPlanExpiryJob } from './jobs/planExpiry';
 import { startFirstExamNudgeJob } from './jobs/firstExamNudge';
-import { startPixExpiryJob } from './jobs/pix-expiry';
+import { startPixExpiryJob, startStalePendingPixSweep } from './jobs/pix-expiry';
 import { startAuditRetentionJob } from './jobs/auditRetention';
 import { startPushCampaignScheduler } from './jobs/pushCampaigns';
 import { startActivityNudgeJob } from './jobs/activityNudges';
@@ -45,6 +45,7 @@ const server = app.listen(config.port, () => {
   startFirstExamNudgeJob();
   startAuditRetentionJob(); // limpa ACCESS >90d do audit_logs (mantém login/ações admin — LGPD)
   startPixExpiryJob(); // PIX: warning push a 1min + auto-cancel expirado + push
+  startStalePendingPixSweep(); // PIX: auto-cancel global de pendentes >24h (boot + 1h)
   startPushCampaignScheduler(); // campanhas de push AGENDADAS pelo admin (audienceFilter, 5 min)
   startActivityNudgeJob(); // triggers de atividade/engajamento (meta 8k, streak, queda, reativação)
   startEmailIngestJob(); // ingestão de exame por e-mail (código EX-XXXX no assunto; IMAP_ENABLED)

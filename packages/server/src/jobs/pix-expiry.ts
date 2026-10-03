@@ -91,3 +91,27 @@ export function startPixExpiryJob(): void {
   tick(); // dispara imediatamente
   console.log('[pix-expiry] job iniciado (warning 1min + auto-cancel + push · a cada 30s)');
 }
+
+/**
+ * AUTO-CANCEL de PIX órfãos >24h (dono 03/10): o QR expira em minutos, mas o
+ * registro ficava PENDING pra sempre no admin quando o job de 30s não pegou
+ * (restart no meio, erro pontual de DB). Rede de segurança global — no boot,
+ * a cada 1h e antes de nova compra (buy-credits chama direto).
+ * Retorna qtde cancelada (log/diagnóstico).
+ */
+export async function cancelStalePendingPixes(): Promise<number> {
+  const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const r = await prisma.subscription.updateMany({
+    where: { status: 'PENDING', periodDays: 0, pixExpiresAt: { lt: cutoff } },
+    data: { status: 'CANCELLED' },
+  });
+  if (r.count > 0) console.log(`[pix-expiry] auto-cancel >24h: ${r.count} PIX pendente(s) → CANCELLED`);
+  return r.count;
+}
+
+/** Agenda o sweep (>24h): boot + a cada 1h. Idempotente (updateMany). */
+export function startStalePendingPixSweep(): void {
+  setInterval(() => { cancelStalePendingPixes().catch((e) => console.error('[pix-expiry] sweep >24h erro:', (e as Error).message)); }, 60 * 60 * 1000);
+  cancelStalePendingPixes().catch((e) => console.error('[pix-expiry] sweep >24h erro:', (e as Error).message));
+  console.log('[pix-expiry] sweep >24h iniciado (boot + a cada 1h)');
+}

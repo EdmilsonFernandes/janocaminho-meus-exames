@@ -7,6 +7,7 @@ import { CREDIT_COSTS, UPLOAD_RULES } from '../utils/credits';
 import { getSettings, getMonthlyPlan, getEffectivePlanPrice, getCreditPacks, getPremiumPerks } from '../utils/settings';
 import { createSubscriptionCompat, getSubscriptionColumnSupport, updateSubscriptionCompat } from '../utils/subscriptionCompat';
 import { createPixCharge, activePixProvider, type PixChargeResult } from '../payments/pix-provider';
+import { cancelStalePendingPixes } from '../jobs/pix-expiry';
 import { approvePendingSubscription, type ApprovalKind } from '../utils/billingApproval';
 
 const router = Router();
@@ -123,8 +124,9 @@ router.post('/checkout', requireAuth, async (req: AuthedRequest, res, next) => {
 });
 
 // Comprar CRÉDITOS — PIX (QR inline) OU Cartão/Débito (Checkout Pro redirect, MP).
-// IDEMPOTENTE p/ PIX (padrão gateway): se já existe PIX PENDING não-expirado,
-// devolve o MESMO QR/timer — nunca cria ordem órfã duplicada.
+// LOCK 1-POR-VEZ (dono 03/10): existe PIX PENDING não-expirado → 409 com o PIX
+// pendente (QR/timer) — o front REABRE o modal com o mesmo código. O usuário NÃO
+// compra outro pack (nem por cartão) enquanto o PIX atual vive.
 router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) => {
   try {
     // Gate por provider: PIX usa o ativo (mp|openpix); cartão/débito exigem MP abaixo.
@@ -136,27 +138,38 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
     const user = await prisma.user.findUnique({ where: { id: req.userId! } });
     if (!user) { res.status(404).json({ error: 'Usuário não encontrado' }); return; }
 
-    // ===== ANTI-DUPLICAÇÃO (PIX): retorna o PIX existente se ainda vale =====
-    if (method === 'pix' && subscriptionColumns.hasPixResume) {
+    // ===== LOCK (PIX de créditos): 1 PIX pendente por vez — vale p/ QUALQUER método =====
+    if (subscriptionColumns.hasPixResume) {
+      // Rede de segurança: PIX órfão >24h vira CANCELLED antes do lock (job boot/1h
+      // normalmente já pegou — aqui cobre a janela até a próxima varredura).
+      await cancelStalePendingPixes().catch(() => {}); // não bloqueia a compra se falhar
       const existing = await prisma.subscription.findFirst({
-        where: { userId: user.id, status: 'PENDING', periodDays: 0, pixExpiresAt: { gt: new Date() } },
+        where: {
+          userId: user.id, status: 'PENDING', periodDays: 0, pixExpiresAt: { gt: new Date() },
+          // Só PIX de CRÉDITOS trava compra de créditos (o de API é marcado api_pack).
+          OR: [{ mpPreferenceId: null }, { mpPreferenceId: { not: 'api_pack' } }],
+        },
         orderBy: { createdAt: 'desc' },
+        select: { id: true, mpPaymentId: true, pixQrCode: true, pixQrBase64: true, pixExpiresAt: true, pixCredits: true, amount: true },
       });
       if (existing?.pixQrCode && existing?.pixQrBase64 && existing?.pixExpiresAt) {
-        // Mesmo PIX, mesmo QR, mesmo timer — SEM criar nova ordem no MP.
-        res.json({
-          paymentId: existing.mpPaymentId ?? '',
-          qrCode: existing.pixQrCode,
-          qrBase64: existing.pixQrBase64,
-          expiresAt: existing.pixExpiresAt.toISOString(),
-          credits: existing.pixCredits ?? pack.credits,
-          price: existing.amount,
-          resumed: true, // frontend sabe que é retomado (não novo)
+        // Mesmo PIX, mesmo QR, mesmo timer — SEM criar ordem nova. 409 = front reabre o modal.
+        res.status(409).json({
+          error: 'Você já tem um PIX pendente. Conclua o pagamento ou aguarde expirar.',
+          pendingPix: {
+            id: existing.id,
+            paymentId: existing.mpPaymentId ?? '',
+            qrCode: existing.pixQrCode,
+            qrBase64: existing.pixQrBase64,
+            expiresAt: existing.pixExpiresAt.toISOString(),
+            credits: existing.pixCredits ?? pack.credits,
+            price: existing.amount,
+          },
         });
         return;
       }
-      // PIX anterior expirou? Cancela pra não acumular órfãos.
       if (existing) {
+        // PENDING vivo SEM QR (ordem quebrada) → inútil: cancela e segue a compra.
         await prisma.subscription.update({ where: { id: existing.id }, data: { status: 'CANCELLED' } });
       }
       // Limpa TODOS os PENDING órfãos do usuário (expirados sem webhook).
@@ -412,9 +425,14 @@ router.get('/pending-payment', requireAuth, async (req: AuthedRequest, res, next
     const subscriptionColumns = await getSubscriptionColumnSupport();
     if (!subscriptionColumns.hasPixResume) { res.json({ hasPending: false }); return; }
     const pending = await prisma.subscription.findFirst({
-      where: { userId: req.userId!, status: 'PENDING', periodDays: 0, pixExpiresAt: { gt: new Date() } },
+      where: {
+        userId: req.userId!, status: 'PENDING', periodDays: 0, pixExpiresAt: { gt: new Date() },
+        // Só PIX de CRÉDITOS (o de pacote de API é marcado api_pack — tem endpoint próprio).
+        OR: [{ mpPreferenceId: null }, { mpPreferenceId: { not: 'api_pack' } }],
+      },
       orderBy: { createdAt: 'desc' },
       select: {
+        id: true,
         mpPaymentId: true,
         pixQrCode: true,
         pixQrBase64: true,
@@ -426,6 +444,7 @@ router.get('/pending-payment', requireAuth, async (req: AuthedRequest, res, next
     if (!pending?.pixQrCode) { res.json({ hasPending: false }); return; }
     res.json({
       hasPending: true,
+      id: pending.id, // p/ cancelar manualmente (DELETE /billing/pending/:id)
       paymentId: pending.mpPaymentId ?? '',
       qrCode: pending.pixQrCode,
       qrBase64: pending.pixQrBase64 ?? '',
@@ -433,6 +452,21 @@ router.get('/pending-payment', requireAuth, async (req: AuthedRequest, res, next
       credits: pending.pixCredits ?? 0,
       price: pending.amount,
     });
+  } catch (e) { next(e); }
+});
+
+// CANCELAR PIX pendente (manual — dono 03/10): usuário desiste do pack atual e
+// quer comprar outro sem esperar o expiry. Só o PRÓPRIO usuário, só PENDING de
+// créditos (periodDays=0) → CANCELLED. Idempotente por natureza (2ª vez = 404).
+router.delete('/pending/:id', requireAuth, async (req: AuthedRequest, res, next) => {
+  try {
+    const sub = await prisma.subscription.findFirst({
+      where: { id: String(req.params.id ?? ''), userId: req.userId!, status: 'PENDING', periodDays: 0 },
+      select: { id: true },
+    });
+    if (!sub) { res.status(404).json({ error: 'PIX pendente não encontrado.' }); return; }
+    await updateSubscriptionCompat(sub.id, { status: 'CANCELLED' });
+    res.json({ ok: true, id: sub.id, status: 'CANCELLED' });
   } catch (e) { next(e); }
 });
 

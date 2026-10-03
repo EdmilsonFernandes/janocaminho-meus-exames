@@ -8,7 +8,7 @@
 //     Subscription.mpPaymentId — o campo é o "payment id externo" desde o início).
 //   - qrBase64 pode vir NULL (OpenPix QR imagem é best-effort) → front mostra copia-e-cola.
 import crypto from 'crypto';
-import { config, hasOpenPix } from '../config';
+import { config, hasMercadoPago, hasOpenPix } from '../config';
 
 export type PixProviderName = 'mp' | 'openpix';
 
@@ -43,8 +43,28 @@ export function activePixProvider(): PixProviderName {
 
 const toDataUri = (b64: string) => (b64.startsWith('data:') ? b64 : `data:image/png;base64,${b64}`);
 
+/** Fallback chain (dono 03/10): provider ativo falha → tenta o outro (se
+ *  configurado). Ambos falham → erro amigável (a rota já devolve 503 com ela).
+ *  Reverse fallback (MP → openpix) não é preciso: PAYMENT_PROVIDER=mp = MP saudável. */
 export async function createPixCharge(input: CreatePixChargeInput): Promise<PixChargeResult> {
-  return activePixProvider() === 'openpix' ? createOpenPixCharge(input) : createMercadoPagoPix(input);
+  if (activePixProvider() === 'openpix') {
+    try {
+      return await createOpenPixCharge(input);
+    } catch (e) {
+      // MP de resgate exige external_reference (webhook MP casa aprovação por
+      // subId|credits) — sem ela o fallback creditaria errado. Sem token MP → sem resgate.
+      const canFallback = hasMercadoPago() && !!input.externalReference;
+      if (!canFallback) throw e;
+      console.error(`[pix] openpix falhou, tentando MP: ${(e as Error).message}`);
+      try {
+        return await createMercadoPagoPix(input);
+      } catch (e2) {
+        console.error(`[pix] MP também falhou: ${(e2 as Error).message}`);
+        throw new Error('Pagamento indisponível no momento — tente novamente em alguns minutos.');
+      }
+    }
+  }
+  return createMercadoPagoPix(input);
 }
 
 /** Mercado Pago — réplica do fetch que vivia em billing.routes (POST /v1/payments pix). */

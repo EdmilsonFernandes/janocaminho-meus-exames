@@ -47,6 +47,13 @@ export const PixModal = ({ packId, onClose, onApproved, existingPix }: { packId:
         });
         const d = await r.json();
         if (cancelled) return;
+        // 409 = LOCK 1-POR-VEZ (dono 03/10): já existe PIX vivo (outro pack, mesmo).
+        // Reabre com o MESMO QR/timer — não deixa trocar de pack enquanto o atual vive.
+        if (r.status === 409 && d?.pendingPix?.qrCode) {
+          setPix(d.pendingPix); setPhase('waiting');
+          setSecs(Math.max(0, Math.floor((new Date(d.pendingPix.expiresAt).getTime() - Date.now()) / 1000)));
+          return;
+        }
         if (!r.ok) { setErrMsg(d?.error || ''); setPhase('error'); return; }
         setPix(d); setPhase('waiting');
         setSecs(Math.max(0, Math.floor((new Date(d.expiresAt).getTime() - Date.now()) / 1000)));

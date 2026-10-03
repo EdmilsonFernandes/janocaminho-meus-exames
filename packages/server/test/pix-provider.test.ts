@@ -23,6 +23,7 @@ afterEach(() => {
   delete process.env.PAYMENT_PROVIDER;
   delete process.env.OPENPIX_APP_ID;
   delete process.env.OPENPIX_API_BASE_URL;
+  process.env.MP_ACCESS_TOKEN = 'test-token'; // setup.ts seta — restaura se algum teste limpou
 });
 
 describe('pix-provider: Mercado Pago (default)', () => {
@@ -129,5 +130,58 @@ describe('pix-provider: OpenPix', () => {
     const { createPixCharge } = await loadProvider({ PAYMENT_PROVIDER: 'openpix', OPENPIX_APP_ID: undefined });
     await expect(createPixCharge({ amountBrlCents: 990, correlationID: 'c', description: 'd', expiresAt: new Date() }))
       .rejects.toThrow('OPENPIX_APP_ID');
+  });
+});
+
+describe('pix-provider: fallback openpix → MP (dono 03/10)', () => {
+  const input = (over: Partial<Parameters<typeof import('../src/payments/pix-provider')['createPixCharge']>[0]> = {}) => ({
+    amountBrlCents: 990, correlationID: 'credits_s1_140', externalReference: 's1|140',
+    description: 'Dr. Exame — 140 créditos', expiresAt: new Date(Date.now() + 10 * 60 * 1000), ...over,
+  });
+  const mpOk = () => resp({
+    id: 777, status: 'pending',
+    point_of_interaction: { transaction_data: { qr_code: 'MPFALLBACK', qr_code_base64: 'BBBB' } },
+  });
+
+  it('openpix falha (500) + MP responde → usa MP (mesma cobrança, sem perder a compra)', async () => {
+    const { createPixCharge } = await loadProvider({ PAYMENT_PROVIDER: 'openpix', OPENPIX_APP_ID: 'appid-teste', MP_ACCESS_TOKEN: 'test-token' });
+    fetchMock().mockReset();
+    fetchMock()
+      .mockResolvedValueOnce(resp({ error: 'boom' }, false, 500)) // openpix fora
+      .mockResolvedValueOnce(mpOk()); // MP resgata
+    const charge = await createPixCharge(input());
+    expect(charge.id).toBe('777'); // id do MP
+    expect(charge.qrCode).toBe('MPFALLBACK');
+    expect(charge.qrBase64).toBe('data:image/png;base64,BBBB');
+    // ordem da cadeia: openpix primeiro, MP como resgate
+    expect(String(fetchMock().mock.calls[0][0])).toContain('api.openpix.com.br');
+    expect(String(fetchMock().mock.calls[1][0])).toContain('/v1/payments');
+    // webhook MP casa pelo external_reference preservado
+    const body = JSON.parse(fetchMock().mock.calls[1][1].body);
+    expect(body.external_reference).toBe('s1|140');
+  });
+
+  it('openpix E MP falham → throw amigável (não vaza erro técnico)', async () => {
+    const { createPixCharge } = await loadProvider({ PAYMENT_PROVIDER: 'openpix', OPENPIX_APP_ID: 'appid-teste', MP_ACCESS_TOKEN: 'test-token' });
+    fetchMock().mockReset();
+    fetchMock()
+      .mockResolvedValueOnce(resp({ error: 'boom' }, false, 500))
+      .mockResolvedValueOnce(resp({ error: 'x' }, false, 503));
+    await expect(createPixCharge(input())).rejects.toThrow('Pagamento indisponível no momento');
+  });
+
+  it('MP sem token → sem fallback: propaga o erro original do openpix', async () => {
+    const { createPixCharge } = await loadProvider({ PAYMENT_PROVIDER: 'openpix', OPENPIX_APP_ID: 'appid-teste', MP_ACCESS_TOKEN: undefined });
+    fetchMock().mockReset();
+    fetchMock().mockResolvedValueOnce(resp({ error: 'boom' }, false, 500));
+    await expect(createPixCharge(input())).rejects.toThrow('OpenPix charge falhou (500)');
+  });
+
+  it('sem external_reference → sem fallback (webhook MP creditaria errado)', async () => {
+    const { createPixCharge } = await loadProvider({ PAYMENT_PROVIDER: 'openpix', OPENPIX_APP_ID: 'appid-teste', MP_ACCESS_TOKEN: 'test-token' });
+    fetchMock().mockReset();
+    fetchMock().mockResolvedValueOnce(resp({ error: 'boom' }, false, 500));
+    await expect(createPixCharge(input({ externalReference: undefined }))).rejects.toThrow('OpenPix charge falhou (500)');
+    expect(fetchMock().mock.calls).toHaveLength(1); // MP nem foi tentado
   });
 });

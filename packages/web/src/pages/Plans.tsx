@@ -57,6 +57,18 @@ export const PlansPage = () => {
       .catch(() => {});
   };
 
+  // Cancelar PIX pendente (dono 03/10): usuário desiste do pack e quer comprar
+  // outro SEM esperar o expiry (lock 1-por-vez do server libera após cancelar).
+  const cancelPendingPix = async () => {
+    if (!pendingPix?.id) return;
+    try {
+      const r = await fetch(`${API_URL}/billing/pending/${pendingPix.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });
+      if (!r.ok) throw new Error();
+      setPendingPix(null);
+      notify('PIX pendente cancelado.', { type: 'info' });
+    } catch { notify('Não foi possível cancelar o PIX agora. Tente de novo em instantes.', { type: 'error' }); }
+  };
+
   useEffect(() => { checkPendingPix(); }, []);
   useEffect(() => { fetchPublicConfig().then((c) => setCardEnabled(c.cardEnabled)).catch(() => {}); }, []);
 
@@ -148,9 +160,14 @@ export const PlansPage = () => {
               Você tem um PIX de <strong>{pendingPix.credits} créditos</strong> aguardando pagamento
               {' '}({Math.max(0, Math.ceil((new Date(pendingPix.expiresAt).getTime() - Date.now()) / 60000))} min restantes)
             </Typography>
-            <Button size="small" variant="contained" onClick={() => setPixPack('__pending__')} sx={{ textTransform: 'none', fontWeight: 700, flexShrink: 0 }}>
-              Retomar pagamento
-            </Button>
+            <Stack direction="row" spacing={1} flexShrink={0}>
+              <Button size="small" variant="contained" onClick={() => setPixPack('__pending__')} sx={{ textTransform: 'none', fontWeight: 700 }}>
+                Retomar pagamento
+              </Button>
+              <Button size="small" onClick={() => cancelPendingPix()} sx={{ textTransform: 'none', fontWeight: 700, color: 'text.secondary' }}>
+                Cancelar
+              </Button>
+            </Stack>
           </Stack>
         </Alert>
       )}
