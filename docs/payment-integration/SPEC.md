@@ -34,3 +34,32 @@
 - [ ] Integration tests (real: asaas charge R$5 + openpix charge R$1 + MP if available)
 - [ ] Playwright E2E per flow (login→buy→QR visible→countdown→screenshot)
 - [ ] Evidence report (sanitized)
+
+## 7. UI/UX Premium Payment (todos os fluxos, 4 sistemas)
+
+### Padrão visual
+- Resumo da compra + valor em destaque
+- QR Code em destaque (contraste, margens, ≥200px)
+- Copia-e-cola com botão copiar + confirmação visual
+- Prazo + instruções curtas
+- Estados: loading → aguardando → confirmado → expirado → erro
+- Proteção contra clique duplo
+- Status atualiza sem reload
+- Continuidade pós-confirmação → ação correta
+- Logo do gateway REAL da cobrança (não o default)
+- Sem selos falsos de segurança
+
+### Mobile
+- Copiar código em destaque (pagamento no mesmo aparelho)
+- Zero overflow horizontal
+- Textos longos sem quebrar
+- Botões ≥44px acessíveis
+- Modais com scroll interno + fechamento acessível
+- Safe areas (Capacitor APK)
+- 320/360/390/768/1440 + landscape mobile
+
+### Testes Playwright por resolução
+- Cada fluxo em 320/360/390/768/1440
+- Estados completos: loading, QR, confirmado, expirado, erro
+- Screenshot por resolução + inspeção visual
+- Sem declarar "premium" sem evidência
