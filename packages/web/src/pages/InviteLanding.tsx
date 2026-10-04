@@ -10,7 +10,7 @@ import { tealText } from '../theme';
 const PLAY_STORE = 'https://play.google.com/store/apps/details?id=com.janocaminho.drexame';
 
 const Shell = ({ children }: { children: React.ReactNode }) => (
-  <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', p: 3, bgcolor: 'background.default' }}>{children}</Box>
+  <Box sx={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', p: 3, bgcolor: 'background.default' }}>{children}</Box>
 );
 
 export const InviteLandingPage = () => {
@@ -31,7 +31,7 @@ export const InviteLandingPage = () => {
   const isAndroid = /android/i.test(ua);
   const isIOS = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === 'MacIntel' && (navigator.maxTouchPoints || 0) > 1);
 
-  if (loading) return <Box sx={{ display: 'grid', placeItems: 'center', minHeight: '100vh', bgcolor: 'background.default' }}><CircularProgress sx={{ color: '#20b2aa' }} /></Box>;
+  if (loading) return <Box sx={{ display: 'grid', placeItems: 'center', minHeight: '100dvh', bgcolor: 'background.default' }}><CircularProgress sx={{ color: '#20b2aa' }} /></Box>;
 
   if (inv?.notFound) {
     return (

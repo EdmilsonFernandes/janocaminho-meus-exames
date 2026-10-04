@@ -16,7 +16,9 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   report: [['list']],
   use: {
-    baseURL: 'http://localhost:4011',
+    // Stack local padrão: docker 4011 (imagem de prod contra o banco dev). E2E_BASE_URL
+    // permite apontar pro vite dev (5173) ao iterar sem rebuild.
+    baseURL: process.env.E2E_BASE_URL || 'http://127.0.0.1:4011',
     actionTimeout: 10_000,
     navigationTimeout: 30_000,
     screenshot: 'only-on-failure',
@@ -26,10 +28,25 @@ export default defineConfig({
     // Login dev 1x → salva e2e/.auth/user.json (storageState).
     { name: 'setup', testMatch: 'global-setup.ts' },
     {
+      // iPhone SE / Android pequeno — pior caso de largura.
+      name: 'mobile-320',
+      testMatch: '*.spec.ts',
+      dependencies: ['setup'],
+      use: { viewport: { width: 320, height: 700 }, isMobile: true, hasTouch: true, storageState: 'e2e/.auth/user.json' },
+    },
+    {
       name: 'mobile-375',
       testMatch: '*.spec.ts',
       dependencies: ['setup'],
-      use: { viewport: { width: 375, height: 760 }, isMobile: true, storageState: 'e2e/.auth/user.json' },
+      use: { viewport: { width: 375, height: 760 }, isMobile: true, hasTouch: true, storageState: 'e2e/.auth/user.json' },
+    },
+    {
+      // WEBKIT = motor do Safari iOS. Auditoria mobile 10/2026: overflow/dvh/clip
+      // comportam diferente do Chromium — o gate precisa cobrir os dois motores.
+      name: 'mobile-390-webkit',
+      testMatch: '*.spec.ts',
+      dependencies: ['setup'],
+      use: { browserName: 'webkit', viewport: { width: 390, height: 844 }, hasTouch: true, storageState: 'e2e/.auth/user.json' },
     },
     {
       name: 'tablet-768',

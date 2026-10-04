@@ -17,7 +17,7 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, { hasError
   render() {
     if (this.state.hasError) {
       return (
-        <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', p: 3, background: 'background.default', textAlign: 'center' }}>
+        <Box sx={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', p: 3, background: 'background.default', textAlign: 'center' }}>
           <Box sx={{ fontSize: 64, mb: 2 }}>😵‍💫</Box>
           <Typography variant="h5" sx={{ fontWeight: 800, color: 'text.primary', mb: 1, fontFamily: 'Poppins, sans-serif' }}>Algo deu errado</Typography>
           <Typography sx={{ color: 'text.secondary', mb: 3, maxWidth: 340 }}>Ocorreu um erro inesperado. Tente novamente — seus dados estão salvos.</Typography>

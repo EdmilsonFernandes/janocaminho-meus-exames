@@ -189,7 +189,7 @@ export const DoctorPortalPage = () => {
   // Etapa de verificação de e-mail (código OTP enviado no cadastro do médico).
   if (pendingEmail) {
     return (
-      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2, background: 'linear-gradient(135deg, rgba(32,178,170,.08), transparent)' }}>
+      <Box sx={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2, background: 'linear-gradient(135deg, rgba(32,178,170,.08), transparent)' }}>
         <Box sx={{ width: '100%', maxWidth: 420, bgcolor: 'background.paper', borderRadius: '16px', boxShadow: '0 10px 40px rgba(0,80,70,.12)', p: { xs: 3, sm: 4 } }}>
           <Button size="small" onClick={() => { setPendingEmail(null); setErr(''); }} sx={{ color: 'text.secondary', textTransform: 'none', fontWeight: 700, p: 0, minWidth: 0, mb: 1 }}>← Voltar</Button>
           <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', mb: 0.5 }}>✉️ Confirme seu e-mail</Typography>
@@ -207,7 +207,7 @@ export const DoctorPortalPage = () => {
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2, background: 'linear-gradient(135deg, rgba(32,178,170,.08), transparent)' }}>
+    <Box sx={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2, background: 'linear-gradient(135deg, rgba(32,178,170,.08), transparent)' }}>
       <Box sx={{ width: '100%', maxWidth: 420, bgcolor: 'background.paper', borderRadius: '16px', boxShadow: '0 10px 40px rgba(0,80,70,.12)', p: { xs: 3, sm: 4 } }}>
         <Box sx={{ mb: 1 }}>
           <Button size="small" onClick={() => navigate('/')} sx={{ color: 'text.secondary', textTransform: 'none', fontWeight: 700, p: 0, minWidth: 0, '&:hover': { bgcolor: 'transparent', color: (t) => tealText(t.palette.mode) } }}>← Voltar ao app</Button>
@@ -670,7 +670,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   );
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', display: 'flex' }}>
+    <Box sx={{ minHeight: '100dvh', bgcolor: 'background.default', display: 'flex' }}>
       {/* Menu vertical do avatar (perfil/senha/sair) — aberto ao clicar no avatar do médico */}
       <Menu anchorEl={avatarEl} open={!!avatarEl} onClose={() => setAvatarEl(null)} slotProps={{ paper: { sx: { borderRadius: '16px', minWidth: 210, mt: 1, boxShadow: '0 10px 28px rgba(0,0,0,0.12)' } } }}>
         <MenuItem onClick={() => { setView('profile'); setAvatarEl(null); }}><ListItemIcon><PersonIcon fontSize="small" /></ListItemIcon><ListItemText>Meu perfil</ListItemText></MenuItem>
@@ -680,7 +680,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
       </Menu>
       {/* MENU vertical PERMANENTE (web/desktop) — abre igual ao app do paciente. Mobile usa o Drawer abaixo. */}
       {isDesktop && (
-        <Box component="nav" sx={{ width: 290, flexShrink: 0, borderRight: '1px solid', borderRightColor: 'divider', bgcolor: 'background.paper', display: 'flex', flexDirection: 'column', position: 'sticky', top: 0, height: '100vh', overflowY: 'auto' }}>
+        <Box component="nav" sx={{ width: 290, flexShrink: 0, borderRight: '1px solid', borderRightColor: 'divider', bgcolor: 'background.paper', display: 'flex', flexDirection: 'column', position: 'sticky', top: 0, height: '100dvh', overflowY: 'auto' }}>
           {renderSideMenu(() => {})}
         </Box>
       )}
@@ -716,7 +716,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         )}
       </Box>
 
-      <Box sx={{ maxWidth: LAYOUT.content, mx: 'auto', p: { xs: 2, md: 3 }, pb: { xs: 11, md: 4 }, bgcolor: 'background.default', minHeight: '100vh', overflowX: 'hidden', width: '100%' }}>
+      <Box sx={{ maxWidth: LAYOUT.content, mx: 'auto', p: { xs: 2, md: 3 }, pb: { xs: 11, md: 4 }, bgcolor: 'background.default', minHeight: '100dvh', overflowX: 'hidden', width: '100%' }}>
         {view === 'profile' && <DoctorProfileForm token={token} doctor={doctor} onBack={() => setView('patients')} onSaved={(d) => setDoctor(d)} onPhoto={() => setPhotoVer((v) => v + 1)} photoVer={photoVer} />}
         {view === 'password' && <DoctorChangePasswordForm token={token} onBack={() => setView('patients')} />}
 

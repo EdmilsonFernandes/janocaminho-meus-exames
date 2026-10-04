@@ -23,6 +23,7 @@ import ReactMarkdown from 'react-markdown';
 import { keyframes } from '@mui/material';
 import { tealText } from '../theme';
 import { useVoiceInput } from '../hooks/useVoiceInput';
+import { useKeyboardInset } from '../hooks/useKeyboardInset';
 
 const TEAL = '#178f89';
 
@@ -109,6 +110,10 @@ export const ChatPage = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   // Abort da resposta em andamento (auditoria: provider travado = dots infinitos + input morto).
   const abortRef = useRef<AbortController | null>(null);
+  // iOS Safari: teclado NÃO redimensiona o layout (só o visual viewport) → o compositor
+  // (in-flow no fim de um 100dvh) ficaria atrás do teclado. Inset medido via
+  // VisualViewport enquanto o campo está focado; APK/Android = 0 (webview ajusta sozinho).
+  const kbInset = useKeyboardInset();
 
   // FEATURE F — ditado por voz pt-BR: transcrição (parcial ao vivo + final) só
   // preenche o input, NUNCA envia sozinha — ASR erra termo médico, o usuário revisa.
@@ -122,6 +127,11 @@ export const ChatPage = () => {
     document.body.classList.add('on-chat');
     return () => { document.body.classList.remove('on-chat'); };
   }, []);
+
+  // Teclado aberto (iOS): mantém a última mensagem visível quando a altura encolhe.
+  useEffect(() => {
+    if (kbInset > 0 && scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  }, [kbInset]);
 
   // Sempre abre nas OPÇÕES (quick actions), não no histórico. Histórico fica no ícone do relógio.
   // + busca o nome do PACIENTE SELECIONADO (não do titular) pra saudar/titular pelo nome certo
@@ -249,7 +259,12 @@ export const ChatPage = () => {
   const deleteConv = (id: string) => { const next = convs.filter((c) => c.id !== id); setConvs(next); if (pid) saveConvs(pid, next); if (curId === id) setCurId(next[0]?.id ?? null); };
 
   return (
-    <Box sx={{ maxWidth: 820, mx: 'auto', display: 'flex', flexDirection: 'column',
+    <Box
+      // Teclado aberto (iOS): encolhe a ALTURA pelo inset medido — o compositor fica
+      // inteiro acima do teclado sem depender do auto-scroll do Safari. Inline style
+      // ganha do sx de altura (mesma fórmula − kbInset).
+      style={kbInset ? { height: `calc(100dvh - 116px - env(safe-area-inset-bottom) - ${kbInset}px)` } : undefined}
+      sx={{ width: '100%', maxWidth: 820, mx: 'auto', display: 'flex', flexDirection: 'column',
       // Preenche do app bar até encostar no bottom nav — sem gap, sem scroll.
       // dvh = viewport dinâmico (não salta c/ teclado/toolbar no mobile).
       height: { xs: 'calc(100dvh - 116px - env(safe-area-inset-bottom))', sm: 'calc(100dvh - 84px)' },
@@ -278,7 +293,7 @@ export const ChatPage = () => {
       </Paper>
 
       {/* mensagens */}
-      <Box ref={scrollRef} sx={{ flex: 1, minHeight: 0, overflowY: 'auto', p: 1, background: 'background.default', borderRadius: '12px' }}>
+      <Box ref={scrollRef} sx={{ flex: 1, minHeight: 0, overflowY: 'auto', p: 1, background: 'transparent', borderRadius: '12px' }}>
         {messages.length === 0 && (
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', py: { xs: 2, md: 4 }, gap: 1.5 }}>
             {/* Mascote Dr. Exame com aura teal pulsante + badge ✨ (IA) — convite à conversa, estilo Itaú */}
@@ -365,7 +380,7 @@ export const ChatPage = () => {
         <Box component="input" value={input} disabled={busy || voice.isRecording} placeholder={voice.isRecording ? 'Ouvindo você…' : 'Pergunte sobre seus exames…'}
           onChange={(e: any) => setInput(e.target.value)}
           onKeyDown={(e: any) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); voice.stop(); send(); } }}
-          style={{ flex: 1, padding: '10px 4px', fontSize: 16, border: 'none', outline: 'none', background: 'transparent', fontFamily: 'inherit' }} />
+          style={{ flex: 1, minWidth: 0, padding: '10px 4px', fontSize: 16, border: 'none', outline: 'none', background: 'transparent', fontFamily: 'inherit' }} />
         {/* FEATURE F — ditado por voz: mic à esquerda do Enviar; gravando vira "parar" (error.main). */}
         {voice.isVoiceAvailable && (
           <IconButton onClick={() => voice.toggle(input)} aria-label={voice.isRecording ? 'Parar ditado' : 'Ditar pergunta'} title={voice.isRecording ? 'Parar ditado' : 'Ditar pergunta'}

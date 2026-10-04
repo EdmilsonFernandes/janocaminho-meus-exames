@@ -803,7 +803,7 @@ export const DashboardV2 = () => {
   const cardioArcColor = cardioLevel === 'baixo' ? '#059669' : cardioLevel === 'moderado' ? '#f59e0b' : cardioLevel === 'alto' ? '#ef4444' : '#94a3b8';
 
   return (
-    <PageContainer width="wide" sx={{ bgcolor: (t) => (t.palette.mode === 'dark' ? 'background.default' : '#FAFBFC'), minHeight: '100vh' }}>
+    <PageContainer width="wide" sx={{ bgcolor: 'transparent', minHeight: '100dvh' }}>
       <DashboardHeader firstName={firstName} />
       <FailedExamsAlert count={d.failed} onClick={() => navigate('/exams')} />
       <RejectedExamsAlert count={d.rejected} onClick={() => navigate('/exams')} />

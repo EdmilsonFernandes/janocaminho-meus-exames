@@ -145,10 +145,10 @@ export const AdminPage = () => {
   const active = MODULES.find((m) => m.id === mod);
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
+    <Box sx={{ display: 'flex', minHeight: '100dvh', bgcolor: 'background.default' }}>
       <Title title="Backoffice · Dr. Exame" />
       {isDesktop ? (
-        <Box component="aside" sx={{ position: 'sticky', top: 0, height: '100vh', flexShrink: 0 }}>{Sidebar}</Box>
+        <Box component="aside" sx={{ position: 'sticky', top: 0, height: '100dvh', flexShrink: 0 }}>{Sidebar}</Box>
       ) : (
         <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} PaperProps={{ sx: { width: 248 } }}>{Sidebar}</Drawer>
       )}

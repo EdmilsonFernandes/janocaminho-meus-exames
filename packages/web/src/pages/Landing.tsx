@@ -234,7 +234,7 @@ export const LandingPage = () => {
   };
 
   return (
-    <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', overflow: 'hidden' }}>
+    <Box sx={{ bgcolor: 'background.default', minHeight: '100dvh', overflow: 'hidden' }}>
       {/* keyframes (float do hero + chips) */}
       <style>{`
         @keyframes heroFloat { 0%,100%{transform:translateY(0) rotate(-1.5deg)} 50%{transform:translateY(-12px) rotate(-1.5deg)} }

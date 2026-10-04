@@ -1,6 +1,9 @@
 import { test, expect } from '@playwright/test';
 
-const API = 'http://localhost:4011/api';
+// 127.0.0.1 explícito: neste host (Docker Desktop), "localhost" resolve primeiro para
+// ::1 e a conexão morre (curl/fetch HTTP 000) — baseURL do config já usa 127.0.0.1.
+const BASE = process.env.E2E_BASE_URL || 'http://127.0.0.1:4011';
+const API = `${BASE}/api`;
 const DEV_USER = 'edmilson@exemplo.com';
 const DEV_PASS = 'troque123';
 
@@ -22,7 +25,7 @@ test('autenticar dev', async ({ page, request }) => {
     if (ctx.patientId) { localStorage.setItem('patientId', ctx.patientId); localStorage.setItem('selPatientId', ctx.patientId); }
     localStorage.setItem('user', JSON.stringify(ctx.user));
   }, { token, patientId, user });
-  await page.goto('http://localhost:4011/');
+  await page.goto(`${BASE}/`);
   await page.waitForTimeout(1200);
   await page.context().storageState({ path: 'e2e/.auth/user.json' });
 });

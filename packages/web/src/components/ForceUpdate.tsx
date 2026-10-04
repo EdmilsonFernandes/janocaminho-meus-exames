@@ -7,7 +7,7 @@ const UPDATE_URL = 'https://drexame.janocaminho.com.br/';
 
 /** Tela bloqueante: versão instalada abaixo da mínima exigida pelo backend. */
 export const ForceUpdate = ({ latest }: { latest: string }) => (
-  <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', p: 3, background: 'linear-gradient(160deg,#20b2aa,#178f89)', color: '#fff' }}>
+  <Box sx={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', p: 3, background: 'linear-gradient(160deg,#20b2aa,#178f89)', color: '#fff' }}>
     <DrExame size={110} sx={{ borderRadius: '24%', boxShadow: '0 16px 40px rgba(0,0,0,.25)', mb: 2 }} />
     <Typography variant="h5" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', mb: 1 }}>Atualização necessária 🔄</Typography>
     <Typography sx={{ opacity: 0.92, maxWidth: 360, mb: 3, lineHeight: 1.6 }}>

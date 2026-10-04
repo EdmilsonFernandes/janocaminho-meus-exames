@@ -101,7 +101,7 @@ export const ApiDocsPage = () => {
   }, []);
 
   return (
-    <Box sx={{ background: 'background.default', minHeight: '100vh', py: { xs: 2.5, md: 4 }, pb: { xs: 10, sm: 5 } }}>
+    <Box sx={{ background: 'background.default', minHeight: '100dvh', py: { xs: 2.5, md: 4 }, pb: { xs: 10, sm: 5 } }}>
       <Container maxWidth="lg">
         {/* HERO */}
         <Box sx={{

@@ -199,6 +199,19 @@ export const buildTheme = (mode: ThemeMode, textScale: TextScale = 'normal'): Th
           },
         },
       },
+      MuiInputBase: {
+        styleOverrides: {
+          input: {
+            // PISO 16px EM TELA TOUCH (zoom do iOS Safari): campo com fonte <16px dá zoom
+            // da página ao focar — e o zoom NÃO volta ao desfocar (drub no layout inteiro).
+            // Medição 10/2026: inputs resolviam 15px — a regra do MuiCssBaseline PERDE a
+            // cascata para o `font: inherit` do próprio componente; styleOverrides é a
+            // camada que ganha. max() preserva campos maiores (tema "Aa Texto grande" e
+            // sx >16px). Zoom do usuário permanece LIVRE (nada de user-scalable=no).
+            '@media (hover: none) and (pointer: coarse)': { fontSize: 'max(1rem, 1em)' },
+          },
+        },
+      },
       MuiDrawer: {
         styleOverrides: {
           paper: {
@@ -215,8 +228,8 @@ export const buildTheme = (mode: ThemeMode, textScale: TextScale = 'normal'): Th
           root: {
             borderRadius: '20px',
             boxShadow: isDark
-              ? '0 2px 8px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.2)'
-              : '0 1px 3px rgba(0,0,0,.03), 0 4px 12px rgba(0,0,0,.04), 0 12px 28px rgba(32,178,170,.03)',
+              ? '0 2px 8px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.2), inset 0 1px 0 rgba(255,255,255,.05)'
+              : '0 1px 3px rgba(0,0,0,.03), 0 4px 12px rgba(0,0,0,.04), 0 12px 28px rgba(32,178,170,.03), inset 0 1px 0 rgba(255,255,255,.6)',
             border: `1px solid ${isDark ? '#2a3636' : '#d8ece9'}`,
             // Press state (feel nativo): card 'respira' leve ao toque. Sutil p/ não estranhar em cards estáticos.
             transition: 'transform .12s ease, box-shadow .2s ease',

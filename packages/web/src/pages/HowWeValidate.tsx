@@ -63,7 +63,7 @@ const SECTIONS: Section[] = [
 export const HowWeValidatePage = () => {
   const navigate = useNavigate();
   return (
-    <Box sx={{ background: 'background.default', minHeight: '100vh', py: { xs: 3, md: 5 } }}>
+    <Box sx={{ background: 'background.default', minHeight: '100dvh', py: { xs: 3, md: 5 } }}>
       <Container maxWidth="md">
         <Box sx={{ textAlign: 'center', mb: 3, background: 'background.paper', borderRadius: '12px', p: { xs: 2.5, md: 4 }, boxShadow: 1 }}>
           <DrExame size={56} sx={{ borderRadius: '18%' }} />

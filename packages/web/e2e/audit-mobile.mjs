@@ -87,6 +87,8 @@ const MEASURE = () => {
   const offenders = [];
   const all = document.querySelectorAll('*');
   for (const el of all) {
+    // popups/modais têm overlay próprio acima da página — não são ofensores do layout da rota
+    if (el.closest('.MuiModal-root, [role="dialog"]')) continue;
     const r = el.getBoundingClientRect();
     if (r.width < 1 && r.height < 1) continue;
     if (r.right <= vw + 1.5 && r.left >= -1.5) continue;
@@ -97,12 +99,24 @@ const MEASURE = () => {
     }
     if (!outermost) continue;
     const cs = getComputedStyle(el);
-    if (cs.display === 'none' || cs.visibility === 'hidden') continue;
+    if (cs.display === 'none' || cs.visibility === 'hidden' || parseFloat(cs.opacity) < 0.05) continue;
+    // contido? — ancestor com overflow-x hidden/clip/auto/scroll = corte intencional
+    // (fileira de chips com scroll próprio, blob decorativo clipado). Só é ofensor
+    // REAL do documento quem fura SEM clipper (aí o docOvX sobe junto).
+    let clipper = null;
+    let p = el.parentElement;
+    while (p && p !== document.documentElement) {
+      const pcs = getComputedStyle(p);
+      if (/(hidden|clip|auto|scroll)/.test(pcs.overflowX)) { clipper = `${p.tagName.toLowerCase()}.${String(p.className).slice(0, 40)}`; break; }
+      p = p.parentElement;
+    }
     offenders.push({
       tag: el.tagName.toLowerCase(),
       cls: String(el.className && el.className.baseVal !== undefined ? el.className.baseVal : el.className || '').slice(0, 110),
       id: el.id || undefined,
       left: Math.round(r.left), right: Math.round(r.right), w: Math.round(r.width),
+      contained: !!clipper,
+      clipper,
       text: (el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 44),
     });
     if (offenders.length >= 10) break;
@@ -175,13 +189,18 @@ async function login() {
             localStorage.setItem('token', a.token);
             localStorage.setItem('user', JSON.stringify(a.user));
             if (a.patientId) { localStorage.setItem('patientId', a.patientId); localStorage.setItem('selPatientId', a.patientId); }
-            // determinismo: sem modais de onboarding/whatsnew atrapalhando a medição
-            localStorage.setItem('dx_seen_whatsnew', '999');
+            // determinismo: sem modais de onboarding/whatsnew/goalquiz atrapalhando a medição
+            localStorage.setItem('onboarded', '1');
+            localStorage.setItem('whatsnew_vc_9999', '1');
+            localStorage.setItem('dxGoals', '[]');
             localStorage.setItem('meus_exames_libras', '0');
-            try { localStorage.setItem('me:onboardingDone', '1'); } catch {}
           }, { token: auth.token, user: auth.user, patientId: auth.patientId });
         } else {
-          await ctx.addInitScript(() => { try { localStorage.setItem('meus_exames_libras', '0'); } catch {} });
+          await ctx.addInitScript(() => {
+            try { localStorage.setItem('meus_exames_libras', '0'); } catch {}
+            // popups de aquisição (LeadPopup) fora da medição — landing/etc têm layout próprio
+            try { localStorage.setItem('lead_popup_dismissed_at', String(Date.now())); sessionStorage.setItem('lead_popup_seen_session', '1'); } catch {}
+          });
         }
         const page = await ctx.newPage();
         const consoleErrors = [];
@@ -192,6 +211,9 @@ async function login() {
         try {
           await page.goto(`${BASE}/#${route}`, { waitUntil: 'domcontentloaded', timeout: 20000 });
           await page.waitForTimeout(1700); // boot splash (1100ms) + fade + polls
+          // popup de notificação push (ex.: "PIX expirou" do dev DB) encobre a página — dispensa.
+          await page.getByRole('button', { name: 'Depois' }).click({ timeout: 1500 }).catch(() => {});
+          await page.waitForTimeout(400);
           const m = await page.evaluate(MEASURE);
           // consegue rolar até o fim? (scroll-behavior:smooth anima o salto — usa instant + settle)
           const reach = await page.evaluate(async () => {
@@ -203,17 +225,23 @@ async function login() {
             se.scrollTo({ top: 0, behavior: 'instant' });
             return { atEnd, shAtEnd };
           });
-          // interativos cobertos pelo nav MEDIDOS NO FIM da rolagem (estado real do usuário)
+          // interativos cobertos pelo nav MEDIDOS NO FIM da rolagem (estado real do usuário).
+          // Só se aplica ao shell do app: a var --me-bottom-nav-h só existe com MobileBottomNav
+          // montada (páginas públicas/landing têm layout próprio, sem rodapé fixo do app).
           const coveredAtEnd = await page.evaluate(async () => {
             const se = document.scrollingElement || document.documentElement;
             se.scrollTo({ top: se.scrollHeight, behavior: 'instant' });
             await new Promise((res) => setTimeout(res, 700));
             const vh = window.innerHeight;
-            const navH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--me-bottom-nav-h')) || 76;
+            const navVar = getComputedStyle(document.documentElement).getPropertyValue('--me-bottom-nav-h').trim();
+            if (!navVar) return [];
+            const navH = parseFloat(navVar) || 76;
             const nav = document.querySelector('nav');
             const out = [];
             for (const el of document.querySelectorAll('a, button, [role="button"], input, select, textarea')) {
               if (nav && nav.contains(el)) continue;
+              // modals/drawers empilham ACIMA do nav (z 1300 > 1100) — não é cobertura real
+              if (el.closest('.MuiModal-root, [role="dialog"], .MuiDrawer-root')) continue;
               const r = el.getBoundingClientRect();
               if (r.width < 1 || r.height < 1 || r.top > vh) continue;
               const cs = getComputedStyle(el);
@@ -232,7 +260,10 @@ async function login() {
           );
           rec.docOverflowX = m.docOverflowX;
           rec.bodyOverflowX = m.bodyOverflowX;
-          rec.offenders = (m.offenders || []).filter(o => !/MuiLinearProgress/.test(o.cls || ''));
+          // ofensores REAIS = sem clipper intencional (contidos são design: chip-row c/
+          // scroll próprio, blob clipado). LinearProgress indeterminado = animação.
+          rec.offenders = (m.offenders || []).filter(o => !/MuiLinearProgress/.test(o.cls || '') && !o.contained);
+          rec.containedOffenders = (m.offenders || []).filter(o => o.contained).length;
           rec.coveredByNav = coveredAtEnd;
           rec.canReachBottom = reach.atEnd;
           rec.dialogs = dialogs;
