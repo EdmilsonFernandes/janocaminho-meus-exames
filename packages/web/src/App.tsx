@@ -53,6 +53,7 @@ import { ExamShow } from './resources/Exams/ExamShow';
 import { ExamCreate } from './resources/Exams/ExamCreate';
 import { PatientList, PatientEdit, PatientCreate } from './resources/Patients/Patients';
 import { TrendsPage } from './pages/Trends';
+import { hapticLight } from './utils/haptic';
 // Code splitting — páginas pesadas carregam sob demanda (bundle inicial menor)
 const ChatPage = lazy(() => import('./pages/Chat').then(m => ({ default: m.ChatPage })));
 const DoctorPortalPage = lazy(() => import('./pages/DoctorPortal').then(m => ({ default: m.DoctorPortalPage })));
@@ -562,11 +563,19 @@ const LangToggle = () => {
 const PullToRefresh = () => {
   const [shown, setShown] = useState(0);
   const dist = useRef(0);
+  const fired = useRef(false); // haptic dispara 1x por gesto (ao cruzar o limite), não a cada frame
   const refresh = useRefresh();
   useEffect(() => {
     let startY = 0; let active = false;
-    const onStart = (e: TouchEvent) => { if ((window.scrollY ?? 0) <= 0) { startY = e.touches[0].clientY; active = true; } };
-    const onMove = (e: TouchEvent) => { if (!active) return; const d = Math.min(e.touches[0].clientY - startY, 100); dist.current = d; setShown(d); };
+    const onStart = (e: TouchEvent) => { if ((window.scrollY ?? 0) <= 0) { startY = e.touches[0].clientY; active = true; fired.current = false; } };
+    const onMove = (e: TouchEvent) => {
+      if (!active) return;
+      const d = Math.min(e.touches[0].clientY - startY, 100);
+      dist.current = d; setShown(d);
+      // Tátil estilo PTR nativo (padrão observado em apps maduros): um "tique" ao
+      // cruzar o gatilho — o usuário sente que soltar ali atualiza.
+      if (d > 70 && !fired.current) { fired.current = true; hapticLight(); }
+    };
     // refresh() (refetch via dataProvider) em vez de window.location.reload():
     // reload recarrega o WebView inteiro e crasha o app nativo (Capacitor).
     const onEnd = () => { if (active && dist.current > 70) refresh(); active = false; dist.current = 0; setShown(0); };
@@ -581,7 +590,14 @@ const PullToRefresh = () => {
   if (shown <= 5) return null;
   return (
     <Box sx={{ position: 'fixed', top: 0, left: 0, right: 0, display: 'flex', justifyContent: 'center', height: shown, zIndex: 1500, pointerEvents: 'none' }}>
-      <CircularProgress size={26} sx={{ mt: 1, opacity: Math.min(shown / 70, 1), color: 'primary.main' }} />
+      {/* Indicador gira COM o puxar (feedback de progresso, como o nativo);
+          após soltar, o CircularProgress anima a rotação indefinida sozinho. */}
+      <CircularProgress
+        variant={shown > 70 ? 'indeterminate' : 'determinate'}
+        value={Math.min((shown / 70) * 100, 100)}
+        size={26}
+        sx={{ mt: 1, opacity: Math.min(shown / 70, 1), color: 'primary.main' }}
+      />
     </Box>
   );
 };

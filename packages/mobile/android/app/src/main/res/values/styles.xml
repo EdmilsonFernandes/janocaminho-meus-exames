@@ -16,6 +16,11 @@
         <!-- Status bar na cor da marca (contínua com o splash) + ícones claros sobre teal -->
         <item name="android:statusBarColor">@color/splash_bg</item>
         <item name="android:windowLightStatusBar">false</item>
+        <!-- Android 15+ (edge-to-edge + adjustMarginsForEdgeToEdge='auto'): as faixas de
+             status/gesture bar ficam expostas mostrando o fundo da WINDOW. Sem isso o padrão
+             é branco (claro) — ícones claros da status bar sumiriam. Teal = contínuo com o
+             splash e o bg do WebView (paintWebViewBrandBg). Android ≤14: item invisível. -->
+        <item name="android:windowBackground">@color/splash_bg</item>
     </style>
 
 

@@ -4,6 +4,15 @@ const config: CapacitorConfig = {
   appId: 'com.janocaminho.drexame',
   appName: 'Meus Exames',
   webDir: 'www',
+  android: {
+    // Android 15+ (targetSdk>=35) força edge-to-edge: sem isso o WebView desenha POR TRÁS da
+    // status bar e da gesture bar (env(safe-area-inset-*) volta 0 no Android WebView → nada
+    // compensa). 'auto' = Capacitor aplica margins no WebView só no 15+ (padrão do Capacitor
+    // 7.x é 'disable', que só funcionava porque o template antigo optava-out via tema).
+    // Padrão observado em apps nativos maduros (ex.: análise do APK Soufix/NativeScript,
+    // que trata insets explicitamente no bottom nav). Android ≤14: sem mudança.
+    adjustMarginsForEdgeToEdge: 'auto',
+  },
   server: {
     androidScheme: 'https',
     // Em DEV, para apontar o app p/ o servidor de desenvolvimento (live reload no celular):
