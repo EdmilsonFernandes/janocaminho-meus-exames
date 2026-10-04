@@ -1092,12 +1092,12 @@ export const LandingPage = () => {
           </Typography>
 
           {/* Multi-provider (03/10): linha discreta de confiança de pagamento — OpenPix PIX,
-              Asaas PIX/cartão, Mercado Pago standby. Logo = prova social de gateway. */}
+              Asaas PIX/cartão. Logo = prova social de gateway (MP = fallback, fora do selo). */}
           <Typography align="center" variant="caption" sx={{ display: 'block', mt: 4, color: 'text.secondary' }}>
             Pagamentos processados com segurança via:
           </Typography>
           <Box sx={{ mt: 1, mb: 1 }}>
-            <PaymentLogos showMp />
+            <PaymentLogos />
           </Box>
         </Container>
       </Box>

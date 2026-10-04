@@ -56,7 +56,7 @@ export const PaymentChooser = ({ packId, packLabel, onClose, onPix }: {
       <DialogContent sx={{ pb: 3 }}>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>{packLabel}</Typography>
         <Stack spacing={1.5}>
-          <Opt icon={<QrCode2Icon />} title="PIX" sub="Instantâneo • via OpenPix (Woovi)" busyKey="pix" color="#20b2aa"
+          <Opt icon={<QrCode2Icon />} title="PIX" sub="Instantâneo • via OpenPix" busyKey="pix" color="#20b2aa"
             onClick={() => { onPix(); onClose(); }} />
           {cardEnabled && (
             <>
@@ -70,7 +70,8 @@ export const PaymentChooser = ({ packId, packLabel, onClose, onPix }: {
         {err && <Typography color="error" variant="body2" sx={{ mt: 2 }}>{err}</Typography>}
 
         {/* Selo de confiança (padrão checkout premium): reduz abandono e dúvida "quem é o vendedor".
-            03/10 multi-provider: logos OpenPix + Asaas (+"MP" c/ cartão ativo) no lugar do texto. */}
+            03/10 multi-provider: logos OpenPix + Asaas no lugar do texto. MP = fallback
+            invisível (só processa cartão/débito via Checkout Pro), fica fora do selo. */}
         <Stack justifyContent="center" sx={{ mt: 2.5 }} spacing={0.5}>
           <Stack direction="row" spacing={0.75} justifyContent="center" sx={{ flexWrap: 'wrap', rowGap: 0.5 }}>
             <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>🔒 Ambiente seguro</Typography>
@@ -79,7 +80,7 @@ export const PaymentChooser = ({ packId, packLabel, onClose, onPix }: {
             <Typography variant="caption" sx={{ color: 'text.disabled' }}>·</Typography>
             <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>Processado via:</Typography>
           </Stack>
-          <PaymentLogos showMp={cardEnabled} />
+          <PaymentLogos />
         </Stack>
         <Typography variant="caption" sx={{ display: 'block', mt: 0.5, textAlign: 'center', color: 'text.disabled' }}>
           No extrato do PIX aparece o nome do recebedor registrado

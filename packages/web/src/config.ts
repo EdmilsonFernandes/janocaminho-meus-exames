@@ -72,7 +72,7 @@ export const doctorPhotoUrl = (doctorId: string, version?: number | string): str
  *  Lida de GET /api/public/config (sem auth). Cacheada em memória (1 fetch/sessão). Usada pela
  *  landing, card de indicação, link compartilhado e banner de 1º exame → valor sempre bate c/ o server. */
 /** `cardEnabled` (02/10, MP suspenso): cartão/débito só voltam quando o admin religar
- *  (AppSetting payments.cardEnabled) — default false = PIX-only via OpenPix/Woovi. */
+ *  (AppSetting payments.cardEnabled) — default false = PIX-only via OpenPix. */
 export interface PublicConfig { freeSignup: number; referralBonus: number; cardEnabled: boolean }
 let _publicCfgP: Promise<PublicConfig> | null = null;
 export function fetchPublicConfig(): Promise<PublicConfig> {
