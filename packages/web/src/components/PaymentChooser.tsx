@@ -60,9 +60,9 @@ export const PaymentChooser = ({ packId, packLabel, onClose, onPix }: {
             onClick={() => { onPix(); onClose(); }} />
           {cardEnabled && (
             <>
-              <Opt icon={<CreditCardIcon />} title="Cartão de crédito" sub="Até 12x • via Mercado Pago" busyKey="card" color="#0369a1"
+              <Opt icon={<CreditCardIcon />} title="Cartão de crédito" sub="Até 12x • processado com segurança" busyKey="card" color="#0369a1"
                 onClick={() => payRedirect('card')} />
-              <Opt icon={<AccountBalanceIcon />} title="Débito" sub="À vista • via Mercado Pago" busyKey="debit" color="#178f89"
+              <Opt icon={<AccountBalanceIcon />} title="Débito" sub="À vista • processado com segurança" busyKey="debit" color="#178f89"
                 onClick={() => payRedirect('debit')} />
             </>
           )}

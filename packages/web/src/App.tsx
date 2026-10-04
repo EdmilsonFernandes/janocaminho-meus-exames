@@ -393,7 +393,7 @@ const AppMenu = () => {
   const isAdmin = (() => { try { return userStr ? (JSON.parse(userStr)?.role === 'ADMIN') : false; } catch { return false; } })();
   const isDesktop = useMediaQuery((t: any) => t.breakpoints.up('sm'));
   return (
-  <Box component="nav" sx={{ py: 1, display: 'flex', flexDirection: 'column', minHeight: '100%', width: '100%', minWidth: 0, maxWidth: '100%', containerType: 'inline-size', overflowX: 'hidden', overflowY: 'auto', maxHeight: '100vh', '& .MuiListItemButton-root, & .MuiMenuItem-root': { flex: '0 0 auto' } }}>
+  <Box component="nav" sx={{ py: 1, display: 'flex', flexDirection: 'column', minHeight: '100%', width: '100%', minWidth: 0, maxWidth: '100%', containerType: 'inline-size', overflowX: 'hidden', overflowY: 'auto', maxHeight: '100dvh', '& .MuiListItemButton-root, & .MuiMenuItem-root': { flex: '0 0 auto' } }}>
     {isDesktop && <UserProfileCard />}
     {isDesktop && <Divider sx={{ borderColor: (t) => alpha(t.palette.primary.main, 0.12), mx: 2, mb: 1 }} />}
     {/* Início fora dos acordeões: desktop NÃO tem bottom-nav — sem isto, quem navega
@@ -599,6 +599,31 @@ const ReportReadyToast = () => {
   return null;
 };
 
+/**
+ * Wallpaper do app (camada "vidro premium"): gradiente fixo ATRÁS de todo o shell.
+ * O vidro das barras (AppBar/BottomNav frostados) só lê como vidro quando há COR
+ * passando por trás — com o bg chapado o blur não tinha nada pra desfocar.
+ * Div FIXED (não background-attachment:fixed, que o iOS Safari renderiza mal):
+ * uma camada só, não repinta no scroll, zero custo de interação.
+ * Alfas 0.06-0.13: muda o tom, não o contraste AA dos dados clínicos.
+ */
+const ScreenBackdrop = () => {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+  return (
+    <Box aria-hidden sx={{
+      position: 'fixed', inset: 0, zIndex: -1, pointerEvents: 'none',
+      background: isDark
+        ? `radial-gradient(ellipse 70% 45% at 18% -6%, rgba(32,178,170,0.13), transparent 60%),
+           radial-gradient(ellipse 60% 40% at 88% 108%, rgba(99,102,241,0.08), transparent 55%),
+           #0f1818`
+        : `radial-gradient(ellipse 70% 45% at 18% -6%, rgba(32,178,170,0.12), transparent 60%),
+           radial-gradient(ellipse 55% 38% at 90% 106%, rgba(212,165,116,0.10), transparent 55%),
+           #eef7f6`,
+    }} />
+  );
+};
+
 const AppLayout = (props: any) => {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('sm'));
@@ -614,6 +639,7 @@ const AppLayout = (props: any) => {
     <ConfirmDialogProvider>
     <DrawerProvider>
       <BiometricGate>
+      <ScreenBackdrop />
       {/* gap reduzido + espaço pra não cobrir conteúdo com o menu rodapé (mobile) */}
       <Layout {...props} menu={AppMenu} appBar={CustomAppBar}
         sx={{
@@ -625,7 +651,9 @@ const AppLayout = (props: any) => {
           // .layout (pensando na sidebar de desktop) — no mobile isso deixa o frame inflar além do
           // viewport (ex.: admin com 5 Tabs de 90px = 450px + AppBar) e CLIPA a direita (overflow hidden
           // corta em vez de caber). min-width:0 mata o fit-content no mobile; sm+ mantém p/ desktop.
-          '&': { minWidth: { xs: '0 !important', sm: 'fit-content' }, maxWidth: '100vw' },
+          // bg TRANSPARENTE no root/appFrame: deixa o ScreenBackdrop (wallpaper glass) aparecer —
+          // o bg chapado do RA cobria o gradiente inteiro.
+          '&': { minWidth: { xs: '0 !important', sm: 'fit-content' }, maxWidth: '100vw', backgroundColor: 'transparent' },
           // SHELL CENTRADO em telas largas (premium): app inteiro (topo+menu+content) num bloco de
           // até 1728px centrado → gutters simétricos nas BORDAS (intencional, estilo Linear/GitHub),
           // NÃO espaço morto entre menu e dashboard. Em laptop (≤1728) preenche tudo; em ultrawide
@@ -633,7 +661,8 @@ const AppLayout = (props: any) => {
           // APPFRAME preenche (width 100%!) no desktop — antes era flex-item c/ mx:auto → shrink-to-fit ao conteúdo
           // (dashboard largo=1115, listas estreitas=648 → "página encolhe ao clicar"). Agora preenche até o cap 1728
           // e centraliza além. !important bate o maxWidth:100% que o react-admin põe no appFrame.
-          '& .RaLayout-appFrame': { width: { sm: '100% !important' }, maxWidth: { xs: '100%', sm: '1728px !important' }, mx: { sm: 'auto' } },
+          // bg transparente: deixa o ScreenBackdrop (wallpaper glass) aparecer por trás do shell.
+          '& .RaLayout-appFrame': { backgroundColor: 'transparent', width: { sm: '100% !important' }, maxWidth: { xs: '100%', sm: '1728px !important' }, mx: { sm: 'auto' } },
           // Menu lateral: constraine o conteúdo ao sidebar (min-width:0 + clip) — sem isto o grid
           // de atalhos (e itens largos) escapa da largura do sidebar e transborda sobre a página.
           '& .RaLayout-menu': { minWidth: 0, maxWidth: '100%', overflowX: 'hidden' },
