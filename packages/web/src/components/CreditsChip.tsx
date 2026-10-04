@@ -41,15 +41,15 @@ export const CreditsChip = () => {
   const shown = credits >= 1_000_000
     ? new Intl.NumberFormat('pt-BR', { notation: 'compact', maximumFractionDigits: 1 }).format(credits)
     : full;
-  const open = () => navigate('/planos');
+  const open = () => navigate('/carteira');
   return (
     <Box
       onClick={open}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } }}
       role="button"
       tabIndex={0}
-      aria-label={`Você tem ${full} créditos. Toque para comprar mais.`}
-      title={`Você tem ${full} créditos — toque para comprar mais`}
+      aria-label={`Você tem ${full} créditos. Toque para ver a carteira.`}
+      title={`Você tem ${full} créditos — toque para ver a carteira`}
       sx={(theme) => ({
         display: 'flex', alignItems: 'center', gap: 0.5, cursor: 'pointer', userSelect: 'none', flexShrink: 0,
         px: 1.25, minHeight: 40, mr: 0.5, borderRadius: '999px',

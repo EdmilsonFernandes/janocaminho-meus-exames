@@ -77,6 +77,26 @@ router.get('/status', requireAuth, async (req: AuthedRequest, res, next) => {
   } catch (e) { next(e); }
 });
 
+// QUIZ DE BOAS-VINDAS — recompensa por responder "o que você quer entender?" (GoalQuiz).
+// Anti-farm: 1x por USUÁRIO — o próprio ledger é a guarda (kind='quiz' atômico no $transaction).
+// Valor editável no admin (AppSetting grants.quiz; 0 = desliga).
+router.post('/quiz-reward', requireAuth, async (req: AuthedRequest, res, next) => {
+  try {
+    const userId = req.userId!;
+    const amount = Math.max(0, Number(getSettings().grants?.quiz ?? 5));
+    if (amount === 0) { res.json({ ok: false, already: false, amount: 0 }); return; }
+    let granted = false;
+    await prisma.$transaction(async (tx) => {
+      const dup = await tx.creditTransaction.findFirst({ where: { userId, kind: 'quiz' }, select: { id: true } });
+      if (dup) return;
+      await tx.user.update({ where: { id: userId }, data: { credits: { increment: amount } } });
+      await tx.creditTransaction.create({ data: { userId, delta: amount, kind: 'quiz', label: 'Quiz de boas-vindas' } });
+      granted = true;
+    });
+    res.json({ ok: granted, already: !granted, amount });
+  } catch (e) { next(e); }
+});
+
 // EXTRATO de créditos (paginado 50/página, sempre do mais recente): débitos IA + créditos de compra
 router.get('/credits/history', requireAuth, async (req: AuthedRequest, res, next) => {
   try {

@@ -11,7 +11,10 @@ export const ReferralCard = ({ code }: { code?: string }) => {
   const [stats, setStats] = useState<{ count: number; creditsEarned: number; friends: any[] } | null>(null);
   const [copied, setCopied] = useState(false);
   const [refBonus, setRefBonus] = useState(10);
-  useEffect(() => { fetchPublicConfig().then((c) => setRefBonus(c.referralBonus)); }, []);
+  // Texto do share: editável no admin (AppSetting referral.shareMessage, placeholders
+  // {code}/{bonus}/{link}) — vazio = copy padrão do app. Padrão apps maduros: copy testável.
+  const [shareTpl, setShareTpl] = useState('');
+  useEffect(() => { fetchPublicConfig().then((c) => { setRefBonus(c.referralBonus); setShareTpl(c.shareMessage || ''); }); }, []);
 
   useEffect(() => {
     if (!code) return;
@@ -23,8 +26,11 @@ export const ReferralCard = ({ code }: { code?: string }) => {
   const link = `https://drexame.janocaminho.com.br/#/registrar?ref=${code}`;
 
   const copy = () => { navigator.clipboard?.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 2000); };
+  const buildText = () => (shareTpl
+    ? shareTpl.replaceAll('{code}', code).replaceAll('{bonus}', String(refBonus)).replaceAll('{link}', link)
+    : `📱 Meus Exames — sua saúde com IA! Cadastre-se com meu código ${code} e ganhe +${refBonus} créditos: ${link}`);
   const share = async () => {
-    const text = `📱 Meus Exames — sua saúde com IA! Cadastre-se com meu código ${code} e ganhe +${refBonus} créditos: ${link}`;
+    const text = buildText();
     // No celular (Capacitor): usa o plugin nativo @capacitor/share (abre WhatsApp, Instagram, etc)
     try {
       const { Capacitor } = await import('@capacitor/core');
@@ -62,6 +68,25 @@ export const ReferralCard = ({ code }: { code?: string }) => {
         <Button variant="contained" fullWidth startIcon={<ShareIcon />} onClick={share} sx={{ mb: 2, borderRadius: '12px', textTransform: 'none', fontWeight: 800, background: 'linear-gradient(180deg,#20b2aa,#178f89)', '&:hover': { background: 'linear-gradient(180deg,#178f89,#178f89)' } }}>
           Compartilhar link
         </Button>
+
+        {/* Como funciona — 3 passos (ensina a mecânica = mais conversão) */}
+        <Stack spacing={1} sx={{ mb: 2 }}>
+          {[
+            { n: 1, txt: <>Envie seu código ou link pra um amigo</> },
+            { n: 2, txt: <>Ele se cadastra com o código — <strong>ganha +{refBonus}</strong></> },
+            { n: 3, txt: <>Você ganha <strong>+{refBonus}</strong> quando ele ativar</> },
+          ].map((s) => (
+            <Stack key={s.n} direction="row" alignItems="center" spacing={1.5}>
+              <Box sx={{
+                width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff',
+                fontSize: 13, fontWeight: 800, fontFamily: '"Poppins",sans-serif',
+              }}>{s.n}</Box>
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: 13 }}>{s.txt}</Typography>
+            </Stack>
+          ))}
+        </Stack>
 
         {/* Stats */}
         {stats && (

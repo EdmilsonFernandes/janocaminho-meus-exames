@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Box, Stack, Typography, TextField, Button, Chip, Alert, CircularProgress, Divider } from '@mui/material';
+import { Box, Stack, Typography, TextField, Button, Chip, Alert, CircularProgress, Divider, Switch } from '@mui/material';
 import { useNotify } from 'react-admin';
 import SendIcon from '@mui/icons-material/Send';
 import GroupsIcon from '@mui/icons-material/Groups';
@@ -85,6 +85,30 @@ export const PushTab = () => {
   const [result, setResult] = useState<string | null>(null);
   const [campaigns, setCampaigns] = useState<any[]>([]);
   useEffect(() => { fetch(`${API_URL}/admin/push/campaigns`, { headers: { Authorization: `Bearer ${token()}` } }).then((r) => r.ok ? r.json() : { campaigns: [] }).then((d) => setCampaigns(d.campaigns ?? [])).catch(() => {}); }, []);
+
+  // ── MOTD (mensagem do dia pós-login) + share de indicação — AppSettings editáveis ──
+  const [motd, setMotd] = useState({ enabled: 0, title: '', message: '', ctaLabel: '', ctaRoute: '' });
+  const [shareMsg, setShareMsg] = useState('');
+  const [txtSaving, setTxtSaving] = useState(false);
+  useEffect(() => {
+    fetch(`${API_URL}/admin/config`, { headers: { Authorization: `Bearer ${token()}` } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((c) => {
+        if (c?.motd) setMotd((m) => ({ ...m, ...c.motd }));
+        if (c?.referral) setShareMsg(String(c.referral.shareMessage ?? ''));
+      }).catch(() => {});
+  }, []);
+  const saveTexts = async () => {
+    setTxtSaving(true);
+    try {
+      const h = { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` };
+      const r1 = await fetch(`${API_URL}/admin/config/costs`, { method: 'PATCH', headers: h, body: JSON.stringify({ category: 'motd', value: motd }) });
+      const r2 = await fetch(`${API_URL}/admin/config/costs`, { method: 'PATCH', headers: h, body: JSON.stringify({ category: 'referral', value: { shareMessage: shareMsg } }) });
+      if (!r1.ok || !r2.ok) throw new Error();
+      notify('Textos salvos — MOTD aparece na próxima sessão (1x por conteúdo).', { type: 'success' });
+    } catch { notify('Falha ao salvar textos.', { type: 'error' }); }
+    finally { setTxtSaving(false); }
+  };
 
   const segmented = hasAudience(audience);
 
@@ -254,6 +278,40 @@ export const PushTab = () => {
           </Stack>
         </Box>
       )}
+
+      <Divider sx={{ my: 2.5 }} />
+
+      {/* ── Textos do app (MOTD + indicação) ── */}
+      <Box sx={{ p: 2, borderRadius: '14px', border: '1px solid', borderColor: 'divider' }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
+          <Box>
+            <Typography sx={{ fontWeight: 800 }}>💬 Mensagem do dia (MOTD)</Typography>
+            <Typography variant="caption" color="text.secondary">
+              Dialog pós-login, 1x por conteúdo (mudou o texto = mostra de novo). Vazio/desligado = não aparece.
+            </Typography>
+          </Box>
+          <Switch checked={!!motd.enabled} onChange={(e) => setMotd((m) => ({ ...m, enabled: e.target.checked ? 1 : 0 }))} />
+        </Stack>
+        <Stack spacing={1.5}>
+          <TextField size="small" label="Título" value={motd.title} onChange={(e) => setMotd((m) => ({ ...m, title: e.target.value }))} fullWidth />
+          <TextField size="small" label="Mensagem" value={motd.message} onChange={(e) => setMotd((m) => ({ ...m, message: e.target.value }))} fullWidth multiline minRows={2} />
+          <Stack direction="row" spacing={1.5}>
+            <TextField size="small" label="Botão (opcional)" value={motd.ctaLabel} onChange={(e) => setMotd((m) => ({ ...m, ctaLabel: e.target.value }))} fullWidth />
+            <TextField size="small" label="Rota do botão (ex.: /carteira)" value={motd.ctaRoute} onChange={(e) => setMotd((m) => ({ ...m, ctaRoute: e.target.value }))} fullWidth />
+          </Stack>
+          <Divider sx={{ my: 0.5 }} />
+          <TextField
+            size="small" label="Texto do share de indicação (opcional)"
+            value={shareMsg} onChange={(e) => setShareMsg(e.target.value)} fullWidth multiline minRows={2}
+            helperText="Placeholders: {code} {bonus} {link}. Vazio = texto padrão do app."
+          />
+          <Box>
+            <Button variant="contained" onClick={saveTexts} disabled={txtSaving} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '10px' }}>
+              {txtSaving ? 'Salvando…' : 'Salvar textos'}
+            </Button>
+          </Box>
+        </Stack>
+      </Box>
 
       <Divider sx={{ my: 2.5 }} />
       <Typography variant="caption" color="text.secondary">

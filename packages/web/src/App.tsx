@@ -23,6 +23,7 @@ import MedicationOutlinedIcon from '@mui/icons-material/MedicationOutlined';
 import VaccinesOutlinedIcon from '@mui/icons-material/VaccinesOutlined';
 import EventAvailableOutlinedIcon from '@mui/icons-material/EventAvailableOutlined';
 import EmergencyOutlinedIcon from '@mui/icons-material/EmergencyOutlined';
+import BoltOutlinedIcon from '@mui/icons-material/BoltOutlined';
 import EmojiEventsOutlinedIcon from '@mui/icons-material/EmojiEventsOutlined';
 import AccountBalanceWalletOutlinedIcon from '@mui/icons-material/AccountBalanceWalletOutlined';
 import Diversity3OutlinedIcon from '@mui/icons-material/Diversity3Outlined';
@@ -59,6 +60,7 @@ const ChatPage = lazy(() => import('./pages/Chat').then(m => ({ default: m.ChatP
 const DoctorPortalPage = lazy(() => import('./pages/DoctorPortal').then(m => ({ default: m.DoctorPortalPage })));
 const LandingPage = lazy(() => import('./pages/Landing').then(m => ({ default: m.LandingPage })));
 const PlansPage = lazy(() => import('./pages/Plans').then(m => ({ default: m.PlansPage })));
+const WalletPage = lazy(() => import('./pages/Wallet').then(m => ({ default: m.WalletPage })));
 const RemindersPage = lazy(() => import('./pages/Reminders').then(m => ({ default: m.RemindersPage })));
 const QuestionsPage = lazy(() => import('./pages/Questions').then(m => ({ default: m.QuestionsPage })));
 const FaqPage = lazy(() => import('./pages/Faq').then(m => ({ default: m.FaqPage })));
@@ -102,6 +104,7 @@ import { WhatsNew } from './components/WhatsNew';
 import { PageSkeleton } from './components/PageSkeleton';
 import { CompleteProfileModal } from './components/CompleteProfileModal';
 import { GoalQuiz } from './components/GoalQuiz';
+import { Motd } from './components/Motd';
 import { NotificationsPage } from './pages/Notifications';
 import { MedicosPage } from './pages/Medicos';
 import { SupportPage } from './pages/Support';
@@ -428,8 +431,9 @@ const AppMenu = () => {
       <NavItem to="/perguntas" primaryText={translate('menu.questions')} icon={<QuestionAnswerOutlinedIcon />} />
     </MenuSectionAccordion>
 
-    <MenuSectionAccordion title={translate('menu.section.account')} icon={<ManageAccountsOutlinedIcon />} routes={['/perfil', '/seguranca', '/privacidade', '/planos', '/admin']}>
+    <MenuSectionAccordion title={translate('menu.section.account')} icon={<ManageAccountsOutlinedIcon />} routes={['/perfil', '/carteira', '/seguranca', '/privacidade', '/planos', '/admin']}>
       <NavItem to="/perfil" primaryText={translate('menu.profile')} icon={<AccountCircleOutlinedIcon />} />
+      <NavItem to="/carteira" primaryText={translate('menu.wallet', { _: 'Carteira' })} icon={<BoltOutlinedIcon />} highlight />
       <NavItem to="/seguranca" primaryText={translate('menu.security_pwd')} icon={<LockOutlinedIcon />} />
       <NavItem to="/privacidade" primaryText={translate('menu.privacy')} icon={<HealthAndSafetyOutlinedIcon />} />
       <NavItem to="/planos" primaryText={translate('menu.plans')} icon={<WorkspacePremiumOutlinedIcon />} />
@@ -714,6 +718,7 @@ const AppLayout = (props: any) => {
       <WhatsNew />
       <CompleteProfileModal />
       <GoalQuiz />
+      <Motd />
       </BiometricGate>
     </DrawerProvider>
     </ConfirmDialogProvider>
@@ -924,6 +929,7 @@ export const App = () => {
 
     <CustomRoutes>
       <Route path="/perfil" element={<ProfilePage />} />
+      <Route path="/carteira" element={<Suspense fallback={<PageSkeleton />}><WalletPage /></Suspense>} />
       <Route path="/perguntas" element={<Suspense fallback={<PageSkeleton />}><QuestionsPage /></Suspense>} />
       <Route path="/seguranca" element={<SecurityPage />} />
       <Route path="/privacidade" element={<PrivacyPage />} />

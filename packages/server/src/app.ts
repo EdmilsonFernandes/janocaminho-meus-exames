@@ -160,12 +160,20 @@ app.use('/api/public/lead', leadRoutes);
 // Config PÚBLICA (sem auth) — créditos de cadastro (freeSignup, do banco) + bônus de indicação.
 // A landing/card/link compartilhado leem daqui → valor sempre coerente c/ o que o server entrega.
 app.get('/api/public/config', (_req, res) => {
-  const { grants, payments } = getSettings();
+  const { grants, payments, referral, motd } = getSettings();
   res.json({
     freeSignup: grants?.freeSignup ?? 60, referralBonus: REFERRAL_BONUS,
     // 04/10: cartão/débito INLINE via Asaas (form próprio) → default true. Kill-switch:
     // AppSetting payments.cardEnabled=false (zero deploy). PIX = OpenPix + Asaas.
     cardEnabled: payments?.cardEnabled ?? true,
+    // Share de indicação editável no admin (vazio = texto padrão do app).
+    shareMessage: referral?.shareMessage ?? '',
+    // MOTD (mensagem do dia): dialog pós-login, 1x/dia. enabled=0 = front nem mostra.
+    motd: {
+      enabled: motd?.enabled ? 1 : 0,
+      title: motd?.title ?? '', message: motd?.message ?? '',
+      ctaLabel: motd?.ctaLabel ?? '', ctaRoute: motd?.ctaRoute ?? '',
+    },
   });
 });
 // Força-atualização (público, sem auth): app compara a versão instalada com a mínima exigida.

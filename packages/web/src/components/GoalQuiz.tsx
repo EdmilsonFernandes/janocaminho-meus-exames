@@ -6,6 +6,8 @@ import CloseIcon from '@mui/icons-material/Close';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { DrExame } from './DrExame';
 import { claimColdDialog } from '../utils/coldDialog';
+import { useNotify } from 'react-admin';
+import { API_URL, token } from '../config';
 
 /** Quiz-first onboarding (licença Mito): "o que você quer entender?" ANTES do upload —
  *  personaliza a primeira experiência com valor instantâneo. 1 tela, <60s, 1x por dispositivo.
@@ -50,6 +52,7 @@ export const goalSubtitle = (goals: GoalId[]): string | null => {
 export const GoalQuiz = () => {
   const [open, setOpen] = useState(false);
   const [sel, setSel] = useState<GoalId[]>([]);
+  const notify = useNotify();
 
   useEffect(() => {
     if (localStorage.getItem(KEY)) return; // já respondeu/pulou — nunca mais
@@ -69,6 +72,20 @@ export const GoalQuiz = () => {
   const save = (goals: GoalId[]) => {
     try { localStorage.setItem(KEY, JSON.stringify(goals)); } catch { /* ignore */ }
     setOpen(false);
+    // Recompensa do quiz (padrão answer-here de apps maduros): respondeu de verdade →
+    // +créditos (grants.quiz, 1x por USUÁRIO guardado no ledger do server). Pular NÃO paga.
+    // Fire-and-forget: falha de rede não bloqueia o fluxo do quiz.
+    if (goals.length > 0 && token()) {
+      fetch(`${API_URL}/billing/quiz-reward`, { method: 'POST', headers: { Authorization: `Bearer ${token()}` } })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => {
+          if (d?.ok && d.amount > 0) {
+            window.dispatchEvent(new Event('creditsChanged'));
+            notify(`+${d.amount} créditos adicionados ⚡`, { type: 'success' });
+          }
+        })
+        .catch(() => { /* silencioso */ });
+    }
   };
 
   if (!open) return null;

@@ -8,7 +8,7 @@ import { BADGES as DEFAULT_BADGES } from './achievements';
 export const DEFAULT_SETTINGS = {
   creditCosts: { extraction: 0, summary: 10, consolidated: 20, chat: 2 },
   uploadRules: { freeCost: 1, premiumFreeQuota: 6, premiumCost: 5 },
-  grants: { freeSignup: 60, monthly: 250, freeExamLimit: 2 },
+  grants: { freeSignup: 60, monthly: 250, freeExamLimit: 2, quiz: 5 },
   // ===== Estratégia de pricing (2026-08-23) — tudo editável no Admin, sem deploy =====
   // Preço do plano mensal (era hardcode em 7 lugares). Os créditos do mensal continuam em
   // grants.monthly (fonte única). periodDays/label aqui só p/ a API expor.
@@ -64,6 +64,12 @@ export const DEFAULT_SETTINGS = {
   // religados por DEFAULT. Kill-switch segue o mesmo: AppSetting payments.cardEnabled
   // false (admin/SQL) esconde no front — sem deploy.
   payments: { cardEnabled: true },
+  // Texto do share de indicação editável no admin (padrão apps maduros: copy testável).
+  // Vazio = usa o texto padrão do app. Placeholders: {code} {bonus} {link}.
+  referral: { shareMessage: '' },
+  // Mensagem do Dia (MOTD): dialog 1x/dia no boot do app autenticado — anunciar feature,
+  // promo, novidade. enabled=0 = desligado. ctaRoute = rota interna (ex.: /carteira).
+  motd: { enabled: 0, title: '', message: '', ctaLabel: '', ctaRoute: '' },
 };
 
 export type SettingCategory = keyof typeof DEFAULT_SETTINGS;

@@ -4,6 +4,7 @@ import { Stack, Typography, Box, Grid, useTheme, Skeleton, Dialog, DialogTitle, 
 import { alpha } from '@mui/material/styles';
 import { API_URL, token } from '../../config';
 import { SEM, copperText, tealText } from '../../theme';
+import { ActivationChecklist } from './ActivationChecklist';
 import { deltaEntre, deltaLabel, proximaJanela } from '../../utils/mental-delta';
 import { Heartbeat, Stethoscope, ChartLineUp, Dna, ChatCircle } from '@phosphor-icons/react';
 import { useSelectedPatient } from '../../patient-context';
@@ -842,6 +843,16 @@ export const DashboardV2 = () => {
           onDemo={demo ? undefined : () => { setDemo(true); demoEvent('started'); }}
         />
       </ScrollReveal>
+
+      {/* CHECKLIST DE ATIVAÇÃO — só no estado vazio real (sem exames, fora do modo exemplo):
+          passos concretos em vez de tiles vazios (cliff do dia 0). 1º exame = missão cumprida. */}
+      {!demo && d.loaded && d.stats.exams === 0 && (
+        <ScrollReveal delay={60}>
+          <Box sx={{ mt: 2 }}>
+            <ActivationChecklist exams={d.stats.exams} />
+          </Box>
+        </ScrollReveal>
+      )}
 
       {/* 2. 4 CARDS DE KPI COM SOFT BADGES (2x2 no mobile, 4x1 no desktop). W4: enquanto
           carrega, TILES EM SHIMMER (mesmo footprint) em vez de '…' — feel de app nativo. */}

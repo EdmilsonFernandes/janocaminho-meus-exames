@@ -73,14 +73,23 @@ export const doctorPhotoUrl = (doctorId: string, version?: number | string): str
  *  landing, card de indicação, link compartilhado e banner de 1º exame → valor sempre bate c/ o server. */
 /** `cardEnabled` (02/10, MP suspenso): cartão/débito só voltam quando o admin religar
  *  (AppSetting payments.cardEnabled) — default false = PIX-only via OpenPix. */
-export interface PublicConfig { freeSignup: number; referralBonus: number; cardEnabled: boolean }
+export interface MotdConfig { enabled: number; title: string; message: string; ctaLabel: string; ctaRoute: string }
+export interface PublicConfig { freeSignup: number; referralBonus: number; cardEnabled: boolean; shareMessage: string; motd: MotdConfig }
 let _publicCfgP: Promise<PublicConfig> | null = null;
 export function fetchPublicConfig(): Promise<PublicConfig> {
   if (!_publicCfgP) {
     _publicCfgP = fetch(`${API_URL}/public/config`)
       .then((r) => (r.ok ? r.json() : {}))
-      .then((d: any) => ({ freeSignup: Number(d?.freeSignup ?? 60), referralBonus: Number(d?.referralBonus ?? 10), cardEnabled: !!d?.cardEnabled }))
-      .catch(() => ({ freeSignup: 60, referralBonus: 10, cardEnabled: false }));
+      .then((d: any) => ({
+        freeSignup: Number(d?.freeSignup ?? 60), referralBonus: Number(d?.referralBonus ?? 10), cardEnabled: !!d?.cardEnabled,
+        shareMessage: typeof d?.shareMessage === 'string' ? d.shareMessage : '',
+        motd: {
+          enabled: d?.motd?.enabled ? 1 : 0,
+          title: d?.motd?.title ?? '', message: d?.motd?.message ?? '',
+          ctaLabel: d?.motd?.ctaLabel ?? '', ctaRoute: d?.motd?.ctaRoute ?? '',
+        },
+      }))
+      .catch(() => ({ freeSignup: 60, referralBonus: 10, cardEnabled: false, shareMessage: '', motd: { enabled: 0, title: '', message: '', ctaLabel: '', ctaRoute: '' } }));
   }
   return _publicCfgP;
 }
