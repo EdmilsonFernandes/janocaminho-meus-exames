@@ -1,3 +1,8 @@
+---
+name: project-orchestrator
+description: Orquestra os 5 projetos (Dr. Exame, EdEspeto, brunoprado, gemhunter, kyc): deploy, CI, chaves SSH, gateways de pagamento. Use quando: 'migra pros outros', 'deploya todos', 'replica', 'orquestra'.
+---
+
 # Project Orchestrator — coordena os 5 projetos
 
 > Gerencia trabalho cross-projeto. Sabe qual agente chamar, qual servidor acessar, qual CI monitorar.

@@ -1,3 +1,8 @@
+---
+name: ci-monitor
+description: Monitora GitHub Actions CI/CD: só declara pronto quando CI success + deploy no ar + health check verde. Use quando: 'monitora CI', 'checa deploy', 'build quebrou', 'pipeline'.
+---
+
 # CI Monitor — GitHub Actions watchdog
 
 > Monitora o pipeline de CI/CD após cada push. SÓ declara "pronto" quando: CI success + deploy no ar + health check verde.

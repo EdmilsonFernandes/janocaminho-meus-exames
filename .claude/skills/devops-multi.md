@@ -1,3 +1,8 @@
+---
+name: devops-multi
+description: SSH/restart/health/logs para as 3 EC2s dos 5 projetos. Use quando: 'deploy', 'reinicia servidor', 'container down', 'olha logs EC2', 'docker'.
+---
+
 # DevOps Multi-Project — SSH, EC2, containers, health
 
 > Acesso e operação nos servidores dos 5 projetos. SEMPRE ler antes de escrever.
