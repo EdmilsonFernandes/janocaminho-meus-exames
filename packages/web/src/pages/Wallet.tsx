@@ -23,6 +23,7 @@ import ArrowDownwardOutlinedIcon from '@mui/icons-material/ArrowDownwardOutlined
 import TerminalOutlinedIcon from '@mui/icons-material/TerminalOutlined';
 import { API_URL, token } from '../config';
 import { DrExame } from '../components/DrExame';
+import { PageContainer } from '../components/layout/PageContainer';
 
 /** Carteira de créditos (padrão wallet de apps maduros): saldo em destaque + extrato completo.
  *  Consome endpoints que JÁ existiam (/billing/status + /billing/credits/history) — o ledger
@@ -109,7 +110,7 @@ export const WalletPage = () => {
 
   return (
     <Fade in timeout={300}>
-      <Box sx={{ maxWidth: 720, mx: 'auto', p: { xs: 1.5, sm: 2 }, pb: { xs: 10, sm: 4 } }}>
+      <PageContainer width={720} sx={{ pb: { xs: 10, sm: 4 } }}>
         {/* HERO — saldo: gradiente é assinatura da MARCA (reservado a momentos de identidade) */}
         <Card elevation={0} sx={{
           position: 'relative', overflow: 'hidden', borderRadius: '18px',
@@ -162,15 +163,17 @@ export const WalletPage = () => {
           </CardContent>
         </Card>
 
-        {/* STATS — ganhos / gastos / lançamentos (calculados do extrato carregado) */}
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(3,1fr)', sm: 'repeat(3,1fr)' }, gap: 1.5, mb: 2 }}>
+        {/* STATS — ganhos / gastos / lançamentos (calculados do extrato carregado).
+            minmax(0,1fr): número grande não infla a track além da coluna (armadilha clássica
+            de grid — min-width:auto estoura o layout pra direita no mobile). */}
+        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 1.5, mb: 2 }}>
           {[
             { icon: <TrendingUpOutlinedIcon sx={{ fontSize: 16 }} />, label: 'Ganhos', value: totals.current.earned, color: '#178f89' },
             { icon: <TrendingDownOutlinedIcon sx={{ fontSize: 16 }} />, label: 'Gastos', value: totals.current.spent, color: '#c2703e' },
             { icon: <ReceiptLongOutlinedIcon sx={{ fontSize: 16 }} />, label: 'Lançamentos', value: items?.length ?? 0, color: 'text.secondary' },
           ].map((s) => (
-            <Card key={s.label} elevation={0} sx={{ borderRadius: '14px', border: (t) => `1px solid ${alpha(t.palette.divider, 0.6)}` }}>
-              <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
+            <Card key={s.label} elevation={0} sx={{ borderRadius: '14px', minWidth: 0, overflow: 'hidden', border: (t) => `1px solid ${alpha(t.palette.divider, 0.6)}` }}>
+              <CardContent sx={{ p: 1.5, minWidth: 0, '&:last-child': { pb: 1.5 } }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: s.color, mb: 0.25 }}>{s.icon}</Box>
                 <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: { xs: 18, sm: 20 }, fontVariantNumeric: 'tabular-nums' }}>
                   {s.value.toLocaleString('pt-BR')}
@@ -251,13 +254,7 @@ export const WalletPage = () => {
             )}
           </>
         )}
-      </Box>
+      </PageContainer>
     </Fade>
   );
 };
-
-/** TerminalIcon lazy-safe: evita import direto só pra 2 kinds raros (API pública). */
-function TerminalIconSafe() {
-  const [Icon] = useState(() => require('@mui/icons-material/TerminalOutlined').default as React.ComponentType<any>);
-  return <Icon />;
-}

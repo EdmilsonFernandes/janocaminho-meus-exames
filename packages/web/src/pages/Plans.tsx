@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, Button, Chip, Alert, Stack, Divider, CircularProgress } from '@mui/material';
+import { Box, Card, CardContent, Typography, Button, Chip, Alert, Stack, Divider } from '@mui/material';
 import CheckIcon from '@mui/icons-material/CheckCircle';
 import BoltIcon from '@mui/icons-material/Bolt';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
@@ -7,7 +7,7 @@ import DiamondIcon from '@mui/icons-material/Diamond';
 import QrCode2Icon from '@mui/icons-material/QrCode2';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { useNotify, useTranslate } from 'react-admin';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { API_URL, token, fetchPublicConfig } from '../config';
 import { usePlanInfo, fmtBRL } from '../utils/planInfo';
 import { Capacitor } from '@capacitor/core';
@@ -24,6 +24,7 @@ interface PlanInfo { plans: { id: string; label: string; price: number; periodDa
 
 export const PlansPage = () => {
   const translate = useTranslate();
+  const navigate = useNavigate();
   const notify = useNotify();
   const [params] = useSearchParams();
   const [status, setStatus] = useState<Status | null>(null);
@@ -39,14 +40,6 @@ export const PlansPage = () => {
   // 04/10: cartão/débito INLINE via Asaas religados (default). Kill-switch payments.cardEnabled
   // continua: desligado, o pacote vai DIRETO pro PixModal (1-clique).
   const [cardEnabled, setCardEnabled] = useState(true);
-  const [hist, setHist] = useState<any[]>([]);
-  const [histPage, setHistPage] = useState(1);
-  const [hasMore, setHasMore] = useState(false);
-  const [histLoading, setHistLoading] = useState(false);
-  const [histFilter, setHistFilter] = useState<string>('all');
-  const [histTotal, setHistTotal] = useState(0);
-  const [dispPage, setDispPage] = useState(1);
-  const [histOpen, setHistOpen] = useState(false); // extrato começa recolhido (não auto-expande)
   // PIX PENDENTE (padrão gateway): retoma o mesmo QR/timer se o usuário saiu e voltou.
   const [pendingPix, setPendingPix] = useState<any>(null);
   const [, forceTick] = useState(0); // re-render a cada 1s pro timer do PIX vivo
@@ -84,27 +77,6 @@ export const PlansPage = () => {
     return () => clearInterval(iv);
   }, [pendingPix]);
 
-  const loadHistory = async () => {
-    setHistLoading(true);
-    const h = { Authorization: `Bearer ${token()}` };
-    // Carrega TODAS as páginas de uma vez — assim o filtro (client-side) enxerga o histórico inteiro.
-    let page = 1; let all: any[] = []; let more = true;
-    while (more && page < 50) {
-      const r = await fetch(`${API_URL}/billing/credits/history?page=${page}`, { headers: h });
-      if (!r.ok) break;
-      const d = await r.json();
-      all = all.concat(d.items ?? []);
-      more = !!d.hasMore;
-      setHistTotal(d.total ?? all.length);
-      page++;
-    }
-    setHist(all);
-    setHasMore(false);
-    setHistPage(1);
-    setDispPage(1);
-    setHistLoading(false);
-  };
-
   const load = async () => {
     const h = { Authorization: `Bearer ${token()}` };
     const [s, p] = await Promise.all([
@@ -115,8 +87,6 @@ export const PlansPage = () => {
     if (p.ok) setPlans(await p.json());
   };
   useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
-  // Histórico (lazy): só busca quando o user expande o extrato — Plans abre rápido.
-  useEffect(() => { if (histOpen && hist.length === 0 && !histLoading) void loadHistory(); /* eslint-disable-next-line */ }, [histOpen]);
 
   useEffect(() => {
     if (params.get('status') === 'success') notify('Pagamento aprovado! Plano ativo. 🎉', { type: 'success' });
@@ -173,97 +143,34 @@ export const PlansPage = () => {
         </Alert>
       )}
 
-      {/* HERO — saldo centralizado, gradiente esmeralda + profundidade */}
-      <Card sx={{
-        mb: 3, borderRadius: '20px', overflow: 'hidden', position: 'relative', color: '#fff',
-        background: 'linear-gradient(135deg,#0c4a46 0%,#137a72 50%,#178f89 100%)',
-        boxShadow: '0 20px 50px rgba(15,61,58,.32)', border: '1px solid rgba(255,255,255,0.2)'
-      }}>
-        <Box sx={{ position: 'absolute', top: '-45%', right: '-12%', width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,.16), transparent 70%)', pointerEvents: 'none' }} />
-        <CardContent sx={{ position: 'relative', textAlign: 'center', py: { xs: 3.5, md: 4.5 } }}>
-          <Typography sx={{ fontSize: 12, fontWeight: 700, letterSpacing: 0.4, textTransform: 'uppercase', color: 'rgba(255,255,255,.72)' }}>Seus créditos</Typography>
-          <Typography sx={{ fontWeight: 800, fontSize: { xs: 52, md: 62 }, lineHeight: 1, mt: 0.5, letterSpacing: '-0.02em', fontFamily: 'Poppins, sans-serif', fontVariantNumeric: 'tabular-nums' }}>{status?.credits ?? 0}</Typography>
-          {status?.active
-            ? <Box sx={{ display: 'inline-flex', mt: 2.5, alignItems: 'center', gap: 0.75, px: 2, py: 0.85, borderRadius: '999px', bgcolor: 'rgba(255,255,255,.16)', backdropFilter: 'blur(8px)', boxShadow: '0 6px 18px rgba(0,0,0,.18)', border: '1px solid rgba(255,255,255,.28)' }}>
-                <Box sx={{ fontSize: 14 }}>👑</Box>
-                <Typography sx={{ fontWeight: 700, fontSize: 13, letterSpacing: 0.2 }}>Premium ativo até {status.planExpiresAt ? fmt(status.planExpiresAt) : '—'}</Typography>
-              </Box>
-            : <Typography variant="caption" sx={{ display: 'block', mt: 2.5, color: 'rgba(255,255,255,.75)' }}>Sem assinatura — créditos custeiam a IA.</Typography>}
-        </CardContent>
-      </Card>
+      {/* SALDO COMPACTO — o saldo virou CIDADÃO da Carteira (/carteira); aqui só uma linha
+          de contexto pra decidir a compra (sem duplicar o hero). 04/10: refactor do dono. */}
+      <Stack
+        direction="row" alignItems="center" spacing={1.5}
+        onClick={() => navigate('/carteira')}
+        sx={{
+          mb: 2.5, px: 2, py: 1.25, borderRadius: '14px', cursor: 'pointer',
+          border: (t) => `1px solid ${t.palette.mode === 'dark' ? 'rgba(95,201,195,.25)' : 'rgba(32,178,170,.3)'}`,
+          bgcolor: 'rgba(32,178,170,.07)',
+          transition: 'background-color .15s ease',
+          '&:hover': { bgcolor: 'rgba(32,178,170,.12)' },
+        }}
+      >
+        <BoltIcon sx={{ color: '#20b2aa', fontSize: 20 }} />
+        <Typography sx={{ fontWeight: 700, fontSize: 14, fontVariantNumeric: 'tabular-nums' }}>
+          {status?.credits?.toLocaleString('pt-BR') ?? '—'} créditos
+        </Typography>
+        {status?.active && (
+          <Typography sx={{ fontSize: 12, color: (t) => tealText(t.palette.mode), fontWeight: 700 }}>
+            👑 Premium até {status.planExpiresAt ? fmt(status.planExpiresAt) : '—'}
+          </Typography>
+        )}
+        <Box sx={{ flexGrow: 1 }} />
+        <Typography sx={{ fontSize: 12.5, fontWeight: 800, color: (t) => tealText(t.palette.mode), whiteSpace: 'nowrap' }}>
+          Ver carteira →
+        </Typography>
+      </Stack>
 
-      {/* CONSUMO RECENTE */}
-      {(
-        <Card sx={{ mb: 2.5, borderRadius: '20px' }}><CardContent sx={{ p: { xs: 2, md: 2.5 } }}>
-          <Stack direction="row" alignItems="center" justifyContent="space-between" onClick={() => setHistOpen((v) => !v)} sx={{ mb: histOpen ? 1.5 : 0, cursor: 'pointer', userSelect: 'none', '&:hover': { opacity: 0.8 } }}>
-            <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', fontSize: 17 }}>Histórico de Uso</Typography>
-            <Typography variant="caption" sx={{ color: (t) => tealText(t.palette.mode), fontWeight: 700 }}>{histOpen ? 'Ocultar ▲' : histTotal ? `${histTotal} lançamento(s) ▼` : 'Ver histórico ▼'}</Typography>
-          </Stack>
-          {histOpen && (histLoading ? <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}><CircularProgress size={22} /></Box> : <>
-          {/* Filtros rápidos — segmented control borderless (ativo = verde 14%, inativo = texto sutil) */}
-          <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mb: 2 }}>
-            {[{ k: 'all', l: 'Todos' }, { k: 'gain', l: '➕ Ganhos' }, { k: 'ai', l: '🤖 IA' }, { k: 'upload', l: '📤 Exames' }, { k: 'achievement', l: '🏆 Conquistas' }, { k: 'referral', l: '🤝 Indicações' }, { k: 'purchase', l: '🛒 Compras' }].map((f) => {
-              const on = histFilter === f.k;
-              return (
-                <Chip key={f.k} size="small" label={f.l} onClick={() => { setHistFilter(f.k); setDispPage(1); }}
-                  sx={{ fontWeight: 700, fontSize: 13, height: 30, px: 1.25, border: 'none',
-                    bgcolor: on ? 'rgba(32,178,170,.14)' : 'transparent',
-                    color: on ? '#0f766e' : 'text.secondary',
-                    '&:hover': { bgcolor: on ? 'rgba(32,178,170,.2)' : 'rgba(15,23,42,.05)' } }} />
-              );
-            })}
-          </Stack>
-          {(() => {
-            const META: Record<string, { e: string; c: boolean }> = { purchase: { e: '🛒', c: true }, plan_monthly: { e: '📅', c: true }, achievement: { e: '🏆', c: true }, referral: { e: '🤝', c: true }, signup: { e: '🎁', c: true }, ai_chat: { e: '🤖', c: false }, ai_summary: { e: '📄', c: false }, ai_consolidated: { e: '🧾', c: false }, upload: { e: '📤', c: false }, share: { e: '🩺', c: false }, patient_extra: { e: '👥', c: false } };
-            const metaOf = (k: string) => META[k] || { e: '•', c: false };
-            const filtered = hist.filter((it: any) => {
-              if (histFilter === 'all') return true;
-              if (histFilter === 'gain') return metaOf(it.kind).c;
-              if (histFilter === 'ai') return String(it.kind).startsWith('ai_');
-              if (histFilter === 'upload') return it.kind === 'upload';
-              if (histFilter === 'achievement') return it.kind === 'achievement';
-              if (histFilter === 'referral') return it.kind === 'referral' || it.kind === 'signup';
-              if (histFilter === 'purchase') return it.kind === 'purchase' || it.kind === 'plan_monthly';
-              return true;
-            });
-            const PS = 7;
-            const totalPages = Math.max(1, Math.ceil(filtered.length / PS));
-            const safePage = Math.min(dispPage, totalPages);
-            const pageItems = filtered.slice((safePage - 1) * PS, safePage * PS);
-            return (
-              <>
-                <Stack divider={<Divider />} spacing={0}>
-                  {pageItems.length === 0 && <Typography variant="body2" color="text.secondary" sx={{ py: 1 }}>Nenhum lançamento neste filtro.</Typography>}
-                  {pageItems.map((it: any) => {
-                    const m = metaOf(it.kind);
-                    const d = Number(it.delta) || 0;
-                    return (
-                      <Stack key={it.id} direction="row" alignItems="center" spacing={1.5} sx={{ py: 1.5 }}>
-                        <Box sx={{ fontSize: 19, flexShrink: 0, width: 30, textAlign: 'center' }}>{m.e}</Box>
-                        <Box sx={{ minWidth: 0, flex: 1 }}>
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>{it.label}</Typography>
-                          <Typography variant="caption" color="text.secondary">{new Date(it.createdAt).toLocaleString('pt-BR')}</Typography>
-                        </Box>
-                        <Typography sx={{ fontWeight: 800, fontSize: 15, fontVariantNumeric: 'tabular-nums', minWidth: 52, textAlign: 'right', color: m.c ? '#059669' : 'text.secondary' }}>
-                          {d > 0 ? `+${d}` : d}
-                        </Typography>
-                      </Stack>
-                    );
-                  })}
-                </Stack>
-                {filtered.length > PS && (
-                  <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 1.5 }}>
-                    <Button size="small" disabled={safePage <= 1 || histLoading} onClick={() => setDispPage(safePage - 1)}>← Anterior</Button>
-                    <Typography variant="caption" color="text.secondary">{filtered.length} lançamento(s) • pág. {safePage} de {totalPages}</Typography>
-                    <Button size="small" disabled={safePage >= totalPages || histLoading} onClick={() => setDispPage(safePage + 1)}>Próxima →</Button>
-                  </Stack>
-                )}
-              </>
-            );
-          })()}
-          </>)}
-        </CardContent></Card>
-      )}
 
       {isNative ? (
         <Card sx={{ mt: 1, borderRadius: '20px', border: '2px dashed #20b2aa', background: 'rgba(32,178,170,0.08)' }}>
