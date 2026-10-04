@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import crypto from 'crypto';
 import { prisma } from '../prisma';
-import { config, hasMercadoPago } from '../config';
+import { config, hasMercadoPago, hasAsaas } from '../config';
 import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
 import { CREDIT_COSTS, UPLOAD_RULES } from '../utils/credits';
 import { getSettings, getMonthlyPlan, getEffectivePlanPrice, getCreditPacks, getPremiumPerks } from '../utils/settings';
@@ -9,6 +9,20 @@ import { createSubscriptionCompat, getSubscriptionColumnSupport, updateSubscript
 import { createPixCharge, activePixProvider, pixProviderReady, type PixChargeResult } from '../payments/pix-provider';
 import { cancelStalePendingPixes } from '../jobs/pix-expiry';
 import { approvePendingSubscription, type ApprovalKind } from '../utils/billingApproval';
+import { createAsaasCardCharge, AsaasApiError } from '../payments/asaas-provider';
+import { validateCardCharge, cardLast4, onlyDigits } from '../utils/card-validation';
+import { decryptPII } from '../utils/crypto';
+
+/** CPF do pagador (paciente TITULAR da conta, descriptografado) — o Asaas exige CPF
+ *  no customer p/ cobrança PIX (400 invalid_object sem ele, provado em prod 04/10).
+ *  Undefined = sem CPF no cadastro → o provider pula o Asaas e o fallback assume. */
+async function payerCpfFor(userId: string): Promise<string | undefined> {
+  const titular = await prisma.patient.findFirst({
+    where: { ownerId: userId, relationship: 'Titular' },
+    select: { cpfEncrypted: true, cpfIv: true },
+  });
+  return decryptPII(titular?.cpfEncrypted, titular?.cpfIv) ?? undefined;
+}
 
 const router = Router();
 
@@ -242,6 +256,7 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
         payerFirstName: (user.name || 'Cliente').split(' ')[0],
         userId: user.id, // Asaas: cache de customer (cus_*) por usuário
         payerName: user.name || undefined, // Asaas: customer com nome real
+        payerCpfCnpj: await payerCpfFor(user.id), // Asaas PIX exige CPF no customer
         expiresAt: expires,
         notificationUrl: publicNotifyUrl(),
       });
@@ -275,6 +290,159 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
       credits: pack.credits,
       price: pack.price,
     });
+  } catch (e) { next(e); }
+});
+
+// ===== CARTÃO INLINE (Asaas direto — SEM redirect Checkout Pro) =====
+// POST /billing/pay-card { pack, method: 'card'|'debit', card, holder }
+// Form próprio do app → server valida (Luhn/validade/CVV/CPF server-side, nunca só
+// no client) → createAsaasCardCharge (billingType CREDIT_CARD | DEBIT_CARD).
+//   CONFIRMED → aprova NA HORA (mesma approvePendingSubscription dos webhooks);
+//   PENDING   → 3DS/análise: devolve threeDSUrl se o Asaas mandar, senão o front
+//               aguarda o webhook /api/webhooks/asaas (poll em payment-status).
+// SEGURANÇA: PAN/CVV NUNCA logados (log só ****últimos4), NUNCA persistidos (nada em
+// Subscription/auditLog), CVV nunca ecoado na resposta. Rate limit 3/min por usuário
+// (Map em memória, mesmo padrão do OTP — keyed por userId, não por IP de proxy).
+
+const payCardAttempts = new Map<string, number[]>(); // userId → timestamps (ms) na janela
+const PAY_CARD_WINDOW_MS = 60_000;
+const PAY_CARD_MAX = 3;
+
+function payCardRateLimited(userId: string): boolean {
+  const now = Date.now();
+  const hits = (payCardAttempts.get(userId) ?? []).filter((t) => now - t < PAY_CARD_WINDOW_MS);
+  if (hits.length >= PAY_CARD_MAX) {
+    payCardAttempts.set(userId, hits);
+    return true;
+  }
+  hits.push(now);
+  payCardAttempts.set(userId, hits);
+  return false;
+}
+
+router.post('/pay-card', requireAuth, async (req: AuthedRequest, res, next) => {
+  try {
+    if (!hasAsaas()) { res.status(503).json({ error: 'Cartão indisponível (Asaas não configurado).' }); return; }
+    if (payCardRateLimited(req.userId!)) { res.status(429).json({ error: 'Muitas tentativas. Aguarde 1 minuto.' }); return; }
+
+    const pack = packById(String(req.body?.pack ?? ''));
+    if (!pack) { res.status(400).json({ error: 'Pacote inválido' }); return; }
+    const method = String(req.body?.method ?? 'card').toLowerCase() === 'debit' ? 'debit' : 'card';
+    const billingType = method === 'debit' ? 'DEBIT_CARD' as const : 'CREDIT_CARD' as const;
+
+    const user = await prisma.user.findUnique({ where: { id: req.userId! } });
+    if (!user) { res.status(404).json({ error: 'Usuário não encontrado' }); return; }
+
+    // Validação SERVER-SIDE (Luhn, validade futura, CVV, CPF, CEP/nº) — o front valida
+    // também, mas aqui é a barreira real. Erros já em PT-BR p/ exibir direto no form.
+    const card = req.body?.card ?? {};
+    const holder = req.body?.holder ?? {};
+    const errs = validateCardCharge(card, holder, { address: true });
+    if (errs.length) { res.status(400).json({ error: errs[0], errors: errs }); return; }
+
+    // LOCK 1-por-vez (mesma regra do buy-credits): PIX PENDING vivo trava cartão também.
+    const subscriptionColumns = await getSubscriptionColumnSupport();
+    if (subscriptionColumns.hasPixResume) {
+      await cancelStalePendingPixes().catch(() => {});
+      const existing = await prisma.subscription.findFirst({
+        where: {
+          userId: user.id, status: 'PENDING', periodDays: 0, pixExpiresAt: { gt: new Date() },
+          OR: [{ mpPreferenceId: null }, { mpPreferenceId: { not: 'api_pack' } }],
+        },
+        orderBy: { createdAt: 'desc' },
+        select: { id: true, mpPaymentId: true, pixQrCode: true, pixQrBase64: true, pixExpiresAt: true, pixCredits: true, amount: true },
+      });
+      if (existing?.pixQrCode && existing?.pixQrBase64 && existing?.pixExpiresAt) {
+        res.status(409).json({
+          error: 'Você já tem um PIX pendente. Conclua o pagamento ou aguarde expirar.',
+          pendingPix: {
+            id: existing.id, paymentId: existing.mpPaymentId ?? '', qrCode: existing.pixQrCode,
+            qrBase64: existing.pixQrBase64, expiresAt: existing.pixExpiresAt.toISOString(),
+            credits: existing.pixCredits ?? pack.credits, price: existing.amount,
+          },
+        });
+        return;
+      }
+      if (existing) await updateSubscriptionCompat(existing.id, { status: 'CANCELLED' });
+      await prisma.subscription.updateMany({
+        where: { userId: user.id, status: 'PENDING', periodDays: 0, pixExpiresAt: { lt: new Date() } },
+        data: { status: 'CANCELLED' },
+      });
+    }
+    // Cartão/débito PENDING sem webhook há >30 min = abandonado → CANCELLED.
+    await prisma.subscription.updateMany({
+      where: { userId: user.id, status: 'PENDING', createdAt: { lt: new Date(Date.now() - 30 * 60 * 1000) } },
+      data: { status: 'CANCELLED' },
+    }).catch(() => {});
+
+    const sub = await createSubscriptionCompat({ userId: user.id, amount: pack.price, periodDays: 0, status: 'PENDING' });
+    const externalReference = `${sub.id}|${pack.credits}`; // mesmo contrato do MP (dashboard Asaas legível)
+
+    let charge;
+    try {
+      charge = await createAsaasCardCharge({
+        amountBrlCents: Math.round(pack.price * 100),
+        correlationID: externalReference,
+        description: `Dr. Exame — ${pack.credits} créditos de IA`,
+        userId: user.id,
+        userName: user.name ?? undefined,
+        userEmail: user.email,
+        payerCpfCnpj: onlyDigits(holder.cpf),
+        billingType,
+        creditCard: {
+          number: onlyDigits(card.number),
+          holderName: String(card.holderName ?? '').trim().toUpperCase(),
+          expiryMonth: String(card.expiryMonth ?? '').padStart(2, '0'),
+          expiryYear: String(card.expiryYear ?? '').length === 2 ? `20${card.expiryYear}` : String(card.expiryYear ?? ''),
+          ccv: onlyDigits(card.ccv),
+        },
+        creditCardHolder: {
+          name: String(holder.name ?? '').trim(),
+          email: user.email,
+          cpfCnpj: onlyDigits(holder.cpf),
+          postalCode: onlyDigits(holder.postalCode),
+          addressNumber: String(holder.addressNumber ?? '').trim() || undefined,
+          phone: onlyDigits(holder.phone) || undefined,
+        },
+      });
+    } catch (e) {
+      // Asaas recusou (cartão inválido, CVV errado, limite etc.) → 400 com a razão
+      // legível. Log SANITIZADO: só últimos 4 do PAN — número completo/CVV nunca.
+      if (e instanceof AsaasApiError) {
+        console.warn(`[pay-card] Asaas recusou (****${cardLast4(card.number)}, ${billingType}): ${e.status} ${e.errors[0]?.code ?? ''} — ${e.message}`);
+        await updateSubscriptionCompat(sub.id, { status: 'FAILED' });
+        const friendly = e.status === 400
+          ? (e.message || 'Cartão recusado. Confira os dados e tente novamente.')
+          : 'Não foi possível processar o pagamento agora. Tente novamente em instantes.';
+        res.status(e.status === 400 ? 400 : 502).json({ error: friendly });
+        return;
+      }
+      console.error(`[pay-card] erro inesperado (****${cardLast4(card.number)}):`, (e as Error).message);
+      await updateSubscriptionCompat(sub.id, { status: 'FAILED' });
+      res.status(503).json({ error: 'Pagamento indisponível no momento — tente novamente em alguns minutos.' });
+      return;
+    }
+
+    // Registra o payment ANTES de aprovar: o webhook do Asaas (PAYMENT_RECEIVED pode
+    // disparar em segundos no cartão) casa por mpPaymentId e credita por pixCredits.
+    if (subscriptionColumns.hasPixResume) {
+      await updateSubscriptionCompat(sub.id, { mpPaymentId: charge.paymentId, pixCredits: pack.credits });
+    } else {
+      await updateSubscriptionCompat(sub.id, { mpPaymentId: charge.paymentId });
+    }
+
+    // CONFIRMED = capturado na hora → aprova com o MESMO helper dos webhooks (créditos
+    // + transação, idempotente pelo status). PENDING = 3DS/análise antifraude → o front
+    // mostra o 3DS (se veio URL) ou aguarda webhook/poll.
+    const confirmed = charge.status === 'CONFIRMED' || charge.status === 'RECEIVED' || charge.status === 'DETERMINED';
+    if (confirmed) {
+      await approvePendingSubscription(sub.id, { type: 'credits', credits: pack.credits }, charge.paymentId);
+      console.log(`[pay-card] aprovado — ${charge.paymentId} (****${cardLast4(card.number)}, ${billingType}) +${pack.credits} créditos`);
+      res.json({ paymentId: charge.paymentId, status: 'CONFIRMED', approved: true, credits: pack.credits });
+      return;
+    }
+    console.log(`[pay-card] pendente — ${charge.paymentId} (****${cardLast4(card.number)}, ${billingType}, 3DS: ${charge.threeDSUrl ? 'sim' : 'não'})`);
+    res.json({ paymentId: charge.paymentId, status: 'PENDING', approved: false, credits: pack.credits, threeDSUrl: charge.threeDSUrl });
   } catch (e) { next(e); }
 });
 
@@ -379,6 +547,7 @@ router.post('/buy-api-pack', requireAuth, async (req: AuthedRequest, res, next) 
         payerFirstName: (user.name || 'Parceiro').split(' ')[0],
         userId: user.id, // Asaas: cache de customer (cus_*) por usuário
         payerName: user.name || undefined, // Asaas: customer com nome real
+        payerCpfCnpj: await payerCpfFor(user.id), // Asaas PIX exige CPF no customer
         expiresAt: expires,
         notificationUrl: publicNotifyUrl(),
       });
@@ -474,19 +643,21 @@ router.delete('/pending/:id', requireAuth, async (req: AuthedRequest, res, next)
   } catch (e) { next(e); }
 });
 
-// Status de um pagamento PIX (polling do frontend enquanto mostra o QR).
-// OpenPix/Asaas: paymentId = correlationID | pay_... → status vem da Subscription
-// (atualizada pelos webhooks /api/webhooks/{openpix,asaas}). MP: pergunta a API do MP.
+// Status de um pagamento (polling do frontend: modal PIX e tela 3DS do cartão).
+// 1º olha a Subscription LOCAL (mpPaymentId = id externo — pay_*/correlationID): o
+// cartão inline (pay-card) e os providers OpenPix/Asaas atualizam por webhook, e isso
+// vale INDEPENDENTE do PAYMENT_PROVIDER da vez. Só consulta a API do MP quando não há
+// ordem local (legado Checkout Pro / PIX MP — lá o webhook nem sempre chega antes).
 router.get('/payment-status/:id', requireAuth, async (req, res, next) => {
   try {
-    if (activePixProvider() !== 'mp') {
-      const sub = await prisma.subscription.findFirst({
-        where: { userId: (req as AuthedRequest).userId!, mpPaymentId: String(req.params.id) },
-        orderBy: { createdAt: 'desc' },
-        select: { status: true },
-      });
-      const approved = sub?.status === 'APPROVED';
-      res.json({ status: approved ? 'approved' : String(sub?.status ?? 'pending').toLowerCase(), approved });
+    const sub = await prisma.subscription.findFirst({
+      where: { userId: (req as AuthedRequest).userId!, mpPaymentId: String(req.params.id) },
+      orderBy: { createdAt: 'desc' },
+      select: { status: true },
+    });
+    if (sub) {
+      const approved = sub.status === 'APPROVED';
+      res.json({ status: approved ? 'approved' : String(sub.status ?? 'pending').toLowerCase(), approved });
       return;
     }
     if (!hasMercadoPago()) { res.status(503).json({ error: 'MP não configurado' }); return; }

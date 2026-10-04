@@ -35,9 +35,10 @@ export const PlansPage = () => {
   const [pixPack, setPixPack] = useState<string | null>(null);
   const [chooserPack, setChooserPack] = useState<string | null>(null);
   const [chooserLabel, setChooserLabel] = useState('');
-  // 1-clique (02/10): com cartão desligado (payments.cardEnabled=false, default) o pacote
-  // vai DIRETO pro PixModal — o PaymentChooser só entra quando há escolha a fazer.
-  const [cardEnabled, setCardEnabled] = useState(false);
+  const [chooserPrice, setChooserPrice] = useState(0);
+  // 04/10: cartão/débito INLINE via Asaas religados (default). Kill-switch payments.cardEnabled
+  // continua: desligado, o pacote vai DIRETO pro PixModal (1-clique).
+  const [cardEnabled, setCardEnabled] = useState(true);
   const [hist, setHist] = useState<any[]>([]);
   const [histPage, setHistPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
@@ -327,7 +328,7 @@ export const PlansPage = () => {
               ) : (
                 <Button variant={p.popular ? 'contained' : 'outlined'} fullWidth disabled={!mpOn} sx={{ borderRadius: '999px', fontWeight: 800, textTransform: 'none' }} onClick={() => {
                   // PIX-only (cardEnabled=false) → 1-clique direto no QR; religado → escolhe forma.
-                  if (cardEnabled) { setChooserLabel(`${p.credits} créditos • R$ ${p.price.toFixed(2).replace('.', ',')}`); setChooserPack(p.id); }
+                  if (cardEnabled) { setChooserLabel(`${p.credits} créditos • R$ ${p.price.toFixed(2).replace('.', ',')}`); setChooserPrice(p.price); setChooserPack(p.id); }
                   else setPixPack(p.id);
                 }}>Comprar</Button>
               )}
@@ -382,7 +383,10 @@ export const PlansPage = () => {
         </Alert>
       )}
 
-      <PaymentChooser packId={chooserPack} packLabel={chooserLabel} onClose={() => setChooserPack(null)} onPix={() => setPixPack(chooserPack)} />
+      <PaymentChooser packId={chooserPack} packLabel={chooserLabel} packPrice={chooserPrice}
+        onClose={() => setChooserPack(null)}
+        onPix={() => setPixPack(chooserPack)}
+        onCardApproved={() => { notify('Créditos adicionados! 🎉', { type: 'success' }); load(); checkPendingPix(); }} />
       {/* '__pending__' = retomar PIX existente (não gera ordem nova — o server é idempotente) */}
       <PixModal
         packId={pixPack}

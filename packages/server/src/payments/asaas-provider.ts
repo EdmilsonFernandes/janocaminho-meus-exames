@@ -36,11 +36,24 @@ export interface AsaasCharge {
   amountBrlCents: number;
 }
 
-/** Cartão (uso futuro — quando o front tiver fluxo de cartão próprio). Dados exigidos
- *  pela API direta do Asaas (tokenização de cartão é etapa separada, não usada aqui). */
+/** Cartão (fluxo inline POST /billing/pay-card). Dados exigidos pela API direta do
+ *  Asaas (tokenização de cartão é etapa separada, não usada aqui). */
 export interface AsaasCardFields {
   creditCard: { number: string; holderName: string; expiryMonth: string; expiryYear: string; ccv: string };
   creditCardHolder: { name: string; email?: string; cpfCnpj?: string; postalCode?: string; addressNumber?: string; phone?: string };
+}
+
+/** Erro do Asaas ESTRUTURADO (400 de cartão inválido/CVV errado vem com lista `errors`).
+ *  `message` já é a 1ª descrição legível — a rota devolve pro front sem vazar payload. */
+export class AsaasApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+    readonly errors: { code: string; description: string }[] = [],
+  ) {
+    super(message);
+    this.name = 'AsaasApiError';
+  }
 }
 
 export interface AsaasQrCode {
@@ -51,7 +64,11 @@ export interface AsaasQrCode {
 }
 
 // Cache de customers por userId: cria 1x, reusa nas cobranças seguintes (prova ao vivo).
-const customerCache = new Map<string, string>();
+// Cache por userId guardando o CPF com que o customer foi criado: Asaas EXIGE CPF
+// no cliente p/ cobrança PIX (400 invalid_object, provado em prod 04/10). Se o
+// customer nasceu sem CPF (usuário completou o cadastro depois), o próximo pagamento
+// com CPF ATUALIZA o mesmo cus_* em vez de criar outro órfão.
+const customerCache = new Map<string, { id: string; cpfCnpj?: string }>();
 export function clearAsaasCustomerCache(): void {
   customerCache.clear();
 }
@@ -73,27 +90,45 @@ async function asaasFetch<T = any>(path: string, init: RequestInit = {}): Promis
     },
   });
   if (!r.ok) {
-    throw new Error(`Asaas ${path} falhou (${r.status}): ${(await r.text()).slice(0, 500)}`);
+    const text = (await r.text()).slice(0, 2000);
+    // 400 do Asaas traz { errors: [{ code, description }] } — extrai a 1ª descrição
+    // legível (ex.: "Cartão de crédito inválido") p/ devolver pro usuário final.
+    let first = '';
+    let list: { code: string; description: string }[] = [];
+    try {
+      const j = JSON.parse(text);
+      list = Array.isArray(j?.errors) ? j.errors : [];
+      first = String(list[0]?.description ?? '');
+    } catch { /* corpo não-JSON */ }
+    throw new AsaasApiError(first || `Asaas ${path} falhou (${r.status}): ${text.slice(0, 200)}`, r.status, list);
   }
   return (await r.json()) as T;
 }
 
-/** Cria (1ª vez) ou reusa o customer Asaas do usuário. Cache em memória por userId. */
+/** Cria (1ª vez) ou reusa o customer Asaas do usuário. Cache em memória por userId;
+ *  customer existente sem CPF é ATUALIZADO quando o CPF passa a existir. */
 export async function getOrCreateAsaasCustomer(input: AsaasChargeInput): Promise<string> {
+  const digits = input.payerCpfCnpj?.replace(/\D/g, '') || undefined;
   const cached = customerCache.get(input.userId);
-  if (cached) return cached;
+  if (cached && (!digits || cached.cpfCnpj === digits)) return cached.id;
+  // Customer já existe mas nasceu sem CPF → atualiza o MESMO cus_* (não duplica).
+  if (cached?.id && digits && !cached.cpfCnpj) {
+    await asaasFetch(`/v3/customers/${cached.id}`, { method: 'POST', body: JSON.stringify({ cpfCnpj: digits }) });
+    customerCache.set(input.userId, { id: cached.id, cpfCnpj: digits });
+    return cached.id;
+  }
   const c = await asaasFetch<{ id?: string }>('/v3/customers', {
     method: 'POST',
     body: JSON.stringify({
       name: input.userName?.trim() || 'Cliente Dr. Exame',
-      cpfCnpj: input.payerCpfCnpj?.replace(/\D/g, '') || undefined,
+      cpfCnpj: digits,
       email: input.userEmail?.trim() || undefined,
       externalReference: input.userId, // casa o cus_* com o usuário do app no dashboard
     }),
   });
   const id = String(c?.id ?? '');
   if (!id.startsWith('cus_')) throw new Error('Asaas customers: resposta sem id (cus_)');
-  customerCache.set(input.userId, id);
+  customerCache.set(input.userId, { id, cpfCnpj: digits });
   return id;
 }
 
@@ -149,32 +184,37 @@ export async function getAsaasQrCode(
   throw lastErr ?? new Error('Asaas pixQrCode falhou');
 }
 
-/** Cobrança no CARTÃO (billingType CREDIT_CARD) — preparada p/ quando o front tiver
- *  fluxo de cartão próprio (hoje cartão/débito seguem no Checkout Pro do MP). */
-export async function createAsaasCardCharge(input: AsaasChargeInput & AsaasCardFields): Promise<AsaasCharge> {
+/** Cobrança no CARTÃO (inline — form próprio do app, sem redirect). billingType
+ *  CREDIT_CARD ou DEBIT_CARD (mesma estrutura de campos, muda só o tipo).
+ *  Resposta: status CONFIRMED (aprovado na hora) ou PENDING (3DS/análise — o Asaas
+ *  pode devolver URL de autenticação; se vier, é repassada como threeDSUrl). */
+export async function createAsaasCardCharge(
+  input: AsaasChargeInput & AsaasCardFields & { billingType?: 'CREDIT_CARD' | 'DEBIT_CARD' },
+): Promise<AsaasCharge & { threeDSUrl: string | null }> {
   if (!hasAsaas()) {
     throw new Error('Asaas selecionado (PAYMENT_PROVIDER=asaas) mas ASAAS_API_KEY está ausente.');
   }
-  const { creditCard, creditCardHolder, ...base } = input;
+  const { creditCard, creditCardHolder, billingType = 'CREDIT_CARD', ...base } = input;
   if (!creditCard?.number || !creditCardHolder?.name) {
     throw new Error('Asaas cartão: exige creditCard (número/holder/validade/ccv) e creditCardHolder.name.');
   }
   const customerId = await getOrCreateAsaasCustomer(base);
-  const pay = await asaasFetch<{ id?: string; status?: string }>('/v3/payments', {
+  const pay = await asaasFetch<{ id?: string; status?: string; threeDSecureUrl?: string; threeDSUrl?: string; authenticationUrl?: string }>('/v3/payments', {
     method: 'POST',
     body: JSON.stringify({
       customer: customerId,
-      billingType: 'CREDIT_CARD',
+      billingType,
       value: base.amountBrlCents / 100, // reais float
       dueDate: tomorrowYmd(),
       description: String(base.description ?? '').slice(0, 100),
       externalReference: base.correlationID,
-      installments: 1,
+      installmentCount: 1, // campo oficial da API v3 (não "installments")
       creditCard,
       creditCardHolder,
     }),
   });
   const paymentId = String(pay?.id ?? '');
   if (!paymentId) throw new Error('Asaas payments (cartão): resposta sem id');
-  return { paymentId, customerId, status: String(pay?.status ?? 'PENDING'), amountBrlCents: base.amountBrlCents };
+  const threeDSUrl = pay.threeDSecureUrl || pay.threeDSUrl || pay.authenticationUrl || null;
+  return { paymentId, customerId, status: String(pay?.status ?? 'PENDING'), amountBrlCents: base.amountBrlCents, threeDSUrl: threeDSUrl ? String(threeDSUrl) : null };
 }

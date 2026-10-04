@@ -1,5 +1,5 @@
 // Webhook público do Asaas — montado em app.ts como POST /api/webhooks/asaas.
-// Registro no dashboard Asaas: url https://janocaminho.com.br/meus-exames/api/webhooks/asaas,
+// Registro no dashboard Asaas: url https://janocaminho.com.br/minhasaude/api/webhooks/asaas,
 // events ["PAYMENT_RECEIVED"] (POST /v3/webhooks — ver asaas-provider p/ payload).
 //
 // SEGURANÇA (mesma defesa do OpenPix — o payload em si não vem assinado): só aprova

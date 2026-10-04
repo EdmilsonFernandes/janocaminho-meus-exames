@@ -40,6 +40,10 @@ export interface CreatePixChargeInput {
   userId?: string;
   /** Asaas: nome COMPLETO do pagador (cria o customer com nome real, não só 1º nome) */
   payerName?: string;
+  /** Asaas: CPF/CNPJ do pagador (descriptografado do cadastro). Asaas EXIGE CPF no
+   *  customer p/ cobrança PIX (400 invalid_object, provado em prod 04/10) — sem ele
+   *  o Asaas é pulado e o fallback (openpix) assume direto. */
+  payerCpfCnpj?: string;
 }
 
 /** Provider ativo segundo env (default 'mp'). */
@@ -138,6 +142,11 @@ async function createMercadoPagoPix(input: CreatePixChargeInput): Promise<PixCha
  *  Asaas demora ~3s p/ ficar pronto após criar o payment → getAsaasQrCode com retry
  *  (sleep 3s) antes de devolver o contrato (o caller persiste QR e mostra na hora). */
 async function createAsaasPix(input: CreatePixChargeInput): Promise<PixChargeResult> {
+  if (!input.payerCpfCnpj?.replace(/\D/g, '')) {
+    // Sem CPF no cadastro o Asaas recusa PIX na certa (400 invalid_object — provado
+    // em prod 04/10). Falha ANTES do round-trip: o fallback openpix assume direto.
+    throw new Error('Asaas PIX exige CPF/CNPJ do cliente — usuário sem CPF no cadastro.');
+  }
   const charge = await createAsaasPixCharge({
     amountBrlCents: input.amountBrlCents,
     correlationID: input.correlationID,
@@ -145,6 +154,7 @@ async function createAsaasPix(input: CreatePixChargeInput): Promise<PixChargeRes
     userId: input.userId ?? input.payerEmail ?? input.correlationID,
     userName: input.payerName ?? input.payerFirstName,
     userEmail: input.payerEmail,
+    payerCpfCnpj: input.payerCpfCnpj,
   });
   const qr = await getAsaasQrCode(charge.paymentId);
   return { id: charge.paymentId, qrCode: qr.payload, qrBase64: qr.encodedImage, expiresAt: input.expiresAt };

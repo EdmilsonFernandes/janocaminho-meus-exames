@@ -1,51 +1,55 @@
 import { useEffect, useState } from 'react';
-import { Dialog, DialogTitle, DialogContent, IconButton, Button, Typography, Stack, CircularProgress, Box } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, IconButton, Typography, Stack, Box } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import QrCode2Icon from '@mui/icons-material/QrCode2';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
-import { API_URL, token, fetchPublicConfig } from '../config';
+import { fetchPublicConfig } from '../config';
 import { PaymentLogos } from './PaymentLogos';
-import { Capacitor } from '@capacitor/core';
-import { Browser } from '@capacitor/browser';
+import { CreditCardForm } from './CreditCardForm';
 
-/** Seletor de forma de pagamento: PIX (QR inline) | Cartão | Débito (Checkout Pro do MP). */
-export const PaymentChooser = ({ packId, packLabel, onClose, onPix }: {
-  packId: string | null; packLabel: string; onClose: () => void; onPix: () => void;
+/** Seletor de forma de pagamento: PIX (QR inline) | Cartão | Débito — cartão/débito
+ *  agora são INLINE via Asaas (form próprio, POST /billing/pay-card). O redirect do
+ *  Checkout Pro (MP) saiu do fluxo de créditos em 04/10. */
+export const PaymentChooser = ({ packId, packLabel, packPrice, onClose, onPix, onCardApproved }: {
+  packId: string | null; packLabel: string; packPrice: number; onClose: () => void; onPix: () => void; onCardApproved: () => void;
 }) => {
-  const [busy, setBusy] = useState('');
-  const [err, setErr] = useState('');
-  // 02/10 (MP suspenso): cartão/débito só aparecem quando o admin religar
-  // (AppSetting payments.cardEnabled) — config pública, sem novo deploy/AAB.
-  const [cardEnabled, setCardEnabled] = useState(false);
+  // Kill-switch payments.cardEnabled (AppSetting) — default ligado (form Asaas no ar).
+  const [cardEnabled, setCardEnabled] = useState(true);
   useEffect(() => { fetchPublicConfig().then((c) => setCardEnabled(c.cardEnabled)).catch(() => {}); }, []);
 
-  const payRedirect = async (method: 'card' | 'debit') => {
-    if (!packId) return;
-    setErr(''); setBusy(method);
-    try {
-      const r = await fetch(`${API_URL}/billing/buy-credits`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
-        body: JSON.stringify({ pack: packId, method }),
-      });
-      const d = await r.json();
-      if (!r.ok || !d.init_point) throw new Error(d.error || 'Falha');
-      if (Capacitor.isNativePlatform()) await Browser.open({ url: d.init_point });
-      else window.location.href = d.init_point;
-    } catch (e: any) { setErr(e.message || 'Falha ao abrir pagamento'); setBusy(''); }
-  };
+  // 'card' | 'debit' escolhido → troca a tela do diálogo pelo form inline (Asaas).
+  const [cardMethod, setCardMethod] = useState<null | 'card' | 'debit'>(null);
 
-  const Opt = ({ icon, title, sub, onClick, busyKey, color }: any) => (
-    <Button fullWidth variant="outlined" onClick={onClick} disabled={!!busy}
-      sx={{ justifyContent: 'flex-start', py: 1.5, px: 2, borderColor: 'divider', '&:hover': { borderColor: color, bgcolor: `${color}0a` } }}>
-      <Box sx={{ mr: 1.5, color }}>{icon}</Box>
+  const Opt = ({ icon, title, sub, onClick, color }: any) => (
+    <Box component="button" onClick={onClick}
+      sx={{
+        display: 'flex', alignItems: 'center', width: '100%', textAlign: 'left', gap: 1.5, py: 1.75, px: 2,
+        minHeight: 56, cursor: 'pointer', borderRadius: '12px',
+        border: '1px solid', borderColor: 'divider', bgcolor: 'transparent', color: 'text.primary',
+        fontFamily: 'inherit', transition: 'border-color .15s ease, background-color .15s ease',
+        '&:hover': { borderColor: color, bgcolor: `${color}0d` },
+        '&:active': { bgcolor: `${color}17` },
+      }}>
+      <Box sx={{ mr: 0, color, display: 'flex' }}>{icon}</Box>
       <Box sx={{ textAlign: 'left', flex: 1 }}>
         <Typography sx={{ fontWeight: 700 }}>{title}</Typography>
         <Typography variant="caption" color="text.secondary">{sub}</Typography>
       </Box>
-      {busy === busyKey && <CircularProgress size={18} sx={{ ml: 1 }} />}
-    </Button>
+    </Box>
   );
+
+  // Form de cartão assumiu o diálogo (mesma modal, sem empilhar duas).
+  if (cardMethod) {
+    return (
+      <CreditCardForm
+        open={!!packId} packId={packId} packLabel={packLabel} price={packPrice} method={cardMethod}
+        onClose={() => setCardMethod(null)}          /* X = volta pra escolha */
+        onApproved={onCardApproved}                   /* aprovado: pai notifica/recarrega já */
+        onFinished={() => { setCardMethod(null); onClose(); }} /* Concluir: fecha tudo */
+      />
+    );
+  }
 
   return (
     <Dialog open={!!packId} onClose={onClose} PaperProps={{ sx: { borderRadius: '12px', maxWidth: 400, width: '100%' } }}>
@@ -56,22 +60,20 @@ export const PaymentChooser = ({ packId, packLabel, onClose, onPix }: {
       <DialogContent sx={{ pb: 3 }}>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>{packLabel}</Typography>
         <Stack spacing={1.5}>
-          <Opt icon={<QrCode2Icon />} title="PIX" sub="Instantâneo • via OpenPix" busyKey="pix" color="#20b2aa"
+          <Opt icon={<QrCode2Icon />} title="PIX" sub="Instantâneo • via OpenPix" color="#20b2aa"
             onClick={() => { onPix(); onClose(); }} />
           {cardEnabled && (
             <>
-              <Opt icon={<CreditCardIcon />} title="Cartão de crédito" sub="Até 12x • processado com segurança" busyKey="card" color="#0369a1"
-                onClick={() => payRedirect('card')} />
-              <Opt icon={<AccountBalanceIcon />} title="Débito" sub="À vista • processado com segurança" busyKey="debit" color="#178f89"
-                onClick={() => payRedirect('debit')} />
+              <Opt icon={<CreditCardIcon />} title="Cartão de crédito" sub="À vista • processado com segurança" color="#0369a1"
+                onClick={() => setCardMethod('card')} />
+              <Opt icon={<AccountBalanceIcon />} title="Débito" sub="À vista • processado com segurança" color="#178f89"
+                onClick={() => setCardMethod('debit')} />
             </>
           )}
         </Stack>
-        {err && <Typography color="error" variant="body2" sx={{ mt: 2 }}>{err}</Typography>}
 
-        {/* Selo de confiança (padrão checkout premium): reduz abandono e dúvida "quem é o vendedor".
-            03/10 multi-provider: logos OpenPix + Asaas no lugar do texto. MP = fallback
-            invisível (só processa cartão/débito via Checkout Pro), fica fora do selo. */}
+
+        {/* Selo de confiança (padrão checkout premium): reduz abandono e dúvida "quem é o vendedor". */}
         <Stack justifyContent="center" sx={{ mt: 2.5 }} spacing={0.5}>
           <Stack direction="row" spacing={0.75} justifyContent="center" sx={{ flexWrap: 'wrap', rowGap: 0.5 }}>
             <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>🔒 Ambiente seguro</Typography>
@@ -83,7 +85,7 @@ export const PaymentChooser = ({ packId, packLabel, onClose, onPix }: {
           <PaymentLogos />
         </Stack>
         <Typography variant="caption" sx={{ display: 'block', mt: 0.5, textAlign: 'center', color: 'text.disabled' }}>
-          No extrato do PIX aparece o nome do recebedor registrado
+          No extrato do cartão aparece o nome do recebedor registrado
         </Typography>
       </DialogContent>
     </Dialog>
