@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNotify } from 'react-admin';
+import { celebrateCredits } from '../components/CreditRewardFx';
 import { Box, Button, Chip, CircularProgress, Link, Stack, Typography } from '@mui/material';
 import PsychologyIcon from '@mui/icons-material/Psychology';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -39,7 +40,7 @@ import {
  * silenciosamente) — corte de faixa via ReferenceLine.
  */
 
-interface Row { id: string; type: ScreeningType; total: number; answers: number[]; severity: { key: ScreeningSeverity; label: string }; suicidalIdeation: boolean; createdAt: string }
+interface Row { id: string; type: ScreeningType; total: number; answers: number[]; severity: { key: ScreeningSeverity; label: string }; suicidalIdeation: boolean; createdAt: string; reward?: { credits: number } | null }
 
 const REDUCED_MOTION = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
 
@@ -156,6 +157,12 @@ export const SaudeMentalPage = () => {
       setFirstMoment(isFirst && saved.total < 15 && !saved.suicidalIdeation);
       setResult(saved);
       setPhase('result');
+      // 05/10 — recompensa por responder (server, cooldown 30d/tipo): pill +N créditos.
+      // MESMO guard humano do Celebration: nada de fogos quando há ideação de autolesa
+      // (os créditos caem igual — só a festa não).
+      if ((d as any)?.reward?.credits > 0 && !saved.suicidalIdeation) {
+        celebrateCredits(Number((d as any).reward.credits));
+      }
       load(); // histórico atualiza atrás (sem reload — APK crasha)
     } catch (e: unknown) {
       notify(e instanceof Error ? e.message : 'Erro ao salvar', { type: 'error' });
@@ -359,8 +366,26 @@ export const SaudeMentalPage = () => {
           </Stack>
 
           <Typography sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 600, lineHeight: 1.5 }}>Nas últimas 2 semanas, com que frequência você foi incomodado(a) por:</Typography>
+          {/* Nota dos "ou" (05/10, feedback do dono): itens do PHQ-9 juntam sintomas OPOSTOS
+              num só ("falta de apetite OU comendo demais" — é a redação validada do instrumento,
+              igual ao sono "dificuldade OU dormir mais"). Explicar uma vez evita o estranhamento
+              sem quebrar a validação científica do questionário. */}
+          {step === 0 && (
+            <Typography sx={{ fontSize: 11.5, color: 'text.secondary', lineHeight: 1.45, mt: 0.75, px: 1.25, py: 0.75, borderRadius: '10px', bgcolor: 'action.hover' }}>
+              💡 Algumas perguntas juntam dois lados com "ou" (apetite, sono…). Responda pelo
+              que <strong>você</strong> sentiu — vale qualquer um dos dois lados.
+            </Typography>
+          )}
           <Box key={`q-${type}-${step}`} sx={qFade}>
-            <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: 18, lineHeight: 1.4, my: 2 }}>{items[step]}</Typography>
+            <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: 18, lineHeight: 1.4, my: 2 }}>
+              {/* Destaca as alternativas do "ou" (ex.: "Falta de apetite **ou** comendo demais"):
+                  conectivo em itálico sutil — mantém o texto validado, só orienta o olhar. */}
+              {items[step].split(/ (ou) /).map((part, i) =>
+                part === 'ou'
+                  ? <Box key={i} component="span" sx={{ fontStyle: 'italic', color: 'text.secondary', fontWeight: 600 }}> ou </Box>
+                  : <span key={i}>{part}</span>,
+              )}
+            </Typography>
 
             <Stack spacing={1} role="radiogroup" aria-label={items[step]}>
               {SCREENING_OPTIONS.map((o) => {

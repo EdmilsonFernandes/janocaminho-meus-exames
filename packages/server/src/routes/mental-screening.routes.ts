@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
+import { getSettings } from '../utils/settings';
 import {
   ScreeningType, validateScreeningAnswers, scoreScreening, severityOf, hasSuicidalIdeation,
 } from '@meus-exames/shared';
@@ -39,6 +40,10 @@ const isTableMissing = (e: unknown): boolean =>
   !!e && typeof e === 'object' && (e as { code?: string }).code === 'P2021';
 
 // REGISTRAR rastreamento — total calculado SERVER-SIDE (web nunca manda o score).
+// 05/10: 1ª resposta de cada instrumento = recompensa (+grants.mentalScreening), UMA VEZ
+// NA VIDA por tipo (pedido do dono: responder de novo NÃO paga de novo — o re-rastreio
+// periódico é pelo acompanhamento, não pelo crédito). Guarda no ledger: kind='screening'
+// + refId=type. Resposta traz `reward` pro front celebrar; null = já premiado antes.
 router.post('/:patientId/mental-screenings', async (req: AuthedRequest, res, next) => {
   try {
     const pid = String(req.params.patientId);
@@ -55,7 +60,26 @@ router.post('/:patientId/mental-screenings', async (req: AuthedRequest, res, nex
       data: { patientId: pid, type, total: scoreScreening(answers), answers: answers as any },
       select: SELECT,
     });
-    res.status(201).json(serialize(created));
+
+    // Recompensa UMA vez por tipo (best-effort: falha não derruba o rastreio).
+    let reward: { credits: number } | null = null;
+    try {
+      const amount = Math.max(0, Number(getSettings().grants?.mentalScreening ?? 3));
+      if (amount > 0) {
+        await prisma.$transaction(async (tx) => {
+          const already = await tx.creditTransaction.findFirst({
+            where: { userId: req.userId!, kind: 'screening', refId: type },
+            select: { id: true },
+          });
+          if (already) return; // já premiou este instrumento (uma vez na vida)
+          await tx.user.update({ where: { id: req.userId! }, data: { credits: { increment: amount } } });
+          await tx.creditTransaction.create({ data: { userId: req.userId!, delta: amount, kind: 'screening', refId: type, label: type === 'phq9' ? 'Rastreamento de humor (PHQ-9)' : 'Rastreamento de ansiedade (GAD-7)' } });
+          reward = { credits: amount };
+        });
+      }
+    } catch (e) { console.error('[mental-screening] recompensa falhou:', (e as Error).message); }
+
+    res.status(201).json({ ...serialize(created), reward });
   } catch (e) { next(e); }
 });
 

@@ -107,6 +107,7 @@ import { PageSkeleton } from './components/PageSkeleton';
 import { CompleteProfileModal } from './components/CompleteProfileModal';
 import { GoalQuiz } from './components/GoalQuiz';
 import { Motd } from './components/Motd';
+import { CreditRewardFx } from './components/CreditRewardFx';
 import { NotificationsPage } from './pages/Notifications';
 import { MedicosPage } from './pages/Medicos';
 import { SupportPage } from './pages/Support';
@@ -734,6 +735,7 @@ const AppLayout = (props: any) => {
       <CompleteProfileModal />
       <GoalQuiz />
       <Motd />
+      <CreditRewardFx />
       </BiometricGate>
     </DrawerProvider>
     </ConfirmDialogProvider>

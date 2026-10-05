@@ -8,7 +8,7 @@ import { BADGES as DEFAULT_BADGES } from './achievements';
 export const DEFAULT_SETTINGS = {
   creditCosts: { extraction: 0, summary: 10, consolidated: 20, chat: 2 },
   uploadRules: { freeCost: 1, premiumFreeQuota: 6, premiumCost: 5 },
-  grants: { freeSignup: 60, monthly: 250, freeExamLimit: 2, quiz: 5 },
+  grants: { freeSignup: 60, monthly: 250, freeExamLimit: 2, quiz: 5, mentalScreening: 3 },
   // ===== Estratégia de pricing (2026-08-23) — tudo editável no Admin, sem deploy =====
   // Preço do plano mensal (era hardcode em 7 lugares). Os créditos do mensal continuam em
   // grants.monthly (fonte única). periodDays/label aqui só p/ a API expor.

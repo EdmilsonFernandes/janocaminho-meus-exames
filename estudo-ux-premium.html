@@ -1209,7 +1209,7 @@
     }
   </style>
 </head>
-<body data-theme="dark" data-font-scale="normal">
+<body data-theme="light" data-font-scale="normal">
 
   <!-- TOP BAR CONTROLADORA DO ESTUDO -->
   <header class="study-topbar">
@@ -1232,6 +1232,9 @@
       <button class="study-pill-btn" onclick="switchView('doctor')" id="tab-doctor">
         <span>🩺</span> Cockpit do Médico (360°)
       </button>
+      <button class="study-pill-btn" onclick="switchView('landing')" id="tab-landing">
+        <span>🚀</span> Landing Page (Proposta)
+      </button>
       <button class="study-pill-btn" onclick="switchView('principles')" id="tab-principles">
         <span>✨</span> Princípios & Ganhos
       </button>
@@ -1240,7 +1243,7 @@
     <!-- Ferramentas de Teste e Preview -->
     <div class="study-tools">
       <button class="tool-btn" onclick="toggleTheme()" id="theme-btn" title="Alternar Dark/Light mode">
-        <span id="theme-icon">☀️</span> <span id="theme-label">Claro</span>
+        <span id="theme-icon">🌙</span> <span id="theme-label">Escuro</span>
       </button>
       <button class="tool-btn" onclick="toggleDevice()" id="device-btn" title="Alternar formato tela">
         <span id="device-icon">💻</span> <span id="device-label">Desktop</span>
@@ -1721,6 +1724,141 @@
           </div>
 
         </div>
+      </div>
+    </section>
+
+    <!-- ==============================================================
+         4. PAINEL: PROPOSTA DE LANDING PAGE (ALTA CONVERSÃO)
+         ============================================================== -->
+    <section id="panel-landing" class="view-panel">
+      <div class="docs-section" style="padding: 24px; max-width: 1100px; margin: 0 auto;">
+        
+        <!-- Header da Proposta da Landing -->
+        <div style="text-align: center; max-width: 780px; margin: 20px auto 36px;">
+          <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(32, 178, 170, 0.12); color: var(--teal-light); border: 1px solid rgba(32, 178, 170, 0.28); padding: 5px 14px; border-radius: 99px; font-size: 12px; font-weight: 800; margin-bottom: 16px;">
+            <span>✨</span> Proposta para Landing.tsx · Visual Verde Claro Dr. Exame
+          </div>
+          <h2 style="font-family: 'Poppins', sans-serif; font-size: clamp(24px, 4vw, 36px); font-weight: 800; line-height: 1.2; letter-spacing: -0.02em; margin-bottom: 12px;">
+            Seus exames explicados de forma <span style="color: var(--teal-light); font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-weight: 400;">simples, humana</span> e imediata.
+          </h2>
+          <p style="font-size: 15px; color: var(--text-muted); line-height: 1.6;">
+            Envie a foto ou PDF do seu exame laboratorial e receba em segundos uma visão clara de cada biomarcador, alertas sem alarmismo e perguntas prontas para levar ao seu médico.
+          </p>
+          
+          <!-- Badges de Prova Social -->
+          <div style="display: flex; justify-content: center; gap: 16px; margin-top: 18px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; color: var(--text-muted);">
+              <span>⭐ <strong>4.9</strong> na Google Play</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; color: var(--text-muted);">
+              <span>⚡ <strong>+12.000</strong> exames analisados</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; color: var(--text-muted);">
+              <span>🔒 <strong>100% Privado</strong> (LGPD & SSL)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- DEMONSTRAÇÃO INTERATIVA "ANTES VS DEPOIS DO LAUDO" -->
+        <div style="background: rgba(32, 178, 170, 0.05); border: 2px dashed rgba(32, 178, 170, 0.3); border-radius: 24px; padding: 24px; margin-bottom: 32px;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <span style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--teal-light);">Demonstração Interativa ao Vivo</span>
+            <h4 style="font-family: 'Poppins', sans-serif; font-size: 18px; font-weight: 800; margin-top: 4px;">Veja a diferença entre o papel do laboratório e o Dr. Exame</h4>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 18px;">
+            
+            <!-- Lado A: O Papel Frio do Laboratório -->
+            <div style="background: var(--bg-surface); border: 1px solid var(--border-soft); border-radius: 18px; padding: 20px; box-shadow: var(--shadow-sm); opacity: 0.85;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid var(--border-soft); padding-bottom: 8px;">
+                <span style="font-size: 11px; font-weight: 800; color: #64748b;">📄 LAUDO CONVENCIONAL</span>
+                <span style="font-size: 11px; color: #94a3b8;">PDF / Impresso</span>
+              </div>
+              <p style="font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.6; color: #475569;">
+                <strong>ERITROGRAMA / SÉRIE VERMELHA:</strong><br>
+                HEMOGLOBINA: 14.1 g/dL (Ref: 12.0 a 16.0)<br>
+                HEMATÓCRITO: 42.5 % (Ref: 36.0 a 48.0)<br>
+                VCM: 88.2 fL | HCM: 29.4 pg | CHCM: 33.3 g/dL<br>
+                RDW: 12.8 % (Ref: 11.5 a 14.5)<br>
+                <span style="color: #b91c1c; font-weight: bold;">FERRITINA SÉRICA: 18.0 ng/mL *</span><br>
+                (Ref mulher adulta: 13.0 a 150.0 ng/mL)
+              </p>
+              <div style="margin-top: 14px; background: rgba(239, 68, 68, 0.08); padding: 8px 12px; border-radius: 8px; font-size: 11.5px; color: #b91c1c; font-weight: 600;">
+                ❓ <em>"O que significa Ferritina 18? Está quase no limite, devo me preocupar?"</em>
+              </div>
+            </div>
+
+            <!-- Lado B: A Explicação Humana do Dr. Exame -->
+            <div style="background: var(--bg-surface); border: 2px solid var(--teal-light); border-radius: 18px; padding: 20px; box-shadow: 0 10px 30px rgba(32, 178, 170, 0.15); position: relative;">
+              <div style="position: absolute; top: -11px; right: 18px; background: linear-gradient(135deg, var(--teal-light), var(--teal-primary)); color: #fff; font-size: 10px; font-weight: 800; padding: 3px 10px; border-radius: 99px;">
+                ✨ COM DR. EXAME
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                <div style="width: 36px; height: 36px; border-radius: 10px; background: var(--teal-soft); display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                  🩸
+                </div>
+                <div>
+                  <h5 style="font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 15px;">Estoque de Ferro (Ferritina)</h5>
+                  <span style="font-size: 11.5px; color: var(--text-muted);">18.0 ng/mL · Atenção Preventiva</span>
+                </div>
+              </div>
+
+              <!-- Barra visual de referência -->
+              <div style="margin: 12px 0;">
+                <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px; font-weight: 600;">
+                  <span style="color: var(--stat-amber);">Baixo</span>
+                  <span style="color: var(--stat-green);">Faixa Ideal (30 a 100)</span>
+                  <span style="color: var(--stat-amber);">Alto</span>
+                </div>
+                <div style="height: 8px; border-radius: 99px; background: rgba(148, 163, 184, 0.2); position: relative;">
+                  <div style="position: absolute; left: 20%; width: 60%; height: 100%; background: rgba(16, 185, 129, 0.35); border-radius: 99px;"></div>
+                  <div style="position: absolute; left: 22%; top: -3px; width: 6px; height: 14px; background: var(--stat-amber); border-radius: 3px; box-shadow: 0 0 6px var(--stat-amber);"></div>
+                </div>
+              </div>
+
+              <p style="font-size: 13px; line-height: 1.5; color: var(--text-main); margin-top: 10px;">
+                <strong>O que significa:</strong> Embora dentro da referência mínima, seu estoque de ferro está baixo, o que pode explicar sensação de fadiga, queda de cabelo ou desânimo.
+              </p>
+
+              <div style="margin-top: 12px; background: rgba(32, 178, 170, 0.08); padding: 10px 12px; border-radius: 10px; border-left: 3px solid var(--teal-light);">
+                <span style="font-size: 11px; font-weight: 800; color: var(--teal-light);">💡 Pergunta sugerida para o médico:</span>
+                <p style="font-size: 12px; color: var(--text-main); margin-top: 2px;"><em>"Doutor, minha ferritina está em 18. Vale a pena suplementar ferro para melhorar minha disposição?"</em></p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- 3 MELHORIAS PROPOSTAS PARA A LANDING PAGE -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 24px;">
+          
+          <div class="docs-card">
+            <div class="docs-card-icon">🚀</div>
+            <h4>1. Hero com Demonstração Instantânea</h4>
+            <p>
+              Permitir ao visitante testar 1 clique na própria primeira dobra, sem cadastro prévio, vendo a mágica do laudo se transformar. Isso dobra a conversão de novos usuários.
+            </p>
+          </div>
+
+          <div class="docs-card">
+            <div class="docs-card-icon">🩺</div>
+            <h4>2. Seção "Para Médicos & Consultórios"</h4>
+            <p>
+              Atrair médicos para usarem o Dr. Exame na consulta: com o portal gratuito, o médico recebe os exames do paciente já organizados cronologicamente com gráficos de tendência.
+            </p>
+          </div>
+
+          <div class="docs-card">
+            <div class="docs-card-icon">💎</div>
+            <h4>3. Planos com Gatilho do Plano Fundador</h4>
+            <p>
+              Destacar o Plano Fundador com aviso dinâmico de vagas limitadas e cálculo claro de quanto o usuário economiza em relação a pacotes avulsos.
+            </p>
+          </div>
+
+        </div>
+
       </div>
     </section>
 
