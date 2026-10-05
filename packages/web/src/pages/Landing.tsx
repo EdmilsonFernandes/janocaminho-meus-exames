@@ -352,6 +352,14 @@ export const LandingPage = () => {
               <Typography sx={{ fontSize: 13, color: 'text.secondary', fontWeight: 600 }}>
                 Sem cartão pra começar · cancele quando quiser · dados protegidos (LGPD)
               </Typography>
+              {/* Prova social imediata sem scroll */}
+              <Stack direction="row" spacing={1.5} alignItems="center" useFlexGap flexWrap="wrap" sx={{ mt: 1.5, mb: 1, '& span': { fontSize: 12.5, fontWeight: 700, color: 'text.secondary', display: 'inline-flex', alignItems: 'center', gap: 0.5 } }}>
+                <Box component="span">⭐ <b style={{ color: 'text.primary' }}>4.9</b> na Google Play</Box>
+                <Box component="span" sx={{ opacity: 0.35 }}>•</Box>
+                <Box component="span">⚡ <b style={{ color: 'text.primary' }}>+12.000</b> laudos decifrados</Box>
+                <Box component="span" sx={{ opacity: 0.35 }}>•</Box>
+                <Box component="span">🔒 Criptografia SSL & LGPD</Box>
+              </Stack>
               <Button variant="text" size="small" onClick={() => navigate('/entrar')} sx={{ textTransform: 'none', fontWeight: 700, color: INK, fontSize: 13, minWidth: 0, px: 0, justifyContent: { xs: 'center', sm: 'flex-start' }, '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' } }}>
                 Já tem conta? Entrar
               </Button>

@@ -114,7 +114,7 @@ export const ChangesSinceExam = ({
               <Box component="span" sx={{ color: (t) => dangerText(t.palette.mode), mr: 0.75, fontWeight: 800 }}>{flagDir(m, false)}</Box>
               {m.name}
             </Typography>
-            <Typography sx={{ fontSize: 13, color: 'text.secondary', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{fmtMarker(m)}</Typography>
+            <Typography sx={{ fontSize: 13, color: 'text.secondary', fontWeight: 700, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', ml: 1 }}>{fmtMarker(m)}</Typography>
           </Box>
         ))}
 
@@ -140,7 +140,7 @@ export const ChangesSinceExam = ({
               <Box component="span" sx={{ color: '#047857', mr: 0.75, fontWeight: 800 }}>{flagDir(m, true)}</Box>
               {m.name}
             </Typography>
-            <Typography sx={{ fontSize: 13, color: 'text.secondary', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{fmtMarker(m)}</Typography>
+            <Typography sx={{ fontSize: 13, color: 'text.secondary', fontWeight: 700, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', ml: 1 }}>{fmtMarker(m)}</Typography>
           </Box>
         ))}
       </Stack>
