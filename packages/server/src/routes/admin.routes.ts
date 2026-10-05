@@ -703,6 +703,83 @@ router.get('/referrals', async (_req, res, next) => {
   } catch (e) { next(e); }
 });
 
+// DETALHE DO PROMOTOR — Lista todos os indicados por um código específico
+router.get('/referrals/promoter/:code', async (req, res, next) => {
+  try {
+    const code = String(req.params.code).trim();
+    if (!code) { res.status(400).json({ error: 'Código de indicação é obrigatório.' }); return; }
+
+    const now = new Date();
+    const promoter = await prisma.user.findFirst({
+      where: { referralCode: code },
+      select: { id: true, name: true, email: true, referralCode: true, credits: true, role: true, createdAt: true },
+    });
+
+    const invitees = await prisma.user.findMany({
+      where: { referredBy: code },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        createdAt: true,
+        emailVerified: true,
+        planExpiresAt: true,
+        credits: true,
+        patients: {
+          select: {
+            _count: { select: { exams: true } },
+          },
+        },
+      },
+    });
+
+    const list = invitees.map((u) => {
+      const examCount = u.patients?.reduce((acc, p) => acc + (p._count?.exams || 0), 0) || 0;
+      return {
+        id: u.id,
+        name: u.name || 'Sem nome',
+        email: u.email,
+        createdAt: u.createdAt,
+        emailVerified: !!u.emailVerified,
+        isPremium: u.planExpiresAt ? new Date(u.planExpiresAt) > now : false,
+        examCount,
+        credits: u.credits,
+      };
+    });
+
+    res.json({
+      promoter: promoter || { referralCode: code, name: 'Desconhecido', email: '—', credits: 0 },
+      totalInvitees: list.length,
+      verifiedCount: list.filter((i) => i.emailVerified).length,
+      withExamsCount: list.filter((i) => i.examCount > 0).length,
+      premiumCount: list.filter((i) => i.isPremium).length,
+      invitees: list,
+    });
+  } catch (e) { next(e); }
+});
+
+// CONCEDER BÔNUS / CRÉDITOS AO PROMOTOR OU INDICADO
+router.post('/referrals/award-bonus', async (req: AuthedRequest, res, next) => {
+  try {
+    const { userId, delta, reason } = req.body ?? {};
+    const amount = Number(delta);
+    if (!userId || isNaN(amount) || amount <= 0) {
+      res.status(400).json({ error: 'userId e valor positivo (delta) são obrigatórios.' });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: String(userId) }, select: { id: true, credits: true, name: true } });
+    if (!user) { res.status(404).json({ error: 'Usuário não encontrado.' }); return; }
+
+    const label = reason ? String(reason).trim() : 'Bônus de indicação concedido pelo admin';
+    const newBalance = await logCredit(user.id, amount, 'referral', label);
+    void audit('AWARD_REFERRAL_BONUS', req, { targetType: 'USER', targetId: user.id, delta: amount, label });
+
+    res.json({ ok: true, credits: newBalance, added: amount, user: { id: user.id, name: user.name } });
+  } catch (e) { next(e); }
+});
+
 
 // AJUSTAR créditos — grava LEDGER (delta) + auditoria. Antes setava o saldo se rastro nenhum:
 // meses de ajustes admin ficavam invisíveis no extrato e a reconciliação saldo×extrato quebrava
