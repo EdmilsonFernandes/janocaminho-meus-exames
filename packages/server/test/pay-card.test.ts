@@ -166,4 +166,32 @@ describe('billing/pay-card: cartão inline via Asaas', () => {
     expect(JSON.stringify(sub)).not.toContain(VISA_OK);
     expect(JSON.stringify(sub)).not.toContain('"ccv"');
   });
+
+  // 05/10 (urgente, dono): assinatura PREMIUM pelo cartão inline — {plan:'monthly'} em
+  // vez de pack. Aprova como PLANO (periodDays 30 + créditos mensais), não como créditos.
+  it('plan monthly CONFIRMED → aprova PLANO 30d com créditos mensais', async () => {
+    const { user, token } = await createUser({ credits: 0 });
+    asaasOk({ id: 'pay_plan1', status: 'CONFIRMED' }).forEach((r) => fetchMock().mockResolvedValueOnce(r));
+
+    const r = await api().post('/api/billing/pay-card').set(authHeader(token))
+      .send({ plan: 'monthly', method: 'card', card: validCard(), holder: validHolder() });
+    expect(r.status).toBe(200);
+    expect(r.body.approved).toBe(true);
+    expect(r.body.plan).toBe(true);
+
+    // Ordem: periodDays 30 (marca de PLANO pros webhooks) + SEM externalReference de pack.
+    const sub = await prisma.subscription.findFirst({ where: { userId: user.id }, orderBy: { createdAt: 'desc' } });
+    expect(sub?.status).toBe('APPROVED');
+    expect(sub?.periodDays).toBe(30);
+    expect(sub?.mpPaymentId).toBe('pay_plan1');
+    // usuário virou PREMIUM (planExpiresAt no futuro) + créditos mensais creditados
+    const u = await prisma.user.findUnique({ where: { id: user.id }, select: { planExpiresAt: true, credits: true } });
+    expect(u?.planExpiresAt && u.planExpiresAt > new Date()).toBe(true);
+    expect(u?.credits).toBeGreaterThan(0);
+    // cobrança no preço do plano (settings), não de pack
+    const payBody = JSON.parse(fetchMock().mock.calls[1][1].body);
+    expect(payBody.value).toBeCloseTo(Number(payBody.value), 2);
+    expect(payBody.description).toContain('Premium');
+    expect(payBody.externalReference).not.toContain('|');
+  });
 });

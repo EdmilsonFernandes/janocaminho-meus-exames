@@ -10,7 +10,6 @@ import { useNotify, useTranslate } from 'react-admin';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { API_URL, token, fetchPublicConfig } from '../config';
 import { usePlanInfo, fmtBRL } from '../utils/planInfo';
-import { Capacitor } from '@capacitor/core';
 import { PixModal } from '../components/PixModal';
 import { PaymentChooser } from '../components/PaymentChooser';
 import { PageContainer } from '../components/layout/PageContainer';
