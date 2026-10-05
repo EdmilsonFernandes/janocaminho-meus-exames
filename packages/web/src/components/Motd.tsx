@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Box, IconButton, Fade,
@@ -8,16 +8,21 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { DrExame } from './DrExame';
 import { claimColdDialog } from '../utils/coldDialog';
 import { fetchPublicConfig, token } from '../config';
+import { useNudgeQueue } from '../hooks/useNudgeQueue';
 
 /** MOTD — Mensagem do Dia (padrão de apps maduros): dialog de boas-vindas controlado pelo
  *  ADMIN (AppSetting `motd`), sem deploy. Anuncia feature, promo, novidade.
  *  Frequência: 1x por CONTEÚDO (hash do título+mensagem) — mudou o texto = mostra de novo.
  *  Guarda anti-cascata: entra na bateria do claimColdDialog (máx 1 diálogo de cold-load por
- *  sessão, junto de WhatsNew/GoalQuiz/NotificationPopup) e abre com delay (deixa o boot assentar). */
+ *  sessão, junto de WhatsNew/GoalQuiz/NotificationPopup) e abre com delay (deixa o boot assentar).
+ *  FILA DE NUDGES (05/10): a abertura passa pela useNudgeQueue — um modal por vez, com
+ *  prioridade (MOTD=80: broadcast do admin ganha da maioria). O close resolve a espera. */
 export const Motd = () => {
   const navigate = useNavigate();
+  const { enqueue } = useNudgeQueue();
   const [open, setOpen] = useState(false);
   const [motd, setMotd] = useState<{ title: string; message: string; ctaLabel: string; ctaRoute: string } | null>(null);
+  const closeQueueRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     if (!token()) return; // só usuário autenticado
@@ -32,7 +37,11 @@ export const Motd = () => {
         if (shown === hash) return; // já viu ESTE conteúdo
         if (!claimColdDialog('motd')) return; // outro diálogo ganhou a sessão
         setMotd({ title: c.motd.title, message: c.motd.message, ctaLabel: c.motd.ctaLabel, ctaRoute: c.motd.ctaRoute });
-        setOpen(true);
+        // Enfileira em vez de abrir direto: se outro nudge estiver na tela, espera a vez.
+        enqueue('motd', 80, () => new Promise<void>((resolve) => {
+          closeQueueRef.current = resolve;
+          setOpen(true);
+        }));
       }).catch(() => { /* config fora — silencioso */ });
     }, 2600);
     return () => { cancelled = true; clearTimeout(t); };
@@ -42,6 +51,8 @@ export const Motd = () => {
     setOpen(false);
     try { localStorage.setItem('motdShown', String(motd ? motd.title + '|' + motd.message : '').slice(0, 120)); } catch { /* ignore */ }
     if (goRoute) navigate(goRoute);
+    closeQueueRef.current?.(); // libera a fila pro próximo nudge
+    closeQueueRef.current = null;
   };
 
   if (!open || !motd) return null;

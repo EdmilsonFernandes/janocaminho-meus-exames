@@ -95,6 +95,7 @@ import { MobileBottomNav } from './components/MobileBottomNav';
 import { ExamCreateFab } from './components/ExamCreateFab';
 import { BiometricGate } from './components/BiometricGate';
 import { DrawerProvider, useAppDrawer } from './components/drawerState';
+import { NudgeQueueProvider } from './hooks/useNudgeQueue';
 import { ForceUpdate } from './components/ForceUpdate';
 import { checkAppUpdate, checkPlayUpdate } from './utils/version';
 import { decideBackAction } from './utils/backNavigation';
@@ -686,6 +687,9 @@ const AppLayout = (props: any) => {
   if (!token()) return <Navigate to="/entrar" replace />;
   return (
     <ConfirmDialogProvider>
+    {/* FILA DE NUDGES (05/10): serializa modais de cold-load (MOTD/WhatsNew/…) —
+        um por vez, prioridade, gap 400ms. Morde só a ORDEM de abrir, não o conteúdo. */}
+    <NudgeQueueProvider>
     <DrawerProvider>
       <BiometricGate>
       <ScreenBackdrop />
@@ -751,6 +755,7 @@ const AppLayout = (props: any) => {
       <CreditRewardFx />
       </BiometricGate>
     </DrawerProvider>
+    </NudgeQueueProvider>
     </ConfirmDialogProvider>
   );
 };

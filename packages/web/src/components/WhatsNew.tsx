@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Stack, Typography, Box } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { APP_BUILD_INFO } from '../generated/buildInfo';
@@ -6,21 +6,31 @@ import { APP_VERSION } from '../utils/version';
 import { claimColdDialog } from '../utils/coldDialog';
 import { tealText } from '../theme';
 import { markWhatsNewSeen, notesForVersion, shouldShowWhatsNew } from '../utils/whatsNew';
+import { useNudgeQueue } from '../hooks/useNudgeQueue';
 
 /**
  * "✨ Novidades do Dr. Exame" (G5) — dialog version-gated por versionCode.
  * Conteúdo no mapa `RELEASE_NOTES` (utils/whatsNew.ts); gatilho = onboarded +
  * chave `whatsnew_vc_<code>` não vista + slot de cold-dialog (máx 1 modal de
  * 1º load por sessão). Mostra só os itens da versão ATUAL (sem acúmulo).
+ * FILA DE NUDGES (05/10): a abertura passa pela useNudgeQueue (prioridade 60 —
+ * abaixo do MOTD/broadcast do admin, acima de nudges de produto); o close libera a fila.
  */
 export const WhatsNew = () => {
   const navigate = useNavigate();
+  const { enqueue } = useNudgeQueue();
   const [show, setShow] = useState(false);
+  const closeQueueRef = useRef<(() => void) | null>(null);
   const code = Number(APP_BUILD_INFO.versionCode) || 0;
   const notes = notesForVersion(code);
 
   useEffect(() => {
-    if (code > 0 && shouldShowWhatsNew(code, window.localStorage, () => claimColdDialog('whatsnew'))) setShow(true);
+    if (code > 0 && shouldShowWhatsNew(code, window.localStorage, () => claimColdDialog('whatsnew'))) {
+      enqueue('whatsnew', 60, () => new Promise<void>((resolve) => {
+        closeQueueRef.current = resolve;
+        setShow(true);
+      }));
+    }
   }, [code]);
 
   if (!show || notes.length === 0) return null;
@@ -28,6 +38,8 @@ export const WhatsNew = () => {
   const close = () => {
     markWhatsNewSeen(code, window.localStorage);
     setShow(false);
+    closeQueueRef.current?.(); // libera a fila pro próximo nudge
+    closeQueueRef.current = null;
   };
   // "Ver agora" marca como visto E navega (deep-link). Nada de reload() — crasha o APK.
   const go = (to: string) => {
