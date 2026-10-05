@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   Dialog, DialogTitle, DialogContent, IconButton, Button, Typography, Stack, Box,
-  CircularProgress, TextField, InputAdornment, Collapse,
+  CircularProgress, TextField, InputAdornment, Collapse, Alert, Tooltip,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import CheckIcon from '@mui/icons-material/CheckCircle';
@@ -9,6 +9,8 @@ import CreditCardIcon from '@mui/icons-material/CreditCard';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import LockIcon from '@mui/icons-material/Lock';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
+import DocumentScannerOutlinedIcon from '@mui/icons-material/DocumentScannerOutlined';
 import { API_URL, token } from '../config';
 import { PaymentLogos } from './PaymentLogos';
 
@@ -135,6 +137,84 @@ export const CreditCardForm = ({ open, packId, packLabel, price, method, plan, o
   const [result, setResult] = useState<null | { status: string; paymentId: string; threeDSUrl?: string | null }>(null);
   const [approved, setApproved] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Scanner de cartão por foto/câmera
+  const [scanningCard, setScanningCard] = useState(false);
+  const [scanFeedback, setScanFeedback] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleScanCard = async () => {
+    setScanFeedback(null);
+    try {
+      // 1. Tenta o scanner de documentos nativo do Android/iOS (Capacitor ML Kit)
+      const { DocumentScanner } = await import('@capacitor-mlkit/document-scanner');
+      const res = await DocumentScanner.scanDocument({
+        pageLimit: 1,
+        resultFormats: 'JPEG',
+        scannerMode: 'FULL',
+      });
+      const imgs = res.scannedImages ?? [];
+      if (imgs.length > 0) {
+        setScanningCard(true);
+        const r = await fetch(imgs[0]);
+        const blob = await r.blob();
+        await uploadCardPhoto(blob);
+        return;
+      }
+    } catch {
+      // DocumentScanner não disponível (navegador web ou sem Play Services) — fallback pra câmera web/arquivo
+    }
+    fileInputRef.current?.click();
+  };
+
+  const handleFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = '';
+    await uploadCardPhoto(file);
+  };
+
+  const uploadCardPhoto = async (fileOrBlob: Blob) => {
+    setScanningCard(true);
+    setScanFeedback(null);
+    try {
+      const formData = new FormData();
+      formData.append('photo', fileOrBlob, 'card.jpg');
+      const r = await fetch(`${API_URL}/billing/scan-card`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token()}` },
+        body: formData,
+      });
+      if (r.ok) {
+        const data = await r.json();
+        let count = 0;
+        if (data.number) {
+          setNumber(maskCardNumber(data.number));
+          count++;
+        }
+        if (data.expiry) {
+          setExpiry(maskExpiry(data.expiry));
+          count++;
+        }
+        if (data.holderName) {
+          setHolderName(data.holderName.toUpperCase());
+          count++;
+        }
+        if (count > 0) {
+          setScanFeedback('Cartão lido com sucesso! Confira os números e digite apenas o código CVV do verso.');
+        } else {
+          setScanFeedback('Não foi possível identificar os números na foto. Digite manualmente.');
+        }
+      } else {
+        const err = await r.json().catch(() => ({}));
+        setScanFeedback(err.error || 'Não conseguimos ler a foto do cartão. Você pode digitar os dados.');
+      }
+    } catch {
+      setScanFeedback('Erro ao processar imagem. Você pode digitar os dados normalmente.');
+    } finally {
+      setScanningCard(false);
+    }
+  };
 
   const brand = useMemo(() => detectBrand(number), [number]);
   const cvvLen = brand === 'amex' ? 4 : 3;
@@ -375,11 +455,88 @@ export const CreditCardForm = ({ open, packId, packLabel, price, method, plan, o
         </Box>
 
         <Stack spacing={1.75}>
-          <TextField label="Número do cartão" placeholder="0000 0000 0000 0000" fullWidth inputMode="numeric" autoComplete="cc-number"
-            value={maskCardNumber(number)} onChange={(e) => setNumber(e.target.value)} onBlur={() => t('number')}
+          {/* Input oculto para captura via câmera web/galeria */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            style={{ display: 'none' }}
+            onChange={handleFileInputChange}
+          />
+
+          {/* Botão de escaneamento por câmera com IA */}
+          <Button
+            variant="outlined"
+            fullWidth
+            disabled={scanningCard || submitting}
+            onClick={handleScanCard}
+            startIcon={scanningCard ? <CircularProgress size={18} sx={{ color: '#178f89' }} /> : <PhotoCameraIcon sx={{ color: '#178f89' }} />}
+            sx={{
+              py: 1.1,
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontWeight: 700,
+              fontSize: 13.5,
+              borderColor: 'rgba(32,178,170,0.35)',
+              bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(32,178,170,0.08)' : 'rgba(32,178,170,0.06)',
+              color: '#0f766e',
+              display: 'flex',
+              justifyContent: 'center',
+              gap: 0.5,
+              boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+              '&:hover': {
+                bgcolor: 'rgba(32,178,170,0.14)',
+                borderColor: '#178f89',
+              },
+            }}
+          >
+            {scanningCard ? 'Lendo dados do cartão com IA...' : '📷 Tirar foto / Escanear cartão'}
+          </Button>
+
+          <Collapse in={!!scanFeedback}>
+            <Alert
+              severity={scanFeedback?.includes('sucesso') ? 'success' : 'info'}
+              onClose={() => setScanFeedback(null)}
+              sx={{ borderRadius: '10px', py: 0.5, fontSize: 12.5 }}
+            >
+              {scanFeedback}
+            </Alert>
+          </Collapse>
+
+          <TextField
+            label="Número do cartão"
+            placeholder="0000 0000 0000 0000"
+            fullWidth
+            inputMode="numeric"
+            autoComplete="cc-number"
+            value={maskCardNumber(number)}
+            onChange={(e) => setNumber(e.target.value)}
+            onBlur={() => t('number')}
             onFocus={(e) => handleInputFocus(e)}
-            error={err('number')} helperText={helper('number', 'Número de cartão inválido — confira os dígitos.')}
-            sx={fieldSx} />
+            error={err('number')}
+            helperText={helper('number', 'Número de cartão inválido — confira os dígitos.')}
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <Tooltip title="Fotografar ou escanear cartão">
+                      <IconButton
+                        size="small"
+                        onClick={handleScanCard}
+                        disabled={scanningCard || submitting}
+                        edge="end"
+                        sx={{ color: '#178f89' }}
+                      >
+                        <PhotoCameraIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </InputAdornment>
+                ),
+              },
+            }}
+            sx={fieldSx}
+          />
           <TextField label="Nome impresso no cartão" placeholder="COMO ESTÁ NO CARTÃO" fullWidth autoComplete="cc-name"
             slotProps={{ htmlInput: { autoCapitalize: 'characters', style: { textTransform: 'uppercase' } } }}
             value={holderName} onChange={(e) => setHolderName(e.target.value.toUpperCase())} onBlur={() => t('holderName')}
@@ -502,15 +659,9 @@ export const CreditCardForm = ({ open, packId, packLabel, price, method, plan, o
           {submitting ? <CircularProgress size={22} sx={{ color: '#fff' }} /> : <>Pagar {fmtBRL(price)}</>}
         </Button>
 
-        <Stack alignItems="center" sx={{ mt: 1.5 }} spacing={0.5}>
-          <Stack direction="row" spacing={0.5} alignItems="center">
-            <LockIcon sx={{ fontSize: 13, color: 'text.disabled' }} />
-            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
-              Seus dados de cartão não são salvos — vão direto ao processador
-            </Typography>
-          </Stack>
-          <PaymentLogos />
-        </Stack>
+        <Box sx={{ mt: 2 }}>
+          <PaymentLogos provider="asaas" variant="badge" height={24} />
+        </Box>
       </DialogContent>
     </Dialog>
   );

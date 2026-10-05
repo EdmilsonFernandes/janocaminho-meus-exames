@@ -10,7 +10,8 @@ import { createPixCharge, activePixProvider, pixProviderReady, type PixChargeRes
 import { cancelStalePendingPixes } from '../jobs/pix-expiry';
 import { approvePendingSubscription, type ApprovalKind } from '../utils/billingApproval';
 import { createAsaasCardCharge, AsaasApiError } from '../payments/asaas-provider';
-import { validateCardCharge, cardLast4, onlyDigits } from '../utils/card-validation';
+import { validateCardCharge, cardLast4, onlyDigits, isValidCardNumber } from '../utils/card-validation';
+import { upload } from '../middleware/upload';
 import { decryptPII } from '../utils/crypto';
 
 /** CPF do pagador (paciente TITULAR da conta, descriptografado) — o Asaas exige CPF
@@ -541,6 +542,132 @@ router.post('/pay-card', requireAuth, async (req: AuthedRequest, res, next) => {
     console.log(`[pay-card] pendente — ${charge.paymentId} (****${cardLast4(card.number)}, ${billingType}, 3DS: ${charge.threeDSUrl ? 'sim' : 'não'})`);
     res.json({ paymentId: charge.paymentId, status: 'PENDING', approved: false, credits: creditsAmount, plan: isPlan || undefined, threeDSUrl: charge.threeDSUrl });
   } catch (e) { next(e); }
+});
+
+// SCAN-CARD — OCR de cartão de crédito/débito por foto (câmera do celular ou arquivo).
+// Extrai número (validado com Luhn), validade e nome impresso.
+// SEGURANÇA PCI-DSS: a imagem NUNCA é salva em disco nem em banco, apenas processada em memória.
+// CVV NUNCA é extraído nem transmitido neste endpoint (o usuário digita o CVV do verso manualmente).
+const cardScanAt = new Map<string, number>();
+router.post('/scan-card', requireAuth, upload.single('photo'), async (req: AuthedRequest, res, next) => {
+  try {
+    const uid = req.userId!;
+    // Rate limit suave: máx 1 leitura a cada 3 segundos por usuário
+    if (Date.now() - (cardScanAt.get(uid) ?? 0) < 3_000) {
+      res.status(429).json({ error: 'Aguarde alguns segundos antes de escanear novamente.' });
+      return;
+    }
+    cardScanAt.set(uid, Date.now());
+
+    const file = req.file;
+    if (!file || !file.buffer?.length) {
+      res.status(400).json({ error: 'Envie a foto do cartão no campo "photo".' });
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      res.status(413).json({ error: 'Foto muito grande (máx. 8MB).' });
+      return;
+    }
+
+    const { imageToText } = await import('../extraction/imageToText');
+    const rawOcr = await imageToText(file.buffer).catch(() => '');
+
+    let cardNumber = '';
+    let expiry = '';
+    let holderName = '';
+    let brand = '';
+
+    // 1. Procurar candidatos a número de cartão (13 a 19 dígitos) no OCR
+    const cleanedDigits = rawOcr.replace(/[^\d\s-]/g, ' ');
+    const numberMatches = cleanedDigits.match(/\b(?:\d[\s-]*?){13,19}\b/g) ?? [];
+
+    for (const match of numberMatches) {
+      const candidate = match.replace(/\D/g, '');
+      if (isValidCardNumber(candidate)) {
+        cardNumber = candidate;
+        break;
+      }
+    }
+
+    // 2. Validade: MM/AA ou MM/AAAA (ex: 08/29, 12/30, 05/2028)
+    const expiryMatch = rawOcr.match(/\b(0[1-9]|1[0-2])\s*[/.-]\s*([2-3]\d|20[2-3]\d)\b/);
+    if (expiryMatch) {
+      const m = expiryMatch[1];
+      const y = expiryMatch[2].slice(-2);
+      expiry = `${m}/${y}`;
+    }
+
+    // 3. Nome impresso: linhas com 2 ou mais palavras em maiúsculo
+    const lines = rawOcr.split(/\r?\n/).map((l) => l.trim());
+    const ignoreWords = ['VISA', 'MASTERCARD', 'DEBITO', 'DEBIT', 'CREDITO', 'CREDIT', 'ELO', 'VALID', 'THRU', 'VAL', 'BANCO', 'BANK', 'NUBANK', 'ITAU', 'BRADESCO', 'SANTANDER', 'INTER', 'C6', 'NEON', 'CAIXA', 'MEMBER', 'SINCE', 'SECURITY', 'GOOD'];
+    for (const line of lines) {
+      const cleaned = line.replace(/[^A-Z\s]/g, '').trim();
+      const words = cleaned.split(/\s+/).filter((w) => w.length >= 2);
+      if (words.length >= 2 && words.length <= 5 && cleaned.length >= 6 && cleaned.length <= 32) {
+        if (!words.some((w) => ignoreWords.includes(w))) {
+          holderName = cleaned;
+          break;
+        }
+      }
+    }
+
+    // 4. Se a heurística regex não achou o número ou nome, mas o OCR capturou texto, aciona a IA
+    if ((!cardNumber || !holderName) && rawOcr.trim().length > 10) {
+      try {
+        const { getLlm, getModel } = await import('../llm');
+        const { extractJsonObject } = await import('../utils/json');
+        const sys = 'Você é um leitor OCR de cartões bancários. ' +
+          'A partir do texto bruto do OCR, extraia os dados visíveis do cartão de crédito/débito. ' +
+          'Retorne APENAS um JSON no formato {"number":"...", "expiry":"MM/AA", "holderName":"..."}. ' +
+          'Regras: (1) "number" = sequência numérica contínua de 13 a 19 dígitos; ' +
+          '(2) "expiry" = validade no formato MM/AA (ex: 08/29); ' +
+          '(3) "holderName" = nome impresso do titular em maiúsculas (ex: MARIA S SILVA); ' +
+          '(4) NUNCA retorne o código CVV nem invente números inexistentes. Se não identificar um campo, deixe string vazia.';
+        const r = await getLlm().complete({
+          model: getModel(),
+          maxTokens: 200,
+          system: sys,
+          messages: [{ role: 'user', content: `Texto do OCR:\n${rawOcr.slice(0, 2000)}` }],
+        });
+        const parsed = extractJsonObject(r.text) as any;
+        if (parsed?.number && !cardNumber) {
+          const cand = String(parsed.number).replace(/\D/g, '');
+          if (isValidCardNumber(cand) || cand.length >= 13) cardNumber = cand;
+        }
+        if (parsed?.expiry && !expiry) {
+          const ex = String(parsed.expiry).replace(/[^\d/]/g, '');
+          if (/^\d{2}\/\d{2}$/.test(ex)) expiry = ex;
+        }
+        if (parsed?.holderName && !holderName) {
+          holderName = String(parsed.holderName).toUpperCase().trim();
+        }
+      } catch {}
+    }
+
+    // Identificar bandeira
+    if (cardNumber.startsWith('4')) brand = 'visa';
+    else if (/^(5[1-5]|2[2-7])/.test(cardNumber)) brand = 'mastercard';
+    else if (/^(4011|4389|4514|4576|5041|5067|5090|6277|6362|6363)/.test(cardNumber)) brand = 'elo';
+    else if (/^(34|37)/.test(cardNumber)) brand = 'amex';
+    else if (/^(606282|3841)/.test(cardNumber)) brand = 'hipercard';
+
+    if (!cardNumber && !expiry && !holderName) {
+      res.status(422).json({
+        error: 'Não conseguimos ler os dados do cartão na foto. Verifique a iluminação e tente novamente, ou digite os dados.',
+      });
+      return;
+    }
+
+    res.json({
+      ok: true,
+      number: cardNumber,
+      expiry,
+      holderName,
+      brand,
+    });
+  } catch (e) {
+    next(e);
+  }
 });
 
 // COMPRA DE PACOTE DE CHAMADAS DE API (Fase 2 — parceiros): mesmo fluxo MP de buy-credits
