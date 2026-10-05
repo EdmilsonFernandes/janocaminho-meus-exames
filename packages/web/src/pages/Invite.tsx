@@ -24,9 +24,12 @@ export const InvitePage = () => {
   // undefined = carregando · null = sem código · string = tem
   const [code, setCode] = useState<string | null | undefined>(undefined);
   const [refBonus, setRefBonus] = useState(10);
+  // DOIS LADOS (05/10): "você ganha X · seu amigo ganha Y" — valores de COPY do server
+  // (AppSetting referral.newUser/recommender; default = bônus real de cada lado).
+  const [sides, setSides] = useState<{ newUser: number; recommender: number } | null>(null);
 
   useEffect(() => {
-    fetchPublicConfig().then((c) => setRefBonus(c.referralBonus)).catch(() => {});
+    fetchPublicConfig().then((c) => { setRefBonus(c.referralBonus); setSides({ newUser: c.referral.newUser, recommender: c.referral.recommender }); }).catch(() => {});
     fetch(`${API_URL}/auth/referrals/stats`, { headers: { Authorization: `Bearer ${token()}` } })
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => setCode(d?.code ?? null))
@@ -49,10 +52,12 @@ export const InvitePage = () => {
           <CardContent sx={{ p: { xs: 2.5, sm: 3 }, position: 'relative', textAlign: 'center' }}>
             <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1 }}><DrExame size={56} sx={{ borderRadius: '28%' }} /></Box>
             <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 22, letterSpacing: '-0.01em' }}>
-              Indique e ganhe {refBonus} créditos
+              Indique e ganhe {sides?.recommender ?? refBonus} créditos
             </Typography>
+            {/* DOIS LADOS explícitos (padrão MGM maduro): os dois números, um do lado
+                do outro — quem indica e quem é indicado sabem o que ganham ANTES de agir. */}
             <Typography sx={{ fontSize: 13.5, opacity: 0.9, mt: 0.75, maxWidth: 380, mx: 'auto' }}>
-              Seu amigo ganha <strong>+{refBonus}</strong> ao criar a conta com seu código — e você ganha <strong>+{refBonus}</strong> quando ele ativar. Saúde que se espalha é saúde melhor. 💚
+              Você ganha <strong>+{sides?.recommender ?? refBonus}</strong> · seu amigo ganha <strong>+{sides?.newUser ?? refBonus}</strong> quando ele cria a conta com seu código. Saúde que se espalha é saúde melhor. 💚
             </Typography>
           </CardContent>
         </Card>

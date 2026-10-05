@@ -2,7 +2,7 @@ import { useState, useEffect, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLogin, useNotify, useTranslate } from 'react-admin';
 import { GoogleLogin } from '@react-oauth/google';
-import { Box, Typography, Button, Link, CircularProgress, Stack, TextField, InputAdornment, IconButton, Checkbox, FormControlLabel } from '@mui/material';
+import { Box, Typography, Button, Link, CircularProgress, Stack, TextField, InputAdornment, IconButton, Checkbox, FormControlLabel, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
 import { keyframes } from '@mui/material/styles';
 import { DrExame } from '../components/DrExame';
 import { MascotPulse } from '../components/MascotPulse';
@@ -24,6 +24,7 @@ const I = {
   Eye: (p?: any) => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></svg>),
   EyeOff: (p?: any) => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M3 3l18 18" /><path d="M10.6 5.1A10.9 10.9 0 0 1 12 5c6.5 0 10 7 10 7a18 18 0 0 1-3.2 4M6.6 6.6A18 18 0 0 0 2 12s3.5 7 10 7a10.8 10.8 0 0 0 5.4-1.5" /><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" /></svg>),
   ArrowRight: (p?: any) => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M5 12h14M13 6l6 6-6 6" /></svg>),
+  ChevronDown: (p?: any) => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="m6 9 6 6 6-6" /></svg>),
   Key: (p?: any) => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><circle cx="8" cy="15" r="4" /><path d="M10.8 12.2 21 2m-4 4 3 3m-6 1 3 3" /></svg>),
   Shield: (p?: any) => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#178f89" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3Z" /><path d="m9 12 2 2 4-4" /></svg>),
   Doctor: (p?: any) => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M5 3v5a4 4 0 0 0 8 0V3" /><path d="M9 12v2.5A5.5 5.5 0 0 0 20 14.5V13" /><circle cx="20" cy="11" r="2" /></svg>),
@@ -452,7 +453,26 @@ export const RegisterPage = () => {
   const [verifyCode, setVerifyCode] = useState('');
   const [accepted, setAccepted] = useState(false);
   const [refBonus, setRefBonus] = useState(10);
-  useEffect(() => { fetchPublicConfig().then((c) => setRefBonus(c.referralBonus)); }, []);
+  // DOIS LADOS (05/10): quem está se cadastrando é o AMIGO → o badge mostra o lado
+  // newUser (AppSetting referral). Campo manual "Já tenho um código" (Accordion) aplica
+  // o código digitado NO MESMO estado do deep link ?ref= — mesma porta de entrada.
+  const [manualCode, setManualCode] = useState('');
+  const [manualError, setManualError] = useState('');
+  useEffect(() => { fetchPublicConfig().then((c) => setRefBonus(c.referral.newUser || c.referralBonus)); }, []);
+
+  /** Formato do código de indicação: NOME-XXXX (ex.: ANA-7QK2) — validação instantânea
+   *  de FORMATO no front (a validação de existência continua no server: 400 no register). */
+  const isValidReferralCode = (c: string) => /^[A-Z0-9]{2,12}-[A-Z0-9]{3,8}$/.test(c);
+  const applyManualCode = () => {
+    const code = manualCode.trim().toUpperCase();
+    if (!isValidReferralCode(code)) {
+      setManualError('Formato esperado: NOME-XXXX (ex.: ANA-7QK2).');
+      return;
+    }
+    setManualError('');
+    setReferral(code); // mesmo estado que o deep link /registrar?ref= preenche
+    setManualCode('');
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -528,7 +548,24 @@ export const RegisterPage = () => {
             <Typography sx={{ fontSize: 12, color: (t) => tealText(t.palette.mode), fontWeight: 700 }}>🎁 Indicado por <strong>{referral}</strong>: você ganha +{refBonus} créditos!</Typography>
           </Box>
         ) : (
-          <TextField label="Código de indicação (opcional)" value={referral} onChange={(e) => setReferral(e.target.value.toUpperCase())} sx={fieldSx} />
+          /* Campo manual (05/10): código recebido por VOZ/PAPEL não vem no deep link —
+             Accordion discreto (não compete com o CTA), valida o formato e aplica no
+             MESMO estado que /registrar?ref= preenche (badge acima aparece). */
+          <Accordion elevation={0} disableGutters sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '12px !important', '&:before': { display: 'none' }, '& .MuiAccordionSummary-root': { minHeight: 44, px: 1.5 } }}>
+            <AccordionSummary expandIcon={<I.ChevronDown />}>
+              <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.secondary' }}>🎁 Já tenho um código de indicação</Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={{ pt: 0, px: 1.5, pb: 1.5 }}>
+              <Stack direction="row" spacing={1} alignItems="flex-start">
+                <TextField
+                  label="Código (ex.: ANA-7QK2)" value={manualCode} error={!!manualError} helperText={manualError || undefined}
+                  onChange={(e) => { setManualCode(e.target.value.toUpperCase()); setManualError(''); }}
+                  sx={{ ...fieldSx, flex: 1 }} inputProps={{ autoCapitalize: 'characters', autoCorrect: 'off' }}
+                />
+                <Button variant="outlined" onClick={applyManualCode} sx={{ mt: 0.5, borderRadius: '12px', textTransform: 'none', fontWeight: 700, borderColor: '#20b2aa', color: (t) => tealText(t.palette.mode) }}>Aplicar</Button>
+              </Stack>
+            </AccordionDetails>
+          </Accordion>
         )}
         <FormControlLabel
           control={<Checkbox checked={accepted} onChange={(e) => setAccepted(e.target.checked)} size="small" sx={{ color: '#20b2aa', '&.Mui-checked': { color: '#20b2aa' } }} />}

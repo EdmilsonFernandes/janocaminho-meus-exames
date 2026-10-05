@@ -11,10 +11,19 @@ export const ReferralCard = ({ code }: { code?: string }) => {
   const [stats, setStats] = useState<{ count: number; creditsEarned: number; friends: any[] } | null>(null);
   const [copied, setCopied] = useState(false);
   const [refBonus, setRefBonus] = useState(10);
+  // DOIS LADOS (05/10): newUser = bônus do AMIGO; recommender = bônus de QUEM INDICA.
+  // Vem do AppSetting referral (copy do server) — default = bônus real de cada lado.
+  const [sides, setSides] = useState<{ newUser: number; recommender: number } | null>(null);
   // Texto do share: editável no admin (AppSetting referral.shareMessage, placeholders
   // {code}/{bonus}/{link}) — vazio = copy padrão do app. Padrão apps maduros: copy testável.
   const [shareTpl, setShareTpl] = useState('');
-  useEffect(() => { fetchPublicConfig().then((c) => { setRefBonus(c.referralBonus); setShareTpl(c.shareMessage || ''); }); }, []);
+  useEffect(() => {
+    fetchPublicConfig().then((c) => {
+      setRefBonus(c.referralBonus);
+      setSides({ newUser: c.referral.newUser, recommender: c.referral.recommender });
+      setShareTpl(c.shareMessage || '');
+    });
+  }, []);
 
   useEffect(() => {
     if (!code) return;
@@ -52,7 +61,7 @@ export const ReferralCard = ({ code }: { code?: string }) => {
           <GiftIcon sx={{ color: (t) => tealText(t.palette.mode) }} />
           <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary' }}>Indique e ganhe créditos</Typography>
         </Stack>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Cada amigo que se cadastrar com seu código ganha <strong>+{refBonus} créditos</strong>. Você também ganha <strong>+{refBonus}</strong>!</Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Você ganha <strong>+{sides?.recommender ?? refBonus} créditos</strong> · seu amigo ganha <strong>+{sides?.newUser ?? refBonus}</strong> ao se cadastrar com seu código.</Typography>
 
         {/* Código */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>

@@ -66,7 +66,11 @@ export const DEFAULT_SETTINGS = {
   payments: { cardEnabled: true },
   // Texto do share de indicação editável no admin (padrão apps maduros: copy testável).
   // Vazio = usa o texto padrão do app. Placeholders: {code} {bonus} {link}.
-  referral: { shareMessage: '' },
+  // DOIS LADOS (05/10): newUser/recommender são os valores de COPY expostos no
+  // /api/public/config ("você ganha X · seu amigo ganha Y"). Defaults = REFERRAL_BONUS
+  // atual (10) — NÃO mudam o crédito real (auth.routes continua pagando REFERRAL_BONUS);
+  // o admin pode editar os dois lados separadamente sem deploy.
+  referral: { shareMessage: '', newUser: 10, recommender: 10 },
   // Mensagem do Dia (MOTD): dialog 1x/dia no boot do app autenticado — anunciar feature,
   // promo, novidade. enabled=0 = desligado. ctaRoute = rota interna (ex.: /carteira).
   motd: { enabled: 0, title: '', message: '', ctaLabel: '', ctaRoute: '' },

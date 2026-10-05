@@ -74,7 +74,11 @@ export const doctorPhotoUrl = (doctorId: string, version?: number | string): str
 /** `cardEnabled` (02/10, MP suspenso): cartão/débito só voltam quando o admin religar
  *  (AppSetting payments.cardEnabled) — default false = PIX-only via OpenPix. */
 export interface MotdConfig { enabled: number; title: string; message: string; ctaLabel: string; ctaRoute: string }
-export interface PublicConfig { freeSignup: number; referralBonus: number; cardEnabled: boolean; shareMessage: string; motd: MotdConfig }
+/** Referral DOIS LADOS (05/10): newUser = o que o AMIGO ganha; recommender = o que
+ *  QUEM INDICA ganha. Editável no admin (AppSetting referral) — é copy, o crédito
+ *  real pago pelo server continua sendo referralBonus. */
+export interface ReferralConfig { newUser: number; recommender: number; shareMessage: string }
+export interface PublicConfig { freeSignup: number; referralBonus: number; cardEnabled: boolean; shareMessage: string; motd: MotdConfig; referral: ReferralConfig }
 let _publicCfgP: Promise<PublicConfig> | null = null;
 export function fetchPublicConfig(): Promise<PublicConfig> {
   if (!_publicCfgP) {
@@ -88,8 +92,13 @@ export function fetchPublicConfig(): Promise<PublicConfig> {
           title: d?.motd?.title ?? '', message: d?.motd?.message ?? '',
           ctaLabel: d?.motd?.ctaLabel ?? '', ctaRoute: d?.motd?.ctaRoute ?? '',
         },
+        referral: {
+          newUser: Number(d?.referral?.newUser) > 0 ? Number(d.referral.newUser) : Number(d?.referralBonus ?? 10),
+          recommender: Number(d?.referral?.recommender) > 0 ? Number(d.referral.recommender) : Number(d?.referralBonus ?? 10),
+          shareMessage: typeof d?.referral?.shareMessage === 'string' ? d.referral.shareMessage : (typeof d?.shareMessage === 'string' ? d.shareMessage : ''),
+        },
       }))
-      .catch(() => ({ freeSignup: 60, referralBonus: 10, cardEnabled: false, shareMessage: '', motd: { enabled: 0, title: '', message: '', ctaLabel: '', ctaRoute: '' } }));
+      .catch(() => ({ freeSignup: 60, referralBonus: 10, cardEnabled: false, shareMessage: '', motd: { enabled: 0, title: '', message: '', ctaLabel: '', ctaRoute: '' }, referral: { newUser: 10, recommender: 10, shareMessage: '' } }));
   }
   return _publicCfgP;
 }

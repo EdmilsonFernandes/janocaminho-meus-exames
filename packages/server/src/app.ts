@@ -161,6 +161,11 @@ app.use('/api/public/lead', leadRoutes);
 // A landing/card/link compartilhado leem daqui → valor sempre coerente c/ o que o server entrega.
 app.get('/api/public/config', (_req, res) => {
   const { grants, payments, referral, motd } = getSettings();
+  // DOIS LADOS (05/10): valores de COPY do referral por lado (AppSetting referral.
+  // newUser/recommender). Defaults = bônus real vigente — o crédito pago continua
+  // REFERRAL_BONUS (auth.routes); isto é o que a copy ANUNCIA, editável sem deploy.
+  const refNewUser = Number(referral?.newUser) > 0 ? Number(referral.newUser) : REFERRAL_BONUS;
+  const refRecommender = Number(referral?.recommender) > 0 ? Number(referral.recommender) : REFERRAL_BONUS;
   res.json({
     freeSignup: grants?.freeSignup ?? 60, referralBonus: REFERRAL_BONUS,
     // 04/10: cartão/débito INLINE via Asaas (form próprio) → default true. Kill-switch:
@@ -168,6 +173,9 @@ app.get('/api/public/config', (_req, res) => {
     cardEnabled: payments?.cardEnabled ?? true,
     // Share de indicação editável no admin (vazio = texto padrão do app).
     shareMessage: referral?.shareMessage ?? '',
+    // Referral dois lados: newUser = o que o AMIGO ganha; recommender = o que QUEM
+    // INDICA ganha. Landing//indique/cadastro leem daqui → copy sempre coerente.
+    referral: { newUser: refNewUser, recommender: refRecommender, shareMessage: referral?.shareMessage ?? '' },
     // MOTD (mensagem do dia): dialog pós-login, 1x/dia. enabled=0 = front nem mostra.
     motd: {
       enabled: motd?.enabled ? 1 : 0,
