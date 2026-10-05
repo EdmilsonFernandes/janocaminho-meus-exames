@@ -773,8 +773,13 @@ router.post('/referrals/award-bonus', async (req: AuthedRequest, res, next) => {
     if (!user) { res.status(404).json({ error: 'Usuário não encontrado.' }); return; }
 
     const label = reason ? String(reason).trim() : 'Bônus de indicação concedido pelo admin';
-    const newBalance = await logCredit(user.id, amount, 'referral', label);
-    void audit('AWARD_REFERRAL_BONUS', req, { targetType: 'USER', targetId: user.id, delta: amount, label });
+    // Concede DE VERDADE: incrementa o saldo + grava o extrato (logCredit só loga —
+    // usado sozinho o "bônus" não creditava nada e a resposta vinha credits: undefined).
+    const newBalance = (user.credits ?? 0) + amount;
+    await prisma.user.update({ where: { id: user.id }, data: { credits: { increment: amount } } });
+    await logCredit(user.id, amount, 'referral', label);
+    // audit aceita before/after (any) — delta/label vão aí dentro (TS2353 do build Docker).
+    void audit('AWARD_REFERRAL_BONUS', req, { targetType: 'USER', targetId: user.id, after: { credits: newBalance, delta: amount, label } });
 
     res.json({ ok: true, credits: newBalance, added: amount, user: { id: user.id, name: user.name } });
   } catch (e) { next(e); }
