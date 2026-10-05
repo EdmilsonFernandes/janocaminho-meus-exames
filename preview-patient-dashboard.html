@@ -3,13 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Dr. Exame • Dashboard do Paciente (Mobile & Desktop)</title>
+  <meta name="theme-color" content="#0f766e" />
+  <title>Dr. Exame • Painel de Saúde</title>
+  <meta name="description" content="Seu painel de saúde personalizado — exames, marcadores e evolução numa visão só." />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-app: #f8fafc;
+      --bg-app: #f5f7fa;
       --bg-card: #ffffff;
       --border-color: #e2e8f0;
       --text-main: #0f172a;
@@ -17,17 +19,24 @@
       --teal-primary: #0d9488;
       --teal-dark: #0f766e;
       --teal-light: #20B2AA;
-      --teal-soft: rgba(13, 148, 136, 0.12);
+      --teal-soft: rgba(13, 148, 136, 0.14);
       --red-alert: #ef4444;
-      --red-soft: rgba(239, 68, 68, 0.12);
+      --red-soft: rgba(239, 68, 68, 0.13);
       --amber-warn: #f59e0b;
-      --amber-soft: rgba(245, 158, 11, 0.12);
+      --amber-soft: rgba(245, 158, 11, 0.14);
       --indigo-pro: #6366f1;
-      --indigo-soft: rgba(99, 102, 241, 0.12);
+      --indigo-soft: rgba(99, 102, 241, 0.14);
       --green-ok: #10b981;
-      --green-soft: rgba(16, 185, 129, 0.12);
+      --green-soft: rgba(16, 185, 129, 0.14);
       --copper: #c27d38;
-      --copper-wash: rgba(194, 125, 56, 0.12);
+      --copper-wash: rgba(194, 125, 56, 0.14);
+      /* Safe area (notch/home indicator) */
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-left: env(safe-area-inset-left, 0px);
+      --safe-right: env(safe-area-inset-right, 0px);
+      /* Bottom nav height (incl. safe area) */
+      --bottom-nav-h: 68px;
     }
 
     * {
@@ -43,9 +52,27 @@
       display: flex;
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
+      overscroll-behavior-y: none;
     }
 
-    /* SIDEBAR (Desktop) */
+    /* Page entry animation */
+    @keyframes dxSlideUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes dxFadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    @keyframes dxScaleIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+    }
+
+    /* SIDEBAR (Desktop only) */
     .sidebar {
       width: 270px;
       background: #ffffff;
@@ -56,6 +83,7 @@
       top: 0;
       height: 100vh;
       flex-shrink: 0;
+      animation: dxFadeIn 0.3s ease both;
     }
 
     .brand-header {
@@ -185,12 +213,18 @@
     }
 
     .top-header {
-      background: #ffffff;
-      padding: 14px 24px;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      padding: 12px 24px;
+      padding-top: calc(12px + var(--safe-top));
       border-bottom: 1px solid var(--border-color);
       display: flex;
       align-items: center;
       justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
 
     .top-header h1 {
@@ -202,14 +236,50 @@
       gap: 8px;
     }
 
-    .header-actions {
+    /* Mobile top header: compact (logo + title + actions) */
+    .mobile-header-left {
       display: flex;
       align-items: center;
       gap: 10px;
     }
 
+    .mobile-brand-logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #20B2AA 0%, #0d9488 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 18px;
+      font-weight: 800;
+      box-shadow: 0 3px 10px rgba(13,148,136,0.28);
+      flex-shrink: 0;
+    }
+
+    .mobile-greeting-wrap h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-main);
+      line-height: 1.1;
+    }
+
+    .mobile-greeting-wrap span {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
     .header-pill {
-      background: rgba(16, 185, 129, 0.12);
+      background: rgba(16, 185, 129, 0.14);
       color: #065f46;
       font-size: 11.5px;
       font-weight: 700;
@@ -220,9 +290,10 @@
       gap: 5px;
     }
 
+    /* btn-icon: 44px touch target (WCAG 2.5.8) */
     .btn-icon {
-      width: 36px;
-      height: 36px;
+      min-width: 44px;
+      min-height: 44px;
       border-radius: 50%;
       border: 1px solid var(--border-color);
       background: #fff;
@@ -231,44 +302,77 @@
       justify-content: center;
       color: var(--text-muted);
       cursor: pointer;
+      transition: background 0.15s, transform 0.12s;
+      position: relative;
+    }
+
+    .btn-icon:active {
+      transform: scale(0.92);
+    }
+
+    .notif-dot {
+      position: absolute;
+      top: 7px;
+      right: 7px;
+      width: 8px;
+      height: 8px;
+      background: var(--red-alert);
+      border-radius: 50%;
+      border: 2px solid #fff;
     }
 
     .container {
       max-width: 1200px;
       margin: 0 auto;
       width: 100%;
-      padding: 20px 24px 48px;
+      padding: 20px 24px;
+      padding-bottom: calc(var(--bottom-nav-h) + 32px);
       display: flex;
       flex-direction: column;
       gap: 20px;
     }
 
-    /* HERO CARD: SCORE RING + TEXTO RESPONSIVO (NÃO QUEBRA NO MOBILE) */
+    /* HERO CARD — mobile-first */
     .hero-card {
       background: #ffffff;
       border: 1px solid var(--border-color);
       border-radius: 20px;
-      padding: 22px;
+      padding: 20px;
       position: relative;
       overflow: hidden;
-      box-shadow: 0 4px 20px rgba(13, 148, 136, 0.08);
+      box-shadow: 0 4px 24px rgba(13, 148, 136, 0.10), 0 1px 4px rgba(0,0,0,0.03);
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      gap: 16px;
+      animation: dxSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    /* Decorative teal accent on the hero */
+    .hero-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #20B2AA 0%, #6366f1 60%, #20B2AA 100%);
+      background-size: 200% 100%;
+      animation: heroShimmer 4s linear infinite;
+    }
+    @keyframes heroShimmer {
+      0% { background-position: 0% 0%; }
+      100% { background-position: 200% 0%; }
     }
 
     .hero-top-row {
       display: flex;
       align-items: center;
-      gap: 18px;
+      gap: 16px;
       width: 100%;
     }
 
-    /* Círculo do Health Score (assinatura do Dr. Exame) */
+    /* Score ring — clamp: never smaller on mobile than desktop */
     .score-ring-wrap {
       position: relative;
-      width: 88px;
-      height: 88px;
+      width: clamp(88px, 22vw, 104px);
+      height: clamp(88px, 22vw, 104px);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -367,6 +471,7 @@
       width: 100%;
     }
 
+    /* Buttons — min-height 48px (WCAG 2.5.8 touch target) */
     .hero-btn-primary {
       flex: 1;
       background: linear-gradient(135deg, #20B2AA 0%, #0d9488 100%);
@@ -374,20 +479,27 @@
       font-size: 14px;
       font-weight: 700;
       border: none;
-      padding: 12px 20px;
-      border-radius: 12px;
+      padding: 13px 20px;
+      min-height: 48px;
+      border-radius: 14px;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
-      transition: all 0.15s;
+      box-shadow: 0 4px 14px rgba(13, 148, 136, 0.28), 0 1px 3px rgba(0,0,0,0.06);
+      transition: all 0.16s cubic-bezier(0.4, 0, 0.2, 1);
+      -webkit-tap-highlight-color: transparent;
     }
 
     .hero-btn-primary:hover {
       background: linear-gradient(135deg, #2dd4bf 0%, #0f766e 100%);
       transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(13, 148, 136, 0.35);
+    }
+
+    .hero-btn-primary:active {
+      transform: scale(0.97);
     }
 
     .hero-btn-secondary {
@@ -396,30 +508,38 @@
       font-size: 13.5px;
       font-weight: 700;
       border: 1px solid var(--border-color);
-      padding: 12px 18px;
-      border-radius: 12px;
+      padding: 13px 18px;
+      min-height: 48px;
+      border-radius: 14px;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      transition: background 0.15s;
+      transition: all 0.15s;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .hero-btn-secondary:hover {
       background: #e2e8f0;
+      border-color: #cbd5e1;
     }
 
-    /* 4 CARDS DE KPI (Estilo SaaS / Figma - 2x2 no mobile, 4x1 no desktop) */
+    .hero-btn-secondary:active {
+      transform: scale(0.97);
+    }
+
+    /* 4 KPI CARDS — 2x2 mobile, 4x1 desktop */
     .kpi-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
+      gap: 10px;
+      animation: dxSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both;
     }
 
     @media (min-width: 900px) {
       .kpi-grid {
         grid-template-columns: repeat(4, 1fr);
-        gap: 16px;
+        gap: 14px;
       }
     }
 
@@ -427,28 +547,35 @@
       background: var(--bg-card);
       border: 1px solid var(--border-color);
       border-radius: 16px;
-      padding: 14px 16px;
+      padding: 13px 14px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.025), 0 1px 2px rgba(0,0,0,0.02);
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      min-height: 80px;
     }
 
     .kpi-card:hover {
       transform: translateY(-2px);
-      box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+      box-shadow: 0 8px 22px rgba(0,0,0,0.07);
       border-color: #cbd5e1;
+    }
+
+    .kpi-card:active {
+      transform: scale(0.97);
     }
 
     .kpi-info {
       min-width: 0;
+      flex: 1;
     }
 
     .kpi-info .kpi-label {
-      font-size: 10.5px;
+      font-size: clamp(9px, 2.5vw, 10.5px);
       font-weight: 700;
       color: var(--text-muted);
       text-transform: uppercase;
@@ -461,18 +588,19 @@
     }
 
     .kpi-info .kpi-value {
-      font-family: 'Inter', sans-serif;
-      font-size: 22px;
+      font-family: 'Poppins', sans-serif;
+      font-size: clamp(18px, 5vw, 22px);
       font-weight: 800;
       color: var(--text-main);
-      line-height: 1.15;
+      line-height: 1.1;
+      letter-spacing: -0.01em;
     }
 
     .kpi-info .kpi-sub {
-      font-size: 11.5px;
+      font-size: clamp(10px, 2.8vw, 11.5px);
       font-weight: 600;
       color: var(--text-muted);
-      margin-top: 3px;
+      margin-top: 2px;
       display: block;
       white-space: nowrap;
       overflow: hidden;
@@ -482,11 +610,12 @@
     .kpi-badge {
       width: 44px;
       height: 44px;
-      border-radius: 12px;
+      border-radius: 13px;
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
+      filter: saturate(1.2);
     }
 
     .badge-teal { background: var(--teal-soft); color: var(--teal-dark); }
@@ -926,7 +1055,7 @@
       to { transform: rotate(360deg); }
     }
 
-    /* RANGE TOGGLES (Hoje, 7d, 30d) */
+    /* RANGE TOGGLES — min-height 44px touch target */
     .range-toggle-group {
       display: inline-flex;
       background: #f1f5f9;
@@ -939,19 +1068,25 @@
     .range-toggle-btn {
       border: none;
       background: transparent;
-      padding: 6px 14px;
+      padding: 8px 16px;
+      min-height: 38px;
       border-radius: 999px;
       font-size: 12px;
       font-weight: 700;
       color: var(--text-muted);
       cursor: pointer;
       transition: all 0.15s ease;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .range-toggle-btn.active {
       background: #ffffff;
       color: var(--teal-dark);
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+    }
+
+    .range-toggle-btn:active {
+      opacity: 0.7;
     }
 
     /* ATIVIDADE HERO: RING + NUMERO + METRIC CHIPS */
@@ -1031,12 +1166,18 @@
       margin-top: 3px;
     }
 
-    /* MINI METRICS AUTO-FIT GRID (Never squished) */
+    /* MINI METRICS AUTO-FIT GRID (never squished, 2-col on mobile) */
     .activity-mini-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 10px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
       width: 100%;
+    }
+    @media (min-width: 600px) {
+      .activity-mini-grid {
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: 10px;
+      }
     }
 
     .mini-metric-chip {
@@ -1109,16 +1250,16 @@
       display: flex;
       align-items: flex-end;
       gap: 3px;
-      height: 48px;
+      height: 56px;
       width: 100%;
       padding: 2px 0;
     }
 
     .spark-bar {
       flex: 1;
-      min-width: 2px;
-      max-width: 14px;
-      border-radius: 3px;
+      min-width: 4px;
+      max-width: 16px;
+      border-radius: 3px 3px 2px 2px;
       cursor: pointer;
       transition: all 0.18s ease;
       position: relative;
@@ -1126,7 +1267,7 @@
 
     .spark-bar:hover, .spark-bar.active {
       transform: scaleY(1.08);
-      filter: brightness(1.15);
+      filter: brightness(1.18);
       outline: 2px solid var(--teal-primary);
       outline-offset: 1px;
     }
@@ -1301,41 +1442,133 @@
       outline-offset: 1px;
     }
 
-    /* MOBILE SPECIFIC OVERRIDES */
+    /* ========================================
+       BOTTOM NAVIGATION — Floating Glass Island
+       (same design as MobileBottomNav.tsx)
+    ======================================== */
+    .bottom-nav {
+      position: fixed;
+      bottom: max(12px, calc(var(--safe-bottom) + 8px));
+      left: 12px;
+      right: 12px;
+      max-width: 460px;
+      margin: 0 auto;
+      height: 60px;
+      border-radius: 18px;
+      z-index: 1000;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.80);
+      backdrop-filter: blur(28px) saturate(200%);
+      -webkit-backdrop-filter: blur(28px) saturate(200%);
+      border: 1px solid rgba(255,255,255,0.78);
+      box-shadow: 0 12px 36px rgba(32,178,170,0.14), 0 4px 12px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.9);
+      animation: dxSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+    }
+
+    .nav-item-bot {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      padding: 6px 4px;
+      min-height: 48px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: rgba(30,41,59,0.6);
+      font-family: 'Poppins', sans-serif;
+      font-size: 10.5px;
+      font-weight: 500;
+      border-radius: 12px;
+      transition: color 0.15s, transform 0.12s;
+      -webkit-tap-highlight-color: transparent;
+      position: relative;
+    }
+
+    .nav-item-bot.active {
+      color: var(--teal-dark);
+      font-weight: 700;
+    }
+
+    .nav-item-bot:active {
+      transform: scale(0.92);
+    }
+
+    .nav-item-bot svg {
+      transition: transform 0.2s cubic-bezier(0.16,1,.3,1), filter 0.2s;
+    }
+
+    .nav-item-bot.active svg {
+      transform: scale(1.12) translateY(-1px);
+      filter: drop-shadow(0 2px 6px rgba(32,178,170,0.45));
+    }
+
+    .nav-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--teal-light);
+      box-shadow: 0 0 6px rgba(32,178,170,0.8);
+      opacity: 0;
+      transform: scale(0);
+      transition: opacity 0.2s, transform 0.2s cubic-bezier(0.16,1,.3,1);
+      margin-top: 1px;
+    }
+
+    .nav-item-bot.active .nav-dot {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* Dr. Exame IA center button */
+    .nav-ia-btn {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #20B2AA, #0f766e);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2.5px solid #ffffff;
+      box-shadow: 0 8px 22px rgba(32,178,170,0.5), 0 2px 6px rgba(32,178,170,0.3);
+      font-size: 22px;
+      transform: translateY(-10px);
+      transition: transform 0.22s cubic-bezier(.16,1,.3,1), box-shadow 0.2s;
+      flex-shrink: 0;
+    }
+
+    .nav-item-bot.active .nav-ia-btn {
+      transform: translateY(-14px) scale(1.08);
+    }
+
+    /* MOBILE OVERRIDES */
     @media (max-width: 768px) {
-      .sidebar {
-        display: none;
-      }
-      .top-header {
-        padding: 12px 16px;
-      }
+      .sidebar { display: none; }
+      .desktop-header-content { display: none; }
+      .mobile-header-content { display: flex !important; align-items: center; gap: 10px; }
+      .top-header { padding: 10px 16px; padding-top: calc(10px + var(--safe-top)); }
       .container {
-        padding: 14px 14px 36px;
-        gap: 16px;
-      }
-      .hero-card {
-        padding: 16px;
-        gap: 14px;
-        border-radius: 18px;
-      }
-      .hero-top-row {
+        padding: 14px 14px;
+        padding-bottom: calc(var(--bottom-nav-h) + 20px);
         gap: 14px;
       }
-      .score-ring-wrap {
-        width: 76px;
-        height: 76px;
-      }
-      .score-ring-number strong {
-        font-size: 21px;
-      }
-      .hero-actions-row {
-        flex-direction: column;
-        gap: 8px;
-      }
-      .hero-btn-primary, .hero-btn-secondary {
-        width: 100%;
-        padding: 11px 16px;
-      }
+      .hero-card { padding: 16px; gap: 14px; border-radius: 18px; }
+      .hero-top-row { gap: 12px; }
+      .hero-actions-row { flex-direction: column; gap: 8px; }
+      .hero-btn-primary, .hero-btn-secondary { width: 100%; }
+      .section-title { font-size: 14px; }
+      /* Sparkline: show 14 days on mobile via .mobile-hide-bar class in JS */
+      .mobile-hide-bar { display: none !important; }
+    }
+
+    @media (min-width: 769px) {
+      .bottom-nav { display: none; }
+      .mobile-header-content { display: none !important; }
+      .desktop-header-content { display: flex !important; align-items: center; gap: 8px; }
     }
   </style>
 </head>
@@ -1401,6 +1634,15 @@
         Minha Família
       </li>
     </ul>
+
+    <!-- RODAPÉ PREMIUM DA SIDEBAR -->
+    <div style="padding: 16px 12px 14px; text-align: center; margin-top: auto; border-top: 1px solid var(--border-color);">
+      <div style="display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 999px; background: rgba(13,148,136,0.06); border: 1px solid rgba(13,148,136,0.18);">
+        <span style="width: 6px; height: 6px; border-radius: 50%; background: #0d9488; box-shadow: 0 0 6px #0d9488;"></span>
+        <span style="font-size: 11.5px; font-weight: 700; color: var(--text-main); letter-spacing: 0.01em;">Dr. Exame · Saúde Inteligente</span>
+        <span style="font-size: 10px; font-weight: 600; color: var(--text-muted);">v1.0.8</span>
+      </div>
+    </div>
   </aside>
 
   <!-- MAIN AREA -->
@@ -1581,6 +1823,79 @@
                 <div class="marker-value-block">
                   <div class="marker-current-val" style="color: #d97706;">102 mg/dL</div>
                   <div class="marker-ref-range">Ref: 70 a 99</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- G2 — SAÚDE MENTAL (NOVO LAYOUT PREMIUM C/ RÉGUA DE SEVERIDADE E AMBOS OS TESTES) -->
+          <div class="mental-health-section">
+            <div class="section-header">
+              <div class="section-title">
+                <svg width="18" height="18" fill="var(--teal-primary)" viewBox="0 0 256 256"><path d="M216,104a56.06,56.06,0,0,0-56-56,8,8,0,0,0,0,16,40,40,0,0,1,40,40,8,8,0,0,0,16,0Zm-40,8a8,8,0,0,0-8,8,16,16,0,0,1-16,16,8,8,0,0,0,0,16,32,32,0,0,0,32-32A8,8,0,0,0,176,112Zm32.55,67.66a8,8,0,0,0-11.31,1.79A63.85,63.85,0,0,1,148.64,208H107.36a63.85,63.85,0,0,1-48.6-26.55,8,8,0,0,0-13.1,9.1A79.8,79.8,0,0,0,106.4,224h43.2a79.8,79.8,0,0,0,60.74-33.24A8,8,0,0,0,208.55,179.66ZM128,40a88.1,88.1,0,0,0-88,88c0,28.63,14,54.89,37,71.07A8,8,0,0,0,86,185.85,72,72,0,1,1,192.51,97.74a8,8,0,0,0,15.71-3.2A88.13,88.13,0,0,0,128,40Z"/></svg>
+                Saúde Mental
+              </div>
+              <span style="font-size: 11px; font-weight: 700; color: #0f766e; background: rgba(32,178,170,0.14); padding: 3px 10px; border-radius: 999px;">Pode refazer</span>
+            </div>
+
+            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 18px; padding: 18px; position: relative; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.02); transition: all 0.2s ease;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <div style="width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; font-size: 20px; background: linear-gradient(135deg, rgba(32,178,170,0.22), rgba(212,165,116,0.22)); flex-shrink: 0;">🧠</div>
+                  <div>
+                    <h3 style="font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 700; color: var(--text-main); margin-bottom: 2px;">Como você está por dentro</h3>
+                    <div style="font-size: 11.5px; color: var(--text-muted);">Último retrato em 05/10 · próxima janela ideal em 14 dias</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- GRID DOS 2 INSTRUMENTOS (HUMOR & ANSIEDADE) -->
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; margin-top: 12px; padding-top: 14px; border-top: 1px solid var(--border-color);">
+                <!-- COLUNA 1: HUMOR (PHQ-9) -->
+                <div>
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                    <span style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Humor · PHQ-9</span>
+                    <span style="font-size: 11px; font-weight: 800; color: #10b981; background: rgba(16,185,129,0.1); padding: 1px 6px; border-radius: 6px;">↓2</span>
+                  </div>
+                  <div style="display: flex; align-items: baseline; gap: 4px; margin-bottom: 6px;">
+                    <span style="font-family: 'Poppins', sans-serif; font-size: 26px; font-weight: 800; color: #0d9488; line-height: 1; white-space: nowrap;">5</span>
+                    <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">/27</span>
+                    <span style="font-size: 12px; font-weight: 700; color: #0d9488; margin-left: 4px;">leve</span>
+                  </div>
+                  <!-- Régua de severidade segmentada -->
+                  <div style="position: relative; padding: 4px 0;">
+                    <div style="display: flex; gap: 3px; height: 6px;">
+                      <div style="flex: 5; border-radius: 99px; background: #22c55e; opacity: 0.22;"></div>
+                      <div style="flex: 5; border-radius: 99px; background: #a3c447; opacity: 1;"></div>
+                      <div style="flex: 5; border-radius: 99px; background: #f59e0b; opacity: 0.22;"></div>
+                      <div style="flex: 5; border-radius: 99px; background: #f97316; opacity: 0.22;"></div>
+                      <div style="flex: 8; border-radius: 99px; background: #ef4444; opacity: 0.22;"></div>
+                    </div>
+                    <div style="position: absolute; top: 50%; left: 20%; width: 14px; height: 14px; border-radius: 50%; transform: translate(-50%, -50%); background: #ffffff; border: 3px solid #a3c447; box-shadow: 0 0 0 3px rgba(163,196,71,0.25);"></div>
+                  </div>
+                </div>
+
+                <!-- COLUNA 2: ANSIEDADE (GAD-7) -->
+                <div>
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                    <span style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Ansiedade · GAD-7</span>
+                    <span style="font-size: 11px; font-weight: 800; color: #10b981; background: rgba(16,185,129,0.1); padding: 1px 6px; border-radius: 6px;">↓1</span>
+                  </div>
+                  <div style="display: flex; align-items: baseline; gap: 4px; margin-bottom: 6px;">
+                    <span style="font-family: 'Poppins', sans-serif; font-size: 26px; font-weight: 800; color: #0d9488; line-height: 1; white-space: nowrap;">8</span>
+                    <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">/21</span>
+                    <span style="font-size: 12px; font-weight: 700; color: #0d9488; margin-left: 4px;">leve</span>
+                  </div>
+                  <!-- Régua de severidade segmentada -->
+                  <div style="position: relative; padding: 4px 0;">
+                    <div style="display: flex; gap: 3px; height: 6px;">
+                      <div style="flex: 5; border-radius: 99px; background: #22c55e; opacity: 0.22;"></div>
+                      <div style="flex: 5; border-radius: 99px; background: #a3c447; opacity: 1;"></div>
+                      <div style="flex: 5; border-radius: 99px; background: #f59e0b; opacity: 0.22;"></div>
+                      <div style="flex: 7; border-radius: 99px; background: #ef4444; opacity: 0.22;"></div>
+                    </div>
+                    <div style="position: absolute; top: 50%; left: 38%; width: 14px; height: 14px; border-radius: 50%; transform: translate(-50%, -50%); background: #ffffff; border: 3px solid #a3c447; box-shadow: 0 0 0 3px rgba(163,196,71,0.25);"></div>
+                  </div>
                 </div>
               </div>
             </div>
