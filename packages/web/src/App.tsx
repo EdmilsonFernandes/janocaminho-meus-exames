@@ -42,6 +42,7 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { DrExame } from './components/DrExame';
+import { MascotPulse } from './components/MascotPulse';
 import { dataProvider } from './dataProvider';
 import { API_URL, token, photoUrlFor } from './config';
 import { authProvider } from './authProvider';
@@ -486,7 +487,19 @@ const AppMenu = () => {
 
     <Dialog open={aboutOpen} onClose={() => setAboutOpen(false)} maxWidth="xs" fullWidth>
       <DialogTitle sx={{ textAlign: 'center', pb: 0 }}>
-        <Box sx={{ mb: 1.5, display: 'flex', justifyContent: 'center' }}><DrExame size={64} /></Box>
+        {/* Mascote com aura pulsante (mesmo efeito do login — presença viva da marca) */}
+        <Box sx={{ mb: 1.5, display: 'flex', justifyContent: 'center' }}>
+          <MascotPulse size={84} ringColor="rgba(32,178,170,.45)">
+            <Box sx={{
+              width: 84, height: 84, borderRadius: '50%',
+              background: 'radial-gradient(circle at 50% 38%, rgba(32,178,170,.22), rgba(32,178,170,.06) 72%)',
+              border: '1px solid rgba(32,178,170,.35)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <DrExame size={58} sx={{ borderRadius: '50%' }} />
+            </Box>
+          </MascotPulse>
+        </Box>
         Meus Exames
       </DialogTitle>
       <DialogContent sx={{ textAlign: 'center' }}>

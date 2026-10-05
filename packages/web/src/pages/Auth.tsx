@@ -5,6 +5,7 @@ import { GoogleLogin } from '@react-oauth/google';
 import { Box, Typography, Button, Link, CircularProgress, Stack, TextField, InputAdornment, IconButton, Checkbox, FormControlLabel } from '@mui/material';
 import { keyframes } from '@mui/material/styles';
 import { DrExame } from '../components/DrExame';
+import { MascotPulse } from '../components/MascotPulse';
 import { API_URL, fetchPublicConfig } from '../config';
 import { Capacitor } from '@capacitor/core';
 import { nativeGoogleLogin } from '../utils/nativeGoogleAuth';
@@ -61,16 +62,20 @@ const Shell = ({ children, subtitle }: { children: ReactNode; subtitle?: string 
       : 'radial-gradient(circle at 50% 0%, rgba(32,178,170,.25), transparent 60%), linear-gradient(165deg, #1a9d94 0%, #178f89 55%, #0c4a46 100%)') }}>
     {/* header da marca — mascote + título na faixa teal */}
     <Stack alignItems="center" spacing={0.5} sx={{ pt: { xs: 4.5, sm: 6 }, pb: 5, px: 2, textAlign: 'center', position: 'relative' }}>
-      <Box sx={{
-        width: 92, height: 92, borderRadius: '50%',
-        background: 'radial-gradient(circle at 50% 38%, rgba(255,255,255,.32), rgba(255,255,255,.08) 72%)',
-        border: '1px solid rgba(255,255,255,.35)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        animation: `${breathe} 3.6s ease-in-out infinite`,
-        boxShadow: '0 10px 30px rgba(0,50,45,.35)',
-      }}>
-        <DrExame size={62} sx={{ borderRadius: '50%' }} />
-      </Box>
+      {/* Círculo do mascote com AURA PULSANTE (anéis que expandem — "vivo", padrão de
+          app nativo; branco porque a faixa já é teal, marca sobre marca não lê). */}
+      <MascotPulse size={92} ringColor="rgba(255,255,255,.5)">
+        <Box sx={{
+          width: 92, height: 92, borderRadius: '50%',
+          background: 'radial-gradient(circle at 50% 38%, rgba(255,255,255,.32), rgba(255,255,255,.08) 72%)',
+          border: '1px solid rgba(255,255,255,.35)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          animation: `${breathe} 3.6s ease-in-out infinite`,
+          boxShadow: '0 10px 30px rgba(0,50,45,.35)',
+        }}>
+          <DrExame size={62} sx={{ borderRadius: '50%' }} />
+        </Box>
+      </MascotPulse>
       <Typography sx={{ fontWeight: 800, color: '#fff', fontFamily: '"Poppins",sans-serif', letterSpacing: '-0.02em', lineHeight: 1.15, fontSize: { xs: 25, sm: 27 }, mt: 1.5, textShadow: '0 1px 8px rgba(0,60,55,.35)' }}>
         Meus Exames
       </Typography>
