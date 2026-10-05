@@ -17,6 +17,9 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import PictureAsPdfOutlinedIcon from '@mui/icons-material/PictureAsPdfOutlined';
 import { useNavigate } from 'react-router-dom';
 import { useSelectedPatient } from '../../patient-context';
+import { useReveal } from '../../hooks/useReveal';
+import { DUR } from '../../motion';
+import { PrivacyText } from '../../hooks/usePrivacyMode';
 import { API_URL, token, fetchPublicConfig } from '../../config';
 import { ExplainButton } from '../../components/ExplainItem';
 import { usePremium } from '../../components/PremiumGate';
@@ -287,6 +290,7 @@ const ExamCards = () => {
   const theme = useTheme();
   const isMd = useMediaQuery(theme.breakpoints.up('md')); // desktop (sidebar visível) → master/detail
   const [selected, setSelected] = useState<string | null>(null);
+  const reveal = useReveal(!!isLoading); // fade-in pós-skeleton (sem o "estalo" da troca seca)
 
   // Bônus de 1º exame no empty state — só pra quem ainda NÃO recebeu.
   const [firstBonus, setFirstBonus] = useState<number | null>(null);
@@ -443,16 +447,24 @@ const ExamCards = () => {
     const doctorInfo = cleanExtractedLabel((r as any).rawExtraction?.requestingDoctor, '', 46);
     const needsReview = !!r.reviewRequired || titleInfo.suspicious || labInfo.suspicious || doctorInfo.suspicious || !r.performedAt;
     const isNew = !!r.createdAt && Date.now() - new Date(r.createdAt).getTime() < 48 * 3600 * 1000;
+    // Estado por dessaturação (padrão nativo): exame antigo (>12 meses, mesma régua
+    // do staleMonths) perde a COR em vez de ganhar badge — a lista continua escaneável
+    // e o olho pula direto nos recentes.
+    const isOld = (() => { const d = r.performedAt ?? r.createdAt; return !!d && Date.now() - new Date(d).getTime() > 365 * 86400000; })();
     const altered = abnByExam[r.id] ?? 0;
     const itemCount: number = r._count?.items ?? 0;
     const Icon = r.kind === 'IMAGING' ? ImageIcon : r.kind === 'LAB_PANEL' ? ScienceIcon : DescriptionOutlinedIcon;
     return (
-      <AppCard key={r.id} kind="interactive" onClick={() => isMd ? setSelected(r.id) : navigate(`/exams/${r.id}/show`)} sx={{ overflow: 'hidden', ...(isMd && selected === r.id ? { boxShadow: '0 0 0 2px #20b2aa inset' } : {}) }}>
+      <AppCard key={r.id} kind="interactive" onClick={() => isMd ? setSelected(r.id) : navigate(`/exams/${r.id}/show`)} sx={{
+        overflow: 'hidden',
+        ...(isOld ? { filter: 'grayscale(.85)', opacity: 0.72, transition: `filter ${DUR}ms ease, opacity ${DUR}ms ease` } : {}),
+        ...(isMd && selected === r.id ? { boxShadow: '0 0 0 2px #20b2aa inset' } : {}),
+      }}>
         <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, '&:last-child': { pb: 1.5 } }}>
           <Icon sx={{ color: altered > 0 ? 'warning.main' : 'text.secondary', flexShrink: 0 }} />
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}>
-              <Typography title={titleInfo.original || r.title} sx={{ fontWeight: 700, wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.2 }}>{titleInfo.text || 'Exame'}</Typography>
+              <Typography title={titleInfo.original || r.title} sx={{ fontWeight: 700, wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.2 }}><PrivacyText>{titleInfo.text || 'Exame'}</PrivacyText></Typography>
               <Box onClick={(e) => e.stopPropagation()} sx={{ flexShrink: 0, mt: -0.5 }}><ExplainButton name={r.title} /></Box>
             </Box>
             <Box sx={{ mt: 0.25 }}><DateLabel date={r.performedAt} fallback="s/ data" /></Box>
@@ -521,7 +533,7 @@ const ExamCards = () => {
   ) : null;
   if (isMd) {
     return (
-      <Box sx={{ display: 'grid', gridTemplateColumns: { md: 'minmax(0,440px) 1fr', lg: 'minmax(0,520px) 1fr', xl: 'minmax(0,560px) 1fr' }, gap: 2, alignItems: 'start', maxWidth: 1500, mx: 'auto' }}>
+      <Box sx={{ ...reveal, display: 'grid', gridTemplateColumns: { md: 'minmax(0,440px) 1fr', lg: 'minmax(0,520px) 1fr', xl: 'minmax(0,560px) 1fr' }, gap: 2, alignItems: 'start', maxWidth: 1500, mx: 'auto' }}>
         {/* LISTA (esquerda) — sticky, scroll próprio */}
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, position: 'sticky', top: 8, maxHeight: 'calc(100dvh - 16px)', overflowY: 'auto', pr: 0.5 }}>
           <PageHeader icon={<DescriptionOutlinedIcon />} title={translate('exams.title')} subtitle={translate('exams.subtitle', { count: total ?? 0 })} />
@@ -620,7 +632,7 @@ const ExamCards = () => {
   }
 
   return (
-    <PageContainer width="content" sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, pb: { xs: 10, sm: 5 } }}>
+    <PageContainer width="content" sx={{ ...reveal, display: 'flex', flexDirection: 'column', gap: 1.5, pb: { xs: 10, sm: 5 } }}>
       <PageHeader icon={<DescriptionOutlinedIcon />} title={translate('exams.title')} subtitle={translate('exams.subtitle', { count: total ?? 0 })} />
 
       <ConfirmDialog

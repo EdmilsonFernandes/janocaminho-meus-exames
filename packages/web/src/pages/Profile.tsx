@@ -3,6 +3,8 @@ import { Box, Card, CardContent, Typography, TextField, Button, Stack, Chip, Men
 import { useNotify, useRefresh, useTranslate } from 'react-admin';
 import { useNavigate } from 'react-router-dom';
 import SaveIcon from '@mui/icons-material/Save';
+import { usePrivacyMode } from '../hooks/usePrivacyMode';
+import { diagShare } from '../utils/diag';
 import BadgeIcon from '@mui/icons-material/WorkspacePremium';
 import DownloadIcon from '@mui/icons-material/Download';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
@@ -141,6 +143,7 @@ export const ProfilePage = () => {
       (window as any).__unloadVLibras?.();
     }
   };
+  const { privacyOn, setPrivacyOn } = usePrivacyMode();
   const toggleActivity = (on: boolean) => {
     setActivityOn(on);
     try { localStorage.setItem('dx_activity_hidden', on ? '0' : '1'); } catch { /* localStorage indisponível */ }
@@ -291,7 +294,13 @@ export const ProfilePage = () => {
           <FormControlLabel control={<Switch checked={textLarge} onChange={(e) => toggleTextLarge(e.target.checked)} />} label={<Box sx={{ fontWeight: 600 }}>🔍 Aa Texto grande — amplia os textos do app</Box>} />
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>Traduz os textos do app para Língua Brasileira de Sinais. Desligue para remover o botão flutuante da tela.</Typography>
           <FormControlLabel control={<Switch checked={activityOn} onChange={(e) => toggleActivity(e.target.checked)} />} label={<Box sx={{ fontWeight: 600 }}>🏃 Card de atividade física no início</Box>} />
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>Passos, calorias e distância (Health Connect do celular). Vale no app Android.</Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>Passos, calorias e distância (Health Connect do celular). Vale no app Android.</Typography>
+          <FormControlLabel control={<Switch checked={privacyOn} onChange={(e) => setPrivacyOn(e.target.checked)} />} label={<Box sx={{ fontWeight: 600 }}>🙈 Modo privacidade — borra nomes de exames</Box>} />
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>Pra usar o app em público: nomes de exames sensíveis ficam borrados na lista — toque no nome pra ler por 5 segundos.</Typography>
+          <Button variant="outlined" onClick={() => { diagShare().catch(() => {}); }} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, mb: 0.5 }}>
+            📋 Enviar diagnóstico ao suporte
+          </Button>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>Abre o compartilhamento do celular com versão do app, conexão e últimos erros da sessão (sem dados pessoais nem resultados de exame).</Typography>
           {/* Review (skill in-app-review): o prompt nativo dispara sozinho no momento
               positivo — este botão é a rota pra quem quer ESCREVER um review (deep link). */}
           <Button
