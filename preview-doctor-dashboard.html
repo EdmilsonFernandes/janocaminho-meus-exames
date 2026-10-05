@@ -649,9 +649,39 @@
         padding: 20px 16px;
       }
     }
+
+    /* SIMULADOR DE RESOLUÇÃO MOBILE (390px) */
+    body.doc-mobile-sim {
+      display: block !important;
+      background: #e2e8f0 !important;
+      padding: 24px 0 60px !important;
+    }
+    body.doc-mobile-sim .sidebar { display: none !important; }
+    body.doc-mobile-sim .main-wrapper {
+      max-width: 390px !important;
+      margin: 0 auto !important;
+      border: 10px solid #1e293b !important;
+      border-radius: 46px !important;
+      overflow-x: hidden !important;
+      overflow-y: auto !important;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.35) !important;
+      background: var(--bg-app) !important;
+      min-height: 844px !important;
+      position: relative !important;
+    }
+    body.doc-mobile-sim .container { padding: 14px !important; gap: 14px !important; }
+    body.doc-mobile-sim .hero-banner { padding: 16px 18px !important; border-radius: 16px !important; }
+    body.doc-mobile-sim .kpi-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
+    body.doc-mobile-sim .dashboard-columns { grid-template-columns: 1fr !important; }
   </style>
 </head>
 <body>
+
+  <!-- TOP CONTROLLER: SIMULADOR 1-CLIQUE MOBILE / DESKTOP -->
+  <aside aria-label="Seletor de visualização" style="position: fixed; top: 12px; right: 16px; z-index: 99999; display: flex; gap: 4px; background: #ffffff; padding: 4px 6px; border-radius: 99px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); border: 1.5px solid #20B2AA;">
+    <button id="doc-btn-web" onclick="setDocDevice('web')" style="border: none; background: #20B2AA; color: #fff; font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 11.5px; padding: 6px 12px; border-radius: 99px; cursor: pointer; transition: all 0.2s;">💻 Web Desktop</button>
+    <button id="doc-btn-mob" onclick="setDocDevice('mobile')" style="border: none; background: transparent; color: #64748b; font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 11.5px; padding: 6px 12px; border-radius: 99px; cursor: pointer; transition: all 0.2s;">📱 Mobile (390px)</button>
+  </aside>
 
   <!-- SIDEBAR -->
   <aside class="sidebar">
@@ -994,9 +1024,24 @@
         </div>
 
       </div>
-
     </div>
   </main>
 
+  <script>
+    // CONTROLE DO SIMULADOR 1-CLIQUE MOBILE / DESKTOP (MÉDICO)
+    function setDocDevice(mode) {
+      const bWeb = document.getElementById('doc-btn-web');
+      const bMob = document.getElementById('doc-btn-mob');
+      if (mode === 'mobile') {
+        document.body.classList.add('doc-mobile-sim');
+        if (bMob) { bMob.style.background = '#20B2AA'; bMob.style.color = '#fff'; }
+        if (bWeb) { bWeb.style.background = 'transparent'; bWeb.style.color = '#64748b'; }
+      } else {
+        document.body.classList.remove('doc-mobile-sim');
+        if (bWeb) { bWeb.style.background = '#20B2AA'; bWeb.style.color = '#fff'; }
+        if (bMob) { bMob.style.background = 'transparent'; bMob.style.color = '#64748b'; }
+      }
+    }
+  </script>
 </body>
 </html>
