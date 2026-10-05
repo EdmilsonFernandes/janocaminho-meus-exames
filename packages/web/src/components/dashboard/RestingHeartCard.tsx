@@ -38,11 +38,18 @@ const CARD_IN = {
   },
 } as const;
 const BEAT = {
-  animation: 'DxHrBeat 1.6s ease-in-out infinite',
-  '@keyframes DxHrBeat': {
+  animation: 'DxHrPulse 1.1s cubic-bezier(.22,1,.36,1) infinite',
+  '@keyframes DxHrPulse': {
     '0%': { transform: 'scale(1)' },
-    '50%': { transform: 'scale(1.35)' },
+    '14%': { transform: 'scale(1.22)' },
+    '28%': { transform: 'scale(1.04)' },
+    '42%': { transform: 'scale(1.3)' },
+    '70%': { transform: 'scale(1)' },
     '100%': { transform: 'scale(1)' },
+  },
+  transformOrigin: 'center center',
+  '@media (prefers-reduced-motion: reduce)': {
+    animation: 'none',
   },
 } as const;
 
@@ -86,7 +93,13 @@ export const RestingHeartCard = () => {
       {/* Cabeçalho + zona (chip com batimento) */}
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.25 }}>
         <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 700, fontSize: 15, display: 'flex', alignItems: 'center', gap: 0.75 }}>
-          <FavoriteIcon sx={{ fontSize: 19, color: (t) => dangerText(t.palette.mode) }} /> Frequência cardíaca
+          <FavoriteIcon sx={{
+            fontSize: 20,
+            color: (t) => dangerText(t.palette.mode),
+            filter: 'drop-shadow(0 2px 6px rgba(239, 68, 68, 0.35))',
+            display: 'inline-block',
+            ...BEAT,
+          }} /> Frequência cardíaca
         </Typography>
         <Stack
           direction="row"
