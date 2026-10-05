@@ -11,7 +11,6 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { API_URL, token, fetchPublicConfig } from '../config';
 import { usePlanInfo, fmtBRL } from '../utils/planInfo';
 import { Capacitor } from '@capacitor/core';
-import { Browser } from '@capacitor/browser';
 import { PixModal } from '../components/PixModal';
 import { PaymentChooser } from '../components/PaymentChooser';
 import { PageContainer } from '../components/layout/PageContainer';
@@ -45,7 +44,6 @@ export const PlansPage = () => {
   // Preço/perks dinâmicos (admin edita live). planInfo nulo = API indisponível → fallback visual.
   const planInfo = usePlanInfo();
   const crLabel = String(planInfo?.plan?.monthlyCredits ?? 250);
-  const [subLoading, setSubLoading] = useState(false);
   const [pixPack, setPixPack] = useState<string | null>(null);
   const [chooserPack, setChooserPack] = useState<string | null>(null);
   const [chooserLabel, setChooserLabel] = useState('');
@@ -270,7 +268,7 @@ export const PlansPage = () => {
                 </Typography>
               </Box>
               <Button
-                size="large" disabled={!mpOn || subLoading || !!status?.active} onClick={subscribe}
+                size="large" disabled={!!status?.active} onClick={openPlanPay}
                 endIcon={!status?.active && <ArrowForwardIcon sx={{ transition: 'transform .2s ease' }} />}
                 sx={{
                   minWidth: 200, py: 1.5, px: 3, borderRadius: 99, textTransform: 'none',
@@ -283,7 +281,7 @@ export const PlansPage = () => {
                   '&.Mui-disabled': { background: 'rgba(255,255,255,.1)', color: status?.active ? '#7ad8d2' : 'rgba(255,255,255,.4)', boxShadow: 'none' },
                 }}
               >
-                {status?.active ? `✓ Ativo até ${status.planExpiresAt ? fmt(status.planExpiresAt) : '—'}` : subLoading ? 'Abrindo…' : 'Assinar Premium'}
+                {status?.active ? `✓ Ativo até ${status.planExpiresAt ? fmt(status.planExpiresAt) : '—'}` : 'Assinar Premium'}
               </Button>
             </Stack>
 
@@ -405,16 +403,19 @@ export const PlansPage = () => {
         </Alert>
       )}
 
-      <PaymentChooser packId={chooserPack} packLabel={chooserLabel} packPrice={chooserPrice}
+      {/* '__plan__' (sentinel) = assinatura Premium: chooser/form/pix cobram o plano mensal
+          em vez de pack (05/10 — MP redirect saiu do ar). */}
+      <PaymentChooser packId={chooserPack} packLabel={chooserLabel} packPrice={chooserPrice} plan={chooserPack === '__plan__'}
         onClose={() => setChooserPack(null)}
         onPix={() => setPixPack(chooserPack)}
-        onCardApproved={() => { notify('Créditos adicionados! 🎉', { type: 'success' }); load(); checkPendingPix(); }} />
+        onCardApproved={() => { notify(chooserPack === '__plan__' ? 'Premium ativado! 👑' : 'Créditos adicionados! 🎉', { type: 'success' }); load(); checkPendingPix(); }} />
       {/* '__pending__' = retomar PIX existente (não gera ordem nova — o server é idempotente) */}
       <PixModal
         packId={pixPack}
+        plan={pixPack === '__plan__'}
         existingPix={pixPack === '__pending__' ? pendingPix : undefined}
         onClose={() => { setPixPack(null); checkPendingPix(); }}
-        onApproved={() => { setPixPack(null); setPendingPix(null); notify('Créditos adicionados! 🎉', { type: 'success' }); load(); }}
+        onApproved={() => { setPixPack(null); setPendingPix(null); notify(pixPack === '__plan__' ? 'Premium ativado! 👑' : 'Créditos adicionados! 🎉', { type: 'success' }); load(); }}
       />
         </>
       )}
