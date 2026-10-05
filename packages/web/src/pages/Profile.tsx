@@ -14,7 +14,6 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import StarIcon from '@mui/icons-material/Star';
 import { PLAY_URL } from '../components/ReviewPrompt';
 import { API_URL, token, apiHeaders } from '../config';
-import { ReferralCard } from '../components/ReferralCard';
 import { useSelectedPatient } from '../patient-context';
 import { PhotoUpload } from '../components/PhotoUpload';
 import { PageContainer } from '../components/layout/PageContainer';
@@ -320,8 +319,8 @@ export const ProfilePage = () => {
         </CardContent>
       </Card>
 
-      {/* BENEFÍCIOS — convide amigos, ganhe créditos */}
-      <ReferralCard code={user?.referralCode} />
+      {/* 05/10: referral mudou de casa — página própria /indique (menu Conta) + faixa na
+          Carteira. Perfil volta a ser só perfil (o card vivia escondido aqui embaixo). */}
     </PageContainer>
   );
 };

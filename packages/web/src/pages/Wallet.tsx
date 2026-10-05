@@ -20,6 +20,7 @@ import TrendingUpOutlinedIcon from '@mui/icons-material/TrendingUpOutlined';
 import TrendingDownOutlinedIcon from '@mui/icons-material/TrendingDownOutlined';
 import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined';
 import ArrowDownwardOutlinedIcon from '@mui/icons-material/ArrowDownwardOutlined';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import TerminalOutlinedIcon from '@mui/icons-material/TerminalOutlined';
 import { API_URL, token } from '../config';
 import { DrExame } from '../components/DrExame';
@@ -71,6 +72,9 @@ export const WalletPage = () => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  // Filtro do extrato acionado pelos cards de stats (padrão dashboard financeiro):
+  // clicar filtra, clicar de novo no ativo volta pra "tudo".
+  const [filter, setFilter] = useState<'all' | 'gain' | 'spend'>('all');
   const totals = useRef<{ earned: number; spent: number }>({ earned: 0, spent: 0 });
 
   const loadStatus = () => {
@@ -107,6 +111,8 @@ export const WalletPage = () => {
 
   const credits = status?.credits ?? 0;
   const premUntil = status?.planExpiresAt ? new Date(status.planExpiresAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : null;
+  // Extrato já filtrado pelo card clicado.
+  const visibleItems = items == null ? null : items.filter((t) => (filter === 'gain' ? t.delta > 0 : filter === 'spend' ? t.delta < 0 : true));
 
   return (
     <Fade in timeout={300}>
@@ -163,48 +169,67 @@ export const WalletPage = () => {
           </CardContent>
         </Card>
 
-        {/* STATS — ganhos / gastos / lançamentos (calculados do extrato carregado).
-            minmax(0,1fr): número grande não infla a track além da coluna (armadilha clássica
-            de grid — min-width:auto estoura o layout pra direita no mobile). */}
+        {/* STATS FILTRÁVEIS — clicar filtra o extrato (gain/spend/all). minmax(0,1fr):
+            número grande não infla a track (armadilha clássica de grid no mobile). */}
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 1.5, mb: 2 }}>
-          {[
-            { icon: <TrendingUpOutlinedIcon sx={{ fontSize: 16 }} />, label: 'Ganhos', value: totals.current.earned, color: '#178f89' },
-            { icon: <TrendingDownOutlinedIcon sx={{ fontSize: 16 }} />, label: 'Gastos', value: totals.current.spent, color: '#c2703e' },
-            { icon: <ReceiptLongOutlinedIcon sx={{ fontSize: 16 }} />, label: 'Lançamentos', value: items?.length ?? 0, color: 'text.secondary' },
-          ].map((s) => (
-            <Card key={s.label} elevation={0} sx={{ borderRadius: '14px', minWidth: 0, overflow: 'hidden', border: (t) => `1px solid ${alpha(t.palette.divider, 0.6)}` }}>
-              <CardContent sx={{ p: 1.5, minWidth: 0, '&:last-child': { pb: 1.5 } }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: s.color, mb: 0.25 }}>{s.icon}</Box>
-                <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: { xs: 18, sm: 20 }, fontVariantNumeric: 'tabular-nums' }}>
-                  {s.value.toLocaleString('pt-BR')}
-                </Typography>
-                <Typography sx={{ fontSize: 11, color: 'text.secondary', fontWeight: 600 }}>{s.label}</Typography>
-              </CardContent>
-            </Card>
-          ))}
+          {([
+            { key: 'gain', icon: <TrendingUpOutlinedIcon sx={{ fontSize: 16 }} />, label: 'Ganhos', value: totals.current.earned, color: '#178f89' },
+            { key: 'spend', icon: <TrendingDownOutlinedIcon sx={{ fontSize: 16 }} />, label: 'Gastos', value: totals.current.spent, color: '#c2703e' },
+            { key: 'all', icon: <ReceiptLongOutlinedIcon sx={{ fontSize: 16 }} />, label: 'Tudo', value: items?.length ?? 0, color: 'text.secondary' },
+          ] as const).map((s) => {
+            const on = filter === s.key;
+            return (
+              <Card
+                key={s.key}
+                elevation={0}
+                onClick={() => setFilter((cur) => (cur === s.key ? 'all' : s.key))}
+                sx={{
+                  borderRadius: '14px', minWidth: 0, overflow: 'hidden', cursor: 'pointer',
+                  border: '1px solid',
+                  borderColor: on ? alpha('#20b2aa', 0.55) : (t) => alpha(t.palette.divider, 0.6),
+                  bgcolor: on ? 'rgba(32,178,170,.08)' : 'transparent',
+                  transition: 'border-color .15s ease, background-color .15s ease',
+                  '&:hover': { borderColor: alpha('#20b2aa', 0.4) },
+                  '&:active': { transform: 'scale(.98)' },
+                }}
+              >
+                <CardContent sx={{ p: 1.5, minWidth: 0, '&:last-child': { pb: 1.5 } }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: s.color, mb: 0.25 }}>{s.icon}</Box>
+                  <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: { xs: 18, sm: 20 }, fontVariantNumeric: 'tabular-nums' }}>
+                    {s.value.toLocaleString('pt-BR')}
+                  </Typography>
+                  <Typography sx={{ fontSize: 11, color: on ? '#0f6e68' : 'text.secondary', fontWeight: on ? 800 : 600 }}>{s.label}</Typography>
+                </CardContent>
+              </Card>
+            );
+          })}
         </Box>
 
         {/* EXTRATO */}
         <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 700, fontSize: 15, mb: 1, px: 0.5 }}>
-          Extrato
+          Extrato{filter !== 'all' && <Typography component="span" sx={{ fontSize: 12, fontWeight: 700, color: '#0f6e68', ml: 1 }}>{filter === 'gain' ? '· só ganhos' : '· só gastos'} <span style={{ cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setFilter('all')}>limpar</span></Typography>}
         </Typography>
-        {items == null ? (
+        {visibleItems == null ? (
           <Box>
             {[0, 1, 2, 3, 4].map((i) => <Skeleton key={i} height={64} sx={{ borderRadius: '14px', mb: 1 }} />)}
           </Box>
-        ) : items.length === 0 ? (
+        ) : visibleItems.length === 0 ? (
           <Card elevation={0} sx={{ borderRadius: '16px', border: (t) => `1px solid ${alpha(t.palette.divider, 0.6)}` }}>
             <CardContent sx={{ p: 3, textAlign: 'center' }}>
               <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1.5 }}><DrExame size={56} /></Box>
-              <Typography sx={{ fontWeight: 700, fontSize: 15 }}>Nada por aqui ainda</Typography>
+              <Typography sx={{ fontWeight: 700, fontSize: 15 }}>
+                {filter === 'all' ? 'Nada por aqui ainda' : 'Nenhum lançamento neste filtro'}
+              </Typography>
               <Typography sx={{ fontSize: 13, color: 'text.secondary', mt: 0.5 }}>
-                Envie seu primeiro exame ou converse com a IA — cada movimento de créditos aparece aqui.
+                {filter === 'all'
+                  ? 'Envie seu primeiro exame ou converse com a IA — cada movimento de créditos aparece aqui.'
+                  : 'Clique no card novamente para voltar a ver tudo.'}
               </Typography>
             </CardContent>
           </Card>
         ) : (
           <>
-            {items.map((t) => {
+            {visibleItems.map((t) => {
               const meta = kindMeta(t.kind);
               const gain = t.delta > 0;
               return (
@@ -254,6 +279,37 @@ export const WalletPage = () => {
             )}
           </>
         )}
+
+        {/* GANHE MAIS — descoberta do referral (padrão MGM: ganhar mora junto de gastar) */}
+        <Card
+          elevation={0}
+          onClick={() => navigate('/indique')}
+          sx={{
+            mt: 2, borderRadius: '14px', cursor: 'pointer', overflow: 'hidden',
+            border: '1px dashed', borderColor: 'rgba(212,165,116,.55)',
+            background: 'rgba(212,165,116,.08)',
+            transition: 'background-color .15s ease',
+            '&:hover': { background: 'rgba(212,165,116,.14)' },
+            '&:active': { transform: 'scale(.99)' },
+          }}
+        >
+          <CardContent sx={{ p: 1.75, display: 'flex', alignItems: 'center', gap: 1.5, '&:last-child': { pb: 1.75 } }}>
+            <Box sx={{
+              width: 40, height: 40, borderRadius: '12px', flexShrink: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              bgcolor: 'rgba(212,165,116,.18)', color: '#a4743f',
+            }}>
+              <CardGiftcardOutlinedIcon sx={{ fontSize: 20 }} />
+            </Box>
+            <Box sx={{ minWidth: 0, flexGrow: 1 }}>
+              <Typography sx={{ fontSize: 13.5, fontWeight: 800 }}>Quer mais créditos?</Typography>
+              <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
+                Indique um amigo — os dois ganham bônus 🎁
+              </Typography>
+            </Box>
+            <ArrowForwardIcon sx={{ color: '#a4743f', flexShrink: 0 }} />
+          </CardContent>
+        </Card>
       </PageContainer>
     </Fade>
   );

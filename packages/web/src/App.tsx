@@ -24,6 +24,7 @@ import VaccinesOutlinedIcon from '@mui/icons-material/VaccinesOutlined';
 import EventAvailableOutlinedIcon from '@mui/icons-material/EventAvailableOutlined';
 import EmergencyOutlinedIcon from '@mui/icons-material/EmergencyOutlined';
 import BoltOutlinedIcon from '@mui/icons-material/BoltOutlined';
+import CardGiftcardOutlinedIcon from '@mui/icons-material/CardGiftcardOutlined';
 import EmojiEventsOutlinedIcon from '@mui/icons-material/EmojiEventsOutlined';
 import AccountBalanceWalletOutlinedIcon from '@mui/icons-material/AccountBalanceWalletOutlined';
 import Diversity3OutlinedIcon from '@mui/icons-material/Diversity3Outlined';
@@ -61,6 +62,7 @@ const DoctorPortalPage = lazy(() => import('./pages/DoctorPortal').then(m => ({ 
 const LandingPage = lazy(() => import('./pages/Landing').then(m => ({ default: m.LandingPage })));
 const PlansPage = lazy(() => import('./pages/Plans').then(m => ({ default: m.PlansPage })));
 const WalletPage = lazy(() => import('./pages/Wallet').then(m => ({ default: m.WalletPage })));
+const InvitePage = lazy(() => import('./pages/Invite').then(m => ({ default: m.InvitePage })));
 const RemindersPage = lazy(() => import('./pages/Reminders').then(m => ({ default: m.RemindersPage })));
 const QuestionsPage = lazy(() => import('./pages/Questions').then(m => ({ default: m.QuestionsPage })));
 const FaqPage = lazy(() => import('./pages/Faq').then(m => ({ default: m.FaqPage })));
@@ -431,9 +433,10 @@ const AppMenu = () => {
       <NavItem to="/perguntas" primaryText={translate('menu.questions')} icon={<QuestionAnswerOutlinedIcon />} />
     </MenuSectionAccordion>
 
-    <MenuSectionAccordion title={translate('menu.section.account')} icon={<ManageAccountsOutlinedIcon />} routes={['/perfil', '/carteira', '/seguranca', '/privacidade', '/planos', '/admin']}>
+    <MenuSectionAccordion title={translate('menu.section.account')} icon={<ManageAccountsOutlinedIcon />} routes={['/perfil', '/carteira', '/indique', '/seguranca', '/privacidade', '/planos', '/admin']}>
       <NavItem to="/perfil" primaryText={translate('menu.profile')} icon={<AccountCircleOutlinedIcon />} />
       <NavItem to="/carteira" primaryText={translate('menu.wallet', { _: 'Carteira' })} icon={<BoltOutlinedIcon />} highlight />
+      <NavItem to="/indique" primaryText={translate('menu.invite', { _: 'Indique e ganhe 🎁' })} icon={<CardGiftcardOutlinedIcon />} highlight />
       <NavItem to="/seguranca" primaryText={translate('menu.security_pwd')} icon={<LockOutlinedIcon />} />
       <NavItem to="/privacidade" primaryText={translate('menu.privacy')} icon={<HealthAndSafetyOutlinedIcon />} />
       <NavItem to="/planos" primaryText={translate('menu.plans')} icon={<WorkspacePremiumOutlinedIcon />} />
@@ -462,10 +465,22 @@ const AppMenu = () => {
       <ListItemText primaryTypographyProps={{ fontSize: 13, fontWeight: 600 }}>{translate('menu.logout')}</ListItemText>
     </MenuItem>
 
-    <Box sx={{ px: 2, pt: 1.5, pb: 1, textAlign: 'center', opacity: 0.7 }}>
-      <Typography variant="caption" sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary', letterSpacing: '0.02em' }}>
-        Dr. Exame • Saúde Inteligente 🩺
-      </Typography>
+    <Box sx={{ px: 2, pt: 2, pb: 1.5, textAlign: 'center' }}>
+      <Box sx={{
+        display: 'inline-flex', alignItems: 'center', gap: 0.75,
+        px: 1.5, py: 0.5, borderRadius: 99,
+        bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(32,178,170,0.06)',
+        border: '1px solid',
+        borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(32,178,170,0.14)',
+      }}>
+        <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#20b2aa', boxShadow: '0 0 6px #20b2aa' }} />
+        <Typography variant="caption" sx={{ fontSize: 11.5, fontWeight: 700, color: 'text.secondary', letterSpacing: '0.01em' }}>
+          Dr. Exame · Saúde Inteligente
+        </Typography>
+        <Typography variant="caption" sx={{ fontSize: 10, fontWeight: 600, color: 'text.disabled' }}>
+          v{APP_BUILD_INFO.version}
+        </Typography>
+      </Box>
     </Box>
 
     <Dialog open={aboutOpen} onClose={() => setAboutOpen(false)} maxWidth="xs" fullWidth>
@@ -930,6 +945,7 @@ export const App = () => {
     <CustomRoutes>
       <Route path="/perfil" element={<ProfilePage />} />
       <Route path="/carteira" element={<Suspense fallback={<PageSkeleton />}><WalletPage /></Suspense>} />
+      <Route path="/indique" element={<Suspense fallback={<PageSkeleton />}><InvitePage /></Suspense>} />
       <Route path="/perguntas" element={<Suspense fallback={<PageSkeleton />}><QuestionsPage /></Suspense>} />
       <Route path="/seguranca" element={<SecurityPage />} />
       <Route path="/privacidade" element={<PrivacyPage />} />

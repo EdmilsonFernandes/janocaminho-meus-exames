@@ -68,25 +68,8 @@ export const ReferralCard = ({ code }: { code?: string }) => {
         <Button variant="contained" fullWidth startIcon={<ShareIcon />} onClick={share} sx={{ mb: 2, borderRadius: '12px', textTransform: 'none', fontWeight: 800, background: 'linear-gradient(180deg,#20b2aa,#178f89)', '&:hover': { background: 'linear-gradient(180deg,#178f89,#178f89)' } }}>
           Compartilhar link
         </Button>
-
-        {/* Como funciona — 3 passos (ensina a mecânica = mais conversão) */}
-        <Stack spacing={1} sx={{ mb: 2 }}>
-          {[
-            { n: 1, txt: <>Envie seu código ou link pra um amigo</> },
-            { n: 2, txt: <>Ele se cadastra com o código — <strong>ganha +{refBonus}</strong></> },
-            { n: 3, txt: <>Você ganha <strong>+{refBonus}</strong> quando ele ativar</> },
-          ].map((s) => (
-            <Stack key={s.n} direction="row" alignItems="center" spacing={1.5}>
-              <Box sx={{
-                width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff',
-                fontSize: 13, fontWeight: 800, fontFamily: '"Poppins",sans-serif',
-              }}>{s.n}</Box>
-              <Typography variant="body2" color="text.secondary" sx={{ fontSize: 13 }}>{s.txt}</Typography>
-            </Stack>
-          ))}
-        </Stack>
+        {/* 05/10: os "3 passos" mudaram de casa — a página /indique explica a mecânica
+            (hero + como funciona); o card fica só código/share/stats, sem repetir. */}
 
         {/* Stats */}
         {stats && (

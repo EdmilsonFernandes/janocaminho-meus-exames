@@ -165,7 +165,9 @@ describe('asaas-provider: cartão (uso futuro)', () => {
     expect(body.value).toBe(29.9);
     expect(body.creditCard.number).toBe('4111111111111111');
     expect(body.creditCardHolder.name).toBe('Ana Souza');
-    expect(body.installmentCount).toBe(1); // campo oficial v3 (não "installments")
+    // À vista: campo AUSENTE — a API v3 exige installmentValue sempre que installmentCount
+    // vem preenchido (mesmo 1x → "valor da parcela deve ser informado").
+    expect(body.installmentCount).toBeUndefined();
   });
 
   it('DEBIT_CARD: mesma estrutura, só muda o billingType; threeDSUrl repassado quando existe', async () => {

@@ -208,7 +208,9 @@ export async function createAsaasCardCharge(
       dueDate: tomorrowYmd(),
       description: String(base.description ?? '').slice(0, 100),
       externalReference: base.correlationID,
-      installmentCount: 1, // campo oficial da API v3 (não "installments")
+      // À VISTA: NÃO enviar installmentCount — a API v3 exige installmentValue sempre que
+      // installmentCount vem preenchido (mesmo 1x → erro "valor da parcela deve ser informado").
+      // Sem o campo = 1x sem juros (bug do dono 05/10).
       creditCard,
       creditCardHolder,
     }),

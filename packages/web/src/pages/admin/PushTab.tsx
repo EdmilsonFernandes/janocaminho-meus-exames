@@ -65,7 +65,7 @@ const TEMPLATES: { emoji: string; title: string; body: string; route?: string; a
   { emoji: '🔥', title: '{{streak}} dias seguidos, {{nome}}!', body: 'Constância é o que muda exame de verdade — e você está entregando. O Dr. Exame registrou (e aplaudiu).', route: '/', aud: { engagement: 'active7d' } },
   { emoji: '👑', title: 'Seu Premium expira em breve', body: 'Histórico completo, tendências e relatório pro médico continuam com você. Renove e não perca o ritmo.', route: '/planos', aud: { plan: 'premiumExpiring7d' } },
   { emoji: '📋', title: '{{nome}}, seus exames continuam aqui', body: 'Faz um tempinho. Que tal conferir se algo mudou na sua evolução? Seu histórico está guardadinho.', route: '/evolucao', aud: { engagement: 'inactive14d' } },
-  { emoji: '👥', title: 'Indique o Dr. Exame!', body: 'Convide um amigo pra cuidar da saúde junto. Saúde fica mais fácil (e mais leve) em dupla. 💚', route: '/planos' },
+  { emoji: '👥', title: 'Indique e ganhe créditos! 🎁', body: '{{nome}}, convide um amigo: ele ganha bônus no cadastro e você ganha quando ele ativar. Saúde fica melhor em dupla. 💚', route: '/indique' },
   { emoji: '🩺', title: 'Exames de rotina em dia? 🩺', body: 'Previnir é mais fácil que remediar. Revise seus exames e mantenha tudo atualizado.', route: '/linha-do-tempo', aud: { exams: 'stale90d' } },
   { emoji: '📋', title: 'Seus exames em um só lugar 📋', body: 'Envie seu último exame e deixe o Dr. Exame te ajudar a entender cada valor.', route: '/exams', aud: { engagement: 'noFirstExam' } },
 ];
@@ -180,6 +180,11 @@ export const PushTab = () => {
         Campanhas por <strong>público-alvo</strong> (plano, engajamento, exames, atividade do celular) ou <strong>global</strong> sem público. Sempre com preview de audiência antes de disparar.
       </Typography>
 
+      {/* ── SEÇÃO 1: ENVIAR CAMPANHA ── */}
+      <Box sx={{ p: 2, borderRadius: '14px', border: '1px solid', borderColor: 'divider', mb: 2.5 }}>
+      <Typography sx={{ fontWeight: 800, mb: 0.5 }}>📣 Enviar campanha</Typography>
+      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>Público → modelo ou texto → preview → disparo.</Typography>
+
       {/* PÚBLICO-ALVO */}
       <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1 }}>🎯 Público-alvo</Typography>
       <Stack spacing={1} sx={{ mb: 1.5 }}>
@@ -250,10 +255,12 @@ export const PushTab = () => {
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
         * O Firebase Admin precisa estar configurado no servidor. Sem o service account, conta a audiência mas não entrega a notificação de fato.
       </Typography>
+      </Box>{/* fim seção 1: enviar campanha */}
 
+      {/* ── SEÇÃO 2: CAMPANHAS RECENTES ── */}
       {campaigns.length > 0 && (
-        <Box sx={{ mt: 3 }}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1 }}>📣 Campanhas recentes ({campaigns.length})</Typography>
+        <Box sx={{ p: 2, borderRadius: '14px', border: '1px solid', borderColor: 'divider', mb: 2.5 }}>
+          <Typography sx={{ fontWeight: 800, mb: 1.5 }}>🗂 Campanhas recentes ({campaigns.length})</Typography>
           <Stack spacing={1}>
             {campaigns.map((c: any) => {
               const scheduled = c.scheduledAt && !c.sentAt;
@@ -281,11 +288,11 @@ export const PushTab = () => {
 
       <Divider sx={{ my: 2.5 }} />
 
-      {/* ── Textos do app (MOTD + indicação) ── */}
+      {/* ── SEÇÃO 3: MENSAGENS DO APP ── */}
       <Box sx={{ p: 2, borderRadius: '14px', border: '1px solid', borderColor: 'divider' }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
           <Box>
-            <Typography sx={{ fontWeight: 800 }}>💬 Mensagem do dia (MOTD)</Typography>
+            <Typography sx={{ fontWeight: 800 }}>💬 Mensagens do app</Typography>
             <Typography variant="caption" color="text.secondary">
               Dialog pós-login, 1x por conteúdo (mudou o texto = mostra de novo). Vazio/desligado = não aparece.
             </Typography>

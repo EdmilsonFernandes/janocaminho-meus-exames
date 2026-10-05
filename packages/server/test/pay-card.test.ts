@@ -43,11 +43,12 @@ describe('billing/pay-card: cartão inline via Asaas', () => {
     expect(r.body).toMatchObject({ paymentId: 'pay_cc1', status: 'CONFIRMED', approved: true, credits: 140 });
     expect(await getUserCredits(user.id)).toBe(240); // 100 + 140
 
-    // Corpo enviado ao Asaas: parcela única (installmentCount — campo oficial), PAN
+    // Corpo enviado ao Asaas: À VISTA (installmentCount AUSENTE — a API exige
+    // installmentValue sempre que o campo vem, mesmo 1x), PAN
     // dígitos, CPF/CEP sem máscara, holder email do próprio usuário autenticado.
     const payBody = JSON.parse(fetchMock().mock.calls[1][1].body);
     expect(payBody.billingType).toBe('CREDIT_CARD');
-    expect(payBody.installmentCount).toBe(1);
+    expect(payBody.installmentCount).toBeUndefined();
     expect(payBody.creditCard.number).toBe(VISA_OK);
     expect(payBody.creditCard.expiryYear).toBe('2030');
     expect(payBody.creditCardHolder.cpfCnpj).toBe(holder.cpf.replace(/\D/g, ''));
