@@ -19,9 +19,11 @@ const reducedMotion = () => {
   try { return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return false; }
 };
 
-/** Confetti canvas puro — ~46 partículas caindo com rotação, auto-para em ~4,2s.
- *  Exportado p/ reuso leve (PixModal aprovado): absolute inset 0 dentro de um pai relative. */
-export const ConfettiCanvas = () => {
+/** Confetti canvas puro — partículas caindo com rotação. `duration` em segundos (default 6 —
+ *  pedido do dono 05/10: "demora alguns segundos"; era 4,2s e passava rápido demais) e
+ *  `count` controla densidade. Exportado p/ reuso (PixModal, CreditRewardFx):
+ *  absolute inset 0 dentro de um pai relative. */
+export const ConfettiCanvas = ({ duration = 6, count = 64 }: { duration?: number; count?: number }) => {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     if (reducedMotion()) return;
@@ -34,7 +36,7 @@ export const ConfettiCanvas = () => {
     resize();
     window.addEventListener('resize', resize);
     const W = () => canvas.width, H = () => canvas.height;
-    const pieces = Array.from({ length: 46 }, () => ({
+    const pieces = Array.from({ length: count }, () => ({
       x: Math.random() * W(), y: -Math.random() * H() * 0.4,
       w: (6 + Math.random() * 5) * dpr, h: (8 + Math.random() * 7) * dpr,
       vx: (Math.random() - 0.5) * 1.6 * dpr, vy: (1.6 + Math.random() * 2.2) * dpr,
@@ -55,16 +57,16 @@ export const ConfettiCanvas = () => {
         ctx.save();
         ctx.translate(p.x, p.y);
         ctx.rotate(p.rot);
-        ctx.globalAlpha = t > 3.4 ? Math.max(0, 1 - (t - 3.4) / 0.8) : 1; // fade-out final
+        ctx.globalAlpha = t > duration - 0.8 ? Math.max(0, 1 - (t - (duration - 0.8)) / 0.8) : 1; // fade-out final
         ctx.fillStyle = p.color;
         ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
         ctx.restore();
       }
-      if (t < 4.2) raf = requestAnimationFrame(tick);
+      if (t < duration) raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); };
-  }, []);
+  }, [duration, count]);
   return <Box component="canvas" ref={ref} aria-hidden="true" sx={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }} />;
 };
 

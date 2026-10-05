@@ -6,7 +6,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { DrExame } from './DrExame';
 import { claimColdDialog } from '../utils/coldDialog';
-import { useNotify } from 'react-admin';
+import { celebrateCredits } from './CreditRewardFx';
 import { API_URL, token } from '../config';
 
 /** Quiz-first onboarding (licença Mito): "o que você quer entender?" ANTES do upload —
@@ -52,7 +52,6 @@ export const goalSubtitle = (goals: GoalId[]): string | null => {
 export const GoalQuiz = () => {
   const [open, setOpen] = useState(false);
   const [sel, setSel] = useState<GoalId[]>([]);
-  const notify = useNotify();
 
   useEffect(() => {
     if (localStorage.getItem(KEY)) return; // já respondeu/pulou — nunca mais
@@ -80,8 +79,7 @@ export const GoalQuiz = () => {
         .then((r) => (r.ok ? r.json() : null))
         .then((d) => {
           if (d?.ok && d.amount > 0) {
-            window.dispatchEvent(new Event('creditsChanged'));
-            notify(`+${d.amount} créditos adicionados ⚡`, { type: 'success' });
+            celebrateCredits(d.amount); // pill + confetti + atualiza o chip (creditsChanged dentro)
           }
         })
         .catch(() => { /* silencioso */ });
