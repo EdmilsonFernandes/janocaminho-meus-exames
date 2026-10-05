@@ -78,14 +78,76 @@ router.get('/status', requireAuth, async (req: AuthedRequest, res, next) => {
   } catch (e) { next(e); }
 });
 
-// QUIZ DE BOAS-VINDAS — recompensa por responder "o que você quer entender?" (GoalQuiz).
+// QUIZ RESUMÍVEL (05/10) — participação persistida: o card anuncia os metadados ANTES de
+// entrar ("~Xmin · N perguntas · +Y créditos") e, se o usuário abandona no meio, retoma
+// de onde parou (quiz-state devolve currentIndex/answers). As respostas são preferência
+// de UI — nunca dado clínico. quizId versiona o CONTEÚDO (que vive no front).
+const QUIZ_ID_RE = /^[a-z0-9][a-z0-9-]{0,63}$/;
+const MAX_QUIZ_QUESTIONS = 50;
+
+/** GET /quiz-state — participação atual (mais recente) + recompensa corrente (grants.quiz). */
+router.get('/quiz-state', requireAuth, async (req: AuthedRequest, res, next) => {
+  try {
+    const p = await prisma.quizParticipation.findFirst({ where: { userId: req.userId! }, orderBy: { createdAt: 'desc' } });
+    res.json({
+      participation: p
+        ? { quizId: p.quizId, currentIndex: p.currentIndex, answers: p.answers, completedAt: p.completedAt }
+        : null,
+      reward: Math.max(0, Number(getSettings().grants?.quiz ?? 5)),
+    });
+  } catch (e) { next(e); }
+});
+
+/** POST /quiz-answer {quizId, index, answer, total?} — grava a resposta, avança o índice;
+ *  total (nº de perguntas, informado pelo client que é dono do conteúdo) completa a
+ *  participação (completedAt) quando index+1 >= total. Upsert por (userId, quizId). */
+router.post('/quiz-answer', requireAuth, async (req: AuthedRequest, res, next) => {
+  try {
+    const userId = req.userId!;
+    const quizId = String(req.body?.quizId ?? '');
+    const index = Number(req.body?.index);
+    const total = Number(req.body?.total ?? 0);
+    const answer = req.body?.answer;
+    if (!QUIZ_ID_RE.test(quizId)) { res.status(400).json({ error: 'quizId inválido.' }); return; }
+    if (!Number.isInteger(index) || index < 0 || index >= MAX_QUIZ_QUESTIONS) { res.status(400).json({ error: 'index inválido.' }); return; }
+    if (!Number.isInteger(total) || total < 0 || total > MAX_QUIZ_QUESTIONS) { res.status(400).json({ error: 'total inválido.' }); return; }
+    if (total > 0 && index >= total) { res.status(400).json({ error: 'index fora do total de perguntas.' }); return; }
+    let answerSize = 0;
+    try { answerSize = JSON.stringify(answer ?? null).length; } catch { answerSize = Infinity; }
+    if (answerSize > 4000) { res.status(400).json({ error: 'answer grande demais.' }); return; }
+
+    const existing = await prisma.quizParticipation.findUnique({ where: { userId_quizId: { userId, quizId } } });
+    // Já completa → idempotente: devolve o estado sem regravar (re-trigger de retry no front).
+    if (existing?.completedAt) {
+      res.json({ ok: true, completed: true, currentIndex: existing.currentIndex, completedAt: existing.completedAt });
+      return;
+    }
+    const currentIndex = index + 1;
+    const completedAt = total > 0 && currentIndex >= total ? new Date() : null;
+    const data = {
+      answers: { ...((existing?.answers as Record<string, unknown>) ?? {}), [index]: answer ?? null },
+      currentIndex,
+      completedAt,
+    };
+    const p = existing
+      ? await prisma.quizParticipation.update({ where: { id: existing.id }, data })
+      : await prisma.quizParticipation.create({ data: { userId, quizId, ...data } });
+    res.json({ ok: true, completed: !!p.completedAt, currentIndex: p.currentIndex, completedAt: p.completedAt });
+  } catch (e) { next(e); }
+});
+
+// QUIZ DE BOAS-VINDAS — recompensa por responder o quiz de boas-vindas (GoalQuiz).
 // Anti-farm: 1x por USUÁRIO — o próprio ledger é a guarda (kind='quiz' atômico no $transaction).
 // Valor editável no admin (AppSetting grants.quiz; 0 = desliga).
+// RESUMÍVEL (05/10): só credita participação COMPLETA (completedAt != null) — abandonar
+// no meio não paga; o card do dashboard deixa continuar de onde parou.
 router.post('/quiz-reward', requireAuth, async (req: AuthedRequest, res, next) => {
   try {
     const userId = req.userId!;
     const amount = Math.max(0, Number(getSettings().grants?.quiz ?? 5));
     if (amount === 0) { res.json({ ok: false, already: false, amount: 0 }); return; }
+    const done = await prisma.quizParticipation.findFirst({ where: { userId, completedAt: { not: null } }, select: { id: true } });
+    if (!done) { res.json({ ok: false, already: false, incomplete: true, amount: 0 }); return; }
     let granted = false;
     await prisma.$transaction(async (tx) => {
       const dup = await tx.creditTransaction.findFirst({ where: { userId, kind: 'quiz' }, select: { id: true } });

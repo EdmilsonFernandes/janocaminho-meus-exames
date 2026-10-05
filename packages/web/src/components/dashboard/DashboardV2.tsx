@@ -43,7 +43,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import CloseIcon from '@mui/icons-material/Close';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
-import { getGoals, goalSubtitle } from '../GoalQuiz';
+import { getGoals, goalSubtitle, GoalQuizCard } from '../GoalQuiz';
 
 const readTotal = (r: Response) =>
   Number(r.headers.get('X-Total-Count') ?? r.headers.get('content-range')?.split('/')?.[1] ?? '0');
@@ -884,6 +884,11 @@ export const DashboardV2 = () => {
           </Box>
         </ScrollReveal>
       )}
+
+      {/* QUIZ RESUMÍVEL (05/10) — card anuncia os metadados ANTES de entrar ("~30s · 3
+          perguntas · +Y créditos") e retoma de onde parou com % de progresso. some sozinho
+          quando o quiz é concluído/pulado (localStorage) ou já completo no server. */}
+      {!demo && <GoalQuizCard />}
 
       {/* 2. 4 CARDS DE KPI COM SOFT BADGES (2x2 no mobile, 4x1 no desktop). W4: enquanto
           carrega, TILES EM SHIMMER (mesmo footprint) em vez de '…' — feel de app nativo. */}

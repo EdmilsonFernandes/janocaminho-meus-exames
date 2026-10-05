@@ -58,6 +58,7 @@ model User {
   deviceClaims DeviceClaim[] @relation("DeviceClaims")
   achievementGrants AchievementGrant[]
   creditTransactions CreditTransaction[]
+  quizParticipations QuizParticipation[]
   acceptedInvites PatientInvite[]
   apiKeys      ApiKey[]
   apiAccessRequests ApiAccessRequest[]
@@ -119,6 +120,24 @@ model CreditTransaction {
 
   @@index([userId, createdAt])
   @@map("credit_transactions")
+}
+
+// QUIZ RESUMÍVEL (05/10): participação persistida do quiz de boas-vindas — o usuário
+// pode abandonar no meio e RETOMAR de onde parou (currentIndex/answers). A recompensa
+// (kind='quiz' no ledger) só cai com completedAt != null. answers = { [índice]: resposta }
+// (preferência de UI, NÃO dado clínico — nunca alimenta clinicalProfile/prompts de IA).
+model QuizParticipation {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quizId       String    // id/versionamento do quiz (ex.: 'onboarding-2026-10') — conteúdo vive no front
+  answers      Json
+  currentIndex Int       @default(0)
+  completedAt  DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@unique([userId, quizId])
+  @@map("quiz_participations")
 }
 
 // Config de monetização parametrizada no banco (lida no boot, editável pelo painel admin).
