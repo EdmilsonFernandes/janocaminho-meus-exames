@@ -366,7 +366,7 @@ export const AdminPage = () => {
               <Box sx={{ color: '#178f89', display: 'flex', alignItems: 'center', '& svg': { fontSize: 20 } }}>
                 {active?.icon}
               </Box>
-              <Typography sx={{ fontWeight: 800, fontSize: { xs: 14.5, sm: 16 }, noWrap: true }}>
+              <Typography noWrap sx={{ fontWeight: 800, fontSize: { xs: 14.5, sm: 16 } }}>
                 {active?.label}
               </Typography>
             </Stack>
