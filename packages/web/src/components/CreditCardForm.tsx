@@ -8,6 +8,7 @@ import CheckIcon from '@mui/icons-material/CheckCircle';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import LockIcon from '@mui/icons-material/Lock';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { API_URL, token } from '../config';
 import { PaymentLogos } from './PaymentLogos';
 
@@ -100,7 +101,7 @@ const expiryOk = (mm: string, yy: string): boolean => {
 
 const fmtBRL = (v: number) => `R$ ${v.toFixed(2).replace('.', ',')}`;
 
-export const CreditCardForm = ({ open, packId, packLabel, price, method, onClose, onApproved, onFinished }: {
+export const CreditCardForm = ({ open, packId, packLabel, price, method, onClose, onApproved, onFinished, onSwitchToPix }: {
   open: boolean;
   packId: string | null;
   packLabel: string;
@@ -113,6 +114,8 @@ export const CreditCardForm = ({ open, packId, packLabel, price, method, onClose
   onApproved: () => void;
   /** "Concluir" na tela de sucesso — fecha o fluxo inteiro */
   onFinished: () => void;
+  /** Alternar direto para PIX caso o cartão seja recusado */
+  onSwitchToPix?: () => void;
 }) => {
   const [number, setNumber] = useState('');
   const [holderName, setHolderName] = useState('');
@@ -256,6 +259,16 @@ export const CreditCardForm = ({ open, packId, packLabel, price, method, onClose
   // ===== form =====
   const t = (k: keyof typeof f) => setTouched((s) => ({ ...s, [k]: true }));
 
+  const handleInputFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>, extra?: () => void) => {
+    if (extra) extra();
+    // No Android, o teclado sobe com pequena latência. Scroll suave centraliza o campo visível.
+    setTimeout(() => {
+      try {
+        e.target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      } catch {}
+    }, 220);
+  };
+
   const fieldSx = {
     '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: 'background.paper', minHeight: 52 },
     '& .MuiInputBase-input': { fontSize: 16 },
@@ -263,8 +276,30 @@ export const CreditCardForm = ({ open, packId, packLabel, price, method, onClose
 
   return (
     <Dialog open={open} onClose={submitting ? () => {} : close} disableEscapeKeyDown={submitting}
-      PaperProps={{ sx: { borderRadius: '16px', maxWidth: 440, width: '100%', maxHeight: '92vh' } }}>
-      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
+      PaperProps={{
+        sx: {
+          borderRadius: { xs: '24px 24px 0 0', sm: '20px' },
+          maxWidth: { xs: '100%', sm: 440 },
+          width: '100%',
+          m: { xs: 0, sm: 3 },
+          position: { xs: 'fixed', sm: 'relative' },
+          bottom: { xs: 0, sm: 'auto' },
+          maxHeight: { xs: '90dvh', sm: '92vh' },
+          display: 'flex',
+          flexDirection: 'column',
+          boxShadow: '0 24px 60px rgba(0,0,0,.28)',
+          '@keyframes dxSlideUp': { from: { transform: 'translateY(24px)', opacity: 0 }, to: { transform: 'translateY(0)', opacity: 1 } },
+          animation: 'dxSlideUp .32s cubic-bezier(.22,1,.36,1)',
+        }
+      }}
+      slotProps={{ backdrop: { sx: { backdropFilter: 'blur(4px)', bgcolor: 'rgba(0,0,0,.4)' } } }}>
+      
+      {/* ── Drag handle affordance (mobile) ── */}
+      <Box sx={{ display: { xs: 'flex', sm: 'none' }, justifyContent: 'center', pt: 1.5, pb: 0.5 }}>
+        <Box sx={{ width: 36, height: 4, borderRadius: 99, bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.15)' }} />
+      </Box>
+
+      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1, px: { xs: 2.5, sm: 3 } }}>
         <Stack direction="row" spacing={1} alignItems="center">
           {method === 'card' ? <CreditCardIcon sx={{ color: '#0369a1' }} /> : <AccountBalanceIcon sx={{ color: '#178f89' }} />}
           <Box>
@@ -274,11 +309,19 @@ export const CreditCardForm = ({ open, packId, packLabel, price, method, onClose
         </Stack>
         <IconButton onClick={close} size="small" disabled={submitting}><CloseIcon /></IconButton>
       </DialogTitle>
-      <DialogContent sx={{ pb: 3 }}>
-        {/* ===== PREVIEW DO CARTÃO (premium, flip no foco do CVV) ===== */}
-        <Box sx={{ perspective: 1200, mb: 2.5, mt: 0.5 }}>
+
+      <DialogContent sx={{
+        px: { xs: 2, sm: 3 },
+        pt: 1,
+        pb: { xs: 'calc(env(safe-area-inset-bottom, 24px) + 72px)', sm: 3 },
+        overflowY: 'auto',
+        WebkitOverflowScrolling: 'touch',
+        overscrollBehavior: 'contain',
+      }}>
+        {/* ===== PREVIEW DO CARTÃO (compacto no mobile para poupar viewport) ===== */}
+        <Box sx={{ perspective: 1200, mb: { xs: 1.75, sm: 2.5 }, mt: 0.5 }}>
           <Box sx={{
-            position: 'relative', width: '100%', maxWidth: 340, mx: 'auto', aspectRatio: '1.586',
+            position: 'relative', width: '100%', maxWidth: { xs: 270, sm: 330 }, mx: 'auto', aspectRatio: '1.586',
             transformStyle: 'preserve-3d', transition: 'transform .55s cubic-bezier(.2,.8,.3,1)',
             transform: flip ? 'rotateY(180deg)' : 'rotateY(0deg)',
           }}>
@@ -287,44 +330,44 @@ export const CreditCardForm = ({ open, packId, packLabel, price, method, onClose
               <Box sx={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 85% -20%, rgba(255,255,255,.28), transparent 55%)', borderRadius: 'inherit' }} />
               <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ position: 'relative' }}>
                 <Box sx={{
-                  width: 40, height: 28, borderRadius: 5, background: 'linear-gradient(135deg,#f5d78e,#c9a24a 60%,#8a6a24)',
+                  width: { xs: 34, sm: 40 }, height: { xs: 24, sm: 28 }, borderRadius: 5, background: 'linear-gradient(135deg,#f5d78e,#c9a24a 60%,#8a6a24)',
                   boxShadow: 'inset 0 0 0 1px rgba(0,0,0,.25)',
                 }} />
-                <Typography sx={{ fontWeight: 900, fontSize: 15, color: '#fff', opacity: 0.95, letterSpacing: 0.5, fontStyle: brand === 'mastercard' ? 'italic' : undefined, textTransform: brand === 'mastercard' ? 'lowercase' : undefined, textShadow: '0 1px 3px rgba(0,0,0,.35)' }}>
+                <Typography sx={{ fontWeight: 900, fontSize: { xs: 13, sm: 15 }, color: '#fff', opacity: 0.95, letterSpacing: 0.5, fontStyle: brand === 'mastercard' ? 'italic' : undefined, textTransform: brand === 'mastercard' ? 'lowercase' : undefined, textShadow: '0 1px 3px rgba(0,0,0,.35)' }}>
                   {brand ? BRAND_LABEL[brand] : '⋯'}
                 </Typography>
               </Stack>
-              <Typography sx={{ position: 'relative', mt: 'auto', fontFamily: '"Courier New", monospace', fontWeight: 700, fontSize: { xs: 16, sm: 18 }, letterSpacing: 1.5, color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,.4)' }}>
+              <Typography sx={{ position: 'relative', mt: 'auto', fontFamily: '"Courier New", monospace', fontWeight: 700, fontSize: { xs: 15, sm: 18 }, letterSpacing: 1.5, color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,.4)' }}>
                 {(maskCardNumber(number) || '•••• •••• •••• ••••').padEnd(19, '·')}
               </Typography>
               <Stack direction="row" justifyContent="space-between" alignItems="flex-end" sx={{ position: 'relative', mt: 0.5 }}>
                 <Box sx={{ minWidth: 0, flex: 1, mr: 1 }}>
                   <Typography sx={{ fontSize: 8, color: 'rgba(255,255,255,.65)', letterSpacing: 1, fontWeight: 700 }}>NOME NO CARTÃO</Typography>
-                  <Typography noWrap sx={{ fontSize: 12, color: '#fff', fontWeight: 700, textTransform: 'uppercase' }}>{holderName || 'SEU NOME'}</Typography>
+                  <Typography noWrap sx={{ fontSize: { xs: 11, sm: 12 }, color: '#fff', fontWeight: 700, textTransform: 'uppercase' }}>{holderName || 'SEU NOME'}</Typography>
                 </Box>
                 <Box>
                   <Typography sx={{ fontSize: 8, color: 'rgba(255,255,255,.65)', letterSpacing: 1, fontWeight: 700 }}>VALIDADE</Typography>
-                  <Typography sx={{ fontSize: 12, color: '#fff', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{expiry || 'MM/AA'}</Typography>
+                  <Typography sx={{ fontSize: { xs: 11, sm: 12 }, color: '#fff', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{expiry || 'MM/AA'}</Typography>
                 </Box>
               </Stack>
             </CardFace>
             {/* VERSO */}
             <CardFace back>
-              <Box sx={{ height: 42, mt: 1.5, bgcolor: 'rgba(10,26,25,.92)', mx: -2.5, boxShadow: 'inset 0 1px 2px rgba(0,0,0,.6)' }} />
-              <Stack direction="row" justifyContent="flex-end" alignItems="center" sx={{ mt: 2 }}>
-                <Box sx={{ flex: 1, height: 26, bgcolor: 'rgba(255,255,255,.75)', borderRadius: 0.5, mr: 1.5, position: 'relative', overflow: 'hidden' }}>
+              <Box sx={{ height: { xs: 34, sm: 42 }, mt: 1.5, bgcolor: 'rgba(10,26,25,.92)', mx: -2.5, boxShadow: 'inset 0 1px 2px rgba(0,0,0,.6)' }} />
+              <Stack direction="row" justifyContent="flex-end" alignItems="center" sx={{ mt: 1.5 }}>
+                <Box sx={{ flex: 1, height: 24, bgcolor: 'rgba(255,255,255,.75)', borderRadius: 0.5, mr: 1.5, position: 'relative', overflow: 'hidden' }}>
                   <Typography sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', px: 1, fontSize: 8, color: '#5b6b6a', fontStyle: 'italic' }}>
                     dados impressos no verso do cartão
                   </Typography>
                 </Box>
                 <Box>
                   <Typography sx={{ fontSize: 8, color: 'rgba(255,255,255,.65)', fontWeight: 700, letterSpacing: 1, textAlign: 'right' }}>CVV</Typography>
-                  <Box sx={{ bgcolor: '#fff', borderRadius: 1, px: 1.5, py: 0.5, minWidth: 52, textAlign: 'right' }}>
-                    <Typography sx={{ fontWeight: 800, fontSize: 15, letterSpacing: 2, color: '#0f1818', fontVariantNumeric: 'tabular-nums' }}>{digits(ccv) || '···'}</Typography>
+                  <Box sx={{ bgcolor: '#fff', borderRadius: 1, px: 1.25, py: 0.25, minWidth: 46, textAlign: 'right' }}>
+                    <Typography sx={{ fontWeight: 800, fontSize: 14, letterSpacing: 2, color: '#0f1818', fontVariantNumeric: 'tabular-nums' }}>{digits(ccv) || '···'}</Typography>
                   </Box>
                 </Box>
               </Stack>
-              <Typography sx={{ mt: 'auto', fontSize: 9, color: 'rgba(255,255,255,.55)' }}>Processado com segurança pelo Asaas · Dr. Exame</Typography>
+              <Typography sx={{ mt: 'auto', fontSize: 8.5, color: 'rgba(255,255,255,.55)' }}>Processado com segurança pelo Asaas · Dr. Exame</Typography>
             </CardFace>
           </Box>
         </Box>
@@ -332,18 +375,23 @@ export const CreditCardForm = ({ open, packId, packLabel, price, method, onClose
         <Stack spacing={1.75}>
           <TextField label="Número do cartão" placeholder="0000 0000 0000 0000" fullWidth inputMode="numeric" autoComplete="cc-number"
             value={maskCardNumber(number)} onChange={(e) => setNumber(e.target.value)} onBlur={() => t('number')}
+            onFocus={(e) => handleInputFocus(e)}
             error={err('number')} helperText={helper('number', 'Número de cartão inválido — confira os dígitos.')}
             sx={fieldSx} />
           <TextField label="Nome impresso no cartão" placeholder="COMO ESTÁ NO CARTÃO" fullWidth autoComplete="cc-name"
             slotProps={{ htmlInput: { autoCapitalize: 'characters', style: { textTransform: 'uppercase' } } }}
             value={holderName} onChange={(e) => setHolderName(e.target.value.toUpperCase())} onBlur={() => t('holderName')}
+            onFocus={(e) => handleInputFocus(e)}
             error={err('holderName')} helperText={helper('holderName', 'Informe o nome impresso no cartão.')} sx={fieldSx} />
           <Stack direction="row" spacing={1.75}>
             <TextField label="Validade" placeholder="MM/AA" inputMode="numeric" fullWidth autoComplete="cc-exp"
               value={expiry} onChange={(e) => setExpiry(maskExpiry(e.target.value))} onBlur={() => t('expiry')}
+              onFocus={(e) => handleInputFocus(e)}
               error={err('expiry')} helperText={helper('expiry', 'Validade inválida ou vencida.')} sx={fieldSx} />
             <TextField label="CVV" placeholder={cvvLen === 4 ? '0000' : '000'} inputMode="numeric" type="password" fullWidth autoComplete="cc-csc"
-              value={ccv} onChange={(e) => setCcv(digits(e.target.value).slice(0, cvvLen))} onFocus={() => setFlip(true)} onBlur={() => { setFlip(false); t('ccv'); }}
+              value={ccv} onChange={(e) => setCcv(digits(e.target.value).slice(0, cvvLen))}
+              onFocus={(e) => handleInputFocus(e, () => setFlip(true))}
+              onBlur={() => { setFlip(false); t('ccv'); }}
               error={err('ccv')} helperText={helper('ccv', `${cvvLen} dígitos.`)}
               slotProps={{ input: { endAdornment: <InputAdornment position="end"><LockIcon sx={{ fontSize: 16, color: 'text.disabled' }} /></InputAdornment> } }}
               sx={fieldSx} />
@@ -351,14 +399,17 @@ export const CreditCardForm = ({ open, packId, packLabel, price, method, onClose
 
           <TextField label="CPF do titular" placeholder="000.000.000-00" inputMode="numeric" fullWidth
             value={maskCpf(cpf)} onChange={(e) => setCpf(maskCpf(e.target.value))} onBlur={() => t('cpf')}
+            onFocus={(e) => handleInputFocus(e)}
             error={err('cpf')} helperText={helper('cpf', 'CPF inválido.')} sx={fieldSx} />
           <Stack direction="row" spacing={1.75}>
             <TextField label="CEP" placeholder="00000-000" inputMode="numeric" sx={{ ...fieldSx, flex: 1 }}
               value={cep} onChange={(e) => setCep(maskCep(e.target.value))} onBlur={() => { t('cep'); void onCepBlur(); }}
+              onFocus={(e) => handleInputFocus(e)}
               error={err('cep')} helperText={helper('cep', 'CEP inválido.')}
               slotProps={cepLoading ? { input: { endAdornment: <InputAdornment position="end"><CircularProgress size={16} /></InputAdornment> } } : undefined} />
             <TextField label="Número" placeholder="100" inputMode="numeric" sx={{ ...fieldSx, width: 120 }}
               value={addressNumber} onChange={(e) => setAddressNumber(e.target.value)} onBlur={() => t('addressNumber')}
+              onFocus={(e) => handleInputFocus(e)}
               error={err('addressNumber')} helperText={helper('addressNumber', 'Obrigatório.')} />
           </Stack>
           <Collapse in={!!cepStreet}>
@@ -368,10 +419,80 @@ export const CreditCardForm = ({ open, packId, packLabel, price, method, onClose
           </Collapse>
         </Stack>
 
+        {/* ── ALERTA DE ERRO REDESENHADO: Premium, ultra-legível, com dica e fallback PIX ── */}
         {apiErr && (
-          <Typography color="error" variant="body2" sx={{ mt: 2, fontWeight: 600, bgcolor: 'error.light', borderRadius: 2, p: 1.5, color: 'error.dark' }}>
-            {apiErr}
-          </Typography>
+          <Box
+            role="alert"
+            aria-live="assertive"
+            sx={{
+              mt: 2.5,
+              p: 2,
+              borderRadius: '14px',
+              bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(239, 68, 68, 0.12)' : 'rgba(254, 242, 242, 0.96)',
+              border: '1px solid',
+              borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(239, 68, 68, 0.35)' : 'rgba(248, 113, 113, 0.32)',
+              borderLeft: '4px solid #dc2626',
+              boxShadow: '0 4px 16px rgba(220, 38, 38, 0.08)',
+              animation: 'meShake .35s ease',
+              '@keyframes meShake': {
+                '0%, 100%': { transform: 'translateX(0)' },
+                '20%, 60%': { transform: 'translateX(-4px)' },
+                '40%, 80%': { transform: 'translateX(4px)' },
+              },
+            }}
+          >
+            <Stack direction="row" spacing={1.5} alignItems="flex-start">
+              <Box
+                sx={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: '50%',
+                  bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(239, 68, 68, 0.22)' : 'rgba(254, 226, 226, 0.95)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  mt: 0.2,
+                }}
+              >
+                <ErrorOutlineIcon sx={{ fontSize: 20, color: '#dc2626' }} />
+              </Box>
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography sx={{ fontWeight: 800, fontSize: 13.5, color: (t) => t.palette.mode === 'dark' ? '#fca5a5' : '#991b1b', lineHeight: 1.3 }}>
+                  Transação não autorizada
+                </Typography>
+                <Typography sx={{ mt: 0.5, fontSize: 12.5, color: (t) => t.palette.mode === 'dark' ? '#fecaca' : '#7f1d1d', lineHeight: 1.45, fontWeight: 500 }}>
+                  {apiErr}
+                </Typography>
+                <Typography sx={{ mt: 0.75, fontSize: 11.5, color: (t) => t.palette.mode === 'dark' ? '#f87171' : '#b91c1c', lineHeight: 1.4 }}>
+                  Dica: Verifique se o cartão está liberado para compras online no app do seu banco ou utilize o PIX instantâneo.
+                </Typography>
+                {onSwitchToPix && (
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={onSwitchToPix}
+                    sx={{
+                      mt: 1.25,
+                      fontSize: 12,
+                      fontWeight: 700,
+                      borderRadius: '8px',
+                      textTransform: 'none',
+                      color: (t) => t.palette.mode === 'dark' ? '#5fc9c3' : '#0f6e68',
+                      borderColor: '#20b2aa',
+                      bgcolor: 'rgba(32, 178, 170, 0.08)',
+                      '&:hover': {
+                        bgcolor: 'rgba(32, 178, 170, 0.16)',
+                        borderColor: '#178f89',
+                      },
+                    }}
+                  >
+                    Pagar via PIX com aprovação instantânea ⚡
+                  </Button>
+                )}
+              </Box>
+            </Stack>
+          </Box>
         )}
 
         <Button variant="contained" fullWidth disabled={!allOk || submitting} onClick={submit}

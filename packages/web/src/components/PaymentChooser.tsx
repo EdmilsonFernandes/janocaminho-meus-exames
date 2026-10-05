@@ -67,6 +67,7 @@ export const PaymentChooser = ({ packId, packLabel, packPrice, onClose, onPix, o
         onClose={() => setCardMethod(null)}          /* X = volta pra escolha */
         onApproved={onCardApproved}                   /* aprovado: pai notifica/recarrega já */
         onFinished={() => { setCardMethod(null); onClose(); }} /* Concluir: fecha tudo */
+        onSwitchToPix={() => { setCardMethod(null); onPix(); onClose(); }}
       />
     );
   }
@@ -79,14 +80,14 @@ export const PaymentChooser = ({ packId, packLabel, packPrice, onClose, onPix, o
         maxWidth: 420, width: '100%', m: { xs: 0, sm: 3 },
         position: { xs: 'fixed', sm: 'relative' },
         bottom: { xs: 0, sm: 'auto' },
-        maxHeight: { xs: '92vh', sm: '88vh' },
+        maxHeight: { xs: '90dvh', sm: '88vh' },
         // Slide-up feel on mobile via transition override
         '@keyframes dxSlideUp': { from: { transform: 'translateY(24px)', opacity: 0 }, to: { transform: 'translateY(0)', opacity: 1 } },
         animation: 'dxSlideUp .35s cubic-bezier(.22,1,.36,1)',
       } }}
       slotProps={{ backdrop: { sx: { backdropFilter: 'blur(4px)', bgcolor: 'rgba(0,0,0,.35)' } } }}
     >
-      <DialogContent sx={{ p: 0 }}>
+      <DialogContent sx={{ p: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
         {/* ── Drag handle (mobile affordance) ── */}
         <Box sx={{ display: { xs: 'flex', sm: 'none' }, justifyContent: 'center', pt: 1.5, pb: 0.5 }}>
           <Box sx={{ width: 36, height: 4, borderRadius: 99, bgcolor: (t) => alpha(t.palette.divider, 0.6) }} />
