@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, Button, Chip, Alert, Stack, Divider } from '@mui/material';
+import { Box, Card, CardContent, Typography, Button, Alert, Stack } from '@mui/material';
 import CheckIcon from '@mui/icons-material/CheckCircle';
 import BoltIcon from '@mui/icons-material/Bolt';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
@@ -17,6 +17,19 @@ import { PaymentChooser } from '../components/PaymentChooser';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
 import { tealText } from '../theme';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
+import AllInclusiveIcon from '@mui/icons-material/AllInclusive';
+
+/** Entrada escalonada dos cards (respeita prefers-reduced-motion). */
+const fadeUp = (i: number) => ({
+  '@keyframes plFadeUp': { from: { opacity: 0, transform: 'translateY(10px)' }, to: { opacity: 1, transform: 'none' } },
+  animation: 'plFadeUp .45s cubic-bezier(.22,1,.36,1) both',
+  animationDelay: `${i * 70}ms`,
+  '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
+});
+const brl = (n: number) => `R$ ${n.toFixed(2).replace('.', ',')}`;
 
 interface Status { active: boolean; planExpiresAt: string | null; examsCount: number; freeExamLimit: number; credits: number; tokensUsed: number; }
 interface Pack { id: string; credits: number; price: number; label: string; popular: boolean; }
@@ -190,34 +203,163 @@ export const PlansPage = () => {
         </Card>
       ) : (
         <>
-      {/* PACOTES DE CRÉDITOS */}
-      <Typography variant="h6" sx={{ mt: 1, mb: 0.5, display: 'flex', alignItems: 'center', gap: 1 }}><BoltIcon color="secondary" /> Comprar créditos (PIX instantâneo)</Typography>
-      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5, lineHeight: 1.5 }}>
-        O que consome: 💬 pergunta no chat <b>2</b> · ✨ resumo do exame <b>10</b> · 🧾 relatório completo <b>20</b>. Enviar exame é <b>grátis</b>.
+      {/* ══ PLANO PREMIUM (05/10): sobe pro topo — melhor custo por crédito. Card escuro
+          premium (padrão Revolut Metal / Stripe), preço/perks da API (zero hardcode). ══ */}
+      {(() => {
+        const plan = planInfo?.plan;
+        const planCredits = Number(plan?.monthlyCredits ?? 0);
+        const ref = packs.find((p) => p.popular) ?? packs[0];
+        const savings = plan && ref && planCredits
+          ? Math.round((1 - (plan.effectivePrice / planCredits) / (ref.price / ref.credits)) * 100) : 0;
+        const scarce = plan?.founder && Number(plan.founderRemaining) < 20;
+        const perks = [
+          `${crLabel} créditos de IA todo mês`,
+          'Relatórios completos sem gastar créditos',
+          'Histórico completo de exames',
+          `Família até ${planInfo?.premiumPerks?.familyLimit ?? 10} perfis`,
+          'Créditos somam ao saldo e não expiram',
+          'Envio de exames sem custo',
+        ];
+        return (
+          <Box sx={{
+            ...fadeUp(0), position: 'relative', overflow: 'hidden', borderRadius: '24px', color: '#fff', mb: 3.5,
+            p: { xs: 2.5, md: 3.5 },
+            background: 'radial-gradient(120% 140% at 100% 0%, rgba(95,201,195,.30) 0%, transparent 55%), radial-gradient(80% 90% at 0% 100%, rgba(233,196,106,.10) 0%, transparent 60%), linear-gradient(150deg,#0d3330 0%,#09201f 100%)',
+            border: '1px solid rgba(95,201,195,.28)',
+            boxShadow: '0 24px 60px -24px rgba(15,110,104,.65), inset 0 1px 0 rgba(255,255,255,.06)',
+          }}>
+            {/* eyebrow */}
+            <Stack direction="row" alignItems="center" justifyContent="space-between" flexWrap="wrap" useFlexGap rowGap={1}>
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <Box sx={{ width: 34, height: 34, borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: 'linear-gradient(135deg,#f3d98b,#c9a14a)', boxShadow: '0 4px 14px rgba(201,161,74,.35)' }}>
+                  <WorkspacePremiumIcon sx={{ fontSize: 20, color: '#3d2a05' }} />
+                </Box>
+                <Box>
+                  <Typography sx={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '.14em', color: '#e9c46a', lineHeight: 1.2 }}>PREMIUM</Typography>
+                  <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 19, lineHeight: 1.2 }}>Dr. Exame sem limites</Typography>
+                </Box>
+              </Stack>
+              {savings > 0 && !status?.active && (
+                <Box sx={{ px: 1.25, py: 0.5, borderRadius: 99, fontSize: 12, fontWeight: 800, color: '#3d2a05',
+                  background: 'linear-gradient(135deg,#f3d98b,#e2b85c)' }}>
+                  Economize {savings}% vs avulso
+                </Box>
+              )}
+            </Stack>
+
+            {/* perks */}
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, columnGap: 3, rowGap: 1, mt: 2.5 }}>
+              {perks.map((t) => (
+                <Stack key={t} direction="row" spacing={1} alignItems="center">
+                  <CheckIcon sx={{ fontSize: 17, color: '#5fc9c3', flexShrink: 0 }} />
+                  <Typography sx={{ fontSize: 13.5, color: 'rgba(255,255,255,.86)' }}>{t}</Typography>
+                </Stack>
+              ))}
+            </Box>
+
+            <Box sx={{ height: '1px', my: 2.5, background: 'linear-gradient(90deg, transparent, rgba(255,255,255,.14), transparent)' }} />
+
+            {/* preço + CTA */}
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'stretch', sm: 'center' }} justifyContent="space-between">
+              <Box>
+                <Stack direction="row" alignItems="baseline" spacing={1}>
+                  <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 900, fontSize: 36, letterSpacing: '-0.03em', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+                    {plan ? fmtBRL(plan.effectivePrice) : 'R$ —'}
+                  </Typography>
+                  <Typography sx={{ fontSize: 14, color: 'rgba(255,255,255,.6)', fontWeight: 600 }}>/mês</Typography>
+                  {plan?.founder && plan.price !== plan.effectivePrice && (
+                    <Typography sx={{ fontSize: 14, color: 'rgba(255,255,255,.4)', textDecoration: 'line-through' }}>{fmtBRL(plan.price)}</Typography>
+                  )}
+                </Stack>
+                <Typography sx={{ fontSize: 12, color: 'rgba(255,255,255,.55)', mt: 0.75 }}>
+                  {plan && planCredits ? `${brl(plan.effectivePrice / planCredits)} por crédito · ` : ''}sem fidelidade · cancele quando quiser
+                </Typography>
+              </Box>
+              <Button
+                size="large" disabled={!mpOn || subLoading || !!status?.active} onClick={subscribe}
+                endIcon={!status?.active && <ArrowForwardIcon sx={{ transition: 'transform .2s ease' }} />}
+                sx={{
+                  minWidth: 200, py: 1.5, px: 3, borderRadius: 99, textTransform: 'none',
+                  fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 15, color: '#062523',
+                  background: 'linear-gradient(135deg,#7ad8d2,#3fb8b0)',
+                  boxShadow: '0 8px 24px -6px rgba(95,201,195,.55)',
+                  transition: 'transform .15s ease, box-shadow .2s ease, filter .2s ease',
+                  '&:hover': { background: 'linear-gradient(135deg,#7ad8d2,#3fb8b0)', filter: 'brightness(1.06)', transform: 'translateY(-1px)', boxShadow: '0 12px 30px -6px rgba(95,201,195,.65)', '& .MuiButton-endIcon': { transform: 'translateX(3px)' } },
+                  '&:active': { transform: 'scale(.98)' },
+                  '&.Mui-disabled': { background: 'rgba(255,255,255,.1)', color: status?.active ? '#7ad8d2' : 'rgba(255,255,255,.4)', boxShadow: 'none' },
+                }}
+              >
+                {status?.active ? `✓ Ativo até ${status.planExpiresAt ? fmt(status.planExpiresAt) : '—'}` : subLoading ? 'Abrindo…' : 'Assinar Premium'}
+              </Button>
+            </Stack>
+
+            {plan?.founder && (
+              <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 2, px: 1.5, py: 1, borderRadius: '12px',
+                bgcolor: scarce ? 'rgba(245,158,11,.14)' : 'rgba(233,196,106,.08)', border: '1px solid', borderColor: scarce ? 'rgba(245,158,11,.35)' : 'rgba(233,196,106,.18)' }}>
+                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: scarce ? '#f59e0b' : '#e9c46a', flexShrink: 0,
+                  '@keyframes plPulse': { '0%,100%': { boxShadow: '0 0 0 0 rgba(245,158,11,.6)' }, '50%': { boxShadow: '0 0 0 6px rgba(245,158,11,0)' } },
+                  animation: scarce ? 'plPulse 1.8s ease-in-out infinite' : 'none',
+                  '@media (prefers-reduced-motion: reduce)': { animation: 'none' } }} />
+                <Typography sx={{ fontSize: 12.5, fontWeight: 600, color: scarce ? '#fcd34d' : '#e9c46a' }}>
+                  Preço de Fundador garantido enquanto assinar · restam <strong>{plan.founderRemaining}</strong> vagas
+                </Typography>
+              </Stack>
+            )}
+          </Box>
+        );
+      })()}
+
+      {/* ══ CRÉDITOS AVULSOS — grid; popular em destaque (full-width no mobile). ══ */}
+      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 0.75 }}>
+        <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 17, whiteSpace: 'nowrap' }}>Ou compre créditos avulsos</Typography>
+        <Box sx={{ flex: 1, height: '1px', bgcolor: 'divider' }} />
+      </Stack>
+      <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mb: 2, lineHeight: 1.5 }}>
+        Pergunta no chat <b>2</b> · resumo do exame <b>10</b> · relatório completo <b>20</b> créditos. Enviar exame é <b>grátis</b>. Sem mensalidade.
       </Typography>
-      <Stack spacing={2} sx={{ mb: 3, width: '100%' }}>
-        {packs.map((p) => {
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: `repeat(${Math.min(Math.max(packs.length, 1), 3)}, 1fr)` }, gap: 1.5, mb: 2, alignItems: 'stretch' }}>
+        {packs.map((p, idx) => {
           const isPending = pendingPix && pendingPix.credits === p.credits && pendingPix.price === p.price;
           const secsLeft = isPending ? Math.max(0, Math.floor((new Date(pendingPix.expiresAt).getTime() - Date.now()) / 1000)) : 0;
           const mmLeft = String(Math.floor(secsLeft / 60)).padStart(2, '0');
           const ssLeft = String(secsLeft % 60).padStart(2, '0');
+          const hot = p.popular && !isPending;
           return (
           <Card key={p.id} sx={{
-            borderRadius: '20px',
-            border: isPending ? '2px solid #d97706' : p.popular ? '2px solid #20b2aa' : '1px solid',
-            borderColor: isPending ? undefined : p.popular ? undefined : 'divider',
-            width: '100%', position: 'relative',
+            ...fadeUp(idx + 1),
+            borderRadius: '20px', position: 'relative', overflow: 'visible', display: 'flex', flexDirection: 'column',
+            gridColumn: { xs: hot || isPending ? '1 / -1' : 'auto', sm: 'auto' },
+            order: { xs: hot ? -1 : 0, sm: 0 },
+            border: isPending ? '2px solid #d97706' : hot ? '2px solid #20b2aa' : '1px solid',
+            borderColor: isPending || hot ? undefined : 'divider',
             bgcolor: isPending ? 'rgba(217,119,6,0.04)' : undefined,
-            boxShadow: p.popular ? '0 8px 24px rgba(32,178,170,.15)' : 'none',
-            transition: 'transform .18s ease, box-shadow .2s ease',
-            '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 8px 28px rgba(0,0,0,.08)' },
+            background: hot ? (t) => t.palette.mode === 'dark' ? 'linear-gradient(180deg, rgba(32,178,170,.12), transparent 70%)' : 'linear-gradient(180deg, rgba(32,178,170,.07), #fff 70%)' : undefined,
+            boxShadow: hot ? '0 12px 32px -12px rgba(32,178,170,.35)' : 'none',
+            transition: 'transform .18s ease, box-shadow .2s ease, border-color .2s ease',
+            '&:hover': { transform: 'translateY(-2px)', boxShadow: hot ? '0 16px 40px -12px rgba(32,178,170,.45)' : '0 10px 28px -10px rgba(0,0,0,.12)' },
           }}>
-            {isPending && <Box sx={{ textAlign: 'center', pt: 1.5 }}><Chip label="⏳ Aguardando pagamento" size="small" sx={{ fontWeight: 700, bgcolor: 'rgba(217,119,6,.15)', color: '#92400e' }} /></Box>}
-            {!isPending && p.popular && <Box sx={{ textAlign: 'center', pt: 1.5 }}><Chip color="primary" label="MAIS VENDIDO" size="small" sx={{ fontWeight: 800, borderRadius: '999px' }} /></Box>}
-            <CardContent sx={{ textAlign: 'center', pt: isPending || p.popular ? 1 : 2 }}>
-              <Typography sx={{ fontWeight: 800, fontSize: 28, color: 'primary.main', lineHeight: 1.1 }}>{p.credits}</Typography>
-              <Typography color="text.secondary">créditos</Typography>
-              <Typography variant="h5" sx={{ my: 1, fontWeight: 800 }}>R$ {p.price.toFixed(2).replace('.', ',')}</Typography>
+            {(isPending || hot) && (
+              <Box sx={{ position: 'absolute', top: -11, left: '50%', transform: 'translateX(-50%)', whiteSpace: 'nowrap',
+                px: 1.25, py: '3px', borderRadius: 99, fontSize: 10.5, fontWeight: 800, letterSpacing: '.06em',
+                color: isPending ? '#92400e' : '#fff',
+                background: isPending ? '#fde68a' : 'linear-gradient(135deg,#20b2aa,#178f89)',
+                boxShadow: isPending ? 'none' : '0 4px 12px rgba(32,178,170,.35)' }}>
+                {isPending ? '⏳ AGUARDANDO PAGAMENTO' : '⭐ MAIS VENDIDO'}
+              </Box>
+            )}
+            <CardContent sx={{ textAlign: 'center', pt: 2.75, pb: '16px !important', px: { xs: 1.5, sm: 2 }, display: 'flex', flexDirection: 'column', flex: 1 }}>
+              <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.25}>
+                <BoltIcon sx={{ fontSize: hot ? 26 : 20, color: '#20b2aa' }} />
+                <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: hot ? 34 : 28, letterSpacing: '-0.03em', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{p.credits}</Typography>
+              </Stack>
+              <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 0.25 }}>créditos</Typography>
+              <Typography sx={{ fontSize: 11.5, color: 'text.secondary', mt: 1, lineHeight: 1.4 }}>
+                ~{Math.floor(p.credits / 10)} resumos<Box component="span" sx={{ mx: 0.5, opacity: 0.5 }}>ou</Box>~{Math.floor(p.credits / 2)} perguntas
+              </Typography>
+              <Box sx={{ flex: 1 }} />
+              <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 22, mt: 1.5, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}>{brl(p.price)}</Typography>
+              <Typography sx={{ fontSize: 11, color: 'text.disabled', mb: 1.5 }}>{brl(p.price / p.credits)} por crédito</Typography>
               {isPending ? (
                 <Stack spacing={0.75}>
                   <Button variant="contained" fullWidth onClick={() => setPixPack('__pending__')}
@@ -233,9 +375,13 @@ export const PlansPage = () => {
                   </Button>
                 </Stack>
               ) : (
-                <Button variant={p.popular ? 'contained' : 'outlined'} fullWidth disabled={!mpOn} sx={{ borderRadius: '999px', fontWeight: 800, textTransform: 'none' }} onClick={() => {
+                <Button variant={hot ? 'contained' : 'outlined'} fullWidth disabled={!mpOn}
+                  endIcon={hot ? <ArrowForwardIcon sx={{ fontSize: 18, transition: 'transform .2s ease' }} /> : undefined}
+                  sx={{ borderRadius: '999px', fontWeight: 800, textTransform: 'none', py: hot ? 1.1 : 0.8,
+                    '&:hover .MuiButton-endIcon': { transform: 'translateX(3px)' } }}
+                  onClick={() => {
                   // PIX-only (cardEnabled=false) → 1-clique direto no QR; religado → escolhe forma.
-                  if (cardEnabled) { setChooserLabel(`${p.credits} créditos • R$ ${p.price.toFixed(2).replace('.', ',')}`); setChooserPrice(p.price); setChooserPack(p.id); }
+                  if (cardEnabled) { setChooserLabel(`${p.credits} créditos • ${brl(p.price)}`); setChooserPrice(p.price); setChooserPack(p.id); }
                   else setPixPack(p.id);
                 }}>Comprar</Button>
               )}
@@ -243,46 +389,22 @@ export const PlansPage = () => {
           </Card>
           );
         })}
+      </Box>
+
+      {/* Barra de confiança NA TELA DE DECISÃO (não só no checkout). */}
+      <Stack direction="row" justifyContent="center" alignItems="center" flexWrap="wrap" useFlexGap columnGap={2} rowGap={0.75}
+        sx={{ mt: 1, mb: 1, '& svg': { fontSize: 15, color: '#20b2aa' } }}>
+        {([
+          { icon: <LockOutlinedIcon />, label: 'Pagamento seguro' },
+          { icon: <BoltIcon />, label: 'PIX cai na hora' },
+          { icon: <AllInclusiveIcon />, label: 'Créditos não expiram' },
+        ]).map((b) => (
+          <Stack key={b.label} direction="row" alignItems="center" spacing={0.5} sx={{ whiteSpace: 'nowrap' }}>
+            {b.icon}
+            <Typography sx={{ fontSize: 12, fontWeight: 600, color: 'text.secondary' }}>{b.label}</Typography>
+          </Stack>
+        ))}
       </Stack>
-
-      <Typography align="center" color="text.secondary" sx={{ my: 2, fontWeight: 600 }}>— ou assine —</Typography>
-
-      {/* PLANO MENSAL — preço/perks da API (admin edita live; zero hardcode). */}
-      <Card sx={{ borderRadius: '20px', background: 'rgba(32,178,170,0.06)', border: '2px solid #20b2aa', boxShadow: '0 8px 30px rgba(32,178,170,.12)' }}>
-        <CardContent sx={{ p: { xs: 2.5, md: 3 } }}>
-          <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between" flexWrap="wrap" useFlexGap>
-            <Typography variant="h6" sx={{ fontWeight: 800, color: (t) => tealText(t.palette.mode) }}>💎 Premium Mensal</Typography>
-            {planInfo?.plan?.founder && (
-              <Chip size="small" label={`🎯 Plano Fundador: restam ${planInfo.plan.founderRemaining} vagas`} sx={{ fontWeight: 800, bgcolor: 'rgba(212,165,116,.18)', color: '#8a5a1f' }} />
-            )}
-          </Stack>
-          <Typography color="text.secondary" sx={{ fontSize: 14, mt: 0.5 }}>
-            {crLabel} créditos que <strong>somam</strong> ao seu saldo e <strong>não expiram</strong> — o plano vale 30 dias e você decide se renova. Sem fidelidade.
-          </Typography>
-          <Box component="ul" sx={{ pl: 2.5, mt: 1.5, mb: 2, lineHeight: 1.8, fontSize: 14 }}>
-            <li><strong>{crLabel} créditos de IA</strong> por mês (melhor custo por crédito)</li>
-            <li>📄 Relatórios completos <strong>incluídos</strong> — sem gastar créditos</li>
-            <li>📅 Histórico completo (exames de anos anteriores)</li>
-            <li>👨‍👩‍👧 Família até {planInfo?.premiumPerks?.familyLimit ?? 10} perfis</li>
-            <li>📤 Envios de exame sem custo</li>
-          </Box>
-          <Divider sx={{ mb: 2 }} />
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center" justifyContent="space-between" useFlexGap flexWrap="wrap">
-            <Box>
-              {planInfo?.plan?.founder && planInfo.plan.price !== planInfo.plan.effectivePrice && (
-                <Typography sx={{ color: 'text.disabled', textDecoration: 'line-through', fontSize: 16 }}>{fmtBRL(planInfo.plan.price)}</Typography>
-              )}
-              <Typography variant="h4" sx={{ fontWeight: 800, color: (t) => tealText(t.palette.mode), lineHeight: 1 }}>
-                {planInfo?.plan ? fmtBRL(planInfo.plan.effectivePrice) : 'R$ —'}
-              </Typography>
-              <Typography color="text.secondary" sx={{ fontSize: 13 }}>/mês · sem anual · sem fidelidade · PIX ou cartão</Typography>
-            </Box>
-            <Button variant="contained" size="large" disabled={!mpOn || subLoading || !!status?.active} onClick={subscribe} sx={{ minWidth: 160 }}>
-              {status?.active ? '✓ Ativo' : subLoading ? 'Abrindo…' : 'Assinar mensal'}
-            </Button>
-          </Stack>
-        </CardContent>
-      </Card>
 
       {!mpOn && (
         <Alert severity="info" sx={{ mt: 2 }} icon={<CheckIcon />}>
