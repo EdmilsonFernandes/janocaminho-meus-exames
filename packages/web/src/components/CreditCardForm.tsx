@@ -101,11 +101,13 @@ const expiryOk = (mm: string, yy: string): boolean => {
 
 const fmtBRL = (v: number) => `R$ ${v.toFixed(2).replace('.', ',')}`;
 
-export const CreditCardForm = ({ open, packId, packLabel, price, method, onClose, onApproved, onFinished, onSwitchToPix }: {
+export const CreditCardForm = ({ open, packId, packLabel, price, method, plan, onClose, onApproved, onFinished, onSwitchToPix }: {
   open: boolean;
   packId: string | null;
   packLabel: string;
   price: number;
+  /** true = cobrança do PLANO MENSAL ({plan:'monthly'} no server), não de pack. */
+  plan?: boolean;
   /** card = crédito · debit = débito à vista (mesmo form, billingType muda no server) */
   method: 'card' | 'debit';
   /** X/ESC — cancelar (volta pra escolha de forma de pagamento) */
@@ -192,7 +194,7 @@ export const CreditCardForm = ({ open, packId, packLabel, price, method, onClose
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
         body: JSON.stringify({
-          pack: packId, method,
+          ...(plan ? { plan: 'monthly' } : { pack: packId }), method,
           card: { number: digits(number), holderName: holderName.trim().toUpperCase(), expiryMonth: mm, expiryYear: yy, ccv: digits(ccv) },
           holder: { name: holderName.trim(), cpf: digits(cpf), postalCode: digits(cep), addressNumber: addressNumber.trim() },
         }),
@@ -215,7 +217,7 @@ export const CreditCardForm = ({ open, packId, packLabel, price, method, onClose
           <CheckIcon sx={{ fontSize: 64, color: 'success.main', animation: 'popIn .45s cubic-bezier(.2,1.4,.4,1)', transformOrigin: 'center' }} />
           <Typography sx={{ fontWeight: 800, fontSize: 20, mt: 1.5 }}>Pagamento aprovado!</Typography>
           <Typography color="text.secondary" sx={{ mt: 0.5 }}>{packLabel}</Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>Os créditos já estão na sua conta.</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>{plan ? '👑 Premium ativo por 30 dias — créditos mensais já na conta.' : 'Os créditos já estão na sua conta.'}</Typography>
           <Button variant="contained" fullWidth onClick={() => { stopPoll(); onFinished(); }} sx={{ mt: 3, minHeight: 48, borderRadius: '12px', fontWeight: 800 }}>
             Concluir
           </Button>

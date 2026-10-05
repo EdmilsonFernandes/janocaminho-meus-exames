@@ -544,10 +544,12 @@ router.get('/feature-usage', async (_req, res, next) => {
       prisma.$queryRaw<RecRow[]>`SELECT u.email, u.name, s."createdAt" AS at FROM mental_health_screenings s JOIN patients p ON p.id = s."patientId" JOIN users u ON u.id = p."ownerId" ORDER BY s."createdAt" DESC LIMIT 5`.catch(() => [] as RecRow[]),
     ]);
 
-    // Libras: coluna NOVA (migration 20260928) — drift-safe.
-    const [libras, librasRec] = await Promise.all([
+    // Libras e Indicações (MGM)
+    const [libras, librasRec, refs, refsRec] = await Promise.all([
       prisma.$queryRaw<FeatRow[]>`SELECT COUNT(*)::int AS cnt, NULL::timestamp AS last FROM users WHERE "librasEnabled" = true`.catch(() => [{ cnt: 0, last: null }] as FeatRow[]),
       prisma.$queryRaw<RecRow[]>`SELECT email, name, "createdAt" AS at FROM users WHERE "librasEnabled" = true ORDER BY "createdAt" DESC LIMIT 5`.catch(() => [] as RecRow[]),
+      prisma.$queryRaw<FeatRow[]>`SELECT COUNT(*)::int AS cnt, MAX("createdAt") AS last FROM users WHERE "referredBy" IS NOT NULL AND "referredBy" <> ''`.catch(() => [{ cnt: 0, last: null }] as FeatRow[]),
+      prisma.$queryRaw<RecRow[]>`SELECT email, name, "createdAt" AS at FROM users WHERE "referredBy" IS NOT NULL AND "referredBy" <> '' ORDER BY "createdAt" DESC LIMIT 5`.catch(() => [] as RecRow[]),
     ]);
 
     const base = verified || 1;
@@ -565,6 +567,7 @@ router.get('/feature-usage', async (_req, res, next) => {
       },
       activity: { active7, active30 },
       features: [
+        mkFeature('indicacoes', 'Veio por indicação (MGM)', scalar(refs), recent(refsRec)),
         mkFeature('medicacoes', 'Cadastrou remédios', scalar(meds), recent(medsRec)),
         mkFeature('lembretes', 'Usa lembretes', scalar(reminders), recent(remRec)),
         mkFeature('gastos-remedios', 'Lançou gasto de remédio', scalar(expMed), recent(expMedRec)),
@@ -577,6 +580,125 @@ router.get('/feature-usage', async (_req, res, next) => {
         mkFeature('saude-mental', 'Respondeu PHQ-9/GAD-7', scalar(trials), recent(trialsRec)),
         mkFeature('libras', 'Libras ativada', scalar(libras), recent(librasRec)),
       ],
+    });
+  } catch (e) { next(e); }
+});
+
+// INDICAÇÕES / REFERRALS — Gestão completa do programa "Indique e Ganhe"
+router.get('/referrals', async (_req, res, next) => {
+  try {
+    const now = new Date();
+    const [totalReferred, verifiedReferred, premiumReferred, withExamsR, bonusTotalR, topReferrersRaw, recentReferralsRaw] = await Promise.all([
+      prisma.user.count({ where: { referredBy: { not: null } } }),
+      prisma.user.count({ where: { referredBy: { not: null }, emailVerified: true } }),
+      prisma.user.count({ where: { referredBy: { not: null }, planExpiresAt: { gt: now } } }),
+      prisma.$queryRaw<{ cnt: bigint }[]>`
+        SELECT COUNT(DISTINCT u.id)::int as cnt
+        FROM users u
+        JOIN patients p ON p."ownerId" = u.id
+        JOIN exams e ON e."patientId" = p.id
+        WHERE u."referredBy" IS NOT NULL AND u."referredBy" <> ''
+      `.catch(() => [{ cnt: BigInt(0) }]),
+      prisma.creditTransaction.aggregate({
+        where: { kind: 'referral' },
+        _sum: { delta: true },
+      }).catch(() => ({ _sum: { delta: 0 } })),
+      // Top promotores ordenados por volume de indicações
+      prisma.$queryRaw<{ referralCode: string; count: bigint }[]>`
+        SELECT "referredBy" as "referralCode", COUNT(*)::bigint as count
+        FROM users
+        WHERE "referredBy" IS NOT NULL AND "referredBy" <> ''
+        GROUP BY "referredBy"
+        ORDER BY count DESC
+        LIMIT 15
+      `.catch(() => []),
+      // Últimos 30 usuários que entraram via código de indicação
+      prisma.user.findMany({
+        where: { referredBy: { not: null } },
+        orderBy: { createdAt: 'desc' },
+        take: 30,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          createdAt: true,
+          emailVerified: true,
+          referredBy: true,
+          planExpiresAt: true,
+          credits: true,
+          patients: {
+            select: {
+              _count: { select: { exams: true } },
+            },
+          },
+        },
+      }),
+    ]);
+
+    // Resgata dados dos padrinhos do top 15
+    const topCodes = topReferrersRaw.map((r) => r.referralCode).filter(Boolean);
+    const referrersUsers = topCodes.length
+      ? await prisma.user.findMany({
+          where: { referralCode: { in: topCodes } },
+          select: { id: true, name: true, email: true, referralCode: true, credits: true },
+        })
+      : [];
+    const referrersMap = new Map(referrersUsers.map((u) => [u.referralCode, u]));
+
+    const topReferrers = topReferrersRaw.map((r) => {
+      const u = referrersMap.get(r.referralCode);
+      return {
+        referralCode: r.referralCode,
+        count: Number(r.count),
+        userName: u?.name || 'Usuário',
+        userEmail: u?.email || '—',
+        userCredits: u?.credits ?? 0,
+      };
+    });
+
+    // Padrinhos da lista de recentes
+    const recentCodes = [...new Set(recentReferralsRaw.map((r) => r.referredBy!).filter(Boolean))];
+    const recentReferrersUsers = recentCodes.length
+      ? await prisma.user.findMany({
+          where: { referralCode: { in: recentCodes } },
+          select: { id: true, name: true, email: true, referralCode: true },
+        })
+      : [];
+    const recentMap = new Map(recentReferrersUsers.map((u) => [u.referralCode, u]));
+
+    const recent = recentReferralsRaw.map((u) => {
+      const ref = u.referredBy ? recentMap.get(u.referredBy) : null;
+      const examCount = u.patients?.reduce((acc, p) => acc + (p._count?.exams || 0), 0) || 0;
+      return {
+        id: u.id,
+        name: u.name || 'Sem nome',
+        email: u.email,
+        createdAt: u.createdAt,
+        emailVerified: !!u.emailVerified,
+        isPremium: u.planExpiresAt ? new Date(u.planExpiresAt) > now : false,
+        examCount,
+        credits: u.credits,
+        referredByCode: u.referredBy,
+        referrerName: ref?.name || `Código ${u.referredBy}`,
+        referrerEmail: ref?.email || '—',
+      };
+    });
+
+    const withExams = Number(withExamsR[0]?.cnt ?? 0);
+    const totalBonus = Number(bonusTotalR?._sum?.delta ?? 0);
+
+    res.json({
+      stats: {
+        totalReferred,
+        verifiedReferred,
+        withExams,
+        premiumReferred,
+        totalBonus,
+        conversionRate: totalReferred > 0 ? Math.round((verifiedReferred / totalReferred) * 1000) / 10 : 0,
+        examRate: verifiedReferred > 0 ? Math.round((withExams / verifiedReferred) * 1000) / 10 : 0,
+      },
+      topReferrers,
+      recent,
     });
   } catch (e) { next(e); }
 });

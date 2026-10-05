@@ -39,8 +39,8 @@ const extractCredits = (label: string): number => {
   return m ? Number(m[1]) : 0;
 };
 
-export const PaymentChooser = ({ packId, packLabel, packPrice, onClose, onPix, onCardApproved }: {
-  packId: string | null; packLabel: string; packPrice: number; onClose: () => void; onPix: () => void; onCardApproved: () => void;
+export const PaymentChooser = ({ packId, packLabel, packPrice, plan, onClose, onPix, onCardApproved }: {
+  packId: string | null; packLabel: string; packPrice: number; plan?: boolean; onClose: () => void; onPix: () => void; onCardApproved: () => void;
 }) => {
   // Kill-switch payments.cardEnabled (AppSetting) — default ligado (form Asaas no ar).
   const [cardEnabled, setCardEnabled] = useState(true);
@@ -63,7 +63,7 @@ export const PaymentChooser = ({ packId, packLabel, packPrice, onClose, onPix, o
   if (cardMethod) {
     return (
       <CreditCardForm
-        open={!!packId} packId={packId} packLabel={packLabel} price={packPrice} method={cardMethod}
+        open={!!packId} packId={packId} packLabel={packLabel} price={packPrice} method={cardMethod} plan={plan}
         onClose={() => setCardMethod(null)}          /* X = volta pra escolha */
         onApproved={onCardApproved}                   /* aprovado: pai notifica/recarrega já */
         onFinished={() => { setCardMethod(null); onClose(); }} /* Concluir: fecha tudo */

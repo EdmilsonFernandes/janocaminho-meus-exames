@@ -15,7 +15,10 @@ type Phase = 'loading' | 'waiting' | 'approved' | 'expired' | 'error';
 /** Modal de pagamento PIX (tela principal de compra desde 02/10 — OpenPix):
  *  gera QR + copia-cola, conta regressiva até expirar, faz polling do status e,
  *  ao aprovar, credita automaticamente (via webhook) e avisa o pai. */
-export const PixModal = ({ packId, onClose, onApproved, existingPix }: { packId: string | null; onClose: () => void; onApproved: () => void; existingPix?: any }) => {
+/** `plan` (05/10): cobra o PLANO MENSAL ({plan:'monthly'}) em vez de pack de créditos —
+ *  o redirect do MP saiu do ar. packId continua sendo o gatilho de abertura (use
+ *  '__plan__' como sentinel no caller). */
+export const PixModal = ({ packId, plan, onClose, onApproved, existingPix }: { packId: string | null; plan?: boolean; onClose: () => void; onApproved: () => void; existingPix?: any }) => {
   const [pix, setPix] = useState<any>(null);
   const [phase, setPhase] = useState<Phase>('loading');
   const [errMsg, setErrMsg] = useState('');
@@ -44,7 +47,7 @@ export const PixModal = ({ packId, onClose, onApproved, existingPix }: { packId:
       try {
         const r = await fetch(`${API_URL}/billing/buy-credits`, {
           method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
-          body: JSON.stringify({ pack: packId }),
+          body: JSON.stringify(plan ? { plan: 'monthly' } : { pack: packId }),
         });
         const d = await r.json();
         if (cancelled) return;
@@ -212,7 +215,7 @@ export const PixModal = ({ packId, onClose, onApproved, existingPix }: { packId:
             }}>
               <CheckCircleIcon sx={{ fontSize: 64, color: 'success.main' }} />
               <Typography variant="h6" sx={{ mt: 1, fontWeight: 800 }}>Pagamento aprovado!</Typography>
-              <Typography color="text.secondary">+{pix?.credits ?? ''} créditos adicionados. 🎉</Typography>
+              <Typography color="text.secondary">{plan ? '👑 Premium ativo por 30 dias!' : `+${pix?.credits ?? ''} créditos adicionados. 🎉`}</Typography>
             </Box>
           </Box>
         )}

@@ -172,6 +172,72 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
     const user = await prisma.user.findUnique({ where: { id: req.userId! } });
     if (!user) { res.status(404).json({ error: 'Usuário não encontrado' }); return; }
 
+    // ===== PLANO MENSAL por PIX (05/10, urgente — dono): o redirect do Checkout Pro (MP)
+    // saiu do ar; assinar Premium agora usa ESTA rota com { plan: 'monthly' }. Fluxo próprio
+    // (lock/retomada por periodDays>0) sem tocar no fluxo de packs embaixo. Cartão do plano
+    // usa /pay-card (também estendido). Webhooks aprovam como plano via periodDays>0. =====
+    if (req.body?.plan === 'monthly') {
+      if (method !== 'pix') { res.status(400).json({ error: 'Plano com cartão usa /billing/pay-card.' }); return; }
+      const monthlyPlan = getMonthlyPlan();
+      const eff = getEffectivePlanPrice();
+      const monthlyCredits = getSettings().grants.monthly;
+      await cancelStalePendingPixes().catch(() => {});
+      // Retomada (mesmo padrão gateway): PIX do plano vivo → 409 com o mesmo QR/timer.
+      const existingPlan = await prisma.subscription.findFirst({
+        where: { userId: user.id, status: 'PENDING', periodDays: { gt: 0 }, pixExpiresAt: { gt: new Date() } },
+        orderBy: { createdAt: 'desc' },
+        select: { id: true, mpPaymentId: true, pixQrCode: true, pixQrBase64: true, pixExpiresAt: true, pixCredits: true, amount: true },
+      });
+      if (existingPlan?.pixQrCode && existingPlan?.pixQrBase64 && existingPlan?.pixExpiresAt) {
+        res.status(409).json({
+          error: 'Você já tem um PIX do plano pendente. Conclua o pagamento ou aguarde expirar.',
+          pendingPix: {
+            id: existingPlan.id, paymentId: existingPlan.mpPaymentId ?? '', qrCode: existingPlan.pixQrCode,
+            qrBase64: existingPlan.pixQrBase64, expiresAt: existingPlan.pixExpiresAt.toISOString(),
+            credits: existingPlan.pixCredits ?? monthlyCredits, price: existingPlan.amount,
+          },
+        });
+        return;
+      }
+      if (existingPlan) await updateSubscriptionCompat(existingPlan.id, { status: 'CANCELLED' });
+      await prisma.subscription.updateMany({
+        where: { userId: user.id, status: 'PENDING', periodDays: { gt: 0 }, pixExpiresAt: { lt: new Date() } },
+        data: { status: 'CANCELLED' },
+      });
+      const sub = await createSubscriptionCompat({ userId: user.id, amount: eff.price, periodDays: monthlyPlan.periodDays, status: 'PENDING' });
+      const expires = new Date(Date.now() + 10 * 60 * 1000);
+      let charge;
+      try {
+        charge = await createPixCharge({
+          amountBrlCents: Math.round(eff.price * 100),
+          correlationID: `plan_${sub.id}`, // legível no dashboard do provider
+          externalReference: sub.id, // SEM "|créditos" — webhooks diferenciam plano pelo periodDays
+          description: 'Dr. Exame — Plano Premium Mensal',
+          payerEmail: user.email,
+          payerFirstName: (user.name || 'Cliente').split(' ')[0],
+          userId: user.id,
+          payerName: user.name || undefined,
+          payerCpfCnpj: await payerCpfFor(user.id),
+          expiresAt: expires,
+          notificationUrl: publicNotifyUrl(),
+        });
+      } catch (e) {
+        console.error('[buy-credits] PIX do PLANO falhou (' + activePixProvider() + '):', (e as Error).message);
+        await updateSubscriptionCompat(sub.id, { status: 'FAILED' });
+        res.status(503).json({ error: 'Pagamento indisponível no momento — tente novamente em alguns minutos. Se persistir, fale com o suporte.' });
+        return;
+      }
+      console.log('[buy-credits] PIX do plano criado:', charge.id, '| provider:', activePixProvider(), '| fundador:', eff.founder);
+      const qrImg = charge.qrBase64 ? (charge.qrBase64.startsWith('data:') ? charge.qrBase64 : `data:image/png;base64,${charge.qrBase64}`) : '';
+      if (subscriptionColumns.hasPixResume) {
+        await updateSubscriptionCompat(sub.id, { mpPaymentId: charge.id, pixQrCode: charge.qrCode, pixQrBase64: qrImg, pixExpiresAt: expires, pixCredits: monthlyCredits });
+      } else {
+        await updateSubscriptionCompat(sub.id, { mpPaymentId: charge.id });
+      }
+      res.json({ paymentId: charge.id, qrCode: charge.qrCode, qrBase64: qrImg, expiresAt: expires.toISOString(), credits: monthlyCredits, price: eff.price, plan: true });
+      return;
+    }
+
     // ===== LOCK (PIX de créditos): 1 PIX pendente por vez — vale p/ QUALQUER método =====
     if (subscriptionColumns.hasPixResume) {
       // Rede de segurança: PIX órfão >24h vira CANCELLED antes do lock (job boot/1h
@@ -345,8 +411,17 @@ router.post('/pay-card', requireAuth, async (req: AuthedRequest, res, next) => {
     if (!hasAsaas()) { res.status(503).json({ error: 'Cartão indisponível (Asaas não configurado).' }); return; }
     if (payCardRateLimited(req.userId!)) { res.status(429).json({ error: 'Muitas tentativas. Aguarde 1 minuto.' }); return; }
 
-    const pack = packById(String(req.body?.pack ?? ''));
-    if (!pack) { res.status(400).json({ error: 'Pacote inválido' }); return; }
+    // 05/10: { plan: 'monthly' } → cobrança do PLANO MENSAL (MP redirect saiu do ar);
+    // pack continua para créditos avulsos.
+    const isPlan = req.body?.plan === 'monthly';
+    const pack = isPlan ? null : packById(String(req.body?.pack ?? ''));
+    if (!isPlan && !pack) { res.status(400).json({ error: 'Pacote inválido' }); return; }
+    const monthlyPlan = getMonthlyPlan();
+    const effPrice = getEffectivePlanPrice().price;
+    const amount = isPlan ? effPrice : (pack as { price: number }).price;
+    const creditsAmount = isPlan ? getSettings().grants.monthly : (pack as { credits: number }).credits;
+    const periodDays = isPlan ? monthlyPlan.periodDays : 0;
+    const chargeLabel = isPlan ? 'Plano Premium Mensal' : `${(pack as { credits: number }).credits} créditos de IA`;
     const method = String(req.body?.method ?? 'card').toLowerCase() === 'debit' ? 'debit' : 'card';
     const billingType = method === 'debit' ? 'DEBIT_CARD' as const : 'CREDIT_CARD' as const;
 
@@ -378,7 +453,7 @@ router.post('/pay-card', requireAuth, async (req: AuthedRequest, res, next) => {
           pendingPix: {
             id: existing.id, paymentId: existing.mpPaymentId ?? '', qrCode: existing.pixQrCode,
             qrBase64: existing.pixQrBase64, expiresAt: existing.pixExpiresAt.toISOString(),
-            credits: existing.pixCredits ?? pack.credits, price: existing.amount,
+            credits: existing.pixCredits ?? 0, price: existing.amount,
           },
         });
         return;
@@ -395,15 +470,16 @@ router.post('/pay-card', requireAuth, async (req: AuthedRequest, res, next) => {
       data: { status: 'CANCELLED' },
     }).catch(() => {});
 
-    const sub = await createSubscriptionCompat({ userId: user.id, amount: pack.price, periodDays: 0, status: 'PENDING' });
-    const externalReference = `${sub.id}|${pack.credits}`; // mesmo contrato do MP (dashboard Asaas legível)
+    const sub = await createSubscriptionCompat({ userId: user.id, amount, periodDays, status: 'PENDING' });
+    // Plano: externalReference = subId puro (sem "|créditos") — webhooks diferenciam pelo periodDays.
+    const externalReference = isPlan ? sub.id : `${sub.id}|${creditsAmount}`;
 
     let charge;
     try {
       charge = await createAsaasCardCharge({
-        amountBrlCents: Math.round(pack.price * 100),
+        amountBrlCents: Math.round(amount * 100),
         correlationID: externalReference,
-        description: `Dr. Exame — ${pack.credits} créditos de IA`,
+        description: `Dr. Exame — ${chargeLabel}`,
         userId: user.id,
         userName: user.name ?? undefined,
         userEmail: user.email,
@@ -446,7 +522,7 @@ router.post('/pay-card', requireAuth, async (req: AuthedRequest, res, next) => {
     // Registra o payment ANTES de aprovar: o webhook do Asaas (PAYMENT_RECEIVED pode
     // disparar em segundos no cartão) casa por mpPaymentId e credita por pixCredits.
     if (subscriptionColumns.hasPixResume) {
-      await updateSubscriptionCompat(sub.id, { mpPaymentId: charge.paymentId, pixCredits: pack.credits });
+      await updateSubscriptionCompat(sub.id, { mpPaymentId: charge.paymentId, pixCredits: creditsAmount });
     } else {
       await updateSubscriptionCompat(sub.id, { mpPaymentId: charge.paymentId });
     }
@@ -456,13 +532,14 @@ router.post('/pay-card', requireAuth, async (req: AuthedRequest, res, next) => {
     // mostra o 3DS (se veio URL) ou aguarda webhook/poll.
     const confirmed = charge.status === 'CONFIRMED' || charge.status === 'RECEIVED' || charge.status === 'DETERMINED';
     if (confirmed) {
-      await approvePendingSubscription(sub.id, { type: 'credits', credits: pack.credits }, charge.paymentId);
-      console.log(`[pay-card] aprovado — ${charge.paymentId} (****${cardLast4(card.number)}, ${billingType}) +${pack.credits} créditos`);
-      res.json({ paymentId: charge.paymentId, status: 'CONFIRMED', approved: true, credits: pack.credits });
+      // Plano aprova como PLANO (webhook parity); pack como créditos.
+      await approvePendingSubscription(sub.id, isPlan ? { type: 'plan' } : { type: 'credits', credits: creditsAmount }, charge.paymentId);
+      console.log(`[pay-card] aprovado — ${charge.paymentId} (****${cardLast4(card.number)}, ${billingType}) ${isPlan ? 'PLANO 30d' : `+${creditsAmount} créditos`}`);
+      res.json({ paymentId: charge.paymentId, status: 'CONFIRMED', approved: true, credits: creditsAmount, plan: isPlan || undefined });
       return;
     }
     console.log(`[pay-card] pendente — ${charge.paymentId} (****${cardLast4(card.number)}, ${billingType}, 3DS: ${charge.threeDSUrl ? 'sim' : 'não'})`);
-    res.json({ paymentId: charge.paymentId, status: 'PENDING', approved: false, credits: pack.credits, threeDSUrl: charge.threeDSUrl });
+    res.json({ paymentId: charge.paymentId, status: 'PENDING', approved: false, credits: creditsAmount, plan: isPlan || undefined, threeDSUrl: charge.threeDSUrl });
   } catch (e) { next(e); }
 });
 

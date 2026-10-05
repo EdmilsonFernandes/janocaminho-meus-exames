@@ -106,21 +106,14 @@ export const PlansPage = () => {
     if (params.get('status') === 'failure') notify('Pagamento não concluído.', { type: 'error' });
   }, [params, notify]);
 
-  const subscribe = async () => {
-    setSubLoading(true);
-    try {
-      const r = await fetch(`${API_URL}/billing/checkout`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
-        body: JSON.stringify({ plan: 'monthly' }),
-      });
-      const d = await r.json();
-      if (!r.ok) throw new Error(d.error || 'Falha');
-      if (d.init_point) {
-        if (Capacitor.isNativePlatform()) await Browser.open({ url: d.init_point });
-        else window.location.href = d.init_point;
-      }
-    } catch (e: any) { notify(e.message, { type: 'error' }); }
-    finally { setSubLoading(false); }
+  // 05/10 URGENTE (dono): assinar Premium pelo fluxo NOVO — PIX inline (Asaas/OpenPix)
+  // ou cartão/débito inline (Asaas). O redirect do Checkout Pro (MP) saiu do ar e levava
+  // o usuário pra uma página morta. Mesmo PaymentChooser dos créditos, com plan='monthly'.
+  const openPlanPay = () => {
+    const price = planInfo?.plan?.effectivePrice ?? 19.9;
+    setChooserLabel(`👑 Premium Mensal — ${fmtBRL(price)} · 30 dias`);
+    setChooserPrice(price);
+    setChooserPack('__plan__'); // sentinel: PaymentChooser/PixModal reconhecem como plano
   };
 
   const fmt = (d: string) => new Date(d).toLocaleDateString('pt-BR');
