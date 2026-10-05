@@ -33,6 +33,8 @@ const I = {
 // Micro-animações premium: mascote "respira" (vivo, não estático) + card entra suave.
 const breathe = keyframes`0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(32,178,170,0)}50%{transform:scale(1.035);box-shadow:0 0 0 7px rgba(32,178,170,.10)}`;
 const cardIn = keyframes`from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}`;
+/** Entrada da folha: sobe de baixo (bottom-sheet nativo). */
+const sheetIn = keyframes`from{opacity:0;transform:translateY(34px)}to{opacity:1;transform:translateY(0)}`;
 
 /* Contraste WCAG: o teal assinatura #20b2aa fica em aura/mascote/acentos; superfícies que
  * CARREGAM TEXTO BRANCO usam o intervalo escuro da mesma família (#178f89 ≈ 5.3:1, #0f766e ≈ 6.6:1).
@@ -50,24 +52,44 @@ const SERIF_I = { fontFamily: "'Instrument Serif', Georgia, serif", fontStyle: '
 const Shell = ({ children, subtitle }: { children: ReactNode; subtitle?: string }) => {
   const translate = useTranslate();
   return (
-  <Box sx={{ minHeight: '100dvh', display: 'flex', p: 2,
-    background: 'radial-gradient(circle at 50% 18%, rgba(32,178,170,.20), rgba(32,178,170,.05) 55%, transparent 80%), linear-gradient(160deg, rgba(32,178,170,.10), rgba(32,178,170,.02))' }}>
-    <Box sx={{ width: '100%', maxWidth: 410, m: 'auto', bgcolor: 'background.paper', borderRadius: '16px',
-      boxShadow: '0 24px 60px rgba(0,80,70,.14), 0 2px 8px rgba(0,80,70,.06)',
-      border: '1px solid', borderColor: 'rgba(32,178,170,.10)',
-      p: { xs: 3, sm: 4.5 }, animation: `${cardIn} .42s cubic-bezier(.16,1,.3,1) both` }}>
-      <Stack alignItems="center" spacing={1.25} sx={{ mb: 3.5 }}>
-        <Box sx={{ width: 86, height: 86, borderRadius: '50%',
-          background: 'radial-gradient(circle at 50% 40%, rgba(32,178,170,.24), rgba(32,178,170,.05) 72%)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          animation: `${breathe} 3.6s ease-in-out infinite` }}>
-          <DrExame size={60} sx={{ borderRadius: '50%' }} />
-        </Box>
-        <Box sx={{ textAlign: 'center', mt: 0.5 }}>
-          <Typography sx={{ fontWeight: 800, color: 'text.primary', fontFamily: '"Poppins",sans-serif', letterSpacing: '-0.02em', lineHeight: 1.15, fontSize: { xs: 24, sm: 26 } }}>Meus Exames</Typography>
-          <Typography sx={{ ...SERIF_I, fontSize: 15, color: (t) => tealText(t.palette.mode), mt: 0.25 }}>{subtitle ?? translate('auth.subtitle')}</Typography>
-        </Box>
-      </Stack>
+  /* Padrão app nativo (estudo Soufix): FAIXA DA MARCA no topo (gradiente teal contínuo
+   * nos dois modos — cor de marca não muda c/ tema) + FOLHA branca/escura com cantos
+   * 32px subindo por cima (bottom-sheet). Substitui o card flutuante centrado. */
+  <Box sx={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column',
+    background: (t) => (t.palette.mode === 'dark'
+      ? 'radial-gradient(circle at 50% 0%, rgba(32,178,170,.30), transparent 60%), #0f1818'
+      : 'radial-gradient(circle at 50% 0%, rgba(32,178,170,.25), transparent 60%), linear-gradient(165deg, #1a9d94 0%, #178f89 55%, #0c4a46 100%)') }}>
+    {/* header da marca — mascote + título na faixa teal */}
+    <Stack alignItems="center" spacing={0.5} sx={{ pt: { xs: 4.5, sm: 6 }, pb: 5, px: 2, textAlign: 'center', position: 'relative' }}>
+      <Box sx={{
+        width: 92, height: 92, borderRadius: '50%',
+        background: 'radial-gradient(circle at 50% 38%, rgba(255,255,255,.32), rgba(255,255,255,.08) 72%)',
+        border: '1px solid rgba(255,255,255,.35)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        animation: `${breathe} 3.6s ease-in-out infinite`,
+        boxShadow: '0 10px 30px rgba(0,50,45,.35)',
+      }}>
+        <DrExame size={62} sx={{ borderRadius: '50%' }} />
+      </Box>
+      <Typography sx={{ fontWeight: 800, color: '#fff', fontFamily: '"Poppins",sans-serif', letterSpacing: '-0.02em', lineHeight: 1.15, fontSize: { xs: 25, sm: 27 }, mt: 1.5, textShadow: '0 1px 8px rgba(0,60,55,.35)' }}>
+        Meus Exames
+      </Typography>
+      <Typography sx={{ ...SERIF_I, fontSize: 14.5, color: 'rgba(255,255,255,.88)', mt: 0.25 }}>
+        {subtitle ?? translate('auth.subtitle')}
+      </Typography>
+    </Stack>
+
+    {/* folha (sheet) — sobe sobre a faixa, cantos arredondados no topo */}
+    <Box sx={{
+      width: '100%', maxWidth: 430, mx: 'auto', flexGrow: 1,
+      bgcolor: 'background.paper',
+      borderTopLeftRadius: 32, borderTopRightRadius: 32,
+      borderTop: '1px solid', borderLeft: '1px solid', borderRight: '1px solid',
+      borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,.07)' : 'rgba(32,178,170,.14)'),
+      boxShadow: '0 -14px 44px rgba(0,60,55,.22)',
+      px: { xs: 2.5, sm: 4 }, pt: { xs: 2.5, sm: 3 }, pb: 3,
+      animation: `${sheetIn} .5s cubic-bezier(.16,1,.3,1) both`,
+    }}>
       {children}
       <Box sx={{ mt: 3, p: 1.25, borderRadius: '12px', bgcolor: 'background.default', border: '1px solid', borderColor: 'divider' }}>
         <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
