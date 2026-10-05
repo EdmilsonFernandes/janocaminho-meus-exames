@@ -118,7 +118,7 @@ router.post('/', decifreLimiter, upload.single('file'), async (req, res, next) =
     const hash = createHash('sha256').update(texto).digest('hex');
     const hit = cache.get(hash);
     if (hit && hit.expiresAt > Date.now()) {
-      void trackDecifre(req, hit.items, true);
+      await trackDecifre(req, hit.items, true);
       res.json({ items: hit.items, totalDetected: hit.totalDetected, cached: true, disclaimer: DISCLAIMER });
       return;
     }
@@ -154,7 +154,7 @@ router.post('/', decifreLimiter, upload.single('file'), async (req, res, next) =
     // teto 400 (alucinação de modelo não vira "999 valores encontrados").
     const totalDetected = Math.min(Math.max(totalRaw, items.length), 400);
     cache.set(hash, { items, totalDetected, expiresAt: Date.now() + CACHE_TTL_MS });
-    void trackDecifre(req, items, false);
+    await trackDecifre(req, items, false);
     res.json({ items, totalDetected, cached: false, disclaimer: DISCLAIMER });
   } catch (e: any) {
     if (String(e?.message || '').includes('LLM') || String(e?.message || '').includes('provider')) {
