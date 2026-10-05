@@ -5,7 +5,8 @@ import { alpha } from '@mui/material/styles';
 import { API_URL, token } from '../../config';
 import { SEM, copperText, tealText } from '../../theme';
 import { ActivationChecklist } from './ActivationChecklist';
-import { deltaEntre, deltaLabel, proximaJanela } from '../../utils/mental-delta';
+import { deltaEntre, deltaLabel, diasAteJanela } from '../../utils/mental-delta';
+import { SeverityBar } from '../mental/SeverityBar';
 import { Heartbeat, Stethoscope, ChartLineUp, Dna, ChatCircle } from '@phosphor-icons/react';
 import { useSelectedPatient } from '../../patient-context';
 import { syncPushToken } from '../../push';
@@ -334,49 +335,79 @@ const MentalCard = ({ mental, mentalOffline, introDismissed, onDismissIntro, onO
     );
   }
 
-  const prev = latest.type === 'phq9' ? phq9Previous : gad7Previous;
-  const delta = prev ? deltaEntre(prev.total, latest.total) : null;
-  const toneKey = delta ? (delta.tone === 'good' ? 'ok' : delta.tone === 'warn' ? 'warn' : null) : null;
-  return (
-    <AppCard kind="interactive" onClick={onOpen} aria-label="Saúde mental — ver rastreamentos" sx={{ p: 1.5, borderRadius: '16px', display: 'flex', alignItems: 'center', gap: 1.5 }}>
-      <Box sx={{ width: 40, height: 40, borderRadius: '12px', flexShrink: 0, display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,.12)', fontSize: 20 }} aria-hidden="true">🧠</Box>
-      <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography component="h2" sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: 13.5, lineHeight: 1.2 }}>Saúde mental</Typography>
-        <Stack direction="row" spacing={0.75} alignItems="center" sx={{ flexWrap: 'wrap', rowGap: 0.25 }}>
-          <Typography noWrap sx={{ fontWeight: 800, fontSize: 15, lineHeight: 1.3, color: 'text.primary' }}>
-            {latest.type === 'phq9' ? 'PHQ-9' : 'GAD-7'} {latest.total}/{latest.type === 'phq9' ? 27 : 21} · {latest.severity.label}
-            {/* 29/09 (dono: "não explicou de quanto a quanto vai") — range da faixa atual. */}
-            {' '}({(latest.type === 'phq9'
-              ? { minima: '0-4', leve: '5-9', moderada: '10-14', moderadamente_grave: '15-19', grave: '20-27' }
-              : { minima: '0-4', leve: '5-9', moderada: '10-14', moderadamente_grave: '15-21', grave: '15-21' }
-            )[latest.severity.key] ?? ''})
-          </Typography>
-          {delta && prev && (
-            <Chip
-              size="small"
-              label={deltaLabel(delta, prev.createdAt)}
-              aria-label={`Diferença desde o rastreamento anterior: ${delta.dir === 'down' ? 'menos' : delta.dir === 'up' ? 'mais' : 'igual'} ${delta.abs} pontos`}
-              sx={{
-                height: 21, fontSize: 12, fontWeight: 800,
-                ...(toneKey
-                  ? { bgcolor: (t) => `${SEM[toneKey][t.palette.mode]}1f`, color: (t) => SEM[toneKey][t.palette.mode] }
-                  : { bgcolor: 'action.selected', color: 'text.secondary' }),
-              }}
-            />
+  // 05/10 (dono: "falta um tchan"): os DOIS instrumentos lado a lado, cada um com a
+  // régua de severidade (marcador animado) + delta. Selo da janela no topo.
+  const dias = diasAteJanela(latest.createdAt);
+  const due = dias <= 0 || !phq9 || !gad7;
+  const ideation = !!(phq9?.suicidalIdeation || gad7?.suicidalIdeation);
+  const Row = ({ kind, row, prev }: { kind: 'phq9' | 'gad7'; row: typeof phq9; prev: typeof phq9Previous }) => {
+    const label = kind === 'phq9' ? 'Humor' : 'Ansiedade';
+    if (!row) {
+      return (
+        <Box sx={{ minWidth: 0 }}>
+          <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary' }}>{label}</Typography>
+          <Typography sx={{ fontSize: 13, fontWeight: 700, color: (t) => tealText(t.palette.mode), mt: 0.5 }}>Responder · 2 min →</Typography>
+        </Box>
+      );
+    }
+    const d = prev ? deltaEntre(prev.total, row.total) : null;
+    const tk = d ? (d.tone === 'good' ? 'ok' : d.tone === 'warn' ? 'warn' : null) : null;
+    return (
+      <Box sx={{ minWidth: 0 }}>
+        <Stack direction="row" alignItems="baseline" spacing={0.5} sx={{ minWidth: 0 }}>
+          <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary' }}>{label}</Typography>
+          <Box sx={{ flex: 1 }} />
+          {d && prev && (
+            <Typography component="span" aria-label={`Diferença desde o rastreamento anterior: ${d.dir === 'down' ? 'menos' : d.dir === 'up' ? 'mais' : 'igual'} ${d.abs} pontos`}
+              title={deltaLabel(d, prev.createdAt)}
+              sx={{ fontSize: 11, fontWeight: 800, color: tk ? (t) => SEM[tk][t.palette.mode] : 'text.secondary' }}>
+              {d.dir === 'down' ? '↓' : d.dir === 'up' ? '↑' : '±'}{d.abs}
+            </Typography>
           )}
         </Stack>
-        {/* F3 — presença, não pânico: 1 linha discreta quando o PHQ-9 marcou ideação (item 9 > 0).
-            Campo opcional (cache offline antigo não tem) → truthy check degrada com segurança. */}
-        {latest.suicidalIdeation && (
-          <Typography noWrap sx={{ fontSize: 12, fontWeight: 700, color: (t) => tealText(t.palette.mode) }}>
-            Apoio 24h: CVV 188
-          </Typography>
-        )}
-        <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary' }}>
-          {fmtDay(latest.createdAt)} · próxima janela {proximaJanela(latest.createdAt)}
-        </Typography>
+        <Stack direction="row" alignItems="baseline" spacing={0.5} sx={{ mt: 0.25 }}>
+          <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 22, lineHeight: 1.1, letterSpacing: '-0.02em' }}>{row.total}</Typography>
+          <Typography sx={{ fontSize: 11.5, color: 'text.disabled', fontWeight: 600 }}>/{kind === 'phq9' ? 27 : 21}</Typography>
+          <Typography noWrap sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary', ml: 0.5 }}>{row.severity.label}</Typography>
+        </Stack>
+        <Box sx={{ mt: 0.5 }}><SeverityBar type={kind} score={row.total} compact /></Box>
       </Box>
-      <ChevronRightIcon sx={{ color: 'text.disabled', flexShrink: 0 }} />
+    );
+  };
+
+  return (
+    <AppCard kind="interactive" onClick={onOpen} aria-label="Saúde mental — ver rastreamentos" sx={{
+      p: 1.75, borderRadius: '18px', position: 'relative', overflow: 'hidden',
+      background: (t) => t.palette.mode === 'dark'
+        ? `radial-gradient(120% 120% at 0% 0%, rgba(32,178,170,.14), transparent 55%), radial-gradient(100% 100% at 100% 100%, rgba(212,165,116,.10), transparent 55%), ${t.palette.background.paper}`
+        : 'radial-gradient(120% 120% at 0% 0%, rgba(32,178,170,.09), transparent 55%), radial-gradient(100% 100% at 100% 100%, rgba(212,165,116,.09), transparent 55%), #fff',
+    }}>
+      <Stack direction="row" alignItems="center" spacing={1.25}>
+        <Box sx={{ width: 38, height: 38, borderRadius: '12px', flexShrink: 0, display: 'grid', placeItems: 'center', fontSize: 19,
+          background: 'linear-gradient(135deg, rgba(32,178,170,.22), rgba(212,165,116,.22))' }} aria-hidden="true">🧠</Box>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography component="h2" sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: 14.5, lineHeight: 1.2 }}>Saúde mental</Typography>
+          <Typography noWrap sx={{ fontSize: 11.5, color: 'text.secondary' }}>Último retrato em {fmtDay(latest.createdAt)}</Typography>
+        </Box>
+        <Chip size="small" label={due ? 'Pode refazer' : `Refazer em ${dias}d`}
+          sx={{ height: 22, fontSize: 11, fontWeight: 800, flexShrink: 0,
+            bgcolor: due ? 'rgba(32,178,170,.15)' : 'action.hover',
+            color: due ? (t) => tealText(t.palette.mode) : 'text.secondary' }} />
+        <ChevronRightIcon sx={{ color: 'text.disabled', flexShrink: 0, ml: -0.5 }} />
+      </Stack>
+
+      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mt: 1.5 }}>
+        {Row({ kind: 'phq9', row: phq9, prev: phq9Previous })}
+        {Row({ kind: 'gad7', row: gad7, prev: gad7Previous })}
+      </Box>
+
+      {/* F3 — presença, não pânico: 1 linha discreta quando o PHQ-9 marcou ideação (item 9 > 0).
+          Campo opcional (cache offline antigo não tem) → truthy check degrada com segurança. */}
+      {ideation && (
+        <Typography noWrap sx={{ mt: 1.25, fontSize: 12, fontWeight: 700, color: (t) => tealText(t.palette.mode) }}>
+          💚 Apoio 24h, gratuito: CVV 188
+        </Typography>
+      )}
     </AppCard>
   );
 };

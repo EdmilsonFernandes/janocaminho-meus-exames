@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Stack } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Stack, Box } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { API_URL, token } from '../config';
 import { DrExame } from './DrExame';
@@ -62,19 +62,116 @@ export const NotificationPopup = () => {
   if (!notif) return null;
 
   return (
-    <Dialog open={open} onClose={() => setOpen(false)} PaperProps={{ sx: { borderRadius: '12px', maxWidth: 420 } }}>
-      <DialogTitle sx={{ textAlign: 'center', pb: 0 }}>
-        <Stack alignItems="center" spacing={1}>
-          <DrExame size={48} sx={{ borderRadius: '50%' }} />
-          <Typography sx={{ fontWeight: 800, fontSize: 18 }}>{notif.title}</Typography>
+    <Dialog
+      open={open}
+      onClose={() => setOpen(false)}
+      slotProps={{
+        backdrop: {
+          sx: {
+            backdropFilter: 'blur(10px)',
+            backgroundColor: 'rgba(15, 24, 24, 0.45)',
+          }
+        }
+      }}
+      PaperProps={{
+        sx: {
+          borderRadius: '24px',
+          maxWidth: 420,
+          width: '92%',
+          p: { xs: 2.5, sm: 3 },
+          position: 'relative',
+          overflow: 'hidden',
+          background: (t) => t.palette.mode === 'dark'
+            ? 'radial-gradient(ellipse at 50% -20%, rgba(32,178,170,0.22), transparent 70%), #131d1d'
+            : 'radial-gradient(ellipse at 50% -20%, rgba(32,178,170,0.18), transparent 70%), #ffffff',
+          boxShadow: '0 24px 60px -12px rgba(0,0,0,0.35), 0 0 0 1px rgba(32,178,170,0.2)',
+        }
+      }}
+    >
+      <DialogTitle sx={{ textAlign: 'center', p: 0, mb: 1.5 }}>
+        <Stack alignItems="center" spacing={1.5}>
+          <Box sx={{
+            p: 0.5,
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, rgba(32,178,170,0.3), rgba(212,165,116,0.3))',
+            boxShadow: '0 8px 24px rgba(32,178,170,0.25)',
+          }}>
+            <DrExame size={52} sx={{ borderRadius: '50%' }} />
+          </Box>
+          <Typography sx={{
+            fontWeight: 800,
+            fontSize: 19,
+            fontFamily: '"Poppins",sans-serif',
+            color: 'text.primary',
+            letterSpacing: '-0.02em',
+            lineHeight: 1.25,
+          }}>
+            {notif.title}
+          </Typography>
         </Stack>
       </DialogTitle>
-      <DialogContent>
-        <Typography sx={{ textAlign: 'center', lineHeight: 1.6, fontSize: 16, whiteSpace: 'pre-wrap' }}>{notif.body}</Typography>
+      <DialogContent sx={{ p: 0, my: 1 }}>
+        <Typography sx={{
+          textAlign: 'center',
+          lineHeight: 1.6,
+          fontSize: 14.5,
+          color: 'text.secondary',
+          whiteSpace: 'pre-wrap',
+        }}>
+          {notif.body}
+        </Typography>
       </DialogContent>
-      <DialogActions sx={{ justifyContent: 'center', pb: 3, gap: 1 }}>
-        <Button variant="outlined" onClick={() => { try { if (notif?.id != null) localStorage.setItem('meDismissedNotif', String(notif.id)); } catch { /* ignore */ } setOpen(false); }} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>Depois</Button>
-        <Button variant="contained" onClick={() => { if (notif?.id) { fetch(`${API_URL}/notifications/${notif.id}/read`, { method: 'PATCH', headers: { Authorization: `Bearer ${token()}` } }).catch(() => {}); window.dispatchEvent(new Event('notificationsRead')); } setOpen(false); navigate(notifRoute(notif) || '/notificacoes'); }} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa' }}>{notifRoute(notif) ? 'Ver agora' : 'Ver notificações'}</Button>
+      <DialogActions sx={{ justifyContent: 'center', p: 0, mt: 2.5, gap: 1.25, width: '100%' }}>
+        <Button
+          fullWidth
+          variant="outlined"
+          onClick={() => {
+            try { if (notif?.id != null) localStorage.setItem('meDismissedNotif', String(notif.id)); } catch {}
+            setOpen(false);
+          }}
+          sx={{
+            borderRadius: '999px',
+            textTransform: 'none',
+            fontWeight: 700,
+            fontSize: 14,
+            py: 1.2,
+            borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)',
+            color: 'text.secondary',
+            '&:hover': {
+              borderColor: 'primary.main',
+              bgcolor: 'action.hover',
+            }
+          }}
+        >
+          Ver depois
+        </Button>
+        <Button
+          fullWidth
+          variant="contained"
+          onClick={() => {
+            if (notif?.id) {
+              fetch(`${API_URL}/notifications/${notif.id}/read`, { method: 'PATCH', headers: { Authorization: `Bearer ${token()}` } }).catch(() => {});
+              window.dispatchEvent(new Event('notificationsRead'));
+            }
+            setOpen(false);
+            navigate(notifRoute(notif) || '/notificacoes');
+          }}
+          sx={{
+            borderRadius: '999px',
+            textTransform: 'none',
+            fontWeight: 800,
+            fontSize: 14,
+            py: 1.2,
+            background: 'linear-gradient(135deg, #20b2aa, #178f89)',
+            boxShadow: '0 6px 18px rgba(32,178,170,0.35)',
+            '&:hover': {
+              background: 'linear-gradient(135deg, #1ea39b, #137772)',
+              boxShadow: '0 8px 24px rgba(32,178,170,0.45)',
+            }
+          }}
+        >
+          {notifRoute(notif) ? 'Ver agora' : 'Ver detalhes'}
+        </Button>
       </DialogActions>
     </Dialog>
   );

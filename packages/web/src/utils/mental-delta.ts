@@ -46,3 +46,13 @@ export const proximaJanela = (iso: string): string => {
   const mm = String(d.getMonth() + 1).padStart(2, '0');
   return `${dd}/${mm}`;
 };
+
+/** Dias (inteiros, calendário local) até a janela de reavaliação (createdAt + 14d).
+ *  ≤ 0 → já pode refazer. `hoje` injetável pra teste. */
+export const diasAteJanela = (iso: string, hoje: Date = new Date()): number => {
+  const base = new Date(iso);
+  if (Number.isNaN(base.getTime())) return 0;
+  const alvo = new Date(base.getFullYear(), base.getMonth(), base.getDate() + 14).getTime();
+  const h = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()).getTime();
+  return Math.round((alvo - h) / 86_400_000);
+};

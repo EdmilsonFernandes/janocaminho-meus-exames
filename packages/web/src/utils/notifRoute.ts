@@ -15,5 +15,7 @@ export function notifRoute(n: any): string | null {
   if (n.type === 'reminder') return '/lembretes';
   if (n.type === 'plan_expiry') return '/planos';
   if (n.type === 'achievement') return '/conquistas';
+  if (n.title?.includes('PIX') || n.body?.includes('PIX')) return '/carteira';
+  if (n.title?.includes('Indique') || n.body?.includes('Indique')) return '/indique';
   return null;
 }
