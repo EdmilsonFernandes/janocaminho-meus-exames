@@ -1,5 +1,7 @@
 {
   "menu.home": "Home",
+  "menu.wallet": "Wallet",
+  "menu.invite": "Invite & earn 🎁",
   "doctor.tabs.exams": "Your patient's exams",
   "doctor.tabs.alterados": "Altered Values",
   "doctor.tabs.relatorio": "Full Report",
