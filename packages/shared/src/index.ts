@@ -2,6 +2,7 @@
 // Os schemas/tipos de API vivem em ./schemas (Zod = fonte de verdade).
 export * from './schemas/exams';
 export * from './schemas/items';
+export * from './schemas/goals';
 export * from './idealRanges';
 export * from './mental-health';
 

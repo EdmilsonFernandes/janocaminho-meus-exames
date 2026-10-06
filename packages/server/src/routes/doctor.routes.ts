@@ -1302,4 +1302,168 @@ router.get('/patients/:patientId/clinical-trials', requireDoctor, async (req: an
   } catch (e) { next(e); }
 });
 
+// === METAS CLÍNICAS (E2.2 — camada 2 da política de referências, RELATORIO §4) ===
+// Meta clínica individual: alvo terapêutico definido SÓ pelo médico, com justificativa
+// e fonte. Paciente JAMAIS escreve (requireDoctor rejeita token de paciente com 401);
+// médico só em paciente com DoctorShare ATIVO; expiração via validTo (nunca DELETE
+// físico); meta NUNCA altera isAbnormal/flag/healthNudges (camada 4 intocada).
+// Auditoria: toda criação/expiração → auditLog com autor + before/after.
+const goalInclude = {
+  setByDoctor: { select: { name: true, crm: true } },
+  supersedes: { select: { id: true } },
+} as const;
+
+const isVigente = (g: { validTo: Date | null }) => g.validTo == null || g.validTo.getTime() > Date.now();
+
+/** Garante: token é do médico da URL + share ATIVO com o paciente. 403 senão. */
+const requireGoalAccess = async (req: any, res: any, patientId: string): Promise<boolean> => {
+  if (String(req.params.doctorId ?? '') !== String(req.doctorId)) {
+    res.status(403).json({ error: 'Token não corresponde a este médico.' });
+    return false;
+  }
+  const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId, active: true } });
+  if (!share) { res.status(403).json({ error: 'Sem permissão para este paciente.' }); return false; }
+  return true;
+};
+
+// LISTA metas do paciente — vigentes primeiro; expiradas vêm marcadas (histórico preservado).
+router.get('/:doctorId/clinical-goals', requireDoctor, async (req: any, res, next) => {
+  try {
+    const patientId = String(req.query.patientId ?? '');
+    if (!patientId) { res.status(400).json({ error: 'patientId obrigatório.' }); return; }
+    if (!(await requireGoalAccess(req, res, patientId))) return;
+    const goals = await prisma.clinicalGoal.findMany({
+      where: { patientId },
+      include: goalInclude,
+      orderBy: [{ validTo: 'asc' }, { validFrom: 'desc' }],
+    });
+    const serialized = goals.map((g) => ({
+      ...g,
+      vigente: isVigente(g),
+      setBy: `Dr. ${g.setByDoctor.name} (CRM ${g.setByDoctor.crm})`,
+    }));
+    serialized.sort((a, b) => Number(b.vigente) - Number(a.vigente));
+    res.json({ goals: serialized });
+  } catch (e) { next(e); }
+});
+
+// CRIA meta. Justificativa OBRIGATÓRIA (≤500). Se já existe meta VIGENTE p/ o mesmo
+// (patient, analyte) → a nova recebe supersedesId=antiga.id e a antiga validTo=now
+// (histórico encadeado, nunca DELETE físico).
+router.post('/:doctorId/clinical-goals', requireDoctor, async (req: any, res, next) => {
+  try {
+    const patientId = String(req.body?.patientId ?? '');
+    const analyte = String(req.body?.analyte ?? '').trim().toUpperCase();
+    const justification = String(req.body?.justification ?? '').trim();
+    const source = req.body?.source != null ? String(req.body.source).trim().slice(0, 300) : null;
+    const unit = req.body?.unit != null ? String(req.body.unit).trim().slice(0, 40) || null : null;
+    const num = (v: unknown) => (v == null || v === '' ? null : Number(v));
+    const targetLow = num(req.body?.targetLow);
+    const targetHigh = num(req.body?.targetHigh);
+
+    if (!patientId || !analyte) { res.status(400).json({ error: 'patientId e analyte são obrigatórios.' }); return; }
+    if (analyte.length > 120) { res.status(400).json({ error: 'analyte longo demais (máx. 120).' }); return; }
+    if (!justification) { res.status(400).json({ error: 'justification é obrigatória — a meta precisa de motivo clínico visível ao paciente.' }); return; }
+    if (justification.length > 500) { res.status(400).json({ error: 'justification longa demais (máx. 500 caracteres).' }); return; }
+    if (targetLow == null && targetHigh == null) { res.status(400).json({ error: 'Informe ao menos um limite da meta (targetLow e/ou targetHigh).' }); return; }
+    for (const [k, v] of [['targetLow', targetLow], ['targetHigh', targetHigh]] as const) {
+      if (v != null && !Number.isFinite(v)) { res.status(400).json({ error: `${k} deve ser numérico.` }); return; }
+    }
+    if (targetLow != null && targetHigh != null && targetLow > targetHigh) {
+      res.status(400).json({ error: 'targetLow não pode ser maior que targetHigh.' }); return;
+    }
+    if (!(await requireGoalAccess(req, res, patientId))) return;
+
+    const now = new Date();
+    const created = await prisma.$transaction(async (tx) => {
+      // Vigente p/ o mesmo (patient, analyte) — de QUALQUER médico (a meta é do paciente):
+      // a nova supersede a antiga, que expira AGORA (histórico preservado).
+      const current = await tx.clinicalGoal.findFirst({
+        where: { patientId, analyte, OR: [{ validTo: null }, { validTo: { gt: now } }] },
+        orderBy: { validFrom: 'desc' },
+      });
+      if (current) {
+        await tx.clinicalGoal.update({ where: { id: current.id }, data: { validTo: now } });
+      }
+      return tx.clinicalGoal.create({
+        data: {
+          patientId, analyte, unit, targetLow, targetHigh,
+          setByDoctorId: req.doctorId,
+          justification, source,
+          validFrom: now,
+          supersedesId: current?.id ?? null,
+        },
+        include: goalInclude,
+      });
+    });
+    void audit('CLINICAL_GOAL_CREATED', req, {
+      actorType: 'DOCTOR', actorId: req.doctorId,
+      targetType: 'PATIENT', targetId: patientId,
+      after: { goalId: created.id, analyte, targetLow, targetHigh, unit, justification, source, superseded: created.supersedesId ?? null },
+    });
+    res.status(201).json({ goal: { ...created, vigente: true, setBy: `Dr. ${created.setByDoctor.name} (CRM ${created.setByDoctor.crm})` } });
+  } catch (e) { next(e); }
+});
+
+// EXPIRA meta (só seta validTo — nunca DELETE físico). Idempotente p/ meta já expirada.
+router.post('/:doctorId/clinical-goals/:id/expire', requireDoctor, async (req: any, res, next) => {
+  try {
+    const goal = await prisma.clinicalGoal.findUnique({ where: { id: String(req.params.id) }, include: goalInclude });
+    if (!goal) { res.status(404).json({ error: 'Meta não encontrada.' }); return; }
+    if (!(await requireGoalAccess(req, res, goal.patientId))) return;
+    if (!isVigente(goal)) { res.json({ goal: { ...goal, vigente: false, setBy: `Dr. ${goal.setByDoctor.name} (CRM ${goal.setByDoctor.crm})` } }); return; }
+    const now = new Date();
+    const updated = await prisma.clinicalGoal.update({
+      where: { id: goal.id },
+      data: { validTo: now },
+      include: goalInclude,
+    });
+    void audit('CLINICAL_GOAL_EXPIRED', req, {
+      actorType: 'DOCTOR', actorId: req.doctorId,
+      targetType: 'CLINICAL_GOAL', targetId: goal.id,
+      before: { validTo: goal.validTo }, after: { validTo: now },
+    });
+    res.json({ goal: { ...updated, vigente: false, setBy: `Dr. ${updated.setByDoctor.name} (CRM ${updated.setByDoctor.crm})` } });
+  } catch (e) { next(e); }
+});
+
+// SUGESTÕES de meta (E2.6) — lista ESTÁTICA baseada no knowledge. A IA nunca cria a meta
+// sozinha: `requiresReview: true` sempre; o card de configuração fica no portal (E5).
+// Regra atual: paciente com TESTOSTERONA_TOTAL medida + substância/hormônio declarado
+// (Medication com prefixo "Hormônio" — convenção E1.4) → alvo terapêutico de sociedade
+// médica p/ TRT prescrito, com citação. Novas regras entram aqui (E3 consome knowledge/).
+const GOAL_SUGGESTION_RULES: { analyte: string; targetLow: number; targetHigh: number; unit: string; source: string; reason: string; needsHormoneDeclared?: boolean }[] = [
+  {
+    analyte: 'TESTOSTERONA_TOTAL', targetLow: 450, targetHigh: 600, unit: 'ng/dL',
+    source: 'Diretrizes TRT (uso prescrito) — meta terapêutica de sociedade médica; revisar caso a caso',
+    reason: 'Paciente com testosterona total medida e hormônio declarado',
+    needsHormoneDeclared: true,
+  },
+];
+
+router.get('/:doctorId/clinical-goal-suggestions', requireDoctor, async (req: any, res, next) => {
+  try {
+    const patientId = String(req.query.patientId ?? '');
+    if (!patientId) { res.status(400).json({ error: 'patientId obrigatório.' }); return; }
+    if (!(await requireGoalAccess(req, res, patientId))) return;
+
+    // Analitos já medidos do paciente (EXTRACTED) — sugestão só p/ o que existe na prática.
+    const measured = new Set(
+      (await prisma.examItem.findMany({
+        where: { exam: { patientId, status: 'EXTRACTED' } },
+        select: { nameCanonical: true }, distinct: ['nameCanonical'],
+      })).map((i) => i.nameCanonical),
+    );
+    // Substância declarada (E1.4): Medication do paciente com name prefixado "Hormônio".
+    const hormoneDeclared = await prisma.medication.count({
+      where: { patientId, active: true, name: { startsWith: 'Hormônio' } },
+    });
+
+    const suggestions = GOAL_SUGGESTION_RULES
+      .filter((r) => measured.has(r.analyte) && (!r.needsHormoneDeclared || hormoneDeclared > 0))
+      .map((r) => ({ analyte: r.analyte, unit: r.unit, targetLow: r.targetLow, targetHigh: r.targetHigh, source: r.source, reason: r.reason, requiresReview: true as const }));
+    res.json({ suggestions });
+  } catch (e) { next(e); }
+});
+
 export default router;

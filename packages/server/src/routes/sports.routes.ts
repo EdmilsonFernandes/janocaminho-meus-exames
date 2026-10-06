@@ -55,6 +55,37 @@ router.get('/profile', async (req: AuthedRequest, res, next) => {
   } catch (e) { next(e); }
 });
 
+// METAS CLÍNICAS do(s) paciente(s) do user (E2.3 — camada 2, RELATORIO §4).
+// Paciente LÊ, NUNCA escreve (criação/expiração é exclusiva do portal médico). Só metas
+// VIGENTES (validTo null ou futuro), com autoria visível ("Dr. Nome (CRM)") + justificativa
+// + fonte. A meta NUNCA altera isAbnormal/flag/healthNudges — o front desenha banda/chip
+// SEPARADOS da régua do laboratório (camada 1 permanece sempre visível).
+router.get('/clinical-goals', async (req: AuthedRequest, res, next) => {
+  try {
+    const pids = await userPatientIds(req.userId!);
+    if (!pids.length) { res.json({ goals: [] }); return; }
+    const goals = await prisma.clinicalGoal.findMany({
+      where: { patientId: { in: pids }, OR: [{ validTo: null }, { validTo: { gt: new Date() } }] },
+      include: { setByDoctor: { select: { name: true, crm: true } } },
+      orderBy: { validFrom: 'desc' },
+    });
+    res.json({
+      goals: goals.map((g) => ({
+        id: g.id,
+        patientId: g.patientId,
+        analyte: g.analyte,
+        unit: g.unit,
+        targetLow: g.targetLow,
+        targetHigh: g.targetHigh,
+        setBy: `Dr. ${g.setByDoctor.name} (CRM ${g.setByDoctor.crm})`,
+        justification: g.justification,
+        source: g.source,
+        validFrom: g.validFrom,
+      })),
+    });
+  } catch (e) { next(e); }
+});
+
 // UPSERT do perfil (cria vazio quando o toggle liga no front). Default = TITULAR;
 // patientId explícito só vale se for do próprio user (padrão das rotas de exames).
 router.put('/profile', async (req: AuthedRequest, res, next) => {
