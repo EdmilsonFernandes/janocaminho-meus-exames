@@ -29,6 +29,20 @@ const UNIT_CONVERSIONS: Record<string, UnitCfg> = {
   HDL: { unit: 'mg/dL', factors: { 'mmol/l': 38.67, 'mmol': 38.67 } },
   TRIGLICERIDES: { unit: 'mg/dL', factors: { 'mmol/l': 88.57, 'mmol': 88.57 } },
   CALCIO: { unit: 'mg/dL', factors: { 'mmol/l': 4.008, 'mmol': 4.008 } }, // PM 40.08
+  // ===== Saúde Esportiva (E3.4, out/2026) — painel esportivo =====
+  // SHBG: nmol/L é a escala universal de laboratório — declarar o padrão SEM fatores
+  // inventados (µg/mL & afins não são conversão confiável publicada p/ uso clínico aqui).
+  SHBG: { unit: 'nmol/L', factors: {} },
+  // IGF-1 (PM 7649): µg/L = ng/mL numericamente (mesma massa, prefixo distinto);
+  // nmol/L × 7,649 = ng/mL; ng/dL ÷100 = ng/mL (1 dL = 100 mL). Labs BR variam as grafias.
+  IGF1: { unit: 'ng/mL', factors: { 'ug/l': 1, 'µg/l': 1, 'ng/dl': 0.01, 'nmol/l': 7.649, 'nmol': 7.649 } },
+  // Gonadotrofinas: U/L = UI/L (Unidade Internacional = Unidade); mU/L (mUI/L) ×0,001;
+  // µIU/mL = mIU/L ×0,001. Sem isto, LH "4,5 mUI/mL" vs "4,5 U/L" pareciam séries iguais
+  // com escalas diferentes — agora ambas viram U/L canônico.
+  LH: { unit: 'U/L', factors: { 'ui/l': 1, 'mu/l': 0.001, 'miu/l': 0.001, 'mui/l': 0.001, 'uiu/ml': 0.001, 'µiu/ml': 0.001, 'miu/ml': 1, 'mui/ml': 1 } },
+  FSH: { unit: 'U/L', factors: { 'ui/l': 1, 'mu/l': 0.001, 'miu/l': 0.001, 'mui/l': 0.001, 'uiu/ml': 0.001, 'µiu/ml': 0.001, 'miu/ml': 1, 'mui/ml': 1 } },
+  // Cistatina C (PM ~13,3 kDa): mg/L padrão; mg/dL (labs US) ×10 = mg/L.
+  CISTATINA_C: { unit: 'mg/L', factors: { 'mg/dl': 10, 'mg/d': 10 } },
 };
 
 /** Normaliza unidade p/ casar (lowercase, sem espaços/pontos, µ→u). */

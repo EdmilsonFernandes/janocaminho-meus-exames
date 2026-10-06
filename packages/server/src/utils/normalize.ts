@@ -74,6 +74,20 @@ const SYNONYMS: Record<string, string[]> = {
   // DHT (Dihidrotestosterona) é analito DISTINTO de Testosterona (é o metabólito ativo 5α-redutase).
   // Se caísse em TESTOSTERONA_TOTAL (por substring/fuzzy), cruzaria séries diferentes. Chave própria.
   DIHIDROTESTOSTERONA: ['DHT', 'DIHIDROTESTOSTERONA', '5 ALFA DIHIDROTESTOSTERONA', 'ALFA DIHIDROTESTOSTERONA'],
+  // ===== Saúde Esportiva (E3.4, out/2026) — canônicos dos analitos do painel esportivo =====
+  // SHBG: labs BR usam sigla ou a expansão completa ("Globulina Ligante/Transportadora de
+  // Hormônios Sexuais"). Sem isto, cada grafia virava nameCanonical cru e o card esportivo
+  // (knowledge/sports/SHBG.md) nunca casava. Unidade-padrão nmol/L (units.ts).
+  SHBG: ['SHBG', 'GLOBULINA DE LIGACAO DE HORMONIOS SEXUAIS', 'GLOBULINA LIGANTE DE HORMONIOS SEXUAIS', 'GLOBULINA TRANSPORTADORA DE HORMONIOS SEXUAIS', 'SEX HORMONE BINDING GLOBULIN'],
+  // IGF-1: "IGF-1"/"IGF 1"/"IGF-I" (romano) e a expansão fisiológica (somatomedina C).
+  // Chave 'IGF1' (sem hífen: nameCanonical persistido fica estável entre grafias).
+  IGF1: ['IGF-1', 'IGF 1', 'IGF-I', 'SOMATOMEDINA C', 'FATOR DE CRESCIMENTO SEMELHANTE A INSULINA 1', 'INSULIN LIKE GROWTH FACTOR 1'],
+  // Cistatina C: preferida sobre creatinina p/ eGFR em massa muscular elevada/andrógenos
+  // (knowledge/sports/CISTATINA_C.md). Labs escrevem "Cistatina C" ou só "Cistatina".
+  CISTATINA_C: ['CISTATINA C', 'CISTATINA', 'CYSTATIN C'],
+  // CK (creatino quinase): total, NÃO a fração CK-MB ("CK-MB" normalizado é 'CK-MB' ≠ 'CK'
+  // e as siglas curtas ficam fora do FUZZY — não colapsam). Card ALT_AST_CK_EXERCICIO.md.
+  CREATINO_QUINASE: ['CK', 'CPK', 'CREATINO QUINASE', 'CREATINA QUINASE', 'CREATINE KINASE', 'CK TOTAL'],
 };
 
 const REVERSE: Map<string, string> = new Map();
