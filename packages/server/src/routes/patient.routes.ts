@@ -167,7 +167,10 @@ router.get('/:id/dashboard-summary', async (req: AuthedRequest, res, next) => {
     if (!pids.includes(id)) { res.status(403).json({ error: 'Paciente não pertence ao usuário' }); return; }
     const [total, last, failed, rejected, processing, flagRows, health, me, user] = await Promise.all([
       prisma.exam.count({ where: { patientId: id } }),
-      prisma.exam.findFirst({ where: { patientId: id }, orderBy: { performedAt: 'desc' }, select: { performedAt: true } }),
+      // DESC no Postgres = NULLS FIRST: sem o filtro, um exame sem data "rouba" a
+      // primeira posição e lastExamAt volta null mesmo com exames datados (bug
+      // pego na bateria de regressão 06/10 — ActivityCard perdia o marcador).
+      prisma.exam.findFirst({ where: { patientId: id, performedAt: { not: null } }, orderBy: { performedAt: 'desc' }, select: { performedAt: true } }),
       prisma.exam.count({ where: { patientId: id, status: 'FAILED' } }),
       prisma.exam.count({ where: { patientId: id, status: 'REJECTED' } }),
       // Em processamento (E1): alimenta a strip "analisando… há 1:32" do dashboard.
@@ -259,7 +262,7 @@ router.get('/family-compare', async (req: AuthedRequest, res, next) => {
     const patients = await prisma.patient.findMany({ where: { ownerId: req.userId }, select: { id: true, fullName: true } });
     const byAnalyte = new Map<string, any>();
     for (const p of patients) {
-      const exam = await prisma.exam.findFirst({ where: { patientId: p.id, status: 'EXTRACTED' }, orderBy: { performedAt: 'desc' }, include: { items: true } });
+      const exam = await prisma.exam.findFirst({ where: { patientId: p.id, status: 'EXTRACTED', performedAt: { not: null } }, orderBy: { performedAt: 'desc' }, include: { items: true } });
       if (!exam) continue;
       for (const it of exam.items) {
         const e = byAnalyte.get(it.nameCanonical) ?? { unit: it.unit, members: [] as any[] };
