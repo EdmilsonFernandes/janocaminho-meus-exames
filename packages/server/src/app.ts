@@ -51,6 +51,7 @@ import doctorShareRoutes from './routes/doctor-share.routes';
 import doctorQuestionRoutes from './routes/doctor-question.routes';
 import achievementRoutes from './routes/achievement.routes';
 import ticketRoutes from './routes/ticket.routes';
+import sportsRoutes from './routes/sports.routes';
 
 export const app = express();
 // trust proxy: o container corre atrás de nginx/docker — sem isso o rate-limit
@@ -160,7 +161,7 @@ app.use('/api/public/lead', leadRoutes);
 // Config PÚBLICA (sem auth) — créditos de cadastro (freeSignup, do banco) + bônus de indicação.
 // A landing/card/link compartilhado leem daqui → valor sempre coerente c/ o que o server entrega.
 app.get('/api/public/config', (_req, res) => {
-  const { grants, payments, referral, motd } = getSettings();
+  const { grants, payments, referral, motd, sportsMode } = getSettings();
   // DOIS LADOS (05/10): valores de COPY do referral por lado (AppSetting referral.
   // newUser/recommender). Defaults = bônus real vigente — o crédito pago continua
   // REFERRAL_BONUS (auth.routes); isto é o que a copy ANUNCIA, editável sem deploy.
@@ -182,6 +183,9 @@ app.get('/api/public/config', (_req, res) => {
       title: motd?.title ?? '', message: motd?.message ?? '',
       ctaLabel: motd?.ctaLabel ?? '', ctaRoute: motd?.ctaRoute ?? '',
     },
+    // SAÚDE ESPORTIVA (E1): kill-switch público no padrão referral — o card do Perfil só
+    // existe quando o admin ligou (AppSetting sportsMode.enabled). Default false = oculto.
+    sportsMode: { enabled: sportsMode?.enabled ? 1 : 0 },
   });
 });
 // Força-atualização (público, sem auth): app compara a versão instalada com a mínima exigida.
@@ -296,6 +300,9 @@ app.use('/api/doctor-shares', doctorShareRoutes);
 app.use('/api/doctor-questions', doctorQuestionRoutes);
 app.use('/api/achievements', achievementRoutes);
 app.use('/api/tickets', ticketRoutes); // chamados de suporte do paciente (admin gerencia em /api/admin/tickets)
+// SAÚDE ESPORTIVA (E1): perfil esportivo declarado (GET/PUT /sports/profile). Auth sempre;
+// PUT ainda exige a flag global (kill-switch AppSetting sportsMode) — ver sports.routes.
+app.use('/api/sports', sportsRoutes);
 
 // ROTA PÚBLICA: médico vê o resumo compartilhado (sem login, expira em 12 horas)
 app.get('/api/public/shared/:token', shareLimiter, async (req, res) => {
