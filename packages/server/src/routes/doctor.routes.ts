@@ -1466,4 +1466,41 @@ router.get('/:doctorId/clinical-goal-suggestions', requireDoctor, async (req: an
   } catch (e) { next(e); }
 });
 
+// === CONTEXTO ESPORTIVO (E5.2) — leitura pelo portal médico ===
+// Exige share ATIVO com scope 'sports' (escopo OPCIONAL, pago — E5.1). Sem o escopo: 403
+// e NADA esportivo vaza (gate único espelhado nas abas do portal). Tudo aqui é DECLARADO
+// pelo paciente — o front rotula "DECLARADO PELO PACIENTE — não verificado" (nunca dado
+// verificado de prontuário). Modo esportivo desligado pelo paciente (SportsProfile.active
+// =false) → contexto não é servido (coerência client↔server do E1.5).
+router.get('/:doctorId/sports-context', requireDoctor, async (req: any, res, next) => {
+  try {
+    const patientId = String(req.query.patientId ?? '');
+    if (!patientId) { res.status(400).json({ error: 'patientId obrigatório.' }); return; }
+    if (String(req.params.doctorId ?? '') !== String(req.doctorId)) { res.status(403).json({ error: 'Token não corresponde a este médico.' }); return; }
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId, active: true } });
+    if (!share?.scopes.includes('sports')) { res.status(403).json({ error: 'Sem permissão para o contexto esportivo deste paciente.' }); return; }
+
+    const profile = await prisma.sportsProfile.findUnique({ where: { patientId } });
+    if (profile && !profile.active) {
+      // paciente desligou o modo: a aba avisa; nada de contexto é servido
+      res.json({ profile: null, disabledByPatient: true, medications: [] });
+      return;
+    }
+    // Substâncias declaradas (E1.4): Medication ativa com prefixo de classe esportiva.
+    // Nome + posologia VÊM do cadastro declarado — dose aparece SEMPRE rotulada como
+    // "declarado pelo paciente" (o front não apresenta como prescrição).
+    const medications = await prisma.medication.findMany({
+      where: {
+        patientId, active: true,
+        OR: [{ name: { startsWith: 'Hormônio' } }, { name: { startsWith: 'Suplemento' } }],
+      },
+      select: { id: true, name: true, dosage: true, frequency: true, notes: true },
+      orderBy: { name: 'asc' },
+      take: 50,
+    });
+    void auditLog(req, 'doctor_viewed_sports_context', patientId);
+    res.json({ profile, disabledByPatient: false, medications });
+  } catch (e) { next(e); }
+});
+
 export default router;

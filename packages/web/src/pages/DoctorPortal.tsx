@@ -55,6 +55,7 @@ import { DoctorExamDetail } from '../components/doctors/DoctorExamDetail';
 import { DoctorValoresAlterados } from '../components/doctors/DoctorValoresAlterados';
 import { DoctorConsolidatedReport } from '../components/doctors/DoctorConsolidatedReport';
 import { DoctorTrends } from '../components/doctors/DoctorTrends';
+import { SportsPanel } from '../components/doctors/portal/SportsPanel';
 import { PatientSummary } from '../components/doctors/PatientSummary';
 
 const docKey = 'doctorToken';
@@ -98,7 +99,7 @@ const PayCountdown = ({ expiresAt, onExpire }: { expiresAt: string; onExpire: ()
 /* Ícones das abas — PHOSPHOR duotone (premium, distintos, peso visual rico).
  * Mapeamento: Exames=laudo, Alterados=flag, Tendências=gráfico, Relatório=resumo,
  * Perguntas=chat, Anotações=lápis. */
-import { Receipt, Flag, ChartLineUp, FileText, ChatCircle, NotePencil, Stethoscope, CalendarBlank, Diamond } from '@phosphor-icons/react';
+import { Receipt, Flag, ChartLineUp, FileText, ChatCircle, NotePencil, Stethoscope, CalendarBlank, Diamond, Medal } from '@phosphor-icons/react';
 import { tealText } from '../theme';
 
 const SCOPE_META: Record<string, { label: string; icon: ReactElement }> = {
@@ -106,6 +107,7 @@ const SCOPE_META: Record<string, { label: string; icon: ReactElement }> = {
   alterados: { label: 'Alterados', icon: <Flag size={22} weight="duotone" /> },
   tendencias: { label: 'Tendências', icon: <ChartLineUp size={22} weight="duotone" /> },
   relatorio: { label: 'Relatório', icon: <FileText size={22} weight="duotone" /> },
+  sports: { label: 'Esportivo', icon: <Medal size={22} weight="duotone" /> },
   questions: { label: 'Perguntas', icon: <ChatCircle size={22} weight="duotone" /> },
   notes: { label: 'Anotações', icon: <NotePencil size={22} weight="duotone" /> },
 };
@@ -113,11 +115,14 @@ const SCOPE_META: Record<string, { label: string; icon: ReactElement }> = {
 /** Abas do portal = 4 destinos CLÍNICOS grandes (feedback 2026-08-19): Exames, Alterados,
  *  Tendências (scope 'exams') + Relatório (scope 'summary'). Perguntas e Anotações SAEM da barra
  *  — viram destino dos TILES do resumo do paciente (Pendências→Perguntas, Anotações→notas,
- *  Último exame→Exames): menos competição na barra, botões maiores com rótulo legível. */
+ *  Último exame→Exames): menos competição na barra, botões maiores com rótulo legível.
+ *  E5.1: scope 'sports' (opcional) adiciona a aba Esportivo — sem o escopo, NADA esportivo
+ *  aparece no portal (gate único aqui). */
 const computeTabs = (scopes: string[]): string[] => {
   const t: string[] = [];
   if (scopes.includes('exams')) t.push('exams', 'alterados', 'tendencias');
   if (scopes.includes('summary')) t.push('relatorio');
+  if (scopes.includes('sports')) t.push('sports');
   return t;
 };
 
@@ -1039,6 +1044,9 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
             )}
             {tab === 'relatorio' && !selExam && (
               <DoctorConsolidatedReport patientId={selected.patient.id} token={token} patientName={selected.patient.fullName} onOpenExam={(id) => setSelExam(id)} />
+            )}
+            {tab === 'sports' && !selExam && (
+              <SportsPanel patientId={selected.patient.id} token={token} doctorId={doctor?.id ?? ''} />
             )}
             {selExam && (
               <DoctorExamDetail patientId={selected.patient.id} examId={selExam} token={token} onBack={() => setSelExam(null)} />
