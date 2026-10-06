@@ -105,7 +105,7 @@ router.put('/profile', async (req: AuthedRequest, res, next) => {
 
     const b = req.body ?? {};
     try {
-      const data = {
+      const data: Record<string, unknown> = {
         modality: optStr(b.modality, LIMITS.modality),
         trainingFreq: optStr(b.trainingFreq, LIMITS.trainingFreq),
         goals: optStr(b.goals, LIMITS.goals),
@@ -113,6 +113,8 @@ router.put('/profile', async (req: AuthedRequest, res, next) => {
         collectionContext: optJson(b.collectionContext),
         declaredSubstances: optJson(b.declaredSubstances),
       };
+      // Toggle do paciente persistido no SERVIDOR (coerência com contexto IA/dashboard)
+      if (b.active !== undefined) data.active = Boolean(b.active);
       const profile = await prisma.sportsProfile.upsert({
         where: { patientId: wanted },
         update: data,

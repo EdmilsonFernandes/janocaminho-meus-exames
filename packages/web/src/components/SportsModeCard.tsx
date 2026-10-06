@@ -32,7 +32,7 @@ export const SportsModeCardBase = ({ pid, enabled, premium }: { pid: string; ena
   const toggle = async (next: boolean) => {
     setOn(next);
     if (!next) return; // desligar é só local — dados declarados permanecem (LGPD)
-    const r = await fetch(`${API_URL}/sports/profile`, { method: 'PUT', headers: apiHeaders(true), body: JSON.stringify({}) });
+    const r = await fetch(`${API_URL}/sports/profile`, { method: 'PUT', headers: apiHeaders(true), body: JSON.stringify({ active: next }) });
     if (!r.ok) {
       setOn(false);
       notify(r.status === 403 ? 'Saúde Esportiva está desativada no momento.' : 'Não foi possível ativar o modo.', { type: 'error' });

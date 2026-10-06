@@ -310,6 +310,7 @@ model SportsProfile {
   supplements        Json?    // lista de suplementos declarados
   collectionContext  Json?    // contexto de coleta: treino <24h?, horário, jejum, doença recente
   declaredSubstances Json?    // substâncias declaradas (hormônios etc. — texto, nunca dose/ciclo)
+  active             Boolean  @default(true) // toggle do paciente NO SERVIDOR: contexto IA/dashboard respeita (coerência client↔server)
   updatedAt          DateTime @updatedAt
 
   @@map("sports_profiles")

@@ -60,10 +60,11 @@ export async function sportsContextBlocks(
   const profile = await prisma.sportsProfile
     .findUnique({
       where: { patientId },
-      select: { modality: true, trainingFreq: true, goals: true, collectionContext: true, declaredSubstances: true },
+      select: { modality: true, trainingFreq: true, goals: true, collectionContext: true, declaredSubstances: true, active: true },
     })
     .catch(() => null);
   if (!profile) return EMPTY; // paciente normal: sem perfil declarado
+  if (profile.active === false) return EMPTY; // toggle do paciente DESLIGADO no servidor — coerência client↔server
 
   const [meds, knowledge] = await Promise.all([
     prisma.medication
