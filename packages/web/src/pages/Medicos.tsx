@@ -23,6 +23,8 @@ const SCOPE_META = [
   { key: 'evolution', label: 'Evolução', short: 'Evol.', icon: '📈' },
   { key: 'alerts', label: 'Alertas', short: 'Alertas', icon: '🚨' },
   { key: 'summary', label: 'Resumos IA', short: 'IA', icon: '✨' },
+  // E5.1: contexto esportivo DECLARADO (perfil/substâncias/coleta) — opt-in, custo próprio.
+  { key: 'sports', label: 'Saúde Esportiva', short: 'Esporte', icon: '🏅' },
 ];
 
 const fixSpecialty = (s?: string) => {

@@ -55,7 +55,9 @@ export const DEFAULT_SETTINGS = {
     // 20 chamadas → pack Starter (1k) = 50 extrações ≈ R$ 0,40/exame.
     extractCostCalls: 20,
   },
-  shares: { exams: 5, evolution: 5, alerts: 3, summary: 5 }, // custo por escopo ao compartilhar c/ médico
+  // Custo por escopo ao compartilhar c/ médico. 'sports' (E5.1): contexto esportivo declarado
+  // no portal do médico — OPCIONAL, só entra no custo se o paciente marcar.
+  shares: { exams: 5, evolution: 5, alerts: 3, summary: 5, sports: 3 },
   // Faixas temporais (meses) da análise de exames — classificação atual/recente/histórico/antigo
   // e marcação de "desatualizado" (>staleMonths). Defaults = spec clínica. Admin edita live.
   temporalThresholds: { freshMonths: 6, recentMonths: 12, staleMonths: 12, oldMonths: 36 },

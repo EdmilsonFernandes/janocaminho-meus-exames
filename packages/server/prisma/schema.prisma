@@ -906,7 +906,7 @@ model DoctorShare {
   patient    Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
   doctorId   String
   doctor     Doctor    @relation(fields: [doctorId], references: [id], onDelete: Cascade)
-  scopes     String[]  // ['exams','evolution','alerts','summary'] — controle granular
+  scopes     String[]  // ['exams','evolution','alerts','summary','sports'] — controle granular. 'sports' (E5.1): contexto esportivo declarado (perfil/substâncias/coleta) no portal médico
   convenio   String?   // particular / convênio X
   active     Boolean   @default(true)
   createdAt  DateTime  @default(now())
