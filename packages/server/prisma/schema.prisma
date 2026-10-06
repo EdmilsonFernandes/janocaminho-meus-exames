@@ -261,9 +261,39 @@ model Patient {
   medications  Medication[]
   mentalScreenings MentalHealthScreening[]
   sportsProfile SportsProfile?
+  clinicalGoals ClinicalGoal[]
 
   @@index([ownerId])
   @@map("patients")
+}
+
+// SAÚDE ESPORTIVA (E2, out/2026) — CAMADA 2 da política de referências (RELATORIO §4):
+// META CLÍNICA INDIVIDUAL definida SOMENTE por médico (portal, share ativo). É um alvo
+// terapêutico EDUCATIVO que aparece como banda tracejada + chip — NUNCA substitui a régua
+// do laboratório (camada 1, ExamItem.ref*) e NUNCA altera isAbnormal/flag/healthNudges
+// (camada 4, motor atual intocado). Expiração só via validTo (nunca DELETE físico);
+// nova meta vigente p/ o mesmo (patient,analyte) faz supersedesId=antiga + validTo=now.
+model ClinicalGoal {
+  id            String        @id @default(cuid())
+  patientId     String
+  patient       Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  analyte       String        // nome canônico (chave de cross-exame): "TESTOSTERONA_TOTAL"
+  unit          String?
+  targetLow     Float?
+  targetHigh    Float?
+  setByDoctorId String
+  setByDoctor   Doctor        @relation(fields: [setByDoctorId], references: [id], onDelete: Cascade)
+  justification String        // OBRIGATÓRIA (≤500) — motivo clínico da meta, visível ao paciente
+  source        String?       // citação: "SBEM 2026: 450-600 ng/dL"
+  validFrom     DateTime      @default(now())
+  validTo       DateTime?     // null = vigente; expirada = timestamp da expiração
+  supersedesId  String?       // goal anterior substituída por esta (histórico encadeado)
+  supersedes    ClinicalGoal? @relation("ClinicalGoalSupersedes", fields: [supersedesId], references: [id])
+  supersededBy  ClinicalGoal[] @relation("ClinicalGoalSupersedes")
+  createdAt     DateTime      @default(now())
+
+  @@index([patientId, analyte])
+  @@map("clinical_goals")
 }
 
 // SAÚDE ESPORTIVA (E1, out/2026): perfil esportivo DECLARADO pelo paciente — opt-in,
@@ -830,6 +860,7 @@ model Doctor {
   questions    DoctorQuestion[]
   invites      PatientInvite[]
   consultations Consultation[]
+  clinicalGoalsSet ClinicalGoal[]
   // MFA (TOTP 2FA) — mesmo esquema do User
   mfaEnabled          Boolean   @default(false)
   mfaSecretEncrypted  String?
