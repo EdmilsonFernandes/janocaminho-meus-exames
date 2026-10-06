@@ -38,7 +38,9 @@
 - [ ] E5.3 Plano de acompanhamento (DoctorNote estendido) + checklist educativo de monitoramento TRT (3/6/12m Hct+PSA — como sugestão de AGENDA, citando diretriz) · **AC**: wording revisado por médico; sem prescrição.
 
 ## Fase 2 (~após piloto)
-- Sonografia/recolha de sono e treino de força (HC tipos novos) · Paywall do modo (premium perk) · Metas sugeridas por padrão de resposta (longitudinal) · Compartilhamento seletivo de contexto p/ educador físico (SEM hormônios/laudos) · PWA offline dos cards esportivos · i18n EN dos textos novos.
+- Sonografia/recolha de sono e treino de força (HC tipos novos) · Metas sugeridas por padrão de resposta (longitudinal) · Compartilhamento seletivo de contexto p/ educador físico (SEM hormônios/laudos) · PWA offline dos cards esportivos · i18n EN dos textos novos.
+
+> **Decisão (dono, 06/10)**: Saúde Esportiva é **PREMIUM desde o dia 1** (E1.5 já gated por `usePremium()`; "modo esportivo" entra nos perks premium em settings `premium.perks`).
 
 ## Futuro
 - Pesquisa jurídica Anvisa/CFM → eventual registro · Parcerias c/ clínicas de TRT e medicina esportiva · Estudo observacional publicado (dados anonimizados, LGPD/consentimento).
