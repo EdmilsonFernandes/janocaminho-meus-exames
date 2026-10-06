@@ -13,30 +13,53 @@ import { fmtVal, unitSuffix } from '../../utils/format';
 import { refLabel, categorize } from '../../utils/medicalData';
 import { priorityOf, maxPriority, isStaleExam, refScaleSuspect, PRIORITY_META, PRIORITY_RANK } from '../../utils/alertPriority';
 import { RADIUS } from '../../theme';
+import { ReviewControl, type ReviewLike } from './portal/ReviewControl';
 
 /**
- * DoctorValoresAlterados — valores alterados do paciente (viewer médico READ-ONLY).
+ * DoctorValoresAlterados — valores alterados do paciente (viewer médico READ-ONLY nos dados,
+ * mas com revisão própria E5.3: badge + seletor de estado por achado e filtro "pendentes").
  * Espelha o ValoresAlteradosPage (resumo por prioridade + Accordion por exame + card por item
  * com ValueBar + chips de prioridade), SEM TelemedicineButton/Title/PageContainer/PageHeader.
  * Busca /api/doctor/patients/:pid/items/abnormal (Bearer doctorToken).
  */
-export const DoctorValoresAlterados = ({ patientId, token }: { patientId: string; token: string }) => {
+export const DoctorValoresAlterados = ({ patientId, token, doctorId }: { patientId: string; token: string; doctorId?: string }) => {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  // E5.3 — reviews do médico por examItemId (estado de achado; upsert nunca apaga).
+  const [reviews, setReviews] = useState<Record<string, ReviewLike>>({});
+  const [pendingOnly, setPendingOnly] = useState(false);
 
   useEffect(() => {
     setLoading(true);
+    setReviews({});
     const h: Record<string, string> = { Authorization: `Bearer ${token}` };
     fetch(`${API_URL}/doctor/patients/${patientId}/items/abnormal`, { headers: h })
       .then((r) => (r.ok ? r.json() : { items: [] }))
       .then((d) => setItems(d.items ?? []))
       .catch(() => setItems([]))
       .finally(() => setLoading(false));
-  }, [patientId, token]);
+    if (doctorId) {
+      fetch(`${API_URL}/doctor/${doctorId}/reviews?patientId=${patientId}`, { headers: h })
+        .then((r) => (r.ok ? r.json() : { reviews: [] }))
+        .then((d) => {
+          const map: Record<string, ReviewLike> = {};
+          for (const rv of d.reviews ?? []) if (rv.examItemId) map[rv.examItemId] = rv;
+          setReviews(map);
+        })
+        .catch(() => {});
+    }
+  }, [patientId, token, doctorId]);
+
+  // Filtro "pendentes de revisão": itens ALTERADOS sem review deste médico.
+  const pendingCount = useMemo(() => items.filter((it) => !reviews[it.id]).length, [items, reviews]);
+  const visibleItems = useMemo(
+    () => (pendingOnly ? items.filter((it) => !reviews[it.id]) : items),
+    [items, reviews, pendingOnly],
+  );
 
   const groups = useMemo(() => {
     const map = new Map<string, { examId: string; examTitle: string; performedAt: string | null; requestingDoctor: string | null; items: any[] }>();
-    for (const it of items) {
+    for (const it of visibleItems) {
       if (!map.has(it.examId)) map.set(it.examId, { examId: it.examId, examTitle: it.examTitle, performedAt: it.performedAt, requestingDoctor: it.requestingDoctor, items: [] });
       map.get(it.examId)!.items.push(it);
     }
@@ -48,7 +71,7 @@ export const DoctorValoresAlterados = ({ patientId, token }: { patientId: string
       if (pb !== pa) return pb - pa;
       return (b.performedAt ?? '').localeCompare(a.performedAt ?? '');
     });
-  }, [items]);
+  }, [visibleItems]);
 
   const { counts, suspectCount } = useMemo(() => {
     const c = { importante: 0, moderada: 0, leve: 0 };
@@ -108,6 +131,21 @@ export const DoctorValoresAlterados = ({ patientId, token }: { patientId: string
             </CardContent>
           </Card>
 
+          {/* E5.3 — filtro de triagem: só itens alterados SEM review deste médico. */}
+          {doctorId && (pendingCount > 0 || pendingOnly) && (
+            <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
+              <Chip
+                size="small"
+                onClick={() => setPendingOnly((v) => !v)}
+                color={pendingOnly ? 'primary' : 'default'}
+                variant={pendingOnly ? 'filled' : 'outlined'}
+                label={pendingOnly ? `Pendentes de revisão (${visibleItems.length})` : `Pendentes de revisão (${pendingCount})`}
+                title="Mostrar apenas achados ainda sem estado de revisão definido por você"
+                sx={{ fontWeight: 700, borderRadius: '999px' }}
+              />
+            </Box>
+          )}
+
           <Stack spacing={1.25}>
             {groups.map((g) => {
               const mp = maxPriority(g.items);
@@ -149,7 +187,21 @@ export const DoctorValoresAlterados = ({ patientId, token }: { patientId: string
                     </Box>
                   </AccordionSummary>
                   <AccordionDetails sx={{ p: 1.25 }}>
-                    <CappedExamMarkers items={g.items} />
+                    <CappedExamMarkers
+                      items={g.items}
+                      extra={doctorId ? (it: any) => (
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: -0.25, mb: 0.5 }}>
+                          <ReviewControl
+                            review={reviews[it.id] ?? null}
+                            patientId={patientId}
+                            itemId={it.id}
+                            token={token}
+                            doctorId={doctorId}
+                            onSaved={(rv) => setReviews((prev) => ({ ...prev, [it.id]: rv }))}
+                          />
+                        </Box>
+                      ) : undefined}
+                    />
                   </AccordionDetails>
                 </Accordion>
               );

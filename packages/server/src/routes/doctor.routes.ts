@@ -3,7 +3,7 @@ import { collapseAdjacentNearDupes } from '../analysis/dedup';
 import { medianRefRange } from '../utils/range';
 import { audit } from '../utils/audit';
 import { synthesizeExamTitle } from '../utils/examIdentity';
-import { doctorAnswerEmail, webUrl } from '../utils/emailTemplate';
+import { doctorAnswerEmail, doctorPlanEmail, webUrl } from '../utils/emailTemplate';
 import { saveAnalysisDoc, getLatestAnalysisDoc, DOC_KIND } from '../utils/analysisDoc';
 import { validate, schemas } from '../middleware/validate';
 import { Router } from 'express';
@@ -868,26 +868,28 @@ const requireShare = async (doctorId: string, patientId: string) => {
   return !!share;
 };
 
-// LISTAR anotações do paciente
+// LISTAR anotações do paciente (inclui planos de acompanhamento — category E5.6)
 router.get('/patients/:patientId/notes', requireDoctor, async (req: any, res, next) => {
   try {
     if (!(await requireShare(req.doctorId, req.params.patientId))) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     const items = await prisma.doctorNote.findMany({
       where: { doctorId: req.doctorId, patientId: req.params.patientId },
       orderBy: { createdAt: 'desc' }, take: 100,
-      select: { id: true, content: true, createdAt: true, updatedAt: true },
+      select: { id: true, content: true, category: true, sharedAt: true, createdAt: true, updatedAt: true },
     });
     res.json({ items });
   } catch (e) { next(e); }
 });
 
-// CRIAR anotação
+// CRIAR anotação (category opcional — E5.6: 'plano' = plano de acompanhamento)
 router.post('/patients/:patientId/notes', requireDoctor, async (req: any, res, next) => {
   try {
     if (!(await requireShare(req.doctorId, req.params.patientId))) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     const content = String(req.body?.content ?? '').trim();
     if (!content) { res.status(400).json({ error: 'Conteúdo obrigatório.' }); return; }
-    const note = await prisma.doctorNote.create({ data: { doctorId: req.doctorId, patientId: req.params.patientId, content } });
+    const category = req.body?.category != null ? String(req.body.category) : null;
+    if (category && category !== 'plano') { res.status(400).json({ error: 'category inválida (use plano).' }); return; }
+    const note = await prisma.doctorNote.create({ data: { doctorId: req.doctorId, patientId: req.params.patientId, content, category } });
     res.status(201).json({ note });
   } catch (e) { next(e); }
 });
@@ -911,6 +913,39 @@ router.delete('/notes/:id', requireDoctor, async (req: any, res, next) => {
     if (!note) { res.status(404).json({ error: 'Anotação não encontrada.' }); return; }
     await prisma.doctorNote.delete({ where: { id: note.id } });
     res.json({ ok: true });
+  } catch (e) { next(e); }
+});
+
+// COMPARTILHAR PLANO com o paciente (E5.6) — só category='plano'. Envia o plano por e-mail
+// ao titular do paciente (fluxo de e-mail existente) e carimba sharedAt (histórico; nunca
+// reenvia sozinho — idempotente retorna alreadyShared). Auditoria registra o envio.
+router.patch('/notes/:id/share', requireDoctor, async (req: any, res, next) => {
+  try {
+    const note = await prisma.doctorNote.findFirst({
+      where: { id: String(req.params.id), doctorId: req.doctorId },
+      include: { doctor: { select: { name: true, crm: true } }, patient: { select: { id: true, fullName: true, owner: { select: { email: true, name: true } } } } },
+    });
+    if (!note) { res.status(404).json({ error: 'Anotação não encontrada.' }); return; }
+    if (note.category !== 'plano') { res.status(400).json({ error: 'Só planos de acompanhamento podem ser compartilhados.' }); return; }
+    if (note.sharedAt) { res.json({ note, alreadyShared: true }); return; }
+
+    const to = note.patient.owner?.email;
+    if (to) {
+      try {
+        await sendEmail({
+          to,
+          subject: `Plano de acompanhamento de ${note.doctor.name} — Meus Exames`,
+          html: doctorPlanEmail({ doctorName: note.doctor.name, crm: note.doctor.crm, patientName: note.patient.fullName, planMd: note.content, appUrl: webUrl('/') }),
+        });
+      } catch (e: any) { console.error('[doctor-plan] falha email:', e?.message); }
+    }
+    const updated = await prisma.doctorNote.update({ where: { id: note.id }, data: { sharedAt: new Date() } });
+    void audit('DOCTOR_PLAN_SHARED', req, {
+      actorType: 'DOCTOR', actorId: req.doctorId,
+      targetType: 'PATIENT', targetId: note.patientId,
+      after: { noteId: note.id, emailed: !!to },
+    });
+    res.json({ note: updated, alreadyShared: false });
   } catch (e) { next(e); }
 });
 
@@ -1500,6 +1535,103 @@ router.get('/:doctorId/sports-context', requireDoctor, async (req: any, res, nex
     });
     void auditLog(req, 'doctor_viewed_sports_context', patientId);
     res.json({ profile, disabledByPatient: false, medications });
+  } catch (e) { next(e); }
+});
+
+// === REVISÃO DE ACHADOS (E5.3) — estado particular do médico por achado/exame/meta ===
+// Triagem do médico no portal: marca o que já revisou, o que está acompanhando e o que
+// resolveu. NUNCA DELETE físico — transição é UPDATE de status (histórico preservado);
+// auditoria registra cada upsert. Upsert determinístico por (doctorId, kind, examItemId)
+// via findFirst (NULL do examItemId não colide no unique do PG — a rota resolve).
+const REVIEW_STATUSES = ['REVISADO', 'EM_ACOMPANHAMENTO', 'RESOLVIDO'] as const;
+const REVIEW_KINDS = ['exam', 'item', 'goal'] as const;
+
+/** Gate de review: token = médico da URL + share ativo com o scope do kind. */
+const requireReviewAccess = async (req: any, res: any, patientId: string, kind: string): Promise<boolean> => {
+  if (String(req.params.doctorId ?? '') !== String(req.doctorId)) {
+    res.status(403).json({ error: 'Token não corresponde a este médico.' });
+    return false;
+  }
+  const needed = kind === 'goal' ? 'sports' : 'exams';
+  const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId, active: true } });
+  if (!share?.scopes.includes(needed)) {
+    res.status(403).json({ error: 'Sem permissão para revisar achados deste paciente.' });
+    return false;
+  }
+  return true;
+};
+
+// UPSERT de review (cria ou muda status/nota; nunca apaga).
+router.post('/:doctorId/reviews', requireDoctor, async (req: any, res, next) => {
+  try {
+    const patientId = String(req.body?.patientId ?? '');
+    const kind = String(req.body?.kind ?? '');
+    const status = String(req.body?.status ?? '');
+    const examItemId = req.body?.examItemId != null && req.body.examItemId !== '' ? String(req.body.examItemId) : null;
+    let examId = req.body?.examId != null && req.body.examId !== '' ? String(req.body.examId) : null;
+    const note = req.body?.note != null ? String(req.body.note).trim().slice(0, 1000) || null : null;
+
+    if (!patientId) { res.status(400).json({ error: 'patientId obrigatório.' }); return; }
+    if (!REVIEW_KINDS.includes(kind as any)) { res.status(400).json({ error: `kind inválido (use ${REVIEW_KINDS.join('|')}).` }); return; }
+    if (!REVIEW_STATUSES.includes(status as any)) { res.status(400).json({ error: `status inválido (use ${REVIEW_STATUSES.join('|')}).` }); return; }
+    if (!(await requireReviewAccess(req, res, patientId, kind))) return;
+
+    // Posse do alvo: item/exame precisa pertencer ao paciente (e ao recorte examIds do share).
+    if (kind === 'item') {
+      if (!examItemId) { res.status(400).json({ error: 'examItemId obrigatório para kind=item.' }); return; }
+      const item = await prisma.examItem.findFirst({
+        where: { id: examItemId, exam: { patientId, status: 'EXTRACTED' } },
+        select: { examId: true, exam: { select: { id: true } } },
+      });
+      if (!item) { res.status(404).json({ error: 'Achado não encontrado para este paciente.' }); return; }
+      const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId, active: true } });
+      if (share?.examIds?.length && !share.examIds.includes(item.exam.id)) {
+        res.status(403).json({ error: 'Exame fora do recorte compartilhado.' }); return;
+      }
+      examId = item.exam.id;
+    } else if (kind === 'exam') {
+      if (!examId) { res.status(400).json({ error: 'examId obrigatório para kind=exam.' }); return; }
+      const exam = await prisma.exam.findFirst({ where: { id: examId, patientId, status: 'EXTRACTED' }, select: { id: true } });
+      if (!exam) { res.status(404).json({ error: 'Exame não encontrado para este paciente.' }); return; }
+      const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId, active: true } });
+      if (share?.examIds?.length && !share.examIds.includes(examId)) {
+        res.status(403).json({ error: 'Exame fora do recorte compartilhado.' }); return;
+      }
+    }
+
+    const existing = await prisma.doctorReview.findFirst({
+      where: { doctorId: req.doctorId, patientId, kind, examItemId },
+    });
+    const review = existing
+      ? await prisma.doctorReview.update({ where: { id: existing.id }, data: { status, note, examId } })
+      : await prisma.doctorReview.create({ data: { doctorId: req.doctorId, patientId, kind, examItemId, examId, status, note } });
+    void audit('DOCTOR_REVIEW_UPSERTED', req, {
+      actorType: 'DOCTOR', actorId: req.doctorId,
+      targetType: 'PATIENT', targetId: patientId,
+      before: existing ? { status: existing.status, note: existing.note ?? null } : null,
+      after: { reviewId: review.id, kind, examItemId, status, note },
+    });
+    res.status(existing ? 200 : 201).json({ review });
+  } catch (e) { next(e); }
+});
+
+// LISTA de reviews do médico p/ o paciente (join do médico p/ exibição).
+router.get('/:doctorId/reviews', requireDoctor, async (req: any, res, next) => {
+  try {
+    const patientId = String(req.query.patientId ?? '');
+    if (!patientId) { res.status(400).json({ error: 'patientId obrigatório.' }); return; }
+    if (String(req.params.doctorId ?? '') !== String(req.doctorId)) {
+      res.status(403).json({ error: 'Token não corresponde a este médico.' }); return;
+    }
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId, active: true } });
+    if (!share) { res.status(403).json({ error: 'Sem permissão para este paciente.' }); return; }
+    const reviews = await prisma.doctorReview.findMany({
+      where: { doctorId: req.doctorId, patientId },
+      include: { doctor: { select: { name: true, crm: true } } },
+      orderBy: { updatedAt: 'desc' },
+      take: 500,
+    });
+    res.json({ reviews });
   } catch (e) { next(e); }
 });
 

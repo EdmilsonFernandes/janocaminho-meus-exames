@@ -1037,10 +1037,10 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               <DoctorExamList patientId={selected.patient.id} token={token} onOpen={(id) => setSelExam(id)} />
             )}
             {tab === 'alterados' && !selExam && (
-              <DoctorValoresAlterados patientId={selected.patient.id} token={token} />
+              <DoctorValoresAlterados patientId={selected.patient.id} token={token} doctorId={doctor?.id} />
             )}
             {tab === 'tendencias' && !selExam && (
-              <DoctorTrends patientId={selected.patient.id} token={token} />
+              <DoctorTrends patientId={selected.patient.id} token={token} doctorId={doctor?.id} />
             )}
             {tab === 'relatorio' && !selExam && (
               <DoctorConsolidatedReport patientId={selected.patient.id} token={token} patientName={selected.patient.fullName} onOpenExam={(id) => setSelExam(id)} />

@@ -262,6 +262,7 @@ model Patient {
   mentalScreenings MentalHealthScreening[]
   sportsProfile SportsProfile?
   clinicalGoals ClinicalGoal[]
+  reviews       DoctorReview[]
 
   @@index([ownerId])
   @@map("patients")
@@ -864,6 +865,7 @@ model Doctor {
   createdAt    DateTime @default(now())
   shares       DoctorShare[]
   notes        DoctorNote[]
+  reviews      DoctorReview[]
   questions    DoctorQuestion[]
   invites      PatientInvite[]
   consultations Consultation[]
@@ -967,12 +969,43 @@ model DoctorNote {
   patientId String
   patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
   content   String
+  // E5.6 — nota tipada: category='plano' = plano de acompanhamento (checklist educativo).
+  // Notas comuns continuam null (retrocompatível — nada muda para quem não usa).
+  category  String?
+  // E5.6 — compartilhamento com o paciente: timestamp do envio (null = privado do médico).
+  sharedAt  DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([patientId, createdAt])
   @@index([doctorId, createdAt])
   @@map("doctor_notes")
+}
+
+// E5.3 — ESTADO DE ACHADO atribuído pelo médico no portal (triagem particular). NUNCA é
+// apagado: mudança de estado é UPDATE de status (REVISADO → EM_ACOMPANHAMENTO → RESOLVIDO,
+// inclusive volta). examItemId null = revisão do EXAME TODO (kind='exam'); kind='item' =
+// achado específico; kind='goal' = meta clínica esportiva. examItemId/examId são TEXTO cru
+// (sem FK) — a posse é validada na rota; histórico de revisão não bloqueia reprocessamento
+// de exame. @@unique cobre duplicatas por achado (NULLs do PG ficam fora — upsert da rota
+// resolve por findFirst determinístico).
+model DoctorReview {
+  id         String   @id @default(cuid())
+  doctorId   String
+  doctor     Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  patientId  String
+  patient    Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  examItemId String?
+  examId     String?
+  kind       String   // 'exam' | 'item' | 'goal'
+  status     String   // 'REVISADO' | 'EM_ACOMPANHAMENTO' | 'RESOLVIDO'
+  note       String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([doctorId, examItemId, kind])
+  @@index([doctorId, patientId])
+  @@map("doctor_reviews")
 }
 
 // Pergunta do paciente ao médico (paga créditos). Aparece no resumo IA do médico; paciente vê status.
