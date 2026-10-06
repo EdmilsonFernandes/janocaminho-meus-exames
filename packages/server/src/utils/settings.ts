@@ -74,6 +74,11 @@ export const DEFAULT_SETTINGS = {
   // Mensagem do Dia (MOTD): dialog 1x/dia no boot do app autenticado — anunciar feature,
   // promo, novidade. enabled=0 = desligado. ctaRoute = rota interna (ex.: /carteira).
   motd: { enabled: 0, title: '', message: '', ctaLabel: '', ctaRoute: '' },
+  // SAÚDE ESPORTIVA (E1, out/2026): modo opt-in que organiza o CONTEXTO declarado pelo
+  // paciente (modalidade, treino, substâncias, coleta) p/ melhorar a interpretação dos
+  // exames. Default DESLIGADO — paciente normal intocável. Kill-switch instantâneo via
+  // admin (PATCH /admin/config/costs { category: 'sportsMode', enabled: 1 }), sem deploy.
+  sportsMode: { enabled: false },
 };
 
 export type SettingCategory = keyof typeof DEFAULT_SETTINGS;
@@ -179,4 +184,13 @@ export function guidelinesEnabled(): boolean {
   const g = (getSettings() as any).guidelines;
   // default LIGADO: ausência da chave (banco antigo) não pode desligar a feature.
   return g == null || Number(g.enabled) !== 0;
+}
+
+/** Modo esportivo (Saúde Esportiva): default DESLIGADO. Inversão proposital do padrão
+ *  do guidelinesEnabled — aqui a ausência da chave (banco antigo/parcial) NÃO liga:
+ *  a feature só existe com enabled explícito (1/true). Aceita boolean ou 0/1 (o admin
+ *  edita live como os demais knobs). */
+export function sportsModeEnabled(): boolean {
+  const s = (getSettings() as any).sportsMode;
+  return s != null && Number(s.enabled) === 1;
 }

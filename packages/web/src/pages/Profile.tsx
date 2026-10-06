@@ -24,6 +24,7 @@ import { PageSkeleton } from '../components/PageSkeleton';
 import { formatCpf, isValidCpf } from '../utils/cpf';
 import { parseHeightCm, maskHeightInput, fmtHeight } from '../utils/height';
 import { DateFieldBR } from '../components/DateFieldBR';
+import { SportsModeCard } from '../components/SportsModeCard';
 import { tealText } from '../theme';
 
 // parseHeightCm/maskHeightInput/fmtHeight: utils/height.ts (fonte única — o mesmo bug
@@ -297,6 +298,9 @@ export const ProfilePage = () => {
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>Passos, calorias e distância (Health Connect do celular). Vale no app Android.</Typography>
           <FormControlLabel control={<Switch checked={privacyOn} onChange={(e) => setPrivacyOn(e.target.checked)} />} label={<Box sx={{ fontWeight: 600 }}>🙈 Modo privacidade — borra nomes de exames</Box>} />
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>Pra usar o app em público: nomes de exames sensíveis ficam borrados na lista — toque no nome pra ler por 5 segundos.</Typography>
+          {/* SAÚDE ESPORTIVA (E1): kill-switch via /api/public/config (admin, default OFF);
+              ativar é premium. Sem o flag ligado o componente renderiza nada. */}
+          <SportsModeCard pid={pid} />
           <Button variant="outlined" onClick={() => { diagShare().catch(() => {}); }} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, mb: 0.5 }}>
             📋 Enviar diagnóstico ao suporte
           </Button>

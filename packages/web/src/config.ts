@@ -78,7 +78,9 @@ export interface MotdConfig { enabled: number; title: string; message: string; c
  *  QUEM INDICA ganha. Editável no admin (AppSetting referral) — é copy, o crédito
  *  real pago pelo server continua sendo referralBonus. */
 export interface ReferralConfig { newUser: number; recommender: number; shareMessage: string }
-export interface PublicConfig { freeSignup: number; referralBonus: number; cardEnabled: boolean; shareMessage: string; motd: MotdConfig; referral: ReferralConfig }
+/** SAÚDE ESPORTIVA (E1): kill-switch público — 0 = o card nem existe no Perfil. */
+export interface SportsModeConfig { enabled: number }
+export interface PublicConfig { freeSignup: number; referralBonus: number; cardEnabled: boolean; shareMessage: string; motd: MotdConfig; referral: ReferralConfig; sportsMode: SportsModeConfig }
 let _publicCfgP: Promise<PublicConfig> | null = null;
 export function fetchPublicConfig(): Promise<PublicConfig> {
   if (!_publicCfgP) {
@@ -97,8 +99,9 @@ export function fetchPublicConfig(): Promise<PublicConfig> {
           recommender: Number(d?.referral?.recommender) > 0 ? Number(d.referral.recommender) : Number(d?.referralBonus ?? 10),
           shareMessage: typeof d?.referral?.shareMessage === 'string' ? d.referral.shareMessage : (typeof d?.shareMessage === 'string' ? d.shareMessage : ''),
         },
+        sportsMode: { enabled: d?.sportsMode?.enabled ? 1 : 0 },
       }))
-      .catch(() => ({ freeSignup: 60, referralBonus: 10, cardEnabled: false, shareMessage: '', motd: { enabled: 0, title: '', message: '', ctaLabel: '', ctaRoute: '' }, referral: { newUser: 10, recommender: 10, shareMessage: '' } }));
+      .catch(() => ({ freeSignup: 60, referralBonus: 10, cardEnabled: false, shareMessage: '', motd: { enabled: 0, title: '', message: '', ctaLabel: '', ctaRoute: '' }, referral: { newUser: 10, recommender: 10, shareMessage: '' }, sportsMode: { enabled: 0 } }));
   }
   return _publicCfgP;
 }

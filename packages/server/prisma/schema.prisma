@@ -260,9 +260,29 @@ model Patient {
   consultations Consultation[]
   medications  Medication[]
   mentalScreenings MentalHealthScreening[]
+  sportsProfile SportsProfile?
 
   @@index([ownerId])
   @@map("patients")
+}
+
+// SAÚDE ESPORTIVA (E1, out/2026): perfil esportivo DECLARADO pelo paciente — opt-in,
+// 1:1 com Patient. Paciente normal = SEM row (nada em Patient muda; tabela aditiva).
+// supplements/collectionContext/declaredSubstances = Jsonb (MVP flexível, sem schema
+// rígido); o espelho das substâncias declaradas vive em Medication (prefixo de classe).
+model SportsProfile {
+  id                 String   @id @default(cuid())
+  patientId          String   @unique
+  patient            Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  modality           String?  // "musculação", "corrida", "crossfit"...
+  trainingFreq       String?  // "5x/semana"
+  goals              String?  // objetivos declarados
+  supplements        Json?    // lista de suplementos declarados
+  collectionContext  Json?    // contexto de coleta: treino <24h?, horário, jejum, doença recente
+  declaredSubstances Json?    // substâncias declaradas (hormônios etc. — texto, nunca dose/ciclo)
+  updatedAt          DateTime @updatedAt
+
+  @@map("sports_profiles")
 }
 
 // Rastreamento de saúde mental (PHQ-9 / GAD-7, PT-BR validado — domínio público).
