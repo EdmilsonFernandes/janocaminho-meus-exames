@@ -8,7 +8,7 @@ import { AppCard } from '../AppCard';
 import { SEM } from '../../theme';
 import { Dna } from '@phosphor-icons/react';
 
-type BioData = { age: number; confidence: string; markersUsed: number; missing?: string[] | null; method?: string; assumptions?: string[] };
+type BioData = { age: number; confidence: string; markersUsed: number; missing?: string[] | null; method?: string; assumptions?: string[]; excludesHormonalMarkers?: boolean };
 
 /** Reduced-motion avaliado 1x na carga do módulo (guarda o spring do tile). */
 const REDUCED_MOTION = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -240,6 +240,13 @@ export const BiologicalAgeCard = ({ idx = 2, bio, bioKdm, bioAvail, bioLoaded, c
               {data.assumptions?.includes('sexoNaoInformado') && (
                 <Typography variant="caption" sx={{ display: 'block', mt: 1.5, color: 'text.secondary' }}>
                   ℹ️ Sexo não informado no perfil — os intervalos de referência usados assumem valores masculinos. Informe o sexo no perfil para uma estimativa mais precisa.
+                </Typography>
+              )}
+              {/* E3.3 (Saúde Esportiva): hormônio exógeno declarado → marcadores de T fora do
+                  cálculo. Nota pequena e discreta (padrão das demais assumptions). */}
+              {data.excludesHormonalMarkers && (
+                <Typography variant="caption" sx={{ display: 'block', mt: 0.75, color: 'text.secondary' }}>
+                  ℹ️ Exclui marcadores hormonais — hormônio exógeno declarado.
                 </Typography>
               )}
               {data.missing && data.missing.length > 0 && (
