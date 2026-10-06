@@ -9,6 +9,7 @@ import { buildCurrentHealthSummary, formatSnapshotContext, type MarkerState, typ
 import { normalizeKey } from '../utils/normalize';
 import { guidelinesContext, extractSources } from './guidelines';
 import { guidelinesEnabled } from '../utils/settings';
+import { sportsContextBlocks } from './sports-context';
 
 /**
  * PÓS-COERÇÃO (anti-alucinação): substitui os valores que a IA escreveu no comparativo pelos
@@ -271,6 +272,13 @@ export async function generateConsolidatedSummary(patientId: string, audience: '
     undefined,
     guidelinesEnabled(),
   );
+  // E3.2 (Saúde Esportiva) — addendum declarado + knowledge/sports por analito. Gate duplo
+  // (flag + SportsProfile) dentro do sportsContextBlocks; off/sem perfil → '' → o prompt
+  // abaixo fica BYTE-IDÊNTICO ao atual (não-regressão testada em sports-context.test.ts).
+  const sports = await sportsContextBlocks(
+    patientId,
+    recentForGuidelines.flatMap((e) => e.items.map((i) => i.nameCanonical)),
+  );
 
   const messages = [
     {
@@ -302,7 +310,7 @@ export async function generateConsolidatedSummary(patientId: string, audience: '
           : `PACIENTE: ${String(patient.fullName || '').split(' ')[0] || 'paciente'}\n`) +
         `Score atual: ${snapshot.score ?? '—'}/100 em ${snapshot.markers} marcador(es). Distribuição: ${JSON.stringify(snapshot.byPriority)}.\n` +
         perfilText + activityText + correlationText + '\n' + memoryText +
-        (guidelinesTxt ?? '') +
+        (guidelinesTxt ?? '') + sports.addendum + sports.knowledge +
         `${formatSnapshotContext(snapshot)}\n\n` +
         (audience === 'doctor'
           ? `ESTILO (médico): tom clínico e objetivo; cite valores e variações reais; liste pontos a investigar na consulta; coisasBoas pode ser vazio. Sem diagnóstico definitivo. REFIRA-SE AO PACIENTE EM 3ª PESSOA ("o paciente apresenta...", "quadro do paciente"), NUNCA "você/seu/sua".\n\n`
@@ -349,7 +357,7 @@ export async function generateConsolidatedSummary(patientId: string, audience: '
   // FEATURE C — fontes citadas: parse determinístico do texto BRUTO da IA (antes de qualquer
   // coerção — as citações [FONTE ANO] vêm inline no texto/JSON). Sobrescreve qualquer campo
   // `sources` que o modelo tenha inventado sozinho (fonte de verdade = o que ele ESCREVEU).
-  const citedSources = extractSources(text, guidelineTopics);
+  const citedSources = extractSources(text, [...guidelineTopics, ...sports.topics]);
   summary = { ...summary, sources: citedSources };
   let contentMd = renderSummaryMd(summary);
   contentMd = diagnosticGuard(contentMd).text;
@@ -444,6 +452,8 @@ export async function generateHealthSummary(examId: string): Promise<{ summary: 
     undefined,
     guidelinesEnabled(),
   );
+  // E3.2 — idem consolidado: addendum + knowledge esportivo deste exame (gate no helper).
+  const sports = await sportsContextBlocks(exam.patientId, exam.items.map((i) => i.nameCanonical));
 
   const s = await getLlm().stream({
     model: getModel(),
@@ -460,7 +470,7 @@ export async function generateHealthSummary(examId: string): Promise<{ summary: 
           `LABORATÓRIO: ${exam.sourceLab ?? (exam.rawExtraction as any)?.sourceLab ?? 'Não identificado'}\n` +
           `MÉDICO SOLICITANTE: ${(exam.rawExtraction as any)?.requestingDoctor ?? 'Não identificado'}\n` +
           (prior ? `Exame anterior de comparação: ${prior.title} (${prior.performedAt?.toLocaleDateString('pt-BR') ?? 's/d'}).\n` : 'Não há exame anterior para comparar; use apenas o atual.\n') +
-          profileText + '\n' + memoryText + (guidelinesTxt ?? '') +
+          profileText + '\n' + memoryText + (guidelinesTxt ?? '') + sports.addendum + sports.knowledge +
           `ITENS (atual x anterior x referência):\n${JSON.stringify(comparativoInput, null, 2)}\n\n` +
           `VALORES FORA DA FAIXA NO ATUAL:\n${JSON.stringify(foraDaFaixa, null, 2)}\n\n` +
           `Monte o JSON com estas chaves:\n` +
@@ -493,7 +503,7 @@ export async function generateHealthSummary(examId: string): Promise<{ summary: 
   let summary = (z.success ? z.data : json) as HealthSummary;
   // FEATURE C — fontes citadas: parse determinístico das citações [FONTE ANO] que a IA
   // escreveu no texto/JSON. Sobrescreve campo `sources` auto-inventado pelo modelo.
-  summary = { ...summary, sources: extractSources(text, guidelineTopics) };
+  summary = { ...summary, sources: extractSources(text, [...guidelineTopics, ...sports.topics]) };
 
   let contentMd = renderSummaryMd(summary);
   contentMd = diagnosticGuard(contentMd).text;
