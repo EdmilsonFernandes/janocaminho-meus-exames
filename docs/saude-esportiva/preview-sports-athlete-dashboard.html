@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f766e" />
+  <title>Dr. Exame • Saúde Esportiva & Alta Performance</title>
+  <meta name="description" content="Modo Saúde Esportiva integrado ao Dr. Exame — monitoramento clínico para atletas, corredores e praticantes de alta performance." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* PALETA OFICIAL DO DR. EXAME */
+      --bg-app: #f5f7fa;
+      --bg-card: #ffffff;
+      --border-color: #e2e8f0;
+      --border-focus: #0d9488;
+      
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --text-dim: #94a3b8;
+      
+      --teal-primary: #0d9488;
+      --teal-dark: #0f766e;
+      --teal-light: #20B2AA;
+      --teal-soft: rgba(13, 148, 136, 0.12);
+      --teal-wash: rgba(32, 178, 170, 0.08);
+      
+      --red-alert: #ef4444;
+      --red-soft: rgba(239, 68, 68, 0.12);
+      --amber-warn: #f59e0b;
+      --amber-soft: rgba(245, 158, 11, 0.12);
+      --indigo-pro: #6366f1;
+      --indigo-soft: rgba(99, 102, 241, 0.12);
+      --green-ok: #10b981;
+      --green-soft: rgba(16, 185, 129, 0.12);
+      
+      --target-purple: #7c3aed;
+      --target-soft: rgba(124, 58, 237, 0.10);
+      --lab-ref-gray: #cbd5e1;
+      
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --bottom-nav-h: 68px;
+      
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-display: 'Poppins', -apple-system, sans-serif;
+    }
+
+    [data-theme="dark"] {
+      --bg-app: #0b1518;
+      --bg-card: #112226;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-focus: #20B2AA;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --teal-soft: rgba(32, 178, 170, 0.18);
+      --teal-wash: rgba(32, 178, 170, 0.12);
+      --lab-ref-gray: #334155;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-app);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      transition: background-color 0.2s, color 0.2s;
+    }
+
+    /* TOP TEST BAR (APENAS PARA MOCKUP) */
+    .mock-toolbar {
+      background: #0f172a;
+      border-bottom: 1px solid #1e293b;
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 12px;
+      color: #94a3b8;
+      z-index: 1000;
+      flex-wrap: wrap;
+    }
+    .mock-toolbar strong { color: #fff; font-family: var(--font-display); }
+    .mock-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .mock-select {
+      background: #1e293b;
+      color: #f1f5f9;
+      border: 1px solid #334155;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .mock-btn {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #cbd5e1;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .mock-btn.active {
+      background: var(--teal-primary);
+      color: #fff;
+      border-color: var(--teal-primary);
+    }
+
+    /* SHELL & SIMULATOR */
+    .simulator-stage {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      background: #e2e8f0;
+      padding: 20px 10px;
+    }
+    [data-theme="dark"] .simulator-stage { background: #060d0f; }
+
+    .app-frame {
+      width: 100%;
+      max-width: 1200px;
+      background: var(--bg-app);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.12);
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+      transition: max-width 0.25s ease;
+    }
+    .app-frame.tablet { max-width: 768px; }
+    .app-frame.mobile { max-width: 390px; border-radius: 40px; border: 8px solid #0f172a; }
+
+    /* CABEÇALHO OFICIAL DO DR. EXAME */
+    .dr-header {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border-color);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #20B2AA 0%, #0d9488 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 20px;
+      box-shadow: 0 3px 10px rgba(13, 148, 136, 0.25);
+      flex-shrink: 0;
+    }
+
+    .brand-text h1 {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-main);
+      line-height: 1.1;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .brand-text span {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* MODO SWITCHER CHIP (ESPORTIVO VS GERAL) */
+    .mode-switch-chip {
+      background: var(--teal-soft);
+      border: 1px solid rgba(13, 148, 136, 0.35);
+      color: var(--teal-dark);
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    [data-theme="dark"] .mode-switch-chip { color: #5eead4; }
+    .mode-switch-chip:hover {
+      background: rgba(13, 148, 136, 0.2);
+    }
+
+    .avatar-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: #0f766e;
+      color: #fff;
+      font-weight: 700;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      cursor: pointer;
+    }
+
+    /* CONTEÚDO PRINCIPAL DO DASHBOARD */
+    .main-scroll {
+      flex: 1;
+      padding: 18px 20px 40px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .app-frame.mobile .main-scroll { padding: 14px 14px 80px; gap: 14px; }
+
+    /* CARD HERO DO PACIENTE (ESTILO DR. EXAME) */
+    .patient-hero-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 18px;
+      padding: 18px 20px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    }
+    .patient-hero-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #20B2AA 0%, #0d9488 60%, #6366f1 100%);
+    }
+
+    .patient-top-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .patient-ident {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .patient-photo {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: var(--teal-soft);
+      color: var(--teal-dark);
+      font-weight: 800;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(13,148,136,0.25);
+    }
+    .patient-titles h2 {
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge-sport {
+      background: rgba(13, 148, 136, 0.12);
+      color: var(--teal-dark);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+    [data-theme="dark"] .badge-sport { color: #2dd4bf; }
+
+    .patient-subtitles {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .athlete-quick-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border-color);
+    }
+    .quick-stat {
+      display: flex;
+      flex-direction: column;
+    }
+    .quick-stat .lbl {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .quick-stat .val {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-top: 2px;
+    }
+    .quick-stat .hint {
+      font-size: 10px;
+      color: var(--teal-dark);
+      font-weight: 600;
+    }
+    [data-theme="dark"] .quick-stat .hint { color: #5eead4; }
+
+    /* ALERTA CLÍNICO EDUCATIVO (PADRÃO DR. EXAME) */
+    .dr-alert-banner {
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      border-radius: 14px;
+      padding: 14px 16px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+    .dr-alert-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: rgba(245, 158, 11, 0.2);
+      color: #d97706;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .dr-alert-body h3 {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #b45309;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    [data-theme="dark"] .dr-alert-body h3 { color: #fcd34d; }
+    .dr-alert-body p {
+      font-size: 12px;
+      color: var(--text-main);
+      opacity: 0.88;
+      margin-top: 3px;
+      line-height: 1.45;
+    }
+    .dr-alert-tags {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+    .dr-tag {
+      font-size: 10.5px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: #fff;
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+    }
+    [data-theme="dark"] .dr-tag { background: #1a2d33; }
+
+    /* SESSÃO DE SUBSTÂNCIAS E SUPLEMENTOS DECLARADOS (ESTILO MEDICAÇÕES DR. EXAME) */
+    .dr-section-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 16px 18px;
+    }
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .section-head h3 {
+      font-family: var(--font-display);
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .sub-substance-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 10px;
+    }
+    .substance-card {
+      background: var(--bg-app);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .sub-name-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .sub-title {
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--text-main);
+    }
+    .sub-dose {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--teal-dark);
+      background: var(--teal-soft);
+      padding: 2px 7px;
+      border-radius: 6px;
+    }
+    [data-theme="dark"] .sub-dose { color: #5eead4; }
+    .sub-context {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.35;
+      margin-top: 4px;
+    }
+
+    /* RÉGUA DE 4 CAMADAS (DESIGN LIMPO DO DR. EXAME) */
+    .ruler-legend {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .ruler-item { display: flex; align-items: center; gap: 5px; }
+    .dot-lab { width: 8px; height: 8px; border-radius: 2px; background: var(--lab-ref-gray); }
+    .dot-target { width: 8px; height: 8px; border-radius: 2px; background: var(--target-purple); }
+    .dot-patient { width: 8px; height: 8px; border-radius: 2px; background: var(--teal-primary); }
+
+    /* FILTROS DE DOMÍNIO */
+    .filter-tabs {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      scrollbar-width: none;
+    }
+    .filter-tabs::-webkit-scrollbar { display: none; }
+    .filter-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 7px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+    .filter-btn.active {
+      background: var(--teal-soft);
+      border-color: var(--teal-primary);
+      color: var(--teal-dark);
+      font-weight: 700;
+    }
+    [data-theme="dark"] .filter-btn.active { color: #2dd4bf; }
+
+    /* GRID DE MARCADORES (CARDS PADRÃO DR. EXAME) */
+    .markers-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 12px;
+    }
+    .app-frame.mobile .markers-container { grid-template-columns: 1fr; }
+
+    .dr-marker-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+      transition: border-color 0.15s;
+    }
+    .dr-marker-card:hover { border-color: var(--border-focus); }
+    .dr-marker-card.alert-border {
+      border-left: 4px solid var(--amber-warn);
+    }
+    .dr-marker-card.danger-border {
+      border-left: 4px solid var(--red-alert);
+    }
+
+    .marker-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .marker-name {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .marker-date {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .marker-main-value {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+    }
+    .marker-num {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text-main);
+      font-variant-numeric: tabular-nums;
+    }
+    .marker-unit {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-left: 3px;
+    }
+    .marker-chip {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    .chip-ok { background: var(--green-soft); color: #047857; }
+    [data-theme="dark"] .chip-ok { color: #34d399; }
+    .chip-warn { background: var(--amber-soft); color: #b45309; }
+    [data-theme="dark"] .chip-warn { color: #fcd34d; }
+    .chip-danger { background: var(--red-soft); color: #b91c1c; }
+    [data-theme="dark"] .chip-danger { color: #f87171; }
+
+    /* RÉGUA VISUAL ELEGANTE */
+    .ruler-track {
+      height: 8px;
+      background: var(--bg-app);
+      border-radius: 999px;
+      position: relative;
+      margin: 8px 0 4px;
+      border: 1px solid var(--border-color);
+    }
+    .ruler-lab-span {
+      position: absolute;
+      top: 0; bottom: 0;
+      background: var(--lab-ref-gray);
+      opacity: 0.6;
+      border-radius: 999px;
+    }
+    .ruler-target-span {
+      position: absolute;
+      top: -2px; bottom: -2px;
+      border: 1.5px solid var(--target-purple);
+      background: var(--target-soft);
+      border-radius: 999px;
+    }
+    .ruler-pin {
+      position: absolute;
+      top: -4px;
+      width: 4px;
+      height: 16px;
+      background: var(--teal-primary);
+      border-radius: 2px;
+      transform: translateX(-50%);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    .ruler-pin.warn { background: var(--amber-warn); }
+    .ruler-pin.danger { background: var(--red-alert); }
+
+    .ruler-legend-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--text-dim);
+    }
+
+    .marker-ia-explanation {
+      background: var(--teal-wash);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 11.5px;
+      line-height: 1.4;
+      color: var(--text-main);
+      opacity: 0.9;
+    }
+    .marker-ia-explanation strong { color: var(--teal-dark); }
+    [data-theme="dark"] .marker-ia-explanation strong { color: #2dd4bf; }
+
+    /* PREPARAÇÃO PARA CONSULTA (ESTILO DR. EXAME IA) */
+    .dr-consultation-prep {
+      background: linear-gradient(135deg, rgba(13, 148, 136, 0.06) 0%, rgba(99, 102, 241, 0.04) 100%);
+      border: 1px solid rgba(13, 148, 136, 0.25);
+      border-radius: 16px;
+      padding: 16px 18px;
+    }
+    .prep-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .prep-head h3 {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--teal-dark);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    [data-theme="dark"] .prep-head h3 { color: #2dd4bf; }
+    .prep-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .prep-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 12px;
+      line-height: 1.45;
+      display: flex;
+      gap: 8px;
+    }
+    .prep-badge {
+      font-weight: 800;
+      color: var(--teal-primary);
+      flex-shrink: 0;
+    }
+
+    /* FOOTER DE PRIVACIDADE E REGULAÇÃO */
+    .dr-footer {
+      border-top: 1px solid var(--border-color);
+      padding: 16px 4px 4px;
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* BOTTOM NAV BAR (ESTILO MOBILE NATIVO DO DR. EXAME) */
+    .dr-bottom-nav {
+      display: none;
+      background: var(--bg-card);
+      border-top: 1px solid var(--border-color);
+      padding: 8px 12px calc(8px + var(--safe-bottom));
+      justify-content: space-around;
+      position: sticky;
+      bottom: 0;
+      z-index: 50;
+    }
+    .app-frame.mobile .dr-bottom-nav { display: flex; }
+
+    .nav-tab-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .nav-tab-btn.active {
+      color: var(--teal-primary);
+    }
+    .nav-tab-icon { font-size: 18px; }
+  </style>
+</head>
+<body data-theme="light">
+
+  <!-- TOP MOCK CONTROLLER (Para alternar perfis e telas) -->
+  <aside class="mock-toolbar">
+    <div>
+      <strong>Dr. Exame · Protótipo Saúde Esportiva</strong>
+      <span style="margin-left: 6px; font-size: 11px;">(Design System Oficial)</span>
+    </div>
+
+    <div class="mock-controls">
+      <label for="mockPersona" style="font-size: 11px;">Perfil:</label>
+      <select id="mockPersona" class="mock-select" onchange="changePersona(this.value)">
+        <option value="bodybuilder">Fisiculturismo / Hipertrofia (Uso Hormonal Declarado)</option>
+        <option value="runner">Corredora de Maratona (Natural / Estoque de Ferro)</option>
+        <option value="crossfit">CrossFit / Musculação Intensa (Creatina + CK Muscular)</option>
+        <option value="trt">Reposição Hormonal TRT (Prescrição Médica)</option>
+      </select>
+
+      <div style="display: flex; gap: 4px;">
+        <button class="mock-btn active" onclick="setDevice('desktop', this)">Desktop</button>
+        <button class="mock-btn" onclick="setDevice('tablet', this)">Tablet</button>
+        <button class="mock-btn" onclick="setDevice('mobile', this)">Mobile</button>
+      </div>
+
+      <button class="mock-btn" onclick="toggleTheme()">🌓 Tema</button>
+    </div>
+  </aside>
+
+  <!-- PALCO DO SIMULADOR -->
+  <main class="simulator-stage">
+    <div id="appFrame" class="app-frame">
+
+      <!-- CABEÇALHO OFICIAL DO DR. EXAME -->
+      <header class="dr-header">
+        <div class="brand-section">
+          <div class="brand-logo-icon">🩺</div>
+          <div class="brand-text">
+            <h1>Dr. Exame</h1>
+            <span>Painel de Saúde Esportiva</span>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <!-- CHIP DE MODO: Permite ao paciente alternar entre Visão Geral e Visão Esportiva -->
+          <div class="mode-switch-chip" title="Alternar modo de visualização">
+            <span>🏃</span>
+            <span>Modo Esporte: <strong>Ativo</strong></span>
+          </div>
+
+          <div class="avatar-btn" id="headerAvatar">RS</div>
+        </div>
+      </header>
+
+      <!-- CONTEÚDO PRINCIPAL -->
+      <div class="main-scroll">
+
+        <!-- 1. CARD HERO DO PACIENTE (IDENTIDADE DR. EXAME) -->
+        <section class="patient-hero-card">
+          <div class="patient-top-meta">
+            <div class="patient-ident">
+              <div class="patient-photo" id="pAvatar">RS</div>
+              <div class="patient-titles">
+                <h2 id="pName">
+                  Rodrigo Silva, 31 anos
+                  <span class="badge-sport" id="pSport">Fisiculturismo Classic</span>
+                </h2>
+                <div class="patient-subtitles">
+                  <span>🎯 Objetivo: <strong id="pGoal">Hipertrofia / Ganho de Massa</strong></span>
+                  <span>•</span>
+                  <span>Médico do Esporte: <strong id="pDoc">Dr. Paulo M. (CRM/SP 148.920)</strong></span>
+                </div>
+              </div>
+            </div>
+
+            <div style="text-align: right;">
+              <span style="font-size: 11px; color: var(--text-muted);">Último exame enviado:</span>
+              <div style="font-size: 12px; font-weight: 700; color: var(--text-main);">02/10/2026 · Lab Sabin</div>
+            </div>
+          </div>
+
+          <!-- Métricas Rápidas do Atleta -->
+          <div class="athlete-quick-stats" id="quickStats">
+            <div class="quick-stat">
+              <span class="lbl">Peso / Altura</span>
+              <span class="val">94,2 kg / 180cm</span>
+              <span class="hint">BF est.: 10,8%</span>
+            </div>
+            <div class="quick-stat">
+              <span class="lbl">Treino Recente</span>
+              <span class="val">Ontem (18h atrás)</span>
+              <span class="hint">Inferiores Pesado</span>
+            </div>
+            <div class="quick-stat">
+              <span class="lbl">Hematócrito</span>
+              <span class="val" style="color: var(--amber-warn);">51,8%</span>
+              <span class="hint">Zona de Atenção</span>
+            </div>
+            <div class="quick-stat">
+              <span class="lbl">CK Total</span>
+              <span class="val" style="color: var(--teal-dark);">1.420 U/L</span>
+              <span class="hint">Dano Muscular</span>
+            </div>
+            <div class="quick-stat">
+              <span class="lbl">Recuperação (HRV)</span>
+              <span class="val" style="color: var(--green-ok);">68 ms</span>
+              <span class="hint">Health Connect</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. ALERTA CLÍNICO EDUCATIVO (SEM ALARMISMO, COM RIGOR) -->
+        <section class="dr-alert-banner" id="alertBanner">
+          <div class="dr-alert-icon">⚠️</div>
+          <div class="dr-alert-body">
+            <h3 id="alertTitle">Hematócrito próximo ao limite seguro (51,8%)</h3>
+            <p id="alertDesc">
+              O hematócrito de 51,8% está na faixa superior de atenção clínica (teto seguro em atletas &le; 52%). Sob uso declarado de testosterona, o aumento da viscosidade sanguínea requer reforço rigoroso de hidratação (&gt; 3,5L/dia) e reavaliação médica para prevenir sobrecarga cardiovascular.
+            </p>
+            <div class="dr-alert-tags">
+              <span class="dr-tag">Hematócrito: 51,8%</span>
+              <span class="dr-tag">CK 1.420 U/L (Muscular pós-treino)</span>
+              <span class="dr-tag">HDL 28 mg/dL (Acompanhar lipídios)</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. SUBSTÂNCIAS, HORMÔNIOS E SUPLEMENTOS DECLARADOS -->
+        <section class="dr-section-box">
+          <div class="section-head">
+            <h3>💊 Farmacologia & Suplementos Declarados</h3>
+            <span style="font-size: 11px; color: var(--text-muted);">Confidencial · Registro LGPD</span>
+          </div>
+
+          <div class="sub-substance-grid" id="substancesGrid">
+            <div class="substance-card">
+              <div class="sub-name-row">
+                <span class="sub-title">Enantato de Testosterona</span>
+                <span class="sub-dose">250 mg / sem</span>
+              </div>
+              <p class="sub-context">
+                Via intramuscular · Última aplicação há 4 dias.<br />
+                <strong>Impacto nos exames:</strong> Testo Total suprafisiológica, LH/FSH suprimidos, hematócrito elevado.
+              </p>
+            </div>
+
+            <div class="substance-card">
+              <div class="sub-name-row">
+                <span class="sub-title">Drostanolona (Masteron)</span>
+                <span class="sub-dose">200 mg / sem</span>
+              </div>
+              <p class="sub-context">
+                Via intramuscular · 4ª semana de uso.<br />
+                <strong>Impacto nos exames:</strong> Redução acentuada de HDL colesterol e estresse lipídico.
+              </p>
+            </div>
+
+            <div class="substance-card">
+              <div class="sub-name-row">
+                <span class="sub-title">Creatina Monoidratada</span>
+                <span class="sub-dose">5 g / dia</span>
+              </div>
+              <p class="sub-context">
+                Suplemento diário contínuo.<br />
+                <strong>Impacto nos exames:</strong> Falso positivo para creatinina (1,32 mg/dL). Recomendar Cistatina-C.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. EXPLICAÇÃO DAS 4 CAMADAS DE REFERÊNCIA -->
+        <div class="ruler-legend">
+          <strong style="color: var(--text-main);">Entendendo a Régua de 4 Camadas:</strong>
+          <span class="ruler-item"><span class="dot-lab"></span> Referência do Laboratório</span>
+          <span class="ruler-item"><span class="dot-target"></span> Meta Individual do Seu Médico</span>
+          <span class="ruler-item"><span class="dot-patient"></span> Seu Resultado no Laudo</span>
+        </div>
+
+        <!-- 5. FILTROS DE DOMÍNIO CLÍNICO -->
+        <div class="filter-tabs">
+          <button class="filter-btn active" onclick="filterDomain('hormonal', this)">Eixo Hormonal (4)</button>
+          <button class="filter-btn" onclick="filterDomain('cardio', this)">Cardiovascular & Lipídios (3)</button>
+          <button class="filter-btn" onclick="filterDomain('blood', this)">Hemograma & Reologia (3)</button>
+          <button class="filter-btn" onclick="filterDomain('muscle_liver', this)">Músculo & Fígado (3)</button>
+          <button class="filter-btn" onclick="filterDomain('renal', this)">Função Renal & Cistatina (3)</button>
+        </div>
+
+        <!-- 6. MARCADORES DO ATLETA (CARDS INTEGRADOS) -->
+        <div class="markers-container" id="markersList">
+          <!-- Card 1: Testosterona Total -->
+          <div class="dr-marker-card alert-border">
+            <div class="marker-top">
+              <span class="marker-name">Testosterona Total</span>
+              <span class="marker-date">02/10/2026 · Quimioluminescência</span>
+            </div>
+
+            <div class="marker-main-value">
+              <div>
+                <span class="marker-num">&gt; 1.500</span>
+                <span class="marker-unit">ng/dL</span>
+              </div>
+              <span class="marker-chip chip-warn">Suprafisiológica</span>
+            </div>
+
+            <!-- Régua de 4 Camadas do Dr. Exame -->
+            <div class="ruler-track">
+              <!-- Lab Ref: 240 a 871 (15% a 50%) -->
+              <div class="ruler-lab-span" style="left: 15%; width: 35%;"></div>
+              <!-- Meta Médica: 800 a 1200 (45% a 65%) -->
+              <div class="ruler-target-span" style="left: 45%; width: 20%;"></div>
+              <!-- Marcador: 92% -->
+              <div class="ruler-pin warn" style="left: 92%;"></div>
+            </div>
+            <div class="ruler-legend-row">
+              <span>0</span>
+              <span>Lab: 240–871</span>
+              <span style="color: var(--target-purple); font-weight: 600;">Meta Dr: 800–1.200</span>
+              <span>&gt;1.500</span>
+            </div>
+
+            <div class="marker-ia-explanation">
+              <strong>Explicação Dr. Exame:</strong> Resultado compatível com a dose declarada de 250mg/sem coletada 4 dias após aplicação. O ensaio do laboratório satura em 1.500 ng/dL. Acompanhar estradiol (E2) e reologia sanguínea.
+            </div>
+          </div>
+
+          <!-- Card 2: Estradiol (E2) -->
+          <div class="dr-marker-card">
+            <div class="marker-top">
+              <span class="marker-name">Estradiol (E2)</span>
+              <span class="marker-date">02/10/2026 · Eclia</span>
+            </div>
+
+            <div class="marker-main-value">
+              <div>
+                <span class="marker-num">48,2</span>
+                <span class="marker-unit">pg/mL</span>
+              </div>
+              <span class="marker-chip chip-ok">Proporcional</span>
+            </div>
+
+            <div class="ruler-track">
+              <div class="ruler-lab-span" style="left: 10%; width: 34%;"></div>
+              <div class="ruler-target-span" style="left: 35%; width: 30%;"></div>
+              <div class="ruler-pin" style="left: 55%;"></div>
+            </div>
+            <div class="ruler-legend-row">
+              <span>0</span>
+              <span>Lab: 11–44</span>
+              <span style="color: var(--target-purple); font-weight: 600;">Meta Dr: 35–65</span>
+              <span>100</span>
+            </div>
+
+            <div class="marker-ia-explanation">
+              <strong>Explicação Dr. Exame:</strong> Embora acima do teto geral do laboratório (44 pg/mL), está dentro da <em>meta clínica individual</em> recomendada para evitar aromatização descompensada sem ressecar articulações.
+            </div>
+          </div>
+
+          <!-- Card 3: LH & FSH -->
+          <div class="dr-marker-card danger-border">
+            <div class="marker-top">
+              <span class="marker-name">LH & FSH</span>
+              <span class="marker-date">02/10/2026 · Hormônios Hipofisários</span>
+            </div>
+
+            <div class="marker-main-value">
+              <div>
+                <span class="marker-num">&lt; 0,1</span>
+                <span class="marker-unit">mUI/mL</span>
+              </div>
+              <span class="marker-chip chip-danger">Eixo Bloqueado</span>
+            </div>
+
+            <div class="ruler-track">
+              <div class="ruler-lab-span" style="left: 20%; width: 50%;"></div>
+              <div class="ruler-pin danger" style="left: 3%;"></div>
+            </div>
+            <div class="ruler-legend-row">
+              <span>0</span>
+              <span>Ref Lab: 1,5–9,3</span>
+              <span>10</span>
+            </div>
+
+            <div class="marker-ia-explanation">
+              <strong>Explicação Dr. Exame:</strong> Inibição completa esperada pelo feedback negativo dos androgênios exógenos. Dado essencial para o seu médico estruturar o planejamento de manutenção ou futura TPC.
+            </div>
+          </div>
+
+          <!-- Card 4: SHBG -->
+          <div class="dr-marker-card alert-border">
+            <div class="marker-top">
+              <span class="marker-name">SHBG (Globulina Ligadora)</span>
+              <span class="marker-date">02/10/2026</span>
+            </div>
+
+            <div class="marker-main-value">
+              <div>
+                <span class="marker-num">14,2</span>
+                <span class="marker-unit">nmol/L</span>
+              </div>
+              <span class="marker-chip chip-warn">Reduzida</span>
+            </div>
+
+            <div class="ruler-track">
+              <div class="ruler-lab-span" style="left: 30%; width: 45%;"></div>
+              <div class="ruler-pin warn" style="left: 22%;"></div>
+            </div>
+            <div class="ruler-legend-row">
+              <span>0</span>
+              <span>Lab: 18–54</span>
+              <span>60</span>
+            </div>
+
+            <div class="marker-ia-explanation">
+              <strong>Explicação Dr. Exame:</strong> Queda esperada pela ação de androgênios. Resulta em maior fração de testosterona livre ativa no organismo.
+            </div>
+          </div>
+        </div>
+
+        <!-- 7. PREPARAÇÃO DE CONSULTA (ASSISTENTE DR. EXAME IA) -->
+        <section class="dr-consultation-prep">
+          <div class="prep-head">
+            <h3>🩺 Perguntas para Levar ao Seu Médico</h3>
+            <span style="font-size: 11px; color: var(--teal-dark); font-weight: 600;">Gerado pela IA do Dr. Exame</span>
+          </div>
+
+          <ul class="prep-list">
+            <li class="prep-item">
+              <span class="prep-badge">1.</span>
+              <div>
+                <strong>Conduta no Hematócrito (51,8%):</strong> "Doutor, com o hematócrito beirando 52%, devo aumentar ainda mais a hidratação diária, ajustar a dosagem do protocolo ou planejar reavaliação em 30 dias?"
+              </div>
+            </li>
+            <li class="prep-item">
+              <span class="prep-badge">2.</span>
+              <div>
+                <strong>Creatinina vs Cistatina-C:</strong> "Minha creatinina deu 1,32 mg/dL, mas treino pesado e uso 5g de creatina diária. Seria indicado dosarmos Cistatina-C para confirmar a real taxa de filtração glomerular sem interferência muscular?"
+              </div>
+            </li>
+            <li class="prep-item">
+              <span class="prep-badge">3.</span>
+              <div>
+                <strong>Perfil Lipídico e HDL (28 mg/dL):</strong> "O HDL sofreu redução pronunciada. Quais medidas de cardioproteção adotaremos neste momento (aeróbico em jejum, ômega-3 em alta dose ou coenzima Q10)?"
+              </div>
+            </li>
+          </ul>
+        </section>
+
+        <!-- 8. RODAPÉ DE ÉTICA & CFM -->
+        <footer class="dr-footer">
+          <p>
+            <strong>Aviso de Redução de Danos & Uso Consciente:</strong> O Dr. Exame é uma plataforma de monitoramento laboratorial preventivo. Não prescrevemos, estimulamos ou orientamos ciclos ou substâncias controladas.
+          </p>
+          <p style="margin-top: 4px;">
+            Resolução CFM 2.333/2023 · Criptografia de ponta a ponta (AES-256) · LGPD em Saúde
+          </p>
+        </footer>
+
+      </div>
+
+      <!-- BOTTOM NAVIGATION (MOBILE DR. EXAME) -->
+      <nav class="dr-bottom-nav">
+        <a class="nav-tab-btn active">
+          <span class="nav-tab-icon">🏠</span>
+          <span>Início</span>
+        </a>
+        <a class="nav-tab-btn">
+          <span class="nav-tab-icon">📋</span>
+          <span>Exames</span>
+        </a>
+        <a class="nav-tab-btn">
+          <span class="nav-tab-icon">📈</span>
+          <span>Evolução</span>
+        </a>
+        <a class="nav-tab-btn">
+          <span class="nav-tab-icon">💊</span>
+          <span>Remédios</span>
+        </a>
+        <a class="nav-tab-btn">
+          <span class="nav-tab-icon">👤</span>
+          <span>Perfil</span>
+        </a>
+      </nav>
+
+    </div>
+  </main>
+
+  <script>
+    const PERSONAS_DATA = {
+      bodybuilder: {
+        name: "Rodrigo Silva, 31 anos",
+        sport: "Fisiculturismo Classic",
+        initials: "RS",
+        goal: "Hipertrofia / Ganho de Massa",
+        doctor: "Dr. Paulo M. (CRM/SP 148.920)",
+        alertTitle: "Hematócrito próximo ao limite seguro (51,8%)",
+        alertDesc: "O hematócrito de 51,8% está na faixa superior de atenção clínica (teto seguro em atletas &le; 52%). Sob uso declarado de testosterona, o aumento da viscosidade sanguínea requer reforço rigoroso de hidratação (&gt; 3,5L/dia) e reavaliação médica para prevenir sobrecarga cardiovascular.",
+        quick: [
+          { l: "Peso / Altura", v: "94,2 kg / 180cm", h: "BF est.: 10,8%" },
+          { l: "Treino Recente", v: "Ontem (18h atrás)", h: "Inferiores Pesado" },
+          { l: "Hematócrito", v: "51,8%", h: "Zona de Atenção", c: "var(--amber-warn)" },
+          { l: "CK Total", v: "1.420 U/L", h: "Dano Muscular", c: "var(--teal-dark)" },
+          { l: "Recuperação (HRV)", v: "68 ms", h: "Health Connect", c: "var(--green-ok)" }
+        ],
+        substances: [
+          { title: "Enantato de Testosterona", dose: "250 mg / sem", ctx: "Intramuscular · Aplicação há 4 dias.<br><strong>Impacto:</strong> Testo suprafisiológica, LH/FSH suprimidos, hematócrito elevado." },
+          { title: "Drostanolona (Masteron)", dose: "200 mg / sem", ctx: "Intramuscular · 4ª semana de uso.<br><strong>Impacto:</strong> Redução acentuada de HDL colesterol e estresse lipídico." },
+          { title: "Creatina Monoidratada", dose: "5 g / dia", ctx: "Suplemento diário contínuo.<br><strong>Impacto:</strong> Falso positivo para creatinina (1,32 mg/dL). Recomendar Cistatina-C." }
+        ]
+      },
+      runner: {
+        name: "Mariana Costa, 29 anos",
+        sport: "Corredora de Maratona",
+        initials: "MC",
+        goal: "Maratona Sub-3h15 / Alto Volume",
+        doctor: "Dra. Camila R. (CRM/RS 112.440)",
+        alertTitle: "Estoque de Ferro e Ferritina em queda acentuada",
+        alertDesc: "A ferritina de 19 ng/mL com rodagem de 72 km/semana aponta depleção de ferro por impacto mecânico e sudorese. Risco de anemia do atleta se não houver reforço nutricional imediato.",
+        quick: [
+          { l: "Peso / Altura", v: "55,4 kg / 168cm", h: "BF est.: 14,2%" },
+          { l: "Volume Semanal", v: "72 km / semana", h: "Pico de Rodagem" },
+          { l: "Ferritina", v: "19 ng/mL", h: "Alerta Depleção", c: "var(--red-alert)" },
+          { l: "VO2 Máx", v: "56 ml/kg", h: "Percentil 98 (Garmin)", c: "var(--green-ok)" },
+          { l: "FC Repouso", v: "42 bpm", h: "Bradicardia de Atleta", c: "var(--teal-dark)" }
+        ],
+        substances: [
+          { title: "Beta-Alanina", dose: "3,2 g / dia", ctx: "Suplemento de tamponamento ácido.<br>Sem alteração bioquímica laboratorial." },
+          { title: "Ferro Quelato", dose: "60 mg / dia", ctx: "Reposição nutricional orientada.<br><strong>Monitorar:</strong> Ferritina e Saturação de Transferrina." },
+          { title: "Cafeína Anidra", dose: "200 mg pré-treino", ctx: "Ergogênico para treinos longos.<br>Monitorar pressão arterial de repouso." }
+        ]
+      },
+      crossfit: {
+        name: "Carlos Eduardo, 35 anos",
+        sport: "CrossFit & LPO",
+        initials: "CE",
+        goal: "Performance e Composição Corporal",
+        doctor: "Dr. André F. (CRM/RJ 89.210)",
+        alertTitle: "CK e TGO elevadas por esforço físico intenso (Fígado 100% normal)",
+        alertDesc: "CK de 2.890 U/L e TGO de 74 U/L explicadas por treino extenuante há 24h. O TGP (32 U/L) e GGT (21 U/L) estão normais, confirmando liberação muscular sem lesão hepática.",
+        quick: [
+          { l: "Peso / Altura", v: "84,0 kg / 176cm", h: "BF est.: 12,0%" },
+          { l: "Treino Recente", v: "WOD Murph (24h atrás)", h: "Dano Muscular Alto" },
+          { l: "CK Total", v: "2.890 U/L", h: "Muscular Fisiológico", c: "var(--teal-dark)" },
+          { l: "TGO (AST)", v: "74 U/L", h: "Origem Muscular", c: "var(--amber-warn)" },
+          { l: "TGP (ALT)", v: "32 U/L", h: "Fígado Preservado", c: "var(--green-ok)" }
+        ],
+        substances: [
+          { title: "Creatina Creapure", dose: "5 g / dia", ctx: "Uso contínuo para suporte ATP.<br>Creatinina em 1,28 mg/dL sem lesão renal." },
+          { title: "Whey Protein Isolado", dose: "40 g / dia", ctx: "Aporte proteico diário.<br>Ureia sérica levemente aumentada (44 mg/dL)." },
+          { title: "Vitamina D3 + K2", dose: "5.000 UI / dia", ctx: "Imunidade e saúde óssea.<br>Vitamina D sérica em 58 ng/mL." }
+        ]
+      },
+      trt: {
+        name: "Marcos Vinicius, 48 anos",
+        sport: "Ciclismo & Musculação",
+        initials: "MV",
+        goal: "TRT Terapêutica (Saúde & Vitalidade)",
+        doctor: "Dra. Beatriz L. (Endocrinologista CRM/SP 172.300)",
+        alertTitle: "Marcadores estáveis e em faixa terapêutica segura",
+        alertDesc: "Testosterona total em 680 ng/dL e livre em 16,4 ng/dL. Hematócrito de 46,2% e PSA em 0,72 ng/mL indicam excelente controle clínico sob prescrição médica há 14 meses.",
+        quick: [
+          { l: "Idade / Tratamento", v: "48 anos (14m TRT)", h: "Cipionato 100mg" },
+          { l: "Testo Total", v: "680 ng/dL", h: "Alvo Atingido", c: "var(--green-ok)" },
+          { l: "Hematócrito", v: "46,2%", h: "Faixa Segura", c: "var(--green-ok)" },
+          { l: "PSA Total", v: "0,72 ng/mL", h: "Próstata Normal", c: "var(--green-ok)" },
+          { l: "HDL-C", v: "52 mg/dL", h: "Cardioproteção Boa", c: "var(--green-ok)" }
+        ],
+        substances: [
+          { title: "Cipionato de Testosterona", dose: "100 mg / 10 dias", ctx: "Prescrição médica de farmácia.<br>Manutenção de nível fisiológico saudável (600–800 ng/dL)." },
+          { title: "Coenzima Q10", dose: "100 mg / dia", ctx: "Suporte mitocondrial e cardiovascular." },
+          { title: "Magnésio Dimalato", dose: "400 mg à noite", ctx: "Suporte ao sono profundo e tônus muscular." }
+        ]
+      }
+    };
+
+    function changePersona(key) {
+      const data = PERSONAS_DATA[key];
+      if (!data) return;
+
+      document.getElementById('pName').innerHTML = `${data.name} <span class="badge-sport" id="pSport">${data.sport}</span>`;
+      document.getElementById('pGoal').innerText = data.goal;
+      document.getElementById('pDoc').innerText = data.doctor;
+      document.getElementById('pAvatar').innerText = data.initials;
+      document.getElementById('headerAvatar').innerText = data.initials;
+
+      document.getElementById('alertTitle').innerHTML = data.alertTitle;
+      document.getElementById('alertDesc').innerHTML = data.alertDesc;
+
+      const qStats = document.getElementById('quickStats');
+      qStats.innerHTML = data.quick.map(item => `
+        <div class="quick-stat">
+          <span class="lbl">${item.l}</span>
+          <span class="val" ${item.c ? `style="color:${item.c};"` : ''}>${item.v}</span>
+          <span class="hint">${item.h}</span>
+        </div>
+      `).join('');
+
+      const subGrid = document.getElementById('substancesGrid');
+      subGrid.innerHTML = data.substances.map(s => `
+        <div class="substance-card">
+          <div class="sub-name-row">
+            <span class="sub-title">${s.title}</span>
+            <span class="sub-dose">${s.dose}</span>
+          </div>
+          <p class="sub-context">${s.ctx}</p>
+        </div>
+      `).join('');
+    }
+
+    function filterDomain(domain, btn) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const container = document.getElementById('markersList');
+
+      if (domain === 'hormonal') {
+        container.innerHTML = `
+          <div class="dr-marker-card alert-border">
+            <div class="marker-top"><span class="marker-name">Testosterona Total</span><span class="marker-date">02/10/2026</span></div>
+            <div class="marker-main-value"><div><span class="marker-num">&gt; 1.500</span><span class="marker-unit">ng/dL</span></div><span class="marker-chip chip-warn">Suprafisiológica</span></div>
+            <div class="ruler-track">
+              <div class="ruler-lab-span" style="left: 15%; width: 35%;"></div>
+              <div class="ruler-target-span" style="left: 45%; width: 20%;"></div>
+              <div class="ruler-pin warn" style="left: 92%;"></div>
+            </div>
+            <div class="ruler-legend-row"><span>0</span><span>Lab: 240–871</span><span style="color:var(--target-purple);font-weight:600;">Meta Dr: 800–1.200</span><span>&gt;1.500</span></div>
+            <div class="marker-ia-explanation"><strong>Explicação Dr. Exame:</strong> Coletado 4 dias pós-aplicação. Alvo médico definido em 1.200 ng/dL. Acompanhar estradiol e hematócrito.</div>
+          </div>
+
+          <div class="dr-marker-card">
+            <div class="marker-top"><span class="marker-name">Estradiol (E2)</span><span class="marker-date">02/10/2026</span></div>
+            <div class="marker-main-value"><div><span class="marker-num">48,2</span><span class="marker-unit">pg/mL</span></div><span class="marker-chip chip-ok">Proporcional</span></div>
+            <div class="ruler-track">
+              <div class="ruler-lab-span" style="left: 10%; width: 34%;"></div>
+              <div class="ruler-target-span" style="left: 35%; width: 30%;"></div>
+              <div class="ruler-pin" style="left: 55%;"></div>
+            </div>
+            <div class="ruler-legend-row"><span>0</span><span>Lab: 11–44</span><span style="color:var(--target-purple);font-weight:600;">Meta Dr: 35–65</span><span>100</span></div>
+            <div class="marker-ia-explanation"><strong>Explicação Dr. Exame:</strong> Proporcional à testosterona. Não zerar com inibidores de aromatase sem orientação médica para proteger articulações e perfil lipídico.</div>
+          </div>
+
+          <div class="dr-marker-card danger-border">
+            <div class="marker-top"><span class="marker-name">LH & FSH</span><span class="marker-date">02/10/2026</span></div>
+            <div class="marker-main-value"><div><span class="marker-num">&lt; 0,1</span><span class="marker-unit">mUI/mL</span></div><span class="marker-chip chip-danger">Eixo Bloqueado</span></div>
+            <div class="ruler-track">
+              <div class="ruler-lab-span" style="left: 20%; width: 50%;"></div>
+              <div class="ruler-pin danger" style="left: 3%;"></div>
+            </div>
+            <div class="ruler-legend-row"><span>0</span><span>Ref Lab: 1,5–9,3</span><span>10</span></div>
+            <div class="marker-ia-explanation"><strong>Explicação Dr. Exame:</strong> Bloqueio das gonadotrofinas esperado por feedback hormonal. Guarde o histórico para futuras avaliações de fertilidade.</div>
+          </div>
+        `;
+      } else if (domain === 'cardio') {
+        container.innerHTML = `
+          <div class="dr-marker-card danger-border">
+            <div class="marker-top"><span class="marker-name">HDL Colesterol</span><span class="marker-date">02/10/2026</span></div>
+            <div class="marker-main-value"><div><span class="marker-num" style="color:var(--red-alert);">28</span><span class="marker-unit">mg/dL</span></div><span class="marker-chip chip-danger">Crítico Baixo</span></div>
+            <div class="ruler-track">
+              <div class="ruler-lab-span" style="left: 40%; width: 55%;"></div>
+              <div class="ruler-pin danger" style="left: 28%;"></div>
+            </div>
+            <div class="ruler-legend-row"><span>0</span><span>Ref Lab: &ge; 40</span><span>80</span></div>
+            <div class="marker-ia-explanation"><strong>Explicação Dr. Exame:</strong> Queda comum pelo uso de androgênicos como Masteron. Seu médico avaliará suporte com aeróbico regular e ômega 3.</div>
+          </div>
+
+          <div class="dr-marker-card alert-border">
+            <div class="marker-top"><span class="marker-name">LDL Colesterol</span><span class="marker-date">02/10/2026</span></div>
+            <div class="marker-main-value"><div><span class="marker-num">142</span><span class="marker-unit">mg/dL</span></div><span class="marker-chip chip-warn">Atenção</span></div>
+            <div class="ruler-track">
+              <div class="ruler-lab-span" style="left: 10%; width: 50%;"></div>
+              <div class="ruler-pin warn" style="left: 71%;"></div>
+            </div>
+            <div class="ruler-legend-row"><span>0</span><span>Lab: &lt; 130</span><span>200</span></div>
+            <div class="marker-ia-explanation"><strong>Explicação Dr. Exame:</strong> Elevação leve ligada à dieta hipercalórica de ganho de massa. Monitorar razão colesterol total/HDL.</div>
+          </div>
+
+          <div class="dr-marker-card">
+            <div class="marker-top"><span class="marker-name">Triglicerídeos</span><span class="marker-date">02/10/2026</span></div>
+            <div class="marker-main-value"><div><span class="marker-num">84</span><span class="marker-unit">mg/dL</span></div><span class="marker-chip chip-ok">Ótimo</span></div>
+            <div class="ruler-track">
+              <div class="ruler-lab-span" style="left: 10%; width: 65%;"></div>
+              <div class="ruler-pin" style="left: 42%;"></div>
+            </div>
+            <div class="ruler-legend-row"><span>0</span><span>Lab: &lt; 150</span><span>200</span></div>
+            <div class="marker-ia-explanation"><strong>Explicação Dr. Exame:</strong> Excelente metabolização de gorduras e sensibilidade à insulina sustentada pelos treinos.</div>
+          </div>
+        `;
+      } else if (domain === 'blood') {
+        container.innerHTML = `
+          <div class="dr-marker-card alert-border">
+            <div class="marker-top"><span class="marker-name">Hematócrito</span><span class="marker-date">02/10/2026</span></div>
+            <div class="marker-main-value"><div><span class="marker-num" style="color:var(--amber-warn);">51,8</span><span class="marker-unit">%</span></div><span class="marker-chip chip-warn">Zona Superior</span></div>
+            <div class="ruler-track">
+              <div class="ruler-lab-span" style="left: 30%; width: 45%;"></div>
+              <div class="ruler-target-span" style="left: 35%; width: 40%;"></div>
+              <div class="ruler-pin warn" style="left: 78%;"></div>
+            </div>
+            <div class="ruler-legend-row"><span>35%</span><span>Lab: 40–50%</span><span style="color:var(--target-purple);font-weight:600;">Teto Seguro: 52%</span><span>60%</span></div>
+            <div class="marker-ia-explanation"><strong>Explicação Dr. Exame:</strong> Estímulo androgênico da medula óssea. Se passar de 52–53%, o sangue fica espesso. Manter ingestão vigorosa de água.</div>
+          </div>
+
+          <div class="dr-marker-card">
+            <div class="marker-top"><span class="marker-name">Hemoglobina</span><span class="marker-date">02/10/2026</span></div>
+            <div class="marker-main-value"><div><span class="marker-num">17,4</span><span class="marker-unit">g/dL</span></div><span class="marker-chip chip-ok">Normal Alto</span></div>
+            <div class="ruler-track">
+              <div class="ruler-lab-span" style="left: 20%; width: 60%;"></div>
+              <div class="ruler-pin" style="left: 80%;"></div>
+            </div>
+            <div class="ruler-legend-row"><span>10</span><span>Lab: 13,5–17,5</span><span>20</span></div>
+            <div class="marker-ia-explanation"><strong>Explicação Dr. Exame:</strong> Ótima capacidade de oxigenação muscular, devendo ser acompanhada junto ao hematócrito.</div>
+          </div>
+
+          <div class="dr-marker-card">
+            <div class="marker-top"><span class="marker-name">Plaquetas</span><span class="marker-date">02/10/2026</span></div>
+            <div class="marker-main-value"><div><span class="marker-num">245.000</span><span class="marker-unit">/mm³</span></div><span class="marker-chip chip-ok">Estável</span></div>
+            <div class="ruler-track">
+              <div class="ruler-lab-span" style="left: 20%; width: 60%;"></div>
+              <div class="ruler-pin" style="left: 48%;"></div>
+            </div>
+            <div class="ruler-legend-row"><span>100k</span><span>Lab: 150k–450k</span><span>500k</span></div>
+            <div class="marker-ia-explanation"><strong>Explicação Dr. Exame:</strong> Contagem plaquetária estável, sem sinais de hipercoagulabilidade secundária.</div>
+          </div>
+        `;
+      } else if (domain === 'muscle_liver') {
+        container.innerHTML = `
+          <div class="dr-marker-card alert-border">
+            <div class="marker-top"><span class="marker-name">Creatinoquinase (CK Total)</span><span class="marker-date">02/10/2026</span></div>
+            <div class="marker-main-value"><div><span class="marker-num" style="color:var(--teal-dark);">1.420</span><span class="marker-unit">U/L</span></div><span class="marker-chip chip-warn">Esforço Muscular</span></div>
+            <div class="ruler-track">
+              <div class="ruler-lab-span" style="left: 5%; width: 25%;"></div>
+              <div class="ruler-target-span" style="left: 20%; width: 50%;"></div>
+              <div class="ruler-pin warn" style="left: 71%;"></div>
+            </div>
+            <div class="ruler-legend-row"><span>0</span><span>Lab: &lt; 200</span><span style="color:var(--target-purple);font-weight:600;">Atleta: 400–1.800</span><span>2.500</span></div>
+            <div class="marker-ia-explanation"><strong>Desmistificação Clínica:</strong> Em quem treina pesado, CK acima de 1.000 U/L é fisiológica (microlesão de hipertrofia), <em>não</em> rabdomiólise nem problema no coração.</div>
+          </div>
+
+          <div class="dr-marker-card">
+            <div class="marker-top"><span class="marker-name">TGO (AST) / TGP (ALT)</span><span class="marker-date">02/10/2026</span></div>
+            <div class="marker-main-value"><div><span class="marker-num">TGO: 58 <span style="font-size:16px;color:var(--text-muted);">/ TGP: 31</span></span><span class="marker-unit">U/L</span></div><span class="marker-chip chip-ok">Fígado Sadio</span></div>
+            <div class="ruler-track">
+              <div class="ruler-lab-span" style="left: 10%; width: 50%;"></div>
+              <div class="ruler-pin" style="left: 65%;"></div>
+            </div>
+            <div class="ruler-legend-row"><span>0</span><span>Lab TGO: &lt; 40</span><span>100</span></div>
+            <div class="marker-ia-explanation"><strong>Desmistificação Clínica:</strong> A TGO também está no músculo. TGO elevada com TGP normal (31 U/L) e GGT normal (18 U/L) indica liberação muscular, <strong>não</strong> lesão no fígado.</div>
+          </div>
+
+          <div class="dr-marker-card">
+            <div class="marker-top"><span class="marker-name">Gama GT (GGT)</span><span class="marker-date">02/10/2026</span></div>
+            <div class="marker-main-value"><div><span class="marker-num">18</span><span class="marker-unit">U/L</span></div><span class="marker-chip chip-ok">Preservado</span></div>
+            <div class="ruler-track">
+              <div class="ruler-lab-span" style="left: 10%; width: 65%;"></div>
+              <div class="ruler-pin" style="left: 30%;"></div>
+            </div>
+            <div class="ruler-legend-row"><span>0</span><span>Lab: 8–61</span><span>100</span></div>
+            <div class="marker-ia-explanation"><strong>Explicação Dr. Exame:</strong> Enzima hepática de maior especificidade. Sua normalidade afasta hepatotoxicidade por medicamentos ou anabolizantes.</div>
+          </div>
+        `;
+      } else if (domain === 'renal') {
+        container.innerHTML = `
+          <div class="dr-marker-card alert-border">
+            <div class="marker-top"><span class="marker-name">Creatinina Sérica</span><span class="marker-date">02/10/2026</span></div>
+            <div class="marker-main-value"><div><span class="marker-num" style="color:var(--amber-warn);">1,32</span><span class="marker-unit">mg/dL</span></div><span class="marker-chip chip-warn">Viés Muscular</span></div>
+            <div class="ruler-track">
+              <div class="ruler-lab-span" style="left: 20%; width: 55%;"></div>
+              <div class="ruler-target-span" style="left: 40%; width: 40%;"></div>
+              <div class="ruler-pin warn" style="left: 77%;"></div>
+            </div>
+            <div class="ruler-legend-row"><span>0,5</span><span>Lab: 0,7–1,2</span><span style="color:var(--target-purple);font-weight:600;">Atleta: até 1,35</span><span>2,0</span></div>
+            <div class="marker-ia-explanation"><strong>Aviso de Falso Positivo:</strong> Atleta musculoso + 5g diárias de creatina produzem mais creatinina naturalmente, sem que haja perda de função renal real.</div>
+          </div>
+
+          <div class="dr-marker-card">
+            <div class="marker-top"><span class="marker-name">Cistatina-C (Padrão Ouro)</span><span class="marker-date">02/10/2026</span></div>
+            <div class="marker-main-value"><div><span class="marker-num">0,78</span><span class="marker-unit">mg/L</span></div><span class="marker-chip chip-ok">TFG 104 ml/min</span></div>
+            <div class="ruler-track">
+              <div class="ruler-lab-span" style="left: 20%; width: 55%;"></div>
+              <div class="ruler-pin" style="left: 45%;"></div>
+            </div>
+            <div class="ruler-legend-row"><span>0,4</span><span>Ref: 0,6–1,0</span><span>1,4</span></div>
+            <div class="marker-ia-explanation"><strong>Confirmação de Segurança:</strong> Ao contrário da creatinina, a Cistatina-C é imune ao tamanho muscular e à ingestão proteica, confirmando rins 100% saudáveis.</div>
+          </div>
+
+          <div class="dr-marker-card">
+            <div class="marker-top"><span class="marker-name">Ureia</span><span class="marker-date">02/10/2026</span></div>
+            <div class="marker-main-value"><div><span class="marker-num">44</span><span class="marker-unit">mg/dL</span></div><span class="marker-chip chip-ok">Adequada</span></div>
+            <div class="ruler-track">
+              <div class="ruler-lab-span" style="left: 20%; width: 60%;"></div>
+              <div class="ruler-pin" style="left: 70%;"></div>
+            </div>
+            <div class="ruler-legend-row"><span>10</span><span>Lab: 15–48</span><span>60</span></div>
+            <div class="marker-ia-explanation"><strong>Explicação Dr. Exame:</strong> Proporcional ao alto consumo proteico do atleta, com depuração renal preservada.</div>
+          </div>
+        `;
+      }
+    }
+
+    function setDevice(device, btn) {
+      document.querySelectorAll('.mock-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const frame = document.getElementById('appFrame');
+      frame.className = 'app-frame';
+      if (device !== 'desktop') frame.classList.add(device);
+    }
+
+    function toggleTheme() {
+      const cur = document.body.getAttribute('data-theme');
+      document.body.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
+    }
+  </script>
+</body>
+</html>

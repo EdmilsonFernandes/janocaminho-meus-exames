@@ -26,6 +26,20 @@
 - [ ] E3.5 Canônicos/unidades: SHBG, IGF-1, LH, FSH, cistatina C (SYNONYMS + factors + testes normalize.test.ts) · **AC**: escala falsa coberta; régua do lab preservada.
 
 ### E4 — Dashboard "Saúde Esportiva" — ~4P
+
+> **Diretiva de design (dono, 06/10)**: layout-inspiração = `docs/saude-esportiva/preview-sports-athlete-dashboard.html` (IA dele: alerta no topo → quick stats → filtros por domínio → cards de marcador com 3 pontos lab·histórico·meta → preparação p/ consulta → substâncias). **Implementação 100% com componentes/padrões existentes** — nada de CSS paralelo. Variação por esporte (corredor/fisiculturista/alta performance) = "whitelabel interno": muda só filtro-padrão de domínio + ênfase das quick stats + copy do cabeçalho — **identidade teal inegociável**, zero novo sistema visual.
+
+| Elemento do preview | Componente existente a reusar |
+|---|---|
+| Alert banner topo | AppCard warning/tinted (padrão staleWarning do hero) |
+| Quick stats do atleta | Grid stats da Carteira (`repeat(3,minmax(0,1fr))` — lição do overflow) |
+| Filtros por domínio | Chips/tabs filtráveis (padrão Carteira pós-Rodada 2 + abas do portal) |
+| Card de marcador + dots lab·histórico·meta | AppCard + chips de status (padrão renderCard ExamList) + legenda de 3 pontos (Box/Chip MUI) |
+| Banda meta no gráfico | ReferenceArea do TrendsChart (tracejada/distinta da régua) |
+| Preparação p/ consulta | NextStepsCard / DoctorQuestion |
+| Substâncias declaradas | Grid de AppCards padrão |
+| Mobile/tablet/desktop | PageContainer + grid responsivo do DashboardV2 (já provado 320-1440) |
+
 - [ ] E4.1 Swap por flag (padrão demo DashboardV2:732): SportsDashboard com alertas topo (motor atual), cards de domínio (hormonal/cardiomet/hepático/renal/hemograma), tendências prioritárias por perfil · **AC**: 320/390/768/1440 sem overflow; alertas 100% presentes; dark/light.
 - [ ] E4.2 Card de resultado com 3 camadas visuais (régua sólida + meta tracejada + histórico) + chips de contexto (coleta/treino<24h/última dose) · **AC**: contraste AA; não-só-cor (ícone+texto); datas legíveis.
 - [ ] E4.3 Timeline unificada (exames + substâncias + atividade HC) · **AC**: vazio elegante; dados antigos marcados; HC ausente ≠ zero (teste).
