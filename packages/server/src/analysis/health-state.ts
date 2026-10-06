@@ -19,7 +19,7 @@
 import { prisma } from '../prisma';
 import { collapseAdjacentNearDupes } from './dedup';
 import { getSettings } from '../utils/settings';
-import { normalizeUnit, parseNumeric } from '../utils/normalize';
+import { normalizeUnit, parseNumeric, normalizeKey } from '../utils/normalize';
 import { personalizedTargets as computePersonalizedTargets, type PersonalizedTarget } from './personalized-targets';
 // NOTA: trendVerdict canônico vive em @meus-exames/shared (consumido pelo web/vite).
 // O server (Node) não dá require em shared em runtime (shared é TS-source, sem build p/ JS),
@@ -105,7 +105,7 @@ export interface CurrentHealthSummary {
   worsening: MarkerState[];
   stale: MarkerState[];
   whatChanged: { nameCanonical: string; name: string; deltaPct: number | null; trend: TrendDirection }[];
-  biologicalAge?: { age: number; confidence: 'alta' | 'baixa'; markersUsed: number; detail?: { label: string; value: number; deltaYears: number; status: 'ok' | 'envelhece' | 'rejuvenesce' }[]; method?: 'phenoage' | 'simplified'; missing?: string[]; assumptions?: string[] } | null;
+  biologicalAge?: { age: number; confidence: 'alta' | 'baixa'; markersUsed: number; detail?: { label: string; value: number; deltaYears: number; status: 'ok' | 'envelhece' | 'rejuvenesce' }[]; method?: 'phenoage' | 'simplified'; missing?: string[]; assumptions?: string[]; /** E3.3: hormônio exógeno declarado → marcadores de T EXCLUÍDOS do cálculo (caveat no card). */ excludesHormonalMarkers?: boolean } | null;
   /** F6 — 2º estimador INDEPENDENTE (Klemera-Doubal 2006). Roda AO LADO do biologicalAge
    *  principal (hierarquia phenoage > z-score intacta — KDM nunca substitui). Presente só
    *  quando há insumo suficiente (≥4 biomarcadores válidos); ausente/nunca improvisado. */
@@ -424,7 +424,7 @@ export async function buildCurrentHealthSummary(patientId: string, opts?: { incl
   let bioSexAssumed = false;
   try {
     const { prisma } = await import('../prisma');
-    const patient = await prisma.patient.findUnique({ where: { id: patientId }, select: { gender: true, dateOfBirth: true } });
+    const patient = await prisma.patient.findUnique({ where: { id: patientId }, select: { gender: true, dateOfBirth: true, clinicalProfile: true } });
     if (!patient?.dateOfBirth) bioNoDob = true;
     if (patient?.dateOfBirth) {
       const chronoAge = Math.floor((Date.now() - new Date(patient.dateOfBirth).getTime()) / (365.25 * 86400000));
@@ -508,16 +508,28 @@ export async function buildCurrentHealthSummary(patientId: string, opts?: { incl
           const { estimateBiologicalAge } = await import('./biological-age');
           const sexKnown = (patient.gender as any) === 'female' || (patient.gender as any) === 'male';
           if (!sexKnown) bioSexAssumed = true;
+          // E3.3 (Saúde Esportiva): hormônio exógeno DECLARADO — Medication ativa com prefixo
+          // de classe '[Hormônio] ...' (convenção do DeclaredSubstanceForm) OU perfil clínico
+          // citando testosterona. Nesses casos T total/livre SAEM do conjunto (o valor reflete
+          // a reposição, não a fisiologia — ver markersFor). Sem declaração → conjunto
+          // completo: paciente normal tem resultado IDÊNTICO ao histórico.
+          const hormoneDeclared =
+            normalizeKey(patient.clinicalProfile ?? '').includes('TESTOSTERONA') ||
+            (await prisma.medication
+              .findMany({ where: { patientId, active: true }, select: { name: true } })
+              .catch(() => [] as { name: string }[]))
+              .some((m) => /^\[[^\]]*HORMONIO/.test(normalizeKey(m.name ?? '')));
           const result = estimateBiologicalAge(
             freshMarkers.map((m) => ({ nameCanonical: m.nameCanonical, value: m.latest.valueNumeric ?? 0 })).filter((m) => m.value > 0),
             chronoAge,
             (patient.gender as any) === 'female' ? 'female' : (patient.gender as any) === 'male' ? 'male' : undefined,
+            { hasDeclaredHormones: hormoneDeclared },
           );
           if (result.markersUsed > 0) {
             // 'missing' = marcadores do PhenoAge que faltaram (ex.: Glicose, PCR). Antes bioMissing
             // era atribuído DEPOIS de ser lido → chegava vazio no card (o usuário não sabia o que faltava).
             bioMissing = missing;
-            biologicalAge = { age: result.biologicalAge, confidence: result.confidence, markersUsed: result.markersUsed, detail: result.detail, method: 'simplified', missing: bioMissing, ...(bioSexAssumed ? { assumptions: ['sexoNaoInformado'] } : {}) };
+            biologicalAge = { age: result.biologicalAge, confidence: result.confidence, markersUsed: result.markersUsed, detail: result.detail, method: 'simplified', missing: bioMissing, ...(bioSexAssumed ? { assumptions: ['sexoNaoInformado'] } : {}), ...(hormoneDeclared ? { excludesHormonalMarkers: true } : {}) };
           }
         }
 

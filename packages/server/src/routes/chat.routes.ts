@@ -7,7 +7,8 @@ import { chargeCredits, refundCredits, CREDIT_COSTS } from '../utils/credits';
 import { tryLocalAnswer, streamLocalAnswer } from '../analysis/chat-router';
 import { describeStaleness } from '../analysis/health-state';
 import { guidelinesContext } from '../analysis/guidelines';
-import { guidelinesEnabled } from '../utils/settings';
+import { guidelinesEnabled, sportsModeEnabled } from '../utils/settings';
+import { sportsContextBlocks } from '../analysis/sports-context';
 import { personalizedTargets, formatTarget } from '../analysis/personalized-targets';
 import { medicationsContextBlock } from '../analysis/medications-context';
 
@@ -123,6 +124,17 @@ router.post('/', async (req: AuthedRequest, res, next) => {
           .join('\n')}\n`
       : '';
 
+    // E3.2 (Saúde Esportiva) — addendum DECLARADO + knowledge/sports POR ANALITO. Só entra com
+    // sportsMode on E SportsProfile ativo; off/sem perfil → tudo '' → contextText inalterado
+    // (byte-idêntico — teste de não-regressão em sports-context.test.ts). Substâncias entram
+    // por NOME (sem dose/ciclo) — regras reforçadas dentro do próprio addendum.
+    const sports = await sportsContextBlocks(
+      pid,
+      recent.flatMap((e) => (e.items as any[]).map((it) => it.nameCanonical)),
+      sportsModeEnabled(),
+      message,
+    );
+
     // histórico da conversa (últimos turnos deste paciente)
     const prior = await prisma.aiAnalysis.findMany({
       where: { patientId: pid, type: 'CHAT' },
@@ -199,6 +211,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       activityBlock +
       medsBlock +
       targetsBlock +
+      sports.addendum +
       (currentBlock.length ? `- VALORES ATUAIS (exame MAIS RECENTE por analito — use ESTES ao citar "atual/último resultado"):\n${currentBlock.join('\n')}\n` : '') +
       `- Exames recentes (TODOS os itens — nome: valor (ref) [flag se alterado]):\n${examsBlock}\n` +
       (trendBlock ? `\n- Analitos ao longo do tempo (use pra evolução/comparar/tendência; o 1º valor de cada linha é o MAIS RECENTE):\n${trendBlock}\n` : '') +
@@ -223,7 +236,9 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       message,
       guidelinesEnabled(),
     );
-    const fullContext = guidelinesTxt ? `${contextText}\n${guidelinesTxt}` : contextText;
+    // Knowledge esportivo entra DEPOIS do guidelines (self-prefix \n; off → '' inaltera).
+    let fullContext = guidelinesTxt ? `${contextText}\n${guidelinesTxt}` : contextText;
+    if (sports.knowledge) fullContext += sports.knowledge;
 
     // DÉBITO ATÔMICO ANTES da chamada de IA (anti-race). Antes era gate-read + charge DEPOIS do
     // stream: N requisições paralelas passavam no gate com o mesmo saldo → N respostas de IA, 1 débito.
@@ -236,7 +251,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     }
     let text: string; let model: string; let sources: { label: string; topic: string }[];
     try {
-      ({ text, model, sources } = await streamChat({ res, contextText: fullContext, history, message, guidelineTopics }));
+      ({ text, model, sources } = await streamChat({ res, contextText: fullContext, history, message, guidelineTopics: [...guidelineTopics, ...sports.topics] }));
     } catch (e) {
       await refundCredits(req.userId!, CREDIT_COSTS.chat, 'ai_chat_refund', 'Reembolso: falha na IA (chat)');
       throw e;

@@ -64,6 +64,26 @@ const HEALTHY_RANGES: Record<string, { male: [number, number]; female: [number, 
 };
 
 /**
+ * E3.3 (Saúde Esportiva) — conjunto de marcadores conforme hormônio exógeno DECLARADO.
+ *
+ * `hasDeclaredHormones=true` (Medication ativa com prefixo '[Hormônio]' OU perfil clínico
+ * citando testosterona — ver caller em health-state.ts) EXCLUI testosterona total/livre do
+ * conjunto: testosterona EXÓGENA invalida o marcador — o valor reflete a reposição/uso, não
+ * a fisiologia do paciente, e a curva U-shape pararia de significar "envelhecimento".
+ *
+ * Os pesos dos demais NÃO precisam de renormalização manual: estimateBiologicalAge já
+ * normaliza pela soma dos pesos dos marcadores REALMENTE usados (totalWeight acumula só os
+ * usados), então remover T do conjunto re-normaliza automaticamente a contribuição relativa
+ * de cada um. false = conjunto COMPLETO — paciente normal tem resultado IDÊNTICO ao
+ * histórico (mesmos números; teste de não-regressão em biological-age.sports.test.ts).
+ */
+export const HORMONE_MARKER_CANONICALS = ['TESTOSTERONA_TOTAL', 'TESTOSTERONA_LIVRE'] as const;
+
+export function markersFor(hasDeclaredHormones: boolean): typeof AGE_MARKERS {
+  return hasDeclaredHormones ? AGE_MARKERS.filter((m) => !HORMONE_MARKER_CANONICALS.includes(m.canonical as any)) : AGE_MARKERS;
+}
+
+/**
  * Calcula idade biológica estimada.
  * @param markers Marcadores disponíveis do paciente (nameCanonical + value)
  * @param chronologicalAge Idade cronológica (anos)
@@ -76,10 +96,15 @@ export function estimateBiologicalAge(
   markers: MarkerInput[],
   chronologicalAge: number,
   gender: BioSex | undefined,
+  opts?: { hasDeclaredHormones?: boolean },
 ): { biologicalAge: number; confidence: 'alta' | 'baixa'; markersUsed: number; detail: BioMarkerDetail[] } {
   if (!chronologicalAge || chronologicalAge < 18 || markers.length === 0) {
     return { biologicalAge: chronologicalAge, confidence: 'baixa', markersUsed: 0, detail: [] };
   }
+
+  // E3.3: sem hormônio declarado (default) o conjunto é o completo — resultado idêntico ao
+  // histórico. Com hormônio declarado, T sai do conjunto (ver markersFor).
+  const ageMarkers = markersFor(!!opts?.hasDeclaredHormones);
 
   let totalDelta = 0;
   let totalWeight = 0;
@@ -88,7 +113,7 @@ export function estimateBiologicalAge(
   const sex: 'male' | 'female' = gender === 'female' ? 'female' : 'male';
 
   for (const m of markers) {
-    const cfg = AGE_MARKERS.find((a) => a.canonical === m.nameCanonical);
+    const cfg = ageMarkers.find((a) => a.canonical === m.nameCanonical);
     if (!cfg) continue;
     const range = HEALTHY_RANGES[cfg.canonical];
     if (!range) continue;

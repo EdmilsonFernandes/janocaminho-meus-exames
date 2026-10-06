@@ -25,3 +25,15 @@ mais rica e **consistente** — e melhora sem retreinar: basta editar o `.md` aq
 - Baseado em diretrizes (cite fontes ao final de cada card).
 - Linguagem simples; seções fixas: *O que é · Valores · Fatores · Hábitos · Alertas · Perguntas · Fontes*.
 - O GLM usa o card como **fato**, mas continua proibido de inventar valores/condições novas.
+
+## Saúde Esportiva (`sports/` — E3, out/2026)
+Cards de CONTEXTO ESPORTIVO carregados por `src/analysis/sports-knowledge.ts` — formato
+`guidelines/*.md` (cabeçalho `topic:/markers:/updated:` + `## Pontos-chave` com [FONTE ANO]).
+**Gate duplo**: só entram no prompt com `AppSetting sportsMode.enabled=1` E paciente com
+`SportsProfile` ativo; matching POR ANALITO (nunca wholesale). Regras duras do diretório:
+- **PROIBIDO**: faixa segura de qualquer AAS, doses, ciclos, TPC, "range de Masteron".
+- Metas de TRT (450-600 ng/dL etc.) SEMPRE com o rótulo "diretrizes de uso PRESCRITO;
+  graduação fraca/condicional".
+- Banner `> ⚠️ DRAFT — pendente revisão por médico responsável` no topo de TODO arquivo
+  até a assinatura clínica do piloto (BACKLOG E6).
+
