@@ -123,6 +123,7 @@ router.get('/timeseries', async (req: AuthedRequest, res, next) => {
         title: r.exam.title,
         valueNumeric: r.valueNumeric,
         unit: r.unit,
+        method: r.method, // E2.5 — métodos diferentes bloqueiam comparação na tendência
         flag: r.flag,
         refLow: r.refLow,
         refHigh: r.refHigh,
@@ -279,7 +280,7 @@ router.get('/evolution', async (req: AuthedRequest, res, next) => {
         // contava marcadores incertos (conflito de escala) como 'fora', inflando o número.
         abnormal: !!last.isAbnormal,
         count: items.length,
-        points: items.map((i) => ({ value: i.valueNumeric, date: i.exam.performedAt, flag: i.flag, examId: i.exam.id, examTitle: i.exam.title, refLow: i.refLow, refHigh: i.refHigh })),
+        points: items.map((i) => ({ value: i.valueNumeric, date: i.exam.performedAt, flag: i.flag, examId: i.exam.id, examTitle: i.exam.title, method: i.method, refLow: i.refLow, refHigh: i.refHigh })),
       });
     }
     // ordem: do exame mais recente pro mais antigo

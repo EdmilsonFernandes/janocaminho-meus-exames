@@ -28,7 +28,7 @@ import type { SvgIconComponent } from '@mui/icons-material';
 import type { EvolutionItem as EvoItem, ClinicalGoalView } from '@meus-exames/shared';
 import { tealText } from '../theme';
 import { useClinicalGoals } from '../hooks/useClinicalGoals';
-import { goalFor, goalRangeText, withinGoal, withinRef, dualStatusText } from '../utils/clinicalGoals';
+import { goalFor, goalRangeText, withinGoal, withinRef, dualStatusText, hasMixedMethods, lineBreakFlags } from '../utils/clinicalGoals';
 
 /** Chip "🎯 Meta clínica" (E2.4 — camada 2): SEMPRE além do badge da régua do lab; nunca
  *  o substitui. Tooltip mostra justificativa + fonte + autor (transparência clínica). */
@@ -329,6 +329,9 @@ const EvoRow = ({ it, defaultExpanded, idx = 0, goal }: { it: EvoItem; defaultEx
   // Duplo-estado (REGRA DURA §4): meta NUNCA mascara a régua do laboratório — os DOIS aparecem.
   const lastPoint = it.points[it.points.length - 1];
   const goalText = goal ? dualStatusText(withinGoal(lastPoint?.value, goal), withinRef(lastPoint?.value, it.refLow, it.refHigh)) : null;
+  // E2.5 — métodos diferentes: não desenha linha entre coletas de ensaios distintos.
+  const mixedMethods = hasMixedMethods(it.points);
+  const breaks = lineBreakFlags(it.points);
   return (
     <Accordion defaultExpanded={defaultExpanded} disableGutters elevation={0}
       sx={{
@@ -377,7 +380,7 @@ const EvoRow = ({ it, defaultExpanded, idx = 0, goal }: { it: EvoItem; defaultEx
             }}
           >
             <Typography sx={{ fontWeight: 800, color: meta.color, whiteSpace: 'nowrap' }}>{it.lastValue} {it.unit ? <UnitLabel unit={it.unit} /> : null}</Typography>
-            <EvoSparkline points={it.points} color={lineColor} />
+            {mixedMethods ? <Box title="Métodos diferentes entre exames — sem linha de tendência" sx={{ fontSize: 15, flexShrink: 0 }}>⚠️</Box> : <EvoSparkline points={it.points} color={lineColor} />}
             {goal && <GoalChip goal={goal} />}
             {st !== 'stable' && it.pctChange !== 0 && <Chip size="small" sx={{ bgcolor: `${lineColor}14`, color: lineColor, fontWeight: 700, height: 22, borderRadius: '999px', flexShrink: 0 }} label={`${it.pctChange > 0 ? '+' : ''}${it.pctChange}%`} />}
           </Stack>
@@ -390,7 +393,7 @@ const EvoRow = ({ it, defaultExpanded, idx = 0, goal }: { it: EvoItem; defaultEx
         {it.points.length >= 2 && (
           <Box sx={{ height: 104, width: '100%', mb: 1 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={it.points.map((p) => ({ v: p.value, date: fmtDate(p.date), flag: p.flag, refLow: (p as any).refLow ?? null, refHigh: (p as any).refHigh ?? null }))} margin={{ top: 6, right: 8, bottom: 4, left: 8 }}>
+              <LineChart data={it.points.map((p, pi) => ({ v: breaks[pi] ? null : p.value, vDot: p.value, date: fmtDate(p.date), flag: p.flag, refLow: (p as any).refLow ?? null, refHigh: (p as any).refHigh ?? null }))} margin={{ top: 6, right: 8, bottom: 4, left: 8 }}>
                 {/* Domínio inclui a faixa (mesma correção do TrendsChart): sem isto o recharts 3.x
                     descarta o ReferenceArea que ultrapasse os dados — a banda sumia. */}
                 {it.refLow != null && it.refHigh != null && <ReferenceArea y1={it.refLow} y2={it.refHigh} fill="#059669" fillOpacity={0.14} ifOverflow="extendDomain" />}
@@ -424,8 +427,13 @@ const EvoRow = ({ it, defaultExpanded, idx = 0, goal }: { it: EvoItem; defaultEx
                     <stop offset="100%" stopColor={lineColor} />
                   </linearGradient>
                 </defs>
-                {/* W3 — draw-in do traço (reduced-motion desliga). */}
-                <Line type="monotone" dataKey="v" stroke="url(#evolutionGrad)" strokeWidth={2.5} dot={{ r: 4, fill: lineColor }} activeDot={{ r: 6, stroke: '#fff', strokeWidth: 2 }} isAnimationActive={!REDUCED_MOTION} animationDuration={900} />
+                {/* W3 — draw-in do traço (reduced-motion desliga).
+                    E2.5: com métodos mistos, o traço ganha GAPS (v=null onde o método muda)
+                    e os dots isolados vêm da série "vDot" — nunca conecta ensaios diferentes. */}
+                <Line type="monotone" dataKey="v" stroke="url(#evolutionGrad)" strokeWidth={2.5} dot={mixedMethods ? false : { r: 4, fill: lineColor }} activeDot={{ r: 6, stroke: '#fff', strokeWidth: 2 }} isAnimationActive={!REDUCED_MOTION} animationDuration={900} />
+                {mixedMethods && (
+                  <Line type="monotone" dataKey="vDot" stroke="none" legendType="none" activeDot={false} isAnimationActive={false} dot={{ r: 4, fill: lineColor }} />
+                )}
               </LineChart>
             </ResponsiveContainer>
           </Box>
@@ -434,6 +442,12 @@ const EvoRow = ({ it, defaultExpanded, idx = 0, goal }: { it: EvoItem; defaultEx
           {st === 'stable' ? 'Estável' : up ? 'Subindo' : 'Caindo'} em {it.count} {it.count === 1 ? 'medição' : 'medições'}.
           {(it.refLow != null || it.refHigh != null) && ` Faixa: ${it.refLow ?? '—'} a ${it.refHigh ?? '—'}${it.unit ? ` ${it.unit}` : ''}.`}
         </Typography>
+        {/* E2.5 — chip de não-comparabilidade: métodos diferentes entre as coletas. */}
+        {mixedMethods && (
+          <MuiTooltip title="Os exames desta série usam métodos de ensaio diferentes. Valores entre métodos não são diretamente comparáveis — os pontos aparecem isolados, sem linha conectando." arrow>
+            <Chip size="small" label="⚠️ Métodos diferentes" sx={{ mt: 0.75, height: 22, fontWeight: 700, bgcolor: 'rgba(245,158,11,0.12)', color: (t) => t.palette.mode === 'dark' ? '#fbbf24' : '#b45309', border: '1px solid rgba(245,158,11,0.35)' }} />
+          </MuiTooltip>
+        )}
         {/* Meta clínica (E2.4): texto explícito do duplo-estado — ex.: "Atinge a meta clínica;
             permanece fora da referência do laboratório". Nunca substitui o badge acima. */}
         {goal && (

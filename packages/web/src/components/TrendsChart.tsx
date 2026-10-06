@@ -6,7 +6,7 @@ import { ExplainButton } from './ExplainItem';
 import { UnitLabel } from './UnitLabel';
 import { Flag } from './Flag';
 import { RADIUS, tealText } from '../theme';
-import { goalRangeText, withinGoal, withinRef, dualStatusText } from '../utils/clinicalGoals';
+import { goalRangeText, withinGoal, withinRef, dualStatusText, hasMixedMethods, lineBreakFlags } from '../utils/clinicalGoals';
 import type { ClinicalGoalView } from '@meus-exames/shared';
 import type { Theme } from '@mui/material/styles';
 import type { TimeSeriesByName as TS } from '@meus-exames/shared';
@@ -81,13 +81,19 @@ export const TrendsChart = ({ ts, action, goal }: { ts: TS; action?: React.React
   const lastVal = (ts.points ?? []).length ? (ts.points ?? [])[(ts.points ?? []).length - 1].valueNumeric : null;
   const lastGoalStatus = dualStatusText(withinGoal(lastVal, goal ?? null), withinRef(lastVal, uniLow, uniHigh));
 
-  const data = (ts.points ?? []).map((p) => ({
+  // E2.5 — MÉTODOS DIFERENTES: não compara. A linha "pula" o ponto cujo método difere do
+  // anterior (valor=null abre gap; connectNulls=false por padrão no recharts); os pontos
+  // continuam visíveis pela série paralela "valorDot" (stroke none, só dots).
+  const methodList = (ts.points ?? []).map((p) => ({ method: (p as { method?: string | null }).method ?? null }));
+  const mixedMethods = hasMixedMethods(methodList);
+  const breaks = lineBreakFlags(methodList);
+  const data = (ts.points ?? []).map((p, i) => ({
     name: p.performedAt ? new Date(p.performedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: isMobile ? '2-digit' : 'numeric' }) : 's/d',
-    valor: p.valueNumeric, flag: p.flag, title: p.title,
+    valor: breaks[i] ? null : p.valueNumeric,
+    valorDot: p.valueNumeric, flag: p.flag, title: p.title,
   }));
 
-  const TooltipBox = ({ active, payload }: any) => {
-    if (!active || !payload?.length) return null;
+  const TooltipBox = ({ active, payload }: any) => {    if (!active || !payload?.length) return null;
     const d = payload[0].payload;
     return (
       <Box sx={{ bgcolor: alpha(theme.palette.background.paper, 0.92), color: theme.palette.text.primary, p: 1.25, borderRadius: '12px', boxShadow: theme.shadows[4], minWidth: 120, border: `1px solid ${theme.palette.divider}` }}>
@@ -103,6 +109,25 @@ export const TrendsChart = ({ ts, action, goal }: { ts: TS; action?: React.React
           return <Box sx={{ color, fontSize: 12, fontWeight: 700 }}>{arrow}{s.label}</Box>;
         })()}
       </Box>
+    );
+  };
+
+  /** Dot colorido por flag — compartilhado pela linha principal (sem métodos mistos) e
+   *  pela série só-de-dots (E2.5: pontos isolados quando o método muda entre coletas). */
+  const renderFlagDot = (props: any) => {
+    const { cx, cy, payload } = props;
+    if (cx == null || cy == null || !payload) return <g key={props.key} />;
+    const v = (payload.valor ?? payload.valorDot) as number;
+    const flag = payload.flag as string;
+    const isHigh = flag === 'HIGH' || (uniHigh != null && v > uniHigh);
+    const isLow = flag === 'LOW' || (uniLow != null && v < uniLow);
+    const color = isHigh ? '#fb923c' : isLow ? '#60a5fa' : tealMain;
+    const r = isHigh || isLow ? 6 : 4.5; // alterados = maiores (destaque visual)
+    return (
+      <g key={props.key}>
+        {(isHigh || isLow) && <circle cx={cx} cy={cy} r={r + 3} fill={color} fillOpacity={0.18} />}
+        <circle cx={cx} cy={cy} r={r} fill={color} stroke={theme.palette.background.paper} strokeWidth={1.5} />
+      </g>
     );
   };
 
@@ -163,6 +188,14 @@ export const TrendsChart = ({ ts, action, goal }: { ts: TS; action?: React.React
         <Typography sx={{ fontWeight: 700, mt: 0.25, color: predict?.dir === 'up' ? errText : predict?.dir === 'down' ? infoText : okText }}>
           {predict?.dir === 'up' ? '↑ Tendência de alta' : predict?.dir === 'down' ? '↓ Tendência de queda' : '→ Estável'} · {data.length} {data.length === 1 ? 'medição' : 'medições'}
         </Typography>
+        {/* E2.5 — métodos diferentes entre coletas: NÃO comparam (pontos isolados no gráfico). */}
+        {mixedMethods && (
+          <MuiTooltip title="Os exames desta série usam métodos de ensaio diferentes. Valores entre métodos não são diretamente comparáveis — os pontos aparecem isolados, sem linha conectando." arrow>
+            <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, mt: 0.5, px: 1, py: 0.25, borderRadius: '999px', bgcolor: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.35)', cursor: 'help' }}>
+              <Typography component="span" sx={{ fontSize: 12.5, fontWeight: 700, color: isDark ? '#fbbf24' : '#b45309' }}>⚠️ Métodos diferentes</Typography>
+            </Box>
+          </MuiTooltip>
+        )}
         {lastPt && (
           <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.25 }}>Última medição: <strong>{fmt2(lastPt.performedAt)}</strong></Typography>
         )}
@@ -256,26 +289,21 @@ export const TrendsChart = ({ ts, action, goal }: { ts: TS; action?: React.React
             />
           )}
           {/* Dots COLORIDOS por flag (bolinhas dos alterados): HIGH=laranja, LOW=azul, normal=teal.
-              O paciente vê a alteração ANTES de ler o número — mesmo padrão do app. */}
+              O paciente vê a alteração ANTES de ler o número — mesmo padrão do app.
+              E2.5: com métodos mistos, a linha principal fica SEM dots (só o traço, com gaps
+              onde o método muda); os dots (TODOS os pontos, isolados incluídos) vêm da série
+              "valorDot" — sem linha conectando ensaios diferentes. */}
           <Line
             type="monotone" dataKey="valor" stroke={tealMain} strokeWidth={3}
-            dot={(props: any) => {
-              const { cx, cy, payload } = props;
-              if (cx == null || cy == null || !payload) return <g key={props.key} />;
-              const flag = payload.flag as string;
-              const isHigh = flag === 'HIGH' || (uniHigh != null && payload.valor > uniHigh);
-              const isLow = flag === 'LOW' || (uniLow != null && payload.valor < uniLow);
-              const color = isHigh ? '#fb923c' : isLow ? '#60a5fa' : tealMain;
-              const r = isHigh || isLow ? 6 : 4.5; // alterados = maiores (destaque visual)
-              return (
-                <g key={props.key}>
-                  {(isHigh || isLow) && <circle cx={cx} cy={cy} r={r + 3} fill={color} fillOpacity={0.18} />}
-                  <circle cx={cx} cy={cy} r={r} fill={color} stroke={theme.palette.background.paper} strokeWidth={1.5} />
-                </g>
-              );
-            }}
+            dot={mixedMethods ? false : renderFlagDot}
             activeDot={{ r: 8, stroke: theme.palette.background.paper, strokeWidth: 2 }}
           />
+          {mixedMethods && (
+            <Line
+              type="monotone" dataKey="valorDot" stroke="none" legendType="none" activeDot={false} isAnimationActive={false}
+              dot={renderFlagDot}
+            />
+          )}
         </LineChart>
       </ResponsiveContainer>
 

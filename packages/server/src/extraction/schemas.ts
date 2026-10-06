@@ -15,6 +15,7 @@ export const ExtractionItemSchema = z.object({
   valueText: z.string().nullable().optional(), // "17,1 g/dL"
   valueNumeric: z.number().nullable().optional(), // 17.1
   unit: z.string().nullable().optional(), // "g/dL"
+  method: z.string().nullable().optional(), // método do ensaio (E2.5): "Química seca", "ECL" — best effort, quando o laudo traz
   references: z.array(ReferenceSchema).default([]),
   page: z.number().int(), // CITAÇÃO — página-fonte (1-indexed)
 });

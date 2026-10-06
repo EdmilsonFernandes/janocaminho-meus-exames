@@ -35,6 +35,9 @@ const EvoPointSchema = z.object({
   flag: z.string(),
   examId: z.string(),
   examTitle: z.string(),
+  // E2.5 — método do ensaio daquela coleta (null = não informado). Métodos diferentes
+  // entre pontos BLOQUEIAM a comparação direta (linha) na tendência.
+  method: z.string().nullable().optional(),
   // Faixa do PRÓPRIO exame da coleta (contexto histórico). Desde 2026-08-18 a CLASSIFICAÇÃO
   // exibida usa a faixa UNIFICADA da série (mediana — item-level refLow/refHigh do EvolutionItem),
   // não mais a faixa individual do ponto.
@@ -66,6 +69,9 @@ const TSPointSchema = z.object({
   valueNumeric: z.number(),
   flag: z.string(),
   title: z.string(),
+  // E2.5 — método do ensaio daquela coleta (null = não informado). Métodos diferentes
+  // entre pontos BLOQUEIAM a comparação direta (linha) na tendência.
+  method: z.string().nullable().optional(),
   // Faixa de referência DO PRÓPRIO ponto (o exame de cada coleta pode ter faixa própria —
   // ex.: hemoglobina 12–15.8 num lab, 13–16.5 noutro). Usada para COMPUTAR a mediana da série
   // (TimeSeriesByName.refLow/refHigh, mandato 2026-08-18: UMA faixa classifica a série inteira;

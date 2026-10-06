@@ -604,6 +604,12 @@ model ExamItem {
   flag          ItemFlag @default(NORMAL)
   isAbnormal    Boolean  @default(false)
 
+  // MÉTODO do ensaio (E2.5, out/2026): "Química seca", "ECL"... quando o laudo traz.
+  // Best effort (null = não informado). Métodos diferentes entre exames BLOQUEIAM a
+  // comparação direta na tendência (chip "métodos diferentes" + pontos isolados) —
+  // nunca altera valor/flag, é metadado de comparabilidade.
+  method        String?
+
   // CITAÇÃO — página-fonte no PDF (1-indexed). Obrigatório p/ confiança.
   extractedPage Int
 
