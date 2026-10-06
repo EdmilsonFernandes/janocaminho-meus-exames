@@ -5,7 +5,25 @@ import { Empty } from './NotesTab';
 import { copperText, tealText, RADIUS } from '../../../theme';
 import { goalRangeText } from '../../../utils/clinicalGoals';
 import type { Theme } from '@mui/material/styles';
-import { Medal, Syringe, Target } from '@phosphor-icons/react';
+import { Medal, Syringe, Target, ListChecks } from '@phosphor-icons/react';
+
+/**
+ * E5.6 — template EDUCATIVO do plano de acompanhamento TRT. É AGENDA de monitoramento
+ * citando sociedades médicas (SBEM/SBU/ABEMSS 2026; Endocrine Society 2018) para USO
+ * PRESCRITO — nunca dose, ciclo ou conduta. O médico edita antes de salvar/compartilhar.
+ * ⚠️ Revisão clínica pendente (E6): wording a validar por médico parceiro antes do piloto.
+ */
+const TRT_PLAN_TEMPLATE = [
+  'PLANO DE ACOMPANHAMENTO — AGENDA SUGERIDA (educativa; a decisão clínica é sua)',
+  '',
+  'Monitoramento de terapia com testosterona de USO PRESCRITO:',
+  '[ ] Dosar testosterona total + hematócrito em 3, 6 e 12 meses após início/ajuste (SBEM/SBU/ABEMSS 2026; Endocrine Society 2018)',
+  '[ ] PSA anual — individualizar conforme idade e fatores de risco',
+  '[ ] Revisar sintomas, adesão e efeitos em cada retorno',
+  '',
+  'Fontes: diretrizes de sociedades médicas para USO PRESCRITO de testosterona.',
+  'Agenda educativa gerada no Dr. Exame — não define conduta nem substitui a consulta.',
+].join('\n');
 
 /** Selo fixo do painel esportivo: tudo aqui é autodeclarado, nunca verificado. */
 const DECLARED_BADGE = 'DECLARADO PELO PACIENTE — não verificado';
@@ -177,6 +195,39 @@ export const SportsPanel = ({ patientId, token, doctorId }: { patientId: string;
   const vigenteByAnalyte = new Map(goals.filter((g) => g.vigente).map((g) => [g.analyte, g]));
   const openSuggestions = suggestions.filter((s) => !vigenteByAnalyte.has(s.analyte));
 
+  // E5.6 — planos de acompanhamento salvos (DoctorNote category='plano').
+  const [plans, setPlans] = useState<{ id: string; content: string; sharedAt?: string | null; createdAt: string }[]>([]);
+  const [planText, setPlanText] = useState('');
+  const [planBusy, setPlanBusy] = useState(false);
+  const loadPlans = () => {
+    fetch(`${API_URL}/doctor/patients/${patientId}/notes`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => (r.ok ? r.json() : { items: [] }))
+      .then((d) => setPlans((d.items ?? []).filter((n: any) => n.category === 'plano')))
+      .catch(() => {});
+  };
+  useEffect(loadPlans, [patientId, token]);
+
+  const savePlan = async () => {
+    if (!planText.trim()) return;
+    setPlanBusy(true);
+    try {
+      const r = await fetch(`${API_URL}/doctor/patients/${patientId}/notes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ content: planText.trim(), category: 'plano' }),
+      });
+      if (r.ok) { setPlanText(''); loadPlans(); }
+    } finally { setPlanBusy(false); }
+  };
+
+  const sharePlan = async (id: string) => {
+    setPlanBusy(true);
+    try {
+      const r = await fetch(`${API_URL}/doctor/notes/${id}/share`, { method: 'PATCH', headers: { Authorization: `Bearer ${token}` } });
+      if (r.ok) loadPlans();
+    } finally { setPlanBusy(false); }
+  };
+
   if (loading) {
     return (
       <Card sx={{ borderRadius: RADIUS.sectionCard }}><CardContent>
@@ -337,6 +388,57 @@ export const SportsPanel = ({ patientId, token, doctorId }: { patientId: string;
             </Stack>
           </Box>
         ))}
+      </SectionCard>
+
+      {/* E5.6 — plano de acompanhamento: checklist TRT educativo (agenda sugerida). */}
+      <SectionCard title="Plano de acompanhamento (educativo)">
+        <Box sx={{ p: 1.25, borderRadius: '12px', bgcolor: 'action.hover', mb: 1.5 }}>
+          {TRT_PLAN_TEMPLATE.split('\n').slice(0, 7).map((line, i) => (
+            <Typography key={i} variant="caption" sx={{ display: 'block', color: line.startsWith('[') ? 'text.primary' : 'text.secondary', fontWeight: line.startsWith('[') ? 700 : 400, lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
+              {line}
+            </Typography>
+          ))}
+          <Typography variant="caption" sx={{ color: (t: Theme) => copperText(t.palette.mode), fontWeight: 700, display: 'block', mt: 0.5 }}>
+            AGENDA sugerida por diretrizes de USO PRESCRITO — a decisão clínica é sua.
+          </Typography>
+        </Box>
+        <TextField
+          label="Plano (edição livre antes de salvar)"
+          value={planText}
+          onChange={(e) => setPlanText(e.target.value)}
+          onFocus={() => { if (!planText) setPlanText(TRT_PLAN_TEMPLATE); }}
+          multiline minRows={6} fullWidth size="small"
+          placeholder="Toque para carregar o checklist editável…"
+          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', fontSize: 13 } }}
+        />
+        <Button size="small" variant="contained" onClick={savePlan} disabled={planBusy || !planText.trim()} sx={{ mt: 1, textTransform: 'none', fontWeight: 700, borderRadius: '999px' }}>
+          Salvar plano
+        </Button>
+        {plans.length > 0 && (
+          <Stack spacing={1} sx={{ mt: 2 }}>
+            <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>Planos salvos</Typography>
+            {plans.map((pl) => (
+              <Box key={pl.id} sx={{ p: 1.25, borderRadius: '12px', border: '1px solid', borderColor: 'divider' }}>
+                <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mb: 0.5 }}>
+                  <ListChecks size={14} weight="duotone" />
+                  <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                    {new Date(pl.createdAt).toLocaleDateString('pt-BR')}
+                  </Typography>
+                  {pl.sharedAt ? (
+                    <Chip size="small" label={`Compartilhado em ${new Date(pl.sharedAt).toLocaleDateString('pt-BR')}`} sx={{ height: 22, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(32,178,170,.10)', color: (t: Theme) => tealText(t.palette.mode) }} />
+                  ) : (
+                    <Button size="small" variant="outlined" disabled={planBusy} onClick={() => sharePlan(pl.id)} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '999px', minHeight: 28 }}>
+                      Compartilhar com o paciente
+                    </Button>
+                  )}
+                </Stack>
+                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', whiteSpace: 'pre-wrap', maxHeight: 96, overflow: 'hidden' }}>
+                  {pl.content.split('\n')[0]}
+                </Typography>
+              </Box>
+            ))}
+          </Stack>
+        )}
       </SectionCard>
 
       {/* Dialog de configuração rápida de meta (justificativa editável OBRIGATÓRIA). */}

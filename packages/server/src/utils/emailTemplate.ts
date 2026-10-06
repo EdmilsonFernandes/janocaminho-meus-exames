@@ -207,6 +207,26 @@ export function doctorAnswerEmail(opts: { patientName?: string; doctorName: stri
   });
 }
 
+/** E-mail: PLANO DE ACOMPANHAMENTO compartilhado pelo médico (E5.6). Conteúdo educativo —
+ *  agenda de monitoramento sugerida, decisão clínica permanece do médico. */
+export function doctorPlanEmail(opts: { doctorName: string; crm?: string | null; patientName: string; planMd: string; appUrl: string }): string {
+  const safePlan = (opts.planMd || '').replace(/</g, '&lt;').replace(/\n/g, '<br>').slice(0, 4000);
+  return emailTemplate({
+    title: `Plano de acompanhamento de ${opts.doctorName} — Meus Exames`,
+    preheader: `${opts.patientName}, seu médico compartilhou uma agenda de monitoramento com você.`,
+    content: `
+      <p style="font-size:16px;color:#15233b;margin:0 0 8px">Olá, <strong>${opts.patientName}</strong>!</p>
+      <p style="font-size:15px;color:#51607a;margin:0 0 20px"><strong>${opts.doctorName}</strong>${opts.crm ? ` (CRM ${opts.crm})` : ''} montou um plano de acompanhamento para você:</p>
+      <div style="background:#f3f6fb;border-left:4px solid #20b2aa;border-radius:8px;padding:16px 18px;margin:0 0 24px">
+        <p style="font-size:15px;color:#15233b;line-height:1.6;margin:0">${safePlan}</p>
+      </div>
+      <div style="text-align:center;margin:0 0 16px">
+        <a href="${opts.appUrl}" style="display:inline-block;background:#20b2aa;color:#fff;font-size:16px;font-weight:700;padding:14px 36px;border-radius:99px;text-decoration:none">Abrir o Meus Exames</a>
+      </div>
+      <p style="font-size:14px;color:#8b9bb4;margin:0">Este plano é uma agenda educativa sugerida pelo seu médico — as decisões clínicas e a prescrição continuam sendo dele, em consulta.</p>`,
+  });
+}
+
 /** Boas-vindas do lead da landing (popup de e-mail). Deep-link direto pro decodificador
  *  ("Cole seu exame", âncora #demo via ?ir=decifre) — não pro topo da landing genérica.
  *  Credibilidade em 3 sinais (qualquer lab · educativo/privado · BR) antes do CTA. */
