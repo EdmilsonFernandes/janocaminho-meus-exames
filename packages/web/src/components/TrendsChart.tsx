@@ -1,4 +1,4 @@
-import { Card, CardContent, Box, Stack, Typography, useMediaQuery, useTheme } from '@mui/material';
+import { Card, CardContent, Box, Stack, Typography, Tooltip as MuiTooltip, useMediaQuery, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceArea } from 'recharts';
 import { displayStatus } from '../utils/examStatus';
@@ -6,6 +6,8 @@ import { ExplainButton } from './ExplainItem';
 import { UnitLabel } from './UnitLabel';
 import { Flag } from './Flag';
 import { RADIUS, tealText } from '../theme';
+import { goalRangeText, withinGoal, withinRef, dualStatusText } from '../utils/clinicalGoals';
+import type { ClinicalGoalView } from '@meus-exames/shared';
 import type { Theme } from '@mui/material/styles';
 import type { TimeSeriesByName as TS } from '@meus-exames/shared';
 
@@ -20,15 +22,32 @@ import type { TimeSeriesByName as TS } from '@meus-exames/shared';
  * (valor → tendência → última data → referência), gráfico recharts responsivo (minWidth:0,
  * sem margin negativa → nunca sangra nem corta), previsão de sair da faixa, histórico.
  *
- * Puro: sem fetch, sem hooks de app (react-admin/patient-context). Só recebe `ts`.
+ * Puro: sem fetch, sem hooks de app (react-admin/patient-context). Só recebe `ts` e,
+ * opcionalmente, a META CLÍNICA vigente do analito (E2.4 — camada 2): banda tracejada
+ * COBRE + legenda de 2 entradas, SEMPRE além da régua do laboratório (nunca substitui;
+ * isAbnormal/flag seguem intocados — camada 4).
  */
+
+/** Meta clínica p/ desenho da banda (subconjunto da ClinicalGoalView). */
+export interface TrendsGoalBand {
+  targetLow: number | null;
+  targetHigh: number | null;
+  unit?: string | null;
+  setBy?: string;
+  justification?: string;
+  source?: string | null;
+  validFrom?: string;
+}
+
+/** Cobre da marca (DESIGN_SYSTEM) — cor da meta clínica, distinta do teal e do verde da régua. */
+const GOAL_COLOR = '#d4a574';
 const prettyName = (n: string) => (n || '').toLowerCase().replace(/_/g, ' ').replace(/(^|\s)\w/g, (m) => m.toUpperCase());
 const fmtNum = (n: number | null | undefined) => n == null ? '—' : String(Number(n.toFixed(4))).replace('.', ',');
 /** Limite de faixa em pt-BR premium: 57.11→"57,11", 15.8→"15,8", 12→"12" (sem zeros à toa). */
 const fmtRef = (n: number | null | undefined) => n == null ? '—' : n.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
 const fmt2 = (d?: string | null) => (d ? new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }) : 's/d');
 
-export const TrendsChart = ({ ts, action }: { ts: TS; action?: React.ReactNode }) => {
+export const TrendsChart = ({ ts, action, goal }: { ts: TS; action?: React.ReactNode; goal?: TrendsGoalBand | null }) => {
   const theme = useTheme<Theme>();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const tealMain = theme.palette.primary.main;
@@ -53,6 +72,14 @@ export const TrendsChart = ({ ts, action }: { ts: TS; action?: React.ReactNode }
   const uniLow = pointRanges.length ? median(pointRanges.map((p) => p.refLow as number)) : ts.refLow;
   const uniHigh = pointRanges.length ? median(pointRanges.map((p) => p.refHigh as number)) : ts.refHigh;
   const refMerged = distinctRanges.size > 1;
+
+  // META CLÍNICA (E2.4): banda só com os DOIS limites (meia-banda não é desenhável no
+  // ReferenceArea); chip/legenda/tooltip cobrem o resto. Domínio do eixo inclui a meta.
+  const gLow = goal?.targetLow ?? null;
+  const gHigh = goal?.targetHigh ?? null;
+  const goalBandBoth = gLow != null && gHigh != null;
+  const lastVal = (ts.points ?? []).length ? (ts.points ?? [])[(ts.points ?? []).length - 1].valueNumeric : null;
+  const lastGoalStatus = dualStatusText(withinGoal(lastVal, goal ?? null), withinRef(lastVal, uniLow, uniHigh));
 
   const data = (ts.points ?? []).map((p) => ({
     name: p.performedAt ? new Date(p.performedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: isMobile ? '2-digit' : 'numeric' }) : 's/d',
@@ -155,9 +182,37 @@ export const TrendsChart = ({ ts, action }: { ts: TS; action?: React.ReactNode }
             {refMerged && (
               <Typography component="span" variant="caption" sx={{ color: 'text.secondary' }}>mediana dos exames (faixas variam entre laboratórios)</Typography>
             )}
+            {/* LEGENDA de 2 entradas (E2.4): régua do laboratório × meta clínica. A meta é
+                SEMPRE identificada com autoria (Dr. X) — o paciente sabe quem definiu. */}
+            {goal && (
+              <MuiTooltip
+                title={
+                  <Box sx={{ p: 0.5, maxWidth: 280 }}>
+                    <Typography sx={{ fontWeight: 800, fontSize: 13 }}>{goalRangeText(goal)}</Typography>
+                    {goal.setBy && <Typography sx={{ fontSize: 12, opacity: 0.85, mt: 0.5 }}>{goal.setBy}</Typography>}
+                    {goal.justification && <Typography sx={{ fontSize: 12, opacity: 0.85, mt: 0.5 }}>{goal.justification}</Typography>}
+                    {goal.source && <Typography sx={{ fontSize: 11, opacity: 0.7, mt: 0.5 }}>Fonte: {goal.source}</Typography>}
+                  </Box>
+                }
+                arrow
+              >
+                <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, px: 1, py: 0.25, borderRadius: '999px', bgcolor: alpha(GOAL_COLOR, 0.14), border: `1px dashed ${alpha(GOAL_COLOR, 0.7)}`, cursor: 'help' }}>
+                  <Box component="span" aria-hidden sx={{ width: 14, height: 0, borderTop: `2px dashed ${GOAL_COLOR}`, display: 'inline-block' }} />
+                  <Typography component="span" sx={{ fontSize: 13, fontWeight: 700, color: 'text.secondary' }}>
+                    🎯 Meta clínica{goal.setBy ? ` — ${goal.setBy.split(' (CRM')[0]}` : ''}
+                  </Typography>
+                </Box>
+              </MuiTooltip>
+            )}
           </Stack>
         ) : (
           <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.5 }}>Sem faixa de referência informada</Typography>
+        )}
+        {/* Duplo-estado explícito (REGRA DURA §4): meta atingida NÃO "explica" alteração. */}
+        {goal && lastGoalStatus && (
+          <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: 'text.secondary', fontWeight: 700 }}>
+            {lastGoalStatus}
+          </Typography>
         )}
       </Box>
 
@@ -166,13 +221,21 @@ export const TrendsChart = ({ ts, action }: { ts: TS; action?: React.ReactNode }
         <LineChart data={data} margin={{ top: 10, right: isMobile ? 26 : 34, bottom: 10, left: isMobile ? 0 : 4 }}>
           <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
           <XAxis dataKey="name" minTickGap={isMobile ? 24 : 40} tick={{ fontSize: isMobile ? 9.5 : 11, fill: theme.palette.text.secondary }} axisLine={{ stroke: theme.palette.divider }} />
-          {/* Domínio EXPLÍCITO inclui a faixa de referência: sem isto o recharts 3.x usa
-              [dataMin,dataMax] e DESCARTA o ReferenceArea que ultrapasse os dados (a banda
-              verde simplesmente não renderizava — ex.: Plaquetas 116–238k vs faixa até 450k). */}
+          {/* Domínio EXPLÍCITO inclui a faixa de referência E a meta clínica: sem isto o
+              recharts 3.x usa [dataMin,dataMax] e DESCARTA o ReferenceArea que ultrapasse
+              os dados (a banda verde/cobre simplesmente não renderizava). */}
           <YAxis
-            domain={uniLow != null && uniHigh != null
-              ? [(dataMin: number) => Math.min(dataMin, uniLow), (dataMax: number) => Math.max(dataMax, uniHigh)]
-              : undefined}
+            domain={(() => {
+              const lows = [uniLow, gLow].filter((v): v is number => v != null);
+              const highs = [uniHigh, gHigh].filter((v): v is number => v != null);
+              if (!lows.length && !highs.length) return undefined;
+              const lo = lows.length ? Math.min(...lows) : null;
+              const hi = highs.length ? Math.max(...highs) : null;
+              return [
+                (dataMin: number) => (lo == null ? dataMin : Math.min(dataMin, lo)),
+                (dataMax: number) => (hi == null ? dataMax : Math.max(dataMax, hi)),
+              ];
+            })()}
             tick={{ fontSize: isMobile ? 10 : 12, fill: theme.palette.text.secondary }} axisLine={{ stroke: theme.palette.divider }}
           />
           <Tooltip content={<TooltipBox />} />
@@ -182,6 +245,15 @@ export const TrendsChart = ({ ts, action }: { ts: TS; action?: React.ReactNode }
                a banda simplesmente não renderizava. Extendendo o domínio, o paciente/médico
                vê o quão longe da faixa o valor está (comportamento Apple Health). */
             <ReferenceArea y1={uniLow} y2={uniHigh} fill={theme.palette.success.main} fillOpacity={0.08} ifOverflow="extendDomain" />
+          )}
+          {/* META CLÍNICA (E2.4): SEGUNDA banda, tracejada em COBRE — visualmente DISTINTA
+              da régua do laboratório (verde sólido). Nunca substitui a banda acima. */}
+          {goal && goalBandBoth && (
+            <ReferenceArea
+              y1={gLow} y2={gHigh} ifOverflow="extendDomain"
+              fill={GOAL_COLOR} fillOpacity={0.10}
+              stroke={GOAL_COLOR} strokeDasharray="6 4" strokeOpacity={0.75}
+            />
           )}
           {/* Dots COLORIDOS por flag (bolinhas dos alterados): HIGH=laranja, LOW=azul, normal=teal.
               O paciente vê a alteração ANTES de ler o número — mesmo padrão do app. */}

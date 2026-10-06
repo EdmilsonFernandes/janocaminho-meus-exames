@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Box, Card, CardContent, Typography, Chip, Button, CircularProgress, Alert, Divider, Stack,
-  Accordion, AccordionSummary, AccordionDetails,
+  Accordion, AccordionSummary, AccordionDetails, Tooltip as MuiTooltip,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
@@ -32,6 +32,9 @@ import { CreditBadge, CREDIT_COSTS } from '../../components/CreditBadge';
 import { ConfirmSpend } from '../../components/ConfirmSpend';
 import { DocPreview } from '../../components/DocPreview';
 import { cleanExtractedLabel } from '../../utils/examDisplay';
+import { useClinicalGoals } from '../../hooks/useClinicalGoals';
+import { goalFor, goalRangeText, withinGoal, withinRef, dualStatusText } from '../../utils/clinicalGoals';
+import type { ClinicalGoalView } from '@meus-exames/shared';
 
 /** Valor do item editável inline (corrigir erro de OCR). Salva via PATCH /items/:id. */
 const EditableItemValue = ({ it, color, onSaved }: { it: any; color: string; onSaved: (u: any) => void }) => {
@@ -107,6 +110,9 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
   const [confirmSpend, setConfirmSpend] = useState<{ open: boolean; credits: number; title: string; desc?: string; onYes: () => void }>({ open: false, credits: 0, title: '', onYes: () => {} });
 
   const prevStatusRef = useRef<string | undefined>(undefined);
+  // Meta clínica vigente (E2.4 — camada 2): chip 🎯 + texto duplo-estado no item, SEMPRE
+  // além do badge da régua do laboratório. Sem meta → render idêntico ao atual.
+  const clinicalGoals = useClinicalGoals();
   useEffect(() => {
     let active = true;
     let timer: any;
@@ -436,6 +442,8 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
                     const m = fm(it);
                     const out = it.isAbnormal;
                     const valColor = out ? (m.color === 'error' ? 'error.main' : 'warning.main') : 'success.main';
+                    const goal: ClinicalGoalView | null = goalFor(clinicalGoals, it.nameCanonical, exam.patientId);
+                    const goalText = goal ? dualStatusText(withinGoal(it.valueNumeric, goal), withinRef(it.valueNumeric, it.refLow, it.refHigh)) : null;
                     return (
                       <Box key={it.id} sx={{
                         py: 1.25, pl: 1, borderRadius: '8px',
@@ -448,6 +456,21 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
                           <Typography sx={{ fontWeight: 700, fontSize: '1.05rem', flex: 1, minWidth: 0, wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.3 }}>{it.name}</Typography>
                           <ExplainButton name={it.name} nameCanonical={it.nameCanonical} />
                           <Chip color={m.color} label={m.label} size="small" sx={{ flexShrink: 0 }} />
+                          {goal && (
+                            <MuiTooltip
+                              title={
+                                <Box sx={{ p: 0.5, maxWidth: 280 }}>
+                                  <Typography sx={{ fontWeight: 800, fontSize: 13 }}>{goalRangeText(goal)}</Typography>
+                                  {goal.setBy && <Typography sx={{ fontSize: 12, opacity: 0.85, mt: 0.5 }}>{goal.setBy}</Typography>}
+                                  {goal.justification && <Typography sx={{ fontSize: 12, opacity: 0.85, mt: 0.5 }}>{goal.justification}</Typography>}
+                                  {goal.source && <Typography sx={{ fontSize: 11, opacity: 0.7, mt: 0.5 }}>Fonte: {goal.source}</Typography>}
+                                </Box>
+                              }
+                              arrow
+                            >
+                              <Chip size="small" label="🎯 Meta clínica" sx={{ flexShrink: 0, height: 24, fontWeight: 700, bgcolor: 'rgba(212,165,116,0.16)', color: (t) => t.palette.mode === 'dark' ? '#d4a574' : '#8a6240', border: '1px dashed rgba(212,165,116,0.7)' }} />
+                            </MuiTooltip>
+                          )}
                         </Stack>
                         {/* Valor grande + cor (vermelho alterado, laranja alerta, verde normal) + unidade + pág */}
                         <Stack direction="row" spacing={1} alignItems="baseline" useFlexGap flexWrap="wrap">
@@ -463,6 +486,13 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
                         {String(it.refAppliesTo || '').startsWith('Pediátrico') && (
                           <Chip size="small" label={it.refAppliesTo} title="Faixa por idade (educativa) — nunca substitui o pediatra"
                             sx={{ mt: 0.25, height: 20, fontSize: '0.75rem', fontWeight: 700, bgcolor: 'rgba(32,178,170,.10)', color: '#178f89' }} />
+                        )}
+                        {/* Meta clínica (E2.4 — camada 2): texto explícito do duplo-estado.
+                            REGRA DURA: meta atingida NÃO esconde "fora da referência" (e vice-versa). */}
+                        {goal && (
+                          <Typography variant="caption" sx={{ display: 'block', mt: 0.25, color: (t) => t.palette.mode === 'dark' ? '#d4a574' : '#8a6240', fontWeight: 700, wordBreak: 'break-word' }}>
+                            🎯 Meta clínica ({goalRangeText(goal)}): {goalText ?? `definida por ${goal.setBy}`}
+                          </Typography>
                         )}
                         <ValueBar value={it.valueNumeric} low={it.refLow} high={it.refHigh} />
                         <RefBar value={it.valueNumeric} refLow={it.refLow} refHigh={it.refHigh} unit={it.unit} />
