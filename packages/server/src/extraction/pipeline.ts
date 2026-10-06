@@ -24,6 +24,7 @@ interface ItemRow {
   valueNumeric: number | null;
   valueText: string | null;
   unit: string | null;
+  method: string | null; // E2.5 — método do ensaio (best effort; null = não informado)
   refLow: number | null;
   refHigh: number | null;
   refText: string | null;
@@ -438,6 +439,9 @@ function flattenLabItems(lab: LabExtraction, prefers: string, pedBand: AgeBand |
       const effLow = ped?.low ?? finalLow;
       const effHigh = ped?.high ?? finalHigh;
       const { flag, isAbnormal } = reconcileScaleFlag(finalValue, effLow, effHigh, finalUnit);
+      // E2.5 — método do ensaio: BEST EFFORT, nunca bloqueante. Vem do campo method da
+      // extração (quando o laudo traz); sem método → null (comportamento atual).
+      const method = (it.method ?? '').trim().slice(0, 120) || null;
       rows.push({
         panel: panel.name ?? null,
         name: it.name,
@@ -445,6 +449,7 @@ function flattenLabItems(lab: LabExtraction, prefers: string, pedBand: AgeBand |
         valueNumeric: finalValue,
         valueText: sanitizeUnitInText(it.valueText) ?? null,
         unit: finalUnit,
+        method,
         refLow: effLow,
         refHigh: effHigh,
         refText,

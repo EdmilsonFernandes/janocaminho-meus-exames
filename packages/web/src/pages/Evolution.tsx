@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Box, Button, Card, CardContent, Typography, Chip, Stack, Grid, Accordion, AccordionSummary, AccordionDetails, InputBase, Paper } from '@mui/material';
+import { Box, Button, Card, CardContent, Typography, Chip, Stack, Grid, Accordion, AccordionSummary, AccordionDetails, InputBase, Paper, Tooltip as MuiTooltip } from '@mui/material';
 /** Reduced-motion 1× (charts draw-in e afins) — Recharts não tem gate global. */
 const REDUCED_MOTION = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 import { alpha } from '@mui/material/styles';
@@ -25,8 +25,28 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import type { SvgIconComponent } from '@mui/icons-material';
 
-import type { EvolutionItem as EvoItem } from '@meus-exames/shared';
+import type { EvolutionItem as EvoItem, ClinicalGoalView } from '@meus-exames/shared';
 import { tealText } from '../theme';
+import { useClinicalGoals } from '../hooks/useClinicalGoals';
+import { goalFor, goalRangeText, withinGoal, withinRef, dualStatusText, hasMixedMethods, lineBreakFlags } from '../utils/clinicalGoals';
+
+/** Chip "🎯 Meta clínica" (E2.4 — camada 2): SEMPRE além do badge da régua do lab; nunca
+ *  o substitui. Tooltip mostra justificativa + fonte + autor (transparência clínica). */
+const GoalChip = ({ goal }: { goal: ClinicalGoalView }) => (
+  <MuiTooltip
+    title={
+      <Box sx={{ p: 0.5, maxWidth: 280 }}>
+        <Typography sx={{ fontWeight: 800, fontSize: 13 }}>{goalRangeText(goal)}</Typography>
+        {goal.setBy && <Typography sx={{ fontSize: 12, opacity: 0.85, mt: 0.5 }}>{goal.setBy}</Typography>}
+        {goal.justification && <Typography sx={{ fontSize: 12, opacity: 0.85, mt: 0.5 }}>{goal.justification}</Typography>}
+        {goal.source && <Typography sx={{ fontSize: 11, opacity: 0.7, mt: 0.5 }}>Fonte: {goal.source}</Typography>}
+      </Box>
+    }
+    arrow
+  >
+    <Chip size="small" label="🎯 Meta clínica" sx={{ height: 22, borderRadius: '999px', flexShrink: 0, fontWeight: 700, bgcolor: 'rgba(212,165,116,0.16)', color: (t) => t.palette.mode === 'dark' ? '#d4a574' : '#8a6240', border: '1px dashed rgba(212,165,116,0.7)' }} />
+  </MuiTooltip>
+);
 
 const fmtDate = (d: string | null) =>
   d ? new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }) : 's/d';
@@ -54,6 +74,7 @@ export const EvolutionPage = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<Status | 'all'>('all');
   const [query, setQuery] = useState('');
+  const clinicalGoals = useClinicalGoals();
 
   useEffect(() => {
     if (!pid) { setItems([]); setLoading(false); return; }
@@ -202,7 +223,7 @@ export const EvolutionPage = () => {
       {!loading && filtered.length > 0 && (
         <ScrollReveal delay={240}>
           <Stack spacing={1.5}>
-            {groups.map((g, i) => <CategoryGroup key={g.cat} group={g} expandOuts={filter === 'out'} idx={i} />)}
+            {groups.map((g, i) => <CategoryGroup key={g.cat} group={g} expandOuts={filter === 'out'} idx={i} goals={clinicalGoals} pid={pid} />)}
           </Stack>
         </ScrollReveal>
       )}
@@ -211,7 +232,7 @@ export const EvolutionPage = () => {
 };
 
 /** Grupo colapsável — premium: accent bar lateral, radius 20, hover suave, slide dos markers. */
-const CategoryGroup = ({ group, expandOuts, idx = 0 }: { group: { cat: string; icon: SvgIconComponent; color: string; items: EvoItem[] }; expandOuts?: boolean; idx?: number }) => {
+const CategoryGroup = ({ group, expandOuts, idx = 0, goals, pid }: { group: { cat: string; icon: SvgIconComponent; color: string; items: EvoItem[] }; expandOuts?: boolean; idx?: number; goals: ClinicalGoalView[]; pid?: string | null }) => {
   const [open, setOpen] = useState(!!expandOuts && group.items.some((i) => statusOf(i) === 'out'));
   const outs = group.items.filter((i) => statusOf(i) === 'out').length;
   const changes = group.items.filter((i) => statusOf(i) === 'change').length;
@@ -251,7 +272,7 @@ const CategoryGroup = ({ group, expandOuts, idx = 0 }: { group: { cat: string; i
       </Box>
       {open && (
         <Stack spacing={0.75} sx={{ p: 1.25, pt: 0.5 }}>
-          {group.items.map((it, i) => <EvoRow key={it.nameCanonical} it={it} defaultExpanded={!!expandOuts && statusOf(it) === 'out'} idx={i} />)}
+          {group.items.map((it, i) => <EvoRow key={it.nameCanonical} it={it} defaultExpanded={!!expandOuts && statusOf(it) === 'out'} idx={i} goal={goalFor(goals, it.nameCanonical, pid)} />)}
         </Stack>
       )}
     </Card>
@@ -299,12 +320,18 @@ const EvoSparkline = ({ points, color }: { points: { value: number }[]; color: s
 };
 
 /** Card marcador — premium: borda lateral colorida, sombra layered, slide-in. */
-const EvoRow = ({ it, defaultExpanded, idx = 0 }: { it: EvoItem; defaultExpanded?: boolean; idx?: number }) => {
+const EvoRow = ({ it, defaultExpanded, idx = 0, goal }: { it: EvoItem; defaultExpanded?: boolean; idx?: number; goal?: ClinicalGoalView | null }) => {
   const navigate = useNavigate();
   const st = statusOf(it);
   const meta = STATUS_META[st];
   const up = it.direction === 'up';
   const lineColor = st === 'out' ? '#ef4444' : up ? '#c2410c' : '#0369a1';
+  // Duplo-estado (REGRA DURA §4): meta NUNCA mascara a régua do laboratório — os DOIS aparecem.
+  const lastPoint = it.points[it.points.length - 1];
+  const goalText = goal ? dualStatusText(withinGoal(lastPoint?.value, goal), withinRef(lastPoint?.value, it.refLow, it.refHigh)) : null;
+  // E2.5 — métodos diferentes: não desenha linha entre coletas de ensaios distintos.
+  const mixedMethods = hasMixedMethods(it.points);
+  const breaks = lineBreakFlags(it.points);
   return (
     <Accordion defaultExpanded={defaultExpanded} disableGutters elevation={0}
       sx={{
@@ -353,7 +380,8 @@ const EvoRow = ({ it, defaultExpanded, idx = 0 }: { it: EvoItem; defaultExpanded
             }}
           >
             <Typography sx={{ fontWeight: 800, color: meta.color, whiteSpace: 'nowrap' }}>{it.lastValue} {it.unit ? <UnitLabel unit={it.unit} /> : null}</Typography>
-            <EvoSparkline points={it.points} color={lineColor} />
+            {mixedMethods ? <Box title="Métodos diferentes entre exames — sem linha de tendência" sx={{ fontSize: 15, flexShrink: 0 }}>⚠️</Box> : <EvoSparkline points={it.points} color={lineColor} />}
+            {goal && <GoalChip goal={goal} />}
             {st !== 'stable' && it.pctChange !== 0 && <Chip size="small" sx={{ bgcolor: `${lineColor}14`, color: lineColor, fontWeight: 700, height: 22, borderRadius: '999px', flexShrink: 0 }} label={`${it.pctChange > 0 ? '+' : ''}${it.pctChange}%`} />}
           </Stack>
         </Box>
@@ -365,7 +393,7 @@ const EvoRow = ({ it, defaultExpanded, idx = 0 }: { it: EvoItem; defaultExpanded
         {it.points.length >= 2 && (
           <Box sx={{ height: 104, width: '100%', mb: 1 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={it.points.map((p) => ({ v: p.value, date: fmtDate(p.date), flag: p.flag, refLow: (p as any).refLow ?? null, refHigh: (p as any).refHigh ?? null }))} margin={{ top: 6, right: 8, bottom: 4, left: 8 }}>
+              <LineChart data={it.points.map((p, pi) => ({ v: breaks[pi] ? null : p.value, vDot: p.value, date: fmtDate(p.date), flag: p.flag, refLow: (p as any).refLow ?? null, refHigh: (p as any).refHigh ?? null }))} margin={{ top: 6, right: 8, bottom: 4, left: 8 }}>
                 {/* Domínio inclui a faixa (mesma correção do TrendsChart): sem isto o recharts 3.x
                     descarta o ReferenceArea que ultrapasse os dados — a banda sumia. */}
                 {it.refLow != null && it.refHigh != null && <ReferenceArea y1={it.refLow} y2={it.refHigh} fill="#059669" fillOpacity={0.14} ifOverflow="extendDomain" />}
@@ -399,8 +427,13 @@ const EvoRow = ({ it, defaultExpanded, idx = 0 }: { it: EvoItem; defaultExpanded
                     <stop offset="100%" stopColor={lineColor} />
                   </linearGradient>
                 </defs>
-                {/* W3 — draw-in do traço (reduced-motion desliga). */}
-                <Line type="monotone" dataKey="v" stroke="url(#evolutionGrad)" strokeWidth={2.5} dot={{ r: 4, fill: lineColor }} activeDot={{ r: 6, stroke: '#fff', strokeWidth: 2 }} isAnimationActive={!REDUCED_MOTION} animationDuration={900} />
+                {/* W3 — draw-in do traço (reduced-motion desliga).
+                    E2.5: com métodos mistos, o traço ganha GAPS (v=null onde o método muda)
+                    e os dots isolados vêm da série "vDot" — nunca conecta ensaios diferentes. */}
+                <Line type="monotone" dataKey="v" stroke="url(#evolutionGrad)" strokeWidth={2.5} dot={mixedMethods ? false : { r: 4, fill: lineColor }} activeDot={{ r: 6, stroke: '#fff', strokeWidth: 2 }} isAnimationActive={!REDUCED_MOTION} animationDuration={900} />
+                {mixedMethods && (
+                  <Line type="monotone" dataKey="vDot" stroke="none" legendType="none" activeDot={false} isAnimationActive={false} dot={{ r: 4, fill: lineColor }} />
+                )}
               </LineChart>
             </ResponsiveContainer>
           </Box>
@@ -409,6 +442,22 @@ const EvoRow = ({ it, defaultExpanded, idx = 0 }: { it: EvoItem; defaultExpanded
           {st === 'stable' ? 'Estável' : up ? 'Subindo' : 'Caindo'} em {it.count} {it.count === 1 ? 'medição' : 'medições'}.
           {(it.refLow != null || it.refHigh != null) && ` Faixa: ${it.refLow ?? '—'} a ${it.refHigh ?? '—'}${it.unit ? ` ${it.unit}` : ''}.`}
         </Typography>
+        {/* E2.5 — chip de não-comparabilidade: métodos diferentes entre as coletas. */}
+        {mixedMethods && (
+          <MuiTooltip title="Os exames desta série usam métodos de ensaio diferentes. Valores entre métodos não são diretamente comparáveis — os pontos aparecem isolados, sem linha conectando." arrow>
+            <Chip size="small" label="⚠️ Métodos diferentes" sx={{ mt: 0.75, height: 22, fontWeight: 700, bgcolor: 'rgba(245,158,11,0.12)', color: (t) => t.palette.mode === 'dark' ? '#fbbf24' : '#b45309', border: '1px solid rgba(245,158,11,0.35)' }} />
+          </MuiTooltip>
+        )}
+        {/* Meta clínica (E2.4): texto explícito do duplo-estado — ex.: "Atinge a meta clínica;
+            permanece fora da referência do laboratório". Nunca substitui o badge acima. */}
+        {goal && (
+          <Box sx={{ mt: 1, p: 1, borderRadius: '8px', bgcolor: 'rgba(212,165,116,0.10)', border: '1px dashed rgba(212,165,116,0.45)' }}>
+            <Typography variant="body2" sx={{ color: (t) => t.palette.mode === 'dark' ? '#d4a574' : '#8a6240', fontWeight: 700 }}>
+              🎯 Meta clínica ({goalRangeText(goal)}) — {goal.setBy}
+            </Typography>
+            {goalText && <Typography variant="body2" sx={{ mt: 0.25 }}>{goalText}</Typography>}
+          </Box>
+        )}
         {it.predictMonths != null && (
           <Box sx={{ mt: 1, p: 1, borderRadius: '8px', bgcolor: `${lineColor}0d`, border: `1px solid ${lineColor}33` }}>
             <Typography variant="body2" sx={{ color: lineColor, fontWeight: 600 }}>⏱️ Neste ritmo, {it.nameCanonical} {up ? 'ultrapassa' : 'fica abaixo de'} a faixa em ~{it.predictMonths} {it.predictMonths === 1 ? 'mês' : 'meses'}.</Typography>

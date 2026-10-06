@@ -13,6 +13,8 @@ import { ExplainButton } from '../components/ExplainItem';
 import { TrendsChart } from '../components/TrendsChart';
 import { UnitLabel } from '../components/UnitLabel';
 import { PremiumGate } from '../components/PremiumGate';
+import { useClinicalGoals } from '../hooks/useClinicalGoals';
+import { goalFor } from '../utils/clinicalGoals';
 
 import type { TimeSeriesByName as TS } from '@meus-exames/shared';
 
@@ -34,6 +36,8 @@ export const TrendsPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const queryParamSelect = new URLSearchParams(location.search).get('select');
+  // Meta clínica vigente (E2.4): banda cobre tracejada ALEM da régua do laboratório.
+  const clinicalGoals = useClinicalGoals();
   const [names, setNames] = useState<{ nameCanonical: string; count: number }[]>([]);
   const [sel, setSel] = useState('');
   const [ts, setTs] = useState<TS | null>(null);
@@ -246,7 +250,7 @@ export const TrendsPage = () => {
 
       {/* GRÁFICO + DETALHES — primitiva compartilhada (dedup paciente↔médico). */}
       {!loading && ts && ts.points.length > 0 && (
-        <TrendsChart ts={ts} />
+        <TrendsChart ts={ts} goal={goalFor(clinicalGoals, ts.nameCanonical, pid)} />
       )}
       {!loading && ts && ts.points.length === 0 && sel && (
         <Card sx={{ borderRadius: '20px', textAlign: 'center', py: 4 }}>

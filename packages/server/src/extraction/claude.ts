@@ -41,6 +41,7 @@ LEIA TODAS AS PÁGINAS do documento. Extraia TODOS os analitos de TODOS os pain�
 LEIA AS TABELAS COM CUIDADO: cada analito tem um valor e colunas de valores de referência (Homens, Mulheres, Crianças...). NÃO confunda o valor do paciente com a faixa de referência.
 
 Para cada analito: nome, valor (como impresso), valor numérico (vírgula→ponto, sem unidade), unidade, faixas de referência e a PÁGINA onde leu o valor.
+MÉTODO DO ENSAIO (opcional): se o laudo indicar o método/técnica do analito (ex.: "Química seca", "Eletroquimioluminescência", "Imunoturbidimetria"), reporte no campo "method" EXATAMENTE como impresso. Se não constar, omita o campo — NUNCA invente.
 
 FAIXA DE REFERÊNCIA NA MESMA ESCALA DO VALOR (CRÍTICO): lowNumeric/highNumeric DEVEM estar na MESMA unidade e escala decimal do valueNumeric. Ex.: se valueNumeric=15.0 (g/dL), a faixa deve ser ~13.0–17.0 — NUNCA 130–170 (escala ×10 errada) nem 1.3–1.7. Preserve VÍRGULAS decimais: "4,50" vira 4.5 (não 450); "13,5" vira 13.5 (não 135).
 AUTO-VERIFICAÇÃO DE ESCALA: depois de extrair, confira se valueNumeric é compatível em magnitude com lowNumeric/highNumeric. Se valueNumeric estiver ordens de magnitude fora da faixa (ex.: valor 5.8 com faixa 450–550, ou valor 15 com faixa 130–170), você leu a faixa na escala errada — RECORRIJA a faixa para a mesma escala/ordem de grandeza do valor do paciente antes de devolver.
@@ -77,6 +78,7 @@ Devolva EXATAMENTE este formato JSON:
           "valueText": "17,1 g/dL",
           "valueNumeric": 17.1,
           "unit": "g/dL",
+          "method": "método do ensaio EXATAMENTE como no laudo (ex.: 'Química seca'); omitir se não constar",
           "references": [ { "appliesTo": "Homens", "lowNumeric": 13.0, "highNumeric": 16.5 } ],
           "page": 1
         }
@@ -167,7 +169,7 @@ Devolva EXATAMENTE este formato JSON:
       "performedAt": "15/03/2026",
       "sourceLab": "rede/marca do laboratório (não a unidade)",
       "requestingDoctor": "médico solicitante",
-      "panels": [ { "name": "HEMOGRAMA", "items": [ { "name": "HEMOGLOBINA", "valueText": "17,1 g/dL", "valueNumeric": 17.1, "unit": "g/dL", "references": [ { "appliesTo": "Homens", "lowNumeric": 13.0, "highNumeric": 16.5 } ], "page": 1 } ] } ]
+      "panels": [ { "name": "HEMOGRAMA", "items": [ { "name": "HEMOGLOBINA", "valueText": "17,1 g/dL", "valueNumeric": 17.1, "unit": "g/dL", "method": "Química seca", "references": [ { "appliesTo": "Homens", "lowNumeric": 13.0, "highNumeric": 16.5 } ], "page": 1 } ] } ]
     },
     { "patientName": "...", "examTitle": "HEMOGRAMA COMPLETO", "performedAt": "20/01/2025", "panels": [ ... ] }
   ]
