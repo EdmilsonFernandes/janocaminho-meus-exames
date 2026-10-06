@@ -1,10 +1,11 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { Box, Card, CardContent, Typography, Stack, Chip, Divider } from '@mui/material';
+import { Box, Card, CardContent, Typography, Stack, Chip, Divider, Button, TextField, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress } from '@mui/material';
 import { API_URL } from '../../../config';
 import { Empty } from './NotesTab';
 import { copperText, tealText, RADIUS } from '../../../theme';
+import { goalRangeText } from '../../../utils/clinicalGoals';
 import type { Theme } from '@mui/material/styles';
-import { Medal, Syringe } from '@phosphor-icons/react';
+import { Medal, Syringe, Target } from '@phosphor-icons/react';
 
 /** Selo fixo do painel esportivo: tudo aqui é autodeclarado, nunca verificado. */
 const DECLARED_BADGE = 'DECLARADO PELO PACIENTE — não verificado';
@@ -60,6 +61,28 @@ interface SportsContextData {
   medications: { id: string; name: string; dosage?: string | null; frequency?: string | null; notes?: string | null }[];
 }
 
+interface GoalSuggestion {
+  analyte: string;
+  unit: string;
+  targetLow: number;
+  targetHigh: number;
+  source: string;
+  reason: string;
+  requiresReview: true;
+}
+
+interface GoalRow {
+  id: string;
+  analyte: string;
+  unit?: string | null;
+  targetLow?: number | null;
+  targetHigh?: number | null;
+  justification: string;
+  source?: string | null;
+  vigente?: boolean;
+  setBy?: string;
+}
+
 const SectionCard = ({ title, children }: { title: string; children: ReactNode }) => (
   <Card
     variant="outlined"
@@ -98,6 +121,13 @@ const Row = ({ label, value }: { label: string; value: ReactNode }) => {
 export const SportsPanel = ({ patientId, token, doctorId }: { patientId: string; token: string; doctorId: string }) => {
   const [data, setData] = useState<SportsContextData | null>(null);
   const [loading, setLoading] = useState(true);
+  // E5.4 — sugestões de meta (E2.6) + metas vigentes, para o card de configuração rápida.
+  const [suggestions, setSuggestions] = useState<GoalSuggestion[]>([]);
+  const [goals, setGoals] = useState<GoalRow[]>([]);
+  const [goalDialog, setGoalDialog] = useState<GoalSuggestion | null>(null);
+  const [goalJustification, setGoalJustification] = useState('');
+  const [goalSaving, setGoalSaving] = useState(false);
+  const [goalError, setGoalError] = useState('');
 
   useEffect(() => {
     let alive = true;
@@ -109,6 +139,43 @@ export const SportsPanel = ({ patientId, token, doctorId }: { patientId: string;
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
   }, [patientId, token, doctorId]);
+
+  const loadGoals = () => {
+    const h = { Authorization: `Bearer ${token}` } as const;
+    fetch(`${API_URL}/doctor/${doctorId}/clinical-goal-suggestions?patientId=${patientId}`, { headers: h })
+      .then((r) => (r.ok ? r.json() : { suggestions: [] }))
+      .then((d) => { setSuggestions(d.suggestions ?? []); })
+      .catch(() => setSuggestions([]));
+    fetch(`${API_URL}/doctor/${doctorId}/clinical-goals?patientId=${patientId}`, { headers: h })
+      .then((r) => (r.ok ? r.json() : { goals: [] }))
+      .then((d) => { setGoals(d.goals ?? []); })
+      .catch(() => setGoals([]));
+  };
+  useEffect(loadGoals, [patientId, token, doctorId]);
+
+  const createGoal = async () => {
+    if (!goalDialog) return;
+    if (!goalJustification.trim()) { setGoalError('A justificativa é obrigatória — o paciente vai vê-la junto com a meta.'); return; }
+    setGoalSaving(true); setGoalError('');
+    try {
+      const r = await fetch(`${API_URL}/doctor/${doctorId}/clinical-goals`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          patientId, analyte: goalDialog.analyte, unit: goalDialog.unit,
+          targetLow: goalDialog.targetLow, targetHigh: goalDialog.targetHigh,
+          source: goalDialog.source, justification: goalJustification.trim(),
+        }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Falha ao criar meta.');
+      setGoalDialog(null); setGoalJustification('');
+      loadGoals();
+    } catch (e: any) { setGoalError(e.message || 'Falha ao criar meta.'); } finally { setGoalSaving(false); }
+  };
+
+  const vigenteByAnalyte = new Map(goals.filter((g) => g.vigente).map((g) => [g.analyte, g]));
+  const openSuggestions = suggestions.filter((s) => !vigenteByAnalyte.has(s.analyte));
 
   if (loading) {
     return (
@@ -226,6 +293,91 @@ export const SportsPanel = ({ patientId, token, doctorId }: { patientId: string;
           )}
         </>
       )}
+
+      {/* E5.4 — metas clínicas vigentes + sugestões de configuração rápida (fonte sempre visível). */}
+      <SectionCard title="Metas clínicas e sugestões">
+        {[...vigenteByAnalyte.values()].length > 0 && (
+          <Stack spacing={0.75} sx={{ mb: 1.5 }}>
+            {[...vigenteByAnalyte.values()].map((g) => (
+              <Box key={g.id} sx={{ p: 1, borderRadius: '12px', bgcolor: 'rgba(212,165,116,.10)', border: '1px solid rgba(212,165,116,.25)' }}>
+                <Typography sx={{ fontWeight: 700, fontSize: 13.5 }}>
+                  🎯 {prettyAnalyte(g.analyte)}: {goalRangeText(g)} {g.setBy ? `· ${g.setBy}` : ''}
+                </Typography>
+                {g.source && <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>Fonte: {g.source}</Typography>}
+              </Box>
+            ))}
+          </Stack>
+        )}
+        {openSuggestions.length === 0 && (
+          <Typography variant="body2" color="text.secondary">
+            {suggestions.length > 0
+              ? 'Todas as sugestões disponíveis já foram configuradas como metas vigentes.'
+              : 'Sem sugestões de meta no momento — elas aparecem quando o padrão do paciente encontra diretriz aplicável.'}
+          </Typography>
+        )}
+        {openSuggestions.map((s) => (
+          <Box key={s.analyte} sx={{ p: 1.25, borderRadius: '14px', bgcolor: 'action.hover', mb: 1 }}>
+            <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mb: 0.5 }}>
+              <Target size={16} weight="duotone" />
+              <Typography sx={{ fontWeight: 800, fontSize: 13.5 }}>{prettyAnalyte(s.analyte)} — {goalRangeText(s)}</Typography>
+            </Stack>
+            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>Fonte: {s.source}</Typography>
+            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>{s.reason}.</Typography>
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1 }} flexWrap="wrap" useFlexGap>
+              <Button
+                size="small" variant="contained"
+                onClick={() => { setGoalDialog(s); setGoalJustification(''); setGoalError(''); }}
+                sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '999px' }}
+              >
+                Configurar meta
+              </Button>
+              <Typography variant="caption" sx={{ color: (t: Theme) => copperText(t.palette.mode), fontWeight: 700 }}>
+                Diretrizes citadas referem-se a uso prescrito — revisão médica obrigatória.
+              </Typography>
+            </Stack>
+          </Box>
+        ))}
+      </SectionCard>
+
+      {/* Dialog de configuração rápida de meta (justificativa editável OBRIGATÓRIA). */}
+      <Dialog open={!!goalDialog} onClose={() => setGoalDialog(null)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: '18px' } }}>
+        <DialogTitle sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif' }}>
+          {goalDialog ? `Meta clínica — ${prettyAnalyte(goalDialog.analyte)}` : ''}
+        </DialogTitle>
+        <DialogContent>
+          {goalDialog && (
+            <Stack spacing={1.5} sx={{ mt: 0.5 }}>
+              <Box sx={{ p: 1.25, borderRadius: '12px', bgcolor: 'action.hover' }}>
+                <Typography sx={{ fontWeight: 700, fontSize: 14 }}>Alvo sugerido: {goalRangeText(goalDialog)}</Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>Fonte: {goalDialog.source}</Typography>
+              </Box>
+              <TextField
+                label="Justificativa clínica (obrigatória — visível ao paciente)"
+                value={goalJustification}
+                onChange={(e) => setGoalJustification(e.target.value)}
+                multiline minRows={3} fullWidth size="small"
+                error={!!goalError && !goalJustification.trim()}
+                helperText={goalError && !goalJustification.trim() ? goalError : 'Edite livremente: motivo clínico da meta. Máx. 500 caracteres.'}
+                inputProps={{ maxLength: 500 }}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+              />
+              {goalError && goalJustification.trim() && <Typography variant="caption" sx={{ color: 'error.main' }}>{goalError}</Typography>}
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                Se já existia meta vigente para este analito, ela é substituída (histórico preservado). A meta NUNCA altera flags de alerta — ela adiciona a banda tracejada nos gráficos.
+              </Typography>
+            </Stack>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5 }}>
+          <Button onClick={() => setGoalDialog(null)} sx={{ textTransform: 'none', fontWeight: 700 }}>Cancelar</Button>
+          <Button variant="contained" onClick={createGoal} disabled={goalSaving} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 3 }}>
+            {goalSaving ? <CircularProgress size={20} color="inherit" /> : 'Salvar meta'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 };
+
+/** ALL CAPS canônico → legível (mesma régua do DoctorTrends, preserva siglas). */
+const prettyAnalyte = (n: string) => (n || '').split('_').map((tok) => (tok.length <= 5 && /^[A-Z0-9]+$/.test(tok) ? tok : tok.toLowerCase().replace(/(^|\s)\w/g, (m) => m.toUpperCase()))).join(' ');

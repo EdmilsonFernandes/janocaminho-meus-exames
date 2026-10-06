@@ -9,6 +9,7 @@ import { ExplainButton } from '../ExplainItem';
 import { TrendsChart } from '../TrendsChart';
 import { UnitLabel } from '../UnitLabel';
 import { RADIUS, copperText } from '../../theme';
+import { goalFor } from '../../utils/clinicalGoals';
 import type { Theme } from '@mui/material/styles';
 
 import type { TimeSeriesByName as TS } from '@meus-exames/shared';
@@ -20,7 +21,7 @@ const prettyName = (n: string) => (n || '').split('_').map((tok) => (tok.length 
 /** Valor numérico p/ exibição (4 casas, vírgula decimal) — evita floats longos da conversão (91.33627999...). */
 const fmtNum = (n: number | null | undefined) => n == null ? '—' : String(Number(n.toFixed(4))).replace('.', ',');
 
-type Props = { patientId: string; token: string };
+type Props = { patientId: string; token: string; doctorId?: string };
 
 /**
  * DoctorTrends — viewer do médico (READ-ONLY) p/ a página de Tendências do paciente.
@@ -28,15 +29,20 @@ type Props = { patientId: string; token: string };
  * react-admin (sem Title/PageContainer) e SEM hooks do app do paciente (useSelectedPatient/token()).
  * Busca endpoints DOCTOR /doctor/patients/:pid/items/distinct-names + /timeseries c/ Bearer token.
  *
+ * E5.5: com doctorId, busca as metas clínicas do paciente e desenha a BANDA DE META no
+ * TrendsChart (mesma primitiva/estilo cobre do Trends do paciente — legenda dupla régua×meta).
+ *
  * Identidade: teal via theme.palette.primary.main + alpha() (sem hex literais). RADIUS token.
  */
-export const DoctorTrends = ({ patientId, token }: Props) => {
+export const DoctorTrends = ({ patientId, token, doctorId }: Props) => {
   const theme = useTheme<Theme>();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [names, setNames] = useState<{ nameCanonical: string; count: number }[]>([]);
   const [sel, setSel] = useState('');
   const [ts, setTs] = useState<TS | null>(null);
   const [loading, setLoading] = useState(false);
+  // Metas clínicas vigentes do paciente (E5.5) — banda cobre tracejada no gráfico.
+  const [clinicalGoals, setClinicalGoals] = useState<any[]>([]);
   // Período clínico (auditoria: histórico de 6 anos inteiro não deixava isolar o recente).
   const [period, setPeriod] = useState<'all' | '2y' | '1y' | '6m'>('all');
   const PERIODS: { v: 'all' | '2y' | '1y' | '6m'; label: string; short: string }[] = [
@@ -66,6 +72,15 @@ export const DoctorTrends = ({ patientId, token }: Props) => {
   useEffect(() => {
     setSel(''); setTs(null);
   }, [patientId]);
+
+  // Metas clínicas vigentes (E5.5) — só vigentes entram na banda; meta nunca altera flags.
+  useEffect(() => {
+    if (!doctorId) { setClinicalGoals([]); return; }
+    fetch(`${API_URL}/doctor/${doctorId}/clinical-goals?patientId=${patientId}`, { headers: authHeaders })
+      .then((r) => (r.ok ? r.json() : { goals: [] }))
+      .then((d) => setClinicalGoals((d.goals ?? []).filter((g: any) => g.vigente)))
+      .catch(() => setClinicalGoals([]));
+  }, [patientId, doctorId, token]);
 
   useEffect(() => {
     if (!sel) { setTs(null); return; }
@@ -252,6 +267,7 @@ export const DoctorTrends = ({ patientId, token }: Props) => {
       {!loading && visibleTs && visibleTs.points.length > 0 && (
         <TrendsChart
           ts={visibleTs}
+          goal={goalFor(clinicalGoals, ts?.nameCanonical ?? '', patientId)}
           action={(
             <ToggleButtonGroup
               exclusive size="small" value={period}
