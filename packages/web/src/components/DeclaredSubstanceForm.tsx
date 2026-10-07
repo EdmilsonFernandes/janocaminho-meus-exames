@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Button, Chip, Collapse, Stack, TextField, Typography } from '@mui/material';
 import MenuItem from '@mui/material/MenuItem';
+import Autocomplete from '@mui/material/Autocomplete';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useNotify } from 'react-admin';
 import { API_URL, token, apiHeaders } from '../config';
+import { SUBSTANCE_CATALOG, searchSubstances } from './sports/substanceCatalog';
 import { DateFieldBR } from './DateFieldBR';
 
 /**
@@ -35,6 +37,7 @@ export const DeclaredSubstanceForm = ({ pid }: { pid: string }) => {
   const [subClass, setSubClass] = useState<SportsSubstanceClass>('Hormônio');
   const [name, setName] = useState('');
   const [dose, setDose] = useState('');
+  const [unitHint, setUnitHint] = useState<string>(''); // formato de unidade da substância escolhida (nunca a quantidade)
   const [startedAt, setStartedAt] = useState('');
   const [saving, setSaving] = useState(false);
   const [declared, setDeclared] = useState<DeclaredSubstance[]>([]);
@@ -105,13 +108,30 @@ export const DeclaredSubstanceForm = ({ pid }: { pid: string }) => {
           >
             {SPORTS_SUBSTANCE_CLASSES.map((c) => <MenuItem key={c} value={c}>{c}</MenuItem>)}
           </TextField>
-          <TextField
-            label="Substância" value={name} onChange={(e) => setName(e.target.value)} fullWidth size="small"
-            inputProps={{ maxLength: 60 }} helperText="Ex.: Testosterona (enantato), Creatina — o que você usa hoje."
+          {/* Catálogo de mercado (farmacologia legítima): autocomplete freeSolo —
+              sugerir o NOME e a UNIDADE da dose, nunca a quantidade. */}
+          <Autocomplete
+            freeSolo options={searchSubstances(name).map((c) => c.name)}
+            value={name} onInputChange={(_, v) => setName(v ?? '')}
+            includeInputInList disableClearable
+            renderInput={(p) => (
+              <TextField {...p} label="Substância" fullWidth size="small"
+                inputProps={{ ...p.inputProps, maxLength: 60 }}
+                helperText="Digite p/ ver os nomes de mercado — ou escreva livre. Ex.: durateston, tirzepatida, creatina." />
+            )}
+            onChange={(_, v) => {
+              // Escolheu do catálogo → auto-preenche classe + formato de dose (unidade)
+              const hit = SUBSTANCE_CATALOG.find((c) => c.name === v);
+              if (hit) {
+                setSubClass(hit.cls as SportsSubstanceClass);
+                setUnitHint(hit.unitHint);
+              }
+            }}
           />
           <TextField
             label="Dose / período (opcional)" value={dose} onChange={(e) => setDose(e.target.value)} fullWidth size="small"
-            inputProps={{ maxLength: 80 }} helperText="Ex.: 250mg/semana. Guardamos como DECLARAÇÃO sua — o app nunca sugere dose."
+            inputProps={{ maxLength: 80 }} placeholder={unitHint ? `Ex.: ${unitHint}` : undefined}
+            helperText={`Ex.: ${unitHint ?? '250mg/semana'}. Guardamos como DECLARAÇÃO sua — o app nunca sugere dose.`}
           />
           <DateFieldBR
             label="Início (opcional)" value={startedAt} onChange={setStartedAt} fullWidth size="small"
