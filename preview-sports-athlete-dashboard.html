@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#0f766e" />
-  <title>Dr. Exame • Preview Oficial do App (Paciente & Modo Esportista)</title>
-  <meta name="description" content="Dashboard do Paciente com Lente de Performance Esportiva e Prontuário Médico sem cortes." />
+  <title>Dr. Exame • Lente Esportiva & Painel de Segurança Hormonal</title>
+  <meta name="description" content="Dashboard do Paciente com alternância suave para a Lente Esportiva e Painel de Segurança para Atletas (TRT, Durateston, Masteron)." />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
@@ -41,8 +41,8 @@
       --green-ok: #10b981;
       --green-soft: rgba(16, 185, 129, 0.12);
 
-      --blue-accent: #3b82f6;
-      --blue-soft: rgba(59, 130, 246, 0.12);
+      --purple-accent: #8b5cf6;
+      --purple-soft: rgba(139, 92, 246, 0.12);
 
       --radius-sm: 8px;
       --radius-md: 14px;
@@ -383,94 +383,49 @@
       max-height: calc(100vh - 120px);
     }
 
-    /* BANNER DE PERSONA / LENTE ESPORTIVA (CHAVE DE MUDANÇA) */
-    .persona-switch-banner {
-      background: linear-gradient(135deg, rgba(32, 178, 170, 0.14) 0%, rgba(245, 158, 11, 0.1) 100%);
-      border: 1px solid rgba(32, 178, 170, 0.3);
-      border-radius: var(--radius-card);
-      padding: 14px 18px;
+    /* ═══════════════════════════════════════════════════════════
+       O SWITCH FLUIDO DE PERSONA (VIRAR A LENTE ESPORTIVA)
+       ═══════════════════════════════════════════════════════════ */
+    .persona-segmented-control {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-full);
+      padding: 5px;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 14px;
-      flex-wrap: wrap;
-      transition: all 0.2s ease;
+      box-shadow: var(--shadow-sm);
+      position: relative;
+      margin-bottom: 4px;
     }
 
-    .persona-switch-banner.sports-on {
-      background: linear-gradient(135deg, rgba(15, 118, 110, 0.18) 0%, rgba(32, 178, 170, 0.22) 100%);
-      border-color: var(--teal-light);
-      box-shadow: 0 4px 20px rgba(32, 178, 170, 0.15);
-    }
-
-    .persona-info {
-      display: flex;
-      align-items: center;
-      gap: 12px;
+    .persona-seg-btn {
       flex: 1;
-      min-width: 240px;
-    }
-
-    .persona-icon-box {
-      width: 42px;
-      height: 42px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, var(--teal-light), var(--teal-dark));
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 10px 16px;
+      border-radius: var(--radius-full);
+      cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 20px;
-      color: #fff;
-      flex-shrink: 0;
-      box-shadow: 0 3px 10px var(--teal-glow);
-    }
-
-    .persona-icon-box.sports {
-      background: linear-gradient(135deg, #f59e0b, #d97706);
-      box-shadow: 0 3px 10px var(--gold-glow);
-    }
-
-    .persona-text h3 {
-      font-family: var(--font-display);
-      font-size: 14.5px;
-      font-weight: 700;
-      color: var(--text-main);
-      display: flex;
-      align-items: center;
       gap: 8px;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .persona-text p {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-top: 2px;
-    }
-
-    .persona-toggle-btn {
+    .persona-seg-btn.active-health {
       background: linear-gradient(135deg, var(--teal-light), var(--teal-dark));
-      border: none;
       color: #fff;
-      font-family: var(--font-sans);
-      font-size: 12.5px;
-      font-weight: 700;
-      padding: 9px 16px;
-      border-radius: var(--radius-full);
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      box-shadow: 0 3px 10px var(--teal-glow);
-      transition: all 0.2s ease;
+      box-shadow: 0 3px 12px var(--teal-glow);
     }
 
-    .persona-toggle-btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 5px 15px var(--teal-glow);
-    }
-
-    .persona-toggle-btn.active-sports {
+    .persona-seg-btn.active-sports {
       background: linear-gradient(135deg, #f59e0b, #d97706);
-      box-shadow: 0 3px 10px var(--gold-glow);
+      color: #fff;
+      box-shadow: 0 3px 12px var(--gold-glow);
     }
 
     /* GRID DO PACIENTE (HERO CARDS) */
@@ -525,6 +480,7 @@
     .badge-ok { background: var(--green-soft); color: #059669; }
     .badge-alert { background: var(--gold-soft); color: #d97706; }
     .badge-pro { background: var(--teal-soft); color: var(--teal-dark); }
+    .badge-danger { background: var(--red-soft); color: #dc2626; }
     [data-theme="dark"] .badge-pro { color: var(--teal-light); }
 
     /* ANEL DO SCORE DE SAÚDE */
@@ -561,7 +517,6 @@
       stroke-dasharray: 245;
       stroke-dashoffset: 29; /* 88% */
       filter: drop-shadow(0 0 6px var(--teal-glow));
-      transition: stroke-dashoffset 1s ease;
     }
 
     .score-center-text {
@@ -655,221 +610,9 @@
       border-radius: var(--radius-full);
     }
 
-    /* INSIGHT INTELIGENTE DA IA DR. EXAME */
-    .ai-insight-card {
-      background: linear-gradient(135deg, rgba(32, 178, 170, 0.1) 0%, rgba(99, 102, 241, 0.08) 100%);
-      border: 1px solid rgba(32, 178, 170, 0.25);
-      border-radius: var(--radius-card);
-      padding: 18px 20px;
-      display: flex;
-      gap: 14px;
-      align-items: flex-start;
-    }
-
-    .ai-mascot-avatar {
-      width: 44px;
-      height: 44px;
-      border-radius: 14px;
-      background: linear-gradient(135deg, var(--teal-light), var(--teal-dark));
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 22px;
-      color: #fff;
-      box-shadow: 0 4px 14px var(--teal-glow);
-      flex-shrink: 0;
-    }
-
-    .ai-insight-content h4 {
-      font-family: var(--font-display);
-      font-size: 14.5px;
-      font-weight: 700;
-      color: var(--text-main);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 4px;
-    }
-
-    .ai-insight-content p {
-      font-size: 13px;
-      color: var(--text-muted);
-      line-height: 1.5;
-    }
-
-    .ai-action-pills {
-      display: flex;
-      gap: 8px;
-      margin-top: 10px;
-      flex-wrap: wrap;
-    }
-
-    .ai-pill-btn {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      color: var(--text-main);
-      font-size: 11.5px;
-      font-weight: 600;
-      padding: 5px 12px;
-      border-radius: var(--radius-full);
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
-
-    .ai-pill-btn:hover {
-      border-color: var(--teal-light);
-      color: var(--teal-dark);
-    }
-
-    /* SEÇÃO DE MARCADORES REAIS DO SABIN (04/08) */
-    .section-title-wrap {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 6px;
-    }
-
-    .section-title-wrap h3 {
-      font-family: var(--font-display);
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--text-main);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .markers-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
-      gap: 16px;
-    }
-
-    .marker-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-card);
-      padding: 16px 18px;
-      box-shadow: var(--shadow-sm);
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      transition: all 0.2s ease;
-    }
-
-    .marker-card:hover {
-      border-color: var(--teal-light);
-      box-shadow: var(--shadow-md);
-    }
-
-    .marker-card-top {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-    }
-
-    .marker-name-group h4 {
-      font-family: var(--font-display);
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--text-main);
-    }
-
-    .marker-name-group span {
-      font-size: 11.5px;
-      color: var(--text-muted);
-    }
-
-    .marker-val-row {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 8px;
-    }
-
-    .marker-val-big {
-      font-family: var(--font-mono);
-      font-size: 26px;
-      font-weight: 800;
-      color: var(--text-main);
-      line-height: 1;
-    }
-
-    .marker-val-unit {
-      font-family: var(--font-sans);
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-muted);
-      margin-left: 3px;
-    }
-
-    .marker-ref-note {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text-dim);
-    }
-
-    /* MINI RÉGUA DE REFERÊNCIA */
-    .marker-bar-wrap {
-      height: 8px;
-      background: rgba(0,0,0,0.06);
-      border-radius: var(--radius-full);
-      position: relative;
-      overflow: visible;
-      margin: 4px 0;
-    }
-
-    [data-theme="dark"] .marker-bar-wrap { background: rgba(255,255,255,0.08); }
-
-    .marker-bar-ideal {
-      position: absolute;
-      left: 20%;
-      right: 20%;
-      height: 100%;
-      background: rgba(16, 185, 129, 0.25);
-      border-radius: var(--radius-full);
-    }
-
-    .marker-bar-pin {
-      position: absolute;
-      top: -3px;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: var(--teal-light);
-      border: 2px solid var(--bg-card);
-      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-      transform: translateX(-50%);
-    }
-
-    .marker-bar-pin.warn {
-      background: var(--gold-main);
-    }
-
-    .marker-context-box {
-      background: rgba(0,0,0,0.02);
-      border: 1px solid var(--border-subtle);
-      border-radius: 10px;
-      padding: 9px 12px;
-      font-size: 11.5px;
-      color: var(--text-muted);
-      line-height: 1.45;
-    }
-
-    [data-theme="dark"] .marker-context-box {
-      background: rgba(255,255,255,0.03);
-    }
-
     /* ═══════════════════════════════════════════════════════════
-       ELEMENTOS DA LENTE ESPORTIVA (FATOR TCHAN)
+       LENTE ESPORTIVA & PAINEL DE SEGURANÇA HORMONAL
        ═══════════════════════════════════════════════════════════ */
-    .sports-view-container {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      animation: dxFadeIn 0.3s ease;
-    }
-
     .sports-bio-readiness-hero {
       background: linear-gradient(135deg, #092629 0%, #0e3d42 50%, #1a3227 100%);
       color: #fff;
@@ -882,18 +625,6 @@
       gap: 20px;
       position: relative;
       overflow: hidden;
-    }
-
-    .sports-bio-readiness-hero::before {
-      content: '';
-      position: absolute;
-      top: -50px;
-      right: -50px;
-      width: 220px;
-      height: 220px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(32, 178, 170, 0.25) 0%, transparent 70%);
-      pointer-events: none;
     }
 
     .readiness-main-row {
@@ -979,208 +710,28 @@
       line-height: 1.45;
     }
 
-    /* 5 PILARES METABÓLICOS DO ATLETA */
-    .metabolic-pillars-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 12px;
-      padding-top: 14px;
-      border-top: 1px solid rgba(255, 255, 255, 0.12);
-    }
-
-    .pillar-item {
+    /* CARD DE CALIBRAÇÃO HORMONAL (NÃO-MORALISTA) */
+    .hormonal-profile-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-card);
+      padding: 18px 20px;
+      box-shadow: var(--shadow-card);
       display: flex;
       flex-direction: column;
-      gap: 6px;
-    }
-
-    .pillar-header {
-      display: flex;
-      justify-content: space-between;
-      font-size: 11.5px;
-      font-weight: 600;
-      color: #99f6e4;
-    }
-
-    .pillar-header strong {
-      color: #fff;
-    }
-
-    .pillar-bar-bg {
-      height: 6px;
-      background: rgba(255,255,255,0.15);
-      border-radius: var(--radius-full);
-      overflow: hidden;
-    }
-
-    .pillar-bar-fill {
-      height: 100%;
-      border-radius: var(--radius-full);
-      background: linear-gradient(90deg, var(--teal-light), #f59e0b);
-    }
-
-    /* QUICK STATS COM SPARKLINES */
-    .sports-stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 14px;
-    }
-
-    .stat-spark-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-card);
-      padding: 16px;
-      box-shadow: var(--shadow-card);
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .stat-spark-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .stat-spark-header span {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-muted);
-    }
-
-    .stat-spark-main {
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-      gap: 10px;
-    }
-
-    .stat-spark-val {
-      font-family: var(--font-mono);
-      font-size: 24px;
-      font-weight: 800;
-      color: var(--text-main);
-      line-height: 1;
-    }
-
-    .stat-sparkline-svg {
-      width: 78px;
-      height: 28px;
-    }
-
-    /* ═══════════════════════════════════════════════════════════
-       VISÃO DO CONSULTÓRIO MÉDICO (SEM CORTES, RESPONSIVA)
-       ═══════════════════════════════════════════════════════════ */
-    .doctor-view-container {
-      display: flex;
-      flex-direction: column;
-      gap: 22px;
-      animation: dxFadeIn 0.3s ease;
-    }
-
-    .doctor-patient-banner {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-card);
-      padding: 18px 22px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      flex-wrap: wrap;
-      box-shadow: var(--shadow-card);
-    }
-
-    .doctor-patient-left {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .doctor-patient-avatar {
-      width: 52px;
-      height: 52px;
-      border-radius: 50%;
-      border: 2px solid var(--teal-light);
-      padding: 2px;
-    }
-
-    .doctor-patient-avatar img {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      object-fit: cover;
-    }
-
-    .doctor-patient-meta h3 {
-      font-family: var(--font-display);
-      font-size: 17px;
-      font-weight: 800;
-      color: var(--text-main);
-    }
-
-    .doctor-patient-meta p {
-      font-size: 12.5px;
-      color: var(--text-muted);
-      margin-top: 3px;
-    }
-
-    .doctor-actions-group {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .btn-doctor-action {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      color: var(--text-main);
-      padding: 9px 16px;
-      border-radius: var(--radius-md);
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
       transition: all 0.2s ease;
     }
 
-    .btn-doctor-action:hover {
-      border-color: var(--teal-light);
-      color: var(--teal-dark);
-    }
-
-    .btn-doctor-action.primary {
-      background: linear-gradient(135deg, var(--teal-light), var(--teal-dark));
-      color: #fff;
-      border: none;
-      box-shadow: 0 3px 12px var(--teal-glow);
-    }
-
-    /* CARD DE RESUMO EXECUTIVO CLÍNICO */
-    .clinical-summary-card {
-      background: var(--bg-card);
-      border-left: 5px solid var(--teal-light);
-      border-top: 1px solid var(--border-color);
-      border-right: 1px solid var(--border-color);
-      border-bottom: 1px solid var(--border-color);
-      border-radius: var(--radius-card);
-      padding: 20px;
-      box-shadow: var(--shadow-card);
+    .hormonal-profile-header {
       display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .clinical-summary-header {
-      display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
     }
 
-    .clinical-summary-header h4 {
+    .hormonal-profile-header h4 {
       font-family: var(--font-display);
       font-size: 15px;
       font-weight: 700;
@@ -1190,155 +741,151 @@
       gap: 8px;
     }
 
-    .clinical-summary-body {
-      font-size: 13px;
-      color: var(--text-muted);
-      line-height: 1.6;
+    .hormone-chips-selector {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
     }
 
-    .clinical-summary-body b {
+    .hormone-chip-btn {
+      background: rgba(0,0,0,0.04);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      font-family: var(--font-sans);
+      font-size: 12.5px;
+      font-weight: 700;
+      padding: 7px 14px;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    [data-theme="dark"] .hormone-chip-btn {
+      background: rgba(255,255,255,0.05);
+    }
+
+    .hormone-chip-btn:hover {
+      border-color: var(--teal-light);
       color: var(--text-main);
     }
 
-    /* TABELA CLÍNICA RESPONSIVA E SEM CORTE */
-    .clinical-table-card {
+    .hormone-chip-btn.active {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #fff;
+      border-color: #d97706;
+      box-shadow: 0 3px 10px var(--gold-glow);
+    }
+
+    /* O PAINEL DE SEGURANÇA DO ATLETA (REDUÇÃO DE DANOS) */
+    .safety-panel-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      gap: 16px;
+      margin-top: 4px;
+    }
+
+    .safety-item-card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-card);
-      box-shadow: var(--shadow-card);
+      padding: 18px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+    }
+
+    .safety-item-card.critical-alert {
+      border-color: #f59e0b;
+      background: linear-gradient(180deg, rgba(245, 158, 11, 0.04) 0%, var(--bg-card) 100%);
+    }
+
+    .safety-card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+
+    .safety-title-box h5 {
+      font-family: var(--font-display);
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .safety-title-box span {
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+
+    .safety-val-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+    }
+
+    .safety-val-big {
+      font-family: var(--font-mono);
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1;
+    }
+
+    .safety-val-big.warning-val {
+      color: #d97706;
+    }
+
+    /* BARRA TRICOLOR DE RISCO TROMBÓTICO / SEGURANÇA */
+    .safety-range-bar {
+      height: 9px;
+      border-radius: var(--radius-full);
+      background: #e2e8f0;
+      position: relative;
       overflow: hidden;
       display: flex;
-      flex-direction: column;
     }
 
-    .clinical-table-header {
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    [data-theme="dark"] .safety-range-bar {
+      background: rgba(255,255,255,0.1);
     }
 
-    .clinical-table-header h4 {
-      font-family: var(--font-display);
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--text-main);
-    }
+    .range-zone-green { width: 60%; background: #10b981; }
+    .range-zone-yellow { width: 25%; background: #f59e0b; }
+    .range-zone-red { width: 15%; background: #ef4444; }
 
-    .table-scroll-wrapper {
-      overflow-x: auto;
-      width: 100%;
-    }
-
-    .clinical-table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
-      font-size: 13px;
-      min-width: 600px;
-    }
-
-    .clinical-table th {
-      background: rgba(0,0,0,0.02);
-      color: var(--text-muted);
-      font-weight: 600;
-      padding: 12px 18px;
-      border-bottom: 1px solid var(--border-color);
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
-    [data-theme="dark"] .clinical-table th {
-      background: rgba(255,255,255,0.03);
-    }
-
-    .clinical-table td {
-      padding: 14px 18px;
-      border-bottom: 1px solid var(--border-subtle);
-      color: var(--text-main);
-      vertical-align: middle;
-    }
-
-    .clinical-table tr:hover td {
-      background: rgba(32, 178, 170, 0.04);
-    }
-
-    .clinical-badge-tag {
-      font-size: 11px;
-      font-weight: 700;
-      padding: 3px 8px;
-      border-radius: var(--radius-sm);
-      display: inline-block;
-    }
-
-    /* MODAL DE LAUDO MÉDICO TIMBRADO */
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.65);
-      backdrop-filter: blur(8px);
-      z-index: 2000;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-
-    .modal-backdrop.open { display: flex; }
-
-    .modal-paper {
-      background: #ffffff;
-      color: #0f172a;
-      width: 100%;
-      max-width: 720px;
-      max-height: 90vh;
-      border-radius: 20px;
-      overflow-y: auto;
-      box-shadow: 0 25px 70px rgba(0,0,0,0.5);
-      position: relative;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .modal-header {
-      padding: 18px 24px;
-      border-bottom: 1px solid #e2e8f0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
+    .safety-cursor-pin {
+      position: absolute;
+      top: -3px;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
       background: #fff;
-      z-index: 10;
+      border: 3px solid #d97706;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+      transform: translateX(-50%);
     }
 
-    .modal-body {
-      padding: 30px 36px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
+    .safety-advice-box {
+      background: rgba(245, 158, 11, 0.08);
+      border-left: 3px solid #f59e0b;
+      padding: 10px 12px;
+      border-radius: 0 8px 8px 0;
+      font-size: 11.5px;
+      color: var(--text-muted);
+      line-height: 1.5;
     }
 
-    .pdf-timbre {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 2px solid #0d9488;
-      padding-bottom: 14px;
+    [data-theme="dark"] .safety-advice-box {
+      background: rgba(245, 158, 11, 0.12);
+      color: #fde047;
     }
 
-    .btn-close-modal {
-      background: transparent;
-      border: none;
-      font-size: 20px;
-      font-weight: 700;
-      color: #64748b;
-      cursor: pointer;
-    }
-
-    /* ANIMAÇÃO */
+    /* ANIMAÇÃO SUAVE */
     @keyframes dxFadeIn {
       from { opacity: 0; transform: translateY(8px); }
       to { opacity: 1; transform: translateY(0); }
@@ -1352,23 +899,10 @@
     <div class="studio-title-group">
       <div class="studio-logo">Dr</div>
       <div>
-        <h1>Dr. Exame • Estúdio Visual Oficial</h1>
-        <span>Visualização real das telas do paciente e médico</span>
+        <h1>Dr. Exame • Estúdio da Lente Esportiva & Segurança Hormonal</h1>
+        <span>Simulação real de alternância de persona e redução de danos</span>
       </div>
     </div>
-
-    <!-- ABAS REAIS DO APP -->
-    <nav class="studio-tabs">
-      <button class="studio-tab-btn active" id="tabPatient" onclick="switchAppView('patient')">
-        👤 1. Paciente: Saúde Geral
-      </button>
-      <button class="studio-tab-btn" id="tabSports" onclick="switchAppView('sports')">
-        🏃‍♂️ 2. Paciente: Lente Esportiva
-      </button>
-      <button class="studio-tab-btn" id="tabDoctor" onclick="switchAppView('doctor')">
-        🩺 3. Consultório Médico
-      </button>
-    </nav>
 
     <div class="studio-controls">
       <button class="device-toggle-btn" id="btnDeviceToggle" onclick="toggleDeviceMode()">
@@ -1384,24 +918,24 @@
   <main class="stage mode-desktop" id="appStage">
     <div class="app-viewport" id="appViewport">
 
-      <!-- APP HEADER OFICIAL (IDENTIDADE PRESERVADA) -->
+      <!-- APP HEADER OFICIAL PRESERVADO -->
       <header class="app-header">
         <div class="app-brand">
           <div class="app-logo-badge">Dr</div>
           <div class="app-brand-name">
             <h2>Dr. Exame</h2>
-            <span id="appRoleSubtitle">Painel do Paciente</span>
+            <span id="appRoleSubtitle">Painel do Paciente • 04/08/2026</span>
           </div>
         </div>
 
         <div class="app-actions">
-          <!-- CHIP DE CRÉDITOS COM RAIO OFICIAL -->
-          <div class="credits-chip" title="Seus créditos Dr. Exame">
+          <!-- CHIP DE CRÉDITOS OFICIAL -->
+          <div class="credits-chip" title="Seus créditos">
             <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
             <span>60 créditos</span>
           </div>
 
-          <!-- SININHO DOURADO PRESERVADO -->
+          <!-- SININHO DOURADO OFICIAL -->
           <div class="notif-bell-btn" title="Notificações">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
@@ -1422,463 +956,289 @@
         </div>
       </header>
 
-      <!-- ══════════════════════════════════════════════════════════════
-           VISÃO 1: DASHBOARD DO PACIENTE — SAÚDE GERAL (PADRÃO)
-           ══════════════════════════════════════════════════════════════ -->
-      <div class="app-content" id="viewPatient">
-        
-        <!-- BANNER DE PERSONA / LENTE ESPORTIVA (TOGGLE DIRETO DO PACIENTE) -->
-        <div class="persona-switch-banner">
-          <div class="persona-info">
-            <div class="persona-icon-box">🏃‍♂️</div>
-            <div class="persona-text">
-              <h3>Lente de Alta Performance Esportiva</h3>
-              <p>Você corre e pedala! Ative para correlacionar seus exames com seus treinos e pace.</p>
-            </div>
-          </div>
-          <button class="persona-toggle-btn" onclick="switchAppView('sports')">
-            ⚡ Ativar Lente Esportiva
+      <!-- CORPO DO DASHBOARD -->
+      <div class="app-content">
+
+        <!-- ══════════════════════════════════════════════════════════
+             O SELETOR NATIVO DE PERSONA (O TOGGLE FLUIDO DE 1 TOQUE)
+             ══════════════════════════════════════════════════════════ -->
+        <div class="persona-segmented-control">
+          <button class="persona-seg-btn active-health" id="btnModeHealth" onclick="setDashboardPersona('health')">
+            🌿 1. Saúde Geral & Longevidade
+          </button>
+          <button class="persona-seg-btn" id="btnModeSports" onclick="setDashboardPersona('sports')">
+            ⚡ 2. Lente Esportiva & Performance
           </button>
         </div>
 
-        <!-- HERO CARDS (SCORE DE SAÚDE + IDADE BIOLÓGICA) -->
-        <div class="hero-grid">
-          
-          <!-- CARD A: SCORE DE SAÚDE (88/100) -->
-          <div class="app-card">
-            <div class="card-header-row">
-              <span class="card-title">🛡️ Nota Geral de Saúde</span>
-              <span class="card-badge badge-ok">Excelente</span>
-            </div>
 
-            <div class="score-display-row">
-              <div class="score-radial">
-                <svg viewBox="0 0 100 100">
-                  <circle class="bg" cx="50" cy="50" r="39"></circle>
-                  <circle class="meter" cx="50" cy="50" r="39"></circle>
-                </svg>
-                <div class="score-center-text">
-                  <strong>88</strong>
-                  <span>DE 100</span>
+        <!-- ── VISÃO 1: SAÚDE GERAL (PADRÃO) ── -->
+        <div id="containerHealth" style="display:flex; flex-direction:column; gap:16px;">
+          
+          <div class="hero-grid">
+            <!-- SCORE DE SAÚDE PREVENTIVO -->
+            <div class="app-card">
+              <div class="card-header-row">
+                <span class="card-title">🛡️ Nota Geral de Saúde</span>
+                <span class="card-badge badge-ok">Excelente</span>
+              </div>
+              <div class="score-display-row">
+                <div class="score-radial">
+                  <svg viewBox="0 0 100 100">
+                    <circle class="bg" cx="50" cy="50" r="39"></circle>
+                    <circle class="meter" cx="50" cy="50" r="39"></circle>
+                  </svg>
+                  <div class="score-center-text">
+                    <strong>88</strong>
+                    <span>DE 100</span>
+                  </div>
+                </div>
+                <div class="score-details">
+                  <h4>Sabin • Coleta em 04/08/2026</h4>
+                  <p>18 biomarcadores analisados pela IA preventiva.</p>
+                  <div class="score-breakdown-tags">
+                    <span class="tag-pill">16 no alvo</span>
+                    <span class="tag-pill" style="color:#d97706; background:rgba(245,158,11,0.15);">2 atenção (TSH / HOMA-IR)</span>
+                  </div>
                 </div>
               </div>
+            </div>
 
-              <div class="score-details">
-                <h4>Saúde Preventiva Otimizada</h4>
-                <p>Baseado nos 18 biomarcadores do laboratório Sabin (04/08/2026).</p>
-                <div class="score-breakdown-tags">
-                  <span class="tag-pill">16 no alvo</span>
-                  <span class="tag-pill" style="color:#d97706; background:rgba(245,158,11,0.15);">2 atenção médica</span>
+            <!-- IDADE BIOLÓGICA -->
+            <div class="app-card">
+              <div class="card-header-row">
+                <span class="card-title">🧬 Idade Biológica (KDM)</span>
+                <span class="card-badge badge-pro">Rejuvenescido</span>
+              </div>
+              <div class="bio-age-box">
+                <div>
+                  <span style="font-size:12px; color:var(--text-muted); font-weight:600;">Idade Biológica</span>
+                  <div class="bio-age-number">42 <span style="font-size:16px; font-weight:600; color:var(--text-muted);">anos</span></div>
+                </div>
+                <div style="text-align:right;">
+                  <span class="bio-age-delta">⚡ -5 anos</span>
+                  <p style="font-size:11px; color:var(--text-muted); margin-top:4px;">vs 47 cronológicos</p>
                 </div>
               </div>
-            </div>
-          </div>
-
-          <!-- CARD B: IDADE BIOLÓGICA (KDM) -->
-          <div class="app-card">
-            <div class="card-header-row">
-              <span class="card-title">🧬 Idade Biológica (KDM)</span>
-              <span class="card-badge badge-pro">Rejuvenescido</span>
-            </div>
-
-            <div class="bio-age-box">
-              <div>
-                <span style="font-size:12px; color:var(--text-muted); font-weight:600;">Idade Biológica</span>
-                <div class="bio-age-number">42 <span style="font-size:16px; font-weight:600; color:var(--text-muted);">anos</span></div>
-              </div>
-              <div style="text-align:right;">
-                <span class="bio-age-delta">⚡ -5 anos</span>
-                <p style="font-size:11px; color:var(--text-muted); margin-top:4px;">vs 47 cronológicos</p>
-              </div>
-            </div>
-
-            <p style="font-size:12px; color:var(--text-muted); line-height:1.4;">
-              Seu perfil lipídico e renal conferem um desgaste biológico 5 anos inferior à média para 47 anos.
-            </p>
-          </div>
-        </div>
-
-        <!-- INSIGHT INTELIGENTE DA IA DR. EXAME -->
-        <div class="ai-insight-card">
-          <div class="ai-mascot-avatar">✨</div>
-          <div class="ai-insight-content">
-            <h4>Análise Integrada da IA Dr. Exame</h4>
-            <p>
-              Olá, <b>Edmilson</b>! Seu perfil cardiovascular está protegido (Colesterol e Triglicerídeos excelentes). Notamos duas oportunidades preventivas: seu <b>TSH (12,1 μUI/mL)</b> está elevado sugerindo tireoide mais lenta, e a <b>Insulina/HOMA-IR (3,6)</b> merece atenção na alimentação pré/pós-treino.
-            </p>
-            <div class="ai-action-pills">
-              <button class="ai-pill-btn" onclick="switchAppView('doctor')">🩺 Ver Resumo Clínico</button>
-              <button class="ai-pill-btn" onclick="switchAppView('sports')">⚡ Ver Impacto na Corrida</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- MARCADORES DO PACIENTE EM DESTAQUE -->
-        <div class="section-title-wrap">
-          <h3>🔬 Marcadores do Sabin (04/08/2026)</h3>
-          <span style="font-size:12px; color:var(--text-muted); font-weight:600;">18 Marcadores Analisados</span>
-        </div>
-
-        <div class="markers-grid">
-          
-          <!-- MARCADOR 1: HEMOGLOBINA -->
-          <div class="marker-card">
-            <div class="marker-card-top">
-              <div class="marker-name-group">
-                <h4>Hemoglobina</h4>
-                <span>Transporte de Oxigênio • Sangue Total</span>
-              </div>
-              <span class="card-badge badge-ok">Ideal</span>
-            </div>
-
-            <div class="marker-val-row">
-              <div>
-                <span class="marker-val-big">16,6</span>
-                <span class="marker-val-unit">g/dL</span>
-              </div>
-              <span class="marker-ref-note">Ref: 13,0 - 17,5</span>
-            </div>
-
-            <div class="marker-bar-wrap">
-              <div class="marker-bar-ideal" style="left:15%; right:15%;"></div>
-              <div class="marker-bar-pin" style="left:82%;"></div>
-            </div>
-
-            <div class="marker-context-box">
-              Excelente capacidade de carreamento de oxigênio celular.
-            </div>
-          </div>
-
-          <!-- MARCADOR 2: TSH -->
-          <div class="marker-card">
-            <div class="marker-card-top">
-              <div class="marker-name-group">
-                <h4>TSH Ultra-sensível</h4>
-                <span>Função da Tireoide • Hormônio Central</span>
-              </div>
-              <span class="card-badge badge-alert">Acompanhar</span>
-            </div>
-
-            <div class="marker-val-row">
-              <div>
-                <span class="marker-val-big" style="color:#d97706;">12,1</span>
-                <span class="marker-val-unit">μUI/mL</span>
-              </div>
-              <span class="marker-ref-note">Ref: 0,40 - 4,50</span>
-            </div>
-
-            <div class="marker-bar-wrap">
-              <div class="marker-bar-ideal" style="left:10%; right:45%;"></div>
-              <div class="marker-bar-pin warn" style="left:92%;"></div>
-            </div>
-
-            <div class="marker-context-box">
-              Elevado. Pode explicar momentos de cansaço ou metabolismo mais lento. Avaliar com endocrinologista.
-            </div>
-          </div>
-
-          <!-- MARCADOR 3: HOMA-IR / GLICEMIA -->
-          <div class="marker-card">
-            <div class="marker-card-top">
-              <div class="marker-name-group">
-                <h4>Índice HOMA-IR</h4>
-                <span>Sensibilidade à Insulina • Metabolismo</span>
-              </div>
-              <span class="card-badge badge-alert">Resistência Leve</span>
-            </div>
-
-            <div class="marker-val-row">
-              <div>
-                <span class="marker-val-big" style="color:#d97706;">3,6</span>
-                <span class="marker-val-unit">índice</span>
-              </div>
-              <span class="marker-ref-note">Ideal: &lt; 2,15</span>
-            </div>
-
-            <div class="marker-bar-wrap">
-              <div class="marker-bar-ideal" style="left:10%; right:50%;"></div>
-              <div class="marker-bar-pin warn" style="left:78%;"></div>
-            </div>
-
-            <div class="marker-context-box">
-              Indica resistência periférica leve à insulina. O exercício físico é o melhor remédio para otimizar esse índice.
-            </div>
-          </div>
-
-        </div>
-
-      </div>
-
-
-      <!-- ══════════════════════════════════════════════════════════════
-           VISÃO 2: DASHBOARD DO PACIENTE — LENTE ESPORTIVA ATIVADA
-           ══════════════════════════════════════════════════════════════ -->
-      <div class="app-content sports-view-container" id="viewSports" style="display:none;">
-
-        <!-- BANNER INDICANDO QUE A LENTE ESPORTIVA ESTÁ ATIVA -->
-        <div class="persona-switch-banner sports-on">
-          <div class="persona-info">
-            <div class="persona-icon-box sports">⚡</div>
-            <div class="persona-text">
-              <h3>Lente Esportiva Ativa • Corrida & Ciclismo</h3>
-              <p>Métricas calibradas para sua rotina esportiva e adaptações de treino.</p>
-            </div>
-          </div>
-          <button class="persona-toggle-btn active-sports" onclick="switchAppView('patient')">
-            ↩ Voltar à Saúde Geral
-          </button>
-        </div>
-
-        <!-- HERO BIO-READINESS DO ATLETA (O FATOR TCHAN) -->
-        <div class="sports-bio-readiness-hero">
-          <svg style="position: absolute; width: 0; height: 0;">
-            <defs>
-              <linearGradient id="goldTealGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#20B2AA" />
-                <stop offset="100%" stop-color="#f59e0b" />
-              </linearGradient>
-            </defs>
-          </svg>
-
-          <div class="readiness-main-row">
-            <div class="readiness-gauge-wrap">
-              <svg viewBox="0 0 120 120">
-                <circle class="bg" cx="60" cy="60" r="50"></circle>
-                <circle class="val" cx="60" cy="60" r="50"></circle>
-              </svg>
-              <div class="readiness-score-text">
-                <strong>92%</strong>
-                <span>ÓTIMO</span>
-              </div>
-            </div>
-
-            <div class="readiness-meta-text">
-              <h3>Prontidão Metabólica para Endurance</h3>
-              <p>
-                Seus biomarcadores sustentam alta capacidade aeróbica para corrida e pedal. A taxa de oxigenação tecidual está no percentil superior.
+              <p style="font-size:12px; color:var(--text-muted); line-height:1.4;">
+                Seus hábitos aeróbicos e perfil lipídico conferem proteção cardiovascular adiantada.
               </p>
             </div>
           </div>
 
-          <!-- 5 PILARES METABÓLICOS -->
-          <div class="metabolic-pillars-grid">
-            <div class="pillar-item">
-              <div class="pillar-header"><span>Oxigenação (Hb)</span><strong>96%</strong></div>
-              <div class="pillar-bar-bg"><div class="pillar-bar-fill" style="width:96%;"></div></div>
+          <!-- CARD CONVITE PARA LENTE ESPORTIVA -->
+          <div style="background:linear-gradient(135deg, rgba(32,178,170,0.12) 0%, rgba(245,158,11,0.12) 100%); border:1px solid rgba(32,178,170,0.3); border-radius:16px; padding:16px 20px; display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap;">
+            <div>
+              <h4 style="font-size:14.5px; font-weight:700; color:var(--text-main);">🏃‍♂️ Pratica Corrida, Ciclismo ou Musculação?</h4>
+              <p style="font-size:12.5px; color:var(--text-muted); margin-top:2px;">Veja como a Hemoglobina 16,6 g/dL e seus hormônios impulsionam o seu treino.</p>
             </div>
-            <div class="pillar-item">
-              <div class="pillar-header"><span>Recuperação Hepática</span><strong>94%</strong></div>
-              <div class="pillar-bar-bg"><div class="pillar-bar-fill" style="width:94%;"></div></div>
-            </div>
-            <div class="pillar-item">
-              <div class="pillar-header"><span>Eixo Androgênico</span><strong>88%</strong></div>
-              <div class="pillar-bar-bg"><div class="pillar-bar-fill" style="width:88%;"></div></div>
-            </div>
-            <div class="pillar-item">
-              <div class="pillar-header"><span>Sensib. Insulina</span><strong>75%</strong></div>
-              <div class="pillar-bar-bg"><div class="pillar-bar-fill" style="width:75%;"></div></div>
-            </div>
-            <div class="pillar-item">
-              <div class="pillar-header"><span>Metab. Basal (TSH)</span><strong>68%</strong></div>
-              <div class="pillar-bar-bg"><div class="pillar-bar-fill" style="width:68%; background:#f59e0b;"></div></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- QUICK STATS COM SPARKLINES DO ATLETA -->
-        <div class="sports-stats-grid">
-          
-          <div class="stat-spark-card">
-            <div class="stat-spark-header">
-              <span>🫁 Hemoglobina</span>
-              <span class="card-badge badge-ok">Top 15%</span>
-            </div>
-            <div class="stat-spark-main">
-              <div>
-                <span class="stat-spark-val">16,6</span>
-                <span style="font-size:12px; color:var(--text-muted);">g/dL</span>
-              </div>
-              <svg class="stat-sparkline-svg" viewBox="0 0 100 35">
-                <path d="M0,25 Q25,28 50,15 T100,6" fill="none" stroke="#20B2AA" stroke-width="3" stroke-linecap="round"/>
-              </svg>
-            </div>
-          </div>
-
-          <div class="stat-spark-card">
-            <div class="stat-spark-header">
-              <span>🔋 Ferritina</span>
-              <span class="card-badge badge-ok">Estável</span>
-            </div>
-            <div class="stat-spark-main">
-              <div>
-                <span class="stat-spark-val">195</span>
-                <span style="font-size:12px; color:var(--text-muted);">ng/mL</span>
-              </div>
-              <svg class="stat-sparkline-svg" viewBox="0 0 100 35">
-                <path d="M0,22 Q25,18 50,16 T100,12" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round"/>
-              </svg>
-            </div>
-          </div>
-
-          <div class="stat-spark-card">
-            <div class="stat-spark-header">
-              <span>❤️ FC Repouso</span>
-              <span class="card-badge badge-pro">Atleta</span>
-            </div>
-            <div class="stat-spark-main">
-              <div>
-                <span class="stat-spark-val">48</span>
-                <span style="font-size:12px; color:var(--text-muted);">bpm</span>
-              </div>
-              <svg class="stat-sparkline-svg" viewBox="0 0 100 35">
-                <path d="M0,15 Q25,8 50,22 T100,10" fill="none" stroke="#f59e0b" stroke-width="3" stroke-linecap="round"/>
-              </svg>
-            </div>
-          </div>
-
-          <div class="stat-spark-card">
-            <div class="stat-spark-header">
-              <span>🧬 DHT Androgênico</span>
-              <span class="card-badge badge-ok">Ideal</span>
-            </div>
-            <div class="stat-spark-main">
-              <div>
-                <span class="stat-spark-val">245</span>
-                <span style="font-size:12px; color:var(--text-muted);">pg/mL</span>
-              </div>
-              <svg class="stat-sparkline-svg" viewBox="0 0 100 35">
-                <path d="M0,20 Q25,24 50,18 T100,14" fill="none" stroke="#20B2AA" stroke-width="3" stroke-linecap="round"/>
-              </svg>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- RAIO-X DO ESPORTE & PERCENTIL DE CORREDORES -->
-        <div class="app-card">
-          <div class="card-header-row">
-            <span class="card-title">🏃‍♂️ Raio-X do Esporte: Hemoglobina 16,6 g/dL</span>
-            <span class="card-badge badge-pro">Percentil 85 de Ciclistas & Corredores</span>
-          </div>
-
-          <p style="font-size:13px; color:var(--text-muted); line-height:1.5;">
-            Em uma pessoa sedentária, 16,6 g/dL pode parecer no limite superior laboratorial. Mas para um praticante assíduo de corrida e ciclismo como o Edmilson, isso reflete excelente capacidade de VO₂ e transporte de oxigênio muscular.
-          </p>
-
-          <div style="background:rgba(32,178,170,0.08); border:1px solid rgba(32,178,170,0.2); border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:8px;">
-            <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:700;">
-              <span>População Geral: 13 a 17 g/dL</span>
-              <span style="color:var(--teal-primary);">Sua Marca: 16,6 g/dL (Alta Potência)</span>
-            </div>
-            <div style="height:10px; background:rgba(0,0,0,0.08); border-radius:999px; position:relative;">
-              <div style="position:absolute; left:0; width:65%; height:100%; background:#94a3b8; opacity:0.3; border-radius:999px 0 0 999px;"></div>
-              <div style="position:absolute; left:65%; width:35%; height:100%; background:var(--teal-light); border-radius:0 999px 999px 0;"></div>
-              <div style="position:absolute; left:85%; top:-3px; width:16px; height:16px; border-radius:50%; background:#f59e0b; border:2px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,0.3); transform:translateX(-50%);"></div>
-            </div>
-            <div style="font-size:11.5px; color:var(--text-muted); display:flex; justify-content:space-between;">
-              <span>Faixa Sedentária</span>
-              <span>Faixa de Atletas de Fundo</span>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-
-      <!-- ══════════════════════════════════════════════════════════════
-           VISÃO 3: CONSULTÓRIO MÉDICO (SEM CORTES, RESPONSIVA)
-           ══════════════════════════════════════════════════════════════ -->
-      <div class="app-content doctor-view-container" id="viewDoctor" style="display:none;">
-
-        <!-- BANNER DE IDENTIFICAÇÃO DO PACIENTE NA CONSULTA -->
-        <div class="doctor-patient-banner">
-          <div class="doctor-patient-left">
-            <div class="doctor-patient-avatar">
-              <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=160&q=80" alt="Edmilson Lopes" />
-            </div>
-            <div class="doctor-patient-meta">
-              <h3>Prontuário: Edmilson Lopes</h3>
-              <p>47 anos • Masculino • Atleta Amador (Corrida 10-21k, Ciclismo Estrada)</p>
-            </div>
-          </div>
-
-          <div class="doctor-actions-group">
-            <button class="btn-doctor-action primary" onclick="openPdfModal()">
-              📄 Gerar Laudo Timbrado PDF
+            <button class="persona-seg-btn active-sports" style="flex:none; padding:8px 18px;" onclick="setDashboardPersona('sports')">
+              ⚡ Virar para a Lente Esportiva →
             </button>
           </div>
+
         </div>
 
-        <!-- RESUMO CLÍNICO DA IA PARA O MÉDICO (15 SEGUNDOS DE LEITURA) -->
-        <div class="clinical-summary-card">
-          <div class="clinical-summary-header">
-            <h4>🩺 Resumo Clínico para Tomada de Decisão Médica</h4>
-            <span class="card-badge badge-pro">IA Dr. Exame Clinical Core</span>
-          </div>
-          <div class="clinical-summary-body">
-            Paciente praticante assíduo de modalidades de endurance (corrida/ciclismo). Apresenta excelente perfil de oxigenação celular (<b>Hb 16,6 g/dL</b> e <b>Ferritina 195 ng/mL</b>) e função hepato-renal preservada. Dois pontos de conduta recomendados: 
-            <b>1) Hipotireoidismo primário/subclínico</b> (TSH 12,1 com T4L para dosar); 
-            <b>2) Resistência periférica à insulina</b> (HOMA-IR 3,6), orientando sincronização de carboidratos em janelas de treino.
-          </div>
-        </div>
 
-        <!-- TABELA CLÍNICA COMPLETA DE BIOMARCADORES (SEM CORTAR) -->
-        <div class="clinical-table-card">
-          <div class="clinical-table-header">
-            <h4>Painel Bioquímico & Hormonal Integrado (Sabin 04/08/2026)</h4>
-            <span style="font-size:12px; color:var(--text-muted);">Sincronizado automaticamente</span>
+        <!-- ── VISÃO 2: LENTE ESPORTIVA & PERFORMANCE (COM APOIO A HORMONIZADOS) ── -->
+        <div id="containerSports" style="display:none; flex-direction:column; gap:18px;">
+
+          <!-- HERO BIO-READINESS DO ATLETA -->
+          <div class="sports-bio-readiness-hero">
+            <svg style="position: absolute; width: 0; height: 0;">
+              <defs>
+                <linearGradient id="goldTealGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#20B2AA" />
+                  <stop offset="100%" stop-color="#f59e0b" />
+                </linearGradient>
+              </defs>
+            </svg>
+
+            <div class="readiness-main-row">
+              <div class="readiness-gauge-wrap">
+                <svg viewBox="0 0 120 120">
+                  <circle class="bg" cx="60" cy="60" r="50"></circle>
+                  <circle class="val" cx="60" cy="60" r="50"></circle>
+                </svg>
+                <div class="readiness-score-text">
+                  <strong id="readinessScoreVal">92%</strong>
+                  <span id="readinessScoreLabel">ÓTIMO</span>
+                </div>
+              </div>
+
+              <div class="readiness-meta-text">
+                <h3>Prontidão Metabólica para Endurance & Força</h3>
+                <p id="readinessDesc">
+                  Seus biomarcadores sustentam excelente transporte de oxigênio muscular (Hemoglobina 16,6 g/dL). 
+                  Calibrado para sua rotina de corrida e ciclismo.
+                </p>
+              </div>
+            </div>
           </div>
 
-          <div class="table-scroll-wrapper">
-            <table class="clinical-table">
-              <thead>
-                <tr>
-                  <th>Biomarcador</th>
-                  <th>Resultado</th>
-                  <th>Referência Geral</th>
-                  <th>Faixa do Atleta</th>
-                  <th>Status & Conduta</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><b>TSH Ultra-sensível</b></td>
-                  <td><b style="color:#d97706;">12,1 μUI/mL</b></td>
-                  <td>0,40 a 4,50</td>
-                  <td>1,00 a 2,50</td>
-                  <td><span class="clinical-badge-tag" style="background:rgba(245,158,11,0.15); color:#d97706;">Conduta: Investigar</span></td>
-                </tr>
-                <tr>
-                  <td><b>Hemoglobina</b></td>
-                  <td><b style="color:#059669;">16,6 g/dL</b></td>
-                  <td>13,0 a 17,5</td>
-                  <td>15,0 a 17,0</td>
-                  <td><span class="clinical-badge-tag" style="background:rgba(16,185,129,0.15); color:#059669;">Excelente Transporte O₂</span></td>
-                </tr>
-                <tr>
-                  <td><b>HOMA-IR (Insulina)</b></td>
-                  <td><b style="color:#d97706;">3,6</b></td>
-                  <td>&lt; 2,15</td>
-                  <td>&lt; 1,80</td>
-                  <td><span class="clinical-badge-tag" style="background:rgba(245,158,11,0.15); color:#d97706;">Ajustar Dieta Pré-treino</span></td>
-                </tr>
-                <tr>
-                  <td><b>Ferritina Sérica</b></td>
-                  <td><b style="color:#059669;">195 ng/mL</b></td>
-                  <td>30 a 400</td>
-                  <td>100 a 250</td>
-                  <td><span class="clinical-badge-tag" style="background:rgba(16,185,129,0.15); color:#059669;">Reserva Adequada</span></td>
-                </tr>
-                <tr>
-                  <td><b>DHT (Diidrotestosterona)</b></td>
-                  <td><b style="color:#059669;">245 pg/mL</b></td>
-                  <td>143 a 842</td>
-                  <td>200 a 500</td>
-                  <td><span class="clinical-badge-tag" style="background:rgba(16,185,129,0.15); color:#059669;">Eixo Equilibrado</span></td>
-                </tr>
-              </tbody>
-            </table>
+          <!-- CARD DE CALIBRAÇÃO HORMONAL (NÃO-MORALISTA / REDUÇÃO DE DANOS) -->
+          <div class="hormonal-profile-card">
+            <div class="hormonal-profile-header">
+              <div>
+                <h4>💉 Contexto Hormonal do Atleta (Redução de Danos)</h4>
+                <p style="font-size:12px; color:var(--text-muted); margin-top:2px;">
+                  O Dr. Exame não faz julgamento moral. Declarar o uso calibra os alertas para focar no que realmente protege sua vida.
+                </p>
+              </div>
+
+              <!-- CHIPS DE SELEÇÃO RÁPIDA -->
+              <div class="hormone-chips-selector">
+                <button class="hormone-chip-btn active" id="btnHormoneNatural" onclick="setHormoneContext('natural')">
+                  🍃 Atleta Natural
+                </button>
+                <button class="hormone-chip-btn" id="btnHormoneTrt" onclick="setHormoneContext('trt')">
+                  💉 TRT (Reposição)
+                </button>
+                <button class="hormone-chip-btn" id="btnHormoneBlast" onclick="setHormoneContext('blast')">
+                  ⚡ Recursos / Ciclo (Durateston / Masteron)
+                </button>
+              </div>
+            </div>
+
+            <!-- MENSAGEM DINÂMICA DE CALIBRAÇÃO -->
+            <div id="hormoneExplainerText" style="font-size:12px; color:var(--text-muted); line-height:1.5; background:rgba(0,0,0,0.02); padding:10px 14px; border-radius:10px;">
+              <b>Perfil Natural Ativo:</b> As referências laboratoriais acompanham a produção endógena saudável para esportes de resistência.
+            </div>
           </div>
+
+          <!-- 🛡️ PAINEL DE SEGURANÇA DO ATLETA (ESPECÍFICO PARA TRT / CICLO) -->
+          <div id="safetyPanelSection" style="display:none; flex-direction:column; gap:14px;">
+            
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <h4 style="font-family:var(--font-display); font-size:15px; font-weight:800; color:#d97706; display:flex; align-items:center; gap:8px;">
+                🛡️ Painel de Segurança do Atleta (Monitoramento Crítico)
+              </h4>
+              <span class="card-badge badge-alert">Protocolo de Redução de Danos</span>
+            </div>
+
+            <div class="safety-panel-grid">
+              
+              <!-- 1. HEMATÓCRITO & VISCOSIDADE (O RISCO REAL DE QUEM TOMA TESTO) -->
+              <div class="safety-item-card critical-alert">
+                <div class="safety-card-top">
+                  <div class="safety-title-box">
+                    <h5>Hematócrito (Viscosidade Sanguínea)</h5>
+                    <span>Risco Trombótico • Sobrecarga Cardiovascular</span>
+                  </div>
+                  <span class="card-badge badge-alert" id="hctBadge">51,2% • Atenção</span>
+                </div>
+
+                <div class="safety-val-row">
+                  <div>
+                    <span class="safety-val-big warning-val" id="hctValue">51,2</span>
+                    <span style="font-size:12px; font-weight:600; color:var(--text-muted);">%</span>
+                  </div>
+                  <span style="font-size:11px; color:var(--text-muted);">Alvo seguro: &lt; 50%</span>
+                </div>
+
+                <!-- RÉGUA TRICOLOR -->
+                <div class="safety-range-bar">
+                  <div class="range-zone-green" title="Normal: até 50%"></div>
+                  <div class="range-zone-yellow" title="Atenção: 50% a 53%"></div>
+                  <div class="range-zone-red" title="Crítico: > 53% (Indicação de Flebotomia)"></div>
+                  <div class="safety-cursor-pin" id="hctPin" style="left:76%;"></div>
+                </div>
+
+                <div class="safety-advice-box" id="hctAdvice">
+                  <b>Conduta Preventiva Dr. Exame:</b> A testosterona estimula a eritropoiese na medula. Seu sangue está mais viscoso. Aumente a ingestão hídrica para <b>3,5 a 4 litros/dia</b>. Se ultrapassar 53%, converse com seu médico sobre flebotomia (sangria terapêutica).
+                </div>
+              </div>
+
+              <!-- 2. PERFIL LIPÍDICO (HDL QUE DESPENCA COM MASTERON / ORAIS) -->
+              <div class="safety-item-card critical-alert">
+                <div class="safety-card-top">
+                  <div class="safety-title-box">
+                    <h5>Colesterol HDL & Proteção Arterial</h5>
+                    <span>Impacto de Masteron / Derivados de DHT</span>
+                  </div>
+                  <span class="card-badge badge-danger">28 mg/dL • Baixo</span>
+                </div>
+
+                <div class="safety-val-row">
+                  <div>
+                    <span class="safety-val-big warning-val">28</span>
+                    <span style="font-size:12px; font-weight:600; color:var(--text-muted);">mg/dL</span>
+                  </div>
+                  <span style="font-size:11px; color:var(--text-muted);">Alvo cardioprotetor: &gt; 40</span>
+                </div>
+
+                <div class="safety-range-bar">
+                  <div style="width:30%; background:#ef4444;"></div>
+                  <div style="width:30%; background:#f59e0b;"></div>
+                  <div style="width:40%; background:#10b981;"></div>
+                  <div class="safety-cursor-pin" style="left:26%; border-color:#ef4444;"></div>
+                </div>
+
+                <div class="safety-advice-box">
+                  <b>Alerta de Aterosclerose:</b> Derivados de DHT (como Masteron) inibem a síntese hepática de HDL. Priorize 30-40 min de cardio diário em zona 2 e suplementação de Ômega-3 (2-3g EPA/DHA) para proteger a microcirculação.
+                </div>
+              </div>
+
+              <!-- 3. FÍGADO: TGO x TGP x CPK (TREINO x SOBRECARGA) -->
+              <div class="safety-item-card">
+                <div class="safety-card-top">
+                  <div class="safety-title-box">
+                    <h5>Função Hepática x Treino Pesado</h5>
+                    <span>Diferenciação Muscular vs Hepática</span>
+                  </div>
+                  <span class="card-badge badge-ok">Fígado Seguro</span>
+                </div>
+
+                <div class="safety-val-row">
+                  <div>
+                    <span class="safety-val-big" style="color:#059669;">24</span>
+                    <span style="font-size:12px; font-weight:600; color:var(--text-muted);">U/L (TGP)</span>
+                  </div>
+                  <span style="font-size:11px; color:var(--text-muted);">TGO: 42 (Muscular)</span>
+                </div>
+
+                <div class="safety-advice-box" style="border-color:#10b981; background:rgba(16,185,129,0.08); color:var(--text-main);">
+                  <b>Inteligência Clínica:</b> Seu TGO está levemente alto devido ao microdano muscular dos treinos de endurance (CPK elevado). Como o <b>TGP e GGT estão normais</b>, seu fígado está saudável e livre de colestase.
+                </div>
+              </div>
+
+              <!-- 4. EIXO PROSTÁTICO & AROMATIZAÇÃO -->
+              <div class="safety-item-card">
+                <div class="safety-card-top">
+                  <div class="safety-title-box">
+                    <h5>Eixo Prostático (PSA) & Estradiol (E2)</h5>
+                    <span>Aromatização e Prevenção</span>
+                  </div>
+                  <span class="card-badge badge-ok">Equilibrado</span>
+                </div>
+
+                <div class="safety-val-row">
+                  <div>
+                    <span class="safety-val-big" style="color:#059669;">0,78</span>
+                    <span style="font-size:12px; font-weight:600; color:var(--text-muted);">ng/mL (PSA)</span>
+                  </div>
+                  <span style="font-size:11px; color:var(--text-muted);">E2: 32 pg/mL (Proporcional)</span>
+                </div>
+
+                <div class="safety-advice-box" style="border-color:#10b981; background:rgba(16,185,129,0.08); color:var(--text-main);">
+                  Relação Testosterona:Estradiol controlada sem sinais de hiperestrogenismo ou retenção hídrica acentuada. PSA em faixa completamente segura.
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- CARDS DE MARCADORES DE ENDURANCE -->
+          <div class="app-card">
+            <div class="card-header-row">
+              <span class="card-title">🏃‍♂️ Marcadores de Potência Aeróbica (Sabin 04/08)</span>
+              <span class="card-badge badge-pro">Percentil 85 de Ciclistas</span>
+            </div>
+            <p style="font-size:13px; color:var(--text-muted); line-height:1.5;">
+              Sua <b>Hemoglobina em 16,6 g/dL</b> e <b>Ferritina em 195 ng/mL</b> conferem um VO₂ máx potencial elevado para distâncias longas de corrida e ciclismo.
+            </p>
+          </div>
+
         </div>
 
       </div>
@@ -1886,68 +1246,50 @@
     </div>
   </main>
 
-  <!-- MODAL DE LAUDO EM PDF TIMBRADO (SIMULADOR) -->
-  <div class="modal-backdrop" id="pdfModal">
-    <div class="modal-paper">
-      <div class="modal-header">
-        <h3 style="font-family:var(--font-display); font-size:16px; font-weight:700;">📄 Modelo de Laudo Médico Timbrado</h3>
-        <button class="btn-close-modal" onclick="closePdfModal()">✕</button>
-      </div>
-
-      <div class="modal-body">
-        <div class="pdf-timbre">
-          <div>
-            <h2 style="color:#0f766e; font-size:18px; font-weight:800;">DR. EXAME • MEDICINA DE PRECISÃO</h2>
-            <p style="font-size:11px; color:#64748b;">Laudo Clínico-Esportivo Integrado • CRM 14829-SP</p>
-          </div>
-          <div style="text-align:right;">
-            <p style="font-size:12px; font-weight:700;">Data: 04/08/2026</p>
-            <p style="font-size:11px; color:#64748b;">Protocolo: #SAB-942B</p>
-          </div>
-        </div>
-
-        <div>
-          <h4 style="font-size:13px; text-transform:uppercase; color:#0f766e; margin-bottom:6px;">1. Identificação do Paciente</h4>
-          <p style="font-size:12.5px; line-height:1.5;">
-            <b>Paciente:</b> Edmilson Lopes • <b>Idade:</b> 47 anos • <b>Sexo:</b> Masculino<br>
-            <b>Modalidade:</b> Corrida & Ciclismo de Fundo • <b>Idade Biológica:</b> 42 anos (-5 anos)
-          </p>
-        </div>
-
-        <div>
-          <h4 style="font-size:13px; text-transform:uppercase; color:#0f766e; margin-bottom:6px;">2. Parecer e Conduta Clínica</h4>
-          <p style="font-size:12.5px; line-height:1.6; color:#334155;">
-            Paciente apresenta excelente reserva fisiológica e capacidade de transporte de oxigênio (Hb 16,6 g/dL). Observa-se elevação de TSH (12,1 μUI/mL) indicando hipotireoidismo subclínico em fase inicial, além de discreta elevação no índice HOMA-IR (3,6).<br><br>
-            <b>Prescrição / Próximos Passos:</b><br>
-            • Dosagem complementar de T4 Livre e Anti-TPO.<br>
-            • Manter volume aeróbico em zona 2 para ganho de sensibilidade insulínica periférica.<br>
-            • Retorno para reavaliação laboratorial em 60 dias.
-          </p>
-        </div>
-
-        <div style="border-top:1px solid #e2e8f0; padding-top:16px; display:flex; justify-content:space-between; align-items:center;">
-          <span style="font-size:11px; color:#94a3b8;">Documento gerado digitalmente via plataforma Dr. Exame</span>
-          <button class="btn-doctor-action primary" onclick="closePdfModal()">Concluir Visualização</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <script>
-    // ESTADO E CONTROLES DO MOCKUP
-    function switchAppView(view) {
-      document.getElementById('viewPatient').style.display = view === 'patient' ? 'flex' : 'none';
-      document.getElementById('viewSports').style.display = view === 'sports' ? 'flex' : 'none';
-      document.getElementById('viewDoctor').style.display = view === 'doctor' ? 'flex' : 'none';
+    // CONTROLES DE PERSONA (SAÚDE GERAL x LENTE ESPORTIVA)
+    function setDashboardPersona(mode) {
+      const isSports = mode === 'sports';
+      document.getElementById('containerHealth').style.display = isSports ? 'none' : 'flex';
+      document.getElementById('containerSports').style.display = isSports ? 'flex' : 'none';
 
-      document.getElementById('tabPatient').classList.toggle('active', view === 'patient');
-      document.getElementById('tabSports').classList.toggle('active', view === 'sports');
-      document.getElementById('tabDoctor').classList.toggle('active', view === 'doctor');
+      document.getElementById('btnModeHealth').classList.toggle('active-health', !isSports);
+      document.getElementById('btnModeHealth').classList.toggle('active-sports', false);
+
+      document.getElementById('btnModeSports').classList.toggle('active-sports', isSports);
+      document.getElementById('btnModeSports').classList.toggle('active-health', false);
 
       const subtitle = document.getElementById('appRoleSubtitle');
-      if (view === 'patient') subtitle.innerText = 'Painel do Paciente • Saúde Geral';
-      if (view === 'sports') subtitle.innerText = 'Lente Esportiva • Atleta de Endurance';
-      if (view === 'doctor') subtitle.innerText = 'Prontuário Médico • Consulta Ativa';
+      subtitle.innerText = isSports ? 'Lente Esportiva • Corrida & Ciclismo' : 'Painel do Paciente • 04/08/2026';
+    }
+
+    // CONTROLE DE CONTEXTO HORMONAL (REDUÇÃO DE DANOS)
+    function setHormoneContext(ctx) {
+      document.getElementById('btnHormoneNatural').classList.toggle('active', ctx === 'natural');
+      document.getElementById('btnHormoneTrt').classList.toggle('active', ctx === 'trt');
+      document.getElementById('btnHormoneBlast').classList.toggle('active', ctx === 'blast');
+
+      const safetyPanel = document.getElementById('safetyPanelSection');
+      const explainer = document.getElementById('hormoneExplainerText');
+      const scoreVal = document.getElementById('readinessScoreVal');
+      const desc = document.getElementById('readinessDesc');
+
+      if (ctx === 'natural') {
+        safetyPanel.style.display = 'none';
+        scoreVal.innerText = '92%';
+        explainer.innerHTML = '<b>Perfil Natural Ativo:</b> As referências laboratoriais acompanham a produção endógena saudável para esportes de resistência.';
+        desc.innerText = 'Seus biomarcadores sustentam excelente transporte de oxigênio muscular (Hemoglobina 16,6 g/dL). Calibrado para sua rotina de corrida e ciclismo.';
+      } else if (ctx === 'trt') {
+        safetyPanel.style.display = 'flex';
+        scoreVal.innerText = '89%';
+        explainer.innerHTML = '<b>TRT (Terapia de Reposição) Ativa:</b> O Dr. Exame passa a focar no <b>Hematócrito</b> (viscosidade) e no <b>perfil lipídico</b>, sem disparar alertas moralistas para testosterona exógena.';
+        desc.innerText = 'Prontidão esportiva alta, mas com recomendação de monitorar viscosidade do sangue (Hematócrito 51,2%) e hidratação redobrada.';
+      } else if (ctx === 'blast') {
+        safetyPanel.style.display = 'flex';
+        scoreVal.innerText = '85%';
+        explainer.innerHTML = '<b>Protocolo Ergogênico Ativo (Durateston / Masteron):</b> Monitoramento máximo de redução de danos ativado. Atenção primária à queda do <b>HDL (28 mg/dL)</b> pelo Masteron e aumento do <b>Hematócrito (51,2%)</b> pela testosterona.';
+        desc.innerText = 'Alta potência anabólica e oxigenação muscular, com necessidade de protocolo de proteção endotelial (cardio e hidratação intensa).';
+      }
     }
 
     function toggleDeviceMode() {
@@ -1965,14 +1307,6 @@
       const viewport = document.getElementById('appViewport');
       const isDark = viewport.getAttribute('data-theme') === 'dark';
       viewport.setAttribute('data-theme', isDark ? 'light' : 'dark');
-    }
-
-    function openPdfModal() {
-      document.getElementById('pdfModal').classList.add('open');
-    }
-
-    function closePdfModal() {
-      document.getElementById('pdfModal').classList.remove('open');
     }
   </script>
 </body>
