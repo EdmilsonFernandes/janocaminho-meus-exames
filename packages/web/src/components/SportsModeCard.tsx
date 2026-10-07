@@ -17,9 +17,9 @@ import { tealText } from '../theme';
  *     (default OFF — paciente normal intocável).
  *  2. PREMIUM: card visível, mas ATIVAR exige plano (padrão usePremium do app; CTA
  *     "Disponível no Premium" → /planos, como os outros gates).
- *  3. Toggle persistido por paciente via useStore + PUT /sports/profile inicializando
- *     vazio no server. AINDA NÃO troca o dashboard (isso é E4) — MVP mostra o chip
- *     de confirmado "modo ativado" + o form de substância declarada (E1.4).
+ *  3. Toggle persistido por paciente via useStore + PUT /sports/profile (active nos
+ *     DOIS sentidos — E4.1). Com active=true o DashboardV2 troca pro SportsDashboard;
+ *     off = dashboard normal, idêntico ao atual. Form de substância declarada (E1.4).
  */
 
 /** Corpo do card com TODAS as decisões como props (contrato testável via SSR). */
@@ -31,14 +31,18 @@ export const SportsModeCardBase = ({ pid, enabled, premium }: { pid: string; ena
 
   const toggle = async (next: boolean) => {
     setOn(next);
-    if (!next) return; // desligar é só local — dados declarados permanecem (LGPD)
+    // E4.1: os DOIS sentidos persistem no servidor (commit 3938a58f gravava só o "on" —
+    // desligar deixava active=true e o dashboard continuava esportivo). Dados declarados
+    // permanecem (LGPD); só o flag de exibição muda.
     const r = await fetch(`${API_URL}/sports/profile`, { method: 'PUT', headers: apiHeaders(true), body: JSON.stringify({ active: next }) });
     if (!r.ok) {
       setOn(false);
-      notify(r.status === 403 ? 'Saúde Esportiva está desativada no momento.' : 'Não foi possível ativar o modo.', { type: 'error' });
+      notify(r.status === 403 ? 'Saúde Esportiva está desativada no momento.' : 'Não foi possível salvar o modo esportivo.', { type: 'error' });
       return;
     }
-    notify('Modo esportivo ativado ✨', { type: 'success' });
+    notify(next ? 'Modo esportivo ativado ✨' : 'Modo esportivo desativado', { type: next ? 'success' : 'info' });
+    // E4.1: invalida o cache de sessão do useSportsProfile → o dashboard troca na hora.
+    try { window.dispatchEvent(new Event('sports-profile-changed')); } catch { /* SSR/test */ }
   };
 
   // ── gate 1: kill-switch admin (default OFF) → o card nem existe ──

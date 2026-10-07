@@ -44,6 +44,8 @@ import CloseIcon from '@mui/icons-material/Close';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { getGoals, goalSubtitle, GoalQuizCard } from '../GoalQuiz';
+import { useSportsProfile } from '../../hooks/useSportsProfile';
+import { SportsDashboard } from '../sports/SportsDashboard';
 
 const readTotal = (r: Response) =>
   Number(r.headers.get('X-Total-Count') ?? r.headers.get('content-range')?.split('/')?.[1] ?? '0');
@@ -270,8 +272,9 @@ const Sparkle = ({ top, left, delay, size = 4 }: { top: string; left: string; de
 
 /** E1 — strip "analisando… há 1:32" no dashboard: sinal GLOBAL de exame em processamento.
  *  Antes só existia na lista de exames — quem ficava no painel não sabia onde estava a
- *  análise (ansiedade "cadê meu exame?"). Elapsed deriva do createdAt real do exame. */
-const ProcessingStrip = ({ count, oldestAt, onClick }: { count: number; oldestAt: string | null; onClick: () => void }) => {
+ *  análise (ansiedade "cadê meu exame?"). Elapsed deriva do createdAt real do exame.
+ *  Exportado desde o E4: o painel esportivo reusa o MESMO strip (mesma fonte/sinal). */
+export const ProcessingStrip = ({ count, oldestAt, onClick }: { count: number; oldestAt: string | null; onClick: () => void }) => {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, []);
   const start = oldestAt ? new Date(oldestAt).getTime() : 0;
@@ -729,6 +732,9 @@ export const DashboardV2 = () => {
   const navigate = useNavigate();
   const [pid] = useSelectedPatient();
   const real = useDashboardData(pid);
+  // E4.1 — perfil esportivo (GET /sports/profile, cache de sessão): só o TOGGLE ativo
+  // no servidor troca o painel. Sem perfil / offline / active=false → dashboard normal.
+  const sports = useSportsProfile();
   // MODO EXEMPLO: swap 1:1 do payload (ver demoData.ts). NÃO persiste — dado fictício
   // de saúde jamais "vira seu"; sair/recarregar volta pro app real. O hook real continua
   // rodando (hooks incondicionais) e o firstName continua o DO USUÁRIO (saudação real).
@@ -833,6 +839,14 @@ export const DashboardV2 = () => {
   // Arc percentages para os indicator tiles (sem fetch novo — calcula dos dados que já existem).
   const cardioArc = cardioLevel === 'baixo' ? 20 : cardioLevel === 'moderado' ? 55 : cardioLevel === 'alto' ? 90 : 0;
   const cardioArcColor = cardioLevel === 'baixo' ? '#059669' : cardioLevel === 'moderado' ? '#f59e0b' : cardioLevel === 'alto' ? '#ef4444' : '#94a3b8';
+
+  // E4.1 — SWAP POR FLAG (padrão do modo demo: troca na renderização, hooks seguem
+  // rodando). Perfil esportivo ATIVO → painel "Saúde Esportiva" no lugar do grid.
+  // Toggle OFF → este return não é alcançado e a renderização abaixo fica
+  // EXATAMENTE igual à atual (screenshot-comparável).
+  if (!demo && sports.active) {
+    return <SportsDashboard pid={pid} d={real} profile={sports.profile} firstName={firstName} />;
+  }
 
   return (
     <PageContainer width="wide" sx={{ bgcolor: 'transparent', minHeight: '100dvh' }}>
