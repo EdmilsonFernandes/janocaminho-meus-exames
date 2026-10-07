@@ -81,11 +81,16 @@ export const PatientSwitcher = () => {
           pl: 0.5, pr: { xs: 0.5, sm: 1 }, py: 0.25, minHeight: 44,
           color: 'inherit',
           textTransform: 'none',
-          bgcolor: 'rgba(32,178,170,0.08)',
-          border: '1px solid rgba(32,178,170,0.2)',
-          '&:hover': { bgcolor: 'rgba(32,178,170,0.16)' },
-          // xs: colapsa a avatar+chevron (~58px) — nome/vínculo ficam só no menu aberto
-          // (P0 header 320–430px: prioridade pro logo, créditos, sino e avatar).
+          bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(32,178,170,0.10)' : 'rgba(32,178,170,0.06)',
+          border: '1px solid',
+          borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(32,178,170,0.25)' : 'rgba(32,178,170,0.18)',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+          transition: 'all .18s ease',
+          '&:hover': {
+            bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(32,178,170,0.18)' : 'rgba(32,178,170,0.14)',
+            transform: 'translateY(-0.5px)',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+          },
           maxWidth: { xs: 'none', sm: 280 },
           '& .MuiButton-startIcon': { mr: 0.75, ml: 0 },
         }}
@@ -98,7 +103,9 @@ export const PatientSwitcher = () => {
               bgcolor: 'primary.main',
               fontSize: 14,
               fontWeight: 800,
-              boxShadow: '0 0 0 2px rgba(255,255,255,.95), 0 2px 6px rgba(0,0,0,.2)',
+              boxShadow: (t) => t.palette.mode === 'dark'
+                ? '0 0 0 1.5px #20b2aa, 0 2px 6px rgba(0,0,0,.4)'
+                : '0 0 0 1.5px #fff, 0 0 0 2.5px rgba(32,178,170,0.4), 0 2px 6px rgba(0,0,0,.12)',
             }}
           >
             {current?.fullName?.charAt(0)?.toUpperCase() || '👤'}

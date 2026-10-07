@@ -14,7 +14,10 @@ vi.mock('react-admin', () => ({
   useStore: () => [state.on, () => undefined],
   defaultTheme: {},
 }));
-vi.mock('react-router-dom', () => ({ useNavigate: () => () => undefined }));
+vi.mock('react-router-dom', () => ({
+  useNavigate: () => () => undefined,
+  useSearchParams: () => [new URLSearchParams(), () => undefined],
+}));
 // Base não faz rede no render (fetch só em ações) — config só p/ importar sem browser.
 vi.mock('../config', () => ({
   API_URL: '/api', token: () => 't', apiHeaders: () => ({}),

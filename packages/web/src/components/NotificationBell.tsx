@@ -36,18 +36,64 @@ export const NotificationBell = () => {
     };
   }, []);
   return (
-    <IconButton color="inherit" onClick={() => navigate('/notificacoes')} title="Notificações" aria-label="Notificações"
-      sx={{
-        flexShrink: 0, p: '11px', ml: 1, borderRadius: '12px', // respiro — não fica espremido ao lado do switcher (44px de alvo tátil)
-        transition: 'background-color .18s ease',
-        '&:hover': { bgcolor: 'action.hover' },
-      }}>
-      {/* Cap "9+": contador cru ("36") é manchete de e-mail, não sinal clínico — em app de saúde,
-          badge gigante dessensibiliza p/ o dia em que a notificação IMPORTA (resultado novo).
-          Vermelho #dc2626: branco sobre ele = ~5:1 (o #ef4444 padrão dava 3,8:1 — reprovar AA). */}
-      <Badge badgeContent={unread > 9 ? '9+' : unread} color="error" overlap="circular"
-        sx={{ '& .MuiBadge-badge': { fontSize: 12, fontWeight: 700, height: 18, minWidth: 18, padding: '0 4px', top: 3, right: 3, bgcolor: '#dc2626', color: '#fff' } }}>
-        <NotificationsNoneIcon sx={{ fontSize: 22 }} />
+    <IconButton
+      color="inherit"
+      onClick={() => navigate('/notificacoes')}
+      title={unread > 0 ? `${unread} nova(s) notificação(ões)` : 'Notificações'}
+      aria-label="Notificações"
+      sx={(t) => ({
+        flexShrink: 0,
+        p: '9px',
+        ml: 0.75,
+        borderRadius: '12px',
+        border: unread > 0
+          ? `1px solid ${t.palette.mode === 'dark' ? 'rgba(245,158,11,0.28)' : 'rgba(245,158,11,0.24)'}`
+          : '1px solid transparent',
+        bgcolor: unread > 0
+          ? (t.palette.mode === 'dark' ? 'rgba(245,158,11,0.12)' : 'rgba(245,158,11,0.08)')
+          : 'transparent',
+        boxShadow: unread > 0
+          ? (t.palette.mode === 'dark' ? '0 2px 8px rgba(245,158,11,0.2)' : '0 2px 8px rgba(245,158,11,0.14)')
+          : 'none',
+        transition: 'all .2s ease',
+        '&:hover': {
+          bgcolor: unread > 0
+            ? (t.palette.mode === 'dark' ? 'rgba(245,158,11,0.2)' : 'rgba(245,158,11,0.16)')
+            : 'action.hover',
+          transform: 'translateY(-1px)',
+        },
+      })}
+    >
+      <Badge
+        badgeContent={unread > 9 ? '9+' : unread}
+        color="error"
+        overlap="circular"
+        sx={(t) => ({
+          '& .MuiBadge-badge': {
+            fontSize: 11,
+            fontWeight: 800,
+            height: 17,
+            minWidth: 17,
+            padding: '0 4px',
+            top: 2,
+            right: 2,
+            bgcolor: '#dc2626',
+            color: '#fff',
+            border: `2px solid ${t.palette.mode === 'dark' ? '#162020' : '#ffffff'}`,
+            boxShadow: '0 2px 5px rgba(220,38,38,0.35)',
+          },
+        })}
+      >
+        <NotificationsNoneIcon
+          sx={(t) => ({
+            fontSize: 22,
+            color: unread > 0
+              ? (t.palette.mode === 'dark' ? '#fbbf24' : '#d97706')
+              : 'text.primary',
+            filter: unread > 0 ? 'drop-shadow(0 1px 2px rgba(217,119,6,0.25))' : 'none',
+            transition: 'color .2s ease, transform .2s ease',
+          })}
+        />
       </Badge>
     </IconButton>
   );

@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f766e" />
+  <title>Dr. Exame • Estudo de Header Premium & Sininho Dourado</title>
+  <meta name="description" content="Propostas interativas de melhoria do Header, Sininho Dourado e Chips de Crédito para o Dr. Exame." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-workspace: #080f12;
+      --bg-app: #f4f6f9;
+      --bg-card: #ffffff;
+      --border-color: #e5e9f0;
+      
+      --text-main: #111827;
+      --text-muted: #6b7280;
+      --text-dim: #9ca3af;
+      
+      --teal-primary: #0d9488;
+      --teal-dark: #0f766e;
+      --teal-light: #20B2AA;
+      
+      --gold-main: #f59e0b;
+      --gold-dark: #d97706;
+      --gold-glow: rgba(245, 158, 11, 0.35);
+      
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-card: 22px;
+      --radius-full: 9999px;
+      
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-display: 'Poppins', -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    [data-theme="dark"] {
+      --bg-app: #091316;
+      --bg-card: #102126;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --text-main: #f9fafb;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-workspace);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* BARRA SUPERIOR DE ESTÚDIO DO MOCKUP */
+    .studio-bar {
+      background: #0d171b;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      padding: 10px 18px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .studio-title-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .studio-badge {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: var(--radius-full);
+      text-transform: uppercase;
+      box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+    }
+    .studio-title {
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 700;
+      color: #f8fafc;
+    }
+
+    .studio-controls {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .pill-group {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 3px;
+      border-radius: var(--radius-full);
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .pill-btn {
+      background: transparent;
+      border: none;
+      color: #cbd5e1;
+      font-family: var(--font-sans);
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s;
+    }
+    .pill-btn:hover { color: #fff; background: rgba(255,255,255,0.08); }
+    .pill-btn.active {
+      background: var(--teal-primary);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(13,148,136,0.35);
+    }
+    .pill-btn.active.gold {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+    }
+
+    .theme-toggle-btn {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #fff;
+      padding: 5px 12px;
+      border-radius: var(--radius-full);
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .stage-wrapper {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 14px 10px 40px;
+      background: radial-gradient(circle at 50% 8%, rgba(245,158,11,0.08) 0%, rgba(8,15,18,1) 75%);
+    }
+
+    .device-viewport {
+      background: var(--bg-app);
+      color: var(--text-main);
+      position: relative;
+      box-shadow: 0 25px 60px -15px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      width: 412px;
+      max-width: 100%;
+      height: 890px;
+      border-radius: 40px;
+      border: 8px solid #1e293b;
+      margin: 2px auto;
+    }
+
+    .android-status-bar {
+      padding: 8px 18px 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--text-main);
+      background: var(--bg-app);
+    }
+
+    .viewport-scroll {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: 74px;
+    }
+    .viewport-scroll::-webkit-scrollbar { width: 4px; }
+    .viewport-scroll::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.3); border-radius: 4px; }
+
+    /* ======================================================== */
+    /* COMPARATIVO DE HEADERS (ATUAL VS PROPOSTAS PREMIUM)      */
+    /* ======================================================== */
+    .header-container-slot {
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      background: var(--bg-app);
+      transition: all 0.25s ease;
+    }
+
+    /* ── HEADER 0: COMO ESTÁ ATUALMENTE NO PRINT ── */
+    .app-header.variant-current {
+      padding: 10px 16px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .variant-current .brand-avatar-circle {
+      width: 36px; height: 36px; border-radius: 11px;
+      background: linear-gradient(135deg, #14b8a6, #0d9488);
+      display: grid; place-items: center; font-size: 19px;
+    }
+    .variant-current .points-pill {
+      background: #e6f7f5; border: 1px solid #99ded7; color: #0f766e;
+      padding: 4px 9px; border-radius: var(--radius-full); font-size: 12px; font-weight: 800;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .variant-current .bell-btn {
+      position: relative; font-size: 19px; color: #1f2937; cursor: pointer; display: grid; place-items: center;
+      padding: 6px;
+    }
+    .variant-current .notif-badge-dot {
+      position: absolute; top: 1px; right: 1px;
+      background: #dc2626; color: #fff; font-size: 9.5px; font-weight: 800;
+      width: 15px; height: 15px; border-radius: 50%; display: grid; place-items: center;
+    }
+    .variant-current .user-avatar-pill {
+      background: #e6f7f5; border: 1px solid #99ded7;
+      padding: 3px 8px 3px 3px; border-radius: var(--radius-full);
+      display: flex; align-items: center; gap: 6px; cursor: pointer;
+    }
+    .variant-current .user-avatar-img {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: #0f766e; color: #fff; font-weight: 700; font-size: 12px;
+      display: grid; place-items: center;
+    }
+
+    /* ── PROPOSTA 1: GOLDEN BELL EXECUTIVE (Dourado Nobre + Glassmorphism) ── */
+    .app-header.variant-golden {
+      padding: 10px 16px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(245, 158, 11, 0.15);
+      background: linear-gradient(180deg, rgba(254, 243, 199, 0.25) 0%, var(--bg-app) 100%);
+    }
+    [data-theme="dark"] .app-header.variant-golden {
+      background: linear-gradient(180deg, rgba(245, 158, 11, 0.08) 0%, var(--bg-app) 100%);
+      border-bottom-color: rgba(245, 158, 11, 0.2);
+    }
+    .variant-golden .brand-avatar-circle {
+      width: 36px; height: 36px; border-radius: 12px;
+      background: linear-gradient(135deg, #20b2aa 0%, #0d9488 100%);
+      display: grid; place-items: center; font-size: 19px;
+      box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
+    }
+    .variant-golden .points-pill {
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: #78350f;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      font-size: 12px;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      box-shadow: 0 2px 6px rgba(245, 158, 11, 0.12);
+    }
+    [data-theme="dark"] .variant-golden .points-pill {
+      background: rgba(16, 33, 38, 0.9);
+      color: #fde68a;
+      border-color: rgba(245, 158, 11, 0.35);
+    }
+    .variant-golden .bolt-gold-icon {
+      color: #f59e0b;
+      font-size: 13px;
+      filter: drop-shadow(0 1px 2px rgba(245, 158, 11, 0.4));
+    }
+    /* O SININHO DOURADO PREMIADO */
+    .variant-golden .golden-bell-btn {
+      position: relative;
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.28);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
+    }
+    .variant-golden .golden-bell-btn:hover {
+      background: rgba(245, 158, 11, 0.2);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.28);
+    }
+    .variant-golden .bell-svg-gold {
+      width: 20px;
+      height: 20px;
+      color: #d97706;
+      filter: drop-shadow(0 1px 2px rgba(217, 119, 6, 0.3));
+    }
+    [data-theme="dark"] .variant-golden .bell-svg-gold { color: #fbbf24; }
+    .variant-golden .notif-badge-pill {
+      position: absolute;
+      top: -3px;
+      right: -3px;
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 800;
+      height: 16px;
+      min-width: 16px;
+      padding: 0 4px;
+      border-radius: var(--radius-full);
+      display: grid;
+      place-items: center;
+      border: 2px solid var(--bg-card);
+      box-shadow: 0 2px 6px rgba(220, 38, 38, 0.4);
+    }
+    .variant-golden .user-avatar-pill {
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(13, 148, 136, 0.25);
+      padding: 2px 7px 2px 2px;
+      border-radius: var(--radius-full);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    [data-theme="dark"] .variant-golden .user-avatar-pill {
+      background: rgba(16, 33, 38, 0.9);
+      border-color: rgba(32, 178, 170, 0.3);
+    }
+    .variant-golden .user-avatar-img {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: #0f766e; color: #fff; font-weight: 700; font-size: 12px;
+      display: grid; place-items: center;
+      box-shadow: 0 0 0 1.5px #20b2aa;
+    }
+
+    /* ── PROPOSTA 2: LUXURY TEAL & GOLD (Equilíbrio Teal e Dourado) ── */
+    .app-header.variant-luxury {
+      padding: 10px 16px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(32, 178, 170, 0.18);
+      background: var(--bg-card);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    }
+    .variant-luxury .points-pill {
+      background: linear-gradient(135deg, rgba(32,178,170,0.12) 0%, rgba(245,158,11,0.10) 100%);
+      border: 1px solid rgba(32,178,170,0.25);
+      color: #0f766e;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      font-size: 12px;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    [data-theme="dark"] .variant-luxury .points-pill { color: #5eead4; }
+    .variant-luxury .golden-bell-btn {
+      position: relative;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(245, 158, 11, 0.25);
+    }
+    [data-theme="dark"] .variant-luxury .golden-bell-btn {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.25) 0%, rgba(217, 119, 6, 0.3) 100%);
+    }
+    .variant-luxury .bell-svg-gold {
+      width: 20px; height: 20px; color: #b45309;
+    }
+    [data-theme="dark"] .variant-luxury .bell-svg-gold { color: #fde68a; }
+    .variant-luxury .notif-badge-pill {
+      position: absolute; top: -2px; right: -2px;
+      background: #dc2626; color: #fff; font-size: 9.5px; font-weight: 800;
+      width: 16px; height: 16px; border-radius: 50%; display: grid; place-items: center;
+      border: 2px solid #fff;
+    }
+
+    /* CARD DE EXPLICATIVO DA PROPOSTA NO TOPO DO APP */
+    .proposal-callout-card {
+      margin: 14px 16px 0;
+      padding: 14px 16px;
+      background: linear-gradient(135deg, #fef7ee 0%, #fff 100%);
+      border: 1px solid #f8dbb7;
+      border-radius: var(--radius-md);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    [data-theme="dark"] .proposal-callout-card {
+      background: #191c1a;
+      border-color: rgba(245, 158, 11, 0.25);
+    }
+    .proposal-callout-card h5 {
+      font-size: 13.5px;
+      font-weight: 800;
+      color: #92400e;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    [data-theme="dark"] .proposal-callout-card h5 { color: #fde68a; }
+    .proposal-callout-card p {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    /* RESTO DO DASHBOARD (O MESMO DO EDMILSON) */
+    .dashboard-body {
+      padding: 12px 16px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .greeting-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-card);
+      padding: 16px 18px;
+    }
+    .greeting-title { font-family: var(--font-display); font-size: 17px; font-weight: 800; color: var(--text-main); }
+    .greeting-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    .sports-persona-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-card);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .persona-eyebrow-row { display: flex; justify-content: space-between; align-items: center; }
+    .persona-eyebrow { font-size: 11px; font-weight: 800; color: #0f766e; text-transform: uppercase; }
+    .athlete-mode-chip {
+      background: #e6f7f5; border: 1px solid #99ded7; color: #0f766e;
+      padding: 4px 10px; border-radius: var(--radius-full); font-size: 11px; font-weight: 700;
+    }
+    .persona-identity-row { display: flex; align-items: center; gap: 12px; }
+    .persona-avatar-box {
+      width: 44px; height: 44px; border-radius: 14px;
+      background: linear-gradient(135deg, #cceee8, #a7e0d7);
+      color: #0f766e; font-family: var(--font-display); font-weight: 800; font-size: 18px;
+      display: grid; place-items: center;
+    }
+    .persona-name-text { font-size: 16px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
+    .sport-pill-tag {
+      background: #e6f7f5; border: 1px solid #99ded7; color: #0f766e;
+      font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-full);
+    }
+    .persona-goal-box {
+      background: rgba(244, 246, 249, 0.6); border: 1px solid var(--border-color);
+      border-radius: var(--radius-md); padding: 10px 12px; font-size: 12px; color: var(--text-main); line-height: 1.4;
+    }
+
+    /* QUICK STATS */
+    .stats-2x2-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .stat-tile-card {
+      background: var(--bg-card); border: 1px solid var(--border-color);
+      border-radius: var(--radius-card); padding: 16px 18px; display: flex; flex-direction: column; gap: 4px;
+    }
+    .stat-tile-top { display: flex; align-items: center; justify-content: space-between; }
+    .stat-tile-icon-box { width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center; font-size: 15px; }
+    .icon-teal { background: #e0f2f1; color: #00796b; }
+    .icon-heart { background: #fdf2e9; color: #d97706; }
+    .icon-red { background: #fde8e8; color: #e02424; }
+    .stat-tile-name { font-size: 10px; font-weight: 800; color: #4b5563; text-transform: uppercase; }
+    .stat-tile-main-val { font-family: var(--font-display); font-size: 21px; font-weight: 800; color: var(--text-main); margin-top: 3px; }
+    .stat-tile-footer { font-size: 11px; color: var(--text-muted); }
+
+    /* BOTTOM NAV */
+    .bottom-nav-bar {
+      position: absolute; bottom: 0; left: 0; right: 0; height: 64px;
+      background: var(--bg-card); border-top: 1px solid var(--border-color);
+      display: flex; align-items: center; justify-content: space-around; z-index: 500;
+    }
+    .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10.5px; font-weight: 700; color: var(--text-muted); cursor: pointer; }
+    .nav-item.active { color: var(--teal-primary); }
+    .nav-item.active::after { content: ''; width: 4px; height: 4px; background: var(--teal-primary); border-radius: 50%; }
+    .center-fab-wrap { display: flex; flex-direction: column; align-items: center; gap: 2px; margin-top: -20px; }
+    .center-fab-btn {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: linear-gradient(135deg, #14b8a6, #0d9488);
+      display: grid; place-items: center; font-size: 24px; color: #fff;
+      border: 3px solid #fff; box-shadow: 0 4px 14px rgba(13,148,136,0.35);
+    }
+    .center-fab-label { font-size: 10px; font-weight: 800; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+  <!-- BARRA DE CONTROLE DO ESTÚDIO -->
+  <header class="studio-bar">
+    <div class="studio-title-group">
+      <div class="studio-badge">Estudo do Header</div>
+      <div class="studio-title">
+        <span>Dr. Exame • Sininho Dourado & Header Premium</span>
+      </div>
+    </div>
+
+    <div class="studio-controls">
+      <!-- SELETOR DE VERSÕES DO HEADER -->
+      <div class="pill-group">
+        <button class="pill-btn" onclick="selectHeaderVariant('current')">1. Atual (Do Print)</button>
+        <button class="pill-btn active gold" onclick="selectHeaderVariant('golden')">2. Sininho Ouro & Vidro (Recomendado)</button>
+        <button class="pill-btn" onclick="selectHeaderVariant('luxury')">3. Teal & Ouro Metálico</button>
+      </div>
+
+      <button class="theme-toggle-btn" onclick="toggleTheme()" id="theme-btn">🌙 Dark Mode</button>
+    </div>
+  </header>
+
+  <!-- STAGE DO DISPOSITIVO -->
+  <main class="stage-wrapper">
+    <div class="device-viewport" id="device-frame">
+      
+      <!-- ANDROID STATUS BAR (DO PRINT) -->
+      <div class="android-status-bar">
+        <div>
+          <span>14:10</span>
+          <span style="font-size: 11px;">📷 📳 👥</span>
+        </div>
+        <div style="font-size: 11.5px;">
+          <span>📶 5G</span>
+          <span>🔋 65%</span>
+        </div>
+      </div>
+
+      <!-- SLOT DO HEADER DINÂMICO -->
+      <div class="header-container-slot" id="header-slot">
+        
+        <!-- VARIANTE 2: GOLDEN BELL EXECUTIVE (PADRÃO RECOMENDADO) -->
+        <div class="app-header variant-golden" id="header-variant-elem">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 20px; color: var(--text-main); cursor: pointer;">☰</span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div class="brand-avatar-circle">🩺</div>
+              <span style="font-family: var(--font-display); font-size: 15px; font-weight: 800; color: var(--text-main);">Dr. Exame</span>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <!-- CHIP DE CRÉDITOS PREMIUM -->
+            <div class="points-pill">
+              <span class="bolt-gold-icon">⚡</span>
+              <span>96.837</span>
+            </div>
+
+            <!-- O SININHO DOURADO PREMIADO -->
+            <div class="golden-bell-btn" title="7 Notificações">
+              <!-- SVG do Sino Dourado Sofisticado -->
+              <svg class="bell-svg-gold" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/>
+              </svg>
+              <div class="notif-badge-pill">7</div>
+            </div>
+
+            <!-- AVATAR COM ANEL DE PRECISÃO -->
+            <div class="user-avatar-pill">
+              <div class="user-avatar-img">ES</div>
+              <span style="font-size: 12px; color: var(--text-muted); padding-right: 2px;">⌄</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="viewport-scroll">
+
+        <!-- CARD EXPLICANDO A MUDANÇA -->
+        <div class="proposal-callout-card" id="proposal-explainer">
+          <h5>✨ O que mudou nesta proposta do Header:</h5>
+          <p id="proposal-desc">
+            <b>1. Sininho Dourado Refinado:</b> Fundo em ouro suave translúcido com ícone dourado metálico. Transmite status premium sem parecer erro do sistema.<br>
+            <b>2. Pílula de Créditos Elegante:</b> Raio dourado com tipografia tabular limpa.<br>
+            <b>3. Avatar com Contorno de Precisão:</b> Anel duplo sutil ao redor da foto para acabamento executivo.
+          </p>
+        </div>
+
+        <div class="dashboard-body">
+
+          <!-- CARD SAUDAÇÃO -->
+          <div class="greeting-card">
+            <div class="greeting-title">Boa tarde, Edmilson 👋</div>
+            <div class="greeting-sub">Seu painel de saúde — educativo, não substitui o médico.</div>
+          </div>
+
+          <!-- CARD PERSONA -->
+          <div class="sports-persona-card">
+            <div class="persona-eyebrow-row">
+              <span class="persona-eyebrow">RESISTÊNCIA & PERFORMANCE</span>
+              <div class="athlete-mode-chip">🏃 Modo Atleta</div>
+            </div>
+
+            <div class="persona-identity-row">
+              <div class="persona-avatar-box">E</div>
+              <div class="persona-name-text">
+                <span>Edmilson Lopes, 47 anos</span>
+                <span class="sport-pill-tag">Corrida/Ciclismo</span>
+              </div>
+            </div>
+
+            <div class="persona-goal-box">
+              🎯 <b>Objetivo:</b> Base aeróbica: hemoglobina, hematócrito e ferro sustentam o consumo de oxigênio.
+            </div>
+
+            <div style="font-size: 11.5px; color: var(--text-muted);">
+              <b>Último exame:</b> 04/08 · Sabin · há 2 meses
+            </div>
+          </div>
+
+          <!-- QUICK STATS 2X2 -->
+          <div class="stats-2x2-grid">
+            <div class="stat-tile-card">
+              <div class="stat-tile-top">
+                <div class="stat-tile-icon-box icon-teal">🧪</div>
+                <span class="stat-tile-name">FERRITINA</span>
+              </div>
+              <div class="stat-tile-main-val">195 nanog/mL</div>
+              <div class="stat-tile-footer">na referência</div>
+            </div>
+
+            <div class="stat-tile-card">
+              <div class="stat-tile-top">
+                <div class="stat-tile-icon-box icon-teal">🧪</div>
+                <span class="stat-tile-name">HEMOGLOBINA</span>
+              </div>
+              <div class="stat-tile-main-val">5,1%</div>
+              <div class="stat-tile-footer">na referência</div>
+            </div>
+
+            <div class="stat-tile-card">
+              <div class="stat-tile-top">
+                <div class="stat-tile-icon-box icon-heart">🤍</div>
+                <span class="stat-tile-name">FC REPOUSO</span>
+              </div>
+              <div class="stat-tile-main-val">123 bpm</div>
+              <div class="stat-tile-footer">FC de repouso (7+ dias)</div>
+            </div>
+
+            <div class="stat-tile-card">
+              <div class="stat-tile-top">
+                <div class="stat-tile-icon-box icon-red">🤍</div>
+                <span class="stat-tile-name">ALTERADOS</span>
+              </div>
+              <div class="stat-tile-main-val" style="color: #dc2626;">76</div>
+              <div class="stat-tile-footer">pedem atenção</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- BOTTOM NAV -->
+      <div class="bottom-nav-bar">
+        <div class="nav-item active">
+          <span style="font-size: 18px;">🏠</span>
+          <span>Início</span>
+        </div>
+        <div class="nav-item">
+          <span style="font-size: 18px;">📄</span>
+          <span>Exames</span>
+        </div>
+        <div class="center-fab-wrap">
+          <div class="center-fab-btn">🩺</div>
+          <span class="center-fab-label">Dr. Exame</span>
+        </div>
+        <div class="nav-item">
+          <span style="font-size: 18px;">📈</span>
+          <span>Evolução</span>
+        </div>
+        <div class="nav-item">
+          <span style="font-size: 18px;">☰</span>
+          <span>Mais</span>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    function selectHeaderVariant(variant) {
+      document.querySelectorAll('.studio-controls .pill-btn').forEach(b => b.classList.remove('active', 'gold'));
+      event.target.classList.add('active');
+      if (variant === 'golden') event.target.classList.add('gold');
+
+      const slot = document.getElementById('header-slot');
+      const explainer = document.getElementById('proposal-desc');
+
+      if (variant === 'current') {
+        slot.innerHTML = `
+          <div class="app-header variant-current">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="font-size: 20px; color: var(--text-main);">☰</span>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div class="brand-avatar-circle">🩺</div>
+                <span style="font-family: var(--font-display); font-size: 15px; font-weight: 800; color: var(--text-main);">Dr. Exame</span>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div class="points-pill"><span>⚡</span> 96.837</div>
+              <div class="bell-btn">
+                <span>🔔</span>
+                <div class="notif-badge-dot">7</div>
+              </div>
+              <div class="user-avatar-pill">
+                <div class="user-avatar-img">ES</div>
+                <span style="font-size: 12px; color: #0f766e;">⌄</span>
+              </div>
+            </div>
+          </div>
+        `;
+        explainer.innerHTML = `
+          <b>Como está no seu print hoje:</b><br>
+          • Sininho preto padrão com bolinha vermelha básica em cima.<br>
+          • Pílula de créditos verde-água clássica.<br>
+          • Cápsula de perfil com fundo verde-claro.
+        `;
+      } else if (variant === 'golden') {
+        slot.innerHTML = `
+          <div class="app-header variant-golden">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="font-size: 20px; color: var(--text-main); cursor: pointer;">☰</span>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div class="brand-avatar-circle">🩺</div>
+                <span style="font-family: var(--font-display); font-size: 15px; font-weight: 800; color: var(--text-main);">Dr. Exame</span>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div class="points-pill">
+                <span class="bolt-gold-icon">⚡</span>
+                <span>96.837</span>
+              </div>
+              <div class="golden-bell-btn" title="7 Notificações">
+                <svg class="bell-svg-gold" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/>
+                </svg>
+                <div class="notif-badge-pill">7</div>
+              </div>
+              <div class="user-avatar-pill">
+                <div class="user-avatar-img">ES</div>
+                <span style="font-size: 12px; color: var(--text-muted); padding-right: 2px;">⌄</span>
+              </div>
+            </div>
+          </div>
+        `;
+        explainer.innerHTML = `
+          <b>Proposta Recomendada (Golden Bell Executive):</b><br>
+          • <b>Sininho Ouro Nobre:</b> Feito em tom âmbar/ouro acetinado (#d97706 / #fbbf24) dentro de uma cápsula suave com cantos arredondados e micro-sombra.<br>
+          • <b>Badge Refinado:</b> Contador vermelho com anel de proteção branco ao redor para não vazar.<br>
+          • <b>Créditos com Raio Dourado:</b> Conversa com a assinatura premium da conta.
+        `;
+      } else if (variant === 'luxury') {
+        slot.innerHTML = `
+          <div class="app-header variant-luxury">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="font-size: 20px; color: var(--text-main); cursor: pointer;">☰</span>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div class="brand-avatar-circle" style="box-shadow: 0 4px 14px rgba(32,178,170,0.35);">🩺</div>
+                <span style="font-family: var(--font-display); font-size: 15px; font-weight: 800; color: var(--text-main);">Dr. Exame</span>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div class="points-pill">
+                <span style="color: #f59e0b;">⚡</span>
+                <span>96.837</span>
+              </div>
+              <div class="golden-bell-btn">
+                <svg class="bell-svg-gold" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/>
+                </svg>
+                <div class="notif-badge-pill">7</div>
+              </div>
+              <div style="width: 34px; height: 34px; border-radius: 50%; background: #0f766e; color: #fff; font-weight: 700; font-size: 12px; display: grid; place-items: center; border: 2px solid #20b2aa; cursor: pointer;">
+                ES
+              </div>
+            </div>
+          </div>
+        `;
+        explainer.innerHTML = `
+          <b>Proposta 3 (Teal & Ouro Metálico):</b><br>
+          • Sininho circular em dourado vivo com brilho mais evidente.<br>
+          • Chip com degradê suave unindo Teal e Ouro.<br>
+          • Avatar ultra-compacto com anel teal luminoso.
+        `;
+      }
+    }
+
+    function toggleTheme() {
+      const isDark = document.body.getAttribute('data-theme') === 'dark';
+      const newTheme = isDark ? 'light' : 'dark';
+      document.body.setAttribute('data-theme', newTheme);
+      document.getElementById('theme-btn').textContent = isDark ? '🌙 Dark Mode' : '☀️ Light Mode';
+    }
+  </script>
+</body>
+</html>
