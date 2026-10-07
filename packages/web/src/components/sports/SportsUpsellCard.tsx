@@ -3,7 +3,7 @@ import { Box, Typography, Button, Chip, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useNavigate } from 'react-router-dom';
 import { usePremium } from '../PremiumGate';
-import { fetchPublicConfig } from '../config';
+import { fetchPublicConfig } from '../../config';
 import { AppCard } from '../AppCard';
 
 const DISMISS_KEY = 'sportsInviteDismissed';

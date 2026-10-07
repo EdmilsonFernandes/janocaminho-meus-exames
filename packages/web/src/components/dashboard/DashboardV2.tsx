@@ -856,7 +856,7 @@ export const DashboardV2 = () => {
       <RejectedExamsAlert count={d.rejected} onClick={() => navigate('/exams')} />
       {/* Convite Saúde Esportiva (07/10, redesign): descartável 1x, só com exames,
           DEPOIS dos alertas (saúde primeiro). CTA → Perfil com wizard aberto. */}
-      {!demo && !sports.active && <SportsUpsellCard pid={pid} hasExams={stats.exams > 0} />}
+      {!demo && !sports.active && <SportsUpsellCard pid={pid} hasExams={d.stats.exams > 0} />}
       {/* E1 — sinal global de análise em andamento (o exame não "some" ao sair da lista). */}
       {!demo && d.processing && d.processing.count > 0 && (
         <ProcessingStrip count={d.processing.count} oldestAt={d.processing.oldestAt} onClick={() => navigate('/exams')} />
