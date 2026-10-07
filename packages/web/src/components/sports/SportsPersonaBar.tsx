@@ -107,7 +107,9 @@ export const SportsPersonaBar = ({ pid, profile, archetype, fallbackName, lastEx
     metaLines.push({ label: 'Treino recente', value: `${relDays(lastTraining.date)} · ${lastTraining.min} min` });
   }
   if (doctor) {
-    metaLines.push({ label: 'Médico vinculado', value: `Dr(a). ${doctor.name}${doctor.crm ? ` · CRM ${doctor.crm}` : ''}` });
+    // Nome já pode trazer título próprio ("Dr Teste QA") — não duplica "Dr(a).".
+    const cleanName = doctor.name.replace(/^(dr\.?|dra\.?|dr\(a\)\.?)\s*/i, '').trim() || doctor.name;
+    metaLines.push({ label: 'Médico vinculado', value: `${/^[Dd]ra/.test(doctor.name) ? 'Dra.' : 'Dr.'} ${cleanName}${doctor.crm ? ` · CRM ${doctor.crm}` : ''}` });
   }
 
   const goalText = profile?.goals?.trim() || archetype.emphasis;
