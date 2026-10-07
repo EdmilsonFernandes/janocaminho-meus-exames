@@ -14,7 +14,6 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Chip, Stack, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import ScienceIcon from '@mui/icons-material/Science';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
@@ -28,11 +27,16 @@ import { BiologicalAgeCard } from '../dashboard/BiologicalAgeCard';
 import { AppCard } from '../AppCard';
 import { EmptyState } from '../EmptyState';
 import { TileShimmer } from '../Shimmer';
-import { SEM, tealText } from '../../theme';
+import { SEM } from '../../theme';
 import { useClinicalGoals } from '../../hooks/useClinicalGoals';
+import { goalFor, withinGoal } from '../../utils/clinicalGoals';
 import { fetchActivitySummary } from '../../services/activitySummary';
 import type { SportsProfile } from '../../hooks/useSportsProfile';
-import { archetypeOf, sportsDomainOf, SPORTS_DOMAINS, type SportsDomainKey } from './sportsDomains';
+import {
+  resolveArchetype, parseHormonalContext, domainOrderOf, spotlightIndexOf,
+  sportsDomainOf, SPORTS_DOMAINS, type SportsDomainKey,
+} from './sportsDomains';
+import { SportsPersonaBar } from './SportsPersonaBar';
 import { SportsAlertBanner } from './SportsAlertBanner';
 import { SportsMarkerCard, type EvolutionAnalyte, type CollectionContextChips } from './SportsMarkerCard';
 import { SportsTimeline, type SportsEvent } from './SportsTimeline';
@@ -124,7 +128,6 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
   const navigate = useNavigate();
   const theme = useTheme();
   const goals = useClinicalGoals();
-  const archetype = archetypeOf(profile?.modality);
 
   // ── Dados próprios do painel (fetch-cache cacheia os GETs /api/*) ──
   const [items, setItems] = useState<EvolutionAnalyte[] | null>(null);
@@ -132,6 +135,21 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
   const [abnByExam, setAbnByExam] = useState<Record<string, number>>({});
   const [substances, setSubstances] = useState<DeclaredSubstanceView[]>([]);
   const [activityDays, setActivityDays] = useState<{ date: string; min: number }[]>([]);
+  // Métricas HC do spotlight da lente (ENDURANCE): FC repouso + distância 7d.
+  const [hrRest, setHrRest] = useState<number | null>(null);
+  const [dist7Km, setDist7Km] = useState<number | null>(null);
+
+  // LENTE (E5): esporte (fuzzy da modalidade) × contexto hormonal (wizard ou dedução
+  // pelas substâncias — dado antigo continua funcionando). Muda ORDEM das abas,
+  // spotlight dos quick stats/primeiros cards, chips de foco e viés das perguntas.
+  const archetype = useMemo(
+    () => resolveArchetype({
+      modality: profile?.modality,
+      hormonalContext: parseHormonalContext(profile?.collectionContext),
+      substances,
+    }),
+    [profile?.modality, profile?.collectionContext, substances],
+  );
 
   useEffect(() => {
     if (!pid) return;
@@ -168,7 +186,21 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
       // series30 vem ASC — pega os 6 dias de treino mais recentes (slice(-6), não slice(0,6)).
       const ex = activity?.metrics?.EXERCISE_MINUTES?.series30 ?? [];
       setActivityDays(ex.filter((p: any) => Number(p.value) > 0).slice(-6).map((p: any) => ({ date: p.date, min: Math.round(Number(p.value)) })));
+      // Distância dos últimos 7 dias (spotlight ENDURANCE — só se HOUVE dado, senão null).
+      const dist = (activity?.metrics?.DISTANCE?.series30 ?? []).slice(-7).reduce((t: number, p: any) => t + Number(p.value || 0), 0);
+      setDist7Km(dist > 0 ? Math.round(dist * 10) / 10 : null);
     }).catch(() => { /* offline: seções degradam com estados vazios honestos */ });
+    // FC de repouso (spotlight ENDURANCE): mesma fonte/honestidade do RestingHeartCard —
+    // só existe com ≥7 dias de dados; lente sem a métrica não faz o fetch.
+    if (archetype.spotlight.some((s) => s.metric === 'hr_rest')) {
+      fetch(`${API_URL}/measurements/hr-trend?days=30&patientId=${pid}`, { headers: h })
+        .then((r) => (r.ok ? r.json() : { series: [] }))
+        .then((d) => {
+          const s = Array.isArray(d.series) ? d.series : [];
+          if (s.length >= 7 && Number(s[s.length - 1].avg) > 0) setHrRest(Math.round(Number(s[s.length - 1].avg)));
+        })
+        .catch(() => {});
+    }
     // profile muda só ao togglar (o que desmonta este painel) — fetch idempotente via cache.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pid]);
@@ -210,9 +242,63 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
       const pa = a.abnormal ? PRIORITY_RANK[priorityOf(asAlert(a))] : -1;
       const pb = b.abnormal ? PRIORITY_RANK[priorityOf(asAlert(b))] : -1;
       if (pa !== pb) return pb - pa;
+      // Spotlight da lente sobe (E5): empatou na prioridade → marcador do arquétipo primeiro.
+      const sa = spotlightIndexOf(archetype, a.nameCanonical);
+      const sb = spotlightIndexOf(archetype, b.nameCanonical);
+      const na = sa === -1 ? 99 : sa;
+      const nb = sb === -1 ? 99 : sb;
+      if (na !== nb) return na - nb;
       return new Date(b.lastDate ?? 0).getTime() - new Date(a.lastDate ?? 0).getTime();
     });
-  }, [items, domain]);
+  }, [items, domain, archetype]);
+
+  // Abas de domínio na ordem da LENTE (E5): o domínio típico do esporte vem primeiro;
+  // "outros" sempre no fim. Trocar a modalidade no Perfil reordena na recarga.
+  const orderedDomains = useMemo(() => {
+    const order = domainOrderOf(archetype);
+    return [...SPORTS_DOMAINS].sort((a, b) => order.indexOf(a.key) - order.indexOf(b.key));
+  }, [archetype]);
+
+  // SPOTLIGHT da lente (E5): marcadores do arquétipo sobem pros QUICK STATS (substituem
+  // os tiles padrão — "último exame" já vive na barra de persona). Máx 3 + "alterados"
+  // (sinal de segurança sempre presente). SEM dado → tile não existe (nunca zero/fake).
+  const spotlightTiles = useMemo(() => {
+    const fmt = (n: number | null | undefined) => (n == null ? '—' : n.toLocaleString('pt-BR', { maximumFractionDigits: 2 }));
+    const tiles: { key: string; icon: ReactNode; label: string; value: string; sub: string; tone: string; onClick: () => void }[] = [];
+    for (const sp of archetype.spotlight) {
+      if (tiles.length >= 3) break;
+      if (sp.rx) {
+        const it = (items ?? []).find((x) => sp.rx!.test(x.nameCanonical) && x.lastValue != null);
+        if (!it) continue;
+        const above = it.refHigh != null && it.lastValue! > it.refHigh;
+        const below = it.refLow != null && it.lastValue! < it.refLow;
+        // TRT: testosterona dentro da meta clínica vigente → "🎯 Alvo atingido" (matriz).
+        const g = goalFor(goals, it.nameCanonical, pid);
+        const sub = g && withinGoal(it.lastValue, g) ? '🎯 Alvo atingido'
+          : above ? 'acima da referência' : below ? 'abaixo da referência' : 'na referência';
+        tiles.push({
+          key: sp.key, icon: <ScienceIcon fontSize="small" />, label: sp.label,
+          value: `${fmt(it.lastValue)}${it.unit ? ` ${it.unit}` : ''}`, sub,
+          tone: above || below ? SEM.bad[theme.palette.mode] : '#0d9488',
+          onClick: () => navigate(`/tendencias?select=${encodeURIComponent(it.nameCanonical)}`),
+        });
+      } else if (sp.metric === 'hr_rest' && hrRest != null) {
+        tiles.push({
+          key: sp.key, icon: <FavoriteBorderIcon fontSize="small" />, label: sp.label,
+          value: `${hrRest} bpm`, sub: 'FC de repouso (7+ dias)',
+          tone: hrRest > 80 ? SEM.warn[theme.palette.mode] : hrRest < 60 ? SEM.ok[theme.palette.mode] : '#0d9488',
+          onClick: () => navigate('/medicoes'),
+        });
+      } else if (sp.metric === 'distance_week' && dist7Km != null) {
+        tiles.push({
+          key: sp.key, icon: <FavoriteBorderIcon fontSize="small" />, label: sp.label,
+          value: `${dist7Km.toLocaleString('pt-BR')} km`, sub: 'últimos 7 dias · Health Connect',
+          tone: '#0d9488', onClick: () => navigate('/medicoes'),
+        });
+      }
+    }
+    return tiles;
+  }, [archetype, items, goals, pid, hrRest, dist7Km, theme.palette.mode, navigate]);
 
   const examsLastYear = useMemo(
     () => exams.filter((e) => e.performedAt && Date.now() - new Date(e.performedAt).getTime() < 365 * 86400000).length,
@@ -283,44 +369,25 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
         <ProcessingStrip count={d.processing.count} oldestAt={d.processing.oldestAt} onClick={() => navigate('/exams')} />
       )}
 
-      {/* ── CONTEXTO DO ATLETA (hero compacto do preview §1 — copy por arquétipo) ── */}
-      <AppCard kind="tinted" tone="primary" tone2="secondary" sx={{ mt: d.failed || d.rejected ? 2 : 0, p: { xs: 2, sm: 2.5 }, mb: 2 }}>
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ sm: 'center' }}>
-          <Box sx={{ width: 44, height: 44, borderRadius: '12px', flexShrink: 0, display: 'grid', placeItems: 'center', background: 'linear-gradient(135deg, rgba(32,178,170,.25), rgba(212,165,116,.25))' }}>
-            <FitnessCenterIcon sx={{ color: (t) => tealText(t.palette.mode) }} />
-          </Box>
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Stack direction="row" spacing={1} alignItems="center" useFlexGap flexWrap="wrap">
-              <Typography component="h2" sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 18, sm: 21 }, lineHeight: 1.15 }}>
-                {archetype.header}
-              </Typography>
-              {profile?.modality && (
-                <Chip size="small" label={profile.modality} sx={{ height: 24, fontWeight: 800, bgcolor: 'rgba(32,178,170,.14)', color: (t) => tealText(t.palette.mode) }} />
-              )}
-              <Chip size="small" label="🏃 Modo Esporte" sx={{ height: 24, fontWeight: 800, bgcolor: 'rgba(32,178,170,.14)', color: (t) => tealText(t.palette.mode) }} />
-            </Stack>
-            <Typography sx={{ fontSize: 13, color: 'text.secondary', mt: 0.5, lineHeight: 1.45 }}>
-              {profile?.goals?.trim() || archetype.emphasis}
-            </Typography>
-            {(ctx || profile?.trainingFreq) && (
-              <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.75 }}>
-                {profile?.trainingFreq && <Chip size="small" label={`Treino: ${profile.trainingFreq}`} sx={{ height: 22, fontSize: 11, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />}
-                {ctx?.jejum && <Chip size="small" label="Coleta em jejum" sx={{ height: 22, fontSize: 11, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />}
-                {ctx?.treino24h && <Chip size="small" label="Treino <24h antes da coleta" sx={{ height: 22, fontSize: 11, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />}
-                {ctx?.ultimaDose && <Chip size="small" label={`Última dose: ${ctx.ultimaDose}`} sx={{ height: 22, fontSize: 11, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />}
-              </Stack>
-            )}
-          </Box>
-          {d.lastExam && (
-            <Box sx={{ textAlign: { sm: 'right' }, flexShrink: 0 }}>
-              <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>Último exame</Typography>
-              <Typography sx={{ fontSize: 13, fontWeight: 800 }}>{fmtDay(d.lastExam)} · {relDays(d.lastExam)}</Typography>
-            </Box>
-          )}
-        </Stack>
-      </AppCard>
+      {/* ── BARRA DE PERSONA DO ATLETA (preview §1: avatar, nome+idade, objetivo, último
+          exame+lab, peso/altura, treino HC, médico vinculado — linha sem dado não existe) ── */}
+      <Box sx={{ mt: d.failed || d.rejected ? 2 : 0 }}>
+        <SportsPersonaBar
+          pid={pid}
+          profile={profile}
+          archetype={archetype}
+          fallbackName={firstName}
+          lastExam={lastExamRow
+            ? { date: lastExamRow.performedAt ?? null, lab: typeof lastExamRow.sourceLab === 'string' ? lastExamRow.sourceLab : null }
+            : d.lastExam ? { date: d.lastExam, lab: null } : null}
+          training={activityDays}
+          ctx={ctx}
+          focusChips={archetype.focusChips}
+        />
+      </Box>
 
-      {/* ── ALERTAS (mesma fonte do modo normal: byPriority/staleWarning/worsening) ── */}
+      {/* ── ALERTAS (mesma fonte do modo normal: byPriority/staleWarning/worsening) +
+          contexto educativo E5 §3 (Hct diretriz, TGO-muscular) + chips relacionados ── */}
       <SportsAlertBanner
         loaded={d.loaded}
         exams={d.stats.exams}
@@ -328,22 +395,38 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
         moderada={d.moderada}
         staleWarning={d.staleWarning}
         worsened={d.worsened}
+        items={items ?? undefined}
+        substances={substances}
+        training={activityDays}
       />
 
-      {/* ── QUICK STATS (grid minmax da Carteira + Idade Biológica — mesma do modo normal) ── */}
+      {/* ── QUICK STATS: SPOTLIGHT da lente quando existe (E5) — senão o grid padrão
+          (Carteira + Idade Biológica, mesma do modo normal). "Alterados ativos" fica
+          SEMPRE (sinal de segurança); sem spotlight, nada muda em relação ao atual. ── */}
       {loading ? (
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, minmax(0, 1fr))', md: 'repeat(4, minmax(0, 1fr))' }, gap: 1.5, mb: 2 }}>
           {[0, 1, 2, 3].map((i) => <TileShimmer key={i} />)}
         </Box>
       ) : (
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, minmax(0, 1fr))', md: 'repeat(4, minmax(0, 1fr))' }, gap: 1.5, mb: 2 }}>
-          {statTile('ultimo', <EventAvailableIcon fontSize="small" />, 'Último exame', fmtDay(d.lastExam), relDays(d.lastExam) ?? '—', '#0d9488',
-            () => (lastExamRow ? navigate(`/exams/${lastExamRow.id}/show`) : navigate('/exams')))}
-          {statTile('ano', <ScienceIcon fontSize="small" />, 'Exames no ano', String(examsLastYear), `de ${d.stats.exams} no total`, '#6366f1', () => navigate('/exams'))}
-          {statTile('alterados', <FavoriteBorderIcon fontSize="small" />, 'Alterados ativos', String(d.stats.abnormal),
-            d.stats.abnormal > 0 ? 'pedem atenção' : 'nada fora da faixa', d.stats.abnormal > 0 ? SEM.bad[theme.palette.mode] : SEM.ok[theme.palette.mode],
-            () => navigate('/alterados'))}
-          <BiologicalAgeCard idx={3} bio={d.bio} bioKdm={d.bioKdm} bioAvail={d.bioAvail} bioLoaded={d.hsLoaded} />
+          {spotlightTiles.length > 0 ? (
+            <>
+              {spotlightTiles.map((t) => statTile(t.key, t.icon, t.label, t.value, t.sub, t.tone, t.onClick))}
+              {statTile('alterados', <FavoriteBorderIcon fontSize="small" />, 'Alterados ativos', String(d.stats.abnormal),
+                d.stats.abnormal > 0 ? 'pedem atenção' : 'nada fora da faixa', d.stats.abnormal > 0 ? SEM.bad[theme.palette.mode] : SEM.ok[theme.palette.mode],
+                () => navigate('/alterados'))}
+            </>
+          ) : (
+            <>
+              {statTile('ultimo', <EventAvailableIcon fontSize="small" />, 'Último exame', fmtDay(d.lastExam), relDays(d.lastExam) ?? '—', '#0d9488',
+                () => (lastExamRow ? navigate(`/exams/${lastExamRow.id}/show`) : navigate('/exams')))}
+              {statTile('ano', <ScienceIcon fontSize="small" />, 'Exames no ano', String(examsLastYear), `de ${d.stats.exams} no total`, '#6366f1', () => navigate('/exams'))}
+              {statTile('alterados', <FavoriteBorderIcon fontSize="small" />, 'Alterados ativos', String(d.stats.abnormal),
+                d.stats.abnormal > 0 ? 'pedem atenção' : 'nada fora da faixa', d.stats.abnormal > 0 ? SEM.bad[theme.palette.mode] : SEM.ok[theme.palette.mode],
+                () => navigate('/alterados'))}
+              <BiologicalAgeCard idx={3} bio={d.bio} bioKdm={d.bioKdm} bioAvail={d.bioAvail} bioLoaded={d.hsLoaded} />
+            </>
+          )}
         </Box>
       )}
 
@@ -352,7 +435,7 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
         <Chip component="button" aria-pressed={domain === 'todos'} label={`Todos (${domainCounts.todos ?? 0})`}
           onClick={() => setDomain('todos')} color={domain === 'todos' ? 'primary' : 'default'} variant={domain === 'todos' ? 'filled' : 'outlined'}
           sx={{ fontWeight: 700, borderRadius: '999px', height: { xs: 40, sm: 32 }, fontSize: 13 }} />
-        {SPORTS_DOMAINS.filter((s) => (domainCounts[s.key] ?? 0) > 0 || s.key !== 'outros').map((s) => (
+        {orderedDomains.filter((s) => (domainCounts[s.key] ?? 0) > 0 || s.key !== 'outros').map((s) => (
           <Chip key={s.key} component="button" aria-pressed={domain === s.key} label={`${s.label} (${domainCounts[s.key] ?? 0})`}
             onClick={() => setDomain(s.key)} color={domain === s.key ? 'primary' : 'default'} variant={domain === s.key ? 'filled' : 'outlined'}
             sx={{ fontWeight: 700, borderRadius: '999px', height: { xs: 40, sm: 32 }, fontSize: 13 }} />
@@ -391,7 +474,7 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
 
       {/* ── PREPARAÇÃO P/ CONSULTA + SUBSTÂNCIAS (grid assimétrico do DashboardV2) ── */}
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 7fr) minmax(0, 5fr)' }, gap: 2.5, mt: 2.5, alignItems: 'start' }}>
-        <SportsConsultPrep items={items ?? []} goals={goals} patientId={pid} substances={substances} lastExamAt={d.lastExam} />
+        <SportsConsultPrep items={items ?? []} goals={goals} patientId={pid} substances={substances} lastExamAt={d.lastExam} bias={archetype.questionBias} />
         <SportsSubstances substances={substances} />
       </Box>
 
