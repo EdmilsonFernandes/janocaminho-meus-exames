@@ -4,6 +4,7 @@
 // categorias clínicas existentes (delegação ao categorize) e arquétipos de modalidade.
 import { describe, expect, it } from 'vitest';
 import { archetypeOf, sportsDomainOf, DEFAULT_ARCHETYPE } from './sportsDomains';
+import { impactFor, SUBSTANCE_CATALOG } from './substanceCatalog';
 
 describe('sportsDomainOf — canônicos do painel esportivo (E3.4/E3.5)', () => {
   it('eixo hormonal estendido (não coberto pelas categorias clínicas)', () => {
@@ -77,5 +78,34 @@ describe('archetypeOf — whitelabel por modalidade (só copy/filtro-padrão)', 
     expect(archetypeOf('')).toBe(DEFAULT_ARCHETYPE);
     expect(archetypeOf('yoga energético').key).toBe('geral');
     expect(DEFAULT_ARCHETYPE.defaultDomain).toBeNull();
+  });
+});
+
+describe('impactFor — impacto nos exames por substância (E5 §2)', () => {
+  it('match por nome e alias (case/acento-insensível)', () => {
+    expect(impactFor('Creatina')).toMatch(/cistatina C/);
+    expect(impactFor('durateston')).toMatch(/hematócrito/i);
+    expect(impactFor('Ozempic')).toMatch(/massa magra/);
+    expect(impactFor('TREMBOLONA')).toMatch(/HDL/);
+  });
+
+  it('sem match → null (UI mostra linha genérica — nunca inventa efeito)', () => {
+    expect(impactFor('Substância XPTO desconhecida')).toBeNull();
+    expect(impactFor('')).toBeNull();
+  });
+
+  it('PROIBIDO em impacto: dose, range seguro, recomendação de uso/ajuste', () => {
+    for (const c of SUBSTANCE_CATALOG) {
+      if (!c.impacto) continue;
+      const low = c.impacto.toLowerCase();
+      expect(low, `${c.name} cita dose`).not.toMatch(/\d+\s*(mg|mcg|ui)\b/);
+      expect(low, `${c.name} cita range seguro`).not.toContain('range seguro');
+      expect(low, `${c.name} recomenda uso`).not.toMatch(/recomend\w+ (uso|dose)/);
+    }
+  });
+
+  it('suplemento básico sem efeito laboratorial validado → sem campo impacto', () => {
+    expect(impactFor('Ômega-3')).toBeNull();
+    expect(impactFor('ZMA')).toBeNull();
   });
 });
