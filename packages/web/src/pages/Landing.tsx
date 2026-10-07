@@ -945,124 +945,204 @@ export const LandingPage = () => {
                 />
               </Box>
 
-              {/* Botões de Alternância de Casos Clínicos (Tabs Interativas) */}
-              <Box sx={{ px: { xs: 2, sm: 3 }, pt: 2, pb: 1, borderBottom: '1px solid rgba(15,95,90,0.08)' }}>
-                <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary', mb: 1, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              {/* Botões de Alternância de Casos Clínicos (Grid Responsivo Sem Cortes) */}
+              <Box sx={{ px: { xs: 2, sm: 2.5 }, py: 1.75, bgcolor: '#fbfcfd', borderBottom: '1px solid rgba(15,95,90,0.08)' }}>
+                <Typography sx={{ fontSize: 11, fontWeight: 700, color: 'text.secondary', mb: 1.25, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                   Selecione um cenário para testar:
                 </Typography>
-                <Stack direction="row" spacing={1} sx={{ overflowX: 'auto', pb: 1, scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } }}>
+                <Box sx={{
+                  display: 'grid',
+                  gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' },
+                  gap: 1
+                }}>
                   {[
-                    { id: 'ck', label: '1. CK pós-treino' },
-                    { id: 'renal', label: '2. Creatinina vs Cistatina-C' },
-                    { id: 'trt', label: '3. Hematócrito em TRT' },
-                    { id: 'ferro', label: '4. Estoque de Ferro (Corrida)' },
-                  ].map((tab) => (
-                    <Button
-                      key={tab.id}
-                      onClick={() => setActiveSportTab(tab.id as any)}
-                      variant={activeSportTab === tab.id ? 'contained' : 'outlined'}
-                      size="small"
-                      sx={{
-                        borderRadius: '999px',
-                        textTransform: 'none',
-                        fontSize: 12,
-                        fontWeight: 700,
-                        py: 0.5,
-                        px: 1.75,
-                        whiteSpace: 'nowrap',
-                        bgcolor: activeSportTab === tab.id ? TEAL_DARK : 'transparent',
-                        borderColor: activeSportTab === tab.id ? TEAL_DARK : 'rgba(15,95,90,0.2)',
-                        color: activeSportTab === tab.id ? '#fff' : 'text.primary',
-                        '&:hover': {
-                          bgcolor: activeSportTab === tab.id ? INK : 'rgba(13,148,136,0.06)',
-                          borderColor: TEAL_DARK
-                        }
-                      }}
-                    >
-                      {tab.label}
-                    </Button>
-                  ))}
-                </Stack>
+                    { id: 'ck', num: '1', name: 'CK pós-treino', sub: 'Músculo vs. Fígado' },
+                    { id: 'renal', num: '2', name: 'Cistatina-C', sub: 'Função Renal Real' },
+                    { id: 'trt', num: '3', name: 'Hematócrito', sub: 'TRT & Viscosidade' },
+                    { id: 'ferro', num: '4', name: 'Ferritina', sub: 'Estoque / Corrida' },
+                  ].map((tab) => {
+                    const active = activeSportTab === tab.id;
+                    return (
+                      <Box
+                        key={tab.id}
+                        component="button"
+                        type="button"
+                        onClick={() => setActiveSportTab(tab.id as any)}
+                        sx={{
+                          textAlign: 'left',
+                          p: { xs: 1, sm: 1.25 },
+                          borderRadius: '10px',
+                          border: '1.5px solid',
+                          borderColor: active ? TEAL_DARK : 'rgba(15,95,90,0.12)',
+                          bgcolor: active ? 'rgba(13,148,136,0.08)' : '#ffffff',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 0.25,
+                          minWidth: 0,
+                          '&:hover': {
+                            borderColor: TEAL_DARK,
+                            bgcolor: 'rgba(13,148,136,0.05)'
+                          }
+                        }}
+                      >
+                        <Stack direction="row" spacing={0.75} alignItems="center" sx={{ minWidth: 0 }}>
+                          <Box sx={{
+                            width: 18, height: 18, borderRadius: '50%',
+                            bgcolor: active ? TEAL_DARK : 'rgba(15,95,90,0.12)',
+                            color: active ? '#ffffff' : INK,
+                            fontSize: 10, fontWeight: 800,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            flexShrink: 0
+                          }}>
+                            {tab.num}
+                          </Box>
+                          <Typography sx={{
+                            fontSize: { xs: 11.5, sm: 12 },
+                            fontWeight: 800,
+                            color: active ? TEAL_DARK : 'text.primary',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                          }}>
+                            {tab.name}
+                          </Typography>
+                        </Stack>
+                        <Typography sx={{
+                          fontSize: 10,
+                          color: active ? INK : 'text.secondary',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          pl: { xs: 0, sm: 3 }
+                        }}>
+                          {tab.sub}
+                        </Typography>
+                      </Box>
+                    );
+                  })}
+                </Box>
               </Box>
 
               {/* Conteúdo Dinâmico do Marcador */}
               {(() => {
                 const data = sportsDemoData[activeSportTab];
                 return (
-                  <Box sx={{ p: { xs: 2.5, sm: 3 } }}>
-                    {/* Linha de Contexto do Marcador */}
-                    <Box sx={{ mb: 2 }}>
-                      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
-                        <Typography sx={{ fontSize: 16, fontWeight: 800, color: 'text.primary' }}>
+                  <Box sx={{ p: { xs: 2, sm: 3 } }}>
+                    {/* Header do Marcador: Nome + Data + Contexto Sem Sobreposição */}
+                    <Box sx={{ mb: 2.25 }}>
+                      <Stack
+                        direction={{ xs: 'column', sm: 'row' }}
+                        justifyContent="space-between"
+                        alignItems={{ xs: 'flex-start', sm: 'center' }}
+                        spacing={0.75}
+                        sx={{ mb: 1 }}
+                      >
+                        <Typography sx={{ fontSize: { xs: 16, sm: 18 }, fontWeight: 800, color: 'text.primary', lineHeight: 1.3 }}>
                           {data.markerName}
                         </Typography>
-                        <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>
-                          Laudo de 02/10/2026
-                        </Typography>
+                        <Chip
+                          label="Laudo Sabin · 02/10/2026"
+                          size="small"
+                          sx={{
+                            height: 22,
+                            fontSize: 10.5,
+                            fontWeight: 600,
+                            bgcolor: 'rgba(0,0,0,0.05)',
+                            color: 'text.secondary',
+                            flexShrink: 0
+                          }}
+                        />
                       </Stack>
-                      <Typography sx={{ fontSize: 12, color: 'text.secondary', fontStyle: 'italic' }}>
-                        Contexto clínico: {data.patientContext}
-                      </Typography>
+
+                      {/* Box Dedicado para o Contexto Clínico */}
+                      <Box sx={{
+                        bgcolor: 'rgba(15,95,90,0.04)',
+                        border: '1px solid rgba(15,95,90,0.08)',
+                        borderRadius: '10px',
+                        px: 1.5,
+                        py: 1,
+                        mt: 0.5
+                      }}>
+                        <Typography sx={{ fontSize: 12, color: 'text.primary', lineHeight: 1.5 }}>
+                          <strong style={{ color: INK }}>Contexto do Atleta:</strong> {data.patientContext}
+                        </Typography>
+                      </Box>
                     </Box>
 
-                    {/* Valor em Destaque + Badge de Classificação */}
-                    <Stack direction="row" justifyContent="space-between" alignItems="baseline" sx={{ mb: 2 }}>
-                      <Stack direction="row" alignItems="baseline" spacing={0.5}>
-                        <Typography sx={{ fontSize: 32, fontWeight: 900, color: 'text.primary', letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}>
+                    {/* Valor em Destaque + Badge de Classificação (Empilha suavemente em telas pequenas) */}
+                    <Stack
+                      direction={{ xs: 'column', sm: 'row' }}
+                      justifyContent="space-between"
+                      alignItems={{ xs: 'flex-start', sm: 'center' }}
+                      spacing={1.25}
+                      sx={{ mb: 2.5 }}
+                    >
+                      <Stack direction="row" alignItems="baseline" spacing={0.75}>
+                        <Typography sx={{ fontSize: { xs: 30, sm: 36 }, fontWeight: 900, color: 'text.primary', letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
                           {data.val}
                         </Typography>
-                        <Typography sx={{ fontSize: 14, fontWeight: 700, color: 'text.secondary' }}>
+                        <Typography sx={{ fontSize: 15, fontWeight: 700, color: 'text.secondary' }}>
                           {data.unit}
                         </Typography>
                       </Stack>
                       <Box sx={{
                         px: 1.5, py: 0.6, borderRadius: '8px',
                         bgcolor: data.statusBg, color: data.statusColor,
-                        fontWeight: 800, fontSize: 12
+                        fontWeight: 800, fontSize: { xs: 11.5, sm: 12.5 },
+                        display: 'inline-flex', alignItems: 'center', gap: 0.75,
+                        lineHeight: 1.3
                       }}>
+                        <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: data.statusColor, flexShrink: 0 }} />
                         {data.status}
                       </Box>
                     </Stack>
 
                     {/* Régua Visual de 4 Camadas do Dr. Exame */}
-                    <Box sx={{ mb: 2.5 }}>
-                      <Box sx={{
-                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        fontSize: 11, color: 'text.secondary', mb: 0.8
-                      }}>
-                        <span>Referência Convencional vs. Meta Atleta</span>
-                        <Stack direction="row" spacing={1.5} alignItems="center">
+                    <Box sx={{ mb: 2.5, bgcolor: '#fbfcfd', p: { xs: 1.5, sm: 2 }, borderRadius: '12px', border: '1px solid #eef2f6' }}>
+                      <Stack
+                        direction={{ xs: 'column', sm: 'row' }}
+                        justifyContent="space-between"
+                        alignItems={{ xs: 'flex-start', sm: 'center' }}
+                        spacing={0.75}
+                        sx={{ mb: 1.25 }}
+                      >
+                        <Typography sx={{ fontSize: 11.5, fontWeight: 700, color: 'text.primary' }}>
+                          Régua de 4 Camadas (Dr. Exame)
+                        </Typography>
+                        <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" useFlexGap>
                           <Stack direction="row" spacing={0.5} alignItems="center">
                             <Box sx={{ width: 8, height: 8, borderRadius: '2px', bgcolor: '#cbd5e1' }} />
-                            <Typography sx={{ fontSize: 10 }}>Lab</Typography>
+                            <Typography sx={{ fontSize: 10.5, color: 'text.secondary' }}>Lab Convencional</Typography>
                           </Stack>
                           <Stack direction="row" spacing={0.5} alignItems="center">
                             <Box sx={{ width: 8, height: 8, borderRadius: '2px', bgcolor: '#7c3aed' }} />
-                            <Typography sx={{ fontSize: 10 }}>Meta Atleta</Typography>
+                            <Typography sx={{ fontSize: 10.5, fontWeight: 700, color: '#7c3aed' }}>Meta Atleta</Typography>
                           </Stack>
                           <Stack direction="row" spacing={0.5} alignItems="center">
                             <Box sx={{ width: 8, height: 8, borderRadius: '2px', bgcolor: TEAL_DARK }} />
-                            <Typography sx={{ fontSize: 10 }}>Você</Typography>
+                            <Typography sx={{ fontSize: 10.5, fontWeight: 700, color: TEAL_DARK }}>Seu Laudo</Typography>
                           </Stack>
                         </Stack>
-                      </Box>
+                      </Stack>
 
                       {/* Trilho da Régua */}
                       <Box sx={{
-                        position: 'relative', height: 12, bgcolor: '#f1f5f9',
-                        borderRadius: '999px', border: '1px solid #e2e8f0', my: 1
+                        position: 'relative', height: 12, bgcolor: '#e2e8f0',
+                        borderRadius: '999px', my: 1.5
                       }}>
                         {/* Faixa Laboratório Convencional */}
                         <Box sx={{
                           position: 'absolute', top: 0, bottom: 0,
                           left: data.rulerLabLeft, width: data.rulerLabWidth,
-                          bgcolor: '#cbd5e1', opacity: 0.7, borderRadius: '999px'
+                          bgcolor: '#94a3b8', opacity: 0.65, borderRadius: '999px'
                         }} />
                         {/* Faixa Meta Atleta */}
                         <Box sx={{
                           position: 'absolute', top: -2, bottom: -2,
                           left: data.rulerTargetLeft, width: data.rulerTargetWidth,
-                          border: '1.5px solid #7c3aed', bgcolor: 'rgba(124,58,237,0.12)',
+                          border: '1.5px solid #7c3aed', bgcolor: 'rgba(124,58,237,0.18)',
                           borderRadius: '999px'
                         }} />
                         {/* Marcador do Paciente */}
@@ -1071,13 +1151,13 @@ export const LandingPage = () => {
                           left: data.rulerPinLeft, width: 6, height: 22,
                           bgcolor: TEAL_DARK, borderRadius: '3px',
                           transform: 'translateX(-50%)',
-                          boxShadow: '0 2px 6px rgba(0,0,0,0.25)',
+                          boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
                           transition: 'left 0.3s ease'
                         }} />
                       </Box>
 
-                      {/* Legenda de Valores */}
-                      <Stack direction="row" justifyContent="space-between" sx={{ fontSize: 11, color: 'text.secondary' }}>
+                      {/* Legenda de Valores abaixo do trilho */}
+                      <Stack direction="row" justifyContent="space-between" sx={{ fontSize: 11, color: 'text.secondary', mt: 0.5 }}>
                         <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>{data.labRef}</Typography>
                         <Typography sx={{ fontSize: 11, fontWeight: 700, color: '#7c3aed' }}>{data.targetRef}</Typography>
                       </Stack>
@@ -1088,24 +1168,24 @@ export const LandingPage = () => {
                       bgcolor: 'rgba(13,148,136,0.06)',
                       border: '1px solid rgba(13,148,136,0.2)',
                       borderRadius: '12px',
-                      p: 2,
-                      mb: 2.5
+                      p: { xs: 1.75, sm: 2 },
+                      mb: 2
                     }}>
-                      <Stack direction="row" spacing={1} alignItems="flex-start" sx={{ mb: 0.5 }}>
+                      <Stack direction="row" spacing={1} alignItems="flex-start" sx={{ mb: 0.75 }}>
                         <AutoAwesomeIcon sx={{ fontSize: 16, color: TEAL_DARK, mt: 0.2 }} />
                         <Typography sx={{ fontWeight: 800, fontSize: 13, color: TEAL_DARK }}>
                           Interpretação Clínica Dr. Exame:
                         </Typography>
                       </Stack>
-                      <Typography sx={{ fontSize: 13, color: 'text.primary', lineHeight: 1.55 }}>
+                      <Typography sx={{ fontSize: 13, color: 'text.primary', lineHeight: 1.6 }}>
                         {data.explanation}
                       </Typography>
                     </Box>
 
                     {/* Dica Prática de Conduta */}
-                    <Stack direction="row" spacing={1.25} alignItems="center" sx={{ bgcolor: '#f8fafc', p: 1.5, borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-                      <CheckCircleIcon sx={{ fontSize: 18, color: '#10b981', flexShrink: 0 }} />
-                      <Typography sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 600 }}>
+                    <Stack direction="row" spacing={1.25} alignItems="flex-start" sx={{ bgcolor: '#ffffff', p: 1.5, borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                      <CheckCircleIcon sx={{ fontSize: 18, color: '#10b981', flexShrink: 0, mt: 0.2 }} />
+                      <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.5 }}>
                         <strong style={{ color: '#0f172a' }}>Ação recomendada:</strong> {data.tip}
                       </Typography>
                     </Stack>
