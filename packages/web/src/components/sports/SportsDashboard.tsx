@@ -364,16 +364,91 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
   }
 
   const statTile = (key: string, icon: ReactNode, label: string, value: string, sub: string, tone: string, onClick: () => void) => (
-    <AppCard key={key} kind="interactive" onClick={onClick} aria-label={`${label}: ${value} — ver`}
-      sx={{ p: 1.75, minWidth: 0, borderRadius: '12px', display: 'flex', alignItems: 'center', gap: 1.25 }}>
-      <Box sx={{ width: 40, height: 40, borderRadius: '12px', flexShrink: 0, display: 'grid', placeItems: 'center', bgcolor: alpha(tone, 0.12), color: tone }}>{icon}</Box>
-      <Box sx={{ minWidth: 0 }}>
-        <Typography noWrap sx={{ fontSize: 11.5, fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.03em', textOverflow: 'ellipsis', overflow: 'hidden' }}>{label}</Typography>
-        <Typography noWrap sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 18, sm: 21 }, lineHeight: 1.15, fontVariantNumeric: 'tabular-nums', textOverflow: 'ellipsis', overflow: 'hidden' }}>{value}</Typography>
-        <Typography noWrap sx={{ fontSize: 11.5, color: 'text.secondary', textOverflow: 'ellipsis', overflow: 'hidden' }}>{sub}</Typography>
+    <AppCard
+      key={key}
+      kind="interactive"
+      onClick={onClick}
+      aria-label={`${label}: ${value} — ver`}
+      sx={{
+        p: { xs: 1.75, sm: 2 },
+        minWidth: 0,
+        borderRadius: RADIUS.card,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        gap: 1.25,
+        bgcolor: (t) => alpha(tone, t.palette.mode === 'dark' ? 0.06 : 0.04),
+        border: (t) => `1px solid ${alpha(tone, t.palette.mode === 'dark' ? 0.25 : 0.18)}`,
+        touchAction: 'manipulation',
+        transition: 'transform 0.14s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease',
+        '&:active': { transform: 'scale(0.98)' },
+      }}
+    >
+      <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
+        <Box
+          sx={{
+            width: 38,
+            height: 38,
+            borderRadius: '12px',
+            flexShrink: 0,
+            display: 'grid',
+            placeItems: 'center',
+            bgcolor: alpha(tone, 0.14),
+            color: tone,
+          }}
+        >
+          {icon}
+        </Box>
+        <Typography
+          noWrap
+          sx={{
+            fontSize: 11,
+            fontWeight: 800,
+            color: 'text.secondary',
+            textTransform: 'uppercase',
+            letterSpacing: '0.04em',
+            textAlign: 'right',
+            flex: 1,
+            minWidth: 0,
+          }}
+        >
+          {label}
+        </Typography>
+      </Stack>
+
+      <Box sx={{ minWidth: 0, mt: 0.5 }}>
+        <Typography
+          noWrap
+          sx={{
+            fontFamily: 'Poppins, sans-serif',
+            fontWeight: 800,
+            fontSize: { xs: 20, sm: 23 },
+            lineHeight: 1.15,
+            fontVariantNumeric: 'tabular-nums',
+            color: 'text.primary',
+            letterSpacing: '-0.02em',
+          }}
+        >
+          {value}
+        </Typography>
+        <Typography
+          noWrap
+          sx={{
+            fontSize: 12,
+            color: 'text.secondary',
+            mt: 0.25,
+            fontWeight: 500,
+          }}
+        >
+          {sub}
+        </Typography>
       </Box>
     </AppCard>
   );
+
+  // Aba ativa no mobile (Marcadores, Linha do Tempo, Preparação/Substâncias)
+  const [mobileTab, setMobileTab] = useState<'marcadores' | 'timeline' | 'prep'>('marcadores');
+  const [showRulerGuide, setShowRulerGuide] = useState(false);
 
   return (
     <PageContainer width="wide" sx={{ bgcolor: 'transparent', minHeight: '100dvh' }}>
@@ -384,9 +459,7 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
         <ProcessingStrip count={d.processing.count} oldestAt={d.processing.oldestAt} onClick={() => navigate('/exams')} />
       )}
 
-      {/* ── BARRA DE PERSONA DO ATLETA (júri E4+ #13 — ENXUTA ~2 linhas: avatar+nome/idade,
-          chip modalidade, objetivo e último exame. Médico vinculado, peso/altura e chips
-          de foco do arquétipo foram CORTADOS; treino recente vive na linha do tempo). ── */}
+      {/* ── BARRA DE PERSONA DO ATLETA (Hero compacto, responsivo e moderno) ── */}
       <Box sx={{ mt: d.failed || d.rejected ? 2 : 0 }}>
         <SportsPersonaBar
           pid={pid}
@@ -400,8 +473,7 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
         />
       </Box>
 
-      {/* ── ALERTAS (mesma fonte do modo normal: byPriority/staleWarning/worsening) +
-          contexto educativo E5 §3 (Hct diretriz, TGO-muscular) + chips relacionados ── */}
+      {/* ── ALERTAS + DIRETRIZES EDUCATIVAS ── */}
       <SportsAlertBanner
         loaded={d.loaded}
         exams={d.stats.exams}
@@ -414,29 +486,25 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
         training={activityDays}
       />
 
-      {/* ── QUICK STATS: SPOTLIGHT da lente quando existe (E5) — senão o grid padrão
-          (Carteira + Idade Biológica, mesma do modo normal). "Alterados ativos" fica
-          SEMPRE (sinal de segurança); sem spotlight, nada muda em relação ao atual. ── */}
+      {/* ── QUICK STATS: SPOTLIGHT DA LENTE OU CARTEIRA + IDADE BIOLÓGICA ── */}
       {loading ? (
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, minmax(0, 1fr))', md: 'repeat(4, minmax(0, 1fr))' }, gap: 1.5, mb: 2 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, minmax(0, 1fr))', md: 'repeat(4, minmax(0, 1fr))' }, gap: 1.5, mb: 2.5 }}>
           {[0, 1, 2, 3].map((i) => <TileShimmer key={i} />)}
         </Box>
       ) : (
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, minmax(0, 1fr))', md: 'repeat(4, minmax(0, 1fr))' }, gap: 1.5, mb: 2 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, minmax(0, 1fr))', md: 'repeat(4, minmax(0, 1fr))' }, gap: 1.5, mb: 2.5 }}>
           {spotlightTiles.length > 0 ? (
             <>
               {spotlightTiles.map((t) => statTile(t.key, t.icon, t.label, t.value, t.sub, t.tone, t.onClick))}
-              {statTile('alterados', <FavoriteBorderIcon fontSize="small" />, 'Alterados ativos', String(d.stats.abnormal),
-                d.stats.abnormal > 0 ? 'pedem atenção' : 'nada fora da faixa', d.stats.abnormal > 0 ? SEM.bad[theme.palette.mode] : SEM.ok[theme.palette.mode],
+              {statTile('alterados', <FavoriteBorderIcon fontSize="small" />, 'Alterados', String(d.stats.abnormal),
+                d.stats.abnormal > 0 ? 'pedem atenção' : 'todos na faixa', d.stats.abnormal > 0 ? SEM.bad[theme.palette.mode] : SEM.ok[theme.palette.mode],
                 () => navigate('/alterados'))}
-              {/* Gap da lente: marcador do arquétipo SEM dado → tile honesto do próximo
-                  passo (cobre premium, upsell leve p/ /planos) — nunca célula vazia. */}
               {missingSpotlight.length > 0 && statTile(
                 'complete',
                 <PlaylistAddCheckIcon fontSize="small" />,
-                'Complete seu painel',
+                'Completar painel',
                 missingSpotlight.join(' · '),
-                'sem dado nos seus exames — veja como completar',
+                'marcadores do seu perfil sem dado recente',
                 theme.palette.mode === 'dark' ? '#d4a574' : '#8a6240',
                 () => navigate('/planos'),
               )}
@@ -446,8 +514,8 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
               {statTile('ultimo', <EventAvailableIcon fontSize="small" />, 'Último exame', fmtDay(d.lastExam), relDays(d.lastExam) ?? '—', tealText(theme.palette.mode),
                 () => (lastExamRow ? navigate(`/exams/${lastExamRow.id}/show`) : navigate('/exams')))}
               {statTile('ano', <ScienceIcon fontSize="small" />, 'Exames no ano', String(examsLastYear), `de ${d.stats.exams} no total`, tealText(theme.palette.mode), () => navigate('/exams'))}
-              {statTile('alterados', <FavoriteBorderIcon fontSize="small" />, 'Alterados ativos', String(d.stats.abnormal),
-                d.stats.abnormal > 0 ? 'pedem atenção' : 'nada fora da faixa', d.stats.abnormal > 0 ? SEM.bad[theme.palette.mode] : SEM.ok[theme.palette.mode],
+              {statTile('alterados', <FavoriteBorderIcon fontSize="small" />, 'Alterados', String(d.stats.abnormal),
+                d.stats.abnormal > 0 ? 'pedem atenção' : 'todos na faixa', d.stats.abnormal > 0 ? SEM.bad[theme.palette.mode] : SEM.ok[theme.palette.mode],
                 () => navigate('/alterados'))}
               <BiologicalAgeCard idx={3} bio={d.bio} bioKdm={d.bioKdm} bioAvail={d.bioAvail} bioLoaded={d.hsLoaded} />
             </>
@@ -455,57 +523,300 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
         </Box>
       )}
 
-      {/* ── FILTROS POR DOMÍNIO (chips Carteira filtrável, contagem do preview §5) ── */}
-      <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mb: 1.5 }}>
-        <Chip component="button" aria-pressed={domain === 'todos'} label={`Todos (${domainCounts.todos ?? 0})`}
-          onClick={() => setDomain('todos')} color={domain === 'todos' ? 'primary' : 'default'} variant={domain === 'todos' ? 'filled' : 'outlined'}
-          sx={{ fontWeight: 700, borderRadius: '999px', height: { xs: 44, sm: 32 }, fontSize: 13 }} />
-        {orderedDomains.filter((s) => (domainCounts[s.key] ?? 0) > 0 || s.key !== 'outros').map((s) => (
-          <Chip key={s.key} component="button" aria-pressed={domain === s.key} label={`${s.label} (${domainCounts[s.key] ?? 0})`}
-            onClick={() => setDomain(s.key)} color={domain === s.key ? 'primary' : 'default'} variant={domain === s.key ? 'filled' : 'outlined'}
-            sx={{ fontWeight: 700, borderRadius: '999px', height: { xs: 44, sm: 32 }, fontSize: 13 }} />
-        ))}
-      </Stack>
-
-      {/* ── CARDS DE MARCADOR (renderCard pattern: AppCard + régua + chips) ── */}
-      {items == null ? (
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, minmax(0, 1fr))' }, gap: 2 }}>
-          {[0, 1, 2, 3].map((i) => <TileShimmer key={i} />)}
+      {/* ── MOBILE SECTION SELECTOR (Pill Switcher para navegação rápida no celular) ── */}
+      <Box sx={{ display: { xs: 'flex', md: 'none' }, bgcolor: 'action.hover', p: 0.5, borderRadius: '999px', mb: 2 }}>
+        <Box
+          component="button"
+          onClick={() => setMobileTab('marcadores')}
+          sx={{
+            flex: 1,
+            py: 0.9,
+            borderRadius: '999px',
+            border: 'none',
+            fontSize: 12.5,
+            fontWeight: 800,
+            cursor: 'pointer',
+            touchAction: 'manipulation',
+            bgcolor: mobileTab === 'marcadores' ? 'primary.main' : 'transparent',
+            color: mobileTab === 'marcadores' ? '#fff' : 'text.secondary',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          🔬 Marcadores
         </Box>
-      ) : visible.length === 0 ? (
-        <AppCard>
-          <EmptyState emoji="🔬" title={`Nenhum marcador em ${SPORTS_DOMAINS.find((s) => s.key === domain)?.label ?? 'domínio'}`}
-            desc="Envie um exame com esta banca para o domínio aparecer aqui — ou volte para “Todos”." />
-        </AppCard>
-      ) : (
-        <>
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, minmax(0, 1fr))' }, gap: 2 }}>
-            {visible.slice(0, MARKER_CAP).map((it) => (
-              <SportsMarkerCard key={it.nameCanonical} it={it} goals={goals} patientId={pid} ctx={ctx} />
-            ))}
-          </Box>
-          {visible.length > MARKER_CAP && (
-            <Typography variant="caption" sx={{ display: 'block', mt: 1.5, color: 'text.secondary' }}>
-              Mostrando {MARKER_CAP} de {visible.length} marcadores — a lista completa fica em <b>Tendências</b>.
-            </Typography>
-          )}
-        </>
-      )}
+        <Box
+          component="button"
+          onClick={() => setMobileTab('timeline')}
+          sx={{
+            flex: 1,
+            py: 0.9,
+            borderRadius: '999px',
+            border: 'none',
+            fontSize: 12.5,
+            fontWeight: 800,
+            cursor: 'pointer',
+            touchAction: 'manipulation',
+            bgcolor: mobileTab === 'timeline' ? 'primary.main' : 'transparent',
+            color: mobileTab === 'timeline' ? '#fff' : 'text.secondary',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          🗓️ Linha do tempo
+        </Box>
+        <Box
+          component="button"
+          onClick={() => setMobileTab('prep')}
+          sx={{
+            flex: 1,
+            py: 0.9,
+            borderRadius: '999px',
+            border: 'none',
+            fontSize: 12.5,
+            fontWeight: 800,
+            cursor: 'pointer',
+            touchAction: 'manipulation',
+            bgcolor: mobileTab === 'prep' ? 'primary.main' : 'transparent',
+            color: mobileTab === 'prep' ? '#fff' : 'text.secondary',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          💬 Consulta & Drogas
+        </Box>
+      </Box>
 
-      {/* ── LINHA DO TEMPO UNIFICADA ── */}
-      <Box sx={{ mt: 2.5 }}>
+      {/* ── SEÇÃO 1: MARCADORES CLÍNICOS (Visível sempre no Desktop; no Mobile conforme aba) ── */}
+      <Box sx={{ display: { xs: mobileTab === 'marcadores' ? 'block' : 'none', md: 'block' } }}>
+        {/* Cabeçalho da Seção de Marcadores com contagem e Guia da Régua */}
+        <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1} sx={{ mb: 1.25 }}>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Typography component="h2" sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 16, sm: 18 } }}>
+              Marcadores Clínicos
+            </Typography>
+            <Chip
+              size="small"
+              label={`${visible.length} ${visible.length === 1 ? 'analito' : 'analitos'}`}
+              sx={{ height: 22, fontSize: 11, fontWeight: 800, bgcolor: 'action.hover', color: 'text.secondary' }}
+            />
+          </Stack>
+
+          <Button
+            size="small"
+            onClick={() => setShowRulerGuide((v) => !v)}
+            sx={{
+              textTransform: 'none',
+              fontWeight: 700,
+              fontSize: 12,
+              borderRadius: '999px',
+              px: 1.5,
+              py: 0.25,
+              color: (t) => tealText(t.palette.mode),
+              bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(32,178,170,0.12)' : 'rgba(32,178,170,0.08)'),
+              touchAction: 'manipulation',
+            }}
+          >
+            {showRulerGuide ? 'Fechar legenda' : 'ℹ️ Entenda a régua'}
+          </Button>
+        </Stack>
+
+        {/* Guia Visual da Régua (Expansível / Compartilhado para não poluir cada card) */}
+        {showRulerGuide && (
+          <AppCard
+            sx={{
+              p: 2,
+              mb: 2,
+              borderRadius: RADIUS.card,
+              bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(0,0,0,0.25)' : 'rgba(240,248,247,0.7)'),
+              border: (t) => `1px solid ${alpha(theme.palette.primary.main, 0.25)}`,
+            }}
+          >
+            <Typography sx={{ fontWeight: 800, fontSize: 13, mb: 1, color: 'text.primary' }}>
+              Camadas da régua esportiva Dr. Exame:
+            </Typography>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 1.25 }}>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Box sx={{ width: 16, height: 8, borderRadius: '4px', bgcolor: 'rgba(46,125,50,0.5)' }} />
+                <Typography variant="caption" sx={{ fontSize: 12, color: 'text.secondary' }}>
+                  <b>Faixa do lab:</b> referência do laudo
+                </Typography>
+              </Stack>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Box sx={{ width: 16, height: 6, borderRadius: '2px', border: '1.5px dashed #d4a574', bgcolor: 'rgba(212,165,116,0.25)' }} />
+                <Typography variant="caption" sx={{ fontSize: 12, color: 'text.secondary' }}>
+                  <b>Meta clínica:</b> alvo do seu médico
+                </Typography>
+              </Stack>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'text.disabled' }} />
+                <Typography variant="caption" sx={{ fontSize: 12, color: 'text.secondary' }}>
+                  <b>Histórico:</b> coletas anteriores
+                </Typography>
+              </Stack>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: 'primary.main', border: '2px solid #fff' }} />
+                <Typography variant="caption" sx={{ fontSize: 12, color: 'text.secondary' }}>
+                  <b>Pin atual:</b> seu valor recente
+                </Typography>
+              </Stack>
+            </Box>
+          </AppCard>
+        )}
+
+        {/* ── BARRA DE FILTROS POR DOMÍNIO (Scroll Horizontal Suave com Snap) ── */}
+        <Box
+          sx={{
+            display: 'flex',
+            overflowX: 'auto',
+            touchAction: 'pan-x',
+            scrollSnapType: 'x mandatory',
+            gap: 1,
+            py: 0.5,
+            mb: 2,
+            scrollbarWidth: 'none',
+            '&::-webkit-scrollbar': { display: 'none' },
+            WebkitOverflowScrolling: 'touch',
+          }}
+        >
+          <Box
+            component="button"
+            aria-pressed={domain === 'todos'}
+            onClick={() => setDomain('todos')}
+            sx={{
+              scrollSnapAlign: 'start',
+              flexShrink: 0,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 0.75,
+              height: 38,
+              px: 2,
+              borderRadius: '999px',
+              border: 'none',
+              cursor: 'pointer',
+              touchAction: 'manipulation',
+              fontSize: 13,
+              fontWeight: 800,
+              bgcolor: domain === 'todos' ? 'primary.main' : 'action.hover',
+              color: domain === 'todos' ? '#fff' : 'text.primary',
+              boxShadow: domain === 'todos' ? '0 2px 8px rgba(32,178,170,0.3)' : 'none',
+              transition: 'all 0.15s ease',
+              '&:active': { transform: 'scale(0.97)' },
+            }}
+          >
+            Todos
+            <Box
+              component="span"
+              sx={{
+                px: 0.75,
+                py: 0.15,
+                borderRadius: '999px',
+                fontSize: 11,
+                bgcolor: domain === 'todos' ? 'rgba(255,255,255,0.25)' : 'action.selected',
+                color: domain === 'todos' ? '#fff' : 'text.secondary',
+              }}
+            >
+              {domainCounts.todos ?? 0}
+            </Box>
+          </Box>
+
+          {orderedDomains.filter((s) => (domainCounts[s.key] ?? 0) > 0 || s.key !== 'outros').map((s) => {
+            const isSelected = domain === s.key;
+            const count = domainCounts[s.key] ?? 0;
+            return (
+              <Box
+                key={s.key}
+                component="button"
+                aria-pressed={isSelected}
+                onClick={() => setDomain(s.key)}
+                sx={{
+                  scrollSnapAlign: 'start',
+                  flexShrink: 0,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 0.75,
+                  height: 38,
+                  px: 2,
+                  borderRadius: '999px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  touchAction: 'manipulation',
+                  fontSize: 13,
+                  fontWeight: 800,
+                  bgcolor: isSelected ? 'primary.main' : 'action.hover',
+                  color: isSelected ? '#fff' : 'text.primary',
+                  boxShadow: isSelected ? '0 2px 8px rgba(32,178,170,0.3)' : 'none',
+                  transition: 'all 0.15s ease',
+                  '&:active': { transform: 'scale(0.97)' },
+                }}
+              >
+                {s.label}
+                <Box
+                  component="span"
+                  sx={{
+                    px: 0.75,
+                    py: 0.15,
+                    borderRadius: '999px',
+                    fontSize: 11,
+                    bgcolor: isSelected ? 'rgba(255,255,255,0.25)' : 'action.selected',
+                    color: isSelected ? '#fff' : 'text.secondary',
+                  }}
+                >
+                  {count}
+                </Box>
+              </Box>
+            );
+          })}
+        </Box>
+
+        {/* ── GRID DE CARDS DE MARCADOR ── */}
+        {items == null ? (
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, minmax(0, 1fr))' }, gap: 2 }}>
+            {[0, 1, 2, 3].map((i) => <TileShimmer key={i} />)}
+          </Box>
+        ) : visible.length === 0 ? (
+          <AppCard sx={{ p: 3 }}>
+            <EmptyState
+              emoji="🔬"
+              title={`Nenhum marcador em ${SPORTS_DOMAINS.find((s) => s.key === domain)?.label ?? 'domínio'}`}
+              desc="Envie um exame com analitos deste domínio para ele aparecer aqui — ou selecione “Todos”."
+            />
+          </AppCard>
+        ) : (
+          <>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, minmax(0, 1fr))' }, gap: 2 }}>
+              {visible.slice(0, MARKER_CAP).map((it) => (
+                <SportsMarkerCard key={it.nameCanonical} it={it} goals={goals} patientId={pid} ctx={ctx} />
+              ))}
+            </Box>
+            {visible.length > MARKER_CAP && (
+              <Typography variant="caption" sx={{ display: 'block', mt: 1.5, color: 'text.secondary', textAlign: 'center' }}>
+                Mostrando {MARKER_CAP} de {visible.length} marcadores — veja a série histórica completa em <b>Tendências</b>.
+              </Typography>
+            )}
+          </>
+        )}
+      </Box>
+
+      {/* ── SEÇÃO 2: LINHA DO TEMPO (Visível sempre no Desktop; no Mobile conforme aba) ── */}
+      <Box sx={{ display: { xs: mobileTab === 'timeline' ? 'block' : 'none', md: 'block' }, mt: { xs: 0, md: 3 } }}>
         <SportsTimeline events={timelineEvents} hasActivityData={activityDays.length > 0} />
       </Box>
 
-      {/* ── PREPARAÇÃO P/ CONSULTA + SUBSTÂNCIAS (grid assimétrico do DashboardV2) ── */}
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 7fr) minmax(0, 5fr)' }, gap: 2.5, mt: 2.5, alignItems: 'start' }}>
+      {/* ── SEÇÃO 3: PREPARAÇÃO P/ CONSULTA + SUBSTÂNCIAS ── */}
+      <Box
+        sx={{
+          display: { xs: mobileTab === 'prep' ? 'grid' : 'none', md: 'grid' },
+          gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 7fr) minmax(0, 5fr)' },
+          gap: 2.5,
+          mt: { xs: 0, md: 3 },
+          alignItems: 'start',
+        }}
+      >
         <SportsConsultPrep items={items ?? []} goals={goals} patientId={pid} substances={substances} lastExamAt={d.lastExam} bias={archetype.questionBias} />
         <SportsSubstances substances={substances} />
       </Box>
 
-      {/* Rodapé de ética (preview §8 — redução de danos, sem citar norma específica) */}
-      <Typography variant="caption" sx={{ display: 'block', mt: 3, color: 'text.secondary', lineHeight: 1.5 }}>
-        *Educativo. O Dr. Exame monitora e organiza seus exames — não prescreve, não sugere dose nem orienta uso de substâncias. A interpretação final é do seu médico.
+      {/* Rodapé de responsabilidade ética */}
+      <Typography variant="caption" sx={{ display: 'block', mt: 3, color: 'text.secondary', lineHeight: 1.5, textAlign: 'center' }}>
+        *Educativo. O Dr. Exame organiza seus exames no contexto esportivo — não prescreve nem orienta doses. Decisões clínicas cabem exclusivamente ao médico.
         {totalMarkers > 0 && ` · ${totalMarkers} marcadores analisados.`}
       </Typography>
     </PageContainer>

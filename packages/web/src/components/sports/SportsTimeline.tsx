@@ -41,12 +41,19 @@ export const SportsTimeline = ({ events, hasActivityData, max = 8 }: {
   };
 
   return (
-    <AppCard sx={{ p: { xs: 2, sm: 2.5 } }}>
-      <Typography component="h2" sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: 15, mb: 0.5 }}>
+    <AppCard
+      sx={{
+        p: { xs: 2, sm: 2.5 },
+        borderRadius: RADIUS.card,
+        border: '1px solid',
+        borderColor: 'divider',
+      }}
+    >
+      <Typography component="h2" sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 15, sm: 16 }, mb: 0.5 }}>
         Linha do tempo do atleta
       </Typography>
-      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 2 }}>
-        Exames, substâncias declaradas{hasActivityData ? ' e treinos registrados' : ''} — dos mais recentes.
+      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 2, fontSize: 12 }}>
+        Exames, substâncias declaradas{hasActivityData ? ' e treinos registrados' : ''} em ordem cronológica.
       </Typography>
 
       {shown.length === 0 ? (
@@ -66,17 +73,29 @@ export const SportsTimeline = ({ events, hasActivityData, max = 8 }: {
                   <Box sx={{ position: 'absolute', left: -3.5, top: 6, width: 22, height: 22, borderRadius: '50%', bgcolor: d.color, border: `3px solid ${theme.palette.background.paper}`, boxShadow: '0 2px 6px rgba(0,0,0,.2)', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {d.icon}
                   </Box>
-                  <Box sx={{ ml: 1.5, borderRadius: RADIUS.tile, bgcolor: alpha(d.color, 0.05), border: `1px solid ${alpha(d.color, 0.2)}`, px: 1.5, py: 1, minWidth: 0 }}>
+                  <Box
+                    sx={{
+                      ml: 1.5,
+                      borderRadius: '14px',
+                      bgcolor: alpha(d.color, 0.05),
+                      border: `1px solid ${alpha(d.color, 0.22)}`,
+                      px: 1.75,
+                      py: 1.25,
+                      minWidth: 0,
+                      transition: 'transform 0.12s ease',
+                      '&:active': { transform: 'scale(0.99)' },
+                    }}
+                  >
                     <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1} sx={{ minWidth: 0 }}>
                       <Box sx={{ minWidth: 0 }}>
-                        <Typography sx={{ fontWeight: 700, fontSize: 13.5, lineHeight: 1.25, wordBreak: 'break-word' }}>{e.title}</Typography>
-                        {e.detail && <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', lineHeight: 1.3 }}>{e.detail}</Typography>}
-                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                        <Typography sx={{ fontWeight: 800, fontSize: 13.5, lineHeight: 1.25, wordBreak: 'break-word', color: 'text.primary' }}>{e.title}</Typography>
+                        {e.detail && <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', lineHeight: 1.3, mt: 0.25 }}>{e.detail}</Typography>}
+                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25, fontSize: 11.5 }}>
                           {e.date ? new Date(e.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }) : 's/d'}
                         </Typography>
                       </Box>
                       <Stack spacing={0.5} sx={{ flexShrink: 0 }}>
-                        {e.type === 'exam' && alerta && <Chip size="small" label={`${e.abnormalCount} alterado${e.abnormalCount === 1 ? '' : 's'}`} sx={{ height: 20, fontSize: 10.5, fontWeight: 700, bgcolor: 'error.main', color: '#fff' }} />}
+                        {e.type === 'exam' && alerta && <Chip size="small" label={`${e.abnormalCount} alterado${e.abnormalCount === 1 ? '' : 's'}`} sx={{ height: 22, fontSize: 11, fontWeight: 800, bgcolor: 'error.main', color: '#fff' }} />}
                         {stale && <Chip size="small" label="antigo" sx={{ height: 20, fontSize: 10.5, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />}
                       </Stack>
                     </Stack>
@@ -86,7 +105,7 @@ export const SportsTimeline = ({ events, hasActivityData, max = 8 }: {
             })}
           </Stack>
           {sorted.length > shown.length && (
-            <Typography variant="caption" sx={{ display: 'block', mt: 1.5, color: 'text.secondary' }}>
+            <Typography variant="caption" sx={{ display: 'block', mt: 1.5, color: 'text.secondary', textAlign: 'center' }}>
               +{sorted.length - shown.length} eventos anteriores
             </Typography>
           )}
@@ -95,7 +114,7 @@ export const SportsTimeline = ({ events, hasActivityData, max = 8 }: {
 
       {/* HC ausente ≠ zero — estado honesto (AC §E4.3) */}
       {!hasActivityData && (
-        <Typography variant="caption" sx={{ display: 'block', mt: 2, color: 'text.secondary' }}>
+        <Typography variant="caption" sx={{ display: 'block', mt: 2, color: 'text.secondary', textAlign: 'center' }}>
           📴 Sem dados de atividade — conecte o Health Connect no app para os treinos entrarem aqui.
         </Typography>
       )}

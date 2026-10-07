@@ -140,32 +140,71 @@ export const SportsConsultPrep = ({ items, goals, patientId, substances, lastExa
   const shown = questions.slice(0, MAX_QUESTIONS);
 
   return (
-    <AppCard kind="tinted" tone="primary" tone2="secondary" sx={{ p: { xs: 2, sm: 2.5 } }}>
+    <AppCard
+      kind="tinted"
+      tone="primary"
+      tone2="secondary"
+      sx={{
+        p: { xs: 2, sm: 2.5 },
+        borderRadius: RADIUS.card,
+        border: (t) => `1px solid ${t.palette.mode === 'dark' ? 'rgba(32,178,170,0.22)' : 'rgba(32,178,170,0.18)'}`,
+      }}
+    >
       <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
-        <MedicalServicesIcon sx={{ fontSize: 19, color: (t) => tealText(t.palette.mode) }} />
-        <Typography component="h2" sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: 15 }}>
-          Perguntas para levar ao médico
+        <MedicalServicesIcon sx={{ fontSize: 20, color: (t) => tealText(t.palette.mode) }} />
+        <Typography component="h2" sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 15, sm: 16 } }}>
+          Perguntas para a sua consulta médica
         </Typography>
       </Stack>
-      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 1.5 }}>
-        Geradas pelo Dr. Exame a partir dos seus exames e declarações — educativas, não substituem consulta.
+      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 1.75, fontSize: 12 }}>
+        Perguntas clínicas geradas pelo Dr. Exame com base nos seus dados e treinos — copie ou mostre na consulta.
       </Typography>
 
       {shown.length === 0 ? (
-        <EmptyState emoji="🩺" title="Sem exames ainda"
-          desc="Envie um exame para o Dr. Exame preparar perguntas de consulta contextualizadas ao seu treino." />
+        <EmptyState
+          emoji="🩺"
+          title="Sem exames para análise"
+          desc="Envie um exame para o Dr. Exame estruturar as principais dúvidas clínicas para você levar ao médico."
+        />
       ) : (
         <Stack spacing={1.25}>
           {shown.map((q, i) => (
-            <Box key={i} sx={{ display: 'flex', gap: 1.25, alignItems: 'flex-start' }}>
-              <Box sx={{
-                flexShrink: 0, width: 26, height: 26, borderRadius: '999px', mt: 0.25,
-                display: 'grid', placeItems: 'center', fontWeight: 800, fontSize: 13,
-                bgcolor: 'rgba(32,178,170,.14)', color: (t) => tealText(t.palette.mode),
-              }}>{i + 1}</Box>
-              <Box sx={{ minWidth: 0 }}>
-                <Typography sx={{ fontWeight: 800, fontSize: 13.5, lineHeight: 1.25 }}>{q.title}</Typography>
-                <Typography sx={{ fontSize: 13, color: 'text.secondary', lineHeight: 1.5, mt: 0.25 }}>{q.body}</Typography>
+            <Box
+              key={i}
+              sx={{
+                p: 1.5,
+                borderRadius: '14px',
+                bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(0,0,0,0.18)' : 'rgba(255,255,255,0.7)'),
+                border: '1px solid',
+                borderColor: 'divider',
+                display: 'flex',
+                gap: 1.25,
+                alignItems: 'flex-start',
+              }}
+            >
+              <Box
+                sx={{
+                  flexShrink: 0,
+                  width: 26,
+                  height: 26,
+                  borderRadius: '8px',
+                  display: 'grid',
+                  placeItems: 'center',
+                  fontWeight: 800,
+                  fontSize: 12.5,
+                  bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(32,178,170,0.22)' : 'rgba(32,178,170,0.14)'),
+                  color: (t) => tealText(t.palette.mode),
+                }}
+              >
+                {i + 1}
+              </Box>
+              <Box sx={{ minWidth: 0, flex: 1 }}>
+                <Typography sx={{ fontWeight: 800, fontSize: 13.5, lineHeight: 1.3, color: 'text.primary' }}>
+                  {q.title}
+                </Typography>
+                <Typography sx={{ fontSize: 13, color: 'text.secondary', lineHeight: 1.45, mt: 0.35 }}>
+                  {q.body}
+                </Typography>
               </Box>
             </Box>
           ))}

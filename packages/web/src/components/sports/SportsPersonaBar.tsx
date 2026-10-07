@@ -71,48 +71,157 @@ export const SportsPersonaBar = ({ pid, profile, archetype, fallbackName, lastEx
   const goalText = profile?.goals?.trim() || archetype.emphasis;
 
   return (
-    <AppCard kind="tinted" tone="primary" tone2="secondary" sx={{ p: { xs: 2, sm: 2.5 }, mb: 2 }}>
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ sm: 'center' }}>
-        {/* Avatar: inicial do nome em círculo teal (mockup §1 — identidade do atleta) */}
-        <Box sx={{
-          width: 46, height: 46, borderRadius: '14px', flexShrink: 0, display: 'grid', placeItems: 'center',
-          fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 19,
-          color: (t) => tealText(t.palette.mode),
-          background: 'linear-gradient(135deg, rgba(32,178,170,.25), rgba(212,165,116,.25))',
-        }}>
+    <AppCard
+      kind="tinted"
+      tone="primary"
+      tone2="secondary"
+      sx={{
+        p: { xs: 2, sm: 2.5 },
+        mb: 2,
+        borderRadius: RADIUS.card,
+        border: (t) => `1px solid ${t.palette.mode === 'dark' ? 'rgba(32,178,170,0.22)' : 'rgba(32,178,170,0.18)'}`,
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Topo do Hero: Eyebrow do Arquétipo + Badge Modo Esporte */}
+      <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1} sx={{ mb: 1.25 }}>
+        <Typography
+          sx={{
+            fontSize: 11,
+            fontWeight: 800,
+            color: (t) => tealText(t.palette.mode),
+            textTransform: 'uppercase',
+            letterSpacing: '0.06em',
+            lineHeight: 1.2,
+          }}
+        >
+          {archetype.header}
+        </Typography>
+        <Box
+          sx={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 0.5,
+            px: 1,
+            py: 0.3,
+            borderRadius: '999px',
+            bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(32,178,170,0.18)' : 'rgba(32,178,170,0.12)'),
+            color: (t) => tealText(t.palette.mode),
+            fontSize: 11,
+            fontWeight: 800,
+          }}
+        >
+          <span>🏃</span> Modo Atleta
+        </Box>
+      </Stack>
+
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.75} alignItems={{ sm: 'flex-start' }}>
+        {/* Avatar: inicial estilizada com gradiente two-tone */}
+        <Box
+          sx={{
+            width: { xs: 44, sm: 48 },
+            height: { xs: 44, sm: 48 },
+            borderRadius: '14px',
+            flexShrink: 0,
+            display: 'grid',
+            placeItems: 'center',
+            fontFamily: 'Poppins, sans-serif',
+            fontWeight: 800,
+            fontSize: { xs: 18, sm: 20 },
+            color: (t) => tealText(t.palette.mode),
+            background: 'linear-gradient(135deg, rgba(32,178,170,0.28), rgba(212,165,116,0.28))',
+            border: (t) => `1px solid ${t.palette.mode === 'dark' ? 'rgba(32,178,170,0.35)' : 'rgba(32,178,170,0.25)'}`,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+          }}
+        >
           {name.trim().charAt(0).toUpperCase() || '?'}
         </Box>
+
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography sx={{ fontSize: 11, fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1.2 }}>
-            {archetype.header}
-          </Typography>
-          <Stack direction="row" spacing={1} alignItems="center" useFlexGap flexWrap="wrap" sx={{ mt: 0.25 }}>
-            <Typography component="h2" sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 17, sm: 19 }, lineHeight: 1.15 }}>
-              {name}{age != null ? `, ${age}` : ''}
+          {/* Nome do paciente + Idade + Chips de modalidade e frequência */}
+          <Stack direction="row" spacing={1} alignItems="center" useFlexGap flexWrap="wrap" sx={{ mb: 0.5 }}>
+            <Typography
+              component="h1"
+              sx={{
+                fontFamily: 'Poppins, sans-serif',
+                fontWeight: 800,
+                fontSize: { xs: 17.5, sm: 20 },
+                lineHeight: 1.2,
+                color: 'text.primary',
+              }}
+            >
+              {name}{age != null ? `, ${age} anos` : ''}
             </Typography>
             {profile?.modality && (
-              <Chip size="small" label={profile.modality} sx={{ height: 24, fontWeight: 800, bgcolor: 'rgba(32,178,170,.14)', color: (t) => tealText(t.palette.mode) }} />
+              <Chip
+                size="small"
+                label={profile.modality}
+                sx={{
+                  height: 24,
+                  fontWeight: 800,
+                  fontSize: 11.5,
+                  bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(32,178,170,0.18)' : 'rgba(32,178,170,0.14)'),
+                  color: (t) => tealText(t.palette.mode),
+                }}
+              />
             )}
             {profile?.trainingFreq && (
-              <Chip size="small" label={profile.trainingFreq} sx={{ height: 24, fontWeight: 700, fontSize: 11, bgcolor: 'action.hover', color: 'text.secondary' }} />
+              <Chip
+                size="small"
+                label={profile.trainingFreq}
+                sx={{
+                  height: 24,
+                  fontWeight: 700,
+                  fontSize: 11,
+                  bgcolor: 'action.hover',
+                  color: 'text.secondary',
+                }}
+              />
             )}
-            <Chip size="small" label="🏃 Modo Esporte" sx={{ height: 24, fontWeight: 800, bgcolor: 'rgba(32,178,170,.14)', color: (t) => tealText(t.palette.mode) }} />
           </Stack>
-          <Typography sx={{ fontSize: 13, color: 'text.secondary', mt: 0.5, lineHeight: 1.45 }}>
-            🎯 {goalText}
-          </Typography>
-          {lastExamLine && (
-            <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mt: 0.25, lineHeight: 1.4, wordBreak: 'break-word' }}>
-              <Box component="b" sx={{ fontWeight: 800, color: 'text.primary' }}>Último exame:</Box> {lastExamLine}
+
+          {/* Objetivo do atleta em destaque refinado */}
+          <Box
+            sx={{
+              mt: 0.75,
+              p: 1,
+              borderRadius: '10px',
+              bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(0,0,0,0.18)' : 'rgba(255,255,255,0.6)'),
+              border: '1px solid',
+              borderColor: 'divider',
+            }}
+          >
+            <Typography sx={{ fontSize: 12.5, color: 'text.secondary', lineHeight: 1.45 }}>
+              <Box component="span" sx={{ fontWeight: 800, color: 'text.primary', mr: 0.5 }}>
+                🎯 Objetivo:
+              </Box>
+              {goalText}
             </Typography>
-          )}
-          {(ctx?.jejum || ctx?.treino24h || ctx?.ultimaDose) && (
-            <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.75 }}>
-              {ctx?.jejum && <Chip size="small" label="Coleta em jejum" sx={{ height: 22, fontSize: 11, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />}
-              {ctx?.treino24h && <Chip size="small" label="Treino <24h antes da coleta" sx={{ height: 22, fontSize: 11, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />}
-              {ctx?.ultimaDose && <Chip size="small" label={`Última dose: ${ctx.ultimaDose}`} sx={{ height: 22, fontSize: 11, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />}
-            </Stack>
-          )}
+          </Box>
+
+          {/* Último exame + Chips de contexto da coleta */}
+          <Stack direction="row" spacing={1} alignItems="center" useFlexGap flexWrap="wrap" sx={{ mt: 1 }}>
+            {lastExamLine && (
+              <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.4 }}>
+                <Box component="span" sx={{ fontWeight: 700, color: 'text.primary' }}>Último exame:</Box> {lastExamLine}
+              </Typography>
+            )}
+
+            {(ctx?.jejum || ctx?.treino24h || ctx?.ultimaDose) && (
+              <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap">
+                {ctx?.jejum && (
+                  <Chip size="small" label="Jejum informado" sx={{ height: 20, fontSize: 10.5, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />
+                )}
+                {ctx?.treino24h && (
+                  <Chip size="small" label="Treino <24h" sx={{ height: 20, fontSize: 10.5, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />
+                )}
+                {ctx?.ultimaDose && (
+                  <Chip size="small" label={`Dose: ${ctx.ultimaDose}`} sx={{ height: 20, fontSize: 10.5, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />
+                )}
+              </Stack>
+            )}
+          </Stack>
         </Box>
       </Stack>
     </AppCard>

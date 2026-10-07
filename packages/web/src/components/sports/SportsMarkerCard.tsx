@@ -77,11 +77,13 @@ function contextChipsFor(name: string, ctx: CollectionContextChips | null): stri
   return out;
 }
 
-export const SportsMarkerCard = ({ it, goals, patientId, ctx }: {
+export const SportsMarkerCard = ({ it, goals, patientId, ctx, showLegend = false }: {
   it: EvolutionAnalyte;
   goals: ClinicalGoalView[];
   patientId?: string | null;
   ctx?: CollectionContextChips | null;
+  /** Se deve exibir a legenda detalhada no rodapé deste card (padrão false para manter visual limpo no grid) */
+  showLegend?: boolean;
 }) => {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -116,121 +118,285 @@ export const SportsMarkerCard = ({ it, goals, patientId, ctx }: {
   const accent = goalAccent(theme.palette.mode);
 
   return (
-    <AppCard kind="interactive" onClick={() => navigate(`/tendencias?select=${encodeURIComponent(it.nameCanonical)}`)}
+    <AppCard
+      kind="interactive"
+      onClick={() => navigate(`/tendencias?select=${encodeURIComponent(it.nameCanonical)}`)}
       aria-label={`${prettyName(it.nameCanonical)}: ${fmtNum(value)} — ${statusText}. Ver tendência`}
-      sx={{ p: 1.75, borderRadius: RADIUS.sectionCard, minWidth: 0 }}>
-      {/* Topo: nome + data/método da última coleta */}
-      <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1} sx={{ minWidth: 0 }}>
-        <Box sx={{ minWidth: 0 }}>
-          <Typography sx={{ fontWeight: 800, fontSize: 14.5, lineHeight: 1.2, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
+      sx={{
+        p: { xs: 2, sm: 2.25 },
+        borderRadius: RADIUS.card,
+        minWidth: 0,
+        position: 'relative',
+        transition: 'transform 0.14s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease',
+        touchAction: 'manipulation',
+        '&:active': { transform: 'scale(0.985)' },
+      }}
+    >
+      {/* Topo: Nome do analito + Tendência / data da última coleta */}
+      <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1} sx={{ minWidth: 0, mb: 1 }}>
+        <Box sx={{ minWidth: 0, flex: 1 }}>
+          <Typography
+            sx={{
+              fontWeight: 800,
+              fontSize: { xs: 14.5, sm: 15.5 },
+              lineHeight: 1.25,
+              wordBreak: 'break-word',
+              overflowWrap: 'anywhere',
+              color: 'text.primary',
+            }}
+          >
             {prettyName(it.nameCanonical)}
           </Typography>
-          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>
+          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25, fontSize: 11.5 }}>
             {fmtDay(it.lastDate)}{it.count > 1 ? ` · ${it.count} medições` : ''}{pts[pts.length - 1]?.method ? ` · ${pts[pts.length - 1].method}` : ''}
           </Typography>
         </Box>
-        {/* Tendência entre coletas (seta + % do server — direção ÚNICA, idem TrendsChart) */}
+
+        {/* Badge de tendência entre coletas */}
         {it.count > 1 && (
-          <Typography variant="caption" sx={{ flexShrink: 0, fontWeight: 800, color: 'text.secondary', mt: 0.5 }}>
+          <Box
+            sx={{
+              flexShrink: 0,
+              display: 'inline-flex',
+              alignItems: 'center',
+              px: 1,
+              py: 0.3,
+              borderRadius: '999px',
+              bgcolor: it.direction === 'up'
+                ? (out ? alpha(theme.palette.error.main, 0.1) : alpha(theme.palette.success.main, 0.1))
+                : it.direction === 'down'
+                ? alpha(theme.palette.info.main, 0.1)
+                : 'action.hover',
+              color: it.direction === 'up'
+                ? (out ? SEM.bad[theme.palette.mode] : SEM.ok[theme.palette.mode])
+                : 'text.secondary',
+              fontWeight: 800,
+              fontSize: 11.5,
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
             {it.direction === 'up' ? '↑' : it.direction === 'down' ? '↓' : '→'} {it.pctChange != null ? `${it.pctChange > 0 ? '+' : ''}${it.pctChange}%` : ''}
-          </Typography>
+          </Box>
         )}
       </Stack>
 
-      {/* Valor + status em TEXTO (não-só-cor, E4.2 AC) */}
-      <Stack direction="row" alignItems="baseline" spacing={0.75} sx={{ mt: 1, flexWrap: 'wrap', rowGap: 0.5 }}>
-        <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 26, lineHeight: 1.05, color: statusColor, fontVariantNumeric: 'tabular-nums' }}>
+      {/* Valor numérico em destaque + Unidade + Badge de status em texto */}
+      <Stack direction="row" alignItems="baseline" spacing={0.75} sx={{ mb: 1.25, flexWrap: 'wrap', rowGap: 0.5 }}>
+        <Typography
+          sx={{
+            fontFamily: 'Poppins, sans-serif',
+            fontWeight: 800,
+            fontSize: { xs: 26, sm: 30 },
+            lineHeight: 1,
+            color: statusColor,
+            fontVariantNumeric: 'tabular-nums',
+            letterSpacing: '-0.02em',
+          }}
+        >
           {fmtNum(value)}
         </Typography>
-        {it.unit && <UnitLabel unit={it.unit} fontSize="0.9rem" />}
-        <Box component="span" sx={{ ml: 0.5, px: 1, py: 0.2, borderRadius: '999px', bgcolor: alpha(statusColor, 0.12), border: `1px solid ${alpha(statusColor, 0.3)}` }}>
-          <Typography component="span" sx={{ fontSize: 12, fontWeight: 800, color: statusColor }}>{statusText}</Typography>
+        {it.unit && <UnitLabel unit={it.unit} fontSize="0.95rem" />}
+        <Box
+          component="span"
+          sx={{
+            ml: 0.5,
+            px: 1.1,
+            py: 0.25,
+            borderRadius: '999px',
+            bgcolor: alpha(statusColor, 0.12),
+            border: `1px solid ${alpha(statusColor, 0.25)}`,
+            display: 'inline-flex',
+            alignItems: 'center',
+          }}
+        >
+          <Typography component="span" sx={{ fontSize: 11.5, fontWeight: 800, color: statusColor }}>
+            {statusText}
+          </Typography>
         </Box>
       </Stack>
 
-      {/* Régua: zona verde sólida (lab) + dots de histórico + banda cobre tracejada (meta) + pin */}
+      {/* Régua de 3 camadas: Lab (verde sólida) + Meta tracejada cobre + Histórico + Pin atual */}
       {hasRuler ? (
-        <Box sx={{ mt: 1.25, minWidth: 0 }} role="img"
-          aria-label={`Régua: referência do laboratório de ${fmtNum(it.refLow)} a ${fmtNum(it.refHigh)}${goal ? `, meta clínica ${goalRangeText(goal)}` : ''}. ${statusText}.`}>
-          <Box sx={{ position: 'relative', height: 14, borderRadius: '999px', background: theme.palette.mode === 'dark' ? '#2a3636' : '#eaeef5' }}>
-            {/* Régua do LAB — zona verde SÓLIDA (sempre visível; a meta nunca a substitui) */}
-            <Box sx={{ position: 'absolute', left: pct(it.refLow!), width: `calc(${pct(it.refHigh!)} - ${pct(it.refLow!)})`, top: 0, bottom: 0, background: 'rgba(46,125,50,.30)', borderRadius: '999px' }} />
-            {/* META clínica — banda COBRE TRACEJADA (só com os 2 limites; meia-banda fica no
-                chip). Borda/fill AA no light (#8a6240 @ .28) — no dark mantém o cobre da marca. */}
+        <Box
+          sx={{ mt: 1.25, minWidth: 0 }}
+          role="img"
+          aria-label={`Régua: referência do laboratório de ${fmtNum(it.refLow)} a ${fmtNum(it.refHigh)}${goal ? `, meta clínica ${goalRangeText(goal)}` : ''}. ${statusText}.`}
+        >
+          <Box
+            sx={{
+              position: 'relative',
+              height: 12,
+              borderRadius: '999px',
+              bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+              overflow: 'visible',
+            }}
+          >
+            {/* Faixa de referência do LABORATÓRIO — zona verde sólida sutil */}
+            <Box
+              sx={{
+                position: 'absolute',
+                left: pct(it.refLow!),
+                width: `calc(${pct(it.refHigh!)} - ${pct(it.refLow!)})`,
+                top: 0,
+                bottom: 0,
+                background: 'rgba(46, 125, 50, 0.32)',
+                borderRadius: '999px',
+              }}
+            />
+
+            {/* Faixa de META clínica — banda cobre tracejada com preenchimento leve */}
             {goal && gLow != null && gHigh != null && gHigh > gLow && (
-              <Box sx={{ position: 'absolute', left: pct(gLow), width: `calc(${pct(gHigh)} - ${pct(gLow)})`, top: -2, bottom: -2, borderRadius: '999px', background: alpha(accent, 0.28), border: `1.5px dashed ${accent}` }} />
+              <Box
+                sx={{
+                  position: 'absolute',
+                  left: pct(gLow),
+                  width: `calc(${pct(gHigh)} - ${pct(gLow)})`,
+                  top: -2,
+                  bottom: -2,
+                  borderRadius: '999px',
+                  background: alpha(accent, 0.22),
+                  border: `1.5px dashed ${accent}`,
+                  zIndex: 1,
+                }}
+              />
             )}
-            {/* HISTÓRICO — dots discretos das coletas anteriores */}
+
+            {/* HISTÓRICO — dots sutis de medições anteriores */}
             {history.map((h, i) => (
-              <Box key={i} sx={{ position: 'absolute', left: pct(h.value), top: '50%', transform: 'translate(-50%,-50%)', width: 6, height: 6, borderRadius: '50%', bgcolor: theme.palette.text.disabled, opacity: 0.6 }} />
+              <Box
+                key={i}
+                sx={{
+                  position: 'absolute',
+                  left: pct(h.value),
+                  top: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  width: 5,
+                  height: 5,
+                  borderRadius: '50%',
+                  bgcolor: theme.palette.text.disabled,
+                  opacity: 0.7,
+                  zIndex: 2,
+                }}
+              />
             ))}
-            {/* Último valor — pin grande (cor = status, borda do papel) */}
-            <Box sx={{ position: 'absolute', left: pct(value!), top: '50%', transform: 'translate(-50%,-50%)', width: 15, height: 15, borderRadius: '50%', bgcolor: out ? theme.palette.error.main : theme.palette.success.main, border: '3px solid', borderColor: theme.palette.background.paper, boxShadow: '0 1px 3px rgba(0,0,0,.25)', zIndex: 2 }} />
+
+            {/* PIN do valor atual — círculo destacado com sombra */}
+            <Box
+              sx={{
+                position: 'absolute',
+                left: pct(value!),
+                top: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: 14,
+                height: 14,
+                borderRadius: '50%',
+                bgcolor: out ? theme.palette.error.main : theme.palette.success.main,
+                border: '2.5px solid',
+                borderColor: theme.palette.background.paper,
+                boxShadow: '0 2px 5px rgba(0,0,0,0.25)',
+                zIndex: 3,
+              }}
+            />
           </Box>
-          <Stack direction="row" justifyContent="space-between" sx={{ mt: 0.5 }}>
-            <Typography variant="caption" sx={{ fontSize: 11.5, color: 'text.secondary', fontWeight: 600 }}>{fmtNum(it.refLow)}</Typography>
-            <Typography variant="caption" sx={{ fontSize: 11.5, color: 'text.secondary', fontWeight: 600 }}>Ref. lab</Typography>
-            <Typography variant="caption" sx={{ fontSize: 11.5, color: 'text.secondary', fontWeight: 600 }}>{fmtNum(it.refHigh)}</Typography>
+
+          {/* Marcadores numéricos de limite da régua */}
+          <Stack direction="row" justifyContent="space-between" sx={{ mt: 0.6 }}>
+            <Typography variant="caption" sx={{ fontSize: 11, color: 'text.secondary', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+              {fmtNum(it.refLow)}
+            </Typography>
+            <Typography variant="caption" sx={{ fontSize: 10.5, color: 'text.secondary', fontWeight: 600, opacity: 0.85 }}>
+              Faixa laboratório
+            </Typography>
+            <Typography variant="caption" sx={{ fontSize: 11, color: 'text.secondary', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+              {fmtNum(it.refHigh)}
+            </Typography>
           </Stack>
         </Box>
       ) : (
-        /* Sem régua: o card DIZ o que isso significa — alterado sem faixa é diferente de
-           "sem informação" (júri E4+ #11: sem linha fantasma de régua que não existe). */
-        <Typography variant="caption" sx={{ display: 'block', mt: 1.25, color: out ? statusColor : 'text.secondary', fontWeight: out ? 700 : 400 }}>
+        <Typography variant="caption" sx={{ display: 'block', mt: 1, color: out ? statusColor : 'text.secondary', fontWeight: out ? 700 : 500, fontSize: 11.5 }}>
           {out ? 'Alterado — faixa não informada pelo laboratório.' : 'Sem faixa de referência informada pelo laboratório.'}
         </Typography>
       )}
 
-      {/* Chip 🎯 META VIGENTE — autoria no tooltip (idem TrendsChart, E2.4) */}
-      {goal && (
-        <Tooltip title={
-          <Box sx={{ p: 0.5, maxWidth: 280 }}>
-            <Typography sx={{ fontWeight: 800, fontSize: 13 }}>{goalRangeText(goal)}</Typography>
-            {goal.setBy && <Typography sx={{ fontSize: 12, opacity: 0.85, mt: 0.5 }}>{goal.setBy}</Typography>}
-            {goal.justification && <Typography sx={{ fontSize: 12, opacity: 0.85, mt: 0.5 }}>{goal.justification}</Typography>}
-            {goal.source && <Typography sx={{ fontSize: 11, opacity: 0.7, mt: 0.5 }}>Fonte: {goal.source}</Typography>}
-          </Box>
-        } arrow>
-          <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, mt: 1, px: 1, py: 0.25, borderRadius: '999px', bgcolor: alpha(accent, 0.14), border: `1px dashed ${alpha(accent, 0.7)}`, cursor: 'help' }}>
-            <Typography component="span" sx={{ fontSize: 12.5, fontWeight: 700, color: 'text.secondary' }}>
-              🎯 Meta {goalRangeText(goal)}{goal.setBy ? ` — ${goal.setBy.split(' (CRM')[0]}` : ''}
-            </Typography>
-          </Box>
-        </Tooltip>
-      )}
+      {/* Meta Clínica e Contextos em linha compacta */}
+      <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" alignItems="center" sx={{ mt: 1.25 }}>
+        {/* Chip 🎯 META VIGENTE com autoria no tooltip */}
+        {goal && (
+          <Tooltip
+            title={
+              <Box sx={{ p: 0.5, maxWidth: 280 }}>
+                <Typography sx={{ fontWeight: 800, fontSize: 13 }}>🎯 Meta Clínica: {goalRangeText(goal)}</Typography>
+                {goal.setBy && <Typography sx={{ fontSize: 12, opacity: 0.9, mt: 0.5 }}>Definida por: {goal.setBy}</Typography>}
+                {goal.justification && <Typography sx={{ fontSize: 12, opacity: 0.9, mt: 0.5 }}>Justificativa: {goal.justification}</Typography>}
+                {goal.source && <Typography sx={{ fontSize: 11, opacity: 0.75, mt: 0.5 }}>Diretriz: {goal.source}</Typography>}
+              </Box>
+            }
+            arrow
+          >
+            <Box
+              component="span"
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 0.5,
+                px: 1,
+                py: 0.25,
+                borderRadius: '999px',
+                bgcolor: alpha(accent, 0.12),
+                border: `1px dashed ${alpha(accent, 0.7)}`,
+                cursor: 'help',
+              }}
+            >
+              <Typography component="span" sx={{ fontSize: 11.5, fontWeight: 700, color: accent }}>
+                🎯 Meta {goalRangeText(goal)}
+              </Typography>
+            </Box>
+          </Tooltip>
+        )}
 
-      {/* Duplo-estado explícito (REGRA DURA §4): meta não "explica" alteração. */}
+        {/* Chips de contexto declarado (coleta, treino <24h, última dose) */}
+        {chips.map((c) => (
+          <Chip
+            key={c}
+            size="small"
+            label={c}
+            sx={{
+              height: 22,
+              fontSize: 11,
+              fontWeight: 700,
+              bgcolor: 'action.hover',
+              color: 'text.secondary',
+              border: '1px solid',
+              borderColor: 'divider',
+            }}
+          />
+        ))}
+      </Stack>
+
+      {/* Duplo-status explícito quando há meta vigente */}
       {goal && dual && (
-        <Typography variant="caption" sx={{ display: 'block', mt: 0.75, color: 'text.secondary', fontWeight: 700, lineHeight: 1.35 }}>{dual}</Typography>
+        <Typography variant="caption" sx={{ display: 'block', mt: 0.75, color: 'text.secondary', fontWeight: 700, fontSize: 11.5, lineHeight: 1.35 }}>
+          {dual}
+        </Typography>
       )}
 
-      {/* Chips de CONTEXTO declarado (coleta/treino/última dose) — texto, nunca supressor */}
-      {chips.length > 0 && (
-        <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 1 }}>
-          {chips.map((c) => (
-            <Chip key={c} size="small" label={c} sx={{ height: 22, fontSize: 11, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />
-          ))}
-        </Stack>
-      )}
-
-      {/* Legenda das camadas — SÓ com a camada desenhada (júri E4+ #11): sem régua não
-          existe "Régua do lab · Meta" fantasma; sem meta não existe item de meta. */}
-      {hasRuler && (
+      {/* Legenda individual opcional (se solicitada explicitamente via prop showLegend) */}
+      {showLegend && hasRuler && (
         <Stack direction="row" spacing={1.25} useFlexGap flexWrap="wrap" sx={{ mt: 1.25, pt: 1, borderTop: '1px solid', borderColor: 'divider' }}>
           <Stack direction="row" spacing={0.5} alignItems="center">
             <Box sx={{ width: 10, height: 6, borderRadius: '3px', bgcolor: 'rgba(46,125,50,.55)' }} />
-            <Typography variant="caption" sx={{ fontSize: 11, color: 'text.secondary' }}>Régua do lab</Typography>
+            <Typography variant="caption" sx={{ fontSize: 11, color: 'text.secondary' }}>Régua lab</Typography>
           </Stack>
           {it.count > 1 && (
             <Stack direction="row" spacing={0.5} alignItems="center">
-              <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: 'text.disabled' }} />
+              <Box sx={{ width: 5, height: 5, borderRadius: '50%', bgcolor: 'text.disabled' }} />
               <Typography variant="caption" sx={{ fontSize: 11, color: 'text.secondary' }}>Histórico ({it.count})</Typography>
             </Stack>
           )}
           {goal && (
             <Stack direction="row" spacing={0.5} alignItems="center">
               <Box sx={{ width: 12, height: 0, borderTop: `2px dashed ${accent}` }} />
-              <Typography variant="caption" sx={{ fontSize: 11, color: 'text.secondary' }}>Meta do médico</Typography>
+              <Typography variant="caption" sx={{ fontSize: 11, color: accent }}>Meta clínica</Typography>
             </Stack>
           )}
         </Stack>

@@ -87,65 +87,170 @@ export const SportsAlertBanner = ({ loaded, exams, importante, moderada, staleWa
   if (isLow(hdl) && androgenDeclared(substances)) related.push('HDL baixo · andrógeno declarado');
 
   // Nada pedindo atenção → linha positiva curta (não some sem dizer nada).
+  // Nada pedindo atenção → linha positiva curta (não some sem dizer nada).
   if (attention === 0) {
     return (
-      <AppCard kind="accent" tone="success" sx={{ p: 1.75, mb: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
-        <CheckCircleOutlineIcon sx={{ color: (t) => SEM.ok[t.palette.mode], flexShrink: 0 }} />
+      <AppCard
+        kind="accent"
+        tone="success"
+        sx={{
+          p: { xs: 1.75, sm: 2 },
+          mb: 2,
+          borderRadius: RADIUS.card,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1.5,
+          bgcolor: (t) => alpha(SEM.ok[t.palette.mode], 0.05),
+          border: (t) => `1px solid ${alpha(SEM.ok[t.palette.mode], 0.22)}`,
+        }}
+      >
+        <Box
+          sx={{
+            width: 38,
+            height: 38,
+            borderRadius: '12px',
+            flexShrink: 0,
+            display: 'grid',
+            placeItems: 'center',
+            bgcolor: (t) => alpha(SEM.ok[t.palette.mode], 0.12),
+            color: (t) => SEM.ok[t.palette.mode],
+          }}
+        >
+          <CheckCircleOutlineIcon sx={{ fontSize: 22 }} />
+        </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography sx={{ fontWeight: 800, fontSize: 14 }}>Nada crítico no momento</Typography>
-          {staleWarning && <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>⏳ {staleWarning}</Typography>}
+          <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: 'text.primary' }}>
+            Marcadores dentro do esperado
+          </Typography>
+          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.2, fontSize: 12 }}>
+            Nenhum analito crítico fora da referência no momento.
+            {staleWarning && ` · ⏳ ${staleWarning}`}
+          </Typography>
         </Box>
       </AppCard>
     );
   }
 
   return (
-    <AppCard kind="accent" tone="warning" sx={{ p: { xs: 1.75, sm: 2 }, mb: 2 }}>
+    <AppCard
+      kind="accent"
+      tone="warning"
+      sx={{
+        p: { xs: 2, sm: 2.25 },
+        mb: 2,
+        borderRadius: RADIUS.card,
+        bgcolor: (t) => alpha(SEM.warn[t.palette.mode], 0.05),
+        border: (t) => `1px solid ${alpha(SEM.warn[t.palette.mode], 0.25)}`,
+      }}
+    >
       <Stack direction="row" spacing={1.5} alignItems="flex-start">
-        <WarningAmberIcon sx={{ color: (t) => SEM.warn[t.palette.mode], flexShrink: 0, mt: 0.25 }} />
+        <Box
+          sx={{
+            width: 40,
+            height: 40,
+            borderRadius: '12px',
+            flexShrink: 0,
+            display: 'grid',
+            placeItems: 'center',
+            bgcolor: (t) => alpha(SEM.warn[t.palette.mode], 0.14),
+            color: (t) => SEM.warn[t.palette.mode],
+            mt: 0.25,
+          }}
+        >
+          <WarningAmberIcon sx={{ fontSize: 22 }} />
+        </Box>
+
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography component="h2" sx={{ fontWeight: 800, fontSize: 15, lineHeight: 1.25 }}>
+          <Typography component="h2" sx={{ fontWeight: 800, fontSize: { xs: 15, sm: 16 }, lineHeight: 1.25, color: 'text.primary' }}>
             {attention} {attention === 1 ? 'marcador pede' : 'marcadores pedem'} atenção
-            {importante > 0 ? ` — ${importante} importante${importante > 1 ? 's' : ''}` : ''}
+            {importante > 0 ? ` · ${importante} importante${importante > 1 ? 's' : ''}` : ''}
           </Typography>
           <Typography sx={{ fontSize: 13, color: 'text.secondary', mt: 0.5, lineHeight: 1.45 }}>
             {importante > 0
-              ? 'Os importantes merecem prioridade na próxima consulta — leve o painel esportivo ao seu médico.'
-              : 'Ajustes moderados — comente nas consultas e acompanhe a tendência.'}
+              ? 'Os marcadores importantes merecem prioridade na sua próxima consulta médica.'
+              : 'Ajustes moderados — acompanhe a evolução e comente na sua consulta.'}
           </Typography>
-          {/* Tags dos que pioraram (preview §2): nome + valor + seta — dado real do health-summary */}
+
+          {/* Tags dos que pioraram ou estão relacionados com treino/substâncias */}
           {(worsened.length > 0 || related.length > 0) && (
-            <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 1 }}>
+            <Stack direction="row" spacing={0.6} useFlexGap flexWrap="wrap" sx={{ mt: 1.2 }}>
               {worsened.slice(0, 3).map((m, i) => {
                 const v = m.latest?.valueNumeric ?? null;
                 const dir = v != null && m.refHigh != null && v > m.refHigh ? '↑'
                   : v != null && m.refLow != null && v < m.refLow ? '↓'
                     : m.flag === 'HIGH' ? '↑' : '↓';
                 return (
-                  <Chip key={`${m.nameCanonical || m.name}-${i}`} size="small"
+                  <Chip
+                    key={`${m.nameCanonical || m.name}-${i}`}
+                    size="small"
                     label={`${m.name}${v != null ? ` ${fmtNum(v)}${m.unit ? ' ' + m.unit : ''}` : ''} ${dir}`}
-                    sx={{ height: 24, fontSize: 12, fontWeight: 700, bgcolor: (t) => alpha(SEM.warn[t.palette.mode], 0.10), color: (t) => SEM.warn[t.palette.mode] }} />
+                    onClick={() => navigate(`/tendencias?select=${encodeURIComponent(m.nameCanonical || m.name)}`)}
+                    sx={{
+                      height: 24,
+                      fontSize: 11.5,
+                      fontWeight: 700,
+                      bgcolor: (t) => alpha(SEM.warn[t.palette.mode], 0.12),
+                      color: (t) => SEM.warn[t.palette.mode],
+                      border: (t) => `1px solid ${alpha(SEM.warn[t.palette.mode], 0.25)}`,
+                      cursor: 'pointer',
+                      touchAction: 'manipulation',
+                      '&:active': { transform: 'scale(0.97)' },
+                    }}
+                  />
                 );
               })}
               {related.map((r) => (
-                <Chip key={r} size="small" label={r}
-                  sx={{ height: 24, fontSize: 12, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />
+                <Chip
+                  key={r}
+                  size="small"
+                  label={r}
+                  sx={{
+                    height: 24,
+                    fontSize: 11.5,
+                    fontWeight: 700,
+                    bgcolor: 'action.hover',
+                    color: 'text.secondary',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                  }}
+                />
               ))}
             </Stack>
           )}
-          {/* CONTEXTO EDUCATIVO (E5 §3): linguagem de diretriz atrás do chip "📚 contexto" */}
+
+          {/* CONTEXTO EDUCATIVO (E5 §3): diretrizes clínicas de referência */}
           {edu.length > 0 && (
-            <Stack spacing={0.75} sx={{ mt: 1.25 }}>
+            <Stack spacing={0.75} sx={{ mt: 1.5 }}>
               {edu.map((b) => (
-                <Box key={b.key}>
+                <Box
+                  key={b.key}
+                  sx={{
+                    p: 1,
+                    borderRadius: '10px',
+                    bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.7)'),
+                    border: '1px solid',
+                    borderColor: 'divider',
+                  }}
+                >
                   <Chip
-                    component="button" size="small" aria-expanded={openEdu === b.key}
-                    label={`📚 contexto · ${b.title}`}
+                    component="button"
+                    size="small"
+                    aria-expanded={openEdu === b.key}
+                    label={`📚 Diretriz clínica: ${b.title}`}
                     onClick={() => setOpenEdu((cur) => (cur === b.key ? null : b.key))}
-                    sx={{ height: 26, fontSize: 12, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary', '&:hover': { bgcolor: 'action.selected' } }}
+                    sx={{
+                      height: 26,
+                      fontSize: 12,
+                      fontWeight: 700,
+                      bgcolor: 'action.hover',
+                      color: 'text.secondary',
+                      cursor: 'pointer',
+                      touchAction: 'manipulation',
+                      '&:hover': { bgcolor: 'action.selected' },
+                    }}
                   />
                   <Collapse in={openEdu === b.key} timeout="auto" unmountOnExit>
-                    <Typography sx={{ fontSize: 12.5, color: 'text.secondary', lineHeight: 1.5, mt: 0.5, pl: 0.5 }}>
+                    <Typography sx={{ fontSize: 12.5, color: 'text.secondary', lineHeight: 1.5, mt: 0.75, pl: 0.5 }}>
                       {b.text}
                     </Typography>
                   </Collapse>
@@ -153,11 +258,32 @@ export const SportsAlertBanner = ({ loaded, exams, importante, moderada, staleWa
               ))}
             </Stack>
           )}
+
           {staleWarning && (
-            <Chip size="small" label={`⏳ ${staleWarning}`} sx={{ mt: 1, height: 24, fontSize: 11.5, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />
+            <Box sx={{ mt: 1 }}>
+              <Chip size="small" label={`⏳ ${staleWarning}`} sx={{ height: 22, fontSize: 11, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />
+            </Box>
           )}
-          <Box sx={{ mt: 1.25 }}>
-            <Button size="small" onClick={() => navigate('/alterados')} sx={{ textTransform: 'none', fontWeight: 800, borderRadius: '10px', px: 1.5, color: (t) => SEM.warn[t.palette.mode] }}>
+
+          <Box sx={{ mt: 1.5 }}>
+            <Button
+              size="small"
+              onClick={() => navigate('/alterados')}
+              sx={{
+                textTransform: 'none',
+                fontWeight: 800,
+                borderRadius: '999px',
+                px: 2,
+                py: 0.5,
+                fontSize: 12.5,
+                color: (t) => SEM.warn[t.palette.mode],
+                bgcolor: (t) => alpha(SEM.warn[t.palette.mode], 0.1),
+                border: (t) => `1px solid ${alpha(SEM.warn[t.palette.mode], 0.3)}`,
+                touchAction: 'manipulation',
+                '&:hover': { bgcolor: (t) => alpha(SEM.warn[t.palette.mode], 0.18) },
+                '&:active': { transform: 'scale(0.98)' },
+              }}
+            >
               Ver todos os alterados →
             </Button>
           </Box>
